@@ -141,11 +141,23 @@ Onetime::CustomDomain.display_domain_lookup_keys(@ascii_name.upcase)
  idn_try_acme_allowed?(@ascii_decoding)]
 #=> [[@ascii_decoding], nil, false]
 
+## A crafted A-label is its own DNS name: registering it makes a separate record
+## with its own canonical claim, and the existing record's verification does not
+## carry over to it. (Before the round-trip guard the preflight aliased it onto the
+## Unicode record and refused it as a duplicate.)
+@decomposed_domain = Onetime::CustomDomain.create!(@decomposed_ascii, @org.objid)
+[@decomposed_domain.identifier != @unicode_domain.identifier,
+ Onetime::CustomDomain.canonical_display_domain_index.get(@decomposed_ascii),
+ Onetime::CustomDomain.load_by_display_domain(@ascii_name)&.identifier,
+ @decomposed_domain.ready?,
+ idn_try_acme_allowed?(@decomposed_ascii)]
+#=> [true, @decomposed_domain.identifier, @unicode_domain.identifier, false, false]
+
 ## A blank name has no keys
 [Onetime::CustomDomain.display_domain_lookup_keys(nil), Onetime::CustomDomain.from_display_domain('')]
 #=> [[], nil]
 
 # Teardown
-[@unicode_domain, @ascii_domain, @duplicate].each { |domain| domain.destroy! if domain&.exists? }
+[@unicode_domain, @ascii_domain, @duplicate, @decomposed_domain].each { |domain| domain.destroy! if domain&.exists? }
 @org.destroy! if @org&.exists?
 @owner.destroy! if @owner&.exists?
