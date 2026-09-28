@@ -1,0 +1,180 @@
+# lib/onetime/session/rotation.rb
+#
+# frozen_string_literal: true
+
+require_relative 'ended'
+require_relative 'sidecar'
+
+module Onetime
+  # Session-id rotation at a privilege transition (#4466).
+  #
+  # Issues a new session id for a session that stays signed in, and ends the
+  # old id the way a logout ends it. The password step already gets this from
+  # Rodauth: `login_session` calls the app's `clear_session`, which is
+  # `session.destroy` (apps/web/auth/config/base.rb), and Rodauth then fills
+  # the empty session again. This module is the same step for a session whose
+  # data must SURVIVE: the second factor completing (RISK-2026-09-19-02), and
+  # the other establishment paths #4466 lists once they call it.
+  #
+  # ## The mechanism
+  #
+  # Rack's `SessionHash#destroy` is `clear` followed by
+  # `@id = store.delete_session(req, @id, options)`. On this store
+  # ({Onetime::Session#delete_session}) that one call:
+  #
+  # - writes the {Onetime::SessionEnded} marker for the old id, so a request
+  #   that loaded the old session before this and commits after it cannot
+  #   write it back ({Onetime::Session#write_session} refuses the write);
+  # - deletes the old blob, or refuses to when the marker could not be
+  #   written (the blob must never outlive a missing marker);
+  # - purges every sidecar key of the old id and destroys its
+  #   {Onetime::SessionMetadata} record;
+  # - returns a fresh id, which the session hash adopts at once.
+  #
+  # {rotate!} copies the session data out before the destroy and writes it
+  # back after, so the request's commit persists the same data under the new
+  # id, and the response sets the cookie to the new id. Both happen in this
+  # request; nothing waits for a later one.
+  #
+  # ## What crosses the rotation, and what does not
+  #
+  # Carried, because it is in the session hash: every key the caller has
+  # written or left there. That includes Rodauth's `account_id` and
+  # `authenticated_by`, the active-session token and its join key
+  # (`active_session_id_hmac`, config/features/active_sessions.rb): the row
+  # in `account_active_session_keys` is keyed by that digest, not by the Rack
+  # id, so the row survives untouched. The surface marker
+  # ({Onetime::SessionSurface::KEY}) and the CSRF token are carried too. A
+  # caller that wants any of these cleared deletes them itself, before or
+  # after the call; this module does not decide for it.
+  #
+  # Not carried, by design:
+  #
+  # - The old id's sidecar keys. Explicit-use fields are hand-off state bound
+  #   to one id (the SSO connect intent, the pending SSO bind, the reauth
+  #   challenge, the recent-reauth proof); a caller consumes them before
+  #   rotating or records them afresh after. Externalized fields
+  #   (`awaiting_mfa`, `elevated_until`, `domain_context`) were merged into
+  #   the hash on the read and are re-externalized under the new id by the
+  #   commit, so their VALUES do cross; only the old keys go.
+  # - The snapshot version counter. ADR-046 scopes the epoch to one session
+  #   id: "A session-ID renewal starts a new epoch instead of attempting to
+  #   migrate or compare the old sidecar counter." The epoch is derived from
+  #   the id on every request ({Onetime::SnapshotOrdering.epoch_for}) and is
+  #   cached nowhere, so the next snapshot carries the new one.
+  # - The old {Onetime::SessionMetadata} record and the old id's entry in the
+  #   customer's `active_sessions` index. The commit recreates both for the
+  #   new id (Onetime::Operations::Sessions::TrackMetadata).
+  #
+  # ## The `completed:` fields
+  #
+  # The store's destroy logs a warning when a `destroy_warn` sidecar field
+  # still holds a truthy value, its tripwire for a hand-off stranded by a
+  # re-key (lib/onetime/session/sidecar.rb). A caller rotating at the END of
+  # a hand-off names the fields it has completed; they are deleted on the old
+  # id first, so the warning keeps meaning what it says.
+  #
+  # ## Failure posture
+  #
+  # A session that is not a Rack session-store session (a bare Hash, as in
+  # internal requests and some specs) cannot be rotated; {rotate!} returns
+  # nil. The destroy itself does not raise on a datastore problem: the store
+  # logs and returns a fresh id anyway. The result's `complete` says whether
+  # the old id was really ended (its marker exists); a caller decides what an
+  # incomplete rotation means for its flow. The data is written back to the
+  # hash in every case, so a failed rotation never empties a session that was
+  # signed in.
+  module SessionRotation
+    extend self
+
+    Result = Struct.new(:old_sid, :new_sid, :complete, keyword_init: true) do
+      def rotated?
+        !old_sid.nil? && !new_sid.nil? && old_sid != new_sid
+      end
+    end
+
+    # @param session [Rack::Session::Abstract::SessionHash] the request's session
+    # @param completed [Array<String>] sidecar fields whose hand-off this
+    #   rotation completes (deleted on the old id before the destroy)
+    # @param dbclient [Object, nil] Redis client override (test seam)
+    # @return [Result, nil] nil when the session cannot be rotated
+    def rotate!(session, completed: [], dbclient: nil)
+      unless rotatable?(session)
+        OT.le "[session_rotation] session not rotated: #{session.class} is not a Rack session-store session"
+        return nil
+      end
+
+      db      = dbclient || Familia.dbclient
+      old_sid = plain_id(session.id)
+      data    = session.to_hash
+
+      Array(completed).each do |field|
+        SessionSidecar.delete(old_sid, field, dbclient: db)
+      rescue StandardError => ex
+        OT.lw "[session_rotation] completed field #{field} not deleted on the old id " \
+              "(session_handle=#{handle(old_sid)}): #{ex.class}: #{ex.message}"
+      end
+
+      begin
+        session.destroy
+      ensure
+        # Whatever the destroy did, the signed-in data goes back into the
+        # hash: under the new id normally, under the old one if the destroy
+        # raised before re-keying (then nothing was rotated, and the caller
+        # reads that off the result).
+        session.update(data)
+      end
+
+      new_sid = plain_id(session.id)
+      result  = Result.new(old_sid: old_sid, new_sid: new_sid, complete: false)
+      result.complete = result.rotated? && old_ended?(old_sid, db)
+
+      forget_old_index_entry(data['external_id'], old_sid)
+
+      OT.li "[session_rotation] session id rotated " \
+            "(previous_session_handle=#{handle(old_sid)} session_handle=#{handle(new_sid)} complete=#{result.complete})"
+      result
+    end
+
+    # A Rack session-store session: it can destroy itself through the store,
+    # report its id, and take its data back.
+    def rotatable?(session)
+      %i[destroy to_hash update id].all? { |m| session.respond_to?(m) }
+    end
+
+    private
+
+    def plain_id(id)
+      value = id.respond_to?(:public_id) ? id.public_id : id
+      value = value.to_s
+      value.empty? ? nil : value
+    end
+
+    # The marker is written before the blob is deleted, and the blob delete is
+    # refused without it, so its presence is the one signal that the old id
+    # is ended for in-flight writers as well as for the next request.
+    def old_ended?(old_sid, db)
+      SessionEnded.ended?(old_sid, dbclient: db)
+    rescue StandardError => ex
+      OT.le "[session_rotation] could not confirm the old id ended " \
+            "(session_handle=#{handle(old_sid)}): #{ex.class}: #{ex.message}"
+      false
+    end
+
+    # The customer's active_sessions index still names the old id; the
+    # record it pointed at is gone. ListForCustomer prunes dead entries on
+    # read, so this is tidiness, never authority. Best-effort.
+    def forget_old_index_entry(extid, old_sid)
+      return if extid.to_s.empty? || old_sid.nil?
+
+      Onetime::Customer.find_by_extid(extid)&.active_sessions&.remove(old_sid)
+    rescue StandardError => ex
+      OT.lw "[session_rotation] old id not removed from the customer's session index " \
+            "(session_handle=#{handle(old_sid)}): #{ex.class}: #{ex.message}"
+    end
+
+    def handle(sid)
+      SessionEnded.handle_for(sid)
+    end
+  end
+end

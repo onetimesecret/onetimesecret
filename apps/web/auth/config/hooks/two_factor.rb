@@ -8,8 +8,9 @@ module Auth::Config::Hooks
   # after_two_factor_authentication fires after ANY successful second factor
   # (OTP via otp-auth, recovery code via recovery-auth, passkey via
   # webauthn-auth — each ends in two_factor_authenticate(type)). It performs
-  # the app-side completion of a two-factor login: session sync, clearing the
-  # awaiting_mfa hand-off flag, the deferred SSO bind, and the sign-in alert.
+  # the app-side completion of a two-factor login: session sync, the deferred
+  # SSO bind, the session-id rotation (#4466), the sign-in alert, and clearing
+  # the awaiting_mfa hand-off flag.
   #
   # OWNERSHIP: this hook used to live in Hooks::MFA, which config.rb only
   # registers when AUTH_MFA_ENABLED=true. That stranded webauthn-only
@@ -105,6 +106,94 @@ module Auth::Config::Hooks
           end
         end
 
+        # Rotate the session id (#4466, RISK-2026-09-19-02). Rodauth renews the
+        # id at the password step (login_session -> clear_session ->
+        # session.destroy, config/base.rb) and not here; the second factor is
+        # the privilege transition that turns an MFA-pending session into an
+        # authenticated one, so it gets a fresh id too. Onetime::SessionRotation
+        # destroys the old id through the store (SessionEnded marker, blob,
+        # sidecar keys, metadata record) and writes the session data back under
+        # the new id in this request; the response sets the new cookie.
+        #
+        # ORDER. After the deferred SSO bind above: its stash is a sidecar key
+        # bound to the OLD id and is consumed there (GETDEL). After SyncSession:
+        # the data it wrote is what crosses. Before RecentReauth.record and
+        # remember_me_after_two_factor below: the proof is a sidecar key and the
+        # remember stamp sizes the blob, and both must belong to the NEW id.
+        #
+        # PRESERVED, because it is in the session hash the rotation carries:
+        #   - account_id, authenticated, authenticated_at, external_id, email,
+        #     role (SyncSession), Rodauth's authenticated_by;
+        #   - the active-session token and its join key active_session_id_hmac
+        #     (config/features/active_sessions.rb): the row in
+        #     account_active_session_keys is keyed by that digest, not by the
+        #     Rack id, so the row survives and the remember stamp below finds it;
+        #   - the surface marker (Onetime::SessionSurface::KEY): login_session
+        #     stamped the surface the password step was served on
+        #     (config/overrides/surface_binding.rb) and Auth::SessionRecheck
+        #     refused a challenge replayed on another surface before this hook
+        #     could run (session_recheck.rb), so the marker describes this
+        #     request's surface and is kept;
+        #   - the CSRF token: a rotation is not a sign-out, and
+        #     Onetime::Middleware::CsrfResponseHeader returns a masked token on
+        #     every response anyway, so the client is never left with a stale
+        #     one;
+        #   - remember_me_pending, consumed below.
+        # CLEARED, on purpose:
+        #   - awaiting_mfa on the old id: named as `completed:` so the store's
+        #     stranded-hand-off warning stays quiet; the healing FALSE below
+        #     converges the field to absent under the new id;
+        #   - elevated_until: SyncSession already deleted it (#4327);
+        #   - the old id's recent_reauth proof, if any: a fresh one is recorded
+        #     below under the new id, or none when the primary was not local;
+        #   - the snapshot version counter: ADR-046 scopes the epoch to one
+        #     session id, and the epoch is derived per request, so the next
+        #     snapshot starts a new stream. The SPA asks for it as an
+        #     authentication mutation (MfaChallenge -> ensureAuthenticated ->
+        #     authStore.setAuthenticated -> refresh kind 'auth-mutation'), which
+        #     classifySnapshot applies as 'new-epoch' (src/utils/
+        #     snapshotOrdering.ts) with no forced page load.
+        #
+        # FAILURE. Never fails the login: the second factor succeeded, and an
+        # un-rotated session is the pre-#4466 posture the 2026-09-19 audit
+        # rated defence in depth (the id was renewed at the password step and
+        # an MFA-pending session is refused everywhere but the challenge). It
+        # is logged at error level so it is attributable, like the password
+        # change rotation in hooks/account.rb.
+        begin
+          rotation = Onetime::SessionRotation.rotate!(session, completed: ['awaiting_mfa'])
+          if rotation&.complete
+            Auth::Logging.log_auth_event(
+              :session_rotated,
+              level: :info,
+              account_id: account_id,
+              reason: 'mfa_completed',
+              session_id: rotation.new_sid,
+              previous_session_handle: Onetime::SessionEnded.handle_for(rotation.old_sid),
+              correlation_id: correlation_id,
+            )
+          else
+            Auth::Logging.log_auth_event(
+              :session_rotation_FAILED,
+              level: :error,
+              account_id: account_id,
+              reason: rotation.nil? ? 'session not rotatable' : 'old session id not confirmed ended',
+              rotated: rotation&.rotated? || false,
+              correlation_id: correlation_id,
+              security_warning: 'second factor completed but the session id was not rotated',
+            )
+          end
+        rescue StandardError => ex
+          Auth::Logging.log_auth_event(
+            :session_rotation_FAILED,
+            level: :error,
+            account_id: account_id,
+            error: ex.message,
+            correlation_id: correlation_id,
+            security_warning: 'second factor completed but the session id was not rotated',
+          )
+        end
+
         # Best-effort new-sign-in security alert for MFA logins. The password
         # step's after_login deferred the alert (awaiting_mfa), so this is the
         # single alert for a two-factor login. Location is the country Otto's
@@ -145,9 +234,15 @@ module Auth::Config::Hooks
         # Recent full re-authentication (#4410). The second factor just
         # completed on top of the primary credential from after_login, so
         # this is the completion of a full local ceremony — EXCEPT when the
-        # primary was not an explicit local credential. In particular, remember
-        # restoration does not run after_login, so auth_method can be nil here;
-        # a negative denylist would turn remember + OTP into a false full proof.
+        # primary was not an explicit local credential: a magic link
+        # (email_auth) or an SSO callback (omniauth) is not local proof, and a
+        # session minted by a path that never fires after_login (the
+        # autologins, which call login_session directly) has no auth_method
+        # at all. An allowlist of local primaries refuses all of those; a
+        # denylist would turn an unknown primary + OTP into a false full
+        # proof. (Rodauth's remember feature is not enabled, so there is no
+        # remember restoration to consider here; remember-me extends the
+        # session itself, Onetime::RememberMe, lib/onetime/session/remember_me.rb.)
         primary_auth = session['auth_method']
         if Onetime::RecentReauth::LOCAL_PRIMARIES.include?(primary_auth)
           Onetime::RecentReauth.record(
