@@ -62,8 +62,8 @@ module Onetime
     # the session: the datastore that would verify it could not be reached.
     # RFC 9110 §15.6.4's 503 ("temporary overload ... likely to be alleviated
     # after some delay") describes that, 401 does not, so the status is
-    # rewritten to 503 with `Retry-After: RETRY_AFTER` (§10.2.3, delay-seconds,
-    # the same value `GET /bootstrap/me` uses for its own 503). The body keeps
+    # rewritten to 503 with `Retry-After: UNAVAILABLE_RETRY_AFTER` (§10.2.3,
+    # delay-seconds, the value `GET /bootstrap/me` uses for its own 503). The body keeps
     # every field the 401 had plus the pair, so a client tells this 503 from
     # any other by `code_scope`. The header is set here rather than through
     # RetryAfterHeader's env stash so this middleware needs no particular
