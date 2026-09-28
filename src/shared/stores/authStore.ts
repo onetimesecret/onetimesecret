@@ -185,13 +185,18 @@ export type RefreshOutcome =
  * - `ownedByCoordinator: true`  — the coordinator either has a reconciliation
  *   in flight or is going to force a page load. The toast that would
  *   otherwise appear per failed call would be redundant with the once-only
- *   transition announcement.
+ *   transition announcement. `reconciling` is the rejection that requested
+ *   the reconciliation; `reconciling-duplicate` is a rejection that arrived
+ *   while that reconciliation (or a newer one that superseded it) was still
+ *   in flight, so the same accepted snapshot answers it.
  * - `ownedByCoordinator: false` — the coordinator declined to act, so the
  *   caller's local error handling stands (an anonymous tab, an admin-timeout,
- *   an MFA-pending `awaiting_mfa`, or a throttled duplicate rejection).
+ *   an MFA-pending `awaiting_mfa`, or a `throttled` rejection: a duplicate
+ *   inside the window after the reconciliation has already completed, so no
+ *   coordinator message is coming for it).
  */
 export type RejectionDisposition =
-  | { ownedByCoordinator: true; reason: 'reconciling' | 'will-reload' }
+  | { ownedByCoordinator: true; reason: 'reconciling' | 'reconciling-duplicate' | 'will-reload' }
   | { ownedByCoordinator: false; reason: 'skipped-carve-out' | 'throttled' | 'nonauth' };
 
 /**
@@ -225,6 +230,10 @@ const DISPOSITION_THROTTLED: RejectionDisposition = {
 const DISPOSITION_RECONCILING: RejectionDisposition = {
   ownedByCoordinator: true,
   reason: 'reconciling',
+};
+const DISPOSITION_RECONCILING_DUPLICATE: RejectionDisposition = {
+  ownedByCoordinator: true,
+  reason: 'reconciling-duplicate',
 };
 const DISPOSITION_WILL_RELOAD: RejectionDisposition = {
   ownedByCoordinator: true,
@@ -913,6 +922,18 @@ export const useAuthStore = defineStore('auth', () => {
    *
    * A tab the server last said holds no session has nothing to reconcile, and
    * `awaiting_mfa` tells an MFA-pending tab what it already knows.
+   *
+   * Rejections request at most one reconciliation per REJECTION_MIN_INTERVAL.
+   * A rejection inside that window is a duplicate, and whether the
+   * coordinator owns its message depends on where the reconciliation is:
+   * - still in flight (`inFlight` is set): the accepted snapshot it is about
+   *   to produce answers this rejection too, so the coordinator owns the
+   *   message (`reconciling-duplicate`). A newer flight that superseded the
+   *   rejection's own request counts the same way; its snapshot is the
+   *   coordinator's next verdict (ADR-046#commit-generation-ownership).
+   * - already settled: the coordinator has spoken for the window and will not
+   *   run again for this rejection, so its message cannot cover the call.
+   *   The caller's toast stands (`throttled`).
    */
   function noteApiRejection(failure: SessionFailure | null): RejectionDisposition {
     // A tab already in the stale-session state has begun (or completed) its
@@ -928,9 +949,11 @@ export const useAuthStore = defineStore('auth', () => {
     const now = Date.now();
     if (now - lastRejectionRefreshAt < AUTH_CHECK_CONFIG.REJECTION_MIN_INTERVAL) {
       // A reconciliation was requested within the window; this one is a
-      // duplicate. The coordinator will not run again for this rejection, so
-      // its message cannot cover the toast — let the caller surface it.
-      return DISPOSITION_THROTTLED;
+      // duplicate. While a flight is still up, its accepted snapshot answers
+      // this rejection as well. Once it has settled, the coordinator will not
+      // run again for this rejection, so its message cannot cover the toast:
+      // let the caller surface it.
+      return inFlight ? DISPOSITION_RECONCILING_DUPLICATE : DISPOSITION_THROTTLED;
     }
     lastRejectionRefreshAt = now;
 
