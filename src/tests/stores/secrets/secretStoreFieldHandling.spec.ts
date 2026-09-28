@@ -220,7 +220,7 @@ describe('secretStore', () => {
     // third-party servers — and the schema intentionally stays strict
     // rather than papering over them with coercion. Backend-side
     // reproduction + cast regression tests:
-    // try/unit/models/secret_numeric_field_types_try.rb
+    // try/unit/models/secret/numeric_field_types_try.rb
     describe('numeric field wire types (issue #3424)', () => {
       it('rejects string-typed lifespan/secret_ttl (V3 z.number() does not coerce)', async () => {
         const response = {

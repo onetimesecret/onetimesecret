@@ -164,4 +164,4 @@ end
 | `lib/onetime/models/custom_domain.rb` | CustomDomain model with participates_in |
 | `lib/onetime/models/organization.rb` | Organization with domain convenience methods |
 | `apps/api/domains/logic/domains/add_domain.rb` | API logic enforcing organization context |
-| `try/unit/models/custom_domain_familia_v2_try.rb` | Test suite for relationships |
+| `try/unit/models/custom_domain/familia_v2_try.rb` | Test suite for relationships |

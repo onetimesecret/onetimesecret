@@ -98,7 +98,7 @@ module Billing
     #
     # contact_email is a unique index and an archived organization still
     # holds its reservation — precisely the caller who gets here, since their
-    # own orgs are archived (@see try/unit/models/organization_race_condition_try.rb).
+    # own orgs are archived (@see try/unit/models/organization/race_condition_try.rb).
     # Retry without a contact_email rather than raise: it is not the billing
     # address of record — billing_email / stripe_customer_id are, and
     # update_from_stripe_subscription sets those moments later.

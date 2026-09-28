@@ -202,7 +202,7 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
 
   # Corrupt one of tenant A's AAD-bound trust anchors by copying tenant B's
   # ciphertext for the same field into A's record (the swap
-  # try/unit/models/custom_domain_sso_config_saml_try.rb proves unreadable).
+  # try/unit/models/custom_domain/sso_config_saml_try.rb proves unreadable).
   def swap_trust_anchor_from_b_into_a(field)
     config_a = Onetime::CustomDomain::SsoConfig.find_by_domain_id(tenant_a.domain.identifier)
     config_b = Onetime::CustomDomain::SsoConfig.find_by_domain_id(tenant_b.domain.identifier)

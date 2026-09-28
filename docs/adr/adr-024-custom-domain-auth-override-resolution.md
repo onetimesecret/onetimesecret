@@ -189,7 +189,7 @@ custom-domain-specific resolver.
 Source of truth is this ADR. Principal implementation: the model resolvers
 in `lib/onetime/models/custom_domain/signin_config.rb` and
 `signup_config.rb`. Coverage is asserted by
-`try/unit/models/custom_domain_auth_killswitch_try.rb` and
+`try/unit/models/custom_domain/auth_killswitch_try.rb` and
 `apps/api/domains/spec/integration/simple/domain_signup_config_spec.rb`.
 Use source search for the current call sites rather than treating this list
 as an inventory.
