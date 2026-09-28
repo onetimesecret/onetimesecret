@@ -193,13 +193,15 @@ Fixed
 - Under the ``approximated`` strategy, a TXT check that could not reach
   Approximated at all (no API key configured, a non-200 response, a network
   error) is no longer reported as a failed check. The application does its
-  own lookup in those cases too, so a domain whose record is in place is
-  confirmed, a removed record is noticed, and only a domain whose native
-  lookup also produces no answer is reported as indeterminate and falls under
-  the 7-day confirmation window. An install whose Approximated API key is
-  missing or revoked keeps its domains verified through the native lookup. An
-  unexpected error during a verify is likewise reported as indeterminate
-  rather than failed.
+  own lookup in those cases too: a matching answer confirms the domain, and
+  a definitive negative keeps an unverified domain unverified. For a domain
+  that is already verified, a native definitive negative is instead treated
+  as indeterminate, retaining verification within the 7-day confirmation
+  window. A native lookup that produces no answer is also indeterminate.
+  A further indeterminate check after the window expires withdraws
+  verification unless a Colonel override holds it. See
+  ``lib/onetime/domain_validation/README.md`` for details. An unexpected error
+  during a verify is likewise reported as indeterminate rather than failed.
 
 - An internationalised custom domain that was entered in Unicode (for example
   ``bücher.example``) is now found when it is looked up by its punycode form
