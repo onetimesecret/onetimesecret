@@ -210,6 +210,16 @@ RSpec.describe Internal::ACME::Application, type: :request, acme_integration: tr
         expect(last_response.status).to eq(403)
       end
 
+      it 'answers 403 for an A-label encoding an upper-case letter' do
+        get '/ask', domain: 'xn--bcher-2pa.example'
+        expect(last_response.status).to eq(403)
+      end
+
+      it 'answers 403 for the punycode of the A-label itself' do
+        get '/ask', domain: 'xn--xn--bcher-kva-.example'
+        expect(last_response.status).to eq(403)
+      end
+
       it 'answers 403, not 500, for an overlong label' do
         get '/ask', domain: "#{'ü' * 70}.example"
         expect(last_response.status).to eq(403)
@@ -222,6 +232,38 @@ RSpec.describe Internal::ACME::Application, type: :request, acme_integration: tr
 
       it 'answers 403, not 500, for an overlong name' do
         get '/ask', domain: "xn--bcher-kva.#{(['a' * 60] * 5).join('.')}.example"
+        expect(last_response.status).to eq(403)
+      end
+    end
+
+    context 'with a domain indexed in A-label form' do
+      let(:idn_domain) { double('CustomDomain', display_domain: 'xn--bcher-kva.example', ready?: true) }
+      let(:index) { double('display_domain_index') }
+
+      before do
+        allow(index).to receive(:get).and_return(nil)
+        allow(index).to receive(:get).with('xn--bcher-kva.example').and_return('domain-id-2')
+        allow(Onetime::CustomDomain).to receive(:display_domain_index).and_return(index)
+        allow(Onetime::CustomDomain).to receive(:find_by_identifier).with('domain-id-2').and_return(idn_domain)
+      end
+
+      it 'allows it when asked by its A-label' do
+        get '/ask', domain: 'xn--bcher-kva.example'
+        expect(last_response.status).to eq(200)
+      end
+
+      it 'allows it when asked by its U-label' do
+        get '/ask', domain: 'bücher.example'
+        expect(last_response.status).to eq(200)
+      end
+
+      it 'answers 403 for the punycode of that A-label' do
+        get '/ask', domain: 'xn--xn--bcher-kva-.example'
+        expect(last_response.status).to eq(403)
+      end
+
+      it 'answers 403 for the decomposed spelling' do
+        get '/ask', domain: 'xn--bucher-xyd.example'
         expect(last_response.status).to eq(403)
       end
     end

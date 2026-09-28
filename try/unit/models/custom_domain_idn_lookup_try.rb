@@ -45,6 +45,10 @@ require_relative '../../../apps/internal/acme/application'
 @typed_unicode_name = "café-#{@suffix}.com"
 @ascii_domain       = Onetime::CustomDomain.create!(@typed_ascii_name, @org.objid)
 
+# A plain ASCII domain, the target of a punycode label that decodes to ASCII.
+@plain_name   = "plain-#{@suffix}.com"
+@plain_domain = Onetime::CustomDomain.create!(@plain_name, @org.objid)
+
 def idn_try_acme_allowed?(name)
   Internal::ACME::Application.domain_allowed?(name)
 end
@@ -141,6 +145,39 @@ Onetime::CustomDomain.display_domain_lookup_keys(@ascii_name.upcase)
  idn_try_acme_allowed?(@ascii_decoding)]
 #=> [[@ascii_decoding], nil, false]
 
+## Every crafted spelling of the registered Unicode name misses in every lookup path:
+## the decomposed A-label, an A-label encoding an upper-case letter, and the
+## punycode of the real A-label. Each decodes towards the registered name but
+## does not encode back to itself.
+@crafted_spellings = [
+  @decomposed_ascii,
+  "xn--#{SimpleIDN::Punycode.encode("b#{0xDC.chr(Encoding::UTF_8)}cher-#{@suffix}")}.com",
+  "xn--#{@ascii_name.split('.').first}-.com",
+]
+@crafted_spellings.map do |name|
+  [Onetime::CustomDomain.load_by_display_domain(name),
+   Onetime::CustomDomain.from_display_domain(name),
+   Onetime::CustomDomain.resolve_domain_id(name),
+   idn_try_acme_allowed?(name)]
+end.uniq
+#=> [[nil, nil, nil, false]]
+
+## The crafted spellings are distinct names from each other and from the real A-label
+(@crafted_spellings + [@ascii_name]).uniq.size
+#=> 4
+
+## A punycode label that decodes to a plain ASCII name does not find that record
+@plain_as_punycode = "xn--plain-#{@suffix}-.com"
+[Onetime::CustomDomain.display_domain_lookup_keys(@plain_as_punycode),
+ Onetime::CustomDomain.load_by_display_domain(@plain_as_punycode),
+ Onetime::CustomDomain.from_display_domain(@plain_as_punycode),
+ idn_try_acme_allowed?(@plain_as_punycode)]
+#=> [[@plain_as_punycode], nil, nil, false]
+
+## The plain record itself is still found by its own name
+Onetime::CustomDomain.load_by_display_domain(@plain_name.upcase)&.identifier
+#=> @plain_domain.identifier
+
 ## A crafted A-label is its own DNS name: registering it makes a separate record
 ## with its own canonical claim, and the existing record's verification does not
 ## carry over to it. (Before the round-trip guard the preflight aliased it onto the
@@ -153,11 +190,47 @@ Onetime::CustomDomain.display_domain_lookup_keys(@ascii_name.upcase)
  idn_try_acme_allowed?(@decomposed_ascii)]
 #=> [true, @decomposed_domain.identifier, @unicode_domain.identifier, false, false]
 
+## Verifying the crafted record authorizes only its own name: each name still
+## resolves to its own record, in both directions
+@decomposed_domain.verified  = true
+@decomposed_domain.resolving = true
+@decomposed_domain.save
+[Onetime::CustomDomain.load_by_display_domain(@decomposed_ascii)&.identifier == @decomposed_domain.identifier,
+ Onetime::CustomDomain.load_by_display_domain(@ascii_name)&.identifier == @unicode_domain.identifier,
+ Onetime::CustomDomain.load_by_display_domain(@unicode_name)&.identifier == @unicode_domain.identifier,
+ idn_try_acme_allowed?(@decomposed_ascii)]
+#=> [true, true, true, true]
+
+## The crafted record cannot be renamed onto the real name in either spelling
+[@unicode_name, @ascii_name].map do |name|
+  @decomposed_domain.update_display_domain(name)
+  :renamed
+rescue Onetime::Problem => ex
+  ex.message
+end
+#=> ['Domain already registered', 'Domain already registered']
+
+## Nor can the real record be renamed onto the crafted spelling
+begin
+  @unicode_domain.update_display_domain(@decomposed_ascii)
+  :renamed
+rescue Onetime::Problem => ex
+  ex.message
+end
+#=> 'Domain already registered'
+
+## After the refused renames both records keep their names and canonical claims
+[Onetime::CustomDomain.find_by_identifier(@unicode_domain.identifier).display_domain,
+ Onetime::CustomDomain.find_by_identifier(@decomposed_domain.identifier).display_domain,
+ Onetime::CustomDomain.canonical_display_domain_index.get(@ascii_name),
+ Onetime::CustomDomain.canonical_display_domain_index.get(@decomposed_ascii)]
+#=> [@unicode_name, @decomposed_ascii, @unicode_domain.identifier, @decomposed_domain.identifier]
+
 ## A blank name has no keys
 [Onetime::CustomDomain.display_domain_lookup_keys(nil), Onetime::CustomDomain.from_display_domain('')]
 #=> [[], nil]
 
 # Teardown
-[@unicode_domain, @ascii_domain, @duplicate, @decomposed_domain].each { |domain| domain.destroy! if domain&.exists? }
+[@unicode_domain, @ascii_domain, @plain_domain, @duplicate, @decomposed_domain].each { |domain| domain.destroy! if domain&.exists? }
 @org.destroy! if @org&.exists?
 @owner.destroy! if @owner&.exists?
