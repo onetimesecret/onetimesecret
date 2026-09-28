@@ -173,11 +173,12 @@ Changed
   Domain refresh runs only in a running ``bin/ots scheduler`` process, with
   ``jobs.domain_refresh.enabled`` on (the default); ``JOBS_ENABLED`` does not
   affect it. The S6 image and the full compose stack start a scheduler; the
-  plain image does not, and a source install runs one only when its Procfile's
-  ``scheduler`` line is enabled. Without a scheduler no refresh ever runs:
-  domains marked verified without a TXT record then stay verified, and
-  verified on its own still gates link creation under ``require_verified``
-  and SSO. Installs that do not run the domain refresh job must run
+  simple compose stack and a plain ``docker run`` do not, and a source
+  install runs one only when its Procfile's ``scheduler`` line is enabled.
+  Without a scheduler no refresh ever runs: domains marked verified without
+  a TXT record then stay verified, and verified on its own still gates link
+  creation under ``require_verified`` and SSO. Installs that do not run the
+  domain refresh job must run
   ``bin/ots domains verify --all`` once after upgrading for the TXT check to
   take effect on existing domains, and periodically after that (for example
   from cron) so that a removed record is noticed.
