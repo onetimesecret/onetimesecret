@@ -309,18 +309,63 @@ describe('authStore PR #4497 transition contracts', () => {
       });
     });
 
-    it('a throttled duplicate returns { ownedByCoordinator: false, reason: throttled }', async () => {
+    it('a duplicate while the reconciliation is in flight returns { ownedByCoordinator: true, reason: reconciling-duplicate }', async () => {
       await mountWith(authenticatedBootstrap);
       axiosMock.onGet(ENDPOINT).reply(200, toWire(newerSnapshot(authenticatedBootstrap)));
 
       const first = store.noteApiRejection(revoked);
+      // The request is up but has not answered: the snapshot it will apply
+      // answers every 401 that arrived meanwhile, so no toast for them.
       const second = store.noteApiRejection(revoked);
+      const third = store.noteApiRejection(revoked);
+
+      expect(first).toEqual({ ownedByCoordinator: true, reason: 'reconciling' });
+      expect(second).toEqual({ ownedByCoordinator: true, reason: 'reconciling-duplicate' });
+      expect(third).toEqual({ ownedByCoordinator: true, reason: 'reconciling-duplicate' });
+      expect(requests()).toBe(1);
+    });
+
+    it('a duplicate after the reconciliation settled returns { ownedByCoordinator: false, reason: throttled }', async () => {
+      await mountWith(authenticatedBootstrap);
+      axiosMock.onGet(ENDPOINT).reply(200, toWire(newerSnapshot(authenticatedBootstrap)));
+
+      const first = store.noteApiRejection(revoked);
+      await vi.advanceTimersByTimeAsync(0);
+      expect(store.authStatus).toBe('authenticated');
+
+      // Still inside REJECTION_MIN_INTERVAL, but the reconciliation has
+      // completed and found the session valid. The coordinator will NOT run
+      // again for this rejection, so the caller keeps its toast
+      // (ADR-046#rejection-disposition).
+      const later = store.noteApiRejection(revoked);
 
       expect(first.ownedByCoordinator).toBe(true);
-      // A follow-up rejection within REJECTION_MIN_INTERVAL is throttled — the
-      // coordinator will NOT run for it, so the caller keeps its toast
-      // (ADR-046#rejection-disposition).
-      expect(second).toEqual({ ownedByCoordinator: false, reason: 'throttled' });
+      expect(later).toEqual({ ownedByCoordinator: false, reason: 'throttled' });
+      expect(requests()).toBe(1);
+    });
+
+    it('a duplicate is owned by whichever flight superseded the rejection request, until it settles', async () => {
+      await mountWith(authenticatedBootstrap);
+      axiosMock.onGet(ENDPOINT).reply(200, toWire(newerSnapshot(authenticatedBootstrap)));
+
+      const first = store.noteApiRejection(revoked);
+      // An auth mutation aborts the rejection's own request and starts a new
+      // generation; its snapshot is the coordinator's next verdict
+      // (ADR-046#commit-generation-ownership), so it answers the duplicate.
+      const mutation = store.refresh({ kind: 'auth-mutation', reason: 'login' });
+      const whileSuperseding = store.noteApiRejection(revoked);
+
+      expect(first.ownedByCoordinator).toBe(true);
+      expect(whileSuperseding).toEqual({
+        ownedByCoordinator: true,
+        reason: 'reconciling-duplicate',
+      });
+
+      await vi.advanceTimersByTimeAsync(0);
+      expect(await mutation).toBe('applied');
+
+      const afterwards = store.noteApiRejection(revoked);
+      expect(afterwards).toEqual({ ownedByCoordinator: false, reason: 'throttled' });
     });
 
     it('an admin-only timeout returns { ownedByCoordinator: false, reason: skipped-carve-out }', async () => {

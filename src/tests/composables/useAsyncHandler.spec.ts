@@ -573,6 +573,33 @@ describe('useAsyncHandler', () => {
       expect(onError).toHaveBeenCalledTimes(5);
     });
 
+    it('suppresses the toast for a duplicate while the reconciliation is in flight', async () => {
+      mockBootstrapStore.mockReturnValue({ lastSnapshotReportedSession: true });
+      const onError = vi.fn();
+      const { wrap } = useAsyncHandler({ ...mockOptions, onError });
+
+      // The first 401 requested the reconciliation; the rest arrived while it
+      // was still up. One accepted snapshot answers all of them.
+      await wrap(() =>
+        Promise.reject(stamp(refusal(revoked), { ownedByCoordinator: true, reason: 'reconciling' }))
+      );
+      await Promise.all(
+        Array.from({ length: 4 }, () =>
+          wrap(() =>
+            Promise.reject(
+              stamp(refusal(revoked), {
+                ownedByCoordinator: true,
+                reason: 'reconciling-duplicate',
+              })
+            )
+          )
+        )
+      );
+
+      expect(mockOptions.notify).not.toHaveBeenCalled();
+      expect(onError).toHaveBeenCalledTimes(5);
+    });
+
     it('suppresses the toast when a reload is imminent', async () => {
       mockBootstrapStore.mockReturnValue({ lastSnapshotReportedSession: true });
       const { wrap } = useAsyncHandler(mockOptions);
@@ -588,7 +615,7 @@ describe('useAsyncHandler', () => {
 
     it.each([
       ['a carve-out (anonymous tab / admin_session / awaiting_mfa)', 'skipped-carve-out'],
-      ['a throttled duplicate rejection', 'throttled'],
+      ['a duplicate rejection after the reconciliation settled', 'throttled'],
     ])('still notifies for %s (disposition: %s)', async (_name, reason) => {
       mockBootstrapStore.mockReturnValue({ lastSnapshotReportedSession: true });
       const { wrap } = useAsyncHandler(mockOptions);
