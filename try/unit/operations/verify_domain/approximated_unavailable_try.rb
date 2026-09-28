@@ -1,4 +1,4 @@
-# try/unit/operations/verify_domain_approximated_unavailable_try.rb
+# try/unit/operations/verify_domain/approximated_unavailable_try.rb
 #
 # frozen_string_literal: true
 
@@ -20,7 +20,7 @@
 # The Approximated client and the resolver are scripted; nothing leaves the
 # process.
 
-require_relative '../../support/test_helpers'
+require_relative '../../../support/test_helpers'
 require 'securerandom'
 
 OT.boot! :test

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # scripts/regroup-tryouts-by-prefix.sh
 #
-# One-off, already applied on top of c72cb44ff8. Kept as the record of the
+# One-off, already applied on top of c8ae2b33d7. Kept as the record of the
 # move; a second run stops at the preconditions because the sources are gone.
 #
 # Group tryouts that share a filename prefix into a directory named after it.
@@ -39,6 +39,7 @@ try/unit/models/custom_domain_familia_v2_try.rb                                t
 try/unit/models/custom_domain_homepage_config_race_try.rb                      try/unit/models/custom_domain/homepage_config_race_try.rb
 try/unit/models/custom_domain_homepage_config_try.rb                           try/unit/models/custom_domain/homepage_config_try.rb
 try/unit/models/custom_domain_icon_safe_dump_try.rb                            try/unit/models/custom_domain/icon_safe_dump_try.rb
+try/unit/models/custom_domain_idn_lookup_try.rb                                try/unit/models/custom_domain/idn_lookup_try.rb
 try/unit/models/custom_domain_instances_owners_try.rb                          try/unit/models/custom_domain/instances_owners_try.rb
 try/unit/models/custom_domain_load_contract_try.rb                             try/unit/models/custom_domain/load_contract_try.rb
 try/unit/models/custom_domain_load_error_handling_try.rb                       try/unit/models/custom_domain/load_error_handling_try.rb
@@ -134,6 +135,7 @@ try/unit/mail/templates_welcome_try.rb                                         t
 
 # -> try/unit/operations/verify_domain/
 try/unit/operations/verify_domain_approximated_native_try.rb                   try/unit/operations/verify_domain/approximated_native_try.rb
+try/unit/operations/verify_domain_approximated_unavailable_try.rb              try/unit/operations/verify_domain/approximated_unavailable_try.rb
 try/unit/operations/verify_domain_caddy_on_demand_try.rb                       try/unit/operations/verify_domain/caddy_on_demand_try.rb
 try/unit/operations/verify_domain_confirmation_window_try.rb                   try/unit/operations/verify_domain/confirmation_window_try.rb
 

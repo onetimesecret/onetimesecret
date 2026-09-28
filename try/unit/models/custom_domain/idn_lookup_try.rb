@@ -1,4 +1,4 @@
-# try/unit/models/custom_domain_idn_lookup_try.rb
+# try/unit/models/custom_domain/idn_lookup_try.rb
 #
 # frozen_string_literal: true
 
@@ -15,13 +15,13 @@
 # domain_allowed? for a verified + resolving IDN domain. Names that cannot be
 # converted are a miss (the ask endpoint answers 403), never an exception.
 
-require_relative '../../support/test_helpers'
+require_relative '../../../support/test_helpers'
 require 'securerandom'
 require 'simpleidn'
 
 OT.boot! :test
 
-require_relative '../../../apps/internal/acme/application'
+require_relative '../../../../apps/internal/acme/application'
 
 @suffix = "#{Familia.now.to_i}#{SecureRandom.hex(3)}"
 @owner  = Onetime::Customer.create!(email: "idn_lookup_#{@suffix}@test.com")
