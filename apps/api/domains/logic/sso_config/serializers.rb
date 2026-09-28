@@ -97,20 +97,22 @@ module DomainsAPI
         # API, usually on the canonical host, so the origin is composed from
         # the domain's display_domain and site.ssl. The two agree for a
         # verified custom domain served on the default port — the production
-        # shape. They can differ for an UNVERIFIED domain (Auth::PublicHost
-        # only roots auth URLs on a TXT-verified domain, so full_host falls
-        # back to the canonical host, never to the request's own authority —
-        # #4517) or a non-default port; the SP metadata URL itself is always
-        # authoritative, since it is served by the same hook.
+        # shape. An unverified domain is withheld because Auth::PublicHost will
+        # not serve tenant auth URLs there (#4517); advertising identifiers on
+        # that host would give the IdP values the runtime cannot use.
         #
-        # Both nil for a non-saml record, or when the domain cannot be loaded.
+        # Both nil for a non-saml record, when the domain cannot be loaded, or
+        # while domain ownership is unverified.
         #
         # @return [Hash{Symbol => String, nil}]
         def saml_sp_identifiers(config)
           blank = { sp_entity_id: nil, acs_url: nil }
           return blank unless config.provider_type == 'saml'
 
-          host = config.custom_domain&.display_domain.to_s.strip
+          domain = config.custom_domain
+          return blank unless domain&.verified
+
+          host = domain.display_domain.to_s.strip
           return blank if host.empty?
 
           scheme = OT.conf.dig('site', 'ssl') == false ? 'http' : 'https'
