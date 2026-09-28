@@ -90,6 +90,10 @@ RSpec.describe 'Session-id rotation on second-factor completion (#4466)', :full_
 
     join_key = pending_blob.fetch('active_session_id_hmac')
     expect(active_session_rows.where(session_id: join_key).count).to eq(1)
+    # provision_totp signs in for the OTP setup and only clears cookies, so
+    # its row is still there beside the password step's; the rotation must
+    # leave that whole set as it found it.
+    rows_before = active_session_rows.select_map(:session_id).sort
 
     # A merged, externalized sidecar value on the pending id. It is overlaid
     # into the session hash on the read, so it must cross with the hash and
@@ -124,8 +128,9 @@ RSpec.describe 'Session-id rotation on second-factor completion (#4466)', :full_
     expect(blob['authenticated_at']).to be_a(Integer)
     expect(blob['awaiting_mfa']).not_to be(true)
 
-    # The active-session row survived, and it is the same row.
-    expect(active_session_rows.count).to eq(1)
+    # The active-session rows are the same set as before the second factor,
+    # and the pending session's row is the same row (same join key).
+    expect(active_session_rows.select_map(:session_id).sort).to eq(rows_before)
     expect(active_session_rows.where(session_id: join_key).count).to eq(1)
 
     # The metadata record is written for the new id (Sessions::TrackMetadata

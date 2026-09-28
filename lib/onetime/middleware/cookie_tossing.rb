@@ -16,8 +16,12 @@ module Onetime
     # session_key`). The reaction is `deny`: a 403 with a text/plain
     # "Forbidden" body, and the response carries a Set-Cookie clearing the
     # offending name for every prefix of the request path, with the request
-    # host as the cookie domain. The downstream app never runs. A request with
-    # one session cookie passes through unchanged.
+    # host as the cookie domain. That clear is host-scoped: a cookie planted
+    # with a parent `Domain=` attribute is not removed by it, and the browser
+    # keeps sending both until that cookie expires, so the refusal turns the
+    # fixation exposure into a denial of service on the victim's browser for
+    # the planted cookie's lifetime. The downstream app never runs. A request
+    # with one session cookie passes through unchanged.
     #
     # Two things the stock class needs from us:
     #

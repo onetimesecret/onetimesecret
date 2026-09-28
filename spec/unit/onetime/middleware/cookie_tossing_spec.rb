@@ -82,7 +82,10 @@ RSpec.describe Onetime::Middleware::CookieTossing do
       expect(request('onetime.session=a; onetime%2Esession=b').first).to eq(403)
     end
 
-    it 'clears the offending cookie on the response' do
+    # Host-scoped: the gem sets an empty cookie with domain = request host per
+    # path prefix. A cookie planted with a parent Domain= attribute is not
+    # cleared by this, and the browser keeps sending both until it expires.
+    it 'clears the offending cookie for the request host on the response' do
       _status, headers, = request('onetime.session=a; onetime.session=b', path: '/api/account/')
 
       expect(set_cookie_lines(headers)).to include(a_string_starting_with('onetime.session=;'))
