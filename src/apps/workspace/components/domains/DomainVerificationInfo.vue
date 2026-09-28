@@ -26,18 +26,38 @@
     return '/dashboard';
   });
 
-  const { statusIcon, statusColor, isActive, isWarning, isError, isStale } = useDomainStatus(
-    () => props.domain
-  );
+  const { statusIcon, statusColor, isActive, isWarning, isAwaitingCertificate, isStale } =
+    useDomainStatus(() => props.domain);
 
   /**
-   * Tooltip text that explains the actual status, not just "view status"
+   * Tooltip text that explains the actual status, not just "view status".
+   * Same precedence as useDomainStatus#displayStatus. `isActive` already
+   * requires `verified`, so a domain whose status blob still reads active
+   * after its TXT check stopped passing falls through to "not verified".
    */
   const statusTooltip = computed(() => {
     if (isStale.value) return t('web.domains.status_tooltip_unverified');
     if (isActive.value) return t('web.domains.status_tooltip_active');
     if (isWarning.value) return t('web.domains.status_tooltip_dns_incorrect');
+    if (isAwaitingCertificate.value) return t('web.domains.status_tooltip_pending_ssl');
     return t('web.domains.status_tooltip_not_verified');
+  });
+
+  /**
+   * SSL row. `vhost.has_ssl` is three-valued on the wire: true, false, or
+   * absent when the check could not tell (the caddy_on_demand probe could not
+   * reach port 443, or the stored certificate dates have lapsed). Absent is
+   * "unknown", not "inactive".
+   */
+  const sslStatus = computed(() => {
+    const hasSsl = props.domain?.vhost?.has_ssl;
+    if (hasSsl === true) {
+      return { label: t('web.COMMON.active'), color: 'text-emerald-600 dark:text-emerald-400' };
+    }
+    if (hasSsl === false) {
+      return { label: t('web.COMMON.inactive'), color: 'text-rose-600 dark:text-rose-500' };
+    }
+    return { label: t('web.COMMON.unknown'), color: 'text-gray-500 dark:text-gray-400' };
   });
 
   /**
@@ -48,6 +68,20 @@
     const failedAt = props.domain?.vhost_fetch_failed_at;
     if (failedAt == null) return '';
     return formatDistanceToNow(Number(failedAt) * 1000, { addSuffix: true });
+  });
+
+  /**
+   * "Last monitored" row. Approximated's payload carries its own humanized
+   * text; the caddy_on_demand probe writes only `last_monitored_unix`, which
+   * the v3 vhost schema parses to a Date. Empty string when neither is usable.
+   */
+  const lastMonitoredText = computed(() => {
+    const vhost = props.domain?.vhost;
+    if (vhost?.last_monitored_humanized) return vhost.last_monitored_humanized;
+
+    const monitoredAt = vhost?.last_monitored_unix;
+    if (!(monitoredAt instanceof Date) || Number.isNaN(monitoredAt.getTime())) return '';
+    return formatDistanceToNow(monitoredAt, { addSuffix: true });
   });
 
   // const formatDate = (dateString: string): string => {
@@ -79,15 +113,8 @@
       <OIcon
         collection="mdi"
         :name="statusIcon"
-        class="shrink-0 opacity-75"
-        :class="[
-          'size-4 transition-opacity hover:opacity-80',
-          {
-            'text-amber-500 dark:text-amber-400': isStale || isWarning,
-            'text-emerald-600 dark:text-emerald-400': !isStale && isActive,
-            'text-rose-600 dark:text-rose-500': !isStale && !isActive && isError,
-          },
-        ]" />
+        class="size-4 shrink-0 opacity-75 transition-opacity hover:opacity-80"
+        :class="statusColor" />
     </RouterLink>
     <div
       v-else
@@ -117,7 +144,11 @@
               class="text-base">{{ domain?.vhost?.status_message }}</span>
           </div>
 
-          <div class="flex flex-col">
+          <!-- Approximated-only: the caddy_on_demand probe has no proxy target. -->
+          <div
+            v-if="domain?.vhost?.target_address"
+            data-testid="vhost-target-address"
+            class="flex flex-col">
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{
               t('web.domains.target_address')
             }}</span>
@@ -149,9 +180,10 @@
               t('web.domains.ssl_status')
             }}</span>
             <span
+              data-testid="vhost-ssl-status"
               class="text-base"
-              :class="domain?.vhost?.has_ssl ? 'text-emerald-600' : 'text-rose-600'">
-              {{ domain?.vhost?.has_ssl ? t('web.COMMON.active') : t('web.COMMON.inactive') }}
+              :class="sslStatus.color">
+              {{ sslStatus.label }}
             </span>
           </div>
 
@@ -159,9 +191,9 @@
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{
               t('web.domains.last_monitored')
             }}</span>
-            <span class="text-base text-gray-900 dark:text-white">{{
-              domain?.vhost?.last_monitored_humanized
-            }}</span>
+            <span
+              data-testid="vhost-last-monitored"
+              class="text-base text-gray-900 dark:text-white">{{ lastMonitoredText }}</span>
           </div>
 
           <div

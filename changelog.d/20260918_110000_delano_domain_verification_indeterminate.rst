@@ -31,6 +31,9 @@ Changed
   ``issue_details.dns_indeterminate``), and the domain refresh summary line
   and a warning log line report both, so a domain that lost verified status
   can be found without a console session.
+  Re-verify in the Colonel domain toolbox now reports the outcome of the
+  check, as the domain list and detail pages do, instead of announcing every
+  completed call as a success.
 
 Fixed
 -----

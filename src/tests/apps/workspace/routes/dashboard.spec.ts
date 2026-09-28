@@ -1,16 +1,19 @@
 // src/tests/apps/workspace/routes/dashboard.spec.ts
 
 import dashboardRoutes from '@/apps/workspace/routes/dashboard';
-import { isApproximatedDomainValidation } from '@/utils/features';
+import {
+  OWNERSHIP_CHECKING_STRATEGIES,
+  setDomainValidationStrategy,
+} from '@tests/support/domainValidationStrategy';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { RouteRecordRaw } from 'vue-router';
 
 // Control the install's validation strategy for the DNS/verify route guards.
-vi.mock('@/utils/features', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@/utils/features')>()),
-  isApproximatedDomainValidation: vi.fn(() => true),
-}));
-const mockApprox = vi.mocked(isApproximatedDomainValidation);
+// The real capability table is evaluated, not a boolean stub.
+vi.mock('@/utils/features', async (importOriginal) => {
+  const { featuresForStrategy } = await import('@tests/support/domainValidationStrategy');
+  return featuresForStrategy(await importOriginal<typeof import('@/utils/features')>());
+});
 
 const findRoute = (name: string) =>
   dashboardRoutes.find((r: RouteRecordRaw) => r.name === name);
@@ -63,27 +66,35 @@ describe('Dashboard Routes', () => {
     const params = { orgid: 'org-1', extid: 'dm-1' };
 
     beforeEach(() => {
-      mockApprox.mockReturnValue(true);
+      setDomainValidationStrategy('approximated');
     });
 
-    it('DomainVerify is allowed on approximated installs', () => {
-      mockApprox.mockReturnValue(true);
-      expect(runGuard('DomainVerify', params)).toBe(true);
+    describe.each(OWNERSHIP_CHECKING_STRATEGIES)('under %s', (strategy) => {
+      beforeEach(() => {
+        setDomainValidationStrategy(strategy);
+      });
+
+      it('DomainVerify is allowed', () => {
+        expect(runGuard('DomainVerify', params)).toBe(true);
+      });
+
+      it('DomainDns redirects to DomainVerify, keeping the params', () => {
+        expect(runGuard('DomainDns', params)).toEqual({ name: 'DomainVerify', params });
+      });
     });
 
-    it('DomainVerify redirects to DomainDns on non-approximated installs', () => {
-      mockApprox.mockReturnValue(false);
-      expect(runGuard('DomainVerify', params)).toEqual({ name: 'DomainDns', params });
-    });
+    describe.each(['passthrough', 'some_future_strategy', null])('under %s', (strategy) => {
+      beforeEach(() => {
+        setDomainValidationStrategy(strategy);
+      });
 
-    it('DomainDns is allowed on non-approximated installs', () => {
-      mockApprox.mockReturnValue(false);
-      expect(runGuard('DomainDns', params)).toBe(true);
-    });
+      it('DomainVerify redirects to DomainDns, keeping the params', () => {
+        expect(runGuard('DomainVerify', params)).toEqual({ name: 'DomainDns', params });
+      });
 
-    it('DomainDns redirects to DomainVerify on approximated installs', () => {
-      mockApprox.mockReturnValue(true);
-      expect(runGuard('DomainDns', params)).toEqual({ name: 'DomainVerify', params });
+      it('DomainDns is allowed', () => {
+        expect(runGuard('DomainDns', params)).toBe(true);
+      });
     });
   });
 });

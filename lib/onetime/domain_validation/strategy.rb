@@ -36,15 +36,17 @@ module Onetime
       # @return [BaseStrategy] Appropriate strategy instance
       # @raise [ArgumentError] If strategy is unknown and strict mode is enabled
       def self.for_config(config)
-        strategy_name = config.dig('features', 'domains', 'validation_strategy') || 'passthrough'
+        strategy_name = config.dig('features', 'domains', 'validation_strategy') || Features::DEFAULT_STRATEGY
         strict_mode   = config.dig('features', 'domains', 'strict_strategy') == true
 
-        strategy = case strategy_name.downcase
+        # Spellings and aliases live in Features::STRATEGY_ALIASES, the same
+        # table API payloads take the strategy name from.
+        strategy = case Features.canonical_strategy_name(strategy_name)
                    when 'approximated'
                      ApproximatedStrategy.new(config)
-                   when 'passthrough', 'external'
+                   when 'passthrough'
                      PassthroughStrategy.new(config)
-                   when 'caddy_on_demand', 'caddy'
+                   when 'caddy_on_demand'
                      CaddyOnDemandStrategy.new(config)
                    else
                      handle_unknown_strategy(strategy_name, strict_mode, config)

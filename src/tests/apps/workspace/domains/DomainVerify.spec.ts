@@ -6,6 +6,14 @@ import { createPinia, setActivePinia } from 'pinia';
 import DomainVerify from '@/apps/workspace/domains/DomainVerify.vue';
 import { ref, computed } from 'vue';
 import { createTestI18n } from '@tests/setup';
+import { setDomainValidationStrategy } from '@tests/support/domainValidationStrategy';
+
+// The install-level strategy (bootstrap), read only when the response carries
+// no cluster. Real `*Of` predicates evaluate against the spec's choice.
+vi.mock('@/utils/features', async (importOriginal) => {
+  const { featuresForStrategy } = await import('@tests/support/domainValidationStrategy');
+  return featuresForStrategy(await importOriginal<typeof import('@/utils/features')>());
+});
 
 // Mock route params
 const mockRouteParams = { extid: 'dm-test-extid' };
@@ -94,9 +102,16 @@ const mockCust = ref({
   },
 });
 
+// The install's own host: the address-record target when the domain does not
+// point at the Approximated proxy (see useDomainDnsRecord).
+const mockCanonicalDomain = ref('secrets.example.com');
+const mockSiteHost = ref('secrets.example.com');
+
 vi.mock('@/shared/stores/bootstrapStore', () => ({
   useBootstrapStore: () => ({
     cust: mockCust,
+    canonical_domain: mockCanonicalDomain,
+    site_host: mockSiteHost,
   }),
 }));
 
@@ -104,8 +119,14 @@ vi.mock('pinia', async (importOriginal) => {
   const actual = await importOriginal<typeof import('pinia')>();
   return {
     ...actual,
-    storeToRefs: (store: { cust?: typeof mockCust }) => ({
+    storeToRefs: (store: {
+      cust?: typeof mockCust;
+      canonical_domain?: typeof mockCanonicalDomain;
+      site_host?: typeof mockSiteHost;
+    }) => ({
       cust: store.cust ?? mockCust,
+      canonical_domain: store.canonical_domain ?? mockCanonicalDomain,
+      site_host: store.site_host ?? mockSiteHost,
     }),
   };
 });
@@ -133,6 +154,17 @@ const createMockCluster = (overrides = {}) => ({
   ...overrides,
 });
 
+// What Features.safe_dump sends when no Approximated proxy is configured.
+const createCaddyCluster = (overrides = {}) => ({
+  type: 'caddy_on_demand',
+  validation_strategy: 'caddy_on_demand',
+  proxy_host: null,
+  proxy_ip: null,
+  proxy_name: null,
+  vhost_target: null,
+  ...overrides,
+});
+
 describe('DomainVerify', () => {
   beforeEach(() => {
     setActivePinia(createPinia());
@@ -141,6 +173,10 @@ describe('DomainVerify', () => {
 
     // Reset feature flags to enabled state for tests
     mockCust.value = { feature_flags: { dns_widget: true } };
+    mockCanonicalDomain.value = 'secrets.example.com';
+    mockSiteHost.value = 'secrets.example.com';
+    // Module state in the support helper; re-assert the default.
+    setDomainValidationStrategy('approximated');
 
     // Default mock data for useDomain
     mockDomain.value = createMockDomain();
@@ -191,13 +227,81 @@ describe('DomainVerify', () => {
       expect(mockVerifyDomain).not.toHaveBeenCalled();
     });
 
-    it('does NOT auto-trigger verification when validation_strategy is not approximated', async () => {
-      mockDomain.value = createMockDomain();
-      mockDetails.value = { cluster: createMockCluster({ validation_strategy: 'manual' }) };
+    it('runs the first check on mount under approximated with the DNS widget off', async () => {
+      // The check is the page's, not the widget's: the widget is off by
+      // default (feature flag), and the add page cannot schedule the check
+      // (its composable is disposed on navigation).
+      mockCust.value = { feature_flags: { dns_widget: false } };
+      mockDomain.value = createMockDomain({ vhost: { last_monitored_unix: 0 } });
+      mockDetails.value = { cluster: createMockCluster({ validation_strategy: 'approximated' }) };
+
+      await mountComponent();
+
+      expect(mockVerifyDomain).toHaveBeenCalledTimes(1);
+      expect(mockVerifyDomain).toHaveBeenCalledWith('dm-test-extid');
+    });
+
+    it('runs the check after the domain has loaded, not before', async () => {
+      mockDomain.value = null;
+      mockInitialize.mockImplementation(async () => {
+        mockDomain.value = createMockDomain({ vhost: { last_monitored_unix: 0 } });
+      });
+
+      await mountComponent();
+
+      expect(mockInitialize).toHaveBeenCalled();
+      expect(mockVerifyDomain).toHaveBeenCalledWith('dm-test-extid');
+    });
+
+    it('does NOT run a check on mount when the domain failed to load', async () => {
+      mockDomain.value = null;
+      mockDetails.value = null;
 
       await mountComponent();
 
       expect(mockVerifyDomain).not.toHaveBeenCalled();
+    });
+
+    it('does NOT auto-trigger verification under passthrough (no ownership check)', async () => {
+      mockDomain.value = createMockDomain();
+      mockDetails.value = { cluster: createMockCluster({ validation_strategy: 'passthrough' }) };
+
+      await mountComponent();
+
+      expect(mockVerifyDomain).not.toHaveBeenCalled();
+    });
+
+    it('does NOT auto-trigger verification for an unknown strategy', async () => {
+      mockDomain.value = createMockDomain();
+      mockDetails.value = { cluster: createMockCluster({ validation_strategy: 'something_new' }) };
+
+      await mountComponent();
+
+      expect(mockVerifyDomain).not.toHaveBeenCalled();
+    });
+
+    describe('with no cluster in the response', () => {
+      // The strategy then comes from the bootstrap snapshot.
+      beforeEach(() => {
+        mockDomain.value = createMockDomain({ vhost: { last_monitored_unix: 0 } });
+        mockDetails.value = {};
+      });
+
+      it('runs the first check when the install checks ownership', async () => {
+        setDomainValidationStrategy('caddy_on_demand');
+
+        await mountComponent();
+
+        expect(mockVerifyDomain).toHaveBeenCalledWith('dm-test-extid');
+      });
+
+      it('does NOT run a check under passthrough', async () => {
+        setDomainValidationStrategy('passthrough');
+
+        await mountComponent();
+
+        expect(mockVerifyDomain).not.toHaveBeenCalled();
+      });
     });
   });
 
@@ -405,6 +509,101 @@ describe('DomainVerify', () => {
 
       const dnsWidget = wrapper.findComponent({ name: 'DnsWidget' });
       expect(dnsWidget.props('targetAddress')).toBe('proxy.test.com');
+    });
+  });
+
+  describe('caddy_on_demand strategy', () => {
+    beforeEach(() => {
+      mockDomain.value = createMockDomain({ vhost: { last_monitored_unix: 0 } });
+      mockDetails.value = { cluster: createCaddyCluster() };
+    });
+
+    it('renders the written steps (TXT record + verify action) with the verify CTA on', async () => {
+      const wrapper = await mountComponent();
+
+      const details = wrapper.findComponent({ name: 'VerifyDomainDetails' });
+      expect(details.exists()).toBe(true);
+      expect(details.props('withVerifyCTA')).toBe(true);
+      expect(details.props('domain')).toMatchObject({
+        txt_validation_host: '_challenge.test',
+        txt_validation_value: 'verify123',
+      });
+      expect(details.props('cluster')).toMatchObject({ validation_strategy: 'caddy_on_demand' });
+    });
+
+    it('never shows the Approximated DNS widget, even with the feature flag on', async () => {
+      mockCust.value = { feature_flags: { dns_widget: true } };
+
+      const wrapper = await mountComponent();
+
+      expect(wrapper.find('[data-testid="dns-widget"]').exists()).toBe(false);
+    });
+
+    it('runs the first check on mount for a domain that has never been checked', async () => {
+      // This is the post-add check. The add page used to schedule it two
+      // seconds out, but navigation disposed that composable's scope and
+      // cleared the timer, so under caddy_on_demand nothing ran until the
+      // customer clicked Verify.
+      await mountComponent();
+
+      expect(mockVerifyDomain).toHaveBeenCalledTimes(1);
+      expect(mockVerifyDomain).toHaveBeenCalledWith('dm-test-extid');
+      // The page refetches the domain once the check has run.
+      expect(mockInitialize).toHaveBeenCalledTimes(2);
+    });
+
+    it('does NOT run a check on mount once the domain has been checked', async () => {
+      mockDomain.value = createMockDomain({
+        verified: false,
+        vhost: { status: 'PENDING_SSL', last_monitored_unix: 1704067200 },
+      });
+
+      await mountComponent();
+
+      expect(mockVerifyDomain).not.toHaveBeenCalled();
+    });
+
+    it('points the written instructions at the canonical domain, not a proxy host', async () => {
+      // A stale Approximated proxy config must not leak into this strategy.
+      mockDetails.value = {
+        cluster: createCaddyCluster({ proxy_host: 'proxy.example.com', proxy_ip: '192.168.1.1' }),
+      };
+
+      const wrapper = await mountComponent();
+
+      expect(wrapper.find('[data-testid="manual-dns-target"]').text()).toBe('secrets.example.com');
+      expect(wrapper.text()).not.toContain('proxy.example.com');
+      expect(wrapper.text()).not.toContain('192.168.1.1');
+    });
+
+    it('falls back to the site host when no canonical domain is set', async () => {
+      mockCanonicalDomain.value = '';
+      mockSiteHost.value = 'ots.internal.example';
+
+      const wrapper = await mountComponent();
+
+      expect(wrapper.find('[data-testid="manual-dns-target"]').text()).toBe('ots.internal.example');
+    });
+
+    it('shows the ALIAS/ANAME notice for an apex domain', async () => {
+      mockDomain.value = createMockDomain({ is_apex: true, vhost: { last_monitored_unix: 0 } });
+
+      const wrapper = await mountComponent();
+
+      expect(wrapper.text()).toContain('web.domains.dns.apex_notice');
+      expect(wrapper.text()).not.toContain('web.domains.please_note_that_for_apex_domains');
+    });
+
+    it('keeps the written steps next to the status table once the probe has run', async () => {
+      mockDomain.value = createMockDomain({
+        verified: false,
+        vhost: { status: 'PENDING_SSL', last_monitored_unix: 1704067200 },
+      });
+
+      const wrapper = await mountComponent();
+
+      expect(wrapper.find('[data-testid="domain-verification-info"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="verify-domain-details"]').exists()).toBe(true);
     });
   });
 

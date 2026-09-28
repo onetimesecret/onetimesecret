@@ -351,6 +351,24 @@ RSpec.describe Core::Views::ConfigSerializer do
         )
       end
 
+      # The config accepts aliases and any letter case
+      # (DomainValidation::Strategy.for_config); the frontend matches
+      # canonical names only.
+      {
+        'caddy' => 'caddy_on_demand',
+        'Caddy_On_Demand' => 'caddy_on_demand',
+        'external' => 'passthrough',
+        'Approximated' => 'approximated',
+        'letsencrypt' => 'passthrough',
+        nil => 'passthrough',
+      }.each do |configured, canonical|
+        it "emits #{canonical} for validation_strategy #{configured.inspect}" do
+          domains_config['validation_strategy'] = configured
+          result = described_class.serialize(domains_view_vars)
+          expect(result['domains']['validation_strategy']).to eq(canonical)
+        end
+      end
+
       it 'never emits the Approximated credentials or ACME config' do
         result = described_class.serialize(domains_view_vars)
         expect(result['domains']).not_to have_key('approximated')

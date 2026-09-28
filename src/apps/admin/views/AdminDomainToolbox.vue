@@ -13,7 +13,11 @@
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
   import { useAdminDomainToolbox } from '@/apps/admin/stores/useAdminDomainToolbox';
   import { confirmHeaders } from '@/apps/admin/utils/confirmHeader';
-  import { colonelDomainVerifyResponseSchema } from '@/schemas/api/internal/responses/colonel-domains';
+  import { verifyOutcomeNotice } from '@/apps/admin/utils/verifyOutcomeNotice';
+  import {
+    colonelDomainVerifyResponseSchema,
+    type ColonelDomainVerifyDetails,
+  } from '@/schemas/api/internal/responses/colonel-domains';
   import type { ColonelOrphanedDomain } from '@/schemas/api/internal/responses/colonel-domaintoolbox';
   import type {
     ColonelDomainProbeDetails,
@@ -134,6 +138,13 @@
   }
 
   // Re-verify REUSES the Slice-4 endpoint + op (no duplication).
+  // The op reports the real post-check outcome (verified, no DNS answer,
+  // confirmation window expired, ...), so keep it for the notification instead
+  // of announcing every completed call as a success.
+  const reverifyOutcome = ref<{ details: ColonelDomainVerifyDetails | null; domain: string } | null>(
+    null
+  );
+
   const {
     loading: verifyLoading,
     error: verifyError,
@@ -143,20 +154,39 @@
     const response = await $api.post(
       `/api/colonel/domains/${encodeURIComponent(extid)}/verify`
     );
-    gracefulParse(
+    const parsed = gracefulParse(
       colonelDomainVerifyResponseSchema,
       response.data,
       'ColonelDomainVerifyResponse'
     );
+    reverifyOutcome.value = parsed.ok
+      ? { details: parsed.data.details ?? null, domain: parsed.data.record.display_domain }
+      : null;
   });
+
+  /**
+   * Same outcome-to-notice mapping as the domains list and detail pages. A
+   * response that did not parse carries no outcome to report, so it keeps the
+   * neutral completion message.
+   */
+  function notifyReverifyOutcome(extid: string): void {
+    const outcome = reverifyOutcome.value;
+    if (!outcome) {
+      notifications.show(t('web.admin.domaintoolbox.reverify.success'), 'info');
+      return;
+    }
+    const { messageKey, severity } = verifyOutcomeNotice(outcome.details);
+    notifications.show(t(messageKey, { domain: outcome.domain || extid }), severity);
+  }
 
   async function onReverify(): Promise<void> {
     const extid = probeExtid.value.trim();
     if (!extid) return;
     resetVerify();
+    reverifyOutcome.value = null;
     const ok = await runVerify(extid);
     if (ok) {
-      notifications.show(t('web.admin.domaintoolbox.reverify.success'), 'success');
+      notifyReverifyOutcome(extid);
       fetchOrphaned(pagination.value?.page ?? 1);
     }
   }

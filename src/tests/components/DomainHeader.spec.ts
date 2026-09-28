@@ -4,16 +4,20 @@ import { mount, RouterLinkStub } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import DomainHeader from '@/apps/workspace/components/dashboard/DomainHeader.vue';
 import type { CustomDomain } from '@/schemas/shapes/v3';
-import { isApproximatedDomainValidation } from '@/utils/features';
+import {
+  OWNERSHIP_CHECKING_STRATEGIES,
+  setDomainValidationStrategy,
+} from '@tests/support/domainValidationStrategy';
+import { useDomainStatus } from '@/shared/composables/useDomainStatus';
 import { ref } from 'vue';
 
 // Control the install's domain validation strategy. Default to approximated so
-// the status-badge assertions hold; the dedicated block flips it off.
-vi.mock('@/utils/features', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@/utils/features')>()),
-  isApproximatedDomainValidation: vi.fn(() => true),
-}));
-const mockApprox = vi.mocked(isApproximatedDomainValidation);
+// the status-badge assertions hold; the dedicated block covers the others. The
+// real capability table is evaluated, not a boolean stub.
+vi.mock('@/utils/features', async (importOriginal) => {
+  const { featuresForStrategy } = await import('@tests/support/domainValidationStrategy');
+  return featuresForStrategy(await importOriginal<typeof import('@/utils/features')>());
+});
 
 // Use refs for reactive mocks that can change between tests
 const mockStatusIcon = ref('check-circle');
@@ -83,7 +87,7 @@ describe('DomainHeader', () => {
     mockDisplayStatus.value = 'Active';
     mockIsActive.value = true;
     // Default to approximated (status badge visible).
-    mockApprox.mockReturnValue(true);
+    setDomainValidationStrategy('approximated');
   });
 
   function mountComponent(props: Partial<typeof defaultProps> = {}) {
@@ -137,6 +141,54 @@ describe('DomainHeader', () => {
       const domain = createMockDomain();
       const wrapper = mountComponent({ domain });
       expect(wrapper.text()).toContain('Unverified');
+    });
+  });
+
+  // The badge icons are decorative, so the text is what tells a failed status
+  // check ("could not tell") from an outstanding ownership check ("no"). These
+  // run the real composable against a domain record.
+  describe('badge text from the domain record', () => {
+    beforeEach(async () => {
+      const actual = await vi.importActual<
+        typeof import('@/shared/composables/useDomainStatus')
+      >('@/shared/composables/useDomainStatus');
+      vi.mocked(useDomainStatus).mockImplementationOnce(
+        actual.useDomainStatus as unknown as typeof useDomainStatus
+      );
+    });
+
+    const activeBlob = { status: 'ACTIVE_SSL', last_monitored_unix: new Date(123 * 1000) };
+
+    it('does not read active for an unverified domain whose status blob still reads active', () => {
+      const domain = createMockDomain({ verified: false, vhost: activeBlob });
+      const wrapper = mountComponent({ domain });
+
+      expect(wrapper.text()).toContain('web.domains.pending_verification');
+      expect(wrapper.text()).not.toContain('web.STATUS.active');
+      expect(wrapper.find('[data-name="alert-circle"]').exists()).toBe(true);
+    });
+
+    it('uses the same text for a resolving domain that has not passed its TXT check', () => {
+      const domain = createMockDomain({
+        verified: false,
+        vhost: { ...activeBlob, status: 'PENDING_SSL' },
+      });
+      const wrapper = mountComponent({ domain });
+
+      expect(wrapper.text()).toContain('web.domains.pending_verification');
+      expect(wrapper.text()).not.toContain('web.STATUS.unverified');
+    });
+
+    it('keeps "unverified" for a failed status check', () => {
+      const domain = createMockDomain({
+        vhost: activeBlob,
+        vhost_fetch_failed_at: Date.now() / 1000 - 60,
+      });
+      const wrapper = mountComponent({ domain });
+
+      expect(wrapper.text()).toContain('web.STATUS.unverified');
+      expect(wrapper.text()).not.toContain('web.domains.pending_verification');
+      expect(wrapper.find('[data-name="help-circle"]').exists()).toBe(true);
     });
   });
 
@@ -195,8 +247,8 @@ describe('DomainHeader', () => {
   });
 
   describe('validation strategy gating', () => {
-    it('shows the status badge when validation strategy is approximated', () => {
-      mockApprox.mockReturnValue(true);
+    it.each(OWNERSHIP_CHECKING_STRATEGIES)('shows the status badge under %s', (strategy) => {
+      setDomainValidationStrategy(strategy);
       const domain = createMockDomain();
       const wrapper = mountComponent({ domain });
 
@@ -205,8 +257,8 @@ describe('DomainHeader', () => {
       expect(wrapper.findComponent(RouterLinkStub).exists()).toBe(true);
     });
 
-    it('hides the status badge when validation strategy is not approximated', () => {
-      mockApprox.mockReturnValue(false);
+    it('hides the status badge under passthrough (no ownership check, no status)', () => {
+      setDomainValidationStrategy('passthrough');
       const domain = createMockDomain();
       const wrapper = mountComponent({ domain });
 
