@@ -10,6 +10,538 @@ this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0.htm
 
    <!--scriv-insert-here-->
 
+.. _changelog-0.26.14:
+
+0.26.14 — 2026-09-28
+====================
+
+Added
+-----
+
+- SAML 2.0 single sign-on for the platform and custom domains, with an RSA
+  signing certificate, configurable NameID policy, and per-domain callback
+  origins. Secure session cookies may use ``SameSite=Lax`` or ``None``;
+  IdP-initiated sign-in and single logout are not supported. See
+  ``docs/authentication/per-install-sso.md`` and ``per-domain-sso.md`` for
+  setup, and ``saml-policy.md`` for interoperability options. (#4450)
+
+- ``jobs.domain_refresh.dns_propagation_window`` (default ``24h``). Custom
+  domains that are not yet verified or not yet resolving, and were added,
+  edited or checked within this window, fill any room the regular page leaves
+  under ``batch_size`` on each domain refresh run, so a new domain can be
+  re-checked before a full walk of the domain set completes. Set it to
+  ``'0'`` to disable.
+
+- ``remove_orphaned_approximated_vhosts`` housekeeping chore, for installs
+  that moved from the ``approximated`` validation strategy to another one.
+  Changing the strategy deletes nothing on Approximated, so each domain keeps
+  a billable virtual host there and the old vhost data on its record; the
+  chore removes both. It is a dry run by default: it lists the deletion
+  candidates and makes no Approximated API call. When the housekeeping job is
+  enabled (``jobs.maintenance.enabled`` and
+  ``jobs.maintenance.housekeeping.enabled``, both off by default), it also
+  runs the chore nightly, as a dry run unless
+  ``APPROXIMATED_VHOST_CLEANUP=apply`` is set in the scheduler's environment.
+  To delete, run it with the variable set::
+
+      # Dry run (default)
+      bin/ots housekeeping run Onetime::CustomDomain remove_orphaned_approximated_vhosts
+
+      # Apply
+      APPROXIMATED_VHOST_CLEANUP=apply bin/ots housekeeping run Onetime::CustomDomain remove_orphaned_approximated_vhosts
+
+  Only the literal value ``apply`` deletes. Keep ``approximated.api_key`` and
+  ``proxy_ip`` / ``proxy_host`` configured after the cutover: the chore needs
+  the key to delete and the proxy address to tell which domains still point
+  at the Approximated cluster. A virtual host is deleted only when the domain
+  resolves to addresses outside the cluster and Approximated reports it as
+  not resolving and not receiving traffic; everything else is skipped and
+  picked up on a later run. ``verified``, ``resolving`` and the TXT fields
+  are never changed. Details are in ``lib/onetime/domain_validation/README.md``.
+
+- Successful ``POST /auth/create-account`` responses now include
+  ``next_action``: ``verify_email`` when the emailed link must be followed
+  before signing in, ``sign_in`` when the new account can sign in at once.
+  #4576
+
+Changed
+-------
+
+- When org-level SSO is enabled and the platform ``SAML_*`` variables are
+  present but unusable, the ``saml`` route is now registered as the tenant
+  placeholder, as if the variables were absent, instead of not at all; the
+  platform SAML button stays hidden. A platform-side typo can no longer
+  remove the route that per-domain SAML injects into. (#4450)
+
+- The SSO ``email_verified`` hold now recognises an array-valued claim, which
+  is how SAML attributes arrive: any ``false`` among the values leaves the
+  account unverified with an ``idp_unverified`` hold. (#4450)
+
+- The domain refresh job now walks the whole set of custom domains, one page
+  of ``batch_size`` per run, instead of refreshing the newest ``batch_size``
+  domains on every run. The page is derived from the clock and
+  ``check_interval``, so nothing is stored between runs. On installs with
+  more domains than ``batch_size``, every domain is now refreshed once per
+  walk (number of pages times ``check_interval``); a skipped run costs its
+  page one extra walk.
+
+- Verify results distinguish "could not tell" from "no". The Colonel verify
+  response gains ``details.dns_indeterminate``, ``details.dns_message`` and
+  ``details.dns_outcome`` (``validated``, ``indeterminate``,
+  ``confirmation_expired``, ``override_held`` or ``failed``); the
+  ``domain.verify`` audit event detail carries the same fields.
+  ``bin/ots domains verify`` prints ``indeterminate`` and ``no (override)``
+  in place of yes/no, adds
+  ``Indeterminate`` and ``Demoted`` counts to the bulk summary
+  (``indeterminate_count`` and ``demoted_count`` in JSON, plus
+  ``issue_details.dns_indeterminate``), and the domain refresh summary line
+  and a warning log line report both, so a domain that lost verified status
+  can be found without a console session.
+  Re-verify in the Colonel domain toolbox now reports the outcome of the
+  check, as the domain list and detail pages do, instead of announcing every
+  completed call as a success.
+
+- The ``caddy_on_demand`` domain validation strategy now checks the domain's
+  TXT challenge record before a custom domain counts as verified. Previously
+  every verify pass under this strategy marked the domain verified without a
+  DNS check. The rule is the same one the ``approximated`` strategy applies:
+  exactly one TXT value at the validation record, equal to the challenge. The
+  application performs the lookup itself, so it needs a working system
+  resolver. An internationalised hostname is looked up in its punycode form.
+  Caddy obtaining a certificate is not treated as proof of
+  ownership; the internal ACME endpoint continues to authorise certificates
+  only for verified domains.
+
+  **Upgrade note for self-hosted installs using** ``caddy_on_demand``: a
+  domain that was marked verified without its TXT record loses verified status
+  the first time it is checked after upgrading. While unverified, the ACME
+  endpoint refuses new certificates for it, features that require a verified
+  domain (link creation under ``features.domains.require_verified`` and SSO)
+  stop working for it, and its authentication emails link to the canonical
+  host. To keep a domain verified, either publish its TXT record or set the
+  verification override for that domain in the Colonel admin; an override
+  holds verified through failed checks until it is removed or a check passes.
+  The record's host and value are shown to the domain's owner on the domain's
+  verification page (see the next entry), on the Colonel domain detail page,
+  in the output of ``bin/ots domains verify <domain>``, and as
+  ``txt_validation_host`` / ``txt_validation_value`` in the domains API
+  payload.
+
+- The customer-facing domain pages now work under ``caddy_on_demand``. They
+  previously showed the TXT challenge record, the status badge and the verify
+  button only under ``approximated``, so under ``caddy_on_demand`` a customer
+  had no way to learn which TXT record to publish. Both strategies now get
+  the verification page: the TXT record's host and value, the verify button,
+  and the status badge in the domain list and header. Adding a domain lands
+  on that page, which runs the first check when it opens (see Fixed below).
+  ``passthrough`` is unchanged and keeps the plain DNS setup page.
+
+  Under ``caddy_on_demand`` the address record on that page points at this
+  install: a CNAME (ALIAS/ANAME for an apex domain) to the canonical domain,
+  falling back to the site host. The Approximated ``proxy_ip`` /
+  ``proxy_host`` values are never shown under this strategy, even when they
+  are still configured for the orphaned-vhost chore, and the Approximated DNS
+  widget stays ``approximated``-only. The Colonel domain DNS panel shows the
+  same address record as the customer pages; it previously showed the
+  Approximated proxy targets under every strategy.
+
+  The status badge has two new readings for the probe's ``PENDING_SSL``
+  status (the name resolves, no certificate was seen). A verified domain
+  reads "Certificate pending" and is not flagged as a problem: Caddy obtains
+  the certificate on the first request after the TXT check passes. A domain
+  whose TXT check has not passed reads "Pending Verification" and links to
+  the verification page, because no certificate will be issued until it
+  does. The same reading now applies, under both ``approximated`` and
+  ``caddy_on_demand``, to an unverified domain whose status still says
+  active (for example after its TXT record was removed while the certificate
+  issued earlier keeps serving): it no longer reads "Active" and no longer
+  gets the Manage quick action. "Unverified" is kept for a status check that
+  failed.
+  The SSL row of the status table reads "Unknown" rather than "Inactive" when
+  the check could not tell. Under ``caddy_on_demand`` the table shows when the
+  domain was last checked and leaves out the Approximated target address row.
+
+  The verify button's feedback now follows what the TXT check found. The
+  response of ``POST /api/domains/:extid/verify`` gains ``details.dns_outcome``
+  (``validated``, ``indeterminate``, ``confirmation_expired``, ``failed`` or
+  ``override_held``) and ``details.dns_indeterminate``. The success message is
+  shown only for a matching record. A lookup that produced no answer says the
+  check could not be completed and to try again, and a missing or different
+  record says so; before, all three showed the same success message.
+
+  Existing domains are only re-checked when something runs the check.
+  Domain refresh runs only in a running ``bin/ots scheduler`` process, with
+  ``jobs.domain_refresh.enabled`` on (the default); ``JOBS_ENABLED`` does not
+  affect it. The S6 image and the full compose stack start a scheduler; the
+  plain image does not, and a source install runs one only when its Procfile's
+  ``scheduler`` line is enabled. Without a scheduler no refresh ever runs:
+  domains marked verified without a TXT record then stay verified, and
+  verified on its own still gates link creation under ``require_verified``
+  and SSO. Installs that do not run the domain refresh job must run
+  ``bin/ots domains verify --all`` once after upgrading for the TXT check to
+  take effect on existing domains, and periodically after that (for example
+  from cron) so that a removed record is noticed.
+
+  A lookup that produces no answer (SERVFAIL, REFUSED, timeout) leaves stored
+  state alone, within the confirmation window described below. The exception
+  is a verified domain that no TXT check has ever confirmed, which is every
+  verified domain on this strategy at upgrade: it has no earlier proof to
+  protect, so an unanswered lookup also withdraws verified. It becomes
+  verified on the next check that finds the record. A Colonel override holds
+  it here as well.
+
+  The same applies to a domain verified under ``passthrough``. That strategy
+  passes every domain without a DNS check, so its passes are stored in
+  verified but are not recorded as a TXT confirmation. If passthrough promotes
+  a domain after a definitive check demoted it, the older
+  ``verified_confirmed_at`` is cleared with that ended verification lineage.
+  After a move from ``passthrough`` to ``caddy_on_demand`` such a domain stays
+  verified only once a check finds its TXT record, or under a Colonel override.
+
+- The ``caddy_on_demand`` strategy now reports real resolving and SSL status
+  for custom domains. Previously both were always unknown, so the domain
+  pages never updated and a domain could not become ready without an operator
+  setting ``resolving`` by hand. On each verify or domain refresh the
+  application now looks up the domain's A/AAAA records and, if it resolves,
+  completes a TLS handshake on port 443 and verifies the certificate for the
+  hostname. No request is sent. The check refuses to connect to loopback,
+  private, link-local or reserved addresses, and connects only to the address
+  it resolved. A DNS lookup that fails on our side (SERVFAIL, timeout)
+  leaves stored state unchanged. If the name resolves but the TLS check
+  cannot be completed (timeout, no route), ``resolving`` and the probe
+  metadata are refreshed while the last SSL observation is kept until its
+  certificate expires.
+
+  **Upgrade notes for self-hosted installs using** ``caddy_on_demand``:
+
+  - The application host needs outbound DNS and outbound TCP 443 to the
+    custom domains it serves. Without outbound DNS, status stays as it was
+    and the domain pages show the last check as failed. Without outbound TCP
+    443, ``resolving`` is still updated and the SSL status keeps its last
+    observation until that certificate expires; a refused connection reads
+    as no SSL.
+  - A domain becomes ready (and the internal ACME endpoint starts authorising
+    its certificate) once its TXT record verifies and it has an A or AAAA
+    record. A domain that stops resolving is no longer ready.
+  - A domain with any private or otherwise non-public address among its
+    A/AAAA records is reported as resolving with SSL status unknown; the
+    probe connects to none of its addresses. A certificate from a private CA
+    (for example ``tls internal``) is reported as no SSL, because it does not
+    verify against the system trust store.
+  - Domains that still carry vhost data from the ``approximated`` strategy
+    show it only until a check learns whether the domain resolves. That
+    check replaces the Approximated status with the probe's and marks the
+    record ``approximated_vhost_pending_cleanup`` for the
+    ``remove_orphaned_approximated_vhosts`` chore; the old data stays only
+    while every check is inconclusive.
+  - With ``jobs.domain_refresh`` enabled, a page of domains that all time out
+    takes much longer than before (up to 13s per domain). Refresh runs no
+    longer overlap: a tick that fires while the previous run is still working
+    is skipped, and its page is picked up on the next walk. Lower
+    ``batch_size`` if runs routinely take longer than ``check_interval``.
+    The skip works inside one scheduler process. Scheduled jobs assume a
+    single ``bin/ots scheduler`` per datastore, which is how the shipped
+    compose file and S6 image run it; a second scheduler would repeat every
+    refresh.
+  - **Cutover from** ``approximated``: removing a domain under
+    ``caddy_on_demand`` does not delete anything on Approximated
+    (``delete_vhost`` is a no-op for this strategy), and neither does changing
+    the strategy. Virtual hosts created while ``approximated`` was active stay
+    there, billable and able to serve the hostname, until they are removed on
+    the Approximated side: run the ``remove_orphaned_approximated_vhosts``
+    chore (see Added above; a dry run unless
+    ``APPROXIMATED_VHOST_CLEANUP=apply`` is set) with the Approximated API
+    key still configured, or delete them in the Approximated dashboard.
+
+    Sequence the switch so that proven domains keep verified.
+    ``verified_confirmed_at`` is new in this version and is only written by a
+    passing check on this version, so immediately after upgrading every
+    domain has none, including domains Approximated had proven. Before
+    changing the strategy: (1) upgrade while still on ``approximated`` and,
+    still on ``approximated``, let one full refresh cycle complete on this
+    version: either run ``bin/ots domains verify --all`` to the end (without
+    ``--dry-run``, which records nothing), or let
+    the domain refresh job walk every page (number of domains divided by
+    ``batch_size``, times ``check_interval``). Every passing check, whether
+    Approximated or the native lookup answered it, stamps
+    ``verified_confirmed_at`` for that domain; (2) confirm
+    the application host has a working resolver (nameservers in
+    ``resolv.conf``, outbound DNS allowed), because ``caddy_on_demand`` is
+    the first time the application does the TXT lookup itself on every
+    check. If the strategy is switched without this, a first lookup under
+    ``caddy_on_demand`` that gets no answer (no nameserver configured, DNS
+    egress blocked, SERVFAIL, timeout) withdraws verified from a domain that
+    Approximated had proven, and link creation under ``require_verified``
+    and SSO stop working for it until the next passing check or a Colonel
+    override.
+
+- A verified domain whose TXT checks stop producing an answer is no longer
+  held verified indefinitely. The first indeterminate check of a verified
+  domain starts a 7-day confirmation window; any definitive answer ends it. If
+  a check is still indeterminate once the window has run out, the domain loses
+  verified status. The outcome is reported as ``confirmation_expired`` in the
+  Colonel verify response, notice and audit event, in ``bin/ots domains verify`` output
+  (``Expired`` in the bulk summary, ``confirmation_expired_count`` and
+  ``issue_details.dns_expired`` in JSON), in the domain refresh summary line,
+  and in a warning log line. The window runs from the first indeterminate
+  check, not from the last passing one, so a single failed lookup never
+  demotes a domain however long ago it was last checked. The window demotes
+  nothing at upgrade: existing domains have no window until their first
+  indeterminate check (for ``caddy_on_demand`` see the upgrade note above). A
+  Colonel override exempts a domain, and a demoted domain becomes
+  verified again on its next passing check. ``CustomDomain`` gains two fields,
+  ``verified_confirmed_at`` and ``verified_unconfirmed_since``.
+
+- The pause between domains in a bulk verify now comes from the validation
+  strategy: 0.5s under ``approximated`` (its API rate cap), none under
+  ``caddy_on_demand`` and ``passthrough``. ``jobs.domain_refresh.rate_limit``
+  no longer has a default; leave it unset to use the strategy's pacing, or set
+  any number, including 0, to override it. ``bin/ots domains verify --all``
+  follows the same rule for ``--rate-limit``. Installs whose config file sets
+  ``rate_limit: 0.5`` explicitly keep that pause under every strategy.
+
+- Install-wide OIDC sign-in now stops with the ``sso_issuer_mismatch``
+  sign-in error ("Sign-in with this provider is misconfigured. Please contact
+  your administrator.") when ``OIDC_ISSUER`` differs from the discovery
+  document's ``issuer``, logs both values as
+  ``omniauth_install_issuer_mismatch``, and hides the provider from the
+  sign-in page in that process for two minutes, after which the next attempt
+  checks again (except when sign-in is restricted to SSO). The comparison is
+  exact, including any trailing slash. #4513
+- Per-domain SSO Test Connection reports ``issuer_mismatch`` with the
+  configured and discovered issuers for OIDC, and rejects discovery documents
+  larger than 256 KiB. #4513
+
+- Full authentication mode: the auth database gains a nullable
+  ``remember_until`` column on ``account_active_session_keys`` (migration
+  011). The web process applies it at boot, before it serves requests.
+  Installs that apply auth migrations by hand must run it before starting
+  this version: the per-request session check reads the column and
+  refuses sessions while it is missing. Rodauth's separate remember feature
+  is no longer enabled; nothing in the app set or read its cookie.
+
+- ``bin/ots migrate`` now routes every modifying path (batch, single ID or
+  file, rollback) through one runner with one invariant: a run is
+  dependency-checked, runs the full lifecycle, and is recorded in the
+  registry exactly once, only after it succeeds. Single-migration runs are
+  now tracked like batch runs. ``--dry-run`` is a real option and previews
+  all pending migrations; nothing modifies data without ``--run``, including
+  ``--rollback``, which now calls ``prepare`` before ``down`` and removes
+  applied state only after a successful actual rollback. A migration that
+  returns ``false`` or reports isolated record errors is no longer recorded
+  as applied; the run exits non-zero as ``failed`` or ``partial``. An
+  already-applied migration is refused for a modifying single run, and an
+  ambiguous partial ID is refused instead of picking the first match.
+
+Removed
+-------
+
+- Removed ``Onetime::Middleware::IsolateResponseHeaders``. Otto 2.11 copies
+  router ``not_found`` / ``server_error`` responses per request, which closes
+  the same session-cookie leak (#4401). The ``otto`` floor is now ``~> 2.11``.
+  (#4547)
+
+Fixed
+-----
+
+- Under the ``approximated`` strategy, correctly configured custom domains no
+  longer lose verified status when Approximated's DNS checker fails. The
+  checker answers ``actual_values: false`` when its own lookup failed; that
+  was read as a TXT mismatch and demoted the domain on the next verify or
+  refresh run, which in turn disabled the features that require a verified
+  domain. Such an answer is now treated as indeterminate: the stored
+  verified flag is left alone within the confirmation window, and the
+  application tries its own TXT lookup. See
+  ``lib/onetime/domain_validation/README.md`` for fallback behavior and the
+  confirmation window.
+
+- The same applies to resolving status. An Approximated vhost status of
+  ``UNKNOWN`` no longer flips a domain's stored ``resolving`` flag to false.
+
+- A verification override set in the Colonel admin now survives later
+  checks. Previously the next verify or refresh run demoted the domain again
+  when its TXT check failed, undoing the operator's decision without notice.
+  The override is recorded on the domain (``verified_by_override``) and holds
+  verified through failed checks until an operator removes it or a TXT check
+  passes, at which point DNS holds the flag and the marker is cleared. The
+  outcome is reported as ``override_held``.
+
+- Domains beyond the newest ``batch_size`` were never refreshed by the domain
+  refresh job, so their resolving and SSL status on the domain pages stayed
+  at whatever was last stored. See the change to the job above.
+
+- The first check after adding a custom domain now runs. The verification
+  page runs it when it opens for a domain that has not been checked yet,
+  under every strategy that checks ownership (``approximated`` and
+  ``caddy_on_demand``). Previously the add page scheduled that check two
+  seconds after navigating, and navigating away from the add page cancelled
+  it, so the page showed no status until the customer clicked Verify. Under
+  ``approximated`` the page ran its own check on opening only with the
+  ``dns_widget`` feature flag on, which is off by default. A domain that has
+  already been checked is not re-checked on opening the page.
+
+- Under the ``approximated`` strategy, an indeterminate provider TXT check now
+  falls back to the application's DNS resolver. A matching local answer can
+  verify the domain, and a negative local answer keeps a never-verified domain
+  unverified. A local negative alone does not revoke an existing
+  verification; a definitive negative from Approximated still does.
+
+- Under the ``approximated`` strategy, a TXT check that could not reach
+  Approximated at all (no API key configured, a non-200 response, a network
+  error) is no longer reported as a failed check. The application does its
+  own lookup in those cases too: a matching answer confirms the domain, and
+  a definitive negative keeps an unverified domain unverified. For a domain
+  that is already verified, a native definitive negative is instead treated
+  as indeterminate, retaining verification within the 7-day confirmation
+  window. A native lookup that produces no answer is also indeterminate.
+  A further indeterminate check after the window expires withdraws
+  verification unless a Colonel override holds it. See
+  ``lib/onetime/domain_validation/README.md`` for details. An unexpected error
+  during a verify is likewise reported as indeterminate rather than failed.
+
+- An internationalised custom domain that was entered in Unicode (for example
+  ``bücher.example``) is now found when it is looked up by its punycode form
+  (``xn--bcher-kva.example``), and the other way round. Caddy asks the
+  internal ACME endpoint about the punycode name and browsers send it in the
+  Host header, so such a domain was refused a certificate under
+  ``caddy_on_demand`` and was not recognised as a custom domain on incoming
+  requests. Stored domains are not changed. The second form of a name that is
+  already registered can no longer be added as a separate domain, or reached
+  by renaming another one. Only the punycode form that is the encoding of the
+  stored name matches it. A name that cannot be converted (an overlong label,
+  malformed punycode) is answered with 403 by the ACME endpoint.
+
+- ``features.domains.validation_strategy`` has always accepted any letter case
+  and the aliases ``caddy`` and ``external``, but the configured spelling was
+  sent to the frontend as written, which only recognises ``approximated``,
+  ``caddy_on_demand`` and ``passthrough``. With ``caddy`` the domain pages
+  therefore behaved as under ``passthrough`` (no TXT record, no verify
+  button). The bootstrap payload and the domains API ``cluster`` now carry the
+  canonical name of the strategy in effect.
+
+- The "Remember me" checkbox on the sign-in form now works. It had no
+  effect: every session ended after 24 hours without activity whether it
+  was ticked or not. A session signed in with it ticked now lasts 14 days
+  from sign-in, and activity does not extend it. Revoking the session from
+  the sessions page, "sign out everywhere", password changes and logout
+  end it exactly as they end any other session. The sessions page marks
+  remembered sessions. Two-factor sign-ins are remembered once the second
+  factor is completed. Works in both simple and full authentication modes;
+  ``AUTH_REMEMBER_ME_ENABLED=false`` still turns it off, and also returns
+  sessions already remembered to the default lifetime (their 14-day
+  deadline still ends them). The deadline is checked when the session is
+  read, so a request that straddles it cannot hand the session a new
+  rolling lifetime.
+- Every signed-in session now ends 30 days after sign-in, however active it
+  is, in both authentication modes. Full mode already held its
+  active-session rows to this bound; simple mode had no absolute bound at
+  all, so a session used at least once a day never expired. Remembered
+  sessions end at 14 days as above; the 30 days is the ceiling for every
+  other session. The bound is ``site.session.absolute_timeout``
+  (``SESSION_ABSOLUTE_TIMEOUT``), in seconds; ``0`` disables it.
+
+- Fixed SSO and transactional email URLs behind proxies that send a doubled
+  ``Host`` header. URLs now use the verified custom domain or a configured
+  canonical host, including its configured non-default port, instead of the
+  malformed request authority (#4517, reported in #4499).
+
+- Tenant SSO is now offered only after custom-domain ownership is verified.
+  Until then, sign-in surfaces do not offer the domain's SSO provider, and
+  the domain's SSO settings leave out the SAML service provider entity ID
+  and ACS URL, instead of advertising a flow that cannot complete.
+
+- In full mode with ``AUTH_VERIFY_ACCOUNT_ENABLED=false``, signing up from
+  the web form no longer fails with "logins do not match", and new accounts
+  go to sign-in. #4572, #4576
+- In simple mode, when signup does not require email verification
+  (``AUTH_AUTOVERIFY=true``, or autoverify in a custom domain's signup
+  settings), new accounts now go to sign-in instead of a "Check your email"
+  page for an email that is never sent. #4576
+- A selected plan and internal redirect carry through sign-in after either
+  signup. #4576
+
+Security
+--------
+
+- Platform SAML is restricted to its configured platform host, even when
+  platform SSO fallback is enabled. Custom domains must configure their own
+  SAML provider; remove their ACS registrations from the platform IdP. See
+  ``docs/authentication/per-install-sso.md``. (#4450)
+
+- The example Caddy configuration removes query strings and redirect locations
+  from logs. Apply equivalent filtering to deployed ingress logs when enabling
+  SAML; see ``docs/authentication/saml-callback-transport.md``. (#4450)
+
+- ``ruby-saml`` is pinned exactly in the Gemfile with its advisory history,
+  and a ``bundler-audit`` job runs against ``Gemfile.lock`` on every pull
+  request. (#4450)
+
+- The SSO failure log line and ``omniauth_failure`` audit event now carry
+  the strategy gem's error message bounded to 500 characters on one line,
+  for every provider; for SAML the message is a fixed string, and ruby-saml's
+  own message is logged separately as ``detail`` on the
+  ``[saml_response_refused]`` line, on one line and cut to 200 characters,
+  so response text (Issuer, Audience, an unsigned StatusMessage) can no
+  longer forge or flood auth log lines. (#4450)
+
+- Semantic Logger output (every appender, including the optional
+  ColonelAudit syslog destination) now has the userinfo and the whole query
+  string of each URI written with ``://`` replaced with ``***`` in these
+  parts of a log event: the message, tags and named tags, the messages of
+  the logged exception and its causes, and, inside Hash, Array and Set
+  payloads, String, Symbol, URI and Exception values and String, Symbol and
+  URI keys. This includes harmless queries, so a logged
+  ``https://example.com/list?page=2`` now reads
+  ``https://example.com/list?***``. Email addresses are unchanged. Values
+  that cannot be scrubbed within fixed limits are replaced with a
+  ``[log scrub: ...]`` placeholder, as is text in an encoding that cannot be
+  converted to UTF-8 (UTF-7, ISO-2022-JP-2) when its bytes contain a ``:``;
+  such text without a ``:`` is left as it is. An event whose scrubbing fails
+  is logged as ``[log scrub failed: event withheld]``. Not covered:
+
+  - a query string in text without ``://``, such as a request path
+    (``/list?page=2``) or a ``mailto:`` URI
+  - other objects in a payload, in tags or named tags, or as the message,
+    rendered through ``inspect`` or ``to_s``
+  - a ``://`` split by a terminal escape other than an SGR color code or a
+    bare ESC (for example ``\e[K`` or an OSC sequence), by a zero-width
+    character, or by a backspace
+  - Exception payload values whose class defines its own ``to_json`` or
+    ``as_json`` (JSON output)
+  - exception and cause backtraces (their messages are scrubbed)
+  - thread names, and the metric, dimensions and context fields
+  - on Semantic Logger 4.x, the logger name, thread name or context set by
+    a logging block that returns a Hash
+  - values the caller changes after the log call, before the background
+    writer formats them
+  - output written directly with ``warn`` or to stdout/stderr, and Sentry
+    reports
+
+Documentation
+-------------
+
+- Operator guides for platform and per-domain SAML
+  (``docs/authentication/per-install-sso.md``, ``per-domain-sso.md``), the
+  SAML entry in the provider-registration checklist, and ADR-044 recording
+  SAML as the reference case for its "OIDC is unavailable" criterion.
+  (#4450)
+
+- ``apps/internal/acme/README.md`` no longer documents
+  ``check_verification=false``. The ACME ask endpoint has ignored that
+  parameter since it was removed from the HTTP interface; the README now
+  matches.
+
+- Added ``docs/development/data-migrations.md``, a reference for choosing
+  among Familia migrations, ``bin/ots migrations`` backfills, housekeeping
+  chores, audit/repair jobs, and Sequel auth-database migrations. It also
+  documents migration state, record-write primitives, and the legacy
+  read-path tolerances each mechanism is intended to remove.
+
+AI Assistance
+-------------
+
+- AI-assisted implementation and regression testing of SAML review fixes. (#4450)
+
 .. _changelog-0.26.13:
 
 0.26.13 — 2026-09-22
