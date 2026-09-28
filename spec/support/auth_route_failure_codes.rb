@@ -276,7 +276,8 @@ module AuthRouteFailureCodes
     'sso-link-confirm' => { requirement: :anonymous, credential: false },
   }.freeze
 
-  CUSTOM_ROUTE_LITERAL = /\br\.(?:on|is|get|post|put|delete)\s*\(?\s*'([^']+)'/
+  # Single- or double-quoted, so a future `r.on "x"` is not invisible here.
+  CUSTOM_ROUTE_LITERAL = /\br\.(?:on|is|get|post|put|delete)\s*\(?\s*(['"])([^'"]+)\1/
 
   class << self
     # The string literals the custom /auth route modules dispatch on.
@@ -287,7 +288,7 @@ module AuthRouteFailureCodes
         File.readlines(file, encoding: 'UTF-8').each_with_index do |line, index|
           next if line.lstrip.start_with?('#')
 
-          line.scan(CUSTOM_ROUTE_LITERAL).flatten.each do |literal|
+          line.scan(CUSTOM_ROUTE_LITERAL).each do |(_quote, literal)|
             found[literal] ||= "#{file.delete_prefix("#{ROOT}/")}:#{index + 1}"
           end
         end

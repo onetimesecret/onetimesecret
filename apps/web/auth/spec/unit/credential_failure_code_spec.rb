@@ -80,6 +80,9 @@ RSpec.describe Auth::CredentialFailureCode do
       env = env_with(nil)
 
       expect(described_class.record(env, :invalid_password)).to eq(:invalid_credentials)
+      # change-password names the current password apart (Rodauth 2.45.0
+      # change_password.rb:39); the code is the same.
+      expect(described_class.record(env_with(nil), :invalid_previous_password)).to eq(:invalid_credentials)
     end
 
     it 'stashes invalid_credentials for a rejected second factor or passkey' do
@@ -113,6 +116,7 @@ RSpec.describe Auth::CredentialFailureCode do
         invalid_email_auth_key
         invalid_unlock_account_key
         already_logged_in
+        inactive_session
         two_factor_not_setup
         two_factor_already_authenticated
         duplicate_webauthn_id
