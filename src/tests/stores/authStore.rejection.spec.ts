@@ -323,6 +323,29 @@ describe('authStore: rejection vs verification-unavailable (#4460)', () => {
       expect(requests()).toBe(0);
     });
 
+    // #4469: a rejected credential says nothing about the session, which may
+    // be valid (a wrong current password on change-password, a rejected API
+    // key). The form that sent it owns the message; nothing is reconciled.
+    it('a rejected credential while a session is held reconciles nothing and is not owned', async () => {
+      await mountWith(authenticatedBootstrap);
+
+      const disposition = store.noteApiRejection({ code: 'invalid_credentials', code_scope: 'credential' });
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(disposition).toEqual({ ownedByCoordinator: false, reason: 'skipped-carve-out' });
+      expect(requests()).toBe(0);
+      expect(store.authStatus).toBe('authenticated');
+    });
+
+    it('a rejected login on an anonymous tab (credential scope) reconciles nothing', async () => {
+      await mountWith(anonymousBootstrap);
+
+      const disposition = store.noteApiRejection({ code: 'invalid_credentials', code_scope: 'credential' });
+
+      expect(disposition.ownedByCoordinator).toBe(false);
+      expect(requests()).toBe(0);
+    });
+
     it('`awaiting_mfa` tells an MFA-pending tab nothing new', async () => {
       await mountWith(mfaPendingBootstrap);
 

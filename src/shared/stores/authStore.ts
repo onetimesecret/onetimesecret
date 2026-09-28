@@ -188,7 +188,8 @@ export type RefreshOutcome =
  *   transition announcement.
  * - `ownedByCoordinator: false` — the coordinator declined to act, so the
  *   caller's local error handling stands (an anonymous tab, an admin-timeout,
- *   an MFA-pending `awaiting_mfa`, or a throttled duplicate rejection).
+ *   a rejected credential, an MFA-pending `awaiting_mfa`, or a throttled
+ *   duplicate rejection).
  */
 export type RejectionDisposition =
   | { ownedByCoordinator: true; reason: 'reconciling' | 'will-reload' }
@@ -907,9 +908,16 @@ export const useAuthStore = defineStore('auth', () => {
    *                               however many API calls saw the outage.
    * - `admin_session`             the admin-only timeout. The customer session
    *                               is untouched; the admin surface owns it.
-   * - uncoded 401 (`null`)        a backend that predates the codes, or a
-   *                               rejected credential (#4469). Reconciling can
-   *                               only withhold, so it is safe for both.
+   * - `credential`                a credential the request presented was
+   *                               rejected (#4469): a failed login, a wrong
+   *                               password confirmation, a rejected API key.
+   *                               The session was not examined and may be
+   *                               valid, so nothing is reconciled; the form
+   *                               that sent the credential owns the message.
+   * - uncoded 401 (`null`)        a backend that predates the codes, or a 401
+   *                               about neither the session nor a credential.
+   *                               Reconciling can only withhold, so it is
+   *                               safe.
    *
    * A tab the server last said holds no session has nothing to reconcile, and
    * `awaiting_mfa` tells an MFA-pending tab what it already knows.
@@ -920,6 +928,7 @@ export const useAuthStore = defineStore('auth', () => {
     if (staleSession.value) return DISPOSITION_WILL_RELOAD;
 
     if (failure?.code_scope === 'admin_session') return DISPOSITION_CARVE_OUT;
+    if (failure?.code_scope === 'credential') return DISPOSITION_CARVE_OUT;
     if (!bootstrapStore.lastSnapshotReportedSession) return DISPOSITION_CARVE_OUT;
     if (failure?.code === 'awaiting_mfa' && authStatus.value === 'mfa_pending') {
       return DISPOSITION_CARVE_OUT;

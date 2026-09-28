@@ -1,9 +1,9 @@
 // src/tests/schemas/contracts/session-failure.spec.ts
 //
-// Session-failure codes on API and /auth 401s (#4462).
+// Session-failure codes on API and /auth 401s (#4462), and the credential
+// codes that share the contract (#4469).
 
 import {
-  RESERVED_SESSION_FAILURE_SCOPE,
   SESSION_FAILURE_CODES,
   parseSessionFailure,
   sessionFailureCodeSchema,
@@ -28,12 +28,17 @@ describe('session failure contract', () => {
     for (const scope of Object.values(SESSION_FAILURE_CODES)) {
       expect(sessionFailureScopeValues).toContain(scope);
     }
-    expect(Object.keys(SESSION_FAILURE_CODES)).toHaveLength(12);
+    expect(Object.keys(SESSION_FAILURE_CODES)).toHaveLength(15);
   });
 
-  it('does not emit the reserved credential scope', () => {
-    expect(sessionFailureScopeValues).not.toContain(RESERVED_SESSION_FAILURE_SCOPE);
-    expect(sessionFailureSchema.safeParse({ code: 'x', code_scope: 'credential' }).success).toBe(false);
+  it('scopes exactly the credential vocabulary as credential (#4469)', () => {
+    const credential = Object.entries(SESSION_FAILURE_CODES)
+      .filter(([, scope]) => scope === 'credential')
+      .map(([code]) => code);
+    expect(credential.sort()).toEqual(['api_key_invalid', 'invalid_credentials', 'suspended_credentials']);
+    expect(sessionFailureSchema.safeParse({ code: 'invalid_credentials', code_scope: 'credential' }).success).toBe(
+      true
+    );
   });
 
   it('keeps outages apart from rejections', () => {
@@ -69,6 +74,22 @@ describe('parseSessionFailure', () => {
 
   it('reads a bare body', () => {
     expect(parseSessionFailure(ottoBody)?.code).toBe('surface_mismatch');
+  });
+
+  it('reads a credential refusal from a login 401 and from a Basic auth 401', () => {
+    const login = {
+      error: 'There was an error logging in',
+      'field-error': ['password', 'invalid password'],
+      code: 'invalid_credentials',
+      code_scope: 'credential',
+    };
+    expect(parseSessionFailure(axiosError(401, login))).toEqual({
+      code: 'invalid_credentials',
+      code_scope: 'credential',
+    });
+
+    const apiKey = { ...ottoBody, code: 'api_key_invalid', code_scope: 'credential' };
+    expect(parseSessionFailure(axiosError(401, apiKey))?.code_scope).toBe('credential');
   });
 
   it('handles a code it has never seen by its scope', () => {

@@ -1,18 +1,19 @@
 // src/schemas/contracts/session-failure.ts
 //
-// Stable codes on session-authentication refusals (#4462).
+// Stable codes on authentication refusals (#4462, #4469).
 //
 // Mirrors `Onetime::SessionFailureCode` (lib/onetime/session/failure_code.rb).
 // A 401 from any API surface or from `/auth` that was caused by the customer
-// session carries two additive fields:
+// session, or by a credential the request presented, carries two additive
+// fields:
 //
 //   code        the server's typed reason, verbatim
 //   code_scope  the class of failure — what a client acts on
 //
 // Existing fields (`error`, `message`, `error_type`, `success`, `timestamp`)
 // and statuses are unchanged. A 401 WITHOUT a code makes no statement about
-// the customer session: a rejected login, a rejected API credential, or a
-// backend that predates this contract.
+// the customer session: a backend that predates this contract, or a 401
+// that is about neither the session nor a credential.
 
 import { z } from 'zod';
 
@@ -27,13 +28,12 @@ export const sessionFailureScopeValues = [
   'verification_unavailable',
   // The admin-only idle/absolute timeout. The customer session is untouched.
   'admin_session',
+  // A credential the request presented (a login, a second factor, a
+  // re-authentication, an API key) was examined and rejected (#4469). Not a
+  // statement about the customer session, which may be valid: the form that
+  // sent the credential owns the message, and nothing is reconciled.
+  'credential',
 ] as const;
-
-/**
- * Reserved, not emitted yet (#4469): login, reauthentication and API-key
- * rejections. Listed so a client can already name the case it must ignore.
- */
-export const RESERVED_SESSION_FAILURE_SCOPE = 'credential' as const;
 
 export const sessionFailureScopeSchema = z.enum(sessionFailureScopeValues);
 export type SessionFailureScope = z.infer<typeof sessionFailureScopeSchema>;
@@ -52,6 +52,11 @@ export const SESSION_FAILURE_CODES = {
   active_session_revoked: 'customer_session',
   active_session_unavailable: 'verification_unavailable',
   customer_unavailable: 'verification_unavailable',
+  // The credential vocabulary (#4469), no finer than the message each path
+  // already sends: one code for an unknown login and a wrong password.
+  invalid_credentials: 'credential',
+  api_key_invalid: 'credential',
+  suspended_credentials: 'credential',
 } as const satisfies Record<string, SessionFailureScope>;
 
 export type SessionFailureCode = keyof typeof SESSION_FAILURE_CODES;
