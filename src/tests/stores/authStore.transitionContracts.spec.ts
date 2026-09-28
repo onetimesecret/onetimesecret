@@ -327,10 +327,17 @@ describe('authStore PR #4497 transition contracts', () => {
 
     it('a duplicate after the reconciliation settled returns { ownedByCoordinator: false, reason: throttled }', async () => {
       await mountWith(authenticatedBootstrap);
-      axiosMock.onGet(ENDPOINT).reply(200, toWire(newerSnapshot(authenticatedBootstrap)));
+      const reply = newerSnapshot(authenticatedBootstrap);
+      axiosMock.onGet(ENDPOINT).reply(200, toWire(reply));
 
       const first = store.noteApiRejection(revoked);
       await vi.advanceTimersByTimeAsync(0);
+      // The reply was applied, not merely finished: the watermark moved to the
+      // newer snapshot and the session is still reported as held.
+      expect(bootstrapStore.watermark).toEqual({
+        epoch: reply.snapshot_epoch,
+        version: reply.snapshot_version,
+      });
       expect(store.authStatus).toBe('authenticated');
 
       // Still inside REJECTION_MIN_INTERVAL, but the reconciliation has
