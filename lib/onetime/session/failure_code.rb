@@ -5,12 +5,11 @@
 require_relative 'customer_session_evaluator'
 
 module Onetime
-  # Stable, machine-readable codes for session-authentication refusals (#4462).
+  # Stable, machine-readable codes for authentication refusals (#4462, #4469).
   #
-  # The wire `code` is the evaluator reason verbatim: there is one vocabulary,
-  # owned by Onetime::CustomerSessionEvaluator::REASONS, and no translation
-  # table that can drift from it. `code_scope` names the class of failure so a
-  # client can act on a code it has never seen:
+  # The wire `code` is the refusal reason verbatim: there is one vocabulary and
+  # no translation table that can drift from it. `code_scope` names the class
+  # of failure so a client can act on a code it has never seen:
   #
   #   customer_session          The customer session was examined and is not
   #                             (or is no longer) an authenticated one. The
@@ -20,27 +19,45 @@ module Onetime
   #                             client must not treat it as a sign-out.
   #   admin_session             The admin-only idle/absolute timeout. The
   #                             customer session itself is untouched.
+  #   credential                A credential the request presented was
+  #                             examined and rejected: a login (password,
+  #                             passkey, second factor), a re-authentication,
+  #                             or an API key. Not a statement about the
+  #                             customer session, which may be perfectly
+  #                             valid; the form or client that sent the
+  #                             credential owns the message (#4469).
   #
-  # Reserved, not emitted yet: `credential` (login / reauthentication /
-  # API-key rejections; #4469). A 401 without a `code` makes no statement
-  # about the customer session.
+  # The session reasons are owned by Onetime::CustomerSessionEvaluator::REASONS
+  # and are what the session strategies and the /auth router stash. The
+  # credential reasons are listed in CREDENTIAL_REASON_SCOPES below and are
+  # stashed by whatever code rejects the credential: the Basic auth strategies
+  # (an API key), the Rodauth seam (Auth::CredentialFailureCode), the /auth
+  # re-authentication and SSO-linking routes, and the simple-mode sign-in
+  # controller. They are deliberately no more granular than the message each
+  # of those paths already returns, so a code never distinguishes an unknown
+  # account from a wrong password or an unverified account.
+  #
+  # A 401 without a `code` still makes no statement about the customer
+  # session. A 403 (a locked-out or unverified Rodauth account) carries no
+  # code: the pair is annotated on 401s only.
   #
   # Both fields are additive. Statuses, redirects, and the existing `error`,
   # `message`, `error_type`, `timestamp`, `success` fields are unchanged.
   module SessionFailureCode
-    # Rack env key written by the session auth strategies when they refuse a
-    # request, read by Onetime::Middleware::SessionFailureCode. Holds the
-    # evaluator reason Symbol.
+    # Rack env key written by the code that refuses a request, read by
+    # Onetime::Middleware::SessionFailureCode. Holds the reason Symbol.
     ENV_KEY = 'onetime.session_failure_reason'
 
     SCOPE_CUSTOMER_SESSION         = 'customer_session'
     SCOPE_VERIFICATION_UNAVAILABLE = 'verification_unavailable'
     SCOPE_ADMIN_SESSION            = 'admin_session'
+    SCOPE_CREDENTIAL               = 'credential'
 
     SCOPES = [
       SCOPE_CUSTOMER_SESSION,
       SCOPE_VERIFICATION_UNAVAILABLE,
       SCOPE_ADMIN_SESSION,
+      SCOPE_CREDENTIAL,
     ].freeze
 
     # Every non-success evaluator reason and its scope. Written out rather
@@ -48,7 +65,7 @@ module Onetime
     # given a scope here by a person (failure_code_spec.rb fails until it is),
     # because defaulting an outage reason to `customer_session` would tell
     # clients to sign the user out.
-    REASON_SCOPES = {
+    SESSION_REASON_SCOPES = {
       session_missing: SCOPE_CUSTOMER_SESSION,
       awaiting_mfa: SCOPE_CUSTOMER_SESSION,
       not_authenticated: SCOPE_CUSTOMER_SESSION,
@@ -63,6 +80,33 @@ module Onetime
       customer_unavailable: SCOPE_VERIFICATION_UNAVAILABLE,
     }.freeze
 
+    # The credential vocabulary (#4469). One reason per kind of credential
+    # the surfaces reject, at the granularity of the message they already
+    # send:
+    #
+    #   invalid_credentials    A login credential was rejected: the login or
+    #                          password on POST /auth/login (one code for
+    #                          both), a passkey assertion, a second factor, a
+    #                          password confirmation on an account route, a
+    #                          re-authentication, the simple-mode sign-in, or
+    #                          the password on the SSO-linking interstitial.
+    #   api_key_invalid        An `Authorization` header was presented and
+    #                          rejected by a Basic auth strategy: wrong
+    #                          scheme, malformed, unknown account, or wrong
+    #                          key. One code, as the strategy takes constant
+    #                          time across them.
+    #   suspended_credentials  The credential was valid but its account is
+    #                          suspended. Only ever observable to a holder of
+    #                          the valid credential (an API key, or the
+    #                          simple-mode password).
+    CREDENTIAL_REASON_SCOPES = {
+      invalid_credentials: SCOPE_CREDENTIAL,
+      api_key_invalid: SCOPE_CREDENTIAL,
+      suspended_credentials: SCOPE_CREDENTIAL,
+    }.freeze
+
+    REASON_SCOPES = SESSION_REASON_SCOPES.merge(CREDENTIAL_REASON_SCOPES).freeze
+
     # String keys and values: these hashes are merged straight into JSON
     # response bodies.
     CODES = REASON_SCOPES.to_h do |reason, scope|
@@ -75,7 +119,7 @@ module Onetime
     ROUTINE_REASONS = [:session_missing, :not_authenticated, :awaiting_mfa].freeze
 
     class << self
-      # @param reason [Symbol, String, nil] an evaluator reason
+      # @param reason [Symbol, String, nil] a refusal reason
       # @return [Hash{String=>String}] `code` and `code_scope`, or an empty
       #   Hash for :authenticated / unknown input, so callers can always merge
       #   the result.
@@ -83,6 +127,40 @@ module Onetime
         return {} if reason.nil?
 
         CODES.fetch(reason.to_sym, {})
+      end
+
+      # @param reason [Symbol, String, nil]
+      # @return [Boolean] whether the reason is in the credential scope
+      def credential?(reason)
+        return false if reason.nil?
+
+        CREDENTIAL_REASON_SCOPES.key?(reason.to_sym)
+      end
+
+      # Record the reason a request is being refused for, for the middleware
+      # to render. The last writer wins: on a `sessionauth,basicauth` chain
+      # the session strategy's reason is replaced by the Basic auth strategy's
+      # when the header it presented is rejected, which is the refusal the
+      # client is answered with.
+      #
+      # @param env [Hash, nil] the Rack env. A nil or non-Hash env is ignored,
+      #   so bare unit-level strategy calls need no guard.
+      # @param reason [Symbol] a key of REASON_SCOPES
+      # @return [void]
+      def stash(env, reason)
+        env[ENV_KEY] = reason if env.is_a?(Hash)
+        nil
+      end
+
+      # Withdraw a stashed reason. For a route that answers a 401 which is
+      # neither the session's nor a credential's (an expired SSO-linking
+      # token), so the router's anonymous stash is not rendered onto it.
+      #
+      # @param env [Hash, nil] the Rack env
+      # @return [void]
+      def forget(env)
+        env.delete(ENV_KEY) if env.is_a?(Hash)
+        nil
       end
 
       # One structured line per session refusal, from both places a refusal
@@ -98,10 +176,18 @@ module Onetime
       # sessions that may be perfectly valid. Never raises: logging must not
       # be able to change how a request is answered.
       #
-      # @param reason [Symbol, String, nil] the evaluator reason acted on
+      # Credential refusals are not logged here. Each surface that rejects a
+      # credential already records it (Rodauth's `login_failure` event, the
+      # simple-mode sign-in's log line, Otto's failed-chain line), and a
+      # `Session refused` line for a rejected password would claim the session
+      # was refused when it was never examined.
+      #
+      # @param reason [Symbol, String, nil] the refusal reason acted on
       # @param env [Hash, nil] the Rack env
       # @return [void]
       def log_refusal(reason, env)
+        return if credential?(reason)
+
         pair = self.for(reason)
         return if pair.empty?
 
