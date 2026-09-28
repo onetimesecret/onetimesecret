@@ -42,8 +42,12 @@
   pruneStaleBranches: true,
 
   // Automerge settings
+  // automergeType 'pr', not 'branch': from April 2025 to September 2026 no
+  // update landed on main by branch automerge (every one came through a PR),
+  // and branch-automerge updates without a PR sat unseen for weeks. A PR gets
+  // CI, which only runs on pushes to main and on PRs.
   automerge: true,
-  automergeType: 'branch',
+  automergeType: 'pr',
   automergeStrategy: 'merge-commit',
   major: { automerge: false },
   minor: { automerge: false },
