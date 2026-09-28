@@ -11,33 +11,53 @@ module Onetime
     # SessionFailureCode
     #
     # Adds the stable `code` / `code_scope` pair (Onetime::SessionFailureCode)
-    # to the JSON 401 that Otto renders when a session auth strategy refuses a
-    # request (#4462).
+    # to a JSON 401 that refused a request for its session (#4462) or for a
+    # credential it presented (#4469).
     #
     # ## Why a middleware
     #
-    # Otto builds that body inside the gem
+    # Otto builds the session 401 inside the gem
     # (RouteAuthWrapperComponents::ResponseBuilder#json_auth_error) from the
     # failure STRING alone and offers no hook into it, so the evaluator's typed
     # reason reaches the client only as a bracket marker inside `message`.
-    # Same constraint, same answer as RetryAfterHeader: the strategy stashes
-    # the typed reason in the Rack env
-    # (BaseSessionAuthStrategy#failure_for) and this middleware, mounted once in
-    # the universal stack, carries it across the boundary.
+    # Rodauth likewise renders its own JSON error and exposes the reason only
+    # through `set_error_reason`. Same constraint, same answer as
+    # RetryAfterHeader: the code that refuses stashes the typed reason in the
+    # Rack env (Onetime::SessionFailureCode.stash) and this middleware,
+    # mounted once in the universal stack, carries it across the boundary for
+    # every surface. Group D (#4469 follow-up) extends the same annotate path
+    # with headers: `annotate` is the one place to add them.
+    #
+    # ## Who stashes
+    #
+    # - BaseSessionAuthStrategy#failure_for: the evaluator reason, BEFORE
+    #   Otto's chain has resolved. Authoritative only if the chain then
+    #   refuses the request (see "When it annotates").
+    # - Helpers#credentialed_failure, for the Basic auth strategies: a
+    #   credential reason, only on the TERMINAL failure that fails the chain
+    #   closed. A rejected header a valid session outranks stashes nothing.
+    # - Auth::Router, before r.rodauth, for a request with no session: the
+    #   anonymous reason, so a login-required refusal from Rodauth or from a
+    #   custom /auth route is coded the same way the Otto surfaces code it.
+    # - Auth::CredentialFailureCode, from Rodauth's `set_error_reason`: a
+    #   credential reason replaces the router's stash for a rejected login or
+    #   password confirmation; any other Rodauth error withdraws it.
+    # - The /auth re-authentication and SSO-linking routes and the simple-mode
+    #   sign-in controller: a credential reason, written as they answer.
     #
     # ## When it annotates
     #
     # All of:
     #
     # - the response is a 401 with a JSON content type and an Array body;
-    # - a session strategy refused this request (the env stash is present);
-    # - Otto's auth chain produced the response (its anonymous failure result
-    #   carries `:auth_failure` metadata). A 401 raised later by a handler on a
-    #   route that fell through to `noauth` is not a session refusal;
-    # - the request presented no `Authorization` header. On a
-    #   `sessionauth,basicauth` chain a rejected API credential is a
-    #   `credential`-scope failure (reserved, #4469) and stays uncoded rather
-    #   than being reported as a statement about the customer session.
+    # - a reason is stashed;
+    # - the stash is the refusal being answered. A session reason on an Otto
+    #   surface is stashed before the handler runs, so it counts only when
+    #   Otto's auth chain produced the response (its anonymous failure result
+    #   carries `:auth_failure` metadata); a 401 raised later by a handler on a
+    #   route that fell through to `noauth` is not a session refusal. A
+    #   credential reason is stashed by the code that renders the refusal, and
+    #   the /auth Roda app has no Otto chain at all, so both are taken as is.
     #
     # It never overwrites a `code` already in the body, never touches another
     # status or content type, and leaves the response exactly as it found it
@@ -64,11 +84,7 @@ module Onetime
         status, headers, body = @app.call(env)
         return [status, headers, body] unless annotate?(env, status, headers, body)
 
-        annotated = annotate(body, Onetime::SessionFailureCode.for(env[ENV_KEY]))
-        return [status, headers, body] unless annotated
-
-        set_header(headers, CONTENT_LENGTH, annotated.bytesize.to_s)
-        [status, headers, [annotated]]
+        annotate(env, status, headers, body)
       end
 
       private
@@ -76,24 +92,39 @@ module Onetime
       def annotate?(env, status, headers, body)
         status.to_i == STATUS &&
           env[ENV_KEY] &&
-          env['HTTP_AUTHORIZATION'].to_s.empty? &&
-          otto_auth_failure?(env) &&
+          refusal_answered?(env) &&
           headers.respond_to?(:each_pair) &&
           JSON_TYPE.match?(header(headers, CONTENT_TYPE).to_s) &&
           body.respond_to?(:to_ary)
       end
 
-      def otto_auth_failure?(env)
+      # Whether the stashed reason is the refusal this response answers.
+      def refusal_answered?(env)
+        return true if Onetime::SessionFailureCode.credential?(env[ENV_KEY])
+
         result = env['otto.strategy_result']
-        return false unless result.respond_to?(:metadata)
+        # No Otto auth chain ran: the /auth Roda app, whose router and routes
+        # stash only as they refuse.
+        return true unless result.respond_to?(:metadata)
 
         metadata = result.metadata
         metadata.is_a?(Hash) && metadata.key?(:auth_failure)
       end
 
+      # The one place the refusal is rendered onto the response. Returns the
+      # response untouched when the body cannot carry the pair.
+      def annotate(env, status, headers, body)
+        codes     = Onetime::SessionFailureCode.for(env[ENV_KEY])
+        annotated = annotate_body(body, codes)
+        return [status, headers, body] unless annotated
+
+        set_header(headers, CONTENT_LENGTH, annotated.bytesize.to_s)
+        [status, headers, [annotated]]
+      end
+
       # @return [String, nil] the re-serialized body, or nil to leave the
       #   response untouched.
-      def annotate(body, codes)
+      def annotate_body(body, codes)
         return nil if codes.empty?
 
         parsed = JSON.parse(body.to_ary.join)

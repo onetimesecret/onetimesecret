@@ -5,7 +5,9 @@
 # Otto renders the session 401 inside the gem from a failure string, so the
 # evaluator's typed reason used to reach the client only as a bracket marker in
 # `message`. The session strategy stashes the reason in env and this middleware
-# adds `code` / `code_scope` to the body (#4462).
+# adds `code` / `code_scope` to the body (#4462). A rejected credential is
+# stashed by the code that refuses it, on every surface, and rendered the same
+# way (#4469).
 
 require 'spec_helper'
 require 'json'
@@ -91,16 +93,11 @@ RSpec.describe Onetime::Middleware::SessionFailureCode do
       untouched(otto_response, { 'otto.strategy_result' => failed_chain })
     end
 
-    it 'a 401 that did not come from the Otto auth chain' do
+    it 'a session 401 that did not come from the Otto auth chain' do
       # A session strategy failed, the chain fell through to noauth, and a
       # handler answered 401 for its own reasons.
-      untouched(otto_response, { env_key => :not_authenticated })
       passed = Struct.new(:metadata).new({ ip: '127.0.0.0' })
       untouched(otto_response, { env_key => :not_authenticated, 'otto.strategy_result' => passed })
-    end
-
-    it 'a 401 on a request that presented an Authorization header (credential scope, #4469)' do
-      untouched(otto_response, refused_env(:session_missing, 'HTTP_AUTHORIZATION' => 'Basic Zm9vOmJhcg=='))
     end
 
     it 'any other status' do
@@ -132,6 +129,80 @@ RSpec.describe Onetime::Middleware::SessionFailureCode do
     it 'an unknown reason in env' do
       untouched(otto_response, refused_env(:no_such_reason))
     end
+  end
+
+  # #4469: a rejected credential is coded, on every surface.
+  describe 'a credential refusal' do
+    let(:basic_body) do
+      { error: 'Authentication Required', message: '[CREDENTIALS_INVALID] Invalid credentials', timestamp: 1 }.to_json
+    end
+
+    it 'codes a rejected API key, stashed by the terminal Basic auth failure that failed the chain' do
+      env = refused_env(:api_key_invalid, 'HTTP_AUTHORIZATION' => 'Basic Zm9vOmJhcg==')
+      _s, _h, body = call(otto_response(body: basic_body), env)
+
+      expect(JSON.parse(body.join)).to include('code' => 'api_key_invalid', 'code_scope' => 'credential')
+    end
+
+    it 'codes a rejected sign-in stashed by a handler after the chain passed (simple-mode login)' do
+      passed = Struct.new(:metadata).new({ ip: '127.0.0.0' })
+      env    = { env_key => :invalid_credentials, 'otto.strategy_result' => passed }
+      body   = { error: 'Invalid email or password', 'field-error' => %w[email invalid] }.to_json
+      _s, _h, annotated = call(otto_response(body: body), env)
+
+      expect(JSON.parse(annotated.join)).to include(
+        'error' => 'Invalid email or password',
+        'field-error' => %w[email invalid],
+        'code' => 'invalid_credentials',
+        'code_scope' => 'credential',
+      )
+    end
+
+    it 'codes a valid API key on a suspended account' do
+      _s, _h, body = call(otto_response, refused_env(:suspended_credentials))
+
+      expect(JSON.parse(body.join)).to include('code' => 'suspended_credentials', 'code_scope' => 'credential')
+    end
+  end
+
+  # The /auth Roda app has no Otto chain: its router and routes stash only as
+  # they refuse, and the Rodauth seam stashes as Rodauth throws.
+  describe 'the /auth surface (no otto.strategy_result)' do
+    it 'codes a login-required refusal with the reason the router stashed' do
+      body = { error: 'Please login to continue' }.to_json
+      _s, _h, annotated = call(otto_response(body: body), { env_key => :session_missing })
+
+      expect(JSON.parse(annotated.join)).to include('code' => 'session_missing', 'code_scope' => 'customer_session')
+    end
+
+    it 'codes a rejected login with what the Rodauth seam stashed' do
+      body = { error: 'There was an error logging in', 'field-error' => ['password', 'invalid password'] }.to_json
+      _s, _h, annotated = call(otto_response(body: body), { env_key => :invalid_credentials })
+
+      expect(JSON.parse(annotated.join)).to include(
+        'field-error' => ['password', 'invalid password'],
+        'code' => 'invalid_credentials',
+        'code_scope' => 'credential',
+      )
+    end
+
+    it 'leaves a 401 uncoded once the stash has been withdrawn' do
+      env = { env_key => :session_missing }
+      Onetime::SessionFailureCode.forget(env)
+
+      response = otto_response(body: { error: 'This linking request has expired.', error_code: 'link_expired' }.to_json)
+      expect(call(response, env)).to eq(response)
+    end
+  end
+
+  # A session reason on a sessionauth-only route reached with an Authorization
+  # header: the header was never examined (no Basic strategy in the chain), so
+  # the refusal is the session's and is coded as such. On a chain with a
+  # Basic strategy the terminal credential stash replaces it.
+  it 'codes a session refusal even when the request carried an Authorization header' do
+    _s, _h, body = call(otto_response, refused_env(:session_missing, 'HTTP_AUTHORIZATION' => 'Basic Zm9vOmJhcg=='))
+
+    expect(JSON.parse(body.join)).to include('code' => 'session_missing', 'code_scope' => 'customer_session')
   end
 
   it 'accepts a vendor +json content type with parameters' do
