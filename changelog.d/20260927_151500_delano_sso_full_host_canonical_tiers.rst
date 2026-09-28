@@ -14,10 +14,12 @@ Fixed
   shared resolver: a development browser on a host other than ``site.host``
   now gets its SSO URLs on ``site.host``, as its email links already did
   (set ``HOST`` to the host you browse); and a custom domain that is
-  registered with SSO configured but not yet TXT-verified now gets its
-  ``redirect_uri`` / ACS URL on ``site.host`` too, which its IdP will reject
-  until the domain is verified. The auth log records
-  ``omniauth_tenant_domain_unverified`` for that case. A ``site.host`` on a
+  registered with SSO configured but not yet TXT-verified gets its
+  ``redirect_uri`` / ACS URL on ``site.host``, which its IdP will reject
+  until the domain is verified. Behind a Host-rewriting proxy that was
+  already the case; it is new only where the ingress passes ``Host`` through
+  unchanged. The auth log now records ``omniauth_tenant_domain_unverified``
+  for that case. A ``site.host`` on a
   non-default port behind a doubling proxy still needs the proxy fixed: the
   port is read from the request authority, which cannot be parsed, so the
   URL carries the host but no port.
