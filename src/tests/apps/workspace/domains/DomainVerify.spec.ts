@@ -6,6 +6,14 @@ import { createPinia, setActivePinia } from 'pinia';
 import DomainVerify from '@/apps/workspace/domains/DomainVerify.vue';
 import { ref, computed } from 'vue';
 import { createTestI18n } from '@tests/setup';
+import { setDomainValidationStrategy } from '@tests/support/domainValidationStrategy';
+
+// The install-level strategy (bootstrap), read only when the response carries
+// no cluster. Real `*Of` predicates evaluate against the spec's choice.
+vi.mock('@/utils/features', async (importOriginal) => {
+  const { featuresForStrategy } = await import('@tests/support/domainValidationStrategy');
+  return featuresForStrategy(await importOriginal<typeof import('@/utils/features')>());
+});
 
 // Mock route params
 const mockRouteParams = { extid: 'dm-test-extid' };
@@ -167,6 +175,8 @@ describe('DomainVerify', () => {
     mockCust.value = { feature_flags: { dns_widget: true } };
     mockCanonicalDomain.value = 'secrets.example.com';
     mockSiteHost.value = 'secrets.example.com';
+    // Module state in the support helper; re-assert the default.
+    setDomainValidationStrategy('approximated');
 
     // Default mock data for useDomain
     mockDomain.value = createMockDomain();
@@ -217,13 +227,81 @@ describe('DomainVerify', () => {
       expect(mockVerifyDomain).not.toHaveBeenCalled();
     });
 
-    it('does NOT auto-trigger verification when validation_strategy is not approximated', async () => {
+    it('runs the first check on mount under approximated with the DNS widget off', async () => {
+      // The check is the page's, not the widget's: the widget is off by
+      // default (feature flag), and the add page cannot schedule the check
+      // (its composable is disposed on navigation).
+      mockCust.value = { feature_flags: { dns_widget: false } };
+      mockDomain.value = createMockDomain({ vhost: { last_monitored_unix: 0 } });
+      mockDetails.value = { cluster: createMockCluster({ validation_strategy: 'approximated' }) };
+
+      await mountComponent();
+
+      expect(mockVerifyDomain).toHaveBeenCalledTimes(1);
+      expect(mockVerifyDomain).toHaveBeenCalledWith('dm-test-extid');
+    });
+
+    it('runs the check after the domain has loaded, not before', async () => {
+      mockDomain.value = null;
+      mockInitialize.mockImplementation(async () => {
+        mockDomain.value = createMockDomain({ vhost: { last_monitored_unix: 0 } });
+      });
+
+      await mountComponent();
+
+      expect(mockInitialize).toHaveBeenCalled();
+      expect(mockVerifyDomain).toHaveBeenCalledWith('dm-test-extid');
+    });
+
+    it('does NOT run a check on mount when the domain failed to load', async () => {
+      mockDomain.value = null;
+      mockDetails.value = null;
+
+      await mountComponent();
+
+      expect(mockVerifyDomain).not.toHaveBeenCalled();
+    });
+
+    it('does NOT auto-trigger verification under passthrough (no ownership check)', async () => {
       mockDomain.value = createMockDomain();
       mockDetails.value = { cluster: createMockCluster({ validation_strategy: 'passthrough' }) };
 
       await mountComponent();
 
       expect(mockVerifyDomain).not.toHaveBeenCalled();
+    });
+
+    it('does NOT auto-trigger verification for an unknown strategy', async () => {
+      mockDomain.value = createMockDomain();
+      mockDetails.value = { cluster: createMockCluster({ validation_strategy: 'something_new' }) };
+
+      await mountComponent();
+
+      expect(mockVerifyDomain).not.toHaveBeenCalled();
+    });
+
+    describe('with no cluster in the response', () => {
+      // The strategy then comes from the bootstrap snapshot.
+      beforeEach(() => {
+        mockDomain.value = createMockDomain({ vhost: { last_monitored_unix: 0 } });
+        mockDetails.value = {};
+      });
+
+      it('runs the first check when the install checks ownership', async () => {
+        setDomainValidationStrategy('caddy_on_demand');
+
+        await mountComponent();
+
+        expect(mockVerifyDomain).toHaveBeenCalledWith('dm-test-extid');
+      });
+
+      it('does NOT run a check under passthrough', async () => {
+        setDomainValidationStrategy('passthrough');
+
+        await mountComponent();
+
+        expect(mockVerifyDomain).not.toHaveBeenCalled();
+      });
     });
   });
 
@@ -459,7 +537,29 @@ describe('DomainVerify', () => {
       const wrapper = await mountComponent();
 
       expect(wrapper.find('[data-testid="dns-widget"]').exists()).toBe(false);
-      // The widget is what auto-triggers a check on mount.
+    });
+
+    it('runs the first check on mount for a domain that has never been checked', async () => {
+      // This is the post-add check. The add page used to schedule it two
+      // seconds out, but navigation disposed that composable's scope and
+      // cleared the timer, so under caddy_on_demand nothing ran until the
+      // customer clicked Verify.
+      await mountComponent();
+
+      expect(mockVerifyDomain).toHaveBeenCalledTimes(1);
+      expect(mockVerifyDomain).toHaveBeenCalledWith('dm-test-extid');
+      // The page refetches the domain once the check has run.
+      expect(mockInitialize).toHaveBeenCalledTimes(2);
+    });
+
+    it('does NOT run a check on mount once the domain has been checked', async () => {
+      mockDomain.value = createMockDomain({
+        verified: false,
+        vhost: { status: 'PENDING_SSL', last_monitored_unix: 1704067200 },
+      });
+
+      await mountComponent();
+
       expect(mockVerifyDomain).not.toHaveBeenCalled();
     });
 

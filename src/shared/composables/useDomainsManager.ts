@@ -31,17 +31,12 @@ export function useDomainsManager() {
   const goBack = () => router.back();
   const { records, details } = storeToRefs(store);
 
-  // Track pending timeouts so they can be cleared on scope disposal
+  // Track the pending redirect so it can be cleared on scope disposal
   let redirectTimer: ReturnType<typeof setTimeout> | null = null;
-  let verifyTimer: ReturnType<typeof setTimeout> | null = null;
   onScopeDispose(() => {
     if (redirectTimer) {
       clearTimeout(redirectTimer);
       redirectTimer = null;
-    }
-    if (verifyTimer) {
-      clearTimeout(verifyTimer);
-      verifyTimer = null;
     }
   });
 
@@ -167,28 +162,20 @@ export function useDomainsManager() {
    * Route to the appropriate screen after a domain is added.
    *
    * Installs whose strategy checks ownership (approximated, caddy_on_demand)
-   * land on the verification screen, which shows the TXT record, and kick off
-   * a backend check. Other installs manage their own DNS/TLS with no ownership
-   * check, so they go to the simpler CNAME-instructions screen and skip the
-   * check (it would have nothing to report). See isDomainOwnershipChecked().
+   * land on the verification screen, which shows the TXT record and runs the
+   * first check itself on mount (DomainVerify.vue). It is not scheduled from
+   * here: this composable lives in the add page's scope, which is disposed
+   * when navigation unmounts that page, so a timer set here never fired.
+   * Other installs manage their own DNS/TLS with no ownership check, so they
+   * go to the simpler CNAME-instructions screen. See isDomainOwnershipChecked().
    */
   const navigateAfterAdd = (record: CustomDomain) => {
-    const checksOwnership = isDomainOwnershipChecked();
+    if (!orgid.value) return;
 
-    if (orgid.value) {
-      router.push({
-        name: checksOwnership ? 'DomainVerify' : 'DomainDns',
-        params: { orgid: orgid.value, extid: record.extid },
-      });
-    }
-
-    if (checksOwnership) {
-      verifyTimer = setTimeout(() => {
-        verifyDomain(record.extid).catch((err: unknown) => {
-          console.warn('[useDomainsManager] Post-add verification failed:', err);
-        });
-      }, 2000);
-    }
+    router.push({
+      name: isDomainOwnershipChecked() ? 'DomainVerify' : 'DomainDns',
+      params: { orgid: orgid.value, extid: record.extid },
+    });
   };
 
   const handleAddDomain = async (domain: string) =>

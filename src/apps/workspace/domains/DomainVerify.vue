@@ -11,6 +11,7 @@
   import { useDomain } from '@/shared/composables/useDomain';
   import { useDomainDnsRecord } from '@/shared/composables/useDomainDnsRecord';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { isDomainOwnershipChecked, isDomainOwnershipCheckedOf } from '@/utils/features';
   import { CustomDomainProxy, type CustomDomainResponse } from '@/schemas/api/v3/responses/domains';
   import { storeToRefs } from 'pinia';
   import { computed, onMounted, ref } from 'vue';
@@ -94,6 +95,24 @@
     () => domain.value && !domain.value.vhost?.last_monitored_unix && !usesApproximatedProxy.value
   );
 
+  // Whether the install checks ownership (the TXT record), taken from the
+  // cluster of the response being rendered, otherwise from the bootstrap
+  // snapshot. Same rule as useDomainDnsRecord.
+  const checksOwnership = computed(() => {
+    const c = cluster.value;
+    return c ? isDomainOwnershipCheckedOf({ domains: c }) : isDomainOwnershipChecked();
+  });
+
+  // Run the first check from this page. A domain that has never been checked
+  // (no last_monitored_unix) gets one on mount under every strategy that
+  // checks ownership, so a customer who has just added a domain sees a
+  // status without clicking Verify. Scheduling that check from the add page
+  // did not work: the composable there is disposed when the add page
+  // unmounts on navigation, which cleared its timer.
+  const runsFirstCheckOnMount = computed(
+    () => !!domain.value && !domain.value.vhost?.last_monitored_unix && checksOwnership.value
+  );
+
   // Check if enough time has passed since last verification
   const canVerify = (): boolean => {
     const now = Date.now();
@@ -127,11 +146,12 @@
     await triggerVerification();
   };
 
-  // On mount: fetch domain then verify if showing widget
+  // On mount: fetch the domain, then run the first check if it has not had one
+  // (see runsFirstCheckOnMount). The DNS widget path is a subset of that.
   onMounted(async () => {
     try {
       await fetchDomain();
-      if (showDnsWidget.value) {
+      if (runsFirstCheckOnMount.value) {
         await triggerVerification();
       }
     } catch (err: unknown) {

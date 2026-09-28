@@ -61,9 +61,8 @@ Changed
   had no way to learn which TXT record to publish. Both strategies now get
   the verification page: the TXT record's host and value, the verify button,
   and the status badge in the domain list and header. Adding a domain lands
-  on that page and schedules the first check, as it does under
-  ``approximated``. ``passthrough`` is unchanged and keeps the plain DNS
-  setup page.
+  on that page, which runs the first check when it opens (see Fixed below).
+  ``passthrough`` is unchanged and keeps the plain DNS setup page.
 
   Under ``caddy_on_demand`` the address record on that page points at this
   install: a CNAME (ALIAS/ANAME for an apex domain) to the canonical domain,
@@ -224,6 +223,16 @@ Changed
 
 Fixed
 -----
+
+- The first check after adding a custom domain now runs. The verification
+  page runs it when it opens for a domain that has not been checked yet,
+  under every strategy that checks ownership (``approximated`` and
+  ``caddy_on_demand``). Previously the add page scheduled that check two
+  seconds after navigating, and navigating away from the add page cancelled
+  it, so the page showed no status until the customer clicked Verify. Under
+  ``approximated`` the page ran its own check on opening only with the
+  ``dns_widget`` feature flag on, which is off by default. A domain that has
+  already been checked is not re-checked on opening the page.
 
 - Under the ``approximated`` strategy, an indeterminate provider TXT check now
   falls back to the application's DNS resolver. A matching local answer can

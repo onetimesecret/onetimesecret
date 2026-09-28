@@ -218,7 +218,7 @@ describe('useDomainsManager', () => {
         );
       });
 
-      it('navigates to verification and schedules the first check under caddy_on_demand', async () => {
+      it('navigates to verification under caddy_on_demand and leaves the first check to that page', async () => {
         vi.useFakeTimers();
         try {
           setDomainValidationStrategy('caddy_on_demand');
@@ -226,7 +226,6 @@ describe('useDomainsManager', () => {
             record: newDomainData,
             details: { domain_context: newDomainData.display_domain },
           });
-          mockDependencies.domainsStore.verifyDomain.mockResolvedValueOnce({});
 
           const { handleAddDomain } = mountComposable(() => useDomainsManager());
           await handleAddDomain(newDomainData.domainid);
@@ -236,12 +235,11 @@ describe('useDomainsManager', () => {
             name: 'DomainVerify',
             params: { orgid: 'test-org-id', extid: newDomainData.extid },
           });
-          expect(mockDependencies.domainsStore.verifyDomain).not.toHaveBeenCalled();
 
-          await vi.advanceTimersByTimeAsync(2000);
-          expect(mockDependencies.domainsStore.verifyDomain).toHaveBeenCalledWith(
-            newDomainData.extid
-          );
+          // DomainVerify runs the first check on mount. A check scheduled here
+          // would be cancelled with the add page's scope on navigation.
+          await vi.advanceTimersByTimeAsync(5000);
+          expect(mockDependencies.domainsStore.verifyDomain).not.toHaveBeenCalled();
         } finally {
           vi.useRealTimers();
         }
