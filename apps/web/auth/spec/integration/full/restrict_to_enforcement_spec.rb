@@ -119,6 +119,8 @@ RSpec.describe 'restrict_to enforcement — full mode (ADR-034#restrict-to-is-an
     host = "restricted-#{restrict_to.tr('_', '-')}-#{run_id}.example.com"
 
     domain = Onetime::CustomDomain.new(display_domain: host, org_id: org.org_id)
+    # TXT-verified: tenant SSO is unavailable (:domain_unverified) on an unproven domain (#4517).
+    domain.verified = true
     domain.save
     Onetime::CustomDomain.display_domain_index.put(host, domain.domainid)
 

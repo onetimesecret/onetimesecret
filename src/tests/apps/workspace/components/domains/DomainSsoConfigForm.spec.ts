@@ -166,6 +166,7 @@ const mockSamlConfig: CustomDomainSsoConfig = {
 interface MountOptions {
   domainExtId?: string;
   domainHost?: string;
+  domainVerified?: boolean;
   orgId?: string;
   formState?: SsoConfigFormState;
   ssoConfig?: CustomDomainSsoConfig | null;
@@ -205,6 +206,7 @@ describe('DomainSsoConfigForm', () => {
   const defaultMountOptions: Required<MountOptions> = {
     domainExtId: 'dm_123',
     domainHost: 'secrets.example.com',
+    domainVerified: true,
     orgId: 'org_ext_123',
     formState: createDefaultFormState(),
     ssoConfig: null,
@@ -1247,7 +1249,7 @@ describe('DomainSsoConfigForm', () => {
         expect(wrapper.text()).not.toContain('web.organizations.sso.sp_details_preview_hint');
       });
 
-      it('falls back to the host preview when the API could not derive them', async () => {
+      it('does not reconstruct identifiers that the API withheld for a saved record', async () => {
         wrapper = await mountComponent({
           formState: mockSamlFormState,
           ssoConfig: { ...mockSamlConfig, sp_entity_id: null, acs_url: null },
@@ -1255,13 +1257,16 @@ describe('DomainSsoConfigForm', () => {
           domainHost: 'secrets.example.com',
         });
 
-        expect(wrapper.find('[data-testid="sso-saml-sp-entity-id"]').text()).toBe(
-          'https://secrets.example.com/auth/sso/saml/metadata'
-        );
-        // Still host-derived, so still labelled a preview.
-        expect(wrapper.find('[data-testid="sso-saml-sp-details-hint"]').text()).toBe(
-          'web.organizations.sso.sp_details_preview_hint'
-        );
+        expect(wrapper.find('[data-testid="sso-saml-sp-details"]').exists()).toBe(false);
+      });
+
+      it('does not preview tenant-host identifiers for an unverified domain', async () => {
+        wrapper = await mountComponent({
+          formState: mockSamlFormState,
+          domainVerified: false,
+        });
+
+        expect(wrapper.find('[data-testid="sso-saml-sp-details"]').exists()).toBe(false);
       });
 
       it('replaces the generic callback block and offers a copy control per value', async () => {

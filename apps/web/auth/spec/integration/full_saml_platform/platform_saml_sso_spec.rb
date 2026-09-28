@@ -427,11 +427,18 @@ RSpec.describe 'Platform SAML SSO', :full_auth_mode, :shared_db_state, type: :in
       begin
         # A victim already has a linked platform identity; no JIT or email
         # linking gate can protect the subsequent attacker-session callback.
-        sign_in
-        expect(last_response.status).to eq(302), "victim sign-in: #{last_response.body[0, 200]}; host=#{last_request.host}, display=#{last_request.env['onetime.display_domain']}, detected=#{last_request.env[Rack::DetectHost.result_field_name]}"
+        # The row is written directly, as in 'does not match a tenant row'
+        # above: a real platform sign-in cannot run under this describe's
+        # domains-enabled axis, where the test config's IP-literal site.host
+        # is never detected as a host, so the request's public host resolves
+        # to `canonical_host` (Auth::PublicHost.canonical_request_host) and
+        # the boot-pinned ACS on site.host refuses the start as
+        # :saml_acs_host_mismatch (#4517).
+        created_emails << email
+        victim_account = db[:accounts].insert(email: email, status_id: 2)
+        identities.insert(account_id: victim_account, provider: 'saml', issuer: entity_id, uid: name_id)
         expect(identity_rows).to contain_exactly(include(provider: 'saml', issuer: entity_id, uid: name_id))
         victim_identity = identity_rows.first
-        clear_cookies
 
         # Reconstruct a request issued by the old fallback behavior (including
         # its server-side pending id), then restore the real hook before the

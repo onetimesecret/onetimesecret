@@ -93,6 +93,7 @@ RSpec.describe 'Domain Signin Config API', type: :integration do
   end
 
   after do
+    Onetime::CustomDomain::SsoConfig.delete_for_domain!(test_custom_domain.identifier) rescue nil
     Onetime::CustomDomain::SigninConfig.delete_for_domain!(test_custom_domain.identifier) rescue nil
     Onetime::CustomDomain.display_domain_index.remove(tenant_domain) rescue nil
     test_custom_domain&.destroy! rescue nil
@@ -379,6 +380,22 @@ RSpec.describe 'Domain Signin Config API', type: :integration do
       expect(last_response.status).to eq(200)
       expect(json_body['details']['tenant_sso']).to eq(
         'available' => false, 'unavailable_reason' => 'no_sso_config',
+      )
+    end
+
+    it 'reports domain_unverified for enabled credentials on an unverified domain' do
+      Onetime::CustomDomain::SsoConfig.create!(
+        domain_id: test_custom_domain.identifier,
+        provider_type: 'oidc',
+        enabled: true,
+        issuer: 'https://idp.example.com',
+        client_id: 'tenant-client-id',
+      )
+
+      json_get api_path(test_custom_domain.extid)
+
+      expect(json_body['details']['tenant_sso']).to eq(
+        'available' => false, 'unavailable_reason' => 'domain_unverified',
       )
     end
   end

@@ -103,6 +103,9 @@ end
   display_domain: @test_display_domain,
   org_id: @test_org.org_id
 )
+# Tenant SSO availability requires a verified domain (#4517); the SSO
+# examples below need the tenant provider to be offered.
+@test_custom_domain.verified = true
 @test_custom_domain.save
 Onetime::CustomDomain.display_domain_index.put(@test_display_domain, @test_custom_domain.domainid)
 

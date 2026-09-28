@@ -142,6 +142,8 @@ module OAuthFlowHelper
       display_domain: display_domain,
       org_id: org.org_id
     )
+    # TXT-verified: tenant SSO is unavailable (:domain_unverified) on an unproven domain (#4517).
+    domain.verified = true
     domain.save
     Onetime::CustomDomain.display_domain_index.put(display_domain, domain.domainid)
 

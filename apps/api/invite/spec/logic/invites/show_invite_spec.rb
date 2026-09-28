@@ -266,7 +266,7 @@ RSpec.describe InviteAPI::Logic::Invites::ShowInvite do
         .with(display_domain).and_return(custom_domain)
       allow(Onetime.auth_config).to receive(:email_auth_enabled?).and_return(true)
       allow(Onetime::CustomDomain::SsoConfig).to receive(:tenant_sso_available_for?)
-        .with('domain-acme-123', sso_config: sso_config)
+        .with('domain-acme-123', sso_config: sso_config, custom_domain: custom_domain)
         .and_return(true)
       allow(Onetime::CustomDomain::SsoConfig).to receive(:sso_available_for_tenant_host?)
         .with('domain-acme-123')
@@ -298,7 +298,7 @@ RSpec.describe InviteAPI::Logic::Invites::ShowInvite do
 
       it 'checks the tenant route through the runtime availability ladder' do
         expect(Onetime::CustomDomain::SsoConfig).to receive(:tenant_sso_available_for?)
-          .with('domain-acme-123', sso_config: sso_config)
+          .with('domain-acme-123', sso_config: sso_config, custom_domain: custom_domain)
           .and_return(true)
 
         expect(record[:auth_methods].map { |method| method[:type] }).to eq(['sso'])

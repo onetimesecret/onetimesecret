@@ -65,6 +65,38 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::Serializers do
     build_domain_sso_config(:saml).tap { |config| config.idp_cert = pem }
   end
 
+  describe '#saml_sp_identifiers' do
+    let(:config) { build_domain_sso_config(:saml) }
+    let(:custom_domain) do
+      instance_double(
+        Onetime::CustomDomain,
+        display_domain: 'secrets.example.com',
+        verified: verified,
+      )
+    end
+    let(:verified) { true }
+
+    before do
+      allow(config).to receive(:custom_domain).and_return(custom_domain)
+      allow(OT).to receive(:conf).and_return('site' => { 'ssl' => true })
+    end
+
+    it 'returns tenant-host identifiers for a verified domain' do
+      expect(serializer.saml_sp_identifiers(config)).to eq(
+        sp_entity_id: 'https://secrets.example.com/auth/sso/saml/metadata',
+        acs_url: 'https://secrets.example.com/auth/sso/saml/callback',
+      )
+    end
+
+    context 'when domain ownership is unverified' do
+      let(:verified) { false }
+
+      it 'withholds both identifiers' do
+        expect(serializer.saml_sp_identifiers(config)).to eq(sp_entity_id: nil, acs_url: nil)
+      end
+    end
+  end
+
   describe '#serialize_sso_config certificate expiry' do
     context 'with an expired certificate' do
       let(:not_after) { Time.at(Time.now.to_i - 3600).utc }

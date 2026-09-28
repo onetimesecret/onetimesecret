@@ -223,7 +223,9 @@ module Auth::Config::Hooks
         # SigninConfig", and "master switch off".
         sso_config         = Onetime::CustomDomain::SsoConfig.find_by_domain_id(custom_domain.identifier)
         unavailable_reason = Onetime::CustomDomain::SsoConfig.tenant_sso_unavailable_reason(
-          custom_domain.identifier, sso_config: sso_config
+          custom_domain.identifier,
+          sso_config: sso_config,
+          custom_domain: custom_domain,
         )
 
         if unavailable_reason

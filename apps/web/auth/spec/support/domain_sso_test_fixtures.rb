@@ -401,6 +401,8 @@ RSpec.shared_context 'domain sso fixtures' do
       display_domain: domain_sso_display_domain,
       org_id: test_sso_organization.org_id
     )
+    # TXT-verified: tenant SSO is unavailable (:domain_unverified) on an unproven domain (#4517).
+    domain.verified = true
     domain.save
     Onetime::CustomDomain.display_domain_index.put(domain_sso_display_domain, domain.domainid)
     domain
