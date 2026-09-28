@@ -135,6 +135,12 @@ RSpec.describe Onetime::DomainValidation::AddressResolver do
         .to raise_error(described_class::NoReplyError, /neither recursive nor authoritative/)
     end
 
+    it 'reads an address for the name from a reply that is neither recursive nor authoritative' do
+      server = start_server { |s, q, _| s.reply_to(q, ra: 0, answers: [[nil, a.new('93.184.216.34')]]) }
+
+      expect(resolver_for(server).lookup(hostname).addresses).to eq(['93.184.216.34'])
+    end
+
     it 'reports NXDOMAIN as definitive without asking for the other family' do
       server = start_family_server(a => rcode::NXDomain)
       answer = resolver_for(server).lookup(hostname)

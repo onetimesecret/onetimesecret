@@ -173,7 +173,10 @@ It runs `DomainValidation::TlsProbe`:
 - The hostname is customer-controlled, so the dial goes through
   `Onetime::Http::Guard`: one resolution, the whole address set rejected if
   any address is non-public, and the connection pinned to a vetted IP. A
-  refused probe reports `is_resolving: true, has_ssl: nil`.
+  probe the guard refuses reports `is_resolving: true, has_ssl: nil`, as do
+  a connect timeout and an unreachable route. A connection the server
+  refuses or resets (`ECONNREFUSED`, `ECONNRESET`) reports `has_ssl: false`:
+  the name resolves and nothing there presents a certificate.
 
 This makes the "ask gate is unsatisfiable" note below historical: `resolving`
 is now written under `caddy_on_demand`, so `ready?` is reachable once the TXT
@@ -199,7 +202,10 @@ learn `has_ssl`. It returns
 neither `:data` nor `:mode` when the probe learned nothing;
 `VerifyDomain#persist_changes` then stores
 nothing and sets `vhost_fetch_failed_at`. A `vhost` blob left by
-`approximated` is not replaced (it is the orphaned-vhost chore's evidence).
+`approximated` survives only a check that learned nothing. Once a probe knows
+`is_resolving`, the blob is replaced with current probe state carrying
+`approximated_vhost_pending_cleanup: true`, which is the orphaned-vhost
+chore's evidence; stored SSL fields are never carried out of it.
 
 The frontend part of the Decision (`useDomainStatus.ts` keyed on
 `validation_strategy`) is not done. The probe blob reuses Approximated's

@@ -77,7 +77,7 @@ Caddy has no per-domain status API, so `caddy_on_demand` uses `TlsProbe`:
 2. The addresses go through the shared egress guard (`Onetime::Http::Guard.validate_addresses!`). The hostname is customer-controlled, so if any address is loopback, private, link-local or otherwise reserved, nothing is dialled: `is_resolving: true`, `has_ssl: nil`.
 3. The probe connects to a vetted IP on port 443 (never re-resolving the name), sends the hostname as SNI, completes a handshake with chain and hostname verification, and closes. No application data is sent. A verified handshake is `has_ssl: true`. A TLS error, an untrusted or mismatched certificate, or a refused or dropped connection is `false`. A timeout or an unroutable address is `nil`.
 
-`resolving` only means the name has an address record. It does not wait for a certificate, because the ACME ask endpoint requires `resolving` before Caddy may obtain one. It also does not check that the address is this deployment's; the certificate check is what shows that.
+`resolving` only means the name has an address record. It does not wait for a certificate, because the ACME ask endpoint requires `resolving` before Caddy may obtain one. Neither check shows that the address is this deployment's: the TLS check only proves that whatever answers at the resolved address presents a trusted certificate valid for the hostname, which an unrelated server or CDN also does. Ownership rests on the TXT check alone.
 
 How the result is stored (`VerifyDomain#persist_changes`):
 

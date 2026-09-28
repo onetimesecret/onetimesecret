@@ -189,10 +189,15 @@ module Onetime
       # turn a resolver-side condition into a definitive negative for every
       # domain checked through that resolver:
       #
-      #   - ra=0 and aa=0: the nameserver neither recursed for us nor is
-      #     authoritative. A server that refuses recursion this way (rather
-      #     than with REFUSED) sends NOERROR, an empty answer section and an
-      #     upward referral in the authority section.
+      #   - ra=0 and aa=0 with no data in the answer section: the nameserver
+      #     neither recursed for us nor is authoritative. A server that
+      #     refuses recursion this way (rather than with REFUSED) sends
+      #     NOERROR, an empty answer section and an upward referral in the
+      #     authority section; when the name is a CNAME it may add that CNAME
+      #     and refer for the target. Data records are read whatever the
+      #     flags say: ra reports whether recursion is on offer, not whether
+      #     the answer is good, and a server that recurses for nobody can
+      #     still answer from its cache.
       #   - a non-empty answer section in which nothing is owned by the
       #     queried name, so none of it can be attributed to the question.
       #
@@ -200,7 +205,7 @@ module Onetime
       def ensure_usable!(reply, name)
         return unless DEFINITIVE_RCODES.include?(reply.rcode)
 
-        if reply.ra.to_i.zero? && reply.aa.to_i.zero?
+        if reply.ra.to_i.zero? && reply.aa.to_i.zero? && reply.answer.all? { |_rr_name, _ttl, data| data.is_a?(CNAME) }
           raise AttemptFailed, "#{RCODE_NAMES[reply.rcode]} reply is neither recursive nor authoritative (ra=0, aa=0)"
         end
         return if reply.answer.empty? || reply.answer.any? { |rr_name, _ttl, _data| rr_name == name }
