@@ -1,7 +1,7 @@
 # try/unit/models/custom_domain/owners_destroy_proof_try.rb
 #
 # frozen_string_literal: true
-#
+
 # Proof: CustomDomain#destroy! removes the entry from the `owners`
 # class_hashkey via the explicit `self.class.owners.remove(to_s)` call.
 

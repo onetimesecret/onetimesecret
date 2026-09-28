@@ -1,4 +1,4 @@
-# try/unit/operations/email_config_summary_try.rb
+# try/unit/operations/email/config_summary_try.rb
 #
 # frozen_string_literal: true
 
@@ -18,9 +18,9 @@
 # - NO-CREDS-IN-PAYLOAD: a deep scan of build's output contains no secret, and
 #   masked_provider_config on an SMTP config with user/pass emits neither
 #
-# Run: try --agent try/unit/operations/email_config_summary_try.rb
+# Run: try --agent try/unit/operations/email/config_summary_try.rb
 
-require_relative '../../support/test_helpers'
+require_relative '../../../support/test_helpers'
 
 OT.boot! :test
 

@@ -60,7 +60,7 @@ ensure
   OT.send(:conf=, saved) rescue nil
 end
 
-# Valid SecretLink data (mirrors templates_secret_link_try.rb).
+# Valid SecretLink data (mirrors secret_link_try.rb).
 @secret_link_data = {
   secret_key: 'abc123def456',
   share_domain: nil,

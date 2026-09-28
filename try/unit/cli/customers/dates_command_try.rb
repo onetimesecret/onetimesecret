@@ -1,4 +1,4 @@
-# try/unit/cli/customers_dates_command_try.rb
+# try/unit/cli/customers/dates_command_try.rb
 #
 # frozen_string_literal: true
 
@@ -6,9 +6,9 @@
 # Tests parse_ts, parse_json_field, format_ttl, and redact_url
 # without requiring a full Redis scan or boot_application!.
 #
-# Run: bundle exec try try/unit/cli/customers_dates_command_try.rb
+# Run: bundle exec try try/unit/cli/customers/dates_command_try.rb
 
-require_relative '../../support/test_helpers'
+require_relative '../../../support/test_helpers'
 require 'onetime/cli'
 
 @cmd = Onetime::CLI::CustomersDatesCommand.new

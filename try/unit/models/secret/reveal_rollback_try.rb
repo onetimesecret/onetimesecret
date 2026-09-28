@@ -16,7 +16,7 @@
 # the CAS back cannot race another winner. The typed error
 # Onetime::SecretUndecryptable propagates to the HTTP edge as a 503.
 #
-# See secret_double_reveal_race_try.rb for the claim/race semantics these
+# See double_reveal_race_try.rb for the claim/race semantics these
 # tryouts must not weaken.
 
 require_relative '../../../support/test_models'

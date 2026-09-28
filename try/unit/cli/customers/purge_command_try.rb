@@ -1,4 +1,4 @@
-# try/unit/cli/customers_purge_command_try.rb
+# try/unit/cli/customers/purge_command_try.rb
 #
 # frozen_string_literal: true
 
@@ -7,9 +7,9 @@
 # and stripe_billing? logic without requiring a full Redis scan
 # or boot_application!.
 #
-# Run: bundle exec try try/unit/cli/customers_purge_command_try.rb
+# Run: bundle exec try try/unit/cli/customers/purge_command_try.rb
 
-require_relative '../../support/test_helpers'
+require_relative '../../../support/test_helpers'
 require 'onetime/cli'
 
 @cmd = Onetime::CLI::CustomersPurgeCommand.new

@@ -15,6 +15,9 @@
 # Steps: git mv, deepen '../' path literals in moved files by one level,
 # rewrite old paths in every tracked file (headers, cross-refs, docs), verify.
 # Leaves changes uncommitted.
+#
+# The perl programs read $ENV{...} and $. themselves.
+# shellcheck disable=SC2016
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
@@ -133,6 +136,12 @@ try/unit/mail/templates_welcome_try.rb                                         t
 try/unit/operations/verify_domain_approximated_native_try.rb                   try/unit/operations/verify_domain/approximated_native_try.rb
 try/unit/operations/verify_domain_caddy_on_demand_try.rb                       try/unit/operations/verify_domain/caddy_on_demand_try.rb
 try/unit/operations/verify_domain_confirmation_window_try.rb                   try/unit/operations/verify_domain/confirmation_window_try.rb
+
+# -> directories that already held sibling tryouts
+try/unit/cli/billing_diagnose_try.rb                                           try/unit/cli/billing/diagnose_try.rb
+try/unit/cli/customers_dates_command_try.rb                                    try/unit/cli/customers/dates_command_try.rb
+try/unit/cli/customers_purge_command_try.rb                                    try/unit/cli/customers/purge_command_try.rb
+try/unit/operations/email_config_summary_try.rb                                try/unit/operations/email/config_summary_try.rb
 TABLE
 }
 
@@ -150,10 +159,11 @@ done
 
 # --- 2. Deepen relative paths by one level -----------------------------------
 # Every '../ literal in these files is a require_relative or a
-# File.expand_path('../..', __dir__) argument (109 total), so a blanket
-# rewrite is safe.
+# File.expand_path('../..', __dir__) argument, so a blanket rewrite is safe.
+# The one File.join(__dir__, '..', ...) is billing_diagnose_try.rb's
+# ONETIME_HOME fallback.
 pairs | while read -r _ new; do
-  perl -pi -e "s{'\.\./}{'../../}g" "$new"
+  perl -pi -e "s{'\.\./}{'../../}g; s{File\.join\(__dir__, '\.\.'}{File.join(__dir__, '..', '..'}g" "$new"
 done
 
 # --- 3. Rewrite references to the old paths ----------------------------------
@@ -164,9 +174,23 @@ pairs | while read -r old new; do
     perl -pi -e 's/\Q$ENV{OLD}\E/$ENV{NEW}/g'
 done
 
-# The one reference by bare filename (the models/ file, not a billing/ namesake).
+# Moved files that name a sibling by its bare old filename. The lookbehind
+# skips path-qualified names, which step 3 already handled or which belong to
+# a namesake elsewhere.
+pairs | while read -r old new; do
+  dir=$(dirname "$new")
+  pairs | awk -v d="$dir" '{ n = $2; sub(/\/[^\/]*$/, "", n) } n == d { print $2 }' |
+    OLD=$(basename "$old") NEW=$(basename "$new") xargs \
+      perl -pi -e 's{(?<![\w/])\Q$ENV{OLD}\E}{$ENV{NEW}}g'
+done
+
+# The one reference outside the moved files by bare filename.
 perl -pi -e 's{`organization_entitlements_try\.rb`}{`organization/entitlements_try.rb`}' \
   docs/specs/entitlements-and-capabilities/issue-3491-plan-entitlements-vs-role-capabilities.md
+
+# Line 4 of the path header should be blank; this file had '#', which fails
+# the header check in step 4.
+perl -pi -e 's/^#$// if $. == 4' try/unit/models/custom_domain/owners_destroy_proof_try.rb
 
 # --- 4. Verify ---------------------------------------------------------------
 # No old path survives anywhere in the tree.
@@ -175,7 +199,15 @@ if pairs | awk '{print $1}' | git grep --no-color -nF -f -; then
   exit 1
 fi
 
-# Every relative require_relative / expand_path in the moved files resolves.
+# No moved file names a sibling by its old bare filename.
+if pairs | awk '{print $2}' |
+  xargs grep -nF -f <(pairs | awk '{ n = $1; sub(/.*\//, "", n); print n }'); then
+  echo "stale sibling references remain (above)" >&2
+  exit 1
+fi
+
+# Every relative require_relative / expand_path in the moved files resolves,
+# and the File.join(__dir__, '..', ...) fallback still lands on the repo root.
 pairs | awk '{print $2}' | ruby -e '
   bad = 0
   STDIN.each_line(chomp: true) do |f|
@@ -184,6 +216,12 @@ pairs | awk '{print $2}' | ruby -e '
         target = File.expand_path(rel, File.dirname(f))
         next if File.exist?(target) || File.exist?("#{target}.rb")
         warn "#{f}:#{n}: unresolved #{rel}"
+        bad += 1
+      end
+      line.scan(/File\.join\(__dir__((?:,\s*\x27\.\.\x27)+)\)/) do |(dots)|
+        target = File.expand_path(File.join(File.dirname(f), *[".."] * dots.count(",")))
+        next if target == Dir.pwd
+        warn "#{f}:#{n}: #{target} is not the repo root"
         bad += 1
       end
     end

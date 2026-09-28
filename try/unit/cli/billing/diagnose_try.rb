@@ -1,4 +1,4 @@
-# try/unit/cli/billing_diagnose_try.rb
+# try/unit/cli/billing/diagnose_try.rb
 #
 # frozen_string_literal: true
 
@@ -7,7 +7,7 @@
 # to cover: help output, missing-argument handling, customer-not-found path,
 # billing-disabled standalone entitlements, and the --entitlement flag.
 #
-# Run: bundle exec try try/unit/cli/billing_diagnose_try.rb
+# Run: bundle exec try try/unit/cli/billing/diagnose_try.rb
 
 require 'open3'
 
@@ -21,7 +21,7 @@ require 'open3'
   'BILLING_ENABLED' => 'false',
   'VALKEY_URL' => 'valkey://127.0.0.1:2163/0',
   'REDIS_URL' => 'redis://127.0.0.1:2163/0',
-  'ONETIME_HOME' => ENV['ONETIME_HOME'] || File.expand_path(File.join(__dir__, '..', '..', '..'))
+  'ONETIME_HOME' => ENV['ONETIME_HOME'] || File.expand_path(File.join(__dir__, '..', '..', '..', '..'))
 }
 
 # Helper to invoke `bin/ots` and return [stdout, stderr, exit_status]

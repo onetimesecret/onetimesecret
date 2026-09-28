@@ -22,7 +22,7 @@
 #     - find_pending_by_email: no longer discoverable (model destroyed)
 #     - model destroyed
 #
-# This complements organization_membership_accept_participation_try.rb which
+# This complements accept_participation_try.rb which
 # tests the three-structure invariant (members set, reverse index, staging set).
 # Here we verify the OTS application-level indexes are correctly managed.
 

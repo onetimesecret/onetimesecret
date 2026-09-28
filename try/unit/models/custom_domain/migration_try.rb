@@ -14,7 +14,7 @@
 # NOTE: CustomDomain.all has a known issue with quoted identifiers in instances
 # sorted set. Tests use organization.domains and direct lookups instead.
 #
-# REFERENCE: See custom_domain_familia_v2_try.rb for detailed relationship tests
+# REFERENCE: See familia_v2_try.rb for detailed relationship tests
 
 require_relative '../../../support/test_models'
 
