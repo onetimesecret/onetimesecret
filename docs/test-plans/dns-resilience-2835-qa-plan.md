@@ -22,7 +22,7 @@ externalization, caching, retry with backoff, and tracking fields.
 | `try/unit/domain_validation/parallel_dns_verification_try.rb` | Parallel DNS lookups | 25 | PASS (NEW) |
 | `try/unit/security/dns_rate_limiter_try.rb` | DNS rate limiting | 11 | PASS |
 | `try/unit/models/mailer_config_tracking_fields_try.rb` | Tracking fields | 23 | PASS (NEW) |
-| `try/unit/models/custom_domain_mailer_config_try.rb` | MailerConfig model | 74 | PASS |
+| `try/unit/models/custom_domain/mailer_config_try.rb` | MailerConfig model | 74 | PASS |
 | `try/unit/jobs/domain_validation_worker_try.rb` | Worker queue config | 8 | PASS |
 | `try/unit/jobs/domain_validation_async_flow_try.rb` | Async flow, retry | 21 | PASS |
 

@@ -52,7 +52,7 @@ module Onetime::Secret::Features
       # double as sorted-set scores, so sub-second precision must be preserved.)
       # A read-only detector for poisoned records lives in
       # scripts/diagnostics/detect_string_typed_numerics.rb.
-      # Mechanism tests: try/unit/models/secret_numeric_field_types_try.rb
+      # Mechanism tests: try/unit/models/secret/numeric_field_types_try.rb
       base.safe_dump_field :lifespan, ->(m) { m.lifespan.to_i }
 
       # @deprecated: legacy *_ttl field, to be removed in v0.26. Redundant with

@@ -724,7 +724,7 @@ module Onetime
           # MailerConfig.create! (set after save, with a comment about
           # record.exists?) describes an older Familia; both orderings
           # round-trip on Familia 2.12. Pinned against the real datastore in
-          # try/unit/models/custom_domain_sso_config_saml_try.rb — RE-VERIFY on
+          # try/unit/models/custom_domain/sso_config_saml_try.rb — RE-VERIFY on
           # a Familia bump.
           config.client_id     = attrs[:client_id] if attrs.key?(:client_id)
           config.client_secret = attrs[:client_secret] if attrs.key?(:client_secret)
