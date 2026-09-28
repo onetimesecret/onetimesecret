@@ -109,7 +109,10 @@ SSO Tab Visibility
 
 ### Login Flow (Runtime)
 
-**Prerequisite:** Organization must have a custom domain with SSO configured.
+**Prerequisite:** The organization must have a verified custom domain with SSO
+configured. Verification may come from the domain ownership check or an
+operator override. Unverified domains do not advertise tenant SSO or inject
+tenant provider credentials.
 
 ```
 User visits https://{custom-domain}/signin
@@ -138,17 +141,18 @@ Resolution chain (`apps/web/auth/config/hooks/omniauth_tenant.rb`):
 | 2 | `CustomDomain.load_by_display_domain(display_domain)` | CustomDomain record |
 | 3 | `custom_domain.identifier` | Domain identifier |
 | 4 | `CustomDomain::SsoConfig.find_by_domain_id(domain_id)` | SSO credentials |
-| 5 | `domain_config.to_omniauth_options` | OmniAuth strategy injection |
+| 5 | Shared availability checks | Verified ownership and an enabled, permitted SSO configuration |
+| 6 | `domain_config.to_omniauth_options` | OmniAuth strategy injection |
 
 A record that cannot produce usable options — today only a `saml` record with
 an unreadable or unusable trio, including an expired certificate — is refused
-at step 5: the hook logs `omniauth_tenant_config_unusable` at error level,
+at step 6: the hook logs `omniauth_tenant_config_unusable` at error level,
 clears the pending tenant context and redirects to
 `/signin?auth_error=sso_config_unusable`. It never falls back to platform SSO
 for that request, because the tenant context stored a moment earlier would
 still stamp the callback as validated for the domain.
 
-For `saml`, step 5 is followed by per-request injection of the tenant SP
+For `saml`, step 6 is followed by per-request injection of the tenant SP
 identifiers derived from the request's public host (`strategy.full_host`):
 the ACS URL and the SP EntityID (see
 [SAML 2.0 for a custom domain](#saml-20-for-a-custom-domain)). Platform SAML,
@@ -674,12 +678,13 @@ shows them under "Service provider details"):
 | SP metadata | `https://{custom-domain}/auth/sso/saml/metadata` |
 
 `saml` here is the platform route name (`SAML_ROUTE_NAME`); the API's values
-already reflect an override. The metadata URL is authoritative: the API
-composes the two values from the domain's `display_domain` and `site.ssl`,
-while the sign-in hook uses the public host of the actual request. They agree
-for a verified custom domain served on the default port. For an unverified
-domain the public-host resolution falls back to the canonical host, never to
-the request's own authority, so verify the domain before configuring the IdP.
+already reflect an override. Verify the custom domain before configuring the
+IdP. Until ownership is verified, the API withholds `sp_entity_id` and
+`acs_url`, and tenant SSO is not offered on sign-in surfaces. For a verified
+custom domain served on the default port, the API values match the identifiers
+built by the sign-in hook from the request's public host. On a non-default
+port, confirm the identifiers returned by the domain's metadata endpoint before
+registering them with the IdP.
 
 The default requested NameID format is persistent. Tenant `name_id_format`
 can request another supported format or omit the policy; the transient format
