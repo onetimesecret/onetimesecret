@@ -3,17 +3,21 @@
 // Stable codes on authentication refusals (#4462, #4469).
 //
 // Mirrors `Onetime::SessionFailureCode` (lib/onetime/session/failure_code.rb).
-// A 401 from any API surface or from `/auth` that was caused by the customer
-// session, or by a credential the request presented, carries two additive
-// fields:
+// A refusal from any API surface or from `/auth` that was caused by the
+// customer session, or by a credential the request presented, carries two
+// additive fields:
 //
 //   code        the server's typed reason, verbatim
 //   code_scope  the class of failure — what a client acts on
 //
 // Existing fields (`error`, `message`, `error_type`, `success`, `timestamp`)
-// and statuses are unchanged. A 401 WITHOUT a code makes no statement about
-// the customer session: a backend that predates this contract, or a 401
-// that is about neither the session nor a credential.
+// are unchanged. The status is 401, with one exception: a refusal in the
+// `verification_unavailable` scope is an outage, not a verdict, and the
+// server answers it 503 with `Retry-After` and the same body
+// (Onetime::Middleware::SessionFailureCode, "The 503"). A 401 WITHOUT a code
+// makes no statement about the customer session: a backend that predates
+// this contract, or a 401 that is about neither the session nor a
+// credential. A 503 without the pair is not a session refusal at all.
 
 import { z } from 'zod';
 
@@ -24,7 +28,8 @@ export const sessionFailureScopeValues = [
   // the handler that saw the 401.
   'customer_session',
   // The session could not be verified (datastore outage). Not a verdict about
-  // the session and never a sign-out.
+  // the session and never a sign-out. The only scope answered 503 (with
+  // Retry-After) instead of 401.
   'verification_unavailable',
   // The admin-only idle/absolute timeout. The customer session is untouched.
   'admin_session',
@@ -81,13 +86,31 @@ export const sessionFailureSchema = z.object({
 
 export type SessionFailure = z.infer<typeof sessionFailureSchema>;
 
+/** The status a `verification_unavailable` refusal arrives with. */
+export const VERIFICATION_UNAVAILABLE_STATUS = 503;
+
+/**
+ * Whether a pair on a response with this status is a session refusal.
+ *
+ * 401 carries any scope. 503 carries only `verification_unavailable`: the
+ * server never puts another scope on a 503, and the other 503s the client
+ * sees (`GET /bootstrap/me` `SnapshotOrderingUnavailable`, ADR-046; the
+ * `/auth` `AuthDatabaseBusy`) carry no pair, so a coded 503 with any other
+ * scope is not this contract and is ignored.
+ */
+function statusCarriesScope(status: unknown, scope: SessionFailureScope): boolean {
+  if (status === undefined || status === 401) return true;
+  return status === VERIFICATION_UNAVAILABLE_STATUS && scope === 'verification_unavailable';
+}
+
 /**
  * Reads the session-failure pair off a rejected request.
  *
  * Accepts an axios-style error (`error.response`), a response, or a bare
- * body. Returns null unless the status is 401 (when a status is available)
- * and the body carries a valid pair — so every other rejection, and every
- * uncoded 401, is "no statement about the customer session".
+ * body. Returns null unless the body carries a valid pair on a status that
+ * can carry it (see `statusCarriesScope`, when a status is available) — so
+ * every other rejection, every uncoded 401, and every uncoded 5xx is "no
+ * statement about the customer session".
  */
 export function parseSessionFailure(input: unknown): SessionFailure | null {
   if (input === null || typeof input !== 'object') return null;
@@ -99,9 +122,12 @@ export function parseSessionFailure(input: unknown): SessionFailure | null {
   };
   const response = candidate.response ?? (candidate.data !== undefined ? candidate : undefined);
   const status = response?.status;
-  if (status !== undefined && status !== 401) return null;
+  if (status !== undefined && status !== 401 && status !== VERIFICATION_UNAVAILABLE_STATUS) {
+    return null;
+  }
 
   const body = response ? response.data : input;
   const parsed = sessionFailureSchema.safeParse(body);
-  return parsed.success ? parsed.data : null;
+  if (!parsed.success) return null;
+  return statusCarriesScope(status, parsed.data.code_scope) ? parsed.data : null;
 }

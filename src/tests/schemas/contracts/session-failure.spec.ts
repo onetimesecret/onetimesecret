@@ -5,6 +5,7 @@
 
 import {
   SESSION_FAILURE_CODES,
+  VERIFICATION_UNAVAILABLE_STATUS,
   parseSessionFailure,
   sessionFailureCodeSchema,
   sessionFailureSchema,
@@ -106,10 +107,56 @@ describe('parseSessionFailure', () => {
     expect(parseSessionFailure(axiosError(401, { error: 'Authentication required' }))).toBeNull();
   });
 
-  it('ignores a pair on any status other than 401', () => {
-    for (const status of [200, 403, 500, 503]) {
+  it('ignores a pair on any status other than 401 (and the outage 503)', () => {
+    for (const status of [200, 302, 403, 500, 502, 503, 504]) {
       expect(parseSessionFailure(axiosError(status, ottoBody))).toBeNull();
     }
+  });
+
+  // #4469: a session the server could not verify is an outage, answered 503
+  // with Retry-After and the same coded body. Only that scope rides a 503.
+  describe('the verification-unavailable 503', () => {
+    const outage = {
+      error: 'Authentication Required',
+      message: '[AUTH_HEADER_MISSING] No authorization header',
+      timestamp: 1_700_000_000,
+      code: 'active_session_unavailable',
+      code_scope: 'verification_unavailable',
+    };
+
+    it('reads the pair from a 503 in the verification_unavailable scope', () => {
+      expect(VERIFICATION_UNAVAILABLE_STATUS).toBe(503);
+      expect(parseSessionFailure(axiosError(503, outage))).toEqual({
+        code: 'active_session_unavailable',
+        code_scope: 'verification_unavailable',
+      });
+      expect(parseSessionFailure(axiosError(503, { ...outage, code: 'customer_unavailable' }))?.code).toBe(
+        'customer_unavailable'
+      );
+    });
+
+    it('still reads the scope from a 401, for a backend that answers the outage the old way', () => {
+      expect(parseSessionFailure(axiosError(401, outage))?.code_scope).toBe('verification_unavailable');
+    });
+
+    it('ignores every other scope on a 503, and the scope on every other 5xx', () => {
+      for (const scope of ['customer_session', 'admin_session', 'credential']) {
+        expect(parseSessionFailure(axiosError(503, { ...outage, code_scope: scope }))).toBeNull();
+      }
+      for (const status of [500, 502, 504]) {
+        expect(parseSessionFailure(axiosError(status, outage))).toBeNull();
+      }
+    });
+
+    it('does not mistake the other 503s the client sees for a session refusal', () => {
+      // GET /bootstrap/me when the ordering pair cannot be allocated (ADR-046).
+      expect(
+        parseSessionFailure(axiosError(503, { error_type: 'SnapshotOrderingUnavailable', retry_after: 5 }))
+      ).toBeNull();
+      // /auth when the auth database is saturated.
+      expect(parseSessionFailure(axiosError(503, { error: 'busy', error_type: 'AuthDatabaseBusy' }))).toBeNull();
+      expect(parseSessionFailure(axiosError(503, {}))).toBeNull();
+    });
   });
 
   it('ignores an unknown scope, a partial pair, and non-objects', () => {

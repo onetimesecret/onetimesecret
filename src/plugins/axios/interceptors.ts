@@ -188,7 +188,8 @@ export const errorInterceptor = (error: AxiosError) => {
 };
 
 /**
- * Tells the refresh coordinator that a request was refused with 401 (#4460).
+ * Tells the refresh coordinator that a request was refused for its session
+ * (#4460).
  *
  * This is the ONE place a rejected API call touches authentication, and all
  * it does is report: `noteApiRejection` requests a reconciliation against
@@ -197,16 +198,21 @@ export const errorInterceptor = (error: AxiosError) => {
  * each `code_scope` (#4462, `credential` since #4469) is the coordinator's
  * policy, not the interceptor's; an uncoded 401 is passed as null.
  *
- * Nothing else is reported: a network error, a timeout or a 5xx on an API
- * call says nothing about the session, and the coordinator's own request is
- * what counts verification failures.
+ * A refusal is a 401, except that a session the server could not verify
+ * (`code_scope: verification_unavailable`) arrives as a 503 with the same
+ * body since #4469, and is reported exactly as the 401 was: `parseSessionFailure`
+ * accepts the pair on a 503 only for that scope. Nothing else is reported: a
+ * network error, a timeout or an uncoded 5xx on an API call says nothing
+ * about the session (the `GET /bootstrap/me` allocation 503 of ADR-046 is
+ * one and is handled by the coordinator's own request), and the
+ * coordinator's own request is what counts verification failures.
  */
 function noteRejection(error: AxiosError): void {
-  if (error.response?.status !== 401) return;
+  const status = error.response?.status;
+  const failure = parseSessionFailure(error);
+  if (status !== 401 && failure === null) return;
   try {
-    const disposition: RejectionDisposition = useAuthStore().noteApiRejection(
-      parseSessionFailure(error)
-    );
+    const disposition: RejectionDisposition = useAuthStore().noteApiRejection(failure);
     // Attach the disposition to the error so useAsyncHandler.coordinatorOwnsMessage
     // reads it verbatim instead of re-deriving carve-outs (ADR-046#rejection-disposition).
     (error as unknown as Record<string | symbol, unknown>)[COORDINATOR_DISPOSITION_KEY] =

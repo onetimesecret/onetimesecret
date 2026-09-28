@@ -151,9 +151,10 @@ export function useAsyncHandler(options: AsyncHandlerOptions = {}) {
    * tab, an anonymous tab, throttled duplicates) lives in exactly one place:
    * `authStore.noteApiRejection`. The interceptor stamps that decision on
    * the error via `COORDINATOR_DISPOSITION_KEY`, and this reads that one
-   * field. If it is absent (a non-401, an error that never touched the
-   * interceptor, or a bootstrap-time rejection where Pinia wasn't ready) we
-   * treat it as not owned — the caller's toast stands.
+   * field. If it is absent (a rejection the interceptor does not report: not
+   * a 401 and not a coded verification-unavailable 503; an error that never
+   * touched the interceptor; or a bootstrap-time rejection where Pinia
+   * wasn't ready) we treat it as not owned — the caller's toast stands.
    */
   function coordinatorOwnsMessage(error: unknown): boolean {
     return readCoordinatorDisposition(error)?.ownedByCoordinator === true;
