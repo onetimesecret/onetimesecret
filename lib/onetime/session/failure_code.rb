@@ -41,8 +41,12 @@ module Onetime
   # session. A 403 (a locked-out or unverified Rodauth account) carries no
   # code: the pair is annotated on 401s only.
   #
-  # Both fields are additive. Statuses, redirects, and the existing `error`,
-  # `message`, `error_type`, `timestamp`, `success` fields are unchanged.
+  # Both fields are additive: redirects and the existing `error`, `message`,
+  # `error_type`, `timestamp`, `success` fields are unchanged. So is every
+  # status but one: a JSON refusal in the `verification_unavailable` scope
+  # leaves the middleware as a 503 with `Retry-After`, because it is an
+  # outage and not a verdict (Onetime::Middleware::SessionFailureCode, "The
+  # 503"). Every annotated 401 also carries a `WWW-Authenticate` challenge.
   module SessionFailureCode
     # Rack env key written by the code that refuses a request, read by
     # Onetime::Middleware::SessionFailureCode. Holds the reason Symbol.
