@@ -3,11 +3,11 @@
 Added
 -----
 
-- ``jobs.domain_refresh.dns_propagation_window`` (default ``24h``). A custom
-  domain that is not yet verified or not yet resolving is re-checked on every
-  domain refresh run for this long after it was created, in addition to the
-  regular page, so a new domain does not wait a full walk of the domain set
-  for DNS to propagate. Set it to ``'0'`` to disable.
+- ``jobs.domain_refresh.dns_propagation_window`` (default ``24h``). Custom
+  domains created within this window that are not yet verified or not yet
+  resolving fill any room the regular page leaves under ``batch_size`` on each
+  domain refresh run, so a new domain can be re-checked before a full walk of
+  the domain set completes. Set it to ``'0'`` to disable.
 
 Changed
 -------
