@@ -126,6 +126,8 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
       display_domain: tenant_domain,
       org_id: test_organization.org_id,
     )
+    # TXT-verified: SP identifiers are withheld until ownership is proven (#4517).
+    domain.verified = true
     domain.save
     Onetime::CustomDomain.display_domain_index.put(tenant_domain, domain.domainid)
     domain

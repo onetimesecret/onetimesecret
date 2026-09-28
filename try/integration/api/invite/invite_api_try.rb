@@ -336,6 +336,8 @@ def last_response; @test.last_response; end
 @custom_domain = Onetime::CustomDomain.create!("secrets.branding-test-#{SecureRandom.hex(4)}.example.com", @branding_org.objid)
 @custom_domain.brand['name'] = 'ACME Corp'
 @custom_domain.brand['primary_color'] = '#FF5500'
+# TXT-verified: tenant SSO requires a verified domain (#4517).
+@custom_domain.verified = true
 @custom_domain.save
 @branding_invitation = Onetime::OrganizationMembership.create_invitation!(
   organization: @branding_org,
