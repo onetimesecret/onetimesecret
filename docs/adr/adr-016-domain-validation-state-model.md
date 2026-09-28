@@ -145,7 +145,10 @@ otherwise make the domain `ready?`. Installs that do not run
 checks the record (`BaseStrategy#proves_ownership?`: `approximated` and
 `caddy_on_demand`). A `passthrough` pass sets `verified` and records no
 confirmation, so a domain verified under `passthrough` is treated as never
-confirmed after a move to `caddy_on_demand`.
+confirmed after a move to `caddy_on_demand`. If passthrough promotes a domain
+after a definitive check demoted it, the older confirmation is cleared because
+it belongs to the ended verified lineage. A domain that stays verified across
+the strategy change keeps its still-current confirmation.
 
 The never-confirmed rule also reaches an install that cuts over from
 `approximated` to `caddy_on_demand` at or soon after this upgrade. The field

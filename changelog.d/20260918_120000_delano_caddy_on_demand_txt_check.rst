@@ -51,10 +51,11 @@ Changed
 
   The same applies to a domain verified under ``passthrough``. That strategy
   passes every domain without a DNS check, so its passes are stored in
-  verified but are not recorded as a TXT confirmation
-  (``verified_confirmed_at`` stays empty). After a move from ``passthrough``
-  to ``caddy_on_demand`` such a domain stays verified only once a check finds
-  its TXT record, or under a Colonel override.
+  verified but are not recorded as a TXT confirmation. If passthrough promotes
+  a domain after a definitive check demoted it, the older
+  ``verified_confirmed_at`` is cleared with that ended verification lineage.
+  After a move from ``passthrough`` to ``caddy_on_demand`` such a domain stays
+  verified only once a check finds its TXT record, or under a Colonel override.
 
 - The ``caddy_on_demand`` strategy now reports real resolving and SSL status
   for custom domains. Previously both were always unknown, so the domain

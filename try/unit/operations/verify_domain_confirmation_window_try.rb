@@ -182,8 +182,7 @@ window_try_set(@domain, verified: true, since: @inside_since, confirmed_at: @ins
 [@failed.dns_outcome, @failed.confirmation_expired, @failed_reloaded.verified, @failed_reloaded.verified_unconfirmed_since, @failed_reloaded.verified_confirmed_at == @inside_since - 60]
 #=> [:failed, false, false, nil, true]
 
-## Passthrough promotes without manufacturing TXT confirmation metadata
-window_try_set(@domain, verified: false, since: @expired_since)
+## Passthrough re-promotes the demoted domain without carrying its invalidated confirmation into the new lineage
 @strategy.ownership_result = WindowTryStrategy::PASSTHROUGH
 @passthrough = window_try_verify(@domain)
 @passthrough_reloaded = window_try_reload(@domain)
