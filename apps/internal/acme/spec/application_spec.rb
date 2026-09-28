@@ -196,6 +196,20 @@ RSpec.describe Internal::ACME::Application, type: :request, acme_integration: tr
         expect(last_response.status).to eq(403)
       end
 
+      # Punycode of the decomposed spelling (u + combining diaeresis) decodes
+      # and NFC-folds to the same Unicode string, but it is a different DNS
+      # name, so the stored name's verification must not cover it.
+      it 'answers 403 for an A-label that only decodes to the stored name' do
+        get '/ask', domain: 'xn--bucher-xyd.example'
+        expect(last_response.status).to eq(403)
+      end
+
+      it 'answers 403 for an A-label whose punycode decodes to an indexed ASCII name' do
+        allow(index).to receive(:get).with('plain.example').and_return('domain-id-1')
+        get '/ask', domain: 'xn--plain-.example'
+        expect(last_response.status).to eq(403)
+      end
+
       it 'answers 403, not 500, for an overlong label' do
         get '/ask', domain: "#{'ü' * 70}.example"
         expect(last_response.status).to eq(403)

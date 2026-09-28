@@ -12,7 +12,11 @@ RSpec.describe Onetime::CustomDomain, '.create!' do
 
   before { stub_creation_dependencies }
 
-  it 'admits only one Unicode/A-label request after concurrent preflight misses' do
+  # The preflight lookups are stubbed to miss (stub_creation_dependencies), so
+  # the second create never sees the first record: the deterministic stand-in
+  # for two requests racing past the preflight. Only the canonical claim can
+  # then refuse the duplicate; a check-then-write regression would admit both.
+  it 'admits only one Unicode/A-label request after simulated concurrent preflight misses' do
     results = attempt_both_creates
 
     expect(race_summary(results)).to eq(expected_race_summary)

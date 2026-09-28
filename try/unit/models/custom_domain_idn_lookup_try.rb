@@ -124,6 +124,23 @@ Onetime::CustomDomain.display_domain_lookup_keys("Plain-#{@suffix}.Example.com")
 Onetime::CustomDomain.display_domain_lookup_keys(@ascii_name.upcase)
 #=> [@ascii_name, @unicode_name]
 
+## A crafted A-label that only decodes to a registered name is not an alias for it.
+## Punycode of the decomposed spelling (u + combining diaeresis) NFC-folds to
+## the stored Unicode name, but it is a different DNS name.
+@decomposed_ascii = "xn--#{SimpleIDN::Punycode.encode("bu\u0308cher-#{@suffix}")}.com"
+[@decomposed_ascii != @ascii_name,
+ Onetime::CustomDomain.display_domain_lookup_keys(@decomposed_ascii),
+ Onetime::CustomDomain.load_by_display_domain(@decomposed_ascii),
+ idn_try_acme_allowed?(@decomposed_ascii)]
+#=> [true, [@decomposed_ascii], nil, false]
+
+## An A-label whose punycode decodes to a registered A-label is not an alias for it either
+@ascii_decoding = "xn--#{@typed_ascii_name.split('.').first}-.com"
+[Onetime::CustomDomain.display_domain_lookup_keys(@ascii_decoding),
+ Onetime::CustomDomain.load_by_display_domain(@ascii_decoding),
+ idn_try_acme_allowed?(@ascii_decoding)]
+#=> [[@ascii_decoding], nil, false]
+
 ## A blank name has no keys
 [Onetime::CustomDomain.display_domain_lookup_keys(nil), Onetime::CustomDomain.from_display_domain('')]
 #=> [[], nil]

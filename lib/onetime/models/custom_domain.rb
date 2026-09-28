@@ -530,21 +530,37 @@ module Onetime
       # the entry manually to keep it in sync with the `instances` registry.
       self.class.owners.remove(to_s)
 
-      # Familia handles the main object, related fields, and declared indexes.
-      # The canonical gate is app-managed because it indexes a normalized value
-      # rather than a model field. Release it only after the record is gone, and
-      # only if it still names this object.
-      canonical_domain  = begin
+      # Familia handles the main object, related fields, and declared indexes
+      # in one MULTI. The canonical gate is released from inside that
+      # transaction too (see #remove_from_class_indexes!).
+      super
+    end
+
+    private
+
+    # Familia's destroy! calls this inside its MULTI, after delete! and the
+    # declared-index cleanup. The canonical gate is app-managed (it indexes a
+    # normalized value rather than a model field), so it is not a declared
+    # index. Released after EXEC instead, a failed Redis call in between would
+    # leave a claim naming a record that no longer exists, and create! treats
+    # such a claim as another organization's in-flight registration: both
+    # spellings of the name stay blocked until an operator clears it.
+    # release_field is documented safe to queue in a MULTI: it is
+    # ownership-checked Lua and its return value is not consulted.
+    def remove_from_class_indexes!
+      super
+
+      canonical_domain = begin
         self.class.canonical_display_domain(display_domain)
       rescue Onetime::DomainValidation::AsciiHostname::ConversionError
         nil
       end
-      domain_identifier = identifier
+      return unless canonical_domain
 
-      result = super
-      self.class.canonical_display_domain_index.release_field(canonical_domain, domain_identifier) if canonical_domain
-      result
+      self.class.canonical_display_domain_index.release_field(canonical_domain, identifier)
     end
+
+    public
 
     # Checks if the domain is an apex domain.
     # An apex domain is a domain without any subdomains.
@@ -851,10 +867,20 @@ module Onetime
       end
 
       # @return [Array<String>] A-label form, then Unicode form; fewer when a
-      #   conversion fails
+      #   conversion fails or the Unicode form does not encode back to the
+      #   same A-label
       def idn_forms(name)
-        ascii = Onetime::DomainValidation::AsciiHostname.call(name)
-        [ascii, SimpleIDN.to_unicode(ascii).unicode_normalize(:nfc)]
+        ascii   = Onetime::DomainValidation::AsciiHostname.call(name)
+        unicode = SimpleIDN.to_unicode(ascii).unicode_normalize(:nfc)
+        # Decoding is lossy in one direction: a crafted A-label can decode to
+        # the Unicode spelling of a different name ("xn--bucher-xyd" carries a
+        # decomposed u + combining diaeresis, which NFC folds into the same
+        # "bücher" that "xn--bcher-kva" stands for; "xn--secrets-" decodes to
+        # plain "secrets"). Only trust the Unicode key when it round-trips,
+        # or a lookup by one DNS name would find another name's record.
+        return [ascii] unless Onetime::DomainValidation::AsciiHostname.call(unicode) == ascii
+
+        [ascii, unicode]
       rescue StandardError => ex
         OT.ld "[CustomDomain] No alternate form for #{name.inspect}: #{ex.class}: #{ex.message}"
         [ascii].compact
