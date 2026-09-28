@@ -1,1138 +1,780 @@
-// src/tests/e2e/scope-switcher.spec.ts
+// e2e/full/scope-switcher.spec.ts
 
 //
-// E2E Tests for Scope Switcher Components
+// E2E tests for the workspace (organization) and domain scope switchers in the
+// signed-in header (OrganizationContextBar).
 //
-// Covers Organization and Domain Scope Switcher behavior across different pages:
-// - Visibility rules per route (show, locked, hide)
-// - Switching behavior (selecting different org/domain)
-// - Locked state behavior (visible but non-interactive)
-// - Navigation behavior (gear icon, domain click)
-// - Multi-org/multi-domain user scenarios
-// - Edge cases (single org user, no domains)
+// What decides whether a switcher renders:
+//   - Route meta `scopesAvailable` (src/types/router.ts SCOPE_PRESETS):
+//     'show', 'locked' (visible, disabled) or 'hide'. Examples: /dashboard
+//     and /recent show both; /org/:extid/:tab? shows the org switcher and
+//     hides the domain one (switching keeps the page: onOrgSwitch 'same');
+//     /receipt/:id locks both; /account and its settings pages hide both.
+//   - Org switcher (src/shared/composables/useScopeSwitcherVisibility.ts):
+//     ENABLE_ORGS (features.organizations.enabled), the user owns the current
+//     org, not a custom-domain host, and not the "solo default" context
+//     (exactly one org, the auto-created default, free plan, one member).
+//   - Domain switcher: domains enabled on the server (useDomainContext
+//     isContextActive).
 //
-// Prerequisites:
-// - Authenticated via the project storageState (e2e/global.setup.ts consumes TEST_USER_*)
-// - Application running locally or PLAYWRIGHT_BASE_URL set
-// - User should have multiple organizations and domains for full coverage
+// What the full lane provides (.github/workflows/e2e.yml, full lane):
+//   - ENABLE_ORGS=true; domains and billing are off.
+//   - The storageState account (e2e/global.setup.ts) owns only its default
+//     workspace and is its only member, so the org switcher is hidden for it
+//     by the solo rule. TC-SS-050 asserts exactly that.
+//   - The visible and interactive cases run as a throwaway owner of two
+//     workspaces (e2e/support/workspaces.ts), created once per worker.
+//   - No custom domains. The domain-switcher cases run only when the target
+//     has one (E2E_CUSTOM_DOMAINS, e2e/support/env.ts); otherwise they are
+//     test.fixme and tracked in e2e/QUARANTINE.md (#3420). TC-SS-051 checks
+//     the lane's side of that rule: no domain switcher while domains are off.
 //
-// Usage:
-//   # Against dev server
-//   TEST_USER_EMAIL=test@example.com TEST_USER_PASSWORD=secret \
-//     pnpm playwright test scope-switcher.spec.ts
-//
-//   # Against external URL
-//   PLAYWRIGHT_BASE_URL=https://dev.onetime.dev TEST_USER_EMAIL=... \
-//     pnpm test:playwright scope-switcher.spec.ts
+// Test IDs follow the Qase table at the end of this file.
 
-import { expect, Page, test } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 
-/**
- * Data-testid recommendations for components:
- *
- * Organization Scope Switcher:
- *   - data-testid="org-scope-switcher"          - Main switcher container
- *   - data-testid="org-scope-switcher-trigger"  - Dropdown trigger button
- *   - data-testid="org-scope-switcher-dropdown" - Dropdown menu
- *   - data-testid="org-scope-item-{orgId}"      - Individual org menu item
- *   - data-testid="org-scope-settings-{orgId}"  - Gear icon for org settings
- *   - data-testid="org-scope-manage-link"       - "Manage Workspaces" link
- *
- * Domain Scope Switcher:
- *   - data-testid="domain-context-switcher"         - Main switcher container
- *   - data-testid="domain-context-switcher-trigger" - Dropdown trigger button
- *   - data-testid="domain-context-switcher-dropdown"- Dropdown menu
- *   - data-testid="domain-context-item-{domain}"    - Individual domain menu item
- *   - data-testid="domain-context-settings-{domain}"- Gear icon for domain settings
- *   - data-testid="domain-context-add-link"         - "Add Domain" link
- */
+import { env } from '../support/env';
+import type { CreatedOrganization } from '../support/members';
+import { getFirstOrganization } from '../support/organizations';
+import { expect, otherWorkspace, test, type WorkspaceOwner } from '../support/workspaces';
 
 // -----------------------------------------------------------------------------
-// Test Helpers
+// Locators
 // -----------------------------------------------------------------------------
 
-/**
- * Locators for Organization Scope Switcher
- */
 const orgSwitcher = {
-  container: (page: Page) => page.locator('[data-testid="org-scope-switcher"]'),
-  // Fallback to component structure if data-testid not yet implemented
-  containerFallback: (page: Page) =>
-    page.locator('.relative.inline-flex').filter({
-      has: page.locator('button[aria-label*="organization" i]'),
-    }),
-  trigger: (page: Page) =>
-    page.locator(
-      '[data-testid="org-scope-switcher-trigger"], button[aria-label*="organization" i]'
-    ),
-  dropdown: (page: Page) =>
-    page.locator('[data-testid="org-scope-switcher-dropdown"], [role="menu"]').filter({
-      has: page.locator('text=/workspaces/i'),
-    }),
-  menuItems: (page: Page) => page.locator('[role="menuitem"]'),
-  gearIcon: (page: Page) =>
-    page.locator(
-      '[data-testid^="org-scope-settings"], button[aria-label*="organization settings" i]'
-    ),
-  manageLink: (page: Page) =>
-    page.locator('[data-testid="org-scope-manage-link"], button:has-text("Manage Workspaces")'),
-  checkmark: (page: Page) => page.locator('[class*="check"]'),
+  trigger: (page: Page) => page.getByTestId('org-scope-switcher-trigger'),
+  dropdown: (page: Page) => page.getByTestId('org-scope-switcher-dropdown'),
+  row: (page: Page, extid: string) => page.getByTestId(`org-menu-item-${extid}`),
+  manageLink: (page: Page) => page.getByTestId('org-scope-manage-link'),
+  /** The name-only chip shown instead of the switcher to admins and members. */
+  staticChip: (page: Page) => page.getByTestId('org-context-static'),
 };
 
-/**
- * Locators for Domain Scope Switcher
- */
 const domainSwitcher = {
-  container: (page: Page) => page.locator('[data-testid="domain-context-switcher"]'),
-  // Fallback to component structure if data-testid not yet implemented
-  containerFallback: (page: Page) =>
-    page.locator('.relative.inline-flex').filter({
-      has: page.locator('button[aria-label*="domain" i], button[aria-label*="scope" i]'),
-    }),
-  trigger: (page: Page) =>
-    page.locator('[data-testid="domain-context-switcher-trigger"], button[aria-label*="scope" i]'),
-  dropdown: (page: Page) =>
-    page.locator('[data-testid="domain-context-switcher-dropdown"], [role="menu"]').filter({
-      has: page.locator('text=/domain/i'),
-    }),
-  menuItems: (page: Page) => page.locator('[role="menuitem"]'),
-  gearIcon: (page: Page) =>
-    page.locator('[data-testid^="domain-context-settings"], button[aria-label*="domain settings" i]'),
-  addLink: (page: Page) =>
-    page.locator('[data-testid="domain-context-add-link"], button:has-text("Add Domain")'),
+  trigger: (page: Page) => page.getByTestId('domain-context-switcher-trigger'),
+  dropdown: (page: Page) => page.getByTestId('domain-context-switcher-dropdown'),
+  addIcon: (page: Page) => page.getByTestId('domain-context-add-icon'),
 };
 
-/**
- * Check if an element is disabled (has disabled attribute or aria-disabled)
- */
-async function isElementDisabled(
-  page: Page,
-  locator: ReturnType<typeof page.locator>
-): Promise<boolean> {
-  const element = locator.first();
-  const isVisible = await element.isVisible().catch(() => false);
-  if (!isVisible) return false;
+const userMenu = {
+  trigger: (page: Page) => page.getByTestId('user-menu-trigger'),
+  dropdown: (page: Page) => page.getByTestId('user-menu-dropdown'),
+  item: (page: Page, name: string) =>
+    page.getByTestId('user-menu-dropdown').getByRole('menuitem', { name, exact: true }),
+};
 
-  const disabled = await element.getAttribute('disabled');
-  const ariaDisabled = await element.getAttribute('aria-disabled');
-  const hasDisabledClass = await element.evaluate(
-    (el) =>
-      el.classList.contains('disabled') ||
-      el.classList.contains('cursor-not-allowed') ||
-      el.classList.contains('opacity-50')
-  );
-
-  return disabled !== null || ariaDisabled === 'true' || hasDisabledClass;
+/** The settings tab bar on /account and its settings pages. */
+function settingsTab(page: Page, name: string): Locator {
+  return page
+    .getByRole('navigation', { name: 'Settings navigation' })
+    .getByRole('link', { name, exact: true });
 }
 
 // -----------------------------------------------------------------------------
-// Visibility Rules Matrix Test Suite
+// Helpers
 // -----------------------------------------------------------------------------
 
-test.describe('Scope Switcher - Visibility Rules', () => {
-  test.beforeEach(async ({ page }) => {
-    page.setDefaultTimeout(15000);
-  });
+/** Wait for the org switcher to finish loading and return the workspace it names. */
+async function currentWorkspace(page: Page, owner: WorkspaceOwner): Promise<CreatedOrganization> {
+  const trigger = orgSwitcher.trigger(page);
+  await expect(trigger).toBeVisible();
+  const title = await trigger.getAttribute('title');
+  const current = [owner.defaultWorkspace, owner.secondWorkspace].find((w) => w.name === title);
+  expect(
+    current,
+    `the switcher names one of the owner's workspaces (title "${title}")`
+  ).toBeTruthy();
+  return current!;
+}
 
-  // -------------------------------------------------------------------------
-  // TC-SS-001: Dashboard - Both Switchers Visible
-  // -------------------------------------------------------------------------
-  test.describe('Dashboard (/dashboard)', () => {
-    test('TC-SS-001: Organization switcher is visible and interactive', async ({ page }) => {
-      await page.goto('/dashboard');
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+/**
+ * The workspace a locked trigger shows. Its title is the locked message, so
+ * read the name from the text instead.
+ */
+async function currentWorkspaceName(page: Page, owner: WorkspaceOwner): Promise<string> {
+  const text = ((await orgSwitcher.trigger(page).textContent()) ?? '').trim();
+  const match = [owner.defaultWorkspace, owner.secondWorkspace].find((w) => text.endsWith(w.name));
+  expect(match, `the locked switcher names one of the owner's workspaces ("${text}")`).toBeTruthy();
+  return match!.name;
+}
 
-      // Organization switcher should be visible
-      const orgTrigger = orgSwitcher.trigger(page);
-      const isVisible = await orgTrigger.isVisible().catch(() => false);
+/** Choose a workspace from the open-able switcher and wait for the menu to close. */
+async function selectWorkspace(page: Page, workspace: CreatedOrganization): Promise<void> {
+  await orgSwitcher.trigger(page).click();
+  await expect(orgSwitcher.dropdown(page)).toBeVisible();
+  await orgSwitcher.row(page, workspace.extid).click();
+  await expect(orgSwitcher.dropdown(page)).toBeHidden();
+}
 
-      expect(isVisible, 'Organization switcher should be visible on Dashboard').toBe(true);
+/**
+ * Click a row's settings gear. The gear is display:none until the row is
+ * hovered (group-hover), so a locator click fails whenever its
+ * scroll-into-view step moves the row out from under the pointer. Hover the
+ * row, wait for the gear, then click at its position with the mouse, which
+ * does not scroll.
+ */
+async function clickRowGear(page: Page, row: Locator, label: string): Promise<void> {
+  await row.hover();
+  const gear = row.getByRole('button', { name: label });
+  await expect(gear).toBeVisible();
+  const box = await gear.boundingBox();
+  expect(box, `the ${label} gear has a position`).not.toBeNull();
+  await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
+}
 
-      // Should be interactive (not disabled)
-      const isDisabled = await isElementDisabled(page, orgTrigger);
-      expect(isDisabled, 'Organization switcher should be interactive on Dashboard').toBe(false);
-    });
+/** Open a user-menu entry. Navigates inside the SPA, without a page load. */
+async function openFromUserMenu(page: Page, item: string): Promise<void> {
+  await userMenu.trigger(page).click();
+  await expect(userMenu.dropdown(page)).toBeVisible();
+  await userMenu.item(page, item).click();
+}
 
-    test('TC-SS-002: Domain switcher is visible and interactive', async ({ page }) => {
-      await page.goto('/dashboard');
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+/**
+ * Load the dashboard, wait for the org switcher, then open /account through
+ * the user menu. The switcher proves the organization list had loaded before
+ * the in-app navigation, so its absence afterwards comes from the route.
+ */
+async function openAccountFromDashboard(page: Page): Promise<void> {
+  await page.goto('/dashboard');
+  await expect(orgSwitcher.trigger(page)).toBeVisible();
+  await openFromUserMenu(page, 'Account');
+  await expect(page).toHaveURL(/\/account$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Account' })).toBeVisible();
+}
 
-      const domainTrigger = domainSwitcher.trigger(page);
-      const isVisible = await domainTrigger.isVisible().catch(() => false);
-
-      // Domain switcher visibility depends on user having custom domains
-      // For users without domains, it should be hidden (not an error)
-      if (isVisible) {
-        const isDisabled = await isElementDisabled(page, domainTrigger);
-        expect(isDisabled, 'Domain switcher should be interactive on Dashboard when visible').toBe(
-          false
-        );
-      }
-    });
-  });
-
-  // -------------------------------------------------------------------------
-  // TC-SS-003-004: Secret Creation - Both Switchers Visible
-  // -------------------------------------------------------------------------
-  test.describe('Secret Creation (/)', () => {
-    test('TC-SS-003: Organization switcher is visible on secret creation page', async ({
-      page,
-    }) => {
-      await page.goto('/');
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-      const orgTrigger = orgSwitcher.trigger(page);
-      const isVisible = await orgTrigger.isVisible().catch(() => false);
-
-      expect(isVisible, 'Organization switcher should be visible on secret creation page').toBe(
-        true
-      );
-    });
-
-    test('TC-SS-004: Domain switcher is visible on secret creation page', async ({ page }) => {
-      await page.goto('/');
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-      const domainTrigger = domainSwitcher.trigger(page);
-      const isVisible = await domainTrigger.isVisible().catch(() => false);
-
-      // Only visible if user has custom domains enabled
-      // Test passes if either visible or correctly hidden
-      if (isVisible) {
-        const isDisabled = await isElementDisabled(page, domainTrigger);
-        expect(isDisabled).toBe(false);
-      }
-    });
-  });
-
-  // -------------------------------------------------------------------------
-  // TC-SS-005-006: Org Settings - Org Locked, Domain Hidden
-  // -------------------------------------------------------------------------
-  test.describe('Organization Settings (/org/:extid)', () => {
-    test('TC-SS-005: Organization switcher is locked (visible but disabled)', async ({ page }) => {
-      // First get org list to find a valid extid
-      await page.goto('/dashboard');
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-      // Try to get org extid from URL or navigate to org settings
-      await page.goto('/orgs');
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-      // Look for org link or navigate to first org
-      const orgLink = page.locator('a[href*="/org/"]').first();
-      const hasOrgLink = await orgLink.isVisible().catch(() => false);
-
-      if (hasOrgLink) {
-        await orgLink.click();
-        // Wait for the router to land on the org route
-        await page.waitForURL(/\/org\//);
-
-        const orgTrigger = orgSwitcher.trigger(page);
-        const isVisible = await orgTrigger.isVisible().catch(() => false);
-
-        if (isVisible) {
-          // On org settings page, switcher should be locked
-          const isDisabled = await isElementDisabled(page, orgTrigger);
-          expect(
-            isDisabled,
-            'Organization switcher should be locked (disabled) on org settings page'
-          ).toBe(true);
-        }
-      } else {
-        test.skip(true, 'No organizations available to test org settings page');
-      }
-    });
-
-    test('TC-SS-006: Domain switcher is hidden on org settings page', async ({ page }) => {
-      await page.goto('/orgs');
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-      const orgLink = page.locator('a[href*="/org/"]').first();
-      const hasOrgLink = await orgLink.isVisible().catch(() => false);
-
-      if (hasOrgLink) {
-        await orgLink.click();
-        // Wait for the router to land on the org route
-        await page.waitForURL(/\/org\//);
-
-        const domainTrigger = domainSwitcher.trigger(page);
-        const isVisible = await domainTrigger.isVisible().catch(() => false);
-
-        expect(isVisible, 'Domain switcher should be hidden on org settings page').toBe(false);
-      }
-    });
-  });
-
-  // -------------------------------------------------------------------------
-  // TC-SS-007-008: Domains List - Both Visible
-  // -------------------------------------------------------------------------
-  test.describe('Domains List (/domains)', () => {
-    test('TC-SS-007: Organization switcher is visible on domains list', async ({ page }) => {
-      await page.goto('/domains');
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-      const orgTrigger = orgSwitcher.trigger(page);
-      const isVisible = await orgTrigger.isVisible().catch(() => false);
-
-      expect(isVisible, 'Organization switcher should be visible on domains list page').toBe(true);
-    });
-
-    test('TC-SS-008: Domain switcher is visible on domains list', async ({ page }) => {
-      await page.goto('/domains');
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-      const domainTrigger = domainSwitcher.trigger(page);
-      // May not be visible if user has no domains - that's expected behavior
-      const isVisible = await domainTrigger.isVisible().catch(() => false);
-
-      // If visible, should be interactive
-      if (isVisible) {
-        const isDisabled = await isElementDisabled(page, domainTrigger);
-        expect(isDisabled).toBe(false);
-      }
-    });
-  });
-
-  // -------------------------------------------------------------------------
-  // TC-SS-009-010: Domain Detail - Org Visible, Domain Locked
-  // -------------------------------------------------------------------------
-  test.describe('Domain Detail (/domains/:extid)', () => {
-    test('TC-SS-009: Organization switcher is visible on domain detail', async ({ page }) => {
-      await page.goto('/domains');
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-      // Find a domain link
-      const domainLink = page
-        .locator('a[href*="/domains/"]')
-        .filter({
-          hasNot: page.locator('text=/add/i'),
-        })
-        .first();
-      const hasDomainLink = await domainLink.isVisible().catch(() => false);
-
-      if (hasDomainLink) {
-        await domainLink.click();
-        // Wait for the router to land on the domain route
-        await page.waitForURL(/\/domains\/./);
-
-        const orgTrigger = orgSwitcher.trigger(page);
-        const isVisible = await orgTrigger.isVisible().catch(() => false);
-
-        expect(isVisible, 'Organization switcher should be visible on domain detail page').toBe(
-          true
-        );
-      } else {
-        test.skip(true, 'No domains available to test domain detail page');
-      }
-    });
-
-    test('TC-SS-010: Domain switcher is locked on domain detail', async ({ page }) => {
-      await page.goto('/domains');
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-      const domainLink = page
-        .locator('a[href*="/domains/"]')
-        .filter({
-          hasNot: page.locator('text=/add/i'),
-        })
-        .first();
-      const hasDomainLink = await domainLink.isVisible().catch(() => false);
-
-      if (hasDomainLink) {
-        await domainLink.click();
-        // Wait for the router to land on the domain route
-        await page.waitForURL(/\/domains\/./);
-
-        const domainTrigger = domainSwitcher.trigger(page);
-        const isVisible = await domainTrigger.isVisible().catch(() => false);
-
-        if (isVisible) {
-          const isDisabled = await isElementDisabled(page, domainTrigger);
-          expect(isDisabled, 'Domain switcher should be locked on domain detail page').toBe(true);
-        }
-      }
-    });
-  });
-
-  // -------------------------------------------------------------------------
-  // TC-SS-011-012: Billing - Org Locked, Domain Hidden
-  // -------------------------------------------------------------------------
-  test.describe('Billing Pages (/billing/*)', () => {
-    test('TC-SS-011: Organization switcher is locked on billing pages', async ({ page }) => {
-      await page.goto('/billing/overview');
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-      const orgTrigger = orgSwitcher.trigger(page);
-      const isVisible = await orgTrigger.isVisible().catch(() => false);
-
-      if (isVisible) {
-        const isDisabled = await isElementDisabled(page, orgTrigger);
-        expect(isDisabled, 'Organization switcher should be locked on billing pages').toBe(true);
-      }
-    });
-
-    test('TC-SS-012: Domain switcher is hidden on billing pages', async ({ page }) => {
-      await page.goto('/billing/overview');
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-      const domainTrigger = domainSwitcher.trigger(page);
-      const isVisible = await domainTrigger.isVisible().catch(() => false);
-
-      expect(isVisible, 'Domain switcher should be hidden on billing pages').toBe(false);
-    });
-
-    test('TC-SS-013: Visibility rules apply to billing/plans', async ({ page }) => {
-      await page.goto('/billing/plans');
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-      // Org locked
-      const orgTrigger = orgSwitcher.trigger(page);
-      if (await orgTrigger.isVisible().catch(() => false)) {
-        const orgDisabled = await isElementDisabled(page, orgTrigger);
-        expect(orgDisabled).toBe(true);
-      }
-
-      // Domain hidden
-      const domainTrigger = domainSwitcher.trigger(page);
-      const domainVisible = await domainTrigger.isVisible().catch(() => false);
-      expect(domainVisible).toBe(false);
-    });
-
-    test('TC-SS-014: Visibility rules apply to billing/invoices', async ({ page }) => {
-      await page.goto('/billing/invoices');
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-      // Domain hidden
-      const domainTrigger = domainSwitcher.trigger(page);
-      const domainVisible = await domainTrigger.isVisible().catch(() => false);
-      expect(domainVisible).toBe(false);
-    });
-  });
-
-  // -------------------------------------------------------------------------
-  // TC-SS-015-016: Account Settings - Both Hidden
-  // -------------------------------------------------------------------------
-  test.describe('Account Settings (/account/*)', () => {
-    test('TC-SS-015: Organization switcher is hidden on account pages', async ({ page }) => {
-      await page.goto('/account');
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-      const orgTrigger = orgSwitcher.trigger(page);
-      const isVisible = await orgTrigger.isVisible().catch(() => false);
-
-      expect(isVisible, 'Organization switcher should be hidden on account pages').toBe(false);
-    });
-
-    test('TC-SS-016: Domain switcher is hidden on account pages', async ({ page }) => {
-      await page.goto('/account');
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-      const domainTrigger = domainSwitcher.trigger(page);
-      const isVisible = await domainTrigger.isVisible().catch(() => false);
-
-      expect(isVisible, 'Domain switcher should be hidden on account pages').toBe(false);
-    });
-
-    test('TC-SS-017: Both hidden on account/settings/profile', async ({ page }) => {
-      await page.goto('/account/settings/profile');
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-      const orgVisible = await orgSwitcher
-        .trigger(page)
-        .isVisible()
-        .catch(() => false);
-      const domainVisible = await domainSwitcher
-        .trigger(page)
-        .isVisible()
-        .catch(() => false);
-
-      expect(orgVisible).toBe(false);
-      expect(domainVisible).toBe(false);
-    });
-
-    test('TC-SS-018: Both hidden on account/settings/security', async ({ page }) => {
-      await page.goto('/account/settings/security');
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-      const orgVisible = await orgSwitcher
-        .trigger(page)
-        .isVisible()
-        .catch(() => false);
-      const domainVisible = await domainSwitcher
-        .trigger(page)
-        .isVisible()
-        .catch(() => false);
-
-      expect(orgVisible).toBe(false);
-      expect(domainVisible).toBe(false);
-    });
-  });
-});
+/** Server-side feature flags from the bootstrap payload of the page's session. */
+async function bootstrapFlags(
+  page: Page
+): Promise<{ orgSwitcherEnabled: boolean; domainsEnabled: boolean }> {
+  const response = await page.request.get('/bootstrap/me');
+  expect(response.ok(), 'GET /bootstrap/me').toBe(true);
+  const data = (await response.json()) as {
+    domains_enabled?: boolean;
+    features?: { organizations?: { enabled?: boolean } };
+  };
+  return {
+    orgSwitcherEnabled: data.features?.organizations?.enabled === true,
+    domainsEnabled: data.domains_enabled === true,
+  };
+}
 
 // -----------------------------------------------------------------------------
-// Switching Behavior Test Suite
+// The lane account: a solo default workspace
 // -----------------------------------------------------------------------------
 
-test.describe('Scope Switcher - Switching Behavior', () => {
-  test.beforeEach(async ({ page }) => {
-    page.setDefaultTimeout(15000);
-  });
+test.describe('Scope Switcher - solo default workspace', () => {
+  test('TC-SS-050: a solo default-workspace owner sees no org switcher', async ({ page }) => {
+    const orgList = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'GET' &&
+        new URL(response.url()).pathname === '/api/organizations'
+    );
+    await page.goto('/dashboard');
 
-  // -------------------------------------------------------------------------
-  // Organization Switching
-  // -------------------------------------------------------------------------
-  test.describe('Organization Switching', () => {
-    test('TC-SS-020: Clicking org name opens dropdown', async ({ page }) => {
-      await page.goto('/dashboard');
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+    // The inputs of the solo rule, as the SPA receives them. The shared
+    // account must stay solo: e2e/support/members.ts never adds it anywhere.
+    const response = await orgList;
+    expect(response.ok(), 'GET /api/organizations').toBe(true);
+    const { records } = (await response.json()) as {
+      records: { is_default: boolean; planid: string; member_count: number }[];
+    };
+    expect(records, 'the lane account owns exactly one workspace').toHaveLength(1);
+    expect(records[0].is_default).toBe(true);
+    expect(records[0].member_count).toBe(1);
+    expect(records[0].planid).toMatch(/^free_v\d+$/);
 
-      const trigger = orgSwitcher.trigger(page);
-      const isVisible = await trigger.isVisible().catch(() => false);
-      test.skip(!isVisible, 'Organization switcher not visible');
-
-      await trigger.click();
-
-      // Dropdown should appear
-      const dropdown = page.locator('[role="menu"]');
-      await expect(dropdown).toBeVisible();
-    });
-
-    test('TC-SS-021: Dropdown shows current org highlighted', async ({ page }) => {
-      await page.goto('/dashboard');
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-      const trigger = orgSwitcher.trigger(page);
-      const isVisible = await trigger.isVisible().catch(() => false);
-      test.skip(!isVisible, 'Organization switcher not visible');
-
-      await trigger.click();
-
-      // Current org should have checkmark or highlighted styling
-      const checkmark = page.locator('[role="menuitem"] svg[class*="check"]').first();
-      const hasCheckmark = await checkmark.isVisible().catch(() => false);
-
-      const highlighted = page.locator('[role="menuitem"][class*="brand"]').first();
-      const hasHighlight = await highlighted.isVisible().catch(() => false);
-
-      expect(
-        hasCheckmark || hasHighlight,
-        'Current organization should be visually distinguished in dropdown'
-      ).toBe(true);
-    });
-
-    test('TC-SS-022: Selecting different org updates current page context', async ({ page }) => {
-      await page.goto('/dashboard');
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-      const trigger = orgSwitcher.trigger(page);
-      const isVisible = await trigger.isVisible().catch(() => false);
-      test.skip(!isVisible, 'Organization switcher not visible');
-
-      // Get current org name - and require it to be real, so the
-      // post-switch assertion below can't degrade into a vacuous
-      // not.toContainText('') that passes without waiting
-      const currentOrgName = (await trigger.textContent())?.trim() ?? '';
-      expect(currentOrgName).not.toBe('');
-
-      await trigger.click();
-
-      // Find a different org in the list
-      const menuItems = page.locator('[role="menuitem"]');
-      const itemCount = await menuItems.count();
-
-      if (itemCount > 1) {
-        // Click the second org (different from current)
-        const differentOrg = menuItems.nth(1);
-        const differentOrgName = (await differentOrg.textContent())?.trim() ?? '';
-
-        if (differentOrgName !== currentOrgName) {
-          await differentOrg.click();
-
-          // Verify trigger now shows new org (web-first assertion waits
-          // for the switcher to update; toContainText does substring
-          // matching with normalized whitespace)
-          await expect(trigger).not.toContainText(currentOrgName);
-        }
-      }
-    });
-
-    test('TC-SS-023: Clicking gear icon navigates to org settings', async ({ page }) => {
-      await page.goto('/dashboard');
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-      const trigger = orgSwitcher.trigger(page);
-      const isVisible = await trigger.isVisible().catch(() => false);
-      test.skip(!isVisible, 'Organization switcher not visible');
-
-      await trigger.click();
-
-      // Hover on menu item to reveal gear icon
-      const menuItem = page.locator('[role="menuitem"]').first();
-      await menuItem.hover();
-
-      // Find and click gear icon
-      const gearIcon = menuItem.locator('button[aria-label*="settings" i]');
-      const hasGear = await gearIcon.isVisible().catch(() => false);
-
-      if (hasGear) {
-        await gearIcon.click();
-        await expect(page).toHaveURL(/\/org\/.+/);
-      }
-    });
-
-    test('TC-SS-024: Manage Workspaces link navigates to /orgs', async ({ page }) => {
-      await page.goto('/dashboard');
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-      const trigger = orgSwitcher.trigger(page);
-      const isVisible = await trigger.isVisible().catch(() => false);
-      test.skip(!isVisible, 'Organization switcher not visible');
-
-      await trigger.click();
-
-      const manageLink = page.locator('[role="menuitem"]:has-text("Manage Workspaces")');
-      const hasLink = await manageLink.isVisible().catch(() => false);
-
-      if (hasLink) {
-        await manageLink.click();
-        await expect(page).toHaveURL('/orgs');
-      }
-    });
-  });
-
-  // -------------------------------------------------------------------------
-  // Domain Switching
-  // -------------------------------------------------------------------------
-  test.describe('Domain Switching', () => {
-    test('TC-SS-030: Clicking domain switcher opens dropdown', async ({ page }) => {
-      await page.goto('/dashboard');
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-      const trigger = domainSwitcher.trigger(page);
-      const isVisible = await trigger.isVisible().catch(() => false);
-      test.skip(!isVisible, 'Domain switcher not visible (user may not have domains)');
-
-      await trigger.click();
-
-      const dropdown = page.locator('[role="menu"]');
-      await expect(dropdown).toBeVisible();
-    });
-
-    test('TC-SS-031: Selecting different domain updates scope', async ({ page }) => {
-      await page.goto('/dashboard');
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-      const trigger = domainSwitcher.trigger(page);
-      const isVisible = await trigger.isVisible().catch(() => false);
-      test.skip(!isVisible, 'Domain switcher not visible');
-
-      await trigger.click();
-
-      const menuItems = page.locator('[role="menuitem"]');
-      const itemCount = await menuItems.count();
-
-      if (itemCount > 1) {
-        const differentDomain = menuItems.nth(1);
-        await differentDomain.click();
-
-        // Selection closes the dropdown; the trigger remains visible with
-        // the (possibly unchanged) current domain
-        await expect(trigger).toBeVisible();
-        const newDomain = await trigger.textContent();
-        // Domain may have changed
-        expect(newDomain).toBeTruthy();
-      }
-    });
-
-    test('TC-SS-032: Domain scope persists to sessionStorage', async ({ page }) => {
-      await page.goto('/dashboard');
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-      const trigger = domainSwitcher.trigger(page);
-      const isVisible = await trigger.isVisible().catch(() => false);
-      test.skip(!isVisible, 'Domain switcher not visible');
-
-      await trigger.click();
-
-      const menuItems = page.locator('[role="menuitem"]');
-      const firstItem = menuItems.first();
-      await firstItem.click();
-
-      // Check sessionStorage
-      const storedDomain = await page.evaluate(() => sessionStorage.getItem('domainContext'));
-      expect(storedDomain).toBeTruthy();
-    });
-
-    test('TC-SS-033: Add Domain link navigates to /domains', async ({ page }) => {
-      await page.goto('/dashboard');
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-      const trigger = domainSwitcher.trigger(page);
-      const isVisible = await trigger.isVisible().catch(() => false);
-      test.skip(!isVisible, 'Domain switcher not visible');
-
-      await trigger.click();
-
-      const addLink = page.locator('[role="menuitem"]:has-text("Add Domain")');
-      const hasLink = await addLink.isVisible().catch(() => false);
-
-      if (hasLink) {
-        await addLink.click();
-        await expect(page).toHaveURL('/domains');
-      }
-    });
-  });
-});
-
-// -----------------------------------------------------------------------------
-// Locked State Behavior Test Suite
-// -----------------------------------------------------------------------------
-
-test.describe('Scope Switcher - Locked State Behavior', () => {
-  test.beforeEach(async ({ page }) => {
-    page.setDefaultTimeout(15000);
-  });
-
-  test('TC-SS-040: Locked org switcher shows current org but is not clickable', async ({
-    page,
-  }) => {
-    await page.goto('/billing/overview');
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-    const trigger = orgSwitcher.trigger(page);
-    const isVisible = await trigger.isVisible().catch(() => false);
-    test.skip(!isVisible, 'Organization switcher not visible on billing page');
-
-    // Should display current org
-    const orgName = await trigger.textContent();
-    expect(orgName).toBeTruthy();
-
-    // Should be disabled
-    const isDisabled = await isElementDisabled(page, trigger);
-    expect(isDisabled).toBe(true);
-
-    // Clicking should not open dropdown
-    await trigger.click({ force: true });
-    const dropdown = page.locator('[role="menu"]');
-    const dropdownVisible = await dropdown.isVisible().catch(() => false);
-    expect(dropdownVisible).toBe(false);
-  });
-
-  test('TC-SS-041: Locked org switcher has appropriate ARIA attributes', async ({ page }) => {
-    await page.goto('/billing/overview');
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-    const trigger = orgSwitcher.trigger(page);
-    const isVisible = await trigger.isVisible().catch(() => false);
-    test.skip(!isVisible, 'Organization switcher not visible');
-
-    // Should have aria-disabled or disabled attribute
-    const ariaDisabled = await trigger.getAttribute('aria-disabled');
-    const disabled = await trigger.getAttribute('disabled');
-
+    // With the switcher feature on, only the solo rule can hide it here.
     expect(
-      ariaDisabled === 'true' || disabled !== null,
-      'Locked switcher should have proper disabled attributes for accessibility'
+      (await bootstrapFlags(page)).orgSwitcherEnabled,
+      'the target runs with ENABLE_ORGS=true (full lane in .github/workflows/e2e.yml)'
     ).toBe(true);
-  });
 
-  test('TC-SS-042: Locked domain switcher shows current domain', async ({ page }) => {
-    // Navigate to domain detail if possible
-    await page.goto('/domains');
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-    const domainLink = page
-      .locator('a[href*="/domains/"]')
-      .filter({
-        hasNot: page.locator('text=/add/i'),
-      })
-      .first();
-    const hasDomainLink = await domainLink.isVisible().catch(() => false);
-    test.skip(!hasDomainLink, 'No domains available');
-
-    await domainLink.click();
-    // Wait for the router to land on the domain route
-    await page.waitForURL(/\/domains\/./);
-
-    const trigger = domainSwitcher.trigger(page);
-    const isVisible = await trigger.isVisible().catch(() => false);
-
-    if (isVisible) {
-      const domainName = await trigger.textContent();
-      expect(domainName).toBeTruthy();
-
-      const isDisabled = await isElementDisabled(page, trigger);
-      expect(isDisabled).toBe(true);
-    }
+    // The user-menu role badge follows the same rule. Opening the menu is a
+    // positive signal that the page is interactive after the list loaded.
+    await userMenu.trigger(page).click();
+    await expect(userMenu.dropdown(page)).toBeVisible();
+    await expect(page.getByTestId('user-menu-role-badge')).toHaveCount(0);
+    await expect(orgSwitcher.trigger(page)).toHaveCount(0);
+    await expect(orgSwitcher.staticChip(page)).toHaveCount(0);
   });
 });
 
 // -----------------------------------------------------------------------------
-// Edge Cases Test Suite
+// Visibility per route, as an owner of two workspaces
 // -----------------------------------------------------------------------------
 
-test.describe('Scope Switcher - Edge Cases', () => {
-  test.beforeEach(async ({ page }) => {
-    page.setDefaultTimeout(15000);
-  });
-
-  test('TC-SS-050: Single org user sees switcher with one option', async ({ page }) => {
+test.describe('Scope Switcher - visibility rules', () => {
+  test('TC-SS-001: Dashboard shows the org switcher, enabled', async ({
+    ownerPage: page,
+    owner,
+  }) => {
     await page.goto('/dashboard');
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     const trigger = orgSwitcher.trigger(page);
-    const isVisible = await trigger.isVisible().catch(() => false);
-    test.skip(!isVisible, 'Organization switcher not visible');
+    await expect(trigger).toBeVisible();
+    await expect(trigger).toBeEnabled();
+    await expect(trigger).not.toHaveAttribute('aria-disabled', 'true');
+    const current = await currentWorkspace(page, owner);
+    await expect(trigger).toContainText(current.name);
+  });
+
+  test('TC-SS-003: / takes a signed-in owner to the dashboard secret form, with the org switcher', async ({
+    ownerPage: page,
+  }) => {
+    await page.goto('/');
+
+    await expect(page).toHaveURL(/\/dashboard$/);
+    await expect(page.getByRole('textbox', { name: 'Secret content' })).toBeVisible();
+    await expect(orgSwitcher.trigger(page)).toBeEnabled();
+  });
+
+  test('TC-SS-005: Organization settings: switching opens the other workspace settings', async ({
+    ownerPage: page,
+    owner,
+  }) => {
+    await page.goto(`/org/${owner.defaultWorkspace.extid}`);
+
+    // The route names the workspace, so the switcher shows it.
+    await expect(orgSwitcher.trigger(page)).toHaveAttribute('title', owner.defaultWorkspace.name);
+    await expect(orgSwitcher.trigger(page)).toBeEnabled();
+
+    await selectWorkspace(page, owner.secondWorkspace);
+
+    // onOrgSwitch 'same': same page, other workspace
+    await expect(page).toHaveURL(new RegExp(`/org/${owner.secondWorkspace.extid}$`));
+    await expect(orgSwitcher.trigger(page)).toHaveAttribute('title', owner.secondWorkspace.name);
+  });
+
+  test('TC-SS-007: /domains opens the current workspace Domains tab; switching keeps the tab', async ({
+    ownerPage: page,
+    owner,
+  }) => {
+    await page.goto('/domains');
+
+    await expect(page).toHaveURL(/\/org\/[^/]+\/domains$/);
+    const current = await currentWorkspace(page, owner);
+    await expect(page).toHaveURL(new RegExp(`/org/${current.extid}/domains$`));
+
+    const other = otherWorkspace(owner, current);
+    await selectWorkspace(page, other);
+
+    await expect(page).toHaveURL(new RegExp(`/org/${other.extid}/domains$`));
+    await expect(orgSwitcher.trigger(page)).toHaveAttribute('title', other.name);
+  });
+
+  test('TC-SS-015: Account page hides the org switcher; the dashboard shows it again', async ({
+    ownerPage: page,
+  }) => {
+    await openAccountFromDashboard(page);
+    await expect(orgSwitcher.trigger(page)).toHaveCount(0);
+    await expect(orgSwitcher.staticChip(page)).toHaveCount(0);
+
+    await page.getByRole('link', { name: 'Back to Dashboard' }).click();
+    await expect(page).toHaveURL(/\/dashboard$/);
+    await expect(orgSwitcher.trigger(page)).toBeVisible();
+  });
+
+  test('TC-SS-017: Profile settings hide the org switcher', async ({ ownerPage: page }) => {
+    await openAccountFromDashboard(page);
+
+    await settingsTab(page, 'Profile').click();
+    await expect(page).toHaveURL(/\/account\/settings\/profile(\/preferences)?$/);
+    await expect(settingsTab(page, 'Profile')).toHaveAttribute('aria-current', 'page');
+    await expect(orgSwitcher.trigger(page)).toHaveCount(0);
+  });
+
+  test('TC-SS-018: Security settings hide the org switcher', async ({ ownerPage: page }) => {
+    await openAccountFromDashboard(page);
+
+    await settingsTab(page, 'Security').click();
+    await expect(page).toHaveURL(/\/account\/settings\/security$/);
+    await expect(settingsTab(page, 'Security')).toHaveAttribute('aria-current', 'page');
+    await expect(orgSwitcher.trigger(page)).toHaveCount(0);
+  });
+});
+
+// -----------------------------------------------------------------------------
+// Switching behavior
+// -----------------------------------------------------------------------------
+
+test.describe('Scope Switcher - switching behavior', () => {
+  test('TC-SS-020: Clicking the org switcher opens its dropdown', async ({ ownerPage: page }) => {
+    await page.goto('/dashboard');
+    const trigger = orgSwitcher.trigger(page);
+    await expect(trigger).toHaveAttribute('aria-expanded', 'false');
 
     await trigger.click();
 
-    const menuItems = page.locator('[role="menuitem"]').filter({
-      has: page.locator('span.truncate'),
-    });
-    const itemCount = await menuItems.count();
-
-    // Should have at least 1 org (the default)
-    expect(itemCount).toBeGreaterThanOrEqual(1);
+    await expect(orgSwitcher.dropdown(page)).toBeVisible();
+    await expect(trigger).toHaveAttribute('aria-expanded', 'true');
   });
 
-  test('TC-SS-051: User without custom domains does not see domain switcher', async ({ page }) => {
+  test('TC-SS-021: The dropdown lists both workspaces and marks the current one', async ({
+    ownerPage: page,
+    owner,
+  }) => {
     await page.goto('/dashboard');
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+    const current = await currentWorkspace(page, owner);
+    const other = otherWorkspace(owner, current);
 
-    // Check window state for domains
-    const hasDomains = await page.evaluate(() => {
-      const state = (window as any).__BOOTSTRAP_ME__;
-      return state?.domains_enabled && (state?.custom_domains?.length || 0) > 0;
-    });
+    await orgSwitcher.trigger(page).click();
 
-    const trigger = domainSwitcher.trigger(page);
-    const isVisible = await trigger.isVisible().catch(() => false);
-
-    if (!hasDomains) {
-      expect(isVisible).toBe(false);
-    }
+    await expect(orgSwitcher.row(page, current.extid)).toContainText(current.name);
+    await expect(orgSwitcher.row(page, other.extid)).toContainText(other.name);
+    await expect(orgSwitcher.row(page, current.extid)).toHaveAttribute('aria-current', 'true');
+    await expect(orgSwitcher.row(page, other.extid)).not.toHaveAttribute('aria-current', 'true');
   });
 
-  test('TC-SS-052: Canonical domain shows "Personal" label', async ({ page }) => {
+  test('TC-SS-022: Selecting the other workspace makes it current', async ({
+    ownerPage: page,
+    owner,
+  }) => {
     await page.goto('/dashboard');
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+    const current = await currentWorkspace(page, owner);
+    const other = otherWorkspace(owner, current);
 
-    const trigger = domainSwitcher.trigger(page);
-    const isVisible = await trigger.isVisible().catch(() => false);
-    test.skip(!isVisible, 'Domain switcher not visible');
+    await selectWorkspace(page, other);
 
-    await trigger.click();
-
-    // Look for Personal/canonical domain option
-    const personalOption = page.locator('[role="menuitem"]').filter({
-      has: page.locator('svg[class*="home"]'),
-    });
-
-    const hasPersonal = await personalOption.isVisible().catch(() => false);
-    // It's okay if there's no personal option (user may only have custom domains)
-    if (hasPersonal) {
-      const text = await personalOption.textContent();
-      expect(text).toBeTruthy();
-    }
+    // The dashboard has no onOrgSwitch target: the page stays, the scope moves.
+    await expect(page).toHaveURL(/\/dashboard$/);
+    await expect(orgSwitcher.trigger(page)).toHaveAttribute('title', other.name);
+    await expect(orgSwitcher.trigger(page)).toContainText(other.name);
+    // organizationStore persists the selection for this tab
+    await expect
+      .poll(() => page.evaluate(() => sessionStorage.getItem('selectedOrganizationId')))
+      .toBe(other.objid);
   });
 
-  test('TC-SS-053: Keyboard navigation works in dropdown', async ({ page }) => {
+  test('TC-SS-023: The row gear opens that workspace settings and closes the dropdown', async ({
+    ownerPage: page,
+    owner,
+  }) => {
     await page.goto('/dashboard');
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+    const current = await currentWorkspace(page, owner);
+    const other = otherWorkspace(owner, current);
+
+    await orgSwitcher.trigger(page).click();
+    const row = orgSwitcher.row(page, other.extid);
+    await clickRowGear(page, row, 'Organization Settings');
+
+    await expect(page).toHaveURL(new RegExp(`/org/${other.extid}$`));
+    await expect(orgSwitcher.dropdown(page)).toBeHidden();
+  });
+
+  test('TC-SS-024: Manage Workspaces opens /orgs', async ({ ownerPage: page }) => {
+    await page.goto('/dashboard');
+    await orgSwitcher.trigger(page).click();
+
+    await orgSwitcher.manageLink(page).click();
+
+    await expect(page).toHaveURL(/\/orgs$/);
+    // The workspace list page hides both switchers
+    await expect(page.getByTestId('organizations-list')).toBeVisible();
+    await expect(orgSwitcher.trigger(page)).toHaveCount(0);
+  });
+
+  test('TC-SS-060: The selected workspace carries into in-app navigation', async ({
+    ownerPage: page,
+    owner,
+  }) => {
+    await page.goto('/dashboard');
+    const current = await currentWorkspace(page, owner);
+    const other = otherWorkspace(owner, current);
+    await selectWorkspace(page, other);
+
+    // /domains resolves against the current workspace
+    await openFromUserMenu(page, 'Domains');
+
+    await expect(page).toHaveURL(new RegExp(`/org/${other.extid}/domains$`));
+    await expect(orgSwitcher.trigger(page)).toHaveAttribute('title', other.name);
+  });
+});
+
+// -----------------------------------------------------------------------------
+// Locked state: receipt pages lock both switchers
+// -----------------------------------------------------------------------------
+
+test.describe('Scope Switcher - locked state', () => {
+  test('TC-SS-040: A receipt page shows the current workspace in a disabled switcher', async ({
+    ownerPage: page,
+    owner,
+  }) => {
+    await page.goto(owner.receiptPath);
 
     const trigger = orgSwitcher.trigger(page);
-    const isVisible = await trigger.isVisible().catch(() => false);
-    test.skip(!isVisible, 'Organization switcher not visible');
+    await expect(trigger).toBeVisible();
+    await expect(trigger).toBeDisabled();
+    const title = await currentWorkspaceName(page, owner);
+    await expect(trigger).toContainText(title);
+  });
 
-    // Focus and open with Enter
+  test('TC-SS-041: The locked switcher is marked disabled for assistive tech', async ({
+    ownerPage: page,
+    owner,
+  }) => {
+    await page.goto(owner.receiptPath);
+
+    const trigger = orgSwitcher.trigger(page);
+    await expect(trigger).toHaveAttribute('aria-disabled', 'true');
+    await expect(trigger).toHaveAttribute(
+      'title',
+      'Workspace switching not available on this page'
+    );
+    // The lock icon replaces the chevron; the name stays the switcher's
+    await expect(trigger).toHaveAccessibleName('Select a workspace');
+  });
+});
+
+// -----------------------------------------------------------------------------
+// Keyboard and ARIA
+// -----------------------------------------------------------------------------
+
+test.describe('Scope Switcher - keyboard and accessibility', () => {
+  test('TC-SS-053: Enter opens the dropdown, arrows move, Escape closes and refocuses', async ({
+    ownerPage: page,
+  }) => {
+    await page.goto('/dashboard');
+    const trigger = orgSwitcher.trigger(page);
+    const dropdown = orgSwitcher.dropdown(page);
+    await expect(trigger).toBeVisible();
+
     await trigger.focus();
     await page.keyboard.press('Enter');
 
-    const dropdown = page.locator('[role="menu"]');
     await expect(dropdown).toBeVisible();
+    await expect(dropdown).toBeFocused();
+    const itemIds = await dropdown
+      .getByRole('menuitem')
+      .evaluateAll((items) => items.map((item) => item.id));
+    expect(itemIds.length, 'two workspace rows and the Manage link').toBe(3);
+    await expect(dropdown).toHaveAttribute('aria-activedescendant', itemIds[0]);
 
-    // Navigate with arrow keys
     await page.keyboard.press('ArrowDown');
-    await page.keyboard.press('ArrowDown');
+    await expect(dropdown).toHaveAttribute('aria-activedescendant', itemIds[1]);
 
-    // Escape to close
     await page.keyboard.press('Escape');
-    await expect(dropdown).not.toBeVisible();
+    await expect(dropdown).toBeHidden();
+    await expect(trigger).toBeFocused();
   });
 
-  test('TC-SS-054: Switching org resets domain scope if domain not available', async ({ page }) => {
+  test('TC-SS-070: The org switcher trigger has an accessible name', async ({
+    ownerPage: page,
+  }) => {
     await page.goto('/dashboard');
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-    const orgTrigger = orgSwitcher.trigger(page);
-    const orgVisible = await orgTrigger.isVisible().catch(() => false);
-    test.skip(!orgVisible, 'Organization switcher not visible');
+    await expect(orgSwitcher.trigger(page)).toHaveAccessibleName('Select a workspace');
+    await expect(orgSwitcher.trigger(page)).toHaveAttribute('aria-haspopup', 'menu');
+  });
 
-    const domainTrigger = domainSwitcher.trigger(page);
-    const domainVisible = await domainTrigger.isVisible().catch(() => false);
+  test('TC-SS-072: The dropdown is a menu labelled by its trigger', async ({ ownerPage: page }) => {
+    await page.goto('/dashboard');
+    const trigger = orgSwitcher.trigger(page);
+    await trigger.click();
 
-    if (domainVisible) {
-      // Switch org
-      await orgTrigger.click();
-      const menuItems = page.locator('[role="menuitem"]');
-      const itemCount = await menuItems.count();
+    const dropdown = orgSwitcher.dropdown(page);
+    await expect(dropdown).toHaveAttribute('role', 'menu');
+    const triggerId = await trigger.getAttribute('id');
+    expect(triggerId, 'the trigger has an id to be labelled by').toBeTruthy();
+    await expect(dropdown).toHaveAttribute('aria-labelledby', triggerId!);
+  });
 
-      if (itemCount > 1) {
-        await menuItems.nth(1).click();
+  test('TC-SS-073: Workspace rows and the Manage link are menu items', async ({
+    ownerPage: page,
+    owner,
+  }) => {
+    await page.goto('/dashboard');
+    await orgSwitcher.trigger(page).click();
 
-        // Domain scope may have been reset if new org doesn't have that
-        // domain - expected behavior; nothing further to assert here.
-      }
-    }
+    const items = orgSwitcher.dropdown(page).getByRole('menuitem');
+    await expect(items).toHaveCount(3);
+    await expect(orgSwitcher.row(page, owner.defaultWorkspace.extid)).toHaveAttribute(
+      'role',
+      'menuitem'
+    );
+    await expect(orgSwitcher.row(page, owner.secondWorkspace.extid)).toHaveAttribute(
+      'role',
+      'menuitem'
+    );
+    await expect(orgSwitcher.manageLink(page)).toHaveAttribute('role', 'menuitem');
+  });
+
+  test('TC-SS-074: Tab closes the open dropdown', async ({ ownerPage: page }) => {
+    await page.goto('/dashboard');
+    const trigger = orgSwitcher.trigger(page);
+    await expect(trigger).toBeVisible();
+    await trigger.focus();
+    await page.keyboard.press('Enter');
+    await expect(orgSwitcher.dropdown(page)).toBeFocused();
+
+    // A HeadlessUI Menu does not trap focus: Tab closes it and moves on.
+    await page.keyboard.press('Tab');
+
+    await expect(orgSwitcher.dropdown(page)).toBeHidden();
+    await expect(trigger).toHaveAttribute('aria-expanded', 'false');
   });
 });
 
 // -----------------------------------------------------------------------------
-// State Persistence Test Suite
+// Domain switcher
 // -----------------------------------------------------------------------------
 
-test.describe('Scope Switcher - State Persistence', () => {
-  test.beforeEach(async ({ page }) => {
-    page.setDefaultTimeout(15000);
-  });
-
-  test('TC-SS-060: Org selection persists across page navigation', async ({ page }) => {
+test.describe('Scope Switcher - domain switcher, lane state', () => {
+  test('TC-SS-051: The domain switcher renders exactly when domains are enabled', async ({
+    ownerPage: page,
+  }) => {
     await page.goto('/dashboard');
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+    // The org switcher is the positive signal that the context bar rendered
+    // with its data; the domain switcher sits in the same template.
+    await expect(orgSwitcher.trigger(page)).toBeVisible();
 
-    const trigger = orgSwitcher.trigger(page);
-    const isVisible = await trigger.isVisible().catch(() => false);
-    test.skip(!isVisible, 'Organization switcher not visible');
-
-    // Get current org
-    const orgName = await trigger.textContent();
-
-    // Navigate away and back
-    await page.goto('/');
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-    await page.goto('/dashboard');
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-    // Verify same org selected
-    const newOrgName = await trigger.textContent();
-    expect(newOrgName).toBe(orgName);
-  });
-
-  test('TC-SS-061: Domain scope persists across page navigation', async ({ page }) => {
-    await page.goto('/dashboard');
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-    const trigger = domainSwitcher.trigger(page);
-    const isVisible = await trigger.isVisible().catch(() => false);
-    test.skip(!isVisible, 'Domain switcher not visible');
-
-    const domainName = await trigger.textContent();
-
-    await page.goto('/');
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-    await page.goto('/dashboard');
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-    const newDomainName = await trigger.textContent();
-    expect(newDomainName).toBe(domainName);
-  });
-
-  test('TC-SS-062: Domain scope stored in sessionStorage', async ({ page }) => {
-    await page.goto('/dashboard');
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-    const trigger = domainSwitcher.trigger(page);
-    const isVisible = await trigger.isVisible().catch(() => false);
-    test.skip(!isVisible, 'Domain switcher not visible');
-
-    await trigger.click();
-    const menuItem = page.locator('[role="menuitem"]').first();
-    await menuItem.click();
-
-    const storedValue = await page.evaluate(() => sessionStorage.getItem('domainContext'));
-    expect(storedValue).toBeTruthy();
+    const { domainsEnabled } = await bootstrapFlags(page);
+    await expect(domainSwitcher.trigger(page)).toHaveCount(domainsEnabled ? 1 : 0);
   });
 });
 
-// -----------------------------------------------------------------------------
-// Accessibility Test Suite
-// -----------------------------------------------------------------------------
+/**
+ * The domain-switcher cases need a custom domain on the storageState account
+ * on a target with domains enabled. E2E_CUSTOM_DOMAINS must list the domain
+ * names (the first is used), not just a truthy value. No CI lane provides one
+ * yet (#3420). They run as that account, whose org switcher is hidden by the
+ * solo rule, so they drive the domain switcher only.
+ */
+test.describe('Scope Switcher - domain switcher with custom domains', () => {
+  test.fixme(
+    !env.hasCustomDomains,
+    'Needs a custom domain on the test account (E2E_CUSTOM_DOMAINS); no lane provisions one. See #3420.'
+  );
 
-test.describe('Scope Switcher - Accessibility', () => {
   test.beforeEach(async ({ page }) => {
     page.setDefaultTimeout(15000);
   });
 
-  test('TC-SS-070: Org switcher has proper ARIA labels', async ({ page }) => {
+  /** A custom domain the target serves for the test account. */
+  const customDomain = () => env.customDomains[0];
+
+  test('TC-SS-002: Dashboard shows the domain switcher, enabled', async ({ page }) => {
     await page.goto('/dashboard');
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-    const trigger = orgSwitcher.trigger(page);
-    const isVisible = await trigger.isVisible().catch(() => false);
-    test.skip(!isVisible, 'Organization switcher not visible');
-
-    const ariaLabel = await trigger.getAttribute('aria-label');
-    expect(ariaLabel).toBeTruthy();
-    expect(ariaLabel?.toLowerCase()).toContain('organization');
+    await expect(domainSwitcher.trigger(page)).toBeVisible();
+    await expect(domainSwitcher.trigger(page)).toBeEnabled();
   });
 
-  test('TC-SS-071: Domain switcher has proper ARIA labels', async ({ page }) => {
+  test('TC-SS-006: Organization settings hide the domain switcher', async ({ page }) => {
+    const org = await getFirstOrganization(page);
+    // Load the dashboard first: its domain switcher proves the domain context
+    // is active before the in-app navigation to a page that hides it.
     await page.goto('/dashboard');
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+    await expect(domainSwitcher.trigger(page)).toBeVisible();
+
+    // Activity is a tab of the organization settings route (/org/:extid/:tab?)
+    await openFromUserMenu(page, 'Activity');
+
+    await expect(page).toHaveURL(new RegExp(`/org/${org.extid}/activity$`));
+    await expect(domainSwitcher.trigger(page)).toHaveCount(0);
+  });
+
+  test('TC-SS-008: The Domains tab (/domains) hides the domain switcher', async ({ page }) => {
+    await page.goto('/dashboard');
+    await expect(domainSwitcher.trigger(page)).toBeVisible();
+
+    await openFromUserMenu(page, 'Domains');
+
+    await expect(page).toHaveURL(/\/org\/[^/]+\/domains$/);
+    await expect(page.getByText(customDomain(), { exact: true }).first()).toBeVisible();
+    await expect(domainSwitcher.trigger(page)).toHaveCount(0);
+  });
+
+  test('TC-SS-010: A domain detail page shows the domain switcher, enabled', async ({ page }) => {
+    await page.goto('/dashboard');
+    await domainSwitcher.trigger(page).click();
+    const row = domainSwitcher
+      .dropdown(page)
+      .getByRole('menuitem')
+      .filter({ hasText: customDomain() });
+    await clickRowGear(page, row, 'Domain settings');
+
+    await expect(page).toHaveURL(/\/org\/[^/]+\/domains\/[^/]+$/);
+    await expect(domainSwitcher.trigger(page)).toBeEnabled();
+    await expect(domainSwitcher.trigger(page)).toHaveAttribute('title', customDomain());
+  });
+
+  test('TC-SS-016: Account pages hide the domain switcher', async ({ page }) => {
+    await page.goto('/dashboard');
+    await expect(domainSwitcher.trigger(page)).toBeVisible();
+
+    await openFromUserMenu(page, 'Account');
+
+    await expect(page.getByRole('heading', { level: 1, name: 'Account' })).toBeVisible();
+    await expect(domainSwitcher.trigger(page)).toHaveCount(0);
+  });
+
+  test('TC-SS-030: Clicking the domain switcher opens a menu with the custom domain', async ({
+    page,
+  }) => {
+    await page.goto('/dashboard');
+
+    await domainSwitcher.trigger(page).click();
+
+    await expect(domainSwitcher.dropdown(page)).toBeVisible();
+    await expect(
+      domainSwitcher.dropdown(page).getByRole('menuitem').filter({ hasText: customDomain() })
+    ).toHaveCount(1);
+  });
+
+  test('TC-SS-031: Selecting a domain makes it the current scope and stores it for the tab', async ({
+    page,
+  }) => {
+    await page.goto('/dashboard');
+    await domainSwitcher.trigger(page).click();
+
+    await domainSwitcher
+      .dropdown(page)
+      .getByRole('menuitem')
+      .filter({ hasText: customDomain() })
+      .click();
+
+    await expect(domainSwitcher.dropdown(page)).toBeHidden();
+    await expect(domainSwitcher.trigger(page)).toHaveAttribute('title', customDomain());
+    await expect
+      .poll(() => page.evaluate(() => sessionStorage.getItem('domainContext')))
+      .toBe(customDomain());
+  });
+
+  test('TC-SS-033: The add-domain action opens the add-domain page', async ({ page }) => {
+    const org = await getFirstOrganization(page);
+    await page.goto('/dashboard');
+    await domainSwitcher.trigger(page).click();
+
+    // With a custom domain, adding another is the header [+] icon
+    await domainSwitcher.addIcon(page).click();
+
+    await expect(page).toHaveURL(new RegExp(`/org/${org.extid}/domains/add$`));
+  });
+
+  test('TC-SS-042: A receipt page shows the domain switcher locked', async ({ page }) => {
+    await page.goto('/dashboard');
+    await page
+      .getByRole('textbox', { name: 'Secret content' })
+      .fill('scope switcher domain receipt');
+    await page.getByTestId('split-button-submit').click();
+    await page.waitForURL(/\/receipt\/[^/]+$/);
 
     const trigger = domainSwitcher.trigger(page);
-    const isVisible = await trigger.isVisible().catch(() => false);
-    test.skip(!isVisible, 'Domain switcher not visible');
-
-    const ariaLabel = await trigger.getAttribute('aria-label');
-    expect(ariaLabel).toBeTruthy();
+    await expect(trigger).toBeDisabled();
+    await expect(trigger).toHaveAttribute('aria-disabled', 'true');
+    await expect(trigger).toHaveAttribute('title', 'Domain switching not available on this page');
   });
 
-  test('TC-SS-072: Dropdown menu has role="menu"', async ({ page }) => {
+  test('TC-SS-052: The canonical domain row has no settings gear', async ({ page }) => {
+    const response = await page.request.get('/bootstrap/me');
+    expect(response.ok(), 'GET /bootstrap/me').toBe(true);
+    const { canonical_domain, site_host } = (await response.json()) as {
+      canonical_domain?: string;
+      site_host?: string;
+    };
+    // The picker lists hosts without a port (normalizeDomainHost)
+    const canonical = (canonical_domain || site_host || '').replace(/:\d+$/, '');
+    expect(canonical, 'the bootstrap names the canonical domain').not.toBe('');
+
     await page.goto('/dashboard');
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-    const trigger = orgSwitcher.trigger(page);
-    const isVisible = await trigger.isVisible().catch(() => false);
-    test.skip(!isVisible, 'Organization switcher not visible');
-
-    await trigger.click();
-
-    const menu = page.locator('[role="menu"]');
-    await expect(menu).toBeVisible();
+    await domainSwitcher.trigger(page).click();
+    const row = domainSwitcher.dropdown(page).getByRole('menuitem').filter({ hasText: canonical });
+    await expect(row).toHaveCount(1);
+    await row.hover();
+    await expect(row.getByRole('button', { name: 'Domain settings' })).toHaveCount(0);
   });
 
-  test('TC-SS-073: Menu items have role="menuitem"', async ({ page }) => {
+  test('TC-SS-061: The selected domain carries into in-app navigation', async ({ page }) => {
     await page.goto('/dashboard');
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+    await domainSwitcher.trigger(page).click();
+    await domainSwitcher
+      .dropdown(page)
+      .getByRole('menuitem')
+      .filter({ hasText: customDomain() })
+      .click();
+    await expect(domainSwitcher.trigger(page)).toHaveAttribute('title', customDomain());
 
-    const trigger = orgSwitcher.trigger(page);
-    const isVisible = await trigger.isVisible().catch(() => false);
-    test.skip(!isVisible, 'Organization switcher not visible');
+    await openFromUserMenu(page, 'Account');
+    await page.getByRole('link', { name: 'Back to Dashboard' }).click();
 
-    await trigger.click();
-
-    const menuItems = page.locator('[role="menuitem"]');
-    const itemCount = await menuItems.count();
-    expect(itemCount).toBeGreaterThan(0);
+    await expect(page).toHaveURL(/\/dashboard$/);
+    await expect(domainSwitcher.trigger(page)).toHaveAttribute('title', customDomain());
   });
 
-  test('TC-SS-074: Focus is trapped within open dropdown', async ({ page }) => {
+  test('TC-SS-071: The domain switcher trigger has an accessible name', async ({ page }) => {
     await page.goto('/dashboard');
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-    const trigger = orgSwitcher.trigger(page);
-    const isVisible = await trigger.isVisible().catch(() => false);
-    test.skip(!isVisible, 'Organization switcher not visible');
+    await expect(domainSwitcher.trigger(page)).toHaveAccessibleName('Switch domain scope');
+  });
+});
 
-    await trigger.click();
+/**
+ * Cases that need an account with two workspaces AND custom domains. The
+ * throwaway owner has no custom domain and the storageState account is solo,
+ * so neither lane account qualifies, with or without E2E_CUSTOM_DOMAINS.
+ */
+test.describe('Scope Switcher - two workspaces with custom domains', () => {
+  test.fixme('TC-SS-009: A domain detail page shows the org switcher', async () => {
+    // fixme: needs a multi-workspace account with a custom domain (#3420).
+  });
 
-    // Tab through items
-    for (let i = 0; i < 10; i++) {
-      await page.keyboard.press('Tab');
-
-      const focused = await page.evaluate(() => {
-        const el = document.activeElement;
-        return el?.closest('[role="menu"]') !== null;
-      });
-
-      // Focus should stay within menu until escape
-      if (!focused) break;
-    }
-
-    // Escape to close
-    await page.keyboard.press('Escape');
-    const dropdown = page.locator('[role="menu"]');
-    await expect(dropdown).not.toBeVisible();
+  test.fixme('TC-SS-054: Switching workspace resets a domain scope the new workspace lacks', async () => {
+    // fixme: needs two workspaces with different custom domains (#3420).
   });
 });
 
 /**
  * Qase Test Case Export Format
  *
- * The test cases in this file can be exported to Qase using the following mapping:
- *
  * Suite: Scope Switcher UX
  *
- * | ID         | Title                                              | Priority | Automation |
- * |------------|----------------------------------------------------|---------:|------------|
- * | TC-SS-001  | Dashboard: Org switcher visible and interactive   | High     | Automated  |
- * | TC-SS-002  | Dashboard: Domain switcher visible                 | High     | Automated  |
- * | TC-SS-003  | Secret Creation: Org switcher visible              | High     | Automated  |
- * | TC-SS-004  | Secret Creation: Domain switcher visible           | High     | Automated  |
- * | TC-SS-005  | Org Settings: Org switcher locked                  | High     | Automated  |
- * | TC-SS-006  | Org Settings: Domain switcher hidden               | High     | Automated  |
- * | TC-SS-007  | Domains List: Org switcher visible                 | Medium   | Automated  |
- * | TC-SS-008  | Domains List: Domain switcher visible              | Medium   | Automated  |
- * | TC-SS-009  | Domain Detail: Org switcher visible                | Medium   | Automated  |
- * | TC-SS-010  | Domain Detail: Domain switcher locked              | High     | Automated  |
- * | TC-SS-011  | Billing: Org switcher locked                       | High     | Automated  |
- * | TC-SS-012  | Billing: Domain switcher hidden                    | High     | Automated  |
- * | TC-SS-013  | Billing Plans: Visibility rules apply              | Medium   | Automated  |
- * | TC-SS-014  | Billing Invoices: Visibility rules apply           | Medium   | Automated  |
- * | TC-SS-015  | Account: Org switcher hidden                       | High     | Automated  |
- * | TC-SS-016  | Account: Domain switcher hidden                    | High     | Automated  |
- * | TC-SS-017  | Profile Settings: Both hidden                      | Medium   | Automated  |
- * | TC-SS-018  | Security Settings: Both hidden                     | Medium   | Automated  |
- * | TC-SS-020  | Org dropdown opens on click                        | High     | Automated  |
- * | TC-SS-021  | Dropdown shows current org highlighted             | High     | Automated  |
- * | TC-SS-022  | Selecting org updates page context                 | Critical | Automated  |
- * | TC-SS-023  | Gear icon navigates to org settings                | High     | Automated  |
- * | TC-SS-024  | Manage Workspaces link works                       | Medium   | Automated  |
- * | TC-SS-030  | Domain dropdown opens on click                     | High     | Automated  |
- * | TC-SS-031  | Selecting domain updates scope                     | Critical | Automated  |
- * | TC-SS-032  | Domain scope persists to sessionStorage            | High     | Automated  |
- * | TC-SS-033  | Add Domain link navigates                          | Medium   | Automated  |
- * | TC-SS-040  | Locked org switcher not clickable                  | High     | Automated  |
- * | TC-SS-041  | Locked switcher has ARIA attributes                | Medium   | Automated  |
- * | TC-SS-042  | Locked domain shows current domain                 | High     | Automated  |
- * | TC-SS-050  | Single org user sees switcher                      | Medium   | Automated  |
- * | TC-SS-051  | User without domains: switcher hidden              | High     | Automated  |
- * | TC-SS-052  | Canonical domain shows Personal label              | Medium   | Automated  |
- * | TC-SS-053  | Keyboard navigation works                          | High     | Automated  |
- * | TC-SS-054  | Org switch resets unavailable domain scope         | High     | Automated  |
- * | TC-SS-060  | Org selection persists across navigation           | High     | Automated  |
- * | TC-SS-061  | Domain scope persists across navigation            | High     | Automated  |
- * | TC-SS-062  | Domain scope in sessionStorage                     | Medium   | Automated  |
- * | TC-SS-070  | Org switcher ARIA labels                           | Medium   | Automated  |
- * | TC-SS-071  | Domain switcher ARIA labels                        | Medium   | Automated  |
- * | TC-SS-072  | Menu has role="menu"                               | Medium   | Automated  |
- * | TC-SS-073  | Items have role="menuitem"                         | Medium   | Automated  |
- * | TC-SS-074  | Focus trapped in dropdown                          | Medium   | Automated  |
- */
-
-/**
- * Manual Test Checklist - Scope Switcher UX
+ * | ID         | Title                                                   | Priority | Automation |
+ * |------------|---------------------------------------------------------|---------:|------------|
+ * | TC-SS-001  | Dashboard: org switcher visible and enabled             | High     | Automated  |
+ * | TC-SS-002  | Dashboard: domain switcher visible and enabled          | High     | Automated* |
+ * | TC-SS-003  | /: signed-in owner lands on dashboard form with switcher| High     | Automated  |
+ * | TC-SS-005  | Org settings: switching opens the other workspace       | High     | Automated  |
+ * | TC-SS-006  | Org settings: domain switcher hidden                    | High     | Automated* |
+ * | TC-SS-007  | /domains: Domains tab; switching keeps the tab          | Medium   | Automated  |
+ * | TC-SS-008  | Domains tab: domain switcher hidden                     | Medium   | Automated* |
+ * | TC-SS-009  | Domain detail: org switcher visible                     | Medium   | fixme      |
+ * | TC-SS-010  | Domain detail: domain switcher enabled                  | High     | Automated* |
+ * | TC-SS-015  | Account: org switcher hidden                            | High     | Automated  |
+ * | TC-SS-016  | Account: domain switcher hidden                         | High     | Automated* |
+ * | TC-SS-017  | Profile settings: org switcher hidden                   | Medium   | Automated  |
+ * | TC-SS-018  | Security settings: org switcher hidden                  | Medium   | Automated  |
+ * | TC-SS-020  | Org dropdown opens on click                             | High     | Automated  |
+ * | TC-SS-021  | Dropdown lists workspaces, marks the current one        | High     | Automated  |
+ * | TC-SS-022  | Selecting a workspace makes it current                  | Critical | Automated  |
+ * | TC-SS-023  | Row gear opens workspace settings                       | High     | Automated  |
+ * | TC-SS-024  | Manage Workspaces opens /orgs                           | Medium   | Automated  |
+ * | TC-SS-030  | Domain dropdown opens with the custom domain            | High     | Automated* |
+ * | TC-SS-031  | Selecting a domain makes it current, stored for the tab | Critical | Automated* |
+ * | TC-SS-033  | Add-domain action opens the add-domain page             | Medium   | Automated* |
+ * | TC-SS-040  | Receipt: org switcher locked, shows current workspace   | High     | Automated  |
+ * | TC-SS-041  | Receipt: locked switcher marked disabled for AT         | Medium   | Automated  |
+ * | TC-SS-042  | Receipt: domain switcher locked                         | High     | Automated* |
+ * | TC-SS-050  | Solo default workspace: no org switcher                 | High     | Automated  |
+ * | TC-SS-051  | Domain switcher renders exactly when domains enabled    | High     | Automated  |
+ * | TC-SS-052  | Canonical domain row has no settings gear               | Medium   | Automated* |
+ * | TC-SS-053  | Keyboard: Enter, arrows, Escape                         | High     | Automated  |
+ * | TC-SS-054  | Workspace switch resets unavailable domain scope        | High     | fixme      |
+ * | TC-SS-060  | Selected workspace carries into in-app navigation       | High     | Automated  |
+ * | TC-SS-061  | Selected domain carries into in-app navigation          | High     | Automated* |
+ * | TC-SS-070  | Org switcher accessible name                            | Medium   | Automated  |
+ * | TC-SS-071  | Domain switcher accessible name                         | Medium   | Automated* |
+ * | TC-SS-072  | Dropdown is a menu labelled by its trigger              | Medium   | Automated  |
+ * | TC-SS-073  | Rows and Manage link are menu items                     | Medium   | Automated  |
+ * | TC-SS-074  | Tab closes the dropdown                                 | Medium   | Automated  |
  *
- * ## Visual Testing (Not Automated)
- * - [ ] Switcher styling matches design system
- * - [ ] Dark mode styling correct
- * - [ ] Hover states on menu items
- * - [ ] Active/selected state styling
- * - [ ] Disabled state appears visually muted
- * - [ ] Gear icon visibility on hover
- * - [ ] Checkmark alignment in dropdown
+ * Automated* = runs only when E2E_CUSTOM_DOMAINS is set; test.fixme otherwise.
  *
- * ## Responsive Testing
- * - [ ] Mobile (375px): Switchers stack or hide appropriately
- * - [ ] Tablet (768px): Dropdown doesn't overflow viewport
- * - [ ] Desktop (1280px): Full display with all elements
- *
- * ## Multi-org Scenarios
- * - [ ] User with 5+ orgs: Dropdown scrolls
- * - [ ] User with default org only: Shows "Personal"
- * - [ ] User with default + custom orgs: Both visible
- *
- * ## Multi-domain Scenarios
- * - [ ] User with canonical only: Switcher hidden
- * - [ ] User with 1 custom domain: Shows that domain
- * - [ ] User with 5+ domains: Dropdown scrolls
- * - [ ] Canonical domain labeled "Personal"
- *
- * ## Error States
- * - [ ] API timeout: Graceful fallback
- * - [ ] Invalid org extid: Error handling
- * - [ ] Session expired: Redirect to login
+ * Removed with the 2026-09 rewrite: TC-SS-004 (/ no longer renders a secret
+ * form for a signed-in user; it redirects to the dashboard, covered by
+ * TC-SS-002/003), TC-SS-011 to -014 (org switcher locked on /billing/*: the
+ * billing routes moved to /billing/:extid/* and now show the switcher, and
+ * they exist only with billing enabled), TC-SS-032 and TC-SS-062 (merged into
+ * TC-SS-031).
  */

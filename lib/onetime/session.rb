@@ -18,6 +18,7 @@ require_relative 'session/ended'
 require_relative 'session/surface'
 require_relative 'session/recent_reauth'
 require_relative 'session/reauth_policy'
+require_relative 'session/remember_me'
 require_relative 'operations/sessions/track_metadata'
 
 module Onetime
@@ -75,6 +76,10 @@ module Onetime
         dbclient: nil,
       }.freeze
     end
+
+    # The blob TTL for a write that found its session already past an
+    # absolute deadline (see #absolute_remaining): the smallest Redis takes.
+    LAPSED_TTL = 1 unless defined?(LAPSED_TTL)
 
     attr_reader :dbclient
 
@@ -139,6 +144,46 @@ module Onetime
       # is kept for parity with callers/tests that read the raw AES key directly.
       @codec              = SessionCodec.new(@secret)
       @encryption_key_raw = @codec.encryption_key_raw
+    end
+
+    # The epoch second at which a session's absolute deadline falls, or nil
+    # when none applies.
+    #
+    # Two deadlines, both fixed at sign-in and never moved by activity, and
+    # the earlier one wins:
+    #
+    # - the remember-me deadline, `remember_until` (Onetime::RememberMe), an
+    #   integer epoch stamped at a sign-in with the box ticked;
+    # - the lifetime deadline, {Onetime::ActiveSessionGate.lifetime_deadline}
+    #   (`site.session.absolute_timeout`, 30 days unless configured, 0 for
+    #   none) after `authenticated_at`, the integer epoch every sign-in
+    #   writes. The same bound the full-mode active-session row is held to,
+    #   applied to the blob itself so simple mode, which has no row, has an
+    #   absolute bound too, and full mode has it from the read as well as
+    #   from the gate.
+    #
+    # A value that is not an integer epoch does not count: it is not a
+    # deadline this store wrote, and the session falls back to the default
+    # rolling lifetime (the failure posture for malformed data, as for the
+    # TTL read in #expiration_for_write).
+    #
+    # Public because it is the one definition of "when this session ends,
+    # whatever it does": the store applies it on the read (#find_session)
+    # and the write (#absolute_remaining), and IdentityResolution reports
+    # it as the identity's `expires_at`.
+    #
+    # @param session_data [Hash, #[], nil] the Rack session or its data hash
+    # @return [Integer, nil]
+    def self.absolute_deadline(session_data)
+      return nil unless session_data.respond_to?(:[])
+
+      deadlines = []
+      remember  = session_data[Onetime::RememberMe::SESSION_KEY]
+      deadlines << remember if remember.is_a?(Integer)
+      signed_in = session_data['authenticated_at']
+      lifetime  = Onetime::ActiveSessionGate.lifetime_deadline
+      deadlines << (signed_in + lifetime) if signed_in.is_a?(Integer) && lifetime
+      deadlines.min
     end
 
     private
@@ -590,6 +635,29 @@ module Onetime
         # Example: {"account_id":123,"awaiting_mfa":true}
         session_data = Familia::JsonSerializer.parse(decrypted_data)
 
+        # The blob's absolute deadlines are decided HERE, on the read, not by
+        # the key's TTL (which is an eviction hint this write path sizes; see
+        # #absolute_remaining). A session past its remember-me deadline or
+        # its lifetime deadline is ended the way a logout ends it: marker,
+        # blob, sidecars, metadata, and a fresh empty session under a new
+        # id, so an in-flight request that loaded it before the deadline
+        # cannot write it back as a live session (Onetime::SessionEnded).
+        # Read-time is the one place this can be decided for both auth
+        # modes: simple mode has no active-session row, and in full mode the
+        # row (Onetime::ActiveSessionGate) is checked only after this.
+        lapsed = lapsed_deadline(session_data)
+        if lapsed
+          session_logger.info 'Session past its absolute deadline; ended',
+            {
+              session_handle: handle,
+              deadline: lapsed,
+              authenticated_at: session_data['authenticated_at'],
+              operation: 'read',
+            }
+          new_sid = delete_session(request, sid_string, nil)
+          return [new_sid, {}]
+        end
+
         # Overlay externalized per-value fields (sidecar keys with their own
         # TTLs) onto the decoded hash. A blob-resident copy WINS over the
         # sidecar value: the blob still carrying an externalized field means
@@ -631,6 +699,11 @@ module Onetime
             two_factor_auth_setup: session_data['two_factor_auth_setup'],
             operation: 'read',
           }
+
+        # A remembered session's lifetime is known from here on, so anything
+        # that sizes a key to this request's session lifetime (the snapshot
+        # ordering counter, ADR-046) sees the fixed one, not the default.
+        apply_cookie_lifetime(request, Onetime::RememberMe.remaining(session_data))
 
         # Return session data - this becomes env['rack.session']
         # Rodauth checks env['rack.session'][:account_id] to verify login
@@ -676,7 +749,7 @@ module Onetime
     #
     # 6. Cookie contains just the session ID (not encrypted)
     #    Set-Cookie: onetime.session=c9803eb...
-    def write_session(request, sid, session_data, _options)
+    def write_session(request, sid, session_data, options)
       # Extract string ID from SessionId object if needed
       sid_string = sid.respond_to?(:public_id) ? sid.public_id : sid
       handle     = log_handle(sid_string)
@@ -714,8 +787,25 @@ module Onetime
       # The TTL this write gives the blob (#4455). Activity resets it to
       # @expire_after, as always. A request that is not activity (a passive
       # poll, or one a session gate refused) keeps whatever the blob had left.
-      # Read here, before the SET below replaces the key.
-      write_ttl = expiration_for_write(sid_string, request.respond_to?(:env) ? request.env : nil)
+      # A remembered session gets the time left to its fixed deadline either
+      # way, and no session outlives its absolute deadline (#absolute_remaining):
+      # when that is nearer than the rolling lifetime it bounds the blob, and
+      # a write that straddled the deadline (read before, commit after) gets
+      # a blob the next read ends anyway (find_session), so it is given the
+      # shortest TTL Redis takes rather than a rolling one. Read here, before
+      # the SET below replaces the key.
+      remembered_ttl = Onetime::RememberMe.remaining(session_data)
+      rolling_ttl    = remembered_ttl || expiration_for_write(sid_string, request.respond_to?(:env) ? request.env : nil)
+      absolute       = absolute_remaining(session_data)
+      bounded_ttl    = [absolute, LAPSED_TTL].max if absolute && (rolling_ttl.nil? || absolute < rolling_ttl)
+      write_ttl      = bounded_ttl || rolling_ttl
+
+      # The cookie Rack sets after this returns ends with the blob: at the
+      # remember deadline, at the absolute deadline when that bounded the
+      # blob, or @expire_after from now as always. Set on every write because
+      # the session read may have been remembered and this write, after a
+      # logout or a new sign-in, not.
+      apply_cookie_lifetime(options, bounded_ttl || remembered_ttl)
 
       begin
         merged_fields = request.respond_to?(:env) ? request.env['onetime.session.sidecar_merged'] : nil
@@ -944,7 +1034,60 @@ module Onetime
       false
     end
 
-    # The TTL to give the blob on this write.
+    # Seconds left to the blob's absolute deadline
+    # ({Onetime::Session.absolute_deadline}), or nil when none applies. Zero
+    # or negative means lapsed.
+    #
+    # @param session_data [Hash, nil]
+    # @return [Integer, nil]
+    def absolute_remaining(session_data, now: Time.now)
+      deadline = self.class.absolute_deadline(session_data)
+      return nil unless deadline
+
+      deadline - now.to_i
+    end
+
+    # Which absolute deadline the session is past, for the read-time check
+    # in #find_session: 'remember' or 'lifetime', or nil while inside both
+    # (or when none applies). Named for the log line, as the gate names the
+    # row's.
+    #
+    # @return [String, nil]
+    def lapsed_deadline(session_data, now: Time.now)
+      remaining = absolute_remaining(session_data, now: now)
+      return nil if remaining.nil? || remaining.positive?
+
+      remember = session_data[Onetime::RememberMe::SESSION_KEY]
+      remember.is_a?(Integer) && remember <= now.to_i ? 'remember' : 'lifetime'
+    end
+
+    # The cookie lifetime for this request, in the per-request Rack session
+    # options Rack builds the cookie from (commit_session: `expires` from
+    # :expire_after, and :max_age, which also becomes the Max-Age
+    # attribute). A session with a fixed end in sight (its remember deadline,
+    # or an absolute deadline nearer than the rolling lifetime) gets a cookie
+    # that ends there, with both attributes; any other gets @expire_after and
+    # no Max-Age, which is the default.
+    #
+    # @param target [Rack::Request, Hash, nil] the request (its env holds the
+    #   options) or the options hash itself
+    # @param fixed_ttl [Integer, nil] seconds to the session's fixed end
+    def apply_cookie_lifetime(target, fixed_ttl)
+      options = target.respond_to?(:env) ? target.env[Rack::RACK_SESSION_OPTIONS] : target
+      return unless options.respond_to?(:[]=)
+
+      if fixed_ttl
+        options[:expire_after] = fixed_ttl
+        options[:max_age]      = fixed_ttl
+      else
+        options[:expire_after] = @expire_after
+        options.delete(:max_age)
+      end
+    end
+
+    # The TTL to give the blob on this write, for a session that is not
+    # remembered (a remembered one gets the time to its deadline; see
+    # write_session).
     #
     # The blob's TTL is an inactivity clock: the only one in simple auth mode,
     # and the shorter of two in full mode. Resetting it on every write is what

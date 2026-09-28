@@ -367,6 +367,30 @@ RSpec.describe 'Caddy on-demand certificate gate', :shared_db_state, type: :inte
     end
   end
 
+  it 'refuses after passthrough re-promotes a domain whose earlier confirmation was invalidated' do
+    publish_txt_record
+    refresh!
+    prior_confirmation = stored.verified_confirmed_at
+
+    resolver.records[domain.validation_record] = []
+    refresh!
+    expect(stored.verified).to be(false)
+    expect(stored.verified_confirmed_at).to eq(prior_confirmation)
+
+    passthrough = Onetime::DomainValidation::PassthroughStrategy.new(OT.conf)
+    Onetime::Operations::VerifyDomain.new(domain: stored, strategy: passthrough, persist: true).call
+    expect(stored.verified).to be(true)
+    expect(stored.verified_confirmed_at).to be_nil
+
+    resolver.failures[domain.validation_record] = Resolv::DNS::RCode::ServFail
+    refresh!
+
+    expect(stored.verified).to be(false)
+    expect(stored.resolving).to be(true)
+    expect(stored.ready?).to be(false)
+    expect(ask).to eq(403)
+  end
+
   it 'never promotes on an indeterminate lookup' do
     resolver.failures[domain.validation_record] = Resolv::DNS::RCode::ServFail
     refresh!

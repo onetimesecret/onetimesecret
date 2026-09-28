@@ -31,6 +31,7 @@
 # The suite config has autoverify: false (spec/config.test.yaml:74), which
 # these examples require: with autoverify on, the first signup would persist
 # verified='true' and the resend branch would be legitimately unreachable.
+# The one 'with autoverify on' context at the end turns it on in-process.
 #
 # REQUIREMENTS:
 # - Valkey running on port 2163: pnpm run test:database:start
@@ -140,9 +141,12 @@ RSpec.describe 'Duplicate-signup verification resend in simple mode (audit dead-
 
   # Both signup outcomes must be the enumeration-safe generic success — a
   # bare 200 check would also pass if the route stopped reaching this logic.
-  def expect_signup_success(response, context)
+  # next_action comes from resolve_autoverify alone, so it must not change
+  # between a new and an existing login either.
+  def expect_signup_success(response, context, next_action: 'verify_email')
     expect(response.status).to eq(200),
       "#{context} should succeed, got #{response.status}: #{response.body}"
+    expect(JSON.parse(response.body)).to include('next_action' => next_action)
   end
 
   it 'resends the verification email when an unverified account re-submits signup' do
@@ -249,5 +253,44 @@ RSpec.describe 'Duplicate-signup verification resend in simple mode (audit dead-
     cust.refresh!
     expect(cust.reset_secret.value).not_to eq(secret_after_first_dup),
       'post-expiry resend must bind a fresh verification secret'
+  end
+
+  # ---------------------------------------------------------------------------
+  # Autoverify on: the SPA follows next_action to /signin instead of
+  # /check-email, so 'sign_in' must be both true (the account is verified and
+  # no email goes out) and the same for a new and an existing login. The
+  # config is swapped in-process and restored after each example, the same
+  # way spec/integration/simple/create_account_rate_limit_spec.rb does it.
+  # ---------------------------------------------------------------------------
+  context 'with autoverify on' do
+    before do
+      @saved_conf = YAML.load(YAML.dump(OT.conf))
+      new_conf    = YAML.load(YAML.dump(OT.conf))
+
+      new_conf['site']['authentication']['autoverify'] = true
+      OT.send(:conf=, new_conf)
+    end
+
+    after do
+      OT.send(:conf=, @saved_conf) if @saved_conf
+    end
+
+    it 'answers next_action sign_in for a new and an existing login alike' do
+      email = unique_email('autoverify')
+      @created_emails << email
+
+      first = post_signup(email)
+      expect_signup_success(first, 'Initial signup', next_action: 'sign_in')
+
+      cust = Onetime::Customer.find_by_email(email)
+      expect(cust).not_to be_nil
+      expect(cust.verified?).to be(true)
+      expect(@deliveries).to be_empty
+
+      second = post_signup(email)
+      expect_signup_success(second, 'Duplicate signup for the autoverified account', next_action: 'sign_in')
+      expect(second.body).to eq(first.body),
+        'new and existing logins must return identical bodies'
+    end
   end
 end

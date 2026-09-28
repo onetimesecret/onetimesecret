@@ -14,10 +14,12 @@
 #      one resolver failure long after the last pass never demotes. A pass
 #      from a strategy that does not check the record records nothing.
 #   5. A definitive failure clears the clock too.
-#   6. An operator override exempts the domain; unverified domains are
+#   6. Passthrough clears an unconfirmed run without recording TXT evidence or
+#      replacing an operator override.
+#   7. An operator override exempts the domain; unverified domains are
 #      untouched.
-#   7. A dry run reports the expiry and writes nothing.
-#   8. BulkResult counts expiries.
+#   8. A dry run reports the expiry and writes nothing.
+#   9. BulkResult counts expiries.
 
 require_relative '../../support/test_helpers'
 require 'securerandom'
@@ -35,6 +37,7 @@ class WindowTryStrategy
   }.freeze
   PASS          = { validated: true, message: 'TXT record validated', data: [{ 'match' => true }] }.freeze
   FAIL          = { validated: false, message: 'TXT record not found', data: [{ 'actual_values' => [] }] }.freeze
+  PASSTHROUGH   = { validated: true, message: 'External validation (passthrough mode)', mode: 'passthrough' }.freeze
 
   attr_accessor :ownership_result, :proves_ownership
 
@@ -178,6 +181,21 @@ window_try_set(@domain, verified: true, since: @inside_since, confirmed_at: @ins
 @failed_reloaded = window_try_reload(@domain)
 [@failed.dns_outcome, @failed.confirmation_expired, @failed_reloaded.verified, @failed_reloaded.verified_unconfirmed_since, @failed_reloaded.verified_confirmed_at == @inside_since - 60]
 #=> [:failed, false, false, nil, true]
+
+## Passthrough re-promotes the demoted domain without carrying its invalidated confirmation into the new lineage
+@strategy.ownership_result = WindowTryStrategy::PASSTHROUGH
+@passthrough = window_try_verify(@domain)
+@passthrough_reloaded = window_try_reload(@domain)
+[@passthrough.current_state, @passthrough_reloaded.verified_confirmed_at, @passthrough_reloaded.verified_unconfirmed_since]
+#=> [:verified, nil, nil]
+
+## Passthrough preserves an existing TXT confirmation and explicit override
+@prior_confirmation = @inside_since - 60
+window_try_set(@domain, verified: true, since: @inside_since, confirmed_at: @prior_confirmation, override: true)
+window_try_verify(@domain)
+@passthrough_existing = window_try_reload(@domain)
+[@passthrough_existing.verified_confirmed_at == @prior_confirmation, @passthrough_existing.verified_unconfirmed_since, @passthrough_existing.verified_by_override]
+#=> [true, nil, true]
 
 ## Operator override - an expired clock does not demote, and no clock is started
 window_try_set(@domain, verified: true, since: @expired_since, override: true)

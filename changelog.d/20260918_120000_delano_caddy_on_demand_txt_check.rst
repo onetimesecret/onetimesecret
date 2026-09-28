@@ -77,10 +77,11 @@ Changed
 
   The same applies to a domain verified under ``passthrough``. That strategy
   passes every domain without a DNS check, so its passes are stored in
-  verified but are not recorded as a TXT confirmation
-  (``verified_confirmed_at`` stays empty). After a move from ``passthrough``
-  to ``caddy_on_demand`` such a domain stays verified only once a check finds
-  its TXT record, or under a Colonel override.
+  verified but are not recorded as a TXT confirmation. If passthrough promotes
+  a domain after a definitive check demoted it, the older
+  ``verified_confirmed_at`` is cleared with that ended verification lineage.
+  After a move from ``passthrough`` to ``caddy_on_demand`` such a domain stays
+  verified only once a check finds its TXT record, or under a Colonel override.
 
 - The ``caddy_on_demand`` strategy now reports real resolving and SSL status
   for custom domains. Previously both were always unknown, so the domain
@@ -90,8 +91,11 @@ Changed
   completes a TLS handshake on port 443 and verifies the certificate for the
   hostname. No request is sent. The check refuses to connect to loopback,
   private, link-local or reserved addresses, and connects only to the address
-  it resolved. A lookup or connection that fails on our side (SERVFAIL,
-  timeout, no route) never changes stored state.
+  it resolved. A DNS lookup that fails on our side (SERVFAIL, timeout)
+  leaves stored state unchanged. If the name resolves but the TLS check
+  cannot be completed (timeout, no route), ``resolving`` and the probe
+  metadata are refreshed while the last SSL observation is kept until its
+  certificate expires.
 
   **Upgrade notes for self-hosted installs using** ``caddy_on_demand``:
 
@@ -106,8 +110,11 @@ Changed
     example ``tls internal``) is reported as no SSL, because it does not
     verify against the system trust store.
   - Domains that still carry vhost data from the ``approximated`` strategy
-    keep showing it until the ``remove_orphaned_approximated_vhosts`` chore
-    clears it; ``resolving`` is updated regardless.
+    show it only until a check learns whether the domain resolves. That
+    check replaces the Approximated status with the probe's and marks the
+    record ``approximated_vhost_pending_cleanup`` for the
+    ``remove_orphaned_approximated_vhosts`` chore; the old data stays only
+    while every check is inconclusive.
   - With ``jobs.domain_refresh`` enabled, a page of domains that all time out
     takes much longer than before (up to 13s per domain). Refresh runs no
     longer overlap: a tick that fires while the previous run is still working

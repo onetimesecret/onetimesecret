@@ -10,9 +10,20 @@ suite:
   tags: [auth, signup, registration, forms, validation]
   priority: critical
   notes: |
-    Tests cover the signup form at /signup. Successful signup redirects to /signin
-    with a success notification. The form requires email, password, and terms
-    agreement. Backend validation handles duplicate emails and password strength.
+    Tests cover the signup form at /signup. A successful signup shows a success
+    notification, and the create-account response names the next step in
+    next_action:
+      - verification required (full mode with AUTH_VERIFY_ACCOUNT_ENABLED=true,
+        simple mode with AUTH_AUTOVERIFY=false): verify_email, and the SPA goes
+        to /check-email (TC-AC-006).
+      - verification off (full mode with AUTH_VERIFY_ACCOUNT_ENABLED=false,
+        simple mode with AUTH_AUTOVERIFY=true): sign_in, and the SPA goes to
+        /signin (TC-AC-001).
+    Invite signups do not use this form. They go through /invite/:token, whose
+    POST /api/invite/:token/signup creates the account and signs the user in
+    (organizations/org-invitation-flow.yaml). The form requires email,
+    password, and terms agreement. Backend validation handles duplicate emails
+    and password strength.
 
 definitions:
   users:
@@ -22,10 +33,12 @@ definitions:
 
 tests:
   - id: TC-AC-001
-    intent: New user successfully creates account with valid email, strong password, and terms agreement
+    intent: With verification off, new user successfully creates account with valid email, strong password, and terms agreement, and continues to sign-in
     setup:
       auth: logged_out
       description: Clean state with no existing account for test email
+      state:
+        verification: "off (full mode AUTH_VERIFY_ACCOUNT_ENABLED=false, or simple mode AUTH_AUTOVERIFY=true)"
     target: /signup
     action:
       type: submit
@@ -39,6 +52,7 @@ tests:
       - selector: "[data-testid='signup-success-notification']"
         assertion: visible
         contains: account created
+      - POST /auth/create-account answers next_action sign_in
       - User is redirected to /signin page
       - url:
           path: /signin
@@ -200,3 +214,32 @@ tests:
     type: functional
     covers: [SignUpForm, terms agreement requirement]
     notes: HTML5 required attribute on checkbox prevents submission without agreement
+
+  - id: TC-AC-006
+    intent: With verification required, new user creates account and is sent to the check-email page instead of the sign-in form
+    setup:
+      auth: logged_out
+      description: Clean state with no existing account for test email
+      state:
+        verification: "required (full mode AUTH_VERIFY_ACCOUNT_ENABLED=true, or simple mode AUTH_AUTOVERIFY=false)"
+    target: /signup
+    action:
+      type: submit
+      element: signup form
+      data:
+        email: newuser-{{timestamp}}@example.com
+        password: SecureP@ssw0rd123
+        terms: true
+    verify:
+      - Success notification appears
+      - POST /auth/create-account answers next_action verify_email
+      - User is redirected to /check-email, not /signin
+      - selector: "[data-testid='check-email-view']"
+        assertion: visible
+      - The check-email page shows the submitted address, and the URL does not contain it
+      - Signing in with the new credentials fails until the emailed verification link is followed
+    priority: critical
+    severity: blocker
+    type: functional
+    covers: [SignUpForm, useAuth.signup, signupDestination, CheckEmail.vue, /auth/create-account]
+    notes: The email reaches /check-email in router history state only; it is PII and stays out of the URL. e2e/auth/signup-redirect-preservation.spec.ts runs this path in the E2E Full Auth workflow.

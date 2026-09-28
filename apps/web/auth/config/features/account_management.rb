@@ -11,6 +11,8 @@ module Auth::Config::Features
       auth.enable :change_password
       auth.enable :reset_password
 
+      configure_create_account_response(auth)
+
       # Only configure verify_account if the feature is enabled
       # (disabled in test mode via YAML config: RACK_ENV != 'test')
       if Onetime.auth_config.verify_account_enabled?
@@ -101,18 +103,22 @@ module Auth::Config::Features
         end
       end
 
-      # Auto-login after invite signup (flag set in after_create_account hook)
-      auth.create_account_autologin? do
-        should_autologin = @invite_accepted == true
-        Auth::Logging.log_auth_event(
-          :create_account_autologin_decision,
-          level: :debug,
-          email: OT::Utils.obscure_email(param(login_param)),
-          autologin: should_autologin,
-          invite_accepted: @invite_accepted == true,
-        )
-        should_autologin
-      end
+      # No create-account path logs the new account in. Stated here because
+      # Rodauth defaults create_account_autologin? to true and verify_account
+      # turns it off (rodauth 2.45.0 create_account.rb, verify_account.rb), so
+      # with verification off every signup would otherwise be logged in.
+      #
+      # Invite signups included. The SPA's invite form posts to
+      # /api/invite/:token/signup, which calls create_account as an internal
+      # request and then sets up the app session itself
+      # (SignupAndAccept#setup_session). An autologin there would run against
+      # the internal request's own session hash, which is thrown away, and
+      # leave behind an active-session row no session can present. A JSON
+      # POST to /auth/create-account with an invite_token gets no session:
+      # an autologin skips after_login, so the app's `authenticated` flag
+      # would never be set, and the next step is signing in (next_action,
+      # below).
+      auth.create_account_autologin? false
 
       # Have successful login redirect back to originally requested page
       # @see login_return.rdoc
@@ -124,6 +130,20 @@ module Auth::Config::Features
       # Disable password confirmation field requirement
       # UI sends single password field, not password + confirmation
       auth.require_password_confirmation? false
+
+      # Disable login confirmation field requirement, for the same reason: the
+      # SPA signup form sends a single email field, never `login-confirm`.
+      # Rodauth defaults this to true (login_password_requirements_base.rb) and
+      # only verify_account overrides it to false, so with verify_account
+      # disabled (AUTH_VERIFY_ACCOUNT_ENABLED=false) every SPA signup answered
+      # 422 "logins do not match". Stated here so signup does not depend on
+      # which features are enabled. change_login, the only other route that
+      # reads it, is not enabled.
+      #
+      # Not an access control: the field is a typo guard the caller fills in
+      # itself, so any client could always pass it by echoing the login. Who
+      # may create which account is unchanged.
+      auth.require_login_confirmation? false
 
       # SECURITY: Genericize the "same as current password" error.
       #
@@ -150,6 +170,51 @@ module Auth::Config::Features
       # In JSON mode, this becomes the "error" field in the response
       # Field-specific errors are still returned in "field-error" array
       auth.create_account_error_flash 'Unable to create account'
+    end
+
+    # JSON clients cannot infer whether account creation requires an email
+    # round-trip. Name the usable next step in the success response; any
+    # billing_redirect already added by after_create_account remains the
+    # validated checkout intent to follow after sign-in.
+    #
+    # The answer is the status of the account this request just created. A
+    # login that already has an account never gets this far: every duplicate
+    # gets the generic 400 before or at the INSERT
+    # (overrides/duplicate_signup.rb). The only input that changes the answer
+    # is an invite token the caller sent, and before_create_account already
+    # refuses a token that is not pending for that login with the same
+    # generic error (hooks/account.rb). So the answer reveals nothing about
+    # any existing account.
+    #
+    # With verify_account loaded, a new account starts unverified and needs
+    # the emailed link. That includes webauthn_verify_account, which loads
+    # verify_account even when verify_account_enabled? is false. An invite
+    # signup is the exception: after_create_account opens the account and no
+    # email is sent, so it answers sign_in.
+    #
+    # There is no "signed in" answer: create_account_autologin? is false, so
+    # this route never establishes a session. The SPA's own invite form posts
+    # to /api/invite/:token/signup, which does.
+    #
+    # The success text follows the same account status. verify_account
+    # replaces create_account's notice with "An email has been sent to you
+    # with a link to verify your account" for every signup (rodauth 2.45.0
+    # verify_account.rb, create_account_notice_flash). An account opened at
+    # signup got no email, so it gets create_account's own "Your account has
+    # been created", the text a signup already gets without verify_account.
+    #
+    # Kept apart from configure so a spec can apply it to a Rodauth app with
+    # verify_account loaded, which RACK_ENV=test turns off
+    # (apps/web/auth/spec/config/features/account_management_spec.rb).
+    def self.configure_create_account_response(auth)
+      auth.create_account_notice_flash do
+        open_account? ? 'Your account has been created' : super()
+      end
+
+      auth.create_account_response do
+        json_response[:next_action] = open_account? ? 'sign_in' : 'verify_email' if json_request?
+        super()
+      end
     end
   end
 end

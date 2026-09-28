@@ -150,8 +150,14 @@ module Onetime
       # The chain is followed through a map of the whole answer section, not
       # by reading it top to bottom: RFC 1034 does not fix the order of the
       # answer section, and resolvers have returned the final records ahead
-      # of the CNAMEs that lead to them. The walk is bounded by the number of
-      # records, so a CNAME loop ends it.
+      # of the CNAMEs that lead to them.
+      #
+      # A CNAME that leads back to a name already walked (including the
+      # queried name itself) is a loop: no name in the chain owns the answer,
+      # so nothing is returned. Stopping on a record count instead would end
+      # the walk on whichever name the count happened to land on, and a
+      # malformed reply that also lists +rtype+ data under that name would
+      # have it read as the answer.
       #
       # @return [Array<Resolv::DNS::Resource>] empty unless rcode is NOERROR
       def records(reply, name, rtype)
@@ -161,11 +167,14 @@ module Onetime
           map[rr_name] = data.name if data.is_a?(CNAME)
         end
 
-        owner = name
-        reply.answer.size.times do
+        owner   = name
+        visited = [name]
+        loop do
           target = aliases[owner]
           break if target.nil?
+          return [] if visited.include?(target)
 
+          visited << target
           owner = target
         end
 
@@ -180,10 +189,15 @@ module Onetime
       # turn a resolver-side condition into a definitive negative for every
       # domain checked through that resolver:
       #
-      #   - ra=0 and aa=0: the nameserver neither recursed for us nor is
-      #     authoritative. A server that refuses recursion this way (rather
-      #     than with REFUSED) sends NOERROR, an empty answer section and an
-      #     upward referral in the authority section.
+      #   - ra=0 and aa=0 with no data in the answer section: the nameserver
+      #     neither recursed for us nor is authoritative. A server that
+      #     refuses recursion this way (rather than with REFUSED) sends
+      #     NOERROR, an empty answer section and an upward referral in the
+      #     authority section; when the name is a CNAME it may add that CNAME
+      #     and refer for the target. Data records are read whatever the
+      #     flags say: ra reports whether recursion is on offer, not whether
+      #     the answer is good, and a server that recurses for nobody can
+      #     still answer from its cache.
       #   - a non-empty answer section in which nothing is owned by the
       #     queried name, so none of it can be attributed to the question.
       #
@@ -191,7 +205,7 @@ module Onetime
       def ensure_usable!(reply, name)
         return unless DEFINITIVE_RCODES.include?(reply.rcode)
 
-        if reply.ra.to_i.zero? && reply.aa.to_i.zero?
+        if reply.ra.to_i.zero? && reply.aa.to_i.zero? && reply.answer.all? { |_rr_name, _ttl, data| data.is_a?(CNAME) }
           raise AttemptFailed, "#{RCODE_NAMES[reply.rcode]} reply is neither recursive nor authoritative (ra=0, aa=0)"
         end
         return if reply.answer.empty? || reply.answer.any? { |rr_name, _ttl, _data| rr_name == name }

@@ -512,4 +512,21 @@ RSpec.describe 'Auth::Migrator PostgreSQL Integration', :postgres_database do
       expect(uniques).not_to include(%i[provider uid])
     end
   end
+
+  describe 'remember_until migration (011)' do
+    it 'adds a nullable remember_until to account_active_session_keys and removes it on rollback', :aggregate_failures do
+      Sequel::Migrator.run(migration_db, migrations_dir, target: 10)
+      acct = insert_account(setup_db, 'remember-migration@example.com')
+      setup_db[:account_active_session_keys].insert(account_id: acct, session_id: 'pre-011')
+
+      Sequel::Migrator.run(migration_db, migrations_dir, target: 11)
+      expect(test_db.schema(:account_active_session_keys, reload: true).to_h)
+        .to include(remember_until: hash_including(allow_null: true))
+      expect(setup_db[:account_active_session_keys].where(session_id: 'pre-011').get(:remember_until)).to be_nil
+
+      Sequel::Migrator.run(migration_db, migrations_dir, target: 10)
+      expect(test_db.schema(:account_active_session_keys, reload: true).map(&:first)).not_to include(:remember_until)
+      expect(setup_db[:account_active_session_keys].where(session_id: 'pre-011').count).to eq(1)
+    end
+  end
 end

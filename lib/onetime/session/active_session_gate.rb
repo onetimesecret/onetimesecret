@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'activity'
+require_relative 'remember_me'
 
 module Onetime
   # Per-request enforcement of Rodauth's active-session table in full auth
@@ -32,7 +33,9 @@ module Onetime
   # - **revoke**: remove an active-session row. **destroy**: delete a Rack
   #   session's blob from Redis, which is what logout does. **refuse**: answer
   #   a request 401 (strategies) or `authenticated? == false` (helpers) while
-  #   leaving the Rack session in Redis. Refusing is all this gate ever does.
+  #   leaving the Rack session in Redis. Refusing is all this gate ever does,
+  #   with one addition: a Rack session refused as :revoked loses its
+  #   remember-me deadline (see {forfeit_remember}).
   #
   # ## The gap this closes
   #
@@ -58,7 +61,7 @@ module Onetime
   #
   # Rodauth's two session deadlines are enforced here, in the same SELECT:
   # a row whose `last_use` is older than {INACTIVITY_DEADLINE} or whose
-  # `created_at` is older than {LIFETIME_DEADLINE} is removed, as Rodauth's
+  # `created_at` is older than {lifetime_deadline} is removed, as Rodauth's
   # own sweep (`remove_inactive_sessions`) would remove it, and the Rack
   # session is refused as :revoked. They cannot live anywhere else: the gate
   # keeps `last_use` fresh on every request (below), so a deadline checked
@@ -70,6 +73,16 @@ module Onetime
   #
   # An expired row is refused before `last_use` is touched, so it is never
   # revived by the request that finds it.
+  #
+  # A remembered row (`remember_until` set, see {Onetime::RememberMe}) is
+  # exempt from the inactivity deadline and refused instead once
+  # `remember_until` has passed; the lifetime deadline still applies. The
+  # full rule is {expired_condition}, which Rodauth's sweep is configured
+  # with as well, so a remembered row left idle on one device is not swept
+  # away by the sessions page opened on another. With remember-me switched
+  # off, the exemption ends (every row is held to the inactivity deadline)
+  # but a lapsed `remember_until` still refuses: the switch is about new
+  # sign-ins and idle exemptions, not about reviving a deadline that passed.
   #
   # ## Failure posture: closed
   #
@@ -137,9 +150,12 @@ module Onetime
 
     # Rodauth's session deadlines, in seconds. Owned here and fed to Rodauth
     # (`session_inactivity_deadline`, `session_lifetime_deadline`) so this
-    # gate and the sessions page's sweep apply the same two values.
-    INACTIVITY_DEADLINE = 86_400*3  # 72 hours since `last_use`
-    LIFETIME_DEADLINE   = 2_592_000 # 30 days since `created_at`
+    # gate and the sessions page's sweep apply the same two values. The
+    # lifetime deadline is the operator's `site.session.absolute_timeout`
+    # (SESSION_ABSOLUTE_TIMEOUT), read through {lifetime_deadline}; this is
+    # its shipped default.
+    INACTIVITY_DEADLINE       = 86_400*3  # 72 hours since `last_use`
+    DEFAULT_LIFETIME_DEADLINE = 2_592_000 # 30 days since `created_at`
 
     TABLE = :account_active_session_keys
 
@@ -214,6 +230,50 @@ module Onetime
       false
     end
 
+    # The rows that are past a deadline, as one SQL condition: a row that is
+    # not remembered and idle past {INACTIVITY_DEADLINE}, a remembered row
+    # whose `remember_until` has passed, or any row older than
+    # {lifetime_deadline}. The per-request SELECT below asks the same three
+    # questions one at a time so the refusal can name the deadline; Rodauth's
+    # sweep (`inactive_session_cond`, overridden in
+    # apps/web/auth/config/features/active_sessions.rb) deletes on this.
+    #
+    # @return [Sequel::SQL::BooleanExpression]
+    def expired_condition
+      Sequel.|(inactive_condition, remember_lapsed_condition, lifetime_condition)
+    end
+
+    # The absolute session lifetime, in seconds since sign-in, or nil when
+    # the operator has disabled it: `site.session.absolute_timeout`
+    # (SESSION_ABSOLUTE_TIMEOUT), {DEFAULT_LIFETIME_DEADLINE} when unset.
+    # Applied by this gate to the row's `created_at` (and handed to Rodauth
+    # as `session_lifetime_deadline`, where nil means none) and by
+    # Onetime::Session to the blob's `authenticated_at`, so both auth modes
+    # share the one bound.
+    #
+    # Read on every call, never memoised, so a config reload takes effect
+    # without a restart. The value arrives as whatever YAML parsed from
+    # `<%= ENV[...] || N %>`, so it is accepted only as a clean non-negative
+    # integer (an Integer, or an all-digits String); anything else falls
+    # back to the default rather than String#to_i-ing a typo into a
+    # 12-second lifetime ("12h") or a disabled one ("off"). 0 legitimately
+    # disables the bound, so it is kept, as nil. Same rule as the colonel's
+    # AdminSessionLifetime timeouts.
+    #
+    # @return [Integer, nil]
+    def lifetime_deadline
+      raw     = Onetime.session_config['absolute_timeout']
+      seconds =
+        case raw
+        when Integer then raw.negative? ? DEFAULT_LIFETIME_DEADLINE : raw
+        when String  then raw.match?(/\A\d+\z/) ? raw.to_i : DEFAULT_LIFETIME_DEADLINE
+        else DEFAULT_LIFETIME_DEADLINE
+        end
+      seconds.zero? ? nil : seconds
+    rescue StandardError
+      DEFAULT_LIFETIME_DEADLINE
+    end
+
     private
 
     def compute(session, env = nil)
@@ -225,12 +285,14 @@ module Onetime
       row_ds = row_dataset(db, session)
       count(env, :queries)
       row    = row_ds.select(
-        Sequel.as(past_expression(:last_use, INACTIVITY_DEADLINE), :inactive),
-        Sequel.as(past_expression(:created_at, LIFETIME_DEADLINE), :outlived),
-        Sequel.as(past_expression(:last_use, TOUCH_INTERVAL), :touch_due),
+        Sequel.as(flag(inactive_condition), :inactive),
+        Sequel.as(flag(remember_lapsed_condition), :remember_lapsed),
+        Sequel.as(flag(lifetime_condition), :outlived),
+        Sequel.as(flag(past_condition(:last_use, TOUCH_INTERVAL)), :touch_due),
       ).first
       return revoked(session) if row.nil?
       return expire(row_ds, session, 'inactivity', env) if row[:inactive].to_i == 1
+      return expire(row_ds, session, 'remember', env) if row[:remember_lapsed].to_i == 1
       return expire(row_ds, session, 'lifetime', env) if row[:outlived].to_i == 1
 
       record_activity(row_ds, session, env) if row[:touch_due].to_i == 1
@@ -270,17 +332,49 @@ module Onetime
       defined?(::Auth::Database) ? true : false
     end
 
-    # `1` when the row's timestamp `column` (`last_use` and `created_at` are
-    # both NOT NULL in the schema) is more than `seconds` old, else `0`.
-    # Evaluated by the database against its own CURRENT_TIMESTAMP, never
-    # against Ruby's clock, and as an integer CASE rather than a bare boolean
-    # because SQLite returns booleans as integers and Sequel only typecasts
-    # declared boolean columns. `Sequel.date_sub` comes from the
-    # date_arithmetic extension, which Auth::Database loads on the authdb
-    # connection (Rodauth's active_sessions feature needs it too).
-    def past_expression(column, seconds)
-      past = Sequel[column] < Sequel.date_sub(Sequel::CURRENT_TIMESTAMP, seconds: seconds)
-      Sequel.case({ past => 1 }, 0)
+    # True when the row's timestamp `column` (`last_use` and `created_at` are
+    # both NOT NULL in the schema) is more than `seconds` old. Evaluated by
+    # the database against its own CURRENT_TIMESTAMP, never against Ruby's
+    # clock. `Sequel.date_sub` comes from the date_arithmetic extension,
+    # which Auth::Database loads on the authdb connection (Rodauth's
+    # active_sessions feature needs it too).
+    def past_condition(column, seconds)
+      Sequel[column] < Sequel.date_sub(Sequel::CURRENT_TIMESTAMP, seconds: seconds)
+    end
+
+    # Idle past the inactivity deadline, for a row that is not remembered.
+    # With remember-me switched off (AUTH_REMEMBER_ME_ENABLED=false) no row
+    # is exempt: a stamp made before the switch no longer holds off the
+    # inactivity deadline (it still ends the row when it lapses, below).
+    def inactive_condition
+      idle = past_condition(:last_use, INACTIVITY_DEADLINE)
+      return idle unless RememberMe.enabled?
+
+      Sequel.&({ remember_until: nil }, idle)
+    end
+
+    # Remembered, and the remember deadline has passed. Not subject to the
+    # switch: a deadline that has passed has passed, whatever the operator
+    # has since decided about new sign-ins (the same rule the session store
+    # applies to the blob's stamp, Onetime::Session#find_session).
+    def remember_lapsed_condition
+      Sequel.&(Sequel.~(remember_until: nil), Sequel[:remember_until] < Sequel::CURRENT_TIMESTAMP)
+    end
+
+    # Older than the absolute lifetime; never true when the operator has
+    # disabled it (absolute_timeout 0).
+    def lifetime_condition
+      deadline = lifetime_deadline
+      return Sequel.lit('1 = 0') if deadline.nil?
+
+      past_condition(:created_at, deadline)
+    end
+
+    # `1` or `0` for a condition, as an integer CASE rather than a bare
+    # boolean because SQLite returns booleans as integers and Sequel only
+    # typecasts declared boolean columns.
+    def flag(condition)
+      Sequel.case({ condition => 1 }, 0)
     end
 
     # The row is past the named deadline: remove it, as Rodauth's sweep
@@ -291,6 +385,7 @@ module Onetime
     # their own behind it, and support needs to be able to name the deadline.
     def expire(row_ds, session, deadline, env = nil)
       OT.info "[active_session_gate] active-session row past its #{deadline} deadline; removed, Rack session refused #{who(session)}"
+      forfeit_remember(session)
       count(env, :writes)
       row_ds.delete
       :revoked
@@ -307,7 +402,21 @@ module Onetime
     # just revoked it.
     def revoked(session)
       OT.info "[active_session_gate] no active-session row for the Rack session; refused #{who(session)}"
+      forfeit_remember(session)
       :revoked
+    end
+
+    # A revoked Rack session stays in Redis (refuse, not destroy), and with
+    # its remember-me deadline the blob and cookie would live on for up to
+    # {RememberMe::DURATION}. The row is the only thing refusing it, so a
+    # later change that takes the gate out of play (simple mode, active
+    # sessions off) would bring it back for that long. Dropping the stamp
+    # returns the session to the default lifetime on this request's write:
+    # a refused request is not activity, so the blob keeps at most the
+    # default TTL (Onetime::Session#expiration_for_write). Not done for
+    # :unavailable, where the session is meant to be honoured again.
+    def forfeit_remember(session)
+      session.delete(RememberMe::SESSION_KEY) if session.respond_to?(:delete)
     end
 
     # The join, for log lines. The join key is a digest of a random token,

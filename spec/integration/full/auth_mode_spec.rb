@@ -292,6 +292,62 @@ RSpec.describe 'Full Mode - Auth Endpoints', type: :integration do
         expect(last_response.headers['Content-Type']).to include('application/json')
       end
     end
+
+    # The SPA signup form (src/shared/composables/useAuth.ts#signup) sends one
+    # email field and one password field: no `login-confirm`, no
+    # `password-confirm`. Rodauth requires `login-confirm` by default and only
+    # verify_account turns that off, so a deployment with verify_account
+    # disabled rejected every SPA signup with 422 "logins do not match" until
+    # account_management.rb stated require_login_confirmation? false.
+    context 'with the single email field the SPA sends, verify_account disabled' do
+      let(:spa_email) { "spa-signup-#{SecureRandom.hex(8)}@example.com" }
+
+      it 'creates the account' do
+        # The branch under test. RACK_ENV=test turns verify_account off
+        # (etc/defaults/auth.defaults.yaml); if that changes, this spec no
+        # longer covers the verify-disabled config and must say so.
+        expect(Onetime.auth_config.verify_account_enabled?).to be(false)
+
+        post_json '/auth/create-account', { login: spa_email, password: test_password }
+
+        expect(last_response.status).to eq(200), last_response.body
+        expect(json_response).to include('success', 'next_action' => 'sign_in')
+        expect(json_response).not_to have_key('field-error')
+        expect(Auth::Database.connection[:accounts].where(email: spa_email).count).to eq(1)
+      end
+    end
+
+    # An invite signup posted straight to this route. (The SPA's invite form
+    # posts to /api/invite/:token/signup instead, which sets up the session.)
+    # after_create_account opens the account, and create_account_autologin?
+    # is false, so this route sets up no session of any kind: no account_id
+    # for Rodauth, no active-session row, no app-level `authenticated` flag.
+    # next_action therefore names sign-in
+    # (apps/web/auth/config/features/account_management.rb).
+    context 'with a valid invite_token' do
+      let(:invited_email) { "invitee-#{SecureRandom.hex(8)}@example.com" }
+      let(:invite_token) do
+        owner_email  = "invite-owner-#{SecureRandom.hex(8)}@example.com"
+        owner        = Onetime::Customer.create!(email: owner_email, role: 'customer')
+        organization = Onetime::Organization.create!('Invite JSON Org', owner, owner_email, is_default: true)
+        Onetime::OrganizationMembership.create_invitation!(
+          organization: organization, email: invited_email, inviter: owner, role: 'member',
+        ).token
+      end
+
+      it 'opens the account, sets up no session, and answers sign_in', :aggregate_failures do
+        post_json '/auth/create-account', { login: invited_email, password: test_password, invite_token: invite_token }
+
+        expect(last_response.status).to eq(200), last_response.body
+        expect(json_response).to include('success', 'next_action' => 'sign_in')
+        account_row = Auth::Database.connection[:accounts].where(email: invited_email).first
+        expect(account_row[:status_id]).to eq(AuthTestConstants::STATUS_VERIFIED)
+        expect(last_request.env['rack.session']['account_id']).to be_nil
+        expect(last_request.env['rack.session']['authenticated']).not_to be(true)
+        expect(Auth::Database.connection[:account_active_session_keys].where(account_id: account_row[:id]).count)
+          .to eq(0)
+      end
+    end
   end
 
   describe 'POST /logout (without authentication)' do

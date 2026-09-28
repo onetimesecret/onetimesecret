@@ -24,10 +24,11 @@ module Core::Logic
         @passwd                  = self.class.normalize_password(params['password'])
         @stay                    = true # Keep sessions alive by default
         # The TTL write_session actually applies: the session middleware
-        # re-applies the configured expire_after on every commit, and
-        # IdentityResolution independently caps identity age at the same
-        # value — nothing consumes a per-login TTL, so reporting anything
-        # else (the old hardcoded 30 days) was a lie in the auth log.
+        # re-applies the configured expire_after on every commit (a
+        # remembered session gets its fixed deadline instead, see
+        # Onetime::RememberMe) — nothing consumes a per-login TTL, so
+        # reporting anything else (the old hardcoded 30 days) was a lie in
+        # the auth log.
         @session_ttl             = Onetime.session_config['expire_after'].to_i
 
         # M-4/#3516: gate BEFORE the argon2 passphrase comparison below, so a

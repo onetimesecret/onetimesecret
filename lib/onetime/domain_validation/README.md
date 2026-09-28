@@ -22,7 +22,7 @@ Custom domain SSL and DNS validation strategies.
 
 `TxtVerifier` implements this with `TxtResolver`, a small resolver that reads the DNS response code. `Resolv::DNS#getresources` cannot be used for it: it returns `[]` for NXDOMAIN, SERVFAIL and a timeout alike.
 
-A reply only counts as definitive when it is an answer about the name (`DnsStubResolver#ensure_usable!`). A NOERROR or NXDOMAIN reply with neither `ra` nor `aa` set (a nameserver that does not recurse for us, typically an upward referral) and an answer section with nothing owned by the queried name are skipped like a failed exchange, so they end up indeterminate rather than "not found". CNAME chains are followed whatever order the answer section lists them in.
+A reply only counts as definitive when it is an answer about the name (`DnsStubResolver#ensure_usable!`). Two kinds of NOERROR or NXDOMAIN reply are skipped like a failed exchange, so they end up indeterminate rather than "not found": one with neither `ra` nor `aa` set whose answer section holds no data record (empty, or CNAMEs only; typically a nameserver that does not recurse for us sending an upward referral), and one whose answer section holds nothing owned by the queried name. Data records are read whatever `ra` and `aa` say, because a server that recurses for nobody can still answer from its cache. CNAME chains are followed whatever order the answer section lists them in.
 
 Internationalised hostnames are queried, and probed, in their A-label form (`AsciiHostname`). `CustomDomain` stores the hostname as typed; sent as typed it would come back NXDOMAIN, which is our encoding speaking and not the customer's DNS.
 
@@ -48,7 +48,7 @@ Under `approximated` the API's answer is used when it has one. When it has none,
 
 An indeterminate check may not hold `verified` indefinitely. `VerifyDomain::ConfirmationWindow` (`lib/onetime/operations/verify_domain/confirmation_window.rb`) keeps two timestamps on `CustomDomain`:
 
-- `verified_confirmed_at`: the last passing TXT check. Not written for a pass from a strategy that does not check the record (`passthrough`).
+- `verified_confirmed_at`: the last passing TXT check in the current verified lineage. Not written for a pass from a strategy that does not check the record (`passthrough`). If passthrough promotes a domain after a definitive check demoted it, the older confirmation is cleared; if the domain stayed verified across the strategy change, its confirmation remains current and is preserved.
 - `verified_unconfirmed_since`: the first indeterminate check of a verified domain since then. A definitive outcome clears it when stored. While an explicit override holds, the timestamp is retained and the domain is exempt from expiry.
 
 When a check is indeterminate and `verified_unconfirmed_since` is more than 7 days old (`ConfirmationWindow::MAX_AGE`), `verified` is withdrawn. The result reports `dns_outcome: confirmation_expired`, bulk results count it in `confirmation_expired_count`, and VerifyDomain logs a warning.
@@ -66,7 +66,7 @@ The window runs from the first indeterminate check, not from the last passing on
 
 ## Status check
 
-`check_status` reports two things, each with the same three outcomes (`true`, `false`, `nil` = could not tell). `nil` never changes stored state.
+`check_status` reports two things, each with the same three outcomes (`true`, `false`, `nil` = could not tell). An unknown `is_resolving` changes neither `resolving` nor the `vhost` blob. An unknown `has_ssl` alongside a known `is_resolving` still rewrites the blob, and stored SSL fields are carried into it only as described under how the result is stored, below.
 
 |                | Stored in                         | `approximated`                                             | `caddy_on_demand`     | `passthrough`                  |
 | -------------- | --------------------------------- | ---------------------------------------------------------- | --------------------- | ------------------------------ |
@@ -79,12 +79,12 @@ Caddy has no per-domain status API, so `caddy_on_demand` uses `TlsProbe`:
 2. The addresses go through the shared egress guard (`Onetime::Http::Guard.validate_addresses!`). The hostname is customer-controlled, so if any address is loopback, private, link-local or otherwise reserved, nothing is dialled: `is_resolving: true`, `has_ssl: nil`.
 3. The probe connects to a vetted IP on port 443 (never re-resolving the name), sends the hostname as SNI, completes a handshake with chain and hostname verification, and closes. No application data is sent. A verified handshake is `has_ssl: true`. A TLS error, an untrusted or mismatched certificate, or a refused or dropped connection is `false`. A timeout or an unroutable address is `nil`.
 
-`resolving` only means the name has an address record. It does not wait for a certificate, because the ACME ask endpoint requires `resolving` before Caddy may obtain one. It also does not check that the address is this deployment's; the certificate check is what shows that.
+`resolving` only means the name has an address record. It does not wait for a certificate, because the ACME ask endpoint requires `resolving` before Caddy may obtain one. Neither check shows that the address is this deployment's: the TLS check only proves that whatever answers at the resolved address presents a trusted certificate valid for the hostname, which an unrelated server or CDN also does. Ownership rests on the TXT check alone.
 
 How the result is stored (`VerifyDomain#persist_changes`):
 
 - `is_resolving` `true`/`false` is written to `resolving`; `nil` is skipped.
-- `has_ssl` exists only inside the `vhost` blob. The strategy rewrites the blob whenever `is_resolving` is known, so its `status` and `is_resolving` follow the `resolving` field. When `has_ssl` is unknown, stored SSL fields are carried only from a blob this strategy owns and only while the stored `ssl_active_until` is in the future. At or after expiry (or when the date cannot be read), those fields are omitted: the blob makes no certificate claim and reports `PENDING_SSL` until a probe sees the current certificate. Approximated-era status is replaced instead of presented as a current probe result. The blob uses the keys the domain pages already read (`status`, `status_message`, `has_ssl`, `is_resolving`, `dns_pointed_at`, `ssl_active_from`, `ssl_active_until`, `last_monitored_unix`) plus `source: tls_probe`. `status` is `ACTIVE_SSL`, `PENDING_SSL` (resolves, no valid certificate yet) or `DNS_INCORRECT` (does not resolve).
+- `has_ssl` exists only inside the `vhost` blob. The strategy rewrites the blob whenever `is_resolving` is known, so its `status` and `is_resolving` follow the `resolving` field. When `has_ssl` is unknown, stored SSL fields are carried only from a blob this strategy owns and only while the stored `ssl_active_until` is in the future. At or after expiry (or when the date cannot be read), those fields are omitted: the blob makes no certificate claim and reports `PENDING_SSL` until a probe sees the current certificate. Approximated-era status is replaced instead of presented as a current probe result. The blob uses the keys the domain pages already read (`status`, `status_message`, `has_ssl`, `is_resolving`, `dns_pointed_at`, `ssl_active_from`, `ssl_active_until`, `last_monitored_unix`) plus `source: tls_probe` and two keys of its own: `ssl_checked_unix`, the time of the probe that observed `has_ssl` (written with it and carried with it, so a carried certificate keeps the date it was seen while `last_monitored_unix` is the check that re-observed `is_resolving`), and `ssl_inconclusive: true` on any blob whose probe did not learn `has_ssl`, whether or not it carries one. `status` is `ACTIVE_SSL`, `PENDING_SSL` (resolves, no valid certificate yet) or `DNS_INCORRECT` (does not resolve).
 - When the probe could not tell anything, the strategy returns neither `:data` nor `:mode`. Nothing stored changes and `vhost_fetch_failed_at` is set, which the UI shows as a failed check.
 - After an `approximated` cutover, a known probe result replaces the stale UI-facing blob. The replacement carries `approximated_vhost_pending_cleanup: true`, preserving the cleanup obligation without presenting old Approximated status as current Caddy status.
 

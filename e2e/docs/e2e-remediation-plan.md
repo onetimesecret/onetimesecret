@@ -1,7 +1,14 @@
 # E2E Test Suite Remediation Plan
 
-> Status: **In progress** — Phases 0–1 complete ([PR #3409](https://github.com/onetimesecret/onetimesecret/pull/3409), [PR #3411](https://github.com/onetimesecret/onetimesecret/pull/3411)); Phase 2.1+2.2 / PR 3 in review ([PR #3412](https://github.com/onetimesecret/onetimesecret/pull/3412)); Phase 2.3 / PR 4 in review ([PR #3416](https://github.com/onetimesecret/onetimesecret/pull/3416), stacked on #3412); **next up: PR 5 / Phase 2.4.**
-> Created: 2026-06-09 · Last updated: 2026-06-09 · Owner: TBD
+> Status: **In progress.** Phases 0–2 have landed on `main`
+> ([#3409](https://github.com/onetimesecret/onetimesecret/pull/3409),
+> [#3411](https://github.com/onetimesecret/onetimesecret/pull/3411),
+> [#3412](https://github.com/onetimesecret/onetimesecret/pull/3412),
+> [#3416](https://github.com/onetimesecret/onetimesecret/pull/3416),
+> [#3425](https://github.com/onetimesecret/onetimesecret/pull/3425)).
+> Branch `chore/fix-e2e-consistency` makes `e2e/full/` a blocking CI lane.
+> **Next up: Phase 3 fixtures for the suites that are still gated.**
+> Created: 2026-06-09 · Last updated: 2026-09-27 · Owner: delano
 >
 > Motivation: The `container-e2e-tests` check has been a chronic source of red
 > CI and perceived flakiness (e.g. PR #3399). This document itemizes the root
@@ -15,110 +22,152 @@
 
 | Phase / PR | Status | Where |
 |------------|--------|-------|
-| Phase 0 / PR 1 — unblock #3399 mask-icon + this plan | ✅ **Done** | [PR #3409](https://github.com/onetimesecret/onetimesecret/pull/3409) · branch `claude/sleepy-shannon-21ko6k` |
-| Phase 1 / PR 2 — reporter/artifacts + lint-ban + flaky gate | ✅ **Done** | [PR #3411](https://github.com/onetimesecret/onetimesecret/pull/3411) · branch `claude/affectionate-clarke-4fyakw` |
-| Phase 2.1+2.2 / PR 3 — auth setup project + app-readiness signal | 🔄 **In review** | [PR #3412](https://github.com/onetimesecret/onetimesecret/pull/3412) · branch `claude/e2e-phase2-auth-readiness` (rebased onto `develop` after #3411 merged; also carries the CI-triage-round-1 auth-compat sweep of `full/`) |
-| Phase 2.3 / PR 4 — `networkidle`/sleep sweep + lint→error | 🔄 **In review** | [PR #3416](https://github.com/onetimesecret/onetimesecret/pull/3416) (draft) · branch `claude/e2e-phase24-networkidle-sweep`, stacked on #3412; rebase + mark ready once #3412 merges |
-| Phase 2.4 / PR 5 — defensive-skip triage | 🔄 **In progress (mechanical half)** | branch `claude/hopeful-bardeen-j5695i` — `all/incoming-secrets` revived (47 self-skips → real assertions), `e2e/support/env.ts` gates, fixture-dependent suites `test.fixme`'d, domain/SSO/MFA suites env-gated. **73 of 143 `test.skip(true)` removed; ~70 org-existence conversions deferred** to a CI-verified follow-up (see `e2e/QUARANTINE.md`). |
-| Phase 3 / PR 6 — fixtures module, pinned config, parallel/shard | ⬜ Todo | not started |
+| Phase 0 / PR 1 — unblock #3399 mask-icon + this plan | ✅ **Done** | [PR #3409](https://github.com/onetimesecret/onetimesecret/pull/3409) |
+| Phase 1 / PR 2 — reporter/artifacts + lint-ban + flaky gate | ✅ **Done** | [PR #3411](https://github.com/onetimesecret/onetimesecret/pull/3411) |
+| Phase 2.1+2.2 / PR 3 — auth setup project + app-readiness signal | ✅ **Done** | [PR #3412](https://github.com/onetimesecret/onetimesecret/pull/3412) |
+| Phase 2.3 / PR 4 — `networkidle`/sleep sweep + lint→error | ✅ **Done** | [PR #3416](https://github.com/onetimesecret/onetimesecret/pull/3416) |
+| Phase 2.4 / PR 5 — defensive-skip triage | ✅ **Done** | [PR #3425](https://github.com/onetimesecret/onetimesecret/pull/3425) (env gates, `test.fixme` quarantine); the org-existence conversions it deferred are done on `chore/fix-e2e-consistency` |
+| Blocking full lane — `e2e/full/` in full auth mode | 🔄 **On branch** | `chore/fix-e2e-consistency`: two blocking matrix lanes, `e2e/full/` green locally against the full-lane image, every remaining skip tracked in [`QUARANTINE.md`](../QUARANTINE.md) |
+| Phase 3 / PR 6 — fixtures for the gated suites, pinned config, parallel/shard | ⬜ Todo | see "Next: Phase 3" below |
 
 > **CI-signal caveat for stacked PRs:** `container-e2e-tests` only triggers on
 > PRs that target `develop`, `main`, or `rel/*` (the `pull_request.branches`
 > filter in `.github/workflows/e2e.yml`). A PR stacked on a feature branch gets
-> **no E2E run of its own** — PR 1 (based on #3399's branch) only saw its
-> green/red signal one hop downstream, on #3399's checks. PR 2 was branched
-> from the stack, but #3399/#3409 merged to `develop` while it was in flight,
-> so it targets `develop` directly and gets a real run. Keep it that way for
-> PR 3 onward: base on `develop` so each phase is exercised by the very
-> workflow it modifies.
+> **no E2E run of its own**. Base each slice on `develop` (or the release
+> branch) so it is exercised by the very workflow it modifies.
 
-### For a fresh contributor picking up PR 5 (Phase 2.4: defensive-skip triage)
+### Current state (2026-09-27, branch `chore/fix-e2e-consistency`)
 
-> **Status (PR 5, branch `claude/hopeful-bardeen-j5695i`):** the *mechanical,
-> can't-add-red half* is done — `all/incoming-secrets.spec.ts` revived (its 47
-> self-skips were a bug: the mock recipient shape `{hash,name}` never matched
-> the `{digest,display_name}` schema, so the form never rendered and every test
-> silently skipped; now real assertions), `e2e/support/env.ts` added,
-> fixture-dependent suites `test.fixme`'d and domain/SSO/MFA suites env-gated
-> (all logged in `e2e/QUARANTINE.md`). **73 of 143 `test.skip(true)` removed.**
-> Two things are deliberately **deferred to a CI-verified follow-up** (do NOT do
-> them blind — PR 4 proved the org UI doesn't always render as these tests
-> assert, so converting their guards can trade known red for fresh red):
-> (1) the ~70 org-existence `test.skip(true)` → assertion conversions in
-> `organization-settings`, `identifier-url-patterns`, `scope-switcher`,
-> `organization-members`; (2) the `organization-members` role/remove `test.fixme`
-> rows for issue #3419. Also note: **env-gating is a holding action, not
-> coverage** — no CI lane sets `E2E_CUSTOM_DOMAINS`/`E2E_SSO_UI`/`TEST_MFA_*`
-> yet, so those suites are dormant until PR 6 adds a configured lane.
+**CI.** `.github/workflows/e2e.yml` builds the production image and runs it as
+a matrix of two lanes, each on its own runner with its own Valkey container:
 
-1. **Verify Phases 0–2.3 already landed — do not redo them.** Phase 1:
-   `.github/workflows/e2e.yml` has a "Fail on flaky tests" step. Phase
-   2.1+2.2: `e2e/global.setup.ts` exists, `e2e/playwright.config.ts` has
-   `setup`/`chromium`/`full`/`full-billing` projects, `src/main.ts` sets
-   `html[data-app-ready="true"]`. Phase 2.3: `pnpm lint:e2e` reports **0
-   problems** with `playwright/no-networkidle` and
-   `playwright/no-wait-for-timeout` at `'error'` (`eslint.config.ts:609-610`),
-   and `grep -rn "networkidle\|waitForTimeout" e2e/ --include='*.spec.ts'`
-   finds no call sites. If any of that is missing, see
-   [PR #3411](https://github.com/onetimesecret/onetimesecret/pull/3411) /
-   [PR #3412](https://github.com/onetimesecret/onetimesecret/pull/3412) /
-   [PR #3416](https://github.com/onetimesecret/onetimesecret/pull/3416).
-2. **Where to branch PR 5.** If #3412 and PR 4 have merged, branch off
-   `develop`. Otherwise stack on `claude/e2e-phase24-networkidle-sweep` (the
-   tip of the stack). Either way the PR must **target `develop`** (see the
-   CI-signal caveat above).
-3. **Concrete starting points** (verified against the tree as of PR 4; rerun
-   the greps against yours):
-   - The census: **436** `test.skip(` call sites across
-     `all/` 47 · `auth/` 8 · `full/` 342 · `full-billing/` 39. Three classes:
-     - **143 runtime self-skips** `test.skip(true, '...')` — the "test that
-       can't fail" class this phase exists to kill (plan Phase 2 item 4).
-     - **~228 probe-then-skip guards** `test.skip(!cond, '...')`. Biggest
-       buckets: `!org` "requires at least 1 organization" (66), `!domain`
-       (33), `!hasSso` entitlement (31), switcher-not-visible (~21),
-       `!formLoaded` (9), `!isSubscriber` (9), `!toggle` (10).
-     - 12 declarative `test.skip('title', fn)` placeholders (magic-link/SSO/
-       Gmail-alias flows) + ~19 data-shape guards (`orgs.length < 2` etc.).
-   - Triage rule per the plan: (a) **guaranteed precondition → run it.** Key
-     fact: every customer gets a default workspace
-     (`apps/web/auth/operations/ensure_default_workspace.rb`, created lazily
-     via `lib/onetime/logic/organization_context.rb`), so the 66 `!org`
-     skips guard a condition the `full` project already guarantees — convert
-     them to real assertions. (b) **optional feature → tagged project or
-     env-pinned config**, not a runtime self-skip (SSO entitlement, billing).
-     (c) **unimplemented/needs-fixtures → `test.fixme` + issue link** (the
-     multi-org `orgs.length < 2` family needs a second-org fixture that does
-     not exist yet — that fixture work is PR 6's `fixtures.ts`, so `fixme`
-     with an issue is honest here).
-   - 12 `test.skip(!hasTestCredentials, ...)` remain **deliberately** (multi-
-     context invite suites, `organization-members` admin/member sections,
-     `plan-switching`) — they guard accounts beyond the storageState user
-     (TEST_ADMIN_*/TEST_MEMBER_*/TEST_SUBSCRIBER_*). Decide per the (b)/(c)
-     rule; don't blanket-delete.
-   - Auth model recap (PR 3 + the auth-compat sweep on its branch): `full/`
-     and `full-billing/` start authenticated via `storageState`; manual
-     `loginUser` helpers remain ONLY where they sign in as a *different*
-     account inside fresh `browser.newContext()` pages or after
-     `clearCookies()`. Don't reintroduce sign-in interactions on the default
-     `page`.
-   - Check CI state of #3412/PR 4 first: `.github/workflows/e2e.yml` runs
-     `e2e/all/ e2e/full/` with `--max-failures=20` (raised for triage
-     visibility). Genuinely-broken tests get `test.fixme` + a row in
-     `e2e/QUARANTINE.md` (owner + issue link) — never a new `test.skip`.
-4. **Definition of done for PR 5:** zero `test.skip(true, ...)` left in
-   `e2e/`; every remaining conditional skip names a real, documented
-   environment gate (and ideally a project/env pin instead); CI runs green
-   with **0 skipped-by-default** tests in `all/`; the flaky gate stays
-   blocking.
-5. **Hand off before you open the PR.** This doc is the tracker — leave it the
-   way you found it: set your row in the Progress table and the PR-sequence
-   table (status + PR link), update the status line at the top, and **rewrite
-   this section for PR 6** (fixtures.ts, pinned config, parallel/shard,
-   Phase 3) with verified file/line starting points (don't guess — confirm
-   them against your final tree the way the pointers above were). A stale
-   pickup section costs the next contributor their first hour.
+| Lane (check name) | Server | Suite | Tests |
+|-------------------|--------|-------|-------|
+| `container-e2e-tests (simple)` | `AUTHENTICATION_MODE=simple` | `e2e/all/` | 71 |
+| `container-e2e-tests (full)` | `AUTHENTICATION_MODE=full`, SQLite authdb, `AUTH_VERIFY_ACCOUNT_ENABLED=false`, `CREATE_ACCOUNT_RATE_LIMIT_ENABLED=false`, `ENABLE_ORGS=true` | `e2e/full/` + `setup` | 303 + 1 |
+
+Both lanes are blocking and both run the flaky gate (a retry-only pass fails
+the lane). `notify-results` fails unless both lanes pass, and it is the
+required E2E check for `main`. It runs on every pull request into `develop`,
+`main` or `rel/*`; the lanes run only when the PR changes an E2E-relevant
+path (the `changes` job in `e2e.yml`), and when they are skipped for that
+reason `notify-results` passes. There is no informational or
+`continue-on-error` step any more: the one that ran `e2e/full/` non-blocking
+(5b0d3c5eab) is gone.
+
+**What the full lane covers.** A local run of `e2e/full/` against the
+full-lane image (podman, same env as the lane) passes 167 tests (plus
+`setup`) and skips 136, with 0 failures and 0 flaky, in about 2.9 minutes on
+one worker. The 167 are the signed-in workspace: settings layout,
+organization settings and members, invitations and invite-token security
+(including the invite signup, accept and decline journeys),
+identifier URLs, the workspace switcher (`scope-switcher`,
+`org-switcher-navigation`) and the full-mode accessibility scans. The lane account (`e2e/global.setup.ts`) owns one solo
+default workspace; tests that need more people or a second workspace build
+throwaway accounts through the product's own signup, invitation and
+organization APIs (`e2e/support/members.ts`, `e2e/support/workspaces.ts`),
+so none of them needs a seeded fixture. A pending invitation is sent through
+the owner's Members tab and its token read back from the invitations API, so
+the invite journeys need no mail.
+
+**What remains gated, and why.** The 136 skips are all tracked in
+[`QUARANTINE.md`](../QUARANTINE.md):
+
+| Why it cannot run in the full lane | Tests | How it is marked | Issue |
+|------------------------------------|------:|------------------|-------|
+| Needs a custom domain on the test account | 55 | env gate `E2E_CUSTOM_DOMAINS` (five domain suites, five identifier-URL tests) | #3420 |
+| Needs a custom domain and org SSO | 32 | env gates `E2E_CUSTOM_DOMAINS` + `E2E_SSO_UI` (the two domain SSO suites) | #3420 |
+| Needs a custom domain (scope-switcher domain cases) | 12 | `test.fixme` unless `E2E_CUSTOM_DOMAINS` | #3420 |
+| Needs two organizations with custom domains | 15 | `test.fixme` (cross-org isolation, domains-store cache, TC-SS-009/-054) | #3420 |
+| Needs a custom domain; unimplemented | 7 | `test.fixme` (domain-context-consultant placeholders) | #3420 |
+| Needs org SSO, or an account without `manage_sso` | 2 | `test.fixme` (ORG-DETAIL-006 unless `E2E_SSO_UI`, TC-DSSO-019) | #3420 |
+| Needs magic-link sign-in plus mail (INV-002), or an SSO IdP (INV-003) | 2 | `test.fixme` (invite-flow-states INV-002, -003) | #3421 |
+| Needs an MFA-enrolled account | 11 | env gate `TEST_MFA_*` (10), `test.fixme` (invite-flow-states INV-005) | #3421 |
+| **Total** | **136** | 97 env-gated, 39 `test.fixme` | |
+
+No runtime `test.skip` on a DOM probe is left in `e2e/full/`: inside the env
+gates, a missing domain, form, toggle or SSO tab now fails the test instead
+of skipping it. Those gated suites have never run in any lane, so the first
+configured run will need fixes.
+
+**Follow-ups filed from this branch.** Found while making the full lane
+green; none of them fails a lane today.
+
+- [#4563](https://github.com/onetimesecret/onetimesecret/issues/4563): the
+  Back button re-shows a consumed `auth_error` or `auth_notice` banner on the
+  sign-in page.
+- [#4564](https://github.com/onetimesecret/onetimesecret/issues/4564): the
+  accessibility items kept in the full-lane baseline (brand-button contrast,
+  dashboard headings) and the scope switcher's settings gear, which cannot
+  take keyboard focus.
+- [#4565](https://github.com/onetimesecret/onetimesecret/issues/4565): a
+  workspace chosen in the switcher resets to the default on page reload; the
+  same issue covers the `OrganizationLoader` session cache that never hits.
+- [#4566](https://github.com/onetimesecret/onetimesecret/issues/4566): the
+  org-role guard redirects to `/dashboard` without a message, so the org
+  empty and not-found states are unreachable and invitees who own no org are
+  sent there after accepting.
+- [#4567](https://github.com/onetimesecret/onetimesecret/issues/4567):
+  nothing type-checks `e2e/`, and the visual projects' `reducedMotion`
+  option is ignored.
+- [#4568](https://github.com/onetimesecret/onetimesecret/issues/4568): member
+  authorization refusals return 422 or 403 depending on how they are raised.
+- [#4569](https://github.com/onetimesecret/onetimesecret/issues/4569): account
+  lockout has no integration test; the four full-mode lockout examples in
+  `spec/integration/full/rodauth_hooks_spec.rb` always skip.
+- [#4570](https://github.com/onetimesecret/onetimesecret/issues/4570):
+  `SettingsNavigation.spec.ts` and `SettingsSection.spec.ts` test stand-ins
+  defined in the spec files, and the real components are not used.
+- [#3421 comment](https://github.com/onetimesecret/onetimesecret/issues/3421#issuecomment-5856207925):
+  what is left under the invite sign-in-method and MFA issue now that INV-012
+  is deleted and INV-017 runs.
+- [#3420 comment](https://github.com/onetimesecret/onetimesecret/issues/3420#issuecomment-5855493099):
+  assertions in the dormant domain suites that cannot fail, selectors that
+  match nothing in `src/`, and a mock on an API path that does not exist. Fix
+  them when the custom-domain fixture (Phase 3 step 1) lands.
+
+### Next: Phase 3 — incremental fixtures for the gated suites
+
+Add one fixture at a time, each with a lane (or a lane option) that sets its
+flag, and remove the matching `QUARANTINE.md` rows in the same PR:
+
+1. **Custom domains (#3420).** Boot the full lane with `DOMAINS_ENABLED=true`
+   and give the lane account a custom domain before the suite runs (the
+   validation strategy must accept a domain with no real DNS), then set
+   `E2E_CUSTOM_DOMAINS` to its name. Unlocks the domain suites, the
+   identifier-URL domain tests and the scope-switcher domain cases (67
+   tests). Expect to fix the suites themselves: they have never run.
+   Turning domains on also changes what the signed-in pages render (the
+   domain switcher appears), so regenerate the full a11y baseline.
+2. **Two organizations with custom domains (#3420).** Extend the two-workspace
+   owner in `e2e/support/workspaces.ts` with a custom domain per workspace,
+   then lift `cross-org-domain-isolation`, `domains-store-org-cache` and
+   TC-SS-009/-054. Their DOM scrapers need a rewrite against the current UI.
+3. **Org SSO (#3420).** A lane option with `ORGS_SSO_ENABLED=true` and
+   `E2E_SSO_UI`; the per-domain SSO suites also need a custom domain (step 1)
+   and, for six cases, two.
+4. **Invite sign-in methods (#3421).** The magic-link invite (INV-002 in
+   `invite-flow-states`) needs magic links turned on
+   (`AUTH_EMAIL_AUTH_ENABLED=true`; `email_auth` is off by default in
+   `etc/defaults/auth.defaults.yaml`) and a Mailpit sidecar with
+   `EMAILER_MODE=smtp`, as `e2e-full-auth.yml` runs, to read the link. The
+   SSO invite (INV-003) needs an IdP. The invite page's own forms offer
+   either method only on a custom domain (`show_invite.rb` sends
+   `auth_methods` only there), which needs step 1 and a lane that browses the
+   domain's host. On the canonical host the invitee reaches the method
+   through `/signin` only when sign-in is restricted to it.
+5. **MFA (#3421).** Turn MFA on in the full lane (`AUTH_MFA_ENABLED`; the
+   lane's bootstrap reports `mfa: false` today), enroll a throwaway account in
+   TOTP during the run (`e2e/support/totp.ts` derives the codes, as
+   `e2e/auth/session-consistency.spec.ts` does) and point `TEST_MFA_*` at it,
+   for `mfa-bootstrap-reactivity` and INV-005 in `invite-flow-states`.
+
+The rest of Phase 3 is unchanged: a shared `e2e/fixtures.ts`, more pinned
+config, then parallel workers and sharding once tests own their data.
 
 ## Headline finding
+
+_As found on 2026-06-09. "Current state" above has where things stand now._
 
 The failures are **not** primarily random flake. The recurring red on
 brand/TOTP branches is a **deterministic test/behavior contradiction** sitting on
@@ -182,7 +231,7 @@ Switching `full/` on (Phase 2.1+2.2) unmasked a stack of **test-side** defects i
 the invitation suites — corrected across successive rounds (#3448, #3490, and the
 `#SLEXY5` series). Catalogued here so a re-failure is matched against a known class
 before it is mistaken for a product regression. What remains *after* these are the
-fixture-dependent cases in [`QUARANTINE.md`](../QUARANTINE.md) (#3419/#3421) — those
+fixture-dependent cases in [`QUARANTINE.md`](../QUARANTINE.md) (#3420/#3421) — those
 are a **coverage gap that never ran in CI, not a regression**.
 
 | Class | Fixed in | What was wrong |
@@ -196,11 +245,12 @@ are a **coverage gap that never ran in CI, not a regression**.
 | G · decline-control state dependence | `9148f41`, `5ac72c6` | Unauthenticated invitee lands in `signup_required`/`signin_required` where decline is `invite-signup-decline`/`invite-signin-decline`, not `decline-invitation-btn`. |
 | H · flaky waits | Phase 1 + 2.3 | `networkidle`/`waitForTimeout` → app-readiness signal + web-first assertions. |
 
-> **Latent, currently masked:** the `getFirstOrganization` org-name read
-> (`span.truncate, .font-medium, h3, h4` → `textContent()`) is byte-identical
-> across the `domain-*` specs and is what timed out before the `E2E_CUSTOM_DOMAINS`
-> gate hid it. PR 6's custom-domains lane will hit it the moment those suites run
-> for real — harden the helper there rather than rediscover it.
+> **Resolved latent helpers:** the per-spec `getFirstOrganization` copies are
+> one helper in `e2e/support/organizations.ts` that waits for the org list,
+> and the five `getFirstDomain` copies in the `domain-*` specs are one helper
+> in `e2e/support/domains.ts` that waits for the domain table (the copies took
+> the panel's "Add Domain" link as the first domain). The domain helper has
+> not run yet: no lane provides a custom domain.
 
 ---
 
@@ -282,12 +332,16 @@ CI **red**.
 ## Phase 2 — Make coverage real
 
 1. ✅ **Auth via global-setup + `storageState`** ([#3412](https://github.com/onetimesecret/onetimesecret/pull/3412)).
-   `e2e/global.setup.ts` (setup project) registers a test user via `/signup`
-   (fallback: `docker exec` `Onetime::Customer.create!` — not needed; the CI
-   container runs with `AUTH_AUTOVERIFY=true`), logs in, saves
-   `e2e/.auth/user.json`. Config adds `setup` project; `full`/`full-billing`
-   get `dependencies: ['setup']` + `storageState`. Workflow seeds ephemeral
-   `TEST_USER_*` and runs `e2e/all/ e2e/full/`.
+   `e2e/global.setup.ts` (setup project) registers a test user via `/signup`,
+   logs in, saves `e2e/.auth/user.json`. The new account must be able to sign
+   in without verifying email: simple mode gets that from
+   `AUTH_AUTOVERIFY=true`, full mode from `AUTH_VERIFY_ACCOUNT_ENABLED=false`.
+   Config adds `setup` project; `full`/`full-billing` get
+   `dependencies: ['setup']` + `storageState`. The workflow seeds ephemeral
+   `TEST_USER_*`; today the full lane runs `e2e/full/` in full auth mode (see
+   "Current state" above). With verification off the server answers
+   `next_action: 'sign_in'`, so signup lands on `/signin`, and setup fails by
+   name if it lands on `/check-email` instead.
 2. ✅ **Deterministic app-readiness signal** ([#3412](https://github.com/onetimesecret/onetimesecret/pull/3412), signal half).
    Frontend sets `document.documentElement.dataset.appReady = 'true'` in
    `src/main.ts` after mount + brand theme application + `router.isReady()`;
@@ -301,14 +355,17 @@ CI **red**.
    navigations, `expect.poll`/`waitForResponse` for capture flags and API
    round-trips; both lint rules now `'error'`. `__BOOTSTRAP_ME__`
    readiness-polling is gone (content reads remain, deliberately).
-4. **Convert the 143 defensive skips**: (a) guaranteed precondition → run it;
+4. ✅ **Convert the 143 defensive skips**: (a) guaranteed precondition → run it;
    (b) genuinely optional feature → tagged project, not runtime self-skip;
-   (c) unimplemented → `test.fixme` + issue link.
+   (c) unimplemented → `test.fixme` + issue link. Done in #3425 and on
+   `chore/fix-e2e-consistency`; what is left is listed in `QUARANTINE.md`.
 
 ---
 
 ## Phase 3 — Structure & speed
 
+0. **Fixtures for the gated suites**, one per PR: see "Next: Phase 3" in the
+   Progress section.
 1. **`e2e/fixtures.ts`**: `authedPage`, auto-collecting `consoleErrors` fixture
    (single maintained ignore-list), `gotoReady(path)` helper.
 2. **Extend the pinned-config approach** beyond the brand color (done for
@@ -327,10 +384,11 @@ _Live status is tracked in the **Progress & how to continue** section near the t
 |----|-------|-------|---------------|
 | 1 | 0 | mask-icon conditional render + deterministic (skip-free) test + Ruby spec + CI brand-color pin | ✅ Done ([#3409](https://github.com/onetimesecret/onetimesecret/pull/3409)) — unblocks #3399 |
 | 2 | 1 | reporter/artifacts, lint rules (warn), flaky gate | ✅ Done ([#3411](https://github.com/onetimesecret/onetimesecret/pull/3411)) |
-| 3 | 2.1+2.2 | global-setup/auth fixture + app-readiness signal | 🔄 In review ([#3412](https://github.com/onetimesecret/onetimesecret/pull/3412)) — surfaces real `full/` failures (intended) |
-| 4 | 2.3 | `networkidle`/sleep sweep, by directory; lint → error | 🔄 In review ([#3416](https://github.com/onetimesecret/onetimesecret/pull/3416), stacked on #3412) |
-| 5 | 2.4 | defensive-skip triage — revive `incoming-secrets`, env gates, `fixme` fixture-dependent suites | 🔄 In progress (`claude/hopeful-bardeen-j5695i`); org-existence assertion conversions split to a CI-verified follow-up |
-| 6 | 3 | fixtures.ts, pinned brand, parallel/shard | Low |
+| 3 | 2.1+2.2 | global-setup/auth fixture + app-readiness signal | ✅ Done ([#3412](https://github.com/onetimesecret/onetimesecret/pull/3412)) |
+| 4 | 2.3 | `networkidle`/sleep sweep, by directory; lint → error | ✅ Done ([#3416](https://github.com/onetimesecret/onetimesecret/pull/3416)) |
+| 5 | 2.4 | defensive-skip triage — revive `incoming-secrets`, env gates, `fixme` fixture-dependent suites | ✅ Done ([#3425](https://github.com/onetimesecret/onetimesecret/pull/3425)); the deferred org-existence conversions are done on `chore/fix-e2e-consistency` |
+| — | 2 | blocking `full` lane: `e2e/full/` in full auth mode, green, remaining skips tracked | 🔄 On branch `chore/fix-e2e-consistency` |
+| 6 | 3 | fixtures for the gated suites (domains, multi-org, SSO, mail, MFA), fixtures.ts, pinned config, parallel/shard | Todo; one fixture per PR |
 
 ## Key risks & mitigations
 
@@ -339,10 +397,17 @@ _Live status is tracked in the **Progress & how to continue** section near the t
 - **Auth seeding** assumes `/signup` is enabled in the container; if closed,
   seed via `docker exec ... Onetime::Customer.create!`.
 - **Mass lint flip** staged `warn` → sweep → `error` to keep diffs reviewable.
+- **Invite limiter budget.** `InviteTokenRateLimiter` stays on in the lanes:
+  it guards invitation tokens and has no setting of its own. A clean
+  `e2e/full/` run uses about 52 of its 100 calls per client IP; retries of
+  several failing invite tests can use up the rest, and the 429s that follow
+  hide the first failure. The budget is described in
+  `e2e/support/members.ts`.
 
 ## Acceptance criteria (end state)
 
 - Green CI with **0 skipped-by-default** tests in `all/`.
-- `full/` + `full-billing/` execute in CI against a seeded session.
+- `full/` + `full-billing/` execute in CI against a seeded session. (`full/` does,
+  in the blocking full lane; `full-billing/` still needs a billing-enabled lane.)
 - **No** `networkidle` / `waitForTimeout` in the suite (lint-enforced).
 - A retry-only pass turns CI **red**; HTML + trace artifacts always uploaded.

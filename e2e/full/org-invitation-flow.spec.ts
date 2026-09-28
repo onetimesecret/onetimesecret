@@ -5,7 +5,7 @@
  *
  * Tests the complete organization member invitation journey including:
  * - Sending invitations from organization settings
- * - Accepting invitations via email link
+ * - Accepting invitations through the invitation link
  * - Post-login redirect preservation
  * - Email mismatch detection and handling
  * - Decline flow for both authenticated and unauthenticated users
@@ -18,8 +18,13 @@
  *   (e2e/global.setup.ts consumes TEST_USER_*); the multi-context scenarios
  *   below additionally sign in manually inside fresh (unauthenticated)
  *   browser contexts
+ * - Full auth mode with accounts that can sign in without verifying their
+ *   email (the full lane sets AUTH_VERIFY_ACCOUNT_ENABLED=false): the journeys
+ *   that accept an invitation (INV-005, INV-017) sign up throwaway accounts
+ *   (e2e/support/members.ts), so the storageState owner's org never gains a
+ *   member. No mail interceptor is needed: tests read invitation tokens
+ *   through the owner's invitations API.
  * - Application running locally or PLAYWRIGHT_BASE_URL set
- * - Mailpit or similar for email testing (optional for full flow)
  *
  * Multi-context testing:
  * - Email mismatch scenarios require two browser contexts
@@ -30,162 +35,27 @@
  *   TEST_USER_EMAIL=owner@example.com TEST_USER_PASSWORD=secret \
  *     pnpm playwright test org-invitation-flow.spec.ts
  *
- *   # Against external URL with mailpit
+ *   # Against an external URL
  *   PLAYWRIGHT_BASE_URL=https://dev.onetime.dev \
- *   MAILPIT_URL=https://dev.onetime.dev:8025 \
  *     pnpm test:playwright org-invitation-flow.spec.ts
  */
 
-import { expect, Page, test } from '@playwright/test';
+import { type BrowserContext, expect, test } from '@playwright/test';
 
-// Check if test credentials are configured
-const hasTestCredentials = !!(process.env.TEST_USER_EMAIL && process.env.TEST_USER_PASSWORD);
-
-// Generate unique email addresses for test isolation
-const generateTestEmail = (prefix: string) =>
-  `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@test.onetimesecret.com`;
-
-// -----------------------------------------------------------------------------
-// Test Helpers
-// -----------------------------------------------------------------------------
-
-/**
- * Context options for a truly unauthenticated browser context.
- *
- * `browser.newContext()` inherits the `full` project's `use` options —
- * including its storageState (the owner session) — so a bare newContext()
- * is NOT unauthenticated. Pass these options to opt out explicitly.
- */
-const unauthenticatedContext = { storageState: { cookies: [], origins: [] } };
-
-/**
- * Authenticate user via login form using password tab.
- *
- * Only valid on pages from an unauthenticated context
- * (`browser.newContext(unauthenticatedContext)`): the default `page` fixture
- * and bare `browser.newContext()` carry the storageState session, and an
- * authenticated visitor to /signin is redirected away from the form.
- */
-async function loginUser(page: Page, email?: string, password?: string): Promise<void> {
-  await page.goto('/signin');
-
-  // Click Password tab - Magic Link is the default, password input is hidden
-  // Handle both signin variants (canonical logic: e2e/global.setup.ts):
-  // default deployments render SignInForm directly (the CI container does);
-  // passwordless-first deployments hide the password panel behind a
-  // "Password" tab with different test ids.
-  const signinEmail = email || process.env.TEST_USER_EMAIL || '';
-  const signinPassword = password || process.env.TEST_USER_PASSWORD || '';
-  const signinForm = page.getByTestId('signin-form');
-  const passwordTab = page.getByRole('tab', { name: /password/i });
-  await expect(signinForm.or(passwordTab).first()).toBeVisible();
-
-  if (await passwordTab.isVisible()) {
-    // Passwordless-first variant (magic links / WebAuthn enabled)
-    await passwordTab.click();
-    await page.getByTestId('password-email-input').fill(signinEmail);
-    await page.getByTestId('password-input').fill(signinPassword);
-    await page.getByTestId('password-submit').click();
-  } else {
-    // Password-only variant (CI container default)
-    await page.getByTestId('signin-email-input').fill(signinEmail);
-    await page.getByTestId('signin-password-input').fill(signinPassword);
-    await page.getByTestId('signin-submit').click();
-  }
-
-  // Wait for redirect to dashboard/account
-  await page.waitForURL(/\/(account|dashboard|org)/, { timeout: 30000 });
-}
-
-/**
- * Navigate to organization team settings page
- */
-async function navigateToOrgTeam(page: Page, orgExtid?: string): Promise<string> {
-  if (orgExtid) {
-    await page.goto(`/org/${orgExtid}/team`);
-    return orgExtid;
-  }
-
-  // Navigate to org list and find first org
-  await page.goto('/orgs');
-  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-  // Find the first organization link with team tab
-  const orgLink = page.locator('a[href*="/org/"]').first();
-  const href = await orgLink.getAttribute('href');
-  const match = href?.match(/\/org\/([^/]+)/);
-  const extractedOrgExtid = match?.[1] || '';
-
-  await page.goto(`/org/${extractedOrgExtid}/team`);
-  return extractedOrgExtid;
-}
-
-/**
- * Create a new invitation via the UI
- */
-async function createInvitation(
-  page: Page,
-  email: string,
-  role: 'member' | 'admin' = 'member'
-): Promise<void> {
-  // Click invite member button
-  const inviteButton = page.getByRole('button', { name: /invite member/i });
-  await inviteButton.click();
-
-  // Fill invitation form
-  const emailInput = page.locator('#invite-email');
-  await emailInput.fill(email);
-
-  const roleSelect = page.locator('#invite-role');
-  await roleSelect.selectOption(role);
-
-  // Submit
-  const sendButton = page.getByRole('button', { name: /send invit/i });
-  await sendButton.click();
-
-  // Wait for success
-  await expect(page.getByText(/invitation sent/i)).toBeVisible({ timeout: 10000 });
-}
-
-/**
- * Extract invitation token from pending invitations list via API
- */
-async function getInvitationToken(page: Page, email: string): Promise<string | null> {
-  const orgExtid = getCurrentOrgExtid(page);
-  const response = await page.request.get(`/api/organizations/${orgExtid}/invitations`);
-  const data = await response.json();
-
-  const invitation = data.records?.find((inv: { email: string }) => inv.email === email);
-  return invitation?.token || null;
-}
-
-/**
- * Get current organization extid from URL
- */
-function getCurrentOrgExtid(page: Page): string {
-  const url = page.url();
-  const match = url.match(/\/org\/([^/]+)/);
-  return match?.[1] || '';
-}
-
-/**
- * Create a new user account via signup
- * @deprecated Currently unused - kept for future full integration tests
- */
-async function _createAccount(page: Page, email: string, password: string): Promise<void> {
-  await page.goto('/signup');
-
-  const emailInput = page.getByLabel(/email/i);
-  const passwordInput = page.getByLabel(/password/i);
-  const submitButton = page.getByRole('button', { name: /create account|sign up/i });
-
-  await emailInput.fill(email);
-  await passwordInput.fill(password);
-  await submitButton.click();
-
-  // Wait for account creation - may redirect to signin or dashboard
-  await page.waitForURL(/\/(signin|account|dashboard)/, { timeout: 30000 });
-}
+import {
+  acceptInvitationDirectly,
+  addMember,
+  closeContexts,
+  createOwnerWithOrg,
+  expectMember,
+  invitationToken,
+  inviteMember,
+  openFirstOrgMembersTab,
+  openFreshContext,
+  signInAsTestUser,
+  signUpAndSignIn,
+  uniqueTestEmail,
+} from '../support/members';
 
 // -----------------------------------------------------------------------------
 // SECTION 1: Invitation Sending
@@ -199,10 +69,10 @@ test.describe('INV-001: Organization Invitation Sending', () => {
   test('Organization owner can send invitation to new member with email validation', async ({
     page,
   }) => {
-    const testEmail = generateTestEmail('invitee');
+    const testEmail = uniqueTestEmail('invitee');
 
     // Navigate to org team settings
-    await navigateToOrgTeam(page);
+    await openFirstOrgMembersTab(page);
 
     // Click invite member button
     const inviteButton = page.getByRole('button', { name: /invite member/i });
@@ -242,18 +112,17 @@ test.describe('INV-001: Organization Invitation Sending', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('INV-002: Unauthenticated User Inline Auth Flow', () => {
-  test('Unauthenticated user sees inline signup/signin form on invitation page', async ({
+  test('Unauthenticated user sees the inline signup form on the invitation page', async ({
     page,
     context,
   }) => {
     // First, create an invitation as org owner
-    const testEmail = generateTestEmail('inline-auth-test');
-    await navigateToOrgTeam(page);
-    await createInvitation(page, testEmail);
+    const testEmail = uniqueTestEmail('inline-auth-test');
+    const orgExtid = await openFirstOrgMembersTab(page);
+    await inviteMember(page, testEmail);
 
     // Get the invitation token
-    const token = await getInvitationToken(page, testEmail);
-    expect(token).toBeTruthy();
+    const token = await invitationToken(page, orgExtid, testEmail);
 
     // Clear cookies to simulate unauthenticated user
     await context.clearCookies();
@@ -262,64 +131,43 @@ test.describe('INV-002: Unauthenticated User Inline Auth Flow', () => {
     await page.goto(`/invite/${token}`);
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
-    // Verify invitation details page loads. The page renders "invitation"
-    // in both the heading and supporting copy, so scope to the first match
-    // to avoid a strict-mode violation.
-    await expect(page.getByText(/invitation/i).first()).toBeVisible();
+    // An unauthenticated visitor always starts in signup_required: the
+    // invite API never says whether the invited email has an account
+    // (AZ7/#3856). signin_required only follows a signup attempt for an
+    // address that already has one.
+    await expect(page.getByTestId('invite-signup-required')).toBeVisible();
+    await expect(page.getByTestId('invite-signin-required')).toBeHidden();
+    await expect(page.getByTestId('invite-signup-form')).toBeVisible();
+    // The invited email is bound into the form (readonly input value)
+    await expect(page.getByTestId('invite-signup-email-input')).toHaveValue(testEmail);
 
-    // With Phase 7 inline forms, unauthenticated users see one of:
-    // - signup_required state (new user, no account) with inline signup form
-    // - signin_required state (existing user) with inline signin form
-    const signupState = page.getByTestId('invite-signup-required');
-    const signinState = page.getByTestId('invite-signin-required');
-
-    const hasSignupForm = await signupState.isVisible().catch(() => false);
-    const hasSigninForm = await signinState.isVisible().catch(() => false);
-
-    // One of these states should be shown for unauthenticated user
-    expect(hasSignupForm || hasSigninForm).toBe(true);
-
-    if (hasSignupForm) {
-      // Inline signup form should be visible
-      const signupForm = page.getByTestId('invite-signup-form');
-      await expect(signupForm).toBeVisible();
-      // Email should be displayed from invitation (readonly input value)
-      await expect(page.getByTestId('invite-signup-email-input')).toHaveValue(testEmail);
-    } else if (hasSigninForm) {
-      // Inline signin form should be visible
-      const signinForm = page.getByTestId('invite-signin-form');
-      await expect(signinForm).toBeVisible();
-      // Sign-in notice should be visible
-      const signInNotice = page.locator('.bg-blue-50, .bg-blue-900\\/20');
-      await expect(signInNotice).toBeVisible();
-    }
+    // The form's "Continue" submit is the accept path; Decline sits beside
+    // it. There is no standalone Accept button in this state.
+    await expect(page.getByTestId('invite-signup-submit')).toBeVisible();
+    await expect(page.getByTestId('invite-signup-decline')).toBeVisible();
+    await expect(page.getByTestId('accept-invitation-btn')).toBeHidden();
   });
 });
 
 test.describe('INV-003: Email Mismatch Warning', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test('User logged in with different email sees clear mismatch warning with continue-as option', async ({
     browser,
   }) => {
-    // Create two browser contexts - one for owner, one for wrong user
-    const ownerContext = await browser.newContext(unauthenticatedContext);
-    const wrongUserContext = await browser.newContext(unauthenticatedContext);
-
-    const ownerPage = await ownerContext.newPage();
-    const wrongUserPage = await wrongUserContext.newPage();
+    const opened: BrowserContext[] = [];
 
     try {
+      const ownerPage = await (await openFreshContext(browser, opened)).newPage();
+      const wrongUserPage = await (await openFreshContext(browser, opened)).newPage();
+
       // Owner creates invitation
-      await loginUser(ownerPage);
-      const invitedEmail = generateTestEmail('mismatch-invited');
-      await navigateToOrgTeam(ownerPage);
-      await createInvitation(ownerPage, invitedEmail);
-      const token = await getInvitationToken(ownerPage, invitedEmail);
-      expect(token).toBeTruthy();
+      await signInAsTestUser(ownerPage);
+      const invitedEmail = uniqueTestEmail('mismatch-invited');
+      const orgExtid = await openFirstOrgMembersTab(ownerPage);
+      await inviteMember(ownerPage, invitedEmail);
+      const token = await invitationToken(ownerPage, orgExtid, invitedEmail);
 
       // Different user logs in and visits invitation
-      await loginUser(wrongUserPage); // Logs in as test user (different from invited email)
+      await signInAsTestUser(wrongUserPage); // The test user, not the invited email
 
       await wrongUserPage.goto(`/invite/${token}`);
       await expect(wrongUserPage.locator('html[data-app-ready="true"]')).toBeAttached();
@@ -349,35 +197,28 @@ test.describe('INV-003: Email Mismatch Warning', () => {
       const acceptButton = wrongUserPage.getByTestId('accept-invitation-btn');
       await expect(acceptButton).not.toBeVisible();
     } finally {
-      await ownerContext.close();
-      await wrongUserContext.close();
+      await closeContexts(opened);
     }
   });
 });
 
 test.describe('INV-004: Continue As Invited Email Flow', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
-  test('Clicking Continue As logs out and redirects to invite page', async ({
-    browser,
-  }) => {
-    const ownerContext = await browser.newContext(unauthenticatedContext);
-    const wrongUserContext = await browser.newContext(unauthenticatedContext);
-
-    const ownerPage = await ownerContext.newPage();
-    const wrongUserPage = await wrongUserContext.newPage();
+  test('Clicking Continue As logs out and redirects to invite page', async ({ browser }) => {
+    const opened: BrowserContext[] = [];
 
     try {
+      const ownerPage = await (await openFreshContext(browser, opened)).newPage();
+      const wrongUserPage = await (await openFreshContext(browser, opened)).newPage();
+
       // Owner creates invitation
-      await loginUser(ownerPage);
-      const invitedEmail = generateTestEmail('switch-account');
-      await navigateToOrgTeam(ownerPage);
-      await createInvitation(ownerPage, invitedEmail);
-      const token = await getInvitationToken(ownerPage, invitedEmail);
-      expect(token).toBeTruthy();
+      await signInAsTestUser(ownerPage);
+      const invitedEmail = uniqueTestEmail('switch-account');
+      const orgExtid = await openFirstOrgMembersTab(ownerPage);
+      await inviteMember(ownerPage, invitedEmail);
+      const token = await invitationToken(ownerPage, orgExtid, invitedEmail);
 
       // Wrong user logs in and visits invitation
-      await loginUser(wrongUserPage);
+      await signInAsTestUser(wrongUserPage);
       await wrongUserPage.goto(`/invite/${token}`);
       await expect(wrongUserPage.locator('html[data-app-ready="true"]')).toBeAttached();
 
@@ -404,63 +245,38 @@ test.describe('INV-004: Continue As Invited Email Flow', () => {
         )
         .toBe(false);
     } finally {
-      await ownerContext.close();
-      await wrongUserContext.close();
+      await closeContexts(opened);
     }
   });
 });
 
 test.describe('INV-005: Matching Email User Flow', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test('User logged in with matching email can immediately accept invitation', async ({
     browser,
   }) => {
-    // This test requires creating a user with the exact email that was invited
-    // We'll simulate by having the org owner invite themselves (edge case) or
-    // by creating a specific user account first
-
-    const ownerContext = await browser.newContext(unauthenticatedContext);
-    const ownerPage = await ownerContext.newPage();
-
+    const opened: BrowserContext[] = [];
     try {
-      await loginUser(ownerPage);
+      // Both sides are throwaway accounts: the invitee must already be
+      // signed in with the invited address, and accepting joins it to the
+      // inviter's org, which must not be the storageState owner's.
+      const { owner, orgExtid } = await createOwnerWithOrg(browser, opened, 'inv005-owner');
+      const invitee = await signUpAndSignIn(browser, opened, 'inv005-invitee');
+      await inviteMember(owner.page, invitee.email);
+      const token = await invitationToken(owner.page, orgExtid, invitee.email);
 
-      // Navigate to org settings and look for a different org to invite to
-      // For this test, we verify the UI state when emails match
-      await navigateToOrgTeam(ownerPage);
+      await invitee.page.goto(`/invite/${token}`);
 
-      // Create invitation for a test email
-      const testEmail = generateTestEmail('matching');
-      await createInvitation(ownerPage, testEmail);
-      const token = await getInvitationToken(ownerPage, testEmail);
+      // Signed in with the invited address: straight to direct_accept, with
+      // no signup or signin form in the way.
+      await expect(invitee.page.getByTestId('invite-direct-accept')).toBeVisible();
+      await expect(invitee.page.getByTestId('invite-signup-form')).toBeHidden();
+      await expect(invitee.page.getByTestId('invite-signin-form')).toBeHidden();
+      await expect(invitee.page.getByTestId('email-mismatch-warning')).toBeHidden();
 
-      // For the "matching email" test, we need to create a new account with that email
-      // and then visit the invitation page
-      // Due to test isolation, we'll verify the UI elements that WOULD be shown
-
-      // Clear cookies and visit as unauthenticated to verify button states
-      await ownerContext.clearCookies();
-      await ownerPage.goto(`/invite/${token}`);
-      await expect(ownerPage.locator('html[data-app-ready="true"]')).toBeAttached();
-
-      // Unauthenticated + unknown email shows the signup_required state with
-      // an inline signup form: a "Continue" submit (the accept path) and a
-      // "Decline" button - there is no standalone Accept button here.
-      const signupState = ownerPage.getByTestId('invite-signup-required');
-      await expect(signupState).toBeVisible();
-
-      const signupSubmit = ownerPage.getByTestId('invite-signup-submit');
-      await expect(signupSubmit).toBeVisible();
-
-      // Decline button should also be visible
-      const declineButton = ownerPage.getByTestId('invite-signup-decline');
-      await expect(declineButton).toBeVisible();
-
-      // Invitation details should show organization and role
-      await expect(ownerPage.getByText(/invited/i)).toBeVisible();
+      await acceptInvitationDirectly(invitee.page);
+      await expectMember(owner.page, orgExtid, invitee.email);
     } finally {
-      await ownerContext.close();
+      await closeContexts(opened);
     }
   });
 });
@@ -472,11 +288,10 @@ test.describe('INV-005: Matching Email User Flow', () => {
 test.describe('INV-007a: Authenticated Decline Flow', () => {
   test('Authenticated user can decline invitation and is redirected home', async ({ page }) => {
     // Create invitation
-    const testEmail = generateTestEmail('decline-auth');
-    await navigateToOrgTeam(page);
-    await createInvitation(page, testEmail);
-    const token = await getInvitationToken(page, testEmail);
-    expect(token).toBeTruthy();
+    const testEmail = uniqueTestEmail('decline-auth');
+    const orgExtid = await openFirstOrgMembersTab(page);
+    await inviteMember(page, testEmail);
+    const token = await invitationToken(page, orgExtid, testEmail);
 
     // Visit invitation page (still logged in as owner - simulates matching email)
     await page.goto(`/invite/${token}`);
@@ -495,44 +310,41 @@ test.describe('INV-007a: Authenticated Decline Flow', () => {
 });
 
 test.describe('INV-007b: Unauthenticated Decline Flow', () => {
-  // fixme: needs a real pending invitation seeded for an unauthenticated
-  // decline; CI cannot seed that invitation relationship, so the decline lands
-  // on an unexpected URL. See #3421.
-  test.fixme('Unauthenticated user can decline invitation without signing in', async ({
+  test('Unauthenticated user can decline invitation without signing in', async ({
     page,
-    context,
+    browser,
   }) => {
-    // Create invitation as owner
-    const testEmail = generateTestEmail('decline-unauth');
-    await navigateToOrgTeam(page);
-    await createInvitation(page, testEmail);
-    const token = await getInvitationToken(page, testEmail);
-    expect(token).toBeTruthy();
+    const opened: BrowserContext[] = [];
+    try {
+      // The storageState owner invites; the invitee declines, so the owner's
+      // org gains no member.
+      const extid = await openFirstOrgMembersTab(page);
+      const testEmail = uniqueTestEmail('decline-unauth');
+      await inviteMember(page, testEmail);
+      const token = await invitationToken(page, extid, testEmail);
 
-    // Clear cookies to become unauthenticated
-    await context.clearCookies();
+      // The invitee opens the link with no session. The unauthenticated
+      // default state, signup_required, carries its own decline control
+      // (invite-signup-decline), not the signed-in decline-invitation-btn.
+      const visitor = await (await openFreshContext(browser, opened)).newPage();
+      await visitor.goto(`/invite/${token}`);
+      await expect(visitor.getByTestId('invite-signup-required')).toBeVisible();
+      await visitor.getByTestId('invite-signup-decline').click();
 
-    // Visit invitation page
-    await page.goto(`/invite/${token}`);
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+      await expect(visitor.getByTestId('invite-declined')).toBeVisible();
+      // After the confirmation the page sends the visitor home. Signed out,
+      // home is the bare origin: nothing redirects "/" to /dashboard.
+      await expect(visitor).toHaveURL((url) => url.pathname === '/', { timeout: 10_000 });
 
-    // Decline button should work without auth. An unauthenticated invitee
-    // lands in the signup_required (or signin_required) state, where the
-    // decline control lives inside InviteSignUpForm / InviteSignInForm with
-    // the testid invite-signup-decline / invite-signin-decline — not the
-    // authenticated-state decline-invitation-btn.
-    const declineButton = page
-      .getByTestId('invite-signup-decline')
-      .or(page.getByTestId('invite-signin-decline'))
-      .first();
-    await expect(declineButton).toBeVisible();
-    await declineButton.click();
-
-    // Verify success message
-    await expect(page.getByText(/declined/i)).toBeVisible({ timeout: 10000 });
-
-    // Verify redirected to home (use toHaveURL to check current state, not waitForURL which races)
-    await expect(page).toHaveURL(/^\/$|\/dashboard/, { timeout: 5000 });
+      // The server recorded the decline: the invitation is no longer pending.
+      const response = await page.request.get(`/api/organizations/${extid}/invitations`);
+      expect(response.ok(), `GET invitations for ${extid}`).toBe(true);
+      const data = await response.json();
+      const pending = data.records?.find((inv: { email: string }) => inv.email === testEmail);
+      expect(pending, `${testEmail} is no longer pending`).toBeUndefined();
+    } finally {
+      await closeContexts(opened);
+    }
   });
 });
 
@@ -563,10 +375,10 @@ test.describe('INV-008: Expired Invitation', () => {
 
 test.describe('INV-010: Resend Invitation', () => {
   test('Organization owner can resend pending invitation', async ({ page }) => {
-    const testEmail = generateTestEmail('resend');
+    const testEmail = uniqueTestEmail('resend');
 
-    await navigateToOrgTeam(page);
-    await createInvitation(page, testEmail);
+    await openFirstOrgMembersTab(page);
+    await inviteMember(page, testEmail);
 
     // Find the resend button for this invitation
     const invitationRow = page.getByTestId('org-invitation-row').filter({ hasText: testEmail });
@@ -577,8 +389,10 @@ test.describe('INV-010: Resend Invitation', () => {
 
     await resendButton.click();
 
-    // Verify success message
-    await expect(page.getByText(/resent|sent/i)).toBeVisible({ timeout: 10000 });
+    // Verify success message. Match the resend confirmation itself: the
+    // "Invitation sent successfully" alert from inviteMember is still on the
+    // page until the click replaces it, so /sent/ would pass at once.
+    await expect(page.getByText('Invitation resent successfully')).toBeVisible();
 
     // Invitation should still be in pending list
     await expect(page.getByText(testEmail)).toBeVisible();
@@ -590,14 +404,13 @@ test.describe('INV-011: Revoke Invitation', () => {
     page,
     context,
   }) => {
-    const testEmail = generateTestEmail('revoke');
+    const testEmail = uniqueTestEmail('revoke');
 
-    await navigateToOrgTeam(page);
-    await createInvitation(page, testEmail);
+    const orgExtid = await openFirstOrgMembersTab(page);
+    await inviteMember(page, testEmail);
 
     // Get token before revoking
-    const token = await getInvitationToken(page, testEmail);
-    expect(token).toBeTruthy();
+    const token = await invitationToken(page, orgExtid, testEmail);
 
     // Find and click revoke button
     const invitationRow = page.getByTestId('org-invitation-row').filter({ hasText: testEmail });
@@ -625,22 +438,15 @@ test.describe('INV-011: Revoke Invitation', () => {
 });
 
 // -----------------------------------------------------------------------------
-// SECTION 6: Email Normalization
+// SECTION 6: Email Normalization (removed)
 // -----------------------------------------------------------------------------
-
-test.describe('INV-012: Gmail Alias Normalization', () => {
-  test.skip(!hasTestCredentials, 'Skipping: Requires specific email setup for Gmail alias testing');
-
-  // QUARANTINED (E2E remediation plan Phase 2.4 / PR 5, issue #3421): needs real
-  // Gmail accounts + captured invite email. Unimplemented placeholder ->
-  // test.fixme. normalizeEmail() in AcceptInvite.vue is unit-tested; see
-  // e2e/QUARANTINE.md.
-  test.fixme('Gmail alias normalization allows user+tag@gmail.com to match user@gmail.com', async () => {
-    // TODO(#3421): create an invite for user+tag@gmail.com, sign in as
-    // user@gmail.com, and assert NO mismatch warning (emails match after
-    // normalization) — once a mail interceptor exists.
-  });
-});
+// INV-012 tested Gmail alias normalization: an invitation for
+// user+tag@gmail.com accepted by user@gmail.com. 86d6769908 removed that
+// feature on purpose. An invitation now matches only the same address,
+// compared without case, so a +tag address is a mismatch. The mismatch UI and
+// API are covered by invitation-email-mismatch-acknowledgment.spec.ts, and
+// the +tag case by
+// try/unit/logic/organizations/invites/accept_invite_email_mismatch_try.rb.
 
 // -----------------------------------------------------------------------------
 // SECTION 7: Additional Error Scenarios
@@ -648,8 +454,7 @@ test.describe('INV-012: Gmail Alias Normalization', () => {
 
 test.describe('INV-014: Duplicate Member Invitation', () => {
   test('Inviting existing organization member shows validation error', async ({ page }) => {
-
-    await navigateToOrgTeam(page);
+    await openFirstOrgMembersTab(page);
 
     // Get the owner's email (who is already a member)
     const bootstrapResponse = await page.request.get('/bootstrap/me');
@@ -700,73 +505,65 @@ test.describe('INV-016: Invalid Token', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('INV-SEC-001: Open Redirect Prevention', () => {
-  test('Open redirect attack prevention validates redirect parameter', async ({ page }) => {
-    // This test exercises the *login form's* redirect handling, so drop the
-    // storageState session first - an authenticated visitor to /signin is
-    // redirected away and the form (with its assertions) never renders.
-    await page.context().clearCookies();
-
-    // Attempt to use malicious redirect URL
+  test('Open redirect attack prevention validates redirect parameter', async ({ browser }) => {
     const maliciousRedirects = [
       'https://evil.com/phishing',
       '//evil.com/path',
       'javascript:alert(1)',
       'data:text/html,<script>alert(1)</script>',
     ];
+    const opened: BrowserContext[] = [];
 
-    for (const maliciousUrl of maliciousRedirects) {
-      await page.goto(`/signin?redirect=${encodeURIComponent(maliciousUrl)}`);
+    try {
+      for (const maliciousUrl of maliciousRedirects) {
+        // This exercises the *login form's* redirect handling, so every attempt
+        // starts signed out (an authenticated visitor to /signin is redirected
+        // away before the form renders). Each attempt gets its own context:
+        // clearing cookies on a shared one is not enough, because a request the
+        // previous sign-in left in flight can still store its session cookie
+        // after the clear, and the next /signin then renders signed in.
+        const page = await (await openFreshContext(browser, opened)).newPage();
+        await page.goto(`/signin?redirect=${encodeURIComponent(maliciousUrl)}`);
+        const appOrigin = new URL(page.url()).origin;
 
-      // Fill login form. Use the form's test ids — getByLabel(/password/i)
-      // also matches the show-password toggle and the "Forgot your password?"
-      // link, a strict-mode violation.
-      const emailInput = page.getByTestId('signin-email-input');
-      const passwordInput = page.getByTestId('signin-password-input');
-
-      if (await emailInput.isVisible()) {
+        // Use the form's test ids — getByLabel(/password/i) also matches the
+        // show-password toggle and the "Forgot your password?" link.
+        const emailInput = page.getByTestId('signin-email-input');
+        await expect(emailInput, `signin form for redirect=${maliciousUrl}`).toBeVisible();
         await emailInput.fill(process.env.TEST_USER_EMAIL || '');
-        await passwordInput.fill(process.env.TEST_USER_PASSWORD || '');
+        await page.getByTestId('signin-password-input').fill(process.env.TEST_USER_PASSWORD || '');
+        await page.getByTestId('signin-submit').click();
 
-        const submitButton = page.getByTestId('signin-submit');
-        await submitButton.click();
-
-        // Should NOT redirect to external URL
-        await page.waitForURL((url) => {
-          const href = url.href;
-          // Verify we're not on an external domain
-          return !href.includes('evil.com') && !href.startsWith('javascript:');
-        });
-
-        // Should be on a safe internal page
-        const currentUrl = page.url();
-        expect(currentUrl).toMatch(/localhost|dev\.onetime|127\.0\.0\.1/);
+        // Signing in leaves /signin, and must land on this app, not the target
+        await page.waitForURL((url) => url.pathname !== '/signin');
+        expect(new URL(page.url()).origin, `redirect=${maliciousUrl}`).toBe(appOrigin);
+        await closeContexts(opened);
       }
+    } finally {
+      await closeContexts(opened);
     }
   });
 });
 
 test.describe('INV-SEC-002: Account Enumeration Prevention', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
-
   test('Continue-as flow does not reveal whether invited email has existing account', async ({
     browser,
   }) => {
-    const ownerContext = await browser.newContext(unauthenticatedContext);
-    const wrongUserContext = await browser.newContext(unauthenticatedContext);
-
-    const ownerPage = await ownerContext.newPage();
-    const wrongUserPage = await wrongUserContext.newPage();
+    const opened: BrowserContext[] = [];
 
     try {
+      const ownerPage = await (await openFreshContext(browser, opened)).newPage();
+      const wrongUserPage = await (await openFreshContext(browser, opened)).newPage();
+
       // Create invitation for an email that doesn't exist
-      await loginUser(ownerPage);
-      const nonExistentEmail = generateTestEmail('nonexistent');
-      await navigateToOrgTeam(ownerPage);
-      await createInvitation(ownerPage, nonExistentEmail);
-      const token = await getInvitationToken(ownerPage, nonExistentEmail);
+      await signInAsTestUser(ownerPage);
+      const nonExistentEmail = uniqueTestEmail('nonexistent');
+      const orgExtid = await openFirstOrgMembersTab(ownerPage);
+      await inviteMember(ownerPage, nonExistentEmail);
+      const token = await invitationToken(ownerPage, orgExtid, nonExistentEmail);
 
       // Log in as different user and visit invitation
-      await loginUser(wrongUserPage);
+      await signInAsTestUser(wrongUserPage);
       await wrongUserPage.goto(`/invite/${token}`);
       await expect(wrongUserPage.locator('html[data-app-ready="true"]')).toBeAttached();
 
@@ -782,8 +579,7 @@ test.describe('INV-SEC-002: Account Enumeration Prevention', () => {
       expect(url).not.toContain('account_exists');
       expect(url).not.toContain('new_account');
     } finally {
-      await ownerContext.close();
-      await wrongUserContext.close();
+      await closeContexts(opened);
     }
   });
 });
@@ -793,15 +589,35 @@ test.describe('INV-SEC-002: Account Enumeration Prevention', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('INV-017: Complete Invitation Acceptance Flow', () => {
-  test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
+  test('After accepting invitation, user can see and access the organization in their org list', async ({
+    browser,
+  }) => {
+    const opened: BrowserContext[] = [];
+    try {
+      // A throwaway owner invites a new address; the invitee signs up on the
+      // invite page and accepts (addMember), so no storageState account is
+      // touched.
+      const { owner, orgExtid } = await createOwnerWithOrg(browser, opened, 'inv017-owner');
+      const member = await addMember(browser, opened, owner.page, orgExtid, 'member', 'inv017');
 
-  // QUARANTINED (E2E remediation plan Phase 2.4 / PR 5, issue #3421): full
-  // multi-account integration — owner invites, a NEW account signs up with the
-  // invited email, accepts, and sees the org. Needs a second account + Mailpit.
-  // Unimplemented placeholder -> test.fixme. See e2e/QUARANTINE.md.
-  test.fixme('After accepting invitation, user can see and access the organization in their org list', async () => {
-    // TODO(#3421): owner creates invite -> new account signs up with the
-    // invited email -> accepts -> asserts the org appears in their list.
+      // The member's own organization list names the org, with its role.
+      // (The /orgs page is owner-only, so the list is read from the API it
+      // and the workspace switcher use.)
+      const list = await member.page.request.get('/api/organizations');
+      expect(list.ok(), "GET the member's organizations").toBe(true);
+      const { records } = (await list.json()) as {
+        records?: { extid: string; current_user_role?: string }[];
+      };
+      const joined = records?.find((org) => org.extid === orgExtid);
+      expect(joined, `${orgExtid} in the member's organizations`).toBeTruthy();
+      expect(joined?.current_user_role).toBe('member');
+
+      // And the member can open it: the org read requires membership.
+      const detail = await member.page.request.get(`/api/organizations/${orgExtid}`);
+      expect(detail.ok(), `GET ${orgExtid} as its member`).toBe(true);
+    } finally {
+      await closeContexts(opened);
+    }
   });
 });
 
@@ -811,7 +627,7 @@ test.describe('INV-017: Complete Invitation Acceptance Flow', () => {
  * | ID           | Intent                                                    | Priority   |
  * |--------------|-----------------------------------------------------------|------------|
  * | INV-001      | Owner sends invitation with validation                    | Critical   |
- * | INV-002      | Unauthenticated redirect to signin with redirect param    | Critical   |
+ * | INV-002      | Unauthenticated visitor gets the inline signup form       | Critical   |
  * | INV-003      | Email mismatch warning with continue-as option            | High       |
  * | INV-004      | Continue as logs out and redirects to invite page         | High       |
  * | INV-005      | Matching email user can immediately accept                | High       |
@@ -820,7 +636,6 @@ test.describe('INV-017: Complete Invitation Acceptance Flow', () => {
  * | INV-008      | Expired invitation shows error, no buttons                | High       |
  * | INV-010      | Owner can resend pending invitation                       | Medium     |
  * | INV-011      | Owner can revoke invitation, link becomes invalid         | Medium     |
- * | INV-012      | Gmail alias normalization                                 | Medium     |
  * | INV-014      | Duplicate member shows validation error                   | Medium     |
  * | INV-016      | Invalid token shows clear error                           | Medium     |
  * | INV-017      | Post-accept org appears in user's org list               | High       |

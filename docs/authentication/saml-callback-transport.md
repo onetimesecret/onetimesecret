@@ -62,7 +62,8 @@ Caddy's documented [filter encoder](https://caddyserver.com/docs/caddyfile/direc
 Run from the repository root with `.test-mode` already present, dependencies installed and lane services available:
 
 ```sh
-tests/lanes/run unit --only tests/browser/saml_callback_spec.rb --only spec/unit/onetime/middleware/saml_callback_transport_spec.rb --only spec/unit/onetime/application/middleware_manifest_spec.rb
+tests/lanes/run browser
+tests/lanes/run unit --only spec/unit/onetime/middleware/saml_callback_transport_spec.rb --only spec/unit/onetime/application/middleware_manifest_spec.rb
 tests/lanes/run full-sqlite --only apps/web/auth/spec/integration/full/saml_callback_transport_spec.rb --only apps/web/auth/spec/integration/full/tenant_saml_sso_spec.rb
 ```
 
@@ -76,6 +77,6 @@ Observed on 2026-09-25 with Chromium **151.0.7922.34**:
 | None | Sent, then ignored by Boundary | Recovered | Authenticated |
 | Strict | Withheld | Absent | Refused |
 
-All three controls passed. POST returned 303 without Set-Cookie and never authenticated; completion sent no-store/no-referrer, subsequent navigation sent no Referer, and replay after success was refused. In that local run Firefox and WebKit were not installed, so only Chromium was observed. CI runs the full matrix, Chromium, Firefox and WebKit × Lax, None and Strict, on every pull request: the `T2 · Ruby Unit Tests` job (`ruby-unit` in `.github/workflows/ci.yml`) installs the three Playwright browsers and runs `tests/lanes/run unit --only tests/browser/saml_callback_spec.rb` as a blocking step. The browser harness tests the transport stack, not the complete Rodauth/tenant/proxy deployment.
+All three controls passed. POST returned 303 without Set-Cookie and never authenticated; completion sent no-store/no-referrer, subsequent navigation sent no Referer, and replay after success was refused. In that local run Firefox and WebKit were not installed, so only Chromium was observed. CI runs the full matrix, Chromium, Firefox and WebKit × Lax, None and Strict, on every pull request: the `T2 · Ruby Unit Tests` job (`ruby-unit` in `.github/workflows/ci.yml`) installs the three Playwright browsers and runs the `browser` lane (`tests/lanes/run browser`) as a blocking step. The browser harness tests the transport stack, not the complete Rodauth/tenant/proxy deployment.
 
 `spec/unit/onetime/middleware/saml_callback_transport_spec.rb` covers wrong-session rejection, Origin isolation, single-use, expiry, storage failures, bounds, source-rejected flooding, HTTP debug capture, Sentry request capture and Redis tracing. `apps/web/auth/spec/integration/full/saml_callback_transport_spec.rb` covers recovered-session Connect with the actual auth application; Connect and tenant cases are Rack integration tests, not browser runs. Deployed proxy logs, external APM and remote Sentry ingestion were not validated.

@@ -138,6 +138,11 @@ module Onetime
         \b
       /ix
 
+      # A URI embedded in free text: a scheme through the next whitespace.
+      # Wider than RFC 3986 on purpose, so an unescaped ")" or "," in a
+      # password stays inside the span that redact_uri_userinfo masks.
+      EMBEDDED_URI_PATTERN = %r{[a-z][a-z0-9+.-]*://\S+}i
+
       # Obscures email addresses by replacing most characters with asterisks
       # while preserving a minimal prefix for partial readability. Uses the
       # mail gem's Address parser for robust email handling.
@@ -305,6 +310,29 @@ module Onetime
       # @return [String]
       def redact_uri_userinfo(uri, keep_username: false, require_scheme: false, mask: '***')
         ::OnetimeUriRedaction.redact(uri, keep_username: keep_username, require_scheme: require_scheme, mask: mask)
+      end
+
+      # Free text with every embedded URI passed through redact_uri_userinfo,
+      # for exception messages that quote a connection URI. redis-client
+      # appends its server URL to every ConnectionError, and a client that
+      # printed the userinfo there would put the password in the log line.
+      # The prose around the URI is kept: which host refused, which field
+      # was invalid.
+      #
+      #   redact_uris_in_text('refused (redis://u:s3cret@db:6379/0)')
+      #   #=> "refused (redis://***@db:6379/0)"
+      #
+      # A URI runs from its scheme to the next whitespace, so a password
+      # holding ")" or "," is still inside the masked span; the same
+      # punctuation after a query is masked with it, since a "?" hides
+      # everything through the end of the span. A password holding
+      # whitespace ends the span early; nothing can tell its remainder
+      # from prose.
+      #
+      # @param text [String, nil]
+      # @return [String]
+      def redact_uris_in_text(text, mask: '***')
+        utf8_safe(text.to_s).gsub(EMBEDDED_URI_PATTERN) { |uri| redact_uri_userinfo(uri, mask: mask) }
       end
 
       # Checks whether a value is an explicitly recognized truthy token.
