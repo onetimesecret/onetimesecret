@@ -521,9 +521,12 @@ site:
     # Blocks directory traversal attacks using "../" in paths
     # Critical for preventing unauthorized file access
     path_traversal: <%= ENV['MIDDLEWARE_PATH_TRAVERSAL'] != 'false' %>  # Since v0.24.0
-    # Protects against cookie tossing attacks
-    # Prevents session fixation via manipulated cookies
-    cookie_tossing: <%= ENV['MIDDLEWARE_COOKIE_TOSSING'] == 'true' %>  # Since v0.24.0
+    # Refuses (403) a request whose Cookie header carries the session cookie
+    # (site.session.key) more than once, so a cookie planted by a sibling or
+    # parent host cannot compete with the real one (Onetime::Middleware::
+    # CookieTossing, RISK-2026-08-14-COOKIE-TOSSING). Default on since
+    # v0.27.0; set MIDDLEWARE_COOKIE_TOSSING=false to disable.
+    cookie_tossing: <%= ENV['MIDDLEWARE_COOKIE_TOSSING'] != 'false' %>  # Since v0.24.0
     # Prevents IP spoofing attacks by validating IP addresses
     # Useful when IP-based access controls are implemented
     ip_spoofing: <%= ENV['MIDDLEWARE_IP_SPOOFING'] == 'true' %>  # Since v0.24.0

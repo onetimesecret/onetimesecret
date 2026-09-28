@@ -9,8 +9,13 @@ RSpec.describe 'Customer-session rotation and continuation baseline (#4466/#4467
 
   let(:matrix_password) { 'Matrix-Test1234!' }
 
-  describe 'rotation and fixation-cookie selection (#4466)' do
-    it 'rotates away the anonymous SID and uses the first duplicate session cookie on the request' do
+  # A request that carries the session cookie twice is refused in either
+  # order (Onetime::Middleware::CookieTossing, site.middleware.cookie_tossing,
+  # on in spec/config.test.yaml as in the defaults). The baseline recorded
+  # before #4466 was first-wins; the refusal is the observable outcome
+  # asserted here, whatever the middleware answers with.
+  describe 'rotation and fixation-cookie refusal (#4466)' do
+    it 'rotates away the anonymous SID and refuses duplicate session cookies in either order' do
       email = "rotation-selection-#{SecureRandom.hex(10)}@example.com"
       create_verified_account(db: test_db, email: email, password: matrix_password)
 
@@ -29,8 +34,12 @@ RSpec.describe 'Customer-session rotation and continuation baseline (#4466/#4467
       expect(session_store.find_key(Familia.dbclient, pre_login_sid)).to be_nil
       expect(session_blob['authenticated']).to be(true)
 
-      expect(request_with_duplicate_session_cookies(pre_login_sid, authenticated_sid)).to eq(401)
-      expect(request_with_duplicate_session_cookies(authenticated_sid, pre_login_sid)).to eq(200)
+      expect(request_with_duplicate_session_cookies(pre_login_sid, authenticated_sid)).to eq(403)
+      expect(request_with_duplicate_session_cookies(authenticated_sid, pre_login_sid)).to eq(403)
+
+      # The one cookie on its own still works: the refusal is about the
+      # duplicate, not the session.
+      expect(request_with_session_cookie(authenticated_sid)).to eq(200)
     end
   end
 
@@ -61,6 +70,16 @@ RSpec.describe 'Customer-session rotation and continuation baseline (#4466/#4467
     get '/api/account/', {}, {
       'HTTP_ACCEPT' => 'application/json',
       'HTTP_COOKIE' => "onetime.session=#{first_sid}; onetime.session=#{second_sid}",
+    }
+    expect(last_response.body).not_to include('"cust"')
+    last_response.status
+  end
+
+  def request_with_session_cookie(sid)
+    clear_cookies
+    get '/api/account/', {}, {
+      'HTTP_ACCEPT' => 'application/json',
+      'HTTP_COOKIE' => "onetime.session=#{sid}",
     }
     last_response.status
   end
