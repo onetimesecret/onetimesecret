@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/security/login_rate_limiter'
+require 'onetime/session/failure_code'
 
 require_relative 'json_body'
 require_relative '../operations/reauth_offer'
@@ -33,6 +34,17 @@ module Auth
     module Reauth
       include Onetime::Security::LoginRateLimiter
       include Auth::Routes::JsonBody
+
+      # The Reauthenticate `error_code`s that are a rejected credential and
+      # answer 401. `invalid_session` (401) is not one: the session's account
+      # could not be loaded, which is neither the session's verdict (the
+      # router found it authenticated) nor a credential, so it stays uncoded.
+      REJECTED_CREDENTIAL_CODES = %w[
+        invalid_password
+        invalid_otp
+        invalid_recovery_code
+        invalid_webauthn
+      ].freeze
 
       # Wire descriptor projection — the resolver returned Symbol keys
       # (`kind: :canonical`), and while JSON.serialize coerces symbols
@@ -110,6 +122,14 @@ module Auth
               elsif result.body['error_code'] == 'invalid_password'
                 record_failed_login_attempt!(account[:email], request.ip)
               end
+            end
+
+            # A rejected credential is answered as one (#4469): the stable
+            # `code` says `invalid_credentials` in the `credential` scope, so
+            # the client does not reconcile a session that is perfectly valid.
+            # `error_code` keeps naming the factor, as it did.
+            if REJECTED_CREDENTIAL_CODES.include?(result.body['error_code'])
+              Onetime::SessionFailureCode.stash(request.env, :invalid_credentials)
             end
 
             response.status = result.status

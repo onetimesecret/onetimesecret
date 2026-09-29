@@ -106,6 +106,16 @@ describe('errorInterceptor: session rejections (#4460)', () => {
     expect(noteApiRejection).toHaveBeenLastCalledWith(null, null);
   });
 
+  // A 403 credential refusal (a locked-out account) carries the pair, but the
+  // interceptor reports 401s only: a rejected credential never reconciles.
+  it('does not report a 403 credential refusal', async () => {
+    await expect(
+      errorInterceptor(rejection(403, { error: 'locked', code: 'account_locked', code_scope: 'credential' }))
+    ).rejects.toBeDefined();
+
+    expect(noteApiRejection).not.toHaveBeenCalled();
+  });
+
   it.each([
     ['a network error', null],
     ['a timeout-shaped error with no response', null],
