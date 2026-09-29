@@ -290,8 +290,10 @@ const showsRegistrationValues = computed(() =>
 /**
  * Unverified-domain notice (#4579). Tenant SSO is refused on a domain whose
  * ownership is not verified (auth_error=sso_domain_unverified). The notice
- * says SSO activates after verification and that verification leaves the
- * values in the callback / SP block unchanged. Whether those values are
+ * says SSO is off until verification and that verification leaves the
+ * values in the callback / SP block unchanged. It does not say verification
+ * turns SSO on: it also shows for a connection that is switched off or that
+ * the domain's sign-in settings withhold. Whether those values are
  * ready to register is the block hint's call (spDetailsArePreview for SAML;
  * the host-derived OAuth callback URL carries the #3932 caveat on any
  * domain). Also covers a domain that lost its verification: the values

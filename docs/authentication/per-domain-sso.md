@@ -182,8 +182,8 @@ refused the same way. Delete the stale record or verify it.
 
 The SSO settings form still shows the callback URL (and, for `saml`, the SP
 EntityID and ACS URL) for an unverified domain, with a notice that SSO on the
-domain activates after verification and that verification does not change
-the values. They can be registered at the IdP before verification completes;
+domain is off until it is verified and that verification does not change the
+values. They can be registered at the IdP before verification completes;
 the refusal means the IdP never receives any other value in the meantime.
 Whether a value is final does not depend on verification. The SAML values
 the API returns for a saved configuration reflect route overrides. The OIDC

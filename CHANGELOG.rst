@@ -502,11 +502,11 @@ Fixed
   and logs an ``omniauth_tenant_domain_unverified`` event. A SAML response
   posted after verification lapses is answered 404. The domain's SSO
   settings still show the callback URL and SAML identifiers, with a notice
-  that they go live once the domain is verified, so they can be registered
-  at the identity provider ahead of time. A domain with no sign-in settings
-  of its own, where SSO is the only method, offers no sign-in or signup
-  route until it verifies: its SSO routes answer 404, and password signup
-  stays closed there. #4579
+  that SSO there is off until the domain is verified and that verification
+  does not change them, so they can be registered at the identity provider
+  ahead of time. A domain with no sign-in settings of its own, where SSO is
+  the only method, offers no sign-in or signup route until it verifies: its
+  SSO routes answer 404, and password signup stays closed there. #4579
 
 - In full mode with ``AUTH_VERIFY_ACCOUNT_ENABLED=false``, signing up from
   the web form no longer fails with "logins do not match", and new accounts
