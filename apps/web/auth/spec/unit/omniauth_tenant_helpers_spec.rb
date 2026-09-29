@@ -1281,6 +1281,23 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
       )
       expect(rodauth).to have_received(:redirect).with('/signin?auth_error=sso_domain_unverified')
     end
+
+    # The hook's lookup found no record, but the ladder's own lookup found one
+    # created in between and reached :domain_unverified. Still a refusal, not
+    # a NoMethodError on the missing record.
+    context 'when the hook loaded no record' do
+      let(:sso_config) { nil }
+
+      it 'still clears the pending context and redirects' do
+        refuse
+
+        expect(session).to eq(account_id: 42)
+        expect(Auth::Logging).to have_received(:log_auth_event).with(
+          :omniauth_tenant_domain_unverified, hash_including(provider_type: nil)
+        )
+        expect(rodauth).to have_received(:redirect).with('/signin?auth_error=sso_domain_unverified')
+      end
+    end
   end
 
   # ==========================================================================

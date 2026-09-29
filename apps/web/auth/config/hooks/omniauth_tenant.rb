@@ -1143,7 +1143,10 @@ module Auth::Config::Hooks
     #
     # @param host [String] request public host
     # @param custom_domain [Onetime::CustomDomain]
-    # @param sso_config [Onetime::CustomDomain::SsoConfig]
+    # @param sso_config [Onetime::CustomDomain::SsoConfig, nil] the hook's
+    #   loaded record; nil when the ladder's own lookup found a record created
+    #   after the hook's (the ladder re-reads when handed nil). The refusal
+    #   does not depend on it; it only names the provider type in the log.
     # @param rodauth [Rodauth] Rodauth instance (for session + redirect)
     # @return [void] never returns normally — redirect halts the request
     def self.refuse_unverified_tenant_domain(host, custom_domain, sso_config, rodauth)
@@ -1154,7 +1157,7 @@ module Auth::Config::Hooks
         level: :warn,
         host: host,
         domain_id: custom_domain.identifier,
-        provider_type: sso_config.provider_type,
+        provider_type: sso_config&.provider_type,
         pending_tenant_flow_dropped: pending_tenant_flow_dropped,
       )
 
