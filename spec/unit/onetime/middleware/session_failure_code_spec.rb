@@ -9,7 +9,7 @@
 # stashed by the code that refuses it, on every surface, and rendered the same
 # way (#4469). The same annotate path gives the refusal its HTTP semantics:
 # a `WWW-Authenticate` challenge on every annotated 401, and a 503 with
-# `Retry-After` for a session that could not be verified (#4469, v0.27).
+# `Retry-After` for a session that could not be verified (#4469, v0.26.14).
 
 require 'spec_helper'
 require 'json'

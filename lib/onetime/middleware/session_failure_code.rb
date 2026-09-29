@@ -15,7 +15,7 @@ module Onetime
     # credential it presented (#4469), and gives the refusal its HTTP
     # semantics: a `WWW-Authenticate` challenge on every annotated 401, and a
     # 503 with `Retry-After` in place of the 401 when the session could not be
-    # verified at all (#4469 follow-up, v0.27).
+    # verified at all (#4469 follow-up, v0.26.14).
     #
     # ## Why a middleware
     #
