@@ -316,6 +316,12 @@ Health observations may be collected by an authorized manual check or the config
 
 `operator_managed` means externally managed certificates. The application does not request, renew, replace, import, or delete a certificate or provider virtual host in this mode. External management does not imply that HTTPS is valid or reachable.
 
+Automated provider orphan cleanup is subject to the current effective per-domain strategy at deletion time. It excludes every `operator_managed` domain, including an orphaned provider virtual host left by an `approximated` → `operator_managed` cutover. A cleanup task queued or initially checked under an earlier strategy must re-resolve the current registration, strategy revision, and effective strategy immediately before deletion; if the domain is now `operator_managed`, the task records a skipped `externally_managed` result and performs no provider deletion. This is not an exception to the no-deletion boundary.
+
+The final effective-strategy check and provider `DELETE` are one linearized operation with respect to strategy activation. They run under a per-domain lock or lease held through the provider response, or an equivalent conditional strategy-revision fence that prevents activation from committing while the checked revision can authorize the deletion. Strategy activation uses the same fence. If `operator_managed` activation commits after an earlier cleanup check but before cleanup acquires the deletion fence, the final check observes the new revision and no `DELETE` is issued. If cleanup acquires the fence first, activation cannot become effective until the provider deletion reaches a terminal result. Revision mismatch, inability to establish a fence that spans the operation, or lease loss before dispatch aborts cleanup before issuing `DELETE`; lease loss after dispatch leaves activation blocked by an indeterminate-deletion marker until the provider result is reconciled.
+
+Before activating an `approximated` → `operator_managed` cutover, the operator inventories provider certificates and virtual hosts and records an explicit disposition for each residual resource. Retention or deletion is performed directly in the external provider's control plane under the operator's change process, not by this application after activation. Residual resources remain visible in operator status until disposition is recorded; the application does not silently clean them up.
+
 Operator policy never permits internal certificate issuance. Certificate success never creates authorization evidence.
 
 ### Certificate matrix
@@ -445,11 +451,14 @@ An unknown or stale health result remains visibly unknown or stale. A prior succ
 
 ### Certificates
 
-43. `operator_managed` performs no internal certificate or provider-vhost create, renew, replace, import, or delete action for any authorization basis.
-44. Internal ACME denies `operator_policy` even when the domain is registered, authorized for normal use, resolving, and serving valid HTTPS.
-45. Internal ACME permits only a current registration under `caddy_on_demand` with `txt_proof` or `explicit_override`.
-46. `approximated` provider certificate actions require `txt_proof` or `explicit_override`; certificate success does not alter authorization evidence.
-47. Failed or unknown HTTPS health does not trigger internal certificate management under `operator_managed`.
+48. `operator_managed` performs no internal certificate or provider-vhost create, renew, replace, import, or delete action for any authorization basis.
+49. A provider orphan-cleanup task queued before an `approximated` → `operator_managed` activation rechecks the effective strategy under the deletion fence, records skipped `externally_managed`, and does not delete the provider virtual host after activation.
+50. When cleanup initially observes `approximated` and `operator_managed` activation races before the fenced final check, activation wins the strategy-revision fence, cleanup records skipped `externally_managed`, and no provider `DELETE` is issued. If cleanup acquires the fence first, activation cannot become effective until deletion reaches a terminal result.
+51. An `approximated` → `operator_managed` cutover inventories each residual provider certificate and virtual host and records an operator disposition; any later retention or deletion occurs directly in the provider control plane, not through application cleanup.
+52. Internal ACME denies `operator_policy` even when the domain is registered, authorized for normal use, resolving, and serving valid HTTPS.
+53. Internal ACME permits only a current registration under `caddy_on_demand` with `txt_proof` or `explicit_override`.
+54. `approximated` provider certificate actions require `txt_proof` or `explicit_override`; certificate success does not alter authorization evidence.
+55. Failed or unknown HTTPS health does not trigger internal certificate management under `operator_managed`.
 
 ## Implementation status
 

@@ -46,7 +46,8 @@ This runbook covers install-level strategy transitions. It does not define per-d
 | --- | --- | --- |
 | `operator_managed`, `passthrough`, or `external` | `caddy_on_demand` | Full cutover barrier required. Operator-policy authorization stops qualifying at activation. Each accepted assignment requires eligible TXT proof for its current lineage or an eligible explicit override. |
 | `operator_managed`, `passthrough`, or `external` | `approximated` | Full cutover barrier required. Operator-policy authorization stops qualifying at activation. Each accepted assignment requires eligible TXT proof for its current lineage or an eligible explicit override. |
-| `caddy_on_demand` or `approximated` | `operator_managed` | Full inventory and coordinated activation required. Only an already-trusted current lineage or an explicit operator adoption into a new trusted lineage gains operator-policy authorization. Lineage-changing adoption makes prior TXT and override evidence ineligible; health remains separately identified. |
+| `caddy_on_demand` | `operator_managed` | Full assignment inventory and coordinated activation required. Only an already-trusted current lineage or an explicit operator adoption into a new trusted lineage gains operator-policy authorization. Lineage-changing adoption makes prior TXT and override evidence ineligible; health remains separately identified. |
+| `approximated` | `operator_managed` | Full assignment and provider-resource inventories plus coordinated activation are required. Only an already-trusted current lineage or an explicit operator adoption into a new trusted lineage gains operator-policy authorization. Lineage-changing adoption makes prior TXT and override evidence ineligible; health remains separately identified. Every residual provider certificate and virtual host requires an approved retain, remove, or manual disposition before activation. |
 | `caddy_on_demand` | `approximated` | Target-strategy dry run and evidence eligibility review required. Source-strategy success is not automatically target-strategy proof. |
 | `approximated` | `caddy_on_demand` | Target-strategy dry run and evidence eligibility review required. Source-strategy success is not automatically target-strategy proof. |
 | `passthrough` or `external` | `operator_managed` | Alias normalization only. It is not a passthrough-user migration, but coordinated configuration deployment is still required so all processes agree on the canonical name and semantics. |
@@ -88,6 +89,7 @@ The maintenance barrier applies to every process and interface that can mutate a
 | Domain transfer | Transfers and ownership/org changes are rejected. In-flight transfers are completed or rolled back before the snapshot. | No assignment has a transfer transaction in progress; a transfer probe cannot commit. |
 | Serving authorization | Affected custom-domain authorization is isolated from external traffic or returns a fail-closed maintenance denial. Canonical service traffic may remain available if it cannot use custom-domain authorization state. | Synthetic requests cannot obtain an allow decision from the source strategy after the barrier begins. |
 | ACME permission decisions | New custom-domain permission decisions are denied during the barrier. Certificate retries cannot bypass application isolation. | A permission probe for an otherwise source-authorized fixture is denied with the barrier generation. |
+| Provider certificate and virtual-host management (`approximated` → `operator_managed` only) | Application-initiated provider requests, renewals, replacements, imports, deletions, and orphan-cleanup work for affected domains are paused, drained, or generation-fenced before provider-resource inventory. | The provider inventory remains stable during preflight, and queued cleanup cannot delete a resource after the affected domain's effective strategy becomes `operator_managed`. |
 | Domain-verification workers | Consumers that can persist verification, override, assignment, or authorization state are paused and drained. Late results from an earlier generation are rejected. | Queue depth and in-flight count are recorded as zero, or remaining messages are fenced by generation. |
 | Scheduler | Domain refresh scheduling is paused and in-flight refreshes are drained. A disabled scheduler is recorded as disabled rather than treated as proof of quiescence elsewhere. | No scheduled domain job can start or persist after the freeze generation. |
 | Configuration reload | Automatic reload and independent node changes are suspended. The exact source and target configurations are immutable artifacts. | Every participating process reports the same source generation before activation. |
@@ -122,6 +124,8 @@ Inventory completeness requires all of the following:
 3. Duplicate canonical names, missing organizations, missing assignment identities, conflicting indexes, and unreadable records appear as exceptions rather than being dropped.
 4. A second enumeration under the same freeze produces the same assignment identities and mutation generations.
 5. The sum of all classification counts equals the total inventory count.
+
+For each affected domain whose effective source strategy is `approximated` and target strategy is `operator_managed`, preflight also builds a provider-resource inventory directly reconciled against the provider control plane. This inventory is separate from the assignment inventory because a residual or orphaned provider resource may have no current assignment. It records every provider certificate and virtual host, provider resource identifier, associated canonical domain and assignment when known, residual/orphan status, pending cleanup work, and an explicit operator-approved disposition of retain, remove, or manual handling. Every residual resource appears exactly once and has a disposition before activation. A remove disposition is executed directly in the external provider's control plane under the operator's change process; it does not authorize application deletion after `operator_managed` activation.
 
 ## Evidence eligibility and classification
 
@@ -205,14 +209,15 @@ The sequence is:
 
 1. Reconfirm that the freeze remains active and that inventory identities and mutation generations are unchanged.
 2. Reconcile the final exception report. Any unresolved, added, removed, or changed assignment aborts activation.
-3. Persist target authorization decisions with their assignment lineage and the new cutover generation. For a TXT-enforced target, persist eligible fresh proof and override decisions; policy-only and unknown/ineligible rows receive no qualifying TXT authorization. For an `operator_managed` target, retain eligible current-lineage proof and overrides, retain already-trusted lineages, and apply approved adoptions as new trusted lineages that inherit no prior proof or override.
-4. Activate the target configuration and target authorization evaluator for web processes, workers, scheduler, and ACME permission decisions under the same generation.
-5. Invalidate source-generation authorization and domain caches. Cache misses under the target generation are evaluated from eligible evidence; they do not fall back to source booleans.
-6. Start or release processes only while external serving and ACME isolation remains in place. Every process acknowledges the target strategy, configuration digest, cutover generation, and cache generation.
-7. Reject and quarantine late worker or scheduler writes from the source generation.
-8. Run the first-request checks before any domain refresh, health sweep, or scheduler execution.
-9. Restore ACME and serving traffic only after the first-request checks pass and activation receives explicit operator approval.
-10. Resume workers, scheduler, registration, and transfer in that order, with generation enforcement still active.
+3. For affected `approximated` → `operator_managed` domains, reconcile the provider-resource inventory against the provider control plane and require activation approval to include the complete disposition manifest. Any unlisted residual certificate or virtual host, missing disposition, or unapproved disposition aborts activation. Retain, remove, and manual actions remain operator change-process work; target activation does not grant the application permission to delete provider resources.
+4. Persist target authorization decisions with their assignment lineage and the new cutover generation. For a TXT-enforced target, persist eligible fresh proof and override decisions; policy-only and unknown/ineligible rows receive no qualifying TXT authorization. For an `operator_managed` target, retain eligible current-lineage proof and overrides, retain already-trusted lineages, and apply approved adoptions as new trusted lineages that inherit no prior proof or override.
+5. Activate the target configuration and target authorization evaluator for web processes, workers, scheduler, and ACME permission decisions under the same generation.
+6. Invalidate source-generation authorization and domain caches. Cache misses under the target generation are evaluated from eligible evidence; they do not fall back to source booleans.
+7. Start or release processes only while external serving and ACME isolation remains in place. Every process acknowledges the target strategy, configuration digest, cutover generation, and cache generation.
+8. Reject and quarantine late worker or scheduler writes from the source generation.
+9. Run the first-request checks before any domain refresh, health sweep, or scheduler execution.
+10. Restore ACME and serving traffic only after the first-request checks pass and activation receives explicit operator approval.
+11. Resume workers, scheduler, registration, and transfer in that order, with generation enforcement still active.
 
 At no point may source and target evaluators both return allow decisions for the same protected surface.
 
@@ -285,6 +290,7 @@ The cutover succeeds only when:
 - source-generation cache and late-write probes fail closed;
 - all expected eligible TXT and override assignments remain usable with the correct authorization basis;
 - policy-only and unknown/ineligible assignments remain denied under a TXT-enforced target, and untrusted, unadopted assignments without eligible evidence remain denied under an `operator_managed` target;
+- for affected `approximated` → `operator_managed` domains, the provider-control-plane inventory reconciles, every residual certificate and virtual host has an approved retain, remove, or manual disposition, queued orphan cleanup resolves the current effective strategy and skips deletion as `externally_managed`, and the application performs no provider request, renewal, replacement, import, or deletion after activation;
 - health reporting remains separate from authorization;
 - serving, ACME, workers, scheduler, registration, and transfer resume without generation mismatch;
 - monitoring shows no unexpected authorization allows or mixed-generation decisions through the declared observation window;
@@ -363,6 +369,7 @@ The retained evidence bundle contains:
 - before, activation, and rollback inventories as applicable;
 - assignment classification and provenance records;
 - target dry-run results and exception dispositions;
+- for `approximated` → `operator_managed` transitions, the reconciled provider certificate and virtual-host inventory, approved retain/remove/manual disposition manifest, external provider change references, and `externally_managed` skip records from queued orphan-cleanup work;
 - cache invalidation and process-generation acknowledgements;
 - first-request results, including restart, stale-cache, worker, and disabled-scheduler cases;
 - monitoring extracts for the declared observation window;
@@ -380,6 +387,7 @@ Runtime implementation and tooling are ready for this runbook only when automate
 | Operator-managed → `caddy_on_demand` | Policy-only state is denied before refresh; current-lineage TXT proof and override are accepted. |
 | Operator-managed → `approximated` | Policy-only state is denied before refresh; current-lineage TXT proof and override are accepted. |
 | TXT-enforced → operator-managed | Only already-trusted current lineages or registrations explicitly adopted into new trusted lineages are authorized as operator policy, without manufacturing TXT confirmation or assumed health; adoption inherits no prior TXT proof or override. |
+| `approximated` → `operator_managed` provider resources | Before activation, every residual provider certificate and virtual host is inventoried and has an approved retain, remove, or manual disposition. After activation, queued orphan cleanup re-resolves the effective strategy and records `externally_managed` without deletion; the application does not request, renew, replace, import, or delete provider resources. |
 | TXT-enforced → TXT-enforced | The target evaluator accepts only target-eligible current-lineage evidence or override. |
 | Legacy flags/timestamp | `verified`, `resolving`, `ready?`, and timestamp-only state cannot authorize. |
 | Assignment-lineage change | Transfer, detach/re-attach, recreation, and lineage-changing operator adoption make prior TXT proof and overrides ineligible. |
