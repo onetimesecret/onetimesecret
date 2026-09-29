@@ -62,7 +62,7 @@ site:
     xss_header: false
     frame_options: false
     path_traversal: false
-    cookie_tossing: false
+    cookie_tossing: true
     ip_spoofing: false
     strict_transport: false
   # Registration and Authentication settings
