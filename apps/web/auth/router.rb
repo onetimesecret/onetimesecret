@@ -274,16 +274,23 @@ module Auth
       Onetime::ActiveSessionGate.forget(env)
     end
 
-    # A session refusal body plus its stable `code` / `code_scope` (#4462).
-    # The existing fields are the caller's and are not changed; the codes are
-    # the same ones the Otto surfaces answer with
-    # (Onetime::Middleware::SessionFailureCode), so a client reads one
-    # vocabulary on every surface. `reason` is the one this router acted on,
-    # which may be Auth::SessionRecheck's rather than the evaluator's. Logged
-    # here, once per refusal, with the same code and the request id (#4461).
+    # A session refusal body. The stable `code` / `code_scope` pair (#4462),
+    # the `WWW-Authenticate` challenge and, for an outage, the 503 with
+    # `Retry-After` (#4469) are rendered onto it by
+    # Onetime::Middleware::SessionFailureCode from the reason stashed here,
+    # exactly as the Otto surfaces are answered, so a client reads one
+    # vocabulary and one set of HTTP semantics on every surface. The body
+    # itself carries no `code`: the middleware never touches a body that
+    # already has one, so merging the pair here would leave the refusal
+    # without its headers and an outage as a 401. The existing fields are
+    # the caller's and are not changed. `reason` is the one this router
+    # acted on, which may be Auth::SessionRecheck's rather than the
+    # evaluator's. Logged here, once per refusal, with the same code and the
+    # request id (#4461).
     def session_refusal(body, reason)
       Onetime::SessionFailureCode.log_refusal(reason, env)
-      body.merge(Onetime::SessionFailureCode.for(reason).transform_keys(&:to_sym))
+      Onetime::SessionFailureCode.stash(env, reason)
+      body
     end
 
     # Main routing logic
