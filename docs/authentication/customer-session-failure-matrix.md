@@ -79,7 +79,8 @@ degrades to `unavailable`, never to a serialized identity.
 
 ### `code` and `code_scope` — refusals
 
-A JSON 401 caused by the customer session carries two additive fields
+A JSON 401 caused by the customer session, and a JSON 401 or 403 caused by a
+rejected credential, carries two additive fields
 (`lib/onetime/session/failure_code.rb`). The `code` is the evaluator reason
 verbatim; there is no second vocabulary. Statuses, redirects, and the existing
 `error`, `message`, `error_type`, `success` and `timestamp` fields are
@@ -133,12 +134,15 @@ distinguishes an unknown account from a wrong password or an unverified one.
 | `invalid_credentials` | `credential` | `POST /auth/login` (Rodauth's `no matching login` and `invalid password` alike), a passkey assertion, a second factor (`otp-auth`, `recovery-auth`, `webauthn-auth`), a password confirmation on an account route (`change-password`, `change-login`, `close-account`, `otp-setup`, `otp-disable`, `webauthn-setup`, `webauthn-remove`, `recovery-codes`), `POST /auth/reauth`, the password on `POST /auth/link-sso`, and the simple-mode `POST /auth/login` | 401 |
 | `api_key_invalid` | `credential` | A rejected `Authorization` header on any `basicauth` route: wrong scheme, malformed payload, unknown account, wrong key (one code, one constant-time path) | 401 |
 | `suspended_credentials` | `credential` | A valid API key, or the simple-mode password, on a suspended account. Only observable to a holder of the valid credential | 401 |
+| `account_locked` | `credential` | `POST /auth/login` on a locked-out account (Rodauth lockout; `lockout_error_status`, rodauth 2.45.0 `lib/rodauth/features/base.rb:54`). Rodauth already answers it with its own message | 403 |
+| `account_unverified` | `credential` | `POST /auth/login` on an account that has not completed verification (`unopen_account_error_status`, base.rb:81), with the generic message `config/rodauth_overrides.rb` returns | 403 |
+
+The 403 rows are the one case the pair is rendered onto a 403: only for a
+credential-scope reason, never for a bare 403 and never for a session reason.
+The status and every existing field are unchanged.
 
 Uncoded on purpose:
 
-- Rodauth answers a locked-out account and an unverified one with 403
-  (`lockout_error_status`, `unopen_account_error_status`, rodauth 2.45.0
-  `lib/rodauth/features/base.rb:54,81`); the pair is annotated on 401s only.
 - A missing `Authorization` header on a `basicauth,noauth` route is not a
   rejected credential: the request proceeds as anonymous.
 - `link_expired` on the SSO-linking routes is withdrawn by those routes and

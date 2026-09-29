@@ -158,6 +158,34 @@ RSpec.describe Onetime::Middleware::SessionFailureCode do
       )
     end
 
+    # Rodauth answers a locked-out or unverified account with 403. The pair is
+    # rendered there too, and only there: a credential-scope stash.
+    it 'codes a 403 credential refusal, status and fields unchanged' do
+      body = { error: 'This account is currently locked out and cannot be logged in to' }.to_json
+      status, headers, annotated = call(otto_response(status: 403, body: body), { env_key => :account_locked })
+
+      expect(status).to eq(403)
+      expect(JSON.parse(annotated.join)).to eq(
+        'error' => 'This account is currently locked out and cannot be logged in to',
+        'code' => 'account_locked',
+        'code_scope' => 'credential',
+      )
+      expect(headers['content-length']).to eq(annotated.join.bytesize.to_s)
+    end
+
+    it 'codes an unverified-account 403 the same way' do
+      _s, _h, body = call(otto_response(status: 403), { env_key => :account_unverified })
+
+      expect(JSON.parse(body.join)).to include('code' => 'account_unverified', 'code_scope' => 'credential')
+    end
+
+    it 'leaves a bare 403, and a 403 with a session reason stashed, untouched' do
+      bare = otto_response(status: 403)
+      expect(call(bare, {})).to eq(bare)
+      expect(call(bare, refused_env(:not_authenticated))).to eq(bare)
+      expect(call(bare, { env_key => :active_session_revoked })).to eq(bare)
+    end
+
     it 'codes a valid API key on a suspended account' do
       _s, _h, body = call(otto_response, refused_env(:suspended_credentials))
 

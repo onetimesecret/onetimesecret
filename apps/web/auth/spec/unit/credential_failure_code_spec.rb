@@ -50,17 +50,13 @@ RSpec.describe Auth::CredentialFailureCode do
       end
     end
 
-    it 'names the 403 refusals it leaves uncoded, and does not map them' do
-      described_class::UNCODED_403_REASONS.each do |reason|
-        expect(described_class::CREDENTIAL_REASONS).not_to have_key(reason)
-        expect(described_class::SESSION_REASONS).not_to have_key(reason)
-      end
+    it 'codes the 403 refusals with codes Rodauth already distinguishes by message' do
+      expect(described_class::CREDENTIAL_REASONS.fetch(:account_locked_out)).to eq(:account_locked)
+      expect(described_class::CREDENTIAL_REASONS.fetch(:unverified_account)).to eq(:account_unverified)
     end
 
-    it 'keeps the three tables disjoint' do
-      keys = described_class::CREDENTIAL_REASONS.keys +
-             described_class::SESSION_REASONS.keys +
-             described_class::UNCODED_403_REASONS
+    it 'keeps the two tables disjoint' do
+      keys = described_class::CREDENTIAL_REASONS.keys + described_class::SESSION_REASONS.keys
       expect(keys.tally.select { |_reason, count| count > 1 }).to be_empty
     end
   end
@@ -105,6 +101,11 @@ RSpec.describe Auth::CredentialFailureCode do
       expect(env).not_to have_key(env_key)
     end
 
+    it 'stashes account_locked and account_unverified for the 403 refusals' do
+      expect(described_class.record(env_with(:session_missing), :account_locked_out)).to eq(:account_locked)
+      expect(described_class.record(env_with(:session_missing), :unverified_account)).to eq(:account_unverified)
+    end
+
     it 'stashes awaiting_mfa for a route that needs the second factor' do
       expect(described_class.record(env_with(nil), :two_factor_need_authentication)).to eq(:awaiting_mfa)
     end
@@ -120,8 +121,6 @@ RSpec.describe Auth::CredentialFailureCode do
         two_factor_not_setup
         two_factor_already_authenticated
         duplicate_webauthn_id
-        account_locked_out
-        unverified_account
       ].each do |reason|
         env = env_with(:session_missing)
 
