@@ -50,9 +50,17 @@ module Onetime
     #   would also accept was never examined.
     # - `Basic` (BASIC_CHALLENGE) only when a Basic auth strategy rejected an
     #   `Authorization` header (`api_key_invalid`, or `suspended_credentials`
-    #   on a request that presented one). Basic is the applicable scheme for
-    #   that resource (RFC 7617), and the client already chose it by sending
-    #   the header; the browser client never does.
+    #   from that strategy). Basic is the applicable scheme for that resource
+    #   (RFC 7617), and the client already chose it by sending the header;
+    #   the browser client never does.
+    #
+    # The scheme is read from the stash, not from the request: the Basic
+    # strategies record `Onetime::SessionFailureCode::SCHEME_BASIC` beside the
+    # reason (SCHEME_ENV_KEY), and nothing else does. A refusal stashed by a
+    # form login, a re-authentication or the simple-mode sign-in is
+    # challenged with `Session` even when that request also carried an
+    # `Authorization` header, because no strategy examined it and a `Basic`
+    # challenge would open the browser dialog on a form-login response.
     #
     # A `WWW-Authenticate` an app already set is kept.
     #
@@ -122,7 +130,6 @@ module Onetime
       # Rack 3 requires lowercase response header names.
       WWW_AUTHENTICATE = 'www-authenticate'
       RETRY_AFTER      = 'retry-after'
-      AUTHORIZATION    = 'HTTP_AUTHORIZATION'
 
       # The realm names the scope of protection (RFC 9110 §11.5). One fixed
       # value: the challenge is read by machines, and a per-host value would
@@ -189,19 +196,18 @@ module Onetime
           return [UNAVAILABLE_STATUS, headers, [annotated]]
         end
 
-        set_header_unless_present(headers, WWW_AUTHENTICATE, challenge(env, reason))
+        set_header_unless_present(headers, WWW_AUTHENTICATE, challenge(env))
         [status, headers, [annotated]]
       end
 
-      # See "The challenge" above. `api_key_invalid` is stashed only by the
-      # Basic auth strategies; `suspended_credentials` is stashed by them and
-      # by the simple-mode sign-in, and only the strategies examine an
-      # `Authorization` header, so its presence tells the two apart.
-      def challenge(env, reason)
-        reason = reason.to_sym
-        basic  = reason == :api_key_invalid ||
-                 (reason == :suspended_credentials && !env[AUTHORIZATION].to_s.empty?)
-        basic ? BASIC_CHALLENGE : SESSION_CHALLENGE
+      # See "The challenge" above: Basic only on the Basic strategies' own
+      # stash, Session for every other refusal.
+      def challenge(env)
+        if Onetime::SessionFailureCode.scheme(env) == Onetime::SessionFailureCode::SCHEME_BASIC
+          BASIC_CHALLENGE
+        else
+          SESSION_CHALLENGE
+        end
       end
 
       # @return [String, nil] the re-serialized body, or nil to leave the

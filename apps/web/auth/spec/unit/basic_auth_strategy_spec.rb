@@ -345,6 +345,15 @@ RSpec.describe Onetime::Application::AuthStrategies::BasicAuthStrategy, type: :i
         expect(stashed_reason_for(env_basic_auth_invalid)).to eq(:api_key_invalid)
       end
 
+      # The challenge follows this stash, not the request's headers
+      # (Onetime::Middleware::SessionFailureCode#challenge).
+      it 'stashes the Basic scheme beside the reason, so the 401 is challenged with Basic' do
+        env = env_basic_auth_invalid
+        stashed_reason_for(env)
+
+        expect(Onetime::SessionFailureCode.scheme(env)).to eq(Onetime::SessionFailureCode::SCHEME_BASIC)
+      end
+
       it 'stashes api_key_invalid for an unknown account, the same as a wrong key' do
         encoded = Base64.strict_encode64("nobody_#{SecureRandom.uuid}@example.com:#{test_apikey}")
         env     = { 'rack.session' => {}, 'REMOTE_ADDR' => '127.0.0.1', 'HTTP_AUTHORIZATION' => "Basic #{encoded}" }
@@ -372,7 +381,9 @@ RSpec.describe Onetime::Application::AuthStrategies::BasicAuthStrategy, type: :i
       end
 
       it 'stashes nothing when the header is missing (not a rejected credential)' do
-        expect(stashed_reason_for(env_basic_auth_missing)).to be_nil
+        env = env_basic_auth_missing
+        expect(stashed_reason_for(env)).to be_nil
+        expect(Onetime::SessionFailureCode.scheme(env)).to be_nil
       end
 
       it 'stashes nothing on valid credentials' do

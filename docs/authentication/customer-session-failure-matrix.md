@@ -140,15 +140,21 @@ distinguishes an unknown account from a wrong password or an unverified one.
 | `suspended_credentials` | `credential` | A valid API key, or the simple-mode password, on a suspended account. Only observable to a holder of the valid credential | 401 |
 
 Every credential 401 carries a `WWW-Authenticate` challenge, chosen by the
-credential that was rejected rather than by the route. `api_key_invalid`, and
-`suspended_credentials` on a request that presented an `Authorization`
-header, are challenged with `Basic realm="onetimesecret"`: Basic is the
-scheme the Basic auth strategies accept and the one the client used.
-`invalid_credentials`, and `suspended_credentials` from the simple-mode
-sign-in, are challenged with `Session realm="onetimesecret"`, as a session
-refusal is: a `Basic` challenge on the response to a browser fetch opens the
-browser's native credentials dialog, and the browser client never presents
-an `Authorization` header. See "Evidence".
+code that rejected the credential rather than by the route or by the
+request's headers. The Basic auth strategies stash the scheme they examined
+beside the reason (`Onetime::SessionFailureCode.stash_scheme`,
+`onetime.session_failure_scheme`), and only they do, so `api_key_invalid`
+and the `suspended_credentials` they stash are challenged with
+`Basic realm="onetimesecret"`: Basic is the scheme those strategies accept
+and the one the client used. Every other credential refusal
+(`invalid_credentials` from Rodauth, the re-authentication and SSO-linking
+routes, and `invalid_credentials` or `suspended_credentials` from the
+simple-mode sign-in) is challenged with `Session realm="onetimesecret"`, as
+a session refusal is, even when that request also carried an
+`Authorization` header no strategy examined: a `Basic` challenge on the
+response to a browser fetch opens the browser's native credentials dialog,
+and the browser client never presents an `Authorization` header. See
+"Evidence".
 
 Uncoded on purpose:
 
@@ -555,10 +561,12 @@ permits and which no browser acts on. It is never `Basic` on a session
 refusal, including on a `sessionauth,basicauth` route: a browser opens its
 native credentials dialog on a same-origin fetch response that carries a
 `Basic` challenge, and the header the route would also accept was never
-examined. A rejected `Authorization` header (`api_key_invalid`;
-`suspended_credentials` when a header was presented) is challenged with
+examined. A credential a Basic auth strategy rejected (`api_key_invalid`,
+or `suspended_credentials` from that strategy, known by the scheme the
+strategy stashes beside the reason) is challenged with
 `Basic realm="onetimesecret"`, the scheme the resource accepts and the
-client used. The realm is one fixed value: the header is read by machines,
+client used; the choice never reads the request's own headers. The realm is
+one fixed value: the header is read by machines,
 and a per-host value would have to be quoted from the request. A challenge
 an app already set is kept. Before v0.27 the session 401 (rendered by Otto)
 and the `/auth` 401s sent no `WWW-Authenticate`; #4462 required the existing

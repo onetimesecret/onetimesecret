@@ -55,7 +55,11 @@ module Onetime
         # that is the failure Otto renders as the 401, so the code describes
         # the refusal the client receives. On the session carve-out nothing is
         # stashed, because the chain goes on to answer the request as the
-        # session's and no credential refusal reaches the wire.
+        # session's and no credential refusal reaches the wire. The scheme
+        # (`Basic`) is stashed beside the reason: this is the only place a
+        # Basic credential is examined, and the middleware challenges with
+        # `Basic` only on that provenance, never because a request carried an
+        # `Authorization` header.
         #
         # @param reason [String] failure reason, e.g. '[CREDENTIALS_INVALID] ...'
         # @param env [Hash, nil] the Rack env, so the session carve-out can be
@@ -68,7 +72,10 @@ module Onetime
         def credentialed_failure(reason, env = nil, code: nil)
           return failure(reason) if valid_session_identity?(env)
 
-          Onetime::SessionFailureCode.stash(env, code) if code
+          if code
+            Onetime::SessionFailureCode.stash(env, code)
+            Onetime::SessionFailureCode.stash_scheme(env, Onetime::SessionFailureCode::SCHEME_BASIC)
+          end
           failure(reason, terminal: true)
         end
 

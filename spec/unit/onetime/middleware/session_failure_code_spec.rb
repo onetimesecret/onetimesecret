@@ -43,6 +43,14 @@ RSpec.describe Onetime::Middleware::SessionFailureCode do
     { env_key => reason, 'otto.strategy_result' => failed_chain }.merge(extra)
   end
 
+  # What a Basic auth strategy leaves behind on its terminal failure
+  # (Helpers#credentialed_failure): the reason and the scheme it examined.
+  def basic_refused_env(reason, extra = {})
+    env = refused_env(reason, extra)
+    Onetime::SessionFailureCode.stash_scheme(env, Onetime::SessionFailureCode::SCHEME_BASIC)
+    env
+  end
+
   describe 'a session refusal rendered by Otto' do
     subject(:result) { call(otto_response, refused_env(:surface_mismatch)) }
 
@@ -154,16 +162,23 @@ RSpec.describe Onetime::Middleware::SessionFailureCode do
       )
     end
 
-    it 'is Basic for a rejected API key: the scheme the client presented' do
-      expect(challenge_for(:api_key_invalid, 'HTTP_AUTHORIZATION' => 'Basic Zm9vOmJhcg==')).to eq(
+    def basic_challenge_for(reason, env_extra = {})
+      _s, headers, _b = call(otto_response, basic_refused_env(reason, env_extra))
+      headers['www-authenticate']
+    end
+
+    it 'is Basic for a rejected API key: the scheme the Basic strategy examined' do
+      expect(basic_challenge_for(:api_key_invalid, 'HTTP_AUTHORIZATION' => 'Basic Zm9vOmJhcg==')).to eq(
         'Basic realm="onetimesecret"',
       )
       # Wrong scheme is still api_key_invalid from a Basic strategy.
-      expect(challenge_for(:api_key_invalid, 'HTTP_AUTHORIZATION' => 'Bearer abc')).to eq('Basic realm="onetimesecret"')
+      expect(basic_challenge_for(:api_key_invalid, 'HTTP_AUTHORIZATION' => 'Bearer abc')).to eq(
+        'Basic realm="onetimesecret"',
+      )
     end
 
     it 'is Basic for a valid but suspended API key, Session for the simple-mode password' do
-      expect(challenge_for(:suspended_credentials, 'HTTP_AUTHORIZATION' => 'Basic Zm9vOmJhcg==')).to eq(
+      expect(basic_challenge_for(:suspended_credentials, 'HTTP_AUTHORIZATION' => 'Basic Zm9vOmJhcg==')).to eq(
         'Basic realm="onetimesecret"',
       )
       expect(challenge_for(:suspended_credentials)).to eq('Session realm="onetimesecret"')
@@ -172,6 +187,37 @@ RSpec.describe Onetime::Middleware::SessionFailureCode do
     it 'is Session for a rejected login, second factor or password confirmation' do
       body = { error: 'There was an error logging in', 'field-error' => ['password', 'invalid password'] }.to_json
       _s, headers, _b = call(otto_response(body: body), { env_key => :invalid_credentials })
+
+      expect(headers['www-authenticate']).to eq('Session realm="onetimesecret"')
+    end
+
+    # The scheme follows the provenance of the stash, never the headers the
+    # request carried: a form login (noauth, no Basic strategy in its chain)
+    # that rejected its password may still arrive with an Authorization
+    # header, and a Basic challenge on that response would open the browser
+    # dialog.
+    it 'is Session for a form-credential refusal even when the request carried an Authorization header' do
+      header = { 'HTTP_AUTHORIZATION' => 'Basic Zm9vOmJhcg==' }
+      passed = Struct.new(:metadata).new({ ip: '127.0.0.0' })
+      body   = { error: 'Invalid email or password', 'field-error' => %w[email invalid] }.to_json
+
+      %i[suspended_credentials invalid_credentials].each do |reason|
+        env = { env_key => reason, 'otto.strategy_result' => passed }.merge(header)
+        _s, headers, _b = call(otto_response(body: body), env)
+
+        expect(headers['www-authenticate']).to eq('Session realm="onetimesecret"'), reason.to_s
+      end
+
+      # And the /auth Roda app, which has no Otto chain at all.
+      _s, headers, _b = call(otto_response(body: body), { env_key => :invalid_credentials }.merge(header))
+      expect(headers['www-authenticate']).to eq('Session realm="onetimesecret"')
+    end
+
+    it 'is Session once a later stash replaced the Basic strategy\'s reason' do
+      env = basic_refused_env(:api_key_invalid)
+      Onetime::SessionFailureCode.stash(env, :session_missing)
+
+      _s, headers, _b = call(otto_response, env)
 
       expect(headers['www-authenticate']).to eq('Session realm="onetimesecret"')
     end

@@ -52,6 +52,17 @@ module Onetime
     # Onetime::Middleware::SessionFailureCode. Holds the reason Symbol.
     ENV_KEY = 'onetime.session_failure_reason'
 
+    # Rack env key naming the HTTP authentication scheme whose credential
+    # was rejected, when there is one. Written only by the Basic auth
+    # strategies (Helpers#credentialed_failure), beside the reason, so the
+    # middleware's `WWW-Authenticate` challenge follows the provenance of the
+    # refusal and never the headers a request happened to carry: a form
+    # login that rejected its password is challenged with the application's
+    # `Session` scheme even if the request also carried an `Authorization`
+    # header no strategy examined.
+    SCHEME_ENV_KEY = 'onetime.session_failure_scheme'
+    SCHEME_BASIC   = 'Basic'
+
     SCOPE_CUSTOMER_SESSION         = 'customer_session'
     SCOPE_VERIFICATION_UNAVAILABLE = 'verification_unavailable'
     SCOPE_ADMIN_SESSION            = 'admin_session'
@@ -152,18 +163,49 @@ module Onetime
       # @param reason [Symbol] a key of REASON_SCOPES
       # @return [void]
       def stash(env, reason)
-        env[ENV_KEY] = reason if env.is_a?(Hash)
+        return nil unless env.is_a?(Hash)
+
+        env[ENV_KEY] = reason
+        # A scheme belongs to the reason it was stashed with. A later writer
+        # that replaces the reason without naming a scheme has no Basic
+        # credential to challenge for.
+        env.delete(SCHEME_ENV_KEY)
         nil
       end
 
-      # Withdraw a stashed reason. For a route that answers a 401 which is
-      # neither the session's nor a credential's (an expired SSO-linking
-      # token), so the router's anonymous stash is not rendered onto it.
+      # Record the HTTP authentication scheme whose credential the stashed
+      # reason rejects. Called after .stash by the code that examined that
+      # credential; today only the Basic auth strategies.
+      #
+      # @param env [Hash, nil] the Rack env
+      # @param scheme [String] SCHEME_BASIC
+      # @return [void]
+      def stash_scheme(env, scheme)
+        env[SCHEME_ENV_KEY] = scheme if env.is_a?(Hash)
+        nil
+      end
+
+      # The scheme stashed beside the reason, or nil when no HTTP
+      # authentication scheme examined a credential.
+      #
+      # @param env [Hash, nil] the Rack env
+      # @return [String, nil]
+      def scheme(env)
+        env[SCHEME_ENV_KEY] if env.is_a?(Hash)
+      end
+
+      # Withdraw a stashed reason and its scheme. For a route that answers a
+      # 401 which is neither the session's nor a credential's (an expired
+      # SSO-linking token), so the router's anonymous stash is not rendered
+      # onto it.
       #
       # @param env [Hash, nil] the Rack env
       # @return [void]
       def forget(env)
-        env.delete(ENV_KEY) if env.is_a?(Hash)
+        return nil unless env.is_a?(Hash)
+
+        env.delete(ENV_KEY)
+        env.delete(SCHEME_ENV_KEY)
         nil
       end
 
