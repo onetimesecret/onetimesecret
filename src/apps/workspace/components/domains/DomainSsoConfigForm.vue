@@ -189,28 +189,32 @@ const unreadableFieldNames = computed(() =>
 );
 
 /**
- * The public origin + route for this VERIFIED domain's SSO URLs, PREVIEWED
- * from the domain host: always https and the default route from the contract
- * (pinned to the Ruby PROVIDER_ROUTE_MAP by sso-config-metadata-contract.spec.ts).
+ * The public origin + route for this domain's SSO URLs, PREVIEWED from the
+ * domain host: always https and the default route from the contract (pinned
+ * to the Ruby PROVIDER_ROUTE_MAP by sso-config-metadata-contract.spec.ts).
  * An operator route override (SAML_ROUTE_NAME etc.) or site.ssl=false is
  * invisible here, so the preview can differ from the real path; plumbing the
  * configured route through bootstrap config is tracked in #3932. Until then
  * the SP block labels host-derived values as a preview (spDetailsArePreview)
  * rather than hiding them — IdPs such as Okta and Entra demand the ACS URL
  * and Audience at app creation, before any record can exist here.
+ *
+ * Built for an unverified host too (#4579): tenant SSO is refused on that
+ * host until verification completes (sso_domain_unverified), so these URLs
+ * are never wrong there, only not live yet — the unverified notice says so.
  */
 const ssoRouteBase = computed(() => {
-  if (!props.domainVerified || !props.domainHost) return null;
+  if (!props.domainHost) return null;
   const route = SSO_PROVIDER_ROUTE_NAMES[props.formState.provider_type];
   return `https://${props.domainHost}/auth/sso/${route}`;
 });
 
 /**
  * For a saved saml record the API composes the SP identifiers itself
- * (sp_entity_id / acs_url); the provider type is locked while editing, so
- * the record's values are for the type shown. Before a record exists they
- * are previewed from a verified host. A saved null stays null: the API
- * withholds identifiers when the tenant auth route cannot use that host.
+ * (sp_entity_id / acs_url), verified domain or not; the provider type is
+ * locked while editing, so the record's values are for the type shown.
+ * Before a record exists (or when the API could not derive them — the
+ * domain could not be loaded) they are previewed from the host.
  */
 const savedSamlRecord = computed(() =>
   isEditing.value && props.ssoConfig?.provider_type === 'saml' ? props.ssoConfig : null
@@ -218,24 +222,26 @@ const savedSamlRecord = computed(() =>
 
 /**
  * ACS URL shown in the SP block: the API's acs_url for a saved record,
- * otherwise the verified-host preview (see ssoRouteBase for why that is
- * labelled a preview and #3932 for the real-route plumbing).
+ * otherwise the host preview (see ssoRouteBase for why that is labelled a
+ * preview and #3932 for the real-route plumbing).
  */
-const callbackUrl = computed(() => {
-  if (savedSamlRecord.value) return savedSamlRecord.value.acs_url;
-  return ssoRouteBase.value ? `${ssoRouteBase.value}/callback` : null;
-});
+const callbackUrl = computed(
+  () => savedSamlRecord.value?.acs_url ?? (ssoRouteBase.value ? `${ssoRouteBase.value}/callback` : null)
+);
 
 /**
- * True when the SP identifiers shown are host-derived rather than
- * API-composed because no saml record has been saved yet. The block then
- * swaps the "register these" hint for one
+ * True when either SP identifier shown is host-derived rather than
+ * API-composed: no saml record has been saved yet, or the API could not
+ * derive the value. The block then swaps the "register these" hint for one
  * that says the values are a preview of the default route and asks the admin
  * to save and confirm them here first (#3932 — an operator route override
  * would make the preview wrong, and a wrong ACS URL at the IdP fails every
- * login with an opaque IdP-side error).
+ * login with an opaque IdP-side error). Independent of verification: an
+ * unverified domain's API-composed values are the real ones, just not live.
  */
-const spDetailsArePreview = computed(() => !savedSamlRecord.value && !!ssoRouteBase.value);
+const spDetailsArePreview = computed(
+  () => !savedSamlRecord.value?.sp_entity_id || !savedSamlRecord.value?.acs_url
+);
 
 /** Days before expiry at which the softer "expiring soon" notice appears. */
 const CERT_EXPIRY_NOTICE_DAYS = 30;
@@ -264,13 +270,32 @@ const storedCertExpiry = computed(() => {
 
 /**
  * SP Entity ID (doubles as the SP metadata URL): the API's sp_entity_id for
- * a saved record, otherwise the verified-host preview (see ssoRouteBase;
- * #3932).
+ * a saved record, otherwise the host preview (see ssoRouteBase; #3932).
  */
-const spEntityId = computed(() => {
-  if (savedSamlRecord.value) return savedSamlRecord.value.sp_entity_id;
-  return ssoRouteBase.value ? `${ssoRouteBase.value}/metadata` : null;
-});
+const spEntityId = computed(
+  () => savedSamlRecord.value?.sp_entity_id ?? (ssoRouteBase.value ? `${ssoRouteBase.value}/metadata` : null)
+);
+
+/**
+ * Whether the callback / SP block renders at all — the same conditions as
+ * the two v-if guards on those blocks — so the unverified notice appears
+ * exactly when there are values for it to describe.
+ */
+const showsRegistrationValues = computed(() =>
+  isSaml.value ? !!(spEntityId.value || callbackUrl.value) : !!callbackUrl.value
+);
+
+/**
+ * Unverified-domain notice (#4579). Tenant SSO is refused on a domain whose
+ * ownership is not verified (auth_error=sso_domain_unverified), so the
+ * values in the callback / SP block are the ones to register at the IdP now
+ * and only go live once verification completes. Also covers a domain that
+ * lost its verification: the values already registered stay shown, and
+ * stay correct.
+ */
+const showDomainUnverifiedNotice = computed(
+  () => !props.domainVerified && showsRegistrationValues.value
+);
 
 const showDomainFilter = computed(() => false);
 
@@ -1102,6 +1127,31 @@ aria-hidden="true">*</span>
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- Unverified domain (#4579): tenant SSO is refused on this host until
+           ownership verification completes, so the values below are what to
+           register at the IdP now, not yet live. Directly above the callback /
+           SP block so an admin copying them reads it first. role="status"
+           like the certificate advisory; amber is the fixed warning hue
+           (#4132) and the text carries the meaning on its own (WCAG 1.4.1). -->
+      <div
+        v-if="showDomainUnverifiedNotice"
+        data-testid="sso-domain-unverified-notice"
+        role="status"
+        class="flex items-start gap-2 rounded-md bg-amber-50 px-3 py-2 dark:bg-amber-900/20">
+        <OIcon
+          collection="heroicons"
+          name="information-circle"
+          class="mt-0.5 size-4 flex-shrink-0 text-amber-600 dark:text-amber-400"
+          aria-hidden="true" />
+        <p class="text-sm text-amber-700 dark:text-amber-300">
+          {{
+            isSaml
+              ? t('web.organizations.sso.domain_unverified_notice_saml')
+              : t('web.organizations.sso.domain_unverified_notice')
+          }}
+        </p>
       </div>
 
       <!-- Callback URL (OAuth-family providers) -->

@@ -4,8 +4,10 @@
 // what these tests pin, is the wiring the form cannot supply itself: the
 // install-wide SAML switch (SAML_ENABLED, #4604) read from the bootstrap
 // payload through features.isSamlEnabled and handed to the form as the
-// samlEnabled prop. A regression that drops that binding would otherwise be
-// caught only by the type-checker.
+// samlEnabled prop, and the domain's verification state handed through as
+// domainVerified (#4579), which drives the form's unverified-domain notice.
+// A regression that drops either binding would otherwise be caught only by
+// the type-checker.
 
 import { createTestingPinia } from '@pinia/testing';
 import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
@@ -106,13 +108,13 @@ describe('SsoCredentialsModal', () => {
   let wrapper: VueWrapper;
   const i18n = createTestI18n();
 
-  const mountModal = async () => {
+  const mountModal = async ({ domainVerified = true }: { domainVerified?: boolean } = {}) => {
     const component = mount(SsoCredentialsModal, {
       props: {
         isOpen: true,
         domainExtId: 'dm_123',
         domainHost: 'secrets.example.com',
-        domainVerified: true,
+        domainVerified,
         orgId: 'org_ext_123',
         formState: createDefaultFormState(),
         ssoConfig: null,
@@ -161,5 +163,19 @@ describe('SsoCredentialsModal', () => {
     expect(wrapper.find('#domain-provider-entra_id').exists()).toBe(true);
     expect(wrapper.find('#domain-provider-oidc').exists()).toBe(true);
     expect(wrapper.findAll('input[type="radio"][name="provider_type"]')).toHaveLength(2);
+  });
+
+  it('hands domainVerified to the form: unverified shows the notice', async () => {
+    isSamlEnabledMock.mockReturnValue(true);
+    wrapper = await mountModal({ domainVerified: false });
+
+    expect(wrapper.find('[data-testid="sso-domain-unverified-notice"]').exists()).toBe(true);
+  });
+
+  it('hands domainVerified to the form: verified shows no notice', async () => {
+    isSamlEnabledMock.mockReturnValue(true);
+    wrapper = await mountModal({ domainVerified: true });
+
+    expect(wrapper.find('[data-testid="sso-domain-unverified-notice"]').exists()).toBe(false);
   });
 });
