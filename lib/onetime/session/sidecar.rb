@@ -104,7 +104,11 @@ module Onetime
     #                   ride on: their consume sides cannot log a miss (absence
     #                   is their common case), so a future refactor that
     #                   re-keys sessions mid-flow would strand them SILENTLY —
-    #                   except for this warning at the destroy site.
+    #                   except for this warning at the destroy site. A re-key
+    #                   at the END of a hand-off (Onetime::SessionRotation on
+    #                   MFA completion, #4466) names the fields it completed
+    #                   and deletes them on the old sid before the destroy,
+    #                   so the warning still means a stranded hand-off.
     #
     # ADMISSION RULE (the security contract): a field may set externalize: true
     # ONLY if its absence is the safe state. awaiting_mfa qualifies: with it

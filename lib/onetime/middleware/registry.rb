@@ -28,6 +28,7 @@ require 'rack'
 require 'rack/protection'
 require 'rack/utf8_sanitizer'
 
+require_relative 'cookie_tossing'
 require_relative 'http_origin_options'
 require_relative 'instrumented_authenticity_token'
 
@@ -159,10 +160,14 @@ module Onetime
           warn_when_disabled: true,
         },
 
-        # Cookie Tossing: Blocks session fixation via cookies set on subdomains.
+        # Cookie Tossing: refuses (403) a request that carries the session
+        # cookie more than once, so a cookie planted by a sibling or parent
+        # host cannot compete with the real one. Onetime::Middleware::
+        # CookieTossing binds the gem's check to site.session.key and gives it
+        # per-request state (see that file). On by default since v0.27.0.
         'CookieTossing' => {
           key: :cookie_tossing,
-          klass: Rack::Protection::CookieTossing,
+          klass: Onetime::Middleware::CookieTossing,
           warn_when_disabled: true,
         },
 
