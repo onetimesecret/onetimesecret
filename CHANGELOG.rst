@@ -25,6 +25,16 @@ Added
   ``docs/authentication/per-install-sso.md`` and ``per-domain-sso.md`` for
   setup, and ``saml-policy.md`` for interoperability options. (#4450)
 
+- SAML is off unless ``SAML_ENABLED`` is ``true``, one switch for the
+  platform and every custom domain. While it is off, no SAML route is
+  registered, the SAML callback answers ``404``, no SAML sign-in button is
+  shown, and the domain SSO API refuses to save or edit a SAML
+  configuration (disabling or deleting one still works). Saved
+  configurations are kept and resume when it is turned back on. A custom
+  domain restricted to SSO that uses SAML has no sign-in method while it is
+  off. Other SSO providers are unaffected. An unrecognized value fails boot.
+  (#4604)
+
 - ``jobs.domain_refresh.dns_propagation_window`` (default ``24h``). Custom
   domains that are not yet verified or not yet resolving, and were added,
   edited or checked within this window, fill any room the regular page leaves
@@ -342,6 +352,17 @@ Changed
   already-applied migration is refused for a modifying single run, and an
   ambiguous partial ID is refused instead of picking the first match.
 
+- ``site.middleware.cookie_tossing`` (``MIDDLEWARE_COOKIE_TOSSING``) now
+  defaults to on. A request that carries the session cookie more than once,
+  as a cookie planted from a sibling or parent host would, is refused with
+  ``403`` whichever cookie comes first; the response clears the session
+  cookie for the request host and for every parent domain of it, so the one
+  refused request removes both the planted cookie and the legitimate one and
+  the next request starts a fresh session. The middleware is bound to the
+  configured session cookie name and keeps no state between requests (the
+  stock rack-protection class remembers a refused request for the life of
+  the process). Set ``MIDDLEWARE_COOKIE_TOSSING=false`` to turn it off.
+
 Removed
 -------
 
@@ -477,6 +498,12 @@ Fixed
   page for an email that is never sent. #4576
 - A selected plan and internal redirect carry through sign-in after either
   signup. #4576
+
+- Full authentication mode: completing the second factor now issues a new
+  session id, as the password step already did. The old id is ended the way
+  a logout ends it, and the signed-in session and its active-session row
+  carry across. A sign-in whose old id cannot be ended is refused and the
+  user signs in again, so no half-authenticated session is ever left behind.
 
 Security
 --------
