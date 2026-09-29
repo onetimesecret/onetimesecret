@@ -5,6 +5,7 @@ import {
   scrubUrlWithPatterns,
 } from '@/plugins/core/diagnostics/scrubbers';
 import { parseSessionFailure } from '@/schemas/contracts/session-failure';
+import { classifyError, errorGuards } from '@/schemas/errors';
 import { useLanguageStore } from '@/shared/stores';
 import {
   COORDINATOR_DISPOSITION_KEY,
@@ -200,12 +201,22 @@ export const errorInterceptor = (error: AxiosError) => {
  * Nothing else is reported: a network error, a timeout or a 5xx on an API
  * call says nothing about the session, and the coordinator's own request is
  * what counts verification failures.
+ *
+ * The message travels with the report. When the coordinator owns the
+ * rejection the caller's toast is suppressed, and if the reconciliation then
+ * produces no transition the coordinator shows one fallback notice with the
+ * text the caller would have shown: the classified message when it is of
+ * human interest (the same rule `useAsyncHandler.notifyUser` applies), else
+ * null for the generic error text.
  */
 function noteRejection(error: AxiosError): void {
   if (error.response?.status !== 401) return;
   try {
+    const classified = classifyError(error);
+    const message = errorGuards.isOfHumanInterest(classified) ? classified.message : null;
     const disposition: RejectionDisposition = useAuthStore().noteApiRejection(
-      parseSessionFailure(error)
+      parseSessionFailure(error),
+      message
     );
     // Attach the disposition to the error so useAsyncHandler.coordinatorOwnsMessage
     // reads it verbatim instead of re-deriving carve-outs (ADR-046#rejection-disposition).

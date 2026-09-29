@@ -164,4 +164,43 @@ describe('App: session state at the root', () => {
       expect(useNotificationsStore().show).not.toHaveBeenCalled();
     });
   });
+
+  // The coordinator owns the toasts of the 401s it reconciles. When that
+  // reconciliation settles without a transition it publishes one notice, and
+  // this is where it becomes a message (ADR-046#rejection-disposition).
+  describe('one fallback notice per owned rejection batch', () => {
+    it('shows the suppressed caller message as an error', async () => {
+      const { authStore } = mountApp('authenticated', true);
+      const notifications = useNotificationsStore();
+
+      authStore.rejectionNotice = { serial: 1, count: 3, message: 'Authentication Required' };
+      await nextTick();
+
+      expect(notifications.show).toHaveBeenCalledTimes(1);
+      expect(notifications.show).toHaveBeenCalledWith('Authentication Required', 'error');
+    });
+
+    it('falls back to the generic text when the caller had none', async () => {
+      const { authStore } = mountApp('authenticated', true);
+
+      authStore.rejectionNotice = { serial: 1, count: 1, message: null };
+      await nextTick();
+
+      expect(useNotificationsStore().show).toHaveBeenCalledWith('web.COMMON.unexpected_error', 'error');
+    });
+
+    it('a new serial is a new notice; clearing the value says nothing', async () => {
+      const { authStore } = mountApp('authenticated', true);
+      const notifications = useNotificationsStore();
+
+      authStore.rejectionNotice = { serial: 1, count: 1, message: 'Authentication Required' };
+      await nextTick();
+      authStore.rejectionNotice = null;
+      await nextTick();
+      authStore.rejectionNotice = { serial: 2, count: 1, message: 'Authentication Required' };
+      await nextTick();
+
+      expect(notifications.show).toHaveBeenCalledTimes(2);
+    });
+  });
 });
