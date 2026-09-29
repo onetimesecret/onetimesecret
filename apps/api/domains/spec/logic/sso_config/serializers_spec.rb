@@ -81,19 +81,51 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::Serializers do
       allow(OT).to receive(:conf).and_return('site' => { 'ssl' => true })
     end
 
-    it 'returns tenant-host identifiers for a verified domain' do
-      expect(serializer.saml_sp_identifiers(config)).to eq(
+    let(:tenant_identifiers) do
+      {
         sp_entity_id: 'https://secrets.example.com/auth/sso/saml/metadata',
         acs_url: 'https://secrets.example.com/auth/sso/saml/callback',
-      )
+      }
     end
 
+    it 'returns tenant-host identifiers for a verified domain' do
+      expect(serializer.saml_sp_identifiers(config)).to eq(tenant_identifiers)
+    end
+
+    # #4579: the values to register at the IdP, live once verification
+    # completes. The tenant hook refuses SSO on the domain until then
+    # (sso_domain_unverified), so the IdP never receives anything else.
     context 'when domain ownership is unverified' do
       let(:verified) { false }
 
-      it 'withholds both identifiers' do
+      it 'still returns the tenant-host identifiers, never the canonical host' do
+        expect(serializer.saml_sp_identifiers(config)).to eq(tenant_identifiers)
+      end
+    end
+
+    context 'when the domain has no display_domain' do
+      let(:custom_domain) do
+        instance_double(Onetime::CustomDomain, display_domain: '  ', verified: true)
+      end
+
+      it 'returns both identifiers as nil' do
         expect(serializer.saml_sp_identifiers(config)).to eq(sp_entity_id: nil, acs_url: nil)
       end
+    end
+
+    context 'when the domain cannot be loaded' do
+      let(:custom_domain) { nil }
+
+      it 'returns both identifiers as nil' do
+        expect(serializer.saml_sp_identifiers(config)).to eq(sp_entity_id: nil, acs_url: nil)
+      end
+    end
+
+    it 'returns both identifiers as nil for a non-saml record' do
+      oidc = build_domain_sso_config(:oidc)
+      allow(oidc).to receive(:custom_domain).and_return(custom_domain)
+
+      expect(serializer.saml_sp_identifiers(oidc)).to eq(sp_entity_id: nil, acs_url: nil)
     end
   end
 

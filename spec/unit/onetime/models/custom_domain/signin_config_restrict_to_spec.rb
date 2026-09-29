@@ -419,6 +419,37 @@ RSpec.describe Onetime::CustomDomain::SigninConfig do
         .with('domain-4139').and_return(nil)
       expect(awaiting).to be(false)
     end
+
+    # The omniauth tenant hook has already run the ladder and hands its
+    # reason in (QA-09): the rule is applied to it without a second ladder run.
+    context 'with a precomputed reason' do
+      before { allow(Onetime::CustomDomain::SsoConfig).to receive(:tenant_sso_unavailable_reason) }
+
+      def awaiting_with(reason)
+        described_class.tenant_sso_awaiting_verification?('domain-4139', reason: reason)
+      end
+
+      it 'applies the rule to it without running the ladder' do
+        expect(awaiting_with(:domain_unverified)).to be(true)
+        expect(Onetime::CustomDomain::SsoConfig).not_to have_received(:tenant_sso_unavailable_reason)
+      end
+
+      it 'is false when the SigninConfig withholds SSO' do
+        allow(described_class).to receive(:sso_permitted_for?).with('domain-4139').and_return(false)
+        expect(awaiting_with(:domain_unverified)).to be(false)
+      end
+
+      it 'is false for any other rung, without reading the SigninConfig' do
+        expect(awaiting_with(:sso_config_disabled)).to be(false)
+        expect(described_class).not_to have_received(:sso_permitted_for?)
+      end
+
+      # nil is a ladder answer (available), not "run the ladder".
+      it 'is false for an available domain, without running the ladder' do
+        expect(awaiting_with(nil)).to be(false)
+        expect(Onetime::CustomDomain::SsoConfig).not_to have_received(:tenant_sso_unavailable_reason)
+      end
+    end
   end
 
   describe '.global_restriction_available?' do

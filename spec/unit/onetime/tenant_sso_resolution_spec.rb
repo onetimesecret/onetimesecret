@@ -212,6 +212,54 @@ RSpec.describe Onetime::TenantSsoResolution do
     end
   end
 
+  # #4579: ConfigSerializer#build_sso_config withholds the platform fallback
+  # on a host whose tenant SSO waits only on verification, because the
+  # omniauth hook refuses every SSO route there.
+  describe '#awaiting_verification?' do
+    before do
+      allow(Onetime::CustomDomain::SigninConfig).to receive(:tenant_sso_awaiting_verification?).and_return(true)
+    end
+
+    it 'asks the shared predicate with the records the tenant lookup loaded' do
+      stub_domain
+      stub_sso(available: false)
+      resolution = described_class.new(display_domain)
+
+      expect(resolution).to be_awaiting_verification
+      expect(Onetime::CustomDomain::SigninConfig).to have_received(:tenant_sso_awaiting_verification?)
+        .with(domain_id, sso_config: sso_config, custom_domain: custom_domain)
+      expect(Onetime::CustomDomain::SsoConfig).to have_received(:find_by_domain_id).once
+    end
+
+    it 'is false while tenant SSO is available' do
+      stub_domain
+      stub_sso
+      expect(described_class.new(display_domain)).not_to be_awaiting_verification
+      expect(Onetime::CustomDomain::SigninConfig).not_to have_received(:tenant_sso_awaiting_verification?)
+    end
+
+    it 'is false without an SsoConfig record' do
+      stub_domain
+      stub_sso(nil)
+      expect(described_class.new(display_domain)).not_to be_awaiting_verification
+      expect(Onetime::CustomDomain::SigninConfig).not_to have_received(:tenant_sso_awaiting_verification?)
+    end
+
+    it 'is false on a failed domain read' do
+      stub_failing_domain_read
+      expect(described_class.new(display_domain)).not_to be_awaiting_verification
+    end
+
+    it 'memoizes the answer' do
+      stub_domain
+      stub_sso(available: false)
+      resolution = described_class.new(display_domain)
+
+      3.times { resolution.awaiting_verification? }
+      expect(Onetime::CustomDomain::SigninConfig).to have_received(:tenant_sso_awaiting_verification?).once
+    end
+  end
+
   # THE FAILURE is keyed on the classification, not the read. DomainStrategy
   # publishes display_domain unconditionally (canonical fallback), so a
   # canonical render walks this same ladder; a record keyed on the operator's

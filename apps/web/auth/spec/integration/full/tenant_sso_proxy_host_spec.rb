@@ -86,36 +86,83 @@ RSpec.describe 'Tenant SSO behind a Host-rewriting proxy', :shared_db_state, typ
     expect(location).to start_with("https://login.microsoftonline.com/#{test_sso_config.tenant_id}/")
   end
 
-  it 'refuses an unverified tenant before credentials are cached or injected' do
-    test_custom_domain.verified = false
-    test_custom_domain.save
-    # Password sign-in is opted in, so SSO is not this host's only method and
-    # restrict_to lets the request reach the tenant ladder pinned below. An
-    # SSO-only host stops earlier, at the restrict_to gate (next example).
-    Onetime::CustomDomain::SigninConfig.create!(
-      domain_id: test_custom_domain.identifier,
-      enabled: true,
-      signin_enabled: true,
-      sso_enabled: true,
-    )
+  # #4579: tenant SSO waiting only on domain verification is refused with a
+  # dedicated error on every phase, never handed to the platform fallback.
+  context 'when the domain is unverified and password sign-in is opted in' do
+    before do
+      test_custom_domain.verified = false
+      test_custom_domain.save
+      # Password sign-in is opted in, so SSO is not this host's only method
+      # and restrict_to lets the request reach the tenant ladder. An SSO-only
+      # host stops earlier, at the restrict_to gate (next example).
+      Onetime::CustomDomain::SigninConfig.create!(
+        domain_id: test_custom_domain.identifier,
+        enabled: true,
+        signin_enabled: true,
+        sso_enabled: true,
+      )
 
-    # The hook logs other events (e.g. :omniauth_tenant_resolution_start) on
-    # every request; let those through so only the refusal is pinned.
-    allow(Auth::Logging).to receive(:log_auth_event).and_call_original
-    expect(Auth::Logging).to receive(:log_auth_event).with(
-      :omniauth_tenant_sso_not_enabled,
-      level: :info,
-      host: tenant_domain,
-      domain_id: test_custom_domain.identifier,
-      reason: :domain_unverified,
-    ).and_call_original
-    expect(Auth::Config::Hooks::OmniAuthTenant).not_to receive(:inject_tenant_credentials)
+      # The hook logs other events (e.g. :omniauth_tenant_resolution_start)
+      # on every request; let those through so only the refusal is pinned.
+      allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+    end
 
-    header 'Host', origin_host
-    header 'Apx-Incoming-Host', tenant_domain
-    post '/auth/sso/entra'
+    def post_sso_through_proxy
+      header 'Host', origin_host
+      header 'Apx-Incoming-Host', tenant_domain
+      post '/auth/sso/entra'
+    end
 
-    expect(last_request.env['onetime.tenant_sso_config']).to be_nil
+    it 'refuses with sso_domain_unverified before credentials are cached or injected' do
+      expect(Auth::Logging).to receive(:log_auth_event).with(
+        :omniauth_tenant_domain_unverified,
+        level: :warn,
+        host: tenant_domain,
+        domain_id: test_custom_domain.identifier,
+        provider_type: test_sso_config.provider_type,
+        pending_tenant_flow_dropped: false,
+      ).and_call_original
+      expect(Auth::Logging).not_to receive(:log_auth_event).with(:omniauth_tenant_sso_not_enabled, anything)
+      expect(Auth::Config::Hooks::OmniAuthTenant).not_to receive(:inject_tenant_credentials)
+
+      post_sso_through_proxy
+
+      expect(last_response.status).to eq(302)
+      expect(last_response.headers['Location']).to end_with('/signin?auth_error=sso_domain_unverified')
+      expect(last_request.env['onetime.tenant_sso_config']).to be_nil
+      expect(last_request.env['rack.session'].to_h.keys.map(&:to_s))
+        .not_to include('omniauth_tenant_domain_id', 'omniauth_tenant_host')
+    end
+
+    it 'does not fall back to platform SSO even when tenants may fall back' do
+      allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+      expect(Auth::Config::Hooks::OmniAuthTenant).not_to receive(:handle_missing_tenant_config)
+
+      post_sso_through_proxy
+
+      expect(last_response.headers['Location']).to end_with('/signin?auth_error=sso_domain_unverified')
+    end
+
+    # A domain whose sign-in settings withhold SSO is not awaiting
+    # verification: verifying it would not turn tenant SSO on, so it keeps
+    # the generic ladder refusal it gets once verified.
+    it 'keeps the generic refusal when the sign-in settings withhold SSO' do
+      Onetime::CustomDomain::SigninConfig.delete_for_domain!(test_custom_domain.identifier)
+      Onetime::CustomDomain::SigninConfig.create!(
+        domain_id: test_custom_domain.identifier,
+        enabled: true,
+        signin_enabled: true,
+        sso_enabled: false,
+      )
+      expect(Auth::Logging).to receive(:log_auth_event).with(
+        :omniauth_tenant_sso_not_enabled, hash_including(reason: :domain_unverified)
+      ).and_call_original
+      expect(Auth::Logging).not_to receive(:log_auth_event).with(:omniauth_tenant_domain_unverified, anything)
+
+      post_sso_through_proxy
+
+      expect(last_response.headers['Location']).to include('auth_error=sso_not_configured')
+    end
   end
 
   it 'answers 404 for an SSO-only tenant while its domain is unverified (#4517)' do
@@ -136,6 +183,40 @@ RSpec.describe 'Tenant SSO behind a Host-rewriting proxy', :shared_db_state, typ
     post '/auth/sso/entra'
 
     expect(last_response.status).to eq(404)
+  end
+
+  # The callback of a flow started while that SSO-only domain was verified
+  # meets the same 404 once verification lapses, and the 404 drops the
+  # pending tenant context: markers and the OAuth state / PKCE binding. Left
+  # behind, the IdP's answer could still complete the refused flow once the
+  # domain verified again.
+  it 'drops the pending tenant context when it 404s a callback after verification lapsed' do
+    header 'Host', origin_host
+    header 'Apx-Incoming-Host', tenant_domain
+    post '/auth/sso/entra'
+
+    location = last_response.headers['Location'].to_s
+    expect(location).to start_with("https://login.microsoftonline.com/#{test_sso_config.tenant_id}/")
+    state = CGI.parse(URI.parse(location).query.to_s)['state'].first
+    expect(last_request.env['rack.session'].to_h.keys.map(&:to_s))
+      .to include('omniauth_tenant_domain_id', 'omniauth_tenant_host', 'omniauth.state')
+
+    test_custom_domain.verified = false
+    test_custom_domain.save
+
+    allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+    expect(Auth::Logging).to receive(:log_auth_event).with(
+      :restrict_to_omniauth_rejected, hash_including(host: tenant_domain, pending_tenant_flow_dropped: true)
+    ).and_call_original
+
+    header 'Host', origin_host
+    header 'Apx-Incoming-Host', tenant_domain
+    get '/auth/sso/entra/callback', code: 'idp-code', state: state
+
+    expect(last_response.status).to eq(404)
+    expect(last_request.env['rack.session'].to_h.keys.map(&:to_s)).not_to include(
+      'omniauth_tenant_domain_id', 'omniauth_tenant_host', *Onetime::SsoProvider::FlowSessionKeys::ALL
+    )
   end
 
   it 'sends the IdP a redirect_uri on the tenant domain, not the origin target' do

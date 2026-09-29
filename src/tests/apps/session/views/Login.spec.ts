@@ -269,6 +269,20 @@ describe('Login.vue auth_error handling', () => {
       expect(alert.text()).not.toContain('web.login.errors.sso_not_configured');
     });
 
+    it('displays the pending-verification copy when auth_error=sso_domain_unverified', async () => {
+      // Tenant SSO on a custom domain whose ownership is not verified yet is
+      // refused before the IdP (#4579): it is neither missing nor broken, and
+      // must not read as the generic SSO failure.
+      wrapper = await createWrapper({ auth_error: 'sso_domain_unverified' });
+      await flushPromises();
+
+      const alert = wrapper.find('[role="alert"]');
+      expect(alert.exists()).toBe(true);
+      expect(alert.text()).toContain('web.login.errors.sso_domain_unverified');
+      expect(alert.text()).not.toContain('web.login.errors.sso_failed');
+      expect(alert.text()).not.toContain('web.login.errors.sso_not_configured');
+    });
+
     it('shows a generic error for unknown codes (never a blank page)', async () => {
       // Regression guard for issue #3478: an auth_error code this bundle does
       // not recognize (e.g. from a backend newer than the deployed frontend)

@@ -486,8 +486,9 @@ module Core
         # Resolution priority:
         #   0. AUTH_ENABLED master switch off => disabled, unconditionally
         #   1. CustomDomain::SsoConfig for tenant (if custom domain with domain SSO config)
-        #   2. Platform SSO providers (from env vars, if fallback allowed)
-        #   3. Disabled (empty providers)
+        #   2. Tenant SSO awaiting domain verification => disabled (#4579)
+        #   3. Platform SSO providers (from env vars, if fallback allowed)
+        #   4. Disabled (empty providers)
         #
         # @param view_vars [Hash] View variables containing domain context
         # @return [Boolean, Hash] false if disabled, otherwise config hash
@@ -503,11 +504,24 @@ module Core
             return { 'enabled' => false, 'providers' => [] }
           end
 
-          # Try tenant-specific SSO config first
-          tenant_config = resolve_tenant_sso_config(view_vars)
+          # Try tenant-specific SSO config first (resolve_tenant_sso_config's
+          # answer). One resolution for both questions below: view_vars built
+          # without a rack env carry none, and a second fresh one would read
+          # the domain again.
+          resolution    = tenant_sso_resolution(view_vars)
+          tenant_config = resolution.sso_config
 
           if tenant_config
             return build_tenant_sso_response(tenant_config)
+          end
+
+          # Tenant SSO waiting only on domain verification (#4579): the
+          # omniauth hook refuses every SSO route on this host with
+          # sso_domain_unverified, platform providers included, so the
+          # fallback below must not render them. Keyed on the domain record
+          # the same way the hook is, whatever the host's classification.
+          if resolution.awaiting_verification?
+            return { 'enabled' => false, 'providers' => [] }
           end
 
           # No tenant config resolved. Honor the operator's fallback policy:

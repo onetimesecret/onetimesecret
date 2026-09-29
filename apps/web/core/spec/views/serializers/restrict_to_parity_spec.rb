@@ -243,6 +243,30 @@ RSpec.describe 'restrict_to display/gate parity' do
       end
     end
 
+    # Fallback ON changes nothing (#4579): the omniauth hook refuses every
+    # SSO route on this host with sso_domain_unverified, platform providers
+    # included, so the fallback arm cannot establish the pin either.
+    context 'with a tenant SsoConfig on an unverified domain and platform fallback ON' do
+      let(:custom_domain) { instance_double(Onetime::CustomDomain, identifier: domain_id, verified: false) }
+
+      before do
+        allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+        allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
+          .with(domain_id).and_return(tenant_sso_config)
+      end
+
+      it 'agrees' do
+        expect_parity
+      end
+
+      it "keeps 'sso' on both sides and resolves :unavailable" do
+        expect(display_resolution).to be_unavailable
+        expect(gate_resolution).to be_unavailable
+        expect(gate_resolution.restrict_to).to eq('sso')
+        expect(gate_resolution.allows?('sso')).to be false
+      end
+    end
+
     context 'with the AUTH_ENABLED master switch off' do
       before do
         allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)

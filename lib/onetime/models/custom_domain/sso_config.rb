@@ -549,7 +549,8 @@ module Onetime
         # the boolean face of it, so there is exactly one implementation of the
         # decision. Callers that only branch use the predicate; callers that
         # must also report WHY (the omniauth runtime hook logs the rejection
-        # cause on :omniauth_tenant_sso_not_enabled) use this one.
+        # cause on :omniauth_tenant_sso_not_enabled, and refuses outright when
+        # the domain is only awaiting verification) use this one.
         #
         # Available only when the domain has its OWN enabled SsoConfig
         # (credentials store), verified ownership, AND
@@ -599,7 +600,13 @@ module Onetime
         #                                rungs so an SSO-only domain running
         #                                SAML has NO sign-in method while
         #                                the switch is off (documented trade)
-        #   :domain_unverified         - custom-domain ownership is not verified
+        #   :domain_unverified         - custom-domain ownership is not verified.
+        #                                When the next rung would pass, this
+        #                                is SigninConfig
+        #                                .tenant_sso_awaiting_verification?:
+        #                                the omniauth hook refuses SSO on the
+        #                                host (sso_domain_unverified) instead
+        #                                of falling back to platform SSO (#4579)
         #   :sso_not_permitted         - SigninConfig withholds SSO for the domain
         #
         # @param domain_id [String] CustomDomain identifier (objid)
@@ -681,14 +688,20 @@ module Onetime
         # branded front door advertises what the domain owner opted into, not
         # an operator fallback) — that asymmetry is unchanged.
         #
+        # No fallback arm for a domain whose tenant SSO waits only on
+        # verification (SigninConfig.tenant_sso_awaiting_verification?,
+        # #4579): the omniauth hook refuses every SSO route on that host with
+        # sso_domain_unverified, platform providers included, so offering
+        # them here would advertise buttons the runtime refuses.
+        #
         # @param domain_id [String, nil] CustomDomain identifier (objid)
         # @param auth [Hash, nil] site.authentication settings (injectable for tests)
         # @return [Boolean] true if the host offers some SSO sign-in path
         def sso_available_for_tenant_host?(domain_id, auth: nil)
           return true if domain_id && tenant_sso_available_for?(domain_id, auth: auth)
-          return false unless Onetime.auth_config.allow_platform_fallback_for_tenants?
+          return false unless Onetime.auth_config.allow_platform_fallback_for_tenants? && Onetime.auth_config.sso_enabled?
           return false unless Onetime::CustomDomain::SigninConfig.global_auth_enabled(auth)
-          return false unless Onetime.auth_config.sso_enabled?
+          return false if domain_id && Onetime::CustomDomain::SigninConfig.tenant_sso_awaiting_verification?(domain_id, auth: auth)
 
           Onetime.auth_config.sso_providers.any? do |provider|
             route_name = provider['route_name'].to_s

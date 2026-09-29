@@ -1,22 +1,24 @@
 # Tenant Connect system test
 
-`connected-identities-custom-host.spec.ts` is a dedicated security-acceptance journey. It is excluded from the normal Playwright projects and appears only when `E2E_TENANT_CONNECT_ARMED=1`.
+`connected-identities-custom-host.spec.ts` is a dedicated security-acceptance journey. It is excluded from the normal Playwright projects and appears only when `E2E_TENANT_CONNECT_ARMED=1`. `tenant-sso-unverified-domain.spec.ts` is its companion check (#4579): the same tenant SSO shape on a domain whose ownership is not verified must be refused.
 
 The target must be a disposable full-auth test process with:
 
 - domains and organization SSO enabled;
 - one TXT-verified custom domain with password and OIDC sign-in enabled;
+- a second custom domain in the same organization, identical except that it is NOT verified, with no accounts on it;
 - two open accounts with unsuspended Customers and active exact-domain memberships;
 - no identity on either account before the run;
 - one test OIDC tuple that the first account can bind and the second account then conflicts with.
 
-Three files in this directory are the whole harness:
+Four files in this directory are the whole harness:
 
-| File                                       | Role                                                                                                                                                                                                                                                               |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `tenant_connect_test_boot.rb`              | Boot shim for the **server** process only (`RUBYOPT=-r`). Enables OmniAuth test mode with the `E2E_TENANT_CONNECT_*` tuple so the tenant OIDC callback completes without a live IdP. Nothing else: the tenant Connect kill switch is the application's real value. Refuses to load outside an armed test env. |
-| `tenant_connect_seed.rb`                   | Seeds the organization, custom domain, `SsoConfig` + `SigninConfig`, the two password accounts, their exact-domain memberships, and clears any identity for the tuple. Also migrates the authdb (the `RodauthMigrations` initializer skips under `RACK_ENV=test`). |
-| `connected-identities-custom-host.spec.ts` | The journey. Runs under the `tenant-connect` project, which maps `*.example.com` / `*.example.org` to `127.0.0.1` via Chromium's host resolver.                                                                                                                    |
+| File                                       | Role                                                                                                                                                                                                                                                                                                                                                          |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tenant_connect_test_boot.rb`              | Boot shim for the **server** process only (`RUBYOPT=-r`). Enables OmniAuth test mode with the `E2E_TENANT_CONNECT_*` tuple so the tenant OIDC callback completes without a live IdP. Nothing else: the tenant Connect kill switch is the application's real value. Refuses to load outside an armed test env.                                                 |
+| `tenant_connect_seed.rb`                   | Seeds the organization, the verified custom domain, its `SsoConfig` + `SigninConfig`, the two password accounts, their exact-domain memberships, and clears any identity for the tuple. Also seeds the companion's unverified domain with the identical SSO shape, and migrates the authdb (the `RodauthMigrations` initializer skips under `RACK_ENV=test`). |
+| `connected-identities-custom-host.spec.ts` | The journey. Runs under the `tenant-connect` project, which maps `*.example.com` / `*.example.org` to `127.0.0.1` via Chromium's host resolver.                                                                                                                                                                                                               |
+| `tenant-sso-unverified-domain.spec.ts`     | The companion check, in the same project against the same process, on the `E2E_TENANT_CONNECT_UNVERIFIED_ORIGIN` host.                                                                                                                                                                                                                                        |
 
 ## Local run
 
@@ -43,6 +45,7 @@ export E2E_TENANT_CONNECT_ISSUER=https://idp.example.test
 export E2E_TENANT_CONNECT_PASSWORD='TestPassword123!'
 export E2E_TENANT_CONNECT_OWNER_EMAIL=owner@example.test
 export E2E_TENANT_CONNECT_SECOND_EMAIL=member@example.test
+export E2E_TENANT_CONNECT_UNVERIFIED_ORIGIN=http://unverified.example.com:7143
 ```
 
 Boot the armed server (the shim goes into this process and nowhere else; `bundle exec` puts `bundler/setup` ahead of it in `RUBYOPT`):
@@ -61,11 +64,13 @@ PLAYWRIGHT_BASE_URL="$E2E_TENANT_CONNECT_ORIGIN" pnpm test:playwright --project=
 
 The first browser test covers panel → `/reauth` → Connect initiation → callback → back on the panel with the bound identity listed, and asserts that the session cookie is host-only. The second account then attempts the same full tuple and proves the ownership refusal leaves its session unchanged and creates no identity.
 
-Two facts the spec is written around:
+Two facts the journey is written around:
 
 - The Connect initiation that spends the login-time proof is issued from inside the page (`fetch` with `redirect: 'manual'`), not via `page.context().request`: the synthetic host resolves only through Chromium's `--host-resolver-rules`, which Playwright's Node-side request context does not consult.
 - A completed Connect returns to the panel on its own: the callback honours the `redirect` field the panel posts with the SSO form (validated as an internal path at initiation), so the spec waits for the connections path after the Connect click rather than opening the panel explicitly. `GET /auth/identities` masks the subject to `first4…last4`, and that masked form is what the panel assertions match.
 
+The companion check opens `/signin` on the unverified host as an anonymous visitor, asserts that no SSO button is offered, then submits the same form `SsoButton` posts (`POST /auth/sso/oidc`). The initiation must answer `302` to `/signin?auth_error=sso_domain_unverified` on the same host, the page must show the `sso_domain_unverified` message (not the generic SSO failure copy), and no request may reach `/auth/sso/oidc/callback` on any host. Under OmniAuth test mode the request phase stands in for the IdP by redirecting straight to that callback, so a callback request is what "reached the IdP" looks like here. The server logs `omniauth_tenant_domain_unverified` for the refusal.
+
 ## CI
 
-`.github/workflows/e2e-tenant-connect.yml` runs this project on `workflow_dispatch` and on pull requests touching `e2e/system/**`, `e2e/support/**`, `e2e/playwright.config.ts`, `apps/web/auth/**`, `src/apps/workspace/account/**` or `src/shared/utils/sso-link-evidence.ts`. It is the same bare-metal shape as `e2e-full-auth.yml` (Valkey from `compose.test.yml`, `bin/setup`, `pnpm run build`, `bin/ots server` on the runner) with the lane env above provisioned once into `$GITHUB_ENV`, the shim injected through the boot step's `RUBYOPT`, a log assertion that the placeholder OIDC route registered and the shim loaded, the seed script, the Playwright run, the shared flaky gate, and the report / traces / server log uploaded as artifacts. The tenant Connect kill switch (`OmniAuthConnect.tenant_connect_enabled?`) is not touched by any of it; the lane runs against the shipped value.
+`.github/workflows/e2e-tenant-connect.yml` runs this project on `workflow_dispatch` and on pull requests touching `e2e/system/**`, `e2e/support/**`, `e2e/playwright.config.ts`, `apps/web/auth/**`, `lib/onetime/models/custom_domain/sso_config.rb`, `lib/onetime/models/custom_domain/signin_config.rb`, `lib/onetime/tenant_sso_resolution.rb`, `src/apps/workspace/account/**`, `src/shared/utils/sso-link-evidence.ts` or `src/apps/session/views/Login.vue`. It is the same bare-metal shape as `e2e-full-auth.yml` (Valkey from `compose.test.yml`, `bin/setup`, `pnpm run build`, `bin/ots server` on the runner) with the lane env above provisioned once into `$GITHUB_ENV`, the shim injected through the boot step's `RUBYOPT`, a log assertion that the placeholder OIDC route registered and the shim loaded, the seed script, the Playwright run, the shared flaky gate, and the report / traces / server log uploaded as artifacts. The tenant Connect kill switch (`OmniAuthConnect.tenant_connect_enabled?`) is not touched by any of it; the lane runs against the shipped value.
