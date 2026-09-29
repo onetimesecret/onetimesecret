@@ -327,8 +327,12 @@ may be inferred from the IdP's email claim.
      can satisfy it only when its credential is usable from the tenant host and
      meets that policy's user-verification and MFA requirements. Rodauth's
      `password_grace_period` and `confirm_password` features are conventional
-     primitives; neither is enabled today. A session restored by the `remember`
-     feature does not satisfy the check. The platform Connect path enforces
+     primitives; neither is enabled today. Rodauth's `remember` feature is not
+     enabled either: the remember-me checkbox extends the signed-in session
+     itself (`Onetime::RememberMe`, `lib/onetime/session/remember_me.rb`), so
+     no session is restored from a stored credential without a login
+     ceremony, and a remembered session's proof ages out like any other. The
+     platform Connect path enforces
      this requirement as of #4411 (`RecentReauth::CONNECT_MAX_AGE`, 300s; see
      [per-install-sso.md](per-install-sso.md#recent-full-re-authentication-gates-the-intent-4411)).
 

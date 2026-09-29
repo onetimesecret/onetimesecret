@@ -70,3 +70,17 @@ Familia 2.12 unlocks additional cryptographic options. These are available but n
 | Per-field `algorithm:` override | Available | Enables reader-before-writer XChaCha20 rollout: deploy readers that accept both algorithms, then flip writers per-field. |
 | Blank `VERIFIABLE_ID_HMAC_SECRET` rejection | Active | Library rejects blank secrets at mint time (delano/familia#335). OTS boot-time derivation guard (`configure_familia.rb`) is defense-in-depth. |
 | Verification-on-read | Blocked | `verified_identifier?` would reject identifiers minted under prior keys. Requires upstream secret-history mechanism; re-minting is not viable. Tracked in #3630. |
+
+## Implementation Notes
+
+### `ACCOUNT_ID_SECRET` no longer keys a remember-me cookie (2026-09-28)
+
+The decision table lists remember-me cookies among the values
+`ACCOUNT_ID_SECRET` obfuscates. Rodauth's `remember` feature is no longer
+enabled: the remember-me checkbox extends the signed-in session itself
+(`Onetime::RememberMe`, `lib/onetime/session/remember_me.rb`;
+`apps/web/auth/config/features/remember_me.rb`), so no remember cookie is
+issued. The secret still obfuscates the account ID in email-link tokens
+(`account_id_obfuscation` in `apps/web/auth/config/base.rb`) and keys the
+diagnostics refs (`lib/onetime/utils/diagnostics_ref.rb`). The lifecycle
+category and rotation guidance are unchanged.

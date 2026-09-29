@@ -416,9 +416,18 @@ Recorded as a baseline so #4466 and #4467 start from observed behaviour, in
   session data, the active-session row and the sidecar values across
   (`Onetime::SessionRotation`, called from `after_two_factor_authentication`;
   `apps/web/auth/spec/integration/full_mfa/mfa_session_rotation_spec.rb`).
-- **Remember-me continuation (#4467):** after active-session revocation the
-  remember credential is still live in the auth database but does not restore
-  the session today.
+- **Remember-me continuation (#4467):** the baseline first pinned that
+  Rodauth's remember credential outlived an active-session revocation. That
+  mechanism is gone. The remember-me checkbox now extends the session itself
+  (`Onetime::RememberMe`, `lib/onetime/session/remember_me.rb`): the login
+  stamps `remember_until` on the Rack session and, in full mode, on the
+  active-session row (`apps/web/auth/config/features/remember_me.rb`), and
+  Rodauth's `remember` feature is not enabled. There is one Rack session and
+  one row, so revoking the row ends the remembered session like any other.
+  The spec's `remember-me continuation revocation (#4467)` example asserts
+  that after `active_session_rows.delete` the API answers 401, no
+  `_remember` cookie exists, and `account_remember_keys` holds no row for
+  the account.
 
 ## Security findings
 
