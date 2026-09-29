@@ -100,8 +100,9 @@
 # availability ladder refuses every saved saml record (:saml_disabled, so the
 # sign-in button disappears and nothing gets through), the domain SSO API
 # refuses to save or edit provider_type saml, the callback path answers 404
-# (HttpOriginOptions.saml_callback_route_active? is false, which also stops
-# SamlCallbackTransport staging), and :enabled keeps the platform button off
+# (SamlCallbackTransport::Boundary refuses it before reading the body, and
+# HttpOriginOptions.saml_callback_route_active? is false, which also stops
+# staging), and :enabled keeps the platform button off
 # the login page. Incident response is the reason: ruby-saml's advisory
 # history is a run of authentication bypasses, and between an advisory and a
 # reviewed bump this is the one switch that stops the app parsing SAML

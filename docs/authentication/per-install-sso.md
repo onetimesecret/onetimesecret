@@ -769,9 +769,11 @@ every tenant's record. Unless it is `true`:
   (`:saml_disabled`, `tenant_sso_unavailable_reason`), so the masthead link
   and the `/signin` button disappear and the omniauth hook injects nothing.
   The record is kept as saved and resumes when the switch is set back.
-- The callback path answers 404 on both surfaces
-  (`HttpOriginOptions.saml_callback_route_active?` is false), and the
-  [callback transport](saml-callback-transport.md) stages nothing for it.
+- The callback path answers 404 on both surfaces: the
+  [callback transport](saml-callback-transport.md)'s Boundary refuses every
+  request there before reading the body, and
+  `HttpOriginOptions.saml_callback_route_active?` is false, so nothing is
+  staged.
 - The per-domain SSO API refuses to create or edit a `saml` configuration
   (422 on `provider_type`, naming `SAML_ENABLED`), and the domain SSO form
   does not offer SAML for a new configuration. A tenant can still disable

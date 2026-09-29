@@ -411,6 +411,7 @@ RSpec.describe Onetime::Middleware::SamlCallbackTransport do
 
   describe 'staging admission by active SAML route' do
     let(:saml) { Onetime::SsoProvider::Saml }
+    let(:json) { 'application/json' }
     let(:tenant_config) do
       double('native SAML', provider_type: 'saml', platform_route_name: 'saml', enabled?: true, to_omniauth_options: {})
     end
@@ -449,8 +450,56 @@ RSpec.describe Onetime::Middleware::SamlCallbackTransport do
         expect(response['set-cookie']).to be_nil
         expect(response['cache-control']).to eq('no-store')
         expect(stage('untrusted', 'onetime.display_domain' => 'tenant.example.net').status).to eq(404)
+        # A request prepare would otherwise refuse (415 here) gets the same
+        # 404: the Boundary answers before it reads the body.
+        wrong_type = Rack::MockRequest.new(app).post("#{host}#{path}", input: '{}', 'CONTENT_TYPE' => json)
+        expect(wrong_type.status).to eq(404)
+        expect(wrong_type['set-cookie']).to be_nil
       end
       expect(reached).to be_empty
+    end
+
+    it 'answers 404 from the Boundary before reading the body while SAML_ENABLED is off' do
+      inner = double('parser')
+      expect(inner).not_to receive(:call)
+      expect(store).not_to receive(:stage)
+      boundary = described_class::Boundary.new(inner)
+      form = 'application/x-www-form-urlencoded'
+      oversized = 'x' * (described_class::MAX_BODY_BYTES + 1)
+      requests = {
+        'wrong media type' => { method: 'POST', input: '{}', 'CONTENT_TYPE' => json },
+        'oversized body' => { method: 'POST', input: oversized, 'CONTENT_TYPE' => form },
+        'malformed form' => { method: 'POST', input: 'SAMLResponse=%ZZ', 'CONTENT_TYPE' => form },
+        'well-formed response' => { method: 'POST', params: { 'SAMLResponse' => 'dW50cnVzdGVk' } },
+      }
+      ClimateControl.modify(SAML_ENABLED: 'false') do
+        requests.each do |name, options|
+          env = Rack::MockRequest.env_for("#{host}#{path}", 'HTTP_COOKIE' => 'sess=abc', **options)
+          input = env['rack.input']
+          status, headers, body = boundary.call(env)
+          expect(status).to eq(404), name
+          expect(headers['cache-control']).to eq('no-store'), name
+          expect(headers).not_to have_key('set-cookie'), name
+          expect(body).to eq(['Not Found']), name
+          expect(input.pos).to eq(0), "#{name}: body was read"
+          expect(env).not_to have_key(described_class::PREPARED), name
+          expect(env['CONTENT_LENGTH']).to eq('0'), name
+        end
+
+        get = Rack::MockRequest.env_for("#{host}#{path}?saml_handle=#{'x' * 4097}")
+        status, _headers, body = boundary.call(get)
+        expect(status).to eq(404)
+        expect(body).to eq(['Not Found'])
+        expect(get['QUERY_STRING']).to eq('')
+        expect(get).not_to have_key(described_class::PREPARED)
+      end
+
+      # With the switch on the same request is prepare's 415, so the 404
+      # above is the switch's answer, not the request's.
+      ClimateControl.modify(SAML_ENABLED: 'true') do
+        env = Rack::MockRequest.env_for("#{host}#{path}", method: 'POST', input: '{}', 'CONTENT_TYPE' => json)
+        expect(boundary.call(env).first).to eq(415)
+      end
     end
 
     context 'on a custom domain' do

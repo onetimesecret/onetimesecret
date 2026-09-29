@@ -212,10 +212,11 @@ module Onetime
       #
       # False on BOTH surfaces while the install-wide SAML_ENABLED switch is
       # off (#4604): no saml route is registered then, so the callback path
-      # is a 404 like any other unregistered route, and SamlCallbackTransport
-      # (which shares this predicate) stages nothing for it. Checked before
-      # any datastore work; an unrecognized token raises into the rescue
-      # below and is treated as off.
+      # is a 404 like any other unregistered route (SamlCallbackTransport's
+      # Boundary answers it before reading the body), and Stage, which shares
+      # this predicate, stages nothing for it. Checked before any datastore
+      # work; an unrecognized token raises into the rescue below and is
+      # treated as off.
       #
       # @param env [Hash] Rack environment
       # @return [Boolean]
