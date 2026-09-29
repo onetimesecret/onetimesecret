@@ -75,7 +75,7 @@ carries a session-failure code. They state the session through `auth_status`
 `Core::Views::AuthenticationSerializer`, so they cannot disagree with it. An
 `authenticated` claim that lacks either the verdict projection or its customer
 degrades to `unavailable`, never to a serialized identity. The deprecated
-`had_valid_session` field was removed in v0.27 (#4468); the error-recovery
+`had_valid_session` field was removed in v0.26.14 (#4468); the error-recovery
 case it served is the `unavailable` row above.
 
 ### `code` and `code_scope` — refusals
@@ -88,7 +88,7 @@ verbatim; there is no second vocabulary. Redirects and the existing `error`,
 status is 401 with a `WWW-Authenticate: Session realm="onetimesecret"`
 challenge, except that the two `verification_unavailable` reasons answer 503
 with `Retry-After: 5` and no challenge: an outage is not a request for
-credentials (`Onetime::Middleware::SessionFailureCode`, v0.27, #4469; see
+credentials (`Onetime::Middleware::SessionFailureCode`, v0.26.14, #4469; see
 D3 and "Evidence"). The credential 403 keeps its status and carries no
 challenge either.
 
@@ -543,7 +543,7 @@ is fixed in both authentication modes in this release (`RISK-2026-09-19-01`).
 
 Two observations that are not vulnerabilities are recorded as D1 (loss of the
 refusal reason on the wire, fixed here) and in "Evidence" (no
-`WWW-Authenticate` on the 401, fixed by #4469 in v0.27).
+`WWW-Authenticate` on the 401, fixed by #4469 in v0.26.14).
 
 ## Evidence
 
@@ -577,7 +577,7 @@ wish to indicate a scope of protection." These three passages were read on
 (`httpwg/http-core`, `draft-ietf-httpbis-semantics-latest.xml`), because
 rfc-editor.org was not reachable from the working environment; the §15.5.2
 and §15.6.4 text in that source matches the passages recorded here from the
-RFC on 2026-09-18. *OTS choice for v0.27 (#4469):* every 401 the middleware
+RFC on 2026-09-18. *OTS choice for v0.26.14 (#4469):* every 401 the middleware
 annotates carries `WWW-Authenticate`
 (`Onetime::Middleware::SessionFailureCode`). A cookie session has no
 registered scheme, so its challenge is the application's own token,
@@ -593,7 +593,7 @@ strategy stashes beside the reason) is challenged with
 client used; the choice never reads the request's own headers. The realm is
 one fixed value: the header is read by machines,
 and a per-host value would have to be quoted from the request. A challenge
-an app already set is kept. Before v0.27 the session 401 (rendered by Otto)
+an app already set is kept. Before v0.26.14 the session 401 (rendered by Otto)
 and the `/auth` 401s sent no `WWW-Authenticate`; #4462 required the existing
 HTTP behaviour to be preserved, so the deviation was recorded here until
 #4469 closed it.
@@ -608,13 +608,13 @@ that text 503 describes `active_session_unavailable` and
 valid credentials, it was not examined. *OTS choice for v0.26.13:* keep 401
 (D3) because #4462 forbade changing statuses in that release, and mark the
 refusals `code_scope: verification_unavailable` so clients do not treat them
-as a sign-out. *OTS choice for v0.27 (#4469):* the JSON surfaces (the
+as a sign-out. *OTS choice for v0.26.14 (#4469):* the JSON surfaces (the
 protected API and `/auth`) answer both reasons 503 with `Retry-After: 5`
 (delay-seconds, §10.2.3 below, the value `GET /bootstrap/me` uses) and the
 same body plus the pair, so a client tells this 503 from any other by
 `code_scope`; no `WWW-Authenticate`, since a 503 is not a request for
 credentials. Protected HTML keeps its 302. Every other scope keeps 401. A
-client that keys the scope off a 401 alone (a frontend from before v0.27)
+client that keys the scope off a 401 alone (a frontend from before v0.26.14)
 sees the 503 as an ordinary failed call and reconciles nothing; it is not
 signed out.
 

@@ -9,7 +9,7 @@
 # stashed by the code that refuses it, on every surface, and rendered the same
 # way (#4469). The same annotate path gives the refusal its HTTP semantics:
 # a `WWW-Authenticate` challenge on every annotated 401, and a 503 with
-# `Retry-After` for a session that could not be verified (#4469, v0.27).
+# `Retry-After` for a session that could not be verified (#4469, v0.26.14).
 
 require 'spec_helper'
 require 'json'
@@ -157,6 +157,7 @@ RSpec.describe Onetime::Middleware::SessionFailureCode do
     it 'is Session on a sessionauth,basicauth route refused for its session, even with a header present' do
       # The header was never examined; a Basic challenge here would open the
       # browser dialog on the client that uses cookies.
+      # Braces: a braceless hash here would be read as keywords (body:).
       expect(challenge_for(:session_missing, { 'HTTP_AUTHORIZATION' => 'Basic Zm9vOmJhcg==' })).to eq(
         'Session realm="onetimesecret"',
       )

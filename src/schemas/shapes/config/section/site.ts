@@ -167,7 +167,7 @@ const middlewareTree: AugmentTree = {
   xss_header: (b) => b.default(false),
   frame_options: (b) => b.default(true),
   path_traversal: (b) => b.default(true),
-  // Default on since v0.27.0 (etc/defaults/config.defaults.yaml, #4466).
+  // Default on since v0.26.14 (etc/defaults/config.defaults.yaml, #4466).
   cookie_tossing: (b) => b.default(true),
   ip_spoofing: (b) => b.default(false),
   strict_transport: (b) => b.default(true),

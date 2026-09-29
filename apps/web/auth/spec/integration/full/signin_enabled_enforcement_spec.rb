@@ -119,6 +119,8 @@ RSpec.describe 'per-domain signin_enabled enforcement — full mode (ADR-024 cus
     # would make the example pass vacuously on the operator branch.
     host   = "signin-#{label.to_s.tr('_', '-')}-#{run_id}.example.com"
     domain = Onetime::CustomDomain.new(display_domain: host, org_id: org.org_id)
+    # TXT-verified: tenant SSO is unavailable (:domain_unverified) on an unproven domain (#4517).
+    domain.verified = true if sso
     domain.save
     Onetime::CustomDomain.display_domain_index.put(host, domain.domainid)
 

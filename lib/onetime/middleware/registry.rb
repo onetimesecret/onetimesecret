@@ -164,7 +164,7 @@ module Onetime
         # cookie more than once, so a cookie planted by a sibling or parent
         # host cannot compete with the real one. Onetime::Middleware::
         # CookieTossing binds the gem's check to site.session.key and gives it
-        # per-request state (see that file). On by default since v0.27.0.
+        # per-request state (see that file). On by default since v0.26.14.
         'CookieTossing' => {
           key: :cookie_tossing,
           klass: Onetime::Middleware::CookieTossing,

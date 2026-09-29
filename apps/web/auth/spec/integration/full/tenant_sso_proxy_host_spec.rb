@@ -67,6 +67,10 @@ RSpec.describe 'Tenant SSO behind a Host-rewriting proxy', :shared_db_state, typ
     end
   end
 
+  # The shared fixtures tear down the SsoConfig only; one example below also
+  # opts password sign-in in.
+  after { Onetime::CustomDomain::SigninConfig.delete_for_domain!(test_custom_domain.identifier) }
+
   it 'injects the tenant credentials keyed on Apx-Incoming-Host, not the rewritten Host' do
     header 'Host', origin_host
     header 'Apx-Incoming-Host', tenant_domain
@@ -85,6 +89,15 @@ RSpec.describe 'Tenant SSO behind a Host-rewriting proxy', :shared_db_state, typ
   it 'refuses an unverified tenant before credentials are cached or injected' do
     test_custom_domain.verified = false
     test_custom_domain.save
+    # Password sign-in is opted in, so SSO is not this host's only method and
+    # restrict_to lets the request reach the tenant ladder pinned below. An
+    # SSO-only host stops earlier, at the restrict_to gate (next example).
+    Onetime::CustomDomain::SigninConfig.create!(
+      domain_id: test_custom_domain.identifier,
+      enabled: true,
+      signin_enabled: true,
+      sso_enabled: true,
+    )
 
     # The hook logs other events (e.g. :omniauth_tenant_resolution_start) on
     # every request; let those through so only the refusal is pinned.
@@ -103,6 +116,26 @@ RSpec.describe 'Tenant SSO behind a Host-rewriting proxy', :shared_db_state, typ
     post '/auth/sso/entra'
 
     expect(last_request.env['onetime.tenant_sso_config']).to be_nil
+  end
+
+  it 'answers 404 for an SSO-only tenant while its domain is unverified (#4517)' do
+    test_custom_domain.verified = false
+    test_custom_domain.save
+
+    # No sign-in settings, so SSO is the host's only method. Its 'sso' host
+    # pin stays while the domain waits on verification, and the restrict_to
+    # gate at the top of the setup hook refuses before the tenant ladder runs.
+    allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+    expect(Auth::Logging).to receive(:log_auth_event).with(
+      :restrict_to_omniauth_rejected, hash_including(host: tenant_domain)
+    ).and_call_original
+    expect(Auth::Config::Hooks::OmniAuthTenant).not_to receive(:inject_tenant_credentials)
+
+    header 'Host', origin_host
+    header 'Apx-Incoming-Host', tenant_domain
+    post '/auth/sso/entra'
+
+    expect(last_response.status).to eq(404)
   end
 
   it 'sends the IdP a redirect_uri on the tenant domain, not the origin target' do

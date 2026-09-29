@@ -245,6 +245,28 @@ RSpec.describe 'Domain Signin Config API', type: :integration do
     # route gate 404s it. Reporting `restricted` here was the settings-API half
     # of the display/gate drift: the page showed a method whose routes were
     # already dark, and the UI seeded a form from it.
+    # Tenant SSO needs a verified domain (#4517). The 'sso' host pin stays
+    # without an availability proof until the domain verifies, so the host
+    # offers nothing rather than inheriting the operator's empty restriction,
+    # which would reopen password signup there.
+    context 'unconfigured domain whose tenant SSO waits on domain verification' do
+      before do
+        Onetime::CustomDomain::SsoConfig.create!(
+          domain_id: test_custom_domain.identifier,
+          provider_type: 'oidc',
+          enabled: true,
+          issuer: 'https://idp.example.com',
+          client_id: 'tenant-client-id',
+        )
+      end
+
+      it "keeps the 'sso' pin and reports :unavailable" do
+        expect(effective_restrict_to).to eq(
+          'state' => 'unavailable', 'restrict_to' => 'sso', 'source' => 'global',
+        )
+      end
+    end
+
     context 'unconfigured domain under a global restriction' do
       before { allow(Onetime.auth_config).to receive(:restrict_to).and_return('password') }
 
