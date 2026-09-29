@@ -152,7 +152,7 @@ module LaneOwnershipProbe
   # spec/<tree> and try/<tree>, one level deeper under integration/ (the
   # auth mode), apps/<type>/<name>/spec or /try, again one deeper under
   # integration/. A file directly in one of those directories is its own
-  # tree (try/integration names three such files).
+  # tree (try/integration names four such files).
   def tree(file)
     segments = file.split('/')
     app = segments.first == 'apps'
@@ -214,12 +214,12 @@ module LaneOwnershipProbe
     %w[simple                                       try/integration/middleware],
     %w[simple                                       try/integration/web],
     %w[simple                                       try/integration/check_jobqueue_live_try.rb],
+    %w[simple                                       try/integration/domain_auth_enforcement_try.rb],
     %w[simple                                       try/integration/homepage_bypass_header_integration_try.rb],
     %w[simple                                       try/integration/homepage_mode_integration_try.rb],
     %w[none                                         try/integration/auth],
     %w[none                                         try/integration/authentication],
     %w[none                                         try/integration/colonel_role_auth_try.rb],
-    %w[none                                         try/integration/domain_auth_enforcement_try.rb],
     %w[none                                         try/api],
     %w[none                                         try/disabled],
     %w[none                                         try/docker],
