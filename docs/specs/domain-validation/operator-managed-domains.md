@@ -267,11 +267,13 @@ Freshness does not rewrite the typed outcome. A stale `resolved` result is repor
 
 | Outcome | Meaning |
 | --- | --- |
-| `resolved` | A complete lookup produced at least one terminal A or AAAA address. |
+| `resolved` | At least one terminal A or AAAA address was observed, including when the other address family had an inconclusive result. |
 | `not_resolved` | Authoritative NXDOMAIN, or complete NOERROR processing produced no terminal A or AAAA address. |
-| `unknown` | Timeout, SERVFAIL, REFUSED, malformed response, CNAME loop, traversal limit, partial-family failure without any address, or another inconclusive condition. |
+| `unknown` | No terminal address was observed and at least one lookup was inconclusive because of timeout, SERVFAIL, REFUSED, malformed response, CNAME loop, traversal limit, or another indeterminate condition. |
 
-DNS resolution follows CNAMEs to terminal A/AAAA records, with a maximum of eight CNAME hops. A loop or exceeded limit is `unknown`. The observation reports the CNAME chain and the unique terminal IPv4 and IPv6 addresses. Resolution is independent of whether an address is public or expected.
+DNS resolution follows CNAMEs to terminal A/AAAA records, with a maximum of eight CNAME hops. A loop or exceeded limit is inconclusive for that lookup path. The observation reports the CNAME chain, each A and AAAA family outcome, the unique terminal IPv4 and IPv6 addresses, and whether the destination set is `complete` or `partial`. Resolution is independent of whether an address is public or expected.
+
+A terminal address from either family makes the aggregate DNS outcome `resolved`. If the other family is inconclusive, the destination set is `partial` and the reason is `partial_family_failure`; for example, an A answer plus an AAAA timeout is DNS `resolved`, not `unknown`. A complete negative result for one family and terminal addresses from the other is a `complete` destination set, because both family outcomes are conclusive. If neither family yields an address, any inconclusive family or CNAME-path result makes the aggregate outcome `unknown`; only conclusive negative results for all lookup paths produce `not_resolved`.
 
 ### Optional expected-target outcomes
 
@@ -281,26 +283,30 @@ This deliberately conservative contract avoids recursively trusting another host
 
 | Outcome | Meaning |
 | --- | --- |
-| `matched` | DNS is `resolved`, every observed terminal address is in the configured allowlist, and at least one address was observed. The configured list may contain additional addresses not observed in this run. |
-| `mismatched` | DNS is `resolved` and at least one observed terminal address is absent from the configured allowlist. |
+| `matched` | DNS is `resolved`, the destination set is `complete`, every observed terminal address is in the configured allowlist, and at least one address was observed. The configured list may contain additional addresses not observed in this run. |
+| `mismatched` | DNS is `resolved` and at least one observed terminal address is absent from the configured allowlist, including when the destination set is `partial`. |
 | `not_configured` | No expected-address list is configured. |
-| `unknown` | Expected addresses are configured but DNS is `unknown` or `not_resolved`, so no destination set can be compared. |
+| `unknown` | Expected addresses are configured and no mismatch is observed, but DNS is `unknown` or `not_resolved`, or the resolved destination set is `partial`, so a complete destination set cannot be approved. |
 
-CNAME owner names and intermediate targets are not compared. Only terminal A/AAAA addresses participate. Target mismatch is an operational warning and never withdraws authorization.
+Expected-target aggregation uses this precedence: `not_configured`; then `mismatched` when any observed address is outside the allowlist; then `unknown` for an incomplete or unavailable destination set; then `matched`. Thus an allowlisted A answer plus an AAAA timeout is `unknown`, while an unallowlisted A answer plus an AAAA timeout is `mismatched`. CNAME owner names and intermediate targets are not compared. Only terminal A/AAAA addresses participate. Target mismatch is an operational warning and never withdraws authorization.
 
 ### HTTPS outcomes
 
 | Outcome | Meaning |
 | --- | --- |
-| `valid` | A TLS handshake on port 443 completes with a trusted chain and hostname-valid certificate using the custom hostname as SNI. |
-| `invalid` | A reachable TLS endpoint presents no certificate valid for the hostname or returns a definitive TLS failure. |
-| `unreachable` | A public destination definitively refuses, resets, or closes the connection without completing TLS. |
-| `not_checked` | DNS is not resolved, or the resolved address set is excluded by probe policy. |
-| `unknown` | DNS or connection behavior is inconclusive, including timeout, no route, or internal probe failure. |
+| `valid` | Every address in the complete public destination set completes a TLS handshake on port 443 with a trusted chain and hostname-valid certificate using the custom hostname as SNI. |
+| `invalid` | At least one reachable TLS endpoint presents no certificate valid for the hostname or returns a definitive TLS failure. |
+| `unreachable` | No address is `invalid`, and at least one public destination definitively refuses, resets, or closes the connection without completing TLS. |
+| `not_checked` | DNS is not resolved, the destination set is partial, or the resolved address set is excluded by probe policy. |
+| `unknown` | No address is `invalid` or `unreachable`, and at least one connection is inconclusive because of timeout, no route, probe-budget exhaustion, or internal probe failure. |
 
-No HTTP request or application data is sent. Probes use a bounded DNS, connect, and TLS time budget.
+No HTTP request or application data is sent. Probes use bounded DNS, per-address connect and TLS budgets, and a bounded whole-run budget.
 
-The complete resolved address set must be public before any connection occurs. If any address is private, loopback, link-local, multicast, unspecified, reserved, or otherwise excluded, no address in the set is dialed. A private-only result reports DNS `resolved` and HTTPS `not_checked` with reason `non_public_address`. A mixed public/private result reports DNS `resolved` and HTTPS `not_checked` with reason `mixed_public_private_addresses`. This whole-set rule preserves the public-network probe boundary and prevents partial probing or DNS-rebinding ambiguity.
+The complete resolved address set must be public before any connection occurs. A `partial` destination set is never dialed and reports HTTPS `not_checked` with reason `incomplete_address_set`; this includes an A answer plus an AAAA timeout. If the complete set contains any private, loopback, link-local, multicast, unspecified, reserved, or otherwise excluded address, no address in the set is dialed. A complete private-only result reports DNS `resolved` and HTTPS `not_checked` with reason `non_public_address`. A complete mixed public/private result reports DNS `resolved` and HTTPS `not_checked` with reason `mixed_public_private_addresses`. This whole-set rule preserves the public-network probe boundary and prevents partial probing or DNS-rebinding ambiguity.
+
+When the complete set is public, every unique terminal IPv4 and IPv6 address is selected exactly once for the run, with IPv4 addresses first and each address family sorted by ascending unsigned network-byte value. DNS answer order does not affect selection or the aggregate result. Each selected address is assigned exactly one recorded outcome, and a connection attempt may begin at most once for that address. An attempted probe connects directly to the selected address on port 443 while using the custom hostname for SNI and certificate validation. If the whole-run budget expires before an address is attempted or before its attempt completes, that address receives outcome `unknown` with reason `probe_budget_exhausted`; no selected address is omitted from the observation.
+
+The aggregate HTTPS outcome uses the following precedence across all per-address outcomes: `invalid`, then `unreachable`, then `unknown`, then `valid`. Therefore every address must be `valid` for the aggregate to be `valid`; one hostname-invalid certificate makes a mixed run `invalid`; otherwise one refusal or reset makes it `unreachable`; otherwise one timeout, internal error, budget-exhausted address, or other inconclusive result makes it `unknown`. Probing does not stop after the first failure except when the whole-run budget prevents further attempts, and all completed and uncompleted per-address outcomes remain reportable.
 
 ### Health triggers
 
@@ -422,16 +428,20 @@ An unknown or stale health result remains visibly unknown or stale. A prior succ
 
 ### Health
 
-33. A CNAME chain ending in one or more A/AAAA records reports DNS `resolved` and includes the chain and terminal addresses.
-34. NXDOMAIN and complete NOERROR with no terminal addresses report `not_resolved`; timeout, SERVFAIL, REFUSED, a CNAME loop, or more than eight CNAME hops report `unknown`.
-35. Without expected addresses, target status is `not_configured`, never `matched`.
-36. With expected addresses, a multi-address result is `matched` only when every observed address is allowlisted; one additional observed address makes it `mismatched`.
-37. Expected-target configuration rejects hostnames, CIDRs, wildcard entries, and non-public addresses.
-38. A valid public TLS endpoint reports HTTPS `valid`; a hostname-invalid certificate reports `invalid`; a refused connection reports `unreachable`; a timeout reports `unknown`.
-39. A private-only DNS result reports DNS `resolved` and HTTPS `not_checked` with `non_public_address`, without a connection attempt.
-40. A mixed public/private result reports DNS `resolved` and HTTPS `not_checked` with `mixed_public_private_addresses`, without connecting to either address.
-41. A result older than the configured freshness interval reports `stale`; a domain with no result reports `unobserved`; neither state changes authorization.
-42. A fresh inconclusive attempt is reported as unknown rather than presenting an older success as current.
+34. A CNAME chain ending in one or more A/AAAA records reports DNS `resolved` and includes the chain, per-family outcomes, destination-set completeness, and terminal addresses.
+35. An A answer plus an AAAA timeout reports DNS `resolved` with a `partial` destination set and reason `partial_family_failure`; an allowlisted A answer yields expected-target `unknown`, and HTTPS is `not_checked` with reason `incomplete_address_set` without any connection attempt.
+36. An unallowlisted A answer plus an AAAA timeout reports expected-target `mismatched`, while HTTPS remains `not_checked` with reason `incomplete_address_set` without any connection attempt.
+37. NXDOMAIN and complete NOERROR with no terminal addresses report `not_resolved`; when no address is observed, timeout, SERVFAIL, REFUSED, a CNAME loop, or more than eight CNAME hops report `unknown`.
+38. Without expected addresses, target status is `not_configured`, never `matched`.
+39. With expected addresses, a complete multi-address result is `matched` only when every observed address is allowlisted; one additional observed address makes it `mismatched`.
+40. Expected-target configuration rejects hostnames, CIDRs, wildcard entries, and non-public addresses.
+41. Every unique address in a complete public multi-address set is selected exactly once in normalized order, independently of DNS answer order, and receives exactly one recorded outcome; each address is attempted at most once.
+42. HTTPS aggregation follows `invalid` > `unreachable` > `unknown` > `valid`: mixed valid/invalid is `invalid`, mixed valid/refused is `unreachable`, mixed valid/timeout is `unknown`, and only all-valid addresses produce `valid`.
+43. Whole-run budget exhaustion records each selected address that was unattempted or whose attempt did not complete as `unknown` with reason `probe_budget_exhausted` and makes the aggregate `unknown` unless a higher-precedence completed failure exists.
+44. A complete private-only DNS result reports DNS `resolved` and HTTPS `not_checked` with `non_public_address`, without a connection attempt.
+45. A complete mixed public/private result reports DNS `resolved` and HTTPS `not_checked` with `mixed_public_private_addresses`, without connecting to either address.
+46. A result older than the configured freshness interval reports `stale`; a domain with no result reports `unobserved`; neither state changes authorization.
+47. A fresh inconclusive attempt is reported as unknown rather than presenting an older success as current.
 
 ### Certificates
 
