@@ -236,16 +236,9 @@ module Auth::Config::Hooks
           # absolute URL this flow hands an IdP builds on strategy.full_host,
           # which Auth::PublicHost roots on a TXT-VERIFIED tenant host only
           # (finding G-01), so a flow started here could never complete — and
-          # the display halves offer no SSO on this host for the same reason
-          # (SigninConfig.tenant_sso_awaiting_verification?). The records are
-          # already loaded, so the predicate re-reads only the SigninConfig,
-          # and only on this rung.
-          if unavailable_reason == :domain_unverified &&
-             Onetime::CustomDomain::SigninConfig.tenant_sso_awaiting_verification?(
-               custom_domain.identifier, sso_config: sso_config, custom_domain: custom_domain
-             )
-            HELPERS.refuse_unverified_tenant_domain(host, custom_domain, sso_config, self)
-          end
+          # the display halves offer no SSO on this host for the same reason.
+          # Halts when it applies; returns for every other rung.
+          HELPERS.refuse_if_awaiting_verification(host, custom_domain, sso_config, unavailable_reason, self)
 
           Auth::Logging.log_auth_event(
             :omniauth_tenant_sso_not_enabled,
@@ -1052,13 +1045,38 @@ module Auth::Config::Hooks
       rodauth.send(:redirect, '/signin?auth_error=sso_config_unusable')
     end
 
+    # Refuse the flow when the ladder's failing rung means tenant SSO waits
+    # only on ownership verification (#4579); return for every other rung.
+    #
+    # omniauth_setup has already run the ladder for its own logging, so its
+    # reason is handed to SigninConfig.tenant_sso_awaiting_verification? —
+    # which owns the rule — instead of running the ladder again. Only the
+    # :domain_unverified rung costs a read (the SigninConfig).
+    #
+    # @param host [String] request public host
+    # @param custom_domain [Onetime::CustomDomain]
+    # @param sso_config [Onetime::CustomDomain::SsoConfig, nil] the loaded record
+    # @param unavailable_reason [Symbol] SsoConfig.tenant_sso_unavailable_reason
+    #   for custom_domain, computed in this request
+    # @param rodauth [Rodauth] Rodauth instance (for session + redirect)
+    # @return [nil] when the domain is not awaiting verification; otherwise
+    #   the redirect halts the request
+    def self.refuse_if_awaiting_verification(host, custom_domain, sso_config, unavailable_reason, rodauth)
+      return unless Onetime::CustomDomain::SigninConfig.tenant_sso_awaiting_verification?(
+        custom_domain.identifier, reason: unavailable_reason
+      )
+
+      refuse_unverified_tenant_domain(host, custom_domain, sso_config, rodauth)
+    end
+
     # Refuse SSO on a custom domain whose tenant SSO waits only on ownership
     # verification (SigninConfig.tenant_sso_awaiting_verification?, #4579).
     #
-    # Called from omniauth_setup before any credential injection, and on
-    # every phase it runs on (request, callback, SAML /metadata and the other
-    # sub-paths), for every strategy on the host — the platform providers
-    # too. It never consults handle_missing_tenant_config: the domain owner
+    # Called from omniauth_setup (through refuse_if_awaiting_verification)
+    # before any credential injection, and on every phase it runs on
+    # (request, callback, SAML /metadata and the other sub-paths), for every
+    # strategy on the host — the platform providers too. It never consults
+    # handle_missing_tenant_config: the domain owner
     # set up and permitted their own IdP for this host, so a platform
     # fallback would sign visitors in through the operator's IdP instead, and
     # the refusal must name the real cause. The display halves offer no SSO

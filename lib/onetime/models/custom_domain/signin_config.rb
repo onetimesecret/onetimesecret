@@ -102,6 +102,12 @@ module Onetime
       # here; it will drift.
       OPERATOR_HOST_STRATEGIES = [:canonical, :subdomain].freeze
 
+      # Default for tenant_sso_awaiting_verification?'s `reason:`: "no reason
+      # handed in, run the ladder". A sentinel rather than nil, because nil is
+      # itself a ladder answer (tenant SSO available).
+      LADDER_REASON_NOT_GIVEN = Object.new.freeze
+      private_constant :LADDER_REASON_NOT_GIVEN
+
       # Result of `restrict_to` resolution (ADR-034#resolution-is-model-owned).
       #
       # Three EXPLICIT states, because the three gates that consume it need to
@@ -1034,17 +1040,29 @@ module Onetime
         # treated as any other domain without tenant SSO (platform fallback
         # per policy), exactly as it is once verified.
         #
+        # A caller that has already run the ladder for this domain in this
+        # request (the omniauth tenant hook, which needs the reason for its own
+        # logging) hands its answer in as `reason:` and the ladder is not run
+        # a second time; the rule itself is still decided only here.
+        #
         # @param domain_id [String] CustomDomain identifier (objid)
         # @param auth [Hash, nil] site.authentication settings (injectable for tests)
         # @param sso_config [Onetime::CustomDomain::SsoConfig, nil] caller's
         #   already-loaded record, passed through to the ladder
         # @param custom_domain [Onetime::CustomDomain, nil] caller's already-
         #   loaded domain record, passed through to the ladder
+        # @param reason [Symbol, nil] the caller's own
+        #   SsoConfig.tenant_sso_unavailable_reason for domain_id, computed in
+        #   this request (nil = available). When given, the ladder is skipped
+        #   and auth:, sso_config: and custom_domain: are unused.
         # @return [Boolean]
-        def tenant_sso_awaiting_verification?(domain_id, auth: nil, sso_config: nil, custom_domain: nil)
-          reason = Onetime::CustomDomain::SsoConfig.tenant_sso_unavailable_reason(
-            domain_id, auth: auth, sso_config: sso_config, custom_domain: custom_domain
-          )
+        def tenant_sso_awaiting_verification?(domain_id, auth: nil, sso_config: nil, custom_domain: nil,
+                                              reason: LADDER_REASON_NOT_GIVEN)
+          if reason.equal?(LADDER_REASON_NOT_GIVEN)
+            reason = Onetime::CustomDomain::SsoConfig.tenant_sso_unavailable_reason(
+              domain_id, auth: auth, sso_config: sso_config, custom_domain: custom_domain
+            )
+          end
           reason == :domain_unverified && sso_permitted_for?(domain_id)
         end
 

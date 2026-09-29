@@ -1284,6 +1284,45 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
   end
 
   # ==========================================================================
+  # refuse_if_awaiting_verification (#4579, QA-09)
+  # ==========================================================================
+
+  describe '.refuse_if_awaiting_verification' do
+    let(:custom_domain) { instance_double(Onetime::CustomDomain, identifier: 'dom_unverified_123') }
+    let(:sso_config) { instance_double(Onetime::CustomDomain::SsoConfig, provider_type: 'oidc') }
+    let(:rodauth) { double('Rodauth') }
+
+    def refuse_if(reason)
+      helpers.refuse_if_awaiting_verification('secrets.tenant.example', custom_domain, sso_config, reason, rodauth)
+    end
+
+    before do
+      allow(Onetime::CustomDomain::SigninConfig).to receive(:tenant_sso_awaiting_verification?).and_return(false)
+      allow(helpers).to receive(:refuse_unverified_tenant_domain)
+    end
+
+    # The hook's reason goes to the one predicate that owns the rule, so the
+    # ladder is not run a second time on the refusal path.
+    it "hands the hook's reason to SigninConfig instead of re-running the ladder" do
+      allow(Onetime::CustomDomain::SigninConfig).to receive(:tenant_sso_awaiting_verification?)
+        .with('dom_unverified_123', reason: :domain_unverified).and_return(true)
+
+      refuse_if(:domain_unverified)
+
+      expect(helpers).to have_received(:refuse_unverified_tenant_domain)
+        .with('secrets.tenant.example', custom_domain, sso_config, rodauth)
+    end
+
+    it 'returns without refusing when the domain is not awaiting verification' do
+      expect(refuse_if(:sso_not_permitted)).to be_nil
+
+      expect(Onetime::CustomDomain::SigninConfig).to have_received(:tenant_sso_awaiting_verification?)
+        .with('dom_unverified_123', reason: :sso_not_permitted)
+      expect(helpers).not_to have_received(:refuse_unverified_tenant_domain)
+    end
+  end
+
+  # ==========================================================================
   # inject_saml_sp_identifiers (#4450)
   # ==========================================================================
 
