@@ -93,7 +93,10 @@ If accepted, this ADR supersedes only these clauses of ADR-016:
   the same way regardless of strategy, insofar as it requires TXT ownership
   proof for `passthrough`; and
 - the frontend requirement that an ownership badge have the same semantics for
-  `passthrough` as for TXT-enforced strategies.
+  `passthrough` as for TXT-enforced strategies; and
+- the certificate/serving-axis statement that `passthrough` has "no axis to
+  render," insofar as it omits independently reported observed DNS and HTTPS
+  health. Certificate management remains external.
 
 ADR-016's separation of ownership from serving and certificate status, its
 non-conflation rules, and its decisions for TXT-enforced strategies remain
@@ -103,13 +106,17 @@ If accepted, this ADR supersedes only these clauses of ADR-017:
 
 - the Decision's `passthrough` requirement for one-time TXT proof before use as
   a `share_domain`;
+- the Decision's `approximated` clause insofar as it makes the link-creation
+  gate optional through `require_verified`; strategy-aware authorization is
+  mandatory for every protected consumer regardless of that setting;
 - the rollout paragraph requiring a feature flag, deprecation window, and
   delayed default flip for existing `passthrough` deployments; and
 - the `passthrough`-specific trade-off and risk statements that assume an
   installed user base must complete TXT proof.
 
-ADR-017's gates for `caddy_on_demand` and `approximated`, and its rule that
-certificate issuance does not satisfy ownership authorization, remain intact.
+ADR-017's requirement that `caddy_on_demand` be authorization-gated, its
+separation of the gate from periodic re-validation, and its rule that
+certificate issuance does not satisfy ownership authorization remain intact.
 
 ## Trade-offs
 
