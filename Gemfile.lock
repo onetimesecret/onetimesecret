@@ -379,7 +379,7 @@ GEM
       json_schemer (~> 2)
       logger
       tilt (~> 2)
-    roda (3.106.0)
+    roda (3.108.0)
       rack
     rodauth (2.45.0)
       roda (>= 2.6.0)
