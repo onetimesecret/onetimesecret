@@ -17,8 +17,6 @@ export const AUTHENTICATION_SERIALIZER_FIELDS = [
   'auth_status',
   'authenticated',
   'awaiting_mfa',
-  // Deprecated: superseded by auth_status 'unavailable'. Remove in v0.27 (#4468).
-  'had_valid_session',
   'has_password',
   'password_auth_permitted',
   'custid',

@@ -164,6 +164,15 @@ Still open here: 2.3, 2.4, 2.5, 2.11, 2.14, 2.15, 2.16.
 
 ### 2.5 detail — the remember-me cascade, and why it is latent
 
+> **Note (2026-09-28):** this section, and the matching findings in
+> `spec-session-path.md` §4 and `spec-session-performance.md`, describe the
+> code at `5d952a6fc`. Since then Rodauth's `remember` feature has been
+> disabled and the checkbox extends the signed-in session itself
+> (`Onetime::RememberMe`, `lib/onetime/session/remember_me.rb`), so there is
+> no second credential for a revocation to miss. The current behaviour is
+> recorded in `docs/authentication/customer-session-failure-matrix.md`
+> ("v0.27 scenarios"). The text below is kept as written.
+
 `spec-session-path.md` §4 correctly calls this the most important gap and the
 exact failure mode the expectations doc names ("partial revocation is the most
 common real-world bug"). One fact to add, verified: **`load_memory` is never

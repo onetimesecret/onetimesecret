@@ -8,6 +8,7 @@ import {
   VERIFICATION_UNAVAILABLE_STATUS,
   parseSessionFailure,
 } from '@/schemas/contracts/session-failure';
+import { classifyError, errorGuards } from '@/schemas/errors';
 import { useLanguageStore } from '@/shared/stores';
 import {
   COORDINATOR_DISPOSITION_KEY,
@@ -211,6 +212,13 @@ export const errorInterceptor = (error: AxiosError) => {
  * own request is what counts verification failures, and a 403 credential
  * refusal (a locked-out or unverified account, #4469) is the form's to read
  * and never reconciles.
+ *
+ * The message travels with the report. When the coordinator owns the
+ * rejection the caller's toast is suppressed, and if the reconciliation then
+ * produces no transition the coordinator shows one fallback notice with the
+ * text the caller would have shown: the classified message when it is of
+ * human interest (the same rule `useAsyncHandler.notifyUser` applies), else
+ * null for the generic error text.
  */
 function noteRejection(error: AxiosError): void {
   const status = error.response?.status;
@@ -219,7 +227,9 @@ function noteRejection(error: AxiosError): void {
     status === 401 || (status === VERIFICATION_UNAVAILABLE_STATUS && failure !== null);
   if (!reportable) return;
   try {
-    const disposition: RejectionDisposition = useAuthStore().noteApiRejection(failure);
+    const classified = classifyError(error);
+    const message = errorGuards.isOfHumanInterest(classified) ? classified.message : null;
+    const disposition: RejectionDisposition = useAuthStore().noteApiRejection(failure, message);
     // Attach the disposition to the error so useAsyncHandler.coordinatorOwnsMessage
     // reads it verbatim instead of re-deriving carve-outs (ADR-046#rejection-disposition).
     (error as unknown as Record<string | symbol, unknown>)[COORDINATOR_DISPOSITION_KEY] =

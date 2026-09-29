@@ -3,7 +3,7 @@
 // #4460: a rejected API call REQUESTS reconciliation through the refresh
 // coordinator. No API error handler writes authentication state directly.
 
-import type { AxiosError, InternalAxiosRequestConfig } from 'axios';
+import { AxiosError, type InternalAxiosRequestConfig } from 'axios';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { touched, noteApiRejection, DISPOSITION_KEY } = vi.hoisted(() => ({
@@ -43,16 +43,13 @@ vi.mock('@/shared/stores/organizationStore', () => ({
 
 import { errorInterceptor } from '@/plugins/axios/interceptors';
 
+// A real AxiosError: the classifier the interceptor consults for the message
+// recognises the class, not the `isAxiosError` flag.
 function rejection(status: number | null, data: unknown = {}): AxiosError {
   const config = { method: 'get', url: '/api/account/', headers: {} } as InternalAxiosRequestConfig;
-  return {
-    name: 'AxiosError',
-    message: 'Request failed',
-    config,
-    isAxiosError: true,
-    toJSON: () => ({}),
-    response: status === null ? undefined : { status, statusText: '', headers: {}, config, data },
-  } as AxiosError;
+  const response =
+    status === null ? undefined : { status, statusText: '', headers: {}, config, data };
+  return new AxiosError('Request failed', undefined, config, undefined, response);
 }
 
 describe('errorInterceptor: session rejections (#4460)', () => {
@@ -73,16 +70,16 @@ describe('errorInterceptor: session rejections (#4460)', () => {
     await expect(errorInterceptor(error)).rejects.toBe(error);
 
     expect(noteApiRejection).toHaveBeenCalledTimes(1);
-    expect(noteApiRejection).toHaveBeenCalledWith({
-      code: 'active_session_revoked',
-      code_scope: 'customer_session',
-    });
+    expect(noteApiRejection).toHaveBeenCalledWith(
+      { code: 'active_session_revoked', code_scope: 'customer_session' },
+      'Authentication Required'
+    );
   });
 
   it('reports an uncoded 401 as null: no statement about the customer session', async () => {
     await expect(errorInterceptor(rejection(401, { error: 'Invalid credentials' }))).rejects.toBeDefined();
 
-    expect(noteApiRejection).toHaveBeenCalledWith(null);
+    expect(noteApiRejection).toHaveBeenCalledWith(null, 'Invalid credentials');
   });
 
   it('treats a 401 with an unknown scope as uncoded', async () => {
@@ -90,7 +87,25 @@ describe('errorInterceptor: session rejections (#4460)', () => {
       errorInterceptor(rejection(401, { code: 'whatever', code_scope: 'from_the_future' }))
     ).rejects.toBeDefined();
 
-    expect(noteApiRejection).toHaveBeenCalledWith(null);
+    expect(noteApiRejection).toHaveBeenCalledWith(null, null);
+  });
+
+  // The message rides along so the coordinator's fallback notice can say what
+  // the suppressed caller would have (ADR-046#rejection-disposition): the
+  // classified message when it is of human interest, else null.
+  it('passes the human-interest message of the 401, and null when there is none', async () => {
+    await expect(
+      errorInterceptor(rejection(401, { error: 'Authentication Required', code: 'session_missing', code_scope: 'customer_session' }))
+    ).rejects.toBeDefined();
+    expect(noteApiRejection).toHaveBeenLastCalledWith(
+      { code: 'session_missing', code_scope: 'customer_session' },
+      'Authentication Required'
+    );
+
+    // No `error` field: the classifier files it as security, which
+    // useAsyncHandler would render as the generic text.
+    await expect(errorInterceptor(rejection(401, {}))).rejects.toBeDefined();
+    expect(noteApiRejection).toHaveBeenLastCalledWith(null, null);
   });
 
   // A 403 credential refusal (a locked-out account) carries the pair, but the
@@ -137,10 +152,12 @@ describe('errorInterceptor: session rejections (#4460)', () => {
       await expect(errorInterceptor(error)).rejects.toBe(error);
 
       expect(noteApiRejection).toHaveBeenCalledTimes(1);
-      expect(noteApiRejection).toHaveBeenCalledWith({
-        code: 'active_session_unavailable',
-        code_scope: 'verification_unavailable',
-      });
+      // A 503 classifies as a technical error, not of human interest, so the
+      // fallback-notice message rides along as null (ADR-046#rejection-disposition).
+      expect(noteApiRejection).toHaveBeenCalledWith(
+        { code: 'active_session_unavailable', code_scope: 'verification_unavailable' },
+        null
+      );
       expect(new Set(touched)).toEqual(new Set(['noteApiRejection']));
     });
 
