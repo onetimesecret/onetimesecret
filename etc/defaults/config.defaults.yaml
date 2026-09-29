@@ -1581,7 +1581,7 @@ jobs:
     # still not fully verified (verified=false OR resolving=false) fill any
     # capacity left after the paged walk, without exceeding batch_size.
     # Set to '0' to disable.
-    dns_propagation_window: '24h'  # Since v0.27.0
+    dns_propagation_window: '24h'  # Since unreleased
 
   # Expiration warning emails
   # Send email notifications before secrets expire to warn recipients
