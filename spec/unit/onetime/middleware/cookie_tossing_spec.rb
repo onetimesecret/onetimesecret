@@ -103,7 +103,9 @@ RSpec.describe Onetime::Middleware::CookieTossing do
       _status, headers, = request('onetime.session=a; onetime.session=b', path: '/api/account/', host: 'eu.example.com')
       lines = set_cookie_lines(headers)
 
-      %w[/ /api /api/account].each do |path|
+      # The gem walks Pathname#descend over request.path, so the deepest
+      # prefix keeps the request path's trailing slash.
+      %w[/ /api /api/account/].each do |path|
         expect(lines).to include(match(/\Aonetime\.session=;.*domain=eu\.example\.com;.*path=#{Regexp.escape(path)};.*expires=Thu, 01 Jan 1970 00:00:00 GMT/i))
       end
     end
@@ -117,7 +119,7 @@ RSpec.describe Onetime::Middleware::CookieTossing do
       lines = set_cookie_lines(headers)
 
       %w[a.b.example.com b.example.com example.com].each do |domain|
-        %w[/ /api /api/account].each do |path|
+        %w[/ /api /api/account/].each do |path|
           expect(lines).to include(match(/\Aonetime\.session=;.*domain=#{Regexp.escape(domain)};.*path=#{Regexp.escape(path)};/i))
         end
       end
