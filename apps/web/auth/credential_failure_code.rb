@@ -44,8 +44,10 @@
 #
 # Rodauth answers a locked-out account (`account_locked_out`) and an
 # unverified one (`unverified_account`) with 403 (`lockout_error_status`,
-# `unopen_account_error_status`), and the middleware annotates 401s only, so
-# neither carries a code. Both are listed so the choice is visible.
+# `unopen_account_error_status`) and a message of its own on the same login
+# path. Both are credential refusals and are coded; the middleware renders a
+# credential-scope pair onto a 403 as well as a 401, and a session reason
+# onto a 401 only.
 #
 
 require 'onetime/session/failure_code'
@@ -73,6 +75,10 @@ module Auth
       # the reason for a malformed assertion too, but answers that with
       # `invalid_field_error_status` (422), which the middleware leaves alone.
       invalid_webauthn_auth_param: :invalid_credentials,
+      # 403s. Rodauth already tells these apart from a wrong password by
+      # message, so a matching code is no new disclosure.
+      account_locked_out: :account_locked,
+      unverified_account: :account_unverified,
     }.freeze
 
     # Rodauth reasons that are a refusal of the SESSION, and the evaluator
@@ -81,14 +87,6 @@ module Auth
       login_required: nil,
       two_factor_need_authentication: :awaiting_mfa,
     }.freeze
-
-    # Rodauth reasons that are a refusal of a credential but are answered
-    # with a status other than 401, so they carry no code. Documented, not
-    # acted on: the middleware's 401-only rule is what leaves them uncoded.
-    UNCODED_403_REASONS = [
-      :account_locked_out,
-      :unverified_account,
-    ].freeze
 
     class << self
       # Stash, keep, or withdraw the failure code for a Rodauth error reason.

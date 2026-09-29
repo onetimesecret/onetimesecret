@@ -174,10 +174,14 @@ module AuthRouteFailureCodes
   #                    presented its first factor. Refused with the session
   #                    codes; the factor it checks is a credential.
   #
-  # Route names, never paths (ADR-038#classify-by-symbol-not-url).
+  # `also:` lists the credential codes a route answers beyond
+  # `invalid_credentials`. Route names, never paths
+  # (ADR-038#classify-by-symbol-not-url).
   RODAUTH_ROUTES = {
     # --- sign-in and recovery, anonymous ---------------------------------
-    login: { requirement: :anonymous, credential: true },
+    # The lockout (403, `account_locked`) and the unverified-account refusal
+    # (403, `account_unverified`) are answered on this route.
+    login: { requirement: :anonymous, credential: true, also: %i[account_locked account_unverified] },
     webauthn_login: { requirement: :anonymous, credential: true },
     webauthn_autofill_js: { requirement: :anonymous, credential: false },
     # A login that matches no account is a rejected credential (401,
@@ -238,6 +242,7 @@ module AuthRouteFailureCodes
               else raise ArgumentError, "unknown requirement #{declaration[:requirement].inspect}"
               end
       codes += [:invalid_credentials] if declaration.fetch(:credential)
+      codes += declaration.fetch(:also, [])
       codes.uniq
     end
 

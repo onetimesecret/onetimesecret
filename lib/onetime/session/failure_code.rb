@@ -38,8 +38,9 @@ module Onetime
   # account from a wrong password or an unverified account.
   #
   # A 401 without a `code` still makes no statement about the customer
-  # session. A 403 (a locked-out or unverified Rodauth account) carries no
-  # code: the pair is annotated on 401s only.
+  # session. A 403 carries the pair only when it is a credential refusal
+  # (Rodauth answers a locked-out or unverified account with 403); a session
+  # reason is never rendered onto a 403.
   #
   # Both fields are additive: redirects and the existing `error`, `message`,
   # `error_type`, `timestamp`, `success` fields are unchanged. So is every
@@ -114,10 +115,20 @@ module Onetime
     #                          suspended. Only ever observable to a holder of
     #                          the valid credential (an API key, or the
     #                          simple-mode password).
+    #   account_locked         Rodauth's lockout: too many failed logins, and
+    #                          the account cannot be logged in to until it is
+    #                          unlocked. Answered with 403 and its own
+    #                          message on the same login path, so the code
+    #                          discloses nothing the message did not.
+    #   account_unverified     A login to an account that has not completed
+    #                          verification. Answered with 403 and its own
+    #                          (deliberately generic) message.
     CREDENTIAL_REASON_SCOPES = {
       invalid_credentials: SCOPE_CREDENTIAL,
       api_key_invalid: SCOPE_CREDENTIAL,
       suspended_credentials: SCOPE_CREDENTIAL,
+      account_locked: SCOPE_CREDENTIAL,
+      account_unverified: SCOPE_CREDENTIAL,
     }.freeze
 
     REASON_SCOPES = SESSION_REASON_SCOPES.merge(CREDENTIAL_REASON_SCOPES).freeze

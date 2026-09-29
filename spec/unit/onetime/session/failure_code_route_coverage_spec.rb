@@ -161,7 +161,7 @@ RSpec.describe 'auth and account route failure-code coverage (#4469)' do
 
     it 'declares the login as a credential route that never carries a session code of its own' do
       expect(declaration.codes_for_declaration(declaration::RODAUTH_ROUTES.fetch(:login)))
-        .to contain_exactly(:invalid_credentials)
+        .to contain_exactly(:invalid_credentials, :account_locked, :account_unverified)
     end
   end
 

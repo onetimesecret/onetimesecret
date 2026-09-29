@@ -99,7 +99,10 @@ module Onetime
     #
     # All of:
     #
-    # - the response is a 401 with a JSON content type and an Array body;
+    # - the response is a JSON 401 with an Array body, or a JSON 403 for
+    #   which a credential-scope reason is stashed (Rodauth answers a
+    #   locked-out or unverified account with 403). A bare 403, or a 403 on
+    #   a request whose stash is a session reason, is never touched;
     # - a reason is stashed;
     # - the stash is the refusal being answered. A session reason on an Otto
     #   surface is stashed before the handler runs, so it counts only when
@@ -123,6 +126,9 @@ module Onetime
       ENV_KEY = Onetime::SessionFailureCode::ENV_KEY
 
       STATUS         = 401
+      # Annotated only for a credential-scope stash. Headers a follow-up adds
+      # for the 401 challenge do not apply here: a 403 is not a challenge.
+      CREDENTIAL_STATUS = 403
       CONTENT_TYPE   = 'content-type'
       CONTENT_LENGTH = 'content-length'
       JSON_TYPE      = %r{\Aapplication/(?:[\w.+-]+\+)?json\b}i
@@ -157,12 +163,18 @@ module Onetime
       private
 
       def annotate?(env, status, headers, body)
-        status.to_i == STATUS &&
-          env[ENV_KEY] &&
+        env[ENV_KEY] &&
+          status_annotated?(env, status) &&
           refusal_answered?(env) &&
           headers.respond_to?(:each_pair) &&
           JSON_TYPE.match?(header(headers, CONTENT_TYPE).to_s) &&
           body.respond_to?(:to_ary)
+      end
+
+      def status_annotated?(env, status)
+        return true if status.to_i == STATUS
+
+        status.to_i == CREDENTIAL_STATUS && Onetime::SessionFailureCode.credential?(env[ENV_KEY])
       end
 
       # Whether the stashed reason is the refusal this response answers.
@@ -179,10 +191,12 @@ module Onetime
       end
 
       # The one place the refusal is rendered onto the response: the pair in
-      # the body, the challenge, and for an outage the 503 and its
+      # the body, on a 401 the challenge, and for an outage the 503 and its
       # Retry-After. Returns the response untouched when the body cannot
       # carry the pair, so a response never gets the headers without the
-      # code that explains them.
+      # code that explains them. An outage reason never arrives here on a
+      # 403 (status_annotated? admits a 403 only for a credential reason), so
+      # the 503 rewrite is a 401 rewrite.
       def annotate(env, status, headers, body)
         reason    = env[ENV_KEY]
         codes     = Onetime::SessionFailureCode.for(reason)
@@ -196,7 +210,9 @@ module Onetime
           return [UNAVAILABLE_STATUS, headers, [annotated]]
         end
 
-        set_header_unless_present(headers, WWW_AUTHENTICATE, challenge(env))
+        # A 403 credential refusal (CREDENTIAL_STATUS) keeps its status and
+        # gets no challenge: it is not a request for credentials.
+        set_header_unless_present(headers, WWW_AUTHENTICATE, challenge(env)) if status.to_i == STATUS
         [status, headers, [annotated]]
       end
 

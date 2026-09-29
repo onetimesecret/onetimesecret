@@ -62,6 +62,10 @@ export const SESSION_FAILURE_CODES = {
   invalid_credentials: 'credential',
   api_key_invalid: 'credential',
   suspended_credentials: 'credential',
+  // Answered with 403 by Rodauth (lockout, unverified account); the only
+  // 403s that carry the pair.
+  account_locked: 'credential',
+  account_unverified: 'credential',
 } as const satisfies Record<string, SessionFailureScope>;
 
 export type SessionFailureCode = keyof typeof SESSION_FAILURE_CODES;
@@ -89,10 +93,25 @@ export type SessionFailure = z.infer<typeof sessionFailureSchema>;
 /** The status a `verification_unavailable` refusal arrives with. */
 export const VERIFICATION_UNAVAILABLE_STATUS = 503;
 
+/** The status Rodauth answers a locked-out or unverified account with. */
+export const CREDENTIAL_REFUSAL_STATUS = 403;
+
+/** Whether a status can carry the pair at all: 401, the credential 403, or the outage 503. */
+function statusCarriesPair(status: unknown): boolean {
+  return (
+    status === undefined ||
+    status === 401 ||
+    status === CREDENTIAL_REFUSAL_STATUS ||
+    status === VERIFICATION_UNAVAILABLE_STATUS
+  );
+}
+
 /**
- * Whether a pair on a response with this status is a session refusal.
+ * Whether a pair on a response with this status is one the server emits.
  *
- * 401 carries any scope. 503 carries only `verification_unavailable`: the
+ * 401 carries any scope. 403 carries only `credential` (a locked-out or
+ * unverified account); a bare 403 or a 403 with a session reason is not
+ * annotated by the server. 503 carries only `verification_unavailable`: the
  * server never puts another scope on a 503, and the other 503s the client
  * sees (`GET /bootstrap/me` `SnapshotOrderingUnavailable`, ADR-046; the
  * `/auth` `AuthDatabaseBusy`) carry no pair, so a coded 503 with any other
@@ -100,6 +119,7 @@ export const VERIFICATION_UNAVAILABLE_STATUS = 503;
  */
 function statusCarriesScope(status: unknown, scope: SessionFailureScope): boolean {
   if (status === undefined || status === 401) return true;
+  if (status === CREDENTIAL_REFUSAL_STATUS) return scope === 'credential';
   return status === VERIFICATION_UNAVAILABLE_STATUS && scope === 'verification_unavailable';
 }
 
@@ -109,8 +129,10 @@ function statusCarriesScope(status: unknown, scope: SessionFailureScope): boolea
  * Accepts an axios-style error (`error.response`), a response, or a bare
  * body. Returns null unless the body carries a valid pair on a status that
  * can carry it (see `statusCarriesScope`, when a status is available) — so
- * every other rejection, every uncoded 401, and every uncoded 5xx is "no
- * statement about the customer session".
+ * every other rejection, every uncoded 401, and every uncoded 403 or 5xx is
+ * "no statement about the customer session". A 403 carries only a
+ * `credential` pair (a locked-out or unverified account, #4469): a form may
+ * read it, and the interceptor never reconciles on it.
  */
 export function parseSessionFailure(input: unknown): SessionFailure | null {
   if (input === null || typeof input !== 'object') return null;
@@ -122,9 +144,7 @@ export function parseSessionFailure(input: unknown): SessionFailure | null {
   };
   const response = candidate.response ?? (candidate.data !== undefined ? candidate : undefined);
   const status = response?.status;
-  if (status !== undefined && status !== 401 && status !== VERIFICATION_UNAVAILABLE_STATUS) {
-    return null;
-  }
+  if (!statusCarriesPair(status)) return null;
 
   const body = response ? response.data : input;
   const parsed = sessionFailureSchema.safeParse(body);

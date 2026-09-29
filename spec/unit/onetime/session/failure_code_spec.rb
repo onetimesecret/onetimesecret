@@ -52,7 +52,9 @@ RSpec.describe Onetime::SessionFailureCode do
   # password would be an enumeration surface the message does not have.
   it 'scopes exactly the credential vocabulary as credential' do
     credential = described_class::CODES.select { |_r, e| e['code_scope'] == 'credential' }
-    expect(credential.keys).to contain_exactly(:invalid_credentials, :api_key_invalid, :suspended_credentials)
+    expect(credential.keys).to contain_exactly(
+      :invalid_credentials, :api_key_invalid, :suspended_credentials, :account_locked, :account_unverified,
+    )
   end
 
   it 'knows which reasons are credential refusals' do

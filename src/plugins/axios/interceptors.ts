@@ -4,7 +4,10 @@ import {
   scrubSensitiveStrings,
   scrubUrlWithPatterns,
 } from '@/plugins/core/diagnostics/scrubbers';
-import { parseSessionFailure } from '@/schemas/contracts/session-failure';
+import {
+  VERIFICATION_UNAVAILABLE_STATUS,
+  parseSessionFailure,
+} from '@/schemas/contracts/session-failure';
 import { useLanguageStore } from '@/shared/stores';
 import {
   COORDINATOR_DISPOSITION_KEY,
@@ -204,13 +207,17 @@ export const errorInterceptor = (error: AxiosError) => {
  * accepts the pair on a 503 only for that scope. Nothing else is reported: a
  * network error, a timeout or an uncoded 5xx on an API call says nothing
  * about the session (the `GET /bootstrap/me` allocation 503 of ADR-046 is
- * one and is handled by the coordinator's own request), and the
- * coordinator's own request is what counts verification failures.
+ * one and is handled by the coordinator's own request), the coordinator's
+ * own request is what counts verification failures, and a 403 credential
+ * refusal (a locked-out or unverified account, #4469) is the form's to read
+ * and never reconciles.
  */
 function noteRejection(error: AxiosError): void {
   const status = error.response?.status;
   const failure = parseSessionFailure(error);
-  if (status !== 401 && failure === null) return;
+  const reportable =
+    status === 401 || (status === VERIFICATION_UNAVAILABLE_STATUS && failure !== null);
+  if (!reportable) return;
   try {
     const disposition: RejectionDisposition = useAuthStore().noteApiRejection(failure);
     // Attach the disposition to the error so useAsyncHandler.coordinatorOwnsMessage

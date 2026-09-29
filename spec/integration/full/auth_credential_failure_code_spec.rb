@@ -59,6 +59,34 @@ RSpec.describe 'Credential failure codes on /auth (#4469)', type: :integration d
     end
   end
 
+  # Rodauth answers these with 403 (`lockout_error_status`,
+  # `unopen_account_error_status`), and the pair is rendered onto that 403:
+  # a credential-scope stash is the one case a 403 is annotated.
+  describe 'POST /auth/login answered with 403' do
+    it 'codes a locked-out account as account_locked, status and fields unchanged' do
+      skip 'lockout is disabled in this lane' unless Onetime.auth_config.lockout_enabled?
+
+      6.times { post_json '/auth/login', { login: email, password: 'not-the-password' } }
+
+      expect(last_response.status).to eq(403), last_response.body
+      expect_code('account_locked', 'credential')
+      expect(json_response['error']).to be_a(String)
+    end
+
+    it 'codes an unverified account as account_unverified' do
+      unverified = "unverified-#{SecureRandom.hex(6)}@example.com"
+      test_db[:accounts].where(id: create_verified_account(db: test_db, email: unverified, password: password))
+        .update(status_id: AuthTestConstants::STATUS_UNVERIFIED)
+
+      post_json '/auth/login', { login: unverified, password: password }
+
+      # Rodauth's status check is off when neither verify_account nor
+      # close_account is loaded (skip_status_checks?); then there is no 403.
+      skip 'account status checks are off in this lane' unless last_response.status == 403
+      expect_code('account_unverified', 'credential')
+    end
+  end
+
   describe 'a login-required route reached without a session' do
     it 'codes a custom /auth route refusal with the session reason' do
       get_json '/auth/account'
