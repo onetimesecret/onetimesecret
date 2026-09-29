@@ -53,8 +53,8 @@ describe('single authentication authority (#4458)', () => {
     expect(matching(/ots_auth_state/)).toEqual([]);
   });
 
-  it('had_valid_session is mentioned by the schema only: nothing decides from it', () => {
-    expect(matching(/had_valid_session|hadValidSession/i)).toEqual(['src/schemas/contracts/bootstrap.ts']);
+  it('the removed had_valid_session field is read nowhere (#4468)', () => {
+    expect(matching(/had_valid_session|hadValidSession/i)).toEqual([]);
   });
 
   it('the client status is assigned in bootstrapStore only', () => {

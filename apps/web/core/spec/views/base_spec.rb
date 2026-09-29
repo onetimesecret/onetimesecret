@@ -260,8 +260,8 @@ RSpec.describe Core::Views::BaseView do
       expect(view.sess).to be(authenticated_session)
     end
 
-    # #4462: the server states what the client used to infer from
-    # had_valid_session. The session names a customer this response cannot
+    # #4462: the server states what the client used to infer from the raw
+    # session. The session names a customer this response cannot
     # vouch for, so the status is `unavailable`: no identity, and not a
     # sign-out either.
     it 'reports auth_status unavailable, with no identity, for a session that names a customer' do

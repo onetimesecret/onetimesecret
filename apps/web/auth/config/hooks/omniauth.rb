@@ -627,9 +627,12 @@ module Auth::Config::Hooks
         # concurrent or later initiation on the same proof is refused). The
         # proof is only ever recorded by a completed local ceremony (password
         # or WebAuthn primary plus every MFA factor the account requires):
-        # a magic-link login, an SSO callback, a remembered session, or a
-        # password step that stopped short of required MFA never records one,
-        # so none of them can reach the write below.
+        # a magic-link login, an SSO callback, or a password step that
+        # stopped short of required MFA never records one, so none of them
+        # can reach the write below. A remembered session
+        # (Onetime::RememberMe) is the session its login created, not one
+        # restored from a credential; it holds only the proof that login
+        # recorded, on the same clock.
         #
         # Refusal is a redirect to the re-authentication view, which returns
         # the user to the Connected Identities panel on success; the user then
