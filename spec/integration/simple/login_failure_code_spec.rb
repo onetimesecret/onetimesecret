@@ -54,6 +54,8 @@ RSpec.describe 'Credential failure codes on the simple-mode sign-in (#4469)', ty
       'code' => 'invalid_credentials',
       'code_scope' => 'credential',
     )
+    # A form credential is challenged with the `Session` scheme, not Basic.
+    expect(last_response.headers['www-authenticate']).to eq('Session realm="onetimesecret"')
   end
 
   it 'codes an unknown email with the same code (no enumeration surface beyond the message)' do

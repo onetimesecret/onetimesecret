@@ -12,7 +12,10 @@ module Onetime
     #
     # Adds the stable `code` / `code_scope` pair (Onetime::SessionFailureCode)
     # to a JSON 401 that refused a request for its session (#4462) or for a
-    # credential it presented (#4469).
+    # credential it presented (#4469), and gives the refusal its HTTP
+    # semantics: a `WWW-Authenticate` challenge on every annotated 401, and a
+    # 503 with `Retry-After` in place of the 401 when the session could not be
+    # verified at all (#4469 follow-up, v0.27).
     #
     # ## Why a middleware
     #
@@ -25,8 +28,55 @@ module Onetime
     # RetryAfterHeader: the code that refuses stashes the typed reason in the
     # Rack env (Onetime::SessionFailureCode.stash) and this middleware,
     # mounted once in the universal stack, carries it across the boundary for
-    # every surface. Group D (#4469 follow-up) extends the same annotate path
-    # with headers: `annotate` is the one place to add them.
+    # every surface. `annotate` is the one place the refusal is rendered, so
+    # the status and the headers are decided there as well as the body.
+    #
+    # ## The challenge
+    #
+    # RFC 9110 §15.5.2 requires a 401 to carry a `WWW-Authenticate` header
+    # with at least one challenge applicable to the target resource. Otto's
+    # `json_auth_error` and the /auth Roda app send none. The scheme depends
+    # on which credential the refusal is about, never on the route's own
+    # chain, because a browser opens its native credentials dialog on any
+    # same-origin fetch response that carries a `Basic` challenge:
+    #
+    # - `Session` (SESSION_CHALLENGE), a scheme token of this application, for
+    #   a refused or unverifiable cookie session and for a rejected login,
+    #   second factor or password confirmation. There is no registered HTTP
+    #   scheme for a cookie session and no browser acts on an unknown one, so
+    #   the header satisfies the RFC without a dialog. It is the challenge on
+    #   the routes the browser client calls, including a `sessionauth,
+    #   basicauth` route refused for its session, where the header the route
+    #   would also accept was never examined.
+    # - `Basic` (BASIC_CHALLENGE) only when a Basic auth strategy rejected an
+    #   `Authorization` header (`api_key_invalid`, or `suspended_credentials`
+    #   from that strategy). Basic is the applicable scheme for that resource
+    #   (RFC 7617), and the client already chose it by sending the header;
+    #   the browser client never does.
+    #
+    # The scheme is read from the stash, not from the request: the Basic
+    # strategies record `Onetime::SessionFailureCode::SCHEME_BASIC` beside the
+    # reason (SCHEME_ENV_KEY), and nothing else does. A refusal stashed by a
+    # form login, a re-authentication or the simple-mode sign-in is
+    # challenged with `Session` even when that request also carried an
+    # `Authorization` header, because no strategy examined it and a `Basic`
+    # challenge would open the browser dialog on a form-login response.
+    #
+    # A `WWW-Authenticate` an app already set is kept.
+    #
+    # ## The 503
+    #
+    # A refusal in the `verification_unavailable` scope is not a verdict on
+    # the session: the datastore that would verify it could not be reached.
+    # RFC 9110 §15.6.4's 503 ("temporary overload ... likely to be alleviated
+    # after some delay") describes that, 401 does not, so the status is
+    # rewritten to 503 with `Retry-After: UNAVAILABLE_RETRY_AFTER` (§10.2.3,
+    # delay-seconds, the value `GET /bootstrap/me` uses for its own 503). The body keeps
+    # every field the 401 had plus the pair, so a client tells this 503 from
+    # any other by `code_scope`. The header is set here rather than through
+    # RetryAfterHeader's env stash so this middleware needs no particular
+    # position relative to that one; a `Retry-After` an app already set is
+    # kept. No other scope changes status.
     #
     # ## Who stashes
     #
@@ -62,8 +112,9 @@ module Onetime
     #   credential reason is stashed by the code that renders the refusal, and
     #   the /auth Roda app has no Otto chain at all, so both are taken as is.
     #
-    # It never overwrites a `code` already in the body, never touches another
-    # status or content type, and leaves the response exactly as it found it
+    # It never overwrites a `code` already in the body, never touches a
+    # response whose status is not 401 or whose content type is not JSON, and
+    # leaves the response exactly as it found it (status, headers and body)
     # when the body is not a JSON object. An uncoded 401 is always a safe
     # outcome: clients treat it as making no statement about the session.
     #
@@ -81,6 +132,22 @@ module Onetime
       CONTENT_TYPE   = 'content-type'
       CONTENT_LENGTH = 'content-length'
       JSON_TYPE      = %r{\Aapplication/(?:[\w.+-]+\+)?json\b}i
+
+      # Rack 3 requires lowercase response header names.
+      WWW_AUTHENTICATE = 'www-authenticate'
+      RETRY_AFTER      = 'retry-after'
+
+      # The realm names the scope of protection (RFC 9110 §11.5). One fixed
+      # value: the challenge is read by machines, and a per-host value would
+      # have to be quoted from the request.
+      REALM             = 'onetimesecret'
+      SESSION_CHALLENGE = %(Session realm="#{REALM}")
+      BASIC_CHALLENGE   = %(Basic realm="#{REALM}")
+
+      # The status a `verification_unavailable` refusal answers, and its
+      # Retry-After in seconds.
+      UNAVAILABLE_STATUS      = 503
+      UNAVAILABLE_RETRY_AFTER = 5
 
       def initialize(app)
         @app = app
@@ -123,15 +190,40 @@ module Onetime
         metadata.is_a?(Hash) && metadata.key?(:auth_failure)
       end
 
-      # The one place the refusal is rendered onto the response. Returns the
-      # response untouched when the body cannot carry the pair.
+      # The one place the refusal is rendered onto the response: the pair in
+      # the body, on a 401 the challenge, and for an outage the 503 and its
+      # Retry-After. Returns the response untouched when the body cannot
+      # carry the pair, so a response never gets the headers without the
+      # code that explains them. An outage reason never arrives here on a
+      # 403 (status_annotated? admits a 403 only for a credential reason), so
+      # the 503 rewrite is a 401 rewrite.
       def annotate(env, status, headers, body)
-        codes     = Onetime::SessionFailureCode.for(env[ENV_KEY])
+        reason    = env[ENV_KEY]
+        codes     = Onetime::SessionFailureCode.for(reason)
         annotated = annotate_body(body, codes)
         return [status, headers, body] unless annotated
 
         set_header(headers, CONTENT_LENGTH, annotated.bytesize.to_s)
+
+        if codes['code_scope'] == Onetime::SessionFailureCode::SCOPE_VERIFICATION_UNAVAILABLE
+          set_header_unless_present(headers, RETRY_AFTER, UNAVAILABLE_RETRY_AFTER.to_s)
+          return [UNAVAILABLE_STATUS, headers, [annotated]]
+        end
+
+        # A 403 credential refusal (CREDENTIAL_STATUS) keeps its status and
+        # gets no challenge: it is not a request for credentials.
+        set_header_unless_present(headers, WWW_AUTHENTICATE, challenge(env)) if status.to_i == STATUS
         [status, headers, [annotated]]
+      end
+
+      # See "The challenge" above: Basic only on the Basic strategies' own
+      # stash, Session for every other refusal.
+      def challenge(env)
+        if Onetime::SessionFailureCode.scheme(env) == Onetime::SessionFailureCode::SCHEME_BASIC
+          BASIC_CHALLENGE
+        else
+          SESSION_CHALLENGE
+        end
       end
 
       # @return [String, nil] the re-serialized body, or nil to leave the
@@ -157,6 +249,10 @@ module Onetime
 
       def set_header(headers, name, value)
         headers[header_key(headers, name) || name] = value
+      end
+
+      def set_header_unless_present(headers, name, value)
+        headers[name] = value unless header_key(headers, name)
       end
 
       def header_key(headers, name)

@@ -214,7 +214,9 @@ RSpec.describe 'Active Sessions Management', type: :integration do
         allow(Auth::Database).to receive(:connection).and_raise(Sequel::DatabaseConnectionError, 'down')
 
         get_json '/auth/account'
-        expect(last_response.status).to eq(401)
+        # Fail closed as an outage: 503, not a 401 verdict
+        # (Onetime::Middleware::SessionFailureCode).
+        expect(last_response.status).to eq(503)
         expect(json_response['error_type']).to eq('SessionUnverified')
       end
 
