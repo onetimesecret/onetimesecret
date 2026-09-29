@@ -64,6 +64,14 @@ Added
   before signing in, ``sign_in`` when the new account can sign in at once.
   #4576
 
+- JSON responses that reject a login, password, passkey, second factor,
+  re-authentication or API key now include the ``code`` and ``code_scope``
+  fields that refused sessions gained in 0.26.13, with ``code_scope`` set to
+  ``credential``. A ``401`` carries ``invalid_credentials``,
+  ``api_key_invalid`` or ``suspended_credentials``; the ``403`` for a sign-in
+  to a locked or unverified account carries ``account_locked`` or
+  ``account_unverified``. #4469
+
 Changed
 -------
 
