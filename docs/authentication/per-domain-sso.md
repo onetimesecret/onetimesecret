@@ -176,9 +176,15 @@ refused the same way. Delete the stale record or verify it.
 
 The SSO settings form still shows the callback URL (and, for `saml`, the SP
 EntityID and ACS URL) for an unverified domain, with a notice that SSO on the
-domain activates after verification. They are the values to register at the
-IdP now; they go live once verification completes. The refusal means the IdP
-never receives any other value in the meantime.
+domain activates after verification and that verification does not change
+the values. They can be registered at the IdP before verification completes;
+the refusal means the IdP never receives any other value in the meantime.
+Whether a value is final does not depend on verification. The SAML values
+the API returns for a saved configuration reflect route overrides. The OIDC
+and Entra callback URL, and the SAML values shown before the first save, are
+previewed in the browser from the domain host with `https` and the default
+route, so they can differ from the real URL when an operator overrides the
+route name or runs without SSL (#3932). This holds on a verified domain too.
 
 A domain whose sign-in settings withhold SSO is not waiting on verification,
 since verifying it would not turn tenant SSO on. It is treated like any other

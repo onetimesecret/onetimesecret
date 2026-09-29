@@ -1324,8 +1324,9 @@ describe('DomainSsoConfigForm', () => {
       });
     });
 
-    // #4579: tenant SSO is refused on an unverified domain, so the values are
-    // never wrong there, only not live yet. They are shown and labelled.
+    // #4579: tenant SSO is refused on an unverified domain, and verification
+    // does not change the values, so they are shown with a notice. Whether
+    // they are ready to register stays the block hint's call.
     describe('unverified domain', () => {
       const NOTICE = '[data-testid="sso-domain-unverified-notice"]';
 
@@ -1341,7 +1342,12 @@ describe('DomainSsoConfigForm', () => {
         const notice = wrapper.find(NOTICE);
         expect(notice.exists()).toBe(true);
         expect(notice.attributes('role')).toBe('status');
-        expect(notice.text()).toBe('web.organizations.sso.domain_unverified_notice_saml');
+        expect(notice.text()).toBe('web.organizations.sso.domain_unverified_notice');
+        // The notice does not override the preview caveat: host-derived values
+        // are confirmed after saving, verified domain or not (#3932).
+        expect(wrapper.find('[data-testid="sso-saml-sp-details-hint"]').text()).toBe(
+          'web.organizations.sso.sp_details_preview_hint'
+        );
       });
 
       it('shows the API-composed values of a saved record as final, with the notice', async () => {

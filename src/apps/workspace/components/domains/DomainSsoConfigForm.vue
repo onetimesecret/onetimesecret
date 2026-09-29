@@ -200,8 +200,10 @@ const unreadableFieldNames = computed(() =>
  * and Audience at app creation, before any record can exist here.
  *
  * Built for an unverified host too (#4579): tenant SSO is refused on that
- * host until verification completes (sso_domain_unverified), so these URLs
- * are never wrong there, only not live yet — the unverified notice says so.
+ * host until verification completes (sso_domain_unverified), and verification
+ * does not change these URLs, so the unverified notice says only that. It
+ * makes no claim that they are ready to register: the preview caveat above
+ * applies on a verified domain and an unverified one alike.
  */
 const ssoRouteBase = computed(() => {
   if (!props.domainHost) return null;
@@ -287,11 +289,13 @@ const showsRegistrationValues = computed(() =>
 
 /**
  * Unverified-domain notice (#4579). Tenant SSO is refused on a domain whose
- * ownership is not verified (auth_error=sso_domain_unverified), so the
- * values in the callback / SP block are the ones to register at the IdP now
- * and only go live once verification completes. Also covers a domain that
- * lost its verification: the values already registered stay shown, and
- * stay correct.
+ * ownership is not verified (auth_error=sso_domain_unverified). The notice
+ * says SSO activates after verification and that verification leaves the
+ * values in the callback / SP block unchanged. Whether those values are
+ * ready to register is the block hint's call (spDetailsArePreview for SAML;
+ * the host-derived OAuth callback URL carries the #3932 caveat on any
+ * domain). Also covers a domain that lost its verification: the values
+ * already registered stay shown.
  */
 const showDomainUnverifiedNotice = computed(
   () => !props.domainVerified && showsRegistrationValues.value
@@ -1130,9 +1134,9 @@ aria-hidden="true">*</span>
       </div>
 
       <!-- Unverified domain (#4579): tenant SSO is refused on this host until
-           ownership verification completes, so the values below are what to
-           register at the IdP now, not yet live. Directly above the callback /
-           SP block so an admin copying them reads it first. role="status"
+           ownership verification completes; verification does not change the
+           values below. Directly above the callback / SP block so an admin
+           copying them reads it first. role="status"
            like the certificate advisory; amber is the fixed warning hue
            (#4132) and the text carries the meaning on its own (WCAG 1.4.1). -->
       <div
@@ -1146,11 +1150,7 @@ aria-hidden="true">*</span>
           class="mt-0.5 size-4 flex-shrink-0 text-amber-600 dark:text-amber-400"
           aria-hidden="true" />
         <p class="text-sm text-amber-700 dark:text-amber-300">
-          {{
-            isSaml
-              ? t('web.organizations.sso.domain_unverified_notice_saml')
-              : t('web.organizations.sso.domain_unverified_notice')
-          }}
+          {{ t('web.organizations.sso.domain_unverified_notice') }}
         </p>
       </div>
 

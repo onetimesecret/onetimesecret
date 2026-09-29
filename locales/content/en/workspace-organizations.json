@@ -950,14 +950,9 @@
     "content_hash": "fd9d3001"
   },
   "web.organizations.sso.domain_unverified_notice": {
-    "text": "Single sign-on on this domain activates after the domain is verified. You can register the callback URL below with your identity provider now; it goes live once verification completes.",
-    "context": "Notice above the callback URL in a custom domain's SSO form (OIDC / Microsoft Entra ID) while the domain's ownership is not verified. Sign-in through SSO is refused until verification completes; the URL shown is still the correct one to register.",
-    "content_hash": "edfb6f99"
-  },
-  "web.organizations.sso.domain_unverified_notice_saml": {
-    "text": "Single sign-on on this domain activates after the domain is verified. You can register the service provider details below with your identity provider now; they go live once verification completes.",
-    "context": "SAML variant of the unverified-domain notice in a custom domain's SSO form, shown above the service provider details (SP Entity ID and Assertion Consumer Service URL). Sign-in through SSO is refused until verification completes; the values shown are still the correct ones to register.",
-    "content_hash": "0f5839f2"
+    "text": "Single sign-on on this domain activates after the domain is verified. Verification does not change the values below.",
+    "context": "Notice above the callback URL (OIDC / Microsoft Entra ID) or the service provider details (SAML) in a custom domain's SSO form while the domain's ownership is not verified. Sign-in through SSO is refused until verification completes. The second sentence only says verification leaves the values as they are; whether they are ready to register is said by the hint on the block below, so do not add that promise here.",
+    "content_hash": "ac598100"
   },
   "web.organizations.sso.sp_entity_id": {
     "text": "SP Entity ID (metadata URL)",
