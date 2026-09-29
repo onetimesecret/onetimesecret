@@ -154,6 +154,8 @@ const COPY = {
   statusAuthDisabledBadge: t('web.domains.sso.status_auth_disabled_badge'),
   statusUnsupportedProviderBadge: t('web.domains.sso.status_unsupported_provider_badge'),
   statusSamlDisabledBadge: t('web.domains.sso.status_saml_disabled_badge'),
+  statusDomainUnverifiedBadge: t('web.domains.sso.status_domain_unverified_badge'),
+  statusDomainUnverifiedHint: t('web.domains.sso.status_domain_unverified_hint'),
   statusUnavailableBadge: t('web.domains.sso.status_unavailable_badge'),
   statusUnavailableHint: t('web.domains.sso.status_unavailable_hint'),
   // SSO-restriction lockout guard (#4111)
@@ -1517,9 +1519,26 @@ describe('DomainSigninConfigForm', () => {
       ['auth_disabled', 'statusAuthDisabledBadge'],
       ['unsupported_provider_type', 'statusUnsupportedProviderBadge'],
       ['saml_disabled', 'statusSamlDisabledBadge'],
+      ['domain_unverified', 'statusDomainUnverifiedBadge'],
     ] as const)('reports the %s rung', (reason, copyKey) => {
       wrapper = mountForm({ ssoConfigured: true, tenantSso: verdict(reason) });
       expect(wrapper.find(STATUS).text()).toContain(COPY[copyKey]);
+    });
+
+    it('reports domain_unverified with copy that holds while SSO is also switched off here', () => {
+      // #4579: the server reports domain_unverified ahead of sso_not_permitted,
+      // so this rung also arrives when these settings withhold SSO. The hint
+      // must name both conditions, not promise that verification alone turns
+      // SSO on.
+      wrapper = mountForm({
+        formState: { ...defaultFormState, sso_enabled: false },
+        ssoConfigured: true,
+        tenantSso: verdict('domain_unverified'),
+      });
+      const status = wrapper.find(STATUS);
+      expect(status.text()).toContain(COPY.statusDomainUnverifiedBadge);
+      expect(status.text()).toContain(COPY.statusDomainUnverifiedHint);
+      expect(status.text()).not.toContain('web.domains.sso.status_domain_unverified');
     });
 
     it('falls back to generic unavailable copy for a rung this version does not know', () => {
@@ -1653,6 +1672,24 @@ describe('DomainSigninConfigForm', () => {
         formState: { ...modeB, sso_enabled: true },
         ssoConfigured: true,
         tenantSso: { available: false, unavailable_reason: 'sso_not_permitted' },
+      });
+
+      await wrapper.find('#signin-restrict-sso').trigger('change');
+
+      expect(wrapper.emitted('auto-save')).toBeFalsy();
+      expect(wrapper.find(WARNING).exists()).toBe(true);
+    });
+
+    it('warns for domain_unverified: the patch cannot verify the domain', async () => {
+      // #4579: SSO is refused until ownership verification completes, so an
+      // SSO restriction closes sign-in on this host until then. The server
+      // reports this rung ahead of sso_not_permitted, so it arrives with SSO
+      // switched off here too; unlike sso_not_permitted, the patch cannot
+      // resolve it.
+      wrapper = mountForm({
+        formState: { ...modeB, sso_enabled: false },
+        ssoConfigured: true,
+        tenantSso: { available: false, unavailable_reason: 'domain_unverified' },
       });
 
       await wrapper.find('#signin-restrict-sso').trigger('change');
