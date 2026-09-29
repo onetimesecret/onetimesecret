@@ -1323,6 +1323,72 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
   end
 
   # ==========================================================================
+  # reject_restricted_sso (#4579, SEC-07)
+  # ==========================================================================
+
+  describe '.reject_restricted_sso' do
+    let(:request) do
+      double('Rack::Request', path: '/auth/sso/entra/callback').tap do |r|
+        allow(r).to receive(:halt) { |response| throw :halt, response }
+      end
+    end
+    # A tenant flow started while the host still offered SSO: the markers,
+    # the strategy's binding (string keys, as the strategies write them), and
+    # one unrelated key that must survive.
+    let(:session) do
+      {
+        omniauth_tenant_domain_id: 'dom_sso_only_123',
+        omniauth_tenant_host: 'secrets.tenant.example',
+        'omniauth.state' => 'pending-state',
+        'omniauth.nonce' => 'pending-nonce',
+        account_id: 42,
+      }
+    end
+    let(:rodauth) { double('Rodauth', session: session) }
+
+    def reject
+      catch(:halt) do
+        helpers.reject_restricted_sso('secrets.tenant.example', request, rodauth, :restrict_to_omniauth_rejected)
+      end
+    end
+
+    it "halts with the router's 404" do
+      expect(reject).to eq(Auth::RestrictTo.not_found_response)
+    end
+
+    it 'drops the pending tenant markers AND the per-strategy binding' do
+      reject
+
+      expect(session).to eq(account_id: 42)
+    end
+
+    it 'audits the calling hook with whether a flow was dropped' do
+      reject
+
+      expect(Auth::Logging).to have_received(:log_auth_event).with(
+        :restrict_to_omniauth_rejected,
+        level: :info,
+        host: 'secrets.tenant.example',
+        path: '/auth/sso/entra/callback',
+        pending_tenant_flow_dropped: true,
+      )
+    end
+
+    # No tenant flow pending: nothing to drop, and a binding without markers
+    # (a platform flow) is not this refusal's to touch.
+    it 'leaves a session without tenant markers untouched' do
+      session.delete(:omniauth_tenant_domain_id)
+      session.delete(:omniauth_tenant_host)
+
+      expect(reject).to eq(Auth::RestrictTo.not_found_response)
+      expect(session).to eq('omniauth.state' => 'pending-state', 'omniauth.nonce' => 'pending-nonce', account_id: 42)
+      expect(Auth::Logging).to have_received(:log_auth_event).with(
+        :restrict_to_omniauth_rejected, hash_including(pending_tenant_flow_dropped: false)
+      )
+    end
+  end
+
+  # ==========================================================================
   # inject_saml_sp_identifiers (#4450)
   # ==========================================================================
 

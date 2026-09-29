@@ -185,6 +185,40 @@ RSpec.describe 'Tenant SSO behind a Host-rewriting proxy', :shared_db_state, typ
     expect(last_response.status).to eq(404)
   end
 
+  # The callback of a flow started while that SSO-only domain was verified
+  # meets the same 404 once verification lapses, and the 404 drops the
+  # pending tenant context: markers and the OAuth state / PKCE binding. Left
+  # behind, the IdP's answer could still complete the refused flow once the
+  # domain verified again.
+  it 'drops the pending tenant context when it 404s a callback after verification lapsed' do
+    header 'Host', origin_host
+    header 'Apx-Incoming-Host', tenant_domain
+    post '/auth/sso/entra'
+
+    location = last_response.headers['Location'].to_s
+    expect(location).to start_with("https://login.microsoftonline.com/#{test_sso_config.tenant_id}/")
+    state = CGI.parse(URI.parse(location).query.to_s)['state'].first
+    expect(last_request.env['rack.session'].to_h.keys.map(&:to_s))
+      .to include('omniauth_tenant_domain_id', 'omniauth_tenant_host', 'omniauth.state')
+
+    test_custom_domain.verified = false
+    test_custom_domain.save
+
+    allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+    expect(Auth::Logging).to receive(:log_auth_event).with(
+      :restrict_to_omniauth_rejected, hash_including(host: tenant_domain, pending_tenant_flow_dropped: true)
+    ).and_call_original
+
+    header 'Host', origin_host
+    header 'Apx-Incoming-Host', tenant_domain
+    get '/auth/sso/entra/callback', code: 'idp-code', state: state
+
+    expect(last_response.status).to eq(404)
+    expect(last_request.env['rack.session'].to_h.keys.map(&:to_s)).not_to include(
+      'omniauth_tenant_domain_id', 'omniauth_tenant_host', *Onetime::SsoProvider::FlowSessionKeys::ALL
+    )
+  end
+
   it 'sends the IdP a redirect_uri on the tenant domain, not the origin target' do
     # Resolving the tenant's credentials is only half the flow. The authorize
     # URL carries a redirect_uri built from OmniAuth's `full_host`, which

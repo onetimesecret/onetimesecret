@@ -753,6 +753,52 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
       refused = events.find { |event, _| event == :omniauth_tenant_domain_unverified }
       expect(refused.last).to include(pending_tenant_flow_dropped: true)
     end
+
+    # The same lapse on an SSO-only host (no sign-in settings of its own):
+    # its 'sso' pin stays while the domain waits, so the callback is answered
+    # 404 by the restrict_to gate before the refusal above can run. That 404
+    # drops the pending context too. The staged response is not consumed by
+    # a 404 (the strategy never ran), so once the domain verifies again it
+    # can be replayed; with the context gone it answers no pending request.
+    it 'drops the pending context when an SSO-only host 404s a callback after verification lapsed' do
+      created_emails << email
+      events  = audit_events
+      request = start_login(tenant_a)
+
+      post_callback(tenant_a, tenant_a.idp.response(
+        in_response_to: request.id, acs_url: request.acs_url, audience: request.sp_entity_id,
+        name_id: name_id, attributes: { 'email' => [email] }
+      ), follow: false)
+      completion = last_response.headers['Location']
+
+      tenant_a.domain.verified = false
+      tenant_a.domain.save
+
+      header 'Host', tenant_a.host
+      get completion
+
+      expect(last_response.status).to eq(404), last_response.body[0, 300]
+      expect(last_request.env['rack.session'].to_h.keys.map(&:to_s))
+        .not_to include('omniauth_tenant_domain_id', 'omniauth_tenant_host', 'saml_authn_request_id')
+      rejected = events.find { |event, _| event == :restrict_to_omniauth_rejected }
+      expect(rejected.last).to include(host: tenant_a.host, pending_tenant_flow_dropped: true)
+      expect(events.map(&:first)).not_to include(:omniauth_tenant_domain_unverified)
+
+      tenant_a.domain.verified = true
+      tenant_a.domain.save
+
+      header 'Host', tenant_a.host
+      get completion
+
+      # Refused at the strategy (saml_no_pending_request), as in 'a response
+      # answering a request the record was refused on'.
+      expect(last_response.status).to eq(302), last_response.body[0, 300]
+      expect(last_response.headers['Location'].to_s).to include('auth_error=sso_failed')
+      expect(last_request.env['rack.session'].to_h['account_id']).to be_nil
+      expect(identity_rows(name_id)).to be_empty
+      expect(db[:accounts].where(email: email).count).to eq(0)
+      expect(events.map(&:first)).not_to include(:omniauth_tenant_callback_validated, :login_success)
+    end
   end
 
   # ── HttpOrigin admission of the tenant IdP ────────────────────────────────

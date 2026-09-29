@@ -111,14 +111,10 @@ module Auth::Config::Hooks
         # point in its own right, so gating only the request phase would leave
         # a replayable surface. 404 (not the tenant-mismatch 403 below) because
         # a restricted-away method must present no reachable surface at all.
+        # A tenant flow pending in the session is dropped with the 404
+        # (reject_restricted_sso).
         unless Auth::RestrictTo.allows?(request.env, 'sso')
-          Auth::Logging.log_auth_event(
-            :restrict_to_omniauth_rejected,
-            level: :info,
-            host: host,
-            path: request.path,
-          )
-          request.halt(Auth::RestrictTo.not_found_response)
+          HELPERS.reject_restricted_sso(host, request, self, :restrict_to_omniauth_rejected)
         end
 
         # Skip tenant context storage during callback phase.
@@ -303,13 +299,9 @@ module Auth::Config::Hooks
         # when a strategy short-circuits setup, and it is the last point before
         # the identity is consumed.
         unless Auth::RestrictTo.allows?(request.env, 'sso')
-          Auth::Logging.log_auth_event(
-            :restrict_to_omniauth_callback_rejected,
-            level: :info,
-            host: HELPERS.public_host(request),
-            path: request.path,
+          HELPERS.reject_restricted_sso(
+            HELPERS.public_host(request), request, self, :restrict_to_omniauth_callback_rejected
           )
-          request.halt(Auth::RestrictTo.not_found_response)
         end
 
         Auth::Logging.log_auth_event(
@@ -895,6 +887,13 @@ module Auth::Config::Hooks
     #     produce options refuses the flow outright.
     #   - refuse_unverified_tenant_domain, every phase: tenant SSO waiting
     #     only on domain verification refuses the flow outright (#4579).
+    #   - reject_restricted_sso, every phase WITH pending markers: restrict_to
+    #     takes SSO away on the host (the 404 that runs before the ladder).
+    #
+    # One refusal cannot apply it: a SAML response POSTed to the ACS URL is
+    # stripped of cookies by SamlCallbackTransport, so the 404 Stage answers
+    # for a route that is no longer active never sees the initiating session
+    # (#4610).
     #
     # The markers alone are not enough. before_omniauth_callback_route reads
     # a missing :omniauth_tenant_domain_id as "platform-level auth" and skips
@@ -923,6 +922,49 @@ module Auth::Config::Hooks
       session.delete(:omniauth_tenant_domain_id)
       session.delete(:omniauth_tenant_host)
       Onetime::SsoProvider::FlowSessionKeys::ALL.each { |key| session.delete(key) }
+    end
+
+    # Answer an SSO route that restrict_to takes away on this host with the
+    # router's 404 (ADR-034#reject-as-not-found-not-forbidden), and drop the
+    # tenant flow pending in the session with it.
+    #
+    # Called by both omniauth hooks: omniauth_setup on every phase, and
+    # before_omniauth_callback_route as its belt. The drop is the rule on
+    # clear_pending_tenant_context, applied here because this 404 runs
+    # BEFORE the tenant ladder and its own refusals. The case that reaches
+    # it (#4579): an SSO-only custom domain (no SigninConfig of its own, so
+    # its one method is the 'sso' host pin) whose verification lapses
+    # between the request phase and the IdP's return. The pin stays while
+    # the domain waits, the host resolves :unavailable, and the callback is
+    # answered here instead of by refuse_unverified_tenant_domain. Without
+    # the drop, the markers and the OIDC state / SAML request id outlived the
+    # refusal and a replayed IdP response could complete the refused flow
+    # once the domain verified again.
+    #
+    # Only when tenant markers are pending. Sessions are host-only cookies,
+    # so pending markers belong to a flow started on THIS host, where every
+    # SSO strategy is refused right now: nothing that could still complete
+    # is touched. A session without markers has no tenant flow to drop and
+    # is left exactly as it was.
+    #
+    # @param host [String] request public host (for logging)
+    # @param request [Rack::Request] the current request (path + halt)
+    # @param rodauth [Rodauth] Rodauth instance (for the session)
+    # @param event [Symbol] audit event naming the hook that refused
+    # @return [void] never returns normally — the halt ends the request
+    def self.reject_restricted_sso(host, request, rodauth, event)
+      pending_tenant_flow_dropped = pending_tenant_flow?(rodauth.session)
+      clear_pending_tenant_context(rodauth.session) if pending_tenant_flow_dropped
+
+      Auth::Logging.log_auth_event(
+        event,
+        level: :info,
+        host: host,
+        path: request.path,
+        pending_tenant_flow_dropped: pending_tenant_flow_dropped,
+      )
+
+      request.halt(Auth::RestrictTo.not_found_response)
     end
 
     # True for a registered SAML provider whose platform ACS is host-pinned.
