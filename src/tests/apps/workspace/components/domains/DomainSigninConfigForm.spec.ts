@@ -153,6 +153,7 @@ const COPY = {
   statusNotPermittedBadge: t('web.domains.sso.status_not_permitted_badge'),
   statusAuthDisabledBadge: t('web.domains.sso.status_auth_disabled_badge'),
   statusUnsupportedProviderBadge: t('web.domains.sso.status_unsupported_provider_badge'),
+  statusSamlDisabledBadge: t('web.domains.sso.status_saml_disabled_badge'),
   statusUnavailableBadge: t('web.domains.sso.status_unavailable_badge'),
   statusUnavailableHint: t('web.domains.sso.status_unavailable_hint'),
   // SSO-restriction lockout guard (#4111)
@@ -1515,6 +1516,7 @@ describe('DomainSigninConfigForm', () => {
       ['sso_not_permitted', 'statusNotPermittedBadge'],
       ['auth_disabled', 'statusAuthDisabledBadge'],
       ['unsupported_provider_type', 'statusUnsupportedProviderBadge'],
+      ['saml_disabled', 'statusSamlDisabledBadge'],
     ] as const)('reports the %s rung', (reason, copyKey) => {
       wrapper = mountForm({ ssoConfigured: true, tenantSso: verdict(reason) });
       expect(wrapper.find(STATUS).text()).toContain(COPY[copyKey]);

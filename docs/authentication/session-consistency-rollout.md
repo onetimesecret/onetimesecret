@@ -156,8 +156,10 @@ session identifier.
 ## Known limits in this release
 
 - Session `401`s send no `WWW-Authenticate` header, and verification outages
-  answer `401` rather than `503`. Both are recorded in the failure matrix and
-  belong to [#4469](https://github.com/onetimesecret/onetimesecret/issues/4469).
+  answer `401` rather than `503`. Both are recorded in the failure matrix.
+  [#4469](https://github.com/onetimesecret/onetimesecret/issues/4469) adds the
+  `credential` codes and keeps every status; the header and the 503 are a
+  follow-up in the same middleware.
 - Completing the second factor now renews the session id as the password
   step does (`after_two_factor_authentication` calls
   `Onetime::SessionRotation`; `RISK-2026-09-19-02`). The other establishment

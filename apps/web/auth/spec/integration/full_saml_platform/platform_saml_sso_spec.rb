@@ -93,7 +93,7 @@ end
 # tag (spec/spec_helper.rb) matches only /integration/full/, and that tag is
 # what installs the full-mode suite database and MockAuthConfig before boot.
 RSpec.describe 'Platform SAML SSO', :full_auth_mode, :shared_db_state, type: :integration,
-  lane_env: { 'ORGS_SSO_ENABLED' => 'true', 'SAML_IDP_ENTITY_ID' => PlatformSamlSsoSpec::ENTITY_ID } do
+  lane_env: { 'ORGS_SSO_ENABLED' => 'true', 'SAML_ENABLED' => 'true', 'SAML_IDP_ENTITY_ID' => PlatformSamlSsoSpec::ENTITY_ID } do
   include Rack::Test::Methods
 
   before(:all) { boot_onetime_app }

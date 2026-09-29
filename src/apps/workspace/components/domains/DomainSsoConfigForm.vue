@@ -44,6 +44,12 @@ const props = defineProps<{
   clientSecretMasked: string | null;
   testResult: TestSsoConnectionResponse | null;
   testError: string;
+  /**
+   * The install-wide SAML switch (SAML_ENABLED, #4604; features.isSamlEnabled
+   * on the bootstrap payload). While false the API refuses to save or edit
+   * provider_type saml, so the selector does not offer it.
+   */
+  samlEnabled: boolean;
 }>();
 
 // ---------------------------------------------------------------------------
@@ -86,6 +92,17 @@ const providerOptions: { value: SsoProviderType; label: string; description: str
     description: 'Any SAML 2.0 identity provider (Okta, ADFS, Keycloak, …)',
   },
 ];
+
+/**
+ * The options the selector offers for a NEW config. SAML is dropped while the
+ * install-wide switch is off (#4604): the API would refuse the save on
+ * provider_type. `providerOptions` stays complete so a saved saml record
+ * (provider type locked while editing) still resolves its label through
+ * `currentProviderOption`; disabling or deleting such a record stays possible.
+ */
+const selectableProviderOptions = computed(() =>
+  providerOptions.filter((option) => option.value !== 'saml' || props.samlEnabled)
+);
 
 /**
  * Encrypted record fields the API may name in `unreadable_fields` (#4450),
@@ -580,7 +597,7 @@ class="space-y-6">
           role="radiogroup"
           aria-labelledby="provider-type-legend">
           <label
-            v-for="option in providerOptions"
+            v-for="option in selectableProviderOptions"
             :key="option.value"
             :class="[
               'relative flex cursor-pointer rounded-lg border p-4 focus-within:ring-2 focus-within:ring-brand-500 focus-within:ring-offset-2',

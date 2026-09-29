@@ -13,6 +13,13 @@
 # before it had its own.
 AUTHENTICATION_MODE=simple
 
+# The install-wide SAML switch (#4604). The harness runs the real
+# SamlCallbackTransport::Boundary, which answers 404 to every callback
+# request while the switch is off, before reading the body; the spec
+# stubs the route-activity predicate but nothing else, so the lane has to
+# turn SAML on the way an operator would.
+SAML_ENABLED=true
+
 # Generated prerequisites, produced by tests/lanes/run before the tasks
 # below (see the codegen phase there). spec/spec_helper.rb refuses to boot
 # with an empty generated/locales, so every lane that runs Ruby specs

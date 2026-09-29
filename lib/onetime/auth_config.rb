@@ -935,9 +935,15 @@ module Onetime
     # HttpOrigin middleware via #sso_idp_origins, so a :vars_valid that raises
     # drops the provider rather than the response.
     #
+    # An install-wide :enabled switch (SAML_ENABLED, #4604) is checked first,
+    # before presence: configure_provider registers no route for a
+    # switched-off provider whatever its vars say, so nothing may be
+    # advertised or admitted for it either.
+    #
     # @param defn [Hash] a provider definition from the registry
     # @return [Boolean]
     def provider_active?(defn)
+      return false if defn[:enabled] && !provider_switch_on?(defn)
       return false unless defn[:required_vars].all? { |var| env_present?(var) }
       return true unless defn[:vars_valid]
 
@@ -948,6 +954,21 @@ module Onetime
               "treating provider as inactive: #{ex.class}: #{ex.message}"
         false
       end
+    end
+
+    # The definition's :enabled switch, failing closed: an unrecognized token
+    # raises there (strict_bool!), which boot already refused by name; a
+    # process that never validated treats it as off rather than dropping the
+    # response.
+    #
+    # @param defn [Hash] a provider definition with :enabled
+    # @return [Boolean]
+    def provider_switch_on?(defn)
+      defn[:enabled].call == true
+    rescue StandardError => ex
+      OT.lw "[auth_config] #{defn[:label]} enabled switch raised, " \
+            "treating provider as switched off: #{ex.class}: #{ex.message}"
+      false
     end
 
     # The install-wide discovery issuer for a definition that declares

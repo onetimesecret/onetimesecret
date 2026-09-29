@@ -235,6 +235,13 @@ module Core
             'organizations' => {
               'enabled' => features.dig('organizations', 'enabled') || false,
               'sso_enabled' => features.dig('organizations', 'sso_enabled') || false,
+              # The install-wide SAML switch (SAML_ENABLED, #4604), so the
+              # per-domain SSO form offers provider_type saml only when the
+              # API would accept it. Install-wide, not per-org: it sits here
+              # because this block is what gates that form. Fails closed: an
+              # unrecognized token (boot already refused it by name) reads
+              # as off rather than dropping the page.
+              'saml_enabled' => saml_enabled?,
               'custom_mail_enabled' => features.dig('organizations', 'custom_mail_enabled') || false,
               # Whether domain owners can configure per-domain incoming is
               # governed solely by ORGS_INCOMING_SECRETS_ENABLED. The
@@ -533,6 +540,17 @@ module Core
             connectable: !tenant_domain?(view_vars),
             platform_host: platform_saml_host?(view_vars),
           )
+        end
+
+        # The install-wide SAML switch for the bootstrap payload (#4604).
+        # Onetime::SsoProvider::Saml.enabled? raises on an unrecognized
+        # token; the serializer renders every page, so it fails closed.
+        #
+        # @return [Boolean]
+        def saml_enabled?
+          Onetime::SsoProvider::Saml.enabled? == true
+        rescue StandardError
+          false
         end
 
         # Whether this request is positively an operator host AND that host is

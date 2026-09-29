@@ -732,6 +732,88 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
         allow(OT).to receive(:conf).and_return({ 'site' => { 'host' => 'ots.example.com', 'ssl' => true } })
       end
 
+      # The install-wide switch (#4604) is on for every example below except
+      # the ones about the switch itself: with it off nothing else in this
+      # block is reachable.
+      around do |example|
+        ClimateControl.modify(SAML_ENABLED: 'true') { example.run }
+      end
+
+      # SAML_ENABLED (#4604): off by default, and off means no route on
+      # either surface, whatever the platform vars and ORGS_SSO_ENABLED say.
+      # The switch is what stops the app parsing SAML responses during a
+      # ruby-saml advisory, so it has to win over every other input here.
+      describe 'the SAML_ENABLED switch' do
+        def switch_off_log
+          log_messages.select { |_level, msg| msg.include?('SAML is switched off') }
+        end
+
+        [nil, '', 'false', '0', 'off'].each do |value|
+          it "registers no route with the platform vars present and SAML_ENABLED=#{value.inspect}" do
+            expect(auth).not_to receive(:omniauth_provider)
+
+            ClimateControl.modify(saml_env.merge(SAML_ENABLED: value)) { configure(:saml) }
+
+            expect(log_messages.last[0]).to eq(:info)
+            expect(log_messages.last[1]).to include('SAML is switched off', 'SAML_ENABLED', "route 'saml'")
+          end
+        end
+
+        it 'names the operator-renamed route in the log line' do
+          expect(auth).not_to receive(:omniauth_provider)
+
+          ClimateControl.modify(saml_env.merge(SAML_ENABLED: nil, SAML_ROUTE_NAME: 'okta')) { configure(:saml) }
+
+          expect(log_messages.last[1]).to include("route 'okta'")
+        end
+
+        it 'skips before the required-vars check, so no missing-vars line is logged either' do
+          ClimateControl.modify(saml_env.transform_values { nil }.merge(SAML_ENABLED: nil)) { configure(:saml) }
+
+          expect(switch_off_log.size).to eq(1)
+          expect(log_messages.map(&:last).grep(/Missing SAML/)).to be_empty
+        end
+
+        # An unrecognized token is a boot error (ADR-037): configure_provider
+        # does not rescue it, so it cannot resolve to "off" silently.
+        it 'raises on an unrecognized SAML_ENABLED token instead of treating it as off' do
+          expect(auth).not_to receive(:omniauth_provider)
+
+          ClimateControl.modify(saml_env.merge(SAML_ENABLED: 'ture')) do
+            expect { configure(:saml) }.to raise_error(Onetime::ConfigError, /SAML_ENABLED/)
+          end
+        end
+
+        context 'with orgs_sso_enabled' do
+          let(:orgs_sso_enabled) { true }
+
+          it 'registers no tenant placeholder either, so no tenant saml config has a route' do
+            expect(auth).not_to receive(:omniauth_provider)
+
+            ClimateControl.modify(saml_env.transform_values { nil }.merge(SAML_ENABLED: nil)) { configure(:saml) }
+
+            expect(switch_off_log.size).to eq(1)
+            expect(log_messages.map(&:last).grep(/for tenant SSO/)).to be_empty
+          end
+
+          it 'registers no route with platform vars AND org SSO on' do
+            expect(auth).not_to receive(:omniauth_provider)
+
+            ClimateControl.modify(saml_env.merge(SAML_ENABLED: 'false')) { configure(:saml) }
+
+            expect(switch_off_log.size).to eq(1)
+          end
+        end
+
+        it 'leaves the other providers alone' do
+          expect(auth).to receive(:omniauth_provider).with(:openid_connect, hash_including(name: :oidc))
+
+          ClimateControl.modify(SAML_ENABLED: nil, OIDC_CLIENT_ID: 'x', OIDC_CLIENT_SECRET: 'y', OIDC_ISSUER: 'https://issuer.example.com') do
+            configure(:oidc)
+          end
+        end
+      end
+
       it 'registers the request-bound subclass with the trio, hardened options, pinned ACS and NO issuer' do
         registered = nil
         allow(auth).to receive(:omniauth_provider) { |strategy, **opts| registered = [strategy, opts] }

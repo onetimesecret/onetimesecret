@@ -17,7 +17,7 @@
   import { useNotificationsStore } from '@/shared/stores/notificationsStore';
   import { consumeSessionTransition } from '@/utils/sessionTransition';
   import type { LayoutProps } from '@/types/ui/layouts';
-  import { computed, ref, onMounted, watchEffect, type Component, markRaw } from 'vue';
+  import { computed, ref, onMounted, watch, watchEffect, type Component, markRaw } from 'vue';
   import { useRoute } from 'vue-router';
 
   const { locale, t } = useI18n();
@@ -54,6 +54,20 @@
     if (!kind) return;
     useNotificationsStore().show(t(`web.auth.session.${kind}`), 'info', 'top', 10000);
   };
+
+  // The fallback for owned rejections (ADR-046#rejection-disposition). When
+  // the coordinator suppressed the toasts of a batch of 401s and their
+  // reconciliation then settled without a transition, it publishes one
+  // notice; the store is UI-free, so this is where it becomes a message. The
+  // text is what the first suppressed caller would have shown, or the generic
+  // error text, exactly as useAsyncHandler.notifyUser chooses.
+  watch(
+    () => authStore.rejectionNotice,
+    (notice) => {
+      if (!notice) return;
+      useNotificationsStore().show(notice.message ?? t('web.COMMON.unexpected_error'), 'error');
+    }
+  );
 
   useBrandTheme();
 

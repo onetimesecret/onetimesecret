@@ -310,6 +310,10 @@ export const ssoConfigSchema = z.object({
 const organizationFeaturesInner = z.object({
   enabled: z.boolean().default(false),
   sso_enabled: z.boolean().default(false),
+  // Install-wide SAML switch (SAML_ENABLED, #4604). Default OFF like the
+  // backend: the per-domain SSO form offers provider_type saml only when
+  // this is true, because the API refuses to save or edit saml otherwise.
+  saml_enabled: z.boolean().default(false),
   custom_mail_enabled: z.boolean().default(false),
   incoming_secrets_enabled: z.boolean().default(false),
   // Default-ON (unlike siblings): only an explicit false — set via
@@ -932,8 +936,6 @@ export const bootstrapSchema = z.object({
   // FROM it, so the three never disagree on a payload from a current backend.
   authenticated: z.boolean().default(false),
   awaiting_mfa: z.boolean().optional().default(false),
-  /** @deprecated Superseded by `auth_status: 'unavailable'`. Remove in v0.27 (#4468). */
-  had_valid_session: z.boolean().default(false),
   // Tri-state: true/false are definitive; null means the server could not
   // determine it (transient auth-DB failure during serialization). The store
   // treats null as "no information" and keeps the last known value.

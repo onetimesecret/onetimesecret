@@ -118,6 +118,9 @@ module Auth
       Overrides::PublicBaseUrl.configure(self)
       Overrides::PasswordMigration.configure(self)
       Overrides::ErrorHandling.configure(self)
+      # Stable `code` / `code_scope` on Rodauth's refusals (#4469): the
+      # set_error_reason seam, policy in Auth::CredentialFailureCode.
+      Overrides::FailureCode.configure(self)
       # Enumeration safety for the reset-password-request path (issue #3857).
       # Runs after AccountManagement enables :reset_password above, so the
       # overridden methods exist.

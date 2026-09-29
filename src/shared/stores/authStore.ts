@@ -49,7 +49,8 @@ import { useBootstrapStore } from './bootstrapStore';
  * complete, contract-valid snapshot is applied (hydration, or a response this
  * coordinator accepted), on an explicit local sign-out, or when the coordinator
  * withholds authority after repeated failures. Nothing is read from
- * sessionStorage, and `had_valid_session` is not consulted (#4468 removes it).
+ * sessionStorage. The error-page case is the server statement `unavailable`
+ * (#4462); the client infers nothing from the raw session (#4468).
  *
  * ───────────────────────────────────────────────────────────────────────────────
  * ONE COORDINATOR (#4459, ADR-046 "Refresh coordination")
@@ -185,14 +186,40 @@ export type RefreshOutcome =
  * - `ownedByCoordinator: true`  — the coordinator either has a reconciliation
  *   in flight or is going to force a page load. The toast that would
  *   otherwise appear per failed call would be redundant with the once-only
- *   transition announcement.
+ *   transition announcement. `reconciling` is the rejection that requested
+ *   the reconciliation; `reconciling-duplicate` is a rejection that arrived
+ *   while that reconciliation (or a newer one that superseded it) was still
+ *   in flight, so the same accepted snapshot answers it.
  * - `ownedByCoordinator: false` — the coordinator declined to act, so the
  *   caller's local error handling stands (an anonymous tab, an admin-timeout,
- *   an MFA-pending `awaiting_mfa`, or a throttled duplicate rejection).
+ *   a rejected credential, an MFA-pending `awaiting_mfa`, or a `throttled`
+ *   rejection: a duplicate inside the window after the reconciliation has
+ *   already completed, so no coordinator message is coming for it).
  */
 export type RejectionDisposition =
-  | { ownedByCoordinator: true; reason: 'reconciling' | 'will-reload' }
+  | { ownedByCoordinator: true; reason: 'reconciling' | 'reconciling-duplicate' | 'will-reload' }
   | { ownedByCoordinator: false; reason: 'skipped-carve-out' | 'throttled' | 'nonauth' };
+
+/**
+ * The one fallback notice the coordinator owes for a batch of owned
+ * rejections whose reconciliation settled without a transition
+ * (ADR-046#rejection-disposition, Implementation Note 2026-09-29). Owning a
+ * rejection suppresses the caller's toast on the promise that the
+ * coordinator will speak; when the flight then applies a snapshot that still
+ * reports the session, or obtains no verdict at all, nothing else would.
+ *
+ * The store is UI-free: it publishes this value and App.vue, which already
+ * announces session transitions, shows it through the notifications store.
+ * `message` is what the first suppressed caller would have shown (the
+ * classified 401 message when it was of human interest), or null for the
+ * generic error text. `serial` makes each notice distinct to a watcher.
+ */
+export interface RejectionNotice {
+  serial: number;
+  /** How many rejections the batch suppressed. */
+  count: number;
+  message: string | null;
+}
 
 /**
  * The property key the axios interceptor stamps on a rejected error to carry
@@ -225,6 +252,10 @@ const DISPOSITION_THROTTLED: RejectionDisposition = {
 const DISPOSITION_RECONCILING: RejectionDisposition = {
   ownedByCoordinator: true,
   reason: 'reconciling',
+};
+const DISPOSITION_RECONCILING_DUPLICATE: RejectionDisposition = {
+  ownedByCoordinator: true,
+  reason: 'reconciling-duplicate',
 };
 const DISPOSITION_WILL_RELOAD: RejectionDisposition = {
   ownedByCoordinator: true,
@@ -274,6 +305,7 @@ export type AuthStore = {
   lastCheckTime: number | null;
   _initialized: boolean;
   staleSession: boolean;
+  rejectionNotice: RejectionNotice | null;
 
   // Getters (all derived from bootstrapStore.authStatus)
   authStatus: ClientAuthStatus;
@@ -292,7 +324,10 @@ export type AuthStore = {
   retryNow: () => Promise<RefreshOutcome>;
   stop: () => void;
   forcePageLoad: (cause: ForcedPageLoadCause) => void;
-  noteApiRejection: (failure: SessionFailure | null) => RejectionDisposition;
+  noteApiRejection: (
+    failure: SessionFailure | null,
+    message?: string | null
+  ) => RejectionDisposition;
   checkWindowStatus: () => Promise<boolean>;
   refreshAuthState: () => Promise<void>;
   setAuthenticated: (value: boolean) => Promise<RefreshOutcome | 'noop'>;
@@ -365,10 +400,20 @@ export const useAuthStore = defineStore('auth', () => {
    */
   const staleSession = ref(false);
 
+  /**
+   * The fallback notice owed for owned rejections, published when their
+   * flight settles without a transition. App.vue watches it. Null until then
+   * and again after $reset(); a watcher keys on `serial`, not on nullness.
+   */
+  const rejectionNotice = ref<RejectionNotice | null>(null);
+
   // Coordinator bookkeeping. Not reactive: nothing renders from it.
   let generation = 0;
   let inFlight: Flight | null = null;
   let lastRejectionRefreshAt = 0;
+  // Rejections owned since the last settle, and the first caller's message.
+  let owedNotice: { count: number; message: string | null } | null = null;
+  let noticeSerial = 0;
   let retryTimer: ReturnType<typeof setTimeout> | null = null;
   let visibilityHandler: (() => void) | null = null;
 
@@ -525,6 +570,9 @@ export const useAuthStore = defineStore('auth', () => {
     inFlight?.controller.abort();
     inFlight = null;
     clearRetry();
+    // A local sign-out or a stop discards the batch: no replacement flight
+    // will settle it, and the tab is leaving the state the calls failed in.
+    owedNotice = null;
   }
 
   function clearRetry() {
@@ -558,11 +606,47 @@ export const useAuthStore = defineStore('auth', () => {
       controller: new AbortController(),
       promise: Promise.resolve('superseded'),
     };
-    flight.promise = run(flight, request).finally(() => {
-      if (inFlight === flight) inFlight = null;
-    });
+    flight.promise = run(flight, request)
+      .then((outcome) => {
+        settleOwedNotice(outcome);
+        return outcome;
+      })
+      .finally(() => {
+        if (inFlight === flight) inFlight = null;
+      });
     inFlight = flight;
     return flight.promise;
+  }
+
+  /**
+   * Pays the notice owed for owned rejections once their flight settles
+   * (ADR-046#rejection-disposition). The batch is store-level, not
+   * per-flight, so whichever flight settles it first pays it: a flight that
+   * superseded the rejection's own request inherits the debt, and the dropped
+   * flight, settling as `superseded` before or after it, finds nothing left.
+   *
+   * - `refused`: a forced page load; the stale-session notice and the parked
+   *   transition message are the feedback. Nothing owed.
+   * - `applied` to anything but `authenticated`: the UI changed (the MFA gate,
+   *   or an in-place sign-out), which is the answer. Nothing owed.
+   * - `applied` still `authenticated`, `failed`, `allocation-unavailable`: no
+   *   transition will speak for the suppressed calls. One notice, whatever
+   *   the count. The retry that follows a failure starts with nothing owed.
+   */
+  function settleOwedNotice(outcome: RefreshOutcome) {
+    if (!owedNotice) return;
+    if (outcome === 'superseded') return;
+    const answered =
+      outcome === 'refused' || (outcome === 'applied' && authStatus.value !== 'authenticated');
+    if (!answered) {
+      noticeSerial += 1;
+      rejectionNotice.value = { serial: noticeSerial, ...owedNotice };
+      loggingService.debug('[AuthStore.refresh] Rejection notice owed', {
+        outcome,
+        count: owedNotice.count,
+      });
+    }
+    owedNotice = null;
   }
 
   /**
@@ -907,19 +991,47 @@ export const useAuthStore = defineStore('auth', () => {
    *                               however many API calls saw the outage.
    * - `admin_session`             the admin-only timeout. The customer session
    *                               is untouched; the admin surface owns it.
-   * - uncoded 401 (`null`)        a backend that predates the codes, or a
-   *                               rejected credential (#4469). Reconciling can
-   *                               only withhold, so it is safe for both.
+   * - `credential`                a credential the request presented was
+   *                               rejected (#4469): a failed login, a wrong
+   *                               password confirmation, a rejected API key.
+   *                               The session was not examined and may be
+   *                               valid, so nothing is reconciled; the form
+   *                               that sent the credential owns the message.
+   * - uncoded 401 (`null`)        a backend that predates the codes, or a 401
+   *                               about neither the session nor a credential.
+   *                               Reconciling can only withhold, so it is
+   *                               safe.
    *
    * A tab the server last said holds no session has nothing to reconcile, and
    * `awaiting_mfa` tells an MFA-pending tab what it already knows.
+   *
+   * Rejections request at most one reconciliation per REJECTION_MIN_INTERVAL.
+   * A rejection inside that window is a duplicate, and whether the
+   * coordinator owns its message depends on where the reconciliation is:
+   * - still in flight (`inFlight` is set): the accepted snapshot it is about
+   *   to produce answers this rejection too, so the coordinator owns the
+   *   message (`reconciling-duplicate`). A newer flight that superseded the
+   *   rejection's own request counts the same way; its snapshot is the
+   *   coordinator's next verdict (ADR-046#commit-generation-ownership).
+   * - already settled: the coordinator has spoken for the window and will not
+   *   run again for this rejection, so its message cannot cover the call.
+   *   The caller's toast stands (`throttled`).
+   *
+   * Owning a rejection is a promise. If the flight settles without a
+   * transition, the coordinator publishes exactly one `rejectionNotice` for
+   * the whole batch (see `settleOwedNotice`), carrying `message`: what the
+   * first suppressed caller would have shown, or null for the generic text.
    */
-  function noteApiRejection(failure: SessionFailure | null): RejectionDisposition {
+  function noteApiRejection(
+    failure: SessionFailure | null,
+    message: string | null = null
+  ): RejectionDisposition {
     // A tab already in the stale-session state has begun (or completed) its
     // forced page load: the transition notice is or will be on screen.
     if (staleSession.value) return DISPOSITION_WILL_RELOAD;
 
     if (failure?.code_scope === 'admin_session') return DISPOSITION_CARVE_OUT;
+    if (failure?.code_scope === 'credential') return DISPOSITION_CARVE_OUT;
     if (!bootstrapStore.lastSnapshotReportedSession) return DISPOSITION_CARVE_OUT;
     if (failure?.code === 'awaiting_mfa' && authStatus.value === 'mfa_pending') {
       return DISPOSITION_CARVE_OUT;
@@ -928,14 +1040,26 @@ export const useAuthStore = defineStore('auth', () => {
     const now = Date.now();
     if (now - lastRejectionRefreshAt < AUTH_CHECK_CONFIG.REJECTION_MIN_INTERVAL) {
       // A reconciliation was requested within the window; this one is a
-      // duplicate. The coordinator will not run again for this rejection, so
-      // its message cannot cover the toast — let the caller surface it.
-      return DISPOSITION_THROTTLED;
+      // duplicate. While a flight is still up, its accepted snapshot answers
+      // this rejection as well. Once it has settled, the coordinator will not
+      // run again for this rejection, so its message cannot cover the toast:
+      // let the caller surface it.
+      if (!inFlight) return DISPOSITION_THROTTLED;
+      owe(message);
+      return DISPOSITION_RECONCILING_DUPLICATE;
     }
     lastRejectionRefreshAt = now;
 
+    owe(message);
     void refresh({ kind: 'ordinary', reason: 'rejection' });
     return DISPOSITION_RECONCILING;
+  }
+
+  /** Adds an owned rejection to the batch the next settle pays for. */
+  function owe(message: string | null) {
+    owedNotice = owedNotice
+      ? { count: owedNotice.count + 1, message: owedNotice.message ?? message }
+      : { count: 1, message };
   }
 
   /** Explicit retry: skips the backoff wait, not the rules. */
@@ -1065,6 +1189,7 @@ export const useAuthStore = defineStore('auth', () => {
     lastCheckTime.value = null;
     _initialized.value = false;
     lastRejectionRefreshAt = 0;
+    rejectionNotice.value = null;
     // staleSession is NOT reset: only a page load leaves that state.
   }
 
@@ -1095,6 +1220,7 @@ export const useAuthStore = defineStore('auth', () => {
     lastCheckTime,
     _initialized,
     staleSession,
+    rejectionNotice,
 
     // Getters
     authStatus: status,

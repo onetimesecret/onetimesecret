@@ -49,6 +49,7 @@ Apply the environment setting to every application worker and restart them. Only
 
 The exception applies only to **POST on the resolved, configured SAML callback route**:
 
+- The install-wide `SAML_ENABLED` switch must be `true` (it is off by default; with it off no callback route is active on either surface).
 - Platform SAML must be enabled and usable, and the public host must pass the existing boot-pinned platform ACS host checks.
 - Native tenant SAML must resolve to an available, enabled SAML configuration on a verified custom domain, with usable runtime settings. The request must target that configuration's callback route.
 - Missing, disabled, unreadable, or unusable configurations do not receive the exception. Lookup errors fail closed. Platform SAML fallback on custom domains remains prohibited.

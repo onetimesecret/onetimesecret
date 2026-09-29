@@ -665,6 +665,16 @@
     "context": "Explanatory line beside the Unsupported provider badge on the SSO row of domain Sign-In Configuration.",
     "content_hash": "72ea0a2e"
   },
+  "web.domains.sso.status_saml_disabled_badge": {
+    "text": "SAML switched off",
+    "context": "Badge on the SSO row of domain Sign-In Configuration when the saved provider is SAML and the site operator has switched SAML off for the whole installation (SAML_ENABLED).",
+    "content_hash": "4e2eab51"
+  },
+  "web.domains.sso.status_saml_disabled_hint": {
+    "text": "The site operator has switched SAML off for this installation. Your configuration is kept and resumes when SAML is switched back on; until then this domain offers no SAML sign-in.",
+    "context": "Explanatory line beside the SAML switched off badge on the SSO row of domain Sign-In Configuration. Addressed to the domain owner, who cannot change the operator's setting.",
+    "content_hash": "5ba9624c"
+  },
   "web.domains.sso.status_unavailable_badge": {
     "text": "Unavailable",
     "context": "Fallback badge on the SSO row of domain Sign-In Configuration when the server reports a blocking reason this version does not recognise.",

@@ -193,7 +193,6 @@ export const authenticatedBootstrap: BootstrapPayload = {
   auth_status: 'authenticated',
   authenticated: true,
   awaiting_mfa: false,
-  had_valid_session: true,
   cust: mockCustomer,
   custid: mockCustomer.extid,
   email: mockCustomer.email,
@@ -208,7 +207,6 @@ export const anonymousBootstrap: BootstrapPayload = {
   auth_status: 'anonymous',
   authenticated: false,
   awaiting_mfa: false,
-  had_valid_session: false,
   cust: null,
   custid: '',
   email: '',
@@ -224,7 +222,6 @@ export const mfaPendingBootstrap: BootstrapPayload = {
   auth_status: 'mfa_pending',
   authenticated: false,
   awaiting_mfa: true,
-  had_valid_session: true,
   // No cust / custid / email: the server sends no identity until the second
   // factor is verified (AuthenticationSerializer, #4462).
 };
@@ -240,7 +237,6 @@ export const unavailableBootstrap: BootstrapPayload = {
   auth_status: 'unavailable',
   authenticated: false,
   awaiting_mfa: false,
-  had_valid_session: true,
 };
 
 /**

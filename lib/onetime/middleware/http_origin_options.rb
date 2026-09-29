@@ -210,6 +210,14 @@ module Onetime
       # domain, a missing, disabled or non-SAML record, a record whose
       # options cannot be built, a datastore error.
       #
+      # False on BOTH surfaces while the install-wide SAML_ENABLED switch is
+      # off (#4604): no saml route is registered then, so the callback path
+      # is a 404 like any other unregistered route (SamlCallbackTransport's
+      # Boundary answers it before reading the body), and Stage, which shares
+      # this predicate, stages nothing for it. Checked before any datastore
+      # work; an unrecognized token raises into the rescue below and is
+      # treated as off.
+      #
       # @param env [Hash] Rack environment
       # @return [Boolean]
       def self.saml_callback_route_active?(env)
@@ -219,6 +227,7 @@ module Onetime
 
         route_name = path.split('/')[3]
         return false unless Onetime::SsoProvider::Registry.request_bound_platform_acs_route?(route_name)
+        return false unless saml.enabled?
         return false if env['onetime.display_domain'].to_s.empty?
 
         if platform_saml_callback_host?(env)

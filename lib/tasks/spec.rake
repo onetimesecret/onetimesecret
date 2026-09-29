@@ -241,6 +241,10 @@ namespace :spec do
         if mode == 'full'
           env['AUTH_DATABASE_URL'] = 'sqlite::memory:'
           env['ORGS_SSO_ENABLED']  = 'true'
+          # The install-wide SAML switch (#4604), default off: the tenant
+          # saml placeholder route registers only with it on, and the full
+          # lane's tenant SAML specs drive that route.
+          env['SAML_ENABLED']      = 'true'
           tag_filter               = '--tag ~postgres_database'
         end
 
@@ -270,6 +274,7 @@ namespace :spec do
         'AUTHENTICATION_MODE' => 'full',
         'AUTH_DATABASE_URL' => 'sqlite::memory:',
         'ORGS_SSO_ENABLED' => 'true',
+        'SAML_ENABLED' => 'true',
         'AUTH_MFA_ENABLED' => 'true',
         'AUTH_EMAIL_AUTH_ENABLED' => 'true',
         # Passkey-as-second-factor coverage (omniauth_connect_reauth_webauthn_spec)
@@ -305,6 +310,9 @@ namespace :spec do
         'AUTH_DATABASE_URL' => 'sqlite::memory:',
         'ORGS_SSO_ENABLED' => 'true',
         'AUTH_SSO_ENABLED' => 'true',
+        # The install-wide SAML switch (#4604): without it the platform
+        # provider registers no route, whatever the SAML_* vars say.
+        'SAML_ENABLED' => 'true',
         'SAML_IDP_SSO_SERVICE_URL' => 'https://login.platform-idp.test/saml/sso',
         'SAML_IDP_ENTITY_ID' => 'https://platform-idp.test/saml/metadata',
         # The SAML-compatible session cookie: Secure with same_site lax or
@@ -331,6 +339,7 @@ namespace :spec do
         'AUTHENTICATION_MODE' => 'full',
         'AUTH_DATABASE_URL' => PG_TEST_DATABASE_URL,
         'AUTH_DATABASE_URL_MIGRATIONS' => PG_TEST_MIGRATIONS_URL,
+        'SAML_ENABLED' => 'true',
       }
       patterns = [
         *Dir.glob('apps/*/*/spec/integration/full'),
@@ -347,6 +356,7 @@ namespace :spec do
         'AUTH_DATABASE_URL' => PG_TEST_DATABASE_URL,
         'AUTH_DATABASE_URL_MIGRATIONS' => PG_TEST_MIGRATIONS_URL,
         'ORGS_SSO_ENABLED' => 'true',
+        'SAML_ENABLED' => 'true',
       }
 
       # Root-level specs MUST load before app-level specs. The root spec_helper

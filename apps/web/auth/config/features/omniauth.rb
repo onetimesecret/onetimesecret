@@ -641,9 +641,25 @@ module Auth::Config::Features
     # Plus one for a definition whose strategy_options RAISES (SAML):
     #   - vars present but unusable  -> log the reason; placeholder when org
     #     SSO is on, otherwise skip (see the rescue below)
+    # And one that precedes all of the above, for a definition with an
+    # install-wide :enabled switch (SAML_ENABLED, #4604):
+    #   - switch off                 -> log it and skip, whatever the vars
+    #     and whether or not org SSO is on: no platform route, no tenant
+    #     placeholder, no gem loaded
     def self.configure_provider(auth, defn)
       provider_name = ENV.fetch(defn[:route_var], defn[:route_default]).to_sym
       display_name  = ENV.fetch(defn[:display_var], nil) || display_default_for(defn)
+
+      # Before required_vars and before the gem require, so a switched-off
+      # provider registers nothing on either surface. Not rescued: the
+      # callable parses an operator flag with strict_bool! and an
+      # unrecognized token must fail boot (ADR-037), which ValidateAuthConfig
+      # already did by name before this file configures.
+      if defn[:enabled] && !defn[:enabled].call
+        OT.li "[OmniAuth] #{defn[:label]} is switched off (#{defn[:enabled_var]} is not true): " \
+              "route '#{provider_name}' is not registered"
+        return
+      end
 
       missing = missing_env_vars(defn[:required_vars])
       if missing.any? && !Onetime.auth_config.orgs_sso_enabled?

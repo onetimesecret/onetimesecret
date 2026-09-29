@@ -246,18 +246,11 @@ describe('bootstrapStore: single authentication authority (#4458)', () => {
       expect(store.auth_status).toBe('anonymous');
     });
 
-    it('a rejection is not reversed by had_valid_session', () => {
-      store.applySnapshot(snapshot({ ...anonymousBootstrap, had_valid_session: true }));
-
-      expect(store.authStatus).toBe('anonymous');
-      expect(store.authenticated).toBe(false);
-    });
-
     it('a rejection is not reversed by anything in sessionStorage', () => {
       sessionStorage.setItem('ots_auth_state', 'true');
       const getItem = vi.spyOn(Storage.prototype, 'getItem');
 
-      hydrate({ ...anonymousBootstrap, had_valid_session: true });
+      hydrate(anonymousBootstrap);
       store.init();
 
       expect(store.authStatus).toBe('anonymous');
