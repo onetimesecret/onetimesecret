@@ -449,7 +449,10 @@ Fixed
 - Tenant SSO is now offered only after custom-domain ownership is verified.
   Until then, sign-in surfaces do not offer the domain's SSO provider, and
   the domain's SSO settings leave out the SAML service provider entity ID
-  and ACS URL, instead of advertising a flow that cannot complete.
+  and ACS URL, instead of advertising a flow that cannot complete. A domain
+  with no sign-in settings of its own, where SSO is the only method, offers
+  no sign-in or signup route until it verifies, so password signup stays
+  closed there.
 
 - In full mode with ``AUTH_VERIFY_ACCOUNT_ENABLED=false``, signing up from
   the web form no longer fails with "logins do not match", and new accounts

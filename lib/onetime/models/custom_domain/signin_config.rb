@@ -995,9 +995,36 @@ module Onetime
                Onetime.auth_config.sso_enabled?
               return InheritedRestriction.new(value: 'sso', pin_established: false)
             end
+
+            # Same for tenant SSO waiting only on domain verification (#4517):
+            # the host resolves :unavailable until the domain verifies, rather
+            # than reopening password signup the tenant never enabled.
+            if tenant_sso_awaiting_verification?(domain_id)
+              return InheritedRestriction.new(value: 'sso', pin_established: false)
+            end
           end
 
           InheritedRestriction.new(value: Onetime.auth_config.restrict_to, pin_established: false)
+        end
+
+        # Whether tenant SSO is set up for a custom domain and blocked ONLY by
+        # the domain's unverified ownership (#4517): the SsoConfig ladder stops
+        # at :domain_unverified, and the one rung after it (sso_permitted_for?)
+        # would pass. Verifying the domain is all that stands between the host
+        # and a working SSO sign-in.
+        #
+        # inherited_restrict_to keeps the 'sso' host pin for such a domain
+        # without claiming availability, so the host resolves :unavailable.
+        # Dropping the pin instead hands the host the operator's restriction
+        # (none by default), and invite signup and opted-in create-account,
+        # which answer to restrict_to alone, would accept a password on a host
+        # whose only method is SSO.
+        #
+        # @param domain_id [String] CustomDomain identifier (objid)
+        # @return [Boolean]
+        def tenant_sso_awaiting_verification?(domain_id)
+          Onetime::CustomDomain::SsoConfig.tenant_sso_unavailable_reason(domain_id) == :domain_unverified &&
+            sso_permitted_for?(domain_id)
         end
 
         # The `available:` input to resolve_restrict_to for a caller that has
