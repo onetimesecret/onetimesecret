@@ -10,6 +10,12 @@
 # refused without touching their session. Every other Playwright lane runs
 # on the canonical host; nothing else exercises the tenant surface end to end.
 #
+# Companion check, same project and process:
+# e2e/system/tenant-sso-unverified-domain.spec.ts (issue #4579). A second
+# tenant host, seeded identical to the first except that its domain is NOT
+# verified, must refuse SSO initiation with
+# /signin?auth_error=sso_domain_unverified and never reach the (mock) IdP.
+#
 # WHAT MAKES THIS LANE DIFFERENT (each item is load-bearing; see
 # e2e/system/README.md and the header of tenant_connect_test_boot.rb):
 #
@@ -36,17 +42,20 @@
 #                                 on, and the placeholder OIDC route registers
 #                                 only with org SSO on.
 #   HOST=canonical.example.org    the canonical host lives on a DIFFERENT
-#                                 registrable domain than the tenant
-#                                 (tenant.example.com) so the tenant host is
-#                                 :custom, not a canonical peer. Chromium
-#                                 resolves both families to 127.0.0.1 via
+#                                 registrable domain than the tenants
+#                                 (tenant.example.com, unverified.example.com)
+#                                 so each tenant host is :custom, not a
+#                                 canonical peer. Chromium resolves both
+#                                 families to 127.0.0.1 via
 #                                 --host-resolver-rules (playwright.config.ts).
 #   e2e/system/tenant_connect_seed.rb
-#                                 seeds the organization, custom domain,
-#                                 SsoConfig + SigninConfig, the two password
-#                                 accounts and their exact-domain memberships,
-#                                 and guarantees no identity exists for the
-#                                 tuple before the run.
+#                                 seeds the organization, the verified custom
+#                                 domain with its SsoConfig + SigninConfig,
+#                                 the two password accounts and their
+#                                 exact-domain memberships, guarantees no
+#                                 identity exists for the tuple before the
+#                                 run, and seeds the companion's unverified
+#                                 domain with the identical SSO shape.
 #
 # The lane runs on the runner (bin/setup + pnpm run build + bin/ots server),
 # the same shape as e2e-full-auth.yml — NOT the baked OCI image e2e.yml uses,
@@ -68,9 +77,19 @@ on:
       # The auth surface under test: Rodauth config, the OmniAuth connect /
       # tenant hooks, the operations behind them, the routes the panel calls.
       - 'apps/web/auth/**'
+      # The availability ladder the tenant hook consults (its
+      # :domain_unverified rung is what the companion check refuses on), the
+      # SigninConfig gates it reads, and the per-request resolution the
+      # /signin page builds its SSO buttons from.
+      - 'lib/onetime/models/custom_domain/sso_config.rb'
+      - 'lib/onetime/models/custom_domain/signin_config.rb'
+      - 'lib/onetime/tenant_sso_resolution.rb'
       # The panel and the availability rule the spec drives.
       - 'src/apps/workspace/account/**'
       - 'src/shared/utils/sso-link-evidence.ts'
+      # The sign-in page's auth_error banner, whose test id and
+      # sso_domain_unverified copy the companion check asserts.
+      - 'src/apps/session/views/Login.vue'
 
 permissions:
   contents: read
@@ -83,6 +102,7 @@ env:
   APP_PORT: '7143'
   APP_URL: http://127.0.0.1:7143
   TENANT_HOST: tenant.example.com
+  UNVERIFIED_TENANT_HOST: unverified.example.com
   CANONICAL_HOST: canonical.example.org
   SERVER_LOG: tmp/e2e-tenant-connect-server.log
 
@@ -195,6 +215,9 @@ jobs:
             echo "E2E_TENANT_CONNECT_PASSWORD=TestPassword123!"
             echo "E2E_TENANT_CONNECT_OWNER_EMAIL=owner@example.test"
             echo "E2E_TENANT_CONNECT_SECOND_EMAIL=member@example.test"
+
+            # --- The companion's unverified tenant (seed + spec) -----------
+            echo "E2E_TENANT_CONNECT_UNVERIFIED_ORIGIN=http://${UNVERIFIED_TENANT_HOST}:${APP_PORT}"
           } >> "$GITHUB_ENV"
 
           mkdir -p tmp
@@ -293,7 +316,8 @@ jobs:
       # ---- Failure forensics -------------------------------------------------
       # The auth events (omniauth_connect_reauth_required,
       # tenant_connect_membership_authorized, omniauth_identity_connected,
-      # omniauth_identity_connect_refused + reason) are the fastest way to tell
+      # omniauth_identity_connect_refused + reason, and for the companion
+      # check omniauth_tenant_domain_unverified) are the fastest way to tell
       # a gate refusal from a UI regression.
       - name: Server log on failure
         if: failure()
