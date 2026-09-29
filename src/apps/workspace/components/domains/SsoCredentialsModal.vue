@@ -11,6 +11,7 @@
   } from '@headlessui/vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import DomainSsoConfigForm from '@/apps/workspace/components/domains/DomainSsoConfigForm.vue';
+  import { isSamlEnabled } from '@/utils/features';
   import type { SsoConfigFormState } from '@/shared/composables/useSsoConfig';
   import type { CustomDomainSsoConfig } from '@/schemas/shapes/domains/sso-config';
   import type { TestSsoConnectionResponse } from '@/services/sso.service';
@@ -130,6 +131,7 @@
                 :client-secret-masked="clientSecretMasked"
                 :test-result="testResult"
                 :test-error="testError"
+                :saml-enabled="isSamlEnabled()"
                 @save="emit('save')"
                 @disable="emit('disable')"
                 @delete="emit('delete')"

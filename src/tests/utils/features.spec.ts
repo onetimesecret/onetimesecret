@@ -26,6 +26,7 @@ import {
   isOrgsCustomMailEnabled,
   isOrgsIncomingSecretsEnabled,
   isOrgsSsoEnabled,
+  isSamlEnabled,
   isOwnerOrAdmin,
   isOwnerOrAdminOf,
   isPasswordAuthPermitted,
@@ -760,6 +761,34 @@ describe('features utility', () => {
       const result = isOrganizationSwitcherEnabled();
 
       expect(result).toBe(false);
+    });
+  });
+
+  // The install-wide SAML switch (SAML_ENABLED, #4604), default off.
+  describe('isSamlEnabled', () => {
+    it('returns true when organizations.saml_enabled is true', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: { saml_enabled: true } });
+
+      expect(isSamlEnabled()).toBe(true);
+      expect(getBootstrapValueMock).toHaveBeenCalledWith('features');
+    });
+
+    it('returns false when organizations.saml_enabled is false', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: { saml_enabled: false } });
+
+      expect(isSamlEnabled()).toBe(false);
+    });
+
+    it('returns false when the flag is absent (older backends), even with sso_enabled on', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: { sso_enabled: true } });
+
+      expect(isSamlEnabled()).toBe(false);
+    });
+
+    it('returns false when features is undefined', () => {
+      getBootstrapValueMock.mockReturnValue(undefined);
+
+      expect(isSamlEnabled()).toBe(false);
     });
   });
 
