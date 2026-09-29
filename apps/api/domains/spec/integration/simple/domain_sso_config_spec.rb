@@ -1576,6 +1576,10 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
         end
 
         it 'accepts DELETE' do
+          # The PUT above leaves a JSON Content-Type on the Rack::Test session;
+          # a body-less DELETE under it trips Rack::Parser (json_get clears it
+          # the same way).
+          header 'Content-Type', nil
           with_saml_off { csrf_delete api_path(test_custom_domain.extid) }
 
           expect(last_response.status).to eq(200), last_response.body
@@ -1590,7 +1594,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
         end
 
         it 'still serves the record on GET' do
-          with_saml_off { get api_path(test_custom_domain.extid) }
+          with_saml_off { json_get api_path(test_custom_domain.extid) }
 
           expect(last_response.status).to eq(200), last_response.body
           expect(json_body['record']).to include('provider_type' => 'saml')
