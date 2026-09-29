@@ -75,8 +75,7 @@ RSpec.describe 'Credential failure codes on /auth (#4469)', type: :integration d
 
     it 'codes an unverified account as account_unverified' do
       unverified = "unverified-#{SecureRandom.hex(6)}@example.com"
-      test_db[:accounts].where(id: create_verified_account(db: test_db, email: unverified, password: password))
-        .update(status_id: AuthTestConstants::STATUS_UNVERIFIED)
+      create_unverified_account(db: test_db, email: unverified, password: password)
 
       post_json '/auth/login', { login: unverified, password: password }
 
