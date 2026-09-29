@@ -465,8 +465,14 @@ Recorded as a baseline so #4466 and #4467 start from observed behaviour, in
 `spec/integration/full/customer_session_continuation_baseline_spec.rb`:
 
 - **Rotation and cookie selection (#4466):** login rotates the anonymous
-  session ID away and destroys the old blob; when a request carries duplicate
-  `onetime.session` cookies the first one on the request is used.
+  session ID away and destroys the old blob. A request that carries duplicate
+  `onetime.session` cookies is refused with `403` in either order, by
+  `Onetime::Middleware::CookieTossing` (`site.middleware.cookie_tossing`,
+  default on since 2026-09-28); before that the first cookie on the request
+  was used. Completing the second factor rotates the ID again and carries the
+  session data, the active-session row and the sidecar values across
+  (`Onetime::SessionRotation`, called from `after_two_factor_authentication`;
+  `apps/web/auth/spec/integration/full_mfa/mfa_session_rotation_spec.rb`).
 - **Remember-me continuation (#4467):** the baseline first pinned that
   Rodauth's remember credential outlived an active-session revocation. That
   mechanism is gone. The remember-me checkbox now extends the session itself
