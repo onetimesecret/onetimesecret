@@ -4,7 +4,6 @@
 
 require_relative 'ended'
 require_relative 'sidecar'
-require_relative '../operations/sessions/store'
 
 module Onetime
   # Session-id rotation at a privilege transition (#4466).
@@ -243,7 +242,7 @@ module Onetime
     # the marker this module wrote; a delete that still leaves it is the
     # incomplete case.
     def old_blob_survived?(old_sid, db)
-      store = Onetime::Operations::Sessions::Store
+      store = store_operations
       key   = store.find_key(db, old_sid)
       return false if key.nil?
 
@@ -269,6 +268,16 @@ module Onetime
 
     def handle(sid)
       SessionEnded.handle_for(sid)
+    end
+
+    # Loaded at first use, not at the top of this file: store.rb uses
+    # absolute `require 'onetime/...'` lines, which need lib on the load path,
+    # and the boot require chain (lib/onetime/session.rb pulls this file in)
+    # cannot assume that; the Puma fork specs boot from a generated rackup
+    # that only require_relatives lib/onetime.rb.
+    def store_operations
+      require_relative '../operations/sessions/store'
+      Onetime::Operations::Sessions::Store
     end
   end
 end
