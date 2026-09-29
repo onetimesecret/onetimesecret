@@ -431,6 +431,126 @@ describe('authStore PR #4497 transition contracts', () => {
   });
 
   // -------------------------------------------------------------------------
+  // one fallback notice per batch of owned rejections (ADR-046#rejection-disposition)
+  // -------------------------------------------------------------------------
+  describe('an owned batch whose flight settles without a transition gets one notice', () => {
+    const revoked = { code: 'active_session_revoked', code_scope: 'customer_session' } as const;
+    const stillAuthenticated = () => toWire(newerSnapshot(authenticatedBootstrap));
+
+    it('flight applies a still-authenticated snapshot: one notice, first message, whole count', async () => {
+      await mountWith(authenticatedBootstrap);
+      axiosMock.onGet(ENDPOINT).reply(200, stillAuthenticated());
+
+      store.noteApiRejection(revoked, 'Authentication Required');
+      store.noteApiRejection(revoked, 'Something else');
+      store.noteApiRejection(revoked, null);
+      expect(store.rejectionNotice).toBeNull();
+
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(store.authStatus).toBe('authenticated');
+      expect(store.rejectionNotice).toEqual({
+        serial: 1,
+        count: 3,
+        message: 'Authentication Required',
+      });
+    });
+
+    it('a null message is kept as null: App.vue substitutes the generic text', async () => {
+      await mountWith(authenticatedBootstrap);
+      axiosMock.onGet(ENDPOINT).reply(200, stillAuthenticated());
+
+      store.noteApiRejection(revoked);
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(store.rejectionNotice).toEqual({ serial: 1, count: 1, message: null });
+    });
+
+    it('flight fails: one notice, and the backoff retry does not produce a second', async () => {
+      await mountWith(authenticatedBootstrap);
+      let n = 0;
+      axiosMock.onGet(ENDPOINT).reply(() => (++n === 1 ? [500, {}] : [200, stillAuthenticated()]));
+
+      store.noteApiRejection(revoked, 'Authentication Required');
+      store.noteApiRejection(revoked, 'Authentication Required');
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(store.rejectionNotice).toEqual({
+        serial: 1,
+        count: 2,
+        message: 'Authentication Required',
+      });
+
+      // The retry runs and applies a still-authenticated snapshot; it owes
+      // nothing, so the notice is not repeated.
+      await vi.advanceTimersByTimeAsync(AUTH_CHECK_CONFIG.BACKOFF_CAP);
+      expect(requests()).toBe(2);
+      expect(store.authStatus).toBe('authenticated');
+      expect(store.rejectionNotice?.serial).toBe(1);
+    });
+
+    it('flight superseded by an auth mutation: the replacement pays the notice, once', async () => {
+      await mountWith(authenticatedBootstrap);
+      axiosMock.onGet(ENDPOINT).reply(200, stillAuthenticated());
+
+      store.noteApiRejection(revoked, 'Authentication Required');
+      const mutation = store.refresh({ kind: 'auth-mutation', reason: 'login' });
+      store.noteApiRejection(revoked, 'Authentication Required');
+
+      await vi.advanceTimersByTimeAsync(0);
+      expect(await mutation).toBe('applied');
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(store.rejectionNotice).toEqual({
+        serial: 1,
+        count: 2,
+        message: 'Authentication Required',
+      });
+    });
+
+    it('flight ends in a forced page load: the transition speaks, no notice', async () => {
+      await mountWith(authenticatedBootstrap);
+      axiosMock.onGet(ENDPOINT).reply(200, toWire(anonymousBootstrap));
+
+      store.noteApiRejection(revoked, 'Authentication Required');
+      store.noteApiRejection(revoked, 'Authentication Required');
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(attemptForcedPageLoad).toHaveBeenCalledTimes(1);
+      expect(store.staleSession).toBe(true);
+      expect(store.rejectionNotice).toBeNull();
+    });
+
+    it('a settled throttled rejection is not owed: nothing is added to a paid batch', async () => {
+      await mountWith(authenticatedBootstrap);
+      axiosMock.onGet(ENDPOINT).reply(200, stillAuthenticated());
+
+      store.noteApiRejection(revoked, 'Authentication Required');
+      await vi.advanceTimersByTimeAsync(0);
+      expect(store.rejectionNotice?.serial).toBe(1);
+
+      // Inside the window, after settle: the caller keeps its own toast.
+      expect(store.noteApiRejection(revoked, 'Authentication Required')).toEqual({
+        ownedByCoordinator: false,
+        reason: 'throttled',
+      });
+      await vi.advanceTimersByTimeAsync(0);
+      expect(store.rejectionNotice?.serial).toBe(1);
+    });
+
+    it('a local sign-out discards the batch: no notice after logout', async () => {
+      await mountWith(authenticatedBootstrap);
+      axiosMock.onGet(ENDPOINT).reply(200, stillAuthenticated());
+
+      store.noteApiRejection(revoked, 'Authentication Required');
+      await store.logout();
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(store.rejectionNotice).toBeNull();
+    });
+  });
+
+  // -------------------------------------------------------------------------
   // stale-session mode gates protected actions (ADR-046#authority-action-gating)
   // -------------------------------------------------------------------------
   describe('stale-session mode gates protected actions (ADR-046#authority-action-gating)', () => {
