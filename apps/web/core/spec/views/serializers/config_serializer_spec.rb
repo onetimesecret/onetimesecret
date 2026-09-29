@@ -1735,7 +1735,7 @@ RSpec.describe Core::Views::ConfigSerializer do
     describe 'organizations feature flags' do
       context 'when no organizations config is present' do
         it 'defaults all organization flags to false' do
-          result = described_class.build_feature_flags(base_view_vars)
+          result = ClimateControl.modify(SAML_ENABLED: nil) { described_class.build_feature_flags(base_view_vars) }
           orgs = result['organizations']
 
           expect(orgs['enabled']).to be false

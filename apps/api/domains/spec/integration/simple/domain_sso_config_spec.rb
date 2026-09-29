@@ -1521,6 +1521,16 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
         expect(stored_config).to be_nil
       end
 
+      # Not disable-only: there is no existing record to disable, so a
+      # "pre-staged, disabled" saml config is still an introduction.
+      it 'refuses a PATCH that creates a DISABLED saml config' do
+        with_saml_off { csrf_patch api_path(test_custom_domain.extid), { provider_type: 'saml', enabled: false } }
+
+        expect(last_response.status).to eq(422)
+        expect(json_body['field']).to eq('provider_type')
+        expect(stored_config).to be_nil
+      end
+
       it 'refuses a PATCH that switches an oidc config to saml, keeping the oidc record' do
         csrf_put api_path(test_custom_domain.extid), valid_oidc_params
         expect(last_response.status).to eq(200), last_response.body
@@ -1573,6 +1583,24 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
 
           expect(last_response.status).to eq(200), last_response.body
           expect(stored_config.enabled?).to be false
+        end
+
+        # The exemption's exact shape (PatchSsoConfig#disable_only_request?):
+        # enforce_sso_only may ride along only as false.
+        it 'accepts enabled: false with enforce_sso_only: false, and nothing wider' do
+          with_saml_off do
+            csrf_patch api_path(test_custom_domain.extid), { enabled: false, enforce_sso_only: false }
+            expect(last_response.status).to eq(200), last_response.body
+          end
+          expect(stored_config.enabled?).to be false
+        end
+
+        it 'refuses enabled: false with enforce_sso_only: true' do
+          with_saml_off do
+            csrf_patch api_path(test_custom_domain.extid), { enabled: false, enforce_sso_only: true }
+            expect(last_response.status).to eq(422), last_response.body
+          end
+          expect(stored_config.enabled?).to be true
         end
 
         it 'accepts DELETE' do
