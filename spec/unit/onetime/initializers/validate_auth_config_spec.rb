@@ -22,8 +22,9 @@ RSpec.describe Onetime::Initializers::ValidateAuthConfig do
   let(:full_mode) { true }
 
   around do |example|
-    saved = only_flags.to_h { |flag| [flag, ENV.fetch(flag, nil)] }
-    only_flags.each { |flag| ENV.delete(flag) }
+    flags = only_flags + ['SAML_ENABLED']
+    saved = flags.to_h { |flag| [flag, ENV.fetch(flag, nil)] }
+    flags.each { |flag| ENV.delete(flag) }
     example.run
     saved.each { |flag, value| value.nil? ? ENV.delete(flag) : ENV[flag] = value }
   end
@@ -114,6 +115,48 @@ RSpec.describe Onetime::Initializers::ValidateAuthConfig do
       initializer.execute(nil)
 
       expect(auth_config).to have_received(:validate_restrict_to!)
+    end
+
+    # SAML_ENABLED (#4604) is parsed here, by name, before anything reads it
+    # per request (ADR-037: an unrecognized token fails boot, never resolves
+    # to off). Every mode: the flag is inert in simple mode, but a typo is a
+    # typo.
+    describe 'the SAML_ENABLED switch' do
+      it 'raises Onetime::ConfigError naming SAML_ENABLED on an unrecognized token, before the restriction checks' do
+        ENV['SAML_ENABLED'] = 'ture'
+
+        expect { initializer.execute(nil) }.to raise_error(Onetime::ConfigError) { |error|
+          expect(error.message).to include('SAML_ENABLED')
+          expect(error.message).not_to include('ture')
+        }
+        expect(auth_config).not_to have_received(:validate_restrict_to!)
+      end
+
+      context 'in simple mode' do
+        let(:full_mode) { false }
+
+        it 'still raises on an unrecognized token' do
+          ENV['SAML_ENABLED'] = 'enabled'
+
+          expect { initializer.execute(nil) }.to raise_error(Onetime::ConfigError, /SAML_ENABLED/)
+        end
+      end
+
+      [nil, '', 'false', 'true', 'yes', '0'].each do |value|
+        it "proceeds when SAML_ENABLED is #{value.inspect}" do
+          value.nil? ? ENV.delete('SAML_ENABLED') : ENV['SAML_ENABLED'] = value
+
+          expect { initializer.execute(nil) }.not_to raise_error
+          expect(auth_config).to have_received(:validate_restrict_to!)
+        end
+      end
+
+      it 'returns the parsed value from #validate_saml_enabled_flag!' do
+        ENV['SAML_ENABLED'] = 'on'
+        expect(initializer.validate_saml_enabled_flag!).to be(true)
+        ENV.delete('SAML_ENABLED')
+        expect(initializer.validate_saml_enabled_flag!).to be(false)
+      end
     end
   end
 end

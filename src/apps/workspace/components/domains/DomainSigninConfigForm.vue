@@ -311,6 +311,12 @@
       badge: 'web.domains.sso.status_unsupported_provider_badge',
       hint: 'web.domains.sso.status_unsupported_provider_hint',
     },
+    // The install-wide SAML switch is off (SAML_ENABLED, #4604): the record
+    // is kept, the operator holds the remedy, not the domain owner.
+    saml_disabled: {
+      badge: 'web.domains.sso.status_saml_disabled_badge',
+      hint: 'web.domains.sso.status_saml_disabled_hint',
+    },
   };
 
   const ssoStatus = computed<{ tone: 'ok' | 'warn'; badge: string; hint: string } | null>(() => {

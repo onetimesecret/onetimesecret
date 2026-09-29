@@ -10,7 +10,7 @@
 # sets and on nothing else. The full-mode lane (spec:integration:full) sets:
 #
 #   RACK_ENV=test  AUTHENTICATION_MODE=full  AUTH_DATABASE_URL=sqlite::memory:
-#   ORGS_SSO_ENABLED=true  --tag ~postgres_database
+#   ORGS_SSO_ENABLED=true  SAML_ENABLED=true  --tag ~postgres_database
 #
 # A bare `bundle exec rspec spec/integration/full/...` is NOT a lane. Whatever
 # the shell happens to export is what the spec gets, and a spec that needs a
@@ -32,6 +32,11 @@ module LaneEnv
   # The rake task that provides each setting, for the error message.
   LANES = {
     'ORGS_SSO_ENABLED' => 'spec:integration:full',
+    # The install-wide SAML switch (#4604): without it the saml route is not
+    # registered at all and the callback transport answers 404, which a bare
+    # run reads as a product bug. The browser lane (tests/lanes/browser/env)
+    # sets it too.
+    'SAML_ENABLED' => 'spec:integration:full',
     'AUTH_MFA_ENABLED' => 'spec:integration:full:mfa',
     'SAML_IDP_ENTITY_ID' => 'spec:integration:full:saml_platform',
   }.freeze

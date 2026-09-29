@@ -50,7 +50,7 @@ RSpec.describe Onetime::AuthConfig do
       GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET
       GITHUB_CLIENT_ID GITHUB_CLIENT_SECRET
       APPLE_CLIENT_ID APPLE_TEAM_ID APPLE_KEY_ID APPLE_PRIVATE_KEY
-      SAML_IDP_SSO_SERVICE_URL SAML_IDP_ENTITY_ID SAML_IDP_CERT SAML_SP_ENTITY_ID
+      SAML_ENABLED SAML_IDP_SSO_SERVICE_URL SAML_IDP_ENTITY_ID SAML_IDP_CERT SAML_SP_ENTITY_ID
       SSO_FORM_ACTION_ORIGINS
     ]
   end
@@ -184,6 +184,7 @@ RSpec.describe Onetime::AuthConfig do
     describe 'SAML' do
       let(:saml_env) do
         {
+          'SAML_ENABLED' => 'true',
           'SAML_IDP_SSO_SERVICE_URL' => 'https://login.idp.example.com:8443/saml/sso?tenant=x',
           # A different host on purpose: an EntityID is a name, not the login
           # endpoint, and must contribute nothing.
@@ -255,6 +256,16 @@ RSpec.describe Onetime::AuthConfig do
         config = fresh_config(**saml_env, 'SAML_IDP_CERT' => 'not a certificate')
 
         expect(config.sso_form_action_origins).to eq([])
+        expect(admitted?(config, callback_env('https://login.idp.example.com:8443'))).to be false
+      end
+
+      # The install-wide switch (#4604): no route is registered while it is
+      # off, so no form-action origin and no POST allowance either.
+      it 'contributes nothing while SAML_ENABLED is off, with the config complete and usable' do
+        config = fresh_config(**saml_env, 'SAML_ENABLED' => 'false')
+
+        expect(config.sso_form_action_origins).to eq([])
+        expect(config.sso_idp_origins).to eq([])
         expect(admitted?(config, callback_env('https://login.idp.example.com:8443'))).to be false
       end
 

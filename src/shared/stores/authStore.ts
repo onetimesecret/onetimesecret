@@ -985,10 +985,13 @@ export const useAuthStore = defineStore('auth', () => {
    * By scope (#4462):
    * - `customer_session`          the server examined the session and refused
    *                               it: reconcile.
-   * - `verification_unavailable`  an outage, not a verdict: reconcile. The
-   *                               server will answer `unavailable` or 5xx,
-   *                               which counts as ONE failed verification
-   *                               however many API calls saw the outage.
+   * - `verification_unavailable`  an outage, not a verdict: reconcile. It
+   *                               arrives as a 503 with the pair (#4469);
+   *                               the interceptor reports it like a 401.
+   *                               The server will answer `unavailable` or
+   *                               5xx, which counts as ONE failed
+   *                               verification however many API calls saw
+   *                               the outage.
    * - `admin_session`             the admin-only timeout. The customer session
    *                               is untouched; the admin surface owns it.
    * - `credential`                a credential the request presented was
@@ -1253,7 +1256,13 @@ export const useAuthStore = defineStore('auth', () => {
   };
 });
 
-/** The 503 GET /bootstrap/me answers when the ordering pair cannot be allocated. */
+/**
+ * The 503 GET /bootstrap/me answers when the ordering pair cannot be
+ * allocated. Keyed on `error_type`, never on the status alone: a protected
+ * API route answers a session it could not verify with a 503 too, carrying
+ * `code_scope: verification_unavailable` and no `error_type` (#4469), and
+ * that one is the interceptor's to report, not this path's.
+ */
 function isAllocationFailure(error: unknown): boolean {
   if (typeof error !== 'object' || error === null || !('response' in error)) return false;
   const response = (error as { response?: { status?: unknown; data?: unknown } }).response;

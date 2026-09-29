@@ -80,6 +80,11 @@ module DomainsAPI
           # Validate provider_type
           validate_provider_type
 
+          # A saml replacement needs the install-wide switch on (#4604; see
+          # SamlFields). Before the field checks: nothing the caller sends
+          # can satisfy it.
+          reject_saml_disabled! if @provider_type == 'saml'
+
           # Never accepted, whatever the provider type (see SamlFields)
           reject_forbidden_saml_params!
 

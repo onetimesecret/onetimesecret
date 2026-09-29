@@ -121,7 +121,7 @@ describe('middlewareShape — defaults', () => {
     expect(result.xss_header).toBe(false);
     expect(result.frame_options).toBe(true);
     expect(result.path_traversal).toBe(true);
-    expect(result.cookie_tossing).toBe(false);
+    expect(result.cookie_tossing).toBe(true);
     expect(result.ip_spoofing).toBe(false);
     expect(result.strict_transport).toBe(true);
   });

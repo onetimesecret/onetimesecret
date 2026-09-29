@@ -16,7 +16,7 @@ Two integration patterns are available:
 |---------|------------|----------------|
 | **Generic OIDC** | Customer runs their own IdP (Zitadel, Keycloak, Auth0, Okta) | `OIDC_*` |
 | **Provider-specific** | Direct integration with a specific service | `ENTRA_*`, `GOOGLE_*`, `GITHUB_*`, `APPLE_*` |
-| **SAML 2.0** | The IdP has no OIDC login flow | `SAML_*` |
+| **SAML 2.0** | The IdP has no OIDC login flow | `SAML_ENABLED=true` plus `SAML_*` |
 
 Generic OIDC uses the `/.well-known/openid-configuration` discovery document. Provider-specific gems handle OAuth quirks (tenant models, non-standard scopes, token formats) so the operator doesn't have to. SAML has no client credential: trust is the IdP's signing certificate, pinned in configuration.
 
@@ -123,6 +123,7 @@ Providers load automatically when `AUTH_SSO_ENABLED=true` and their required env
 
 | Variable | Required | Description |
 |----------|----------|-------------|
+| `SAML_ENABLED` | Yes | Install-wide switch that turns SAML on. Default: `false`. Unless `true`, the app processes no SAML at all, on both surfaces: no `saml` route is registered (platform `SAML_*` settings and every tenant's saved SAML configuration included, and `omniauth-saml`/`ruby-saml` are not loaded), the callback answers 404, no SAML button is shown, and the per-domain SSO API refuses to save or edit a SAML configuration (a tenant can still disable or delete its own). Saved configurations are kept untouched and resume when the switch is set back to `true`. It exists for incident response: a `ruby-saml` advisory can be contained without `ORGS_SSO_ENABLED=false`, which also takes every OIDC and Entra tenant down. **Custom domains restricted to SSO sign-in and using SAML have no sign-in method while this is off.** Accepts the shared boolean vocabulary (`true/1/yes/on`, `false/0/no/off`); any other value fails boot. See [SAML is switched off](#saml-is-switched-off) |
 | `SAML_IDP_SSO_SERVICE_URL` | Yes | The IdP's SSO endpoint (HTTP-Redirect binding). `https://` only; no credentials in the URL |
 | `SAML_IDP_ENTITY_ID` | Yes | The IdP's EntityID exactly as it sends it in `<Issuer>`; compared byte for byte and stored as the issuer of every SAML identity |
 | `SAML_IDP_CERT` | Yes | The IdP's X.509 signing certificate in PEM form: exactly one certificate, inside its validity window (not expired, not yet valid); the `\n`-escaped single-line form is accepted. Fingerprints are not accepted |
@@ -665,6 +666,10 @@ else. There is no client ID or secret: trust is the IdP's signing certificate,
 pinned in `SAML_IDP_CERT`. What the subclass enforces, and why, is in
 [Adding an SSO Provider](adding-sso-providers.md#known-provider-quirks).
 
+SAML is off by default. `SAML_ENABLED=true` turns it on for the whole install,
+platform and tenant surfaces alike; see [SAML is switched off](#saml-is-switched-off)
+for what the switch stops and why it exists.
+
 #### Identity Provider Setup
 
 Register Onetime Secret as a service provider (SP) at your IdP. With `{host}`
@@ -746,6 +751,48 @@ but nothing alerts on it — watch the certificate's expiry.
 Certificate rotation: only one IdP certificate is trusted at a time
 (`idp_cert_multi` is not supported), so there is no overlap window. Update
 `SAML_IDP_CERT` and restart when the IdP switches to its new certificate.
+
+#### SAML is switched off
+
+`SAML_ENABLED` (default `false`) is an install-wide switch that turns the
+provider on. It is not a display preference: with it off, nothing SAML runs
+on either surface, so an operator can contain a `ruby-saml` advisory between
+its publication and a reviewed gem bump without touching OIDC and Entra
+tenants (`ORGS_SSO_ENABLED=false` takes those down too) and without editing
+every tenant's record. Unless it is `true`:
+
+- No `saml` route registers at boot, neither the platform provider (even with
+  every `SAML_*` variable set and valid) nor the tenant placeholder, so the
+  strategy gems are never loaded and boot logs
+  `[OmniAuth] SAML is switched off (SAML_ENABLED is not true): route 'saml' is not registered`.
+- A saved tenant SAML configuration is refused by the availability ladder
+  (`:saml_disabled`, `tenant_sso_unavailable_reason`), so the masthead link
+  and the `/signin` button disappear and the omniauth hook injects nothing.
+  The record is kept as saved and resumes when the switch is set back.
+- The callback path answers 404 on both surfaces: the
+  [callback transport](saml-callback-transport.md)'s Boundary refuses every
+  request there before reading the body, and
+  `HttpOriginOptions.saml_callback_route_active?` is false, so nothing is
+  staged.
+- The per-domain SSO API refuses to create or edit a `saml` configuration
+  (422 on `provider_type`, naming `SAML_ENABLED`), and the domain SSO form
+  does not offer SAML for a new configuration. A tenant can still disable
+  (`PATCH {"enabled": false}`) or delete its own SAML configuration, or
+  replace it with another provider type.
+- No SAML button is advertised on the platform login page, and no platform
+  IdP origin is admitted into `form-action` or the cross-site POST allowance.
+
+**Custom domains restricted to SSO sign-in and using SAML have no sign-in
+method while the switch is off.** That is the trade an operator makes in an
+incident; `restrict_to: sso` on the platform with only SAML configured
+refuses boot the same way it does for any other unavailable provider.
+
+The value is parsed with the shared boolean vocabulary
+([ADR-037](../adr/adr-037-boolean-token-vocabulary.md)): `true/1/yes/on`
+enable, `false/0/no/off` and unset disable, and any other token fails boot
+naming the variable. Upgrading an install that already runs platform SAML
+(`SAML_*` set) or has tenants with saved SAML configurations: set
+`SAML_ENABLED=true` before upgrading, or SAML sign-in stops.
 
 Not supported, by design: IdP-initiated sign-in (users must start from this
 site's sign-in page; a response that answers no pending request is refused),

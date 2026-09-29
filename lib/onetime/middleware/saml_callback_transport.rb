@@ -3,6 +3,7 @@
 require 'rack'
 require 'stringio'
 require_relative '../security/saml_callback_store'
+require_relative '../sso_provider/saml'
 require_relative 'http_origin_options'
 
 module Onetime
@@ -55,6 +56,16 @@ module Onetime
         env['REQUEST_METHOD'] == 'POST' && callback?(env)
       end
 
+      # The install-wide SAML_ENABLED switch (#4604). Off means the callback
+      # path is an unregistered route, so the Boundary answers 404 before it
+      # reads or parses anything; an unrecognized token (already refused at
+      # boot by ValidateAuthConfig) is treated as off here, failing closed.
+      def self.switched_on?
+        Onetime::SsoProvider::Saml.enabled? == true
+      rescue StandardError
+        false
+      end
+
       def self.clear_request_data(env)
         env['QUERY_STRING']   = ''
         %w[REQUEST_URI ORIGINAL_FULLPATH RAW_URI].each do |key|
@@ -82,6 +93,12 @@ module Onetime
         def call(env)
           callback = SamlCallbackTransport.callback?(env)
           return @app.call(env) unless callback
+          # While SAML is switched off nothing here is a SAML callback: answer
+          # the unregistered route's 404 before prepare reads the body, so a
+          # wrong media type, an oversized or a malformed body cannot answer
+          # 415, 413 or 400 and mark the path as a SAML boundary to a prober.
+          # The ensure below still clears the raw request data.
+          return [404, HEADERS.dup, ['Not Found']] unless SamlCallbackTransport.switched_on?
 
           payload, error = prepare(env)
           SamlCallbackTransport.clear_request_data(env)

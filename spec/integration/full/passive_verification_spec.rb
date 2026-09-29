@@ -192,7 +192,8 @@ RSpec.describe 'Passive verification does not count as session activity (#4455)'
     Familia.dbclient.expire(blob_key, 600)
 
     with_matrix_state_dependencies(:authentication_database_unavailable) do
-      expect(act(request_id: 'passive-outage')).to include(status: 401, refusal_code: 'active_session_unavailable')
+      # An outage answers 503, not 401 (Onetime::Middleware::SessionFailureCode).
+      expect(act(request_id: 'passive-outage')).to include(status: 503, refusal_code: 'active_session_unavailable')
     end
 
     expect(session_metadata.last_activity_at.to_i).to eq(stale_activity)

@@ -118,11 +118,20 @@ RSpec.describe 'API v2 Basic auth anonymous fallthrough (fail closed)', type: :i
       expect(body).to include('code' => 'api_key_invalid', 'code_scope' => 'credential')
     end
 
+    # A rejected header is challenged with the scheme the client presented
+    # (RFC 9110 §15.5.2, RFC 7617); the cookie surfaces get `Session`.
+    it 'challenges a rejected API key with Basic' do
+      json_get unknown_secret_path,
+        authorization: basic_header("nobody_#{SecureRandom.uuid}@example.com", 'not_a_real_key')
+      expect(last_response.headers['www-authenticate']).to eq('Basic realm="onetimesecret"')
+    end
+
     it 'codes an unrecognized Authorization scheme the same way (no more granular than the message)' do
       json_get unknown_secret_path, authorization: 'Bearer some_token_here'
       body = JSON.parse(last_response.body)
       expect(body['message']).to include('AUTH_TYPE_INVALID')
       expect(body).to include('code' => 'api_key_invalid', 'code_scope' => 'credential')
+      expect(last_response.headers['www-authenticate']).to eq('Basic realm="onetimesecret"')
     end
   end
 

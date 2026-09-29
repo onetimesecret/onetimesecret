@@ -75,8 +75,32 @@ RSpec.describe Onetime::SessionFailureCode do
       expect(env).to be_empty
     end
 
+    # The scheme names the HTTP authentication scheme whose credential the
+    # reason rejects; only the Basic strategies write it, and it goes with the
+    # reason it was stashed beside.
+    it 'writes the scheme beside the reason; a new reason or forget clears it' do
+      env = {}
+      described_class.stash(env, :api_key_invalid)
+      described_class.stash_scheme(env, described_class::SCHEME_BASIC)
+      expect(env).to eq(
+        described_class::ENV_KEY => :api_key_invalid,
+        described_class::SCHEME_ENV_KEY => 'Basic',
+      )
+      expect(described_class.scheme(env)).to eq('Basic')
+
+      described_class.stash(env, :session_missing)
+      expect(env).to eq(described_class::ENV_KEY => :session_missing)
+      expect(described_class.scheme(env)).to be_nil
+
+      described_class.stash_scheme(env, described_class::SCHEME_BASIC)
+      described_class.forget(env)
+      expect(env).to be_empty
+    end
+
     it 'ignores a nil or non-Hash env (bare strategy calls)' do
       expect { described_class.stash(nil, :api_key_invalid) }.not_to raise_error
+      expect { described_class.stash_scheme(nil, described_class::SCHEME_BASIC) }.not_to raise_error
+      expect(described_class.scheme(nil)).to be_nil
       expect { described_class.forget(nil) }.not_to raise_error
       expect { described_class.stash('not an env', :api_key_invalid) }.not_to raise_error
     end
