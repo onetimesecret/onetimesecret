@@ -22,7 +22,7 @@ This document defines proposed runtime behavior. Existing runtime booleans, stra
 
 - Treating DNS resolution, expected-target matching, HTTPS success, or certificate issuance as ownership proof.
 - Making unrestricted tenant domain registration safe by selecting `operator_managed`.
-- Supporting per-domain validation strategies as part of this proposal.
+- Adding a new per-domain strategy-selection mechanism or customer-facing selector. This proposal uses ADR-015's operator-set per-domain override and install-level fallback.
 - Prescribing a reverse proxy, DNS provider, certificate provider, CNAME shape, or deployment address.
 - Probing private networks.
 - Migrating or preserving behavior for an installed passthrough user base.
@@ -35,6 +35,7 @@ This document defines proposed runtime behavior. Existing runtime booleans, stra
 - **Trusted registration**: a current registration created, transferred, or adopted while operator-managed registration trust is explicitly enabled.
 - **Protected consumer**: a runtime surface that serves, publishes, selects, or issues credentials for a custom-domain hostname.
 - **Health observation**: a timestamped DNS, expected-target, or HTTPS result. It is not authorization evidence.
+- **Effective strategy**: the canonical strategy selected for the exact current domain registration by applying ADR-015's per-domain override first and the install-level strategy second.
 
 ## Strategy configuration contract
 
@@ -51,7 +52,9 @@ This document defines proposed runtime behavior. Existing runtime booleans, stra
 
 Strategy input matching is case-insensitive and ignores surrounding whitespace. The existing `caddy` → `caddy_on_demand` normalization remains unchanged.
 
-`operator_managed` is the default when `validation_strategy` is absent, null, or blank. `passthrough` is not a canonical output value.
+`operator_managed` is the default when the selected `validation_strategy` is absent, null, or blank. `passthrough` is not a canonical output value.
+
+For every domain-specific operation, strategy resolution receives the exact current `CustomDomain` registration and selects its nonblank per-domain `validation_strategy` override before the install-level `features.domains.validation_strategy` value, as required by ADR-015. Normalization, strictness, defaulting, authorization, health reporting, and certificate behavior apply to that effective per-domain strategy. A protected consumer that cannot resolve the exact current registration and its effective strategy fails closed; it does not fall back to install-level authorization semantics. Changing either a per-domain override or the applicable install-level value creates a new strategy revision for affected domains.
 
 ### Unknown values
 
@@ -61,7 +64,7 @@ Strategy input matching is case-insensitive and ignores surrounding whitespace. 
 
 ### Canonical output
 
-Every bootstrap, API, CLI, admin, and frontend capability payload emits the effective canonical strategy. For an unset value, `passthrough`, `external`, or a non-strict unknown value, both `validation_strategy` and any retained legacy strategy field such as `type` emit `operator_managed`. Raw aliases and unknown configured strings are never emitted as the effective strategy.
+Every bootstrap, API, CLI, admin, and frontend capability payload emits the effective canonical strategy. Domain-specific payloads resolve and emit the per-domain override or install-level fallback that applies to that registration. For a selected unset value, `passthrough`, `external`, or a non-strict unknown value, both `validation_strategy` and any retained legacy strategy field such as `type` emit `operator_managed`. Raw aliases and unknown configured strings are never emitted as the effective strategy.
 
 The canonical capability metadata for this mode contains:
 
@@ -99,7 +102,7 @@ The authorization result contains at least `authorized`, `basis`, canonical `str
 
 ### Request-time decision
 
-Authorization is evaluated at every protected decision in this order:
+Authorization is evaluated against the exact current registration and its effective per-domain strategy at every protected decision in this order:
 
 1. A missing, orphaned, inconsistent, deleted, or non-current registration returns `none`.
 2. An active explicit override bound to the current assignment lineage returns `explicit_override`.
@@ -187,11 +190,11 @@ Transfer, orphan adoption, and operator adoption of an existing untrusted regist
 
 ## Immediate strategy-transition semantics
 
-Strategy activation is an authorization boundary, not a scheduler event. The first protected decision after activation uses the target strategy and current-lineage evidence.
+Effective-strategy activation is an authorization boundary, not a scheduler event. This includes activation caused by changing a per-domain override, changing the install-level fallback for a domain without an override, or removing an override so the install-level value applies. The first protected decision for each affected domain after activation uses that domain's target strategy and current-lineage evidence.
 
 Authorization caches are valid only for the exact canonical strategy revision and assignment-lineage identifier that produced them. A revision or lineage mismatch is a cache miss and is evaluated fail-closed. A stale worker that cannot observe the active strategy revision does not serve a protected custom-domain request. Restarting a process does not recreate evidence from legacy fields.
 
-Consequently, switching from `operator_managed` to either TXT-enforced strategy immediately disqualifies `operator_policy`. This applies before a scheduled job, manual verification, cache expiry, or restart. The scheduler can collect evidence and health; it is not the enforcement mechanism.
+Consequently, switching a domain from `operator_managed` to either TXT-enforced strategy immediately disqualifies `operator_policy`, whether the switch is per-domain or install-level. This applies before a scheduled job, manual verification, cache expiry, or restart. The scheduler can collect evidence and health; it is not the enforcement mechanism.
 
 ### Strategy-transition matrix
 
@@ -226,7 +229,7 @@ Every protected consumer resolves the exact current registration and authorizati
 | Bootstrap, customer domain APIs, admin APIs, and CLI status | None to report; authorization is data | None | Emit canonical strategy, typed authorization, evidence, health, and certificate-management fields. |
 | Internal ACME permission endpoint | `txt_proof` or `explicit_override`, plus `caddy_on_demand` | None | Deny. `operator_policy` always denies. |
 
-The existing `require_verified` setting does not weaken this table. It may remain as compatibility configuration for unrelated legacy behavior, but protected consumers use the strategy-aware authorization result.
+The protected-consumer authorization gate in this table is mandatory for every effective strategy. In particular, an `approximated` domain with `require_verified` absent or false still requires eligible current-lineage `txt_proof` or `explicit_override`; provider state and legacy verification booleans do not authorize it. When this proposal is accepted, this mandatory strategy-aware gate supersedes ADR-017's optional `require_verified` gate for `approximated`, as well as its `passthrough`-specific gate. `require_verified` may remain as compatibility configuration for behavior outside this protected-consumer contract, but it cannot weaken or bypass the authorization decision.
 
 ### Legacy output fields
 
@@ -362,8 +365,9 @@ An unknown or stale health result remains visibly unknown or stale. A prior succ
 - Trusted registration is a deployment and assignment prerequisite, not an inference from self-hosting.
 - The active strategy revision and current assignment lineage are available to every protected request so stale workers and caches fail closed.
 - Public-network egress protection applies to every HTTPS probe of a customer-controlled hostname.
+- [ADR-015](../../adr/adr-015-domain-validation-per-domain-strategy.md) remains applicable. Its per-domain override and install-level fallback determine the effective strategy enforced on every protected request.
 - [ADR-016](../../adr/adr-016-domain-validation-state-model.md) remains applicable to separation of proof and serving health. Its statement that passthrough has no health axis is replaced by this proposal when implemented.
-- [ADR-017](../../adr/adr-017-domain-validation-link-creation-gate.md) remains applicable to protected link creation. Its passthrough TXT requirement and staged passthrough rollout are replaced by the trusted `operator_managed` policy and no-migration decision in this proposal when implemented.
+- [ADR-017](../../adr/adr-017-domain-validation-link-creation-gate.md) remains applicable to the separation of authorization from certificate issuance. Its passthrough TXT requirement, staged passthrough rollout, and optional `require_verified` gate for `approximated` are replaced by the trusted `operator_managed` policy, no-migration decision, and mandatory protected-consumer authorization gate in this proposal when implemented.
 - Until runtime implementation and explicit acceptance land, accepted ADRs and existing code remain the operative behavior.
 
 ## Acceptance criteria
@@ -399,8 +403,8 @@ An unknown or stale health result remains visibly unknown or stale. A prior succ
 
 ### Immediate cutover
 
-21. After `operator_managed` → `caddy_on_demand`, the first protected request denies a policy-only assignment even when legacy booleans are true, health is healthy, the scheduler is disabled, and an old cache entry exists.
-22. The same first-request denial applies to `operator_managed` → `approximated`.
+21. After `operator_managed` → `caddy_on_demand`, the first protected request denies a policy-only assignment even when legacy booleans are true, health is healthy, the scheduler is disabled, and an old cache entry exists; the result is identical whether the effective-strategy change came from the domain override or the install-level fallback.
+22. The same first-request denial applies to `operator_managed` → `approximated`, including a single domain whose override changes while other domains retain their prior effective strategies.
 23. A stale worker unable to observe the active strategy revision fails closed rather than granting cached `operator_policy` authorization.
 24. Restarting a worker does not reconstruct TXT or override evidence from legacy fields.
 25. A current-lineage TXT pass or active override authorizes immediately under either TXT-enforced strategy without waiting for a health check.
@@ -414,6 +418,7 @@ An unknown or stale health result remains visibly unknown or stale. A prior succ
 30. SAML SP entity ID and ACS URL remain absent until the domain is authorized.
 31. Domain management and health surfaces remain available to an authorized organization owner or operator when domain-use authorization is absent.
 32. All API versions that create or bind custom-domain links enforce the same authorization result.
+33. An `approximated` domain with `require_verified` absent or false and no eligible current-lineage TXT proof or override is denied by every protected consumer; setting a legacy `verified` boolean or observing provider success does not bypass the denial.
 
 ### Health
 
