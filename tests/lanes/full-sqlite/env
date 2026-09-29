@@ -8,6 +8,9 @@
 AUTHENTICATION_MODE=full
 AUTH_DATABASE_URL='sqlite::memory:'
 ORGS_SSO_ENABLED=true
+# The install-wide SAML switch (#4604), default off: the tenant saml route
+# (placeholder or platform) registers only with it on.
+SAML_ENABLED=true
 
 # Generated prerequisites, produced by tests/lanes/run before the tasks
 # below (see the codegen phase there). spec/spec_helper.rb refuses to boot

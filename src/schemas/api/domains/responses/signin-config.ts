@@ -58,7 +58,8 @@ export type EffectiveRestrictTo = z.infer<typeof effectiveRestrictToSchema>;
  * "why isn't SSO being offered on my sign-in page?", serialized once by the
  * server. `unavailable_reason` is the blocking rung
  * (`no_sso_config`, `sso_config_disabled`, `sso_not_permitted`,
- * `auth_disabled`, `unsupported_provider_type`), null when available.
+ * `auth_disabled`, `unsupported_provider_type`, `saml_disabled`), null when
+ * available.
  *
  * Left as a plain string: the rung list is a backend enumeration and a new
  * rung must not fail response parse. The UI maps known rungs to copy and

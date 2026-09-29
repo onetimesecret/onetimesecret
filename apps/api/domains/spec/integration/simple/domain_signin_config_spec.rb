@@ -39,6 +39,9 @@
 # =============================================================================
 
 require_relative File.join(Onetime::HOME, 'spec', 'integration', 'integration_spec_helper')
+require 'climate_control'
+# SAML certificate fixture (#4604): generated at runtime, nothing checked in.
+require_relative File.join(Onetime::HOME, 'apps', 'web', 'auth', 'spec', 'support', 'domain_sso_test_fixtures')
 
 RSpec.describe 'Domain Signin Config API', type: :integration do
   include Rack::Test::Methods
@@ -402,6 +405,26 @@ RSpec.describe 'Domain Signin Config API', type: :integration do
       expect(last_response.status).to eq(200)
       expect(json_body['details']['tenant_sso']).to eq(
         'available' => false, 'unavailable_reason' => 'no_sso_config',
+      )
+    end
+
+    # The install-wide SAML switch (#4604): the simple lane does not set
+    # SAML_ENABLED, so this is the default-off state an operator sees.
+    it 'reports saml_disabled for an enabled saml record while SAML_ENABLED is off' do
+      Onetime::CustomDomain::SsoConfig.create!(
+        domain_id: test_custom_domain.identifier,
+        provider_type: 'saml',
+        enabled: true,
+        idp_sso_service_url: 'https://idp.example.com/saml/sso',
+        idp_entity_id: 'https://idp.example.com/saml/metadata',
+        idp_cert: DomainSsoTestFixtures.saml_cert_pem,
+      )
+
+      ClimateControl.modify(SAML_ENABLED: nil) { json_get api_path(test_custom_domain.extid) }
+
+      expect(last_response.status).to eq(200)
+      expect(json_body['details']['tenant_sso']).to eq(
+        'available' => false, 'unavailable_reason' => 'saml_disabled',
       )
     end
 

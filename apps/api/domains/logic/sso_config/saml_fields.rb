@@ -42,6 +42,16 @@ module DomainsAPI
       #     what identities are keyed on, so existing identities stop
       #     matching.
       #   - refusing fingerprint parameters outright (see FORBIDDEN_PARAMS).
+      #   - the install-wide SAML_ENABLED switch (#4604). While it is off no
+      #     saml route exists, so a saml config cannot be introduced (PUT, or
+      #     a PATCH creating / switching to saml) or edited (any other PATCH
+      #     on a saml record), whatever its enabled flag: a record written
+      #     now would sit unusable until the operator flips the switch, and
+      #     an org admin cannot flip it. The one PATCH shape that stays
+      #     accepted is a disable-only request (enabled: false and nothing
+      #     else), so a tenant can switch its own saml config off during
+      #     the same incident; DELETE is untouched. Refused on
+      #     provider_type, like the cookie rule below.
       #   - the install's SESSION COOKIE. A saml config under a cookie that
       #     is not SameSite=None or Lax with Secure cannot complete a sign-in
       #     (Saml.session_cookie_problem), and an org admin cannot change the
@@ -185,6 +195,19 @@ module DomainsAPI
             values = partial ? {} : oauth.to_h { |key| [key, instance_variable_get(:"@#{key}")] }
             values.merge(saml_fields.to_h { |key| [key, ''] }).merge(name_id_format: '', callback_origins: [])
           end
+        end
+
+        # See the header: the install-wide switch. Nothing an org admin sends
+        # can satisfy it, so the message names the operator's variable.
+        def reject_saml_disabled!
+          return if Onetime::SsoProvider::Saml.enabled?
+
+          raise_form_error(
+            'SAML sign-in is switched off on this install (SAML_ENABLED is not true). ' \
+            'The operator must enable it before a SAML configuration can be saved or edited.',
+            field: :provider_type,
+            error_type: :invalid,
+          )
         end
 
         # See the header: one rule (Saml.session_cookie_problem) shared with

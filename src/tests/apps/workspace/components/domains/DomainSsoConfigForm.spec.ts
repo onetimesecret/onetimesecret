@@ -179,6 +179,7 @@ interface MountOptions {
   clientSecretMasked?: string | null;
   testResult?: TestSsoConnectionResponse | null;
   testError?: string;
+  samlEnabled?: boolean;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -219,6 +220,9 @@ describe('DomainSsoConfigForm', () => {
     clientSecretMasked: null,
     testResult: null,
     testError: '',
+    // The install-wide SAML switch (SAML_ENABLED, #4604): on for the suite,
+    // off only in the examples about the switch itself.
+    samlEnabled: true,
   };
 
   const mountComponent = async (options: MountOptions = {}) => {
@@ -260,6 +264,33 @@ describe('DomainSsoConfigForm', () => {
 
       const providerRadios = wrapper.findAll('input[type="radio"][name="provider_type"]');
       expect(providerRadios).toHaveLength(3);
+    });
+
+    // SAML_ENABLED off (#4604): the API refuses provider_type saml, so the
+    // selector for a NEW config must not offer it. The other two stay.
+    it('drops the SAML option while the install-wide switch is off', async () => {
+      wrapper = await mountComponent({ samlEnabled: false });
+
+      expect(wrapper.find('#domain-provider-entra_id').exists()).toBe(true);
+      expect(wrapper.find('#domain-provider-oidc').exists()).toBe(true);
+      expect(wrapper.find('#domain-provider-saml').exists()).toBe(false);
+
+      const providerRadios = wrapper.findAll('input[type="radio"][name="provider_type"]');
+      expect(providerRadios).toHaveLength(2);
+    });
+
+    // A saved saml record stays editable (disable / delete) while the switch
+    // is off: the locked provider display still resolves its label.
+    it('still labels a saved saml record while the switch is off', async () => {
+      wrapper = await mountComponent({
+        samlEnabled: false,
+        ssoConfig: mockSamlConfig,
+        formState: { ...mockSamlFormState },
+        isConfigured: true,
+      });
+
+      expect(wrapper.find('#domain-provider-saml').exists()).toBe(false);
+      expect(wrapper.text()).toContain('SAML 2.0');
     });
 
     it('selects Entra ID by default', async () => {

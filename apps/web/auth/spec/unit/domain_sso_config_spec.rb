@@ -22,6 +22,7 @@
 #   pnpm run test:rspec apps/web/auth/spec/unit/domain_sso_config_spec.rb
 
 require_relative '../spec_helper'
+require 'climate_control'
 require_relative '../support/domain_sso_test_fixtures'
 require_relative '../../operations/backfill_tenant_issuer'
 
@@ -560,6 +561,64 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
       allow(config).to receive(:custom_domain).and_return(custom_domain)
 
       expect(described_class.tenant_sso_unavailable_reason(domain_id, sso_config: config)).to be_nil
+    end
+
+    # The install-wide SAML switch (#4604): a saved saml record is refused on
+    # this ladder while it is off (no saml route is registered), so the
+    # masthead link, the /signin page and the omniauth hook all stop
+    # together; flipping the switch back restores the record unchanged.
+    describe 'the :saml_disabled rung (SAML_ENABLED)' do
+      def reason(config, **extra)
+        described_class.tenant_sso_unavailable_reason(domain_id, sso_config: config, custom_domain: custom_domain, **extra)
+      end
+
+      [nil, 'false'].each do |value|
+        it "returns :saml_disabled for an enabled saml record while SAML_ENABLED is #{value.inspect}" do
+          config = build_minimal_domain_sso_config(domain_id: domain_id, provider_type: 'saml')
+          ClimateControl.modify(SAML_ENABLED: value) do
+            expect(reason(config)).to eq(:saml_disabled)
+          end
+        end
+      end
+
+      it 'returns nil for the same record with SAML_ENABLED=true' do
+        config = build_minimal_domain_sso_config(domain_id: domain_id, provider_type: 'saml')
+        ClimateControl.modify(SAML_ENABLED: 'true') do
+          expect(reason(config)).to be_nil
+        end
+      end
+
+      it 'leaves oidc and entra_id records alone while SAML_ENABLED is off' do
+        ClimateControl.modify(SAML_ENABLED: nil) do
+          %w[oidc entra_id].each do |type|
+            config = build_minimal_domain_sso_config(domain_id: domain_id, provider_type: type)
+            expect(reason(config)).to be_nil, type
+          end
+        end
+      end
+
+      it 'sits after :sso_config_disabled and :unsupported_provider_type' do
+        ClimateControl.modify(SAML_ENABLED: nil) do
+          config = build_minimal_domain_sso_config(domain_id: domain_id, provider_type: 'saml')
+          config.enabled = 'false'
+          expect(reason(config)).to eq(:sso_config_disabled)
+
+          legacy = build_minimal_domain_sso_config(domain_id: domain_id, provider_type: 'google')
+          expect(reason(legacy)).to eq(:unsupported_provider_type)
+        end
+      end
+
+      # Above the domain and SigninConfig rungs on purpose: an SSO-only
+      # domain running SAML has NO sign-in method while the switch is off.
+      it 'sits before :domain_unverified and :sso_not_permitted' do
+        allow(Onetime::CustomDomain::SigninConfig).to receive(:sso_permitted_for?).and_return(false)
+        allow(custom_domain).to receive(:verified).and_return(false)
+
+        config = build_minimal_domain_sso_config(domain_id: domain_id, provider_type: 'saml')
+        ClimateControl.modify(SAML_ENABLED: nil) do
+          expect(reason(config)).to eq(:saml_disabled)
+        end
+      end
     end
   end
 

@@ -5,7 +5,7 @@ SAML uses the IdP's HTTP-POST binding, followed by a same-origin `303` redirect 
 ## Request sequence
 
 1. The normal, CSRF-protected sign-in or Connect request stores an AuthnRequest ID in the original session. Tenant context and Connect intent remain in their existing session/sidecar locations.
-2. The IdP POSTs `SAMLResponse` to the configured ACS. Before any parser or session middleware, `SamlCallbackTransport::Boundary` bounds the form body and removes incoming cookies. It also removes every `Set-Cookie` response header, including on rejected POSTs. The original browser cookie is neither replaced nor renewed.
+2. The IdP POSTs `SAMLResponse` to the configured ACS. Before any parser or session middleware, `SamlCallbackTransport::Boundary` bounds the form body and removes incoming cookies (while the install-wide `SAML_ENABLED` switch is off it answers `404` first, before reading the body). It also removes every `Set-Cookie` response header, including on rejected POSTs. The original browser cookie is neither replaced nor renewed.
 3. Normal host resolution and the existing security layers, including HttpOrigin, run. `SamlCallbackTransport::Stage` runs inside the auth application's security profile, before Rodauth/OmniAuth. It suppresses anonymous session persistence, stores the untrusted assertion server-side, and returns `303` to the same callback path with only `saml_handle=<random value>` in the query.
 4. On the GET, the browser sends its original Lax cookie. OmniAuth dispatches callback GETs without enabling GET on the sign-in request route. The strategy reads the staged assertion non-destructively; a raw `SAMLResponse` in the GET URL is never accepted, and neither is a direct POST: a POST that reaches the strategy was not staged and is refused (`saml_response_missing`).
 5. Normal setup, tenant, active-session and Connect processing use the recovered original session. The strategy requires its pending request ID, validates the signature and document, and checks the signed bearer confirmation's request binding and recipient. Only after the validation and replay claim succeed may it atomically consume the staged handle and pending request, then release an auth hash.
@@ -32,6 +32,15 @@ The POST never enters Rodauth or tenant/Connect hooks. This avoids running them 
 ### Admission decision
 
 Admission is a **configurable global storage cap and per-source share** over fixed **120-second** buckets: `SAML_CALLBACK_GLOBAL_LIMIT` (default **256**) and `SAML_CALLBACK_SOURCE_LIMIT` (default **64**, clamped to the global limit). The global cap is an aggregate storage safety bound, not a claim that 256 matches every deployment's traffic; the per-source share is sized so an office behind one egress address can complete a morning sign-in rush without tripping it, while one source still cannot take the whole bucket. Raising either value increases storage exposure by the same proportion, so size them from observed sign-in volume, not defensively. The accepted trade-off for this transport is temporary, fail-closed SAML unavailability under saturation rather than unbounded storage of unauthenticated assertions. Other authentication methods do not use this quota. Already staged callbacks remain readable and redeemable when admission is full; only new staging is refused. When the global limit is full, new SAML callback POSTs receive `429` until the next fixed bucket, which permits admission again unless it too is saturated.
+
+The install-wide `SAML_ENABLED` switch (#4604, default off) precedes every
+check above. While it is off the Boundary answers `404` to every request on
+the callback path before it reads the body, so a wrong media type, an
+oversized body or a malformed form gets the unregistered route's `404`
+rather than the Boundary's `415`, `413` or `400`; and
+`saml_callback_route_active?` is false on both surfaces, so Stage refuses
+anything that reaches it before any datastore or tenant lookup. Nothing is
+parsed and nothing is staged.
 
 Partitioning solely by resolved host would remove the deployment-wide storage bound: each additional host would get another allocation. Keeping a global cap plus per-host ceilings would reduce one host's share but still permit multi-host exhaustion, while adding a new limit for legitimate single-tenant bursts. Request-derived host/scope variants must not create new independent capacity. This implementation therefore keeps one bounded counter hash and does not introduce host partitions; the only configuration is the two limits above.
 

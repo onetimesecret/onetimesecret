@@ -160,6 +160,10 @@ session identifier.
   [#4469](https://github.com/onetimesecret/onetimesecret/issues/4469) adds the
   `credential` codes and keeps every status; the header and the 503 are a
   follow-up in the same middleware.
-- Completing the second factor does not renew the session id; the password
-  step does. `RISK-2026-09-19-02`, tracked by
-  [#4466](https://github.com/onetimesecret/onetimesecret/issues/4466).
+- Completing the second factor now renews the session id as the password
+  step does (`after_two_factor_authentication` calls
+  `Onetime::SessionRotation`; `RISK-2026-09-19-02`). The other establishment
+  paths [#4466](https://github.com/onetimesecret/onetimesecret/issues/4466)
+  lists (account switching, impersonation, SSO callbacks, autologin after
+  signup and verification) are not yet proven to rotate, and the register row
+  stays open for them.

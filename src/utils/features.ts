@@ -679,6 +679,24 @@ export function isOrgsSsoEnabled(): boolean {
 }
 
 /**
+ * Checks if SAML is switched on for this install (SAML_ENABLED, #4604).
+ * An install-wide switch, not a per-org one: while it is off no SAML route
+ * is registered, the domain SSO API refuses provider_type saml, and the
+ * per-domain SSO form must not offer it. Default is OFF.
+ */
+export function isSamlEnabled(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  const features = getBootstrapValue('features');
+  const result = features?.organizations?.saml_enabled === true;
+  debugLog.features('features.isSamlEnabled', {
+    saml_enabled: features?.organizations?.saml_enabled,
+    result,
+  });
+  return result;
+}
+
+/**
  * Checks if organization-level custom mail configuration is enabled.
  * When true, organizations with custom_mail_sender entitlement can configure
  * custom email sending for their domains.
