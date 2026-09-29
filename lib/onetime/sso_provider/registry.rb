@@ -44,6 +44,15 @@
 #                     boot-registration time, so these files stay loadable in
 #                     environments without the omniauth gems)
 #   issuer_capable:   whether the strategy yields a validated issuer (see above)
+#   enabled:          OPTIONAL zero-arg callable returning a boolean: an
+#                     install-wide switch for the provider, checked BEFORE
+#                     required_vars by configure_provider (a false answer
+#                     registers no route at all, not even the tenant
+#                     placeholder, and loads no gem) and by
+#                     AuthConfig#provider_active? (no button, no admitted
+#                     IdP origin). SAML's reads SAML_ENABLED (#4604), default
+#                     off. Omitted means always on.
+#   enabled_var:      the env var :enabled reads, for the boot log line.
 #   required_vars:    env vars that must ALL be present for the provider to
 #                     register with real credentials (and to appear in
 #                     sso_providers / CSP origins)

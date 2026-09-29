@@ -587,6 +587,18 @@ module Onetime
         #   :unsupported_provider_type - record's provider_type is not in
         #                                PROVIDER_TYPES (pre-#3902 legacy data;
         #                                see BackfillTenantIssuer)
+        #   :saml_disabled             - a saml record while the install-wide
+        #                                SAML_ENABLED switch is off (#4604):
+        #                                no saml route is registered, so the
+        #                                button must not be shown and the
+        #                                omniauth hook must not inject the
+        #                                record. Existing configs are refused
+        #                                here, not deleted or disabled: the
+        #                                operator flips the switch back and
+        #                                they resume. Above the SigninConfig
+        #                                rungs so an SSO-only domain running
+        #                                SAML has NO sign-in method while
+        #                                the switch is off (documented trade)
         #   :domain_unverified         - custom-domain ownership is not verified
         #   :sso_not_permitted         - SigninConfig withholds SSO for the domain
         #
@@ -615,6 +627,7 @@ module Onetime
           # link and /signin page (both reading this ladder) never advertise
           # a route that would 500.
           return :unsupported_provider_type unless PROVIDER_TYPES.include?(config.provider_type)
+          return :saml_disabled if config.provider_type == 'saml' && !Onetime::SsoProvider::Saml.enabled?
 
           domain   = custom_domain if custom_domain&.identifier == domain_id
           domain ||= config.custom_domain

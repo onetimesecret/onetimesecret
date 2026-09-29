@@ -19,6 +19,9 @@
 AUTHENTICATION_MODE=full
 AUTH_DATABASE_URL='sqlite::memory:'
 ORGS_SSO_ENABLED=true
+# The install-wide SAML switch (#4604), default off: the tenant saml route
+# (placeholder or platform) registers only with it on.
+SAML_ENABLED=true
 # Platform SSO on: MockAuthConfig#sso_enabled? honours this, and it gates the
 # platform IdP-origin set HttpOriginOptions admits for the POST callback.
 AUTH_SSO_ENABLED=true

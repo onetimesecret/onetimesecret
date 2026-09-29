@@ -14,6 +14,7 @@
 
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 require_relative '../../../views/serializers'
+require 'climate_control'
 require_relative File.join(Onetime::HOME, 'apps', 'web', 'auth', 'spec', 'support', 'tenant_test_fixtures')
 require_relative File.join(Onetime::HOME, 'apps', 'web', 'auth', 'spec', 'support', 'domain_sso_test_fixtures')
 
@@ -1739,8 +1740,31 @@ RSpec.describe Core::Views::ConfigSerializer do
 
           expect(orgs['enabled']).to be false
           expect(orgs['sso_enabled']).to be false
+          expect(orgs['saml_enabled']).to be false
           expect(orgs['custom_mail_enabled']).to be false
           expect(orgs['incoming_secrets_enabled']).to be false
+        end
+      end
+
+      # The install-wide SAML switch (SAML_ENABLED, #4604) rides the
+      # organizations block because it gates the per-domain SSO form's
+      # provider list; it is read from the env, not from features.
+      describe 'saml_enabled' do
+        it 'is true only when SAML_ENABLED is a recognized truthy token' do
+          ClimateControl.modify(SAML_ENABLED: 'true') do
+            expect(described_class.build_feature_flags(base_view_vars)['organizations']['saml_enabled']).to be true
+          end
+          [nil, 'false', '0'].each do |value|
+            ClimateControl.modify(SAML_ENABLED: value) do
+              expect(described_class.build_feature_flags(base_view_vars)['organizations']['saml_enabled']).to be(false), value.inspect
+            end
+          end
+        end
+
+        it 'fails closed on an unrecognized token instead of raising into the page' do
+          ClimateControl.modify(SAML_ENABLED: 'ture') do
+            expect(described_class.build_feature_flags(base_view_vars)['organizations']['saml_enabled']).to be false
+          end
         end
       end
 

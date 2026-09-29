@@ -33,6 +33,42 @@ RSpec.describe Onetime::SsoProvider::Saml do
   ensure
     described_class.instance_variable_set(:@registered_platform_base_url, original)
   end
+  # The install-wide switch (#4604): default off, ADR-037 vocabulary, and a
+  # typo raises rather than resolving to off.
+  describe '.enabled?' do
+    [nil, '', '   ', 'false', '0', 'no', 'off', 'n', 'f', 'FALSE'].each do |value|
+      it "is off for #{value.inspect}" do
+        ClimateControl.modify(SAML_ENABLED: value) do
+          expect(described_class.enabled?).to be(false)
+        end
+      end
+    end
+
+    ['true', '1', 'yes', 'on', 'y', 't', 'TRUE', ' true '].each do |value|
+      it "is on for #{value.inspect}" do
+        ClimateControl.modify(SAML_ENABLED: value) do
+          expect(described_class.enabled?).to be(true)
+        end
+      end
+    end
+
+    it 'raises Onetime::ConfigError naming the flag, never echoing the value, on an unrecognized token' do
+      ClimateControl.modify(SAML_ENABLED: 'enabled-please') do
+        expect { described_class.enabled? }.to raise_error(Onetime::ConfigError) { |error|
+          expect(error.message).to include('SAML_ENABLED')
+          expect(error.message).not_to include('enabled-please')
+        }
+      end
+    end
+
+    it 'is the DEFINITION :enabled switch, with the variable named for the boot log' do
+      definition = described_class::DEFINITION
+      expect(definition[:enabled_var]).to eq('SAML_ENABLED')
+      ClimateControl.modify(SAML_ENABLED: 'true') { expect(definition[:enabled].call).to be(true) }
+      ClimateControl.modify(SAML_ENABLED: nil) { expect(definition[:enabled].call).to be(false) }
+    end
+  end
+
   describe '.allow_null_origin?' do
     [nil, '', 'false', 'TRUE', ' true ', '1', 'yes', 'null', 'typo'].each do |value|
       it "denies an unset, disabled or malformed flag #{value.inspect}" do

@@ -6,6 +6,9 @@
 # Same database env as full-pg; see that lane for where roles come from.
 AUTHENTICATION_MODE=full
 ORGS_SSO_ENABLED=true
+# The install-wide SAML switch (#4604), default off: the tenant saml route
+# (placeholder or platform) registers only with it on.
+SAML_ENABLED=true
 AUTH_DATABASE_URL='postgresql://onetime_user:testpass@127.0.0.1:2154/onetime_auth_test'
 AUTH_DATABASE_URL_MIGRATIONS='postgresql://onetime_migrator:migratepass@127.0.0.1:2154/onetime_auth_test'
 AUTH_DATABASE_URL_PG='postgresql://onetime_user:testpass@127.0.0.1:2154/onetime_auth_test'

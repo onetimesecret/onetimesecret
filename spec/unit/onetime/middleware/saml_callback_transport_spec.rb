@@ -71,6 +71,7 @@ RSpec.describe Onetime::Middleware::SamlCallbackTransport do
 
   around do |example|
     ClimateControl.modify(
+      SAML_ENABLED: 'true',
       SAML_ROUTE_NAME: 'saml', SAML_ALLOW_NULL_ORIGIN: nil,
       SAML_IDP_SSO_SERVICE_URL: 'https://idp.example.com/sso',
       SAML_IDP_ENTITY_ID: idp.entity_id, SAML_IDP_CERT: idp.cert_pem,
@@ -432,6 +433,23 @@ RSpec.describe Onetime::Middleware::SamlCallbackTransport do
       allow(Onetime).to receive(:auth_config).and_return(instance_double(Onetime::AuthConfig, sso_enabled?: true))
       allow(saml).to receive(:platform_base_url).and_return('https://elsewhere.example.com')
       expect(stage('untrusted').status).to eq(404)
+      expect(reached).to be_empty
+    end
+
+    # The install-wide switch (#4604): the callback answers 404 on both
+    # surfaces while it is off, stores nothing, and never reaches the
+    # strategy, however usable the platform provider or the tenant record.
+    it 'refuses with 404 and stores nothing on both surfaces while SAML_ENABLED is off' do
+      expect(store).not_to receive(:stage)
+      allow(resolution).to receive_messages(verified_custom_domain?: true, sso_config: tenant_config)
+
+      ClimateControl.modify(SAML_ENABLED: 'false') do
+        response = stage('untrusted')
+        expect(response.status).to eq(404)
+        expect(response['set-cookie']).to be_nil
+        expect(response['cache-control']).to eq('no-store')
+        expect(stage('untrusted', 'onetime.display_domain' => 'tenant.example.net').status).to eq(404)
+      end
       expect(reached).to be_empty
     end
 

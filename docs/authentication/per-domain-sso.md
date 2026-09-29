@@ -631,6 +631,16 @@ trio instead of an OAuth client credential. The runtime strategy is the same
 options, as platform SAML — the gates and refusal codes in
 [per-install-sso.md](per-install-sso.md#saml-20-1) apply unchanged.
 
+The install must have `SAML_ENABLED=true` (#4604; default off). While it is
+off, the `saml` route is not registered, a saved `saml` record is refused by
+the availability ladder (`:saml_disabled`) so its sign-in button disappears,
+the API refuses to create or edit a `saml` configuration (422 on
+`provider_type`) while still accepting a disable-only `PATCH` and `DELETE`,
+and the form does not offer SAML for a new configuration. A domain with
+`enforce_sso_only` and a SAML configuration has no sign-in method while the
+switch is off. See
+[SAML is switched off](per-install-sso.md#saml-is-switched-off).
+
 | Field | Required | Rules |
 |-------|----------|-------|
 | `idp_sso_service_url` | yes | `https://` URL with no userinfo, no fragment (ruby-saml appends `?SAMLRequest=` by concatenation, so a `#…` would swallow it), no trailing dot on the host, whose origin is CSP-safe (a plain hostname — no spaces, quotes or punctuation in the host). The server never fetches it (the browser is redirected to it), so unlike an OIDC issuer it gets no SSRF host check and an IdP on a private network is accepted; its origin is admitted into this domain's CSP `form-action` and `HttpOrigin` allowances |

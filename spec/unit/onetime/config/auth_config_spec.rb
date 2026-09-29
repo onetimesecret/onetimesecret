@@ -760,6 +760,27 @@ RSpec.describe Onetime::AuthConfig do
         expect(advertised_with(base.merge(vars_valid: -> { false }), **env)).to be_empty
       end
 
+      # An install-wide :enabled switch (SAML_ENABLED, #4604) is checked
+      # before presence and before :vars_valid: configure_provider registers
+      # nothing for a switched-off provider, so nothing is advertised.
+      it 'omits a provider whose :enabled switch answers false, before consulting :vars_valid' do
+        consulted = false
+        defn = base.merge(enabled: -> { false }, vars_valid: -> { consulted = true })
+        expect(advertised_with(defn, **env)).to be_empty
+        expect(consulted).to be(false)
+      end
+
+      it 'advertises a provider whose :enabled switch answers true' do
+        expect(advertised_with(base.merge(enabled: -> { true }), **env)).to eq(%w[github])
+      end
+
+      it 'omits a provider whose :enabled switch raises, without raising' do
+        allow(OT).to receive(:lw)
+        defn = base.merge(enabled: -> { raise Onetime::ConfigError, 'X_ENABLED is set to an unrecognized boolean' })
+        expect(advertised_with(defn, **env)).to be_empty
+        expect(OT).to have_received(:lw).with(/enabled switch raised.*X_ENABLED/)
+      end
+
       # Runs per request and inside the HttpOrigin middleware, so a raising
       # predicate drops the provider, not the response.
       it 'omits a provider whose predicate raises, without raising' do
@@ -864,11 +885,22 @@ RSpec.describe Onetime::AuthConfig do
     describe 'SAML' do
       let(:saml_env) do
         {
+          SAML_ENABLED: 'true',
           SAML_IDP_SSO_SERVICE_URL: 'https://idp.example.com/saml/sso',
           SAML_IDP_ENTITY_ID: 'https://idp.example.com/saml/metadata',
           SAML_IDP_CERT: SamlSpec::TestIdp.new.cert_pem,
           SAML_SP_ENTITY_ID: 'https://ots.example.com/auth/sso/saml/metadata',
         }
+      end
+
+      # The install-wide switch (#4604): configure_provider registers no saml
+      # route while it is off, so the button must not be offered either,
+      # however complete and valid the SAML_* vars are.
+      [nil, 'false'].each do |value|
+        it "does not list SAML while SAML_ENABLED is #{value.inspect}, with the vars complete and usable" do
+          config = config_with_three_providers(**saml_env, SAML_ENABLED: value)
+          expect(config.sso_providers.map { |p| p['route_name'] }).to eq(%w[entra google github])
+        end
       end
 
       # The SAML-compatible session cookie: :vars_valid (Saml.platform_usable?)

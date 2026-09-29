@@ -93,6 +93,23 @@
 #
 # IdP-INITIATED SSO IS UNSUPPORTED, by design (request_bound_saml.rb).
 #
+# SAML_ENABLED IS THE INSTALL-WIDE SWITCH, DEFAULT OFF (#4604). It turns the
+# provider ON, on both surfaces at once; it is not a visibility toggle. Unless
+# it is true: configure_provider registers no saml route (platform or tenant
+# placeholder, so omniauth-saml/ruby-saml are never loaded), the tenant
+# availability ladder refuses every saved saml record (:saml_disabled, so the
+# sign-in button disappears and nothing gets through), the domain SSO API
+# refuses to save or edit provider_type saml, the callback path answers 404
+# (HttpOriginOptions.saml_callback_route_active? is false, which also stops
+# SamlCallbackTransport staging), and :enabled keeps the platform button off
+# the login page. Incident response is the reason: ruby-saml's advisory
+# history is a run of authentication bypasses, and between an advisory and a
+# reviewed bump this is the one switch that stops the app parsing SAML
+# responses without taking OIDC and Entra tenants down (ORGS_SSO_ENABLED) or
+# editing every tenant's record. Parsed by strict_bool! (ADR-037): a typo
+# fails boot (Onetime::Initializers::ValidateAuthConfig) rather than silently
+# resolving to off.
+#
 # ACCOUNT VERIFICATION RESTS ON IdP TRUST. SAML has no email_verified claim;
 # a JIT account is stamped verified because the operator configured this IdP.
 # An attribute the IdP happens to NAME `email_verified` with the value false
@@ -501,6 +518,30 @@ module Onetime
         text.include?('\n') ? text.gsub('\n', "\n") : text
       end
 
+      # The SAML_ENABLED switch (header: SAML_ENABLED IS THE INSTALL-WIDE
+      # SWITCH). Read live on every call, never memoized: one process-wide
+      # answer, and specs modify the env.
+      ENABLED_VAR = 'SAML_ENABLED'
+
+      # Is SAML switched on for this install? Default off; only a recognized
+      # truthy token (ADR-037) enables it.
+      #
+      # RAISES on an unrecognized token, on purpose. The boot-time check in
+      # ValidateAuthConfig calls this first so a typo names the flag in the
+      # deploy log and stops boot; the per-request callers that can run in a
+      # process that never validated (provider_active?,
+      # saml_callback_route_active?) rescue and fail closed.
+      #
+      # @return [Boolean]
+      # @raise [Onetime::ConfigError] when SAML_ENABLED is set to an
+      #   unrecognized token
+      def self.enabled?
+        # Resolved lazily, like csp_origin_for: this file stays loadable
+        # without the application's utils.
+        require 'onetime/utils/strings' unless defined?(Onetime::Utils::Strings)
+        Onetime::Utils::Strings.strict_bool!(ENABLED_VAR, ENV.fetch(ENABLED_VAR, nil), default: false)
+      end
+
       # Operator-only exception for IdPs whose POST has an opaque Origin.
       # Exact boolean spelling: unset, false and malformed values all deny.
       # Tenant records and callback_origins cannot enable this policy.
@@ -716,6 +757,13 @@ module Onetime
         issuer_capable: true,
         # SAML has no client credential: there is deliberately no
         # SAML_CLIENT_ID, and configure_provider logs 'client_id: (none)'.
+        # The install-wide switch (#4604): consulted BEFORE required_vars by
+        # both configure_provider (no route, no gem load) and
+        # AuthConfig#provider_active? (no button, no admitted IdP origin), so
+        # the registered and advertised sets agree the same way :vars_valid
+        # makes them agree.
+        enabled: -> { enabled? },
+        enabled_var: ENABLED_VAR,
         required_vars: %w[SAML_IDP_SSO_SERVICE_URL SAML_IDP_ENTITY_ID SAML_IDP_CERT],
         vars_valid: -> { platform_usable? },
         route_var: 'SAML_ROUTE_NAME',
