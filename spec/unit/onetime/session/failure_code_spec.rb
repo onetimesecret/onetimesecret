@@ -2,18 +2,26 @@
 #
 # frozen_string_literal: true
 
-# The wire `code` on a session-authentication refusal is the evaluator reason
-# verbatim (#4462). This spec is what keeps a new evaluator reason from
-# shipping without a deliberately chosen scope.
+# The wire `code` on an authentication refusal is the reason verbatim: the
+# evaluator's for a session refusal (#4462), the credential vocabulary's for a
+# rejected credential (#4469). This spec is what keeps a new evaluator reason
+# from shipping without a deliberately chosen scope, and the credential
+# vocabulary from growing without a deliberate decision.
 
 require 'spec_helper'
 require 'onetime/session/failure_code'
 
 RSpec.describe Onetime::SessionFailureCode do
   let(:refusal_reasons) { Onetime::CustomerSessionEvaluator::REASONS - [:authenticated] }
+  let(:credential_reasons) { described_class::CREDENTIAL_REASON_SCOPES.keys }
 
-  it 'codes every evaluator refusal, and nothing else' do
-    expect(described_class::CODES.keys).to match_array(refusal_reasons)
+  it 'codes every evaluator refusal and every credential reason, and nothing else' do
+    expect(described_class::SESSION_REASON_SCOPES.keys).to match_array(refusal_reasons)
+    expect(described_class::CODES.keys).to match_array(refusal_reasons + credential_reasons)
+  end
+
+  it 'keeps the session and credential vocabularies disjoint' do
+    expect(refusal_reasons & credential_reasons).to be_empty
   end
 
   it 'uses the evaluator reason verbatim as the code' do
@@ -39,8 +47,39 @@ RSpec.describe Onetime::SessionFailureCode do
     expect(admin.keys).to eq([:admin_session_expired])
   end
 
-  it 'does not emit the reserved credential scope' do
-    expect(described_class::SCOPES).not_to include('credential')
+  # #4469: the credential vocabulary, at the granularity of the messages the
+  # surfaces already send. A code that told an unknown account from a wrong
+  # password would be an enumeration surface the message does not have.
+  it 'scopes exactly the credential vocabulary as credential' do
+    credential = described_class::CODES.select { |_r, e| e['code_scope'] == 'credential' }
+    expect(credential.keys).to contain_exactly(
+      :invalid_credentials, :api_key_invalid, :suspended_credentials, :account_locked, :account_unverified,
+    )
+  end
+
+  it 'knows which reasons are credential refusals' do
+    expect(described_class.credential?(:invalid_credentials)).to be true
+    expect(described_class.credential?('api_key_invalid')).to be true
+    expect(described_class.credential?(:account_suspended)).to be false
+    expect(described_class.credential?(nil)).to be false
+  end
+
+  describe '.stash and .forget' do
+    it 'writes and withdraws the reason under ENV_KEY, last writer winning' do
+      env = {}
+      described_class.stash(env, :session_missing)
+      described_class.stash(env, :api_key_invalid)
+      expect(env).to eq(described_class::ENV_KEY => :api_key_invalid)
+
+      described_class.forget(env)
+      expect(env).to be_empty
+    end
+
+    it 'ignores a nil or non-Hash env (bare strategy calls)' do
+      expect { described_class.stash(nil, :api_key_invalid) }.not_to raise_error
+      expect { described_class.forget(nil) }.not_to raise_error
+      expect { described_class.stash('not an env', :api_key_invalid) }.not_to raise_error
+    end
   end
 
   it 'keeps a typed verdict distinct across the boundary' do
@@ -113,7 +152,7 @@ RSpec.describe Onetime::SessionFailureCode do
       expect(logger).not_to have_received(:info)
     end
 
-    it 'logs every coded reason exactly once' do
+    it 'logs every session reason exactly once' do
       codes = []
       %i[debug info warn].each do |level|
         allow(logger).to receive(level) { |_message, payload| codes << payload.fetch(:code) }
@@ -121,7 +160,15 @@ RSpec.describe Onetime::SessionFailureCode do
 
       described_class::CODES.each_key { |reason| described_class.log_refusal(reason, env) }
 
-      expect(codes).to match_array(described_class::CODES.keys.map(&:to_s))
+      expect(codes).to match_array(described_class::SESSION_REASON_SCOPES.keys.map(&:to_s))
+    end
+
+    # A rejected credential is recorded by the surface that rejected it; a
+    # `Session refused` line for it would claim a session was examined.
+    it 'is silent for a credential refusal' do
+      described_class::CREDENTIAL_REASON_SCOPES.each_key { |reason| described_class.log_refusal(reason, env) }
+
+      %i[debug info warn].each { |level| expect(logger).not_to have_received(level) }
     end
 
     it 'omits what it does not have instead of logging nil' do

@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/security/login_rate_limiter'
+require 'onetime/session/failure_code'
 
 require_relative 'json_body'
 require_relative '../restrict_to'
@@ -102,6 +103,12 @@ module Auth
             next Auth::ErrorTranslator::NOT_FOUND_BODY
           end
 
+          # An anonymous surface whose 401s are about the link token
+          # (`link_expired`), not about a session: withdraw the router's
+          # anonymous stash so they stay uncoded (#4469). The one credential
+          # refusal below, the rejected password, stashes its own code.
+          Onetime::SessionFailureCode.forget(r.env)
+
           # GET /auth/link-sso/:token — display context for the interstitial.
           # Returns ONLY the provider name and claimed email; never the account
           # id, uid, or issuer. Missing/consumed/expired token → 404.
@@ -186,6 +193,10 @@ module Auth
               # Count the failed guess toward the lockout so repeated wrong
               # passwords (across freshly minted tokens) eventually trip the limit.
               record_failed_login_attempt!(login, client_ip)
+              # The one credential refusal on this surface (#4469). The
+              # internal request above rejected the password on a synthetic
+              # env, so it is stashed here, on the real one.
+              Onetime::SessionFailureCode.stash(request.env, :invalid_credentials)
               response.status = 401
               next { error: 'Incorrect password.', error_code: 'invalid_password' }
             end

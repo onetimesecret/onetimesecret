@@ -500,6 +500,16 @@ module Auth
         #     after they verified their account or reset their password.
         #
         # Continue to Rodauth, which authorizes it as it would any login.
+        #
+        # Stash the reason first (#4469). If Rodauth, or a custom route
+        # below, then refuses the request for want of a login (Rodauth's
+        # `login_required`, the routes' `Authentication required`), this is
+        # the code its 401 carries: the same `session_missing` /
+        # `not_authenticated` an Otto `sessionauth` route answers with, via
+        # the same middleware. Rodauth's other errors replace or withdraw it
+        # through Auth::CredentialFailureCode; the SSO-linking routes withdraw
+        # it themselves, as their 401s are about a token.
+        Onetime::SessionFailureCode.stash(env, auth_session_reason)
       when :identity_missing, :customer_not_found, :account_suspended, :stale_credentials,
            :admin_session_expired
         # A definitive rejection destroys the invalid session before dispatch.

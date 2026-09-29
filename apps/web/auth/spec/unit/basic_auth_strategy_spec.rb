@@ -328,6 +328,79 @@ RSpec.describe Onetime::Application::AuthStrategies::BasicAuthStrategy, type: :i
     end
 
     # -----------------------------------------------------------------
+    # The stable failure code (#4469). A terminal credential refusal stashes
+    # its reason in the env for Onetime::Middleware::SessionFailureCode to
+    # render onto the 401. One code for every rejected header, so the code
+    # says exactly what the message already does.
+    # -----------------------------------------------------------------
+    context 'stable failure code' do
+      let(:env_key) { Onetime::SessionFailureCode::ENV_KEY }
+
+      def stashed_reason_for(env)
+        basic_auth_strategy.authenticate(env, nil)
+        env[env_key]
+      end
+
+      it 'stashes api_key_invalid for a wrong key' do
+        expect(stashed_reason_for(env_basic_auth_invalid)).to eq(:api_key_invalid)
+      end
+
+      it 'stashes api_key_invalid for an unknown account, the same as a wrong key' do
+        encoded = Base64.strict_encode64("nobody_#{SecureRandom.uuid}@example.com:#{test_apikey}")
+        env     = { 'rack.session' => {}, 'REMOTE_ADDR' => '127.0.0.1', 'HTTP_AUTHORIZATION' => "Basic #{encoded}" }
+
+        expect(stashed_reason_for(env)).to eq(:api_key_invalid)
+      end
+
+      it 'stashes api_key_invalid for a rejected scheme and a malformed payload' do
+        bearer    = { 'rack.session' => {}, 'REMOTE_ADDR' => '127.0.0.1', 'HTTP_AUTHORIZATION' => 'Bearer x' }
+        malformed = {
+          'rack.session' => {},
+          'REMOTE_ADDR' => '127.0.0.1',
+          'HTTP_AUTHORIZATION' => "Basic #{Base64.strict_encode64('no-colon-here')}",
+        }
+
+        expect(stashed_reason_for(bearer)).to eq(:api_key_invalid)
+        expect(stashed_reason_for(malformed)).to eq(:api_key_invalid)
+      end
+
+      it 'stashes suspended_credentials for a valid key on a suspended account' do
+        test_customer.suspended = 'true'
+        test_customer.save
+
+        expect(stashed_reason_for(env_basic_auth_valid)).to eq(:suspended_credentials)
+      end
+
+      it 'stashes nothing when the header is missing (not a rejected credential)' do
+        expect(stashed_reason_for(env_basic_auth_missing)).to be_nil
+      end
+
+      it 'stashes nothing on valid credentials' do
+        expect(stashed_reason_for(env_basic_auth_valid)).to be_nil
+      end
+
+      # The non-terminal carve-out answers the request as the session's, so
+      # no credential refusal reaches the wire and none is stashed.
+      it 'stashes nothing when a valid session outranks the rejected header' do
+        encoded = Base64.strict_encode64("#{test_customer.email}:wrong_key_entirely")
+        env     = {
+          'rack.session' => {
+            'authenticated' => true,
+            'authenticated_at' => Familia.now.to_i,
+            'external_id' => test_customer.extid,
+            'email' => test_customer.email,
+            Onetime::SessionSurface::KEY => { 'kind' => 'canonical' },
+          },
+          'onetime.domain_strategy' => :canonical,
+          'REMOTE_ADDR' => '127.0.0.1',
+          'HTTP_AUTHORIZATION' => "Basic #{encoded}",
+        }
+
+        expect(stashed_reason_for(env)).to be_nil
+      end
+    end
+
+    # -----------------------------------------------------------------
     # Metadata
     # -----------------------------------------------------------------
     context 'metadata on successful auth' do

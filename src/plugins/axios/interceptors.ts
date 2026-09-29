@@ -195,8 +195,8 @@ export const errorInterceptor = (error: AxiosError) => {
  * it does is report: `noteApiRejection` requests a reconciliation against
  * GET /bootstrap/me, and only a snapshot the coordinator accepts can change
  * the status. No error handler writes authentication state. What to do with
- * each `code_scope` (#4462) is the coordinator's policy, not the
- * interceptor's; an uncoded 401 is passed as null.
+ * each `code_scope` (#4462, `credential` since #4469) is the coordinator's
+ * policy, not the interceptor's; an uncoded 401 is passed as null.
  *
  * Nothing else is reported: a network error, a timeout or a 5xx on an API
  * call says nothing about the session, and the coordinator's own request is

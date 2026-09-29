@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/security/login_rate_limiter'
+require 'onetime/session/failure_code'
 
 require 'auth/lib/logging'
 require 'auth/operations/confirm_sso_link'
@@ -100,6 +101,11 @@ module Auth
             response.status = 404
             next Auth::ErrorTranslator::NOT_FOUND_BODY
           end
+
+          # An anonymous surface whose 401s are about the link token
+          # (`link_expired`), not about a session or a credential: withdraw
+          # the router's anonymous stash so they stay uncoded (#4469).
+          Onetime::SessionFailureCode.forget(r.env)
 
           # GET /auth/sso-link-confirm/:token — consent display context.
           # Returns ONLY the provider name and claimed email; never the account id,

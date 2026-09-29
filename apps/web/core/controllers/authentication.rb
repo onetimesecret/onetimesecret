@@ -116,12 +116,18 @@ module Core
       def perform_authentication
         logic = Core::Logic::Authentication::AuthenticateSession.new(strategy_result, req.params, locale)
 
+        # The stable `code` on the JSON 401 (#4469), by the error_type
+        # AuthenticateSession raises with. `invalid` is the single
+        # non-enumerating rejection (unknown email and wrong password alike);
+        # `suspended` is only ever raised past a verified password. A pending
+        # account is not refused: the logic answers it with success data.
         execute_with_error_handling(
           logic,
           success_message: 'You have been logged in',
           success_redirect: '/',
           error_redirect: '/signin',
           error_status: 401,
+          failure_codes: { 'invalid' => :invalid_credentials, 'suspended' => :suspended_credentials },
         ) do
           cust_after = logic.cust
 

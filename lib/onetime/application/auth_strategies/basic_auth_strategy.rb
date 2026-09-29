@@ -69,7 +69,10 @@ module Onetime
             # closed (401) instead of letting a suspended account proceed
             # anonymously (env passed so a valid session still outranks the
             # rejected header, matching the pre-terminal-AuthFailure behavior).
-            return credentialed_failure('[ACCOUNT_SUSPENDED] Account suspended', env) if cust.suspended?
+            # The code says the same thing as the marker, to the same holder.
+            if cust.suspended?
+              return credentialed_failure('[ACCOUNT_SUSPENDED] Account suspended', env, code: :suspended_credentials)
+            end
 
             OT.ld "[onetime_basic_auth] Authenticated '#{cust.objid}' via API key"
 
@@ -106,7 +109,12 @@ module Onetime
             # silent anonymous 200) instead of letting NoAuthStrategy accept it
             # as anonymous — unless a valid session identity outranks the header
             # (env passed). See Helpers#credentialed_failure.
-            credentialed_failure('[CREDENTIALS_INVALID] Invalid credentials', env)
+            #
+            # One code for the whole rejected-header family (#4469): the
+            # unknown-username and wrong-key cases are indistinguishable by
+            # design, and the parse failures below share it so a client sees
+            # exactly what the message already told it, no more.
+            credentialed_failure('[CREDENTIALS_INVALID] Invalid credentials', env, code: :api_key_invalid)
           end
         end
 
@@ -134,7 +142,7 @@ module Onetime
           return failure('[AUTH_HEADER_MISSING] No authorization header') unless auth_header
 
           unless auth_header.start_with?('Basic ')
-            return credentialed_failure('[AUTH_TYPE_INVALID] Invalid authorization type', env)
+            return credentialed_failure('[AUTH_TYPE_INVALID] Invalid authorization type', env, code: :api_key_invalid)
           end
 
           encoded          = auth_header.sub('Basic ', '')
@@ -142,7 +150,9 @@ module Onetime
           username, apikey = decoded.split(':', 2)
 
           unless username && apikey
-            return credentialed_failure('[CREDENTIALS_FORMAT_INVALID] Invalid credentials format', env)
+            return credentialed_failure(
+              '[CREDENTIALS_FORMAT_INVALID] Invalid credentials format', env, code: :api_key_invalid,
+            )
           end
 
           [username, apikey]
