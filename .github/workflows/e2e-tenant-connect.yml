@@ -79,11 +79,13 @@ on:
       - 'apps/web/auth/**'
       # The availability ladder the tenant hook consults (its
       # :domain_unverified rung is what the companion check refuses on), the
-      # SigninConfig gates it reads, and the per-request resolution the
-      # /signin page builds its SSO buttons from.
+      # SigninConfig gates it reads, the per-request resolution the /signin
+      # page builds its SSO buttons from, and the serializer that turns that
+      # resolution into the buttons (the companion check asserts none).
       - 'lib/onetime/models/custom_domain/sso_config.rb'
       - 'lib/onetime/models/custom_domain/signin_config.rb'
       - 'lib/onetime/tenant_sso_resolution.rb'
+      - 'apps/web/core/views/serializers/config_serializer.rb'
       # The panel and the availability rule the spec drives.
       - 'src/apps/workspace/account/**'
       - 'src/shared/utils/sso-link-evidence.ts'
