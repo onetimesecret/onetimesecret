@@ -1013,18 +1013,39 @@ module Onetime
         # would pass. Verifying the domain is all that stands between the host
         # and a working SSO sign-in.
         #
-        # inherited_restrict_to keeps the 'sso' host pin for such a domain
-        # without claiming availability, so the host resolves :unavailable.
-        # Dropping the pin instead hands the host the operator's restriction
-        # (none by default), and invite signup and opted-in create-account,
-        # which answer to restrict_to alone, would accept a password on a host
-        # whose only method is SSO.
+        # One predicate, three consumers, so they cannot disagree (#4579):
+        #
+        #   - the omniauth tenant hook REFUSES every SSO route on such a host
+        #     with sso_domain_unverified — tenant and platform-fallback alike,
+        #     on every phase (OmniAuthTenant.refuse_unverified_tenant_domain);
+        #   - the display halves therefore offer no SSO there:
+        #     SsoConfig.sso_available_for_tenant_host? (restrict_to, invite
+        #     page) and ConfigSerializer#build_sso_config withhold the
+        #     platform-fallback arm;
+        #   - inherited_restrict_to keeps the 'sso' host pin without claiming
+        #     availability, so the host resolves :unavailable. Dropping the
+        #     pin instead hands the host the operator's restriction (none by
+        #     default), and invite signup and opted-in create-account, which
+        #     answer to restrict_to alone, would accept a password on a host
+        #     whose only method is SSO.
+        #
+        # A domain whose SigninConfig withholds SSO is NOT awaiting
+        # verification: verifying it would not turn tenant SSO on, so it is
+        # treated as any other domain without tenant SSO (platform fallback
+        # per policy), exactly as it is once verified.
         #
         # @param domain_id [String] CustomDomain identifier (objid)
+        # @param auth [Hash, nil] site.authentication settings (injectable for tests)
+        # @param sso_config [Onetime::CustomDomain::SsoConfig, nil] caller's
+        #   already-loaded record, passed through to the ladder
+        # @param custom_domain [Onetime::CustomDomain, nil] caller's already-
+        #   loaded domain record, passed through to the ladder
         # @return [Boolean]
-        def tenant_sso_awaiting_verification?(domain_id)
-          Onetime::CustomDomain::SsoConfig.tenant_sso_unavailable_reason(domain_id) == :domain_unverified &&
-            sso_permitted_for?(domain_id)
+        def tenant_sso_awaiting_verification?(domain_id, auth: nil, sso_config: nil, custom_domain: nil)
+          reason = Onetime::CustomDomain::SsoConfig.tenant_sso_unavailable_reason(
+            domain_id, auth: auth, sso_config: sso_config, custom_domain: custom_domain
+          )
+          reason == :domain_unverified && sso_permitted_for?(domain_id)
         end
 
         # The `available:` input to resolve_restrict_to for a caller that has

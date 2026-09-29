@@ -25,6 +25,8 @@
 #   - Callback validates tenant context matches (prevents redirect attacks)
 #   - Missing tenant config may fall back to platform OAuth credentials under
 #     `allow_platform_fallback_for_tenants`; platform SAML stays on its pinned host
+#   - Tenant SSO waiting only on domain verification is refused on every
+#     phase (sso_domain_unverified), with no platform fallback (#4579)
 #
 # See: docs/authentication/omniauth-sso.md (full configuration guide)
 # See: lib/onetime/models/custom_domain/sso_config.rb (per-domain SSO config)
@@ -229,6 +231,22 @@ module Auth::Config::Hooks
         )
 
         if unavailable_reason
+          # Tenant SSO waiting only on domain verification (#4579): refused
+          # outright, on every phase, with no platform fallback. Every
+          # absolute URL this flow hands an IdP builds on strategy.full_host,
+          # which Auth::PublicHost roots on a TXT-VERIFIED tenant host only
+          # (finding G-01), so a flow started here could never complete — and
+          # the display halves offer no SSO on this host for the same reason
+          # (SigninConfig.tenant_sso_awaiting_verification?). The records are
+          # already loaded, so the predicate re-reads only the SigninConfig,
+          # and only on this rung.
+          if unavailable_reason == :domain_unverified &&
+             Onetime::CustomDomain::SigninConfig.tenant_sso_awaiting_verification?(
+               custom_domain.identifier, sso_config: sso_config, custom_domain: custom_domain
+             )
+            HELPERS.refuse_unverified_tenant_domain(host, custom_domain, sso_config, self)
+          end
+
           Auth::Logging.log_auth_event(
             :omniauth_tenant_sso_not_enabled,
             level: :info,
@@ -868,7 +886,7 @@ module Auth::Config::Hooks
     #
     # THE RULE. A tenant flow whose config is refused or gone at ANY phase
     # drops the whole pending context; a platform-fallback flow's own binding
-    # is never touched. Three callers apply it:
+    # is never touched. Every refusal path applies it:
     #
     #   - handle_missing_tenant_config, request path: a new platform start
     #     supersedes any abandoned tenant request in the same session.
@@ -882,6 +900,8 @@ module Auth::Config::Hooks
     #     refusal drops whatever was pending, so no binding outlives it.
     #   - refuse_unusable_tenant_config, every phase: a record that cannot
     #     produce options refuses the flow outright.
+    #   - refuse_unverified_tenant_domain, every phase: tenant SSO waiting
+    #     only on domain verification refuses the flow outright (#4579).
     #
     # The markers alone are not enough. before_omniauth_callback_route reads
     # a missing :omniauth_tenant_domain_id as "platform-level auth" and skips
@@ -1030,6 +1050,57 @@ module Auth::Config::Hooks
       clear_pending_tenant_context(rodauth.session)
 
       rodauth.send(:redirect, '/signin?auth_error=sso_config_unusable')
+    end
+
+    # Refuse SSO on a custom domain whose tenant SSO waits only on ownership
+    # verification (SigninConfig.tenant_sso_awaiting_verification?, #4579).
+    #
+    # Called from omniauth_setup before any credential injection, and on
+    # every phase it runs on (request, callback, SAML /metadata and the other
+    # sub-paths), for every strategy on the host — the platform providers
+    # too. It never consults handle_missing_tenant_config: the domain owner
+    # set up and permitted their own IdP for this host, so a platform
+    # fallback would sign visitors in through the operator's IdP instead, and
+    # the refusal must name the real cause. The display halves offer no SSO
+    # on the host either
+    # (SsoConfig.sso_available_for_tenant_host?,
+    # ConfigSerializer#build_sso_config), so a visitor only lands here from a
+    # stale tab, a crafted URL, or a flow started before verification
+    # lapsed.
+    #
+    # Same shape as refuse_unusable_tenant_config: drop the WHOLE pending
+    # context first, so a tenant flow started while the domain was verified
+    # cannot complete through a callback that arrives after verification
+    # lapsed, nor later on the platform path once the markers are gone. Then
+    # redirect to /signin with auth_error=sso_domain_unverified, which tells
+    # the visitor SSO on this domain is not active yet — not the
+    # sso_not_configured landing (a record exists) and not
+    # sso_config_unusable (nothing is broken).
+    #
+    # :warn, not :error: an unverified domain is a pending setup step for the
+    # domain owner, not a broken record — but every hit is a refused sign-in,
+    # so it is above the :info the other ladder rungs log at. Scalars only.
+    #
+    # @param host [String] request public host
+    # @param custom_domain [Onetime::CustomDomain]
+    # @param sso_config [Onetime::CustomDomain::SsoConfig]
+    # @param rodauth [Rodauth] Rodauth instance (for session + redirect)
+    # @return [void] never returns normally — redirect halts the request
+    def self.refuse_unverified_tenant_domain(host, custom_domain, sso_config, rodauth)
+      pending_tenant_flow_dropped = pending_tenant_flow?(rodauth.session)
+
+      Auth::Logging.log_auth_event(
+        :omniauth_tenant_domain_unverified,
+        level: :warn,
+        host: host,
+        domain_id: custom_domain.identifier,
+        provider_type: sso_config.provider_type,
+        pending_tenant_flow_dropped: pending_tenant_flow_dropped,
+      )
+
+      clear_pending_tenant_context(rodauth.session)
+
+      rodauth.send(:redirect, '/signin?auth_error=sso_domain_unverified')
     end
 
     # Derive the SAML SP identifiers for a TENANT flow from the request's

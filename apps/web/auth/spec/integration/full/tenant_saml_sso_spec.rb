@@ -660,6 +660,101 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
     end
   end
 
+  # ── a domain awaiting verification (#4579) ────────────────────────────────
+  #
+  # Tenant SSO waiting only on ownership verification is refused on every
+  # phase the hook runs on (request, callback, /metadata) with
+  # sso_domain_unverified, before any trust anchor is injected and without
+  # the platform fallback. Password sign-in is opted in so SSO is not the
+  # host's only method: an SSO-only host keeps its 'sso' restrict_to pin
+  # while it waits and is answered 404 before the hook runs
+  # (tenant_sso_proxy_host_spec).
+  describe 'a tenant whose domain is awaiting verification' do
+    let(:name_id) { "unverified-#{run_id}" }
+    let(:email)   { "unverified-#{run_id}@saml-tenant.example.com" }
+
+    def await_verification(tenant)
+      tenant.domain.verified = false
+      tenant.domain.save
+      Onetime::CustomDomain::SigninConfig.create!(
+        domain_id: tenant.domain.identifier,
+        enabled: true,
+        signin_enabled: true,
+        sso_enabled: true,
+      )
+    end
+
+    after { Onetime::CustomDomain::SigninConfig.delete_for_domain!(tenant_a.domain.identifier) rescue nil }
+
+    it 'refuses the request phase without an AuthnRequest, even when tenants may fall back' do
+      allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+      events = audit_events
+      await_verification(tenant_a)
+
+      header 'Host', tenant_a.host
+      post '/auth/sso/saml'
+
+      expect(last_response.status).to eq(302)
+      expect(last_response.headers['Location']).to end_with('/signin?auth_error=sso_domain_unverified')
+      expect(last_response.headers['Location']).not_to include('SAMLRequest')
+      expect(last_request.env['rack.session'].to_h.keys.map(&:to_s))
+        .not_to include('omniauth_tenant_domain_id', 'saml_authn_request_id')
+
+      refused = events.find { |event, _| event == :omniauth_tenant_domain_unverified }
+      expect(refused).not_to be_nil
+      expect(refused.last).to include(level: :warn, host: tenant_a.host, provider_type: 'saml')
+      expect(events.map(&:first)).not_to include(
+        :omniauth_tenant_sso_not_enabled, :omniauth_tenant_credentials_injecting, :omniauth_tenant_fallback_to_platform
+      )
+    end
+
+    it 'emits no metadata' do
+      await_verification(tenant_a)
+
+      header 'Host', tenant_a.host
+      get '/auth/sso/saml/metadata'
+
+      expect(last_response.body).not_to include('EntityDescriptor')
+      expect(last_response.headers['Location'].to_s).to end_with('/signin?auth_error=sso_domain_unverified')
+    end
+
+    # Started while verified, answered after verification lapsed: the
+    # callback is refused and the pending context dropped, so the response
+    # cannot complete now, nor on the platform path later.
+    it 'refuses a callback for a flow started before verification lapsed' do
+      created_emails << email
+      events  = audit_events
+      request = start_login(tenant_a)
+
+      # Staged while the domain is still verified: a later POST is refused
+      # before staging (404, HttpOriginOptions.saml_callback_route_active?
+      # needs a verified domain), so it could never reach the hook whose
+      # refusal this example pins.
+      post_callback(tenant_a, tenant_a.idp.response(
+        in_response_to: request.id, acs_url: request.acs_url, audience: request.sp_entity_id,
+        name_id: name_id, attributes: { 'email' => [email] }
+      ), follow: false)
+      completion = last_response.headers['Location']
+
+      await_verification(tenant_a)
+
+      header 'Host', tenant_a.host
+      get completion
+
+      expect(last_response.status).to eq(302), last_response.body[0, 300]
+      expect(last_response.headers['Location'].to_s).to end_with('/signin?auth_error=sso_domain_unverified')
+      expect(last_request.env['rack.session'].to_h.keys.map(&:to_s))
+        .not_to include('omniauth_tenant_domain_id', 'omniauth_tenant_host', 'saml_authn_request_id')
+      expect(last_request.env['rack.session'].to_h['account_id']).to be_nil
+      expect(identity_rows(name_id)).to be_empty
+      expect(db[:accounts].where(email: email).count).to eq(0)
+      expect(events.map(&:first)).not_to include(:omniauth_tenant_callback_validated, :login_success)
+
+      refused = events.find { |event, _| event == :omniauth_tenant_domain_unverified }
+      expect(refused.last).to include(pending_tenant_flow_dropped: true)
+    end
+  end
+
   # ── HttpOrigin admission of the tenant IdP ────────────────────────────────
   #
   # Rack::Protection::HttpOrigin IS mounted on the auth app in every

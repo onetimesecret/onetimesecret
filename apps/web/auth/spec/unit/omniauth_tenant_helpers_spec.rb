@@ -1203,6 +1203,87 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
   end
 
   # ==========================================================================
+  # refuse_unverified_tenant_domain (#4579)
+  # ==========================================================================
+
+  describe '.refuse_unverified_tenant_domain' do
+    let(:custom_domain) { instance_double(Onetime::CustomDomain, identifier: 'dom_unverified_123') }
+    let(:sso_config) { instance_double(Onetime::CustomDomain::SsoConfig, provider_type: 'saml') }
+    # A tenant flow started while the domain was verified: the markers, the
+    # strategy's own binding (string keys, as the strategies write them), and
+    # one unrelated key that must survive.
+    let(:session) do
+      {
+        omniauth_tenant_domain_id: 'dom_unverified_123',
+        omniauth_tenant_host: 'secrets.tenant.example',
+        'saml_authn_request_id' => '_pending-request-id',
+        'omniauth.state' => 'pending-state',
+        account_id: 42,
+      }
+    end
+    let(:rodauth) do
+      double('Rodauth', session: session).tap do |r|
+        allow(r).to receive(:redirect) { throw :halt }
+      end
+    end
+
+    def refuse
+      catch(:halt) do
+        helpers.refuse_unverified_tenant_domain('secrets.tenant.example', custom_domain, sso_config, rodauth)
+      end
+    end
+
+    before { allow(helpers).to receive(:handle_missing_tenant_config) }
+
+    # Not sso_not_configured (a record exists) and not sso_config_unusable
+    # (nothing is broken): the domain has not verified yet.
+    it 'redirects to sso_domain_unverified' do
+      refuse
+
+      expect(rodauth).to have_received(:redirect).with('/signin?auth_error=sso_domain_unverified')
+    end
+
+    it 'never consults the platform-fallback policy' do
+      refuse
+
+      expect(helpers).not_to have_received(:handle_missing_tenant_config)
+    end
+
+    # A callback for a flow started before verification lapsed must not
+    # complete now, nor later on the platform path once the markers are gone.
+    it 'clears the pending tenant markers AND the per-strategy binding' do
+      refuse
+
+      expect(session).to eq(account_id: 42)
+    end
+
+    it 'audits a distinct event at :warn with scalars only' do
+      refuse
+
+      expect(Auth::Logging).to have_received(:log_auth_event).with(
+        :omniauth_tenant_domain_unverified,
+        level: :warn,
+        host: 'secrets.tenant.example',
+        domain_id: 'dom_unverified_123',
+        provider_type: 'saml',
+        pending_tenant_flow_dropped: true,
+      )
+      expect(Auth::Logging).not_to have_received(:log_auth_event).with(:omniauth_tenant_sso_not_enabled, anything)
+    end
+
+    it 'reports no dropped flow when none was pending' do
+      session.clear
+
+      refuse
+
+      expect(Auth::Logging).to have_received(:log_auth_event).with(
+        :omniauth_tenant_domain_unverified, hash_including(pending_tenant_flow_dropped: false)
+      )
+      expect(rodauth).to have_received(:redirect).with('/signin?auth_error=sso_domain_unverified')
+    end
+  end
+
+  # ==========================================================================
   # inject_saml_sp_identifiers (#4450)
   # ==========================================================================
 
