@@ -31,7 +31,15 @@ module Onetime
     #    MiddlewareStack hands Onetime::Session, so it is read from the same
     #    accessor (Onetime.session_config) and the two cannot disagree.
     #
-    # 2. Per-request state. The gem memoizes `bad_cookies` on the middleware
+    # 2. Malformed cookie names. The gem compares every OTHER cookie's name
+    #    percent-decoded (`Rack::Utils.unescape(k) == session_key`), and
+    #    `Rack::Utils.unescape` raises ArgumentError on an invalid escape such
+    #    as a bare `%`. A stray `%=x` cookie from some other application on
+    #    the host would turn every request into a 500. Here a name that
+    #    cannot be decoded is simply not the session key: the request is
+    #    neither refused nor failed, the same as any other unrelated cookie.
+    #
+    # 3. Per-request state. The gem memoizes `bad_cookies` on the middleware
     #    instance (`@bad_cookies ||= []`) and never clears it, and `accepts?`
     #    answers `bad_cookies.empty?`. Rack builds one instance per app, so
     #    after the first refused request every later request through that
@@ -73,7 +81,27 @@ module Onetime
         per_request.call_once(env)
       end
 
+      # The gem's check (rack-protection 4.2.1 cookie_tossing.rb#accepts?)
+      # with the decode made safe; see point 2 above.
+      def accepts?(env)
+        cookies = Rack::Utils.parse_query(env['HTTP_COOKIE'], ';,') { |s| s }
+        cookies.each do |k, v|
+          if (k == session_key && Array(v).size > 1) ||
+             (k != session_key && decoded_name(k) == session_key)
+            bad_cookies << k
+          end
+        end
+        bad_cookies.empty?
+      end
+
       private
+
+      # nil for a name that is not valid percent-encoding: never the session key.
+      def decoded_name(name)
+        Rack::Utils.unescape(name)
+      rescue ArgumentError
+        nil
+      end
 
       def configured_session_key
         key = Onetime.session_config['key'] if Onetime.respond_to?(:session_config)

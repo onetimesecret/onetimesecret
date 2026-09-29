@@ -154,15 +154,32 @@ module Auth::Config::Hooks
         #     classifySnapshot applies as 'new-epoch' (src/utils/
         #     snapshotOrdering.ts) with no forced page load.
         #
-        # FAILURE. Never fails the login: the second factor succeeded, and an
-        # un-rotated session is the pre-#4466 posture the 2026-09-19 audit
-        # rated defence in depth (the id was renewed at the password step and
-        # an MFA-pending session is refused everywhere but the challenge). It
-        # is logged at error level so it is attributable, like the password
-        # change rotation in hooks/account.rb.
+        # FAILURE: fail closed. An incomplete rotation could leave the old id
+        # readable without its awaiting_mfa key (the store's destroy keeps the
+        # blob but purges the sidecars when the ended marker cannot be
+        # written), and a Rodauth-logged-in blob without that key is what the
+        # /auth router serves as an autologin session (Auth::SessionRecheck).
+        # Onetime::SessionRotation writes the marker before touching anything
+        # and puts the key back if the blob survives, but the login must not
+        # continue on a session it could not end either: the hash is cleared
+        # (the commit then writes an anonymous session under whichever id the
+        # request ends with) and the error propagates to the router's error
+        # handler, the same treatment the active-session join-key stamp gives
+        # a login it cannot make revocable (config/features/active_sessions.rb).
+        # The user signs in again. A nil result is a session with no
+        # server-side id (a bare Hash, internal requests and some specs):
+        # nothing to rotate and nothing left behind, so the login continues.
         begin
           rotation = Onetime::SessionRotation.rotate!(session, completed: ['awaiting_mfa'])
-          if rotation&.complete
+          if rotation.nil?
+            Auth::Logging.log_auth_event(
+              :session_rotation_skipped,
+              level: :warn,
+              account_id: account_id,
+              reason: 'no server-side session id to rotate',
+              correlation_id: correlation_id,
+            )
+          elsif rotation.complete
             Auth::Logging.log_auth_event(
               :session_rotated,
               level: :info,
@@ -173,25 +190,21 @@ module Auth::Config::Hooks
               correlation_id: correlation_id,
             )
           else
-            Auth::Logging.log_auth_event(
-              :session_rotation_FAILED,
-              level: :error,
-              account_id: account_id,
-              reason: rotation.nil? ? 'session not rotatable' : 'old session id not confirmed ended',
-              rotated: rotation&.rotated? || false,
-              correlation_id: correlation_id,
-              security_warning: 'second factor completed but the session id was not rotated',
-            )
+            raise Onetime::SessionRotation::Incomplete,
+              "session id rotation incomplete (#{rotation.reason}); login refused"
           end
         rescue StandardError => ex
+          session.clear
           Auth::Logging.log_auth_event(
             :session_rotation_FAILED,
             level: :error,
             account_id: account_id,
             error: ex.message,
+            error_class: ex.class.name,
             correlation_id: correlation_id,
-            security_warning: 'second factor completed but the session id was not rotated',
+            security_warning: 'second factor completed but the old session id could not be ended; session cleared and login refused',
           )
+          raise
         end
 
         # Best-effort new-sign-in security alert for MFA logins. The password

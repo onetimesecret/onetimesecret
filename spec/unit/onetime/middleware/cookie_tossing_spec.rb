@@ -57,6 +57,20 @@ RSpec.describe Onetime::Middleware::CookieTossing do
 
       expect(status).to eq(200)
     end
+
+    # rack-protection 4.2.1 decodes every other cookie's name with
+    # Rack::Utils.unescape, which raises ArgumentError on an invalid escape;
+    # unhandled, one stray malformed cookie would 500 every request.
+    it 'ignores a cookie whose name is not valid percent-encoding' do
+      status, _headers, body = request('onetime.session=abc; %=x')
+
+      expect(status).to eq(200)
+      expect(body.to_a.join).to eq('downstream ran')
+    end
+
+    it 'still refuses a duplicate beside a malformed name' do
+      expect(request('%=x; onetime.session=a; onetime.session=b').first).to eq(403)
+    end
   end
 
   describe 'a repeated session cookie' do

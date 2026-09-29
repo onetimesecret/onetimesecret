@@ -160,6 +160,38 @@ RSpec.describe 'Session-id rotation on second-factor completion (#4466)', :full_
     expect(current_sid).not_to eq(pending_sid)
   end
 
+  # Fail closed (PR #4600 review): the store's destroy keeps the blob but
+  # purges the sidecars when the ended marker cannot be written, which would
+  # leave a Rodauth-logged-in blob without awaiting_mfa, the shape the /auth
+  # router serves as an autologin session. The rotation writes the marker
+  # first and, failing that, touches nothing; the hook then clears the
+  # session and refuses the login.
+  it 'refuses the login and leaves nothing signed in when the old id cannot be ended', :aggregate_failures do
+    password_step
+    pending_sid = current_sid
+    expect(Onetime::SessionSidecar.exists?(pending_sid, 'awaiting_mfa')).to be(true)
+
+    allow(Onetime::SessionEnded).to receive(:mark).and_return(false)
+    csrf_json_post('/auth/otp-auth', otp_code: ROTP::TOTP.new(@secret).now)
+    expect(last_response.status).not_to eq(200)
+    expect(last_response.body).not_to include(email)
+    allow(Onetime::SessionEnded).to receive(:mark).and_call_original
+
+    # The pending id cannot reach a login-required route, whatever survived
+    # under it, and the browser's current cookie is not authenticated either.
+    clear_cookies
+    expect(account_read("onetime.session=#{pending_sid}").status).to eq(401), last_response.body
+    expect(last_response.body).not_to include(email)
+
+    surviving = blob_for(pending_sid)
+    expect(surviving.nil? || surviving['authenticated'] != true).to be(true)
+    expect(surviving.nil? || surviving['account_id'].nil? || Onetime::SessionSidecar.exists?(pending_sid, 'awaiting_mfa')).to be(true)
+
+    clear_cookies
+    fetch_csrf_token
+    expect(account_read.status).to eq(401), last_response.body
+  end
+
   it 'refuses a request that presents both ids together, in either order', :aggregate_failures do
     password_step
     pending_sid = current_sid
