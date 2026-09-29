@@ -8,6 +8,11 @@ title: "ADR-017: Gate Domain-Dependent Functionality on Ownership Verification"
 
 Accepted
 
+[ADR-049](adr-049-operator-managed-domain-authorization.md) proposes to
+supersede only the `passthrough` one-time TXT requirement, its
+feature-flag/deprecation rollout, and the installed-user assumptions in its
+trade-offs. Until ADR-049 is accepted, this ADR remains operative in full.
+
 ## Date
 
 2026-06-30
