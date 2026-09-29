@@ -38,6 +38,9 @@ RSpec.describe 'Credential failure codes on /auth (#4469)', type: :integration d
       expect(last_response.status).to eq(401)
       expect_code('invalid_credentials', 'credential')
       expect(json_response).to include('error' => a_kind_of(String), 'field-error' => ['password', 'invalid password'])
+      # The challenge for a rejected form credential is the application's
+      # `Session` scheme, never `Basic` (a browser would open its dialog).
+      expect(last_response.headers['www-authenticate']).to eq('Session realm="onetimesecret"')
     end
 
     it 'codes an unknown login with the same code (no enumeration surface beyond the message)' do
