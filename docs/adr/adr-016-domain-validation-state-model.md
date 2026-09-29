@@ -8,6 +8,13 @@ title: "ADR-016: Decouple Ownership Verification from Certificate/Serving Status
 
 Accepted
 
+[ADR-049](adr-049-operator-managed-domain-authorization.md) proposes to
+supersede only the Decision clauses that require `passthrough` to use the
+universal TXT ownership axis, the same-semantics ownership badge, and a
+certificate/serving axis with "no axis to render" rather than independently
+reported DNS and HTTPS health. Until ADR-049 is accepted, this ADR remains
+operative in full.
+
 ## Date
 
 2026-06-30
