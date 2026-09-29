@@ -1,12 +1,12 @@
 ---
 id: "046"
-status: proposed
+status: accepted
 title: "ADR-046: Bootstrap State Ordering Contract"
 ---
 
 ## Status
 
-Proposed
+Accepted
 
 ## Date
 
@@ -593,6 +593,59 @@ Tests will cover:
   — add `beforeunload` listeners only while changes are unsaved
 
 ## Implementation Notes
+
+### Accepted and implemented (2026-09-28)
+
+The team ratified this record on 2026-09-28. The contract is implemented on
+`main`; the files below are the ones a reader can check against each section.
+
+- **Server allocation:** `lib/onetime/session/snapshot_ordering.rb` derives
+  the epoch (`EPOCH_DOMAIN`, 32 lowercase hex) and allocates the version;
+  `lib/onetime/session/sidecar.rb` holds the `counter: true` registry policy,
+  the Lua allocation in `allocate_counter`, and the envelope API's refusal of
+  a counter field. `apps/web/core/middleware/snapshot_ordering.rb` runs the
+  allocation once per Web Core request with an ordered session, before the
+  router invokes the authentication strategy, and records a failure in the
+  Rack env instead of raising.
+- **Payload:** `apps/web/core/views/serializers/system_serializer.rb` emits
+  `snapshot_epoch`, `snapshot_version` (a decimal string) and
+  `snapshot_generated_at` only when a version was allocated.
+  `apps/web/core/controllers/page.rb` answers `GET /bootstrap/me` with a
+  retryable 503 when the payload reports a session but no version was
+  allocated, and sets `cache-control: private, no-store` on both the 200 and
+  the 503. `src/schemas/contracts/bootstrap.ts` validates the pair as a unit
+  and leaves `snapshot_generated_at` optional.
+- **Client acceptance:** `src/utils/snapshotOrdering.ts` classifies a
+  response (session ended, session replaced, accepted, anomaly) from the
+  request generation, the watermark and the retired epochs, without reading
+  `snapshot_generated_at`. `src/shared/stores/authStore.ts` is the one
+  refresh coordinator: it owns request generations, resolves `refresh()` to
+  a `RefreshOutcome`, returns a `RejectionDisposition` for rejected API
+  calls, and holds the stale-session state and the action-gating computeds.
+  `src/shared/stores/bootstrapStore.ts` keeps the accepted pair and lets only
+  a complete snapshot write the status keys.
+- **Forced page load:** `src/utils/forcedPageLoad.ts` bounds reloads to one
+  per minute per tab through a `sessionStorage` marker;
+  `src/utils/sessionTransition.ts` parks the transition message with the
+  one-minute limit; `src/shared/components/auth/StaleSessionNotice.vue`
+  shows the persistent notice; `src/shared/composables/useUnsavedInputGuard.ts`
+  registers `beforeunload` only while unsubmitted input exists and is
+  adopted by the secret creation forms and `DomainBrand.vue`.
+- **Caller contracts:** `src/shared/composables/authCompletion.ts`
+  implements the three auth-completion checks.
+- **Tests:** `spec/unit/onetime/session/snapshot_ordering_spec.rb`,
+  `apps/web/core/spec/middleware/snapshot_ordering_spec.rb`,
+  `spec/integration/full/bootstrap_snapshot_ordering_spec.rb`,
+  `src/tests/utils/snapshotOrdering.spec.ts`,
+  `src/tests/stores/authStore.acceptance.spec.ts`,
+  `src/tests/contracts/bootstrap-schema-contract.spec.ts`,
+  `src/tests/composables/useUnsavedInputGuard.spec.ts` and
+  `src/tests/utils/sessionTransition.spec.ts`.
+
+The `Related` entry that says `bootstrap_me` sets no `Cache-Control` header
+describes the state at the time of writing; the header is set now (above).
+Rollout guidance for mixed workers and the unversioned-payload rule are in
+`docs/authentication/session-consistency-rollout.md`.
 
 ### Ordering alternatives considered and rejected (2026-09-17)
 

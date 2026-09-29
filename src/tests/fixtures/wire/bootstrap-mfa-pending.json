@@ -2,7 +2,6 @@
   "auth_status": "mfa_pending",
   "authenticated": false,
   "awaiting_mfa": true,
-  "had_valid_session": true,
   "has_password": false,
   "password_auth_permitted": true,
   "custid": null,

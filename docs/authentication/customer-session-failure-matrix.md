@@ -74,8 +74,9 @@ carries a session-failure code. They state the session through `auth_status`
 `awaiting_mfa` are computed from `auth_status` in
 `Core::Views::AuthenticationSerializer`, so they cannot disagree with it. An
 `authenticated` claim that lacks either the verdict projection or its customer
-degrades to `unavailable`, never to a serialized identity.
-`had_valid_session` is still emitted and is deprecated (#4468).
+degrades to `unavailable`, never to a serialized identity. The deprecated
+`had_valid_session` field was removed in v0.27 (#4468); the error-recovery
+case it served is the `unavailable` row above.
 
 ### `code` and `code_scope` — refusals
 
@@ -410,9 +411,18 @@ Recorded as a baseline so #4466 and #4467 start from observed behaviour, in
 - **Rotation and cookie selection (#4466):** login rotates the anonymous
   session ID away and destroys the old blob; when a request carries duplicate
   `onetime.session` cookies the first one on the request is used.
-- **Remember-me continuation (#4467):** after active-session revocation the
-  remember credential is still live in the auth database but does not restore
-  the session today.
+- **Remember-me continuation (#4467):** the baseline first pinned that
+  Rodauth's remember credential outlived an active-session revocation. That
+  mechanism is gone. The remember-me checkbox now extends the session itself
+  (`Onetime::RememberMe`, `lib/onetime/session/remember_me.rb`): the login
+  stamps `remember_until` on the Rack session and, in full mode, on the
+  active-session row (`apps/web/auth/config/features/remember_me.rb`), and
+  Rodauth's `remember` feature is not enabled. There is one Rack session and
+  one row, so revoking the row ends the remembered session like any other.
+  The spec's `remember-me continuation revocation (#4467)` example asserts
+  that after `active_session_rows.delete` the API answers 401, no
+  `_remember` cookie exists, and `account_remember_keys` holds no row for
+  the account.
 
 ## Security findings
 

@@ -932,8 +932,6 @@ export const bootstrapSchema = z.object({
   // FROM it, so the three never disagree on a payload from a current backend.
   authenticated: z.boolean().default(false),
   awaiting_mfa: z.boolean().optional().default(false),
-  /** @deprecated Superseded by `auth_status: 'unavailable'`. Remove in v0.27 (#4468). */
-  had_valid_session: z.boolean().default(false),
   // Tri-state: true/false are definitive; null means the server could not
   // determine it (transient auth-DB failure during serialization). The store
   // treats null as "no information" and keeps the last known value.

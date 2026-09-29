@@ -2,7 +2,6 @@
   "auth_status": "authenticated",
   "authenticated": true,
   "awaiting_mfa": false,
-  "had_valid_session": true,
   "has_password": true,
   "password_auth_permitted": true,
   "custid": "01a0b90a-5171-77c1-88bd-d7e69aa210b5",
