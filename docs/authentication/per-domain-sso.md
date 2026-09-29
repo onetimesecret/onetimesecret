@@ -161,11 +161,17 @@ ownership is not verified yet, the hook refuses SSO at step 5: it logs
 context and redirects to `/signin?auth_error=sso_domain_unverified`. This
 applies to every SSO route on the domain and every phase (request, callback
 and the SAML `/metadata` sub-path), and it never falls back to platform SSO.
-A sign-in started while the domain was verified cannot complete after
-verification lapses. A SAML response POSTed to the ACS URL after the lapse is
-answered 404 before the hook runs, because the SAML callback route needs a
-verified domain. The sign-in page offers no SSO button on such a domain,
-platform providers included. A domain with no sign-in settings of its own,
+A sign-in started while the domain was verified cannot complete while
+verification stays lapsed: a callback that reaches the hook is refused, and
+the pending tenant context is dropped. A SAML response POSTed to the ACS URL
+after the lapse is answered 404 before the hook runs, because the SAML
+callback route needs a verified domain. That POST carries no cookies, so it
+cannot drop the pending context the way the hook's refusal does. If the
+domain verifies again while the IdP's response is still valid, resubmitting
+that response from the same browser can still complete the sign-in as the
+tenant flow, with every tenant check applied. Closing that gap is tracked
+in #4610. The sign-in page offers no SSO button on such a domain, platform
+providers included. A domain with no sign-in settings of its own,
 where SSO is the only method, offers no sign-in or signup route at all until
 it verifies, so its SSO routes answer 404 before this refusal is reached.
 
