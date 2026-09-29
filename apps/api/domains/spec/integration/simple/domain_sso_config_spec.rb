@@ -33,6 +33,7 @@
 # =============================================================================
 
 require_relative File.join(Onetime::HOME, 'spec', 'integration', 'integration_spec_helper')
+require 'climate_control'
 # SAML certificate fixtures (#4450): generated at runtime, nothing checked in.
 require_relative File.join(Onetime::HOME, 'apps', 'web', 'auth', 'spec', 'support', 'domain_sso_test_fixtures')
 
@@ -1468,6 +1469,165 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
       enable_sso_feature_flag
       login_as(test_owner)
       stub_session_cookie(same_site: 'none', secure: true)
+    end
+
+    # The install-wide SAML switch (#4604) is on for the whole block except
+    # the examples about the switch itself: with it off no saml config can be
+    # saved, so nothing else here would be reachable.
+    around do |example|
+      ClimateControl.modify(SAML_ENABLED: 'true') { example.run }
+    end
+
+    # SAML_ENABLED off (#4604): the API refuses to introduce or edit a saml
+    # config (422 on provider_type, naming the operator's variable) while a
+    # tenant keeps the two ways out of its own saml config: a disable-only
+    # PATCH and DELETE. OIDC / Entra are untouched.
+    describe 'while SAML_ENABLED is off' do
+      def with_saml_off(&block)
+        ClimateControl.modify(SAML_ENABLED: nil, &block)
+      end
+
+      it 'refuses to create a saml config via PUT, on provider_type, naming SAML_ENABLED' do
+        with_saml_off { csrf_put api_path(test_custom_domain.extid), valid_saml_params }
+
+        expect(last_response.status).to eq(422)
+        expect(json_body).to include('error_type' => 'invalid', 'field' => 'provider_type')
+        expect(json_body['error']).to include('SAML_ENABLED', 'switched off')
+        expect(stored_config).to be_nil
+      end
+
+      it 'refuses SAML_ENABLED=false the same way' do
+        ClimateControl.modify(SAML_ENABLED: 'false') { csrf_put api_path(test_custom_domain.extid), valid_saml_params }
+
+        expect(last_response.status).to eq(422)
+        expect(json_body['field']).to eq('provider_type')
+        expect(stored_config).to be_nil
+      end
+
+      it 'refuses before the trio is validated (a blank trio still fails on provider_type)' do
+        with_saml_off do
+          csrf_put api_path(test_custom_domain.extid), valid_saml_params.merge(idp_cert: '', idp_entity_id: '')
+        end
+
+        expect(last_response.status).to eq(422)
+        expect(json_body['field']).to eq('provider_type')
+      end
+
+      it 'refuses a PATCH that creates a saml config' do
+        with_saml_off { csrf_patch api_path(test_custom_domain.extid), valid_saml_params }
+
+        expect(last_response.status).to eq(422)
+        expect(json_body['field']).to eq('provider_type')
+        expect(stored_config).to be_nil
+      end
+
+      # Not disable-only: there is no existing record to disable, so a
+      # "pre-staged, disabled" saml config is still an introduction.
+      it 'refuses a PATCH that creates a DISABLED saml config' do
+        with_saml_off { csrf_patch api_path(test_custom_domain.extid), { provider_type: 'saml', enabled: false } }
+
+        expect(last_response.status).to eq(422)
+        expect(json_body['field']).to eq('provider_type')
+        expect(stored_config).to be_nil
+      end
+
+      it 'refuses a PATCH that switches an oidc config to saml, keeping the oidc record' do
+        csrf_put api_path(test_custom_domain.extid), valid_oidc_params
+        expect(last_response.status).to eq(200), last_response.body
+
+        with_saml_off { csrf_patch api_path(test_custom_domain.extid), valid_saml_params }
+
+        expect(last_response.status).to eq(422)
+        expect(json_body['field']).to eq('provider_type')
+        expect(stored_config.provider_type).to eq('oidc')
+      end
+
+      it 'still accepts oidc via PUT and PATCH (the rule is saml-only)' do
+        with_saml_off do
+          csrf_put api_path(test_custom_domain.extid), valid_oidc_params
+          expect(last_response.status).to eq(200), last_response.body
+          csrf_patch api_path(test_custom_domain.extid), { display_name: 'Renamed' }
+          expect(last_response.status).to eq(200), last_response.body
+        end
+      end
+
+      context 'with a saml config saved while the switch was on' do
+        before do
+          csrf_put api_path(test_custom_domain.extid), valid_saml_params
+          expect(last_response.status).to eq(200), last_response.body
+        end
+
+        it 'refuses every edit of the record, including a re-enable and a field rotation' do
+          with_saml_off do
+            csrf_patch api_path(test_custom_domain.extid), { display_name: 'Renamed' }
+            expect(last_response.status).to eq(422), last_response.body
+            expect(json_body['field']).to eq('provider_type')
+
+            csrf_patch api_path(test_custom_domain.extid), { idp_entity_id: 'urn:example:rotated' }
+            expect(last_response.status).to eq(422), last_response.body
+
+            csrf_patch api_path(test_custom_domain.extid), { enabled: true }
+            expect(last_response.status).to eq(422), last_response.body
+
+            csrf_patch api_path(test_custom_domain.extid), { enabled: false, display_name: 'Renamed' }
+            expect(last_response.status).to eq(422), last_response.body
+          end
+
+          expect(stored_config.display_name).to eq('Corp SAML')
+          expect(stored_config.saml_trio[:idp_entity_id]).to eq('https://idp.example.com/saml/metadata')
+          expect(stored_config.enabled?).to be true
+        end
+
+        it 'accepts a disable-only PATCH, so the tenant can switch its own saml config off' do
+          with_saml_off { csrf_patch api_path(test_custom_domain.extid), { enabled: false } }
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(stored_config.enabled?).to be false
+        end
+
+        # The exemption's exact shape (PatchSsoConfig#disable_only_request?):
+        # enforce_sso_only may ride along only as false.
+        it 'accepts enabled: false with enforce_sso_only: false, and nothing wider' do
+          with_saml_off do
+            csrf_patch api_path(test_custom_domain.extid), { enabled: false, enforce_sso_only: false }
+            expect(last_response.status).to eq(200), last_response.body
+          end
+          expect(stored_config.enabled?).to be false
+        end
+
+        it 'refuses enabled: false with enforce_sso_only: true' do
+          with_saml_off do
+            csrf_patch api_path(test_custom_domain.extid), { enabled: false, enforce_sso_only: true }
+            expect(last_response.status).to eq(422), last_response.body
+          end
+          expect(stored_config.enabled?).to be true
+        end
+
+        it 'accepts DELETE' do
+          # The PUT above leaves a JSON Content-Type on the Rack::Test session;
+          # a body-less DELETE under it trips Rack::Parser (json_get clears it
+          # the same way).
+          header 'Content-Type', nil
+          with_saml_off { csrf_delete api_path(test_custom_domain.extid) }
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(stored_config).to be_nil
+        end
+
+        it 'accepts a PUT that replaces it with an oidc config' do
+          with_saml_off { csrf_put api_path(test_custom_domain.extid), valid_oidc_params }
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(stored_config.provider_type).to eq('oidc')
+        end
+
+        it 'still serves the record on GET' do
+          with_saml_off { json_get api_path(test_custom_domain.extid) }
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(json_body['record']).to include('provider_type' => 'saml')
+        end
+      end
     end
 
     describe 'SAML policy fields' do

@@ -93,6 +93,17 @@ module DomainsAPI
           # Validate provider_type
           validate_provider_type
 
+          # Decided before the saml switch check below, which exempts exactly
+          # this request shape.
+          @disable_only = disable_only_request?
+
+          # A saml config cannot be introduced or edited while the
+          # install-wide switch is off (#4604; see SamlFields). The
+          # effective provider_type covers both a switch to saml and an edit
+          # of a stored saml record; a disable-only PATCH on that record is
+          # the tenant's own way of switching it off and stays accepted.
+          reject_saml_disabled! if @provider_type == 'saml' && !@disable_only
+
           # Never accepted, whatever the provider type (see SamlFields)
           reject_forbidden_saml_params!
 
@@ -102,7 +113,6 @@ module DomainsAPI
           @effective_enabled = @enabled_provided ? @enabled : @existing_config&.enabled?
           effective_enforce  = @enforce_sso_only_provided ? @enforce_sso_only : @existing_config&.enforce_sso_only?
 
-          @disable_only = disable_only_request?
           unless @disable_only
             validate_client_credentials
             validate_provider_specific_fields

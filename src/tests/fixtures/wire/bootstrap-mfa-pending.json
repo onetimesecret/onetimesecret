@@ -56,12 +56,22 @@
   "brand_logo_dark_url": null,
   "brand_logo_alt": null,
   "brand_favicon_url": null,
-  "d9s_enabled": false,
+  "d9s_enabled": true,
   "development": {
     "enabled": false,
     "domain_context_enabled": false
   },
-  "diagnostics": null,
+  "diagnostics": {
+    "sentry": {
+      "dsn": "https://publickey@sentry.example.com/1",
+      "trackComponents": true,
+      "sampleRate": 1.0,
+      "maxBreadcrumbs": 5,
+      "logErrors": true,
+      "environment": "production",
+      "release": "4ea626b"
+    }
+  },
   "docs_host": "https://docs.onetimesecret.com/",
   "domains": null,
   "domains_enabled": false,
@@ -98,6 +108,7 @@
     "organizations": {
       "enabled": true,
       "sso_enabled": true,
+      "saml_enabled": false,
       "custom_mail_enabled": true,
       "incoming_secrets_enabled": true,
       "audit_logs_enabled": true
@@ -121,8 +132,28 @@
   },
   "billing_enabled": false,
   "checkout_host": "pay.onetimesecret.com",
-  "regions": null,
-  "regions_enabled": false,
+  "regions": {
+    "enabled": true,
+    "current_jurisdiction": "CA",
+    "jurisdictions": [
+      {
+        "identifier": "EU",
+        "domain": "eu.example.com",
+        "display_name_i18n_key": "web.regions.jurisdictions.eu.name"
+      },
+      {
+        "identifier": "CA",
+        "domain": "ca.example.com",
+        "display_name_i18n_key": "web.regions.jurisdictions.ca.name"
+      },
+      {
+        "identifier": "NZ",
+        "domain": "nz.example.com",
+        "display_name_i18n_key": "web.regions.jurisdictions.nz.name"
+      }
+    ]
+  },
+  "regions_enabled": true,
   "secret_options": {
     "default_ttl": 604800,
     "ttl_options": [
@@ -436,7 +467,7 @@
   "ruby_version": "",
   "shrimp": "recorded-csrf-token-removed",
   "nonce": "cmVjb3JkZWQtbm9uY2U=",
-  "snapshot_epoch": "cae4288d01537e892248cbcfe25d9d66",
-  "snapshot_version": "1789812270254839",
-  "snapshot_generated_at": "2026-09-19T10:04:30.086312Z"
+  "snapshot_epoch": "c3a5b942028a25667d9d242a48fe4356",
+  "snapshot_version": "1790654754222415",
+  "snapshot_generated_at": "2026-09-29T04:05:54.222606Z"
 }

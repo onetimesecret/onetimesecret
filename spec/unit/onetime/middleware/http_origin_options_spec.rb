@@ -255,7 +255,7 @@ RSpec.describe Onetime::Middleware::HttpOriginOptions do
     end
 
     around do |example|
-      ClimateControl.modify(SAML_ALLOW_NULL_ORIGIN: 'true', SAML_ROUTE_NAME: nil) { example.run }
+      ClimateControl.modify(SAML_ALLOW_NULL_ORIGIN: 'true', SAML_ROUTE_NAME: nil, SAML_ENABLED: 'true') { example.run }
     end
 
     before do
@@ -324,6 +324,40 @@ RSpec.describe Onetime::Middleware::HttpOriginOptions do
       it 'fails closed when the tenant record cannot be read' do
         allow(resolution).to receive(:verified_custom_domain?).and_raise(Redis::BaseError, 'down')
         expect(active?(host: custom_domain)).to be false
+      end
+
+      # The install-wide switch (#4604): with it off no saml route exists on
+      # either surface, so the callback is inactive (404 from the transport)
+      # before any datastore or tenant lookup — the platform provider being
+      # usable and a tenant record being enabled change nothing.
+      [nil, '', 'false', '0'].each do |value|
+        it "is false on both surfaces while SAML_ENABLED is #{value.inspect}, without touching the tenant record" do
+          enable_native_tenant
+          ClimateControl.modify(SAML_ENABLED: value) do
+            expect(active?).to be false
+            expect(active?(host: custom_domain)).to be false
+          end
+          expect(Onetime::TenantSsoResolution).not_to have_received(:for)
+        end
+      end
+
+      it 'treats an unrecognized SAML_ENABLED token as off, logging the check failure' do
+        allow(OT).to receive(:lw)
+        enable_native_tenant
+        ClimateControl.modify(SAML_ENABLED: 'ture') do
+          expect(active?).to be false
+          expect(active?(host: custom_domain)).to be false
+        end
+        expect(OT).to have_received(:lw).with(/SAML callback route check failed: Onetime::ConfigError: SAML_ENABLED/).twice
+      end
+    end
+
+    it 'denies the opted-in null-origin POST on both surfaces while SAML_ENABLED is off' do
+      enable_native_tenant
+      ClimateControl.modify(SAML_ENABLED: 'false') do
+        [canonical_host, custom_domain].each do |host|
+          expect(app.call(null_env(host: host)).first).to eq(403)
+        end
       end
     end
 
