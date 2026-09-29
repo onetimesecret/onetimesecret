@@ -79,6 +79,67 @@ self-hosted Sentry does not change the result. `scripts/check-shell-lint.sh`
 runs shellcheck and actionlint over the repo and fails on anything above the
 baseline in `.github/lint-baseline/`; both run in CI as `Static analysis`.
 
+### Choosing Tryouts or RSpec for Ruby model tests
+
+Choose by isolation needs, not by whether the test uses a real datastore:
+
+- Prefer **Tryouts** for a linear scenario over real records when no
+  instrumentation is needed and the sequence itself is what the test describes.
+- Use **RSpec** when a test needs to instrument a frozen Familia object.
+  Stub the class accessor for one example and return a delegator around the
+  real object, rather than patching the object's class for the whole process.
+- Give independent assertions independent setup. Do not make unrelated cases
+  depend on a record left behind by an earlier case.
+
+This is guidance for choosing new tests, not a mandate to convert existing
+Tryouts. Model behavior already lives in both frameworks. Datastore-backed
+RSpec unit tests are an established pattern; see the
+[Organization destroy guard spec](../../spec/unit/onetime/models/organization/destroy_domain_guard_spec.rb).
+The `:datastore` tag describes that dependency; `spec/spec_helper.rb` does not
+attach setup, cleanup, or isolation behavior to it. Continue to run both
+frameworks through the [lane runner](../../tests/lanes/README.md).
+
+#### Instrumenting a frozen Familia index
+
+The [CustomDomain canonical-release spec](../../spec/unit/onetime/models/custom_domain/destroy_canonical_release_spec.rb)
+is the reference pattern:
+
+1. Capture the real index **before** stubbing its class accessor.
+2. Wrap it in a `SimpleDelegator` that records the operation, arguments,
+   transaction state, and real return value while forwarding to the index.
+3. Stub the accessor in a per-example `before` hook. RSpec restores it after
+   each example; the frozen index and its class remain unchanged.
+4. Create fresh records for each example. In `after`, clean up those records
+   and any manually written index fields. Handle record-destruction errors
+   without skipping the subsequent field cleanup; report cleanup failures.
+   Do not flush the shared datastore.
+
+Stubbing the accessor does not replace the datastore operation with a double.
+The delegator forwards `release_field` to the real index, so the spec observes
+an actual EVAL queued in Familia's MULTI transaction and a real `Redis::Future`.
+A canned return value would not establish that transaction behavior.
+
+#### Why the destroy-release test moved to RSpec
+
+Commit `6cfe4886ed` replaced a destroy-release Tryout with a scoped RSpec test
+for isolation, not additional behavioral coverage. The Tryout prepended a
+recorder module onto `Familia::HashKey` because the index object was frozen.
+Tryout files in a batch share a Ruby process, so the prepend remained active
+for later files even after teardown disabled recording. If execution stopped
+before teardown cleared the recording flag, recording could remain enabled.
+The Tryout also carried one record through successive cases, allowing an
+initial failure to cascade.
+
+The replacement retained the checks for an A-label (ASCII) claim on creation,
+release inside the destroy transaction with the correct field and identifier,
+a `Redis::Future` return value, removal of the record and claim, re-registration
+after destroy, and preservation of a claim owned by another identifier. The
+re-registration check in both versions creates the Unicode spelling again
+and inspects its canonical A-label claim; it does not separately register
+both spellings. The dropped shared-object identity assertion justified the
+old recorder, rather than testing model behavior. The current spec also
+checks that destruction removes the domain from its organization.
+
 ## Changing stored data
 
 Five different mechanisms change data after the fact: Familia migrations
