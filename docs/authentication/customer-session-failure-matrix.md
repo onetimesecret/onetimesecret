@@ -74,8 +74,9 @@ carries a session-failure code. They state the session through `auth_status`
 `awaiting_mfa` are computed from `auth_status` in
 `Core::Views::AuthenticationSerializer`, so they cannot disagree with it. An
 `authenticated` claim that lacks either the verdict projection or its customer
-degrades to `unavailable`, never to a serialized identity.
-`had_valid_session` is still emitted and is deprecated (#4468).
+degrades to `unavailable`, never to a serialized identity. The deprecated
+`had_valid_session` field was removed in v0.27 (#4468); the error-recovery
+case it served is the `unavailable` row above.
 
 ### `code` and `code_scope` — refusals
 

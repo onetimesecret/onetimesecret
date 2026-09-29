@@ -128,7 +128,7 @@ describe('authStore', () => {
       sessionStorage.setItem('ots_auth_state', 'true');
       const getItem = vi.spyOn(Storage.prototype, 'getItem');
 
-      await mountWith({ ...anonymousBootstrap, had_valid_session: true });
+      await mountWith(anonymousBootstrap);
 
       expect(store.isAuthenticated).toBe(false);
       expect(getItem).not.toHaveBeenCalledWith('ots_auth_state');

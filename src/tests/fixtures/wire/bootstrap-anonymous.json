@@ -2,7 +2,6 @@
   "auth_status": "anonymous",
   "authenticated": false,
   "awaiting_mfa": false,
-  "had_valid_session": false,
   "has_password": false,
   "password_auth_permitted": true,
   "custid": null,

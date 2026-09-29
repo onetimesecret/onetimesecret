@@ -385,8 +385,7 @@ RSpec.describe Core::Views::AuthenticationSerializer do
         )
 
         expect(output).to include('auth_status' => 'unavailable', 'authenticated' => false, 'cust' => nil)
-        # Deprecated twin, still emitted for a pre-auth_status frontend (#4468).
-        expect(output['had_valid_session']).to be(true)
+        expect(output).not_to have_key('had_valid_session')
       end
 
       it 'reports anonymous when it does not' do
