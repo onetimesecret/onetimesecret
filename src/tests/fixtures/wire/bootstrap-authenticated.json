@@ -5,17 +5,17 @@
   "had_valid_session": true,
   "has_password": true,
   "password_auth_permitted": true,
-  "custid": "01a0b90a-5171-77c1-88bd-d7e69aa210b5",
+  "custid": "01a0eb57-2afa-7939-bf32-683d2797d053",
   "cust": {
-    "objid": "01a0b90a-5171-77c1-88bd-d7e69aa210b5",
-    "extid": "ur0jrz8qg0k0vzrgfd31lai7dvy",
+    "objid": "01a0eb57-2afa-7939-bf32-683d2797d053",
+    "extid": "ur9od2c8ddaqdo11swq0yjco76h",
     "email": "recorded-user@test.onetimesecret.com",
     "role": "customer",
     "verified": true,
-    "last_login": 1789810856.9797,
+    "last_login": 1790654753.78378,
     "locale": "",
-    "updated": 1789810856.76001,
-    "created": 1789810856.30599,
+    "updated": 1790654753.60383,
+    "created": 1790654753.53079,
     "secrets_created": "0",
     "secrets_burned": "0",
     "secrets_shared": "0",
@@ -24,7 +24,7 @@
     "notify_on_reveal": false
   },
   "email": "recorded-user@test.onetimesecret.com",
-  "customer_since": "Sep 19, 2026",
+  "customer_since": "Sep 29, 2026",
   "entitlement_preview_planid": null,
   "entitlement_preview_plan_name": null,
   "impersonation": null,
@@ -86,7 +86,7 @@
       "maxBreadcrumbs": 5,
       "logErrors": true,
       "environment": "production",
-      "release": "4782c9a"
+      "release": "4ea626b"
     }
   },
   "docs_host": "https://docs.onetimesecret.com/",
@@ -125,6 +125,7 @@
     "organizations": {
       "enabled": true,
       "sso_enabled": true,
+      "saml_enabled": false,
       "custom_mail_enabled": true,
       "incoming_secrets_enabled": true,
       "audit_logs_enabled": true
@@ -478,8 +479,8 @@
   "global_banner": null,
   "global_banner_scope": null,
   "organization": {
-    "objid": "01a0b90a-517b-7c8d-9d59-8a1d21f417aa",
-    "extid": "on3brpq3aceb0ioh8vpc5jdgo89",
+    "objid": "01a0eb57-2b04-7803-b037-cd88d36ccc02",
+    "extid": "onbf8t86hsqh8667xgtk4dz5qa5",
     "display_name": "Default Workspace",
     "is_default": true,
     "planid": "free_v1",
@@ -516,11 +517,11 @@
     }
   },
   "ot_version": "0.0.0-rc0",
-  "ot_version_long": "0.0.0-rc0 (4782c9a)",
+  "ot_version_long": "0.0.0-rc0 (4ea626b)",
   "ruby_version": "3.4.10",
   "shrimp": "recorded-csrf-token-removed",
   "nonce": "cmVjb3JkZWQtbm9uY2U=",
-  "snapshot_epoch": "27485c1ed9b5e1b69e60d1f3c665ec3c",
-  "snapshot_version": "1789810857165692",
-  "snapshot_generated_at": "2026-09-19T09:40:58.831159Z"
+  "snapshot_epoch": "958008831f2a0d2435bbc30e9334cb87",
+  "snapshot_version": "1790654753806359",
+  "snapshot_generated_at": "2026-09-29T04:05:53.806621Z"
 }
