@@ -731,3 +731,34 @@ This note supersedes the owned-reason list in the Decision section under
 No consumer changes: `useAsyncHandler` still reads only `ownedByCoordinator`.
 The request budget is unchanged; one reconciliation per window is still the
 rule.
+
+**Owning a rejection is a promise (added 2026-09-29).** Suppressing a
+caller's toast is safe only if the coordinator then speaks. A flight can
+settle without a transition: it applies a snapshot that still reports
+`authenticated`, it returns `failed` or `allocation-unavailable`, or its
+response is dropped as stale. Before this note the first `reconciling`
+rejection already lost its feedback in those cases; owning duplicates would
+have widened that from one call to the whole batch. The coordinator therefore
+guarantees exactly one fallback notice per batch of owned rejections whose
+flight settles without a transition:
+
+- The interceptor passes, with each reported 401, the message the caller
+  would have shown: the classified message when it is of human interest,
+  else null for the generic error text. The store keeps the batch count and
+  the first message.
+- When the flight settles `refused` (a forced page load), or `applied` to any
+  status other than `authenticated` (the MFA gate, an in-place sign-out), the
+  UI change is the answer and nothing is owed. A local sign-out discards the
+  batch.
+- When it settles `applied` still `authenticated`, `failed`, or
+  `allocation-unavailable`, the store publishes one `rejectionNotice`
+  (`serial`, `count`, `message`). The backoff retry that follows a failure
+  starts with nothing owed, so it cannot repeat the notice.
+- A flight superseded by an authentication mutation settles `superseded` and
+  pays nothing; the batch is store-level, so the replacement flight pays it
+  when it settles, under `#commit-generation-ownership`.
+
+The store stays UI-free. `App.vue`, which already announces parked session
+transitions, watches `rejectionNotice` and shows the message through the
+notifications store, substituting the generic error text for a null message,
+the same choice `useAsyncHandler` makes.
