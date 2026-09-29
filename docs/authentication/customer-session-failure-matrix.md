@@ -196,9 +196,13 @@ mounted once in the universal stack, annotates every surface):
   reason, the same code that holder gets on a `sessionauth`-only route, not
   `api_key_invalid`. The simple-mode sign-in controller stashes through
   `Core::Controllers::Base#handle_form_error`.
-- `/auth` session refusals: `Auth::Router#session_refusal` merges the pair
-  into the four refusal bodies, keyed by the reason the router acted on
-  (`Auth::SessionRecheck`'s where it differs from the evaluator's). For a
+- `/auth` session refusals: `Auth::Router#session_refusal` stashes the
+  reason the router acted on (`Auth::SessionRecheck`'s where it differs
+  from the evaluator's) for the four refusal bodies, and the middleware
+  renders the pair, the challenge and the outage 503 onto them as it does
+  on the Otto surfaces; the router merges nothing into the body itself,
+  because the middleware leaves a body that already carries `code` as it
+  found it, headers and status included. For a
   request with no session the router stashes the anonymous reason before
   `r.rodauth`, so a login-required refusal from Rodauth (`Please login to
   continue`) or from a custom route (`Authentication required`) carries
