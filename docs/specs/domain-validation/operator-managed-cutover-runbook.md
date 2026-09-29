@@ -65,7 +65,7 @@ Both TXT-enforced targets use the same fail-closed rule: policy-only, legacy-fla
 7. DNS resolution, HTTPS success, certificate presence, and historical health never create authorization evidence.
 8. An explicit override is distinguishable from TXT proof and operator policy.
 9. A cache entry is usable only when it carries the active configuration and assignment generation. Missing or mismatched generations fail closed.
-10. Rollback restores strategy behavior, not old evidence snapshots. Ineligible evidence stays ineligible.
+10. Rollback restores strategy behavior, not old evidence snapshots. Ineligible evidence stays ineligible, while evidence validly committed during activation remains eligible when it still satisfies the source strategy's current-lineage and evidence-specific rules.
 
 ## Roles and sign-off
 
@@ -129,32 +129,35 @@ Inventory completeness requires all of the following:
 
 TXT proof and explicit overrides apply to an assignment, not merely to a domain string.
 
-The current lineage is continuous only while the canonical domain, organization/owner assignment, assignment identity, and TXT challenge identity remain unchanged. Transfer, detach and re-attach, deletion and recreation, challenge rotation, operator adoption of an existing untrusted registration, or a recorded demotion ends or changes the lineage. Operator-policy promotion without an adoption boundary does not create a TXT-proof lineage.
+The current assignment lineage is continuous while the canonical domain, organization/owner assignment, and assignment identity remain unchanged. Transfer, detach and re-attach, deletion and recreation, or operator adoption of an existing untrusted registration ends the prior lineage. Challenge rotation and TXT demotion do not end the assignment lineage; they are TXT-evidence boundaries. Operator-policy promotion without an adoption boundary does not create a TXT-proof lineage.
 
-Evidence is eligible only when persisted provenance establishes all of the following:
+Evidence eligibility has a shared assignment-lineage boundary and type-specific invalidation rules. Persisted provenance must establish all of the following:
 
-- the proof or override belongs to the current assignment lineage;
-- the TXT proof matched the expected challenge for that lineage, or the override explicitly names that lineage;
+- the TXT proof or override belongs to the current assignment lineage;
+- TXT proof matched the current expected challenge identity and value, and no later challenge rotation, definitive TXT failure, or demotion invalidated that proof;
+- an explicit override names the current assignment lineage and remains active and unrevoked; challenge rotation or TXT demotion does not invalidate it;
+- a transfer, reassignment, detach and re-attach, deletion and recreation, or lineage-changing operator adoption makes both prior TXT proof and prior overrides ineligible;
 - the producing strategy and outcome are known and acceptable to the target policy;
-- no later transfer, reassignment, challenge rotation, operator adoption, demotion, or revocation invalidates it;
 - the target evaluator can verify the evidence without inferring provenance from health or aggregate booleans.
 
 Legacy `verified=true`, `resolving=true`, or `ready?` state is insufficient. A `verified_confirmed_at` timestamp, with or without `verified=true`, is also insufficient when it does not identify the assignment lineage, challenge, validating strategy, and successful match. Timestamps order events; they do not prove what was checked.
 
 ### Required classifications
 
-For a TXT-enforced target, every assignment receives exactly one of these classifications, in precedence order:
+For a TXT-enforced target, every assignment receives exactly one of these classifications, in authorization-precedence order:
 
 | Classification | Required evidence | TXT-enforced target decision |
 | --- | --- | --- |
-| **Eligible TXT proof** | Complete, target-acceptable TXT provenance for the current assignment lineage, or a fresh target-strategy proof bound to the frozen assignment generation. | Eligible for authorization. |
 | **Explicit override** | Active, unrevoked override whose scope and audit provenance identify the current assignment lineage. A bare legacy boolean without sufficient lineage is not enough. | Eligible for authorization as an override, never relabeled as TXT proof. |
+| **Eligible TXT proof** | Complete, target-acceptable TXT provenance for the current assignment lineage, or a fresh target-strategy proof bound to the frozen assignment generation, and no active eligible override. | Eligible for authorization as TXT proof. |
 | **Operator policy only** | Current registered assignment authorized by operator-managed policy, with no eligible TXT proof or override. Health and legacy booleans do not change this class. | Rejected immediately after target activation unless a fresh proof or explicit override is established before activation. |
 | **Unknown/ineligible legacy state** | Missing or conflicting lineage; legacy flags only; timestamp-only evidence; ended-lineage proof; stale or mismatched override; malformed/orphaned record; unsupported source strategy; or any state that cannot be classified safely. | Rejected. Manual disposition is required; uncertainty never defaults to authorization. |
 
-A fresh target-strategy TXT pass may move an assignment from policy-only or unknown into eligible TXT proof only when the result is bound to the same frozen assignment and challenge generation and is persisted as provenance during the activation transaction or revalidated inside the activation barrier.
+When both an active current-lineage override and eligible TXT proof exist, the effective classification and reported authorization basis are **Explicit override**. The TXT evidence remains separately recorded and is not cleared or relabeled.
 
-For an `operator_managed` target, every assignment is classified as eligible current-lineage TXT proof, active current-lineage override, already-trusted current lineage, approved adoption into a new trusted lineage, or denied. Eligible TXT proof and overrides retain their basis when no lineage-changing adoption occurs. An approved adoption makes prior TXT and override evidence ineligible. An untrusted lineage with no eligible proof, override, or approved adoption remains denied.
+A fresh target-strategy TXT pass may move an assignment without an active eligible override from policy-only or unknown into eligible TXT proof only when the result is bound to the same frozen assignment and challenge generation and is persisted as provenance during the activation transaction or revalidated inside the activation barrier.
+
+For an `operator_managed` target, every assignment is classified, in authorization-precedence order, as active current-lineage override, eligible current-lineage TXT proof, already-trusted current lineage, approved adoption into a new trusted lineage, or denied. Eligible TXT proof and overrides retain their basis when no lineage-changing adoption occurs. An approved adoption makes prior TXT and override evidence ineligible. An untrusted lineage with no eligible proof, override, or approved adoption remains denied.
 
 ## Target-strategy dry run
 
@@ -171,7 +174,7 @@ The dry run must:
 7. leave health observations separate from authorization outcomes;
 8. produce deterministic totals that reconcile to the frozen inventory.
 
-A dry-run pass is candidate evidence, not activation. It cannot open serving or ACME access by itself. Activation either revalidates the TXT result or consumes it through a bounded, generation-bound mechanism that prevents assignment, challenge, configuration, or result changes between check and commit.
+A dry-run pass is candidate evidence, not activation. It cannot open serving or ACME access by itself. Activation either revalidates the TXT result or consumes it through a bounded, generation-bound mechanism that prevents assignment, challenge, configuration, or result changes between check and commit. Only when activation persists that result with complete provenance does it become committed TXT evidence.
 
 ### Exception report
 
@@ -223,10 +226,12 @@ The fixture set includes:
 | --- | --- | --- |
 | Policy-only legacy flags | Operator-policy assignment with `verified=true` and `resolving=true`, no eligible proof or override | Denied on the first protected decision. |
 | Timestamp only | Policy-only assignment with `verified_confirmed_at` but no complete lineage/proof provenance | Denied. |
-| Ended lineage | Historical TXT pass for an assignment that was transferred, detached/re-attached, recreated, challenge-rotated, or demoted | Denied. |
+| Ended lineage | Historical TXT pass for an assignment that was transferred, detached/re-attached, recreated, or replaced by lineage-changing adoption | Denied. |
+| Invalidated TXT evidence | Historical TXT pass tied to a rotated challenge, definitive later TXT failure, or demotion, with no active current-lineage override | Denied; the current assignment lineage itself need not have ended. |
 | Stale source cache | Cached operator-managed allow decision from the source generation | Denied; cache generation mismatch is observable. |
 | Eligible TXT | Current-lineage, target-acceptable TXT proof | Allowed independently of DNS/HTTPS health. |
 | Eligible override | Current-lineage explicit override | Allowed and reported as override, not TXT proof. |
+| Override plus eligible TXT | Active current-lineage override and eligible current-lineage TXT proof | Allowed and reported as override; TXT evidence remains recorded. |
 | Unknown legacy | Conflicting, malformed, orphaned, or unclassifiable authorization state | Denied with an actionable reason. |
 
 For an `operator_managed` target, the fixture set also includes:
@@ -240,7 +245,7 @@ For an `operator_managed` target, the fixture set also includes:
 
 Each fixture is exercised against every protected decision path, including custom-domain use/link creation, request-time serving authorization, ACME permission, and any worker path that makes an authorization decision.
 
-The policy-only, timestamp-only, ended-lineage, and stale-cache fixtures are repeated in these conditions:
+The policy-only, timestamp-only, ended-lineage, invalidated-TXT-evidence, and stale-cache fixtures are repeated in these conditions:
 
 1. a process kept warm across activation with a seeded source-generation cache entry;
 2. a newly restarted process with an empty in-memory cache;
@@ -319,13 +324,13 @@ Rollback begins immediately after activation when any of these occurs:
 2. Capture the failed generation's decisions, logs, cache metadata, assignment generations, and post-activation inventory before changing configuration.
 3. Stop or fence every target-generation decision-maker and drain target-generation writers.
 4. Activate the immutable source configuration as a new rollback generation; do not restore a datastore or cache snapshot wholesale.
-5. Recompute source authorization from the source strategy and current assignment lineage. When the source is operator-managed, only a trusted current lineage receives restored access as operator policy; no assignment is relabeled as TXT proof.
-6. Preserve the cutover classification of legacy flags, timestamp-only state, ended-lineage proof, and ineligible overrides. Rollback does not set `verified`, `resolving`, `verified_confirmed_at`, or `verified_by_override` from the pre-cutover snapshot.
+5. Recompute source authorization from the source strategy, current assignment lineage, and persisted evidence. Apply normal basis precedence: an active current-lineage override remains `explicit_override`; otherwise eligible current-lineage TXT evidence remains `txt_proof`; otherwise a trusted current lineage under an operator-managed source may receive `operator_policy`. Do not relabel TXT proof or an override as operator policy.
+6. Preserve the cutover classification of legacy flags, timestamp-only state, ended-lineage proof, and ineligible overrides. Rollback does not set `verified`, `resolving`, `verified_confirmed_at`, or `verified_by_override` from the pre-cutover snapshot, and it does not discard activation-committed evidence merely because the target generation failed.
 7. Invalidate both source-precutover and failed-target cache generations. Start processes under the rollback generation while traffic remains isolated.
 8. Run first-request checks proving that no assignment is authorized by replayed ineligible evidence and that expected source-policy behavior is restored.
 9. Resume traffic and writers only after all processes acknowledge the rollback generation and the operator signs the rollback record.
 
-Fresh TXT evidence produced during the attempt remains an auditable observation tied to its assignment lineage. It is not rewritten, relabeled, or made eligible by rollback. A later cutover reevaluates it under that cutover's target policy.
+A dry-run TXT result that was not committed during activation remains a candidate observation tied to its assignment lineage and challenge; rollback does not make it eligible evidence. TXT evidence validly committed during activation remains persisted evidence and remains eligible after rollback when its assignment lineage and challenge are current, no later failure or demotion invalidated it, and the restored source policy accepts its provenance. Rollback neither rewrites nor relabels either kind of artifact. A later cutover reevaluates candidate observations and committed evidence under that cutover's target policy.
 
 ## Monitoring and evidence retention
 
@@ -377,14 +382,15 @@ Runtime implementation and tooling are ready for this runbook only when automate
 | TXT-enforced → operator-managed | Only already-trusted current lineages or registrations explicitly adopted into new trusted lineages are authorized as operator policy, without manufacturing TXT confirmation or assumed health; adoption inherits no prior TXT proof or override. |
 | TXT-enforced → TXT-enforced | The target evaluator accepts only target-eligible current-lineage evidence or override. |
 | Legacy flags/timestamp | `verified`, `resolving`, `ready?`, and timestamp-only state cannot authorize. |
-| Lineage change | Transfer, detach/re-attach, recreation, challenge rotation, operator adoption, and demotion prevent prior proof reuse. |
+| Assignment-lineage change | Transfer, detach/re-attach, recreation, and lineage-changing operator adoption make prior TXT proof and overrides ineligible. |
+| TXT evidence boundary | Challenge rotation, definitive TXT failure, and demotion invalidate affected TXT proof without ending the current assignment lineage or invalidating an active current-lineage override. |
 | Restart | A cold process produces the same target decision as a warm process. |
 | Stale cache | A source-generation allow entry is rejected after activation. |
 | Disabled scheduler | First-request enforcement is unchanged when no refresh job runs. |
 | Late worker result | A source-generation result cannot change target authorization. |
 | Mixed fleet | A process on the wrong generation denies rather than serving with source semantics. |
 | Health independence | DNS/HTTPS success and failure do not create or revoke authorization. |
-| Rollback | Source behavior returns without replaying ineligible proof, flags, timestamps, overrides, or caches. |
+| Rollback | Source behavior returns without replaying ineligible proof, flags, timestamps, overrides, or caches; valid activation-committed current-lineage evidence is preserved with its original basis. |
 | Inventory drift | Registration, transfer, or challenge mutation during preflight causes abort. |
 
 ## Out of scope
