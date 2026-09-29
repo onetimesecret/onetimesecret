@@ -112,7 +112,8 @@ SSO Tab Visibility
 **Prerequisite:** The organization must have a verified custom domain with SSO
 configured. Verification may come from the domain ownership check or an
 operator override. Unverified domains do not advertise tenant SSO or inject
-tenant provider credentials.
+tenant provider credentials (see
+[Unverified domains](#unverified-domains) below).
 
 ```
 User visits https://{custom-domain}/signin
@@ -141,7 +142,7 @@ Resolution chain (`apps/web/auth/config/hooks/omniauth_tenant.rb`):
 | 2 | `CustomDomain.load_by_display_domain(display_domain)` | CustomDomain record |
 | 3 | `custom_domain.identifier` | Domain identifier |
 | 4 | `CustomDomain::SsoConfig.find_by_domain_id(domain_id)` | SSO credentials |
-| 5 | Shared availability checks | Verified ownership and an enabled, permitted SSO configuration |
+| 5 | Shared availability checks | Verified ownership and an enabled, permitted SSO configuration; an unverified domain is refused here (below) |
 | 6 | `domain_config.to_omniauth_options` | OmniAuth strategy injection |
 
 A record that cannot produce usable options — today only a `saml` record with
@@ -151,6 +152,38 @@ clears the pending tenant context and redirects to
 `/signin?auth_error=sso_config_unusable`. It never falls back to platform SSO
 for that request, because the tenant context stored a moment earlier would
 still stamp the callback as validated for the domain.
+
+#### Unverified domains
+
+When a domain's SSO configuration is enabled and permitted but the domain's
+ownership is not verified yet, the hook refuses SSO at step 5: it logs
+`omniauth_tenant_domain_unverified` at warn level, clears any pending tenant
+context and redirects to `/signin?auth_error=sso_domain_unverified`. This
+applies to every SSO route on the domain and every phase (request, callback
+and the SAML `/metadata` sub-path), and it never falls back to platform SSO.
+A sign-in started while the domain was verified cannot complete after
+verification lapses. A SAML response POSTed to the ACS URL after the lapse is
+answered 404 before the hook runs, because the SAML callback route needs a
+verified domain. The sign-in page offers no SSO button on such a domain,
+platform providers included. A domain with no sign-in settings of its own,
+where SSO is the only method, offers no sign-in or signup route at all until
+it verifies, so its SSO routes answer 404 before this refusal is reached.
+
+The refusal keys on the domain record, not on how the host is classified. If
+the operator moves `site.host` onto a host that still has an unverified
+custom-domain record with enabled, permitted SSO, platform SSO on that host is
+refused the same way. Delete the stale record or verify it.
+
+The SSO settings form still shows the callback URL (and, for `saml`, the SP
+EntityID and ACS URL) for an unverified domain, with a notice that SSO on the
+domain activates after verification. They are the values to register at the
+IdP now; they go live once verification completes. The refusal means the IdP
+never receives any other value in the meantime.
+
+A domain whose sign-in settings withhold SSO is not waiting on verification,
+since verifying it would not turn tenant SSO on. It is treated like any other
+domain without active tenant SSO, including platform fallback when that is
+allowed.
 
 For `saml`, step 6 is followed by per-request injection of the tenant SP
 identifiers derived from the request's public host (`strategy.full_host`):
@@ -692,13 +725,16 @@ shows them under "Service provider details"):
 | SP metadata | `https://{custom-domain}/auth/sso/saml/metadata` |
 
 `saml` here is the platform route name (`SAML_ROUTE_NAME`); the API's values
-already reflect an override. Verify the custom domain before configuring the
-IdP. Until ownership is verified, the API withholds `sp_entity_id` and
-`acs_url`, and tenant SSO is not offered on sign-in surfaces. For a verified
-custom domain served on the default port, the API values match the identifiers
-built by the sign-in hook from the request's public host. On a non-default
-port, confirm the identifiers returned by the domain's metadata endpoint before
-registering them with the IdP.
+already reflect an override. The API returns them before the domain is
+verified, and the form labels them as not live yet: register them at the IdP
+now, and they take effect once verification completes. Until then tenant SSO
+is not offered on sign-in surfaces, and SSO requests that reach the sign-in
+hook are refused with `sso_domain_unverified` (see
+[Unverified domains](#unverified-domains)). For
+a verified custom domain served on the default port, the API values match the
+identifiers built by the sign-in hook from the request's public host. On a
+non-default port, confirm the identifiers returned by the domain's metadata
+endpoint, once the domain is verified, before relying on them.
 
 The default requested NameID format is persistent. Tenant `name_id_format`
 can request another supported format or omit the policy; the transient format
@@ -849,7 +885,8 @@ previously configured tenant that was pointed at the wrong cloud.
 | SSO configured but login fails | No custom domain with SSO config | Add custom domain and configure SSO |
 | Test Connection fails with `issuer_mismatch` (OIDC only) | The configured issuer is not exactly the discovery document's `issuer`. The comparison is exact, including any trailing slash (Auth0 uses one) | Set the Issuer URL to the **Discovered Issuer** value shown in the result, character for character, and test again |
 | Test Connection fails with `discovery_too_large` | The discovery document is larger than the 256 KiB limit | Check that the issuer URL points at the IdP, not at a page that returns a large document |
-| Platform SSO used instead of domain SSO | The custom domain has no active tenant SSO configuration and `SSO_ALLOW_PLATFORM_FALLBACK=true` | Configure and enable tenant SSO for the domain, or disable platform fallback. Platform SAML is excluded from this fallback |
+| Platform SSO used instead of domain SSO | The custom domain has no active tenant SSO configuration and `SSO_ALLOW_PLATFORM_FALLBACK=true` | Configure and enable tenant SSO for the domain, or disable platform fallback. Platform SAML is excluded from this fallback, and so is a domain whose tenant SSO waits only on verification |
+| SSO sign-in lands on `sso_domain_unverified` | The domain's SSO configuration is enabled and permitted, but the domain's ownership is not verified (never verified, or verification lapsed) | Complete domain verification, or have the operator set a verification override. Check the `omniauth_tenant_domain_unverified` log event for the host and domain |
 | SAML sign-in lands on `sso_config_unusable` | The domain's SAML record is unusable: expired certificate, or a field that no longer decrypts | Check the `omniauth_tenant_config_unusable` log event; save a current certificate or re-enter the flagged fields |
 | SAML save refused: "SAML sign-in cannot complete on this install: site.session.same_site is …" | The install's session cookie is not Secure with SameSite=Lax or None; creation and re-enablement are refused | The operator sets `site.session.same_site: lax` or `none` with `secure: true` (see [per-install-sso.md](per-install-sso.md#saml-20-1)) and restarts; boot logs the same rule as `[OmniAuth] SAML is enabled … but …` only for the tenant placeholder (`ORGS_SSO_ENABLED=true`, no platform `SAML_*` vars) — with platform `SAML_*` vars set the boot line is `[OmniAuth] Skipping SAML provider 'saml': …` instead |
 | SAML save refused: "must have a plain hostname (no spaces, quotes or punctuation in the host)", "must not contain a fragment" or "host must not end with a dot" | The SSO URL's host carries characters the CSP `form-action` directive cannot carry, or a trailing dot that the derived origin would strip (the browser would then POST from an origin that was never admitted) | Enter the IdP's SSO URL with a plain hostname. Private-network IdPs are accepted: the server never fetches this URL |
