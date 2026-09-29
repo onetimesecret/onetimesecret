@@ -16,12 +16,26 @@ module Onetime
     # session_key`). The reaction is `deny`: a 403 with a text/plain
     # "Forbidden" body, and the response carries a Set-Cookie clearing the
     # offending name for every prefix of the request path, with the request
-    # host as the cookie domain. That clear is host-scoped: a cookie planted
-    # with a parent `Domain=` attribute is not removed by it, and the browser
-    # keeps sending both until that cookie expires, so the refusal turns the
-    # fixation exposure into a denial of service on the victim's browser for
-    # the planted cookie's lifetime. The downstream app never runs. A request
-    # with one session cookie passes through unchanged.
+    # host as the cookie domain (`empty_cookie`: value '', domain, path,
+    # expires Time.at(0)). The downstream app never runs. A request with one
+    # session cookie passes through unchanged.
+    #
+    # That clear alone is host-scoped, and a tossed cookie is by nature set
+    # with a parent `Domain=` attribute (the sibling host can set nothing
+    # else that this host would receive), so the gem's clear would leave the
+    # planted cookie in place and the browser blocked with 403 until it
+    # expired. #remove_bad_cookies below therefore also emits the same empty
+    # cookie for every parent domain of the request host that has at least
+    # two labels (`eu.example.com` clears `example.com` too; `a.b.example.com`
+    # clears `b.example.com` and `example.com`), for the same path prefixes.
+    # One refused request clears both the planted cookie and the legitimate
+    # host cookie; the next request carries no session cookie, gets a fresh
+    # session, and the user signs in again. That is the recovery path. It is
+    # not public-suffix aware on purpose: a browser ignores a Set-Cookie whose
+    # Domain is a public suffix, so emitting one is harmless, and a suffix
+    # list is not worth carrying for it. IP-literal and single-label hosts
+    # get the host clear only. Nothing is widened: cookies are cleared only
+    # on a response that already refuses the request.
     #
     # Two things the stock class needs from us:
     #
@@ -92,6 +106,35 @@ module Onetime
           end
         end
         bad_cookies.empty?
+      end
+
+      # The gem's clear (host-scoped, one per path prefix) plus the same clear
+      # for each parent domain of the request host; see the class comment.
+      def remove_bad_cookies(request, response)
+        super
+        return if bad_cookies.empty?
+
+        paths = cookie_paths(request.path)
+        parent_domains(request.host).each do |domain|
+          bad_cookies.each do |name|
+            paths.each { |path| response.set_cookie(name, empty_cookie(domain, path)) }
+          end
+        end
+      end
+
+      # Every proper suffix of `host` with at least two labels, longest first.
+      # Empty for an IP literal (v4 or v6) and for a single-label host.
+      #
+      # @param host [String, nil]
+      # @return [Array<String>]
+      def parent_domains(host)
+        name = host.to_s.downcase.delete_suffix('.')
+        return [] if name.empty? || name.include?(':') || name.match?(/\A[0-9.]+\z/)
+
+        labels = name.split('.')
+        return [] if labels.size < 3 || labels.any?(&:empty?)
+
+        (1..(labels.size - 2)).map { |i| labels[i..].join('.') }
       end
 
       private

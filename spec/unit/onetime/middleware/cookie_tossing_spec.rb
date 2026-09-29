@@ -16,8 +16,9 @@ RSpec.describe Onetime::Middleware::CookieTossing do
   let(:downstream) { ->(_env) { [200, { 'content-type' => 'text/plain' }, ['downstream ran']] } }
   let(:middleware) { described_class.new(downstream) }
 
-  def request(cookie_header, path: '/api/account/')
+  def request(cookie_header, path: '/api/account/', host: nil)
     env = Rack::MockRequest.env_for(path)
+    env['HTTP_HOST'] = host if host
     env['HTTP_COOKIE'] = cookie_header unless cookie_header.nil?
     env['rack.errors'] = StringIO.new
     middleware.call(env)
@@ -96,13 +97,56 @@ RSpec.describe Onetime::Middleware::CookieTossing do
       expect(request('onetime.session=a; onetime%2Esession=b').first).to eq(403)
     end
 
-    # Host-scoped: the gem sets an empty cookie with domain = request host per
-    # path prefix. A cookie planted with a parent Domain= attribute is not
-    # cleared by this, and the browser keeps sending both until it expires.
-    it 'clears the offending cookie for the request host on the response' do
-      _status, headers, = request('onetime.session=a; onetime.session=b', path: '/api/account/')
+    # The gem's clear: an empty cookie with domain = request host, expires at
+    # the epoch, one per prefix of the request path.
+    it 'clears the offending cookie for the request host, per path prefix' do
+      _status, headers, = request('onetime.session=a; onetime.session=b', path: '/api/account/', host: 'eu.example.com')
+      lines = set_cookie_lines(headers)
 
-      expect(set_cookie_lines(headers)).to include(a_string_starting_with('onetime.session=;'))
+      %w[/ /api /api/account].each do |path|
+        expect(lines).to include(match(/\Aonetime\.session=;.*domain=eu\.example\.com;.*path=#{Regexp.escape(path)};.*expires=Thu, 01 Jan 1970 00:00:00 GMT/i))
+      end
+    end
+
+    # A tossed cookie is set with a parent Domain= attribute, which the gem's
+    # host-scoped clear never touches. The same clear for each parent domain
+    # is what lets one 403 remove the planted cookie and the legitimate one,
+    # so the next request starts a fresh session.
+    it 'also clears the offending cookie for every parent domain with at least two labels' do
+      _status, headers, = request('onetime.session=a; onetime.session=b', path: '/api/account/', host: 'a.b.example.com')
+      lines = set_cookie_lines(headers)
+
+      %w[a.b.example.com b.example.com example.com].each do |domain|
+        %w[/ /api /api/account].each do |path|
+          expect(lines).to include(match(/\Aonetime\.session=;.*domain=#{Regexp.escape(domain)};.*path=#{Regexp.escape(path)};/i))
+        end
+      end
+      expect(lines).not_to include(match(/domain=com;/i))
+    end
+
+    it 'clears only for the host itself on a single-label or IP-literal host' do
+      %w[localhost 127.0.0.1].each do |host|
+        _status, headers, = request('onetime.session=a; onetime.session=b', host: host)
+        lines = set_cookie_lines(headers)
+
+        expect(lines).not_to be_empty
+        expect(lines).to all(match(/domain=#{Regexp.escape(host)};/i))
+      end
+    end
+  end
+
+  describe '#parent_domains' do
+    it 'lists every proper suffix with at least two labels, longest first' do
+      expect(middleware.parent_domains('a.b.example.com')).to eq(%w[b.example.com example.com])
+      expect(middleware.parent_domains('eu.example.com')).to eq(%w[example.com])
+    end
+
+    it 'is empty for two-label, single-label, IP-literal and blank hosts' do
+      expect(middleware.parent_domains('example.com')).to eq([])
+      expect(middleware.parent_domains('localhost')).to eq([])
+      expect(middleware.parent_domains('127.0.0.1')).to eq([])
+      expect(middleware.parent_domains('[::1]')).to eq([])
+      expect(middleware.parent_domains(nil)).to eq([])
     end
   end
 
