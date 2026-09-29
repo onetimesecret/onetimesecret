@@ -309,18 +309,70 @@ describe('authStore PR #4497 transition contracts', () => {
       });
     });
 
-    it('a throttled duplicate returns { ownedByCoordinator: false, reason: throttled }', async () => {
+    it('a duplicate while the reconciliation is in flight returns { ownedByCoordinator: true, reason: reconciling-duplicate }', async () => {
       await mountWith(authenticatedBootstrap);
       axiosMock.onGet(ENDPOINT).reply(200, toWire(newerSnapshot(authenticatedBootstrap)));
 
       const first = store.noteApiRejection(revoked);
+      // The request is up but has not answered: the snapshot it will apply
+      // answers every 401 that arrived meanwhile, so no toast for them.
       const second = store.noteApiRejection(revoked);
+      const third = store.noteApiRejection(revoked);
+
+      expect(first).toEqual({ ownedByCoordinator: true, reason: 'reconciling' });
+      expect(second).toEqual({ ownedByCoordinator: true, reason: 'reconciling-duplicate' });
+      expect(third).toEqual({ ownedByCoordinator: true, reason: 'reconciling-duplicate' });
+      expect(requests()).toBe(1);
+    });
+
+    it('a duplicate after the reconciliation settled returns { ownedByCoordinator: false, reason: throttled }', async () => {
+      await mountWith(authenticatedBootstrap);
+      const reply = newerSnapshot(authenticatedBootstrap);
+      axiosMock.onGet(ENDPOINT).reply(200, toWire(reply));
+
+      const first = store.noteApiRejection(revoked);
+      await vi.advanceTimersByTimeAsync(0);
+      // The reply was applied, not merely finished: the watermark moved to the
+      // newer snapshot and the session is still reported as held.
+      expect(bootstrapStore.watermark).toEqual({
+        epoch: reply.snapshot_epoch,
+        version: reply.snapshot_version,
+      });
+      expect(store.authStatus).toBe('authenticated');
+
+      // Still inside REJECTION_MIN_INTERVAL, but the reconciliation has
+      // completed and found the session valid. The coordinator will NOT run
+      // again for this rejection, so the caller keeps its toast
+      // (ADR-046#rejection-disposition).
+      const later = store.noteApiRejection(revoked);
 
       expect(first.ownedByCoordinator).toBe(true);
-      // A follow-up rejection within REJECTION_MIN_INTERVAL is throttled — the
-      // coordinator will NOT run for it, so the caller keeps its toast
-      // (ADR-046#rejection-disposition).
-      expect(second).toEqual({ ownedByCoordinator: false, reason: 'throttled' });
+      expect(later).toEqual({ ownedByCoordinator: false, reason: 'throttled' });
+      expect(requests()).toBe(1);
+    });
+
+    it('a duplicate is owned by whichever flight superseded the rejection request, until it settles', async () => {
+      await mountWith(authenticatedBootstrap);
+      axiosMock.onGet(ENDPOINT).reply(200, toWire(newerSnapshot(authenticatedBootstrap)));
+
+      const first = store.noteApiRejection(revoked);
+      // An auth mutation aborts the rejection's own request and starts a new
+      // generation; its snapshot is the coordinator's next verdict
+      // (ADR-046#commit-generation-ownership), so it answers the duplicate.
+      const mutation = store.refresh({ kind: 'auth-mutation', reason: 'login' });
+      const whileSuperseding = store.noteApiRejection(revoked);
+
+      expect(first.ownedByCoordinator).toBe(true);
+      expect(whileSuperseding).toEqual({
+        ownedByCoordinator: true,
+        reason: 'reconciling-duplicate',
+      });
+
+      await vi.advanceTimersByTimeAsync(0);
+      expect(await mutation).toBe('applied');
+
+      const afterwards = store.noteApiRejection(revoked);
+      expect(afterwards).toEqual({ ownedByCoordinator: false, reason: 'throttled' });
     });
 
     it('an admin-only timeout returns { ownedByCoordinator: false, reason: skipped-carve-out }', async () => {
@@ -375,6 +427,126 @@ describe('authStore PR #4497 transition contracts', () => {
       expect(readCoordinatorDisposition(new Error('no stamp'))).toBeNull();
       expect(readCoordinatorDisposition(null)).toBeNull();
       expect(readCoordinatorDisposition(undefined)).toBeNull();
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // one fallback notice per batch of owned rejections (ADR-046#rejection-disposition)
+  // -------------------------------------------------------------------------
+  describe('an owned batch whose flight settles without a transition gets one notice', () => {
+    const revoked = { code: 'active_session_revoked', code_scope: 'customer_session' } as const;
+    const stillAuthenticated = () => toWire(newerSnapshot(authenticatedBootstrap));
+
+    it('flight applies a still-authenticated snapshot: one notice, first message, whole count', async () => {
+      await mountWith(authenticatedBootstrap);
+      axiosMock.onGet(ENDPOINT).reply(200, stillAuthenticated());
+
+      store.noteApiRejection(revoked, 'Authentication Required');
+      store.noteApiRejection(revoked, 'Something else');
+      store.noteApiRejection(revoked, null);
+      expect(store.rejectionNotice).toBeNull();
+
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(store.authStatus).toBe('authenticated');
+      expect(store.rejectionNotice).toEqual({
+        serial: 1,
+        count: 3,
+        message: 'Authentication Required',
+      });
+    });
+
+    it('a null message is kept as null: App.vue substitutes the generic text', async () => {
+      await mountWith(authenticatedBootstrap);
+      axiosMock.onGet(ENDPOINT).reply(200, stillAuthenticated());
+
+      store.noteApiRejection(revoked);
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(store.rejectionNotice).toEqual({ serial: 1, count: 1, message: null });
+    });
+
+    it('flight fails: one notice, and the backoff retry does not produce a second', async () => {
+      await mountWith(authenticatedBootstrap);
+      let n = 0;
+      axiosMock.onGet(ENDPOINT).reply(() => (++n === 1 ? [500, {}] : [200, stillAuthenticated()]));
+
+      store.noteApiRejection(revoked, 'Authentication Required');
+      store.noteApiRejection(revoked, 'Authentication Required');
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(store.rejectionNotice).toEqual({
+        serial: 1,
+        count: 2,
+        message: 'Authentication Required',
+      });
+
+      // The retry runs and applies a still-authenticated snapshot; it owes
+      // nothing, so the notice is not repeated.
+      await vi.advanceTimersByTimeAsync(AUTH_CHECK_CONFIG.BACKOFF_CAP);
+      expect(requests()).toBe(2);
+      expect(store.authStatus).toBe('authenticated');
+      expect(store.rejectionNotice?.serial).toBe(1);
+    });
+
+    it('flight superseded by an auth mutation: the replacement pays the notice, once', async () => {
+      await mountWith(authenticatedBootstrap);
+      axiosMock.onGet(ENDPOINT).reply(200, stillAuthenticated());
+
+      store.noteApiRejection(revoked, 'Authentication Required');
+      const mutation = store.refresh({ kind: 'auth-mutation', reason: 'login' });
+      store.noteApiRejection(revoked, 'Authentication Required');
+
+      await vi.advanceTimersByTimeAsync(0);
+      expect(await mutation).toBe('applied');
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(store.rejectionNotice).toEqual({
+        serial: 1,
+        count: 2,
+        message: 'Authentication Required',
+      });
+    });
+
+    it('flight ends in a forced page load: the transition speaks, no notice', async () => {
+      await mountWith(authenticatedBootstrap);
+      axiosMock.onGet(ENDPOINT).reply(200, toWire(anonymousBootstrap));
+
+      store.noteApiRejection(revoked, 'Authentication Required');
+      store.noteApiRejection(revoked, 'Authentication Required');
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(attemptForcedPageLoad).toHaveBeenCalledTimes(1);
+      expect(store.staleSession).toBe(true);
+      expect(store.rejectionNotice).toBeNull();
+    });
+
+    it('a settled throttled rejection is not owed: nothing is added to a paid batch', async () => {
+      await mountWith(authenticatedBootstrap);
+      axiosMock.onGet(ENDPOINT).reply(200, stillAuthenticated());
+
+      store.noteApiRejection(revoked, 'Authentication Required');
+      await vi.advanceTimersByTimeAsync(0);
+      expect(store.rejectionNotice?.serial).toBe(1);
+
+      // Inside the window, after settle: the caller keeps its own toast.
+      expect(store.noteApiRejection(revoked, 'Authentication Required')).toEqual({
+        ownedByCoordinator: false,
+        reason: 'throttled',
+      });
+      await vi.advanceTimersByTimeAsync(0);
+      expect(store.rejectionNotice?.serial).toBe(1);
+    });
+
+    it('a local sign-out discards the batch: no notice after logout', async () => {
+      await mountWith(authenticatedBootstrap);
+      axiosMock.onGet(ENDPOINT).reply(200, stillAuthenticated());
+
+      store.noteApiRejection(revoked, 'Authentication Required');
+      await store.logout();
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(store.rejectionNotice).toBeNull();
     });
   });
 
