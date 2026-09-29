@@ -33,7 +33,9 @@ module LaneEnv
   LANES = {
     'ORGS_SSO_ENABLED' => 'spec:integration:full',
     # The install-wide SAML switch (#4604): without it the saml route is not
-    # registered at all, which a bare run reads as a 404 product bug.
+    # registered at all and the callback transport answers 404, which a bare
+    # run reads as a product bug. The browser lane (tests/lanes/browser/env)
+    # sets it too.
     'SAML_ENABLED' => 'spec:integration:full',
     'AUTH_MFA_ENABLED' => 'spec:integration:full:mfa',
     'SAML_IDP_ENTITY_ID' => 'spec:integration:full:saml_platform',

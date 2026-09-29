@@ -19,7 +19,10 @@ require 'onetime/sso_provider/request_bound_saml'
 require 'onetime/sso_provider/saml'
 require_relative '../../spec/support/saml/test_idp'
 
-RSpec.describe 'Real-browser staged SAML callback' do
+# The lane sets SAML_ENABLED=true (tests/lanes/browser/env): the real
+# Boundary below answers 404 before reading the body while the install-wide
+# switch (#4604) is off, and a bare rspec run would read that as a product bug.
+RSpec.describe 'Real-browser staged SAML callback', lane_env: { 'SAML_ENABLED' => 'true' } do
   it 'recovers the original Lax cookie across cross-site POST → 303 → GET, with None and Strict controls' do
     config = OmniAuth.config
     saved = %i[on_failure request_validation_phase logger test_mode full_host].to_h { |key| [key, config.public_send(key)] }
