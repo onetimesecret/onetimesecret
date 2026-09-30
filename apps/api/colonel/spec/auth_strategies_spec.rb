@@ -60,6 +60,19 @@ RSpec.describe ColonelAPI::AuthStrategies::SessionAuthStrategy do
       )
     end
 
+    it 'reports the Host the server received on a request PublicHostRewrite rewrote' do
+      env['onetime.original_http_host'] = env['HTTP_HOST']
+      env['HTTP_HOST']                  = 'tenant.example.test'
+
+      metadata = strategy.send(:build_metadata, env)
+
+      expect(metadata[:proxy_header_debug][:request_headers]['host']).to eq('origin.example.test')
+    end
+
+    it 'reads the received Host through the env key the middleware writes' do
+      expect(described_class::ORIGINAL_HTTP_HOST).to eq(Onetime::Middleware::PublicHostRewrite::ORIGINAL_HTTP_HOST)
+    end
+
     it 'reports the carriers StripForwardedHost deleted, by wire name' do
       # The middleware has already deleted HTTP_FORWARDED / HTTP_X_FORWARDED_HOST
       # by the time any app runs; only its record of the deletion is left.
