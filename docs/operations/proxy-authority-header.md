@@ -91,6 +91,49 @@ which host is detected, but it can make the admin surfaces 404 where the header
 and the detected host disagree. Removing the headers at the proxy avoids that.
 See [admin-network-isolation.md](admin-network-isolation.md).
 
+## Rack's own host (`site.network.public_host_rewrite`)
+
+The detected host is what the application keys on, but it is not what
+`Rack::Request#host` returns. Behind a proxy that rewrites `Host` to the origin
+target, Rack's host is the origin target: `X-Forwarded-Host` is removed from
+the request once it has been read, so nothing downstream reads it a second
+time. Application code reads the resolved host. Code that reads the Rack host
+directly, including mounted gems, gets the origin target.
+
+`site.network.public_host_rewrite` (`PUBLIC_HOST_REWRITE=true`, default off)
+closes that gap. When it is on, `Onetime::Middleware::PublicHostRewrite` sets
+`Host` to the detected host for a request that:
+
+- classified as a canonical host, a subdomain or peer of one, or a registered
+  custom domain, and
+- was detected on a valid hostname that is the request's display domain, and
+- does not already carry that host in `Host`.
+
+Every other request is left as received. That includes an unregistered host, a
+custom domain whose record could not be read, a request the application could
+not detect a host for (`localhost`, an IP literal), and any request while the
+custom-domains feature is off unless it resolved to `site.host` itself.
+
+Details:
+
+- Only the hostname is written. The port on the received `Host` belongs to the
+  hop between the proxy and the application, so it is not carried over. The
+  port then comes from `X-Forwarded-Port` if the proxy sends it, otherwise the
+  scheme default. A port configured in `site.host` still applies to URLs built
+  for the canonical host.
+- A `Host` that arrives doubled (`Host: a, a`) and resolves to a served host is
+  replaced by that host.
+- The `Host` as received is kept in the Rack env as
+  `onetime.original_http_host` on a rewritten request. The colonel proxy
+  diagnostic reports it as `request_headers.host`.
+- The admin host gate runs before the rewrite and is unchanged by it.
+- A proxy that preserves `Host` needs none of this: the request already
+  carries the public host and nothing is rewritten.
+
+With the setting on, a request through a Host-rewriting proxy reaches the
+mounted applications with the same host a Host-preserving proxy would have
+delivered. `X-Forwarded-Host` is still accepted from a trusted proxy only.
+
 ## Upgrading
 
 Before this change the application also read `Apx-Incoming-Host` and
