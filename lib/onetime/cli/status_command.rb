@@ -418,7 +418,9 @@ module Onetime
       end
 
       # Every adapter goes through the shared policy. A SQLite URL carries no
-      # userinfo, but its query string can still hold credentials.
+      # userinfo, so the policy keeps its path whole (a ":" or "@" there is
+      # part of the file name), but its query string can still hold
+      # credentials and is masked.
       def sanitize_db_url(url)
         OT::Utils.redact_uri_userinfo(url, keep_username: true)
       end
