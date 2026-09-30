@@ -64,6 +64,13 @@ module Auth::Config::Hooks
     # (see .inject_saml_sp_identifiers). A name, for the same reason as above.
     SAML_STRATEGY_CLASS = 'OmniAuth::Strategies::RequestBoundSAML'
 
+    # How long the tenant markers a request phase parks stay usable, in
+    # seconds (#4610). A pending tenant context older than this is dropped
+    # by the next SSO request in the session (see .drop_expired_tenant_context).
+    # Ten minutes leaves room for a sign-in at the IdP, including a second
+    # factor.
+    PENDING_TENANT_CONTEXT_MAX_AGE = 600
+
     def self.configure(auth)
       # Single consumer for the validated tenant domain id. Reads the session
       # copy (pre-login callers) and the instance copy (after_login, which runs
@@ -116,6 +123,10 @@ module Auth::Config::Hooks
         unless Auth::RestrictTo.allows?(request.env, 'sso')
           HELPERS.reject_restricted_sso(host, request, self, :restrict_to_omniauth_rejected)
         end
+
+        # A pending tenant context past its age bound is dropped before
+        # anything reads it, on every phase (#4610).
+        HELPERS.drop_expired_tenant_context(session, host)
 
         # Skip tenant context storage during callback phase.
         # The setup hook fires for BOTH request and callback phases, but we only
@@ -260,8 +271,9 @@ module Auth::Config::Hooks
         # Only during request phase — callback phase must NOT overwrite the
         # stored context, otherwise the mismatch check is defeated.
         if is_request_phase && !is_callback_phase
-          session[:omniauth_tenant_domain_id] = custom_domain.identifier
-          session[:omniauth_tenant_host]      = host
+          session[:omniauth_tenant_domain_id]  = custom_domain.identifier
+          session[:omniauth_tenant_host]       = host
+          session[:omniauth_tenant_started_at] = Time.now.to_i
         end
 
         Auth::Logging.log_auth_event(
@@ -315,6 +327,7 @@ module Auth::Config::Hooks
 
         expected_domain_id = session.delete(:omniauth_tenant_domain_id)
         expected_host      = session.delete(:omniauth_tenant_host)
+        session.delete(:omniauth_tenant_started_at)
 
         # Tenant options were injected by HOST on this very callback
         # (omniauth_setup caches the record it injected from), yet no tenant
@@ -893,7 +906,9 @@ module Auth::Config::Hooks
     # One refusal cannot apply it: a SAML response POSTed to the ACS URL is
     # stripped of cookies by SamlCallbackTransport, so the 404 Stage answers
     # for a route that is no longer active never sees the initiating session
-    # (#4610).
+    # (#4610). A context left behind that way, or by a flow the visitor
+    # abandoned, ages out instead: drop_expired_tenant_context removes it
+    # once it is older than PENDING_TENANT_CONTEXT_MAX_AGE.
     #
     # The markers alone are not enough. before_omniauth_callback_route reads
     # a missing :omniauth_tenant_domain_id as "platform-level auth" and skips
@@ -921,7 +936,49 @@ module Auth::Config::Hooks
     def self.clear_pending_tenant_context(session)
       session.delete(:omniauth_tenant_domain_id)
       session.delete(:omniauth_tenant_host)
+      session.delete(:omniauth_tenant_started_at)
       Onetime::SsoProvider::FlowSessionKeys::ALL.each { |key| session.delete(key) }
+    end
+
+    # Drop a pending tenant context that is older than
+    # PENDING_TENANT_CONTEXT_MAX_AGE (#4610).
+    #
+    # The request phase stores the time it parked the tenant markers
+    # (:omniauth_tenant_started_at). omniauth_setup calls this first on every
+    # phase, so a callback arriving for an expired context finds neither the
+    # markers nor the per-strategy binding: the SAML strategy has no pending
+    # request id and the OAuth/OIDC strategies have no state, and the
+    # callback ends on the strategy's own failure path. A new request phase
+    # is unaffected; it writes fresh markers after this runs.
+    #
+    # Markers without a readable start time count as expired. That covers a
+    # session written before the start time was stored: a sign-in in
+    # progress across that deploy has to be started again.
+    #
+    # A session with no tenant markers is left as it is, so a platform
+    # flow's binding is never touched here.
+    #
+    # @param session [#[], #delete] the Rack session (or a Hash standing in)
+    # @param host [String] request public host (for logging)
+    # @param now [Integer] current time, epoch seconds
+    # @return [Boolean] true when a context was dropped
+    def self.drop_expired_tenant_context(session, host, now: Time.now.to_i)
+      return false unless pending_tenant_flow?(session)
+
+      started_at = session[:omniauth_tenant_started_at] || session['omniauth_tenant_started_at']
+      age        = started_at.is_a?(Integer) ? now - started_at : nil
+      return false if age && age.between?(0, PENDING_TENANT_CONTEXT_MAX_AGE)
+
+      clear_pending_tenant_context(session)
+
+      Auth::Logging.log_auth_event(
+        :omniauth_tenant_context_expired,
+        level: :info,
+        host: host,
+        age_seconds: age,
+        pending_tenant_flow_dropped: true,
+      )
+      true
     end
 
     # Answer an SSO route that restrict_to takes away on this host with the
