@@ -358,17 +358,9 @@
     "text": "members",
     "content_hash": "17373ca1"
   },
-  "web.organizations.members.member_quota": {
-    "text": "{used} of {limit} members",
-    "content_hash": "51183b79"
-  },
   "web.organizations.members.pending_suffix": {
     "text": "({count} pending)",
     "content_hash": "c13f787f"
-  },
-  "web.organizations.members.limit_reached_hint": {
-    "text": "Member limit reached.",
-    "content_hash": "26cdb6b8"
   },
   "web.organizations.members.name": {
     "text": "Name",
@@ -949,6 +941,11 @@
     "text": "Preview based on the default sign-in route. Save this configuration, then confirm these values here before registering them with your identity provider.",
     "content_hash": "fd9d3001"
   },
+  "web.organizations.sso.domain_unverified_notice": {
+    "text": "Single sign-on is off on this domain until the domain is verified. Verification does not change the values below.",
+    "context": "Notice above the callback URL (OIDC / Microsoft Entra ID) or the service provider details (SAML) in a custom domain's SSO form while the domain's ownership is not verified. Sign-in through SSO is refused until verification completes. Also shown when the SSO connection is switched off or the domain's sign-in settings withhold SSO, so it must not promise that verification alone turns SSO on. The second sentence only says verification leaves the values as they are; whether they are ready to register is said by the hint on the block below, so do not add that promise here.",
+    "content_hash": "4b56ea4b"
+  },
   "web.organizations.sso.sp_entity_id": {
     "text": "SP Entity ID (metadata URL)",
     "content_hash": "59bc544c"
@@ -1349,11 +1346,6 @@
     "text": "Invitation already pending for this email",
     "context": "Returned when a duplicate invitation is attempted",
     "content_hash": "7f5e3093"
-  },
-  "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Member limit reached. Upgrade your plan to invite more members.",
-    "context": "Returned when org members_per_org quota is hit",
-    "content_hash": "b8f316e8"
   },
   "api.organizations.invitations.errors.not_found": {
     "text": "Invitation not found",

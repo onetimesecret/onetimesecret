@@ -380,7 +380,9 @@ module Onetime
       #
       # Two shapes are masked past the scheme: a "?" before that "@", which
       # is either in the password or starts a query with an "@" in it, and a
-      # value with no "scheme://", which has no reliable shape to keep.
+      # value with no "scheme://", which has no reliable shape to keep. A
+      # SQLite URL (`sqlite::memory:` included) has no userinfo: its path is
+      # kept whole and only its query is masked.
       #
       #   mask_url('postgresql://app:s3cret@db/auth?sslmode=require')
       #   #=> "postgresql://app:****@db/auth?****"

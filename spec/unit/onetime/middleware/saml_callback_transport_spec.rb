@@ -282,14 +282,20 @@ RSpec.describe Onetime::Middleware::SamlCallbackTransport do
       expect(OT).to have_received(:lw).with(/SAML_CALLBACK_SOURCE_LIMIT=500 exceeds SAML_CALLBACK_GLOBAL_LIMIT=10/)
     end
 
-    ['0', '-5', 'abc', '1.5', ' ', '0x10'].each do |bad|
+    # The ceiling itself is accepted; anything above it (including a value the
+    # Lua script could only represent as an imprecise or infinite double) is not.
+    ClimateControl.modify(SAML_CALLBACK_GLOBAL_LIMIT: store::MAX_LIMIT.to_s, SAML_CALLBACK_SOURCE_LIMIT: store::MAX_LIMIT.to_s) do
+      store.reset_limits!
+      expect([store.global_limit, store.source_limit]).to eq([store::MAX_LIMIT, store::MAX_LIMIT])
+    end
+    ['0', '-5', 'abc', '1.5', ' ', '0x10', (store::MAX_LIMIT + 1).to_s, '9' * 400].each do |bad|
       ClimateControl.modify(SAML_CALLBACK_GLOBAL_LIMIT: bad, SAML_CALLBACK_SOURCE_LIMIT: bad) do
         store.reset_limits!
         expect([store.global_limit, store.source_limit]).to eq([256, 64]), bad.inspect
       end
     end
-    expect(OT).to have_received(:lw).with(/SAML_CALLBACK_GLOBAL_LIMIT=.* is not a positive integer; using 256/).at_least(:once)
-    expect(OT).to have_received(:lw).with(/SAML_CALLBACK_SOURCE_LIMIT=.* is not a positive integer; using 64/).at_least(:once)
+    expect(OT).to have_received(:lw).with(/SAML_CALLBACK_GLOBAL_LIMIT=.* is not a positive integer up to 1000000; using 256/).at_least(:once)
+    expect(OT).to have_received(:lw).with(/SAML_CALLBACK_SOURCE_LIMIT=.* is not a positive integer up to 1000000; using 64/).at_least(:once)
 
     ClimateControl.modify(SAML_CALLBACK_GLOBAL_LIMIT: '2', SAML_CALLBACK_SOURCE_LIMIT: '1') do
       store.reset_limits!
@@ -340,7 +346,7 @@ RSpec.describe Onetime::Middleware::SamlCallbackTransport do
 
   it 'refuses invalid form types and oversized values without authenticating' do
     expect(store::MAX_RESPONSE_BYTES).to eq(128_000)
-    expect(described_class::MAX_BODY_BYTES).to eq(200_000)
+    expect(described_class::MAX_BODY_BYTES).to eq((3 * store::MAX_RESPONSE_BYTES) + 4_096)
     expect(stage('a' * (store::MAX_RESPONSE_BYTES + 1)).status).to eq(400)
     expect(stage(['array']).status).to eq(400)
     response = Rack::MockRequest.new(app).post("#{host}#{path}", input: '{}', 'CONTENT_TYPE' => 'application/json')
@@ -348,9 +354,23 @@ RSpec.describe Onetime::Middleware::SamlCallbackTransport do
     expect(reached).to be_empty
   end
 
+  it 'never refuses for body size a value the Stage would accept, even at worst-case URL encoding' do
+    # Every character of this maximal value URL-encodes to three bytes.
+    worst = '/' * store::MAX_RESPONSE_BYTES
+    params = { 'SAMLResponse' => worst, 'RelayState' => '/' * 80 }
+    body = Rack::Utils.build_query(params)
+    expect(body.bytesize).to be > (3 * store::MAX_RESPONSE_BYTES)
+    expect(body.bytesize).to be <= described_class::MAX_BODY_BYTES
+    response = Rack::MockRequest.new(app).post("#{host}#{path}", params: params, 'HTTP_ORIGIN' => 'https://idp.example.com')
+    expect(response.status).to eq(303)
+    expect(reached).to be_empty
+  end
+
   it 'stages only base64 text (whitespace tolerated) and never stores anything else' do
     expect(store).not_to receive(:stage)
-    ['<samlp:Response/>', 'PHNhbWw+#', "YWJj\u0000", 'YWJj-ZGVm_', '%PDF', 'a b*c'].each do |junk|
+    # Whitespace or padding alone matches the alphabet but can never decode;
+    # it must not spend admission quota.
+    ['<samlp:Response/>', 'PHNhbWw+#', "YWJj\u0000", 'YWJj-ZGVm_', '%PDF', 'a b*c', ' ', "\r\n\t", '=', '==', " =\n"].each do |junk|
       response = stage(junk)
       expect(response.status).to eq(400), junk.inspect
       expect(response['set-cookie']).to be_nil

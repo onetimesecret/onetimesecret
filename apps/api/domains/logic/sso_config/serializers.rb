@@ -97,22 +97,28 @@ module DomainsAPI
         # API, usually on the canonical host, so the origin is composed from
         # the domain's display_domain and site.ssl. The two agree for a
         # verified custom domain served on the default port — the production
-        # shape. An unverified domain is withheld because Auth::PublicHost will
-        # not serve tenant auth URLs there (#4517); advertising identifiers on
-        # that host would give the IdP values the runtime cannot use.
+        # shape.
         #
-        # Both nil for a non-saml record, when the domain cannot be loaded, or
-        # while domain ownership is unverified.
+        # Composed whether or not the domain is verified yet: these are the
+        # values the admin registers at the IdP, and they go live once TXT
+        # verification completes. Until then the tenant hook refuses SSO on
+        # the domain (sso_domain_unverified, #4579) before any strategy runs,
+        # so the IdP never receives a different value — Auth::PublicHost
+        # roots tenant auth URLs on a verified domain only (#4517). The
+        # settings form labels them as not live yet; hiding them would leave
+        # the admin nothing to register ahead of verification, and would
+        # blank the values a working domain registered if its verification
+        # lapses.
+        #
+        # Both nil for a non-saml record, or when the domain cannot be loaded
+        # or has no display_domain.
         #
         # @return [Hash{Symbol => String, nil}]
         def saml_sp_identifiers(config)
           blank = { sp_entity_id: nil, acs_url: nil }
           return blank unless config.provider_type == 'saml'
 
-          domain = config.custom_domain
-          return blank unless domain&.verified
-
-          host = domain.display_domain.to_s.strip
+          host = config.custom_domain&.display_domain.to_s.strip
           return blank if host.empty?
 
           scheme = OT.conf.dig('site', 'ssl') == false ? 'http' : 'https'

@@ -823,10 +823,6 @@
     "text": "Приглашение для этого адреса электронной почты уже ожидает обработки",
     "source_hash": "7f5e3093"
   },
-  "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Достигнут лимит участников. Перейдите на более высокий план, чтобы пригласить больше участников.",
-    "source_hash": "b8f316e8"
-  },
   "api.organizations.invitations.errors.not_found": {
     "text": "Приглашение не найдено",
     "source_hash": "775ba9eb"
@@ -967,17 +963,9 @@
     "text": "Отклонить",
     "source_hash": "a2d285b3"
   },
-  "web.organizations.members.member_quota": {
-    "text": "Участников: {used} из {limit}",
-    "source_hash": "51183b79"
-  },
   "web.organizations.members.pending_suffix": {
     "text": "(ожидает: {count})",
     "source_hash": "c13f787f"
-  },
-  "web.organizations.members.limit_reached_hint": {
-    "text": "Достигнут лимит участников.",
-    "source_hash": "26cdb6b8"
   },
   "web.organizations.sso.view_discovery_document": {
     "text": "Просмотреть документ обнаружения",

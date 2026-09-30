@@ -1023,8 +1023,24 @@ RSpec.describe Core::Views::ConfigSerializer do
           allow(custom_domain_obj).to receive(:verified).and_return(false)
           allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(false)
 
-          # The unverified refusal exits through the fallback-withheld guard,
-          # the same two-key shape as the master-switch-off example above.
+          # The same two-key shape as the master-switch-off example above.
+          expect(described_class.build_sso_config(custom_domain_view_vars)).to eq(
+            'enabled' => false,
+            'providers' => [],
+          )
+        end
+
+        # #4579: the omniauth hook refuses every SSO route on this host with
+        # sso_domain_unverified, platform providers included, so the page
+        # must not fall back to them either.
+        it 'offers no platform fallback on an unverified domain, even when tenants may fall back' do
+          allow(custom_domain_obj).to receive(:verified).and_return(false)
+          allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+          allow(mock_auth_config).to receive(:sso_enabled?).and_return(true)
+          allow(mock_auth_config).to receive(:sso_providers).and_return([
+            { 'route_name' => 'oidc', 'display_name' => 'Platform SSO' },
+          ])
+
           expect(described_class.build_sso_config(custom_domain_view_vars)).to eq(
             'enabled' => false,
             'providers' => [],
@@ -1101,6 +1117,18 @@ RSpec.describe Core::Views::ConfigSerializer do
             expect(result['enabled']).to be true
             expect(result['providers'][0]['display_name']).to eq('Platform SSO')
             expect(result['connect_providers']).to eq([])
+          end
+
+          # Not awaiting verification (#4579): verifying would not turn the
+          # tenant's SSO on, so the host keeps the fallback it has once
+          # verified, and the omniauth hook falls back the same way.
+          it 'keeps platform fallback on an unverified domain' do
+            allow(custom_domain_obj).to receive(:verified).and_return(false)
+
+            result = described_class.build_sso_config(custom_domain_view_vars)
+
+            expect(result['enabled']).to be true
+            expect(result['providers'][0]['display_name']).to eq('Platform SSO')
           end
 
           it 'omits platform SAML for both sign-in and Connect on a verified custom domain' do

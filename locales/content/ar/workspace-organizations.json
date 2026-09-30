@@ -639,10 +639,6 @@
     "text": "توجد دعوة معلقة بالفعل لهذا البريد الإلكتروني",
     "source_hash": "7f5e3093"
   },
-  "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "تم بلوغ حد الأعضاء. قم بترقية خطتك لدعوة المزيد من الأعضاء.",
-    "source_hash": "b8f316e8"
-  },
   "api.organizations.invitations.errors.not_found": {
     "text": "لم يتم العثور على الدعوة",
     "source_hash": "775ba9eb"
@@ -783,17 +779,9 @@
     "text": "رفض",
     "source_hash": "a2d285b3"
   },
-  "web.organizations.members.member_quota": {
-    "text": "{used} من {limit} عضو",
-    "source_hash": "51183b79"
-  },
   "web.organizations.members.pending_suffix": {
     "text": "({count} معلق)",
     "source_hash": "c13f787f"
-  },
-  "web.organizations.members.limit_reached_hint": {
-    "text": "تم بلوغ حد الأعضاء.",
-    "source_hash": "26cdb6b8"
   },
   "web.organizations.sso.title": {
     "text": "تسجيل الدخول الموحّد (SSO)",

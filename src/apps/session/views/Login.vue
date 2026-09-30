@@ -82,6 +82,7 @@ const authErrorMessages: Record<string, string> = {
   sso_not_configured: 'web.login.errors.sso_not_configured',
   sso_issuer_mismatch: 'web.login.errors.sso_issuer_mismatch',
   sso_config_unusable: 'web.login.errors.sso_config_unusable',
+  sso_domain_unverified: 'web.login.errors.sso_domain_unverified',
   token_missing: 'web.login.errors.token_missing',
   token_expired: 'web.login.errors.token_expired',
   token_invalid: 'web.login.errors.token_invalid',
@@ -261,6 +262,7 @@ const handleLinkSent = () => {
         <div
           v-if="authError"
           role="alert"
+          data-testid="signin-auth-error"
           class="
             mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700
             dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">

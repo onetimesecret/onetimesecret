@@ -1280,7 +1280,9 @@ describe('DomainSsoConfigForm', () => {
         expect(wrapper.text()).not.toContain('web.organizations.sso.sp_details_preview_hint');
       });
 
-      it('does not reconstruct identifiers that the API withheld for a saved record', async () => {
+      // A saved null now means only that the API could not load the domain;
+      // verification no longer withholds the values (#4579).
+      it('falls back to the host preview when the API could not derive them', async () => {
         wrapper = await mountComponent({
           formState: mockSamlFormState,
           ssoConfig: { ...mockSamlConfig, sp_entity_id: null, acs_url: null },
@@ -1288,16 +1290,13 @@ describe('DomainSsoConfigForm', () => {
           domainHost: 'secrets.example.com',
         });
 
-        expect(wrapper.find('[data-testid="sso-saml-sp-details"]').exists()).toBe(false);
-      });
-
-      it('does not preview tenant-host identifiers for an unverified domain', async () => {
-        wrapper = await mountComponent({
-          formState: mockSamlFormState,
-          domainVerified: false,
-        });
-
-        expect(wrapper.find('[data-testid="sso-saml-sp-details"]').exists()).toBe(false);
+        expect(wrapper.find('[data-testid="sso-saml-sp-entity-id"]').text()).toBe(
+          'https://secrets.example.com/auth/sso/saml/metadata'
+        );
+        // Still host-derived, so still labelled a preview.
+        expect(wrapper.find('[data-testid="sso-saml-sp-details-hint"]').text()).toBe(
+          'web.organizations.sso.sp_details_preview_hint'
+        );
       });
 
       it('replaces the generic callback block and offers a copy control per value', async () => {
@@ -1322,6 +1321,88 @@ describe('DomainSsoConfigForm', () => {
         wrapper = await mountComponent({ formState: mockSamlFormState, domainHost: '' });
 
         expect(wrapper.find('[data-testid="sso-saml-sp-details"]').exists()).toBe(false);
+      });
+    });
+
+    // #4579: tenant SSO is refused on an unverified domain, and verification
+    // does not change the values, so they are shown with a notice. Whether
+    // they are ready to register stays the block hint's call.
+    describe('unverified domain', () => {
+      const NOTICE = '[data-testid="sso-domain-unverified-notice"]';
+
+      it('previews the SP identifiers and shows the notice before a record exists', async () => {
+        wrapper = await mountComponent({ formState: mockSamlFormState, domainVerified: false });
+
+        expect(wrapper.find('[data-testid="sso-saml-sp-entity-id"]').text()).toBe(
+          'https://secrets.example.com/auth/sso/saml/metadata'
+        );
+        expect(wrapper.find('[data-testid="sso-saml-acs-url"]').text()).toBe(
+          'https://secrets.example.com/auth/sso/saml/callback'
+        );
+        const notice = wrapper.find(NOTICE);
+        expect(notice.exists()).toBe(true);
+        expect(notice.attributes('role')).toBe('status');
+        expect(notice.text()).toBe('web.organizations.sso.domain_unverified_notice');
+        // The notice does not override the preview caveat: host-derived values
+        // are confirmed after saving, verified domain or not (#3932).
+        expect(wrapper.find('[data-testid="sso-saml-sp-details-hint"]').text()).toBe(
+          'web.organizations.sso.sp_details_preview_hint'
+        );
+      });
+
+      it('shows the API-composed values of a saved record as final, with the notice', async () => {
+        // A domain that lost its verification keeps showing what the admin
+        // already registered at the IdP.
+        wrapper = await mountComponent({
+          formState: mockSamlFormState,
+          ssoConfig: mockSamlConfig,
+          isConfigured: true,
+          domainVerified: false,
+        });
+
+        expect(wrapper.find('[data-testid="sso-saml-sp-entity-id"]').text()).toBe(
+          mockSamlConfig.sp_entity_id
+        );
+        expect(wrapper.find('[data-testid="sso-saml-acs-url"]').text()).toBe(
+          mockSamlConfig.acs_url
+        );
+        // Not a preview: verification changes when they go live, not what they are.
+        expect(wrapper.find('[data-testid="sso-saml-sp-details-hint"]').text()).toBe(
+          'web.organizations.sso.sp_details_hint'
+        );
+        expect(wrapper.find(NOTICE).exists()).toBe(true);
+      });
+
+      it('shows the callback URL and the notice for an OAuth-family provider', async () => {
+        wrapper = await mountComponent({
+          formState: { ...createDefaultFormState(), provider_type: 'oidc' },
+          domainVerified: false,
+        });
+
+        expect(wrapper.text()).toContain('https://secrets.example.com/auth/sso/oidc/callback');
+        expect(wrapper.find(NOTICE).text()).toBe('web.organizations.sso.domain_unverified_notice');
+      });
+
+      it('never shows the notice for a verified domain', async () => {
+        wrapper = await mountComponent({ formState: mockSamlFormState });
+        expect(wrapper.find(NOTICE).exists()).toBe(false);
+
+        wrapper.unmount();
+        wrapper = await mountComponent({
+          formState: { ...createDefaultFormState(), provider_type: 'oidc' },
+        });
+        expect(wrapper.find(NOTICE).exists()).toBe(false);
+      });
+
+      it('omits the notice when there are no values for it to describe', async () => {
+        wrapper = await mountComponent({
+          formState: mockSamlFormState,
+          domainHost: '',
+          domainVerified: false,
+        });
+
+        expect(wrapper.find('[data-testid="sso-saml-sp-details"]').exists()).toBe(false);
+        expect(wrapper.find(NOTICE).exists()).toBe(false);
       });
     });
 

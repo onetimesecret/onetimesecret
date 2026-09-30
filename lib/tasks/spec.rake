@@ -536,6 +536,7 @@ namespace :try do
         try/integration/homepage_bypass_header_integration_try.rb
         try/integration/homepage_mode_integration_try.rb
         try/integration/check_jobqueue_live_try.rb
+        try/integration/domain_auth_enforcement_try.rb
       ].select { |p| File.exist?(p) || Dir.exist?(p) }.join(' ')
 
       sh env, "bundle exec tryouts --agent #{patterns}" unless patterns.empty?

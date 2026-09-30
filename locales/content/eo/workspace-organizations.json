@@ -823,10 +823,6 @@
     "text": "Invito jam atendas por ĉi tiu retpoŝto",
     "source_hash": "7f5e3093"
   },
-  "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Limo de membroj atingita. Altniveligu vian planon por inviti pliajn membrojn.",
-    "source_hash": "b8f316e8"
-  },
   "api.organizations.invitations.errors.not_found": {
     "text": "Invito ne trovita",
     "source_hash": "775ba9eb"
@@ -967,17 +963,9 @@
     "text": "Rifuzi",
     "source_hash": "a2d285b3"
   },
-  "web.organizations.members.member_quota": {
-    "text": "{used} el {limit} membroj",
-    "source_hash": "51183b79"
-  },
   "web.organizations.members.pending_suffix": {
     "text": "({count} atendantaj)",
     "source_hash": "c13f787f"
-  },
-  "web.organizations.members.limit_reached_hint": {
-    "text": "Limo de membroj atingita.",
-    "source_hash": "26cdb6b8"
   },
   "web.organizations.sso.view_discovery_document": {
     "text": "Vidi malkovran dokumenton",

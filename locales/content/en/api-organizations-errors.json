@@ -93,11 +93,6 @@
     "context": "Returned when a pending invitation already exists for the email",
     "content_hash": "7f5e3093"
   },
-  "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Member limit reached. Upgrade your plan to invite more members.",
-    "context": "Returned when the organization has hit its plan's member quota",
-    "content_hash": "b8f316e8"
-  },
   "api.organizations.invitations.errors.resend_only_pending": {
     "text": "Can only resend pending invitations",
     "context": "Returned when attempting to resend a non-pending invitation",

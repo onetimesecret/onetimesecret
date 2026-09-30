@@ -675,6 +675,16 @@
     "context": "Explanatory line beside the SAML switched off badge on the SSO row of domain Sign-In Configuration. Addressed to the domain owner, who cannot change the operator's setting.",
     "content_hash": "5ba9624c"
   },
+  "web.domains.sso.status_domain_unverified_badge": {
+    "text": "Awaiting domain verification",
+    "context": "Badge on the SSO row of domain Sign-In Configuration when the SSO connection is saved and turned on but the custom domain's ownership has not been verified yet.",
+    "content_hash": "ea7459c2"
+  },
+  "web.domains.sso.status_domain_unverified_hint": {
+    "text": "This domain has not finished verification, so its SSO connection is not active on its sign-in page yet. SSO turns on once the domain is verified and SSO is allowed for it here.",
+    "context": "Explanatory line beside the Awaiting domain verification badge on the SSO row of domain Sign-In Configuration. Addressed to the domain owner, who completes verification from the domain's settings. Also shown when SSO is switched off in these sign-in settings, so it must not promise that verification alone turns SSO on.",
+    "content_hash": "57ee0066"
+  },
   "web.domains.sso.status_unavailable_badge": {
     "text": "Unavailable",
     "context": "Fallback badge on the SSO row of domain Sign-In Configuration when the server reports a blocking reason this version does not recognise.",

@@ -93,6 +93,34 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
       expect(auth_config).not_to have_received(:sso_providers)
     end
 
+    # #4579: the omniauth hook refuses every SSO route on a host whose tenant
+    # SSO waits only on verification, so the fallback arm must not offer
+    # platform providers there either.
+    context 'when tenant SSO waits only on domain verification' do
+      let(:custom_domain) { instance_double(Onetime::CustomDomain, verified: false) }
+
+      before do
+        allow(auth_config).to receive(:sso_providers).and_return([{ 'route_name' => 'oidc' }])
+        allow(described_class).to receive(:find_by_domain_id).with(domain_id)
+          .and_return(instance_double(
+            described_class,
+            domain_id: domain_id,
+            enabled?: true,
+            provider_type: 'oidc',
+            custom_domain: custom_domain,
+          ))
+      end
+
+      it 'withholds the platform fallback' do
+        expect(described_class.sso_available_for_tenant_host?(domain_id)).to be false
+      end
+
+      it 'keeps the platform fallback when the sign-in settings withhold tenant SSO' do
+        allow(Onetime::CustomDomain::SigninConfig).to receive(:sso_permitted_for?).with(domain_id).and_return(false)
+        expect(described_class.sso_available_for_tenant_host?(domain_id)).to be true
+      end
+    end
+
     it 'retains the platform fallback opt-in and global kill switches' do
       allow(auth_config).to receive(:sso_providers).and_return([{ 'route_name' => 'oidc' }])
       allow(auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(false)

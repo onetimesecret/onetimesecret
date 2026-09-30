@@ -75,10 +75,6 @@
     "text": "Приглашение для этого адреса электронной почты уже ожидает обработки",
     "source_hash": "7f5e3093"
   },
-  "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Достигнут лимит участников. Перейдите на более высокий план, чтобы приглашать больше участников.",
-    "source_hash": "b8f316e8"
-  },
   "api.organizations.invitations.errors.resend_only_pending": {
     "text": "Повторно отправить можно только ожидающие приглашения",
     "source_hash": "b7578b3e"

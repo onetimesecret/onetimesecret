@@ -25,6 +25,10 @@ RSpec.describe Auth::DatabaseConnection do
       'postgresql://db/auth?password=p@ss' => 'postgresql://***',
       'postgresql://u:pa?ss@db/auth' => 'postgresql://***',
       'sqlite://data/auth.db' => 'sqlite://data/auth.db',
+      'sqlite://data/auth.db?password=s3cret' => 'sqlite://data/auth.db?***',
+      # No userinfo in a SQLite URL: ":" and "@" are part of the path.
+      'sqlite:///tmp/auth:archive@backup.db' => 'sqlite:///tmp/auth:archive@backup.db',
+      'sqlite:///tmp/auth:archive@backup.db?password=s3cret' => 'sqlite:///tmp/auth:archive@backup.db?***',
     }.each do |input, expected|
       it "renders #{input.inspect} as #{expected.inspect}" do
         expect(described_class.redact_url(input)).to eq(expected)

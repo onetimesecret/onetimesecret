@@ -75,10 +75,6 @@
     "text": "Υπάρχει ήδη πρόσκληση σε εκκρεμότητα για αυτό το email",
     "source_hash": "7f5e3093"
   },
-  "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Συμπληρώθηκε το όριο μελών. Αναβαθμίστε το πρόγραμμά σας για να προσκαλέσετε περισσότερα μέλη.",
-    "source_hash": "b8f316e8"
-  },
   "api.organizations.invitations.errors.resend_only_pending": {
     "text": "Είναι δυνατή μόνο η επαναποστολή προσκλήσεων σε εκκρεμότητα",
     "source_hash": "b7578b3e"

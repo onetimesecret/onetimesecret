@@ -170,6 +170,21 @@ module Onetime
       !sso_config.nil?
     end
 
+    # Whether the domain's tenant SSO is set up and blocked ONLY by unverified
+    # ownership (SigninConfig.tenant_sso_awaiting_verification?, #4579). The
+    # omniauth hook refuses every SSO route on such a host, platform
+    # providers included, so ConfigSerializer#build_sso_config must not fall
+    # back to them. Reuses the records the tenant lookup already loaded; the
+    # only new read is the SigninConfig, and only for a domain whose ladder
+    # stopped at :domain_unverified. A failed or missing lookup answers false.
+    #
+    # @return [Boolean]
+    def awaiting_verification?
+      return @awaiting_verification if defined?(@awaiting_verification)
+
+      @awaiting_verification = read_awaiting_verification
+    end
+
     private
 
     # Whether DomainStrategy classified this request as one of the operator's
@@ -209,10 +224,14 @@ module Onetime
     end
 
     def read_sso_config
-      identifier = domain_id
+      # The record as loaded, whatever the ladder says about it, so
+      # #awaiting_verification? can reuse it instead of reading it again.
+      @loaded_sso_config = nil
+      identifier         = domain_id
       return nil if identifier.nil? || identifier == DOMAIN_READ_FAILED
 
-      config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(identifier)
+      config             = Onetime::CustomDomain::SsoConfig.find_by_domain_id(identifier)
+      @loaded_sso_config = config
       return nil if config.nil?
       return nil unless Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(
         identifier,
@@ -221,6 +240,16 @@ module Onetime
       )
 
       config
+    end
+
+    def read_awaiting_verification
+      return false if available? || @loaded_sso_config.nil?
+
+      Onetime::CustomDomain::SigninConfig.tenant_sso_awaiting_verification?(
+        domain_id,
+        sso_config: @loaded_sso_config,
+        custom_domain: custom_domain,
+      )
     end
   end
 end

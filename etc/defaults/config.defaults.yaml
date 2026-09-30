@@ -525,7 +525,7 @@ site:
     # (site.session.key) more than once, so a cookie planted by a sibling or
     # parent host cannot compete with the real one (Onetime::Middleware::
     # CookieTossing, RISK-2026-08-14-COOKIE-TOSSING). Default on since
-    # v0.27.0; set MIDDLEWARE_COOKIE_TOSSING=false to disable.
+    # v0.26.14; set MIDDLEWARE_COOKIE_TOSSING=false to disable.
     cookie_tossing: <%= ENV['MIDDLEWARE_COOKIE_TOSSING'] != 'false' %>  # Since v0.24.0
     # Prevents IP spoofing attacks by validating IP addresses
     # Useful when IP-based access controls are implemented
@@ -1584,7 +1584,7 @@ jobs:
     # still not fully verified (verified=false OR resolving=false) fill any
     # capacity left after the paged walk, without exceeding batch_size.
     # Set to '0' to disable.
-    dns_propagation_window: '24h'  # Since v0.27.0
+    dns_propagation_window: '24h'  # Since v0.26.14
 
   # Expiration warning emails
   # Send email notifications before secrets expire to warn recipients

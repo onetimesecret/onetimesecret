@@ -75,10 +75,6 @@
     "text": "Đã có lời mời đang chờ xử lý cho email này",
     "source_hash": "7f5e3093"
   },
-  "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Đã đạt giới hạn thành viên. Nâng cấp gói của bạn để mời thêm thành viên.",
-    "source_hash": "b8f316e8"
-  },
   "api.organizations.invitations.errors.resend_only_pending": {
     "text": "Chỉ có thể gửi lại các lời mời đang chờ xử lý",
     "source_hash": "b7578b3e"

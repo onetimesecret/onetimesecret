@@ -138,7 +138,10 @@ RSpec.describe 'Active Sessions Management', type: :integration do
         allow(Auth::Database).to receive(:connection).and_raise(Sequel::DatabaseConnectionError, 'down')
 
         get '/api/account/'
-        expect(last_response.status).to eq(401)
+        # Fail closed as an outage: 503 with Retry-After, not a 401 verdict
+        # (Onetime::Middleware::SessionFailureCode).
+        expect(last_response.status).to eq(503)
+        expect(last_response.headers['retry-after']).to eq('5')
       end
 
       it 'keeps refreshing the active-session row last_use so the inactivity sweep sees activity' do

@@ -75,10 +75,6 @@
     "text": "Bu e-posta için zaten bekleyen bir davet var",
     "source_hash": "7f5e3093"
   },
-  "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Üye sınırına ulaşıldı. Daha fazla üye davet etmek için planınızı yükseltin.",
-    "source_hash": "b8f316e8"
-  },
   "api.organizations.invitations.errors.resend_only_pending": {
     "text": "Yalnızca bekleyen davetler yeniden gönderilebilir",
     "source_hash": "b7578b3e"

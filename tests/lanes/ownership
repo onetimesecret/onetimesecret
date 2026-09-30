@@ -192,12 +192,12 @@ lanes_for_path() {  # <path>
     try/unit|try/unit/*|try/system|try/system/*|try/security|try/security/*|\
     try/features|try/features/*|try/jobs|try/jobs/*|apps/*/try|apps/*/try/*)
       echo unit ;;
-    # try:integration:simple — six subtrees and three files, by name.
+    # try:integration:simple — six subtrees and four files, by name.
     try/integration/middleware|try/integration/middleware/*|try/integration/boot|try/integration/boot/*|\
     try/integration/web|try/integration/web/*|try/integration/api|try/integration/api/*|\
     try/integration/email|try/integration/email/*|try/integration/billing|try/integration/billing/*|\
     try/integration/homepage_bypass_header_integration_try.rb|try/integration/homepage_mode_integration_try.rb|\
-    try/integration/check_jobqueue_live_try.rb)
+    try/integration/check_jobqueue_live_try.rb|try/integration/domain_auth_enforcement_try.rb)
       echo simple ;;
   esac
 }

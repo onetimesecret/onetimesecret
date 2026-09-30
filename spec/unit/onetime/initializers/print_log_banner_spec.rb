@@ -24,6 +24,10 @@ RSpec.describe Onetime::Initializers::PrintLogBanner do
       'postgresql://app:pa?ss@db/auth' => 'postgresql://****',
       'postgresql://app@db:5432/auth' => 'postgresql://app@db:5432/auth',
       'sqlite://data/auth.db' => 'sqlite://data/auth.db',
+      'sqlite::memory:' => 'sqlite::memory:',
+      'sqlite://data/auth.db?password=s3cret' => 'sqlite://data/auth.db?****',
+      # No userinfo in a SQLite URL: ":" and "@" are part of the path.
+      'sqlite:///tmp/auth:archive@backup.db' => 'sqlite:///tmp/auth:archive@backup.db',
       'app:s3cret@db/auth' => '****',
     }.each do |input, expected|
       it "renders #{input.inspect} as #{expected.inspect}" do

@@ -326,6 +326,12 @@ RSpec.describe Onetime::Utils::Strings do
       expect(utils.redact_uris_in_text(message)).to eq('tried redis://***@h1:6379/0 then valkey://h2/0?*** giving up')
     end
 
+    it 'keeps a SQLite path whole, since it has no userinfo, and masks its query' do
+      message = 'unable to open sqlite:///tmp/auth:archive@backup.db?key=s3cret for redis://u:pw@h1/0'
+      expect(utils.redact_uris_in_text(message))
+        .to eq('unable to open sqlite:///tmp/auth:archive@backup.db?*** for redis://***@h1/0')
+    end
+
     it 'keeps a password holding ")" inside the masked span' do
       expect(utils.redact_uris_in_text('down (redis://u:p)w@db:6379/0)')).to eq('down (redis://***@db:6379/0)')
     end

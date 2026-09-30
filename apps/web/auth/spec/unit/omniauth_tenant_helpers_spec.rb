@@ -1203,6 +1203,209 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
   end
 
   # ==========================================================================
+  # refuse_unverified_tenant_domain (#4579)
+  # ==========================================================================
+
+  describe '.refuse_unverified_tenant_domain' do
+    let(:custom_domain) { instance_double(Onetime::CustomDomain, identifier: 'dom_unverified_123') }
+    let(:sso_config) { instance_double(Onetime::CustomDomain::SsoConfig, provider_type: 'saml') }
+    # A tenant flow started while the domain was verified: the markers, the
+    # strategy's own binding (string keys, as the strategies write them), and
+    # one unrelated key that must survive.
+    let(:session) do
+      {
+        omniauth_tenant_domain_id: 'dom_unverified_123',
+        omniauth_tenant_host: 'secrets.tenant.example',
+        'saml_authn_request_id' => '_pending-request-id',
+        'omniauth.state' => 'pending-state',
+        account_id: 42,
+      }
+    end
+    let(:rodauth) do
+      double('Rodauth', session: session).tap do |r|
+        allow(r).to receive(:redirect) { throw :halt }
+      end
+    end
+
+    def refuse
+      catch(:halt) do
+        helpers.refuse_unverified_tenant_domain('secrets.tenant.example', custom_domain, sso_config, rodauth)
+      end
+    end
+
+    before { allow(helpers).to receive(:handle_missing_tenant_config) }
+
+    # Not sso_not_configured (a record exists) and not sso_config_unusable
+    # (nothing is broken): the domain has not verified yet.
+    it 'redirects to sso_domain_unverified' do
+      refuse
+
+      expect(rodauth).to have_received(:redirect).with('/signin?auth_error=sso_domain_unverified')
+    end
+
+    it 'never consults the platform-fallback policy' do
+      refuse
+
+      expect(helpers).not_to have_received(:handle_missing_tenant_config)
+    end
+
+    # A callback for a flow started before verification lapsed must not
+    # complete now, nor later on the platform path once the markers are gone.
+    it 'clears the pending tenant markers AND the per-strategy binding' do
+      refuse
+
+      expect(session).to eq(account_id: 42)
+    end
+
+    it 'audits a distinct event at :warn with scalars only' do
+      refuse
+
+      expect(Auth::Logging).to have_received(:log_auth_event).with(
+        :omniauth_tenant_domain_unverified,
+        level: :warn,
+        host: 'secrets.tenant.example',
+        domain_id: 'dom_unverified_123',
+        provider_type: 'saml',
+        pending_tenant_flow_dropped: true,
+      )
+      expect(Auth::Logging).not_to have_received(:log_auth_event).with(:omniauth_tenant_sso_not_enabled, anything)
+    end
+
+    it 'reports no dropped flow when none was pending' do
+      session.clear
+
+      refuse
+
+      expect(Auth::Logging).to have_received(:log_auth_event).with(
+        :omniauth_tenant_domain_unverified, hash_including(pending_tenant_flow_dropped: false)
+      )
+      expect(rodauth).to have_received(:redirect).with('/signin?auth_error=sso_domain_unverified')
+    end
+
+    # The hook's lookup found no record, but the ladder's own lookup found one
+    # created in between and reached :domain_unverified. Still a refusal, not
+    # a NoMethodError on the missing record.
+    context 'when the hook loaded no record' do
+      let(:sso_config) { nil }
+
+      it 'still clears the pending context and redirects' do
+        refuse
+
+        expect(session).to eq(account_id: 42)
+        expect(Auth::Logging).to have_received(:log_auth_event).with(
+          :omniauth_tenant_domain_unverified, hash_including(provider_type: nil)
+        )
+        expect(rodauth).to have_received(:redirect).with('/signin?auth_error=sso_domain_unverified')
+      end
+    end
+  end
+
+  # ==========================================================================
+  # refuse_if_awaiting_verification (#4579, QA-09)
+  # ==========================================================================
+
+  describe '.refuse_if_awaiting_verification' do
+    let(:custom_domain) { instance_double(Onetime::CustomDomain, identifier: 'dom_unverified_123') }
+    let(:sso_config) { instance_double(Onetime::CustomDomain::SsoConfig, provider_type: 'oidc') }
+    let(:rodauth) { double('Rodauth') }
+
+    def refuse_if(reason)
+      helpers.refuse_if_awaiting_verification('secrets.tenant.example', custom_domain, sso_config, reason, rodauth)
+    end
+
+    before do
+      allow(Onetime::CustomDomain::SigninConfig).to receive(:tenant_sso_awaiting_verification?).and_return(false)
+      allow(helpers).to receive(:refuse_unverified_tenant_domain)
+    end
+
+    # The hook's reason goes to the one predicate that owns the rule, so the
+    # ladder is not run a second time on the refusal path.
+    it "hands the hook's reason to SigninConfig instead of re-running the ladder" do
+      allow(Onetime::CustomDomain::SigninConfig).to receive(:tenant_sso_awaiting_verification?)
+        .with('dom_unverified_123', reason: :domain_unverified).and_return(true)
+
+      refuse_if(:domain_unverified)
+
+      expect(helpers).to have_received(:refuse_unverified_tenant_domain)
+        .with('secrets.tenant.example', custom_domain, sso_config, rodauth)
+    end
+
+    it 'returns without refusing when the domain is not awaiting verification' do
+      expect(refuse_if(:sso_not_permitted)).to be_nil
+
+      expect(Onetime::CustomDomain::SigninConfig).to have_received(:tenant_sso_awaiting_verification?)
+        .with('dom_unverified_123', reason: :sso_not_permitted)
+      expect(helpers).not_to have_received(:refuse_unverified_tenant_domain)
+    end
+  end
+
+  # ==========================================================================
+  # reject_restricted_sso (#4579, SEC-07)
+  # ==========================================================================
+
+  describe '.reject_restricted_sso' do
+    let(:request) do
+      double('Rack::Request', path: '/auth/sso/entra/callback').tap do |r|
+        allow(r).to receive(:halt) { |response| throw :halt, response }
+      end
+    end
+    # A tenant flow started while the host still offered SSO: the markers,
+    # the strategy's binding (string keys, as the strategies write them), and
+    # one unrelated key that must survive.
+    let(:session) do
+      {
+        omniauth_tenant_domain_id: 'dom_sso_only_123',
+        omniauth_tenant_host: 'secrets.tenant.example',
+        'omniauth.state' => 'pending-state',
+        'omniauth.nonce' => 'pending-nonce',
+        account_id: 42,
+      }
+    end
+    let(:rodauth) { double('Rodauth', session: session) }
+
+    def reject
+      catch(:halt) do
+        helpers.reject_restricted_sso('secrets.tenant.example', request, rodauth, :restrict_to_omniauth_rejected)
+      end
+    end
+
+    it "halts with the router's 404" do
+      expect(reject).to eq(Auth::RestrictTo.not_found_response)
+    end
+
+    it 'drops the pending tenant markers AND the per-strategy binding' do
+      reject
+
+      expect(session).to eq(account_id: 42)
+    end
+
+    it 'audits the calling hook with whether a flow was dropped' do
+      reject
+
+      expect(Auth::Logging).to have_received(:log_auth_event).with(
+        :restrict_to_omniauth_rejected,
+        level: :info,
+        host: 'secrets.tenant.example',
+        path: '/auth/sso/entra/callback',
+        pending_tenant_flow_dropped: true,
+      )
+    end
+
+    # No tenant flow pending: nothing to drop, and a binding without markers
+    # (a platform flow) is not this refusal's to touch.
+    it 'leaves a session without tenant markers untouched' do
+      session.delete(:omniauth_tenant_domain_id)
+      session.delete(:omniauth_tenant_host)
+
+      expect(reject).to eq(Auth::RestrictTo.not_found_response)
+      expect(session).to eq('omniauth.state' => 'pending-state', 'omniauth.nonce' => 'pending-nonce', account_id: 42)
+      expect(Auth::Logging).to have_received(:log_auth_event).with(
+        :restrict_to_omniauth_rejected, hash_including(pending_tenant_flow_dropped: false)
+      )
+    end
+  end
+
+  # ==========================================================================
   # inject_saml_sp_identifiers (#4450)
   # ==========================================================================
 

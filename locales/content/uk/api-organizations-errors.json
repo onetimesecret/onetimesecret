@@ -75,10 +75,6 @@
     "text": "Для цієї електронної адреси вже є запрошення, що очікує на розгляд",
     "source_hash": "7f5e3093"
   },
-  "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Досягнуто ліміту учасників. Оновіть свій тарифний план, щоб запросити більше учасників.",
-    "source_hash": "b8f316e8"
-  },
   "api.organizations.invitations.errors.resend_only_pending": {
     "text": "Повторно надіслати можна лише запрошення, що очікують на розгляд",
     "source_hash": "b7578b3e"
