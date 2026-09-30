@@ -456,6 +456,7 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       allow(organization).to receive(:member_count_by_role).and_return(0)
       allow(organization).to receive(:pending_invitation_count_by_role).and_return(0)
       allow(organization).to receive(:at_limit?).and_return(false)
+      allow(organization).to receive(:limit_for).and_return(Float::INFINITY)
       allow(Onetime::Customer).to receive(:find_by_email).and_return(nil)
       allow(Onetime::OrganizationMembership).to receive(:find_pending_by_email).and_return(nil)
       # Mock membership lookup for require_entitlement_in! (ADR-012 Stage 3)
@@ -481,12 +482,9 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
           .with('total_members_per_org', 7).and_return(true)
       end
 
-      it 'raises upgrade_required error' do
-        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
-          expect(error.error_key).to eq('api.organizations.invitations.errors.member_limit_reached')
-          expect(error.instance_variable_get(:@error_type)).to eq(:upgrade_required)
-          expect(error.instance_variable_get(:@field)).to eq('email')
-        end
+      it 'allows the invitation and logs the count' do
+        expect(OT).to receive(:info).with(/at or past total_members_per_org \(count: 7\)/)
+        expect { logic.raise_concerns }.not_to raise_error
       end
     end
 
@@ -501,11 +499,9 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
           .with('role_members_per_org', 4).and_return(true)
       end
 
-      it 'raises upgrade_required error from per-role check' do
-        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
-          expect(error.error_key).to eq('api.organizations.invitations.errors.member_limit_reached')
-          expect(error.instance_variable_get(:@error_type)).to eq(:upgrade_required)
-        end
+      it 'allows the invitation and logs the count' do
+        expect(OT).to receive(:info).with(/at or past role_members_per_org \(count: 4\)/)
+        expect { logic.raise_concerns }.not_to raise_error
       end
     end
 
@@ -516,13 +512,30 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       before do
         allow(organization).to receive(:member_count_by_role).with('admin').and_return(2)
         allow(organization).to receive(:pending_invitation_count_by_role).with('admin').and_return(0)
+        allow(organization).to receive(:limit_for).with('role_admins_per_org').and_return(2)
         allow(organization).to receive(:at_limit?)
           .with('role_admins_per_org', 2).and_return(true)
+      end
+
+      it 'allows the invitation and logs the count' do
+        expect(OT).to receive(:info).with(/at or past role_admins_per_org \(count: 2\)/)
+        expect { logic.raise_concerns }.not_to raise_error
+      end
+    end
+
+    context 'when inviting an admin and the plan does not offer the admin role', billing: true do
+      let(:has_entitlements) { true }
+      let(:params) { { 'extid' => 'ext-org-123', 'email' => 'newadmin@example.com', 'role' => 'admin' } }
+
+      before do
+        allow(organization).to receive(:limit_for).with('role_admins_per_org').and_return(0)
       end
 
       it 'raises upgrade_required error' do
         expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
           expect(error.error_key).to eq('api.organizations.invitations.errors.member_limit_reached')
+          expect(error.instance_variable_get(:@error_type)).to eq(:upgrade_required)
+          expect(error.instance_variable_get(:@field)).to eq('email')
         end
       end
     end
@@ -530,11 +543,10 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
     # Validation ordering: input errors before quota errors (#2256)
     context 'when at limit with invalid email', billing: true do
       let(:has_entitlements) { true }
-      let(:params) { { 'extid' => 'ext-org-123', 'email' => 'not-valid', 'role' => 'member' } }
+      let(:params) { { 'extid' => 'ext-org-123', 'email' => 'not-valid', 'role' => 'admin' } }
 
       before do
-        allow(organization).to receive(:at_limit?)
-          .with('total_members_per_org', 7).and_return(true)
+        allow(organization).to receive(:limit_for).with('role_admins_per_org').and_return(0)
       end
 
       it 'returns email validation error before quota error' do

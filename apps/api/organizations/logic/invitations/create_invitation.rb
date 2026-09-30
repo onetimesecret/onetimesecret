@@ -15,12 +15,11 @@ module OrganizationAPI::Logic
     #
     class CreateInvitation < OrganizationAPI::Logic::Base
       # Maps an invitee's role to the role-specific plan limit resource.
-      # The aggregate `total_members_per_org` cap is enforced separately.
+      # The aggregate `total_members_per_org` count is checked separately.
       ROLE_LIMIT_RESOURCES = {
         # Unreachable through this flow today: role validation in raise_concerns
         # rejects `role == 'owner'` because the UI doesn't wire owner invites
-        # yet. Kept here so the per-role check works the moment owner invites
-        # are enabled — no enforcement gap when the gate is lifted.
+        # yet.
         'owner' => 'role_owners_per_org',
         'admin' => 'role_admins_per_org',
         'member' => 'role_members_per_org',
@@ -134,32 +133,40 @@ module OrganizationAPI::Logic
       # Check member quota against organization's plan limits
       #
       # Uses the organization being invited to for billing context.
-      # Only enforced when billing is enabled and plan cache is populated.
+      # Only evaluated when billing is enabled and plan cache is populated.
       # Counts both active members and pending invitations.
       #
-      # Two checks run in order; whichever fails first raises:
-      # 1. Per-role bucket: count of the invited role's active + pending vs.
-      #    the role-specific limit (e.g. `role_admins_per_org`).
-      # 2. Aggregate cap: total active + pending vs. `total_members_per_org`.
+      # Plan count limits never block an invitation. Plans are sold with
+      # unlimited members; the plan values are internal thresholds, so
+      # reaching one is logged for operators and the invitation proceeds.
+      # This covers the per-role values (`role_*_per_org`) and the aggregate
+      # `total_members_per_org`.
+      #
+      # The one case that raises: a role limit of 0 means the plan does not
+      # offer that role at all (same rule as GetPermissions#compute_assignable_roles).
       def check_member_quota!
-        # Quota enforcement: fail-open when no billing, fail-closed when enabled.
-        # See WithEntitlements module for design rationale.
-
         # Fail-open conditions: skip quota check
         return unless @organization.respond_to?(:at_limit?)
         return unless @organization.entitlements.any?
 
-        # Per-role bucket check
         role_resource = ROLE_LIMIT_RESOURCES[@role]
         if role_resource
+          raise_member_limit_error! if @organization.limit_for(role_resource) == 0
+
           role_count = @organization.member_count_by_role(@role) +
                        @organization.pending_invitation_count_by_role(@role)
-          raise_member_limit_error! if @organization.at_limit?(role_resource, role_count)
+          note_member_count_limit(role_resource, role_count)
         end
 
-        # Aggregate cap check
         total_count = @organization.member_count + @organization.pending_invitation_count
-        raise_member_limit_error! if @organization.at_limit?('total_members_per_org', total_count)
+        note_member_count_limit('total_members_per_org', total_count)
+      end
+
+      def note_member_count_limit(resource, count)
+        return unless @organization.at_limit?(resource, count)
+
+        OT.info "[CreateInvitation] Org #{@organization.extid} at or past #{resource} " \
+                "(count: #{count}); invitation allowed"
       end
 
       def raise_member_limit_error!

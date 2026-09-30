@@ -724,39 +724,16 @@
     return can(ENTITLEMENTS.MANAGE_MEMBERS);
   });
 
-  // Mirror backend check (create_invitation.rb:130): member_count + pending invitations
-  // vs total_members_per_org limit. Limit of -1 means unlimited; null/undefined means
-  // unknown (e.g. self-hosted) — treat as no limit.
+  // Raw 'pending' status, NOT the expiry-aware effective status: a lapsed
+  // invitation stays pending on the backend until cleanup, so a row can read
+  // "Expired" in its badge while still counting here — intentional.
   //
-  // Counts the raw 'pending' status, NOT the expiry-aware effective status: the
-  // backend keeps a lapsed invitation's seat reserved until cleanup, so this
-  // limit check must match it. A row can therefore read "Expired" in its badge
-  // while still counting toward the quota here — intentional.
+  // Plan member limits (total_members_per_org) are deliberately not shown or
+  // enforced here: plans are sold with unlimited members and the backend does
+  // not block invitations on member counts.
   const pendingInvitationCount = computed(
     () => invitations.value.filter((inv) => inv.status === 'pending').length
   );
-
-  const memberLimitReached = computed(() => {
-    const limit = organization.value?.limits?.total_members_per_org;
-    if (limit === null || limit === undefined || limit < 0) return false;
-    return membersStore.memberCount + pendingInvitationCount.value >= limit;
-  });
-
-  // Finite quota cap (positive int) or null when unlimited/unknown. Drives the
-  // "X of Y" count format in the title slot.
-  const memberQuotaLimit = computed(() => {
-    const limit = organization.value?.limits?.total_members_per_org;
-    if (limit === null || limit === undefined || limit < 0) return null;
-    return limit;
-  });
-
-  // Active members only — matches what the user sees in the table. Pending is
-  // shown as a separate "(N pending)" qualifier rather than folded into the
-  // numerator, so the count line maps directly to visible rows. memberLimitReached
-  // still uses active + pending to mirror the backend; the two can diverge here
-  // without confusing the reader because the pending qualifier explains why the
-  // button may be disabled at a count below the limit.
-  const memberQuotaUsed = computed(() => membersStore.memberCount);
 
   // Member management event handlers
   const handleMemberUpdated = () => {
@@ -1431,22 +1408,12 @@
                   {{ t('web.organizations.tabs.members') }}
                 </h3>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  <template v-if="memberQuotaLimit !== null">
-                    {{
-                      t('web.organizations.members.member_quota', {
-                        used: memberQuotaUsed,
-                        limit: memberQuotaLimit,
-                      })
-                    }}
-                  </template>
-                  <template v-else>
-                    {{ membersStore.memberCount }}
-                    {{
-                      membersStore.memberCount === 1
-                        ? t('web.organizations.members.member_singular')
-                        : t('web.organizations.members.member_plural')
-                    }}
-                  </template>
+                  {{ membersStore.memberCount }}
+                  {{
+                    membersStore.memberCount === 1
+                      ? t('web.organizations.members.member_singular')
+                      : t('web.organizations.members.member_plural')
+                  }}
                   <span v-if="pendingInvitationCount > 0"
                     >&nbsp;{{
                       t('web.organizations.members.pending_suffix', {
@@ -1457,26 +1424,13 @@
                 </p>
               </div>
               <!--
-                Header CTA hierarchy:
-                - Hidden when form is open (form has its own primary submit; avoids dual-primary).
-                - "Upgrade Plan" link when member quota is reached (path forward, not a dead end).
-                - "Invite Member" button otherwise; disabled when user lacks MANAGE_MEMBERS entitlement.
+                Header CTA: hidden when the form is open (form has its own primary
+                submit; avoids dual-primary). Disabled when the user lacks the
+                MANAGE_MEMBERS entitlement.
               -->
               <div class="flex flex-col items-end gap-1">
-                <router-link
-                  v-if="!showInviteForm && memberLimitReached && canManageMembers"
-                  :to="`/billing/${orgId}/plans`"
-                  :title="t('api.organizations.invitations.errors.member_limit_reached')"
-                  class="inline-flex items-center rounded-md bg-brand-600 px-3 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
-                  <OIcon
-                    collection="heroicons"
-                    name="arrow-up-circle"
-                    class="mr-1.5 -ml-0.5 size-5"
-                    aria-hidden="true" />
-                  {{ t('web.billing.overview.upgrade_plan') }}
-                </router-link>
                 <button
-                  v-else-if="!showInviteForm"
+                  v-if="!showInviteForm"
                   type="button"
                   @click="canManageMembers && (showInviteForm = true)"
                   :disabled="!canManageMembers"
@@ -1498,11 +1452,6 @@
                     aria-hidden="true" />
                   {{ t('web.organizations.invitations.invite_member') }}
                 </button>
-                <p
-                  v-if="!showInviteForm && memberLimitReached && canManageMembers"
-                  class="text-xs text-gray-500 dark:text-gray-400">
-                  {{ t('web.organizations.members.limit_reached_hint') }}
-                </p>
               </div>
             </div>
             <div

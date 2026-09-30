@@ -4,7 +4,9 @@
 
 #
 # Integration test for member quota entitlement checks
-# Verifies that CreateInvitation enforces member limits per plan
+# Verifies that CreateInvitation does not block on plan count limits
+# (total_members_per_org, role_*_per_org) and still rejects a role the plan
+# does not offer (role limit of 0).
 
 require 'rack/test'
 require_relative '../../../support/test_helpers'
@@ -61,8 +63,8 @@ def last_response; @test.last_response; end
   }
 }
 
-# Plan with a strict regular-members cap and a generous aggregate cap.
-# Exercises the per-role bucket check independently of `total_members_per_org`.
+# Plan with a low regular-members value and a generous aggregate value.
+# Exercises the per-role member count independently of `total_members_per_org`.
 @role_capped_plan = {
   plan_id: 'role_capped_members',
   name: 'Role Capped Members Plan',
@@ -78,8 +80,24 @@ def last_response; @test.last_response; end
   }
 }
 
+# Plan that does not offer the admin role (limit 0). Admin invites are rejected.
+@admin_capped_plan = {
+  plan_id: 'admin_capped_members',
+  name: 'Admin Capped Members Plan',
+  tier: 'free',
+  interval: 'month',
+  region: 'us',
+  entitlements: ['create_secrets', 'manage_members'],
+  limits: {
+    'total_members_per_org.max' => 'unlimited',
+    'role_owners_per_org.max' => '1',
+    'role_admins_per_org.max' => '0',
+    'role_members_per_org.max' => 'unlimited',
+  }
+}
+
 # Helper to run billing-enabled test and return results
-def run_billing_test_invite(org, session, email, plan)
+def run_billing_test_invite(org, session, email, plan, role: 'member')
   result = { status: nil, error_type: nil, error_message: nil, record_id: nil, record_email: nil, member_count: nil, pending_count: nil }
   BillingTestHelpers.with_billing_enabled(plans: [plan]) do
     org.planid = plan[:plan_id]
@@ -94,7 +112,7 @@ def run_billing_test_invite(org, session, email, plan)
     result[:pending_count] = org.pending_invitation_count
 
     post "/api/organizations/#{org.extid}/invitations",
-      { email: email, role: 'member' }.to_json,
+      { email: email, role: role }.to_json,
       { 'rack.session' => session, 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
 
     result[:status] = last_response.status
@@ -141,64 +159,63 @@ reloaded_org = Onetime::Organization.load(@org.objid)
 reloaded_org.pending_invitation_count
 #=> 2
 
-## With billing at limit (1 owner + 2 pending = 3/3): inviting fails with 422
+## With billing at the plan value (1 owner + 2 pending = 3/3): inviting still succeeds
 @result1 = run_billing_test_invite(@org, @session, "member3_#{@timestamp}@example.com", @limited_plan)
 @result1[:status]
-#=> 422
+#=> 200
 
-## Error message indicates member limit reached
-@result1[:error_message].to_s.include?('limit reached')
-#=> true
+## Invitation past the plan value is created
+@invite3_id = @result1[:record_id]
+@result1[:record_email]
+#=> "member3_#{@timestamp}@example.com"
 
-## After accepting one invitation: still at limit (2 active + 1 pending = 3/3)
-# Accept invitation within test case code (not loose between tests)
+## Past the plan value (1 owner + 3 pending = 4/3): inviting still succeeds
+@result2 = run_billing_test_invite(@org, @session, "member4_#{@timestamp}@example.com", @limited_plan)
+@invite4_id = @result2[:record_id]
+@result2[:status]
+#=> 200
+
+## Accepting an invitation past the plan value succeeds
 @invite1 = Onetime::OrganizationMembership.load(@invite1_id)
 @member1 = Onetime::Customer.create!(email: "member1_#{@timestamp}@example.com")
 @member1.verified = 'true'
 @member1.save
 @invite1.accept!(@member1)
 @org = Onetime::Organization.load(@org.objid)
-@result2 = run_billing_test_invite(@org, @session, "member3_#{@timestamp}@example.com", @limited_plan)
-@result2[:status]
-#=> 422
-
-## Revoke invite2: removes from pending_invitations set
-@invite2 = Onetime::OrganizationMembership.load(@invite2_id)
-@invite2.revoke!
-@org = Onetime::Organization.load(@org.objid)
-@org.pending_invitation_count
-#=> 0
-
-## After revoke: pending_invitations set is empty
-@org.pending_invitations.to_a.empty?
+@org.member?(@member1)
 #=> true
 
-## Under limit (2/3), can invite new member
-@result3 = run_billing_test_invite(@org, @session, "member4_#{@timestamp}@example.com", @limited_plan)
+## Per-role member value: with role_members_per_org=1 already met, a member invite still succeeds
+@result3 = run_billing_test_invite(@org, @session, "member5_#{@timestamp}@example.com", @role_capped_plan)
+@invite5_id = @result3[:record_id]
 @result3[:status]
 #=> 200
 
-## Invitation created successfully when under limit
-@invite3_id = @result3[:record_id]
-@result3[:record_email]
-#=> "member4_#{@timestamp}@example.com"
+## Admin count value: with role_admins_per_org=1 already met, a second admin invite still succeeds
+@admin_counted_plan = @admin_capped_plan.merge(
+  plan_id: 'admin_counted_members',
+  limits: @admin_capped_plan[:limits].merge('role_admins_per_org.max' => '1'),
+)
+@result5 = run_billing_test_invite(@org, @session, "admin2_#{@timestamp}@example.com", @admin_counted_plan, role: 'admin')
+@invite6_id = @result5[:record_id]
+@result6 = run_billing_test_invite(@org, @session, "admin3_#{@timestamp}@example.com", @admin_counted_plan, role: 'admin')
+@invite7_id = @result6[:record_id]
+[@result5[:status], @result6[:status]]
+#=> [200, 200]
 
-## Per-role cap: with role_members_per_org=1 already met, a member invite is rejected
-# Org currently has 1 active regular member (@member1) and 1 pending member invite (@invite3)
-# under the role_capped_plan whose role_members_per_org limit is 1.
-@result4 = run_billing_test_invite(@org, @session, "member5_#{@timestamp}@example.com", @role_capped_plan)
+## Plan without the admin role: role_admins_per_org=0 rejects an admin invite
+@result4 = run_billing_test_invite(@org, @session, "admin1_#{@timestamp}@example.com", @admin_capped_plan, role: 'admin')
 @result4[:status]
 #=> 422
 
-## Per-role cap error indicates upgrade required
+## Rejected admin invite indicates upgrade required
 @result4[:error_type]
 #=> "upgrade_required"
 
 # Teardown
 # invite1 was accepted (now active membership for @member1)
-# invite2 was revoked (already destroyed)
-# invite3 was created in billing block
-[@invite1_id, @invite3_id].compact.each do |invite_id|
+# the rest are still pending
+[@invite1_id, @invite2_id, @invite3_id, @invite4_id, @invite5_id, @invite6_id, @invite7_id].compact.each do |invite_id|
   invite = Onetime::OrganizationMembership.load(invite_id)
   invite&.destroy_with_index_cleanup!
 end
