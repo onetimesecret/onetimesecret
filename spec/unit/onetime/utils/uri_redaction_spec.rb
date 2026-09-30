@@ -19,6 +19,16 @@ RSpec.describe OnetimeUriRedaction do
     'app:secret@db/auth' => ['***@db/auth', '****'],
     '//app:secret@db/auth' => ['//***@db/auth', '****'],
     'unparseable' => ['unparseable', '****'],
+    # SQLite has no userinfo: ":" and "@" are part of the path, which is kept
+    # whole. Only the query is masked.
+    'sqlite://data/auth.db' => ['sqlite://data/auth.db', 'sqlite://data/auth.db'],
+    'sqlite::memory:' => ['sqlite::memory:', 'sqlite::memory:'],
+    'sqlite:///tmp/auth:archive@backup.db' => ['sqlite:///tmp/auth:archive@backup.db', 'sqlite:///tmp/auth:archive@backup.db'],
+    'sqlite:///tmp/auth@backup.db' => ['sqlite:///tmp/auth@backup.db', 'sqlite:///tmp/auth@backup.db'],
+    'sqlite:///tmp/auth:archive@backup.db?password=s3cret' => ['sqlite:///tmp/auth:archive@backup.db?***', 'sqlite:///tmp/auth:archive@backup.db?****'],
+    'sqlite:///tmp/auth.db?password=p@ss' => ['sqlite:///tmp/auth.db?***', 'sqlite:///tmp/auth.db?****'],
+    'sqlite://x/redis://app:secret@db/0' => ['sqlite://***@db/0', 'sqlite://x/redis:****@db/0'],
+    'SQLite:///tmp/a@b.db?key=s3cret' => ['SQLite:///tmp/a@b.db?***', 'SQLite:///tmp/a@b.db?****'],
     "postgresql://app:sec\nret@db/auth?password=other\nsecret" => ['postgresql://***@db/auth?***', 'postgresql://app:****@db/auth?****'],
     "postgresql://app:sec\xFFret@db/auth".b => ['postgresql://***@db/auth', 'postgresql://app:****@db/auth'],
   }.each do |input, (private_output, banner_output)|

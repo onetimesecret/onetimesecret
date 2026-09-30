@@ -22,6 +22,10 @@ RSpec.describe Auth::Migrator do
       'postgresql://db/auth?password=s3cret' => 'postgresql://db/auth?***',
       'postgresql://app:s3cret@db/auth?sslmode=require' => 'postgresql://app:***@db/auth?***',
       'sqlite://data/auth.db' => 'sqlite://data/auth.db',
+      'sqlite://data/auth.db?password=s3cret' => 'sqlite://data/auth.db?***',
+      # No userinfo in a SQLite URL: ":" and "@" are part of the path.
+      'sqlite:///tmp/auth:archive@backup.db' => 'sqlite:///tmp/auth:archive@backup.db',
+      'sqlite:///tmp/auth:archive@backup.db?password=s3cret' => 'sqlite:///tmp/auth:archive@backup.db?***',
     }.each do |input, expected|
       it "renders #{input.inspect} as #{expected.inspect}" do
         expect(described_class.send(:redacted_url_for_log, input)).to eq(expected)

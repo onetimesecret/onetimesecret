@@ -93,7 +93,14 @@ RSpec.describe Onetime::CLI::StatusCommand do
       'postgresql://app:pa:ss@db:5432/auth' => 'postgresql://app:***@db:5432/auth',
       'postgresql://db:5432/auth?password=s3cret' => 'postgresql://db:5432/auth?***',
       'postgresql://app:s3cret@db/auth?sslmode=require' => 'postgresql://app:***@db/auth?***',
-      'sqlite://data/auth.db?mode=rwc' => 'sqlite://data/auth.db?mode=rwc',
+      'sqlite://data/auth.db' => 'sqlite://data/auth.db',
+      'sqlite://data/auth.db?mode=rwc' => 'sqlite://data/auth.db?***',
+      'sqlite://data/auth.db?password=s3cret' => 'sqlite://data/auth.db?***',
+      # No userinfo in a SQLite URL: ":" and "@" are part of the path.
+      'sqlite:///tmp/auth:archive@backup.db' => 'sqlite:///tmp/auth:archive@backup.db',
+      'sqlite:///tmp/auth:archive@backup.db?password=s3cret' => 'sqlite:///tmp/auth:archive@backup.db?***',
+      'sqlite:///tmp/auth.db?password=s3cret@x' => 'sqlite:///tmp/auth.db?***',
+      'sqlite::memory:' => 'sqlite::memory:',
     }.each do |input, expected|
       it "renders #{input.inspect} as #{expected.inspect}" do
         expect(command.send(:sanitize_db_url, input)).to eq(expected)

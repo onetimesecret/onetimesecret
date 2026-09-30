@@ -3,8 +3,17 @@
 # Dependency-free and outside the Onetime namespace: standalone auth migrations
 # use this before the application exists, including guards on defined?(Onetime).
 module OnetimeUriRedaction
+  # A SQLite URL names a file (or `sqlite::memory:`) and has no authority, so
+  # a ":" or "@" in it belongs to the path, not to userinfo.
+  SQLITE_SCHEME = /\Asqlite:/i
+
   def self.redact(value, keep_username: false, require_scheme: false, mask: '***')
-    text   = value.to_s.encode(Encoding::UTF_8, invalid: :replace, undef: :replace)
+    text = value.to_s.encode(Encoding::UTF_8, invalid: :replace, undef: :replace)
+    # Only the query string can hold a credential; the path is kept whole.
+    # A second "://" means another URI is glued on (free text); that gets the
+    # general policy below.
+    return text.sub(/\?.*\z/m, "?#{mask}") if SQLITE_SCHEME.match?(text) && text.scan('://').size < 2
+
     scheme = text[%r{\A[a-z][a-z0-9+.-]*://}i]
     return mask if require_scheme && scheme.nil?
 

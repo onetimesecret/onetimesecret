@@ -21,6 +21,11 @@ module Onetime
       # from the environment (see .limits); these are the defaults.
       DEFAULT_GLOBAL_LIMIT = 256
       DEFAULT_SOURCE_LIMIT = 64
+      # Ceiling for either limit. The Lua script compares the counters as
+      # doubles, so an astronomically large value would turn imprecise or
+      # infinite and stop being a cap at all; well before that, a limit this
+      # large is no longer a storage bound (1,000,000 x 128,000 bytes per bucket).
+      MAX_LIMIT            = 1_000_000
       GLOBAL_LIMIT_VAR     = 'SAML_CALLBACK_GLOBAL_LIMIT'
       SOURCE_LIMIT_VAR     = 'SAML_CALLBACK_SOURCE_LIMIT'
       HANDLE_PATTERN       = /\A[0-9a-f]{64}\z/
@@ -104,9 +109,10 @@ module Onetime
       end
 
       # Read once, on first use, the way Onetime::SsoProvider::Saml reads its
-      # SAML_* variables — never per request. Positive integers only; the
-      # source share can never exceed the global cap; an invalid value logs a
-      # warning and falls back to the default rather than failing a callback.
+      # SAML_* variables — never per request. Positive integers up to
+      # MAX_LIMIT only; the source share can never exceed the global cap; an
+      # invalid value logs a warning and falls back to the default rather than
+      # failing a callback.
       def limits
         @limits ||= begin
           global = positive_integer_setting(GLOBAL_LIMIT_VAR, DEFAULT_GLOBAL_LIMIT)
@@ -123,9 +129,9 @@ module Onetime
       def positive_integer_setting(name, default)
         raw = ENV.fetch(name, '').to_s.strip
         return default if raw.empty?
-        return raw.to_i if /\A[1-9]\d*\z/.match?(raw)
+        return raw.to_i if /\A[1-9]\d*\z/.match?(raw) && raw.to_i <= MAX_LIMIT
 
-        OT.lw "[saml_callback_store] #{name}=#{raw[0, 32].inspect} is not a positive integer; using #{default}"
+        OT.lw "[saml_callback_store] #{name}=#{raw[0, 32].inspect} is not a positive integer up to #{MAX_LIMIT}; using #{default}"
         default
       end
       private :positive_integer_setting

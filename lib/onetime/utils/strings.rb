@@ -303,8 +303,13 @@ module Onetime
       # redacts too much rather than printing the rest of the password. A "?"
       # before that "@" is either in the password or starts a query with an
       # "@" in it (`?password=p@ss`); neither split is safe, so everything
-      # after the scheme is redacted. The dependency-free implementation is
-      # shared with Auth::DatabaseConnection and the boot banner.
+      # after the scheme is redacted. A SQLite URL is the exception: it has
+      # no userinfo, so its path is kept whole (a ":" or "@" there is part of
+      # the file name) and only its query is masked. The dependency-free
+      # implementation is shared with Auth::DatabaseConnection and the boot
+      # banner.
+      #
+      #   redact_uri_userinfo('sqlite:///tmp/a:b@c.db?key=s3cret')  #=> "sqlite:///tmp/a:b@c.db?***"
       #
       # @param uri [String, URI::Generic, nil]
       # @return [String]

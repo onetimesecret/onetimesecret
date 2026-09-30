@@ -94,7 +94,8 @@ module Auth
     # a password redacts too much rather than printing the rest of it. A "?"
     # before that "@" is either in the password or starts a query with an "@"
     # in it (`?password=p@ss`); neither split is safe, so everything after the
-    # scheme is redacted.
+    # scheme is redacted. A SQLite URL has no userinfo: its path is kept whole
+    # and only its query is masked.
     #
     #   redact_url('postgresql://u:s3cret@h1,h2/db?sslmode=require')
     #   #=> "postgresql://***@h1,h2/db?***"

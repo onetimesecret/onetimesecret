@@ -11,9 +11,12 @@ module Onetime
     module SamlCallbackTransport
       HANDLE_PARAM     = 'saml_handle'
       PREPARED         = 'onetime.saml_callback_prepared'
-      # The SAMLResponse value (SamlCallbackStore::MAX_RESPONSE_BYTES) plus
-      # RelayState and URL-encoding overhead.
-      MAX_BODY_BYTES   = 200_000
+      # Derived from the value bound so that no SAMLResponse the Stage would
+      # accept is refused here first: URL-encoding a base64 value at most
+      # triples it (+ / = and line breaks become %XX), and the remainder
+      # covers the parameter names and a RelayState (80 bytes by the SAML
+      # binding, tolerated well beyond that).
+      MAX_BODY_BYTES   = (3 * Onetime::Security::SamlCallbackStore::MAX_RESPONSE_BYTES) + 4_096
       # Standard base64 (RFC 4648 section 4: A-Z a-z 0-9 + / =) plus
       # whitespace. The HTTP-POST binding carries the response base64-encoded;
       # IdPs wrap it in lines (CR/LF), and a form decoder turns an unencoded
@@ -21,6 +24,9 @@ module Onetime
       # the GET side ignores it). Anything outside that alphabet is not a
       # SAML response and is refused before it can occupy storage.
       RESPONSE_PATTERN = %r{\A[A-Za-z0-9+/=\s]+\z}
+      # At least one data character: whitespace or padding alone can never
+      # decode, so it must not spend admission quota either.
+      RESPONSE_DATA    = %r{[A-Za-z0-9+/]}
       HEADERS          = {
         'content-type' => 'text/plain',
         'cache-control' => 'no-store',
@@ -191,9 +197,7 @@ module Onetime
           request  = Rack::Request.new(env)
           response = payload.response
           store    = Onetime::Security::SamlCallbackStore
-          unless response.is_a?(String) && response.bytesize.between?(1, store::MAX_RESPONSE_BYTES) && RESPONSE_PATTERN.match?(response)
-            return [400, HEADERS.dup, ['Invalid SAML callback']]
-          end
+          return [400, HEADERS.dup, ['Invalid SAML callback']] unless stageable?(response)
 
           handle = store.stage(
             response: response,
@@ -211,6 +215,13 @@ module Onetime
           HttpOriginOptions.saml_callback_route_active?(env) == true
         rescue StandardError
           false
+        end
+
+        def stageable?(response)
+          response.is_a?(String) &&
+            response.bytesize.between?(1, Onetime::Security::SamlCallbackStore::MAX_RESPONSE_BYTES) &&
+            RESPONSE_PATTERN.match?(response) &&
+            RESPONSE_DATA.match?(response)
         end
       end
     end
