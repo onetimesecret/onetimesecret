@@ -9,10 +9,10 @@ module Onetime
     # Shared options for Rack::Protection::HttpOrigin.
     #
     # HttpOrigin resolves the request host via Rack::Request#host, which reads
-    # the Host header (or X-Forwarded-Host when present). Behind a proxy tier
-    # that rewrites Host to the canonical origin and forwards the true public
-    # host in another header (Apx-Incoming-Host, X-Original-Host, Forwarded),
-    # that answer is wrong — which is exactly why the app mounts
+    # the Host header (X-Forwarded-Host is removed by StripForwardedHost
+    # before it runs). Behind a proxy tier that rewrites Host to the canonical
+    # origin and forwards the true public host in X-Forwarded-Host, that
+    # answer is wrong — which is exactly why the app mounts
     # Rack::DetectHost and DomainStrategy, whose validated result is published
     # as env['onetime.display_domain'].
     #

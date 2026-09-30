@@ -20,7 +20,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::GetProxyHeadersDebug do
       },
       request_headers: {
         'x-forwarded-for' => '203.0.113.9',
-        'apx-incoming-host' => 'tenant.example.test',
+        'x-forwarded-proto' => 'https',
       },
     }
   end

@@ -516,8 +516,8 @@ module Auth::Config::Hooks
     # Tenant SSO is keyed on CustomDomain#display_domain, so the lookup must
     # use the host the visitor typed, not the authority the origin happens to
     # see. Behind Approximated (and any Host-rewriting proxy) those differ:
-    # the browser asks for nz.example.com, Approximated forwards it as
-    # `Apx-Incoming-Host` and rewrites `Host:` to the origin target, so
+    # the browser asks for nz.example.com, the edge forwards it as
+    # `X-Forwarded-Host` and rewrites `Host:` to the origin target, so
     # `request.host` reads as the platform host and every custom-domain
     # lookup misses — the tenant SSO POST 302s to
     # `/signin?auth_error=sso_not_configured` while the same request's

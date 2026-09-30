@@ -8,7 +8,7 @@ module Auth
   #
   # Behind a Host-rewriting proxy (Approximated, and any origin-target
   # rewriter) the Rack authority is NOT what the visitor typed: the browser
-  # asks for nz.example.com, the proxy forwards that in `Apx-Incoming-Host`
+  # asks for nz.example.com, the proxy forwards that in `X-Forwarded-Host`
   # and rewrites `Host:` to the origin target. Anything derived from
   # `request.host` / `request.base_url` therefore names the wrong host —
   # tenant lookups miss (#4224), SSO redirect_uris are rejected as

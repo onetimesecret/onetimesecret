@@ -10,7 +10,7 @@
 # `route_url` -> `base_url`, and stock `base_url` is
 # `"#{request.scheme}://#{request.host}"`. Behind the custom-domain proxy
 # `Host:` has been rewritten to the origin target and the host the visitor
-# actually used arrives in `Apx-Incoming-Host`, so the link in the email named
+# actually used arrives in `X-Forwarded-Host`, so the link in the email named
 # the canonical host — a host the recipient never visited, and one where
 # Auth::SigninGate answers 404 on any install whose global sign-in is off.
 #
@@ -147,11 +147,11 @@ RSpec.describe 'delivered email links use the public host (#4221)', type: :integ
   # on the same host the POST claims.
   #
   # @param host [String] the `Host:` header (what the proxy rewrote it to)
-  # @param forwarded [String, nil] `Apx-Incoming-Host` (what the browser asked for)
+  # @param forwarded [String, nil] `X-Forwarded-Host` (what the browser asked for)
   def request_password_reset(host:, forwarded: nil)
     clear_cookies
     header 'Host', host
-    header 'Apx-Incoming-Host', forwarded
+    header 'X-Forwarded-Host', forwarded
     csrf_json_post('/auth/reset-password-request', login: account_email)
   end
 
@@ -182,7 +182,7 @@ RSpec.describe 'delivered email links use the public host (#4221)', type: :integ
     link
   end
 
-  describe 'behind a Host-rewriting proxy (Apx-Incoming-Host)' do
+  describe 'behind a Host-rewriting proxy (X-Forwarded-Host)' do
     before { request_password_reset(host: origin_host, forwarded: tenant_domain) }
 
     it 'sends a reset link on the host the browser asked for, not the origin target' do
@@ -202,7 +202,7 @@ RSpec.describe 'delivered email links use the public host (#4221)', type: :integ
       new_password = 'RedeemedByTheLink123!'
 
       header 'Host', origin_host
-      header 'Apx-Incoming-Host', tenant_domain
+      header 'X-Forwarded-Host', tenant_domain
       response = csrf_json_post(
         '/auth/reset-password',
         key: key, password: new_password, 'password-confirm': new_password,
