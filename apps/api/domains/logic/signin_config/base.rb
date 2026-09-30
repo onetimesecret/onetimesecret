@@ -145,7 +145,8 @@ module DomainsAPI
         # (SsoConfig.tenant_sso_unavailable_reason) rather than the connection
         # record's own stored flag, so the settings page can report the actual
         # blocking rung — :no_sso_config, :sso_config_disabled,
-        # :sso_not_permitted, :auth_disabled, :unsupported_provider_type.
+        # :domain_unverified, :sso_not_permitted, :auth_disabled,
+        # :unsupported_provider_type, :saml_disabled (SAML_ENABLED off, #4604).
         # The #4107 regression went unnoticed for two months because no
         # surface reported it.
         #

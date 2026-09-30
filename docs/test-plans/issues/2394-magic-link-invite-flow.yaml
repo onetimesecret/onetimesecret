@@ -554,32 +554,9 @@ tests:
       This is the key security property. Attacker cannot determine if an
       email has an account by observing the response to magic link request.
 
-  - id: TC-MLI-045
-    intent: Gmail alias normalization detects matching accounts
-    setup:
-      <<: *user_unauth
-      state:
-        existing_account: true
-        account_email: user@gmail.com
-      fixtures:
-        - type: organization_invitation
-          props:
-            email: user+invite@gmail.com
-            status: pending
-          capture_as: invite
-    target: /invite/{{invite.token}}
-    action:
-      type: submit
-      element: Continue button
-      data:
-        email: user+invite@gmail.com
-    verify:
-      - Magic link recognizes this as existing user@gmail.com account
-      - After clicking link, user is signed in (not asked to set password)
-      - Email comparison normalizes + suffixes
-    priority: medium
-    type: edge
-    covers: [email-normalization, gmail-aliases]
+  # TC-MLI-045 (Gmail alias normalization) was removed with the feature in
+  # 86d6769908. An invitation now matches only the same address, compared
+  # without case, so user+invite@gmail.com does not match user@gmail.com.
 
   # ===========================================================================
   # SECTION 6: Decline Flow

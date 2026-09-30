@@ -8,6 +8,10 @@
 #                      documented compose combo with `config -q`, then bring up
 #                      the simple stack with `--wait` (the app healthcheck is the
 #                      readiness assertion) and run the shared proof-of-life.
+#                      On PRs the bring-up is skipped when the pinned default
+#                      image is not published yet: a release PR bumps the pin
+#                      to a tag the image build publishes only after tagging
+#                      (#4514). On cron/manual an unpublished pin fails the job.
 #   full-stack-smoke   (PR on docker/image changes + weekly cron): build the
 #                      app image and Caddy proxy FROM SOURCE (bake), bring up
 #                      the full stack (proxy + app + valkey + rabbitmq +
@@ -108,9 +112,47 @@ jobs:
             -f docker/compose/docker-compose.simple.yml \
             -f docker/compose/docker-compose.mailpit.yml config -q
 
+      # A release PR bumps `${OTS_IMAGE_TAG:-vX.Y.Z}` to a tag the image build
+      # publishes only after vX.Y.Z is tagged, so `up` cannot pull it yet and
+      # this job fails by construction (#4514). On pull_request, skip the
+      # bring-up and proof-of-life when the pin is unpublished; the pin itself
+      # is still asserted by check-version-pins.sh (Drift guards). On cron or
+      # manual dispatch an unpublished pin is tag rot on main and fails here.
+      # Only "no such manifest" counts as unpublished: any other inspect
+      # failure (rate limit, network) fails the step rather than skipping,
+      # so a registry hiccup cannot turn into a silent green.
+      - name: Is the pinned image published?
+        id: pin
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          tag="$(grep -oE 'OTS_IMAGE_TAG:-v[0-9]+\.[0-9]+\.[0-9]+' \
+            docker/compose/docker-compose.simple.yml | head -n1 | cut -d- -f2)"
+          if [[ -z "$tag" ]]; then
+            echo "::error::no \${OTS_IMAGE_TAG:-vX.Y.Z} default found in docker/compose/docker-compose.simple.yml"
+            exit 1
+          fi
+          image="onetimesecret/onetimesecret:${tag}"
+          if out="$(docker manifest inspect "$image" 2>&1 >/dev/null)"; then
+            echo "Pinned image is published: $image"
+            echo "published=true" >> "$GITHUB_OUTPUT"
+          elif grep -q 'no such manifest' <<<"$out"; then
+            if [[ "$EVENT_NAME" != "pull_request" ]]; then
+              echo "::error::$image is not published; the pin on this branch names a missing tag"
+              exit 1
+            fi
+            echo "::warning::$image is not published yet; skipping bring-up and proof-of-life"
+            echo "compose-smoke: bring-up and proof-of-life skipped, \`$image\` is not published yet" >> "$GITHUB_STEP_SUMMARY"
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::could not query $image: $out"
+            exit 1
+          fi
+
       # No data-dir prep needed: the simple stack no longer mounts ./data
       # (CP-5 — simple mode persists everything in the maindb-data volume).
       - name: Bring up the simple stack (--wait on app healthcheck)
+        if: steps.pin.outputs.published == 'true'
         run: |
           docker compose -f docker/compose/docker-compose.simple.yml \
             up -d --wait --wait-timeout 180 --quiet-pull --renew-anon-volumes
@@ -123,6 +165,7 @@ jobs:
       # docker-run-readme below stays default-off: it runs the published
       # README tag, which may predate the CLI contract this step depends on.
       - name: Proof of life (incl. first-account step)
+        if: steps.pin.outputs.published == 'true'
         env:
           POL_CREATE_ACCOUNT: "1"
           POL_EXEC: docker compose -f docker/compose/docker-compose.simple.yml exec -T app

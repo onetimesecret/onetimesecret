@@ -202,8 +202,8 @@ module Onetime
         # Mandatory funnel: origin_from_url inside — strips path, http(s)
         # only, rejects CSP-hostile hosts, nil on garbage (issuer is
         # tenant-supplied and therefore attacker-influenced).
-        origin = Onetime.auth_config.tenant_idp_origin(config)
-        warn_rejected_origin_source(display_domain, config) if origin.nil?
+        origin = Onetime.auth_config.tenant_idp_origin(config, env: env)
+        warn_rejected_origin_source(display_domain, config, env: env) if origin.nil?
 
         origin
       end
@@ -223,7 +223,8 @@ module Onetime
       #
       # Scoped by AuthConfig#tenant_origin_source on purpose — the SAME
       # dispatch #tenant_idp_origin itself runs, so this cannot drift out of
-      # step with which types actually read the tenant issuer. For the other
+      # step with which types actually read the tenant record, or which field
+      # (oidc: issuer; saml: idp_sso_service_url, #4450 — hence `source=`). For the other
       # provider types the origin comes from the static registry definition,
       # not from tenant data, so a nil there means route-map/registry drift —
       # a deploy-side bug an operator cannot fix by editing the tenant record.
@@ -234,15 +235,15 @@ module Onetime
       # It retains one entry per encountered custom domain rather than one per
       # request, and the mutex keeps concurrent HTML requests from logging the
       # same misconfiguration more than once.
-      def warn_rejected_origin_source(display_domain, config)
-        source = Onetime.auth_config.tenant_origin_source(config)
+      def warn_rejected_origin_source(display_domain, config, env: nil)
+        source = Onetime.auth_config.tenant_origin_source(config, env: env)
         return if source.nil? || source.empty?
         return unless first_rejected_origin_warning_for?(display_domain)
 
         OT.lw '[TenantCspExtras] tenant SSO is available but its IdP origin failed ' \
               "validation for #{display_domain.inspect} " \
               "(provider_type=#{config.provider_type.to_s.inspect}, " \
-              "issuer=#{truncate_for_log(source).inspect}); form-action not widened"
+              "source=#{truncate_for_log(source).inspect}); form-action not widened"
       end
 
       def first_rejected_origin_warning_for?(display_domain)

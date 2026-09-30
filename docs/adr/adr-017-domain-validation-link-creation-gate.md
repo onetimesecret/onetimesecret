@@ -8,6 +8,14 @@ title: "ADR-017: Gate Domain-Dependent Functionality on Ownership Verification"
 
 Accepted
 
+[ADR-049](adr-049-operator-managed-domain-authorization.md) proposes to
+supersede only the `passthrough` one-time TXT requirement, its
+feature-flag/deprecation rollout, the installed-user assumptions in its
+trade-offs, and the `approximated` clause that makes the link-creation gate
+optional through `require_verified`. ADR-049 instead requires strategy-aware
+authorization for every protected consumer regardless of that setting. Until
+ADR-049 is accepted, this ADR remains operative in full.
+
 ## Date
 
 2026-06-30
@@ -39,7 +47,9 @@ that domain belongs to someone else (typo, an expired/dangling domain, a
 domain the customer doesn't control), OTS itself becomes the takeover
 vector. This risk extends to `caddy_on_demand` (ADR-016): a Caddy ACME
 issuance proves DNS resolution, not account ownership, and the strategy
-performs no ownership check today.
+performed no ownership check when this ADR was written. (Since 2026-09-18
+`caddy_on_demand` checks the TXT challenge record itself; see the ADR-016
+implementation note.)
 
 The "stuck forever" blocker does not actually require deferring the gate.
 Cloudflare's and RFC 8555's validation lifecycles are bounded (finite

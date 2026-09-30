@@ -277,6 +277,50 @@ RSpec.describe 'OmniAuth JIT provisioning sets verified (#3973)', type: :integra
       ).to be_nil
     end
 
+    # SAML (#4450). RequestBoundSAML#extra is string-keyed scalars plus
+    # raw_info as a plain Hash of attribute name => Array<String> (the
+    # strategy spec pins that shape against a real signed response). The
+    # auth hash wraps it in a Mash, as OmniAuth does.
+    describe 'with a SAML extra' do
+      def saml_extra(attributes)
+        OmniAuth::AuthHash.new(
+          extra: {
+            'idp_entity_id' => 'https://idp.example.com/saml/metadata',
+            'name_id_format' => 'urn:oasis:names:tc:SAML:2.0:nameid-format:persistent',
+            'session_index' => '_abc',
+            'raw_info' => attributes,
+          },
+        ).extra
+      end
+
+      let(:saml_info) { OmniAuth::AuthHash::InfoHash.new(email: 'alice@example.com', name: 'Alice') }
+
+      # SAML has no email_verified claim. If reading the SAML extra raised,
+      # the fail-closed rescue would hold EVERY SAML JIT account as
+      # 'claim_unreadable'.
+      it "does not hold a SAML JIT account, and never as 'claim_unreadable'" do
+        allow(Auth::Logging).to receive(:log_auth_event)
+
+        extra = saml_extra('email' => ['alice@example.com'], 'groups' => %w[eng ops])
+
+        expect(hold.call(info: saml_info, extra: extra)).to be_nil
+        expect(hold.call(info: saml_info, extra: saml_extra({}))).to be_nil
+        expect(Auth::Logging).not_to have_received(:log_auth_event)
+      end
+
+      it 'honours an IdP attribute named email_verified despite the Array wrapping' do
+        expect(hold.call(info: saml_info, extra: saml_extra('email_verified' => ['false']))).to eq('idp_unverified')
+        expect(hold.call(info: saml_info, extra: saml_extra('email_verified' => ['FALSE ']))).to eq('idp_unverified')
+        expect(hold.call(info: saml_info, extra: saml_extra('email_verified' => %w[true false]))).to eq('idp_unverified')
+      end
+
+      it 'does not hold on a true, empty, or nil-valued SAML attribute' do
+        expect(hold.call(info: saml_info, extra: saml_extra('email_verified' => ['true']))).to be_nil
+        expect(hold.call(info: saml_info, extra: saml_extra('email_verified' => []))).to be_nil
+        expect(hold.call(info: saml_info, extra: saml_extra('email_verified' => [nil]))).to be_nil
+      end
+    end
+
     it 'only ever returns a registered hold reason' do
       expect(Onetime::Customer::VERIFICATION_HOLDS).to include('idp_unverified', 'claim_unreadable')
     end

@@ -106,15 +106,32 @@ RSpec.describe 'API v2 Basic auth anonymous fallthrough (fail closed)', type: :i
       expect(body['message']).to include('CREDENTIALS_INVALID')
     end
 
-    # #4462: `code` is a statement about the customer session. A rejected API
-    # credential is `credential` scope (reserved, #4469) and stays uncoded,
-    # with the 401 body otherwise exactly as Otto renders it.
-    it 'carries no session-failure code (a rejected credential is not a session verdict)' do
+    # #4469: a rejected API credential is answered in the `credential` scope,
+    # never as a statement about the customer session (#4462). The 401 body
+    # is otherwise exactly as Otto renders it: the pair is additive.
+    it 'carries the api_key_invalid code in the credential scope (not a session verdict)' do
       json_get unknown_secret_path,
         authorization: basic_header("nobody_#{SecureRandom.uuid}@example.com", 'not_a_real_key')
       body = JSON.parse(last_response.body)
-      expect(body.keys).to contain_exactly('error', 'message', 'timestamp')
+      expect(body.keys).to contain_exactly('error', 'message', 'timestamp', 'code', 'code_scope')
       expect(body['error']).to eq('Authentication Required')
+      expect(body).to include('code' => 'api_key_invalid', 'code_scope' => 'credential')
+    end
+
+    # A rejected header is challenged with the scheme the client presented
+    # (RFC 9110 §15.5.2, RFC 7617); the cookie surfaces get `Session`.
+    it 'challenges a rejected API key with Basic' do
+      json_get unknown_secret_path,
+        authorization: basic_header("nobody_#{SecureRandom.uuid}@example.com", 'not_a_real_key')
+      expect(last_response.headers['www-authenticate']).to eq('Basic realm="onetimesecret"')
+    end
+
+    it 'codes an unrecognized Authorization scheme the same way (no more granular than the message)' do
+      json_get unknown_secret_path, authorization: 'Bearer some_token_here'
+      body = JSON.parse(last_response.body)
+      expect(body['message']).to include('AUTH_TYPE_INVALID')
+      expect(body).to include('code' => 'api_key_invalid', 'code_scope' => 'credential')
+      expect(last_response.headers['www-authenticate']).to eq('Basic realm="onetimesecret"')
     end
   end
 
@@ -235,6 +252,14 @@ RSpec.describe 'API v2 Basic auth anonymous fallthrough (fail closed)', type: :i
           authorization: basic_header(test_email, 'definitely_the_wrong_token')
         expect(last_response.status).to eq(401)
       end
+
+      # The wrong-key and unknown-account cases share one code, as they share
+      # one message and one constant-time path (#4469).
+      it 'carries the same api_key_invalid code as an unknown account' do
+        json_post '/api/v2/secret/conceal', conceal_body,
+          authorization: basic_header(test_email, 'definitely_the_wrong_token')
+        expect(JSON.parse(last_response.body)).to include('code' => 'api_key_invalid', 'code_scope' => 'credential')
+      end
     end
   end
 
@@ -305,14 +330,18 @@ RSpec.describe 'API v2 Basic auth anonymous fallthrough (fail closed)', type: :i
     end
 
     # No session strategy is in this chain, so nothing examined the customer
-    # session and the refusal makes no statement about it (#4462).
-    it 'carries no session-failure code with or without credentials' do
+    # session and the refusal makes no statement about it (#4462). A missing
+    # header is not a rejected credential either, so it stays uncoded; a
+    # presented one is coded in the credential scope (#4469).
+    it 'carries no code without credentials, and api_key_invalid with rejected ones' do
       json_get '/api/v2/receipt/recent'
       expect(JSON.parse(last_response.body).keys).to contain_exactly('error', 'message', 'timestamp')
 
       json_get '/api/v2/receipt/recent',
         authorization: basic_header("nobody_#{SecureRandom.uuid}@example.com", 'not_a_real_key')
-      expect(JSON.parse(last_response.body).keys).to contain_exactly('error', 'message', 'timestamp')
+      body = JSON.parse(last_response.body)
+      expect(body.keys).to contain_exactly('error', 'message', 'timestamp', 'code', 'code_scope')
+      expect(body).to include('code' => 'api_key_invalid', 'code_scope' => 'credential')
     end
   end
 end

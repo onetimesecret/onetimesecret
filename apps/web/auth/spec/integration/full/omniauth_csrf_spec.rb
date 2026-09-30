@@ -24,7 +24,9 @@
 # =============================================================================
 
 require_relative '../../spec_helper'
+require 'cgi'
 require 'json'
+require 'uri'
 
 RSpec.describe 'OmniAuth CSRF Configuration' do
   describe 'Rack::Protection middleware configuration' do
@@ -189,6 +191,52 @@ RSpec.describe 'OmniAuth CSRF Configuration' do
         post sso_path
         expect(last_response.status).to eq(404)
       end
+    end
+  end
+
+  describe 'redirect_uri under a doubled Host header (#4517)', type: :integration do
+    include Rack::Test::Methods
+
+    # The reported topology (#4499) is a HOSTNAME site.host: DetectHost keeps
+    # the first comma-separated element of `Host: a, a` and DomainStrategy
+    # classifies it :canonical. The test config's site.host is an IP literal,
+    # which DetectHost never accepts, so with it the tenant hook has no public
+    # host, reads the doubled request.host, and refuses the request as an
+    # unknown tenant before any redirect_uri exists. The context installs a
+    # parseable operator host so this example runs the reporter's path.
+    include_context 'domains enabled'
+
+    def app
+      Onetime::Application::Registry.generate_rack_url_map
+    end
+
+    let(:sso_path) { '/auth/sso/oidc' }
+
+    before do
+      unless Onetime.auth_config.orgs_sso_enabled? || Onetime.auth_config.sso_enabled?
+        skip 'SSO not enabled at boot — route not registered'
+      end
+    end
+
+    # Runs the whole stack (StripForwardedHost -> DetectHost -> DomainStrategy
+    # -> the omniauth_setup hook writing strategy.full_host into
+    # client_options.redirect_uri) and reads the redirect_uri the IdP would
+    # receive. On main, full_host fell to Rack's base_url, which echoes the
+    # unparseable authority verbatim. Host only: the port is read from the
+    # request authority, which Rack cannot parse here, so the redirect_uri
+    # carries none (see Auth::PublicHost.origin_for).
+    it 'builds the redirect_uri on the canonical host, never the doubled authority', :aggregate_failures, :omniauth_mock do
+      header 'Host', "#{canonical_host}, #{canonical_host}"
+      post sso_path
+
+      location     = last_response.headers['Location'].to_s
+      redirect_uri = CGI.parse(URI.parse(location).query.to_s)['redirect_uri'].first.to_s
+
+      expect(last_response.status).to eq(302)
+      expect(location).to include(ENV['OIDC_ISSUER'] || PLACEHOLDER_OIDC_ISSUER)
+      expect(redirect_uri).not_to include(',')
+      expect(URI.parse(redirect_uri).host).to eq(canonical_host)
+      expect(redirect_uri).to end_with('/auth/sso/oidc/callback')
     end
   end
 end

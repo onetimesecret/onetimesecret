@@ -75,10 +75,6 @@
     "text": "このメールへの招待はすでに保留中です",
     "source_hash": "7f5e3093"
   },
-  "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "メンバーの上限に達しました。プランをアップグレードして、より多くのメンバーを招待してください。",
-    "source_hash": "b8f316e8"
-  },
   "api.organizations.invitations.errors.resend_only_pending": {
     "text": "保留中の招待のみ再送信できます",
     "source_hash": "b7578b3e"

@@ -414,7 +414,7 @@ RSpec.describe InviteAPI::Logic::Invites::SignupAndAccept do
 
   # NOTE: The historical "#process" describe block tested an obsolete contract
   # where this logic class directly invoked Auth::Operations::EnsureCustomerForAccount /
-  # EnsureDefaultWorkspace / AcceptInvitation. The current source (#3221)
+  # EnsureDefaultWorkspace and accepted the invitation itself. The current source (#3221)
   # delegates Customer/workspace creation to Rodauth's after_create_account
   # hook (apps/web/auth/config/hooks/account.rb) and reserves invitation
   # acceptance for a separate explicit /accept call. The current contract is

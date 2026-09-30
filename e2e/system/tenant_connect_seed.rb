@@ -13,10 +13,16 @@
 # It seeds, idempotently, exactly what e2e/system/README.md lists:
 #
 #   - one organization with an owner Customer;
-#   - one custom domain (the E2E_TENANT_CONNECT_ORIGIN host) in that
-#     organization, with an enabled OIDC SsoConfig whose issuer is
+#   - one TXT-verified custom domain (the E2E_TENANT_CONNECT_ORIGIN host) in
+#     that organization, with an enabled OIDC SsoConfig whose issuer is
 #     E2E_TENANT_CONNECT_ISSUER and a SigninConfig that enables password
 #     sign-in AND SSO on the domain;
+#   - a second custom domain (the E2E_TENANT_CONNECT_UNVERIFIED_ORIGIN host)
+#     in the same organization with the identical SsoConfig + SigninConfig,
+#     differing ONLY in that its ownership is NOT verified. It is the
+#     target of the refusal check (tenant-sso-unverified-domain.spec.ts)
+#     and carries no accounts or memberships: SSO is refused there before
+#     anyone signs in;
 #   - two open (Verified) accounts with an Argon2 password hash, paired
 #     Customers, and active exact-domain memberships in the organization;
 #   - NO identity on either account, and NO identity anywhere for the
@@ -56,19 +62,24 @@ def required_env(name)
   value
 end
 
-ORIGIN          = required_env('E2E_TENANT_CONNECT_ORIGIN')
-TENANT_HOST     = URI.parse(ORIGIN).host.to_s.downcase
-PROVIDER        = ENV.fetch('E2E_TENANT_CONNECT_PROVIDER', 'oidc')
-UID             = required_env('E2E_TENANT_CONNECT_UID')
-ISSUER          = required_env('E2E_TENANT_CONNECT_ISSUER')
-PASSWORD        = required_env('E2E_TENANT_CONNECT_PASSWORD')
-OWNER_EMAIL     = required_env('E2E_TENANT_CONNECT_OWNER_EMAIL')
-SECOND_EMAIL    = required_env('E2E_TENANT_CONNECT_SECOND_EMAIL')
-ORG_OWNER       = ENV.fetch('E2E_TENANT_CONNECT_ORG_OWNER_EMAIL', 'tenant-org-owner@example.test')
-ORG_NAME        = 'Tenant Connect E2E'
-STATUS_VERIFIED = 2 # account_statuses: Verified (open account, no verify-account branch)
+ORIGIN            = required_env('E2E_TENANT_CONNECT_ORIGIN')
+TENANT_HOST       = URI.parse(ORIGIN).host.to_s.downcase
+UNVERIFIED_ORIGIN = required_env('E2E_TENANT_CONNECT_UNVERIFIED_ORIGIN')
+UNVERIFIED_HOST   = URI.parse(UNVERIFIED_ORIGIN).host.to_s.downcase
+PROVIDER          = ENV.fetch('E2E_TENANT_CONNECT_PROVIDER', 'oidc')
+UID               = required_env('E2E_TENANT_CONNECT_UID')
+ISSUER            = required_env('E2E_TENANT_CONNECT_ISSUER')
+PASSWORD          = required_env('E2E_TENANT_CONNECT_PASSWORD')
+OWNER_EMAIL       = required_env('E2E_TENANT_CONNECT_OWNER_EMAIL')
+SECOND_EMAIL      = required_env('E2E_TENANT_CONNECT_SECOND_EMAIL')
+ORG_OWNER         = ENV.fetch('E2E_TENANT_CONNECT_ORG_OWNER_EMAIL', 'tenant-org-owner@example.test')
+ORG_NAME          = 'Tenant Connect E2E'
+STATUS_VERIFIED   = 2 # account_statuses: Verified (open account, no verify-account branch)
 
 abort "tenant Connect E2E seed: could not parse a host from E2E_TENANT_CONNECT_ORIGIN=#{ORIGIN.inspect}" if TENANT_HOST.empty?
+abort "tenant Connect E2E seed: could not parse a host from E2E_TENANT_CONNECT_UNVERIFIED_ORIGIN=#{UNVERIFIED_ORIGIN.inspect}" if UNVERIFIED_HOST.empty?
+# One host for both would un-verify the journey's own tenant below.
+abort 'tenant Connect E2E seed: E2E_TENANT_CONNECT_UNVERIFIED_ORIGIN must name a different host than E2E_TENANT_CONNECT_ORIGIN' if UNVERIFIED_HOST == TENANT_HOST
 abort "tenant Connect E2E seed: only the oidc provider is seeded (got #{PROVIDER.inspect})" unless PROVIDER == 'oidc'
 
 Onetime.boot! :cli
@@ -86,42 +97,73 @@ def ensure_customer(email)
   Onetime::Customer.find_by_email(normalized) || Onetime::Customer.create!(email: normalized)
 end
 
-# --- Organization + custom domain ------------------------------------------
+# --- Organization + custom domains -----------------------------------------
 org_owner = ensure_customer(ORG_OWNER)
 org       = org_owner.organization_instances.find { |candidate| candidate.display_name == ORG_NAME } ||
             Onetime::Organization.create!(ORG_NAME, org_owner, org_owner.email)
 
-domain   = Onetime::CustomDomain.load_by_display_domain(TENANT_HOST)
-if domain && domain.org_id.to_s != org.objid.to_s
-  abort "tenant Connect E2E seed: #{TENANT_HOST} already belongs to another organization (#{domain.org_id})"
-end
-domain ||= Onetime::CustomDomain.create!(TENANT_HOST, org.objid)
+# One custom domain in +org+ with the tenant sign-in shape both checks run
+# against: an enabled OIDC SsoConfig for ISSUER and a SigninConfig enabling
+# password sign-in AND SSO. +verified+ is the only input that differs
+# between the two hosts, so the refusal on the unverified one is down to
+# domain verification alone. The flag is written in both directions every
+# run, so a datastore reused across runs cannot carry a stale value into
+# either host.
+def seed_tenant_domain(host, org, verified:)
+  domain   = Onetime::CustomDomain.load_by_display_domain(host)
+  if domain && domain.org_id.to_s != org.objid.to_s
+    abort "tenant Connect E2E seed: #{host} already belongs to another organization (#{domain.org_id})"
+  end
+  domain ||= Onetime::CustomDomain.create!(host, org.objid)
 
-# Recreate the credentials store every run so the issuer always matches the
-# E2E_TENANT_CONNECT_ISSUER the boot shim asserts in the mock auth hash.
-Onetime::CustomDomain::SsoConfig.delete_for_domain!(domain.identifier) if Onetime::CustomDomain::SsoConfig.exists_for_domain?(domain.identifier)
-Onetime::CustomDomain::SsoConfig.create!(
-  domain_id: domain.identifier,
-  provider_type: 'oidc',
-  display_name: 'Tenant Connect E2E IdP',
-  issuer: ISSUER,
-  client_id: 'tenant-connect-e2e-client',
-  client_secret: 'tenant-connect-e2e-secret',
-  enabled: true,
-)
+  unless domain.verified == verified # boolean_field native
+    domain.verified = verified
+    domain.save
+  end
 
-signin_config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain.identifier)
-if signin_config
-  signin_config.enabled        = true
-  signin_config.signin_enabled = true
-  signin_config.sso_enabled    = true
-  signin_config.updated        = Familia.now.to_i
-  signin_config.save
-else
-  Onetime::CustomDomain::SigninConfig.create!(
-    domain_id: domain.identifier, enabled: true, signin_enabled: true, sso_enabled: true,
+  # Recreate the credentials store every run so the issuer always matches the
+  # E2E_TENANT_CONNECT_ISSUER the boot shim asserts in the mock auth hash.
+  Onetime::CustomDomain::SsoConfig.delete_for_domain!(domain.identifier) if Onetime::CustomDomain::SsoConfig.exists_for_domain?(domain.identifier)
+  Onetime::CustomDomain::SsoConfig.create!(
+    domain_id: domain.identifier,
+    provider_type: 'oidc',
+    display_name: 'Tenant Connect E2E IdP',
+    issuer: ISSUER,
+    client_id: 'tenant-connect-e2e-client',
+    client_secret: 'tenant-connect-e2e-secret',
+    enabled: true,
   )
+
+  signin_config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain.identifier)
+  if signin_config
+    signin_config.enabled        = true
+    signin_config.signin_enabled = true
+    signin_config.sso_enabled    = true
+    signin_config.updated        = Familia.now.to_i
+    signin_config.save
+  else
+    Onetime::CustomDomain::SigninConfig.create!(
+      domain_id: domain.identifier, enabled: true, signin_enabled: true, sso_enabled: true,
+    )
+  end
+
+  domain
 end
+
+# TXT-verified, every run: Auth::PublicHost (finding G-01) roots the OIDC
+# redirect_uri on a tenant host only when its ownership is proven, and since
+# #4517 an unverified domain builds it on the canonical host instead, where
+# the Connect callback would land on another origin and lose the session.
+# The journey models a verified tenant, the same shape the auth app's
+# tenant_test_fixtures seed.
+domain = seed_tenant_domain(TENANT_HOST, org, verified: true)
+
+# NOT verified, every run: the tenant OmniAuth hook refuses SSO on this host
+# with auth_error=sso_domain_unverified before injecting any credentials,
+# and never falls back to platform credentials (#4579). A separate host
+# rather than a toggle on the journey's own, so neither check can leave the
+# other a domain in the wrong state.
+unverified_domain = seed_tenant_domain(UNVERIFIED_HOST, org, verified: false)
 
 # --- Accounts ----------------------------------------------------------------
 # Argon2 parameters mirror apps/web/auth/config/features/argon2.rb under
@@ -161,3 +203,4 @@ db[:account_identities].where(provider: PROVIDER, uid: UID).delete
 end
 
 puts "seeded tenant #{TENANT_HOST} (domain_id=#{domain.identifier}, org=#{org.objid}, issuer=#{ISSUER})"
+puts "seeded UNVERIFIED tenant #{UNVERIFIED_HOST} (domain_id=#{unverified_domain.identifier}, org=#{org.objid}, issuer=#{ISSUER})"

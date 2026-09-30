@@ -90,7 +90,7 @@ require 'billing/operations/apply_subscription_to_org'
 # Starts from 'active' on purpose: subscription_status is already 'canceled'
 # after the test above, so asserting 'canceled' from there cannot tell
 # "cleared to canceled" apart from "never touched". Same fix as the twin in
-# try/unit/models/organization_billing_try.rb.
+# try/unit/models/organization/billing_try.rb.
 @reloaded.subscription_status = 'active'
 @reloaded.save
 @reloaded.clear_billing_fields

@@ -207,6 +207,86 @@ describe('AdminDomainToolbox (orphaned + probe + repair + transfer — ticket #4
 
   // ---- Repair (guarded: dry-run preview → typed-confirm apply) --------------
 
+  describe('re-verify', () => {
+    const VERIFY_URL = `/api/colonel/domains/${EXTID}/verify`;
+
+    function verifyAck(current_state: string, detailOverrides: Record<string, unknown> = {}) {
+      return {
+        shrimp: '',
+        record: {
+          domain_id: 'cd1',
+          extid: EXTID,
+          display_domain: 'orphan.example.com',
+          verification_state: current_state,
+          verified: current_state === 'verified',
+          resolving: current_state !== 'pending',
+          ready: current_state === 'verified',
+          updated: 1700009999,
+        },
+        details: {
+          previous_state: 'verified',
+          current_state,
+          changed: false,
+          dns_validated: current_state === 'verified',
+          ssl_ready: true,
+          is_resolving: true,
+          error: null,
+          message: 'Domain verification completed',
+          ...detailOverrides,
+        },
+      };
+    }
+
+    async function reverify(data: unknown) {
+      mockApi.post.mockImplementation((url: string) =>
+        url === VERIFY_URL ? Promise.resolve({ data }) : Promise.reject(new Error(`unexpected ${url}`))
+      );
+      wrapper = mountView(pinia);
+      await flushPromises();
+      await wrapper.find('[data-testid="probe-extid-input"]').setValue(EXTID);
+      await wrapper.find('[data-testid="reverify-run"]').trigger('click');
+      await flushPromises();
+    }
+
+    it('reports a verified result as a success', async () => {
+      await reverify(verifyAck('verified', { dns_outcome: 'validated' }));
+
+      expect(mockApi.post).toHaveBeenCalledWith(VERIFY_URL);
+      expect(showMock).toHaveBeenCalledTimes(1);
+      expect(showMock.mock.calls[0][0]).toContain('web.admin.domains.verify.success.verified');
+      expect(showMock.mock.calls[0][1]).toBe('success');
+    });
+
+    // Every completed call used to read "re-verification completed" as a
+    // success, whatever the check had found.
+    it.each([
+      ['indeterminate', 'verified', 'web.admin.domains.verify.success.indeterminate'],
+      ['confirmation_expired', 'resolving', 'web.admin.domains.verify.success.confirmationExpired'],
+      ['override_held', 'verified', 'web.admin.domains.verify.success.overrideHeld'],
+    ])('reports %s as a warning, with an unknown (null) status', async (dns_outcome, state, key) => {
+      await reverify(verifyAck(state, { dns_outcome, ssl_ready: null, is_resolving: null }));
+
+      expect(showMock).toHaveBeenCalledTimes(1);
+      expect(showMock.mock.calls[0][0]).toContain(key);
+      expect(showMock.mock.calls[0][1]).toBe('warning');
+    });
+
+    it('does not claim success for a domain that could not be verified', async () => {
+      await reverify(verifyAck('unverified', { dns_outcome: 'failed', is_resolving: false }));
+
+      expect(showMock.mock.calls[0][0]).toContain('web.admin.domains.verify.success.unverified');
+      expect(showMock.mock.calls[0][1]).toBe('info');
+    });
+
+    it('falls back to the neutral completion notice when the response does not parse', async () => {
+      await reverify({ shrimp: '', record: {}, details: {} });
+
+      expect(showMock).toHaveBeenCalledTimes(1);
+      expect(showMock.mock.calls[0][0]).toContain('web.admin.domaintoolbox.reverify.success');
+      expect(showMock.mock.calls[0][1]).toBe('info');
+    });
+  });
+
   describe('repair', () => {
     it('previews a repair plan (dry_run) and lists the issues', async () => {
       wrapper = mountView(pinia);

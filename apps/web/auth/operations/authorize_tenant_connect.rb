@@ -180,7 +180,7 @@ module Auth
       # domain_id is the CustomDomain objid (identifier), exactly as
       # JoinDomainOrganization loads it. Familia's by-identifier loader returns
       # nil for a missing key and never raises RecordNotFound (pinned by
-      # try/unit/models/custom_domain_load_contract_try.rb); a datastore error
+      # try/unit/models/custom_domain/load_contract_try.rb); a datastore error
       # propagates to the outer rescue in #call and refuses as :lookup_error.
       def load_custom_domain
         Onetime::CustomDomain.find_by_identifier(domain_id)

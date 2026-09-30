@@ -65,13 +65,18 @@ CI's fresh-clone job runs `bin/setup` and these same commands from zero on a
 clean runner — if they work there, they work here:
 
 ```bash
-bin/setup --test           # test lane: throwaway datastore on :2163
+bin/setup --test           # test lane: frozen deps, browsers, datastore on :2163
 tests/lanes/run unit       # Ruby: unit tryouts + RSpec fast suite
+tests/lanes/run browser    # Ruby: real-browser SAML callback matrix
 pnpm test                  # Vitest (frontend)
 ```
 
-`bin/setup --test` switches the checkout into test mode (a `.test-mode`
-marker; with direnv, every shell in the checkout then runs `RACK_ENV=test`).
+`bin/setup --test` installs dependencies the way CI does (`pnpm install
+--frozen-lockfile` on every run), installs the Playwright browsers that
+`tests/browser/` drives (chromium, firefox, webkit; skip with
+`OTS_SETUP_SKIP_BROWSERS=1`), and switches the checkout into test mode (a
+`.test-mode` marker; with direnv, every shell in the checkout then runs
+`RACK_ENV=test`).
 Plain `bin/setup` switches back to dev mode. `bin/setup --doctor` checks the
 environment when something misbehaves.
 

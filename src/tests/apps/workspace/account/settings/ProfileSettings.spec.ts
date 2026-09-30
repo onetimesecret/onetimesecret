@@ -91,4 +91,21 @@ describe('ProfileSettings', () => {
       expect(fetchAccountInfo).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe('Email verification status', () => {
+    // green-600 small text on the translucent card is ~3.2:1 and fails the
+    // axe color-contrast rule; green-700 (light) / green-400 (dark) pass AA.
+    it('renders the verified label with AA-contrast green classes', () => {
+      wrapper = mountComponent();
+
+      const label = wrapper
+        .findAll('span.text-sm')
+        .find((el) => el.text().includes('web.auth.account.verified'));
+      expect(label).toBeDefined();
+      expect(label!.classes()).toEqual(
+        expect.arrayContaining(['text-green-700', 'dark:text-green-400'])
+      );
+      expect(label!.classes()).not.toContain('text-green-600');
+    });
+  });
 });

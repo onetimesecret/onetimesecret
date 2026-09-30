@@ -1,10 +1,11 @@
 // src/tests/schemas/contracts/session-failure.spec.ts
 //
-// Session-failure codes on API and /auth 401s (#4462).
+// Session-failure codes on API and /auth 401s (#4462), and the credential
+// codes that share the contract (#4469).
 
 import {
-  RESERVED_SESSION_FAILURE_SCOPE,
   SESSION_FAILURE_CODES,
+  VERIFICATION_UNAVAILABLE_STATUS,
   parseSessionFailure,
   sessionFailureCodeSchema,
   sessionFailureSchema,
@@ -28,12 +29,23 @@ describe('session failure contract', () => {
     for (const scope of Object.values(SESSION_FAILURE_CODES)) {
       expect(sessionFailureScopeValues).toContain(scope);
     }
-    expect(Object.keys(SESSION_FAILURE_CODES)).toHaveLength(12);
+    expect(Object.keys(SESSION_FAILURE_CODES)).toHaveLength(17);
   });
 
-  it('does not emit the reserved credential scope', () => {
-    expect(sessionFailureScopeValues).not.toContain(RESERVED_SESSION_FAILURE_SCOPE);
-    expect(sessionFailureSchema.safeParse({ code: 'x', code_scope: 'credential' }).success).toBe(false);
+  it('scopes exactly the credential vocabulary as credential (#4469)', () => {
+    const credential = Object.entries(SESSION_FAILURE_CODES)
+      .filter(([, scope]) => scope === 'credential')
+      .map(([code]) => code);
+    expect(credential.sort()).toEqual([
+      'account_locked',
+      'account_unverified',
+      'api_key_invalid',
+      'invalid_credentials',
+      'suspended_credentials',
+    ]);
+    expect(sessionFailureSchema.safeParse({ code: 'invalid_credentials', code_scope: 'credential' }).success).toBe(
+      true
+    );
   });
 
   it('keeps outages apart from rejections', () => {
@@ -71,6 +83,22 @@ describe('parseSessionFailure', () => {
     expect(parseSessionFailure(ottoBody)?.code).toBe('surface_mismatch');
   });
 
+  it('reads a credential refusal from a login 401 and from a Basic auth 401', () => {
+    const login = {
+      error: 'There was an error logging in',
+      'field-error': ['password', 'invalid password'],
+      code: 'invalid_credentials',
+      code_scope: 'credential',
+    };
+    expect(parseSessionFailure(axiosError(401, login))).toEqual({
+      code: 'invalid_credentials',
+      code_scope: 'credential',
+    });
+
+    const apiKey = { ...ottoBody, code: 'api_key_invalid', code_scope: 'credential' };
+    expect(parseSessionFailure(axiosError(401, apiKey))?.code_scope).toBe('credential');
+  });
+
   it('handles a code it has never seen by its scope', () => {
     const body = { ...ottoBody, code: 'some_future_reason' };
     expect(parseSessionFailure(axiosError(401, body))).toEqual({
@@ -85,9 +113,73 @@ describe('parseSessionFailure', () => {
     expect(parseSessionFailure(axiosError(401, { error: 'Authentication required' }))).toBeNull();
   });
 
-  it('ignores a pair on any status other than 401', () => {
-    for (const status of [200, 403, 500, 503]) {
+  it('ignores a session pair on any status other than 401 (403 and the outage 503 included)', () => {
+    for (const status of [200, 302, 403, 500, 502, 503, 504]) {
       expect(parseSessionFailure(axiosError(status, ottoBody))).toBeNull();
+    }
+  });
+
+  // #4469: a session the server could not verify is an outage, answered 503
+  // with Retry-After and the same coded body. Only that scope rides a 503.
+  describe('the verification-unavailable 503', () => {
+    const outage = {
+      error: 'Authentication Required',
+      message: '[AUTH_HEADER_MISSING] No authorization header',
+      timestamp: 1_700_000_000,
+      code: 'active_session_unavailable',
+      code_scope: 'verification_unavailable',
+    };
+
+    it('reads the pair from a 503 in the verification_unavailable scope', () => {
+      expect(VERIFICATION_UNAVAILABLE_STATUS).toBe(503);
+      expect(parseSessionFailure(axiosError(503, outage))).toEqual({
+        code: 'active_session_unavailable',
+        code_scope: 'verification_unavailable',
+      });
+      expect(parseSessionFailure(axiosError(503, { ...outage, code: 'customer_unavailable' }))?.code).toBe(
+        'customer_unavailable'
+      );
+    });
+
+    it('still reads the scope from a 401, for a backend that answers the outage the old way', () => {
+      expect(parseSessionFailure(axiosError(401, outage))?.code_scope).toBe('verification_unavailable');
+    });
+
+    it('ignores every other scope on a 503, and the scope on every other 5xx', () => {
+      for (const scope of ['customer_session', 'admin_session', 'credential']) {
+        expect(parseSessionFailure(axiosError(503, { ...outage, code_scope: scope }))).toBeNull();
+      }
+      for (const status of [500, 502, 504]) {
+        expect(parseSessionFailure(axiosError(status, outage))).toBeNull();
+      }
+    });
+
+    it('does not mistake the other 503s the client sees for a session refusal', () => {
+      // GET /bootstrap/me when the ordering pair cannot be allocated (ADR-046).
+      expect(
+        parseSessionFailure(axiosError(503, { error_type: 'SnapshotOrderingUnavailable', retry_after: 5 }))
+      ).toBeNull();
+      // /auth when the auth database is saturated.
+      expect(parseSessionFailure(axiosError(503, { error: 'busy', error_type: 'AuthDatabaseBusy' }))).toBeNull();
+      expect(parseSessionFailure(axiosError(503, {}))).toBeNull();
+    });
+  });
+
+  // #4469: Rodauth answers a locked-out or unverified account with 403 and
+  // the pair; a form may read it. Any other 403 carries nothing.
+  it('reads a credential pair from a 403, and only from a 403', () => {
+    const locked = { error: 'This account is currently locked out', code: 'account_locked', code_scope: 'credential' };
+    expect(parseSessionFailure(axiosError(403, locked))).toEqual({
+      code: 'account_locked',
+      code_scope: 'credential',
+    });
+    expect(parseSessionFailure(axiosError(403, { error: 'Forbidden' }))).toBeNull();
+    for (const status of [200, 404, 422, 500, 503]) {
+      expect(parseSessionFailure(axiosError(status, locked))).toBeNull();
+    }
+    // A 403 never carries a session or outage scope.
+    for (const scope of ['customer_session', 'admin_session', 'verification_unavailable']) {
+      expect(parseSessionFailure(axiosError(403, { ...locked, code_scope: scope }))).toBeNull();
     }
   });
 

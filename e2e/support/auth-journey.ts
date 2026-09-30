@@ -10,9 +10,13 @@
 //
 // Environment contract (the target server must actually SEND the email):
 //   AUTHENTICATION_MODE=full        Rodauth is mounted
-//   AUTH_AUTOVERIFY=false           accounts are NOT verified on creation
-//   RACK_ENV != test                etc/auth.yaml force-disables
-//                                   verify_account whenever RACK_ENV=test
+//   AUTH_VERIFY_ACCOUNT_ENABLED=true
+//                                   Rodauth's verify_account is on, so
+//                                   accounts are NOT verified on creation
+//                                   (AUTH_AUTOVERIFY does not decide this in
+//                                   full mode)
+//   RACK_ENV != test                etc/defaults/auth.defaults.yaml turns
+//                                   verify_account off whenever RACK_ENV=test
 //   EMAILER_MODE=smtp + SMTP_HOST/SMTP_PORT → Mailpit
 //   a running job worker            mail is ENQUEUED by the web process and
 //                                   delivered by EmailWorker, not inline
@@ -59,10 +63,7 @@ export async function waitForAppReady(page: Page): Promise<void> {
  * confusing assertion failure one line later. Comparing the parsed pathname
  * cannot be fooled by the query.
  */
-export async function waitForPathname(
-  page: Page,
-  expected: string | RegExp
-): Promise<void> {
+export async function waitForPathname(page: Page, expected: string | RegExp): Promise<void> {
   await page.waitForURL((url) =>
     typeof expected === 'string' ? url.pathname === expected : expected.test(url.pathname)
   );
@@ -146,8 +147,9 @@ export async function submitSignup(
       : `POST /auth/create-account failed: ${await response.text()}`
   ).toBe(200);
 
-  // Since 16c9012c42 signup lands on /check-email, NOT /signin: the sign-in
-  // form is unusable until the account is verified.
+  // With verify_account on (the contract above) the server answers
+  // next_action 'verify_email', so signup lands on /check-email, NOT /signin:
+  // the sign-in form is unusable until the account is verified.
   await page.waitForURL(/\/check-email/);
   await expect(page.getByTestId('check-email-view')).toBeVisible();
 

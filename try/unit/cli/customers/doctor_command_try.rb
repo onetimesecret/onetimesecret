@@ -18,7 +18,7 @@
 # private `check_field_serialization(issues, repaired)` appends repair-action
 # hashes to the `repaired` ARRAY (the CLI's old `report[:repaired]` hash slot).
 #
-# Closes the coverage gap between try/unit/models/customer_field_serialization_try.rb
+# Closes the coverage gap between try/unit/models/customer/field_serialization_try.rb
 # (which tests the serializer primitives) and the doctor check/repair code paths.
 # The sibling try/unit/auth/operations/customers_ops_try.rb covers Doctor's other
 # checks (role_invalid, verified_by repair) but NOT this serialization boundary.

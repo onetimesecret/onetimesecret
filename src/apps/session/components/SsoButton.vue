@@ -45,6 +45,9 @@ const isLoading = ref(false);
  * env-configurable (OIDC_ROUTE_NAME etc.), so this matches the DEFAULT
  * route names plus common aliases; anything unrecognized (including
  * generic OIDC) falls back to the neutral building-office icon.
+ *
+ * 'saml' names a protocol, not a brand, so it gets a generic key glyph
+ * (#4450) rather than any one IdP's mark.
  */
 const PROVIDER_ICONS: Record<string, { collection: string; name: string }> = {
   google: { collection: 'mdi', name: 'google' },
@@ -52,6 +55,7 @@ const PROVIDER_ICONS: Record<string, { collection: string; name: string }> = {
   entra: { collection: 'mdi', name: 'microsoft' },
   microsoft: { collection: 'mdi', name: 'microsoft' },
   apple: { collection: 'mdi', name: 'apple' },
+  saml: { collection: 'mdi', name: 'key' },
 };
 
 const providerIcon = computed(

@@ -5,6 +5,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createTestingPinia } from '@pinia/testing';
 import { defineComponent, ref } from 'vue';
 import { createTestI18n } from '@tests/setup';
+import SsoButton from '@/apps/session/components/SsoButton.vue';
 
 // Mock OIcon component
 vi.mock('@/shared/components/icons/OIcon.vue', () => ({
@@ -500,6 +501,33 @@ describe('SsoButton', () => {
       const button = wrapper.find('[data-testid="sso-button"]');
       expect(button.classes()).toContain('border');
       expect(button.classes()).toContain('border-gray-300');
+    });
+  });
+
+  // The suite above drives a local stub; PROVIDER_ICONS lives in the real
+  // component, so the icon mapping is asserted against it directly.
+  describe('provider icon (real component)', () => {
+    const mountReal = (routeName: string) =>
+      mount(SsoButton, {
+        props: { routeName },
+        global: { plugins: [i18n, createTestingPinia({ createSpy: vi.fn })] },
+      });
+
+    // SAML names a protocol, not a brand: a generic key glyph, never the
+    // building-office fallback (#4450).
+    it('renders the generic mdi key icon for the saml route', () => {
+      wrapper = mountReal('saml');
+
+      const icon = wrapper.find('[data-icon="key"]');
+      expect(icon.exists()).toBe(true);
+      expect(icon.attributes('data-collection')).toBe('mdi');
+      expect(wrapper.find('[data-icon="solid-building-office"]').exists()).toBe(false);
+    });
+
+    it('falls back to the building-office icon for an unmapped route', () => {
+      wrapper = mountReal('some-custom-idp');
+
+      expect(wrapper.find('[data-icon="solid-building-office"]').exists()).toBe(true);
     });
   });
 });

@@ -97,7 +97,7 @@ RSpec.describe 'Auth::Router customer-session gate' do
       before do
         post '/seed', authenticated: true, account_id: 42
         expect(last_response.status).to eq(200)
-        allow(Onetime::SessionSurface).to receive(:matches_request?).and_return(true)
+        allow(Onetime::SessionSurface).to receive(:match_status).and_return(:match)
       end
 
       # Every definitive rejection reason from REASONS. Each must survive an
@@ -116,7 +116,7 @@ RSpec.describe 'Auth::Router customer-session gate' do
 
           expect(settled_reason).to eq(reason.to_s)
           expect(Onetime::ActiveSessionGate).not_to have_received(:verdict)
-          expect(Onetime::SessionSurface).not_to have_received(:matches_request?)
+          expect(Onetime::SessionSurface).not_to have_received(:match_status)
         end
       end
 
@@ -145,11 +145,11 @@ RSpec.describe 'Auth::Router customer-session gate' do
         end
 
         it 'does not repeat the surface check the evaluator already passed' do
-          allow(Onetime::SessionSurface).to receive(:matches_request?).and_return(false)
+          allow(Onetime::SessionSurface).to receive(:match_status).and_return(:mismatch)
           allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(:active)
 
           expect(settled_reason).to eq('customer_unavailable')
-          expect(Onetime::SessionSurface).not_to have_received(:matches_request?)
+          expect(Onetime::SessionSurface).not_to have_received(:match_status)
         end
       end
 
@@ -175,11 +175,27 @@ RSpec.describe 'Auth::Router customer-session gate' do
           end
 
           it 'becomes :surface_mismatch on a surface mismatch, before the gate is consulted' do
-            allow(Onetime::SessionSurface).to receive(:matches_request?).and_return(false)
+            allow(Onetime::SessionSurface).to receive(:match_status).and_return(:mismatch)
             allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(:active)
 
             expect(settled_reason).to eq('surface_mismatch')
             expect(Onetime::ActiveSessionGate).not_to have_received(:verdict)
+          end
+
+          context 'when the request surface cannot be read' do
+            before { allow(Onetime::SessionSurface).to receive(:match_status).and_return(:unavailable) }
+
+            it 'becomes :customer_unavailable, which keeps the session, when the gate answers :active' do
+              allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(:active)
+
+              expect(settled_reason).to eq('customer_unavailable')
+            end
+
+            it 'still becomes :active_session_revoked when the gate answers :revoked' do
+              allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(:revoked)
+
+              expect(settled_reason).to eq('active_session_revoked')
+            end
           end
 
           [:active, :skipped].each do |gate_verdict|
@@ -187,7 +203,7 @@ RSpec.describe 'Auth::Router customer-session gate' do
               allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(gate_verdict)
 
               expect(settled_reason).to eq(reason.to_s)
-              expect(Onetime::SessionSurface).to have_received(:matches_request?)
+              expect(Onetime::SessionSurface).to have_received(:match_status)
               expect(Onetime::ActiveSessionGate).to have_received(:verdict)
             end
           end
@@ -197,7 +213,7 @@ RSpec.describe 'Auth::Router customer-session gate' do
 
     context 'with a genuinely anonymous Rack session (no account_id)' do
       before do
-        allow(Onetime::SessionSurface).to receive(:matches_request?).and_return(false)
+        allow(Onetime::SessionSurface).to receive(:match_status).and_return(:mismatch)
         allow(Onetime::ActiveSessionGate).to receive(:verdict).and_return(:revoked)
       end
 
@@ -205,7 +221,7 @@ RSpec.describe 'Auth::Router customer-session gate' do
         stub_evaluator(status: :anonymous, reason: :not_authenticated)
 
         expect(settled_reason).to eq('not_authenticated')
-        expect(Onetime::SessionSurface).not_to have_received(:matches_request?)
+        expect(Onetime::SessionSurface).not_to have_received(:match_status)
         expect(Onetime::ActiveSessionGate).not_to have_received(:verdict)
       end
 

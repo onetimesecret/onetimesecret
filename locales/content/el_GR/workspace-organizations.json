@@ -639,10 +639,6 @@
     "text": "Υπάρχει ήδη εκκρεμής πρόσκληση για αυτό το email",
     "source_hash": "7f5e3093"
   },
-  "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Συμπληρώθηκε το όριο μελών. Αναβαθμίστε το πρόγραμμά σας για να προσκαλέσετε περισσότερα μέλη.",
-    "source_hash": "b8f316e8"
-  },
   "api.organizations.invitations.errors.not_found": {
     "text": "Η πρόσκληση δεν βρέθηκε",
     "source_hash": "775ba9eb"
@@ -783,17 +779,9 @@
     "text": "Απόρριψη",
     "source_hash": "a2d285b3"
   },
-  "web.organizations.members.member_quota": {
-    "text": "{used} από {limit} μέλη",
-    "source_hash": "51183b79"
-  },
   "web.organizations.members.pending_suffix": {
     "text": "({count} σε εκκρεμότητα)",
     "source_hash": "c13f787f"
-  },
-  "web.organizations.members.limit_reached_hint": {
-    "text": "Συμπληρώθηκε το όριο μελών.",
-    "source_hash": "26cdb6b8"
   },
   "web.organizations.sso.title": {
     "text": "Ενιαία σύνδεση (SSO)",

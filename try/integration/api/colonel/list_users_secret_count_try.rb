@@ -119,7 +119,7 @@ get '/api/colonel/users', { 'role' => 'colonel', 'per_page' => 100 }, { 'rack.se
 #=> [4, 3, 3]
 
 # NOTE: unit-level decrement coverage (anon guard, zero clamp, reveal path)
-# lives in try/unit/models/secret_active_counter_try.rb.
+# lives in try/unit/models/secret/active_counter_try.rb.
 
 # TEARDOWN
 

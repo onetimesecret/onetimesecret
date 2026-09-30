@@ -35,6 +35,18 @@
     "text": "{domain} could not be verified.",
     "content_hash": "630da482"
   },
+  "web.admin.domains.verify.success.indeterminate": {
+    "text": "The DNS checker returned no result for {domain}. Its verification status was left unchanged.",
+    "content_hash": "9c5ab974"
+  },
+  "web.admin.domains.verify.success.overrideHeld": {
+    "text": "The TXT check failed for {domain}, but it stays verified because of an operator override.",
+    "content_hash": "e754aac8"
+  },
+  "web.admin.domains.verify.success.confirmationExpired": {
+    "text": "The DNS check for {domain} has returned no result for more than 7 days. It is no longer verified.",
+    "content_hash": "a6901cb5"
+  },
   "web.admin.domains.verify.success.done": {
     "text": "Verification complete for {domain}.",
     "content_hash": "ed67e22d"
@@ -108,12 +120,12 @@
     "content_hash": "acaede35"
   },
   "web.admin.domains.addDomain.strategy.caddy_on_demand": {
-    "text": "Caddy on-demand — certificates issued automatically on first request.",
-    "content_hash": "deb90ae6"
+    "text": "Caddy on-demand — DNS ownership check (TXT record); certificates issued automatically once verified.",
+    "content_hash": "1c926efa"
   },
   "web.admin.domains.addDomain.strategy.caddy": {
-    "text": "Caddy — certificates issued automatically on first request.",
-    "content_hash": "a0f3c2dc"
+    "text": "Caddy — DNS ownership check (TXT record); certificates issued automatically once verified.",
+    "content_hash": "5774ff90"
   },
   "web.admin.domains.addDomain.strategy.unknown": {
     "text": "Deployment-wide validation strategy.",
@@ -134,6 +146,18 @@
   "web.admin.domains.dns.cnameStep": {
     "text": "2. Add a CNAME record pointing the subdomain at the proxy.",
     "content_hash": "5c626f53"
+  },
+  "web.admin.domains.dns.cnameStepInstall": {
+    "text": "2. Add a CNAME record pointing the subdomain at this install.",
+    "content_hash": "b8a329f9"
+  },
+  "web.admin.domains.dns.aliasStepInstall": {
+    "text": "2. Add an ALIAS or ANAME record pointing the apex at this install.",
+    "content_hash": "9a61ed66"
+  },
+  "web.admin.domains.dns.apexNote": {
+    "text": "An apex domain cannot hold a CNAME record. Where the DNS provider has no ALIAS or ANAME record, an A record to this server's IP address does the same job.",
+    "content_hash": "f69e3032"
   },
   "web.admin.domains.dns.propagationNote": {
     "text": "DNS changes can take a few minutes to propagate before verification succeeds.",
@@ -282,6 +306,10 @@
   "web.admin.domains.fields.verified": {
     "text": "Verified",
     "content_hash": "4f783840"
+  },
+  "web.admin.domains.fields.verifiedByOverride": {
+    "text": "Yes (operator override)",
+    "content_hash": "a1a8644f"
   },
   "web.admin.domains.fields.resolving": {
     "text": "Resolving",

@@ -15,12 +15,11 @@ module OrganizationAPI::Logic
     #
     class CreateInvitation < OrganizationAPI::Logic::Base
       # Maps an invitee's role to the role-specific plan limit resource.
-      # The aggregate `total_members_per_org` cap is enforced separately.
+      # The aggregate `total_members_per_org` count is checked separately.
       ROLE_LIMIT_RESOURCES = {
         # Unreachable through this flow today: role validation in raise_concerns
         # rejects `role == 'owner'` because the UI doesn't wire owner invites
-        # yet. Kept here so the per-role check works the moment owner invites
-        # are enabled — no enforcement gap when the gate is lifted.
+        # yet.
         'owner' => 'role_owners_per_org',
         'admin' => 'role_admins_per_org',
         'member' => 'role_members_per_org',
@@ -79,9 +78,8 @@ module OrganizationAPI::Logic
           raise_form_error(error_key: 'api.organizations.invitations.errors.invitation_already_pending', field: 'email', error_type: :exists)
         end
 
-        # Check member quota AFTER basic validation
-        # Users should get validation errors before quota/upgrade errors
-        check_member_quota!
+        # Log-only: records member counts against the plan values.
+        note_member_counts
       end
 
       def process
@@ -131,43 +129,33 @@ module OrganizationAPI::Logic
 
       protected
 
-      # Check member quota against organization's plan limits
+      # Compare member counts against the organization's plan values
       #
       # Uses the organization being invited to for billing context.
-      # Only enforced when billing is enabled and plan cache is populated.
+      # Only evaluated when billing is enabled and plan cache is populated.
       # Counts both active members and pending invitations.
       #
-      # Two checks run in order; whichever fails first raises:
-      # 1. Per-role bucket: count of the invited role's active + pending vs.
-      #    the role-specific limit (e.g. `role_admins_per_org`).
-      # 2. Aggregate cap: total active + pending vs. `total_members_per_org`.
-      def check_member_quota!
-        # Quota enforcement: fail-open when no billing, fail-closed when enabled.
-        # See WithEntitlements module for design rationale.
-
-        # Fail-open conditions: skip quota check
+      # Log-only. The plan values (`role_*_per_org`, `total_members_per_org`)
+      # are informational for operators; reaching one writes a log line.
+      def note_member_counts
         return unless @organization.respond_to?(:at_limit?)
         return unless @organization.entitlements.any?
 
-        # Per-role bucket check
         role_resource = ROLE_LIMIT_RESOURCES[@role]
         if role_resource
           role_count = @organization.member_count_by_role(@role) +
                        @organization.pending_invitation_count_by_role(@role)
-          raise_member_limit_error! if @organization.at_limit?(role_resource, role_count)
+          note_member_count(role_resource, role_count)
         end
 
-        # Aggregate cap check
         total_count = @organization.member_count + @organization.pending_invitation_count
-        raise_member_limit_error! if @organization.at_limit?('total_members_per_org', total_count)
+        note_member_count('total_members_per_org', total_count)
       end
 
-      def raise_member_limit_error!
-        raise_form_error(
-          error_key: 'api.organizations.invitations.errors.member_limit_reached',
-          field: 'email',
-          error_type: :upgrade_required,
-        )
+      def note_member_count(resource, count)
+        return unless @organization.at_limit?(resource, count)
+
+        OT.info "[CreateInvitation] Org #{@organization.extid} at or past #{resource} (count: #{count})"
       end
     end
   end

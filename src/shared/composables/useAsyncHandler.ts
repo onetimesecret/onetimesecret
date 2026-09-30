@@ -148,12 +148,16 @@ export function useAsyncHandler(options: AsyncHandlerOptions = {}) {
    * error (#4461, ADR-046#rejection-disposition).
    *
    * The list of carve-outs (`admin_session`, `awaiting_mfa` on an MFA-pending
-   * tab, an anonymous tab, throttled duplicates) lives in exactly one place:
-   * `authStore.noteApiRejection`. The interceptor stamps that decision on
-   * the error via `COORDINATOR_DISPOSITION_KEY`, and this reads that one
-   * field. If it is absent (a non-401, an error that never touched the
-   * interceptor, or a bootstrap-time rejection where Pinia wasn't ready) we
-   * treat it as not owned — the caller's toast stands.
+   * tab, an anonymous tab, a duplicate rejection whose reconciliation has
+   * already settled) lives in exactly one place: `authStore.noteApiRejection`.
+   * A duplicate that arrives while the reconciliation is still in flight is
+   * owned (`reconciling-duplicate`): the same accepted snapshot answers it.
+   * The interceptor stamps that decision on the error via
+   * `COORDINATOR_DISPOSITION_KEY`, and this reads that one field. If it is
+   * absent (a rejection the interceptor does not report: not a 401 and not a
+   * coded verification-unavailable 503; an error that never touched the
+   * interceptor; or a bootstrap-time rejection where Pinia wasn't ready) we
+   * treat it as not owned: the caller's toast stands.
    */
   function coordinatorOwnsMessage(error: unknown): boolean {
     return readCoordinatorDisposition(error)?.ownedByCoordinator === true;

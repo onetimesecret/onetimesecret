@@ -160,6 +160,16 @@ describe('Login.vue auth_error handling', () => {
       expect(alert.text()).not.toContain('web.login.errors.sso_failed');
     });
 
+    it('displays the misconfigured-provider copy when auth_error=sso_issuer_mismatch', async () => {
+      wrapper = await createWrapper({ auth_error: 'sso_issuer_mismatch' });
+      await flushPromises();
+
+      const alert = wrapper.find('[role="alert"]');
+      expect(alert.exists()).toBe(true);
+      expect(alert.text()).toContain('web.login.errors.sso_issuer_mismatch');
+      expect(alert.text()).not.toContain('web.login.errors.sso_failed');
+    });
+
     it('displays token expired error', async () => {
       wrapper = await createWrapper({ auth_error: 'token_expired' });
       await flushPromises();
@@ -245,6 +255,32 @@ describe('Login.vue auth_error handling', () => {
       const alert = wrapper.find('[role="alert"]');
       expect(alert.exists()).toBe(true);
       expect(alert.text()).toContain('web.login.errors.org_join_failed');
+    });
+
+    it('displays the unusable-config copy when auth_error=sso_config_unusable', async () => {
+      // A tenant SSO record that exists but cannot produce a login (e.g. an
+      // expired IdP certificate) must not read as "not configured".
+      wrapper = await createWrapper({ auth_error: 'sso_config_unusable' });
+      await flushPromises();
+
+      const alert = wrapper.find('[role="alert"]');
+      expect(alert.exists()).toBe(true);
+      expect(alert.text()).toContain('web.login.errors.sso_config_unusable');
+      expect(alert.text()).not.toContain('web.login.errors.sso_not_configured');
+    });
+
+    it('displays the pending-verification copy when auth_error=sso_domain_unverified', async () => {
+      // Tenant SSO on a custom domain whose ownership is not verified yet is
+      // refused before the IdP (#4579): it is neither missing nor broken, and
+      // must not read as the generic SSO failure.
+      wrapper = await createWrapper({ auth_error: 'sso_domain_unverified' });
+      await flushPromises();
+
+      const alert = wrapper.find('[role="alert"]');
+      expect(alert.exists()).toBe(true);
+      expect(alert.text()).toContain('web.login.errors.sso_domain_unverified');
+      expect(alert.text()).not.toContain('web.login.errors.sso_failed');
+      expect(alert.text()).not.toContain('web.login.errors.sso_not_configured');
     });
 
     it('shows a generic error for unknown codes (never a blank page)', async () => {

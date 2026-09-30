@@ -75,10 +75,6 @@
     "text": "Вече има чакаща покана за този имейл",
     "source_hash": "7f5e3093"
   },
-  "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Достигнат е лимитът за членове. Надстройте плана си, за да каните повече членове.",
-    "source_hash": "b8f316e8"
-  },
   "api.organizations.invitations.errors.resend_only_pending": {
     "text": "Могат да се изпращат повторно само чакащи покани",
     "source_hash": "b7578b3e"

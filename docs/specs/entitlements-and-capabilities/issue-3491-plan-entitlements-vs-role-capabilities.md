@@ -586,12 +586,12 @@ Split materialization into `materialized_features` and `materialized_capabilitie
 
 These assert the merged model and **must change** under Option C:
 
-- `try/unit/models/organization_membership_entitlements_try.rb:36-214` — pins the `ROLE_ENTITLEMENTS` hierarchy and that a member `can?('api_access')` and an owner `can?('manage_billing')` via the same `can?`; operator grant of `manage_members` to a member. Split into plan-vs-capability calls.
+- `try/unit/models/organization_membership/entitlements_try.rb:36-214` — pins the `ROLE_ENTITLEMENTS` hierarchy and that a member `can?('api_access')` and an owner `can?('manage_billing')` via the same `can?`; operator grant of `manage_members` to a member. Split into plan-vs-capability calls.
 - `spec/unit/onetime/models/organization_membership/with_materialized_entitlements_spec.rb:29-310` — asserts `ROLE_ENTITLEMENTS` structure (admin includes `custom_domains` AND `manage_members` at 77-85) and one materialized set checked by one `can?`. Move feature assertions to the plan layer; capability assertions target the capability interface.
 - `spec/unit/onetime/locales/entitlement_keys_spec.rb:23-57` + `locales/content/en/api-entitlements-errors.json:52-110` — forces a `<name>_required … plan upgrade` key for every `STANDALONE` entry incl. capabilities. **The concrete change is the spec's derivation source:** today it iterates `STANDALONE_ENTITLEMENTS` and asserts one plan-upgrade key per string; after separation it must iterate **two** constants — `PLAN_FEATURES` (asserting `_required` upgrade keys) and `ROLE_CAPABILITIES` (asserting the new "insufficient role / ask an admin" vocabulary) — which operationalizes the §6 Stage B "split locale namespaces" step. Not a copy tweak: the loop's source-of-truth constant changes.
 - `spec/api/account/get_permissions_spec.rb:254-358, 557-576` — encodes "member lacks `custom_domains` → cannot view domain" (a plan feature gating a per-member capability through one `can?`). Recompute from two predicates `(org has feature) AND (role permits)`.
 - `try/integration/api/colonel/manage_entitlement_override_try.rb:122-244` — operator grant/revoke treats every string uniformly via one effective-entitlements list. Needs a feature-vs-capability target or split endpoints.
-- `with_plan_entitlements_standalone_spec.rb` / `organization_entitlements_try.rb` — drop capability strings from the standalone/plan set once capabilities are role-derived.
+- `with_plan_entitlements_standalone_spec.rb` / `organization/entitlements_try.rb` — drop capability strings from the standalone/plan set once capabilities are role-derived.
 - `change_role_spec.rb` — asserts re-materialization on role change; update to drive `materialized_capabilities` only.
 - `entitlement_enforcement_spec.rb` — `org.can?('api_access')` plan gating; re-type to `require_plan_feature!` and decide the `api_access` dual-nature ruling (L1).
 

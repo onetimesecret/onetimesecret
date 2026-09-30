@@ -224,8 +224,8 @@
                 </p>
                 <div class="mt-3 flex items-center gap-2">
                   <span
-                    class="text-sm text-green-600
-                      dark:text-green-400">
+                    class="text-sm text-green-700
+                      dark:text-green-300">
                     {{
                       t(
                         'web.settings.profile.didnt_receive_email'

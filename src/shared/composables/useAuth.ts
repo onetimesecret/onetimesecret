@@ -30,6 +30,7 @@ import {
 } from '@/schemas/api/auth/responses/auth';
 import { loggingService } from '@/services/logging.service';
 import { ensureAuthenticated, ensureMfaPending } from '@/shared/composables/authCompletion';
+import { signupDestination } from '@/shared/composables/helpers/signupHelpers';
 import { useApi } from '@/shared/composables/useApi';
 import {
   createError,
@@ -37,7 +38,6 @@ import {
   type AsyncHandlerOptions,
 } from '@/shared/composables/useAsyncHandler';
 import { usePostAuthRedirect } from '@/shared/composables/usePostAuthRedirect';
-import { CHECK_EMAIL_STATE_KEY } from '@/shared/constants/checkEmail';
 import { SIGNIN_VERIFIED_STATE_KEY } from '@/shared/constants/signin';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
@@ -297,38 +297,17 @@ export function useAuth() {
         });
       }
 
-      // Success - account created but NOT authenticated yet. The user must
-      // click the verification link in their email before they can sign in.
+      // Account creation does not authenticate a standard signup. The server
+      // names the next usable step (/signin or /check-email) because
+      // verification may be disabled; signupDestination maps it to a route.
       notificationsStore.show(validated.success, 'success', 'top');
-
-      // Route to a dedicated "Check your email" confirmation page rather than
-      // the sign-in form. The sign-in form is unusable until the account is
-      // verified, and a transient toast is the only cue the user would get
-      // there. The confirmation page persistently echoes the email address,
-      // explains the next step, and offers a resend action.
-      //
-      // The email travels in router history state, NOT the URL: it is PII, and
-      // a query string would leak it through browser history, the Referer
-      // header, proxy/CDN access logs and Sentry (disclosure F6; see
-      // src/utils/pii.ts and src/router/README.md "Query-string policy"). A
-      // plain reload preserves state, but a fresh entry (shared link, new tab)
-      // does not — so the billing params and redirect path ride in the query,
-      // which survives both, keeping the checkout flow intact.
-      const query: Record<string, string> = {};
-
-      if (billingParams.product && billingParams.interval) {
-        query.product = billingParams.product;
-        query.interval = billingParams.interval;
-      }
-      if (signupRedirect) {
-        query.redirect = signupRedirect;
-      }
-
-      await router.push({
-        path: '/check-email',
-        ...(Object.keys(query).length > 0 ? { query } : {}),
-        state: { [CHECK_EMAIL_STATE_KEY]: email },
-      });
+      await router.push(
+        signupDestination(validated, {
+          email,
+          ...billingParams,
+          ...(signupRedirect ? { redirect: signupRedirect } : {}),
+        })
+      );
       return true;
     });
 

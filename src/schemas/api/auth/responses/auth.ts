@@ -46,21 +46,44 @@ import { z } from 'zod';
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Billing redirect information returned after login/signup when user
- * should be redirected to checkout (e.g., upgrading during signup flow).
- * Only present when billing is enabled and user needs to complete checkout.
+ * The server's verdict on a plan selection, returned after login/signup and
+ * two-factor completion. Present whenever the request (or the stored plan
+ * intent) named a product or an interval.
+ *
+ * valid: true means both halves are present and the plan resolved; the SPA
+ * follows it to checkout. Every other case (billing disabled, one half
+ * missing, plan not found) is valid: false with an error, and the missing
+ * half arrives as null. A signup at /signup?product=x without an interval
+ * gets `{ product: 'x', interval: null, valid: false, error: '...' }`. The
+ * invalid member must parse: create-account has already created the account
+ * by the time this body is validated.
  *
  * Terminology:
  * - product: Plan identifier (e.g., 'identity_plus_v1')
  * - interval: Billing frequency choice ('monthly' or 'yearly')
+ *
+ * See apps/web/auth/config/hooks/billing.rb (build_billing_redirect_info).
  */
-const billingRedirectSchema = z.object({
+const validBillingRedirectSchema = z.object({
   product: z.string(),
   interval: z.string(),
-  valid: z.boolean(),
+  valid: z.literal(true),
 });
 
+const invalidBillingRedirectSchema = z.object({
+  product: z.string().nullable(),
+  interval: z.string().nullable(),
+  valid: z.literal(false),
+  error: z.string().optional(),
+});
+
+const billingRedirectSchema = z.discriminatedUnion('valid', [
+  validBillingRedirectSchema,
+  invalidBillingRedirectSchema,
+]);
+
 export type BillingRedirect = z.infer<typeof billingRedirectSchema>;
+export type ValidBillingRedirect = z.infer<typeof validBillingRedirectSchema>;
 
 /**
  * Standard success response - used when no additional data is needed.
@@ -72,8 +95,9 @@ const authSuccessSchema = z.object({
 
 /**
  * Success response with optional billing redirect.
- * Returned by /auth/login or /auth/create-account when user should be
- * redirected to checkout after authentication.
+ * Returned by /auth/login and the two-factor completion routes when user
+ * should be redirected to checkout after authentication. /auth/create-account
+ * has its own schema (createAccountSuccessSchema below).
  */
 const authSuccessWithBillingSchema = z.object({
   success: z.string(),
@@ -179,14 +203,25 @@ export const loginResponseSchema = z.union([
 export type LoginResponse = z.infer<typeof loginResponseSchema>;
 
 /**
- * Signup response schema - supports billing redirect flow.
- * After account creation, user may be redirected to checkout.
+ * Signup success names the next unauthenticated step explicitly: verify_email
+ * when the emailed link must be followed before sign-in works, sign_in when
+ * the account is usable at once. Simple mode answers from its autoverify
+ * setting; full mode from the status of the account it just created, which is
+ * open when verification is off or an invite signup opened it. Neither answer
+ * depends on an account that existed before the request. Create-account never
+ * signs the new account in, so there is no signed-in answer. billing_redirect,
+ * when present, is the server's verdict on the submitted plan and is followed
+ * after sign-in.
  */
-export const createAccountResponseSchema = z.union([
-  authSuccessWithBillingSchema, // Has billing_redirect
-  authSuccessSchema, // Just { success }
-  authErrorSchema,
-]);
+const createAccountSuccessSchema = z.object({
+  success: z.string(),
+  next_action: z.enum(['verify_email', 'sign_in']),
+  billing_redirect: billingRedirectSchema.optional(),
+});
+
+export type CreateAccountSuccess = z.infer<typeof createAccountSuccessSchema>;
+
+export const createAccountResponseSchema = z.union([createAccountSuccessSchema, authErrorSchema]);
 export type CreateAccountResponse = z.infer<typeof createAccountResponseSchema>;
 
 // Logout response
@@ -287,10 +322,11 @@ export function requiresMfa(
 }
 
 // Type guard to check if response has a valid billing redirect.
-// Narrows to a type where billing_redirect is REQUIRED (not optional).
+// Narrows to a type where billing_redirect is REQUIRED (not optional) and is
+// the valid member, so product and interval are both strings.
 export function hasBillingRedirect(
   response: LoginResponse | CreateAccountResponse
-): response is { success: string; billing_redirect: BillingRedirect } {
+): response is { success: string; billing_redirect: ValidBillingRedirect } {
   return (
     'success' in response &&
     'billing_redirect' in response &&
@@ -564,8 +600,8 @@ export type OtpToggleResponse = z.infer<typeof otpToggleResponseSchema>;
 //
 // #4306: for MFA-gated logins the backend replays the signup plan intent on
 // the COMPLETION response, not the primary-factor login response — so this
-// body may carry the same optional billing_redirect shape as login /
-// create-account (authSuccessWithBillingSchema). Union order matters: the
+// body may carry the same optional billing_redirect shape as login
+// (authSuccessWithBillingSchema). Union order matters: the
 // billing-capable success variant must precede authErrorSchema so Zod never
 // strips billing_redirect from a success body.
 export const otpVerifyResponseSchema = z.union([

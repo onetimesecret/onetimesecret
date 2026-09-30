@@ -57,7 +57,10 @@ RSpec.describe 'restrict_to display/gate parity' do
   let(:display_domain) { 'secrets.tenant.example.com' }
   let(:domain_id)      { 'domain_parity_1' }
 
-  let(:custom_domain) { instance_double(Onetime::CustomDomain, identifier: domain_id) }
+  # Tenant SSO availability requires a verified domain since #4517: the display
+  # side reads `verified` off the already-loaded domain, the gate side reloads
+  # it through SsoConfig#custom_domain. Both stubs are needed for parity.
+  let(:custom_domain) { instance_double(Onetime::CustomDomain, identifier: domain_id, verified: true) }
 
   let(:mock_auth_config) do
     instance_double(
@@ -78,7 +81,8 @@ RSpec.describe 'restrict_to display/gate parity' do
       provider_type: 'oidc',
       enforce_sso_only?: false,
       platform_route_name: 'oidc',
-      display_name: 'Tenant SSO'
+      display_name: 'Tenant SSO',
+      custom_domain: custom_domain
     )
   end
 
@@ -211,6 +215,55 @@ RSpec.describe 'restrict_to display/gate parity' do
       it "still pins 'sso' — the tenant's own credentials do not need fallback" do
         expect(display_resolution.restrict_to).to eq('sso')
         expect(gate_resolution.restrict_to).to eq('sso')
+      end
+    end
+
+    # Tenant SSO needs a verified domain (#4517). Until it verifies, both
+    # sides keep the 'sso' pin without an availability proof and offer
+    # nothing, instead of inheriting the operator's empty restriction and
+    # reopening password signup on a host whose only method is SSO.
+    context 'with a tenant SsoConfig on an unverified domain and platform fallback OFF' do
+      let(:custom_domain) { instance_double(Onetime::CustomDomain, identifier: domain_id, verified: false) }
+
+      before do
+        allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(false)
+        allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
+          .with(domain_id).and_return(tenant_sso_config)
+      end
+
+      it 'agrees' do
+        expect_parity
+      end
+
+      it "keeps 'sso' on both sides and resolves :unavailable" do
+        expect(display_resolution).to be_unavailable
+        expect(gate_resolution).to be_unavailable
+        expect(gate_resolution.restrict_to).to eq('sso')
+        expect(gate_resolution.allows?('password')).to be false
+      end
+    end
+
+    # Fallback ON changes nothing (#4579): the omniauth hook refuses every
+    # SSO route on this host with sso_domain_unverified, platform providers
+    # included, so the fallback arm cannot establish the pin either.
+    context 'with a tenant SsoConfig on an unverified domain and platform fallback ON' do
+      let(:custom_domain) { instance_double(Onetime::CustomDomain, identifier: domain_id, verified: false) }
+
+      before do
+        allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+        allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
+          .with(domain_id).and_return(tenant_sso_config)
+      end
+
+      it 'agrees' do
+        expect_parity
+      end
+
+      it "keeps 'sso' on both sides and resolves :unavailable" do
+        expect(display_resolution).to be_unavailable
+        expect(gate_resolution).to be_unavailable
+        expect(gate_resolution.restrict_to).to eq('sso')
+        expect(gate_resolution.allows?('sso')).to be false
       end
     end
 

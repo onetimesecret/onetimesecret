@@ -134,6 +134,32 @@ function verifyAck(current_state = 'pending') {
   };
 }
 
+function overrideAck(verified: boolean, resolving: boolean) {
+  return {
+    shrimp: '',
+    record: {
+      domain_id: 'cd1',
+      extid: EXTID,
+      display_domain: 'secrets.example.com',
+      verification_state: verified ? 'verified' : resolving ? 'resolving' : 'pending',
+      verified,
+      verified_by_override: false,
+      resolving,
+      ready: verified && resolving,
+      updated: 1700009999,
+    },
+    details: {
+      previous_verified: verified,
+      previous_resolving: !resolving,
+      current_verified: verified,
+      current_resolving: resolving,
+      verified_changed: false,
+      resolving_changed: true,
+      message: 'Domain verification flags overridden',
+    },
+  };
+}
+
 function probeAck() {
   return {
     shrimp: '',
@@ -322,6 +348,56 @@ describe('AdminDomainDetail', () => {
         'DNS lookup failed'
       );
       expect(showMock).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('override verification', () => {
+    it('omits verified when changing only resolving on an already-verified domain', async () => {
+      mockApi.get.mockResolvedValue({
+        data: detailPayload({
+          verification_state: 'verified',
+          verified: true,
+          verified_by_override: false,
+          resolving: false,
+        }),
+      });
+      mockApi.post.mockResolvedValue({ data: overrideAck(true, true) });
+      wrapper = mountView();
+      await flushPromises();
+
+      await wrapper.find('[data-testid="override-button"]').trigger('click');
+      const checkboxes = wrapper
+        .find('[data-testid="override-form"]')
+        .findAll('input[type="checkbox"]');
+      expect((checkboxes[0].element as HTMLInputElement).checked).toBe(true);
+      await checkboxes[1].setValue(true);
+      await wrapper.find('[data-testid="override-apply"]').trigger('click');
+      await flushPromises();
+
+      expect(mockApi.post).toHaveBeenCalledWith(
+        `${DETAIL_URL}/override`,
+        { resolving: true },
+        CONFIRM_HEADERS
+      );
+    });
+
+    it('does not submit an unchanged verified domain', async () => {
+      mockApi.get.mockResolvedValue({
+        data: detailPayload({
+          verification_state: 'verified',
+          verified: true,
+          verified_by_override: false,
+          resolving: true,
+        }),
+      });
+      wrapper = mountView();
+      await flushPromises();
+
+      await wrapper.find('[data-testid="override-button"]').trigger('click');
+      await wrapper.find('[data-testid="override-apply"]').trigger('click');
+      await flushPromises();
+
+      expect(mockApi.post).not.toHaveBeenCalled();
     });
   });
 

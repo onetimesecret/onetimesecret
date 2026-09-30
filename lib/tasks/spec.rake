@@ -242,6 +242,10 @@ namespace :spec do
         if mode == 'full'
           env['AUTH_DATABASE_URL'] = 'sqlite::memory:'
           env['ORGS_SSO_ENABLED']  = 'true'
+          # The install-wide SAML switch (#4604), default off: the tenant
+          # saml placeholder route registers only with it on, and the full
+          # lane's tenant SAML specs drive that route.
+          env['SAML_ENABLED']      = 'true'
           tag_filter               = '--tag ~postgres_database'
         end
 
@@ -271,6 +275,7 @@ namespace :spec do
         'AUTHENTICATION_MODE' => 'full',
         'AUTH_DATABASE_URL' => 'sqlite::memory:',
         'ORGS_SSO_ENABLED' => 'true',
+        'SAML_ENABLED' => 'true',
         'AUTH_MFA_ENABLED' => 'true',
         'AUTH_EMAIL_AUTH_ENABLED' => 'true',
         # Passkey-as-second-factor coverage (omniauth_connect_reauth_webauthn_spec)
@@ -290,6 +295,44 @@ namespace :spec do
       sh env, "bundle exec rspec #{patterns.join(' ')} --tag ~postgres_database #{rspec_format_options('mfa')}"
     end
 
+    desc 'Run full-mode specs with the PLATFORM SAML provider configured (own process)'
+    task 'full:saml_platform' do
+      # Own process for the same one-shot reason as full:mfa (#4450):
+      # configure_provider reads SAML_* when Auth::Config configures, and with
+      # them set the saml route registers with REAL trust anchors instead of
+      # the tenant placeholder. The shared full lanes assert the placeholder
+      # (canonical host 404 / refused), so the two cannot share a boot.
+      # SAML_IDP_CERT is installed by the spec itself before the first boot
+      # from a keypair it mints (no key material is checked in). Keep
+      # identical to tests/lanes/full-saml-platform/env.
+      env = {
+        'RACK_ENV' => 'test',
+        'AUTHENTICATION_MODE' => 'full',
+        'AUTH_DATABASE_URL' => 'sqlite::memory:',
+        'ORGS_SSO_ENABLED' => 'true',
+        'AUTH_SSO_ENABLED' => 'true',
+        # The install-wide SAML switch (#4604): without it the platform
+        # provider registers no route, whatever the SAML_* vars say.
+        'SAML_ENABLED' => 'true',
+        'SAML_IDP_SSO_SERVICE_URL' => 'https://login.platform-idp.test/saml/sso',
+        'SAML_IDP_ENTITY_ID' => 'https://platform-idp.test/saml/metadata',
+        # The SAML-compatible session cookie: Secure with same_site lax or
+        # none. lax is the default-compatible policy the staged POST-to-GET
+        # callback transport is designed for; none remains supported. Under
+        # strict or a non-Secure cookie the platform provider is skipped at
+        # boot (Saml.platform_options).
+        'SESSION_COOKIE_SAME_SITE' => 'lax',
+        'SESSION_COOKIE_SECURE' => 'true',
+      }
+
+      patterns = Dir.glob('apps/*/*/spec/integration/full_saml_platform')
+      if patterns.empty?
+        abort '[spec:integration:full:saml_platform] no apps/*/*/spec/integration/full_saml_platform directories found'
+      end
+
+      sh env, "bundle exec rspec #{patterns.join(' ')} --tag ~postgres_database #{rspec_format_options('saml_platform')}"
+    end
+
     desc 'Run full mode with PostgreSQL (PG-only specs)'
     task 'full:postgres' do
       env      = {
@@ -297,6 +340,7 @@ namespace :spec do
         'AUTHENTICATION_MODE' => 'full',
         'AUTH_DATABASE_URL' => PG_TEST_DATABASE_URL,
         'AUTH_DATABASE_URL_MIGRATIONS' => PG_TEST_MIGRATIONS_URL,
+        'SAML_ENABLED' => 'true',
       }
       patterns = [
         *Dir.glob('apps/*/*/spec/integration/full'),
@@ -360,6 +404,7 @@ namespace :spec do
         'AUTH_DATABASE_URL' => PG_TEST_DATABASE_URL,
         'AUTH_DATABASE_URL_MIGRATIONS' => PG_TEST_MIGRATIONS_URL,
         'ORGS_SSO_ENABLED' => 'true',
+        'SAML_ENABLED' => 'true',
       }
 
       # Root-level specs MUST load before app-level specs. The root spec_helper
@@ -430,10 +475,10 @@ namespace :spec do
     end
 
     desc 'Run all integration tests (all modes, isolated processes)'
-    task all: INTEGRATION_MODES + %w[full:mfa oauth strategies]
+    task all: INTEGRATION_MODES + %w[full:mfa full:saml_platform oauth strategies]
 
     desc 'Run all integration tests including Postgres'
-    task 'all:with_postgres': INTEGRATION_MODES + ['full:mfa', 'full:postgres']
+    task 'all:with_postgres': INTEGRATION_MODES + ['full:mfa', 'full:saml_platform', 'full:postgres']
   end
 
   # API contract specs (spec/api/) are organized by API surface and version
@@ -539,6 +584,7 @@ namespace :try do
         try/integration/homepage_bypass_header_integration_try.rb
         try/integration/homepage_mode_integration_try.rb
         try/integration/check_jobqueue_live_try.rb
+        try/integration/domain_auth_enforcement_try.rb
       ].select { |p| File.exist?(p) || Dir.exist?(p) }.join(' ')
 
       sh env, "bundle exec tryouts --agent #{patterns}" unless patterns.empty?

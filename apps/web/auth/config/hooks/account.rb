@@ -288,11 +288,10 @@ module Auth::Config::Hooks
               had_verify_key = respond_to?(:remove_verify_account_key)
               remove_verify_account_key if had_verify_key
 
-              # Signal to create_account_autologin? that this is an invite signup.
-              # The user gets a session immediately so the frontend can POST to
-              # /api/invite/:token/accept with the active cookie. The token is
-              # NOT consumed here — that's the point of the explicit accept step.
-              @invite_accepted = true
+              # The token is NOT consumed here — that's the point of the
+              # explicit accept step. No session is set up here either
+              # (create_account_autologin? is false, account_management.rb):
+              # /api/invite/:token/signup sets up the session /accept needs.
 
               Auth::Logging.log_auth_event(
                 :invite_signup_verified,
@@ -301,7 +300,6 @@ module Auth::Config::Hooks
                 account_id: account_id,
                 invite_token_prefix: invite_token[0..7],
                 verify_key_removed: had_verify_key,
-                autologin_flag_set: true,
               )
             end
           else

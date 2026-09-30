@@ -13,6 +13,7 @@ require 'onetime/application/error_correlation'
 require 'onetime/models/custom_domain/signin_config'
 require 'onetime/session/customer_session_evaluator'
 require 'onetime/session/failure_code'
+require 'onetime/sso_provider/flow_session_keys'
 
 require_relative 'config'
 require_relative 'error_translator'
@@ -242,11 +243,13 @@ module Auth
       :refused
     end
 
-    # The Rack-session keys OmniAuth parks during the request phase of an
-    # SSO flow and consumes in the callback (omniauth-oauth2 and
-    # omniauth_openid_connect). Clearing the Rack session between the two
-    # phases drops them, and the callback then fails state verification.
-    OMNIAUTH_FLOW_KEYS = ['omniauth.state', 'omniauth.nonce', 'omniauth.pkce.verifier', 'omniauth.params'].freeze
+    # The Rack-session keys a strategy parks during the request phase of an
+    # SSO flow and consumes in the callback (omniauth-oauth2,
+    # omniauth_openid_connect, RequestBoundSAML). Clearing the Rack session
+    # between the two phases drops them, and the callback then fails state /
+    # InResponseTo verification. One list, shared with the tenant hook that
+    # deletes them on supersession: Onetime::SsoProvider::FlowSessionKeys.
+    OMNIAUTH_FLOW_KEYS = Onetime::SsoProvider::FlowSessionKeys::ALL
 
     # What the current Rack session is carrying mid-flow, for the gate's
     # log lines: the OmniAuth keys above (in the session blob, dropped by
@@ -284,16 +287,23 @@ module Auth
       Onetime::ActiveSessionGate.forget(env)
     end
 
-    # A session refusal body plus its stable `code` / `code_scope` (#4462).
-    # The existing fields are the caller's and are not changed; the codes are
-    # the same ones the Otto surfaces answer with
-    # (Onetime::Middleware::SessionFailureCode), so a client reads one
-    # vocabulary on every surface. `reason` is the one this router acted on,
-    # which may be Auth::SessionRecheck's rather than the evaluator's. Logged
-    # here, once per refusal, with the same code and the request id (#4461).
+    # A session refusal body. The stable `code` / `code_scope` pair (#4462),
+    # the `WWW-Authenticate` challenge and, for an outage, the 503 with
+    # `Retry-After` (#4469) are rendered onto it by
+    # Onetime::Middleware::SessionFailureCode from the reason stashed here,
+    # exactly as the Otto surfaces are answered, so a client reads one
+    # vocabulary and one set of HTTP semantics on every surface. The body
+    # itself carries no `code`: the middleware never touches a body that
+    # already has one, so merging the pair here would leave the refusal
+    # without its headers and an outage as a 401. The existing fields are
+    # the caller's and are not changed. `reason` is the one this router
+    # acted on, which may be Auth::SessionRecheck's rather than the
+    # evaluator's. Logged here, once per refusal, with the same code and the
+    # request id (#4461).
     def session_refusal(body, reason)
       Onetime::SessionFailureCode.log_refusal(reason, env)
-      body.merge(Onetime::SessionFailureCode.for(reason).transform_keys(&:to_sym))
+      Onetime::SessionFailureCode.stash(env, reason)
+      body
     end
 
     # Main routing logic
@@ -384,16 +394,17 @@ module Auth
       #                       to complete otp-auth / webauthn-auth /
       #                       recovery-auth.
       #   :not_authenticated  With an account_id, an autologin session
-      #                       (verify-account, invite create-account)
-      #                       that never went through after_login. Rodauth
-      #                       serves it every login-required route, so both
+      #                       (verify-account) that never went through
+      #                       after_login. Rodauth serves it every
+      #                       login-required route, so both
       #                       checks run here too. Without an account_id the
       #                       request is genuinely anonymous and neither check
       #                       applies.
-      #   :customer_unavailable  Already past the surface check; only the
+      #   :customer_unavailable  The customer store, or the request's
+      #                       surface, could not be read; only the
       #                       active-session row is left to examine.
       #                       Revocation is destructive on this surface and
-      #                       must not be hidden by a customer-store outage.
+      #                       must not be hidden by a datastore outage.
       #
       # Invariant: every other rejection is definitive and is never
       # overwritten by a fallback :active_session_unavailable, which would
@@ -523,9 +534,9 @@ module Auth
         #     out; its anonymous routes run and its login-required routes
         #     refuse it.
         #   - A Rodauth login without the app-level flag: an autologin session
-        #     (verify-account, invite create-account). It reaches
-        #     this branch only after Auth::SessionRecheck matched its surface
-        #     and found its active-session row live (or found no join key to
+        #     (verify-account). It reaches this branch only after
+        #     Auth::SessionRecheck matched its surface and found its
+        #     active-session row live (or found no join key to
         #     check, the gate's existing exemption); a mismatch or a revoked
         #     row was turned into :surface_mismatch / :active_session_revoked
         #     above and destroyed there. What is left is a valid Rodauth
@@ -533,6 +544,16 @@ module Auth
         #     after they verified their account or reset their password.
         #
         # Continue to Rodauth, which authorizes it as it would any login.
+        #
+        # Stash the reason first (#4469). If Rodauth, or a custom route
+        # below, then refuses the request for want of a login (Rodauth's
+        # `login_required`, the routes' `Authentication required`), this is
+        # the code its 401 carries: the same `session_missing` /
+        # `not_authenticated` an Otto `sessionauth` route answers with, via
+        # the same middleware. Rodauth's other errors replace or withdraw it
+        # through Auth::CredentialFailureCode; the SSO-linking routes withdraw
+        # it themselves, as their 401s are about a token.
+        Onetime::SessionFailureCode.stash(env, auth_session_reason)
       when :identity_missing, :customer_not_found, :account_suspended, :stale_credentials,
            :admin_session_expired
         # A definitive rejection destroys the invalid session before dispatch.

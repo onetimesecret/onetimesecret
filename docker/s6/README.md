@@ -116,16 +116,17 @@ docker run -p 3000:3000 \
 
 **Use case**: Development, staging, single-server deploys
 
+Run this mode in one container per datastore. Scheduled jobs assume a single scheduler process and nothing coordinates between schedulers, so every replica of the all-in-one container would run each scheduled job again. Additional replicas should use the web-server-only mode below.
+
 ### 2. Web Server Only
 
-Run only the web server (like original `entrypoint.sh`):
+Run only the web server by replacing the S6 entrypoint. Overriding only the command leaves `/init` in place and still starts the full service bundle.
 
 ```bash
 docker run -p 3000:3000 \
   -e REDIS_URL=redis://redis:6379/0 \
   -e SECRET=your-secret \
-  onetimesecret \
-  bin/entrypoint.sh
+  --entrypoint bin/entrypoint.sh onetimesecret
 ```
 
 **Use case**: Production multi-container setup, separate web scaling

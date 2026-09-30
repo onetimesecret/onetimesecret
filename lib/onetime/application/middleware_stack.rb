@@ -22,6 +22,7 @@ require_relative '../middleware/validate_multipart'
 require_relative '../middleware/entitlement_preview_context'
 require_relative '../middleware/impersonation_context'
 require_relative '../middleware/session_skip'
+require_relative '../middleware/saml_callback_transport'
 require 'otto'
 
 module Onetime
@@ -659,6 +660,8 @@ module Onetime
           # parsed and memoized here so no later consumer re-reads the
           # stream. Must stay after NormalizeContentType (Content-Type
           # repair) and before Rack::Parser/session/locale.
+          # Bound SAML bodies before any parser and isolate POST from cookies.
+          builder.use Onetime::Middleware::SamlCallbackTransport::Boundary
           builder.use Onetime::Middleware::ValidateMultipart
           builder.use Rack::Parser, parsers: @parsers
           # Add session middleware early in the stack (before other middleware)
@@ -757,8 +760,12 @@ module Onetime
 
           # Stable `code` / `code_scope` on session-authentication 401s. Otto
           # renders that body inside the gem from the failure string alone, so
-          # the typed evaluator reason is carried across here (#4462). Mounted
-          # beside RetryAfterHeader for the same reason it exists.
+          # the typed evaluator reason is carried across here (#4462). The same
+          # pass adds the `WWW-Authenticate` challenge to every coded 401 and
+          # rewrites a `verification_unavailable` refusal to 503 with its own
+          # `Retry-After` (#4469), so it does not depend on RetryAfterHeader's
+          # stash. Mounted beside RetryAfterHeader for the same reason it
+          # exists.
           logger.debug 'Setting up session failure code middleware'
           builder.use Onetime::Middleware::SessionFailureCode
 

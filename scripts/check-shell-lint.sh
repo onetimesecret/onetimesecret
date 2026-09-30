@@ -46,6 +46,15 @@ ACTIONLINT_BASELINE="${BASELINE_DIR}/actionlint.tsv"
 SHELLCHECK_VERSION="0.11.0"
 ACTIONLINT_VERSION="1.7.12"
 
+# Ignore every shellcheckrc and any ambient SHELLCHECK_OPTS. Unless --norc is
+# given, shellcheck reads a .shellcheckrc from the script's directory or a
+# parent, else ~/.shellcheckrc or ~/.config/shellcheckrc, so a developer's
+# personal `disable=` lines hide findings the baselines count and make baseline
+# entries look stale. The repo has no .shellcheckrc, and the baselines count
+# findings with no rc file applied. actionlint runs shellcheck with this
+# environment, so the setting covers its `run:` block checks too.
+export SHELLCHECK_OPTS='--norc'
+
 # Repo-wide floor. -S style would add several hundred pre-existing style
 # findings to the baseline for no present benefit.
 SHELLCHECK_SEVERITY="warning"

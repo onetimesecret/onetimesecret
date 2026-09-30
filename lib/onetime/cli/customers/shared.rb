@@ -6,6 +6,8 @@
 # Provides timestamp parsing, Redis helpers, time constants,
 # and cache management used across multiple customer subcommands.
 
+require_relative '../../utils/uri_redaction'
+
 module Onetime
   module CLI
     module Customers
@@ -75,8 +77,12 @@ module Onetime
           )
         end
 
+        # Redis URL for display with the username kept and the password and
+        # any query string (which can carry ?password=) replaced by "***".
+        # Delegates to the shared redactor so a password containing "/", ":"
+        # or "@" never leaks past the mask.
         def redact_url(url)
-          url.sub(%r{:[^:@/]+@}, ':***@')
+          ::OnetimeUriRedaction.redact(url, keep_username: true)
         end
 
         def format_ttl(seconds)

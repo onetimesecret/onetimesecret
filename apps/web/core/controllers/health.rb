@@ -148,19 +148,13 @@ module Core
 
       # Mask password in connection URLs for safe display
       # Format: scheme://user:password@host:port/path -> scheme://user:****@host:port/path
+      # The shared redactor also masks any query string (which can carry
+      # ?password=) and redacts wider rather than leaking when the password
+      # contains "/", ":" or "@".
       def mask_url(url)
         return nil if url.nil? || url.empty?
 
-        uri = URI.parse(url)
-        return url unless uri.password
-
-        # Replace password with asterisks
-        masked_uri          = uri.dup
-        masked_uri.password = '****'
-        masked_uri.to_s
-      rescue URI::InvalidURIError
-        # Fallback: try regex-based masking for non-standard URLs
-        url.gsub(%r{://([^:]+):([^@]+)@}, '://\1:****@')
+        Onetime::Utils.redact_uri_userinfo(url, keep_username: true, mask: '****')
       end
     end
   end

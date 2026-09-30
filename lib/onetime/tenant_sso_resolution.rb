@@ -120,6 +120,29 @@ module Onetime
       @domain_id = read_domain_id
     end
 
+    # The CustomDomain record resolved by the same raising, memoized read as
+    # #domain_id. Display callers use this when a capability depends on domain
+    # verification and must not perform a second lookup that could disagree.
+    #
+    # @return [Onetime::CustomDomain, nil]
+    def custom_domain
+      domain_id unless defined?(@custom_domain)
+      @custom_domain
+    end
+
+    # @return [Boolean] true only for a positively resolved, verified domain
+    #   on a host OUTSIDE the canonical set. A verified record keyed on a
+    #   canonical-set host (site.host moved onto a host a tenant had already
+    #   registered) still narrows the sign-in surfaces through #custom_domain,
+    #   but it is not a served custom host: Auth::PublicHost.served_custom_host?
+    #   refuses it at runtime, so a request-bound platform ACS (SAML) would
+    #   never be rebound there and the button must not be shown.
+    def verified_custom_domain?
+      return false if canonical_set_host?
+
+      custom_domain&.verified == true
+    end
+
     # @return [Boolean] true when the domain read failed (#4157 tri-state)
     def domain_read_failed?
       domain_id == DOMAIN_READ_FAILED
@@ -147,6 +170,21 @@ module Onetime
       !sso_config.nil?
     end
 
+    # Whether the domain's tenant SSO is set up and blocked ONLY by unverified
+    # ownership (SigninConfig.tenant_sso_awaiting_verification?, #4579). The
+    # omniauth hook refuses every SSO route on such a host, platform
+    # providers included, so ConfigSerializer#build_sso_config must not fall
+    # back to them. Reuses the records the tenant lookup already loaded; the
+    # only new read is the SigninConfig, and only for a domain whose ladder
+    # stopped at :domain_unverified. A failed or missing lookup answers false.
+    #
+    # @return [Boolean]
+    def awaiting_verification?
+      return @awaiting_verification if defined?(@awaiting_verification)
+
+      @awaiting_verification = read_awaiting_verification
+    end
+
     private
 
     # Whether DomainStrategy classified this request as one of the operator's
@@ -157,27 +195,61 @@ module Onetime
       Onetime::CustomDomain::SigninConfig.operator_host?(@domain_strategy)
     end
 
+    # Whether display_domain is one of the operator's canonical-set hosts
+    # (features.domains.default, site.host, link_domains), port- and
+    # case-insensitively — the same test Auth::PublicHost.served_custom_host?
+    # opens with, keyed on the HOST rather than the classification so the two
+    # cannot disagree when DomainStrategy degraded to :invalid. Fails closed:
+    # an error answers "canonical", and the caller never widens.
+    def canonical_set_host?
+      Onetime::Middleware::DomainStrategy.canonical_host?(@display_domain)
+    rescue StandardError
+      true
+    end
+
     def read_domain_id
+      # Assigned on every path so #custom_domain's defined? memo holds after
+      # the first read; a blank host otherwise re-entered this method on each
+      # call and read an undefined ivar.
+      @custom_domain = nil
       return nil if @display_domain.empty?
 
-      Onetime::CustomDomain.from_display_domain(@display_domain)&.identifier
+      @custom_domain = Onetime::CustomDomain.from_display_domain(@display_domain)
+      @custom_domain&.identifier
     rescue Redis::BaseError => ex
+      @custom_domain = nil
       OT.le '[TenantSsoResolution] datastore error resolving domain_id for ' \
             "domain=#{@display_domain} strategy=#{@domain_strategy.inspect}: #{ex.class}"
       operator_host? ? nil : DOMAIN_READ_FAILED
     end
 
     def read_sso_config
-      identifier = domain_id
+      # The record as loaded, whatever the ladder says about it, so
+      # #awaiting_verification? can reuse it instead of reading it again.
+      @loaded_sso_config = nil
+      identifier         = domain_id
       return nil if identifier.nil? || identifier == DOMAIN_READ_FAILED
 
-      config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(identifier)
+      config             = Onetime::CustomDomain::SsoConfig.find_by_domain_id(identifier)
+      @loaded_sso_config = config
       return nil if config.nil?
       return nil unless Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(
-        identifier, sso_config: config
+        identifier,
+        sso_config: config,
+        custom_domain: custom_domain,
       )
 
       config
+    end
+
+    def read_awaiting_verification
+      return false if available? || @loaded_sso_config.nil?
+
+      Onetime::CustomDomain::SigninConfig.tenant_sso_awaiting_verification?(
+        domain_id,
+        sso_config: @loaded_sso_config,
+        custom_domain: custom_domain,
+      )
     end
   end
 end

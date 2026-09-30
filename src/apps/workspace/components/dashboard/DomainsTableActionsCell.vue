@@ -7,7 +7,7 @@
   import { CustomDomain } from '@/schemas/shapes/v3'
   import { MenuItem } from '@headlessui/vue';
   import { useDomainStatus } from '@/shared/composables/useDomainStatus';
-  import { isApproximatedDomainValidation } from '@/utils/features';
+  import { isDomainOwnershipChecked } from '@/utils/features';
   import { computed, toRef } from 'vue';
 
 const { t } = useI18n();
@@ -34,25 +34,26 @@ const { t } = useI18n();
   const disabledItemClass = 'pointer-events-none opacity-50';
 
   // Domain verification status
-  const { isActive } = useDomainStatus(toRef(() => props.domain));
+  const { isActive, isAwaitingCertificate } = useDomainStatus(toRef(() => props.domain));
 
-  // The DNS status only carries meaning with Approximated validation. On other
-  // installs it never populates, so it must not gate the Manage button or point
-  // the menu at the Approximated verification screen. See
-  // isApproximatedDomainValidation().
-  const showVerificationStatus = computed(() => isApproximatedDomainValidation());
+  // The status only carries meaning when the strategy checks ownership
+  // (approximated, caddy_on_demand). On other installs it never populates, so
+  // it must not gate the Manage button or point the menu at the verification
+  // screen. See isDomainOwnershipChecked().
+  const showVerificationStatus = computed(() => isDomainOwnershipChecked());
 
   /**
    * Primary action to surface outside the kebab menu.
-   * On Approximated installs, only shown when the domain is verified (no
-   * issues) — when there ARE issues, the clickable status text in the domain
-   * cell already serves as the action. On non-approximated installs there is no
-   * DNS status, so Manage is always surfaced.
+   * On installs that check ownership, only shown when the domain is active or
+   * is verified and waiting for its first certificate (no issues) — when there
+   * ARE issues, the clickable status text in the domain cell already serves as
+   * the action. On other installs there is no status,
+   * so Manage is always surfaced.
    */
   const primaryAction = computed(() => {
-    // Don't show button when an Approximated domain has issues — status text is
+    // Don't show button when a checked domain has issues — status text is
     // already clickable.
-    if (showVerificationStatus.value && !isActive.value) return null;
+    if (showVerificationStatus.value && !isActive.value && !isAwaitingCertificate.value) return null;
 
     return {
       label: t('web.domains.detail.manage'),
@@ -63,8 +64,9 @@ const { t } = useI18n();
   });
 
   /**
-   * DNS/verification menu entry. Approximated installs route to the verification
-   * screen; other installs route to the simpler CNAME-instructions screen.
+   * DNS/verification menu entry. Installs that check ownership route to the
+   * verification screen; other installs route to the simpler CNAME-instructions
+   * screen.
    */
   const dnsMenuItem = computed(() =>
     showVerificationStatus.value

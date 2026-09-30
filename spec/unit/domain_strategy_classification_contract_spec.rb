@@ -27,6 +27,8 @@ require 'spec_helper'
 require 'onetime/middleware/domain_strategy'
 require_relative '../../apps/web/auth/restrict_to'
 require_relative '../../apps/api/v1/logic/base'
+require 'onetime/session/customer_session_evaluator'
+require 'onetime/session/failure_code'
 
 module DomainStrategyContract
   # Every value env['onetime.domain_strategy'] can carry at a consumer.
@@ -400,6 +402,77 @@ RSpec.describe 'DomainStrategy classification contract' do
 
       expect { Auth::RestrictTo.resolution_for(env_for(:custom)) }
         .to raise_error(Onetime::SigninPolicyUnavailable)
+    end
+  end
+
+  # -------------------------------------------------------- session surface
+  #
+  # SessionSurface takes neither polarity: it classifies an :invalid request
+  # again with Chooserator.classify!. The only stub is the datastore seam
+  # (display_domain_index), so the real finder and the real classifier decide,
+  # for the reason the section above gives. The descriptor consumers
+  # (RecentReauth, ReauthOffer, WebAuthn surface_scope, OmniAuth Connect) read
+  # for_env and are pinned by the first group; the session evaluators read
+  # match_status and are pinned by the second.
+  describe 'SessionSurface — :invalid is classified again' do
+    let(:parser) { Onetime::Middleware::DomainStrategy::Parser }
+    let(:index) { instance_double(Familia::HashKey) }
+    let(:tenant) { { Onetime::SessionSurface::KEY => { 'kind' => 'custom', 'id' => 'domain-1' } } }
+
+    before do
+      allow(Onetime::Middleware::DomainStrategy).to receive_messages(
+        canonical_domains_parsed: [parser.parse('example.com')],
+        anchor_domains_parsed: [parser.parse('example.com')],
+      )
+      allow(Onetime::CustomDomain).to receive(:display_domain_index).and_return(index)
+      allow(Onetime).to receive(:http_logger).and_return(instance_double(SemanticLogger::Logger, error: nil))
+    end
+
+    context 'when the datastore answers again (a blip)' do
+      before do
+        allow(index).to receive(:get).with('tenant.example.com').and_return('domain-1')
+        allow(Onetime::CustomDomain).to receive(:find_by_identifier).with('domain-1')
+          .and_return(instance_double(Onetime::CustomDomain, identifier: 'domain-1'))
+      end
+
+      it 'answers for_env exactly as a healthy :custom request would' do
+        expect(Onetime::SessionSurface.for_env(env_for(:invalid)))
+          .to eq(Onetime::SessionSurface.for_env(env_for(:custom).merge('onetime.custom_domain_id' => 'domain-1')))
+      end
+
+      it 'keeps the tenant session' do
+        expect(Onetime::SessionSurface.match_status(tenant, env_for(:invalid))).to eq(:match)
+      end
+    end
+
+    context 'when the datastore fails again (an outage)' do
+      before { allow(index).to receive(:get).and_raise(Redis::BaseError, 'connection reset') }
+
+      it 'answers nil to the descriptor consumers' do
+        expect(Onetime::SessionSurface.for_env(env_for(:invalid))).to be_nil
+      end
+
+      it 'answers :unavailable, never :mismatch, to the session evaluators' do
+        expect(Onetime::SessionSurface.match_status(tenant, env_for(:invalid))).to eq(:unavailable)
+      end
+
+      it 'turns into the evaluator outage verdict, which keeps the session' do
+        session = tenant.merge('authenticated' => true, 'external_id' => 'ur_1')
+        verdict = Onetime::CustomerSessionEvaluator.evaluate(session, env: env_for(:invalid))
+
+        expect(verdict.reason).to eq(:customer_unavailable)
+        expect(Onetime::SessionFailureCode.for(verdict.reason)['code_scope'])
+          .to eq(Onetime::SessionFailureCode::SCOPE_VERIFICATION_UNAVAILABLE)
+      end
+    end
+
+    # nil never passed through DomainStrategy, so there is nothing to
+    # classify again; it stays fail-closed.
+    it 'answers :mismatch for nil without reading the datastore' do
+      allow(index).to receive(:get)
+
+      expect(Onetime::SessionSurface.match_status(tenant, env_for(nil))).to eq(:mismatch)
+      expect(index).not_to have_received(:get)
     end
   end
 

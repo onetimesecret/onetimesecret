@@ -75,10 +75,6 @@
     "text": "Für diese E-Mail-Adresse liegt bereits eine ausstehende Einladung vor",
     "source_hash": "7f5e3093"
   },
-  "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Das Mitgliederlimit ist erreicht. Führe ein Upgrade deines Tarifs durch, um weitere Mitglieder einzuladen.",
-    "source_hash": "b8f316e8"
-  },
   "api.organizations.invitations.errors.resend_only_pending": {
     "text": "Nur ausstehende Einladungen können erneut gesendet werden",
     "source_hash": "b7578b3e"

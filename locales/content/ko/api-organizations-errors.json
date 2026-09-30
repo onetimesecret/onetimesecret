@@ -75,10 +75,6 @@
     "text": "이 이메일에 대한 초대가 이미 대기 중입니다",
     "source_hash": "7f5e3093"
   },
-  "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "멤버 한도에 도달했습니다. 더 많은 멤버를 초대하려면 요금제를 업그레이드하세요.",
-    "source_hash": "b8f316e8"
-  },
   "api.organizations.invitations.errors.resend_only_pending": {
     "text": "대기 중인 초대만 다시 보낼 수 있습니다",
     "source_hash": "b7578b3e"

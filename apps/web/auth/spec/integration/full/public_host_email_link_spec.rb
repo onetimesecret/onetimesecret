@@ -233,9 +233,10 @@ RSpec.describe 'delivered email links use the public host (#4221)', type: :integ
 
   describe 'on the canonical host' do
     it 'leaves the stock derivation alone — no over-rewrite' do
-      # Auth::PublicHost declines for canonical-set hosts, so this link is
-      # whatever Rodauth would have produced before #4221. The example is the
-      # guard against a fix that rewrites every host.
+      # Auth::PublicHost.allowlisted_base_url builds this on the request's
+      # own canonical host (tier 2, canonical_request_base_url): never on the
+      # tenant domain and never on request.host. The example is the guard
+      # against a fix that rewrites every host onto the tenant domain.
       request_password_reset(host: origin_host)
 
       expect(reset_link).to include(origin_host)

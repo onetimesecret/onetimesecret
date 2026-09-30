@@ -53,8 +53,13 @@ RSpec.describe Auth::Config::Overrides::PublicBaseUrl do
   #   - canonical_host /      : the request-independent canonical fallback the
   #     canonical_base_url       overrides use when the resolver declines
   before do
+    allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?) do |host|
+      canonical_hosts.any? do |authority|
+        Onetime::Utils::DomainParser.hostname_matches?(authority, host)
+      end
+    end
     allow(Onetime::Middleware::DomainStrategy)
-      .to receive(:canonical_host?) { |host| canonical_hosts.include?(host.to_s) }
+      .to receive(:canonical_domains).and_return(canonical_hosts)
 
     allow(Onetime::CustomDomain).to receive(:from_display_domain) do |host|
       if verified_custom_hosts.include?(host.to_s)
@@ -174,11 +179,9 @@ RSpec.describe Auth::Config::Overrides::PublicBaseUrl do
           .to be_nil
       end
 
-      # `canonical_host?` is port-INSENSITIVE, so a `site.host` configured as
-      # an authority is admitted and handed back with its port still attached.
-      # That is the contract `canonical_host` already has (it returns site.host
-      # verbatim); the port is stripped where a URL is built, not here.
-      it 'returns a canonical candidate that carries a port verbatim' do
+      # `canonical_host?` is port-INSENSITIVE, but the selected candidate is
+      # resolved back to the trusted configured authority, including its port.
+      it 'returns the configured canonical authority with its port' do
         canonical_hosts << 'localhost:7143'
         env = env_for(host: 'localhost:7143', display_domain: 'localhost:7143', scheme: 'http')
         expect(described_class.canonical_request_host(env)).to eq('localhost:7143')
@@ -208,27 +211,31 @@ RSpec.describe Auth::Config::Overrides::PublicBaseUrl do
       end
     end
 
-    # The port in the origin comes from the REQUEST, so a host that already
-    # carries one must contribute its hostname and nothing else. This is not a
-    # hypothetical: `site.host` is configured as an authority
-    # (`localhost:7143` in the full-auth E2E lane, `secrets.internal:8443` on
-    # an on-prem install), `DomainStrategy#call` copies it verbatim into
-    # `display_domain` when domains are disabled, and `canonical_host?` admits
-    # it port-insensitively — so `canonical_request_host` hands back a ported
-    # host on every ordinary request to such a deployment. Interpolating it
-    # straight into the authority produced `http://localhost:7143:7143/…`,
-    # which is not a parseable URL, in every verification and reset email.
+    # Canonical candidates are matched port-insensitively, then resolved back
+    # to the configured authority. Its explicit port takes precedence over the
+    # request authority; without one, the existing request-port behavior stays.
     describe '.canonical_request_base_url' do
-      it 'does not double the port when the canonical host carries one' do
+      it 'retains a configured non-default port with a doubled Host header' do
         canonical_hosts << 'localhost:7143'
-        env = env_for(host: 'localhost:7143', display_domain: 'localhost:7143', scheme: 'http')
+        env = env_for(host: 'localhost:7143', display_domain: 'localhost', scheme: 'http')
+        env['HTTP_HOST'] = 'localhost:7143, localhost:7143'
+
         expect(described_class.canonical_request_base_url(env)).to eq('http://localhost:7143')
       end
 
-      it 'drops a default port from the canonical host rather than repeating it' do
-        canonical_hosts << 'onetimesecret.com:443'
-        env = env_for(host: 'onetimesecret.com', display_domain: 'onetimesecret.com:443')
+      it 'omits a configured scheme-default port instead of using the request port' do
+        canonical_hosts.replace(['onetimesecret.com:443'])
+        allow(described_class).to receive(:canonical_host).and_return('onetimesecret.com:443')
+        env = env_for(host: 'onetimesecret.com:8443', display_domain: 'onetimesecret.com')
+
         expect(described_class.canonical_request_base_url(env)).to eq('https://onetimesecret.com')
+      end
+
+      it 'does not let a request-supplied port override the configured authority' do
+        canonical_hosts << 'secrets.internal:8443'
+        env = env_for(host: 'secrets.internal:9443', display_domain: 'secrets.internal:9443')
+
+        expect(described_class.canonical_request_base_url(env)).to eq('https://secrets.internal:8443')
       end
 
       # RFC 3986 §3.2.2: the normalizer returns an IPv6 literal bare, and a
@@ -238,6 +245,64 @@ RSpec.describe Auth::Config::Overrides::PublicBaseUrl do
         env = env_for(host: '[2001:db8::1]:7143', display_domain: '[2001:db8::1]:7143',
                       scheme: 'http')
         expect(described_class.canonical_request_base_url(env)).to eq('http://[2001:db8::1]:7143')
+      end
+    end
+
+    # The one chain both consumers read (#4517): Rodauth's base_url override
+    # and OmniAuth's full_host. Tier order is the contract; the raw authority
+    # is never a tier.
+    describe '.allowlisted_base_url' do
+      it 'tier 1: builds on a verified tenant host with the request scheme and port' do
+        env = env_for(host: 'localhost:7143', display_domain: 'secret.asi.nz', scheme: 'http')
+        expect(described_class.allowlisted_base_url(env)).to eq('http://secret.asi.nz:7143')
+      end
+
+      it 'tier 2: builds on the request own canonical host with the request scheme and port' do
+        canonical_hosts << 'eu.onetimesecret.com'
+        env = env_for(host: 'origin.internal:8443', display_domain: 'eu.onetimesecret.com')
+        expect(described_class.allowlisted_base_url(env)).to eq('https://eu.onetimesecret.com:8443')
+      end
+
+      it 'tier 3: builds on the configured canonical origin when no trusted candidate is allowlisted' do
+        env = env_for(host: 'attacker.evil.example', display_domain: 'attacker.evil.example')
+        expect(described_class.allowlisted_base_url(env)).to eq('https://onetimesecret.com')
+      end
+
+      it 'tier 3: builds on the configured canonical origin when the middleware did not run' do
+        expect(described_class.allowlisted_base_url(env_for(host: 'example.com')))
+          .to eq('https://onetimesecret.com')
+      end
+
+      it 'declines only when site.host is unconfigured too' do
+        allow(described_class).to receive(:canonical_base_url).and_return(nil)
+        expect(described_class.allowlisted_base_url(env_for(host: 'example.com'))).to be_nil
+      end
+
+      # #4517: a doubled Host reaches Rack verbatim once StripForwardedHost has
+      # removed the forwarded header. It is not a source here.
+      it 'never reads the raw authority', :aggregate_failures do
+        env = env_for(host: 'onetimesecret.com', display_domain: 'onetimesecret.com')
+
+        env['HTTP_HOST'] = 'onetimesecret.com, onetimesecret.com'
+        expect(Rack::Request.new(env).base_url).to include(', ')
+        expect(described_class.allowlisted_base_url(env)).to eq('https://onetimesecret.com')
+      end
+    end
+
+    describe '.allowlisted_host' do
+      it 'follows the same tiers as .allowlisted_base_url', :aggregate_failures do
+        tenant    = env_for(host: 'nz.onetime.co', display_domain: 'secret.asi.nz')
+        canonical = env_for(host: 'onetimesecret.com', display_domain: 'onetimesecret.com')
+        unknown   = env_for(host: 'attacker.evil.example', display_domain: 'attacker.evil.example')
+
+        expect(described_class.allowlisted_host(tenant)).to eq('secret.asi.nz')
+        expect(described_class.allowlisted_host(canonical)).to eq('onetimesecret.com')
+        expect(described_class.allowlisted_host(unknown)).to eq('onetimesecret.com')
+      end
+
+      it 'declines only when site.host is unconfigured too' do
+        allow(described_class).to receive(:canonical_host).and_return(nil)
+        expect(described_class.allowlisted_host(env_for(host: 'example.com'))).to be_nil
       end
     end
   end

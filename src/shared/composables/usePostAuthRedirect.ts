@@ -2,7 +2,6 @@
 
 import {
   hasBillingRedirect,
-  type BillingRedirect,
   type CreateAccountResponse,
   type LoginResponse,
 } from '@/schemas/api/auth/responses/auth';
@@ -104,15 +103,17 @@ export function usePostAuthRedirect() {
       };
     }
 
-    if (response && 'billing_redirect' in response && response.billing_redirect) {
-      // Backend returned billing_redirect but valid=false - do not redirect
-      const billingRedirect = response.billing_redirect as BillingRedirect;
+    const verdict =
+      response && 'billing_redirect' in response ? response.billing_redirect : undefined;
+    if (verdict?.valid === false) {
+      // Backend rejected the plan (billing off, a half missing, or unknown
+      // plan) - do not redirect, and do not fall back to the query pair.
       loggingService.warn(
         '[postAuthRedirect] Billing redirect skipped - backend marked plan as invalid',
         {
-          product: billingRedirect.product,
-          interval: billingRedirect.interval,
-          valid: billingRedirect.valid,
+          product: verdict.product,
+          interval: verdict.interval,
+          error: verdict.error,
         }
       );
       return null;

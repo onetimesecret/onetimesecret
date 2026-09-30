@@ -2,36 +2,84 @@
 #
 # frozen_string_literal: true
 
+require 'time'
+
+require_relative 'txt_verifier'
+require_relative 'tls_probe'
+
 module Onetime
   module DomainValidation
     # CaddyOnDemandStrategy - Caddy's on_demand_tls certificate management.
     #
-    # Use this when using Caddy's on-demand TLS feature. Caddy will call
-    # the internal ACME endpoint to check if a domain is allowed before
-    # issuing a certificate.
+    # Use this when using Caddy's on-demand TLS feature. Caddy calls the
+    # internal ACME endpoint (apps/internal/acme) to ask whether a domain is
+    # allowed before issuing a certificate, and that endpoint answers from
+    # CustomDomain#ready?, which requires `verified`.
     #
-    # This strategy doesn't perform validation itself - it relies on Caddy
-    # to handle the ACME challenge and certificate issuance. We just track
-    # which domains are registered in our system.
+    # Two separate proofs are involved and only one of them is Caddy's:
+    #
+    #   - Ownership: this strategy checks the TXT challenge record with our
+    #     own DNS lookup (TxtVerifier), the same "exactly one matching value"
+    #     rule the Approximated strategy applies.
+    #   - Certificate issuance: Caddy completes the ACME challenge. That shows
+    #     the name currently resolves to this deployment. It says nothing
+    #     about which account, if any, controls the domain, so it is never
+    #     read as ownership (ADR-016).
+    #
+    # Caddy exposes no per-domain status, so #check_status probes the domain
+    # itself (TlsProbe): does the name resolve, and does port 443 present a
+    # certificate valid for it. That is display and readiness state only.
     #
     class CaddyOnDemandStrategy < BaseStrategy
-      attr_reader :config
+      MODE = 'caddy_on_demand'
 
-      def initialize(config)
-        @config = config
+      # Marks a stored `vhost` blob as written by this strategy's probe rather
+      # than copied from an Approximated API response.
+      VHOST_SOURCE                 = 'tls_probe'
+      APPROXIMATED_CLEANUP_PENDING = 'approximated_vhost_pending_cleanup'
+
+      # The certificate claim and everything that belongs to it: the probe
+      # that observed it (ssl_checked_unix) travels with has_ssl when carried.
+      SSL_FIELDS = %w[has_ssl ssl_active_from ssl_active_until ssl_checked_unix].freeze
+
+      attr_reader :config, :txt_verifier, :tls_probe
+
+      # @param config [Hash] Application configuration (typically OT.conf)
+      # @param txt_verifier [#verify] Ownership checker (default: TxtVerifier).
+      # @param tls_probe [#probe] Status checker (default: TlsProbe).
+      #   Both are injected so specs never touch the network.
+      # @param clock [#call] Returns a Time or Unix epoch value (default: Familia.now).
+      #
+      def initialize(config, txt_verifier: TxtVerifier.new, tls_probe: TlsProbe.new, clock: -> { Familia.now })
+        @config       = config
+        @txt_verifier = txt_verifier
+        @tls_probe    = tls_probe
+        @clock        = clock
       end
 
-      # Validation delegated to Caddy's ACME challenge.
+      # Validates domain ownership via the TXT challenge record.
       #
-      # @param _custom_domain [Onetime::CustomDomain] Ignored
-      # @return [Hash] Delegated validation response
+      # Three outcomes, passed through from TxtVerifier:
       #
-      def validate_ownership(_custom_domain)
-        {
-          validated: true,
-          message: 'Validation delegated to Caddy on-demand TLS',
-          mode: 'caddy_on_demand',
-        }
+      #   validated: true   exactly one TXT value, equal to the challenge
+      #   validated: false  the resolver stated the record is missing or
+      #                     different (demotes a verified domain, unless an
+      #                     operator override holds it)
+      #   validated: nil    the lookup produced no answer; stored state is
+      #                     left alone (VerifyDomain#persist_changes)
+      #
+      # with one exception to nil, see #never_confirmed?.
+      #
+      # A domain with no challenge value also fails. TxtVerifier omits :data
+      # for that case, but the :mode added here means VerifyDomain stores the
+      # false: a domain with nothing to prove ownership is not verified.
+      #
+      # @param custom_domain [Onetime::CustomDomain]
+      # @return [Hash] See BaseStrategy#validate_ownership
+      #
+      def validate_ownership(custom_domain)
+        result = txt_check(custom_domain)
+        never_confirmed?(custom_domain, result) ? unconfirmed(result) : result
       end
 
       # Certificate issuance handled automatically by Caddy.
@@ -43,23 +91,69 @@ module Onetime
         {
           status: 'delegated',
           message: 'Certificate issuance delegated to Caddy',
-          mode: 'caddy_on_demand',
+          mode: MODE,
         }
       end
 
-      # Returns basic status - Caddy manages the actual certificate state.
+      # Reports whether the domain resolves and serves a valid certificate,
+      # from our own probe (TlsProbe): Caddy has no status API to ask.
       #
-      # @param _custom_domain [Onetime::CustomDomain] Ignored
-      # @return [Hash] Basic status (SSL state unknown)
+      # How each answer reaches storage (VerifyDomain#persist_changes):
       #
-      def check_status(_custom_domain)
-        {
-          ready: true,
-          message: 'Domain registered for Caddy on-demand TLS',
-          mode: 'caddy_on_demand',
-          has_ssl: nil, # Unknown - managed by Caddy
-          is_resolving: nil, # Unknown - managed by Caddy
+      #   is_resolving  true/false is stored in `resolving`; nil is skipped.
+      #   has_ssl       lives only inside the `vhost` blob (:data). The blob
+      #                 is rewritten on every check that knows is_resolving,
+      #                 so its status and is_resolving never disagree with
+      #                 `resolving`. When has_ssl is unknown, a blob already
+      #                 owned by this strategy carries its stored SSL fields
+      #                 only while its certificate remains valid (see
+      #                 #carried_ssl_fields); the blob then says so with
+      #                 ssl_inconclusive, and ssl_checked_unix still names
+      #                 the probe that observed the certificate (see
+      #                 #vhost_data). After an Approximated cutover, stale UI
+      #                 state is replaced with current probe state plus an
+      #                 internal marker for orphaned-vhost cleanup.
+      #   both nil      no :mode and no :data, the same shape Approximated
+      #                 returns when its API call fails: nothing stored
+      #                 changes and vhost_fetch_failed_at is set, which the UI
+      #                 shows as "last check failed".
+      #
+      # `resolving` means only that the name has an address record. It cannot
+      # wait for the certificate: the ACME ask endpoint requires `resolving`
+      # before Caddy is allowed to obtain one.
+      #
+      # @param custom_domain [Onetime::CustomDomain]
+      # @return [Hash] See BaseStrategy#check_status
+      #
+      def check_status(custom_domain)
+        result = tls_probe.probe(custom_domain.display_domain)
+        return { ready: false, has_ssl: nil, is_resolving: nil, message: result.message } if result.indeterminate?
+
+        status          = {
+          ready: result.is_resolving == true && result.has_ssl == true,
+          has_ssl: result.has_ssl,
+          is_resolving: result.is_resolving,
+          message: result.message,
+          mode: MODE,
         }
+        owns_vhost      = owns_vhost?(custom_domain)
+        cleanup_pending = approximated_cleanup_pending?(custom_domain) || !owns_vhost
+
+        unless result.is_resolving.nil?
+          status[:data] = vhost_data(
+            custom_domain,
+            result,
+            carry_stored_ssl: owns_vhost,
+            cleanup_pending: cleanup_pending,
+          )
+        end
+        status
+      rescue StandardError => ex
+        # TlsProbe rescues its own work; this is a failure of ours and says
+        # nothing about the domain.
+        OT.le "[CaddyOnDemandStrategy] Error checking status for #{custom_domain.display_domain}: " \
+              "#{ex.class}: #{ex.message}"
+        { ready: false, has_ssl: nil, is_resolving: nil, message: "Error: #{ex.message}" }
       end
 
       # No-op for Caddy - certificate lifecycle managed by Caddy.
@@ -71,7 +165,7 @@ module Onetime
         {
           deleted: false,
           message: 'No-op: certificate lifecycle managed by Caddy',
-          mode: 'caddy_on_demand',
+          mode: MODE,
         }
       end
 
@@ -83,7 +177,7 @@ module Onetime
         {
           available: false,
           message: 'DNS widget not available with Caddy on-demand TLS',
-          mode: 'caddy_on_demand',
+          mode: MODE,
         }
       end
 
@@ -95,6 +189,151 @@ module Onetime
       # @return [Boolean] false - Caddy manages certificates, not this strategy
       def manages_certificates?
         false
+      end
+
+      # @return [Boolean] true - a pass means TxtVerifier found the record
+      def proves_ownership?
+        true
+      end
+
+      private
+
+      def txt_check(custom_domain)
+        txt_verifier
+          .verify(custom_domain.validation_record, custom_domain.txt_validation_value)
+          .merge(mode: MODE)
+      rescue StandardError => ex
+        # TxtVerifier rescues its own lookup. Anything reaching here is ours
+        # (e.g. the domain could not produce its validation record), so it is
+        # reported as indeterminate like a lookup that got no answer. It is
+        # treated the same way too: #never_confirmed? applies to this result
+        # as to any other indeterminate one.
+        OT.le "[CaddyOnDemandStrategy] Error validating #{custom_domain.display_domain}: " \
+              "#{ex.class}: #{ex.message}"
+        { validated: nil, indeterminate: true, message: "Error: #{ex.message}", mode: MODE }
+      end
+
+      # An indeterminate lookup leaves `verified` alone so that a resolver
+      # failure cannot undo a verification a TXT check once established.
+      # verified_confirmed_at records that check. When it is nil and the
+      # domain is nevertheless verified, the flag was set before this strategy
+      # checked anything, so there is no earlier proof for the hold to protect
+      # — and with the status probe now filling in `resolving`, holding it
+      # would make the domain ready? and let the ACME ask endpoint answer for
+      # it. Such a domain gets a definitive false instead.
+      #
+      # Not affected: an unverified domain (nil and false store the same, and
+      # nil keeps the "could not tell" report), a domain with a recorded
+      # confirmation, and a domain held by an operator override
+      # (VerifyDomain#override_held? applies to this false like any other).
+      #
+      # Two other kinds of domain land here. One verified under Passthrough,
+      # which records no confirmation because it checks nothing
+      # (#proves_ownership?). And one Approximated had proven before
+      # verified_confirmed_at existed, if its first check here is
+      # indeterminate: that proof is real but not on record, so a cutover
+      # should follow a full verify pass on Approximated (see the README).
+      # Either is promoted again by the next check that finds the record.
+      #
+      # What made the result indeterminate does not matter here, so an error
+      # of our own (#txt_check's rescue) counts as well: the rule is no hold
+      # without proof on record, and an internal error is no proof either.
+      # Restricting this to results that carry :data would let such an error
+      # keep a never-confirmed domain ready? and the ACME ask endpoint open.
+      def never_confirmed?(custom_domain, result)
+        result[:indeterminate] == true &&
+          custom_domain.verified == true && # boolean_field native
+          custom_domain.verified_confirmed_at.nil?
+      end
+
+      def unconfirmed(result)
+        result.except(:indeterminate).merge(
+          validated: false,
+          message: "Ownership has not been confirmed by a TXT check (#{result[:message]})",
+        )
+      end
+
+      # True when the stored blob is empty or was written by this strategy.
+      def owns_vhost?(custom_domain)
+        stored = custom_domain.parse_vhost
+        !stored.is_a?(Hash) || stored.empty? || stored['source'] == VHOST_SOURCE
+      end
+
+      def approximated_cleanup_pending?(custom_domain)
+        stored = custom_domain.parse_vhost
+        stored.is_a?(Hash) && stored[APPROXIMATED_CLEANUP_PENDING] == true
+      end
+
+      # The subset of Approximated's vhost payload the domain pages read,
+      # filled from the probe. `status` reuses Approximated's values where the
+      # UI keys off them (ACTIVE_SSL -> active, DNS_INCORRECT -> warning).
+      #
+      # last_monitored_unix is this check: is_resolving really was observed
+      # now. The certificate has its own clock, ssl_checked_unix, written by
+      # the probe that observed has_ssl and carried with it, so a carried
+      # certificate cannot pass for a fresh observation. ssl_inconclusive
+      # marks a blob whose probe did not learn has_ssl this time, whatever it
+      # carries.
+      def vhost_data(custom_domain, result, carry_stored_ssl:, cleanup_pending: false)
+        checked_at = @clock.call
+        ssl        = ssl_fields(custom_domain, result, checked_at, carry_stored: carry_stored_ssl)
+        status     = if ssl['has_ssl'] == true then 'ACTIVE_SSL'
+                 elsif result.is_resolving then 'PENDING_SSL'
+                 else
+                   'DNS_INCORRECT'
+                 end
+
+        {
+          'incoming_address' => custom_domain.display_domain,
+          'status' => status,
+          'status_message' => result.message,
+          'is_resolving' => result.is_resolving,
+          'dns_pointed_at' => result.connected_to || result.addresses.first,
+          'last_monitored_unix' => checked_at.to_i,
+          'source' => VHOST_SOURCE,
+          APPROXIMATED_CLEANUP_PENDING => (true if cleanup_pending),
+        }.merge(ssl).compact
+      end
+
+      # has_ssl and certificate dates come from the probe when it knows. An
+      # unknown result carries unexpired fields only from a blob this strategy
+      # owns; Approximated-era values would otherwise keep stale active UI state.
+      def ssl_fields(custom_domain, result, checked_at, carry_stored:)
+        if result.has_ssl.nil?
+          carried = carry_stored ? carried_ssl_fields(custom_domain, checked_at) : {}
+          return carried.merge('ssl_inconclusive' => true)
+        end
+
+        {
+          'has_ssl' => result.has_ssl,
+          'ssl_active_from' => iso8601(result.certificate&.not_before),
+          'ssl_active_until' => iso8601(result.certificate&.not_after),
+          'ssl_checked_unix' => checked_at.to_i,
+        }
+      end
+
+      # Once the certificate seen by an earlier probe expires, has_ssl is no
+      # longer known. Drop its claim and dates until a probe sees the current
+      # certificate. Numeric and Time clocks are compared as Unix epochs.
+      def carried_ssl_fields(custom_domain, checked_at)
+        stored = custom_domain.parse_vhost
+        return {} unless stored.is_a?(Hash)
+
+        carried = stored.slice(*SSL_FIELDS)
+        return carried unless carried.key?('ssl_active_until')
+
+        active_until = parse_time(carried['ssl_active_until'])
+        active_until && active_until.to_f > checked_at.to_f ? carried : {}
+      end
+
+      def parse_time(value)
+        Time.iso8601(value.to_s)
+      rescue ArgumentError
+        nil
+      end
+
+      def iso8601(time)
+        time&.utc&.iso8601
       end
     end
   end

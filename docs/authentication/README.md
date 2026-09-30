@@ -17,6 +17,8 @@ Background on the two modes and how strategies resolve lives in
   the shared SSO provider registry.
 - [per-domain-sso.md](./per-domain-sso.md) — Configuring SSO scoped to a custom
   domain, including the organization-join flow.
+- [saml-policy.md](./saml-policy.md) — NameID policies, tenant callback-origin
+  exceptions, and certificate compatibility and recovery.
 - [webauthn-credential-types.md](./webauthn-credential-types.md) — Supported
   WebAuthn credential types and their handling.
 - [customer-session-failure-matrix.md](./customer-session-failure-matrix.md) —

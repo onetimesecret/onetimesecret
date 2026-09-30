@@ -2,6 +2,7 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
+  import { routeViewKey } from '@/router/viewKey';
   import StaleSessionNotice from '@/shared/components/auth/StaleSessionNotice.vue';
   import VerificationUnavailable from '@/shared/components/auth/VerificationUnavailable.vue';
   import { iconLibraryComponents } from '@/shared/components/icons/sprites';
@@ -16,7 +17,7 @@
   import { useNotificationsStore } from '@/shared/stores/notificationsStore';
   import { consumeSessionTransition } from '@/utils/sessionTransition';
   import type { LayoutProps } from '@/types/ui/layouts';
-  import { computed, ref, onMounted, watchEffect, type Component, markRaw } from 'vue';
+  import { computed, ref, onMounted, watch, watchEffect, type Component, markRaw } from 'vue';
   import { useRoute } from 'vue-router';
 
   const { locale, t } = useI18n();
@@ -53,6 +54,20 @@
     if (!kind) return;
     useNotificationsStore().show(t(`web.auth.session.${kind}`), 'info', 'top', 10000);
   };
+
+  // The fallback for owned rejections (ADR-046#rejection-disposition). When
+  // the coordinator suppressed the toasts of a batch of 401s and their
+  // reconciliation then settled without a transition, it publishes one
+  // notice; the store is UI-free, so this is where it becomes a message. The
+  // text is what the first suppressed caller would have shown, or the generic
+  // error text, exactly as useAsyncHandler.notifyUser chooses.
+  watch(
+    () => authStore.rejectionNotice,
+    (notice) => {
+      if (!notice) return;
+      useNotificationsStore().show(notice.message ?? t('web.COMMON.unexpected_error'), 'error');
+    }
+  );
 
   useBrandTheme();
 
@@ -149,12 +164,15 @@
 /**
  * Root application component managing layouts and routing.
  *
- * Security Note: we avoid Vue keep-alive components to force re-creating them
- * and ensure each route receives a fresh component instance.
+ * Security Note: we avoid Vue keep-alive components, so a routed view that is
+ * left is destroyed and a later visit creates a fresh component instance.
  *
  * Routing Strategy Explained:
  * - Dynamically selects layout based on current route metadata
- * - Ensures each navigation creates a fresh component instance
+ * - Keys the routed view with routeViewKey($route), so a navigation creates a
+ *   fresh component instance, except one that changes only params the route
+ *   lists in meta.keepMountedAcrossParams: that keeps the mounted instance
+ *   (e.g. a :tab switch on /org/:extid/:tab?)
  * - Maintains consistent layout while updating page content
  *
  * @see /src/router/index.ts for route definitions
@@ -183,7 +201,9 @@
     <!-- Router view with forced component recreation on route changes.
          RouteErrorBoundary swaps a thrown route subtree for a visible error
          panel so a render/setup failure never leaves a silent blank page
-         (the global errorHandler only logs). Keyed + reset on route change. -->
+         (the global errorHandler only logs). Reset on every route change;
+         keyed by routeViewKey, which is the fullPath unless the route lists
+         params in meta.keepMountedAcrossParams (e.g. a settings :tab). -->
     <router-view
       v-slot="{ Component }"
       class="rounded-md">
@@ -192,7 +212,7 @@
         <component
           v-else
           :is="Component"
-          :key="$route.fullPath" />
+          :key="routeViewKey($route)" />
       </RouteErrorBoundary>
     </router-view>
 

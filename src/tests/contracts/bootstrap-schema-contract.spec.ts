@@ -845,7 +845,6 @@ describe('Bootstrap type consistency', () => {
     // by checking key fields have expected types
     expect(typeof baseBootstrap.authenticated).toBe('boolean');
     expect(typeof baseBootstrap.awaiting_mfa).toBe('boolean');
-    expect(typeof baseBootstrap.had_valid_session).toBe('boolean');
     expect(typeof baseBootstrap.baseuri).toBe('string');
     expect(typeof baseBootstrap.locale).toBe('string');
     expect(typeof baseBootstrap.shrimp).toBe('string');
@@ -873,7 +872,6 @@ describe('Bootstrap type consistency', () => {
     const booleanFields = [
       'authenticated',
       'awaiting_mfa',
-      'had_valid_session',
       'domains_enabled',
       'regions_enabled',
       'i18n_enabled',

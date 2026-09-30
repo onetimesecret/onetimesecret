@@ -639,10 +639,6 @@
     "text": "Ja hi ha una invitació pendent per a aquest correu",
     "source_hash": "7f5e3093"
   },
-  "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "S'ha assolit el límit de membres. Millora el teu pla per convidar més membres.",
-    "source_hash": "b8f316e8"
-  },
   "api.organizations.invitations.errors.not_found": {
     "text": "No s'ha trobat la invitació",
     "source_hash": "775ba9eb"
@@ -783,17 +779,9 @@
     "text": "Rebutja",
     "source_hash": "a2d285b3"
   },
-  "web.organizations.members.member_quota": {
-    "text": "{used} de {limit} membres",
-    "source_hash": "51183b79"
-  },
   "web.organizations.members.pending_suffix": {
     "text": "({count} pendents)",
     "source_hash": "c13f787f"
-  },
-  "web.organizations.members.limit_reached_hint": {
-    "text": "S'ha assolit el límit de membres.",
-    "source_hash": "26cdb6b8"
   },
   "web.organizations.sso.title": {
     "text": "Inici de sessió únic (SSO)",

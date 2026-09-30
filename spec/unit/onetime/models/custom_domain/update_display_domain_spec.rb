@@ -21,9 +21,20 @@ RSpec.describe Onetime::CustomDomain, '#update_display_domain' do
     cd.instance_variable_set(:@sld, 'example')
 
     # Stub Redis-touching operations so this stays a unit test
-    index_double = instance_double('Familia::UniqueIndex',
-                                   get: nil, remove: nil, put: nil)
+    index_double           = instance_double(
+      'Familia::UniqueIndex',
+      get: nil,
+      remove: nil,
+      put: nil,
+    )
+    canonical_index_double = instance_double(
+      'Familia::HashKey',
+      get: nil,
+      claim_field: :created,
+      release_field: 1,
+    )
     allow(described_class).to receive(:display_domain_index).and_return(index_double)
+    allow(described_class).to receive(:canonical_display_domain_index).and_return(canonical_index_double)
     allow(cd).to receive(:remove_from_class_display_domain_index)
     allow(cd).to receive(:save).and_return(true)
     allow(cd).to receive(:identifier).and_return('cd-test-id')
@@ -77,29 +88,76 @@ RSpec.describe Onetime::CustomDomain, '#update_display_domain' do
 
   context 'when the new domain overlaps the canonical site domain' do
     before do
-      allow(OT).to receive(:conf).and_return({
-        'site' => { 'host' => 'canonical-site.com' },
-      })
+      allow(OT).to receive(:conf).and_return(
+        {
+          'site' => { 'host' => 'canonical-site.com' },
+        },
+      )
     end
 
     it 'rejects the canonical domain verbatim' do
-      expect {
+      expect do
         domain.update_display_domain('canonical-site.com')
-      }.to raise_error(Onetime::Problem, /overlaps with the default site domain/)
+      end.to raise_error(Onetime::Problem, /overlaps with the default site domain/)
     end
 
     it 'rejects a subdomain of the canonical domain' do
-      expect {
+      expect do
         domain.update_display_domain('secrets.canonical-site.com')
-      }.to raise_error(Onetime::Problem, /overlaps with the default site domain/)
+      end.to raise_error(Onetime::Problem, /overlaps with the default site domain/)
+    end
+
+    it 'does not touch the display_domain index before raising' do
+      expect do
+        domain.update_display_domain('canonical-site.com')
+      end.to raise_error(Onetime::Problem)
+      expect(described_class.display_domain_index).not_to have_received(:remove)
+      expect(described_class.display_domain_index).not_to have_received(:put)
+    end
+  end
+
+  # ------------------------------------------------------------------ #
+  # Internationalised names — the Unicode and A-label forms name the same
+  # domain, so the taken-check reads the index the way every other lookup
+  # does (display_domain_id_for), not by the exact string alone.
+  # ------------------------------------------------------------------ #
+
+  context "when the new domain is the other form of another record's name" do
+    before do
+      domain # build first so the index double is in place
+      allow(described_class.display_domain_index).to receive(:get)
+        .with('bücher.com').and_return('cd-other-id')
+    end
+
+    it 'rejects the A-label form of a name registered in Unicode' do
+      expect {
+        domain.update_display_domain('xn--bcher-kva.com')
+      }.to raise_error(Onetime::Problem, /Domain already registered/)
     end
 
     it 'does not touch the display_domain index before raising' do
       expect {
-        domain.update_display_domain('canonical-site.com')
+        domain.update_display_domain('xn--bcher-kva.com')
       }.to raise_error(Onetime::Problem)
       expect(described_class.display_domain_index).not_to have_received(:remove)
       expect(described_class.display_domain_index).not_to have_received(:put)
+    end
+
+    it 'still allows an unrelated A-label' do
+      expect { domain.update_display_domain('xn--bcher-kvb.com') }.not_to raise_error
+    end
+  end
+
+  context 'when the new domain is the other form of its own name' do
+    before do
+      domain.instance_variable_set(:@display_domain, 'bücher.com')
+      allow(described_class.display_domain_index).to receive(:get)
+        .with('bücher.com').and_return('cd-test-id')
+    end
+
+    it 'allows the rename' do
+      domain.update_display_domain('xn--bcher-kva.com')
+      expect(domain.display_domain).to eq('xn--bcher-kva.com')
     end
   end
 
@@ -110,35 +168,35 @@ RSpec.describe Onetime::CustomDomain, '#update_display_domain' do
 
   context 'with a null byte' do
     it 'rejects a domain containing a null byte' do
-      expect {
+      expect do
         domain.update_display_domain("new\x00.example.com")
-      }.to raise_error(Onetime::Problem)
+      end.to raise_error(Onetime::Problem)
     end
   end
 
   context 'with control characters' do
     it 'rejects SOH (0x01)' do
-      expect {
+      expect do
         domain.update_display_domain("new\x01.example.com")
-      }.to raise_error(Onetime::Problem)
+      end.to raise_error(Onetime::Problem)
     end
 
     it 'rejects TAB (0x09)' do
-      expect {
+      expect do
         domain.update_display_domain("new\t.example.com")
-      }.to raise_error(Onetime::Problem)
+      end.to raise_error(Onetime::Problem)
     end
 
     it 'rejects LF (0x0A)' do
-      expect {
+      expect do
         domain.update_display_domain("new\n.example.com")
-      }.to raise_error(Onetime::Problem)
+      end.to raise_error(Onetime::Problem)
     end
 
     it 'rejects DEL (0x7F)' do
-      expect {
+      expect do
         domain.update_display_domain("new\x7F.example.com")
-      }.to raise_error(Onetime::Problem)
+      end.to raise_error(Onetime::Problem)
     end
   end
 end

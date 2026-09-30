@@ -39,6 +39,9 @@
 # =============================================================================
 
 require_relative File.join(Onetime::HOME, 'spec', 'integration', 'integration_spec_helper')
+require 'climate_control'
+# SAML certificate fixture (#4604): generated at runtime, nothing checked in.
+require_relative File.join(Onetime::HOME, 'apps', 'web', 'auth', 'spec', 'support', 'domain_sso_test_fixtures')
 
 RSpec.describe 'Domain Signin Config API', type: :integration do
   include Rack::Test::Methods
@@ -93,6 +96,7 @@ RSpec.describe 'Domain Signin Config API', type: :integration do
   end
 
   after do
+    Onetime::CustomDomain::SsoConfig.delete_for_domain!(test_custom_domain.identifier) rescue nil
     Onetime::CustomDomain::SigninConfig.delete_for_domain!(test_custom_domain.identifier) rescue nil
     Onetime::CustomDomain.display_domain_index.remove(tenant_domain) rescue nil
     test_custom_domain&.destroy! rescue nil
@@ -241,6 +245,28 @@ RSpec.describe 'Domain Signin Config API', type: :integration do
     # route gate 404s it. Reporting `restricted` here was the settings-API half
     # of the display/gate drift: the page showed a method whose routes were
     # already dark, and the UI seeded a form from it.
+    # Tenant SSO needs a verified domain (#4517). The 'sso' host pin stays
+    # without an availability proof until the domain verifies, so the host
+    # offers nothing rather than inheriting the operator's empty restriction,
+    # which would reopen password signup there.
+    context 'unconfigured domain whose tenant SSO waits on domain verification' do
+      before do
+        Onetime::CustomDomain::SsoConfig.create!(
+          domain_id: test_custom_domain.identifier,
+          provider_type: 'oidc',
+          enabled: true,
+          issuer: 'https://idp.example.com',
+          client_id: 'tenant-client-id',
+        )
+      end
+
+      it "keeps the 'sso' pin and reports :unavailable" do
+        expect(effective_restrict_to).to eq(
+          'state' => 'unavailable', 'restrict_to' => 'sso', 'source' => 'global',
+        )
+      end
+    end
+
     context 'unconfigured domain under a global restriction' do
       before { allow(Onetime.auth_config).to receive(:restrict_to).and_return('password') }
 
@@ -379,6 +405,42 @@ RSpec.describe 'Domain Signin Config API', type: :integration do
       expect(last_response.status).to eq(200)
       expect(json_body['details']['tenant_sso']).to eq(
         'available' => false, 'unavailable_reason' => 'no_sso_config',
+      )
+    end
+
+    # The install-wide SAML switch (#4604): the simple lane does not set
+    # SAML_ENABLED, so this is the default-off state an operator sees.
+    it 'reports saml_disabled for an enabled saml record while SAML_ENABLED is off' do
+      Onetime::CustomDomain::SsoConfig.create!(
+        domain_id: test_custom_domain.identifier,
+        provider_type: 'saml',
+        enabled: true,
+        idp_sso_service_url: 'https://idp.example.com/saml/sso',
+        idp_entity_id: 'https://idp.example.com/saml/metadata',
+        idp_cert: DomainSsoTestFixtures.saml_cert_pem,
+      )
+
+      ClimateControl.modify(SAML_ENABLED: nil) { json_get api_path(test_custom_domain.extid) }
+
+      expect(last_response.status).to eq(200)
+      expect(json_body['details']['tenant_sso']).to eq(
+        'available' => false, 'unavailable_reason' => 'saml_disabled',
+      )
+    end
+
+    it 'reports domain_unverified for enabled credentials on an unverified domain' do
+      Onetime::CustomDomain::SsoConfig.create!(
+        domain_id: test_custom_domain.identifier,
+        provider_type: 'oidc',
+        enabled: true,
+        issuer: 'https://idp.example.com',
+        client_id: 'tenant-client-id',
+      )
+
+      json_get api_path(test_custom_domain.extid)
+
+      expect(json_body['details']['tenant_sso']).to eq(
+        'available' => false, 'unavailable_reason' => 'domain_unverified',
       )
     end
   end

@@ -60,6 +60,7 @@
 # =============================================================================
 
 require_relative 'initializers'
+require_relative 'log_scrubber'
 
 module Onetime
   module Initializers
@@ -86,6 +87,7 @@ module Onetime
     # the resolved list (#3997).
     SESSION_DEFAULTS = {
       'expire_after' => 86_400,      # 24 hours
+      'absolute_timeout' => 2_592_000, # 30 days since sign-in; 0 disables
       'key' => 'onetime.session',
       'same_site' => 'lax',
       'httponly' => true,
@@ -124,6 +126,11 @@ module Onetime
     # reset_all_boot_state! raises in non-test modes).
     #
     def boot!(mode = nil, connect_to_db = true, force: false) # rubocop:disable Metrics/PerceivedComplexity
+      # First thing: config loading and early initializers log before
+      # SetupLoggers runs, and an event that is still in the async queue when
+      # an appender arrives would otherwise be written unscrubbed.
+      Onetime::LogScrubber.register!
+
       OT.mode = mode unless mode.nil?
       OT.env  = ENV['RACK_ENV'] || 'production'
 
@@ -180,7 +187,7 @@ module Onetime
         unless redis_uri.match?(%r{:2163(?:[/?]|\z)})
           raise Onetime::Problem,
             'Test/tryout boot MUST use the test datastore (Redis port 2163), ' \
-            "got: #{redis_uri.empty? ? '<unset>' : redis_uri}. Enter test mode " \
+            "got: #{redis_uri.empty? ? '<unset>' : OT::Utils.redact_uri_userinfo(redis_uri)}. Enter test mode " \
             '(bin/setup --test / .test-mode) or run via `RACK_ENV=test`.'
         end
       end
@@ -275,7 +282,7 @@ module Onetime
       raise ex unless mode?(:cli) # allows for debugging in the console
     rescue Redis::CannotConnectError => ex
       failed!(ex)
-      OT.le "Cannot connect to the database #{Familia.uri} (#{ex.class})"
+      OT.le "Cannot connect to the database #{OT::Utils.redact_uri_userinfo(Familia.uri)} (#{ex.class})"
       # Database connection failures leave the app unusable. SAFE_BOOT=1 in
       # CLI mode bypasses this so the REPL can come up for diagnosis.
       raise ex unless safe_boot?

@@ -23,7 +23,7 @@ require 'onetime/tenant_sso_resolution'
 RSpec.describe Onetime::TenantSsoResolution do
   let(:display_domain) { 'tenant.example.net' }
   let(:domain_id) { 'cd_tenant123' }
-  let(:custom_domain) { instance_double(Onetime::CustomDomain, identifier: domain_id) }
+  let(:custom_domain) { instance_double(Onetime::CustomDomain, identifier: domain_id, verified: true) }
   let(:sso_config) { instance_double(Onetime::CustomDomain::SsoConfig) }
 
   def stub_domain(domain = custom_domain)
@@ -42,7 +42,7 @@ RSpec.describe Onetime::TenantSsoResolution do
     return if config.nil?
 
     allow(Onetime::CustomDomain::SsoConfig).to receive(:tenant_sso_available_for?)
-      .with(domain_id, sso_config: config).and_return(available)
+      .with(domain_id, sso_config: config, custom_domain: custom_domain).and_return(available)
   end
 
   describe '#domain_id' do
@@ -96,6 +96,68 @@ RSpec.describe Onetime::TenantSsoResolution do
     end
   end
 
+  describe '#custom_domain' do
+    it 'returns the record from the memoized domain lookup' do
+      stub_domain
+      resolution = described_class.new(display_domain, :custom)
+
+      expect(resolution.custom_domain).to equal(custom_domain)
+      expect(resolution).to be_verified_custom_domain
+      expect(Onetime::CustomDomain).to have_received(:from_display_domain).once
+    end
+
+    it 'is not verified when the host is unknown' do
+      stub_domain(nil)
+      expect(described_class.new(display_domain, :custom)).not_to be_verified_custom_domain
+    end
+
+    # The blank-host path used to return before assigning @custom_domain, so
+    # the defined? memo never held and every call re-entered read_domain_id.
+    it 'is nil for a blank display_domain and settles the memo on the first call' do
+      allow(Onetime::CustomDomain).to receive(:from_display_domain)
+      resolution = described_class.new(nil)
+
+      expect(resolution.custom_domain).to be_nil
+      expect(resolution.custom_domain).to be_nil
+      expect(resolution).not_to be_verified_custom_domain
+      expect(resolution.instance_variable_defined?(:@custom_domain)).to be(true)
+      expect(Onetime::CustomDomain).not_to have_received(:from_display_domain)
+    end
+
+    it 'is not verified when the domain read fails' do
+      stub_failing_domain_read
+      expect(described_class.new(display_domain, :custom)).not_to be_verified_custom_domain
+    end
+
+    it 'requires the stored verified flag to be true' do
+      stub_domain(instance_double(Onetime::CustomDomain, identifier: domain_id, verified: false))
+      expect(described_class.new(display_domain, :custom)).not_to be_verified_custom_domain
+    end
+
+    # The same host test Auth::PublicHost.served_custom_host? opens with: a
+    # verified record keyed on a canonical-set host (site.host moved onto a
+    # host a tenant had registered) still narrows via #custom_domain, but is
+    # never a served custom host — runtime refuses to rebind the ACS there.
+    it 'is not verified on a canonical-set host, even with a verified record' do
+      stub_domain
+      allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?)
+        .with(display_domain).and_return(true)
+
+      resolution = described_class.new(display_domain, :custom)
+
+      expect(resolution).not_to be_verified_custom_domain
+      expect(resolution.custom_domain).to equal(custom_domain)
+    end
+
+    it 'fails closed when the canonical-set test itself errors' do
+      stub_domain
+      allow(Onetime::Middleware::DomainStrategy).to receive(:canonical_host?)
+        .and_raise(StandardError, 'boom')
+
+      expect(described_class.new(display_domain, :custom)).not_to be_verified_custom_domain
+    end
+  end
+
   describe '#sso_config' do
     it 'returns the record when the availability ladder passes' do
       stub_domain
@@ -112,10 +174,10 @@ RSpec.describe Onetime::TenantSsoResolution do
       described_class.new(display_domain).sso_config
 
       expect(Onetime::CustomDomain::SsoConfig).to have_received(:tenant_sso_available_for?)
-        .with(domain_id, sso_config: sso_config)
+        .with(domain_id, sso_config: sso_config, custom_domain: custom_domain)
     end
 
-    it 'is nil when the ladder rejects (disabled / not permitted)' do
+    it 'is nil when the ladder rejects (disabled / not permitted / unverified)' do
       stub_domain
       stub_sso(available: false)
       resolution = described_class.new(display_domain)
@@ -123,6 +185,7 @@ RSpec.describe Onetime::TenantSsoResolution do
       expect(resolution.sso_config).to be_nil
       expect(resolution).not_to be_available
     end
+
 
     it 'is nil when the domain has no SsoConfig record' do
       stub_domain
@@ -146,6 +209,54 @@ RSpec.describe Onetime::TenantSsoResolution do
       expect(Onetime::CustomDomain).to have_received(:from_display_domain).once
       expect(Onetime::CustomDomain::SsoConfig).to have_received(:find_by_domain_id).once
       expect(Onetime::CustomDomain::SsoConfig).to have_received(:tenant_sso_available_for?).once
+    end
+  end
+
+  # #4579: ConfigSerializer#build_sso_config withholds the platform fallback
+  # on a host whose tenant SSO waits only on verification, because the
+  # omniauth hook refuses every SSO route there.
+  describe '#awaiting_verification?' do
+    before do
+      allow(Onetime::CustomDomain::SigninConfig).to receive(:tenant_sso_awaiting_verification?).and_return(true)
+    end
+
+    it 'asks the shared predicate with the records the tenant lookup loaded' do
+      stub_domain
+      stub_sso(available: false)
+      resolution = described_class.new(display_domain)
+
+      expect(resolution).to be_awaiting_verification
+      expect(Onetime::CustomDomain::SigninConfig).to have_received(:tenant_sso_awaiting_verification?)
+        .with(domain_id, sso_config: sso_config, custom_domain: custom_domain)
+      expect(Onetime::CustomDomain::SsoConfig).to have_received(:find_by_domain_id).once
+    end
+
+    it 'is false while tenant SSO is available' do
+      stub_domain
+      stub_sso
+      expect(described_class.new(display_domain)).not_to be_awaiting_verification
+      expect(Onetime::CustomDomain::SigninConfig).not_to have_received(:tenant_sso_awaiting_verification?)
+    end
+
+    it 'is false without an SsoConfig record' do
+      stub_domain
+      stub_sso(nil)
+      expect(described_class.new(display_domain)).not_to be_awaiting_verification
+      expect(Onetime::CustomDomain::SigninConfig).not_to have_received(:tenant_sso_awaiting_verification?)
+    end
+
+    it 'is false on a failed domain read' do
+      stub_failing_domain_read
+      expect(described_class.new(display_domain)).not_to be_awaiting_verification
+    end
+
+    it 'memoizes the answer' do
+      stub_domain
+      stub_sso(available: false)
+      resolution = described_class.new(display_domain)
+
+      3.times { resolution.awaiting_verification? }
+      expect(Onetime::CustomDomain::SigninConfig).to have_received(:tenant_sso_awaiting_verification?).once
     end
   end
 

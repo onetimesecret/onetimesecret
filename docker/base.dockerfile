@@ -10,7 +10,7 @@
 #
 # Contains:
 #   - Ruby 3.4 (slim-trixie) base
-#   - Node.js 24 binaries + npm + pnpm
+#   - Node.js 26 binaries + npm + pnpm
 #   - Build toolchain (build-essential, libssl-dev, etc.)
 #   - yq for YAML config migration
 #   - Non-root appuser (UID 1001)
@@ -21,7 +21,7 @@
 
 ARG APP_DIR=/app
 ARG RUBY_IMAGE_TAG=3.4-slim-trixie@sha256:d8fd978ffc10f0eddee04aa03eb82e5d247079471392ae655de5ae04bdaad914
-ARG NODE_IMAGE_TAG=24@sha256:934240a162082fd8b8a2f90cd5114446443f1eba1c5378f6687167ca405e6584
+ARG NODE_IMAGE_TAG=26@sha256:a723b54c35a76e947095a20a67d39585bb09c862e6b1adeb8a9f518f95e34fb0
 
 ##
 # NODE: Node.js source for copying binaries

@@ -20,11 +20,14 @@
 require 'bunny'
 require 'securerandom'
 require_relative '../../jobs/queues/config'
+require_relative 'rabbitmq_helpers'
 
 module Onetime
   module CLI
     module Queue
       class PingCommand < Command
+        include Onetime::CLI::Queue::RabbitMQHelpers
+
         desc 'Test job queue communication by sending ping messages'
 
         option :queue,
@@ -198,20 +201,6 @@ module Onetime
           else
             { ping_id: ping_id, timestamp: Time.now.utc.iso8601 }
           end
-        end
-
-        # Mask credentials in AMQP URL using URI parsing for robustness
-        # Handles passwords containing special characters like : or @
-        def mask_amqp_credentials(url)
-          uri = URI.parse(url)
-          return url unless uri.userinfo
-
-          masked_uri          = uri.dup
-          masked_uri.userinfo = '***:***'
-          masked_uri.to_s
-        rescue URI::InvalidURIError
-          # Fallback for malformed URLs
-          url.gsub(%r{//[^@]*@}, '//***:***@')
         end
 
         def display_result(queue_name, result)

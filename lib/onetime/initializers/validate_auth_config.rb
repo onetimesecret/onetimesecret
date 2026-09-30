@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../auth_config'
+require_relative '../sso_provider/saml'
 
 module Onetime
   module Initializers
@@ -34,6 +35,13 @@ module Onetime
 
       def execute(_context)
         validate_present!
+        # Fatal when SAML_ENABLED is set to an unrecognized token (ADR-037,
+        # #4604). The flag is read live by the route registration, the
+        # tenant availability ladder, the domain SSO API and the callback
+        # transport; every one of those must see the same answer, so the
+        # answer is settled here, by name, before any of them runs. Every
+        # mode: the variable is inert in simple mode but a typo is a typo.
+        validate_saml_enabled_flag!
         # Fatal when more than one AUTH_*_ONLY flag is set (ADR-034#conflicting-auth-only-env-flags-are-a-boot-error,
         # #4139). Runs BEFORE the rendered value is inspected: conflicting
         # flags render as a blank restrict_to, so by the time the config is
@@ -75,6 +83,17 @@ module Onetime
         return set_flags if set_flags.length <= 1
 
         raise Onetime::ConfigError, restrict_to_flags_error_message(set_flags)
+      end
+
+      # Boot-time parse of SAML_ENABLED (#4604). Onetime::SsoProvider::Saml.enabled?
+      # raises Onetime::ConfigError naming the flag and the accepted tokens;
+      # it is re-raised unchanged so the deploy log carries strict_bool!'s
+      # own message (ADR-037: the rejected value is never echoed).
+      #
+      # @raise [Onetime::ConfigError] when SAML_ENABLED is unrecognized
+      # @return [Boolean] the parsed value when boot may proceed
+      def validate_saml_enabled_flag!
+        Onetime::SsoProvider::Saml.enabled?
       end
 
       private

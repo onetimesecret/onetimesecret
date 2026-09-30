@@ -75,10 +75,6 @@
     "text": "Kei te tārewa kē tētahi tono mō tēnei īmēra",
     "source_hash": "7f5e3093"
   },
-  "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Kua eke ki te tepe mema. Whakapikihia tō mahere ki te tono mema anō.",
-    "source_hash": "b8f316e8"
-  },
   "api.organizations.invitations.errors.resend_only_pending": {
     "text": "Ka taea anake te tuku anō i ngā tono tārewa",
     "source_hash": "b7578b3e"

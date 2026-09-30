@@ -119,6 +119,9 @@ module Auth
       Overrides::PublicBaseUrl.configure(self)
       Overrides::PasswordMigration.configure(self)
       Overrides::ErrorHandling.configure(self)
+      # Stable `code` / `code_scope` on Rodauth's refusals (#4469): the
+      # set_error_reason seam, policy in Auth::CredentialFailureCode.
+      Overrides::FailureCode.configure(self)
       # Enumeration safety for the reset-password-request path (issue #3857).
       # Runs after AccountManagement enables :reset_password above, so the
       # overridden methods exist.
@@ -135,7 +138,7 @@ module Auth
       Overrides::AccountEnumeration.configure(self)
       # Surface-bound sessions (#4409): stamp the establishing surface in
       # update_session, the seam shared by `login` and every autologin
-      # (create/verify/reset, remember). Prepended, so it chains with the
+      # (create/verify/reset). Prepended, so it chains with the
       # active-sessions update_session override regardless of order.
       Overrides::SurfaceBinding.configure(self)
       RodauthOverrides.configure(self)
@@ -155,7 +158,7 @@ module Auth
         Features::ActiveSessions.configure(self)
       end
 
-      # Remember me: persistent login across browser sessions
+      # Remember me: the checkbox makes this session last a fixed 14 days
       if Onetime.auth_config.remember_me_enabled?
         Features::RememberMe.configure(self)
       end

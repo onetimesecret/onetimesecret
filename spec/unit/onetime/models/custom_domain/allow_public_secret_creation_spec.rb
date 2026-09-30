@@ -12,7 +12,7 @@ require 'spec_helper'
 # incoming mode, or a corrupt/unrecognised stored secrets_mode.
 #
 # The end-to-end path also has try-file coverage
-# (try/unit/models/custom_domain_homepage_config_try.rb); this keeps the
+# (try/unit/models/custom_domain/homepage_config_try.rb); this keeps the
 # gate's decision table self-contained in the RSpec unit suite, exercising
 # the real HomepageConfig predicates (enabled? / recognized_secrets_mode? /
 # incoming_mode?) without touching Redis.

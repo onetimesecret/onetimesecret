@@ -126,6 +126,7 @@ jobs:
               - '.rspec'
               - 'spec/**'
               - 'try/**'
+              - 'tests/**'
               - 'apps/**'
               - 'lib/**'
               - 'bin/**'
@@ -207,10 +208,12 @@ jobs:
 
       - uses: ruby/setup-ruby@003a5c4d8d6321bd302e38f6f0ec593f77f06600 # v1.319.0
         with:
-          ruby-version-file: '.ruby-version'
+          ruby-version: '.ruby-version' # this pin has no ruby-version-file input
           bundler-cache: false # DEBUG: disabled to rule out stale cache
 
       - name: Install dependencies
+        env:
+          BUNDLE_FROZEN: 'true' # same contract as tools/setup/lib.sh
         run: bundle install --jobs 4 --retry 3
 
       - name: Run Rubocop
@@ -412,6 +415,22 @@ jobs:
 
       - name: Setup Node.js environment
         uses: ./.github/actions/setup-node-env
+
+      # The browser lane's one prerequisite the runner cannot provide. The
+      # same trio bin/setup --test installs locally; --with-deps adds the OS
+      # packages, which setup never does (sudo/apt).
+      - name: Install Playwright browsers for the browser lane
+        run: pnpm exec playwright install --with-deps chromium firefox webkit
+
+      # tests/lanes/browser: the real-browser SAML callback matrix, run as the
+      # lane a contributor runs (`tests/lanes/run browser`), with its own
+      # codegen and results artifact. Before the coverage switch below on
+      # purpose: SimpleCov stays scoped to the unit lane.
+      - name: Run browser lane
+        uses: ./.github/actions/run-test-lane
+        with:
+          lane: browser
+          results-file: 'rspec_browser_results.json'
 
       # Diagnostic probe for CI-only hash mismatch (issue being investigated).
       # A CI-layer concern, not part of the lane contract — env mirrors the
@@ -615,8 +634,8 @@ jobs:
         with:
           node-version-file: '.node-version'
 
-      - name: Install pnpm
-        run: npm install -g pnpm
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
 
       - name: Run simple lane
         uses: ./.github/actions/run-test-lane
@@ -649,8 +668,8 @@ jobs:
         with:
           node-version-file: '.node-version'
 
-      - name: Install pnpm
-        run: npm install -g pnpm
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
 
       # API contract specs (spec/api/) are a different axis than auth mode.
       # This was continue-on-error while the #3225 / ADR-012 Stage 3
@@ -693,6 +712,11 @@ jobs:
             overlay: ''
             services: 'valkey rabbitmq'
             results-file: 'rspec_full_mfa_results.json'
+          - name: 'SQLite, platform SAML'
+            lane: full-saml-platform
+            overlay: ''
+            services: 'valkey rabbitmq'
+            results-file: 'rspec_full_saml_platform_results.json'
           - name: 'PG, billing: off'
             lane: full-pg
             overlay: ''
@@ -736,8 +760,8 @@ jobs:
         with:
           node-version-file: '.node-version'
 
-      - name: Install pnpm
-        run: npm install -g pnpm
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
 
       - name: Run lane
         uses: ./.github/actions/run-test-lane
@@ -771,8 +795,8 @@ jobs:
         with:
           node-version-file: '.node-version'
 
-      - name: Install pnpm
-        run: npm install -g pnpm
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
 
       - name: Run disabled lane
         uses: ./.github/actions/run-test-lane
@@ -1059,4 +1083,7 @@ jobs:
                 tier3Target: '${{ steps.metrics.outputs.tier3-target }}',
                 tier4Target: '${{ steps.metrics.outputs.tier4-target }}',
               },
+              // Completion state and per-test-step time against main, as
+              // markdown from scripts/ci/ci-metrics-breakdown.sh.
+              breakdownFile: '${{ steps.metrics.outputs.breakdown-file }}',
             });

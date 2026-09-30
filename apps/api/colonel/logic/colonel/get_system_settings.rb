@@ -49,8 +49,9 @@ module ColonelAPI
           # Include full diagnostics config, masking sensitive data
           diagnostics_config                          = Onetime.conf['diagnostics'] || {}
           @config_sections[:diagnostics]              = deep_copy(diagnostics_config)
-          # Add redis URI with masked password for convenience
-          @config_sections[:diagnostics]['redis_uri'] = Onetime.conf['redis']&.[]('uri')&.gsub(/:[^:@]*@/, ':****@')
+          # Add redis URI with masked password (and query string) for convenience
+          redis_uri                                   = Onetime.conf['redis']&.[]('uri')
+          @config_sections[:diagnostics]['redis_uri'] = redis_uri && OT::Utils.redact_uri_userinfo(redis_uri, keep_username: true, mask: '****')
 
           # Logging config (top-level 'logging' key)
           @config_sections[:logging] = Onetime.conf['logging'] || {}

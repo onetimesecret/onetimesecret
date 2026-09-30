@@ -75,10 +75,6 @@
     "text": "Ja hi ha una invitació pendent per a aquest correu electrònic",
     "source_hash": "7f5e3093"
   },
-  "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "S'ha assolit el límit de membres. Millora el teu pla per convidar-ne més.",
-    "source_hash": "b8f316e8"
-  },
   "api.organizations.invitations.errors.resend_only_pending": {
     "text": "Només es poden reenviar les invitacions pendents",
     "source_hash": "b7578b3e"

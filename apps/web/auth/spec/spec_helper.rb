@@ -284,6 +284,7 @@ module RodauthTestHelper
       String :session_id
       Time :created_at, null: false, default: Sequel::CURRENT_TIMESTAMP
       Time :last_use, null: false, default: Sequel::CURRENT_TIMESTAMP
+      Time :remember_until # migration 011
       primary_key [:account_id, :session_id]
     end
 

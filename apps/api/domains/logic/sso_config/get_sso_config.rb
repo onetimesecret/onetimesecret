@@ -16,11 +16,17 @@ module DomainsAPI
       #   Requires the requesting user to be an organization owner with manage_sso.
       #
       # Response includes:
-      # - provider_type: oidc or entra_id (tenant SSO is OIDC/Entra-only, #3902)
-      # - client_id: Full client ID (not sensitive)
-      # - client_secret_masked: Masked (e.g., "••••••••abcd")
+      # - provider_type: oidc, entra_id or saml (issuerless providers removed, #3902)
+      # - client_id: Full client ID (not sensitive); null for saml
+      # - client_secret_masked: Masked (e.g., "••••••••abcd"); null for saml
       # - tenant_id: For Entra ID
       # - issuer: For OIDC
+      # - idp_sso_service_url, idp_entity_id, idp_cert: For SAML, plaintext
+      #   (none is a secret — see Serializers)
+      # - sp_entity_id, acs_url: For SAML, read-only — the values to register
+      #   at the IdP
+      # - unreadable_fields: Encrypted fields that failed to decrypt ([] when
+      #   healthy); a named field's null means "unreadable", not "unset"
       # - display_name: Human-readable name
       # - allowed_domains: Array of allowed email domains
       # - enabled: Whether SSO is active

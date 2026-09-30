@@ -457,6 +457,9 @@ site:
     secret: <%= ENV['SESSION_SECRET'] %>  # Since v0.24.0
     # Session lifetime in seconds (default: 24 hours)
     expire_after: 86400  # Since v0.24.0
+    # Absolute session lifetime in seconds since sign-in, however active the
+    # session is (default: 30 days). 0 disables the bound. See config.yaml.
+    absolute_timeout: <%= ENV['SESSION_ABSOLUTE_TIMEOUT'] || 2592000 %>  # Since v0.26.14
     # Cookie name
     key: 'onetime.session'  # Since v0.24.0
     # Require HTTPS for cookies (recommended: true in production)
@@ -546,9 +549,12 @@ site:
     # Blocks directory traversal attacks using "../" in paths
     # Critical for preventing unauthorized file access
     path_traversal: <%= ENV['MIDDLEWARE_PATH_TRAVERSAL'] != 'false' %>  # Since v0.24.0
-    # Protects against cookie tossing attacks
-    # Prevents session fixation via manipulated cookies
-    cookie_tossing: <%= ENV['MIDDLEWARE_COOKIE_TOSSING'] == 'true' %>  # Since v0.24.0
+    # Refuses (403) a request whose Cookie header carries the session cookie
+    # (site.session.key) more than once, so a cookie planted by a sibling or
+    # parent host cannot compete with the real one (Onetime::Middleware::
+    # CookieTossing, RISK-2026-08-14-COOKIE-TOSSING). Default on since
+    # v0.26.14; set MIDDLEWARE_COOKIE_TOSSING=false to disable.
+    cookie_tossing: <%= ENV['MIDDLEWARE_COOKIE_TOSSING'] != 'false' %>  # Since v0.24.0
     # Prevents IP spoofing attacks by validating IP addresses
     # Useful when IP-based access controls are implemented
     ip_spoofing: <%= ENV['MIDDLEWARE_IP_SPOOFING'] == 'true' %>  # Since v0.24.0
@@ -1201,7 +1207,12 @@ features:
     # Options:
     #   - passthrough: No validation or cert management
     #   - approximated: Use approximated.app API for SSL certs and validation (requires cluster config)
-    #   - caddy_on_demand: Use Caddy's on-demand TLS (requires internal ACME endpoint)
+    #   - caddy_on_demand: Use Caddy's on-demand TLS (requires internal ACME endpoint).
+    #     Ownership is checked with our own DNS lookup of the domain's TXT
+    #     challenge record; Caddy issuing a certificate does not verify a domain.
+    #     Resolving and SSL status come from our own A/AAAA lookup and a TLS
+    #     handshake to the domain on port 443, so the application host needs
+    #     outbound DNS and outbound TCP 443.
     validation_strategy: <%= ENV['DOMAINS_VALIDATION_STRATEGY'] || 'passthrough' %>  # Since v0.24.0
 
     # Approximated proxy configuration (required for 'approximated' strategy)
@@ -1604,8 +1615,16 @@ jobs:
     check_interval: '30m'  # Since v0.25.2
     # Maximum domains processed per run (rate limiting)
     batch_size: 200  # Since v0.25.2
-    # Seconds between Approximated API calls within a run
-    rate_limit: 0.5  # Since v0.25.2
+    # Seconds to pause between domains within a run. Leave unset to use the
+    # validation strategy's own pacing (approximated: 0.5 for its API rate
+    # cap; caddy_on_demand and passthrough: none). Any number, including 0,
+    # overrides the strategy.
+    # rate_limit: 0.5  # Since v0.25.2
+    # DNS-propagation warm-up: domains created within this window that are
+    # still not fully verified (verified=false OR resolving=false) fill any
+    # capacity left after the paged walk, without exceeding batch_size.
+    # Set to '0' to disable.
+    dns_propagation_window: '24h'  # Since v0.26.14
 
   # Expiration warning emails
   # Send email notifications before secrets expire to warn recipients

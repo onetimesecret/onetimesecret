@@ -45,18 +45,11 @@ module Onetime
           [parsed[:user], parsed[:password]]
         end
 
-        # Mask credentials in AMQP URL using URI parsing for robustness.
-        # Handles passwords containing special characters like : or @
+        # Mask credentials in an AMQP URL for display. The whole userinfo and
+        # any query string become "***" via the shared redactor, so a password
+        # containing ":", "@", "/" or "?" redacts wider rather than leaking.
         def mask_amqp_credentials(url)
-          uri = URI.parse(url)
-          return url unless uri.userinfo
-
-          masked_uri          = uri.dup
-          masked_uri.userinfo = '***:***'
-          masked_uri.to_s
-        rescue URI::InvalidURIError
-          # Fallback for malformed URLs
-          url.gsub(%r{//[^@]*@}, '//***:***@')
+          OT::Utils.redact_uri_userinfo(url)
         end
       end
     end

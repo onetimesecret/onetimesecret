@@ -304,6 +304,8 @@ module CustomerSessionFailureMatrix
       refusal_code: refusal_code(body),
       refusal_body: refusal_body(body),
       cache_control: last_response.headers['cache-control'],
+      www_authenticate: last_response.headers['www-authenticate'],
+      retry_after: last_response.headers['retry-after'],
       request_id: response_request_id(last_response),
     }
   end
@@ -420,7 +422,7 @@ module CustomerSessionFailureMatrix
     when :inactive
       active_session_rows.update(last_use: Time.now - (Onetime::ActiveSessionGate::INACTIVITY_DEADLINE + 60))
     when :absolute_expired
-      active_session_rows.update(created_at: Time.now - (Onetime::ActiveSessionGate::LIFETIME_DEADLINE + 60))
+      active_session_rows.update(created_at: Time.now - (Onetime::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE + 60))
     when :legacy_unstamped
       rewrite_session_blob { |blob| blob.delete('active_session_id_hmac') }
     when :mfa_pending
@@ -510,9 +512,11 @@ module CustomerSessionFailureMatrix
     end
   end
 
-  # Protected HTML and the protected API. The status, the redirect, and the
-  # pre-#4462 body fields are asserted unchanged; `code` / `code_scope` are
-  # additive, and only on the JSON refusal.
+  # Protected HTML and the protected API. The redirect and the pre-#4462 body
+  # fields are asserted unchanged; `code` / `code_scope` are additive, and
+  # only on the JSON refusal. The API status is 401 with a `WWW-Authenticate`
+  # challenge, except that a `verification_unavailable` refusal is an outage
+  # and answers 503 with `Retry-After` (Onetime::Middleware::SessionFailureCode).
   def expect_protected_observation(observation, expectation, surface)
     case expectation.fetch(:protected)
     when :refused
@@ -526,7 +530,15 @@ module CustomerSessionFailureMatrix
         expect(observation[:refusal_code]).to be_nil
         expect(observation[:refusal_body]).to be_nil
       else
-        expect(observation[:status]).to eq(401)
+        if expectation.fetch(:scope) == Onetime::SessionFailureCode::SCOPE_VERIFICATION_UNAVAILABLE
+          expect(observation[:status]).to eq(503)
+          expect(observation[:retry_after]).to eq(Onetime::Middleware::SessionFailureCode::UNAVAILABLE_RETRY_AFTER.to_s)
+          expect(observation[:www_authenticate]).to be_nil
+        else
+          expect(observation[:status]).to eq(401)
+          expect(observation[:www_authenticate]).to eq(Onetime::Middleware::SessionFailureCode::SESSION_CHALLENGE)
+          expect(observation[:retry_after]).to be_nil
+        end
         # Every /api response is unstorable by default, refusals included
         # (RISK-2026-09-19-03, Onetime::Middleware::ApiCachePolicy).
         expect(observation[:cache_control]).to eq('private, no-store')
