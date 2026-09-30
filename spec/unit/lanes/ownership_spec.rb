@@ -199,6 +199,8 @@ module LaneOwnershipProbe
     %w[full-sqlite,full-pg,full-pg-agnostic         apps/*/*/spec/integration/full],
     %w[full-mfa                                     apps/*/*/spec/integration/full_mfa],
     %w[full-saml-platform                           apps/*/*/spec/integration/full_saml_platform],
+    %w[full-sqlite                                  apps/*/*/spec/integration/oauth],
+    %w[strategies                                   apps/*/*/spec/integration/strategies],
     %w[simple                                       apps/*/*/spec/integration/simple],
     %w[none                                         apps/web/billing/spec/integration/*_spec.rb],
     %w[unit                                         try/features],

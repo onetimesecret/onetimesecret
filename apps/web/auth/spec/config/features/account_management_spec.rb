@@ -15,8 +15,9 @@
 
 require_relative '../../spec_helper'
 
-# Namespace shim (the pattern of spec/config/overrides/duplicate_signup_spec.rb):
-# the feature file reopens Auth::Config without booting the app.
+# Namespace shim (the pattern of
+# spec/config/overrides/account_enumeration_duplicate_signup_spec.rb): the
+# feature file reopens Auth::Config without booting the app.
 module Auth; end
 Auth.const_set(:Config, Class.new(Rodauth::Auth)) unless defined?(Auth::Config)
 

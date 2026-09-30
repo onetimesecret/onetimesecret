@@ -177,14 +177,19 @@ module Auth::Config::Features
     # billing_redirect already added by after_create_account remains the
     # validated checkout intent to follow after sign-in.
     #
-    # The answer is the status of the account this request just created. A
-    # login that already has an account never gets this far: every duplicate
-    # gets the generic 400 before or at the INSERT
-    # (overrides/duplicate_signup.rb). The only input that changes the answer
-    # is an invite token the caller sent, and before_create_account already
-    # refuses a token that is not pending for that login with the same
-    # generic error (hooks/account.rb). So the answer reveals nothing about
-    # any existing account.
+    # The answer is the status of the account hash this request built. A
+    # login that already has an account gets this same response block
+    # (duplicate_signup_success_response, overrides/account_enumeration.rb),
+    # read from the request's own new-account hash, or from the existing row
+    # only when that row is unverified, which is the status a new account
+    # starts with. So without an invite token a duplicate answers as a new
+    # signup does.
+    #
+    # An invite token is the one input that changes the answer, and
+    # before_create_account refuses a token that is not pending for that
+    # login with the generic error (hooks/account.rb). The duplicate check
+    # runs before the invite check, so a duplicate sent with a valid token
+    # answers verify_email where a new invite signup answers sign_in.
     #
     # With verify_account loaded, a new account starts unverified and needs
     # the emailed link. That includes webauthn_verify_account, which loads

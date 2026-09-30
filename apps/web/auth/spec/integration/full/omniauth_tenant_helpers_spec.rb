@@ -45,7 +45,7 @@ require_relative '../../../config/hooks/omniauth_tenant'
 
 # The model + fixtures, for the provider-type tripwire and the SAML arm (#4450)
 require 'onetime/models/custom_domain/sso_config'
-require_relative '../support/domain_sso_test_fixtures'
+require_relative '../../support/domain_sso_test_fixtures'
 
 RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
   let(:helpers) { described_class }

@@ -22,13 +22,12 @@
  *    The CI workflow sets both on the container; see .github/workflows/e2e.yml.
  *
  * Registration is safe to repeat (a Playwright retry after the account was
- * created, or a re-run against the same server), but the two modes answer an
- * existing login differently:
- *   simple mode: the same success response as for a new account
- *     (email-enumeration prevention), so the SPA lands on /signin.
- *   full mode: 400 with the generic "Unable to create account" error
- *     (apps/web/auth/config/overrides/duplicate_signup.rb), so the signup
- *     form shows its error alert.
+ * created, or a re-run against the same server). Both modes answer an
+ * existing login with the same success response as for a new account
+ * (email-enumeration prevention; in full mode
+ * apps/web/auth/config/overrides/account_enumeration.rb), so the SPA lands
+ * on /signin. A signup can still fail for other reasons and show the form's
+ * error alert.
  * The setup accepts either outcome and goes on to sign in. Sign-in is the
  * guard: it passes only if the account exists and the password matches. A
  * signup error is recorded as a `signup-error` annotation, so a sign-in

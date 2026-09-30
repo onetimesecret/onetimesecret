@@ -43,11 +43,12 @@ declare -A LANES_OWNER_TASKS=(
   [browser]=''
   [simple]='try:integration:simple spec:integration:simple'
   [disabled]='spec:integration:disabled'
-  [full-sqlite]='spec:integration:full'
+  [full-sqlite]='spec:integration:full spec:integration:oauth'
   [full-pg]='spec:integration:full:postgres'
   [full-pg-agnostic]='spec:integration:full:agnostic_on_pg'
   [full-mfa]='spec:integration:full:mfa'
   [full-saml-platform]='spec:integration:full:saml_platform'
+  [strategies]='spec:integration:strategies'
   [migrations-sqlite]='spec:integration:migrations:sqlite'
   [migrations-pg]='spec:integration:migrations:postgres spec:integration:migrations:verify_dual_url'
   [api]='spec:api'
@@ -178,6 +179,12 @@ lanes_for_path() {  # <path>
       echo full-mfa ;;
     ${app}/spec/integration/full_saml_platform|${app}/spec/integration/full_saml_platform/*)
       echo full-saml-platform ;;
+    # spec:integration:oauth is full-sqlite's second task (its own rspec
+    # process); spec:integration:strategies is the strategies lane.
+    ${app}/spec/integration/oauth|${app}/spec/integration/oauth/*)
+      echo full-sqlite ;;
+    ${app}/spec/integration/strategies|${app}/spec/integration/strategies/*)
+      echo strategies ;;
     # A mode-less file directly under an app's integration/ is dispatched by
     # no task (UNRUN_SPECS in lib/tasks/spec_selection.rake): no owner.
     ${app}/spec/integration|${app}/spec/integration/*)

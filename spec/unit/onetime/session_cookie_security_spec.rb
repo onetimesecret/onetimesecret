@@ -122,7 +122,9 @@ RSpec.describe Onetime::Session do
           'account_id' => 12_345,
           'external_id' => 'cust_deadbeef',
           'authenticated' => true,
-          'authenticated_at' => 1_754_000_000,
+          # Recent: write_session bounds the TTL by the absolute session lifetime,
+          # counted from sign-in, and the ttl assertion below expects the rolling one.
+          'authenticated_at' => Time.now.to_i,
           'awaiting_mfa' => false,
           'two_factor_auth_setup' => true,
         }
