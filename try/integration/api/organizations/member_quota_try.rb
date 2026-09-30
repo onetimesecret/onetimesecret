@@ -4,9 +4,8 @@
 
 #
 # Integration test for member quota entitlement checks
-# Verifies that CreateInvitation does not block on plan count limits
-# (total_members_per_org, role_*_per_org) and still rejects a role the plan
-# does not offer (role limit of 0).
+# Verifies that CreateInvitation never refuses an invitation on plan count
+# values (total_members_per_org, role_*_per_org), including a value of 0.
 
 require 'rack/test'
 require_relative '../../../support/test_helpers'
@@ -80,7 +79,7 @@ def last_response; @test.last_response; end
   }
 }
 
-# Plan that does not offer the admin role (limit 0). Admin invites are rejected.
+# Plan with an admin count value of 0. Admin invites still succeed.
 @admin_capped_plan = {
   plan_id: 'admin_capped_members',
   name: 'Admin Capped Members Plan',
@@ -203,19 +202,16 @@ reloaded_org.pending_invitation_count
 [@result5[:status], @result6[:status]]
 #=> [200, 200]
 
-## Plan without the admin role: role_admins_per_org=0 rejects an admin invite
+## Admin count value of 0: an admin invite still succeeds
 @result4 = run_billing_test_invite(@org, @session, "admin1_#{@timestamp}@example.com", @admin_capped_plan, role: 'admin')
+@invite8_id = @result4[:record_id]
 @result4[:status]
-#=> 422
-
-## Rejected admin invite indicates upgrade required
-@result4[:error_type]
-#=> "upgrade_required"
+#=> 200
 
 # Teardown
 # invite1 was accepted (now active membership for @member1)
 # the rest are still pending
-[@invite1_id, @invite2_id, @invite3_id, @invite4_id, @invite5_id, @invite6_id, @invite7_id].compact.each do |invite_id|
+[@invite1_id, @invite2_id, @invite3_id, @invite4_id, @invite5_id, @invite6_id, @invite7_id, @invite8_id].compact.each do |invite_id|
   invite = Onetime::OrganizationMembership.load(invite_id)
   invite&.destroy_with_index_cleanup!
 end

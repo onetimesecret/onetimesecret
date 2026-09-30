@@ -437,7 +437,7 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
     end
   end
 
-  describe '#check_member_quota!' do
+  describe '#note_member_counts' do
     let(:entitlements) { double('SortedSet', any?: has_entitlements) }
     let(:has_entitlements) { false }
     let(:owner_membership) do
@@ -456,7 +456,6 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       allow(organization).to receive(:member_count_by_role).and_return(0)
       allow(organization).to receive(:pending_invitation_count_by_role).and_return(0)
       allow(organization).to receive(:at_limit?).and_return(false)
-      allow(organization).to receive(:limit_for).and_return(Float::INFINITY)
       allow(Onetime::Customer).to receive(:find_by_email).and_return(nil)
       allow(Onetime::OrganizationMembership).to receive(:find_pending_by_email).and_return(nil)
       # Mock membership lookup for require_entitlement_in! (ADR-012 Stage 3)
@@ -512,7 +511,6 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       before do
         allow(organization).to receive(:member_count_by_role).with('admin').and_return(2)
         allow(organization).to receive(:pending_invitation_count_by_role).with('admin').and_return(0)
-        allow(organization).to receive(:limit_for).with('role_admins_per_org').and_return(2)
         allow(organization).to receive(:at_limit?)
           .with('role_admins_per_org', 2).and_return(true)
       end
@@ -523,34 +521,31 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       end
     end
 
-    context 'when inviting an admin and the plan does not offer the admin role', billing: true do
+    context 'when inviting an admin and role_admins_per_org is 0', billing: true do
       let(:has_entitlements) { true }
       let(:params) { { 'extid' => 'ext-org-123', 'email' => 'newadmin@example.com', 'role' => 'admin' } }
 
       before do
-        allow(organization).to receive(:limit_for).with('role_admins_per_org').and_return(0)
+        allow(organization).to receive(:at_limit?)
+          .with('role_admins_per_org', 0).and_return(true)
       end
 
-      it 'raises upgrade_required error' do
-        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
-          expect(error.error_key).to eq('api.organizations.invitations.errors.member_limit_reached')
-          expect(error.instance_variable_get(:@error_type)).to eq(:upgrade_required)
-          expect(error.instance_variable_get(:@field)).to eq('email')
-        end
+      it 'allows the invitation and logs the count' do
+        expect(OT).to receive(:info).with(/at or past role_admins_per_org \(count: 0\)/)
+        expect { logic.raise_concerns }.not_to raise_error
       end
     end
 
-    # Validation ordering: input errors before quota errors (#2256)
-    context 'when at limit with invalid email', billing: true do
+    context 'when at a plan count with invalid email', billing: true do
       let(:has_entitlements) { true }
       let(:params) { { 'extid' => 'ext-org-123', 'email' => 'not-valid', 'role' => 'admin' } }
 
       before do
-        allow(organization).to receive(:limit_for).with('role_admins_per_org').and_return(0)
+        allow(organization).to receive(:at_limit?)
+          .with('role_admins_per_org', 0).and_return(true)
       end
 
-      it 'returns email validation error before quota error' do
-        # User should see "invalid email" not "upgrade required"
+      it 'returns the email validation error' do
         expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
           expect(error.error_key).to eq('api.organizations.invitations.errors.invalid_email_format')
         end

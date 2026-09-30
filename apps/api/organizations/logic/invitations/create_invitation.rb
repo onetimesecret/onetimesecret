@@ -78,9 +78,8 @@ module OrganizationAPI::Logic
           raise_form_error(error_key: 'api.organizations.invitations.errors.invitation_already_pending', field: 'email', error_type: :exists)
         end
 
-        # Check member quota AFTER basic validation
-        # Users should get validation errors before quota/upgrade errors
-        check_member_quota!
+        # Plan member counts never refuse an invitation; this only logs.
+        note_member_counts
       end
 
       def process
@@ -130,51 +129,36 @@ module OrganizationAPI::Logic
 
       protected
 
-      # Check member quota against organization's plan limits
+      # Compare member counts against the organization's plan values
       #
       # Uses the organization being invited to for billing context.
       # Only evaluated when billing is enabled and plan cache is populated.
       # Counts both active members and pending invitations.
       #
-      # Plan count limits never block an invitation. Plans are sold with
-      # unlimited members; the plan values are internal thresholds, so
-      # reaching one is logged for operators and the invitation proceeds.
-      # This covers the per-role values (`role_*_per_org`) and the aggregate
-      # `total_members_per_org`.
-      #
-      # The one case that raises: a role limit of 0 means the plan does not
-      # offer that role at all (same rule as GetPermissions#compute_assignable_roles).
-      def check_member_quota!
-        # Fail-open conditions: skip quota check
+      # Nothing here refuses an invitation. Plans are sold with unlimited
+      # members; the plan values (`role_*_per_org`, `total_members_per_org`)
+      # are internal thresholds, so reaching one is logged for operators and
+      # the invitation proceeds.
+      def note_member_counts
         return unless @organization.respond_to?(:at_limit?)
         return unless @organization.entitlements.any?
 
         role_resource = ROLE_LIMIT_RESOURCES[@role]
         if role_resource
-          raise_member_limit_error! if @organization.limit_for(role_resource) == 0
-
           role_count = @organization.member_count_by_role(@role) +
                        @organization.pending_invitation_count_by_role(@role)
-          note_member_count_limit(role_resource, role_count)
+          note_member_count(role_resource, role_count)
         end
 
         total_count = @organization.member_count + @organization.pending_invitation_count
-        note_member_count_limit('total_members_per_org', total_count)
+        note_member_count('total_members_per_org', total_count)
       end
 
-      def note_member_count_limit(resource, count)
+      def note_member_count(resource, count)
         return unless @organization.at_limit?(resource, count)
 
         OT.info "[CreateInvitation] Org #{@organization.extid} at or past #{resource} " \
                 "(count: #{count}); invitation allowed"
-      end
-
-      def raise_member_limit_error!
-        raise_form_error(
-          error_key: 'api.organizations.invitations.errors.member_limit_reached',
-          field: 'email',
-          error_type: :upgrade_required,
-        )
       end
     end
   end
