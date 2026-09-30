@@ -74,10 +74,10 @@ module Auth
     # by SUBTRACTING this one from the password/email pre-auth routes, so a
     # route listed here is claimed by this gate and automatically released by
     # that one — the two cannot both gate or both miss a route.
-    GATED_ROUTES = %i[
-      create_account
-      verify_account
-      verify_account_resend
+    GATED_ROUTES = [
+      :create_account,
+      :verify_account,
+      :verify_account_resend,
     ].freeze
 
     class << self
@@ -153,17 +153,18 @@ module Auth
 
       # The per-domain opt-in record for the request host, or nil.
       #
-      # from_display_domain, NOT load_by_display_domain, for the reason
-      # documented on Auth::SigninEnabled.signin_config_for (#4157): the
-      # failure must reach the rescue above explicitly, not dissolve into
-      # "host has no tenant config".
+      # The domain comes from the request's shared resolution (#4220), and
+      # #record! re-raises a failed read for the reason documented on
+      # Auth::SigninEnabled.signin_config_for (#4157): the failure must reach
+      # the rescue above explicitly, not dissolve into "host has no tenant
+      # config".
       #
       # @raise [Redis::BaseError] handled by enabled_for_request?
       def signup_config_for(env)
         display_domain = env['onetime.display_domain']
         return nil if display_domain.to_s.empty?
 
-        domain_id = Onetime::CustomDomain.from_display_domain(display_domain)&.identifier
+        domain_id = Onetime::CustomDomainResolution.for(env).record!&.identifier
         return nil unless domain_id
 
         Onetime::CustomDomain::SignupConfig.find_by_domain_id(domain_id)

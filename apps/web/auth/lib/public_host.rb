@@ -130,7 +130,7 @@ module Auth
       candidates = [env['onetime.display_domain'], env[Rack::DetectHost.result_field_name]]
 
       candidates.map(&:to_s).find do |host|
-        served_custom_host?(host)
+        served_custom_host?(host, env)
       end
     end
 
@@ -144,15 +144,21 @@ module Auth
     # than reading as an absent tenant — a link then builds on the canonical
     # host, never on an unverifiable one.
     #
+    # With a Rack env the record comes from the request's shared resolution
+    # (#4220) when +host+ is the request's display domain; a failed read
+    # recorded there is re-raised and rescued to false below, the same as a
+    # failed read made here. Any other host is read directly.
+    #
     # @param host [String] a candidate host (already coerced to String)
+    # @param env [Hash, nil] Rack env of the current request
     # @return [Boolean]
-    def self.served_custom_host?(host)
+    def self.served_custom_host?(host, env = nil)
       return false if host.empty?
       # Port- and case-insensitive, and covers the whole canonical set
       # (features.domains.default, site.host, link_domains).
       return false if Onetime::Middleware::DomainStrategy.canonical_host?(host)
 
-      record = Onetime::CustomDomain.from_display_domain(host)
+      record = Onetime::CustomDomainResolution.for_host(env, host).record!
       !record.nil? && !!record.verified # boolean_field native
     rescue StandardError
       # Datastore blip (or any unexpected error): fail closed. The auth link

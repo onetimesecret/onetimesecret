@@ -354,19 +354,19 @@ module Core
       # either way, and `config&.domain_id` is nil in exactly that case (#4139).
       # Memoized — two gates ask per request.
       #
-      # Uses from_display_domain, NOT load_by_display_domain (#4157): the
-      # latter rescues Redis::BaseError (and a blanket StandardError) internally
-      # and returns nil, which made the rescue below dead code and let a
-      # datastore blip on a tenant host read as "no SigninConfig" → operator
-      # global default. That is the widen ADR-024 closes. This is also the
-      # lookup the sign-up half already uses, so both policy reads now resolve
-      # tenant identity through one non-swallowing path.
+      # Read from the request's shared resolution (#4220), which DomainStrategy
+      # published or which is resolved here on first use. #record! re-raises a
+      # failed read (#4157): answering nil there made the rescue below dead
+      # code and let a datastore blip on a tenant host read as "no
+      # SigninConfig" → operator global default. That is the widen ADR-024
+      # closes. The sign-up half reads the same resolution, so both policy
+      # reads resolve tenant identity through one non-swallowing path.
       def custom_domain_id
         return @custom_domain_id if defined?(@custom_domain_id)
 
         display_domain    = req.env['onetime.display_domain']
         @custom_domain_id = display_domain &&
-                            Onetime::CustomDomain.from_display_domain(display_domain)&.identifier
+                            Onetime::CustomDomainResolution.for(req.env).record!&.identifier
       rescue Redis::BaseError => ex
         signin_policy_read_failed!(ex)
       end
