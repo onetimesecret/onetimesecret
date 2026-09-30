@@ -75,10 +75,6 @@
     "text": "כבר קיימת הזמנה ממתינה לכתובת דוא״ל זו",
     "source_hash": "7f5e3093"
   },
-  "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "הגעת למגבלת החברים. שדרג את התוכנית שלך כדי להזמין חברים נוספים.",
-    "source_hash": "b8f316e8"
-  },
   "api.organizations.invitations.errors.resend_only_pending": {
     "text": "ניתן לשלוח מחדש רק הזמנות ממתינות",
     "source_hash": "b7578b3e"

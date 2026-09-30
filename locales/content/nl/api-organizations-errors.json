@@ -75,10 +75,6 @@
     "text": "Uitnodiging al in behandeling voor dit e-mailadres",
     "source_hash": "7f5e3093"
   },
-  "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Ledenlimiet bereikt. Upgrade je plan om meer leden uit te nodigen.",
-    "source_hash": "b8f316e8"
-  },
   "api.organizations.invitations.errors.resend_only_pending": {
     "text": "Kan alleen uitnodigingen in behandeling opnieuw verzenden",
     "source_hash": "b7578b3e"

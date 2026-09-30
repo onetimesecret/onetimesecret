@@ -75,10 +75,6 @@
     "text": "Zaproszenie dla tego adresu e-mail już oczekuje",
     "source_hash": "7f5e3093"
   },
-  "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Osiągnięto limit członków. Ulepsz swój plan, aby zaprosić więcej członków.",
-    "source_hash": "b8f316e8"
-  },
   "api.organizations.invitations.errors.resend_only_pending": {
     "text": "Można ponownie wysłać tylko oczekujące zaproszenia",
     "source_hash": "b7578b3e"

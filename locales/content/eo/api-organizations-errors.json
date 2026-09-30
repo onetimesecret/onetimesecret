@@ -75,10 +75,6 @@
     "text": "Invito jam atendanta por ĉi tiu retpoŝtadreso",
     "source_hash": "7f5e3093"
   },
-  "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Limo de membroj atingita. Altniveligu vian planon por inviti pli da membroj.",
-    "source_hash": "b8f316e8"
-  },
   "api.organizations.invitations.errors.resend_only_pending": {
     "text": "Eblas resendi nur atendantajn invitojn",
     "source_hash": "b7578b3e"

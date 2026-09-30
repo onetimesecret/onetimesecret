@@ -823,10 +823,6 @@
     "text": "このメールアドレスへの招待は既に保留中です",
     "source_hash": "7f5e3093"
   },
-  "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "メンバーの上限に達しました。プランをアップグレードしてメンバーを追加してください。",
-    "source_hash": "b8f316e8"
-  },
   "api.organizations.invitations.errors.not_found": {
     "text": "招待が見つかりません",
     "source_hash": "775ba9eb"
@@ -967,17 +963,9 @@
     "text": "辞退",
     "source_hash": "a2d285b3"
   },
-  "web.organizations.members.member_quota": {
-    "text": "{limit}名中{used}名のメンバー",
-    "source_hash": "51183b79"
-  },
   "web.organizations.members.pending_suffix": {
     "text": "({count}名保留中)",
     "source_hash": "c13f787f"
-  },
-  "web.organizations.members.limit_reached_hint": {
-    "text": "メンバーの上限に達しました。",
-    "source_hash": "26cdb6b8"
   },
   "web.organizations.sso.view_discovery_document": {
     "text": "ディスカバリードキュメントを見る",
