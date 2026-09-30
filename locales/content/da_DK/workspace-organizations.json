@@ -639,10 +639,6 @@
     "text": "Der afventer allerede en invitation for denne e-mail",
     "source_hash": "7f5e3093"
   },
-  "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Medlemsgrænsen er nået. Opgrader din plan for at invitere flere medlemmer.",
-    "source_hash": "b8f316e8"
-  },
   "api.organizations.invitations.errors.not_found": {
     "text": "Invitation ikke fundet",
     "source_hash": "775ba9eb"
@@ -783,17 +779,9 @@
     "text": "Afvis",
     "source_hash": "a2d285b3"
   },
-  "web.organizations.members.member_quota": {
-    "text": "{used} af {limit} medlemmer",
-    "source_hash": "51183b79"
-  },
   "web.organizations.members.pending_suffix": {
     "text": "({count} afventer)",
     "source_hash": "c13f787f"
-  },
-  "web.organizations.members.limit_reached_hint": {
-    "text": "Medlemsgrænsen er nået.",
-    "source_hash": "26cdb6b8"
   },
   "web.organizations.sso.title": {
     "text": "Single Sign-On (SSO)",

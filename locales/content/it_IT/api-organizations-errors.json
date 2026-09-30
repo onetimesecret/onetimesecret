@@ -75,10 +75,6 @@
     "text": "Esiste già un invito in sospeso per questa email",
     "source_hash": "7f5e3093"
   },
-  "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Limite di membri raggiunto. Esegui l'upgrade del tuo piano per invitare altri membri.",
-    "source_hash": "b8f316e8"
-  },
   "api.organizations.invitations.errors.resend_only_pending": {
     "text": "È possibile inviare nuovamente solo gli inviti in sospeso",
     "source_hash": "b7578b3e"

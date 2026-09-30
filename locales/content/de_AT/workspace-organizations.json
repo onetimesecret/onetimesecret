@@ -639,10 +639,6 @@
     "text": "Für diese E-Mail-Adresse ist bereits eine Einladung ausstehend",
     "source_hash": "7f5e3093"
   },
-  "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Mitgliederlimit erreicht. Führen Sie ein Upgrade Ihres Tarifs durch, um weitere Mitglieder einzuladen.",
-    "source_hash": "b8f316e8"
-  },
   "api.organizations.invitations.errors.not_found": {
     "text": "Einladung nicht gefunden",
     "source_hash": "775ba9eb"
@@ -783,17 +779,9 @@
     "text": "Ablehnen",
     "source_hash": "a2d285b3"
   },
-  "web.organizations.members.member_quota": {
-    "text": "{used} von {limit} Mitgliedern",
-    "source_hash": "51183b79"
-  },
   "web.organizations.members.pending_suffix": {
     "text": "({count} ausstehend)",
     "source_hash": "c13f787f"
-  },
-  "web.organizations.members.limit_reached_hint": {
-    "text": "Mitgliederlimit erreicht.",
-    "source_hash": "26cdb6b8"
   },
   "web.organizations.sso.title": {
     "text": "Single Sign-On (SSO)",

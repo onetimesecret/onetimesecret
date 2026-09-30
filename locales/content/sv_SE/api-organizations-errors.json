@@ -75,10 +75,6 @@
     "text": "En inbjudan väntar redan för den här e-postadressen",
     "source_hash": "7f5e3093"
   },
-  "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Medlemsgränsen har nåtts. Uppgradera din plan för att bjuda in fler medlemmar.",
-    "source_hash": "b8f316e8"
-  },
   "api.organizations.invitations.errors.resend_only_pending": {
     "text": "Endast väntande inbjudningar kan skickas igen",
     "source_hash": "b7578b3e"

@@ -823,10 +823,6 @@
     "text": "이 이메일에 대한 초대가 이미 대기 중입니다",
     "source_hash": "7f5e3093"
   },
-  "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "멤버 한도에 도달했습니다. 더 많은 멤버를 초대하려면 요금제를 업그레이드하세요.",
-    "source_hash": "b8f316e8"
-  },
   "api.organizations.invitations.errors.not_found": {
     "text": "초대를 찾을 수 없습니다",
     "source_hash": "775ba9eb"
@@ -967,17 +963,9 @@
     "text": "거절",
     "source_hash": "a2d285b3"
   },
-  "web.organizations.members.member_quota": {
-    "text": "멤버 {limit}명 중 {used}명",
-    "source_hash": "51183b79"
-  },
   "web.organizations.members.pending_suffix": {
     "text": "(대기 중 {count}명)",
     "source_hash": "c13f787f"
-  },
-  "web.organizations.members.limit_reached_hint": {
-    "text": "멤버 한도에 도달했습니다.",
-    "source_hash": "26cdb6b8"
   },
   "web.organizations.sso.view_discovery_document": {
     "text": "디스커버리 문서 보기",
