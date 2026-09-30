@@ -801,6 +801,78 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
     end
   end
 
+  # ── a response POSTed after verification lapsed (#4610) ───────────────────
+  #
+  # The POST is answered 404 before staging and carries no cookies, so that
+  # refusal cannot drop the pending context the way the GET-side refusals
+  # above do. The context ages out instead: once it is older than
+  # PENDING_TENANT_CONTEXT_MAX_AGE the next SSO request in the session drops
+  # it, and a response resubmitted after the domain verifies again answers
+  # no pending request.
+  describe 'a response POSTed after domain verification lapsed' do
+    let(:name_id) { "lapsed-#{run_id}" }
+    let(:email)   { "lapsed-#{run_id}@saml-tenant.example.com" }
+    let(:hook)    { Auth::Config::Hooks::OmniAuthTenant }
+
+    def response_for(request)
+      tenant_a.idp.response(
+        in_response_to: request.id, acs_url: request.acs_url, audience: request.sp_entity_id,
+        name_id: name_id, attributes: { 'email' => [email] }
+      )
+    end
+
+    it 'stores a start time with the tenant markers' do
+      started = Time.now.to_i
+      start_login(tenant_a)
+
+      session = last_request.env['rack.session'].to_h
+      expect(session['omniauth_tenant_started_at']).to be_between(started, Time.now.to_i)
+    end
+
+    it 'drops the context left behind once it is older than the bound' do
+      created_emails << email
+      events  = audit_events
+      request = start_login(tenant_a)
+
+      tenant_a.domain.verified = false
+      tenant_a.domain.save
+
+      # No Origin, as in the disabled-record example above: the IdP origin
+      # is not admitted for an unverified domain, and the Origin-less POST is
+      # the one the transport's own route check answers.
+      post_callback(tenant_a, response_for(request), origin: nil, expect_staged: false)
+      expect(last_response.status).to eq(404), last_response.body[0, 300]
+      expect(last_response.headers['Set-Cookie']).to be_nil
+
+      tenant_a.domain.verified = true
+      tenant_a.domain.save
+
+      # The same form resubmitted after the bound has passed. Only the
+      # hook's clock moves, so the assertion itself is still in date.
+      later = Time.now.to_i + hook::PENDING_TENANT_CONTEXT_MAX_AGE + 1
+      allow(hook).to receive(:drop_expired_tenant_context).and_wrap_original do |original, session, host|
+        original.call(session, host, now: later)
+      end
+
+      post_callback(tenant_a, response_for(request))
+
+      # Refused at the strategy (saml_no_pending_request).
+      expect(last_response.status).to eq(302), last_response.body[0, 300]
+      expect(last_response.headers['Location'].to_s).to include('auth_error=sso_failed')
+      expect(last_request.env['rack.session'].to_h.keys.map(&:to_s)).not_to include(
+        'omniauth_tenant_domain_id', 'omniauth_tenant_host', 'omniauth_tenant_started_at', 'saml_authn_request_id'
+      )
+      expect(last_request.env['rack.session'].to_h['account_id']).to be_nil
+      expect(identity_rows(name_id)).to be_empty
+      expect(db[:accounts].where(email: email).count).to eq(0)
+      expect(events.map(&:first)).not_to include(:omniauth_tenant_callback_validated, :login_success)
+
+      expired = events.find { |event, _| event == :omniauth_tenant_context_expired }
+      expect(expired).not_to be_nil
+      expect(expired.last).to include(host: tenant_a.host, pending_tenant_flow_dropped: true)
+    end
+  end
+
   # ── HttpOrigin admission of the tenant IdP ────────────────────────────────
   #
   # Rack::Protection::HttpOrigin IS mounted on the auth app in every
