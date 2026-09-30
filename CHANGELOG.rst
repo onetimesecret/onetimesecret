@@ -12,7 +12,7 @@ this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0.htm
 
 .. _changelog-0.26.14:
 
-0.26.14 — 2026-09-28
+0.26.14 — 2026-09-30
 ====================
 
 Added
@@ -374,6 +374,9 @@ Changed
   intermediary in front of the API passes origin ``503`` bodies through. See
   ``docs/authentication/session-consistency-rollout.md``. (#4469)
 
+- Simplified the member count shown on the organization Members tab and
+  the checks run when an invitation is created.
+
 Removed
 -------
 
@@ -524,6 +527,12 @@ Fixed
   carry across. A sign-in whose old id cannot be ended is refused and the
   user signs in again, so no half-authenticated session is ever left behind.
 
+- URL redaction in logs, the boot banner, the health endpoint and
+  ``bin/ots status`` no longer treats a ``:`` or ``@`` in a SQLite file path
+  as credentials. The path is shown whole and only the query string is
+  masked; the boot banner now shows ``sqlite::memory:`` instead of
+  ``****``. (#4450)
+
 Security
 --------
 
@@ -580,6 +589,11 @@ Security
     writer formats them
   - output written directly with ``warn`` or to stdout/stderr, and Sentry
     reports
+
+- ``bin/ots status`` now masks the query string of a SQLite
+  ``AUTH_DATABASE_URL`` as it already did for other adapters, so a value
+  such as ``sqlite://data/auth.db?password=...`` is no longer printed in
+  full. A SQLite URL without a query string is shown unchanged. (#4450)
 
 Documentation
 -------------
