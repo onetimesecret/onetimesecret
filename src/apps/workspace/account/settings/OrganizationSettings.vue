@@ -727,10 +727,6 @@
   // Raw 'pending' status, NOT the expiry-aware effective status: a lapsed
   // invitation stays pending on the backend until cleanup, so a row can read
   // "Expired" in its badge while still counting here — intentional.
-  //
-  // Plan member limits (total_members_per_org) are deliberately not shown or
-  // enforced here: plans are sold with unlimited members and the backend does
-  // not block invitations on member counts.
   const pendingInvitationCount = computed(
     () => invitations.value.filter((inv) => inv.status === 'pending').length
   );

@@ -4,8 +4,8 @@
 
 #
 # Integration test for member quota entitlement checks
-# Verifies that CreateInvitation never refuses an invitation on plan count
-# values (total_members_per_org, role_*_per_org), including a value of 0.
+# Verifies that CreateInvitation succeeds at and past the plan count values
+# (total_members_per_org, role_*_per_org), including a value of 0.
 
 require 'rack/test'
 require_relative '../../../support/test_helpers'

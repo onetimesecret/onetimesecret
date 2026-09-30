@@ -78,7 +78,7 @@ module OrganizationAPI::Logic
           raise_form_error(error_key: 'api.organizations.invitations.errors.invitation_already_pending', field: 'email', error_type: :exists)
         end
 
-        # Plan member counts never refuse an invitation; this only logs.
+        # Log-only: records member counts against the plan values.
         note_member_counts
       end
 
@@ -135,10 +135,8 @@ module OrganizationAPI::Logic
       # Only evaluated when billing is enabled and plan cache is populated.
       # Counts both active members and pending invitations.
       #
-      # Nothing here refuses an invitation. Plans are sold with unlimited
-      # members; the plan values (`role_*_per_org`, `total_members_per_org`)
-      # are internal thresholds, so reaching one is logged for operators and
-      # the invitation proceeds.
+      # Log-only. The plan values (`role_*_per_org`, `total_members_per_org`)
+      # are informational for operators; reaching one writes a log line.
       def note_member_counts
         return unless @organization.respond_to?(:at_limit?)
         return unless @organization.entitlements.any?
@@ -157,8 +155,7 @@ module OrganizationAPI::Logic
       def note_member_count(resource, count)
         return unless @organization.at_limit?(resource, count)
 
-        OT.info "[CreateInvitation] Org #{@organization.extid} at or past #{resource} " \
-                "(count: #{count}); invitation allowed"
+        OT.info "[CreateInvitation] Org #{@organization.extid} at or past #{resource} (count: #{count})"
       end
     end
   end
