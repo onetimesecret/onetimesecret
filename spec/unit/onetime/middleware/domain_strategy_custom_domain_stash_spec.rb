@@ -24,7 +24,6 @@ RSpec.describe Onetime::Middleware::DomainStrategy do
       # `#call` on its normal code path.
       allow(middleware).to receive_messages(
         domains_enabled?: true,
-        detect_domain_override: [nil, nil],
         canonical_domain: 'example.com',
         canonical_domains_parsed: [PublicSuffix.parse('example.com')],
         anchor_domains_parsed: [PublicSuffix.parse('example.com')],

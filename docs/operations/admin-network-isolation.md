@@ -209,8 +209,7 @@ Details that matter:
 - The host is taken from the **validated detected host** (`Rack::DetectHost`),
   which only honors a forwarded host header when the peer is trusted — see
   [Behind a reverse proxy or load balancer](#behind-a-reverse-proxy-or-load-balancer--required-for-both-gates).
-  It is never read from a raw `Host` header or from the `O-Domain-Context`
-  development header.
+  It is never read from a raw `Host` header.
 - **Explicit entries match literally** — list the `www.` form too if you need
   it. The `www.` tolerance applies only to the canonical fallback.
 - Matching is case-insensitive, port-stripped and trailing-dot-stripped. ASCII

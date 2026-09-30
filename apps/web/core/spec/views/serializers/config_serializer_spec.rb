@@ -94,7 +94,7 @@ RSpec.describe Core::Views::ConfigSerializer do
         'regions' => { 'enabled' => false },
         'domains' => { 'enabled' => false },
       },
-      'development' => { 'enabled' => false, 'domain_context_enabled' => false },
+      'development' => { 'enabled' => false },
       'diagnostics' => { 'sentry' => {} },
       'homepage_mode' => nil,
       'domain_strategy' => :canonical,

@@ -131,7 +131,7 @@ export const baseBootstrap: BootstrapPayload = {
   //
   // `development` is NOT listed here (unlike below): the schema always
   // emits it via `.default(...)`, so BootstrapPayload['development'] is a
-  // required `{ enabled; domain_context_enabled }` object, never undefined.
+  // required `{ enabled }` object, never undefined.
   // It's already present with its real default value via the schemaDefaults
   // spread above — this list is only for genuinely `.optional()`/`.nullish()`
   // fields (see the matching `DEFAULTS` comment in bootstrapStore.ts).
@@ -253,7 +253,6 @@ export const colonelBootstrap: BootstrapPayload = {
   entitlement_preview_plan_name: null,
   development: {
     enabled: true,
-    domain_context_enabled: true,
   },
 };
 

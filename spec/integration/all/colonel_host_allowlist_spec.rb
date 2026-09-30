@@ -40,8 +40,8 @@
 #      at all — DomainStrategy#call asks Onetime::Runtime.features.domains?,
 #      which the ConfigureDomains initializer sets once at boot. Flipping
 #      OT.conf['features']['domains']['enabled'] alone leaves the whole
-#      override/classification branch dead, which silently turns the
-#      O-Domain-Context spoofing tests below into assertions about nothing.
+#      classification branch dead, which silently turns the host
+#      classification tests below into assertions about nothing.
 #      configure_admin! therefore writes Runtime state too, and restores it.
 #
 # RUN (mode-agnostic — runs in every mode lane):
@@ -105,7 +105,7 @@ RSpec.describe 'Colonel admin surface host allowlist (#4062)', type: :integratio
   # allowlist unset, i.e. the anchor fallback.
   def configure_admin!(allowed_hosts: [], allowed_cidrs: [], site_host: 'example.com',
                        default_domain: 'example.com', link_domains: nil,
-                       domains_enabled: false, domain_context: false)
+                       domains_enabled: false)
     OT.conf['site']['admin'] = {
       'allowed_hosts' => allowed_hosts,
       'allowed_cidrs' => allowed_cidrs,
@@ -117,10 +117,6 @@ RSpec.describe 'Colonel admin surface host allowlist (#4062)', type: :integratio
     domains['default']      = default_domain
     domains['link_domains'] = link_domains
     OT.conf['features']['domains'] = domains
-
-    development = (OT.conf['development'] || {}).dup
-    development['domain_context_enabled'] = domain_context
-    OT.conf['development'] = development
 
     # The request path reads the FEATURE flag from Runtime, not OT.conf. See
     # the header note; without this the domains branch never executes.
@@ -851,47 +847,26 @@ RSpec.describe 'Colonel admin surface host allowlist (#4062)', type: :integratio
   # stack. Without the control a green test could mean "the header did nothing
   # anywhere", which would not be evidence about the gate at all.
   describe 'spoofing' do
+    # DomainStrategy used to honour an O-Domain-Context request header when
+    # development.domain_context_enabled was on. The override was removed
+    # (#4220); the header is now an ordinary unread request header.
     describe 'the O-Domain-Context request header' do
       before do
-        configure_admin!(
-          default_domain: 'example.com',
-          site_host: 'example.com',
-          domains_enabled: true,
-          domain_context: true,
-        )
-      end
-
-      it 'cannot make a non-allowlisted host reach the admin API' do
-        signed_in_as(colonel)
-        get_api('tenant.example.com', 'HTTP_O_DOMAIN_CONTEXT' => 'example.com')
-
-        expect(last_response.status).to eq(404)
-      end
-
-      it 'cannot make a non-allowlisted host reach the admin shell' do
-        signed_in_as(colonel)
-        get_shell('tenant.example.com', 'HTTP_O_DOMAIN_CONTEXT' => 'example.com')
-
-        expect(last_response.status).to eq(404)
-      end
-
-      # Control: the header IS honoured by DomainStrategy in this exact
-      # configuration — it rewrites the display domain. So the 404s above are
-      # the admin gate refusing to read it, not the feature being inert.
-      it 'is genuinely honoured by DomainStrategy when the gate is off (control)' do
         configure_admin!(
           allowed_hosts: ['*'],
           default_domain: 'example.com',
           site_host: 'example.com',
           domains_enabled: true,
-          domain_context: true,
         )
+      end
+
+      it 'does not change the display domain' do
         anonymous!
         header 'Host', 'example.com'
         get NON_ADMIN_PATH, {}, 'HTTP_O_DOMAIN_CONTEXT' => 'other.example.net'
 
         expect(last_response.status).to eq(200)
-        expect(last_response.headers['O-Display-Domain']).to eq('other.example.net')
+        expect(last_response.headers['O-Display-Domain']).to eq('example.com')
       end
     end
 
