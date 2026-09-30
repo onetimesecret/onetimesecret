@@ -16,7 +16,8 @@
 #
 # Two subjects, because the policy and the wiring fail independently:
 #   - Auth::PublicHost: which host, and when to decline (shared with the
-#     OmniAuth full_host resolver — see omniauth_full_host_spec.rb).
+#     OmniAuth full_host resolver — see
+#     integration/full/host_proxy_matrix_spec.rb).
 #   - The Rodauth override: that `base_url` and `public_display_domain`
 #     actually read that policy, through a real Rodauth configuration, and
 #     fall back to the canonical host rather than the request authority.
