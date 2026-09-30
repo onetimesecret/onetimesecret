@@ -1047,9 +1047,43 @@ RSpec.describe 'Colonel admin surface host allowlist (#4062)', type: :integratio
         expect(last_response.status).to eq(200)
       end
 
-      it 'DOES honour Apx-Incoming-Host from a peer otto vouched for (control)' do
+      # #4384: Apx-Incoming-Host and X-Original-Host are no longer host
+      # sources for any peer. A trusted peer naming the allowlisted host there
+      # does not change the tenant Host the request is judged on.
+      it 'does not honour Apx-Incoming-Host from a peer otto vouched for' do
         signed_in_as(colonel)
         get_api('tenant.example.com', trusted_peer.merge('HTTP_APX_INCOMING_HOST' => 'example.com'))
+
+        expect(last_response.status).to eq(404)
+      end
+
+      # The other direction, which is the one that matters: an edge that
+      # rewrote Host to the allowlisted origin name and still carries the
+      # tenant host in a header DetectHost stopped selecting. DetectHost
+      # observes it and the gate declines (rule e), for every peer.
+      {
+        'Apx-Incoming-Host' => { 'HTTP_APX_INCOMING_HOST' => 'tenant.example.com' },
+        'X-Original-Host' => { 'HTTP_X_ORIGINAL_HOST' => 'tenant.example.com' },
+        'a multi-valued X-Forwarded-Host' => { 'HTTP_X_FORWARDED_HOST' => 'tenant.example.com, example.com' },
+      }.each do |carrier, headers|
+        it "declines the allowlisted Host when #{carrier} names the tenant, from a loopback peer" do
+          signed_in_as(colonel)
+          get_api('example.com', heuristic_peer.merge(headers))
+
+          expect(last_response.status).to eq(404)
+        end
+
+        it "declines the allowlisted Host when #{carrier} names the tenant, from a peer otto vouched for" do
+          signed_in_as(colonel)
+          get_api('example.com', trusted_peer.merge(headers))
+
+          expect(last_response.status).to eq(404)
+        end
+      end
+
+      it 'admits the allowlisted Host when Apx-Incoming-Host agrees with it' do
+        signed_in_as(colonel)
+        get_api('example.com', trusted_peer.merge('HTTP_APX_INCOMING_HOST' => 'example.com'))
 
         expect(last_response.status).to eq(200)
       end

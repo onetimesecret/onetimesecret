@@ -96,8 +96,8 @@ module Onetime
     # ## Forwarded-host provenance (the extra trust check DetectHost does not
     # ## make, and cannot make for us)
     #
-    # DetectHost honors a forwarded host header (X-Forwarded-Host,
-    # Apx-Incoming-Host, X-Original-Host) when EITHER the operator
+    # DetectHost honors the forwarded host header (X-Forwarded-Host, the
+    # only one since #4384) when EITHER the operator
     # configured proxy trust and this peer passed it (otto writes
     # env['otto.via_trusted_proxy'] = true) OR — with no proxy trust configured
     # at all, the SHIPPED DEFAULT — a legacy heuristic: any peer whose
@@ -135,11 +135,25 @@ module Onetime
     # `Host`, or carries no readable host=, changed nothing and is not a
     # claim.
     #
+    # And, checked before (a): a carrier DetectHost stopped selecting in
+    # #4384 — `Apx-Incoming-Host`, `X-Original-Host`, or the first value of a
+    # multi-valued `X-Forwarded-Host` — that names a host OTHER than the
+    # detected one is denied from ANY peer (e). Before #4384 that value would
+    # have been the detected host and the allowlist would have judged it;
+    # now the detected host comes from `Host` (or a single-valued
+    # `X-Forwarded-Host`) and the value would go unjudged. It reaches the
+    # application only when the edge did not translate or remove it, which
+    # is the same Host-rewriting topology again, so the answer is the same.
+    # DetectHost publishes those hosts at
+    # env[Rack::DetectHost.unselected_hosts_field_name]; this gate reads
+    # that, never the raw headers. A value that agrees with the detected
+    # host changed nothing and is not a claim.
+    #
     # Otherwise the request is DENIED. It is not silently downgraded to the
     # HTTP_HOST-derived host: in the topology this defends (Approximated-style
     # ingress with trusted_proxy unset) `Host` is the ORIGIN's own hostname —
     # the canonical one, which IS on the allowlist — while the tenant domain
-    # rides in Apx-Incoming-Host. Falling back to Host would therefore ADMIT
+    # rides in a forwarded header. Falling back to Host would therefore ADMIT
     # every tenant-domain request, the exact inverse of this feature. Denying is
     # the only reading that fails closed. The tryout at
     # "HTTP_HOST naming a DENIED host does not evict an allowed detected host"
@@ -302,7 +316,9 @@ module Onetime
       # selects its host= parameter (#4121), so presence alone proves nothing.
       # It is judged by VALUE — the one DetectHost observed and published at
       # env[Rack::DetectHost.rfc7239_host_field_name] — see rule (d) in the
-      # class doc and #rfc7239_host_disagrees?.
+      # class doc and #rfc7239_host_disagrees?. The carriers DetectHost
+      # dropped in #4384 are judged by value too, rule (e), from
+      # env[Rack::DetectHost.unselected_hosts_field_name].
 
       # Path used when the request path cannot be normalized at all. Fails
       # CLOSED: an unparseable path is judged as an admin surface, so a
@@ -521,8 +537,11 @@ module Onetime
               method: env['REQUEST_METHOD'],
               note: 'a forwarded host header changed the detected host (or RFC 7239 Forwarded named a ' \
                     'different host than Host), but the peer is not a configured ' \
-                    'trusted proxy. Set site.network.trusted_proxy with explicit proxy CIDRs — filter mode ' \
-                    'with none listed trusts every private peer — or ADMIN_ALLOWED_HOSTS=* to turn the gate off',
+                    'trusted proxy; or Apx-Incoming-Host, X-Original-Host or a multi-valued X-Forwarded-Host ' \
+                    'named a host other than the detected one. Have the proxy send one X-Forwarded-Host and ' \
+                    'remove the other headers, and set site.network.trusted_proxy with explicit proxy CIDRs ' \
+                    '— filter mode with none listed trusts every private peer — or ADMIN_ALLOWED_HOSTS=* to ' \
+                    'turn the gate off',
             }
 
           return true
@@ -585,11 +604,6 @@ module Onetime
       # @param host [String, nil] the normalized detected host
       # @return [Boolean]
       def host_provenance_trusted?(env, host)
-        # (a) Operator-configured proxy trust, and this peer passed it. The key
-        # is TRI-STATE (otto#228): written only when trust is configured, so
-        # `== true` — never `!= false` — is the grant-only read.
-        return true if env[Rack::DetectHost::VIA_TRUSTED_PROXY_KEY] == true
-
         # There is no host to attribute, so there is nothing to distrust: a
         # forwarded header that produced NO host overrode nothing. Not a
         # provenance question, and deliberately not answered as one — the
@@ -597,6 +611,16 @@ module Onetime
         # #warn_unresolvable_host, whose line names the real cause (no host was
         # detected) instead of blaming a proxy the operator may not have.
         return true if host.nil? || host.empty?
+
+        # (e) A carrier DetectHost no longer selects names a different host
+        # than the one it detected. Judged for every peer, before (a): until
+        # #4384 that value was the detected host, trusted peer or not.
+        return false if unselected_host_disagrees?(env, host)
+
+        # (a) Operator-configured proxy trust, and this peer passed it. The key
+        # is TRI-STATE (otto#228): written only when trust is configured, so
+        # `== true` — never `!= false` — is the grant-only read.
+        return true if env[Rack::DetectHost::VIA_TRUSTED_PROXY_KEY] == true
 
         host_from_host_header = host_header_host(env)
 
@@ -638,6 +662,21 @@ module Onetime
         return false if claimed.nil? || claimed.empty?
 
         claimed != host_from_host_header
+      end
+
+      # Whether a carrier DetectHost observed but did not select (see
+      # Rack::DetectHost.unselected_hosts) names a host OTHER than the
+      # detected one. Read from the env key DetectHost publishes; the raw
+      # headers are never parsed here. Absent means nothing was observed.
+      #
+      # @param env [Hash] the Rack env
+      # @param host [String] the normalized detected host
+      # @return [Boolean]
+      def unselected_host_disagrees?(env, host)
+        Array(env[Rack::DetectHost.unselected_hosts_field_name]).any? do |observed|
+          claimed = normalize_host(observed)
+          !claimed.nil? && !claimed.empty? && claimed != host
+        end
       end
 
       # The host the `Host:` header alone would have produced, normalized
