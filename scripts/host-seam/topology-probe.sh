@@ -112,27 +112,28 @@ ORIGIN="${ORIGIN:-origin-target.internal}"
 # "-" means the header is not sent. Expected strategy is what DomainStrategy
 # SHOULD resolve when the probe source is inside the trusted-proxy set.
 #
-# All three managed forwarded carriers are covered because production
-# demonstrably uses more than one: the 2026-08-20 capture shows DetectHost
-# resolving one host `via HTTP_APX_INCOMING_HOST` and another
-# `via HTTP_X_ORIGINAL_HOST` in the same window. A harness that only exercised
-# Apx-Incoming-Host would miss half the live ingress paths. RFC 7239
-# `Forwarded` is sent too (T7), as the control that it is IGNORED.
+# The application reads one forwarded carrier, X-Forwarded-Host, and only
+# when it holds a single value (#4384). The others are still sent, as the
+# controls that they are NOT read: Apx-Incoming-Host (T3, T8, T11),
+# X-Original-Host (T6), RFC 7239 `Forwarded` (T7) and a comma-separated
+# X-Forwarded-Host (T12). A release before #4384 resolves T3, T6, T8 and
+# T12 `custom`, which this table reports as a mismatch.
 #
 # DetectHost precedence (detect_host.rb HEADER_PRECEDENCE) is:
-#   X-Forwarded-Host > Apx-Incoming-Host > X-Original-Host > Host
-# `Forwarded` (RFC 7239) is not in the list: its host= parameter is never a
-# host source (#4121).
+#   X-Forwarded-Host > Host
 # ---------------------------------------------------------------------------
 TOPOLOGIES=(
   "T1-direct-canonical|${CANONICAL}|-|-|-|-|canonical"
   "T2-direct-custom|${CUSTOM}|-|-|-|-|custom"
-  # T3 is the production shape: Host rewritten to a non-canonical inbound
-  # target, real host in Apx-Incoming-Host. This is the #4224 reproduction.
-  "T3-apx-rewrite|${ORIGIN}|${CUSTOM}|-|-|-|custom"
+  # T3: what Approximated sends when the edge does not translate it. Host is
+  # rewritten to a non-canonical inbound target and the real host rides only
+  # in Apx-Incoming-Host, which is not read: the request resolves on Host.
+  "T3-apx-only|${ORIGIN}|${CUSTOM}|-|-|-|canonical"
   "T4-apx-rewrite-xfh|${ORIGIN}|${CUSTOM}|${CUSTOM}|-|-|custom"
+  # T5 is the production shape: Host rewritten to a non-canonical inbound
+  # target, real host in X-Forwarded-Host. This is the #4224 reproduction.
   "T5-xfh-only|${ORIGIN}|-|${CUSTOM}|-|-|custom"
-  "T6-xoh-only|${ORIGIN}|-|-|${CUSTOM}|-|custom"
+  "T6-xoh-only|${ORIGIN}|-|-|${CUSTOM}|-|canonical"
   # T7: RFC 7239 `Forwarded: host=` is NOT a host source since #4121. The
   # request resolves on `Host:` alone — the unknown inbound target — and
   # DomainStrategy falls back to canonical. `custom` here would mean the
@@ -143,18 +144,18 @@ TOPOLOGIES=(
   # hook (platform-level request) instead of the tenant-fallback branch, so it
   # fails QUIETLY — platform credentials rather than `sso_not_configured`.
   # Only the tenant id in the authorize URL distinguishes the two.
-  "T8-apx-onto-canonical|${CANONICAL}|${CUSTOM}|-|-|-|custom"
-  # T9: legitimate Apx-Incoming-Host from the edge, attacker-supplied
-  # X-Forwarded-Host riding along. XFH outranks Apx in HEADER_PRECEDENCE and
-  # DetectHost breaks on the first SYNTACTICALLY valid domain name — it does
-  # not check whether the domain is known — so `evil.attacker.example` wins the
-  # carrier race and Apx-Incoming-Host is never read.
+  "T8-xfh-onto-canonical|${CANONICAL}|-|${CUSTOM}|-|-|custom"
+  # T9: attacker-supplied X-Forwarded-Host that the edge passed through, with
+  # the tenant host beside it in Apx-Incoming-Host. DetectHost takes the
+  # X-Forwarded-Host value when it is a SYNTACTICALLY valid domain name — it
+  # does not check whether the domain is known — so `evil.attacker.example`
+  # is the detected host.
   #
   # DomainStrategy then rejects the unknown domain and falls back to canonical,
   # so the attacker does NOT get to impersonate a tenant. What they get is
   # DENIAL: the tenant's own SSO silently degrades to canonical for as long as
   # they can attach the header. Expected strategy is therefore `canonical` —
-  # correct app behaviour, and a finding about the EDGE, which must strip
+  # correct app behaviour, and a finding about the EDGE, which must overwrite
   # inbound X-Forwarded-Host. This is the carrier-sanitization half of #4223.
   #
   # If display_domain ever comes back as the evil host instead, that is
@@ -162,6 +163,9 @@ TOPOLOGIES=(
   "T9-xfh-shadows-apx|${ORIGIN}|${CUSTOM}|${EVIL}|-|-|canonical"
   "T10-xfh-spoof|${CANONICAL}|-|${EVIL}|-|-|canonical"
   "T11-apx-spoof|${CANONICAL}|${EVIL}|-|-|-|canonical"
+  # T12: a proxy that appended to X-Forwarded-Host instead of overwriting it.
+  # Neither value is selected; the request resolves on Host.
+  "T12-xfh-multi|${ORIGIN}|-|${CUSTOM}, ${EVIL}|-|-|canonical"
 )
 
 # Build the curl header args for a topology row into the global HARGS array.

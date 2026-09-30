@@ -18,8 +18,10 @@
 #
 # Production does not work that way. Approximated terminates the customer's
 # custom domain, moves the real hostname into `Apx-Incoming-Host`, and rewrites
-# `Host:` to the origin target. Anything keyed on `request.host` therefore sees
-# the platform host, not the tenant's domain — which is exactly #4224.
+# `Host:` to the origin target. The edge in front of the app translates that
+# into `X-Forwarded-Host` and removes the other carriers (#4384). Anything
+# keyed on `request.host` therefore sees the platform host, not the tenant's
+# domain — which is exactly #4224.
 #
 # So local dev is structurally BLIND to this whole class of bug: there is no
 # request you can make through the existing block that distinguishes a consumer
@@ -66,17 +68,19 @@ https://local-secrets4.afb.pet https://local-secrets5.afb.pet {
 		reverse_proxy @notfound localhost:5173
 	}
 
-	# Everything dynamic goes through the rewrite. The three header_up lines
-	# ARE the simulation — drop any one of them and the lane stops modelling
-	# production:
+	# Everything dynamic goes through the rewrite. The header_up lines ARE the
+	# simulation of Approximated plus the edge adapter — drop one and the lane
+	# stops modelling production:
 	#
 	#   Host                 rewritten to the origin target, as Approximated does
-	#   Apx-Incoming-Host    carries the real browser host (what DetectHost reads)
-	#   X-Forwarded-Host     deleted, so nothing else can accidentally recover
-	#                        the public host and mask the bug
+	#   X-Forwarded-Host     overwritten with the real browser host (the one
+	#                        header DetectHost reads besides Host, #4384)
+	#   Apx-Incoming-Host    removed, as are X-Original-Host and Forwarded: the
+	#                        app does not read them, and the admin gate declines
+	#                        a request where one names a different host
 	#
 	# The app must be running with TRUSTED_PROXY_ENABLED=true (filter mode
-	# trusts loopback) or DetectHost discards Apx-Incoming-Host and this lane
+	# trusts loopback) or DetectHost discards X-Forwarded-Host and this lane
 	# just looks like a broken canonical request.
 	@non_static {
 		not file
@@ -84,8 +88,10 @@ https://local-secrets4.afb.pet https://local-secrets5.afb.pet {
 	handle @non_static {
 		reverse_proxy 127.0.0.1:7143 {
 			header_up Host origin-target.internal
-			header_up Apx-Incoming-Host {http.request.host}
-			header_up -X-Forwarded-Host
+			header_up X-Forwarded-Host {http.request.host}
+			header_up -Apx-Incoming-Host
+			header_up -X-Original-Host
+			header_up -Forwarded
 			header_down Server "Proxied Server Name (apx-sim)"
 		}
 	}

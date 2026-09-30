@@ -30,7 +30,8 @@ string. Consumers that read `request.host` appear correct.
 Production ingress (Approximated) behaves differently:
 
 - rewrites `Host` to the origin target
-- carries the browser hostname in `Apx-Incoming-Host`
+- carries the browser hostname in `Apx-Incoming-Host`, which the edge in front
+  of the app translates into `X-Forwarded-Host` (#4384)
 
 Until local edge rewrites `Host` somewhere, this bug class is invisible before
 production.
@@ -40,8 +41,8 @@ production.
 | Lane          | Hosts                       | Topology                                                                           |
 | ------------- | --------------------------- | ---------------------------------------------------------------------------------- |
 | Preserved     | `local-secrets1..3.afb.pet` | Host passed through (existing block)                                               |
-| **Rewritten** | `local-secrets4..5.afb.pet` | Host rewritten, real host in `Apx-Incoming-Host` (`caddy-approximated-lane.caddy`) |
-| Headless      | `topology-probe.sh`         | 11 curl topologies, no browser, no TLS                                             |
+| **Rewritten** | `local-secrets4..5.afb.pet` | Host rewritten, real host in `X-Forwarded-Host` (`caddy-approximated-lane.caddy`)  |
+| Headless      | `topology-probe.sh`         | 12 curl topologies, no browser, no TLS                                             |
 
 Register the same org custom domain on a host from the first two lanes. Any
 feature that passes lane 1 and fails lane 2 is reading raw `Host`.
@@ -82,9 +83,15 @@ fixture.
   The warning above the table says which of the two causes it is.
 
 Special case: T9 (`xfh-shadows-apx`) is expected to resolve `canonical` **by
-design**. `X-Forwarded-Host` can outrank `Apx-Incoming-Host` in carrier
-precedence; app fallback stays canonical, but tenant SSO can be denied until the
-edge strips inbound `X-Forwarded-Host`.
+design**. `X-Forwarded-Host` is the one forwarded carrier the app reads, and
+`Apx-Incoming-Host` beside it is not read; app fallback stays canonical, but
+tenant SSO can be denied until the edge overwrites inbound `X-Forwarded-Host`.
+
+T3, T6, T8 and T12 changed expectation with #4384: `Apx-Incoming-Host`,
+`X-Original-Host` and a comma-separated `X-Forwarded-Host` are not read, so
+those rows now expect `canonical` (T8 moved its carrier to `X-Forwarded-Host`
+and still expects `custom`). A release before #4384 reports them as
+mismatches.
 
 ## Running it
 
@@ -127,7 +134,7 @@ Also required for valid SSO seam checks:
   the seam is inert, and the probe reports `UNTESTABLE(strategy_control)`.
   (`release-sweep.sh` sets this for its containers.)
 - `TRUSTED_PROXY_ENABLED=true` (filter mode trusts loopback/RFC1918). Without
-  it, `DetectHost` drops forwarded carriers and T3–T5 collapse to canonical for
+  it, `DetectHost` drops `X-Forwarded-Host` and T4, T5 and T8 collapse to canonical for
   unrelated reasons.
 - `ORGS_SSO_ENABLED=true` so `/auth/sso/entra` is mounted. If disabled, probe
   SSO results become `NO_ROUTE` (404), and seam verdicts are not meaningful.
@@ -198,12 +205,13 @@ Interpretation:
 
 - `DomainStrategy` classified request as `custom` (`secret.asi.nz`)
 - tenant lookup keyed on rewritten inbound target (`nz.onetime.co`)
-- result is `SEAM_SPLIT(NO_CONFIG)` (probe T3 shape)
+- result is `SEAM_SPLIT(NO_CONFIG)` (probe T5 shape; T3 at the time of the capture)
 
 The same capture also shows multiple live carriers (`HTTP_APX_INCOMING_HOST`
 and `HTTP_X_ORIGINAL_HOST`), which is why the matrix covers
 `Apx-Incoming-Host`, `X-Forwarded-Host`, `X-Original-Host`, and RFC 7239
-`Forwarded`.
+`Forwarded`. Since #4384 only `X-Forwarded-Host` is read; the other three are
+sent as controls.
 
 ## When to run
 
