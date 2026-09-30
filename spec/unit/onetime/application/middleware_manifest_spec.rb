@@ -121,6 +121,10 @@ RSpec.describe 'Middleware manifest (characterization)' do
       'Otto::Locale::Middleware',
       'Middleware::I18nLocale',
       'Onetime::Middleware::DomainStrategy',
+      # PublicHostRewrite reads DomainStrategy's classification, and must
+      # stay below StripForwardedHost: Rack reads X-Forwarded-Host ahead of
+      # the Host it writes.
+      'Onetime::Middleware::PublicHostRewrite',
       'Onetime::Middleware::RetryAfterHeader',
       'Onetime::Middleware::SessionFailureCode',
       'Onetime::Middleware::ApiCachePolicy',

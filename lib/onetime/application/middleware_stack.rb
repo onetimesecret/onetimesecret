@@ -10,6 +10,7 @@ require 'rack/utf8_sanitizer'
 
 require_relative '../session'
 require_relative '../middleware/assume_https'
+require_relative '../middleware/public_host_rewrite'
 require_relative '../middleware/strip_forwarded_host'
 require_relative '../middleware/health_access_control'
 require_relative '../middleware/admin_network_isolation'
@@ -719,6 +720,17 @@ module Onetime
 
           # Domain strategy middleware (after identity)
           builder.use Onetime::Middleware::DomainStrategy, application_context: application_context
+
+          # Public host rewrite (#4223). Opt-in via
+          # site.network.public_host_rewrite; a pass-through when off. When
+          # on, a request DomainStrategy classified :canonical, :subdomain or
+          # :custom gets HTTP_HOST and SERVER_NAME set to the host
+          # Rack::DetectHost resolved, so Rack::Request#host agrees with
+          # env['onetime.display_domain'] for everything mounted below. Must
+          # stay directly below DomainStrategy (it reads the classification)
+          # and below StripForwardedHost (Rack reads X-Forwarded-Host ahead
+          # of Host).
+          builder.use Onetime::Middleware::PublicHostRewrite
 
           # Load the logger early so it's ready to log request errors
           # Only add middleware if HTTP logging config exists and is enabled
