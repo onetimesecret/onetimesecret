@@ -33,9 +33,16 @@
 #
 # THIS FILE PINS CURRENT BEHAVIOUR. It is the baseline the host work in
 # #4223 and #4220 is measured against, so a row says what the stack does
-# today, not what it should do. Rows whose outcome one of those issues is
-# expected to change carry `changes_with:` naming the issue. The rows #4384
-# changed (F01, F03, F04, F05, E02) now state the single-header contract.
+# today, not what it should do. Rows whose outcome #4220 is expected to
+# change carry `changes_with:` naming it. The rows #4384 changed (F01, F03,
+# F04, F05, E02) now state the single-header contract.
+#
+# Every table runs twice: with site.network.public_host_rewrite off (the
+# default) and on (#4223). A row states the outcome with the setting off.
+# `rewritten:` holds the values that differ with it on, and its presence
+# says Onetime::Middleware::PublicHostRewrite rewrote the request; a row
+# without it has the same outcome either way. Both runs also check that
+# PublicHostRewrite.original_http_host returns the Host that was sent.
 #
 # The scenarios that used to live in spec/unit/omniauth_full_host_spec.rb
 # are here too: as request rows where a request produces the state, and
@@ -145,21 +152,24 @@ module HostProxyMatrix
     # header verbatim. DetectHost keeps the first element.
     { id: 'D01', case: 'doubled canonical Host',
       headers: { 'Host' => '{canonical}, {canonical}' },
-      **CANONICAL, rack_host: nil, rack_base_url: 'https://{canonical}, {canonical}' },
+      **CANONICAL, rack_host: nil, rack_base_url: 'https://{canonical}, {canonical}',
+      rewritten: { rack_host: '{canonical}', rack_base_url: CANONICAL_ORIGIN } },
     { id: 'D02', case: 'doubled verified custom domain Host',
       headers: { 'Host' => '{tenant}, {tenant}' },
-      rack_host: nil, rack_base_url: 'https://{tenant}, {tenant}', **TENANT },
+      rack_host: nil, rack_base_url: 'https://{tenant}, {tenant}', **TENANT,
+      rewritten: { rack_host: '{tenant}', rack_base_url: TENANT_ORIGIN } },
     # The port is in the unparseable authority and nowhere in configuration,
-    # so the origin comes out without it.
+    # so the origin comes out without it. The rewrite writes the hostname
+    # alone and takes no port from a Host Rack could not parse.
     { id: 'D03', case: 'doubled canonical Host on a non-default port that is not configured',
       headers: { 'Host' => '{canonical}:8443, {canonical}:8443' },
-      changes_with: '#4223',
-      **CANONICAL, rack_host: nil, rack_base_url: 'https://{canonical}:8443, {canonical}:8443' },
+      **CANONICAL, rack_host: nil, rack_base_url: 'https://{canonical}:8443, {canonical}:8443',
+      rewritten: { rack_host: '{canonical}', rack_base_url: CANONICAL_ORIGIN } },
     # No hostname survives anywhere: rack_host and webauthn_host are both
-    # nil, so the WebAuthn rp_id fallback has nothing to return.
+    # nil, so the WebAuthn rp_id fallback has nothing to return. DetectHost
+    # accepted no host, so there is nothing to rewrite to.
     { id: 'D04', case: 'doubled IP-literal site.host',
       headers: { 'Host' => "#{SITE_HOST}, #{SITE_HOST}" }, proto: nil,
-      changes_with: '#4223',
       rack_host: nil, rack_base_url: "http://#{SITE_HOST}, #{SITE_HOST}",
       detected: nil, display: '{canonical}', strategy: :invalid,
       origin: 'http://{canonical}', tenant_host: nil, webauthn_host: nil },
@@ -172,12 +182,15 @@ module HostProxyMatrix
     #
     # Rack's own host stays on Host: StripForwardedHost removes
     # X-Forwarded-Host and Forwarded before anything reads request.host.
+    # With the rewrite on, a request that classified on the forwarded host
+    # has that host as Rack's host too.
     { id: 'F01', case: 'Host rewritten to the origin target, tenant in Apx-Incoming-Host, which is not read',
       headers: { 'Host' => '{canonical}', 'Apx-Incoming-Host' => '{tenant}' },
       **CANONICAL },
     { id: 'F02', case: 'tenant in X-Forwarded-Host',
       headers: { 'Host' => '{canonical}', 'X-Forwarded-Host' => '{tenant}' },
-      rack_host: '{canonical}', **TENANT },
+      rack_host: '{canonical}', **TENANT,
+      rewritten: { rack_host: '{tenant}' } },
     { id: 'F03', case: 'tenant in X-Original-Host, which is not read',
       headers: { 'Host' => '{canonical}', 'X-Original-Host' => '{tenant}' },
       **CANONICAL },
@@ -196,10 +209,11 @@ module HostProxyMatrix
       rack_host: '{canonical}', detected: UNREGISTERED, display: UNREGISTERED, strategy: :invalid,
       origin: SITE_HOST_ORIGIN, tenant_host: nil, webauthn_host: nil },
     # Only the hostname is swapped: the port of the origin hop rides along.
+    # The rewrite writes the hostname without it.
     { id: 'F08', case: 'origin target on a port, tenant in X-Forwarded-Host',
       headers: { 'Host' => SITE_HOST, 'X-Forwarded-Host' => '{tenant}' }, proto: nil,
-      changes_with: '#4223',
-      rack_host: '127.0.0.1', **TENANT, origin: 'http://{tenant}:3000' },
+      rack_host: '127.0.0.1', **TENANT, origin: 'http://{tenant}:3000',
+      rewritten: { rack_host: '{tenant}', origin: 'http://{tenant}' } },
 
     # --- RFC 7239 Forwarded --------------------------------------------------
     # Never a host source. Under the X-Forwarded family the stack pins, its
@@ -234,14 +248,16 @@ module HostProxyMatrix
     # in the request they land on configured site.host.
     { id: 'V01', case: 'unverified custom domain in X-Forwarded-Host',
       record: :unverified, headers: { 'Host' => '{canonical}', 'X-Forwarded-Host' => '{tenant}' },
-      rack_host: '{canonical}', **TENANT, origin: SITE_HOST_ORIGIN, tenant_host: nil },
+      rack_host: '{canonical}', **TENANT, origin: SITE_HOST_ORIGIN, tenant_host: nil,
+      rewritten: { rack_host: '{tenant}' } },
     { id: 'V02', case: 'unverified custom domain in Host',
       record: :unverified, headers: { 'Host' => '{tenant}' },
       rack_host: '{tenant}', **TENANT, origin: SITE_HOST_ORIGIN, tenant_host: nil },
 
     # --- Record state: the datastore read fails ------------------------------
     # DomainStrategy classifies the host :invalid; Auth::PublicHost declines
-    # it. WebAuthn gets no host and falls back to rack_host.
+    # it. WebAuthn gets no host and falls back to rack_host. An :invalid
+    # request is not rewritten, so rack_host stays the Host that was sent.
     { id: 'X01', case: 'read failure, tenant in X-Forwarded-Host',
       record: :read_fails, headers: { 'Host' => '{canonical}', 'X-Forwarded-Host' => '{tenant}' },
       changes_with: '#4220',
@@ -271,13 +287,15 @@ module HostProxyMatrix
       rack_host: nil, detected: 'secrets.internal.example.net',
       display: 'secrets.internal.example.net', strategy: :canonical,
       origin: 'https://secrets.internal.example.net:8443', tenant_host: nil,
-      webauthn_host: 'secrets.internal.example.net' },
+      webauthn_host: 'secrets.internal.example.net',
+      rewritten: { rack_host: 'secrets.internal.example.net' } },
     # features.domains.default and site.host share a hostname; site.host
     # carries the port and is the authority the origin resolves to.
     { id: 'C03', case: 'doubled Host, site.host shares its hostname with the default domain',
       site_host: '{canonical}:7143',
       headers: { 'Host' => '{canonical}:7143, {canonical}:7143' },
-      **CANONICAL, rack_host: nil, origin: 'https://{canonical}:7143' },
+      **CANONICAL, rack_host: nil, origin: 'https://{canonical}:7143',
+      rewritten: { rack_host: '{canonical}' } },
     { id: 'C04', case: 'split deployment, request on site.host',
       site_host: 'app.operator.example.net',
       headers: { 'Host' => 'app.operator.example.net' },
@@ -292,16 +310,18 @@ module HostProxyMatrix
     { id: 'C06', case: 'split deployment, tenant in X-Forwarded-Host',
       site_host: 'app.operator.example.net',
       headers: { 'Host' => 'app.operator.example.net', 'X-Forwarded-Host' => '{tenant}' },
-      rack_host: 'app.operator.example.net', **TENANT },
+      rack_host: 'app.operator.example.net', **TENANT,
+      rewritten: { rack_host: '{tenant}' } },
     # A host under a canonical anchor's registrable domain classifies
     # :canonical without being in the canonical set. Auth URLs fall to
-    # site.host; WebAuthn takes the host as sent.
+    # site.host; WebAuthn takes the host as sent. The rewrite follows the
+    # classification, so Rack's host becomes the peer host as well.
     { id: 'C07', case: 'unregistered peer of the default domain in X-Forwarded-Host',
       headers: { 'Host' => '{canonical}', 'X-Forwarded-Host' => 'peer.example.org' },
-      changes_with: '#4223',
       rack_host: '{canonical}', detected: 'peer.example.org', display: 'peer.example.org',
       strategy: :canonical, origin: SITE_HOST_ORIGIN, tenant_host: nil,
-      webauthn_host: 'peer.example.org' },
+      webauthn_host: 'peer.example.org',
+      rewritten: { rack_host: 'peer.example.org' } },
   ].freeze
 
   # ---------------------------------------------------------------------------
@@ -309,6 +329,10 @@ module HostProxyMatrix
   # :canonical and display_domain is site.host as configured, port included.
   # DetectHost still runs, and a verified custom domain it detects is still
   # honoured for auth URLs.
+  #
+  # The rewrite needs the detected host to be the display domain, and here
+  # the display domain is site.host whatever the request named. So only a
+  # request DetectHost resolved to site.host itself is rewritten (N12).
   # ---------------------------------------------------------------------------
   OFF = {
     detected: nil,
@@ -326,7 +350,6 @@ module HostProxyMatrix
     # The configured port is kept although the authority cannot be parsed.
     { id: 'N02', case: 'doubled IP-literal site.host',
       headers: { 'Host' => "#{SITE_HOST}, #{SITE_HOST}" }, proto: nil,
-      changes_with: '#4223',
       rack_host: nil, rack_base_url: "http://#{SITE_HOST}, #{SITE_HOST}", **OFF },
     { id: 'N03', case: 'unregistered host in Host',
       headers: { 'Host' => UNREGISTERED },
@@ -337,7 +360,6 @@ module HostProxyMatrix
     # Only the hostname is swapped: the port of the origin hop rides along.
     { id: 'N05', case: 'origin target on a port, verified custom domain in X-Forwarded-Host',
       headers: { 'Host' => SITE_HOST, 'X-Forwarded-Host' => '{tenant}' }, proto: nil,
-      changes_with: '#4223',
       rack_host: '127.0.0.1', **OFF, detected: '{tenant}', origin: 'http://{tenant}:3000', tenant_host: '{tenant}' },
     { id: 'N06', case: 'unverified custom domain in X-Forwarded-Host',
       record: :unverified, headers: { 'Host' => SITE_HOST, 'X-Forwarded-Host' => '{tenant}' }, proto: nil,
@@ -370,7 +392,8 @@ module HostProxyMatrix
       site_host: 'onetime.example.net:443',
       headers: { 'Host' => 'onetime.example.net, onetime.example.net' },
       rack_host: nil, **OFF, detected: 'onetime.example.net',
-      display: 'onetime.example.net:443', origin: 'https://onetime.example.net' },
+      display: 'onetime.example.net:443', origin: 'https://onetime.example.net',
+      rewritten: { rack_host: 'onetime.example.net' } },
     { id: 'N13', case: 'a host other than site.host, which DetectHost does not accept',
       site_host: 'onetime.example.net',
       headers: { 'Host' => 'localhost:3000' }, proto: nil,
@@ -425,6 +448,10 @@ module HostProxyMatrix
   #   link          origin of the emailed reset link, nil when none is sent
   #   brand         host named in the email subject
   #   reset_status  status of the reset request when no email is sent
+  #
+  # `rewritten: {}` marks the rows whose request is rewritten. It is empty
+  # because no outcome here differs: both emitters read the
+  # Auth::PublicHost chain, which does not consult Rack's host.
   # ---------------------------------------------------------------------------
   EMITTERS_ON = [
     { id: 'E01', case: 'canonical host in Host',
@@ -438,13 +465,13 @@ module HostProxyMatrix
       idp: :tenant, redirect_uri: TENANT_ORIGIN, link: TENANT_ORIGIN, brand: '{tenant}' },
     { id: 'E04', case: 'tenant in X-Forwarded-Host',
       headers: { 'Host' => '{canonical}', 'X-Forwarded-Host' => '{tenant}' },
-      idp: :tenant, redirect_uri: TENANT_ORIGIN, link: TENANT_ORIGIN, brand: '{tenant}' },
+      idp: :tenant, redirect_uri: TENANT_ORIGIN, link: TENANT_ORIGIN, brand: '{tenant}', rewritten: {} },
     { id: 'E05', case: 'doubled canonical Host',
       headers: { 'Host' => '{canonical}, {canonical}' },
-      idp: :platform, redirect_uri: CANONICAL_ORIGIN, link: CANONICAL_ORIGIN, brand: '{canonical}' },
+      idp: :platform, redirect_uri: CANONICAL_ORIGIN, link: CANONICAL_ORIGIN, brand: '{canonical}', rewritten: {} },
     { id: 'E06', case: 'doubled verified custom domain Host',
       headers: { 'Host' => '{tenant}, {tenant}' },
-      idp: :tenant, redirect_uri: TENANT_ORIGIN, link: TENANT_ORIGIN, brand: '{tenant}' },
+      idp: :tenant, redirect_uri: TENANT_ORIGIN, link: TENANT_ORIGIN, brand: '{tenant}', rewritten: {} },
     { id: 'E07', case: 'canonical host with a non-default port',
       headers: { 'Host' => '{canonical}:8443' },
       idp: :platform, redirect_uri: 'https://{canonical}:8443', link: 'https://{canonical}:8443', brand: '{canonical}' },
@@ -460,7 +487,7 @@ module HostProxyMatrix
     { id: 'E11', case: 'unverified custom domain in X-Forwarded-Host',
       record: :unverified, headers: { 'Host' => '{canonical}', 'X-Forwarded-Host' => '{tenant}' },
       idp: nil, sso_location: '/signin?auth_error=sso_domain_unverified',
-      link: SITE_HOST_ORIGIN, brand: SITE_HOST },
+      link: SITE_HOST_ORIGIN, brand: SITE_HOST, rewritten: {} },
     # The sign-in gates answer before either emitter runs: no IdP redirect
     # and no email.
     { id: 'E12', case: 'read failure, tenant in X-Forwarded-Host',
@@ -478,10 +505,10 @@ module HostProxyMatrix
     # the tenant hook keys on display_domain, then the detected host, then
     # request.host (hooks/omniauth_tenant.rb, .public_host). display_domain
     # is canonical, DetectHost accepted nothing and Rack has no host, so the
-    # hook is left without a host to recognise as the operator's.
+    # hook is left without a host to recognise as the operator's. The
+    # rewrite has no detected host to write either.
     { id: 'E21', case: 'doubled IP-literal site.host',
       headers: { 'Host' => "#{SITE_HOST}, #{SITE_HOST}" }, proto: nil,
-      changes_with: '#4223',
       idp: nil, sso_location: '/signin?auth_error=sso_not_configured',
       link: "http://#{SITE_HOST}", brand: SITE_HOST },
   ].freeze
@@ -552,6 +579,22 @@ RSpec.describe 'Host and proxy simulation matrix (#4223)', :shared_db_state, typ
     row[:headers].each { |name, value| header name, fill(value) }
   end
 
+  # The row as it reads for this run: with the rewrite on, the row's
+  # `rewritten:` values replace the ones they name.
+  def row_for_run(row)
+    rewrite_on ? row.merge(row.fetch(:rewritten, {})) : row
+  end
+
+  # What the rewrite did to the request, in both runs: whether it rewrote,
+  # and that the Host as sent is still readable.
+  def expect_rewrite_record(row)
+    env = last_request.env
+
+    expect(env.key?(Onetime::Middleware::PublicHostRewrite::ORIGINAL_HTTP_HOST))
+      .to eq(rewrite_on && row.key?(:rewritten))
+    expect(Onetime::Middleware::PublicHostRewrite.original_http_host(env)).to eq(fill(row[:headers]['Host']))
+  end
+
   def observed
     env     = last_request.env
     request = Rack::Request.new(env)
@@ -580,12 +623,14 @@ RSpec.describe 'Host and proxy simulation matrix (#4223)', :shared_db_state, typ
           get '/auth'
 
           actual   = observed
-          expected = HostProxyMatrix::OBSERVED_KEYS.to_h { |key| [key, fill(row[key])] }
+          expects  = row_for_run(row)
+          expected = HostProxyMatrix::OBSERVED_KEYS.to_h { |key| [key, fill(expects[key])] }
 
           expect(actual.slice(*HostProxyMatrix::OBSERVED_KEYS)).to eq(expected)
+          expect_rewrite_record(row)
           # The redirect_uri and the emailed link read one chain.
           expect(actual[:email_origin]).to eq(actual[:origin])
-          expect(actual[:rack_base_url]).to eq(fill(row[:rack_base_url])) if row.key?(:rack_base_url)
+          expect(actual[:rack_base_url]).to eq(fill(expects[:rack_base_url])) if expects.key?(:rack_base_url)
           # Whatever the row sent, no auth URL carries a comma.
           expect(actual[:origin]).not_to include(',')
         end
@@ -651,6 +696,7 @@ RSpec.describe 'Host and proxy simulation matrix (#4223)', :shared_db_state, typ
         else
           expect(location).to end_with(row[:sso_location])
         end
+        expect_rewrite_record(row)
 
         # --- Email -----------------------------------------------------------
         clear_cookies
@@ -708,65 +754,85 @@ RSpec.describe 'Host and proxy simulation matrix (#4223)', :shared_db_state, typ
     expect(Rack::Request.forwarded_priority).to eq([:x_forwarded])
   end
 
-  context 'with the domains feature on' do
-    # features.domains.default = canonical.example.org; site.host stays the
-    # IP literal from spec/config.test.yaml unless a row replaces it.
-    include_context 'domains enabled'
+  # The two runs. `rewrite_on` is what the helpers above read.
+  [false, true].each do |rewrite|
+    context "with public_host_rewrite #{rewrite ? 'on' : 'off'}" do
+      let(:rewrite_on) { rewrite }
 
-    let(:matrix_canonical_host) { canonical_host }
+      # Read per request by the middleware, so the mounted stack does not
+      # need rebuilding. Put back after each example.
+      before do
+        network                        = (OT.conf['site']['network'] ||= {})
+        @matrix_saved_rewrite          = network['public_host_rewrite']
+        network['public_host_rewrite'] = rewrite
+      end
 
-    include_examples 'a request matrix', HostProxyMatrix::DOMAINS_ON
-    include_examples 'an emitter matrix', HostProxyMatrix::EMITTERS_ON
+      after do
+        (OT.conf['site']['network'] ||= {})['public_host_rewrite'] = @matrix_saved_rewrite
+      end
 
-    # tools/host-seam/topologies.psv, with the probe's default origin and
-    # with the origin a deployment that rewrites Host onto the canonical
-    # host has.
-    context 'topology probe matrix, unregistered origin' do
-      include_examples 'the topology probe matrix',
-        origin: HostProxyMatrix::PROBE_ORIGIN, origin_strategy: 'invalid'
+      context 'with the domains feature on' do
+        # features.domains.default = canonical.example.org; site.host stays the
+        # IP literal from spec/config.test.yaml unless a row replaces it.
+        include_context 'domains enabled'
+
+        let(:matrix_canonical_host) { canonical_host }
+
+        include_examples 'a request matrix', HostProxyMatrix::DOMAINS_ON
+        include_examples 'an emitter matrix', HostProxyMatrix::EMITTERS_ON
+
+        # tools/host-seam/topologies.psv, with the probe's default origin and
+        # with the origin a deployment that rewrites Host onto the canonical
+        # host has. The probe grades the strategy and the display domain,
+        # which the rewrite leaves alone, so the rows hold in both runs.
+        context 'topology probe matrix, unregistered origin' do
+          include_examples 'the topology probe matrix',
+            origin: HostProxyMatrix::PROBE_ORIGIN, origin_strategy: 'invalid'
+        end
+
+        context 'topology probe matrix, canonical origin' do
+          include_examples 'the topology probe matrix',
+            origin: '{canonical}', origin_strategy: 'canonical'
+        end
+
+        it 'installs the origin resolver as a per-request Proc' do
+          # OmniAuth::Strategy#full_host calls it only when it is a Proc; a
+          # String would fix one host for the whole process.
+          expect(OmniAuth.config.full_host).to be_a(Proc)
+        end
+      end
+
+      context 'with the domains feature off' do
+        # The lanes run with the feature off, but say so here instead of
+        # inheriting it: another file's 'domains enabled' context, or a shell
+        # that exports DOMAINS_ENABLED, would otherwise change what these rows
+        # mean. Same three switches that context moves, the other way.
+        before(:all) do
+          boot_onetime_app
+          @matrix_saved_features = Onetime::Runtime.features
+          @matrix_saved_domains  = OT.conf.dig('features', 'domains') || {}
+        end
+
+        before do
+          OT.conf['features']['domains'] = @matrix_saved_domains.merge('enabled' => false, 'default' => nil)
+          Onetime::Runtime.features      = Onetime::Runtime.features.with(domains_enabled: false)
+          Onetime::Middleware::DomainStrategy.initialize_from_config(OT.conf['features']['domains'])
+        end
+
+        after(:all) do
+          Onetime::Runtime.features      = @matrix_saved_features if @matrix_saved_features
+          OT.conf['features']['domains'] = @matrix_saved_domains
+          Onetime::Middleware::DomainStrategy.initialize_from_config(@matrix_saved_domains)
+        end
+
+        # No row here uses the {canonical} placeholder for a second host: the
+        # only canonical host is site.host.
+        let(:matrix_canonical_host) { HostProxyMatrix::SITE_HOST }
+
+        include_examples 'a request matrix', HostProxyMatrix::DOMAINS_OFF
+        include_examples 'an emitter matrix', HostProxyMatrix::EMITTERS_OFF
+      end
     end
-
-    context 'topology probe matrix, canonical origin' do
-      include_examples 'the topology probe matrix',
-        origin: '{canonical}', origin_strategy: 'canonical'
-    end
-
-    it 'installs the origin resolver as a per-request Proc' do
-      # OmniAuth::Strategy#full_host calls it only when it is a Proc; a
-      # String would fix one host for the whole process.
-      expect(OmniAuth.config.full_host).to be_a(Proc)
-    end
-  end
-
-  context 'with the domains feature off' do
-    # The lanes run with the feature off, but say so here instead of
-    # inheriting it: another file's 'domains enabled' context, or a shell
-    # that exports DOMAINS_ENABLED, would otherwise change what these rows
-    # mean. Same three switches that context moves, the other way.
-    before(:all) do
-      boot_onetime_app
-      @matrix_saved_features = Onetime::Runtime.features
-      @matrix_saved_domains  = OT.conf.dig('features', 'domains') || {}
-    end
-
-    before do
-      OT.conf['features']['domains'] = @matrix_saved_domains.merge('enabled' => false, 'default' => nil)
-      Onetime::Runtime.features      = Onetime::Runtime.features.with(domains_enabled: false)
-      Onetime::Middleware::DomainStrategy.initialize_from_config(OT.conf['features']['domains'])
-    end
-
-    after(:all) do
-      Onetime::Runtime.features      = @matrix_saved_features if @matrix_saved_features
-      OT.conf['features']['domains'] = @matrix_saved_domains
-      Onetime::Middleware::DomainStrategy.initialize_from_config(@matrix_saved_domains)
-    end
-
-    # No row here uses the {canonical} placeholder for a second host: the
-    # only canonical host is site.host.
-    let(:matrix_canonical_host) { HostProxyMatrix::SITE_HOST }
-
-    include_examples 'a request matrix', HostProxyMatrix::DOMAINS_OFF
-    include_examples 'an emitter matrix', HostProxyMatrix::EMITTERS_OFF
   end
 
   # The resolver reads what DetectHost and DomainStrategy leave in the env.
