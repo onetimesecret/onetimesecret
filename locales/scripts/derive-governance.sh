@@ -68,8 +68,11 @@ if [ ! -e "$RULES_DIR/.git" ]; then
   echo "derive-governance: cloning translation-rules -> $RULES_DIR"
   git clone --quiet "$RULES_REPO" "$RULES_DIR"
 fi
-# Best-effort fetch (an already-local pin still resolves offline).
-git -C "$RULES_DIR" fetch --quiet origin "$PIN" 2>/dev/null \
+# Best-effort fetch (an already-local pin still resolves offline). A tag pin is
+# fetched as `tag <pin>` so it lands in refs/tags/: a bare `fetch origin <tag>`
+# only writes FETCH_HEAD, and the checkout below can't see a tag that isn't local.
+if [[ "$PIN" == v* ]]; then FETCH_SPEC=(tag "$PIN"); else FETCH_SPEC=("$PIN"); fi
+git -C "$RULES_DIR" fetch --quiet origin "${FETCH_SPEC[@]}" 2>/dev/null \
   || git -C "$RULES_DIR" fetch --quiet --tags 2>/dev/null || true
 git -C "$RULES_DIR" checkout --quiet --detach "$PIN" 2>/dev/null || {
   echo "error: ref $PIN unavailable in $RULES_DIR (fetch failed and commit absent)" >&2; exit 1; }
