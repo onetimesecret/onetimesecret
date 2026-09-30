@@ -83,6 +83,13 @@ running v0.24.0. The one sanctioned edit is `unreleased` → a real version, mad
 by the release process. If a key changes meaning, rename it — the old name's
 marker leaves with it.
 
+Shipped means the version has a stable release tag, `vX.Y.Z`. A marker naming
+a version that was never tagged is not a statement to anyone yet, so
+`bin/envref check` treats it like `unreleased`: it can be corrected, and it
+becomes frozen once that tag exists. This is a way to repair a guess that
+reached the base branch, not a reason to write one — new keys are still
+annotated `unreleased`.
+
 ## Adding a config key
 
 Annotate it `# Since unreleased`. You cannot know which version will ship it,
@@ -287,3 +294,13 @@ File names below are relative to `tools/envref/src/envref/`.
 - **The ratchet needs the base branch fetched.** CI sets
   `CONFIG_VERSION_REQUIRE_BASE=1` so a missing base fails loudly rather than
   silently degrading to a syntax-only check. Locally it prints a NOTE.
+- **The ratchet needs the release tags fetched.** Rule 2 decides whether a
+  version was released by looking for its `vX.Y.Z` tag. With
+  `CONFIG_VERSION_REQUIRE_BASE=1` a checkout showing no stable tags fails.
+  Locally it prints a NOTE and freezes every concrete marker on the base,
+  tagged or not.
+- **A resolved marker is editable until its tag exists.** The release process
+  resolves, commits, then tags, so between the resolve commit reaching the base
+  branch and the tag being pushed, the new `Since vX.Y.Z` markers are not yet
+  frozen. The check reads tag names only; it does not verify that the tagged
+  tree contains the key.

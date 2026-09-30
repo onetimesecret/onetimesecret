@@ -52,7 +52,9 @@ jobs:
           # `bin/envref check` compares against the merge-base with the PR's
           # base branch. The default shallow checkout has neither the base
           # branch nor enough history to find a merge-base, and the guard would
-          # quietly fall back to syntax-only checking.
+          # quietly fall back to syntax-only checking. The full fetch also
+          # brings the release tags, which the guard reads to decide which
+          # markers name a released version; it fails if it sees none.
           fetch-depth: 0
 
       # envref is a Python package (ADR-042). uv is installed through pip

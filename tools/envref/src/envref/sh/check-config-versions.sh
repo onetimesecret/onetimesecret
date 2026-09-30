@@ -21,6 +21,12 @@
 #      The one sanctioned change is `unreleased` -> a real version, which the
 #      release process performs when it cuts that version. That transition is
 #      allowed precisely because `unreleased` is not yet history.
+#      "Shipped" means the version has a stable release tag (refs/tags/vX.Y.Z).
+#      A marker naming a version with no such tag is treated like `unreleased`
+#      and stays editable, so a guessed version that reached the base branch
+#      can be corrected before the release that really ships the key. When no
+#      stable tag is visible at all, every concrete marker is treated as
+#      shipped (and CONFIG_VERSION_REQUIRE_BASE turns that into a failure).
 #   3. MARKERS ARE WELL-FORMED. Every marker matches the §1 recognizer exactly,
 #      so the annotator, this guard and the docs generator all agree on what a
 #      marker is. Catches `# since v1.2.3`, `#Since v1.2.3`, `# Since 1.2.3`,
@@ -187,6 +193,32 @@ if [[ -z "$BASE_REF" && -n "${CONFIG_VERSION_REQUIRE_BASE:-}" && "${1:-}" != "--
   echo "FAIL: no base ref available, and CONFIG_VERSION_REQUIRE_BASE is set." >&2
   echo "      New-key and immutability drift cannot be checked without one." >&2
   echo "      Fetch the base branch first, e.g. 'git fetch origin develop'." >&2
+  exit 1
+fi
+
+# --- Stable release tags --------------------------------------------------
+# Rule 2 freezes a base-side marker only when its version was released, and
+# "released" is read from the tags: vX.Y.Z exactly, the same stable-only shape
+# the marker itself allows. Pre-release tags (-rc1, -PRE) do not count.
+#
+# A checkout with no stable tags cannot tell a released version from a guess.
+# Locally the rule then falls back to freezing every concrete marker, which is
+# what it did before it read tags. Under CONFIG_VERSION_REQUIRE_BASE it fails
+# instead, for the same reason the missing-base guard above does: CI should
+# report that it could not see the tags rather than run a different rule.
+TAGS_VISIBLE=0
+: > "$tmp/stable.tags"
+if [[ -n "$BASE_REF" ]]; then
+  { git tag -l 'v[0-9]*' 2>/dev/null || true; } \
+    | { grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' || true; } \
+    | sort -u > "$tmp/stable.tags"
+  if [[ -s "$tmp/stable.tags" ]]; then TAGS_VISIBLE=1; fi
+fi
+
+if [[ -n "$BASE_REF" && $TAGS_VISIBLE -eq 0 && -n "${CONFIG_VERSION_REQUIRE_BASE:-}" && "${1:-}" != "--print-sites" ]]; then
+  echo "FAIL: no stable release tags (vX.Y.Z) are visible, and CONFIG_VERSION_REQUIRE_BASE is set." >&2
+  echo "      Marker immutability is decided per released version, which is read" >&2
+  echo "      from the tags. Fetch them first, e.g. 'git fetch --tags origin'." >&2
   exit 1
 fi
 
@@ -539,11 +571,22 @@ check_file() {
       | sed -E 's@=.*@@' | sort -u > "$tmp/env.activekeys"
   fi
 
-  # --- Rule 2: a concrete version the base ref carries must still be carried
+  # --- Rule 2: a released version the base ref carries must still be carried
   # by that same key. `unreleased` is excluded from the base side on purpose —
-  # resolving it at release time is the sanctioned transition.
+  # resolving it at release time is the sanctioned transition. A version with
+  # no stable tag is excluded the same way: it names a release that does not
+  # exist yet. The env half below joins against base.pairs, so it inherits
+  # the filter.
   { grep -E ' v[0-9]+\.[0-9]+\.[0-9]+ [01]$' "$base" || true; } \
-    | cut -d' ' -f1,2 | sort -u > "$tmp/base.pairs"
+    | cut -d' ' -f1,2 | sort -u > "$tmp/base.concrete"
+  if [[ $TAGS_VISIBLE -eq 1 ]]; then
+    awk -v tags="$tmp/stable.tags" '
+      BEGIN { while ((getline t < tags) > 0) released[t] = 1 }
+      $2 in released
+    ' "$tmp/base.concrete" > "$tmp/base.pairs"
+  else
+    cp "$tmp/base.concrete" "$tmp/base.pairs"
+  fi
   { grep -vE ' - [01]$' "$head" || true; } | cut -d' ' -f1,2 | sort -u > "$tmp/head.pairs"
   comm -23 "$tmp/base.pairs" "$tmp/head.pairs" > "$tmp/lost.pairs"
 
@@ -663,7 +706,8 @@ if [[ -s "$tmp/fail_changed" ]]; then
     echo "not a field to update. Restore the original marker. If a key genuinely"
     echo "changed meaning, rename the key instead; the old name's marker leaves with"
     echo "it. The only sanctioned edit is 'unreleased' -> a real version, made by the"
-    echo "release process when it cuts that version."
+    echo "release process when it cuts that version. A marker whose version has no"
+    echo "stable release tag is not frozen and does not appear in this list."
   } >&2
   failed=1
 fi
@@ -732,6 +776,12 @@ if [[ -z "$BASE_REF" ]]; then
   echo "NOTE: no base branch available — marker syntax was checked, but new-key and"
   echo "      immutability drift were not. Run 'git fetch origin develop' (or set"
   echo "      CONFIG_VERSION_REQUIRE_BASE=1 to make this a failure, as CI does)."
+fi
+
+if [[ -n "$BASE_REF" && $TAGS_VISIBLE -eq 0 ]]; then
+  echo "NOTE: no stable release tags (vX.Y.Z) are visible, so every concrete marker"
+  echo "      on the base was treated as shipped. Run 'git fetch --tags origin' to"
+  echo "      let a marker naming an untagged version be corrected."
 fi
 
 if [[ -s "$tmp/note_versioned" ]]; then
