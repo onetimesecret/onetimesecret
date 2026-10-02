@@ -43,6 +43,7 @@ export const iconLibraryComponents = {
   materialSymbols: () => import('./MaterialSymbolsSprites.vue'),
   tabler: () => import('./TablerSprites.vue'),
   phosphor: () => import('./PhosphorSprites.vue'),
+  ots: () => import('./OtsSprites.vue'),
 } as const;
 
 /**
@@ -125,6 +126,15 @@ export const iconLibraries: Record<string, IconLibraryMeta> = {
     licenseUrl: 'https://github.com/phosphor-icons/core/blob/main/LICENSE',
     sourceUrl: 'https://github.com/phosphor-icons/core',
     usagePrefix: 'ph',
+  },
+  /** Onetime Secret - Custom icons (regional globes generated from Natural Earth data) */
+  ots: {
+    name: 'Onetime Secret',
+    component: iconLibraryComponents.ots,
+    license: 'Public domain map data (Natural Earth)',
+    licenseUrl: 'https://www.naturalearthdata.com/about/terms-of-use/',
+    sourceUrl: 'https://www.naturalearthdata.com/',
+    usagePrefix: 'ots',
   },
 };
 

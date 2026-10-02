@@ -190,5 +190,25 @@
   "web.regions.jurisdictions.apac.name": {
     "text": "Asia-Pacific",
     "content_hash": "7a757670"
+  },
+  "web.regions.jurisdictions.br.name": {
+    "text": "Brazil",
+    "content_hash": "07f62b02"
+  },
+  "web.regions.jurisdictions.mx.name": {
+    "text": "Mexico",
+    "content_hash": "a7d355b2"
+  },
+  "web.regions.jurisdictions.au.name": {
+    "text": "Australia",
+    "content_hash": "c1ef40ce"
+  },
+  "web.regions.jurisdictions.jp.name": {
+    "text": "Japan",
+    "content_hash": "64729438"
+  },
+  "web.regions.jurisdictions.sg.name": {
+    "text": "Singapore",
+    "content_hash": "c96dd81d"
   }
 }

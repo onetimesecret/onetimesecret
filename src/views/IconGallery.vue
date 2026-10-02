@@ -22,6 +22,7 @@ const spriteComponents = {
   PhosphorSprites: defineAsyncComponent(() => import('@/shared/components/icons/sprites/PhosphorSprites.vue')),
   TablerSprites: defineAsyncComponent(() => import('@/shared/components/icons/sprites/TablerSprites.vue')),
   AlternateLogoSprites: defineAsyncComponent(() => import('@/shared/components/icons/sprites/AlternateLogoSprites.vue')),
+  OtsSprites: defineAsyncComponent(() => import('@/shared/components/icons/sprites/OtsSprites.vue')),
 };
 
 // Known prefixes for grouping - order matters for matching
@@ -33,6 +34,7 @@ const prefixPatterns = [
   { prefix: 'fa6-solid', label: 'Font Awesome 6' },
   { prefix: 'tabler', label: 'Tabler' },
   { prefix: 'carbon', label: 'Carbon' },
+  { prefix: 'ots', label: 'Onetime Secret' },
   { prefix: 'ix', label: 'IcoMoon' },
   { prefix: 'lucide', label: 'Lucide' },
   { prefix: 'solar', label: 'Solar' },
@@ -163,6 +165,7 @@ const getLibraryMeta = (libraryLabel: string) => {
     'Font Awesome 6': 'fa6',
     'Tabler': 'tabler',
     'Carbon': 'carbon',
+    'Onetime Secret': 'ots',
   };
   return iconLibraries[labelToKey[libraryLabel] || ''];
 };
