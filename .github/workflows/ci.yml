@@ -131,6 +131,9 @@ jobs:
               - 'lib/**'
               - 'bin/**'
               - 'config.ru'
+              # host_proxy_matrix_spec.rb reads the probe's topology matrix
+              # and calls its spoof predicate.
+              - 'tools/host-seam/**'
             typescript:
               - 'src/**/*.ts'
               - 'src/**/*.vue'

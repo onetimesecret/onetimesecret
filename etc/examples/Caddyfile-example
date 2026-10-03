@@ -260,34 +260,52 @@
 # requirements and staging-capacity limits (including 429 admission responses).
 (onetime-proxy) {
 	handle {
+		# Public authority (#4384, docs/operations/proxy-authority-header.md).
+		# The application reads the host the visitor asked for from exactly two
+		# places: X-Forwarded-Host, when the request arrived through a trusted
+		# proxy, and Host. This block is the adapter for everything else. It
+		#
+		#   - overwrites X-Forwarded-Host with one value on every request, so a
+		#     client-supplied or appended value never reaches the application;
+		#   - removes Apx-Incoming-Host, X-Original-Host and RFC 7239 Forwarded,
+		#     which the application does not read.
+		#
+		# With Caddy as the edge, the host it received is the public one.
+		vars ots_public_host {http.request.host}
+		#
+		# Behind Approximated? It puts the origin target in Host and the
+		# visitor's hostname in Apx-Incoming-Host. Translate that header into
+		# X-Forwarded-Host here, and only for requests that come from
+		# Approximated: replace the `vars` line above with the block below,
+		# using the egress range from your Approximated dashboard. `route`
+		# keeps the two assignments in this order.
+		#
+		#   @from_apx {
+		#       remote_ip 198.51.100.0/24
+		#       header Apx-Incoming-Host *
+		#   }
+		#   route {
+		#       vars ots_public_host {http.request.host}
+		#       vars @from_apx ots_public_host {http.request.header.Apx-Incoming-Host}
+		#   }
+		#
+		# Any other layer in front of Caddy that rewrites Host gets the same
+		# treatment: match its source range, and copy the header it uses into
+		# ots_public_host.
+
 		# Forward all other requests to backend
 		reverse_proxy {
 			# Pass relevant headers to backend
-			# Preserves the visitor's Host end-to-end. If a layer in FRONT of Caddy
-			# rewrites it -- Approximated ingress puts the origin target in Host and
-			# the visitor's hostname in Apx-Incoming-Host -- then Rack's request.host
-			# is the origin target for the whole app, including mounted gems such as
-			# Rodauth, whose base_url then builds links on the wrong host (#4221).
-			# Onetime's own code reads env['onetime.display_domain'] instead of
-			# request.host for that reason (#4224); a third-party gem cannot.
+			# Preserves the Host this Caddy received. If a layer in FRONT of Caddy
+			# rewrote it, Rack's request.host is the origin target for the whole
+			# app, including mounted gems such as Rodauth (#4221). Onetime's own
+			# code reads env['onetime.display_domain'] instead of request.host for
+			# that reason (#4224); the display domain comes from the
+			# X-Forwarded-Host set below.
 			header_up Host {http.request.host}
-			# Apx-Incoming-Host sits at precedence 2 in Rack::DetectHost -- ABOVE
-			# the X-Original-Host pinned below. Passed through unconditionally, it
-			# is the same spoofing vector as X-Forwarded-Host one precedence slot
-			# down: any client reaching this site block directly can shadow the
-			# detected host with it. Strip it unless Approximated actually fronts
-			# this deployment.
-			#
-			# Behind Approximated? Custom domains NEED this header (it carries the
-			# visitor's hostname while Host holds the origin target), but only
-			# Approximated may assert it. Replace the strip below with a
-			# source-gated strip in the enclosing handle block (request_header
-			# accepts matchers there; header_up does not), using the ingress IPs
-			# from your Approximated dashboard:
-			#
-			#   @not_apx not remote_ip 198.51.100.0/24
-			#   request_header @not_apx -Apx-Incoming-Host
+			header_up X-Forwarded-Host {vars.ots_public_host}
 			header_up -Apx-Incoming-Host
+			header_up -X-Original-Host
 			header_up CF-ASN {http.request.header.CF-ASN}
 			header_up CF-IPContinent {http.request.header.CF-IPContinent}
 			header_up CloudFront-Viewer-Country {http.request.header.CloudFront-Viewer-Country}
@@ -296,43 +314,22 @@
 			header_up O-Geo-Country {http.request.header.O-Geo-Country}
 			header_up Via {http.request.header.Via}
 			header_up X-API-Key {http.request.header.X-API-Key}
-			# Host detection & X-Forwarded-Host (#4224):
+			# Host detection (#4224, #4384):
 			# Rack::DetectHost resolves the visitor's public host into
 			# env['onetime.display_domain'], the value every custom-domain surface
 			# keys on (tenant SSO, sign-in gating, restrict_to, CSP form-action).
-			# Its precedence is X-Forwarded-Host > Apx-Incoming-Host >
-			# X-Original-Host > Host, and it takes the FIRST syntactically valid
-			# hostname -- it does not check whether that domain is one this install
-			# knows.
-			#
-			# No host-bearing header DetectHost considers may therefore carry a
-			# client-supplied value: X-Forwarded-Host is stripped rather than passed
-			# through, as is Apx-Incoming-Host (above, unless source-gated to
-			# Approximated). The pinned X-Original-Host at precedence 3 only protects
-			# against carriers BELOW it -- anything above it that the proxy does not
-			# overwrite or strip remains a spoofing vector through trusted infra.
-			# Host is preserved above so Rack's request.host stays correct as well.
-			# Passing the client's X-Forwarded-Host through instead lets any
-			# visitor shadow the real host: on an Approximated-fronted custom
-			# domain an injected X-Forwarded-Host outranks the Apx-Incoming-Host
-			# the ingress set, DomainStrategy rejects the unknown domain and falls
-			# back to the canonical host, and that tenant's SSO stops resolving.
-			# Injecting a DIFFERENT tenant's registered domain is worse: that host
-			# is known, so it is honored end-to-end -- SSO resolution, sign-in
-			# gating, and minted links all keyed to the wrong tenant.
-			#
-			# Do NOT pin it to {http.request.host} either -- that outranks and masks
-			# Apx-Incoming-Host, which is the same failure by a different route.
-			# Keep a pass-through ONLY when a layer in front of Caddy rewrites Host
-			# and is the sole setter of X-Forwarded-Host; declare that layer in
-			# `trusted_proxies` at the same time.
-			header_up -X-Forwarded-Host
-			# DetectHost ignores RFC 7239 Forwarded, but Rack can still use it for
-			# request.host. Strip it so clients cannot steer Rack's host resolution.
+			# It reads a single-valued X-Forwarded-Host, then Host, and takes the
+			# first syntactically valid hostname -- it does not check whether that
+			# domain is one this install knows. A client-supplied X-Forwarded-Host
+			# passed through would let a visitor name a different host, including
+			# another tenant's registered domain, so the header is always
+			# overwritten above. A comma-separated value (a proxy that appended) is
+			# not read at all: the request resolves on Host and the application
+			# logs a WARN.
+			# RFC 7239 Forwarded is not part of the contract either. Remove it.
 			header_up -Forwarded
 			header_up X-Forwarded-Proto {http.request.scheme}
 			header_up X-Geo-Country {http.request.header.X-Geo-Country}
-			header_up X-Original-Host {http.request.host}
 
 			# IP Forwarding & TRUSTED_PROXY_ENABLED security:
 			# To safely use TRUSTED_PROXY_ENABLED=true (default 'filter' mode), we must

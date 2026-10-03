@@ -8,7 +8,8 @@
 # and IP addresses.
 #
 # We're testing:
-# 1. Header precedence (X-Forwarded-Host, Apx-Incoming-Host, X-Original-Host, Host)
+# 1. Header precedence (X-Forwarded-Host, then Host) and the carriers that
+#    are observed but never selected (#4384)
 # 2. Host validation (reject localhost, IPs)
 # 3. Port stripping
 # 4. Multiple host handling
@@ -78,11 +79,89 @@ env = { 'HTTP_HOST' => '::1' }
 [env['rack.detected_host'], @log_output.string.include?('Invalid host detected')]
 #=> [nil, true]
 
-## Takes first host when multiple are provided (from trusted proxy)
+## A multi-valued X-Forwarded-Host is not selected from, even from a trusted
+## proxy: detection continues with Host (#4384)
+env = {
+  'REMOTE_ADDR' => '192.168.1.1',
+  'HTTP_X_FORWARDED_HOST' => 'first.com, second.com',
+  'HTTP_HOST' => 'fallback.example.com',
+}
+@middleware.call(env)
+env['rack.detected_host']
+#=> 'fallback.example.com'
+
+## ...with a WARN naming the header and the value count
+@log_output.string.include?('Ignoring X-Forwarded-Host with 2 values')
+#=> true
+
+## ...and its first value is observed, published beside the result for the
+## admin-surface provenance rule (rule e in AdminNetworkIsolation)
+env['rack.detected_host.unselected_hosts']
+#=> ['first.com']
+
+## A trailing comma counts as a second value
+env = { 'REMOTE_ADDR' => '192.168.1.1', 'HTTP_X_FORWARDED_HOST' => 'first.com,', 'HTTP_HOST' => 'fallback.example.com' }
+@middleware.call(env)
+env['rack.detected_host']
+#=> 'fallback.example.com'
+
+## A multi-valued X-Forwarded-Host with no Host to fall back to detects nothing
 env = { 'REMOTE_ADDR' => '192.168.1.1', 'HTTP_X_FORWARDED_HOST' => 'first.com, second.com' }
 @middleware.call(env)
 env['rack.detected_host']
-#=> 'first.com'
+#=> nil
+
+## Apx-Incoming-Host never supplies the detected host, even from a trusted
+## proxy (#4384)
+env = {
+  'REMOTE_ADDR' => '192.168.1.1',
+  'HTTP_APX_INCOMING_HOST' => 'custom.example.com',
+  'HTTP_HOST' => 'fallback.example.com',
+}
+@middleware.call(env)
+[env['rack.detected_host'], env['rack.detected_host.unselected_hosts']]
+#=> ['fallback.example.com', ['custom.example.com']]
+
+## X-Original-Host never supplies the detected host either
+env = {
+  'REMOTE_ADDR' => '192.168.1.1',
+  'HTTP_X_ORIGINAL_HOST' => 'Custom.Example.COM:8443',
+  'HTTP_HOST' => 'fallback.example.com',
+}
+@middleware.call(env)
+[env['rack.detected_host'], env['rack.detected_host.unselected_hosts']]
+#=> ['fallback.example.com', ['custom.example.com']]
+
+## The observation is published regardless of peer trust, de-duplicated
+env = {
+  'REMOTE_ADDR' => '203.0.113.9',
+  'HTTP_APX_INCOMING_HOST' => 'custom.example.com',
+  'HTTP_X_ORIGINAL_HOST' => 'custom.example.com',
+  'HTTP_HOST' => 'fallback.example.com',
+}
+@middleware.call(env)
+[env['rack.detected_host'], env['rack.detected_host.unselected_hosts']]
+#=> ['fallback.example.com', ['custom.example.com']]
+
+## No observation for a value no forwarded header would have been accepted for
+env = { 'HTTP_APX_INCOMING_HOST' => '127.0.0.1', 'HTTP_X_ORIGINAL_HOST' => 'semi;colon', 'HTTP_HOST' => 'fallback.example.com' }
+@middleware.call(env)
+env.key?('rack.detected_host.unselected_hosts')
+#=> false
+
+## No observation for a single-valued X-Forwarded-Host: it is the source
+env = { 'REMOTE_ADDR' => '192.168.1.1', 'HTTP_X_FORWARDED_HOST' => 'first.com', 'HTTP_HOST' => 'fallback.example.com' }
+@middleware.call(env)
+[env['rack.detected_host'], env.key?('rack.detected_host.unselected_hosts')]
+#=> ['first.com', false]
+
+## The observation key is a sidecar of the configurable result field
+Rack::DetectHost.unselected_hosts_field_name
+#=> 'rack.detected_host.unselected_hosts'
+
+## The contract: one forwarded header, then Host
+[Rack::DetectHost::FORWARDED_HEADERS, Rack::DetectHost::HEADER_PRECEDENCE]
+#=> [['X-Forwarded-Host'], ['X-Forwarded-Host', 'Host']]
 
 ## Ignores RFC 7239 Forwarded host parameters, even from a trusted proxy
 env = {
@@ -298,7 +377,7 @@ env['rack.detected_host']
 env = {
   'REMOTE_ADDR' => '203.0.113.50',
   'otto.via_trusted_proxy' => true,
-  'HTTP_APX_INCOMING_HOST' => 'custom.example.com',
+  'HTTP_X_FORWARDED_HOST' => 'custom.example.com',
   'HTTP_HOST' => 'canonical.example.com',
 }
 @middleware.call(env)
@@ -354,16 +433,30 @@ env = {
 env['rack.detected_host']
 #=> 'direct.example.com'
 
-## Discarding Apx-Incoming-Host from an untrusted source escalates the log
-## to WARN — the 2026-08-05 incident signature (custom domains silently
-## falling back to canonical under Approximated ingress).
+## Discarding X-Forwarded-Host from an untrusted source logs at WARN — the
+## 2026-08-05 incident signature (custom domains falling back to canonical
+## because the proxy was not recognised as trusted).
+@warn_output = StringIO.new
+@warn_logger = Logger.new(@warn_output, level: Logger::WARN)
+env = {
+  'REMOTE_ADDR' => '203.0.113.50',
+  'HTTP_X_FORWARDED_HOST' => 'custom.example.com',
+  'HTTP_HOST' => 'canonical.example.com',
+}
+Rack::DetectHost.new(@app, logger: @warn_logger).call(env)
+[env['rack.detected_host'], @warn_output.string.include?('Discarding forwarded host headers (X-Forwarded-Host)')]
+#=> ['canonical.example.com', true]
+
+## An untrusted request without X-Forwarded-Host logs nothing at WARN, even
+## when it carries a header the application no longer reads
+@warn_output.truncate(0)
 env = {
   'REMOTE_ADDR' => '203.0.113.50',
   'HTTP_APX_INCOMING_HOST' => 'custom.example.com',
   'HTTP_HOST' => 'canonical.example.com',
 }
-@middleware.call(env)
-[env['rack.detected_host'], @log_output.string.include?('Apx-Incoming-Host present')]
+Rack::DetectHost.new(@app, logger: @warn_logger).call(env)
+[env['rack.detected_host'], @warn_output.string.empty?]
 #=> ['canonical.example.com', true]
 
 ## Falls back to private_ip? heuristic when otto.via_trusted_proxy is absent

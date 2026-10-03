@@ -32,13 +32,19 @@
 # and the link and subject of the delivered reset-password email.
 #
 # THIS FILE PINS CURRENT BEHAVIOUR. It is the baseline the host work in
-# #4223, #4220 and #4384 is measured against, so a row says what the stack
-# does today, not what it should do. Rows whose outcome one of those issues
-# is expected to change carry `changes_with:` naming the issue.
+# #4223 and #4220 is measured against, so a row says what the stack does
+# today, not what it should do. Rows whose outcome one of those issues is
+# expected to change carry `changes_with:` naming the issue. The rows #4384
+# changed (F01, F03, F04, F05, E02) now state the single-header contract.
 #
 # The scenarios that used to live in spec/unit/omniauth_full_host_spec.rb
 # are here too: as request rows where a request produces the state, and
 # under 'env states the request rows do not reach' where none does.
+#
+# A third table is not written here at all: tools/host-seam/topologies.psv,
+# the rows `bin/host-seam probe` sends at a running app. The probe does not
+# run in CI, so its expectations are sent through this stack instead and a
+# row the application does not meet fails here.
 #
 # Related, not duplicated here:
 #   - tenant_sso_proxy_host_spec.rb: tenant SSO outcomes on a rewritten Host
@@ -159,29 +165,30 @@ module HostProxyMatrix
       origin: 'http://{canonical}', tenant_host: nil, webauthn_host: nil },
 
     # --- Forwarded host from a loopback peer ---------------------------------
+    # One header carries the public authority: a single-valued
+    # X-Forwarded-Host (#4384). Apx-Incoming-Host, X-Original-Host and a
+    # comma-joined X-Forwarded-Host are not read, and the request resolves
+    # on Host.
+    #
     # Rack's own host stays on Host: StripForwardedHost removes
     # X-Forwarded-Host and Forwarded before anything reads request.host.
-    { id: 'F01', case: 'Host rewritten to the origin target, tenant in Apx-Incoming-Host',
+    { id: 'F01', case: 'Host rewritten to the origin target, tenant in Apx-Incoming-Host, which is not read',
       headers: { 'Host' => '{canonical}', 'Apx-Incoming-Host' => '{tenant}' },
-      rack_host: '{canonical}', **TENANT },
+      **CANONICAL },
     { id: 'F02', case: 'tenant in X-Forwarded-Host',
       headers: { 'Host' => '{canonical}', 'X-Forwarded-Host' => '{tenant}' },
       rack_host: '{canonical}', **TENANT },
-    { id: 'F03', case: 'tenant in X-Original-Host',
+    { id: 'F03', case: 'tenant in X-Original-Host, which is not read',
       headers: { 'Host' => '{canonical}', 'X-Original-Host' => '{tenant}' },
-      rack_host: '{canonical}', **TENANT },
-    { id: 'F04', case: 'comma-joined X-Forwarded-Host, tenant first',
+      **CANONICAL },
+    { id: 'F04', case: 'comma-joined X-Forwarded-Host, tenant first, falls to Host',
       headers: { 'Host' => '{canonical}', 'X-Forwarded-Host' => "{tenant}, #{UNREGISTERED}" },
-      changes_with: '#4384',
-      rack_host: '{canonical}', **TENANT },
-    { id: 'F05', case: 'comma-joined X-Forwarded-Host, tenant last',
+      **CANONICAL },
+    { id: 'F05', case: 'comma-joined X-Forwarded-Host, tenant last, falls to Host',
       headers: { 'Host' => '{canonical}', 'X-Forwarded-Host' => "#{UNREGISTERED}, {tenant}" },
-      changes_with: '#4384',
-      rack_host: '{canonical}', detected: UNREGISTERED, display: UNREGISTERED, strategy: :invalid,
-      origin: SITE_HOST_ORIGIN, tenant_host: nil, webauthn_host: nil },
-    { id: 'F06', case: 'X-Forwarded-Host outranks Apx-Incoming-Host',
+      **CANONICAL },
+    { id: 'F06', case: 'X-Forwarded-Host is read, Apx-Incoming-Host beside it is not',
       headers: { 'Host' => '{canonical}', 'X-Forwarded-Host' => UNREGISTERED, 'Apx-Incoming-Host' => '{tenant}' },
-      changes_with: '#4384',
       rack_host: '{canonical}', detected: UNREGISTERED, display: UNREGISTERED, strategy: :invalid,
       origin: SITE_HOST_ORIGIN, tenant_host: nil, webauthn_host: nil },
     { id: 'F07', case: 'unregistered host in X-Forwarded-Host',
@@ -189,8 +196,8 @@ module HostProxyMatrix
       rack_host: '{canonical}', detected: UNREGISTERED, display: UNREGISTERED, strategy: :invalid,
       origin: SITE_HOST_ORIGIN, tenant_host: nil, webauthn_host: nil },
     # Only the hostname is swapped: the port of the origin hop rides along.
-    { id: 'F08', case: 'origin target on a port, tenant in Apx-Incoming-Host',
-      headers: { 'Host' => SITE_HOST, 'Apx-Incoming-Host' => '{tenant}' }, proto: nil,
+    { id: 'F08', case: 'origin target on a port, tenant in X-Forwarded-Host',
+      headers: { 'Host' => SITE_HOST, 'X-Forwarded-Host' => '{tenant}' }, proto: nil,
       changes_with: '#4223',
       rack_host: '127.0.0.1', **TENANT, origin: 'http://{tenant}:3000' },
 
@@ -225,8 +232,8 @@ module HostProxyMatrix
     # The request still classifies :custom and WebAuthn still names the
     # domain. Auth URLs do not build on it, and with no canonical candidate
     # in the request they land on configured site.host.
-    { id: 'V01', case: 'unverified custom domain in Apx-Incoming-Host',
-      record: :unverified, headers: { 'Host' => '{canonical}', 'Apx-Incoming-Host' => '{tenant}' },
+    { id: 'V01', case: 'unverified custom domain in X-Forwarded-Host',
+      record: :unverified, headers: { 'Host' => '{canonical}', 'X-Forwarded-Host' => '{tenant}' },
       rack_host: '{canonical}', **TENANT, origin: SITE_HOST_ORIGIN, tenant_host: nil },
     { id: 'V02', case: 'unverified custom domain in Host',
       record: :unverified, headers: { 'Host' => '{tenant}' },
@@ -235,8 +242,8 @@ module HostProxyMatrix
     # --- Record state: the datastore read fails ------------------------------
     # DomainStrategy classifies the host :invalid; Auth::PublicHost declines
     # it. WebAuthn gets no host and falls back to rack_host.
-    { id: 'X01', case: 'read failure, tenant in Apx-Incoming-Host',
-      record: :read_fails, headers: { 'Host' => '{canonical}', 'Apx-Incoming-Host' => '{tenant}' },
+    { id: 'X01', case: 'read failure, tenant in X-Forwarded-Host',
+      record: :read_fails, headers: { 'Host' => '{canonical}', 'X-Forwarded-Host' => '{tenant}' },
       changes_with: '#4220',
       rack_host: '{canonical}', detected: '{tenant}', display: '{tenant}', strategy: :invalid,
       origin: SITE_HOST_ORIGIN, tenant_host: nil, webauthn_host: nil },
@@ -282,9 +289,9 @@ module HostProxyMatrix
       site_host: 'app.operator.example.net',
       headers: { 'Host' => '{canonical}' },
       **CANONICAL },
-    { id: 'C06', case: 'split deployment, tenant in Apx-Incoming-Host',
+    { id: 'C06', case: 'split deployment, tenant in X-Forwarded-Host',
       site_host: 'app.operator.example.net',
-      headers: { 'Host' => 'app.operator.example.net', 'Apx-Incoming-Host' => '{tenant}' },
+      headers: { 'Host' => 'app.operator.example.net', 'X-Forwarded-Host' => '{tenant}' },
       rack_host: 'app.operator.example.net', **TENANT },
     # A host under a canonical anchor's registrable domain classifies
     # :canonical without being in the canonical set. Auth URLs fall to
@@ -328,15 +335,15 @@ module HostProxyMatrix
       headers: { 'Host' => '{tenant}' },
       rack_host: '{tenant}', **OFF, detected: '{tenant}', origin: TENANT_ORIGIN, tenant_host: '{tenant}' },
     # Only the hostname is swapped: the port of the origin hop rides along.
-    { id: 'N05', case: 'origin target on a port, verified custom domain in Apx-Incoming-Host',
-      headers: { 'Host' => SITE_HOST, 'Apx-Incoming-Host' => '{tenant}' }, proto: nil,
+    { id: 'N05', case: 'origin target on a port, verified custom domain in X-Forwarded-Host',
+      headers: { 'Host' => SITE_HOST, 'X-Forwarded-Host' => '{tenant}' }, proto: nil,
       changes_with: '#4223',
       rack_host: '127.0.0.1', **OFF, detected: '{tenant}', origin: 'http://{tenant}:3000', tenant_host: '{tenant}' },
-    { id: 'N06', case: 'unverified custom domain in Apx-Incoming-Host',
-      record: :unverified, headers: { 'Host' => SITE_HOST, 'Apx-Incoming-Host' => '{tenant}' }, proto: nil,
+    { id: 'N06', case: 'unverified custom domain in X-Forwarded-Host',
+      record: :unverified, headers: { 'Host' => SITE_HOST, 'X-Forwarded-Host' => '{tenant}' }, proto: nil,
       rack_host: '127.0.0.1', **OFF, detected: '{tenant}' },
-    { id: 'N07', case: 'read failure, verified custom domain in Apx-Incoming-Host',
-      record: :read_fails, headers: { 'Host' => SITE_HOST, 'Apx-Incoming-Host' => '{tenant}' }, proto: nil,
+    { id: 'N07', case: 'read failure, verified custom domain in X-Forwarded-Host',
+      record: :read_fails, headers: { 'Host' => SITE_HOST, 'X-Forwarded-Host' => '{tenant}' }, proto: nil,
       changes_with: '#4220',
       rack_host: '127.0.0.1', **OFF, detected: '{tenant}' },
     { id: 'N08', case: 'Apx-Incoming-Host from a public peer',
@@ -371,6 +378,40 @@ module HostProxyMatrix
       origin: 'http://onetime.example.net:3000', webauthn_host: 'onetime.example.net' },
   ].freeze
 
+  # ---------------------------------------------------------------------------
+  # The topology probe's matrix (tools/host-seam/topologies.psv), read as the
+  # probe reads it: name|Host|Apx-Incoming-Host|X-Forwarded-Host|
+  # X-Original-Host|Forwarded|expected strategy, "-" for a header not sent.
+  #
+  # {origin} is the Host a rewriting proxy leaves behind and {origin_strategy}
+  # what a request resolving on it classifies as. Both are given by the caller,
+  # once for an unregistered origin and once for the canonical host.
+  # ---------------------------------------------------------------------------
+  PROBE_DIR        = File.expand_path('../../../../../../tools/host-seam', __dir__)
+  PROBE_TOPOLOGIES = File.join(PROBE_DIR, 'topologies.psv')
+  PROBE_LIB        = File.join(PROBE_DIR, 'topology-lib.sh')
+  PROBE_EVIL       = 'evil.attacker.example'
+  PROBE_ORIGIN     = 'origin-target.internal'
+  PROBE_CARRIERS   = ['Host', 'Apx-Incoming-Host', 'X-Forwarded-Host', 'X-Original-Host', 'Forwarded'].freeze
+
+  def self.probe_topologies(origin:, origin_strategy:)
+    rows = File.readlines(PROBE_TOPOLOGIES, chomp: true).reject { |line| line.empty? || line.start_with?('#') }
+    rows.map do |line|
+      filled = line
+        .gsub('{origin_strategy}', origin_strategy)
+        .gsub('{origin}', origin)
+        .gsub('{custom}', '{tenant}')
+        .gsub('{evil}', PROBE_EVIL)
+      name, *values, strategy = filled.split('|')
+      raise ArgumentError, "malformed topology row: #{line}" unless values.size == PROBE_CARRIERS.size
+
+      headers = PROBE_CARRIERS.zip(values).reject { |_, value| value == '-' }.to_h
+      # The probe sends the RFC 7239 carrier as `Forwarded: host=<value>`.
+      headers['Forwarded'] = "host=#{headers['Forwarded']}" if headers.key?('Forwarded')
+      { name: name, headers: headers, xfh: headers.fetch('X-Forwarded-Host', '-'), strategy: strategy }
+    end
+  end
+
   OBSERVED_KEYS = [:rack_host, :detected, :display, :strategy, :origin, :tenant_host, :webauthn_host].freeze
 
   # ---------------------------------------------------------------------------
@@ -389,9 +430,9 @@ module HostProxyMatrix
     { id: 'E01', case: 'canonical host in Host',
       headers: { 'Host' => '{canonical}' },
       idp: :platform, redirect_uri: CANONICAL_ORIGIN, link: CANONICAL_ORIGIN, brand: '{canonical}' },
-    { id: 'E02', case: 'Host rewritten to the origin target, tenant in Apx-Incoming-Host',
+    { id: 'E02', case: 'Host rewritten to the origin target, tenant in Apx-Incoming-Host, which is not read',
       headers: { 'Host' => '{canonical}', 'Apx-Incoming-Host' => '{tenant}' },
-      idp: :tenant, redirect_uri: TENANT_ORIGIN, link: TENANT_ORIGIN, brand: '{tenant}' },
+      idp: :platform, redirect_uri: CANONICAL_ORIGIN, link: CANONICAL_ORIGIN, brand: '{canonical}' },
     { id: 'E03', case: 'verified custom domain in Host',
       headers: { 'Host' => '{tenant}' },
       idp: :tenant, redirect_uri: TENANT_ORIGIN, link: TENANT_ORIGIN, brand: '{tenant}' },
@@ -416,14 +457,14 @@ module HostProxyMatrix
     { id: 'E10', case: 'Forwarded host= names the tenant',
       headers: { 'Host' => '{canonical}', 'Forwarded' => 'for=198.51.100.1;host={tenant};proto=https' },
       idp: :platform, redirect_uri: CANONICAL_ORIGIN, link: CANONICAL_ORIGIN, brand: '{canonical}' },
-    { id: 'E11', case: 'unverified custom domain in Apx-Incoming-Host',
-      record: :unverified, headers: { 'Host' => '{canonical}', 'Apx-Incoming-Host' => '{tenant}' },
+    { id: 'E11', case: 'unverified custom domain in X-Forwarded-Host',
+      record: :unverified, headers: { 'Host' => '{canonical}', 'X-Forwarded-Host' => '{tenant}' },
       idp: nil, sso_location: '/signin?auth_error=sso_domain_unverified',
       link: SITE_HOST_ORIGIN, brand: SITE_HOST },
     # The sign-in gates answer before either emitter runs: no IdP redirect
     # and no email.
-    { id: 'E12', case: 'read failure, tenant in Apx-Incoming-Host',
-      record: :read_fails, headers: { 'Host' => '{canonical}', 'Apx-Incoming-Host' => '{tenant}' },
+    { id: 'E12', case: 'read failure, tenant in X-Forwarded-Host',
+      record: :read_fails, headers: { 'Host' => '{canonical}', 'X-Forwarded-Host' => '{tenant}' },
       changes_with: '#4220',
       idp: nil, sso_location: '/signin?auth_error=sso_failed',
       link: nil, reset_status: 503 },
@@ -634,6 +675,35 @@ RSpec.describe 'Host and proxy simulation matrix (#4223)', :shared_db_state, typ
     end
   end
 
+  # The probe's own verdict on a display domain, from the library the probe
+  # sources. nil when bash could not be started.
+  def probe_spoof_accepted?(display, xfh)
+    system(
+      'bash', '-c', 'source "$1" && spoof_accepted "$2" "$3" "$4"', 'bash',
+      HostProxyMatrix::PROBE_LIB, display.to_s, xfh, HostProxyMatrix::PROBE_EVIL
+    )
+  end
+
+  shared_examples 'the topology probe matrix' do |origin:, origin_strategy:|
+    rows = HostProxyMatrix.probe_topologies(origin: origin, origin_strategy: origin_strategy)
+
+    it 'reads all twelve topologies' do
+      expect(rows.map { |row| row[:name] }.uniq.size).to eq(12)
+    end
+
+    rows.each do |row|
+      it "#{row[:name]} resolves #{row[:strategy]} and is not graded a spoof" do
+        apply_topology(row)
+        header 'Accept', 'application/json'
+        get '/auth'
+
+        env = last_request.env
+        expect(env['onetime.domain_strategy'].to_s).to eq(row[:strategy])
+        expect(probe_spoof_accepted?(env['onetime.display_domain'], fill(row[:xfh]))).to be(false)
+      end
+    end
+  end
+
   it 'runs with the forwarded-header family the stack pins' do
     expect(Rack::Request.forwarded_priority).to eq([:x_forwarded])
   end
@@ -647,6 +717,19 @@ RSpec.describe 'Host and proxy simulation matrix (#4223)', :shared_db_state, typ
 
     include_examples 'a request matrix', HostProxyMatrix::DOMAINS_ON
     include_examples 'an emitter matrix', HostProxyMatrix::EMITTERS_ON
+
+    # tools/host-seam/topologies.psv, with the probe's default origin and
+    # with the origin a deployment that rewrites Host onto the canonical
+    # host has.
+    context 'topology probe matrix, unregistered origin' do
+      include_examples 'the topology probe matrix',
+        origin: HostProxyMatrix::PROBE_ORIGIN, origin_strategy: 'invalid'
+    end
+
+    context 'topology probe matrix, canonical origin' do
+      include_examples 'the topology probe matrix',
+        origin: '{canonical}', origin_strategy: 'canonical'
+    end
 
     it 'installs the origin resolver as a per-request Proc' do
       # OmniAuth::Strategy#full_host calls it only when it is a Proc; a

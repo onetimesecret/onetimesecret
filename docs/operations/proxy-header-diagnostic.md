@@ -150,6 +150,12 @@ refused the request.
    always empty: the application deletes both headers before any route runs.
    `rack.stripped_forwarded_headers` lists the ones it deleted (names only),
    so an empty entry there means the edge never sent the header.
+6. `caddy_received.x-ots-proxy-debug-received-apx-incoming-host` shows whether
+   Approximated is still sending `Apx-Incoming-Host` to the edge. The
+   application does not read that header
+   ([proxy-authority-header.md](proxy-authority-header.md)), so
+   `request_headers` has no entry for it; the edge translates it into
+   `X-Forwarded-Host` and removes it.
 
 The endpoint reports observations; it does not prove an upstream header is
 trustworthy. A client can still choose any marker header. The result establishes

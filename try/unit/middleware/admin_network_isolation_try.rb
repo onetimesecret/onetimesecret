@@ -220,7 +220,7 @@ end
 # found no valid host). Both must fail closed, and they are different envs.
 #
 # `extra` is merged LAST and is how the forwarded-host provenance cases below
-# write raw header keys (HTTP_X_FORWARDED_HOST, HTTP_APX_INCOMING_HOST) and
+# write the raw header key (HTTP_X_FORWARDED_HOST), DetectHost's observations, and
 # otto's tri-state trust key ('otto.via_trusted_proxy'). Those cases care about
 # the PRESENCE of a header, not its value: the middleware never reads it.
 def admin_env(script_name:, path_info:, client_ip: nil, xff: nil, detected_host: :unset, http_host: nil,
@@ -1405,7 +1405,7 @@ status_for(@encoded, 'tenant.example.com', path_info: '/%63olonels')
 # HOST PROVENANCE — a forwarded host from an untrusted peer (#4024)
 # =================================================================
 # With site.network.trusted_proxy unset (the shipped default) Rack::DetectHost
-# honors X-Forwarded-Host / Apx-Incoming-Host / X-Original-Host from ANY peer
+# honors X-Forwarded-Host from ANY peer
 # on a private or loopback address — i.e. from every containerised
 # reverse-proxy install. The admin gate declines to rely on that: a detected
 # host that a forwarded header produced is accepted only when
@@ -1443,17 +1443,81 @@ status_with(@fwd, 'admin.example.com',
             http_host: 'tenant.example.com')
 #=> 404
 
-## Apx-Incoming-Host — the Approximated custom-domain ingress header — is
-## judged the same way. This is the live attack shape: a request to a tenant
-## custom domain claiming to be the canonical admin host.
-status_with(@fwd, 'admin.example.com', { 'HTTP_APX_INCOMING_HOST' => 'admin.example.com' },
+## Apx-Incoming-Host and X-Original-Host are NOT host sources since #4384:
+## DetectHost never selects them, so the detected host is what `Host:` (or a
+## single X-Forwarded-Host) produced. DetectHost OBSERVES the hosts they name,
+## and the first value of a multi-valued X-Forwarded-Host, and publishes them
+## at env[Rack::DetectHost.unselected_hosts_field_name]; the gate judges those
+## VALUES (rule e). One that names something OTHER than the detected host is
+## the Host-rewriting edge that still carries the tenant host in a header the
+## application stopped reading — DENIED even though the Host-derived detected
+## host IS on the allowlist.
+@unselected = Rack::DetectHost.unselected_hosts_field_name
+status_with(@fwd, 'admin.example.com', { @unselected => ['secrets.tenant.test'] },
+            http_host: 'admin.example.com')
+#=> 404
+
+## unlike rule (d), this holds for a peer otto vouched for too: before #4384
+## that value WAS the detected host for a trusted peer, and the allowlist
+## refused it
+status_with(@fwd, 'admin.example.com',
+            { @unselected => ['secrets.tenant.test'], 'otto.via_trusted_proxy' => true },
+            http_host: 'admin.example.com')
+#=> 404
+
+## any one disagreeing observation is enough
+status_with(@fwd, 'admin.example.com', { @unselected => ['admin.example.com', 'secrets.tenant.test'] },
+            http_host: 'admin.example.com')
+#=> 404
+
+## an observed host that AGREES with the detected host changed nothing — served
+status_with(@fwd, 'admin.example.com', { @unselected => ['Admin.Example.COM.'] },
+            http_host: 'admin.example.com')
+#=> 200
+
+## the raw headers are never read here: one DetectHost did not observe (no
+## published field) is no claim at all
+status_with(@fwd, 'admin.example.com',
+            { 'HTTP_APX_INCOMING_HOST' => 'secrets.tenant.test', 'HTTP_X_ORIGINAL_HOST' => 'secrets.tenant.test' },
+            http_host: 'admin.example.com')
+#=> 200
+
+## an observed host naming an allowlisted host cannot ADMIT a request whose
+## detected host is not on the allowlist
+status_with(@fwd, 'secrets.tenant.test', { @unselected => ['admin.example.com'] },
             http_host: 'secrets.tenant.test')
 #=> 404
 
-## X-Original-Host too
-status_with(@fwd, 'admin.example.com', { 'HTTP_X_ORIGINAL_HOST' => 'admin.example.com' },
-            http_host: 'secrets.tenant.test')
-#=> 404
+## the denial is the provenance WARN, not the allowlist one
+denial_warns(@fwd, 'admin.example.com', { @unselected => ['secrets.tenant.test'] },
+             http_host: 'admin.example.com')
+#=> [404, ['Admin surface access denied: forwarded host from an untrusted peer']]
+
+## end to end through the real DetectHost: a loopback peer, Host rewritten to
+## the allowlisted name, the tenant host in a header DetectHost observes
+['HTTP_APX_INCOMING_HOST', 'HTTP_X_ORIGINAL_HOST', 'HTTP_X_FORWARDED_HOST'].map do |key|
+  value = key == 'HTTP_X_FORWARDED_HOST' ? 'secrets.tenant.test, admin.example.com' : 'secrets.tenant.test'
+  env   = admin_env(script_name: '', path_info: '/colonel', http_host: 'admin.example.com',
+                    extra: { 'REMOTE_ADDR' => '127.0.0.1', key => value })
+  Rack::DetectHost.new(@fwd).call(env).first
+end
+#=> [404, 404, 404]
+
+## ...and the same through a peer otto vouched for
+['HTTP_APX_INCOMING_HOST', 'HTTP_X_ORIGINAL_HOST', 'HTTP_X_FORWARDED_HOST'].map do |key|
+  value = key == 'HTTP_X_FORWARDED_HOST' ? 'secrets.tenant.test, admin.example.com' : 'secrets.tenant.test'
+  env   = admin_env(script_name: '', path_info: '/colonel', http_host: 'admin.example.com',
+                    extra: { 'REMOTE_ADDR' => '127.0.0.1', 'otto.via_trusted_proxy' => true, key => value })
+  Rack::DetectHost.new(@fwd).call(env).first
+end
+#=> [404, 404, 404]
+
+## control: the same stack serves the request when the edge sends the one
+## header the contract names, agreeing with Host
+env = admin_env(script_name: '', path_info: '/colonel', http_host: 'admin.example.com',
+                extra: { 'REMOTE_ADDR' => '127.0.0.1', 'HTTP_X_FORWARDED_HOST' => 'admin.example.com' })
+Rack::DetectHost.new(@fwd).call(env).first
+#=> 200
 
 ## the RFC 7239 Forwarded header is NOT a host source: DetectHost never
 ## selects its host parameter (#4121), so the detected host is what `Host:`
@@ -1502,11 +1566,11 @@ denial_warns(@fwd, 'admin.example.com', { @rfc7239 => 'secrets.tenant.test' },
              http_host: 'admin.example.com')
 #=> [404, ['Admin surface access denied: forwarded host from an untrusted peer']]
 
-## Forwarded is absent from the PRESENCE key list that X-Forwarded-Host,
-## Apx-Incoming-Host and X-Original-Host populate — it is judged by value, and
-## the presence list stays derived from DetectHost's contract
-Onetime::Middleware::AdminNetworkIsolation::FORWARDED_HOST_ENV_KEYS.sort
-#=> ['HTTP_APX_INCOMING_HOST', 'HTTP_X_FORWARDED_HOST', 'HTTP_X_ORIGINAL_HOST']
+## The PRESENCE key list is derived from DetectHost's contract, which is the
+## one header (#4384). Forwarded, Apx-Incoming-Host and X-Original-Host are
+## absent from it — they are judged by value
+Onetime::Middleware::AdminNetworkIsolation::FORWARDED_HOST_ENV_KEYS
+#=> ['HTTP_X_FORWARDED_HOST']
 
 ## the observation rides as a sidecar of DetectHost's result field
 Rack::DetectHost.rfc7239_host_field_name

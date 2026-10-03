@@ -464,8 +464,8 @@ itself is not aborted, since the surfaces are already fail-closed and the rest
 of the app is unaffected. `ADMIN_ALLOWED_HOSTS=*` — anywhere in the list — is
 the one way to turn the gate off, and the one-variable rollback.
 
-Behind a proxy that forwards the public hostname in a header (`X-Forwarded-Host`,
-`Apx-Incoming-Host`, …) rather than rewriting `Host`, `site.network.trusted_proxy`
+Behind a proxy that forwards the public hostname in `X-Forwarded-Host` rather
+than rewriting `Host`, `site.network.trusted_proxy`
 must be configured **with the proxy's own address ranges in `cidrs`**: the host
 gate accepts a forwarded host only from a peer that trust vouched for, so
 otherwise both surfaces 404 — and filter mode with no explicit CIDRs trusts

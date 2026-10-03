@@ -238,9 +238,9 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
 
     it 'follows a Host-rewriting proxy: identifiers name the tenant domain, not the origin target' do
       header 'Host', canonical_host
-      header 'Apx-Incoming-Host', tenant_a.host
+      header 'X-Forwarded-Host', tenant_a.host
       post '/auth/sso/saml'
-      header 'Apx-Incoming-Host', nil
+      header 'X-Forwarded-Host', nil
 
       xml = Zlib::Inflate.new(-Zlib::MAX_WBITS).inflate(
         Base64.decode64(CGI.parse(URI.parse(last_response.headers['Location']).query).fetch('SAMLRequest').first),

@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-# scripts/host-seam/seed-tenant.rb
+# tools/host-seam/seed-tenant.rb
 #
 # Seeds the ONE fixture the host-seam matrix needs: a custom domain owned by an
 # organization, with an enabled tenant SSO config. Without it the SSO column of
@@ -17,10 +17,10 @@
 # finding worth seeing).
 #
 # Run inside the app (container or checkout):
-#   HOST_SEAM_DOMAIN=local-secrets1.afb.pet bin/ots console < scripts/host-seam/seed-tenant.rb
+#   HOST_SEAM_DOMAIN=local-secrets1.afb.pet bin/ots console < tools/host-seam/seed-tenant.rb
 #
 # Or directly, if the app is already booted in-process:
-#   bundle exec ruby -r./lib/onetime scripts/host-seam/seed-tenant.rb
+#   bundle exec ruby -r./lib/onetime tools/host-seam/seed-tenant.rb
 #
 # Env:
 #   HOST_SEAM_DOMAIN     custom domain to register  (default local-secrets1.afb.pet)

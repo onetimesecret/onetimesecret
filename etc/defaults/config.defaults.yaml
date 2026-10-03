@@ -921,8 +921,8 @@ site:
     # are already fail-closed and the rest of the app is innocent.
     # Set "*" to turn the gate off on purpose.
     #
-    # A forwarded host header (X-Forwarded-Host, Apx-Incoming-Host,
-    # X-Original-Host) only counts toward this gate when
+    # The forwarded host header (X-Forwarded-Host) only counts toward this
+    # gate when
     # site.network.trusted_proxy is configured AND the peer passed it. Behind a
     # proxy that forwards the public hostname instead of rewriting Host, set
     # trusted_proxy or both admin surfaces 404 (see

@@ -30,18 +30,19 @@ string. Consumers that read `request.host` appear correct.
 Production ingress (Approximated) behaves differently:
 
 - rewrites `Host` to the origin target
-- carries the browser hostname in `Apx-Incoming-Host`
+- carries the browser hostname in `Apx-Incoming-Host`, which the edge in front
+  of the app translates into `X-Forwarded-Host` (#4384)
 
 Until local edge rewrites `Host` somewhere, this bug class is invisible before
 production.
 
 ## The three lanes
 
-| Lane          | Hosts                       | Topology                                                                           |
-| ------------- | --------------------------- | ---------------------------------------------------------------------------------- |
-| Preserved     | `local-secrets1..3.afb.pet` | Host passed through (existing block)                                               |
-| **Rewritten** | `local-secrets4..5.afb.pet` | Host rewritten, real host in `Apx-Incoming-Host` (`caddy-approximated-lane.caddy`) |
-| Headless      | `topology-probe.sh`         | 11 curl topologies, no browser, no TLS                                             |
+| Lane          | Hosts                       | Topology                                                                          |
+| ------------- | --------------------------- | --------------------------------------------------------------------------------- |
+| Preserved     | `local-secrets1..3.afb.pet` | Host passed through (existing block)                                              |
+| **Rewritten** | `local-secrets4..5.afb.pet` | Host rewritten, real host in `X-Forwarded-Host` (`caddy-approximated-lane.caddy`) |
+| Headless      | `bin/host-seam probe`       | 12 curl topologies, no browser, no TLS                                            |
 
 Register the same org custom domain on a host from the first two lanes. Any
 feature that passes lane 1 and fails lane 2 is reading raw `Host`.
@@ -52,7 +53,7 @@ feature that passes lane 1 and fails lane 2 is reading raw `Host`.
 
 Both tenant success and platform fallback redirect to
 `login.microsoftonline.com`. Match the **tenant id in the path**, not only the
-IdP hostname. That is why `topology-probe.sh --tenant-id` must match the seeded
+IdP hostname. That is why `bin/host-seam probe --tenant-id` must match the seeded
 fixture.
 
 ### Verdict meanings
@@ -64,7 +65,11 @@ fixture.
 - `SEAM_SPLIT(PLATFORM_FALLBACK)` — `O-Domain-Strategy: custom` but SSO used
   platform credentials (`canonical_domain?` branch). Quiet failure unless
   tenant id is checked.
-- `SPOOF_ACCEPTED` — untrusted forwarded host reached `O-Display-Domain`.
+- `SPOOF_ACCEPTED` — the evil host reached `O-Display-Domain` through a
+  carrier the app does not read (`Apx-Incoming-Host`, a comma-joined
+  `X-Forwarded-Host`). A single `X-Forwarded-Host` from the trusted probe
+  source is the carrier the app selects, so T9 and T10 display the evil host
+  and are graded on strategy alone.
 - `STRATEGY_DRIFT(...)` — DomainStrategy classification differed from expected
   for that topology. On every custom row at once, it usually means `--custom`
   is not a registered CustomDomain.
@@ -78,13 +83,55 @@ fixture.
   at all: either `--custom` is not a registered CustomDomain, or the domains
   feature is off in the app under test (`DOMAINS_ENABLED` defaults to false).
   All strategy/seam verdicts are suppressed — including the vacuous `ok` that
-  T9–T11 would otherwise report with `O-Display-Domain` pinned to canonical.
+  rows expecting `canonical` would otherwise report with `O-Display-Domain`
+  pinned to canonical.
   The warning above the table says which of the two causes it is.
 
-Special case: T9 (`xfh-shadows-apx`) is expected to resolve `canonical` **by
-design**. `X-Forwarded-Host` can outrank `Apx-Incoming-Host` in carrier
-precedence; app fallback stays canonical, but tenant SSO can be denied until the
-edge strips inbound `X-Forwarded-Host`.
+Special case: T9 (`xfh-shadows-apx`) and T10 (`xfh-spoof`) are expected to
+resolve `invalid`. `X-Forwarded-Host` is the one forwarded carrier the app
+reads from a trusted peer (`FORWARDED_HEADERS` in `lib/middleware/detect_host.rb`),
+and `Apx-Incoming-Host` beside it in T9 is not read. The unregistered evil host
+becomes the display domain and classifies `invalid`, so it cannot impersonate
+a tenant, but tenant SSO can be denied until the edge overwrites inbound
+`X-Forwarded-Host`. This describes what the code does and what matrix spec
+rows F06 and F07 pin; no ADR records it as a decision.
+
+T3, T6 and T12 changed expectation with #4384: `Apx-Incoming-Host`,
+`X-Original-Host` and a comma-separated `X-Forwarded-Host` are not read, so
+those rows resolve on `Host`, as does T7 (`Forwarded` is not read). What they
+expect follows the origin:
+
+- no `--origin` (the default `origin-target.internal`): `invalid`.
+- `--origin` naming the same host as `--canonical`: `canonical`. Case, a port
+  and a trailing dot are ignored in that comparison.
+- any other `--origin`: whatever a direct request carrying only
+  `Host: <origin>` resolves to. The probe sends that request first and prints
+  the result. This covers a subdomain of the canonical host (`www.`), a second
+  canonical host and a registered custom domain, none of which can be
+  classified from the name. A carrier that is read still shows as drift,
+  because the row then differs from what the bare `Host` resolved to.
+T8 moved its carrier to `X-Forwarded-Host` and still expects `custom`. A release
+before #4384 reports T3, T6 and T12 as mismatches.
+
+## Files
+
+| File                        | Role                                                                 |
+| --------------------------- | -------------------------------------------------------------------- |
+| `bin/host-seam`             | entry point (ADR-042): `probe`, `sweep`                              |
+| `topologies.psv`            | the matrix: one row per topology with its expected strategy. Data only |
+| `topology-lib.sh`           | matrix loader, origin expectation, spoof predicate                   |
+| `topology-probe.sh`         | sends the matrix with curl and grades the answers                    |
+| `release-sweep.sh`          | runs the probe against published release images                      |
+| `seed-tenant.rb`            | fixture for the SSO column                                           |
+| `tests/topology-test.sh`    | loader, origin expectation, and the probe against a stand-in curl    |
+
+The probe needs a running app, so it does not run in CI. Two things do:
+
+- `apps/web/auth/spec/integration/full/host_proxy_matrix_spec.rb` reads
+  `topologies.psv`, sends every row through the mounted stack and asserts the
+  expected strategy and the spoof predicate. An expectation in the matrix that
+  the application does not meet fails that spec.
+- `tests/topology-test.sh` runs with `scripts/tests/run.sh`.
 
 ## Running it
 
@@ -100,19 +147,19 @@ Run commands from repo root.
 ### Release gate (one running version)
 
 **Seed the fixture first.** The SSO column is only meaningful for a domain
-that has an enabled SsoConfig; `--custom` must be *that* domain and
+that has an enabled SsoConfig; `--custom` must be _that_ domain and
 `--tenant-id` must match its seeded tenant id (probe default matches the seed
 default). A registered custom domain without an SsoConfig makes the probe
 report `FIXTURE_MISSING` on every custom-strategy row:
 
 ```bash
-HOST_SEAM_DOMAIN=local-secrets1.afb.pet bin/ots console < scripts/host-seam/seed-tenant.rb
+HOST_SEAM_DOMAIN=local-secrets1.afb.pet bin/ots console < tools/host-seam/seed-tenant.rb
 ```
 
 Then, against an already-running app (local server, container, or staging):
 
 ```bash
-scripts/host-seam/topology-probe.sh \
+bin/host-seam probe \
   --base http://127.0.0.1:7143 \
   --canonical dev.onetime.dev \
   --custom local-secrets1.afb.pet
@@ -126,16 +173,19 @@ Also required for valid SSO seam checks:
   `DomainStrategy` classifies every request canonical, the strategy side of
   the seam is inert, and the probe reports `UNTESTABLE(strategy_control)`.
   (`release-sweep.sh` sets this for its containers.)
-- `TRUSTED_PROXY_ENABLED=true` (filter mode trusts loopback/RFC1918). Without
-  it, `DetectHost` drops forwarded carriers and T3–T5 collapse to canonical for
-  unrelated reasons.
+- `TRUSTED_PROXY_ENABLED=true` (filter mode trusts loopback/RFC1918), so the
+  probe source is trusted explicitly. With no proxy trust configured, the
+  current `DetectHost` still honours `X-Forwarded-Host` from a loopback or
+  private peer and from no other. Whenever the probe source is not trusted,
+  `X-Forwarded-Host` is dropped, every row resolves on `Host`, and T4, T5, T8
+  and T10 drift for reasons unrelated to the seam.
 - `ORGS_SSO_ENABLED=true` so `/auth/sso/entra` is mounted. If disabled, probe
   SSO results become `NO_ROUTE` (404), and seam verdicts are not meaningful.
 
 ### Archaeology (which release started it)
 
 ```bash
-scripts/host-seam/release-sweep.sh v0.26.0 v0.26.1 v0.26.2 v0.26.3 v0.26.4 v0.26.5-rc1 v0.26.5-rc2 v0.26.5
+bin/host-seam sweep v0.26.0 v0.26.1 v0.26.2 v0.26.3 v0.26.4 v0.26.5-rc1 v0.26.5-rc2 v0.26.5
 ```
 
 The sweep:
@@ -158,7 +208,7 @@ Output includes:
 
 ### Browser rewritten lane
 
-Install `scripts/host-seam/caddy-approximated-lane.caddy` into:
+Install `tools/host-seam/caddy-approximated-lane.caddy` into:
 
 `~/Projects/ops/environments/local/caddy/`
 
@@ -198,20 +248,21 @@ Interpretation:
 
 - `DomainStrategy` classified request as `custom` (`secret.asi.nz`)
 - tenant lookup keyed on rewritten inbound target (`nz.onetime.co`)
-- result is `SEAM_SPLIT(NO_CONFIG)` (probe T3 shape)
+- result is `SEAM_SPLIT(NO_CONFIG)` (probe T5 shape; T3 at the time of the capture)
 
 The same capture also shows multiple live carriers (`HTTP_APX_INCOMING_HOST`
 and `HTTP_X_ORIGINAL_HOST`), which is why the matrix covers
 `Apx-Incoming-Host`, `X-Forwarded-Host`, `X-Original-Host`, and RFC 7239
-`Forwarded`.
+`Forwarded`. Since #4384 only `X-Forwarded-Host` is read; the other three are
+sent as controls.
 
 ## When to run
 
-1. You changed host/domain logic and need a fast gate: run `topology-probe.sh`.
+1. You changed host/domain logic and need a fast gate: run `bin/host-seam probe`.
 2. Probe shows non-`ok`: verify setup (`ORGS_SSO_ENABLED=true`,
    `TRUSTED_PROXY_ENABLED=true`, seeded custom domain **with an enabled
    SsoConfig** — `FIXTURE_MISSING` means the SsoConfig half is absent).
-3. You need "which release introduced this": run `release-sweep.sh` on target
+3. You need "which release introduced this": run `bin/host-seam sweep` on target
    tags.
 4. Sweep has `IMAGE_UNAVAILABLE` / `START_FAILED` / `NEVER_READY`: do not trust
    transition conclusions yet.

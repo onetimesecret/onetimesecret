@@ -37,6 +37,9 @@ module ColonelAPI
       # read nil here whenever the edge sent them; the middleware records the
       # names it deleted in STRIPPED_FORWARDED_HEADERS, reported alongside so
       # "nil because absent" and "nil because stripped" stay distinguishable.
+      # Apx-Incoming-Host is not listed: the application does not read it
+      # (#4384). What the edge received is still reported, in
+      # PROXY_DEBUG_HEADERS.
       FORWARDING_HEADERS = %w[
         HTTP_HOST
         HTTP_X_FORWARDED_FOR
@@ -45,7 +48,6 @@ module ColonelAPI
         HTTP_X_REAL_IP
         HTTP_X_CLIENT_IP
         HTTP_FORWARDED
-        HTTP_APX_INCOMING_HOST
       ].freeze
 
       # Env key StripForwardedHost leaves the names of the carriers it deleted
