@@ -737,7 +737,8 @@ site:
     # host as the rest of the application. The Host header as received stays
     # available in env['onetime.original_http_host']. Requests that do not
     # classify, and requests whose Host already names the public host, are
-    # left as they are. No effect behind a proxy that preserves Host.
+    # left as they are. No effect behind a proxy that preserves Host and
+    # overwrites or removes X-Forwarded-Host.
     # The public port comes from the trusted proxy, never from an origin-hop
     # Host: the port in X-Forwarded-Host or, when that is a bare hostname,
     # a single-valued X-Forwarded-Port. The scheme-default port is left out.
