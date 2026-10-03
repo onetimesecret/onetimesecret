@@ -436,10 +436,24 @@ module Rack
         match = value.to_s.strip.match(/\A([a-z0-9.-]+)(?::([0-9]{1,5}))?\z/i)
         return nil unless match && normalize_host(match[1]) == host
 
-        port = (match[2] || forwarded_port.to_s.strip[/\A[0-9]{1,5}\z/]).to_i
-        return nil unless (1..65_535).cover?(port)
+        port = usable_port(match[2] || forwarded_port)
+        return nil unless port
 
         "#{host}:#{port}"
+      end
+
+      # The port a header value names, or nil unless it is one number from 1
+      # through 65535. `Rack::Request#port` applies no such check to
+      # X-Forwarded-Port: it converts each comma-separated entry with #to_i
+      # and takes the last, so `abc` reads as 0 and `65536` as itself.
+      # StripForwardedHost uses this to decide whether Rack may see the
+      # header at all.
+      #
+      # @param value_unsafe [String, nil] Raw port text
+      # @return [Integer, nil]
+      def usable_port(value_unsafe)
+        port = value_unsafe.to_s.strip[/\A[0-9]{1,5}\z/].to_i
+        port if (1..65_535).cover?(port)
       end
 
       # Rack env key for an HTTP header name.
