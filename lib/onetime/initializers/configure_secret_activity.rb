@@ -8,10 +8,12 @@ module Onetime
     #
     # Applies features.secret_activity.max_events to the organization
     # secret-activity trail's retention cap. Must run at boot, before any
-    # per-org trail accessor materializes (see SecretActivity.configure!):
-    # already-materialized DataType instances keep the compile-time default.
+    # Organization instance materializes (see SecretActivity.configure!):
+    # Familia freezes the field definition at that point, and a different
+    # cap requested afterwards raises Familia::RelatedFieldFrozenError and
+    # fails the boot.
     #
-    # Needs no datastore connection — it only mutates the stored field
+    # Needs no datastore connection — it only replaces the stored field
     # definition — so it also runs under connect_to_db=false boots (tryouts)
     # and is deliberately absent from boot!'s skip-list. The model constants
     # it touches are safe there: lib/onetime.rb requires lib/onetime/models
@@ -19,9 +21,6 @@ module Onetime
     # Organization.related_fields[:secret_activity_events] exists whether or
     # not a connection was opened. connect_to_db gates connections, not
     # model loading.
-    #
-    # NOTE: configure! mutates Familia::RelatedFieldDefinition.opts — not a
-    # public API. Tracked upstream: https://github.com/delano/familia/issues/390
     #
     class ConfigureSecretActivity < Onetime::Boot::Initializer
       @provides = [:secret_activity]
