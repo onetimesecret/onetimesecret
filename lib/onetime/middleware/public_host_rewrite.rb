@@ -59,7 +59,13 @@ module Onetime
     #
     # Rack's #base_url reads the authority alone, while #port falls back to
     # X-Forwarded-Port when the authority has no port. Writing the port into
-    # the authority keeps the two in agreement on a rewritten request.
+    # the authority and deleting `X-Forwarded-Port` keeps the two in
+    # agreement on a rewritten request: the written authority is the only
+    # port source left. Without the delete, #port would still read the header
+    # whenever the authority carries no port — the scheme default was left
+    # out, or X-Forwarded-Host named a port of its own and the header named
+    # another. The header's name is added to
+    # `env['onetime.stripped_forwarded_headers']`.
     # `SERVER_PORT` is left as the server set it: it is the listening port,
     # and Rack does not consult it for an http or https request with a Host.
     #
@@ -95,6 +101,10 @@ module Onetime
 
       # Carriers Rack reads ahead of `Host`.
       FORWARDED_CARRIERS = StripForwardedHost::STRIPPED_CANDIDATES
+
+      # Rack reads it for #port when the authority carries none.
+      X_FORWARDED_PORT = StripForwardedHost::X_FORWARDED_PORT
+      STRIPPED_HEADERS = StripForwardedHost::STRIPPED_HEADERS
 
       # Read per request so the stack's shape does not depend on the setting.
       #
@@ -150,6 +160,15 @@ module Onetime
         env[ORIGINAL_HTTP_HOST] = env[HTTP_HOST]
         env[HTTP_HOST]          = port ? "#{host}:#{port}" : host
         env[SERVER_NAME]        = host
+        strip_forwarded_port(env)
+      end
+
+      # See "What is written" above.
+      def strip_forwarded_port(env)
+        return unless env.key?(X_FORWARDED_PORT)
+
+        env.delete(X_FORWARDED_PORT)
+        env[STRIPPED_HEADERS] = (Array(env[STRIPPED_HEADERS]) + [X_FORWARDED_PORT]).freeze
       end
 
       # The port to write after +host+, or nil. DetectHost validated it for

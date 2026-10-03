@@ -125,6 +125,47 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite do
       expect(env['HTTP_HOST']).to eq('tenant.example.com')
     end
 
+    # Rack::Request#port reads X-Forwarded-Port whenever the authority has
+    # no port, so a header left beside a rewritten Host is a second source.
+    describe 'X-Forwarded-Port on a rewritten request' do
+      it 'is deleted when the authority carries another port' do
+        env = call_with(forwarded_env('tenant.example.com:8443', 'HTTP_X_FORWARDED_PORT' => '9443'))
+
+        expect(env).not_to have_key('HTTP_X_FORWARDED_PORT')
+        expect(Rack::Request.new(env).port).to eq(8443)
+      end
+
+      it 'is deleted when the scheme-default port was left out of the authority' do
+        request = Rack::Request.new(call_with(forwarded_env('tenant.example.com:443', 'HTTP_X_FORWARDED_PORT' => '9443')))
+
+        expect(request.port).to eq(443)
+        expect(request.base_url).to eq('https://tenant.example.com')
+      end
+
+      it 'is deleted when DetectHost validated no port' do
+        request = Rack::Request.new(call_with(forwarded_env(nil, 'HTTP_X_FORWARDED_PORT' => '9443')))
+
+        expect(request.port).to eq(443)
+        expect(request.base_url).to eq('https://tenant.example.com')
+      end
+
+      it 'is named with the carriers StripForwardedHost deleted' do
+        stripped = Onetime::Middleware::StripForwardedHost::STRIPPED_HEADERS
+        env      = call_with(forwarded_env('tenant.example.com:8443', 'HTTP_X_FORWARDED_PORT' => '8443',
+          stripped => ['HTTP_X_FORWARDED_HOST'].freeze))
+
+        expect(env[stripped]).to eq(%w[HTTP_X_FORWARDED_HOST HTTP_X_FORWARDED_PORT])
+        expect(env[stripped]).to be_frozen
+      end
+
+      it 'is kept on a request that is not rewritten' do
+        env = call_with(classified_env(host: 'tenant.example.com', detected: 'tenant.example.com', strategy: :custom,
+          'HTTP_X_FORWARDED_PORT' => '8443'))
+
+        expect(env['HTTP_X_FORWARDED_PORT']).to eq('8443')
+      end
+    end
+
     # The hostname and the port in separate headers, through DetectHost.
     context 'with a bare X-Forwarded-Host and X-Forwarded-Port from a trusted proxy' do
       def detected_env(port, **extra)
