@@ -50,6 +50,12 @@ module Onetime
     # holds — the verdict X-Forwarded-Host was accepted or refused on. A
     # trusted proxy's value is kept: Rack and PublicHostRewrite read it.
     #
+    # A trusted proxy's value is kept only when it is one port from 1 through
+    # 65535 (Rack::DetectHost.usable_port). Rack converts whatever is there
+    # with #to_i and takes the last entry of a list, so `abc`, `0`, `65536`
+    # or `-1` would otherwise become the port of a generated URL, and a list
+    # would be picked from although X-Forwarded-Host never is.
+    #
     # ## Whole-header delete, scheme handed to `rack.url_scheme`
     #
     # `Forwarded` multiplexes host with `proto`/`for`/`by`. An earlier version
@@ -150,7 +156,8 @@ module Onetime
 
       STRIPPED_CANDIDATES = [X_FORWARDED_HOST, FORWARDED].freeze
 
-      # Deleted only from a peer that is not a trusted proxy.
+      # Deleted from a peer that is not a trusted proxy, and from any peer
+      # when it is not one usable port.
       X_FORWARDED_PORT = 'HTTP_X_FORWARDED_PORT'
 
       def initialize(app)
@@ -159,7 +166,7 @@ module Onetime
 
       def call(env)
         stripped = STRIPPED_CANDIDATES.select { |key| env.key?(key) }
-        stripped << X_FORWARDED_PORT if untrusted_port?(env)
+        stripped << X_FORWARDED_PORT if unusable_port?(env)
 
         carry_forwarded_scheme(env) if stripped.include?(FORWARDED)
 
@@ -171,8 +178,10 @@ module Onetime
 
       private
 
-      def untrusted_port?(env)
-        env.key?(X_FORWARDED_PORT) && !Rack::DetectHost.from_trusted_proxy?(env)
+      def unusable_port?(env)
+        return false unless env.key?(X_FORWARDED_PORT)
+
+        !Rack::DetectHost.from_trusted_proxy?(env) || Rack::DetectHost.usable_port(env[X_FORWARDED_PORT]).nil?
       end
 
       # Persist the scheme Rack resolves while `Forwarded` is still present,

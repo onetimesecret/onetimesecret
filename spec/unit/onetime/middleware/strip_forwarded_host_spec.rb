@@ -88,6 +88,25 @@ RSpec.describe Onetime::Middleware::StripForwardedHost do
 
       expect(call_with(env)).not_to have_key('HTTP_X_FORWARDED_PORT')
     end
+
+    # Rack::Request#port converts whatever is there with #to_i and takes the
+    # last entry of a list.
+    ['0', '65536', '-1', 'abc', '', '8443, 443', "8443\n9", '8443abc'].each do |value|
+      it "deletes #{value.inspect} from a trusted proxy" do
+        env = call_with(port_env('REMOTE_ADDR' => '203.0.113.7', Rack::DetectHost::VIA_TRUSTED_PROXY_KEY => true,
+          'HTTP_X_FORWARDED_PORT' => value))
+
+        expect(env).not_to have_key('HTTP_X_FORWARDED_PORT')
+        expect(Rack::Request.new(env).port).to eq(443)
+        expect(env[described_class::STRIPPED_HEADERS]).to eq(['HTTP_X_FORWARDED_PORT'])
+      end
+    end
+
+    it 'keeps a padded single port from a trusted proxy' do
+      env = call_with(port_env('REMOTE_ADDR' => '10.0.0.5', 'HTTP_X_FORWARDED_PORT' => ' 8443 '))
+
+      expect(Rack::Request.new(env).port).to eq(8443)
+    end
   end
 
   describe 'RFC 7239 Forwarded' do
