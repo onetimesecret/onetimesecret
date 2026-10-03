@@ -288,6 +288,32 @@ RSpec.describe 'Host proxy stateful boundaries', :shared_db_state, type: :integr
         end
       end
 
+      # Onetime::Session writes the session's metadata row after the layers
+      # below have returned, and resolves the active organization then
+      # (Sessions::TrackMetadata -> OrganizationLoader, which reads HTTP_HOST).
+      # The account belongs to the organization that owns the tenant domain
+      # and has another organization as its own default. Behind a proxy that
+      # rewrites Host the loader sees the origin target with the setting off,
+      # finds no custom domain for it and falls to the account's default;
+      # with the setting on it sees the tenant domain and selects its owner.
+      it "HP-ORG-01: records #{rewrite ? "the tenant domain's organization" : "the account's default organization"} " \
+         'as the session\'s active organization for a tenant sign-in' do
+        home = Onetime::Organization.create!("Home #{test_run_id}", account_customer, account_email)
+        Onetime::OrganizationMembership.ensure_membership(test_organization, account_customer, role: 'member')
+        account_customer.default_org_id = home.objid
+        account_customer.save
+
+        login_on(tenant_domain)
+        proxy_get(tenant_domain, '/auth/account', cookie: @cookie)
+        expect(last_response.status).to eq(200)
+        expect(last_request.env.key?(Onetime::Middleware::PublicHostRewrite::ORIGINAL_HTTP_HOST)).to eq(rewrite)
+
+        expected = rewrite ? test_organization.objid : home.objid
+        expect(Onetime::SessionMetadata.load(@sid).org_id).to eq(expected)
+      ensure
+        home&.destroy!
+      end
+
       it 'HP-COOKIE-01: emits a host-only session cookie, not an origin-target Domain cookie' do
         login_on(tenant_domain)
         expect(@login_set_cookie).not_to match(/;\s*domain=/i)
