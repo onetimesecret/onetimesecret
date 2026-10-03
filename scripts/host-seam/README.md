@@ -38,11 +38,11 @@ production.
 
 ## The three lanes
 
-| Lane          | Hosts                       | Topology                                                                           |
-| ------------- | --------------------------- | ---------------------------------------------------------------------------------- |
-| Preserved     | `local-secrets1..3.afb.pet` | Host passed through (existing block)                                               |
-| **Rewritten** | `local-secrets4..5.afb.pet` | Host rewritten, real host in `X-Forwarded-Host` (`caddy-approximated-lane.caddy`)  |
-| Headless      | `topology-probe.sh`         | 12 curl topologies, no browser, no TLS                                             |
+| Lane          | Hosts                       | Topology                                                                          |
+| ------------- | --------------------------- | --------------------------------------------------------------------------------- |
+| Preserved     | `local-secrets1..3.afb.pet` | Host passed through (existing block)                                              |
+| **Rewritten** | `local-secrets4..5.afb.pet` | Host rewritten, real host in `X-Forwarded-Host` (`caddy-approximated-lane.caddy`) |
+| Headless      | `topology-probe.sh`         | 12 curl topologies, no browser, no TLS                                            |
 
 Register the same org custom domain on a host from the first two lanes. Any
 feature that passes lane 1 and fails lane 2 is reading raw `Host`.
@@ -87,11 +87,15 @@ design**. `X-Forwarded-Host` is the one forwarded carrier the app reads, and
 `Apx-Incoming-Host` beside it is not read; app fallback stays canonical, but
 tenant SSO can be denied until the edge overwrites inbound `X-Forwarded-Host`.
 
-T3, T6, T8 and T12 changed expectation with #4384: `Apx-Incoming-Host`,
+T3, T6 and T12 changed expectation with #4384: `Apx-Incoming-Host`,
 `X-Original-Host` and a comma-separated `X-Forwarded-Host` are not read, so
-those rows now expect `canonical` (T8 moved its carrier to `X-Forwarded-Host`
-and still expects `custom`). A release before #4384 reports them as
-mismatches.
+those rows resolve on `Host`, as does T7 (`Forwarded` is not read). They expect
+`invalid` for the default, unregistered `--origin origin-target.internal`, or
+`canonical` when `--origin` equals `--canonical`. Use an unregistered origin
+outside the deployment's canonical/subdomain set, or the exact `--canonical`
+value; other registered origins are not modeled by these expectations.
+T8 moved its carrier to `X-Forwarded-Host` and still expects `custom`. A release
+before #4384 reports T3, T6 and T12 as mismatches.
 
 ## Running it
 
@@ -107,7 +111,7 @@ Run commands from repo root.
 ### Release gate (one running version)
 
 **Seed the fixture first.** The SSO column is only meaningful for a domain
-that has an enabled SsoConfig; `--custom` must be *that* domain and
+that has an enabled SsoConfig; `--custom` must be _that_ domain and
 `--tenant-id` must match its seeded tenant id (probe default matches the seed
 default). A registered custom domain without an SsoConfig makes the probe
 report `FIXTURE_MISSING` on every custom-strategy row:

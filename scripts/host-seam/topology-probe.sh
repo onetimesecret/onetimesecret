@@ -104,6 +104,12 @@ fi
 # heard of, because that is the reproducible case. T8 covers the variant where
 # the inbound target happens to BE the canonical host, which routes differently.
 ORIGIN="${ORIGIN:-origin-target.internal}"
+# Host-only controls classify an unregistered origin as invalid, not canonical.
+# Operators can instead target the canonical host explicitly with --origin.
+ORIGIN_STRATEGY="invalid"
+if [[ "$ORIGIN" == "$CANONICAL" ]]; then
+  ORIGIN_STRATEGY="canonical"
+fi
 
 # ---------------------------------------------------------------------------
 # Topologies
@@ -128,17 +134,16 @@ TOPOLOGIES=(
   # T3: what Approximated sends when the edge does not translate it. Host is
   # rewritten to a non-canonical inbound target and the real host rides only
   # in Apx-Incoming-Host, which is not read: the request resolves on Host.
-  "T3-apx-only|${ORIGIN}|${CUSTOM}|-|-|-|canonical"
+  "T3-apx-only|${ORIGIN}|${CUSTOM}|-|-|-|${ORIGIN_STRATEGY}"
   "T4-apx-rewrite-xfh|${ORIGIN}|${CUSTOM}|${CUSTOM}|-|-|custom"
   # T5 is the production shape: Host rewritten to a non-canonical inbound
   # target, real host in X-Forwarded-Host. This is the #4224 reproduction.
   "T5-xfh-only|${ORIGIN}|-|${CUSTOM}|-|-|custom"
-  "T6-xoh-only|${ORIGIN}|-|-|${CUSTOM}|-|canonical"
+  "T6-xoh-only|${ORIGIN}|-|-|${CUSTOM}|-|${ORIGIN_STRATEGY}"
   # T7: RFC 7239 `Forwarded: host=` is NOT a host source since #4121. The
-  # request resolves on `Host:` alone — the unknown inbound target — and
-  # DomainStrategy falls back to canonical. `custom` here would mean the
-  # Forwarded host= parameter is being honored again.
-  "T7-forwarded-only|${ORIGIN}|-|-|-|${CUSTOM}|canonical"
+  # request resolves on `Host:` alone, so its strategy depends on the origin.
+  # `custom` here would mean the Forwarded host= parameter is being honored again.
+  "T7-forwarded-only|${ORIGIN}|-|-|-|${CUSTOM}|${ORIGIN_STRATEGY}"
   # T8: the inbound target IS the canonical host. A consumer reading the raw
   # Host header lands in the `canonical_domain?` branch of the omniauth setup
   # hook (platform-level request) instead of the tenant-fallback branch, so it
@@ -165,7 +170,7 @@ TOPOLOGIES=(
   "T11-apx-spoof|${CANONICAL}|${EVIL}|-|-|-|canonical"
   # T12: a proxy that appended to X-Forwarded-Host instead of overwriting it.
   # Neither value is selected; the request resolves on Host.
-  "T12-xfh-multi|${ORIGIN}|-|${CUSTOM}, ${EVIL}|-|-|canonical"
+  "T12-xfh-multi|${ORIGIN}|-|${CUSTOM}, ${EVIL}|-|-|${ORIGIN_STRATEGY}"
 )
 
 # Build the curl header args for a topology row into the global HARGS array.
