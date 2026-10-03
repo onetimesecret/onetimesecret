@@ -582,6 +582,33 @@ module HostProxyMatrix
       headers: { 'Host' => '{canonical}', 'X-Forwarded-Host' => UNREGISTERED },
       idp: nil, sso_location: '/signin?auth_error=sso_not_configured',
       link: nil, reset_status: 404 },
+    # Real configuration mutation, not a stub of Auth::PublicHost. The default
+    # canonical host remains configured; only requests that cannot use that
+    # tier reach the request-derived fallback. SSO verification still applies.
+    { id: 'H05-E01', case: 'missing site.host retains the configured default host for both emitters',
+      site_host: nil, headers: { 'Host' => '{canonical}' },
+      idp: :platform, redirect_uri: CANONICAL_ORIGIN, link: CANONICAL_ORIGIN, brand: '{canonical}' },
+    { id: 'H05-E02', case: 'missing site.host retains a verified tenant for both emitters',
+      site_host: nil, headers: { 'Host' => '{canonical}', 'X-Forwarded-Host' => '{tenant}' },
+      idp: :tenant, redirect_uri: TENANT_ORIGIN, link: TENANT_ORIGIN, brand: '{tenant}', rewritten: {} },
+    { id: 'H05-E03', case: 'missing site.host emits a reset link on an unverified preserved Host but refuses SSO',
+      site_host: nil, record: :unverified, headers: { 'Host' => '{tenant}' },
+      idp: nil, sso_location: '/signin?auth_error=sso_domain_unverified',
+      link: TENANT_ORIGIN, brand: nil },
+    { id: 'H05-E04', case: 'missing site.host makes an unverified tenant reset link follow Rack authority',
+      site_host: nil, record: :unverified,
+      headers: { 'Host' => '{canonical}', 'X-Forwarded-Host' => '{tenant}' },
+      idp: nil, sso_location: '/signin?auth_error=sso_domain_unverified',
+      link: CANONICAL_ORIGIN, brand: nil, rewritten: { link: TENANT_ORIGIN } },
+    { id: 'H05-E05', case: 'missing site.host still refuses emitters for an unregistered display host',
+      site_host: nil, headers: { 'Host' => '{canonical}', 'X-Forwarded-Host' => UNREGISTERED },
+      idp: nil, sso_location: '/signin?auth_error=sso_not_configured',
+      link: nil, reset_status: 404 },
+    { id: 'H05-E06', case: 'missing site.host does not turn a failed tenant lookup into an emitted credential',
+      site_host: nil, record: :read_fails,
+      headers: { 'Host' => '{canonical}', 'X-Forwarded-Host' => '{tenant}' },
+      idp: nil, sso_location: '/signin?auth_error=sso_failed',
+      link: nil, reset_status: 503 },
     { id: 'E12', case: 'read failure, tenant in X-Forwarded-Host',
       record: :read_fails, headers: { 'Host' => '{canonical}', 'X-Forwarded-Host' => '{tenant}' },
       changes_with: '#4220',
@@ -607,6 +634,10 @@ module HostProxyMatrix
       headers: { 'Host' => SITE_HOST, 'X-Forwarded-Host' => UNREGISTERED },
       idp: nil, sso_location: '/signin?auth_error=sso_not_configured',
       link: SITE_HOST_ORIGIN, brand: SITE_HOST },
+    { id: 'H05-E07', case: 'missing site.host with domains disabled emits a request-host reset link but refuses SSO',
+      site_host: nil, headers: { 'Host' => UNREGISTERED },
+      idp: nil, sso_location: '/signin?auth_error=sso_not_configured',
+      link: 'https://unregistered.tenant-example.com', brand: nil },
     { id: 'E21', case: 'doubled IP-literal site.host',
       headers: { 'Host' => "#{SITE_HOST}, #{SITE_HOST}" }, proto: nil,
       idp: nil, sso_location: '/signin?auth_error=sso_not_configured',
@@ -669,8 +700,8 @@ RSpec.describe 'Host and proxy simulation matrix (#4223)', :shared_db_state, typ
   # Run the block with site.host replaced, when the row asks for it.
   # DomainStrategy derives its canonical set from OT.conf at
   # initialize_from_config, so both are updated and both are put back.
-  def with_site_host(host)
-    return yield if host.nil?
+  def with_site_host(host = :unchanged)
+    return yield if host == :unchanged
 
     saved = OT.conf['site']['host']
     begin
@@ -728,7 +759,7 @@ RSpec.describe 'Host and proxy simulation matrix (#4223)', :shared_db_state, typ
       suffix = row[:changes_with] ? " (current behaviour; #{row[:changes_with]})" : ''
 
       it "#{row[:id]} #{row[:case]}#{suffix}" do
-        with_site_host(row[:site_host]) do
+        with_site_host(row.fetch(:site_host, :unchanged)) do
           prepare_record(row[:record])
           apply_topology(row)
           header 'Accept', 'application/json'
@@ -787,45 +818,60 @@ RSpec.describe 'Host and proxy simulation matrix (#4223)', :shared_db_state, typ
       suffix = row[:changes_with] ? " (current behaviour; #{row[:changes_with]})" : ''
 
       it "#{row[:id]} #{row[:case]}#{suffix}" do
-        expected = row_for_run(row)
-        prepare_record(row[:record])
-        apply_topology(row)
+        with_site_host(row.fetch(:site_host, :unchanged)) do
+          missing_site_host = row.key?(:site_host) && row[:site_host].nil?
+          expect(OT.conf.dig('site', 'host')).to be_nil if missing_site_host
+          expected = row_for_run(row)
+          prepare_record(row[:record])
+          apply_topology(row)
 
-        # --- SSO -------------------------------------------------------------
-        post '/auth/sso/entra'
-        location = last_response.headers['Location'].to_s
-        expect(last_response.status).to eq(expected.fetch(:sso_status, 302))
+          # --- SSO -----------------------------------------------------------
+          post '/auth/sso/entra'
+          location = last_response.headers['Location'].to_s
+          expect(last_response.status).to eq(expected.fetch(:sso_status, 302))
 
-        if expected[:idp]
-          entra_tenant = expected[:idp] == :tenant ? test_sso_config.tenant_id : 'placeholder'
-          expect(location).to start_with("https://login.microsoftonline.com/#{entra_tenant}/")
+          if expected[:idp]
+            entra_tenant = expected[:idp] == :tenant ? test_sso_config.tenant_id : 'placeholder'
+            expect(location).to start_with("https://login.microsoftonline.com/#{entra_tenant}/")
 
-          redirect_uri = CGI.parse(URI.parse(location).query.to_s)['redirect_uri'].first.to_s
-          expect(redirect_uri).to eq("#{fill(expected[:redirect_uri])}/auth/sso/entra/callback")
-        else
-          expect(location).to end_with(expected[:sso_location])
+            redirect_uri = CGI.parse(URI.parse(location).query.to_s)['redirect_uri'].first.to_s
+            expect(redirect_uri).to eq("#{fill(expected[:redirect_uri])}/auth/sso/entra/callback")
+          else
+            expect(location).to end_with(expected[:sso_location])
+          end
+          expect_rewrite_record(row)
+
+          # --- Email ---------------------------------------------------------
+          clear_cookies
+          csrf_json_post('/auth/reset-password-request', login: account_email)
+          expect(last_request.env['HTTP_X_CSRF_TOKEN']).not_to be_nil if missing_site_host
+
+          if expected[:link].nil?
+            expect(@delivered).to be_empty
+            expect(last_response.status).to eq(expected[:reset_status])
+            expect(auth_db[:account_password_reset_keys].where(id: account_id).count).to eq(0) if missing_site_host
+            next
+          end
+
+          expect(@delivered.size).to eq(1),
+            "expected one delivered email, got #{@delivered.size}. " \
+            "Last response: #{last_response.status} #{last_response.body.to_s[0, 300]}"
+          email = @delivered.first
+          link  = email[:body].to_s[%r{https?://[^\s,]+/reset-password\?key=\S+}]
+
+          expect(link).not_to be_nil, "no reset link in the delivered body:\n#{email[:body].to_s[0, 600]}"
+          expect(origin_of(link)).to eq(fill(expected[:link]))
+          if missing_site_host
+            expect(last_response.status).to eq(200)
+            expect(CGI.parse(URI.parse(link).query.to_s)['key'].first).not_to be_empty
+            expect(auth_db[:account_password_reset_keys].where(id: account_id).count).to eq(1)
+          end
+          if expected[:brand]
+            expect(email[:subject].to_s).to include("(#{fill(expected[:brand])})")
+          else
+            expect(Auth::PublicHost.allowlisted_host(last_request.env)).to be_nil
+          end
         end
-        expect_rewrite_record(row)
-
-        # --- Email -----------------------------------------------------------
-        clear_cookies
-        csrf_json_post('/auth/reset-password-request', login: account_email)
-
-        if expected[:link].nil?
-          expect(@delivered).to be_empty
-          expect(last_response.status).to eq(expected[:reset_status])
-          next
-        end
-
-        expect(@delivered.size).to eq(1),
-          "expected one delivered email, got #{@delivered.size}. " \
-          "Last response: #{last_response.status} #{last_response.body.to_s[0, 300]}"
-        email = @delivered.first
-        link  = email[:body].to_s[%r{https?://[^\s,]+/reset-password\?key=\S+}]
-
-        expect(link).not_to be_nil, "no reset link in the delivered body:\n#{email[:body].to_s[0, 600]}"
-        expect(origin_of(link)).to eq(fill(expected[:link]))
-        expect(email[:subject].to_s).to include("(#{fill(expected[:brand])})")
       end
     end
   end
