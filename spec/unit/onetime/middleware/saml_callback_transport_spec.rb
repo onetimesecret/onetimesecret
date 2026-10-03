@@ -361,6 +361,32 @@ RSpec.describe Onetime::Middleware::SamlCallbackTransport do
       expect(reached.length).to eq(1)
     end
 
+    # With rewriting off the completing GET reaches the strategy under the
+    # origin target's Host. The application resolves OmniAuth's full_host
+    # from the public host rather than the Rack authority; it is pinned here
+    # the same way, or the strategy refuses the GET as :saml_acs_host_mismatch
+    # before the staged response is looked up and the scope is never the
+    # deciding check.
+    it 'completes a signed callback staged while rewriting was on after it is turned off' do
+      OmniAuth.config.full_host = host
+      cookie, request_id = start
+      allow(Onetime::Middleware::PublicHostRewrite).to receive(:enabled?).and_return(true)
+      response = proxy_request('POST', path,
+        params: { 'SAMLResponse' => assertion(request_id) },
+        'HTTP_ORIGIN' => 'https://idp.example.com')
+      expect(response.status).to eq(303)
+      expect(response['set-cookie']).to be_nil
+      expect(reached).to be_empty
+
+      allow(Onetime::Middleware::PublicHostRewrite).to receive(:enabled?).and_return(false)
+      completion = proxy_request('GET', response['location'], 'HTTP_COOKIE' => cookie)
+      expect(failures).to be_empty
+      expect(completion.status).to eq(200)
+      expect(reached.length).to eq(1)
+      expect(proxy_request('GET', response['location'], 'HTTP_COOKIE' => cookie).status).to eq(401)
+      expect(reached.length).to eq(1)
+    end
+
     it 'keeps the exact pre-rewrite scope in either setting without mutating the live authority' do
       env = Rack::MockRequest.env_for("#{host}#{path}",
         'HTTPS' => 'off',
