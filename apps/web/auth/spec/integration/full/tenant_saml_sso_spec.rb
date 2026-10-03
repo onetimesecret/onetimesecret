@@ -138,10 +138,21 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
 
   # ── flow helpers ──────────────────────────────────────────────────────────
 
+  # How a flow request names the tenant: its host in Host. The proxy group
+  # at the end of the file replaces this with the shape a Host-rewriting
+  # proxy sends.
+  def address(tenant)
+    header 'Host', tenant.host
+  end
+
+  # The peer the IdP's cross-site POST arrives from: a public address of this
+  # example's own.
+  let(:callback_peer) { "2001:db8:#{run_id.scan(/.{4}/).join(':')}::1" }
+
   # Request phase on the tenant's host. Returns what the SP actually asked the
   # IdP for — the response below answers THAT, the way a real IdP would.
   def start_login(tenant)
-    header 'Host', tenant.host
+    address(tenant)
     post '/auth/sso/saml'
 
     expect(last_response.status).to eq(302), "request phase: #{last_response.status} #{last_response.body[0, 200]}"
@@ -169,9 +180,9 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
   # false stops after staging so an example can act between staging and
   # completion.
   def post_callback(tenant, saml_response, origin: URI.join(tenant.sso_url, '/').to_s.chomp('/'), expect_staged: true, follow: true)
-    header 'Host', tenant.host
+    address(tenant)
     header 'Origin', origin
-    post '/auth/sso/saml/callback', { 'SAMLResponse' => saml_response }, { 'REMOTE_ADDR' => "2001:db8:#{run_id.scan(/.{4}/).join(':')}::1" }
+    post '/auth/sso/saml/callback', { 'SAMLResponse' => saml_response }, { 'REMOTE_ADDR' => callback_peer }
     return unless expect_staged
 
     expect(last_response.status).to eq(303), "staging: #{last_response.status} #{last_response.body[0, 200]}"
@@ -1149,6 +1160,66 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
       expect(last_response.body).not_to include('EntityDescriptor')
       expect(last_response.headers['Location'].to_s).to include('auth_error=sso_config_unusable')
       expect(events.map(&:first)).to include(:omniauth_tenant_config_unusable)
+    end
+  end
+
+  # ── behind a Host-rewriting proxy ─────────────────────────────────────────
+
+  # The whole sign-in sent the way a Host-rewriting proxy sends it: the
+  # origin target in Host, the tenant in X-Forwarded-Host. Run with
+  # site.network.public_host_rewrite off and on (#4223); the outcome is the
+  # same, and each step states whether the layers below the rewrite received
+  # the tenant host.
+  describe 'sign-in behind a Host-rewriting proxy' do
+    let(:name_id) { "nameid-proxy-#{run_id}" }
+    let(:email) { "user-proxy-#{run_id}@saml-tenant.example.com" }
+
+    # The callback has to come from a peer DetectHost takes forwarded
+    # headers from. With no trusted-proxy configuration that is a private
+    # address; this one is the example's own, as the public one above is.
+    let(:callback_peer) { "fd00:#{run_id.scan(/.{4}/).join(':')}::1" }
+
+    def address(tenant)
+      header 'Host', canonical_host
+      header 'X-Forwarded-Host', tenant.host
+    end
+
+    [false, true].each do |rewrite|
+      context "with public_host_rewrite #{rewrite ? 'on' : 'off'}" do
+        let(:rewrite_on) { rewrite }
+
+        include_context 'public host rewrite setting'
+
+        def expect_proxied_request(tenant)
+          expect_host_rewrite(canonical_host, rewritten: rewrite_on)
+          expect(Rack::Request.new(last_request.env).host).to eq(rewrite_on ? tenant.host : canonical_host)
+        end
+
+        it 'stages the callback and signs the user in on the tenant identity' do
+          created_emails << email
+          request = start_login(tenant_a)
+          expect_proxied_request(tenant_a)
+          expect(request.acs_url).to eq("http://#{tenant_a.host}/auth/sso/saml/callback")
+          expect(request.sp_entity_id).to eq("http://#{tenant_a.host}/auth/sso/saml/metadata")
+
+          post_callback(tenant_a, tenant_a.idp.response(
+            in_response_to: request.id, acs_url: request.acs_url, audience: request.sp_entity_id,
+            name_id: name_id, attributes: { 'email' => [email] }
+          ), follow: false)
+          expect_proxied_request(tenant_a)
+          expect(identity_rows(name_id)).to be_empty
+
+          get last_response.headers['Location']
+          expect_proxied_request(tenant_a)
+
+          expect(last_response.status).to eq(302), last_response.body[0, 300]
+          expect(last_response.headers['Location'].to_s).not_to include('auth_error')
+          rows = identity_rows(name_id)
+          expect(rows.size).to eq(1)
+          expect(rows.first[:issuer]).to eq(tenant_issuer(tenant_a))
+          expect(db[:accounts].where(id: rows.first[:account_id]).get(:email)).to eq(email)
+        end
+      end
     end
   end
 end
