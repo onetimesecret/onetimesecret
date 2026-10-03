@@ -34,70 +34,94 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
 
   TRUSTED_PEERS = [:private_no_verdict, :loopback_no_verdict, :verdict_true].freeze
 
-  HOSTS = [
-    ORIGIN,
-    CANONICAL,
-    REGISTERED,
-    "#{REGISTERED}:8443",
-    'evil.test',
-    'evil.test:8443',
-    "#{REGISTERED}, evil.test",
-    "evil.test, #{REGISTERED}",
-    "#{REGISTERED}@evil.test",
-    "evil.test@#{REGISTERED}",
-    '10.0.0.7:3000',
-    'localhost:3000',
-    '',
-    nil,
-  ].freeze
+  # Spec-side oracle, written by hand and independent of the code under
+  # test: each Host value maps to the hostname host detection takes from it
+  # (the first entry of a doubled Host, with any port dropped), or nil when
+  # it names no usable DNS hostname.
+  HOST_NAMES = {
+    ORIGIN => 'origin.internal',
+    CANONICAL => CANONICAL,
+    REGISTERED => REGISTERED,
+    "#{REGISTERED}:8443" => REGISTERED,
+    'evil.test' => 'evil.test',
+    'evil.test:8443' => 'evil.test',
+    "#{REGISTERED}, evil.test" => REGISTERED,
+    "evil.test, #{REGISTERED}" => 'evil.test',
+    "#{REGISTERED}@evil.test" => nil,
+    "evil.test@#{REGISTERED}" => nil,
+    '10.0.0.7:3000' => nil,
+    'localhost:3000' => nil,
+    '' => nil,
+    nil => nil,
+  }.freeze
 
-  FORWARDED_HOSTS = [
-    nil,
-    '',
-    REGISTERED,
-    REGISTERED.upcase,
-    "#{REGISTERED}.",
-    " #{REGISTERED} ",
-    "#{REGISTERED}:8443",
-    "#{REGISTERED}:443",
-    "#{REGISTERED}:80",
-    "#{REGISTERED}:0",
-    "#{REGISTERED}:65536",
-    "#{REGISTERED}:99999",
-    "#{REGISTERED}:",
-    "#{REGISTERED}:abc",
-    "#{REGISTERED}:8443:9",
-    "#{REGISTERED}:8443/path",
-    "#{REGISTERED}/path",
-    "#{REGISTERED}?x=1",
-    "#{REGISTERED}#evil.test",
-    "#{REGISTERED}@evil.test",
-    "evil.test@#{REGISTERED}",
-    "user:pw@#{REGISTERED}",
-    "https://#{REGISTERED}",
-    "https://#{REGISTERED}:8443/x",
-    "https://evil.test@#{REGISTERED}/",
-    "https://#{REGISTERED}@evil.test/",
-    "#{REGISTERED}\r\nX-Injected: 1",
-    "#{REGISTERED}\tevil.test",
-    "#{REGISTERED} evil.test",
-    "#{REGISTERED}, evil.test",
-    "evil.test, #{REGISTERED}",
-    "#{REGISTERED},",
-    CANONICAL,
-    "www.#{CANONICAL}",
-    "tenant.#{CANONICAL}",
-    'evil.test',
-    'unregistered.test:8443',
-    'broken-read.test',
-    'broken-read.example.net',
-    '10.0.0.7',
-    '[::1]:8443',
-    'localhost',
-    'xn--e1afmkfd.xn--p1ai',
-    "-#{REGISTERED}",
-    ('a' * 64) + '.test',
-  ].freeze
+  HOSTS = HOST_NAMES.keys.freeze
+
+  # The same for X-Forwarded-Host from a trusted proxy: the hostname it is
+  # selected as, or nil when it is not selected and detection continues
+  # with Host. A value with more than one entry is never selected.
+  FORWARDED_HOST_NAMES = {
+    nil => nil,
+    '' => nil,
+    REGISTERED => REGISTERED,
+    REGISTERED.upcase => REGISTERED,
+    # The trailing dot of an FQDN is kept in the detected name.
+    "#{REGISTERED}." => "#{REGISTERED}.",
+    " #{REGISTERED} " => REGISTERED,
+    "#{REGISTERED}:8443" => REGISTERED,
+    "#{REGISTERED}:443" => REGISTERED,
+    "#{REGISTERED}:80" => REGISTERED,
+    "#{REGISTERED}:0" => REGISTERED,
+    "#{REGISTERED}:65536" => REGISTERED,
+    "#{REGISTERED}:99999" => REGISTERED,
+    "#{REGISTERED}:" => REGISTERED,
+    "#{REGISTERED}:abc" => REGISTERED,
+    "#{REGISTERED}:8443:9" => REGISTERED,
+    "#{REGISTERED}:8443/path" => REGISTERED,
+    "#{REGISTERED}/path" => nil,
+    "#{REGISTERED}?x=1" => nil,
+    "#{REGISTERED}#evil.test" => nil,
+    "#{REGISTERED}@evil.test" => nil,
+    "evil.test@#{REGISTERED}" => nil,
+    # Read as host "user", port "pw@...": a name, but not one that is served.
+    "user:pw@#{REGISTERED}" => 'user',
+    # URL forms name the URL's host; userinfo is not the host.
+    "https://#{REGISTERED}" => REGISTERED,
+    "https://#{REGISTERED}:8443/x" => REGISTERED,
+    "https://evil.test@#{REGISTERED}/" => REGISTERED,
+    "https://#{REGISTERED}@evil.test/" => 'evil.test',
+    "#{REGISTERED}\r\nX-Injected: 1" => nil,
+    "#{REGISTERED}\tevil.test" => nil,
+    "#{REGISTERED} evil.test" => nil,
+    "#{REGISTERED}, evil.test" => nil,
+    "evil.test, #{REGISTERED}" => nil,
+    "#{REGISTERED}," => nil,
+    CANONICAL => CANONICAL,
+    "www.#{CANONICAL}" => "www.#{CANONICAL}",
+    "tenant.#{CANONICAL}" => "tenant.#{CANONICAL}",
+    'evil.test' => 'evil.test',
+    'unregistered.test:8443' => 'unregistered.test',
+    'broken-read.test' => 'broken-read.test',
+    'broken-read.example.net' => 'broken-read.example.net',
+    '10.0.0.7' => nil,
+    '[::1]:8443' => nil,
+    'localhost' => nil,
+    'xn--e1afmkfd.xn--p1ai' => 'xn--e1afmkfd.xn--p1ai',
+    "-#{REGISTERED}" => nil,
+    (('a' * 64) + '.test') => nil,
+  }.freeze
+
+  FORWARDED_HOSTS = FORWARDED_HOST_NAMES.keys.freeze
+
+  # Every detected name this install serves, with its classification when
+  # the domains feature is on. Any other name is :invalid.
+  SERVED_STRATEGIES = {
+    CANONICAL => :canonical,
+    "www.#{CANONICAL}" => :canonical,
+    "tenant.#{CANONICAL}" => :subdomain,
+    REGISTERED => :custom,
+    "#{REGISTERED}." => :custom,
+  }.freeze
 
   FORWARDED_PORTS = [nil, '', '8443', '443', '80', '0', '65536', '8443, 443', 'abc', '-1', ' 8443 ', "8443\n9"].freeze
 
@@ -215,6 +239,40 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
       'onetime.custom_domain_id')
   end
 
+
+  # What the oracle tables expect for one matrix input, with the domains
+  # feature on: the detected name, the display domain, the classification,
+  # and whether the request is rewritten (a served name that the received
+  # Host does not already name as one plain host[:port]).
+  def expected_for(input)
+    forwarded = TRUSTED_PEERS.include?(input[:peer]) ? FORWARDED_HOST_NAMES.fetch(input[:xfh]) : nil
+    name      = forwarded || HOST_NAMES.fetch(input[:host])
+    strategy  = SERVED_STRATEGIES.fetch(name, :invalid)
+    named     = !name.nil? && input[:host].to_s.match?(/\A#{Regexp.escape(name)}(?::[0-9]+)?\z/i)
+    {
+      detected: name,
+      display: name || CANONICAL,
+      strategy: strategy,
+      rewritten: strategy != :invalid && !named,
+    }
+  end
+
+  it 'classifies every input as the spec-side oracle expects, rewritten or not' do
+    report(
+      violations do |input, out|
+        expected = expected_for(input)
+        actual   = {
+          detected: out[Rack::DetectHost.result_field_name],
+          display: out['onetime.display_domain'],
+          strategy: out['onetime.domain_strategy'],
+        }
+        next if actual == expected.slice(:detected, :display, :strategy)
+
+        "actual=#{actual.inspect} expected=#{expected.inspect}"
+      end,
+    )
+  end
+
   # Compare against the same request without forwarding, including doubled
   # Host normalization. A classification-derived allowlist is not an oracle.
   it 'takes nothing from the forwarded headers of a peer that is not a trusted proxy' do
@@ -312,13 +370,13 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
     )
   end
 
-  it 'never rewrites an :invalid classification' do
+  it 'rewrites exactly the inputs the oracle classifies as served and whose Host does not already name that host' do
     report(
-      violations do |_input, out|
-            next unless rewritten?(out)
-            next if [:canonical, :subdomain, :custom].include?(out['onetime.domain_strategy'])
+      violations do |input, out|
+        expected = expected_for(input)
+        next if rewritten?(out) == expected[:rewritten]
 
-            "rewritten with strategy #{out['onetime.domain_strategy'].inspect}"
+        "rewritten=#{rewritten?(out)} expected=#{expected.inspect} HTTP_HOST=#{out['HTTP_HOST'].inspect}"
       end,
     )
   end
