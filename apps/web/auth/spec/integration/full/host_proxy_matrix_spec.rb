@@ -223,6 +223,13 @@ module HostProxyMatrix
       headers: { 'Host' => '{canonical}:8443', 'X-Forwarded-Host' => '{tenant}:8443' },
       rack_host: '{canonical}', **TENANT, origin: 'https://{tenant}:8443',
       rewritten: { rack_host: '{tenant}', rack_base_url: 'https://{tenant}:8443' } },
+    # The hostname and the port in separate headers (the usual nginx
+    # setup). Off, Rack takes the port of the origin hop from Host ahead of
+    # X-Forwarded-Port. On, the forwarded port is written into the authority.
+    { id: 'F11', case: 'bare X-Forwarded-Host with the public port in X-Forwarded-Port',
+      headers: { 'Host' => '{canonical}:3000', 'X-Forwarded-Host' => '{tenant}', 'X-Forwarded-Port' => '8443' },
+      rack_host: '{canonical}', **TENANT, origin: 'https://{tenant}:3000',
+      rewritten: { rack_host: '{tenant}', origin: 'https://{tenant}:8443', rack_base_url: 'https://{tenant}:8443' } },
 
     # --- RFC 7239 Forwarded --------------------------------------------------
     # Never a host source. Under the X-Forwarded family the stack pins, its

@@ -111,10 +111,37 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite do
       expect(Rack::Request.new(env).base_url).to eq('https://tenant.example.com:8443')
     end
 
-    it 'falls back to X-Forwarded-Port without an accepted authority port' do
+    it 'does not write an X-Forwarded-Port that DetectHost did not validate' do
       env = call_with(forwarded_env(nil, 'HTTP_X_FORWARDED_PORT' => '9443'))
 
-      expect(Rack::Request.new(env).port).to eq(9443)
+      expect(env['HTTP_HOST']).to eq('tenant.example.com')
+    end
+
+    # The hostname and the port in separate headers, through DetectHost.
+    context 'with a bare X-Forwarded-Host and X-Forwarded-Port from a trusted proxy' do
+      def detected_env(port, **extra)
+        env = classified_env(host: 'origin.example.test:3000', detected: nil, display: 'tenant.example.com',
+          strategy: :custom, 'HTTP_X_FORWARDED_HOST' => 'tenant.example.com',
+          'HTTP_X_FORWARDED_PORT' => port, 'REMOTE_ADDR' => '127.0.0.1', **extra)
+        Rack::DetectHost.new(->(_env) { [200, {}, []] }).call(env)
+        env.delete('HTTP_X_FORWARDED_HOST') # as StripForwardedHost does
+        env
+      end
+
+      it 'gives Rack one port for #port and #base_url' do
+        request = Rack::Request.new(call_with(detected_env('8443')))
+
+        expect(request.get_header('HTTP_HOST')).to eq('tenant.example.com:8443')
+        expect(request.port).to eq(8443)
+        expect(request.base_url).to eq('https://tenant.example.com:8443')
+      end
+
+      it 'writes no port for a peer that is not a trusted proxy' do
+        env = call_with(detected_env('8443', 'HTTP_HOST' => 'tenant.example.com, tenant.example.com',
+          'REMOTE_ADDR' => '203.0.113.7'))
+
+        expect(env['HTTP_HOST']).to eq('tenant.example.com')
+      end
     end
 
     it 'does not take a port from metadata for another host' do

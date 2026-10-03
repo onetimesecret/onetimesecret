@@ -186,8 +186,11 @@ module Rack
     class << self
       attr_accessor :result_field_name
 
-      # Validated authority with an explicit port from the selected, trusted
-      # X-Forwarded-Host only. Never populated from Host or observed carriers.
+      # Validated `host:port` authority for the selected, trusted
+      # X-Forwarded-Host. The port is the one that header carries or, when
+      # it is a bare hostname, the single-valued X-Forwarded-Port sent with
+      # it. Never populated from Host or observed carriers, and absent when
+      # X-Forwarded-Host was not the selected header.
       def forwarded_authority_field_name
         "#{result_field_name}.forwarded_authority"
       end
@@ -316,7 +319,9 @@ module Rack
         if self.class.valid_domain_name?(host)
           detected_host = host
           if header == 'X-Forwarded-Host'
-            authority                                      = self.class.forwarded_authority(env[header_key], host)
+            authority                                      = self.class.forwarded_authority(
+              env[header_key], host, env[self.class.env_key('X-Forwarded-Port')]
+            )
             env[self.class.forwarded_authority_field_name] = authority if authority
           end
           logger.debug("[DetectHost] #{host} via #{header_key}")
@@ -406,14 +411,20 @@ module Rack
         Onetime::Utils::DomainParser.extract_hostname(first_host)
       end
 
-      # Retain only a plain DNS authority with a usable explicit port. Host
-      # detection is deliberately more permissive (e.g. URL extraction); do
-      # not carry that extra syntax into the rewritten HTTP_HOST.
-      def forwarded_authority(value, host)
-        match = value.to_s.strip.match(/\A([a-z0-9.-]+):([0-9]{1,5})\z/i)
+      # Retain only a plain DNS authority with a usable port. Host detection
+      # is deliberately more permissive (e.g. URL extraction); do not carry
+      # that extra syntax into the rewritten HTTP_HOST.
+      #
+      # The port in the value itself wins. A bare hostname takes the port
+      # from +forwarded_port+ (X-Forwarded-Port) when that is one numeric
+      # value: the common proxy setup sends the hostname and the port in
+      # separate headers. A port written in the value that is unusable is
+      # not replaced, and a list of ports is not picked from.
+      def forwarded_authority(value, host, forwarded_port = nil)
+        match = value.to_s.strip.match(/\A([a-z0-9.-]+)(?::([0-9]{1,5}))?\z/i)
         return nil unless match && normalize_host(match[1]) == host
 
-        port = match[2].to_i
+        port = (match[2] || forwarded_port.to_s.strip[/\A[0-9]{1,5}\z/]).to_i
         return nil unless (1..65_535).cover?(port)
 
         "#{host}:#{port}"

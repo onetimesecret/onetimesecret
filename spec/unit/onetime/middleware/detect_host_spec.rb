@@ -45,6 +45,54 @@ RSpec.describe Rack::DetectHost do
     end
   end
 
+  describe 'X-Forwarded-Port beside a bare X-Forwarded-Host' do
+    it 'supplies the port' do
+      env = detect('Tenant.Example.COM', 'HTTP_X_FORWARDED_PORT' => '08443')
+
+      expect(env[described_class.result_field_name]).to eq('tenant.example.com')
+      expect(authority(env)).to eq('tenant.example.com:8443')
+    end
+
+    it 'does not replace a port written in X-Forwarded-Host' do
+      env = detect('tenant.example.com:8443', 'HTTP_X_FORWARDED_PORT' => '9443')
+
+      expect(authority(env)).to eq('tenant.example.com:8443')
+    end
+
+    it 'does not stand in for an unusable port written in X-Forwarded-Host' do
+      env = detect('tenant.example.com:0', 'HTTP_X_FORWARDED_PORT' => '8443')
+
+      expect(authority(env)).to be_nil
+    end
+
+    ['', ' ', '0', '65536', '-1', 'abc', '8443abc', '8443, 443', '8443,', '8443/path',
+     "8443\r\nInjected: value"].each do |value|
+      it "does not take a port from #{value.inspect}" do
+        expect(authority(detect('tenant.example.com', 'HTTP_X_FORWARDED_PORT' => value))).to be_nil
+      end
+    end
+
+    it 'is not read from a public peer' do
+      env = detect('tenant.example.com', 'HTTP_X_FORWARDED_PORT' => '8443', 'REMOTE_ADDR' => '203.0.113.7')
+
+      expect(authority(env)).to be_nil
+    end
+
+    it 'is not read when the peer failed configured proxy trust' do
+      env = detect('tenant.example.com', 'HTTP_X_FORWARDED_PORT' => '8443',
+        described_class::VIA_TRUSTED_PROXY_KEY => false)
+
+      expect(authority(env)).to be_nil
+    end
+
+    it 'is not read when the host was detected on Host' do
+      env = detect(nil, 'HTTP_X_FORWARDED_PORT' => '8443')
+
+      expect(env[described_class.result_field_name]).to eq('origin.example.com')
+      expect(authority(env)).to be_nil
+    end
+  end
+
   it 'does not trust a forwarded port from a public peer' do
     env = detect('tenant.example.com:8443', 'REMOTE_ADDR' => '203.0.113.7')
 
