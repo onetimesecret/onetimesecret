@@ -261,8 +261,9 @@ sent as controls.
 The existing topology probe, mounted Rack matrix, and stand-in curl checks do
 **not** establish proxy sanitization, raw duplicate-header handling, or origin
 isolation. `proxy-wire.py` is a separate, opt-in wire check extending this tooling
-without changing the topology matrix's direct-to-app expectations. Do not run it
-locally under the current no-local-tests restriction.
+without changing the topology matrix's direct-to-app expectations. Use a disposable
+CI runner or an authorized test checkout; local tests require the `.test-mode`
+sentinel under [repository test guidance](../../AGENTS.md#running-tests).
 
 ### Disposable real-Caddy fixture
 
@@ -319,7 +320,10 @@ The `host-proxy-wire` job in `.github/workflows/ci.yml` runs the fixture with
 Caddy 2.11.4, matching the version in `docker/variants/caddy.dockerfile`. It
 triggers on the Ruby change filter, including `tools/host-seam/**`, and retains
 JSONL results, the resolved image digest, and the binary version as artifacts.
-The CI result is pending; adding the job is not evidence that it passed.
+The CI result has not been inspected; adding the job is not evidence that it passed.
+The local Caddy 2.11.4 fixture passed 20 cases on 2026-10-03. See the
+[five-item follow-up validation record](follow-up-validation.md) for exact commands,
+application-test totals, unresolved findings, and execution limits.
 
 The staging command below still requires a registered custom domain and domains
 enabled in the actual deployment. The compose smoke job's current localhost
@@ -386,12 +390,12 @@ Use literal inventoried IPs to avoid checking only one DNS answer.
 
 ### Remaining limitations ledger
 
-| ID             | Status and evidence still required                                                                                                                                                                                                         |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `HS-PROXY-001` | Fixture and staging commands added, not executed. Fixture demonstrates only the supplied Caddy policy when run. Actual provider/edge overwrite and upstream removal require deployed-path results and origin-side capture/config evidence. |
-| `HS-PROXY-002` | Raw HTTP/1.1 duplicate carrier and Host cases added, not executed. Fixture ends at a Python capture backend; actual app-server parsing requires staging results. HTTP/2 and HTTP/3 duplicates/translation are not covered.                 |
-| `HS-PROXY-003` | Explicit-address TCP reachability command added, not executed. Complete origin inventory, untrusted vantage, healthy-origin control, and enforced network or authenticated-origin policy evidence remain unavailable.                      |
-| `HS-PROXY-004` | Fixture wired into the CI `host-proxy-wire` job; execution pending. This gate covers the disposable Caddy fixture only, not deployed infrastructure.                                                                                       |
+| ID             | Status and evidence still required                                                                                                                                                                                                                                |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `HS-PROXY-001` | Local Caddy 2.11.4 fixture passed; staging not run. The fixture demonstrates only the supplied Caddy policy. Actual provider/edge overwrite and upstream removal require deployed-path results and origin-side capture/config evidence.                           |
+| `HS-PROXY-002` | Raw HTTP/1.1 duplicate carrier and Host cases passed locally; duplicate Host returned 400 in both orders. Fixture ends at a Python capture backend; actual app-server parsing requires staging results. HTTP/2 and HTTP/3 duplicates/translation are not covered. |
+| `HS-PROXY-003` | Explicit-address TCP reachability command added, not executed. Complete origin inventory, untrusted vantage, healthy-origin control, and enforced network or authenticated-origin policy evidence remain unavailable.                                             |
+| `HS-PROXY-004` | Fixture wired into the CI `host-proxy-wire` job; CI results not inspected. Local fixture execution passed, but does not establish CI success. This gate covers the disposable Caddy fixture only, not deployed infrastructure.                                    |
 
 ## When to run
 
