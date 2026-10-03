@@ -284,11 +284,7 @@ module Rack
       #    keeping default-config self-hosted installs behind a local
       #    reverse proxy (nginx/Caddy on the same box or LAN) working.
       remote_addr        = env['REMOTE_ADDR']
-      from_trusted_proxy = if env.key?(VIA_TRUSTED_PROXY_KEY)
-        env[VIA_TRUSTED_PROXY_KEY] == true
-      else
-        self.class.private_ip?(remote_addr)
-      end
+      from_trusted_proxy = self.class.from_trusted_proxy?(env)
 
       headers_to_check = if from_trusted_proxy
         HEADER_PRECEDENCE
@@ -409,6 +405,22 @@ module Rack
         first_host = value_unsafe.to_s.split(',').first.to_s
 
         Onetime::Utils::DomainParser.extract_hostname(first_host)
+      end
+
+      # Whether forwarded headers on this request came from trusted
+      # infrastructure: otto's verdict when it recorded one, the
+      # private/loopback-peer heuristic otherwise. See the trust decision in
+      # #call. Shared with StripForwardedHost so the host and the port are
+      # trusted on one verdict.
+      #
+      # @param env [Hash] Rack environment
+      # @return [Boolean]
+      def from_trusted_proxy?(env)
+        if env.key?(VIA_TRUSTED_PROXY_KEY)
+          env[VIA_TRUSTED_PROXY_KEY] == true
+        else
+          private_ip?(env['REMOTE_ADDR'])
+        end
       end
 
       # Retain only a plain DNS authority with a usable port. Host detection

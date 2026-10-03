@@ -140,6 +140,10 @@ Details:
 - No port is copied from the received `Host`, which may name the origin hop.
   A port configured in `site.host` still applies to auth URLs built for the
   canonical host.
+- `X-Forwarded-Port` is read from a trusted proxy only, on the same verdict as
+  `X-Forwarded-Host`. From any other peer it is removed before the
+  applications run, whether or not this setting is on, so a direct client
+  cannot choose the port in a generated URL.
 - `X-Forwarded-Port` is under the same contract as `X-Forwarded-Host`: the
   proxy must overwrite it with the public port, or remove it. A proxy that
   passes a client's value through lets the client choose the port in generated

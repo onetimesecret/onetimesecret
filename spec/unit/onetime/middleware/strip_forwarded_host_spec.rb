@@ -47,6 +47,49 @@ RSpec.describe Onetime::Middleware::StripForwardedHost do
     end
   end
 
+  describe 'X-Forwarded-Port' do
+    def port_env(**extra)
+      Rack::MockRequest.env_for('https://onetime.test/', 'HTTP_HOST' => 'onetime.test',
+        'HTTP_X_FORWARDED_PORT' => '8443', **extra)
+    end
+
+    it 'deletes the header from a public peer when no proxy trust is configured' do
+      env = call_with(port_env('REMOTE_ADDR' => '203.0.113.7'))
+
+      expect(env).not_to have_key('HTTP_X_FORWARDED_PORT')
+      expect(Rack::Request.new(env).port).to eq(443)
+      expect(env[described_class::STRIPPED_HEADERS]).to eq(['HTTP_X_FORWARDED_PORT'])
+    end
+
+    it 'keeps the header from a private peer when no proxy trust is configured' do
+      env = call_with(port_env('REMOTE_ADDR' => '10.0.0.5'))
+
+      expect(Rack::Request.new(env).port).to eq(8443)
+      expect(env).not_to have_key(described_class::STRIPPED_HEADERS)
+    end
+
+    it 'keeps the header from a peer that passed configured proxy trust' do
+      env = call_with(port_env('REMOTE_ADDR' => '203.0.113.7', Rack::DetectHost::VIA_TRUSTED_PROXY_KEY => true))
+
+      expect(Rack::Request.new(env).port).to eq(8443)
+    end
+
+    [false, nil, 'true'].each do |trust|
+      it "deletes the header from a private peer whose proxy trust signal is #{trust.inspect}" do
+        env = call_with(port_env('REMOTE_ADDR' => '10.0.0.5', Rack::DetectHost::VIA_TRUSTED_PROXY_KEY => trust))
+
+        expect(env).not_to have_key('HTTP_X_FORWARDED_PORT')
+      end
+    end
+
+    it 'deletes the header when the peer address is missing' do
+      env = port_env
+      env.delete('REMOTE_ADDR')
+
+      expect(call_with(env)).not_to have_key('HTTP_X_FORWARDED_PORT')
+    end
+  end
+
   describe 'RFC 7239 Forwarded' do
     it 'deletes the header unconditionally' do
       env = call_with(Rack::MockRequest.env_for('http://onetime.test/', 'HTTP_FORWARDED' => 'for=192.0.2.60;proto=https;host=evil.example.com'))

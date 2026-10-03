@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require_relative '../../middleware/detect_host'
+
 module Onetime
   module Middleware
     # StripForwardedHost — remove client-settable forwarded-AUTHORITY signals
@@ -36,6 +38,17 @@ module Onetime
     # a trusted peer's carriers because it cannot tell a value the proxy set
     # from one the proxy passed through. Both headers are deleted here, so the
     # host authority that reaches every later reader is `Host:` alone.
+    #
+    # ## X-Forwarded-Port from a peer that is not a trusted proxy
+    #
+    # `Rack::Request#port` reads `X-Forwarded-Port` from any client whenever
+    # `Host` carries no port, and auth URLs (Auth::PublicHost) are built on
+    # that port. otto deletes the header for a peer that failed CONFIGURED
+    # proxy trust; with trust unconfigured it deletes nothing, so a direct
+    # client could put a port of its choosing into an emailed link. The
+    # header is deleted here unless Rack::DetectHost.from_trusted_proxy?
+    # holds — the verdict X-Forwarded-Host was accepted or refused on. A
+    # trusted proxy's value is kept: Rack and PublicHostRewrite read it.
     #
     # ## Whole-header delete, scheme handed to `rack.url_scheme`
     #
@@ -137,12 +150,16 @@ module Onetime
 
       STRIPPED_CANDIDATES = [X_FORWARDED_HOST, FORWARDED].freeze
 
+      # Deleted only from a peer that is not a trusted proxy.
+      X_FORWARDED_PORT = 'HTTP_X_FORWARDED_PORT'
+
       def initialize(app)
         @app = app
       end
 
       def call(env)
         stripped = STRIPPED_CANDIDATES.select { |key| env.key?(key) }
+        stripped << X_FORWARDED_PORT if untrusted_port?(env)
 
         carry_forwarded_scheme(env) if stripped.include?(FORWARDED)
 
@@ -153,6 +170,10 @@ module Onetime
       end
 
       private
+
+      def untrusted_port?(env)
+        env.key?(X_FORWARDED_PORT) && !Rack::DetectHost.from_trusted_proxy?(env)
+      end
 
       # Persist the scheme Rack resolves while `Forwarded` is still present,
       # but never below the one already established. See "The write is
