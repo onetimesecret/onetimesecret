@@ -77,6 +77,7 @@ RSpec.describe 'Host proxy stateful boundaries', :shared_db_state, type: :integr
     Onetime::Customer.find_by_extid(auth_db[:accounts].where(id: account_id).get(:external_id))
   end
   let(:other_host) { "other-#{test_run_id}.example.net" }
+  let(:unregistered_host) { "unregistered-#{test_run_id}.tenant-example.com" }
   let!(:other_domain) do
     domain = Onetime::CustomDomain.new(display_domain: other_host, org_id: test_organization.org_id)
     domain.verified = true
@@ -126,6 +127,23 @@ RSpec.describe 'Host proxy stateful boundaries', :shared_db_state, type: :integr
     proxy_headers(host)
     header 'Cookie', cookie if cookie
     get "https://#{host}#{path}"
+  end
+
+  def unregistered_headers(forwarded:)
+    proxy_headers(unregistered_host)
+    unless forwarded
+      header 'Host', unregistered_host
+      header 'X-Forwarded-Host', nil
+    end
+  end
+
+  def expect_unregistered_request(forwarded:)
+    env = last_request.env
+    expect(env['onetime.display_domain']).to eq(unregistered_host)
+    expect(env['onetime.domain_strategy']).to eq(:invalid)
+    expect(env.key?(Onetime::Middleware::PublicHostRewrite::ORIGINAL_HTTP_HOST)).to be(false)
+    expect(Rack::Request.new(env).host).to eq(forwarded ? canonical_host : unregistered_host)
+    expect(Onetime::Middleware::HttpOriginOptions::ALLOW_IF.call(env)).to be(true)
   end
 
   def stored_session(sid)
@@ -398,6 +416,60 @@ RSpec.describe 'Host proxy stateful boundaries', :shared_db_state, type: :integr
         expect(last_response.body).to eq('Forbidden')
       end
 
+      describe 'H-03: unregistered display host on the auth mount' do
+        [false, true].each do |forwarded|
+          it "H03-A-#{forwarded ? 'forwarded' : 'preserved'}: admits matching Origin but refuses recovery and SSO" do
+            expect(Onetime::CustomDomain.from_display_domain(unregistered_host)).to be_nil
+            expect(Onetime::Jobs::Publisher).not_to receive(:enqueue_email_raw)
+            unregistered_headers(forwarded: forwarded)
+            get '/auth'
+            token = last_response.headers['X-CSRF-Token']
+            expect(token).not_to be_nil
+            header 'Content-Type', 'application/json'
+            header 'X-CSRF-Token', token
+            header 'Origin', "https://#{other_host}"
+            post '/auth/reset-password-request', JSON.generate(login: account_email, shrimp: token)
+            expect_origin_refusal
+
+            clear_body_headers
+            header 'Content-Type', 'application/json'
+            header 'Origin', "https://#{unregistered_host}"
+            post '/auth/reset-password-request', JSON.generate(login: account_email, shrimp: token)
+            expect_unregistered_request(forwarded: forwarded)
+            expect(last_response.status).to eq(404)
+            expect(JSON.parse(last_response.body)).to eq(Auth::ErrorTranslator::NOT_FOUND_BODY.transform_keys(&:to_s))
+            expect(auth_db[:account_password_reset_keys].where(id: account_id).count).to eq(0)
+
+            clear_body_headers
+            post '/auth/sso/entra'
+            expect_unregistered_request(forwarded: forwarded)
+            expect(last_response.status).to eq(302)
+            expect(last_response.headers['Location']).to end_with('/signin?auth_error=sso_not_configured')
+          end
+
+          it "H03-SESSION-#{forwarded ? 'forwarded' : 'preserved'}: does not authorize a replayed canonical session" do
+            login_on(canonical_host)
+            proxy_get(canonical_host, '/auth', cookie: @cookie)
+            token = last_response.headers['X-CSRF-Token']
+            expect(token).not_to be_nil
+            unregistered_headers(forwarded: forwarded)
+            header 'Cookie', @cookie
+            header 'Content-Type', 'application/json'
+            header 'X-CSRF-Token', token
+            header 'Origin', "https://#{unregistered_host}"
+            # Logout deliberately succeeds after clearing a mismatched session.
+            # Use an account mutation to test authorization, not that exception.
+            post '/auth/change-password', JSON.generate(
+              shrimp: token, password: 'MustNotBeApplied123!', 'password-confirm': 'MustNotBeApplied123!',
+            )
+            expect_unregistered_request(forwarded: forwarded)
+            expect(last_response.status).to eq(401)
+            expect(JSON.parse(last_response.body).to_s).to include('surface_mismatch')
+            expect(Onetime::Operations::Sessions::Store.find_key(Familia.dbclient, @sid)).to be_nil
+          end
+        end
+      end
+
       describe 'HttpOrigin on the auth app mount (authenticated_web profile)' do
         HostProxyOrigin::ROWS.each do |row|
           verdict = row.fetch(rewrite ? :on : :off)
@@ -443,6 +515,26 @@ RSpec.describe 'Host proxy stateful boundaries', :shared_db_state, type: :integr
           shaped_post(HostProxyOrigin::ROWS.find { |row| row[:id] == 'O03' }, '/api/v3/secret/status', {})
 
           expect(last_response.status).to eq(200)
+        end
+
+        [false, true].each do |forwarded|
+          it "H03-S-#{forwarded ? 'forwarded' : 'preserved'}: accepts an unregistered matching display Origin, not a foreign Origin" do
+            security_http_origin(true)
+            expect(Onetime::CustomDomain.from_display_domain(unregistered_host)).to be_nil
+            unregistered_headers(forwarded: forwarded)
+            header 'Content-Type', 'application/json'
+            header 'Origin', "https://#{other_host}"
+            post '/api/v3/secret/status', '{}'
+            expect_origin_refusal
+
+            clear_body_headers
+            header 'Content-Type', 'application/json'
+            header 'Origin', "https://#{unregistered_host}"
+            post '/api/v3/secret/status', '{}'
+            expect_unregistered_request(forwarded: forwarded)
+            expect(last_response.status).to eq(200)
+            expect(JSON.parse(last_response.body)).to eq('records' => [], 'count' => 0)
+          end
         end
 
         HostProxyOrigin::ROWS.each do |row|
