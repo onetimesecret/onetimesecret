@@ -941,211 +941,258 @@ RSpec.describe 'Colonel admin surface host allowlist (#4062)', type: :integratio
 
       before { configure_admin!(default_domain: 'example.com', site_host: 'example.com') }
 
-      it 'ignores X-Forwarded-Host from an untrusted REMOTE_ADDR' do
-        signed_in_as(colonel)
-        get_api('tenant.example.com', untrusted_peer.merge('HTTP_X_FORWARDED_HOST' => 'example.com'))
+      # Onetime::Middleware::PublicHostRewrite is mounted below this gate, so
+      # the gate has returned its verdict before a rewrite can happen. Every
+      # case runs with site.network.public_host_rewrite off and on and states
+      # one verdict for both. The setting is read per request; the stack is
+      # not rebuilt for it.
+      [false, true].each do |rewrite|
+        context "with public_host_rewrite #{rewrite ? 'on' : 'off'}" do
+          before do
+            network                        = (OT.conf['site']['network'] ||= {})
+            @rewrite_was_set               = network.key?('public_host_rewrite')
+            @rewrite_saved                 = network['public_host_rewrite']
+            network['public_host_rewrite'] = rewrite
+          end
 
-        expect(last_response.status).to eq(404)
-      end
+          # Runs before the file-level restore, which leaves site.network
+          # alone when it was unset at the start of the example.
+          after do
+            network = (OT.conf['site']['network'] ||= {})
+            if @rewrite_was_set
+              network['public_host_rewrite'] = @rewrite_saved
+            else
+              network.delete('public_host_rewrite')
+            end
+          end
 
-      it 'ignores Apx-Incoming-Host from an untrusted REMOTE_ADDR' do
-        signed_in_as(colonel)
-        get_api('tenant.example.com', untrusted_peer.merge('HTTP_APX_INCOMING_HOST' => 'example.com'))
+          # What the layers below the gate were handed on an admitted
+          # request whose Host differed from the detected host: the received
+          # Host with the setting off, the detected host with it on.
+          def expect_host_below_gate(received:, detected:, rewritten:)
+            env = last_request.env
+            key = Onetime::Middleware::PublicHostRewrite::ORIGINAL_HTTP_HOST
 
-        expect(last_response.status).to eq(404)
-      end
+            expect(env.key?(key)).to eq(rewritten)
+            expect(env['HTTP_HOST']).to eq(rewritten ? detected : received)
+            expect(env[key]).to eq(received) if rewritten
+          end
 
-      it 'ignores X-Original-Host from an untrusted REMOTE_ADDR' do
-        signed_in_as(colonel)
-        get_api('tenant.example.com', untrusted_peer.merge('HTTP_X_ORIGINAL_HOST' => 'example.com'))
+          it 'ignores X-Forwarded-Host from an untrusted REMOTE_ADDR' do
+            signed_in_as(colonel)
+            get_api('tenant.example.com', untrusted_peer.merge('HTTP_X_FORWARDED_HOST' => 'example.com'))
 
-        expect(last_response.status).to eq(404)
-      end
+            expect(last_response.status).to eq(404)
+          end
 
-      # `Forwarded` is not a proxy-managed host header: DetectHost ignores its
-      # host= parameter (#4121), so it is absent from the presence set the gate
-      # derives from DetectHost::FORWARDED_HEADERS. The gate still judges it by
-      # VALUE (rule d): an edge that rewrote Host to the canonical origin and
-      # carried the tenant host only in Forwarded must not have the admin
-      # console served on every tenant-domain request just because Host is on
-      # the allowlist.
-      it 'refuses a Forwarded host= that disagrees with Host from an untrusted peer' do
-        expect(Onetime::Middleware::AdminNetworkIsolation::FORWARDED_HOST_ENV_KEYS).not_to include('HTTP_FORWARDED')
+          it 'ignores Apx-Incoming-Host from an untrusted REMOTE_ADDR' do
+            signed_in_as(colonel)
+            get_api('tenant.example.com', untrusted_peer.merge('HTTP_APX_INCOMING_HOST' => 'example.com'))
 
-        signed_in_as(colonel)
-        get_api('example.com', heuristic_peer.merge('HTTP_FORWARDED' => 'host=tenant.example.com'))
+            expect(last_response.status).to eq(404)
+          end
 
-        expect(last_response.status).to eq(404)
-      end
+          it 'ignores X-Original-Host from an untrusted REMOTE_ADDR' do
+            signed_in_as(colonel)
+            get_api('tenant.example.com', untrusted_peer.merge('HTTP_X_ORIGINAL_HOST' => 'example.com'))
 
-      it 'admits a Forwarded host= that agrees with Host from an untrusted peer' do
-        signed_in_as(colonel)
-        get_api('example.com', heuristic_peer.merge('HTTP_FORWARDED' => 'for=203.0.113.9;host="example.com:443"'))
+            expect(last_response.status).to eq(404)
+          end
 
-        expect(last_response.status).to eq(200)
-        expect(json_body).to have_key('details')
-      end
+          # `Forwarded` is not a proxy-managed host header: DetectHost ignores its
+          # host= parameter (#4121), so it is absent from the presence set the gate
+          # derives from DetectHost::FORWARDED_HEADERS. The gate still judges it by
+          # VALUE (rule d): an edge that rewrote Host to the canonical origin and
+          # carried the tenant host only in Forwarded must not have the admin
+          # console served on every tenant-domain request just because Host is on
+          # the allowlist.
+          it 'refuses a Forwarded host= that disagrees with Host from an untrusted peer' do
+            expect(Onetime::Middleware::AdminNetworkIsolation::FORWARDED_HOST_ENV_KEYS).not_to include('HTTP_FORWARDED')
 
-      it 'admits a disagreeing Forwarded host= from a peer otto vouched for (control)' do
-        signed_in_as(colonel)
-        get_api('example.com', trusted_peer.merge('HTTP_FORWARDED' => 'host=tenant.example.com'))
+            signed_in_as(colonel)
+            get_api('example.com', heuristic_peer.merge('HTTP_FORWARDED' => 'host=tenant.example.com'))
 
-        expect(last_response.status).to eq(200)
-        expect(json_body).to have_key('details')
-      end
+            expect(last_response.status).to eq(404)
+          end
 
-      it 'ignores a forwarded header even when it names an allowlisted host and the shell is asked for' do
-        signed_in_as(colonel)
-        get_shell('tenant.example.com', untrusted_peer.merge('HTTP_X_FORWARDED_HOST' => 'www.example.com'))
+          it 'admits a Forwarded host= that agrees with Host from an untrusted peer' do
+            signed_in_as(colonel)
+            get_api('example.com', heuristic_peer.merge('HTTP_FORWARDED' => 'for=203.0.113.9;host="example.com:443"'))
 
-        expect(gate_html_denial?).to be true
-      end
+            expect(last_response.status).to eq(200)
+            expect(json_body).to have_key('details')
+          end
 
-      # Rack::DetectHost DOES honour this header from a loopback peer with no
-      # trusted_proxy configured — the control two examples down proves it — so
-      # without the provenance rule this would serve the admin console to
-      # anything that could open a connection from a private address while
-      # claiming to be the canonical host.
-      it 'ignores X-Forwarded-Host from a loopback peer when no proxy trust is configured' do
-        signed_in_as(colonel)
-        get_api('tenant.example.com', heuristic_peer.merge('HTTP_X_FORWARDED_HOST' => 'example.com'))
+          it 'admits a disagreeing Forwarded host= from a peer otto vouched for (control)' do
+            signed_in_as(colonel)
+            get_api('example.com', trusted_peer.merge('HTTP_FORWARDED' => 'host=tenant.example.com'))
 
-        expect(last_response.status).to eq(404)
-      end
+            expect(last_response.status).to eq(200)
+            expect(json_body).to have_key('details')
+          end
 
-      it 'ignores Apx-Incoming-Host from a loopback peer when no proxy trust is configured' do
-        signed_in_as(colonel)
-        get_api('tenant.example.com', heuristic_peer.merge('HTTP_APX_INCOMING_HOST' => 'example.com'))
+          it 'ignores a forwarded header even when it names an allowlisted host and the shell is asked for' do
+            signed_in_as(colonel)
+            get_shell('tenant.example.com', untrusted_peer.merge('HTTP_X_FORWARDED_HOST' => 'www.example.com'))
 
-        expect(last_response.status).to eq(404)
-      end
+            expect(gate_html_denial?).to be true
+          end
 
-      # Control: the header IS live in this stack — Rack::DetectHost really
-      # does read it from a loopback peer with no trusted_proxy configured, and
-      # DomainStrategy classifies the request by what it read. Without this the
-      # two examples above could pass simply because forwarded host headers do
-      # nothing here, which would be evidence about the stack, not the gate.
-      it 'is genuinely honoured by Rack::DetectHost from a loopback peer (control)' do
-        configure_admin!(default_domain: 'example.com', site_host: 'example.com', domains_enabled: true)
-        anonymous!
-        header 'Host', 'tenant.example.com'
-        get NON_ADMIN_PATH, {}, heuristic_peer.merge('HTTP_X_FORWARDED_HOST' => 'example.com')
+          # Rack::DetectHost DOES honour this header from a loopback peer with no
+          # trusted_proxy configured — the control two examples down proves it — so
+          # without the provenance rule this would serve the admin console to
+          # anything that could open a connection from a private address while
+          # claiming to be the canonical host.
+          it 'ignores X-Forwarded-Host from a loopback peer when no proxy trust is configured' do
+            signed_in_as(colonel)
+            get_api('tenant.example.com', heuristic_peer.merge('HTTP_X_FORWARDED_HOST' => 'example.com'))
 
-        expect(last_response.status).to eq(200)
-        # :canonical is only reachable here if the forwarded header replaced
-        # the tenant Host header.
-        expect(last_response.headers['O-Domain-Strategy']).to eq('canonical')
-      end
+            expect(last_response.status).to eq(404)
+          end
 
-      # Control: with otto's trust key set — the operator configured
-      # site.network.trusted_proxy and this peer passed it — the forwarded host
-      # IS accepted. Trust widens what may be read.
-      it 'DOES honour X-Forwarded-Host from a peer otto vouched for (control)' do
-        signed_in_as(colonel)
-        get_api('tenant.example.com', trusted_peer.merge('HTTP_X_FORWARDED_HOST' => 'example.com'))
+          it 'ignores Apx-Incoming-Host from a loopback peer when no proxy trust is configured' do
+            signed_in_as(colonel)
+            get_api('tenant.example.com', heuristic_peer.merge('HTTP_APX_INCOMING_HOST' => 'example.com'))
 
-        expect(last_response.status).to eq(200)
-      end
+            expect(last_response.status).to eq(404)
+          end
 
-      # #4384: Apx-Incoming-Host and X-Original-Host are no longer host
-      # sources for any peer. A trusted peer naming the allowlisted host there
-      # does not change the tenant Host the request is judged on.
-      it 'does not honour Apx-Incoming-Host from a peer otto vouched for' do
-        signed_in_as(colonel)
-        get_api('tenant.example.com', trusted_peer.merge('HTTP_APX_INCOMING_HOST' => 'example.com'))
+          # Control: the header IS live in this stack — Rack::DetectHost really
+          # does read it from a loopback peer with no trusted_proxy configured, and
+          # DomainStrategy classifies the request by what it read. Without this the
+          # two examples above could pass simply because forwarded host headers do
+          # nothing here, which would be evidence about the stack, not the gate.
+          it 'is genuinely honoured by Rack::DetectHost from a loopback peer (control)' do
+            configure_admin!(default_domain: 'example.com', site_host: 'example.com', domains_enabled: true)
+            anonymous!
+            header 'Host', 'tenant.example.com'
+            get NON_ADMIN_PATH, {}, heuristic_peer.merge('HTTP_X_FORWARDED_HOST' => 'example.com')
 
-        expect(last_response.status).to eq(404)
-      end
+            expect(last_response.status).to eq(200)
+            # :canonical is only reachable here if the forwarded header replaced
+            # the tenant Host header.
+            expect(last_response.headers['O-Domain-Strategy']).to eq('canonical')
+            # With the setting on, the layers below DomainStrategy are handed
+            # the forwarded host as Host.
+            expect_host_below_gate(received: 'tenant.example.com', detected: 'example.com', rewritten: rewrite)
+          end
 
-      # The other direction, which is the one that matters: an edge that
-      # rewrote Host to the allowlisted origin name and still carries the
-      # tenant host in a header DetectHost stopped selecting. DetectHost
-      # observes it and the gate declines (rule e), for every peer.
-      {
-        'Apx-Incoming-Host' => { 'HTTP_APX_INCOMING_HOST' => 'tenant.example.com' },
-        'X-Original-Host' => { 'HTTP_X_ORIGINAL_HOST' => 'tenant.example.com' },
-        'a multi-valued X-Forwarded-Host' => { 'HTTP_X_FORWARDED_HOST' => 'tenant.example.com, example.com' },
-      }.each do |carrier, headers|
-        it "declines the allowlisted Host when #{carrier} names the tenant, from a loopback peer" do
-          signed_in_as(colonel)
-          get_api('example.com', heuristic_peer.merge(headers))
+          # Control: with otto's trust key set — the operator configured
+          # site.network.trusted_proxy and this peer passed it — the forwarded host
+          # IS accepted. Trust widens what may be read.
+          it 'DOES honour X-Forwarded-Host from a peer otto vouched for (control)' do
+            signed_in_as(colonel)
+            get_api('tenant.example.com', trusted_peer.merge('HTTP_X_FORWARDED_HOST' => 'example.com'))
 
-          expect(last_response.status).to eq(404)
+            expect(last_response.status).to eq(200)
+            # The gate admitted it on the detected host in both runs. With the
+            # setting on the request is then rewritten, so this admission is
+            # the one case here where the apps see a different Host.
+            expect_host_below_gate(received: 'tenant.example.com', detected: 'example.com', rewritten: rewrite)
+          end
+
+          # #4384: Apx-Incoming-Host and X-Original-Host are no longer host
+          # sources for any peer. A trusted peer naming the allowlisted host there
+          # does not change the tenant Host the request is judged on.
+          it 'does not honour Apx-Incoming-Host from a peer otto vouched for' do
+            signed_in_as(colonel)
+            get_api('tenant.example.com', trusted_peer.merge('HTTP_APX_INCOMING_HOST' => 'example.com'))
+
+            expect(last_response.status).to eq(404)
+          end
+
+          # The other direction, which is the one that matters: an edge that
+          # rewrote Host to the allowlisted origin name and still carries the
+          # tenant host in a header DetectHost stopped selecting. DetectHost
+          # observes it and the gate declines (rule e), for every peer.
+          {
+            'Apx-Incoming-Host' => { 'HTTP_APX_INCOMING_HOST' => 'tenant.example.com' },
+            'X-Original-Host' => { 'HTTP_X_ORIGINAL_HOST' => 'tenant.example.com' },
+            'a multi-valued X-Forwarded-Host' => { 'HTTP_X_FORWARDED_HOST' => 'tenant.example.com, example.com' },
+          }.each do |carrier, headers|
+            it "declines the allowlisted Host when #{carrier} names the tenant, from a loopback peer" do
+              signed_in_as(colonel)
+              get_api('example.com', heuristic_peer.merge(headers))
+
+              expect(last_response.status).to eq(404)
+            end
+
+            it "declines the allowlisted Host when #{carrier} names the tenant, from a peer otto vouched for" do
+              signed_in_as(colonel)
+              get_api('example.com', trusted_peer.merge(headers))
+
+              expect(last_response.status).to eq(404)
+            end
+          end
+
+          it 'admits the allowlisted Host when Apx-Incoming-Host agrees with it' do
+            signed_in_as(colonel)
+            get_api('example.com', trusted_peer.merge('HTTP_APX_INCOMING_HOST' => 'example.com'))
+
+            expect(last_response.status).to eq(200)
+          end
+
+          # otto.via_trusted_proxy is tri-state: present-and-false means trust IS
+          # configured and this peer FAILED it — strictly worse than absent.
+          it 'refuses a forwarded host when otto explicitly distrusted the peer' do
+            signed_in_as(colonel)
+            get_api(
+              'tenant.example.com',
+              { 'REMOTE_ADDR' => '127.0.0.1', 'otto.via_trusted_proxy' => false,
+                'HTTP_X_FORWARDED_HOST' => 'example.com' },
+            )
+
+            expect(last_response.status).to eq(404)
+          end
+
+          # The mirror image of the control: a trusted peer forwarding a
+          # NON-allowlisted host is denied, so trust widens what is read, never
+          # what is admitted.
+          it 'denies a trusted-peer forwarded header that names a non-allowlisted host' do
+            signed_in_as(colonel)
+            get_api('example.com', trusted_peer.merge('HTTP_X_FORWARDED_HOST' => 'tenant.example.com'))
+
+            expect(last_response.status).to eq(404)
+          end
+
+          # A forwarded header that AGREES with the Host header changed nothing, so
+          # there is nothing to distrust — the ordinary `proxy_set_header Host $host`
+          # topology keeps working with no trusted_proxy configured.
+          it 'admits a loopback peer whose forwarded header agrees with the Host header' do
+            signed_in_as(colonel)
+            get_api('example.com', heuristic_peer.merge('HTTP_X_FORWARDED_HOST' => 'example.com'))
+
+            expect(last_response.status).to eq(200)
+            expect_host_below_gate(received: 'example.com', detected: 'example.com', rewritten: false)
+          end
+
+          # And the inverse control: an untrusted peer on an ALLOWLISTED Host still
+          # gets through, so the 404s above are about the host, not the peer IP.
+          it 'admits an untrusted peer whose Host header is allowlisted' do
+            signed_in_as(colonel)
+            get_api('example.com', untrusted_peer)
+
+            expect(last_response.status).to eq(200)
+          end
+
+          # The remedy in the provenance WARN must demand EXPLICIT proxy CIDRs:
+          # filter mode with none configured trusts every private-network peer
+          # (add_trusted_proxy(PRIVATE_PROXY_RANGES)), which re-opens exactly the
+          # forwarded-host spoofing this denial closes. A WARN that says only
+          # "configure trusted_proxy" walks the operator into that hole.
+          it 'logs the provenance WARN naming trusted_proxy with explicit proxy CIDRs as the remedy' do
+            warns = capture_admin_gate_warns!
+            signed_in_as(colonel)
+            get_api('tenant.example.com', heuristic_peer.merge('HTTP_X_FORWARDED_HOST' => 'example.com'))
+
+            expect(last_response.status).to eq(404)
+            _, payload = warns.find { |message, _| message.match?(/untrusted peer/) }
+            expect(payload).not_to be_nil
+            expect(payload[:note]).to match(/site\.network\.trusted_proxy/)
+            expect(payload[:note]).to match(/explicit/i)
+            expect(payload[:note]).to match(/CIDR/i)
+          end
         end
-
-        it "declines the allowlisted Host when #{carrier} names the tenant, from a peer otto vouched for" do
-          signed_in_as(colonel)
-          get_api('example.com', trusted_peer.merge(headers))
-
-          expect(last_response.status).to eq(404)
-        end
-      end
-
-      it 'admits the allowlisted Host when Apx-Incoming-Host agrees with it' do
-        signed_in_as(colonel)
-        get_api('example.com', trusted_peer.merge('HTTP_APX_INCOMING_HOST' => 'example.com'))
-
-        expect(last_response.status).to eq(200)
-      end
-
-      # otto.via_trusted_proxy is tri-state: present-and-false means trust IS
-      # configured and this peer FAILED it — strictly worse than absent.
-      it 'refuses a forwarded host when otto explicitly distrusted the peer' do
-        signed_in_as(colonel)
-        get_api(
-          'tenant.example.com',
-          { 'REMOTE_ADDR' => '127.0.0.1', 'otto.via_trusted_proxy' => false,
-            'HTTP_X_FORWARDED_HOST' => 'example.com' },
-        )
-
-        expect(last_response.status).to eq(404)
-      end
-
-      # The mirror image of the control: a trusted peer forwarding a
-      # NON-allowlisted host is denied, so trust widens what is read, never
-      # what is admitted.
-      it 'denies a trusted-peer forwarded header that names a non-allowlisted host' do
-        signed_in_as(colonel)
-        get_api('example.com', trusted_peer.merge('HTTP_X_FORWARDED_HOST' => 'tenant.example.com'))
-
-        expect(last_response.status).to eq(404)
-      end
-
-      # A forwarded header that AGREES with the Host header changed nothing, so
-      # there is nothing to distrust — the ordinary `proxy_set_header Host $host`
-      # topology keeps working with no trusted_proxy configured.
-      it 'admits a loopback peer whose forwarded header agrees with the Host header' do
-        signed_in_as(colonel)
-        get_api('example.com', heuristic_peer.merge('HTTP_X_FORWARDED_HOST' => 'example.com'))
-
-        expect(last_response.status).to eq(200)
-      end
-
-      # And the inverse control: an untrusted peer on an ALLOWLISTED Host still
-      # gets through, so the 404s above are about the host, not the peer IP.
-      it 'admits an untrusted peer whose Host header is allowlisted' do
-        signed_in_as(colonel)
-        get_api('example.com', untrusted_peer)
-
-        expect(last_response.status).to eq(200)
-      end
-
-      # The remedy in the provenance WARN must demand EXPLICIT proxy CIDRs:
-      # filter mode with none configured trusts every private-network peer
-      # (add_trusted_proxy(PRIVATE_PROXY_RANGES)), which re-opens exactly the
-      # forwarded-host spoofing this denial closes. A WARN that says only
-      # "configure trusted_proxy" walks the operator into that hole.
-      it 'logs the provenance WARN naming trusted_proxy with explicit proxy CIDRs as the remedy' do
-        warns = capture_admin_gate_warns!
-        signed_in_as(colonel)
-        get_api('tenant.example.com', heuristic_peer.merge('HTTP_X_FORWARDED_HOST' => 'example.com'))
-
-        expect(last_response.status).to eq(404)
-        _, payload = warns.find { |message, _| message.match?(/untrusted peer/) }
-        expect(payload).not_to be_nil
-        expect(payload[:note]).to match(/site\.network\.trusted_proxy/)
-        expect(payload[:note]).to match(/explicit/i)
-        expect(payload[:note]).to match(/CIDR/i)
       end
     end
   end
