@@ -935,6 +935,22 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
       )
     end
 
+    # OmniAuth answers a GET to the request path through other_phase, which
+    # runs setup. That request starts nothing, so it must leave a pending
+    # flow as it was: neither renewing its start time nor dropping it.
+    it 'leaves a pending SAML flow untouched on a GET to the request path' do
+      start_login(tenant_a)
+      pending = last_request.env['rack.session'].to_h.slice(
+        'omniauth_tenant_domain_id', 'omniauth_tenant_host', 'omniauth_tenant_started_at', 'saml_authn_request_id'
+      )
+      allow(Time).to receive(:now).and_return(Time.at(pending.fetch('omniauth_tenant_started_at') + 300))
+
+      header 'Host', tenant_a.host
+      get '/auth/sso/saml'
+
+      expect(last_request.env['rack.session'].to_h.slice(*pending.keys)).to eq(pending)
+    end
+
     it 'drops the context left behind once it is older than the bound' do
       created_emails << email
       events  = audit_events

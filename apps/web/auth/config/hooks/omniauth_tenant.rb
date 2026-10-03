@@ -150,7 +150,14 @@ module Auth::Config::Hooks
         # context below from a bare GET /auth/sso/saml/metadata would plant
         # "a tenant flow is pending" in the session of anyone who can be made
         # to load that URL. RE-VERIFY on an omniauth-saml bump.
-        is_request_phase = strategy.nil? || strategy.on_request_path?
+        #
+        # The bare request path reaches other_phase the same way for a method
+        # OmniAuth does not start a login for (a GET; allowed_request_methods
+        # is POST only), so the method is checked as Strategy#call! does.
+        is_request_phase = strategy.nil? || (
+          strategy.on_request_path? &&
+          ::OmniAuth.config.allowed_request_methods.include?(request.request_method.downcase.to_sym)
+        )
 
         # OIDC strategies require an explicit redirect_uri in both the
         # authorize request and token exchange. Unlike OAuth2-based strategies,
