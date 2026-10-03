@@ -372,11 +372,17 @@ module Onetime
         Onetime::Session.secure_cookie_warned_at = now
       end
 
-      logger.warn '[Session] cookie NOT written: secure cookie over a request the app sees as non-SSL. ' \
-                  'Behind a TLS-terminating proxy, forward X-Forwarded-Proto: https or set ASSUME_HTTPS=true. ' \
-                  'A header named in untrusted_scheme_headers was sent but removed because the connecting peer ' \
-                  'is not a trusted proxy; add the proxy to site.network.trusted_proxy.',
-        scheme_evidence(request)
+      evidence = scheme_evidence(request)
+      message  = '[Session] cookie NOT written: secure cookie over a request the app sees as non-SSL. ' \
+                 'Behind a TLS-terminating proxy, forward X-Forwarded-Proto: https or set ASSUME_HTTPS=true.'
+      # Only when a scheme header was sent and removed: the remedy is then to
+      # trust the proxy, not to make it send a header it already sends.
+      unless evidence[:untrusted_scheme_headers].empty?
+        message += ' The headers named in untrusted_scheme_headers were sent but removed because the ' \
+                   'connecting peer is not a trusted proxy; add the proxy to site.network.trusted_proxy.'
+      end
+
+      logger.warn message, evidence
     end
 
     # Snapshot of the scheme-detection signals Rack consults in Request#scheme.

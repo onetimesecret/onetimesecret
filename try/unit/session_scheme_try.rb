@@ -131,6 +131,16 @@ untrusted = request_for({
 ]
 #=> [nil, ['HTTP_X_FORWARDED_PROTO', 'HTTP_X_FORWARDED_SSL'], true]
 
+## (a4d) ...and the message does not point at proxy trust when no scheme
+## carrier was removed: the proxy sent none, so trusting it would change nothing.
+reset_warn_guard!
+@session.send(:security_matches?, request_for({}), { secure: true })
+[
+  CAPTURED_PAYLOADS.first[:untrusted_scheme_headers],
+  CAPTURED_WARNINGS.first.include?('site.network.trusted_proxy'),
+]
+#=> [[], false]
+
 ## (a5) ...and a present-but-non-https X-Forwarded-Proto is recorded by VALUE in
 ## the evidence ('http' reached Rack but did not carry https) => pinpoints the hop
 ## AND the scheme it claimed, without us reconstructing it. Rack still resolves
