@@ -61,6 +61,10 @@ git --no-pager show abcd1234 | head -n 20
 
 Use short responses. Write in plain language.
 
+#### Incomplete and deferred work
+
+Do not conflate technical merits or risk with development hygiene. Scope, PR size, and workflow may explain why a fix should be delivered separately; they do not establish that the remaining behavior is acceptable or that deferral is justified.
+
 ## Pull Request Reviews
 
 ### Security-posture decisions
