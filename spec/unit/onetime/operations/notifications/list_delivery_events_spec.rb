@@ -30,6 +30,19 @@ RSpec.describe Onetime::Operations::Notifications::ListDeliveryEvents do
     expect(result.more).to be false
   end
 
+  it 'excludes raw error text from legacy stored events' do
+    legacy = Onetime::DeliveryEvent.build(
+      channel: 'email', stage: 'delivery', outcome: 'failed', error: RuntimeError.new('legacy secret text'),
+    ).merge('error_message' => 'legacy secret text')
+    Onetime::DeliveryEvent.events.add(legacy, legacy['occurred_at'])
+
+    result = described_class.new.call
+
+    expect(result.events.size).to eq(1)
+    expect(result.events.first).to include(id: legacy['id'], error_class: 'RuntimeError')
+    expect(result.events.first).not_to have_key(:error_message)
+  end
+
   it 'filters by channel, outcome and correlation id' do
     record(channel: 'email', stage: 'queue', outcome: 'queued', correlation_id: 'c1')
     record(channel: 'email', stage: 'delivery', outcome: 'failed', correlation_id: 'c1')
@@ -70,6 +83,36 @@ RSpec.describe Onetime::Operations::Notifications::ListDeliveryEvents do
 
     expect(result.events.size).to eq(1)
     expect(result.more).to be false
+  end
+
+  context 'when an insert shifts a matching event into the next page' do
+    [
+      ['does not report a duplicate as more', 1, 1, 0, [0], false],
+      ['does not let a duplicate displace an older match', 2, 2, 0, [0, 1], false],
+      ['reports more when another distinct match remains', 3, 2, 0, [0, 1], true],
+      ['does not return a duplicate of a skipped match', 2, 1, 1, [1], false],
+      ['does not count a duplicate toward the offset', 3, 1, 2, [2], false],
+    ].each do |description, count, limit, offset, indices, more|
+      it description do
+        stub_const('Onetime::Operations::Notifications::ListDeliveryEvents::PAGE', 2)
+        webhooks = Array.new(count) do
+          record(channel: 'webhook', stage: 'delivery', outcome: 'sent')
+        end.reverse
+        record(channel: 'email', stage: 'queue', outcome: 'queued')
+
+        allow(Onetime::DeliveryEvent).to receive(:recent).and_wrap_original do |original, size, cursor|
+          page = original.call(size, cursor)
+          # Insert after reading page one so its last event repeats on page two.
+          record(channel: 'email', stage: 'queue', outcome: 'queued') if cursor.zero?
+          page
+        end
+
+        result = described_class.new(channel: 'webhook', limit: limit, offset: offset).call
+
+        expect(result.events.map { |event| event[:id] }).to eq(indices.map { |index| webhooks[index]['id'] })
+        expect(result.more).to eq(more)
+      end
+    end
   end
 
   it 'rejects an unknown enum filter value' do

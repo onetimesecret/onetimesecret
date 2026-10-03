@@ -35,17 +35,31 @@ module Onetime
         option :template, type: :string, desc: 'Template name'
         option :limit, type: :integer, default: 50, aliases: ['n'], desc: 'Max events to show'
         option :offset, type: :integer, default: 0, desc: 'Matching events to skip'
-        option :counts, type: :integer, desc: 'Show per-day totals for the last N days instead of events'
+        option :counts, type: :integer, desc: 'Show unfiltered per-day totals for the last N days (no event filters)'
         option :format, type: :string, default: 'text', aliases: ['f'], desc: 'Output format: text or json'
 
         def call(channel: nil, stage: nil, outcome: nil, correlation: nil, template: nil,
                  limit: 50, offset: 0, counts: nil, format: 'text', **)
           boot_application!
 
+          raise ArgumentError, '--format must be one of: text, json' unless %w[text json].include?(format)
           raise ArgumentError, '--limit must be a positive integer' if limit.to_i < 1
-          raise ArgumentError, '--counts must be a positive integer' if counts && counts.to_i < 1
 
-          return output_counts(counts.to_i, format) if counts
+          if counts
+            raise ArgumentError, '--counts must be a positive integer' if counts.to_i < 1
+
+            max_days = Onetime::DeliveryEvent::COUNTS_TTL / 86_400
+            raise ArgumentError, "--counts must be at most #{max_days} days" if counts.to_i > max_days
+
+            filters   = { channel: channel, stage: stage, outcome: outcome, correlation: correlation, template: template }
+            requested = filters.reject { |_name, value| value.nil? }.keys
+            unless requested.empty?
+              flags = requested.map { |name| "--#{name}" }.join(', ')
+              raise ArgumentError, "--counts cannot be combined with event filters: #{flags}"
+            end
+
+            return output_counts(counts.to_i, format)
+          end
 
           result = Onetime::Operations::Notifications::ListDeliveryEvents.new(
             limit: limit,
@@ -103,7 +117,7 @@ module Onetime
               event[:stage],
               event[:outcome],
               event[:template].to_s[0, 24],
-              event[:correlation_id].to_s[0, 22],
+              event[:correlation_id].to_s,
               detail_for(event),
             )
           end

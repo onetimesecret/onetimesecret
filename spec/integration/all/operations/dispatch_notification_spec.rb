@@ -806,7 +806,7 @@ RSpec.describe Onetime::Operations::DispatchNotification, type: :integration do
       expect(recorded.find { |event| event['channel'] == 'email' }).to include('outcome' => 'queued')
     end
 
-    it 'records a queue failure with a scrubbed error when publishing raises' do
+    it 'records a queue failure without upstream error text when publishing raises' do
       allow(publisher_instance).to receive(:publish)
         .and_raise(StandardError, 'refused amqp://user:s3cret@broker:5672/')
 
@@ -820,7 +820,8 @@ RSpec.describe Onetime::Operations::DispatchNotification, type: :integration do
         'reason' => 'publish_failed',
         'error_class' => 'StandardError',
       )
-      expect(email['error_message']).not_to include('s3cret')
+      expect(email).not_to have_key('error_message')
+            expect(email.to_json).not_to include('s3cret')
     end
 
     it 'records skipped events when a channel has no recipient or target' do

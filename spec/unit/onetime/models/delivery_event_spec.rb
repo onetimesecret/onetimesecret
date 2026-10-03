@@ -113,26 +113,6 @@ RSpec.describe Onetime::DeliveryEvent do
     end
   end
 
-  describe '.scrub_message' do
-    it 'replaces URIs, email addresses, credentials and long opaque runs, then bounds the length' do
-      text = 'POST https://hooks.example.com/in/abc?token=s3cret for user@example.com ' \
-             "failed lm_team_abcdefghij key 0123456789abcdef0123456789 #{'x' * 300}"
-
-      scrubbed = described_class.scrub_message(text)
-
-      expect(scrubbed).not_to include('hooks.example.com')
-      expect(scrubbed).not_to include('user@example.com')
-      expect(scrubbed).not_to include('lm_team_')
-      expect(scrubbed).not_to include('0123456789abcdef0123456789')
-      expect(scrubbed).to include('[uri]', '[email]', '[redacted]')
-      expect(scrubbed.length).to be <= described_class::MAX_MESSAGE_LENGTH
-    end
-
-    it 'returns nil for nothing left' do
-      expect(described_class.scrub_message(nil)).to be_nil
-      expect(described_class.scrub_message("  \n ")).to be_nil
-    end
-  end
 
   describe '.record' do
     it 'stores the event newest-first and bumps the day total' do
@@ -147,14 +127,44 @@ RSpec.describe Onetime::DeliveryEvent do
       expect(Familia.dbclient.ttl(described_class.counts_key(today[:date]))).to be > 0
     end
 
-    it 'records the scrubbed error message and class, never the raw message' do
-      error = Onetime::Mail::DeliveryError.new('SMTP delivery error: 550 <user@example.com> rejected')
-      event = described_class.record(channel: 'email', stage: 'delivery', outcome: 'failed', error: error)
+    [
+      'SMTP delivery error: 550 <user@example.com> rejected',
+      'SendGrid response: {"subject":"Private launch","body":"Meet at noon"}',
+      'Rejected recipient "user"@example.com',
+      'Rejected recipient josé@例え.テスト',
+      'Rejected recipient user@exam�ple.com',
+      "Rejected recipient user@exam\xFFple.com".b,
+    ].each do |message|
+      it "omits upstream error text from the event and Redis: #{message.inspect}", :aggregate_failures do
+        error = Onetime::Mail::DeliveryError.new(message)
+        expect(error).not_to receive(:message)
+        event = described_class.record(
+          channel: 'email', stage: 'delivery', outcome: 'failed',
+          error: error, reason: 'permanent',
+        )
 
-      expect(event['error_class']).to eq('Onetime::Mail::DeliveryError')
-      expect(event['error_message']).to include('[email]')
-      expect(event['error_message']).not_to include('user@example.com')
-      expect(described_class.recent(1).first['error_message']).to eq(event['error_message'])
+        expect(event).to include('error_class' => 'Onetime::Mail::DeliveryError', 'reason' => 'permanent')
+        expect(event).not_to have_key('error_message')
+        stored = described_class.recent(1).first
+        expect(stored['id']).to eq(event['id'])
+        expect(stored).not_to have_key('error_message')
+        raw = Familia.dbclient.zrange(described_class.events.dbkey, 0, -1).join
+        expect(raw).not_to include('error_message', 'Private launch', 'Meet at noon', 'user', 'example.com', 'josé', '例え')
+        expect(described_class.daily_counts(1).last[:counts]).to eq('email:delivery:failed' => 1)
+      end
+    end
+
+    it 'omits string errors and does not invoke an arbitrary message accessor' do
+      error = double('upstream error')
+      expect(error).not_to receive(:message)
+
+      [error, 'Private launch: Meet at noon'].each do |value|
+        event = described_class.record(channel: 'webhook', stage: 'delivery', outcome: 'failed', error: value)
+        expect(event).not_to be_nil
+        expect(event).not_to have_key('error_message')
+        expect(event).not_to have_key('error_class')
+      end
+      expect(Familia.dbclient.zrange(described_class.events.dbkey, 0, -1).join).not_to include('Private launch', 'Meet at noon')
     end
 
     it 'returns nil instead of raising on an invalid event' do
@@ -163,8 +173,8 @@ RSpec.describe Onetime::DeliveryEvent do
     end
 
     it 'returns nil instead of raising when the store is unavailable' do
-      store = double('events', clear: 0)
-      allow(store).to receive(:add).and_raise(RedisClient::CannotConnectError, 'down')
+      store = described_class.events
+      allow(store.dbclient).to receive(:eval).and_raise(RedisClient::CannotConnectError, 'down')
       allow(described_class).to receive(:events).and_return(store)
 
       expect(described_class.record(channel: 'email', stage: 'queue', outcome: 'queued')).to be_nil
@@ -189,6 +199,156 @@ RSpec.describe Onetime::DeliveryEvent do
       kept = described_class.record(channel: 'email', stage: 'queue', outcome: 'queued')
 
       expect(described_class.recent(10).map { |event| event['id'] }).to eq([kept['id']])
+    end
+  end
+
+  describe '.trim!' do
+    it 'returns the total removed by the cap and age limits and expires the remaining feed' do
+      now = Familia.now.to_f
+      allow(Familia).to receive(:now).and_return(now)
+      times = [now - described_class::RETENTION - 2, now - described_class::RETENTION - 1, now - 60, now]
+      seeded = times.map do |time|
+        event = described_class.build(channel: 'email', stage: 'queue', outcome: 'queued')
+        event['occurred_at'] = time
+        described_class.events.add(event, time)
+        event
+      end
+
+      expect(described_class.trim!(3)).to eq(2)
+      expect(described_class.recent.map { |event| event['id'] }).to eq(seeded.last(2).reverse.map { |event| event['id'] })
+      expect(Familia.dbclient.pttl(described_class.events.dbkey)).to be > 0
+    end
+
+    it 'removes the feed key when the cap is zero' do
+      2.times { described_class.record(channel: 'email', stage: 'queue', outcome: 'queued') }
+
+      expect(described_class.trim!(0)).to eq(2)
+      expect(Familia.dbclient.exists?(described_class.events.dbkey)).to be(false)
+    end
+  end
+
+  describe 'retention without another write' do
+    it 'excludes idle aged events from recent' do
+      now = Familia.now.to_f
+      allow(Familia).to receive(:now).and_return(now)
+      described_class.record(channel: 'email', stage: 'queue', outcome: 'queued')
+
+      allow(Familia).to receive(:now).and_return(now + described_class::RETENTION + 1)
+
+      expect(described_class.recent).to eq([])
+      expect(Familia.dbclient.exists?(described_class.events.dbkey)).to be(false)
+    end
+
+    it 'excludes idle aged events from count' do
+      now = Familia.now.to_f
+      allow(Familia).to receive(:now).and_return(now)
+      described_class.record(channel: 'email', stage: 'queue', outcome: 'queued')
+
+      allow(Familia).to receive(:now).and_return(now + described_class::RETENTION + 1)
+
+      expect(described_class.count).to eq(0)
+      expect(Familia.dbclient.exists?(described_class.events.dbkey)).to be(false)
+      expect(described_class.daily_counts(1).last[:counts]).to eq('email:queue:queued' => 1)
+    end
+
+    it 'excludes aged events from pages and count while newer events keep the key alive' do
+      now = Familia.now.to_f
+      allow(Familia).to receive(:now).and_return(now)
+      described_class.record(channel: 'email', stage: 'queue', outcome: 'queued')
+      allow(Familia).to receive(:now).and_return(now + 60)
+      kept = described_class.record(channel: 'email', stage: 'delivery', outcome: 'sent')
+      allow(Familia).to receive(:now).and_return(now + described_class::RETENTION + 1)
+
+      expect(described_class.recent(1).map { |event| event['id'] }).to eq([kept['id']])
+      expect(described_class.recent(1, 1)).to eq([])
+      expect(described_class.count).to eq(1)
+      expect(Familia.dbclient.zcard(described_class.events.dbkey)).to eq(1)
+    end
+
+    it 'cleans aged events when count is the first reader of an active feed' do
+      now = Familia.now.to_f
+      allow(Familia).to receive(:now).and_return(now)
+      described_class.record(channel: 'email', stage: 'queue', outcome: 'queued')
+      allow(Familia).to receive(:now).and_return(now + 60)
+      kept = described_class.record(channel: 'email', stage: 'delivery', outcome: 'sent')
+      allow(Familia).to receive(:now).and_return(now + described_class::RETENTION + 1)
+
+      expect(described_class.count).to eq(1)
+      expect(Familia.dbclient.zcard(described_class.events.dbkey)).to eq(1)
+      expect(described_class.recent.map { |event| event['id'] }).to eq([kept['id']])
+    end
+
+    it 'sets a retention TTL on the feed key' do
+      described_class.record(channel: 'email', stage: 'queue', outcome: 'queued')
+
+      expect(Familia.dbclient.pttl(described_class.events.dbkey)).to be_between(
+        (described_class::RETENTION - 1) * 1000, described_class::RETENTION * 1000 + 1,
+      )
+    end
+
+    it 'does not extend the retention deadline when the feed is read or trimmed' do
+      now = Familia.now.to_f
+      allow(Familia).to receive(:now).and_return(now)
+      described_class.record(channel: 'email', stage: 'queue', outcome: 'queued')
+      key = described_class.events.dbkey
+      original_ttl = Familia.dbclient.pttl(key)
+      allow(Familia).to receive(:now).and_return(now + 60)
+
+      described_class.recent
+      described_class.count
+      described_class.trim!
+
+      expect(Familia.dbclient.pttl(key)).to be_between(original_ttl - 1000, original_ttl)
+    end
+
+    it 'does not shorten the newest event deadline when an older writer finishes last' do
+      now = Familia.now.to_f
+      allow(Familia).to receive(:now).and_return(now - 60)
+      delayed = described_class.build(channel: 'email', stage: 'queue', outcome: 'queued')
+      allow(Familia).to receive(:now).and_return(now)
+      newest = described_class.record(channel: 'email', stage: 'delivery', outcome: 'sent')
+      key = described_class.events.dbkey
+      original_ttl = Familia.dbclient.pttl(key)
+      allow(described_class).to receive(:build).and_return(delayed)
+
+      expect(described_class.record(channel: 'email', stage: 'queue', outcome: 'queued')).to eq(delayed)
+
+      expect(Familia.dbclient.pttl(key)).to be_between(original_ttl - 1000, original_ttl)
+      expect(described_class.recent.map { |event| event['id'] }).to eq([newest['id'], delayed['id']])
+    end
+
+    it 'does not shorten the newest event deadline when an earlier reader resumes' do
+      now = Familia.now.to_f
+      allow(Familia).to receive(:now).and_return(now - 60)
+      described_class.record(channel: 'email', stage: 'queue', outcome: 'queued')
+      allow(Familia).to receive(:now).and_return(now)
+      newest = described_class.record(channel: 'email', stage: 'delivery', outcome: 'sent')
+      key = described_class.events.dbkey
+      original_ttl = Familia.dbclient.pttl(key)
+      allow(Familia).to receive(:now).and_return(now - 60)
+
+      expect(described_class.recent(1).first['id']).to eq(newest['id'])
+      expect(described_class.count).to eq(2)
+      expect(Familia.dbclient.pttl(key)).to be_between(original_ttl - 1000, original_ttl)
+    end
+
+    it 'does not create a key when an empty feed is read or trimmed' do
+      expect(described_class.recent).to eq([])
+      expect(described_class.count).to eq(0)
+      expect(described_class.trim!).to eq(0)
+      expect(Familia.dbclient.exists?(described_class.events.dbkey)).to be(false)
+    end
+
+    it 'expires the idle Redis key without a read or another record' do
+      stub_const('Onetime::DeliveryEvent::RETENTION', 1)
+      described_class.record(channel: 'email', stage: 'queue', outcome: 'queued')
+      key = described_class.events.dbkey
+
+      sleep 1.1
+
+      expect(Familia.dbclient.exists?(key)).to be(false)
+      expect(described_class.recent).to eq([])
+      expect(described_class.count).to eq(0)
     end
   end
 end

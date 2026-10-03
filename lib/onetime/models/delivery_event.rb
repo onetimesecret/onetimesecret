@@ -2,9 +2,6 @@
 #
 # frozen_string_literal: true
 
-require_relative '../utils/strings'
-require_relative '../operations/email/error_scrub'
-
 module Onetime
   # DeliveryEvent — what the application attempted, and what its own workers
   # observed, for outbound notifications (#4479).
@@ -49,19 +46,18 @@ module Onetime
   #
   # ## What is stored
   #
-  # Identifiers, enums, counts and a scrubbed error message. Never payloads,
-  # secret or receipt keys, subjects, bodies, recipient addresses, webhook
-  # URLs/paths/queries, or internal object ids. Every field passes through
-  # an allowlist pattern or {.scrub_message}; a value that does not fit is
-  # dropped rather than stored.
+  # Identifiers, enums, counts, reason codes and exception class names.
+  # Error messages are omitted: upstream text can echo subjects, bodies or
+  # recipient addresses that pattern-based redaction cannot reliably detect.
+  # Never payloads, secret or receipt keys, webhook URLs/paths/queries, or
+  # internal object ids. Fields with invalid allowlist shapes are dropped.
   #
   # ## Backing store
   #
   # - `delivery_event:events` (sorted set): JSON event scored by occurred-at.
-  #   Trimmed on every write to MAX_EVENTS and to RETENTION. ZADD and each
-  #   trim are single atomic commands; between them the set can exceed the
-  #   cap by at most the number of concurrent writers, and a trim never
-  #   removes more than the overflow it sees.
+  #   Append, trim to MAX_EVENTS/RETENTION, and expire at the newest retained
+  #   event's retention deadline run atomically. Idle keys expire without
+  #   another write; reads also exclude aged events in a still-active feed.
   # - `delivery_event:counts:<YYYYMMDD>` (hash): per-day totals keyed
   #   `channel:stage:outcome`, kept COUNTS_TTL. At most 12 fields a day, so
   #   the totals outlive the individual events without growing with volume.
@@ -98,8 +94,6 @@ module Onetime
 
     COUNTS_PREFIX = 'delivery_event:counts'
 
-    MAX_MESSAGE_LENGTH = 200
-
     # Allowlist shapes. A value that does not match is stored as nil.
     ID_PATTERN          = /\A[\w.:-]{1,128}\z/
     PROVIDER_ID_PATTERN = %r{\A[\w.:@+=/-]{1,200}\z}
@@ -111,8 +105,30 @@ module Onetime
     # an objid, an email, a legacy custid — is not stored.
     CUSTOMER_ID_PATTERN = /\Aur[0-9a-z]{4,64}\z/
 
-    # Long opaque runs (keys, tokens, identifiers) inside free text.
-    OPAQUE_RUN_PATTERN = /[A-Za-z0-9_-]{20,}/
+    # Derive expiry from the newest retained score, not the current writer's
+    # timestamp: an older event arriving late must not shorten the key's life.
+    CLEANUP_LUA = <<~LUA
+      local removed = redis.call('ZREMRANGEBYRANK', KEYS[1], 0, -(tonumber(ARGV[1]) + 1))
+      removed = removed + redis.call('ZREMRANGEBYSCORE', KEYS[1], '-inf', '(' .. ARGV[2])
+      local newest = redis.call('ZREVRANGE', KEYS[1], 0, 0, 'WITHSCORES')
+      if #newest > 0 then
+        redis.call('PEXPIREAT', KEYS[1], math.ceil((tonumber(newest[2]) + tonumber(ARGV[3])) * 1000))
+      end
+    LUA
+
+    TRIM_LUA = CLEANUP_LUA + "return removed\n"
+
+    RECORD_LUA = <<~LUA + TRIM_LUA
+      redis.call('ZADD', KEYS[1], ARGV[4], ARGV[5])
+    LUA
+
+    RECENT_LUA = CLEANUP_LUA + <<~LUA
+      return redis.call('ZREVRANGE', KEYS[1], ARGV[4], ARGV[5])
+    LUA
+
+    EVENT_COUNT_LUA = CLEANUP_LUA + <<~LUA
+      return redis.call('ZCARD', KEYS[1])
+    LUA
 
     # Atomic HINCRBY + first-write EXPIRE (the DailyMetric idiom).
     COUNT_LUA = <<~LUA
@@ -127,14 +143,19 @@ module Onetime
       # @param channel [String, Symbol] one of CHANNELS
       # @param stage [String, Symbol] one of STAGES
       # @param outcome [String, Symbol] one of STAGE_OUTCOMES[stage]
-      # @param error [Exception, String, nil] source of error_class and the
-      #   scrubbed error_message
+      # @param error [Exception, String, nil] source of error_class only;
+      #   arbitrary upstream text is never stored
       # @return [Hash, nil] the stored event (string keys), or nil when it
       #   could not be recorded
       def record(**fields)
         event = build(**fields)
-        events.add(event, event['occurred_at'])
-        trim!
+        store = events
+        store.dbclient.eval(
+          RECORD_LUA,
+          keys: [store.dbkey],
+          argv: [MAX_EVENTS, Familia.now.to_f - RETENTION, RETENTION,
+                 event['occurred_at'], store.serialize_value(event)],
+        )
         bump_count(event)
         event
       rescue StandardError => ex
@@ -175,7 +196,6 @@ module Onetime
           'customer_id' => match(customer_id, CUSTOMER_ID_PATTERN),
           'reason' => match(reason, REASON_PATTERN),
           'error_class' => error_class_of(error),
-          'error_message' => error_message_of(error),
           'http_status' => webhook ? http_status_of(http_status) : nil,
           'target_host' => webhook ? match(target_host.to_s.downcase, HOST_PATTERN) : nil,
           'provider' => email ? match(provider.to_s.downcase, NAME_PATTERN) : nil,
@@ -185,26 +205,9 @@ module Onetime
         }.compact
       end
 
-      # Free text made safe to store: URIs, email addresses, provider
-      # credential shapes and long opaque runs are replaced, whitespace is
-      # collapsed, and the result is cut to MAX_MESSAGE_LENGTH.
-      #
-      # @param text [String, nil]
-      # @return [String, nil] nil when nothing is left
-      def scrub_message(text)
-        return nil if text.nil?
-
-        out = Onetime::Utils.utf8_safe(text.to_s)
-        out = out.gsub(Onetime::Utils::Strings::EMBEDDED_URI_PATTERN, '[uri]')
-        out = out.gsub(Onetime::Utils::Strings::EMAIL_PATTERN, '[email]')
-        out = Onetime::Operations::Email::ErrorScrub.redact(out)
-        out = out.gsub(OPAQUE_RUN_PATTERN, '[redacted]')
-        out = out.gsub(/[[:cntrl:]\s]+/, ' ').strip
-        out = out[0, MAX_MESSAGE_LENGTH]
-        out.empty? ? nil : out
-      end
-
-      # Newest-first slice of the feed.
+      # Newest-first slice of the retained feed. Cleanup and the slice share
+      # one atomic operation, so concurrent writers cannot shift this page
+      # between trimming and reading.
       # @return [Array<Hash>] events with string keys
       def recent(limit = 50, offset = 0)
         limit  = limit.to_i
@@ -212,12 +215,24 @@ module Onetime
         return [] if limit <= 0
 
         offset = 0 if offset.negative?
-        events.revrange(offset, offset + limit - 1)
+        store  = events
+        raw    = store.dbclient.eval(
+          RECENT_LUA,
+          keys: [store.dbkey],
+          argv: [MAX_EVENTS, Familia.now.to_f - RETENTION, RETENTION,
+                 offset, offset + limit - 1],
+        )
+        store.deserialize_values(*raw)
       end
 
       # @return [Integer] number of retained events
       def count
-        events.element_count
+        store = events
+        store.dbclient.eval(
+          EVENT_COUNT_LUA,
+          keys: [store.dbkey],
+          argv: [MAX_EVENTS, Familia.now.to_f - RETENTION, RETENTION],
+        ).to_i
       end
 
       # Enforce the count cap and the retention window.
@@ -227,9 +242,12 @@ module Onetime
         max_age = max_age.to_i
         return 0 if cap.negative? || max_age.negative?
 
-        removed  = events.remrangebyrank(0, -(cap + 1)).to_i
-        removed += events.remrangebyscore('-inf', "(#{Familia.now.to_f - max_age}").to_i
-        removed
+        store = events
+        store.dbclient.eval(
+          TRIM_LUA,
+          keys: [store.dbkey],
+          argv: [cap, Familia.now.to_f - max_age, max_age],
+        ).to_i
       end
 
       # Per-day totals, oldest day first. Days with no events read as {}.
@@ -273,12 +291,6 @@ module Onetime
         return nil unless error.is_a?(Exception)
 
         match(error.class.name, CLASS_PATTERN)
-      end
-
-      def error_message_of(error)
-        return nil if error.nil?
-
-        scrub_message(error.respond_to?(:message) ? error.message : error)
       end
 
       def http_status_of(value)

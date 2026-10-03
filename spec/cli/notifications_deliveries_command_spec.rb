@@ -100,6 +100,108 @@ RSpec.describe 'Notifications Deliveries Command', type: :cli do
     expect(parsed['retained']).to eq(1)
   end
 
+  it 'prints the complete correlation id for reuse with --correlation' do
+    correlation_id = '550e8400-e29b-41d4-a716-446655440000'
+    stub_read([event.merge(correlation_id: correlation_id)])
+
+    output = run_cli_command_quietly('notifications', 'deliveries')
+    expect(last_exit_code).to eq(0)
+    expect(output[:stdout]).to include(correlation_id)
+
+    run_cli_command_quietly('notifications', 'deliveries', '--correlation', correlation_id)
+    expect(last_exit_code).to eq(0)
+    expect(op_class).to have_received(:new).with(
+      limit: 50, offset: 0, channel: nil, stage: nil, outcome: nil, correlation_id: correlation_id, template: nil,
+    )
+  end
+
+  {
+    channel: 'webhook',
+    stage: 'delivery',
+    outcome: 'failed',
+    correlation: 'corr-1',
+    template: 'secret_viewed',
+  }.each do |filter, value|
+    it "rejects --#{filter} with --counts instead of ignoring the filter" do
+      stub_read([])
+      allow(Onetime::DeliveryEvent).to receive(:daily_counts).and_return([])
+
+      output = run_cli_command_quietly('notifications', 'deliveries', "--#{filter}", value, '--counts', '7')
+      expect(output[:stderr]).to include('--counts cannot be combined with event filters', "--#{filter}")
+      expect(last_exit_code).to eq(1)
+      expect(output[:stdout]).to be_empty
+      expect(Onetime::DeliveryEvent).not_to have_received(:daily_counts)
+      expect(op_class).not_to have_received(:new)
+    end
+  end
+
+  it 'reports all event filters combined with --counts' do
+    allow(Onetime::DeliveryEvent).to receive(:daily_counts).and_return([])
+
+    output = run_cli_command_quietly(
+      'notifications', 'deliveries', '--channel', 'webhook', '--outcome', 'failed', '--counts', '7',
+    )
+    expect(output[:stderr]).to include('--counts cannot be combined with event filters', '--channel', '--outcome')
+    expect(last_exit_code).to eq(1)
+    expect(Onetime::DeliveryEvent).not_to have_received(:daily_counts)
+  end
+
+  [[], ['--counts', '7']].each do |mode|
+    it "rejects an unknown --format in #{mode.empty? ? 'events' : 'counts'} mode before reading" do
+      stub_read([])
+      allow(Onetime::DeliveryEvent).to receive(:daily_counts).and_return([])
+
+      output = run_cli_command_quietly('notifications', 'deliveries', *mode, '--format', 'jsn')
+      expect(output[:stderr]).to include('--format must be one of: text, json')
+      expect(last_exit_code).to eq(1)
+      expect(output[:stdout]).to be_empty
+      expect(op_class).not_to have_received(:new)
+      expect(Onetime::DeliveryEvent).not_to have_received(:daily_counts)
+    end
+  end
+
+  [0, -1].each do |days|
+    it "rejects --counts #{days} before reading aggregates" do
+      expect(Onetime::DeliveryEvent).not_to receive(:daily_counts)
+
+      output = run_cli_command_quietly('notifications', 'deliveries', '--counts', days.to_s)
+      expect(output[:stderr]).to include('--counts must be a positive integer')
+      expect(last_exit_code).to eq(1)
+    end
+  end
+
+  [Onetime::DeliveryEvent::COUNTS_TTL / 86_400 + 1, 100].uniq.each do |days|
+    it "rejects --counts #{days} above the aggregate retention window" do
+      allow(Onetime::DeliveryEvent).to receive(:daily_counts).and_return([])
+      max_days = Onetime::DeliveryEvent::COUNTS_TTL / 86_400
+
+      output = run_cli_command_quietly('notifications', 'deliveries', '--counts', days.to_s)
+      expect(output[:stderr]).to include("--counts must be at most #{max_days} days")
+      expect(last_exit_code).to eq(1)
+      expect(output[:stdout]).to be_empty
+      expect(Onetime::DeliveryEvent).not_to have_received(:daily_counts)
+    end
+  end
+
+  it 'accepts the maximum retained --counts window' do
+    max_days = Onetime::DeliveryEvent::COUNTS_TTL / 86_400
+    allow(Onetime::DeliveryEvent).to receive(:daily_counts).with(max_days).and_return([])
+
+    output = run_cli_command_quietly('notifications', 'deliveries', '--counts', max_days.to_s)
+    expect(last_exit_code).to eq(0)
+    expect(output[:stderr]).to be_empty
+    expect(Onetime::DeliveryEvent).to have_received(:daily_counts).with(max_days)
+  end
+
+  it 'prints per-day totals as json with --counts' do
+    rows = [{ date: '20260930', counts: { 'email:queue:queued' => 2 } }]
+    allow(Onetime::DeliveryEvent).to receive(:daily_counts).with(1).and_return(rows)
+
+    output = run_cli_command_quietly('notifications', 'deliveries', '--counts', '1', '--format', 'json')
+    expect(last_exit_code).to eq(0)
+    expect(JSON.parse(output[:stdout])).to eq(JSON.parse(JSON.generate(rows)))
+  end
+
   it 'prints per-day totals with --counts' do
     allow(Onetime::DeliveryEvent).to receive(:daily_counts).with(1)
       .and_return([{ date: '20260930', counts: { 'email:queue:queued' => 2 } }])

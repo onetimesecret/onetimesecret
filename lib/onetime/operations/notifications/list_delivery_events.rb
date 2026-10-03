@@ -18,10 +18,10 @@ module Onetime
       #
       # Read-only: records no audit event.
       class ListDeliveryEvents
-        # Every field a stored event may carry, in projection order.
+        # Fields exposed by the reader, in projection order.
         FIELDS = %w[
           id occurred_at channel stage outcome correlation_id message_id
-          event_type template customer_id reason error_class error_message
+          event_type template customer_id reason error_class
           http_status target_host provider provider_message_id duration_ms
           attempt_count
         ].freeze
@@ -49,6 +49,7 @@ module Onetime
           validate_filters!
 
           matched = []
+          seen    = {}
           skipped = 0
           more    = false
           cursor  = 0
@@ -58,6 +59,10 @@ module Onetime
             break if page.empty?
 
             page.each do |event|
+              # Concurrent inserts can shift previously read events into this page.
+              next if seen.key?(event['id'])
+
+              seen[event['id']] = true
               next unless match?(event)
 
               if skipped < @offset

@@ -72,15 +72,24 @@ module Onetime
 
           store_envelope(delivery_info, metadata)
 
-          data                     = nil
-          attempts                 = 0
-          started_at               = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-          # Worker instances are reused across messages; one terminal event
-          # per message, so the flag resets here.
-          @delivery_event_recorded = false
+          data          = nil
+          attempts      = 0
+          started_at    = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+          # A worker instance processes messages concurrently. Keep the guard
+          # and event identity local, including when ack! enters a rescue path.
+          event_context = { recorded: false, message_id: metadata&.message_id }
           with_trace_context do
             data = parse_message(msg)
-            return unless data # parse_message handles reject on error
+            unless data # parse_message already rejected the message
+              record_delivery_event(
+                nil,
+                event_context: event_context,
+                attempts: attempts,
+                started_at: started_at,
+                reason: 'invalid_message',
+              )
+              return
+            end
 
             # Handle ping test messages (from: bin/ots queue ping)
             if ping_test?(data)
@@ -107,7 +116,13 @@ module Onetime
 
             log_info "Email delivered: #{data[:template]}"
             update_delivery_status(data, 'sent')
-            record_delivery_event(data, result: result, attempts: attempts, started_at: started_at)
+            record_delivery_event(
+              data,
+              event_context: event_context,
+              result: result,
+              attempts: attempts,
+              started_at: started_at,
+            )
             ack!
           end
         rescue Onetime::Mail::DeliveryError => ex
@@ -119,6 +134,7 @@ module Onetime
           update_delivery_status(data, 'failed')
           record_delivery_event(
             data,
+            event_context: event_context,
             error: ex,
             attempts: attempts,
             started_at: started_at,
@@ -131,6 +147,7 @@ module Onetime
           update_delivery_status(data, 'failed')
           record_delivery_event(
             data,
+            event_context: event_context,
             error: ex,
             attempts: attempts,
             started_at: started_at,
@@ -210,21 +227,23 @@ module Onetime
           Onetime::Mail.deliver_raw(email, sender_config: sender_config)
         end
 
-        # Write the one terminal delivery event for this message. Only after
-        # a delivery attempt was made (attempts > 0): parse failures,
-        # duplicates and ping messages leave nothing. Best-effort.
+        # Write one terminal event per invocation, including parse rejections
+        # with zero delivery attempts and no payload fields. Duplicates and
+        # ping messages never call this helper. Best-effort.
         #
         # @param data [Hash, nil] Parsed message payload
         # @param result [Object, nil] Mail backend response; nil means the
         #   backend skipped the send (Delivery::Base#deliver contract)
         # @param error [Exception, nil] the terminal error, when failed
-        def record_delivery_event(data, attempts:, started_at:, result: nil, error: nil, reason: nil)
-          return if data.nil? || attempts.zero?
-          return if @delivery_event_recorded
+        def record_delivery_event(data, event_context:, attempts:, started_at:, result: nil, error: nil, reason: nil)
+          parse_rejected = data.nil? && attempts.zero? && reason == 'invalid_message'
+          return if (data.nil? || attempts.zero?) && !parse_rejected
+          return if event_context[:recorded]
 
-          @delivery_event_recorded = true
+          event_context[:recorded] = true
+          data                   ||= {}
 
-          outcome, reason = if error
+          outcome, reason = if error || parse_rejected
                               ['failed', reason]
                             elsif result.nil?
                               %w[skipped not_dispatched]
@@ -238,8 +257,8 @@ module Onetime
             outcome: outcome,
             reason: reason,
             error: error,
-            correlation_id: data[:correlation_id] || message_id,
-            message_id: message_id,
+            correlation_id: data[:correlation_id] || event_context[:message_id],
+            message_id: event_context[:message_id],
             event_type: data[:event_type],
             template: data[:raw] ? 'raw' : data[:template],
             customer_id: data[:customer_extid],
