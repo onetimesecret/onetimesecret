@@ -281,7 +281,14 @@ module Auth::Config::Hooks
         # Store context only after credential validation: a rejected provider
         # must not renew the age of a different flow's pending binding.
         # Callback and strategy sub-paths must not overwrite the stored context.
+        #
+        # The new start time never covers an earlier binding. The earlier
+        # flow's binding is dropped first, so a start refused after this
+        # point (the connect re-authentication redirect, a refusal in the
+        # strategy's own request phase) leaves no earlier request id or state
+        # for the new start time to keep usable.
         if is_request_phase && !is_callback_phase
+          HELPERS.clear_pending_tenant_context(session)
           session[:omniauth_tenant_domain_id]  = custom_domain.identifier
           session[:omniauth_tenant_host]       = host
           session[:omniauth_tenant_started_at] = Time.now.to_i
@@ -884,7 +891,9 @@ module Auth::Config::Hooks
     #
     # THE RULE. A tenant flow whose config is refused or gone at ANY phase
     # drops the whole pending context; a platform-fallback flow's own binding
-    # is never touched. Every refusal path applies it:
+    # is never touched by a refusal. (A new tenant start drops whatever
+    # binding is pending, platform-fallback included; see below.) Every
+    # refusal path applies it:
     #
     #   - handle_missing_tenant_config, request path: a new platform start
     #     supersedes any abandoned tenant request in the same session.
@@ -908,7 +917,9 @@ module Auth::Config::Hooks
     # for a route that is no longer active never sees the initiating session
     # (#4610). A context left behind that way, or by a flow the visitor
     # abandoned, ages out instead: drop_expired_tenant_context removes it
-    # once it is older than PENDING_TENANT_CONTEXT_MAX_AGE.
+    # once it is older than PENDING_TENANT_CONTEXT_MAX_AGE. A new tenant
+    # start (omniauth_setup, request path) also drops it before parking
+    # fresh markers, so the new start time never covers an earlier binding.
     #
     # The markers alone are not enough. before_omniauth_callback_route reads
     # a missing :omniauth_tenant_domain_id as "platform-level auth" and skips

@@ -894,6 +894,47 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
       expect(session['omniauth_tenant_host']).to eq(tenant_a.host)
     end
 
+    # A start that passes setup but is refused afterwards (here the
+    # strategy's own request-phase refusal; the connect re-authentication
+    # redirect is another) writes a new start time. The earlier request id
+    # must not survive under it.
+    it 'refuses the original SAML callback after a later start is refused past setup' do
+      created_emails << email
+      events   = audit_events
+      original = start_login(tenant_a)
+      started  = last_request.env['rack.session'].to_h.fetch('omniauth_tenant_started_at')
+      allow(Time).to receive(:now).and_return(Time.at(started + 300))
+      allow_any_instance_of(OmniAuth::Strategies::RequestBoundSAML).to receive(:acs_host_mismatch)
+        .and_return(acs_host: 'elsewhere.example', request_host: tenant_a.host)
+
+      post '/auth/sso/saml'
+
+      expect(last_response.status).to eq(302), last_response.body[0, 300]
+      expect(last_response.headers['Location'].to_s).to include('auth_error=sso_failed')
+      # Past setup: the refused start wrote its own start time.
+      expect(last_request.env['rack.session'].to_h['omniauth_tenant_started_at']).to eq(started + 300)
+      expect(last_request.env['rack.session'].to_h['saml_authn_request_id']).to be_nil
+      allow(Time).to receive(:now).and_call_original
+      allow_any_instance_of(OmniAuth::Strategies::RequestBoundSAML).to receive(:acs_host_mismatch).and_call_original
+      # Past the original start's bound, inside the refused start's.
+      allow(hook).to receive(:drop_expired_tenant_context).and_wrap_original do |drop, session, host|
+        drop.call(session, host, now: started + hook::PENDING_TENANT_CONTEXT_MAX_AGE + 1)
+      end
+
+      post_callback(tenant_a, response_for(original))
+
+      expect(last_response.status).to eq(302), last_response.body[0, 300]
+      expect(last_response.headers['Location'].to_s).to include('auth_error=sso_failed')
+      expect(last_request.env['rack.session'].to_h['account_id']).to be_nil
+      expect(identity_rows(name_id)).to be_empty
+      expect(db[:accounts].where(email: email).count).to eq(0)
+      # Refused for the missing request id: the refused start's context is
+      # still inside its bound.
+      expect(events.map(&:first)).not_to include(
+        :omniauth_tenant_context_expired, :omniauth_tenant_callback_validated, :login_success
+      )
+    end
+
     it 'drops the context left behind once it is older than the bound' do
       created_emails << email
       events  = audit_events
