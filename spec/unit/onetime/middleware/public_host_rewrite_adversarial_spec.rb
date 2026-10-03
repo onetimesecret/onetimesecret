@@ -114,7 +114,9 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
   FORWARDED_HOSTS = FORWARDED_HOST_NAMES.keys.freeze
 
   # Every detected name this install serves, with its classification when
-  # the domains feature is on. Any other name is :invalid.
+  # the domains feature is on. Any other name is :invalid. Any subdomain of
+  # the canonical host classifies :subdomain; these are the two the inputs
+  # above can produce, so no other subdomain is accepted here.
   SERVED_STRATEGIES = {
     CANONICAL => :canonical,
     "www.#{CANONICAL}" => :canonical,
@@ -129,10 +131,11 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
 
   SCHEMES = %w[https http].freeze
 
-  # Everything this install serves. A rewritten authority must name one.
+  # A rewritten authority must name one of the served names exactly. The
+  # FQDN form of the registered domain is in the table because detection
+  # keeps the trailing dot and the name still classifies :custom.
   def served?(host)
-    host == CANONICAL || host == REGISTERED || host == "#{REGISTERED}." ||
-      host.end_with?(".#{CANONICAL}") || host == 'xn--never-registered'
+    SERVED_STRATEGIES.key?(host)
   end
 
   let(:seen) { [] }
