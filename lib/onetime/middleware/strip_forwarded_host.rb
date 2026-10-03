@@ -68,10 +68,11 @@ module Onetime
     # itself BEFORE the delete and written to `rack.url_scheme`, the key
     # `Rack::Request#scheme` falls back to once no forwarded carrier is
     # present. No parsing happens here; Rack's answer before the strip is
-    # Rack's answer after it. `X-Forwarded-Proto` and `X-Forwarded-SSL` are
-    # not touched, so the X-Forwarded-* family continues to resolve on its
-    # own; `for=` has already been consumed by otto's IP resolution, which
-    # runs first.
+    # Rack's answer after it, but only for a trusted proxy. Untrusted
+    # X-Forwarded-Proto, X-Forwarded-Scheme and X-Forwarded-SSL are deleted
+    # before any scheme read, using the same trust verdict as forwarded host
+    # and port. `for=` has already been consumed by otto's IP resolution,
+    # which runs first.
     #
     # ## The write is UPGRADE-ONLY
     #
@@ -160,6 +161,10 @@ module Onetime
       # when it is not one usable port.
       X_FORWARDED_PORT = 'HTTP_X_FORWARDED_PORT'
 
+      FORWARDED_SCHEME_HEADERS = %w[
+        HTTP_X_FORWARDED_PROTO HTTP_X_FORWARDED_SCHEME HTTP_X_FORWARDED_SSL
+      ].freeze
+
       def initialize(app)
         @app = app
       end
@@ -167,8 +172,12 @@ module Onetime
       def call(env)
         stripped = STRIPPED_CANDIDATES.select { |key| env.key?(key) }
         stripped << X_FORWARDED_PORT if unusable_port?(env)
+        trusted = Rack::DetectHost.from_trusted_proxy?(env)
+        unless trusted
+          stripped.concat(FORWARDED_SCHEME_HEADERS.select { |key| env.key?(key) })
+        end
 
-        carry_forwarded_scheme(env) if stripped.include?(FORWARDED)
+        carry_forwarded_scheme(env) if trusted && stripped.include?(FORWARDED)
 
         stripped.each { |key| env.delete(key) }
         env[STRIPPED_HEADERS] = stripped.freeze unless stripped.empty?

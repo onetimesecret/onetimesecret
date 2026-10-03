@@ -90,6 +90,7 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
     'evil.test',
     'unregistered.test:8443',
     'broken-read.test',
+    'broken-read.example.net',
     '10.0.0.7',
     '[::1]:8443',
     'localhost',
@@ -145,7 +146,7 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
   before do
     allow(described_class).to receive(:enabled?).and_return(true)
     allow(Onetime::CustomDomain).to receive(:from_display_domain) do |name|
-      raise StandardError, 'datastore unavailable' if name == 'broken-read.test'
+      raise StandardError, 'datastore unavailable' if name == 'broken-read.example.net'
 
       name.to_s.chomp('.') == REGISTERED ? custom_domain : nil
     end
@@ -202,23 +203,34 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
     env.key?(described_class::ORIGINAL_HTTP_HOST)
   end
 
-  # From a peer that is not a trusted proxy nothing forwarded is read. The
-  # one change such a request can see is a doubled Host that resolves to a
-  # served host being replaced by that host, which is the Host's own first
-  # value and never carries a port.
+  def authority_snapshot(env)
+    request = Rack::Request.new(env)
+    [env.values_at('HTTP_HOST', 'SERVER_NAME', 'SERVER_PORT', described_class::ORIGINAL_HTTP_HOST),
+      request.host, request.port, request.host_with_port, request.base_url]
+  end
+
+  def classification_snapshot(env)
+    env.values_at(Rack::DetectHost.result_field_name, 'onetime.display_domain',
+      'onetime.domain_strategy', Rack::DetectHost.forwarded_authority_field_name,
+      'onetime.custom_domain_id')
+  end
+
+  # Compare against the same request without forwarding, including doubled
+  # Host normalization. A classification-derived allowlist is not an oracle.
   it 'takes nothing from the forwarded headers of a peer that is not a trusted proxy' do
+    baselines = {}
     report(
       violations do |input, out|
-            next if TRUSTED_PEERS.include?(input[:peer])
+        next if TRUSTED_PEERS.include?(input[:peer])
 
-            first_value = Rack::DetectHost.normalize_host(input[:host])
-            if out.key?('HTTP_X_FORWARDED_PORT')
-              "X-Forwarded-Port kept: #{out['HTTP_X_FORWARDED_PORT'].inspect}"
-            elsif rewritten?(out) && !(input[:host].to_s.include?(',') && out['HTTP_HOST'] == first_value)
-              "rewritten to #{out['HTTP_HOST'].inspect}"
-            elsif !rewritten?(out) && out['HTTP_HOST'] != input[:host]
-              "HTTP_HOST changed to #{out['HTTP_HOST'].inspect}"
-            end
+        baseline = baselines[[input[:peer], input[:host]]] ||= run(peer: input[:peer], host: input[:host])
+        if out.key?('HTTP_X_FORWARDED_PORT')
+          "X-Forwarded-Port kept: #{out['HTTP_X_FORWARDED_PORT'].inspect}"
+        elsif classification_snapshot(out) != classification_snapshot(baseline)
+          "classification=#{classification_snapshot(out).inspect} baseline=#{classification_snapshot(baseline).inspect}"
+        elsif authority_snapshot(out) != authority_snapshot(baseline)
+          "authority=#{authority_snapshot(out).inspect} baseline=#{authority_snapshot(baseline).inspect}"
+        end
       end,
     )
   end
@@ -300,7 +312,7 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
     )
   end
 
-  it 'never rewrites an :invalid, unregistered or failed-read host' do
+  it 'never rewrites an :invalid classification' do
     report(
       violations do |_input, out|
             next unless rewritten?(out)
@@ -309,6 +321,134 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
             "rewritten with strategy #{out['onetime.domain_strategy'].inspect}"
       end,
     )
+  end
+
+  describe 'input-specific lookup failures and unregistered hosts' do
+    # .test is rejected by PublicSuffix before a lookup; use parseable hosts
+    # so the failed-read and absent fixtures actually reach the datastore.
+    { 'broken-read.example.net' => :read_failed, 'unregistered.example.net' => :absent }.each do |hostname, state|
+      PEERS.each_key do |peer|
+        [nil, '443', '8443'].each do |port|
+          authority = port ? "#{hostname}:#{port}" : hostname
+          shapes = [{ host: authority }]
+          shapes << { host: ORIGIN, xfh: authority } if TRUSTED_PEERS.include?(peer)
+          shapes.each do |headers|
+            it "keeps #{state} #{authority} invalid and preserves Host for #{peer} #{headers.inspect}" do
+              out = run(peer: peer, **headers)
+              resolution = out[Onetime::CustomDomainResolution::ENV_KEY]
+
+              aggregate_failures do
+                expect(out[Rack::DetectHost.result_field_name]).to eq(hostname)
+                expect(out['onetime.display_domain']).to eq(hostname)
+                expect(out['onetime.domain_strategy']).to eq(:invalid)
+                expect(Onetime::CustomDomain).to have_received(:from_display_domain).with(hostname)
+                expect(resolution).to have_attributes(host: hostname, state: state, record: nil)
+                expect(out).not_to have_key('onetime.custom_domain')
+                expect(out).not_to have_key('onetime.custom_domain_id')
+                expect(out).not_to have_key(described_class::ORIGINAL_HTTP_HOST)
+                expect(out['HTTP_HOST']).to eq(headers.fetch(:host))
+                expect(out['SERVER_NAME']).to eq('origin.internal')
+                expect(out['SERVER_PORT']).to eq('3000')
+                expect(authority_snapshot(out)).to eq(authority_snapshot(request_env(peer: peer, host: headers.fetch(:host))))
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+
+  describe 'forwarded scheme trust' do
+    # Expected schemes for the two pinned families on an origin-http request.
+    scheme_cases = [
+      [{ 'HTTP_X_FORWARDED_PROTO' => 'https' }, 'https', 'http'],
+      [{ 'HTTP_X_FORWARDED_SCHEME' => 'https' }, 'https', 'http'],
+      # Rack reads SSL=on before the pinned forwarding family.
+      [{ 'HTTP_X_FORWARDED_SSL' => 'on' }, 'https', 'https'],
+      [{ 'HTTP_X_FORWARDED_SSL' => 'off' }, 'http', 'http'],
+      [{ 'HTTP_X_FORWARDED_SSL' => "on\r\nX-Injected: 1" }, 'http', 'http'],
+      [{ 'HTTP_X_FORWARDED_SSL' => 'on', 'HTTP_X_FORWARDED_PROTO' => 'http',
+         'HTTP_X_FORWARDED_SCHEME' => 'http', 'HTTP_FORWARDED' => 'host=evil.test;proto=http' }, 'https', 'https'],
+      [{ 'HTTP_FORWARDED' => "host=evil.test;proto=https" }, 'http', 'https'],
+      [{ 'HTTP_X_FORWARDED_PROTO' => 'http', 'HTTP_X_FORWARDED_SCHEME' => 'https',
+         'HTTP_FORWARDED' => 'host=evil.test;proto=https' }, 'http', 'https'],
+      [{ 'HTTP_X_FORWARDED_PROTO' => 'https', 'HTTP_X_FORWARDED_SCHEME' => 'http',
+         'HTTP_FORWARDED' => 'host=evil.test;proto=http' }, 'https', 'http'],
+      [{ 'HTTP_X_FORWARDED_PROTO' => 'javascript', 'HTTP_X_FORWARDED_SCHEME' => 'javascript',
+         'HTTP_FORWARDED' => 'host=evil.test;proto=javascript' }, 'http', 'http'],
+      # Rack resolves this proto despite the malformed for= quoting. Whole
+      # header deletion must still remove its hostile authority.
+      [{ 'HTTP_FORWARDED' => 'for=a"b;host=evil.test;proto=https' }, 'http', 'https'],
+    ]
+
+    [:x_forwarded, :forwarded].each_with_index do |family, index|
+      it "ignores untrusted scheme carriers under #{family} (PHR-ADV-0#{index + 1})" do
+        Rack::Request.forwarded_priority = [family]
+        found = []
+        (PEERS.keys - TRUSTED_PEERS).each do |peer|
+          SCHEMES.each do |scheme|
+            [REGISTERED, "#{REGISTERED}, evil.test", ORIGIN].each do |host|
+              baseline = run(peer: peer, host: host, scheme: scheme, extra: { 'HTTPS' => nil })
+              scheme_cases.each do |headers, _x_scheme, _f_scheme|
+                out = run(peer: peer, host: host, scheme: scheme, xfh: "#{REGISTERED}:443", xfp: '8443',
+                  extra: headers.merge('HTTPS' => nil))
+                surviving = headers.keys.select { |key| out.key?(key) }
+                unless surviving.empty?
+                  found << "peer=#{peer} host=#{host.inspect} scheme=#{scheme} headers=#{headers.inspect}: " \
+                    "untrusted carriers survive=#{surviving.inspect}"
+                end
+                actual = [classification_snapshot(out), authority_snapshot(out), Rack::Request.new(out).scheme, out['rack.url_scheme']]
+                expected = [classification_snapshot(baseline), authority_snapshot(baseline), Rack::Request.new(baseline).scheme, baseline['rack.url_scheme']]
+                next if actual == expected
+
+                found << "peer=#{peer} host=#{host.inspect} scheme=#{scheme} headers=#{headers.inspect}: " \
+                  "actual=#{actual.inspect} baseline=#{expected.inspect}"
+              end
+            end
+          end
+        end
+        report(found)
+      end
+
+      scheme_cases.each do |headers, x_scheme, f_scheme|
+        TRUSTED_PEERS.each do |peer|
+          it "uses the #{family} scheme for trusted #{peer} #{headers.inspect}" do
+            Rack::Request.forwarded_priority = [family]
+            expected_scheme = family == :x_forwarded ? x_scheme : f_scheme
+            out = run(peer: peer, host: ORIGIN, scheme: 'http', xfh: "#{REGISTERED}:443", xfp: '8443', extra: headers)
+            request = Rack::Request.new(out)
+
+            aggregate_failures do
+              expect(out[Rack::DetectHost.result_field_name]).to eq(REGISTERED)
+              expect(out.values_at('onetime.display_domain', 'onetime.domain_strategy')).to eq([REGISTERED, :custom])
+              expect(request.scheme).to eq(expected_scheme)
+              expect(out['HTTP_HOST']).to eq(expected_scheme == 'https' ? REGISTERED : "#{REGISTERED}:443")
+              expect(request.host).to eq(REGISTERED)
+              expect(request.port).to eq(443)
+              expect(request.base_url).to eq("#{expected_scheme}://#{out['HTTP_HOST']}")
+              expect(URI.parse(request.base_url).port).to eq(request.port)
+              expect(out).not_to have_key('HTTP_FORWARDED')
+              expect(out).not_to have_key('HTTP_X_FORWARDED_HOST')
+              expect(out).not_to have_key('HTTP_X_FORWARDED_PORT')
+            end
+          end
+        end
+      end
+    end
+
+    PEERS.each_key do |peer|
+      it "does not persist a Forwarded proto downgrade of origin TLS for #{peer}" do
+        Rack::Request.forwarded_priority = [:forwarded]
+        out = run(peer: peer, host: "#{REGISTERED}, evil.test", scheme: 'https',
+          forwarded: 'host=evil.test;proto=http', extra: { 'HTTPS' => nil })
+        request = Rack::Request.new(out)
+
+        expect(out['rack.url_scheme']).to eq('https')
+        expect(request.scheme).to eq('https')
+        expect(request.base_url).to eq("https://#{REGISTERED}")
+        expect(request.port).to eq(443)
+      end
+    end
   end
 
   SCHEMES.each do |scheme|

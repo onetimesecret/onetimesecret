@@ -160,12 +160,36 @@ RSpec.describe Onetime::Middleware::StripForwardedHost do
     end
   end
 
-  describe 'post-strip Rack resolution' do
+  describe 'untrusted scheme carriers' do
+      %w[HTTP_X_FORWARDED_PROTO HTTP_X_FORWARDED_SCHEME HTTP_X_FORWARDED_SSL HTTP_FORWARDED].each do |carrier|
+        it "ignores #{carrier} even when a private peer is explicitly denied" do
+          Rack::Request.forwarded_priority = [:forwarded, :x_forwarded]
+          value = case carrier
+                  when 'HTTP_FORWARDED' then 'proto=https'
+                  when 'HTTP_X_FORWARDED_SSL' then 'on'
+                  else 'https'
+                  end
+          env = call_with(Rack::MockRequest.env_for('http://onetime.test/',
+            carrier => value,
+            'REMOTE_ADDR' => '10.0.0.5',
+            'otto.via_trusted_proxy' => false))
+          aggregate_failures do
+            expect(env).not_to have_key(carrier)
+            expect(env['rack.url_scheme']).to eq('http')
+            expect(Rack::Request.new(env).scheme).to eq('http')
+            expect(env[described_class::STRIPPED_HEADERS]).to include(carrier)
+          end
+        end
+      end
+    end
+
+    describe 'post-strip Rack resolution' do
     let(:env) do
       Rack::MockRequest.env_for(
         'http://onetime.test/',
         'HTTP_X_FORWARDED_HOST' => 'evil.example.com',
         'HTTP_FORWARDED' => 'for=192.0.2.60;proto=https;host=evil.example.com',
+        'otto.via_trusted_proxy' => true,
       )
     end
 
@@ -189,7 +213,7 @@ RSpec.describe Onetime::Middleware::StripForwardedHost do
       expect(Rack::Request.new(call_with(env)).scheme).to eq('http')
     end
 
-    it 'still resolves scheme from the untouched X-Forwarded-Proto under the default family' do
+    it 'still resolves scheme from a trusted X-Forwarded-Proto under the default family' do
       Rack::Request.forwarded_priority = [:x_forwarded]
 
       env['HTTP_X_FORWARDED_PROTO'] = 'https'
