@@ -1466,14 +1466,27 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
       )
     end
 
-    it 'drops markers whose start time is not an integer or lies in the future' do
+    it 'drops markers whose start time is not an integer' do
       session[:omniauth_tenant_started_at] = (now - 30).to_s
-      expect(drop).to be true
 
-      session[:omniauth_tenant_domain_id]  = 'domain-id'
-      session[:omniauth_tenant_started_at] = now + 60
       expect(drop).to be true
-      expect(session).not_to include(:omniauth_tenant_domain_id, :omniauth_tenant_started_at)
+      expect(session).to eq(account_id: 42)
+    end
+
+    # The callback can reach a server whose clock runs behind the one that
+    # started the flow.
+    it 'keeps a start time ahead of the clock by no more than the skew allowance' do
+      session[:omniauth_tenant_started_at] = now + described_class::PENDING_TENANT_CONTEXT_CLOCK_SKEW
+
+      expect(drop).to be false
+      expect(session).to include(:omniauth_tenant_domain_id, 'saml_authn_request_id')
+    end
+
+    it 'drops markers whose start time lies further in the future than the skew allowance' do
+      session[:omniauth_tenant_started_at] = now + described_class::PENDING_TENANT_CONTEXT_CLOCK_SKEW + 1
+
+      expect(drop).to be true
+      expect(session).to eq(account_id: 42)
     end
 
     it 'reads the string-keyed form the live session stores' do
