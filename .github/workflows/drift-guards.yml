@@ -53,8 +53,9 @@ jobs:
           # base branch. The default shallow checkout has neither the base
           # branch nor enough history to find a merge-base, and the guard would
           # quietly fall back to syntax-only checking. The full fetch also
-          # brings the release tags, which the guard reads to decide which
-          # markers name a released version; it fails if it sees none.
+          # brings local release tags. The guard also queries origin's full
+          # stable-tag advertisement so partial local tags cannot make a
+          # shipped marker editable; strict mode fails if that query fails.
           fetch-depth: 0
 
       # envref is a Python package (ADR-042). uv is installed through pip
@@ -92,6 +93,7 @@ jobs:
         env:
           # Refuse to pass on a missing base ref rather than degrading to a
           # syntax-only check: a ratchet that silently stops ratcheting is
-          # worse than one that fails loudly.
+          # worse than one that fails loudly. Also require a successful
+          # release-tag query to origin and a nonempty stable-tag set.
           CONFIG_VERSION_REQUIRE_BASE: '1'
         run: ./bin/envref check

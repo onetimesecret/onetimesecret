@@ -90,6 +90,19 @@ becomes frozen once that tag exists. This is a way to repair a guess that
 reached the base branch, not a reason to write one — new keys are still
 annotated `unreleased`.
 
+Absence from a partial local tag set is not evidence that a version never
+shipped. Each check queries the complete stable-tag namespace advertised by
+`origin` with `git ls-remote --tags --refs`, and combines it with known local
+stable tags. A tag present in either set freezes the marker; a version absent
+from both stays editable only after the remote query succeeds and the combined
+set contains stable tags. No tag objects are fetched and no refs are changed.
+
+`origin` must be the repository that carries the project's complete release
+tag namespace, not a fork with only some release tags. Git cannot establish
+that authority from local refs or prove that a deleted or unpushed remote tag
+never existed. The check uses the currently advertised namespace and retains
+known local tags, including unpushed release tags.
+
 ## Adding a config key
 
 Annotate it `# Since unreleased`. You cannot know which version will ship it,
@@ -294,13 +307,19 @@ File names below are relative to `tools/envref/src/envref/`.
 - **The ratchet needs the base branch fetched.** CI sets
   `CONFIG_VERSION_REQUIRE_BASE=1` so a missing base fails loudly rather than
   silently degrading to a syntax-only check. Locally it prints a NOTE.
-- **The ratchet needs the release tags fetched.** Rule 2 decides whether a
-  version was released by looking for its `vX.Y.Z` tag. With
-  `CONFIG_VERSION_REQUIRE_BASE=1` a checkout showing no stable tags fails.
-  Locally it prints a NOTE and freezes every concrete marker on the base,
-  tagged or not.
+- **The ratchet needs access to origin's release tags.** Rule 2 uses exact
+  `vX.Y.Z` tags advertised by `origin`, plus known local stable tags. Partial
+  or missing local tags do not weaken the rule if the remote query succeeds.
+  If `origin` is absent or unreachable, the query fails, or neither set has a
+  stable tag, `CONFIG_VERSION_REQUIRE_BASE=1` fails before running the rules.
+  Locally the fallback freezes every concrete marker on the base, including
+  guessed versions, and prints a NOTE on both passing and failing runs.
+  Check `git ls-remote --tags --refs origin` and use `git fetch --tags origin`
+  to refresh local tags; `origin` must still be reachable for the next check.
+  Offline runs cannot safely establish that an absent local tag was never
+  released. `--print-sites` performs no tag query and needs no network.
 - **A resolved marker is editable until its tag exists.** The release process
   resolves, commits, then tags, so between the resolve commit reaching the base
   branch and the tag being pushed, the new `Since vX.Y.Z` markers are not yet
-  frozen. The check reads tag names only; it does not verify that the tagged
-  tree contains the key.
+  frozen unless that tag is already known locally. The check reads tag names
+  only; it does not verify that the tagged tree contains the key.

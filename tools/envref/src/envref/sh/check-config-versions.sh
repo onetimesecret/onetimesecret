@@ -24,9 +24,10 @@
 #      "Shipped" means the version has a stable release tag (refs/tags/vX.Y.Z).
 #      A marker naming a version with no such tag is treated like `unreleased`
 #      and stays editable, so a guessed version that reached the base branch
-#      can be corrected before the release that really ships the key. When no
-#      stable tag is visible at all, every concrete marker is treated as
-#      shipped (and CONFIG_VERSION_REQUIRE_BASE turns that into a failure).
+#      can be corrected before the release that really ships the key. The tag
+#      set combines a full advertisement from origin with known local tags.
+#      If origin cannot be queried or no stable tags are known, every concrete
+#      marker is frozen (and CONFIG_VERSION_REQUIRE_BASE makes this a failure).
 #   3. MARKERS ARE WELL-FORMED. Every marker matches the §1 recognizer exactly,
 #      so the annotator, this guard and the docs generator all agree on what a
 #      marker is. Catches `# since v1.2.3`, `#Since v1.2.3`, `# Since 1.2.3`,
@@ -201,24 +202,43 @@ fi
 # "released" is read from the tags: vX.Y.Z exactly, the same stable-only shape
 # the marker itself allows. Pre-release tags (-rc1, -PRE) do not count.
 #
-# A checkout with no stable tags cannot tell a released version from a guess.
-# Locally the rule then falls back to freezing every concrete marker, which is
-# what it did before it read tags. Under CONFIG_VERSION_REQUIRE_BASE it fails
-# instead, for the same reason the missing-base guard above does: CI should
-# report that it could not see the tags rather than run a different rule.
-TAGS_VISIBLE=0
+# Some local tags do not prove that an absent tag never shipped. Read origin's
+# full stable-tag advertisement on each check, without fetching objects or
+# changing refs. origin must be the release-tag authority (see the contract).
+# Include local tags too, so an unpushed release tag still freezes its marker.
+# A failed advertisement is not evidence of absence, even if it emitted partial
+# output. Local/offline runs then freeze every concrete marker; strict CI fails.
+# --print-sites needs neither tags nor a network connection.
+TAGS_COMPLETE=0
+TAG_PROBLEM="cannot list stable release tags from origin"
 : > "$tmp/stable.tags"
-if [[ -n "$BASE_REF" ]]; then
+if [[ -n "$BASE_REF" && "${1:-}" != "--print-sites" ]]; then
   { git tag -l 'v[0-9]*' 2>/dev/null || true; } \
     | { grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' || true; } \
-    | sort -u > "$tmp/stable.tags"
-  if [[ -s "$tmp/stable.tags" ]]; then TAGS_VISIBLE=1; fi
+    | sort -u > "$tmp/local.tags"
+  if GIT_TERMINAL_PROMPT=0 git ls-remote --tags --refs origin 'refs/tags/v*' > "$tmp/remote.refs" 2>/dev/null; then
+    awk '$2 ~ /^refs\/tags\/v[0-9]+\.[0-9]+\.[0-9]+$/ {
+      sub(/^refs\/tags\//, "", $2); print $2
+    }' "$tmp/remote.refs" > "$tmp/remote.tags"
+    sort -u "$tmp/local.tags" "$tmp/remote.tags" > "$tmp/stable.tags"
+    if [[ -s "$tmp/stable.tags" ]]; then
+      TAGS_COMPLETE=1
+    else
+      TAG_PROBLEM="no stable release tags (vX.Y.Z) are visible locally or on origin"
+    fi
+
+  fi
 fi
 
-if [[ -n "$BASE_REF" && $TAGS_VISIBLE -eq 0 && -n "${CONFIG_VERSION_REQUIRE_BASE:-}" && "${1:-}" != "--print-sites" ]]; then
-  echo "FAIL: no stable release tags (vX.Y.Z) are visible, and CONFIG_VERSION_REQUIRE_BASE is set." >&2
-  echo "      Marker immutability is decided per released version, which is read" >&2
-  echo "      from the tags. Fetch them first, e.g. 'git fetch --tags origin'." >&2
+tag_guidance() {
+  echo "      origin must be reachable and carry the complete release tag namespace."
+  echo "      Check 'git ls-remote --tags --refs origin'; fetch with 'git fetch --tags origin'."
+}
+
+if [[ -n "$BASE_REF" && $TAGS_COMPLETE -eq 0 && -n "${CONFIG_VERSION_REQUIRE_BASE:-}" && "${1:-}" != "--print-sites" ]]; then
+  echo "FAIL: ${TAG_PROBLEM}, and CONFIG_VERSION_REQUIRE_BASE is set." >&2
+  echo "      Cannot distinguish shipped markers from guesses with unverified release tags." >&2
+  tag_guidance >&2
   exit 1
 fi
 
@@ -574,12 +594,12 @@ check_file() {
   # --- Rule 2: a released version the base ref carries must still be carried
   # by that same key. `unreleased` is excluded from the base side on purpose —
   # resolving it at release time is the sanctioned transition. A version with
-  # no stable tag is excluded the same way: it names a release that does not
-  # exist yet. The env half below joins against base.pairs, so it inherits
-  # the filter.
+  # no stable tag locally or in origin's complete advertisement is excluded
+  # the same way. Without that evidence, all concrete markers stay frozen.
+  # The env half below joins against base.pairs, so it inherits the filter.
   { grep -E ' v[0-9]+\.[0-9]+\.[0-9]+ [01]$' "$base" || true; } \
     | cut -d' ' -f1,2 | sort -u > "$tmp/base.concrete"
-  if [[ $TAGS_VISIBLE -eq 1 ]]; then
+  if [[ $TAGS_COMPLETE -eq 1 ]]; then
     awk -v tags="$tmp/stable.tags" '
       BEGIN { while ((getline t < tags) > 0) released[t] = 1 }
       $2 in released
@@ -691,7 +711,12 @@ fi
 if [[ -s "$tmp/fail_changed" ]]; then
   if [[ $failed -eq 1 ]]; then echo "" >&2; fi
   {
-    echo "FAIL: $(wc -l < "$tmp/fail_changed" | tr -d ' ') version marker(s) changed. Shipped markers are immutable:"
+    echo "FAIL: $(wc -l < "$tmp/fail_changed" | tr -d ' ') version marker(s) changed:"
+    if [[ $TAGS_COMPLETE -eq 1 ]]; then
+      echo "Shipped markers are immutable:"
+    else
+      echo "Concrete markers are frozen while release-tag visibility is unverified:"
+    fi
     while IFS='|' read -r f k was now; do
       echo "  $f:  $k"
       echo "      base:     # Since $was"
@@ -702,12 +727,18 @@ if [[ -s "$tmp/fail_changed" ]]; then
       fi
     done < "$tmp/fail_changed"
     echo ""
-    echo "'Since v0.24.0' is a promise to everyone running v0.24.0 — it is history,"
-    echo "not a field to update. Restore the original marker. If a key genuinely"
-    echo "changed meaning, rename the key instead; the old name's marker leaves with"
-    echo "it. The only sanctioned edit is 'unreleased' -> a real version, made by the"
-    echo "release process when it cuts that version. A marker whose version has no"
-    echo "stable release tag is not frozen and does not appear in this list."
+    if [[ $TAGS_COMPLETE -eq 1 ]]; then
+      echo "'Since v0.24.0' is a promise to everyone running v0.24.0 — it is history,"
+      echo "not a field to update. Restore the original marker. If a key genuinely"
+      echo "changed meaning, rename the key instead; the old name's marker leaves with"
+      echo "it. The release process may resolve 'unreleased' to a real version."
+      echo "A marker with no stable tag locally or on origin is not frozen."
+    else
+      echo "Release-tag visibility is unverified, so every concrete marker on the"
+      echo "base is frozen conservatively, including possibly untagged guesses."
+      echo "Verify the release tags and retry before correcting a guessed version."
+      tag_guidance
+    fi
   } >&2
   failed=1
 fi
@@ -768,6 +799,12 @@ if [[ -s "$tmp/fail_hidden" ]]; then
   failed=1
 fi
 
+if [[ -n "$BASE_REF" && $TAGS_COMPLETE -eq 0 ]]; then
+  echo "NOTE: ${TAG_PROBLEM}."
+  echo "      Every concrete marker on the base was frozen conservatively."
+  tag_guidance
+fi
+
 if [[ $failed -eq 1 ]]; then
   exit 1
 fi
@@ -778,11 +815,6 @@ if [[ -z "$BASE_REF" ]]; then
   echo "      CONFIG_VERSION_REQUIRE_BASE=1 to make this a failure, as CI does)."
 fi
 
-if [[ -n "$BASE_REF" && $TAGS_VISIBLE -eq 0 ]]; then
-  echo "NOTE: no stable release tags (vX.Y.Z) are visible, so every concrete marker"
-  echo "      on the base was treated as shipped. Run 'git fetch --tags origin' to"
-  echo "      let a marker naming an untagged version be corrected."
-fi
 
 if [[ -s "$tmp/note_versioned" ]]; then
   echo "NOTE: new key(s) annotated with a released version rather than 'unreleased'"

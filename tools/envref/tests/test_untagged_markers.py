@@ -5,12 +5,14 @@ not vX.Y.Z was ever released. A guessed future version that reached the base
 could then not be corrected: the release that really shipped the key failed
 the check when it re-dated the marker.
 
-The rule now reads the tags. These cases pin the three outcomes: a marker
-naming an untagged version can change, a marker naming a tagged version
-cannot, and a run that sees no stable tags fails under
-CONFIG_VERSION_REQUIRE_BASE instead of treating every marker as editable.
+The rule uses origin's full tag advertisement plus known local tags. These
+cases pin partial checkouts, genuinely untagged guesses, and conservative
+fallback when the advertisement cannot be read. The fixture origin is a local
+bare repository: these tests never contact an external service.
 """
 
+import shlex
+import shutil
 import subprocess
 import unittest
 from pathlib import Path
@@ -40,7 +42,12 @@ def git(root: Path, *args: str) -> None:
     )
 
 
-def fixture(root: Path, tags: tuple[str, ...]) -> None:
+def fixture(
+    root: Path,
+    tags: tuple[str, ...],
+    remote_tags: tuple[str, ...] | None = None,
+    origin_available: bool = True,
+) -> None:
     for relpath, text in BASE.items():
         path = root / relpath
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -55,6 +62,14 @@ def fixture(root: Path, tags: tuple[str, ...]) -> None:
     for tag in tags:
         git(root, "tag", tag)
 
+    origin = root / "origin.git"
+    git(root, "remote", "add", "origin", str(origin))
+    if origin_available:
+        git(root, "init", "-q", "--bare", str(origin))
+        git(root, "push", "-q", "origin", "main")
+        for tag in tags if remote_tags is None else remote_tags:
+            git(origin, "-c", "tag.gpgsign=false", "tag", tag, "main")
+
 
 def edit(root: Path, relpath: str, old: str, new: str) -> None:
     path = root / relpath
@@ -63,29 +78,65 @@ def edit(root: Path, relpath: str, old: str, new: str) -> None:
     path.write_text(text.replace(old, new), encoding="utf-8")
 
 
-def run_check(root: Path, require_base: bool = False) -> subprocess.CompletedProcess:
+def run_check(
+    root: Path,
+    require_base: bool = False,
+    print_sites: bool = False,
+    extra_env: dict[str, str] | None = None,
+) -> subprocess.CompletedProcess:
     env = {
         **GIT_ENV,
         "HOME": str(root),
         "ENVREF_REPO_ROOT": str(root),
         "CONFIG_VERSION_BASE_REF": "main",
+        **(extra_env or {}),
     }
     if require_base:
         env["CONFIG_VERSION_REQUIRE_BASE"] = "1"
     return subprocess.run(
-        ["bash", str(sh_script("check-config-versions.sh"))],
+        ["bash", str(sh_script("check-config-versions.sh"))]
+        + (["--print-sites"] if print_sites else []),
         cwd=root,
         env=env,
         capture_output=True,
         text=True,
+        timeout=10,
     )
 
 
+def query_shim(root: Path, body: str) -> dict[str, str]:
+    """Intercept only ls-remote; all repository operations use real Git."""
+    real_git = shutil.which("git", path=GIT_ENV["PATH"])
+    assert real_git
+    bindir = root / "query-bin"
+    bindir.mkdir()
+    shim = bindir / "git"
+    shim.write_text(
+        '#!/bin/sh\nif [ "$1" = ls-remote ]; then\n'
+        '  printf "query\\n" >> "$ENVREF_REPO_ROOT/query.calls"\n'
+        '  printf "%s\\n" "$$" > "$ENVREF_REPO_ROOT/query.pid"\n'
+        + body
+        + "\nfi\nexec "
+        + shlex.quote(real_git)
+        + ' "$@"\n',
+        encoding="utf-8",
+    )
+    shim.chmod(0o755)
+    return {"PATH": str(bindir) + ":" + GIT_ENV["PATH"]}
+
+
 class UntaggedMarkerTest(unittest.TestCase):
-    def check(self, edits, tags=("v0.24.0",), require_base=True):
+    def check(
+        self,
+        edits,
+        tags=("v0.24.0",),
+        require_base=True,
+        remote_tags=None,
+        origin_available=True,
+    ):
         with TemporaryDirectory() as tmp:
             root = Path(tmp)
-            fixture(root, tags)
+            fixture(root, tags, remote_tags, origin_available)
             for relpath, old, new in edits:
                 edit(root, relpath, old, new)
             return run_check(root, require_base=require_base)
@@ -124,7 +175,9 @@ class UntaggedMarkerTest(unittest.TestCase):
         self.assertNotIn("site.guessed", proc.stderr)
 
     def test_a_tagged_marker_cannot_be_removed(self):
-        proc = self.check([(ENV_FILE, "KEY_SHIPPED=a  # Since v0.24.0", "KEY_SHIPPED=a")])
+        proc = self.check(
+            [(ENV_FILE, "KEY_SHIPPED=a  # Since v0.24.0", "KEY_SHIPPED=a")]
+        )
         self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
         self.assertIn("KEY_SHIPPED", proc.stderr)
 
@@ -163,11 +216,202 @@ class UntaggedMarkerTest(unittest.TestCase):
         )
         self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
         self.assertIn("KEY_GUESSED", proc.stderr)
+        self.assertIn("frozen conservatively", proc.stderr)
+        self.assertIn("git fetch --tags origin", proc.stderr)
+        self.assertNotIn("is not frozen", proc.stderr)
+        self.assertIn("NOTE: no stable release tags", proc.stdout)
 
     def test_no_visible_tags_locally_is_reported_on_a_passing_run(self):
         proc = self.check([], tags=(), require_base=False)
         self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
         self.assertIn("no stable release tags", proc.stdout)
+        self.assertIn("frozen conservatively", proc.stdout)
+        self.assertIn("git fetch --tags origin", proc.stdout)
+
+    def test_partial_local_tags_do_not_unfreeze_a_shipped_marker(self):
+        for relpath in (ENV_FILE, YAML_FILE):
+            for require_base in (False, True):
+                with self.subTest(relpath=relpath, require_base=require_base):
+                    proc = self.check(
+                        [(relpath, "# Since v0.24.0", "# Since unreleased")],
+                        tags=("v0.25.0",),
+                        remote_tags=("v0.24.0", "v0.25.0"),
+                        require_base=require_base,
+                    )
+                    self.assertEqual(
+                        proc.returncode, 1, proc.stdout + proc.stderr
+                    )
+                    self.assertIn("Shipped markers are immutable", proc.stderr)
+                    self.assertIn(
+                        "KEY_SHIPPED"
+                        if relpath == ENV_FILE
+                        else "site.shipped",
+                        proc.stderr,
+                    )
+                    self.assertNotIn(
+                        "frozen conservatively", proc.stdout + proc.stderr
+                    )
+
+    def test_partial_local_tags_still_allow_a_genuinely_untagged_guess(self):
+        proc = self.check(
+            [
+                (ENV_FILE, "# Since v0.27.0", "# Since unreleased"),
+                (YAML_FILE, "# Since v0.27.0", "# Since v0.26.14"),
+            ],
+            tags=("v0.25.0",),
+            remote_tags=("v0.24.0", "v0.25.0"),
+        )
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+
+    def test_remote_tags_are_sufficient_without_local_tags(self):
+        proc = self.check(
+            [(ENV_FILE, "# Since v0.27.0", "# Since v0.26.14")],
+            tags=(),
+            remote_tags=("v0.24.0",),
+        )
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        proc = self.check(
+            [(ENV_FILE, "# Since v0.24.0", "# Since unreleased")],
+            tags=(),
+            remote_tags=("v0.24.0",),
+        )
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        self.assertIn("KEY_SHIPPED", proc.stderr)
+
+    def test_a_tag_visible_only_on_origin_freezes_a_guessed_marker(self):
+        proc = self.check(
+            [(YAML_FILE, "# Since v0.27.0", "# Since v0.26.14")],
+            remote_tags=("v0.24.0", "v0.27.0"),
+        )
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        self.assertIn("site.guessed", proc.stderr)
+
+    def test_an_unpushed_local_tag_still_freezes_its_marker(self):
+        proc = self.check(
+            [(ENV_FILE, "# Since v0.27.0", "# Since v0.26.14")],
+            tags=("v0.24.0", "v0.27.0"),
+            remote_tags=("v0.24.0",),
+        )
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        self.assertIn("KEY_GUESSED", proc.stderr)
+
+    def test_remote_prerelease_and_archive_tags_do_not_freeze_a_guess(self):
+        proc = self.check(
+            [(ENV_FILE, "# Since v0.27.0", "# Since v0.26.14")],
+            remote_tags=("v0.24.0", "v0.27.0-rc1", "archive/v0.27.0"),
+        )
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+
+    def test_unavailable_origin_fails_strict_mode_even_with_local_tags(self):
+        proc = self.check([], origin_available=False)
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        self.assertIn(
+            "cannot list stable release tags from origin", proc.stderr
+        )
+        self.assertIn("CONFIG_VERSION_REQUIRE_BASE", proc.stderr)
+        self.assertIn("git ls-remote --tags --refs origin", proc.stderr)
+        self.assertNotIn("PASS:", proc.stdout)
+
+    def test_unavailable_origin_locally_freezes_guesses_and_reports_fallback(
+        self,
+    ):
+        for tags in ((), ("v0.24.0",)):
+            with self.subTest(tags=tags):
+                proc = self.check(
+                    [(ENV_FILE, "# Since v0.27.0", "# Since v0.26.14")],
+                    tags=tags,
+                    origin_available=False,
+                    require_base=False,
+                )
+                self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+                self.assertIn("KEY_GUESSED", proc.stderr)
+                self.assertIn("frozen conservatively", proc.stderr)
+                self.assertIn("git fetch --tags origin", proc.stderr)
+                self.assertNotIn("is not frozen", proc.stderr)
+                self.assertNotIn("Shipped markers are immutable", proc.stderr)
+                self.assertIn(
+                    "NOTE: cannot list stable release tags from origin",
+                    proc.stdout,
+                )
+
+    def test_unavailable_origin_locally_reports_fallback_on_an_unchanged_tree(
+        self,
+    ):
+        proc = self.check([], origin_available=False, require_base=False)
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        self.assertIn(
+            "NOTE: cannot list stable release tags from origin", proc.stdout
+        )
+        self.assertIn("frozen conservatively", proc.stdout)
+        self.assertIn("git fetch --tags origin", proc.stdout)
+
+    def test_print_sites_does_not_require_tag_evidence(self):
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            fixture(root, tags=(), origin_available=False)
+            env = query_shim(root, "exit 99")
+            proc = run_check(
+                root, require_base=True, print_sites=True, extra_env=env
+            )
+            self.assertFalse(
+                (root / "query.calls").exists(), "--print-sites queried tags"
+            )
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        self.assertIn("KEY_GUESSED v0.27.0", proc.stdout)
+        self.assertNotIn("NOTE:", proc.stdout)
+        self.assertEqual(proc.stderr, "")
+
+
+class TagQueryTest(unittest.TestCase):
+
+
+    def test_failed_query_discards_partial_stdout(self):
+        for require_base in (False, True):
+            with (
+                self.subTest(require_base=require_base),
+                TemporaryDirectory() as tmp,
+            ):
+                root = Path(tmp)
+                fixture(root, tags=("v0.24.0",))
+                edit(root, ENV_FILE, "# Since v0.27.0", "# Since unreleased")
+                env = query_shim(
+                    root, 'printf "%040d\\trefs/tags/v0.24.0\\n" 0\nexit 1'
+                )
+                proc = run_check(root, require_base=require_base, extra_env=env)
+                self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+                self.assertIn(
+                    "cannot list stable release tags from origin",
+                    proc.stdout + proc.stderr,
+                )
+                if not require_base:
+                    self.assertIn("KEY_GUESSED", proc.stderr)
+                    self.assertIn("frozen conservatively", proc.stderr)
+
+
+    def test_an_annotated_remote_tag_freezes_its_marker(self):
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            fixture(root, tags=("v0.24.0",))
+            git(
+                root / "origin.git",
+                "-c",
+                "user.name=t",
+                "-c",
+                "user.email=t@example.com",
+                "-c",
+                "tag.gpgsign=false",
+                "tag",
+                "-a",
+                "-m",
+                "release",
+                "v0.27.0",
+                "main",
+            )
+            edit(root, YAML_FILE, "# Since v0.27.0", "# Since unreleased")
+            proc = run_check(root, require_base=True)
+            self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+            self.assertIn("site.guessed", proc.stderr)
+            self.assertIn("Shipped markers are immutable", proc.stderr)
 
 
 if __name__ == "__main__":
