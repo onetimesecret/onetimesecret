@@ -313,6 +313,14 @@ module Onetime
       # resolved for this request. The scheme is hardcoded https: custom
       # domains are only served over TLS, and a laxer scheme would let a
       # network attacker on a plaintext leg mint a matching Origin.
+      #
+      # That holds for this lambda only. Rack::Protection::HttpOrigin first
+      # compares Origin with the request's own scheme://host[:port], so a
+      # request seen as http whose Host is the public host admits
+      # http://{that host} without reaching here: behind a Host-preserving
+      # proxy always, and behind a Host-rewriting proxy when
+      # site.network.public_host_rewrite is on (rows O12 and O19 in
+      # host_proxy_stateful_boundaries_spec.rb).
       ALLOW_IF = ->(env) do
         next HttpOriginOptions.saml_callback_with_null_origin?(env) if env['HTTP_ORIGIN'] == 'null'
 

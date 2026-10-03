@@ -165,6 +165,22 @@ Details:
 - The `Host` as received is kept in the Rack env as
   `onetime.original_http_host` on a rewritten request. The colonel proxy
   diagnostic reports it as `request_headers.host`.
+- The `Origin` check on unsafe requests (`Rack::Protection::HttpOrigin`)
+  compares `Origin` with the request's own scheme, host and port, so on a
+  rewritten request it compares against the public authority instead of the
+  origin target. Compared with the setting off, through the same proxy:
+  - an `Origin` naming the origin target is refused (it was admitted);
+  - `https://{public host}:{port}` is admitted when the proxy sent that
+    non-default public port (it was refused: only the port-less
+    `https://{public host}` matched);
+  - `http://{public host}` is admitted on a request the application sees as
+    http (it was refused). This applies when the proxy does not forward the
+    scheme and `ASSUME_HTTPS` is off; forward `X-Forwarded-Proto: https` or
+    set `ASSUME_HTTPS=true` so the request is https.
+
+  A proxy that preserves `Host` gets the same three results in either
+  setting. A foreign `Origin` is refused in every case, and the CSRF token
+  check still applies.
 - The admin host gate runs before the rewrite and is unchanged by it.
 - A proxy that preserves `Host` needs none of this: the request already
   carries the public host and nothing is rewritten.
