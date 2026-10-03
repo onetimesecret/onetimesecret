@@ -742,7 +742,7 @@ site:
     # Host: the port in X-Forwarded-Host or, when that is a bare hostname,
     # a single-valued X-Forwarded-Port. The scheme-default port is left out.
     # See docs/operations/proxy-authority-header.md.
-    public_host_rewrite: <%= ENV['PUBLIC_HOST_REWRITE'] == 'true' %>
+    public_host_rewrite: <%= ENV['PUBLIC_HOST_REWRITE'] == 'true' %>  # Since unreleased
 
   # Admin (Colonel) Configuration
   # Host and network posture for the Colonel admin surfaces. The two factors
