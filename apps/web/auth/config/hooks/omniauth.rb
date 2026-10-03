@@ -738,7 +738,7 @@ module Auth::Config::Hooks
         # single write (instead of save-then-update). Lookup is cheap and pure;
         # leave it outside safe_execute so failures still surface.
         display_domain   = request.env['onetime.display_domain']
-        custom_domain    = display_domain ? Onetime::CustomDomain.load_by_display_domain(display_domain) : nil
+        custom_domain    = display_domain ? Onetime::CustomDomainResolution.for(request.env).record : nil
         signup_domain_id = custom_domain&.identifier
 
         # ────────────────────────────────────────────────────────────────

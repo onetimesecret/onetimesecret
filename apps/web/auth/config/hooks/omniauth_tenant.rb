@@ -194,7 +194,7 @@ module Auth::Config::Hooks
         )
 
         # Attempt to resolve tenant from custom domain
-        custom_domain = HELPERS.resolve_custom_domain(host)
+        custom_domain = HELPERS.resolve_custom_domain(host, request.env)
 
         unless custom_domain
           # Check if this is the platform's canonical domain.
@@ -401,7 +401,7 @@ module Auth::Config::Hooks
         next unless expected_domain_id
 
         # Resolve current request's tenant context
-        current_domain = HELPERS.resolve_custom_domain(HELPERS.public_host(request))
+        current_domain = HELPERS.resolve_custom_domain(HELPERS.public_host(request), request.env)
 
         # Validate tenant context matches - domain_id must match exactly
         domain_mismatch = current_domain&.identifier != expected_domain_id
@@ -569,10 +569,18 @@ module Auth::Config::Hooks
     # Resolve custom domain from hostname.
     # Returns nil if no custom domain mapping exists.
     #
+    # With a Rack env the record comes from the request's shared resolution
+    # (#4220) when +host+ is the request's display domain, so this hook sees
+    # the domain DomainStrategy resolved. A failed read answers nil here, as
+    # it did through CustomDomain.load_by_display_domain. Without an env the
+    # host is looked up directly.
+    #
     # @param host [String] Request hostname
+    # @param env [Hash, nil] Rack env of the current request
     # @return [Onetime::CustomDomain, nil]
-    def self.resolve_custom_domain(host)
+    def self.resolve_custom_domain(host, env = nil)
       return nil if host.to_s.empty?
+      return Onetime::CustomDomainResolution.for_host(env, host).record if env
 
       Onetime::CustomDomain.load_by_display_domain(host)
     rescue Redis::BaseError => ex
