@@ -246,21 +246,25 @@ module HostProxyMatrix
       **CANONICAL },
 
     # --- Forwarded host from a public peer -----------------------------------
+    # The peer is not a trusted proxy, so its X-Forwarded-Proto: https (and
+    # the proto= of its Forwarded) is dropped along with its forwarded host
+    # (StripForwardedHost). The origin takes the scheme of the connection
+    # the server received, which is http here.
     { id: 'U01', case: 'X-Forwarded-Host from a public peer',
       peer: :public, headers: { 'Host' => '{canonical}', 'X-Forwarded-Host' => '{tenant}' },
-      **CANONICAL },
+      **CANONICAL, origin: 'http://{canonical}', rack_base_url: 'http://{canonical}' },
     { id: 'U02', case: 'Apx-Incoming-Host from a public peer',
       peer: :public, headers: { 'Host' => '{canonical}', 'Apx-Incoming-Host' => '{tenant}' },
-      **CANONICAL },
+      **CANONICAL, origin: 'http://{canonical}', rack_base_url: 'http://{canonical}' },
     { id: 'U03', case: 'X-Original-Host from a public peer',
       peer: :public, headers: { 'Host' => '{canonical}', 'X-Original-Host' => '{tenant}' },
-      **CANONICAL },
+      **CANONICAL, origin: 'http://{canonical}', rack_base_url: 'http://{canonical}' },
     { id: 'U04', case: 'Forwarded host= from a public peer',
       peer: :public, headers: { 'Host' => '{canonical}', 'Forwarded' => 'host={tenant};proto=https' },
-      **CANONICAL },
+      **CANONICAL, origin: 'http://{canonical}', rack_base_url: 'http://{canonical}' },
     { id: 'U05', case: 'verified custom domain in Host from a public peer',
       peer: :public, headers: { 'Host' => '{tenant}' },
-      rack_host: '{tenant}', **TENANT },
+      rack_host: '{tenant}', **TENANT, origin: 'http://{tenant}', rack_base_url: 'http://{tenant}' },
 
     # --- Record state: registered, not verified ------------------------------
     # The request still classifies :custom and WebAuthn still names the
@@ -512,12 +516,14 @@ module HostProxyMatrix
     { id: 'E07', case: 'canonical host with a non-default port',
       headers: { 'Host' => '{canonical}:8443' },
       idp: :platform, redirect_uri: 'https://{canonical}:8443', link: 'https://{canonical}:8443', brand: '{canonical}' },
+    # A public peer's X-Forwarded-Proto: https is dropped (see U01), so both
+    # emitters build on the http scheme of the connection.
     { id: 'E08', case: 'X-Forwarded-Host from a public peer',
       peer: :public, headers: { 'Host' => '{canonical}', 'X-Forwarded-Host' => '{tenant}' },
-      idp: :platform, redirect_uri: CANONICAL_ORIGIN, link: CANONICAL_ORIGIN, brand: '{canonical}' },
+      idp: :platform, redirect_uri: 'http://{canonical}', link: 'http://{canonical}', brand: '{canonical}' },
     { id: 'E09', case: 'Apx-Incoming-Host from a public peer',
       peer: :public, headers: { 'Host' => '{canonical}', 'Apx-Incoming-Host' => '{tenant}' },
-      idp: :platform, redirect_uri: CANONICAL_ORIGIN, link: CANONICAL_ORIGIN, brand: '{canonical}' },
+      idp: :platform, redirect_uri: 'http://{canonical}', link: 'http://{canonical}', brand: '{canonical}' },
     { id: 'E10', case: 'Forwarded host= names the tenant',
       headers: { 'Host' => '{canonical}', 'Forwarded' => 'for=198.51.100.1;host={tenant};proto=https' },
       idp: :platform, redirect_uri: CANONICAL_ORIGIN, link: CANONICAL_ORIGIN, brand: '{canonical}' },
