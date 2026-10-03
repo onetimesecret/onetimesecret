@@ -25,3 +25,18 @@ Changed
   and the nginx snippet in ``docs/operations/proxy-authority-header.md`` now
   remove the header at the proxy; a proxy that passes a client's value through
   lets the client choose the port in generated URLs. (#4223)
+
+- ``X-Forwarded-Proto``, ``X-Forwarded-Scheme`` and ``X-Forwarded-SSL`` are
+  read only from a trusted proxy, on the same verdict as ``X-Forwarded-Host``:
+  the peer passed ``site.network.trusted_proxy`` when that is configured, or
+  connects from a private or loopback address when it is not. From any other
+  peer they are removed, so the request has the scheme of the connection to
+  the origin. This applies whether or not ``public_host_rewrite`` is on.
+  **Check before upgrading**: an install whose TLS-terminating proxy or CDN
+  connects to the origin from a public address, without
+  ``site.network.trusted_proxy`` naming it, is seen as ``http`` after the
+  upgrade. A ``Secure`` session cookie is then not written (sign-in fails) and
+  request-derived URLs such as an SSO ``redirect_uri`` use ``http``. Add the
+  proxy's address ranges to ``site.network.trusted_proxy``, or set
+  ``ASSUME_HTTPS=true``. The ``[Session] cookie NOT written`` warning now
+  lists the removed headers under ``untrusted_scheme_headers``. (#4223)

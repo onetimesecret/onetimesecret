@@ -27,6 +27,15 @@ that decision consistently.
   `otto.via_trusted_proxy` verdict when present; without it, it falls back to
   trusting private or loopback peers. Another workload that can reach the
   origin from such an address can therefore supply forwarded host metadata.
+- **A proxy on a public address must be declared.** Forwarded host, port and
+  scheme headers are all read on that one verdict. `X-Forwarded-Proto`,
+  `X-Forwarded-Scheme` and `X-Forwarded-SSL` from a peer that is not trusted
+  are removed, and the request keeps the scheme of the connection to the
+  origin. If the proxy terminates TLS and reaches the origin from a public
+  address without being listed in `site.network.trusted_proxy`, the
+  application sees `http`: a `Secure` session cookie is not written and
+  request-derived URLs use `http`. The `[Session] cookie NOT written` log
+  line names the removed headers in `untrusted_scheme_headers`.
 - **Review every hop.** For a CDN, load balancer, and ingress chain, identify
   where client-supplied metadata is discarded and which hop supplies the
   values the application consumes. Recheck trust ranges when topology changes.
