@@ -408,6 +408,44 @@ describe('NotificationSettings', () => {
       const toggle = wrapper.find('[role="switch"]');
       expect(toggle.attributes('aria-busy')).toBeDefined();
     });
+
+    // The switch has no text content, so without a label it is announced as
+    // an unnamed button (axe button-name, critical).
+    it('toggle takes its accessible name from the setting title', () => {
+      wrapper = mountComponent();
+
+      const toggle = wrapper.find('[role="switch"]');
+      const labelId = toggle.attributes('aria-labelledby');
+      expect(labelId).toBeTruthy();
+      const label = wrapper.find(`[id="${labelId}"]`);
+      expect(label.exists()).toBe(true);
+      expect(label.text()).toBe('web.settings.notifications.reveal_notifications.title');
+    });
+
+    it('toggle is described by the setting description', () => {
+      wrapper = mountComponent();
+
+      const toggle = wrapper.find('[role="switch"]');
+      const descriptionId = toggle.attributes('aria-describedby');
+      expect(descriptionId).toBeTruthy();
+      const description = wrapper.find(`[id="${descriptionId}"]`);
+      expect(description.exists()).toBe(true);
+      expect(description.text()).toBe(
+        'web.settings.notifications.reveal_notifications.description'
+      );
+    });
+
+    // dark:text-gray-500 on the dark card was 3.3:1 (axe color-contrast).
+    it('help text uses a dark-mode color with enough contrast', () => {
+      wrapper = mountComponent();
+
+      const help = wrapper
+        .findAll('p')
+        .find((p) => p.text() === 'web.settings.notifications.reveal_notifications.help');
+      expect(help).toBeDefined();
+      expect(help!.classes()).toContain('dark:text-gray-400');
+      expect(help!.classes()).not.toContain('dark:text-gray-500');
+    });
   });
 
   // Note: Error state tests are skipped because the error div uses v-if

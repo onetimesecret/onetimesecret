@@ -35,6 +35,7 @@ export const colonelDomainVerifyRecordSchema = z.object({
   display_domain: z.string(),
   verification_state: z.string(),
   verified: z.boolean(),
+  verified_by_override: z.boolean().optional(),
   resolving: z.boolean(),
   ready: z.boolean(),
   updated: transforms.fromNumber.toDateNullable,
@@ -50,8 +51,13 @@ export const colonelDomainVerifyDetailsSchema = z.object({
   current_state: z.string(),
   changed: z.boolean(),
   dns_validated: z.boolean(),
-  ssl_ready: z.boolean(),
-  is_resolving: z.boolean(),
+  dns_indeterminate: z.boolean().optional(),
+  dns_message: z.string().nullable().optional(),
+  dns_outcome: z
+    .enum(['validated', 'confirmation_expired', 'indeterminate', 'override_held', 'failed'])
+    .optional(),
+  ssl_ready: z.boolean().nullable(),
+  is_resolving: z.boolean().nullable(),
   error: z.string().nullable(),
   message: z.string(),
 });
@@ -102,6 +108,7 @@ export const colonelDomainDetailRecordSchema = z.object({
   status: z.string().nullable().optional(),
   verification_state: z.string(),
   verified: z.boolean(),
+  verified_by_override: z.boolean().optional(),
   resolving: z.boolean(),
   ready: z.boolean(),
   is_apex: z.boolean().nullable().optional(),
@@ -124,6 +131,10 @@ export const colonelDomainClusterSchema = z
   .object({
     proxy_ip: z.string().nullable().optional(),
     proxy_host: z.string().nullable().optional(),
+    // Canonical strategy name. Decides whether the proxy fields above are
+    // where a domain points at all (see useDomainDnsRecord); they stay
+    // configured after a move off `approximated`.
+    validation_strategy: z.string().nullable().optional(),
   })
   .passthrough()
   .nullable();
@@ -167,6 +178,7 @@ export const colonelDomainOverrideRecordSchema = z.object({
   display_domain: z.string(),
   verification_state: z.string(),
   verified: z.boolean(),
+  verified_by_override: z.boolean().optional(),
   resolving: z.boolean(),
   ready: z.boolean(),
   updated: transforms.fromNumber.toDateNullable,

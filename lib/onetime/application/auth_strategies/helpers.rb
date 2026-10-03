@@ -6,6 +6,7 @@ require 'rack/request'
 require 'otto'
 
 require_relative '../../session/customer_session_evaluator'
+require_relative '../../session/failure_code'
 
 #
 # Shared helper methods for authentication strategies.
@@ -49,14 +50,32 @@ module Onetime
         # so an unauthenticated or stale session still degrades to anonymous
         # on noauth-capable routes rather than 401ing every browser request.
         #
+        # The typed reason for the client (#4469) is stashed for
+        # Onetime::Middleware::SessionFailureCode ONLY on the terminal branch:
+        # that is the failure Otto renders as the 401, so the code describes
+        # the refusal the client receives. On the session carve-out nothing is
+        # stashed, because the chain goes on to answer the request as the
+        # session's and no credential refusal reaches the wire. The scheme
+        # (`Basic`) is stashed beside the reason: this is the only place a
+        # Basic credential is examined, and the middleware challenges with
+        # `Basic` only on that provenance, never because a request carried an
+        # `Authorization` header.
+        #
         # @param reason [String] failure reason, e.g. '[CREDENTIALS_INVALID] ...'
         # @param env [Hash, nil] the Rack env, so the session carve-out can be
         #   evaluated. Passing nil (bare unit-level strategy calls) keeps the
         #   strict terminal behavior.
+        # @param code [Symbol, nil] the credential reason
+        #   (Onetime::SessionFailureCode::CREDENTIAL_REASON_SCOPES) the 401
+        #   carries as its `code`, or nil to leave it uncoded
         # @return [Otto::Security::Authentication::AuthFailure]
-        def credentialed_failure(reason, env = nil)
+        def credentialed_failure(reason, env = nil, code: nil)
           return failure(reason) if valid_session_identity?(env)
 
+          if code
+            Onetime::SessionFailureCode.stash(env, code)
+            Onetime::SessionFailureCode.stash_scheme(env, Onetime::SessionFailureCode::SCHEME_BASIC)
+          end
           failure(reason, terminal: true)
         end
 

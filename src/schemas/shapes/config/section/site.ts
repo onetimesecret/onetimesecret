@@ -61,6 +61,8 @@ const authenticationTree: AugmentTree = {
 
 const sessionTree: AugmentTree = {
   expire_after: (n) => n.int().positive().default(86400),
+  // Absolute lifetime since sign-in, seconds; 0 disables the bound.
+  absolute_timeout: (n) => n.int().nonnegative().default(2592000),
   key: (s) => s.default('onetime.session'),
   secure: (b) => b.default(true),
   same_site: (e) => e.default('lax'),
@@ -169,7 +171,8 @@ const middlewareTree: AugmentTree = {
   permissions_policy: (b) => b.default(true),
   frame_options: (b) => b.default(true),
   path_traversal: (b) => b.default(true),
-  cookie_tossing: (b) => b.default(false),
+  // Default on since v0.26.14 (etc/defaults/config.defaults.yaml, #4466).
+  cookie_tossing: (b) => b.default(true),
   ip_spoofing: (b) => b.default(false),
   strict_transport: (b) => b.default(true),
 };

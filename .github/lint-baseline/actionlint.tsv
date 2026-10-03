@@ -23,7 +23,6 @@
 .github/workflows/ci.yml	permissions	2
 .github/workflows/ci.yml	shellcheck:SC2086	28
 .github/workflows/ci.yml	shellcheck:SC2129	2
-.github/workflows/e2e.yml	shellcheck:SC2155	2
 .github/workflows/generate-translation-request.yml	shellcheck:SC2011	1
 .github/workflows/generate-translation-request.yml	shellcheck:SC2086	20
 .github/workflows/generate-translation-request.yml	shellcheck:SC2129	3

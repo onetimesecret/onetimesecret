@@ -284,6 +284,7 @@ module RodauthTestHelper
       String :session_id
       Time :created_at, null: false, default: Sequel::CURRENT_TIMESTAMP
       Time :last_use, null: false, default: Sequel::CURRENT_TIMESTAMP
+      Time :remember_until # migration 011
       primary_key [:account_id, :session_id]
     end
 
@@ -654,7 +655,7 @@ module ProductionConfigHelper
   # survives cleanup (PRESERVED_TABLES is honoured row-for-row), so this is a
   # single indexed SELECT per example. On PostgreSQL it is not: clear_auth_database
   # issues TRUNCATE ... CASCADE, and oauth_applications carries an FK to accounts
-  # (migration 011), so it gets cascade-truncated even though it is excluded from
+  # (migration 012), so it gets cascade-truncated even though it is excluded from
   # the table list — a before(:all) seed would survive exactly one example. The
   # bcrypt cost is only paid on the examples that actually lost the row.
   def ensure_dev_oauth_client!

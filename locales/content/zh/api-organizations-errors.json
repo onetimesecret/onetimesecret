@@ -75,10 +75,6 @@
     "text": "已存在针对此邮箱的待处理邀请",
     "source_hash": "7f5e3093"
   },
-  "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "已达到成员数量上限。升级方案以邀请更多成员。",
-    "source_hash": "b8f316e8"
-  },
   "api.organizations.invitations.errors.resend_only_pending": {
     "text": "只能重新发送待处理的邀请",
     "source_hash": "b7578b3e"

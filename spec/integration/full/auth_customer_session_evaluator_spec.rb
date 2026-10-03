@@ -242,7 +242,11 @@ RSpec.describe 'Auth router customer-session evaluator', type: :integration do
 
       get_json '/auth/account'
 
-      expect(last_response.status).to eq(401)
+      # An unverifiable session is an outage, not a verdict: 503 with
+      # Retry-After and no challenge (Onetime::Middleware::SessionFailureCode).
+      expect(last_response.status).to eq(503)
+      expect(last_response.headers['retry-after']).to eq('5')
+      expect(last_response.headers['www-authenticate']).to be_nil
       expect(JSON.parse(last_response.body)['error_type']).to eq('SessionUnverified')
       expect_session_failure_code('active_session_unavailable', 'verification_unavailable')
       expect_no_account_data
@@ -257,7 +261,8 @@ RSpec.describe 'Auth router customer-session evaluator', type: :integration do
 
     get_json '/auth/account'
 
-    expect(last_response.status).to eq(401)
+    expect(last_response.status).to eq(503)
+    expect(last_response.headers['retry-after']).to eq('5')
     expect(JSON.parse(last_response.body)).to eq(
       'error' => 'Session could not be verified; try again',
       'error_type' => 'SessionUnverified',
@@ -306,13 +311,13 @@ RSpec.describe 'Auth router customer-session evaluator', type: :integration do
     expect(Onetime::CustomerSessionEvaluator).to have_received(:evaluate).at_least(:once)
   end
 
-  it 'preserves an unavailable session on 401, then keeps logout available and destroys it' do
+  it 'preserves an unavailable session on 503, then keeps logout available and destroys it' do
     sid = current_session_id
     allow(Auth::Database).to receive(:connection).and_raise(Sequel::DatabaseConnectionError, 'down')
 
     get_json '/auth/account'
 
-    expect(last_response.status).to eq(401)
+    expect(last_response.status).to eq(503)
     expect(JSON.parse(last_response.body)['error_type']).to eq('SessionUnverified')
     expect(session_store.find_key(Familia.dbclient, sid)).not_to be_nil
 
@@ -380,6 +385,7 @@ RSpec.describe 'Auth router customer-session evaluator', type: :integration do
 
   def expect_revoked_refusal_without_account_data
     expect(last_response.status).to eq(401)
+    expect(last_response.headers['www-authenticate']).to eq('Session realm="onetimesecret"')
     expect(JSON.parse(last_response.body)).to include(
       'error' => 'web.auth.security.session_expired',
       'success' => false,

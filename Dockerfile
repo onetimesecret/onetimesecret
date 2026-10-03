@@ -67,7 +67,7 @@ ARG RUBY_IMAGE_TAG=3.4-slim-trixie@sha256:d8fd978ffc10f0eddee04aa03eb82e5d247079
 # The "base" context is provided by docker/bake.hcl via:
 #   contexts = { base = "target:base" }
 #
-# It contains: Ruby 3.4, Node 24, build toolchain, yq, pnpm, appuser.
+# It contains: Ruby 3.4, Node 26, build toolchain, yq, pnpm, appuser.
 # See docker/base.dockerfile for details.
 #
 FROM base AS dependencies
@@ -286,7 +286,7 @@ COPY --chown=appuser:appuser lib ./lib
 COPY --chown=appuser:appuser migrations ./migrations
 COPY --chown=appuser:appuser docker/entrypoints/entrypoint.sh ./bin/
 COPY --chown=appuser:appuser docker/entrypoints/healthcheck.sh ./bin/
-COPY --chown=appuser:appuser scripts/setup ./scripts/setup
+COPY --chown=appuser:appuser tools/setup/setup.sh tools/setup/lib.sh ./tools/setup/
 COPY --chown=appuser:appuser --from=dependencies ${APP_DIR}/bin/puma ./bin/puma
 COPY --chown=appuser:appuser --from=build ${APP_DIR}/package.json ./
 COPY --chown=appuser:appuser config.ru .ruby-version Gemfile Gemfile.lock ./
@@ -420,7 +420,7 @@ COPY --chown=appuser:appuser lib ./lib
 COPY --chown=appuser:appuser migrations ./migrations
 COPY --chown=appuser:appuser docker/entrypoints/entrypoint.sh ./bin/
 COPY --chown=appuser:appuser docker/entrypoints/healthcheck.sh ./bin/
-COPY --chown=appuser:appuser scripts/setup ./scripts/setup
+COPY --chown=appuser:appuser tools/setup/setup.sh tools/setup/lib.sh ./tools/setup/
 COPY --chown=appuser:appuser --from=dependencies ${APP_DIR}/bin/puma ./bin/puma
 COPY --chown=appuser:appuser --from=build ${APP_DIR}/package.json ./
 COPY --chown=appuser:appuser config.ru .ruby-version Gemfile Gemfile.lock ./

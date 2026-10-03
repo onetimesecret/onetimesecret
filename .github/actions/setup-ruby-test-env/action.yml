@@ -3,17 +3,22 @@
 # ==============================================================================
 # Setup Ruby Test Environment - Composite Action
 # ==============================================================================
-# Version: 1.0.0
+# Version: 1.1.0
 # Repository: onetimesecret/onetimesecret
 #
 # Prepares a complete Ruby test environment for CI jobs. Consolidates common
 # setup steps used across multiple Ruby test jobs.
 #
+# The Ruby pin lives in the repo, not here: the ruby-version input defaults
+# to '.ruby-version', which ruby/setup-ruby resolves by reading that file.
+# Pass a literal version only to override the pin (e.g. a preview lane).
+#
 # Setup Steps:
 #   1. Download frontend build artifacts (optional)
 #   2. Verify downloaded assets exist
 #   3. Enable memory overcommit for Redis
-#   4. Setup Ruby with bundler caching
+#   4. Setup Ruby (from .ruby-version unless ruby-version overrides it)
+#      with bundler caching (deployment mode, so the lockfile is frozen)
 #   5. Install gem dependencies
 #   6. Copy default config files to etc/
 #   7. Generate ephemeral test secrets
@@ -21,10 +26,15 @@
 # Usage:
 #   - uses: ./.github/actions/setup-ruby-test-env
 #     with:
-#       ruby-version: '3.4'
 #       download-artifacts: 'true'
 #
+#   # Explicit override (e.g. a preview lane testing a newer Ruby):
+#   - uses: ./.github/actions/setup-ruby-test-env
+#     with:
+#       ruby-version: '4.0.2'
+#
 # Changelog:
+#   1.1.0 - Read Ruby version from .ruby-version; ruby-version is override-only
 #   1.0.0 - Initial release consolidating Ruby setup from ci.yml
 # ==============================================================================
 
@@ -36,9 +46,9 @@ description: |
 
 inputs:
   ruby-version:
-    description: 'Ruby version to use'
+    description: "Explicit Ruby version override. Default '.ruby-version' reads the repo pin."
     required: false
-    default: '3.4'
+    default: '.ruby-version'
   download-artifacts:
     description: 'Whether to download frontend build artifacts'
     required: false

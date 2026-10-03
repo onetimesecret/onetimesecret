@@ -14,11 +14,13 @@ module Auth::Config::Base
 
     # Obfuscate the numeric account id that Rodauth otherwise leaks in
     # plaintext inside email-link tokens (verify_account, reset_password,
-    # email_auth, verify_login_change, unlock) and the remember-me cookie.
-    # Keyed format-preserving encryption; no schema change (the integer PK is
-    # still used internally, only the value on the wire is swapped). Legacy
-    # plaintext tokens/cookies pass through untouched via the version tag, so
-    # in-flight links keep working. Shares the SecretGuard plumbing with
+    # email_auth, verify_login_change, unlock). Rodauth's remember feature is
+    # not enabled (features/remember_me.rb), so there is no remember cookie
+    # to cover. Keyed format-preserving encryption; no schema change (the
+    # integer PK is still used internally, only the value on the wire is
+    # swapped). Legacy plaintext tokens pass through untouched via the
+    # version tag, so in-flight links keep working. Shares the SecretGuard
+    # plumbing with
     # hmac_secret_guard: ACCOUNT_ID_SECRET (>= 32 bytes) is required in
     # production (boot raises if missing); an unset RACK_ENV fails closed to
     # production. Independent of AUTH_SECRET so rotating one never invalidates

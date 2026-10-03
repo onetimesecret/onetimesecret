@@ -11,19 +11,56 @@ module Onetime
       # custom domains so the domains-list page shows current state without
       # depending on a user visiting the verify page. See issue #3080.
       #
-      # Disabled by default. Configuration (config.yaml):
+      # Enabled by default. Configuration (config.yaml):
       #   jobs:
       #     domain_refresh:
       #       enabled: true
       #       check_interval: '30m'
-      #       batch_size: 200    # max domains processed per run
-      #       rate_limit: 0.5    # seconds between Approximated API calls
+      #       batch_size: 200                # max domains processed per run, including warm-up checks
+      #       rate_limit: 0.5                # seconds between domains; unset = the strategy's own pacing
+      #       dns_propagation_window: '24h'  # let recent unverified/unresolving domains fill spare capacity ('0' disables)
       #
-      # The Approximated rate limit (0.5s) caps a 200-domain run at ~100s.
+      # Pacing comes from the validation strategy (BaseStrategy#bulk_rate_limit):
+      # Approximated declares 0.5s for its API rate cap, which puts a healthy
+      # 200-domain run at ~100s; strategies that make our own lookups declare
+      # none. A configured rate_limit overrides the strategy either way.
+      #
+      # Under caddy_on_demand each domain costs our own lookups instead of an
+      # API call: the TXT check (TxtResolver, <= 5s) and the status probe
+      # (TlsProbe: address lookup <= 3s, connect + handshake <= 5s). A healthy
+      # domain takes tens of milliseconds. Every budget is only spent on a
+      # timeout, so the ceiling is 13s per domain: ~43 min for a 200-domain
+      # page if every stage of every domain timed out. A resolver outage is
+      # the realistic bad case, and it never reaches the TLS stage: 8s per
+      # domain, ~27 min per page, inside the default 30m interval.
+      # Lower batch_size if pages routinely run past check_interval.
+      #
+      # Runs never overlap within a scheduler process (overlap: false): a
+      # tick that fires while the previous run is still working is skipped,
+      # not queued. Two runs at once would double the outbound lookups and
+      # let both write the same domain. The skipped tick's page waits one
+      # extra walk, the same cost as any other missed tick (see page_offset).
+      #
+      # Single-instance assumption: overlap: false is a guard inside one
+      # scheduler process, and nothing coordinates between processes. The
+      # codebase has no cross-process lock for scheduled jobs (the SET NX
+      # uses in lib/onetime/jobs are per-message idempotency claims), and
+      # every scheduled job relies on the same assumption: one
+      # `bin/ots scheduler` per datastore. The shipped deployments hold to
+      # it: docker-compose.full.yml defines one fixed-name scheduler
+      # container, and the S6 image supervises one scheduler per container.
+      # Replicating the all-in-one S6 container does break it; extra
+      # replicas should run the web server only (docker/s6/README.md).
+      #
+      # With two schedulers on one datastore this job stays correct but
+      # wasteful: the page is derived from the clock, so both processes pick
+      # the same page on the same tick, make the same lookups and write the
+      # same answers. Under approximated that doubles the API calls against
+      # its rate cap. See lib/onetime/jobs/README.md, "Scheduler".
       class DomainRefreshJob < ScheduledJob
-        DEFAULT_BATCH_SIZE = 200
-        DEFAULT_RATE_LIMIT = 0.5
-        DEFAULT_INTERVAL   = '30m'
+        DEFAULT_BATCH_SIZE             = 200
+        DEFAULT_INTERVAL               = '30m'
+        DEFAULT_DNS_PROPAGATION_WINDOW = '24h'
 
         class << self
           def schedule(scheduler)
@@ -31,7 +68,7 @@ module Onetime
 
             scheduler_logger.info "[DomainRefreshJob] Scheduling with interval: #{interval}"
 
-            every(scheduler, interval, first_in: '2m') do
+            every(scheduler, interval, first_in: '2m', overlap: false) do
               refresh_domains
             end
           end
@@ -51,22 +88,46 @@ module Onetime
             size.positive? ? size : DEFAULT_BATCH_SIZE
           end
 
+          # nil (unset or unusable) leaves pacing to the validation strategy.
           def rate_limit
             limit = OT.conf.dig('jobs', 'domain_refresh', 'rate_limit')
-            limit.is_a?(Numeric) && limit >= 0 ? limit.to_f : DEFAULT_RATE_LIMIT
+            limit.to_f if limit.is_a?(Numeric) && limit >= 0
           end
 
+          def dns_propagation_window_seconds
+            raw = OT.conf.dig('jobs', 'domain_refresh', 'dns_propagation_window')
+            raw = DEFAULT_DNS_PROPAGATION_WINDOW if raw.nil?
+            interval_seconds(raw)
+          rescue ArgumentError
+            interval_seconds(DEFAULT_DNS_PROPAGATION_WINDOW)
+          end
+
+          # Walk the FULL CustomDomain.instances set one page per run. Always
+          # taking the newest batch starved every domain past the first
+          # batch_size forever: their cached vhost/resolving state never
+          # refreshed. One page per run (not the whole set) keeps a run bounded
+          # by the Approximated rate limit.
           def refresh_domains
-            # Pull only the IDs we'll actually process; .all would HGETALL every
-            # domain before slicing. load_multi pipelines the batch fetch.
-            identifiers = Onetime::CustomDomain.instances.revrangeraw(0, batch_size - 1)
-            domains     = Onetime::CustomDomain.load_multi(identifiers).compact
+            now         = Familia.now.to_i
+            offset      = page_offset(Onetime::CustomDomain.instances.element_count, now)
+            identifiers = Onetime::CustomDomain.instances.revrangeraw(offset, offset + batch_size - 1)
+
+            # load_multi pipelines the batch fetch; .all would HGETALL every domain.
+            page_domains = Onetime::CustomDomain.load_multi(identifiers).compact
+            warmup       = warmup_domains(
+              now,
+              page_domains,
+              limit: batch_size - page_domains.size,
+            )
+
+            domains = page_domains + warmup
             if domains.empty?
               scheduler_logger.debug '[DomainRefreshJob] No domains to refresh'
               return
             end
 
-            scheduler_logger.info "[DomainRefreshJob] Refreshing #{domains.size} domain(s)"
+            scheduler_logger.info "[DomainRefreshJob] Refreshing #{domains.size} domain(s) " \
+                                  "(page=#{page_domains.size} from offset #{offset}, warmup=#{warmup.size})"
 
             result = Onetime::Operations::VerifyDomain.new(
               domains: domains,
@@ -75,10 +136,73 @@ module Onetime
             ).call
 
             scheduler_logger.info "[DomainRefreshJob] Done in #{result.duration_seconds}s — " \
-                                  "verified=#{result.verified_count} failed=#{result.failed_count}"
+                                  "verified=#{result.verified_count} failed=#{result.failed_count} " \
+                                  "indeterminate=#{result.indeterminate_count} demoted=#{result.demoted_count} " \
+                                  "expired=#{result.confirmation_expired_count}"
           rescue StandardError => ex
             scheduler_logger.error "[DomainRefreshJob] Unexpected error: #{ex.class} - #{ex.message}"
             scheduler_logger.error ex.backtrace.first(5).join("\n") if OT.debug?
+          end
+
+          # Domains created within dns_propagation_window that are still not
+          # fully verified (verified=false OR resolving=false) fill any capacity
+          # left by the regular page. Page domains keep priority so the full-set
+          # walk always advances, while the combined verification cohort remains
+          # bounded by batch_size. Page domains are excluded to avoid duplicates.
+          #
+          # The window is scanned in chunks until the spare capacity is filled
+          # or the window is exhausted. Filtering after a single bounded fetch
+          # would skip a still-propagating domain whenever the first identifiers
+          # in the window happened to be healthy, leaving it to the page walk.
+          # Worst case (every recent domain healthy) reads the whole window once
+          # per tick in batch_size chunks; the window bounds that by signup rate.
+          def warmup_domains(now, page_domains, limit:)
+            window = dns_propagation_window_seconds
+            return [] if window <= 0 || limit <= 0
+
+            already = page_domains.to_h { |d| [d.identifier, true] }
+            chunk   = limit + page_domains.size
+            picked  = []
+            offset  = 0
+
+            loop do
+              identifiers = Onetime::CustomDomain.instances.rangebyscoreraw(
+                now - window,
+                now,
+                limit: [offset, chunk],
+              )
+              break if identifiers.empty? || identifiers.nil?
+
+              offset    += identifiers.size
+              candidates = identifiers.reject { |id| already[id] }
+              unless candidates.empty?
+                picked.concat(
+                  Onetime::CustomDomain.load_multi(candidates)
+                    .compact
+                    .reject { |d| d.verified && d.resolving }, # boolean_field native
+                )
+              end
+
+              break if picked.size >= limit || identifiers.size < chunk
+            end
+
+            picked.take(limit)
+          end
+
+          # The page is derived from the clock, so there is no position to
+          # persist, expire, or reset: tick counts whole intervals since the
+          # epoch and wraps over the page count. The modulus is pages, not
+          # domains, so windows stay aligned to batch_size (the last page is
+          # simply short) and the walk only re-phases when the set grows or
+          # shrinks across a page boundary, not on every add or remove. A
+          # re-phase, or a tick the scheduler skipped or fired twice, costs a
+          # page one extra cycle or one repeat refresh.
+          def page_offset(total, now)
+            pages = (total.to_f / batch_size).ceil
+            return 0 if pages.zero?
+
+            tick = now / interval_seconds(interval)
+            (tick % pages) * batch_size
           end
         end
       end

@@ -12,6 +12,7 @@ import workspaceRoutes from '@/apps/workspace/routes';
 // Cross-cutting routes
 import { installPiiQueryDevWarning } from './piiQueryGuard';
 import publicRoutes from './public.routes';
+import { keepsRoutedView } from './viewKey';
 
 /**
  * Verifiable Identifier Format
@@ -124,12 +125,14 @@ export function createAppRouter(): Router {
       },
     ],
     scrollBehavior(to, from, savedPosition) {
-      // always scroll to top
       if (savedPosition) {
         return savedPosition;
-      } else {
-        return { top: 0 };
       }
+      // The page stays mounted (e.g. a settings tab switch): keep the scroll.
+      if (keepsRoutedView(to, from)) {
+        return false;
+      }
+      return { top: 0 };
     },
   });
 

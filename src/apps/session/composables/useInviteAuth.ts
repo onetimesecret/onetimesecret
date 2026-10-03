@@ -152,7 +152,8 @@ export function useInviteAuth() {
         return { success: false, error: info.message, signinRequired };
       }
 
-      // Server set session cookie via create_account_autologin — sync frontend state.
+      // The signup endpoint set the session cookie (SignupAndAccept#setup_session);
+      // sync frontend state.
       // Fire-and-forget: awaiting would yield to the microtask queue, letting Vue
       // flush a re-render that unmounts InviteSignUpForm (inviteState transitions
       // from signup_required → direct_accept) before emit('success') reaches

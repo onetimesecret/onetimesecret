@@ -12,7 +12,7 @@ require 'tmpdir'
 # reports, so its shape is a contract:
 #
 #   - the entry list is FIXED — fixtures/bundle_manifest.golden is the
-#     single source of truth; `cmd_bundle` in bin/setup writes the same
+#     single source of truth; `cmd_bundle` in tools/setup/setup.sh writes the same
 #     list into manifest.txt. Extend all three together.
 #   - env-names.txt must never contain values (names only) — that is the
 #     sanitization promise the doctor output makes.

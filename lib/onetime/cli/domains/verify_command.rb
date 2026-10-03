@@ -57,8 +57,8 @@ module Onetime
       # defaults into the parsed options before `call` runs
       # (dry-cli-1.4.1/lib/dry/cli/parser.rb), so true presence is not
       # recoverable here. A flag explicitly given its own default
-      # (`--rate-limit 0.5`) still reads as omitted and is accepted silently.
-      # That residue is confined to the two options with a meaningful default;
+      # (`--no-orphaned`) still reads as omitted and is accepted silently.
+      # That residue is confined to the boolean filters; `--rate-limit`,
       # `--limit` and `--org-id` default to nil, so ANY value is caught,
       # including the `--limit 0` / `--limit -1` the bulk guard rejects.
       def self.bulk_only_supplied(supplied)
@@ -86,8 +86,8 @@ module Onetime
         desc: 'Output results as JSON'
       option :rate_limit,
         type: :float,
-        default: 0.5,
-        desc: 'Delay between API calls in bulk mode (seconds)'
+        default: nil,
+        desc: "Delay between domains in bulk mode (seconds); default: the validation strategy's own pacing"
       option :orphaned,
         type: :boolean,
         default: false,
@@ -110,7 +110,7 @@ module Onetime
         desc: 'Bulk mode: maximum number of domains to process'
 
       def call(domain: nil, all: false, dry_run: false, json: false,
-               rate_limit: 0.5, orphaned: false, verified: false,
+               rate_limit: nil, orphaned: false, verified: false,
                unverified: false, org_id: nil, limit: nil, **)
         boot_application!
 
@@ -221,14 +221,9 @@ module Onetime
 
       def load_filtered_domains(orphaned:, verified:, unverified:, org_id:, limit:)
         filtered = apply_filters(
-          load_all_domains,
-          orphaned: orphaned,
-          org_id: org_id,
-          verified: verified,
-          unverified: unverified,
+          load_all_domains, orphaned: orphaned, org_id: org_id, verified: verified, unverified: unverified
         )
-        filtered = filtered.take(limit) if limit
-        filtered
+        limit ? filtered.take(limit) : filtered
       end
 
       # Inlined from the legacy DomainsHelpers#apply_filters — the new-style
@@ -268,7 +263,8 @@ module Onetime
 
       def output_verification_results(result)
         puts 'Verification Results:'
-        puts "  DNS Validated:    #{format_bool(result.dns_validated)}"
+        puts "  DNS Validated:    #{format_dns(result)}"
+        puts "  DNS Detail:       #{result.dns_message}" if result.dns_message
         puts "  SSL Ready:        #{format_bool(result.ssl_ready)}"
         puts "  Is Resolving:     #{format_bool(result.is_resolving)}"
         puts
@@ -318,7 +314,7 @@ module Onetime
           full_txt_host = "#{txt_host}.#{domain.base_domain}"
           puts
           puts '1. DNS Ownership (TXT record):'
-          puts "   Status: #{result.dns_validated ? 'PASS' : 'FAIL'}"
+          puts "   Status: #{result.dns_outcome.to_s.upcase}" # VALIDATED / FAILED / INDETERMINATE / OVERRIDE_HELD / CONFIRMATION_EXPIRED
           puts "   Expected: TXT record at #{full_txt_host}"
           puts "   Value:    #{txt_value}"
           puts
@@ -332,7 +328,7 @@ module Onetime
         end
 
         puts '2. DNS Resolution (CNAME/A record):'
-        puts "   Status: #{result.is_resolving ? 'PASS' : 'FAIL'}"
+        puts "   Status: #{format_diagnostic_status(result.is_resolving, false_label: 'FAIL')}"
         puts '   Domain should resolve to the proxy server'
         puts
         puts '   # Check CNAME record:'
@@ -343,7 +339,7 @@ module Onetime
         puts
 
         puts '3. SSL Certificate:'
-        puts "   Status: #{result.ssl_ready ? 'PASS' : 'PENDING'}"
+        puts "   Status: #{format_diagnostic_status(result.ssl_ready, false_label: 'PENDING')}"
         puts
         puts '   # Check SSL certificate:'
         puts "   echo | openssl s_client -connect #{domain.display_domain}:443 -servername #{domain.display_domain} 2>/dev/null | openssl x509 -noout -dates"
@@ -360,6 +356,9 @@ module Onetime
         puts format('  Total Processed:  %d', result.total)
         puts format('  Verified:         %d', result.verified_count)
         puts format('  Failed:           %d', result.failed_count)
+        puts format('  Indeterminate:    %d', result.indeterminate_count)
+        puts format('  Demoted:          %d', result.demoted_count)
+        puts format('  Expired:          %d', result.confirmation_expired_count)
         puts format('  Duration:         %.2f seconds', result.duration_seconds)
         puts
 
@@ -375,7 +374,7 @@ module Onetime
             puts format(
               '%-40s %-12s %-12s %-10s',
               r.domain.display_domain[0..39],
-              format_bool(r.dns_validated),
+              format_dns(r),
               format_bool(r.is_resolving),
               status,
             )
@@ -383,6 +382,16 @@ module Onetime
           end
         end
         puts
+      end
+
+      # Three TXT outcomes are neither pass nor fail. Two leave `verified`
+      # alone: indeterminate (the check produced no answer) and a failed check
+      # on a domain held verified by an operator override. The third withdraws
+      # it: indeterminate for longer than the confirmation window (counted
+      # under Expired, and under Indeterminate and Demoted, in the summary).
+      def format_dns(result)
+        { indeterminate: 'indeterminate', override_held: 'no (override)', confirmation_expired: 'expired' }
+          .fetch(result.dns_outcome) { format_bool(result.dns_validated) }
       end
 
       def output_state_distribution(result)
@@ -425,15 +434,17 @@ module Onetime
         state_counts                                                  = Hash.new(0)
         result.results.each { |r| state_counts[r.current_state.to_s] += 1 }
 
-        issues = { orphaned: [], org_not_found: [], dns_failed: [], ssl_failed: [] }
+        issues = { orphaned: [], org_not_found: [], dns_failed: [], dns_indeterminate: [], dns_expired: [], ssl_failed: [] }
         result.results.each do |r|
           domain = r.domain
           issues[:orphaned] << domain.display_domain if domain.org_id.to_s.empty?
           if !domain.org_id.to_s.empty? && domain.primary_organization.nil?
             issues[:org_not_found] << domain.display_domain
           end
-          issues[:dns_failed] << domain.display_domain unless r.dns_validated
-          issues[:ssl_failed] << domain.display_domain unless r.ssl_ready
+          issues[:dns_failed] << domain.display_domain if r.dns_outcome == :failed
+          issues[:dns_indeterminate] << domain.display_domain if r.dns_indeterminate
+          issues[:dns_expired] << domain.display_domain if r.confirmation_expired
+          issues[:ssl_failed] << domain.display_domain if r.ssl_ready == false
         end
 
         output = result.to_h.merge(
@@ -465,6 +476,14 @@ module Onetime
         when true then 'yes'
         when false then 'no'
         else 'unknown'
+        end
+      end
+
+      def format_diagnostic_status(value, false_label:)
+        case value
+        when true then 'PASS'
+        when false then false_label
+        else 'UNKNOWN'
         end
       end
     end

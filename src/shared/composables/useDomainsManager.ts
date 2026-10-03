@@ -6,7 +6,8 @@ import { ApplicationError } from '@/schemas/errors';
 import type { PutHomepageConfigRequest } from '@/schemas/api/domains/requests';
 import type { CustomDomain } from '@/schemas/shapes/v3';
 import { useDomainsStore, useNotificationsStore } from '@/shared/stores';
-import { isApproximatedDomainValidation } from '@/utils/features';
+import { domainVerifyNotice } from '@/shared/utils/domainVerifyNotice';
+import { isDomainOwnershipChecked } from '@/utils/features';
 import { storeToRefs } from 'pinia';
 import { computed, onScopeDispose, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -30,17 +31,12 @@ export function useDomainsManager() {
   const goBack = () => router.back();
   const { records, details } = storeToRefs(store);
 
-  // Track pending timeouts so they can be cleared on scope disposal
+  // Track the pending redirect so it can be cleared on scope disposal
   let redirectTimer: ReturnType<typeof setTimeout> | null = null;
-  let verifyTimer: ReturnType<typeof setTimeout> | null = null;
   onScopeDispose(() => {
     if (redirectTimer) {
       clearTimeout(redirectTimer);
       redirectTimer = null;
-    }
-    if (verifyTimer) {
-      clearTimeout(verifyTimer);
-      verifyTimer = null;
     }
   });
 
@@ -109,7 +105,10 @@ export function useDomainsManager() {
   const verifyDomain = async (extid: string) =>
     wrap(async () => {
       const result = await store.verifyDomain(extid);
-      notifications.show(t('web.domains.domain_verification_initiated_successfully'), 'success', 'top');
+      // A check that could not be completed, or found no record, does not
+      // read as a success. See domainVerifyNotice.
+      const notice = domainVerifyNotice(result?.details);
+      notifications.show(t(notice.messageKey), notice.severity, 'top');
       return result;
     });
 
@@ -117,8 +116,8 @@ export function useDomainsManager() {
     if (errorMessage.includes('already registered in your organization')) {
       notifications.show(t('web.domains.domain_already_in_organization'), 'warning', 'top');
       // Best-effort: refresh and redirect to the existing domain's DNS page —
-      // the Approximated verification screen, or the CNAME-setup screen on
-      // non-approximated installs. If fetchList fails (e.g. schema mismatch),
+      // the verification screen, or the CNAME-setup screen on installs that
+      // do not check ownership. If fetchList fails (e.g. schema mismatch),
       // we still show the warning above.
       try {
         await store.fetchList();
@@ -127,7 +126,7 @@ export function useDomainsManager() {
           redirectTimer = setTimeout(() => {
             redirectTimer = null;
             router.push({
-              name: isApproximatedDomainValidation() ? 'DomainVerify' : 'DomainDns',
+              name: isDomainOwnershipChecked() ? 'DomainVerify' : 'DomainDns',
               params: { orgid: orgid.value, extid: existingDomain.extid },
             });
           }, 2000);
@@ -162,29 +161,21 @@ export function useDomainsManager() {
   /**
    * Route to the appropriate screen after a domain is added.
    *
-   * Approximated installs land on the verification screen and kick off a
-   * backend DNS check. Self-hosted installs manage their own DNS/TLS, so they
-   * go to the simpler CNAME-instructions screen and skip the Approximated
-   * verification poll (which would never resolve). See
-   * isApproximatedDomainValidation().
+   * Installs whose strategy checks ownership (approximated, caddy_on_demand)
+   * land on the verification screen, which shows the TXT record and runs the
+   * first check itself on mount (DomainVerify.vue). It is not scheduled from
+   * here: this composable lives in the add page's scope, which is disposed
+   * when navigation unmounts that page, so a timer set here never fired.
+   * Other installs manage their own DNS/TLS with no ownership check, so they
+   * go to the simpler CNAME-instructions screen. See isDomainOwnershipChecked().
    */
   const navigateAfterAdd = (record: CustomDomain) => {
-    const useApproximated = isApproximatedDomainValidation();
+    if (!orgid.value) return;
 
-    if (orgid.value) {
-      router.push({
-        name: useApproximated ? 'DomainVerify' : 'DomainDns',
-        params: { orgid: orgid.value, extid: record.extid },
-      });
-    }
-
-    if (useApproximated) {
-      verifyTimer = setTimeout(() => {
-        verifyDomain(record.extid).catch((err: unknown) => {
-          console.warn('[useDomainsManager] Post-add verification failed:', err);
-        });
-      }, 2000);
-    }
+    router.push({
+      name: isDomainOwnershipChecked() ? 'DomainVerify' : 'DomainDns',
+      params: { orgid: orgid.value, extid: record.extid },
+    });
   };
 
   const handleAddDomain = async (domain: string) =>

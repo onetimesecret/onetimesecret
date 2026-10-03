@@ -75,10 +75,6 @@
     "text": "Pro tento e-mail již existuje nevyřízená pozvánka",
     "source_hash": "7f5e3093"
   },
-  "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Byl dosažen limit členů. Pro pozvání dalších členů přejdi na vyšší plán.",
-    "source_hash": "b8f316e8"
-  },
   "api.organizations.invitations.errors.resend_only_pending": {
     "text": "Znovu odeslat lze pouze nevyřízené pozvánky",
     "source_hash": "b7578b3e"

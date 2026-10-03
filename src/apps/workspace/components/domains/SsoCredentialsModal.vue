@@ -11,6 +11,7 @@
   } from '@headlessui/vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import DomainSsoConfigForm from '@/apps/workspace/components/domains/DomainSsoConfigForm.vue';
+  import { isSamlEnabled } from '@/utils/features';
   import type { SsoConfigFormState } from '@/shared/composables/useSsoConfig';
   import type { CustomDomainSsoConfig } from '@/schemas/shapes/domains/sso-config';
   import type { TestSsoConnectionResponse } from '@/services/sso.service';
@@ -21,6 +22,7 @@
     isOpen: boolean;
     domainExtId: string;
     domainHost: string;
+    domainVerified: boolean;
     orgId: string;
     formState: SsoConfigFormState;
     ssoConfig: CustomDomainSsoConfig | null;
@@ -38,6 +40,7 @@
   const emit = defineEmits<{
     (e: 'close'): void;
     (e: 'save'): void;
+    (e: 'disable'): void;
     (e: 'delete'): void;
     (e: 'test'): void;
     (e: 'discard'): void;
@@ -115,6 +118,7 @@
                 :domain-ext-id="domainExtId"
                 :org-id="orgId"
                 :domain-host="domainHost"
+                :domain-verified="domainVerified"
                 :form-state="formState"
                 @update:form-state="emit('update:formState', $event)"
                 :sso-config="ssoConfig"
@@ -127,7 +131,9 @@
                 :client-secret-masked="clientSecretMasked"
                 :test-result="testResult"
                 :test-error="testError"
+                :saml-enabled="isSamlEnabled()"
                 @save="emit('save')"
+                @disable="emit('disable')"
                 @delete="emit('delete')"
                 @test="emit('test')"
                 @discard="emit('discard')" />

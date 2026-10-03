@@ -75,10 +75,6 @@
     "text": "Za ta e-poštni naslov že obstaja čakajoče povabilo",
     "source_hash": "7f5e3093"
   },
-  "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Dosežena je omejitev števila članov. Nadgradite svoj paket za povabilo več članov.",
-    "source_hash": "b8f316e8"
-  },
   "api.organizations.invitations.errors.resend_only_pending": {
     "text": "Znova je mogoče poslati samo čakajoča povabila",
     "source_hash": "b7578b3e"

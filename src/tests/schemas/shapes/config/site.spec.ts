@@ -82,6 +82,20 @@ describe('sessionConfigShape — defaults and bounds', () => {
     expect(() => sessionConfigSchema.parse({ expire_after: -1 })).not.toThrow();
   });
 
+  it('fills absolute_timeout with 30 days', () => {
+    expect(sessionConfigShape.parse({}).absolute_timeout).toBe(2592000);
+  });
+
+  it('accepts 0 for absolute_timeout (bound disabled) but not a negative or a fraction', () => {
+    expect(sessionConfigShape.parse({ absolute_timeout: 0 }).absolute_timeout).toBe(0);
+    expect(() => sessionConfigShape.parse({ absolute_timeout: -1 })).toThrow();
+    expect(() => sessionConfigShape.parse({ absolute_timeout: 3600.5 })).toThrow();
+  });
+
+  it('contract accepts the same bad absolute_timeout values', () => {
+    expect(() => sessionConfigSchema.parse({ absolute_timeout: -1 })).not.toThrow();
+  });
+
   it('rejects same_site values outside the enum', () => {
     expect(() => sessionConfigShape.parse({ same_site: 'wide' })).toThrow();
   });
@@ -109,7 +123,7 @@ describe('middlewareShape — defaults', () => {
     expect(result.permissions_policy).toBe(true);
     expect(result.frame_options).toBe(true);
     expect(result.path_traversal).toBe(true);
-    expect(result.cookie_tossing).toBe(false);
+    expect(result.cookie_tossing).toBe(true);
     expect(result.ip_spoofing).toBe(false);
     expect(result.strict_transport).toBe(true);
   });

@@ -1,12 +1,12 @@
 ---
 id: "046"
-status: proposed
+status: accepted
 title: "ADR-046: Bootstrap State Ordering Contract"
 ---
 
 ## Status
 
-Proposed
+Accepted
 
 ## Date
 
@@ -594,6 +594,59 @@ Tests will cover:
 
 ## Implementation Notes
 
+### Accepted and implemented (2026-09-28)
+
+The team ratified this record on 2026-09-28. The contract is implemented on
+`main`; the files below are the ones a reader can check against each section.
+
+- **Server allocation:** `lib/onetime/session/snapshot_ordering.rb` derives
+  the epoch (`EPOCH_DOMAIN`, 32 lowercase hex) and allocates the version;
+  `lib/onetime/session/sidecar.rb` holds the `counter: true` registry policy,
+  the Lua allocation in `allocate_counter`, and the envelope API's refusal of
+  a counter field. `apps/web/core/middleware/snapshot_ordering.rb` runs the
+  allocation once per Web Core request with an ordered session, before the
+  router invokes the authentication strategy, and records a failure in the
+  Rack env instead of raising.
+- **Payload:** `apps/web/core/views/serializers/system_serializer.rb` emits
+  `snapshot_epoch`, `snapshot_version` (a decimal string) and
+  `snapshot_generated_at` only when a version was allocated.
+  `apps/web/core/controllers/page.rb` answers `GET /bootstrap/me` with a
+  retryable 503 when the payload reports a session but no version was
+  allocated, and sets `cache-control: private, no-store` on both the 200 and
+  the 503. `src/schemas/contracts/bootstrap.ts` validates the pair as a unit
+  and leaves `snapshot_generated_at` optional.
+- **Client acceptance:** `src/utils/snapshotOrdering.ts` classifies a
+  response (session ended, session replaced, accepted, anomaly) from the
+  request generation, the watermark and the retired epochs, without reading
+  `snapshot_generated_at`. `src/shared/stores/authStore.ts` is the one
+  refresh coordinator: it owns request generations, resolves `refresh()` to
+  a `RefreshOutcome`, returns a `RejectionDisposition` for rejected API
+  calls, and holds the stale-session state and the action-gating computeds.
+  `src/shared/stores/bootstrapStore.ts` keeps the accepted pair and lets only
+  a complete snapshot write the status keys.
+- **Forced page load:** `src/utils/forcedPageLoad.ts` bounds reloads to one
+  per minute per tab through a `sessionStorage` marker;
+  `src/utils/sessionTransition.ts` parks the transition message with the
+  one-minute limit; `src/shared/components/auth/StaleSessionNotice.vue`
+  shows the persistent notice; `src/shared/composables/useUnsavedInputGuard.ts`
+  registers `beforeunload` only while unsubmitted input exists and is
+  adopted by the secret creation forms and `DomainBrand.vue`.
+- **Caller contracts:** `src/shared/composables/authCompletion.ts`
+  implements the three auth-completion checks.
+- **Tests:** `spec/unit/onetime/session/snapshot_ordering_spec.rb`,
+  `apps/web/core/spec/middleware/snapshot_ordering_spec.rb`,
+  `spec/integration/full/bootstrap_snapshot_ordering_spec.rb`,
+  `src/tests/utils/snapshotOrdering.spec.ts`,
+  `src/tests/stores/authStore.acceptance.spec.ts`,
+  `src/tests/contracts/bootstrap-schema-contract.spec.ts`,
+  `src/tests/composables/useUnsavedInputGuard.spec.ts` and
+  `src/tests/utils/sessionTransition.spec.ts`.
+
+The `Related` entry that says `bootstrap_me` sets no `Cache-Control` header
+describes the state at the time of writing; the header is set now (above).
+Rollout guidance for mixed workers and the unversioned-payload rule are in
+`docs/authentication/session-consistency-rollout.md`.
+
 ### Ordering alternatives considered and rejected (2026-09-17)
 
 - **`snapshot_generated_at` as the watermark:** Rejected because a datetime
@@ -699,3 +752,66 @@ Tests will cover:
   Rejected because `reloading` means `reload()` was called, not that the
   navigation happened. A cancelled `beforeunload` prompt would still leave
   the park behind. The time limit covers every cause.
+
+### Throttled rejections split by flight state (2026-09-28)
+
+The `throttled` disposition treated every rejection inside
+`REJECTION_MIN_INTERVAL` the same way: not owned, so each one produced its own
+notice. The rationale held only for the second half of the window. While the
+reconciliation the first rejection requested is still in flight, the snapshot
+it is about to apply answers every 401 that arrived meanwhile, and a notice
+per call duplicates the once-only transition announcement. Once that
+reconciliation has settled and found the session valid, a later 401 inside the
+window has no coordinator message coming, so its notice must stand.
+
+`noteApiRejection` now reads the coordinator's own in-flight record, the same
+one `refresh()` joins ordinary requests onto, and returns:
+
+- `{ ownedByCoordinator: true, reason: 'reconciling-duplicate' }` while a
+  flight is up. A newer flight that superseded the rejection's own request
+  counts the same way: under `#commit-generation-ownership` its snapshot is
+  the coordinator's next verdict.
+- `{ ownedByCoordinator: false, reason: 'throttled' }` once no flight is up.
+  This keeps the meaning the decision text gives `throttled`.
+
+This note supersedes the owned-reason list in the Decision section under
+`#rejection-disposition`. The current sets are:
+
+- owned by the coordinator: `reconciling`, `reconciling-duplicate`, or
+  `will-reload`;
+- not owned: `skipped-carve-out`, `throttled`, or `nonauth`.
+
+No consumer changes: `useAsyncHandler` still reads only `ownedByCoordinator`.
+The request budget is unchanged; one reconciliation per window is still the
+rule.
+
+**Owning a rejection is a promise (added 2026-09-29).** Suppressing a
+caller's toast is safe only if the coordinator then speaks. A flight can
+settle without a transition: it applies a snapshot that still reports
+`authenticated`, it returns `failed` or `allocation-unavailable`, or its
+response is dropped as stale. Before this note the first `reconciling`
+rejection already lost its feedback in those cases; owning duplicates would
+have widened that from one call to the whole batch. The coordinator therefore
+guarantees exactly one fallback notice per batch of owned rejections whose
+flight settles without a transition:
+
+- The interceptor passes, with each reported 401, the message the caller
+  would have shown: the classified message when it is of human interest,
+  else null for the generic error text. The store keeps the batch count and
+  the first message.
+- When the flight settles `refused` (a forced page load), or `applied` to any
+  status other than `authenticated` (the MFA gate, an in-place sign-out), the
+  UI change is the answer and nothing is owed. A local sign-out discards the
+  batch.
+- When it settles `applied` still `authenticated`, `failed`, or
+  `allocation-unavailable`, the store publishes one `rejectionNotice`
+  (`serial`, `count`, `message`). The backoff retry that follows a failure
+  starts with nothing owed, so it cannot repeat the notice.
+- A flight superseded by an authentication mutation settles `superseded` and
+  pays nothing; the batch is store-level, so the replacement flight pays it
+  when it settles, under `#commit-generation-ownership`.
+
+The store stays UI-free. `App.vue`, which already announces parked session
+transitions, watches `rejectionNotice` and shows the message through the
+notifications store, substituting the generic error text for a null message,
+the same choice `useAsyncHandler` makes.

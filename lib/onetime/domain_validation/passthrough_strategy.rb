@@ -20,6 +20,9 @@ module Onetime
         @config = config
       end
 
+      # No DNS check is made. VerifyDomain stores the pass in `verified` but
+      # does not record it in verified_confirmed_at (#proves_ownership?).
+      #
       # @param _custom_domain [Onetime::CustomDomain] Ignored
       # @return [Hash] Always returns validated: true
       #
@@ -87,6 +90,12 @@ module Onetime
 
       # @return [Boolean] false - passthrough does not manage certificates
       def manages_certificates?
+        false
+      end
+
+      # @return [Boolean] false - every domain passes without a lookup, so a
+      #   pass here is never recorded as a TXT confirmation
+      def proves_ownership?
         false
       end
     end

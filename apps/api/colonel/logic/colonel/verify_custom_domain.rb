@@ -53,7 +53,7 @@ module ColonelAPI
           ).call
 
           OT.info "[VerifyCustomDomain] #{custom_domain.display_domain} -> " \
-                  "state=#{result.current_state}, dns=#{result.dns_validated}, " \
+                  "state=#{result.current_state}, dns=#{result.dns_validated}, indeterminate=#{result.dns_indeterminate}, " \
                   "resolving=#{result.is_resolving}"
 
           success_data
@@ -67,6 +67,7 @@ module ColonelAPI
               display_domain: custom_domain.display_domain,
               verification_state: custom_domain.verification_state.to_s,
               verified: custom_domain.verified.to_s == 'true',
+              verified_by_override: custom_domain.verified_by_override == true,
               resolving: custom_domain.resolving.to_s == 'true',
               ready: custom_domain.ready?,
               updated: custom_domain.updated,
@@ -76,6 +77,17 @@ module ColonelAPI
               current_state: result.current_state.to_s,
               changed: result.changed?,
               dns_validated: result.dns_validated,
+              # true when the TXT check produced no answer; verified was left
+              # unchanged unless dns_outcome is confirmation_expired (see
+              # ConfirmationWindow). dns_message says which TXT outcome occurred.
+              dns_indeterminate: result.dns_indeterminate,
+              dns_message: result.dns_message,
+              # validated / confirmation_expired / indeterminate / override_held /
+              # failed — drives the operator notification when the state alone
+              # would mislead. confirmation_expired: the check was indeterminate
+              # and has been for longer than the confirmation window, so
+              # verified was withdrawn.
+              dns_outcome: result.dns_outcome.to_s,
               ssl_ready: result.ssl_ready,
               is_resolving: result.is_resolving,
               # nil on success; the op's captured error message on a check failure.

@@ -14,14 +14,15 @@
  * @param domainExtId - Domain external ID for API calls
  */
 
-import type { ApplicationError } from '@/schemas/errors';
 import type {
-  PutSsoConfigRequest,
   PatchSsoConfigRequest,
+  PutSsoConfigRequest,
 } from '@/schemas/api/domains/requests/sso-config';
-import type {
-  CustomDomainSsoConfig,
-  SsoProviderType,
+import type { ApplicationError } from '@/schemas/errors';
+import {
+  ssoProviderUsesClientCredentials,
+  type CustomDomainSsoConfig,
+  type SsoProviderType,
 } from '@/schemas/shapes/domains/sso-config';
 import {
   SsoService,
@@ -32,13 +33,19 @@ import { useNotificationsStore } from '@/shared/stores';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
-import { type AsyncHandlerOptions, useAsyncHandler } from './useAsyncHandler';
+import { useAsyncHandler, type AsyncHandlerOptions } from './useAsyncHandler';
 
 /**
  * Form state for SSO configuration.
  *
  * Note: client_secret is write-only. It's never populated from API responses
  * (which return a masked value), only from user input.
+ *
+ * The SAML trio (#4450) is NOT write-only: the API returns it in plaintext
+ * (none is a secret; an IdP publishes all three), so the form is seeded with
+ * the stored values and re-sends them. A field the API names in
+ * `unreadable_fields` is seeded EMPTY so the admin has to re-enter it — the
+ * error state lives on ssoConfig.unreadable_fields, not here.
  */
 export interface SsoConfigFormState {
   provider_type: SsoProviderType;
@@ -47,11 +54,33 @@ export interface SsoConfigFormState {
   client_secret: string;
   tenant_id: string;
   issuer: string;
+  idp_sso_service_url: string;
+  idp_entity_id: string;
+  idp_cert: string;
   allowed_domains: string[];
   enabled: boolean;
   enforce_sso_only: boolean;
   grant_org_scope: boolean;
 }
+
+/**
+ * Every scalar form field, compared by identity for unsaved-change detection.
+ * allowed_domains is the one array and is compared order-insensitively.
+ */
+const SCALAR_FORM_FIELDS = [
+  'provider_type',
+  'display_name',
+  'client_id',
+  'client_secret',
+  'tenant_id',
+  'issuer',
+  'idp_sso_service_url',
+  'idp_entity_id',
+  'idp_cert',
+  'enabled',
+  'enforce_sso_only',
+  'grant_org_scope',
+] as const satisfies readonly Exclude<keyof SsoConfigFormState, 'allowed_domains'>[];
 
 function createDefaultFormState(): SsoConfigFormState {
   return {
@@ -61,6 +90,9 @@ function createDefaultFormState(): SsoConfigFormState {
     client_secret: '',
     tenant_id: '',
     issuer: '',
+    idp_sso_service_url: '',
+    idp_entity_id: '',
+    idp_cert: '',
     allowed_domains: [],
     enabled: false,
     enforce_sso_only: false,
@@ -84,6 +116,13 @@ function arraysEqual(a: string[], b: string[]): boolean {
  * CRITICAL: Never populate client_secret from API response.
  * The API returns a masked value (e.g., "********1234") which would
  * corrupt the credential if saved back.
+ *
+ * The SAML trio is plaintext on the wire and is seeded as stored. A null the
+ * API ALSO lists in unreadable_fields is a reveal failure, not "unset"; the
+ * `?? ''` here is the same either way, which is what we want — a blank input
+ * plus the error state rendered from unreadable_fields, so the only way
+ * forward is to re-enter the value (the API refuses a blank trio field on
+ * PATCH unless the stored one is readable).
  */
 function configToFormState(config: CustomDomainSsoConfig): SsoConfigFormState {
   return {
@@ -93,10 +132,53 @@ function configToFormState(config: CustomDomainSsoConfig): SsoConfigFormState {
     client_secret: '', // Never populate from API
     tenant_id: config.tenant_id ?? '',
     issuer: config.issuer ?? '',
+    idp_sso_service_url: config.idp_sso_service_url ?? '',
+    idp_entity_id: config.idp_entity_id ?? '',
+    idp_cert: config.idp_cert ?? '',
     allowed_domains: config.allowed_domains ?? [],
     enabled: config.enabled,
     enforce_sso_only: config.enforce_sso_only,
     grant_org_scope: config.grant_org_scope,
+  };
+}
+
+function usesClientCredentials(state: SsoConfigFormState): boolean {
+  return ssoProviderUsesClientCredentials(state.provider_type);
+}
+
+/**
+ * The provider-scoped request fields for the current provider type, trimmed,
+ * with blanks omitted. Shared by save and test so the two cannot disagree.
+ *
+ * Only the side the provider uses is sent: the API clears the other side on
+ * write regardless (an unvalidated trust anchor must not sit on the record
+ * waiting for a provider_type flip), so sending it would only be noise — and
+ * for saml, a client_id would be validated as "required" by the zod PUT
+ * schema for the wrong provider. Blank SAML fields are omitted rather than
+ * sent as '' so that on an existing saml record PATCH preserves the stored
+ * value (a listed unreadable field is blank here and the API then refuses
+ * with a `missing` error naming it — the intended re-entry loop).
+ */
+function providerFields(state: SsoConfigFormState): {
+  client_id?: string;
+  tenant_id?: string;
+  issuer?: string;
+  idp_sso_service_url?: string;
+  idp_entity_id?: string;
+  idp_cert?: string;
+} {
+  if (state.provider_type === 'saml') {
+    return {
+      idp_sso_service_url: state.idp_sso_service_url.trim() || undefined,
+      idp_entity_id: state.idp_entity_id.trim() || undefined,
+      idp_cert: state.idp_cert.trim() || undefined,
+    };
+  }
+
+  return {
+    client_id: state.client_id.trim(),
+    tenant_id: state.tenant_id.trim() || undefined,
+    issuer: state.issuer.trim() || undefined,
   };
 }
 
@@ -172,21 +254,20 @@ export function useSsoConfig(domainExtId: string) {
   /** The masked client secret from the existing config (for display purposes). */
   const clientSecretMasked = computed(() => ssoConfig.value?.client_secret_masked ?? null);
 
+  /**
+   * Encrypted fields the API could not reveal for the stored record (#4450).
+   * Empty for a healthy record. A named field's value is unknown, not unset:
+   * the form must show an error state and demand re-entry.
+   */
+  const unreadableFields = computed(() => ssoConfig.value?.unreadable_fields ?? []);
+
   /** Whether the form has been modified since last save/load. */
   const hasUnsavedChanges = computed(() => {
     if (!savedFormState.value) return false;
     const current = formState.value;
     const saved = savedFormState.value;
     return (
-      current.provider_type !== saved.provider_type ||
-      current.display_name !== saved.display_name ||
-      current.client_id !== saved.client_id ||
-      current.client_secret !== saved.client_secret ||
-      current.tenant_id !== saved.tenant_id ||
-      current.issuer !== saved.issuer ||
-      current.enabled !== saved.enabled ||
-      current.enforce_sso_only !== saved.enforce_sso_only ||
-      current.grant_org_scope !== saved.grant_org_scope ||
+      SCALAR_FORM_FIELDS.some((field) => current[field] !== saved[field]) ||
       !arraysEqual(current.allowed_domains, saved.allowed_domains)
     );
   });
@@ -219,7 +300,8 @@ export function useSsoConfig(domainExtId: string) {
   /**
    * Save the current form state.
    * Uses SsoService.saveConfigForDomain which auto-selects PUT vs PATCH
-   * based on whether client_secret is provided.
+   * based on whether client_secret is provided (so a saml save is always a
+   * PATCH; PATCH creates when no record exists).
    */
   const saveConfig = async () => {
     isSaving.value = true;
@@ -230,17 +312,17 @@ export function useSsoConfig(domainExtId: string) {
         const payload: PutSsoConfigRequest | PatchSsoConfigRequest = {
           provider_type: formState.value.provider_type,
           display_name: formState.value.display_name.trim(),
-          client_id: formState.value.client_id.trim(),
-          tenant_id: formState.value.tenant_id.trim() || undefined,
-          issuer: formState.value.issuer.trim() || undefined,
+          ...providerFields(formState.value),
           allowed_domains: formState.value.allowed_domains,
           enabled: formState.value.enabled,
           enforce_sso_only: formState.value.enforce_sso_only,
           grant_org_scope: formState.value.grant_org_scope,
         };
 
-        // Only include client_secret if provided (non-empty)
-        if (formState.value.client_secret.trim()) {
+        // Only include client_secret if provided (non-empty). Never for saml,
+        // which has no client credential: the API discards it anyway, and
+        // its presence is what routes the save to PUT (see SsoService).
+        if (usesClientCredentials(formState.value) && formState.value.client_secret.trim()) {
           (payload as PutSsoConfigRequest).client_secret = formState.value.client_secret.trim();
         }
 
@@ -254,6 +336,42 @@ export function useSsoConfig(domainExtId: string) {
           ...formState.value,
           allowed_domains: [...formState.value.allowed_domains],
         };
+        notifications.show(t('web.domains.sso.update_success'), 'success', 'top');
+      }
+    } finally {
+      isSaving.value = false;
+    }
+  };
+
+  const disableConfig = async () => {
+    if (
+      !ssoConfig.value?.enabled ||
+      isLoading.value ||
+      isSaving.value ||
+      isDeleting.value ||
+      isTesting.value
+    )
+      return;
+    isSaving.value = true;
+    error.value = null;
+    try {
+      // Recovery contract: existing record, exactly these two flags; never form edits.
+      const result = await wrapAction(() =>
+        SsoService.patchConfigForDomain(domainExtId, {
+          enabled: false,
+          enforce_sso_only: false,
+        })
+      );
+      if (result?.record) {
+        ssoConfig.value = result.record;
+        savedFormState.value = configToFormState(result.record);
+        formState.value = {
+          ...formState.value,
+          enabled: result.record.enabled,
+          enforce_sso_only: result.record.enforce_sso_only,
+        };
+        testResult.value = null;
+        testError.value = '';
         notifications.show(t('web.domains.sso.update_success'), 'success', 'top');
       }
     } finally {
@@ -297,16 +415,8 @@ export function useSsoConfig(domainExtId: string) {
       const result = await wrapAction(async () => {
         const payload: TestSsoConnectionRequest = {
           provider_type: formState.value.provider_type,
-          client_id: formState.value.client_id.trim(),
+          ...providerFields(formState.value),
         };
-
-        // Add provider-specific fields
-        if (formState.value.tenant_id.trim()) {
-          payload.tenant_id = formState.value.tenant_id.trim();
-        }
-        if (formState.value.issuer.trim()) {
-          payload.issuer = formState.value.issuer.trim();
-        }
 
         return await SsoService.testConnectionForDomain(domainExtId, payload);
       });
@@ -354,11 +464,13 @@ export function useSsoConfig(domainExtId: string) {
     isConfigured,
     isEnabled,
     clientSecretMasked,
+    unreadableFields,
     hasUnsavedChanges,
 
     // Actions
     initialize,
     saveConfig,
+    disableConfig,
     deleteConfig,
     testConnection,
     discardChanges,

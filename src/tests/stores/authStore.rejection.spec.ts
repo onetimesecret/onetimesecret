@@ -3,6 +3,7 @@
 // #4460: session rejection and verification-unavailable are handled
 // distinctly. A verification outage never logs the user out.
 
+import { errorInterceptor, responseInterceptor } from '@/plugins/axios/interceptors';
 import type { BootstrapPayload } from '@/schemas/contracts/bootstrap';
 import { _resetForTesting, getBootstrapSnapshot } from '@/services/bootstrap.service';
 import { AUTH_CHECK_CONFIG, useAuthStore } from '@/shared/stores/authStore';
@@ -16,6 +17,7 @@ import {
 } from '@/tests/fixtures/bootstrap.fixture';
 import { toWire } from '@/tests/fixtures/bootstrap-wire';
 import { attemptForcedPageLoad } from '@/utils/forcedPageLoad';
+import type { AxiosInstance } from 'axios';
 import type AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { setupTestPinia } from '../setup';
@@ -30,6 +32,8 @@ const BOOTSTRAP_KEY = '__BOOTSTRAP_ME__';
 
 describe('authStore: rejection vs verification-unavailable (#4460)', () => {
   let axiosMock: AxiosMockAdapter;
+  let api: AxiosInstance;
+  let interceptorId: number | null = null;
   let store: ReturnType<typeof useAuthStore>;
   let bootstrapStore: ReturnType<typeof useBootstrapStore>;
 
@@ -38,6 +42,7 @@ describe('authStore: rejection vs verification-unavailable (#4460)', () => {
     (window as unknown as Record<string, unknown>)[BOOTSTRAP_KEY] = toWire(hydration);
     const setup = await setupTestPinia();
     axiosMock = setup.axiosMock as AxiosMockAdapter;
+    api = setup.api;
     bootstrapStore = useBootstrapStore();
     store = useAuthStore();
     vi.useFakeTimers();
@@ -57,6 +62,8 @@ describe('authStore: rejection vs verification-unavailable (#4460)', () => {
   });
 
   afterEach(() => {
+    if (interceptorId !== null) api.interceptors.response.eject(interceptorId);
+    interceptorId = null;
     store?.$dispose();
     axiosMock?.restore();
     vi.useRealTimers();
@@ -303,6 +310,60 @@ describe('authStore: rejection vs verification-unavailable (#4460)', () => {
       expect(store.authStatus).toBe('authenticated');
     });
 
+    // #4469: the server answers a session it could not verify with a 503
+    // carrying the same pair. Through the real interceptor (the shared test
+    // instance has none, so it is installed here), it is handled exactly as
+    // the coded 401 was: one reconciliation, one failed verification, never
+    // a sign-out.
+    describe('a verification outage answered 503 on a protected route', () => {
+      const PROTECTED = '/api/account/';
+      const withInterceptor = () => {
+        interceptorId = api.interceptors.response.use(responseInterceptor, errorInterceptor);
+      };
+      const outage = {
+        error: 'Authentication Required',
+        message: '[AUTH_HEADER_MISSING] No authorization header',
+        timestamp: 1_700_000_000,
+        code: 'active_session_unavailable',
+        code_scope: 'verification_unavailable',
+      };
+
+      it('reconciles once, counts one failed verification, and keeps the session', async () => {
+        await mountWith(authenticatedBootstrap);
+        withInterceptor();
+        const logout = vi.spyOn(store, 'logout');
+        axiosMock.onGet(PROTECTED).reply(503, outage, { 'retry-after': '5' });
+        axiosMock.onGet(ENDPOINT).reply(200, toWire(unavailableBootstrap));
+
+        for (let i = 0; i < 10; i++) {
+          await expect(api.get(PROTECTED)).rejects.toMatchObject({ response: { status: 503 } });
+        }
+        await vi.advanceTimersByTimeAsync(0);
+
+        expect(requests()).toBe(1);
+        expect(store.failureCount).toBe(1);
+        expect(store.authStatus).toBe('authenticated');
+        expect(bootstrapStore.cust).not.toBeNull();
+        expect(logout).not.toHaveBeenCalled();
+        expect(attemptForcedPageLoad).not.toHaveBeenCalled();
+      });
+
+      it('an uncoded 503 on a protected route is not a session refusal: nothing is reconciled', async () => {
+        await mountWith(authenticatedBootstrap);
+        withInterceptor();
+        const before = held();
+        axiosMock.onGet(PROTECTED).reply(503, { error: 'Service unavailable' }, { 'retry-after': '5' });
+
+        await expect(api.get(PROTECTED)).rejects.toMatchObject({ response: { status: 503 } });
+        await vi.advanceTimersByTimeAsync(0);
+
+        expect(requests()).toBe(0);
+        expect(store.failureCount ?? 0).toBe(0);
+        expect(store.authStatus).toBe('authenticated');
+        expect(held()).toEqual(before);
+      });
+    });
+
     it('an uncoded 401 can only withhold: one reconciliation while a session is held', async () => {
       await mountWith(authenticatedBootstrap);
       axiosMock.onGet(ENDPOINT).reply(200, toWire(newerSnapshot(authenticatedBootstrap)));
@@ -320,6 +381,29 @@ describe('authStore: rejection vs verification-unavailable (#4460)', () => {
       store.noteApiRejection(null);
       store.noteApiRejection({ code: 'session_missing', code_scope: 'customer_session' });
 
+      expect(requests()).toBe(0);
+    });
+
+    // #4469: a rejected credential says nothing about the session, which may
+    // be valid (a wrong current password on change-password, a rejected API
+    // key). The form that sent it owns the message; nothing is reconciled.
+    it('a rejected credential while a session is held reconciles nothing and is not owned', async () => {
+      await mountWith(authenticatedBootstrap);
+
+      const disposition = store.noteApiRejection({ code: 'invalid_credentials', code_scope: 'credential' });
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(disposition).toEqual({ ownedByCoordinator: false, reason: 'skipped-carve-out' });
+      expect(requests()).toBe(0);
+      expect(store.authStatus).toBe('authenticated');
+    });
+
+    it('a rejected login on an anonymous tab (credential scope) reconciles nothing', async () => {
+      await mountWith(anonymousBootstrap);
+
+      const disposition = store.noteApiRejection({ code: 'invalid_credentials', code_scope: 'credential' });
+
+      expect(disposition.ownedByCoordinator).toBe(false);
       expect(requests()).toBe(0);
     });
 

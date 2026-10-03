@@ -4,7 +4,7 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
   import { useAccountStore } from '@/shared/stores/accountStore';
-  import { computed, onMounted, ref } from 'vue';
+  import { computed, onMounted, ref, useId } from 'vue';
   import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
@@ -12,6 +12,11 @@
 
   const isLoading = ref(false);
   const error = ref<string | null>(null);
+
+  // The switch has no visible text of its own; its accessible name and
+  // description come from the title and description paragraphs beside it.
+  const revealLabelId = `notify-on-reveal-label-${useId()}`;
+  const revealDescriptionId = `notify-on-reveal-description-${useId()}`;
 
   const notifyOnReveal = computed(() => accountStore.account?.cust?.notify_on_reveal ?? false);
 
@@ -83,10 +88,14 @@
                   class="size-5 text-gray-500 dark:text-gray-400"
                   aria-hidden="true" />
                 <div>
-                  <p class="font-medium text-gray-900 dark:text-white">
+                  <p
+                    :id="revealLabelId"
+                    class="font-medium text-gray-900 dark:text-white">
                     {{ t('web.settings.notifications.reveal_notifications.title') }}
                   </p>
-                  <p class="text-sm text-gray-500 dark:text-gray-400">
+                  <p
+                    :id="revealDescriptionId"
+                    class="text-sm text-gray-500 dark:text-gray-400">
                     {{ t('web.settings.notifications.reveal_notifications.description') }}
                   </p>
                 </div>
@@ -97,6 +106,8 @@
                 type="button"
                 role="switch"
                 :aria-checked="notifyOnReveal"
+                :aria-labelledby="revealLabelId"
+                :aria-describedby="revealDescriptionId"
                 :disabled="isLoading"
                 @click="handleToggleNotifyOnReveal"
                 :class="[
@@ -116,7 +127,7 @@
             </div>
 
             <!-- Help text -->
-            <p class="mt-3 text-xs text-gray-500 dark:text-gray-500">
+            <p class="mt-3 text-xs text-gray-500 dark:text-gray-400">
               {{ t('web.settings.notifications.reveal_notifications.help') }}
             </p>
           </div>

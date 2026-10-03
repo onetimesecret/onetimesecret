@@ -16,14 +16,14 @@
 #   router.not_found    = [404, headers, [...]]
 #   router.server_error = [500, headers, [...]]
 #
-# Otto returns those triples BY REFERENCE (otto/core/router.rb, `@not_found`)
-# on every request that matches no route. rack-session's `context` then wraps
-# the returned headers in Rack::Response::Raw and `commit_session` calls
-# `set_cookie` on it, which is an in-place `add_header` — and
-# Rack::Utils.set_cookie_header! APPENDS when the value is already an Array.
-# So one process-lifetime hash accumulated every session cookie ever committed
-# on a 404/500 in that app, and any later 404 replayed all of them to whoever
-# asked. Session ids are bearer tokens with no client binding.
+# Before otto 2.11, Otto returned those triples BY REFERENCE on every request
+# that matched no route. rack-session's `context` then wraps the returned
+# headers in Rack::Response::Raw and `commit_session` calls `set_cookie` on
+# it, which is an in-place `add_header` — and Rack::Utils.set_cookie_header!
+# APPENDS when the value is already an Array. So one process-lifetime hash
+# accumulated every session cookie ever committed on a 404/500 in that app,
+# and any later 404 replayed all of them to whoever asked. Session ids are
+# bearer tokens with no client binding.
 #
 # otto 2.11 (delano/otto#272) copies the configured triple per request
 # (Otto::Static.copy_response: a fresh headers hash with fresh Array values),
@@ -87,8 +87,8 @@ RSpec.describe 'Router fallback responses carry only their own Set-Cookie', type
   # `not_found` fallback: no route matches and no `/404` literal fallback
   # route is defined. Web core is absent on purpose: it defines `GET /404`
   # (which HEAD shares) and every other method is refused by the CSRF layer
-  # above the router, so its static triple is unreachable from here. The
-  # isolation layer covers it all the same — it is mounted in Base.
+  # above the router, so its static triple is unreachable from here. Otto's
+  # per-request copy covers it all the same — it applies to every Otto router.
   fallback_misses = {
     'API v1' => [:post, '/api/v1/__no_such_route__'],
     'API v2' => [:post, '/api/v2/__no_such_route__'],
@@ -161,7 +161,7 @@ RSpec.describe 'Router fallback responses carry only their own Set-Cookie', type
   end
 
   # ---------------------------------------------------------------------------
-  # Control: the fallback's own headers still arrive. If the isolation layer
+  # Control: the fallback's own headers still arrive. If the per-request copy
   # returned an empty or unrelated hash every assertion above would pass while
   # breaking the ADR-013 wire format.
   # ---------------------------------------------------------------------------

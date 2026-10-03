@@ -138,7 +138,10 @@ RSpec.describe 'Active Sessions Management', type: :integration do
         allow(Auth::Database).to receive(:connection).and_raise(Sequel::DatabaseConnectionError, 'down')
 
         get '/api/account/'
-        expect(last_response.status).to eq(401)
+        # Fail closed as an outage: 503 with Retry-After, not a 401 verdict
+        # (Onetime::Middleware::SessionFailureCode).
+        expect(last_response.status).to eq(503)
+        expect(last_response.headers['retry-after']).to eq('5')
       end
 
       it 'keeps refreshing the active-session row last_use so the inactivity sweep sees activity' do
@@ -163,7 +166,7 @@ RSpec.describe 'Active Sessions Management', type: :integration do
       end
 
       it 'refuses the Rack session once its row is past the lifetime deadline, however active' do
-        account_rows.update(created_at: Time.now - (Onetime::ActiveSessionGate::LIFETIME_DEADLINE + 60), last_use: Time.now)
+        account_rows.update(created_at: Time.now - (Onetime::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE + 60), last_use: Time.now)
 
         get '/api/account/'
         expect(last_response.status).to eq(401)
@@ -172,7 +175,8 @@ RSpec.describe 'Active Sessions Management', type: :integration do
 
       it 'applies the same two deadlines Rodauth itself is configured with' do
         deadlines = Auth::Config.internal_request_eval { [session_inactivity_deadline, session_lifetime_deadline] }
-        expect(deadlines).to eq([Onetime::ActiveSessionGate::INACTIVITY_DEADLINE, Onetime::ActiveSessionGate::LIFETIME_DEADLINE])
+        expect(deadlines).to eq([Onetime::ActiveSessionGate::INACTIVITY_DEADLINE, Onetime::ActiveSessionGate.lifetime_deadline])
+        expect(deadlines.last).to eq(Onetime::ActiveSessionGate::DEFAULT_LIFETIME_DEADLINE)
       end
     end
 
@@ -213,7 +217,9 @@ RSpec.describe 'Active Sessions Management', type: :integration do
         allow(Auth::Database).to receive(:connection).and_raise(Sequel::DatabaseConnectionError, 'down')
 
         get_json '/auth/account'
-        expect(last_response.status).to eq(401)
+        # Fail closed as an outage: 503, not a 401 verdict
+        # (Onetime::Middleware::SessionFailureCode).
+        expect(last_response.status).to eq(503)
         expect(json_response['error_type']).to eq('SessionUnverified')
       end
 

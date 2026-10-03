@@ -68,8 +68,14 @@ module Auth
     # so a legacy '' row still matched the exact lookup — those users were never
     # locked out and this operation refuses to run for them. As of #3902 those
     # provider types are no longer configurable on the tenant surface at all
-    # (SsoConfig::PROVIDER_TYPES is oidc/entra_id only), so the eligibility
+    # (SsoConfig::PROVIDER_TYPES is oidc/entra_id/saml only), so the eligibility
     # guard below is a defense-in-depth check against pre-#3902 stored records.
+    #
+    # saml (#4450) is refused outright, --issuer or not. See
+    # ISSUER_BEARING_PROVIDER_TYPES: the uids this operation relabels are OAuth
+    # `sub` values, and a SAML NameID is a different namespace, so stamping the
+    # SAML issuer onto them would let a NameID that collides with an old `sub`
+    # sign in as that account.
     #
     # Idempotent, dry-run by default. Mirrors BulkSsoMigration's conventions.
     #
@@ -82,14 +88,29 @@ module Auth
 
       IDENTITIES_TABLE = :account_identities
 
-      # provider_type values whose live callback resolves a REAL (non-sentinel)
-      # issuer, and can therefore lock a pre-008 tenant user out. Issuerless
-      # OAuth2 providers (google, github) resolved to '' — their legacy rows
-      # already matched — and since #3902 they are no longer configurable
-      # tenant provider types, so this list now equals
-      # SsoConfig::PROVIDER_TYPES. Kept as an explicit local constant: the
-      # guard exists to refuse pre-#3902 stored records, independent of what
-      # the model currently accepts.
+      # provider_type values this operation will stamp: the live callback
+      # resolves a REAL (non-sentinel) issuer for them, so a pre-008 tenant
+      # user can be locked out, AND the uid namespace of the legacy '' rows is
+      # the same one the live callback writes. Issuerless OAuth2 providers
+      # (google, github) resolved to '' — their legacy rows already matched —
+      # and since #3902 they are no longer configurable tenant provider types.
+      # Kept as an explicit local constant: the guard exists to refuse
+      # pre-#3902 stored records, independent of what the model accepts.
+      #
+      # 'saml' (#4450) is deliberately ABSENT, and is refused even with an
+      # --issuer override. It is issuer-bearing (its identities are keyed on
+      # "<domain_id>|<EntityID>", never on ''), but that is not the question:
+      # every legacy '' row on a shared route holds an OAuth/OIDC `sub` from
+      # the provider the domain used BEFORE the switch, while a SAML identity's
+      # uid is a NameID — a different namespace that the IdP, not this app,
+      # assigns. Relabelling those rows with the SAML issuer would let any SAML
+      # principal whose NameID happens to equal an old `sub` resolve to that
+      # account: an account-takeover primitive minted by an ops command.
+      # Tenant SAML postdates migration 008, so there are no legitimate SAML
+      # '' rows to repair; a provider switch TO saml needs an explicit
+      # per-account subject -> NameID mapping, which this tool is not.
+      # Tripwire: domain_sso_config_spec asserts this list is
+      # PROVIDER_TYPES - ['saml'] so a future provider type is classified here.
       ISSUER_BEARING_PROVIDER_TYPES = %w[oidc entra_id].freeze
 
       Result = Struct.new(
@@ -121,7 +142,8 @@ module Auth
       #   Needed for Entra, where the live `iss` is
       #   https://login.microsoftonline.com/{tenant_id}/v2.0 and may differ from
       #   any stored field. When present (and non-blank) it wins over the
-      #   config-derived value for EVERY provider.
+      #   config-derived value for every provider this operation accepts; it
+      #   does NOT make a saml domain eligible (see ISSUER_BEARING_PROVIDER_TYPES).
       # @param dry_run [Boolean] when true (default), writes nothing and reports
       #   what WOULD happen.
       def initialize(domain:, issuer: nil, dry_run: true)
@@ -294,7 +316,11 @@ module Auth
 
       # Resolve the issuer to stamp so it equals what resolve_issuer produces at
       # live callback time:
-      #   - override present   -> the override (wins for every provider)
+      #   - saml               -> REFUSED before anything else, override or
+      #                           not: the legacy '' uids are OAuth `sub`s and
+      #                           a NameID is a different namespace (see
+      #                           ISSUER_BEARING_PROVIDER_TYPES).
+      #   - override present   -> the override (wins for every accepted provider)
       #   - oidc               -> sso_config.issuer (injected into strategy
       #                           options; resolve_issuer precedence #1). NOT
       #                           normalized — must byte-match the live value.
@@ -308,9 +334,13 @@ module Auth
       #                           '' at callback, so no lockout; refuse (nothing
       #                           to backfill).
       def resolve_issuer(sso_config, override)
-        return override.to_s.strip unless override.to_s.strip.empty?
-
         provider_type = sso_config.provider_type.to_s
+
+        raise Onetime::Problem, saml_refusal_message if provider_type == 'saml'
+
+        override = override.to_s.strip
+        return override unless override.empty?
+
         unless ISSUER_BEARING_PROVIDER_TYPES.include?(provider_type)
           raise Onetime::Problem,
             "provider_type '#{provider_type}' resolves to the '' sentinel issuer at callback time, " \
@@ -339,6 +369,19 @@ module Auth
         end
 
         resolved
+      end
+
+      # Why a saml domain is refused (with or without --issuer). Spelled out
+      # for the operator because the refusal is a policy, not a missing field:
+      # there is nothing they can pass to make it proceed.
+      def saml_refusal_message
+        "provider_type 'saml' is not eligible for this backfill (--issuer does not change that): " \
+          "the legacy '' identity rows under route '#{provider}' hold OAuth/OIDC `sub` values from the " \
+          "provider #{domain.display_domain} used before, and a SAML identity's uid is a NameID — a " \
+          'different subject namespace. Stamping the SAML issuer onto those rows would let any SAML ' \
+          'principal whose NameID equals an old `sub` sign in as that account. Tenant SAML postdates ' \
+          "migration 008, so no legitimate saml '' rows exist; moving a domain to saml needs an explicit " \
+          'per-account subject -> NameID mapping, which this command does not perform.'
       end
 
       def process_identity_safely(row)

@@ -62,7 +62,13 @@ migrations).
 
 `bin/setup --test` puts the checkout in test mode: with direnv installed,
 every shell in the checkout loads `.env.test` and runs `RACK_ENV=test` until
-you switch back with plain `bin/setup`.
+you switch back with plain `bin/setup`. It also mirrors CI's dependency
+contract — `pnpm install --frozen-lockfile` on every run, plus the Playwright
+browsers (chromium, firefox, webkit) that `tests/browser/` drives through
+`@playwright/test`. Set `OTS_SETUP_SKIP_BROWSERS=1` to skip the browser
+download; on Linux the browsers may additionally need OS packages
+(`pnpm exec playwright install-deps`, which setup never runs for you).
+`bin/setup --doctor` reports whether the browser binaries are present.
 
 `scripts/tests/run.sh` covers the shell scripts that CI itself runs — the
 Sentry sourcemap delivery reporters in `scripts/ci/`, whose failure mode is
@@ -72,6 +78,15 @@ scrubs the ambient `SENTRY_*` variables, so a shell configured against the
 self-hosted Sentry does not change the result. `scripts/check-shell-lint.sh`
 runs shellcheck and actionlint over the repo and fails on anything above the
 baseline in `.github/lint-baseline/`; both run in CI as `Static analysis`.
+
+## Changing stored data
+
+Five different mechanisms change data after the fact: Familia migrations
+under `bin/ots migrate`, the `bin/ots migrations` backfill commands,
+housekeeping chores, the scheduled audit/repair jobs, and the Sequel
+auth-database migrations. [data-migrations.md](./data-migrations.md) says
+which to use when, where each lives, and which legacy tolerances in the
+models are waiting on one of them.
 
 ## Debugging
 
@@ -164,7 +179,39 @@ pnpm run test:database:clean   # Flush the test databases (asks first)
 ## Git hooks and merge drivers
 
 `bin/setup` installs the [pre-commit](https://pre-commit.com)-managed hooks
-(pre-commit, prepare-commit-msg, pre-push) when `pre-commit` is on your PATH.
+(pre-commit, prepare-commit-msg, post-commit, post-checkout, post-merge,
+pre-push) when `pre-commit` is on your PATH.
+
+### New worktrees (opt-in)
+
+A new worktree has no dependencies, config or generated files. To have
+`git worktree add` run `bin/setup` in it, opt in once per clone:
+
+```bash
+git config ots.worktreeSetup true
+```
+
+The post-checkout hook ([`tools/setup/new-worktree.sh`](../../tools/setup/new-worktree.sh))
+then runs `bin/setup --dev` when the worktree's name starts with `dev`, and
+`bin/setup --test` otherwise. The name is the worktree's directory, or its
+parent directory for a nested worktree: one whose directory is named after
+the main checkout or after its own grandparent
+(`worktrees/onetimesecret/dev-api/onetimesecret` is `dev-api`).
+
+- Output goes to `tmp/worktree-setup.log` in the new worktree. A failed
+  setup does not fail `git worktree add`; check the log.
+- It applies to anything that runs `git worktree add`, including Zed. Tools
+  that create worktrees without running git hooks are not covered; run
+  `bin/setup` there yourself.
+- The worktree's own commit must include this hook, so worktrees of older
+  branches are not set up.
+- The hook and `bin/setup` are the new worktree's own files, so setup runs
+  whatever code the checked-out branch ships, the same as `bundle install`
+  or `pnpm install` would. Do not opt in a clone you use to check out
+  branches you have not read, and skip the hook for such a checkout as
+  below. Only the clone's own config opts in; a global setting is ignored.
+- To skip it once: `git -c core.hooksPath=/dev/null worktree add ...` (this
+  skips every hook). To opt out: `git config --unset ots.worktreeSetup`.
 
 ### Git JSON merge driver (recommended)
 

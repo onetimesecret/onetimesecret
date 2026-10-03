@@ -311,6 +311,20 @@
       badge: 'web.domains.sso.status_unsupported_provider_badge',
       hint: 'web.domains.sso.status_unsupported_provider_hint',
     },
+    // The install-wide SAML switch is off (SAML_ENABLED, #4604): the record
+    // is kept, the operator holds the remedy, not the domain owner.
+    saml_disabled: {
+      badge: 'web.domains.sso.status_saml_disabled_badge',
+      hint: 'web.domains.sso.status_saml_disabled_hint',
+    },
+    // Custom-domain ownership is not verified (#4579). The ladder reports
+    // this rung ahead of sso_not_permitted, so it also covers a domain whose
+    // sign-in settings switch SSO off: the hint names both conditions rather
+    // than promising that verification alone turns SSO on.
+    domain_unverified: {
+      badge: 'web.domains.sso.status_domain_unverified_badge',
+      hint: 'web.domains.sso.status_domain_unverified_hint',
+    },
   };
 
   const ssoStatus = computed<{ tone: 'ok' | 'warn'; badge: string; hint: string } | null>(() => {

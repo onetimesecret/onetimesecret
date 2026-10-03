@@ -75,10 +75,6 @@
     "text": "Már van függőben lévő meghívás ehhez az e-mail-címhez",
     "source_hash": "7f5e3093"
   },
-  "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Elérte a tagok korlátját. Frissítse a csomagját további tagok meghívásához.",
-    "source_hash": "b8f316e8"
-  },
   "api.organizations.invitations.errors.resend_only_pending": {
     "text": "Csak függőben lévő meghívások küldhetők újra",
     "source_hash": "b7578b3e"

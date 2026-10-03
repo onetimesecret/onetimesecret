@@ -166,7 +166,7 @@ by widening the predicate. Documented here so it is a decision, not an oversight
 ## 6. Test coverage
 
 Model, predicate, and the load-bearing serializer gate:
-`try/unit/models/receipt_safe_dump_try.rb`. Contract: the frontend receipt schema
+`try/unit/models/receipt/safe_dump_try.rb`. Contract: the frontend receipt schema
 suite (`src/tests/contracts/`, `src/tests/schemas/shapes/`). Logic-layer gate:
 `apps/api/v1/spec/logic/secrets/show_receipt_spec.rb` (its receipt double stubs
 `shows_share_link?`).

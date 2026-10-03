@@ -2,7 +2,6 @@
   "auth_status": "anonymous",
   "authenticated": false,
   "awaiting_mfa": false,
-  "had_valid_session": false,
   "has_password": false,
   "password_auth_permitted": true,
   "custid": null,
@@ -70,7 +69,7 @@
       "maxBreadcrumbs": 5,
       "logErrors": true,
       "environment": "production",
-      "release": "4782c9a"
+      "release": "4ea626b"
     }
   },
   "docs_host": "https://docs.onetimesecret.com/",
@@ -109,6 +108,7 @@
     "organizations": {
       "enabled": true,
       "sso_enabled": true,
+      "saml_enabled": false,
       "custom_mail_enabled": true,
       "incoming_secrets_enabled": true,
       "audit_logs_enabled": true

@@ -12,12 +12,26 @@
  * exercising the same product code paths users hit, with no backend seam.
  * Requirements on the target server:
  *  - signup enabled (site.authentication.signup, default on)
- *  - autoverify enabled (AUTH_AUTOVERIFY=true) so the new account is
- *    immediately sign-in-able without an email round-trip. The CI workflow
- *    sets this on the container; see .github/workflows/e2e.yml.
- * Registration is idempotent: the backend intentionally returns the same
- * success response for new and already-existing accounts (email-enumeration
- * prevention), so re-running against the same server is safe.
+ *  - a new account can sign in without an email round-trip. What provides
+ *    that depends on the auth mode:
+ *      simple mode: AUTH_AUTOVERIFY=true (site.authentication.autoverify),
+ *        so the customer is created verified.
+ *      full mode: AUTH_VERIFY_ACCOUNT_ENABLED=false, so Rodauth's
+ *        verify_account feature is off and the account is created open.
+ *        AUTH_AUTOVERIFY has no effect on full-mode signups.
+ *    The CI workflow sets both on the container; see .github/workflows/e2e.yml.
+ *
+ * Registration is safe to repeat (a Playwright retry after the account was
+ * created, or a re-run against the same server). Both modes answer an
+ * existing login with the same success response as for a new account
+ * (email-enumeration prevention; in full mode
+ * apps/web/auth/config/overrides/account_enumeration.rb), so the SPA lands
+ * on /signin. A signup can still fail for other reasons and show the form's
+ * error alert.
+ * The setup accepts either outcome and goes on to sign in. Sign-in is the
+ * guard: it passes only if the account exists and the password matches. A
+ * signup error is recorded as a `signup-error` annotation, so a sign-in
+ * failure that follows it names the signup error that caused it.
  *
  * Fallback (documented in the plan, not currently needed): seed directly via
  *   docker exec <container> ... Onetime::Customer.create!(...)
@@ -45,9 +59,9 @@ setup('register and authenticate test user', async ({ page }) => {
   }
 
   // ---------------------------------------------------------------------
-  // Register via the signup form. With autoverify enabled the account is
-  // created verified; if the account already exists the backend still
-  // responds with success (enumeration prevention) and we proceed to signin.
+  // Register via the signup form. A new account is created sign-in-able
+  // (see the requirements above); an existing one answers success in simple
+  // mode and the generic signup error in full mode. Both continue to signin.
   // ---------------------------------------------------------------------
   await page.goto('/signup');
   await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
@@ -58,23 +72,31 @@ setup('register and authenticate test user', async ({ page }) => {
   await page.getByTestId('signup-terms-checkbox').check();
   await page.getByTestId('signup-submit').click();
 
-  // On success the SPA navigates to /check-email — NOT /signin. It changed in
-  // 16c9012c42 (2026-07-03): the sign-in form is unusable until an account is
-  // verified, so signup now lands on a "check your email" confirmation page.
-  // This step waited on /signin for weeks afterwards and timed out every run,
-  // which took the whole `full` / `full-billing` dependency chain down with it.
-  //
-  // Confirming /check-email first is what keeps that from happening silently
-  // again: if signup starts landing somewhere else, THIS line fails and names
-  // the page, instead of the failure surfacing as an unexplained timeout on
-  // the sign-in form below.
-  await page.waitForURL(/\/check-email/);
-  await expect(page.getByTestId('check-email-view')).toBeVisible();
+  // With verification disabled, a successful signup must navigate to sign-in.
+  // A retry may instead hit full mode's generic duplicate-account error; only
+  // that recovery path navigates manually. The check-email view is in the race
+  // so a regression that sends a new account to /check-email fails on the URL
+  // assertion below, by name, instead of as a timeout on the race.
+  const signinForm = page.getByTestId('signin-form');
+  const passwordTab = page.getByRole('tab', { name: /password/i });
+  const signupError = page.getByTestId('signup-error-message');
+  const checkEmailView = page.getByTestId('check-email-view');
+  await expect(signinForm.or(passwordTab).or(signupError).or(checkEmailView).first()).toBeVisible({
+    timeout: 15_000,
+  });
 
-  // With AUTH_AUTOVERIFY=true (a documented requirement of this setup project,
-  // set by .github/workflows/e2e.yml) the account is already verified, so
-  // there is no email round-trip to wait on — go straight to the sign-in form.
-  await page.goto('/signin');
+  if (await signupError.isVisible()) {
+    setup.info().annotations.push({
+      type: 'signup-error',
+      description: (await signupError.innerText()).trim(),
+    });
+    await page.goto('/signin');
+  } else {
+    await expect(
+      page,
+      'signup with verification off must continue to /signin, not /check-email'
+    ).toHaveURL(/\/signin/);
+  }
   await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
   // ---------------------------------------------------------------------
@@ -83,8 +105,6 @@ setup('register and authenticate test user', async ({ page }) => {
   // form (PasswordlessFirstSignIn) where the password panel sits behind a
   // "Password" tab and uses different test ids.
   // ---------------------------------------------------------------------
-  const signinForm = page.getByTestId('signin-form');
-  const passwordTab = page.getByRole('tab', { name: /password/i });
   await expect(signinForm.or(passwordTab).first()).toBeVisible();
 
   if (await passwordTab.isVisible()) {

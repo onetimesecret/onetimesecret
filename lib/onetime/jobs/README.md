@@ -225,3 +225,16 @@ RabbitMQ itself doesn't require restart - queues can be declared anytime. But yo
 - Initializer declares on boot
 
 No hot reload - you need process restarts to pick up queue config changes.
+
+## Scheduler
+
+Scheduled jobs (`lib/onetime/jobs/scheduled/`) run inside one long-lived process, `bin/ots scheduler`, on rufus-scheduler timers. They do not go through RabbitMQ.
+
+**Run one scheduler process per datastore.** Nothing coordinates between scheduler processes: there is no cross-process lock or leader election for scheduled jobs. The `SET NX` calls in this directory (`BaseWorker`, `DlqEmailConsumerJob`) are per-message idempotency claims, not job locks. A second scheduler on the same datastore runs every job a second time.
+
+- `docker/compose/docker-compose.full.yml` defines a single `scheduler` service with a fixed container name, so it cannot be scaled by accident.
+- The S6 image runs web, scheduler and worker in one container. Replicating that container replicates the scheduler; additional replicas should run the web server only (see `docker/s6/README.md`, "Web Server Only").
+
+Within the one process, rufus-scheduler does not stop a job from overlapping itself when a run outlasts its interval. A job that must not overlap passes `overlap: false` to `every` / `cron` (`DomainRefreshJob` does): a tick that fires while the previous run is still working is skipped, not queued. `MaintenanceJob` documents why its jobs tolerate overlap instead.
+
+If a deployment ever needs more than one scheduler, add one shared lock helper to `ScheduledJob` (`SET NX EX` with a TTL above the job's worst-case run time, released in `ensure`) and use it from every job, rather than adding a lock to a single job.

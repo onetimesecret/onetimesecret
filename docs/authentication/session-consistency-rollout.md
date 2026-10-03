@@ -19,7 +19,7 @@ form:
 | Combination | What happens |
 |---|---|
 | New frontend, old backend | The payload has no `auth_status` and no ordering pair. The client derives the status from `authenticated` / `awaiting_mfa` (restrictive when they disagree) and runs unordered. Every signed-in page load makes one immediate `GET /bootstrap/me`. API `401`s carry no `code`, so a rejected call reconciles only while the tab holds a session. |
-| Old frontend, new backend | The new fields are ignored. The old client still polls on startup and every 15 minutes; those polls no longer keep a session alive. It still signs the user out after three failed refreshes, and a `503` from `GET /bootstrap/me` counts as one. |
+| Old frontend, new backend | The new fields are ignored. The old client still polls on startup and every 15 minutes; those polls no longer keep a session alive. It still signs the user out after three failed refreshes, and a `503` from `GET /bootstrap/me` counts as one. A protected API call refused during a verification outage answers `503` (below); the old client reports only `401`s to its coordinator, so it shows that call's error and reconciles nothing. It is not signed out by it. |
 | Mixed workers during a rolling deploy | A tab that holds a watermark and reaches a worker without the contract gets a session snapshot with no pair. That is an anomaly: one immediate retry, and a second one on that retry reloads the tab. Each refresh gets its own retry; an anomaly whose retry failed does not count against a later one. The reload is bounded to once per minute per tab. |
 
 Keep the mixed-worker window short. A blue/green switch avoids it entirely.
@@ -74,6 +74,25 @@ and continue unordered.
 - **Caching.** `/auth` responses, and every `/api` response that sets no
   policy of its own, send `Cache-Control: private, no-store`. Confirm no
   intermediary overrides it.
+- **A verification outage answers `503`.** A protected API or `/auth` request
+  whose session could not be verified (datastore or auth database
+  unreachable) answers `503` with `Retry-After: 5` and the body it answered
+  `401` with before, including `code_scope: verification_unavailable`
+  ([#4469](https://github.com/onetimesecret/onetimesecret/issues/4469)). The
+  session is kept, as before. Update any alert that counted these as `401`s.
+  The browser client's own handlers that key a sign-in message off a `401`
+  (connected identities, the email-config poll, the SSO link confirmation)
+  now show their generic or transient error for an outage instead, which is
+  the right reading; the email-config poll's retry is bounded to 10 attempts.
+  The client reads the body, so an intermediary configured to replace an
+  origin `503` with its own error page turns the outage into an uncoded
+  failure on the client: no sign-out, but no reconciliation either. Confirm
+  origin `503` bodies pass through on the API hostnames.
+- **Refusals carry `WWW-Authenticate`.** Every coded `401` from the API and
+  `/auth` carries a challenge: `Session realm="onetimesecret"` for a session
+  or form credential, `Basic realm="onetimesecret"` for a rejected
+  `Authorization` header. Browsers act on neither for the browser client,
+  which never sends `Authorization`.
 - **Ended sessions leave a marker.** Logout and revocation write
   `ended_sid:<digest>` to the datastore with a 5-minute TTL. It holds no
   session id. A `Session write refused: the session was ended during this
@@ -145,7 +164,7 @@ it before a wider rollout.
 | Signal | Where to look | Expected | Reopens |
 |---|---|---|---|
 | Refusal codes | Auth logger, message `Session refused`: `code`, `code_scope`, `request_id`, `route` | `session_missing`, `not_authenticated` and `awaiting_mfa` at debug. Others at info, and rare. `active_session_revoked` is expected after logout, explicit revocation, inactivity expiry, or the absolute-lifetime deadline (the same code covers all four). | #4453, #4455 |
-| Verification-unavailable rate | The same line at warn with `code_scope: verification_unavailable`; client view `verification-unavailable` | Zero outside a datastore or authdb incident. Users are not signed out during one. | #4460 |
+| Verification-unavailable rate | The same line at warn with `code_scope: verification_unavailable`; API and `/auth` responses `503` with `code_scope: verification_unavailable` (a `401` with that scope is a backend from before v0.26.14); client view `verification-unavailable` | Zero outside a datastore or authdb incident. Users are not signed out during one. | #4460 |
 | Redirect loops | Browser: sign in, sign out in a second tab, let a tab go stale. Client breadcrumb `forced-page-load` in category `bootstrap.ordering` | One reload per transition, one message, then `/signin`. Never two reloads within a minute. | #4465 |
 | Ordering diagnostics | Client breadcrumbs in `bootstrap.ordering`: `anomaly`, `session-ended`, `session-replaced`, `degraded-hydration`, `allocation-failure`. Server: `Snapshot ordering allocation failed`, `Bootstrap snapshot serialized without ordering` | `anomaly` only during the rolling deploy. `session-ended` and `session-replaced` match real sign-outs and sign-ins. The two server lines absent. | #4457, #4464 |
 | Clock regression | Client breadcrumbs `clock-regression`, `generated-at-missing`, `generated-at-malformed` | Diagnostics only; none of them rejects a snapshot. Frequent `clock-regression` means worker clocks disagree. | #4457 |
@@ -160,9 +179,19 @@ session identifier.
 
 ## Known limits in this release
 
-- Session `401`s send no `WWW-Authenticate` header, and verification outages
-  answer `401` rather than `503`. Both are recorded in the failure matrix and
-  belong to [#4469](https://github.com/onetimesecret/onetimesecret/issues/4469).
-- Completing the second factor does not renew the session id; the password
-  step does. `RISK-2026-09-19-02`, tracked by
-  [#4466](https://github.com/onetimesecret/onetimesecret/issues/4466).
+This section tracks the state as of v0.26.14, which adds the `WWW-Authenticate`
+challenge and the outage `503` from
+[#4469](https://github.com/onetimesecret/onetimesecret/issues/4469) to the
+v0.26.13 package; in v0.26.13 itself those two were the first limits listed
+here.
+
+- Protected HTML still answers a verification outage with a `302` to
+  `/signin`, where the API answers `503`. A navigation has no client to read
+  a code; the session is kept (D3 in the failure matrix).
+- Completing the second factor now renews the session id as the password
+  step does (`after_two_factor_authentication` calls
+  `Onetime::SessionRotation`; `RISK-2026-09-19-02`). The other establishment
+  paths [#4466](https://github.com/onetimesecret/onetimesecret/issues/4466)
+  lists (account switching, impersonation, SSO callbacks, autologin after
+  signup and verification) are not yet proven to rotate, and the register row
+  stays open for them.

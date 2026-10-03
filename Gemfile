@@ -102,6 +102,40 @@ gem 'omniauth_openid_connect', '~> 0.8'
 # of silently downgrading a crypto library on the auth path.
 gem 'jwt', '~> 3.2'
 
+# SAML 2.0 SSO (#4450). ruby-saml is pinned EXACTLY, not pessimistically: it is
+# the XML-signature verifier the whole SAML trust decision rests on, and its
+# history is a run of signature-wrapping / parser-differential auth bypasses:
+#   1.17.0  CVE-2024-45409 (signature wrapping, unauthenticated login as anyone)
+#   1.18.0  CVE-2025-25291 / -25292 (REXML vs Nokogiri parser differential),
+#           CVE-2025-25293 (compressed-response DoS), plus CVE-2025-66567 /
+#           CVE-2025-66568 fixed in the same line
+#   1.18.1  CVE-2025-54572 (DoS via oversized response)
+# None are open against 1.18.1. The 1.x line still verifies with TWO parsers
+# (REXML for the document walk, Nokogiri for canonicalization) — the design the
+# 2025 CVEs exploited — so nokogiri and rexml currency is part of this gem's
+# security posture, not an independent concern. ruby-saml 2.x (single-parser
+# rewrite) is unreleased and omniauth-saml has no 2.x support; `~> 2.2` on
+# omniauth-saml cannot pull it in (it requires ruby-saml ~> 1.18).
+#
+# Every bump is a deliberate review, never a Renovate automerge. RE-VERIFY on
+# bump — OmniAuth::Strategies::RequestBoundSAML
+# (lib/onetime/sso_provider/request_bound_saml.rb) depends on these gem
+# internals and documents each at its use site:
+#   - omniauth-saml request_phase keeps the AuthnRequest local (we copy its body
+#     to capture the uuid) and callback_phase builds the Response through the
+#     private options_for_response_object (we merge :matches_request_id there)
+#   - ruby-saml validate_in_response_to passes when :matches_request_id is nil
+#   - Response#issuers raises on missing/multiple Issuer elements
+#   - Settings.new(options) REPLACES the `security` defaults wholesale
+#   - omniauth-saml `extra` carries the live Response object (SP key + raw XML)
+#   - omniauth-saml writes session['saml_uid'] / session['saml_session_index']
+#   - omniauth deep-merges instance options over class defaults, so `{}` cannot
+#     clear omniauth-saml's RelayState-forwarding default
+# Advisories: .github/workflows/static-analysis.yml runs bundler-audit on every
+# PR; Renovate vulnerabilityAlerts (.github/renovate.json5) opens the bump PR.
+gem 'omniauth-saml', '~> 2.2'
+gem 'ruby-saml', '= 1.18.1'
+
 # Web server and middleware
 gem 'puma', '>= 6.0', '< 8.0'
 gem 'rack', '>= 3.2.6', '< 4.0'
@@ -109,7 +143,6 @@ gem 'rack-contrib', '~> 2.5.0'
 # Mounted directly in MiddlewareStack (JSON/form body parsing); was transitive via otto < 2.10.
 gem 'rack-parser', '~> 0.7'
 gem 'rack-protection', '~> 4.1'
-gem 'rack-proxy', '~> 0.7'
 gem 'rack-session', '~> 2.1.2'
 gem 'rack-utf8_sanitizer', '~> 1.11'
 
@@ -131,6 +164,7 @@ gem 'mail'
 gem 'public_suffix', '~> 7.0'
 gem 'sanitize', '~> 7.0'
 gem 'semantic_logger', '~> 4.17'
+gem 'simpleidn', '~> 0.2'
 gem 'tilt'
 
 # Email validation
@@ -240,12 +274,13 @@ group :development do
   # Debugging tools
   gem 'debug', require: false
   gem 'htmlbeautifier', require: false
+  gem 'rack-proxy', '~> 1.0', '>= 1.0.3'
   gem 'rackup'
   gem 'rerun', '~> 0.14'
 
   # Code quality and language server
   gem 'kanayago', '~> 0.7', require: false
-  gem 'rubocop', '~> 1.89.0', require: false
+  gem 'rubocop', '~> 1.91.0', require: false
   gem 'rubocop-performance', require: false
   gem 'rubocop-rspec', require: false
   gem 'rubocop-sequel', require: false

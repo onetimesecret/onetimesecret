@@ -25,7 +25,7 @@
 # covered at the unit level:
 #   apps/web/auth/spec/config/features/omniauth_providers_spec.rb
 #
-# All four providers (OIDC, Entra, GitHub, Google) register via
+# OIDC, Entra, GitHub, Google and SAML (#4450) register via
 # placeholder credentials when ORGS_SSO_ENABLED=true. No platform
 # env vars are injected by spec_helper.
 #
@@ -83,12 +83,16 @@ RSpec.describe 'SSO route registration with tenant SSO enabled', type: :integrat
   end
 
   # OmniAuth provider routes under /auth/sso (POST-only).
-  # All four register via placeholder credentials when ORGS_SSO_ENABLED=true.
+  # All register via placeholder credentials when ORGS_SSO_ENABLED=true.
   sso_routes = {
     '/auth/sso/entra'  => { tenant_only: true },
     '/auth/sso/github' => { tenant_only: true },
     '/auth/sso/google' => { tenant_only: true },
     '/auth/sso/oidc'   => { tenant_only: true },
+    # #4450. Also the only boot-level proof that the lazy gem_require of the
+    # in-repo strategy file, and its :request_bound_saml camelization, work
+    # through rodauth-omniauth's OmniAuth::Builder in a real app boot.
+    '/auth/sso/saml'   => { tenant_only: true },
   }.freeze
 
   describe 'when ORGS_SSO_ENABLED=true with no platform SSO env vars' do
@@ -104,6 +108,23 @@ RSpec.describe 'SSO route registration with tenant SSO enabled', type: :integrat
         expect(last_response.status).not_to eq(404),
           "#{route} returned 404 — placeholder registration from #3317 fix is broken."
       end
+    end
+
+    # The SAML placeholder carries BLANK trust anchors rather than fake ones,
+    # so a request that reaches the route without tenant injection is refused
+    # (tenant hook: sso_not_configured; strategy: :saml_misconfigured) instead
+    # of being redirected to the placeholder IdP with an AuthnRequest.
+    it 'POST /auth/sso/saml without a tenant config never redirects to the placeholder IdP' do
+      unless Onetime.auth_config.orgs_sso_enabled?
+        skip 'ORGS_SSO_ENABLED not set at boot — placeholder routes not registered'
+      end
+
+      header 'Host', canonical_host
+      post '/auth/sso/saml'
+
+      expect(last_response.status).not_to eq(404)
+      expect(last_response.headers['location'].to_s).not_to include('placeholder.invalid')
+      expect(last_response.headers['location'].to_s).not_to include('SAMLRequest')
     end
   end
 end

@@ -109,8 +109,10 @@ RSpec.describe 'Rodauth Integration', type: :integration do
   describe 'POST /auth/create-account' do
     before { post_json '/auth/create-account', { login: 'new@example.com', password: 'password123' } }
 
-    it 'returns 200, 201, 400, or 422 (endpoint exists)' do
-      expect([200, 201, 400, 422]).to include(last_response.status)
+    # verify_account is off under RACK_ENV=test (etc/defaults/auth.defaults.yaml),
+    # so a valid sign-up creates the account in this request and answers 200.
+    it 'returns 200 for a valid sign-up' do
+      expect(last_response.status).to eq(200), last_response.body
     end
 
     it 'returns JSON content type' do

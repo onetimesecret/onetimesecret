@@ -37,10 +37,12 @@ export const vhostSchema = z
     apx_hit: transforms.fromString.boolean.optional(),
     has_ssl: transforms.fromString.boolean.optional(),
     is_resolving: transforms.fromString.boolean.optional(),
+    ssl_inconclusive: transforms.fromString.boolean.optional(),
 
     // Date fields using proper transforms
     created_at: transforms.fromString.date.optional(),
     last_monitored_unix: transforms.fromNumber.secondsToDate.optional(),
+    ssl_checked_unix: transforms.fromNumber.secondsToDate.optional(),
     ssl_active_from: transforms.fromString.date.nullable(),
     ssl_active_until: transforms.fromString.date.nullable(),
 

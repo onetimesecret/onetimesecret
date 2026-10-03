@@ -10,6 +10,7 @@ require 'public_suffix'
 # lib/onetime.rb, hundreds of lines before the main errors require, so pull
 # it in here rather than relying on load order (errors.rb is dependency-free).
 require_relative '../errors'
+require_relative 'uri_redaction'
 
 module Onetime
   module Utils
@@ -136,6 +137,11 @@ module Onetime
         \p{L}{2,}                # TLD: at least 2 letters
         \b
       /ix
+
+      # A URI embedded in free text: a scheme through the next whitespace.
+      # Wider than RFC 3986 on purpose, so an unescaped ")" or "," in a
+      # password stays inside the span that redact_uri_userinfo masks.
+      EMBEDDED_URI_PATTERN = %r{[a-z][a-z0-9+.-]*://\S+}i
 
       # Obscures email addresses by replacing most characters with asterisks
       # while preserving a minimal prefix for partial readability. Uses the
@@ -275,6 +281,63 @@ module Onetime
         utf8_safe(text).delete(UNICODE_REPLACEMENT_CHAR).gsub(EMAIL_PATTERN) do |raw|
           mask_email_address(raw)
         end
+      end
+
+      # A connection URI with its userinfo and query string replaced by "***",
+      # for log lines and exception messages. Redis/Valkey URIs carry their
+      # password in the userinfo, but also in the query: setup_connection_pool
+      # builds the client options from `parsed_uri.conf`, and uri-valkey's
+      # `conf` merges every query param into Redis.new, so `?password=s3cret`
+      # is a working credential. A URI interpolated into a message is out of
+      # reach of any by-param-name scrubbing downstream. There is no allowlist
+      # of benign params; the whole query goes.
+      #
+      #   redact_uri_userinfo('redis://user:s3cret@db:6379/0')      #=> "redis://***@db:6379/0"
+      #   redact_uri_userinfo('redis://db:6379/0?password=s3cret')  #=> "redis://db:6379/0?***"
+      #   redact_uri_userinfo('redis://db:6379/0?password=p@ss')    #=> "redis://***"
+      #   redact_uri_userinfo('redis://db:6379/0')                  #=> "redis://db:6379/0"
+      #
+      # String-based rather than URI.parse, because the URIs most likely to be
+      # printed are the ones that failed to parse or connect. Everything up to
+      # the LAST "@" counts as userinfo, so an unescaped "@" in a password
+      # redacts too much rather than printing the rest of the password. A "?"
+      # before that "@" is either in the password or starts a query with an
+      # "@" in it (`?password=p@ss`); neither split is safe, so everything
+      # after the scheme is redacted. A SQLite URL is the exception: it has
+      # no userinfo, so its path is kept whole (a ":" or "@" there is part of
+      # the file name) and only its query is masked. The dependency-free
+      # implementation is shared with Auth::DatabaseConnection and the boot
+      # banner.
+      #
+      #   redact_uri_userinfo('sqlite:///tmp/a:b@c.db?key=s3cret')  #=> "sqlite:///tmp/a:b@c.db?***"
+      #
+      # @param uri [String, URI::Generic, nil]
+      # @return [String]
+      def redact_uri_userinfo(uri, keep_username: false, require_scheme: false, mask: '***')
+        ::OnetimeUriRedaction.redact(uri, keep_username: keep_username, require_scheme: require_scheme, mask: mask)
+      end
+
+      # Free text with every embedded URI passed through redact_uri_userinfo,
+      # for exception messages that quote a connection URI. redis-client
+      # appends its server URL to every ConnectionError, and a client that
+      # printed the userinfo there would put the password in the log line.
+      # The prose around the URI is kept: which host refused, which field
+      # was invalid.
+      #
+      #   redact_uris_in_text('refused (redis://u:s3cret@db:6379/0)')
+      #   #=> "refused (redis://***@db:6379/0)"
+      #
+      # A URI runs from its scheme to the next whitespace, so a password
+      # holding ")" or "," is still inside the masked span; the same
+      # punctuation after a query is masked with it, since a "?" hides
+      # everything through the end of the span. A password holding
+      # whitespace ends the span early; nothing can tell its remainder
+      # from prose.
+      #
+      # @param text [String, nil]
+      # @return [String]
+      def redact_uris_in_text(text, mask: '***')
+        utf8_safe(text.to_s).gsub(EMBEDDED_URI_PATTERN) { |uri| redact_uri_userinfo(uri, mask: mask) }
       end
 
       # Checks whether a value is an explicitly recognized truthy token.

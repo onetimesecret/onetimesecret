@@ -249,19 +249,16 @@ test.describe.fixme('DomainsStore Org Context Cache Fix', () => {
     test('Domain switcher shows correct domains when navigating between orgs', async ({ page }) => {
       // Get user organizations
       const orgs = await getUserOrganizations(page);
-      test.skip(orgs.length < 2, 'Test requires user with at least 2 organizations');
+      expect(orgs.length, 'the account owns at least two organizations').toBeGreaterThanOrEqual(2);
 
       // Find Default Workspace (has domains) and A Second Organization (no domains)
       const defaultWorkspace = findOrgByName(orgs, 'Default Workspace');
       const secondOrg = findOrgByName(orgs, 'Second Organization');
 
       if (!defaultWorkspace || !secondOrg) {
-        // Fall back to first two orgs if named orgs not found
-        test.skip(
-          true,
-          'Test requires "Default Workspace" with domains and "A Second Organization" without domains'
+        throw new Error(
+          'requires "Default Workspace" and "Second Organization" — second-org fixture (#3420)'
         );
-        return;
       }
 
       // Step 1: Navigate to Default Workspace dashboard
@@ -339,7 +336,7 @@ test.describe.fixme('DomainsStore Org Context Cache Fix', () => {
     test('Manage Domains page shows correct domains for each organization', async ({ page }) => {
       // Get user organizations
       const orgs = await getUserOrganizations(page);
-      test.skip(orgs.length < 2, 'Test requires user with at least 2 organizations');
+      expect(orgs.length, 'the account owns at least two organizations').toBeGreaterThanOrEqual(2);
 
       // Log available orgs for debugging
       console.log(`[TC-DSC-002] Found ${orgs.length} orgs:`, orgs.map((o) => `"${o.name}" (${o.extid})`).join(', '));
@@ -349,12 +346,9 @@ test.describe.fixme('DomainsStore Org Context Cache Fix', () => {
       const secondOrg = findOrgByName(orgs, 'Second Organization');
 
       if (!defaultWorkspace || !secondOrg) {
-        const orgNames = orgs.map((o) => `"${o.name}" (${o.extid})`).join(', ');
-        test.skip(
-          true,
-          `Test requires "Default Workspace" and "Second Organization". Found: ${orgNames}`
+        throw new Error(
+          'requires "Default Workspace" and "Second Organization" — second-org fixture (#3420)'
         );
-        return;
       }
 
       // Validate we found two DIFFERENT orgs
@@ -445,18 +439,16 @@ test.describe.fixme('DomainsStore Org Context Cache Fix', () => {
     }) => {
       // Get user organizations
       const orgs = await getUserOrganizations(page);
-      test.skip(orgs.length < 2, 'Test requires user with at least 2 organizations');
+      expect(orgs.length, 'the account owns at least two organizations').toBeGreaterThanOrEqual(2);
 
       // Find named orgs
       const defaultWorkspace = findOrgByName(orgs, 'Default Workspace');
       const secondOrg = findOrgByName(orgs, 'Second Organization');
 
       if (!defaultWorkspace || !secondOrg) {
-        test.skip(
-          true,
-          'Test requires "Default Workspace" with domains and "A Second Organization" without domains'
+        throw new Error(
+          'requires "Default Workspace" and "Second Organization" — second-org fixture (#3420)'
         );
-        return;
       }
 
       // Track API calls to /api/domains
@@ -554,7 +546,7 @@ test.describe.fixme('DomainsStore Cache - Edge Cases', () => {
     page,
   }) => {
     const orgs = await getUserOrganizations(page);
-    test.skip(orgs.length < 2, 'Test requires user with at least 2 organizations');
+    expect(orgs.length, 'the account owns at least two organizations').toBeGreaterThanOrEqual(2);
 
     const defaultWorkspace = findOrgByName(orgs, 'Default Workspace');
     const secondOrg = findOrgByName(orgs, 'Second Organization');
@@ -617,7 +609,7 @@ test.describe.fixme('DomainsStore Cache - Edge Cases', () => {
 
   test('TC-DSC-005: Page refresh maintains correct org domain context', async ({ page }) => {
     const orgs = await getUserOrganizations(page);
-    test.skip(orgs.length < 2, 'Test requires user with at least 2 organizations');
+    expect(orgs.length, 'the account owns at least two organizations').toBeGreaterThanOrEqual(2);
 
     const secondOrg = findOrgByName(orgs, 'Second Organization');
     if (!secondOrg) {

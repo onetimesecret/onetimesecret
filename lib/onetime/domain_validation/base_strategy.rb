@@ -25,17 +25,33 @@ module Onetime
     #   | Strategy        | validate | cert | status | delete | widget |
     #   |-----------------|----------|------|--------|--------|--------|
     #   | Approximated    | active   | yes  | yes    | yes    | yes    |
-    #   | CaddyOnDemand   | passive  | auto | basic  | no-op  | no     |
+    #   | CaddyOnDemand   | active   | auto | probe  | no-op  | no     |
     #   | Passthrough     | passive  | ext  | basic  | no-op  | no     |
+    #
+    # "active" validate means the strategy checks the TXT challenge record:
+    # Approximated through its API with a native fallback, CaddyOnDemand with
+    # our own DNS lookup (TxtVerifier). Caddy obtaining a certificate is not
+    # an ownership check; it only shows where the name resolves.
+    #
+    # "probe" status means CaddyOnDemand works it out on the network itself
+    # (TlsProbe: our own A/AAAA lookup and a verified TLS handshake on port
+    # 443, through the egress guard), with nil for "could not tell".
+    # Passthrough's "basic" is a constant answer with no network activity.
     #
     class BaseStrategy
       # Validates domain ownership (typically via DNS TXT record).
       #
       # @param custom_domain [Onetime::CustomDomain] The domain to validate
       # @return [Hash] Validation result:
-      #   - :validated [Boolean] Whether validation passed
+      #   - :validated [Boolean, nil] Whether validation passed; nil when the
+      #     check could not produce an answer (indeterminate). Callers must
+      #     not change stored verification state on nil.
+      #   - :indeterminate [Boolean, nil] true alongside validated: nil
       #   - :message [String] Human-readable result
-      #   - :data [Hash, nil] Additional validation data (strategy-specific)
+      #   - :data [Array, Hash, nil] Additional validation data
+      #     (strategy-specific). VerifyDomain only changes stored state for a
+      #     result that carries :data or :mode.
+      #   - :source [String, nil] 'native' when our own DNS lookup decided
       #   - :mode [String, nil] Strategy mode identifier
       #
       def validate_ownership(custom_domain)
@@ -60,12 +76,19 @@ module Onetime
       # @param custom_domain [Onetime::CustomDomain] The domain to check
       # @return [Hash] Status information:
       #   - :ready [Boolean] Whether domain is fully operational
-      #   - :has_ssl [Boolean, nil] SSL certificate status
-      #   - :is_resolving [Boolean, nil] DNS resolution status
+      #   - :has_ssl [Boolean, nil] SSL certificate status; nil = could not tell
+      #   - :is_resolving [Boolean, nil] DNS resolution status; nil = could not
+      #     tell, and the stored `resolving` flag is left alone
       #   - :status [String, nil] Provider-specific status code
       #   - :status_message [String, nil] Human-readable status
-      #   - :data [Hash, nil] Full provider response (strategy-specific)
+      #   - :data [Hash, nil] Payload stored as the domain's `vhost` blob, which
+      #     is where has_ssl is kept. When has_ssl is nil, either leave :data
+      #     out or carry the stored has_ssl into it, so an unknown never
+      #     overwrites a known value.
       #   - :mode [String, nil] Strategy mode identifier
+      #
+      # Returning neither :data nor :mode means the check itself failed:
+      # VerifyDomain stores nothing and sets vhost_fetch_failed_at.
       #
       def check_status(custom_domain)
         raise NotImplementedError, "#{self.class} must implement #check_status"
@@ -125,6 +148,33 @@ module Onetime
       #
       def manages_certificates?
         false
+      end
+
+      # Whether validated: true from this strategy means the TXT challenge
+      # record was checked and matched.
+      #
+      # VerifyDomain records verified_confirmed_at only for such a pass, and
+      # that timestamp is later read as evidence that ownership was once
+      # established (CaddyOnDemandStrategy#never_confirmed?). A strategy that
+      # passes every domain without a lookup must leave this false.
+      #
+      # @return [Boolean]
+      #
+      def proves_ownership?
+        false
+      end
+
+      # Seconds a bulk run should pause between domains for this strategy.
+      #
+      # Pacing belongs to whatever the strategy talks to: a provider API with
+      # a request cap needs a pause, our own DNS and TLS lookups do not.
+      # VerifyDomain's bulk mode uses this unless the caller passes an
+      # explicit rate_limit.
+      #
+      # @return [Numeric] seconds; 0 means no pause
+      #
+      def bulk_rate_limit
+        0
       end
     end
   end

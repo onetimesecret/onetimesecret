@@ -106,7 +106,8 @@ RSpec.describe 'Tenant issuer backfill operation (#3840 Phase 1)', type: :integr
   end
 
   # Create a CustomDomain + SsoConfig on an existing org.
-  def build_domain_on(org, provider_type: 'oidc', issuer: :default, tenant_id: nil, grant_org_scope: false, enabled: true)
+  def build_domain_on(org, provider_type: 'oidc', issuer: :default, tenant_id: nil, grant_org_scope: false, enabled: true,
+                      idp_entity_id: nil)
     issuer = (provider_type == 'oidc' ? tenant_issuer : nil) if issuer == :default
     run = SecureRandom.hex(6)
 
@@ -128,6 +129,7 @@ RSpec.describe 'Tenant issuer backfill operation (#3840 Phase 1)', type: :integr
     sso.grant_org_scope = grant_org_scope.to_s
     sso.issuer          = issuer unless issuer.nil?
     sso.tenant_id       = tenant_id unless tenant_id.nil?
+    sso.idp_entity_id   = idp_entity_id unless idp_entity_id.nil?
     sso.created         = Familia.now.to_i
     sso.updated         = sso.created
     sso.save
@@ -636,6 +638,57 @@ RSpec.describe 'Tenant issuer backfill operation (#3840 Phase 1)', type: :integr
       op = new_operation(tenant)
       expect(op.issuer).to eq('https://login.microsoftonline.com/contoso-uuid/v2.0')
       expect(op.provider).to eq('entra')
+    end
+
+    # #4450. saml is refused outright, not backfilled. The legacy '' rows this
+    # operation relabels hold OAuth/OIDC `sub` values from whatever provider
+    # the domain ran before; a SAML identity's uid is a NameID, a namespace
+    # the IdP assigns independently. Stamping the SAML issuer onto those rows
+    # would let a NameID that happens to equal an old `sub` resolve to that
+    # account — an ops-command-minted takeover. Tenant SAML postdates
+    # migration 008, so there are no legitimate saml '' rows to repair.
+    describe 'saml is refused' do
+      let(:tenant) { build_tenant(provider_type: 'saml', issuer: nil, idp_entity_id: 'urn:example:IdP/Tenant-A') }
+
+      it 'refuses a configured saml domain with the namespace explanation' do
+        expect { new_operation(tenant) }.to raise_error(Onetime::Problem) { |ex|
+          expect(ex.message).to include("provider_type 'saml' is not eligible")
+          expect(ex.message).to include('NameID')
+          expect(ex.message).to include('different subject namespace')
+          expect(ex.message).to include('explicit per-account subject -> NameID mapping')
+          expect(ex.message).to include(tenant.domain.display_domain)
+        }
+      end
+
+      it 'refuses even when --issuer is passed in the domain-scoped form' do
+        scoped = "#{tenant.domain.identifier}|urn:example:IdP/Tenant-A"
+        expect { new_operation(tenant, issuer: scoped) }
+          .to raise_error(Onetime::Problem, /not eligible for this backfill \(--issuer does not change that\)/)
+      end
+
+      it 'refuses even when --issuer is a bare EntityID' do
+        expect { new_operation(tenant, issuer: 'urn:example:IdP/Tenant-A') }
+          .to raise_error(Onetime::Problem, /provider_type 'saml' is not eligible/)
+      end
+
+      it 'refuses before reading idp_entity_id (no reveal, no field-shape guidance)' do
+        bare = build_tenant(provider_type: 'saml', issuer: nil)
+        expect_any_instance_of(Onetime::CustomDomain::SsoConfig).not_to receive(:reveal_saml_field)
+        expect { new_operation(bare) }.to raise_error(Onetime::Problem) { |ex|
+          expect(ex.message).to include("provider_type 'saml' is not eligible")
+          expect(ex.message).not_to include('idp_entity_id')
+        }
+      end
+
+      it 'refuses a saml domain whose legacy rows exist, writing nothing (dry-run and live)' do
+        cust       = create_member(tenant, membership: :domain_scoped, signup: :match)
+        account_id = insert_account(cust)
+        row        = insert_identity(account_id: account_id, tenant: tenant, issuer: '', uid: 'old-oidc-sub')
+
+        expect { new_operation(tenant, dry_run: true) }.to raise_error(Onetime::Problem, /saml/)
+        expect { new_operation(tenant, dry_run: false) }.to raise_error(Onetime::Problem, /saml/)
+        expect(issuer_of(row[:identity_id])).to eq('')
+      end
     end
 
     it 'refuses google/github (they resolve to the sentinel; nothing to backfill)' do

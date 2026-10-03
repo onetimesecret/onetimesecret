@@ -385,6 +385,26 @@ end
 @controller.test_mask_url('postgres://admin:supersecret@db.example.com:5432/mydb')
 #=> 'postgres://admin:****@db.example.com:5432/mydb'
 
+## mask_url keeps a SQLite path whole (no userinfo) and masks its query
+@controller = MockHealthController.new
+@controller.test_mask_url('sqlite:///tmp/auth:archive@backup.db?password=s3cret')
+#=> 'sqlite:///tmp/auth:archive@backup.db?****'
+
+## mask_url masks a password containing a slash
+@controller = MockHealthController.new
+@controller.test_mask_url('amqp://guest:pa/ss@localhost:5672/dev')
+#=> 'amqp://guest:****@localhost:5672/dev'
+
+## mask_url masks a password containing a colon
+@controller = MockHealthController.new
+@controller.test_mask_url('postgres://admin:pa:ss@db.example.com:5432/mydb')
+#=> 'postgres://admin:****@db.example.com:5432/mydb'
+
+## mask_url masks the query string (which can carry ?password=)
+@controller = MockHealthController.new
+@controller.test_mask_url('redis://localhost:6379/0?password=secret')
+#=> 'redis://localhost:6379/0?****'
+
 ## mask_url returns URL unchanged when no password
 @controller = MockHealthController.new
 @controller.test_mask_url('redis://localhost:6379/0')

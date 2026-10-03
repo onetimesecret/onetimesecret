@@ -26,7 +26,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::OverrideDomainVerification do
   # of mutation) is directly observable without a datastore.
   let(:domain_class) do
     Class.new do
-      attr_accessor :verified, :resolving, :updated
+      attr_accessor :verified, :resolving, :updated, :verified_by_override
 
       def initialize(verified:, resolving:)
         @verified  = verified
@@ -84,6 +84,33 @@ RSpec.describe ColonelAPI::Logic::Colonel::OverrideDomainVerification do
     it 'does not accept the extid the URL already carried' do
       expect { confirmed_logic_for('cd_target').raise_concerns }
         .to raise_error(Onetime::ConfirmationRequired)
+    end
+  end
+
+  # The marker is what makes the override survive the next VerifyDomain run
+  # (refresh job, customer/colonel/CLI verify) when the TXT check fails.
+  describe 'verified_by_override marker' do
+    it 'sets the marker when verified is overridden to true' do
+      data = run('verified' => 'true')
+
+      expect(custom_domain.verified_by_override).to be(true)
+      expect(data[:record]).to include(verified: true, verified_by_override: true)
+    end
+
+    it 'clears the marker when verified is overridden to false' do
+      held = domain_class.new(verified: true, resolving: true)
+      held.verified_by_override = true
+      allow(Onetime::CustomDomain).to receive(:find_by_extid).and_return(held)
+
+      run('verified' => 'false')
+
+      expect(held.verified_by_override).to be(false)
+    end
+
+    it 'leaves the marker alone when only resolving is overridden' do
+      run('resolving' => 'true')
+
+      expect(custom_domain.verified_by_override).to be_nil
     end
   end
 

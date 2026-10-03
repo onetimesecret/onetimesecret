@@ -58,6 +58,7 @@ const siteLegalSchema = z.object({
 const sessionConfigSchema = z.object({
   secret: nullableString,
   expire_after: z.number().optional(),
+  absolute_timeout: z.number().optional(),
   key: z.string().optional(),
   secure: z.boolean().optional(),
   same_site: z.enum(['strict', 'lax', 'none']).optional(),

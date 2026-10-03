@@ -4,6 +4,7 @@
 
 require 'onetime/session/impersonation'
 require 'onetime/session/surface'
+require 'onetime/session/remember_me'
 
 require_relative 'base'
 
@@ -115,12 +116,18 @@ module Core
       def perform_authentication
         logic = Core::Logic::Authentication::AuthenticateSession.new(strategy_result, req.params, locale)
 
+        # The stable `code` on the JSON 401 (#4469), by the error_type
+        # AuthenticateSession raises with. `invalid` is the single
+        # non-enumerating rejection (unknown email and wrong password alike);
+        # `suspended` is only ever raised past a verified password. A pending
+        # account is not refused: the logic answers it with success data.
         execute_with_error_handling(
           logic,
           success_message: 'You have been logged in',
           success_redirect: '/',
           error_redirect: '/signin',
           error_status: 401,
+          failure_codes: { 'invalid' => :invalid_credentials, 'suspended' => :suspended_credentials },
         ) do
           cust_after = logic.cust
 
@@ -146,6 +153,16 @@ module Core
           # account signing in. Elevation is also identity-bound on read, so this
           # is the second of two independent closures.
           session.delete('elevated_until')
+
+          # "Remember me" (Onetime::RememberMe): a fixed 14-day session
+          # instead of the rolling default, carried by the session store
+          # alone; simple mode has no active-session row. Cleared first for
+          # the same reason as elevated_until: this path does not clear the
+          # session, and the previous occupant's choice is not this one's.
+          session.delete(Onetime::RememberMe::SESSION_KEY)
+          if Onetime::RememberMe.enabled? && Onetime::RememberMe.requested?(req.params[Onetime::RememberMe::PARAM])
+            Onetime::RememberMe.stamp(session)
+          end
 
           auth_logger.info 'Session synchronized after authentication',
             {

@@ -639,10 +639,6 @@
     "text": "Már van függőben lévő meghívás ehhez az e-mail-címhez",
     "source_hash": "7f5e3093"
   },
-  "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "Elérte a tagok korlátját. Frissítse a csomagját további tagok meghívásához.",
-    "source_hash": "b8f316e8"
-  },
   "api.organizations.invitations.errors.not_found": {
     "text": "A meghívás nem található",
     "source_hash": "775ba9eb"
@@ -783,17 +779,9 @@
     "text": "Elutasítás",
     "source_hash": "a2d285b3"
   },
-  "web.organizations.members.member_quota": {
-    "text": "{used} / {limit} tag",
-    "source_hash": "51183b79"
-  },
   "web.organizations.members.pending_suffix": {
     "text": "({count} függőben)",
     "source_hash": "c13f787f"
-  },
-  "web.organizations.members.limit_reached_hint": {
-    "text": "Elérte a tagok korlátját.",
-    "source_hash": "26cdb6b8"
   },
   "web.organizations.sso.title": {
     "text": "Egyszeri bejelentkezés (SSO)",

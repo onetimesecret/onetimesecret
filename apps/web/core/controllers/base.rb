@@ -7,6 +7,7 @@ require 'onetime/helpers/session_helpers'
 require 'onetime/helpers/homepage_mode_helpers'
 require 'onetime/controllers/organization_context'
 require 'onetime/logic/signup_config_resolution'
+require 'onetime/session/failure_code'
 
 module Core
   module Controllers
@@ -141,8 +142,8 @@ module Core
         data
       end
 
-      def json_success(message, status: 200)
-        json_response({ success: message }, status: status)
+      def json_success(message, data: {}, status: 200)
+        json_response(data.merge(success: message), status: status)
       end
 
       def json_error(message, field_error: nil, status: 400)
@@ -453,23 +454,35 @@ module Core
       #
       # @param logic [Object] Logic object to execute
       # @param success_message [String] Success message for JSON responses
+      # @param success_data [Hash] Additional JSON response fields
       # @param success_redirect [String] Path to redirect on success (HTML)
       # @param error_redirect [String, nil] Path to redirect on error (HTML), nil to re-raise
+      # @param failure_codes [Hash{String=>Symbol}] the stable failure code
+      #   (Onetime::SessionFailureCode) a JSON error carries, keyed by the
+      #   FormError's error_type; an error_type not listed stays uncoded
       # @yield Optional block for additional processing after logic.process
       # @return [Hash, nil] JSON response Hash for routes with response=json, nil otherwise
-      def execute_with_error_handling(logic, success_message:, success_redirect: '/', error_redirect: nil, error_status: 400)
+      def execute_with_error_handling(
+        logic,
+        success_message:,
+        success_data: {},
+        success_redirect: '/',
+        error_redirect: nil,
+        error_status: 400,
+        failure_codes: {}
+      )
         logic.raise_concerns
         logic.process
         yield if block_given?
 
         if json_requested?
-          json_success(success_message)
+          json_success(success_message, data: success_data)
         else
           res.redirect success_redirect
           nil
         end
       rescue OT::FormError => ex
-        handle_form_error(ex, error_redirect, status: error_status)
+        handle_form_error(ex, error_redirect, status: error_status, failure_codes: failure_codes)
       end
 
       # Handles form errors with appropriate JSON or HTML response
@@ -477,8 +490,12 @@ module Core
       # @param ex [OT::FormError] The form error exception
       # @param redirect_path [String, nil] Path to redirect for HTML, nil to re-raise
       # @param field [String, nil] Field name for error, nil to infer from message
+      # @param failure_codes [Hash{String=>Symbol}] see #execute_with_error_handling.
+      #   The code is stashed in the Rack env for
+      #   Onetime::Middleware::SessionFailureCode, which renders it onto the
+      #   JSON 401 (#4469); the body built here is unchanged.
       # @return [Hash, nil] JSON error Hash for routes with response=json, nil otherwise
-      def handle_form_error(ex, redirect_path = nil, field: nil, status: 400)
+      def handle_form_error(ex, redirect_path = nil, field: nil, status: 400, failure_codes: {})
         # We pass the message here and not the exception itelf b/c SemanticLogger
         # automatically outputs backtrace when it receives one.
         http_logger.error 'Form error occurred',
@@ -492,6 +509,9 @@ module Core
           # FormError must provide field and error_type
           field    ||= ex.field
           error_type = ex.error_type || ex.message.downcase
+
+          failure_code = failure_codes[error_type]
+          Onetime::SessionFailureCode.stash(req.env, failure_code) if failure_code
 
           json_error(ex.message, field_error: [field, error_type], status: status)
         elsif redirect_path

@@ -262,6 +262,94 @@ RSpec.describe Onetime::Utils::Strings do
     end
   end
 
+  describe '#redact_uri_userinfo' do
+    # Boot and connection-failure messages print the datastore URI. Its
+    # userinfo is where the password lives, and a URI interpolated into a
+    # log line or a raise is out of reach of by-param-name scrubbing. The
+    # query is masked too: setup_connection_pool builds Redis options from
+    # `parsed_uri.conf`, which merges every query param into Redis.new, so
+    # `?password=s3cret` is a working credential. There is no allowlist of
+    # benign params; a `?timeout=5` is masked along with everything else.
+    {
+      'redis://user:s3cret@db:6379/0'             => 'redis://***@db:6379/0',
+      'rediss://:s3cret@db:6380/2'                => 'rediss://***@db:6380/2',
+      'valkey://s3cret@db:6379'                   => 'valkey://***@db:6379',
+      'redis://db:6379/0'                         => 'redis://db:6379/0',
+      'user:s3cret@db:6379'                       => '***@db:6379',
+      'redis://db:6379/0?password=s3cret'         => 'redis://db:6379/0?***',
+      'redis://user:s3cret@db:6379/0?password=x'  => 'redis://***@db:6379/0?***',
+      'valkey://db/0?timeout=5'                   => 'valkey://db/0?***',
+    }.each do |input, expected|
+      it "renders #{input.inspect} as #{expected.inspect}" do
+        expect(utils.redact_uri_userinfo(input)).to eq(expected)
+      end
+    end
+
+    it 'redacts through the last "@" so an unescaped "@" in a password does not leak its tail' do
+      expect(utils.redact_uri_userinfo('redis://:p@ss@db:6379/0')).to eq('redis://***@db:6379/0')
+    end
+
+    # An "@" after the "?" may be inside the query (`?password=p@ss`) or a
+    # userinfo password containing "?"; neither split is safe, so only the
+    # scheme survives. The old userinfo-only rule rendered this as
+    # "redis://***@ss".
+    it 'fails safe to the scheme alone when an "@" follows a "?"' do
+      expect(utils.redact_uri_userinfo('redis://db:6379/0?password=p@ss')).to eq('redis://***')
+    end
+
+    it 'accepts a parsed URI, as Familia.uri returns' do
+      expect(utils.redact_uri_userinfo(Familia.normalize_uri('redis://:s3cret@db:6390/0')))
+        .to eq('redis://***@db:6390/0')
+    end
+
+    it 'does not raise on invalid UTF-8' do
+      expect(utils.redact_uri_userinfo("redis://:s3\xFFcret@db:6379/0".b)).to eq('redis://***@db:6379/0')
+    end
+
+    it 'renders nil as an empty string' do
+      expect(utils.redact_uri_userinfo(nil)).to eq('')
+    end
+  end
+
+  describe '#redact_uris_in_text' do
+    # Exception messages quote connection URIs in prose: redis-client appends
+    # "(redis://host:6379)" to every ConnectionError. The prose is the
+    # diagnosis and stays; each URI is masked like redact_uri_userinfo does.
+    it 'masks the userinfo of a URI quoted inside a redis-client message' do
+      message = 'Connection refused - connect(2) for 127.0.0.1:6379 (redis://ots:s3cret@127.0.0.1:6379/0)'
+      expect(utils.redact_uris_in_text(message))
+        .to eq('Connection refused - connect(2) for 127.0.0.1:6379 (redis://***@127.0.0.1:6379/0)')
+    end
+
+    it 'masks every URI, including query-borne credentials' do
+      message = 'tried redis://a:pw@h1:6379/0 then valkey://h2/0?password=pw2, giving up'
+      expect(utils.redact_uris_in_text(message)).to eq('tried redis://***@h1:6379/0 then valkey://h2/0?*** giving up')
+    end
+
+    it 'keeps a SQLite path whole, since it has no userinfo, and masks its query' do
+      message = 'unable to open sqlite:///tmp/auth:archive@backup.db?key=s3cret for redis://u:pw@h1/0'
+      expect(utils.redact_uris_in_text(message))
+        .to eq('unable to open sqlite:///tmp/auth:archive@backup.db?*** for redis://***@h1/0')
+    end
+
+    it 'keeps a password holding ")" inside the masked span' do
+      expect(utils.redact_uris_in_text('down (redis://u:p)w@db:6379/0)')).to eq('down (redis://***@db:6379/0)')
+    end
+
+    it 'leaves text without a URI byte-identical' do
+      message = 'WRONGPASS invalid username-password pair or user is disabled.'
+      expect(utils.redact_uris_in_text(message)).to eq(message)
+    end
+
+    it 'does not raise on invalid UTF-8' do
+      expect(utils.redact_uris_in_text("down (redis://:s3\xFFcret@db:6379/0)".b)).to eq('down (redis://***@db:6379/0)')
+    end
+
+    it 'renders nil as an empty string' do
+      expect(utils.redact_uris_in_text(nil)).to eq('')
+    end
+  end
+
   describe '#glob_case_insensitive' do
     # Redis MATCH is case-sensitive and the customer email_index carries
     # mixed-case keys from pre-normalization writers, so the admin searches

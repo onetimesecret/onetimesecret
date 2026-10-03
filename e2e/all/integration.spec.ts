@@ -183,19 +183,30 @@ test.describe('E2E Integration - Production Build Validation', () => {
   test('can create a secret (basic functionality)', async ({ page }) => {
     await page.goto('/');
 
-    // Look for secret creation form using more specific selectors
-    const secretInput = page.locator('textarea[aria-label*="secret content"]');
-    const createButton = page.locator('button:has-text("Create Link")');
+    // The anonymous homepage renders SecretForm in its default create-link
+    // mode, so the secret textarea is always there: wait for it rather than
+    // probe for it.
+    const secretInput = page.getByTestId('secret-content-input');
+    await expect(secretInput).toBeVisible();
+    await secretInput.fill('Test secret for E2E integration');
 
-    if (await secretInput.isVisible()) {
-      await secretInput.fill('Test secret for E2E integration');
-      await createButton.click();
+    // The secret exists once the conceal request succeeds; the receipt it
+    // names is where the form then navigates.
+    const concealed = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'POST' &&
+        new URL(response.url()).pathname.endsWith('/secret/conceal')
+    );
+    await page.getByTestId('split-button-submit').click();
+    const response = await concealed;
+    expect(response.ok(), `conceal: HTTP ${response.status()}`).toBe(true);
 
-      // Verify we get to a receipt page (the actual route used after creating a secret)
-      await expect(page).toHaveURL(/\/receipt\/.+/);
-    } else {
-      console.log('Secret input not found - adjust selectors for your UI');
-    }
+    const { record } = (await response.json()) as {
+      record?: { receipt?: { identifier?: string } };
+    };
+    const receiptId = record?.receipt?.identifier;
+    expect(receiptId, 'the conceal response names the new receipt').toBeTruthy();
+    await expect(page).toHaveURL((url) => url.pathname === `/receipt/${receiptId}`);
   });
 
   test('stylesheet and fonts load correctly', async ({ page }) => {
@@ -256,8 +267,7 @@ test.describe('E2E Integration - Production Build Validation', () => {
     // Note: link and meta tags are not visible, so we check for their presence in the DOM
     // Multiple favicon sizes/types are normal (different sizes, apple-touch-icon, etc.)
     const favicon = page.locator('link[rel="icon"], link[rel="shortcut icon"]');
-    const faviconCount = await favicon.count();
-    expect(faviconCount).toBeGreaterThanOrEqual(1);
+    await expect(favicon).not.toHaveCount(0);
 
     // Check basic meta tags
     const charsetMeta = page.locator('meta[charset]');

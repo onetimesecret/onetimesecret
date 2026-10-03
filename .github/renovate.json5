@@ -31,7 +31,7 @@
   dependencyDashboardLabels: ['auto-update', 'dependencies'],
   prCreation: 'immediate',
   prConcurrentLimit: 10,
-  prHourlyLimit: 4,
+  prHourlyLimit: 10,
   labels: ['auto-update'],
   assignees: ['delano'],
   reviewers: [],
@@ -42,8 +42,12 @@
   pruneStaleBranches: true,
 
   // Automerge settings
+  // automergeType 'pr', not 'branch': from April 2025 to September 2026 no
+  // update landed on main by branch automerge (every one came through a PR),
+  // and branch-automerge updates without a PR sat unseen for weeks. A PR gets
+  // CI, which only runs on pushes to main and on PRs.
   automerge: true,
-  automergeType: 'branch',
+  automergeType: 'pr',
   automergeStrategy: 'merge-commit',
   major: { automerge: false },
   minor: { automerge: false },
@@ -78,7 +82,7 @@
       enabled: false,
     },
     {
-      matchPackagePatterns: ['^@types/'],
+      matchPackageNames: ['/^@types//'],
       groupName: 'TypeScript type definitions',
       groupSlug: 'types-updates',
     },
@@ -96,7 +100,7 @@
   customManagers: [
     {
       customType: 'regex',
-      fileMatch: ['^\\.github/workflows/(resolved-derive-gate|validate-register)\\.yml$'],
+      managerFilePatterns: ['/^\\.github/workflows/(resolved-derive-gate|validate-register)\\.yml$/'],
       matchStrings: [
         // Optional quotes tolerated: the workflows emit the bare form
         // (TRANSLATION_RULES_REF: v0.1.1), but a quoted value ('v0.1.1' or

@@ -66,6 +66,7 @@ module ColonelAPI
           custom_domain.safe_dump.merge(
             domain_id: custom_domain.domainid,
             verification_state: custom_domain.verification_state.to_s,
+            verified_by_override: custom_domain.verified_by_override == true,
             resolving: custom_domain.resolving.to_s == 'true',
             ready: custom_domain.ready?,
           )

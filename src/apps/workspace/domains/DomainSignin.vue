@@ -137,6 +137,7 @@ const {
   clientSecretMasked,
   initialize: initializeSsoConfig,
   saveConfig: saveSsoConfig,
+  disableConfig: disableSsoConfig,
   deleteConfig: deleteSsoConfig,
   testConnection,
   discardChanges: discardSsoChanges,
@@ -331,6 +332,7 @@ watch(canFetchSsoConfig, async (allowed) => {
         :is-open="showSsoModal"
         :domain-ext-id="props.extid"
         :domain-host="customDomainRecord?.display_domain ?? ''"
+        :domain-verified="customDomainRecord?.verified === true"
         :org-id="props.orgid"
         v-model:form-state="ssoFormState"
         :sso-config="ssoConfig"
@@ -345,6 +347,7 @@ watch(canFetchSsoConfig, async (allowed) => {
         :test-error="testError"
         @close="handleCloseSsoModal"
         @save="saveSsoConfig"
+        @disable="disableSsoConfig"
         @delete="deleteSsoConfig"
         @test="testConnection"
         @discard="discardSsoChanges" />

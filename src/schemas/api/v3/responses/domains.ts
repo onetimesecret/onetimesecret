@@ -30,6 +30,13 @@ export const customDomainDetailsSchema = z.object({
     .optional()
     .nullable(),
   domain_context: z.string().optional().nullable(),
+  // Verify responses only (POST /api/domains/:extid/verify): what the TXT
+  // check learned. `indeterminate` and `confirmation_expired` mean the check
+  // could not be completed, which is not the same as `failed` (record missing
+  // or wrong). A string rather than an enum so an outcome added server-side
+  // does not fail the whole parse; see domainVerifyNotice for the mapping.
+  dns_outcome: z.string().optional(),
+  dns_indeterminate: z.boolean().optional(),
 });
 
 /** Jurisdiction record (config-derived). */

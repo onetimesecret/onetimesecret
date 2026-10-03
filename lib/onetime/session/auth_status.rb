@@ -52,8 +52,8 @@ module Onetime
       # deliberately does not run (Core::Views::InitializeViewVars) and no
       # identity is projected. A session that names a customer is reported as
       # `unavailable` — this response cannot say whether it is still valid —
-      # and anything else as `anonymous`. Replaces the client-side
-      # `had_valid_session` inference with a server statement.
+      # and anything else as `anonymous`. Replaces the client-side inference
+      # from the raw session with a server statement.
       #
       # @param session [#[], nil] the raw Rack session
       # @return [String] UNAVAILABLE or ANONYMOUS

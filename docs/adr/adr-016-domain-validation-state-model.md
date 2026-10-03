@@ -8,6 +8,13 @@ title: "ADR-016: Decouple Ownership Verification from Certificate/Serving Status
 
 Accepted
 
+[ADR-049](adr-049-operator-managed-domain-authorization.md) proposes to
+supersede only the Decision clauses that require `passthrough` to use the
+universal TXT ownership axis, the same-semantics ownership badge, and a
+certificate/serving axis with "no axis to render" rather than independently
+reported DNS and HTTPS health. Until ADR-049 is accepted, this ADR remains
+operative in full.
+
 ## Date
 
 2026-06-30
@@ -100,6 +107,213 @@ table) since it's specific to that provider's onboarding flow.
 
 ## Implementation Notes
 
+### Ownership axis implemented for `caddy_on_demand` (2026-09-18)
+
+`CaddyOnDemandStrategy#validate_ownership` used to return `validated: true`
+without checking anything, so any verify pass set `verified`. It now checks
+the TXT challenge record through `DomainValidation::TxtVerifier`, with the
+same "exactly one matching value" rule Approximated applies and the three
+outcomes of `BaseStrategy#validate_ownership`:
+
+- `true`: the record matches.
+- `false`: the resolver stated the record is missing or different
+  (NXDOMAIN, NOERROR without TXT data, other values). Demotes, unless a
+  Colonel override holds the flag.
+- `nil` / indeterminate: SERVFAIL, REFUSED, timeout, network error. Stored
+  state is left alone.
+
+The Trade-offs section suggests reusing the sender-domain DNS machinery.
+That code uses `Resolv::DNS#getresources`, which returns `[]` for NXDOMAIN,
+SERVFAIL and a timeout alike, so it cannot separate `false` from `nil`.
+`DomainValidation::TxtResolver` sends the query itself and reads the
+response code; it uses only the stdlib message codec.
+
+`ApproximatedStrategy` uses the same verifier when Approximated's own lookup
+fails (`actual_values: false`). A native negative fails a first-time check
+closed, but does not revoke an existing verification without upstream
+corroboration; a definitive negative from Approximated still demotes.
+
+Order of work matters for the "ask gate is unsatisfiable" note below. The
+OTS-side resolving check makes `ready?` reachable under `caddy_on_demand`;
+the TXT check had to land first so that `verified` carries proof by the time
+the gate can open. `passthrough` still performs no ownership check (ADR-017).
+
+Operator impact: domains that were marked verified under `caddy_on_demand`
+without a TXT record lose `verified` on the first check after upgrade,
+unless the record exists or a Colonel override holds the flag. That includes
+a first check that is indeterminate: the strategy returns `false` rather than
+`nil` for a verified domain with no `verified_confirmed_at`, because such a
+flag was never backed by a TXT check and the serving axis below would
+otherwise make the domain `ready?`. Installs that do not run
+`DomainRefreshJob` (the scheduler is off by default) need
+`bin/ots domains verify --all` for any of this to reach existing domains.
+
+`verified_confirmed_at` is written only for a pass from a strategy that
+checks the record (`BaseStrategy#proves_ownership?`: `approximated` and
+`caddy_on_demand`). A `passthrough` pass sets `verified` and records no
+confirmation, so a domain verified under `passthrough` is treated as never
+confirmed after a move to `caddy_on_demand`. If passthrough promotes a domain
+after a definitive check demoted it, the older confirmation is cleared because
+it belongs to the ended verified lineage. A domain that stays verified across
+the strategy change keeps its still-current confirmation.
+
+The never-confirmed rule also reaches an install that cuts over from
+`approximated` to `caddy_on_demand` at or soon after this upgrade. The field
+is new, so every domain starts without it, including those Approximated had
+proven; and cutover is the first time the app needs its own working resolver
+on every check. The operator sequence is: upgrade while still on
+`approximated`; run a full `bin/ots domains verify --all` pass (or a complete
+`DomainRefreshJob` walk) so the confirmation is recorded for every proven
+domain; confirm the app host has a working resolver; then switch strategy.
+Without that, a first lookup under `caddy_on_demand` that gets no answer
+withdraws `verified` from a domain Approximated had proven, until the next
+passing check or a Colonel override.
+
+### Serving axis implemented for `caddy_on_demand` (2026-09-18)
+
+`CaddyOnDemandStrategy#check_status` no longer returns `nil` for both fields.
+It runs `DomainValidation::TlsProbe`:
+
+- `is_resolving` comes from an OTS-performed A/AAAA lookup
+  (`AddressResolver`, the same response-code-aware transport as
+  `TxtResolver`): an address is `true`, NXDOMAIN or an empty NOERROR for both
+  families is `false`, anything else is `nil` and leaves `resolving` alone.
+- `has_ssl` comes from a TLS handshake to port 443 with SNI and full chain
+  and hostname verification. No application data is sent.
+- The hostname is customer-controlled, so the dial goes through
+  `Onetime::Http::Guard`: one resolution, the whole address set rejected if
+  any address is non-public, and the connection pinned to a vetted IP. A
+  probe the guard refuses reports `is_resolving: true, has_ssl: nil`, as do
+  a connect timeout and an unreachable route. A connection the server
+  refuses or resets (`ECONNREFUSED`, `ECONNRESET`) reports `has_ssl: false`:
+  the name resolves and nothing there presents a certificate.
+
+This makes the "ask gate is unsatisfiable" note below historical: `resolving`
+is now written under `caddy_on_demand`, so `ready?` is reachable once the TXT
+check has passed. `resolving` deliberately does not depend on the certificate
+(Caddy cannot obtain one until the ask endpoint says yes), and it does not
+compare the address with this deployment's. The Decision section's
+"cross-checked" resolution target is still open for this strategy: there is
+no configured expected address to compare against. Ownership rests on the TXT
+check alone, as the non-conflation rule requires.
+
+`has_ssl` is persisted inside the `vhost` blob. The strategy rewrites the
+blob whenever `is_resolving` is known, so the blob's `status` and
+`is_resolving` never disagree with the `resolving` field; when `has_ssl` is
+unknown (a timeout or an unreachable route on port 443, or the egress guard
+refused the address) the stored `has_ssl` and certificate dates are carried
+into the new blob only while the stored `ssl_active_until` is in the future.
+At or after expiry they no longer establish an active certificate, so the
+blob omits the claim and reports `PENDING_SSL` until a probe sees the
+current certificate. A carried
+certificate is not a fresh observation: `ssl_checked_unix` (the probe that saw
+it) is carried with it, `last_monitored_unix` is the check that re-observed
+`is_resolving`, and `ssl_inconclusive: true` marks a blob whose probe did not
+learn `has_ssl`. It returns
+neither `:data` nor `:mode` when the probe learned nothing;
+`VerifyDomain#persist_changes` then stores
+nothing and sets `vhost_fetch_failed_at`. A `vhost` blob left by
+`approximated` survives only a check that learned nothing. Once a probe knows
+`is_resolving`, the blob is replaced with current probe state carrying
+`approximated_vhost_pending_cleanup: true`, which is the orphaned-vhost
+chore's evidence; stored SSL fields are never carried out of it.
+
+The probe blob reuses Approximated's `status` values (`ACTIVE_SSL`,
+`DNS_INCORRECT`) plus `PENDING_SSL`, so the single badge has correct data to
+render wherever it is shown.
+
+### Customer workspace under `caddy_on_demand` (2026-09-18)
+
+Until this note the customer workspace hid the badge and the verification
+screen on every non-`approximated` install: one flag,
+`isApproximatedDomainValidation()`, gated `showVerificationStatus` in
+`DomainHeader`, `DomainsTableDomainCell` and `DomainsTableActionsCell`, the
+`DomainVerify` / `DomainDns` route guards and the post-add navigation. Under
+`caddy_on_demand` a customer therefore could not see the TXT challenge, the
+status, or a verify button, and no domain could become verified without the
+operator relaying the record. The flag answered two unrelated questions, so
+it is now two predicates in `src/utils/features.ts`, both read from one
+capability table that is the only place the frontend interprets a strategy
+name:
+
+- `isDomainOwnershipChecked()` — the strategy requires the TXT record
+  (`approximated`, `caddy_on_demand`; mirrors
+  `BaseStrategy#proves_ownership?`). Gates the badge, the TXT record, the
+  verify action, the route guards and `useDomainsManager.navigateAfterAdd`.
+- `isApproximatedDomainValidation()` — the domain points at the Approximated
+  proxy. Gates only the proxy targets (`cluster.proxy_ip` / `proxy_host`)
+  and the Approximated DNS widget.
+
+Where the address record points is `useDomainDnsRecord`, shared by
+`VerifyDomainDetails`, `DomainVerify` and `DomainDns`. Without the
+Approximated proxy it is this install by name: CNAME, or ALIAS/ANAME for an
+apex, to `canonical_domain`, falling back to `site_host` (both already in the
+bootstrap payload, and what `DomainDns` showed for `passthrough`). No backend
+addition was needed. The backend has no configured address for this strategy
+(the Decision's "cross-checked" resolution target is still open, see above),
+so an A record to an IP is not offered; the apex notice says an A record to
+the server's IP is the alternative. The proxy fields are not read at all
+under `caddy_on_demand`: an install keeps them configured after a cutover for
+the orphaned-vhost chore, and showing them would send new domains to
+Approximated.
+
+The Colonel domain DNS panel (`AdminDomainDnsDetails`, on the domain detail
+page and in the domains list) built the same step from `cluster.proxy_ip` /
+`proxy_host` under every strategy, so an operator relaying it after a cutover
+gave out the Approximated targets. It now uses `useDomainDnsRecord` too, with
+the strategy taken from the `cluster` in the Colonel response
+(`Features.safe_dump`, which carries the canonical strategy name), and only
+says "the proxy" when the record points at one.
+
+`useDomainStatus.ts` is still keyed on the blob's `status`, not on
+`validation_strategy`; the Decision's per-strategy keying turned out not to
+be needed because the probe writes the shared values. `PENDING_SSL` is the
+one addition, and it is read together with `verified`, because under this
+strategy Caddy may only obtain a certificate once the ACME endpoint sees a
+verified domain:
+
+- verified: "Certificate pending". Not an error and not a warning; nothing
+  for the customer to do.
+- not verified: "Pending Verification", in the warning style, linking to the
+  verification page. Without this the badge would promise a certificate that
+  cannot be issued.
+
+The same rule applies to the active statuses (`ACTIVE`, `ACTIVE_SSL`,
+`ACTIVE_SSL_PROXIED`): they read "Active" only for a verified domain. After a
+demotion (the TXT record is removed and a check gets a definitive negative)
+the certificate Caddy issued earlier keeps serving until it expires, so the
+probe keeps writing `ACTIVE_SSL` while `verified` is false and `ready?` is
+false. Such a domain reads "Pending Verification", links to the verification
+page and loses the Manage quick action, the same as a resolving domain that
+never passed. A verified domain, including one verified by override, is
+unaffected under either strategy.
+
+"Unverified" is kept for the stale case only (the last status fetch failed
+within the freshness window), so "could not tell" and "not verified" are
+different text, not just different icons. The icons are decorative, and the
+status link in the domain list puts the status text in its accessible name.
+
+`PENDING_SSL` is also what the blob says when `has_ssl` is unknown and the
+stored certificate dates have lapsed. The badge cannot tell that apart from a
+first certificate; the status table can, and its SSL row reads "Unknown"
+rather than "Inactive" when `has_ssl` is absent. The probe's blob has no
+`target_address` and no `last_monitored_humanized` (both are Approximated's);
+the table hides the target row when there is none and derives "Last
+monitored" from `last_monitored_unix`.
+
+The badge cannot say what the TXT check itself learned. `vhost_fetch_failed_at`
+tracks the status probe only, and an indeterminate TXT lookup leaves
+`verified` as it was, so after a verify the record reads the same for "no
+answer" as for "record missing". The customer verify response
+(`POST /api/domains/:extid/verify`) therefore carries `details.dns_outcome`
+and `details.dns_indeterminate`, as the Colonel response does, and
+`domainVerifyNotice` picks the toast and the inline alert from it: the
+success text for `validated` only, "could not complete the check, try again"
+for `indeterminate` / `confirmation_expired`, and "record not found" for
+`failed` / `override_held`. The outcome is reported for the check the
+customer just ran; it is not stored, so a page load between checks still
+shows the badge alone.
+
 ### Caddy `ask` deprecation — confirmed in the app itself, not just the example file (2026-06-30)
 
 Caddy's live config-docs API (`GET https://caddyserver.com/api/docs/config/apps/tls/automation/on_demand/`,
@@ -187,6 +401,9 @@ in-memory boolean check with no I/O. This already meets the guidance — no
 remediation needed here, only confirmed and documented.
 
 ### ACME `ask` gate is unsatisfiable under `caddy_on_demand` today — makes this ADR a functional prerequisite, not just UI/ownership polish (2026-07-03, re-verified against current source 2026-07-05)
+
+> Resolved 2026-09-18: see "Serving axis implemented for `caddy_on_demand`"
+> above. The analysis is kept as written.
 
 The `ask` endpoint gates cert issuance on `ready?` ⇔
 `verification_state == :verified` (`custom_domain.rb:656`, `639-647`), which

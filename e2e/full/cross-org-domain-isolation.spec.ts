@@ -195,7 +195,7 @@ test.describe.fixme('Cross-Organization Domain Isolation', () => {
       // Get list of user's organizations
       const orgs = await getUserOrganizations(page);
 
-      test.skip(orgs.length < 2, 'Test requires user with at least 2 organizations');
+      expect(orgs.length, 'the account owns at least two organizations').toBeGreaterThanOrEqual(2);
 
       // Gather domain info for each org
       for (const org of orgs) {
@@ -253,7 +253,7 @@ test.describe.fixme('Cross-Organization Domain Isolation', () => {
       page,
     }) => {
       const orgs = await getUserOrganizations(page);
-      test.skip(orgs.length < 2, 'Test requires user with at least 2 organizations');
+      expect(orgs.length, 'the account owns at least two organizations').toBeGreaterThanOrEqual(2);
 
       // Gather domain info
       for (const org of orgs) {
@@ -266,11 +266,7 @@ test.describe.fixme('Cross-Organization Domain Isolation', () => {
       const orgWithoutDomains = orgs.find((o) => o.domainCount === 0);
 
       if (!orgWithDomains || !orgWithoutDomains) {
-        test.skip(
-          true,
-          'Test requires one org with domains and one without. Create test data accordingly.'
-        );
-        return;
+        throw new Error('needs one organization with custom domains and one without (#3420)');
       }
 
       // First visit org WITH domains to establish it as "active" context
@@ -307,7 +303,7 @@ test.describe.fixme('Cross-Organization Domain Isolation', () => {
       page,
     }) => {
       const orgs = await getUserOrganizations(page);
-      test.skip(orgs.length < 2, 'Test requires user with at least 2 organizations');
+      expect(orgs.length, 'the account owns at least two organizations').toBeGreaterThanOrEqual(2);
 
       // Gather domain info
       for (const org of orgs) {
@@ -365,7 +361,7 @@ test.describe.fixme('Cross-Organization Domain Isolation', () => {
       page,
     }) => {
       const orgs = await getUserOrganizations(page);
-      test.skip(orgs.length < 2, 'Test requires user with at least 2 organizations');
+      expect(orgs.length, 'the account owns at least two organizations').toBeGreaterThanOrEqual(2);
 
       // Gather domain info
       for (const org of orgs) {
@@ -418,7 +414,7 @@ test.describe.fixme('Cross-Organization Domain Isolation', () => {
 
     test('TC-DOI-005: Using org switcher updates domain list correctly', async ({ page }) => {
       const orgs = await getUserOrganizations(page);
-      test.skip(orgs.length < 2, 'Test requires user with at least 2 organizations');
+      expect(orgs.length, 'the account owns at least two organizations').toBeGreaterThanOrEqual(2);
 
       // Gather domain info
       for (const org of orgs) {
@@ -481,7 +477,7 @@ test.describe.fixme('Cross-Organization Domain Isolation', () => {
       page,
     }) => {
       const orgs = await getUserOrganizations(page);
-      test.skip(orgs.length < 2, 'Test requires user with at least 2 organizations');
+      expect(orgs.length, 'the account owns at least two organizations').toBeGreaterThanOrEqual(2);
 
       // Gather domain info
       for (const org of orgs) {
@@ -533,7 +529,7 @@ test.describe.fixme('Cross-Organization Domain Isolation', () => {
   test.describe('Page Refresh', () => {
     test('TC-DOI-007: Refreshing page maintains correct org domain context', async ({ page }) => {
       const orgs = await getUserOrganizations(page);
-      test.skip(orgs.length < 1, 'Test requires at least 1 organization');
+      expect(orgs.length, 'the account owns at least one organization').toBeGreaterThanOrEqual(1);
 
       const org = orgs[0];
       org.domains = await getOrgDomains(page, org.extid);
@@ -574,7 +570,7 @@ test.describe.fixme('API-Level Domain Isolation', () => {
 
   test('TC-DOI-008: API requests include correct org context parameter', async ({ page }) => {
     const orgs = await getUserOrganizations(page);
-    test.skip(orgs.length < 2, 'Test requires user with at least 2 organizations');
+    expect(orgs.length, 'the account owns at least two organizations').toBeGreaterThanOrEqual(2);
 
     const orgA = orgs[0];
     const orgB = orgs[1];

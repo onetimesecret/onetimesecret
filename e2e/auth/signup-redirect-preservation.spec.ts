@@ -34,9 +34,15 @@
 //
 // The target server must be able to actually SEND the verification email:
 //   AUTHENTICATION_MODE=full        Rodauth is mounted
-//   AUTH_AUTOVERIFY=false           accounts are NOT verified on creation
-//   RACK_ENV != test                etc/auth.yaml:79 force-disables
-//                                   verify_account whenever RACK_ENV=test
+//   AUTH_VERIFY_ACCOUNT_ENABLED=true
+//                                   Rodauth's verify_account is on, so
+//                                   accounts are NOT verified on creation
+//                                   (on by default; only the exact string
+//                                   'false' turns it off). AUTH_AUTOVERIFY
+//                                   does not decide this in full mode; only
+//                                   simple-mode signup and sign-in read it.
+//   RACK_ENV != test                etc/defaults/auth.defaults.yaml turns
+//                                   verify_account off whenever RACK_ENV=test
 //   EMAILER_MODE=smtp + SMTP_HOST/SMTP_PORT → Mailpit
 //   a running job worker            mail is ENQUEUED by the web process and
 //                                   delivered by EmailWorker, not inline

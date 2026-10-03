@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require_relative '../../../support/saml/test_idp'
 require 'tempfile'
 require 'fileutils'
 
@@ -67,13 +68,16 @@ RSpec.describe Onetime::AuthConfig do
       GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET
       GITHUB_CLIENT_ID GITHUB_CLIENT_SECRET
       APPLE_CLIENT_ID APPLE_TEAM_ID APPLE_KEY_ID APPLE_PRIVATE_KEY
+      SAML_ENABLED SAML_IDP_SSO_SERVICE_URL SAML_IDP_ENTITY_ID SAML_IDP_CERT
+      SAML_SP_ENTITY_ID SAML_UID_ATTRIBUTE
       SSO_PROVIDER_ORDER
       OIDC_ROUTE_NAME ENTRA_ROUTE_NAME GOOGLE_ROUTE_NAME GITHUB_ROUTE_NAME
-      APPLE_ROUTE_NAME
+      APPLE_ROUTE_NAME SAML_ROUTE_NAME
       SSO_TRUST_EMAIL_FOR_LINKING
       OIDC_TRUST_EMAIL_FOR_LINKING ENTRA_TRUST_EMAIL_FOR_LINKING
       GOOGLE_TRUST_EMAIL_FOR_LINKING GITHUB_TRUST_EMAIL_FOR_LINKING
       APPLE_TRUST_EMAIL_FOR_LINKING
+      SAML_TRUST_EMAIL_FOR_LINKING
     ]
   end
 
@@ -114,6 +118,37 @@ RSpec.describe Onetime::AuthConfig do
     described_class.instance_variable_set(:@singleton__instance__, nil)
     File.write(config_path, base_yaml) # re-render ERB with new env
     described_class.instance
+  end
+
+  describe 'request-scoped tenant origin cache' do
+    let(:config) { fresh_config }
+    let(:concealed_url) { double('concealed SSO URL') }
+    let(:tenant) { double('SAML config', provider_type: 'saml', idp_sso_service_url: concealed_url) }
+
+    it 'caches decryption failure as no origin without falling back to the platform' do
+      env = {}
+      expect(concealed_url).to receive(:reveal).once.and_raise(Familia::EncryptionError, 'tag')
+      expect(config).not_to receive(:provider_origin)
+
+      2.times { expect(config.tenant_idp_origin(tenant, env: env)).to be_nil }
+      expect(config.tenant_origin_source(tenant, env: env)).to eq('')
+    end
+
+    it 'does not reuse an admitted origin across requests after ciphertext becomes unreadable' do
+      expect(concealed_url).to receive(:reveal).ordered.and_yield('https://idp.example/sso')
+      expect(concealed_url).to receive(:reveal).ordered.and_raise(Familia::EncryptionError, 'tag')
+
+      expect(config.tenant_idp_origin(tenant, env: {})).to eq('https://idp.example')
+      expect(config.tenant_idp_origin(tenant, env: {})).to be_nil
+    end
+
+    it 'does not keep a failed reveal cached after a new request can read the repaired field' do
+      expect(concealed_url).to receive(:reveal).ordered.and_raise(Familia::EncryptionError, 'tag')
+      expect(concealed_url).to receive(:reveal).ordered.and_yield('https://repaired.example/sso')
+
+      expect(config.tenant_idp_origin(tenant, env: {})).to be_nil
+      expect(config.tenant_idp_origin(tenant, env: {})).to eq('https://repaired.example')
+    end
   end
 
   # ── Mode tests ─────────────────────────────────────────────────────
@@ -164,6 +199,24 @@ RSpec.describe Onetime::AuthConfig do
           expect(config.public_send(:"#{feature}_enabled?")).to be false
         end
       end
+    end
+  end
+
+  # Remember-me sessions are honoured in simple mode too (the session store
+  # carries them), so this reads the same switch without the full-mode gate
+  # the Rodauth feature toggles above have.
+  describe '#remember_me_sessions_enabled?' do
+    it 'is true in both modes when AUTH_REMEMBER_ME_ENABLED is unset', :aggregate_failures do
+      ENV.delete('AUTH_REMEMBER_ME_ENABLED')
+      expect(fresh_config('AUTHENTICATION_MODE' => 'simple').remember_me_sessions_enabled?).to be true
+      expect(fresh_config('AUTHENTICATION_MODE' => 'full').remember_me_sessions_enabled?).to be true
+    end
+
+    it 'is false in both modes when AUTH_REMEMBER_ME_ENABLED=false', :aggregate_failures do
+      expect(fresh_config('AUTHENTICATION_MODE' => 'simple', 'AUTH_REMEMBER_ME_ENABLED' => 'false')
+        .remember_me_sessions_enabled?).to be false
+      expect(fresh_config('AUTHENTICATION_MODE' => 'full', 'AUTH_REMEMBER_ME_ENABLED' => 'false')
+        .remember_me_sessions_enabled?).to be false
     end
   end
 
@@ -384,14 +437,14 @@ RSpec.describe Onetime::AuthConfig do
       end
 
       it 'raises on an unrecognised restriction value' do
-        config = fresh_config
+        config                                                        = fresh_config
         config.instance_variable_get(:@config)['full']['restrict_to'] = 'carrier_pigeon'
         expect { config.validate_restrict_to! }
           .to raise_error(Onetime::ConfigError, /not a valid restriction/)
       end
 
       it 'memoizes so a second call does not re-raise' do
-        config = fresh_config('AUTH_PASSWORD_ONLY' => 'true')
+        config                                                        = fresh_config('AUTH_PASSWORD_ONLY' => 'true')
         expect(config.validate_restrict_to!).to eq('password')
         config.instance_variable_get(:@config)['full']['restrict_to'] = 'carrier_pigeon'
         expect(config.validate_restrict_to!).to eq('password')
@@ -489,6 +542,7 @@ RSpec.describe Onetime::AuthConfig do
       'google' => 'GOOGLE_TRUST_EMAIL_FOR_LINKING',
       'github' => 'GITHUB_TRUST_EMAIL_FOR_LINKING',
       'apple' => 'APPLE_TRUST_EMAIL_FOR_LINKING',
+      'saml' => 'SAML_TRUST_EMAIL_FOR_LINKING',
     }.each do |route_name, trust_var|
       context "for the '#{route_name}' route" do
         it "defaults to false when #{trust_var} is unset" do
@@ -507,9 +561,9 @@ RSpec.describe Onetime::AuthConfig do
         end
 
         it "is unaffected by another provider's trust var" do
-          prefixes = %w[OIDC ENTRA GOOGLE GITHUB APPLE]
+          prefixes = %w[OIDC ENTRA GOOGLE GITHUB APPLE SAML]
           other    = (prefixes - [trust_var.delete_suffix('_TRUST_EMAIL_FOR_LINKING')]).first
-          config = fresh_config("#{other}_TRUST_EMAIL_FOR_LINKING" => 'true')
+          config   = fresh_config("#{other}_TRUST_EMAIL_FOR_LINKING" => 'true')
           expect(config.trust_email_for_linking?(route_name)).to be false
         end
       end
@@ -596,7 +650,7 @@ RSpec.describe Onetime::AuthConfig do
       all_opted_out = Onetime::SsoProvider::Registry::DEFINITIONS.to_h do |defn|
         [defn[:trust_var], 'false']
       end
-      config = fresh_config(**{ 'SSO_TRUST_EMAIL_FOR_LINKING' => 'true' }.merge(all_opted_out))
+      config        = fresh_config(**{ 'SSO_TRUST_EMAIL_FOR_LINKING' => 'true' }, **all_opted_out)
       expect(config.trust_email_for_linking_enabled?).to be false
     end
 
@@ -706,11 +760,198 @@ RSpec.describe Onetime::AuthConfig do
         expect(advertised_with(base.merge(vars_valid: -> { false }), **env)).to be_empty
       end
 
+      # An install-wide :enabled switch (SAML_ENABLED, #4604) is checked
+      # before presence and before :vars_valid: configure_provider registers
+      # nothing for a switched-off provider, so nothing is advertised.
+      it 'omits a provider whose :enabled switch answers false, before consulting :vars_valid' do
+        consulted = false
+        defn = base.merge(enabled: -> { false }, vars_valid: -> { consulted = true })
+        expect(advertised_with(defn, **env)).to be_empty
+        expect(consulted).to be(false)
+      end
+
+      it 'advertises a provider whose :enabled switch answers true' do
+        expect(advertised_with(base.merge(enabled: -> { true }), **env)).to eq(%w[github])
+      end
+
+      it 'omits a provider whose :enabled switch raises, without raising' do
+        allow(OT).to receive(:lw)
+        defn = base.merge(enabled: -> { raise Onetime::ConfigError, 'X_ENABLED is set to an unrecognized boolean' })
+        expect(advertised_with(defn, **env)).to be_empty
+        expect(OT).to have_received(:lw).with(/enabled switch raised.*X_ENABLED/)
+      end
+
       # Runs per request and inside the HttpOrigin middleware, so a raising
       # predicate drops the provider, not the response.
       it 'omits a provider whose predicate raises, without raising' do
         defn = base.merge(vars_valid: -> { raise ArgumentError, 'bad value' })
         expect(advertised_with(defn, **env)).to be_empty
+      end
+    end
+
+    # #4513: an install-wide OIDC issuer known to mismatch its discovery
+    # document cannot sign anyone in (the gem refuses it in the request
+    # phase), so the button must not be offered while that verdict is cached.
+    describe 'a cached install-wide OIDC issuer verdict' do
+      let(:issuer) { 'https://idp.example.com' }
+
+      def oidc_config
+        fresh_config(AUTH_SSO_ENABLED: 'true', OIDC_ISSUER: issuer, OIDC_CLIENT_ID: 'cid')
+      end
+
+      def cache_verdict(discovered)
+        body    = { issuer: discovered }.to_json
+        result  = Onetime::SsoProvider::DiscoveryFetcher::Result.new(
+          status: :ok,
+          url: nil,
+          http_status: 200,
+          http_message: 'OK',
+          content_type: 'application/json',
+          body: body,
+          error: nil,
+        )
+        fetcher = instance_double(Onetime::SsoProvider::DiscoveryFetcher, fetch: result)
+        Onetime::SsoProvider::IssuerValidation.verify(issuer, fetcher: fetcher)
+      end
+
+      before { Onetime::SsoProvider::IssuerValidation.reset! }
+      after { Onetime::SsoProvider::IssuerValidation.reset! }
+
+      it 'advertises OIDC before any verdict exists (lazy check)' do
+        expect(oidc_config.sso_providers.map { |p| p['route_name'] }).to eq(%w[oidc])
+      end
+
+      it 'omits OIDC while a mismatch is cached' do
+        config = oidc_config
+        cache_verdict("#{issuer}/")
+
+        expect(config.sso_providers).to be_empty
+      end
+
+      it 'advertises OIDC when the cached verdict is a match' do
+        config = oidc_config
+        cache_verdict(issuer)
+
+        expect(config.sso_providers.map { |p| p['route_name'] }).to eq(%w[oidc])
+      end
+
+      it 'leaves other providers advertised' do
+        config = fresh_config(
+          AUTH_SSO_ENABLED: 'true',
+          OIDC_ISSUER: issuer,
+          OIDC_CLIENT_ID: 'cid',
+          GITHUB_CLIENT_ID: 'hid',
+          GITHUB_CLIENT_SECRET: 'hs',
+        )
+        cache_verdict("#{issuer}/")
+
+        expect(config.sso_providers.map { |p| p['route_name'] }).to eq(%w[github])
+      end
+
+      # The verdict is per-process display state. It must not reach the
+      # restriction's availability, which also gates custom domains whose own
+      # tenant OIDC is unaffected by the install-wide issuer.
+      def sso_only_config
+        fresh_config(AUTH_SSO_ENABLED: 'true', AUTH_SSO_ONLY: 'true', OIDC_ISSUER: issuer, OIDC_CLIENT_ID: 'cid')
+      end
+
+      it 'keeps restrict_to sso available while a mismatch is cached' do
+        config = sso_only_config
+        cache_verdict("#{issuer}/")
+
+        expect(config.restrict_to).to eq('sso')
+        expect(config.restrict_to_available?).to be(true)
+      end
+
+      it 'keeps the OIDC button under restrict_to sso (an empty list renders the standard form)' do
+        config = sso_only_config
+        cache_verdict("#{issuer}/")
+
+        expect(config.sso_providers.map { |p| p['route_name'] }).to eq(%w[oidc])
+      end
+
+      it 'reports the install-wide issuer for the OIDC route only' do
+        config = oidc_config
+
+        expect(config.install_discovery_issuer_for_route('oidc')).to eq(issuer)
+        expect(config.install_discovery_issuer_for_route('entra')).to be_nil
+        expect(config.install_discovery_issuer_for_route('nope')).to be_nil
+      end
+    end
+
+    # SAML (#4450). Presence is not enough: an unusable trio makes
+    # configure_provider skip the route, so :vars_valid must keep the button
+    # off the login page too.
+    describe 'SAML' do
+      let(:saml_env) do
+        {
+          SAML_ENABLED: 'true',
+          SAML_IDP_SSO_SERVICE_URL: 'https://idp.example.com/saml/sso',
+          SAML_IDP_ENTITY_ID: 'https://idp.example.com/saml/metadata',
+          SAML_IDP_CERT: SamlSpec::TestIdp.new.cert_pem,
+          SAML_SP_ENTITY_ID: 'https://ots.example.com/auth/sso/saml/metadata',
+        }
+      end
+
+      # The install-wide switch (#4604): configure_provider registers no saml
+      # route while it is off, so the button must not be offered either,
+      # however complete and valid the SAML_* vars are.
+      [nil, 'false'].each do |value|
+        it "does not list SAML while SAML_ENABLED is #{value.inspect}, with the vars complete and usable" do
+          config = config_with_three_providers(**saml_env, SAML_ENABLED: value)
+          expect(config.sso_providers.map { |p| p['route_name'] }).to eq(%w[entra google github])
+        end
+      end
+
+      # The SAML-compatible session cookie: :vars_valid (Saml.platform_usable?)
+      # checks it first, and the lane config carries the shipped lax cookie.
+      before do
+        allow(Onetime).to receive(:session_config).and_return('same_site' => 'none', 'secure' => true)
+      end
+
+      # The rule is :vars_valid's, so it must gate the advertised set exactly
+      # as it gates registration (registry_spec pins the boot side).
+      it 'does not list SAML under a session cookie SAML cannot use' do
+        allow(Onetime).to receive(:session_config).and_return('same_site' => 'lax', 'secure' => false)
+
+        config = config_with_three_providers(**saml_env)
+        expect(config.sso_providers.map { |p| p['route_name'] }).to eq(%w[entra google github])
+      end
+
+      it 'lists a configured SAML provider last, with its default label' do
+        config = config_with_three_providers(**saml_env)
+        expect(config.sso_providers.last).to eq('route_name' => 'saml', 'display_name' => 'SAML SSO')
+        expect(config.sso_providers.map { |p| p['route_name'] }).to eq(%w[entra google github saml])
+      end
+
+      it 'honours SAML_ROUTE_NAME and SAML_DISPLAY_NAME' do
+        saved = ENV.fetch('SAML_DISPLAY_NAME', nil)
+        ENV['SAML_DISPLAY_NAME'] = 'Okta'
+        config = config_with_three_providers(**saml_env, SAML_ROUTE_NAME: 'okta')
+        expect(config.sso_providers.last).to eq('route_name' => 'okta', 'display_name' => 'Okta')
+      ensure
+        saved.nil? ? ENV.delete('SAML_DISPLAY_NAME') : ENV['SAML_DISPLAY_NAME'] = saved
+      end
+
+      %i[SAML_IDP_SSO_SERVICE_URL SAML_IDP_ENTITY_ID SAML_IDP_CERT].each do |var|
+        it "omits SAML when #{var} is missing" do
+          config = config_with_three_providers(**saml_env.except(var))
+          expect(config.sso_providers.map { |p| p['route_name'] }).not_to include('saml')
+        end
+      end
+
+      {
+        'the certificate does not parse' => { SAML_IDP_CERT: 'not a certificate' },
+        'the certificate has expired' => {
+          SAML_IDP_CERT: SamlSpec::TestIdp.new(cert_not_after: Time.utc(2020, 1, 2)).cert_pem,
+        },
+        'the SSO service URL is http' => { SAML_IDP_SSO_SERVICE_URL: 'http://idp.example.com/saml/sso' },
+        'the EntityID is whitespace' => { SAML_IDP_ENTITY_ID: '  ' },
+      }.each do |label, overrides|
+        it "does not advertise SAML when #{label}" do
+          config = config_with_three_providers(**saml_env, **overrides)
+          expect(config.sso_providers.map { |p| p['route_name'] }).to eq(%w[entra google github])
+        end
       end
     end
 

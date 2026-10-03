@@ -20,7 +20,10 @@ module Onetime
     # ```
     #
     # The middleware sets the following env variables:
-    # - `env['identity.resolved']` - The resolved identity object (Customer instance)
+    # - `env['identity.resolved']` - The resolved identity object (Customer
+    #   instance). Always nil in simple mode, which deliberately skips the
+    #   Customer load; read `env['identity.authenticated']` and
+    #   `env['identity.metadata']` there.
     # - `env['identity.source']` - Source of identity ('full', 'simple', 'anonymous')
     # - `env['identity.authenticated']` - Boolean authentication status
     # - `env['identity.metadata']` - Additional metadata about the identity
@@ -35,6 +38,17 @@ module Onetime
     # `env['identity.resolved']` deliberately stays the PRINCIPAL during an
     # impersonation. Anything that makes an authorization or ownership decision
     # must read the strategy result, never this.
+    #
+    # ### Session lifetime is not decided here
+    #
+    # This runs after Onetime::Session, which has already ended any session
+    # past its absolute deadline (a remember-me stamp, or the lifetime
+    # deadline after `authenticated_at`) and holds every other session to
+    # the rolling inactivity lifetime through the blob's TTL. A session that
+    # reaches this middleware is therefore live, and it is resolved as such
+    # without a second age check. `metadata[:expires_at]` reports the
+    # session's absolute deadline ({Onetime::Session.absolute_deadline}),
+    # and is nil for a session that has none (a rolling default session).
     #
     # ### Performance Optimization
     #
@@ -87,15 +101,18 @@ module Onetime
         # Check authentication mode (simple vs full)
         auth_mode = detect_auth_mode
 
+        # Gate on `authenticated`, not `user`: the simple-mode resolver never
+        # sets a user (see resolve_simple_identity), so a user check would
+        # drop every signed-in simple-mode session to anonymous.
         case auth_mode
         when 'full'
           # Try full mode (Rodauth) session first
           full_identity = resolve_full_identity(request, env)
-          return full_identity if full_identity[:user]
+          return full_identity if full_identity[:authenticated]
         when 'simple'
           # Use simple (Valkey/Redis-only) authentication
           simple_identity = resolve_simple_identity(request, env)
-          return simple_identity if simple_identity[:user]
+          return simple_identity if simple_identity[:authenticated]
         end
 
         # Default to anonymous user
@@ -130,7 +147,7 @@ module Onetime
               account_id: session['account_id'],
               auth_method: 'full',
               authenticated_at: session['authenticated_at'],
-              expires_at: session['authenticated_at'] ? session['authenticated_at'] + 86_400 : nil,
+              expires_at: Onetime::Session.absolute_deadline(session),
             },
           }
       rescue StandardError => ex
@@ -178,13 +195,6 @@ module Onetime
         # Don't require external_id - just check authenticated flag
         return no_identity unless session && session['authenticated'] == true
 
-        # Check session expiry
-        if session['authenticated_at']
-          max_age = Onetime.session_config['expire_after']
-          age     = Familia.now.to_i - session['authenticated_at'].to_i
-          return no_identity if age >= max_age
-        end
-
         # Return identity WITHOUT loading Customer from Redis
         # Controllers will lazy-load via SessionHelpers#current_customer when needed
         {
@@ -195,7 +205,7 @@ module Onetime
             external_id: session['external_id'],
             email: session['email'],
             session_id: session.id&.private_id,
-            expires_at: session['authenticated_at'] ? session['authenticated_at'] + 86_400 : nil,
+            expires_at: Onetime::Session.absolute_deadline(session),
             ip_address: session['ip_address'] || request.ip,
           },
         }
@@ -277,14 +287,13 @@ module Onetime
         nil
       end
 
+      # The full-mode sign-in markers. Lifetime is the session store's
+      # decision (see the class comment), not re-derived from the age of
+      # `authenticated_at`.
       def full_authenticated?(session)
         return false unless session['authenticated_at']
-        return false unless session['external_id'] || session['account_id']
 
-        # Check session age against configured expiry
-        max_age = Onetime.session_config['expire_after']
-        age     = Familia.now.to_i - session['authenticated_at'].to_i
-        age < max_age
+        !!(session['external_id'] || session['account_id'])
       end
 
       def detect_auth_mode

@@ -91,7 +91,7 @@ RSpec.describe 'Rodauth Security Hooks', type: :integration do
           'password-confirm': valid_password
         }
 
-        expect(last_response.status).to be_between(200, 299).or be(422) # 422 if DB constraints fail
+        expect(last_response.status).to eq(200), last_response.body
       end
     end
 

@@ -38,8 +38,8 @@
 // unauthenticated, including the first one.
 //
 // On top of the email environment documented in e2e/support/auth-journey.ts
-// (full auth mode, AUTH_AUTOVERIFY=false, SMTP → Mailpit, a running job
-// worker, signup rate limit off), the journey needs:
+// (full auth mode, AUTH_VERIFY_ACCOUNT_ENABLED=true, SMTP → Mailpit, a
+// running job worker, signup rate limit off), the journey needs:
 //   BILLING_ENABLED=true            and a catalog that resolves
 //                                   identity_plus_v1 (etc/billing.yaml or
 //                                   materialized plans) — otherwise
