@@ -697,4 +697,150 @@ RSpec.describe Onetime::Operations::DispatchNotification, type: :integration do
       expect { Time.iso8601(notification[:created_at]) }.not_to raise_error
     end
   end
+
+  describe 'delivery events (#4479)' do
+    let(:publisher_instance) { instance_double(Onetime::Jobs::Publisher) }
+    let(:http_instance) { instance_double(Net::HTTP) }
+    let(:response) { instance_double(Net::HTTPSuccess, code: '200', body: 'OK') }
+    let(:data) do
+      base_data.merge(
+        channels: %w[via_email via_webhook],
+        addressee: base_data[:addressee].merge(customer_extid: 'ur2a3b4c5d'),
+      )
+    end
+    let(:operation) { described_class.new(data: data, context: { source_message_id: 'notif-msg-1' }) }
+
+    def clear_events
+      Onetime::DeliveryEvent.events.clear
+    end
+
+    def recorded
+      Onetime::DeliveryEvent.recent(20)
+    end
+
+    before do
+      clear_events
+      stub_public_ip_resolution
+      allow(Onetime::Jobs::Publisher).to receive(:new).and_return(publisher_instance)
+      allow(publisher_instance).to receive(:publish).and_return('email-msg-1')
+
+      allow(Net::HTTP).to receive(:new).and_return(http_instance)
+      allow(http_instance).to receive(:ipaddr=)
+      allow(http_instance).to receive(:use_ssl=)
+      allow(http_instance).to receive(:use_ssl?).and_return(true)
+      allow(http_instance).to receive(:verify_mode=)
+      allow(http_instance).to receive(:verify_hostname=)
+      allow(http_instance).to receive(:open_timeout=)
+      allow(http_instance).to receive(:read_timeout=)
+      allow(http_instance).to receive(:request).and_return(response)
+      allow(response).to receive(:is_a?).with(Net::HTTPSuccess).and_return(true)
+    end
+
+    after { clear_events }
+
+    it 'records email as queued (not sent) and webhook as sent, sharing the correlation id' do
+      operation.call
+
+      email   = recorded.find { |event| event['channel'] == 'email' }
+      webhook = recorded.find { |event| event['channel'] == 'webhook' }
+
+      expect(email).to include(
+        'stage' => 'queue',
+        'outcome' => 'queued',
+        'correlation_id' => 'notif-msg-1',
+        'message_id' => 'email-msg-1',
+        'event_type' => 'secret.viewed',
+        'template' => 'secret_viewed',
+        'customer_id' => 'ur2a3b4c5d',
+      )
+      expect(webhook).to include(
+        'stage' => 'delivery',
+        'outcome' => 'sent',
+        'correlation_id' => 'notif-msg-1',
+        'http_status' => 200,
+        'target_host' => 'example.com',
+        'attempt_count' => 1,
+      )
+      expect(webhook['duration_ms']).to be_a(Integer)
+    end
+
+    it 'carries the correlation id, event type and customer extid in the email payload, outside data' do
+      operation.call
+
+      expect(publisher_instance).to have_received(:publish).with(
+        'email.message.send',
+        hash_including(
+          correlation_id: 'notif-msg-1',
+          event_type: 'secret.viewed',
+          customer_extid: 'ur2a3b4c5d',
+          data: hash_not_including(:correlation_id, :customer_extid),
+        ),
+      )
+    end
+
+    it 'generates a correlation id when the context has no source message id' do
+      described_class.new(data: data).call
+
+      ids = recorded.map { |event| event['correlation_id'] }.uniq
+      expect(ids.size).to eq(1)
+      expect(ids.first).to start_with('gen-')
+    end
+
+    it 'records the webhook failure with the status and the email as queued when only the webhook fails' do
+      error_response = instance_double(Net::HTTPServerError, code: '503', body: 'secret-body user@example.com')
+      allow(http_instance).to receive(:request).and_return(error_response)
+      allow(error_response).to receive(:is_a?).with(Net::HTTPSuccess).and_return(false)
+
+      results = operation.call
+
+      expect(results).to eq(via_email: :success, via_webhook: :error)
+      webhook = recorded.find { |event| event['channel'] == 'webhook' }
+      expect(webhook).to include(
+        'outcome' => 'failed',
+        'reason' => 'http_status',
+        'http_status' => 503,
+        'target_host' => 'example.com',
+      )
+      expect(webhook).not_to have_key('error_message')
+      expect(webhook.to_json).not_to include('secret-body')
+      expect(recorded.find { |event| event['channel'] == 'email' }).to include('outcome' => 'queued')
+    end
+
+    it 'records a queue failure with a scrubbed error when publishing raises' do
+      allow(publisher_instance).to receive(:publish)
+        .and_raise(StandardError, 'refused amqp://user:s3cret@broker:5672/')
+
+      results = operation.call
+
+      expect(results[:via_email]).to eq(:error)
+      email = recorded.find { |event| event['channel'] == 'email' }
+      expect(email).to include(
+        'stage' => 'queue',
+        'outcome' => 'failed',
+        'reason' => 'publish_failed',
+        'error_class' => 'StandardError',
+      )
+      expect(email['error_message']).not_to include('s3cret')
+    end
+
+    it 'records skipped events when a channel has no recipient or target' do
+      bare = data.merge(addressee: { custid: custid, customer_extid: 'ur2a3b4c5d' })
+
+      results = described_class.new(data: bare).call
+
+      expect(results).to eq(via_email: :skipped, via_webhook: :skipped)
+      expect(recorded.map { |event| [event['channel'], event['outcome'], event['reason']] })
+        .to contain_exactly(%w[email skipped no_recipient], %w[webhook skipped no_target])
+    end
+
+    it 'does not change channel results when event recording fails' do
+      allow(Onetime::DeliveryEvent).to receive(:record).and_raise(RedisClient::CannotConnectError, 'down')
+
+      results = operation.call
+
+      expect(results).to eq(via_email: :success, via_webhook: :success)
+      expect(publisher_instance).to have_received(:publish).once
+      expect(http_instance).to have_received(:request).once
+    end
+  end
 end
