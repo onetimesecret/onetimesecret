@@ -110,20 +110,20 @@ expect follows the origin:
   canonical host and a registered custom domain, none of which can be
   classified from the name. A carrier that is read still shows as drift,
   because the row then differs from what the bare `Host` resolved to.
-T8 moved its carrier to `X-Forwarded-Host` and still expects `custom`. A release
-before #4384 reports T3, T6 and T12 as mismatches.
+  T8 moved its carrier to `X-Forwarded-Host` and still expects `custom`. A release
+  before #4384 reports T3, T6 and T12 as mismatches.
 
 ## Files
 
-| File                        | Role                                                                 |
-| --------------------------- | -------------------------------------------------------------------- |
-| `bin/host-seam`             | entry point (ADR-042): `probe`, `sweep`                              |
-| `topologies.psv`            | the matrix: one row per topology with its expected strategy. Data only |
-| `topology-lib.sh`           | matrix loader, origin expectation, spoof predicate                   |
-| `topology-probe.sh`         | sends the matrix with curl and grades the answers                    |
-| `release-sweep.sh`          | runs the probe against published release images                      |
-| `seed-tenant.rb`            | fixture for the SSO column                                           |
-| `tests/topology-test.sh`    | loader, origin expectation, and the probe against a stand-in curl    |
+| File                     | Role                                                                   |
+| ------------------------ | ---------------------------------------------------------------------- |
+| `bin/host-seam`          | entry point (ADR-042): `probe`, `sweep`                                |
+| `topologies.psv`         | the matrix: one row per topology with its expected strategy. Data only |
+| `topology-lib.sh`        | matrix loader, origin expectation, spoof predicate                     |
+| `topology-probe.sh`      | sends the matrix with curl and grades the answers                      |
+| `release-sweep.sh`       | runs the probe against published release images                        |
+| `seed-tenant.rb`         | fixture for the SSO column                                             |
+| `tests/topology-test.sh` | loader, origin expectation, and the probe against a stand-in curl      |
 
 The probe needs a running app, so it does not run in CI. Two things do:
 
@@ -255,6 +255,143 @@ and `HTTP_X_ORIGINAL_HOST`), which is why the matrix covers
 `Apx-Incoming-Host`, `X-Forwarded-Host`, `X-Original-Host`, and RFC 7239
 `Forwarded`. Since #4384 only `X-Forwarded-Host` is read; the other three are
 sent as controls.
+
+## Real-proxy wire acceptance (CI or authorized staging only)
+
+The existing topology probe, mounted Rack matrix, and stand-in curl checks do
+**not** establish proxy sanitization, raw duplicate-header handling, or origin
+isolation. `proxy-wire.py` is a separate, opt-in wire check extending this tooling
+without changing the topology matrix's direct-to-app expectations. Do not run it
+locally under the current no-local-tests restriction.
+
+### Disposable real-Caddy fixture
+
+Prerequisites: Python 3.9+ and an already-installed Caddy binary. Provision and pin
+the Caddy version in the CI job using the deployment's approved version; this
+script does not download dependencies. In a disposable CI runner:
+
+```bash
+python3 tools/host-seam/proxy-wire.py fixture --caddy caddy
+```
+
+This starts only loopback listeners: a real Caddy process using
+`proxy-wire.caddy` and a Python upstream header capture. It sends actual raw
+HTTP/1.1 requests and inspects the fields received **after Caddy**, preserving
+separate physical duplicate field lines. No app, datastore, tenant seed, TLS
+certificate, or deployed infrastructure is required. It stops only its own
+process and listeners when finished.
+
+Proposed acceptance criteria (not a claim about deployed configuration):
+
+- Exactly one upstream `Host: origin-target.internal` and exactly one
+  `X-Forwarded-Host` naming the public request host.
+- No upstream `Apx-Incoming-Host`, `X-Original-Host`, or `Forwarded`.
+- A poisoned single header, both duplicate orders, comma-joined values, and
+  simultaneous carrier poisoning leave the upstream identity unchanged.
+- Two physical `Host` fields in either order receive HTTP 400 or 421. A reset,
+  timeout, or missing response is inconclusive, not a passing rejection.
+
+The config reuses the rewrite/removal operations from
+`caddy-approximated-lane.caddy`, but deliberately removes its developer TLS paths
+and static-file routing. This checks the supplied Caddy config, **not**
+Approximated, the deployed edge config, the application HTTP server's parser, or
+SSO. Do not substitute its success for those checks.
+
+Each result is JSONL with a stable finding ID and case name. Exit codes: `0`
+means all assertions passed for that run and vantage; `1` means an assertion
+failed; `2` means setup or transport was inconclusive. A failing clean control
+stops the matrix rather than mislabelling setup as header poisoning.
+
+### CI fixture gate
+
+Read workflow coverage:
+
+- `.github/workflows/ci.yml` includes `tools/host-seam/**` in its Ruby change
+  filter, but the mounted matrix is application-level evidence only.
+- `.github/workflows/static-analysis.yml` runs the shell suite without services
+  or network; it does not execute this Python wire check.
+- `.github/workflows/compose-smoke.yml`, `full-stack-smoke`, already builds
+  Caddy, starts the app, and checks `GET /api/v2/status` through HTTPS. Its PR
+  paths do not include `tools/host-seam/**`. Its ingress status check does not
+  assert header overwrite or raw duplicates.
+
+The `host-proxy-wire` job in `.github/workflows/ci.yml` runs the fixture with
+Caddy 2.11.4, matching the version in `docker/variants/caddy.dockerfile`. It
+triggers on the Ruby change filter, including `tools/host-seam/**`, and retains
+JSONL results, the resolved image digest, and the binary version as artifacts.
+The CI result is pending; adding the job is not evidence that it passed.
+
+The staging command below still requires a registered custom domain and domains
+enabled in the actual deployment. The compose smoke job's current localhost
+status check is not a custom-domain oracle.
+
+### Deployment acceptance checklist
+
+Run only in authorized CI/staging. Get values from the deployment inventory; no
+staging hostname, origin address, or origin port is supplied by this repository.
+The following commands intentionally require operator-supplied values rather
+than invented endpoints. From repo root, in Bash:
+
+```bash
+: "${HOST_SEAM_PUBLIC_URL:?Set the actual tenant dynamic URL from staging inventory}"
+python3 tools/host-seam/proxy-wire.py staging \
+  --url "$HOST_SEAM_PUBLIC_URL" --strategy custom
+```
+
+Use the existing dynamic `/` route documented by `topology-probe.sh`, on an
+already-registered custom domain with `DOMAINS_ENABLED=true`. The clean control
+must emit exactly one `O-Display-Domain` matching the URL hostname and
+`O-Domain-Strategy: custom`. GET only; no SSO POST, cookies, redirects followed,
+seeding, or IdP requests. HTTPS verifies certificates. For a private staging CA,
+add `--ca-file` with the approved CA bundle. To test an inventoried ingress IP
+without changing SNI or Host, add `--connect-address` with that IP.
+
+- [ ] Record the edge/provider versions, deployed config revision, runner source
+      IP/network, public URL, and results. Run through the actual provider-to-edge
+      chain, not only an internal load balancer shortcut.
+- [ ] Repeat the staging command for each ingress route and canonical surface
+      (use `--strategy canonical` for the latter). Inspect failures; a static page,
+      WAF block, or missing O-\* oracle is not proof of overwrite.
+- [ ] Observe the origin-side headers using authorized edge/origin logging or
+      a temporary capture backend in a disposable deployment. Staging O-\* results
+      show effective app identity only: ignored poison could remain on the wire.
+      Do not install this unauthenticated capture server on a public production
+      listener. Never log cookies, authorization headers, or tenant credentials.
+- [ ] Inventory every origin listener/address, including IPv4, IPv6, public
+      load-balancer listeners, and alternate ports. From an **untrusted external
+      vantage**, run once per inventoried address/port:
+
+```bash
+: "${HOST_SEAM_ORIGIN_ADDRESS:?Set an actual origin address from staging inventory}"
+: "${HOST_SEAM_ORIGIN_PORT:?Set its actual listener port from staging inventory}"
+python3 tools/host-seam/proxy-wire.py origin \
+  --address "$HOST_SEAM_ORIGIN_ADDRESS" --port "$HOST_SEAM_ORIGIN_PORT"
+```
+
+This makes one TCP connection attempt and sends no HTTP. TCP success fails the
+proposed strict network-isolation criterion, even if HTTP might later reject
+the caller. Connection refusal passes only that address/port/vantage at that
+time; it does not prove firewall policy. DNS failure, timeout, and routing
+errors exit `2`. For silently dropped traffic, corroborate with enforced
+firewall/security-group rules and counters; do not relabel a timeout a pass.
+Use literal inventoried IPs to avoid checking only one DNS answer.
+
+- [ ] Correlate external failures with origin health and a successful authorized
+      ingress control. Review firewall/ACL rules permitting only the approved proxy
+      sources, and app trusted-proxy configuration. A dead listener is not evidence
+      of correct isolation. If the origin intentionally accepts TCP and gates at
+      mTLS or HTTP instead, this strict TCP check is insufficient: document and
+      verify that boundary separately, including forged carriers from an untrusted
+      source. No authenticated-origin boundary is validated by this script.
+
+### Remaining limitations ledger
+
+| ID             | Status and evidence still required                                                                                                                                                                                                         |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `HS-PROXY-001` | Fixture and staging commands added, not executed. Fixture demonstrates only the supplied Caddy policy when run. Actual provider/edge overwrite and upstream removal require deployed-path results and origin-side capture/config evidence. |
+| `HS-PROXY-002` | Raw HTTP/1.1 duplicate carrier and Host cases added, not executed. Fixture ends at a Python capture backend; actual app-server parsing requires staging results. HTTP/2 and HTTP/3 duplicates/translation are not covered.                 |
+| `HS-PROXY-003` | Explicit-address TCP reachability command added, not executed. Complete origin inventory, untrusted vantage, healthy-origin control, and enforced network or authenticated-origin policy evidence remain unavailable.                      |
+| `HS-PROXY-004` | Fixture wired into the CI `host-proxy-wire` job; execution pending. This gate covers the disposable Caddy fixture only, not deployed infrastructure.                                                                                       |
 
 ## When to run
 
