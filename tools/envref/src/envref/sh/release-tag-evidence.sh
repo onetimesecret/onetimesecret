@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+# shellcheck shell=bash
 # Package-private release evidence adapter. Sourcing it performs no I/O.
 # The caller owns the supervisor PID; the supervisor owns Git and its watchdog.
 
