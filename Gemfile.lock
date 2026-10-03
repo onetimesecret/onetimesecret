@@ -624,7 +624,7 @@ DEPENDENCIES
   debug
   dry-cli (~> 1.2)
   faker (~> 3.2)
-  familia (~> 2.12)
+  familia (~> 2.13)
   fastimage (~> 2.4)
   htmlbeautifier
   httparty

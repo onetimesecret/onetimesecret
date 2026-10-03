@@ -900,9 +900,10 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
 
         # Build config B with a different domain_id and inject the stolen ciphertext
         config_b = build_domain_sso_config(:oidc, domain_id: domain_b_id)
-        # Bypass the normal setter by injecting the raw encrypted JSON
-        # The setter recognizes encrypted JSON and wraps it without re-encrypting
-        config_b.client_id = stolen_ciphertext
+        # Inject the raw envelope the way hydration from storage does. The
+        # setter encrypts anything else as plaintext, whatever its shape
+        # (delano/familia#405); only a StoredEnvelope is kept verbatim.
+        config_b.client_id = Familia::Encryption::StoredEnvelope.new(payload: stolen_ciphertext)
 
         # Attempting to reveal should fail because the decryption context
         # (domain_id) no longer matches what was used during encryption
@@ -938,7 +939,7 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
 
         # Build config B with a different domain_id and inject the stolen ciphertext
         config_b = build_domain_sso_config(:oidc, domain_id: domain_b_id)
-        config_b.client_secret = stolen_ciphertext
+        config_b.client_secret = Familia::Encryption::StoredEnvelope.new(payload: stolen_ciphertext)
 
         expect {
           config_b.client_secret.reveal { it }
@@ -1133,7 +1134,10 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
 
     context 'when domain_id is missing' do
       it 'returns an error about domain_id' do
-        config = build_domain_sso_config(:oidc, domain_id: '')
+        # Familia refuses to encrypt a field for a record with no identifier,
+        # so the credentials go in first and domain_id is blanked afterwards.
+        config = build_domain_sso_config(:oidc)
+        config.domain_id = ''
 
         errors = config.validation_errors
         expect(errors).to include('domain_id is required')
@@ -1186,7 +1190,8 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
 
     context 'when multiple fields are missing' do
       it 'returns all applicable errors' do
-        config = build_domain_sso_config(:oidc, domain_id: '')
+        config = build_domain_sso_config(:oidc)
+        config.domain_id = ''
         config.provider_type = nil
         config.client_id = nil
         config.client_secret = nil
