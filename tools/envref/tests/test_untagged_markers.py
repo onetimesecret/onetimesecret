@@ -11,9 +11,12 @@ fallback when the advertisement cannot be read. The fixture origin is a local
 bare repository: these tests never contact an external service.
 """
 
+import os
 import shlex
 import shutil
+import signal
 import subprocess
+import time
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -104,10 +107,13 @@ def run_check(
     )
 
 
-def query_shim(root: Path, body: str) -> dict[str, str]:
+def query_shim(
+    root: Path, body: str, watchdog_sleep: str | None = None
+) -> dict[str, str]:
     """Intercept only ls-remote; all repository operations use real Git."""
     real_git = shutil.which("git", path=GIT_ENV["PATH"])
-    assert real_git
+    real_sleep = shutil.which("sleep", path=GIT_ENV["PATH"])
+    assert real_git and real_sleep
     bindir = root / "query-bin"
     bindir.mkdir()
     shim = bindir / "git"
@@ -122,6 +128,21 @@ def query_shim(root: Path, body: str) -> dict[str, str]:
         encoding="utf-8",
     )
     shim.chmod(0o755)
+    if watchdog_sleep is not None:
+        shim = bindir / "sleep"
+        shim.write_text(
+            '#!/bin/sh\nif [ "$1" = 15 ]; then\n'
+            '  printf "%s\\n" "$$" > "$ENVREF_REPO_ROOT/watchdog-sleep.pid"\n'
+            + "  exec "
+            + shlex.quote(real_sleep)
+            + " "
+            + shlex.quote(watchdog_sleep)
+            + "\nfi\nexec "
+            + shlex.quote(real_sleep)
+            + ' "$@"\n',
+            encoding="utf-8",
+        )
+        shim.chmod(0o755)
     return {"PATH": str(bindir) + ":" + GIT_ENV["PATH"]}
 
 
@@ -363,7 +384,93 @@ class UntaggedMarkerTest(unittest.TestCase):
 
 
 class TagQueryTest(unittest.TestCase):
+    def assert_process_stopped(self, pid_file: Path):
+        pid = int(pid_file.read_text())
+        deadline = time.monotonic() + 2
+        while time.monotonic() < deadline:
+            proc = subprocess.run(
+                ["ps", "-o", "stat=", "-p", str(pid)],
+                capture_output=True,
+                text=True,
+                timeout=2,
+            )
+            state = proc.stdout.strip()
+            # An orphan may briefly remain as a zombie until init reaps it.
+            if not state or state.startswith("Z"):
+                return
+            time.sleep(0.01)
+        self.fail(
+            f"process {pid} from {pid_file.name} is still running: {state}"
+        )
 
+    def cleanup_processes(self, root: Path):
+        # Bound even a regression against an implementation with no deadline.
+        for name in ("query.pid", "transport.pid", "watchdog-sleep.pid"):
+            path = root / name
+            if path.exists():
+                try:
+                    os.kill(int(path.read_text()), signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
+
+    def test_stalled_query_is_bounded_and_its_transport_is_killed(self):
+        for require_base in (False, True):
+            with (
+                self.subTest(require_base=require_base),
+                TemporaryDirectory() as tmp,
+            ):
+                root = Path(tmp)
+                fixture(root, tags=("v0.24.0",))
+                edit(root, ENV_FILE, "# Since v0.27.0", "# Since unreleased")
+                env = query_shim(
+                    root,
+                    'printf "%040d\\trefs/tags/v0.24.0\\n" 0\n'
+                    "trap '' TERM\n"
+                    'sleep 60 &\nprintf "%s\\n" "$!" > "$ENVREF_REPO_ROOT/transport.pid"\n'
+                    "wait",
+                    watchdog_sleep="1",
+                )
+                try:
+                    start = time.monotonic()
+                    proc = run_check(
+                        root, require_base=require_base, extra_env=env
+                    )
+                    self.assertLess(time.monotonic() - start, 5)
+                    self.assertEqual(
+                        proc.returncode, 1, proc.stdout + proc.stderr
+                    )
+                    self.assertIn(
+                        "15-second deadline", proc.stdout + proc.stderr
+                    )
+                    if require_base:
+                        self.assertIn(
+                            "CONFIG_VERSION_REQUIRE_BASE", proc.stderr
+                        )
+                    else:
+                        self.assertIn("KEY_GUESSED", proc.stderr)
+                        self.assertIn("frozen conservatively", proc.stderr)
+                        self.assertIn("NOTE:", proc.stdout)
+                    self.assert_process_stopped(root / "query.pid")
+                    self.assert_process_stopped(root / "transport.pid")
+                finally:
+                    self.cleanup_processes(root)
+
+    def test_successful_query_cleans_up_the_watchdog_sleep(self):
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            fixture(root, tags=("v0.24.0",))
+            env = query_shim(
+                root,
+                'while ! test -s "$ENVREF_REPO_ROOT/watchdog-sleep.pid"; do sleep 0.01; done\n'
+                'printf "%040d\\trefs/tags/v0.24.0\\n" 0\nexit 0',
+                watchdog_sleep="60",
+            )
+            try:
+                proc = run_check(root, require_base=True, extra_env=env)
+                self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+                self.assert_process_stopped(root / "watchdog-sleep.pid")
+            finally:
+                self.cleanup_processes(root)
 
     def test_failed_query_discards_partial_stdout(self):
         for require_base in (False, True):
@@ -387,6 +494,37 @@ class TagQueryTest(unittest.TestCase):
                     self.assertIn("KEY_GUESSED", proc.stderr)
                     self.assertIn("frozen conservatively", proc.stderr)
 
+    def test_credential_prompts_are_disabled_without_replacing_ssh_commands(
+        self,
+    ):
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            fixture(root, tags=("v0.24.0",))
+            env = query_shim(
+                root,
+                'printf "%s\\n" "$GIT_TERMINAL_PROMPT" "$GIT_ASKPASS" '
+                '"$SSH_ASKPASS" "$SSH_ASKPASS_REQUIRE" "$GIT_SSH_COMMAND" "$GIT_SSH" '
+                '> "$ENVREF_REPO_ROOT/query.env"\nexit 1',
+            )
+            env.update(
+                {
+                    "GIT_SSH_COMMAND": "configured-ssh -o ProxyCommand=proxy",
+                    "GIT_SSH": "configured-wrapper",
+                }
+            )
+            proc = run_check(root, require_base=True, extra_env=env)
+            self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+            self.assertEqual(
+                (root / "query.env").read_text().splitlines(),
+                [
+                    "0",
+                    "/usr/bin/false",
+                    "/usr/bin/false",
+                    "force",
+                    env["GIT_SSH_COMMAND"],
+                    env["GIT_SSH"],
+                ],
+            )
 
     def test_an_annotated_remote_tag_freezes_its_marker(self):
         with TemporaryDirectory() as tmp:

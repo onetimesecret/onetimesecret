@@ -96,6 +96,12 @@ shipped. Each check queries the complete stable-tag namespace advertised by
 stable tags. A tag present in either set freezes the marker; a version absent
 from both stays editable only after the remote query succeeds and the combined
 set contains stable tags. No tag objects are fetched and no refs are changed.
+The query has a 15-second deadline. On expiry, the guard kills the query's
+process group, including its SSH/HTTP transport children, and discards partial
+output. The watchdog is also cleaned up when the query returns early. This
+uses Bash job control and standard Unix utilities, not a `timeout` executable.
+Credential-prompt helpers are disabled for this query and stdin reads EOF;
+configured Git transports, SSH commands, keys and proxies are preserved.
 
 `origin` must be the repository that carries the project's complete release
 tag namespace, not a fork with only some release tags. Git cannot establish
@@ -310,8 +316,9 @@ File names below are relative to `tools/envref/src/envref/`.
 - **The ratchet needs access to origin's release tags.** Rule 2 uses exact
   `vX.Y.Z` tags advertised by `origin`, plus known local stable tags. Partial
   or missing local tags do not weaken the rule if the remote query succeeds.
-  If `origin` is absent or unreachable, the query fails, or neither set has a
-  stable tag, `CONFIG_VERSION_REQUIRE_BASE=1` fails before running the rules.
+  If `origin` is absent or unreachable, the query fails or exceeds its
+  15-second deadline, or neither set has a stable tag,
+  `CONFIG_VERSION_REQUIRE_BASE=1` fails before running the rules.
   Locally the fallback freezes every concrete marker on the base, including
   guessed versions, and prints a NOTE on both passing and failing runs.
   Check `git ls-remote --tags --refs origin` and use `git fetch --tags origin`

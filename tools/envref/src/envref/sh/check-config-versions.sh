@@ -3,8 +3,8 @@
 # check-config-versions.sh
 #
 # The RATCHET for "# Since vX.Y.Z" config annotations, in the same idiom as
-# check-env-reference.sh. Dependency-free (git plus grep/sed/awk/sort/comm/join
-# only). Contract: docs/development/config-version-annotations.md
+# check-env-reference.sh. Dependency-free (git plus standard Unix tools; no
+# external timeout utility). Contract: docs/development/config-version-annotations.md
 #
 # The one-time backfill that annotated .env.reference and etc/defaults/*.yaml is
 # worthless the moment the next PR adds an undated key, and actively harmful the
@@ -209,6 +209,37 @@ fi
 # A failed advertisement is not evidence of absence, even if it emitted partial
 # output. Local/offline runs then freeze every concrete marker; strict CI fails.
 # --print-sites needs neither tags nor a network connection.
+TAG_QUERY_TIMEOUT=15
+query_origin_tags() (
+  # Job control gives git and its transport children a private process group.
+  # Keep it in this subshell so the rest of the guard's job handling is unchanged.
+  set -m
+  local query_pid="" watchdog_pid="" status=0
+  trap '[[ -z "$query_pid" ]] || kill -KILL -- "-$query_pid" 2>/dev/null || true
+        [[ -z "$watchdog_pid" ]] || kill -KILL -- "-$watchdog_pid" 2>/dev/null || true
+        wait 2>/dev/null || true' EXIT
+  trap 'exit 130' INT
+  trap 'exit 143' TERM
+
+  # Disable prompting, not configured transports (GIT_SSH*, core.sshCommand,
+  # keys and proxies). force makes OpenSSH use the failing helper, not /dev/tty.
+  GIT_TERMINAL_PROMPT=0 GIT_ASKPASS=/usr/bin/false \
+    SSH_ASKPASS=/usr/bin/false SSH_ASKPASS_REQUIRE=force \
+    git ls-remote --tags --refs origin 'refs/tags/v*' </dev/null &
+  query_pid=$!
+  (
+    # Keep sleep in the watchdog's group so cleanup also kills that child.
+    set +m
+    trap - EXIT INT TERM
+    sleep "$TAG_QUERY_TIMEOUT"
+    : > "$tmp/tag-query.timeout"
+    kill -KILL -- "-$query_pid" 2>/dev/null || true
+  ) &
+  watchdog_pid=$!
+  wait "$query_pid" || status=$?
+  return "$status"
+)
+
 TAGS_COMPLETE=0
 TAG_PROBLEM="cannot list stable release tags from origin"
 : > "$tmp/stable.tags"
@@ -216,7 +247,7 @@ if [[ -n "$BASE_REF" && "${1:-}" != "--print-sites" ]]; then
   { git tag -l 'v[0-9]*' 2>/dev/null || true; } \
     | { grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' || true; } \
     | sort -u > "$tmp/local.tags"
-  if GIT_TERMINAL_PROMPT=0 git ls-remote --tags --refs origin 'refs/tags/v*' > "$tmp/remote.refs" 2>/dev/null; then
+  if query_origin_tags > "$tmp/remote.refs" 2>/dev/null; then
     awk '$2 ~ /^refs\/tags\/v[0-9]+\.[0-9]+\.[0-9]+$/ {
       sub(/^refs\/tags\//, "", $2); print $2
     }' "$tmp/remote.refs" > "$tmp/remote.tags"
@@ -226,7 +257,8 @@ if [[ -n "$BASE_REF" && "${1:-}" != "--print-sites" ]]; then
     else
       TAG_PROBLEM="no stable release tags (vX.Y.Z) are visible locally or on origin"
     fi
-
+  elif [[ -f "$tmp/tag-query.timeout" ]]; then
+    TAG_PROBLEM="release-tag query to origin exceeded its ${TAG_QUERY_TIMEOUT}-second deadline"
   fi
 fi
 
