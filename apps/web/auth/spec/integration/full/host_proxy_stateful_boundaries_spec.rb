@@ -7,6 +7,7 @@ require_relative '../../support/tenant_test_fixtures'
 # Cookie replay deliberately bypasses browser host-only delivery so a refusal
 # proves the server-side surface gate, not Rack::Test's cookie jar behavior.
 # Run: tests/lanes/run full-sqlite --only apps/web/auth/spec/integration/full/host_proxy_stateful_boundaries_spec.rb
+
 RSpec.describe 'Host proxy stateful boundaries', :shared_db_state, type: :integration do
   include Rack::Test::Methods
   include_context 'tenant fixtures'
@@ -116,6 +117,62 @@ RSpec.describe 'Host proxy stateful boundaries', :shared_db_state, type: :integr
     post "https://#{host}/auth/logout", JSON.generate(shrimp: token)
   end
 
+  def with_rewrite(value)
+    network                        = (OT.conf['site']['network'] ||= {})
+    saved                          = network['public_host_rewrite']
+    network['public_host_rewrite'] = value
+    yield
+  ensure
+    network['public_host_rewrite'] = saved
+  end
+
+  # Everything after the name=value pair, with the expiry time blanked.
+  def cookie_attributes(set_cookie)
+    set_cookie.split(/;\s*/).drop(1).map { |attribute| attribute.sub(/\Aexpires=.*/i, 'expires=<time>') }
+  end
+
+  # Onetime::Session takes these when the stack is built, which is the
+  # example's first request.
+  def with_session_cookie_config(secure:, same_site:)
+    session = OT.conf['site']['session']
+    saved   = session.slice('secure', 'same_site')
+    session.merge!('secure' => secure, 'same_site' => same_site)
+    yield
+  ensure
+    session.merge!(saved)
+  end
+
+  # Onetime::Session sits above the rewrite and commits the session after the
+  # layers below have returned, so on the way out it sees the rewritten Host.
+  # Its cookie carries no Domain and takes Secure and SameSite from
+  # site.session; the lane's own secure:false is run next to secure:true.
+  describe 'the session Set-Cookie, compared across the setting' do
+    [
+      { secure: false, same_site: 'lax', attributes: ['path=/', 'expires=<time>', 'httponly', 'samesite=lax'] },
+      { secure: true, same_site: 'strict',
+        attributes: ['path=/', 'expires=<time>', 'secure', 'httponly', 'samesite=strict'] },
+    ].each do |config|
+      it "HP-COOKIE-02: has the same attributes with the setting off and on (secure: #{config[:secure]}, " \
+         "same_site: #{config[:same_site]})" do
+        with_session_cookie_config(**config.slice(:secure, :same_site)) do
+          off, on = [false, true].map do |rewrite|
+            with_rewrite(rewrite) do
+              header 'Cookie', nil
+              login_on(tenant_domain)
+              # The login request that set the cookie was rewritten in the
+              # second run and not in the first.
+              expect(last_request.env.key?(Onetime::Middleware::PublicHostRewrite::ORIGINAL_HTTP_HOST)).to eq(rewrite)
+              cookie_attributes(@login_set_cookie)
+            end
+          end
+
+          expect(on).to eq(off)
+          expect(off).to eq(config[:attributes])
+        end
+      end
+    end
+  end
+
   [false, true].each do |rewrite|
     context "public_host_rewrite #{rewrite ? 'on' : 'off'}" do
       around do |example|
@@ -221,6 +278,31 @@ RSpec.describe 'Host proxy stateful boundaries', :shared_db_state, type: :integr
         # canonical session remains usable rather than being destroyed.
         proxy_get(canonical_host, '/api/colonel/info', cookie: @cookie)
         expect(last_response.status).to eq(200)
+      end
+
+      # The one Set-Cookie writer whose Domain is taken from the request host:
+      # CookieTossing (inside Onetime::Middleware::Security, below the rewrite)
+      # expires a duplicated session cookie on Rack's host and each parent
+      # domain. The setting changes which host that is.
+      it "HP-COOKIE-03: expires a duplicated session cookie on #{rewrite ? 'the public host' : 'the origin target'} and its parent domains" do
+        proxy_get(tenant_domain, '/auth', cookie: 'onetime.session=a; onetime.session=b')
+        expect(last_response.status).to eq(403)
+        expect(last_response.body).to eq('Forbidden')
+
+        cookies = Array(last_response.headers['Set-Cookie']).flat_map { |value| value.split("\n") }
+        clears  = cookies.select { |value| value.start_with?('onetime.session=;') }
+        domains = rewrite ? [tenant_domain, 'acme-corp.example.com', 'example.com'] : [canonical_host, 'example.org']
+        expect(clears).to eq(
+          domains.flat_map do |domain|
+            %w[/ /auth].map do |path|
+              "onetime.session=; domain=#{domain}; path=#{path}; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+            end
+          end,
+        )
+        # The session cookie issued alongside stays host-only in both runs.
+        issued = cookies - clears
+        expect(issued.size).to eq(1)
+        expect(cookie_attributes(issued.first)).to eq(['path=/', 'expires=<time>', 'httponly', 'samesite=lax'])
       end
     end
   end
