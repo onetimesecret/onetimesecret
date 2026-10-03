@@ -91,6 +91,13 @@ RSpec.describe ColonelAPI::AuthStrategies::SessionAuthStrategy do
         .to all(eq(Onetime::Middleware::StripForwardedHost::STRIPPED_HEADERS))
     end
 
+    it 'names the same forwarded scheme carriers in Session as the middleware deletes' do
+      # Session's dropped-secure-cookie warning picks the scheme carriers out
+      # of the stripped-name record by its own list.
+      expect(Onetime::Session::FORWARDED_SCHEME_HEADERS)
+        .to eq(Onetime::Middleware::StripForwardedHost::FORWARDED_SCHEME_HEADERS)
+    end
+
     it 'reads detected_host through the configurable result field name' do
       original = Rack::DetectHost.result_field_name
       begin

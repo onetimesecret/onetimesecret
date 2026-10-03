@@ -102,7 +102,7 @@ CAPTURED_WARNINGS.first.include?('ASSUME_HTTPS=true') &&
 reset_warn_guard!
 @session.send(:security_matches?, request_for({}), { secure: true })
 CAPTURED_PAYLOADS.first
-#=> { rack_url_scheme: nil, x_forwarded_proto: nil, forwarded: false, x_forwarded_ssl: nil, https: nil }
+#=> { rack_url_scheme: nil, x_forwarded_proto: nil, forwarded: false, x_forwarded_ssl: nil, https: nil, untrusted_scheme_headers: [] }
 
 ## (a4b) ...and `forwarded:` still reports the edge's RFC 7239 header after
 ## StripForwardedHost (mounted above Session) has deleted it: the middleware
@@ -113,6 +113,23 @@ stripped = request_for({ 'onetime.stripped_forwarded_headers' => ['HTTP_FORWARDE
 @session.send(:security_matches?, stripped, { secure: true })
 [stripped.env.key?('HTTP_FORWARDED'), CAPTURED_PAYLOADS.first[:forwarded]]
 #=> [false, true]
+
+## (a4c) ...and a scheme carrier StripForwardedHost deleted because the peer
+## is not a trusted proxy is reported by NAME. Its value is gone from the env,
+## so `x_forwarded_proto:` reads nil exactly as if the proxy had sent nothing;
+## the name list is what tells the two apart, and the message says what to do
+## about it.
+reset_warn_guard!
+untrusted = request_for({
+  'onetime.stripped_forwarded_headers' => %w[HTTP_X_FORWARDED_HOST HTTP_X_FORWARDED_PROTO HTTP_X_FORWARDED_SSL].freeze,
+})
+@session.send(:security_matches?, untrusted, { secure: true })
+[
+  CAPTURED_PAYLOADS.first[:x_forwarded_proto],
+  CAPTURED_PAYLOADS.first[:untrusted_scheme_headers],
+  CAPTURED_WARNINGS.first.include?('site.network.trusted_proxy'),
+]
+#=> [nil, ['HTTP_X_FORWARDED_PROTO', 'HTTP_X_FORWARDED_SSL'], true]
 
 ## (a5) ...and a present-but-non-https X-Forwarded-Proto is recorded by VALUE in
 ## the evidence ('http' reached Rack but did not carry https) => pinpoints the hop
