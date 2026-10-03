@@ -276,9 +276,15 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
     )
   end
 
-  # Compare against the same request without forwarding, including doubled
-  # Host normalization. A classification-derived allowlist is not an oracle.
-  it 'takes nothing from the forwarded headers of a peer that is not a trusted proxy' do
+  # The oracle is the same peer and Host sent with no forwarded headers
+  # (including a doubled Host). Asserted: X-Forwarded-Port is gone, and the
+  # detected host, display domain, strategy, forwarded authority, custom
+  # domain id, HTTP_HOST, SERVER_NAME, SERVER_PORT, the original-Host key
+  # and Rack's host, port and base_url all equal the oracle's. The inputs
+  # here are X-Forwarded-Host and X-Forwarded-Port only; Forwarded and the
+  # scheme carriers are covered under 'forwarded scheme trust' below.
+  it 'gives a peer that is not a trusted proxy what its Host alone produces, ' \
+     'whatever X-Forwarded-Host and X-Forwarded-Port it sends' do
     baselines = {}
     report(
       violations do |input, out|
