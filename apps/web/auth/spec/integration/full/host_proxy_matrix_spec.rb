@@ -215,6 +215,15 @@ module HostProxyMatrix
       rack_host: '127.0.0.1', **TENANT, origin: 'http://{tenant}:3000',
       rewritten: { rack_host: '{tenant}', origin: 'http://{tenant}' } },
 
+    { id: 'F09', case: 'accepted forwarded authority has a public port, not the origin-hop port',
+      headers: { 'Host' => '{canonical}:3000', 'X-Forwarded-Host' => '{tenant}:8443' },
+      rack_host: '{canonical}', **TENANT, origin: 'https://{tenant}:3000',
+      rewritten: { rack_host: '{tenant}', origin: 'https://{tenant}:8443', rack_base_url: 'https://{tenant}:8443' } },
+    { id: 'F10', case: 'accepted forwarded authority and original Host both carry the public port',
+      headers: { 'Host' => '{canonical}:8443', 'X-Forwarded-Host' => '{tenant}:8443' },
+      rack_host: '{canonical}', **TENANT, origin: 'https://{tenant}:8443',
+      rewritten: { rack_host: '{tenant}', rack_base_url: 'https://{tenant}:8443' } },
+
     # --- RFC 7239 Forwarded --------------------------------------------------
     # Never a host source. Under the X-Forwarded family the stack pins, its
     # proto= is not read either.
@@ -466,6 +475,9 @@ module HostProxyMatrix
     { id: 'E04', case: 'tenant in X-Forwarded-Host',
       headers: { 'Host' => '{canonical}', 'X-Forwarded-Host' => '{tenant}' },
       idp: :tenant, redirect_uri: TENANT_ORIGIN, link: TENANT_ORIGIN, brand: '{tenant}', rewritten: {} },
+    { id: 'E13', case: 'forwarded public port without X-Forwarded-Port survives in callback and email',
+      headers: { 'Host' => '{canonical}:8443', 'X-Forwarded-Host' => '{tenant}:8443' },
+      idp: :tenant, redirect_uri: 'https://{tenant}:8443', link: 'https://{tenant}:8443', brand: '{tenant}', rewritten: {} },
     { id: 'E05', case: 'doubled canonical Host',
       headers: { 'Host' => '{canonical}, {canonical}' },
       idp: :platform, redirect_uri: CANONICAL_ORIGIN, link: CANONICAL_ORIGIN, brand: '{canonical}', rewritten: {} },

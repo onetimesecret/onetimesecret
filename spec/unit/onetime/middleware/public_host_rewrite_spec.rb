@@ -76,6 +76,79 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite do
     end
   end
 
+  describe 'validated forwarded authority metadata' do
+    around do |example|
+      original = Rack::Request.forwarded_priority
+      Rack::Request.forwarded_priority = [:x_forwarded]
+      example.run
+    ensure
+      Rack::Request.forwarded_priority = original
+    end
+
+    def forwarded_env(authority, **extra)
+      classified_env(host: 'origin.example.test:3000', detected: 'tenant.example.com', strategy: :custom,
+        Rack::DetectHost.forwarded_authority_field_name => authority, **extra)
+    end
+
+    it 'preserves the public port rather than the origin-hop port' do
+      env = call_with(forwarded_env('tenant.example.com:8443'))
+
+      expect(env['HTTP_HOST']).to eq('tenant.example.com:8443')
+      expect(env['SERVER_NAME']).to eq('tenant.example.com')
+      expect(Rack::Request.new(env).base_url).to eq('https://tenant.example.com:8443')
+      expect(described_class.original_http_host(env)).to eq('origin.example.test:3000')
+    end
+
+    it 'omits the scheme-default port from generated URLs' do
+      env = call_with(forwarded_env('tenant.example.com:443'))
+
+      expect(Rack::Request.new(env).base_url).to eq('https://tenant.example.com')
+    end
+
+    it 'uses Rack authority-port precedence over X-Forwarded-Port' do
+      env = call_with(forwarded_env('tenant.example.com:8443', 'HTTP_X_FORWARDED_PORT' => '9443'))
+
+      expect(Rack::Request.new(env).base_url).to eq('https://tenant.example.com:8443')
+    end
+
+    it 'falls back to X-Forwarded-Port without an accepted authority port' do
+      env = call_with(forwarded_env(nil, 'HTTP_X_FORWARDED_PORT' => '9443'))
+
+      expect(Rack::Request.new(env).port).to eq(9443)
+    end
+
+    it 'does not take a port from metadata for another host' do
+      env = call_with(forwarded_env('other.example.com:8443'))
+
+      expect(env['HTTP_HOST']).to eq('tenant.example.com')
+    end
+
+    it 'leaves an already matching Host and its port unchanged' do
+      env = call_with(forwarded_env('tenant.example.com:8443', 'HTTP_HOST' => 'tenant.example.com:9443'))
+
+      expect(env['HTTP_HOST']).to eq('tenant.example.com:9443')
+      expect(env).not_to have_key(described_class::ORIGINAL_HTTP_HOST)
+    end
+
+    it 'does not rewrite an invalid classification even with accepted metadata' do
+      env = call_with(forwarded_env('tenant.example.com:8443', 'onetime.domain_strategy' => :invalid))
+
+      expect(env['HTTP_HOST']).to eq('origin.example.test:3000')
+      expect(env).not_to have_key(described_class::ORIGINAL_HTTP_HOST)
+    end
+
+    context 'with the setting off' do
+      let(:enabled) { false }
+
+      it 'leaves the received authority unchanged' do
+        env = call_with(forwarded_env('tenant.example.com:8443'))
+
+        expect(env['HTTP_HOST']).to eq('origin.example.test:3000')
+        expect(env).not_to have_key(described_class::ORIGINAL_HTTP_HOST)
+      end
+    end
+  end
+
   describe 'a Host that Rack cannot parse' do
     it 'is replaced by the detected host' do
       env = call_with(classified_env(host: 'tenant.example.com, tenant.example.com', detected: 'tenant.example.com', strategy: :custom))

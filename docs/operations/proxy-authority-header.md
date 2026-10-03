@@ -116,11 +116,19 @@ custom-domains feature is off unless it resolved to `site.host` itself.
 
 Details:
 
-- Only the hostname is written. The port on the received `Host` belongs to the
-  hop between the proxy and the application, so it is not carried over. The
-  port then comes from `X-Forwarded-Port` if the proxy sends it, otherwise the
-  scheme default. A port configured in `site.host` still applies to URLs built
-  for the canonical host.
+- The rewritten `Host` preserves an explicit port from the single-valued
+  `X-Forwarded-Host` selected by host detection from a trusted proxy. The value
+  must be a plain `hostname:port` authority with a numeric port from 1 through
+  65535. For example, `X-Forwarded-Host: secrets.example.com:8443` produces
+  `Host: secrets.example.com:8443`, even without `X-Forwarded-Port`.
+- No port is copied from the received `Host`, which may name the origin hop.
+  Without an accepted forwarded authority port, `Rack::Request#port` uses
+  `X-Forwarded-Port` if present, otherwise the scheme default. An explicit authority port takes
+  precedence over `X-Forwarded-Port`, following Rack's normal behavior; proxies
+  should send consistent values. A port configured in `site.host` still
+  applies to auth URLs built for the canonical host. Rack's `base_url` reads
+  the authority directly, not `X-Forwarded-Port`; send the public port in
+  `X-Forwarded-Host` for consumers of that method.
 - A `Host` that arrives doubled (`Host: a, a`) and resolves to a served host is
   replaced by that host.
 - The `Host` as received is kept in the Rack env as

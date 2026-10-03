@@ -186,6 +186,12 @@ module Rack
     class << self
       attr_accessor :result_field_name
 
+      # Validated authority with an explicit port from the selected, trusted
+      # X-Forwarded-Host only. Never populated from Host or observed carriers.
+      def forwarded_authority_field_name
+        "#{result_field_name}.forwarded_authority"
+      end
+
       # Env key under which the observed RFC 7239 `host=` is published — a
       # sidecar of result_field_name, so a renamed result field carries its
       # observation with it. Absent when the request has no readable, valid
@@ -239,6 +245,7 @@ module Rack
     def call(env)
       result_field_name = self.class.result_field_name
       detected_host     = nil
+      env.delete(self.class.forwarded_authority_field_name)
 
       # Determine which headers to check based on whether request comes from
       # a trusted proxy. Forwarded headers can be spoofed by clients, so they
@@ -308,6 +315,10 @@ module Rack
 
         if self.class.valid_domain_name?(host)
           detected_host = host
+          if header == 'X-Forwarded-Host'
+            authority                                      = self.class.forwarded_authority(env[header_key], host)
+            env[self.class.forwarded_authority_field_name] = authority if authority
+          end
           logger.debug("[DetectHost] #{host} via #{header_key}")
           break # stop on first valid host
         elsif self.class.private_ip?(host)
@@ -393,6 +404,19 @@ module Rack
         first_host = value_unsafe.to_s.split(',').first.to_s
 
         Onetime::Utils::DomainParser.extract_hostname(first_host)
+      end
+
+      # Retain only a plain DNS authority with a usable explicit port. Host
+      # detection is deliberately more permissive (e.g. URL extraction); do
+      # not carry that extra syntax into the rewritten HTTP_HOST.
+      def forwarded_authority(value, host)
+        match = value.to_s.strip.match(/\A([a-z0-9.-]+):([0-9]{1,5})\z/i)
+        return nil unless match && normalize_host(match[1]) == host
+
+        port = match[2].to_i
+        return nil unless (1..65_535).cover?(port)
+
+        "#{host}:#{port}"
       end
 
       # Rack env key for an HTTP header name.

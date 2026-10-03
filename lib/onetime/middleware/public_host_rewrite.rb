@@ -49,13 +49,14 @@ module Onetime
     #
     # ## What is written
     #
-    # `HTTP_HOST` and `SERVER_NAME` are set to the hostname alone. No port is
-    # written: the port on the inbound `Host` belongs to the origin hop, and
-    # a `Host` Rack could not parse (a doubled `Host: a, a`) has no port to
-    # take. `Rack::Request#port` then answers from `X-Forwarded-Port` or the
-    # scheme default. `SERVER_PORT` is left as the server set it: it is the
-    # listening port, and Rack does not consult it for an http or https
-    # request that has a `Host`.
+    # `SERVER_NAME` is set to the hostname. `HTTP_HOST` also carries the
+    # explicit port, if any, that DetectHost validated on the selected,
+    # trusted X-Forwarded-Host. No port is taken from the inbound `Host`:
+    # it may belong to the origin hop or be unparseable (a doubled Host).
+    # Rack's #port uses this explicit authority port before X-Forwarded-Port,
+    # then the scheme default. Its #base_url uses the authority directly.
+    # `SERVER_PORT` is left as the server set it: it is the listening port,
+    # and Rack does not consult it for an http or https request with a Host.
     #
     # ## The original
     #
@@ -64,10 +65,9 @@ module Onetime
     # otherwise). Use .original_http_host to read it without caring whether a
     # rewrite happened.
     #
-    # It is the only original kept. The `X-Forwarded-Host` value is not:
-    # StripForwardedHost records the names of the carriers it deleted and
-    # leaves no value behind, and on a rewritten request the value
-    # Rack::DetectHost accepted is the host written to `HTTP_HOST`.
+    # The raw `X-Forwarded-Host` is not kept. DetectHost publishes only its
+    # validated authority when it selected that header and the port is valid;
+    # StripForwardedHost still removes the raw header before apps run.
     #
     # ## Ordering
     #
@@ -141,7 +141,12 @@ module Onetime
 
       def rewrite(env, host)
         env[ORIGINAL_HTTP_HOST] = env[HTTP_HOST]
-        env[HTTP_HOST]          = host
+        authority               = env[Rack::DetectHost.forwarded_authority_field_name]
+        env[HTTP_HOST]          = if authority && Onetime::Utils::DomainParser.hostname_matches?(authority, host)
+          authority
+        else
+          host
+        end
         env[SERVER_NAME]        = host
       end
     end
