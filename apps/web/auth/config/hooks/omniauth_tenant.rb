@@ -71,6 +71,11 @@ module Auth::Config::Hooks
     # factor.
     PENDING_TENANT_CONTEXT_MAX_AGE = 600
 
+    # How far in the future a pending tenant context's start time may lie
+    # and still count as fresh, in seconds (#4610). The server answering the
+    # callback can run slightly behind the one that started the flow.
+    PENDING_TENANT_CONTEXT_CLOCK_SKEW = 60
+
     def self.configure(auth)
       # Single consumer for the validated tenant domain id. Reads the session
       # copy (pre-login callers) and the instance copy (after_login, which runs
@@ -973,6 +978,10 @@ module Auth::Config::Hooks
     # session written before the start time was stored: a sign-in in
     # progress across that deploy has to be started again.
     #
+    # A start time up to PENDING_TENANT_CONTEXT_CLOCK_SKEW in the future is
+    # kept, so clock skew between servers does not drop a fresh sign-in.
+    # One further ahead counts as expired.
+    #
     # A session with no tenant markers is left as it is, so a platform
     # flow's binding is never touched here.
     #
@@ -985,7 +994,7 @@ module Auth::Config::Hooks
 
       started_at = session[:omniauth_tenant_started_at] || session['omniauth_tenant_started_at']
       age        = started_at.is_a?(Integer) ? now - started_at : nil
-      return false if age && age.between?(0, PENDING_TENANT_CONTEXT_MAX_AGE)
+      return false if age&.between?(-PENDING_TENANT_CONTEXT_CLOCK_SKEW, PENDING_TENANT_CONTEXT_MAX_AGE)
 
       clear_pending_tenant_context(session)
 
