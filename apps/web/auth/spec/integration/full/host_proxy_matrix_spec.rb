@@ -468,6 +468,7 @@ module HostProxyMatrix
   #   link          origin of the emailed reset link, nil when none is sent
   #   brand         host named in the email subject
   #   reset_status  status of the reset request when no email is sent
+  #   sso_status    status when SSO is refused (defaults to 302)
   #
   # `rewritten: {}` marks the rows whose request is rewritten. It is empty
   # where no outcome differs: both emitters read the Auth::PublicHost chain,
@@ -526,6 +527,14 @@ module HostProxyMatrix
       link: SITE_HOST_ORIGIN, brand: SITE_HOST, rewritten: {} },
     # The sign-in gates answer before either emitter runs: no IdP redirect
     # and no email.
+    { id: 'E16', case: 'unregistered host in Host refuses sensitive emitters',
+      headers: { 'Host' => UNREGISTERED },
+      idp: nil, sso_location: '/signin?auth_error=sso_not_configured',
+      link: nil, reset_status: 404 },
+    { id: 'E17', case: 'unregistered forwarded host refuses sensitive emitters',
+      headers: { 'Host' => '{canonical}', 'X-Forwarded-Host' => UNREGISTERED },
+      idp: nil, sso_location: '/signin?auth_error=sso_not_configured',
+      link: nil, reset_status: 404 },
     { id: 'E12', case: 'read failure, tenant in X-Forwarded-Host',
       record: :read_fails, headers: { 'Host' => '{canonical}', 'X-Forwarded-Host' => '{tenant}' },
       changes_with: '#4220',
@@ -543,6 +552,14 @@ module HostProxyMatrix
     # is canonical, DetectHost accepted nothing and Rack has no host, so the
     # hook is left without a host to recognise as the operator's. The
     # rewrite has no detected host to write either.
+    { id: 'E22', case: 'unregistered Host with domains disabled uses configured email origin',
+      headers: { 'Host' => UNREGISTERED },
+      idp: nil, sso_location: '/signin?auth_error=sso_not_configured',
+      link: SITE_HOST_ORIGIN, brand: SITE_HOST },
+    { id: 'E23', case: 'unregistered forwarded host with domains disabled uses configured email origin',
+      headers: { 'Host' => SITE_HOST, 'X-Forwarded-Host' => UNREGISTERED },
+      idp: nil, sso_location: '/signin?auth_error=sso_not_configured',
+      link: SITE_HOST_ORIGIN, brand: SITE_HOST },
     { id: 'E21', case: 'doubled IP-literal site.host',
       headers: { 'Host' => "#{SITE_HOST}, #{SITE_HOST}" }, proto: nil,
       idp: nil, sso_location: '/signin?auth_error=sso_not_configured',
@@ -688,9 +705,11 @@ RSpec.describe 'Host and proxy simulation matrix (#4223)', :shared_db_state, typ
         sso_enabled: true,
       )
 
-      unless Onetime.auth_config.orgs_sso_enabled?
-        skip 'ORGS_SSO_ENABLED not set at boot — /auth/sso/* routes are not registered'
-      end
+      expect(Onetime.auth_config.orgs_sso_enabled?).to be(true),
+        'HP-PRE-01: SSO emitter coverage requires ORGS_SSO_ENABLED=true at boot. ' \
+        'Run tests/lanes/run full-sqlite --only ' \
+        'apps/web/auth/spec/integration/full/host_proxy_matrix_spec.rb; ' \
+        'shell exports are scrubbed by the runner.'
 
       @delivered = []
       allow(Onetime::Jobs::Publisher).to receive(:enqueue_email_raw) do |email, **_kwargs|
@@ -722,7 +741,7 @@ RSpec.describe 'Host and proxy simulation matrix (#4223)', :shared_db_state, typ
         # --- SSO -------------------------------------------------------------
         post '/auth/sso/entra'
         location = last_response.headers['Location'].to_s
-        expect(last_response.status).to eq(302)
+        expect(last_response.status).to eq(expected.fetch(:sso_status, 302))
 
         if expected[:idp]
           entra_tenant = expected[:idp] == :tenant ? test_sso_config.tenant_id : 'placeholder'
