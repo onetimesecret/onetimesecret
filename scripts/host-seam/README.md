@@ -145,8 +145,8 @@ Also required for valid SSO seam checks:
   the seam is inert, and the probe reports `UNTESTABLE(strategy_control)`.
   (`release-sweep.sh` sets this for its containers.)
 - `TRUSTED_PROXY_ENABLED=true` (filter mode trusts loopback/RFC1918). Without
-  it, `DetectHost` drops `X-Forwarded-Host` and T4, T5 and T8 collapse to canonical for
-  unrelated reasons.
+  it, `DetectHost` drops `X-Forwarded-Host`, every row resolves on `Host`, and
+  T4, T5, T8 and T10 drift for reasons unrelated to the seam.
 - `ORGS_SSO_ENABLED=true` so `/auth/sso/entra` is mounted. If disabled, probe
   SSO results become `NO_ROUTE` (404), and seam verdicts are not meaningful.
 

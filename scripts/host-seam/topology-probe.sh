@@ -21,12 +21,12 @@
 # component caused the split (rack's `request.host`, otto's DetectHost, the
 # middleware order, or the hook itself).
 #
-# The matrix also covers the security half: topologies T6/T7 send a forwarded
-# host from an UNTRUSTED source. Rack 3.2.7's `request.host` prefers
-# `X-Forwarded-Host`/`Forwarded` from any client, ungated by proxy trust, so a
-# release that lets an attacker-supplied host reach `O-Display-Domain` is a
-# finding in its own right. T7 doubles as the exclusion pin for RFC 7239
-# `Forwarded`, which DetectHost no longer reads at all (#4121).
+# The matrix also covers the security half: T9-T12 carry an attacker host. A
+# single trusted X-Forwarded-Host is read by design and classifies `invalid`
+# (T9, T10); the same host reaching `O-Display-Domain` through a carrier the
+# app does not read (T11, T12) is a finding in its own right. T7 doubles as
+# the exclusion pin for RFC 7239 `Forwarded`, which DetectHost no longer
+# reads at all (#4121).
 #
 # This probe is state-dependent for the SSO column only: it needs a
 # CustomDomain + enabled SsoConfig for --custom-host. Seed it with
@@ -120,7 +120,7 @@ fi
 #
 # The application reads one forwarded carrier, X-Forwarded-Host, and only
 # when it holds a single value (#4384). The others are still sent, as the
-# controls that they are NOT read: Apx-Incoming-Host (T3, T8, T11),
+# controls that they are NOT read: Apx-Incoming-Host (T3, T4, T9, T11),
 # X-Original-Host (T6), RFC 7239 `Forwarded` (T7) and a comma-separated
 # X-Forwarded-Host (T12). A release before #4384 resolves T3, T6 and T12
 # `custom`, which this table reports as a mismatch.

@@ -143,8 +143,8 @@ for tag in "${TAGS[@]}"; do
       -e JOBS_ENABLED=false \
       `# filter mode auto-trusts RFC1918/loopback, which is where the probe` \
       `# arrives from through podman's bridge. Without this DetectHost` \
-      `# discards every forwarded header and T3-T5 collapse to canonical for` \
-      `# a reason that has nothing to do with the bug under investigation.` \
+      `# ignores X-Forwarded-Host and T4, T5, T8 and T10 drift for a reason` \
+      `# that has nothing to do with the bug under investigation.` \
       -e TRUSTED_PROXY_ENABLED=true \
       -e TRUSTED_PROXY_MODE=filter \
       "$image" 2>&1 >/dev/null)"; then
