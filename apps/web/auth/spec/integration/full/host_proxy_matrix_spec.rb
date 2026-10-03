@@ -230,6 +230,10 @@ module HostProxyMatrix
       headers: { 'Host' => '{canonical}:3000', 'X-Forwarded-Host' => '{tenant}', 'X-Forwarded-Port' => '8443' },
       rack_host: '{canonical}', **TENANT, origin: 'https://{tenant}:3000',
       rewritten: { rack_host: '{tenant}', origin: 'https://{tenant}:8443', rack_base_url: 'https://{tenant}:8443' } },
+    { id: 'F12', case: 'bare X-Forwarded-Host with the scheme-default port in X-Forwarded-Port',
+      headers: { 'Host' => '{canonical}', 'X-Forwarded-Host' => '{tenant}', 'X-Forwarded-Port' => '443' },
+      rack_host: '{canonical}', **TENANT,
+      rewritten: { rack_host: '{tenant}', rack_base_url: TENANT_ORIGIN } },
 
     # --- RFC 7239 Forwarded --------------------------------------------------
     # Never a host source. Under the X-Forwarded family the stack pins, its

@@ -50,11 +50,16 @@ module Onetime
     # ## What is written
     #
     # `SERVER_NAME` is set to the hostname. `HTTP_HOST` also carries the
-    # explicit port, if any, that DetectHost validated on the selected,
-    # trusted X-Forwarded-Host. No port is taken from the inbound `Host`:
-    # it may belong to the origin hop or be unparseable (a doubled Host).
-    # Rack's #port uses this explicit authority port before X-Forwarded-Port,
-    # then the scheme default. Its #base_url uses the authority directly.
+    # public port DetectHost validated for the selected, trusted
+    # X-Forwarded-Host: the port in that header or, when it is a bare
+    # hostname, the single-valued X-Forwarded-Port sent with it. The port is
+    # left out when it is the default for the request's scheme, as a client
+    # leaves it out of `Host`. No port is taken from the inbound `Host`: it
+    # may belong to the origin hop or be unparseable (a doubled Host).
+    #
+    # Rack's #base_url reads the authority alone, while #port falls back to
+    # X-Forwarded-Port when the authority has no port. Writing the port into
+    # the authority keeps the two in agreement on a rewritten request.
     # `SERVER_PORT` is left as the server set it: it is the listening port,
     # and Rack does not consult it for an http or https request with a Host.
     #
@@ -66,8 +71,9 @@ module Onetime
     # rewrite happened.
     #
     # The raw `X-Forwarded-Host` is not kept. DetectHost publishes only its
-    # validated authority when it selected that header and the port is valid;
-    # StripForwardedHost still removes the raw header before apps run.
+    # validated authority when it selected that header and a valid port came
+    # with it; StripForwardedHost still removes the raw header before apps
+    # run.
     #
     # ## Ordering
     #
@@ -140,14 +146,21 @@ module Onetime
       end
 
       def rewrite(env, host)
+        port                    = public_port(env, host)
         env[ORIGINAL_HTTP_HOST] = env[HTTP_HOST]
-        authority               = env[Rack::DetectHost.forwarded_authority_field_name]
-        env[HTTP_HOST]          = if authority && Onetime::Utils::DomainParser.hostname_matches?(authority, host)
-          authority
-        else
-          host
-        end
+        env[HTTP_HOST]          = port ? "#{host}:#{port}" : host
         env[SERVER_NAME]        = host
+      end
+
+      # The port to write after +host+, or nil. DetectHost validated it for
+      # this host on the trusted forwarded headers; the default port of the
+      # request's scheme is not written.
+      def public_port(env, host)
+        authority = env[Rack::DetectHost.forwarded_authority_field_name]
+        return nil unless authority && Onetime::Utils::DomainParser.hostname_matches?(authority, host)
+
+        port = authority[/:(\d+)\z/, 1].to_i
+        port unless port == Rack::Request::DEFAULT_PORTS[Rack::Request.new(env).scheme]
       end
     end
   end

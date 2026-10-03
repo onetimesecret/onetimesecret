@@ -99,10 +99,18 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite do
       expect(described_class.original_http_host(env)).to eq('origin.example.test:3000')
     end
 
-    it 'omits the scheme-default port from generated URLs' do
+    it 'does not write the scheme-default port' do
       env = call_with(forwarded_env('tenant.example.com:443'))
 
+      expect(env['HTTP_HOST']).to eq('tenant.example.com')
       expect(Rack::Request.new(env).base_url).to eq('https://tenant.example.com')
+    end
+
+    it 'writes a port that is the default of the other scheme' do
+      env = call_with(forwarded_env('tenant.example.com:80'))
+
+      expect(env['HTTP_HOST']).to eq('tenant.example.com:80')
+      expect(Rack::Request.new(env).base_url).to eq('https://tenant.example.com:80')
     end
 
     it 'uses Rack authority-port precedence over X-Forwarded-Port' do
@@ -134,6 +142,13 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite do
         expect(request.get_header('HTTP_HOST')).to eq('tenant.example.com:8443')
         expect(request.port).to eq(8443)
         expect(request.base_url).to eq('https://tenant.example.com:8443')
+      end
+
+      it 'writes no port when it is the scheme default' do
+        request = Rack::Request.new(call_with(detected_env('443')))
+
+        expect(request.get_header('HTTP_HOST')).to eq('tenant.example.com')
+        expect(request.base_url).to eq('https://tenant.example.com')
       end
 
       it 'writes no port for a peer that is not a trusted proxy' do
