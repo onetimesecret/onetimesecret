@@ -267,15 +267,6 @@ module Auth::Config::Hooks
         # second identical Redis read per callback.
         request.env['onetime.tenant_sso_config'] = sso_config
 
-        # Store tenant context in session for callback validation.
-        # Only during request phase — callback phase must NOT overwrite the
-        # stored context, otherwise the mismatch check is defeated.
-        if is_request_phase && !is_callback_phase
-          session[:omniauth_tenant_domain_id]  = custom_domain.identifier
-          session[:omniauth_tenant_host]       = host
-          session[:omniauth_tenant_started_at] = Time.now.to_i
-        end
-
         Auth::Logging.log_auth_event(
           :omniauth_tenant_credentials_injecting,
           level: :info,
@@ -286,6 +277,15 @@ module Auth::Config::Hooks
 
         # Inject tenant-specific credentials into strategy
         HELPERS.inject_tenant_credentials(sso_config, request, self)
+
+        # Store context only after credential validation: a rejected provider
+        # must not renew the age of a different flow's pending binding.
+        # Callback and strategy sub-paths must not overwrite the stored context.
+        if is_request_phase && !is_callback_phase
+          session[:omniauth_tenant_domain_id]  = custom_domain.identifier
+          session[:omniauth_tenant_host]       = host
+          session[:omniauth_tenant_started_at] = Time.now.to_i
+        end
       end
 
       # ========================================================================

@@ -829,6 +829,71 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
       expect(session['omniauth_tenant_started_at']).to be_between(started, Time.now.to_i)
     end
 
+    it 'does not renew a pending SAML flow when an OIDC start is rejected' do
+      events  = audit_events
+      request = start_login(tenant_a)
+      pending = last_request.env['rack.session'].to_h.slice(
+        'omniauth_tenant_domain_id', 'omniauth_tenant_host', 'omniauth_tenant_started_at', 'saml_authn_request_id'
+      )
+      expect(pending['saml_authn_request_id']).to eq(request.id)
+      allow(Time).to receive(:now).and_return(Time.at(pending.fetch('omniauth_tenant_started_at') + 300))
+
+      post '/auth/sso/oidc'
+
+      expect(last_response.status).to eq(302), last_response.body[0, 300]
+      expect(last_response.headers['Location'].to_s).to include('auth_error=sso_failed')
+      expect(events.map(&:first)).to include(:omniauth_strategy_mismatch)
+      expect(last_request.env['rack.session'].to_h.slice(*pending.keys)).to eq(pending)
+    end
+
+    it 'refuses the original SAML callback past its age bound after a rejected OIDC start' do
+      created_emails << email
+      events  = audit_events
+      request = start_login(tenant_a)
+      started = last_request.env['rack.session'].to_h.fetch('omniauth_tenant_started_at')
+      allow(Time).to receive(:now).and_return(Time.at(started + 300))
+
+      post '/auth/sso/oidc'
+
+      expect(last_response.status).to eq(302), last_response.body[0, 300]
+      expect(last_response.headers['Location'].to_s).to include('auth_error=sso_failed')
+      expect(events.map(&:first)).to include(:omniauth_strategy_mismatch)
+      expect(last_request.env['rack.session'].to_h['saml_authn_request_id']).to eq(request.id)
+      allow(Time).to receive(:now).and_call_original
+      # Advance only the context clock, leaving the signed assertion in date.
+      allow(hook).to receive(:drop_expired_tenant_context).and_wrap_original do |original, session, host|
+        original.call(session, host, now: started + hook::PENDING_TENANT_CONTEXT_MAX_AGE + 1)
+      end
+
+      post_callback(tenant_a, response_for(request))
+
+      expect(last_response.status).to eq(302), last_response.body[0, 300]
+      expect(last_response.headers['Location'].to_s).to include('auth_error=sso_failed')
+      expect(last_request.env['rack.session'].to_h.keys.map(&:to_s)).not_to include(
+        'omniauth_tenant_domain_id', 'omniauth_tenant_host', 'omniauth_tenant_started_at', 'saml_authn_request_id'
+      )
+      expect(last_request.env['rack.session'].to_h['account_id']).to be_nil
+      expect(identity_rows(name_id)).to be_empty
+      expect(db[:accounts].where(email: email).count).to eq(0)
+      expect(events.map(&:first)).to include(:omniauth_tenant_context_expired)
+      expect(events.map(&:first)).not_to include(:omniauth_tenant_callback_validated, :login_success)
+    end
+
+    it 'renews the start time and request id for a new legitimate SAML flow' do
+      original = start_login(tenant_a)
+      started  = last_request.env['rack.session'].to_h.fetch('omniauth_tenant_started_at')
+      allow(Time).to receive(:now).and_return(Time.at(started + 300))
+
+      fresh = start_login(tenant_a)
+
+      session = last_request.env['rack.session'].to_h
+      expect(session['omniauth_tenant_started_at']).to eq(started + 300)
+      expect(session['saml_authn_request_id']).to eq(fresh.id)
+      expect(fresh.id).not_to eq(original.id)
+      expect(session['omniauth_tenant_domain_id']).to eq(tenant_a.domain.identifier)
+      expect(session['omniauth_tenant_host']).to eq(tenant_a.host)
+    end
+
     it 'drops the context left behind once it is older than the bound' do
       created_emails << email
       events  = audit_events
