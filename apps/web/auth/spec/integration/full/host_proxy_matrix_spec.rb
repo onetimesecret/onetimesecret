@@ -470,8 +470,9 @@ module HostProxyMatrix
   #   reset_status  status of the reset request when no email is sent
   #
   # `rewritten: {}` marks the rows whose request is rewritten. It is empty
-  # because no outcome here differs: both emitters read the
-  # Auth::PublicHost chain, which does not consult Rack's host.
+  # where no outcome differs: both emitters read the Auth::PublicHost chain,
+  # which does not consult Rack's host. That chain does read Rack's port, so
+  # a row whose port changes with the rewrite names the new origins.
   # ---------------------------------------------------------------------------
   EMITTERS_ON = [
     { id: 'E01', case: 'canonical host in Host',
@@ -489,6 +490,18 @@ module HostProxyMatrix
     { id: 'E13', case: 'forwarded public port without X-Forwarded-Port survives in callback and email',
       headers: { 'Host' => '{canonical}:8443', 'X-Forwarded-Host' => '{tenant}:8443' },
       idp: :tenant, redirect_uri: 'https://{tenant}:8443', link: 'https://{tenant}:8443', brand: '{tenant}', rewritten: {} },
+    # StripForwardedHost removes an X-Forwarded-Port that is not one port,
+    # also from a trusted proxy. Rack would read this one as port 0.
+    { id: 'E14', case: 'X-Forwarded-Port that is not a port',
+      headers: { 'Host' => '{tenant}', 'X-Forwarded-Port' => '0' },
+      idp: :tenant, redirect_uri: TENANT_ORIGIN, link: TENANT_ORIGIN, brand: '{tenant}' },
+    # Off, Host carries no port and Rack falls back to X-Forwarded-Port. On,
+    # the port X-Forwarded-Host named is the scheme default, the authority is
+    # written without it, and X-Forwarded-Port is removed with the rewrite.
+    { id: 'E15', case: 'X-Forwarded-Host names the default port, X-Forwarded-Port another',
+      headers: { 'Host' => '{canonical}', 'X-Forwarded-Host' => '{tenant}:443', 'X-Forwarded-Port' => '9443' },
+      idp: :tenant, redirect_uri: 'https://{tenant}:9443', link: 'https://{tenant}:9443', brand: '{tenant}',
+      rewritten: { redirect_uri: TENANT_ORIGIN, link: TENANT_ORIGIN } },
     { id: 'E05', case: 'doubled canonical Host',
       headers: { 'Host' => '{canonical}, {canonical}' },
       idp: :platform, redirect_uri: CANONICAL_ORIGIN, link: CANONICAL_ORIGIN, brand: '{canonical}', rewritten: {} },
@@ -702,6 +715,7 @@ RSpec.describe 'Host and proxy simulation matrix (#4223)', :shared_db_state, typ
       suffix = row[:changes_with] ? " (current behaviour; #{row[:changes_with]})" : ''
 
       it "#{row[:id]} #{row[:case]}#{suffix}" do
+        expected = row_for_run(row)
         prepare_record(row[:record])
         apply_topology(row)
 
@@ -710,14 +724,14 @@ RSpec.describe 'Host and proxy simulation matrix (#4223)', :shared_db_state, typ
         location = last_response.headers['Location'].to_s
         expect(last_response.status).to eq(302)
 
-        if row[:idp]
-          entra_tenant = row[:idp] == :tenant ? test_sso_config.tenant_id : 'placeholder'
+        if expected[:idp]
+          entra_tenant = expected[:idp] == :tenant ? test_sso_config.tenant_id : 'placeholder'
           expect(location).to start_with("https://login.microsoftonline.com/#{entra_tenant}/")
 
           redirect_uri = CGI.parse(URI.parse(location).query.to_s)['redirect_uri'].first.to_s
-          expect(redirect_uri).to eq("#{fill(row[:redirect_uri])}/auth/sso/entra/callback")
+          expect(redirect_uri).to eq("#{fill(expected[:redirect_uri])}/auth/sso/entra/callback")
         else
-          expect(location).to end_with(row[:sso_location])
+          expect(location).to end_with(expected[:sso_location])
         end
         expect_rewrite_record(row)
 
@@ -725,9 +739,9 @@ RSpec.describe 'Host and proxy simulation matrix (#4223)', :shared_db_state, typ
         clear_cookies
         csrf_json_post('/auth/reset-password-request', login: account_email)
 
-        if row[:link].nil?
+        if expected[:link].nil?
           expect(@delivered).to be_empty
-          expect(last_response.status).to eq(row[:reset_status])
+          expect(last_response.status).to eq(expected[:reset_status])
           next
         end
 
@@ -738,8 +752,8 @@ RSpec.describe 'Host and proxy simulation matrix (#4223)', :shared_db_state, typ
         link  = email[:body].to_s[%r{https?://[^\s,]+/reset-password\?key=\S+}]
 
         expect(link).not_to be_nil, "no reset link in the delivered body:\n#{email[:body].to_s[0, 600]}"
-        expect(origin_of(link)).to eq(fill(row[:link]))
-        expect(email[:subject].to_s).to include("(#{fill(row[:brand])})")
+        expect(origin_of(link)).to eq(fill(expected[:link]))
+        expect(email[:subject].to_s).to include("(#{fill(expected[:brand])})")
       end
     end
   end
