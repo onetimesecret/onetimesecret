@@ -15,3 +15,13 @@ Added
   ``onetime.original_http_host``, and the colonel proxy diagnostic reports it
   as ``request_headers.host``. With the setting off nothing changes. See
   ``docs/operations/proxy-authority-header.md``. (#4223)
+
+Changed
+-------
+
+- ``X-Forwarded-Port`` is read only from a trusted proxy, on the same verdict
+  as ``X-Forwarded-Host``, and only when it is one port from 1 through 65535.
+  Otherwise it is removed before the applications run. The example Caddyfile
+  and the nginx snippet in ``docs/operations/proxy-authority-header.md`` now
+  remove the header at the proxy; a proxy that passes a client's value through
+  lets the client choose the port in generated URLs. (#4223)

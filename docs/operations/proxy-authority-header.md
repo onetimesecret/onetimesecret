@@ -56,6 +56,8 @@ contract:
   client-supplied value through.
 - Remove `Forwarded`, `Apx-Incoming-Host` and `X-Original-Host` before
   forwarding to the application.
+- Overwrite `X-Forwarded-Port` with the public port, or remove it. With `Host`
+  preserved the port is already in `Host` and the header is not needed.
 - If an upstream layer carries the public host in its own header (Approximated
   uses `Apx-Incoming-Host`), copy that header into `X-Forwarded-Host`, and only
   for requests that come from that layer's address range.
@@ -71,6 +73,7 @@ nginx, with `Host` preserved:
 ```nginx
 proxy_set_header Host              $host;
 proxy_set_header X-Forwarded-Host  $host;
+proxy_set_header X-Forwarded-Port  "";
 proxy_set_header Apx-Incoming-Host "";
 proxy_set_header X-Original-Host   "";
 proxy_set_header Forwarded         "";
@@ -144,12 +147,19 @@ Details:
   `X-Forwarded-Host`. From any other peer it is removed before the
   applications run, whether or not this setting is on, so a direct client
   cannot choose the port in a generated URL.
+- From a trusted proxy it is kept only when it is one port from 1 through
+  65535. Anything else (`0`, `65536`, `abc`, a list such as `8443, 443`) is
+  removed, also whether or not this setting is on: Rack would otherwise turn
+  it into a number and use it.
+- On a rewritten request `X-Forwarded-Port` is removed once the port has been
+  written into `Host`, so `Host` is the only place a port is read from.
 - `X-Forwarded-Port` is under the same contract as `X-Forwarded-Host`: the
   proxy must overwrite it with the public port, or remove it. A proxy that
   passes a client's value through lets the client choose the port in generated
-  URLs. A proxy that sends its own listening port instead of the public one
-  (for example port 80 behind a TLS-terminating load balancer) produces URLs
-  on that port.
+  URLs. Caddy's `reverse_proxy` and nginx's `proxy_pass` both pass it through
+  unless told otherwise; the examples here remove it. A proxy that sends its
+  own listening port instead of the public one (for example port 80 behind a
+  TLS-terminating load balancer) produces URLs on that port.
 - A `Host` that arrives doubled (`Host: a, a`) and resolves to a served host is
   replaced by that host.
 - The `Host` as received is kept in the Rack env as
