@@ -8,6 +8,62 @@ require_relative '../../support/tenant_test_fixtures'
 # proves the server-side surface gate, not Rack::Test's cookie jar behavior.
 # Run: tests/lanes/run full-sqlite --only apps/web/auth/spec/integration/full/host_proxy_stateful_boundaries_spec.rb
 
+# Rack::Protection::HttpOrigin compares Origin with scheme://host[:port] as
+# Rack reads them from the request, and falls back to the shared allow_if
+# (Onetime::Middleware::HttpOriginOptions), which admits exactly
+# https://{display domain}. Both mounts sit below PublicHostRewrite, so with
+# the setting on the first comparison is against the public authority.
+#
+# {public} is the tenant's custom domain, {target} the canonical host the
+# proxy addresses the origin server by, {foreign} another verified custom
+# domain. `off` and `on` are the verdict with site.network.public_host_rewrite
+# off and on; `rewritten` says whether the setting changes the request at all.
+#
+# Three Origins are admitted only with the setting on: the public host with
+# its non-default port (O05, O09) and the public host over http on a request
+# the application sees as http (O12). Each is what a proxy that preserves
+# Host already gets in either setting (O16, O19). The origin target stops
+# being admitted with the setting on (O02, O07, O10, O14).
+module HostProxyOrigin
+  PROXIED = { host: '{target}', xfh: '{public}', proto: 'https', scheme: 'https', rewritten: true }.freeze
+
+  SHAPES = {
+    default_port: PROXIED,
+    port_in_xfh: PROXIED.merge(xfh: '{public}:8443'),
+    port_in_xfp: PROXIED.merge(xfp: '8443'),
+    seen_as_http: PROXIED.merge(proto: nil, scheme: 'http'),
+    host_preserved_port: { host: '{public}:8443', scheme: 'https', proto: 'https', rewritten: false },
+    host_preserved_http: { host: '{public}', scheme: 'http', proto: nil, rewritten: false },
+  }.freeze
+
+  ROWS = [
+    # --- Host rewritten to the origin target, default public port ------------
+    { id: 'O01', shape: :default_port, origin: 'https://{public}', off: :admitted, on: :admitted },
+    { id: 'O02', shape: :default_port, origin: 'https://{target}', off: :admitted, on: :refused },
+    { id: 'O03', shape: :default_port, origin: 'https://{foreign}', off: :refused, on: :refused },
+    { id: 'O04', shape: :default_port, origin: 'http://{public}', off: :refused, on: :refused },
+    # --- public port 8443, carried in X-Forwarded-Host -----------------------
+    { id: 'O05', shape: :port_in_xfh, origin: 'https://{public}:8443', off: :refused, on: :admitted },
+    { id: 'O06', shape: :port_in_xfh, origin: 'https://{public}', off: :admitted, on: :admitted },
+    { id: 'O07', shape: :port_in_xfh, origin: 'https://{target}', off: :admitted, on: :refused },
+    { id: 'O08', shape: :port_in_xfh, origin: 'https://{foreign}:8443', off: :refused, on: :refused },
+    # --- public port 8443, carried in X-Forwarded-Port -----------------------
+    { id: 'O09', shape: :port_in_xfp, origin: 'https://{public}:8443', off: :refused, on: :admitted },
+    { id: 'O10', shape: :port_in_xfp, origin: 'https://{target}:8443', off: :admitted, on: :refused },
+    { id: 'O11', shape: :port_in_xfp, origin: 'https://{target}', off: :refused, on: :refused },
+    # --- no forwarded scheme: the application sees http ----------------------
+    { id: 'O12', shape: :seen_as_http, origin: 'http://{public}', off: :refused, on: :admitted },
+    { id: 'O13', shape: :seen_as_http, origin: 'https://{public}', off: :admitted, on: :admitted },
+    { id: 'O14', shape: :seen_as_http, origin: 'http://{target}', off: :admitted, on: :refused },
+    { id: 'O15', shape: :seen_as_http, origin: 'http://{foreign}', off: :refused, on: :refused },
+    # --- controls: the proxy preserves Host, nothing is rewritten ------------
+    { id: 'O16', shape: :host_preserved_port, origin: 'https://{public}:8443', off: :admitted, on: :admitted },
+    { id: 'O17', shape: :host_preserved_port, origin: 'https://{public}', off: :admitted, on: :admitted },
+    { id: 'O18', shape: :host_preserved_port, origin: 'https://{foreign}:8443', off: :refused, on: :refused },
+    { id: 'O19', shape: :host_preserved_http, origin: 'http://{public}', off: :admitted, on: :admitted },
+  ].freeze
+end
+
 RSpec.describe 'Host proxy stateful boundaries', :shared_db_state, type: :integration do
   include Rack::Test::Methods
   include_context 'tenant fixtures'
@@ -124,6 +180,34 @@ RSpec.describe 'Host proxy stateful boundaries', :shared_db_state, type: :integr
     yield
   ensure
     network['public_host_rewrite'] = saved
+  end
+
+  def fill(value)
+    value&.gsub('{public}', tenant_domain)&.gsub('{target}', canonical_host)&.gsub('{foreign}', other_host)
+  end
+
+  # Send one unsafe request in the row's shape, then drop the headers the
+  # other helpers do not reset.
+  def shaped_post(row, path, body, token: nil, cookie: nil)
+    shape = HostProxyOrigin::SHAPES.fetch(row[:shape])
+    clear_cookies
+    header 'Host', fill(shape[:host])
+    header 'X-Forwarded-Host', fill(shape[:xfh])
+    header 'X-Forwarded-Port', shape[:xfp]
+    header 'X-Forwarded-Proto', shape[:proto]
+    header 'Accept', 'application/json'
+    header 'Content-Type', 'application/json'
+    header 'X-CSRF-Token', token
+    header 'Cookie', cookie
+    header 'Origin', fill(row[:origin])
+    post "#{shape[:scheme]}://#{tenant_domain}#{path}", JSON.generate(body)
+  ensure
+    header 'X-Forwarded-Port', nil
+  end
+
+  def expect_shape_rewritten(row, rewrite)
+    expect(last_request.env.key?(Onetime::Middleware::PublicHostRewrite::ORIGINAL_HTTP_HOST))
+      .to eq(rewrite && HostProxyOrigin::SHAPES.fetch(row[:shape])[:rewritten])
   end
 
   # Everything after the name=value pair, with the expiry time blanked.
@@ -278,6 +362,81 @@ RSpec.describe 'Host proxy stateful boundaries', :shared_db_state, type: :integr
         # canonical session remains usable rather than being destroyed.
         proxy_get(canonical_host, '/api/colonel/info', cookie: @cookie)
         expect(last_response.status).to eq(200)
+      end
+
+      # A refusal is Rack::Protection's own 403, text/plain "Forbidden", sent
+      # before the application runs.
+      def expect_origin_refusal
+        expect(last_response.status).to eq(403)
+        expect(last_response.content_type).to eq('text/plain')
+        expect(last_response.body).to eq('Forbidden')
+      end
+
+      describe 'HttpOrigin on the auth app mount (authenticated_web profile)' do
+        HostProxyOrigin::ROWS.each do |row|
+          verdict = row.fetch(rewrite ? :on : :off)
+          changed = row[:off] == row[:on] ? '' : " (#{row[:off]} with the setting off, #{row[:on]} with it on)"
+
+          it "HP-ORIGIN-A#{row[:id]}: #{row[:shape]}, Origin #{row[:origin]} is #{verdict}#{changed}" do
+            login_on(tenant_domain)
+            proxy_get(tenant_domain, '/auth', cookie: @cookie)
+            token = last_response.headers['X-CSRF-Token']
+            expect(token).not_to be_nil
+
+            # A valid session and CSRF token, so Origin alone decides.
+            shaped_post(row, '/auth/logout', { shrimp: token }, token: token, cookie: @cookie)
+            expect_shape_rewritten(row, rewrite)
+
+            if verdict == :admitted
+              expect(last_response.status).to eq(200)
+              expect(JSON.parse(last_response.body)).to eq('success' => 'You have been logged out')
+            else
+              expect_origin_refusal
+            end
+            # The session is gone exactly when the logout was admitted.
+            proxy_get(tenant_domain, '/auth/account', cookie: @cookie)
+            expect(last_response.status).to eq(verdict == :admitted ? 401 : 200)
+          end
+        end
+      end
+
+      # site.middleware.http_origin is off by default and in the lane. The
+      # route is outside the auth app, so its HttpOrigin is not involved, and
+      # anonymous, so AuthenticityToken lets it through: this mount decides.
+      describe 'HttpOrigin on the Onetime::Middleware::Security mount' do
+        def security_http_origin(value)
+          middleware                = (OT.conf['site']['middleware'] ||= {})
+          @saved_http_origin        = middleware['http_origin']
+          middleware['http_origin'] = value
+        end
+
+        after { OT.conf['site']['middleware']['http_origin'] = @saved_http_origin }
+
+        it 'HP-ORIGIN-S00: leaves a foreign Origin alone while site.middleware.http_origin is off (control)' do
+          security_http_origin(false)
+          shaped_post(HostProxyOrigin::ROWS.find { |row| row[:id] == 'O03' }, '/api/v3/secret/status', {})
+
+          expect(last_response.status).to eq(200)
+        end
+
+        HostProxyOrigin::ROWS.each do |row|
+          verdict = row.fetch(rewrite ? :on : :off)
+          changed = row[:off] == row[:on] ? '' : " (#{row[:off]} with the setting off, #{row[:on]} with it on)"
+
+          it "HP-ORIGIN-S#{row[:id]}: #{row[:shape]}, Origin #{row[:origin]} is #{verdict}#{changed}" do
+            # Read when the stack is built, which is this example's first request.
+            security_http_origin(true)
+            shaped_post(row, '/api/v3/secret/status', {})
+            expect_shape_rewritten(row, rewrite)
+
+            if verdict == :admitted
+              expect(last_response.status).to eq(200)
+              expect(JSON.parse(last_response.body)).to eq('records' => [], 'count' => 0)
+            else
+              expect_origin_refusal
+            end
+          end
+        end
       end
 
       # The one Set-Cookie writer whose Domain is taken from the request host:
