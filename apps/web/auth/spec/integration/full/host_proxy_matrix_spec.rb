@@ -295,6 +295,47 @@ module HostProxyMatrix
     { id: 'X03', case: 'read failure, canonical host',
       record: :read_fails, headers: { 'Host' => '{canonical}' },
       **CANONICAL },
+    # The same failed read under the request shapes the rewrite acts on. A
+    # tenant name stays :invalid and is never rewritten: not when the Host is
+    # doubled, not when a public port is forwarded with it. The forwarded
+    # port reaches neither Rack's base_url nor the auth origin.
+    { id: 'X04', case: 'read failure, doubled verified custom domain Host',
+      record: :read_fails, headers: { 'Host' => '{tenant}, {tenant}' },
+      changes_with: '#4220',
+      rack_host: nil, rack_base_url: 'https://{tenant}, {tenant}',
+      detected: '{tenant}', display: '{tenant}', strategy: :invalid,
+      origin: SITE_HOST_ORIGIN, tenant_host: nil, webauthn_host: nil },
+    # The canonical host classifies without the read, so its doubled Host is
+    # rewritten as in D01.
+    { id: 'X05', case: 'read failure, doubled canonical Host',
+      record: :read_fails, headers: { 'Host' => '{canonical}, {canonical}' },
+      **CANONICAL, rack_host: nil, rack_base_url: 'https://{canonical}, {canonical}',
+      rewritten: { rack_host: '{canonical}', rack_base_url: CANONICAL_ORIGIN } },
+    { id: 'X06', case: 'read failure, tenant and a public port in X-Forwarded-Host',
+      record: :read_fails, headers: { 'Host' => '{canonical}:3000', 'X-Forwarded-Host' => '{tenant}:8443' },
+      changes_with: '#4220',
+      rack_host: '{canonical}', rack_base_url: 'https://{canonical}:3000',
+      detected: '{tenant}', display: '{tenant}', strategy: :invalid,
+      origin: SITE_HOST_ORIGIN, tenant_host: nil, webauthn_host: nil },
+    { id: 'X07', case: 'read failure, bare X-Forwarded-Host with the public port in X-Forwarded-Port',
+      record: :read_fails,
+      headers: { 'Host' => '{canonical}', 'X-Forwarded-Host' => '{tenant}', 'X-Forwarded-Port' => '8443' },
+      changes_with: '#4220',
+      rack_host: '{canonical}', rack_base_url: CANONICAL_ORIGIN,
+      detected: '{tenant}', display: '{tenant}', strategy: :invalid,
+      origin: SITE_HOST_ORIGIN, tenant_host: nil, webauthn_host: nil },
+    # A public peer's forwarded headers are dropped before the read, so the
+    # failure decides only what its Host names (see U01 for the http scheme).
+    { id: 'X08', case: 'read failure, X-Forwarded-Host and X-Forwarded-Port from a public peer',
+      peer: :public, record: :read_fails,
+      headers: { 'Host' => '{canonical}', 'X-Forwarded-Host' => '{tenant}', 'X-Forwarded-Port' => '8443' },
+      **CANONICAL, origin: 'http://{canonical}', rack_base_url: 'http://{canonical}' },
+    { id: 'X09', case: 'read failure, verified custom domain in Host from a public peer',
+      peer: :public, record: :read_fails, headers: { 'Host' => '{tenant}' },
+      changes_with: '#4220',
+      rack_host: '{tenant}', rack_base_url: 'http://{tenant}',
+      detected: '{tenant}', display: '{tenant}', strategy: :invalid,
+      origin: SITE_HOST_ORIGIN, tenant_host: nil, webauthn_host: nil },
 
     # --- Canonical-host configuration ----------------------------------------
     { id: 'C01', case: 'hostname site.host on a configured non-default port',
