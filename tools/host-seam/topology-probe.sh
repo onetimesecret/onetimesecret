@@ -22,15 +22,15 @@
 # middleware order, or the hook itself).
 #
 # The matrix also covers the security half: T9-T12 carry an attacker host. A
-# single trusted X-Forwarded-Host is read by design and classifies `invalid`
-# (T9, T10); the same host reaching `O-Display-Domain` through a carrier the
-# app does not read (T11, T12) is a finding in its own right. T7 doubles as
-# the exclusion pin for RFC 7239 `Forwarded`, which DetectHost no longer
-# reads at all (#4121).
+# single X-Forwarded-Host from a trusted peer is selected and classifies
+# `invalid` (T9, T10); the same host reaching `O-Display-Domain` through a
+# carrier the app does not read (T11, T12) is a finding in its own right. T7
+# doubles as the exclusion pin for RFC 7239 `Forwarded`, which DetectHost no
+# longer reads at all (#4121).
 #
 # This probe is state-dependent for the SSO column only: it needs a
 # CustomDomain + enabled SsoConfig for --custom-host. Seed it with
-# scripts/host-seam/seed-tenant.rb. A direct-request control detects the
+# tools/host-seam/seed-tenant.rb. A direct-request control detects the
 # missing fixture (a request with Host: --custom and no forwarded headers has
 # no seam, so NO_CONFIG there means nothing is configured) and reports
 # FIXTURE_MISSING instead of SEAM_SPLIT; only the header columns are
@@ -38,7 +38,7 @@
 # changes).
 #
 # Usage:
-#   scripts/host-seam/topology-probe.sh \
+#   bin/host-seam probe \
 #     --base http://127.0.0.1:7143 \
 #     --canonical dev.onetime.dev \
 #     --custom local-secrets1.afb.pet \
@@ -66,6 +66,11 @@ LABEL="local"
 TSV=0
 TENANT_ID="host-seam-tenant"
 EVIL="evil.attacker.example"
+
+# The matrix (topologies.psv) and the grading helpers live beside this script
+# so the shell test and the matrix spec can load them without sending requests.
+# shellcheck source=tools/host-seam/topology-lib.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/topology-lib.sh" || exit 2
 
 usage() { sed -n '2,57p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 2; }
 # NOTE: usage() prints the header comment block; keep its sed range in sync
@@ -103,76 +108,9 @@ fi
 # `nz.onetime.co`; the default here is deliberately a domain the app has never
 # heard of, because that is the reproducible case. T8 covers the variant where
 # the inbound target happens to BE the canonical host, which routes differently.
+ORIGIN_GIVEN=0
+[[ -n "$ORIGIN" ]] && ORIGIN_GIVEN=1
 ORIGIN="${ORIGIN:-origin-target.internal}"
-# Host-only controls classify an unregistered origin as invalid, not canonical.
-# Operators can instead target the canonical host explicitly with --origin.
-ORIGIN_STRATEGY="invalid"
-if [[ "$ORIGIN" == "$CANONICAL" ]]; then
-  ORIGIN_STRATEGY="canonical"
-fi
-
-# ---------------------------------------------------------------------------
-# Topologies
-#
-# Fields: name|Host|Apx-Incoming-Host|X-Forwarded-Host|X-Original-Host|Forwarded|expected strategy
-# "-" means the header is not sent. Expected strategy is what DomainStrategy
-# SHOULD resolve when the probe source is inside the trusted-proxy set.
-#
-# The application reads one forwarded carrier, X-Forwarded-Host, and only
-# when it holds a single value (#4384). The others are still sent, as the
-# controls that they are NOT read: Apx-Incoming-Host (T3, T4, T9, T11),
-# X-Original-Host (T6), RFC 7239 `Forwarded` (T7) and a comma-separated
-# X-Forwarded-Host (T12). A release before #4384 resolves T3, T6 and T12
-# `custom`, which this table reports as a mismatch.
-#
-# DetectHost precedence (detect_host.rb HEADER_PRECEDENCE) is:
-#   X-Forwarded-Host > Host
-# ---------------------------------------------------------------------------
-TOPOLOGIES=(
-  "T1-direct-canonical|${CANONICAL}|-|-|-|-|canonical"
-  "T2-direct-custom|${CUSTOM}|-|-|-|-|custom"
-  # T3: what Approximated sends when the edge does not translate it. Host is
-  # rewritten to a non-canonical inbound target and the real host rides only
-  # in Apx-Incoming-Host, which is not read: the request resolves on Host.
-  "T3-apx-only|${ORIGIN}|${CUSTOM}|-|-|-|${ORIGIN_STRATEGY}"
-  "T4-apx-rewrite-xfh|${ORIGIN}|${CUSTOM}|${CUSTOM}|-|-|custom"
-  # T5 is the production shape: Host rewritten to a non-canonical inbound
-  # target, real host in X-Forwarded-Host. This is the #4224 reproduction.
-  "T5-xfh-only|${ORIGIN}|-|${CUSTOM}|-|-|custom"
-  "T6-xoh-only|${ORIGIN}|-|-|${CUSTOM}|-|${ORIGIN_STRATEGY}"
-  # T7: RFC 7239 `Forwarded: host=` is NOT a host source since #4121. The
-  # request resolves on `Host:` alone, so its strategy depends on the origin.
-  # `custom` here would mean the Forwarded host= parameter is being honored again.
-  "T7-forwarded-only|${ORIGIN}|-|-|-|${CUSTOM}|${ORIGIN_STRATEGY}"
-  # T8: the inbound target IS the canonical host. A consumer reading the raw
-  # Host header lands in the `canonical_domain?` branch of the omniauth setup
-  # hook (platform-level request) instead of the tenant-fallback branch, so it
-  # fails QUIETLY — platform credentials rather than `sso_not_configured`.
-  # Only the tenant id in the authorize URL distinguishes the two.
-  "T8-xfh-onto-canonical|${CANONICAL}|-|${CUSTOM}|-|-|custom"
-  # T9: attacker-supplied X-Forwarded-Host that the edge passed through, with
-  # the tenant host beside it in Apx-Incoming-Host. DetectHost takes the
-  # X-Forwarded-Host value from a trusted peer when it is a SYNTACTICALLY
-  # valid domain name — it does not check whether the domain is known — so
-  # `evil.attacker.example` is the detected host and the display domain.
-  #
-  # DomainStrategy classifies the unknown domain `invalid`, so the attacker
-  # does NOT get to impersonate a tenant. What they get is DENIAL: the
-  # tenant's own SSO fails for as long as they can attach the header.
-  # Expected strategy is therefore `invalid` — correct app behaviour, and a
-  # finding about the EDGE, which must overwrite inbound X-Forwarded-Host.
-  # This is the carrier-sanitization half of #4223. T10 is the same request
-  # with the canonical host in Host.
-  #
-  # If the evil host ever classifies `custom`, or reaches display_domain from
-  # a carrier the app does not read (T11, T12), that is a different, worse bug.
-  "T9-xfh-shadows-apx|${ORIGIN}|${CUSTOM}|${EVIL}|-|-|invalid"
-  "T10-xfh-spoof|${CANONICAL}|-|${EVIL}|-|-|invalid"
-  "T11-apx-spoof|${CANONICAL}|${EVIL}|-|-|-|canonical"
-  # T12: a proxy that appended to X-Forwarded-Host instead of overwriting it.
-  # Neither value is selected; the request resolves on Host.
-  "T12-xfh-multi|${ORIGIN}|-|${CUSTOM}, ${EVIL}|-|-|${ORIGIN_STRATEGY}"
-)
 
 # Build the curl header args for a topology row into the global HARGS array.
 # A global rather than a subshell so header VALUES containing spaces survive
@@ -186,15 +124,6 @@ hdr_args() {
   [[ "$xoh" != "-" ]] && HARGS+=("-H" "X-Original-Host: ${xoh}")
   [[ "$fwd" != "-" ]] && HARGS+=("-H" "Forwarded: host=${fwd}")
   return 0
-}
-
-# True when the evil host reached the display domain through a carrier the app
-# does not read (Apx-Incoming-Host, a comma-joined X-Forwarded-Host). A single
-# X-Forwarded-Host from the trusted probe source is read by design (#4384), so
-# T9 and T10 display the evil host and are graded on their `invalid` strategy.
-spoof_accepted() {
-  local display="$1" xfh="$2"
-  [[ "$display" == "$EVIL" && "$xfh" != "$EVIL" ]]
 }
 
 # Classify the tenant-SSO POST outcome into a stable, version-independent
@@ -241,7 +170,7 @@ if [[ "$control_sso" == "NO_CONFIG" ]]; then
   FIXTURE_MISSING=1
   echo "WARN: no enabled SsoConfig answers for ${CUSTOM} on a direct request." >&2
   echo "      SSO seam verdicts are reported as FIXTURE_MISSING. Seed with:" >&2
-  echo "      HOST_SEAM_DOMAIN=${CUSTOM} bin/ots console < scripts/host-seam/seed-tenant.rb" >&2
+  echo "      HOST_SEAM_DOMAIN=${CUSTOM} bin/ots console < tools/host-seam/seed-tenant.rb" >&2
 fi
 
 # --- Strategy control --------------------------------------------------------
@@ -251,9 +180,14 @@ fi
 # domains feature is off in the app under test (DOMAINS_ENABLED defaults to
 # false). The SSO control above disambiguates — a lookup that found tenant
 # credentials proves the domain is registered, leaving only the feature toggle.
+# O-Domain-Strategy of a request that carries only `Host: <host>`.
+direct_strategy() {
+  curl -sS -m 15 -o /dev/null -D - -H "Host: $1" "${BASE}/" 2>/dev/null \
+    | awk -F': ' 'tolower($1)=="o-domain-strategy"{gsub(/\r/,"",$2); print $2}' | tail -1
+}
+
 STRATEGY_UNTESTABLE=0
-control_strategy="$(curl -sS -m 15 -o /dev/null -D - -H "Host: ${CUSTOM}" "${BASE}/" 2>/dev/null \
-  | awk -F': ' 'tolower($1)=="o-domain-strategy"{gsub(/\r/,"",$2); print $2}' | tail -1)"
+control_strategy="$(direct_strategy "$CUSTOM")"
 if [[ "${control_strategy:-<absent>}" != "custom" ]]; then
   STRATEGY_UNTESTABLE=1
   echo "WARN: a direct request to ${CUSTOM} resolved strategy '${control_strategy:-<absent>}', not 'custom'." >&2
@@ -266,6 +200,40 @@ if [[ "${control_strategy:-<absent>}" != "custom" ]]; then
   fi
   echo "      Strategy/seam verdicts are reported as UNTESTABLE(strategy_control)." >&2
 fi
+
+# --- Origin control -----------------------------------------------------------
+# T3, T6, T7 and T12 send the public host in a carrier the app does not read,
+# so they must resolve exactly as a request carrying only `Host: <origin>`
+# does. What that is depends on the origin:
+#
+#   default origin        `invalid`, pinned. It is a name no deployment knows.
+#   same host as          `canonical`, pinned. Case, a port and a trailing dot
+#   --canonical           do not make it a different host.
+#   any other --origin    measured, with the same direct request the two
+#                         controls above use. A subdomain of the canonical
+#                         host (www.), a second canonical host or a registered
+#                         custom domain cannot be classified from its name.
+#
+# Measuring keeps the rows meaningful: a carrier that IS read still moves the
+# row away from what the bare Host resolves to.
+ORIGIN_STRATEGY="$(predicted_origin_strategy "$ORIGIN" "$CANONICAL")"
+if [[ "$ORIGIN_GIVEN" -eq 1 && "$ORIGIN_STRATEGY" != "canonical" ]]; then
+  origin_control="$(direct_strategy "$ORIGIN")"
+  case "$origin_control" in
+    canonical | custom | invalid)
+      ORIGIN_STRATEGY="$origin_control"
+      echo "NOTE: a direct request to --origin ${ORIGIN} resolved '${origin_control}';" >&2
+      echo "      T3, T6, T7 and T12 expect that." >&2
+      ;;
+    *)
+      echo "WARN: a direct request to --origin ${ORIGIN} returned no usable O-Domain-Strategy" >&2
+      echo "      ('${origin_control:-<absent>}'). T3, T6, T7 and T12 expect '${ORIGIN_STRATEGY}'." >&2
+      ;;
+  esac
+fi
+
+TOPOLOGIES=()
+load_topologies "$CANONICAL" "$CUSTOM" "$ORIGIN" "$EVIL" "$ORIGIN_STRATEGY" || exit 2
 
 ROW_FMT='%-24s %-12s %-12s %-28s %-22s %s\n'
 print_sep() {
@@ -331,7 +299,7 @@ for row in "${TOPOLOGIES[@]}"; do
     fi
     rc=1
   fi
-  if spoof_accepted "$display" "$xfh"; then
+  if spoof_accepted "$display" "$xfh" "$EVIL"; then
     verdict="SPOOF_ACCEPTED"
     rc=1
   fi

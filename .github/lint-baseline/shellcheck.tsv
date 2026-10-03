@@ -18,5 +18,5 @@ scripts/api-validation/bin/v2-capture.sh	SC2034	1
 scripts/corporate-branch-report.sh	SC2034	2
 scripts/corporate-branch-report.sh	SC2155	1
 scripts/corporate-branch-report.sh	SC2207	1
-scripts/host-seam/release-sweep.sh	SC2164	1
 scripts/install-tests/secret-rotation.sh	SC2034	1
+tools/host-seam/release-sweep.sh	SC2164	1

@@ -41,6 +41,11 @@
 # are here too: as request rows where a request produces the state, and
 # under 'env states the request rows do not reach' where none does.
 #
+# A third table is not written here at all: tools/host-seam/topologies.psv,
+# the rows `bin/host-seam probe` sends at a running app. The probe does not
+# run in CI, so its expectations are sent through this stack instead and a
+# row the application does not meet fails here.
+#
 # Related, not duplicated here:
 #   - tenant_sso_proxy_host_spec.rb: tenant SSO outcomes on a rewritten Host
 #   - public_host_email_link_spec.rb: the emailed key redeems
@@ -373,6 +378,40 @@ module HostProxyMatrix
       origin: 'http://onetime.example.net:3000', webauthn_host: 'onetime.example.net' },
   ].freeze
 
+  # ---------------------------------------------------------------------------
+  # The topology probe's matrix (tools/host-seam/topologies.psv), read as the
+  # probe reads it: name|Host|Apx-Incoming-Host|X-Forwarded-Host|
+  # X-Original-Host|Forwarded|expected strategy, "-" for a header not sent.
+  #
+  # {origin} is the Host a rewriting proxy leaves behind and {origin_strategy}
+  # what a request resolving on it classifies as. Both are given by the caller,
+  # once for an unregistered origin and once for the canonical host.
+  # ---------------------------------------------------------------------------
+  PROBE_DIR        = File.expand_path('../../../../../../tools/host-seam', __dir__)
+  PROBE_TOPOLOGIES = File.join(PROBE_DIR, 'topologies.psv')
+  PROBE_LIB        = File.join(PROBE_DIR, 'topology-lib.sh')
+  PROBE_EVIL       = 'evil.attacker.example'
+  PROBE_ORIGIN     = 'origin-target.internal'
+  PROBE_CARRIERS   = ['Host', 'Apx-Incoming-Host', 'X-Forwarded-Host', 'X-Original-Host', 'Forwarded'].freeze
+
+  def self.probe_topologies(origin:, origin_strategy:)
+    rows = File.readlines(PROBE_TOPOLOGIES, chomp: true).reject { |line| line.empty? || line.start_with?('#') }
+    rows.map do |line|
+      filled = line
+        .gsub('{origin_strategy}', origin_strategy)
+        .gsub('{origin}', origin)
+        .gsub('{custom}', '{tenant}')
+        .gsub('{evil}', PROBE_EVIL)
+      name, *values, strategy = filled.split('|')
+      raise ArgumentError, "malformed topology row: #{line}" unless values.size == PROBE_CARRIERS.size
+
+      headers = PROBE_CARRIERS.zip(values).reject { |_, value| value == '-' }.to_h
+      # The probe sends the RFC 7239 carrier as `Forwarded: host=<value>`.
+      headers['Forwarded'] = "host=#{headers['Forwarded']}" if headers.key?('Forwarded')
+      { name: name, headers: headers, xfh: headers.fetch('X-Forwarded-Host', '-'), strategy: strategy }
+    end
+  end
+
   OBSERVED_KEYS = [:rack_host, :detected, :display, :strategy, :origin, :tenant_host, :webauthn_host].freeze
 
   # ---------------------------------------------------------------------------
@@ -636,6 +675,35 @@ RSpec.describe 'Host and proxy simulation matrix (#4223)', :shared_db_state, typ
     end
   end
 
+  # The probe's own verdict on a display domain, from the library the probe
+  # sources. nil when bash could not be started.
+  def probe_spoof_accepted?(display, xfh)
+    system(
+      'bash', '-c', 'source "$1" && spoof_accepted "$2" "$3" "$4"', 'bash',
+      HostProxyMatrix::PROBE_LIB, display.to_s, xfh, HostProxyMatrix::PROBE_EVIL
+    )
+  end
+
+  shared_examples 'the topology probe matrix' do |origin:, origin_strategy:|
+    rows = HostProxyMatrix.probe_topologies(origin: origin, origin_strategy: origin_strategy)
+
+    it 'reads all twelve topologies' do
+      expect(rows.map { |row| row[:name] }.uniq.size).to eq(12)
+    end
+
+    rows.each do |row|
+      it "#{row[:name]} resolves #{row[:strategy]} and is not graded a spoof" do
+        apply_topology(row)
+        header 'Accept', 'application/json'
+        get '/auth'
+
+        env = last_request.env
+        expect(env['onetime.domain_strategy'].to_s).to eq(row[:strategy])
+        expect(probe_spoof_accepted?(env['onetime.display_domain'], fill(row[:xfh]))).to be(false)
+      end
+    end
+  end
+
   it 'runs with the forwarded-header family the stack pins' do
     expect(Rack::Request.forwarded_priority).to eq([:x_forwarded])
   end
@@ -649,6 +717,19 @@ RSpec.describe 'Host and proxy simulation matrix (#4223)', :shared_db_state, typ
 
     include_examples 'a request matrix', HostProxyMatrix::DOMAINS_ON
     include_examples 'an emitter matrix', HostProxyMatrix::EMITTERS_ON
+
+    # tools/host-seam/topologies.psv, with the probe's default origin and
+    # with the origin a deployment that rewrites Host onto the canonical
+    # host has.
+    context 'topology probe matrix, unregistered origin' do
+      include_examples 'the topology probe matrix',
+        origin: HostProxyMatrix::PROBE_ORIGIN, origin_strategy: 'invalid'
+    end
+
+    context 'topology probe matrix, canonical origin' do
+      include_examples 'the topology probe matrix',
+        origin: '{canonical}', origin_strategy: 'canonical'
+    end
 
     it 'installs the origin resolver as a per-request Proc' do
       # OmniAuth::Strategy#full_host calls it only when it is a Proc; a

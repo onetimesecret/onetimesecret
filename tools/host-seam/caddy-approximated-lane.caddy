@@ -1,4 +1,4 @@
-# scripts/host-seam/caddy-approximated-lane.caddy
+# tools/host-seam/caddy-approximated-lane.caddy
 #
 # Local Caddy site block that SIMULATES THE APPROXIMATED INGRESS, for the
 # browser-level half of the host-seam matrix.

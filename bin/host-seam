@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+#
+# bin/host-seam — the proxy-simulation matrix for the public-host seam.
+# `bin/host-seam --help` lists the commands.
+#
+# ADR-042: this shim finds the repository root, starts tools/host-seam/ and
+# passes arguments through. It holds no business logic and parses nothing;
+# the commands live in tools/host-seam/host-seam.sh.
+
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+exec "${BASH:-bash}" "$ROOT/tools/host-seam/host-seam.sh" "$@"
