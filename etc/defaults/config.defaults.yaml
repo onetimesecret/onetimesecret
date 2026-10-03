@@ -738,9 +738,9 @@ site:
     # available in env['onetime.original_http_host']. Requests that do not
     # classify, and requests whose Host already names the public host, are
     # left as they are. No effect behind a proxy that preserves Host.
-    # Preserves a valid explicit port from the selected trusted X-Forwarded-Host,
-    # never from an origin-hop Host. Otherwise Rack's #port uses X-Forwarded-Port or
-    # the scheme default.
+    # The public port comes from the trusted proxy, never from an origin-hop
+    # Host: the port in X-Forwarded-Host or, when that is a bare hostname,
+    # a single-valued X-Forwarded-Port. The scheme-default port is left out.
     # See docs/operations/proxy-authority-header.md.
     public_host_rewrite: <%= ENV['PUBLIC_HOST_REWRITE'] == 'true' %>
 

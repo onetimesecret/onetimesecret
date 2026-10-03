@@ -116,19 +116,36 @@ custom-domains feature is off unless it resolved to `site.host` itself.
 
 Details:
 
-- The rewritten `Host` preserves an explicit port from the single-valued
-  `X-Forwarded-Host` selected by host detection from a trusted proxy. The value
-  must be a plain `hostname:port` authority with a numeric port from 1 through
-  65535. For example, `X-Forwarded-Host: secrets.example.com:8443` produces
-  `Host: secrets.example.com:8443`, even without `X-Forwarded-Port`.
+- The rewritten `Host` carries the public port the trusted proxy sent with the
+  single-valued `X-Forwarded-Host` that host detection selected. The port is
+  read from one of two places, in this order:
+
+  1. `X-Forwarded-Host` itself, when it is a plain `hostname:port` authority.
+     `X-Forwarded-Host: secrets.example.com:8443` produces
+     `Host: secrets.example.com:8443`.
+  2. `X-Forwarded-Port`, when `X-Forwarded-Host` is a bare hostname.
+     `X-Forwarded-Host: secrets.example.com` with `X-Forwarded-Port: 8443`
+     produces the same `Host`. This is the usual nginx setup
+     (`X-Forwarded-Host $host` drops the port).
+
+  The port must be one number from 1 through 65535. A list of ports
+  (`8443, 443`) is not picked from, and a port written in `X-Forwarded-Host`
+  that is out of range is not replaced by `X-Forwarded-Port`; in both cases no
+  port is written. The default port of the request's scheme (443 for https,
+  80 for http) is left out of `Host`.
+- With the port in `Host`, `Rack::Request#port` and `#base_url` agree on a
+  rewritten request. Rack's `base_url` reads the authority alone, so without
+  this a port sent only in `X-Forwarded-Port` would appear in `#port` and not
+  in `#base_url`.
 - No port is copied from the received `Host`, which may name the origin hop.
-  Without an accepted forwarded authority port, `Rack::Request#port` uses
-  `X-Forwarded-Port` if present, otherwise the scheme default. An explicit authority port takes
-  precedence over `X-Forwarded-Port`, following Rack's normal behavior; proxies
-  should send consistent values. A port configured in `site.host` still
-  applies to auth URLs built for the canonical host. Rack's `base_url` reads
-  the authority directly, not `X-Forwarded-Port`; send the public port in
-  `X-Forwarded-Host` for consumers of that method.
+  A port configured in `site.host` still applies to auth URLs built for the
+  canonical host.
+- `X-Forwarded-Port` is under the same contract as `X-Forwarded-Host`: the
+  proxy must overwrite it with the public port, or remove it. A proxy that
+  passes a client's value through lets the client choose the port in generated
+  URLs. A proxy that sends its own listening port instead of the public one
+  (for example port 80 behind a TLS-terminating load balancer) produces URLs
+  on that port.
 - A `Host` that arrives doubled (`Host: a, a`) and resolves to a served host is
   replaced by that host.
 - The `Host` as received is kept in the Rack env as
