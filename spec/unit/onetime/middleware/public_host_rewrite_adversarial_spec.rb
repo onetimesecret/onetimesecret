@@ -518,6 +518,147 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
     end
   end
 
+  # X-Forwarded-Proto as an adversarial input. This is a separate, bounded
+  # product and not a dimension of each_case: every peer x three origin
+  # connections x the proto values x the request shapes below. It does not
+  # vary X-Forwarded-Scheme, X-Forwarded-SSL or Forwarded (see 'forwarded
+  # scheme trust' above), and it holds Rack's forwarded priority at
+  # [:x_forwarded], the value the app pins.
+  #
+  # StripForwardedHost is the first middleware in this chain to decide
+  # scheme trust: it deletes X-Forwarded-Proto unless the peer is a trusted
+  # proxy. What it keeps is read by Rack::Request#scheme, after HTTPS=on.
+  describe 'X-Forwarded-Proto values across request shapes' do
+    # Value => the scheme Rack takes from it, or nil when it names none.
+    # Rack splits the value on commas and whitespace and takes the last
+    # entry that is exactly https, http, wss or ws.
+    protos = {
+      nil => nil,
+      '' => nil,
+      'https' => 'https',
+      'http' => 'http',
+      'HTTPS' => nil,
+      ' https ' => 'https',
+      'https, http' => 'http',
+      'http, https' => 'https',
+      'https,' => 'https',
+      "http\thttps" => 'https',
+      'javascript' => nil,
+      'javascript, https' => 'https',
+      'https, javascript' => 'https',
+      'https://' => nil,
+      'on' => nil,
+      "https\r\nX-Injected: 1" => nil,
+      'wss' => 'wss',
+      'ws' => 'ws',
+    }.freeze
+
+    # Origin connection => [request_env scheme, extra env, scheme without a
+    # forwarded one, whether a forwarded scheme can replace it]. HTTPS=on is
+    # read before any forwarded scheme; rack.url_scheme alone is read after.
+    origins = {
+      'plain http' => ['http', {}, 'http', true],
+      'TLS with HTTPS=on' => ['https', {}, 'https', false],
+      'TLS with rack.url_scheme only' => ['https', { 'HTTPS' => nil }, 'https', true],
+    }.freeze
+
+    # Request headers => the public port a trusted proxy forwarded, if any.
+    shapes = {
+      { host: ORIGIN, xfh: REGISTERED } => nil,
+      { host: ORIGIN, xfh: "#{REGISTERED}:8443" } => 8443,
+      { host: ORIGIN, xfh: "#{REGISTERED}:443" } => 443,
+      { host: ORIGIN, xfh: "#{REGISTERED}:80" } => 80,
+      { host: ORIGIN, xfh: REGISTERED, xfp: '8443' } => 8443,
+      { host: ORIGIN, xfh: CANONICAL, xfp: '443' } => 443,
+      { host: "#{REGISTERED}, evil.test", xfh: "#{REGISTERED}:8443" } => 8443,
+      # Not rewritten for any peer.
+      { host: "#{REGISTERED}:8443" } => nil,
+      { host: ORIGIN } => nil,
+      { host: ORIGIN, xfh: 'evil.test', xfp: '8443' } => nil,
+    }.freeze
+
+    default_ports   = { 'https' => 443, 'http' => 80 }.freeze
+    websocket_ports = { 'wss' => 443, 'ws' => 80 }.freeze
+
+    def scheme_snapshot(env)
+      request = Rack::Request.new(env)
+      [request.scheme, request.ssl?, env['rack.url_scheme']]
+    end
+
+    (PEERS.keys - TRUSTED_PEERS).each do |peer|
+      it "gives #{peer} the scheme, classification and authority of the same Host sent alone" do
+        found = []
+        origins.each do |origin, (env_scheme, extra, _scheme, _replaceable)|
+          shapes.each_key do |headers|
+            baseline = run(peer: peer, host: headers[:host], scheme: env_scheme, extra: extra)
+            protos.each_key do |proto|
+              forwarded = proto.nil? ? {} : { 'HTTP_X_FORWARDED_PROTO' => proto }
+              out       = run(peer: peer, scheme: env_scheme, extra: extra.merge(forwarded), **headers)
+              actual    = [out.key?('HTTP_X_FORWARDED_PROTO'), scheme_snapshot(out),
+                           classification_snapshot(out), authority_snapshot(out)]
+              expected  = [false, scheme_snapshot(baseline),
+                           classification_snapshot(baseline), authority_snapshot(baseline)]
+              next if actual == expected
+
+              found << "#{origin} #{headers.inspect} proto=#{proto.inspect}: " \
+                       "actual=#{actual.inspect} baseline=#{expected.inspect}"
+            end
+          end
+        end
+        report(found)
+      end
+    end
+
+    TRUSTED_PEERS.each do |peer|
+      it "gives the apps the scheme #{peer} forwards and the authority expected under that scheme" do
+        found = []
+        origins.each do |origin, (env_scheme, extra, origin_scheme, replaceable)|
+          shapes.each do |headers, public_port|
+            oracle  = expected_for(peer: peer, host: headers[:host], xfh: headers[:xfh])
+            without = run(peer: peer, scheme: env_scheme, extra: extra, **headers)
+            protos.each do |proto, forwarded_scheme|
+              forwarded = proto.nil? ? {} : { 'HTTP_X_FORWARDED_PROTO' => proto }
+              out       = run(peer: peer, scheme: env_scheme, extra: extra.merge(forwarded), **headers)
+              request   = Rack::Request.new(out)
+              scheme    = replaceable && forwarded_scheme ? forwarded_scheme : origin_scheme
+              default   = default_ports[scheme]
+
+              if oracle[:rewritten]
+                name      = oracle[:detected]
+                authority = public_port && public_port != default ? "#{name}:#{public_port}" : name
+                port      = public_port || default
+              else
+                authority  = headers[:host]
+                name, port = authority.split(':')
+                port       = port.to_i
+              end
+              base_url = port.nil? || port == default ? "#{scheme}://#{name}" : "#{scheme}://#{name}:#{port}"
+              url_port = port || websocket_ports.fetch(scheme)
+              # Rack has no default port for ws and wss. On a rewritten
+              # request with no public port forwarded, #port falls back to
+              # SERVER_PORT (the origin hop's, as the String Rack returns)
+              # while #base_url carries no port. Pinned as observed; a proxy
+              # that preserves Host gets the same pair.
+              port   ||= '3000'
+
+              actual   = [out['HTTP_X_FORWARDED_PROTO'], request.scheme, request.ssl?, rewritten?(out),
+                          out['HTTP_HOST'], request.host, request.port, request.base_url,
+                          URI.parse(request.base_url).port, classification_snapshot(out)]
+              expected = [proto, scheme, %w[https wss].include?(scheme), oracle[:rewritten],
+                          authority, name, port, base_url,
+                          url_port, classification_snapshot(without)]
+              next if actual == expected
+
+              found << "#{origin} #{headers.inspect} proto=#{proto.inspect}: " \
+                       "actual=#{actual.inspect} expected=#{expected.inspect}"
+            end
+          end
+        end
+        report(found)
+      end
+    end
+  end
+
   SCHEMES.each do |scheme|
     it "gives Rack one port for #port and #base_url on a rewritten #{scheme} request" do
       found = []
