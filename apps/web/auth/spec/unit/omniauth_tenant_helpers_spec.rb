@@ -1406,6 +1406,109 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
   end
 
   # ==========================================================================
+  # drop_expired_tenant_context (#4610)
+  # ==========================================================================
+
+  describe '.drop_expired_tenant_context' do
+    let(:now)     { 1_800_000_000 }
+    let(:max_age) { described_class::PENDING_TENANT_CONTEXT_MAX_AGE }
+    let(:session) do
+      {
+        omniauth_tenant_domain_id: 'domain-id',
+        omniauth_tenant_host: 'secrets.tenant.example',
+        omniauth_tenant_started_at: now - 30,
+        'omniauth.state' => 'pending-state',
+        'saml_authn_request_id' => '_pending-request',
+        account_id: 42,
+      }
+    end
+
+    def drop
+      helpers.drop_expired_tenant_context(session, 'secrets.tenant.example', now: now)
+    end
+
+    it 'keeps a context inside the age bound' do
+      before = session.dup
+
+      expect(drop).to be false
+      expect(session).to eq(before)
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+    end
+
+    it 'keeps a context exactly at the age bound' do
+      session[:omniauth_tenant_started_at] = now - max_age
+
+      expect(drop).to be false
+      expect(session).to include(:omniauth_tenant_domain_id, 'saml_authn_request_id')
+    end
+
+    it 'drops the markers and the binding once the context is older than the bound' do
+      session[:omniauth_tenant_started_at] = now - max_age - 1
+
+      expect(drop).to be true
+      expect(session).to eq(account_id: 42)
+      expect(Auth::Logging).to have_received(:log_auth_event).with(
+        :omniauth_tenant_context_expired,
+        level: :info,
+        host: 'secrets.tenant.example',
+        age_seconds: max_age + 1,
+        pending_tenant_flow_dropped: true,
+      )
+    end
+
+    it 'drops markers that carry no start time' do
+      session.delete(:omniauth_tenant_started_at)
+
+      expect(drop).to be true
+      expect(session).to eq(account_id: 42)
+      expect(Auth::Logging).to have_received(:log_auth_event).with(
+        :omniauth_tenant_context_expired, hash_including(age_seconds: nil)
+      )
+    end
+
+    it 'drops markers whose start time is not an integer' do
+      session[:omniauth_tenant_started_at] = (now - 30).to_s
+
+      expect(drop).to be true
+      expect(session).to eq(account_id: 42)
+    end
+
+    # The callback can reach a server whose clock runs behind the one that
+    # started the flow.
+    it 'keeps a start time ahead of the clock by no more than the skew allowance' do
+      session[:omniauth_tenant_started_at] = now + described_class::PENDING_TENANT_CONTEXT_CLOCK_SKEW
+
+      expect(drop).to be false
+      expect(session).to include(:omniauth_tenant_domain_id, 'saml_authn_request_id')
+    end
+
+    it 'drops markers whose start time lies further in the future than the skew allowance' do
+      session[:omniauth_tenant_started_at] = now + described_class::PENDING_TENANT_CONTEXT_CLOCK_SKEW + 1
+
+      expect(drop).to be true
+      expect(session).to eq(account_id: 42)
+    end
+
+    it 'reads the string-keyed form the live session stores' do
+      session = {
+        'omniauth_tenant_domain_id' => 'domain-id',
+        'omniauth_tenant_started_at' => now - 30,
+      }
+
+      expect(helpers.drop_expired_tenant_context(session, 'secrets.tenant.example', now: now)).to be false
+    end
+
+    # No tenant flow pending: a platform flow's binding is not touched.
+    it 'leaves a session without tenant markers untouched' do
+      session = { 'omniauth.state' => 'pending-state', account_id: 42 }
+
+      expect(helpers.drop_expired_tenant_context(session, 'canonical.example', now: now)).to be false
+      expect(session).to eq('omniauth.state' => 'pending-state', account_id: 42)
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+    end
+  end
+
+  # ==========================================================================
   # inject_saml_sp_identifiers (#4450)
   # ==========================================================================
 

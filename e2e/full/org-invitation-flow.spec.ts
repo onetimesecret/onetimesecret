@@ -40,7 +40,7 @@
  *     pnpm test:playwright org-invitation-flow.spec.ts
  */
 
-import { type BrowserContext, expect, test } from '@playwright/test';
+import { expect, test, type BrowserContext } from '@playwright/test';
 
 import {
   acceptInvitationDirectly,
@@ -114,38 +114,42 @@ test.describe('INV-001: Organization Invitation Sending', () => {
 test.describe('INV-002: Unauthenticated User Inline Auth Flow', () => {
   test('Unauthenticated user sees the inline signup form on the invitation page', async ({
     page,
-    context,
+    browser,
   }) => {
-    // First, create an invitation as org owner
-    const testEmail = uniqueTestEmail('inline-auth-test');
-    const orgExtid = await openFirstOrgMembersTab(page);
-    await inviteMember(page, testEmail);
+    const opened: BrowserContext[] = [];
+    try {
+      // First, create an invitation as org owner
+      const testEmail = uniqueTestEmail('inline-auth-test');
+      const orgExtid = await openFirstOrgMembersTab(page);
+      await inviteMember(page, testEmail);
 
-    // Get the invitation token
-    const token = await invitationToken(page, orgExtid, testEmail);
+      // Get the invitation token
+      const token = await invitationToken(page, orgExtid, testEmail);
 
-    // Clear cookies to simulate unauthenticated user
-    await context.clearCookies();
+      // Keep the visitor separate: an in-flight owner response can restore
+      // its session cookie after clearCookies() on the owner's live context.
+      const visitor = await (await openFreshContext(browser, opened)).newPage();
+      await visitor.goto(`/invite/${token}`);
+      await expect(visitor.locator('html[data-app-ready="true"]')).toBeAttached();
 
-    // Visit invitation link
-    await page.goto(`/invite/${token}`);
-    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+      // An unauthenticated visitor always starts in signup_required: the
+      // invite API never says whether the invited email has an account
+      // (AZ7/#3856). signin_required only follows a signup attempt for an
+      // address that already has one.
+      await expect(visitor.getByTestId('invite-signup-required')).toBeVisible();
+      await expect(visitor.getByTestId('invite-signin-required')).toBeHidden();
+      await expect(visitor.getByTestId('invite-signup-form')).toBeVisible();
+      // The invited email is bound into the form (readonly input value)
+      await expect(visitor.getByTestId('invite-signup-email-input')).toHaveValue(testEmail);
 
-    // An unauthenticated visitor always starts in signup_required: the
-    // invite API never says whether the invited email has an account
-    // (AZ7/#3856). signin_required only follows a signup attempt for an
-    // address that already has one.
-    await expect(page.getByTestId('invite-signup-required')).toBeVisible();
-    await expect(page.getByTestId('invite-signin-required')).toBeHidden();
-    await expect(page.getByTestId('invite-signup-form')).toBeVisible();
-    // The invited email is bound into the form (readonly input value)
-    await expect(page.getByTestId('invite-signup-email-input')).toHaveValue(testEmail);
-
-    // The form's "Continue" submit is the accept path; Decline sits beside
-    // it. There is no standalone Accept button in this state.
-    await expect(page.getByTestId('invite-signup-submit')).toBeVisible();
-    await expect(page.getByTestId('invite-signup-decline')).toBeVisible();
-    await expect(page.getByTestId('accept-invitation-btn')).toBeHidden();
+      // The form's "Continue" submit is the accept path; Decline sits beside
+      // it. There is no standalone Accept button in this state.
+      await expect(visitor.getByTestId('invite-signup-submit')).toBeVisible();
+      await expect(visitor.getByTestId('invite-signup-decline')).toBeVisible();
+      await expect(visitor.getByTestId('accept-invitation-btn')).toBeHidden();
+    } finally {
+      await closeContexts(opened);
+    }
   });
 });
 
