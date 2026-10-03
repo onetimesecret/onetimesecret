@@ -633,6 +633,18 @@ RSpec.describe 'Host and proxy simulation matrix (#4223)', :shared_db_state, typ
   # the stack build does.
   before { Onetime::Application::MiddlewareStack.ip_privacy_security_config }
 
+  # Every row needs SSO on at boot, not only the emitter rows: the request
+  # rows read their origin through OmniAuth's full_host resolver, which is
+  # installed with the SSO feature. Stated once here so a lane without the
+  # flag (full-pg) reports the precondition instead of a nil resolver.
+  before do
+    expect(Onetime.auth_config.orgs_sso_enabled?).to be(true),
+      'HP-PRE-01: this matrix requires ORGS_SSO_ENABLED=true at boot. ' \
+      'Run tests/lanes/run full-sqlite --only ' \
+      'apps/web/auth/spec/integration/full/host_proxy_matrix_spec.rb ' \
+      '(or full-pg-agnostic for Postgres); shell exports are scrubbed by the runner.'
+  end
+
   # Replace the row's placeholders with this example's hosts.
   def fill(value)
     return value unless value.is_a?(String)
@@ -752,12 +764,6 @@ RSpec.describe 'Host and proxy simulation matrix (#4223)', :shared_db_state, typ
         sso_enabled: true,
       )
 
-      expect(Onetime.auth_config.orgs_sso_enabled?).to be(true),
-        'HP-PRE-01: SSO emitter coverage requires ORGS_SSO_ENABLED=true at boot. ' \
-        'Run tests/lanes/run full-sqlite --only ' \
-        'apps/web/auth/spec/integration/full/host_proxy_matrix_spec.rb; ' \
-        'shell exports are scrubbed by the runner.'
-
       @delivered = []
       allow(Onetime::Jobs::Publisher).to receive(:enqueue_email_raw) do |email, **_kwargs|
         @delivered << email
@@ -872,7 +878,7 @@ RSpec.describe 'Host and proxy simulation matrix (#4223)', :shared_db_state, typ
         let(:matrix_canonical_host) { canonical_host }
 
         include_examples 'a request matrix', HostProxyMatrix::DOMAINS_ON
-        include_examples 'an emitter matrix', HostProxyMatrix::EMITTERS_ON
+        it_behaves_like 'an emitter matrix', HostProxyMatrix::EMITTERS_ON
 
         # tools/host-seam/topologies.psv, with the probe's default origin and
         # with the origin a deployment that rewrites Host onto the canonical
@@ -923,7 +929,7 @@ RSpec.describe 'Host and proxy simulation matrix (#4223)', :shared_db_state, typ
         let(:matrix_canonical_host) { HostProxyMatrix::SITE_HOST }
 
         include_examples 'a request matrix', HostProxyMatrix::DOMAINS_OFF
-        include_examples 'an emitter matrix', HostProxyMatrix::EMITTERS_OFF
+        it_behaves_like 'an emitter matrix', HostProxyMatrix::EMITTERS_OFF
       end
     end
   end
