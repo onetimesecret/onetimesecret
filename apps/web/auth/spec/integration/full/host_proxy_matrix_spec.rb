@@ -862,17 +862,7 @@ RSpec.describe 'Host and proxy simulation matrix (#4223)', :shared_db_state, typ
     context "with public_host_rewrite #{rewrite ? 'on' : 'off'}" do
       let(:rewrite_on) { rewrite }
 
-      # Read per request by the middleware, so the mounted stack does not
-      # need rebuilding. Put back after each example.
-      before do
-        network                        = (OT.conf['site']['network'] ||= {})
-        @matrix_saved_rewrite          = network['public_host_rewrite']
-        network['public_host_rewrite'] = rewrite
-      end
-
-      after do
-        (OT.conf['site']['network'] ||= {})['public_host_rewrite'] = @matrix_saved_rewrite
-      end
+      include_context 'public host rewrite setting'
 
       context 'with the domains feature on' do
         # features.domains.default = canonical.example.org; site.host stays the
