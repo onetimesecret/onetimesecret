@@ -144,6 +144,19 @@ delivered. `X-Forwarded-Host` is still accepted from a trusted proxy only.
 
 ## Upgrading
 
+**You use SAML behind a Host-rewriting proxy.** Deploy the callback-scope fix
+on all workers with `PUBLIC_HOST_REWRITE` off, then enable rewriting. The fix
+binds staged callbacks to the received authority, so enabling the setting
+between a callback POST and its follow-up GET does not change that scope.
+
+If rewriting is already enabled on workers without this fix, drain in-flight
+SAML callbacks before changing the setting or mixing worker versions. Use a
+maintenance window to stop new SAML sign-ins while existing callbacks finish;
+staged handles expire after 120 seconds. Otherwise, affected users must restart
+sign-in. Old workers with rewriting enabled stage callbacks under the rewritten
+public authority, which fixed workers reject. Those scopes are not migrated or
+retried under an alternate scope.
+
 Before this change the application also read `Apx-Incoming-Host` and
 `X-Original-Host` (after `X-Forwarded-Host`, before `Host`), and took the first
 value of a comma-separated `X-Forwarded-Host`. Check your proxy before
