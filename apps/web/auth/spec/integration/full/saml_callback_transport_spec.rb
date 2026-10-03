@@ -19,6 +19,12 @@ RSpec.describe 'Staged tenant SAML Connect', :shared_db_state, type: :integratio
   let(:uid) { "staged-#{SecureRandom.hex(8)}" }
   let(:identities) { auth_db[:account_identities] }
 
+  # Declared ahead of the `before` below, which already sends requests: the
+  # AuthnRequest, the staging POST and the redeeming GET of one example all
+  # run under one setting. `rewrite_on` and `request_headers` come from the
+  # contexts at the end of the file.
+  include_context 'public host rewrite setting'
+
   before do
     raise 'This test requires the full-sqlite lane with ORGS_SSO_ENABLED' unless Onetime.auth_config.orgs_sso_enabled?
 
@@ -37,7 +43,7 @@ RSpec.describe 'Staged tenant SAML Connect', :shared_db_state, type: :integratio
     Onetime::OrganizationMembership.ensure_membership(
       @tenant[:org], customer, role: 'member', domain_scope_id: @tenant[:domain].objid, provisioning_source: 'sso',
     )
-    header 'Host', host
+    request_headers.each { |name, value| header name, value }
     csrf_login(actor_email)
     expect(last_request.env['rack.session']['account_id']).to eq(actor_id)
     clear_body_headers
@@ -51,6 +57,16 @@ RSpec.describe 'Staged tenant SAML Connect', :shared_db_state, type: :integratio
     @request_id = xml[/\sID=['"]([^'"]+)['"]/, 1]
     @acs = xml[/AssertionConsumerServiceURL=['"]([^'"]+)['"]/, 1]
     @audience = xml[%r{<saml:Issuer[^>]*>([^<]+)</saml:Issuer>}, 1]
+    # The ACS URL the IdP is given names the tenant host in every topology
+    # (http: these requests carry no forwarded scheme).
+    expect(@acs).to eq("http://#{host}/auth/sso/saml/callback")
+    expect_topology
+  end
+
+  # What the layers below the rewrite received for the last request.
+  def expect_topology
+    expect_host_rewrite(request_headers.fetch('Host'), rewritten: rewritten)
+    expect(Rack::Request.new(last_request.env).host).to eq(rewritten ? host : request_headers.fetch('Host'))
   end
 
   after do
@@ -70,6 +86,7 @@ RSpec.describe 'Staged tenant SAML Connect', :shared_db_state, type: :integratio
     header 'Origin', 'https://idp.example.com'
     post @acs, 'SAMLResponse' => response
     expect(last_response.status).to eq(303), last_response.body
+    expect_topology
     expect(last_response.headers['Set-Cookie']).to be_nil
     expect(identities.where(uid: uid).count).to eq(0)
     expect(Onetime::SessionSidecar.exists?(@sid, 'sso_connect_intent')).to be(true)
@@ -80,32 +97,60 @@ RSpec.describe 'Staged tenant SAML Connect', :shared_db_state, type: :integratio
     location
   end
 
-  it 'preserves account-bound intent through the cookieless POST and binds only on the original-session GET' do
-    accounts_before = auth_db[:accounts].count
-    location = stage_connect
-    get location
-    expect(last_response.status).to eq(302)
-    expect(last_request.env['HTTP_COOKIE'].to_s).to include(@sid), 'The test browser must send the initiating session cookie'
-    expect(last_response.location).not_to include('auth_error')
-    row = identities.where(uid: uid).first
-    expect(row).not_to be_nil
-    expect(row[:account_id]).to eq(actor_id)
-    expect(row[:issuer]).to eq(Onetime::SsoProvider::Saml.tenant_issuer(@tenant[:domain].identifier, idp.entity_id))
-    expect(auth_db[:accounts].count).to eq(accounts_before)
-    expect(Onetime::SessionSidecar.exists?(@sid, 'sso_connect_intent')).to be(false)
+  shared_examples 'a staged Connect callback' do
+    it 'preserves account-bound intent through the cookieless POST and binds only on the original-session GET' do
+      accounts_before = auth_db[:accounts].count
+      location = stage_connect
+      get location
+      expect(last_response.status).to eq(302)
+      expect_topology
+      expect(last_request.env['HTTP_COOKIE'].to_s).to include(@sid), 'The test browser must send the initiating session cookie'
+      expect(last_response.location).not_to include('auth_error')
+      row = identities.where(uid: uid).first
+      expect(row).not_to be_nil
+      expect(row[:account_id]).to eq(actor_id)
+      expect(row[:issuer]).to eq(Onetime::SsoProvider::Saml.tenant_issuer(@tenant[:domain].identifier, idp.entity_id))
+      expect(auth_db[:accounts].count).to eq(accounts_before)
+      expect(Onetime::SessionSidecar.exists?(@sid, 'sso_connect_intent')).to be(false)
+    end
+
+    it 'does not consume the original Connect intent when a cookieless GET visits the handle first' do
+      location = stage_connect
+      cookie = @sid
+      clear_cookies
+      get location
+      expect(last_response.location).to include('auth_error=sso_failed')
+      expect(identities.where(uid: uid).count).to eq(0)
+      expect(Onetime::SessionSidecar.exists?(@sid, 'sso_connect_intent')).to be(true)
+      clear_cookies
+      rack_mock_session.cookie_jar.merge("onetime.session=#{cookie}; path=/", URI.parse(location))
+      get location
+      expect(identities.where(uid: uid).get(:account_id)).to eq(actor_id)
+    end
   end
 
-  it 'does not consume the original Connect intent when a cookieless GET visits the handle first' do
-    location = stage_connect
-    cookie = @sid
-    clear_cookies
-    get location
-    expect(last_response.location).to include('auth_error=sso_failed')
-    expect(identities.where(uid: uid).count).to eq(0)
-    expect(Onetime::SessionSidecar.exists?(@sid, 'sso_connect_intent')).to be(true)
-    clear_cookies
-    rack_mock_session.cookie_jar.merge("onetime.session=#{cookie}; path=/", URI.parse(location))
-    get location
-    expect(identities.where(uid: uid).get(:account_id)).to eq(actor_id)
+  # The staging scope is computed from the Host as received
+  # (SamlCallbackStore.scope), so every outcome is the same in all four runs.
+  [false, true].each do |rewrite|
+    context "with public_host_rewrite #{rewrite ? 'on' : 'off'}" do
+      let(:rewrite_on) { rewrite }
+
+      # A request whose Host already names the tenant is never rewritten.
+      context 'with the tenant host in Host' do
+        let(:request_headers) { { 'Host' => host } }
+        let(:rewritten) { false }
+
+        it_behaves_like 'a staged Connect callback'
+      end
+
+      # The proxy puts its origin target in Host; the rewrite, when on, puts
+      # the tenant host back for the layers below it.
+      context 'with the origin target in Host and the tenant host in X-Forwarded-Host' do
+        let(:request_headers) { { 'Host' => canonical_host, 'X-Forwarded-Host' => host } }
+        let(:rewritten) { rewrite }
+
+        it_behaves_like 'a staged Connect callback'
+      end
+    end
   end
 end
