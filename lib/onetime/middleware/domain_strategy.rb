@@ -165,17 +165,9 @@ module Onetime
       @anchor_domains_parsed    = nil
       @link_domains             = nil
 
-      # Domain Context Override state (set at boot from config/env)
-      @domain_context_enabled  = nil
-      @domain_context_override = nil
-
       unless defined?(MAX_SUBDOMAIN_DEPTH)
         MAX_SUBDOMAIN_DEPTH = 10 # e.g., a.b.c.d.e.f.g.h.i.j.example.com
         MAX_TOTAL_LENGTH    = 253 # RFC 1034 section 3.1
-
-        # Domain Context Override constants
-        DOMAIN_CONTEXT_HEADER  = 'HTTP_O_DOMAIN_CONTEXT'
-        DOMAIN_CONTEXT_ENV_VAR = 'DOMAIN_CONTEXT'
       end
 
       # Initializes the DomainStrategy middleware instance.
@@ -252,45 +244,23 @@ module Onetime
         custom_domain = nil
         resolution    = nil
         if domains_enabled?
-          # Check for domain context override first (development feature)
-          override_domain, override_source = detect_domain_override(env)
-          if override_domain
-            display_domain  = override_domain
-            domain_strategy = :custom
-            resolution      = Onetime::CustomDomainResolution.capture(display_domain) do
-              Chooserator.custom_domain_for(display_domain)
-            end
-            custom_domain   = resolution.record
-            if resolution.read_failed?
-              http_logger.error '[DomainStrategy] override domain lookup failed',
-                { exception: resolution.error, domain: display_domain }
-            end
-
-            http_logger.info '[DomainStrategy] override active',
-              {
-                domain: override_domain,
-                source: override_source,
-                strategy: domain_strategy,
-              }
-          else
-            display_domain  = env[Rack::DetectHost.result_field_name]
-            # OT.ld "[middleware] DomainStrategy: detected_host=#{display_domain.inspect} result_field_name=#{Rack::DetectHost.result_field_name}"
-            classification  = Chooserator.classify(
-              display_domain,
-              canonical_domains_parsed,
-              anchor_domains: anchor_domains_parsed,
-            )
-            domain_strategy = classification.strategy
-            custom_domain   = classification.custom_domain
-            resolution      = classification.resolution
-          end
+          display_domain  = env[Rack::DetectHost.result_field_name]
+          # OT.ld "[middleware] DomainStrategy: detected_host=#{display_domain.inspect} result_field_name=#{Rack::DetectHost.result_field_name}"
+          classification  = Chooserator.classify(
+            display_domain,
+            canonical_domains_parsed,
+            anchor_domains: anchor_domains_parsed,
+          )
+          domain_strategy = classification.strategy
+          custom_domain   = classification.custom_domain
+          resolution      = classification.resolution
         end
 
         resolved_domain_strategy = domain_strategy || :invalid # make sure never nil
 
         # Sanitize display_domain for use in response headers (defense in depth).
-        # Both code paths (DetectHost result and override header) should produce
-        # valid hostnames, but we guard here to prevent header injection.
+        # The DetectHost result should already be a valid hostname, but we
+        # guard here to prevent header injection.
         unless Onetime::Utils::DomainParser.basically_valid?(display_domain)
           display_domain = canonical_domain
           # The lookup, if any, was for the host that was just replaced.
@@ -334,52 +304,11 @@ module Onetime
         [status, headers, body]
       end
 
-      # Detects domain context override from environment or request header.
-      #
-      # Override priority (first match wins):
-      # 1. DOMAIN_CONTEXT env var (set at process startup)
-      # 2. O-Domain-Context request header (per-request override)
-      #
-      # @param env [Hash] The Rack environment hash
-      # @return [Array<String, Symbol>, Array<nil, nil>] [domain, source] or [nil, nil]
-      def detect_domain_override(env)
-        detected_host = env[Rack::DetectHost.result_field_name]
-
-        http_logger.debug '[DomainStrategy] detect_domain_override check',
-          {
-            domain_context_enabled: domain_context_enabled?,
-            detected_host: detected_host,
-            env_var: ENV.fetch(DOMAIN_CONTEXT_ENV_VAR, nil),
-            header: env[DOMAIN_CONTEXT_HEADER],
-          }
-
-        return unless domain_context_enabled?
-
-        # Check env var first (process-level override)
-        env_override = ENV.fetch(DOMAIN_CONTEXT_ENV_VAR, nil)
-        return [env_override, :env_var] unless env_override.to_s.empty?
-
-        # Check request header (per-request override)
-        header_override = env[DOMAIN_CONTEXT_HEADER]
-        return [header_override, :header] unless header_override.to_s.empty?
-
-        # Implicit override: browser navigated to a host outside the canonical
-        # set. A request to site.host is NOT an implicit override even when
-        # features.domains.default names a different host.
-        return [detected_host, :detected_host] if detected_host && !canonical_host?(detected_host)
-
-        [nil, nil]
-      end
-
       # True when host matches one of the configured canonical hosts
       # (features.domains.default, site.host, or a features.domains.link_domains
       # member), normalized comparison.
       def canonical_host?(host)
         self.class.canonical_host?(host)
-      end
-
-      def domain_context_enabled?
-        self.class.domain_context_enabled
       end
 
       def canonical_domain
@@ -770,11 +699,9 @@ module Onetime
           :canonical_domains,
           :canonical_domains_parsed,
           :anchor_domains_parsed,
-          :link_domains,
-          :domain_context_enabled
+          :link_domains
 
         alias domains_enabled? domains_enabled
-        alias domain_context_enabled? domain_context_enabled
 
         # Sets class instance variables based on the site configuration.
         def initialize_from_config(domains_config)
@@ -819,17 +746,12 @@ module Onetime
           # parsed set exists. Recomputed from the parsed set below.
           @link_domains             = [@canonical_domain].compact
 
-          # Load domain context override setting from development config
-          dev_config              = OT.conf&.dig('development') || {}
-          @domain_context_enabled = dev_config['domain_context_enabled'] == true
-
           Onetime.http_logger.debug 'DomainStrategy config loaded',
             {
               domains_enabled: domains_enabled,
               canonical_domain: canonical_domain,
               canonical_domains: canonical_domains,
               link_domains: link_domains,
-              domain_context_enabled: domain_context_enabled,
             }
 
           # We don't need to get into any domain parsing if domains are disabled
@@ -1011,7 +933,6 @@ module Onetime
           @canonical_domains_parsed = nil
           @anchor_domains_parsed    = nil
           @link_domains             = nil
-          @domain_context_enabled   = nil
         end
       end
 
