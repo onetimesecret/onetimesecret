@@ -65,7 +65,11 @@ fixture.
 - `SEAM_SPLIT(PLATFORM_FALLBACK)` — `O-Domain-Strategy: custom` but SSO used
   platform credentials (`canonical_domain?` branch). Quiet failure unless
   tenant id is checked.
-- `SPOOF_ACCEPTED` — untrusted forwarded host reached `O-Display-Domain`.
+- `SPOOF_ACCEPTED` — the evil host reached `O-Display-Domain` through a
+  carrier the app does not read (`Apx-Incoming-Host`, a comma-joined
+  `X-Forwarded-Host`). A single `X-Forwarded-Host` from the trusted probe
+  source is read by design, so T9 and T10 display the evil host and are graded
+  on strategy alone.
 - `STRATEGY_DRIFT(...)` — DomainStrategy classification differed from expected
   for that topology. On every custom row at once, it usually means `--custom`
   is not a registered CustomDomain.
@@ -79,13 +83,16 @@ fixture.
   at all: either `--custom` is not a registered CustomDomain, or the domains
   feature is off in the app under test (`DOMAINS_ENABLED` defaults to false).
   All strategy/seam verdicts are suppressed — including the vacuous `ok` that
-  T9–T11 would otherwise report with `O-Display-Domain` pinned to canonical.
+  rows expecting `canonical` would otherwise report with `O-Display-Domain`
+  pinned to canonical.
   The warning above the table says which of the two causes it is.
 
-Special case: T9 (`xfh-shadows-apx`) is expected to resolve `canonical` **by
-design**. `X-Forwarded-Host` is the one forwarded carrier the app reads, and
-`Apx-Incoming-Host` beside it is not read; app fallback stays canonical, but
-tenant SSO can be denied until the edge overwrites inbound `X-Forwarded-Host`.
+Special case: T9 (`xfh-shadows-apx`) and T10 (`xfh-spoof`) are expected to
+resolve `invalid` **by design**. `X-Forwarded-Host` is the one forwarded
+carrier the app reads from a trusted peer, and `Apx-Incoming-Host` beside it in
+T9 is not read. The unregistered evil host becomes the display domain and
+classifies `invalid`, so it cannot impersonate a tenant, but tenant SSO can be
+denied until the edge overwrites inbound `X-Forwarded-Host`.
 
 T3, T6 and T12 changed expectation with #4384: `Apx-Incoming-Host`,
 `X-Original-Host` and a comma-separated `X-Forwarded-Host` are not read, so

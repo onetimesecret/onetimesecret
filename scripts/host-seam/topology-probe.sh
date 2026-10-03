@@ -122,8 +122,8 @@ fi
 # when it holds a single value (#4384). The others are still sent, as the
 # controls that they are NOT read: Apx-Incoming-Host (T3, T8, T11),
 # X-Original-Host (T6), RFC 7239 `Forwarded` (T7) and a comma-separated
-# X-Forwarded-Host (T12). A release before #4384 resolves T3, T6, T8 and
-# T12 `custom`, which this table reports as a mismatch.
+# X-Forwarded-Host (T12). A release before #4384 resolves T3, T6 and T12
+# `custom`, which this table reports as a mismatch.
 #
 # DetectHost precedence (detect_host.rb HEADER_PRECEDENCE) is:
 #   X-Forwarded-Host > Host
@@ -152,21 +152,22 @@ TOPOLOGIES=(
   "T8-xfh-onto-canonical|${CANONICAL}|-|${CUSTOM}|-|-|custom"
   # T9: attacker-supplied X-Forwarded-Host that the edge passed through, with
   # the tenant host beside it in Apx-Incoming-Host. DetectHost takes the
-  # X-Forwarded-Host value when it is a SYNTACTICALLY valid domain name — it
-  # does not check whether the domain is known — so `evil.attacker.example`
-  # is the detected host.
+  # X-Forwarded-Host value from a trusted peer when it is a SYNTACTICALLY
+  # valid domain name — it does not check whether the domain is known — so
+  # `evil.attacker.example` is the detected host and the display domain.
   #
-  # DomainStrategy then rejects the unknown domain and falls back to canonical,
-  # so the attacker does NOT get to impersonate a tenant. What they get is
-  # DENIAL: the tenant's own SSO silently degrades to canonical for as long as
-  # they can attach the header. Expected strategy is therefore `canonical` —
-  # correct app behaviour, and a finding about the EDGE, which must overwrite
-  # inbound X-Forwarded-Host. This is the carrier-sanitization half of #4223.
+  # DomainStrategy classifies the unknown domain `invalid`, so the attacker
+  # does NOT get to impersonate a tenant. What they get is DENIAL: the
+  # tenant's own SSO fails for as long as they can attach the header.
+  # Expected strategy is therefore `invalid` — correct app behaviour, and a
+  # finding about the EDGE, which must overwrite inbound X-Forwarded-Host.
+  # This is the carrier-sanitization half of #4223. T10 is the same request
+  # with the canonical host in Host.
   #
-  # If display_domain ever comes back as the evil host instead, that is
-  # SPOOF_ACCEPTED and a different, worse bug.
-  "T9-xfh-shadows-apx|${ORIGIN}|${CUSTOM}|${EVIL}|-|-|canonical"
-  "T10-xfh-spoof|${CANONICAL}|-|${EVIL}|-|-|canonical"
+  # If the evil host ever classifies `custom`, or reaches display_domain from
+  # a carrier the app does not read (T11, T12), that is a different, worse bug.
+  "T9-xfh-shadows-apx|${ORIGIN}|${CUSTOM}|${EVIL}|-|-|invalid"
+  "T10-xfh-spoof|${CANONICAL}|-|${EVIL}|-|-|invalid"
   "T11-apx-spoof|${CANONICAL}|${EVIL}|-|-|-|canonical"
   # T12: a proxy that appended to X-Forwarded-Host instead of overwriting it.
   # Neither value is selected; the request resolves on Host.
@@ -185,6 +186,15 @@ hdr_args() {
   [[ "$xoh" != "-" ]] && HARGS+=("-H" "X-Original-Host: ${xoh}")
   [[ "$fwd" != "-" ]] && HARGS+=("-H" "Forwarded: host=${fwd}")
   return 0
+}
+
+# True when the evil host reached the display domain through a carrier the app
+# does not read (Apx-Incoming-Host, a comma-joined X-Forwarded-Host). A single
+# X-Forwarded-Host from the trusted probe source is read by design (#4384), so
+# T9 and T10 display the evil host and are graded on their `invalid` strategy.
+spoof_accepted() {
+  local display="$1" xfh="$2"
+  [[ "$display" == "$EVIL" && "$xfh" != "$EVIL" ]]
 }
 
 # Classify the tenant-SSO POST outcome into a stable, version-independent
@@ -321,8 +331,7 @@ for row in "${TOPOLOGIES[@]}"; do
     fi
     rc=1
   fi
-  # An untrusted forwarded host must never surface as the display domain.
-  if [[ "$display" == "$EVIL" ]]; then
+  if spoof_accepted "$display" "$xfh"; then
     verdict="SPOOF_ACCEPTED"
     rc=1
   fi
