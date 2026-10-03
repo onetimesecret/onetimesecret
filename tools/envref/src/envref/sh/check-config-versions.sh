@@ -25,8 +25,8 @@
 #      A marker naming a version with no such tag is treated like `unreleased`
 #      and stays editable, so a guessed version that reached the base branch
 #      can be corrected before the release that really ships the key. The tag
-#      set combines a full advertisement from origin with known local tags.
-#      If origin cannot be queried or no stable tags are known, every concrete
+#      set combines the selected release remote's advertisement with local tags.
+#      If release evidence is unavailable or no stable tags are known, every concrete
 #      marker is frozen (and CONFIG_VERSION_REQUIRE_BASE makes this a failure).
 #   3. MARKERS ARE WELL-FORMED. Every marker matches the §1 recognizer exactly,
 #      so the annotator, this guard and the docs generator all agree on what a
@@ -128,7 +128,20 @@ for y in etc/defaults/*.yaml etc/defaults/*.yml; do
 done
 
 tmp=$(mktemp -d)
-trap 'rm -rf "$tmp"' EXIT
+tag_query_pid=""
+# shellcheck disable=SC2329 # Invoked by the EXIT trap, including signal exits.
+cleanup() {
+  trap '' INT TERM
+  if [[ -n "$tag_query_pid" ]]; then
+    # Cancel the supervisor, not just Git: it reaps both process groups.
+    kill -TERM "$tag_query_pid" 2>/dev/null || true
+    wait "$tag_query_pid" 2>/dev/null || true
+  fi
+  rm -rf "$tmp"
+}
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 : > "$tmp/fail_new"        # <file>|<key>
 : > "$tmp/fail_changed"    # <file>|<key>|<base_version>|<worktree_marker>
@@ -197,74 +210,59 @@ if [[ -z "$BASE_REF" && -n "${CONFIG_VERSION_REQUIRE_BASE:-}" && "${1:-}" != "--
   exit 1
 fi
 
-# --- Stable release tags --------------------------------------------------
-# Rule 2 freezes a base-side marker only when its version was released, and
-# "released" is read from the tags: vX.Y.Z exactly, the same stable-only shape
-# the marker itself allows. Pre-release tags (-rc1, -PRE) do not count.
-#
-# Some local tags do not prove that an absent tag never shipped. Read origin's
-# full stable-tag advertisement on each check, without fetching objects or
-# changing refs. origin must be the release-tag authority (see the contract).
-# Include local tags too, so an unpushed release tag still freezes its marker.
-# A failed advertisement is not evidence of absence, even if it emitted partial
-# output. Local/offline runs then freeze every concrete marker; strict CI fails.
-# --print-sites needs neither tags nor a network connection.
-TAG_QUERY_TIMEOUT=15
-query_origin_tags() (
-  # Job control gives git and its transport children a private process group.
-  # Keep it in this subshell so the rest of the guard's job handling is unchanged.
-  set -m
-  local query_pid="" watchdog_pid="" status=0
-  trap '[[ -z "$query_pid" ]] || kill -KILL -- "-$query_pid" 2>/dev/null || true
-        [[ -z "$watchdog_pid" ]] || kill -KILL -- "-$watchdog_pid" 2>/dev/null || true
-        wait 2>/dev/null || true' EXIT
-  trap 'exit 130' INT
-  trap 'exit 143' TERM
-
-  # Disable prompting, not configured transports (GIT_SSH*, core.sshCommand,
-  # keys and proxies). force makes OpenSSH use the failing helper, not /dev/tty.
-  GIT_TERMINAL_PROMPT=0 GIT_ASKPASS=/usr/bin/false \
-    SSH_ASKPASS=/usr/bin/false SSH_ASKPASS_REQUIRE=force \
-    git ls-remote --tags --refs origin 'refs/tags/v*' </dev/null &
-  query_pid=$!
-  (
-    # Keep sleep in the watchdog's group so cleanup also kills that child.
-    set +m
-    trap - EXIT INT TERM
-    sleep "$TAG_QUERY_TIMEOUT"
-    : > "$tmp/tag-query.timeout"
-    kill -KILL -- "-$query_pid" 2>/dev/null || true
-  ) &
-  watchdog_pid=$!
-  wait "$query_pid" || status=$?
-  return "$status"
-)
-
+# --- Stable release evidence ---------------------------------------------
+# Authority is an operator choice, never inferred from a conventional remote
+# name. A successful query cannot establish that a fork has all release tags.
+# shellcheck source=release-tag-evidence.sh
+source "$(dirname "${BASH_SOURCE[0]}")/release-tag-evidence.sh"
 TAGS_COMPLETE=0
-TAG_PROBLEM="cannot list stable release tags from origin"
+RELEASE_REMOTE=""
+TAG_PROBLEM="no release authority selected"
 : > "$tmp/stable.tags"
 if [[ -n "$BASE_REF" && "${1:-}" != "--print-sites" ]]; then
-  { git tag -l 'v[0-9]*' 2>/dev/null || true; } \
-    | { grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' || true; } \
-    | sort -u > "$tmp/local.tags"
-  if query_origin_tags > "$tmp/remote.refs" 2>/dev/null; then
-    awk '$2 ~ /^refs\/tags\/v[0-9]+\.[0-9]+\.[0-9]+$/ {
-      sub(/^refs\/tags\//, "", $2); print $2
-    }' "$tmp/remote.refs" > "$tmp/remote.tags"
-    sort -u "$tmp/local.tags" "$tmp/remote.tags" > "$tmp/stable.tags"
-    if [[ -s "$tmp/stable.tags" ]]; then
-      TAGS_COMPLETE=1
+  if [[ "${CONFIG_VERSION_RELEASE_REMOTE+x}" == x ]]; then
+    RELEASE_REMOTE="$CONFIG_VERSION_RELEASE_REMOTE"
+  else
+    RELEASE_REMOTE=$(git config --get envref.releaseRemote 2>/dev/null || true)
+  fi
+  if [[ -n "$RELEASE_REMOTE" ]]; then
+    # Require a named remote. Never print its URL: it may contain credentials.
+    if git remote get-url -- "$RELEASE_REMOTE" >/dev/null 2>&1; then
+      echo "INFO: release-tag authority is remote '$RELEASE_REMOTE' (operator-selected)."
+      local_status=0
+      git tag -l 'v[0-9]*' > "$tmp/local.tags" 2>/dev/null || local_status=$?
+      remote_status=0
+      # An asynchronous wait lets the outer shell handle cancellation promptly.
+      query_release_tags "$RELEASE_REMOTE" "$tmp" > "$tmp/remote.refs" 2>/dev/null &
+      tag_query_pid=$!
+      wait "$tag_query_pid" || remote_status=$?
+      tag_query_pid=""
+      TAG_PROBLEM="cannot list stable release tags from $RELEASE_REMOTE"
+      if [[ -f "$tmp/tag-query.timeout" ]]; then
+        TAG_PROBLEM="release-tag query to $RELEASE_REMOTE exceeded its 15-second deadline"
+      elif [[ $local_status -ne 0 ]]; then
+        TAG_PROBLEM="cannot list local stable release tags"
+      elif classify_release_tags "$local_status" "$remote_status" "$tmp/local.tags" "$tmp/remote.refs" > "$tmp/stable.tags"; then
+        if [[ -s "$tmp/stable.tags" ]]; then
+          TAGS_COMPLETE=1
+        else
+          TAG_PROBLEM="no stable release tags (vX.Y.Z) are visible locally or on $RELEASE_REMOTE"
+        fi
+      fi
     else
-      TAG_PROBLEM="no stable release tags (vX.Y.Z) are visible locally or on origin"
+      TAG_PROBLEM="selected release authority is not a configured Git remote"
+      # A rejected URL may contain credentials; never echo it in guidance.
+      RELEASE_REMOTE=""
     fi
-  elif [[ -f "$tmp/tag-query.timeout" ]]; then
-    TAG_PROBLEM="release-tag query to origin exceeded its ${TAG_QUERY_TIMEOUT}-second deadline"
   fi
 fi
 
 tag_guidance() {
-  echo "      origin must be reachable and carry the complete release tag namespace."
-  echo "      Check 'git ls-remote --tags --refs origin'; fetch with 'git fetch --tags origin'."
+  echo "      Select the remote carrying the complete release tag namespace, not a partial fork."
+  echo "      Set CONFIG_VERSION_RELEASE_REMOTE or 'git config envref.releaseRemote <remote>'."
+  if [[ -n "$RELEASE_REMOTE" ]]; then
+    echo "      Check 'git ls-remote --tags --refs $RELEASE_REMOTE'; fetch with 'git fetch --tags $RELEASE_REMOTE'."
+  fi
 }
 
 if [[ -n "$BASE_REF" && $TAGS_COMPLETE -eq 0 && -n "${CONFIG_VERSION_REQUIRE_BASE:-}" && "${1:-}" != "--print-sites" ]]; then
@@ -626,7 +624,7 @@ check_file() {
   # --- Rule 2: a released version the base ref carries must still be carried
   # by that same key. `unreleased` is excluded from the base side on purpose —
   # resolving it at release time is the sanctioned transition. A version with
-  # no stable tag locally or in origin's complete advertisement is excluded
+  # no stable tag locally or in the selected authority's advertisement is excluded
   # the same way. Without that evidence, all concrete markers stay frozen.
   # The env half below joins against base.pairs, so it inherits the filter.
   { grep -E ' v[0-9]+\.[0-9]+\.[0-9]+ [01]$' "$base" || true; } \
@@ -764,7 +762,7 @@ if [[ -s "$tmp/fail_changed" ]]; then
       echo "not a field to update. Restore the original marker. If a key genuinely"
       echo "changed meaning, rename the key instead; the old name's marker leaves with"
       echo "it. The release process may resolve 'unreleased' to a real version."
-      echo "A marker with no stable tag locally or on origin is not frozen."
+      echo "A marker with no stable tag locally or on the selected release remote is not frozen."
     else
       echo "Release-tag visibility is unverified, so every concrete marker on the"
       echo "base is frozen conservatively, including possibly untagged guesses."
@@ -855,7 +853,7 @@ if [[ -s "$tmp/note_versioned" ]]; then
 fi
 
 if [[ -n "$BASE_REF" ]]; then
-  echo "PASS: config version markers are well-formed, and every marker on the base is intact"
+  echo "PASS: config version markers are well-formed, and every frozen marker on the base is intact"
   echo "  (${#TARGETS[@]} file(s), $sites_total annotation site(s), $markers_total marked, $new_total new key(s) vs $BASE_DESC)"
 else
   echo "PASS: config version markers are well-formed"

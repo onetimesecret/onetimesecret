@@ -16,8 +16,10 @@ import shlex
 import shutil
 import signal
 import subprocess
+import sys
 import time
 import unittest
+from contextlib import contextmanager
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -67,6 +69,7 @@ def fixture(
 
     origin = root / "origin.git"
     git(root, "remote", "add", "origin", str(origin))
+    git(root, "config", "envref.releaseRemote", "origin")
     if origin_available:
         git(root, "init", "-q", "--bare", str(origin))
         git(root, "push", "-q", "origin", "main")
@@ -86,6 +89,7 @@ def run_check(
     require_base: bool = False,
     print_sites: bool = False,
     extra_env: dict[str, str] | None = None,
+    timeout: float = 10,
 ) -> subprocess.CompletedProcess:
     env = {
         **GIT_ENV,
@@ -103,7 +107,7 @@ def run_check(
         env=env,
         capture_output=True,
         text=True,
-        timeout=10,
+        timeout=timeout,
     )
 
 
@@ -383,9 +387,121 @@ class UntaggedMarkerTest(unittest.TestCase):
         self.assertEqual(proc.stderr, "")
 
 
+class ReleaseAuthorityTest(unittest.TestCase):
+    def assert_unknown_without_query(self, root: Path, env: dict[str, str]):
+        proc = run_check(root, require_base=True, extra_env=env)
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        self.assertIn("CONFIG_VERSION_REQUIRE_BASE", proc.stderr)
+        self.assertFalse((root / "query.calls").exists())
+        strict_output = proc.stdout + proc.stderr
+        edit(root, ENV_FILE, "# Since v0.27.0", "# Since unreleased")
+        proc = run_check(root, extra_env=env)
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        self.assertIn("KEY_GUESSED", proc.stderr)
+        self.assertIn("frozen conservatively", proc.stderr)
+        self.assertFalse((root / "query.calls").exists())
+        return strict_output + proc.stdout + proc.stderr
+
+    def test_unset_authority_does_not_implicitly_query_origin(self):
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            fixture(root, tags=("v0.24.0",))
+            git(root, "config", "--unset", "envref.releaseRemote")
+            env = query_shim(root, "exit 99")
+            self.assert_unknown_without_query(root, env)
+
+    def test_explicit_empty_environment_overrides_configured_origin(self):
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            fixture(root, tags=("v0.24.0",))
+            env = query_shim(root, "exit 99")
+            env["CONFIG_VERSION_RELEASE_REMOTE"] = ""
+            self.assert_unknown_without_query(root, env)
+
+    def check_upstream_selection(self, override: bool):
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            # Neither the fork nor local tags contain the shipped v0.24.0.
+            fixture(root, tags=(), remote_tags=("v0.23.0",))
+            upstream = root / "upstream.git"
+            git(root, "init", "-q", "--bare", str(upstream))
+            git(root, "remote", "add", "upstream", str(upstream))
+            git(root, "push", "-q", "upstream", "main")
+            git(upstream, "tag", "v0.24.0", "main")
+            env = query_shim(
+                root,
+                "for arg do\n"
+                '  case "$arg" in origin|upstream) printf "%s\\n" "$arg" >> "$ENVREF_REPO_ROOT/query.remotes" ;; esac\n'
+                "done",
+            )
+            if override:
+                env["CONFIG_VERSION_RELEASE_REMOTE"] = "upstream"
+            else:
+                git(root, "config", "envref.releaseRemote", "upstream")
+            edit(root, ENV_FILE, "# Since v0.27.0", "# Since unreleased")
+            proc = run_check(root, require_base=True, extra_env=env)
+            self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+            self.assertIn("remote 'upstream'", proc.stdout)
+            self.assertNotIn(str(upstream), proc.stdout + proc.stderr)
+            edit(root, ENV_FILE, "# Since v0.24.0", "# Since unreleased")
+            proc = run_check(root, require_base=True, extra_env=env)
+            self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+            self.assertIn("KEY_SHIPPED", proc.stderr)
+            self.assertIn("Shipped markers are immutable", proc.stderr)
+            self.assertEqual(
+                (root / "query.remotes").read_text().splitlines(),
+                ["upstream", "upstream"],
+            )
+
+    def test_configured_upstream_protects_tags_missing_from_origin(self):
+        self.check_upstream_selection(override=False)
+
+    def test_environment_upstream_overrides_configured_origin(self):
+        self.check_upstream_selection(override=True)
+
+    def test_missing_remote_or_url_is_rejected_without_query(self):
+        for authority in (
+            "missing",
+            "https://user:secret@example.invalid/releases.git",
+        ):
+            with self.subTest(authority=authority), TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                fixture(root, tags=("v0.24.0",))
+                git(root, "config", "envref.releaseRemote", authority)
+                # Even a regression in validation cannot reach the URL.
+                env = query_shim(root, "exit 99")
+                output = self.assert_unknown_without_query(root, env)
+                for sensitive in (authority, "user:secret", "example.invalid"):
+                    self.assertNotIn(sensitive, output)
+
+    def test_success_reports_remote_name_not_url_credentials(self):
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            fixture(root, tags=())
+            url = "https://release-user:release-password@example.invalid/releases.git"
+            git(root, "remote", "set-url", "origin", url)
+            env = query_shim(
+                root, 'printf "%040d\\trefs/tags/v0.24.0\\n" 0\nexit 0'
+            )
+            proc = run_check(root, require_base=True, extra_env=env)
+            output = proc.stdout + proc.stderr
+            self.assertEqual(proc.returncode, 0, output)
+            self.assertIn("remote 'origin'", output)
+            for sensitive in (
+                url,
+                "release-user",
+                "release-password",
+                "example.invalid",
+            ):
+                self.assertNotIn(sensitive, output)
+            self.assertEqual((root / "query.calls").read_text(), "query\n")
+
+
 class TagQueryTest(unittest.TestCase):
     def assert_process_stopped(self, pid_file: Path):
-        pid = int(pid_file.read_text())
+        self.assert_pid_stopped(int(pid_file.read_text()), pid_file.name)
+
+    def assert_pid_stopped(self, pid: int, description: str):
         deadline = time.monotonic() + 2
         while time.monotonic() < deadline:
             proc = subprocess.run(
@@ -399,9 +515,7 @@ class TagQueryTest(unittest.TestCase):
             if not state or state.startswith("Z"):
                 return
             time.sleep(0.01)
-        self.fail(
-            f"process {pid} from {pid_file.name} is still running: {state}"
-        )
+        self.fail(f"process {pid} from {description} is still running: {state}")
 
     def cleanup_processes(self, root: Path):
         # Bound even a regression against an implementation with no deadline.
@@ -412,6 +526,212 @@ class TagQueryTest(unittest.TestCase):
                     os.kill(int(path.read_text()), signal.SIGKILL)
                 except ProcessLookupError:
                     pass
+
+    def process_tree(self, root: Path, parent: int):
+        """Include recorded orphans as well as children of the entry point."""
+        result = subprocess.run(
+            ["ps", "-axo", "pid=,ppid=,pgid="],
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=2,
+        )
+        rows = [
+            tuple(map(int, line.split())) for line in result.stdout.splitlines()
+        ]
+        descendants = {parent}
+        for name in ("query.pid", "transport.pid", "watchdog-sleep.pid"):
+            path = root / name
+            if path.exists() and path.read_text().strip():
+                descendants.add(int(path.read_text()))
+        while True:
+            children = {pid for pid, ppid, _ in rows if ppid in descendants}
+            if children <= descendants:
+                break
+            descendants.update(children)
+        return {pid: pgid for pid, _, pgid in rows if pid in descendants}
+
+    @contextmanager
+    def lifecycle_check(
+        self, root: Path, env: dict[str, str], cli=False, wrapper=False
+    ):
+        command = (
+            [sys.executable, "-m", "envref", "check"]
+            if cli
+            else ["bash", str(sh_script("check-config-versions.sh"))]
+        )
+        if wrapper:
+            command = [str(root / "bin" / "envref"), "check"]
+        proc = subprocess.Popen(
+            command,
+            cwd=root,
+            env={
+                **GIT_ENV,
+                "HOME": str(root),
+                "ENVREF_REPO_ROOT": str(root),
+                "CONFIG_VERSION_BASE_REF": "main",
+                "CONFIG_VERSION_REQUIRE_BASE": "1",
+                "PYTHONPATH": str(Path(__file__).resolve().parents[1] / "src"),
+                **env,
+            },
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            start_new_session=True,
+        )
+        tracked = {}
+        try:
+            deadline = time.monotonic() + 5
+            while not all(
+                (root / name).exists() and (root / name).stat().st_size
+                for name in (
+                    "query.pid",
+                    "transport.pid",
+                    "watchdog-sleep.pid",
+                    "query.ready",
+                )
+            ):
+                self.assertIsNone(
+                    proc.poll(), "check exited before the query was ready"
+                )
+                self.assertLess(
+                    time.monotonic(), deadline, "query startup timed out"
+                )
+                time.sleep(0.01)
+            tracked.update(self.process_tree(root, proc.pid))
+            yield proc, tracked
+        finally:
+            # Bash job control creates additional groups inside this session.
+            # Capture them before killing anything, even on an assertion failure.
+            try:
+                tracked.update(self.process_tree(root, proc.pid))
+            finally:
+                groups = {proc.pid, *tracked.values()}
+                for pgid in groups:
+                    if pgid != os.getpgrp():
+                        try:
+                            os.killpg(pgid, signal.SIGKILL)
+                        except ProcessLookupError:
+                            pass
+                self.cleanup_processes(root)
+                try:
+                    proc.communicate(timeout=3)
+                finally:
+                    proc.stdout.close()
+                    proc.stderr.close()
+
+    def child_query(self, root: Path, outcome: int | None = None):
+        body = (
+            'sleep 60 &\nprintf "%s\\n" "$!" > "$ENVREF_REPO_ROOT/transport.pid"\n'
+            'while ! test -s "$ENVREF_REPO_ROOT/watchdog-sleep.pid"; do sleep 0.01; done\n'
+            'printf "ready\\n" > "$ENVREF_REPO_ROOT/query.ready"\n'
+        )
+        if outcome is None:
+            body += "wait"
+        else:
+            # Keep the query alive until the test has recorded every descendant.
+            body += (
+                'while ! test -f "$ENVREF_REPO_ROOT/query.release"; do sleep 0.01; done\n'
+                'printf "%040d\\trefs/tags/v0.24.0\\n" 0\n'
+                f"exit {outcome}"
+            )
+        return query_shim(root, body, watchdog_sleep="60")
+
+    def check_cancellation(self, cli: bool, wrapper=False):
+        for sig in (signal.SIGTERM, signal.SIGINT):
+            with self.subTest(signal=sig.name), TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                fixture(root, tags=("v0.24.0",))
+                env = self.child_query(root)
+                if wrapper:
+                    uv = shutil.which("uv")
+                    self.assertIsNotNone(
+                        uv, "real uv is required for wrapper cancellation"
+                    )
+                    project = Path(__file__).resolve().parents[1]
+                    # Create these only after fixture's git add/commit.
+                    (root / "bin").mkdir()
+                    shutil.copy2(
+                        project.parents[1] / "bin" / "envref",
+                        root / "bin" / "envref",
+                    )
+                    (root / "tools").mkdir()
+                    (root / "tools" / "envref").symlink_to(
+                        project, target_is_directory=True
+                    )
+                    cache = subprocess.run(
+                        [uv, "cache", "dir"],
+                        capture_output=True,
+                        text=True,
+                        check=True,
+                        timeout=5,
+                    ).stdout.strip()
+                    env.update(
+                        {
+                            "PATH": env["PATH"]
+                            + os.pathsep
+                            + str(Path(uv).parent),
+                            "UV_OFFLINE": "1",
+                            "UV_CACHE_DIR": cache,
+                            "UV_PYTHON": sys.executable,
+                            "UV_PYTHON_DOWNLOADS": "never",
+                        }
+                    )
+                with self.lifecycle_check(
+                    root, env, cli=cli, wrapper=wrapper
+                ) as (proc, tracked):
+                    # Do not signal a process group: callers cancel the public PID.
+                    proc.send_signal(sig)
+                    try:
+                        stdout, stderr = proc.communicate(timeout=3)
+                    except subprocess.TimeoutExpired:
+                        self.fail(
+                            f"{sig.name} did not promptly terminate the check and its pipes"
+                        )
+                    self.assertIn(
+                        proc.returncode, (-sig, 128 + sig), stdout + stderr
+                    )
+                    for pid in tracked:
+                        with self.subTest(pid=pid):
+                            self.assert_pid_stopped(
+                                pid, "cancelled check descendant"
+                            )
+
+    def test_script_pid_cancellation_terminates_all_descendants(self):
+        self.check_cancellation(cli=False)
+
+    def test_cli_pid_cancellation_terminates_all_descendants(self):
+        self.check_cancellation(cli=True)
+
+    def test_bin_envref_pid_cancellation_with_real_uv_terminates_all_descendants(
+        self,
+    ):
+        self.check_cancellation(cli=False, wrapper=True)
+
+    def test_completed_query_with_child_terminates_all_descendants(self):
+        for outcome in (1, 0):
+            with (
+                self.subTest(query_status=outcome),
+                TemporaryDirectory() as tmp,
+            ):
+                root = Path(tmp)
+                fixture(root, tags=("v0.24.0",))
+                with self.lifecycle_check(
+                    root, self.child_query(root, outcome)
+                ) as (proc, tracked):
+                    (root / "query.release").touch()
+                    try:
+                        stdout, stderr = proc.communicate(timeout=3)
+                    except subprocess.TimeoutExpired:
+                        self.fail(
+                            "completed query left the check or its descendants holding pipes open"
+                        )
+                    self.assertEqual(proc.returncode, outcome, stdout + stderr)
+                    for pid in tracked:
+                        with self.subTest(pid=pid):
+                            self.assert_pid_stopped(
+                                pid, "completed check descendant"
+                            )
 
     def test_stalled_query_is_bounded_and_its_transport_is_killed(self):
         for require_base in (False, True):
@@ -454,6 +774,37 @@ class TagQueryTest(unittest.TestCase):
                     self.assert_process_stopped(root / "transport.pid")
                 finally:
                     self.cleanup_processes(root)
+
+    def test_real_fifteen_second_deadline_discards_output_and_cleans_up(self):
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            fixture(root, tags=("v0.24.0",))
+            env = query_shim(
+                root,
+                'printf "%040d\\trefs/tags/v0.24.0\\n" 0\n'
+                'sleep 60 &\nprintf "%s\\n" "$!" > "$ENVREF_REPO_ROOT/transport.pid"\n'
+                "wait",
+                watchdog_sleep="15",
+            )
+            try:
+                start = time.monotonic()
+                proc = run_check(
+                    root, require_base=True, extra_env=env, timeout=25
+                )
+                elapsed = time.monotonic() - start
+                self.assertGreaterEqual(elapsed, 14)
+                self.assertLess(elapsed, 23)
+                self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+                self.assertIn("15-second deadline", proc.stderr)
+                self.assertNotIn("PASS:", proc.stdout)
+                for name in (
+                    "query.pid",
+                    "transport.pid",
+                    "watchdog-sleep.pid",
+                ):
+                    self.assert_process_stopped(root / name)
+            finally:
+                self.cleanup_processes(root)
 
     def test_successful_query_cleans_up_the_watchdog_sleep(self):
         with TemporaryDirectory() as tmp:
