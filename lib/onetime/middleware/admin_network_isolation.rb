@@ -77,10 +77,9 @@ module Onetime
     # The host is read from env[Rack::DetectHost.result_field_name] — the host
     # Rack::DetectHost already validated. Three things it deliberately is NOT:
     #
-    #   - NOT env['onetime.domain_strategy']. DomainStrategy honors an
-    #     `O-Domain-Context` REQUEST HEADER override when
-    #     development.domain_context_enabled is on. A header-settable input
-    #     must never decide admin reachability.
+    #   - NOT env['onetime.domain_strategy']. That is a classification made
+    #     further down the stack for routing and branding; admin reachability
+    #     is decided from the detected host directly.
     #   - NOT HTTP_HOST / HTTP_X_FORWARDED_HOST. Reading those raw would
     #     bypass the trust decision DetectHost already made about the peer.
     #   - NOT the literal string 'rack.detected_host'. The env key name is a

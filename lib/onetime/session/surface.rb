@@ -39,14 +39,18 @@ module Onetime
   # `:invalid` is not only an unplaceable host. DomainStrategy also answers
   # it when its custom-domain lookup RAISES, so during a datastore blip a
   # real custom domain or platform subdomain arrives here as `:invalid` (see
-  # the class doc of {Onetime::Middleware::DomainStrategy}). An `:invalid`
-  # request is therefore classified again, with the same
-  # {Onetime::Middleware::DomainStrategy::Chooserator.classify!} the
+  # the class doc of {Onetime::Middleware::DomainStrategy}). The two are
+  # told apart by the Onetime::CustomDomainResolution the middleware
+  # published for the host (#4220): read_failed is the outage, absent is a
+  # host we do not serve. When nothing was published for the host (an env
+  # the middleware did not build), the request is classified again with the
+  # same {Onetime::Middleware::DomainStrategy::Chooserator.classify!} the
   # middleware uses, minus its rescue:
   #
   # - The lookup succeeds: the answer is exactly what a healthy request on
   #   that host would have carried. `nil` for a host we do not serve.
-  # - The lookup fails again: the surface is UNKNOWN, which is not the same
+  # - The lookup failed (as published, or again here): the surface is
+  #   UNKNOWN, which is not the same
   #   as wrong. `for_env` still answers `nil`, so every descriptor consumer
   #   (RecentReauth, ReauthPolicy via ReauthOffer, the WebAuthn surface_scope
   #   stamp, the OmniAuth Connect intent and callback) refuses as before.
@@ -196,6 +200,18 @@ module Onetime
         # the canonical host is therefore the substitute, not the real host.
         return nil if Onetime::Middleware::DomainStrategy.canonical_host?(host)
 
+        # DomainStrategy published the lookup it made for this host (#4220),
+        # which says which kind of :invalid this is without reading again: a
+        # failed read is an outage, and an absent record means the middleware
+        # classified a healthy answer, so the host is one we do not serve.
+        published = env[Onetime::CustomDomainResolution::ENV_KEY]
+        if published.is_a?(Onetime::CustomDomainResolution) && published.host == host
+          raise published.error if published.read_failed?
+          return nil if published.absent?
+        end
+
+        # Nothing published for this host (the env was not built by the
+        # middleware): classify it again, without the middleware's rescue.
         # The same inputs the middleware instance passes (DomainStrategy#call).
         strategy       = Onetime::Middleware::DomainStrategy
         classification = strategy::Chooserator.classify!(

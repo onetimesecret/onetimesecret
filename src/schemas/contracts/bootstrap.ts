@@ -482,7 +482,6 @@ export const diagnosticsSchema = diagnosticsInner.nullable();
 
 export const developmentConfigSchema = z.object({
   enabled: z.boolean().default(false),
-  domain_context_enabled: z.boolean().default(false),
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════

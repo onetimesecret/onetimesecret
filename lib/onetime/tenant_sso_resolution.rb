@@ -30,9 +30,13 @@ module Onetime
   # (outside it, on the way OUT) share one object. No lock: a rack env
   # belongs to exactly one request on one thread.
   #
-  # The domain lookup is CustomDomain.from_display_domain — the RAISING
-  # loader, the same one Auth::SigninGate and Auth::RestrictTo read identity
-  # through (#4157). It normalizes case internally, returns nil for a blank
+  # The domain comes from the request's Onetime::CustomDomainResolution
+  # (#4220): the read DomainStrategy made while classifying the host, shared
+  # with Auth::SigninGate and Auth::RestrictTo, or one read made on first use
+  # when the middleware needed none. Built without a rack env (view_vars
+  # only), the resolution is read here instead. Either way the loader behind
+  # it is CustomDomain.from_display_domain — the RAISING
+  # loader (#4157). It normalizes case internally, returns nil for a blank
   # host and for a dangling index entry whose record will not hydrate, and
   # lets Redis::BaseError out. That last part is the whole point: its
   # fail-open sibling load_by_display_domain rescues Redis::BaseError AND a
@@ -79,7 +83,7 @@ module Onetime
     def self.for(env)
       return new(nil) unless env.is_a?(Hash)
 
-      env[ENV_KEY] ||= new(env['onetime.display_domain'], env['onetime.domain_strategy'])
+      env[ENV_KEY] ||= new(env['onetime.display_domain'], env['onetime.domain_strategy'], env: env)
     end
 
     # The resolution carried by view_vars, or a fresh unshared one.
@@ -104,9 +108,14 @@ module Onetime
     #   the classification DomainStrategy already made for this request. Absent
     #   (view_vars built without an env) means "unclassified", which is
     #   treated as a tenant host — the fail-closed side.
-    def initialize(display_domain, domain_strategy = nil)
+    # @param env [Hash, nil] the rack env this resolution was created for.
+    #   When given, the domain is read from the request's shared
+    #   CustomDomainResolution instead of a lookup of its own. Nothing is
+    #   read at construction either way.
+    def initialize(display_domain, domain_strategy = nil, env: nil)
       @display_domain  = display_domain.to_s
       @domain_strategy = domain_strategy
+      @env             = env
     end
 
     # @return [String, nil, :domain_read_failed] CustomDomain objid, nil when
@@ -214,13 +223,24 @@ module Onetime
       @custom_domain = nil
       return nil if @display_domain.empty?
 
-      @custom_domain = Onetime::CustomDomain.from_display_domain(@display_domain)
+      @custom_domain = custom_domain_resolution.record!
       @custom_domain&.identifier
     rescue Redis::BaseError => ex
       @custom_domain = nil
       OT.le '[TenantSsoResolution] datastore error resolving domain_id for ' \
             "domain=#{@display_domain} strategy=#{@domain_strategy.inspect}: #{ex.class}"
       operator_host? ? nil : DOMAIN_READ_FAILED
+    end
+
+    # The request's shared resolution when this instance was created for a
+    # rack env that still shows the same display domain; a lookup of its own
+    # otherwise.
+    def custom_domain_resolution
+      if @env && @env['onetime.display_domain'].to_s == @display_domain
+        return Onetime::CustomDomainResolution.for(@env)
+      end
+
+      Onetime::CustomDomainResolution.lookup(@display_domain)
     end
 
     def read_sso_config

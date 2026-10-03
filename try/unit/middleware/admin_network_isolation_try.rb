@@ -1172,8 +1172,8 @@ status_for(@ip_only, 'anything.example.test', path_info: '/dashboard')
 # =================================================================
 # Two inputs must never decide admin reachability: HTTP_HOST (raw, bypasses the
 # trust decision Rack::DetectHost already made about the peer) and
-# env['onetime.domain_strategy'] (DomainStrategy honors an O-Domain-Context
-# REQUEST HEADER override when development.domain_context_enabled is on).
+# env['onetime.domain_strategy'] (a classification made further down the
+# stack, for routing and branding).
 
 ## HTTP_HOST naming an allowed host does NOT admit a denied detected host
 @provenance = build_mw(hosts: ['admin.example.com'])

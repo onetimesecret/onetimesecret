@@ -3,8 +3,8 @@
 # check-config-versions.sh
 #
 # The RATCHET for "# Since vX.Y.Z" config annotations, in the same idiom as
-# check-env-reference.sh. Dependency-free (git plus grep/sed/awk/sort/comm/join
-# only). Contract: docs/development/config-version-annotations.md
+# check-env-reference.sh. Dependency-free (git plus standard Unix tools; no
+# external timeout utility). Contract: docs/development/config-version-annotations.md
 #
 # The one-time backfill that annotated .env.reference and etc/defaults/*.yaml is
 # worthless the moment the next PR adds an undated key, and actively harmful the
@@ -21,6 +21,13 @@
 #      The one sanctioned change is `unreleased` -> a real version, which the
 #      release process performs when it cuts that version. That transition is
 #      allowed precisely because `unreleased` is not yet history.
+#      "Shipped" means the version has a stable release tag (refs/tags/vX.Y.Z).
+#      A marker naming a version with no such tag is treated like `unreleased`
+#      and stays editable, so a guessed version that reached the base branch
+#      can be corrected before the release that really ships the key. The tag
+#      set combines the selected release remote's advertisement with local tags.
+#      If release evidence is unavailable or no stable tags are known, every concrete
+#      marker is frozen (and CONFIG_VERSION_REQUIRE_BASE makes this a failure).
 #   3. MARKERS ARE WELL-FORMED. Every marker matches the §1 recognizer exactly,
 #      so the annotator, this guard and the docs generator all agree on what a
 #      marker is. Catches `# since v1.2.3`, `#Since v1.2.3`, `# Since 1.2.3`,
@@ -121,7 +128,20 @@ for y in etc/defaults/*.yaml etc/defaults/*.yml; do
 done
 
 tmp=$(mktemp -d)
-trap 'rm -rf "$tmp"' EXIT
+tag_query_pid=""
+# shellcheck disable=SC2329 # Invoked by the EXIT trap, including signal exits.
+cleanup() {
+  trap '' INT TERM
+  if [[ -n "$tag_query_pid" ]]; then
+    # Cancel the supervisor, not just Git: it reaps both process groups.
+    kill -TERM "$tag_query_pid" 2>/dev/null || true
+    wait "$tag_query_pid" 2>/dev/null || true
+  fi
+  rm -rf "$tmp"
+}
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 : > "$tmp/fail_new"        # <file>|<key>
 : > "$tmp/fail_changed"    # <file>|<key>|<base_version>|<worktree_marker>
@@ -187,6 +207,68 @@ if [[ -z "$BASE_REF" && -n "${CONFIG_VERSION_REQUIRE_BASE:-}" && "${1:-}" != "--
   echo "FAIL: no base ref available, and CONFIG_VERSION_REQUIRE_BASE is set." >&2
   echo "      New-key and immutability drift cannot be checked without one." >&2
   echo "      Fetch the base branch first, e.g. 'git fetch origin develop'." >&2
+  exit 1
+fi
+
+# --- Stable release evidence ---------------------------------------------
+# Authority is an operator choice, never inferred from a conventional remote
+# name. A successful query cannot establish that a fork has all release tags.
+# shellcheck source=release-tag-evidence.sh
+source "$(dirname "${BASH_SOURCE[0]}")/release-tag-evidence.sh"
+TAGS_COMPLETE=0
+RELEASE_REMOTE=""
+TAG_PROBLEM="no release authority selected"
+: > "$tmp/stable.tags"
+if [[ -n "$BASE_REF" && "${1:-}" != "--print-sites" ]]; then
+  if [[ "${CONFIG_VERSION_RELEASE_REMOTE+x}" == x ]]; then
+    RELEASE_REMOTE="$CONFIG_VERSION_RELEASE_REMOTE"
+  else
+    RELEASE_REMOTE=$(git config --get envref.releaseRemote 2>/dev/null || true)
+  fi
+  if [[ -n "$RELEASE_REMOTE" ]]; then
+    # Require a named remote. Never print its URL: it may contain credentials.
+    if git remote get-url -- "$RELEASE_REMOTE" >/dev/null 2>&1; then
+      echo "INFO: release-tag authority is remote '$RELEASE_REMOTE' (operator-selected)."
+      local_status=0
+      git tag -l 'v[0-9]*' > "$tmp/local.tags" 2>/dev/null || local_status=$?
+      remote_status=0
+      # An asynchronous wait lets the outer shell handle cancellation promptly.
+      query_release_tags "$RELEASE_REMOTE" "$tmp" > "$tmp/remote.refs" 2>/dev/null &
+      tag_query_pid=$!
+      wait "$tag_query_pid" || remote_status=$?
+      tag_query_pid=""
+      TAG_PROBLEM="cannot list stable release tags from $RELEASE_REMOTE"
+      if [[ -f "$tmp/tag-query.timeout" ]]; then
+        TAG_PROBLEM="release-tag query to $RELEASE_REMOTE exceeded its 15-second deadline"
+      elif [[ $local_status -ne 0 ]]; then
+        TAG_PROBLEM="cannot list local stable release tags"
+      elif classify_release_tags "$local_status" "$remote_status" "$tmp/local.tags" "$tmp/remote.refs" > "$tmp/stable.tags"; then
+        if [[ -s "$tmp/stable.tags" ]]; then
+          TAGS_COMPLETE=1
+        else
+          TAG_PROBLEM="no stable release tags (vX.Y.Z) are visible locally or on $RELEASE_REMOTE"
+        fi
+      fi
+    else
+      TAG_PROBLEM="selected release authority is not a configured Git remote"
+      # A rejected URL may contain credentials; never echo it in guidance.
+      RELEASE_REMOTE=""
+    fi
+  fi
+fi
+
+tag_guidance() {
+  echo "      Select the remote carrying the complete release tag namespace, not a partial fork."
+  echo "      Set CONFIG_VERSION_RELEASE_REMOTE or 'git config envref.releaseRemote <remote>'."
+  if [[ -n "$RELEASE_REMOTE" ]]; then
+    echo "      Check 'git ls-remote --tags --refs $RELEASE_REMOTE'; fetch with 'git fetch --tags $RELEASE_REMOTE'."
+  fi
+}
+
+if [[ -n "$BASE_REF" && $TAGS_COMPLETE -eq 0 && -n "${CONFIG_VERSION_REQUIRE_BASE:-}" && "${1:-}" != "--print-sites" ]]; then
+  echo "FAIL: ${TAG_PROBLEM}, and CONFIG_VERSION_REQUIRE_BASE is set." >&2
+  echo "      Cannot distinguish shipped markers from guesses with unverified release tags." >&2
+  tag_guidance >&2
   exit 1
 fi
 
@@ -539,11 +621,22 @@ check_file() {
       | sed -E 's@=.*@@' | sort -u > "$tmp/env.activekeys"
   fi
 
-  # --- Rule 2: a concrete version the base ref carries must still be carried
+  # --- Rule 2: a released version the base ref carries must still be carried
   # by that same key. `unreleased` is excluded from the base side on purpose —
-  # resolving it at release time is the sanctioned transition.
+  # resolving it at release time is the sanctioned transition. A version with
+  # no stable tag locally or in the selected authority's advertisement is excluded
+  # the same way. Without that evidence, all concrete markers stay frozen.
+  # The env half below joins against base.pairs, so it inherits the filter.
   { grep -E ' v[0-9]+\.[0-9]+\.[0-9]+ [01]$' "$base" || true; } \
-    | cut -d' ' -f1,2 | sort -u > "$tmp/base.pairs"
+    | cut -d' ' -f1,2 | sort -u > "$tmp/base.concrete"
+  if [[ $TAGS_COMPLETE -eq 1 ]]; then
+    awk -v tags="$tmp/stable.tags" '
+      BEGIN { while ((getline t < tags) > 0) released[t] = 1 }
+      $2 in released
+    ' "$tmp/base.concrete" > "$tmp/base.pairs"
+  else
+    cp "$tmp/base.concrete" "$tmp/base.pairs"
+  fi
   { grep -vE ' - [01]$' "$head" || true; } | cut -d' ' -f1,2 | sort -u > "$tmp/head.pairs"
   comm -23 "$tmp/base.pairs" "$tmp/head.pairs" > "$tmp/lost.pairs"
 
@@ -648,7 +741,12 @@ fi
 if [[ -s "$tmp/fail_changed" ]]; then
   if [[ $failed -eq 1 ]]; then echo "" >&2; fi
   {
-    echo "FAIL: $(wc -l < "$tmp/fail_changed" | tr -d ' ') version marker(s) changed. Shipped markers are immutable:"
+    echo "FAIL: $(wc -l < "$tmp/fail_changed" | tr -d ' ') version marker(s) changed:"
+    if [[ $TAGS_COMPLETE -eq 1 ]]; then
+      echo "Shipped markers are immutable:"
+    else
+      echo "Concrete markers are frozen while release-tag visibility is unverified:"
+    fi
     while IFS='|' read -r f k was now; do
       echo "  $f:  $k"
       echo "      base:     # Since $was"
@@ -659,11 +757,18 @@ if [[ -s "$tmp/fail_changed" ]]; then
       fi
     done < "$tmp/fail_changed"
     echo ""
-    echo "'Since v0.24.0' is a promise to everyone running v0.24.0 — it is history,"
-    echo "not a field to update. Restore the original marker. If a key genuinely"
-    echo "changed meaning, rename the key instead; the old name's marker leaves with"
-    echo "it. The only sanctioned edit is 'unreleased' -> a real version, made by the"
-    echo "release process when it cuts that version."
+    if [[ $TAGS_COMPLETE -eq 1 ]]; then
+      echo "'Since v0.24.0' is a promise to everyone running v0.24.0 — it is history,"
+      echo "not a field to update. Restore the original marker. If a key genuinely"
+      echo "changed meaning, rename the key instead; the old name's marker leaves with"
+      echo "it. The release process may resolve 'unreleased' to a real version."
+      echo "A marker with no stable tag locally or on the selected release remote is not frozen."
+    else
+      echo "Release-tag visibility is unverified, so every concrete marker on the"
+      echo "base is frozen conservatively, including possibly untagged guesses."
+      echo "Verify the release tags and retry before correcting a guessed version."
+      tag_guidance
+    fi
   } >&2
   failed=1
 fi
@@ -724,6 +829,12 @@ if [[ -s "$tmp/fail_hidden" ]]; then
   failed=1
 fi
 
+if [[ -n "$BASE_REF" && $TAGS_COMPLETE -eq 0 ]]; then
+  echo "NOTE: ${TAG_PROBLEM}."
+  echo "      Every concrete marker on the base was frozen conservatively."
+  tag_guidance
+fi
+
 if [[ $failed -eq 1 ]]; then
   exit 1
 fi
@@ -734,6 +845,7 @@ if [[ -z "$BASE_REF" ]]; then
   echo "      CONFIG_VERSION_REQUIRE_BASE=1 to make this a failure, as CI does)."
 fi
 
+
 if [[ -s "$tmp/note_versioned" ]]; then
   echo "NOTE: new key(s) annotated with a released version rather than 'unreleased'"
   echo "      (correct only if the key really did ship in that version):"
@@ -741,7 +853,7 @@ if [[ -s "$tmp/note_versioned" ]]; then
 fi
 
 if [[ -n "$BASE_REF" ]]; then
-  echo "PASS: config version markers are well-formed, and every marker on the base is intact"
+  echo "PASS: config version markers are well-formed, and every frozen marker on the base is intact"
   echo "  (${#TARGETS[@]} file(s), $sites_total annotation site(s), $markers_total marked, $new_total new key(s) vs $BASE_DESC)"
 else
   echo "PASS: config version markers are well-formed"

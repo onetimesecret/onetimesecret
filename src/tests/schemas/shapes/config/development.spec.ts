@@ -16,7 +16,6 @@ describe('developmentShape — defaults applied on empty input', () => {
       enabled: false,
       debug: false,
       frontend_host: 'http://localhost:5173',
-      domain_context_enabled: false,
       allow_nil_global_secret: false,
     });
   });
@@ -26,14 +25,12 @@ describe('developmentShape — defaults applied on empty input', () => {
       enabled: true,
       debug: true,
       frontend_host: 'http://dev.local:5174',
-      domain_context_enabled: true,
       allow_nil_global_secret: true,
     });
     expect(result).toEqual({
       enabled: true,
       debug: true,
       frontend_host: 'http://dev.local:5174',
-      domain_context_enabled: true,
       allow_nil_global_secret: true,
     });
   });
@@ -44,7 +41,6 @@ describe('developmentShape — contract vs shape', () => {
     ['enabled', undefined, false],
     ['debug', undefined, false],
     ['frontend_host', undefined, 'http://localhost:5173'],
-    ['domain_context_enabled', undefined, false],
     ['allow_nil_global_secret', undefined, false],
   ])('contract leaves %s undefined; shape fills it', (field, contractExpected, shapeExpected) => {
     const c = developmentSchema.parse({}) as Record<string, unknown>;
