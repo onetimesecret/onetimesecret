@@ -778,5 +778,37 @@
   "web.colonel.organizations.filters.searchPlaceholder": {
     "text": "Søg efter ID, navn eller e-mail",
     "source_hash": "6fe16473"
+  },
+  "web.colonel.organizations.capped": {
+    "text": "Resultaterne er begrænset: det viste antal er et minimum, ikke totalen. Filtrene dækker alle organisationer, der er knyttet til et abonnement, samt de senest opdaterede; søg efter et nøjagtigt ID eller en e-mail for at finde andre.",
+    "source_hash": "0743238d"
+  },
+  "web.impersonation.banner.label": {
+    "text": "Agerer som bruger",
+    "source_hash": "d96f0e8d"
+  },
+  "web.impersonation.banner.viewingAs": {
+    "text": "Ser som {email}",
+    "source_hash": "cf2dd9c6"
+  },
+  "web.impersonation.banner.readOnly": {
+    "text": "Skrivebeskyttet: ændringer er blokeret, mens du agerer som bruger.",
+    "source_hash": "46ed3b68"
+  },
+  "web.impersonation.banner.expiresIn": {
+    "text": "Slutter om {time}",
+    "source_hash": "b4999fd8"
+  },
+  "web.impersonation.banner.stop": {
+    "text": "Stop med at agere som bruger",
+    "source_hash": "5cf74e38"
+  },
+  "web.impersonation.banner.stopping": {
+    "text": "Stopper…",
+    "source_hash": "bbe85741"
+  },
+  "web.impersonation.banner.stopFailed": {
+    "text": "Kunne ikke stoppe med at agere som bruger. Prøv igen.",
+    "source_hash": "5aa72353"
   }
 }

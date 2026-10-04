@@ -134,5 +134,17 @@
   "web.admin.audit.list.contractError": {
     "text": "Serveren svarede, men audit-dataene matchede ikke det forventede format. Ingen hændelser kan vises — dette er en rapporteringsfejl, ikke en tom log.",
     "source_hash": "7f48137e"
+  },
+  "web.admin.audit.export.csv": {
+    "text": "Eksportér CSV",
+    "source_hash": "91f71c14"
+  },
+  "web.admin.audit.export.ndjson": {
+    "text": "Eksportér NDJSON",
+    "source_hash": "3ee2c07c"
+  },
+  "web.admin.audit.export.hint": {
+    "text": "Eksporten dækker hele det opbevarede revisionsspor med de aktuelle filtre, ikke kun denne side. Opbevaringsperioden er begrænset — længere historik ligger i revisionslogdestinationen.",
+    "source_hash": "163e8ad0"
   }
 }

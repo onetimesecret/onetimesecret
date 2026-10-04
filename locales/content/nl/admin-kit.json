@@ -62,5 +62,29 @@
   "web.admin.kit.revealEmail.copy": {
     "text": "E-mailadres kopiëren",
     "source_hash": "61b94846"
+  },
+  "web.admin.errors.rateLimited": {
+    "text": "Je kunt het over ongeveer {minutes} minuten opnieuw proberen.",
+    "source_hash": "27f2d054"
+  },
+  "web.admin.errors.rateLimitedRecovery": {
+    "text": "Als je eerder moet handelen, reset de limiter voor je eigen account met POST /api/colonel/ratelimit/reset, of voer `bin/ots ratelimit keys <kind> <extid>` uit.",
+    "source_hash": "b77e1388"
+  },
+  "web.admin.kit.confirmDialog.reasonLabel": {
+    "text": "Reden (optioneel)",
+    "source_hash": "0f7d4664"
+  },
+  "web.admin.kit.confirmDialog.reasonPlaceholder": {
+    "text": "Waarom doe je dit?",
+    "source_hash": "ef83fe82"
+  },
+  "web.admin.kit.confirmDialog.reasonHint": {
+    "text": "Wordt samen met deze actie vastgelegd in het auditlogboek voor beheerders.",
+    "source_hash": "23779076"
+  },
+  "web.admin.kit.filterBar.searchSubmit": {
+    "text": "Zoeken",
+    "source_hash": "49c266ba"
   }
 }

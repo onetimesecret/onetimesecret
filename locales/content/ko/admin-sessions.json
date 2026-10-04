@@ -176,8 +176,8 @@
     "source_hash": "0c6605c1"
   },
   "web.admin.sessions.revoke.confirmDescription": {
-    "text": "세션 {id}을(를) 삭제하여 사용자를 즉시 로그아웃시킵니다. 확인하려면 세션 ID를 입력하세요.",
-    "source_hash": "9e08b1b8"
+    "text": "세션 {id}을(를) 취소하여 사용자를 즉시 로그아웃시킵니다. 확인하려면 {token}을(를) 입력하세요.",
+    "source_hash": "80578692"
   },
   "web.admin.sessions.revoke.success": {
     "text": "세션이 취소되었습니다",
@@ -188,12 +188,12 @@
     "source_hash": "34cb67a4"
   },
   "web.admin.sessions.scan.capped": {
-    "text": "검사가 처음 {scanned}개 키로 제한되었습니다 — 이 범위를 벗어난 인증된 세션은 나열되지 않습니다. 특정 세션에 접근하려면 ID로 검사하세요.",
-    "source_hash": "fa418b4e"
+    "text": "검사가 처음 {scanned}개 키로 제한되었습니다 — 이 범위를 벗어난 인증된 세션은 나열되지 않습니다. 해당 세션을 찾으려면 검색 범위를 좁히세요.",
+    "source_hash": "7a8d6fd5"
   },
   "web.admin.sessions.search.placeholder": {
-    "text": "이메일 또는 외부 ID로 검색",
-    "source_hash": "f2dc5c06"
+    "text": "이메일, 외부 ID 또는 세션 핸들로 검색",
+    "source_hash": "4894dec4"
   },
   "web.admin.sessions.sections.session": {
     "text": "세션",
@@ -210,5 +210,45 @@
   "web.admin.sessions.status.anonymous": {
     "text": "익명",
     "source_hash": "e7a8aa2d"
+  },
+  "web.admin.sessions.authority.title": {
+    "text": "전체 인증 모드에서는 세션 기준 저장소가 아닙니다",
+    "source_hash": "796fb07f"
+  },
+  "web.admin.sessions.authority.description": {
+    "text": "이 목록은 Redis 세션 저장소입니다. 인증 모드가 full로 설정된 경우 기준이 되는 세션 상태는 Rodauth 계정 데이터베이스에 있으며, 이 콘솔은 해당 데이터베이스를 읽지 않습니다. Rodauth를 통해 로그인한 계정은 여기에 표시되지 않을 수 있으며, 여기에서 세션을 취소해도 Rodauth 세션은 종료되지 않습니다.",
+    "source_hash": "77bc4904"
+  },
+  "web.admin.sessions.authority.descriptionRevokeAll": {
+    "text": "이 목록은 Redis 세션 저장소입니다. 인증 모드가 full로 설정된 경우 기준이 되는 세션 상태는 Rodauth 계정 데이터베이스에 있으며, 이 콘솔은 해당 데이터베이스를 읽지 않습니다. Rodauth를 통해 로그인한 계정은 여기에 표시되지 않을 수 있으며, 여기에서 개별 세션을 취소해도 해당 Rodauth 세션은 종료되지 않습니다. 모두 취소를 사용하면 계정의 Rodauth 세션도 종료됩니다.",
+    "source_hash": "f964663d"
+  },
+  "web.admin.sessions.authority.openAdmin": {
+    "text": "Rodauth Admin 열기",
+    "source_hash": "ce523836"
+  },
+  "web.admin.sessions.authority.notConfigured": {
+    "text": "여기에서 Rodauth Admin으로 연결하려면 RODAUTH_ADMIN_URL을 설정하세요.",
+    "source_hash": "c070dbfb"
+  },
+  "web.admin.sessions.columns.sessionHandle": {
+    "text": "세션 핸들",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.errors.scanCapped": {
+    "text": "샘플링된 키 공간에서 이 세션을 찾을 수 없습니다. 소유자 정보로 조회할 수 있도록 목록의 해당 행에서 세션을 여세요.",
+    "source_hash": "67b73f7f"
+  },
+  "web.admin.sessions.fields.sessionHandle": {
+    "text": "세션 핸들",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.revoke.ownSession": {
+    "text": "본인의 세션입니다. 이 세션을 취소하면 로그아웃됩니다 — 대신 로그아웃을 사용하세요.",
+    "source_hash": "a6762292"
+  },
+  "web.admin.sessions.rodauthAdmin.open": {
+    "text": "Rodauth Admin에서 열기",
+    "source_hash": "467173c8"
   }
 }

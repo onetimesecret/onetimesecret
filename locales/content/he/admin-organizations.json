@@ -638,5 +638,121 @@
   "web.admin.organizations.entitlements.summary.planUnknown": {
     "text": "לא ידוע — לא ניתן להשוות",
     "source_hash": "b607e540"
+  },
+  "web.admin.organizations.actions.plan.label": {
+    "text": "תוכנית",
+    "source_hash": "fa8ed0bd"
+  },
+  "web.admin.organizations.actions.plan.apply": {
+    "text": "החל",
+    "source_hash": "31e392d1"
+  },
+  "web.admin.organizations.actions.plan.confirmTitle": {
+    "text": "לשנות תוכנית?",
+    "source_hash": "910a4de9"
+  },
+  "web.admin.organizations.actions.plan.confirmDescription": {
+    "text": "שנה את {org} לתוכנית {plan}.",
+    "source_hash": "aecf8277"
+  },
+  "web.admin.organizations.actions.plan.success": {
+    "text": "התוכנית עודכנה.",
+    "source_hash": "ebe8d40c"
+  },
+  "web.admin.organizations.actions.plan.problem": {
+    "text": "התוכנית נשמרה, אך הזכאויות לא עודכנו. הרץ התאמה על ארגון זה.",
+    "source_hash": "2addb095"
+  },
+  "web.admin.organizations.actions.plan.localConfigWarning": {
+    "text": "התוכניות נטענו מתצורה מקומית — Stripe אינו מוגדר או אינו נגיש.",
+    "source_hash": "df83e326"
+  },
+  "web.admin.organizations.detail.delete.button": {
+    "text": "מחק ארגון",
+    "source_hash": "a70d189a"
+  },
+  "web.admin.organizations.detail.delete.previewing": {
+    "text": "טוען את תוכנית המחיקה…",
+    "source_hash": "c9773eb9"
+  },
+  "web.admin.organizations.detail.delete.warning": {
+    "text": "מוחק לצמיתות את הארגון, את החברויות בו ואת ההזמנות הממתינות שלו, ושולח דוא״ל לחברים לשעבר. לא ניתן לבטל פעולה זו.",
+    "source_hash": "fd314131"
+  },
+  "web.admin.organizations.detail.delete.confirmTitle": {
+    "text": "למחוק ארגון זה?",
+    "source_hash": "6a3bba0f"
+  },
+  "web.admin.organizations.detail.delete.confirmDescription": {
+    "text": "פעולה זו מוחקת לצמיתות את {org}. הקלד מחדש את מזהה הארגון לאישור.",
+    "source_hash": "c63a0221"
+  },
+  "web.admin.organizations.detail.delete.membersLabel": {
+    "text": "חברים",
+    "source_hash": "1044a4c0"
+  },
+  "web.admin.organizations.detail.delete.invitationsLabel": {
+    "text": "הזמנות ממתינות",
+    "source_hash": "76198e63"
+  },
+  "web.admin.organizations.detail.delete.domainsLabel": {
+    "text": "דומיינים",
+    "source_hash": "ced67718"
+  },
+  "web.admin.organizations.detail.delete.defaultOrgLabel": {
+    "text": "ניקוי ברירת המחדל של סביבת העבודה עבור",
+    "source_hash": "d535ac2a"
+  },
+  "web.admin.organizations.detail.delete.forceDefault": {
+    "text": "זוהי סביבת העבודה המוגדרת כברירת מחדל (האישית) של הבעלים. מחק אותה בכל זאת.",
+    "source_hash": "1a8b0f7d"
+  },
+  "web.admin.organizations.detail.delete.forceSubscription": {
+    "text": "המנוי פעיל. מחק בכל זאת — פעולה זו אינה מבטלת את החיוב ב-Stripe.",
+    "source_hash": "51cb3456"
+  },
+  "web.admin.organizations.detail.delete.driftedDomainsLabel": {
+    "text": "דומיינים בסטייה",
+    "source_hash": "fef96f49"
+  },
+  "web.admin.organizations.detail.delete.driftedDomainsRepair": {
+    "text": "תקן באמצעות: bin/ots domains doctor --all --repair",
+    "source_hash": "14c9c59f"
+  },
+  "web.admin.organizations.detail.delete.success": {
+    "text": "{org} נמחק.",
+    "source_hash": "9cdda5d0"
+  },
+  "web.admin.organizations.detail.delete.blocked.hasDomains": {
+    "text": "חסום: הסר תחילה את הדומיינים המותאמים אישית ({domains}).",
+    "source_hash": "dc3248b2"
+  },
+  "web.admin.organizations.detail.delete.blocked.driftedDomains": {
+    "text": "חסום: רשומות דומיין אלה עדיין מפנות לארגון זה אך חסרות ברשימת הדומיינים שלו ({domains}). הרץ תחילה bin/ots domains doctor --all --repair — אין אפשרות עקיפה.",
+    "source_hash": "3136496c"
+  },
+  "web.admin.organizations.detail.delete.blocked.isDefault": {
+    "text": "חסום: זוהי סביבת העבודה המוגדרת כברירת מחדל של הבעלים. סמן את העקיפה שלמטה כדי למחוק אותה בכל זאת.",
+    "source_hash": "09d5baa4"
+  },
+  "web.admin.organizations.detail.delete.blocked.activeSubscription": {
+    "text": "חסום: לארגון יש מנוי פעיל. בטל אותו תחילה ב-Stripe, או סמן את העקיפה שלמטה.",
+    "source_hash": "68663641"
+  },
+  "web.admin.organizations.detail.delete.blocked.lastOrg": {
+    "text": "חסום: זהו הארגון היחיד ש-{owner} שייך אליו, ומחיקתו תשאיר אותו ללא סביבת עבודה. אין אפשרות עקיפה — צור תחילה ארגון חלופי.",
+    "source_hash": "f09b4f9a"
+  },
+  "web.admin.organizations.detail.delete.errors.planUnreadable": {
+    "text": "לא ניתן לקרוא את תוכנית המחיקה מהשרת. דבר לא נמחק.",
+    "source_hash": "91406cbb"
+  },
+  "web.admin.organizations.detail.delete.errors.unverified": {
+    "text": "לא ניתן לאמת את תגובת השרת. טען מחדש את רשימת הארגונים כדי לבדוק אם המחיקה הושלמה.",
+    "source_hash": "7a261fb0"
+  },
+  "web.admin.organizations.detail.delete.errors.notApplied": {
+    "text": "השרת החזיר תצוגה מקדימה, לא מחיקה. דבר לא נמחק.",
+    "source_hash": "9d84971d"
   }
 }

@@ -778,5 +778,37 @@
   "web.colonel.organizations.filters.searchPlaceholder": {
     "text": "Nach ID, Name oder E-Mail suchen",
     "source_hash": "6fe16473"
+  },
+  "web.colonel.organizations.capped": {
+    "text": "Die Ergebnisse sind begrenzt: Die angezeigte Anzahl ist eine Untergrenze, nicht die Gesamtzahl. Die Filter umfassen jede mit einem Abonnement verknüpfte Organisation sowie die zuletzt aktualisierten; suchen Sie nach einer exakten ID oder E-Mail-Adresse, um jede andere zu finden.",
+    "source_hash": "0743238d"
+  },
+  "web.impersonation.banner.label": {
+    "text": "Identitätswechsel aktiv",
+    "source_hash": "d96f0e8d"
+  },
+  "web.impersonation.banner.viewingAs": {
+    "text": "Ansicht als {email}",
+    "source_hash": "cf2dd9c6"
+  },
+  "web.impersonation.banner.readOnly": {
+    "text": "Nur Lesezugriff: Änderungen sind während des Identitätswechsels gesperrt.",
+    "source_hash": "46ed3b68"
+  },
+  "web.impersonation.banner.expiresIn": {
+    "text": "Endet in {time}",
+    "source_hash": "b4999fd8"
+  },
+  "web.impersonation.banner.stop": {
+    "text": "Identitätswechsel beenden",
+    "source_hash": "5cf74e38"
+  },
+  "web.impersonation.banner.stopping": {
+    "text": "Wird beendet…",
+    "source_hash": "bbe85741"
+  },
+  "web.impersonation.banner.stopFailed": {
+    "text": "Der Identitätswechsel konnte nicht beendet werden. Versuchen Sie es erneut.",
+    "source_hash": "5aa72353"
   }
 }

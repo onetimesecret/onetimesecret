@@ -40,8 +40,8 @@
     "source_hash": "9feed9f1"
   },
   "web.admin.customers.actions.purge.confirmDescription": {
-    "text": "Ka mukua rawatia tēnei i {email} me ā rātou raraunga katoa. Kāore e taea te whakakore.",
-    "source_hash": "a74dd5d1"
+    "text": "Ka tono tēnei kia mukua rawatia a {email}. Ka whakahaerehia he arowhai tōmua i mua i te wetewete pūkete, ā, ka whakakāhoretia te horoi ki te whai tētahi Wāhi Mahi i ētahi rohe, i tētahi tūnga nama, i ētahi atu mema, i ētahi raraunga kua puritia, i ētahi tohutoro kāore i te ōrite rānei. Arotakehia, whakatauhia hoki ngā ārai katoa i mua i te ngana anō. Kāore e taea te whakakore i muri i te tīmatanga o te wetewete.",
+    "source_hash": "7b4e5e37"
   },
   "web.admin.customers.actions.purge.success": {
     "text": "Kua horoia te kiritaki.",
@@ -60,8 +60,8 @@
     "source_hash": "227f57d7"
   },
   "web.admin.customers.actions.role.confirmDescription": {
-    "text": "Panonihia a {email} ki te tūranga {role}.",
-    "source_hash": "9ba063c6"
+    "text": "Ka panoni i a {email} ki te tūranga {role}. Ka tuku te tūranga Colonel i te urunga whakahaere katoa ki ia pūkete, karere huna, whakahaere hoki i tēnei tāutanga. Pātōhia te wāhitau īmēra pūkete ki raro nei hei whakaū.",
+    "source_hash": "0ed85b97"
   },
   "web.admin.customers.actions.role.success": {
     "text": "Kua whakahoutia te tūranga.",
@@ -116,8 +116,8 @@
     "source_hash": "62ed2854"
   },
   "web.admin.customers.actions.unverify.confirmDescription": {
-    "text": "Tohua a {email} kāore anō kia manatokona.",
-    "source_hash": "592ffd27"
+    "text": "Ka tohu i a {email} kāore anō kia manatokona. Kāore e taea e tētahi pūkete kāore anō kia manatokona te pupuri i te tūranga Colonel, Kaiwhakahaere, Kaimahi rānei, nā reira ka tangohia hoki ngā tūranga teitei katoa kei a ia. Pātōhia te wāhitau īmēra pūkete ki raro nei hei whakaū.",
+    "source_hash": "601f7382"
   },
   "web.admin.customers.actions.unverify.success": {
     "text": "Kua whakakorea te manatoko o te kiritaki.",
@@ -568,8 +568,8 @@
     "source_hash": "69e69f49"
   },
   "web.admin.customers.detail.diagnostics.healthy": {
-    "text": "Kāore i kitea he āhuatanga aukati. He pai te āhua o te tūnga motuhēhē — whakapae he take taha-kiritaki (pihikete, whirihoranga takiuru rohe-ritenga) te rohe hē rānei.",
-    "source_hash": "f6d5f8d1"
+    "text": "Kāore i kitea he āhuatanga aukati. He pai te āhua o ngā taunakitanga motuhēhē me te horopaki whakahaere — whakapae he take taha-kiritaki (pihikete, whirihoranga takiuru rohe-ritenga) te rohe hē rānei.",
+    "source_hash": "e0e8450e"
   },
   "web.admin.customers.detail.diagnostics.authUnavailable": {
     "text": "Kāore e wātea te pātengi raraunga motuhēhē (aratau motuhēhē māmā) — i pekehia ngā tirotiro taha-SQL.",
@@ -690,5 +690,153 @@
   "web.admin.customers.verification.unverified": {
     "text": "Kāore anō kia whakaūngia",
     "source_hash": "15133907"
+  },
+  "web.admin.customers.actions.impersonate.button": {
+    "text": "Whakaari tuakiri kiritaki",
+    "source_hash": "38a7cfbe"
+  },
+  "web.admin.customers.actions.impersonate.confirmTitle": {
+    "text": "Tīmata whakaari tuakiri?",
+    "source_hash": "c6e4fa74"
+  },
+  "web.admin.customers.actions.impersonate.confirmDescription": {
+    "text": "Ka whakatuwhera i tētahi wātū pānui-anake, he tepe wā tōna, hei {email}. Ka whakaatu ia whārangi i tētahi pānui kia whakamutu rā anō koe, ka āraitia ngā huringa, ā, ka tuhia te wātū ki te rangitaki arotake me tō take.",
+    "source_hash": "713c01b4"
+  },
+  "web.admin.customers.actions.impersonate.reasonLabel": {
+    "text": "Take (e hiahiatia ana)",
+    "source_hash": "d976f5d9"
+  },
+  "web.admin.customers.actions.impersonate.reasonPlaceholder": {
+    "text": "He aha e hiahiatia ai tēnei wātū? Tāpirihia te tohutoro tīkiti.",
+    "source_hash": "89a4835d"
+  },
+  "web.admin.customers.actions.impersonate.success": {
+    "text": "Kua tīmata te whakaari tuakiri.",
+    "source_hash": "b4662bcc"
+  },
+  "web.admin.customers.actions.impersonate.unavailable": {
+    "text": "Kāore e wātea te whakaari tuakiri mō ngā pūkete Colonel, ingoakore, kua whakatārewatia rānei.",
+    "source_hash": "fb6578b2"
+  },
+  "web.admin.customers.actions.purge.refused": {
+    "text": "Kua whakakāhoretia te horoi. I tiakina te kiritaki; whakatauhia ngā ārai i mua i te ngana anō.",
+    "source_hash": "8e8a2ae1"
+  },
+  "web.admin.customers.actions.purge.partial": {
+    "text": "I mutu te horoi i muri i te otinga o ētahi whakapaipai. Kaua e pūrongo he angitu, kaua hoki e ngana anō mā te matapō; arotakehia ngā wāhanga kua oti me ngā ārai.",
+    "source_hash": "a88fd15b"
+  },
+  "web.admin.customers.actions.purge.incomplete": {
+    "text": "Kāore i oti te horoi (tūnga: {status}). Arotakehia ngā taipitopito huringa-ora i mua i te ngana anō.",
+    "source_hash": "c0c3d287"
+  },
+  "web.admin.customers.actions.purge.unreadableResult": {
+    "text": "I whakahoki mai te tūmau i tētahi otinga horoi kāore e taea te pānui. Kāore he angitu i pūrongotia; manatokohia te tūnga o te kiritaki me te Wāhi Mahi i mua i te ngana anō.",
+    "source_hash": "cc837a77"
+  },
+  "web.admin.customers.actions.purge.resultStage": {
+    "text": "I mutu i te wāhanga: {stage}.",
+    "source_hash": "d0e313bf"
+  },
+  "web.admin.customers.actions.purge.resultBlockers": {
+    "text": "Ngā ārai: {blockers}.",
+    "source_hash": "00c1e196"
+  },
+  "web.admin.customers.actions.purge.resultPlannedActions": {
+    "text": "Whakapaipai kua whakamaheretia: {actions}.",
+    "source_hash": "6915205d"
+  },
+  "web.admin.customers.actions.purge.resultActions": {
+    "text": "Whakapaipai kua oti: {actions}.",
+    "source_hash": "d34121b3"
+  },
+  "web.admin.customers.actions.purge.resultCompletedStages": {
+    "text": "Ngā wāhanga kua oti: {stages}.",
+    "source_hash": "67f68860"
+  },
+  "web.admin.customers.actions.role.button": {
+    "text": "Panoni tūranga",
+    "source_hash": "a43a8d8c"
+  },
+  "web.admin.customers.actions.role.selfDemote": {
+    "text": "Kāore e taea e koe te whakaheke i tō ake pūkete Colonel. Tonoa tētahi atu Colonel kia mahi, whakahaerehia rānei te `bin/ots customers role demote`.",
+    "source_hash": "3e75d01b"
+  },
+  "web.admin.customers.actions.role.lastColonel": {
+    "text": "Kāore e taea e koe te whakaheke i te Colonel whakamutunga e toe ana — ka kore he kaiwhakahaere o te tāutanga. Whakapikihia, manatokohia hoki tētahi atu pūkete i te tuatahi.",
+    "source_hash": "9c59c731"
+  },
+  "web.admin.customers.actions.unverify.selfUnverify": {
+    "text": "Kāore e taea e koe te whakakore i te manatoko o tō ake pūkete: me whai īmēra kua manatokona kia pupuri ai i te tūranga Colonel.",
+    "source_hash": "8ab024fe"
+  },
+  "web.admin.customers.actions.unverify.lastColonel": {
+    "text": "Kāore e taea e koe te whakakore i te manatoko o te Colonel whakamutunga e toe ana — kāore e taea e tētahi pūkete kāore anō kia manatokona te pupuri i te tūranga Colonel. Whakapikihia, manatokohia hoki tētahi atu pūkete i te tuatahi.",
+    "source_hash": "fc404616"
+  },
+  "web.admin.customers.detail.diagnostics.organizationContextBlocked": {
+    "text": "Kua āraitia, kāore rānei i oti te horopaki whakahaere. Tirohia te Wāhi Mahi kua taupūtia, ā, whakatikaina te rerenga kē o te taupū rangatiratanga, mematanga, īmēra whakapā rānei i mua i te kī he ora tēnei pūkete.",
+    "source_hash": "5c5c89be"
+  },
+  "web.admin.customers.detail.diagnostics.organization": {
+    "text": "Wāhi Mahi: {id}",
+    "source_hash": "6ee50fe9"
+  },
+  "web.admin.customers.detail.diagnostics.remediation": {
+    "text": "Rongoā: {action}",
+    "source_hash": "83ddc7d7"
+  },
+  "web.admin.customers.detail.fields.internalId": {
+    "text": "ID Ā-roto",
+    "source_hash": "e468bb47"
+  },
+  "web.admin.customers.detail.organizations.open": {
+    "text": "Whakatuwhera",
+    "source_hash": "ed077f3d"
+  },
+  "web.admin.customers.detail.rodauthAdmin.open": {
+    "text": "Whakatuwhera i Rodauth Admin",
+    "source_hash": "467173c8"
+  },
+  "web.admin.customers.detail.sessions.revokeAll.selfDescription": {
+    "text": "Ka takiputa tēnei i a koe mai i ia atu pūrere me ia atu pūtirotiro, tae atu ki ngā wātū kāore i te whakaaturia i tēnei rārangi. Ka puritia te wātū e mahi nei koe ināianei.",
+    "source_hash": "ae350040"
+  },
+  "web.admin.customers.list.capped": {
+    "text": "Kua tepea ngā hua: ko te tatau e whakaaturia ana he papa, ehara i te tapeke. Whakaitihia te rapunga, te tātari rānei kia kite ai i ngā mea katoa.",
+    "source_hash": "27537844"
+  },
+  "web.admin.customers.list.orphanedAccounts.title": {
+    "text": "He pūkete pātengi raraunga motuhēhē kāore he rekoata kiritaki",
+    "source_hash": "82cf7a27"
+  },
+  "web.admin.customers.list.orphanedAccounts.hint": {
+    "text": "He pūkete kei te pātengi raraunga motuhēhē mō tēnei wāhitau, engari kāore he rekoata kiritaki e hāngai ana ki a ia. Ka taea tonu e te tangata te takiuru; kāore he aha kei te taupū kiritaki mōna. Whakatuwheratia te wāhitau mō ngā arowhai.",
+    "source_hash": "0f903f23"
+  },
+  "web.admin.customers.list.orphanedAccounts.diagnose": {
+    "text": "Whakatuwhera arowhai pūkete",
+    "source_hash": "55b3e826"
+  },
+  "web.admin.customers.list.orphanedAccounts.accountId": {
+    "text": "Pūkete #{id}",
+    "source_hash": "485dee3c"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unverified": {
+    "text": "Kāore anō kia manatokona",
+    "source_hash": "33c8e8de"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.verified": {
+    "text": "Kua manatokona",
+    "source_hash": "4f783840"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.closed": {
+    "text": "Kua katia",
+    "source_hash": "c21ead06"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unknown": {
+    "text": "Kāore e mōhiotia",
+    "source_hash": "b764cdc0"
   }
 }

@@ -40,8 +40,8 @@
     "source_hash": "9feed9f1"
   },
   "web.admin.customers.actions.purge.confirmDescription": {
-    "text": "{email}とそのすべてのデータを完全に削除します。この操作は元に戻せません。",
-    "source_hash": "a74dd5d1"
+    "text": "{email} の完全削除をリクエストします。アカウントの削除処理の前に事前チェックが実行され、ワークスペースにドメイン、請求情報、他のメンバー、保持中のデータ、または不整合な参照がある場合は、完全削除は実行されません。再試行する前に、ブロック要因を確認して解消してください。削除処理が開始されると、元に戻すことはできません。",
+    "source_hash": "7b4e5e37"
   },
   "web.admin.customers.actions.purge.success": {
     "text": "顧客を完全に削除しました。",
@@ -60,8 +60,8 @@
     "source_hash": "227f57d7"
   },
   "web.admin.customers.actions.role.confirmDescription": {
-    "text": "{email}のロールを{role}に変更します。",
-    "source_hash": "9ba063c6"
+    "text": "{email} のロールを {role} に変更します。Colonelロールには、このインストール環境のすべてのアカウント、シークレット、組織に対する完全な管理者権限が付与されます。確認のため、下にアカウントのメールアドレスを入力してください。",
+    "source_hash": "0ed85b97"
   },
   "web.admin.customers.actions.role.success": {
     "text": "ロールを更新しました。",
@@ -116,8 +116,8 @@
     "source_hash": "62ed2854"
   },
   "web.admin.customers.actions.unverify.confirmDescription": {
-    "text": "{email}を未認証としてマークします。",
-    "source_hash": "592ffd27"
+    "text": "{email} を未認証としてマークします。未認証のアカウントはColonel、管理者、スタッフのロールを保持できないため、付与されている上位ロールもすべて削除されます。確認のため、下にアカウントのメールアドレスを入力してください。",
+    "source_hash": "601f7382"
   },
   "web.admin.customers.actions.unverify.success": {
     "text": "顧客を未認証にしました。",
@@ -568,8 +568,8 @@
     "source_hash": "69e69f49"
   },
   "web.admin.customers.detail.diagnostics.healthy": {
-    "text": "ブロック要因は見つかりませんでした。認証の状態は正常です — クライアント側の問題 (Cookie、カスタムドメインのログイン設定) やリージョンの誤りが疑われます。",
-    "source_hash": "f6d5f8d1"
+    "text": "ブロック要因は見つかりませんでした。認証と組織コンテキストの状態は正常です — クライアント側の問題 (Cookie、カスタムドメインのログイン設定) やリージョンの誤りが疑われます。",
+    "source_hash": "e0e8450e"
   },
   "web.admin.customers.detail.diagnostics.authUnavailable": {
     "text": "認証データベースを利用できません (シンプル認証モード) — SQL側のチェックはスキップされました。",
@@ -690,5 +690,153 @@
   "web.admin.customers.verification.unverified": {
     "text": "未認証",
     "source_hash": "15133907"
+  },
+  "web.admin.customers.actions.impersonate.button": {
+    "text": "顧客になりすます",
+    "source_hash": "38a7cfbe"
+  },
+  "web.admin.customers.actions.impersonate.confirmTitle": {
+    "text": "なりすましを開始しますか?",
+    "source_hash": "c6e4fa74"
+  },
+  "web.admin.customers.actions.impersonate.confirmDescription": {
+    "text": "{email} として、時間制限付きの読み取り専用セッションを開きます。終了するまですべてのページにバナーが表示され、変更はブロックされます。また、このセッションは入力した理由とともに監査ログに記録されます。",
+    "source_hash": "713c01b4"
+  },
+  "web.admin.customers.actions.impersonate.reasonLabel": {
+    "text": "理由 (必須)",
+    "source_hash": "d976f5d9"
+  },
+  "web.admin.customers.actions.impersonate.reasonPlaceholder": {
+    "text": "このセッションが必要な理由を入力してください。チケット番号も記載してください。",
+    "source_hash": "89a4835d"
+  },
+  "web.admin.customers.actions.impersonate.success": {
+    "text": "なりすましを開始しました。",
+    "source_hash": "b4662bcc"
+  },
+  "web.admin.customers.actions.impersonate.unavailable": {
+    "text": "Colonel、匿名、および停止中のアカウントにはなりすましできません。",
+    "source_hash": "fb6578b2"
+  },
+  "web.admin.customers.actions.purge.refused": {
+    "text": "完全削除は実行されませんでした。顧客は保持されています。再試行する前にブロック要因を解消してください。",
+    "source_hash": "8e8a2ae1"
+  },
+  "web.admin.customers.actions.purge.partial": {
+    "text": "一部のクリーンアップが完了した後、完全削除が停止しました。成功として報告したり、状況を確認せずに再試行したりしないでください。完了した段階とブロック要因を確認してください。",
+    "source_hash": "a88fd15b"
+  },
+  "web.admin.customers.actions.purge.incomplete": {
+    "text": "完全削除が完了しませんでした (ステータス: {status})。再試行する前にライフサイクルの詳細を確認してください。",
+    "source_hash": "c0c3d287"
+  },
+  "web.admin.customers.actions.purge.unreadableResult": {
+    "text": "サーバーから読み取れない完全削除の結果が返されました。成功は報告されていません。再試行する前に、顧客とワークスペースの状態を確認してください。",
+    "source_hash": "cc837a77"
+  },
+  "web.admin.customers.actions.purge.resultStage": {
+    "text": "停止した段階: {stage}。",
+    "source_hash": "d0e313bf"
+  },
+  "web.admin.customers.actions.purge.resultBlockers": {
+    "text": "ブロック要因: {blockers}。",
+    "source_hash": "00c1e196"
+  },
+  "web.admin.customers.actions.purge.resultPlannedActions": {
+    "text": "予定されているクリーンアップ: {actions}。",
+    "source_hash": "6915205d"
+  },
+  "web.admin.customers.actions.purge.resultActions": {
+    "text": "完了したクリーンアップ: {actions}。",
+    "source_hash": "d34121b3"
+  },
+  "web.admin.customers.actions.purge.resultCompletedStages": {
+    "text": "完了した段階: {stages}。",
+    "source_hash": "67f68860"
+  },
+  "web.admin.customers.actions.role.button": {
+    "text": "ロールを変更",
+    "source_hash": "a43a8d8c"
+  },
+  "web.admin.customers.actions.role.selfDemote": {
+    "text": "自分のColonelアカウントを降格することはできません。別のColonelに依頼するか、`bin/ots customers role demote` を実行してください。",
+    "source_hash": "3e75d01b"
+  },
+  "web.admin.customers.actions.role.lastColonel": {
+    "text": "最後のColonelを降格することはできません — このインストール環境に管理者がいなくなります。先に別のアカウントを昇格して確認してください。",
+    "source_hash": "9c59c731"
+  },
+  "web.admin.customers.actions.unverify.selfUnverify": {
+    "text": "自分のアカウントを未認証にすることはできません: Colonelロールを保持するには、認証済みのメールアドレスが必要です。",
+    "source_hash": "8ab024fe"
+  },
+  "web.admin.customers.actions.unverify.lastColonel": {
+    "text": "最後のColonelを未認証にすることはできません — 未認証のアカウントはColonelロールを保持できません。先に別のアカウントを昇格して認証してください。",
+    "source_hash": "fc404616"
+  },
+  "web.admin.customers.detail.diagnostics.organizationContextBlocked": {
+    "text": "組織コンテキストがブロックされているか、不完全です。このアカウントを正常と判断する前に、インデックス登録されたワークスペースを確認し、所有権、メンバーシップ、または連絡先メールアドレスのインデックスの差分を修復してください。",
+    "source_hash": "5c5c89be"
+  },
+  "web.admin.customers.detail.diagnostics.organization": {
+    "text": "ワークスペース: {id}",
+    "source_hash": "6ee50fe9"
+  },
+  "web.admin.customers.detail.diagnostics.remediation": {
+    "text": "対処方法: {action}",
+    "source_hash": "83ddc7d7"
+  },
+  "web.admin.customers.detail.fields.internalId": {
+    "text": "内部ID",
+    "source_hash": "e468bb47"
+  },
+  "web.admin.customers.detail.organizations.open": {
+    "text": "開く",
+    "source_hash": "ed077f3d"
+  },
+  "web.admin.customers.detail.rodauthAdmin.open": {
+    "text": "Rodauth Adminで開く",
+    "source_hash": "467173c8"
+  },
+  "web.admin.customers.detail.sessions.revokeAll.selfDescription": {
+    "text": "この一覧に表示されていないセッションを含め、他のすべてのデバイスとブラウザーからログアウトします。現在作業中のセッションは維持されます。",
+    "source_hash": "ae350040"
+  },
+  "web.admin.customers.list.capped": {
+    "text": "結果には上限があります: 表示されている件数は最小値であり、合計ではありません。すべてを表示するには、検索条件またはフィルターを絞り込んでください。",
+    "source_hash": "27537844"
+  },
+  "web.admin.customers.list.orphanedAccounts.title": {
+    "text": "顧客レコードのない認証データベースアカウント",
+    "source_hash": "82cf7a27"
+  },
+  "web.admin.customers.list.orphanedAccounts.hint": {
+    "text": "認証データベースにはこのアドレスのアカウントがありますが、対応する顧客レコードがありません。このユーザーはログインできますが、顧客インデックスには該当するデータがありません。診断するには、このアドレスを開いてください。",
+    "source_hash": "0f903f23"
+  },
+  "web.admin.customers.list.orphanedAccounts.diagnose": {
+    "text": "アカウント診断を開く",
+    "source_hash": "55b3e826"
+  },
+  "web.admin.customers.list.orphanedAccounts.accountId": {
+    "text": "アカウント #{id}",
+    "source_hash": "485dee3c"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unverified": {
+    "text": "未認証",
+    "source_hash": "33c8e8de"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.verified": {
+    "text": "認証済み",
+    "source_hash": "4f783840"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.closed": {
+    "text": "閉鎖済み",
+    "source_hash": "c21ead06"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unknown": {
+    "text": "不明",
+    "source_hash": "b764cdc0"
   }
 }

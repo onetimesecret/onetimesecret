@@ -1626,5 +1626,37 @@
   "web.domains.sso.status_unavailable_hint": {
     "text": "Le SSO ne peut pas être proposé sur ce domaine pour le moment. Vérifiez les identifiants SSO et les paramètres de connexion de ce domaine.",
     "source_hash": "b03b14f4"
+  },
+  "web.domains.status_tooltip_pending_ssl": {
+    "text": "Domaine vérifié — en attente de son certificat",
+    "source_hash": "541bd705"
+  },
+  "web.domains.2_create_the_alias_record": {
+    "text": "2. Créez l'enregistrement ALIAS ou ANAME",
+    "source_hash": "17b04e6a"
+  },
+  "web.domains.sso.status_saml_disabled_badge": {
+    "text": "SAML désactivé",
+    "source_hash": "4e2eab51"
+  },
+  "web.domains.sso.status_saml_disabled_hint": {
+    "text": "L'opérateur du site a désactivé SAML pour cette installation. Votre configuration est conservée et reprendra effet lorsque SAML sera réactivé ; d'ici là, ce domaine ne propose aucune connexion SAML.",
+    "source_hash": "5ba9624c"
+  },
+  "web.domains.sso.status_domain_unverified_badge": {
+    "text": "En attente de vérification du domaine",
+    "source_hash": "ea7459c2"
+  },
+  "web.domains.sso.status_domain_unverified_hint": {
+    "text": "La vérification de ce domaine n'est pas terminée ; sa connexion SSO n'est donc pas encore active sur sa page de connexion. Le SSO s'activera une fois le domaine vérifié et le SSO autorisé ici pour ce domaine.",
+    "source_hash": "57ee0066"
+  },
+  "web.domains.verify_outcome.indeterminate": {
+    "text": "Nous n'avons pas pu effectuer la vérification DNS pour le moment. Cela ne signifie pas que vos enregistrements sont incorrects. Veuillez réessayer dans quelques minutes.",
+    "source_hash": "4e76a9ef"
+  },
+  "web.domains.verify_outcome.record_not_found": {
+    "text": "Nous n'avons pas trouvé l'enregistrement TXT attendu. Vérifiez qu'il existe et que sa valeur correspond exactement. Les nouveaux enregistrements DNS peuvent mettre quelques minutes à apparaître.",
+    "source_hash": "6c847d46"
   }
 }

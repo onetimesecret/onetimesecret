@@ -1,0 +1,46 @@
+{
+  "web.admin.elevation.banner.active": {
+    "text": "提升的访问权限已启用——剩余 {remaining}",
+    "source_hash": "3e446719"
+  },
+  "web.admin.elevation.banner.activeRecentAuth": {
+    "text": "未经密码验证即已提升权限（依据最近登录）——剩余 {remaining}",
+    "source_hash": "6bc7f4ca"
+  },
+  "web.admin.elevation.banner.drop": {
+    "text": "取消权限提升",
+    "source_hash": "b4960d01"
+  },
+  "web.admin.elevation.errors.noPassword": {
+    "text": "此账户没有密码，因此无法完成增强身份验证。",
+    "source_hash": "ba0d40e8"
+  },
+  "web.admin.elevation.errors.noGrace": {
+    "text": "请让管理员设置 COLONEL_ELEVATION_REAUTH_GRACE，或通过 COLONEL_ELEVATION_ENABLED=false 停用增强身份验证。",
+    "source_hash": "ac501a95"
+  },
+  "web.admin.elevation.errors.failed": {
+    "text": "增强身份验证失败。破坏性操作仍处于锁定状态。",
+    "source_hash": "f17909ec"
+  },
+  "web.admin.elevation.prompt.title": {
+    "text": "确认您的身份",
+    "source_hash": "6176eec2"
+  },
+  "web.admin.elevation.prompt.description": {
+    "text": "此操作具有破坏性。请重新输入密码，以在接下来的 {minutes} 分钟内解锁破坏性操作。",
+    "source_hash": "2e85bbdd"
+  },
+  "web.admin.elevation.prompt.confirm": {
+    "text": "解锁",
+    "source_hash": "4ac709aa"
+  },
+  "web.admin.elevation.prompt.confirmItsYou": {
+    "text": "确认是我本人",
+    "source_hash": "f718279a"
+  },
+  "web.admin.elevation.prompt.confirmItsYouDescription": {
+    "text": "您的账户没有密码。确认后，将在接下来的 {minutes} 分钟内解锁破坏性操作。",
+    "source_hash": "d8d63a3a"
+  }
+}

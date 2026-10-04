@@ -1218,5 +1218,129 @@
   "web.organizations.sso.enable_untested_warning": {
     "text": "Kết nối này chưa vượt qua lần kiểm tra nào ở đây. Hãy chạy Kiểm tra kết nối trước khi bật, để một cấu hình lỗi không bao giờ xuất hiện trên trang đăng nhập của bạn.",
     "source_hash": "c1fbdeca"
+  },
+  "web.organizations.delete_organization_cancel_subscription_first": {
+    "text": "Hãy hủy đăng ký của tổ chức này trước khi xóa.",
+    "source_hash": "f0c54eca"
+  },
+  "web.organizations.sso.disable_action": {
+    "text": "Tắt SSO",
+    "source_hash": "2f072272"
+  },
+  "web.organizations.sso.disable_confirm": {
+    "text": "Tắt kết nối SSO này? Các chỉnh sửa chưa lưu trong biểu mẫu sẽ không được lưu. Thông tin xác thực đã lưu sẽ được giữ lại.",
+    "source_hash": "608b142a"
+  },
+  "web.organizations.sso.disable_enforcement_warning": {
+    "text": "Chế độ bắt buộc chỉ SSO cũng sẽ bị tắt, cho phép các phương thức đăng nhập khác đã được cấu hình.",
+    "source_hash": "58abd552"
+  },
+  "web.organizations.sso.idp_sso_service_url": {
+    "text": "URL dịch vụ SSO của IdP",
+    "source_hash": "0b33b1ac"
+  },
+  "web.organizations.sso.idp_sso_service_url_hint": {
+    "text": "Điểm cuối HTTPS mà nhà cung cấp danh tính của bạn công bố cho đăng nhập một lần SAML",
+    "source_hash": "bc6fdfd9"
+  },
+  "web.organizations.sso.idp_sso_service_url_placeholder": {
+    "text": "https://idp.example.com/sso/saml",
+    "source_hash": "513d0586"
+  },
+  "web.organizations.sso.idp_entity_id": {
+    "text": "IdP Entity ID",
+    "source_hash": "14a4ab8b"
+  },
+  "web.organizations.sso.idp_entity_id_hint": {
+    "text": "Định danh issuer từ siêu dữ liệu của nhà cung cấp danh tính, chính xác như đã công bố",
+    "source_hash": "c3d8320b"
+  },
+  "web.organizations.sso.idp_entity_id_placeholder": {
+    "text": "https://idp.example.com/metadata",
+    "source_hash": "0c46d14d"
+  },
+  "web.organizations.sso.idp_cert": {
+    "text": "Chứng chỉ ký của IdP",
+    "source_hash": "c84000cd"
+  },
+  "web.organizations.sso.idp_cert_hint": {
+    "text": "Chứng chỉ X.509 (PEM) mà nhà cung cấp danh tính của bạn dùng để ký các assertion. Chỉ một chứng chỉ; không chấp nhận dấu vân tay.",
+    "source_hash": "b5e157f5"
+  },
+  "web.organizations.sso.idp_cert_placeholder": {
+    "text": "-----BEGIN CERTIFICATE-----",
+    "source_hash": "ddddb6cb"
+  },
+  "web.organizations.sso.sp_details": {
+    "text": "Thông tin nhà cung cấp dịch vụ",
+    "source_hash": "4b6617d2"
+  },
+  "web.organizations.sso.sp_details_hint": {
+    "text": "Đăng ký các giá trị này với nhà cung cấp danh tính của bạn",
+    "source_hash": "784e9410"
+  },
+  "web.organizations.sso.sp_details_preview_hint": {
+    "text": "Bản xem trước dựa trên tuyến đăng nhập mặc định. Hãy lưu cấu hình này, sau đó xác nhận các giá trị tại đây trước khi đăng ký chúng với nhà cung cấp danh tính của bạn.",
+    "source_hash": "fd9d3001"
+  },
+  "web.organizations.sso.domain_unverified_notice": {
+    "text": "Đăng nhập một lần bị tắt trên tên miền này cho đến khi tên miền được xác minh. Việc xác minh không thay đổi các giá trị bên dưới.",
+    "source_hash": "4b56ea4b"
+  },
+  "web.organizations.sso.sp_entity_id": {
+    "text": "SP Entity ID (URL siêu dữ liệu)",
+    "source_hash": "59bc544c"
+  },
+  "web.organizations.sso.acs_url": {
+    "text": "Assertion Consumer Service URL",
+    "source_hash": "5dacfb65"
+  },
+  "web.organizations.sso.unreadable_field": {
+    "text": "Không thể đọc giá trị đã lưu. Hãy nhập lại để tiếp tục.",
+    "source_hash": "ca3b5fcc"
+  },
+  "web.organizations.sso.unreadable_fields_alert": {
+    "text": "Không thể đọc một số giá trị đã lưu và cần nhập lại: {fields}",
+    "source_hash": "e9fa9d16"
+  },
+  "web.organizations.sso.idp_cert_expired_alert": {
+    "text": "Chứng chỉ của nhà cung cấp danh tính đã hết hạn vào {date}. Đăng nhập qua kết nối này sẽ thất bại cho đến khi một chứng chỉ còn hiệu lực được lưu.",
+    "source_hash": "527fb721"
+  },
+  "web.organizations.sso.idp_cert_expiring_notice": {
+    "text": "Chứng chỉ của nhà cung cấp danh tính sẽ hết hạn vào {date}. Hãy thay thế trước thời điểm đó để việc đăng nhập tiếp tục hoạt động.",
+    "source_hash": "ccaf6ca7"
+  },
+  "web.organizations.sso.test_connection_hint_saml": {
+    "text": "Kiểm tra URL SSO, Entity ID và chứng chỉ tại chỗ; không liên hệ với nhà cung cấp danh tính",
+    "source_hash": "1dad3945"
+  },
+  "web.organizations.sso.configured_issuer": {
+    "text": "Issuer đã cấu hình",
+    "source_hash": "6b307b7f"
+  },
+  "web.organizations.sso.discovery_issuer": {
+    "text": "Issuer đã khám phá",
+    "source_hash": "9d74f978"
+  },
+  "web.organizations.sso.issuer_mismatch_hint": {
+    "text": "Định danh issuer OIDC phải khớp chính xác, kể cả dấu gạch chéo ở cuối. Hãy đặt Issuer URL thành giá trị đã khám phá hiển thị ở trên.",
+    "source_hash": "ec144c88"
+  },
+  "web.organizations.sso.certificate_subject": {
+    "text": "Chủ thể chứng chỉ",
+    "source_hash": "d7816b16"
+  },
+  "web.organizations.sso.certificate_expires": {
+    "text": "Chứng chỉ hết hạn",
+    "source_hash": "1e73119d"
+  },
+  "web.organizations.sso.certificate_expires_in_days": {
+    "text": "sau {n} ngày | sau {n} ngày",
+    "source_hash": "df98ca65"
+  },
+  "web.organizations.sso.certificate_valid_from": {
+    "text": "Chứng chỉ có hiệu lực từ",
+    "source_hash": "b13d3f30"
   }
 }

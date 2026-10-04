@@ -40,8 +40,8 @@
     "source_hash": "9feed9f1"
   },
   "web.admin.customers.actions.purge.confirmDescription": {
-    "text": "Thao tác này xóa vĩnh viễn {email} và toàn bộ dữ liệu của họ. Không thể hoàn tác.",
-    "source_hash": "a74dd5d1"
+    "text": "Thao tác này yêu cầu xóa vĩnh viễn {email}. Một bước kiểm tra trước sẽ chạy trước khi gỡ bỏ tài khoản và từ chối xóa sạch khi không gian làm việc còn tên miền, trạng thái thanh toán, thành viên khác, dữ liệu được lưu giữ hoặc tham chiếu không nhất quán. Hãy xem xét và xử lý mọi trở ngại trước khi thử lại. Không thể hoàn tác sau khi quá trình gỡ bỏ bắt đầu.",
+    "source_hash": "7b4e5e37"
   },
   "web.admin.customers.actions.purge.success": {
     "text": "Đã xóa sạch khách hàng.",
@@ -60,8 +60,8 @@
     "source_hash": "227f57d7"
   },
   "web.admin.customers.actions.role.confirmDescription": {
-    "text": "Đổi {email} sang vai trò {role}.",
-    "source_hash": "9ba063c6"
+    "text": "Đổi {email} sang vai trò {role}. Vai trò colonel cấp toàn quyền quản trị đối với mọi tài khoản, bí mật và tổ chức trên bản cài đặt này. Nhập địa chỉ email của tài khoản bên dưới để xác nhận.",
+    "source_hash": "0ed85b97"
   },
   "web.admin.customers.actions.role.success": {
     "text": "Đã cập nhật vai trò.",
@@ -116,8 +116,8 @@
     "source_hash": "62ed2854"
   },
   "web.admin.customers.actions.unverify.confirmDescription": {
-    "text": "Đánh dấu {email} là chưa xác minh.",
-    "source_hash": "592ffd27"
+    "text": "Đánh dấu {email} là chưa xác minh. Tài khoản chưa xác minh không thể giữ vai trò colonel, quản trị viên hoặc nhân viên, nên thao tác này cũng gỡ bỏ mọi vai trò nâng cao mà tài khoản đang có. Nhập địa chỉ email của tài khoản bên dưới để xác nhận.",
+    "source_hash": "601f7382"
   },
   "web.admin.customers.actions.unverify.success": {
     "text": "Đã hủy xác minh khách hàng.",
@@ -568,8 +568,8 @@
     "source_hash": "69e69f49"
   },
   "web.admin.customers.detail.diagnostics.healthy": {
-    "text": "Không tìm thấy điều kiện chặn. Trạng thái xác thực có vẻ bình thường — nghi ngờ các vấn đề phía máy khách (cookies, cấu hình đăng nhập tên miền tùy chỉnh) hoặc sai khu vực.",
-    "source_hash": "f6d5f8d1"
+    "text": "Không tìm thấy tình trạng chặn nào. Bằng chứng về xác thực và ngữ cảnh tổ chức có vẻ bình thường — hãy nghi ngờ sự cố phía máy khách (cookie, cấu hình đăng nhập tên miền tùy chỉnh) hoặc sai khu vực.",
+    "source_hash": "e0e8450e"
   },
   "web.admin.customers.detail.diagnostics.authUnavailable": {
     "text": "Cơ sở dữ liệu xác thực không khả dụng (chế độ xác thực đơn giản) — các kiểm tra phía SQL đã bị bỏ qua.",
@@ -690,5 +690,153 @@
   "web.admin.customers.verification.unverified": {
     "text": "Chưa xác minh",
     "source_hash": "15133907"
+  },
+  "web.admin.customers.actions.impersonate.button": {
+    "text": "Mạo danh khách hàng",
+    "source_hash": "38a7cfbe"
+  },
+  "web.admin.customers.actions.impersonate.confirmTitle": {
+    "text": "Bắt đầu mạo danh?",
+    "source_hash": "c6e4fa74"
+  },
+  "web.admin.customers.actions.impersonate.confirmDescription": {
+    "text": "Mở một phiên chỉ đọc, có giới hạn thời gian với tư cách {email}. Mọi trang đều hiển thị biểu ngữ cho đến khi bạn dừng, mọi thay đổi đều bị chặn và phiên được ghi vào nhật ký kiểm tra kèm lý do của bạn.",
+    "source_hash": "713c01b4"
+  },
+  "web.admin.customers.actions.impersonate.reasonLabel": {
+    "text": "Lý do (bắt buộc)",
+    "source_hash": "d976f5d9"
+  },
+  "web.admin.customers.actions.impersonate.reasonPlaceholder": {
+    "text": "Vì sao cần phiên này? Hãy kèm mã phiếu hỗ trợ.",
+    "source_hash": "89a4835d"
+  },
+  "web.admin.customers.actions.impersonate.success": {
+    "text": "Đã bắt đầu mạo danh.",
+    "source_hash": "b4662bcc"
+  },
+  "web.admin.customers.actions.impersonate.unavailable": {
+    "text": "Không thể mạo danh tài khoản colonel, tài khoản ẩn danh và tài khoản bị đình chỉ.",
+    "source_hash": "fb6578b2"
+  },
+  "web.admin.customers.actions.purge.refused": {
+    "text": "Đã từ chối xóa sạch. Khách hàng được giữ nguyên; hãy xử lý các trở ngại trước khi thử lại.",
+    "source_hash": "8e8a2ae1"
+  },
+  "web.admin.customers.actions.purge.partial": {
+    "text": "Quá trình xóa sạch đã dừng sau khi hoàn tất một phần dọn dẹp. Đừng báo thành công hay thử lại một cách mù quáng; hãy xem xét các giai đoạn đã hoàn tất và các trở ngại.",
+    "source_hash": "a88fd15b"
+  },
+  "web.admin.customers.actions.purge.incomplete": {
+    "text": "Quá trình xóa sạch chưa hoàn tất (trạng thái: {status}). Hãy xem xét chi tiết vòng đời trước khi thử lại.",
+    "source_hash": "c0c3d287"
+  },
+  "web.admin.customers.actions.purge.unreadableResult": {
+    "text": "Máy chủ trả về kết quả xóa sạch không đọc được. Không có thành công nào được báo cáo; hãy xác minh trạng thái khách hàng và không gian làm việc trước khi thử lại.",
+    "source_hash": "cc837a77"
+  },
+  "web.admin.customers.actions.purge.resultStage": {
+    "text": "Dừng ở giai đoạn: {stage}.",
+    "source_hash": "d0e313bf"
+  },
+  "web.admin.customers.actions.purge.resultBlockers": {
+    "text": "Trở ngại: {blockers}.",
+    "source_hash": "00c1e196"
+  },
+  "web.admin.customers.actions.purge.resultPlannedActions": {
+    "text": "Dọn dẹp dự kiến: {actions}.",
+    "source_hash": "6915205d"
+  },
+  "web.admin.customers.actions.purge.resultActions": {
+    "text": "Dọn dẹp đã hoàn tất: {actions}.",
+    "source_hash": "d34121b3"
+  },
+  "web.admin.customers.actions.purge.resultCompletedStages": {
+    "text": "Giai đoạn đã hoàn tất: {stages}.",
+    "source_hash": "67f68860"
+  },
+  "web.admin.customers.actions.role.button": {
+    "text": "Đổi vai trò",
+    "source_hash": "a43a8d8c"
+  },
+  "web.admin.customers.actions.role.selfDemote": {
+    "text": "Bạn không thể hạ cấp tài khoản colonel của chính mình. Hãy nhờ một colonel khác thực hiện, hoặc chạy `bin/ots customers role demote`.",
+    "source_hash": "3e75d01b"
+  },
+  "web.admin.customers.actions.role.lastColonel": {
+    "text": "Bạn không thể hạ cấp colonel cuối cùng còn lại — bản cài đặt sẽ không còn quản trị viên nào. Hãy thăng cấp và xác minh một tài khoản khác trước.",
+    "source_hash": "9c59c731"
+  },
+  "web.admin.customers.actions.unverify.selfUnverify": {
+    "text": "Bạn không thể hủy xác minh tài khoản của chính mình: cần có email đã xác minh để giữ vai trò colonel.",
+    "source_hash": "8ab024fe"
+  },
+  "web.admin.customers.actions.unverify.lastColonel": {
+    "text": "Bạn không thể hủy xác minh colonel cuối cùng còn lại — tài khoản chưa xác minh không thể giữ vai trò colonel. Hãy thăng cấp và xác minh một tài khoản khác trước.",
+    "source_hash": "fc404616"
+  },
+  "web.admin.customers.detail.diagnostics.organizationContextBlocked": {
+    "text": "Ngữ cảnh tổ chức bị chặn hoặc không đầy đủ. Hãy kiểm tra không gian làm việc đã lập chỉ mục và sửa sai lệch chỉ mục về quyền sở hữu, tư cách thành viên hoặc email liên hệ trước khi coi tài khoản này là bình thường.",
+    "source_hash": "5c5c89be"
+  },
+  "web.admin.customers.detail.diagnostics.organization": {
+    "text": "Không gian làm việc: {id}",
+    "source_hash": "6ee50fe9"
+  },
+  "web.admin.customers.detail.diagnostics.remediation": {
+    "text": "Khắc phục: {action}",
+    "source_hash": "83ddc7d7"
+  },
+  "web.admin.customers.detail.fields.internalId": {
+    "text": "ID nội bộ",
+    "source_hash": "e468bb47"
+  },
+  "web.admin.customers.detail.organizations.open": {
+    "text": "Mở",
+    "source_hash": "ed077f3d"
+  },
+  "web.admin.customers.detail.rodauthAdmin.open": {
+    "text": "Mở trong Rodauth Admin",
+    "source_hash": "467173c8"
+  },
+  "web.admin.customers.detail.sessions.revokeAll.selfDescription": {
+    "text": "Thao tác này đăng xuất bạn khỏi mọi thiết bị và trình duyệt khác, bao gồm cả các phiên không hiển thị trong danh sách này. Phiên bạn đang sử dụng hiện tại sẽ được giữ lại.",
+    "source_hash": "ae350040"
+  },
+  "web.admin.customers.list.capped": {
+    "text": "Kết quả bị giới hạn: số lượng hiển thị là mức tối thiểu, không phải tổng số. Hãy thu hẹp tìm kiếm hoặc bộ lọc để xem tất cả.",
+    "source_hash": "27537844"
+  },
+  "web.admin.customers.list.orphanedAccounts.title": {
+    "text": "Tài khoản trong cơ sở dữ liệu xác thực không có bản ghi khách hàng",
+    "source_hash": "82cf7a27"
+  },
+  "web.admin.customers.list.orphanedAccounts.hint": {
+    "text": "Cơ sở dữ liệu xác thực có một tài khoản cho địa chỉ này, nhưng không có bản ghi khách hàng nào ánh xạ tới nó. Người này vẫn có thể đăng nhập; chỉ mục khách hàng không có dữ liệu nào về họ. Mở địa chỉ này để chẩn đoán.",
+    "source_hash": "0f903f23"
+  },
+  "web.admin.customers.list.orphanedAccounts.diagnose": {
+    "text": "Mở chẩn đoán tài khoản",
+    "source_hash": "55b3e826"
+  },
+  "web.admin.customers.list.orphanedAccounts.accountId": {
+    "text": "Tài khoản #{id}",
+    "source_hash": "485dee3c"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unverified": {
+    "text": "Chưa xác minh",
+    "source_hash": "33c8e8de"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.verified": {
+    "text": "Đã xác minh",
+    "source_hash": "4f783840"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.closed": {
+    "text": "Đã đóng",
+    "source_hash": "c21ead06"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unknown": {
+    "text": "Không xác định",
+    "source_hash": "b764cdc0"
   }
 }

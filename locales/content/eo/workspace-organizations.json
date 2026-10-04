@@ -1218,5 +1218,129 @@
   "web.organizations.sso.enable_untested_warning": {
     "text": "Ĉi tiu konekto ankoraŭ ne trapasis teston ĉi tie. Rulu Testi Konekton antaŭ ol ŝalti ĝin, por ke difektita agordo neniam atingu vian ensalutan paĝon.",
     "source_hash": "c1fbdeca"
+  },
+  "web.organizations.delete_organization_cancel_subscription_first": {
+    "text": "Nuligu la abonon de ĉi tiu organizo antaŭ ol forigi ĝin.",
+    "source_hash": "f0c54eca"
+  },
+  "web.organizations.sso.disable_action": {
+    "text": "Malŝalti SSO",
+    "source_hash": "2f072272"
+  },
+  "web.organizations.sso.disable_confirm": {
+    "text": "Ĉu malŝalti ĉi tiun SSO-konekton? Nekonservitaj redaktoj en la formularo ne estos konservitaj. Konservitaj akreditaĵoj restos.",
+    "source_hash": "608b142a"
+  },
+  "web.organizations.sso.disable_enforcement_warning": {
+    "text": "La devigo de nur-SSO ankaŭ estos malŝaltita, permesante aliajn agorditajn ensalutmetodojn.",
+    "source_hash": "58abd552"
+  },
+  "web.organizations.sso.idp_sso_service_url": {
+    "text": "SSO-serva URL de IdP",
+    "source_hash": "0b33b1ac"
+  },
+  "web.organizations.sso.idp_sso_service_url_hint": {
+    "text": "La HTTPS-finpunkto, kiun via identeca provizanto publikigas por unuopa ensaluto per SAML",
+    "source_hash": "bc6fdfd9"
+  },
+  "web.organizations.sso.idp_sso_service_url_placeholder": {
+    "text": "https://idp.example.com/sso/saml",
+    "source_hash": "513d0586"
+  },
+  "web.organizations.sso.idp_entity_id": {
+    "text": "Entity ID de IdP",
+    "source_hash": "14a4ab8b"
+  },
+  "web.organizations.sso.idp_entity_id_hint": {
+    "text": "La eldonanta identigilo el la metadatumoj de via identeca provizanto, ekzakte kiel publikigita",
+    "source_hash": "c3d8320b"
+  },
+  "web.organizations.sso.idp_entity_id_placeholder": {
+    "text": "https://idp.example.com/metadata",
+    "source_hash": "0c46d14d"
+  },
+  "web.organizations.sso.idp_cert": {
+    "text": "Subskriba atestilo de IdP",
+    "source_hash": "c84000cd"
+  },
+  "web.organizations.sso.idp_cert_hint": {
+    "text": "La X.509-atestilo (PEM), per kiu via identeca provizanto subskribas asertojn. Nur unu atestilo; fingrospuroj ne estas akceptataj.",
+    "source_hash": "b5e157f5"
+  },
+  "web.organizations.sso.idp_cert_placeholder": {
+    "text": "-----BEGIN CERTIFICATE-----",
+    "source_hash": "ddddb6cb"
+  },
+  "web.organizations.sso.sp_details": {
+    "text": "Detaloj de la servoprovizanto",
+    "source_hash": "4b6617d2"
+  },
+  "web.organizations.sso.sp_details_hint": {
+    "text": "Registru ĉi tiujn valorojn ĉe via identeca provizanto",
+    "source_hash": "784e9410"
+  },
+  "web.organizations.sso.sp_details_preview_hint": {
+    "text": "Antaŭrigardo bazita sur la defaŭlta ensaluta vojo. Konservu ĉi tiun agordon, poste konfirmu ĉi tiujn valorojn ĉi tie antaŭ ol registri ilin ĉe via identeca provizanto.",
+    "source_hash": "fd9d3001"
+  },
+  "web.organizations.sso.domain_unverified_notice": {
+    "text": "Unuopa ensaluto estas malŝaltita sur ĉi tiu domajno ĝis la domajno estos kontrolita. La kontrolo ne ŝanĝas la ĉi-subajn valorojn.",
+    "source_hash": "4b56ea4b"
+  },
+  "web.organizations.sso.sp_entity_id": {
+    "text": "Entity ID de SP (metadatuma URL)",
+    "source_hash": "59bc544c"
+  },
+  "web.organizations.sso.acs_url": {
+    "text": "URL de Assertion Consumer Service",
+    "source_hash": "5dacfb65"
+  },
+  "web.organizations.sso.unreadable_field": {
+    "text": "La konservita valoro ne legeblis. Enigu ĝin denove por daŭrigi.",
+    "source_hash": "ca3b5fcc"
+  },
+  "web.organizations.sso.unreadable_fields_alert": {
+    "text": "Kelkaj konservitaj valoroj ne legeblis kaj devas esti enigitaj denove: {fields}",
+    "source_hash": "e9fa9d16"
+  },
+  "web.organizations.sso.idp_cert_expired_alert": {
+    "text": "La atestilo de la identeca provizanto eksvalidiĝis je {date}. Ensaluto per ĉi tiu konekto malsukcesos, ĝis aktuala atestilo estos konservita.",
+    "source_hash": "527fb721"
+  },
+  "web.organizations.sso.idp_cert_expiring_notice": {
+    "text": "La atestilo de la identeca provizanto eksvalidiĝos je {date}. Anstataŭigu ĝin antaŭ tiam, por ke la ensaluto daŭre funkciu.",
+    "source_hash": "ccaf6ca7"
+  },
+  "web.organizations.sso.test_connection_hint_saml": {
+    "text": "Kontrolas la SSO-URL, Entity ID kaj atestilon loke; la identeca provizanto ne estas kontaktata",
+    "source_hash": "1dad3945"
+  },
+  "web.organizations.sso.configured_issuer": {
+    "text": "Agordita eldonanto",
+    "source_hash": "6b307b7f"
+  },
+  "web.organizations.sso.discovery_issuer": {
+    "text": "Malkovrita eldonanto",
+    "source_hash": "9d74f978"
+  },
+  "web.organizations.sso.issuer_mismatch_hint": {
+    "text": "OIDC-eldonantaj identigiloj devas kongrui ekzakte, inkluzive de eventuala fina oblikvo. Agordu la Eldonantan URL al la malkovrita valoro montrata supre.",
+    "source_hash": "ec144c88"
+  },
+  "web.organizations.sso.certificate_subject": {
+    "text": "Atestila subjekto",
+    "source_hash": "d7816b16"
+  },
+  "web.organizations.sso.certificate_expires": {
+    "text": "Atestilo eksvalidiĝas",
+    "source_hash": "1e73119d"
+  },
+  "web.organizations.sso.certificate_expires_in_days": {
+    "text": "post {n} tago | post {n} tagoj",
+    "source_hash": "df98ca65"
+  },
+  "web.organizations.sso.certificate_valid_from": {
+    "text": "Atestilo valida ekde",
+    "source_hash": "b13d3f30"
   }
 }

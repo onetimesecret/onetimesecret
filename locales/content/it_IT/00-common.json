@@ -1543,5 +1543,17 @@
   "web.TITLES.connected_identities": {
     "text": "Identità collegate",
     "source_hash": "e132c4d9"
+  },
+  "web.COMMON.field": {
+    "text": "Campo",
+    "source_hash": "f45fc1df"
+  },
+  "web.COMMON.unknown": {
+    "text": "Sconosciuto",
+    "source_hash": "b764cdc0"
+  },
+  "web.STATUS.pending_ssl": {
+    "text": "Certificato in sospeso",
+    "source_hash": "dd34f305"
   }
 }

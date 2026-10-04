@@ -778,5 +778,37 @@
   "web.colonel.organizations.filters.searchPlaceholder": {
     "text": "Rapu mā te tuakiri, ingoa, īmēra rānei",
     "source_hash": "6fe16473"
+  },
+  "web.colonel.organizations.capped": {
+    "text": "Kua tepea ngā hua: ko te tatau e whakaaturia ana he papa, ehara i te tapeke. Ka hipoki ngā tātari i ia whakahaere e hono ana ki tētahi ohaurunga, me ērā kua whakahoutia tata nei; rapua mā tētahi ID tōtika, īmēra rānei kia tae atu ki ētahi atu.",
+    "source_hash": "0743238d"
+  },
+  "web.impersonation.banner.label": {
+    "text": "Kei te hohe te whakaari tuakiri",
+    "source_hash": "d96f0e8d"
+  },
+  "web.impersonation.banner.viewingAs": {
+    "text": "E tiro ana hei {email}",
+    "source_hash": "cf2dd9c6"
+  },
+  "web.impersonation.banner.readOnly": {
+    "text": "Pānui-anake: ka āraitia ngā huringa i te wā o te whakaari tuakiri.",
+    "source_hash": "46ed3b68"
+  },
+  "web.impersonation.banner.expiresIn": {
+    "text": "Ka mutu i roto i {time}",
+    "source_hash": "b4999fd8"
+  },
+  "web.impersonation.banner.stop": {
+    "text": "Whakamutua te whakaari tuakiri",
+    "source_hash": "5cf74e38"
+  },
+  "web.impersonation.banner.stopping": {
+    "text": "E whakamutu ana…",
+    "source_hash": "bbe85741"
+  },
+  "web.impersonation.banner.stopFailed": {
+    "text": "Kāore i taea te whakamutu i te whakaari tuakiri. Ngana anō.",
+    "source_hash": "5aa72353"
   }
 }

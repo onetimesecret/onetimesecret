@@ -1,0 +1,10 @@
+{
+  "web.admin.session.expired": {
+    "text": "Phiên quản trị của bạn đã hết hạn. Hãy đăng nhập lại để tiếp tục.",
+    "source_hash": "e970de7c"
+  },
+  "web.admin.session.signIn": {
+    "text": "Đăng nhập",
+    "source_hash": "bfd402b2"
+  }
+}

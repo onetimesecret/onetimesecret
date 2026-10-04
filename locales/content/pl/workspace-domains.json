@@ -1626,5 +1626,37 @@
   "web.domains.sso.status_unavailable_hint": {
     "text": "SSO nie może być obecnie oferowane w tej domenie. Sprawdź poświadczenia SSO i ustawienia logowania tej domeny.",
     "source_hash": "b03b14f4"
+  },
+  "web.domains.status_tooltip_pending_ssl": {
+    "text": "Domena zweryfikowana — oczekiwanie na certyfikat",
+    "source_hash": "541bd705"
+  },
+  "web.domains.2_create_the_alias_record": {
+    "text": "2. Utwórz rekord ALIAS lub ANAME",
+    "source_hash": "17b04e6a"
+  },
+  "web.domains.sso.status_saml_disabled_badge": {
+    "text": "SAML wyłączony",
+    "source_hash": "4e2eab51"
+  },
+  "web.domains.sso.status_saml_disabled_hint": {
+    "text": "Operator witryny wyłączył SAML w tej instalacji. Twoja konfiguracja zostanie zachowana i zacznie ponownie działać po włączeniu SAML; do tego czasu ta domena nie oferuje logowania przez SAML.",
+    "source_hash": "5ba9624c"
+  },
+  "web.domains.sso.status_domain_unverified_badge": {
+    "text": "Oczekuje na weryfikację domeny",
+    "source_hash": "ea7459c2"
+  },
+  "web.domains.sso.status_domain_unverified_hint": {
+    "text": "Ta domena nie ukończyła weryfikacji, więc jej połączenie SSO nie jest jeszcze aktywne na stronie logowania. SSO zostanie włączone, gdy domena zostanie zweryfikowana, a SSO będzie tu dla niej dozwolone.",
+    "source_hash": "57ee0066"
+  },
+  "web.domains.verify_outcome.indeterminate": {
+    "text": "Nie udało się teraz ukończyć sprawdzenia DNS. Nie oznacza to, że Twoje rekordy są nieprawidłowe. Spróbuj ponownie za kilka minut.",
+    "source_hash": "4e76a9ef"
+  },
+  "web.domains.verify_outcome.record_not_found": {
+    "text": "Nie znaleziono oczekiwanego rekordu TXT. Sprawdź, czy istnieje i czy jego wartość jest dokładnie zgodna. Pojawienie się nowych rekordów DNS może potrwać kilka minut.",
+    "source_hash": "6c847d46"
   }
 }

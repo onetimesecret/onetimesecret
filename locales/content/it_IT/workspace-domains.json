@@ -1626,5 +1626,37 @@
   "web.domains.sso.status_unavailable_hint": {
     "text": "Al momento l'SSO non può essere proposto su questo dominio. Controlla le credenziali SSO e le impostazioni di accesso di questo dominio.",
     "source_hash": "b03b14f4"
+  },
+  "web.domains.status_tooltip_pending_ssl": {
+    "text": "Dominio verificato — in attesa del certificato",
+    "source_hash": "541bd705"
+  },
+  "web.domains.2_create_the_alias_record": {
+    "text": "2. Crea il record ALIAS o ANAME",
+    "source_hash": "17b04e6a"
+  },
+  "web.domains.sso.status_saml_disabled_badge": {
+    "text": "SAML disattivato",
+    "source_hash": "4e2eab51"
+  },
+  "web.domains.sso.status_saml_disabled_hint": {
+    "text": "L'operatore del sito ha disattivato SAML per questa installazione. La tua configurazione viene conservata e riprenderà a funzionare quando SAML sarà riattivato; fino ad allora questo dominio non offre l'accesso SAML.",
+    "source_hash": "5ba9624c"
+  },
+  "web.domains.sso.status_domain_unverified_badge": {
+    "text": "In attesa della verifica del dominio",
+    "source_hash": "ea7459c2"
+  },
+  "web.domains.sso.status_domain_unverified_hint": {
+    "text": "La verifica di questo dominio non è stata completata, quindi la sua connessione SSO non è ancora attiva nella pagina di accesso. L'SSO si attiva quando il dominio viene verificato e l'SSO è consentito qui.",
+    "source_hash": "57ee0066"
+  },
+  "web.domains.verify_outcome.indeterminate": {
+    "text": "Al momento non è stato possibile completare il controllo DNS. Questo non significa che i tuoi record siano errati. Riprova tra qualche minuto.",
+    "source_hash": "4e76a9ef"
+  },
+  "web.domains.verify_outcome.record_not_found": {
+    "text": "Non abbiamo trovato il record TXT previsto. Verifica che esista e che il suo valore corrisponda esattamente. I nuovi record DNS possono richiedere alcuni minuti per comparire.",
+    "source_hash": "6c847d46"
   }
 }

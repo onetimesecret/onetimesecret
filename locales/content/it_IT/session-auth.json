@@ -509,8 +509,8 @@
     "source_hash": "7fbbb7e7"
   },
   "web.login.errors.identity_connect_conflict": {
-    "text": "Non è stato possibile collegare questa identità. Il collegamento potrebbe essere stato avviato sul dominio sbagliato oppure la tua sessione è scaduta. Accedi di nuovo, poi collegala dalle impostazioni del tuo account.",
-    "source_hash": "4238bbf2"
+    "text": "Non è stato possibile collegare questa identità. Potrebbe appartenere già a un altro account.",
+    "source_hash": "d8b71cf8"
   },
   "web.login.errors.org_join_failed": {
     "text": "Non è stato possibile completare la tua aggiunta all'organizzazione. Contatta il tuo amministratore.",
@@ -527,5 +527,25 @@
   "web.login.errors.sso_cancelled": {
     "text": "L'accesso è stato annullato. Puoi riprovare quando vuoi.",
     "source_hash": "b5f3d3ec"
+  },
+  "web.login.errors.sso_issuer_mismatch": {
+    "text": "L'accesso con questo provider non è configurato correttamente. Contatta il tuo amministratore.",
+    "source_hash": "44df5918"
+  },
+  "web.login.errors.sso_config_unusable": {
+    "text": "Il Single Sign-On per questo dominio è configurato ma al momento non è utilizzabile. Contatta l'amministratore della tua organizzazione.",
+    "source_hash": "f704b391"
+  },
+  "web.login.errors.sso_domain_unverified": {
+    "text": "Il Single Sign-On per questo dominio non è ancora attivo perché la verifica del dominio non è stata completata. Contatta il tuo amministratore.",
+    "source_hash": "bd981480"
+  },
+  "web.login.errors.tenant_sso_link_unavailable": {
+    "text": "Questa identità non è collegata a un account su questo dominio. Se puoi accedere su questo dominio con un account che appartiene a questa organizzazione, collegala da Identità collegate. Altrimenti, chiedi a un proprietario dell'organizzazione di invitare questa identità SSO oppure contatta il supporto.",
+    "source_hash": "66e7376c"
+  },
+  "web.login.errors.identity_connect_wrong_domain": {
+    "text": "Non è stato possibile collegare questa identità su questo dominio. Avvia il collegamento dal sito a cui hai effettuato l'accesso; sul dominio di un'organizzazione, il tuo account deve già appartenere a quell'organizzazione.",
+    "source_hash": "d967c761"
   }
 }

@@ -62,5 +62,29 @@
   "web.admin.kit.revealEmail.copy": {
     "text": "Kopier e-mailadresse",
     "source_hash": "61b94846"
+  },
+  "web.admin.errors.rateLimited": {
+    "text": "Du kan prøve igen om cirka {minutes} minutter.",
+    "source_hash": "27f2d054"
+  },
+  "web.admin.errors.rateLimitedRecovery": {
+    "text": "Hvis du skal handle hurtigere, kan du nulstille begrænsningen for din egen konto med POST /api/colonel/ratelimit/reset eller køre `bin/ots ratelimit keys <kind> <extid>`.",
+    "source_hash": "b77e1388"
+  },
+  "web.admin.kit.confirmDialog.reasonLabel": {
+    "text": "Årsag (valgfrit)",
+    "source_hash": "0f7d4664"
+  },
+  "web.admin.kit.confirmDialog.reasonPlaceholder": {
+    "text": "Hvorfor gør du dette?",
+    "source_hash": "ef83fe82"
+  },
+  "web.admin.kit.confirmDialog.reasonHint": {
+    "text": "Registreres i administratorrevisionsloggen sammen med denne handling.",
+    "source_hash": "23779076"
+  },
+  "web.admin.kit.filterBar.searchSubmit": {
+    "text": "Søg",
+    "source_hash": "49c266ba"
   }
 }

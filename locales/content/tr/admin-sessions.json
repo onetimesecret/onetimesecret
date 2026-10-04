@@ -176,8 +176,8 @@
     "source_hash": "0c6605c1"
   },
   "web.admin.sessions.revoke.confirmDescription": {
-    "text": "Bu işlem, {id} oturumunu silerek kullanıcının oturumunu hemen kapatır. Onaylamak için oturum kimliğini yazın.",
-    "source_hash": "9e08b1b8"
+    "text": "Bu işlem, {id} oturumunu iptal ederek kullanıcının oturumunu hemen kapatır. Onaylamak için {token} yazın.",
+    "source_hash": "80578692"
   },
   "web.admin.sessions.revoke.success": {
     "text": "Oturum iptal edildi",
@@ -188,12 +188,12 @@
     "source_hash": "34cb67a4"
   },
   "web.admin.sessions.scan.capped": {
-    "text": "Tarama ilk {scanned} anahtarla sınırlandırıldı — bu pencerenin ötesindeki kimliği doğrulanmış oturumlar listelenmez. Bir oturuma ulaşmak için onu kimliğiyle inceleyin.",
-    "source_hash": "fa418b4e"
+    "text": "Tarama ilk {scanned} anahtarla sınırlandırıldı — bu pencerenin ötesindeki kimliği doğrulanmış oturumlar listelenmez. Bu oturumlara ulaşmak için aramayı daraltın.",
+    "source_hash": "7a8d6fd5"
   },
   "web.admin.sessions.search.placeholder": {
-    "text": "E-posta veya harici kimlik ile ara",
-    "source_hash": "f2dc5c06"
+    "text": "E-posta, harici kimlik veya oturum tanıtıcısı ile ara",
+    "source_hash": "4894dec4"
   },
   "web.admin.sessions.sections.session": {
     "text": "Oturum",
@@ -210,5 +210,45 @@
   "web.admin.sessions.status.anonymous": {
     "text": "Anonim",
     "source_hash": "e7a8aa2d"
+  },
+  "web.admin.sessions.authority.title": {
+    "text": "Tam kimlik doğrulama modunda yetkili oturum kaynağı değil",
+    "source_hash": "796fb07f"
+  },
+  "web.admin.sessions.authority.description": {
+    "text": "Bu liste Redis oturum deposudur. Kimlik doğrulama modu tam (full) olarak ayarlandığında yetkili oturum durumu, bu konsolun okumadığı Rodauth hesap veritabanında tutulur. Rodauth üzerinden oturum açan hesaplar burada görünmeyebilir ve buradan bir oturumu iptal etmek Rodauth oturumunu sonlandırmaz.",
+    "source_hash": "77bc4904"
+  },
+  "web.admin.sessions.authority.descriptionRevokeAll": {
+    "text": "Bu liste Redis oturum deposudur. Kimlik doğrulama modu tam (full) olarak ayarlandığında yetkili oturum durumu, bu konsolun okumadığı Rodauth hesap veritabanında tutulur. Rodauth üzerinden oturum açan hesaplar burada görünmeyebilir ve buradan tek bir oturumu iptal etmek o oturuma ait Rodauth oturumunu sonlandırmaz. Tümünü iptal etme işlemi, hesabın Rodauth oturumlarını da sonlandırır.",
+    "source_hash": "f964663d"
+  },
+  "web.admin.sessions.authority.openAdmin": {
+    "text": "Rodauth Admin'i aç",
+    "source_hash": "ce523836"
+  },
+  "web.admin.sessions.authority.notConfigured": {
+    "text": "Buradan Rodauth Admin'e bağlantı vermek için RODAUTH_ADMIN_URL değerini ayarlayın.",
+    "source_hash": "c070dbfb"
+  },
+  "web.admin.sessions.columns.sessionHandle": {
+    "text": "Oturum Tanıtıcısı",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.errors.scanCapped": {
+    "text": "Bu oturum, örneklenen anahtar alanında bulunamadı. Sahibinin aramada kullanılabilmesi için oturumu listedeki satırından açın.",
+    "source_hash": "67b73f7f"
+  },
+  "web.admin.sessions.fields.sessionHandle": {
+    "text": "Oturum Tanıtıcısı",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.revoke.ownSession": {
+    "text": "Bu sizin kendi oturumunuz. İptal ederseniz oturumunuz kapanır — bunun yerine Çıkış yap seçeneğini kullanın.",
+    "source_hash": "a6762292"
+  },
+  "web.admin.sessions.rodauthAdmin.open": {
+    "text": "Rodauth Admin'de aç",
+    "source_hash": "467173c8"
   }
 }

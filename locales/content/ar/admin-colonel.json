@@ -778,5 +778,37 @@
   "web.colonel.organizations.filters.searchPlaceholder": {
     "text": "البحث بالمعرف أو الاسم أو البريد الإلكتروني",
     "source_hash": "6fe16473"
+  },
+  "web.colonel.organizations.capped": {
+    "text": "النتائج محدودة: العدد المعروض حد أدنى وليس العدد الإجمالي. تشمل عوامل التصفية كل مؤسسة مرتبطة باشتراك بالإضافة إلى المؤسسات التي تم تحديثها مؤخراً؛ ابحث باستخدام معرّف دقيق أو بريد إلكتروني للوصول إلى أي مؤسسة أخرى.",
+    "source_hash": "0743238d"
+  },
+  "web.impersonation.banner.label": {
+    "text": "انتحال الهوية نشط",
+    "source_hash": "d96f0e8d"
+  },
+  "web.impersonation.banner.viewingAs": {
+    "text": "العرض بصفة {email}",
+    "source_hash": "cf2dd9c6"
+  },
+  "web.impersonation.banner.readOnly": {
+    "text": "للقراءة فقط: التغييرات محظورة أثناء انتحال الهوية.",
+    "source_hash": "46ed3b68"
+  },
+  "web.impersonation.banner.expiresIn": {
+    "text": "ينتهي خلال {time}",
+    "source_hash": "b4999fd8"
+  },
+  "web.impersonation.banner.stop": {
+    "text": "إيقاف انتحال الهوية",
+    "source_hash": "5cf74e38"
+  },
+  "web.impersonation.banner.stopping": {
+    "text": "جاري الإيقاف…",
+    "source_hash": "bbe85741"
+  },
+  "web.impersonation.banner.stopFailed": {
+    "text": "تعذّر إيقاف انتحال الهوية. يرجى المحاولة مرة أخرى.",
+    "source_hash": "5aa72353"
   }
 }

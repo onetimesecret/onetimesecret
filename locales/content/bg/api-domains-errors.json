@@ -46,5 +46,17 @@
   "api.domains.errors.homepage_incoming_not_ready": {
     "text": "Входящите тайни трябва да бъдат активирани с поне един получател, преди да могат да се използват като начална страница.",
     "source_hash": "556da6e2"
+  },
+  "api.domains.errors.related_origins_invalid": {
+    "text": "Невалиден произход: %{origins}. Въведете схемата и хоста, например https://vault.example.com",
+    "source_hash": "5acb92ca"
+  },
+  "api.domains.errors.related_origins_foreign_organization": {
+    "text": "Тези произходи принадлежат на друга организация и не могат да бъдат добавени: %{origins}",
+    "source_hash": "ac21c1e7"
+  },
+  "api.domains.errors.allowed_signup_domains_invalid": {
+    "text": "Невалиден домейн: %{domains}. Въведете регистрируемо име на домейн, например example.com",
+    "source_hash": "2d93472c"
   }
 }

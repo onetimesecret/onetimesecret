@@ -48,12 +48,12 @@
     "source_hash": "acaede35"
   },
   "web.admin.domains.addDomain.strategy.caddy_on_demand": {
-    "text": "Caddy on-demand — certificaten worden automatisch uitgegeven bij het eerste verzoek.",
-    "source_hash": "deb90ae6"
+    "text": "Caddy on-demand — controle van DNS-eigendom (TXT-record); certificaten worden automatisch uitgegeven zodra het domein is geverifieerd.",
+    "source_hash": "1c926efa"
   },
   "web.admin.domains.addDomain.strategy.caddy": {
-    "text": "Caddy — certificaten worden automatisch uitgegeven bij het eerste verzoek.",
-    "source_hash": "a0f3c2dc"
+    "text": "Caddy — controle van DNS-eigendom (TXT-record); certificaten worden automatisch uitgegeven zodra het domein is geverifieerd.",
+    "source_hash": "5774ff90"
   },
   "web.admin.domains.addDomain.strategy.unknown": {
     "text": "Deployment-brede validatiestrategie.",
@@ -842,5 +842,81 @@
   "web.admin.domains.tls.none": {
     "text": "Niet actief",
     "source_hash": "da8a5ab9"
+  },
+  "web.admin.domains.configs.edit.originsHint": {
+    "text": "Eén origin per regel, inclusief het schema, bijvoorbeeld https://vault.example.com. Een origin op het domein van een andere organisatie wordt geweigerd.",
+    "source_hash": "4a4e1d33"
+  },
+  "web.admin.domains.configs.fields.related_origins": {
+    "text": "Gerelateerde passkey-origins",
+    "source_hash": "e6160714"
+  },
+  "web.admin.domains.dns.cnameStepInstall": {
+    "text": "2. Voeg een CNAME-record toe dat het subdomein naar deze installatie verwijst.",
+    "source_hash": "b8a329f9"
+  },
+  "web.admin.domains.dns.aliasStepInstall": {
+    "text": "2. Voeg een ALIAS- of ANAME-record toe dat het apex naar deze installatie verwijst.",
+    "source_hash": "9a61ed66"
+  },
+  "web.admin.domains.dns.apexNote": {
+    "text": "Een apex-domein kan geen CNAME-record bevatten. Als de DNS-provider geen ALIAS- of ANAME-record ondersteunt, doet een A-record naar het IP-adres van deze server hetzelfde.",
+    "source_hash": "f69e3032"
+  },
+  "web.admin.domains.fields.verifiedByOverride": {
+    "text": "Ja (override door beheerder)",
+    "source_hash": "a1a8644f"
+  },
+  "web.admin.domains.list.capped": {
+    "text": "Resultaten zijn begrensd: het getoonde aantal is een ondergrens, niet het totaal. Verfijn de zoekopdracht of het filter om alles te zien.",
+    "source_hash": "27537844"
+  },
+  "web.admin.domains.override.button": {
+    "text": "Status overschrijven",
+    "source_hash": "c683774c"
+  },
+  "web.admin.domains.override.title": {
+    "text": "Verificatiestatus overschrijven",
+    "source_hash": "66dbebb2"
+  },
+  "web.admin.domains.override.description": {
+    "text": "Stel de vlaggen Geverifieerd en Verifiëren voor dit domein handmatig in. Wees voorzichtig.",
+    "source_hash": "bc3eb719"
+  },
+  "web.admin.domains.override.verified": {
+    "text": "Geverifieerd",
+    "source_hash": "4f783840"
+  },
+  "web.admin.domains.override.resolving": {
+    "text": "Verifiëren",
+    "source_hash": "3287a034"
+  },
+  "web.admin.domains.override.apply": {
+    "text": "Override toepassen",
+    "source_hash": "e2d1472a"
+  },
+  "web.admin.domains.override.cancel": {
+    "text": "Annuleren",
+    "source_hash": "19766ed6"
+  },
+  "web.admin.domains.override.success": {
+    "text": "Domeinstatus overschreven.",
+    "source_hash": "42104cd0"
+  },
+  "web.admin.domains.override.noChange": {
+    "text": "Geen wijzigingen om toe te passen.",
+    "source_hash": "07632d50"
+  },
+  "web.admin.domains.verify.success.indeterminate": {
+    "text": "De DNS-controle gaf geen resultaat voor {domain}. De verificatiestatus is ongewijzigd gebleven.",
+    "source_hash": "9c5ab974"
+  },
+  "web.admin.domains.verify.success.overrideHeld": {
+    "text": "De TXT-controle voor {domain} is mislukt, maar het domein blijft geverifieerd door een override van een beheerder.",
+    "source_hash": "e754aac8"
+  },
+  "web.admin.domains.verify.success.confirmationExpired": {
+    "text": "De DNS-controle voor {domain} heeft al meer dan 7 dagen geen resultaat gegeven. Het domein is niet langer geverifieerd.",
+    "source_hash": "a6901cb5"
   }
 }

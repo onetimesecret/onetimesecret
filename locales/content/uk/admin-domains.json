@@ -48,12 +48,12 @@
     "source_hash": "acaede35"
   },
   "web.admin.domains.addDomain.strategy.caddy_on_demand": {
-    "text": "Caddy on-demand — сертифікати видаються автоматично за першим запитом.",
-    "source_hash": "deb90ae6"
+    "text": "Caddy on-demand — перевірка володіння через DNS (запис TXT); сертифікати видаються автоматично після підтвердження.",
+    "source_hash": "1c926efa"
   },
   "web.admin.domains.addDomain.strategy.caddy": {
-    "text": "Caddy — сертифікати видаються автоматично за першим запитом.",
-    "source_hash": "a0f3c2dc"
+    "text": "Caddy — перевірка володіння через DNS (запис TXT); сертифікати видаються автоматично після підтвердження.",
+    "source_hash": "5774ff90"
   },
   "web.admin.domains.addDomain.strategy.unknown": {
     "text": "Стратегія перевірки для всього розгортання.",
@@ -842,5 +842,81 @@
   "web.admin.domains.tls.none": {
     "text": "Не обслуговується",
     "source_hash": "da8a5ab9"
+  },
+  "web.admin.domains.configs.edit.originsHint": {
+    "text": "Одне джерело (origin) на рядок, включно зі схемою, наприклад https://vault.example.com. Джерело в домені іншої організації буде відхилено.",
+    "source_hash": "4a4e1d33"
+  },
+  "web.admin.domains.configs.fields.related_origins": {
+    "text": "Пов'язані джерела ключів доступу",
+    "source_hash": "e6160714"
+  },
+  "web.admin.domains.dns.cnameStepInstall": {
+    "text": "2. Додайте запис CNAME, що спрямовує піддомен на цю інсталяцію.",
+    "source_hash": "b8a329f9"
+  },
+  "web.admin.domains.dns.aliasStepInstall": {
+    "text": "2. Додайте запис ALIAS або ANAME, що спрямовує кореневий домен (apex) на цю інсталяцію.",
+    "source_hash": "9a61ed66"
+  },
+  "web.admin.domains.dns.apexNote": {
+    "text": "Кореневий домен (apex) не може містити запис CNAME. Якщо DNS-провайдер не підтримує записи ALIAS або ANAME, запис A з IP-адресою цього сервера виконує ту саму функцію.",
+    "source_hash": "f69e3032"
+  },
+  "web.admin.domains.fields.verifiedByOverride": {
+    "text": "Так (перевизначення оператора)",
+    "source_hash": "a1a8644f"
+  },
+  "web.admin.domains.list.capped": {
+    "text": "Результати обмежено: показана кількість є нижньою межею, а не загальною кількістю. Звузьте пошук або фільтр, щоб побачити всі результати.",
+    "source_hash": "27537844"
+  },
+  "web.admin.domains.override.button": {
+    "text": "Перевизначити статус",
+    "source_hash": "c683774c"
+  },
+  "web.admin.domains.override.title": {
+    "text": "Перевизначити статус верифікації",
+    "source_hash": "66dbebb2"
+  },
+  "web.admin.domains.override.description": {
+    "text": "Вручну встановіть прапорці верифікації та визначення для цього домену. Використовуйте з обережністю.",
+    "source_hash": "bc3eb719"
+  },
+  "web.admin.domains.override.verified": {
+    "text": "Верифіковано",
+    "source_hash": "4f783840"
+  },
+  "web.admin.domains.override.resolving": {
+    "text": "Визначається",
+    "source_hash": "3287a034"
+  },
+  "web.admin.domains.override.apply": {
+    "text": "Застосувати перевизначення",
+    "source_hash": "e2d1472a"
+  },
+  "web.admin.domains.override.cancel": {
+    "text": "Скасувати",
+    "source_hash": "19766ed6"
+  },
+  "web.admin.domains.override.success": {
+    "text": "Статус домену перевизначено.",
+    "source_hash": "42104cd0"
+  },
+  "web.admin.domains.override.noChange": {
+    "text": "Немає змін для застосування.",
+    "source_hash": "07632d50"
+  },
+  "web.admin.domains.verify.success.indeterminate": {
+    "text": "Засіб перевірки DNS не повернув результату для {domain}. Статус підтвердження залишено без змін.",
+    "source_hash": "9c5ab974"
+  },
+  "web.admin.domains.verify.success.overrideHeld": {
+    "text": "Перевірка TXT для {domain} не пройшла, але домен залишається підтвердженим завдяки перевизначенню оператора.",
+    "source_hash": "e754aac8"
+  },
+  "web.admin.domains.verify.success.confirmationExpired": {
+    "text": "Перевірка DNS для {domain} не повертає результату понад 7 днів. Домен більше не підтверджено.",
+    "source_hash": "a6901cb5"
   }
 }

@@ -1543,5 +1543,17 @@
   "web.TITLES.connected_identities": {
     "text": "Свързани самоличности",
     "source_hash": "e132c4d9"
+  },
+  "web.COMMON.field": {
+    "text": "Поле",
+    "source_hash": "f45fc1df"
+  },
+  "web.COMMON.unknown": {
+    "text": "Неизвестна",
+    "source_hash": "b764cdc0"
+  },
+  "web.STATUS.pending_ssl": {
+    "text": "Изчаква се сертификат",
+    "source_hash": "dd34f305"
   }
 }

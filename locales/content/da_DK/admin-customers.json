@@ -40,8 +40,8 @@
     "source_hash": "9feed9f1"
   },
   "web.admin.customers.actions.purge.confirmDescription": {
-    "text": "Dette sletter {email} permanent sammen med alle deres data. Dette kan ikke fortrydes.",
-    "source_hash": "a74dd5d1"
+    "text": "Dette anmoder om permanent sletning af {email}. En forhåndskontrol kører, før kontoen nedlægges, og afviser udrensningen, hvis et workspace har domæner, faktureringstilstand, andre medlemmer, opbevarede data eller inkonsistente referencer. Gennemgå og løs eventuelle blokeringer, før du prøver igen. Dette kan ikke fortrydes, når nedlæggelsen er begyndt.",
+    "source_hash": "7b4e5e37"
   },
   "web.admin.customers.actions.purge.success": {
     "text": "Kunde udrenset.",
@@ -60,8 +60,8 @@
     "source_hash": "227f57d7"
   },
   "web.admin.customers.actions.role.confirmDescription": {
-    "text": "Skift {email} til rollen {role}.",
-    "source_hash": "9ba063c6"
+    "text": "Skifter {email} til rollen {role}. Colonel-rollen giver fuld administrativ adgang til alle konti, beskeder og organisationer på denne installation. Indtast kontoens e-mailadresse nedenfor for at bekræfte.",
+    "source_hash": "0ed85b97"
   },
   "web.admin.customers.actions.role.success": {
     "text": "Rolle opdateret.",
@@ -116,8 +116,8 @@
     "source_hash": "62ed2854"
   },
   "web.admin.customers.actions.unverify.confirmDescription": {
-    "text": "Marker {email} som ikke bekræftet.",
-    "source_hash": "592ffd27"
+    "text": "Markerer {email} som ikke bekræftet. En ikke-bekræftet konto kan ikke have rollen colonel, administrator eller personale, så dette fjerner også en eventuel forhøjet rolle. Indtast kontoens e-mailadresse nedenfor for at bekræfte.",
+    "source_hash": "601f7382"
   },
   "web.admin.customers.actions.unverify.success": {
     "text": "Kundebekræftelse fjernet.",
@@ -568,8 +568,8 @@
     "source_hash": "69e69f49"
   },
   "web.admin.customers.detail.diagnostics.healthy": {
-    "text": "Ingen blokerende tilstand fundet. Auth-tilstand ser sund ud — mistænk problemer på klientsiden (cookies, konfiguration af brugerdefineret domæne-login) eller forkert region.",
-    "source_hash": "f6d5f8d1"
+    "text": "Ingen blokerende tilstand fundet. Auth-data og data om organisationskontekst ser sunde ud — mistænk problemer på klientsiden (cookies, konfiguration af brugerdefineret domæne-login) eller forkert region.",
+    "source_hash": "e0e8450e"
   },
   "web.admin.customers.detail.diagnostics.authUnavailable": {
     "text": "Auth-database ikke tilgængelig (simpel auth-tilstand) — SQL-side-tjek blev sprunget over.",
@@ -690,5 +690,153 @@
   "web.admin.customers.verification.unverified": {
     "text": "Ikke bekræftet",
     "source_hash": "15133907"
+  },
+  "web.admin.customers.actions.impersonate.button": {
+    "text": "Agér som kunde",
+    "source_hash": "38a7cfbe"
+  },
+  "web.admin.customers.actions.impersonate.confirmTitle": {
+    "text": "Vil du agere som kunden?",
+    "source_hash": "c6e4fa74"
+  },
+  "web.admin.customers.actions.impersonate.confirmDescription": {
+    "text": "Åbner en tidsbegrænset, skrivebeskyttet session som {email}. Hver side viser et banner, indtil du stopper, ændringer er blokeret, og sessionen registreres i revisionsloggen sammen med din årsag.",
+    "source_hash": "713c01b4"
+  },
+  "web.admin.customers.actions.impersonate.reasonLabel": {
+    "text": "Årsag (påkrævet)",
+    "source_hash": "d976f5d9"
+  },
+  "web.admin.customers.actions.impersonate.reasonPlaceholder": {
+    "text": "Hvorfor er denne session nødvendig? Angiv sagsreferencen.",
+    "source_hash": "89a4835d"
+  },
+  "web.admin.customers.actions.impersonate.success": {
+    "text": "Du agerer nu som kunden.",
+    "source_hash": "b4662bcc"
+  },
+  "web.admin.customers.actions.impersonate.unavailable": {
+    "text": "Det er ikke muligt at agere som colonel-konti, anonyme konti eller suspenderede konti.",
+    "source_hash": "fb6578b2"
+  },
+  "web.admin.customers.actions.purge.refused": {
+    "text": "Udrensning afvist. Kunden blev bevaret; løs blokeringerne, før du prøver igen.",
+    "source_hash": "8e8a2ae1"
+  },
+  "web.admin.customers.actions.purge.partial": {
+    "text": "Udrensningen stoppede, efter at en del af oprydningen var gennemført. Rapportér ikke succes, og prøv ikke blindt igen; gennemgå de gennemførte faser og blokeringerne.",
+    "source_hash": "a88fd15b"
+  },
+  "web.admin.customers.actions.purge.incomplete": {
+    "text": "Udrensningen blev ikke fuldført (status: {status}). Gennemgå livscyklusdetaljerne, før du prøver igen.",
+    "source_hash": "c0c3d287"
+  },
+  "web.admin.customers.actions.purge.unreadableResult": {
+    "text": "Serveren returnerede et ulæseligt udrensningsresultat. Der blev ikke rapporteret succes; kontrollér kundens og workspacets tilstand, før du prøver igen.",
+    "source_hash": "cc837a77"
+  },
+  "web.admin.customers.actions.purge.resultStage": {
+    "text": "Stoppet ved fase: {stage}.",
+    "source_hash": "d0e313bf"
+  },
+  "web.admin.customers.actions.purge.resultBlockers": {
+    "text": "Blokeringer: {blockers}.",
+    "source_hash": "00c1e196"
+  },
+  "web.admin.customers.actions.purge.resultPlannedActions": {
+    "text": "Planlagt oprydning: {actions}.",
+    "source_hash": "6915205d"
+  },
+  "web.admin.customers.actions.purge.resultActions": {
+    "text": "Gennemført oprydning: {actions}.",
+    "source_hash": "d34121b3"
+  },
+  "web.admin.customers.actions.purge.resultCompletedStages": {
+    "text": "Gennemførte faser: {stages}.",
+    "source_hash": "67f68860"
+  },
+  "web.admin.customers.actions.role.button": {
+    "text": "Skift rolle",
+    "source_hash": "a43a8d8c"
+  },
+  "web.admin.customers.actions.role.selfDemote": {
+    "text": "Du kan ikke nedgradere din egen colonel-konto. Bed en anden colonel om at gøre det, eller kør `bin/ots customers role demote`.",
+    "source_hash": "3e75d01b"
+  },
+  "web.admin.customers.actions.role.lastColonel": {
+    "text": "Du kan ikke nedgradere den sidste tilbageværende colonel — installationen ville ikke have nogen administrator. Forfrem og bekræft en anden konto først.",
+    "source_hash": "9c59c731"
+  },
+  "web.admin.customers.actions.unverify.selfUnverify": {
+    "text": "Du kan ikke fjerne bekræftelsen af din egen konto: en bekræftet e-mail er påkrævet for at have colonel-rollen.",
+    "source_hash": "8ab024fe"
+  },
+  "web.admin.customers.actions.unverify.lastColonel": {
+    "text": "Du kan ikke fjerne bekræftelsen af den sidste tilbageværende colonel — en ikke-bekræftet konto kan ikke have colonel-rollen. Forfrem og bekræft en anden konto først.",
+    "source_hash": "fc404616"
+  },
+  "web.admin.customers.detail.diagnostics.organizationContextBlocked": {
+    "text": "Organisationskonteksten er blokeret eller ufuldstændig. Undersøg det indekserede workspace, og ret indeksafvigelser for ejerskab, medlemskab eller kontakt-e-mail, før du betragter denne konto som sund.",
+    "source_hash": "5c5c89be"
+  },
+  "web.admin.customers.detail.diagnostics.organization": {
+    "text": "Workspace: {id}",
+    "source_hash": "6ee50fe9"
+  },
+  "web.admin.customers.detail.diagnostics.remediation": {
+    "text": "Afhjælpning: {action}",
+    "source_hash": "83ddc7d7"
+  },
+  "web.admin.customers.detail.fields.internalId": {
+    "text": "Internt ID",
+    "source_hash": "e468bb47"
+  },
+  "web.admin.customers.detail.organizations.open": {
+    "text": "Åbn",
+    "source_hash": "ed077f3d"
+  },
+  "web.admin.customers.detail.rodauthAdmin.open": {
+    "text": "Åbn i Rodauth Admin",
+    "source_hash": "467173c8"
+  },
+  "web.admin.customers.detail.sessions.revokeAll.selfDescription": {
+    "text": "Dette logger dig ud af alle andre enheder og browsere, inklusive sessioner, der ikke vises på denne liste. Den session, du arbejder i lige nu, bevares.",
+    "source_hash": "ae350040"
+  },
+  "web.admin.customers.list.capped": {
+    "text": "Resultaterne er begrænset: det viste antal er et minimum, ikke totalen. Indsnævr søgningen eller filteret for at se alt.",
+    "source_hash": "27537844"
+  },
+  "web.admin.customers.list.orphanedAccounts.title": {
+    "text": "Konto i auth-databasen uden kundepost",
+    "source_hash": "82cf7a27"
+  },
+  "web.admin.customers.list.orphanedAccounts.hint": {
+    "text": "Auth-databasen indeholder en konto for denne adresse, men ingen kundepost er knyttet til den. Personen kan stadig logge ind; kundeindekset har intet om vedkommende. Åbn adressen for at se diagnostik.",
+    "source_hash": "0f903f23"
+  },
+  "web.admin.customers.list.orphanedAccounts.diagnose": {
+    "text": "Åbn kontodiagnostik",
+    "source_hash": "55b3e826"
+  },
+  "web.admin.customers.list.orphanedAccounts.accountId": {
+    "text": "Konto #{id}",
+    "source_hash": "485dee3c"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unverified": {
+    "text": "Ikke bekræftet",
+    "source_hash": "33c8e8de"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.verified": {
+    "text": "Bekræftet",
+    "source_hash": "4f783840"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.closed": {
+    "text": "Lukket",
+    "source_hash": "c21ead06"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unknown": {
+    "text": "Ukendt",
+    "source_hash": "b764cdc0"
   }
 }

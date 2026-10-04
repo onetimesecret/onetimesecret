@@ -957,5 +957,53 @@
   "web.auth.webauthn.emailRequired": {
     "text": "Въведете вашия имейл адрес, за да влезете с ключ за достъп",
     "source_hash": "7f07647f"
+  },
+  "web.auth.login.verification_unavailable": {
+    "text": "Влизането беше успешно, но не успяхме да потвърдим сесията ви. Моля, опитайте отново след малко.",
+    "source_hash": "9a19dfc9"
+  },
+  "web.auth.mfa.verification_unavailable": {
+    "text": "Паролата ви беше приета, но не успяхме да започнем двуфакторната проверка. Моля, опитайте отново след малко.",
+    "source_hash": "5fd5e240"
+  },
+  "web.auth.session.ended": {
+    "text": "Сесията ви приключи. Моля, влезте отново.",
+    "source_hash": "673e9822"
+  },
+  "web.auth.session.replaced": {
+    "text": "Влизането ви се промени в друг раздел, затова тази страница беше презаредена.",
+    "source_hash": "3767d43b"
+  },
+  "web.auth.session.stale_session_title": {
+    "text": "Тази страница е остаряла",
+    "source_hash": "0293e093"
+  },
+  "web.auth.session.stale_session_notice": {
+    "text": "Сесията ви се промени, след като тази страница беше заредена. Копирайте всичко, което не сте запазили, и след това презаредете страницата, за да продължите.",
+    "source_hash": "c62e236c"
+  },
+  "web.auth.session.reload_now": {
+    "text": "Презареждане на страницата",
+    "source_hash": "437d0d63"
+  },
+  "web.auth.session.verification_unavailable_title": {
+    "text": "В момента не можем да потвърдим сесията ви",
+    "source_hash": "2130dda1"
+  },
+  "web.auth.session.verification_unavailable_body": {
+    "text": "Не сте отписани. Не успяхме да се свържем със сървъра, за да потвърдим сесията ви, затова тази страница е скрита, докато това стане възможно. Ще продължим да опитваме.",
+    "source_hash": "bb230c2c"
+  },
+  "web.auth.session.retry": {
+    "text": "Повторен опит",
+    "source_hash": "d8b8392e"
+  },
+  "web.auth.session.retrying": {
+    "text": "Проверка…",
+    "source_hash": "ec963ffc"
+  },
+  "web.auth.session.retry_failed": {
+    "text": "Все още е недостъпно. Моля, опитайте отново след малко.",
+    "source_hash": "b81c022c"
   }
 }

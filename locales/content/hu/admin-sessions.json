@@ -176,8 +176,8 @@
     "source_hash": "0c6605c1"
   },
   "web.admin.sessions.revoke.confirmDescription": {
-    "text": "Ez azonnal kijelentkezteti a felhasználót a(z) {id} munkamenet törlésével. A megerősítéshez írja be a munkamenet-azonosítót.",
-    "source_hash": "9e08b1b8"
+    "text": "Ez azonnal kijelentkezteti a felhasználót a(z) {id} munkamenet visszavonásával. A megerősítéshez írja be a következőt: {token}.",
+    "source_hash": "80578692"
   },
   "web.admin.sessions.revoke.success": {
     "text": "Munkamenet visszavonva",
@@ -188,12 +188,12 @@
     "source_hash": "34cb67a4"
   },
   "web.admin.sessions.scan.capped": {
-    "text": "Az átvizsgálás az első {scanned} kulcsra korlátozódik — az ezen az ablakon túli hitelesített munkamenetek nem szerepelnek a listában. Egy adott munkamenet eléréséhez vizsgálja meg azt az azonosítója alapján.",
-    "source_hash": "fa418b4e"
+    "text": "Az átvizsgálás az első {scanned} kulcsra korlátozódik — az ezen az ablakon túli hitelesített munkamenetek nem szerepelnek a listában. Az elérésükhöz szűkítse a keresést.",
+    "source_hash": "7a8d6fd5"
   },
   "web.admin.sessions.search.placeholder": {
-    "text": "Keresés e-mail vagy külső azonosító alapján",
-    "source_hash": "f2dc5c06"
+    "text": "Keresés e-mail, külső azonosító vagy munkamenet-leíró alapján",
+    "source_hash": "4894dec4"
   },
   "web.admin.sessions.sections.session": {
     "text": "Munkamenet",
@@ -210,5 +210,45 @@
   "web.admin.sessions.status.anonymous": {
     "text": "Névtelen",
     "source_hash": "e7a8aa2d"
+  },
+  "web.admin.sessions.authority.title": {
+    "text": "Teljes hitelesítési módban nem ez a munkamenetek mérvadó forrása",
+    "source_hash": "796fb07f"
+  },
+  "web.admin.sessions.authority.description": {
+    "text": "Ez a lista a Redis-munkamenettárolót mutatja. Ha a hitelesítési mód teljesre (full) van állítva, a mérvadó munkamenet-állapot a Rodauth fiókadatbázisában található, amelyet ez a konzol nem olvas. A Rodauth-on keresztül bejelentkezett fiókok nem feltétlenül jelennek meg itt, és egy munkamenet itteni visszavonása nem szünteti meg a Rodauth-munkamenetet.",
+    "source_hash": "77bc4904"
+  },
+  "web.admin.sessions.authority.descriptionRevokeAll": {
+    "text": "Ez a lista a Redis-munkamenettárolót mutatja. Ha a hitelesítési mód teljesre (full) van állítva, a mérvadó munkamenet-állapot a Rodauth fiókadatbázisában található, amelyet ez a konzol nem olvas. A Rodauth-on keresztül bejelentkezett fiókok nem feltétlenül jelennek meg itt, és egyetlen munkamenet itteni visszavonása nem szünteti meg a hozzá tartozó Rodauth-munkamenetet. Az összes visszavonása a fiók Rodauth-munkameneteit is megszünteti.",
+    "source_hash": "f964663d"
+  },
+  "web.admin.sessions.authority.openAdmin": {
+    "text": "Rodauth Admin megnyitása",
+    "source_hash": "ce523836"
+  },
+  "web.admin.sessions.authority.notConfigured": {
+    "text": "Állítsa be a RODAUTH_ADMIN_URL értékét, hogy innen a Rodauth Adminra hivatkozhasson.",
+    "source_hash": "c070dbfb"
+  },
+  "web.admin.sessions.columns.sessionHandle": {
+    "text": "Munkamenet-leíró",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.errors.scanCapped": {
+    "text": "Ez a munkamenet nem található a mintavételezett kulcstérben. Nyissa meg a lista megfelelő sorából, hogy a tulajdonosa alapján kikereshető legyen.",
+    "source_hash": "67b73f7f"
+  },
+  "web.admin.sessions.fields.sessionHandle": {
+    "text": "Munkamenet-leíró",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.revoke.ownSession": {
+    "text": "Ez az Ön saját munkamenete. Visszavonása kijelentkeztetné Önt — használja inkább a kijelentkezést.",
+    "source_hash": "a6762292"
+  },
+  "web.admin.sessions.rodauthAdmin.open": {
+    "text": "Megnyitás a Rodauth Adminban",
+    "source_hash": "467173c8"
   }
 }

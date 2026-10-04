@@ -957,5 +957,53 @@
   "web.auth.webauthn.emailRequired": {
     "text": "Whakaurua tō wāhitau īmēra hei takiuru mā te kī urunga",
     "source_hash": "7f07647f"
+  },
+  "web.auth.login.verification_unavailable": {
+    "text": "I angitu tō takiuru, engari kāore i taea e mātou te whakaū i tō wātū. Tēnā ngana anō ā tōna wā poto.",
+    "source_hash": "9a19dfc9"
+  },
+  "web.auth.mfa.verification_unavailable": {
+    "text": "I whakaaetia tō kupuhipa, engari kāore i taea e mātou te tīmata i te manatoko āhuatanga-rua. Tēnā ngana anō ā tōna wā poto.",
+    "source_hash": "5fd5e240"
+  },
+  "web.auth.session.ended": {
+    "text": "Kua mutu tō wātū. Tēnā takiuru anō.",
+    "source_hash": "673e9822"
+  },
+  "web.auth.session.replaced": {
+    "text": "I panoni tō takiuru i tētahi atu ripa, nā reira i utaina anō tēnei whārangi.",
+    "source_hash": "3767d43b"
+  },
+  "web.auth.session.stale_session_title": {
+    "text": "Kua tawhito tēnei whārangi",
+    "source_hash": "0293e093"
+  },
+  "web.auth.session.stale_session_notice": {
+    "text": "Kua panoni tō wātū mai i te utanga o tēnei whārangi. Tāruatia ngā mea kāore anō koe kia tiaki, kātahi ka uta anō i te whārangi kia haere tonu ai.",
+    "source_hash": "c62e236c"
+  },
+  "web.auth.session.reload_now": {
+    "text": "Utaina anō te whārangi",
+    "source_hash": "437d0d63"
+  },
+  "web.auth.session.verification_unavailable_title": {
+    "text": "Kāore e taea e mātou te manatoko i tō wātū i tēnei wā",
+    "source_hash": "2130dda1"
+  },
+  "web.auth.session.verification_unavailable_body": {
+    "text": "Kāore koe i takiputaina. Kāore i taea e mātou te toro atu ki te tūmau hei whakaū i tō wātū, nā reira kua hunaia tēnei whārangi kia taea rā anō. Ka ngana tonu mātou.",
+    "source_hash": "bb230c2c"
+  },
+  "web.auth.session.retry": {
+    "text": "Ngana anō",
+    "source_hash": "d8b8392e"
+  },
+  "web.auth.session.retrying": {
+    "text": "E tirotiro ana…",
+    "source_hash": "ec963ffc"
+  },
+  "web.auth.session.retry_failed": {
+    "text": "Kāore tonu e wātea. Tēnā ngana anō ā tōna wā poto.",
+    "source_hash": "b81c022c"
   }
 }

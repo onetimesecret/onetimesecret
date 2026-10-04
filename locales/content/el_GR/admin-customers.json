@@ -40,8 +40,8 @@
     "source_hash": "9feed9f1"
   },
   "web.admin.customers.actions.purge.confirmDescription": {
-    "text": "Αυτό διαγράφει οριστικά τον {email} και όλα τα δεδομένα του. Δεν είναι δυνατή η αναίρεση.",
-    "source_hash": "a74dd5d1"
+    "text": "Αυτό ζητά την οριστική διαγραφή του {email}. Πριν από την κατάργηση του λογαριασμού εκτελείται ένας προκαταρκτικός έλεγχος, ο οποίος απορρίπτει την εκκαθάριση όταν ένας χώρος εργασίας έχει τομείς, κατάσταση χρέωσης, άλλα μέλη, διατηρούμενα δεδομένα ή ασυνεπείς αναφορές. Ελέγξτε και επιλύστε τυχόν εμπόδια πριν δοκιμάσετε ξανά. Δεν είναι δυνατή η αναίρεση μετά την έναρξη της κατάργησης.",
+    "source_hash": "7b4e5e37"
   },
   "web.admin.customers.actions.purge.success": {
     "text": "Ο πελάτης εκκαθαρίστηκε.",
@@ -60,8 +60,8 @@
     "source_hash": "227f57d7"
   },
   "web.admin.customers.actions.role.confirmDescription": {
-    "text": "Αλλαγή του {email} στον ρόλο {role}.",
-    "source_hash": "9ba063c6"
+    "text": "Αλλαγή του {email} στον ρόλο {role}. Ο ρόλος colonel παρέχει πλήρη διαχειριστική πρόσβαση σε κάθε λογαριασμό, μυστικό και οργανισμό σε αυτήν την εγκατάσταση. Πληκτρολογήστε παρακάτω τη διεύθυνση email του λογαριασμού για επιβεβαίωση.",
+    "source_hash": "0ed85b97"
   },
   "web.admin.customers.actions.role.success": {
     "text": "Ο ρόλος ενημερώθηκε.",
@@ -116,8 +116,8 @@
     "source_hash": "62ed2854"
   },
   "web.admin.customers.actions.unverify.confirmDescription": {
-    "text": "Επισήμανση του {email} ως μη επαληθευμένου.",
-    "source_hash": "592ffd27"
+    "text": "Επισήμανση του {email} ως μη επαληθευμένου. Ένας μη επαληθευμένος λογαριασμός δεν μπορεί να έχει τον ρόλο colonel, διαχειριστή ή προσωπικού, επομένως αφαιρείται επίσης κάθε αυξημένος ρόλος που έχει. Πληκτρολογήστε παρακάτω τη διεύθυνση email του λογαριασμού για επιβεβαίωση.",
+    "source_hash": "601f7382"
   },
   "web.admin.customers.actions.unverify.success": {
     "text": "Η επαλήθευση του πελάτη καταργήθηκε.",
@@ -568,8 +568,8 @@
     "source_hash": "69e69f49"
   },
   "web.admin.customers.detail.diagnostics.healthy": {
-    "text": "Δεν βρέθηκε κανένα πρόβλημα. Η κατάσταση ταυτοποίησης φαίνεται υγιής — ελέγξτε για προβλήματα στην πλευρά του πελάτη (cookies, ρυθμίσεις σύνδεσης προσαρμοσμένου τομέα) ή λάθος περιοχή.",
-    "source_hash": "f6d5f8d1"
+    "text": "Δεν βρέθηκε καμία συνθήκη αποκλεισμού. Τα στοιχεία ταυτοποίησης και πλαισίου οργανισμού φαίνονται υγιή — ελέγξτε για προβλήματα στην πλευρά του πελάτη (cookies, ρυθμίσεις σύνδεσης προσαρμοσμένου τομέα) ή λάθος περιοχή.",
+    "source_hash": "e0e8450e"
   },
   "web.admin.customers.detail.diagnostics.authUnavailable": {
     "text": "Η βάση δεδομένων ταυτοποίησης δεν είναι διαθέσιμη (απλή λειτουργία ταυτοποίησης) — οι έλεγχοι SQL παραλείφθηκαν.",
@@ -690,5 +690,153 @@
   "web.admin.customers.verification.unverified": {
     "text": "Μη επαληθευμένο",
     "source_hash": "15133907"
+  },
+  "web.admin.customers.actions.impersonate.button": {
+    "text": "Απομίμηση πελάτη",
+    "source_hash": "38a7cfbe"
+  },
+  "web.admin.customers.actions.impersonate.confirmTitle": {
+    "text": "Έναρξη απομίμησης;",
+    "source_hash": "c6e4fa74"
+  },
+  "web.admin.customers.actions.impersonate.confirmDescription": {
+    "text": "Ανοίγει μια χρονικά περιορισμένη συνεδρία μόνο για ανάγνωση ως {email}. Κάθε σελίδα εμφανίζει ένα πανό μέχρι να τη διακόψετε, οι αλλαγές αποκλείονται και η συνεδρία καταγράφεται στο αρχείο καταγραφής ελέγχου μαζί με την αιτία σας.",
+    "source_hash": "713c01b4"
+  },
+  "web.admin.customers.actions.impersonate.reasonLabel": {
+    "text": "Αιτία (υποχρεωτικά)",
+    "source_hash": "d976f5d9"
+  },
+  "web.admin.customers.actions.impersonate.reasonPlaceholder": {
+    "text": "Γιατί χρειάζεται αυτή η συνεδρία; Συμπεριλάβετε τον αριθμό του αιτήματος υποστήριξης.",
+    "source_hash": "89a4835d"
+  },
+  "web.admin.customers.actions.impersonate.success": {
+    "text": "Η απομίμηση ξεκίνησε.",
+    "source_hash": "b4662bcc"
+  },
+  "web.admin.customers.actions.impersonate.unavailable": {
+    "text": "Η απομίμηση δεν είναι διαθέσιμη για λογαριασμούς colonel, ανώνυμους λογαριασμούς και λογαριασμούς σε αναστολή.",
+    "source_hash": "fb6578b2"
+  },
+  "web.admin.customers.actions.purge.refused": {
+    "text": "Η εκκαθάριση απορρίφθηκε. Ο πελάτης διατηρήθηκε. Επιλύστε τα εμπόδια πριν δοκιμάσετε ξανά.",
+    "source_hash": "8e8a2ae1"
+  },
+  "web.admin.customers.actions.purge.partial": {
+    "text": "Η εκκαθάριση διακόπηκε αφού ολοκληρώθηκε μέρος του καθαρισμού. Μην αναφέρετε επιτυχία και μην δοκιμάσετε ξανά χωρίς έλεγχο. Εξετάστε τα ολοκληρωμένα στάδια και τα εμπόδια.",
+    "source_hash": "a88fd15b"
+  },
+  "web.admin.customers.actions.purge.incomplete": {
+    "text": "Η εκκαθάριση δεν ολοκληρώθηκε (κατάσταση: {status}). Εξετάστε τις λεπτομέρειες του κύκλου ζωής πριν δοκιμάσετε ξανά.",
+    "source_hash": "c0c3d287"
+  },
+  "web.admin.customers.actions.purge.unreadableResult": {
+    "text": "Ο διακομιστής επέστρεψε μη αναγνώσιμο αποτέλεσμα εκκαθάρισης. Δεν αναφέρθηκε επιτυχία. Επαληθεύστε την κατάσταση του πελάτη και του χώρου εργασίας πριν δοκιμάσετε ξανά.",
+    "source_hash": "cc837a77"
+  },
+  "web.admin.customers.actions.purge.resultStage": {
+    "text": "Διακόπηκε στο στάδιο: {stage}.",
+    "source_hash": "d0e313bf"
+  },
+  "web.admin.customers.actions.purge.resultBlockers": {
+    "text": "Εμπόδια: {blockers}.",
+    "source_hash": "00c1e196"
+  },
+  "web.admin.customers.actions.purge.resultPlannedActions": {
+    "text": "Προγραμματισμένος καθαρισμός: {actions}.",
+    "source_hash": "6915205d"
+  },
+  "web.admin.customers.actions.purge.resultActions": {
+    "text": "Ολοκληρωμένος καθαρισμός: {actions}.",
+    "source_hash": "d34121b3"
+  },
+  "web.admin.customers.actions.purge.resultCompletedStages": {
+    "text": "Ολοκληρωμένα στάδια: {stages}.",
+    "source_hash": "67f68860"
+  },
+  "web.admin.customers.actions.role.button": {
+    "text": "Αλλαγή ρόλου",
+    "source_hash": "a43a8d8c"
+  },
+  "web.admin.customers.actions.role.selfDemote": {
+    "text": "Δεν μπορείτε να υποβιβάσετε τον δικό σας λογαριασμό colonel. Ζητήστε από έναν άλλο colonel να το κάνει ή εκτελέστε `bin/ots customers role demote`.",
+    "source_hash": "3e75d01b"
+  },
+  "web.admin.customers.actions.role.lastColonel": {
+    "text": "Δεν μπορείτε να υποβιβάσετε τον τελευταίο εναπομείναντα colonel — η εγκατάσταση θα έμενε χωρίς διαχειριστή. Προάγετε και επαληθεύστε πρώτα έναν άλλο λογαριασμό.",
+    "source_hash": "9c59c731"
+  },
+  "web.admin.customers.actions.unverify.selfUnverify": {
+    "text": "Δεν μπορείτε να καταργήσετε την επαλήθευση του δικού σας λογαριασμού: απαιτείται επαληθευμένο email για τον ρόλο colonel.",
+    "source_hash": "8ab024fe"
+  },
+  "web.admin.customers.actions.unverify.lastColonel": {
+    "text": "Δεν μπορείτε να καταργήσετε την επαλήθευση του τελευταίου εναπομείναντος colonel — ένας μη επαληθευμένος λογαριασμός δεν μπορεί να έχει τον ρόλο colonel. Προάγετε και επαληθεύστε πρώτα έναν άλλο λογαριασμό.",
+    "source_hash": "fc404616"
+  },
+  "web.admin.customers.detail.diagnostics.organizationContextBlocked": {
+    "text": "Το πλαίσιο οργανισμού είναι αποκλεισμένο ή ελλιπές. Εξετάστε τον χώρο εργασίας στο ευρετήριο και διορθώστε τυχόν αποκλίσεις ευρετηρίου ιδιοκτησίας, συμμετοχής ή email επικοινωνίας πριν θεωρήσετε αυτόν τον λογαριασμό υγιή.",
+    "source_hash": "5c5c89be"
+  },
+  "web.admin.customers.detail.diagnostics.organization": {
+    "text": "Χώρος εργασίας: {id}",
+    "source_hash": "6ee50fe9"
+  },
+  "web.admin.customers.detail.diagnostics.remediation": {
+    "text": "Αποκατάσταση: {action}",
+    "source_hash": "83ddc7d7"
+  },
+  "web.admin.customers.detail.fields.internalId": {
+    "text": "Εσωτερικό ID",
+    "source_hash": "e468bb47"
+  },
+  "web.admin.customers.detail.organizations.open": {
+    "text": "Άνοιγμα",
+    "source_hash": "ed077f3d"
+  },
+  "web.admin.customers.detail.rodauthAdmin.open": {
+    "text": "Άνοιγμα στο Rodauth Admin",
+    "source_hash": "467173c8"
+  },
+  "web.admin.customers.detail.sessions.revokeAll.selfDescription": {
+    "text": "Αυτό σάς αποσυνδέει από κάθε άλλη συσκευή και πρόγραμμα περιήγησης, συμπεριλαμβανομένων των συνεδριών που δεν εμφανίζονται σε αυτήν τη λίστα. Η συνεδρία στην οποία εργάζεστε αυτήν τη στιγμή διατηρείται.",
+    "source_hash": "ae350040"
+  },
+  "web.admin.customers.list.capped": {
+    "text": "Τα αποτελέσματα είναι περιορισμένα: ο αριθμός που εμφανίζεται είναι κατώτατο όριο, όχι το σύνολο. Περιορίστε την αναζήτηση ή το φίλτρο για να δείτε τα πάντα.",
+    "source_hash": "27537844"
+  },
+  "web.admin.customers.list.orphanedAccounts.title": {
+    "text": "Λογαριασμός βάσης δεδομένων ταυτοποίησης χωρίς εγγραφή πελάτη",
+    "source_hash": "82cf7a27"
+  },
+  "web.admin.customers.list.orphanedAccounts.hint": {
+    "text": "Η βάση δεδομένων ταυτοποίησης περιέχει λογαριασμό για αυτήν τη διεύθυνση, αλλά καμία εγγραφή πελάτη δεν αντιστοιχεί σε αυτόν. Το άτομο μπορεί ακόμα να συνδεθεί, όμως το ευρετήριο πελατών δεν έχει τίποτα γι' αυτό. Ανοίξτε τη διεύθυνση για διαγνωστικά.",
+    "source_hash": "0f903f23"
+  },
+  "web.admin.customers.list.orphanedAccounts.diagnose": {
+    "text": "Άνοιγμα διαγνωστικών λογαριασμού",
+    "source_hash": "55b3e826"
+  },
+  "web.admin.customers.list.orphanedAccounts.accountId": {
+    "text": "Λογαριασμός #{id}",
+    "source_hash": "485dee3c"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unverified": {
+    "text": "Μη επαληθευμένος",
+    "source_hash": "33c8e8de"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.verified": {
+    "text": "Επαληθευμένος",
+    "source_hash": "4f783840"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.closed": {
+    "text": "Κλειστός",
+    "source_hash": "c21ead06"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unknown": {
+    "text": "Άγνωστος",
+    "source_hash": "b764cdc0"
   }
 }

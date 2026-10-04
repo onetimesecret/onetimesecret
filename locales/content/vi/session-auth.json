@@ -509,8 +509,8 @@
     "source_hash": "7fbbb7e7"
   },
   "web.login.errors.identity_connect_conflict": {
-    "text": "Không thể kết nối danh tính này. Kết nối có thể đã được bắt đầu trên sai tên miền, hoặc phiên của bạn đã hết hạn. Vui lòng đăng nhập lại, sau đó kết nối nó từ cài đặt tài khoản của bạn.",
-    "source_hash": "4238bbf2"
+    "text": "Không thể kết nối danh tính này. Danh tính có thể đã thuộc về một tài khoản khác.",
+    "source_hash": "d8b71cf8"
   },
   "web.login.errors.org_join_failed": {
     "text": "Chúng tôi không thể hoàn tất việc thêm bạn vào tổ chức của bạn. Vui lòng liên hệ quản trị viên của bạn.",
@@ -527,5 +527,25 @@
   "web.login.errors.sso_cancelled": {
     "text": "Việc đăng nhập đã bị hủy. Bạn có thể thử lại bất cứ khi nào sẵn sàng.",
     "source_hash": "b5f3d3ec"
+  },
+  "web.login.errors.sso_issuer_mismatch": {
+    "text": "Đăng nhập bằng nhà cung cấp này đang bị cấu hình sai. Vui lòng liên hệ quản trị viên của bạn.",
+    "source_hash": "44df5918"
+  },
+  "web.login.errors.sso_config_unusable": {
+    "text": "Đăng nhập một lần cho tên miền này đã được cấu hình nhưng hiện không thể sử dụng. Hãy liên hệ quản trị viên của tổ chức bạn.",
+    "source_hash": "f704b391"
+  },
+  "web.login.errors.sso_domain_unverified": {
+    "text": "Đăng nhập một lần cho tên miền này chưa hoạt động vì tên miền chưa hoàn tất xác minh. Vui lòng liên hệ quản trị viên của bạn.",
+    "source_hash": "bd981480"
+  },
+  "web.login.errors.tenant_sso_link_unavailable": {
+    "text": "Danh tính này chưa được kết nối với tài khoản nào trên tên miền này. Nếu bạn có thể đăng nhập trên tên miền này bằng một tài khoản thuộc tổ chức này, hãy kết nối nó từ Danh tính đã kết nối. Nếu không, hãy nhờ chủ sở hữu tổ chức mời danh tính SSO này, hoặc liên hệ bộ phận hỗ trợ.",
+    "source_hash": "66e7376c"
+  },
+  "web.login.errors.identity_connect_wrong_domain": {
+    "text": "Không thể kết nối danh tính này trên tên miền này. Hãy bắt đầu kết nối từ trang web mà bạn đang đăng nhập; trên tên miền của một tổ chức, tài khoản của bạn phải thuộc tổ chức đó từ trước.",
+    "source_hash": "d967c761"
   }
 }

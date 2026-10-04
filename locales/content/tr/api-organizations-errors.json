@@ -134,5 +134,25 @@
   "api.organizations.members.errors.no_permission_to_remove": {
     "text": "Üyeleri kaldırma izniniz yok",
     "source_hash": "b0ac7287"
+  },
+  "api.organizations.errors.delete_has_domains": {
+    "text": "Bu kuruluşu silmeden önce özel alan adlarını kaldırın: %{domains}",
+    "source_hash": "040a401e"
+  },
+  "api.organizations.errors.delete_drifted_domains_count": {
+    "text": "%{count} alan adı kaydı hâlâ bu kuruluşa başvuruyor ancak artık kuruluşta listelenmiyor. Bu kuruluşu silmeden önce bunları kaldırmak için lütfen destek ekibiyle iletişime geçin.",
+    "source_hash": "f6e71a9a"
+  },
+  "api.organizations.errors.delete_is_default": {
+    "text": "Varsayılan çalışma alanınız silinemez. Kaldırılması gerekiyorsa destek ekibiyle iletişime geçin.",
+    "source_hash": "bc2eaed5"
+  },
+  "api.organizations.errors.delete_active_subscription": {
+    "text": "Silmeden önce bu kuruluşun aboneliğini iptal edin.",
+    "source_hash": "f0c54eca"
+  },
+  "api.organizations.errors.delete_last_org": {
+    "text": "Bu sizin tek kuruluşunuz. Bunu silmeden önce başka bir kuruluş oluşturun.",
+    "source_hash": "7608a1d6"
   }
 }

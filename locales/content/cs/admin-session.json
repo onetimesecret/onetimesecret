@@ -1,0 +1,10 @@
+{
+  "web.admin.session.expired": {
+    "text": "Tvoje administrátorská relace vypršela. Pro pokračování se znovu přihlas.",
+    "source_hash": "e970de7c"
+  },
+  "web.admin.session.signIn": {
+    "text": "Přihlásit se",
+    "source_hash": "bfd402b2"
+  }
+}

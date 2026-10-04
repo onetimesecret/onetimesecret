@@ -48,12 +48,12 @@
     "source_hash": "acaede35"
   },
   "web.admin.domains.addDomain.strategy.caddy_on_demand": {
-    "text": "Caddy à la demande — certificats émis automatiquement à la première requête.",
-    "source_hash": "deb90ae6"
+    "text": "Caddy à la demande — vérification de la propriété DNS (enregistrement TXT) ; certificats émis automatiquement une fois la vérification effectuée.",
+    "source_hash": "1c926efa"
   },
   "web.admin.domains.addDomain.strategy.caddy": {
-    "text": "Caddy — certificats émis automatiquement à la première requête.",
-    "source_hash": "a0f3c2dc"
+    "text": "Caddy — vérification de la propriété DNS (enregistrement TXT) ; certificats émis automatiquement une fois la vérification effectuée.",
+    "source_hash": "5774ff90"
   },
   "web.admin.domains.addDomain.strategy.unknown": {
     "text": "Stratégie de validation applicable à l'ensemble du déploiement.",
@@ -842,5 +842,81 @@
   "web.admin.domains.tls.none": {
     "text": "Hors service",
     "source_hash": "da8a5ab9"
+  },
+  "web.admin.domains.configs.edit.originsHint": {
+    "text": "Une origine par ligne, schéma compris, par exemple https://vault.example.com. Une origine située sur le domaine d'une autre organisation est refusée.",
+    "source_hash": "4a4e1d33"
+  },
+  "web.admin.domains.configs.fields.related_origins": {
+    "text": "Origines associées pour les clés d'accès",
+    "source_hash": "e6160714"
+  },
+  "web.admin.domains.dns.cnameStepInstall": {
+    "text": "2. Ajoutez un enregistrement CNAME pointant le sous-domaine vers cette installation.",
+    "source_hash": "b8a329f9"
+  },
+  "web.admin.domains.dns.aliasStepInstall": {
+    "text": "2. Ajoutez un enregistrement ALIAS ou ANAME pointant l'apex vers cette installation.",
+    "source_hash": "9a61ed66"
+  },
+  "web.admin.domains.dns.apexNote": {
+    "text": "Un domaine apex ne peut pas contenir d'enregistrement CNAME. Si le fournisseur DNS ne propose pas d'enregistrement ALIAS ou ANAME, un enregistrement A vers l'adresse IP de ce serveur remplit la même fonction.",
+    "source_hash": "f69e3032"
+  },
+  "web.admin.domains.fields.verifiedByOverride": {
+    "text": "Oui (remplacement par l'opérateur)",
+    "source_hash": "a1a8644f"
+  },
+  "web.admin.domains.list.capped": {
+    "text": "Les résultats sont limités : le nombre affiché est un minimum, pas le total. Affinez la recherche ou le filtre pour tout voir.",
+    "source_hash": "27537844"
+  },
+  "web.admin.domains.override.button": {
+    "text": "Remplacer l'état",
+    "source_hash": "c683774c"
+  },
+  "web.admin.domains.override.title": {
+    "text": "Remplacement de l'état de vérification",
+    "source_hash": "66dbebb2"
+  },
+  "web.admin.domains.override.description": {
+    "text": "Définissez manuellement les indicateurs « vérifié » et « résolution » de ce domaine. À utiliser avec prudence.",
+    "source_hash": "bc3eb719"
+  },
+  "web.admin.domains.override.verified": {
+    "text": "Vérifié",
+    "source_hash": "4f783840"
+  },
+  "web.admin.domains.override.resolving": {
+    "text": "Résolution",
+    "source_hash": "3287a034"
+  },
+  "web.admin.domains.override.apply": {
+    "text": "Appliquer le remplacement",
+    "source_hash": "e2d1472a"
+  },
+  "web.admin.domains.override.cancel": {
+    "text": "Annuler",
+    "source_hash": "19766ed6"
+  },
+  "web.admin.domains.override.success": {
+    "text": "État du domaine remplacé.",
+    "source_hash": "42104cd0"
+  },
+  "web.admin.domains.override.noChange": {
+    "text": "Aucune modification à appliquer.",
+    "source_hash": "07632d50"
+  },
+  "web.admin.domains.verify.success.indeterminate": {
+    "text": "Le vérificateur DNS n'a renvoyé aucun résultat pour {domain}. Son état de vérification n'a pas été modifié.",
+    "source_hash": "9c5ab974"
+  },
+  "web.admin.domains.verify.success.overrideHeld": {
+    "text": "La vérification TXT a échoué pour {domain}, mais il reste vérifié en raison d'un remplacement par l'opérateur.",
+    "source_hash": "e754aac8"
+  },
+  "web.admin.domains.verify.success.confirmationExpired": {
+    "text": "La vérification DNS de {domain} ne renvoie aucun résultat depuis plus de 7 jours. Il n'est plus vérifié.",
+    "source_hash": "a6901cb5"
   }
 }

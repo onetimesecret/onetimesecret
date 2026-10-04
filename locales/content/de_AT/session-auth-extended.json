@@ -957,5 +957,53 @@
   "web.auth.webauthn.emailRequired": {
     "text": "Geben Sie Ihre E-Mail-Adresse ein, um sich mit einem Passkey anzumelden",
     "source_hash": "7f07647f"
+  },
+  "web.auth.login.verification_unavailable": {
+    "text": "Ihre Anmeldung war erfolgreich, aber wir konnten Ihre Sitzung nicht bestätigen. Bitte versuchen Sie es gleich noch einmal.",
+    "source_hash": "9a19dfc9"
+  },
+  "web.auth.mfa.verification_unavailable": {
+    "text": "Ihr Passwort wurde akzeptiert, aber wir konnten die Zwei-Faktor-Verifizierung nicht starten. Bitte versuchen Sie es gleich noch einmal.",
+    "source_hash": "5fd5e240"
+  },
+  "web.auth.session.ended": {
+    "text": "Ihre Sitzung ist beendet. Bitte melden Sie sich erneut an.",
+    "source_hash": "673e9822"
+  },
+  "web.auth.session.replaced": {
+    "text": "Ihre Anmeldung wurde in einem anderen Tab geändert, daher wurde diese Seite neu geladen.",
+    "source_hash": "3767d43b"
+  },
+  "web.auth.session.stale_session_title": {
+    "text": "Diese Seite ist veraltet",
+    "source_hash": "0293e093"
+  },
+  "web.auth.session.stale_session_notice": {
+    "text": "Ihre Sitzung hat sich geändert, seit diese Seite geladen wurde. Kopieren Sie alles, was Sie noch nicht gespeichert haben, und laden Sie die Seite dann neu, um fortzufahren.",
+    "source_hash": "c62e236c"
+  },
+  "web.auth.session.reload_now": {
+    "text": "Seite neu laden",
+    "source_hash": "437d0d63"
+  },
+  "web.auth.session.verification_unavailable_title": {
+    "text": "Wir können Ihre Sitzung derzeit nicht überprüfen",
+    "source_hash": "2130dda1"
+  },
+  "web.auth.session.verification_unavailable_body": {
+    "text": "Sie wurden nicht abgemeldet. Wir konnten den Server nicht erreichen, um Ihre Sitzung zu bestätigen, daher ist diese Seite ausgeblendet, bis dies möglich ist. Wir versuchen es weiter.",
+    "source_hash": "bb230c2c"
+  },
+  "web.auth.session.retry": {
+    "text": "Erneut versuchen",
+    "source_hash": "d8b8392e"
+  },
+  "web.auth.session.retrying": {
+    "text": "Wird geprüft…",
+    "source_hash": "ec963ffc"
+  },
+  "web.auth.session.retry_failed": {
+    "text": "Weiterhin nicht verfügbar. Bitte versuchen Sie es gleich noch einmal.",
+    "source_hash": "b81c022c"
   }
 }

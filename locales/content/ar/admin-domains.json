@@ -48,12 +48,12 @@
     "source_hash": "acaede35"
   },
   "web.admin.domains.addDomain.strategy.caddy_on_demand": {
-    "text": "Caddy عند الطلب — تُصدَر الشهادات تلقائياً عند أول طلب.",
-    "source_hash": "deb90ae6"
+    "text": "Caddy عند الطلب — التحقق من ملكية DNS (سجل TXT)؛ تُصدَر الشهادات تلقائياً بعد التحقق.",
+    "source_hash": "1c926efa"
   },
   "web.admin.domains.addDomain.strategy.caddy": {
-    "text": "Caddy — تُصدَر الشهادات تلقائياً عند أول طلب.",
-    "source_hash": "a0f3c2dc"
+    "text": "Caddy — التحقق من ملكية DNS (سجل TXT)؛ تُصدَر الشهادات تلقائياً بعد التحقق.",
+    "source_hash": "5774ff90"
   },
   "web.admin.domains.addDomain.strategy.unknown": {
     "text": "استراتيجية تحقق على مستوى النشر.",
@@ -842,5 +842,81 @@
   "web.admin.domains.tls.none": {
     "text": "لا يخدم",
     "source_hash": "da8a5ab9"
+  },
+  "web.admin.domains.configs.edit.originsHint": {
+    "text": "أصل واحد في كل سطر، مع تضمين المخطط، على سبيل المثال https://vault.example.com. يُرفض أي أصل يقع على نطاق مؤسسة أخرى.",
+    "source_hash": "4a4e1d33"
+  },
+  "web.admin.domains.configs.fields.related_origins": {
+    "text": "أصول مفاتيح المرور ذات الصلة",
+    "source_hash": "e6160714"
+  },
+  "web.admin.domains.dns.cnameStepInstall": {
+    "text": "2. أضف سجل CNAME يوجّه النطاق الفرعي إلى هذا التثبيت.",
+    "source_hash": "b8a329f9"
+  },
+  "web.admin.domains.dns.aliasStepInstall": {
+    "text": "2. أضف سجل ALIAS أو ANAME يوجّه النطاق الجذر إلى هذا التثبيت.",
+    "source_hash": "9a61ed66"
+  },
+  "web.admin.domains.dns.apexNote": {
+    "text": "لا يمكن للنطاق الجذر أن يحتوي على سجل CNAME. إذا لم يوفّر موفّر DNS سجل ALIAS أو ANAME، فإن سجل A يشير إلى عنوان IP لهذا الخادم يؤدي الغرض نفسه.",
+    "source_hash": "f69e3032"
+  },
+  "web.admin.domains.fields.verifiedByOverride": {
+    "text": "نعم (تجاوز من المشغل)",
+    "source_hash": "a1a8644f"
+  },
+  "web.admin.domains.list.capped": {
+    "text": "النتائج محدودة: العدد المعروض حد أدنى وليس العدد الإجمالي. قم بتضييق البحث أو عامل التصفية لرؤية كل النتائج.",
+    "source_hash": "27537844"
+  },
+  "web.admin.domains.override.button": {
+    "text": "تجاوز الحالة",
+    "source_hash": "c683774c"
+  },
+  "web.admin.domains.override.title": {
+    "text": "تجاوز حالة التحقق",
+    "source_hash": "66dbebb2"
+  },
+  "web.admin.domains.override.description": {
+    "text": "عيّن يدوياً علامتَي التحقق والحل لهذا النطاق. استخدم ذلك بحذر.",
+    "source_hash": "bc3eb719"
+  },
+  "web.admin.domains.override.verified": {
+    "text": "تم التحقق",
+    "source_hash": "4f783840"
+  },
+  "web.admin.domains.override.resolving": {
+    "text": "جارٍ الحل",
+    "source_hash": "3287a034"
+  },
+  "web.admin.domains.override.apply": {
+    "text": "تطبيق التجاوز",
+    "source_hash": "e2d1472a"
+  },
+  "web.admin.domains.override.cancel": {
+    "text": "إلغاء",
+    "source_hash": "19766ed6"
+  },
+  "web.admin.domains.override.success": {
+    "text": "تم تجاوز حالة النطاق.",
+    "source_hash": "42104cd0"
+  },
+  "web.admin.domains.override.noChange": {
+    "text": "لا توجد تغييرات لتطبيقها.",
+    "source_hash": "07632d50"
+  },
+  "web.admin.domains.verify.success.indeterminate": {
+    "text": "لم يُرجع مدقق DNS أي نتيجة لـ {domain}. وبقيت حالة التحقق الخاصة به دون تغيير.",
+    "source_hash": "9c5ab974"
+  },
+  "web.admin.domains.verify.success.overrideHeld": {
+    "text": "فشل فحص TXT لـ {domain}، لكنه يبقى مُتحقَّقاً منه بسبب تجاوز من المشغل.",
+    "source_hash": "e754aac8"
+  },
+  "web.admin.domains.verify.success.confirmationExpired": {
+    "text": "لم يُرجع فحص DNS لـ {domain} أي نتيجة لأكثر من 7 أيام. لم يعد مُتحقَّقاً منه.",
+    "source_hash": "a6901cb5"
   }
 }

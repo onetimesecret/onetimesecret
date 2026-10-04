@@ -62,5 +62,29 @@
   "web.admin.kit.revealEmail.copy": {
     "text": "نسخ عنوان البريد الإلكتروني",
     "source_hash": "61b94846"
+  },
+  "web.admin.errors.rateLimited": {
+    "text": "يمكنك المحاولة مرة أخرى بعد نحو {minutes} دقيقة.",
+    "source_hash": "27f2d054"
+  },
+  "web.admin.errors.rateLimitedRecovery": {
+    "text": "إذا كان عليك التصرف قبل ذلك، فامسح محدِّد المعدل باستخدام POST /api/colonel/ratelimit/reset لحسابك الخاص، أو شغّل `bin/ots ratelimit keys <kind> <extid>`.",
+    "source_hash": "b77e1388"
+  },
+  "web.admin.kit.confirmDialog.reasonLabel": {
+    "text": "السبب (اختياري)",
+    "source_hash": "0f7d4664"
+  },
+  "web.admin.kit.confirmDialog.reasonPlaceholder": {
+    "text": "لماذا تقوم بذلك؟",
+    "source_hash": "ef83fe82"
+  },
+  "web.admin.kit.confirmDialog.reasonHint": {
+    "text": "يُسجَّل في سجل تدقيق الإدارة مع هذا الإجراء.",
+    "source_hash": "23779076"
+  },
+  "web.admin.kit.filterBar.searchSubmit": {
+    "text": "بحث",
+    "source_hash": "49c266ba"
   }
 }

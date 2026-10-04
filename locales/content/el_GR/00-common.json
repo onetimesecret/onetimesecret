@@ -1543,5 +1543,17 @@
   "web.TITLES.connected_identities": {
     "text": "Συνδεδεμένες Ταυτότητες",
     "source_hash": "e132c4d9"
+  },
+  "web.COMMON.field": {
+    "text": "Πεδίο",
+    "source_hash": "f45fc1df"
+  },
+  "web.COMMON.unknown": {
+    "text": "Άγνωστο",
+    "source_hash": "b764cdc0"
+  },
+  "web.STATUS.pending_ssl": {
+    "text": "Εκκρεμεί πιστοποιητικό",
+    "source_hash": "dd34f305"
   }
 }

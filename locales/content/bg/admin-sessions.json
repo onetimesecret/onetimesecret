@@ -176,8 +176,8 @@
     "source_hash": "0c6605c1"
   },
   "web.admin.sessions.revoke.confirmDescription": {
-    "text": "Това незабавно отписва потребителя, като изтрива сесия {id}. Въведете ИД на сесията за потвърждение.",
-    "source_hash": "9e08b1b8"
+    "text": "Това незабавно отписва потребителя, като отменя сесия {id}. Въведете {token} за потвърждение.",
+    "source_hash": "80578692"
   },
   "web.admin.sessions.revoke.success": {
     "text": "Сесията е отменена",
@@ -188,12 +188,12 @@
     "source_hash": "34cb67a4"
   },
   "web.admin.sessions.scan.capped": {
-    "text": "Сканирането е ограничено до първите {scanned} ключа — удостоверените сесии извън този прозорец не са изброени. Проверете конкретна сесия по ИД, за да я достигнете.",
-    "source_hash": "fa418b4e"
+    "text": "Сканирането е ограничено до първите {scanned} ключа — удостоверените сесии извън този прозорец не са изброени. Стеснете търсенето, за да ги достигнете.",
+    "source_hash": "7a8d6fd5"
   },
   "web.admin.sessions.search.placeholder": {
-    "text": "Търсене по имейл или външен ИД",
-    "source_hash": "f2dc5c06"
+    "text": "Търсене по имейл, външен ИД или манипулатор на сесията",
+    "source_hash": "4894dec4"
   },
   "web.admin.sessions.sections.session": {
     "text": "Сесия",
@@ -210,5 +210,45 @@
   "web.admin.sessions.status.anonymous": {
     "text": "Анонимен",
     "source_hash": "e7a8aa2d"
+  },
+  "web.admin.sessions.authority.title": {
+    "text": "Не е източникът на истина за сесиите в режим на пълно удостоверяване",
+    "source_hash": "796fb07f"
+  },
+  "web.admin.sessions.authority.description": {
+    "text": "Този списък е хранилището за сесии в Redis. Когато режимът на удостоверяване е зададен на full, авторитетното състояние на сесиите се намира в базата данни с акаунти на Rodauth, която тази конзола не чете. Акаунти, влезли чрез Rodauth, може да не се показват тук, а отменянето на сесия тук не прекратява сесия в Rodauth.",
+    "source_hash": "77bc4904"
+  },
+  "web.admin.sessions.authority.descriptionRevokeAll": {
+    "text": "Този списък е хранилището за сесии в Redis. Когато режимът на удостоверяване е зададен на full, авторитетното състояние на сесиите се намира в базата данни с акаунти на Rodauth, която тази конзола не чете. Акаунти, влезли чрез Rodauth, може да не се показват тук, а отменянето на отделна сесия тук не прекратява съответната ѝ сесия в Rodauth. „Отмяна на всички“ прекратява и сесиите на акаунта в Rodauth.",
+    "source_hash": "f964663d"
+  },
+  "web.admin.sessions.authority.openAdmin": {
+    "text": "Отваряне на Rodauth Admin",
+    "source_hash": "ce523836"
+  },
+  "web.admin.sessions.authority.notConfigured": {
+    "text": "Задайте RODAUTH_ADMIN_URL, за да свържете оттук към Rodauth Admin.",
+    "source_hash": "c070dbfb"
+  },
+  "web.admin.sessions.columns.sessionHandle": {
+    "text": "Манипулатор на сесията",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.errors.scanCapped": {
+    "text": "Тази сесия не е намерена в извадката от пространството с ключове. Отворете я от реда ѝ в списъка, за да може собственикът да бъде използван за търсенето ѝ.",
+    "source_hash": "67b73f7f"
+  },
+  "web.admin.sessions.fields.sessionHandle": {
+    "text": "Манипулатор на сесията",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.revoke.ownSession": {
+    "text": "Това е вашата собствена сесия. Отменянето ѝ ще ви отпише — вместо това използвайте „Изход“.",
+    "source_hash": "a6762292"
+  },
+  "web.admin.sessions.rodauthAdmin.open": {
+    "text": "Отваряне в Rodauth Admin",
+    "source_hash": "467173c8"
   }
 }

@@ -954,5 +954,53 @@
   "web.auth.webauthn.emailRequired": {
     "text": "请输入您的邮箱地址以使用通行密钥登录",
     "source_hash": "7f07647f"
+  },
+  "web.auth.login.verification_unavailable": {
+    "text": "您已成功登录，但我们无法确认您的会话。请稍后重试。",
+    "source_hash": "9a19dfc9"
+  },
+  "web.auth.mfa.verification_unavailable": {
+    "text": "您的密码已通过验证，但我们无法启动双因素认证。请稍后重试。",
+    "source_hash": "5fd5e240"
+  },
+  "web.auth.session.ended": {
+    "text": "您的会话已结束。请重新登录。",
+    "source_hash": "673e9822"
+  },
+  "web.auth.session.replaced": {
+    "text": "您在另一个标签页中的登录状态已更改，因此此页面已重新加载。",
+    "source_hash": "3767d43b"
+  },
+  "web.auth.session.stale_session_title": {
+    "text": "此页面已过时",
+    "source_hash": "0293e093"
+  },
+  "web.auth.session.stale_session_notice": {
+    "text": "自此页面加载以来，您的会话已发生变化。请先复制所有尚未保存的内容，然后重新加载页面以继续。",
+    "source_hash": "c62e236c"
+  },
+  "web.auth.session.reload_now": {
+    "text": "重新加载页面",
+    "source_hash": "437d0d63"
+  },
+  "web.auth.session.verification_unavailable_title": {
+    "text": "我们目前无法验证您的会话",
+    "source_hash": "2130dda1"
+  },
+  "web.auth.session.verification_unavailable_body": {
+    "text": "您并未退出登录。我们无法连接服务器来确认您的会话，因此在确认之前此页面将保持隐藏。我们会继续尝试。",
+    "source_hash": "bb230c2c"
+  },
+  "web.auth.session.retry": {
+    "text": "重试",
+    "source_hash": "d8b8392e"
+  },
+  "web.auth.session.retrying": {
+    "text": "正在检查…",
+    "source_hash": "ec963ffc"
+  },
+  "web.auth.session.retry_failed": {
+    "text": "仍然不可用。请稍后重试。",
+    "source_hash": "b81c022c"
   }
 }

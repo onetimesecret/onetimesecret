@@ -48,12 +48,12 @@
     "source_hash": "acaede35"
   },
   "web.admin.domains.addDomain.strategy.caddy_on_demand": {
-    "text": "Caddy laŭpete — atestiloj eldonataj aŭtomate ĉe la unua peto.",
-    "source_hash": "deb90ae6"
+    "text": "Caddy laŭpete — kontrolo de DNS-posedo (TXT-registro); atestiloj eldonataj aŭtomate post la kontrolo.",
+    "source_hash": "1c926efa"
   },
   "web.admin.domains.addDomain.strategy.caddy": {
-    "text": "Caddy — atestiloj eldonataj aŭtomate ĉe la unua peto.",
-    "source_hash": "a0f3c2dc"
+    "text": "Caddy — kontrolo de DNS-posedo (TXT-registro); atestiloj eldonataj aŭtomate post la kontrolo.",
+    "source_hash": "5774ff90"
   },
   "web.admin.domains.addDomain.strategy.unknown": {
     "text": "Tut-disponiga validig-strategio.",
@@ -842,5 +842,81 @@
   "web.admin.domains.tls.none": {
     "text": "Ne servanta",
     "source_hash": "da8a5ab9"
+  },
+  "web.admin.domains.configs.edit.originsHint": {
+    "text": "Unu origino po linio, inkluzive de la skemo, ekzemple https://vault.example.com. Origino sur domajno de alia organizo estas rifuzata.",
+    "source_hash": "4a4e1d33"
+  },
+  "web.admin.domains.configs.fields.related_origins": {
+    "text": "Rilataj pasŝlosilaj originoj",
+    "source_hash": "e6160714"
+  },
+  "web.admin.domains.dns.cnameStepInstall": {
+    "text": "2. Aldonu CNAME-registron direktantan la subdomajnon al ĉi tiu instalaĵo.",
+    "source_hash": "b8a329f9"
+  },
+  "web.admin.domains.dns.aliasStepInstall": {
+    "text": "2. Aldonu ALIAS- aŭ ANAME-registron direktantan la apekson al ĉi tiu instalaĵo.",
+    "source_hash": "9a61ed66"
+  },
+  "web.admin.domains.dns.apexNote": {
+    "text": "Apeksa domajno ne povas havi CNAME-registron. Se la DNS-provizanto ne havas ALIAS- aŭ ANAME-registron, A-registro al la IP-adreso de ĉi tiu servilo faras la saman laboron.",
+    "source_hash": "f69e3032"
+  },
+  "web.admin.domains.fields.verifiedByOverride": {
+    "text": "Jes (superrego de operatoro)",
+    "source_hash": "a1a8644f"
+  },
+  "web.admin.domains.list.capped": {
+    "text": "Rezultoj estas limigitaj: la montrata nombro estas minimumo, ne la sumo. Malvastigu la serĉon aŭ filtrilon por vidi ĉion.",
+    "source_hash": "27537844"
+  },
+  "web.admin.domains.override.button": {
+    "text": "Superregi staton",
+    "source_hash": "c683774c"
+  },
+  "web.admin.domains.override.title": {
+    "text": "Superregi kontrolan staton",
+    "source_hash": "66dbebb2"
+  },
+  "web.admin.domains.override.description": {
+    "text": "Mane agordi la flagojn de kontrolo kaj solvado por ĉi tiu domajno. Uzu singarde.",
+    "source_hash": "bc3eb719"
+  },
+  "web.admin.domains.override.verified": {
+    "text": "Kontrolita",
+    "source_hash": "4f783840"
+  },
+  "web.admin.domains.override.resolving": {
+    "text": "Solvanta",
+    "source_hash": "3287a034"
+  },
+  "web.admin.domains.override.apply": {
+    "text": "Apliki superregon",
+    "source_hash": "e2d1472a"
+  },
+  "web.admin.domains.override.cancel": {
+    "text": "Nuligi",
+    "source_hash": "19766ed6"
+  },
+  "web.admin.domains.override.success": {
+    "text": "Domajna stato superregita.",
+    "source_hash": "42104cd0"
+  },
+  "web.admin.domains.override.noChange": {
+    "text": "Neniuj ŝanĝoj por apliki.",
+    "source_hash": "07632d50"
+  },
+  "web.admin.domains.verify.success.indeterminate": {
+    "text": "La DNS-kontrolilo resendis neniun rezulton por {domain}. Ĝia kontrola stato restis neŝanĝita.",
+    "source_hash": "9c5ab974"
+  },
+  "web.admin.domains.verify.success.overrideHeld": {
+    "text": "La TXT-kontrolo malsukcesis por {domain}, sed ĝi restas kontrolita pro superrego de operatoro.",
+    "source_hash": "e754aac8"
+  },
+  "web.admin.domains.verify.success.confirmationExpired": {
+    "text": "La DNS-kontrolo por {domain} resendis neniun rezulton dum pli ol 7 tagoj. Ĝi ne plu estas kontrolita.",
+    "source_hash": "a6901cb5"
   }
 }

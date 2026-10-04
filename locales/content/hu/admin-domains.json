@@ -48,12 +48,12 @@
     "source_hash": "acaede35"
   },
   "web.admin.domains.addDomain.strategy.caddy_on_demand": {
-    "text": "Caddy igény szerint — a tanúsítványok automatikusan kiállításra kerülnek az első kérésnél.",
-    "source_hash": "deb90ae6"
+    "text": "Caddy igény szerint — DNS-tulajdonjog-ellenőrzés (TXT-rekord); a tanúsítványok az ellenőrzés után automatikusan kiállításra kerülnek.",
+    "source_hash": "1c926efa"
   },
   "web.admin.domains.addDomain.strategy.caddy": {
-    "text": "Caddy — a tanúsítványok automatikusan kiállításra kerülnek az első kérésnél.",
-    "source_hash": "a0f3c2dc"
+    "text": "Caddy — DNS-tulajdonjog-ellenőrzés (TXT-rekord); a tanúsítványok az ellenőrzés után automatikusan kiállításra kerülnek.",
+    "source_hash": "5774ff90"
   },
   "web.admin.domains.addDomain.strategy.unknown": {
     "text": "Telepítésszintű ellenőrzési stratégia.",
@@ -842,5 +842,81 @@
   "web.admin.domains.tls.none": {
     "text": "Nem kiszolgál",
     "source_hash": "da8a5ab9"
+  },
+  "web.admin.domains.configs.edit.originsHint": {
+    "text": "Soronként egy origin, sémával együtt, például https://vault.example.com. Egy másik szervezet doménjén lévő origin elutasításra kerül.",
+    "source_hash": "4a4e1d33"
+  },
+  "web.admin.domains.configs.fields.related_origins": {
+    "text": "Hozzáférési kulcsok kapcsolódó originjei",
+    "source_hash": "e6160714"
+  },
+  "web.admin.domains.dns.cnameStepInstall": {
+    "text": "2. Adjon hozzá egy CNAME-rekordot, amely az aldomént erre a telepítésre irányítja.",
+    "source_hash": "b8a329f9"
+  },
+  "web.admin.domains.dns.aliasStepInstall": {
+    "text": "2. Adjon hozzá egy ALIAS- vagy ANAME-rekordot, amely az apex domént erre a telepítésre irányítja.",
+    "source_hash": "9a61ed66"
+  },
+  "web.admin.domains.dns.apexNote": {
+    "text": "Egy apex domén nem tartalmazhat CNAME-rekordot. Ha a DNS-szolgáltató nem kínál ALIAS- vagy ANAME-rekordot, egy, a szerver IP-címére mutató A-rekord ugyanezt a célt szolgálja.",
+    "source_hash": "f69e3032"
+  },
+  "web.admin.domains.fields.verifiedByOverride": {
+    "text": "Igen (üzemeltetői felülbírálás)",
+    "source_hash": "a1a8644f"
+  },
+  "web.admin.domains.list.capped": {
+    "text": "A találatok korlátozottak: a megjelenített szám alsó korlát, nem a teljes összeg. Az összes találat megtekintéséhez szűkítse a keresést vagy a szűrést.",
+    "source_hash": "27537844"
+  },
+  "web.admin.domains.override.button": {
+    "text": "Állapot felülbírálása",
+    "source_hash": "c683774c"
+  },
+  "web.admin.domains.override.title": {
+    "text": "Ellenőrzési állapot felülbírálása",
+    "source_hash": "66dbebb2"
+  },
+  "web.admin.domains.override.description": {
+    "text": "Kézzel állítsa be a domén ellenőrzött és feloldási jelzőit. Körültekintően használja.",
+    "source_hash": "bc3eb719"
+  },
+  "web.admin.domains.override.verified": {
+    "text": "Ellenőrizve",
+    "source_hash": "4f783840"
+  },
+  "web.admin.domains.override.resolving": {
+    "text": "Feloldás folyamatban",
+    "source_hash": "3287a034"
+  },
+  "web.admin.domains.override.apply": {
+    "text": "Felülbírálás alkalmazása",
+    "source_hash": "e2d1472a"
+  },
+  "web.admin.domains.override.cancel": {
+    "text": "Mégse",
+    "source_hash": "19766ed6"
+  },
+  "web.admin.domains.override.success": {
+    "text": "A domén állapota felülbírálva.",
+    "source_hash": "42104cd0"
+  },
+  "web.admin.domains.override.noChange": {
+    "text": "Nincs alkalmazandó módosítás.",
+    "source_hash": "07632d50"
+  },
+  "web.admin.domains.verify.success.indeterminate": {
+    "text": "A DNS-ellenőrző nem adott vissza eredményt a(z) {domain} doménre. Az ellenőrzési állapota változatlan maradt.",
+    "source_hash": "9c5ab974"
+  },
+  "web.admin.domains.verify.success.overrideHeld": {
+    "text": "A TXT-ellenőrzés sikertelen volt a(z) {domain} doménnél, de üzemeltetői felülbírálás miatt továbbra is ellenőrzött marad.",
+    "source_hash": "e754aac8"
+  },
+  "web.admin.domains.verify.success.confirmationExpired": {
+    "text": "A(z) {domain} DNS-ellenőrzése több mint 7 napja nem ad vissza eredményt. A domén már nem ellenőrzött.",
+    "source_hash": "a6901cb5"
   }
 }

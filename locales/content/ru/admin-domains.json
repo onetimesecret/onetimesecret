@@ -48,12 +48,12 @@
     "source_hash": "acaede35"
   },
   "web.admin.domains.addDomain.strategy.caddy_on_demand": {
-    "text": "Caddy on-demand — сертификаты выпускаются автоматически при первом запросе.",
-    "source_hash": "deb90ae6"
+    "text": "Caddy on-demand — проверка владения через DNS (TXT-запись); сертификаты выпускаются автоматически после подтверждения.",
+    "source_hash": "1c926efa"
   },
   "web.admin.domains.addDomain.strategy.caddy": {
-    "text": "Caddy — сертификаты выпускаются автоматически при первом запросе.",
-    "source_hash": "a0f3c2dc"
+    "text": "Caddy — проверка владения через DNS (TXT-запись); сертификаты выпускаются автоматически после подтверждения.",
+    "source_hash": "5774ff90"
   },
   "web.admin.domains.addDomain.strategy.unknown": {
     "text": "Стратегия проверки для всего развёртывания.",
@@ -842,5 +842,81 @@
   "web.admin.domains.tls.none": {
     "text": "Не обслуживается",
     "source_hash": "da8a5ab9"
+  },
+  "web.admin.domains.configs.edit.originsHint": {
+    "text": "По одному источнику в строке, включая схему, например https://vault.example.com. Источник на домене другой организации отклоняется.",
+    "source_hash": "4a4e1d33"
+  },
+  "web.admin.domains.configs.fields.related_origins": {
+    "text": "Связанные источники ключей доступа",
+    "source_hash": "e6160714"
+  },
+  "web.admin.domains.dns.cnameStepInstall": {
+    "text": "2. Добавьте CNAME-запись, указывающую поддомен на эту установку.",
+    "source_hash": "b8a329f9"
+  },
+  "web.admin.domains.dns.aliasStepInstall": {
+    "text": "2. Добавьте запись ALIAS или ANAME, указывающую апекс на эту установку.",
+    "source_hash": "9a61ed66"
+  },
+  "web.admin.domains.dns.apexNote": {
+    "text": "Апекс-домен не может иметь CNAME-запись. Если у DNS-провайдера нет записи ALIAS или ANAME, ту же задачу выполняет A-запись, указывающая на IP-адрес этого сервера.",
+    "source_hash": "f69e3032"
+  },
+  "web.admin.domains.fields.verifiedByOverride": {
+    "text": "Да (переопределение оператором)",
+    "source_hash": "a1a8644f"
+  },
+  "web.admin.domains.list.capped": {
+    "text": "Результаты ограничены: показанное количество — это минимум, а не итог. Уточните поиск или фильтр, чтобы увидеть всё.",
+    "source_hash": "27537844"
+  },
+  "web.admin.domains.override.button": {
+    "text": "Переопределить статус",
+    "source_hash": "c683774c"
+  },
+  "web.admin.domains.override.title": {
+    "text": "Переопределить статус подтверждения",
+    "source_hash": "66dbebb2"
+  },
+  "web.admin.domains.override.description": {
+    "text": "Вручную задайте флаги подтверждения и разрешения DNS для этого домена. Используйте с осторожностью.",
+    "source_hash": "bc3eb719"
+  },
+  "web.admin.domains.override.verified": {
+    "text": "Подтверждён",
+    "source_hash": "4f783840"
+  },
+  "web.admin.domains.override.resolving": {
+    "text": "Разрешение DNS",
+    "source_hash": "3287a034"
+  },
+  "web.admin.domains.override.apply": {
+    "text": "Применить переопределение",
+    "source_hash": "e2d1472a"
+  },
+  "web.admin.domains.override.cancel": {
+    "text": "Отмена",
+    "source_hash": "19766ed6"
+  },
+  "web.admin.domains.override.success": {
+    "text": "Статус домена переопределён.",
+    "source_hash": "42104cd0"
+  },
+  "web.admin.domains.override.noChange": {
+    "text": "Нет изменений для применения.",
+    "source_hash": "07632d50"
+  },
+  "web.admin.domains.verify.success.indeterminate": {
+    "text": "Проверка DNS не вернула результата для домена {domain}. Его статус подтверждения не изменён.",
+    "source_hash": "9c5ab974"
+  },
+  "web.admin.domains.verify.success.overrideHeld": {
+    "text": "Проверка TXT для домена {domain} не пройдена, но он остаётся подтверждённым благодаря переопределению оператором.",
+    "source_hash": "e754aac8"
+  },
+  "web.admin.domains.verify.success.confirmationExpired": {
+    "text": "Проверка DNS для домена {domain} не возвращает результата более 7 дней. Домен больше не считается подтверждённым.",
+    "source_hash": "a6901cb5"
   }
 }

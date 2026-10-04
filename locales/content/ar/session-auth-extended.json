@@ -946,5 +946,53 @@
   "web.auth.webauthn.emailRequired": {
     "text": "أدخل البريد الإلكتروني لتسجيل الدخول باستخدام مفتاح المرور",
     "source_hash": "7f07647f"
+  },
+  "web.auth.login.verification_unavailable": {
+    "text": "نجح تسجيل الدخول، لكن تعذّر علينا تأكيد جلستك. يرجى المحاولة مرة أخرى بعد قليل.",
+    "source_hash": "9a19dfc9"
+  },
+  "web.auth.mfa.verification_unavailable": {
+    "text": "تم قبول كلمة المرور، لكن تعذّر علينا بدء التحقق عبر المصادقة الثنائية. يرجى المحاولة مرة أخرى بعد قليل.",
+    "source_hash": "5fd5e240"
+  },
+  "web.auth.session.ended": {
+    "text": "انتهت جلستك. يرجى تسجيل الدخول مرة أخرى.",
+    "source_hash": "673e9822"
+  },
+  "web.auth.session.replaced": {
+    "text": "تغيّر تسجيل دخولك في علامة تبويب أخرى، لذا تمت إعادة تحميل هذه الصفحة.",
+    "source_hash": "3767d43b"
+  },
+  "web.auth.session.stale_session_title": {
+    "text": "هذه الصفحة لم تعد محدّثة",
+    "source_hash": "0293e093"
+  },
+  "web.auth.session.stale_session_notice": {
+    "text": "تغيّرت جلستك منذ تحميل هذه الصفحة. انسخ أي شيء لم تحفظه، ثم أعد تحميل الصفحة للمتابعة.",
+    "source_hash": "c62e236c"
+  },
+  "web.auth.session.reload_now": {
+    "text": "إعادة تحميل الصفحة",
+    "source_hash": "437d0d63"
+  },
+  "web.auth.session.verification_unavailable_title": {
+    "text": "يتعذّر علينا التحقق من جلستك حالياً",
+    "source_hash": "2130dda1"
+  },
+  "web.auth.session.verification_unavailable_body": {
+    "text": "لم يتم تسجيل خروجك. تعذّر علينا الوصول إلى الخادم لتأكيد جلستك، لذا ستبقى هذه الصفحة مخفية حتى نتمكن من ذلك. سنواصل المحاولة.",
+    "source_hash": "bb230c2c"
+  },
+  "web.auth.session.retry": {
+    "text": "إعادة المحاولة",
+    "source_hash": "d8b8392e"
+  },
+  "web.auth.session.retrying": {
+    "text": "جاري التحقق…",
+    "source_hash": "ec963ffc"
+  },
+  "web.auth.session.retry_failed": {
+    "text": "لا يزال غير متاح. يرجى المحاولة مرة أخرى بعد قليل.",
+    "source_hash": "b81c022c"
   }
 }

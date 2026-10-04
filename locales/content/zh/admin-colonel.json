@@ -778,5 +778,37 @@
   "web.colonel.organizations.filters.searchPlaceholder": {
     "text": "按 ID、名称或邮箱搜索",
     "source_hash": "6fe16473"
+  },
+  "web.colonel.organizations.capped": {
+    "text": "结果数量有上限：显示的数量为下限，而非总数。筛选范围涵盖所有关联订阅的组织以及最近更新的组织。如需查找其他组织，请按确切的 ID 或邮箱搜索。",
+    "source_hash": "0743238d"
+  },
+  "web.impersonation.banner.label": {
+    "text": "身份模拟中",
+    "source_hash": "d96f0e8d"
+  },
+  "web.impersonation.banner.viewingAs": {
+    "text": "正在以 {email} 的身份查看",
+    "source_hash": "cf2dd9c6"
+  },
+  "web.impersonation.banner.readOnly": {
+    "text": "只读：身份模拟期间禁止进行更改。",
+    "source_hash": "46ed3b68"
+  },
+  "web.impersonation.banner.expiresIn": {
+    "text": "{time} 后结束",
+    "source_hash": "b4999fd8"
+  },
+  "web.impersonation.banner.stop": {
+    "text": "停止身份模拟",
+    "source_hash": "5cf74e38"
+  },
+  "web.impersonation.banner.stopping": {
+    "text": "正在停止…",
+    "source_hash": "bbe85741"
+  },
+  "web.impersonation.banner.stopFailed": {
+    "text": "无法停止身份模拟。请重试。",
+    "source_hash": "5aa72353"
   }
 }

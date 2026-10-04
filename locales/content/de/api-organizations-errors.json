@@ -134,5 +134,25 @@
   "api.organizations.members.errors.no_permission_to_remove": {
     "text": "Du hast keine Berechtigung, Mitglieder zu entfernen",
     "source_hash": "b0ac7287"
+  },
+  "api.organizations.errors.delete_has_domains": {
+    "text": "Entferne die benutzerdefinierten Domains dieser Organisation, bevor du sie löschst: %{domains}",
+    "source_hash": "040a401e"
+  },
+  "api.organizations.errors.delete_drifted_domains_count": {
+    "text": "%{count} Domain-Datensätze verweisen noch auf diese Organisation, sind aber nicht mehr in ihr aufgeführt. Bitte wende dich an den Support, um sie zu entfernen, bevor du diese Organisation löschst.",
+    "source_hash": "f6e71a9a"
+  },
+  "api.organizations.errors.delete_is_default": {
+    "text": "Dein Standard-Arbeitsbereich kann nicht gelöscht werden. Wende dich an den Support, wenn er entfernt werden soll.",
+    "source_hash": "bc2eaed5"
+  },
+  "api.organizations.errors.delete_active_subscription": {
+    "text": "Kündige das Abonnement dieser Organisation, bevor du sie löschst.",
+    "source_hash": "f0c54eca"
+  },
+  "api.organizations.errors.delete_last_org": {
+    "text": "Dies ist deine einzige Organisation. Erstelle eine weitere, bevor du diese löschst.",
+    "source_hash": "7608a1d6"
   }
 }

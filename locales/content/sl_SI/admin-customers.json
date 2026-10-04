@@ -40,8 +40,8 @@
     "source_hash": "9feed9f1"
   },
   "web.admin.customers.actions.purge.confirmDescription": {
-    "text": "To trajno izbriše {email} in vse njihove podatke. Tega ni mogoče razveljaviti.",
-    "source_hash": "a74dd5d1"
+    "text": "To zahteva trajni izbris stranke {email}. Pred razgradnjo računa se izvede predhodno preverjanje, ki trajno odstranitev zavrne, kadar ima delovni prostor domene, stanje obračunavanja, druge člane, hranjene podatke ali nedosledne sklice. Preden poskusite znova, preglejte in odpravite morebitne ovire. Ko se razgradnja začne, tega ni mogoče razveljaviti.",
+    "source_hash": "7b4e5e37"
   },
   "web.admin.customers.actions.purge.success": {
     "text": "Stranka trajno odstranjena.",
@@ -60,8 +60,8 @@
     "source_hash": "227f57d7"
   },
   "web.admin.customers.actions.role.confirmDescription": {
-    "text": "Spremeni {email} na vlogo {role}.",
-    "source_hash": "9ba063c6"
+    "text": "Spremeni {email} na vlogo {role}. Vloga colonel omogoča poln skrbniški dostop do vseh računov, skrivnosti in organizacij na tej namestitvi. Za potrditev spodaj vnesite e-poštni naslov računa.",
+    "source_hash": "0ed85b97"
   },
   "web.admin.customers.actions.role.success": {
     "text": "Vloga posodobljena.",
@@ -116,8 +116,8 @@
     "source_hash": "62ed2854"
   },
   "web.admin.customers.actions.unverify.confirmDescription": {
-    "text": "Označi {email} kot nepreverjeno.",
-    "source_hash": "592ffd27"
+    "text": "Označi {email} kot nepreverjeno. Nepreverjen račun ne more imeti vloge colonel, admin ali staff, zato mu s tem odvzamete tudi morebitno povišano vlogo. Za potrditev spodaj vnesite e-poštni naslov računa.",
+    "source_hash": "601f7382"
   },
   "web.admin.customers.actions.unverify.success": {
     "text": "Preverjanje stranke preklicano.",
@@ -568,8 +568,8 @@
     "source_hash": "69e69f49"
   },
   "web.admin.customers.detail.diagnostics.healthy": {
-    "text": "Nobena blokirajoča težava ni bila najdena. Stanje avtentikacije je videti zdravo — sumite na težave na strani odjemalca (piškotki, konfiguracija prijave za domeno po meri) ali napačno regijo.",
-    "source_hash": "f6d5f8d1"
+    "text": "Ni najdenih blokirajočih stanj. Podatki o avtentikaciji in kontekstu organizacije so videti brezhibni — sumite na težave na strani odjemalca (piškotki, konfiguracija prijave za domeno po meri) ali napačno regijo.",
+    "source_hash": "e0e8450e"
   },
   "web.admin.customers.detail.diagnostics.authUnavailable": {
     "text": "Podatkovna baza za avtentikacijo ni na voljo (preprost način avtentikacije) — preverjanja na strani SQL so bila preskočena.",
@@ -690,5 +690,153 @@
   "web.admin.customers.verification.unverified": {
     "text": "Ni preverjeno",
     "source_hash": "15133907"
+  },
+  "web.admin.customers.actions.impersonate.button": {
+    "text": "Oponašaj stranko",
+    "source_hash": "38a7cfbe"
+  },
+  "web.admin.customers.actions.impersonate.confirmTitle": {
+    "text": "Začni oponašanje?",
+    "source_hash": "c6e4fa74"
+  },
+  "web.admin.customers.actions.impersonate.confirmDescription": {
+    "text": "Odpre časovno omejeno sejo samo za branje kot {email}. Dokler je ne ustavite, je na vsaki strani prikazana pasica, spremembe so blokirane, seja pa je skupaj z vašim razlogom zabeležena v revizijskem dnevniku.",
+    "source_hash": "713c01b4"
+  },
+  "web.admin.customers.actions.impersonate.reasonLabel": {
+    "text": "Razlog (obvezno)",
+    "source_hash": "d976f5d9"
+  },
+  "web.admin.customers.actions.impersonate.reasonPlaceholder": {
+    "text": "Zakaj je ta seja potrebna? Navedite številko zahtevka.",
+    "source_hash": "89a4835d"
+  },
+  "web.admin.customers.actions.impersonate.success": {
+    "text": "Oponašanje se je začelo.",
+    "source_hash": "b4662bcc"
+  },
+  "web.admin.customers.actions.impersonate.unavailable": {
+    "text": "Oponašanje ni na voljo za račune z vlogo colonel ter za anonimne in začasno onemogočene račune.",
+    "source_hash": "fb6578b2"
+  },
+  "web.admin.customers.actions.purge.refused": {
+    "text": "Trajna odstranitev je bila zavrnjena. Stranka je ohranjena; pred ponovnim poskusom odpravite ovire.",
+    "source_hash": "8e8a2ae1"
+  },
+  "web.admin.customers.actions.purge.partial": {
+    "text": "Trajna odstranitev se je ustavila, potem ko je bil del čiščenja že opravljen. Ne poročajte o uspehu in ne poskušajte znova na slepo; preglejte dokončane faze in ovire.",
+    "source_hash": "a88fd15b"
+  },
+  "web.admin.customers.actions.purge.incomplete": {
+    "text": "Trajna odstranitev ni bila dokončana (stanje: {status}). Pred ponovnim poskusom preglejte podrobnosti življenjskega cikla.",
+    "source_hash": "c0c3d287"
+  },
+  "web.admin.customers.actions.purge.unreadableResult": {
+    "text": "Strežnik je vrnil neberljiv rezultat trajne odstranitve. Uspeh ni bil sporočen; pred ponovnim poskusom preverite stanje stranke in delovnega prostora.",
+    "source_hash": "cc837a77"
+  },
+  "web.admin.customers.actions.purge.resultStage": {
+    "text": "Ustavljeno v fazi: {stage}.",
+    "source_hash": "d0e313bf"
+  },
+  "web.admin.customers.actions.purge.resultBlockers": {
+    "text": "Ovire: {blockers}.",
+    "source_hash": "00c1e196"
+  },
+  "web.admin.customers.actions.purge.resultPlannedActions": {
+    "text": "Načrtovano čiščenje: {actions}.",
+    "source_hash": "6915205d"
+  },
+  "web.admin.customers.actions.purge.resultActions": {
+    "text": "Dokončano čiščenje: {actions}.",
+    "source_hash": "d34121b3"
+  },
+  "web.admin.customers.actions.purge.resultCompletedStages": {
+    "text": "Dokončane faze: {stages}.",
+    "source_hash": "67f68860"
+  },
+  "web.admin.customers.actions.role.button": {
+    "text": "Spremeni vlogo",
+    "source_hash": "a43a8d8c"
+  },
+  "web.admin.customers.actions.role.selfDemote": {
+    "text": "Vloge svojega računa colonel ne morete znižati. Prosite drugega uporabnika z vlogo colonel, naj to stori, ali zaženite `bin/ots customers role demote`.",
+    "source_hash": "3e75d01b"
+  },
+  "web.admin.customers.actions.role.lastColonel": {
+    "text": "Zadnjemu preostalemu uporabniku z vlogo colonel ne morete znižati vloge — namestitev bi ostala brez skrbnika. Najprej drugemu računu povišajte vlogo in ga preverite.",
+    "source_hash": "9c59c731"
+  },
+  "web.admin.customers.actions.unverify.selfUnverify": {
+    "text": "Preverjanja lastnega računa ne morete preklicati: za vlogo colonel je potreben preverjen e-poštni naslov.",
+    "source_hash": "8ab024fe"
+  },
+  "web.admin.customers.actions.unverify.lastColonel": {
+    "text": "Preverjanja zadnjega preostalega uporabnika z vlogo colonel ne morete preklicati — nepreverjen račun ne more imeti vloge colonel. Najprej drugemu računu povišajte vlogo in ga preverite.",
+    "source_hash": "fc404616"
+  },
+  "web.admin.customers.detail.diagnostics.organizationContextBlocked": {
+    "text": "Kontekst organizacije je blokiran ali nepopoln. Preglejte indeksirani delovni prostor in odpravite odstopanja v indeksu lastništva, članstva ali kontaktnega e-poštnega naslova, preden ta račun obravnavate kot brezhiben.",
+    "source_hash": "5c5c89be"
+  },
+  "web.admin.customers.detail.diagnostics.organization": {
+    "text": "Delovni prostor: {id}",
+    "source_hash": "6ee50fe9"
+  },
+  "web.admin.customers.detail.diagnostics.remediation": {
+    "text": "Popravni ukrep: {action}",
+    "source_hash": "83ddc7d7"
+  },
+  "web.admin.customers.detail.fields.internalId": {
+    "text": "Notranji ID",
+    "source_hash": "e468bb47"
+  },
+  "web.admin.customers.detail.organizations.open": {
+    "text": "Odpri",
+    "source_hash": "ed077f3d"
+  },
+  "web.admin.customers.detail.rodauthAdmin.open": {
+    "text": "Odpri v Rodauth Admin",
+    "source_hash": "467173c8"
+  },
+  "web.admin.customers.detail.sessions.revokeAll.selfDescription": {
+    "text": "S tem se odjavite z vseh drugih naprav in brskalnikov, vključno s sejami, ki niso prikazane na tem seznamu. Seja, v kateri trenutno delate, ostane ohranjena.",
+    "source_hash": "ae350040"
+  },
+  "web.admin.customers.list.capped": {
+    "text": "Rezultati so omejeni: prikazano število je spodnja meja, ne skupno število. Zožite iskanje ali filter, da vidite vse.",
+    "source_hash": "27537844"
+  },
+  "web.admin.customers.list.orphanedAccounts.title": {
+    "text": "Račun v podatkovni bazi za avtentikacijo brez zapisa stranke",
+    "source_hash": "82cf7a27"
+  },
+  "web.admin.customers.list.orphanedAccounts.hint": {
+    "text": "Podatkovna baza za avtentikacijo vsebuje račun za ta naslov, vendar se nanj ne preslika noben zapis stranke. Oseba se še vedno lahko prijavi; indeks strank zanjo nima ničesar. Za diagnostiko odprite naslov.",
+    "source_hash": "0f903f23"
+  },
+  "web.admin.customers.list.orphanedAccounts.diagnose": {
+    "text": "Odpri diagnostiko računa",
+    "source_hash": "55b3e826"
+  },
+  "web.admin.customers.list.orphanedAccounts.accountId": {
+    "text": "Račun #{id}",
+    "source_hash": "485dee3c"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unverified": {
+    "text": "Nepreverjeno",
+    "source_hash": "33c8e8de"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.verified": {
+    "text": "Preverjeno",
+    "source_hash": "4f783840"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.closed": {
+    "text": "Zaprto",
+    "source_hash": "c21ead06"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unknown": {
+    "text": "Neznano",
+    "source_hash": "b764cdc0"
   }
 }

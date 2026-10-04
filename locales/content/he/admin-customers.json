@@ -40,8 +40,8 @@
     "source_hash": "9feed9f1"
   },
   "web.admin.customers.actions.purge.confirmDescription": {
-    "text": "פעולה זו מוחקת לצמיתות את {email} ואת כל הנתונים שלו. לא ניתן לבטל פעולה זו.",
-    "source_hash": "a74dd5d1"
+    "text": "פעולה זו מבקשת מחיקה לצמיתות של {email}. לפני פירוק החשבון מתבצעת בדיקה מקדימה, והיא דוחה את המחיקה כאשר לסביבת עבודה יש דומיינים, מצב חיוב, חברים נוספים, נתונים שמורים או הפניות לא עקביות. בדוק ופתור את כל הגורמים החוסמים לפני ניסיון חוזר. לא ניתן לבטל פעולה זו לאחר שהפירוק מתחיל.",
+    "source_hash": "7b4e5e37"
   },
   "web.admin.customers.actions.purge.success": {
     "text": "הלקוח נמחק לצמיתות.",
@@ -60,8 +60,8 @@
     "source_hash": "227f57d7"
   },
   "web.admin.customers.actions.role.confirmDescription": {
-    "text": "שנה את {email} לתפקיד {role}.",
-    "source_hash": "9ba063c6"
+    "text": "משנה את {email} לתפקיד {role}. תפקיד colonel מעניק גישת ניהול מלאה לכל חשבון, סוד וארגון בהתקנה זו. הקלד את כתובת הדוא״ל של החשבון למטה לאישור.",
+    "source_hash": "0ed85b97"
   },
   "web.admin.customers.actions.role.success": {
     "text": "התפקיד עודכן.",
@@ -116,8 +116,8 @@
     "source_hash": "62ed2854"
   },
   "web.admin.customers.actions.unverify.confirmDescription": {
-    "text": "סמן את {email} כלא מאומת.",
-    "source_hash": "592ffd27"
+    "text": "מסמן את {email} כלא מאומת. חשבון לא מאומת אינו יכול להחזיק בתפקיד colonel, admin או staff, ולכן פעולה זו גם מסירה כל תפקיד מורחב שיש לו. הקלד את כתובת הדוא״ל של החשבון למטה לאישור.",
+    "source_hash": "601f7382"
   },
   "web.admin.customers.actions.unverify.success": {
     "text": "אימות הלקוח בוטל.",
@@ -568,8 +568,8 @@
     "source_hash": "69e69f49"
   },
   "web.admin.customers.detail.diagnostics.healthy": {
-    "text": "לא נמצא תנאי חוסם. מצב האימות נראה תקין — חשוד בבעיות בצד הלקוח (עוגיות, תצורת כניסה בדומיין מותאם אישית) או באזור שגוי.",
-    "source_hash": "f6d5f8d1"
+    "text": "לא נמצא תנאי חוסם. נתוני האימות והקשר הארגון נראים תקינים — חשוד בבעיות בצד הלקוח (עוגיות, תצורת כניסה בדומיין מותאם אישית) או באזור שגוי.",
+    "source_hash": "e0e8450e"
   },
   "web.admin.customers.detail.diagnostics.authUnavailable": {
     "text": "מסד נתוני האימות אינו זמין (מצב אימות פשוט) — בדיקות SQL דולגו.",
@@ -690,5 +690,153 @@
   "web.admin.customers.verification.unverified": {
     "text": "לא מאומת",
     "source_hash": "15133907"
+  },
+  "web.admin.customers.actions.impersonate.button": {
+    "text": "התחזה ללקוח",
+    "source_hash": "38a7cfbe"
+  },
+  "web.admin.customers.actions.impersonate.confirmTitle": {
+    "text": "להתחיל התחזות?",
+    "source_hash": "c6e4fa74"
+  },
+  "web.admin.customers.actions.impersonate.confirmDescription": {
+    "text": "פותח הפעלה מוגבלת בזמן לקריאה בלבד בתור {email}. בכל דף יוצג באנר עד שתפסיק, שינויים חסומים, וההפעלה נרשמת ביומן הביקורת יחד עם הסיבה שציינת.",
+    "source_hash": "713c01b4"
+  },
+  "web.admin.customers.actions.impersonate.reasonLabel": {
+    "text": "סיבה (חובה)",
+    "source_hash": "d976f5d9"
+  },
+  "web.admin.customers.actions.impersonate.reasonPlaceholder": {
+    "text": "מדוע נדרשת הפעלה זו? ציין את מספר הפנייה.",
+    "source_hash": "89a4835d"
+  },
+  "web.admin.customers.actions.impersonate.success": {
+    "text": "ההתחזות החלה.",
+    "source_hash": "b4662bcc"
+  },
+  "web.admin.customers.actions.impersonate.unavailable": {
+    "text": "התחזות אינה זמינה עבור חשבונות colonel, חשבונות אנונימיים וחשבונות מושעים.",
+    "source_hash": "fb6578b2"
+  },
+  "web.admin.customers.actions.purge.refused": {
+    "text": "המחיקה לצמיתות נדחתה. הלקוח נשמר; פתור את הגורמים החוסמים לפני ניסיון חוזר.",
+    "source_hash": "8e8a2ae1"
+  },
+  "web.admin.customers.actions.purge.partial": {
+    "text": "המחיקה לצמיתות נעצרה לאחר שחלק מהניקוי הושלם. אל תדווח על הצלחה ואל תנסה שוב באופן עיוור; בדוק את השלבים שהושלמו ואת הגורמים החוסמים.",
+    "source_hash": "a88fd15b"
+  },
+  "web.admin.customers.actions.purge.incomplete": {
+    "text": "המחיקה לצמיתות לא הושלמה (סטטוס: {status}). בדוק את פרטי מחזור החיים לפני ניסיון חוזר.",
+    "source_hash": "c0c3d287"
+  },
+  "web.admin.customers.actions.purge.unreadableResult": {
+    "text": "השרת החזיר תוצאת מחיקה שלא ניתן לקרוא. לא דווחה הצלחה; אמת את מצב הלקוח וסביבת העבודה לפני ניסיון חוזר.",
+    "source_hash": "cc837a77"
+  },
+  "web.admin.customers.actions.purge.resultStage": {
+    "text": "נעצר בשלב: {stage}.",
+    "source_hash": "d0e313bf"
+  },
+  "web.admin.customers.actions.purge.resultBlockers": {
+    "text": "גורמים חוסמים: {blockers}.",
+    "source_hash": "00c1e196"
+  },
+  "web.admin.customers.actions.purge.resultPlannedActions": {
+    "text": "ניקוי מתוכנן: {actions}.",
+    "source_hash": "6915205d"
+  },
+  "web.admin.customers.actions.purge.resultActions": {
+    "text": "ניקוי שהושלם: {actions}.",
+    "source_hash": "d34121b3"
+  },
+  "web.admin.customers.actions.purge.resultCompletedStages": {
+    "text": "שלבים שהושלמו: {stages}.",
+    "source_hash": "67f68860"
+  },
+  "web.admin.customers.actions.role.button": {
+    "text": "שנה תפקיד",
+    "source_hash": "a43a8d8c"
+  },
+  "web.admin.customers.actions.role.selfDemote": {
+    "text": "לא ניתן להוריד בדרגה את חשבון ה-colonel שלך. בקש מ-colonel אחר לעשות זאת, או הרץ `bin/ots customers role demote`.",
+    "source_hash": "3e75d01b"
+  },
+  "web.admin.customers.actions.role.lastColonel": {
+    "text": "לא ניתן להוריד בדרגה את ה-colonel האחרון שנותר — ההתקנה תישאר ללא מנהל. קדם ואמת חשבון אחר תחילה.",
+    "source_hash": "9c59c731"
+  },
+  "web.admin.customers.actions.unverify.selfUnverify": {
+    "text": "לא ניתן לבטל את האימות של החשבון שלך: נדרש דוא״ל מאומת כדי להחזיק בתפקיד colonel.",
+    "source_hash": "8ab024fe"
+  },
+  "web.admin.customers.actions.unverify.lastColonel": {
+    "text": "לא ניתן לבטל את האימות של ה-colonel האחרון שנותר — חשבון לא מאומת אינו יכול להחזיק בתפקיד colonel. קדם ואמת חשבון אחר תחילה.",
+    "source_hash": "fc404616"
+  },
+  "web.admin.customers.detail.diagnostics.organizationContextBlocked": {
+    "text": "הקשר הארגון חסום או חלקי. בדוק את סביבת העבודה הרשומה באינדקס ותקן סטייה באינדקס של הבעלות, החברות או דוא״ל איש הקשר לפני שתתייחס לחשבון זה כתקין.",
+    "source_hash": "5c5c89be"
+  },
+  "web.admin.customers.detail.diagnostics.organization": {
+    "text": "סביבת עבודה: {id}",
+    "source_hash": "6ee50fe9"
+  },
+  "web.admin.customers.detail.diagnostics.remediation": {
+    "text": "תיקון: {action}",
+    "source_hash": "83ddc7d7"
+  },
+  "web.admin.customers.detail.fields.internalId": {
+    "text": "מזהה פנימי",
+    "source_hash": "e468bb47"
+  },
+  "web.admin.customers.detail.organizations.open": {
+    "text": "פתח",
+    "source_hash": "ed077f3d"
+  },
+  "web.admin.customers.detail.rodauthAdmin.open": {
+    "text": "פתח ב-Rodauth Admin",
+    "source_hash": "467173c8"
+  },
+  "web.admin.customers.detail.sessions.revokeAll.selfDescription": {
+    "text": "פעולה זו מנתקת אותך מכל מכשיר ודפדפן אחר, כולל הפעלות שאינן מוצגות ברשימה זו. ההפעלה שבה אתה עובד כעת נשמרת.",
+    "source_hash": "ae350040"
+  },
+  "web.admin.customers.list.capped": {
+    "text": "התוצאות מוגבלות: המספר המוצג הוא רף מינימלי, לא הסכום הכולל. צמצם את החיפוש או את המסנן כדי לראות הכל.",
+    "source_hash": "27537844"
+  },
+  "web.admin.customers.list.orphanedAccounts.title": {
+    "text": "חשבון במסד נתוני האימות ללא רשומת לקוח",
+    "source_hash": "82cf7a27"
+  },
+  "web.admin.customers.list.orphanedAccounts.hint": {
+    "text": "מסד נתוני האימות מכיל חשבון עבור כתובת זו, אך אין רשומת לקוח שממופה אליו. האדם עדיין יכול להתחבר; באינדקס הלקוחות אין עבורו דבר. פתח את הכתובת לאבחון.",
+    "source_hash": "0f903f23"
+  },
+  "web.admin.customers.list.orphanedAccounts.diagnose": {
+    "text": "פתח אבחון חשבון",
+    "source_hash": "55b3e826"
+  },
+  "web.admin.customers.list.orphanedAccounts.accountId": {
+    "text": "חשבון #{id}",
+    "source_hash": "485dee3c"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unverified": {
+    "text": "לא מאומת",
+    "source_hash": "33c8e8de"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.verified": {
+    "text": "מאומת",
+    "source_hash": "4f783840"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.closed": {
+    "text": "סגור",
+    "source_hash": "c21ead06"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unknown": {
+    "text": "לא ידוע",
+    "source_hash": "b764cdc0"
   }
 }

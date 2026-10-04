@@ -134,5 +134,17 @@
   "web.admin.audit.list.contractError": {
     "text": "Der Server hat geantwortet, aber die Audit-Daten entsprachen nicht dem erwarteten Format. Es können keine Ereignisse angezeigt werden – dies ist ein Fehler in der Berichterstattung, kein leeres Protokoll.",
     "source_hash": "7f48137e"
+  },
+  "web.admin.audit.export.csv": {
+    "text": "CSV exportieren",
+    "source_hash": "91f71c14"
+  },
+  "web.admin.audit.export.ndjson": {
+    "text": "NDJSON exportieren",
+    "source_hash": "3ee2c07c"
+  },
+  "web.admin.audit.export.hint": {
+    "text": "Exporte umfassen den gesamten aufbewahrten Verlauf unter den aktuellen Filtern, nicht nur diese Seite. Die Aufbewahrung ist begrenzt — ein längerer Verlauf liegt im Audit-Protokoll-Sink.",
+    "source_hash": "163e8ad0"
   }
 }

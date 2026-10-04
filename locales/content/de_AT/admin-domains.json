@@ -48,12 +48,12 @@
     "source_hash": "acaede35"
   },
   "web.admin.domains.addDomain.strategy.caddy_on_demand": {
-    "text": "Caddy on-demand — Zertifikate werden bei der ersten Anfrage automatisch ausgestellt.",
-    "source_hash": "deb90ae6"
+    "text": "Caddy on-demand — DNS-Inhaberschaftsprüfung (TXT-Eintrag); Zertifikate werden nach der Verifizierung automatisch ausgestellt.",
+    "source_hash": "1c926efa"
   },
   "web.admin.domains.addDomain.strategy.caddy": {
-    "text": "Caddy — Zertifikate werden bei der ersten Anfrage automatisch ausgestellt.",
-    "source_hash": "a0f3c2dc"
+    "text": "Caddy — DNS-Inhaberschaftsprüfung (TXT-Eintrag); Zertifikate werden nach der Verifizierung automatisch ausgestellt.",
+    "source_hash": "5774ff90"
   },
   "web.admin.domains.addDomain.strategy.unknown": {
     "text": "Bereitstellungsweite Validierungsstrategie.",
@@ -842,5 +842,81 @@
   "web.admin.domains.tls.none": {
     "text": "Nicht bereitgestellt",
     "source_hash": "da8a5ab9"
+  },
+  "web.admin.domains.configs.edit.originsHint": {
+    "text": "Ein Origin pro Zeile, einschließlich des Schemas, zum Beispiel https://vault.example.com. Ein Origin im Bereich einer anderen Organisation wird abgelehnt.",
+    "source_hash": "4a4e1d33"
+  },
+  "web.admin.domains.configs.fields.related_origins": {
+    "text": "Verwandte Passkey-Origins",
+    "source_hash": "e6160714"
+  },
+  "web.admin.domains.dns.cnameStepInstall": {
+    "text": "2. Fügen Sie einen CNAME-Eintrag hinzu, der die Subdomäne auf diese Installation verweist.",
+    "source_hash": "b8a329f9"
+  },
+  "web.admin.domains.dns.aliasStepInstall": {
+    "text": "2. Fügen Sie einen ALIAS- oder ANAME-Eintrag hinzu, der den Apex auf diese Installation verweist.",
+    "source_hash": "9a61ed66"
+  },
+  "web.admin.domains.dns.apexNote": {
+    "text": "Ein Apex-Bereich kann keinen CNAME-Eintrag enthalten. Wenn der DNS-Anbieter keinen ALIAS- oder ANAME-Eintrag unterstützt, erfüllt ein A-Eintrag auf die IP-Adresse dieses Servers denselben Zweck.",
+    "source_hash": "f69e3032"
+  },
+  "web.admin.domains.fields.verifiedByOverride": {
+    "text": "Ja (Überschreibung durch Betreiber)",
+    "source_hash": "a1a8644f"
+  },
+  "web.admin.domains.list.capped": {
+    "text": "Die Ergebnisse sind begrenzt: Die angezeigte Anzahl ist eine Untergrenze, nicht die Gesamtzahl. Grenzen Sie die Suche oder den Filter ein, um alles zu sehen.",
+    "source_hash": "27537844"
+  },
+  "web.admin.domains.override.button": {
+    "text": "Status überschreiben",
+    "source_hash": "c683774c"
+  },
+  "web.admin.domains.override.title": {
+    "text": "Verifizierungsstatus überschreiben",
+    "source_hash": "66dbebb2"
+  },
+  "web.admin.domains.override.description": {
+    "text": "Setzen Sie die Flags „Verifiziert“ und „Wird aufgelöst“ für diesen Bereich manuell. Mit Vorsicht verwenden.",
+    "source_hash": "bc3eb719"
+  },
+  "web.admin.domains.override.verified": {
+    "text": "Verifiziert",
+    "source_hash": "4f783840"
+  },
+  "web.admin.domains.override.resolving": {
+    "text": "Wird aufgelöst",
+    "source_hash": "3287a034"
+  },
+  "web.admin.domains.override.apply": {
+    "text": "Überschreibung anwenden",
+    "source_hash": "e2d1472a"
+  },
+  "web.admin.domains.override.cancel": {
+    "text": "Abbrechen",
+    "source_hash": "19766ed6"
+  },
+  "web.admin.domains.override.success": {
+    "text": "Bereichsstatus überschrieben.",
+    "source_hash": "42104cd0"
+  },
+  "web.admin.domains.override.noChange": {
+    "text": "Keine Änderungen anzuwenden.",
+    "source_hash": "07632d50"
+  },
+  "web.admin.domains.verify.success.indeterminate": {
+    "text": "Die DNS-Prüfung hat für {domain} kein Ergebnis geliefert. Der Verifizierungsstatus wurde nicht geändert.",
+    "source_hash": "9c5ab974"
+  },
+  "web.admin.domains.verify.success.overrideHeld": {
+    "text": "Die TXT-Prüfung für {domain} ist fehlgeschlagen, der Bereich bleibt aber aufgrund einer Überschreibung durch den Betreiber verifiziert.",
+    "source_hash": "e754aac8"
+  },
+  "web.admin.domains.verify.success.confirmationExpired": {
+    "text": "Die DNS-Prüfung für {domain} hat seit mehr als 7 Tagen kein Ergebnis geliefert. Der Bereich ist nicht mehr verifiziert.",
+    "source_hash": "a6901cb5"
   }
 }

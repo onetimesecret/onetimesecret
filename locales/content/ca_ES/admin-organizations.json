@@ -638,5 +638,121 @@
   "web.admin.organizations.entitlements.summary.planUnknown": {
     "text": "Desconegut — no s'ha pogut comparar",
     "source_hash": "b607e540"
+  },
+  "web.admin.organizations.actions.plan.label": {
+    "text": "Pla",
+    "source_hash": "fa8ed0bd"
+  },
+  "web.admin.organizations.actions.plan.apply": {
+    "text": "Aplica",
+    "source_hash": "31e392d1"
+  },
+  "web.admin.organizations.actions.plan.confirmTitle": {
+    "text": "Vols canviar el pla?",
+    "source_hash": "910a4de9"
+  },
+  "web.admin.organizations.actions.plan.confirmDescription": {
+    "text": "Canvia {org} al pla {plan}.",
+    "source_hash": "aecf8277"
+  },
+  "web.admin.organizations.actions.plan.success": {
+    "text": "S'ha actualitzat el pla.",
+    "source_hash": "ebe8d40c"
+  },
+  "web.admin.organizations.actions.plan.problem": {
+    "text": "S'ha desat el pla, però els drets no s'han actualitzat. Executa la reconciliació en aquesta organització.",
+    "source_hash": "2addb095"
+  },
+  "web.admin.organizations.actions.plan.localConfigWarning": {
+    "text": "Plans carregats de la configuració local — Stripe no està configurat o no és accessible.",
+    "source_hash": "df83e326"
+  },
+  "web.admin.organizations.detail.delete.button": {
+    "text": "Elimina l'organització",
+    "source_hash": "a70d189a"
+  },
+  "web.admin.organizations.detail.delete.previewing": {
+    "text": "S'està carregant el pla d'eliminació…",
+    "source_hash": "c9773eb9"
+  },
+  "web.admin.organizations.detail.delete.warning": {
+    "text": "Elimina permanentment l'organització, les seves pertinences i les invitacions pendents, i envia un correu electrònic als antics membres. Això no es pot desfer.",
+    "source_hash": "fd314131"
+  },
+  "web.admin.organizations.detail.delete.confirmTitle": {
+    "text": "Vols eliminar aquesta organització?",
+    "source_hash": "6a3bba0f"
+  },
+  "web.admin.organizations.detail.delete.confirmDescription": {
+    "text": "Això elimina permanentment {org}. Torna a escriure l'id de l'organització per confirmar.",
+    "source_hash": "c63a0221"
+  },
+  "web.admin.organizations.detail.delete.membersLabel": {
+    "text": "Membres",
+    "source_hash": "1044a4c0"
+  },
+  "web.admin.organizations.detail.delete.invitationsLabel": {
+    "text": "Invitacions pendents",
+    "source_hash": "76198e63"
+  },
+  "web.admin.organizations.detail.delete.domainsLabel": {
+    "text": "Dominis",
+    "source_hash": "ced67718"
+  },
+  "web.admin.organizations.detail.delete.defaultOrgLabel": {
+    "text": "Esborra l'espai de treball per defecte de",
+    "source_hash": "d535ac2a"
+  },
+  "web.admin.organizations.detail.delete.forceDefault": {
+    "text": "Aquest és l'espai de treball per defecte (personal) del propietari. Elimina'l igualment.",
+    "source_hash": "1a8b0f7d"
+  },
+  "web.admin.organizations.detail.delete.forceSubscription": {
+    "text": "La subscripció està activa. Elimina l'organització igualment — això no cancel·la la facturació de Stripe.",
+    "source_hash": "51cb3456"
+  },
+  "web.admin.organizations.detail.delete.driftedDomainsLabel": {
+    "text": "Dominis desviats",
+    "source_hash": "fef96f49"
+  },
+  "web.admin.organizations.detail.delete.driftedDomainsRepair": {
+    "text": "Repara amb: bin/ots domains doctor --all --repair",
+    "source_hash": "14c9c59f"
+  },
+  "web.admin.organizations.detail.delete.success": {
+    "text": "S'ha eliminat {org}.",
+    "source_hash": "9cdda5d0"
+  },
+  "web.admin.organizations.detail.delete.blocked.hasDomains": {
+    "text": "Bloquejat: primer elimina els dominis personalitzats ({domains}).",
+    "source_hash": "dc3248b2"
+  },
+  "web.admin.organizations.detail.delete.blocked.driftedDomains": {
+    "text": "Bloquejat: aquests registres de domini encara fan referència a aquesta organització, però no figuren a la seva llista de dominis ({domains}). Primer executa bin/ots domains doctor --all --repair — no hi ha cap substitució possible.",
+    "source_hash": "3136496c"
+  },
+  "web.admin.organizations.detail.delete.blocked.isDefault": {
+    "text": "Bloquejat: aquest és l'espai de treball per defecte del propietari. Marca la substitució de sota per eliminar-lo igualment.",
+    "source_hash": "09d5baa4"
+  },
+  "web.admin.organizations.detail.delete.blocked.activeSubscription": {
+    "text": "Bloquejat: l'organització té una subscripció activa. Primer cancel·la-la a Stripe o marca la substitució de sota.",
+    "source_hash": "68663641"
+  },
+  "web.admin.organizations.detail.delete.blocked.lastOrg": {
+    "text": "Bloquejat: aquesta és l'única organització a la qual pertany {owner}, i eliminar-la el deixaria sense cap espai de treball. No hi ha cap substitució possible — primer crea una organització de reemplaçament.",
+    "source_hash": "f09b4f9a"
+  },
+  "web.admin.organizations.detail.delete.errors.planUnreadable": {
+    "text": "No s'ha pogut llegir el pla d'eliminació del servidor. No s'ha eliminat res.",
+    "source_hash": "91406cbb"
+  },
+  "web.admin.organizations.detail.delete.errors.unverified": {
+    "text": "No s'ha pogut verificar la resposta del servidor. Torna a carregar la llista d'organitzacions per comprovar si l'eliminació s'ha completat.",
+    "source_hash": "7a261fb0"
+  },
+  "web.admin.organizations.detail.delete.errors.notApplied": {
+    "text": "El servidor ha retornat una previsualització, no una eliminació. No s'ha eliminat res.",
+    "source_hash": "9d84971d"
   }
 }

@@ -176,8 +176,8 @@
     "source_hash": "0c6605c1"
   },
   "web.admin.sessions.revoke.confirmDescription": {
-    "text": "פעולה זו מנתקת את המשתמש מיד על ידי מחיקת ההפעלה {id}. הקלד את מזהה ההפעלה לאישור.",
-    "source_hash": "9e08b1b8"
+    "text": "פעולה זו מנתקת את המשתמש מיד על ידי ביטול ההפעלה {id}. הקלד {token} לאישור.",
+    "source_hash": "80578692"
   },
   "web.admin.sessions.revoke.success": {
     "text": "ההפעלה בוטלה",
@@ -188,12 +188,12 @@
     "source_hash": "34cb67a4"
   },
   "web.admin.sessions.scan.capped": {
-    "text": "הסריקה הוגבלה ל-{scanned} המפתחות הראשונים — הפעלות מאומתות מעבר לחלון זה אינן מופיעות. בדוק הפעלה ספציפית לפי מזהה כדי להגיע אליה.",
-    "source_hash": "fa418b4e"
+    "text": "הסריקה הוגבלה ל-{scanned} המפתחות הראשונים — הפעלות מאומתות מעבר לחלון זה אינן מופיעות. צמצם את החיפוש כדי להגיע אליהן.",
+    "source_hash": "7a8d6fd5"
   },
   "web.admin.sessions.search.placeholder": {
-    "text": "חפש לפי דוא״ל או מזהה חיצוני",
-    "source_hash": "f2dc5c06"
+    "text": "חפש לפי דוא״ל, מזהה חיצוני או ידית הפעלה",
+    "source_hash": "4894dec4"
   },
   "web.admin.sessions.sections.session": {
     "text": "הפעלה",
@@ -210,5 +210,45 @@
   "web.admin.sessions.status.anonymous": {
     "text": "אנונימי",
     "source_hash": "e7a8aa2d"
+  },
+  "web.admin.sessions.authority.title": {
+    "text": "אינו מקור הסמכות להפעלות במצב אימות מלא",
+    "source_hash": "796fb07f"
+  },
+  "web.admin.sessions.authority.description": {
+    "text": "רשימה זו היא מאגר ההפעלות של Redis. כאשר מצב האימות מוגדר ל-full, מצב ההפעלות המוסמך נמצא במסד נתוני החשבונות של Rodauth, שקונסולה זו אינה קוראת. חשבונות שהתחברו דרך Rodauth עשויים שלא להופיע כאן, וביטול הפעלה כאן אינו מסיים הפעלת Rodauth.",
+    "source_hash": "77bc4904"
+  },
+  "web.admin.sessions.authority.descriptionRevokeAll": {
+    "text": "רשימה זו היא מאגר ההפעלות של Redis. כאשר מצב האימות מוגדר ל-full, מצב ההפעלות המוסמך נמצא במסד נתוני החשבונות של Rodauth, שקונסולה זו אינה קוראת. חשבונות שהתחברו דרך Rodauth עשויים שלא להופיע כאן, וביטול הפעלה בודדת כאן אינו מסיים את הפעלת ה-Rodauth שלה. בטל הכל מסיים גם את הפעלות ה-Rodauth של החשבון.",
+    "source_hash": "f964663d"
+  },
+  "web.admin.sessions.authority.openAdmin": {
+    "text": "פתח את Rodauth Admin",
+    "source_hash": "ce523836"
+  },
+  "web.admin.sessions.authority.notConfigured": {
+    "text": "הגדר את RODAUTH_ADMIN_URL כדי לקשר ל-Rodauth Admin מכאן.",
+    "source_hash": "c070dbfb"
+  },
+  "web.admin.sessions.columns.sessionHandle": {
+    "text": "ידית הפעלה",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.errors.scanCapped": {
+    "text": "הפעלה זו לא נמצאה במרחב המפתחות שנדגם. פתח אותה מהשורה שלה ברשימה, כך שניתן יהיה לאתר אותה לפי הבעלים שלה.",
+    "source_hash": "67b73f7f"
+  },
+  "web.admin.sessions.fields.sessionHandle": {
+    "text": "ידית הפעלה",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.revoke.ownSession": {
+    "text": "זוהי ההפעלה שלך. ביטולה ינתק אותך — השתמש בהתנתקות במקום זאת.",
+    "source_hash": "a6762292"
+  },
+  "web.admin.sessions.rodauthAdmin.open": {
+    "text": "פתח ב-Rodauth Admin",
+    "source_hash": "467173c8"
   }
 }

@@ -134,5 +134,17 @@
   "web.admin.audit.list.contractError": {
     "text": "Máy chủ đã phản hồi, nhưng dữ liệu kiểm tra không khớp với định dạng mong đợi. Không thể hiển thị sự kiện nào — đây là lỗi báo cáo, không phải nhật ký trống.",
     "source_hash": "7f48137e"
+  },
+  "web.admin.audit.export.csv": {
+    "text": "Xuất CSV",
+    "source_hash": "91f71c14"
+  },
+  "web.admin.audit.export.ndjson": {
+    "text": "Xuất NDJSON",
+    "source_hash": "3ee2c07c"
+  },
+  "web.admin.audit.export.hint": {
+    "text": "Dữ liệu xuất bao gồm toàn bộ dấu vết được lưu giữ theo bộ lọc hiện tại, không chỉ trang này. Thời gian lưu giữ có giới hạn — lịch sử lâu hơn nằm ở đích nhận nhật ký kiểm tra.",
+    "source_hash": "163e8ad0"
   }
 }

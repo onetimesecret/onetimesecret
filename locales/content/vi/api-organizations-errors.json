@@ -134,5 +134,25 @@
   "api.organizations.members.errors.no_permission_to_remove": {
     "text": "Bạn không có quyền xóa thành viên",
     "source_hash": "b0ac7287"
+  },
+  "api.organizations.errors.delete_has_domains": {
+    "text": "Hãy gỡ các tên miền tùy chỉnh của tổ chức này trước khi xóa: %{domains}",
+    "source_hash": "040a401e"
+  },
+  "api.organizations.errors.delete_drifted_domains_count": {
+    "text": "%{count} bản ghi tên miền vẫn tham chiếu đến tổ chức này nhưng không còn được liệt kê trong đó. Vui lòng liên hệ bộ phận hỗ trợ để gỡ chúng trước khi xóa tổ chức này.",
+    "source_hash": "f6e71a9a"
+  },
+  "api.organizations.errors.delete_is_default": {
+    "text": "Không thể xóa không gian làm việc mặc định của bạn. Hãy liên hệ bộ phận hỗ trợ nếu bạn cần gỡ bỏ nó.",
+    "source_hash": "bc2eaed5"
+  },
+  "api.organizations.errors.delete_active_subscription": {
+    "text": "Hãy hủy đăng ký của tổ chức này trước khi xóa.",
+    "source_hash": "f0c54eca"
+  },
+  "api.organizations.errors.delete_last_org": {
+    "text": "Đây là tổ chức duy nhất của bạn. Hãy tạo một tổ chức khác trước khi xóa tổ chức này.",
+    "source_hash": "7608a1d6"
   }
 }

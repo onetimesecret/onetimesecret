@@ -350,5 +350,17 @@
   "web.layout.colonels_only_badge": {
     "text": "Colonels uniquement",
     "source_hash": "3f1e2dbd"
+  },
+  "web.footer.dpa": {
+    "text": "Accord de traitement des données",
+    "source_hash": "112eae6b"
+  },
+  "web.footer.cookie_policy": {
+    "text": "Politique relative aux cookies",
+    "source_hash": "ee290b3d"
+  },
+  "web.footer.acceptable_use": {
+    "text": "Politique d'utilisation acceptable",
+    "source_hash": "34aa287a"
   }
 }

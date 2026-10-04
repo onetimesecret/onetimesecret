@@ -46,5 +46,17 @@
   "api.domains.errors.homepage_incoming_not_ready": {
     "text": "接收内容必须已启用且至少设置一个收件人，才能用作主页。",
     "source_hash": "556da6e2"
+  },
+  "api.domains.errors.related_origins_invalid": {
+    "text": "无效的源：%{origins}。请输入协议和主机，例如 https://vault.example.com",
+    "source_hash": "5acb92ca"
+  },
+  "api.domains.errors.related_origins_foreign_organization": {
+    "text": "以下源属于其他组织，无法添加：%{origins}",
+    "source_hash": "ac21c1e7"
+  },
+  "api.domains.errors.allowed_signup_domains_invalid": {
+    "text": "无效的域名：%{domains}。请输入可注册的域名，例如 example.com",
+    "source_hash": "2d93472c"
   }
 }

@@ -509,8 +509,8 @@
     "source_hash": "7fbbb7e7"
   },
   "web.login.errors.identity_connect_conflict": {
-    "text": "Denne identitet kunne ikke forbindes. Forbindelsen er muligvis startet på det forkerte domæne, eller din session er udløbet. Log venligst ind igen, og forbind den derefter fra dine kontoindstillinger.",
-    "source_hash": "4238bbf2"
+    "text": "Denne identitet kunne ikke forbindes. Den tilhører muligvis allerede en anden konto.",
+    "source_hash": "d8b71cf8"
   },
   "web.login.errors.org_join_failed": {
     "text": "Vi kunne ikke færdiggøre tilføjelsen af dig til din organisation. Kontakt venligst din administrator.",
@@ -527,5 +527,25 @@
   "web.login.errors.sso_cancelled": {
     "text": "Login blev annulleret. Du kan prøve igen, når du er klar.",
     "source_hash": "b5f3d3ec"
+  },
+  "web.login.errors.sso_issuer_mismatch": {
+    "text": "Login med denne udbyder er forkert konfigureret. Kontakt din administrator.",
+    "source_hash": "44df5918"
+  },
+  "web.login.errors.sso_config_unusable": {
+    "text": "Single sign-on for dette domæne er konfigureret, men kan ikke bruges i øjeblikket. Kontakt din organisations administrator.",
+    "source_hash": "f704b391"
+  },
+  "web.login.errors.sso_domain_unverified": {
+    "text": "Single sign-on for dette domæne er endnu ikke aktivt, fordi bekræftelsen af domænet ikke er fuldført. Kontakt din administrator.",
+    "source_hash": "bd981480"
+  },
+  "web.login.errors.tenant_sso_link_unavailable": {
+    "text": "Denne identitet er ikke forbundet med en konto på dette domæne. Hvis du kan logge ind på dette domæne med en konto, der tilhører denne organisation, kan du forbinde den under Forbundne identiteter. Ellers kan du bede en organisationsejer om at invitere denne SSO-identitet eller kontakte support.",
+    "source_hash": "66e7376c"
+  },
+  "web.login.errors.identity_connect_wrong_domain": {
+    "text": "Denne identitet kunne ikke forbindes på dette domæne. Start forbindelsen fra det websted, du er logget ind på; på en organisations domæne skal din konto allerede tilhøre den pågældende organisation.",
+    "source_hash": "d967c761"
   }
 }

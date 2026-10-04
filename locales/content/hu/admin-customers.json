@@ -40,8 +40,8 @@
     "source_hash": "9feed9f1"
   },
   "web.admin.customers.actions.purge.confirmDescription": {
-    "text": "Ez véglegesen törli a(z) {email} címet és minden adatát. Ezt nem lehet visszavonni.",
-    "source_hash": "a74dd5d1"
+    "text": "Ez a(z) {email} végleges törlését kéri. A fiók lebontása előtt előzetes ellenőrzés fut, amely megtagadja a végleges törlést, ha egy munkaterülethez domének, számlázási állapot, más tagok, megőrzött adatok vagy inkonzisztens hivatkozások tartoznak. Az újrapróbálkozás előtt tekintse át és hárítsa el az akadályokat. A lebontás megkezdése után ez nem vonható vissza.",
+    "source_hash": "7b4e5e37"
   },
   "web.admin.customers.actions.purge.success": {
     "text": "Az ügyfél véglegesen törölve.",
@@ -60,8 +60,8 @@
     "source_hash": "227f57d7"
   },
   "web.admin.customers.actions.role.confirmDescription": {
-    "text": "A(z) {email} átállítása a(z) {role} szerepkörre.",
-    "source_hash": "9ba063c6"
+    "text": "A(z) {email} átállítása a(z) {role} szerepkörre. A colonel szerepkör teljes adminisztrátori hozzáférést biztosít minden fiókhoz, titokhoz és szervezethez ezen a telepítésen. A megerősítéshez írja be alább a fiók e-mail-címét.",
+    "source_hash": "0ed85b97"
   },
   "web.admin.customers.actions.role.success": {
     "text": "A szerepkör frissítve.",
@@ -116,8 +116,8 @@
     "source_hash": "62ed2854"
   },
   "web.admin.customers.actions.unverify.confirmDescription": {
-    "text": "A(z) {email} megjelölése nem ellenőrzöttként.",
-    "source_hash": "592ffd27"
+    "text": "A(z) {email} megjelölése nem ellenőrzöttként. Nem ellenőrzött fiók nem rendelkezhet colonel, adminisztrátor vagy munkatárs szerepkörrel, ezért ez a művelet a fiók minden emelt szintű szerepkörét is visszavonja. A megerősítéshez írja be alább a fiók e-mail-címét.",
+    "source_hash": "601f7382"
   },
   "web.admin.customers.actions.unverify.success": {
     "text": "Az ügyfél ellenőrzése visszavonva.",
@@ -568,8 +568,8 @@
     "source_hash": "69e69f49"
   },
   "web.admin.customers.detail.diagnostics.healthy": {
-    "text": "Nem található blokkoló állapot. A hitelesítési állapot egészségesnek tűnik — gyanítson kliens oldali problémákat (sütik, egyéni domain bejelentkezési beállítások) vagy rossz régiót.",
-    "source_hash": "f6d5f8d1"
+    "text": "Nem található blokkoló állapot. A hitelesítési és a szervezeti kontextusra vonatkozó adatok rendben lévőnek tűnnek — gyanítson kliensoldali problémákat (sütik, egyéni domén bejelentkezési beállításai) vagy rossz régiót.",
+    "source_hash": "e0e8450e"
   },
   "web.admin.customers.detail.diagnostics.authUnavailable": {
     "text": "Hitelesítési adatbázis nem érhető el (egyszerű hitelesítési mód) — SQL oldali ellenőrzések kihagyva.",
@@ -690,5 +690,153 @@
   "web.admin.customers.verification.unverified": {
     "text": "Nem ellenőrzött",
     "source_hash": "15133907"
+  },
+  "web.admin.customers.actions.impersonate.button": {
+    "text": "Ügyfél megszemélyesítése",
+    "source_hash": "38a7cfbe"
+  },
+  "web.admin.customers.actions.impersonate.confirmTitle": {
+    "text": "Elindítja a megszemélyesítést?",
+    "source_hash": "c6e4fa74"
+  },
+  "web.admin.customers.actions.impersonate.confirmDescription": {
+    "text": "Időkorlátos, csak olvasható munkamenetet nyit meg a(z) {email} nevében. Amíg le nem állítja, minden oldalon szalagcím jelenik meg, a módosítások le vannak tiltva, és a munkamenet az Ön által megadott indokkal együtt rögzül az auditnaplóban.",
+    "source_hash": "713c01b4"
+  },
+  "web.admin.customers.actions.impersonate.reasonLabel": {
+    "text": "Indok (kötelező)",
+    "source_hash": "d976f5d9"
+  },
+  "web.admin.customers.actions.impersonate.reasonPlaceholder": {
+    "text": "Miért van szükség erre a munkamenetre? Adja meg a jegy azonosítóját.",
+    "source_hash": "89a4835d"
+  },
+  "web.admin.customers.actions.impersonate.success": {
+    "text": "Megszemélyesítés elindítva.",
+    "source_hash": "b4662bcc"
+  },
+  "web.admin.customers.actions.impersonate.unavailable": {
+    "text": "A megszemélyesítés nem érhető el colonel, névtelen és felfüggesztett fiókok esetén.",
+    "source_hash": "fb6578b2"
+  },
+  "web.admin.customers.actions.purge.refused": {
+    "text": "A végleges törlés elutasítva. Az ügyfél megmaradt; az újrapróbálkozás előtt hárítsa el az akadályokat.",
+    "source_hash": "8e8a2ae1"
+  },
+  "web.admin.customers.actions.purge.partial": {
+    "text": "A végleges törlés leállt, miután a tisztítás egy része befejeződött. Ne jelezzen sikert, és ne próbálkozzon újra vakon; tekintse át a befejezett szakaszokat és az akadályokat.",
+    "source_hash": "a88fd15b"
+  },
+  "web.admin.customers.actions.purge.incomplete": {
+    "text": "A végleges törlés nem fejeződött be (állapot: {status}). Az újrapróbálkozás előtt tekintse át az életciklus részleteit.",
+    "source_hash": "c0c3d287"
+  },
+  "web.admin.customers.actions.purge.unreadableResult": {
+    "text": "A szerver olvashatatlan végleges törlési eredményt adott vissza. Sikeres végrehajtást nem jelzett; az újrapróbálkozás előtt ellenőrizze az ügyfél és a munkaterület állapotát.",
+    "source_hash": "cc837a77"
+  },
+  "web.admin.customers.actions.purge.resultStage": {
+    "text": "Leállt a következő szakasznál: {stage}.",
+    "source_hash": "d0e313bf"
+  },
+  "web.admin.customers.actions.purge.resultBlockers": {
+    "text": "Akadályok: {blockers}.",
+    "source_hash": "00c1e196"
+  },
+  "web.admin.customers.actions.purge.resultPlannedActions": {
+    "text": "Tervezett tisztítás: {actions}.",
+    "source_hash": "6915205d"
+  },
+  "web.admin.customers.actions.purge.resultActions": {
+    "text": "Befejezett tisztítás: {actions}.",
+    "source_hash": "d34121b3"
+  },
+  "web.admin.customers.actions.purge.resultCompletedStages": {
+    "text": "Befejezett szakaszok: {stages}.",
+    "source_hash": "67f68860"
+  },
+  "web.admin.customers.actions.role.button": {
+    "text": "Szerepkör módosítása",
+    "source_hash": "a43a8d8c"
+  },
+  "web.admin.customers.actions.role.selfDemote": {
+    "text": "Nem fokozhatja le saját colonel fiókját. Kérjen meg erre egy másik colonel szerepkörű felhasználót, vagy futtassa a `bin/ots customers role demote` parancsot.",
+    "source_hash": "3e75d01b"
+  },
+  "web.admin.customers.actions.role.lastColonel": {
+    "text": "Nem fokozhatja le az utolsó megmaradt colonel fiókot — a telepítésnek nem maradna adminisztrátora. Előbb léptessen elő és ellenőrizzen egy másik fiókot.",
+    "source_hash": "9c59c731"
+  },
+  "web.admin.customers.actions.unverify.selfUnverify": {
+    "text": "Saját fiókja ellenőrzését nem vonhatja vissza: a colonel szerepkörhöz ellenőrzött e-mail-cím szükséges.",
+    "source_hash": "8ab024fe"
+  },
+  "web.admin.customers.actions.unverify.lastColonel": {
+    "text": "Az utolsó megmaradt colonel fiók ellenőrzését nem vonhatja vissza — nem ellenőrzött fiók nem rendelkezhet colonel szerepkörrel. Előbb léptessen elő és ellenőrizzen egy másik fiókot.",
+    "source_hash": "fc404616"
+  },
+  "web.admin.customers.detail.diagnostics.organizationContextBlocked": {
+    "text": "A szervezeti kontextus blokkolt vagy hiányos. Vizsgálja meg az indexelt munkaterületet, és javítsa ki a tulajdonjogi, tagsági vagy kapcsolattartási e-mail-index eltéréseit, mielőtt a fiókot rendben lévőnek tekintené.",
+    "source_hash": "5c5c89be"
+  },
+  "web.admin.customers.detail.diagnostics.organization": {
+    "text": "Munkaterület: {id}",
+    "source_hash": "6ee50fe9"
+  },
+  "web.admin.customers.detail.diagnostics.remediation": {
+    "text": "Javító intézkedés: {action}",
+    "source_hash": "83ddc7d7"
+  },
+  "web.admin.customers.detail.fields.internalId": {
+    "text": "Belső azonosító",
+    "source_hash": "e468bb47"
+  },
+  "web.admin.customers.detail.organizations.open": {
+    "text": "Megnyitás",
+    "source_hash": "ed077f3d"
+  },
+  "web.admin.customers.detail.rodauthAdmin.open": {
+    "text": "Megnyitás a Rodauth Adminban",
+    "source_hash": "467173c8"
+  },
+  "web.admin.customers.detail.sessions.revokeAll.selfDescription": {
+    "text": "Ez kijelentkezteti Önt minden más eszközről és böngészőből, beleértve az ebben a listában nem látható munkameneteket is. A jelenleg használt munkamenete megmarad.",
+    "source_hash": "ae350040"
+  },
+  "web.admin.customers.list.capped": {
+    "text": "A találatok korlátozottak: a megjelenített szám alsó korlát, nem a teljes összeg. Az összes találat megtekintéséhez szűkítse a keresést vagy a szűrést.",
+    "source_hash": "27537844"
+  },
+  "web.admin.customers.list.orphanedAccounts.title": {
+    "text": "Ügyfélrekord nélküli fiók a hitelesítési adatbázisban",
+    "source_hash": "82cf7a27"
+  },
+  "web.admin.customers.list.orphanedAccounts.hint": {
+    "text": "A hitelesítési adatbázis tartalmaz egy fiókot ehhez a címhez, de egyetlen ügyfélrekord sem kapcsolódik hozzá. A személy továbbra is be tud jelentkezni; az ügyfélindexben nincs hozzá tartozó bejegyzés. A diagnosztikához nyissa meg a címet.",
+    "source_hash": "0f903f23"
+  },
+  "web.admin.customers.list.orphanedAccounts.diagnose": {
+    "text": "Fiókdiagnosztika megnyitása",
+    "source_hash": "55b3e826"
+  },
+  "web.admin.customers.list.orphanedAccounts.accountId": {
+    "text": "Fiók #{id}",
+    "source_hash": "485dee3c"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unverified": {
+    "text": "Nem ellenőrzött",
+    "source_hash": "33c8e8de"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.verified": {
+    "text": "Ellenőrizve",
+    "source_hash": "4f783840"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.closed": {
+    "text": "Lezárva",
+    "source_hash": "c21ead06"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unknown": {
+    "text": "Ismeretlen",
+    "source_hash": "b764cdc0"
   }
 }

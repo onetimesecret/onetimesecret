@@ -176,8 +176,8 @@
     "source_hash": "0c6605c1"
   },
   "web.admin.sessions.revoke.confirmDescription": {
-    "text": "يؤدي هذا إلى تسجيل خروج المستخدم فوراً عبر حذف الجلسة {id}. اكتب معرّف الجلسة للتأكيد.",
-    "source_hash": "9e08b1b8"
+    "text": "يؤدي هذا إلى تسجيل خروج المستخدم فوراً عبر إبطال الجلسة {id}. اكتب {token} للتأكيد.",
+    "source_hash": "80578692"
   },
   "web.admin.sessions.revoke.success": {
     "text": "تم إبطال الجلسة",
@@ -188,12 +188,12 @@
     "source_hash": "34cb67a4"
   },
   "web.admin.sessions.scan.capped": {
-    "text": "اقتُصر الفحص على أول {scanned} مفتاح — الجلسات المُصادَق عليها خارج هذه النافذة غير مدرجة. افحص جلسة محددة بمعرّفها للوصول إليها.",
-    "source_hash": "fa418b4e"
+    "text": "اقتُصر الفحص على أول {scanned} مفتاح — الجلسات المُصادَق عليها خارج هذه النافذة غير مدرجة. قم بتضييق البحث للوصول إليها.",
+    "source_hash": "7a8d6fd5"
   },
   "web.admin.sessions.search.placeholder": {
-    "text": "البحث حسب البريد الإلكتروني أو المعرّف الخارجي",
-    "source_hash": "f2dc5c06"
+    "text": "البحث حسب البريد الإلكتروني أو المعرّف الخارجي أو مرجع الجلسة",
+    "source_hash": "4894dec4"
   },
   "web.admin.sessions.sections.session": {
     "text": "الجلسة",
@@ -210,5 +210,45 @@
   "web.admin.sessions.status.anonymous": {
     "text": "مجهولة",
     "source_hash": "e7a8aa2d"
+  },
+  "web.admin.sessions.authority.title": {
+    "text": "ليست المصدر المعتمد للجلسات في وضع المصادقة الكامل",
+    "source_hash": "796fb07f"
+  },
+  "web.admin.sessions.authority.description": {
+    "text": "هذه القائمة هي مخزن جلسات Redis. عند ضبط وضع المصادقة على الوضع الكامل، تكون حالة الجلسات المعتمدة في قاعدة بيانات حسابات Rodauth، التي لا تقرأها وحدة التحكم هذه. قد لا تظهر هنا الحسابات التي سجّلت الدخول عبر Rodauth، ولا يؤدي إبطال جلسة هنا إلى إنهاء جلسة Rodauth.",
+    "source_hash": "77bc4904"
+  },
+  "web.admin.sessions.authority.descriptionRevokeAll": {
+    "text": "هذه القائمة هي مخزن جلسات Redis. عند ضبط وضع المصادقة على الوضع الكامل، تكون حالة الجلسات المعتمدة في قاعدة بيانات حسابات Rodauth، التي لا تقرأها وحدة التحكم هذه. قد لا تظهر هنا الحسابات التي سجّلت الدخول عبر Rodauth، ولا يؤدي إبطال جلسة واحدة هنا إلى إنهاء جلسة Rodauth الخاصة بها. أما «إبطال الكل» فيُنهي أيضاً جلسات Rodauth الخاصة بالحساب.",
+    "source_hash": "f964663d"
+  },
+  "web.admin.sessions.authority.openAdmin": {
+    "text": "فتح Rodauth Admin",
+    "source_hash": "ce523836"
+  },
+  "web.admin.sessions.authority.notConfigured": {
+    "text": "عيّن RODAUTH_ADMIN_URL لإضافة رابط إلى Rodauth Admin من هنا.",
+    "source_hash": "c070dbfb"
+  },
+  "web.admin.sessions.columns.sessionHandle": {
+    "text": "مرجع الجلسة",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.errors.scanCapped": {
+    "text": "لم يتم العثور على هذه الجلسة في مساحة المفاتيح التي أُخذت منها العينة. افتحها من صفّها في القائمة حتى يمكن استخدام مالكها للبحث عنها.",
+    "source_hash": "67b73f7f"
+  },
+  "web.admin.sessions.fields.sessionHandle": {
+    "text": "مرجع الجلسة",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.revoke.ownSession": {
+    "text": "هذه جلستك الخاصة. سيؤدي إبطالها إلى تسجيل خروجك — استخدم تسجيل الخروج بدلاً من ذلك.",
+    "source_hash": "a6762292"
+  },
+  "web.admin.sessions.rodauthAdmin.open": {
+    "text": "فتح في Rodauth Admin",
+    "source_hash": "467173c8"
   }
 }

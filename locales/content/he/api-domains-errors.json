@@ -46,5 +46,17 @@
   "api.domains.errors.homepage_incoming_not_ready": {
     "text": "יש להפעיל סודות נכנסים עם נמען אחד לפחות לפני שניתן להשתמש בהם כדף הבית.",
     "source_hash": "556da6e2"
+  },
+  "api.domains.errors.related_origins_invalid": {
+    "text": "מקור לא תקין: %{origins}. הזן את הסכמה ואת המארח, לדוגמה https://vault.example.com",
+    "source_hash": "5acb92ca"
+  },
+  "api.domains.errors.related_origins_foreign_organization": {
+    "text": "מקורות אלה שייכים לארגון אחר ולא ניתן להוסיף אותם: %{origins}",
+    "source_hash": "ac21c1e7"
+  },
+  "api.domains.errors.allowed_signup_domains_invalid": {
+    "text": "דומיין לא תקין: %{domains}. הזן שם דומיין שניתן לרשום, לדוגמה example.com",
+    "source_hash": "2d93472c"
   }
 }

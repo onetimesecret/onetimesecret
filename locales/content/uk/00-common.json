@@ -1543,5 +1543,17 @@
   "web.TITLES.connected_identities": {
     "text": "Підключені ідентичності",
     "source_hash": "e132c4d9"
+  },
+  "web.COMMON.field": {
+    "text": "Поле",
+    "source_hash": "f45fc1df"
+  },
+  "web.COMMON.unknown": {
+    "text": "Невідомо",
+    "source_hash": "b764cdc0"
+  },
+  "web.STATUS.pending_ssl": {
+    "text": "Сертифікат очікується",
+    "source_hash": "dd34f305"
   }
 }

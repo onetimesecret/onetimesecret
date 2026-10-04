@@ -1218,5 +1218,129 @@
   "web.organizations.sso.enable_untested_warning": {
     "text": "Kāore anō tēnei hononga kia angitu i tētahi whakamātautau ki konei. Whakahaerehia te Whakamātau Hononga i mua i te whakahohe, kei tae tētahi whakaritenga pakaru ki tō whārangi takiuru.",
     "source_hash": "c1fbdeca"
+  },
+  "web.organizations.delete_organization_cancel_subscription_first": {
+    "text": "Whakakorea te ohaurunga o tēnei whakahaere i mua i te muku.",
+    "source_hash": "f0c54eca"
+  },
+  "web.organizations.sso.disable_action": {
+    "text": "Monokia te SSO",
+    "source_hash": "2f072272"
+  },
+  "web.organizations.sso.disable_confirm": {
+    "text": "Monokia tēnei hononga SSO? Kāore e tiakina ngā whakatika puka kāore anō kia tiakina. Ka puritia ngā pūnga whaimana kua tiakina.",
+    "source_hash": "608b142a"
+  },
+  "web.organizations.sso.disable_enforcement_warning": {
+    "text": "Ka whakawetohia hoki te whakaū SSO-anake, ka whakaaetia ētahi atu tikanga takiuru kua whirihorahia.",
+    "source_hash": "58abd552"
+  },
+  "web.organizations.sso.idp_sso_service_url": {
+    "text": "URL ratonga SSO a te IdP",
+    "source_hash": "0b33b1ac"
+  },
+  "web.organizations.sso.idp_sso_service_url_hint": {
+    "text": "Te pito mutunga HTTPS e whakaputaina ana e tō kaiwhakarato tuakiri mō te takiuru kotahi SAML",
+    "source_hash": "bc6fdfd9"
+  },
+  "web.organizations.sso.idp_sso_service_url_placeholder": {
+    "text": "https://idp.example.com/sso/saml",
+    "source_hash": "513d0586"
+  },
+  "web.organizations.sso.idp_entity_id": {
+    "text": "IdP Entity ID",
+    "source_hash": "14a4ab8b"
+  },
+  "web.organizations.sso.idp_entity_id_hint": {
+    "text": "Te tautohu kaiwhakaputa mai i ngā raraunga meta a tō kaiwhakarato tuakiri, ōrite tonu ki tōna whakaputanga",
+    "source_hash": "c3d8320b"
+  },
+  "web.organizations.sso.idp_entity_id_placeholder": {
+    "text": "https://idp.example.com/metadata",
+    "source_hash": "0c46d14d"
+  },
+  "web.organizations.sso.idp_cert": {
+    "text": "Tiwhikete haina IdP",
+    "source_hash": "c84000cd"
+  },
+  "web.organizations.sso.idp_cert_hint": {
+    "text": "Te tiwhikete X.509 (PEM) e hainatia ai e tō kaiwhakarato tuakiri ngā whakapuaki. Kotahi anake te tiwhikete; kāore e whakaaetia ngā tapumati.",
+    "source_hash": "b5e157f5"
+  },
+  "web.organizations.sso.idp_cert_placeholder": {
+    "text": "-----BEGIN CERTIFICATE-----",
+    "source_hash": "ddddb6cb"
+  },
+  "web.organizations.sso.sp_details": {
+    "text": "Ngā taipitopito kaiwhakarato ratonga",
+    "source_hash": "4b6617d2"
+  },
+  "web.organizations.sso.sp_details_hint": {
+    "text": "Rēhitatia ēnei uara ki tō kaiwhakarato tuakiri",
+    "source_hash": "784e9410"
+  },
+  "web.organizations.sso.sp_details_preview_hint": {
+    "text": "He arokite i runga i te ara takiuru taunoa. Tiakina tēnei whirihoranga, kātahi whakaūngia ēnei uara i konei i mua i te rēhita i a rātou ki tō kaiwhakarato tuakiri.",
+    "source_hash": "fd9d3001"
+  },
+  "web.organizations.sso.domain_unverified_notice": {
+    "text": "Kua whakawetohia te takiuru kotahi (SSO) i tēnei rohe kia manatokohia rā anō te rohe. Kāore te manatoko e panoni i ngā uara i raro nei.",
+    "source_hash": "4b56ea4b"
+  },
+  "web.organizations.sso.sp_entity_id": {
+    "text": "SP Entity ID (URL raraunga meta)",
+    "source_hash": "59bc544c"
+  },
+  "web.organizations.sso.acs_url": {
+    "text": "Assertion Consumer Service URL",
+    "source_hash": "5dacfb65"
+  },
+  "web.organizations.sso.unreadable_field": {
+    "text": "Kāore i taea te pānui i te uara kua tiakina. Whakaurua anō kia haere tonu ai.",
+    "source_hash": "ca3b5fcc"
+  },
+  "web.organizations.sso.unreadable_fields_alert": {
+    "text": "Kāore i taea te pānui i ētahi uara kua tiakina, me whakauru anō: {fields}",
+    "source_hash": "e9fa9d16"
+  },
+  "web.organizations.sso.idp_cert_expired_alert": {
+    "text": "I pau te tiwhikete kaiwhakarato tuakiri i te {date}. Ka rahu te takiuru mā tēnei hononga kia tiakina rā anō he tiwhikete o nāianei.",
+    "source_hash": "527fb721"
+  },
+  "web.organizations.sso.idp_cert_expiring_notice": {
+    "text": "Ka pau te tiwhikete kaiwhakarato tuakiri ā te {date}. Whakakapia i mua i taua rā kia mahi tonu ai te takiuru.",
+    "source_hash": "ccaf6ca7"
+  },
+  "web.organizations.sso.test_connection_hint_saml": {
+    "text": "Ka arowhai ā-kāinga i te URL SSO, te Entity ID me te tiwhikete; kāore e whakapāngia te kaiwhakarato tuakiri",
+    "source_hash": "1dad3945"
+  },
+  "web.organizations.sso.configured_issuer": {
+    "text": "Kaiwhakaputa Kua Whirihorahia",
+    "source_hash": "6b307b7f"
+  },
+  "web.organizations.sso.discovery_issuer": {
+    "text": "Kaiwhakaputa Kua Kitea",
+    "source_hash": "9d74f978"
+  },
+  "web.organizations.sso.issuer_mismatch_hint": {
+    "text": "Me tino ōrite ngā tautohu kaiwhakaputa OIDC, tae atu ki tētahi rītaha whakamutunga. Tautuhia te Issuer URL ki te uara i kitea e whakaaturia ana i runga ake.",
+    "source_hash": "ec144c88"
+  },
+  "web.organizations.sso.certificate_subject": {
+    "text": "Kaupapa tiwhikete",
+    "source_hash": "d7816b16"
+  },
+  "web.organizations.sso.certificate_expires": {
+    "text": "Ka pau te tiwhikete",
+    "source_hash": "1e73119d"
+  },
+  "web.organizations.sso.certificate_expires_in_days": {
+    "text": "i roto i te {n} rā | i roto i te {n} rā",
+    "source_hash": "df98ca65"
+  },
+  "web.organizations.sso.certificate_valid_from": {
+    "text": "Ka whaimana te tiwhikete mai i",
+    "source_hash": "b13d3f30"
   }
 }

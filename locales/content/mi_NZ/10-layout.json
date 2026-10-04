@@ -350,5 +350,17 @@
   "web.layout.colonels_only_badge": {
     "text": "Mō ngā Colonel Anake",
     "source_hash": "3f1e2dbd"
+  },
+  "web.footer.dpa": {
+    "text": "Kirimana Tukatuka Raraunga",
+    "source_hash": "112eae6b"
+  },
+  "web.footer.cookie_policy": {
+    "text": "Kaupapahere Pihikete",
+    "source_hash": "ee290b3d"
+  },
+  "web.footer.acceptable_use": {
+    "text": "Kaupapahere Whakamahinga Tika",
+    "source_hash": "34aa287a"
   }
 }

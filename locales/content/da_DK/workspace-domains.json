@@ -1626,5 +1626,37 @@
   "web.domains.sso.status_unavailable_hint": {
     "text": "SSO kan ikke tilbydes på dette domæne lige nu. Tjek SSO-legitimationsoplysningerne og dette domænes loginindstillinger.",
     "source_hash": "b03b14f4"
+  },
+  "web.domains.status_tooltip_pending_ssl": {
+    "text": "Domæne bekræftet — venter på certifikat",
+    "source_hash": "541bd705"
+  },
+  "web.domains.2_create_the_alias_record": {
+    "text": "2. Opret ALIAS- eller ANAME-posten",
+    "source_hash": "17b04e6a"
+  },
+  "web.domains.sso.status_saml_disabled_badge": {
+    "text": "SAML slået fra",
+    "source_hash": "4e2eab51"
+  },
+  "web.domains.sso.status_saml_disabled_hint": {
+    "text": "Webstedets operatør har slået SAML fra for denne installation. Din konfiguration bevares og genoptages, når SAML slås til igen; indtil da tilbyder dette domæne ikke login med SAML.",
+    "source_hash": "5ba9624c"
+  },
+  "web.domains.sso.status_domain_unverified_badge": {
+    "text": "Afventer bekræftelse af domæne",
+    "source_hash": "ea7459c2"
+  },
+  "web.domains.sso.status_domain_unverified_hint": {
+    "text": "Bekræftelsen af dette domæne er ikke fuldført, så domænets SSO-forbindelse er endnu ikke aktiv på dets loginside. SSO slås til, når domænet er bekræftet, og SSO er tilladt for det her.",
+    "source_hash": "57ee0066"
+  },
+  "web.domains.verify_outcome.indeterminate": {
+    "text": "Vi kunne ikke fuldføre DNS-kontrollen lige nu. Det betyder ikke, at dine poster er forkerte. Prøv igen om et par minutter.",
+    "source_hash": "4e76a9ef"
+  },
+  "web.domains.verify_outcome.record_not_found": {
+    "text": "Vi fandt ikke den forventede TXT-post. Kontrollér, at den findes, og at dens værdi stemmer nøjagtigt overens. Nye DNS-poster kan tage et par minutter om at blive synlige.",
+    "source_hash": "6c847d46"
   }
 }
