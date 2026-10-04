@@ -27,9 +27,10 @@ module Onetime
     # ## UPGRADE-ONLY invariant
     #
     # This middleware ONLY upgrades http -> https. It never downgrades the
-    # scheme and never strips or rewrites forwarded headers. If the request
-    # is already HTTPS (via env['HTTPS'], rack.url_scheme, or an
-    # X-Forwarded-Proto that Rack already honors), it is a strict no-op.
+    # scheme and never strips or rewrites forwarded headers. When enabled,
+    # it pins HTTPS in the server-side env even if Rack already resolves a
+    # forwarded HTTPS scheme: downstream proxy-trust filtering may remove
+    # that carrier, but must not undo the operator's HTTPS policy.
     # When the flag is off it is a strict no-op for every request, so native
     # Rack X-Forwarded-Proto handling for existing nginx/Caddy/ALB
     # deployments is completely unaffected.
@@ -49,13 +50,9 @@ module Onetime
       def call(env)
         return @app.call(env) unless @enabled
 
-        # Upgrade-only: leave already-HTTPS requests (including those Rack
-        # resolved from X-Forwarded-Proto) untouched.
-        req = Rack::Request.new(env)
-        unless req.ssl?
-          env['HTTPS']           = 'on'
-          env['rack.url_scheme'] = 'https'
-        end
+        # Do not depend on a forwarded scheme carrier surviving trust filtering.
+        env['HTTPS']           = 'on'
+        env['rack.url_scheme'] = 'https'
 
         @app.call(env)
       end
