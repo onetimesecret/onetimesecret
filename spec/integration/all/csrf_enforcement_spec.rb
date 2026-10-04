@@ -219,8 +219,8 @@ RSpec.describe 'CSRF Enforcement', type: :integration do
         middleware_config = Onetime::Middleware::Security.middleware_components['AuthenticityToken']
         allow_if = middleware_config[:options][:allow_if]
 
-        # Simulate request WITH Basic Auth to /api/v1/test. Basic Auth is a
-        # stateless per-request credential (API key), not an ambient cookie.
+        # Simulate request WITH Basic Auth to /api/v1/test and no session. Basic
+        # Auth is a per-request credential (API key), not an ambient cookie.
         credentials = Base64.strict_encode64('user:pass')
         env_with_auth = {
           'PATH_INFO' => '/api/v1/test',
@@ -251,9 +251,10 @@ RSpec.describe 'CSRF Enforcement', type: :integration do
         expect(allow_if.call(env)).to be false
       end
 
-      it 'still bypasses when Basic Auth is present even with a session cookie' do
-        # Basic Auth short-circuits before the session check: an explicit API-key
-        # credential is not a forgeable ambient credential.
+      it 'does NOT bypass a session-authenticated API POST that also carries Basic Auth' do
+        # The session answers on every route chain that has `sessionauth`, so
+        # the header does not change whose request this is. The rack-level
+        # case is in spec/integration/full/customer_session_continuation_baseline_spec.rb.
         credentials = Base64.strict_encode64('user:pass')
         env = {
           'PATH_INFO' => '/api/v2/account',
@@ -262,7 +263,7 @@ RSpec.describe 'CSRF Enforcement', type: :integration do
           'rack.session' => { 'authenticated' => true }
         }
 
-        expect(allow_if.call(env)).to be true
+        expect(allow_if.call(env)).to be false
       end
 
       it 'bypasses an anonymous (unauthenticated) session API POST' do
@@ -397,9 +398,8 @@ RSpec.describe 'CSRF Enforcement', type: :integration do
       end
 
       it 'bypasses an API route with a malformed auth header and no session' do
-        # 'Basic' without a trailing space + credentials does NOT match the Basic
-        # short-circuit, but with no session cookie there is still nothing to
-        # forge, so it bypasses on the no-session rule.
+        # With no session cookie there is nothing to forge, so it bypasses on
+        # the no-session rule whatever the header says.
         env = {
           'PATH_INFO' => '/api/v1/test',
           'REQUEST_METHOD' => 'POST',

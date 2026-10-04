@@ -78,3 +78,8 @@ Security
   again after clearing both, so the browser kept that session even when the
   first cookie was a planted one. The clears are now scoped to the host the
   browser addressed, including behind a proxy that rewrites ``Host``. (#4223)
+
+- An ``/api/`` request from a signed-in browser session needs the CSRF token
+  even when it also carries an ``Authorization: Basic`` header. The session
+  answers such a request, so the header did not make it an API-key request.
+  API-key clients without a signed-in session are unaffected. (#4223)
