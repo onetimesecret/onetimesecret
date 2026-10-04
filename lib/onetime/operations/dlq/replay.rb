@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/operations/dlq/store'
+require 'onetime/jobs/queues/config'
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require 'onetime/operations/audit_attempt'
@@ -20,8 +21,21 @@ module Onetime
       # queue (from the `x-death` header) and acks it off the DLQ; a message with no
       # recoverable original queue is nacked WITHOUT requeue (dropped, to avoid an
       # infinite dead-letter loop) and counted as failed; a publish error nacks WITH
-      # requeue so the message survives. The republish + ack/nack logic is
-      # byte-for-byte the historic CLI `replay_messages`.
+      # requeue so the message survives.
+      #
+      # ## Idempotency claims
+      #
+      # Queue workers take a claim on each message id and skip a later message
+      # with the same id as a duplicate (BaseWorker#claim_for_processing). The
+      # claim drops broker redeliveries and double publishes. Most workers keep
+      # it when they reject a message, and a replay republishes under the
+      # original message id, so the worker would ack the replayed message
+      # without processing it. A replay is an explicit request to process the
+      # message again: the claim on each message id is released before the
+      # message is republished. This applies to every queue. A message with no
+      # message id has no claim. A message whose claim cannot be released (the
+      # datastore is unreachable) is not republished: it is nacked WITH requeue
+      # so it stays in the DLQ, and is counted as failed with the error.
       #
       # ## Audit (exactly once)
       #
@@ -37,9 +51,9 @@ module Onetime
       # ## Dry run
       #
       # Replay can re-trigger side effects (emails, webhooks). `dry_run: true`
-      # reports how many messages WOULD be replayed WITHOUT republishing or
-      # acking anything — so a caller can preview the blast radius before an
-      # explicit live replay (epic #42 note). It writes nothing to the OPERATOR
+      # reports how many messages WOULD be replayed WITHOUT republishing,
+      # acking or releasing a claim — so a caller can preview the blast radius
+      # before an explicit live replay (epic #42 note). It writes nothing to the OPERATOR
       # trail, but since #4337 it records one OBSERVATION (`result: 'preview'`)
       # on the budgeted access trail: measuring what a replay would re-fire is
       # reconnaissance. A dry run that finds the queue empty stays an
@@ -194,7 +208,7 @@ module Onetime
           Result.new(status: :empty, queue: @queue, replayed: 0, failed: 0, errors: [], would_replay: 0)
         end
 
-        # The republish/ack/nack loop, byte-for-byte the historic CLI.
+        # The release/republish/ack/nack loop.
         def replay_loop(channel, queue, to_replay)
           results = { replayed: 0, failed: 0, errors: [] }
 
@@ -208,6 +222,22 @@ module Onetime
               results[:errors] << { message_id: properties.message_id, error: 'No original queue found' }
               # Nack WITHOUT requeue — drop, so it can't dead-letter-loop forever.
               channel.nack(delivery_info.delivery_tag, false, false)
+              next
+            end
+
+            # Release before publishing: a worker can consume the republished
+            # message as soon as it is on the queue.
+            begin
+              release_processing_claim(properties.message_id)
+            rescue StandardError => ex
+              results[:failed] += 1
+              results[:errors] << {
+                message_id: properties.message_id,
+                error: "Idempotency claim not released: #{ex.message}",
+              }
+              # Republished with the claim still held, the message could be
+              # acked as a duplicate and lost. Nack WITH requeue keeps it.
+              channel.nack(delivery_info.delivery_tag, false, true)
               next
             end
 
@@ -230,6 +260,19 @@ module Onetime
           end
 
           results
+        end
+
+        # Delete the workers' idempotency claim on a message id, so the worker
+        # processes the replayed message. A message id that was never claimed,
+        # or whose claim expired or was already released by the worker, is a
+        # no-op delete. Raises on a datastore error.
+        #
+        # @param message_id [String, nil]
+        # @return [void]
+        def release_processing_claim(message_id)
+          return unless message_id
+
+          Familia.dbclient.del(Onetime::Jobs::QueueConfig.processing_claim_key(message_id))
         end
       end
     end

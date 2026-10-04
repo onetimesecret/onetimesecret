@@ -33,6 +33,7 @@ require 'support/amqp_stubs'
 require 'sneakers'
 require 'onetime/jobs/workers/notification_worker'
 require 'onetime/jobs/queues/config'
+require 'onetime/operations/dlq/replay'
 
 RSpec.describe Onetime::Jobs::Workers::NotificationWorker, type: :integration do
   # Create test worker class with accessible delivery_info
@@ -185,6 +186,45 @@ RSpec.describe Onetime::Jobs::Workers::NotificationWorker, type: :integration do
         # Backoff requested (base_delay 1.0, doubling, up to 30% jitter), not slept
         expect(retry_delays.size).to eq(2)
         expect(retry_delays.zip([1.0, 2.0])).to all(satisfy { |delay, base| delay.between?(base, base * 1.3) })
+      end
+
+      context 'when the rejected message is replayed from the dead letter queue' do
+        let(:dlq_channel) { double('channel', default_exchange: double('exchange', publish: nil), ack: nil, open?: false) }
+        let(:dlq_properties) do
+          double(
+            'properties',
+            message_id: message_id,
+            content_type: 'application/json',
+            headers: { 'x-death' => [{ 'queue' => 'notifications.alert.push', 'reason' => 'rejected' }] },
+          )
+        end
+
+        before do
+          dlq = double('dlq', message_count: 1)
+          allow(dlq).to receive(:pop).and_return([double('delivery', delivery_tag: 1), dlq_properties, message])
+          allow(dlq_channel).to receive(:queue).and_return(dlq)
+          allow(Onetime::ColonelAuditEvent).to receive(:record)
+        end
+
+        it 'processes the replayed message instead of skipping it as a duplicate' do
+          allow(operation_instance).to receive(:call).and_raise(StandardError, 'Unexpected error')
+          worker.work_with_params(message, delivery_info, metadata)
+          expect(worker.rejected?).to be true
+
+          Onetime::Operations::Dlq::Replay.new(
+            connection: double('connection', create_channel: dlq_channel),
+            queue: 'dlq.notifications.alert',
+            actor: 'cli',
+          ).call
+
+          allow(operation_instance).to receive(:call).and_return({ via_bell: :success })
+          replayed_worker = test_worker_class.new
+          replayed_worker.work_with_params(message, delivery_info, metadata)
+
+          expect(replayed_worker.acked?).to be true
+          # Three failed attempts on the first delivery, one on the replay
+          expect(operation_instance).to have_received(:call).exactly(4).times
+        end
       end
 
       it 'retries on transient errors' do

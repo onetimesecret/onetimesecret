@@ -38,6 +38,14 @@ Fixed
   claim when delivery fails, so a replay within the hour is delivered.
   (#4479)
 
+- ``ots queue dlq replay`` and the colonel replay endpoint now release a
+  message's idempotency claim before republishing it. The DNS record
+  check, domain validation, notification, billing and favicon fetch
+  workers keep their claim when they reject a message, so a message
+  replayed within the hour was reported as replayed but skipped by the
+  worker as a duplicate. A message whose claim cannot be released stays in
+  the dead letter queue and is counted as failed. (#4479)
+
 - A favicon fetch that times out is now retried once when the broker
   redelivers it. The favicon worker kept its idempotency claim when it
   requeued the message, so the retry was skipped as a duplicate and the

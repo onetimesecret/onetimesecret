@@ -6,6 +6,7 @@ require 'sneakers'
 require 'json'
 require_relative '../../utils/retry_helper'
 require_relative '../trace_propagation'
+require_relative '../queues/config'
 
 module Onetime
   module Jobs
@@ -270,7 +271,7 @@ module Onetime
           def already_processed?(msg_id)
             return false unless msg_id
 
-            Familia.dbclient.exists?("job:processed:#{msg_id}")
+            Familia.dbclient.exists?(Onetime::Jobs::QueueConfig.processing_claim_key(msg_id))
           end
 
           # Idempotency check.
@@ -281,24 +282,27 @@ module Onetime
 
             ttl = Onetime::Jobs::QueueConfig::IDEMPOTENCY_TTL
             # Familia.dbclient.set returns true if SET NX succeeded, false if key existed
-            Familia.dbclient.set("job:processed:#{msg_id}", '1', nx: true, ex: ttl)
+            Familia.dbclient.set(Onetime::Jobs::QueueConfig.processing_claim_key(msg_id), '1', nx: true, ex: ttl)
           end
 
           # Release a previously-taken idempotency claim. A failure path that
-          # wants the message processed again needs this BEFORE reject! or
-          # requeue!: a DLQ replay or a broker redelivery carries the same
+          # wants the message processed again needs this BEFORE requeue!, and
+          # before a reject! whose message DlqEmailConsumerJob replays: a
+          # broker redelivery and that automatic replay carry the same
           # message_id, and within the claim TTL it is silently ack'd as a
-          # duplicate no-op instead of re-running. Only safe for workers whose
-          # work is idempotent. A never-claimed msg_id is a harmless no-op
-          # delete. Raises on a datastore error; rescue clauses use
-          # release_processing_claim_safely.
+          # duplicate no-op instead of re-running. An operator replay
+          # (Onetime::Operations::Dlq::Replay) releases the claim itself, so a
+          # worker that keeps its claim on reject! is still reprocessed by
+          # one. Only safe for workers whose work is idempotent. A
+          # never-claimed msg_id is a harmless no-op delete. Raises on a
+          # datastore error; rescue clauses use release_processing_claim_safely.
           #
           # @param msg_id [String, nil] Message ID whose claim to release
           # @return [Boolean] true if a claim key was deleted
           def release_processing_claim(msg_id)
             return false unless msg_id
 
-            Familia.dbclient.del("job:processed:#{msg_id}").positive?
+            Familia.dbclient.del(Onetime::Jobs::QueueConfig.processing_claim_key(msg_id)).positive?
           end
 
           # Release an idempotency claim from a failure path without raising.
