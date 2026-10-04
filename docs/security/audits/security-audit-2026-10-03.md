@@ -4,16 +4,21 @@
 - **Register:** `RISK-2026-10-03-4C3C`
 - **Scope:** Whether cached browser HTTP Basic credentials can authorize a cross-site, state-changing `/api/` request despite the absence of an authenticated session.
 - **Reported live baseline:** `6090151320`, development environment, full authentication mode, `MIDDLEWARE_HTTP_ORIGIN` unset.
-- **Source-review baseline:** `7a9a7d551c42aa54bcd7d58d6ca4388ae9410d08`. The working tree was clean before this documentation change. This is not the reported live baseline; equivalence between them was not verified.
-- **Method:** Targeted source inspection and review of an operator-supplied local validation summary. The reported live requests were not independently rerun. No browser test results were supplied or produced for this assessment.
+- **Source-review baseline:** `7a9a7d551c42aa54bcd7d58d6ca4388ae9410d08`. The working tree was clean before this documentation change. This is `6090151320` plus one commit; that commit touches only `organization_loader.rb`, `organization_context.rb`, and a spec. Every file this audit relies on is byte-identical between the two revs (see "Baseline equivalence").
+- **Browser-validation baseline:** `6090151320` (same as the reported live baseline), full authentication mode, `MIDDLEWARE_HTTP_ORIGIN` unset. Both the server and the test runner were at this commit; the test-runner worktree was clean.
+- **Method:** Targeted source inspection and review of an operator-supplied local validation summary, **followed by a real-browser round (Chromium only) added 2026-10-04** against the live baseline. The round exercised the credential-cache prerequisite and cross-site replay directly; see "Browser validation (Chromium)". Firefox and WebKit were not tested. Raw, credential-bearing traces are kept in a local, git-ignored file (`security-audit-2026-10-03-browser-evidence.txt`); this record carries sanitized results only.
+
+### Baseline equivalence
+
+The source-review and browser-validation baselines are equivalent for this audit. `6090151320` is a direct ancestor of `7a9a7d551c42aa54bcd7d58d6ca4388ae9410d08`; the single commit between them changes only `lib/onetime/application/organization_loader.rb`, `lib/onetime/logic/organization_context.rb`, and `spec/unit/organization_loader_cache_scope_spec.rb`. The files this audit depends on — `lib/onetime/middleware/registry.rb`, `lib/onetime/application/auth_strategies/basic_auth_strategy.rb`, `lib/onetime/middleware/session_failure_code.rb`, `etc/config.yaml`, and `apps/api/v2/routes.txt` (with `base_secret_action.rb`) — are byte-identical across the two revs. Source observations and browser results therefore describe the same code.
 
 > **Historical record.** This report captures the available evidence, not a security guarantee or acceptance decision. The [active security risk register](../active-risk-register.md) tracks current disposition.
 
 ## Conclusion and severity
 
-The sessionless API CSRF-token exemption is confirmed. The reported challenge behavior limits one way a browser could acquire cached Basic credentials: the tested headerless requests do not receive a Basic challenge. It does not establish that browser-cached credentials are impossible or that previously cached credentials cannot be replayed cross-site.
+The sessionless API CSRF-token exemption is confirmed. A Chromium browser round (below) tested the two plausible ways a browser could acquire cached Basic credentials for this host — embedded userinfo, and prior intentional same-origin authenticated use — and neither populated a replayable HTTP authentication cache in Chromium. A cross-site replay to a victim-attributed state change was not reproduced, and account attribution was unchanged. These results narrow but do not universally close the concern: Firefox and WebKit were not tested, and a future surface that returns a `Basic` challenge to an unprompted request would reopen it.
 
-**Severity is unconfirmed.** The initial Medium assessment was conditional on authenticated browser state change. It is not an established severity rating. The browser-CSRF concern is neither demonstrated nor refuted, and remains an open investigation rather than a confirmed vulnerability or an accepted risk.
+**Severity is unconfirmed; the initial Medium is withdrawn as an established rating.** It was conditional on reproducing an authenticated browser state change, which did not occur in Chromium. The concern is not demonstrated; it is also not disproven as a class, because two of three target browsers remain untested. It remains an open investigation rather than a confirmed vulnerability or an accepted risk.
 
 ## Source evidence
 
@@ -42,6 +47,20 @@ These are transcribed from the supplied curl summary. Exact commands, request bo
 
 The summary calls the endpoint a live server. Supporting-service topology, stubs, proxies, and other effective configuration were not documented. These observations do not establish production behavior.
 
+## Browser validation (Chromium)
+
+Added 2026-10-04 against baseline `6090151320`. Real Chromium (build 1243) driven by Playwright 1.62.1 under Node v26.4.0, headless, a fresh browser context per run, no custom flags. Target `https://dev.onetime.dev` (public certificate). A throwaway `customer`-role test account was used; attribution was read before and after from outside the browser via `GET /api/v2/receipt/recent` (`auth=basicauth`). The attacker page was served from a distinct loopback origin (`http://127.0.0.1:7777`), cross-origin to the host. Raw traces, the test identity, and exact scripts are in the local git-ignored evidence file; credential values were never recorded.
+
+| ID | Browser action | Result | What it establishes |
+|---|---|---|---|
+| B1 | Navigate with embedded userinfo (`https://user:pass@host/api/account`); capture host requests/responses | First (and only) host request carried **no** `Authorization` header; response `401 WWW-Authenticate: Session`; no retry | Chromium does not send embedded-userinfo Basic credentials preemptively, and a non-`Basic` challenge triggers no Basic retry. Nothing is cached. |
+| B2 | After B1, same-origin headerless `fetch('/api/v2/receipt/recent', {credentials:'include'})` | `401` (`[AUTH_HEADER_MISSING]`) | No credential was cached by B1. |
+| B3 | From a tab on the real origin: an explicit-`Authorization` same-origin fetch (`200`), then a later same-origin **headerless** fetch | Later fetch `401` | An explicit-header fetch does not populate Chromium's HTTP auth cache; this is the direct test of the "prior intentional API use" path (R4C3C-2). |
+| B4 | Cross-origin attacker page `fetch(..., {credentials:'include'})` to `POST /api/v2/secret/conceal` | `TypeError: Failed to fetch` (blocked by CORS before auth) | The cross-site credentialed fetch does not reach an authenticated evaluation. |
+| B5 | Victim receipt count before vs. after B1–B4 | `0` → `0`, unchanged | No forged conceal was attributed to the test account. |
+
+Scope limits: Chromium only; Firefox and WebKit untested, and their HTTP-auth-cache and preemptive-userinfo behavior can differ. No surface was found that returns a `Basic` challenge to an unprompted (headerless) request — that absence is the operative block and the invariant the concern depends on. Production edge and proxy configuration were not exercised.
+
 ## Conditional failure scenario
 
 1. A browser has valid API credentials in an HTTP authentication cache applicable to the target endpoint.
@@ -52,14 +71,14 @@ The summary calls the endpoint a live server. Supporting-service topology, stubs
 
 The consequence would be an unintended action under the victim's API identity. Secret creation could produce unwanted account-attributed records and resource use. Broader destructive impact has not been established.
 
-Steps 1, 3, and the browser-specific parts of step 4 remain untested. Neither a 200 response nor an anonymous secret record proves this scenario. CSRF alone also does not establish response disclosure, API-key theft, or account takeover.
+In Chromium, step 1 (a populated HTTP auth cache) did not arise from either tested path, and step 3 (cross-site send with cached credentials) did not occur; see B1–B5. The scenario is therefore unreproduced in Chromium. It remains untested in Firefox and WebKit, and step 1 could still arise from a browser behavior or a server surface not covered here. Neither a 200 response nor an anonymous secret record proves this scenario. CSRF alone also does not establish response disclosure, API-key theft, or account takeover.
 
 ## Review disposition ledger
 
 | ID | Concern about the original validation summary | Disposition in this audit |
 |---|---|---|
 | R4C3C-1 | Curl results were presented as a failed browser reproduction. | Corrected: results are reported HTTP observations; browser reproduction remains pending. |
-| R4C3C-2 | Lack of a Basic challenge on headerless requests was treated as proof that cached credentials cannot exist. | Corrected: challenge selection limits exposure but does not refute an already-cached-credential scenario. E2 supplies a Basic-challenge path; its browser-cache effects are unknown. |
+| R4C3C-2 | Lack of a Basic challenge on headerless requests was treated as proof that cached credentials cannot exist. | Corrected, then tested: challenge selection limits exposure but does not by itself refute an already-cached-credential scenario. The Chromium round (B1, B3) directly tested the two cache-population paths — embedded userinfo and prior intentional same-origin authed use — and neither populated a replayable cache; E2's Basic-challenge path is reached only by a request that already carried credentials. Untested in Firefox/WebKit. |
 | R4C3C-3 | A code comment was treated as proof of safety, and future Basic challenges as proof of exploitation. | Corrected: comments express intent. Changing challenge behavior warrants reassessment, but exploitation still requires credential replay and an accepted authenticated action. |
 
 Anonymous cross-origin creation alone is not evidence of victim-identity CSRF. A standalone scripted client intentionally supplying its API key likewise does not demonstrate browser CSRF. Neither observation disposes of the cached-browser-credential question.
@@ -70,12 +89,13 @@ The supplied summary attributed challenge hardening to PR #4223. That attributio
 
 Use dedicated local test accounts and non-sensitive payloads. Record exact code revision, working-tree changes, effective middleware settings, browser versions, and test commands or automation.
 
-1. **Establish the prerequisite.** In real Chromium, Firefox, and WebKit browsers, test intentional API authentication and applicable credential-bearing navigation/challenge flows. Record whether they actually populate a reusable HTTP authentication cache. Explicitly adding an Authorization header in automation is not evidence of automatic replay.
-2. **Separate session and HTTP-auth state.** Verify there is no authenticated session without inadvertently clearing the HTTP authentication cache under test.
-3. **Exercise cross-site submission.** From a separate origin, submit a browser-valid request to the candidate endpoint. Record method, content type, Origin, cookie state, and whether Authorization was automatically attached, without publishing credential values. Include same-site cross-origin coverage where applicable.
-4. **Verify the consequence.** Establish server-side account attribution and resulting state. Do not count anonymous success as authenticated CSRF.
-5. **Check controls.** Compare an empty authentication cache, an authenticated session without a CSRF token, and Origin protection enabled versus disabled. Distinguish rejection by the browser, application, and proxy.
+The Chromium round above covers the prerequisite and cross-site replay for one engine. The remaining work is:
+
+1. **Repeat the prerequisite test in Firefox and WebKit.** Run the B1 (embedded userinfo) and B3 (prior intentional same-origin authed use) flows and record whether either populates a reusable HTTP authentication cache in those engines. Their behavior may differ from Chromium's.
+2. **Repeat cross-site submission and consequence checks in those engines.** From a separate origin, submit a browser-valid request to the candidate endpoint; record method, content type, Origin, cookie state, and whether Authorization was automatically attached. Establish server-side account attribution; do not count anonymous success as authenticated CSRF. Include same-site cross-origin coverage where applicable.
+3. **Guard the invariant.** Confirm no application surface returns `WWW-Authenticate: Basic` to an unprompted (headerless) request. The Chromium block depends on this; a change to challenge selection (for example in `session_failure_code.rb`) reopens the concern and warrants re-running the full round.
+4. **Check controls and production edge.** Compare an empty authentication cache, an authenticated session without a CSRF token, and Origin protection enabled versus disabled; distinguish rejection by the browser, application, and proxy. The Chromium round ran against a development baseline with `MIDDLEWARE_HTTP_ORIGIN` unset; production edge and proxy behavior were not exercised.
 
 Keep raw credential-bearing traces private. Publish sanitized results and their limitations. Determine severity from the authenticated actions actually demonstrated. A negative result must name the browser versions and flows tested rather than claim universal impossibility.
 
-No application changes, browser tests, or live curl reruns were performed while creating this record. This audit does not close or accept the concern.
+A Chromium browser round was performed on 2026-10-04 (baseline `6090151320`); no application changes were made. This audit does not close or accept the concern: Firefox and WebKit remain untested and the invariant in step 3 must hold.
