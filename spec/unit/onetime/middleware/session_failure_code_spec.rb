@@ -14,6 +14,8 @@
 require 'spec_helper'
 require 'json'
 require 'onetime/middleware/session_failure_code'
+# RISK-2026-10-03-4C3C guard: drives the real Basic strategy parser.
+require 'onetime/application/auth_strategies/basic_auth_strategy'
 
 RSpec.describe Onetime::Middleware::SessionFailureCode do
   let(:env_key) { described_class::ENV_KEY }
@@ -403,5 +405,89 @@ RSpec.describe Onetime::Middleware::SessionFailureCode do
     _s, _h, body     = call(response, refused_env(:stale_credentials))
 
     expect(JSON.parse(body.join)['code']).to eq('stale_credentials')
+  end
+
+  # RISK-2026-10-03-4C3C. The sessionless /api/ CSRF-token exemption
+  # (registry.rb) is only safe because a browser never acquires a replayable
+  # Basic credential to forge with: it caches one only after a
+  # `WWW-Authenticate: Basic` response, and this app emits that scheme ONLY in
+  # answer to a request that already carried an `Authorization` header. The
+  # whole non-exploitability rests on one invariant:
+  #
+  #   An unprompted (headerless) request is NEVER answered with a Basic
+  #   challenge.
+  #
+  # The scheme travels from exactly one place — Helpers#credentialed_failure
+  # stashes SCHEME_BASIC — and the Basic strategy reaches it only once an
+  # Authorization header is present (basic_auth_strategy.rb: a missing header
+  # is a plain `failure`, no stash). This block pins that seam against a change
+  # that would stash SCHEME_BASIC on a headerless path and reopen the concern.
+  # It drives the real Helpers#credentialed_failure, not a hand-set scheme.
+  describe 'RISK-2026-10-03-4C3C: no Basic challenge to an unprompted request' do
+    # The real strategy: its own parse_basic_auth_credentials and the Helpers
+    # #credentialed_failure it calls, nothing mocked. The parser touches no
+    # datastore before it branches on the header, which is all this exercises.
+    let(:strategy) { Onetime::Application::AuthStrategies::BasicAuthStrategy.new }
+
+    # Drive the REAL strategy entry point (parse_basic_auth_credentials), so a
+    # change to which branch stashes the scheme is caught here. A bad-but-present
+    # header reaches credentialed_failure (stashes Basic); an absent header is a
+    # plain failure (stashes nothing). The method is private; send() is deliberate.
+    def env_after_parse(authorization)
+      env = {}
+      env['HTTP_AUTHORIZATION'] = authorization if authorization
+      strategy.send(:parse_basic_auth_credentials, env)
+      env
+    end
+
+    it 'stashes no scheme when no Authorization header was presented' do
+      env = env_after_parse(nil)
+
+      expect(Onetime::SessionFailureCode.scheme(env)).to be_nil
+    end
+
+    # 'Zm9v' decodes to 'foo' with no colon: a present-but-malformed Basic
+    # payload, which the parser examines and rejects via credentialed_failure.
+    let(:malformed_basic) { 'Basic Zm9v' }
+
+    it 'stashes Basic only once an Authorization header was examined' do
+      env = env_after_parse(malformed_basic)
+
+      expect(Onetime::SessionFailureCode.scheme(env)).to eq(Onetime::SessionFailureCode::SCHEME_BASIC)
+    end
+
+    # The composed property: run the strategy's env through the middleware and
+    # assert the challenge is never Basic for a headerless refusal, whatever the
+    # route's declared chain. A headerless refusal may carry Session or (when no
+    # typed reason was stashed, as a basicauth-only route does) no challenge at
+    # all; both are safe. Only a Basic challenge populates the browser cache.
+    it 'never answers a headerless refusal with Basic, across chain shapes' do
+      # A session reason is what Otto stashes for a headerless refusal on any
+      # chain that resolves a session first; a basicauth-only chain stashes
+      # nothing (AUTH_HEADER_MISSING is a plain failure).
+      [
+        refused_env(:session_missing),       # sessionauth / sessionauth,basicauth
+        refused_env(:not_authenticated),     # session-scope refusal
+        { 'otto.strategy_result' => failed_chain }.merge(env_after_parse(nil)), # basicauth-only, headerless
+      ].each do |env|
+        _s, headers, _b = call(otto_response, env)
+        challenge = headers.find { |k, _v| k.to_s.casecmp('www-authenticate').zero? }&.last
+
+        expect(challenge).not_to eq('Basic realm="onetimesecret"'),
+          "a headerless refusal was challenged with Basic (env: #{env.keys.inspect})"
+      end
+    end
+
+    # The regression anchor: a Basic challenge is reachable, but ONLY from the
+    # credentialed path. If this stops holding, the test above stops meaning
+    # anything, so pin it here too.
+    it 'does answer with Basic once the credentialed path stashed the scheme' do
+      env = env_after_parse(malformed_basic)
+      env['otto.strategy_result'] = failed_chain
+
+      _s, headers, _b = call(otto_response, env)
+
+      expect(headers['www-authenticate']).to eq('Basic realm="onetimesecret"')
+    end
   end
 end
