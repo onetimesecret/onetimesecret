@@ -21,6 +21,8 @@
 #   republishes, so a worker processes the replayed message; a dry run releases
 #   nothing; a claim that cannot be released keeps that message in the DLQ and
 #   is reported without stopping the batch
+# - Replay attempts each message at most once per batch: a message that fails
+#   returns to the DLQ when the channel closes, not in the middle of the batch
 # - Purge: empties the queue, records EXACTLY ONE audit event (verb queue.dlq.purge)
 # - Purge empty: no mutation, but the LIVE attempt still records ONE event with
 #   outcome: 'no_change' (#4337 — the trail must show the firing, not the timing)
@@ -89,9 +91,18 @@ class FakeQueue
     @unacked.delete(tag) # permanently removed
   end
 
+  # A requeued message goes back to its original position, the head of the
+  # queue, as RabbitMQ does for a classic queue: the next pop returns it again.
   def nack(tag, _multiple, requeue)
     m = @unacked.delete(tag)
-    @messages.push(m) if requeue && m
+    @messages.unshift(m) if requeue && m
+  end
+
+  # The broker returns the deliveries a closing channel still holds to the
+  # head of the queue, in delivery order.
+  def requeue_unacked
+    @messages.unshift(*@unacked.sort.map(&:last))
+    @unacked.clear
   end
 
   def purge
@@ -99,6 +110,7 @@ class FakeQueue
   end
 end
 
+# Closing the channel returns every delivery still unacked to the queue.
 class FakeChannel
   attr_reader :exchange
 
@@ -119,19 +131,27 @@ class FakeChannel
   def ack(tag) = @queue.ack(tag)
   def nack(tag, m, r) = @queue.nack(tag, m, r)
   def open? = @open
-  def close = (@open = false)
+
+  def close
+    @queue.requeue_unacked
+    @open = false
+  end
 end
 
+# The optional block receives each channel as it is created, so a test can
+# make one of its calls fail.
 class FakeConnection
   attr_reader :channels
 
-  def initialize(queue)
-    @queue    = queue
-    @channels = []
+  def initialize(queue, &on_channel)
+    @queue      = queue
+    @channels   = []
+    @on_channel = on_channel
   end
 
   def create_channel
     ch = FakeChannel.new(@queue)
+    @on_channel&.call(ch)
     @channels << ch
     ch
   end
@@ -413,6 +433,29 @@ end
 [@stuck_q.message_count, @stuck_conn.channels.first.exchange.published.map { |p| p[:opts][:message_id] }]
 #=> [1, ["claim-try-1", "claim-try-3"]]
 
+# ---- Replay: each message is attempted once per batch ------------------
+#
+# The broker puts a requeued message back at the head of the DLQ, so a
+# message returned in the middle of the batch would be popped again at once
+# and use up the attempts meant for the messages behind it.
+
+## a failed publish is counted once and the messages after it are still replayed
+@pubfail_q = FakeQueue.new(claim_messages('claim-try-p1', 'claim-try-pfail', 'claim-try-p3'))
+@pubfail_conn = FakeConnection.new(@pubfail_q) do |ch|
+  ch.exchange.define_singleton_method(:publish) do |payload, **opts|
+    raise(Onetime::Problem, 'publish refused') if opts[:message_id] == 'claim-try-pfail'
+
+    super(payload, **opts)
+  end
+end
+@pubfail = Onetime::Operations::Dlq::Replay.new(connection: @pubfail_conn, queue: @dlq, actor: @actor).call
+[@pubfail.replayed, @pubfail.failed, @pubfail.errors.map { |e| [e[:message_id], e[:error]] }]
+#=> [2, 1, [["claim-try-pfail", "publish refused"]]]
+
+## the message that failed to publish is back in the DLQ; the others were republished
+[@pubfail_q.message_count, @pubfail_conn.channels.first.exchange.published.map { |p| p[:opts][:message_id] }]
+#=> [1, ["claim-try-p1", "claim-try-p3"]]
+
 # ---- Purge: success ---------------------------------------------------
 
 ## Purge empties the queue and reports the purged count
@@ -455,4 +498,4 @@ AE.events.clear
 
 # Cleanup
 AE.events.clear
-Familia.dbclient.del(*%w[a b dry orphan 1 stuck 3].map { |suffix| claim_key("claim-try-#{suffix}") })
+Familia.dbclient.del(*%w[a b dry orphan 1 stuck 3 p1 pfail p3].map { |suffix| claim_key("claim-try-#{suffix}") })

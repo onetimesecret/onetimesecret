@@ -18,10 +18,12 @@ module Onetime
       # CLI are thin adapters over it.
       #
       # This is a mutating verb. For each message it republishes to the original
-      # queue (from the `x-death` header) and acks it off the DLQ; a message with no
-      # recoverable original queue is nacked WITHOUT requeue (dropped, to avoid an
-      # infinite dead-letter loop) and counted as failed; a publish error nacks WITH
-      # requeue so the message survives.
+      # queue (from the `x-death` header) and acks it off the DLQ. A message with
+      # no recoverable original queue is nacked WITHOUT requeue (dropped, to
+      # avoid an infinite dead-letter loop) and counted as failed. A message
+      # whose publish fails is left unacked and counted as failed; it returns to
+      # the DLQ when the replay closes its channel, so each message is attempted
+      # at most once per replay.
       #
       # ## Idempotency claims
       #
@@ -34,8 +36,8 @@ module Onetime
       # message again: the claim on each message id is released before the
       # message is republished. This applies to every queue. A message with no
       # message id has no claim. A message whose claim cannot be released (the
-      # datastore is unreachable) is not republished: it is nacked WITH requeue
-      # so it stays in the DLQ, and is counted as failed with the error.
+      # datastore is unreachable) is not republished: it is left unacked so it
+      # stays in the DLQ, and is counted as failed with the error.
       #
       # ## Audit (exactly once)
       #
@@ -208,7 +210,14 @@ module Onetime
           Result.new(status: :empty, queue: @queue, replayed: 0, failed: 0, errors: [], would_replay: 0)
         end
 
-        # The release/republish/ack/nack loop.
+        # The release/republish/ack loop.
+        #
+        # A message that is not replayed is left unacked, not nacked with
+        # requeue. The broker would put a requeued message back at the head
+        # of the DLQ, where the next pop would return it again and use up the
+        # attempts meant for the messages behind it. Closing the channel (in
+        # #call's ensure) returns every unacked message to the DLQ, also when
+        # the loop raises.
         def replay_loop(channel, queue, to_replay)
           results = { replayed: 0, failed: 0, errors: [] }
 
@@ -236,8 +245,7 @@ module Onetime
                 error: "Idempotency claim not released: #{ex.message}",
               }
               # Republished with the claim still held, the message could be
-              # acked as a duplicate and lost. Nack WITH requeue keeps it.
-              channel.nack(delivery_info.delivery_tag, false, true)
+              # acked as a duplicate and lost. Left unacked, it stays in the DLQ.
               next
             end
 
@@ -253,9 +261,9 @@ module Onetime
               channel.ack(delivery_info.delivery_tag)
               results[:replayed] += 1
             rescue StandardError => ex
+              # Left unacked, the message returns to the DLQ.
               results[:failed] += 1
               results[:errors] << { message_id: properties.message_id, error: ex.message }
-              channel.nack(delivery_info.delivery_tag, false, true)
             end
           end
 
