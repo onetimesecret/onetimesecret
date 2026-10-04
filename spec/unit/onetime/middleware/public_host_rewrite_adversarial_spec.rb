@@ -49,6 +49,8 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
     "evil.test, #{REGISTERED}" => 'evil.test',
     "#{REGISTERED}@evil.test" => nil,
     "evil.test@#{REGISTERED}" => nil,
+    "user:pw@#{REGISTERED}" => nil,
+    "#{REGISTERED}:pw@evil.test" => nil,
     '10.0.0.7:3000' => nil,
     'localhost:3000' => nil,
     '' => nil,
@@ -57,9 +59,13 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
 
   HOSTS = HOST_NAMES.keys.freeze
 
+  # A single X-Forwarded-Host value with userinfo ('@') in it: no host is
+  # detected for the request, and detection does not continue with Host.
+  REFUSED = :refused
+
   # The same for X-Forwarded-Host from a trusted proxy: the hostname it is
-  # selected as, or nil when it is not selected and detection continues
-  # with Host. A value with more than one entry is never selected.
+  # selected as, nil when it is not selected and detection continues with
+  # Host, or REFUSED. A value with more than one entry is never selected.
   FORWARDED_HOST_NAMES = {
     nil => nil,
     '' => nil,
@@ -81,15 +87,16 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
     "#{REGISTERED}/path" => nil,
     "#{REGISTERED}?x=1" => nil,
     "#{REGISTERED}#evil.test" => nil,
-    "#{REGISTERED}@evil.test" => nil,
-    "evil.test@#{REGISTERED}" => nil,
-    # Read as host "user", port "pw@...": a name, but not one that is served.
-    "user:pw@#{REGISTERED}" => 'user',
-    # URL forms name the URL's host; userinfo is not the host.
+    "#{REGISTERED}@evil.test" => REFUSED,
+    "evil.test@#{REGISTERED}" => REFUSED,
+    "user:pw@#{REGISTERED}" => REFUSED,
+    "#{REGISTERED}:pw@evil.test" => REFUSED,
+    "#{CANONICAL}:8443@evil.test" => REFUSED,
+    # URL forms name the URL's host, unless the URL carries userinfo.
     "https://#{REGISTERED}" => REGISTERED,
     "https://#{REGISTERED}:8443/x" => REGISTERED,
-    "https://evil.test@#{REGISTERED}/" => REGISTERED,
-    "https://#{REGISTERED}@evil.test/" => 'evil.test',
+    "https://evil.test@#{REGISTERED}/" => REFUSED,
+    "https://#{REGISTERED}@evil.test/" => REFUSED,
     "#{REGISTERED}\r\nX-Injected: 1" => nil,
     "#{REGISTERED}\tevil.test" => nil,
     "#{REGISTERED} evil.test" => nil,
@@ -249,7 +256,7 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
   # Host does not already name as one plain host[:port]).
   def expected_for(input)
     forwarded = TRUSTED_PEERS.include?(input[:peer]) ? FORWARDED_HOST_NAMES.fetch(input[:xfh]) : nil
-    name      = forwarded || HOST_NAMES.fetch(input[:host])
+    name      = forwarded == REFUSED ? nil : forwarded || HOST_NAMES.fetch(input[:host])
     strategy  = SERVED_STRATEGIES.fetch(name, :invalid)
     named     = !name.nil? && input[:host].to_s.match?(/\A#{Regexp.escape(name)}(?::[0-9]+)?\z/i)
     {

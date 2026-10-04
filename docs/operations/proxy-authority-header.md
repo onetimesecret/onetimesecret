@@ -46,6 +46,27 @@ comma-joined) is not read. No value is picked from it. The request resolves on
 
 The request is still served; it is not answered with an error.
 
+### A value with userinfo
+
+A value with an `@` in it (`user:pw@secrets.example.com`,
+`https://user@secrets.example.com/`) names no host, in `X-Forwarded-Host` or
+in `Host`. A request authority has no userinfo.
+
+When a trusted proxy sends such a value as the single `X-Forwarded-Host`, no
+host is detected for the request and the application does not fall back to
+`Host`. The request is handled like one with an IP-literal `Host`: it does not
+classify as a served host, and both admin surfaces return 404. The application
+logs:
+
+```text
+[DetectHost] Refusing X-Forwarded-Host with userinfo ('@') in it; no host is detected for this request. The proxy must send a bare host or host:port
+```
+
+This differs from the other unusable values (an IP literal, `localhost`, a
+malformed name), which are skipped in favour of `Host`. `user:pw@host` was
+previously read as the host `user`, which is never a served host, so falling
+back to `Host` would have served and admitted requests that were refused.
+
 ## What the proxy must do
 
 The proxy in front of the application adapts whatever is upstream of it to the
@@ -87,7 +108,9 @@ detected host, and it also looks at the headers the application does not read:
 when `Apx-Incoming-Host`, `X-Original-Host`, or the first value of a
 multi-valued `X-Forwarded-Host` names a host other than the detected one, both
 admin surfaces return 404 for that request, from any peer. RFC 7239 `Forwarded`
-is judged the same way for peers that are not a configured trusted proxy.
+is judged the same way for peers that are not a configured trusted proxy. A
+value with userinfo (`user:pw@host`) in one of those headers names no host and
+is judged as a host that disagrees.
 
 So a proxy that leaves one of those headers on the request does not change
 which host is detected, but it can make the admin surfaces 404 where the header

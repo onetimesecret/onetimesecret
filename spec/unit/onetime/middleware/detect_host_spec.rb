@@ -145,4 +145,81 @@ RSpec.describe Rack::DetectHost do
       described_class.result_field_name = original
     end
   end
+
+  # `user:pw@host` is not host:port. Read that way it named the host "user".
+  describe 'userinfo in an authority' do
+    def detected(env)
+      env[described_class.result_field_name]
+    end
+
+    def carriers(env)
+      env[described_class.userinfo_carriers_field_name]
+    end
+
+    ['user:pw@tenant.example.com', 'user@tenant.example.com', 'tenant.example.com:pw@evil.test',
+     'https://user:pw@tenant.example.com/', '@tenant.example.com', 'tenant.example.com@'].each do |value|
+      it "detects no host for a trusted X-Forwarded-Host #{value.inspect}, and does not continue with Host" do
+        env = detect(value)
+
+        expect(detected(env)).to be_nil
+        expect(authority(env)).to be_nil
+      end
+
+      it "detects no host for Host #{value.inspect}" do
+        env = detect(nil, 'HTTP_HOST' => value)
+
+        expect(detected(env)).to be_nil
+      end
+
+      it "does not read #{value.inspect} from a peer that is not a trusted proxy" do
+        env = detect(value, 'REMOTE_ADDR' => '203.0.113.9')
+
+        expect(detected(env)).to eq('origin.example.com')
+        expect(carriers(env)).to be_nil
+      end
+    end
+
+    it 'still continues with Host for the other unusable X-Forwarded-Host values' do
+      ['10.0.0.7', 'localhost', '[::1]:8443', '-bad.example.com'].each do |value|
+        expect(detected(detect(value))).to eq('origin.example.com')
+      end
+    end
+
+    it 'keeps the outcome of a value with trailing text after the port' do
+      expect(detected(detect('tenant.example.com:abc'))).to eq('tenant.example.com')
+      expect(detected(detect('tenant.example.com:8443/path'))).to eq('tenant.example.com')
+    end
+
+    {
+      'Apx-Incoming-Host' => { 'HTTP_APX_INCOMING_HOST' => 'user:pw@tenant.example.com' },
+      'X-Original-Host' => { 'HTTP_X_ORIGINAL_HOST' => 'user@tenant.example.com' },
+      'Forwarded' => { 'HTTP_FORWARDED' => 'for=192.0.2.1;host="user:pw@tenant.example.com"' },
+    }.each do |name, headers|
+      it "observes no host in #{name} and lists the header, for any peer" do
+        ['127.0.0.1', '203.0.113.9'].each do |peer|
+          env = detect(nil, 'REMOTE_ADDR' => peer, **headers)
+
+          expect(detected(env)).to eq('origin.example.com')
+          expect(carriers(env)).to eq([name])
+          expect(env[described_class.unselected_hosts_field_name]).to be_nil
+          expect(env[described_class.rfc7239_host_field_name]).to be_nil
+        end
+      end
+    end
+
+    it 'lists a multi-valued X-Forwarded-Host whose first value holds userinfo' do
+      env = detect('user:pw@tenant.example.com, tenant.example.com')
+
+      expect(detected(env)).to eq('origin.example.com')
+      expect(carriers(env)).to eq(['X-Forwarded-Host'])
+      expect(env[described_class.unselected_hosts_field_name]).to be_nil
+    end
+
+    it 'lists nothing when no observed carrier holds userinfo' do
+      env = detect('tenant.example.com', 'HTTP_APX_INCOMING_HOST' => 'tenant.example.com',
+        'HTTP_FORWARDED' => 'host=tenant.example.com')
+
+      expect(env).not_to have_key(described_class.userinfo_carriers_field_name)
+    end
+  end
 end

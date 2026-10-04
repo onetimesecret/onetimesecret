@@ -149,6 +149,16 @@ module Onetime
     # that, never the raw headers. A value that agrees with the detected
     # host changed nothing and is not a claim.
     #
+    # And an observed carrier whose value holds userinfo
+    # (`user:pw@example.com`) is judged as a disagreeing one (f). DetectHost
+    # reads no host from such a value and lists the header's name at
+    # env[Rack::DetectHost.userinfo_carriers_field_name]. Before that, the
+    # user name was observed as the host and disagreed with every detected
+    # host, so the request was denied under (d) or (e); with no host
+    # observed it would be admitted on `Host`. `Apx-Incoming-Host`,
+    # `X-Original-Host` and a multi-valued `X-Forwarded-Host` are judged
+    # where (e) is, for any peer; `Forwarded` where (d) is, after (a).
+    #
     # Otherwise the request is DENIED. It is not silently downgraded to the
     # HTTP_HOST-derived host: in the topology this defends (Approximated-style
     # ingress with trusted_proxy unset) `Host` is the ORIGIN's own hostname —
@@ -538,7 +548,8 @@ module Onetime
               note: 'a forwarded host header changed the detected host (or RFC 7239 Forwarded named a ' \
                     'different host than Host), but the peer is not a configured ' \
                     'trusted proxy; or Apx-Incoming-Host, X-Original-Host or a multi-valued X-Forwarded-Host ' \
-                    'named a host other than the detected one. Have the proxy send one X-Forwarded-Host and ' \
+                    'named a host other than the detected one, or one of those headers or Forwarded carried ' \
+                    "userinfo ('@'). Have the proxy send one X-Forwarded-Host and " \
                     'remove the other headers, and set site.network.trusted_proxy with explicit proxy CIDRs ' \
                     '— filter mode with none listed trusts every private peer — or ADMIN_ALLOWED_HOSTS=* to ' \
                     'turn the gate off',
@@ -617,6 +628,11 @@ module Onetime
         # #4384 that value was the detected host, trusted peer or not.
         return false if unselected_host_disagrees?(env, host)
 
+        # (f) An observed carrier holds userinfo: DetectHost read no host
+        # from it, so there is nothing to compare. Judged as disagreeing.
+        userinfo_carriers = Array(env[Rack::DetectHost.userinfo_carriers_field_name])
+        return false if (userinfo_carriers - [Rack::DetectHost::RFC7239_HEADER]).any?
+
         # (a) Operator-configured proxy trust, and this peer passed it. The key
         # is TRI-STATE (otto#228): written only when trust is configured, so
         # `== true` — never `!= false` — is the grant-only read.
@@ -629,6 +645,7 @@ module Onetime
         # one and (b)/(c) below would admit — on exactly the Host-rewriting
         # topology (a)-(c) refuse to fall back to Host for. See the class doc.
         return false if rfc7239_host_disagrees?(env, host_from_host_header)
+        return false if userinfo_carriers.include?(Rack::DetectHost::RFC7239_HEADER)
 
         # (b) Nothing that could have overridden the Host header is present.
         return true unless forwarded_host_header?(env)

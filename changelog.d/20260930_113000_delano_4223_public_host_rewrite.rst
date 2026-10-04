@@ -48,3 +48,16 @@ Changed
   public port had the origin hop's port as its request port and ``wss://`` in
   request-derived URLs. This applies whether or not ``public_host_rewrite`` is
   on. (#4223)
+
+Fixed
+-----
+
+- A forwarded host with userinfo (``user:pw@secrets.example.com``) is no
+  longer read as the host ``user``. No header value with an ``@`` in it names a
+  host. When a trusted proxy sends one as the single ``X-Forwarded-Host``, no
+  host is detected for the request and the application does not fall back to
+  ``Host``; in ``Apx-Incoming-Host``, ``X-Original-Host``, a multi-valued
+  ``X-Forwarded-Host`` or ``Forwarded``, the admin host gate treats it as a
+  host that disagrees. ``X-Forwarded-Host: user@host`` and
+  ``https://user@host/`` from a trusted proxy previously resolved on ``Host``
+  or on the URL's host; they are now refused the same way. (#4223)

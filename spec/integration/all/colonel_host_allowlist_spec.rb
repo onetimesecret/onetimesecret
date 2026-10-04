@@ -1175,6 +1175,70 @@ RSpec.describe 'Colonel admin surface host allowlist (#4062)', type: :integratio
             expect(last_response.status).to eq(200)
           end
 
+          # An authority with userinfo (`user:pw@host`) names no host for
+          # host detection, in any carrier. `example.com` is the allowlisted
+          # host here and `tenant.example.com` is not.
+          #
+          # A single-valued X-Forwarded-Host that host detection would have
+          # selected does not fall back to Host: no host is detected and the
+          # gate declines. The carriers that are only observed (rules d and
+          # e) decline the request the same way a disagreeing host does.
+          # Each row: peer, Host, headers, status.
+          {
+            'X-Forwarded-Host user:pw@allowlisted, allowlisted Host, peer otto vouched for' =>
+              [:trusted_peer, 'example.com', { 'HTTP_X_FORWARDED_HOST' => 'user:pw@example.com' }, 404],
+            'X-Forwarded-Host user:pw@tenant, allowlisted Host, peer otto vouched for' =>
+              [:trusted_peer, 'example.com', { 'HTTP_X_FORWARDED_HOST' => 'user:pw@tenant.example.com' }, 404],
+            'X-Forwarded-Host user:pw@allowlisted, tenant Host, peer otto vouched for' =>
+              [:trusted_peer, 'tenant.example.com', { 'HTTP_X_FORWARDED_HOST' => 'user:pw@example.com' }, 404],
+            'X-Forwarded-Host user:pw@allowlisted, allowlisted Host, loopback peer' =>
+              [:heuristic_peer, 'example.com', { 'HTTP_X_FORWARDED_HOST' => 'user:pw@example.com' }, 404],
+            'X-Forwarded-Host user:pw@allowlisted, tenant Host, loopback peer' =>
+              [:heuristic_peer, 'tenant.example.com', { 'HTTP_X_FORWARDED_HOST' => 'user:pw@example.com' }, 404],
+            'X-Forwarded-Host allowlisted:pw@tenant, tenant Host, peer otto vouched for' =>
+              [:trusted_peer, 'tenant.example.com', { 'HTTP_X_FORWARDED_HOST' => 'example.com:pw@tenant.example.com' }, 404],
+            'X-Forwarded-Host user@allowlisted, allowlisted Host, peer otto vouched for' =>
+              [:trusted_peer, 'example.com', { 'HTTP_X_FORWARDED_HOST' => 'user@example.com' }, 404],
+            'X-Forwarded-Host https://user:pw@allowlisted/, tenant Host, peer otto vouched for' =>
+              [:trusted_peer, 'tenant.example.com', { 'HTTP_X_FORWARDED_HOST' => 'https://user:pw@example.com/' }, 404],
+            'Host user:pw@allowlisted, untrusted peer' =>
+              [:untrusted_peer, 'user:pw@example.com', {}, 404],
+            'Apx-Incoming-Host user:pw@allowlisted, allowlisted Host, peer otto vouched for' =>
+              [:trusted_peer, 'example.com', { 'HTTP_APX_INCOMING_HOST' => 'user:pw@example.com' }, 404],
+            'Apx-Incoming-Host user:pw@allowlisted, allowlisted Host, loopback peer' =>
+              [:heuristic_peer, 'example.com', { 'HTTP_APX_INCOMING_HOST' => 'user:pw@example.com' }, 404],
+            'X-Original-Host user@allowlisted, allowlisted Host, loopback peer' =>
+              [:heuristic_peer, 'example.com', { 'HTTP_X_ORIGINAL_HOST' => 'user@example.com' }, 404],
+            'a multi-valued X-Forwarded-Host starting user:pw@allowlisted, allowlisted Host, peer otto vouched for' =>
+              [:trusted_peer, 'example.com', { 'HTTP_X_FORWARDED_HOST' => 'user:pw@example.com, example.com' }, 404],
+            'Forwarded host="user:pw@allowlisted", allowlisted Host, loopback peer' =>
+              [:heuristic_peer, 'example.com', { 'HTTP_FORWARDED' => 'host="user:pw@example.com"' }, 404],
+            # Unchanged admissions: X-Forwarded-Host is not read from this
+            # peer, and rule (d) does not apply to a peer otto vouched for.
+            'X-Forwarded-Host user:pw@tenant, allowlisted Host, untrusted peer (not read)' =>
+              [:untrusted_peer, 'example.com', { 'HTTP_X_FORWARDED_HOST' => 'user:pw@tenant.example.com' }, 200],
+            'Forwarded host="user:pw@tenant", allowlisted Host, peer otto vouched for' =>
+              [:trusted_peer, 'example.com', { 'HTTP_FORWARDED' => 'host="user:pw@tenant.example.com"' }, 200],
+          }.each do |name, (peer, host, headers, status)|
+            it "answers #{status} for #{name}" do
+              signed_in_as(colonel)
+              get_api(host, send(peer).merge(headers))
+
+              expect(last_response.status).to eq(status)
+            end
+          end
+
+          it 'reports a userinfo X-Forwarded-Host from a trusted peer as no detected host, not as a host named "user"' do
+            warns = capture_admin_gate_warns!
+            signed_in_as(colonel)
+            get_api('example.com', trusted_peer.merge('HTTP_X_FORWARDED_HOST' => 'user:pw@example.com'))
+
+            expect(last_response.status).to eq(404)
+            expect(last_request.env[Rack::DetectHost.result_field_name]).to be_nil
+            expect(warns.map(&:first)).to include(a_string_matching(/no host could be detected/))
+            expect(warns.map(&:first)).not_to include(a_string_matching(/denied by host allowlist/))
+          end
+
           # The remedy in the provenance WARN must demand EXPLICIT proxy CIDRs:
           # filter mode with none configured trusts every private-network peer
           # (add_trusted_proxy(PRIVATE_PROXY_RANGES)), which re-opens exactly the
