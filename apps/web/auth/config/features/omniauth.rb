@@ -169,16 +169,15 @@ module Auth::Config::Features
     # platform SSO on the canonical host. The canonical tiers make the
     # authority irrelevant to the HOST: DomainStrategy pins `display_domain`
     # to the canonical host on exactly those requests, and that is what the
-    # URL builds on (the port still comes from the request, so a doubled Host
-    # on a non-default-port site.host yields the host without its port — see
-    # Auth::PublicHost.origin_for). Rack stays only as the last resort behind
-    # an UNCONFIGURED site.host — the same misconfiguration Rodauth's
-    # `super()` covers.
+    # URL builds on (an explicit configured canonical port also wins over the
+    # request port — see Auth::PublicHost.origin_for). If no verified tenant or
+    # canonical tier resolves, refuse with the same typed configuration failure
+    # as Rodauth; an unconfigured site.host cannot authorize Rack's raw host.
     #
     # @param env [Hash] Rack environment
     # @return [String] scheme://host[:port] for this request
     def self.full_host_for(env)
-      Auth::PublicHost.allowlisted_base_url(env) || Rack::Request.new(env).base_url
+      Auth::PublicHost.required_base_url!(env)
     end
 
     # The public host when it is one the middleware tier actually resolved for

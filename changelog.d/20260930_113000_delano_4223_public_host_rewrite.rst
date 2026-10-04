@@ -64,3 +64,11 @@ Fixed
   host that disagrees. ``X-Forwarded-Host: user@host`` and
   ``https://user@host/`` from a trusted proxy previously resolved on ``Host``
   or on the URL's host; they are now refused the same way. (#4223)
+
+Security
+--------
+
+- Authentication links no longer fall back to the request's raw host when no
+  verified tenant or configured canonical origin is available. Configure
+  ``site.host`` or verify the tenant domain; see
+  ``docs/operations/proxy-authority-header.md``. (#4223)

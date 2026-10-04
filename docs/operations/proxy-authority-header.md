@@ -219,6 +219,31 @@ With the setting on, a request through a Host-rewriting proxy reaches the
 mounted applications with the same host a Host-preserving proxy would have
 delivered. `X-Forwarded-Host` is still accepted from a trusted proxy only.
 
+## Authentication URL configuration
+
+Authentication email links and SSO callback URLs require a resolved origin from
+one of these sources, in order:
+
+1. A verified custom domain resolved for the request.
+2. The request's host when it belongs to the configured canonical set.
+3. The configured `site.host` fallback.
+
+If none resolves, URL generation fails instead of using the request's raw
+`Host`. This also applies when `site.host` is missing or blank. An unverified
+tenant or an unregistered host cannot become an authentication-link destination
+just because it reached the server.
+
+A password-reset POST in that configuration returns a generic HTTP 500 before
+account lookup, reset-key changes, or email publication. Request rate limiting
+still runs first and may return its usual HTTP 429. Existing reset keys are not
+changed by the missing-origin refusal.
+
+Configure `site.host` with the public canonical authority, including its port
+when needed, or complete verification of the request's custom domain. A verified
+tenant or a configured canonical request host still resolves without the
+`site.host` fallback. Do not work around the failure by trusting arbitrary
+incoming host headers.
+
 ## Upgrading
 
 **You use SAML behind a Host-rewriting proxy.** Deploy the callback-scope fix

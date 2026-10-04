@@ -583,23 +583,23 @@ module HostProxyMatrix
       idp: nil, sso_location: '/signin?auth_error=sso_not_configured',
       link: nil, reset_status: 404 },
     # Real configuration mutation, not a stub of Auth::PublicHost. The default
-    # canonical host remains configured; only requests that cannot use that
-    # tier reach the request-derived fallback. SSO verification still applies.
+    # canonical host remains configured; requests that cannot use a verified
+    # tenant or canonical tier must refuse credential emission (H-05).
     { id: 'H05-E01', case: 'missing site.host retains the configured default host for both emitters',
       site_host: nil, headers: { 'Host' => '{canonical}' },
       idp: :platform, redirect_uri: CANONICAL_ORIGIN, link: CANONICAL_ORIGIN, brand: '{canonical}' },
     { id: 'H05-E02', case: 'missing site.host retains a verified tenant for both emitters',
       site_host: nil, headers: { 'Host' => '{canonical}', 'X-Forwarded-Host' => '{tenant}' },
       idp: :tenant, redirect_uri: TENANT_ORIGIN, link: TENANT_ORIGIN, brand: '{tenant}', rewritten: {} },
-    { id: 'H05-E03', case: 'missing site.host emits a reset link on an unverified preserved Host but refuses SSO',
+    { id: 'H05-E03', case: 'missing site.host refuses a reset link on an unverified preserved Host',
       site_host: nil, record: :unverified, headers: { 'Host' => '{tenant}' },
       idp: nil, sso_location: '/signin?auth_error=sso_domain_unverified',
-      link: TENANT_ORIGIN, brand: nil },
-    { id: 'H05-E04', case: 'missing site.host makes an unverified tenant reset link follow Rack authority',
+      link: nil, reset_status: 500 },
+    { id: 'H05-E04', case: 'missing site.host refuses an unverified tenant reset link regardless of Rack authority',
       site_host: nil, record: :unverified,
       headers: { 'Host' => '{canonical}', 'X-Forwarded-Host' => '{tenant}' },
       idp: nil, sso_location: '/signin?auth_error=sso_domain_unverified',
-      link: CANONICAL_ORIGIN, brand: nil, rewritten: { link: TENANT_ORIGIN } },
+      link: nil, reset_status: 500, rewritten: {} },
     { id: 'H05-E05', case: 'missing site.host still refuses emitters for an unregistered display host',
       site_host: nil, headers: { 'Host' => '{canonical}', 'X-Forwarded-Host' => UNREGISTERED },
       idp: nil, sso_location: '/signin?auth_error=sso_not_configured',
@@ -634,10 +634,10 @@ module HostProxyMatrix
       headers: { 'Host' => SITE_HOST, 'X-Forwarded-Host' => UNREGISTERED },
       idp: nil, sso_location: '/signin?auth_error=sso_not_configured',
       link: SITE_HOST_ORIGIN, brand: SITE_HOST },
-    { id: 'H05-E07', case: 'missing site.host with domains disabled emits a request-host reset link but refuses SSO',
+    { id: 'H05-E07', case: 'missing site.host with domains disabled refuses a request-host reset link',
       site_host: nil, headers: { 'Host' => UNREGISTERED },
       idp: nil, sso_location: '/signin?auth_error=sso_not_configured',
-      link: 'https://unregistered.tenant-example.com', brand: nil },
+      link: nil, reset_status: 500 },
     { id: 'E21', case: 'doubled IP-literal site.host',
       headers: { 'Host' => "#{SITE_HOST}, #{SITE_HOST}" }, proto: nil,
       idp: nil, sso_location: '/signin?auth_error=sso_not_configured',
@@ -1006,11 +1006,12 @@ RSpec.describe 'Host and proxy simulation matrix (#4223)', :shared_db_state, typ
       expect(resolver.public_host_for(env)).to be_nil
     end
 
-    it 'falls to the request authority only when site.host is unconfigured' do
-      allow(Auth::PublicHost).to receive_messages(canonical_host: nil, canonical_base_url: nil)
-      env = bare_env(host: 'example.com')
+    it 'refuses the request authority when site.host is unconfigured' do
+      with_site_host(nil) do
+        env = bare_env(host: 'example.com')
 
-      expect(resolver.full_host_for(env)).to eq('https://example.com')
+        expect { resolver.full_host_for(env) }.to raise_error(StandardError, /No allowlisted auth origin/)
+      end
     end
 
     it 'treats a blank display domain as no tenant' do
