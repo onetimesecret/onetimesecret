@@ -10,7 +10,6 @@
 
 require 'spec_helper'
 require 'onetime/middleware/domain_strategy'
-require 'onetime/models/custom_domain/lookup'
 require 'onetime/tenant_sso_resolution'
 require 'onetime/session/surface'
 require_relative '../../../../../apps/web/auth/signin_gate'

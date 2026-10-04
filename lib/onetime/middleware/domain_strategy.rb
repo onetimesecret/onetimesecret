@@ -4,7 +4,6 @@
 
 require 'public_suffix'
 require_relative '../logger_methods'
-require_relative '../models/custom_domain/lookup'
 
 module Onetime
   module Middleware

@@ -2,14 +2,11 @@
 #
 # frozen_string_literal: true
 
-require 'familia'
-
 module Onetime
-  # Opened with its superclass, and without requiring the model, so this file
-  # loads on its own: DomainStrategy requires it directly and is loaded in
-  # places where the model, which needs the rest of Onetime, is not. Nothing
-  # here uses the model until a read is made.
-  class CustomDomain < Familia::Horreum
+  # Reopens the model class, which lib/onetime/models/custom_domain.rb
+  # defines. This file is loaded by lib/onetime/models.rb after the model and
+  # is not required from anywhere else.
+  class CustomDomain
     # The outcome of looking up the CustomDomain for one host, shared by the
     # code that handles a single request (#4220).
     #
