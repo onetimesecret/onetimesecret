@@ -1193,7 +1193,36 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
         def expect_proxied_request(tenant)
           expect_host_rewrite(canonical_host, rewritten: rewrite_on)
           expect(Rack::Request.new(last_request.env).host).to eq(rewrite_on ? tenant.host : canonical_host)
+          expect(last_request.env['onetime.display_domain']).to eq(tenant.host)
+          expect(last_request.env['onetime.domain_strategy']).to eq(:custom)
+          expect(last_request.env['onetime.custom_domain'].identifier).to eq(tenant.domain.identifier)
         end
+
+        def proxy_response(request, idp: tenant_a.idp, **overrides)
+          created_emails << email
+          idp.response(
+            in_response_to: request.id, acs_url: request.acs_url, audience: request.sp_entity_id,
+            name_id: name_id, attributes: { 'email' => [email] }, **overrides
+          )
+        end
+
+        def expect_proxy_refusal(tenant, error: 'sso_failed')
+          expect_proxied_request(tenant)
+          expect(last_response.status).to eq(302), last_response.body[0, 300]
+          expect(last_response.location).to include("auth_error=#{error}")
+          expect(identity_rows(name_id)).to be_empty
+          expect(db[:accounts].where(email: email).count).to eq(0)
+          expect(Onetime::Customer.find_by_email(email)).to be_nil
+          expect(last_request.env['rack.session'].to_h['account_id']).to be_nil
+        end
+
+        def expect_pending_context_dropped
+          expect(last_request.env['rack.session'].to_h.keys).not_to include(
+            'omniauth_tenant_domain_id', 'omniauth_tenant_host', 'omniauth_tenant_started_at', 'saml_authn_request_id'
+          )
+        end
+
+        before { expect(OmniAuth.config.test_mode).to be(false) }
 
         it 'stages the callback and signs the user in on the tenant identity' do
           created_emails << email
@@ -1218,6 +1247,220 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
           expect(rows.size).to eq(1)
           expect(rows.first[:issuer]).to eq(tenant_issuer(tenant_a))
           expect(db[:accounts].where(id: rows.first[:account_id]).get(:email)).to eq(email)
+        end
+
+        [false, true].each do |forge_issuer|
+          it "refuses tenant A's signature at tenant B with #{forge_issuer ? 'a forged B' : 'the honest A'} issuer" do
+            request = start_login(tenant_b)
+            expect_proxied_request(tenant_b)
+            overrides = forge_issuer ? { response_issuer: tenant_b.idp.entity_id, assertion_issuer: tenant_b.idp.entity_id } : {}
+            post_callback(tenant_b, proxy_response(request, **overrides))
+
+            expect_proxy_refusal(tenant_b)
+            expect(last_request.env['omniauth.error.type']).to eq(:invalid_ticket)
+          end
+        end
+
+        it 'does not resolve tenant A identity when tenant B pins the same EntityID with its own certificate' do
+          sign_in(tenant_a, name_id: name_id, email: email)
+          expect_proxied_request(tenant_a)
+          expect(last_response.location).not_to include('auth_error')
+          victim_row = identity_rows(name_id).fetch(0)
+          victim = Onetime::Customer.find_by_email(email)
+
+          config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(tenant_b.domain.identifier)
+          config.idp_entity_id = tenant_a.idp.entity_id
+          config.commit_fields
+          impostor = SamlSpec::TestIdp.new(entity_id: tenant_a.idp.entity_id, key: tenant_b.idp.key, cert: tenant_b.idp.cert)
+          attacker_email = "attacker-proxy-#{run_id}@saml-tenant.example.com"
+          clear_cookies
+          sign_in(tenant_b, name_id: name_id, email: attacker_email, idp: impostor)
+
+          expect_proxied_request(tenant_b)
+          expect(last_response.status).to eq(302)
+          expect(last_response.location).not_to include('auth_error')
+          rows = identity_rows(name_id)
+          attacker_issuer = Onetime::SsoProvider::Saml.tenant_issuer(tenant_b.domain.identifier, tenant_a.idp.entity_id)
+          expect(rows.map { |row| row[:issuer] }).to contain_exactly(tenant_issuer(tenant_a), attacker_issuer)
+          expect(rows.map { |row| row[:account_id] }.uniq.size).to eq(2)
+          expect(identities.where(id: victim_row[:id]).first).to eq(victim_row)
+          attacker_row = rows.find { |row| row[:issuer] == attacker_issuer }
+          expect(last_request.env['rack.session'].to_h['account_id']).to eq(attacker_row[:account_id])
+          expect(tenant_b.org.member?(victim)).to be(false)
+        end
+
+        it 'refuses a signed tenant A response delivered to tenant B with the initiating session' do
+          request = start_login(tenant_a)
+          expect_proxied_request(tenant_a)
+          # B's allowed Origin reaches the signature/tenant gates rather than
+          # merely being rejected by the HTTP Origin middleware.
+          post_callback(tenant_b, proxy_response(request))
+
+          expect_proxy_refusal(tenant_b)
+          expect(last_request.env['omniauth.error.type']).to eq(:invalid_ticket)
+        end
+
+        it 'does not redeem tenant A staging at tenant B sharing the same origin target' do
+          request = start_login(tenant_a)
+          post_callback(tenant_a, proxy_response(request), follow: false)
+          expect_proxied_request(tenant_a)
+          completion = last_response.location
+          handle = Rack::Utils.parse_query(URI.parse(completion).query).fetch('saml_handle')
+          key = Onetime::Security::SamlCallbackStore.key(handle)
+          staged = Familia.dbclient.get(key)
+          expect(staged).not_to be_nil
+
+          address(tenant_b)
+          get completion
+          expect_proxy_refusal(tenant_b)
+          expect(last_request.env['omniauth.error.type']).to eq(:saml_callback_missing)
+          expect(Familia.dbclient.get(key)).to eq(staged)
+
+          address(tenant_a)
+          get completion
+          expect_proxied_request(tenant_a)
+          expect(last_response.status).to eq(302)
+          expect(last_response.location).not_to include('auth_error')
+          expect(identity_rows(name_id).map { |row| row[:issuer] }).to eq([tenant_issuer(tenant_a)])
+          expect(Familia.dbclient.get(key)).to be_nil
+        end
+
+        it 'refuses a fresh signed answer to an already consumed AuthnRequest' do
+          request = start_login(tenant_a)
+          post_callback(tenant_a, proxy_response(request))
+          expect_proxied_request(tenant_a)
+          expect(last_response.location).not_to include('auth_error')
+          rows = identity_rows(name_id)
+          expect(rows.size).to eq(1)
+          accounts_before = db[:accounts].count
+
+          post_callback(tenant_a, proxy_response(request))
+          expect_proxied_request(tenant_a)
+          expect(last_response.status).to eq(302)
+          expect(last_response.location).to include('auth_error=sso_failed')
+          expect(last_request.env['omniauth.error.type']).to eq(:saml_no_pending_request)
+          expect(identity_rows(name_id)).to eq(rows)
+          expect(db[:accounts].count).to eq(accounts_before)
+        end
+
+        it 'refuses an assertion ID already claimed through a different real session and request' do
+          assertion_id = "_#{SecureRandom.uuid}"
+          post_callback(tenant_a, proxy_response(start_login(tenant_a), assertion_id: assertion_id))
+          expect_proxied_request(tenant_a)
+          expect(last_response.location).not_to include('auth_error')
+          rows = identity_rows(name_id)
+          expect(rows.size).to eq(1)
+          accounts_before = db[:accounts].count
+
+          clear_cookies
+          post_callback(tenant_a, proxy_response(start_login(tenant_a), assertion_id: assertion_id))
+          expect_proxied_request(tenant_a)
+          expect(last_response.status).to eq(302)
+          expect(last_response.location).to include('auth_error=sso_failed')
+          expect(last_request.env['rack.session'].to_h['account_id']).to be_nil
+          expect(last_request.env['omniauth.error.type']).to eq(:saml_assertion_replayed)
+          expect(identity_rows(name_id)).to eq(rows)
+          expect(db[:accounts].count).to eq(accounts_before)
+        end
+
+        [:disabled, :unverified].each do |state|
+          context "when tenant configuration becomes #{state}" do
+            before do
+              allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+              Onetime::CustomDomain::SigninConfig.create!(
+                domain_id: tenant_a.domain.identifier, enabled: true, signin_enabled: true, sso_enabled: true,
+              )
+            end
+
+            after { Onetime::CustomDomain::SigninConfig.delete_for_domain!(tenant_a.domain.identifier) }
+
+            def revoke_tenant_config(state)
+              if state == :disabled
+                Onetime::CustomDomain::SsoConfig.find_by_domain_id(tenant_a.domain.identifier).disable!
+              else
+                tenant_a.domain.verified = false
+                tenant_a.domain.save
+              end
+            end
+
+            it 'refuses a later POST before staging and clears context on the staged GET' do
+              events = audit_events
+              request = start_login(tenant_a)
+              response = proxy_response(request)
+              post_callback(tenant_a, response, follow: false)
+              expect_proxied_request(tenant_a)
+              completion = last_response.location
+              revoke_tenant_config(state)
+
+              post_callback(tenant_a, response, origin: nil, expect_staged: false)
+              expect_proxied_request(tenant_a)
+              expect(last_response.status).to eq(404)
+              expect(last_response.location).to be_nil
+              expect(last_response.headers['Set-Cookie']).to be_nil
+              expect(identity_rows(name_id)).to be_empty
+
+              get completion
+              expect_proxy_refusal(tenant_a, error: state == :disabled ? 'sso_not_configured' : 'sso_domain_unverified')
+              expect_pending_context_dropped
+              expect(events.map(&:first)).not_to include(:omniauth_tenant_callback_validated, :login_success)
+            end
+
+            it 'refuses a new AuthnRequest without falling back to platform SAML' do
+              revoke_tenant_config(state)
+              address(tenant_a)
+              post '/auth/sso/saml'
+
+              expect_proxy_refusal(tenant_a, error: state == :disabled ? 'sso_not_configured' : 'sso_domain_unverified')
+              expect(last_response.location).not_to include('SAMLRequest')
+              expect_pending_context_dropped
+            end
+          end
+        end
+
+        context 'with HTTPS and public port 8443' do
+          before do
+            header 'X-Forwarded-Proto', 'https'
+            header 'X-Forwarded-Port', '8443'
+          end
+
+          it 'signs in with the exact HTTPS ACS and audience on the non-default public port' do
+            request = start_login(tenant_a)
+            expect_proxied_request(tenant_a)
+            expect(request.acs_url).to eq("https://#{tenant_a.host}:8443/auth/sso/saml/callback")
+            expect(request.sp_entity_id).to eq("https://#{tenant_a.host}:8443/auth/sso/saml/metadata")
+            post_callback(tenant_a, proxy_response(request))
+
+            expect_proxied_request(tenant_a)
+            expect(last_response.status).to eq(302)
+            expect(last_response.location).not_to include('auth_error')
+            expect(identity_rows(name_id).map { |row| row[:issuer] }).to eq([tenant_issuer(tenant_a)])
+          end
+
+          [:acs_url, :audience, :recipient].each do |binding|
+            [:scheme, :port].each do |mismatch|
+              it "refuses a signed #{binding} with a mismatched #{mismatch}" do
+                request = start_login(tenant_a)
+                expect_proxied_request(tenant_a)
+                expect(request.acs_url).to eq("https://#{tenant_a.host}:8443/auth/sso/saml/callback")
+                expect(request.sp_entity_id).to eq("https://#{tenant_a.host}:8443/auth/sso/saml/metadata")
+                expected = binding == :audience ? request.sp_entity_id : request.acs_url
+                wrong = mismatch == :scheme ? expected.sub('https:', 'http:') : expected.sub(':8443/', ':9443/')
+                overrides = if binding == :recipient
+                              # Destination and audience remain correct; only
+                              # the signed bearer Recipient names another origin.
+                              { subject_confirmations: [{
+                                'InResponseTo' => request.id, 'Recipient' => wrong, 'NotOnOrAfter' => Time.now.utc + 300,
+                              }] }
+                            else
+                              { binding => wrong }
+                            end
+                post_callback(tenant_a, proxy_response(request, **overrides))
+
+                expect_proxy_refusal(tenant_a)
+                expect(last_request.env['omniauth.error.type']).to eq(:invalid_ticket)
+              end
+            end
+          end
         end
       end
     end
