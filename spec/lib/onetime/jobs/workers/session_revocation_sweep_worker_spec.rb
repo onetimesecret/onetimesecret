@@ -33,8 +33,6 @@ RSpec.describe Onetime::Jobs::Workers::SessionRevocationSweepWorker, type: :inte
   # Test subclass captures the broker action without a real AMQP handler.
   let(:test_worker_class) do
     Class.new(described_class) do
-      attr_accessor :delivery_info
-
       def self.name
         'TestSessionRevocationSweepWorker'
       end
@@ -239,6 +237,53 @@ RSpec.describe Onetime::Jobs::Workers::SessionRevocationSweepWorker, type: :inte
         # Without the release, the claim's 1h TTL would turn an immediate
         # operator replay into a silent ack-no-op duplicate skip.
         expect(Familia.dbclient.exists?("job:processed:#{message_id}")).to be_falsey
+      end
+
+      it 'logs the error and rejects when the claim cannot be released' do
+        allow(operation).to receive(:call).and_raise(StandardError, 'boom')
+        allow(worker).to receive(:release_processing_claim)
+          .and_raise(Redis::CannotConnectError, 'datastore down')
+        allow(worker).to receive(:log_error)
+
+        result = worker.work_with_params(message, delivery_info, metadata)
+
+        expect(result).to eq(:reject)
+        expect(worker).to have_received(:log_error).with(
+          /Unexpected error running session revocation sweep/,
+          have_attributes(message: 'boom'),
+          hash_including(custid: custid),
+        )
+      end
+
+      it 'leaves a claim it did not take in place' do
+        # Another delivery of the same message id holds the claim; the
+        # error here is raised before this invocation claims anything.
+        Familia.dbclient.set("job:processed:#{message_id}", '1')
+        allow(worker).to receive(:claim_for_processing).and_raise(StandardError, 'boom')
+
+        worker.work_with_params(message, delivery_info, metadata)
+
+        expect(worker.rejected?).to be true
+        expect(Familia.dbclient.exists?("job:processed:#{message_id}")).to be_truthy
+      end
+    end
+
+    context 'payload that is not a JSON object' do
+      ['[]', '"x"', '5'].each do |body|
+        it "rejects #{body} without claiming or releasing anything" do
+          Familia.dbclient.set("job:processed:#{message_id}", '1')
+          allow(worker).to receive(:log_error)
+
+          worker.work_with_params(body, delivery_info, metadata)
+
+          expect(worker.rejected?).to be true
+          expect(worker.acked?).to be false
+          expect(worker).to have_received(:log_error)
+            .with(/not a JSON object/, hash_including(message_id: message_id))
+          expect(Familia.dbclient.exists?("job:processed:#{message_id}")).to be_truthy
+          expect(Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent)
+            .not_to have_received(:new)
+        end
       end
     end
 

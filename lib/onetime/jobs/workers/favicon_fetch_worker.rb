@@ -38,7 +38,8 @@ require_relative '../../operations/fetch_domain_favicon'
 #
 #   1. Transient (Onetime::Http::SafeFetch::FetchTimeout) — the operation leaves
 #      the lifecycle at PROCESSING (no terminal stamp) and re-raises. We retry
-#      in-process a couple of times, then requeue! for RabbitMQ-level retry.
+#      in-process a couple of times, then requeue! once for a RabbitMQ-level
+#      retry. If the redelivery times out too, we reject! to the DLQ.
 #   2. Unexpected (any other StandardError) — the operation stamps status=FAILED
 #      + favicon_fetch_error and re-raises. We reject! to the DLQ.
 #   3. Handled outcomes (icon written, none found, guard skip, domain missing)
@@ -52,8 +53,12 @@ require_relative '../../operations/fetch_domain_favicon'
 # ## Retry layering
 #
 # There are two retry tiers. `with_retry` retries FetchTimeout in-process (fast,
-# same delivery). If those are exhausted the message is requeued so the broker
-# redelivers it later — a slow retry that survives a longer network outage.
+# same delivery). If those are exhausted the message is requeued once: the
+# idempotency claim is released and the broker redelivers it, which runs the
+# in-process retries a second time. A redelivered message that times out again
+# is rejected to the DLQ, so a host that never answers costs two deliveries and
+# not an endless loop. FaviconBackfillJob re-enqueues a domain left at
+# PROCESSING once STUCK_PROCESSING_S has passed.
 #
 
 module Onetime
@@ -81,9 +86,12 @@ module Onetime
           # invisible to the method-level rescues, which tag their logs with it.
           domain_id = nil
 
+          # Whether this invocation took the idempotency claim.
+          claim_held = false
+
           with_trace_context do
-            data = parse_message(msg)
-            return unless data # parse_message handles reject on error
+            data = decode_message(msg)
+            return reject! unless data # not a JSON object or unknown schema (logged): send to DLQ
 
             domain_id = data[:domain_id]
 
@@ -107,6 +115,7 @@ module Onetime
               log_info "Skipping duplicate message: #{message_id}"
               return ack!
             end
+            claim_held = true
 
             # Strict boolean: only an explicit JSON `true` forces. `data[:force] ||
             # false` would treat any truthy payload (e.g. the string "false") as a
@@ -146,12 +155,26 @@ module Onetime
           end
         rescue Onetime::Http::SafeFetch::FetchTimeout => ex
           # Transient — in-process retries exhausted. The operation left the
-          # lifecycle at PROCESSING (no terminal stamp), so requeue for a
-          # broker-level retry rather than DLQ'ing.
+          # lifecycle at PROCESSING (no terminal stamp).
+          #
+          # A redelivery that timed out again goes to the DLQ: the message is
+          # requeued once, not for as long as the host stays slow. The claim
+          # is kept, as on the unexpected-error reject below. The domain is
+          # picked up again by FaviconBackfillJob once it has been PROCESSING
+          # for STUCK_PROCESSING_S, under a new message id.
+          if delivery_info&.redelivered?
+            log_error 'Favicon fetch timed out again after requeue, sending to DLQ', ex, domain_id: domain_id
+            return reject!
+          end
+
           log_info 'Favicon fetch timed out, requeueing for retry',
             domain_id: domain_id,
             error: ex.message,
             metadata: message_metadata
+          # The broker redelivers under the same message id. Release the claim
+          # this invocation took, or the redelivery is acked as a duplicate
+          # and the fetch is never retried.
+          release_processing_claim_safely(message_id) if claim_held
           requeue!
         rescue StandardError => ex
           # Unexpected — the operation already stamped status=FAILED before

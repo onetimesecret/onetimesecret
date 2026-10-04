@@ -20,6 +20,11 @@ require 'spec_helper'
 require 'sneakers'
 require 'onetime/jobs/workers/email_worker'
 require 'onetime/jobs/workers/notification_worker'
+require 'onetime/jobs/workers/dns_record_check_worker'
+require 'onetime/jobs/workers/domain_validation_worker'
+require 'onetime/jobs/workers/favicon_fetch_worker'
+require 'onetime/jobs/workers/session_revocation_sweep_worker'
+require 'onetime/jobs/workers/transient_worker'
 require 'onetime/jobs/queues/config'
 
 # Load billing worker only when billing is enabled
@@ -108,6 +113,44 @@ RSpec.describe 'Sneakers Worker Harness', type: :integration do
     end
   end
 
+  # Kicks settles a message from the value work_with_params returns; nil
+  # leaves it unacknowledged, holding a prefetch slot. Every worker must
+  # return :reject for a message it cannot decode.
+  describe 'undecodable messages' do
+    [
+      *ALL_WORKERS,
+      Onetime::Jobs::Workers::DnsRecordCheckWorker,
+      Onetime::Jobs::Workers::DomainValidationWorker,
+      Onetime::Jobs::Workers::FaviconFetchWorker,
+      Onetime::Jobs::Workers::SessionRevocationSweepWorker,
+      Onetime::Jobs::Workers::TransientWorker,
+    ].each do |worker_class|
+      context worker_class.name.split('::').last do
+        let(:worker) { worker_class.new }
+
+        it 'returns :reject for a message that is not JSON' do
+          metadata = double('metadata', message_id: 'harness-not-json', headers: { 'x-schema-version' => 1 })
+
+          expect(worker.work_with_params('not valid json', nil, metadata)).to eq(:reject)
+        end
+
+        it 'returns :reject for an unknown schema version' do
+          metadata = double('metadata', message_id: 'harness-schema', headers: { 'x-schema-version' => 999 })
+
+          expect(worker.work_with_params('{"key": "value"}', nil, metadata)).to eq(:reject)
+        end
+
+        ['[]', '"x"', '5', 'false'].each do |body|
+          it "returns :reject for the JSON body #{body}, which is not an object" do
+            metadata = double('metadata', message_id: 'harness-not-object', headers: { 'x-schema-version' => 1 })
+
+            expect(worker.work_with_params(body, nil, metadata)).to eq(:reject)
+          end
+        end
+      end
+    end
+  end
+
   describe 'worker instantiation' do
     ALL_WORKERS.each do |worker_class|
       context worker_class.name.split('::').last do
@@ -133,8 +176,8 @@ RSpec.describe 'Sneakers Worker Harness', type: :integration do
           expect(worker).to respond_to(:store_envelope)
         end
 
-        it 'responds to parse_message' do
-          expect(worker).to respond_to(:parse_message)
+        it 'responds to decode_message' do
+          expect(worker).to respond_to(:decode_message)
         end
 
         it 'responds to claim_for_processing' do
@@ -230,31 +273,31 @@ RSpec.describe 'Sneakers Worker Harness', type: :integration do
       end
     end
 
-    describe '#parse_message' do
+    describe '#decode_message' do
       before do
-        # Store minimal envelope for validate_schema
+        # Store minimal envelope for the schema version check
         metadata = double('metadata', message_id: nil, headers: { 'x-schema-version' => 1 })
         worker.store_envelope(nil, metadata)
       end
 
       it 'parses valid JSON' do
-        result = worker.parse_message('{"key": "value"}')
+        result = worker.decode_message('{"key": "value"}')
         expect(result).to eq({ key: 'value' })
       end
 
-      it 'rejects invalid JSON' do
-        result = worker.parse_message('not valid json')
+      it 'returns nil for invalid JSON and leaves settling to the caller' do
+        result = worker.decode_message('not valid json')
         expect(result).to be_nil
-        expect(worker.rejected).to be true
+        expect(worker.rejected).to be_nil
       end
 
-      it 'rejects unknown schema versions' do
+      it 'returns nil for unknown schema versions' do
         metadata = double('metadata', message_id: nil, headers: { 'x-schema-version' => 999 })
         worker.store_envelope(nil, metadata)
 
-        result = worker.parse_message('{"key": "value"}')
+        result = worker.decode_message('{"key": "value"}')
         expect(result).to be_nil
-        expect(worker.rejected).to be true
+        expect(worker.rejected).to be_nil
       end
     end
 

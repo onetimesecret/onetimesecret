@@ -38,7 +38,7 @@ RSpec.describe Onetime::Jobs::Workers::NotificationWorker, type: :integration do
   # Create test worker class with accessible delivery_info
   let(:test_worker_class) do
     Class.new(Onetime::Jobs::Workers::NotificationWorker) do
-      attr_accessor :delivery_info, :acked, :rejected
+      attr_accessor :acked, :rejected
 
       def self.name
         'TestNotificationWorker'

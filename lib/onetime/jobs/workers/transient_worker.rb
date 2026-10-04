@@ -34,8 +34,8 @@ module Onetime
           store_envelope(delivery_info, metadata)
 
           with_trace_context do
-            data = parse_message(msg)
-            return unless data
+            data = decode_message(msg)
+            return reject! unless data # not a JSON object or unknown schema (logged): send to DLQ
 
             # Skip idempotency for transient messages - they're fire-and-forget
             action = data[:action]&.to_sym

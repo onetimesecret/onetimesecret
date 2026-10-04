@@ -132,8 +132,8 @@ module Onetime
           mailer_config = nil
           domain_id     = nil
           with_trace_context do
-            data = parse_message(msg)
-            return unless data # parse_message handles reject on error
+            data = decode_message(msg)
+            return reject! unless data # not a JSON object or unknown schema (logged): send to DLQ
 
             # Handle ping test messages (from: bin/ots queue ping)
             if data[:domain_id] == 'ping.test'

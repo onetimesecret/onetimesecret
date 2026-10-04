@@ -41,7 +41,7 @@ RSpec.describe Billing::Workers::BillingWorker, :billing do
   # Create test worker class with accessible delivery_info
   let(:test_worker_class) do
     Class.new(described_class) do
-      attr_accessor :delivery_info, :acked, :rejected
+      attr_accessor :acked, :rejected
 
       def self.name
         'TestBillingWorker'
@@ -270,6 +270,19 @@ RSpec.describe Billing::Workers::BillingWorker, :billing do
         worker.work_with_params(invalid_message, delivery_info, metadata)
 
         expect(worker.rejected?).to be true
+        expect(Billing::Operations::ProcessWebhookEvent).not_to have_received(:new)
+      end
+    end
+
+    context 'with a JSON body that is not an object' do
+      it 'rejects [] without touching the event record' do
+        allow(worker).to receive(:mark_event_failed)
+
+        expect { worker.work_with_params('[]', delivery_info, metadata) }.not_to raise_error
+
+        expect(worker.rejected?).to be true
+        expect(worker.acked?).to be false
+        expect(worker).not_to have_received(:mark_event_failed)
         expect(Billing::Operations::ProcessWebhookEvent).not_to have_received(:new)
       end
     end

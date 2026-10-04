@@ -63,9 +63,12 @@ module Onetime
           # invisible to the method-level rescue, which tags its log with it.
           custid = nil
 
+          # Whether this invocation took the idempotency claim.
+          claim_held = false
+
           with_trace_context do
-            data = parse_message(msg)
-            return unless data # parse_message handles reject on error
+            data = decode_message(msg)
+            return reject! unless data # not a JSON object or unknown schema (logged): send to DLQ
 
             custid = data[:custid]
 
@@ -80,6 +83,7 @@ module Onetime
               log_info "Skipping duplicate message: #{message_id}"
               return ack!
             end
+            claim_held = true
 
             log_debug "Sweeping sessions: #{custid} (metadata: #{message_metadata})"
 
@@ -115,8 +119,13 @@ module Onetime
           # is safe. Releasing the claim is safe for exactly that reason — and
           # required: without it the claim's 1h TTL turns an operator's
           # immediate DLQ replay into a silent ack-no-op duplicate skip.
-          release_processing_claim(message_id)
+          #
+          # The error is logged first, and the release cannot raise, so a
+          # datastore outage still ends in this log line and the reject. Only
+          # a claim this invocation took is released: an error raised before
+          # the claim leaves another delivery's claim alone.
           log_error 'Unexpected error running session revocation sweep', ex, custid: custid
+          release_processing_claim_safely(message_id) if claim_held
           reject! # Send to DLQ
         end
       end

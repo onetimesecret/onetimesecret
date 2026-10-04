@@ -27,7 +27,8 @@ module Onetime
       #
       #     def work_with_params(msg, delivery_info, metadata)
       #       store_envelope(delivery_info, metadata)
-      #       data = parse_message(msg)
+      #       data = decode_message(msg)
+      #       return reject! unless data
       #       # ... do work ...
       #       ack!
       #     end
@@ -56,17 +57,42 @@ module Onetime
         end
 
         module InstanceMethods
-          # AMQP envelope accessors - set by work_with_params
-          # These provide access to delivery_info and metadata from the AMQP envelope
-          attr_accessor :delivery_info, :metadata
+          # The AMQP envelope of the message this thread is working on.
+          #
+          # Kicks runs work_with_params on a thread pool against ONE worker
+          # instance, so the envelope is kept per thread and per worker, not
+          # in instance variables: every helper below (message_id,
+          # message_metadata, the schema check, trace headers) reads the
+          # envelope of its own message, never one stored by another thread.
+          ENVELOPES_KEY  = :onetime_worker_envelopes
+          EMPTY_ENVELOPE = [nil, nil].freeze
 
-          # Store AMQP envelope for access by helper methods
-          # Call this at the start of work_with_params
+          # Store the AMQP envelope for the helper methods.
+          # Call this at the start of work_with_params.
           # @param delivery_info [Bunny::DeliveryInfo] AMQP delivery info
           # @param metadata [Bunny::MessageProperties] AMQP message properties
           def store_envelope(delivery_info, metadata)
-            @delivery_info = delivery_info
-            @metadata      = metadata
+            envelopes       = Thread.current.thread_variable_get(ENVELOPES_KEY) ||
+                              Thread.current.thread_variable_set(ENVELOPES_KEY, ObjectSpace::WeakKeyMap.new)
+            envelopes[self] = [delivery_info, metadata].freeze
+          end
+
+          # @return [Bunny::DeliveryInfo, nil] delivery info stored on this thread
+          def delivery_info
+            current_envelope[0]
+          end
+
+          # @return [Bunny::MessageProperties, nil] properties stored on this thread
+          def metadata
+            current_envelope[1]
+          end
+
+          def delivery_info=(value)
+            store_envelope(value, metadata)
+          end
+
+          def metadata=(value)
+            store_envelope(delivery_info, value)
           end
 
           # Extract Sentry trace headers from message metadata.
@@ -76,7 +102,7 @@ module Onetime
           #
           # @return [Hash<String, String>] Trace headers or empty hash
           def extract_trace_headers
-            Onetime::Jobs::TracePropagation.parse_trace_headers(@metadata)
+            Onetime::Jobs::TracePropagation.parse_trace_headers(metadata)
           end
 
           # Continue Sentry trace from message headers and wrap processing.
@@ -101,35 +127,38 @@ module Onetime
             )
           end
 
-          # Parse and validate message payload
+          # Parse a message payload and check its schema version. Does not
+          # settle the message: Kicks settles from the value work_with_params
+          # returns, so the caller rejects with `return reject! unless data`.
+          # Every refusal is logged here.
           # @param msg [String] Raw message body
-          # @return [Hash, nil] Parsed message data, or nil if invalid
-          def parse_message(msg)
+          # @return [Hash, nil] Parsed JSON object with symbol keys, or nil if
+          #   the body is not JSON, is not a JSON object (null, array, string,
+          #   number, boolean), or the schema version is unknown
+          def decode_message(msg)
             log_debug 'Parsing message', message_id: message_id, size: msg&.bytesize
             data = JSON.parse(msg, symbolize_names: true)
-            return nil unless validate_schema(data)
+            return nil unless schema_version_known?
+            return data if data.is_a?(Hash)
 
-            data
+            # Every worker reads its payload by key, so only an object is a
+            # message. Anything else is refused here, once, for all of them.
+            reason = data.nil? ? 'Message payload is null' : 'Message payload is not a JSON object'
+            log_error reason, message_id: message_id
+            nil
           rescue JSON::ParserError => ex
             log_error "Invalid JSON: #{ex.message}", message_id: message_id
-            flush_logs
-            reject!
             nil
           end
 
-          # Validate message schema version
-          # @return [Boolean] true if valid, false if invalid (also calls reject!)
-          def validate_schema(_data)
-            version = @metadata&.headers&.[]('x-schema-version') || 1
+          # @return [Boolean] whether the envelope's x-schema-version is one
+          #   this build understands. Logs an unknown version.
+          def schema_version_known?
+            version = metadata&.headers&.[]('x-schema-version') || 1
+            return true if Onetime::Jobs::QueueConfig::Versions.const_defined?("V#{version}")
 
-            unless Onetime::Jobs::QueueConfig::Versions.const_defined?("V#{version}")
-              log_error "Unknown schema version: #{version}", message_id: message_id
-              flush_logs
-              reject!
-              return false
-            end
-
-            true
+            log_error "Unknown schema version: #{version}", message_id: message_id
+            false
           end
 
           # @return [SemanticLogger::Logger] Logger for worker operations
@@ -219,18 +248,18 @@ module Onetime
           # check remains the source of truth.
           def message_metadata
             {
-              delivery_tag: @delivery_info&.delivery_tag,
-              routing_key: @delivery_info&.routing_key,
-              redelivered: @delivery_info&.redelivered?,
+              delivery_tag: delivery_info&.delivery_tag,
+              routing_key: delivery_info&.routing_key,
+              redelivered: delivery_info&.redelivered?,
               message_id: message_id,
-              schema_version: @metadata&.headers&.[]('x-schema-version'),
+              schema_version: metadata&.headers&.[]('x-schema-version'),
             }
           end
 
           # Get message ID from AMQP properties
           # @return [String, nil] The message_id or nil if not present
           def message_id
-            @metadata&.message_id
+            metadata&.message_id
           end
 
           # A simple predicate to be used as a read-only check only. Hot path
@@ -255,11 +284,14 @@ module Onetime
             Familia.dbclient.set("job:processed:#{msg_id}", '1', nx: true, ex: ttl)
           end
 
-          # Release a previously-taken idempotency claim. Call this from a
-          # failure path BEFORE reject!: without it, a DLQ replay of the same
-          # message_id within the claim TTL is silently ack'd as a duplicate
-          # no-op instead of re-running. Only safe for workers whose work is
-          # idempotent. A never-claimed msg_id is a harmless no-op delete.
+          # Release a previously-taken idempotency claim. A failure path that
+          # wants the message processed again needs this BEFORE reject! or
+          # requeue!: a DLQ replay or a broker redelivery carries the same
+          # message_id, and within the claim TTL it is silently ack'd as a
+          # duplicate no-op instead of re-running. Only safe for workers whose
+          # work is idempotent. A never-claimed msg_id is a harmless no-op
+          # delete. Raises on a datastore error; rescue clauses use
+          # release_processing_claim_safely.
           #
           # @param msg_id [String, nil] Message ID whose claim to release
           # @return [Boolean] true if a claim key was deleted
@@ -267,6 +299,32 @@ module Onetime
             return false unless msg_id
 
             Familia.dbclient.del("job:processed:#{msg_id}").positive?
+          end
+
+          # Release an idempotency claim from a failure path without raising.
+          # Rescue clauses use this one: a datastore error while releasing is
+          # logged and swallowed, so the worker still logs the original error
+          # and settles the message with its own reject!/requeue!.
+          #
+          # Call it only when this invocation took the claim (track the result
+          # of claim_for_processing in a local). A claim this invocation did
+          # not take belongs to another delivery of the same message id.
+          #
+          # @param msg_id [String, nil] Message ID whose claim to release
+          # @return [Boolean] true if a claim key was deleted
+          def release_processing_claim_safely(msg_id)
+            release_processing_claim(msg_id)
+          rescue StandardError => ex
+            log_error "Idempotency claim not released: #{ex.class}", message_id: msg_id
+            false
+          end
+
+          private
+
+          # @return [Array(Object, Object)] delivery_info and metadata stored
+          #   by this worker on the current thread
+          def current_envelope
+            Thread.current.thread_variable_get(ENVELOPES_KEY)&.[](self) || EMPTY_ENVELOPE
           end
         end
       end

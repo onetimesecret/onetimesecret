@@ -94,8 +94,8 @@ module Billing
 
         data = nil
         with_trace_context do
-          data = parse_message(msg)
-          return unless data # parse_message handles reject on error
+          data = decode_message(msg)
+          return reject! unless data # not a JSON object or unknown schema (logged): send to DLQ
 
           # Handle ping test messages (from: bin/ots queue ping)
           if data[:event_type] == 'ping.test'

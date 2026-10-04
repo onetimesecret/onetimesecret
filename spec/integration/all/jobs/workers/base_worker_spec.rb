@@ -17,8 +17,9 @@
 #       * claim_for_processing atomically claims message with SET NX EX
 #
 #   - Message parsing (Unit):
-#       * parse_message returns hash from valid JSON
-#       * parse_message rejects invalid JSON (mocked reject!)
+#       * decode_message returns the parsed value from valid JSON
+#       * decode_message returns nil for invalid JSON, JSON null and an
+#         unknown schema version, and never settles the message
 #
 #   - Retry logic (Unit):
 #       * with_retry retries on failure then succeeds
@@ -52,7 +53,7 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker, type: :integration do
       end
 
       # Sneakers::Worker requires these methods
-      attr_accessor :delivery_info, :properties, :metadata
+      attr_accessor :properties
 
       def initialize
         @acked = false
@@ -185,49 +186,106 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker, type: :integration do
     end
   end
 
-  describe '#parse_message' do
+  describe '#release_processing_claim_safely' do
+    let(:msg_id) { 'test-msg-release-789' }
+    let(:redis_key) { "job:processed:#{msg_id}" }
+
+    after { Familia.dbclient.del(redis_key) }
+
+    it 'deletes the claim and returns true' do
+      worker.claim_for_processing(msg_id)
+
+      expect(worker.release_processing_claim_safely(msg_id)).to be true
+      expect(Familia.dbclient.exists?(redis_key)).to be_falsey
+    end
+
+    it 'returns false when there is no claim or no message id' do
+      expect(worker.release_processing_claim_safely(msg_id)).to be false
+      expect(worker.release_processing_claim_safely(nil)).to be false
+    end
+
+    it 'logs and returns false instead of raising on a datastore error' do
+      allow(worker).to receive(:release_processing_claim)
+        .and_raise(Redis::CannotConnectError, 'datastore down')
+      allow(worker).to receive(:log_error)
+
+      expect(worker.release_processing_claim_safely(msg_id)).to be false
+      expect(worker).to have_received(:log_error)
+        .with(/claim not released: Redis::CannotConnectError/, message_id: msg_id)
+    end
+  end
+
+  describe '#decode_message' do
+    let(:mock_logger) { instance_double(SemanticLogger::Logger, debug: nil, error: nil) }
+
     context 'with valid JSON' do
       let(:message_json) { '{"email":"test@example.com","template":"welcome"}' }
 
       it 'returns parsed hash with symbolized keys' do
-        result = worker.parse_message(message_json)
+        result = worker.decode_message(message_json)
 
-        expect(result).to be_a(Hash)
         expect(result).to eq({
           email: 'test@example.com',
           template: 'welcome'
         })
       end
 
-      it 'calls validate_schema on parsed data' do
-        expect(worker).to receive(:validate_schema).with(hash_including(email: 'test@example.com'))
-        worker.parse_message(message_json)
+      it 'does not settle the message' do
+        worker.decode_message(message_json)
+
+        expect(worker.acked?).to be false
+        expect(worker.rejected?).to be false
       end
     end
 
     context 'with invalid JSON' do
       let(:invalid_message) { 'not valid json {broken' }
 
-      it 'calls reject!' do
-        expect(worker).to receive(:reject!)
-        worker.parse_message(invalid_message)
-      end
-
-      it 'returns nil' do
-        allow(worker).to receive(:reject!)
-        result = worker.parse_message(invalid_message)
-
-        expect(result).to be_nil
+      it 'returns nil without settling the message' do
+        expect(worker.decode_message(invalid_message)).to be_nil
+        expect(worker.rejected?).to be false
       end
 
       it 'logs error message' do
-        allow(worker).to receive(:reject!)
-        mock_logger = instance_double(SemanticLogger::Logger)
         allow(worker).to receive(:logger).and_return(mock_logger)
-        allow(mock_logger).to receive(:debug)
-        expect(mock_logger).to receive(:error).with(/Invalid JSON/, hash_including(:worker))
 
-        worker.parse_message(invalid_message)
+        worker.decode_message(invalid_message)
+
+        expect(mock_logger).to have_received(:error).with(/Invalid JSON/, hash_including(:worker))
+      end
+    end
+
+    context 'with a JSON null body' do
+      it 'returns nil and logs why' do
+        allow(worker).to receive(:logger).and_return(mock_logger)
+
+        expect(worker.decode_message('null')).to be_nil
+        expect(mock_logger).to have_received(:error)
+          .with('Message payload is null', hash_including(message_id: message_id_value))
+      end
+    end
+
+    context 'with a JSON body that is not an object' do
+      ['[1, 2]', '[]', '"x"', '5', 'false', 'true'].each do |body|
+        it "returns nil for #{body} and logs why, without settling the message" do
+          allow(worker).to receive(:logger).and_return(mock_logger)
+
+          expect(worker.decode_message(body)).to be_nil
+          expect(mock_logger).to have_received(:error)
+            .with('Message payload is not a JSON object', hash_including(message_id: message_id_value))
+          expect(worker.rejected?).to be false
+        end
+      end
+    end
+
+    context 'with an unknown schema version' do
+      let(:metadata) do
+        MetadataStub.new(message_id: message_id_value, headers: { 'x-schema-version' => 999 })
+      end
+
+      it 'returns nil for a body that parses, without settling the message' do
+        expect(worker.decode_message('{"email":"test@example.com"}')).to be_nil
+        expect(worker.rejected?).to be false
       end
     end
   end
@@ -467,14 +525,11 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker, type: :integration do
     end
   end
 
-  describe '#validate_schema' do
-    let(:data) { { test: 'data' } }
-
+  describe '#schema_version_known?' do
     context 'when schema version is valid (V1)' do
       # Default metadata has 'x-schema-version' => 1
-      it 'does not reject the message' do
-        worker.validate_schema(data)
-        expect(worker.rejected?).to be false
+      it 'is true' do
+        expect(worker.schema_version_known?).to be true
       end
     end
 
@@ -486,9 +541,16 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker, type: :integration do
         )
       end
 
-      it 'defaults to version 1 and does not reject' do
-        worker.validate_schema(data)
-        expect(worker.rejected?).to be false
+      it 'defaults to version 1' do
+        expect(worker.schema_version_known?).to be true
+      end
+    end
+
+    context 'when there is no envelope' do
+      before { worker.metadata = nil }
+
+      it 'defaults to version 1' do
+        expect(worker.schema_version_known?).to be true
       end
     end
 
@@ -500,17 +562,50 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker, type: :integration do
         )
       end
 
-      it 'rejects the message' do
-        worker.validate_schema(data)
-        expect(worker.rejected?).to be true
+      it 'is false and does not settle the message' do
+        expect(worker.schema_version_known?).to be false
+        expect(worker.rejected?).to be false
       end
 
       it 'logs an error' do
         mock_logger = instance_double(SemanticLogger::Logger)
         allow(worker).to receive(:logger).and_return(mock_logger)
         expect(mock_logger).to receive(:error).with(/Unknown schema version: 999/, hash_including(:worker))
-        worker.validate_schema(data)
+        worker.schema_version_known?
       end
+    end
+  end
+
+  describe 'envelope storage' do
+    # Kicks runs work_with_params on a thread pool against one worker
+    # instance, so two messages are in flight on the same object.
+    it 'keeps each thread\'s envelope separate on one worker instance' do
+      other_metadata = MetadataStub.new(message_id: 'msg-other-thread', headers: { 'x-schema-version' => 999 })
+      other_info     = DeliveryInfoStub.new(delivery_tag: 2, routing_key: 'email.message.send', redelivered?: true)
+      stored         = Queue.new
+      release        = Queue.new
+
+      thread = Thread.new do
+        worker.store_envelope(other_info, other_metadata)
+        stored << true
+        release.pop
+        [worker.message_id, worker.message_metadata[:delivery_tag], worker.schema_version_known?]
+      end
+      stored.pop
+
+      # The other thread's envelope is stored and still in use.
+      expect(worker.message_id).to eq(message_id_value)
+      expect(worker.message_metadata).to include(delivery_tag: 1, redelivered: false, schema_version: 1)
+      expect(worker.schema_version_known?).to be true
+
+      worker.store_envelope(delivery_info, metadata)
+      release << true
+
+      expect(thread.value).to eq(['msg-other-thread', 2, false])
+    end
+
+    it 'has no envelope on a thread that stored none' do
+      expect(Thread.new { [worker.delivery_info, worker.metadata, worker.message_id] }.value).to eq([nil, nil, nil])
     end
   end
 
