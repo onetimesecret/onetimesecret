@@ -79,9 +79,9 @@ def request(url, headers, timeout, connect_host=None, cafile=None):
     ) as raw:
         conn = raw
         if target.scheme == "https":
-            conn = ssl.create_default_context(cafile=cafile).wrap_socket(
-                raw, server_hostname=target.hostname
-            )
+            context = ssl.create_default_context(cafile=cafile)
+            context.minimum_version = ssl.TLSVersion.TLSv1_2
+            conn = context.wrap_socket(raw, server_hostname=target.hostname)
         try:
             conn.sendall(wire.encode("ascii"))
             response = http.client.HTTPResponse(conn)
