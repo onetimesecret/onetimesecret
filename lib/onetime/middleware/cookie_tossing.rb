@@ -80,13 +80,13 @@ module Onetime
 
       # The gem's own #call, kept reachable under another name so the
       # per-request copy can run it.
-      alias_method :call_once, :call
+      alias call_once call
       protected :call_once
 
       def initialize(app, options = {})
-        options = options.dup
+        options                 = options.dup
         options[:session_key] ||= configured_session_key
-        super(app, options)
+        super
       end
 
       def call(env)
