@@ -178,7 +178,7 @@ RSpec.describe Core::Views::DomainSerializer do
       # restore all of them so this cannot leak into the rest of the suite.
       around do |example|
         ivars = [
-          :@canonical_domain, :@domains_enabled, :@canonical_domains, :@canonical_domains_parsed, :@anchor_domains_parsed, :@link_domains, :@domain_context_enabled
+          :@canonical_domain, :@domains_enabled, :@canonical_domains, :@canonical_domains_parsed, :@anchor_domains_parsed, :@link_domains
         ]
         saved = ivars.to_h do |ivar|
           [ivar, Onetime::Middleware::DomainStrategy.instance_variable_get(ivar)]

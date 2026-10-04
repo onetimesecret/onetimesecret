@@ -238,9 +238,9 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
 
     it 'follows a Host-rewriting proxy: identifiers name the tenant domain, not the origin target' do
       header 'Host', canonical_host
-      header 'Apx-Incoming-Host', tenant_a.host
+      header 'X-Forwarded-Host', tenant_a.host
       post '/auth/sso/saml'
-      header 'Apx-Incoming-Host', nil
+      header 'X-Forwarded-Host', nil
 
       xml = Zlib::Inflate.new(-Zlib::MAX_WBITS).inflate(
         Base64.decode64(CGI.parse(URI.parse(last_response.headers['Location']).query).fetch('SAMLRequest').first),
@@ -798,6 +798,200 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
       expect(identity_rows(name_id)).to be_empty
       expect(db[:accounts].where(email: email).count).to eq(0)
       expect(events.map(&:first)).not_to include(:omniauth_tenant_callback_validated, :login_success)
+    end
+  end
+
+  # ── a response POSTed after verification lapsed (#4610) ───────────────────
+  #
+  # The POST is answered 404 before staging and carries no cookies, so that
+  # refusal cannot drop the pending context the way the GET-side refusals
+  # above do. The context ages out instead: once it is older than
+  # PENDING_TENANT_CONTEXT_MAX_AGE the next SSO request in the session drops
+  # it, and a response resubmitted after the domain verifies again answers
+  # no pending request.
+  describe 'a response POSTed after domain verification lapsed' do
+    let(:name_id) { "lapsed-#{run_id}" }
+    let(:email)   { "lapsed-#{run_id}@saml-tenant.example.com" }
+    let(:hook)    { Auth::Config::Hooks::OmniAuthTenant }
+
+    def response_for(request)
+      tenant_a.idp.response(
+        in_response_to: request.id, acs_url: request.acs_url, audience: request.sp_entity_id,
+        name_id: name_id, attributes: { 'email' => [email] }
+      )
+    end
+
+    it 'stores a start time with the tenant markers' do
+      started = Time.now.to_i
+      start_login(tenant_a)
+
+      session = last_request.env['rack.session'].to_h
+      expect(session['omniauth_tenant_started_at']).to be_between(started, Time.now.to_i)
+    end
+
+    it 'does not renew a pending SAML flow when an OIDC start is rejected' do
+      events  = audit_events
+      request = start_login(tenant_a)
+      pending = last_request.env['rack.session'].to_h.slice(
+        'omniauth_tenant_domain_id', 'omniauth_tenant_host', 'omniauth_tenant_started_at', 'saml_authn_request_id'
+      )
+      expect(pending['saml_authn_request_id']).to eq(request.id)
+      allow(Time).to receive(:now).and_return(Time.at(pending.fetch('omniauth_tenant_started_at') + 300))
+
+      post '/auth/sso/oidc'
+
+      expect(last_response.status).to eq(302), last_response.body[0, 300]
+      expect(last_response.headers['Location'].to_s).to include('auth_error=sso_failed')
+      expect(events.map(&:first)).to include(:omniauth_strategy_mismatch)
+      expect(last_request.env['rack.session'].to_h.slice(*pending.keys)).to eq(pending)
+    end
+
+    it 'refuses the original SAML callback past its age bound after a rejected OIDC start' do
+      created_emails << email
+      events  = audit_events
+      request = start_login(tenant_a)
+      started = last_request.env['rack.session'].to_h.fetch('omniauth_tenant_started_at')
+      allow(Time).to receive(:now).and_return(Time.at(started + 300))
+
+      post '/auth/sso/oidc'
+
+      expect(last_response.status).to eq(302), last_response.body[0, 300]
+      expect(last_response.headers['Location'].to_s).to include('auth_error=sso_failed')
+      expect(events.map(&:first)).to include(:omniauth_strategy_mismatch)
+      expect(last_request.env['rack.session'].to_h['saml_authn_request_id']).to eq(request.id)
+      allow(Time).to receive(:now).and_call_original
+      # Advance only the context clock, leaving the signed assertion in date.
+      allow(hook).to receive(:drop_expired_tenant_context).and_wrap_original do |original, session, host|
+        original.call(session, host, now: started + hook::PENDING_TENANT_CONTEXT_MAX_AGE + 1)
+      end
+
+      post_callback(tenant_a, response_for(request))
+
+      expect(last_response.status).to eq(302), last_response.body[0, 300]
+      expect(last_response.headers['Location'].to_s).to include('auth_error=sso_failed')
+      expect(last_request.env['rack.session'].to_h.keys.map(&:to_s)).not_to include(
+        'omniauth_tenant_domain_id', 'omniauth_tenant_host', 'omniauth_tenant_started_at', 'saml_authn_request_id'
+      )
+      expect(last_request.env['rack.session'].to_h['account_id']).to be_nil
+      expect(identity_rows(name_id)).to be_empty
+      expect(db[:accounts].where(email: email).count).to eq(0)
+      expect(events.map(&:first)).to include(:omniauth_tenant_context_expired)
+      expect(events.map(&:first)).not_to include(:omniauth_tenant_callback_validated, :login_success)
+    end
+
+    it 'renews the start time and request id for a new legitimate SAML flow' do
+      original = start_login(tenant_a)
+      started  = last_request.env['rack.session'].to_h.fetch('omniauth_tenant_started_at')
+      allow(Time).to receive(:now).and_return(Time.at(started + 300))
+
+      fresh = start_login(tenant_a)
+
+      session = last_request.env['rack.session'].to_h
+      expect(session['omniauth_tenant_started_at']).to eq(started + 300)
+      expect(session['saml_authn_request_id']).to eq(fresh.id)
+      expect(fresh.id).not_to eq(original.id)
+      expect(session['omniauth_tenant_domain_id']).to eq(tenant_a.domain.identifier)
+      expect(session['omniauth_tenant_host']).to eq(tenant_a.host)
+    end
+
+    # A start that passes setup but is refused afterwards (here the
+    # strategy's own request-phase refusal; the connect re-authentication
+    # redirect is another) writes a new start time. The earlier request id
+    # must not survive under it.
+    it 'refuses the original SAML callback after a later start is refused past setup' do
+      created_emails << email
+      events   = audit_events
+      original = start_login(tenant_a)
+      started  = last_request.env['rack.session'].to_h.fetch('omniauth_tenant_started_at')
+      allow(Time).to receive(:now).and_return(Time.at(started + 300))
+      allow_any_instance_of(OmniAuth::Strategies::RequestBoundSAML).to receive(:acs_host_mismatch)
+        .and_return(acs_host: 'elsewhere.example', request_host: tenant_a.host)
+
+      post '/auth/sso/saml'
+
+      expect(last_response.status).to eq(302), last_response.body[0, 300]
+      expect(last_response.headers['Location'].to_s).to include('auth_error=sso_failed')
+      # Past setup: the refused start wrote its own start time.
+      expect(last_request.env['rack.session'].to_h['omniauth_tenant_started_at']).to eq(started + 300)
+      expect(last_request.env['rack.session'].to_h['saml_authn_request_id']).to be_nil
+      allow(Time).to receive(:now).and_call_original
+      allow_any_instance_of(OmniAuth::Strategies::RequestBoundSAML).to receive(:acs_host_mismatch).and_call_original
+      # Past the original start's bound, inside the refused start's.
+      allow(hook).to receive(:drop_expired_tenant_context).and_wrap_original do |drop, session, host|
+        drop.call(session, host, now: started + hook::PENDING_TENANT_CONTEXT_MAX_AGE + 1)
+      end
+
+      post_callback(tenant_a, response_for(original))
+
+      expect(last_response.status).to eq(302), last_response.body[0, 300]
+      expect(last_response.headers['Location'].to_s).to include('auth_error=sso_failed')
+      expect(last_request.env['rack.session'].to_h['account_id']).to be_nil
+      expect(identity_rows(name_id)).to be_empty
+      expect(db[:accounts].where(email: email).count).to eq(0)
+      # Refused for the missing request id: the refused start's context is
+      # still inside its bound.
+      expect(events.map(&:first)).not_to include(
+        :omniauth_tenant_context_expired, :omniauth_tenant_callback_validated, :login_success
+      )
+    end
+
+    # OmniAuth answers a GET to the request path through other_phase, which
+    # runs setup. That request starts nothing, so it must leave a pending
+    # flow as it was: neither renewing its start time nor dropping it.
+    it 'leaves a pending SAML flow untouched on a GET to the request path' do
+      start_login(tenant_a)
+      pending = last_request.env['rack.session'].to_h.slice(
+        'omniauth_tenant_domain_id', 'omniauth_tenant_host', 'omniauth_tenant_started_at', 'saml_authn_request_id'
+      )
+      allow(Time).to receive(:now).and_return(Time.at(pending.fetch('omniauth_tenant_started_at') + 300))
+
+      header 'Host', tenant_a.host
+      get '/auth/sso/saml'
+
+      expect(last_request.env['rack.session'].to_h.slice(*pending.keys)).to eq(pending)
+    end
+
+    it 'drops the context left behind once it is older than the bound' do
+      created_emails << email
+      events  = audit_events
+      request = start_login(tenant_a)
+
+      tenant_a.domain.verified = false
+      tenant_a.domain.save
+
+      # No Origin, as in the disabled-record example above: the IdP origin
+      # is not admitted for an unverified domain, and the Origin-less POST is
+      # the one the transport's own route check answers.
+      post_callback(tenant_a, response_for(request), origin: nil, expect_staged: false)
+      expect(last_response.status).to eq(404), last_response.body[0, 300]
+      expect(last_response.headers['Set-Cookie']).to be_nil
+
+      tenant_a.domain.verified = true
+      tenant_a.domain.save
+
+      # The same form resubmitted after the bound has passed. Only the
+      # hook's clock moves, so the assertion itself is still in date.
+      later = Time.now.to_i + hook::PENDING_TENANT_CONTEXT_MAX_AGE + 1
+      allow(hook).to receive(:drop_expired_tenant_context).and_wrap_original do |original, session, host|
+        original.call(session, host, now: later)
+      end
+
+      post_callback(tenant_a, response_for(request))
+
+      # Refused at the strategy (saml_no_pending_request).
+      expect(last_response.status).to eq(302), last_response.body[0, 300]
+      expect(last_response.headers['Location'].to_s).to include('auth_error=sso_failed')
+      expect(last_request.env['rack.session'].to_h.keys.map(&:to_s)).not_to include(
+        'omniauth_tenant_domain_id', 'omniauth_tenant_host', 'omniauth_tenant_started_at', 'saml_authn_request_id'
+      )
+      expect(last_request.env['rack.session'].to_h['account_id']).to be_nil
+      expect(identity_rows(name_id)).to be_empty
+      expect(db[:accounts].where(email: email).count).to eq(0)
+      expect(events.map(&:first)).not_to include(:omniauth_tenant_callback_validated, :login_success)
+
+      expired = events.find { |event, _| event == :omniauth_tenant_context_expired }
+      expect(expired).not_to be_nil
+      expect(expired.last).to include(host: tenant_a.host, pending_tenant_flow_dropped: true)
     end
   end
 

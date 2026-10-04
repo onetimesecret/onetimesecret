@@ -16,7 +16,8 @@ RSpec.describe ColonelAPI::AuthStrategies::SessionAuthStrategy do
       'REMOTE_ADDR' => '10.0.0.4',
       'HTTP_HOST' => 'origin.example.test',
       'HTTP_X_FORWARDED_FOR' => '203.0.113.9',
-      'HTTP_APX_INCOMING_HOST' => 'tenant.example.test',
+      'HTTP_APX_INCOMING_HOST' => 'ignored.example.test',
+      'HTTP_X_OTS_PROXY_DEBUG_RECEIVED_APX_INCOMING_HOST' => 'tenant.example.test',
       'HTTP_X_OTS_PROXY_DEBUG_PEER' => '198.51.100.10',
       'otto.client_ip' => '203.0.113.0',
       'otto.via_trusted_proxy' => true,
@@ -38,7 +39,7 @@ RSpec.describe ColonelAPI::AuthStrategies::SessionAuthStrategy do
           'x-ots-proxy-debug-received-x-real-ip' => nil,
           'x-ots-proxy-debug-received-x-client-ip' => nil,
           'x-ots-proxy-debug-received-forwarded' => nil,
-          'x-ots-proxy-debug-received-apx-incoming-host' => nil,
+          'x-ots-proxy-debug-received-apx-incoming-host' => 'tenant.example.test',
         },
         rack: {
           remote_addr: '10.0.0.4',
@@ -55,7 +56,6 @@ RSpec.describe ColonelAPI::AuthStrategies::SessionAuthStrategy do
           'x-real-ip' => nil,
           'x-client-ip' => nil,
           'forwarded' => nil,
-          'apx-incoming-host' => 'tenant.example.test',
         },
       )
     end

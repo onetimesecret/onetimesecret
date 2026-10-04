@@ -49,7 +49,6 @@ describe('contract vs shape: defaults are absent on contracts, applied on shapes
     expect(s.enabled).toBe(false);
     expect(s.debug).toBe(false);
     expect(s.frontend_host).toBe('http://localhost:5173');
-    expect(s.domain_context_enabled).toBe(false);
     expect(s.allow_nil_global_secret).toBe(false);
   });
 

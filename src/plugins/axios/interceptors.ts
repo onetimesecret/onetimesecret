@@ -47,13 +47,6 @@ const isValidShrimp = (shrimp: unknown): shrimp is string =>
   typeof shrimp === 'string' && shrimp.length > 0;
 
 /**
- * Domain Context Override header name.
- * Used for persona-based testing in development mode.
- */
-const DOMAIN_CONTEXT_HEADER = 'O-Domain-Context';
-const DOMAIN_CONTEXT_STORAGE_KEY = 'domainContext';
-
-/**
  * Passive-request declaration (ADR-048, RISK-2026-09-19-04).
  *
  * A request made with `{ passive: true }` carries `X-Session-Activity:
@@ -73,19 +66,6 @@ const PASSIVE_DECLARABLE_METHODS = new Set(['get', 'head']);
 const declaresPassive = (config: InternalAxiosRequestConfig): boolean =>
   config.passive === true &&
   PASSIVE_DECLARABLE_METHODS.has((config.method ?? 'get').toLowerCase());
-
-/**
- * Gets the domain context override from sessionStorage.
- * @returns The domain context value or null if not set
- */
-const getDomainContext = (): string | null => {
-  try {
-    return sessionStorage.getItem(DOMAIN_CONTEXT_STORAGE_KEY);
-  } catch {
-    // sessionStorage may not be available (SSR, private browsing, etc.)
-    return null;
-  }
-};
 
 /**
  * Request interceptor that adds the CSRF token to outgoing requests
@@ -118,12 +98,6 @@ export const requestInterceptor = (config: InternalAxiosRequestConfig) => {
   // request, from the request's own option; never an instance default.
   if (declaresPassive(config)) {
     config.headers[SESSION_ACTIVITY_HEADER] = SESSION_ACTIVITY_PASSIVE;
-  }
-
-  // Add domain context override header if set (development feature)
-  const domainContext = getDomainContext();
-  if (domainContext) {
-    config.headers[DOMAIN_CONTEXT_HEADER] = domainContext;
   }
 
   // For FormData uploads, delete Content-Type so Axios sets it with the boundary

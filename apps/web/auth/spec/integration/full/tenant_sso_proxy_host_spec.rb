@@ -9,7 +9,7 @@
 # Regression test: tenant SSO must resolve behind a Host-rewriting proxy.
 #
 # Production topology (Approximated ingress): the browser asks for the
-# tenant's custom domain, Approximated forwards it as `Apx-Incoming-Host` and
+# tenant's custom domain, the edge forwards it as `X-Forwarded-Host` and
 # rewrites `Host:` to the origin target. Rack::DetectHost and DomainStrategy
 # resolve that into env['onetime.display_domain'], which is what every other
 # custom-domain surface reads (HttpOriginOptions #4170, Auth::SigninGate,
@@ -71,9 +71,9 @@ RSpec.describe 'Tenant SSO behind a Host-rewriting proxy', :shared_db_state, typ
   # opts password sign-in in.
   after { Onetime::CustomDomain::SigninConfig.delete_for_domain!(test_custom_domain.identifier) }
 
-  it 'injects the tenant credentials keyed on Apx-Incoming-Host, not the rewritten Host' do
+  it 'injects the tenant credentials keyed on X-Forwarded-Host, not the rewritten Host' do
     header 'Host', origin_host
-    header 'Apx-Incoming-Host', tenant_domain
+    header 'X-Forwarded-Host', tenant_domain
     post '/auth/sso/entra'
 
     location = last_response.headers['Location'].to_s
@@ -109,7 +109,7 @@ RSpec.describe 'Tenant SSO behind a Host-rewriting proxy', :shared_db_state, typ
 
     def post_sso_through_proxy
       header 'Host', origin_host
-      header 'Apx-Incoming-Host', tenant_domain
+      header 'X-Forwarded-Host', tenant_domain
       post '/auth/sso/entra'
     end
 
@@ -179,7 +179,7 @@ RSpec.describe 'Tenant SSO behind a Host-rewriting proxy', :shared_db_state, typ
     expect(Auth::Config::Hooks::OmniAuthTenant).not_to receive(:inject_tenant_credentials)
 
     header 'Host', origin_host
-    header 'Apx-Incoming-Host', tenant_domain
+    header 'X-Forwarded-Host', tenant_domain
     post '/auth/sso/entra'
 
     expect(last_response.status).to eq(404)
@@ -192,7 +192,7 @@ RSpec.describe 'Tenant SSO behind a Host-rewriting proxy', :shared_db_state, typ
   # domain verified again.
   it 'drops the pending tenant context when it 404s a callback after verification lapsed' do
     header 'Host', origin_host
-    header 'Apx-Incoming-Host', tenant_domain
+    header 'X-Forwarded-Host', tenant_domain
     post '/auth/sso/entra'
 
     location = last_response.headers['Location'].to_s
@@ -210,7 +210,7 @@ RSpec.describe 'Tenant SSO behind a Host-rewriting proxy', :shared_db_state, typ
     ).and_call_original
 
     header 'Host', origin_host
-    header 'Apx-Incoming-Host', tenant_domain
+    header 'X-Forwarded-Host', tenant_domain
     get '/auth/sso/entra/callback', code: 'idp-code', state: state
 
     expect(last_response.status).to eq(404)
@@ -228,7 +228,7 @@ RSpec.describe 'Tenant SSO behind a Host-rewriting proxy', :shared_db_state, typ
     # lands the visitor on a host they never authenticated from). Either way
     # `sso_not_configured` would just become a failure one hop later.
     header 'Host', origin_host
-    header 'Apx-Incoming-Host', tenant_domain
+    header 'X-Forwarded-Host', tenant_domain
     post '/auth/sso/entra'
 
     location     = last_response.headers['Location'].to_s

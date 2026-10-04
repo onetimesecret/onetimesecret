@@ -36,7 +36,8 @@ everywhere, and says so at boot. See [When the allowlist cannot be
 enforced](#when-the-allowlist-cannot-be-enforced).
 
 If the app runs behind a reverse proxy that forwards the public hostname in a
-header (`X-Forwarded-Host`, `Apx-Incoming-Host`, `X-Original-Host`) rather than
+header (`X-Forwarded-Host`, the one the application reads — see
+[proxy-authority-header.md](proxy-authority-header.md)) rather than
 rewriting `Host`, you **must** configure
 `site.network.trusted_proxy` **with the proxy's own address ranges in
 `cidrs`** — otherwise the admin gate refuses the forwarded host and both
@@ -209,8 +210,7 @@ Details that matter:
 - The host is taken from the **validated detected host** (`Rack::DetectHost`),
   which only honors a forwarded host header when the peer is trusted — see
   [Behind a reverse proxy or load balancer](#behind-a-reverse-proxy-or-load-balancer--required-for-both-gates).
-  It is never read from a raw `Host` header or from the `O-Domain-Context`
-  development header.
+  It is never read from a raw `Host` header.
 - **Explicit entries match literally** — list the `www.` form too if you need
   it. The `www.` tolerance applies only to the canonical fallback.
 - Matching is case-insensitive, port-stripped and trailing-dot-stripped. ASCII
@@ -416,8 +416,8 @@ same way the rest of the stack does:
   than that needs the true-IP match support — see [CIDR precision and privacy
   masking](#cidr-precision-and-privacy-masking).
 - The **host** gate matches the host `Rack::DetectHost` validated, and applies
-  one extra check of its own: a forwarded host header (`X-Forwarded-Host`,
-  `Apx-Incoming-Host`, `X-Original-Host`) is accepted **only** when
+  one extra check of its own: the forwarded host header (`X-Forwarded-Host`)
+  is accepted **only** when
   `env['otto.via_trusted_proxy']` is true — i.e. `site.network.trusted_proxy` is
   configured and this peer passed it. Otherwise the forwarded host must agree
   with the `Host` header, or the request is refused. See [Forwarded hosts and
@@ -503,8 +503,18 @@ The gate deliberately does **not** fall back to the `Host` header when it
 refuses a forwarded one. In the topology this defends (Approximated-style
 ingress with `trusted_proxy` unset) `Host` carries the *origin's* hostname —
 typically the canonical one, which is on the allowlist — while the tenant
-domain rides in `Apx-Incoming-Host`. Falling back would admit exactly the
+domain rides in a forwarded header. Falling back would admit exactly the
 requests this exists to refuse.
+
+The same holds for the headers the application no longer reads.
+`Apx-Incoming-Host`, `X-Original-Host` and a comma-separated `X-Forwarded-Host`
+never supply the detected host, but the gate still looks at the host each one
+names: when it differs from the detected host, both admin surfaces 404 for that
+request, from any peer, trusted or not. An edge that rewrites `Host` and still
+carries the public host only in one of those is answered the way it was before
+they stopped being read. The remedy is at the proxy: send one
+`X-Forwarded-Host` and remove the others
+([proxy-authority-header.md](proxy-authority-header.md)).
 
 **If both admin surfaces started 404ing after this landed**, and your proxy
 forwards the public hostname in a header rather than rewriting `Host`, that is
@@ -643,8 +653,9 @@ app-layer auth layers fully in force underneath.
   surfaces 404 from every IP. An **empty** `ADMIN_ALLOWED_CIDRS` still means "no
   network gate"; that distinction is the point.
 - A spoofed `X-Forwarded-For: <allowed-ip>` from an untrusted origin does **not**
-  bypass the CIDR allowlist, and a spoofed `X-Forwarded-Host` /
-  `Apx-Incoming-Host` does **not** bypass the host allowlist — for the host gate
+  bypass the CIDR allowlist, and a spoofed `X-Forwarded-Host` does **not**
+  bypass the host allowlist (`Apx-Incoming-Host` and `X-Original-Host` are not
+  read as a host at all) — for the host gate
   a forwarded header counts only from a peer `site.network.trusted_proxy`
   vouched for, never from the private-address heuristic.
 - A percent-encoded admin path (`/%63olonel`, `/colonel%2Fsettings`) returns the

@@ -264,8 +264,6 @@ OT.conf['features']['domains'] = {
   'enabled' => true,
   'default' => 'onetimesecret.com'
 }
-OT.conf['development'] ||= {}
-OT.conf['development']['domain_context_enabled'] = true
 # Force runtime features update
 Onetime::Runtime.features = Onetime::Runtime.features.with(domains_enabled: true)
 # Rebuild test app with new config
@@ -283,7 +281,7 @@ true
 ## GET with custom domain - auth_methods includes password
 @custom_domain_env = {
   'HTTP_ACCEPT' => 'application/json',
-  'HTTP_O_DOMAIN_CONTEXT' => @auth_test_domain.display_domain,
+  'HTTP_HOST' => @auth_test_domain.display_domain,
   'onetime.domain_strategy' => :custom,
   'onetime.display_domain' => @auth_test_domain.display_domain,
 }
@@ -439,8 +437,6 @@ record = resp['record']
 # Reset domain config to test defaults
 OT.conf['features'] ||= {}
 OT.conf['features']['domains'] = { 'enabled' => false, 'default' => nil }
-OT.conf['development'] ||= {}
-OT.conf['development']['domain_context_enabled'] = false
 Onetime::Runtime.features = Onetime::Runtime.features.with(domains_enabled: false)
 Onetime::Middleware::DomainStrategy.reset! if Onetime::Middleware::DomainStrategy.respond_to?(:reset!)
 

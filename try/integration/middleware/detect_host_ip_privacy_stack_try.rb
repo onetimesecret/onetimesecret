@@ -129,7 +129,7 @@ OT.send(:conf=, @saved_conf)
 
 ## Incident shape (2026-08-05): request arrives via trusted proxy (10.0.0.5)
 ## carrying the public visitor in X-Forwarded-For and the customer domain in
-## Apx-Incoming-Host. Otto resolves and rewrites REMOTE_ADDR to the (masked)
+## X-Forwarded-Host. Otto resolves and rewrites REMOTE_ADDR to the (masked)
 ## PUBLIC visitor IP before DetectHost runs — the old private_ip?(REMOTE_ADDR)
 ## gate failed here and every custom domain fell back to canonical. The
 ## forwarded host header must survive the rewrite.
@@ -137,7 +137,7 @@ OT.send(:conf=, @saved_conf)
   {
     'REMOTE_ADDR' => '10.0.0.5',
     'HTTP_X_FORWARDED_FOR' => '203.0.113.50',
-    'HTTP_APX_INCOMING_HOST' => 'ca.metalbaum.example.com',
+    'HTTP_X_FORWARDED_HOST' => 'ca.metalbaum.example.com',
     'HTTP_HOST' => 'eu.onetimesecret.com',
   },
 )
@@ -200,7 +200,7 @@ OT.send(:conf=, @saved_conf)
   {
     'REMOTE_ADDR' => '10.0.0.5',
     'HTTP_X_FORWARDED_FOR' => '203.0.113.50',
-    'HTTP_APX_INCOMING_HOST' => 'ca.metalbaum.example.com',
+    'HTTP_X_FORWARDED_HOST' => 'ca.metalbaum.example.com',
     'HTTP_HOST' => 'eu.onetimesecret.com',
   },
 )
@@ -223,7 +223,7 @@ OT.send(:conf=, @saved_conf)
   {
     'REMOTE_ADDR' => '10.0.0.5',
     'HTTP_X_FORWARDED_FOR' => '9.9.9.9, 203.0.113.50',
-    'HTTP_APX_INCOMING_HOST' => 'ca.metalbaum.example.com',
+    'HTTP_X_FORWARDED_HOST' => 'ca.metalbaum.example.com',
     'HTTP_HOST' => 'eu.onetimesecret.com',
   },
 )

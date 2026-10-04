@@ -83,6 +83,58 @@ running v0.24.0. The one sanctioned edit is `unreleased` → a real version, mad
 by the release process. If a key changes meaning, rename it — the old name's
 marker leaves with it.
 
+Shipped means the version has a stable release tag, `vX.Y.Z`. A marker naming
+a version that was never tagged is not a statement to anyone yet, so
+`bin/envref check` treats it like `unreleased`: it can be corrected, and it
+becomes frozen once that tag exists. This is a way to repair a guess that
+reached the base branch, not a reason to write one — new keys are still
+annotated `unreleased`.
+
+Absence from a partial local tag set is not evidence that a version never
+shipped. Configure a named Git remote that carries the project's release tags.
+For example, if `upstream` is already that remote:
+
+```bash
+git config envref.releaseRemote upstream
+bin/envref check
+```
+
+For a single invocation, use `CONFIG_VERSION_RELEASE_REMOTE=upstream bin/envref check`.
+The environment variable takes precedence whenever it is present, even when
+empty; an empty value means unknown authority, not fallback to Git config.
+Otherwise the check reads `git config envref.releaseRemote`. Only configured
+Git remote names are accepted, not URLs. There is no implicit `origin` default.
+The release remote is independent of the base ref used for the marker comparison.
+
+Each check queries the selected remote with `git ls-remote --tags --refs` and
+combines its advertised stable tags with known local stable tags. A tag present
+in either set freezes the marker; a version absent from both stays editable
+only after the query succeeds and the combined set contains stable tags.
+Successful evidence reports the selected remote name, never its URL, to avoid
+exposing credentials in that URL. No tag objects are fetched and no refs are
+changed.
+
+The operator's authority configuration is trusted. A successful query does not
+prove that the remote is the project's release authority, that its namespace is
+historically complete, or that a deleted or unpushed tag never existed. Select
+the release repository, not a fork with only some tags. The check uses the
+currently advertised namespace and retains known local tags, including unpushed
+release tags. CI configures `envref-release` with the fixed URL
+`https://github.com/onetimesecret/onetimesecret.git` and explicitly selects it
+with `CONFIG_VERSION_RELEASE_REMOTE=envref-release`; it does not derive the
+release authority from `origin` or PR metadata.
+
+The query has a 15-second deadline, supervised with Bash job control and
+standard Unix utilities, not a `timeout` executable. On expiry, the supervisor
+kills the query's process group and discards partial output. The outer check
+shell and CLI forward catchable cancellation signals (`SIGINT` and `SIGTERM`)
+so the supervisor can clean up the query and watchdog; the watchdog is also
+cleaned up when the query returns early. This covers transport children that
+remain in the query's process group. It is not a sandbox: `SIGKILL` cannot be
+caught, and children that escape the group are outside this cleanup mechanism.
+Credential-prompt helpers are disabled for this query and stdin reads EOF;
+configured Git transports, SSH commands, keys and proxies are preserved.
+
 ## Adding a config key
 
 Annotate it `# Since unreleased`. You cannot know which version will ship it,
@@ -127,11 +179,11 @@ Order matters — resolve, commit, then tag, so the tagged tree already says
 
 These are one package, `tools/envref/`, and `bin/envref` is the only supported
 way to run any of them — [ADR-042](../adr/adr-042-repository-tooling-packages.md).
-The implementations live in `tools/envref/src/envref/`: three Python modules,
-and three shell scripts under `sh/` that are unchanged from when they lived in
-`scripts/`. Porting 950 lines of verified awk to Python would have been a
-rewrite rather than a migration, and a tool package is allowed to be polyglot
-behind one entry point.
+The implementations live in `tools/envref/src/envref/`, with Python modules
+and Bash/awk scripts under `sh/`. The package-private
+`sh/release-tag-evidence.sh` separates evidence acquisition and deterministic
+tag classification from the marker rules. These internal paths are not CLI
+entry points; the public flags are unchanged.
 
 `bin/envref` starts the package with `uv run --locked`, which resolves
 `tools/envref/uv.lock`, so CI and a laptop run the same versions. The
@@ -284,6 +336,27 @@ File names below are relative to `tools/envref/src/envref/`.
   same as the three implementations agreeing about a file none of them has
   seen yet. If you add a fourth shape to `etc/defaults/`, the test will tell
   you whether they still agree about it.
-- **The ratchet needs the base branch fetched.** CI sets
-  `CONFIG_VERSION_REQUIRE_BASE=1` so a missing base fails loudly rather than
-  silently degrading to a syntax-only check. Locally it prints a NOTE.
+- **The ratchet needs the base branch fetched.** The always-on
+  `drift-guards.yml` job sets `CONFIG_VERSION_REQUIRE_BASE=1` so a missing base
+  fails loudly rather than silently degrading to a syntax-only check. Local
+  runs and the manual `validate-config.yml` workflow leave strict mode unset
+  and print a NOTE when no base is available. Both workflows fetch full history.
+- **The ratchet needs an explicitly configured release authority.** Rule 2 uses
+  exact `vX.Y.Z` tags advertised by the selected remote, plus known local stable
+  tags. Partial or missing local tags do not weaken the rule if the query
+  succeeds. Missing or invalid authority configuration, a failed or timed-out
+  query, or a combined set with no stable tags leaves release evidence unknown.
+  `CONFIG_VERSION_REQUIRE_BASE=1` makes unknown evidence a failure before the
+  rules run, even if local tags exist. Without strict mode, the fallback freezes
+  every concrete marker on the base, including guessed versions, and prints a
+  NOTE on both passing and failing runs.
+  For a configured authority named `upstream`, check
+  `git ls-remote --tags --refs upstream`. Fetching local tags is not a substitute
+  for a successful authority query on the next check. Offline runs cannot safely
+  establish that an absent local tag was never released. `--print-sites`
+  performs no tag query and needs no network.
+- **A resolved marker is editable until its tag exists.** The release process
+  resolves, commits, then tags, so between the resolve commit reaching the base
+  branch and the tag being pushed, the new `Since vX.Y.Z` markers are not yet
+  frozen unless that tag is already known locally. The check reads tag names
+  only; it does not verify that the tagged tree contains the key.

@@ -8,6 +8,7 @@ require_relative '../queues/config'
 require_relative '../queues/declarator'
 require_relative '../../mail'
 require_relative '../../models/custom_domain/mailer_config'
+require_relative '../../models/delivery_event'
 
 module Onetime
   module Jobs
@@ -30,6 +31,18 @@ module Onetime
       #     "raw": true,
       #     "email": { "to": "user@example.com", "from": "...", "subject": "...", "body": "..." }
       #   }
+      #
+      #   Either form may carry top-level "correlation_id", "event_type" and
+      #   "customer_extid" (set by DispatchNotification). They are read for
+      #   the delivery event only and never reach the template.
+      #
+      # Delivery events: one Onetime::DeliveryEvent per processed message,
+      # written after the retries finish — `sent` when the backend accepted
+      # the message, `skipped` when it returned nil (suppressed recipient or
+      # delivery disabled), `failed` on a permanent error, exhausted retries,
+      # or an invalid message. Duplicates dropped by the idempotency claim and
+      # ping messages write nothing. Recording is best-effort and does not
+      # change ack/reject behavior.
       #
       # Configuration:
       #   - threads: Number of concurrent workers (4 recommended)
@@ -59,10 +72,24 @@ module Onetime
 
           store_envelope(delivery_info, metadata)
 
-          data = nil
+          data          = nil
+          attempts      = 0
+          started_at    = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+          # A worker instance processes messages concurrently. Keep the guard
+          # and event identity local, including when ack! enters a rescue path.
+          event_context = { recorded: false, message_id: metadata&.message_id }
           with_trace_context do
             data = parse_message(msg)
-            return unless data # parse_message handles reject on error
+            unless data # parse_message already rejected the message
+              record_delivery_event(
+                nil,
+                event_context: event_context,
+                attempts: attempts,
+                started_at: started_at,
+                reason: 'invalid_message',
+              )
+              return
+            end
 
             # Handle ping test messages (from: bin/ots queue ping)
             if ping_test?(data)
@@ -82,12 +109,20 @@ module Onetime
             # Plain StandardErrors and transient DeliveryErrors are retriable.
             retriable = ->(ex) { !ex.is_a?(Onetime::Mail::DeliveryError) || ex.transient? }
 
-            with_retry(max_retries: 3, base_delay: 2.0, retriable: retriable) do
+            result = with_retry(max_retries: 3, base_delay: 2.0, retriable: retriable) do
+              attempts += 1
               deliver_email(data)
             end
 
             log_info "Email delivered: #{data[:template]}"
             update_delivery_status(data, 'sent')
+            record_delivery_event(
+              data,
+              event_context: event_context,
+              result: result,
+              attempts: attempts,
+              started_at: started_at,
+            )
             ack!
           end
         rescue Onetime::Mail::DeliveryError => ex
@@ -97,11 +132,27 @@ module Onetime
             log_error 'Non-transient delivery error, skipping to DLQ', ex
           end
           update_delivery_status(data, 'failed')
+          record_delivery_event(
+            data,
+            event_context: event_context,
+            error: ex,
+            attempts: attempts,
+            started_at: started_at,
+            reason: ex.transient? ? 'retries_exhausted' : 'permanent',
+          )
           flush_logs
           reject! # Send to DLQ
         rescue StandardError => ex
           log_error 'Unexpected error delivering email', ex
           update_delivery_status(data, 'failed')
+          record_delivery_event(
+            data,
+            event_context: event_context,
+            error: ex,
+            attempts: attempts,
+            started_at: started_at,
+            reason: unexpected_failure_reason(ex, attempts),
+          )
           flush_logs
           reject! # Send to DLQ
         rescue Exception => ex # rubocop:disable Lint/RescueException
@@ -174,6 +225,78 @@ module Onetime
           end
 
           Onetime::Mail.deliver_raw(email, sender_config: sender_config)
+        end
+
+        # Write one terminal event per invocation, including parse rejections
+        # with zero delivery attempts and no payload fields. Duplicates and
+        # ping messages never call this helper. Best-effort.
+        #
+        # @param data [Hash, nil] Parsed message payload
+        # @param result [Object, nil] Mail backend response; nil means the
+        #   backend skipped the send (Delivery::Base#deliver contract)
+        # @param error [Exception, nil] the terminal error, when failed
+        def record_delivery_event(data, event_context:, attempts:, started_at:, result: nil, error: nil, reason: nil)
+          parse_rejected = data.nil? && attempts.zero? && reason == 'invalid_message'
+          return if (data.nil? || attempts.zero?) && !parse_rejected
+          return if event_context[:recorded]
+
+          event_context[:recorded] = true
+          data                   ||= {}
+
+          outcome, reason = if error || parse_rejected
+                              ['failed', reason]
+                            elsif result.nil?
+                              %w[skipped not_dispatched]
+                            else
+                              ['sent', nil]
+                            end
+
+          Onetime::DeliveryEvent.record(
+            channel: 'email',
+            stage: 'delivery',
+            outcome: outcome,
+            reason: reason,
+            error: error,
+            correlation_id: data[:correlation_id] || event_context[:message_id],
+            message_id: event_context[:message_id],
+            event_type: data[:event_type],
+            template: data[:raw] ? 'raw' : data[:template],
+            customer_id: data[:customer_extid],
+            provider: mail_provider_name,
+            provider_message_id: provider_message_id_of(result),
+            attempt_count: attempts,
+            duration_ms: ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at) * 1000).round,
+          )
+        rescue StandardError => ex
+          log_error "Delivery event not recorded: #{ex.class}"
+        end
+
+        def unexpected_failure_reason(ex, attempts)
+          return 'invalid_message' if ex.is_a?(ArgumentError)
+
+          attempts > 1 ? 'retries_exhausted' : 'error'
+        end
+
+        # @return [String, nil] configured transport name
+        def mail_provider_name
+          Onetime::Mail::Mailer.determine_provider
+        rescue StandardError
+          nil
+        end
+
+        # Provider message id when the backend response carries one (SES
+        # `message_id`, SMTP Mail::Message#message_id, SMTP2GO `email_id`).
+        # Optional: not every transport returns one.
+        # @return [String, nil]
+        def provider_message_id_of(result)
+          value = if result.respond_to?(:message_id)
+                    result.message_id
+                  elsif result.is_a?(Hash)
+                    result['message_id'] || result[:message_id] || result['email_id']
+                  end
+          value.nil? ? nil : value.to_s
+        rescue StandardError
+          nil
         end
 
         # Update the customer's pending_email_delivery_status field.

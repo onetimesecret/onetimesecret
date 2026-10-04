@@ -15,9 +15,11 @@ module Onetime
     #     (its REQUEST_ID_KEY);
     #   - Auth::Router logs which of these a session is still carrying when
     #     the active-session gate destroys it mid-flow;
-    #   - Auth::Config::Hooks::OmniAuthTenant deletes ALL of them when a new
-    #     platform request supersedes an abandoned tenant request, so the
-    #     abandoned IdP tab can never complete against the wrong context.
+    #   - Auth::Config::Hooks::OmniAuthTenant deletes ALL of them with the
+    #     tenant markers (clear_pending_tenant_context): when a new platform
+    #     or tenant request supersedes a pending tenant request, when a tenant
+    #     flow is refused, and when a pending tenant context ages out. The
+    #     abandoned IdP tab can then never complete against the wrong context.
     #
     # All keys are STRINGS: the session is a string-keyed store at rest, and
     # omniauth / omniauth-oauth2 / omniauth_openid_connect write them as

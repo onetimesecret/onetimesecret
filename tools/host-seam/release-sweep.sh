@@ -23,8 +23,8 @@
 # never touches the shared 2163/2154 test datastore.
 #
 # Usage:
-#   scripts/host-seam/release-sweep.sh v0.26.0 v0.26.1 v0.26.2 v0.26.3 v0.26.4 v0.26.5
-#   scripts/host-seam/release-sweep.sh --keep v0.26.4 v0.26.5     # leave stack up
+#   bin/host-seam sweep v0.26.0 v0.26.1 v0.26.2 v0.26.3 v0.26.4 v0.26.5
+#   bin/host-seam sweep --keep v0.26.4 v0.26.5     # leave stack up
 #
 # Env:
 #   IMAGE_REPO   default ghcr.io/onetimesecret/onetimesecret
@@ -142,9 +142,10 @@ for tag in "${TAGS[@]}"; do
       -e AUTH_SECRET="$SECRET" \
       -e JOBS_ENABLED=false \
       `# filter mode auto-trusts RFC1918/loopback, which is where the probe` \
-      `# arrives from through podman's bridge. Without this DetectHost` \
-      `# discards every forwarded header and T3-T5 collapse to canonical for` \
-      `# a reason that has nothing to do with the bug under investigation.` \
+      `# arrives from through podman's bridge. A release that does not` \
+      `# trust the probe source ignores X-Forwarded-Host, and T4, T5, T8 and` \
+      `# T10 drift for a reason that has nothing to do with the bug under` \
+      `# investigation.` \
       -e TRUSTED_PROXY_ENABLED=true \
       -e TRUSTED_PROXY_MODE=filter \
       "$image" 2>&1 >/dev/null)"; then
@@ -175,11 +176,11 @@ for tag in "${TAGS[@]}"; do
 
   # --- Fixture (idempotent; only the first release actually writes) ------
   podman exec -i -e HOST_SEAM_DOMAIN="$CUSTOM" "$APP_CT" \
-    bin/ots console <scripts/host-seam/seed-tenant.rb >/dev/null 2>&1 \
+    bin/ots console <tools/host-seam/seed-tenant.rb >/dev/null 2>&1 \
     || echo "WARN $tag: seeding reported an error (SSO column may read NO_CONFIG)" >&2
 
   # --- Probe ------------------------------------------------------------
-  scripts/host-seam/topology-probe.sh \
+  bin/host-seam probe \
     --base "http://127.0.0.1:${APP_PORT}" \
     --canonical "$CANONICAL" \
     --custom "$CUSTOM" \

@@ -146,7 +146,7 @@ module Onetime
         # 2. Domain-based selection
         if env && env['HTTP_HOST']
           host   = env['HTTP_HOST'].split(':').first # Remove port
-          domain = Onetime::CustomDomain.from_display_domain(host)
+          domain = request_host_domain(env, host)
           if domain
             org = domain.primary_organization
             if org && org.member?(customer)
@@ -259,11 +259,20 @@ module Onetime
         return true unless http_host
 
         host   = http_host.split(':').first
-        domain = Onetime::CustomDomain.from_display_domain(host)
+        domain = request_host_domain(env, host)
         return true unless domain # No custom domain context — no scope restriction
 
         membership = Onetime::OrganizationMembership.find_by_org_customer(org.objid, customer.objid)
         membership&.can_access_domain?(domain)
+      end
+
+      # CustomDomain for the raw Host header's host, or nil.
+      #
+      # Shares the request's resolution (#4220) when that host is the display
+      # domain DomainStrategy resolved; any other host is read directly. A
+      # failed read raises here, as CustomDomain.from_display_domain did.
+      def request_host_domain(env, host)
+        Onetime::CustomDomainResolution.for_host(env, host).record!
       end
     end
   end
