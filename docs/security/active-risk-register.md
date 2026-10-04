@@ -6,7 +6,9 @@ This is the canonical tracker for security work that remains actionable. Dated a
 historical risk registers preserve evidence; they do not define the current status of a finding.
 Source ratings are retained until a new assessment explicitly re-rates a risk.
 
-**Active items:** 20 open · **Accepted exceptions:** none recorded
+**Active items:** 20 existing items · 1 open investigation (severity unconfirmed) · **Accepted exceptions:** none recorded
+
+**Targeted update:** 2026-10-03 — added report 4c3c below; existing items were not reassessed.
 
 ## How to use this register
 
@@ -43,9 +45,16 @@ Source ratings are retained until a new assessment explicitly re-rates a risk.
 | RISK-2026-08-13-03 | P3 / Low | Open | SMTP2GO client error bodies reach logs and Sentry without redaction. | [2026-08-13 finding 3](audits/security-audit-2026-08-13.md); redact at the logging boundary or omit response bodies from Sentry. |
 | RISK-2026-09-19-02 | P4 / Low | Mitigating | Completing the second factor did not renew the session ID; only the password step did. The other establishment paths #4466 names (account switching, impersonation, SSO callbacks, autologin after signup and verification) are not yet proven to rotate. | [2026-09-19 finding 2](audits/security-audit-2026-09-19.md); renew the ID on MFA completion and carry the active-session row and sidecar across it. Change 2026-09-28 (#4466): `after_two_factor_authentication` (`apps/web/auth/config/hooks/two_factor.rb`) calls `Onetime::SessionRotation` (`lib/onetime/session/rotation.rb`), which ends the pending ID through the store (`SessionEnded` marker, blob, sidecar keys, metadata record) and writes the session data back under a fresh ID in the same request; the active-session row survives because it is keyed by `active_session_id_hmac`, which is carried, and the snapshot epoch restarts per ADR-046. The rotation writes the `SessionEnded` marker before touching anything, and a rotation that cannot end the old ID clears the session and refuses the login, so no half-authenticated blob is left readable (review of PR #4600). Covered by `apps/web/auth/spec/integration/full_mfa/mfa_session_rotation_spec.rb`. The row stays open for the remaining establishment paths, each a follow-up to #4466 that can call the same operation. Owner: Unassigned. |
 
+## Open investigations
+
+| ID | Priority / risk | Status | Risk | Source and required action |
+|---|---|---|---|---|
+| RISK-2026-10-03-4C3C | Unassigned / Unconfirmed | Open | If a browser replays cached Basic API credentials cross-site without an authenticated session, the API CSRF-token exemption could permit unintended account-attributed actions. Browser caching and replay have not been demonstrated or refuted. | [2026-10-03 audit, report 4c3c](audits/security-audit-2026-10-03.md); test real-browser credential caching, automatic cross-site replay, accepted request encoding, and server-side account attribution before rating or closing. Owner: Unassigned. Target: Not scheduled. |
+
 ## Historical sources
 
 - [2026-08-14 historical risk register](risk-registers/risk-register-2026-08-14.md)
 - [2026-08-13 security audit](audits/security-audit-2026-08-13.md)
 - [2026-09-09 follow-up audit](audits/security-audit-2026-09-09.md)
 - [2026-09-19 session-consistency package review](audits/security-audit-2026-09-19.md)
+- [2026-10-03 Basic-auth API CSRF exemption assessment](audits/security-audit-2026-10-03.md)
