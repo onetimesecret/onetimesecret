@@ -43,6 +43,10 @@ end
 SentTestBackend.new({}).delivery_log_status
 #=> 'sent'
 
+## Base default transmits? is true (real provider send)
+SentTestBackend.new({}).transmits?
+#=> true
+
 ## A real provider send increments the global emails_sent counter by exactly 1
 before = Onetime::Customer.emails_sent.to_i
 SentTestBackend.new({}).deliver(@email)

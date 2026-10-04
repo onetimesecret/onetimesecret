@@ -69,7 +69,8 @@ module Onetime
         # @param template_name [Symbol] Template name (:secret_link, :welcome, etc.)
         # @param data [Hash] Template data
         # @param locale [String] Locale code (default: 'en')
-        # @return [Object] Delivery response
+        # @return [Object, Delivery::NotTransmitted, nil] Delivery response
+        #   (see Delivery::Base#deliver)
         def deliver(template_name, data = {}, locale: 'en', sender_config: nil)
           template_class = template_class_for(template_name)
           template       = template_class.new(data, locale: locale)
@@ -212,6 +213,24 @@ module Onetime
           ProviderRegistry.detect_provider(conf) || 'logger'
         end
 
+        # Transports that are not in the ProviderRegistry: disabled/none
+        # swallow mail, logger writes it to the log.
+        BUILT_IN_TRANSPORTS = %w[disabled none logger].freeze
+
+        # The transport the delivery backend is built for: determine_provider,
+        # except that a name which is neither a registered provider nor a
+        # built-in transport resolves to 'logger', the backend such a name
+        # falls back to. Config-only; no backend is created.
+        #
+        # @return [String] a registered provider name, 'logger', 'disabled'
+        #   or 'none'
+        def backend_provider(configured = determine_provider)
+          return configured if ProviderRegistry.descriptor(configured)
+          return configured if BUILT_IN_TRANSPORTS.include?(configured)
+
+          'logger'
+        end
+
         private
 
         # Template names whose view classes are only defined when billing is
@@ -281,25 +300,19 @@ module Onetime
         end
 
         def create_delivery_backend
-          provider = determine_provider
-          config   = build_provider_config(provider)
+          configured = determine_provider
+          provider   = backend_provider(configured)
+          unless provider == configured
+            log_error "[mail] Unknown provider '#{configured}', falling back to logger"
+          end
+          config     = build_provider_config(configured)
 
           log_info "[mail] Using #{provider} delivery backend"
 
           descriptor = ProviderRegistry.descriptor(provider)
           return descriptor.delivery_class.new(config) if descriptor
 
-          # Non-provider transports (not in the registry): disabled/none
-          # swallow mail, logger writes it to the log.
-          case provider
-          when 'disabled', 'none'
-            Delivery::Disabled.new(config)
-          when 'logger'
-            Delivery::Logger.new(config)
-          else
-            log_error "[mail] Unknown provider '#{provider}', falling back to logger"
-            Delivery::Logger.new(config)
-          end
+          provider == 'logger' ? Delivery::Logger.new(config) : Delivery::Disabled.new(config)
         end
 
         # Returns the delivery backend for the given sender config.
