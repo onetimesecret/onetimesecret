@@ -1,6 +1,6 @@
 -- Exported from translation_issues table
 -- 2 rows
--- Generated: 2026-08-10T03:40:00.341278+00:00
+-- Generated: 2026-10-04T00:55:53.832678+00:00
 
 DELETE FROM translation_issues;
 
