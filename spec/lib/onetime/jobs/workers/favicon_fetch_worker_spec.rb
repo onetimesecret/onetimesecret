@@ -140,8 +140,6 @@ RSpec.describe Onetime::Jobs::Workers::FaviconFetchWorker, type: :integration do
   let(:operation) { instance_double(Onetime::Operations::FetchDomainFavicon) }
 
   before do
-    worker.store_envelope(delivery_info, metadata)
-
     # Feature flag ON for the processing paths (default is OFF in test config).
     allow(worker).to receive(:favicon_fetch_enabled?).and_return(true)
 

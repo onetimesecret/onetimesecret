@@ -121,8 +121,6 @@ RSpec.describe Onetime::Jobs::Workers::SessionRevocationSweepWorker, type: :inte
   end
 
   before do
-    worker.store_envelope(delivery_info, metadata)
-
     # Stub the operation — the worker under test is only the wrapper.
     allow(Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent)
       .to receive(:new).and_return(operation)

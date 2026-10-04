@@ -104,9 +104,6 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker, type: :integration do
   end
 
   before do
-    # Store envelope is called by work_with_params, but we can also pre-set for tests
-    worker.store_envelope(delivery_info, metadata)
-
     # Mock Onetime::Mail module
     allow(Onetime::Mail).to receive(:deliver)
     allow(Onetime::Mail).to receive(:deliver_raw)

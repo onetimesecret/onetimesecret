@@ -78,6 +78,19 @@ module Onetime
         # never echoes payload content.
         class InvalidMessage < ArgumentError; end
 
+        # What one work_with_params call knows about its message: the frozen
+        # envelope, and two flags that change as the call proceeds. `recorded`
+        # keeps the call to one delivery event (ack! can raise into a rescue
+        # path); `claim_held` says whether the call holds an idempotency claim
+        # that a failure should release. Built per call and passed to the
+        # helpers, never stored on the worker.
+        Invocation = Struct.new(:envelope, :recorded, :claim_held) do
+          # @return [String, nil] the AMQP message id of the message
+          def message_id
+            envelope.message_id
+          end
+        end
+
         from_queue QUEUE_NAME,
           **QueueDeclarator.sneakers_options_for(QUEUE_NAME),
           threads: ENV.fetch('EMAIL_WORKER_THREADS', 4).to_i,
@@ -91,27 +104,23 @@ module Onetime
           # Everything the rescue clauses read is set before any call that
           # can raise, so a failure on the first line still rejects the
           # message and records its event.
-          data          = nil
-          attempts      = 0
-          started_at    = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-          # Per-invocation state: the event identity, the one-event guard
-          # (ack! can raise into a rescue path), and whether this invocation
-          # holds an idempotency claim that a failure should release.
-          event_context = { recorded: false, message_id: metadata&.message_id, claim_held: false }
-
-          store_envelope(delivery_info, metadata)
+          data       = nil
+          attempts   = 0
+          started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+          envelope   = Envelope.new(delivery_info, metadata)
+          invocation = Invocation.new(envelope, false, false)
 
           # Instrument entry point - log before the message is touched
           log_info 'Message received',
-            message_id: event_context[:message_id] || 'unknown',
-            delivery_tag: delivery_info&.delivery_tag || 'unknown'
+            message_id: envelope.message_id || 'unknown',
+            delivery_tag: envelope.delivery_tag || 'unknown'
 
-          with_trace_context do
-            data = decode_message(msg)
+          with_trace_context(envelope) do
+            data = decode_message(msg, envelope)
             if data.nil? # not a JSON object, or an unknown schema version (already logged)
               record_delivery_event(
                 nil,
-                event_context: event_context,
+                invocation: invocation,
                 outcome: 'failed',
                 reason: 'invalid_message',
                 attempts: attempts,
@@ -129,16 +138,16 @@ module Onetime
               return ack!
             end
 
-            validate_deliverable!(data, event_context[:message_id])
+            validate_deliverable!(data, invocation.message_id)
 
             # Atomic idempotency claim: only one worker can claim a message
-            unless claim_for_processing(event_context[:message_id])
-              log_info "Skipping duplicate message: #{event_context[:message_id]}"
+            unless claim_for_processing(invocation.message_id)
+              log_info "Skipping duplicate message: #{invocation.message_id}"
               return ack!
             end
-            event_context[:claim_held] = true
+            invocation.claim_held = true
 
-            log_debug "Processing email: #{data[:template]} (metadata: #{message_metadata})"
+            log_debug "Processing email: #{data[:template]} (metadata: #{envelope.summary})"
 
             # Transient DeliveryErrors and plain StandardErrors are retried.
             # Non-transient DeliveryErrors (auth failure, permanent rejection)
@@ -146,7 +155,7 @@ module Onetime
             # unknown template) are not: a retry cannot change the result.
             retriable = ->(ex) { ex.is_a?(Onetime::Mail::DeliveryError) ? ex.transient? : !ex.is_a?(ArgumentError) }
 
-            result                     = with_retry(max_retries: 3, base_delay: 2.0, retriable: retriable) do
+            result                = with_retry(max_retries: 3, base_delay: 2.0, retriable: retriable) do
               attempts += 1
               deliver_email(data)
             end
@@ -154,7 +163,7 @@ module Onetime
             # so a replay cannot send the email a second time. A delivery
             # call that raised after the provider accepted the message does
             # not get this protection (see release_claim).
-            event_context[:claim_held] = false
+            invocation.claim_held = false
 
             outcome, reason = delivery_outcome(result)
             if outcome == 'sent'
@@ -165,7 +174,7 @@ module Onetime
             update_delivery_status(data, outcome)
             record_delivery_event(
               data,
-              event_context: event_context,
+              invocation: invocation,
               outcome: outcome,
               reason: reason,
               result: result,
@@ -175,12 +184,12 @@ module Onetime
             ack!
           end
         rescue InvalidMessage => ex
-          log_error "Invalid message format: #{ex.message}", message_id: event_context[:message_id]
-          release_claim(event_context)
+          log_error "Invalid message format: #{ex.message}", message_id: invocation.message_id
+          release_claim(invocation)
           update_delivery_status(data, 'failed')
           record_delivery_event(
             data,
-            event_context: event_context,
+            invocation: invocation,
             outcome: 'failed',
             reason: 'invalid_message',
             error: ex,
@@ -195,11 +204,11 @@ module Onetime
           else
             log_error 'Non-transient delivery error, skipping to DLQ', ex
           end
-          release_claim(event_context)
+          release_claim(invocation)
           update_delivery_status(data, 'failed')
           record_delivery_event(
             data,
-            event_context: event_context,
+            invocation: invocation,
             outcome: 'failed',
             reason: ex.transient? ? 'retries_exhausted' : 'permanent',
             error: ex,
@@ -210,11 +219,11 @@ module Onetime
           reject! # Send to DLQ
         rescue StandardError => ex
           log_error 'Unexpected error delivering email', ex
-          release_claim(event_context)
+          release_claim(invocation)
           update_delivery_status(data, 'failed')
           record_delivery_event(
             data,
-            event_context: event_context,
+            invocation: invocation,
             outcome: 'failed',
             reason: unexpected_failure_reason(ex, attempts),
             error: ex,
@@ -342,7 +351,7 @@ module Onetime
 
         # Write the one terminal event for this invocation. Called on every
         # path that settles a message except duplicates and pings; the guard
-        # in event_context keeps it to one event when a later step (ack!)
+        # on the invocation keeps it to one event when a later step (ack!)
         # raises into a rescue path. Best-effort.
         #
         # Payload fields are copied only when they are Strings, so a payload
@@ -351,16 +360,17 @@ module Onetime
         # the envelope id only.
         #
         # @param data [Hash, Object, nil] Parsed message payload
+        # @param invocation [Invocation] this call and its one-event guard
         # @param outcome [String] 'sent', 'skipped' or 'failed'
         # @param reason [String, nil] reason code
         # @param result [Object, nil] Mail backend response, when delivered
         # @param error [Exception, nil] the terminal error, when failed
-        def record_delivery_event(data, event_context:, outcome:, attempts:, started_at:, reason: nil, result: nil, error: nil)
-          return if event_context[:recorded]
+        def record_delivery_event(data, invocation:, outcome:, attempts:, started_at:, reason: nil, result: nil, error: nil)
+          return if invocation.recorded
 
-          event_context[:recorded] = true
-          data                     = {} unless data.is_a?(Hash)
-          fields                   = data.slice(:correlation_id, :event_type, :template, :customer_extid)
+          invocation.recorded = true
+          data                = {} unless data.is_a?(Hash)
+          fields              = data.slice(:correlation_id, :event_type, :template, :customer_extid)
             .select { |_key, value| value.is_a?(String) }
 
           Onetime::DeliveryEvent.record(
@@ -369,8 +379,8 @@ module Onetime
             outcome: outcome,
             reason: reason,
             error: error,
-            correlation_id: fields[:correlation_id] || event_context[:message_id],
-            message_id: event_context[:message_id],
+            correlation_id: fields[:correlation_id] || invocation.message_id,
+            message_id: invocation.message_id,
             event_type: fields[:event_type],
             template: data[:raw] ? 'raw' : fields[:template],
             customer_id: fields[:customer_extid],
@@ -397,11 +407,11 @@ module Onetime
         # claim is released, the message goes to the DLQ, and a replay sends
         # the email a second time. Keeping the claim instead would drop the
         # replay of every message that really was not sent.
-        def release_claim(event_context)
-          return unless event_context[:claim_held]
+        def release_claim(invocation)
+          return unless invocation.claim_held
 
-          event_context[:claim_held] = false
-          release_processing_claim_safely(event_context[:message_id])
+          invocation.claim_held = false
+          release_processing_claim_safely(invocation.message_id)
         end
 
         # Reason code for an error that is not a DeliveryError. An

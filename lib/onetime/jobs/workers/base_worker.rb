@@ -7,6 +7,7 @@ require 'json'
 require_relative '../../utils/retry_helper'
 require_relative '../trace_propagation'
 require_relative '../queues/config'
+require_relative 'envelope'
 
 module Onetime
   module Jobs
@@ -18,6 +19,16 @@ module Onetime
       # - Message schema validation
       # - Retry logic with exponential backoff
       # - Dead letter queue handling
+      # - Idempotency claims keyed by message id
+      #
+      # Kicks runs work_with_params on a thread pool against ONE worker
+      # instance, so nothing about a message is kept on the worker. Each
+      # invocation builds an Envelope from its delivery info and properties
+      # and passes it (or a value read from it, such as the message id) to
+      # the helpers that need it.
+      #
+      # Kicks settles a message from the value work_with_params returns, so
+      # every path ends in ack!, reject! or requeue!.
       #
       # Example:
       #   class MyWorker
@@ -27,11 +38,19 @@ module Onetime
       #     from_queue 'my.queue', ack: true, threads: 4
       #
       #     def work_with_params(msg, delivery_info, metadata)
-      #       store_envelope(delivery_info, metadata)
-      #       data = decode_message(msg)
-      #       return reject! unless data
-      #       # ... do work ...
-      #       ack!
+      #       envelope = Envelope.new(delivery_info, metadata)
+      #
+      #       with_trace_context(envelope) do
+      #         data = decode_message(msg, envelope)
+      #         return reject! unless data
+      #
+      #         unless claim_for_processing(envelope.message_id)
+      #           log_info "Skipping duplicate message: #{envelope.message_id}"
+      #           return ack!
+      #         end
+      #         # ... do work ...
+      #         ack!
+      #       end
       #     end
       #   end
       #
@@ -58,70 +77,22 @@ module Onetime
         end
 
         module InstanceMethods
-          # The AMQP envelope of the message this thread is working on.
-          #
-          # Kicks runs work_with_params on a thread pool against ONE worker
-          # instance, so the envelope is kept per thread and per worker, not
-          # in instance variables: every helper below (message_id,
-          # message_metadata, the schema check, trace headers) reads the
-          # envelope of its own message, never one stored by another thread.
-          ENVELOPES_KEY  = :onetime_worker_envelopes
-          EMPTY_ENVELOPE = [nil, nil].freeze
-
-          # Store the AMQP envelope for the helper methods.
-          # Call this at the start of work_with_params.
-          # @param delivery_info [Bunny::DeliveryInfo] AMQP delivery info
-          # @param metadata [Bunny::MessageProperties] AMQP message properties
-          def store_envelope(delivery_info, metadata)
-            envelopes       = Thread.current.thread_variable_get(ENVELOPES_KEY) ||
-                              Thread.current.thread_variable_set(ENVELOPES_KEY, ObjectSpace::WeakKeyMap.new)
-            envelopes[self] = [delivery_info, metadata].freeze
-          end
-
-          # @return [Bunny::DeliveryInfo, nil] delivery info stored on this thread
-          def delivery_info
-            current_envelope[0]
-          end
-
-          # @return [Bunny::MessageProperties, nil] properties stored on this thread
-          def metadata
-            current_envelope[1]
-          end
-
-          def delivery_info=(value)
-            store_envelope(value, metadata)
-          end
-
-          def metadata=(value)
-            store_envelope(delivery_info, value)
-          end
-
-          # Extract Sentry trace headers from message metadata.
-          #
-          # Returns empty hash if no trace headers present (backwards compatible
-          # with messages published before trace propagation was implemented).
-          #
-          # @return [Hash<String, String>] Trace headers or empty hash
-          def extract_trace_headers
-            Onetime::Jobs::TracePropagation.parse_trace_headers(metadata)
-          end
-
           # Continue Sentry trace from message headers and wrap processing.
           #
           # Links worker errors and performance data to the originating web
           # request in Sentry. Creates a new transaction if trace headers are
           # absent. Safe to call even if Sentry is not configured.
           #
+          # @param envelope [Envelope] the envelope of the message being worked
           # @param name [String] Transaction name (default: "rabbitmq.WorkerClass")
           # @param op [String] Span operation (default: 'queue.process')
           # @yield Block to execute within the transaction
           # @return Result of the block
-          def with_trace_context(name: nil, op: 'queue.process', &)
-            trace_headers    = extract_trace_headers
+          def with_trace_context(envelope, name: nil, op: 'queue.process', &)
             transaction_name = name || "rabbitmq.#{worker_name}"
 
             Onetime::Jobs::TracePropagation.continue_trace(
-              trace_headers,
+              envelope.trace_headers,
               name: transaction_name,
               op: op,
               &
@@ -133,13 +104,19 @@ module Onetime
           # returns, so the caller rejects with `return reject! unless data`.
           # Every refusal is logged here.
           # @param msg [String] Raw message body
+          # @param envelope [Envelope] the envelope of the message being worked
           # @return [Hash, nil] Parsed JSON object with symbol keys, or nil if
           #   the body is not JSON, is not a JSON object (null, array, string,
           #   number, boolean), or the schema version is unknown
-          def decode_message(msg)
+          def decode_message(msg, envelope)
+            message_id = envelope.message_id
             log_debug 'Parsing message', message_id: message_id, size: msg&.bytesize
-            data = JSON.parse(msg, symbolize_names: true)
-            return nil unless schema_version_known?
+            data       = JSON.parse(msg, symbolize_names: true)
+
+            unless envelope.schema_version_known?
+              log_error "Unknown schema version: #{envelope.schema_version}", message_id: message_id
+              return nil
+            end
             return data if data.is_a?(Hash)
 
             # Every worker reads its payload by key, so only an object is a
@@ -150,16 +127,6 @@ module Onetime
           rescue JSON::ParserError => ex
             log_error "Invalid JSON: #{ex.message}", message_id: message_id
             nil
-          end
-
-          # @return [Boolean] whether the envelope's x-schema-version is one
-          #   this build understands. Logs an unknown version.
-          def schema_version_known?
-            version = metadata&.headers&.[]('x-schema-version') || 1
-            return true if Onetime::Jobs::QueueConfig::Versions.const_defined?("V#{version}")
-
-            log_error "Unknown schema version: #{version}", message_id: message_id
-            false
           end
 
           # @return [SemanticLogger::Logger] Logger for worker operations
@@ -239,30 +206,6 @@ module Onetime
             )
           end
 
-          # Extract metadata from message properties
-          #
-          # NOTE: redelivered? is useful for logging/debugging but not as a
-          # substitute for idempotency checks. A message can be delivered
-          # exactly once and still be a duplicate (publisher retry before
-          # broker ack), and a redelivered message might legitimately need
-          # processing (worker crashed before your code ran). The Valkey
-          # check remains the source of truth.
-          def message_metadata
-            {
-              delivery_tag: delivery_info&.delivery_tag,
-              routing_key: delivery_info&.routing_key,
-              redelivered: delivery_info&.redelivered?,
-              message_id: message_id,
-              schema_version: metadata&.headers&.[]('x-schema-version'),
-            }
-          end
-
-          # Get message ID from AMQP properties
-          # @return [String, nil] The message_id or nil if not present
-          def message_id
-            metadata&.message_id
-          end
-
           # A simple predicate to be used as a read-only check only. Hot path
           # code should use claim_for_processing. This is an idempotency check.
           #
@@ -321,14 +264,6 @@ module Onetime
           rescue StandardError => ex
             log_error "Idempotency claim not released: #{ex.class}", message_id: msg_id
             false
-          end
-
-          private
-
-          # @return [Array(Object, Object)] delivery_info and metadata stored
-          #   by this worker on the current thread
-          def current_envelope
-            Thread.current.thread_variable_get(ENVELOPES_KEY)&.[](self) || EMPTY_ENVELOPE
           end
         end
       end

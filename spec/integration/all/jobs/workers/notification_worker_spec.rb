@@ -94,9 +94,6 @@ RSpec.describe Onetime::Jobs::Workers::NotificationWorker, type: :integration do
   let(:operation_instance) { instance_double(Onetime::Operations::DispatchNotification) }
 
   before do
-    # Store envelope
-    worker.store_envelope(delivery_info, metadata)
-
     # Collapse the retry backoff: the sleep is Onetime::Utils::RetryHelper's
     # (BaseWorker#with_retry delegates to it, and it sleeps on itself), so a
     # stub on the worker never fires. Record the requested delays instead.
@@ -292,8 +289,6 @@ RSpec.describe Onetime::Jobs::Workers::NotificationWorker, type: :integration do
       end
 
       it 'skips processing when message_id is nil (safety measure)' do
-        worker.store_envelope(delivery_info, metadata_without_id)
-
         worker.work_with_params(message, delivery_info, metadata_without_id)
 
         # Messages without message_id are acked but skipped
@@ -324,8 +319,6 @@ RSpec.describe Onetime::Jobs::Workers::NotificationWorker, type: :integration do
       end
 
       it 'rejects message with unknown schema version' do
-        worker.store_envelope(delivery_info, metadata_v99)
-
         worker.work_with_params(message, delivery_info, metadata_v99)
 
         expect(worker.rejected?).to be true
@@ -342,8 +335,6 @@ RSpec.describe Onetime::Jobs::Workers::NotificationWorker, type: :integration do
       end
 
       it 'defaults to schema version 1 and processes normally' do
-        worker.store_envelope(delivery_info, metadata_no_version)
-
         worker.work_with_params(message, delivery_info, metadata_no_version)
 
         expect(worker.acked?).to be true
@@ -360,8 +351,6 @@ RSpec.describe Onetime::Jobs::Workers::NotificationWorker, type: :integration do
       end
 
       it 'handles nil headers gracefully and defaults to version 1' do
-        worker.store_envelope(delivery_info, metadata_nil_headers)
-
         worker.work_with_params(message, delivery_info, metadata_nil_headers)
 
         expect(worker.acked?).to be true
@@ -390,8 +379,6 @@ RSpec.describe Onetime::Jobs::Workers::NotificationWorker, type: :integration do
     end
 
     it 'processes redelivered message normally (idempotency handles duplicates)' do
-      worker.store_envelope(delivery_info_redelivered, metadata)
-
       worker.work_with_params(message, delivery_info_redelivered, metadata)
 
       expect(worker.acked?).to be true
@@ -401,7 +388,6 @@ RSpec.describe Onetime::Jobs::Workers::NotificationWorker, type: :integration do
     it 'skips redelivered message if already processed' do
       # Pre-set idempotency key
       Familia.dbclient.setex("job:processed:#{message_id}", 3600, '1')
-      worker.store_envelope(delivery_info_redelivered, metadata)
 
       worker.work_with_params(message, delivery_info_redelivered, metadata)
 

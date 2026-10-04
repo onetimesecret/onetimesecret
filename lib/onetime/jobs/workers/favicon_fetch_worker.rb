@@ -80,7 +80,7 @@ module Onetime
         # @param delivery_info [Bunny::DeliveryInfo] AMQP delivery info
         # @param metadata [Bunny::MessageProperties] AMQP message properties
         def work_with_params(msg, delivery_info, metadata)
-          store_envelope(delivery_info, metadata)
+          envelope = Envelope.new(delivery_info, metadata)
 
           # Assigned inside the block but declared here: block-locals are
           # invisible to the method-level rescues, which tag their logs with it.
@@ -89,8 +89,8 @@ module Onetime
           # Whether this invocation took the idempotency claim.
           claim_held = false
 
-          with_trace_context do
-            data = decode_message(msg)
+          with_trace_context(envelope) do
+            data = decode_message(msg, envelope)
             return reject! unless data # not a JSON object or unknown schema (logged): send to DLQ
 
             domain_id = data[:domain_id]
@@ -111,8 +111,8 @@ module Onetime
             end
 
             # Atomic idempotency claim: only one worker can claim a message
-            unless claim_for_processing(message_id)
-              log_info "Skipping duplicate message: #{message_id}"
+            unless claim_for_processing(envelope.message_id)
+              log_info "Skipping duplicate message: #{envelope.message_id}"
               return ack!
             end
             claim_held = true
@@ -121,7 +121,7 @@ module Onetime
             # false` would treat any truthy payload (e.g. the string "false") as a
             # force, letting a malformed message clobber the skip-existing guard.
             force = data[:force] == true # Phase 2 manual refresh sets this
-            log_debug "Fetching favicon: #{domain_id} (force: #{force}, metadata: #{message_metadata})"
+            log_debug "Fetching favicon: #{domain_id} (force: #{force}, metadata: #{envelope.summary})"
 
             # Delegate to the operation. Retry transient timeouts in-process; the
             # operation re-raises FetchTimeout as-is, so with_retry sees it
@@ -162,7 +162,7 @@ module Onetime
           # is kept, as on the unexpected-error reject below. The domain is
           # picked up again by FaviconBackfillJob once it has been PROCESSING
           # for STUCK_PROCESSING_S, under a new message id.
-          if delivery_info&.redelivered?
+          if envelope.redelivered?
             log_error 'Favicon fetch timed out again after requeue, sending to DLQ', ex, domain_id: domain_id
             return reject!
           end
@@ -170,11 +170,11 @@ module Onetime
           log_info 'Favicon fetch timed out, requeueing for retry',
             domain_id: domain_id,
             error: ex.message,
-            metadata: message_metadata
+            metadata: envelope.summary
           # The broker redelivers under the same message id. Release the claim
           # this invocation took, or the redelivery is acked as a duplicate
           # and the fetch is never retried.
-          release_processing_claim_safely(message_id) if claim_held
+          release_processing_claim_safely(envelope.message_id) if claim_held
           requeue!
         rescue StandardError => ex
           # Unexpected — the operation already stamped status=FAILED before
