@@ -456,31 +456,10 @@ RSpec.describe Onetime::Middleware::SessionFailureCode do
       expect(Onetime::SessionFailureCode.scheme(env)).to eq(Onetime::SessionFailureCode::SCHEME_BASIC)
     end
 
-    # The composed property: run the strategy's env through the middleware and
-    # assert the challenge is never Basic for a headerless refusal, whatever the
-    # route's declared chain. A headerless refusal may carry Session or (when no
-    # typed reason was stashed, as a basicauth-only route does) no challenge at
-    # all; both are safe. Only a Basic challenge populates the browser cache.
-    it 'never answers a headerless refusal with Basic, across chain shapes' do
-      # A session reason is what Otto stashes for a headerless refusal on any
-      # chain that resolves a session first; a basicauth-only chain stashes
-      # nothing (AUTH_HEADER_MISSING is a plain failure).
-      [
-        refused_env(:session_missing),       # sessionauth / sessionauth,basicauth
-        refused_env(:not_authenticated),     # session-scope refusal
-        { 'otto.strategy_result' => failed_chain }.merge(env_after_parse(nil)), # basicauth-only, headerless
-      ].each do |env|
-        _s, headers, _b = call(otto_response, env)
-        challenge = headers.find { |k, _v| k.to_s.casecmp('www-authenticate').zero? }&.last
-
-        expect(challenge).not_to eq('Basic realm="onetimesecret"'),
-          "a headerless refusal was challenged with Basic (env: #{env.keys.inspect})"
-      end
-    end
-
     # The regression anchor: a Basic challenge is reachable, but ONLY from the
-    # credentialed path. If this stops holding, the test above stops meaning
-    # anything, so pin it here too.
+    # credentialed path (a present header). The route-level counterpart — that a
+    # headerless 401 on a basicauth-only route never carries Basic — lives in
+    # spec/api/v2/basicauth_fallthrough_spec.rb, where a real Otto chain runs.
     it 'does answer with Basic once the credentialed path stashed the scheme' do
       env = env_after_parse(malformed_basic)
       env['otto.strategy_result'] = failed_chain

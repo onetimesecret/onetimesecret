@@ -329,6 +329,26 @@ RSpec.describe 'API v2 Basic auth anonymous fallthrough (fail closed)', type: :i
       expect(last_response.status).to eq(401)
     end
 
+    # RISK-2026-10-03-4C3C. The sessionless /api/ CSRF-token exemption
+    # (registry.rb) is only safe while a browser cannot acquire a replayable
+    # Basic credential to forge with — and a browser caches one only after a
+    # `WWW-Authenticate: Basic` response. This basicauth-only route is the one
+    # that COULD applicably challenge Basic (RFC 9110 §15.5.2), so it is where
+    # the invariant is most likely to regress: an unprompted (headerless)
+    # request must never be answered with Basic. Here it carries no challenge at
+    # all, which is also safe; the load-bearing assertion is the negative. A bad
+    # credential — a header the client chose to send — is challenged with Basic,
+    # confirming the challenge path still works.
+    it 'never challenges a headerless request with Basic (RISK-2026-10-03-4C3C)' do
+      json_get '/api/v2/receipt/recent'
+      expect(last_response.status).to eq(401)
+      expect(last_response.headers['www-authenticate']).not_to eq('Basic realm="onetimesecret"')
+
+      json_get '/api/v2/receipt/recent',
+        authorization: basic_header("nobody_#{SecureRandom.uuid}@example.com", 'not_a_real_key')
+      expect(last_response.headers['www-authenticate']).to eq('Basic realm="onetimesecret"')
+    end
+
     # No session strategy is in this chain, so nothing examined the customer
     # session and the refusal makes no statement about it (#4462). A missing
     # header is not a rejected credential either, so it stays uncoded; a
