@@ -12,6 +12,8 @@
 #   - Message routing: raw, auth template, non-auth template
 #   - Expired token discard logic
 #   - Duplicate message_id skip
+#   - Releasing the worker's idempotency claim before a replay, and leaving
+#     the message in the DLQ when the release fails
 #
 # Does NOT require RabbitMQ — uses mock channel/delivery/properties objects.
 
@@ -68,6 +70,72 @@ class MockExchange
   end
 end
 
+# The DLQ on the job's dedicated channel, settled the way RabbitMQ settles a
+# basic.get with manual ack: a popped message stays unacked until it is acked
+# or nacked. A nack with requeue, or closing the channel, puts it back at the
+# head of the queue, ahead of the messages not popped yet.
+class FakeDlqChannel
+  attr_reader :popped, :acks, :nacks, :publishes
+
+  def initialize(messages)
+    @ready     = messages.dup
+    @unacked   = {}
+    @popped    = []
+    @acks      = []
+    @nacks     = []
+    @publishes = []
+    @next_tag  = 0
+    @open      = true
+  end
+
+  def queue(_name, **)
+    self
+  end
+
+  def message_count
+    @ready.size
+  end
+
+  def pop(manual_ack:)
+    message = @ready.shift
+    return [nil, nil, nil] unless message
+
+    @next_tag          += 1
+    @unacked[@next_tag] = message
+    @popped << message[:properties].message_id
+    [MockDeliveryInfo.new(delivery_tag: @next_tag), message[:properties], message[:payload]]
+  end
+
+  def ack(delivery_tag)
+    @acks << @unacked.delete(delivery_tag)[:properties].message_id
+  end
+
+  def nack(delivery_tag, _multiple, requeue)
+    message = @unacked.delete(delivery_tag)
+    @nacks << message[:properties].message_id
+    @ready.unshift(message) if requeue
+  end
+
+  def default_exchange
+    MockExchange.new(@publishes)
+  end
+
+  def open?
+    @open
+  end
+
+  def close
+    @open = false
+    @ready.unshift(*@unacked.values)
+    @unacked.clear
+  end
+
+  # Message ids still in the DLQ
+  def remaining
+    @ready.map { |message| message[:properties].message_id }
+  end
+end
+
 # Helper to call private class methods on the job
 def call_private(method, *args)
   @job.send(method, *args)
@@ -75,7 +143,34 @@ end
 
 # Helper to build a results hash
 def fresh_results
-  { replayed: 0, discarded_non_auth: 0, discarded_expired: 0, errors: 0 }
+  { replayed: 0, discarded_non_auth: 0, discarded_expired: 0, errors: 0, deferred: 0 }
+end
+
+# Properties of a raw email dead-lettered from the email queue
+def raw_properties(message_id)
+  MockProperties.new(message_id: message_id, headers: { 'x-death' => [{ 'queue' => 'email.message.send' }] })
+end
+
+RAW_PAYLOAD = JSON.generate({ 'raw' => true, 'email' => { 'to' => 'u@e.com' } })
+
+# A DLQ entry for FakeDlqChannel
+def dlq_message(message_id)
+  { properties: raw_properties(message_id), payload: RAW_PAYLOAD }
+end
+
+# A copy of the job that reads the DLQ from the given channel, and whose
+# release of the worker's idempotency claim raises for the given message ids,
+# as it does when the datastore is unreachable. A subclass, so the job itself
+# is unchanged for the other test cases.
+def job_with(channel: nil, failing_release: [])
+  Class.new(@job) do
+    define_singleton_method(:acquire_channel) { [nil, channel, false] }
+    define_singleton_method(:release_processing_claim) do |message_id|
+      raise RedisClient::CannotConnectError, 'datastore down' if failing_release.include?(message_id)
+
+      super(message_id)
+    end
+  end
 end
 
 # Cleanup idempotency keys we create during testing
@@ -263,6 +358,64 @@ results = fresh_results
 call_private(:process_message, ch, di, props, payload, results)
 [results[:replayed], ch.acks.include?('tag-dup')]
 #=> [0, true]
+
+## replaying a message releases the worker's idempotency claim on its id
+# The worker's own release is best-effort. A claim left behind would make the
+# worker ack the replayed message as a duplicate and never send it.
+ch = MockChannel.new
+msg_id = "release-#{SecureRandom.hex(4)}"
+track_key("dlq:replayed:#{msg_id}")
+track_key("job:processed:#{msg_id}")
+Familia.dbclient.set("job:processed:#{msg_id}", '1')
+results = fresh_results
+call_private(:process_message, ch, MockDeliveryInfo.new(delivery_tag: 'tag-release'), raw_properties(msg_id), RAW_PAYLOAD, results)
+[results[:replayed], ch.publishes.size, Familia.dbclient.exists?("job:processed:#{msg_id}")]
+#=> [1, 1, false]
+
+## a message already replayed is dropped without releasing the claim a live copy holds
+ch = MockChannel.new
+msg_id = "replayed-#{SecureRandom.hex(4)}"
+track_key("dlq:replayed:#{msg_id}")
+track_key("job:processed:#{msg_id}")
+Familia.dbclient.set("dlq:replayed:#{msg_id}", '1')
+Familia.dbclient.set("job:processed:#{msg_id}", '1')
+results = fresh_results
+call_private(:process_message, ch, MockDeliveryInfo.new(delivery_tag: 'tag-replayed'), raw_properties(msg_id), RAW_PAYLOAD, results)
+[ch.acks, ch.publishes.size, results[:replayed], Familia.dbclient.exists?("job:processed:#{msg_id}")]
+#=> [['tag-replayed'], 0, 0, true]
+
+## a message whose claim cannot be released is left unacked and not marked as replayed
+ch = MockChannel.new
+@deferred_id = "deferred-#{SecureRandom.hex(4)}"
+track_key("dlq:replayed:#{@deferred_id}")
+track_key("job:processed:#{@deferred_id}")
+Familia.dbclient.set("job:processed:#{@deferred_id}", '1')
+results = fresh_results
+job_with(failing_release: [@deferred_id]).send(:process_message, ch, MockDeliveryInfo.new(delivery_tag: 'tag-deferred'), raw_properties(@deferred_id), RAW_PAYLOAD, results)
+[ch.acks, ch.nacks, ch.publishes.size, results[:deferred], results[:errors], Familia.dbclient.exists?("dlq:replayed:#{@deferred_id}")]
+#=> [[], [], 0, 1, 0, false]
+
+## so a later run releases the claim and replays it
+ch = MockChannel.new
+results = fresh_results
+call_private(:process_message, ch, MockDeliveryInfo.new(delivery_tag: 'tag-deferred-2'), raw_properties(@deferred_id), RAW_PAYLOAD, results)
+[results[:replayed], ch.acks, Familia.dbclient.exists?("job:processed:#{@deferred_id}")]
+#=> [1, ['tag-deferred-2'], false]
+
+## a batch replays the other messages, pops each message once, and leaves the deferred one in the DLQ
+ids = %w[a b c].map { |name| "batch-#{name}-#{SecureRandom.hex(4)}" }
+ids.each { |id| track_key("dlq:replayed:#{id}") }
+dlq = FakeDlqChannel.new(ids.map { |id| dlq_message(id) })
+job_with(channel: dlq, failing_release: [ids[1]]).send(:consume_dlq_batch)
+[
+  dlq.popped == ids,
+  dlq.acks == [ids[0], ids[2]],
+  dlq.publishes.map { |p| p[:message_id] } == [ids[0], ids[2]],
+  dlq.nacks,
+  dlq.remaining == [ids[1]],
+  dlq.open?,
+]
+#=> [true, true, true, [], true, false]
 
 ## process_message counts error for invalid JSON
 ch = MockChannel.new

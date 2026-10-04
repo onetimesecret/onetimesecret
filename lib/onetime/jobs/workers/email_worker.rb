@@ -53,9 +53,10 @@ module Onetime
       #   |         |           |                     | raised before delivery started    |
       #
       # Every message the worker rejects writes exactly one `failed` event,
-      # whether or not delivery was attempted. A message rejected after its
-      # idempotency claim was taken releases the claim, so a DLQ replay of
-      # the same message id is delivered. Three paths write nothing: a
+      # whether or not delivery was attempted. A message rejected before its
+      # delivery finished releases its idempotency claim (see release_claim);
+      # the DLQ replays release it again before they republish, so a replay
+      # of the same message id is delivered. Three paths write nothing: a
       # duplicate dropped by the idempotency claim (ack), a ping message
       # (ack), and a non-StandardError such as a shutdown signal, which is
       # re-raised without settling the message. Recording is best-effort and
@@ -160,9 +161,10 @@ module Onetime
               deliver_email(data)
             end
             # Delivery returned: the claim now stays, whatever happens next,
-            # so a replay cannot send the email a second time. A delivery
-            # call that raised after the provider accepted the message does
-            # not get this protection (see release_claim).
+            # so a broker redelivery of this message is acked as a duplicate.
+            # It does not stop a DLQ replay, which releases the claim before
+            # it republishes: a message rejected from here on can be sent a
+            # second time by a replay (see release_claim).
             invocation.claim_held = false
 
             outcome, reason = delivery_outcome(result)
@@ -402,19 +404,23 @@ module Onetime
         end
 
         # Release the idempotency claim when this invocation took it and
-        # delivery did not finish, so a DLQ replay of the same message id is
-        # delivered instead of being acked as a duplicate for the rest of the
-        # claim TTL. A claim this invocation did not take is left alone: it
-        # belongs to another delivery of the same id. Best-effort: the release
-        # never raises (BaseWorker#release_processing_claim_safely).
+        # delivery did not finish, so a later delivery of the same message id
+        # is processed instead of being acked as a duplicate for the rest of
+        # the claim TTL. A claim this invocation did not take is left alone:
+        # it belongs to another delivery of the same id. Best-effort: the
+        # release never raises (BaseWorker#release_processing_claim_safely).
+        #
+        # The DLQ replays do not depend on this release. DlqEmailConsumerJob
+        # and the operator's Dlq::Replay both release the claim before they
+        # republish, so a replay is delivered even when the datastore failed
+        # here. This release covers a message returned to the queue any other
+        # way, such as by hand from the RabbitMQ management UI.
         #
         # Delivery is at-least-once. "Did not finish" means the delivery call
         # raised, which is not proof the provider did not accept the message:
         # a read timeout after the provider accepted it, or an error raised
         # inside Delivery::Base#deliver after the send, lands here too. The
-        # claim is released, the message goes to the DLQ, and a replay sends
-        # the email a second time. Keeping the claim instead would drop the
-        # replay of every message that really was not sent.
+        # message goes to the DLQ, and a replay sends the email a second time.
         def release_claim(invocation)
           return unless invocation.claim_held
 

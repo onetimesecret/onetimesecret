@@ -229,16 +229,16 @@ module Onetime
           end
 
           # Release a previously-taken idempotency claim. A failure path that
-          # wants the message processed again needs this BEFORE requeue!, and
-          # before a reject! whose message DlqEmailConsumerJob replays: a
-          # broker redelivery and that automatic replay carry the same
-          # message_id, and within the claim TTL it is silently ack'd as a
-          # duplicate no-op instead of re-running. An operator replay
-          # (Onetime::Operations::Dlq::Replay) releases the claim itself, so a
-          # worker that keeps its claim on reject! is still reprocessed by
-          # one. Only safe for workers whose work is idempotent. A
-          # never-claimed msg_id is a harmless no-op delete. Raises on a
-          # datastore error; rescue clauses use release_processing_claim_safely.
+          # wants the message processed again needs this BEFORE requeue!: the
+          # broker redelivers under the same message_id, and within the claim
+          # TTL the redelivery is silently ack'd as a duplicate no-op instead
+          # of re-running. A message rejected to a DLQ does not need it to be
+          # replayed: the operator replay (Onetime::Operations::Dlq::Replay)
+          # and the automatic email replay (DlqEmailConsumerJob) release the
+          # claim themselves before they republish. Only safe for workers
+          # whose work is idempotent. A never-claimed msg_id is a harmless
+          # no-op delete. Raises on a datastore error; rescue clauses use
+          # release_processing_claim_safely.
           #
           # @param msg_id [String, nil] Message ID whose claim to release
           # @return [Boolean] true if a claim key was deleted
