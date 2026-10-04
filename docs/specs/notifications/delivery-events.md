@@ -122,14 +122,18 @@ for its event.
 - DLQ replay that is processed again: a second terminal event under the
   same correlation id. The newest event for a (correlation_id, channel,
   stage) is the current state. A message rejected after its idempotency
-  claim was taken releases the claim, so its replay is delivered rather
-  than dropped as a duplicate. The claim is kept once delivery finished.
+  claim was taken releases the claim, best-effort. Both DLQ replays, the
+  automatic `DlqEmailConsumerJob` and the operator's
+  `bin/ots queue dlq replay`, release the claim again before they
+  republish, so a replay is delivered rather than dropped as a duplicate
+  even when the worker's release failed. The worker keeps the claim once
+  delivery returned; that stops a broker redelivery, not a replay.
 - Duplicate email on replay: email delivery is at-least-once. If the
   provider accepted the message but the delivery call then raised (a read
   timeout after the accept, or an error after the send), the worker records
   `failed`, releases the claim and rejects the message. A replay of that
-  message sends the email a second time and records a second terminal
-  event.
+  message, automatic or by an operator, sends the email a second time and
+  records a second terminal event.
 
 ## Retries
 
@@ -148,7 +152,8 @@ with `attempt_count`. There is no per-attempt event.
   because the payload was not accepted and delivery was not attempted.
 - Messages that are a JSON object with the wrong shape (`data` not an
   object, `template` not a string or blank, a raw message without an email
-  object or recipient) or no message id are rejected before the
+  object or with a recipient that is neither a non-blank string nor a list
+  whose first entry is one) or no message id are rejected before the
   idempotency claim and record `failed` / `invalid_message` with no attempt
   count. `correlation_id`, `event_type`, `template` and `customer_extid`
   are copied only when they are strings.

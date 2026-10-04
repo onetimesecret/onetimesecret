@@ -3,11 +3,25 @@
 Changed
 -------
 
+- Email delivery is now at-least-once. The email worker releases its
+  idempotency claim when a delivery fails, and the dead letter queue
+  replays release it again before they republish, so a replayed email is
+  sent rather than skipped as a duplicate. (#4479)
+
+  **Deployment note: duplicate emails are possible.** If a mail provider
+  accepted a message before the delivery call raised, for example a read
+  timeout after the provider accepted it, the worker records ``failed`` and
+  rejects the message to the dead letter queue. A replay, by the automatic
+  DLQ email job (``jobs.dlq_consumer``, for auth emails) or by an operator,
+  then sends a second copy. Before this release a replay within the hour
+  was acknowledged as a duplicate and the email was not sent.
+
 - Email messages that cannot be delivered as written are now rejected to
   the dead letter queue: a message with no AMQP message id (previously
   acknowledged as if it were a duplicate), a blank or missing template, and
-  a raw email with no recipient. Expect these in the DLQ instead of being
-  dropped or failing later. (#4479)
+  a raw email with no recipient address (the recipient must be a non-blank
+  string, or a list whose first entry is one). Expect these in the DLQ
+  instead of being dropped or failing later. (#4479)
 
 - ``pending_email_delivery_status`` on a customer is now ``skipped``
   instead of ``sent`` when the email-change confirmation was only logged
@@ -35,8 +49,12 @@ Fixed
 
 - A failed email is no longer skipped as a duplicate when it is replayed
   from the dead letter queue. The email worker releases its idempotency
-  claim when delivery fails, so a replay within the hour is delivered.
-  (#4479)
+  claim when delivery fails, and the automatic DLQ email job releases it
+  again before it republishes, so a replay within the hour is delivered
+  even when the worker's release failed. If the datastore fails while the
+  job releases the claim or marks the message as replayed, the message now
+  stays in the dead letter queue for the next run and is counted as
+  ``deferred``; it was previously dropped. (#4479)
 
 - ``ots queue dlq replay`` and the colonel replay endpoint now release a
   message's idempotency claim before republishing it. The DNS record
@@ -46,11 +64,23 @@ Fixed
   worker as a duplicate. A message whose claim cannot be released stays in
   the dead letter queue and is counted as failed. (#4479)
 
+- ``ots queue dlq replay`` and the colonel replay endpoint now republish a
+  message and remove it from the dead letter queue in one AMQP
+  transaction, so a failed removal no longer leaves the message both
+  republished and in the dead letter queue. A message whose republish or
+  removal fails stays in the dead letter queue, is counted as failed, and
+  is not tried again in the same replay. It was previously requeued
+  straight away, and the replay could pick the same message up again
+  instead of the ones behind it. If the broker does not confirm a commit,
+  the replay stops and reports the message as failed with an "outcome
+  unknown" error, because it may already be republished. (#4479)
+
 - A favicon fetch that times out is now retried once when the broker
   redelivers it. The favicon worker kept its idempotency claim when it
   requeued the message, so the retry was skipped as a duplicate and the
   domain's favicon fetch stayed in ``processing``. A fetch that times out
-  again on the retry goes to the dead letter queue. (#4479)
+  again on the retry goes to the dead letter queue, and so does one whose
+  claim cannot be released, since its redelivery would be skipped. (#4479)
 
 - Queue workers now reject a message whose body is JSON but not an object
   (an array, string, number or boolean) to the dead letter queue, with one
