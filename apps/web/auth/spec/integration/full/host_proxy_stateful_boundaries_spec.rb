@@ -275,6 +275,64 @@ RSpec.describe 'Host proxy stateful boundaries', :shared_db_state, type: :integr
     end
   end
 
+  describe 'HTTPS policy through the complete mounted stack' do
+    [false, true].product([false, true], [false, true]).each do |assume, trusted, rewrite|
+      it "HP-HTTPS-01: persists Secure sessions with assume_https=#{assume}, trusted=#{trusted}, rewrite=#{rewrite}" do
+        network = OT.conf['site']['network']
+        saved = network.slice('assume_https', 'trusted_proxy', 'public_host_rewrite')
+        network.merge!(
+          'assume_https' => assume,
+          'public_host_rewrite' => rewrite,
+          'trusted_proxy' => { 'enabled' => true, 'mode' => 'filter', 'cidrs' => ['203.0.113.7/32'] },
+        )
+        with_session_cookie_config(secure: true, same_site: 'lax') do
+          clear_cookies
+          proxy_headers(tenant_domain)
+          peer = trusted ? '203.0.113.7' : '198.51.100.9'
+          get "http://#{canonical_host}/auth", {}, 'REMOTE_ADDR' => peer
+
+          expected_ssl = assume || trusted
+          expected_host = trusted ? tenant_domain : canonical_host
+          request_env = last_request.env
+          expect(last_response.status).to eq(200)
+          expect(Rack::Request.new(request_env).ssl?).to eq(expected_ssl)
+          expect(request_env[Rack::DetectHost.result_field_name]).to eq(expected_host)
+          expect(request_env['onetime.domain_strategy']).to eq(trusted ? :custom : :canonical)
+          expect(request_env).not_to have_key('HTTP_X_FORWARDED_HOST')
+          expect(request_env).not_to have_key('HTTP_X_FORWARDED_PROTO') unless trusted
+          session_cookie = Array(last_response.headers['Set-Cookie']).find { |value| value.start_with?('onetime.session=') }
+          if expected_ssl
+            expect(session_cookie).not_to be_nil
+            expect(cookie_attributes(session_cookie)).to include('secure', 'httponly', 'samesite=lax')
+            expect(session_cookie).not_to match(/;\s*domain=/i)
+            token = last_response.headers.fetch('X-CSRF-Token')
+            clear_cookies
+            proxy_headers(tenant_domain)
+            header 'Cookie', session_cookie.split(';').first
+            header 'Origin', "https://#{expected_host}"
+            header 'Content-Type', 'application/json'
+            header 'X-CSRF-Token', token
+            post "http://#{canonical_host}/auth/login", JSON.generate(
+              login: account_email, password: AuthTestConstants::TEST_PASSWORD, shrimp: token,
+            ), 'REMOTE_ADDR' => peer
+            expect(last_response.status).to eq(200), last_response.body
+            expect(Rack::Request.new(last_request.env).ssl?).to be(true)
+            cookie = Array(last_response.headers['Set-Cookie']).find { |value| value.start_with?('onetime.session=') }
+            expect(cookie).not_to be_nil
+            expect(cookie_attributes(cookie)).to include('secure')
+            data = stored_session(cookie.split(';').first.split('=', 2).last)
+            expect(data['account_id']).to eq(account_id)
+            expect(data['authenticated']).to be(true)
+          else
+            expect(session_cookie).to be_nil
+          end
+        end
+      ensure
+        saved.each { |key, value| network[key] = value } if saved
+      end
+    end
+  end
+
   [false, true].each do |rewrite|
     context "public_host_rewrite #{rewrite ? 'on' : 'off'}" do
       around do |example|

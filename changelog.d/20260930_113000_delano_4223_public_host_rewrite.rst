@@ -52,6 +52,9 @@ Changed
 Fixed
 -----
 
+- ``ASSUME_HTTPS=true`` keeps requests HTTPS after untrusted forwarded scheme
+  headers are removed, allowing Secure session cookies to be written. (#4223)
+
 - A forwarded host with userinfo (``user:pw@secrets.example.com``) is no
   longer read as the host ``user``. No header value with an ``@`` in it names a
   host. When a trusted proxy sends one as the single ``X-Forwarded-Host``, no
