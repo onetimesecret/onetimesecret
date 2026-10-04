@@ -145,7 +145,7 @@ module Onetime
       # @param domains [Array<Onetime::CustomDomain>] the request's custom
       #   domains, from #request_scope_domains
       # @return [Onetime::Organization, nil] Selected organization
-      def determine_organization(customer, session, env, domains)
+      def determine_organization(customer, session, env, domains = request_scope_domains(env))
         # NOTE: Header override (O-Organization-ID) is handled in load_organization_context
         # BEFORE the cache check. If we reach here, no valid header was present.
 
