@@ -47,11 +47,9 @@ module Auth::Config::Overrides
   # deletes the forwarded-host headers at the stack edge too — defense in
   # depth.)
   #
-  # `super()` is kept only as a last resort BEHIND the canonical value: it is
-  # reached only when site.host is entirely unconfigured, which is exactly the
-  # "must set domain in configuration" misconfiguration Rodauth's internal
-  # requests are meant to raise on. In every configured deployment the
-  # canonical value wins and super() is dead.
+  # When no tier resolves, `required_base_url!` raises a typed configuration
+  # failure (H-05). Even with site.host unconfigured, Rodauth's `super()` is
+  # unsafe: it constructs credential-bearing links from the request authority.
   #
   # Overriding `base_url` rather than `domain` is deliberate: `domain` also
   # feeds `email_from`'s "webmaster@" default, the OTP issuer, and the SMS
@@ -62,11 +60,23 @@ module Auth::Config::Overrides
   # a datastore blip fails closed).
   #
   module PublicBaseUrl
+    module ResetPasswordOrigin
+      # Also protect direct/internal key creation, before INSERT or updating an
+      # existing key's email_last_sent; an email-time failure alone is too late.
+      def create_reset_password_key
+        base_url
+        super
+      end
+    end
+
     def self.configure(auth)
-      # `super()` with explicit parens is required: this block becomes a
-      # define_method body, where bare zsuper is a RuntimeError.
       auth.base_url do
-        Auth::PublicHost.allowlisted_base_url(request.env) || super()
+        Auth::PublicHost.required_base_url!(request.env)
+      end
+
+      auth_class = auth.instance_variable_get(:@auth)
+      if auth_class&.features&.include?(:reset_password)
+        auth.auth_class_eval { prepend Auth::Config::Overrides::PublicBaseUrl::ResetPasswordOrigin }
       end
 
       # rubocop:disable Lint/NestedMethodDefinition -- Rodauth's auth_class_eval pattern

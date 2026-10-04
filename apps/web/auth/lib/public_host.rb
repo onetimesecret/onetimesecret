@@ -91,9 +91,10 @@ module Auth
   #      (`canonical_request_host`)
   #   3. the configured canonical host, request-independent (`canonical_host`)
   #
-  # A consumer may append its own last resort BEHIND tier 3 for the
-  # "site.host unconfigured" misconfiguration, and nothing else. Rodauth's
-  # `base_url` override has read this chain since the G-01 host-allowlist
+  # Credential URL consumers require this chain to resolve, even when site.host
+  # is unconfigured: `required_base_url!` raises rather than trusting Rack's
+  # authority (H-05). Rodauth's `base_url` override has read this chain since
+  # the G-01 host-allowlist
   # work (#4319; #4221 introduced only the tenant tier); OmniAuth's
   # `full_host` had only tier 1 and fell straight to Rack's authority, so an
   # SSO redirect_uri on the canonical host carried the raw `Host:` header
@@ -122,6 +123,11 @@ module Auth
   # `*_email_link`, and the WebAuthn origin).
   #
   module PublicHost
+    # A missing safe URL origin is a configuration failure, not permission to
+    # use the request authority. The router logs this type and returns its
+    # generic 500 without exposing configuration details to the client.
+    class MissingAllowlistedOrigin < StandardError; end
+
     # @param env [Hash] Rack environment
     # @return [String, nil] the public host, or nil to keep the caller's own
     #   (canonical) derivation — no resolved host, only canonical-set ones, or
@@ -257,13 +263,26 @@ module Auth
     # Never `request.host` / Rack's `base_url`: the raw authority is what a
     # client-settable forwarded header or a doubled `Host:` header lands in.
     # nil only when site.host is unconfigured AND the request resolved to no
-    # allowlisted host; the caller decides its own last resort for that
-    # misconfiguration.
+    # allowlisted host. Credential URL consumers must use #required_base_url!
+    # to reject that misconfiguration without a request-authority fallback.
     #
     # @param env [Hash] Rack environment
     # @return [String, nil] origin
     def self.allowlisted_base_url(env)
       base_url(env) || canonical_request_base_url(env) || canonical_base_url
+    end
+
+    # Required origin for credential-bearing email links and SSO URLs. Keep
+    # the optional helpers' nil contracts for callers that only inspect hosts.
+    #
+    # @param env [Hash] Rack environment
+    # @return [String] allowlisted origin
+    # @raise [MissingAllowlistedOrigin] no verified tenant or canonical origin
+    def self.required_base_url!(env)
+      allowlisted_base_url(env) || raise(
+        MissingAllowlistedOrigin,
+        'No allowlisted auth origin; configure site.host or use a verified tenant or canonical host',
+      )
     end
 
     # Host-only counterpart of #allowlisted_base_url, same tiers, same order.

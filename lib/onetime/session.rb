@@ -97,6 +97,15 @@ module Onetime
     # the colonel auth_strategies spec asserts the two agree.
     STRIPPED_FORWARDED_HEADERS = 'onetime.stripped_forwarded_headers' unless defined?(STRIPPED_FORWARDED_HEADERS)
 
+    # Env names of the forwarded scheme carriers that middleware deletes from
+    # a peer that is not a trusted proxy. Literals for the same reason; the
+    # colonel auth_strategies spec asserts they match the middleware's list.
+    unless defined?(FORWARDED_SCHEME_HEADERS)
+      FORWARDED_SCHEME_HEADERS = %w[
+        HTTP_X_FORWARDED_PROTO HTTP_X_FORWARDED_SCHEME HTTP_X_FORWARDED_SSL
+      ].freeze
+    end
+
     # Class-level, process-wide guard for the throttled warning below. Holds the
     # monotonic timestamp (Process::CLOCK_MONOTONIC) of the last emission, nil
     # until the first. The Mutex keeps concurrent Puma threads from racing on it.
@@ -363,8 +372,17 @@ module Onetime
         Onetime::Session.secure_cookie_warned_at = now
       end
 
-      logger.warn '[Session] cookie NOT written: secure cookie over a request the app sees as non-SSL. Behind a TLS-terminating proxy, forward X-Forwarded-Proto: https or set ASSUME_HTTPS=true.',
-        scheme_evidence(request)
+      evidence = scheme_evidence(request)
+      message  = '[Session] cookie NOT written: secure cookie over a request the app sees as non-SSL. ' \
+                 'Behind a TLS-terminating proxy, forward X-Forwarded-Proto: https or set ASSUME_HTTPS=true.'
+      # Only when a scheme header was sent and removed: the remedy is then to
+      # trust the proxy, not to make it send a header it already sends.
+      unless evidence[:untrusted_scheme_headers].empty?
+        message += ' The headers named in untrusted_scheme_headers were sent but removed because the ' \
+                   'connecting peer is not a trusted proxy; add the proxy to site.network.trusted_proxy.'
+      end
+
+      logger.warn message, evidence
     end
 
     # Snapshot of the scheme-detection signals Rack consults in Request#scheme.
@@ -385,6 +403,13 @@ module Onetime
     # is read from both, or the `forwarded:` field would be permanently
     # false — for exactly the "edge speaks only Forwarded" topology it exists
     # to diagnose.
+    #
+    # The same middleware deletes X-Forwarded-Proto, X-Forwarded-Scheme and
+    # X-Forwarded-SSL when the connecting peer is not a trusted proxy. Those
+    # then read nil here, the same as a proxy that sent nothing, and the
+    # remedy differs (trust the proxy rather than make it send the header).
+    # `untrusted_scheme_headers:` lists the env names of the ones that were
+    # sent and removed; names only, as for `Forwarded`.
     def scheme_evidence(request)
       env = request.env
       {
@@ -393,6 +418,7 @@ module Onetime
         forwarded: forwarded_header_received?(env),
         x_forwarded_ssl: env['HTTP_X_FORWARDED_SSL'],
         https: env['HTTPS'],
+        untrusted_scheme_headers: Array(env[STRIPPED_FORWARDED_HEADERS]) & FORWARDED_SCHEME_HEADERS,
       }
     end
 

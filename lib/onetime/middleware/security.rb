@@ -25,11 +25,13 @@ module Onetime
     # - XSS protection headers
     # - Frame options to prevent clickjacking
     # - Path traversal protection
-    # - Cookie tossing prevention
     # - IP spoofing protection
     # - Strict Transport Security configuration
     #
     # Each protection can be individually enabled/disabled via configuration.
+    #
+    # Cookie tossing prevention is not mounted here: it must run above
+    # Onetime::Session, and MiddlewareStack mounts it there.
     #
     class Security
       # The components this wrapper mounts, in mount order. The definitions
@@ -42,7 +44,6 @@ module Onetime
         XSSHeader
         FrameOptions
         PathTraversal
-        CookieTossing
         IPSpoofing
         StrictTransport
       ].freeze

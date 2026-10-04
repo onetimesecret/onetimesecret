@@ -200,6 +200,43 @@ jobs:
   # TIER 1: LINT & BUILD JOBS (~2 min)
   # ============================================================================
 
+  host-proxy-wire:
+    name: T1 · Host Proxy Wire
+    runs-on: *runs-on
+    timeout-minutes: 5
+    needs: [changes]
+    if: needs.changes.outputs.ruby == 'true'
+    steps:
+      - *checkout-step
+
+      - name: Provision isolated Caddy fixture binary
+        run: |
+          mkdir -p tmp/host-proxy-wire
+          docker pull caddy:2.11.4
+          docker image inspect caddy:2.11.4 --format '{{json .RepoDigests}}' > tmp/host-proxy-wire/image-digest.json
+          docker create --name host-seam-caddy caddy:2.11.4
+          docker cp host-seam-caddy:/usr/bin/caddy tmp/host-proxy-wire/caddy
+          docker rm host-seam-caddy
+          chmod +x tmp/host-proxy-wire/caddy
+          tmp/host-proxy-wire/caddy version > tmp/host-proxy-wire/version.txt
+
+      - name: Check raw proxy header overwrite and duplicate handling
+        run: |
+          set -o pipefail
+          python3 tools/host-seam/proxy-wire.py fixture --caddy "$PWD/tmp/host-proxy-wire/caddy" | tee tmp/host-proxy-wire/results.jsonl
+
+      - name: Upload proxy wire evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: host-proxy-wire-evidence
+          path: |
+            tmp/host-proxy-wire/results.jsonl
+            tmp/host-proxy-wire/image-digest.json
+            tmp/host-proxy-wire/version.txt
+          retention-days: 7
+          if-no-files-found: warn
+
   ruby-lint:
     name: T1 · Ruby Lint
     timeout-minutes: 5

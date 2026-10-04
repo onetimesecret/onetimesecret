@@ -516,6 +516,13 @@ they stopped being read. The remedy is at the proxy: send one
 `X-Forwarded-Host` and remove the others
 ([proxy-authority-header.md](proxy-authority-header.md)).
 
+A value with userinfo (`user:pw@host`) names no host in any of these headers.
+In `Apx-Incoming-Host`, `X-Original-Host`, a comma-separated
+`X-Forwarded-Host` or `Forwarded` it is judged as a host that differs. As the
+single `X-Forwarded-Host` from a trusted proxy it leaves the request with no
+detected host, which the gate refuses; the request is not judged on `Host`
+instead.
+
 **If both admin surfaces started 404ing after this landed**, and your proxy
 forwards the public hostname in a header rather than rewriting `Host`, that is
 this rule. Two ways out:

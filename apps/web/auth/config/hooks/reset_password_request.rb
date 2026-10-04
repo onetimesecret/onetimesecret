@@ -5,7 +5,7 @@
 require 'onetime/security/reset_request_rate_limiter'
 
 #
-# Reset-Password-Request Rate Limiting (issue #3872)
+# Reset-Password-Request Preflight (rate limiting #3872, required origin H-05)
 #
 # SOLE OWNER of the before_reset_password_request_route hook (hooks do not
 # chain — see config/hooks.rb).
@@ -53,9 +53,15 @@ require 'onetime/security/reset_request_rate_limiter'
 # unhandled-exception error log — see overrides/error_handling.rb) to the
 # router's error_handler, which renders the ADR-013 429 body with retry_after.
 #
+# After rate limiting, require an allowlisted base_url (PublicBaseUrl override,
+# H-05), before any account lookup or reset-key write. Missing/unopen/throttled
+# accounts must not bypass an origin failure and expose account existence.
+# This check is independent of whether rate limiting is enabled: disabling
+# request counting must not permit request-authority credential links.
+#
 # POST-only: Rodauth's route wrapper fires this hook for GET (form render)
 # and POST alike; only the POST performs the account lookup + email dispatch
-# that the timing channel rides on, so only the POST is counted.
+# that the timing channel rides on, so only the POST runs these checks.
 #
 module Auth::Config::Hooks
   module ResetPasswordRequest
@@ -78,6 +84,7 @@ module Auth::Config::Hooks
           client_ip = request.ip if client_ip.to_s.empty?
 
           enforce_reset_request_rate_limit!(client_ip, param_or_nil(login_param))
+          base_url
         end
       end
     end

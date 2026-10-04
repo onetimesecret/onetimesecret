@@ -63,6 +63,7 @@ module Onetime
         #   extract_hostname('https://Example.COM:443/path') # => 'example.com'
         #   extract_hostname('Example.COM:8080')            # => 'example.com'
         #   extract_hostname('[2001:db8::1]:8080')          # => '2001:db8::1'
+        #   extract_hostname('user:pw@example.com')         # => nil
         #   extract_hostname(URI('https://foo.bar'))        # => 'foo.bar'
         #   extract_hostname(nil)                           # => nil
         #
@@ -287,6 +288,12 @@ module Onetime
             potential_scheme = str.split(':').first.downcase
             return nil if NON_NETWORK_SCHEMES.include?(potential_scheme)
           end
+
+          # A plain authority with userinfo ("user:pw@example.com") is not
+          # host:port. Splitting it on ':' would return the user name as
+          # the hostname. URL forms are handled above, where URI separates
+          # the userinfo itself.
+          return nil if str.include?('@')
 
           # Treat as plain hostname, strip port if present
           str.split(':').first

@@ -304,6 +304,11 @@
 			# X-Forwarded-Host set below.
 			header_up Host {http.request.host}
 			header_up X-Forwarded-Host {vars.ots_public_host}
+			# Caddy does not manage X-Forwarded-Port, so a client's value would
+			# pass through and Rack would use it as the port of generated URLs
+			# whenever Host carries none. Host is preserved above and already
+			# carries a non-default public port.
+			header_up -X-Forwarded-Port
 			header_up -Apx-Incoming-Host
 			header_up -X-Original-Host
 			header_up CF-ASN {http.request.header.CF-ASN}
