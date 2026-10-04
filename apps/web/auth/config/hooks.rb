@@ -68,7 +68,9 @@
 #                       NOT only mfa — see the ownership note in that file)
 #   email_auth.rb       before_email_auth_route, after_email_auth_request
 #   reset_password_request.rb  before_reset_password_request_route (rate
-#                       limiting per client IP + per submitted login, #3872)
+#                       limiting per client IP + per submitted login, #3872,
+#                       then required allowlisted origin, H-05; both before
+#                       account lookup, even when the limiter is disabled)
 #   restrict_to.rb      before_rodauth (restrict_to enforcement — 404s a sign-in
 #                       method the request host restricts away; fires for
 #                       EVERY route, so it is the one hook that must stay cheap

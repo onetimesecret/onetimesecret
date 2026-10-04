@@ -62,11 +62,25 @@ module Auth::Config::Overrides
   # a datastore blip fails closed).
   #
   module PublicBaseUrl
+    module ResetPasswordOrigin
+      # Also protect direct/internal key creation, before INSERT or updating an
+      # existing key's email_last_sent; an email-time failure alone is too late.
+      def create_reset_password_key
+        base_url
+        super
+      end
+    end
+
     def self.configure(auth)
       # `super()` with explicit parens is required: this block becomes a
       # define_method body, where bare zsuper is a RuntimeError.
       auth.base_url do
         Auth::PublicHost.allowlisted_base_url(request.env) || super()
+      end
+
+      auth_class = auth.instance_variable_get(:@auth)
+      if auth_class&.features&.include?(:reset_password)
+        auth.auth_class_eval { prepend Auth::Config::Overrides::PublicBaseUrl::ResetPasswordOrigin }
       end
 
       # rubocop:disable Lint/NestedMethodDefinition -- Rodauth's auth_class_eval pattern
