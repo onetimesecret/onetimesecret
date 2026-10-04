@@ -738,7 +738,7 @@ module Auth::Config::Hooks
         # single write (instead of save-then-update). Lookup is cheap and pure;
         # leave it outside safe_execute so failures still surface.
         display_domain   = request.env['onetime.display_domain']
-        custom_domain    = display_domain ? Onetime::CustomDomainResolution.for(request.env).record : nil
+        custom_domain    = display_domain ? Onetime::CustomDomain::Lookup.for(request.env).record : nil
         signup_domain_id = custom_domain&.identifier
 
         # ────────────────────────────────────────────────────────────────
@@ -1093,9 +1093,10 @@ module Auth::Config::Hooks
     # itself swallows Onetime::Mail::DeliveryError by contract (publisher.rb:595-600,
     # 621-623) — so a REJECTED send is indistinguishable from a queued one. Two
     # further paths are silent successes at the MAIL layer, on the QUEUED route
-    # too: a suppressed recipient (Delivery::Base#deliver returns nil,
-    # mail/delivery/base.rb:55-58) and EMAILER_MODE=disabled (Delivery::Disabled,
-    # mail/delivery/disabled.rb:21-23).
+    # too: a suppressed recipient and EMAILER_MODE=disabled (Delivery::Disabled).
+    # Delivery::Base#deliver returns nil for both. The Logger backend returns
+    # a Delivery::NotTransmitted, which is not nil: a log-only install still
+    # hands the link to whoever reads the log.
     #
     # So this auth-critical call site does the send itself:
     #   1. probe the two silent-drop conditions BEFORE claiming anything;
@@ -1128,8 +1129,8 @@ module Auth::Config::Hooks
       # Silent-drop probe 2: the recipient is suppressed, so every send to it is
       # skipped — including the queued one, which could never report back here.
       # FAIL-OPEN on a probe error, matching the mail layer's own guard contract
-      # (mail/delivery/base.rb:133-141): a suppression-check failure must never
-      # block a send. The real send re-runs the same guard.
+      # (Delivery::Base#suppressed_recipient?): a suppression-check failure must
+      # never block a send. The real send re-runs the same guard.
       suppressed = begin
         defined?(Onetime::EmailSuppression) && Onetime::EmailSuppression.suppressed?(recipient)
       rescue StandardError => ex
@@ -1145,7 +1146,7 @@ module Auth::Config::Hooks
       # Nothing queued → deliver here and READ the outcome. nil means the mail
       # layer dispatched nothing; a transport failure raises DeliveryError, which
       # the caller treats as not-sent. Locale is passed the way EmailWorker passes
-      # it (jobs/workers/email_worker.rb:156-165) — Publisher's in-process fallback
+      # it (EmailWorker#deliver_templated_email) — Publisher's in-process fallback
       # drops it and always renders 'en'.
       locale = data[:locale].to_s.strip
       locale = OT.default_locale if locale.empty?
