@@ -277,12 +277,20 @@ module Onetime
           if data[:raw]
             email = data[:email]
             raise InvalidMessage, 'raw email is not a JSON object' unless email.is_a?(Hash)
-
-            to = email[:to]
-            raise InvalidMessage, 'raw email has no recipient' if to.nil? || (to.respond_to?(:empty?) && to.empty?)
+            raise InvalidMessage, 'raw email has no recipient' unless deliverable_recipient?(email[:to])
           elsif data[:template].to_s.strip.empty?
             raise InvalidMessage, 'missing template'
           end
+        end
+
+        # Whether the mailer can send to this raw-email recipient. It sends to
+        # one mailbox: a String, or the first entry of a list such as
+        # Rodauth's Mail::Message#to (Mailer#extract_email_address). Any other
+        # value would reach the backend as its to_s, so false would be sent
+        # to "false" and 42 to "42".
+        def deliverable_recipient?(to)
+          to = to.first if to.is_a?(Array)
+          to.is_a?(String) && !to.strip.empty?
         end
 
         # Deliver email via Onetime::Mail

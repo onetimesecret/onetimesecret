@@ -306,6 +306,19 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker, type: :integration do
 
         expect(Familia.dbclient.exists?("job:processed:#{message_id}")).to be_truthy
       end
+
+      # Rodauth enqueues Mail::Message#to, which is a list of addresses.
+      it 'delivers to a recipient given as a list of addresses' do
+        listed = JSON.generate(raw: true, email: { to: ['user@example.com'], subject: 'Test Email' })
+
+        worker.work_with_params(listed, delivery_info, metadata)
+
+        expect(Onetime::Mail).to have_received(:deliver_raw).with(
+          { to: ['user@example.com'], subject: 'Test Email' },
+          sender_config: nil
+        )
+        expect(worker.acked?).to be true
+      end
     end
 
     context 'idempotency handling' do
@@ -1087,6 +1100,25 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker, type: :integration do
           let(:invalid_message) { JSON.generate(raw: true, email: { subject: 'Hello' }) }
 
           include_examples 'a rejected invalid message'
+        end
+
+        # The mailer sends to a String, or to the first entry of an Array,
+        # and turns anything else into its to_s: false would be sent to
+        # "false" and 42 to "42".
+        {
+          'false' => false,
+          'a number' => 42,
+          'whitespace only' => ' ',
+          'an empty list' => [],
+          'a list whose first entry is not a string' => [nil, 'user@example.com'],
+          'a list whose first entry is blank' => ['', 'user@example.com'],
+          'an object' => { address: 'user@example.com' },
+        }.each do |label, recipient|
+          context "with a raw message whose recipient is #{label}" do
+            let(:invalid_message) { JSON.generate(raw: true, email: { to: recipient, subject: 'Hello' }) }
+
+            include_examples 'a rejected invalid message'
+          end
         end
 
         context 'with a blank template' do
