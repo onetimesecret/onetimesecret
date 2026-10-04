@@ -7,8 +7,10 @@ require 'onetime/middleware/registry'
 require 'onetime/middleware/security'
 
 RSpec.describe Onetime::Middleware::Registry do
-  # The nine components Security mounts today, in mount order.
-  SECURITY_NINE = %w[
+  # The nine config-toggled protections, in registry order. Security mounts
+  # all but CookieTossing, which MiddlewareStack mounts above the session
+  # middleware.
+  PROTECTIONS_NINE = %w[
     UTF8Sanitizer
     AuthenticityToken
     HttpOrigin
@@ -20,12 +22,14 @@ RSpec.describe Onetime::Middleware::Registry do
     StrictTransport
   ].freeze
 
+  SECURITY_EIGHT = (PROTECTIONS_NINE - %w[CookieTossing]).freeze
+
   # Registered for later per-app profile steps; not consumed yet.
   NEW_THREE = %w[Deflater ContentSecurityPolicy SessionHijacking].freeze
 
   describe '.components' do
-    it 'contains exactly the 12 known entries, Security nine first in order' do
-      expect(described_class.components.keys).to eq(SECURITY_NINE + NEW_THREE)
+    it 'contains exactly the 12 known entries, the nine protections first in order' do
+      expect(described_class.components.keys).to eq(PROTECTIONS_NINE + NEW_THREE)
     end
 
     it 'is frozen' do
@@ -100,13 +104,13 @@ RSpec.describe Onetime::Middleware::Registry do
   end
 
   describe 'Onetime::Middleware::Security integration' do
-    it 'middleware_components equals the registry filtered to the Security nine, in order' do
-      expected = SECURITY_NINE.to_h { |name| [name, described_class.fetch(name)] }
+    it 'middleware_components equals the registry filtered to the Security eight, in order' do
+      expected = SECURITY_EIGHT.to_h { |name| [name, described_class.fetch(name)] }
       expect(Onetime::Middleware::Security.middleware_components).to eq(expected)
     end
 
     it 'exposes entries identical to (not copies of) the registry entries' do
-      SECURITY_NINE.each do |name|
+      SECURITY_EIGHT.each do |name|
         expect(Onetime::Middleware::Security.middleware_components[name])
           .to equal(described_class.fetch(name))
       end
@@ -116,7 +120,7 @@ RSpec.describe Onetime::Middleware::Registry do
       expect(Onetime::Middleware::Security::WARN_WHEN_DISABLED_KEYS)
         .to match_array(%w[
           frame_options path_traversal strict_transport authenticity_token
-          utf8_sanitizer http_origin xss_header cookie_tossing ip_spoofing
+          utf8_sanitizer http_origin xss_header ip_spoofing
         ])
     end
 

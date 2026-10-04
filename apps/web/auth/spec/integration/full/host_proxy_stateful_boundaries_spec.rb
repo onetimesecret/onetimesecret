@@ -615,29 +615,24 @@ RSpec.describe 'Host proxy stateful boundaries', :shared_db_state, type: :integr
         end
       end
 
-      # The one Set-Cookie writer whose Domain is taken from the request host:
-      # CookieTossing (inside Onetime::Middleware::Security, below the rewrite)
-      # expires a duplicated session cookie on Rack's host and each parent
-      # domain. The setting changes which host that is.
-      it "HP-COOKIE-03: expires a duplicated session cookie on #{rewrite ? 'the public host' : 'the origin target'} and its parent domains" do
+      # The one Set-Cookie writer whose Domain is taken from the request:
+      # CookieTossing expires a duplicated session cookie on the host
+      # DetectHost resolved and each parent domain. It runs above
+      # Onetime::Session and the rewrite, so the setting does not change the
+      # host, and the refusal sets no session cookie.
+      it 'HP-COOKIE-03: expires a duplicated session cookie on the public host and its parent domains' do
         proxy_get(tenant_domain, '/auth', cookie: 'onetime.session=a; onetime.session=b')
         expect(last_response.status).to eq(403)
         expect(last_response.body).to eq('Forbidden')
 
         cookies = Array(last_response.headers['Set-Cookie']).flat_map { |value| value.split("\n") }
-        clears  = cookies.select { |value| value.start_with?('onetime.session=;') }
-        domains = rewrite ? [tenant_domain, 'acme-corp.example.com', 'example.com'] : [canonical_host, 'example.org']
-        expect(clears).to eq(
-          domains.flat_map do |domain|
+        expect(cookies).to eq(
+          [tenant_domain, 'acme-corp.example.com', 'example.com'].flat_map do |domain|
             %w[/ /auth].map do |path|
               "onetime.session=; domain=#{domain}; path=#{path}; expires=Thu, 01 Jan 1970 00:00:00 GMT"
             end
           end,
         )
-        # The session cookie issued alongside stays host-only in both runs.
-        issued = cookies - clears
-        expect(issued.size).to eq(1)
-        expect(cookie_attributes(issued.first)).to eq(['path=/', 'expires=<time>', 'httponly', 'samesite=lax'])
       end
     end
   end

@@ -4,6 +4,8 @@
 
 require 'rack/protection'
 
+require_relative '../../middleware/detect_host'
+
 module Onetime
   module Middleware
     # Rack::Protection::CookieTossing bound to the application's session cookie
@@ -37,6 +39,12 @@ module Onetime
     # get the host clear only. Nothing is widened: cookies are cleared only
     # on a response that already refuses the request.
     #
+    # The request host here is the one Rack::DetectHost resolved, the host
+    # the browser addressed, and Rack's own host only when nothing was
+    # detected (localhost, an IP literal). Behind a proxy that rewrites
+    # `Host` to its origin target, Rack's host is that target, and a clear
+    # scoped to it never reaches the browser's cookies.
+    #
     # Two things the stock class needs from us:
     #
     # 1. The cookie name. The gem's `session_key` option shares its name with
@@ -62,16 +70,16 @@ module Onetime
     #    list is not thread-safe under Puma either. Each request therefore
     #    runs on a copy of the instance that starts with an empty list.
     #
-    # Where it runs: inside Onetime::Middleware::Security, which the universal
-    # stack mounts below Onetime::Session (lib/onetime/application/
-    # middleware_stack.rb). The session middleware has therefore already
-    # parsed the Cookie header (Rack keeps the first value of a repeated name)
-    # and, because IdentityResolution reads the session on the way down, has
-    # loaded that first cookie's session before this refuses the request. The
-    # refusal does not depend on it: the 403 is returned whichever cookie came
-    # first, the store never adopts a cookie value that names no blob
-    # (Onetime::Session#find_session), and the commit on the way back out
-    # writes the loaded session back unchanged.
+    # Where it runs: in the universal stack directly above Onetime::Session
+    # (lib/onetime/application/middleware_stack.rb), so a refused request
+    # never loads or commits a session. Mounted below the session middleware
+    # (inside Onetime::Middleware::Security, until the #4223 review), the
+    # refusal ran after Rack had picked the first of the repeated values and
+    # the session it named was loaded; the commit on the way back out then
+    # set that session's cookie again, after the clears. A browser applies
+    # Set-Cookie in order, so it kept the first cookie's session as its host
+    # cookie: a planted cookie sent first (a longer Path sorts it ahead)
+    # survived the refusal meant to remove it.
     class CookieTossing < Rack::Protection::CookieTossing
       # The cookie name when Onetime.session_config cannot be asked (a
       # standalone unit context). Same literal as Onetime::Session's default
@@ -111,15 +119,25 @@ module Onetime
       # The gem's clear (host-scoped, one per path prefix) plus the same clear
       # for each parent domain of the request host; see the class comment.
       def remove_bad_cookies(request, response)
-        super
         return if bad_cookies.empty?
 
         paths = cookie_paths(request.path)
-        parent_domains(request.host).each do |domain|
+        host  = clear_host(request)
+        [host, *parent_domains(host)].each do |domain|
           bad_cookies.each do |name|
             paths.each { |path| response.set_cookie(name, empty_cookie(domain, path)) }
           end
         end
+      end
+
+      # The host Rack::DetectHost resolved, or Rack's host when it resolved
+      # none; see the class comment.
+      #
+      # @param request [Rack::Request]
+      # @return [String, nil]
+      def clear_host(request)
+        detected = request.get_header(Rack::DetectHost.result_field_name).to_s
+        detected.empty? ? request.host : detected
       end
 
       # Every proper suffix of `host` with at least two labels, longest first.

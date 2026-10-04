@@ -41,6 +41,34 @@ RSpec.describe 'Customer-session rotation and continuation baseline (#4466/#4467
       # duplicate, not the session.
       expect(request_with_session_cookie(authenticated_sid)).to eq(200)
     end
+
+    # The refusal expires every copy of the cookie it can reach. A session
+    # Set-Cookie on the same response would come after those clears, so the
+    # browser would keep its value as the host cookie. When the first cookie
+    # names a live session (a planted cookie sorts first with a longer Path),
+    # that session would outlive the refusal meant to remove it.
+    it 'answers a duplicate with clears only, never a session cookie value', :aggregate_failures do
+      email = "tossing-reissue-#{SecureRandom.hex(10)}@example.com"
+      create_verified_account(db: test_db, email: email, password: matrix_password)
+
+      clear_cookies
+      post_json '/auth/login', { login: email, password: matrix_password }
+      expect(last_response.status).to eq(200), last_response.body
+      planted_sid = current_session_id
+      expect(session_blob['authenticated']).to be(true)
+
+      clear_cookies
+      fetch_csrf_token
+      own_sid = current_session_id
+      expect(own_sid).not_to be_nil
+
+      [[planted_sid, own_sid], [own_sid, planted_sid]].each do |first_sid, second_sid|
+        expect(request_with_duplicate_session_cookies(first_sid, second_sid)).to eq(403)
+        values = session_set_cookie_values(last_response)
+        expect(values).not_to be_empty
+        expect(values.uniq).to eq([''])
+      end
+    end
   end
 
   # #4467 pinned that Rodauth's remember credential outlived an active-session
@@ -82,5 +110,14 @@ RSpec.describe 'Customer-session rotation and continuation baseline (#4466/#4467
       'HTTP_COOKIE' => "onetime.session=#{sid}",
     }
     last_response.status
+  end
+
+  # The value of every session-cookie Set-Cookie on the response, in order;
+  # '' for a clear.
+  def session_set_cookie_values(response)
+    Array(response.headers['set-cookie'])
+      .flat_map { |value| value.split("\n") }
+      .select { |line| line.start_with?('onetime.session=') }
+      .map { |line| line.split(';').first.delete_prefix('onetime.session=') }
   end
 end

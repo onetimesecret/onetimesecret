@@ -6,8 +6,10 @@
 # Central registry of security/middleware components.
 #
 # This is the single component table that middleware consumers draw from.
-# It is consumed by Onetime::Middleware::Security (which mounts the nine
-# config-toggled protections) and by the per-app middleware profiles
+# It is consumed by Onetime::Middleware::Security (which mounts eight of the
+# config-toggled protections), by Onetime::Application::MiddlewareStack
+# (which mounts CookieTossing above the session middleware), and by the
+# per-app middleware profiles
 # (Onetime::Application::MiddlewareProfile), which replaced the ad-hoc
 # environment-conditional `use` blocks (e.g. apps/web/auth/application.rb's
 # former production-only stack).
@@ -165,6 +167,8 @@ module Onetime
         # host cannot compete with the real one. Onetime::Middleware::
         # CookieTossing binds the gem's check to site.session.key and gives it
         # per-request state (see that file). On by default since v0.26.14.
+        # Mounted by MiddlewareStack directly above Onetime::Session, not by
+        # Security.
         'CookieTossing' => {
           key: :cookie_tossing,
           klass: Onetime::Middleware::CookieTossing,

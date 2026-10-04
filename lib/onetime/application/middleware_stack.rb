@@ -14,6 +14,7 @@ require_relative '../middleware/public_host_rewrite'
 require_relative '../middleware/strip_forwarded_host'
 require_relative '../middleware/health_access_control'
 require_relative '../middleware/admin_network_isolation'
+require_relative '../middleware/registry'
 require_relative '../middleware/csrf_response_header'
 require_relative '../middleware/normalize_content_type'
 require_relative '../middleware/retry_after_header'
@@ -665,6 +666,23 @@ module Onetime
           builder.use Onetime::Middleware::SamlCallbackTransport::Boundary
           builder.use Onetime::Middleware::ValidateMultipart
           builder.use Rack::Parser, parsers: @parsers
+
+          # Cookie tossing (#4466, RISK-2026-08-14-COOKIE-TOSSING): refuses a
+          # request that carries the session cookie more than once. Directly
+          # above Onetime::Session, so the refusal loads no session and its
+          # 403 carries only the clears; below it, the session commit on the
+          # way out set the first cookie's session again after them. Below
+          # Rack::DetectHost (the clears are scoped to the host it resolved)
+          # and SamlCallbackTransport::Boundary (which empties the Cookie
+          # header of a SAML POST callback). Toggled by
+          # site.middleware.cookie_tossing, like the Security components.
+          cookie_tossing = Onetime::Middleware::Registry.fetch('CookieTossing')
+          if OT.conf.dig('site', 'middleware', cookie_tossing[:key].to_s)
+            builder.use cookie_tossing[:klass]
+          else
+            OT.lw "[Security] CookieTossing protection DISABLED (site.middleware.#{cookie_tossing[:key]}=false)"
+          end
+
           # Add session middleware early in the stack (before other middleware)
           session_config = Onetime.session_config
 

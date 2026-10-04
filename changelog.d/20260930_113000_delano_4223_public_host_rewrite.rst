@@ -72,3 +72,9 @@ Security
   verified tenant or configured canonical origin is available. Configure
   ``site.host`` or verify the tenant domain; see
   ``docs/operations/proxy-authority-header.md``. (#4223)
+
+- A request that carries the session cookie twice is refused before the
+  session middleware runs. The ``403`` used to set the first cookie's session
+  again after clearing both, so the browser kept that session even when the
+  first cookie was a planted one. The clears are now scoped to the host the
+  browser addressed, including behind a proxy that rewrites ``Host``. (#4223)
