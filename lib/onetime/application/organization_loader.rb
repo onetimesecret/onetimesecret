@@ -337,6 +337,12 @@ module Onetime
           domains << domain if domain
         end
 
+        # The read DomainStrategy made for the display domain. When it
+        # failed, the request classified :invalid and carries no record, so
+        # raise here as the Host read does rather than check no scope at all.
+        published = env[Onetime::CustomDomainResolution::ENV_KEY]
+        published.record! if published.is_a?(Onetime::CustomDomainResolution)
+
         if env['onetime.domain_strategy'].to_s == 'custom'
           resolved = env['onetime.custom_domain']
           domains << resolved if resolved && domains.none? { |d| d.objid == resolved.objid }

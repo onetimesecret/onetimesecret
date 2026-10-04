@@ -194,6 +194,27 @@ RSpec.describe Onetime::Application::OrganizationLoader do
         session['organization_id'] = organization.objid
         expect { loader.load_organization_context(customer, session, env) }.to raise_error(Redis::CannotConnectError)
       end
+
+      # Behind a proxy that rewrites Host, a failed read of the display
+      # domain leaves the request :invalid with no record and a Host that
+      # names no custom domain. Nothing would be checked; the failure is
+      # raised instead, as it is for the Host record.
+      it 'raises when the read DomainStrategy made for the display domain failed' do
+        error = Redis::CannotConnectError.new('datastore unavailable')
+        allow(Onetime::CustomDomain).to receive(:from_display_domain).with('origin.example.com').and_return(nil)
+        env   = {
+          'HTTP_HOST' => 'origin.example.com',
+          'onetime.display_domain' => 'denied.example.com', 'onetime.domain_strategy' => :invalid,
+          Onetime::CustomDomainResolution::ENV_KEY =>
+            Onetime::CustomDomainResolution.read_failed('denied.example.com', error),
+        }
+        env['HTTP_O_ORGANIZATION_ID'] = organization.objid if header
+
+        expect { loader.load_organization_context(customer, session, env) }.to raise_error(Redis::CannotConnectError)
+
+        warm_cache
+        expect { loader.load_organization_context(customer, session, env) }.to raise_error(Redis::CannotConnectError)
+      end
     end
   end
 
