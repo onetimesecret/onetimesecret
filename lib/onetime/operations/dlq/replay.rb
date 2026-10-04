@@ -18,12 +18,16 @@ module Onetime
       # CLI are thin adapters over it.
       #
       # This is a mutating verb. For each message it republishes to the original
-      # queue (from the `x-death` header) and acks it off the DLQ. A message with
-      # no recoverable original queue is nacked WITHOUT requeue (dropped, to
-      # avoid an infinite dead-letter loop) and counted as failed. A message
-      # whose publish fails is left unacked and counted as failed; it returns to
-      # the DLQ when the replay closes its channel, so each message is attempted
-      # at most once per replay.
+      # queue (from the `x-death` header) and acks it off the DLQ in one AMQP
+      # transaction, so the republished copy and the ack take effect together
+      # or not at all. A message with no recoverable original queue is nacked
+      # WITHOUT requeue (dropped, to avoid an infinite dead-letter loop) and
+      # counted as failed. A message whose publish or ack fails is rolled back
+      # and left unacked, and is counted as failed; it returns to the DLQ when
+      # the replay closes its channel, so each message is attempted at most
+      # once per replay. A commit that fails is counted as failed with an
+      # outcome-unknown error and stops the replay: the broker may have
+      # applied it.
       #
       # ## Idempotency claims
       #
@@ -210,7 +214,9 @@ module Onetime
           Result.new(status: :empty, queue: @queue, replayed: 0, failed: 0, errors: [], would_replay: 0)
         end
 
-        # The release/republish/ack loop.
+        # The release/republish/ack loop. The channel is in transaction mode
+        # for its whole life, so every publish, ack and nack takes effect
+        # only at tx_commit.
         #
         # A message that is not replayed is left unacked, not nacked with
         # requeue. The broker would put a requeued message back at the head
@@ -220,6 +226,7 @@ module Onetime
         # the loop raises.
         def replay_loop(channel, queue, to_replay)
           results = { replayed: 0, failed: 0, errors: [] }
+          channel.tx_select
 
           to_replay.times do
             delivery_info, properties, payload = queue.pop(manual_ack: true)
@@ -231,11 +238,12 @@ module Onetime
               results[:errors] << { message_id: properties.message_id, error: 'No original queue found' }
               # Nack WITHOUT requeue — drop, so it can't dead-letter-loop forever.
               channel.nack(delivery_info.delivery_tag, false, false)
+              channel.tx_commit
               next
             end
 
             # Release before publishing: a worker can consume the republished
-            # message as soon as it is on the queue.
+            # message as soon as it is committed.
             begin
               release_processing_claim(properties.message_id)
             rescue StandardError => ex
@@ -259,15 +267,40 @@ module Onetime
                 headers: Store.clean_headers(properties.headers),
               )
               channel.ack(delivery_info.delivery_tag)
-              results[:replayed] += 1
             rescue StandardError => ex
-              # Left unacked, the message returns to the DLQ.
+              # Discard whatever part of the publish and ack was sent, so the
+              # next message's commit cannot carry it. The message stays
+              # unacked and returns to the DLQ.
+              channel.tx_rollback
               results[:failed] += 1
               results[:errors] << { message_id: properties.message_id, error: ex.message }
+              next
             end
+
+            begin
+              channel.tx_commit
+            rescue StandardError => ex
+              results[:failed] += 1
+              results[:errors] << { message_id: properties.message_id, error: unconfirmed_commit_error(original, ex) }
+              # After a failed commit the channel's state is unknown, so the
+              # replay stops. The messages not yet popped stay in the DLQ.
+              break
+            end
+
+            results[:replayed] += 1
           end
 
           results
+        end
+
+        # The broker may have applied the commit before the error reached
+        # us, so the republished copy may be live. RabbitMQ does not promise
+        # that a commit spanning two queues is applied to both if the broker
+        # fails during it, so the DLQ entry may still be there as well.
+        def unconfirmed_commit_error(original, ex)
+          'Replay stopped, outcome unknown: the broker did not confirm the commit ' \
+            "(#{ex.message}). The message may already be republished to #{original}; " \
+            'replaying it again may repeat its side effects.'
         end
 
         # Delete the workers' idempotency claim on a message id, so the worker

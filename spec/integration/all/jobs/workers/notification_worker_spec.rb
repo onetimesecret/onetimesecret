@@ -186,7 +186,9 @@ RSpec.describe Onetime::Jobs::Workers::NotificationWorker, type: :integration do
       end
 
       context 'when the rejected message is replayed from the dead letter queue' do
-        let(:dlq_channel) { double('channel', default_exchange: double('exchange', publish: nil), ack: nil, open?: false) }
+        let(:dlq_channel) do
+          double('channel', default_exchange: double('exchange', publish: nil), ack: nil, tx_select: nil, tx_commit: nil, open?: false)
+        end
         let(:dlq_properties) do
           double(
             'properties',

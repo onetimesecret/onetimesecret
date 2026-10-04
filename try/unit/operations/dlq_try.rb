@@ -23,6 +23,9 @@
 #   is reported without stopping the batch
 # - Replay attempts each message at most once per batch: a message that fails
 #   returns to the DLQ when the channel closes, not in the middle of the batch
+# - Replay commits the republish and the DLQ ack together: a failed ack leaves
+#   no republished copy, and a failed commit stops the replay with an
+#   outcome-unknown error
 # - Purge: empties the queue, records EXACTLY ONE audit event (verb queue.dlq.purge)
 # - Purge empty: no mutation, but the LIVE attempt still records ONE event with
 #   outcome: 'no_change' (#4337 — the trail must show the firing, not the timing)
@@ -55,12 +58,14 @@ FakeProperties = Struct.new(:message_id, :timestamp, :content_type, :headers)
 class FakeExchange
   attr_reader :published
 
-  def initialize
+  def initialize(channel)
+    @channel   = channel
     @published = []
   end
 
+  # On a channel in transaction mode the message goes out at tx_commit.
   def publish(payload, **opts)
-    @published << { payload: payload, opts: opts }
+    @channel.transactional { @published << { payload: payload, opts: opts } }
   end
 end
 
@@ -110,14 +115,18 @@ class FakeQueue
   end
 end
 
-# Closing the channel returns every delivery still unacked to the queue.
+# In transaction mode (tx_select) publishes, acks and nacks wait for
+# tx_commit; tx_rollback discards them and leaves the deliveries unacked.
+# Closing the channel discards an uncommitted transaction and returns every
+# delivery still unacked to the queue.
 class FakeChannel
   attr_reader :exchange
 
   def initialize(queue)
     @queue    = queue
-    @exchange = FakeExchange.new
+    @exchange = FakeExchange.new(self)
     @open     = true
+    @pending  = nil
   end
 
   def queue(_name, **_opts)
@@ -128,11 +137,30 @@ class FakeChannel
     @exchange
   end
 
-  def ack(tag) = @queue.ack(tag)
-  def nack(tag, m, r) = @queue.nack(tag, m, r)
+  def tx_select
+    @pending ||= []
+  end
+
+  def tx_commit
+    applied  = @pending
+    @pending = []
+    applied.each(&:call)
+  end
+
+  def tx_rollback
+    @pending = []
+  end
+
+  def transactional(&op)
+    @pending ? @pending << op : op.call
+  end
+
+  def ack(tag) = transactional { @queue.ack(tag) }
+  def nack(tag, m, r) = transactional { @queue.nack(tag, m, r) }
   def open? = @open
 
   def close
+    @pending = nil
     @queue.requeue_unacked
     @open = false
   end
@@ -290,6 +318,10 @@ AE.events.clear
 @bad = Onetime::Operations::Dlq::Replay.new(connection: @bad_conn, queue: @dlq, actor: @actor).call
 [@bad.status, @bad.replayed, @bad.failed, AE.count]
 #=> [:success, 0, 1, 1]
+
+## the dropped message is gone from the DLQ, not returned when the channel closes
+@bad_q.message_count
+#=> 0
 
 # ---- Replay: empty queue mutates nothing, still records the attempt ----
 
@@ -456,6 +488,55 @@ end
 [@pubfail_q.message_count, @pubfail_conn.channels.first.exchange.published.map { |p| p[:opts][:message_id] }]
 #=> [1, ["claim-try-p1", "claim-try-p3"]]
 
+# ---- Replay: the republish and the DLQ ack commit together -------------
+#
+# A message republished while its DLQ entry stays behind is replayed a second
+# time by the next replay, which also releases the claim the first copy took.
+# Both copies run.
+
+## an ack that fails after the publish leaves no republished copy behind
+@ackfail_q = FakeQueue.new(claim_messages('claim-try-ackfail', 'claim-try-after'))
+ack_calls = [0] # closure counter: only the first ack fails
+@ackfail_conn = FakeConnection.new(@ackfail_q) do |ch|
+  ch.define_singleton_method(:ack) do |tag|
+    ack_calls[0] += 1
+    raise(Onetime::Problem, 'ack lost') if ack_calls[0] == 1
+
+    super(tag)
+  end
+end
+@ackfail = Onetime::Operations::Dlq::Replay.new(connection: @ackfail_conn, queue: @dlq, actor: @actor).call
+[@ackfail.replayed, @ackfail.failed, @ackfail.errors.map { |e| [e[:message_id], e[:error]] }]
+#=> [1, 1, [["claim-try-ackfail", "ack lost"]]]
+
+## only the next message went out, and the failed one is back in the DLQ
+[@ackfail_conn.channels.first.exchange.published.map { |p| p[:opts][:message_id] }, @ackfail_q.message_count]
+#=> [["claim-try-after"], 1]
+
+## a second replay sends the message once, so there is one copy in total
+@ackfail_again_conn = FakeConnection.new(@ackfail_q)
+@ackfail_again = Onetime::Operations::Dlq::Replay.new(connection: @ackfail_again_conn, queue: @dlq, actor: @actor).call
+[@ackfail_conn, @ackfail_again_conn].flat_map { |c| c.channels.first.exchange.published }
+  .count { |p| p[:opts][:message_id] == 'claim-try-ackfail' }
+#=> 1
+
+## a commit that fails is reported as failed with an unknown outcome, and the replay stops
+@cfail_q = FakeQueue.new(claim_messages('claim-try-c1', 'claim-try-c2'))
+@cfail_conn = FakeConnection.new(@cfail_q) do |ch|
+  ch.define_singleton_method(:tx_commit) { raise(Onetime::Problem, 'commit timed out') }
+end
+@cfail = Onetime::Operations::Dlq::Replay.new(connection: @cfail_conn, queue: @dlq, actor: @actor).call
+[@cfail.replayed, @cfail.failed, @cfail.errors.map { |e| e[:message_id] }]
+#=> [0, 1, ["claim-try-c1"]]
+
+## the error says the message may already be republished and that replaying it again may repeat it
+@cfail.errors.first[:error]
+#=> "Replay stopped, outcome unknown: the broker did not confirm the commit (commit timed out). The message may already be republished to notifications.alert.push; replaying it again may repeat its side effects."
+
+## nothing was committed and the message after it was not touched
+[@cfail_conn.channels.first.exchange.published.size, @cfail_q.message_count]
+#=> [0, 2]
+
 # ---- Purge: success ---------------------------------------------------
 
 ## Purge empties the queue and reports the purged count
@@ -498,4 +579,4 @@ AE.events.clear
 
 # Cleanup
 AE.events.clear
-Familia.dbclient.del(*%w[a b dry orphan 1 stuck 3 p1 pfail p3].map { |suffix| claim_key("claim-try-#{suffix}") })
+Familia.dbclient.del(*%w[a b dry orphan 1 stuck 3 p1 pfail p3 ackfail after c1 c2].map { |suffix| claim_key("claim-try-#{suffix}") })
