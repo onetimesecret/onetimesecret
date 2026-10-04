@@ -94,11 +94,11 @@ module Onetime
               # discriminator MUST be the authenticated session — not merely the presence
               # of an Authorization header.
               #   - No authenticated session cookie (Basic Auth API-key clients,
-              #     anonymous/programmatic clients, v1 which has no session auth,
-              #     unauthenticated secret recipients, and the entire /api/incoming/*
-              #     inbound surface): nothing to forge => bypass. BasicAuthStrategy never
-              #     marks the session authenticated, so an API-key client keeping a
-              #     cookie jar still bypasses.
+              #     anonymous/programmatic clients, v1 which has no session auth
+              #     STRATEGY, unauthenticated secret recipients, and the entire
+              #     /api/incoming/* inbound surface): nothing to forge => bypass.
+              #     BasicAuthStrategy never marks the session authenticated, so an
+              #     API-key client keeping a cookie jar still bypasses.
               #   - Session-cookie-authenticated API request (logged-in SPA user): fall
               #     through and require a valid X-CSRF-Token. The SPA sends it on every
               #     request (axios interceptor), so this does not break the app; it only
@@ -106,7 +106,17 @@ module Onetime
               #     An Authorization header does not exempt it: every route chain that
               #     includes `sessionauth` lists it before `basicauth`, so the session
               #     answers and the header is never read; a session-only route ignores
-              #     the header entirely.
+              #     the header entirely. NOTE: the discriminator is the authenticated
+              #     session, not the route's auth chain. `Onetime::Session` sits in the
+              #     universal stack (application/middleware_stack.rb), so EVERY /api/
+              #     request carries `rack.session` even on surfaces (v1, basicauth-only
+              #     routes) that never consult it to authenticate. A client that holds
+              #     an authenticated web-session cookie AND presents `Authorization:
+              #     Basic` is therefore required to send the token, even though the
+              #     route authenticates on the key alone; it must send the token or use
+              #     a cookie jar separate from its browser login. This is intended: a
+              #     request carrying a forgeable ambient credential is treated as
+              #     forgeable regardless of what else it carries.
               if req.path.start_with?('/api/')
                 session = env['rack.session']
                 return true unless session && session['authenticated'] == true
