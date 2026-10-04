@@ -2,6 +2,9 @@
 #
 # frozen_string_literal: true
 
+require_relative '../utils/canonical_hosts'
+require_relative '../middleware/domain_strategy'
+
 #
 # Organization context loading for authenticated requests.
 #
@@ -63,8 +66,8 @@ module Onetime
 
         cache_key = "org_context:#{customer.objid}"
 
-        # Read once per load; every selection below is checked against these.
-        # A failed read of the Host record raises here.
+        # Resolve the request's scope before any selection, including cache hits.
+        # Canonical hosts need no lookup; a failed custom-domain read raises here.
         domains = request_scope_domains(env)
 
         # Check header override BEFORE cache — SPA org switches must bypass cache
@@ -336,8 +339,9 @@ module Onetime
       # The custom domains this request is for, from both places one can be
       # named:
       #
-      # - the Host header's record, read whether or not the domains feature
-      #   is on. A failed read raises (see #request_host_domain).
+      # - the Host header's record, unless the host is canonical. Other hosts
+      #   are read even with the domains feature off; a failed read raises
+      #   (see #request_host_domain).
       # - env['onetime.custom_domain'], the record DomainStrategy resolved
       #   for the display domain, when it classified the request :custom.
       #   Behind a proxy that rewrites Host to the origin target, with
@@ -373,12 +377,22 @@ module Onetime
         domains
       end
 
-      # CustomDomain for the raw Host header's host, or nil.
+      # CustomDomain for the raw Host header's host, or nil for a canonical host.
       #
       # Shares the request's resolution (#4220) when that host is the display
-      # domain DomainStrategy resolved; any other host is read directly. A
-      # failed read raises here, as CustomDomain.from_display_domain did.
+      # domain DomainStrategy resolved; any other non-canonical host is read
+      # directly. A failed read raises here, as CustomDomain.from_display_domain did.
       def request_host_domain(env, host)
+        return if Onetime::Utils::CanonicalHosts.canonical_host?(host)
+
+        # Classify the raw host independently: the middleware's classification
+        # describes the display domain, which may name another host behind a proxy.
+        return if Onetime::Middleware::DomainStrategy::Chooserator.canonical_without_lookup?(
+          host,
+          Onetime::Utils::CanonicalHosts.hosts,
+          anchor_domains: Onetime::Utils::CanonicalHosts.anchor_hosts,
+        )
+
         Onetime::CustomDomainResolution.for_host(env, host).record!
       end
     end

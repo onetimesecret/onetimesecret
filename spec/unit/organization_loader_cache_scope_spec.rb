@@ -11,6 +11,7 @@
 require 'spec_helper'
 require 'middleware/detect_host'
 require 'onetime/application/organization_loader'
+require 'onetime/middleware/domain_strategy'
 require 'onetime/custom_domain_resolution'
 require 'onetime/middleware/public_host_rewrite'
 require 'onetime/session'
@@ -240,6 +241,113 @@ RSpec.describe Onetime::Application::OrganizationLoader do
     it 'ignores a custom domain record left in the env when the strategy is not custom' do
       env = canonical_env.merge('onetime.custom_domain' => denied_domain)
       expect(loader.load_organization_context(customer, session, env)[:organization]).to eq(organization)
+    end
+
+    context 'when the custom-domain index is unavailable', :aggregate_failures do
+      before do
+        conf = OT.conf.to_h.merge(
+          'site' => { 'host' => 'origin.example.com:443' },
+          'features' => { 'domains' => { 'default' => 'links.example.com', 'link_domains' => ['go.example.net'] } },
+        )
+        allow(OT).to receive(:conf).and_return(conf)
+      end
+
+      ['origin.example.com', 'links.example.com', 'GO.EXAMPLE.NET:443', 'www.example.com'].each do |host|
+        [:cold, :cached, :header, :session].each do |selection|
+          it "uses #{selection} selection on #{host} without reading the custom-domain index" do
+            env = canonical_env.merge('HTTP_HOST' => host, 'onetime.display_domain' => host.split(':').first.downcase)
+            warm_cache if selection == :cached
+            env['HTTP_O_ORGANIZATION_ID'] = organization.objid if selection == :header
+            session['organization_id']    = organization.objid if selection == :session
+            allow(Onetime::CustomDomain).to receive(:from_display_domain).with(host.split(':').first.downcase)
+              .and_raise(Redis::CannotConnectError, 'domain index unavailable')
+
+            context                       = loader.load_organization_context(customer, session, env)
+            expect(context[:organization]).to eq(organization)
+            expect(context).not_to have_key(:domain_scope_refused)
+            expect(Onetime::CustomDomain).not_to have_received(:from_display_domain)
+          end
+        end
+      end
+
+      it 'does not read for a canonical www Host when the display host is a different canonical host' do
+        allow(Onetime::CustomDomain).to receive(:from_display_domain).with('www.example.com')
+          .and_raise(Redis::CannotConnectError, 'domain index unavailable')
+        %w[www.example.com links.example.com].each do |host|
+          strategy = Onetime::Middleware::DomainStrategy::Chooserator.choose_strategy(
+            host,
+            Onetime::Utils::CanonicalHosts.hosts,
+            anchor_domains: Onetime::Utils::CanonicalHosts.anchor_hosts,
+          )
+          expect(strategy).to eq(:canonical)
+        end
+        env = canonical_env.merge('HTTP_HOST' => 'www.example.com:443', 'onetime.display_domain' => 'links.example.com')
+        warm_cache
+
+        expect(loader.load_organization_context(customer, session, env)[:organization]).to eq(organization)
+        expect(Onetime::CustomDomain).not_to have_received(:from_display_domain)
+      end
+
+      it 'does not bypass a tenant www sibling of a link-pool host' do
+        env = canonical_env.merge('HTTP_HOST' => 'www.example.net:443')
+        allow(Onetime::CustomDomain).to receive(:from_display_domain).with('www.example.net').and_return(denied_domain)
+        warm_cache
+
+        context = loader.load_organization_context(customer, session, env)
+        expect(context[:organization]).to be_nil
+        expect(context[:domain_scope_refused]).to be(true)
+      end
+
+      it 'does not need a middleware classification for an exact configured canonical host' do
+        env = { 'HTTP_HOST' => 'origin.example.com:443' }
+        allow(Onetime::CustomDomain).to receive(:from_display_domain).with('origin.example.com')
+          .and_raise(Redis::CannotConnectError, 'domain index unavailable')
+
+        expect(loader.load_organization_context(customer, session, env)[:organization]).to eq(organization)
+        expect(Onetime::CustomDomain).not_to have_received(:from_display_domain)
+      end
+
+      it 'still checks a custom display domain when Host is a configured canonical origin' do
+        allow(Onetime::CustomDomain).to receive(:from_display_domain).with('origin.example.com')
+          .and_raise(Redis::CannotConnectError, 'domain index unavailable')
+        context = load_context(denied_domain, 'denied.example.com', rewrite: false, header: false)
+
+        expect(context[:organization]).to be_nil
+        expect(context[:domain_scope_refused]).to be(true)
+        expect(Onetime::CustomDomain).not_to have_received(:from_display_domain)
+      end
+
+      it 'still raises for a failed display-domain read behind a configured canonical origin' do
+        error = Redis::CannotConnectError.new('domain index unavailable')
+        env   = canonical_env.merge(
+          'onetime.display_domain' => 'denied.example.com',
+          'onetime.domain_strategy' => :invalid,
+          Onetime::CustomDomainResolution::ENV_KEY =>
+            Onetime::CustomDomainResolution.read_failed('denied.example.com', error),
+        )
+        warm_cache
+
+        expect { loader.load_organization_context(customer, session, env) }.to raise_error(error)
+      end
+
+      it 'does not treat a different raw tenant Host as canonical when middleware displays the origin' do
+        env = canonical_env.merge('HTTP_HOST' => 'denied.example.com:443')
+        allow(Onetime::CustomDomain).to receive(:from_display_domain).with('denied.example.com').and_return(denied_domain)
+        warm_cache
+
+        context = loader.load_organization_context(customer, session, env)
+        expect(context[:organization]).to be_nil
+        expect(context[:domain_scope_refused]).to be(true)
+      end
+
+      it 'still raises if the lookup of that raw tenant Host fails' do
+        env = canonical_env.merge('HTTP_HOST' => 'denied.example.com:443')
+        allow(Onetime::CustomDomain).to receive(:from_display_domain).with('denied.example.com')
+          .and_raise(Redis::CannotConnectError, 'domain index unavailable')
+        warm_cache
+
+        expect { loader.load_organization_context(customer, session, env) }.to raise_error(Redis::CannotConnectError)
+      end
     end
   end
 
