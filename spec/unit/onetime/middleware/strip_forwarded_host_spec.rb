@@ -161,29 +161,29 @@ RSpec.describe Onetime::Middleware::StripForwardedHost do
   end
 
   describe 'untrusted scheme carriers' do
-      %w[HTTP_X_FORWARDED_PROTO HTTP_X_FORWARDED_SCHEME HTTP_X_FORWARDED_SSL HTTP_FORWARDED].each do |carrier|
-        it "ignores #{carrier} even when a private peer is explicitly denied" do
-          Rack::Request.forwarded_priority = [:forwarded, :x_forwarded]
-          value = case carrier
-                  when 'HTTP_FORWARDED' then 'proto=https'
-                  when 'HTTP_X_FORWARDED_SSL' then 'on'
-                  else 'https'
-                  end
-          env = call_with(Rack::MockRequest.env_for('http://onetime.test/',
-            carrier => value,
-            'REMOTE_ADDR' => '10.0.0.5',
-            'otto.via_trusted_proxy' => false))
-          aggregate_failures do
-            expect(env).not_to have_key(carrier)
-            expect(env['rack.url_scheme']).to eq('http')
-            expect(Rack::Request.new(env).scheme).to eq('http')
-            expect(env[described_class::STRIPPED_HEADERS]).to include(carrier)
-          end
+    %w[HTTP_X_FORWARDED_PROTO HTTP_X_FORWARDED_SCHEME HTTP_X_FORWARDED_SSL HTTP_FORWARDED].each do |carrier|
+      it "ignores #{carrier} even when a private peer is explicitly denied" do
+        Rack::Request.forwarded_priority = [:forwarded, :x_forwarded]
+        value = case carrier
+                when 'HTTP_FORWARDED' then 'proto=https'
+                when 'HTTP_X_FORWARDED_SSL' then 'on'
+                else 'https'
+                end
+        env = call_with(Rack::MockRequest.env_for('http://onetime.test/',
+          carrier => value,
+          'REMOTE_ADDR' => '10.0.0.5',
+          'otto.via_trusted_proxy' => false))
+        aggregate_failures do
+          expect(env).not_to have_key(carrier)
+          expect(env['rack.url_scheme']).to eq('http')
+          expect(Rack::Request.new(env).scheme).to eq('http')
+          expect(env[described_class::STRIPPED_HEADERS]).to include(carrier)
         end
       end
     end
+  end
 
-    describe 'post-strip Rack resolution' do
+  describe 'post-strip Rack resolution' do
     let(:env) do
       Rack::MockRequest.env_for(
         'http://onetime.test/',
