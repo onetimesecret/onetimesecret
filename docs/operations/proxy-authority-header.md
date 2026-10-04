@@ -151,6 +151,13 @@ Details:
   65535. Anything else (`0`, `65536`, `abc`, a list such as `8443, 443`) is
   removed, also whether or not this setting is on: Rack would otherwise turn
   it into a number and use it.
+- A trusted proxy's `X-Forwarded-Proto: ws` is read as `http`, and `wss` as
+  `https`, whether or not this setting is on. The same applies to
+  `X-Forwarded-Scheme` and to the `proto=` of `Forwarded` when that family is
+  the one read. Rack accepts both values and has no default port for either,
+  so with `wss` and no public port it reported the origin hop's port
+  (`SERVER_PORT`) as the request port while the request URL carried none. The
+  application serves HTTP only; send `https` or `http`.
 - On a rewritten request `X-Forwarded-Port` is removed once the port has been
   written into `Host`, so `Host` is the only place a port is read from.
 - `X-Forwarded-Port` is under the same contract as `X-Forwarded-Host`: the

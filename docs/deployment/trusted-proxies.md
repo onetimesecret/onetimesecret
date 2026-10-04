@@ -36,6 +36,11 @@ that decision consistently.
   application sees `http`: a `Secure` session cookie is not written and
   request-derived URLs use `http`. The `[Session] cookie NOT written` log
   line names the removed headers in `untrusted_scheme_headers`.
+- **Send `https` or `http` as the forwarded scheme.** A trusted proxy's
+  `X-Forwarded-Proto` or `X-Forwarded-Scheme` of `wss` is read as `https`, and
+  `ws` as `http`. The application serves HTTP only, and Rack has no default
+  port for the WebSocket schemes: left as sent, the request port became the
+  port of the connection to the origin.
 - **Review every hop.** For a CDN, load balancer, and ingress chain, identify
   where client-supplied metadata is discarded and which hop supplies the
   values the application consumes. Recheck trust ranges when topology changes.

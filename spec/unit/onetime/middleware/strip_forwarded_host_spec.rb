@@ -183,6 +183,95 @@ RSpec.describe Onetime::Middleware::StripForwardedHost do
     end
   end
 
+  # Rack accepts ws and wss as forwarded schemes and has a default port for
+  # neither, so #port falls through to SERVER_PORT while #base_url carries
+  # no port. This app serves HTTP only: a trusted proxy's ws is read as
+  # http and its wss as https.
+  describe 'websocket schemes from a trusted proxy' do
+    let(:trusted) { { 'REMOTE_ADDR' => '203.0.113.7', Rack::DetectHost::VIA_TRUSTED_PROXY_KEY => true } }
+
+    # A proxy that preserves Host: nothing is rewritten below this middleware.
+    def proxied_env(**extra)
+      Rack::MockRequest.env_for('http://secrets.acme.com/', 'HTTP_HOST' => 'secrets.acme.com',
+        'SERVER_NAME' => 'origin.internal', 'SERVER_PORT' => '3000', **trusted, **extra)
+    end
+
+    before { Rack::Request.forwarded_priority = [:x_forwarded] }
+
+    it 'is needed because Rack alone gives a Host-preserving proxy the origin port under wss' do
+      request = Rack::Request.new(proxied_env('HTTP_X_FORWARDED_PROTO' => 'wss'))
+
+      expect([request.scheme, request.port, request.base_url]).to eq(['wss', '3000', 'wss://secrets.acme.com'])
+    end
+
+    {
+      'ws' => ['http', false, 80, 'http'],
+      'wss' => ['https', true, 443, 'https'],
+      'https, wss' => ['https', true, 443, 'https, https'],
+      'wss, http' => ['http', false, 80, 'https, http'],
+      "ws\twss" => ['https', true, 443, "http\thttps"],
+      'javascript, ws' => ['http', false, 80, 'javascript, http'],
+      " wss\n" => ['https', true, 443, 'https'],
+    }.each do |value, (scheme, ssl, port, rewritten)|
+      %w[HTTP_X_FORWARDED_PROTO HTTP_X_FORWARDED_SCHEME].each do |carrier|
+        it "reads #{carrier} #{value.inspect} as #{scheme}" do
+          before  = Rack::Request.new(proxied_env(carrier => value))
+          env     = call_with(proxied_env(carrier => value))
+          request = Rack::Request.new(env)
+
+          aggregate_failures do
+            expect(env[carrier]).to eq(rewritten)
+            expect(request.scheme).to eq(scheme)
+            expect(request.ssl?).to eq(ssl)
+            expect(request.ssl?).to eq(before.ssl?)
+            expect(request.port).to eq(port)
+            expect(URI.parse(request.base_url).port).to eq(port)
+            expect(request.base_url).to eq("#{scheme}://secrets.acme.com")
+            expect(env).not_to have_key(described_class::STRIPPED_HEADERS)
+          end
+        end
+      end
+    end
+
+    it 'normalises X-Forwarded-Scheme when X-Forwarded-Proto names no scheme' do
+      env = call_with(proxied_env('HTTP_X_FORWARDED_PROTO' => 'on', 'HTTP_X_FORWARDED_SCHEME' => 'wss'))
+
+      expect(Rack::Request.new(env).scheme).to eq('https')
+    end
+
+    %w[wsx news WSS wss:// ws-wss].each do |value|
+      it "leaves #{value.inspect} as it is: Rack reads no scheme from it" do
+        env = call_with(proxied_env('HTTP_X_FORWARDED_PROTO' => value))
+
+        expect(env['HTTP_X_FORWARDED_PROTO']).to eq(value)
+        expect(Rack::Request.new(env).scheme).to eq('http')
+      end
+    end
+
+    { 'wss' => 'https', 'ws' => 'http' }.each do |proto, scheme|
+      it "carries Forwarded proto=#{proto} into rack.url_scheme as #{scheme}" do
+        Rack::Request.forwarded_priority = [:forwarded]
+
+        env     = call_with(proxied_env('HTTP_FORWARDED' => "proto=#{proto}"))
+        request = Rack::Request.new(env)
+
+        aggregate_failures do
+          expect(env['rack.url_scheme']).to eq(scheme)
+          expect(request.scheme).to eq(scheme)
+          expect(URI.parse(request.base_url).port).to eq(request.port)
+        end
+      end
+    end
+
+    it 'does not let Forwarded proto=ws lower a request that is already https' do
+      Rack::Request.forwarded_priority = [:forwarded]
+
+      env = call_with(proxied_env('HTTP_FORWARDED' => 'proto=ws', 'rack.url_scheme' => 'https'))
+
+      expect(Rack::Request.new(env).scheme).to eq('https')
+    end
+  end
+
   describe 'post-strip Rack resolution' do
     let(:env) do
       Rack::MockRequest.env_for(

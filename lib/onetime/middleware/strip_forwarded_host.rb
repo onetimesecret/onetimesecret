@@ -100,6 +100,27 @@ module Onetime
     # untrusted for; the `Forwarded`-only proxy this write exists to serve is
     # upgrading http to https, which still works.
     #
+    # ## A forwarded `ws` or `wss` is read as `http` or `https`
+    #
+    # Rack accepts `ws` and `wss` as forwarded schemes (they are in
+    # `Rack::Request::ALLOWED_SCHEMES`) and has a default port for neither
+    # (`DEFAULT_PORTS`). With such a scheme and no port in the authority,
+    # `Rack::Request#port` falls through to `SERVER_PORT` — the port of the
+    # hop to the origin — while `#base_url` carries no port, so an origin
+    # built from `request.port` (Auth::PublicHost.origin_for,
+    # Rack::Protection::HttpOrigin) names the origin's port on the public
+    # host, and request-derived URLs start with `ws://` or `wss://`. That
+    # holds whether the proxy preserves `Host` or PublicHostRewrite writes
+    # it.
+    #
+    # The applications serve HTTP only, so a trusted proxy's `ws` is
+    # rewritten to `http` and its `wss` to `https`, in X-Forwarded-Proto,
+    # X-Forwarded-Scheme and the scheme carried from `Forwarded`. `#ssl?`
+    # answers the same before and after. Only whole entries are rewritten,
+    # split the way Rack splits the header, so the entry Rack selects from a
+    # list is the same one. An untrusted peer's headers are deleted as
+    # before.
+    #
     # ## What was deleted is recorded by NAME
     #
     # Two readers mounted below this middleware diagnose the edge's forwarding
@@ -165,6 +186,17 @@ module Onetime
         HTTP_X_FORWARDED_PROTO HTTP_X_FORWARDED_SCHEME HTTP_X_FORWARDED_SSL
       ].freeze
 
+      # The two of those whose value names a scheme (X-Forwarded-SSL is
+      # on/off).
+      SCHEME_NAME_HEADERS = %w[HTTP_X_FORWARDED_PROTO HTTP_X_FORWARDED_SCHEME].freeze
+
+      # See "A forwarded `ws` or `wss` is read as `http` or `https`" above.
+      HTTP_SCHEMES = { 'ws' => 'http', 'wss' => 'https' }.freeze
+
+      # One whole `ws` or `wss` entry. Rack::Request#split_header strips the
+      # value and splits it on runs of comma, space and tab.
+      WEBSOCKET_ENTRY = /(?<![^, \t])wss?(?![^, \t])/
+
       def initialize(app)
         @app = app
       end
@@ -177,6 +209,7 @@ module Onetime
           stripped.concat(FORWARDED_SCHEME_HEADERS.select { |key| env.key?(key) })
         end
 
+        read_websocket_schemes_as_http(env) if trusted
         carry_forwarded_scheme(env) if trusted && stripped.include?(FORWARDED)
 
         stripped.each { |key| env.delete(key) }
@@ -199,7 +232,19 @@ module Onetime
       def carry_forwarded_scheme(env)
         return if env[RACK_URL_SCHEME] == HTTPS_SCHEME || env['HTTPS'] == 'on'
 
-        env[RACK_URL_SCHEME] = Rack::Request.new(env).scheme
+        scheme               = Rack::Request.new(env).scheme
+        env[RACK_URL_SCHEME] = HTTP_SCHEMES.fetch(scheme, scheme)
+      end
+
+      # Rewrite `ws` and `wss` entries of a trusted proxy's scheme headers.
+      # A value Rack reads no such entry from is left as it arrived.
+      def read_websocket_schemes_as_http(env)
+        SCHEME_NAME_HEADERS.each do |key|
+          value = env[key]
+          next unless value.is_a?(String) && value.strip.match?(WEBSOCKET_ENTRY)
+
+          env[key] = value.strip.gsub(WEBSOCKET_ENTRY, HTTP_SCHEMES)
+        end
       end
     end
   end

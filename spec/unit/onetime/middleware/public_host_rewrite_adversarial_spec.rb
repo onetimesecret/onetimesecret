@@ -528,10 +528,13 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
   # StripForwardedHost is the first middleware in this chain to decide
   # scheme trust: it deletes X-Forwarded-Proto unless the peer is a trusted
   # proxy. What it keeps is read by Rack::Request#scheme, after HTTPS=on.
+  # In what it keeps, a ws entry is rewritten to http and a wss entry to
+  # https: Rack has no default port for either.
   describe 'X-Forwarded-Proto values across request shapes' do
-    # Value => the scheme Rack takes from it, or nil when it names none.
-    # Rack splits the value on commas and whitespace and takes the last
-    # entry that is exactly https, http, wss or ws.
+    # Value => the scheme the apps get from it, or nil when it names none.
+    # Rack splits the value on commas, spaces and tabs and takes the last
+    # entry that is exactly https, http, wss or ws; wss counts as https and
+    # ws as http.
     protos = {
       nil => nil,
       '' => nil,
@@ -549,8 +552,27 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
       'https://' => nil,
       'on' => nil,
       "https\r\nX-Injected: 1" => nil,
-      'wss' => 'wss',
-      'ws' => 'ws',
+      'wss' => 'https',
+      'ws' => 'http',
+      'https, wss' => 'https',
+      'wss, http' => 'http',
+      'http, ws' => 'http',
+      "ws\twss" => 'https',
+      'javascript, wss' => 'https',
+      'WSS' => nil,
+      'wss://' => nil,
+    }.freeze
+
+    # The values a trusted proxy's header is rewritten to. Any other value
+    # reaches the apps as it arrived.
+    kept_as = {
+      'wss' => 'https',
+      'ws' => 'http',
+      'https, wss' => 'https, https',
+      'wss, http' => 'https, http',
+      'http, ws' => 'http, http',
+      "ws\twss" => "http\thttps",
+      'javascript, wss' => 'javascript, https',
     }.freeze
 
     # Origin connection => [request_env scheme, extra env, scheme without a
@@ -577,8 +599,7 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
       { host: ORIGIN, xfh: 'evil.test', xfp: '8443' } => nil,
     }.freeze
 
-    default_ports   = { 'https' => 443, 'http' => 80 }.freeze
-    websocket_ports = { 'wss' => 443, 'ws' => 80 }.freeze
+    default_ports = { 'https' => 443, 'http' => 80 }.freeze
 
     def scheme_snapshot(env)
       request = Rack::Request.new(env)
@@ -632,21 +653,17 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
                 name, port = authority.split(':')
                 port       = port.to_i
               end
-              base_url = port.nil? || port == default ? "#{scheme}://#{name}" : "#{scheme}://#{name}:#{port}"
-              url_port = port || websocket_ports.fetch(scheme)
-              # Rack has no default port for ws and wss. On a rewritten
-              # request with no public port forwarded, #port falls back to
-              # SERVER_PORT (the origin hop's, as the String Rack returns)
-              # while #base_url carries no port. Pinned as observed; a proxy
-              # that preserves Host gets the same pair.
-              port   ||= '3000'
+              base_url = port == default ? "#{scheme}://#{name}" : "#{scheme}://#{name}:#{port}"
 
+              # The apps get http or https whatever the proxy sent, so
+              # #port and the port of #base_url are one Integer in every
+              # case, and never SERVER_PORT's on a rewritten request.
               actual   = [out['HTTP_X_FORWARDED_PROTO'], request.scheme, request.ssl?, rewritten?(out),
                           out['HTTP_HOST'], request.host, request.port, request.base_url,
                           URI.parse(request.base_url).port, classification_snapshot(out)]
-              expected = [proto, scheme, %w[https wss].include?(scheme), oracle[:rewritten],
+              expected = [kept_as.fetch(proto, proto), scheme, scheme == 'https', oracle[:rewritten],
                           authority, name, port, base_url,
-                          url_port, classification_snapshot(without)]
+                          port, classification_snapshot(without)]
               next if actual == expected
 
               found << "#{origin} #{headers.inspect} proto=#{proto.inspect}: " \

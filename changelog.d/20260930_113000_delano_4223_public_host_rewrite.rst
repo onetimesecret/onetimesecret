@@ -40,3 +40,11 @@ Changed
   proxy's address ranges to ``site.network.trusted_proxy``, or set
   ``ASSUME_HTTPS=true``. The ``[Session] cookie NOT written`` warning now
   lists the removed headers under ``untrusted_scheme_headers``. (#4223)
+
+- A trusted proxy's ``X-Forwarded-Proto`` or ``X-Forwarded-Scheme`` of ``wss``
+  is read as ``https``, and ``ws`` as ``http``; so is the ``proto=`` of
+  ``Forwarded`` when that family is the one read. Rack accepts both values and
+  has no default port for either, so a request forwarded as ``wss`` with no
+  public port had the origin hop's port as its request port and ``wss://`` in
+  request-derived URLs. This applies whether or not ``public_host_rewrite`` is
+  on. (#4223)
