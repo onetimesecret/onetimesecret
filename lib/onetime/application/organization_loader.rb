@@ -21,6 +21,8 @@
 # Every selection above (header, cache hit, session, domain, fallbacks) is
 # subject to the membership's domain scope when the request has a custom
 # domain. See #scope_permits? for where the request's domains come from.
+# When the scope leaves no organization, the context carries
+# domain_scope_refused: true and auth_org does not select one either.
 #
 # Performance:
 # - Positive results cached in session for 5 minutes
@@ -112,11 +114,19 @@ module Onetime
 
         OT.ld "[OrganizationLoader] Loaded context for #{customer.objid}: org=#{org&.objid}"
 
-        {
+        context = {
           organization: org,
           organization_id: org&.objid,
           expires_at: Familia.now.to_i + CACHE_TTL,
         }
+
+        # No organization because the domain scope withheld one is a refusal,
+        # not the "no workspace yet" case. Logic::OrganizationContext#auth_org
+        # reads this and returns nil instead of falling back to the customer's
+        # first organization.
+        context[:domain_scope_refused] = true if org.nil? && scope_withheld_any?(customer, domains)
+
+        context
       end
 
       # Clear organization context cache for customer
@@ -309,6 +319,18 @@ module Onetime
         return false unless membership
 
         domains.all? { |domain| membership.can_access_domain?(domain) }
+      end
+
+      # Whether the domain scope withheld at least one of the customer's
+      # organizations on this request. Always false with no custom domain.
+      #
+      # @param customer [Onetime::Customer]
+      # @param domains [Array<Onetime::CustomDomain>] from #request_scope_domains
+      # @return [Boolean]
+      def scope_withheld_any?(customer, domains)
+        return false if domains.empty?
+
+        customer.organization_instances.to_a.any? { |o| !scope_permits?(o, customer, domains) }
       end
 
       # The custom domains this request is for, from both places one can be

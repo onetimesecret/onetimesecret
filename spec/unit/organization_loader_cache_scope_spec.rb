@@ -301,25 +301,55 @@ RSpec.describe Onetime::Application::OrganizationLoader do
   end
 
   # What a logic class sees after the loader returned no organization.
-  # Logic::OrganizationContext#auth_org asks EnsureDefaultWorkspace, which
-  # creates nothing for a customer who already has an organization, and then
-  # falls back to the customer's first organization.
+  # The loader marks a scope refusal in the context, and
+  # Logic::OrganizationContext#auth_org returns nil for it instead of falling
+  # back to the customer's first organization.
   describe 'auth_org after the loader returned no organization' do
-    def receipt_logic(context)
+    def receipt_logic(context, params = { 'scope' => 'org' })
       result = double('strategy result', user: customer, session: session,
         metadata: { organization_context: context, domain_strategy: :custom,
           display_domain: 'denied.example.com', custom_domain_id: denied_domain.objid })
-      V2::Logic::Secrets::ListReceipts.new(result, { 'scope' => 'org' })
+      V2::Logic::Secrets::ListReceipts.new(result, params)
     end
 
-    it 'pins the fallback: the first organization is returned without a scope check' do
+    before do
       allow(customer).to receive(:provisioning_failed?).and_return(false)
       allow(customer).to receive(:clear_provisioning_failure!)
-      context = load_context(denied_domain, 'denied.example.com', rewrite: false, header: false)
-      expect(context[:organization]).to be_nil
+    end
 
-      logic = receipt_logic(context)
-      expect(logic.organization).to be_nil
+    [false, true].each do |rewrite|
+      it "keeps the refusal on the sibling domain (rewrite=#{rewrite})" do
+        context = load_context(denied_domain, 'denied.example.com', rewrite: rewrite, header: false)
+        expect(context[:organization]).to be_nil
+        expect(context[:domain_scope_refused]).to be(true)
+
+        expect(Auth::Operations::EnsureDefaultWorkspace).not_to receive(:new)
+        logic = receipt_logic(context)
+        expect(logic.auth_org).to be_nil
+        expect(logic.auth_membership).to be_nil
+        expect { logic.raise_concerns }.to raise_error(Onetime::EntitlementRequired)
+      end
+    end
+
+    it 'does not mark a refusal when an organization was selected' do
+      context = load_context(allowed_domain, 'allowed.example.com', rewrite: false, header: false)
+      expect(context).not_to have_key(:domain_scope_refused)
+      expect(receipt_logic(context).auth_org).to eq(organization)
+    end
+
+    it 'does not mark a refusal on a canonical request' do
+      allow(customer).to receive(:organization_instances).and_return([])
+      env     = { 'HTTP_HOST' => 'origin.example.com', 'onetime.display_domain' => 'origin.example.com',
+                  'onetime.domain_strategy' => :canonical }
+      context = loader.load_organization_context(customer, session, env)
+      expect(context[:organization]).to be_nil
+      expect(context).not_to have_key(:domain_scope_refused)
+    end
+
+    it 'still falls back for a customer with no scope refusal (the lazy-creation race)' do
+      workspace = instance_double(Auth::Operations::EnsureDefaultWorkspace, call: nil)
+      allow(Auth::Operations::EnsureDefaultWorkspace).to receive(:new).and_return(workspace)
+      logic     = receipt_logic({ organization: nil, organization_id: nil })
       expect(logic.auth_org).to eq(organization)
     end
   end
