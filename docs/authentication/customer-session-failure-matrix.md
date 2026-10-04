@@ -501,7 +501,8 @@ Recorded as a baseline so #4466 and #4467 start from observed behaviour, in
   `onetime.session` cookies is refused with `403` in either order, by
   `Onetime::Middleware::CookieTossing` (`site.middleware.cookie_tossing`,
   default on since 2026-09-28); before that the first cookie on the request
-  was used. Completing the second factor rotates the ID again and carries the
+  was used. The refusal runs above `Onetime::Session` and sets no session
+  cookie, only the clears. Completing the second factor rotates the ID again and carries the
   session data, the active-session row and the sidecar values across
   (`Onetime::SessionRotation`, called from `after_two_factor_authentication`;
   `apps/web/auth/spec/integration/full_mfa/mfa_session_rotation_spec.rb`).
