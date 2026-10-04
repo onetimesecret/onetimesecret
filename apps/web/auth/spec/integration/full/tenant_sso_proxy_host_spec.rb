@@ -26,7 +26,7 @@
 # - AUTHENTICATION_MODE=full, ORGS_SSO_ENABLED=true
 #
 # RUN:
-#   ORGS_SSO_ENABLED=true pnpm run test:rspec \
+#   tests/lanes/run full-pg-agnostic --only \
 #     apps/web/auth/spec/integration/full/tenant_sso_proxy_host_spec.rb
 #
 # =============================================================================
@@ -77,6 +77,9 @@ RSpec.describe 'Tenant SSO behind a Host-rewriting proxy', :shared_db_state, typ
       # the domain is unverified (it still classifies :custom); the origin
       # target stays readable as the Host that was received.
       def expect_proxied_request
+        expect(last_request.env['onetime.domain_strategy']).to eq(:custom)
+        expect(last_request.env['onetime.display_domain']).to eq(tenant_domain)
+        expect(last_request.env[Rack::DetectHost.result_field_name]).to eq(tenant_domain)
         expect_host_rewrite(origin_host, rewritten: rewrite_on)
         expect(Rack::Request.new(last_request.env).host).to eq(rewrite_on ? tenant_domain : origin_host)
       end
