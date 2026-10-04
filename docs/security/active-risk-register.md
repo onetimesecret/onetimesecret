@@ -49,7 +49,7 @@ Source ratings are retained until a new assessment explicitly re-rates a risk.
 
 | ID | Priority / risk | Status | Risk | Source and required action |
 |---|---|---|---|---|
-| RISK-2026-10-03-4C3C | Unassigned / Unconfirmed | Open | If a browser replays cached Basic API credentials cross-site without an authenticated session, the API CSRF-token exemption could permit unintended account-attributed actions. Browser caching and replay have not been demonstrated or refuted. | [2026-10-03 audit, report 4c3c](audits/security-audit-2026-10-03.md); test real-browser credential caching, automatic cross-site replay, accepted request encoding, and server-side account attribution before rating or closing. Owner: Unassigned. Target: Not scheduled. |
+| RISK-2026-10-03-4C3C | Unassigned / Unconfirmed | Open | If a browser replays cached Basic API credentials cross-site without an authenticated session, the API CSRF-token exemption could permit unintended account-attributed actions. Browser caching and replay have not been demonstrated or refuted. | [2026-10-03 audit, report 4c3c](audits/security-audit-2026-10-03.md); test real-browser credential caching, automatic cross-site replay, accepted request encoding, and server-side account attribution before rating or closing. A regression spec guarding the unprompted-Basic-challenge invariant was added at `50b203c49a` (audit "Required validation" step 3); it does not close the item — Firefox and WebKit remain untested. Owner: Unassigned. Target: Not scheduled. |
 
 ## Historical sources
 
