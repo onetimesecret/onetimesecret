@@ -475,8 +475,7 @@ module Onetime
             # the two sets are equal, while a pool member participates by exact
             # match alone. This arm runs before the custom-domain read, so it
             # carries no resolution.
-            if canonical_domains.any? { |host| exact_host?(request_domain, host) } ||
-               sweep_domains.any? { |host| equal_to?(request_domain, host) }
+            if canonical_without_lookup?(request_domain, canonical_domains, anchor_domains: sweep_domains)
               return Classification.new(strategy: :canonical, custom_domain: nil)
             end
 
@@ -524,6 +523,21 @@ module Onetime
             return nil if host.nil?
 
             host.respond_to?(:name) ? host.name : host.to_s
+          end
+
+          # The early canonical arm, shared with consumers that must not make
+          # canonical requests depend on the custom-domain datastore. Includes
+          # exact hosts and anchor www variants only, never the later sweeps.
+          # Accepts raw hosts or already-parsed PublicSuffix::Domain objects.
+          def canonical_without_lookup?(request_domain, canonical_domains, anchor_domains: nil)
+            request_domain    = Parser.parse(request_domain) unless request_domain.is_a?(PublicSuffix::Domain)
+            canonical_domains = parse_host_set(canonical_domains)
+            anchors           = anchor_domains.nil? ? canonical_domains : parse_host_set(anchor_domains)
+
+            canonical_domains.any? { |host| exact_host?(request_domain, host) } ||
+              anchors.any? { |host| equal_to?(request_domain, host) }
+          rescue PublicSuffix::DomainInvalid
+            false
           end
 
           # Parses a host set per-element, skipping unparseable hosts (e.g. an

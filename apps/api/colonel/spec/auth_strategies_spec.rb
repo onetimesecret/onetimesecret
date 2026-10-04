@@ -60,6 +60,19 @@ RSpec.describe ColonelAPI::AuthStrategies::SessionAuthStrategy do
       )
     end
 
+    it 'reports the Host the server received on a request PublicHostRewrite rewrote' do
+      env['onetime.original_http_host'] = env['HTTP_HOST']
+      env['HTTP_HOST']                  = 'tenant.example.test'
+
+      metadata = strategy.send(:build_metadata, env)
+
+      expect(metadata[:proxy_header_debug][:request_headers]['host']).to eq('origin.example.test')
+    end
+
+    it 'reads the received Host through the env key the middleware writes' do
+      expect(described_class::ORIGINAL_HTTP_HOST).to eq(Onetime::Middleware::PublicHostRewrite::ORIGINAL_HTTP_HOST)
+    end
+
     it 'reports the carriers StripForwardedHost deleted, by wire name' do
       # The middleware has already deleted HTTP_FORWARDED / HTTP_X_FORWARDED_HOST
       # by the time any app runs; only its record of the deletion is left.
@@ -76,6 +89,13 @@ RSpec.describe ColonelAPI::AuthStrategies::SessionAuthStrategy do
       # diagnostics silently went back to "permanently absent".
       expect([described_class::STRIPPED_FORWARDED_HEADERS, Onetime::Session::STRIPPED_FORWARDED_HEADERS])
         .to all(eq(Onetime::Middleware::StripForwardedHost::STRIPPED_HEADERS))
+    end
+
+    it 'names the same forwarded scheme carriers in Session as the middleware deletes' do
+      # Session's dropped-secure-cookie warning picks the scheme carriers out
+      # of the stripped-name record by its own list.
+      expect(Onetime::Session::FORWARDED_SCHEME_HEADERS)
+        .to eq(Onetime::Middleware::StripForwardedHost::FORWARDED_SCHEME_HEADERS)
     end
 
     it 'reads detected_host through the configurable result field name' do

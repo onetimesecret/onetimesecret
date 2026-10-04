@@ -1,0 +1,142 @@
+# apps/web/auth/spec/integration/full/host_proxy_failure_responses_spec.rb
+#
+# frozen_string_literal: true
+
+require_relative '../../spec_helper'
+require_relative '../../support/tenant_test_fixtures'
+
+# Baseline characterization: the same legitimate tenant request before and
+# during an identity lookup failure. Only the lookup is stubbed; classification,
+# policy gates, OmniAuth, error translation and email composition stay mounted.
+RSpec.describe 'Tenant host lookup failure responses', :shared_db_state, type: :integration do
+  include Rack::Test::Methods
+  include_context 'tenant fixtures'
+  include_context 'domains enabled'
+
+  before(:all) { boot_onetime_app }
+
+  let(:account_email) { unique_test_email('host-failure') }
+  let!(:account_id) { seed_account_with_password(account_email) }
+
+  before do
+    expect(Onetime.auth_config.orgs_sso_enabled?).to be(true),
+      'Run this spec through tests/lanes/run full-sqlite; tenant SSO must register at boot.'
+    Onetime::Application::MiddlewareStack.ip_privacy_security_config
+    Onetime::CustomDomain::SigninConfig.create!(
+      domain_id: test_custom_domain.identifier,
+      enabled: true,
+      signin_enabled: true,
+      sso_enabled: true,
+    )
+    @delivered = []
+    allow(Onetime::Jobs::Publisher).to receive(:enqueue_email_raw) do |email, **_kwargs|
+      @delivered << email
+      true
+    end
+
+    header 'Host', canonical_host
+    header 'X-Forwarded-Host', tenant_domain
+    header 'X-Forwarded-Proto', 'https'
+    env 'REMOTE_ADDR', '127.0.0.1'
+  end
+
+  after do
+    Onetime::CustomDomain::SigninConfig.delete_for_domain!(test_custom_domain.identifier)
+    clear_auth_database
+  end
+
+  def fail_tenant_lookup!
+    allow(Onetime::CustomDomain).to receive(:from_display_domain).and_wrap_original do |original, host|
+      raise lookup_failure if host == tenant_domain
+
+      original.call(host)
+    end
+  end
+
+  def expect_healthy_tenant_request
+    expect(last_request.env['onetime.domain_strategy']).to eq(:custom)
+    expect(last_request.env['onetime.display_domain']).to eq(tenant_domain)
+    expect(last_request.env['HTTP_HOST']).to eq(rewrite_on ? tenant_domain : canonical_host)
+    expect_host_rewrite(canonical_host, rewritten: rewrite_on)
+  end
+
+  def expect_failed_tenant_request
+    request_env = last_request.env
+    resolution = request_env.fetch(Onetime::CustomDomainResolution::ENV_KEY)
+    expect(resolution).to be_read_failed
+    expect(resolution.error).to be(lookup_failure)
+    expect(request_env['onetime.domain_strategy']).to eq(:invalid)
+    expect(request_env['onetime.display_domain']).to eq(tenant_domain)
+    expect(request_env['HTTP_HOST']).to eq(canonical_host)
+    expect(request_env['onetime.custom_domain']).to be_nil
+    expect_host_rewrite(canonical_host, rewritten: false)
+    expect(@delivered).to be_empty
+    expect(last_response.body).not_to include(lookup_failure.message, "secret-#{test_run_id}")
+  end
+
+  [false, true].each do |rewrite|
+    context "with public_host_rewrite #{rewrite ? 'on' : 'off'}" do
+      let(:rewrite_on) { rewrite }
+      include_context 'public host rewrite setting'
+
+      [Redis::BaseError, RuntimeError].each do |error_class|
+        context "when CustomDomain lookup raises #{error_class}" do
+          let(:lookup_failure) { error_class.new('private tenant lookup failure detail') }
+
+          it 'refuses SSO with the baseline failure redirect, not an IdP authorization URL' do
+            post '/auth/sso/entra'
+            expect(last_response.status).to eq(302)
+            healthy_location = URI.parse(last_response.headers.fetch('Location'))
+            expect(healthy_location.host).to eq('login.microsoftonline.com')
+            expect(healthy_location.path).to eq("/#{test_sso_config.tenant_id}/oauth2/v2.0/authorize")
+            expect(CGI.parse(healthy_location.query).fetch('redirect_uri')).to eq(
+              ["https://#{tenant_domain}/auth/sso/entra/callback"],
+            )
+            expect_healthy_tenant_request
+
+            clear_cookies
+            clear_body_headers
+            fail_tenant_lookup!
+            post '/auth/sso/entra'
+
+            expect(last_response.status).to eq(302)
+            expect(last_response.headers.fetch('Location')).to eq('/signin?auth_error=sso_failed')
+            expect_failed_tenant_request
+          end
+
+          it "refuses password-reset emission with #{error_class == Redis::BaseError ? 503 : 500}" do
+            csrf_json_post('/auth/reset-password-request', login: account_email)
+            expect(last_response.status).to eq(200)
+            expect(@delivered.size).to eq(1)
+            expect(@delivered.first.fetch(:body)).to include("https://#{tenant_domain}/reset-password?key=")
+            expect_healthy_tenant_request
+            reset_keys = auth_db[:account_password_reset_keys].where(id: account_id).all
+            expect(reset_keys.size).to eq(1)
+
+            clear_cookies
+            @delivered.clear
+            fail_tenant_lookup!
+            csrf_json_post('/auth/reset-password-request', login: account_email)
+
+            if error_class == Redis::BaseError
+              expect(last_response.status).to eq(503)
+              expect(json_body).to include(
+                'error' => 'Sign-in is temporarily unavailable. Please try again shortly.',
+                'error_type' => 'SigninPolicyUnavailable',
+                'retry_after' => 5,
+              )
+              expect(last_response.headers['Retry-After']).to eq('5')
+            else
+              expect(last_response.status).to eq(500)
+              expect(json_body).to include('error' => 'Internal Server Error', 'error_type' => 'ServerError')
+            end
+            expect(last_response.headers['Location']).to be_nil
+            expect(last_response.body).not_to include('reset-password?key=', 'redirect_uri=')
+            expect(auth_db[:account_password_reset_keys].where(id: account_id).all).to eq(reset_keys)
+            expect_failed_tenant_request
+          end
+        end
+      end
+    end
+  end
+end

@@ -156,6 +156,10 @@ refused the request.
    ([proxy-authority-header.md](proxy-authority-header.md)), so
    `request_headers` has no entry for it; the edge translates it into
    `X-Forwarded-Host` and removes it.
+7. `request_headers.host` is the `Host` the application server received. With
+   `site.network.public_host_rewrite` on it stays the received value even when
+   the application has set `Host` to the detected host for the rest of the
+   request; `rack.detected_host` shows that host.
 
 The endpoint reports observations; it does not prove an upstream header is
 trustworthy. A client can still choose any marker header. The result establishes

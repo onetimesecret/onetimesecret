@@ -10,6 +10,7 @@ require 'zlib'
 require 'sentry-ruby'
 require 'onetime/application/request_logger'
 require 'onetime/middleware/saml_callback_transport'
+require 'onetime/middleware/public_host_rewrite'
 require 'onetime/sso_provider/request_bound_saml'
 require 'onetime/sso_provider/saml'
 require_relative '../../../support/saml/test_idp'
@@ -323,6 +324,153 @@ RSpec.describe Onetime::Middleware::SamlCallbackTransport do
     expect(wrong.status).to eq(401)
     expect(reached).to be_empty
     expect(complete(response['location'], cookie).status).to eq(200)
+  end
+
+  context 'when public host rewriting changes between staging and completion (F2)' do
+    let(:rewrite) { Onetime::Middleware::PublicHostRewrite.new(app) }
+    let(:origin_authority) { 'origin.internal:8443' }
+
+    def proxy_request(method, location, **options)
+      Rack::MockRequest.new(rewrite).request(
+        method, "#{host}#{location}",
+        'HTTP_HOST' => origin_authority,
+        'SERVER_NAME' => 'origin.internal',
+        'onetime.display_domain' => display_domain,
+        'onetime.domain_strategy' => :canonical,
+        Rack::DetectHost.result_field_name => display_domain,
+        **options,
+      )
+    end
+
+    it 'completes a signed callback staged before rewriting was enabled' do
+      cookie, request_id = start
+      allow(Onetime::Middleware::PublicHostRewrite).to receive(:enabled?).and_return(false)
+      response = proxy_request('POST', path,
+        params: { 'SAMLResponse' => assertion(request_id) },
+        'HTTP_ORIGIN' => 'https://idp.example.com')
+      expect(response.status).to eq(303)
+      expect(response['set-cookie']).to be_nil
+      expect(reached).to be_empty
+
+      allow(Onetime::Middleware::PublicHostRewrite).to receive(:enabled?).and_return(true)
+      completion = proxy_request('GET', response['location'], 'HTTP_COOKIE' => cookie)
+      expect(completion.status).to eq(200)
+      expect(reached.length).to eq(1)
+      expect(failures).to be_empty
+      expect(proxy_request('GET', response['location'], 'HTTP_COOKIE' => cookie).status).to eq(401)
+      expect(reached.length).to eq(1)
+    end
+
+    # With rewriting off the completing GET reaches the strategy under the
+    # origin target's Host. The application resolves OmniAuth's full_host
+    # from the public host rather than the Rack authority; it is pinned here
+    # the same way, or the strategy refuses the GET as :saml_acs_host_mismatch
+    # before the staged response is looked up and the scope is never the
+    # deciding check.
+    it 'completes a signed callback staged while rewriting was on after it is turned off' do
+      OmniAuth.config.full_host = host
+      cookie, request_id = start
+      allow(Onetime::Middleware::PublicHostRewrite).to receive(:enabled?).and_return(true)
+      response = proxy_request('POST', path,
+        params: { 'SAMLResponse' => assertion(request_id) },
+        'HTTP_ORIGIN' => 'https://idp.example.com')
+      expect(response.status).to eq(303)
+      expect(response['set-cookie']).to be_nil
+      expect(reached).to be_empty
+
+      allow(Onetime::Middleware::PublicHostRewrite).to receive(:enabled?).and_return(false)
+      completion = proxy_request('GET', response['location'], 'HTTP_COOKIE' => cookie)
+      expect(failures).to be_empty
+      expect(completion.status).to eq(200)
+      expect(reached.length).to eq(1)
+      expect(proxy_request('GET', response['location'], 'HTTP_COOKIE' => cookie).status).to eq(401)
+      expect(reached.length).to eq(1)
+    end
+
+    it 'keeps the exact pre-rewrite scope in either setting without mutating the live authority' do
+      env = Rack::MockRequest.env_for("#{host}#{path}",
+        'HTTPS' => 'off',
+        'HTTP_HOST' => origin_authority,
+        'onetime.display_domain' => display_domain,
+        'onetime.domain_strategy' => :canonical,
+        Rack::DetectHost.result_field_name => display_domain)
+      original_scope = store.scope(env)
+      expect(original_scope).to eq(["https://#{origin_authority}", display_domain, display_domain, path])
+
+      allow(Onetime::Middleware::PublicHostRewrite).to receive(:enabled?).and_return(true)
+      Onetime::Middleware::PublicHostRewrite.new(->(_) { [200, {}, []] }).call(env)
+      rewritten = env.dup
+      expect(store.scope(env)).to eq(original_scope)
+      expect(env).to eq(rewritten)
+      expect(env['HTTP_HOST']).to eq(display_domain)
+
+      {
+        'onetime.original_http_host' => 'other-origin.internal:8443',
+        'rack.url_scheme' => 'http',
+        'onetime.display_domain' => 'other.example.com',
+        Rack::DetectHost.result_field_name => 'other.example.com',
+        'PATH_INFO' => '/auth/sso/other/callback',
+      }.each do |key, value|
+        expect(store.scope(env.merge(key => value))).not_to eq(original_scope), key
+      end
+    end
+
+    it 'does not fall back to a legacy rewritten-authority scope' do
+      cookie, request_id = start
+      legacy_scope = [host, display_domain, display_domain, path]
+      handle = store.stage(response: assertion(request_id), scope: legacy_scope, source: 'one')
+      allow(Onetime::Middleware::PublicHostRewrite).to receive(:enabled?).and_return(true)
+
+      expect(store).not_to receive(:consume)
+      completion = proxy_request('GET', "#{path}?saml_handle=#{handle}", 'HTTP_COOKIE' => cookie)
+      expect(completion.status).to eq(401)
+      expect(failures).to eq([:saml_callback_missing])
+      expect(reached).to be_empty
+      expect(store.read(handle, scope: legacy_scope)).not_to be_nil
+    end
+
+    it 'fails closed when rewriting cannot preserve an original Host' do
+      cookie, request_id = start
+      allow(Onetime::Middleware::PublicHostRewrite).to receive(:enabled?).and_return(true)
+      response = proxy_request('POST', path,
+        params: { 'SAMLResponse' => assertion(request_id) },
+        'HTTP_ORIGIN' => 'https://idp.example.com')
+      expect(response.status).to eq(303)
+
+      expect(store).not_to receive(:consume)
+      completion = proxy_request('GET', response['location'], 'HTTP_COOKIE' => cookie, 'HTTP_HOST' => nil)
+      expect(completion.status).to eq(401)
+      expect(failures).to eq([:saml_callback_unavailable])
+      expect(reached).to be_empty
+
+      expect(store).not_to receive(:stage)
+      unavailable = proxy_request('POST', path,
+        params: { 'SAMLResponse' => assertion(request_id) },
+        'HTTP_ORIGIN' => 'https://idp.example.com', 'HTTP_HOST' => nil)
+      expect(unavailable.status).to eq(503)
+      expect(unavailable['set-cookie']).to be_nil
+    end
+
+    it 'retains inbound authority isolation after rewriting without consuming the rightful handle' do
+      cookie, request_id = start
+      allow(Onetime::Middleware::PublicHostRewrite).to receive(:enabled?).and_return(true)
+      response = proxy_request('POST', path,
+        params: { 'SAMLResponse' => assertion(request_id) },
+        'HTTP_ORIGIN' => 'https://idp.example.com')
+      expect(response.status).to eq(303)
+
+      ['other-origin.internal:8443', 'origin.internal:9443'].each do |authority|
+        wrong_authority = proxy_request('GET', response['location'],
+          'HTTP_COOKIE' => cookie, 'HTTP_HOST' => authority)
+        expect(wrong_authority.status).to eq(401)
+        expect(failures.last).to eq(:saml_callback_missing)
+        expect(reached).to be_empty
+      end
+
+      completion = proxy_request('GET', response['location'], 'HTTP_COOKIE' => cookie)
+      expect(completion.status).to eq(200)
+      expect(reached.length).to eq(1)
+    end
   end
 
   it 'refuses expired handles before authentication' do
