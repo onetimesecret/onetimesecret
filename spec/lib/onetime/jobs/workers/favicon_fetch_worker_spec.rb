@@ -15,7 +15,8 @@
 #   4. Idempotency dup        -> ack, no reprocess
 #   5. Transient FetchTimeout -> retry in-process, then ack on success
 #   6. Transient exhausted    -> requeue once (broker retry); a redelivery
-#                                that times out again -> reject (DLQ)
+#                                that times out again, or a claim that
+#                                cannot be released -> reject (DLQ)
 #   7. Hard StandardError     -> reject (DLQ), no retry
 #   8. not_found Result       -> ack (domain deleted between enqueue/process)
 #   9. Queue-config drift     -> QueueDeclarator.validate_worker! passes
@@ -307,7 +308,7 @@ RSpec.describe Onetime::Jobs::Workers::FaviconFetchWorker, type: :integration do
         expect(redelivery.acked?).to be true
       end
 
-      it 'still requeues when the claim cannot be released' do
+      it 'rejects to the DLQ instead of requeueing when the claim cannot be released' do
         allow(operation).to receive(:call)
           .and_raise(Onetime::Http::SafeFetch::FetchTimeout, 'always slow')
         allow(worker).to receive(:release_processing_claim)
@@ -315,7 +316,23 @@ RSpec.describe Onetime::Jobs::Workers::FaviconFetchWorker, type: :integration do
 
         result = worker.work_with_params(message, delivery_info, metadata)
 
+        # A redelivery under the claim still held would be acked as a
+        # duplicate and never fetched. The operator replay releases the
+        # claim before it republishes from the DLQ.
         expect(worker).to have_received(:release_processing_claim).with(message_id)
+        expect(result).to eq(:reject)
+        expect(worker.rejected?).to be true
+        expect(worker.requeued?).to be false
+      end
+
+      it 'still requeues when the claim is already gone' do
+        allow(operation).to receive(:call) do
+          Familia.dbclient.del("job:processed:#{message_id}") # expired, or released elsewhere
+          raise Onetime::Http::SafeFetch::FetchTimeout, 'always slow'
+        end
+
+        result = worker.work_with_params(message, delivery_info, metadata)
+
         expect(result).to eq(:requeue)
         expect(worker.rejected?).to be false
       end

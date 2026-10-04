@@ -253,14 +253,21 @@ module Onetime
           # logged and swallowed, so the worker still logs the original error
           # and settles the message with its own reject!/requeue!.
           #
+          # The result says whether the claim is gone. A worker that requeues
+          # needs true: a redelivery under a claim that is still held is
+          # acked as a duplicate, so on false it rejects to the DLQ instead.
+          #
           # Call it only when this invocation took the claim (track the result
           # of claim_for_processing in a local). A claim this invocation did
           # not take belongs to another delivery of the same message id.
           #
           # @param msg_id [String, nil] Message ID whose claim to release
-          # @return [Boolean] true if a claim key was deleted
+          # @return [Boolean] true when no claim is held any more (deleted
+          #   now, or already gone); false when the datastore failed and the
+          #   claim may still be held
           def release_processing_claim_safely(msg_id)
             release_processing_claim(msg_id)
+            true
           rescue StandardError => ex
             log_error "Idempotency claim not released: #{ex.class}", message_id: msg_id
             false
