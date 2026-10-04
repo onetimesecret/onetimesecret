@@ -350,5 +350,17 @@
   "web.layout.colonels_only_badge": {
     "text": "Alleen Colonels",
     "source_hash": "3f1e2dbd"
+  },
+  "web.footer.dpa": {
+    "text": "Verwerkersovereenkomst",
+    "source_hash": "112eae6b"
+  },
+  "web.footer.cookie_policy": {
+    "text": "Cookiebeleid",
+    "source_hash": "ee290b3d"
+  },
+  "web.footer.acceptable_use": {
+    "text": "Beleid voor aanvaardbaar gebruik",
+    "source_hash": "34aa287a"
   }
 }

@@ -46,5 +46,17 @@
   "api.domains.errors.homepage_incoming_not_ready": {
     "text": "Τα εισερχόμενα μυστικά πρέπει να ενεργοποιηθούν με τουλάχιστον έναν παραλήπτη προτού μπορέσουν να χρησιμοποιηθούν ως αρχική σελίδα.",
     "source_hash": "556da6e2"
+  },
+  "api.domains.errors.related_origins_invalid": {
+    "text": "Μη έγκυρη προέλευση: %{origins}. Εισάγετε το σχήμα και τον κεντρικό υπολογιστή, για παράδειγμα https://vault.example.com",
+    "source_hash": "5acb92ca"
+  },
+  "api.domains.errors.related_origins_foreign_organization": {
+    "text": "Αυτές οι προελεύσεις ανήκουν σε άλλον οργανισμό και δεν μπορούν να προστεθούν: %{origins}",
+    "source_hash": "ac21c1e7"
+  },
+  "api.domains.errors.allowed_signup_domains_invalid": {
+    "text": "Μη έγκυρος τομέας: %{domains}. Εισάγετε ένα καταχωρίσιμο όνομα τομέα, για παράδειγμα example.com",
+    "source_hash": "2d93472c"
   }
 }

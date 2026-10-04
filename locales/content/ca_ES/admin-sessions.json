@@ -176,8 +176,8 @@
     "source_hash": "0c6605c1"
   },
   "web.admin.sessions.revoke.confirmDescription": {
-    "text": "Això tanca la sessió de l'usuari immediatament eliminant la sessió {id}. Escriu l'ID de sessió per confirmar.",
-    "source_hash": "9e08b1b8"
+    "text": "Això tanca immediatament la sessió de l'usuari revocant la sessió {id}. Escriu {token} per confirmar.",
+    "source_hash": "80578692"
   },
   "web.admin.sessions.revoke.success": {
     "text": "S'ha revocat la sessió",
@@ -188,12 +188,12 @@
     "source_hash": "34cb67a4"
   },
   "web.admin.sessions.scan.capped": {
-    "text": "L'escaneig s'ha limitat a les primeres {scanned} claus — les sessions autenticades més enllà d'aquesta finestra no es llisten. Inspecciona una sessió concreta per ID per accedir-hi.",
-    "source_hash": "fa418b4e"
+    "text": "Escaneig limitat a les primeres {scanned} claus — les sessions autenticades fora d'aquesta finestra no apareixen a la llista. Redueix la cerca per trobar-les.",
+    "source_hash": "7a8d6fd5"
   },
   "web.admin.sessions.search.placeholder": {
-    "text": "Cerca per correu electrònic o ID extern",
-    "source_hash": "f2dc5c06"
+    "text": "Cerca per correu electrònic, ID extern o identificador de sessió",
+    "source_hash": "4894dec4"
   },
   "web.admin.sessions.sections.session": {
     "text": "Sessió",
@@ -210,5 +210,45 @@
   "web.admin.sessions.status.anonymous": {
     "text": "Anònim",
     "source_hash": "e7a8aa2d"
+  },
+  "web.admin.sessions.authority.title": {
+    "text": "No és la font autoritzada de sessions en el mode d'autenticació complet",
+    "source_hash": "796fb07f"
+  },
+  "web.admin.sessions.authority.description": {
+    "text": "Aquesta llista és el magatzem de sessions de Redis. Amb el mode d'autenticació complet, l'estat autoritzat de les sessions es troba a la base de dades de comptes de Rodauth, que aquesta consola no llegeix. És possible que els comptes que han iniciat la sessió mitjançant Rodauth no apareguin aquí, i revocar una sessió aquí no finalitza cap sessió de Rodauth.",
+    "source_hash": "77bc4904"
+  },
+  "web.admin.sessions.authority.descriptionRevokeAll": {
+    "text": "Aquesta llista és el magatzem de sessions de Redis. Amb el mode d'autenticació complet, l'estat autoritzat de les sessions es troba a la base de dades de comptes de Rodauth, que aquesta consola no llegeix. És possible que els comptes que han iniciat la sessió mitjançant Rodauth no apareguin aquí, i revocar una sola sessió aquí no finalitza la seva sessió de Rodauth. «Revoca-les totes» també finalitza les sessions de Rodauth del compte.",
+    "source_hash": "f964663d"
+  },
+  "web.admin.sessions.authority.openAdmin": {
+    "text": "Obre Rodauth Admin",
+    "source_hash": "ce523836"
+  },
+  "web.admin.sessions.authority.notConfigured": {
+    "text": "Estableix RODAUTH_ADMIN_URL per enllaçar a Rodauth Admin des d'aquí.",
+    "source_hash": "c070dbfb"
+  },
+  "web.admin.sessions.columns.sessionHandle": {
+    "text": "Identificador de sessió",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.errors.scanCapped": {
+    "text": "No s'ha trobat aquesta sessió a l'espai de claus mostrejat. Obre-la des de la seva fila de la llista perquè es pugui localitzar a partir del seu propietari.",
+    "source_hash": "67b73f7f"
+  },
+  "web.admin.sessions.fields.sessionHandle": {
+    "text": "Identificador de sessió",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.revoke.ownSession": {
+    "text": "Aquesta és la teva pròpia sessió. Revocar-la et tancaria la sessió — fes servir la desconnexió.",
+    "source_hash": "a6762292"
+  },
+  "web.admin.sessions.rodauthAdmin.open": {
+    "text": "Obre a Rodauth Admin",
+    "source_hash": "467173c8"
   }
 }

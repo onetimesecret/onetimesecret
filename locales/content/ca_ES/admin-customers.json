@@ -40,8 +40,8 @@
     "source_hash": "9feed9f1"
   },
   "web.admin.customers.actions.purge.confirmDescription": {
-    "text": "Això elimina permanentment {email} i totes les seves dades. Això no es pot desfer.",
-    "source_hash": "a74dd5d1"
+    "text": "Això sol·licita l'eliminació permanent de {email}. Abans de desmantellar el compte s'executa una comprovació prèvia que rebutja la purga quan un espai de treball té dominis, estat de facturació, altres membres, dades conservades o referències incoherents. Revisa i resol qualsevol impediment abans de tornar-ho a provar. Això no es pot desfer un cop comença el desmantellament.",
+    "source_hash": "7b4e5e37"
   },
   "web.admin.customers.actions.purge.success": {
     "text": "S'ha purgat el client.",
@@ -60,8 +60,8 @@
     "source_hash": "227f57d7"
   },
   "web.admin.customers.actions.role.confirmDescription": {
-    "text": "Canvia {email} al rol {role}.",
-    "source_hash": "9ba063c6"
+    "text": "Canvia {email} al rol {role}. El rol colonel concedeix accés administratiu complet a tots els comptes, secrets i organitzacions d'aquesta instal·lació. Escriu a continuació l'adreça de correu electrònic del compte per confirmar-ho.",
+    "source_hash": "0ed85b97"
   },
   "web.admin.customers.actions.role.success": {
     "text": "S'ha actualitzat el rol.",
@@ -116,8 +116,8 @@
     "source_hash": "62ed2854"
   },
   "web.admin.customers.actions.unverify.confirmDescription": {
-    "text": "Marca {email} com a no verificat.",
-    "source_hash": "592ffd27"
+    "text": "Marca {email} com a no verificat. Un compte no verificat no pot tenir el rol de colonel, administrador ni personal, així que això també li retira qualsevol rol elevat que tingui. Escriu a continuació l'adreça de correu electrònic del compte per confirmar-ho.",
+    "source_hash": "601f7382"
   },
   "web.admin.customers.actions.unverify.success": {
     "text": "S'ha anul·lat la verificació del client.",
@@ -568,8 +568,8 @@
     "source_hash": "69e69f49"
   },
   "web.admin.customers.detail.diagnostics.healthy": {
-    "text": "No s'ha trobat cap condició bloquejant. L'estat d'autenticació sembla correcte — sospita de problemes del costat del client (galetes, configuració d'inici de sessió de domini personalitzat) o la regió incorrecta.",
-    "source_hash": "f6d5f8d1"
+    "text": "No s'ha trobat cap condició bloquejant. Les dades d'autenticació i del context d'organització semblen correctes — sospita de problemes del costat del client (galetes, configuració d'inici de sessió de domini personalitzat) o de la regió incorrecta.",
+    "source_hash": "e0e8450e"
   },
   "web.admin.customers.detail.diagnostics.authUnavailable": {
     "text": "Base de dades d'autenticació no disponible (mode d'autenticació simple) — s'han omès les comprovacions SQL.",
@@ -690,5 +690,153 @@
   "web.admin.customers.verification.unverified": {
     "text": "No verificat",
     "source_hash": "15133907"
+  },
+  "web.admin.customers.actions.impersonate.button": {
+    "text": "Suplanta el client",
+    "source_hash": "38a7cfbe"
+  },
+  "web.admin.customers.actions.impersonate.confirmTitle": {
+    "text": "Vols iniciar la suplantació?",
+    "source_hash": "c6e4fa74"
+  },
+  "web.admin.customers.actions.impersonate.confirmDescription": {
+    "text": "Obre una sessió de només lectura i de durada limitada com a {email}. Cada pàgina mostra un bàner fins que l'aturis, els canvis estan bloquejats i la sessió queda registrada al registre d'auditoria amb el teu motiu.",
+    "source_hash": "713c01b4"
+  },
+  "web.admin.customers.actions.impersonate.reasonLabel": {
+    "text": "Motiu (obligatori)",
+    "source_hash": "d976f5d9"
+  },
+  "web.admin.customers.actions.impersonate.reasonPlaceholder": {
+    "text": "Per què cal aquesta sessió? Inclou la referència del tiquet.",
+    "source_hash": "89a4835d"
+  },
+  "web.admin.customers.actions.impersonate.success": {
+    "text": "S'ha iniciat la suplantació.",
+    "source_hash": "b4662bcc"
+  },
+  "web.admin.customers.actions.impersonate.unavailable": {
+    "text": "La suplantació no està disponible per a comptes colonel, anònims ni suspesos.",
+    "source_hash": "fb6578b2"
+  },
+  "web.admin.customers.actions.purge.refused": {
+    "text": "Purga rebutjada. El client s'ha conservat; resol els impediments abans de tornar-ho a provar.",
+    "source_hash": "8e8a2ae1"
+  },
+  "web.admin.customers.actions.purge.partial": {
+    "text": "La purga s'ha aturat després de completar part de la neteja. No informis d'un èxit ni ho tornis a provar a cegues; revisa les etapes completades i els impediments.",
+    "source_hash": "a88fd15b"
+  },
+  "web.admin.customers.actions.purge.incomplete": {
+    "text": "La purga no s'ha completat (estat: {status}). Revisa els detalls del cicle de vida abans de tornar-ho a provar.",
+    "source_hash": "c0c3d287"
+  },
+  "web.admin.customers.actions.purge.unreadableResult": {
+    "text": "El servidor ha retornat un resultat de purga il·legible. No s'ha informat de cap èxit; verifica l'estat del client i de l'espai de treball abans de tornar-ho a provar.",
+    "source_hash": "cc837a77"
+  },
+  "web.admin.customers.actions.purge.resultStage": {
+    "text": "Aturat a l'etapa: {stage}.",
+    "source_hash": "d0e313bf"
+  },
+  "web.admin.customers.actions.purge.resultBlockers": {
+    "text": "Impediments: {blockers}.",
+    "source_hash": "00c1e196"
+  },
+  "web.admin.customers.actions.purge.resultPlannedActions": {
+    "text": "Neteja planificada: {actions}.",
+    "source_hash": "6915205d"
+  },
+  "web.admin.customers.actions.purge.resultActions": {
+    "text": "Neteja completada: {actions}.",
+    "source_hash": "d34121b3"
+  },
+  "web.admin.customers.actions.purge.resultCompletedStages": {
+    "text": "Etapes completades: {stages}.",
+    "source_hash": "67f68860"
+  },
+  "web.admin.customers.actions.role.button": {
+    "text": "Canvia el rol",
+    "source_hash": "a43a8d8c"
+  },
+  "web.admin.customers.actions.role.selfDemote": {
+    "text": "No pots degradar el teu propi compte colonel. Demana a un altre colonel que ho faci o executa `bin/ots customers role demote`.",
+    "source_hash": "3e75d01b"
+  },
+  "web.admin.customers.actions.role.lastColonel": {
+    "text": "No pots degradar l'últim colonel que queda — la instal·lació es quedaria sense administrador. Primer promou i verifica un altre compte.",
+    "source_hash": "9c59c731"
+  },
+  "web.admin.customers.actions.unverify.selfUnverify": {
+    "text": "No pots anul·lar la verificació del teu propi compte: cal un correu electrònic verificat per tenir el rol de colonel.",
+    "source_hash": "8ab024fe"
+  },
+  "web.admin.customers.actions.unverify.lastColonel": {
+    "text": "No pots anul·lar la verificació de l'últim colonel que queda — un compte no verificat no pot tenir el rol de colonel. Primer promou i verifica un altre compte.",
+    "source_hash": "fc404616"
+  },
+  "web.admin.customers.detail.diagnostics.organizationContextBlocked": {
+    "text": "El context d'organització està bloquejat o és incomplet. Inspecciona l'espai de treball indexat i repara la desviació de l'índex de propietat, de pertinença o de correu electrònic de contacte abans de considerar aquest compte com a correcte.",
+    "source_hash": "5c5c89be"
+  },
+  "web.admin.customers.detail.diagnostics.organization": {
+    "text": "Espai de treball: {id}",
+    "source_hash": "6ee50fe9"
+  },
+  "web.admin.customers.detail.diagnostics.remediation": {
+    "text": "Solució: {action}",
+    "source_hash": "83ddc7d7"
+  },
+  "web.admin.customers.detail.fields.internalId": {
+    "text": "ID intern",
+    "source_hash": "e468bb47"
+  },
+  "web.admin.customers.detail.organizations.open": {
+    "text": "Obre",
+    "source_hash": "ed077f3d"
+  },
+  "web.admin.customers.detail.rodauthAdmin.open": {
+    "text": "Obre a Rodauth Admin",
+    "source_hash": "467173c8"
+  },
+  "web.admin.customers.detail.sessions.revokeAll.selfDescription": {
+    "text": "Això tanca la teva sessió a tots els altres dispositius i navegadors, incloses les sessions que no es mostren en aquesta llista. Es manté la sessió en què estàs treballant ara mateix.",
+    "source_hash": "ae350040"
+  },
+  "web.admin.customers.list.capped": {
+    "text": "Els resultats estan limitats: el recompte que es mostra és un mínim, no el total. Redueix la cerca o el filtre per veure-ho tot.",
+    "source_hash": "27537844"
+  },
+  "web.admin.customers.list.orphanedAccounts.title": {
+    "text": "Compte de la base de dades d'autenticació sense registre de client",
+    "source_hash": "82cf7a27"
+  },
+  "web.admin.customers.list.orphanedAccounts.hint": {
+    "text": "La base de dades d'autenticació conté un compte per a aquesta adreça, però cap registre de client no hi correspon. La persona encara pot iniciar la sessió; l'índex de clients no té res per a ella. Obre l'adreça per veure'n el diagnòstic.",
+    "source_hash": "0f903f23"
+  },
+  "web.admin.customers.list.orphanedAccounts.diagnose": {
+    "text": "Obre el diagnòstic del compte",
+    "source_hash": "55b3e826"
+  },
+  "web.admin.customers.list.orphanedAccounts.accountId": {
+    "text": "Compte núm. {id}",
+    "source_hash": "485dee3c"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unverified": {
+    "text": "No verificat",
+    "source_hash": "33c8e8de"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.verified": {
+    "text": "Verificat",
+    "source_hash": "4f783840"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.closed": {
+    "text": "Tancat",
+    "source_hash": "c21ead06"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unknown": {
+    "text": "Desconegut",
+    "source_hash": "b764cdc0"
   }
 }

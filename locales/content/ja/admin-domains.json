@@ -48,12 +48,12 @@
     "source_hash": "acaede35"
   },
   "web.admin.domains.addDomain.strategy.caddy_on_demand": {
-    "text": "Caddy on-demand — 最初のリクエスト時に証明書が自動発行されます。",
-    "source_hash": "deb90ae6"
+    "text": "Caddy on-demand — DNSによる所有権の確認 (TXTレコード) を行い、確認後に証明書が自動発行されます。",
+    "source_hash": "1c926efa"
   },
   "web.admin.domains.addDomain.strategy.caddy": {
-    "text": "Caddy — 最初のリクエスト時に証明書が自動発行されます。",
-    "source_hash": "a0f3c2dc"
+    "text": "Caddy — DNSによる所有権の確認 (TXTレコード) を行い、確認後に証明書が自動発行されます。",
+    "source_hash": "5774ff90"
   },
   "web.admin.domains.addDomain.strategy.unknown": {
     "text": "デプロイ全体の検証方法です。",
@@ -842,5 +842,81 @@
   "web.admin.domains.tls.none": {
     "text": "配信していません",
     "source_hash": "da8a5ab9"
+  },
+  "web.admin.domains.configs.edit.originsHint": {
+    "text": "1行につき1つのオリジンを、スキームを含めて入力してください (例: https://vault.example.com)。他の組織のドメイン上のオリジンは受け付けられません。",
+    "source_hash": "4a4e1d33"
+  },
+  "web.admin.domains.configs.fields.related_origins": {
+    "text": "関連するパスキーのオリジン",
+    "source_hash": "e6160714"
+  },
+  "web.admin.domains.dns.cnameStepInstall": {
+    "text": "2. サブドメインをこのインストール環境に向けるCNAMEレコードを追加します。",
+    "source_hash": "b8a329f9"
+  },
+  "web.admin.domains.dns.aliasStepInstall": {
+    "text": "2. Apexドメインをこのインストール環境に向けるALIASまたはANAMEレコードを追加します。",
+    "source_hash": "9a61ed66"
+  },
+  "web.admin.domains.dns.apexNote": {
+    "text": "ApexドメインにはCNAMEレコードを設定できません。DNSプロバイダーにALIASまたはANAMEレコードがない場合は、このサーバーのIPアドレスを指すAレコードで同じ役割を果たせます。",
+    "source_hash": "f69e3032"
+  },
+  "web.admin.domains.fields.verifiedByOverride": {
+    "text": "はい (オペレーターによる上書き)",
+    "source_hash": "a1a8644f"
+  },
+  "web.admin.domains.list.capped": {
+    "text": "結果には上限があります: 表示されている件数は最小値であり、合計ではありません。すべてを表示するには、検索条件またはフィルターを絞り込んでください。",
+    "source_hash": "27537844"
+  },
+  "web.admin.domains.override.button": {
+    "text": "ステータスを上書き",
+    "source_hash": "c683774c"
+  },
+  "web.admin.domains.override.title": {
+    "text": "検証ステータスを上書き",
+    "source_hash": "66dbebb2"
+  },
+  "web.admin.domains.override.description": {
+    "text": "このドメインの検証済みフラグと名前解決中フラグを手動で設定します。慎重に使用してください。",
+    "source_hash": "bc3eb719"
+  },
+  "web.admin.domains.override.verified": {
+    "text": "検証済み",
+    "source_hash": "4f783840"
+  },
+  "web.admin.domains.override.resolving": {
+    "text": "名前解決中",
+    "source_hash": "3287a034"
+  },
+  "web.admin.domains.override.apply": {
+    "text": "上書きを適用",
+    "source_hash": "e2d1472a"
+  },
+  "web.admin.domains.override.cancel": {
+    "text": "キャンセル",
+    "source_hash": "19766ed6"
+  },
+  "web.admin.domains.override.success": {
+    "text": "ドメインのステータスを上書きしました。",
+    "source_hash": "42104cd0"
+  },
+  "web.admin.domains.override.noChange": {
+    "text": "適用する変更はありません。",
+    "source_hash": "07632d50"
+  },
+  "web.admin.domains.verify.success.indeterminate": {
+    "text": "DNSチェッカーから{domain}の結果が返されませんでした。検証ステータスは変更されていません。",
+    "source_hash": "9c5ab974"
+  },
+  "web.admin.domains.verify.success.overrideHeld": {
+    "text": "{domain}のTXTチェックに失敗しましたが、オペレーターによる上書きのため検証済みのままです。",
+    "source_hash": "e754aac8"
+  },
+  "web.admin.domains.verify.success.confirmationExpired": {
+    "text": "{domain}のDNSチェックで7日以上結果が返されていません。このドメインは検証済みではなくなりました。",
+    "source_hash": "a6901cb5"
   }
 }

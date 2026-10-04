@@ -957,5 +957,53 @@
   "web.auth.webauthn.emailRequired": {
     "text": "הזן את כתובת הדוא״ל שלך כדי להתחבר באמצעות מפתח גישה",
     "source_hash": "7f07647f"
+  },
+  "web.auth.login.verification_unavailable": {
+    "text": "ההתחברות שלך הצליחה, אך לא הצלחנו לאשר את ההפעלה שלך. נסה שוב בעוד רגע.",
+    "source_hash": "9a19dfc9"
+  },
+  "web.auth.mfa.verification_unavailable": {
+    "text": "הסיסמה שלך התקבלה, אך לא הצלחנו להתחיל את האימות הדו-שלבי. נסה שוב בעוד רגע.",
+    "source_hash": "5fd5e240"
+  },
+  "web.auth.session.ended": {
+    "text": "ההפעלה שלך הסתיימה. התחבר שוב.",
+    "source_hash": "673e9822"
+  },
+  "web.auth.session.replaced": {
+    "text": "ההתחברות שלך השתנתה בכרטיסייה אחרת, ולכן דף זה נטען מחדש.",
+    "source_hash": "3767d43b"
+  },
+  "web.auth.session.stale_session_title": {
+    "text": "דף זה אינו מעודכן",
+    "source_hash": "0293e093"
+  },
+  "web.auth.session.stale_session_notice": {
+    "text": "ההפעלה שלך השתנתה מאז שדף זה נטען. העתק כל דבר שלא שמרת, ולאחר מכן טען מחדש את הדף כדי להמשיך.",
+    "source_hash": "c62e236c"
+  },
+  "web.auth.session.reload_now": {
+    "text": "טען מחדש את הדף",
+    "source_hash": "437d0d63"
+  },
+  "web.auth.session.verification_unavailable_title": {
+    "text": "איננו יכולים לאמת את ההפעלה שלך כרגע",
+    "source_hash": "2130dda1"
+  },
+  "web.auth.session.verification_unavailable_body": {
+    "text": "לא נותקת. לא הצלחנו להגיע לשרת כדי לאשר את ההפעלה שלך, ולכן דף זה מוסתר עד שנצליח. נמשיך לנסות.",
+    "source_hash": "bb230c2c"
+  },
+  "web.auth.session.retry": {
+    "text": "נסה שוב",
+    "source_hash": "d8b8392e"
+  },
+  "web.auth.session.retrying": {
+    "text": "בודק…",
+    "source_hash": "ec963ffc"
+  },
+  "web.auth.session.retry_failed": {
+    "text": "עדיין לא זמין. נסה שוב בעוד רגע.",
+    "source_hash": "b81c022c"
   }
 }

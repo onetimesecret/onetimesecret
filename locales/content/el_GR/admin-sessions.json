@@ -176,8 +176,8 @@
     "source_hash": "0c6605c1"
   },
   "web.admin.sessions.revoke.confirmDescription": {
-    "text": "Αυτό αποσυνδέει αμέσως τον χρήστη διαγράφοντας τη συνεδρία {id}. Πληκτρολογήστε το ID της συνεδρίας για επιβεβαίωση.",
-    "source_hash": "9e08b1b8"
+    "text": "Αυτό αποσυνδέει αμέσως τον χρήστη ανακαλώντας τη συνεδρία {id}. Πληκτρολογήστε {token} για επιβεβαίωση.",
+    "source_hash": "80578692"
   },
   "web.admin.sessions.revoke.success": {
     "text": "Η συνεδρία ανακλήθηκε",
@@ -188,12 +188,12 @@
     "source_hash": "34cb67a4"
   },
   "web.admin.sessions.scan.capped": {
-    "text": "Η σάρωση περιορίστηκε στα πρώτα {scanned} κλειδιά — οι συνεδρίες με έλεγχο ταυτότητας πέρα από αυτό το παράθυρο δεν εμφανίζονται. Επιθεωρήστε μια συγκεκριμένη συνεδρία με βάση το ID για να την προσπελάσετε.",
-    "source_hash": "fa418b4e"
+    "text": "Η σάρωση περιορίστηκε στα πρώτα {scanned} κλειδιά — οι συνεδρίες με έλεγχο ταυτότητας πέρα από αυτό το εύρος δεν εμφανίζονται. Περιορίστε την αναζήτηση για να τις βρείτε.",
+    "source_hash": "7a8d6fd5"
   },
   "web.admin.sessions.search.placeholder": {
-    "text": "Αναζήτηση με email ή εξωτερικό ID",
-    "source_hash": "f2dc5c06"
+    "text": "Αναζήτηση με email, εξωτερικό ID ή λαβή συνεδρίας",
+    "source_hash": "4894dec4"
   },
   "web.admin.sessions.sections.session": {
     "text": "Συνεδρία",
@@ -210,5 +210,45 @@
   "web.admin.sessions.status.anonymous": {
     "text": "Ανώνυμη",
     "source_hash": "e7a8aa2d"
+  },
+  "web.admin.sessions.authority.title": {
+    "text": "Δεν είναι η έγκυρη πηγή συνεδριών σε πλήρη λειτουργία ελέγχου ταυτότητας",
+    "source_hash": "796fb07f"
+  },
+  "web.admin.sessions.authority.description": {
+    "text": "Αυτή η λίστα είναι ο χώρος αποθήκευσης συνεδριών του Redis. Όταν η λειτουργία ελέγχου ταυτότητας είναι ρυθμισμένη σε πλήρη (full), η έγκυρη κατάσταση συνεδριών βρίσκεται στη βάση δεδομένων λογαριασμών του Rodauth, την οποία αυτή η κονσόλα δεν διαβάζει. Λογαριασμοί που έχουν συνδεθεί μέσω Rodauth ενδέχεται να μην εμφανίζονται εδώ, και η ανάκληση μιας συνεδρίας εδώ δεν τερματίζει μια συνεδρία Rodauth.",
+    "source_hash": "77bc4904"
+  },
+  "web.admin.sessions.authority.descriptionRevokeAll": {
+    "text": "Αυτή η λίστα είναι ο χώρος αποθήκευσης συνεδριών του Redis. Όταν η λειτουργία ελέγχου ταυτότητας είναι ρυθμισμένη σε πλήρη (full), η έγκυρη κατάσταση συνεδριών βρίσκεται στη βάση δεδομένων λογαριασμών του Rodauth, την οποία αυτή η κονσόλα δεν διαβάζει. Λογαριασμοί που έχουν συνδεθεί μέσω Rodauth ενδέχεται να μην εμφανίζονται εδώ, και η ανάκληση μίας μόνο συνεδρίας εδώ δεν τερματίζει την αντίστοιχη συνεδρία Rodauth. Η «Ανάκληση όλων» τερματίζει επίσης τις συνεδρίες Rodauth του λογαριασμού.",
+    "source_hash": "f964663d"
+  },
+  "web.admin.sessions.authority.openAdmin": {
+    "text": "Άνοιγμα Rodauth Admin",
+    "source_hash": "ce523836"
+  },
+  "web.admin.sessions.authority.notConfigured": {
+    "text": "Ορίστε το RODAUTH_ADMIN_URL για σύνδεση προς το Rodauth Admin από εδώ.",
+    "source_hash": "c070dbfb"
+  },
+  "web.admin.sessions.columns.sessionHandle": {
+    "text": "Λαβή συνεδρίας",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.errors.scanCapped": {
+    "text": "Αυτή η συνεδρία δεν βρέθηκε στον δειγματοληπτημένο χώρο κλειδιών. Ανοίξτε την από τη γραμμή της στη λίστα, ώστε να χρησιμοποιηθεί ο κάτοχός της για την αναζήτησή της.",
+    "source_hash": "67b73f7f"
+  },
+  "web.admin.sessions.fields.sessionHandle": {
+    "text": "Λαβή συνεδρίας",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.revoke.ownSession": {
+    "text": "Αυτή είναι η δική σας συνεδρία. Η ανάκλησή της θα σάς αποσυνδέσει — χρησιμοποιήστε την αποσύνδεση.",
+    "source_hash": "a6762292"
+  },
+  "web.admin.sessions.rodauthAdmin.open": {
+    "text": "Άνοιγμα στο Rodauth Admin",
+    "source_hash": "467173c8"
   }
 }

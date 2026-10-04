@@ -134,5 +134,25 @@
   "api.organizations.members.errors.no_permission_to_remove": {
     "text": "У Вас нет прав для удаления участников",
     "source_hash": "b0ac7287"
+  },
+  "api.organizations.errors.delete_has_domains": {
+    "text": "Перед удалением этой организации удалите её пользовательские домены: %{domains}",
+    "source_hash": "040a401e"
+  },
+  "api.organizations.errors.delete_drifted_domains_count": {
+    "text": "Записей доменов, которые всё ещё ссылаются на эту организацию, но больше не указаны в ней: %{count}. Пожалуйста, обратитесь в службу поддержки, чтобы удалить их перед удалением этой организации.",
+    "source_hash": "f6e71a9a"
+  },
+  "api.organizations.errors.delete_is_default": {
+    "text": "Ваше рабочее пространство по умолчанию нельзя удалить. Если его нужно удалить, обратитесь в службу поддержки.",
+    "source_hash": "bc2eaed5"
+  },
+  "api.organizations.errors.delete_active_subscription": {
+    "text": "Перед удалением этой организации отмените её подписку.",
+    "source_hash": "f0c54eca"
+  },
+  "api.organizations.errors.delete_last_org": {
+    "text": "Это Ваша единственная организация. Перед её удалением создайте другую.",
+    "source_hash": "7608a1d6"
   }
 }

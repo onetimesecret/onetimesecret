@@ -40,8 +40,8 @@
     "source_hash": "9feed9f1"
   },
   "web.admin.customers.actions.purge.confirmDescription": {
-    "text": "Това перманентно изтрива {email} и всичките им данни. Това не може да бъде отменено.",
-    "source_hash": "a74dd5d1"
+    "text": "Така се заявява перманентно изтриване на {email}. Преди премахването на акаунта се изпълнява предварителна проверка, която отказва изчистването, когато работна област има домейни, състояние на фактуриране, други членове, съхранени данни или несъответстващи препратки. Прегледайте и отстранете всички пречки, преди да опитате отново. Това не може да бъде отменено, след като премахването започне.",
+    "source_hash": "7b4e5e37"
   },
   "web.admin.customers.actions.purge.success": {
     "text": "Клиентът е изчистен.",
@@ -60,8 +60,8 @@
     "source_hash": "227f57d7"
   },
   "web.admin.customers.actions.role.confirmDescription": {
-    "text": "Промяна на {email} към ролята {role}.",
-    "source_hash": "9ba063c6"
+    "text": "Променя {email} към ролята {role}. Ролята Colonel предоставя пълен администраторски достъп до всеки акаунт, тайна и организация в тази инсталация. Въведете имейл адреса на акаунта по-долу, за да потвърдите.",
+    "source_hash": "0ed85b97"
   },
   "web.admin.customers.actions.role.success": {
     "text": "Ролята е актуализирана.",
@@ -116,8 +116,8 @@
     "source_hash": "62ed2854"
   },
   "web.admin.customers.actions.unverify.confirmDescription": {
-    "text": "Маркиране на {email} като непотвърден.",
-    "source_hash": "592ffd27"
+    "text": "Маркира {email} като непотвърден. Непотвърден акаунт не може да има ролята Colonel, администратор или персонал, затова това премахва и всяка повишена роля, която акаунтът има. Въведете имейл адреса на акаунта по-долу, за да потвърдите.",
+    "source_hash": "601f7382"
   },
   "web.admin.customers.actions.unverify.success": {
     "text": "Потвърждението на клиента е отменено.",
@@ -568,8 +568,8 @@
     "source_hash": "69e69f49"
   },
   "web.admin.customers.detail.diagnostics.healthy": {
-    "text": "Не е открито блокиращо условие. Състоянието на удостоверяването изглежда нормално — проверете за проблеми от страната на клиента (бисквитки, конфигурация за вход с персонализиран домейн) или грешен регион.",
-    "source_hash": "f6d5f8d1"
+    "text": "Не е открито блокиращо условие. Данните за удостоверяването и контекста на организацията изглеждат нормални — проверете за проблеми от страната на клиента (бисквитки, конфигурация за вход с персонализиран домейн) или грешен регион.",
+    "source_hash": "e0e8450e"
   },
   "web.admin.customers.detail.diagnostics.authUnavailable": {
     "text": "Базата данни за удостоверяване не е налична (опростен режим за удостоверяване) — SQL проверките бяха пропуснати.",
@@ -690,5 +690,153 @@
   "web.admin.customers.verification.unverified": {
     "text": "Непотвърден",
     "source_hash": "15133907"
+  },
+  "web.admin.customers.actions.impersonate.button": {
+    "text": "Представяне като клиента",
+    "source_hash": "38a7cfbe"
+  },
+  "web.admin.customers.actions.impersonate.confirmTitle": {
+    "text": "Да се започне ли представяне като потребител?",
+    "source_hash": "c6e4fa74"
+  },
+  "web.admin.customers.actions.impersonate.confirmDescription": {
+    "text": "Отваря ограничена във времето сесия само за четене като {email}. Всяка страница показва банер, докато не я спрете, промените са блокирани, а сесията се записва в одитния дневник заедно с посочената от вас причина.",
+    "source_hash": "713c01b4"
+  },
+  "web.admin.customers.actions.impersonate.reasonLabel": {
+    "text": "Причина (задължително)",
+    "source_hash": "d976f5d9"
+  },
+  "web.admin.customers.actions.impersonate.reasonPlaceholder": {
+    "text": "Защо е необходима тази сесия? Посочете номера на заявката.",
+    "source_hash": "89a4835d"
+  },
+  "web.admin.customers.actions.impersonate.success": {
+    "text": "Представянето като потребител започна.",
+    "source_hash": "b4662bcc"
+  },
+  "web.admin.customers.actions.impersonate.unavailable": {
+    "text": "Представянето като потребител не е достъпно за акаунти с роля Colonel, анонимни и спрени акаунти.",
+    "source_hash": "fb6578b2"
+  },
+  "web.admin.customers.actions.purge.refused": {
+    "text": "Изчистването е отказано. Клиентът е запазен; отстранете пречките, преди да опитате отново.",
+    "source_hash": "8e8a2ae1"
+  },
+  "web.admin.customers.actions.purge.partial": {
+    "text": "Изчистването спря, след като част от почистването беше завършена. Не отчитайте успех и не опитвайте отново напосоки; прегледайте завършените етапи и пречките.",
+    "source_hash": "a88fd15b"
+  },
+  "web.admin.customers.actions.purge.incomplete": {
+    "text": "Изчистването не завърши (състояние: {status}). Прегледайте подробностите за жизнения цикъл, преди да опитате отново.",
+    "source_hash": "c0c3d287"
+  },
+  "web.admin.customers.actions.purge.unreadableResult": {
+    "text": "Сървърът върна нечетим резултат от изчистването. Не е отчетен успех; проверете състоянието на клиента и работната област, преди да опитате отново.",
+    "source_hash": "cc837a77"
+  },
+  "web.admin.customers.actions.purge.resultStage": {
+    "text": "Спряно на етап: {stage}.",
+    "source_hash": "d0e313bf"
+  },
+  "web.admin.customers.actions.purge.resultBlockers": {
+    "text": "Пречки: {blockers}.",
+    "source_hash": "00c1e196"
+  },
+  "web.admin.customers.actions.purge.resultPlannedActions": {
+    "text": "Планирано почистване: {actions}.",
+    "source_hash": "6915205d"
+  },
+  "web.admin.customers.actions.purge.resultActions": {
+    "text": "Завършено почистване: {actions}.",
+    "source_hash": "d34121b3"
+  },
+  "web.admin.customers.actions.purge.resultCompletedStages": {
+    "text": "Завършени етапи: {stages}.",
+    "source_hash": "67f68860"
+  },
+  "web.admin.customers.actions.role.button": {
+    "text": "Промяна на ролята",
+    "source_hash": "a43a8d8c"
+  },
+  "web.admin.customers.actions.role.selfDemote": {
+    "text": "Не можете да понижите собствения си акаунт Colonel. Помолете друг Colonel да го направи или изпълнете `bin/ots customers role demote`.",
+    "source_hash": "3e75d01b"
+  },
+  "web.admin.customers.actions.role.lastColonel": {
+    "text": "Не можете да понижите последния останал Colonel — инсталацията ще остане без администратор. Първо повишете и потвърдете друг акаунт.",
+    "source_hash": "9c59c731"
+  },
+  "web.admin.customers.actions.unverify.selfUnverify": {
+    "text": "Не можете да отмените потвърждението на собствения си акаунт: за ролята Colonel се изисква потвърден имейл.",
+    "source_hash": "8ab024fe"
+  },
+  "web.admin.customers.actions.unverify.lastColonel": {
+    "text": "Не можете да отмените потвърждението на последния останал Colonel — непотвърден акаунт не може да има ролята Colonel. Първо повишете и потвърдете друг акаунт.",
+    "source_hash": "fc404616"
+  },
+  "web.admin.customers.detail.diagnostics.organizationContextBlocked": {
+    "text": "Контекстът на организацията е блокиран или непълен. Прегледайте индексираната работна област и отстранете разминаванията в индексите за собственост, членство или имейл за контакт, преди да приемете, че този акаунт е в изправност.",
+    "source_hash": "5c5c89be"
+  },
+  "web.admin.customers.detail.diagnostics.organization": {
+    "text": "Работна област: {id}",
+    "source_hash": "6ee50fe9"
+  },
+  "web.admin.customers.detail.diagnostics.remediation": {
+    "text": "Отстраняване: {action}",
+    "source_hash": "83ddc7d7"
+  },
+  "web.admin.customers.detail.fields.internalId": {
+    "text": "Вътрешен ИД",
+    "source_hash": "e468bb47"
+  },
+  "web.admin.customers.detail.organizations.open": {
+    "text": "Отваряне",
+    "source_hash": "ed077f3d"
+  },
+  "web.admin.customers.detail.rodauthAdmin.open": {
+    "text": "Отваряне в Rodauth Admin",
+    "source_hash": "467173c8"
+  },
+  "web.admin.customers.detail.sessions.revokeAll.selfDescription": {
+    "text": "Това ще ви отпише от всички други устройства и браузъри, включително от сесии, които не са показани в този списък. Сесията, в която работите в момента, се запазва.",
+    "source_hash": "ae350040"
+  },
+  "web.admin.customers.list.capped": {
+    "text": "Резултатите са ограничени: показаният брой е долна граница, а не общият брой. Стеснете търсенето или филтъра, за да видите всичко.",
+    "source_hash": "27537844"
+  },
+  "web.admin.customers.list.orphanedAccounts.title": {
+    "text": "Акаунт в базата данни за удостоверяване без запис на клиент",
+    "source_hash": "82cf7a27"
+  },
+  "web.admin.customers.list.orphanedAccounts.hint": {
+    "text": "Базата данни за удостоверяване съдържа акаунт за този адрес, но към него не е свързан запис на клиент. Лицето все още може да влиза; индексът на клиентите няма нищо за него. Отворете адреса за диагностика.",
+    "source_hash": "0f903f23"
+  },
+  "web.admin.customers.list.orphanedAccounts.diagnose": {
+    "text": "Отваряне на диагностиката на акаунта",
+    "source_hash": "55b3e826"
+  },
+  "web.admin.customers.list.orphanedAccounts.accountId": {
+    "text": "Акаунт №{id}",
+    "source_hash": "485dee3c"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unverified": {
+    "text": "Непотвърден",
+    "source_hash": "33c8e8de"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.verified": {
+    "text": "Потвърден",
+    "source_hash": "4f783840"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.closed": {
+    "text": "Закрит",
+    "source_hash": "c21ead06"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unknown": {
+    "text": "Неизвестен",
+    "source_hash": "b764cdc0"
   }
 }

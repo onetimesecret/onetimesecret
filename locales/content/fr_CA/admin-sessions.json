@@ -176,8 +176,8 @@
     "source_hash": "0c6605c1"
   },
   "web.admin.sessions.revoke.confirmDescription": {
-    "text": "Cela déconnecte immédiatement l'utilisateur en supprimant la session {id}. Saisissez l'ID de session pour confirmer.",
-    "source_hash": "9e08b1b8"
+    "text": "Cette action déconnecte immédiatement l'utilisateur en révoquant la session {id}. Saisissez {token} pour confirmer.",
+    "source_hash": "80578692"
   },
   "web.admin.sessions.revoke.success": {
     "text": "Session révoquée",
@@ -188,12 +188,12 @@
     "source_hash": "34cb67a4"
   },
   "web.admin.sessions.scan.capped": {
-    "text": "Analyse limitée aux {scanned} premières clés — les sessions authentifiées au-delà de cette fenêtre ne sont pas listées. Inspectez une session précise par son ID pour l'atteindre.",
-    "source_hash": "fa418b4e"
+    "text": "Analyse plafonnée aux {scanned} premières clés — les sessions authentifiées au-delà de cette fenêtre ne sont pas listées. Affinez la recherche pour les atteindre.",
+    "source_hash": "7a8d6fd5"
   },
   "web.admin.sessions.search.placeholder": {
-    "text": "Rechercher par courriel ou ID externe",
-    "source_hash": "f2dc5c06"
+    "text": "Rechercher par courriel, ID externe ou descripteur de session",
+    "source_hash": "4894dec4"
   },
   "web.admin.sessions.sections.session": {
     "text": "Session",
@@ -210,5 +210,45 @@
   "web.admin.sessions.status.anonymous": {
     "text": "Anonyme",
     "source_hash": "e7a8aa2d"
+  },
+  "web.admin.sessions.authority.title": {
+    "text": "Pas la source de référence des sessions en mode d'authentification complet",
+    "source_hash": "796fb07f"
+  },
+  "web.admin.sessions.authority.description": {
+    "text": "Cette liste correspond au magasin de sessions Redis. Lorsque le mode d'authentification est réglé sur complet, l'état de référence des sessions se trouve dans la base de données des comptes Rodauth, que cette console ne lit pas. Les comptes connectés via Rodauth peuvent ne pas apparaître ici, et révoquer une session ici ne met pas fin à une session Rodauth.",
+    "source_hash": "77bc4904"
+  },
+  "web.admin.sessions.authority.descriptionRevokeAll": {
+    "text": "Cette liste correspond au magasin de sessions Redis. Lorsque le mode d'authentification est réglé sur complet, l'état de référence des sessions se trouve dans la base de données des comptes Rodauth, que cette console ne lit pas. Les comptes connectés via Rodauth peuvent ne pas apparaître ici, et révoquer une seule session ici ne met pas fin à sa session Rodauth. « Tout révoquer » met aussi fin aux sessions Rodauth du compte.",
+    "source_hash": "f964663d"
+  },
+  "web.admin.sessions.authority.openAdmin": {
+    "text": "Ouvrir Rodauth Admin",
+    "source_hash": "ce523836"
+  },
+  "web.admin.sessions.authority.notConfigured": {
+    "text": "Définissez RODAUTH_ADMIN_URL pour créer un lien vers Rodauth Admin depuis cette page.",
+    "source_hash": "c070dbfb"
+  },
+  "web.admin.sessions.columns.sessionHandle": {
+    "text": "Descripteur de session",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.errors.scanCapped": {
+    "text": "Cette session est introuvable dans l'espace de clés échantillonné. Ouvrez-la depuis sa ligne dans la liste afin que son propriétaire puisse servir à la retrouver.",
+    "source_hash": "67b73f7f"
+  },
+  "web.admin.sessions.fields.sessionHandle": {
+    "text": "Descripteur de session",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.revoke.ownSession": {
+    "text": "Il s'agit de votre propre session. La révoquer vous déconnecterait — utilisez plutôt la déconnexion.",
+    "source_hash": "a6762292"
+  },
+  "web.admin.sessions.rodauthAdmin.open": {
+    "text": "Ouvrir dans Rodauth Admin",
+    "source_hash": "467173c8"
   }
 }

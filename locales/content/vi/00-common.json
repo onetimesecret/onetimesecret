@@ -1543,5 +1543,17 @@
   "web.TITLES.connected_identities": {
     "text": "Danh tính đã kết nối",
     "source_hash": "e132c4d9"
+  },
+  "web.COMMON.field": {
+    "text": "Trường",
+    "source_hash": "f45fc1df"
+  },
+  "web.COMMON.unknown": {
+    "text": "Không xác định",
+    "source_hash": "b764cdc0"
+  },
+  "web.STATUS.pending_ssl": {
+    "text": "Chứng chỉ đang chờ cấp",
+    "source_hash": "dd34f305"
   }
 }

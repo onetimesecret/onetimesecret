@@ -62,5 +62,29 @@
   "web.admin.kit.revealEmail.copy": {
     "text": "העתק כתובת דוא״ל",
     "source_hash": "61b94846"
+  },
+  "web.admin.errors.rateLimited": {
+    "text": "תוכל לנסות שוב בעוד כ-{minutes} דקות.",
+    "source_hash": "27f2d054"
+  },
+  "web.admin.errors.rateLimitedRecovery": {
+    "text": "אם עליך לפעול מוקדם יותר, נקה את מגביל הקצב באמצעות POST /api/colonel/ratelimit/reset עבור החשבון שלך, או הרץ `bin/ots ratelimit keys <kind> <extid>`.",
+    "source_hash": "b77e1388"
+  },
+  "web.admin.kit.confirmDialog.reasonLabel": {
+    "text": "סיבה (אופציונלי)",
+    "source_hash": "0f7d4664"
+  },
+  "web.admin.kit.confirmDialog.reasonPlaceholder": {
+    "text": "מדוע אתה מבצע פעולה זו?",
+    "source_hash": "ef83fe82"
+  },
+  "web.admin.kit.confirmDialog.reasonHint": {
+    "text": "נרשם ביומן הביקורת של הניהול יחד עם פעולה זו.",
+    "source_hash": "23779076"
+  },
+  "web.admin.kit.filterBar.searchSubmit": {
+    "text": "חיפוש",
+    "source_hash": "49c266ba"
   }
 }

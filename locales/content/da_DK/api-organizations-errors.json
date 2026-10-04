@@ -134,5 +134,25 @@
   "api.organizations.members.errors.no_permission_to_remove": {
     "text": "Du har ikke tilladelse til at fjerne medlemmer",
     "source_hash": "b0ac7287"
+  },
+  "api.organizations.errors.delete_has_domains": {
+    "text": "Fjern denne organisations brugerdefinerede domæner, før du sletter den: %{domains}",
+    "source_hash": "040a401e"
+  },
+  "api.organizations.errors.delete_drifted_domains_count": {
+    "text": "%{count} domænepost(er) henviser stadig til denne organisation, men er ikke længere opført i den. Kontakt support for at få dem fjernet, før du sletter denne organisation.",
+    "source_hash": "f6e71a9a"
+  },
+  "api.organizations.errors.delete_is_default": {
+    "text": "Dit standard-workspace kan ikke slettes. Kontakt support, hvis du har brug for at få det fjernet.",
+    "source_hash": "bc2eaed5"
+  },
+  "api.organizations.errors.delete_active_subscription": {
+    "text": "Annuller denne organisations abonnement, før du sletter den.",
+    "source_hash": "f0c54eca"
+  },
+  "api.organizations.errors.delete_last_org": {
+    "text": "Dette er din eneste organisation. Opret en anden, før du sletter denne.",
+    "source_hash": "7608a1d6"
   }
 }

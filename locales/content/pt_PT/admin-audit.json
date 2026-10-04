@@ -134,5 +134,17 @@
   "web.admin.audit.list.contractError": {
     "text": "O servidor respondeu, mas os dados de auditoria não correspondem ao formato esperado. Não é possível mostrar eventos — isto é uma falha de relatório, não um registo vazio.",
     "source_hash": "7f48137e"
+  },
+  "web.admin.audit.export.csv": {
+    "text": "Exportar CSV",
+    "source_hash": "91f71c14"
+  },
+  "web.admin.audit.export.ndjson": {
+    "text": "Exportar NDJSON",
+    "source_hash": "3ee2c07c"
+  },
+  "web.admin.audit.export.hint": {
+    "text": "As exportações abrangem todo o histórico retido com os filtros atuais, não apenas esta página. A retenção é limitada — o histórico mais antigo fica no destino do registo de auditoria.",
+    "source_hash": "163e8ad0"
   }
 }

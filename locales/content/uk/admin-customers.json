@@ -40,8 +40,8 @@
     "source_hash": "9feed9f1"
   },
   "web.admin.customers.actions.purge.confirmDescription": {
-    "text": "Це назавжди видалить {email} та всі його дані. Цю дію не можна скасувати.",
-    "source_hash": "a74dd5d1"
+    "text": "Це запит на остаточне видалення {email}. Перед видаленням облікового запису виконується попередня перевірка, яка відхиляє остаточне видалення, якщо робоча область має домени, стан оплати, інших учасників, збережені дані або неузгоджені посилання. Перегляньте та усуньте всі блокувальні умови, перш ніж повторювати спробу. Після початку видалення цю дію не можна скасувати.",
+    "source_hash": "7b4e5e37"
   },
   "web.admin.customers.actions.purge.success": {
     "text": "Клієнта остаточно видалено.",
@@ -60,8 +60,8 @@
     "source_hash": "227f57d7"
   },
   "web.admin.customers.actions.role.confirmDescription": {
-    "text": "Змінити роль для {email} на {role}.",
-    "source_hash": "9ba063c6"
+    "text": "Змінює роль {email} на {role}. Роль Colonel надає повний адміністративний доступ до кожного облікового запису, таємниці та організації в цій інсталяції. Для підтвердження введіть нижче електронну адресу облікового запису.",
+    "source_hash": "0ed85b97"
   },
   "web.admin.customers.actions.role.success": {
     "text": "Роль оновлено.",
@@ -116,8 +116,8 @@
     "source_hash": "62ed2854"
   },
   "web.admin.customers.actions.unverify.confirmDescription": {
-    "text": "Позначити {email} як неперевіреного.",
-    "source_hash": "592ffd27"
+    "text": "Позначає {email} як неперевірений обліковий запис. Неперевірений обліковий запис не може мати роль Colonel, адміністратора чи персоналу, тому ця дія також знімає будь-яку підвищену роль, яку він має. Для підтвердження введіть нижче електронну адресу облікового запису.",
+    "source_hash": "601f7382"
   },
   "web.admin.customers.actions.unverify.success": {
     "text": "Перевірку клієнта скасовано.",
@@ -568,8 +568,8 @@
     "source_hash": "69e69f49"
   },
   "web.admin.customers.detail.diagnostics.healthy": {
-    "text": "Блокувальних умов не знайдено. Стан автентифікації виглядає справним — перевірте проблеми на стороні клієнта (cookies, конфігурація входу для власного домену) або неправильний регіон.",
-    "source_hash": "f6d5f8d1"
+    "text": "Блокувальних умов не знайдено. Стан автентифікації та контексту організації виглядає справним — перевірте проблеми на стороні клієнта (cookies, конфігурація входу для власного домену) або неправильний регіон.",
+    "source_hash": "e0e8450e"
   },
   "web.admin.customers.detail.diagnostics.authUnavailable": {
     "text": "База даних автентифікації недоступна (простий режим автентифікації) — SQL-перевірки пропущено.",
@@ -690,5 +690,153 @@
   "web.admin.customers.verification.unverified": {
     "text": "Не підтверджено",
     "source_hash": "15133907"
+  },
+  "web.admin.customers.actions.impersonate.button": {
+    "text": "Увійти від імені клієнта",
+    "source_hash": "38a7cfbe"
+  },
+  "web.admin.customers.actions.impersonate.confirmTitle": {
+    "text": "Розпочати вхід від імені клієнта?",
+    "source_hash": "c6e4fa74"
+  },
+  "web.admin.customers.actions.impersonate.confirmDescription": {
+    "text": "Відкриває обмежену в часі сесію лише для читання від імені {email}. Доки Ви її не завершите, на кожній сторінці відображається банер, зміни заблоковано, а сесія фіксується в журналі аудиту разом із зазначеною Вами причиною.",
+    "source_hash": "713c01b4"
+  },
+  "web.admin.customers.actions.impersonate.reasonLabel": {
+    "text": "Причина (обов'язково)",
+    "source_hash": "d976f5d9"
+  },
+  "web.admin.customers.actions.impersonate.reasonPlaceholder": {
+    "text": "Навіщо потрібна ця сесія? Вкажіть номер звернення.",
+    "source_hash": "89a4835d"
+  },
+  "web.admin.customers.actions.impersonate.success": {
+    "text": "Вхід від імені клієнта розпочато.",
+    "source_hash": "b4662bcc"
+  },
+  "web.admin.customers.actions.impersonate.unavailable": {
+    "text": "Вхід від імені недоступний для облікових записів Colonel, анонімних і призупинених облікових записів.",
+    "source_hash": "fb6578b2"
+  },
+  "web.admin.customers.actions.purge.refused": {
+    "text": "Остаточне видалення відхилено. Клієнта збережено; усуньте блокувальні умови, перш ніж повторювати спробу.",
+    "source_hash": "8e8a2ae1"
+  },
+  "web.admin.customers.actions.purge.partial": {
+    "text": "Остаточне видалення зупинено після часткового очищення. Не повідомляйте про успіх і не повторюйте спробу наосліп; перегляньте завершені етапи та блокувальні умови.",
+    "source_hash": "a88fd15b"
+  },
+  "web.admin.customers.actions.purge.incomplete": {
+    "text": "Остаточне видалення не завершено (статус: {status}). Перегляньте деталі життєвого циклу, перш ніж повторювати спробу.",
+    "source_hash": "c0c3d287"
+  },
+  "web.admin.customers.actions.purge.unreadableResult": {
+    "text": "Сервер повернув нечитабельний результат остаточного видалення. Про успіх не повідомлено; перевірте стан клієнта та робочої області, перш ніж повторювати спробу.",
+    "source_hash": "cc837a77"
+  },
+  "web.admin.customers.actions.purge.resultStage": {
+    "text": "Зупинено на етапі: {stage}.",
+    "source_hash": "d0e313bf"
+  },
+  "web.admin.customers.actions.purge.resultBlockers": {
+    "text": "Блокувальні умови: {blockers}.",
+    "source_hash": "00c1e196"
+  },
+  "web.admin.customers.actions.purge.resultPlannedActions": {
+    "text": "Заплановане очищення: {actions}.",
+    "source_hash": "6915205d"
+  },
+  "web.admin.customers.actions.purge.resultActions": {
+    "text": "Завершене очищення: {actions}.",
+    "source_hash": "d34121b3"
+  },
+  "web.admin.customers.actions.purge.resultCompletedStages": {
+    "text": "Завершені етапи: {stages}.",
+    "source_hash": "67f68860"
+  },
+  "web.admin.customers.actions.role.button": {
+    "text": "Змінити роль",
+    "source_hash": "a43a8d8c"
+  },
+  "web.admin.customers.actions.role.selfDemote": {
+    "text": "Ви не можете понизити власний обліковий запис Colonel. Попросіть іншого Colonel зробити це або виконайте `bin/ots customers role demote`.",
+    "source_hash": "3e75d01b"
+  },
+  "web.admin.customers.actions.role.lastColonel": {
+    "text": "Ви не можете понизити останній обліковий запис Colonel — інсталяція залишиться без адміністратора. Спочатку підвищте та перевірте інший обліковий запис.",
+    "source_hash": "9c59c731"
+  },
+  "web.admin.customers.actions.unverify.selfUnverify": {
+    "text": "Ви не можете скасувати перевірку власного облікового запису: для ролі Colonel потрібна перевірена електронна адреса.",
+    "source_hash": "8ab024fe"
+  },
+  "web.admin.customers.actions.unverify.lastColonel": {
+    "text": "Ви не можете скасувати перевірку останнього облікового запису Colonel — неперевірений обліковий запис не може мати роль Colonel. Спочатку підвищте та перевірте інший обліковий запис.",
+    "source_hash": "fc404616"
+  },
+  "web.admin.customers.detail.diagnostics.organizationContextBlocked": {
+    "text": "Контекст організації заблоковано або він неповний. Перевірте проіндексовану робочу область і усуньте відхилення в індексах власності, членства чи контактної електронної адреси, перш ніж вважати цей обліковий запис справним.",
+    "source_hash": "5c5c89be"
+  },
+  "web.admin.customers.detail.diagnostics.organization": {
+    "text": "Робоча область: {id}",
+    "source_hash": "6ee50fe9"
+  },
+  "web.admin.customers.detail.diagnostics.remediation": {
+    "text": "Виправлення: {action}",
+    "source_hash": "83ddc7d7"
+  },
+  "web.admin.customers.detail.fields.internalId": {
+    "text": "Внутрішній ID",
+    "source_hash": "e468bb47"
+  },
+  "web.admin.customers.detail.organizations.open": {
+    "text": "Відкрити",
+    "source_hash": "ed077f3d"
+  },
+  "web.admin.customers.detail.rodauthAdmin.open": {
+    "text": "Відкрити в Rodauth Admin",
+    "source_hash": "467173c8"
+  },
+  "web.admin.customers.detail.sessions.revokeAll.selfDescription": {
+    "text": "Це виконує вихід з усіх інших пристроїв і браузерів, включно з сесіями, які не показані в цьому списку. Сесію, у якій Ви зараз працюєте, буде збережено.",
+    "source_hash": "ae350040"
+  },
+  "web.admin.customers.list.capped": {
+    "text": "Результати обмежено: показана кількість є нижньою межею, а не загальною кількістю. Звузьте пошук або фільтр, щоб побачити всі результати.",
+    "source_hash": "27537844"
+  },
+  "web.admin.customers.list.orphanedAccounts.title": {
+    "text": "Обліковий запис у базі даних автентифікації без запису клієнта",
+    "source_hash": "82cf7a27"
+  },
+  "web.admin.customers.list.orphanedAccounts.hint": {
+    "text": "База даних автентифікації містить обліковий запис для цієї адреси, але жоден запис клієнта з ним не пов'язаний. Користувач усе ще може увійти; в індексі клієнтів для нього нічого немає. Відкрийте адресу для діагностики.",
+    "source_hash": "0f903f23"
+  },
+  "web.admin.customers.list.orphanedAccounts.diagnose": {
+    "text": "Відкрити діагностику облікового запису",
+    "source_hash": "55b3e826"
+  },
+  "web.admin.customers.list.orphanedAccounts.accountId": {
+    "text": "Обліковий запис #{id}",
+    "source_hash": "485dee3c"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unverified": {
+    "text": "Неперевірено",
+    "source_hash": "33c8e8de"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.verified": {
+    "text": "Перевірено",
+    "source_hash": "4f783840"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.closed": {
+    "text": "Закрито",
+    "source_hash": "c21ead06"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unknown": {
+    "text": "Невідомо",
+    "source_hash": "b764cdc0"
   }
 }

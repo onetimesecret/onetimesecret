@@ -957,5 +957,53 @@
   "web.auth.webauthn.emailRequired": {
     "text": "Digite seu endereço de e-mail para entrar com uma chave de acesso",
     "source_hash": "7f07647f"
+  },
+  "web.auth.login.verification_unavailable": {
+    "text": "O início de sessão foi bem-sucedido, mas não foi possível confirmar sua sessão. Tente novamente em instantes.",
+    "source_hash": "9a19dfc9"
+  },
+  "web.auth.mfa.verification_unavailable": {
+    "text": "Sua senha foi aceita, mas não foi possível iniciar a verificação de dois fatores. Tente novamente em instantes.",
+    "source_hash": "5fd5e240"
+  },
+  "web.auth.session.ended": {
+    "text": "Sua sessão foi encerrada. Entre novamente.",
+    "source_hash": "673e9822"
+  },
+  "web.auth.session.replaced": {
+    "text": "Seu início de sessão mudou em outra aba, por isso esta página foi recarregada.",
+    "source_hash": "3767d43b"
+  },
+  "web.auth.session.stale_session_title": {
+    "text": "Esta página está desatualizada",
+    "source_hash": "0293e093"
+  },
+  "web.auth.session.stale_session_notice": {
+    "text": "Sua sessão mudou desde que esta página foi carregada. Copie tudo o que você não salvou e recarregue a página para continuar.",
+    "source_hash": "c62e236c"
+  },
+  "web.auth.session.reload_now": {
+    "text": "Recarregar página",
+    "source_hash": "437d0d63"
+  },
+  "web.auth.session.verification_unavailable_title": {
+    "text": "Não é possível verificar sua sessão no momento",
+    "source_hash": "2130dda1"
+  },
+  "web.auth.session.verification_unavailable_body": {
+    "text": "Sua sessão não foi encerrada. Não foi possível acessar o servidor para confirmar sua sessão, por isso esta página ficará oculta até que isso seja possível. Continuaremos tentando.",
+    "source_hash": "bb230c2c"
+  },
+  "web.auth.session.retry": {
+    "text": "Tentar novamente",
+    "source_hash": "d8b8392e"
+  },
+  "web.auth.session.retrying": {
+    "text": "Verificando…",
+    "source_hash": "ec963ffc"
+  },
+  "web.auth.session.retry_failed": {
+    "text": "Ainda indisponível. Tente novamente em instantes.",
+    "source_hash": "b81c022c"
   }
 }

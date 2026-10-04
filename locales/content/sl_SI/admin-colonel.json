@@ -778,5 +778,37 @@
   "web.colonel.organizations.filters.searchPlaceholder": {
     "text": "Iskanje po ID-ju, imenu ali e-pošti",
     "source_hash": "6fe16473"
+  },
+  "web.colonel.organizations.capped": {
+    "text": "Rezultati so omejeni: prikazano število je spodnja meja, ne skupno število. Filtri zajemajo vse organizacije, povezane z naročnino, ter nazadnje posodobljene; za dostop do katere koli druge iščite po natančnem ID-ju ali e-poštnem naslovu.",
+    "source_hash": "0743238d"
+  },
+  "web.impersonation.banner.label": {
+    "text": "Oponašanje aktivno",
+    "source_hash": "d96f0e8d"
+  },
+  "web.impersonation.banner.viewingAs": {
+    "text": "Ogled kot {email}",
+    "source_hash": "cf2dd9c6"
+  },
+  "web.impersonation.banner.readOnly": {
+    "text": "Samo za branje: med oponašanjem so spremembe blokirane.",
+    "source_hash": "46ed3b68"
+  },
+  "web.impersonation.banner.expiresIn": {
+    "text": "Konec čez {time}",
+    "source_hash": "b4999fd8"
+  },
+  "web.impersonation.banner.stop": {
+    "text": "Ustavi oponašanje",
+    "source_hash": "5cf74e38"
+  },
+  "web.impersonation.banner.stopping": {
+    "text": "Ustavljanje …",
+    "source_hash": "bbe85741"
+  },
+  "web.impersonation.banner.stopFailed": {
+    "text": "Oponašanja ni bilo mogoče ustaviti. Poskusite znova.",
+    "source_hash": "5aa72353"
   }
 }

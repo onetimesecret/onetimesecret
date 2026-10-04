@@ -509,8 +509,8 @@
     "source_hash": "7fbbb7e7"
   },
   "web.login.errors.identity_connect_conflict": {
-    "text": "Diese Identität konnte nicht verbunden werden. Die Verbindung wurde möglicherweise auf der falschen Domain gestartet oder Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an und verbinden Sie sie dann in Ihren Kontoeinstellungen.",
-    "source_hash": "4238bbf2"
+    "text": "Diese Identität konnte nicht verbunden werden. Sie gehört möglicherweise bereits zu einem anderen Konto.",
+    "source_hash": "d8b71cf8"
   },
   "web.login.errors.org_join_failed": {
     "text": "Das Hinzufügen zu Ihrer Organisation konnte nicht abgeschlossen werden. Bitte kontaktieren Sie Ihren Administrator.",
@@ -527,5 +527,25 @@
   "web.login.errors.sso_cancelled": {
     "text": "Die Anmeldung wurde abgebrochen. Sie können es jederzeit erneut versuchen.",
     "source_hash": "b5f3d3ec"
+  },
+  "web.login.errors.sso_issuer_mismatch": {
+    "text": "Die Anmeldung mit diesem Anbieter ist falsch konfiguriert. Bitte wenden Sie sich an Ihren Administrator.",
+    "source_hash": "44df5918"
+  },
+  "web.login.errors.sso_config_unusable": {
+    "text": "Single Sign-On ist für diesen Bereich konfiguriert, derzeit aber nicht nutzbar. Wenden Sie sich an den Administrator Ihrer Organisation.",
+    "source_hash": "f704b391"
+  },
+  "web.login.errors.sso_domain_unverified": {
+    "text": "Single Sign-On ist für diesen Bereich noch nicht aktiv, da die Verifizierung des Bereichs noch nicht abgeschlossen ist. Bitte wenden Sie sich an Ihren Administrator.",
+    "source_hash": "bd981480"
+  },
+  "web.login.errors.tenant_sso_link_unavailable": {
+    "text": "Diese Identität ist mit keinem Konto in diesem Bereich verbunden. Wenn Sie sich in diesem Bereich mit einem Konto anmelden können, das zu dieser Organisation gehört, verbinden Sie sie unter „Verknüpfte Identitäten“. Andernfalls bitten Sie einen Organisationsinhaber, diese SSO-Identität einzuladen, oder wenden Sie sich an den Support.",
+    "source_hash": "66e7376c"
+  },
+  "web.login.errors.identity_connect_wrong_domain": {
+    "text": "Diese Identität konnte in diesem Bereich nicht verbunden werden. Starten Sie die Verbindung auf der Website, auf der Sie angemeldet sind; im Bereich einer Organisation muss Ihr Konto bereits zu dieser Organisation gehören.",
+    "source_hash": "d967c761"
   }
 }

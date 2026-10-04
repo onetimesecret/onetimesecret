@@ -134,5 +134,25 @@
   "api.organizations.members.errors.no_permission_to_remove": {
     "text": "אין לך הרשאה להסיר חברים",
     "source_hash": "b0ac7287"
+  },
+  "api.organizations.errors.delete_has_domains": {
+    "text": "הסר את הדומיינים המותאמים אישית של ארגון זה לפני מחיקתו: %{domains}",
+    "source_hash": "040a401e"
+  },
+  "api.organizations.errors.delete_drifted_domains_count": {
+    "text": "%{count} רשומות דומיין עדיין מפנות לארגון זה אך כבר אינן רשומות בו. פנה לתמיכה כדי להסיר אותן לפני מחיקת ארגון זה.",
+    "source_hash": "f6e71a9a"
+  },
+  "api.organizations.errors.delete_is_default": {
+    "text": "לא ניתן למחוק את סביבת העבודה המוגדרת כברירת המחדל שלך. פנה לתמיכה אם עליך להסיר אותה.",
+    "source_hash": "bc2eaed5"
+  },
+  "api.organizations.errors.delete_active_subscription": {
+    "text": "בטל את המנוי של ארגון זה לפני מחיקתו.",
+    "source_hash": "f0c54eca"
+  },
+  "api.organizations.errors.delete_last_org": {
+    "text": "זהו הארגון היחיד שלך. צור ארגון נוסף לפני מחיקת ארגון זה.",
+    "source_hash": "7608a1d6"
   }
 }

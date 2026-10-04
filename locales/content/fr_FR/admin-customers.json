@@ -40,8 +40,8 @@
     "source_hash": "9feed9f1"
   },
   "web.admin.customers.actions.purge.confirmDescription": {
-    "text": "Cela supprime définitivement {email} et toutes ses données. Cette action est irréversible.",
-    "source_hash": "a74dd5d1"
+    "text": "Cette action demande la suppression définitive de {email}. Une vérification préalable s'exécute avant le démantèlement du compte et refuse la purge lorsqu'un espace de travail possède des domaines, un état de facturation, d'autres membres, des données conservées ou des références incohérentes. Examinez et résolvez les éventuels blocages avant de réessayer. Cette action est irréversible une fois le démantèlement commencé.",
+    "source_hash": "7b4e5e37"
   },
   "web.admin.customers.actions.purge.success": {
     "text": "Client purgé.",
@@ -60,8 +60,8 @@
     "source_hash": "227f57d7"
   },
   "web.admin.customers.actions.role.confirmDescription": {
-    "text": "Attribuer le rôle {role} à {email}.",
-    "source_hash": "9ba063c6"
+    "text": "Attribue le rôle {role} à {email}. Le rôle colonel accorde un accès administratif complet à tous les comptes, secrets et organisations de cette installation. Saisissez ci-dessous l'adresse e-mail du compte pour confirmer.",
+    "source_hash": "0ed85b97"
   },
   "web.admin.customers.actions.role.success": {
     "text": "Rôle mis à jour.",
@@ -116,8 +116,8 @@
     "source_hash": "62ed2854"
   },
   "web.admin.customers.actions.unverify.confirmDescription": {
-    "text": "Marquer {email} comme non vérifié.",
-    "source_hash": "592ffd27"
+    "text": "Marque {email} comme non vérifié. Un compte non vérifié ne peut pas détenir le rôle colonel, administrateur ou personnel ; cette action lui retire donc tout rôle élevé. Saisissez ci-dessous l'adresse e-mail du compte pour confirmer.",
+    "source_hash": "601f7382"
   },
   "web.admin.customers.actions.unverify.success": {
     "text": "Vérification du client annulée.",
@@ -568,8 +568,8 @@
     "source_hash": "69e69f49"
   },
   "web.admin.customers.detail.diagnostics.healthy": {
-    "text": "Aucune condition bloquante trouvée. L'état d'authentification semble sain — suspectez des problèmes côté client (cookies, configuration de connexion sur domaine personnalisé) ou une mauvaise région.",
-    "source_hash": "f6d5f8d1"
+    "text": "Aucune condition bloquante trouvée. Les éléments relatifs à l'authentification et au contexte d'organisation semblent sains — suspectez des problèmes côté client (cookies, configuration de connexion sur domaine personnalisé) ou une mauvaise région.",
+    "source_hash": "e0e8450e"
   },
   "web.admin.customers.detail.diagnostics.authUnavailable": {
     "text": "Base de données d'authentification indisponible (mode d'authentification simple) — les vérifications côté SQL ont été ignorées.",
@@ -690,5 +690,153 @@
   "web.admin.customers.verification.unverified": {
     "text": "Non vérifié",
     "source_hash": "15133907"
+  },
+  "web.admin.customers.actions.impersonate.button": {
+    "text": "Emprunter l'identité du client",
+    "source_hash": "38a7cfbe"
+  },
+  "web.admin.customers.actions.impersonate.confirmTitle": {
+    "text": "Démarrer l'emprunt d'identité ?",
+    "source_hash": "c6e4fa74"
+  },
+  "web.admin.customers.actions.impersonate.confirmDescription": {
+    "text": "Ouvre une session en lecture seule et limitée dans le temps en tant que {email}. Chaque page affiche une bannière jusqu'à ce que vous l'arrêtiez, les modifications sont bloquées et la session est enregistrée dans le journal d'audit avec votre motif.",
+    "source_hash": "713c01b4"
+  },
+  "web.admin.customers.actions.impersonate.reasonLabel": {
+    "text": "Motif (obligatoire)",
+    "source_hash": "d976f5d9"
+  },
+  "web.admin.customers.actions.impersonate.reasonPlaceholder": {
+    "text": "Pourquoi cette session est-elle nécessaire ? Indiquez la référence du ticket.",
+    "source_hash": "89a4835d"
+  },
+  "web.admin.customers.actions.impersonate.success": {
+    "text": "Emprunt d'identité démarré.",
+    "source_hash": "b4662bcc"
+  },
+  "web.admin.customers.actions.impersonate.unavailable": {
+    "text": "L'emprunt d'identité n'est pas disponible pour les comptes colonel, anonymes et suspendus.",
+    "source_hash": "fb6578b2"
+  },
+  "web.admin.customers.actions.purge.refused": {
+    "text": "Purge refusée. Le client a été conservé ; résolvez les blocages avant de réessayer.",
+    "source_hash": "8e8a2ae1"
+  },
+  "web.admin.customers.actions.purge.partial": {
+    "text": "La purge s'est arrêtée après l'exécution d'une partie du nettoyage. Ne signalez pas de réussite et ne réessayez pas à l'aveugle ; examinez les étapes terminées et les blocages.",
+    "source_hash": "a88fd15b"
+  },
+  "web.admin.customers.actions.purge.incomplete": {
+    "text": "La purge ne s'est pas terminée (état : {status}). Examinez les détails du cycle de vie avant de réessayer.",
+    "source_hash": "c0c3d287"
+  },
+  "web.admin.customers.actions.purge.unreadableResult": {
+    "text": "Le serveur a renvoyé un résultat de purge illisible. Aucune réussite n'a été signalée ; vérifiez l'état du client et de l'espace de travail avant de réessayer.",
+    "source_hash": "cc837a77"
+  },
+  "web.admin.customers.actions.purge.resultStage": {
+    "text": "Arrêt à l'étape : {stage}.",
+    "source_hash": "d0e313bf"
+  },
+  "web.admin.customers.actions.purge.resultBlockers": {
+    "text": "Blocages : {blockers}.",
+    "source_hash": "00c1e196"
+  },
+  "web.admin.customers.actions.purge.resultPlannedActions": {
+    "text": "Nettoyage prévu : {actions}.",
+    "source_hash": "6915205d"
+  },
+  "web.admin.customers.actions.purge.resultActions": {
+    "text": "Nettoyage effectué : {actions}.",
+    "source_hash": "d34121b3"
+  },
+  "web.admin.customers.actions.purge.resultCompletedStages": {
+    "text": "Étapes terminées : {stages}.",
+    "source_hash": "67f68860"
+  },
+  "web.admin.customers.actions.role.button": {
+    "text": "Changer le rôle",
+    "source_hash": "a43a8d8c"
+  },
+  "web.admin.customers.actions.role.selfDemote": {
+    "text": "Vous ne pouvez pas rétrograder votre propre compte colonel. Demandez à un autre colonel de le faire, ou exécutez `bin/ots customers role demote`.",
+    "source_hash": "3e75d01b"
+  },
+  "web.admin.customers.actions.role.lastColonel": {
+    "text": "Vous ne pouvez pas rétrograder le dernier colonel restant — l'installation n'aurait plus d'administrateur. Promouvez et vérifiez d'abord un autre compte.",
+    "source_hash": "9c59c731"
+  },
+  "web.admin.customers.actions.unverify.selfUnverify": {
+    "text": "Vous ne pouvez pas annuler la vérification de votre propre compte : une adresse e-mail vérifiée est requise pour détenir le rôle colonel.",
+    "source_hash": "8ab024fe"
+  },
+  "web.admin.customers.actions.unverify.lastColonel": {
+    "text": "Vous ne pouvez pas annuler la vérification du dernier colonel restant — un compte non vérifié ne peut pas détenir le rôle colonel. Promouvez et vérifiez d'abord un autre compte.",
+    "source_hash": "fc404616"
+  },
+  "web.admin.customers.detail.diagnostics.organizationContextBlocked": {
+    "text": "Le contexte d'organisation est bloqué ou incomplet. Inspectez l'espace de travail indexé et corrigez les écarts d'index de propriété, d'adhésion ou d'e-mail de contact avant de considérer ce compte comme sain.",
+    "source_hash": "5c5c89be"
+  },
+  "web.admin.customers.detail.diagnostics.organization": {
+    "text": "Espace de travail : {id}",
+    "source_hash": "6ee50fe9"
+  },
+  "web.admin.customers.detail.diagnostics.remediation": {
+    "text": "Correction : {action}",
+    "source_hash": "83ddc7d7"
+  },
+  "web.admin.customers.detail.fields.internalId": {
+    "text": "ID interne",
+    "source_hash": "e468bb47"
+  },
+  "web.admin.customers.detail.organizations.open": {
+    "text": "Ouvrir",
+    "source_hash": "ed077f3d"
+  },
+  "web.admin.customers.detail.rodauthAdmin.open": {
+    "text": "Ouvrir dans Rodauth Admin",
+    "source_hash": "467173c8"
+  },
+  "web.admin.customers.detail.sessions.revokeAll.selfDescription": {
+    "text": "Cela vous déconnecte de tous les autres appareils et navigateurs, y compris les sessions non affichées dans cette liste. La session que vous utilisez actuellement est conservée.",
+    "source_hash": "ae350040"
+  },
+  "web.admin.customers.list.capped": {
+    "text": "Les résultats sont limités : le nombre affiché est un minimum, pas le total. Affinez la recherche ou le filtre pour tout voir.",
+    "source_hash": "27537844"
+  },
+  "web.admin.customers.list.orphanedAccounts.title": {
+    "text": "Compte de la base d'authentification sans fiche client",
+    "source_hash": "82cf7a27"
+  },
+  "web.admin.customers.list.orphanedAccounts.hint": {
+    "text": "La base de données d'authentification contient un compte pour cette adresse, mais aucune fiche client n'y correspond. La personne peut toujours se connecter ; l'index des clients ne contient rien la concernant. Ouvrez l'adresse pour afficher le diagnostic.",
+    "source_hash": "0f903f23"
+  },
+  "web.admin.customers.list.orphanedAccounts.diagnose": {
+    "text": "Ouvrir le diagnostic du compte",
+    "source_hash": "55b3e826"
+  },
+  "web.admin.customers.list.orphanedAccounts.accountId": {
+    "text": "Compte n° {id}",
+    "source_hash": "485dee3c"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unverified": {
+    "text": "Non vérifié",
+    "source_hash": "33c8e8de"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.verified": {
+    "text": "Vérifié",
+    "source_hash": "4f783840"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.closed": {
+    "text": "Fermé",
+    "source_hash": "c21ead06"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unknown": {
+    "text": "Inconnu",
+    "source_hash": "b764cdc0"
   }
 }

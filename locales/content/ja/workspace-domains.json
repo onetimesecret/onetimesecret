@@ -1626,5 +1626,37 @@
   "web.domains.sso.status_unavailable_hint": {
     "text": "現在、このドメインではSSOを利用できません。SSOの資格情報とこのドメインのサインイン設定をご確認ください。",
     "source_hash": "b03b14f4"
+  },
+  "web.domains.status_tooltip_pending_ssl": {
+    "text": "ドメインは検証済みです — 証明書の発行を待っています",
+    "source_hash": "541bd705"
+  },
+  "web.domains.2_create_the_alias_record": {
+    "text": "2. ALIASまたはANAMEレコードを作成",
+    "source_hash": "17b04e6a"
+  },
+  "web.domains.sso.status_saml_disabled_badge": {
+    "text": "SAML無効",
+    "source_hash": "4e2eab51"
+  },
+  "web.domains.sso.status_saml_disabled_hint": {
+    "text": "サイト運営者がこのインストール環境でSAMLを無効にしています。設定は保持され、SAMLが再度有効になると再開されます。それまでの間、このドメインではSAMLによるサインインは表示されません。",
+    "source_hash": "5ba9624c"
+  },
+  "web.domains.sso.status_domain_unverified_badge": {
+    "text": "ドメインの検証待ち",
+    "source_hash": "ea7459c2"
+  },
+  "web.domains.sso.status_domain_unverified_hint": {
+    "text": "このドメインは検証が完了していないため、SSO接続はまだサインインページで有効になっていません。ドメインが検証され、ここでSSOが許可されると、SSOが有効になります。",
+    "source_hash": "57ee0066"
+  },
+  "web.domains.verify_outcome.indeterminate": {
+    "text": "現在、DNSチェックを完了できませんでした。これはレコードが間違っていることを意味するものではありません。数分後にもう一度お試しください。",
+    "source_hash": "4e76a9ef"
+  },
+  "web.domains.verify_outcome.record_not_found": {
+    "text": "想定されるTXTレコードが見つかりませんでした。レコードが存在し、値が完全に一致していることを確認してください。新しいDNSレコードが反映されるまでに数分かかる場合があります。",
+    "source_hash": "6c847d46"
   }
 }

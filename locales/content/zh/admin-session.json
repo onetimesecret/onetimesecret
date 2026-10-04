@@ -1,0 +1,10 @@
+{
+  "web.admin.session.expired": {
+    "text": "您的管理员会话已过期。请重新登录以继续。",
+    "source_hash": "e970de7c"
+  },
+  "web.admin.session.signIn": {
+    "text": "登录",
+    "source_hash": "bfd402b2"
+  }
+}

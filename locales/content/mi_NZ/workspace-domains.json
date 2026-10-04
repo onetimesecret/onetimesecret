@@ -1626,5 +1626,37 @@
   "web.domains.sso.status_unavailable_hint": {
     "text": "Kāore e taea te tuku SSO i tēnei rohe i tēnei wā. Tirohia ngā pūnga whaimana SSO me ngā tautuhinga takiuru o tēnei rohe.",
     "source_hash": "b03b14f4"
+  },
+  "web.domains.status_tooltip_pending_ssl": {
+    "text": "Kua manatokohia te rohe — e tatari ana ki tōna tiwhikete",
+    "source_hash": "541bd705"
+  },
+  "web.domains.2_create_the_alias_record": {
+    "text": "2. Waihanga te tuhinga ALIAS, ANAME rānei",
+    "source_hash": "17b04e6a"
+  },
+  "web.domains.sso.status_saml_disabled_badge": {
+    "text": "Kua whakawetohia te SAML",
+    "source_hash": "4e2eab51"
+  },
+  "web.domains.sso.status_saml_disabled_hint": {
+    "text": "Kua whakawetohia e te kaiwhakahaere pae te SAML mō tēnei tāutanga. Ka puritia tō whirihoranga, ā, ka haere tonu ina whakakāngia anō te SAML; kia tae rā anō ki taua wā, kāore tēnei rohe e tuku i te takiuru SAML.",
+    "source_hash": "5ba9624c"
+  },
+  "web.domains.sso.status_domain_unverified_badge": {
+    "text": "E tatari ana ki te manatoko rohe",
+    "source_hash": "ea7459c2"
+  },
+  "web.domains.sso.status_domain_unverified_hint": {
+    "text": "Kāore anō kia oti te manatoko o tēnei rohe, nā reira kāore anō tōna hononga SSO kia hohe i tōna whārangi takiuru. Ka hohe te SSO ina manatokohia te rohe, ā, ina whakaaetia te SSO mōna i konei.",
+    "source_hash": "57ee0066"
+  },
+  "web.domains.verify_outcome.indeterminate": {
+    "text": "Kāore i taea e mātou te whakaoti i te arowhai DNS i tēnei wā. Ehara tēnei i te tohu kua hē ō tuhinga. Tēnā ngana anō i roto i ētahi meneti.",
+    "source_hash": "4e76a9ef"
+  },
+  "web.domains.verify_outcome.record_not_found": {
+    "text": "Kāore i kitea e mātou te tuhinga TXT e tūmanakohia ana. Tirohia kei reira, ā, e tino ōrite ana tōna uara. Ka roa pea ētahi meneti kia puta ai ngā tuhinga DNS hou.",
+    "source_hash": "6c847d46"
   }
 }

@@ -176,8 +176,8 @@
     "source_hash": "0c6605c1"
   },
   "web.admin.sessions.revoke.confirmDescription": {
-    "text": "Ĉi tio tuj elsalutigas la uzanton per forigo de seanco {id}. Tajpu la seanc-ID por konfirmi.",
-    "source_hash": "9e08b1b8"
+    "text": "Ĉi tio tuj elsalutigas la uzanton per revoko de la seanco {id}. Tajpu {token} por konfirmi.",
+    "source_hash": "80578692"
   },
   "web.admin.sessions.revoke.success": {
     "text": "Seanco revokita",
@@ -188,12 +188,12 @@
     "source_hash": "34cb67a4"
   },
   "web.admin.sessions.scan.capped": {
-    "text": "Skano limigita al la unuaj {scanned} ŝlosiloj — aŭtentikigitaj seancoj preter ĉi tiu fenestro ne estas listigitaj. Inspektu specifan seancon laŭ ID por atingi ĝin.",
-    "source_hash": "fa418b4e"
+    "text": "Skanado limigita al la unuaj {scanned} ŝlosiloj — aŭtentikigitaj seancoj preter ĉi tiu fenestro ne estas listigitaj. Malvastigu la serĉon por atingi ilin.",
+    "source_hash": "7a8d6fd5"
   },
   "web.admin.sessions.search.placeholder": {
-    "text": "Serĉi laŭ retpoŝto aŭ ekstera ID",
-    "source_hash": "f2dc5c06"
+    "text": "Serĉi laŭ retpoŝto, ekstera ID aŭ seanca tenilo",
+    "source_hash": "4894dec4"
   },
   "web.admin.sessions.sections.session": {
     "text": "Seanco",
@@ -210,5 +210,45 @@
   "web.admin.sessions.status.anonymous": {
     "text": "Anonima",
     "source_hash": "e7a8aa2d"
+  },
+  "web.admin.sessions.authority.title": {
+    "text": "Ne la seanca aŭtoritato en plena aŭtentikiga reĝimo",
+    "source_hash": "796fb07f"
+  },
+  "web.admin.sessions.authority.description": {
+    "text": "Ĉi tiu listo estas la Redis-seanca konservejo. Kiam la aŭtentikiga reĝimo estas agordita al full, la aŭtoritata seanca stato troviĝas en la Rodauth-kontodatumbazo, kiun ĉi tiu konzolo ne legas. Kontoj ensalutintaj per Rodauth eble ne aperas ĉi tie, kaj revoki seancon ĉi tie ne finas Rodauth-seancon.",
+    "source_hash": "77bc4904"
+  },
+  "web.admin.sessions.authority.descriptionRevokeAll": {
+    "text": "Ĉi tiu listo estas la Redis-seanca konservejo. Kiam la aŭtentikiga reĝimo estas agordita al full, la aŭtoritata seanca stato troviĝas en la Rodauth-kontodatumbazo, kiun ĉi tiu konzolo ne legas. Kontoj ensalutintaj per Rodauth eble ne aperas ĉi tie, kaj revoki unuopan seancon ĉi tie ne finas ĝian Rodauth-seancon. “Revoki ĉiujn” ankaŭ finas la Rodauth-seancojn de la konto.",
+    "source_hash": "f964663d"
+  },
+  "web.admin.sessions.authority.openAdmin": {
+    "text": "Malfermi Rodauth Admin",
+    "source_hash": "ce523836"
+  },
+  "web.admin.sessions.authority.notConfigured": {
+    "text": "Agordu RODAUTH_ADMIN_URL por ligi al Rodauth Admin de ĉi tie.",
+    "source_hash": "c070dbfb"
+  },
+  "web.admin.sessions.columns.sessionHandle": {
+    "text": "Seanca tenilo",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.errors.scanCapped": {
+    "text": "Ĉi tiu seanco ne troviĝis en la specimenita ŝlosilspaco. Malfermu ĝin el ĝia vico en la listo, por ke la posedanto estu uzebla por serĉi ĝin.",
+    "source_hash": "67b73f7f"
+  },
+  "web.admin.sessions.fields.sessionHandle": {
+    "text": "Seanca tenilo",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.revoke.ownSession": {
+    "text": "Ĉi tio estas via propra seanco. Revoki ĝin elsalutigus vin — uzu elsaluton anstataŭe.",
+    "source_hash": "a6762292"
+  },
+  "web.admin.sessions.rodauthAdmin.open": {
+    "text": "Malfermi en Rodauth Admin",
+    "source_hash": "467173c8"
   }
 }

@@ -778,5 +778,37 @@
   "web.colonel.organizations.filters.searchPlaceholder": {
     "text": "Cerca per ID, nome o email",
     "source_hash": "6fe16473"
+  },
+  "web.colonel.organizations.capped": {
+    "text": "I risultati sono limitati: il conteggio mostrato è un valore minimo, non il totale. I filtri coprono ogni organizzazione collegata a un abbonamento più quelle aggiornate di recente; cerca per ID esatto o email per raggiungere tutte le altre.",
+    "source_hash": "0743238d"
+  },
+  "web.impersonation.banner.label": {
+    "text": "Impersonificazione attiva",
+    "source_hash": "d96f0e8d"
+  },
+  "web.impersonation.banner.viewingAs": {
+    "text": "Visualizzazione come {email}",
+    "source_hash": "cf2dd9c6"
+  },
+  "web.impersonation.banner.readOnly": {
+    "text": "Sola lettura: le modifiche sono bloccate durante l'impersonificazione.",
+    "source_hash": "46ed3b68"
+  },
+  "web.impersonation.banner.expiresIn": {
+    "text": "Termina tra {time}",
+    "source_hash": "b4999fd8"
+  },
+  "web.impersonation.banner.stop": {
+    "text": "Interrompi impersonificazione",
+    "source_hash": "5cf74e38"
+  },
+  "web.impersonation.banner.stopping": {
+    "text": "Interruzione in corso…",
+    "source_hash": "bbe85741"
+  },
+  "web.impersonation.banner.stopFailed": {
+    "text": "Impossibile interrompere l'impersonificazione. Riprova.",
+    "source_hash": "5aa72353"
   }
 }

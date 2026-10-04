@@ -638,5 +638,121 @@
   "web.admin.organizations.entitlements.summary.planUnknown": {
     "text": "Bilinmiyor - karşılaştırılamadı",
     "source_hash": "b607e540"
+  },
+  "web.admin.organizations.actions.plan.label": {
+    "text": "Plan",
+    "source_hash": "fa8ed0bd"
+  },
+  "web.admin.organizations.actions.plan.apply": {
+    "text": "Uygula",
+    "source_hash": "31e392d1"
+  },
+  "web.admin.organizations.actions.plan.confirmTitle": {
+    "text": "Plan değiştirilsin mi?",
+    "source_hash": "910a4de9"
+  },
+  "web.admin.organizations.actions.plan.confirmDescription": {
+    "text": "{org} kuruluşunun planı {plan} olarak değiştirilecek.",
+    "source_hash": "aecf8277"
+  },
+  "web.admin.organizations.actions.plan.success": {
+    "text": "Plan güncellendi.",
+    "source_hash": "ebe8d40c"
+  },
+  "web.admin.organizations.actions.plan.problem": {
+    "text": "Plan kaydedildi, ancak yetkilendirmeler güncellenmedi. Bu kuruluş için uzlaştırmayı çalıştırın.",
+    "source_hash": "2addb095"
+  },
+  "web.admin.organizations.actions.plan.localConfigWarning": {
+    "text": "Planlar yerel yapılandırmadan yüklendi — Stripe yapılandırılmamış veya erişilemiyor.",
+    "source_hash": "df83e326"
+  },
+  "web.admin.organizations.detail.delete.button": {
+    "text": "Kuruluşu sil",
+    "source_hash": "a70d189a"
+  },
+  "web.admin.organizations.detail.delete.previewing": {
+    "text": "Silme planı yükleniyor…",
+    "source_hash": "c9773eb9"
+  },
+  "web.admin.organizations.detail.delete.warning": {
+    "text": "Kuruluşu, üyeliklerini ve bekleyen davetlerini kalıcı olarak siler ve eski üyelere e-posta gönderir. Bu işlem geri alınamaz.",
+    "source_hash": "fd314131"
+  },
+  "web.admin.organizations.detail.delete.confirmTitle": {
+    "text": "Bu kuruluş silinsin mi?",
+    "source_hash": "6a3bba0f"
+  },
+  "web.admin.organizations.detail.delete.confirmDescription": {
+    "text": "Bu işlem {org} kuruluşunu kalıcı olarak siler. Onaylamak için kuruluş kimliğini yeniden yazın.",
+    "source_hash": "c63a0221"
+  },
+  "web.admin.organizations.detail.delete.membersLabel": {
+    "text": "Üyeler",
+    "source_hash": "1044a4c0"
+  },
+  "web.admin.organizations.detail.delete.invitationsLabel": {
+    "text": "Bekleyen davetler",
+    "source_hash": "76198e63"
+  },
+  "web.admin.organizations.detail.delete.domainsLabel": {
+    "text": "Alan adları",
+    "source_hash": "ced67718"
+  },
+  "web.admin.organizations.detail.delete.defaultOrgLabel": {
+    "text": "Varsayılan çalışma alanı temizlenecek kullanıcılar",
+    "source_hash": "d535ac2a"
+  },
+  "web.admin.organizations.detail.delete.forceDefault": {
+    "text": "Bu, sahibin varsayılan (kişisel) çalışma alanı. Yine de silinsin.",
+    "source_hash": "1a8b0f7d"
+  },
+  "web.admin.organizations.detail.delete.forceSubscription": {
+    "text": "Abonelik etkin. Yine de silinsin — bu işlem Stripe faturalandırmasını iptal etmez.",
+    "source_hash": "51cb3456"
+  },
+  "web.admin.organizations.detail.delete.driftedDomainsLabel": {
+    "text": "Sapma gösteren alan adları",
+    "source_hash": "fef96f49"
+  },
+  "web.admin.organizations.detail.delete.driftedDomainsRepair": {
+    "text": "Onarmak için: bin/ots domains doctor --all --repair",
+    "source_hash": "14c9c59f"
+  },
+  "web.admin.organizations.detail.delete.success": {
+    "text": "{org} silindi.",
+    "source_hash": "9cdda5d0"
+  },
+  "web.admin.organizations.detail.delete.blocked.hasDomains": {
+    "text": "Engellendi: önce özel alan adlarını kaldırın ({domains}).",
+    "source_hash": "dc3248b2"
+  },
+  "web.admin.organizations.detail.delete.blocked.driftedDomains": {
+    "text": "Engellendi: bu alan adı kayıtları hâlâ bu kuruluşa başvuruyor ancak kuruluşun alan adı listesinde yok ({domains}). Önce bin/ots domains doctor --all --repair komutunu çalıştırın — geçersiz kılma seçeneği yoktur.",
+    "source_hash": "3136496c"
+  },
+  "web.admin.organizations.detail.delete.blocked.isDefault": {
+    "text": "Engellendi: bu, sahibin varsayılan çalışma alanı. Yine de silmek için aşağıdaki geçersiz kılma seçeneğini işaretleyin.",
+    "source_hash": "09d5baa4"
+  },
+  "web.admin.organizations.detail.delete.blocked.activeSubscription": {
+    "text": "Engellendi: kuruluşun etkin bir aboneliği var. Önce aboneliği Stripe üzerinden iptal edin veya aşağıdaki geçersiz kılma seçeneğini işaretleyin.",
+    "source_hash": "68663641"
+  },
+  "web.admin.organizations.detail.delete.blocked.lastOrg": {
+    "text": "Engellendi: bu, {owner} kullanıcısının üye olduğu tek kuruluş ve silinmesi kullanıcıyı çalışma alanı olmadan bırakır. Geçersiz kılma seçeneği yoktur — önce yerine geçecek bir kuruluş oluşturun.",
+    "source_hash": "f09b4f9a"
+  },
+  "web.admin.organizations.detail.delete.errors.planUnreadable": {
+    "text": "Silme planı sunucudan okunamadı. Hiçbir şey silinmedi.",
+    "source_hash": "91406cbb"
+  },
+  "web.admin.organizations.detail.delete.errors.unverified": {
+    "text": "Sunucu yanıtı doğrulanamadı. Silme işleminin tamamlanıp tamamlanmadığını kontrol etmek için kuruluş listesini yeniden yükleyin.",
+    "source_hash": "7a261fb0"
+  },
+  "web.admin.organizations.detail.delete.errors.notApplied": {
+    "text": "Sunucu bir silme işlemi değil, önizleme döndürdü. Hiçbir şey silinmedi.",
+    "source_hash": "9d84971d"
   }
 }

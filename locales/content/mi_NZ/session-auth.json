@@ -509,8 +509,8 @@
     "source_hash": "7fbbb7e7"
   },
   "web.login.errors.identity_connect_conflict": {
-    "text": "Kāore i taea te hono i tēnei tuakiri. Tērā pea i tīmata te hononga i te rohe hē, kua pau rānei te wā o tō hōtaka. Takiurua anō, kātahi honoa mai i ō tautuhinga pūkete.",
-    "source_hash": "4238bbf2"
+    "text": "Kāore i taea te hono i tēnei tuakiri. Tērā pea nō tētahi atu pūkete kē.",
+    "source_hash": "d8b71cf8"
   },
   "web.login.errors.org_join_failed": {
     "text": "Kāore i taea te whakaoti i te tāpiri i a koe ki tō whakahaere. Whakapā ki tō kaiwhakahaere.",
@@ -527,5 +527,25 @@
   "web.login.errors.sso_cancelled": {
     "text": "I whakakorea te takiuru. Ka taea e koe te ngana anō ina rite koe.",
     "source_hash": "b5f3d3ec"
+  },
+  "web.login.errors.sso_issuer_mismatch": {
+    "text": "Kua hē te whirihoranga o te takiuru mā tēnei kaiwhakarato. Tēnā whakapā atu ki tō kaiwhakahaere.",
+    "source_hash": "44df5918"
+  },
+  "web.login.errors.sso_config_unusable": {
+    "text": "Kua whirihorahia te takiuru kotahi (SSO) mō tēnei rohe, engari kāore e taea te whakamahi i tēnei wā. Whakapā atu ki te kaiwhakahaere o tō whakahaere.",
+    "source_hash": "f704b391"
+  },
+  "web.login.errors.sso_domain_unverified": {
+    "text": "Kāore anō te takiuru kotahi (SSO) mō tēnei rohe kia hohe, nā te mea kāore anō kia oti te manatoko o te rohe. Tēnā whakapā atu ki tō kaiwhakahaere.",
+    "source_hash": "bd981480"
+  },
+  "web.login.errors.tenant_sso_link_unavailable": {
+    "text": "Kāore tēnei tuakiri i te hono ki tētahi pūkete i tēnei rohe. Mēnā ka taea e koe te takiuru i tēnei rohe mā tētahi pūkete nō tēnei whakahaere, honoa mai i Ngā tuakiri hono. Ki te kore, tonoa tētahi rangatira whakahaere kia pōwhiri i tēnei tuakiri SSO, whakapā atu rānei ki te tautoko.",
+    "source_hash": "66e7376c"
+  },
+  "web.login.errors.identity_connect_wrong_domain": {
+    "text": "Kāore i taea te hono i tēnei tuakiri i tēnei rohe. Tīmatahia te hono mai i te pae kua takiuru nei koe; i te rohe o tētahi whakahaere, me noho kē tō pūkete hei mema o taua whakahaere.",
+    "source_hash": "d967c761"
   }
 }

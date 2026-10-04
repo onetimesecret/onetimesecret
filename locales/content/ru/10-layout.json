@@ -350,5 +350,17 @@
   "web.layout.colonels_only_badge": {
     "text": "Только для Colonel",
     "source_hash": "3f1e2dbd"
+  },
+  "web.footer.dpa": {
+    "text": "Соглашение об обработке данных",
+    "source_hash": "112eae6b"
+  },
+  "web.footer.cookie_policy": {
+    "text": "Политика использования файлов cookie",
+    "source_hash": "ee290b3d"
+  },
+  "web.footer.acceptable_use": {
+    "text": "Политика допустимого использования",
+    "source_hash": "34aa287a"
   }
 }

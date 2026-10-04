@@ -954,5 +954,53 @@
   "web.auth.webauthn.emailRequired": {
     "text": "Geçiş anahtarıyla giriş yapmak için e-posta adresinizi girin",
     "source_hash": "7f07647f"
+  },
+  "web.auth.login.verification_unavailable": {
+    "text": "Oturum açma işleminiz başarılı oldu, ancak oturumunuzu doğrulayamadık. Lütfen birazdan tekrar deneyin.",
+    "source_hash": "9a19dfc9"
+  },
+  "web.auth.mfa.verification_unavailable": {
+    "text": "Parolanız kabul edildi, ancak iki faktörlü doğrulamayı başlatamadık. Lütfen birazdan tekrar deneyin.",
+    "source_hash": "5fd5e240"
+  },
+  "web.auth.session.ended": {
+    "text": "Oturumunuz sona erdi. Lütfen yeniden oturum açın.",
+    "source_hash": "673e9822"
+  },
+  "web.auth.session.replaced": {
+    "text": "Başka bir sekmede oturumunuz değiştiği için bu sayfa yeniden yüklendi.",
+    "source_hash": "3767d43b"
+  },
+  "web.auth.session.stale_session_title": {
+    "text": "Bu sayfa güncel değil",
+    "source_hash": "0293e093"
+  },
+  "web.auth.session.stale_session_notice": {
+    "text": "Bu sayfa yüklendikten sonra oturumunuz değişti. Kaydetmediğiniz her şeyi kopyalayın, ardından devam etmek için sayfayı yeniden yükleyin.",
+    "source_hash": "c62e236c"
+  },
+  "web.auth.session.reload_now": {
+    "text": "Sayfayı yeniden yükle",
+    "source_hash": "437d0d63"
+  },
+  "web.auth.session.verification_unavailable_title": {
+    "text": "Oturumunuzu şu anda doğrulayamıyoruz",
+    "source_hash": "2130dda1"
+  },
+  "web.auth.session.verification_unavailable_body": {
+    "text": "Oturumunuz kapatılmadı. Oturumunuzu doğrulamak için sunucuya ulaşamadık; bu nedenle doğrulayabilene kadar bu sayfa gizlendi. Denemeye devam edeceğiz.",
+    "source_hash": "bb230c2c"
+  },
+  "web.auth.session.retry": {
+    "text": "Tekrar dene",
+    "source_hash": "d8b8392e"
+  },
+  "web.auth.session.retrying": {
+    "text": "Kontrol ediliyor…",
+    "source_hash": "ec963ffc"
+  },
+  "web.auth.session.retry_failed": {
+    "text": "Hâlâ kullanılamıyor. Lütfen birazdan tekrar deneyin.",
+    "source_hash": "b81c022c"
   }
 }

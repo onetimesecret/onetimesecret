@@ -176,8 +176,8 @@
     "source_hash": "0c6605c1"
   },
   "web.admin.sessions.revoke.confirmDescription": {
-    "text": "Dit logt de gebruiker onmiddellijk uit door sessie {id} te verwijderen. Typ de sessie-ID om te bevestigen.",
-    "source_hash": "9e08b1b8"
+    "text": "Hiermee wordt de gebruiker onmiddellijk uitgelogd door sessie {id} te herroepen. Typ {token} om te bevestigen.",
+    "source_hash": "80578692"
   },
   "web.admin.sessions.revoke.success": {
     "text": "Sessie herroepen",
@@ -188,12 +188,12 @@
     "source_hash": "34cb67a4"
   },
   "web.admin.sessions.scan.capped": {
-    "text": "Scan begrensd tot de eerste {scanned} sleutels — geauthenticeerde sessies buiten dit venster worden niet getoond. Inspecteer een specifieke sessie op ID om deze te bereiken.",
-    "source_hash": "fa418b4e"
+    "text": "Scan begrensd tot de eerste {scanned} sleutels — geauthenticeerde sessies buiten dit venster worden niet getoond. Verfijn de zoekopdracht om ze te bereiken.",
+    "source_hash": "7a8d6fd5"
   },
   "web.admin.sessions.search.placeholder": {
-    "text": "Zoeken op e-mail of externe ID",
-    "source_hash": "f2dc5c06"
+    "text": "Zoeken op e-mail, externe ID of sessie-handle",
+    "source_hash": "4894dec4"
   },
   "web.admin.sessions.sections.session": {
     "text": "Sessie",
@@ -210,5 +210,45 @@
   "web.admin.sessions.status.anonymous": {
     "text": "Anoniem",
     "source_hash": "e7a8aa2d"
+  },
+  "web.admin.sessions.authority.title": {
+    "text": "Geen gezaghebbende sessiebron in volledige authenticatiemodus",
+    "source_hash": "796fb07f"
+  },
+  "web.admin.sessions.authority.description": {
+    "text": "Deze lijst is de Redis-sessieopslag. Wanneer de authenticatiemodus op full staat, bevindt de gezaghebbende sessiestatus zich in de Rodauth-accountdatabase, die deze console niet leest. Accounts die via Rodauth zijn ingelogd, verschijnen hier mogelijk niet, en het herroepen van een sessie hier beëindigt geen Rodauth-sessie.",
+    "source_hash": "77bc4904"
+  },
+  "web.admin.sessions.authority.descriptionRevokeAll": {
+    "text": "Deze lijst is de Redis-sessieopslag. Wanneer de authenticatiemodus op full staat, bevindt de gezaghebbende sessiestatus zich in de Rodauth-accountdatabase, die deze console niet leest. Accounts die via Rodauth zijn ingelogd, verschijnen hier mogelijk niet, en het intrekken van één sessie hier beëindigt de bijbehorende Rodauth-sessie niet. Alle intrekken beëindigt ook de Rodauth-sessies van het account.",
+    "source_hash": "f964663d"
+  },
+  "web.admin.sessions.authority.openAdmin": {
+    "text": "Rodauth Admin openen",
+    "source_hash": "ce523836"
+  },
+  "web.admin.sessions.authority.notConfigured": {
+    "text": "Stel RODAUTH_ADMIN_URL in om vanaf hier naar Rodauth Admin te linken.",
+    "source_hash": "c070dbfb"
+  },
+  "web.admin.sessions.columns.sessionHandle": {
+    "text": "Sessie-handle",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.errors.scanCapped": {
+    "text": "Deze sessie is niet gevonden in de gescande steekproef van sleutels. Open de sessie vanuit de bijbehorende rij in de lijst, zodat de eigenaar kan worden gebruikt om haar op te zoeken.",
+    "source_hash": "67b73f7f"
+  },
+  "web.admin.sessions.fields.sessionHandle": {
+    "text": "Sessie-handle",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.revoke.ownSession": {
+    "text": "Dit is je eigen sessie. Als je deze herroept, word je uitgelogd — gebruik in plaats daarvan uitloggen.",
+    "source_hash": "a6762292"
+  },
+  "web.admin.sessions.rodauthAdmin.open": {
+    "text": "Openen in Rodauth Admin",
+    "source_hash": "467173c8"
   }
 }

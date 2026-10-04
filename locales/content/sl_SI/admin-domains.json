@@ -48,12 +48,12 @@
     "source_hash": "acaede35"
   },
   "web.admin.domains.addDomain.strategy.caddy_on_demand": {
-    "text": "Caddy on-demand — potrdila se izdajo samodejno ob prvi zahtevi.",
-    "source_hash": "deb90ae6"
+    "text": "Caddy on-demand — preverjanje lastništva prek DNS (zapis TXT); potrdila se izdajo samodejno, ko je domena preverjena.",
+    "source_hash": "1c926efa"
   },
   "web.admin.domains.addDomain.strategy.caddy": {
-    "text": "Caddy — potrdila se izdajo samodejno ob prvi zahtevi.",
-    "source_hash": "a0f3c2dc"
+    "text": "Caddy — preverjanje lastništva prek DNS (zapis TXT); potrdila se izdajo samodejno, ko je domena preverjena.",
+    "source_hash": "5774ff90"
   },
   "web.admin.domains.addDomain.strategy.unknown": {
     "text": "Strategija preverjanja za celotno namestitev.",
@@ -842,5 +842,81 @@
   "web.admin.domains.tls.none": {
     "text": "Ne streže",
     "source_hash": "da8a5ab9"
+  },
+  "web.admin.domains.configs.edit.originsHint": {
+    "text": "En izvor na vrstico, vključno s shemo, na primer https://vault.example.com. Izvor na domeni druge organizacije je zavrnjen.",
+    "source_hash": "4a4e1d33"
+  },
+  "web.admin.domains.configs.fields.related_origins": {
+    "text": "Povezani izvori ključev za dostop",
+    "source_hash": "e6160714"
+  },
+  "web.admin.domains.dns.cnameStepInstall": {
+    "text": "2. Dodajte zapis CNAME, ki usmeri poddomeno na to namestitev.",
+    "source_hash": "b8a329f9"
+  },
+  "web.admin.domains.dns.aliasStepInstall": {
+    "text": "2. Dodajte zapis ALIAS ali ANAME, ki usmeri koren (apex) na to namestitev.",
+    "source_hash": "9a61ed66"
+  },
+  "web.admin.domains.dns.apexNote": {
+    "text": "Vrhnja domena ne more imeti zapisa CNAME. Če ponudnik DNS nima zapisa ALIAS ali ANAME, enako nalogo opravi zapis A, ki kaže na naslov IP tega strežnika.",
+    "source_hash": "f69e3032"
+  },
+  "web.admin.domains.fields.verifiedByOverride": {
+    "text": "Da (preglasitev operaterja)",
+    "source_hash": "a1a8644f"
+  },
+  "web.admin.domains.list.capped": {
+    "text": "Rezultati so omejeni: prikazano število je spodnja meja, ne skupno število. Zožite iskanje ali filter, da vidite vse.",
+    "source_hash": "27537844"
+  },
+  "web.admin.domains.override.button": {
+    "text": "Preglasi stanje",
+    "source_hash": "c683774c"
+  },
+  "web.admin.domains.override.title": {
+    "text": "Preglasi stanje preverjanja",
+    "source_hash": "66dbebb2"
+  },
+  "web.admin.domains.override.description": {
+    "text": "Ročno nastavite zastavici preverjeno in razreševanje za to domeno. Uporabljajte previdno.",
+    "source_hash": "bc3eb719"
+  },
+  "web.admin.domains.override.verified": {
+    "text": "Preverjeno",
+    "source_hash": "4f783840"
+  },
+  "web.admin.domains.override.resolving": {
+    "text": "Razreševanje",
+    "source_hash": "3287a034"
+  },
+  "web.admin.domains.override.apply": {
+    "text": "Uporabi preglasitev",
+    "source_hash": "e2d1472a"
+  },
+  "web.admin.domains.override.cancel": {
+    "text": "Prekliči",
+    "source_hash": "19766ed6"
+  },
+  "web.admin.domains.override.success": {
+    "text": "Stanje domene preglašeno.",
+    "source_hash": "42104cd0"
+  },
+  "web.admin.domains.override.noChange": {
+    "text": "Ni sprememb za uporabo.",
+    "source_hash": "07632d50"
+  },
+  "web.admin.domains.verify.success.indeterminate": {
+    "text": "Preverjevalnik DNS za {domain} ni vrnil rezultata. Stanje preverjanja je ostalo nespremenjeno.",
+    "source_hash": "9c5ab974"
+  },
+  "web.admin.domains.verify.success.overrideHeld": {
+    "text": "Preverjanje TXT za {domain} ni uspelo, vendar domena ostaja preverjena zaradi preglasitve operaterja.",
+    "source_hash": "e754aac8"
+  },
+  "web.admin.domains.verify.success.confirmationExpired": {
+    "text": "Preverjanje DNS za {domain} več kot 7 dni ni vrnilo rezultata. Domena ni več preverjena.",
+    "source_hash": "a6901cb5"
   }
 }

@@ -778,5 +778,37 @@
   "web.colonel.organizations.filters.searchPlaceholder": {
     "text": "Kimlik, ad veya e-postaya göre ara",
     "source_hash": "6fe16473"
+  },
+  "web.colonel.organizations.capped": {
+    "text": "Sonuçlar sınırlıdır: gösterilen sayı toplam değil, bir alt sınırdır. Filtreler, aboneliğe bağlı tüm kuruluşları ve en son güncellenenleri kapsar; diğerlerine ulaşmak için tam kimlik veya e-posta adresiyle arama yapın.",
+    "source_hash": "0743238d"
+  },
+  "web.impersonation.banner.label": {
+    "text": "Kimliğe bürünme etkin",
+    "source_hash": "d96f0e8d"
+  },
+  "web.impersonation.banner.viewingAs": {
+    "text": "{email} olarak görüntüleniyor",
+    "source_hash": "cf2dd9c6"
+  },
+  "web.impersonation.banner.readOnly": {
+    "text": "Salt okunur: kimliğe bürünme sırasında değişiklikler engellenir.",
+    "source_hash": "46ed3b68"
+  },
+  "web.impersonation.banner.expiresIn": {
+    "text": "{time} içinde sona erer",
+    "source_hash": "b4999fd8"
+  },
+  "web.impersonation.banner.stop": {
+    "text": "Kimliğe bürünmeyi durdur",
+    "source_hash": "5cf74e38"
+  },
+  "web.impersonation.banner.stopping": {
+    "text": "Durduruluyor…",
+    "source_hash": "bbe85741"
+  },
+  "web.impersonation.banner.stopFailed": {
+    "text": "Kimliğe bürünme durdurulamadı. Tekrar deneyin.",
+    "source_hash": "5aa72353"
   }
 }

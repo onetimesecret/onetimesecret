@@ -48,12 +48,12 @@
     "source_hash": "acaede35"
   },
   "web.admin.domains.addDomain.strategy.caddy_on_demand": {
-    "text": "Caddy on-demand — els certificats s'emeten automàticament en la primera sol·licitud.",
-    "source_hash": "deb90ae6"
+    "text": "Caddy on-demand — comprovació de propietat per DNS (registre TXT); els certificats s'emeten automàticament un cop verificat.",
+    "source_hash": "1c926efa"
   },
   "web.admin.domains.addDomain.strategy.caddy": {
-    "text": "Caddy — els certificats s'emeten automàticament en la primera sol·licitud.",
-    "source_hash": "a0f3c2dc"
+    "text": "Caddy — comprovació de propietat per DNS (registre TXT); els certificats s'emeten automàticament un cop verificat.",
+    "source_hash": "5774ff90"
   },
   "web.admin.domains.addDomain.strategy.unknown": {
     "text": "Estratègia de validació de tot el desplegament.",
@@ -842,5 +842,81 @@
   "web.admin.domains.tls.none": {
     "text": "No servint",
     "source_hash": "da8a5ab9"
+  },
+  "web.admin.domains.configs.edit.originsHint": {
+    "text": "Un origen per línia, amb l'esquema inclòs, per exemple https://vault.example.com. Es rebutja qualsevol origen situat en un domini d'una altra organització.",
+    "source_hash": "4a4e1d33"
+  },
+  "web.admin.domains.configs.fields.related_origins": {
+    "text": "Orígens relacionats de claus d'accés",
+    "source_hash": "e6160714"
+  },
+  "web.admin.domains.dns.cnameStepInstall": {
+    "text": "2. Afegeix un registre CNAME que apunti el subdomini a aquesta instal·lació.",
+    "source_hash": "b8a329f9"
+  },
+  "web.admin.domains.dns.aliasStepInstall": {
+    "text": "2. Afegeix un registre ALIAS o ANAME que apunti l'apex a aquesta instal·lació.",
+    "source_hash": "9a61ed66"
+  },
+  "web.admin.domains.dns.apexNote": {
+    "text": "Un domini apex no pot tenir un registre CNAME. Si el proveïdor de DNS no disposa de registres ALIAS o ANAME, un registre A cap a l'adreça IP d'aquest servidor fa la mateixa funció.",
+    "source_hash": "f69e3032"
+  },
+  "web.admin.domains.fields.verifiedByOverride": {
+    "text": "Sí (substitució de l'operador)",
+    "source_hash": "a1a8644f"
+  },
+  "web.admin.domains.list.capped": {
+    "text": "Els resultats estan limitats: el recompte que es mostra és un mínim, no el total. Redueix la cerca o el filtre per veure-ho tot.",
+    "source_hash": "27537844"
+  },
+  "web.admin.domains.override.button": {
+    "text": "Substitueix l'estat",
+    "source_hash": "c683774c"
+  },
+  "web.admin.domains.override.title": {
+    "text": "Substitueix l'estat de verificació",
+    "source_hash": "66dbebb2"
+  },
+  "web.admin.domains.override.description": {
+    "text": "Estableix manualment els indicadors de verificat i de resolució d'aquest domini. Fes-ho servir amb precaució.",
+    "source_hash": "bc3eb719"
+  },
+  "web.admin.domains.override.verified": {
+    "text": "Verificat",
+    "source_hash": "4f783840"
+  },
+  "web.admin.domains.override.resolving": {
+    "text": "Resolent",
+    "source_hash": "3287a034"
+  },
+  "web.admin.domains.override.apply": {
+    "text": "Aplica la substitució",
+    "source_hash": "e2d1472a"
+  },
+  "web.admin.domains.override.cancel": {
+    "text": "Cancel·la",
+    "source_hash": "19766ed6"
+  },
+  "web.admin.domains.override.success": {
+    "text": "S'ha substituït l'estat del domini.",
+    "source_hash": "42104cd0"
+  },
+  "web.admin.domains.override.noChange": {
+    "text": "No hi ha canvis per aplicar.",
+    "source_hash": "07632d50"
+  },
+  "web.admin.domains.verify.success.indeterminate": {
+    "text": "El comprovador de DNS no ha retornat cap resultat per a {domain}. El seu estat de verificació no s'ha modificat.",
+    "source_hash": "9c5ab974"
+  },
+  "web.admin.domains.verify.success.overrideHeld": {
+    "text": "La comprovació TXT ha fallat per a {domain}, però continua verificat a causa d'una substitució de l'operador.",
+    "source_hash": "e754aac8"
+  },
+  "web.admin.domains.verify.success.confirmationExpired": {
+    "text": "La comprovació de DNS per a {domain} fa més de 7 dies que no retorna cap resultat. Ja no està verificat.",
+    "source_hash": "a6901cb5"
   }
 }

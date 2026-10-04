@@ -48,12 +48,12 @@
     "source_hash": "acaede35"
   },
   "web.admin.domains.addDomain.strategy.caddy_on_demand": {
-    "text": "Caddy isteğe bağlı — sertifikalar ilk istekte otomatik olarak verilir.",
-    "source_hash": "deb90ae6"
+    "text": "Caddy isteğe bağlı — DNS sahiplik denetimi (TXT kaydı); doğrulandıktan sonra sertifikalar otomatik olarak verilir.",
+    "source_hash": "1c926efa"
   },
   "web.admin.domains.addDomain.strategy.caddy": {
-    "text": "Caddy — sertifikalar ilk istekte otomatik olarak verilir.",
-    "source_hash": "a0f3c2dc"
+    "text": "Caddy — DNS sahiplik denetimi (TXT kaydı); doğrulandıktan sonra sertifikalar otomatik olarak verilir.",
+    "source_hash": "5774ff90"
   },
   "web.admin.domains.addDomain.strategy.unknown": {
     "text": "Dağıtım geneli doğrulama stratejisi.",
@@ -842,5 +842,81 @@
   "web.admin.domains.tls.none": {
     "text": "Hizmet vermiyor",
     "source_hash": "da8a5ab9"
+  },
+  "web.admin.domains.configs.edit.originsHint": {
+    "text": "Her satıra şemayla birlikte bir kaynak (origin) yazın, örneğin https://vault.example.com. Başka bir organizasyonun alan adındaki kaynaklar reddedilir.",
+    "source_hash": "4a4e1d33"
+  },
+  "web.admin.domains.configs.fields.related_origins": {
+    "text": "İlgili geçiş anahtarı kaynakları",
+    "source_hash": "e6160714"
+  },
+  "web.admin.domains.dns.cnameStepInstall": {
+    "text": "2. Alt alan adını bu kuruluma yönlendiren bir CNAME kaydı ekleyin.",
+    "source_hash": "b8a329f9"
+  },
+  "web.admin.domains.dns.aliasStepInstall": {
+    "text": "2. Apex'i bu kuruluma yönlendiren bir ALIAS veya ANAME kaydı ekleyin.",
+    "source_hash": "9a61ed66"
+  },
+  "web.admin.domains.dns.apexNote": {
+    "text": "Apex alan adı CNAME kaydı barındıramaz. DNS sağlayıcısında ALIAS veya ANAME kaydı yoksa, bu sunucunun IP adresine yönelen bir A kaydı aynı işi görür.",
+    "source_hash": "f69e3032"
+  },
+  "web.admin.domains.fields.verifiedByOverride": {
+    "text": "Evet (operatör geçersiz kılması)",
+    "source_hash": "a1a8644f"
+  },
+  "web.admin.domains.list.capped": {
+    "text": "Sonuçlar sınırlıdır: gösterilen sayı toplam değil, bir alt sınırdır. Tümünü görmek için aramayı veya filtreyi daraltın.",
+    "source_hash": "27537844"
+  },
+  "web.admin.domains.override.button": {
+    "text": "Durumu Geçersiz Kıl",
+    "source_hash": "c683774c"
+  },
+  "web.admin.domains.override.title": {
+    "text": "Doğrulama durumunu geçersiz kıl",
+    "source_hash": "66dbebb2"
+  },
+  "web.admin.domains.override.description": {
+    "text": "Bu alan adı için doğrulandı ve çözümleniyor işaretlerini elle ayarlayın. Dikkatli kullanın.",
+    "source_hash": "bc3eb719"
+  },
+  "web.admin.domains.override.verified": {
+    "text": "Doğrulandı",
+    "source_hash": "4f783840"
+  },
+  "web.admin.domains.override.resolving": {
+    "text": "Çözümleniyor",
+    "source_hash": "3287a034"
+  },
+  "web.admin.domains.override.apply": {
+    "text": "Geçersiz Kılmayı Uygula",
+    "source_hash": "e2d1472a"
+  },
+  "web.admin.domains.override.cancel": {
+    "text": "İptal",
+    "source_hash": "19766ed6"
+  },
+  "web.admin.domains.override.success": {
+    "text": "Alan adı durumu geçersiz kılındı.",
+    "source_hash": "42104cd0"
+  },
+  "web.admin.domains.override.noChange": {
+    "text": "Uygulanacak değişiklik yok.",
+    "source_hash": "07632d50"
+  },
+  "web.admin.domains.verify.success.indeterminate": {
+    "text": "DNS denetleyicisi {domain} için sonuç döndürmedi. Alan adının doğrulama durumu değiştirilmedi.",
+    "source_hash": "9c5ab974"
+  },
+  "web.admin.domains.verify.success.overrideHeld": {
+    "text": "{domain} için TXT denetimi başarısız oldu, ancak bir operatör geçersiz kılması nedeniyle doğrulanmış olarak kalıyor.",
+    "source_hash": "e754aac8"
+  },
+  "web.admin.domains.verify.success.confirmationExpired": {
+    "text": "{domain} için DNS denetimi 7 günden uzun süredir sonuç döndürmüyor. Alan adı artık doğrulanmış değil.",
+    "source_hash": "a6901cb5"
   }
 }

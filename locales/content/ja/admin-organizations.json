@@ -638,5 +638,121 @@
   "web.admin.organizations.entitlements.summary.planUnknown": {
     "text": "不明 — 比較できませんでした",
     "source_hash": "b607e540"
+  },
+  "web.admin.organizations.actions.plan.label": {
+    "text": "プラン",
+    "source_hash": "fa8ed0bd"
+  },
+  "web.admin.organizations.actions.plan.apply": {
+    "text": "適用",
+    "source_hash": "31e392d1"
+  },
+  "web.admin.organizations.actions.plan.confirmTitle": {
+    "text": "プランを変更しますか?",
+    "source_hash": "910a4de9"
+  },
+  "web.admin.organizations.actions.plan.confirmDescription": {
+    "text": "{org}のプランを{plan}に変更します。",
+    "source_hash": "aecf8277"
+  },
+  "web.admin.organizations.actions.plan.success": {
+    "text": "プランを更新しました。",
+    "source_hash": "ebe8d40c"
+  },
+  "web.admin.organizations.actions.plan.problem": {
+    "text": "プランは保存されましたが、エンタイトルメントは更新されませんでした。この組織で「整合」を実行してください。",
+    "source_hash": "2addb095"
+  },
+  "web.admin.organizations.actions.plan.localConfigWarning": {
+    "text": "プランはローカル設定から読み込まれました — Stripeが未設定か、接続できません。",
+    "source_hash": "df83e326"
+  },
+  "web.admin.organizations.detail.delete.button": {
+    "text": "組織を削除",
+    "source_hash": "a70d189a"
+  },
+  "web.admin.organizations.detail.delete.previewing": {
+    "text": "削除計画を読み込んでいます…",
+    "source_hash": "c9773eb9"
+  },
+  "web.admin.organizations.detail.delete.warning": {
+    "text": "組織、そのメンバーシップ、および保留中の招待を完全に削除し、元のメンバーにメールで通知します。この操作は元に戻せません。",
+    "source_hash": "fd314131"
+  },
+  "web.admin.organizations.detail.delete.confirmTitle": {
+    "text": "この組織を削除しますか?",
+    "source_hash": "6a3bba0f"
+  },
+  "web.admin.organizations.detail.delete.confirmDescription": {
+    "text": "{org}を完全に削除します。確認のため、組織IDを再入力してください。",
+    "source_hash": "c63a0221"
+  },
+  "web.admin.organizations.detail.delete.membersLabel": {
+    "text": "メンバー",
+    "source_hash": "1044a4c0"
+  },
+  "web.admin.organizations.detail.delete.invitationsLabel": {
+    "text": "保留中の招待",
+    "source_hash": "76198e63"
+  },
+  "web.admin.organizations.detail.delete.domainsLabel": {
+    "text": "ドメイン",
+    "source_hash": "ced67718"
+  },
+  "web.admin.organizations.detail.delete.defaultOrgLabel": {
+    "text": "既定のワークスペースが解除されるユーザー",
+    "source_hash": "d535ac2a"
+  },
+  "web.admin.organizations.detail.delete.forceDefault": {
+    "text": "これはオーナーの既定 (個人) のワークスペースです。それでも削除します。",
+    "source_hash": "1a8b0f7d"
+  },
+  "web.admin.organizations.detail.delete.forceSubscription": {
+    "text": "サブスクリプションは有効です。それでも削除します — Stripeの請求はキャンセルされません。",
+    "source_hash": "51cb3456"
+  },
+  "web.admin.organizations.detail.delete.driftedDomainsLabel": {
+    "text": "不整合のあるドメイン",
+    "source_hash": "fef96f49"
+  },
+  "web.admin.organizations.detail.delete.driftedDomainsRepair": {
+    "text": "修復コマンド: bin/ots domains doctor --all --repair",
+    "source_hash": "14c9c59f"
+  },
+  "web.admin.organizations.detail.delete.success": {
+    "text": "{org}を削除しました。",
+    "source_hash": "9cdda5d0"
+  },
+  "web.admin.organizations.detail.delete.blocked.hasDomains": {
+    "text": "ブロックされています: 先にカスタムドメインを削除してください ({domains})。",
+    "source_hash": "dc3248b2"
+  },
+  "web.admin.organizations.detail.delete.blocked.driftedDomains": {
+    "text": "ブロックされています: 次のドメインレコードはまだこの組織を参照していますが、組織のドメイン一覧にありません ({domains})。先に bin/ots domains doctor --all --repair を実行してください — 上書きはできません。",
+    "source_hash": "3136496c"
+  },
+  "web.admin.organizations.detail.delete.blocked.isDefault": {
+    "text": "ブロックされています: これはオーナーの既定のワークスペースです。それでも削除するには、下の上書きオプションにチェックを入れてください。",
+    "source_hash": "09d5baa4"
+  },
+  "web.admin.organizations.detail.delete.blocked.activeSubscription": {
+    "text": "ブロックされています: この組織には有効なサブスクリプションがあります。先にStripeでキャンセルするか、下の上書きオプションにチェックを入れてください。",
+    "source_hash": "68663641"
+  },
+  "web.admin.organizations.detail.delete.blocked.lastOrg": {
+    "text": "ブロックされています: これは{owner}が所属する唯一の組織であり、削除するとワークスペースがなくなります。上書きはできません — 先に代わりの組織を作成してください。",
+    "source_hash": "f09b4f9a"
+  },
+  "web.admin.organizations.detail.delete.errors.planUnreadable": {
+    "text": "サーバーから削除計画を読み取れませんでした。何も削除されていません。",
+    "source_hash": "91406cbb"
+  },
+  "web.admin.organizations.detail.delete.errors.unverified": {
+    "text": "サーバーの応答を検証できませんでした。組織の一覧を再読み込みして、削除が完了したかどうかを確認してください。",
+    "source_hash": "7a261fb0"
+  },
+  "web.admin.organizations.detail.delete.errors.notApplied": {
+    "text": "サーバーから返されたのは削除ではなくプレビューでした。何も削除されていません。",
+    "source_hash": "9d84971d"
   }
 }

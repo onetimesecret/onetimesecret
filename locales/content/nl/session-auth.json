@@ -509,8 +509,8 @@
     "source_hash": "7fbbb7e7"
   },
   "web.login.errors.identity_connect_conflict": {
-    "text": "Deze identiteit kon niet worden gekoppeld. De koppeling is mogelijk gestart op het verkeerde domein, of je sessie is verlopen. Log opnieuw in en koppel deze via je accountinstellingen.",
-    "source_hash": "4238bbf2"
+    "text": "Deze identiteit kon niet worden gekoppeld. Mogelijk hoort ze al bij een ander account.",
+    "source_hash": "d8b71cf8"
   },
   "web.login.errors.org_join_failed": {
     "text": "We konden je niet aan je organisatie toevoegen. Neem contact op met je beheerder.",
@@ -527,5 +527,25 @@
   "web.login.errors.sso_cancelled": {
     "text": "Het inloggen is geannuleerd. Je kunt het opnieuw proberen wanneer je er klaar voor bent.",
     "source_hash": "b5f3d3ec"
+  },
+  "web.login.errors.sso_issuer_mismatch": {
+    "text": "Inloggen met deze provider is onjuist geconfigureerd. Neem contact op met je beheerder.",
+    "source_hash": "44df5918"
+  },
+  "web.login.errors.sso_config_unusable": {
+    "text": "Single sign-on voor dit domein is geconfigureerd, maar momenteel niet bruikbaar. Neem contact op met de beheerder van je organisatie.",
+    "source_hash": "f704b391"
+  },
+  "web.login.errors.sso_domain_unverified": {
+    "text": "Single sign-on voor dit domein is nog niet actief, omdat de verificatie van het domein nog niet is voltooid. Neem contact op met je beheerder.",
+    "source_hash": "bd981480"
+  },
+  "web.login.errors.tenant_sso_link_unavailable": {
+    "text": "Deze identiteit is niet gekoppeld aan een account op dit domein. Als je op dit domein kunt inloggen met een account dat bij deze organisatie hoort, koppel de identiteit dan via Gekoppelde identiteiten. Vraag anders een eigenaar van de organisatie om deze SSO-identiteit uit te nodigen, of neem contact op met support.",
+    "source_hash": "66e7376c"
+  },
+  "web.login.errors.identity_connect_wrong_domain": {
+    "text": "Deze identiteit kon op dit domein niet worden gekoppeld. Start het koppelen vanaf de site waarop je bent ingelogd; op het domein van een organisatie moet je account al bij die organisatie horen.",
+    "source_hash": "d967c761"
   }
 }

@@ -46,5 +46,17 @@
   "api.domains.errors.homepage_incoming_not_ready": {
     "text": "受信シークレットをホームページとして使用するには、少なくとも1人の受信者を設定して有効にする必要があります。",
     "source_hash": "556da6e2"
+  },
+  "api.domains.errors.related_origins_invalid": {
+    "text": "有効なオリジンではありません: %{origins}。スキームとホストを入力してください (例: https://vault.example.com)",
+    "source_hash": "5acb92ca"
+  },
+  "api.domains.errors.related_origins_foreign_organization": {
+    "text": "次のオリジンは別の組織に属しているため、追加できません: %{origins}",
+    "source_hash": "ac21c1e7"
+  },
+  "api.domains.errors.allowed_signup_domains_invalid": {
+    "text": "有効なドメインではありません: %{domains}。登録可能なドメイン名を入力してください (例: example.com)",
+    "source_hash": "2d93472c"
   }
 }

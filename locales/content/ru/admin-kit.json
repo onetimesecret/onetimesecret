@@ -62,5 +62,29 @@
   "web.admin.kit.revealEmail.copy": {
     "text": "Копировать адрес электронной почты",
     "source_hash": "61b94846"
+  },
+  "web.admin.errors.rateLimited": {
+    "text": "Повторить попытку можно примерно через {minutes} мин.",
+    "source_hash": "27f2d054"
+  },
+  "web.admin.errors.rateLimitedRecovery": {
+    "text": "Если действовать нужно раньше, сбросьте ограничитель для своего аккаунта через POST /api/colonel/ratelimit/reset или выполните `bin/ots ratelimit keys <kind> <extid>`.",
+    "source_hash": "b77e1388"
+  },
+  "web.admin.kit.confirmDialog.reasonLabel": {
+    "text": "Причина (необязательно)",
+    "source_hash": "0f7d4664"
+  },
+  "web.admin.kit.confirmDialog.reasonPlaceholder": {
+    "text": "Почему Вы это делаете?",
+    "source_hash": "ef83fe82"
+  },
+  "web.admin.kit.confirmDialog.reasonHint": {
+    "text": "Записывается в журнал аудита администратора вместе с этим действием.",
+    "source_hash": "23779076"
+  },
+  "web.admin.kit.filterBar.searchSubmit": {
+    "text": "Найти",
+    "source_hash": "49c266ba"
   }
 }

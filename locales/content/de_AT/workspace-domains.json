@@ -1626,5 +1626,37 @@
   "web.domains.sso.status_unavailable_hint": {
     "text": "SSO kann in diesem Bereich derzeit nicht angeboten werden. Prüfen Sie die SSO-Anmeldedaten und die Anmeldeeinstellungen dieses Bereichs.",
     "source_hash": "b03b14f4"
+  },
+  "web.domains.status_tooltip_pending_ssl": {
+    "text": "Bereich verifiziert — Zertifikat ausstehend",
+    "source_hash": "541bd705"
+  },
+  "web.domains.2_create_the_alias_record": {
+    "text": "2. ALIAS- oder ANAME-Eintrag erstellen",
+    "source_hash": "17b04e6a"
+  },
+  "web.domains.sso.status_saml_disabled_badge": {
+    "text": "SAML ausgeschaltet",
+    "source_hash": "4e2eab51"
+  },
+  "web.domains.sso.status_saml_disabled_hint": {
+    "text": "Der Website-Betreiber hat SAML für diese Installation ausgeschaltet. Ihre Konfiguration bleibt erhalten und wird wieder wirksam, sobald SAML wieder eingeschaltet wird; bis dahin bietet dieser Bereich keine SAML-Anmeldung an.",
+    "source_hash": "5ba9624c"
+  },
+  "web.domains.sso.status_domain_unverified_badge": {
+    "text": "Bereichsverifizierung ausstehend",
+    "source_hash": "ea7459c2"
+  },
+  "web.domains.sso.status_domain_unverified_hint": {
+    "text": "Die Verifizierung dieses Bereichs ist noch nicht abgeschlossen, daher ist seine SSO-Verbindung auf der Anmeldeseite noch nicht aktiv. SSO wird eingeschaltet, sobald der Bereich verifiziert ist und SSO hier für ihn zugelassen ist.",
+    "source_hash": "57ee0066"
+  },
+  "web.domains.verify_outcome.indeterminate": {
+    "text": "Wir konnten die DNS-Prüfung gerade nicht abschließen. Das bedeutet nicht, dass Ihre Einträge falsch sind. Bitte versuchen Sie es in ein paar Minuten erneut.",
+    "source_hash": "4e76a9ef"
+  },
+  "web.domains.verify_outcome.record_not_found": {
+    "text": "Wir haben den erwarteten TXT-Eintrag nicht gefunden. Prüfen Sie, ob er vorhanden ist und sein Wert genau übereinstimmt. Neue DNS-Einträge können einige Minuten brauchen, bis sie sichtbar werden.",
+    "source_hash": "6c847d46"
   }
 }

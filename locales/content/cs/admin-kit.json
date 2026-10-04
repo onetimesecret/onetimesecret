@@ -62,5 +62,29 @@
   "web.admin.kit.revealEmail.copy": {
     "text": "Kopírovat e-mailovou adresu",
     "source_hash": "61b94846"
+  },
+  "web.admin.errors.rateLimited": {
+    "text": "Znovu to můžeš zkusit přibližně za {minutes} min.",
+    "source_hash": "27f2d054"
+  },
+  "web.admin.errors.rateLimitedRecovery": {
+    "text": "Pokud musíš jednat dřív, vymaž omezovač pro svůj vlastní účet pomocí POST /api/colonel/ratelimit/reset, nebo spusť `bin/ots ratelimit keys <kind> <extid>`.",
+    "source_hash": "b77e1388"
+  },
+  "web.admin.kit.confirmDialog.reasonLabel": {
+    "text": "Důvod (volitelné)",
+    "source_hash": "0f7d4664"
+  },
+  "web.admin.kit.confirmDialog.reasonPlaceholder": {
+    "text": "Proč to děláš?",
+    "source_hash": "ef83fe82"
+  },
+  "web.admin.kit.confirmDialog.reasonHint": {
+    "text": "Zaznamená se do administrátorského protokolu auditu spolu s touto akcí.",
+    "source_hash": "23779076"
+  },
+  "web.admin.kit.filterBar.searchSubmit": {
+    "text": "Hledat",
+    "source_hash": "49c266ba"
   }
 }

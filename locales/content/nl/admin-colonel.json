@@ -778,5 +778,37 @@
   "web.colonel.organizations.filters.searchPlaceholder": {
     "text": "Zoeken op ID, naam of e-mail",
     "source_hash": "6fe16473"
+  },
+  "web.colonel.organizations.capped": {
+    "text": "Resultaten zijn begrensd: het getoonde aantal is een ondergrens, niet het totaal. Filters omvatten elke organisatie met een gekoppeld abonnement plus de meest recent bijgewerkte; zoek op een exacte ID of e-mail om een andere te vinden.",
+    "source_hash": "0743238d"
+  },
+  "web.impersonation.banner.label": {
+    "text": "Imitatie actief",
+    "source_hash": "d96f0e8d"
+  },
+  "web.impersonation.banner.viewingAs": {
+    "text": "Weergave als {email}",
+    "source_hash": "cf2dd9c6"
+  },
+  "web.impersonation.banner.readOnly": {
+    "text": "Alleen-lezen: wijzigingen zijn geblokkeerd tijdens imitatie.",
+    "source_hash": "46ed3b68"
+  },
+  "web.impersonation.banner.expiresIn": {
+    "text": "Eindigt over {time}",
+    "source_hash": "b4999fd8"
+  },
+  "web.impersonation.banner.stop": {
+    "text": "Imitatie stoppen",
+    "source_hash": "5cf74e38"
+  },
+  "web.impersonation.banner.stopping": {
+    "text": "Stoppen…",
+    "source_hash": "bbe85741"
+  },
+  "web.impersonation.banner.stopFailed": {
+    "text": "Imitatie kon niet worden gestopt. Probeer het opnieuw.",
+    "source_hash": "5aa72353"
   }
 }

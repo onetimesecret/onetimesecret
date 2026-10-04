@@ -134,5 +134,25 @@
   "api.organizations.members.errors.no_permission_to_remove": {
     "text": "Нямате права да премахвате членове",
     "source_hash": "b0ac7287"
+  },
+  "api.organizations.errors.delete_has_domains": {
+    "text": "Премахнете потребителските домейни на тази организация, преди да я изтриете: %{domains}",
+    "source_hash": "040a401e"
+  },
+  "api.organizations.errors.delete_drifted_domains_count": {
+    "text": "%{count} запис(а) на домейни все още препращат към тази организация, но вече не са изброени в нея. Моля, свържете се с поддръжката, за да ги премахнете, преди да изтриете тази организация.",
+    "source_hash": "f6e71a9a"
+  },
+  "api.organizations.errors.delete_is_default": {
+    "text": "Вашата работна област по подразбиране не може да бъде изтрита. Свържете се с поддръжката, ако е необходимо да бъде премахната.",
+    "source_hash": "bc2eaed5"
+  },
+  "api.organizations.errors.delete_active_subscription": {
+    "text": "Анулирайте абонамента на тази организация, преди да я изтриете.",
+    "source_hash": "f0c54eca"
+  },
+  "api.organizations.errors.delete_last_org": {
+    "text": "Това е единствената ви организация. Създайте друга, преди да изтриете тази.",
+    "source_hash": "7608a1d6"
   }
 }

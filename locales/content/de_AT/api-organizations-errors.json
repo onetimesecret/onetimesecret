@@ -134,5 +134,25 @@
   "api.organizations.members.errors.no_permission_to_remove": {
     "text": "Sie haben keine Berechtigung, Mitglieder zu entfernen",
     "source_hash": "b0ac7287"
+  },
+  "api.organizations.errors.delete_has_domains": {
+    "text": "Entfernen Sie die benutzerdefinierten Bereiche dieser Organisation, bevor Sie sie löschen: %{domains}",
+    "source_hash": "040a401e"
+  },
+  "api.organizations.errors.delete_drifted_domains_count": {
+    "text": "%{count} Bereichseintrag/-einträge verweisen noch auf diese Organisation, sind darin aber nicht mehr aufgeführt. Bitte wenden Sie sich an den Support, um sie entfernen zu lassen, bevor Sie diese Organisation löschen.",
+    "source_hash": "f6e71a9a"
+  },
+  "api.organizations.errors.delete_is_default": {
+    "text": "Ihr Standard-Workspace kann nicht gelöscht werden. Wenden Sie sich an den Support, wenn er entfernt werden soll.",
+    "source_hash": "bc2eaed5"
+  },
+  "api.organizations.errors.delete_active_subscription": {
+    "text": "Kündigen Sie das Abonnement dieser Organisation, bevor Sie sie löschen.",
+    "source_hash": "f0c54eca"
+  },
+  "api.organizations.errors.delete_last_org": {
+    "text": "Dies ist Ihre einzige Organisation. Erstellen Sie eine weitere, bevor Sie diese löschen.",
+    "source_hash": "7608a1d6"
   }
 }

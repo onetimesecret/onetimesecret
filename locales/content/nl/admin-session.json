@@ -1,0 +1,10 @@
+{
+  "web.admin.session.expired": {
+    "text": "Je beheerderssessie is verlopen. Log opnieuw in om door te gaan.",
+    "source_hash": "e970de7c"
+  },
+  "web.admin.session.signIn": {
+    "text": "Inloggen",
+    "source_hash": "bfd402b2"
+  }
+}

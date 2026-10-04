@@ -62,5 +62,29 @@
   "web.admin.kit.revealEmail.copy": {
     "text": "Copia l'adreça de correu electrònic",
     "source_hash": "61b94846"
+  },
+  "web.admin.errors.rateLimited": {
+    "text": "Pots tornar-ho a provar d'aquí a uns {minutes} minuts.",
+    "source_hash": "27f2d054"
+  },
+  "web.admin.errors.rateLimitedRecovery": {
+    "text": "Si has d'actuar abans, esborra el limitador amb POST /api/colonel/ratelimit/reset per al teu propi compte o executa `bin/ots ratelimit keys <kind> <extid>`.",
+    "source_hash": "b77e1388"
+  },
+  "web.admin.kit.confirmDialog.reasonLabel": {
+    "text": "Motiu (opcional)",
+    "source_hash": "0f7d4664"
+  },
+  "web.admin.kit.confirmDialog.reasonPlaceholder": {
+    "text": "Per què fas això?",
+    "source_hash": "ef83fe82"
+  },
+  "web.admin.kit.confirmDialog.reasonHint": {
+    "text": "Es registra al registre d'auditoria d'administració juntament amb aquesta acció.",
+    "source_hash": "23779076"
+  },
+  "web.admin.kit.filterBar.searchSubmit": {
+    "text": "Cerca",
+    "source_hash": "49c266ba"
   }
 }

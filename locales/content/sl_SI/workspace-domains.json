@@ -1626,5 +1626,37 @@
   "web.domains.sso.status_unavailable_hint": {
     "text": "SSO na tej domeni trenutno ni mogoče ponuditi. Preverite poverilnice SSO in nastavitve prijave te domene.",
     "source_hash": "b03b14f4"
+  },
+  "web.domains.status_tooltip_pending_ssl": {
+    "text": "Domena preverjena — čaka na potrdilo",
+    "source_hash": "541bd705"
+  },
+  "web.domains.2_create_the_alias_record": {
+    "text": "2. Ustvarite ALIAS ali ANAME zapis",
+    "source_hash": "17b04e6a"
+  },
+  "web.domains.sso.status_saml_disabled_badge": {
+    "text": "SAML izklopljen",
+    "source_hash": "4e2eab51"
+  },
+  "web.domains.sso.status_saml_disabled_hint": {
+    "text": "Upravljavec spletnega mesta je za to namestitev izklopil SAML. Vaša konfiguracija je ohranjena in bo znova delovala, ko bo SAML spet vklopljen; do takrat ta domena ne ponuja prijave SAML.",
+    "source_hash": "5ba9624c"
+  },
+  "web.domains.sso.status_domain_unverified_badge": {
+    "text": "Čaka na preverjanje domene",
+    "source_hash": "ea7459c2"
+  },
+  "web.domains.sso.status_domain_unverified_hint": {
+    "text": "Preverjanje te domene še ni končano, zato njena povezava SSO na prijavni strani še ni aktivna. SSO se vklopi, ko je domena preverjena in je SSO zanjo tukaj dovoljen.",
+    "source_hash": "57ee0066"
+  },
+  "web.domains.verify_outcome.indeterminate": {
+    "text": "Preverjanja DNS trenutno nismo mogli dokončati. To ne pomeni, da so vaši zapisi napačni. Poskusite znova čez nekaj minut.",
+    "source_hash": "4e76a9ef"
+  },
+  "web.domains.verify_outcome.record_not_found": {
+    "text": "Pričakovanega zapisa TXT nismo našli. Preverite, ali obstaja in ali se njegova vrednost natančno ujema. Novi zapisi DNS se lahko pojavijo šele po nekaj minutah.",
+    "source_hash": "6c847d46"
   }
 }

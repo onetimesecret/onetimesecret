@@ -778,5 +778,37 @@
   "web.colonel.organizations.filters.searchPlaceholder": {
     "text": "Αναζήτηση με αναγνωριστικό, όνομα ή email",
     "source_hash": "6fe16473"
+  },
+  "web.colonel.organizations.capped": {
+    "text": "Τα αποτελέσματα είναι περιορισμένα: ο αριθμός που εμφανίζεται είναι κατώτατο όριο, όχι το σύνολο. Τα φίλτρα καλύπτουν κάθε οργανισμό που συνδέεται με συνδρομή, καθώς και τους πιο πρόσφατα ενημερωμένους. Για οποιονδήποτε άλλο, αναζητήστε με ακριβές ID ή email.",
+    "source_hash": "0743238d"
+  },
+  "web.impersonation.banner.label": {
+    "text": "Ενεργή απομίμηση",
+    "source_hash": "d96f0e8d"
+  },
+  "web.impersonation.banner.viewingAs": {
+    "text": "Προβολή ως {email}",
+    "source_hash": "cf2dd9c6"
+  },
+  "web.impersonation.banner.readOnly": {
+    "text": "Μόνο για ανάγνωση: οι αλλαγές αποκλείονται κατά την απομίμηση.",
+    "source_hash": "46ed3b68"
+  },
+  "web.impersonation.banner.expiresIn": {
+    "text": "Λήγει σε {time}",
+    "source_hash": "b4999fd8"
+  },
+  "web.impersonation.banner.stop": {
+    "text": "Διακοπή απομίμησης",
+    "source_hash": "5cf74e38"
+  },
+  "web.impersonation.banner.stopping": {
+    "text": "Διακοπή…",
+    "source_hash": "bbe85741"
+  },
+  "web.impersonation.banner.stopFailed": {
+    "text": "Δεν ήταν δυνατή η διακοπή της απομίμησης. Δοκιμάστε ξανά.",
+    "source_hash": "5aa72353"
   }
 }

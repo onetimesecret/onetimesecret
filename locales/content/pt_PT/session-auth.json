@@ -509,8 +509,8 @@
     "source_hash": "7fbbb7e7"
   },
   "web.login.errors.identity_connect_conflict": {
-    "text": "Esta identidade não pôde ser ligada. A ligação pode ter sido iniciada no domínio errado ou a tua sessão expirou. Por favor, inicia sessão novamente e depois liga-a nas definições da tua conta.",
-    "source_hash": "4238bbf2"
+    "text": "Não foi possível ligar esta identidade. Pode já pertencer a outra conta.",
+    "source_hash": "d8b71cf8"
   },
   "web.login.errors.org_join_failed": {
     "text": "Não foi possível concluir a tua adição à organização. Por favor, contacta o teu administrador.",
@@ -527,5 +527,25 @@
   "web.login.errors.sso_cancelled": {
     "text": "O início de sessão foi cancelado. Podes tentar novamente quando quiseres.",
     "source_hash": "b5f3d3ec"
+  },
+  "web.login.errors.sso_issuer_mismatch": {
+    "text": "O início de sessão com este fornecedor está mal configurado. Contacta o teu administrador.",
+    "source_hash": "44df5918"
+  },
+  "web.login.errors.sso_config_unusable": {
+    "text": "O início de sessão único para este domínio está configurado, mas não pode ser utilizado neste momento. Contacta o administrador da tua organização.",
+    "source_hash": "f704b391"
+  },
+  "web.login.errors.sso_domain_unverified": {
+    "text": "O início de sessão único para este domínio ainda não está ativo porque a verificação do domínio não foi concluída. Contacta o teu administrador.",
+    "source_hash": "bd981480"
+  },
+  "web.login.errors.tenant_sso_link_unavailable": {
+    "text": "Esta identidade não está ligada a uma conta neste domínio. Se conseguires iniciar sessão neste domínio com uma conta que pertença a esta organização, liga-a a partir de Identidades ligadas. Caso contrário, pede a um proprietário da organização que convide esta identidade SSO ou contacta o suporte.",
+    "source_hash": "66e7376c"
+  },
+  "web.login.errors.identity_connect_wrong_domain": {
+    "text": "Não foi possível ligar esta identidade neste domínio. Começa a ligação a partir do site em que tens sessão iniciada; no domínio de uma organização, a tua conta já tem de pertencer a essa organização.",
+    "source_hash": "d967c761"
   }
 }

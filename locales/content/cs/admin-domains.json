@@ -48,12 +48,12 @@
     "source_hash": "acaede35"
   },
   "web.admin.domains.addDomain.strategy.caddy_on_demand": {
-    "text": "Caddy on-demand — certifikáty vydávány automaticky při prvním požadavku.",
-    "source_hash": "deb90ae6"
+    "text": "Caddy on-demand — kontrola vlastnictví DNS (TXT záznam); po ověření se certifikáty vydávají automaticky.",
+    "source_hash": "1c926efa"
   },
   "web.admin.domains.addDomain.strategy.caddy": {
-    "text": "Caddy — certifikáty vydávány automaticky při prvním požadavku.",
-    "source_hash": "a0f3c2dc"
+    "text": "Caddy — kontrola vlastnictví DNS (TXT záznam); po ověření se certifikáty vydávají automaticky.",
+    "source_hash": "5774ff90"
   },
   "web.admin.domains.addDomain.strategy.unknown": {
     "text": "Strategie ověření pro celé nasazení.",
@@ -842,5 +842,81 @@
   "web.admin.domains.tls.none": {
     "text": "Neobsluhuje",
     "source_hash": "da8a5ab9"
+  },
+  "web.admin.domains.configs.edit.originsHint": {
+    "text": "Jeden origin na řádek, včetně schématu, například https://vault.example.com. Origin na doméně jiné organizace bude odmítnut.",
+    "source_hash": "4a4e1d33"
+  },
+  "web.admin.domains.configs.fields.related_origins": {
+    "text": "Související originy pro passkey",
+    "source_hash": "e6160714"
+  },
+  "web.admin.domains.dns.cnameStepInstall": {
+    "text": "2. Přidej CNAME záznam směřující subdoménu na tuto instalaci.",
+    "source_hash": "b8a329f9"
+  },
+  "web.admin.domains.dns.aliasStepInstall": {
+    "text": "2. Přidej ALIAS nebo ANAME záznam směřující apex na tuto instalaci.",
+    "source_hash": "9a61ed66"
+  },
+  "web.admin.domains.dns.apexNote": {
+    "text": "Apex doména nemůže mít CNAME záznam. Pokud poskytovatel DNS nenabízí ALIAS ani ANAME záznam, poslouží stejně A záznam s IP adresou tohoto serveru.",
+    "source_hash": "f69e3032"
+  },
+  "web.admin.domains.fields.verifiedByOverride": {
+    "text": "Ano (přepsáno operátorem)",
+    "source_hash": "a1a8644f"
+  },
+  "web.admin.domains.list.capped": {
+    "text": "Výsledky jsou omezené: zobrazený počet je spodní hranice, ne celkový počet. Pro zobrazení všeho upřesni hledání nebo filtr.",
+    "source_hash": "27537844"
+  },
+  "web.admin.domains.override.button": {
+    "text": "Přepsat stav",
+    "source_hash": "c683774c"
+  },
+  "web.admin.domains.override.title": {
+    "text": "Přepsat stav ověření",
+    "source_hash": "66dbebb2"
+  },
+  "web.admin.domains.override.description": {
+    "text": "Ručně nastav příznaky „Ověřeno“ a „Řeší se“ pro tuto doménu. Používej opatrně.",
+    "source_hash": "bc3eb719"
+  },
+  "web.admin.domains.override.verified": {
+    "text": "Ověřeno",
+    "source_hash": "4f783840"
+  },
+  "web.admin.domains.override.resolving": {
+    "text": "Řeší se",
+    "source_hash": "3287a034"
+  },
+  "web.admin.domains.override.apply": {
+    "text": "Použít přepsání",
+    "source_hash": "e2d1472a"
+  },
+  "web.admin.domains.override.cancel": {
+    "text": "Zrušit",
+    "source_hash": "19766ed6"
+  },
+  "web.admin.domains.override.success": {
+    "text": "Stav domény přepsán.",
+    "source_hash": "42104cd0"
+  },
+  "web.admin.domains.override.noChange": {
+    "text": "Žádné změny k použití.",
+    "source_hash": "07632d50"
+  },
+  "web.admin.domains.verify.success.indeterminate": {
+    "text": "Kontrola DNS nevrátila pro doménu {domain} žádný výsledek. Její stav ověření zůstal beze změny.",
+    "source_hash": "9c5ab974"
+  },
+  "web.admin.domains.verify.success.overrideHeld": {
+    "text": "Kontrola TXT záznamu pro doménu {domain} selhala, ale doména zůstává ověřená díky přepsání operátorem.",
+    "source_hash": "e754aac8"
+  },
+  "web.admin.domains.verify.success.confirmationExpired": {
+    "text": "Kontrola DNS pro doménu {domain} nevrací žádný výsledek déle než 7 dní. Doména již není ověřená.",
+    "source_hash": "a6901cb5"
   }
 }

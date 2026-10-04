@@ -1218,5 +1218,129 @@
   "web.organizations.sso.enable_untested_warning": {
     "text": "Αυτή η σύνδεση δεν έχει περάσει ακόμη δοκιμή εδώ. Εκτελέστε τη «Δοκιμή σύνδεσης» πριν την ενεργοποιήσετε, ώστε μια εσφαλμένη διαμόρφωση να μη φτάσει ποτέ στη σελίδα σύνδεσής σας.",
     "source_hash": "c1fbdeca"
+  },
+  "web.organizations.delete_organization_cancel_subscription_first": {
+    "text": "Ακυρώστε τη συνδρομή αυτού του οργανισμού πριν τον διαγράψετε.",
+    "source_hash": "f0c54eca"
+  },
+  "web.organizations.sso.disable_action": {
+    "text": "Απενεργοποίηση SSO",
+    "source_hash": "2f072272"
+  },
+  "web.organizations.sso.disable_confirm": {
+    "text": "Απενεργοποίηση αυτής της σύνδεσης SSO; Οι μη αποθηκευμένες αλλαγές της φόρμας δεν θα αποθηκευτούν. Τα αποθηκευμένα διαπιστευτήρια θα διατηρηθούν.",
+    "source_hash": "608b142a"
+  },
+  "web.organizations.sso.disable_enforcement_warning": {
+    "text": "Θα απενεργοποιηθεί επίσης η επιβολή μόνο SSO, επιτρέποντας άλλες διαμορφωμένες μεθόδους σύνδεσης.",
+    "source_hash": "58abd552"
+  },
+  "web.organizations.sso.idp_sso_service_url": {
+    "text": "URL υπηρεσίας SSO του IdP",
+    "source_hash": "0b33b1ac"
+  },
+  "web.organizations.sso.idp_sso_service_url_hint": {
+    "text": "Το τελικό σημείο HTTPS που δημοσιεύει ο πάροχος ταυτότητάς σας για ενιαία σύνδεση SAML",
+    "source_hash": "bc6fdfd9"
+  },
+  "web.organizations.sso.idp_sso_service_url_placeholder": {
+    "text": "https://idp.example.com/sso/saml",
+    "source_hash": "513d0586"
+  },
+  "web.organizations.sso.idp_entity_id": {
+    "text": "Entity ID του IdP",
+    "source_hash": "14a4ab8b"
+  },
+  "web.organizations.sso.idp_entity_id_hint": {
+    "text": "Το αναγνωριστικό εκδότη από τα μεταδεδομένα του παρόχου ταυτότητάς σας, ακριβώς όπως έχει δημοσιευτεί",
+    "source_hash": "c3d8320b"
+  },
+  "web.organizations.sso.idp_entity_id_placeholder": {
+    "text": "https://idp.example.com/metadata",
+    "source_hash": "0c46d14d"
+  },
+  "web.organizations.sso.idp_cert": {
+    "text": "Πιστοποιητικό υπογραφής του IdP",
+    "source_hash": "c84000cd"
+  },
+  "web.organizations.sso.idp_cert_hint": {
+    "text": "Το πιστοποιητικό X.509 (PEM) με το οποίο ο πάροχος ταυτότητάς σας υπογράφει τις δηλώσεις (assertions). Μόνο ένα πιστοποιητικό. Τα αποτυπώματα δεν γίνονται δεκτά.",
+    "source_hash": "b5e157f5"
+  },
+  "web.organizations.sso.idp_cert_placeholder": {
+    "text": "-----BEGIN CERTIFICATE-----",
+    "source_hash": "ddddb6cb"
+  },
+  "web.organizations.sso.sp_details": {
+    "text": "Στοιχεία παρόχου υπηρεσιών",
+    "source_hash": "4b6617d2"
+  },
+  "web.organizations.sso.sp_details_hint": {
+    "text": "Καταχωρίστε αυτές τις τιμές στον πάροχο ταυτότητάς σας",
+    "source_hash": "784e9410"
+  },
+  "web.organizations.sso.sp_details_preview_hint": {
+    "text": "Προεπισκόπηση με βάση την προεπιλεγμένη διαδρομή σύνδεσης. Αποθηκεύστε αυτήν τη διαμόρφωση και, στη συνέχεια, επιβεβαιώστε αυτές τις τιμές εδώ πριν τις καταχωρίσετε στον πάροχο ταυτότητάς σας.",
+    "source_hash": "fd9d3001"
+  },
+  "web.organizations.sso.domain_unverified_notice": {
+    "text": "Η ενιαία σύνδεση (SSO) είναι απενεργοποιημένη σε αυτόν τον τομέα μέχρι να επαληθευτεί ο τομέας. Η επαλήθευση δεν αλλάζει τις παρακάτω τιμές.",
+    "source_hash": "4b56ea4b"
+  },
+  "web.organizations.sso.sp_entity_id": {
+    "text": "Entity ID του SP (URL μεταδεδομένων)",
+    "source_hash": "59bc544c"
+  },
+  "web.organizations.sso.acs_url": {
+    "text": "URL του Assertion Consumer Service",
+    "source_hash": "5dacfb65"
+  },
+  "web.organizations.sso.unreadable_field": {
+    "text": "Δεν ήταν δυνατή η ανάγνωση της αποθηκευμένης τιμής. Εισάγετέ την ξανά για να συνεχίσετε.",
+    "source_hash": "ca3b5fcc"
+  },
+  "web.organizations.sso.unreadable_fields_alert": {
+    "text": "Ορισμένες αποθηκευμένες τιμές δεν ήταν δυνατό να διαβαστούν και πρέπει να εισαχθούν ξανά: {fields}",
+    "source_hash": "e9fa9d16"
+  },
+  "web.organizations.sso.idp_cert_expired_alert": {
+    "text": "Το πιστοποιητικό του παρόχου ταυτότητας έληξε στις {date}. Η είσοδος μέσω αυτής της σύνδεσης SSO θα αποτυγχάνει μέχρι να αποθηκευτεί ένα έγκυρο πιστοποιητικό.",
+    "source_hash": "527fb721"
+  },
+  "web.organizations.sso.idp_cert_expiring_notice": {
+    "text": "Το πιστοποιητικό του παρόχου ταυτότητας λήγει στις {date}. Αντικαταστήστε το πριν από τότε, ώστε η σύνδεση να συνεχίσει να λειτουργεί.",
+    "source_hash": "ccaf6ca7"
+  },
+  "web.organizations.sso.test_connection_hint_saml": {
+    "text": "Ελέγχει τοπικά το URL SSO, το Entity ID και το πιστοποιητικό — δεν γίνεται επικοινωνία με τον πάροχο ταυτότητας",
+    "source_hash": "1dad3945"
+  },
+  "web.organizations.sso.configured_issuer": {
+    "text": "Διαμορφωμένος εκδότης",
+    "source_hash": "6b307b7f"
+  },
+  "web.organizations.sso.discovery_issuer": {
+    "text": "Εκδότης από την ανακάλυψη",
+    "source_hash": "9d74f978"
+  },
+  "web.organizations.sso.issuer_mismatch_hint": {
+    "text": "Τα αναγνωριστικά εκδότη OIDC πρέπει να ταιριάζουν ακριβώς, συμπεριλαμβανομένης τυχόν τελικής καθέτου. Ορίστε το URL εκδότη στην τιμή ανακάλυψης που εμφανίζεται παραπάνω.",
+    "source_hash": "ec144c88"
+  },
+  "web.organizations.sso.certificate_subject": {
+    "text": "Υποκείμενο πιστοποιητικού",
+    "source_hash": "d7816b16"
+  },
+  "web.organizations.sso.certificate_expires": {
+    "text": "Λήξη πιστοποιητικού",
+    "source_hash": "1e73119d"
+  },
+  "web.organizations.sso.certificate_expires_in_days": {
+    "text": "σε {n} ημέρα | σε {n} ημέρες",
+    "source_hash": "df98ca65"
+  },
+  "web.organizations.sso.certificate_valid_from": {
+    "text": "Πιστοποιητικό έγκυρο από",
+    "source_hash": "b13d3f30"
   }
 }

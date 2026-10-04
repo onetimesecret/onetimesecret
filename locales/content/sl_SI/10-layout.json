@@ -350,5 +350,17 @@
   "web.layout.colonels_only_badge": {
     "text": "Samo za Colonele",
     "source_hash": "3f1e2dbd"
+  },
+  "web.footer.dpa": {
+    "text": "Pogodba o obdelavi podatkov",
+    "source_hash": "112eae6b"
+  },
+  "web.footer.cookie_policy": {
+    "text": "Politika piškotkov",
+    "source_hash": "ee290b3d"
+  },
+  "web.footer.acceptable_use": {
+    "text": "Politika sprejemljive uporabe",
+    "source_hash": "34aa287a"
   }
 }

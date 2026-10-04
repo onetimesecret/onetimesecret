@@ -134,5 +134,25 @@
   "api.organizations.members.errors.no_permission_to_remove": {
     "text": "Kāore ōu whaimana ki te tango mema",
     "source_hash": "b0ac7287"
+  },
+  "api.organizations.errors.delete_has_domains": {
+    "text": "Tangohia ngā rohe ritenga o tēnei whakahaere i mua i te muku: %{domains}",
+    "source_hash": "040a401e"
+  },
+  "api.organizations.errors.delete_drifted_domains_count": {
+    "text": "%{count} tuhinga rohe e tohutoro tonu ana i tēnei whakahaere, engari kua kore e whakarārangihia i roto. Tēnā whakapā atu ki te tautoko kia tangohia ai i mua i te muku i tēnei whakahaere.",
+    "source_hash": "f6e71a9a"
+  },
+  "api.organizations.errors.delete_is_default": {
+    "text": "Kāore e taea te muku i tō Wāhi Mahi taunoa. Whakapā atu ki te tautoko mēnā me tango.",
+    "source_hash": "bc2eaed5"
+  },
+  "api.organizations.errors.delete_active_subscription": {
+    "text": "Whakakorea te ohaurunga o tēnei whakahaere i mua i te muku.",
+    "source_hash": "f0c54eca"
+  },
+  "api.organizations.errors.delete_last_org": {
+    "text": "Koinei anake tō whakahaere. Waihangatia tētahi atu i mua i te muku i tēnei.",
+    "source_hash": "7608a1d6"
   }
 }

@@ -1543,5 +1543,17 @@
   "web.TITLES.connected_identities": {
     "text": "Bağlı Kimlikler",
     "source_hash": "e132c4d9"
+  },
+  "web.COMMON.field": {
+    "text": "Alan",
+    "source_hash": "f45fc1df"
+  },
+  "web.COMMON.unknown": {
+    "text": "Bilinmiyor",
+    "source_hash": "b764cdc0"
+  },
+  "web.STATUS.pending_ssl": {
+    "text": "Sertifika bekleniyor",
+    "source_hash": "dd34f305"
   }
 }

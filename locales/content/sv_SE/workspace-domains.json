@@ -1626,5 +1626,37 @@
   "web.domains.sso.status_unavailable_hint": {
     "text": "SSO kan inte erbjudas på denna domän just nu. Kontrollera SSO-uppgifterna och inloggningsinställningarna för denna domän.",
     "source_hash": "b03b14f4"
+  },
+  "web.domains.status_tooltip_pending_ssl": {
+    "text": "Domänen verifierad – väntar på sitt certifikat",
+    "source_hash": "541bd705"
+  },
+  "web.domains.2_create_the_alias_record": {
+    "text": "2. Skapa ALIAS- eller ANAME-posten",
+    "source_hash": "17b04e6a"
+  },
+  "web.domains.sso.status_saml_disabled_badge": {
+    "text": "SAML avstängt",
+    "source_hash": "4e2eab51"
+  },
+  "web.domains.sso.status_saml_disabled_hint": {
+    "text": "Webbplatsens operatör har stängt av SAML för den här installationen. Din konfiguration sparas och återupptas när SAML slås på igen; fram till dess erbjuder denna domän ingen SAML-inloggning.",
+    "source_hash": "5ba9624c"
+  },
+  "web.domains.sso.status_domain_unverified_badge": {
+    "text": "Väntar på domänverifiering",
+    "source_hash": "ea7459c2"
+  },
+  "web.domains.sso.status_domain_unverified_hint": {
+    "text": "Denna domän har inte slutfört verifieringen, så dess SSO-anslutning är ännu inte aktiv på inloggningssidan. SSO aktiveras när domänen har verifierats och SSO är tillåtet för domänen här.",
+    "source_hash": "57ee0066"
+  },
+  "web.domains.verify_outcome.indeterminate": {
+    "text": "Vi kunde inte slutföra DNS-kontrollen just nu. Det betyder inte att dina poster är felaktiga. Försök igen om några minuter.",
+    "source_hash": "4e76a9ef"
+  },
+  "web.domains.verify_outcome.record_not_found": {
+    "text": "Vi hittade inte den förväntade TXT-posten. Kontrollera att den finns och att dess värde stämmer exakt. Det kan ta några minuter innan nya DNS-poster syns.",
+    "source_hash": "6c847d46"
   }
 }

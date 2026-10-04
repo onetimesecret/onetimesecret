@@ -1218,5 +1218,129 @@
   "web.organizations.sso.enable_untested_warning": {
     "text": "Это подключение ещё не прошло проверку здесь. Запустите «Проверить подключение», прежде чем включать его, чтобы неработающая конфигурация никогда не попала на Вашу страницу входа.",
     "source_hash": "c1fbdeca"
+  },
+  "web.organizations.delete_organization_cancel_subscription_first": {
+    "text": "Перед удалением этой организации отмените её подписку.",
+    "source_hash": "f0c54eca"
+  },
+  "web.organizations.sso.disable_action": {
+    "text": "Отключить SSO",
+    "source_hash": "2f072272"
+  },
+  "web.organizations.sso.disable_confirm": {
+    "text": "Отключить это подключение SSO? Несохранённые изменения формы не будут сохранены. Сохранённые учётные данные останутся.",
+    "source_hash": "608b142a"
+  },
+  "web.organizations.sso.disable_enforcement_warning": {
+    "text": "Режим «только SSO» также будет отключён, что разрешит другие настроенные способы входа.",
+    "source_hash": "58abd552"
+  },
+  "web.organizations.sso.idp_sso_service_url": {
+    "text": "URL службы SSO IdP",
+    "source_hash": "0b33b1ac"
+  },
+  "web.organizations.sso.idp_sso_service_url_hint": {
+    "text": "HTTPS-адрес, который Ваш провайдер идентификации публикует для единого входа SAML",
+    "source_hash": "bc6fdfd9"
+  },
+  "web.organizations.sso.idp_sso_service_url_placeholder": {
+    "text": "https://idp.example.com/sso/saml",
+    "source_hash": "513d0586"
+  },
+  "web.organizations.sso.idp_entity_id": {
+    "text": "ID сущности IdP (Entity ID)",
+    "source_hash": "14a4ab8b"
+  },
+  "web.organizations.sso.idp_entity_id_hint": {
+    "text": "Идентификатор издателя из метаданных Вашего провайдера идентификации — точно в опубликованном виде",
+    "source_hash": "c3d8320b"
+  },
+  "web.organizations.sso.idp_entity_id_placeholder": {
+    "text": "https://idp.example.com/metadata",
+    "source_hash": "0c46d14d"
+  },
+  "web.organizations.sso.idp_cert": {
+    "text": "Сертификат подписи IdP",
+    "source_hash": "c84000cd"
+  },
+  "web.organizations.sso.idp_cert_hint": {
+    "text": "Сертификат X.509 (PEM), которым Ваш провайдер идентификации подписывает утверждения. Только один сертификат; отпечатки не принимаются.",
+    "source_hash": "b5e157f5"
+  },
+  "web.organizations.sso.idp_cert_placeholder": {
+    "text": "-----BEGIN CERTIFICATE-----",
+    "source_hash": "ddddb6cb"
+  },
+  "web.organizations.sso.sp_details": {
+    "text": "Сведения о провайдере услуг (SP)",
+    "source_hash": "4b6617d2"
+  },
+  "web.organizations.sso.sp_details_hint": {
+    "text": "Зарегистрируйте эти значения у Вашего провайдера идентификации",
+    "source_hash": "784e9410"
+  },
+  "web.organizations.sso.sp_details_preview_hint": {
+    "text": "Предпросмотр на основе маршрута входа по умолчанию. Сохраните эту конфигурацию, а затем проверьте здесь эти значения, прежде чем регистрировать их у Вашего провайдера идентификации.",
+    "source_hash": "fd9d3001"
+  },
+  "web.organizations.sso.domain_unverified_notice": {
+    "text": "Единый вход на этом домене отключён, пока домен не будет подтверждён. Подтверждение не меняет значения ниже.",
+    "source_hash": "4b56ea4b"
+  },
+  "web.organizations.sso.sp_entity_id": {
+    "text": "ID сущности SP (URL метаданных)",
+    "source_hash": "59bc544c"
+  },
+  "web.organizations.sso.acs_url": {
+    "text": "URL службы приёма утверждений (ACS)",
+    "source_hash": "5dacfb65"
+  },
+  "web.organizations.sso.unreadable_field": {
+    "text": "Не удалось прочитать сохранённое значение. Введите его снова, чтобы продолжить.",
+    "source_hash": "ca3b5fcc"
+  },
+  "web.organizations.sso.unreadable_fields_alert": {
+    "text": "Не удалось прочитать некоторые сохранённые значения — их нужно ввести снова: {fields}",
+    "source_hash": "e9fa9d16"
+  },
+  "web.organizations.sso.idp_cert_expired_alert": {
+    "text": "Срок действия сертификата провайдера идентификации истёк {date}. Вход через это подключение будет невозможен, пока не будет сохранён действующий сертификат.",
+    "source_hash": "527fb721"
+  },
+  "web.organizations.sso.idp_cert_expiring_notice": {
+    "text": "Срок действия сертификата провайдера идентификации истекает {date}. Замените его до этой даты, чтобы вход продолжал работать.",
+    "source_hash": "ccaf6ca7"
+  },
+  "web.organizations.sso.test_connection_hint_saml": {
+    "text": "Локально проверяет URL SSO, ID сущности и сертификат; к провайдеру идентификации обращение не выполняется",
+    "source_hash": "1dad3945"
+  },
+  "web.organizations.sso.configured_issuer": {
+    "text": "Настроенный издатель",
+    "source_hash": "6b307b7f"
+  },
+  "web.organizations.sso.discovery_issuer": {
+    "text": "Обнаруженный издатель",
+    "source_hash": "9d74f978"
+  },
+  "web.organizations.sso.issuer_mismatch_hint": {
+    "text": "Идентификаторы издателя OIDC должны совпадать точно, включая завершающую косую черту. Укажите в поле «URL издателя» обнаруженное значение, показанное выше.",
+    "source_hash": "ec144c88"
+  },
+  "web.organizations.sso.certificate_subject": {
+    "text": "Субъект сертификата",
+    "source_hash": "d7816b16"
+  },
+  "web.organizations.sso.certificate_expires": {
+    "text": "Сертификат истекает",
+    "source_hash": "1e73119d"
+  },
+  "web.organizations.sso.certificate_expires_in_days": {
+    "text": "через {n} дн. | через {n} дн.",
+    "source_hash": "df98ca65"
+  },
+  "web.organizations.sso.certificate_valid_from": {
+    "text": "Сертификат действителен с",
+    "source_hash": "b13d3f30"
   }
 }

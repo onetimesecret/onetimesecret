@@ -48,12 +48,12 @@
     "source_hash": "acaede35"
   },
   "web.admin.domains.addDomain.strategy.caddy_on_demand": {
-    "text": "Caddy on-demand — τα πιστοποιητικά εκδίδονται αυτόματα κατά το πρώτο αίτημα.",
-    "source_hash": "deb90ae6"
+    "text": "Caddy on-demand — έλεγχος ιδιοκτησίας DNS (εγγραφή TXT). Τα πιστοποιητικά εκδίδονται αυτόματα μετά την επαλήθευση.",
+    "source_hash": "1c926efa"
   },
   "web.admin.domains.addDomain.strategy.caddy": {
-    "text": "Caddy — τα πιστοποιητικά εκδίδονται αυτόματα κατά το πρώτο αίτημα.",
-    "source_hash": "a0f3c2dc"
+    "text": "Caddy — έλεγχος ιδιοκτησίας DNS (εγγραφή TXT). Τα πιστοποιητικά εκδίδονται αυτόματα μετά την επαλήθευση.",
+    "source_hash": "5774ff90"
   },
   "web.admin.domains.addDomain.strategy.unknown": {
     "text": "Στρατηγική επικύρωσης για ολόκληρη την εγκατάσταση.",
@@ -842,5 +842,81 @@
   "web.admin.domains.tls.none": {
     "text": "Δεν εξυπηρετεί",
     "source_hash": "da8a5ab9"
+  },
+  "web.admin.domains.configs.edit.originsHint": {
+    "text": "Μία προέλευση (origin) ανά γραμμή, μαζί με το σχήμα, για παράδειγμα https://vault.example.com. Μια προέλευση σε τομέα άλλου οργανισμού απορρίπτεται.",
+    "source_hash": "4a4e1d33"
+  },
+  "web.admin.domains.configs.fields.related_origins": {
+    "text": "Σχετικές προελεύσεις κλειδιών πρόσβασης",
+    "source_hash": "e6160714"
+  },
+  "web.admin.domains.dns.cnameStepInstall": {
+    "text": "2. Προσθέστε μια εγγραφή CNAME που δείχνει τον υποτομέα σε αυτήν την εγκατάσταση.",
+    "source_hash": "b8a329f9"
+  },
+  "web.admin.domains.dns.aliasStepInstall": {
+    "text": "2. Προσθέστε μια εγγραφή ALIAS ή ANAME που δείχνει τον τομέα apex σε αυτήν την εγκατάσταση.",
+    "source_hash": "9a61ed66"
+  },
+  "web.admin.domains.dns.apexNote": {
+    "text": "Ένας τομέας apex δεν μπορεί να έχει εγγραφή CNAME. Όταν ο πάροχος DNS δεν διαθέτει εγγραφή ALIAS ή ANAME, μια εγγραφή A προς τη διεύθυνση IP αυτού του διακομιστή κάνει την ίδια δουλειά.",
+    "source_hash": "f69e3032"
+  },
+  "web.admin.domains.fields.verifiedByOverride": {
+    "text": "Ναι (παράκαμψη από τον διαχειριστή)",
+    "source_hash": "a1a8644f"
+  },
+  "web.admin.domains.list.capped": {
+    "text": "Τα αποτελέσματα είναι περιορισμένα: ο αριθμός που εμφανίζεται είναι κατώτατο όριο, όχι το σύνολο. Περιορίστε την αναζήτηση ή το φίλτρο για να δείτε τα πάντα.",
+    "source_hash": "27537844"
+  },
+  "web.admin.domains.override.button": {
+    "text": "Παράκαμψη κατάστασης",
+    "source_hash": "c683774c"
+  },
+  "web.admin.domains.override.title": {
+    "text": "Παράκαμψη κατάστασης επαλήθευσης",
+    "source_hash": "66dbebb2"
+  },
+  "web.admin.domains.override.description": {
+    "text": "Ορίστε χειροκίνητα τις σημαίες επαλήθευσης και επίλυσης για αυτόν τον τομέα. Χρησιμοποιήστε με προσοχή.",
+    "source_hash": "bc3eb719"
+  },
+  "web.admin.domains.override.verified": {
+    "text": "Επαληθευμένο",
+    "source_hash": "4f783840"
+  },
+  "web.admin.domains.override.resolving": {
+    "text": "Επίλυση",
+    "source_hash": "3287a034"
+  },
+  "web.admin.domains.override.apply": {
+    "text": "Εφαρμογή παράκαμψης",
+    "source_hash": "e2d1472a"
+  },
+  "web.admin.domains.override.cancel": {
+    "text": "Ακύρωση",
+    "source_hash": "19766ed6"
+  },
+  "web.admin.domains.override.success": {
+    "text": "Η κατάσταση του τομέα παρακάμφθηκε.",
+    "source_hash": "42104cd0"
+  },
+  "web.admin.domains.override.noChange": {
+    "text": "Δεν υπάρχουν αλλαγές για εφαρμογή.",
+    "source_hash": "07632d50"
+  },
+  "web.admin.domains.verify.success.indeterminate": {
+    "text": "Ο έλεγχος DNS δεν επέστρεψε αποτέλεσμα για τον τομέα {domain}. Η κατάσταση επαλήθευσής του παρέμεινε αμετάβλητη.",
+    "source_hash": "9c5ab974"
+  },
+  "web.admin.domains.verify.success.overrideHeld": {
+    "text": "Ο έλεγχος TXT απέτυχε για τον τομέα {domain}, αλλά παραμένει επαληθευμένος λόγω παράκαμψης από τον διαχειριστή.",
+    "source_hash": "e754aac8"
+  },
+  "web.admin.domains.verify.success.confirmationExpired": {
+    "text": "Ο έλεγχος DNS για τον τομέα {domain} δεν έχει επιστρέψει αποτέλεσμα για περισσότερες από 7 ημέρες. Ο τομέας δεν είναι πλέον επαληθευμένος.",
+    "source_hash": "a6901cb5"
   }
 }

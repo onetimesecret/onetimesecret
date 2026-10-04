@@ -509,8 +509,8 @@
     "source_hash": "7fbbb7e7"
   },
   "web.login.errors.identity_connect_conflict": {
-    "text": "Ĉi tiu identeco ne konekteblis. La konekto eble estis komencita sur la malĝusta domajno, aŭ via seanco eksvalidiĝis. Bonvolu ensaluti denove, poste konektu ĝin el viaj konto-agordoj.",
-    "source_hash": "4238bbf2"
+    "text": "Ĉi tiu identeco ne konekteblis. Ĝi eble jam apartenas al alia konto.",
+    "source_hash": "d8b71cf8"
   },
   "web.login.errors.org_join_failed": {
     "text": "Ni ne povis fini aldoni vin al via organizo. Bonvolu kontakti vian administranton.",
@@ -527,5 +527,25 @@
   "web.login.errors.sso_cancelled": {
     "text": "La ensaluto estis nuligita. Vi povas reprovi kiam ajn vi pretas.",
     "source_hash": "b5f3d3ec"
+  },
+  "web.login.errors.sso_issuer_mismatch": {
+    "text": "Ensaluto per ĉi tiu provizanto estas misagordita. Bonvolu kontakti vian administranton.",
+    "source_hash": "44df5918"
+  },
+  "web.login.errors.sso_config_unusable": {
+    "text": "Unuopa ensaluto por ĉi tiu domajno estas agordita, sed nuntempe ne uzebla. Kontaktu la administranton de via organizo.",
+    "source_hash": "f704b391"
+  },
+  "web.login.errors.sso_domain_unverified": {
+    "text": "Unuopa ensaluto por ĉi tiu domajno ankoraŭ ne estas aktiva, ĉar la kontrolo de la domajno ankoraŭ ne finiĝis. Bonvolu kontakti vian administranton.",
+    "source_hash": "bd981480"
+  },
+  "web.login.errors.tenant_sso_link_unavailable": {
+    "text": "Ĉi tiu identeco ne estas konektita al konto sur ĉi tiu domajno. Se vi povas ensaluti sur ĉi tiu domajno per konto, kiu apartenas al ĉi tiu organizo, konektu ĝin el Konektitaj identecoj. Alie, petu posedanton de la organizo inviti ĉi tiun SSO-identecon, aŭ kontaktu subtenon.",
+    "source_hash": "66e7376c"
+  },
+  "web.login.errors.identity_connect_wrong_domain": {
+    "text": "Ĉi tiu identeco ne konekteblis sur ĉi tiu domajno. Komencu la konektadon el la retejo, en kiu vi estas ensalutinta; sur la domajno de organizo, via konto devas jam aparteni al tiu organizo.",
+    "source_hash": "d967c761"
   }
 }

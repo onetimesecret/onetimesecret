@@ -957,5 +957,53 @@
   "web.auth.webauthn.emailRequired": {
     "text": "Inserisci il tuo indirizzo email per accedere con una passkey",
     "source_hash": "7f07647f"
+  },
+  "web.auth.login.verification_unavailable": {
+    "text": "L'accesso è riuscito, ma non è stato possibile confermare la tua sessione. Riprova tra un momento.",
+    "source_hash": "9a19dfc9"
+  },
+  "web.auth.mfa.verification_unavailable": {
+    "text": "La tua password è stata accettata, ma non è stato possibile avviare la verifica a due fattori. Riprova tra un momento.",
+    "source_hash": "5fd5e240"
+  },
+  "web.auth.session.ended": {
+    "text": "La tua sessione è terminata. Accedi di nuovo.",
+    "source_hash": "673e9822"
+  },
+  "web.auth.session.replaced": {
+    "text": "Il tuo accesso è cambiato in un'altra scheda, quindi questa pagina è stata ricaricata.",
+    "source_hash": "3767d43b"
+  },
+  "web.auth.session.stale_session_title": {
+    "text": "Questa pagina non è aggiornata",
+    "source_hash": "0293e093"
+  },
+  "web.auth.session.stale_session_notice": {
+    "text": "La tua sessione è cambiata da quando questa pagina è stata caricata. Copia tutto ciò che non hai salvato, poi ricarica la pagina per continuare.",
+    "source_hash": "c62e236c"
+  },
+  "web.auth.session.reload_now": {
+    "text": "Ricarica la pagina",
+    "source_hash": "437d0d63"
+  },
+  "web.auth.session.verification_unavailable_title": {
+    "text": "Al momento non riusciamo a verificare la tua sessione",
+    "source_hash": "2130dda1"
+  },
+  "web.auth.session.verification_unavailable_body": {
+    "text": "Non sei stato disconnesso. Non siamo riusciti a raggiungere il server per confermare la tua sessione, quindi questa pagina resta nascosta finché non sarà possibile. Continueremo a riprovare.",
+    "source_hash": "bb230c2c"
+  },
+  "web.auth.session.retry": {
+    "text": "Riprova",
+    "source_hash": "d8b8392e"
+  },
+  "web.auth.session.retrying": {
+    "text": "Verifica in corso…",
+    "source_hash": "ec963ffc"
+  },
+  "web.auth.session.retry_failed": {
+    "text": "Ancora non disponibile. Riprova tra un momento.",
+    "source_hash": "b81c022c"
   }
 }

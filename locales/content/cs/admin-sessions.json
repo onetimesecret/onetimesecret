@@ -176,8 +176,8 @@
     "source_hash": "0c6605c1"
   },
   "web.admin.sessions.revoke.confirmDescription": {
-    "text": "Tímto okamžitě odhlásíš uživatele smazáním relace {id}. Pro potvrzení napiš ID relace.",
-    "source_hash": "9e08b1b8"
+    "text": "Zrušením relace {id} okamžitě odhlásíš uživatele. Pro potvrzení napiš {token}.",
+    "source_hash": "80578692"
   },
   "web.admin.sessions.revoke.success": {
     "text": "Relace zrušena",
@@ -188,12 +188,12 @@
     "source_hash": "34cb67a4"
   },
   "web.admin.sessions.scan.capped": {
-    "text": "Prohledávání omezeno na prvních {scanned} klíčů — ověřené relace za tímto oknem nejsou uvedeny. Ke konkrétní relaci se dostaneš jejím prohlédnutím podle ID.",
-    "source_hash": "fa418b4e"
+    "text": "Prohledávání bylo omezeno (prohledaných klíčů: {scanned}) — ověřené relace mimo toto okno nejsou uvedeny. Pro jejich zobrazení upřesni hledání.",
+    "source_hash": "7a8d6fd5"
   },
   "web.admin.sessions.search.placeholder": {
-    "text": "Hledej podle e-mailu nebo externího ID",
-    "source_hash": "f2dc5c06"
+    "text": "Hledat podle e-mailu, externího ID nebo identifikátoru relace",
+    "source_hash": "4894dec4"
   },
   "web.admin.sessions.sections.session": {
     "text": "Relace",
@@ -210,5 +210,45 @@
   "web.admin.sessions.status.anonymous": {
     "text": "Anonymní",
     "source_hash": "e7a8aa2d"
+  },
+  "web.admin.sessions.authority.title": {
+    "text": "V režimu plné autentizace nejde o autoritativní zdroj relací",
+    "source_hash": "796fb07f"
+  },
+  "web.admin.sessions.authority.description": {
+    "text": "Tento seznam představuje úložiště relací v Redis. Když je režim autentizace nastaven na plný, autoritativní stav relací je v databázi účtů Rodauth, kterou tato konzole nečte. Účty přihlášené přes Rodauth se zde nemusí zobrazit a zrušení relace zde neukončí relaci Rodauth.",
+    "source_hash": "77bc4904"
+  },
+  "web.admin.sessions.authority.descriptionRevokeAll": {
+    "text": "Tento seznam představuje úložiště relací v Redis. Když je režim autentizace nastaven na plný, autoritativní stav relací je v databázi účtů Rodauth, kterou tato konzole nečte. Účty přihlášené přes Rodauth se zde nemusí zobrazit a zrušení jednotlivé relace zde neukončí její relaci Rodauth. Akce „Zrušit vše“ ukončí také relace Rodauth daného účtu.",
+    "source_hash": "f964663d"
+  },
+  "web.admin.sessions.authority.openAdmin": {
+    "text": "Otevřít Rodauth Admin",
+    "source_hash": "ce523836"
+  },
+  "web.admin.sessions.authority.notConfigured": {
+    "text": "Nastav RODAUTH_ADMIN_URL, aby se odsud dalo přejít do Rodauth Admin.",
+    "source_hash": "c070dbfb"
+  },
+  "web.admin.sessions.columns.sessionHandle": {
+    "text": "Identifikátor relace",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.errors.scanCapped": {
+    "text": "Tato relace nebyla ve vzorkovaném prostoru klíčů nalezena. Otevři ji z jejího řádku v seznamu, aby ji bylo možné dohledat podle vlastníka.",
+    "source_hash": "67b73f7f"
+  },
+  "web.admin.sessions.fields.sessionHandle": {
+    "text": "Identifikátor relace",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.revoke.ownSession": {
+    "text": "Toto je tvoje vlastní relace. Její zrušení by tě odhlásilo — použij místo toho odhlášení.",
+    "source_hash": "a6762292"
+  },
+  "web.admin.sessions.rodauthAdmin.open": {
+    "text": "Otevřít v Rodauth Admin",
+    "source_hash": "467173c8"
   }
 }

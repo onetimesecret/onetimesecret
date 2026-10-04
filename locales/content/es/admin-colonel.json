@@ -778,5 +778,37 @@
   "web.colonel.organizations.filters.searchPlaceholder": {
     "text": "Buscar por ID, nombre o correo electrónico",
     "source_hash": "6fe16473"
+  },
+  "web.colonel.organizations.capped": {
+    "text": "Los resultados están limitados: el recuento mostrado es un mínimo, no el total. Los filtros abarcan todas las organizaciones vinculadas a una suscripción más las actualizadas más recientemente; busca por un ID exacto o un correo electrónico para llegar a cualquier otra.",
+    "source_hash": "0743238d"
+  },
+  "web.impersonation.banner.label": {
+    "text": "Suplantación activa",
+    "source_hash": "d96f0e8d"
+  },
+  "web.impersonation.banner.viewingAs": {
+    "text": "Viendo como {email}",
+    "source_hash": "cf2dd9c6"
+  },
+  "web.impersonation.banner.readOnly": {
+    "text": "Solo lectura: los cambios están bloqueados durante la suplantación.",
+    "source_hash": "46ed3b68"
+  },
+  "web.impersonation.banner.expiresIn": {
+    "text": "Termina en {time}",
+    "source_hash": "b4999fd8"
+  },
+  "web.impersonation.banner.stop": {
+    "text": "Dejar de suplantar",
+    "source_hash": "5cf74e38"
+  },
+  "web.impersonation.banner.stopping": {
+    "text": "Deteniendo…",
+    "source_hash": "bbe85741"
+  },
+  "web.impersonation.banner.stopFailed": {
+    "text": "No se pudo dejar de suplantar. Inténtalo de nuevo.",
+    "source_hash": "5aa72353"
   }
 }

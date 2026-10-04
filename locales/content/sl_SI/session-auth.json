@@ -509,8 +509,8 @@
     "source_hash": "7fbbb7e7"
   },
   "web.login.errors.identity_connect_conflict": {
-    "text": "Te identitete ni bilo mogoče povezati. Povezava se je morda začela na napačni domeni ali pa je vaša seja potekla. Prosimo, prijavite se znova, nato jo povežite v nastavitvah računa.",
-    "source_hash": "4238bbf2"
+    "text": "Te identitete ni bilo mogoče povezati. Morda že pripada drugemu računu.",
+    "source_hash": "d8b71cf8"
   },
   "web.login.errors.org_join_failed": {
     "text": "Vašega dodajanja v organizacijo nismo mogli dokončati. Prosimo, obrnite se na svojega skrbnika.",
@@ -527,5 +527,25 @@
   "web.login.errors.sso_cancelled": {
     "text": "Prijava je bila preklicana. Poskusite znova, ko boste pripravljeni.",
     "source_hash": "b5f3d3ec"
+  },
+  "web.login.errors.sso_issuer_mismatch": {
+    "text": "Prijava s tem ponudnikom je napačno konfigurirana. Obrnite se na svojega skrbnika.",
+    "source_hash": "44df5918"
+  },
+  "web.login.errors.sso_config_unusable": {
+    "text": "Enotna prijava (SSO) za to domeno je konfigurirana, vendar trenutno ni uporabna. Obrnite se na skrbnika svoje organizacije.",
+    "source_hash": "f704b391"
+  },
+  "web.login.errors.sso_domain_unverified": {
+    "text": "Enotna prijava (SSO) za to domeno še ni aktivna, ker preverjanje domene še ni končano. Obrnite se na svojega skrbnika.",
+    "source_hash": "bd981480"
+  },
+  "web.login.errors.tenant_sso_link_unavailable": {
+    "text": "Ta identiteta ni povezana z nobenim računom na tej domeni. Če se na tej domeni lahko prijavite z računom, ki pripada tej organizaciji, jo povežite v razdelku „Povezane identitete“. V nasprotnem primeru prosite lastnika organizacije, naj povabi to identiteto SSO, ali se obrnite na podporo.",
+    "source_hash": "66e7376c"
+  },
+  "web.login.errors.identity_connect_wrong_domain": {
+    "text": "Te identitete na tej domeni ni bilo mogoče povezati. Povezovanje začnite na spletnem mestu, na katerem ste prijavljeni; na domeni organizacije mora vaš račun že pripadati tej organizaciji.",
+    "source_hash": "d967c761"
   }
 }

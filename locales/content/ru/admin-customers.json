@@ -40,8 +40,8 @@
     "source_hash": "9feed9f1"
   },
   "web.admin.customers.actions.purge.confirmDescription": {
-    "text": "Это навсегда удалит {email} и все его данные. Это действие нельзя отменить.",
-    "source_hash": "a74dd5d1"
+    "text": "Будет запрошено безвозвратное удаление {email}. Перед ликвидацией аккаунта выполняется предварительная проверка, которая отклоняет безвозвратное удаление, если в рабочем пространстве есть домены, состояние оплаты, другие участники, сохраняемые данные или несогласованные ссылки. Прежде чем повторять попытку, изучите и устраните все препятствия. После начала ликвидации это действие нельзя отменить.",
+    "source_hash": "7b4e5e37"
   },
   "web.admin.customers.actions.purge.success": {
     "text": "Клиент безвозвратно удалён.",
@@ -60,8 +60,8 @@
     "source_hash": "227f57d7"
   },
   "web.admin.customers.actions.role.confirmDescription": {
-    "text": "Изменить роль {email} на {role}.",
-    "source_hash": "9ba063c6"
+    "text": "Изменяет роль {email} на {role}. Роль Colonel предоставляет полный административный доступ ко всем аккаунтам, секретам и организациям этой установки. Для подтверждения введите ниже адрес электронной почты аккаунта.",
+    "source_hash": "0ed85b97"
   },
   "web.admin.customers.actions.role.success": {
     "text": "Роль обновлена.",
@@ -116,8 +116,8 @@
     "source_hash": "62ed2854"
   },
   "web.admin.customers.actions.unverify.confirmDescription": {
-    "text": "Отметить {email} как неподтверждённого.",
-    "source_hash": "592ffd27"
+    "text": "Отмечает {email} как неподтверждённый. Неподтверждённый аккаунт не может иметь роль Colonel, администратора или персонала, поэтому любая его повышенная роль также будет снята. Для подтверждения введите ниже адрес электронной почты аккаунта.",
+    "source_hash": "601f7382"
   },
   "web.admin.customers.actions.unverify.success": {
     "text": "Подтверждение клиента снято.",
@@ -568,8 +568,8 @@
     "source_hash": "69e69f49"
   },
   "web.admin.customers.detail.diagnostics.healthy": {
-    "text": "Блокирующих условий не найдено. Состояние аутентификации выглядит исправным — вероятны проблемы на стороне клиента (cookie, настройка входа для собственного домена) или неверный регион.",
-    "source_hash": "f6d5f8d1"
+    "text": "Блокирующих условий не найдено. Данные аутентификации и контекста организации выглядят исправными — вероятны проблемы на стороне клиента (cookie, настройка входа для пользовательского домена) или неверный регион.",
+    "source_hash": "e0e8450e"
   },
   "web.admin.customers.detail.diagnostics.authUnavailable": {
     "text": "База данных аутентификации недоступна (простой режим аутентификации) — проверки на стороне SQL пропущены.",
@@ -690,5 +690,153 @@
   "web.admin.customers.verification.unverified": {
     "text": "Не подтверждён",
     "source_hash": "15133907"
+  },
+  "web.admin.customers.actions.impersonate.button": {
+    "text": "Войти от имени клиента",
+    "source_hash": "38a7cfbe"
+  },
+  "web.admin.customers.actions.impersonate.confirmTitle": {
+    "text": "Войти от имени клиента?",
+    "source_hash": "c6e4fa74"
+  },
+  "web.admin.customers.actions.impersonate.confirmDescription": {
+    "text": "Открывает ограниченную по времени сессию только для чтения от имени {email}. Пока Вы её не завершите, на каждой странице отображается баннер, изменения заблокированы, а сессия записывается в журнал аудита с указанной Вами причиной.",
+    "source_hash": "713c01b4"
+  },
+  "web.admin.customers.actions.impersonate.reasonLabel": {
+    "text": "Причина (обязательно)",
+    "source_hash": "d976f5d9"
+  },
+  "web.admin.customers.actions.impersonate.reasonPlaceholder": {
+    "text": "Зачем нужна эта сессия? Укажите номер заявки.",
+    "source_hash": "89a4835d"
+  },
+  "web.admin.customers.actions.impersonate.success": {
+    "text": "Вход от имени клиента выполнен.",
+    "source_hash": "b4662bcc"
+  },
+  "web.admin.customers.actions.impersonate.unavailable": {
+    "text": "Вход от имени недоступен для аккаунтов Colonel, анонимных и приостановленных аккаунтов.",
+    "source_hash": "fb6578b2"
+  },
+  "web.admin.customers.actions.purge.refused": {
+    "text": "Безвозвратное удаление отклонено. Клиент сохранён; устраните препятствия, прежде чем повторять попытку.",
+    "source_hash": "8e8a2ae1"
+  },
+  "web.admin.customers.actions.purge.partial": {
+    "text": "Безвозвратное удаление остановлено после частичной очистки. Не сообщайте об успехе и не повторяйте попытку вслепую; изучите завершённые этапы и препятствия.",
+    "source_hash": "a88fd15b"
+  },
+  "web.admin.customers.actions.purge.incomplete": {
+    "text": "Безвозвратное удаление не завершено (статус: {status}). Прежде чем повторять попытку, изучите сведения о жизненном цикле.",
+    "source_hash": "c0c3d287"
+  },
+  "web.admin.customers.actions.purge.unreadableResult": {
+    "text": "Сервер вернул нечитаемый результат безвозвратного удаления. Об успехе не сообщалось; прежде чем повторять попытку, проверьте состояние клиента и рабочего пространства.",
+    "source_hash": "cc837a77"
+  },
+  "web.admin.customers.actions.purge.resultStage": {
+    "text": "Остановлено на этапе: {stage}.",
+    "source_hash": "d0e313bf"
+  },
+  "web.admin.customers.actions.purge.resultBlockers": {
+    "text": "Препятствия: {blockers}.",
+    "source_hash": "00c1e196"
+  },
+  "web.admin.customers.actions.purge.resultPlannedActions": {
+    "text": "Запланированная очистка: {actions}.",
+    "source_hash": "6915205d"
+  },
+  "web.admin.customers.actions.purge.resultActions": {
+    "text": "Выполненная очистка: {actions}.",
+    "source_hash": "d34121b3"
+  },
+  "web.admin.customers.actions.purge.resultCompletedStages": {
+    "text": "Завершённые этапы: {stages}.",
+    "source_hash": "67f68860"
+  },
+  "web.admin.customers.actions.role.button": {
+    "text": "Изменить роль",
+    "source_hash": "a43a8d8c"
+  },
+  "web.admin.customers.actions.role.selfDemote": {
+    "text": "Вы не можете понизить роль собственного аккаунта Colonel. Попросите об этом другого пользователя с ролью Colonel или выполните `bin/ots customers role demote`.",
+    "source_hash": "3e75d01b"
+  },
+  "web.admin.customers.actions.role.lastColonel": {
+    "text": "Вы не можете понизить роль последнего оставшегося аккаунта Colonel — у установки не останется администратора. Сначала повысьте и подтвердите другой аккаунт.",
+    "source_hash": "9c59c731"
+  },
+  "web.admin.customers.actions.unverify.selfUnverify": {
+    "text": "Вы не можете снять подтверждение с собственного аккаунта: для роли Colonel требуется подтверждённый адрес электронной почты.",
+    "source_hash": "8ab024fe"
+  },
+  "web.admin.customers.actions.unverify.lastColonel": {
+    "text": "Вы не можете снять подтверждение с последнего оставшегося аккаунта Colonel — неподтверждённый аккаунт не может иметь роль Colonel. Сначала повысьте и подтвердите другой аккаунт.",
+    "source_hash": "fc404616"
+  },
+  "web.admin.customers.detail.diagnostics.organizationContextBlocked": {
+    "text": "Контекст организации заблокирован или неполон. Изучите проиндексированное рабочее пространство и устраните расхождения индексов владения, членства или контактного адреса электронной почты, прежде чем считать этот аккаунт исправным.",
+    "source_hash": "5c5c89be"
+  },
+  "web.admin.customers.detail.diagnostics.organization": {
+    "text": "Рабочее пространство: {id}",
+    "source_hash": "6ee50fe9"
+  },
+  "web.admin.customers.detail.diagnostics.remediation": {
+    "text": "Устранение: {action}",
+    "source_hash": "83ddc7d7"
+  },
+  "web.admin.customers.detail.fields.internalId": {
+    "text": "Внутренний ID",
+    "source_hash": "e468bb47"
+  },
+  "web.admin.customers.detail.organizations.open": {
+    "text": "Открыть",
+    "source_hash": "ed077f3d"
+  },
+  "web.admin.customers.detail.rodauthAdmin.open": {
+    "text": "Открыть в Rodauth Admin",
+    "source_hash": "467173c8"
+  },
+  "web.admin.customers.detail.sessions.revokeAll.selfDescription": {
+    "text": "Это завершит Вашу работу на всех других устройствах и в браузерах, включая сессии, не показанные в этом списке. Сессия, в которой Вы работаете сейчас, сохранится.",
+    "source_hash": "ae350040"
+  },
+  "web.admin.customers.list.capped": {
+    "text": "Результаты ограничены: показанное количество — это минимум, а не итог. Уточните поиск или фильтр, чтобы увидеть всё.",
+    "source_hash": "27537844"
+  },
+  "web.admin.customers.list.orphanedAccounts.title": {
+    "text": "Аккаунт в базе данных аутентификации без записи клиента",
+    "source_hash": "82cf7a27"
+  },
+  "web.admin.customers.list.orphanedAccounts.hint": {
+    "text": "В базе данных аутентификации есть аккаунт для этого адреса, но ему не соответствует ни одна запись клиента. Этот человек по-прежнему может войти; в индексе клиентов о нём ничего нет. Откройте адрес для диагностики.",
+    "source_hash": "0f903f23"
+  },
+  "web.admin.customers.list.orphanedAccounts.diagnose": {
+    "text": "Открыть диагностику аккаунта",
+    "source_hash": "55b3e826"
+  },
+  "web.admin.customers.list.orphanedAccounts.accountId": {
+    "text": "Аккаунт #{id}",
+    "source_hash": "485dee3c"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unverified": {
+    "text": "Не подтверждён",
+    "source_hash": "33c8e8de"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.verified": {
+    "text": "Подтверждён",
+    "source_hash": "4f783840"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.closed": {
+    "text": "Закрыт",
+    "source_hash": "c21ead06"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unknown": {
+    "text": "Неизвестно",
+    "source_hash": "b764cdc0"
   }
 }

@@ -957,5 +957,53 @@
   "web.auth.webauthn.emailRequired": {
     "text": "패스키로 로그인하려면 이메일 주소를 입력하세요",
     "source_hash": "7f07647f"
+  },
+  "web.auth.login.verification_unavailable": {
+    "text": "로그인에 성공했지만 세션을 확인할 수 없습니다. 잠시 후 다시 시도해 주세요.",
+    "source_hash": "9a19dfc9"
+  },
+  "web.auth.mfa.verification_unavailable": {
+    "text": "비밀번호가 확인되었지만 2단계 인증을 시작할 수 없습니다. 잠시 후 다시 시도해 주세요.",
+    "source_hash": "5fd5e240"
+  },
+  "web.auth.session.ended": {
+    "text": "세션이 종료되었습니다. 다시 로그인해 주세요.",
+    "source_hash": "673e9822"
+  },
+  "web.auth.session.replaced": {
+    "text": "다른 탭에서 로그인 상태가 변경되어 이 페이지를 새로고침했습니다.",
+    "source_hash": "3767d43b"
+  },
+  "web.auth.session.stale_session_title": {
+    "text": "이 페이지는 최신 상태가 아닙니다",
+    "source_hash": "0293e093"
+  },
+  "web.auth.session.stale_session_notice": {
+    "text": "이 페이지를 불러온 후 세션이 변경되었습니다. 저장하지 않은 내용을 복사한 다음 페이지를 새로고침하여 계속하세요.",
+    "source_hash": "c62e236c"
+  },
+  "web.auth.session.reload_now": {
+    "text": "페이지 새로고침",
+    "source_hash": "437d0d63"
+  },
+  "web.auth.session.verification_unavailable_title": {
+    "text": "지금은 세션을 확인할 수 없습니다",
+    "source_hash": "2130dda1"
+  },
+  "web.auth.session.verification_unavailable_body": {
+    "text": "로그아웃되지 않았습니다. 세션을 확인하기 위해 서버에 연결할 수 없어 확인될 때까지 이 페이지를 숨깁니다. 계속 재시도하겠습니다.",
+    "source_hash": "bb230c2c"
+  },
+  "web.auth.session.retry": {
+    "text": "다시 시도",
+    "source_hash": "d8b8392e"
+  },
+  "web.auth.session.retrying": {
+    "text": "확인 중…",
+    "source_hash": "ec963ffc"
+  },
+  "web.auth.session.retry_failed": {
+    "text": "여전히 사용할 수 없습니다. 잠시 후 다시 시도해 주세요.",
+    "source_hash": "b81c022c"
   }
 }
