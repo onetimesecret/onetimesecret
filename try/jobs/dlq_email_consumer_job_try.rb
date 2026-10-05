@@ -8,13 +8,14 @@
 #   - AUTH_TEMPLATES constant structure
 #   - Config flag gating (enabled?)
 #   - Header extraction and cleaning (extract_original_queue, clean_headers)
-#   - Idempotency (claim_replay): one script marks the id replayed and
-#     releases the worker's claim, only for the run that sets the mark
+#   - Idempotency (reserve_replay): an owned reservation per message id,
+#     and a completed marker written only after the publish and the ack
 #   - Message routing: raw, auth template, non-auth template
 #   - Expired token discard logic
 #   - Duplicate message_id skip
 #   - Releasing the worker's idempotency claim before a replay, and leaving
-#     the message in the DLQ when the datastore fails
+#     the message in the DLQ when the datastore fails or a legacy marker is
+#     present
 #
 # Does NOT require RabbitMQ — uses mock channel/delivery/properties objects.
 
@@ -168,16 +169,16 @@ def dlq_message(message_id)
 end
 
 # A copy of the job that reads the DLQ from the given channel, and whose
-# replay claim raises for the given message ids, as it does when the
+# replay reservation raises for the given message ids, as it does when the
 # datastore is unreachable. A subclass, so the job itself is unchanged for
 # the other test cases.
-def job_with(channel: nil, failing_claim: [])
+def job_with(channel: nil, failing_reserve: [])
   Class.new(@job) do
     define_singleton_method(:acquire_channel) { [nil, channel, false] }
-    define_singleton_method(:claim_replay) do |message_id|
-      raise RedisClient::CannotConnectError, 'datastore down' if failing_claim.include?(message_id)
+    define_singleton_method(:reserve_replay) do |message_id, owner|
+      raise RedisClient::CannotConnectError, 'datastore down' if failing_reserve.include?(message_id)
 
-      super(message_id)
+      super(message_id, owner)
     end
   end
 end
@@ -202,21 +203,26 @@ class InterleavingClient < SimpleDelegator
 end
 
 # Two scheduler runs that pop DLQ entries with the same message id and
-# overlap: right after the first run's first datastore command, the second
-# run claims its replay and, if it won, the email worker claims the copy it
-# republished. Then the first run finishes its claim, and the worker claims
-# that run's copy if it won instead.
+# overlap: right after the first run's first datastore command (its
+# reservation), the second run processes its copy. Then the first run
+# finishes its replay.
 #
-# @return [Array(Boolean, Boolean)] each run's claim_replay result
+# @return [Array] publishes across both runs, the first run's replayed
+#   count, the second run's deferred count, and the second run's acks and
+#   nacks
 def overlapping_replays(message_id)
-  second = nil
-  client = InterleavingClient.new(Familia.dbclient) do
-    second = call_private(:claim_replay, message_id)
-    Familia.dbclient.set("job:processed:#{message_id}", '1') if second
+  first_ch  = MockChannel.new
+  second_ch = MockChannel.new
+  first     = fresh_results
+  second    = fresh_results
+  client    = InterleavingClient.new(Familia.dbclient) do
+    call_private(:process_message, second_ch, MockDeliveryInfo.new(delivery_tag: 'tag-second'),
+      raw_properties(message_id), RAW_PAYLOAD, second)
   end
-  first  = Class.new(@job) { define_singleton_method(:dbclient) { client } }.send(:claim_replay, message_id)
-  Familia.dbclient.set("job:processed:#{message_id}", '1') if first
-  [first, second]
+  Class.new(@job) { define_singleton_method(:dbclient) { client } }
+    .send(:process_message, first_ch, MockDeliveryInfo.new(delivery_tag: 'tag-first'),
+      raw_properties(message_id), RAW_PAYLOAD, first)
+  [first_ch.publishes.size + second_ch.publishes.size, first[:replayed], second[:deferred], second_ch.acks, second_ch.nacks]
 end
 
 # Cleanup idempotency keys we create during testing
@@ -307,25 +313,37 @@ cleaned = call_private(:clean_headers, headers)
 call_private(:clean_headers, nil)
 #=> {}
 
-## claim_replay returns true on first claim
+## reserve_replay reserves an id nobody holds
 key_id = "test-idem-#{SecureRandom.hex(4)}"
-track_key("dlq:replayed:#{key_id}")
-call_private(:claim_replay, key_id)
-#=> true
+track_key("dlq:replay:reservation:#{key_id}")
+call_private(:reserve_replay, key_id, SecureRandom.uuid)
+#=> 1
 
-## claim_replay returns false on duplicate claim
+## reserve_replay defers an id another owner holds
 key_id2 = "test-idem-dup-#{SecureRandom.hex(4)}"
-track_key("dlq:replayed:#{key_id2}")
-call_private(:claim_replay, key_id2)
-call_private(:claim_replay, key_id2)
-#=> false
+track_key("dlq:replay:reservation:#{key_id2}")
+call_private(:reserve_replay, key_id2, SecureRandom.uuid)
+call_private(:reserve_replay, key_id2, SecureRandom.uuid)
+#=> 0
 
-## the replay mark expires after the idempotency TTL
+## the reservation expires after RESERVATION_TTL
 key_id3 = "test-idem-ttl-#{SecureRandom.hex(4)}"
-track_key("dlq:replayed:#{key_id3}")
-call_private(:claim_replay, key_id3)
-Familia.dbclient.ttl("dlq:replayed:#{key_id3}").between?(1, Onetime::Jobs::QueueConfig::IDEMPOTENCY_TTL)
+track_key("dlq:replay:reservation:#{key_id3}")
+call_private(:reserve_replay, key_id3, SecureRandom.uuid)
+Familia.dbclient.ttl("dlq:replay:reservation:#{key_id3}").between?(1, @job::RESERVATION_TTL)
 #=> true
+
+## a completed replay marks the id completed for the idempotency TTL and drops the reservation
+key_id4 = "test-idem-done-#{SecureRandom.hex(4)}"
+track_key("dlq:replayed:#{key_id4}")
+track_key("dlq:replay:reservation:#{key_id4}")
+call_private(:process_message, MockChannel.new, MockDeliveryInfo.new(delivery_tag: 'tag-done'), raw_properties(key_id4), RAW_PAYLOAD, fresh_results)
+[
+  Familia.dbclient.get("dlq:replayed:#{key_id4}"),
+  Familia.dbclient.ttl("dlq:replayed:#{key_id4}").between?(1, Onetime::Jobs::QueueConfig::IDEMPOTENCY_TTL),
+  Familia.dbclient.exists?("dlq:replay:reservation:#{key_id4}"),
+]
+#=> ['completed', true, false]
 
 ## process_message discards non-auth template (secret_link)
 ch = MockChannel.new
@@ -430,29 +448,39 @@ ch = MockChannel.new
 msg_id = "replayed-#{SecureRandom.hex(4)}"
 track_key("dlq:replayed:#{msg_id}")
 track_key("job:processed:#{msg_id}")
-Familia.dbclient.set("dlq:replayed:#{msg_id}", '1')
+Familia.dbclient.set("dlq:replayed:#{msg_id}", 'completed')
 Familia.dbclient.set("job:processed:#{msg_id}", '1')
 results = fresh_results
 call_private(:process_message, ch, MockDeliveryInfo.new(delivery_tag: 'tag-replayed'), raw_properties(msg_id), RAW_PAYLOAD, results)
 [ch.acks, ch.publishes.size, results[:replayed], Familia.dbclient.exists?("job:processed:#{msg_id}")]
 #=> [['tag-replayed'], 0, 0, true]
 
-## a run that loses the replay to an overlapping run leaves the claim the winner's live copy holds
+## a legacy replay marker, written before publishing, defers the message instead of dropping it
+ch = MockChannel.new
+msg_id = "legacy-#{SecureRandom.hex(4)}"
+track_key("dlq:replayed:#{msg_id}")
+track_key("dlq:replay:reservation:#{msg_id}")
+Familia.dbclient.set("dlq:replayed:#{msg_id}", '1', ex: 60)
+results = fresh_results
+call_private(:process_message, ch, MockDeliveryInfo.new(delivery_tag: 'tag-legacy'), raw_properties(msg_id), RAW_PAYLOAD, results)
+[ch.acks, ch.nacks, ch.publishes.size, results[:deferred], Familia.dbclient.exists?("dlq:replay:reservation:#{msg_id}")]
+#=> [[], [], 0, 1, false]
+
+## an overlapping run that pops another copy of an id being replayed defers it: one publish
 @race_id = "race-#{SecureRandom.hex(4)}"
 track_key("dlq:replayed:#{@race_id}")
-track_key("job:processed:#{@race_id}")
-results  = overlapping_replays(@race_id)
-[results.count(true), Familia.dbclient.exists?("job:processed:#{@race_id}")]
-#=> [1, true]
+track_key("dlq:replay:reservation:#{@race_id}")
+overlapping_replays(@race_id)
+#=> [1, 1, 1, [], []]
 
-## a message whose replay claim fails on a datastore error is left unacked and not marked as replayed
+## a message whose replay reservation fails on a datastore error is left unacked and not marked as replayed
 ch = MockChannel.new
 @deferred_id = "deferred-#{SecureRandom.hex(4)}"
 track_key("dlq:replayed:#{@deferred_id}")
 track_key("job:processed:#{@deferred_id}")
 Familia.dbclient.set("job:processed:#{@deferred_id}", '1')
 results = fresh_results
-job_with(failing_claim: [@deferred_id]).send(:process_message, ch, MockDeliveryInfo.new(delivery_tag: 'tag-deferred'), raw_properties(@deferred_id), RAW_PAYLOAD, results)
+job_with(failing_reserve: [@deferred_id]).send(:process_message, ch, MockDeliveryInfo.new(delivery_tag: 'tag-deferred'), raw_properties(@deferred_id), RAW_PAYLOAD, results)
 [ch.acks, ch.nacks, ch.publishes.size, results[:deferred], results[:errors], Familia.dbclient.exists?("dlq:replayed:#{@deferred_id}")]
 #=> [[], [], 0, 1, 0, false]
 
@@ -467,7 +495,7 @@ call_private(:process_message, ch, MockDeliveryInfo.new(delivery_tag: 'tag-defer
 ids = %w[a b c].map { |name| "batch-#{name}-#{SecureRandom.hex(4)}" }
 ids.each { |id| track_key("dlq:replayed:#{id}") }
 dlq = FakeDlqChannel.new(ids.map { |id| dlq_message(id) })
-job_with(channel: dlq, failing_claim: [ids[1]]).send(:consume_dlq_batch)
+job_with(channel: dlq, failing_reserve: [ids[1]]).send(:consume_dlq_batch)
 [
   dlq.popped == ids,
   dlq.acks == [ids[0], ids[2]],

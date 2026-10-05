@@ -7,8 +7,8 @@
 # after the publish or ack frame has been written, to check what the broker
 # holds afterwards in the target queue and in the DLQ.
 #
-# The replay claim (Valkey) is stubbed; these examples cover only the AMQP
-# side. The double-based unit spec for the same paths is
+# The replay reservation (Valkey) is stubbed; these examples cover only the
+# AMQP side. The double-based unit spec for the same paths is
 # spec/unit/onetime/jobs/scheduled/dlq_email_consumer_job_spec.rb.
 #
 # Requires the lane's test broker on 127.0.0.1:2156 (tests/lanes/README.md,
@@ -54,7 +54,10 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
 
   before do
     allow(described_class).to receive(:scheduler_logger).and_return(logger)
-    allow(described_class).to receive(:claim_replay).and_return(true)
+    allow(described_class).to receive(:reserve_replay).and_return(1)
+    allow(described_class).to receive(:start_replay).and_return(true)
+    allow(described_class).to receive(:finalize_replay)
+    allow(described_class).to receive(:release_reservation)
     allow(described_class).to receive(:acquire_channel).and_return([nil, channel, false])
     stub_const("#{described_class.name}::DLQ_NAME", dlq_name)
     target
@@ -141,10 +144,7 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
   end
 
   it 'commits a message without an id followed by a non-auth discard' do
-    # A message without an id makes no replay claim, so claim_replay is
-    # stubbed only for the seeded message.
-    allow(described_class).to receive(:claim_replay).and_call_original
-    allow(described_class).to receive(:claim_replay).with(message_id).and_return(true)
+    # A message without an id takes no replay reservation.
     queue.publish(payload, persistent: true, content_type: 'application/json',
       headers: { 'x-death' => [{ 'queue' => target_name }] })
     queue.publish(JSON.generate('template' => 'secret_link'), persistent: true)
