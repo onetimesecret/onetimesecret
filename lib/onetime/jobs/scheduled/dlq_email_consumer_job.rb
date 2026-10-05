@@ -156,6 +156,7 @@ module Onetime
           end
 
           def consume_dlq_batch
+            results                       = { replayed: 0, discarded_non_auth: 0, discarded_expired: 0, errors: 0, deferred: 0 }
             conn, channel, own_connection = acquire_channel
             return unless channel
 
@@ -168,7 +169,6 @@ module Onetime
             end
 
             to_process = [available, BATCH_SIZE].min
-            results    = { replayed: 0, discarded_non_auth: 0, discarded_expired: 0, errors: 0, deferred: 0 }
 
             # Every publish, ack and nack below takes effect only at tx_commit.
             # The channel is dedicated to this batch (#acquire_channel), so
@@ -188,17 +188,28 @@ module Onetime
             # Messages not popped yet stay in the DLQ for the next run.
             scheduler_logger.error "[DlqEmailConsumerJob] #{ex.message}; counts before the stop: #{batch_counts(results)}",
               message_id: ex.message_id
+          rescue Bunny::NetworkFailure => ex
+            # Bunny can interrupt outside the publish/commit guards. A commit
+            # may already have reached the broker; leave reservations untouched.
+            scheduler_logger.error "[DlqEmailConsumerJob] Batch stopped: #{ex.class}; outcome may be unknown; counts before the stop: #{batch_counts(results)}"
           rescue Bunny::NotFound
             scheduler_logger.debug "[DlqEmailConsumerJob] Queue #{DLQ_NAME} not declared yet"
           ensure
             # Closing the channel returns the messages left unacked (deferred
             # replays) to the DLQ for the next run.
             begin
-              # Bunny's channel-close handshake can initiate recovery on a
-              # closed transport even with automatically_recover disabled.
-              channel&.close if channel&.open? && (!own_connection || conn&.open?)
-            ensure
-              conn&.close if own_connection
+              # Transport and reader-loop failures can both interrupt this
+              # thread. Finish shutdown (including joining the reader) before
+              # handling a second, pending notification of the disconnect.
+              Thread.handle_interrupt(Bunny::NetworkFailure => :never) do
+                  # A channel-close handshake on a dead transport can recover
+                  # the connection even with automatically_recover disabled.
+                  channel&.close if channel&.open? && (!own_connection || conn&.open?)
+              ensure
+                  conn&.close if own_connection
+              end
+            rescue Bunny::NetworkFailure => ex
+              scheduler_logger.error "[DlqEmailConsumerJob] Batch stopped during cleanup: #{ex.class}; outcome may be unknown; counts before the stop: #{batch_counts(results)}"
             end
           end
 
@@ -276,7 +287,7 @@ module Onetime
             end
 
             replay_message(channel, delivery_info, properties, payload, results)
-          rescue BatchStopped
+          rescue BatchStopped, Bunny::NetworkFailure
             raise
           rescue JSON::ParserError => ex
             scheduler_logger.error "[DlqEmailConsumerJob] Invalid JSON: #{ex.message}"

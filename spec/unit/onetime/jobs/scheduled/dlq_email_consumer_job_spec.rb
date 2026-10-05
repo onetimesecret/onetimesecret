@@ -172,6 +172,38 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob do
       run_batch
     end
 
+    it 'logs a network stop during setup with zero counts and closes the channel' do
+      failure = Bunny::NetworkFailure.new('connection lost', IOError.new('socket closed'))
+      allow(queue).to receive(:message_count).and_raise(failure)
+      expect(queue).not_to receive(:pop)
+      expect(channel).not_to receive(:tx_select)
+      expect(channel).to receive(:close)
+      expect(logger).to receive(:error).with(/Batch stopped: Bunny::NetworkFailure.*replayed=0.*deferred=0/)
+      expect(logger).not_to receive(:info).with(/Batch complete/)
+      expect { run_batch }.not_to raise_error
+    end
+
+    it 'finishes owned connection cleanup before handling a pending network failure' do
+      connection = double('connection', open?: true)
+      allow(described_class).to receive(:acquire_channel).and_return([connection, channel, true])
+      allow(queue).to receive(:message_count).and_return(0)
+      failure = Bunny::NetworkFailure.new('reader disconnected', IOError.new('socket closed'))
+      closed = false
+      allow(connection).to receive(:close) do
+        Thread.current.raise(failure)
+        closed = true
+      end
+      expect(logger).to receive(:error).with(/Batch stopped during cleanup: Bunny::NetworkFailure/)
+      expect { run_batch }.not_to raise_error
+      expect(closed).to be true
+    end
+
+    it 'does not turn unrelated setup errors into network stops' do
+      allow(queue).to receive(:message_count).and_raise(ArgumentError, 'unexpected setup error')
+      expect(channel).to receive(:close)
+      expect { run_batch }.to raise_error(ArgumentError, 'unexpected setup error')
+    end
+
     it 'does not start a transaction for an empty DLQ' do
       allow(queue).to receive(:message_count).and_return(0)
       expect(channel).not_to receive(:tx_select)

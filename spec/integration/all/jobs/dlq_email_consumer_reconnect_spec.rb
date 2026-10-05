@@ -26,6 +26,7 @@ RSpec.describe 'DLQ email consumer connection failure', :rabbitmq, type: :integr
   let(:reservation_key) { "dlq:replay:reservation:#{message_id}" }
   let(:network_errors) { Queue.new }
   let(:error_handler) { double('session error handler') }
+  let(:default_error_handler) { false }
   let(:observer) { Bunny.new(url, automatically_recover: false, continuation_timeout: 5_000).start }
   let(:observer_channel) { observer.create_channel }
   let(:dlq) { observer_channel.queue(dlq_name, durable: true) }
@@ -40,7 +41,8 @@ RSpec.describe 'DLQ email consumer connection failure', :rabbitmq, type: :integr
       raise error if Thread.current == processing_thread
     end
     allow(Bunny).to receive(:new).and_wrap_original do |original, *args, **options|
-      original.call(*args, **options, session_error_handler: error_handler, network_recovery_interval: 0.01)
+      options[:session_error_handler] = error_handler unless default_error_handler
+      original.call(*args, **options, network_recovery_interval: 0.01)
     end
     @shared_connection = Bunny.new(url).start
     @previous_connection = $rmq_conn
@@ -77,6 +79,81 @@ RSpec.describe 'DLQ email consumer connection failure', :rabbitmq, type: :integr
     dlq.delete
     target.delete
     observer.close
+  end
+
+  context 'with Bunny’s default asynchronous error handler' do
+    let(:default_error_handler) { true }
+
+
+    def disconnect_batch
+      # Finish closing the socket before Bunny interrupts the owning thread.
+      Thread.handle_interrupt(Bunny::NetworkFailure => :never) do
+        socket = @batch_connection.transport.socket
+        socket.shutdown
+        socket.close
+      end
+      Timeout.timeout(5) { Queue.new.pop }
+    end
+
+    [:after_pop, :before_commit, :after_commit].each do |phase|
+      it "logs a stop for a disconnect #{phase} without losing the delivery or clearing an uncertain reservation" do
+        allow(job).to receive(:token_expired?).and_return(false)
+        allow(job).to receive(:acquire_channel).and_wrap_original do |original|
+          acquired = original.call
+          @batch_connection, @batch_channel = acquired
+          if phase == :after_pop
+            allow(@batch_channel).to receive(:basic_get).and_wrap_original do |pop, *args, **kwargs|
+              pop.call(*args, **kwargs)
+              disconnect_batch
+            end
+          end
+          acquired
+        end
+        unless phase == :after_pop
+          allow(job).to receive(:commit_transaction).and_wrap_original do |commit, *args|
+            commit.call(*args) if phase == :after_commit
+            disconnect_batch
+          end
+        end
+
+        expect { job.send(:consume_dlq_batch) }.not_to raise_error
+
+        expect(logger).to have_received(:error).with(/batch stopped.*NetworkFailure/i).at_least(:once)
+        expect(logger).not_to have_received(:info).with(/Batch complete/)
+        expect(@batch_channel.recoveries_counter.get).to eq(0)
+        expect(@batch_connection).not_to be_open
+        expect(@shared_connection).to be_open
+        committed = phase == :after_commit
+        Timeout.timeout(5) { sleep 0.01 until dlq.message_count == (committed ? 0 : 1) }
+        expect(target.message_count).to eq(committed ? 1 : 0)
+        expect(Familia.dbclient.get(completed_key)).to be_nil
+        if phase == :after_pop
+          expect(Familia.dbclient.get(reservation_key)).to be_nil
+        else
+          expect(Familia.dbclient.get(reservation_key)).to start_with('publishing:')
+        end
+
+        failed_connection = @batch_connection
+        allow(job).to receive(:commit_transaction).and_call_original
+        allow(job).to receive(:acquire_channel).and_wrap_original do |original|
+          acquired = original.call
+          @batch_connection, @batch_channel = acquired
+          acquired
+        end
+        # An uncertain replay waits for the existing reservation to expire.
+        if phase == :before_commit
+          job.send(:consume_dlq_batch)
+          expect(dlq.message_count).to eq(1)
+          expect(target.message_count).to eq(0)
+          Familia.dbclient.del(reservation_key)
+        end
+        job.send(:consume_dlq_batch)
+        expect(@batch_connection).not_to equal(failed_connection)
+        expect(dlq.message_count).to eq(0)
+        expect(target.message_count).to eq(1)
+        expect(Familia.dbclient.get(completed_key)).to eq('completed') unless committed
+      end
+    end
   end
 
   it 'stops the batch on a disconnect during the token lookup and retries on a fresh connection next run' do
