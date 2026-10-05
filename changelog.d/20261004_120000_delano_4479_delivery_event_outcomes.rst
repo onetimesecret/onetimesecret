@@ -37,6 +37,11 @@ Fixed
   ``log_only``, and the event's ``provider`` is ``logger`` rather than the
   unknown name. (#4479)
 
+- An ``emailer.mode`` with surrounding whitespace, such as a quoted
+  ``" disabled "`` in a config file, now selects that transport instead of
+  falling back to the logger backend. A provider name is recorded in its
+  canonical form in delivery events (``smtp``, not ``" smtp "``). (#4479)
+
 - Every email message the worker rejects now leaves one ``failed``
   delivery event. Messages with an invalid payload shape or no message id
   are rejected as ``invalid_message`` before any delivery attempt, and an
