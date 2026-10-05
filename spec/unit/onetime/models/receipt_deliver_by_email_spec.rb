@@ -48,6 +48,29 @@ RSpec.describe Onetime::Receipt do
       allow(receipt).to receive(:save).and_return(true)
     end
 
+    context 'logging delivery' do
+      let(:share_domain) { nil }
+      let(:messages) { [] }
+
+      before do
+        logger = double('secret logger')
+        [:info, :debug, :warn].each do |level|
+          allow(logger).to receive(level) { |message, payload| messages << [message, payload] }
+        end
+        allow(receipt).to receive(:secret_logger).and_return(logger)
+        allow(Onetime::Jobs::Publisher).to receive(:enqueue_email).and_return(true)
+      end
+
+      [nil, [], ['recipient@example.com'], ['one@example.com', 'two@example.com']].each do |recipients|
+        it "omits receipt and secret bearer values for #{recipients.inspect}" do
+          receipt.deliver_by_email(customer, locale, secret, recipients)
+          expect(messages).not_to be_empty
+          expect(messages.to_s).not_to include('receipt-test-123', 'secret-abc-456')
+          expect(messages.first.last).to include(receipt_id: 'receipt-t', secret_id: 'secret-a')
+        end
+      end
+    end
+
     context 'when share_domain maps to a known CustomDomain' do
       let(:share_domain) { 'secrets.acme.com' }
       let(:expected_domain_id) { 'customdomain:abc123' }

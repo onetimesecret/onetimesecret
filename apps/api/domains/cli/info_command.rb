@@ -56,7 +56,7 @@ module Onetime
 
         # Verification status
         puts 'Verification:'
-        puts "  Verified:             #{domain.verified || 'false'}"
+        puts "  Ownership Verified:   #{domain.ownership_verified || 'false'}"
         puts "  Resolving:            #{domain.resolving || 'false'}"
         puts "  Verification State:   #{domain.verification_state}"
         puts "  Status:               #{domain.status || 'N/A'}"

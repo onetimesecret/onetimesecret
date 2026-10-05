@@ -23,11 +23,11 @@
 #      drops the stale encoded_favicon derived cache (#3780).
 #
 # Hermetic: uses in-memory StringIO uploads and stubs FastImage.size, so no real
-# image parsing / DNS / HTTP runs. Mirrors refresh_domain_favicon_try.rb's
-# entitled-owner fixtures (billing disabled -> standalone custom_branding).
+# dimension parsing / DNS / HTTP runs. Format validation uses real headers.
+# Mirrors refresh_domain_favicon_try.rb's entitled-owner fixtures (billing disabled -> standalone custom_branding).
 #
 # Run:
-#   bundle exec try --agent try/unit/logic/domains/update_domain_image_try.rb
+#   tests/lanes/run unit --only try/unit/logic/domains/update_domain_image_try.rb
 
 require_relative '../../../support/test_helpers'
 require_relative '../../../support/test_logic'
@@ -48,6 +48,10 @@ OT.info 'Cleaned Redis for UpdateDomainImage test run'
 
 Icon = DomainsAPI::Logic::Domains::UpdateDomainIcon
 Logo = DomainsAPI::Logic::Domains::UpdateDomainLogo
+
+# Real raster signatures: arbitrary text must fail the upload format gate.
+@ico_content = "\x00\x00\x01\x00\x01\x00".b + ("\x00" * 16)
+@png_content = Base64.strict_decode64('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jN9kAAAAASUVORK5CYII=')
 
 # --- Entitled owner fixtures (billing disabled -> standalone custom_branding) ---
 @owner  = Onetime::Customer.create!(email: "img_owner_#{@ts}_#{@entropy}@test.com")
@@ -107,13 +111,13 @@ end
 #=> [512 * 1024, 2 * 1024 * 1024]
 
 ## Case 5: an ICO upload passes raise_concerns for the icon field (greenlit)
-@icon_ico = build_icon(@strategy_result, image_params(@extid, content: 'AAAA', filename: 'favicon.ico', type: 'image/x-icon'))
+@icon_ico = build_icon(@strategy_result, image_params(@extid, content: @ico_content, filename: 'favicon.ico', type: 'image/x-icon'))
 @icon_ico.raise_concerns
 @icon_ico.greenlighted
 #=> true
 
 ## Case 6: the same ICO upload is rejected for the logo field ("Invalid file type")
-@logo_ico = build_logo(@strategy_result, image_params(@extid, content: 'AAAA', filename: 'favicon.ico', type: 'image/x-icon'))
+@logo_ico = build_logo(@strategy_result, image_params(@extid, content: @ico_content, filename: 'favicon.ico', type: 'image/x-icon'))
 begin
   @logo_ico.raise_concerns
   'unexpected_success'
@@ -123,7 +127,7 @@ end
 #=> 'Invalid file type'
 
 ## Case 7: a 600KB upload exceeds the 512KB icon ceiling ("Image file is too large")
-@big_content = 'x' * (600 * 1024)
+@big_content = @png_content + ('x' * ((600 * 1024) - @png_content.bytesize))
 @icon_big = build_icon(@strategy_result, image_params(@extid, content: @big_content, filename: 'big.png', type: 'image/png'))
 begin
   @icon_big.raise_concerns
@@ -147,7 +151,7 @@ end
 # FastImage.size for every later file (e.g. operations/fetch_domain_favicon_try.rb).
 @fastimage_orig_size = FastImage.method(:size)
 FastImage.define_singleton_method(:size) { |*_args| nil }
-@icon_nil = build_icon(@strategy_result, image_params(@extid, content: 'AAAA', filename: 'weird.ico', type: 'image/x-icon'))
+@icon_nil = build_icon(@strategy_result, image_params(@extid, content: @ico_content, filename: 'weird.ico', type: 'image/x-icon'))
 @icon_nil.raise_concerns
 @res_nil = @icon_nil.process
 @res_nil[:record].is_a?(Hash)
@@ -160,7 +164,7 @@ FastImage.define_singleton_method(:size) { |*_args| nil }
 ## Case 10: FastImage guard — a zero-height image ([16, 0]) skips the ratio
 # division (no bogus Infinity) and still returns a record.
 FastImage.define_singleton_method(:size) { |*_args| [16, 0] }
-@icon_zero = build_icon(@strategy_result, image_params(@extid, content: 'AAAA', filename: 'weird2.ico', type: 'image/x-icon'))
+@icon_zero = build_icon(@strategy_result, image_params(@extid, content: @ico_content, filename: 'weird2.ico', type: 'image/x-icon'))
 @icon_zero.raise_concerns
 @res_zero = @icon_zero.process
 [@res_zero[:record].is_a?(Hash), @domain.icon['ratio']]
@@ -170,7 +174,7 @@ FastImage.define_singleton_method(:size) { |*_args| [16, 0] }
 # and drops any stale derived encoded_favicon cache so GetFavicon regenerates.
 @domain.icon['encoded_favicon'] = 'STALE_DERIVED'
 FastImage.define_singleton_method(:size) { |*_args| [32, 32] }
-@icon_stamp = build_icon(@strategy_result, image_params(@extid, content: 'AAAA', filename: 'favicon.ico', type: 'image/x-icon'))
+@icon_stamp = build_icon(@strategy_result, image_params(@extid, content: @ico_content, filename: 'favicon.ico', type: 'image/x-icon'))
 @icon_stamp.raise_concerns
 @icon_stamp.process
 [@domain.icon['favicon_source'], @domain.icon.hgetall.key?('encoded_favicon')]

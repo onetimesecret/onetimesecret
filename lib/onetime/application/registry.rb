@@ -192,9 +192,15 @@ module Onetime
         end
 
         # Re-register application classes that are already in memory
+        #
+        # Singleton classes are skipped: the per-instance class Ruby creates
+        # for a live application instance (e.g. one carrying a stubbed method)
+        # is also `< Base` but has no uri_prefix of its own, so registering it
+        # aborts create_mount_mappings partway and drops the remaining mounts.
         def reregister_loaded_applications
           ObjectSpace.each_object(Class)
             .select { |cls| cls < Onetime::Application::Base && cls.respond_to?(:uri_prefix) }
+            .reject(&:singleton_class?)
             .reject { |cls| cls.instance_variable_get(:@abstract) == true } # Skip abstract base classes
             .reject { |cls| cls.should_skip_loading? }
             .each { |cls| register_application_class(cls) }
