@@ -41,8 +41,10 @@ module Core
         logic.raise_concerns
         logic.process
 
-        res['content-type']   = logic.content_type
-        res['content-length'] = logic.content_length
+        res['content-type']            = logic.content_type
+        res['content-length']          = logic.content_length
+        res['x-content-type-options']  = 'nosniff'
+        res['content-security-policy'] = "default-src 'none'; sandbox"
         res.write(logic.image_data)
         res.finish
       end
@@ -115,9 +117,11 @@ module Core
           res['cache-control'] = 'public, max-age=86400'
           res.redirect(logic.redirect_url, 302)
         else
-          res['content-type']   = logic.content_type
-          res['content-length'] = logic.content_length
-          res['cache-control']  = 'public, max-age=86400' # Cache for 1 day
+          res['content-type']            = logic.content_type
+          res['content-length']          = logic.content_length
+          res['x-content-type-options']  = 'nosniff'
+          res['content-security-policy'] = "default-src 'none'; sandbox"
+          res['cache-control']           = 'public, max-age=86400' # Cache for 1 day
           res.write(logic.icon_data)
           res.finish
         end

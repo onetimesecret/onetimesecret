@@ -90,6 +90,26 @@ describe('ImageUploadModal', () => {
     expect(buttonByText(wrapper, 'Save logo')?.attributes('disabled')).toBe('');
   });
 
+  it('rejects a dropped image outside the accepted formats', async () => {
+    const { wrapper } = mountModal();
+    const file = new File(['<svg/>'], 'logo.svg', { type: 'image/svg+xml' });
+    await wrapper.get('label').trigger('drop', { dataTransfer: { files: [file] } });
+    await flushPromises();
+
+    expect(wrapper.text()).toContain('web.branding.image_invalid_type');
+    expect(wrapper.find('img').exists()).toBe(false);
+    expect(buttonByText(wrapper, 'Save logo')?.attributes('disabled')).toBe('');
+  });
+
+  it('accepts a dropped file by extension when the accept list names one', async () => {
+    const { wrapper } = mountModal({ accept: 'image/png,.ico' });
+    const file = new File(['ico'], 'favicon.ico', { type: '' });
+    await wrapper.get('label').trigger('drop', { dataTransfer: { files: [file] } });
+    await flushPromises();
+
+    expect(wrapper.get('img').attributes('src')).toBe('data:image/png;base64,STAGED');
+  });
+
   it('rejects a file over the size limit', async () => {
     const { wrapper } = mountModal({ maxSizeBytes: 1 });
     await pick(wrapper, new File(['abcdef'], 'logo.png', { type: 'image/png' }));

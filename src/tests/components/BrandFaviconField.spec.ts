@@ -23,7 +23,7 @@ vi.mock('vue-i18n', () => ({
 // The favicon-specific upload constraints the field passes into the modal.
 // Duplicated here (the component keeps them private) so a drift in either the
 // allowlist or the size ceiling trips this test.
-const FAVICON_ACCEPT = 'image/png,image/svg+xml,image/x-icon,image/vnd.microsoft.icon,.ico';
+const FAVICON_ACCEPT = 'image/png,image/x-icon,image/vnd.microsoft.icon,.ico';
 const FAVICON_MAX_BYTES = 256 * 1024; // 256KB
 
 const validFavicon = {

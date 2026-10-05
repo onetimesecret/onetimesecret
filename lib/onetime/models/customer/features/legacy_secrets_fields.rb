@@ -21,7 +21,7 @@ module Onetime::Customer::Features
         receipts.revmembers.collect do |key|
           Onetime::Receipt.load(key)
         rescue Onetime::RecordNotFound => ex
-          OT.le "[receipts_list] Error: #{ex.message} (#{key} / #{custid})"
+          OT.le "[receipts_list] #{ex.class} (receipt=#{key.to_s.slice(0, 8)} / customer=#{extid})"
         end.compact
       end
 

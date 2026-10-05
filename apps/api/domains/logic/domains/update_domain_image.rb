@@ -7,13 +7,14 @@ require 'fastimage'
 
 require 'onetime/domain_validation/strategy'
 require_relative '../base'
+require 'onetime/image_content'
 require_relative '../../policies/domain_config_authorization'
 
 module DomainsAPI::Logic
   module Domains
     unless defined?(IMAGE_MIME_TYPES)
       IMAGE_MIME_TYPES = %w[
-        image/jpeg image/png image/gif image/svg+xml image/webp image/bmp image/tiff
+        image/jpeg image/png image/gif image/webp image/bmp image/tiff
       ]
       MAX_IMAGE_BYTES  = 2 * 1024 * 1024 # 1 MB
     end
@@ -21,7 +22,7 @@ module DomainsAPI::Logic
     # Update Domain Image
     #
     # @api Uploads and stores an image (logo or icon) for a custom domain.
-    #   Accepts standard image formats (JPEG, PNG, GIF, SVG, WebP, BMP,
+    #   Accepts standard image formats (JPEG, PNG, GIF, WebP, BMP,
     #   TIFF) up to 2 MB. Returns the stored image metadata including
     #   dimensions and ratio.
     #
@@ -104,15 +105,25 @@ module DomainsAPI::Logic
 
         @bytes = @uploaded_file.size
         raise_form_error 'Image file is too large' if bytes > self.class.max_image_bytes
-        raise_form_error 'Invalid file type' unless self.class.accepted_mime_types.include?(@content_type)
+
+        # Read once, bounded even if a stream misreports its size. Validate the
+        # actual file format before writing any image field to the datastore.
+        # The multipart Content-Type is client-supplied, so it is neither a
+        # gate nor stored: a valid ICO sent as application/octet-stream passes,
+        # and an SVG labelled image/png does not.
+        @file_content = @uploaded_file.read(self.class.max_image_bytes + 1).to_s
+        @bytes        = @file_content.bytesize
+        raise_form_error 'Image file is too large' if bytes > self.class.max_image_bytes
+        detected_type = Onetime::ImageContent.content_type(@file_content)
+        raise_form_error 'Invalid file type' unless self.class.accepted_mime_types.include?(detected_type)
+        @content_type = detected_type
 
         @greenlighted = true
       end
 
       def process
         # Read the file content and encode to Base64
-        file_content    = @uploaded_file.read
-        encoded_content = Base64.strict_encode64(file_content)
+        encoded_content = Base64.strict_encode64(@file_content)
 
         # Create data URI for FastImage
         data_uri = "data:#{content_type};base64,#{encoded_content}"
