@@ -2,28 +2,8 @@
 #
 # frozen_string_literal: true
 
-# Unit tests for the public-host `base_url` override (#4221) and its host
-# allowlist (finding G-01).
-#
-# Rodauth composes every absolute URL from `base_url` → `domain` →
-# `request.host`. Behind a Host-rewriting proxy that authority is the origin
-# target; ungated, `request.host` also honors a client-supplied
-# X-Forwarded-Host (Rack 3.2), so the stock value is BOTH wrong for
-# custom-domain users AND poisonable by an attacker. The override swaps in the
-# host DetectHost resolved for the request — but only when that host names a
-# TXT-VERIFIED custom domain (Auth::PublicHost.served_custom_host?) — and
-# otherwise falls back to the CANONICAL host, never request.host.
-#
-# Two subjects, because the policy and the wiring fail independently:
-#   - Auth::PublicHost: which host, and when to decline (shared with the
-#     OmniAuth full_host resolver — see
-#     integration/full/host_proxy_matrix_spec.rb).
-#   - The Rodauth override: that `base_url` and `public_display_domain`
-#     actually read that policy, through a real Rodauth configuration, and
-#     fall back to the canonical host rather than the request authority.
-#
-# Run:
-#   pnpm run test:rspec apps/web/auth/spec/unit/public_base_url_spec.rb
+# Browser-origin allowlist and recipient-bound Rodauth credential email URLs.
+# Run: tests/lanes/run unit --only apps/web/auth/spec/unit/public_base_url_spec.rb
 
 require_relative '../spec_helper'
 
@@ -290,6 +270,62 @@ RSpec.describe Auth::Config::Overrides::PublicBaseUrl do
       end
     end
 
+    describe '.credential_base_url' do
+      let(:env) { env_for(host: 'nz.onetime.co', display_domain: 'secret.asi.nz') }
+      let(:recipient) { { id: 7, external_id: 'recipient-extid' } }
+      let(:organization) { instance_double(Onetime::Organization, objid: 'domain-org') }
+      let(:customer) { instance_double(Onetime::Customer, objid: 'recipient-customer') }
+      let(:domain) { instance_double(Onetime::CustomDomain, verified: true, primary_organization: organization) }
+      let(:membership) { instance_double(Onetime::OrganizationMembership, active?: true, can_access_domain?: true) }
+
+      before do
+        allow(Onetime::CustomDomain).to receive(:from_display_domain).with('secret.asi.nz').and_return(domain)
+        allow(Onetime::Customer).to receive(:find_by_extid).with('recipient-extid').and_return(customer)
+        allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+          .with('domain-org', 'recipient-customer').and_return(membership)
+      end
+
+      it 'retains the tenant for the target account with active exact-domain authorization' do
+        expect(described_class.credential_base_url(env, recipient)).to eq('https://secret.asi.nz')
+        expect(membership).to have_received(:can_access_domain?).with(domain)
+      end
+
+      it 'uses the canonical origin when the recipient has no membership' do
+        allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer).and_return(nil)
+        expect(described_class.credential_base_url(env, recipient)).to eq('https://onetimesecret.com')
+      end
+
+      it 'uses the canonical origin for inactive membership' do
+        allow(membership).to receive(:active?).and_return(false)
+        expect(described_class.credential_base_url(env, recipient)).to eq('https://onetimesecret.com')
+      end
+
+      it 'uses the canonical origin for a sibling-domain membership' do
+        allow(membership).to receive(:can_access_domain?).with(domain).and_return(false)
+        expect(described_class.credential_base_url(env, recipient)).to eq('https://onetimesecret.com')
+      end
+
+      it 'does not use request or signup data in place of a recipient account' do
+        expect(described_class.credential_base_url(env, nil)).to eq('https://onetimesecret.com')
+        expect(described_class.credential_base_url(env, { email: 'recipient@example.com' }))
+          .to eq('https://onetimesecret.com')
+      end
+
+      it 'uses canonical branding and origin when membership lookup fails' do
+        allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer).and_raise(Redis::BaseError, 'unavailable')
+        expect(described_class.credential_base_url(env, recipient)).to eq('https://onetimesecret.com')
+        expect(described_class.credential_display_host(env, recipient)).to eq('onetimesecret.com')
+        expect(described_class.allowlisted_base_url(env)).to eq('https://secret.asi.nz')
+      end
+
+      it 'refuses an unbound recipient when no canonical origin is configured' do
+        allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer).and_return(nil)
+        allow(described_class).to receive(:canonical_base_url).and_return(nil)
+        expect { described_class.required_credential_base_url!(env, recipient) }
+          .to raise_error(described_class::MissingAllowlistedOrigin)
+      end
+    end
+
     describe '.allowlisted_host' do
       it 'follows the same tiers as .allowlisted_base_url', :aggregate_failures do
         tenant    = env_for(host: 'nz.onetime.co', display_domain: 'secret.asi.nz')
@@ -338,9 +374,9 @@ RSpec.describe Auth::Config::Overrides::PublicBaseUrl do
       body.first.split(' ')
     end
 
-    it 'mints links on the public host for a registered custom-domain request' do
+    it 'uses canonical links for an unbound recipient even on a verified custom domain' do
       expect(probe(host: 'nz.onetime.co', display_domain: 'secret.asi.nz'))
-        .to eq(['https://secret.asi.nz', 'secret.asi.nz'])
+        .to eq(['https://onetimesecret.com', 'onetimesecret.com'])
     end
 
     it 'builds on the canonical host, not request.host, on a canonical request' do

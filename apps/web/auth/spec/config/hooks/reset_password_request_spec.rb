@@ -31,16 +31,16 @@ RSpec.describe Auth::Config::Hooks::ResetPasswordRequest, :aggregate_failures do
         request: request,
         login_param: 'login',
         param_or_nil: 'target@example.org',
-        base_url: 'https://operator.example.org',
       )
       allow(auth).to receive(:enforce_reset_request_rate_limit!).and_return(nil)
+      allow(Auth::PublicHost).to receive(:required_base_url!).and_return('https://operator.example.org')
     end
 
     it 'calls the limiter before resolving the origin' do
       auth.send(:before_reset_password_request_route)
 
       expect(auth).to have_received(:enforce_reset_request_rate_limit!).with('203.0.113.0', 'target@example.org').ordered
-      expect(auth).to have_received(:base_url).ordered
+      expect(Auth::PublicHost).to have_received(:required_base_url!).with(request.env).ordered
     end
 
     it 'still resolves the origin when the limiter is disabled' do
@@ -51,14 +51,14 @@ RSpec.describe Auth::Config::Hooks::ResetPasswordRequest, :aggregate_failures do
       auth.send(:before_reset_password_request_route)
 
       expect(auth).not_to have_received(:reset_request_redis)
-      expect(auth).to have_received(:base_url)
+      expect(Auth::PublicHost).to have_received(:required_base_url!).with(request.env)
     end
 
     it 'does not resolve the origin when rate limiting refuses' do
       allow(auth).to receive(:enforce_reset_request_rate_limit!).and_raise(Onetime::LimitExceeded.new('throttled'))
 
       expect { auth.send(:before_reset_password_request_route) }.to raise_error(Onetime::LimitExceeded)
-      expect(auth).not_to have_received(:base_url)
+      expect(Auth::PublicHost).not_to have_received(:required_base_url!)
     end
 
     it 'does not run either POST check for a GET' do
@@ -67,7 +67,7 @@ RSpec.describe Auth::Config::Hooks::ResetPasswordRequest, :aggregate_failures do
       auth.send(:before_reset_password_request_route)
 
       expect(auth).not_to have_received(:enforce_reset_request_rate_limit!)
-      expect(auth).not_to have_received(:base_url)
+      expect(Auth::PublicHost).not_to have_received(:required_base_url!)
     end
   end
 

@@ -428,11 +428,11 @@ module Onetime
       # result with neither :data nor :mode changes nothing and records the
       # failed check in vhost_fetch_failed_at.
       #
-      # A 200 is not enough for `verified`: the strategy returns validated: nil
+      # A 200 is not enough for ownership_verified: the strategy returns validated: nil
       # when the upstream checker answered but its own DNS lookup failed
       # (indeterminate). That is not evidence about the customer's DNS, so the
       # stored flag is left alone — neither promoted nor demoted. The one
-      # exception is bounded by time: ConfirmationWindow withdraws verified
+      # exception is bounded by time: ConfirmationWindow withdraws ownership_verified
       # once every check has been indeterminate for longer than its max age.
       #
       # @param domain [Onetime::CustomDomain]
@@ -443,7 +443,7 @@ module Onetime
       def persist_changes(domain, dns_result, status_result, window)
         if (dns_result[:data] || dns_result[:mode]) && !dns_result[:validated].nil? &&
            !override_held?(domain, dns_result)
-          domain.verified! dns_result[:validated]
+          domain.ownership_verified! dns_result[:validated]
           if dns_result[:mode] == 'passthrough'
             # Passthrough is an operator policy, not a TXT ownership result.
             # End any stale unconfirmed run without inventing confirmation
