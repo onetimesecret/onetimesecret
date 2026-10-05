@@ -59,6 +59,10 @@ class MockChannel
   def default_exchange
     @exchange
   end
+
+  def tx_select; end
+  def tx_commit; end
+  def tx_rollback; end
 end
 
 class MockExchange
@@ -120,6 +124,10 @@ class FakeDlqChannel
   def default_exchange
     MockExchange.new(@publishes)
   end
+
+  def tx_select; end
+  def tx_commit; end
+  def tx_rollback; end
 
   def open?
     @open

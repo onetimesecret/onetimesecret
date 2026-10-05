@@ -37,6 +37,19 @@ module Onetime
         DLQ_NAME   = 'dlq.email.message'
         BATCH_SIZE = 50
 
+        # Ends the batch when a settlement or commit leaves the channel's
+        # transaction in an unknown state. Must bypass process_message's
+        # discard-on-error path: settling another delivery on this channel
+        # could commit an earlier, uncertain replay.
+        class BatchStopped < StandardError
+          attr_reader :message_id
+
+          def initialize(message = nil, message_id: nil)
+            super(message)
+            @message_id = message_id
+          end
+        end
+
         # Marks a message id as replayed (KEYS[1]) and, only when this call
         # set the mark, deletes the email worker's idempotency claim on it
         # (KEYS[2]). Returns 1 when it set the mark, 0 when the id was
@@ -110,6 +123,11 @@ module Onetime
             to_process = [available, BATCH_SIZE].min
             results    = { replayed: 0, discarded_non_auth: 0, discarded_expired: 0, errors: 0, deferred: 0 }
 
+            # Every publish, ack and nack below takes effect only at tx_commit.
+            # The channel is dedicated to this batch (#acquire_channel), so
+            # transaction mode does not reach other publishers.
+            channel.tx_select
+
             to_process.times do
               delivery_info, properties, payload = queue.pop(manual_ack: true)
               break unless delivery_info
@@ -117,12 +135,11 @@ module Onetime
               process_message(channel, delivery_info, properties, payload, results)
             end
 
-            scheduler_logger.info '[DlqEmailConsumerJob] Batch complete: ' \
-                                  "replayed=#{results[:replayed]} " \
-                                  "discarded_non_auth=#{results[:discarded_non_auth]} " \
-                                  "discarded_expired=#{results[:discarded_expired]} " \
-                                  "errors=#{results[:errors]} " \
-                                  "deferred=#{results[:deferred]}"
+            scheduler_logger.info "[DlqEmailConsumerJob] Batch complete: #{batch_counts(results)}"
+          rescue BatchStopped => ex
+            # Messages not popped yet stay in the DLQ for the next run.
+            scheduler_logger.error "[DlqEmailConsumerJob] #{ex.message}; counts before the stop: #{batch_counts(results)}",
+              message_id: ex.message_id
           rescue Bunny::NotFound
             scheduler_logger.debug "[DlqEmailConsumerJob] Queue #{DLQ_NAME} not declared yet"
           ensure
@@ -154,6 +171,10 @@ module Onetime
             [nil, nil, false]
           end
 
+          def batch_counts(results)
+            results.map { |name, count| "#{name}=#{count}" }.join(' ')
+          end
+
           def process_message(channel, delivery_info, properties, payload, results)
             data = JSON.parse(payload, symbolize_names: false)
 
@@ -168,7 +189,7 @@ module Onetime
             template = data['template']
 
             unless template && AUTH_TEMPLATES.key?(template)
-              channel.nack(delivery_info.delivery_tag, false, false)
+              discard_message(channel, delivery_info, properties.message_id)
               results[:discarded_non_auth] += 1
               return
             end
@@ -179,25 +200,27 @@ module Onetime
 
             unless token
               # No token in payload, can't verify validity
-              channel.nack(delivery_info.delivery_tag, false, false)
+              discard_message(channel, delivery_info, properties.message_id)
               results[:discarded_expired] += 1
               return
             end
 
             if token_expired?(config, token)
-              channel.nack(delivery_info.delivery_tag, false, false)
+              discard_message(channel, delivery_info, properties.message_id)
               results[:discarded_expired] += 1
               return
             end
 
             replay_message(channel, delivery_info, properties, payload, results)
+          rescue BatchStopped
+            raise
           rescue JSON::ParserError => ex
             scheduler_logger.error "[DlqEmailConsumerJob] Invalid JSON: #{ex.message}"
-            channel.nack(delivery_info.delivery_tag, false, false)
+            discard_message(channel, delivery_info, properties.message_id)
             results[:errors] += 1
           rescue StandardError => ex
             scheduler_logger.error "[DlqEmailConsumerJob] Error processing message: #{ex.message}"
-            channel.nack(delivery_info.delivery_tag, false, false)
+            discard_message(channel, delivery_info, properties.message_id)
             results[:errors] += 1
           end
 
@@ -242,13 +265,19 @@ module Onetime
           # the DLQ, where this batch would pop it again. If the script ran
           # before the error reached the job (a read timeout), the next run
           # finds the id marked and drops the message as already replayed.
+          #
+          # The republish and the ack of the DLQ delivery are committed in one
+          # AMQP transaction. A failure before the commit rolls both back, so
+          # no copy goes live while the delivery returns to the DLQ. A commit
+          # the broker does not confirm stops the batch, since the copy may or
+          # may not be live.
           def replay_message(channel, delivery_info, properties, payload, results)
             message_id = properties.message_id
 
             original_queue = extract_original_queue(properties.headers)
             unless original_queue
               scheduler_logger.warn '[DlqEmailConsumerJob] No original queue in x-death headers'
-              channel.nack(delivery_info.delivery_tag, false, false)
+              discard_message(channel, delivery_info, message_id)
               results[:errors] += 1
               return
             end
@@ -265,22 +294,73 @@ module Onetime
 
               # Idempotency: skip if already replayed
               unless first_replay
-                channel.ack(delivery_info.delivery_tag)
+                settle(channel, 'duplicate acknowledgement', message_id) { channel.ack(delivery_info.delivery_tag) }
                 return
               end
             end
 
-            channel.default_exchange.publish(
-              payload,
-              routing_key: original_queue,
-              persistent: true,
-              message_id: message_id,
-              content_type: properties.content_type,
-              headers: clean_headers(properties.headers),
-            )
+            begin
+              channel.default_exchange.publish(
+                payload,
+                routing_key: original_queue,
+                persistent: true,
+                message_id: message_id,
+                content_type: properties.content_type,
+                headers: clean_headers(properties.headers),
+              )
+              channel.ack(delivery_info.delivery_tag)
+            rescue StandardError => ex
+              # Roll back before continuing, otherwise the next message's
+              # commit could publish this copy without its DLQ acknowledgement.
+              begin
+                channel.tx_rollback
+              rescue StandardError => rollback_error
+                stop = "Replay rollback failed; batch stopped: #{rollback_error.class}"
+                raise BatchStopped.new(stop, message_id: message_id)
+              end
+              # Left unacked, the message returns to the DLQ when the channel
+              # closes. Its id is already marked as replayed (claim_replay
+              # above), so the next run acks it as a duplicate.
+              scheduler_logger.error "[DlqEmailConsumerJob] Replay rolled back before commit: #{ex.class}",
+                message_id: message_id
+              results[:deferred] += 1
+              return
+            end
 
-            channel.ack(delivery_info.delivery_tag)
+            context = "replay to #{original_queue}; the message may already be republished"
+            commit_transaction(channel, context, message_id)
+
             results[:replayed] += 1
+          end
+
+          # Drop a delivery from the DLQ (nack without requeue).
+          def discard_message(channel, delivery_info, message_id)
+            settle(channel, 'discard', message_id) { channel.nack(delivery_info.delivery_tag, false, false) }
+          end
+
+          # Settle one delivery and commit it. Transaction mode lasts for the
+          # channel's lifetime, so a settlement takes effect only at commit.
+          # A settlement that raises stops the batch instead of settling the
+          # delivery a second way: the first frame may have reached the broker.
+          def settle(channel, context, message_id)
+            begin
+              yield
+            rescue StandardError => ex
+              stop = "#{context.capitalize} failed before commit; batch stopped: #{ex.class}"
+              raise BatchStopped.new(stop, message_id: message_id)
+            end
+            commit_transaction(channel, context, message_id)
+          end
+
+          # A lost commit reply is not a rollback signal. Stop and close the
+          # dedicated channel without trying to settle this delivery again.
+          # This batches publish/ack; it does not guarantee cross-queue atomicity
+          # on broker failure: https://www.rabbitmq.com/docs/semantics
+          def commit_transaction(channel, context, message_id)
+            channel.tx_commit
+          rescue StandardError => ex
+            stop = "Batch stopped, outcome unknown: broker did not confirm #{context} (#{ex.class})"
+            raise BatchStopped.new(stop, message_id: message_id)
           end
 
           # Mark a message id as replayed and release the worker's claim on
