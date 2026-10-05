@@ -231,11 +231,71 @@ RSpec.describe Onetime::Mail::Delivery::SMTP do
     context 'when SMTP_SSL is enabled in the environment' do
       it 'enables implicit TLS without attempting STARTTLS' do
         allow(ENV).to receive(:[]).and_call_original
-        allow(ENV).to receive(:[]).with('SMTP_SSL').and_return('true')
+        allow(ENV).to receive(:fetch).and_call_original
+        allow(ENV).to receive(:fetch).with('SMTP_SSL', nil).and_return('true')
 
         settings = smtp.send(:smtp_settings)
 
         expect(settings).to include(ssl: true, enable_starttls_auto: false)
+      end
+    end
+
+    context 'when implicit TLS is not configured' do
+      before do
+        allow(ENV).to receive(:[]).and_call_original
+        allow(ENV).to receive(:fetch).and_call_original
+        allow(ENV).to receive(:fetch).with('SMTP_SSL', nil).and_return(nil)
+        allow(ENV).to receive(:[]).with('SMTP_TLS').and_return(nil)
+      end
+
+      it 'leaves implicit TLS off and keeps STARTTLS enabled by default' do
+        settings = smtp.send(:smtp_settings)
+
+        expect(settings).not_to have_key(:ssl)
+        expect(settings).to include(enable_starttls_auto: true)
+      end
+
+      it 'follows the tls setting for STARTTLS' do
+        smtp = described_class.new(config.merge('tls' => false))
+
+        settings = smtp.send(:smtp_settings)
+
+        expect(settings).not_to have_key(:ssl)
+        expect(settings).to include(enable_starttls_auto: false)
+      end
+    end
+
+    context 'when the config disables implicit TLS but SMTP_SSL is set' do
+      let(:config) { { 'host' => 'smtp.example.com', 'port' => 587, 'ssl' => false } }
+
+      it 'lets the config value win over the environment' do
+        allow(ENV).to receive(:[]).and_call_original
+        allow(ENV).to receive(:fetch).and_call_original
+        allow(ENV).to receive(:fetch).with('SMTP_SSL', nil).and_return('true')
+        allow(ENV).to receive(:[]).with('SMTP_TLS').and_return(nil)
+
+        settings = smtp.send(:smtp_settings)
+
+        expect(settings).not_to have_key(:ssl)
+        expect(settings).to include(enable_starttls_auto: true)
+      end
+    end
+
+    context 'with other spellings of an enabled value' do
+      [true, 'true', 'TRUE', 1, '1', 'yes', 'on'].each do |value|
+        it "enables implicit TLS for #{value.inspect}" do
+          smtp = described_class.new(config.merge('ssl' => value))
+
+          expect(smtp.send(:smtp_settings)).to include(ssl: true, enable_starttls_auto: false)
+        end
+      end
+
+      [false, 'false', 0, '', 'enabled'].each do |value|
+        it "leaves implicit TLS off for #{value.inspect}" do
+          smtp = described_class.new(config.merge('ssl' => value))
+
+          expect(smtp.send(:smtp_settings)).not_to have_key(:ssl)
+        end
       end
     end
   end

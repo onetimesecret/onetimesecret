@@ -131,7 +131,7 @@ module Onetime
           }
 
           if resolve_ssl_setting
-            settings[:ssl]                   = true
+            settings[:ssl]                  = true
             settings[:enable_starttls_auto] = false
           else
             settings[:enable_starttls_auto] = resolve_tls_setting
@@ -162,9 +162,9 @@ module Onetime
 
         def resolve_ssl_setting
           value = config['ssl']
-          value = ENV['SMTP_SSL'] if value.nil?
+          value = ENV.fetch('SMTP_SSL', nil) if value.nil?
 
-          value == true || value == 'true'
+          OT::Utils.yes?(value)
         end
       end
     end

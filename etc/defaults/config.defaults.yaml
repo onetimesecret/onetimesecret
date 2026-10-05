@@ -1328,7 +1328,7 @@ emailer:
   pass: "<%= ENV['SMTP_PASSWORD'] %>"
   auth: <%= ENV['SMTP_AUTH'] || nil %>
   tls: <%= ENV['SMTP_TLS'] %>
-  ssl: <%= ENV['SMTP_SSL'] == 'true' %>
+  ssl: <%= ENV['SMTP_SSL'] %>
   # Recipient ("To:") address for /feedback submissions.
   # When set, feedback emails are delivered here instead of the first colonel
   # in the database. Useful for routing to a shared inbox or alias.
