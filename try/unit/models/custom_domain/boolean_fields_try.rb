@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-# CustomDomain's boolean fields (verified, resolving, favicon_fetched) are
+# CustomDomain's boolean fields (ownership_verified, resolving, favicon_fetched) are
 # declared `boolean_field ..., storage: :native`, so they hold REAL Ruby
 # booleans in memory and persist as the JSON literals true/false.
 #
@@ -24,9 +24,9 @@ require_relative '../../../../lib/onetime/jobs/scheduled/favicon_backfill_job'
 
 OT.boot! :test
 
-@now   = Familia.now.to_i
-@owner = Onetime::Customer.create!(email: "cd_bool_owner_#{@now}@test.com")
-@org   = Onetime::Organization.create!("CD Bool #{@now}", @owner, "cd_bool_#{@now}@test.com")
+@now    = Familia.now.to_i
+@owner  = Onetime::Customer.create!(email: "cd_bool_owner_#{@now}@test.com")
+@org    = Onetime::Organization.create!("CD Bool #{@now}", @owner, "cd_bool_#{@now}@test.com")
 @domain = Onetime::CustomDomain.create!("cd-bool-#{@now}.example.com", @org.objid)
 
 # ---------------------------------------------------------------------------
@@ -85,7 +85,7 @@ OT.boot! :test
 @domain.verified  = true
 @domain.resolving = false
 @domain.save
-@domain.dbclient.hmget(@domain.dbkey, 'verified', 'resolving')
+@domain.dbclient.hmget(@domain.dbkey, 'ownership_verified', 'resolving')
 #=> ['true', 'false']
 
 ## A reloaded record reads back real booleans
@@ -97,7 +97,7 @@ OT.boot! :test
 ## This is the path Familia's setter cannot cover (it hsets
 ## serialize_value(raw_input)), and the one VerifyDomain uses.
 @domain.verified!('yes')
-[@domain.verified, @domain.dbclient.hget(@domain.dbkey, 'verified')]
+[@domain.ownership_verified, @domain.dbclient.hget(@domain.dbkey, 'ownership_verified')]
 #=> [true, 'true']
 
 ## favicon_fetched behaves the same way
@@ -110,15 +110,51 @@ OT.boot! :test
 # 4. Read healing — legacy rows coerce on load, no data migration
 # ---------------------------------------------------------------------------
 
-## A row persisted as a JSON-quoted string heals on load
+## A legacy row persisted as a JSON-quoted string heals on load
+@domain.dbclient.hdel(@domain.dbkey, 'ownership_verified')
 @domain.dbclient.hset(@domain.dbkey, 'verified', '"true"')
 Onetime::CustomDomain.find_by_identifier(@domain.domainid).verified
 #=> true
 
 ## A row persisted as '1' heals on load
 @domain.dbclient.hset(@domain.dbkey, 'verified', '1')
-Onetime::CustomDomain.find_by_identifier(@domain.domainid).verified
+Onetime::CustomDomain.find_by_identifier(@domain.domainid).ownership_verified
 #=> true
+
+## Canonical false takes precedence over legacy true
+@domain.dbclient.hset(@domain.dbkey, 'ownership_verified', 'false')
+@loaded = Onetime::CustomDomain.find_by_identifier(@domain.domainid)
+[@loaded.ownership_verified, @loaded.verified]
+#=> [false, false]
+
+## A legacy partial save writes canonical false and leaves legacy bytes alone
+@loaded.verified = false
+@loaded.save_fields(:verified)
+@domain.dbclient.hmget(@domain.dbkey, 'ownership_verified', 'verified')
+#=> ['false', '1']
+
+## The ownership backfill copies false exactly, including its legacy encoding
+@domain.dbclient.hdel(@domain.dbkey, 'ownership_verified')
+@domain.dbclient.hset(@domain.dbkey, 'verified', '"false"')
+@domain.do_chore!(:migrate_ownership_verified)
+@domain.dbclient.hmget(@domain.dbkey, 'ownership_verified', 'verified')
+#=> ['"false"', '"false"']
+
+## The ownership backfill is idempotent
+@domain.do_chore!(:migrate_ownership_verified)
+#=> false
+
+## Backfill never overwrites canonical false with legacy true
+@domain.dbclient.hset(@domain.dbkey, 'ownership_verified', 'false', 'verified', 'true')
+@copied = @domain.do_chore!(:migrate_ownership_verified)
+[@copied, @domain.dbclient.hget(@domain.dbkey, 'ownership_verified')]
+#=> [false, 'false']
+
+## Without a legacy flag, backfill does not create a canonical field
+@domain.dbclient.hdel(@domain.dbkey, 'ownership_verified', 'verified')
+@copied = @domain.do_chore!(:migrate_ownership_verified)
+[@copied, @domain.dbclient.hget(@domain.dbkey, 'ownership_verified')]
+#=> [false, nil]
 
 ## A row persisted as '"false"' heals on load
 @domain.dbclient.hset(@domain.dbkey, 'resolving', '"false"')
@@ -136,8 +172,8 @@ Onetime::CustomDomain.find_by_identifier(@domain.domainid).resolving
 
 ## verification_state reads the fields directly
 @domain.txt_validation_value = "abc#{@now}"
-@domain.verified  = true
-@domain.resolving = true
+@domain.verified             = true
+@domain.resolving            = true
 @domain.verification_state
 #=> :verified
 
@@ -149,8 +185,8 @@ Onetime::CustomDomain.find_by_identifier(@domain.domainid).resolving
 ## safe_dump emits real JSON booleans
 @domain.verified  = true
 @domain.resolving = true
-@domain.safe_dump.values_at(:verified, :resolving)
-#=> [true, true]
+@domain.safe_dump.values_at(:ownership_verified, :verified, :resolving)
+#=> [true, true, true]
 
 ## safe_dump collapses an unset field to false for the API contract
 @domain.resolving = nil
@@ -165,6 +201,12 @@ Onetime::CustomDomain.find_by_identifier(@domain.domainid).resolving
 @legacy = Onetime::CustomDomain.find_by_identifier(@domain.domainid)
 Onetime::Jobs::Scheduled::FaviconBackfillJob.send(:eligible?, @legacy, Familia.now.to_i)
 #=> false
+
+## Backfill does not recreate a deleted domain object
+@domain.dbclient.del(@domain.dbkey)
+@copied = @domain.do_chore!(:migrate_ownership_verified)
+[@copied, @domain.dbclient.exists?(@domain.dbkey)]
+#=> [false, false]
 
 # ---------------------------------------------------------------------------
 # Cleanup

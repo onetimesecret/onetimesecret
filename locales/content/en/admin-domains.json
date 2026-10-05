@@ -304,8 +304,8 @@
     "content_hash": "3a5ecca1"
   },
   "web.admin.domains.fields.verified": {
-    "text": "Verified",
-    "content_hash": "4f783840"
+    "text": "Ownership verified",
+    "content_hash": "7ba47ed1"
   },
   "web.admin.domains.fields.verifiedByOverride": {
     "text": "Yes (operator override)",
@@ -892,12 +892,12 @@
     "content_hash": "66dbebb2"
   },
   "web.admin.domains.override.description": {
-    "text": "Manually set the verified and resolving flags for this domain. Use with caution.",
-    "content_hash": "bc3eb719"
+    "text": "Manually set ownership verification and resolving flags independently. Use with caution.",
+    "content_hash": "b34401c8"
   },
   "web.admin.domains.override.verified": {
-    "text": "Verified",
-    "content_hash": "4f783840"
+    "text": "Ownership verified",
+    "content_hash": "7ba47ed1"
   },
   "web.admin.domains.override.resolving": {
     "text": "Resolving",
