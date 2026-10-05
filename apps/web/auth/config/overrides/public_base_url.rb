@@ -10,9 +10,11 @@ module Auth::Config::Overrides
   # custom domain is insufficient without active membership authorizing that
   # exact domain. SSO and WebAuthn keep their browser-origin resolvers.
   #
-  # Public nonmember tenant requests therefore receive canonical links. On
-  # tenant-only password/email deployments, canonical redemption must already
-  # be enabled; this override does not widen any sign-in route policy.
+  # Nonmember tenant requests receive canonical links, including ordinary
+  # password signups: their personal workspace is not membership in the tenant
+  # organization. This resolver does not check destination route availability
+  # or widen its policy. Global sign-in flags gate tenants too; disabling them
+  # does not create a tenant-only password/email deployment.
   module PublicBaseUrl
     module ResetPasswordOrigin
       # Also protect direct/internal key creation, before INSERT or updating an

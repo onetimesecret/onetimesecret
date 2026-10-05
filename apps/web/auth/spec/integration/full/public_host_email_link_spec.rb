@@ -93,6 +93,7 @@ RSpec.describe 'delivered email links use the public host (#4221)', type: :integ
   after do
     Array(@fixtures).each do |org, domain, owner, host|
       Onetime::CustomDomain::SigninConfig.delete_for_domain!(domain.identifier)
+      Onetime::CustomDomain::SignupConfig.delete_for_domain!(domain.identifier)
       Onetime::CustomDomain.display_domain_index.remove(host)
       domain.destroy!
       org.destroy!
@@ -217,6 +218,197 @@ RSpec.describe 'delivered email links use the public host (#4221)', type: :integ
       expect(URI.parse(reset_link).host).to eq(URI.parse(Auth::PublicHost.canonical_base_url).host)
       expect(delivered_email[:subject].to_s).to include(Auth::PublicHost.canonical_host)
       expect(delivered_email[:body].to_s).not_to include(tenant_domain)
+    end
+  end
+
+  describe 'a password account registered through the tenant, without an invitation' do
+    # Override the eager parent fixture: these accounts must come from HTTP signup,
+    # not seed_account_with_password or the parent's membership injection.
+    let(:account_id) { nil }
+    let(:authorized_recipient) { false }
+    let(:password) { 'TenantSignupPassword123!' }
+
+    before do
+      conf = OT.conf
+      allow(OT).to receive(:conf).and_return(
+        conf.merge('site' => conf.fetch('site').merge('host' => canonical_host)),
+      )
+      # The lane boots these optional features OFF. Configure a router subclass
+      # with the production modules, leaving the shared one-shot router untouched.
+      allow(Onetime.auth_config).to receive(:verify_account_enabled?).and_return(true)
+      allow(Onetime.auth_config).to receive(:email_auth_enabled?).and_return(true)
+      router = Class.new(Auth::Router)
+      router.plugin :rodauth do
+        Auth::Config::Features::AccountManagement.configure(self)
+        Auth::Config::Email::VerifyAccount.configure(self)
+        Auth::Config::Hooks::Account.configure(self)
+        Auth::Config::Features::EmailAuth.configure(self)
+        Auth::Config::Hooks::EmailAuth.configure(self)
+        Auth::Config::Hooks::RestrictTo.configure_email_auth(self)
+      end
+      allow_any_instance_of(Auth::Application).to receive(:build_router).and_return(router)
+      @signup_app = build_rack_app
+      # Building the middleware reinitializes DomainStrategy; retain the shared
+      # context's classification rather than accidentally exercising :canonical.
+      Onetime::Middleware::DomainStrategy.initialize_from_config(OT.conf['features']['domains'])
+
+      Onetime::CustomDomain::SignupConfig.create!(
+        domain_id: tenant.identifier, enabled: true, signup_enabled: true,
+      )
+      signin = Onetime::CustomDomain::SigninConfig.find_by_domain_id(tenant.identifier)
+      signin.email_auth_enabled = true
+      signin.save
+    end
+
+    def app
+      @signup_app || super
+    end
+
+    def on_host(host)
+      clear_cookies
+      header 'Host', host
+      header 'X-Forwarded-Host', nil
+    end
+
+    def expect_success
+      expect(last_response.status).to eq(200), last_response.body
+      expect(json_body['success']).to be_a(String)
+      expect(json_body['error']).to be_nil
+    end
+
+    def expect_personal_workspace
+      customer = Onetime::Customer.find_by_extid(@signup_account.fetch(:external_id))
+      expect(customer).not_to be_nil
+      expect(customer.email).to eq(account_email)
+      workspaces = customer.organization_instances.to_a
+      expect(workspaces.size).to eq(1)
+      workspace = workspaces.first
+      expect(workspace.is_default).to be(true)
+      expect(workspace.created_by).to eq(customer.objid)
+      expect(workspace.org_id).not_to eq(tenant.org_id)
+      expect(@fixtures.first[0].member?(customer)).to be(false)
+      expect(Onetime::OrganizationMembership.find_by_org_customer(tenant.org_id, customer.objid)).to be_nil
+      customer
+    end
+
+    def canonical_email_key(path)
+      email = delivered_email
+      expect(email[:to]).to eq([account_email])
+      # Welcome uses the product name; reset and magic-link subjects use the host.
+      expect(email[:subject]).to include(canonical_host) unless path == '/verify-account'
+      expect(email[:subject]).not_to include(tenant_domain)
+      expect(email[:body]).not_to include(tenant_domain)
+      link = email[:body].to_s[%r{https?://\S+?#{Regexp.escape(path)}\?key=\S+}]
+      expect(link).not_to be_nil, "missing #{path} link in delivered email"
+      uri = URI.parse(link)
+      expect(uri.host).to eq(canonical_host)
+      expect(uri.scheme).to eq(URI.parse(Auth::PublicHost.canonical_base_url).scheme)
+      key = CGI.parse(uri.query).fetch('key').first
+      expect(key).not_to be_empty
+      key
+    end
+
+    def signup_and_verify
+      expect(auth_db[:accounts].where(email: account_email).count).to eq(0)
+      on_host(tenant_domain)
+      csrf_json_post('/auth/create-account', login: account_email, password: password)
+      expect_success
+      expect(last_request.env['onetime.domain_strategy']).to eq(:custom)
+      expect(json_body['next_action']).to eq('verify_email')
+      @signup_account = auth_db[:accounts].where(email: account_email).first
+      expect(@signup_account).not_to be_nil
+      expect(@signup_account[:status_id]).to eq(AuthTestConstants::STATUS_UNVERIFIED)
+      expect(auth_db[:account_password_hashes].where(id: @signup_account[:id]).count).to eq(1)
+      expect(auth_db[:account_verification_keys].where(id: @signup_account[:id]).count).to eq(1)
+      expect_personal_workspace
+      key = canonical_email_key('/verify-account')
+
+      on_host(canonical_host)
+      csrf_json_post('/auth/verify-account', key: key)
+      expect_success
+      expect(last_request.env['onetime.domain_strategy']).to eq(:canonical)
+      expect(auth_db[:accounts].where(id: @signup_account[:id]).get(:status_id))
+        .to eq(AuthTestConstants::STATUS_VERIFIED)
+      expect(auth_db[:account_verification_keys].where(id: @signup_account[:id]).count).to eq(0)
+      expect(expect_personal_workspace.verified?).to be(true)
+      @delivered.clear
+    end
+
+    def expect_signed_in_account
+      clear_body_headers
+      json_get('/auth/account.json')
+      expect(last_response.status).to eq(200), last_response.body
+      expect(json_body).to include(
+        'id' => @signup_account[:id], 'email' => account_email,
+        'email_verified' => true, 'has_password' => true,
+      )
+    end
+
+    it 'verifies the emailed canonical key, then resets and logs in with the new password' do
+      signup_and_verify
+      request_password_reset(host: tenant_domain)
+      expect_success
+      expect(auth_db[:account_password_reset_keys].where(id: @signup_account[:id]).count).to eq(1)
+      key = canonical_email_key('/reset-password')
+      new_password = 'CanonicalResetPassword456!'
+
+      on_host(canonical_host)
+      csrf_json_post('/auth/reset-password', key: key, password: new_password)
+      expect_success
+      expect(auth_db[:account_password_reset_keys].where(id: @signup_account[:id]).count).to eq(0)
+
+      # Sessions established in the reset's integer second are deliberately
+      # stale (authenticated_at <= last_password_update). Log in after it.
+      Timecop.travel(Time.now + 2) do
+        on_host(canonical_host)
+        csrf_json_post('/auth/login', login: account_email, password: password)
+        expect(last_response.status).to eq(401), last_response.body
+        on_host(canonical_host)
+        csrf_json_post('/auth/login', login: account_email, password: new_password)
+        expect_success
+        expect_signed_in_account
+        expect_personal_workspace
+      end
+    end
+
+    it 'requests a tenant magic link and redeems the emailed canonical key for the same nonmember' do
+      signup_and_verify
+      on_host(tenant_domain)
+      csrf_json_post('/auth/email-login-request', login: account_email)
+      expect_success
+      expect(auth_db[:account_email_auth_keys].where(id: @signup_account[:id]).count).to eq(1)
+      key = canonical_email_key('/email-login')
+
+      on_host(canonical_host)
+      csrf_json_post('/auth/email-login', key: key)
+      expect_success
+      expect(auth_db[:account_email_auth_keys].where(id: @signup_account[:id]).count).to eq(0)
+      expect_signed_in_account
+      expect_personal_workspace
+    end
+
+    it 'blocks reset requests on both hosts when global sign-in is disabled' do
+      signup_and_verify
+      # Replace the frozen authentication subtree instead of mutating it or
+      # stubbing a policy verdict. Global flags narrow every host, not just the
+      # canonical host; this is not a tenant-only recovery-blocking deployment.
+      conf = OT.conf
+      authentication = conf.fetch('site').fetch('authentication').merge('signin' => false).freeze
+      allow(OT).to receive(:conf).and_return(
+        conf.merge('site' => conf.fetch('site').merge('authentication' => authentication)),
+      )
+      expect(Onetime::CustomDomain::SigninConfig.global_signin_enabled).to be(false)
+
+      [tenant_domain, canonical_host].each do |host|
+        request_password_reset(host: host)
+        expect(last_response.status).to eq(404), "#{host}: #{last_response.body}"
+        expect(json_body['error_type']).to eq('NotFound')
+        expect(@delivered).to be_empty
+        expect(auth_db[:account_password_reset_keys].where(id: @signup_account[:id]).count).to eq(0)
+        expect(auth_db[:accounts].where(id: @signup_account[:id]).get(:status_id))
+          .to eq(AuthTestConstants::STATUS_VERIFIED)
+      end
+      expect_personal_workspace
     end
   end
 
