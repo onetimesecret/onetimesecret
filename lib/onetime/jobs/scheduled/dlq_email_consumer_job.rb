@@ -27,8 +27,9 @@ module Onetime
       # id right before it republishes the message, so the worker delivers
       # the replay instead of acking it as a duplicate. The id is held by an
       # owned reservation while the replay runs and is marked completed only
-      # after the broker confirms the commit of the publish and the ack (see
-      # #replay_message).
+      # after the broker confirms the commit of the publish and has not
+      # returned the message as unroutable. The DLQ delivery is acked after
+      # that (see #replay_message).
       #
       # Configuration:
       #   jobs:
@@ -100,7 +101,8 @@ module Onetime
         # Deletes the reservation only when this owner holds it. The
         # publishing form is included only when the copy cannot be live: the
         # publish was never attempted (a lost reply from START_REPLAY_LUA),
-        # or its transaction was not committed.
+        # its transaction was not committed, or the broker returned it as
+        # unroutable.
         RELEASE_RESERVATION_LUA = <<~LUA
           local reservation = redis.call('GET', KEYS[1])
           if reservation == ARGV[1] or (ARGV[2] == '1' and reservation == 'publishing:' .. ARGV[1]) then
@@ -156,7 +158,7 @@ module Onetime
           end
 
           def consume_dlq_batch
-            results                       = { replayed: 0, discarded_non_auth: 0, discarded_expired: 0, errors: 0, deferred: 0 }
+            results                       = { replayed: 0, discarded_non_auth: 0, discarded_expired: 0, errors: 0, deferred: 0, unroutable: 0 }
             conn, channel, own_connection = acquire_channel
             return unless channel
 
@@ -334,11 +336,18 @@ module Onetime
           #    with the one-hour TTL and release the worker's idempotency
           #    claim, so the worker delivers the replay instead of acking it
           #    as a duplicate. The worker's own release is best-effort.
-          # 3. finalize_replay, after the broker confirms the commit: mark
-          #    the id completed and drop the reservation.
+          # 3. finalize_replay, after the broker confirms the commit of the
+          #    publish without returning the message: mark the id completed
+          #    and drop the reservation.
           #
-          # The republish and the ack of the DLQ delivery are committed in one
-          # AMQP transaction, so no copy goes live before the commit.
+          # The republish and the ack of the DLQ delivery are committed
+          # separately, publish first. A publish to the default exchange
+          # succeeds when no queue has the routing key's name; the broker
+          # reports that only by returning a mandatory message, and it sends
+          # the return when it applies the commit. In one transaction the
+          # ack would already be applied by then. So the publish is
+          # committed alone, and the delivery is acked only when that commit
+          # brought no return.
           #
           # A deferred message is left unacked. Closing the channel at the end
           # of the batch returns it to the DLQ for a later run. It is not
@@ -350,15 +359,23 @@ module Onetime
           # - Datastore error before the publish: the call releases its own
           #   reservation (best-effort; otherwise the reservation TTL bounds
           #   the wait) and defers.
-          # - Publish or ack error: the transaction is rolled back and the
+          # - Publish error: the transaction is rolled back and the
           #   reservation released, so the next run replays the message. A
           #   failed rollback also stops the batch; no commit was sent, so
           #   the copy is not live and the reservation is still released.
-          # - Commit the broker does not confirm: the copy may or may not be
-          #   live. The batch stops and the publishing reservation is kept.
-          #   If the commit applied, the delivery has left the DLQ. If not,
-          #   the delivery returns to the DLQ and is replayed once the
-          #   reservation expires.
+          # - Publish commit the broker does not confirm: the copy may or
+          #   may not be live. The batch stops and the publishing reservation
+          #   is kept. The delivery returns to the DLQ and is replayed once
+          #   the reservation expires.
+          # - Returned as unroutable (the original queue does not exist): no
+          #   copy is live. The reservation is released and the delivery is
+          #   left unacked, so it is tried again on every run until the queue
+          #   exists or the DLQ's message TTL removes it.
+          # - Ack, or its commit, fails after the publish is committed: the
+          #   copy is live and the delivery returns to the DLQ. The batch
+          #   stops. The id is already marked completed, so the next run
+          #   acks the delivery without a second publish. A message without
+          #   an id has no marker and is published again.
           def replay_message(channel, delivery_info, properties, payload, results)
             message_id = properties.message_id
 
@@ -395,23 +412,32 @@ module Onetime
               end
             end
 
+            # The broker returns the message on this channel's reader thread
+            # before it confirms the commit, so the flag is settled by the
+            # time tx_commit returns. Only this publish is in the transaction.
+            returned = false
+            exchange = channel.default_exchange
+            exchange.on_return do |*|
+              returned = true
+            end
+
             begin
-              channel.default_exchange.publish(
+              exchange.publish(
                 payload,
                 routing_key: original_queue,
+                mandatory: true,
                 persistent: true,
                 message_id: message_id,
                 content_type: properties.content_type,
                 headers: clean_headers(properties.headers),
               )
-              channel.ack(delivery_info.delivery_tag)
             rescue StandardError => ex
               # Nothing is live without a commit, whether or not the rollback
               # succeeds, so the next run may replay this message.
               release_reservation(message_id, owner, include_publishing: true) if message_id
 
               # Roll back before continuing, otherwise the next message's
-              # commit could publish this copy without its DLQ acknowledgement.
+              # commit could publish this copy as well.
               begin
                 channel.tx_rollback
               rescue StandardError => rollback_error
@@ -423,12 +449,26 @@ module Onetime
             end
 
             # On an unconfirmed commit the publishing reservation stays in
-            # place: BatchStopped skips finalize_replay.
+            # place: BatchStopped skips everything below.
             context = "replay to #{original_queue}; the message may already be republished"
             commit_transaction(channel, context, message_id)
 
+            if returned
+              release_reservation(message_id, owner, include_publishing: true) if message_id
+              results[:unroutable] += 1
+              results[:deferred]   += 1
+              scheduler_logger.error "[DlqEmailConsumerJob] Replay unroutable: no queue named #{original_queue}; left in the DLQ",
+                message_id: message_id
+              return
+            end
+
+            # The copy is live. Mark the id completed before the ack, so a
+            # delivery whose ack fails is acked by the next run and not
+            # published a second time.
             results[:replayed] += 1
             finalize_replay(message_id, owner, results) if message_id
+
+            settle(channel, 'replay acknowledgement', message_id) { channel.ack(delivery_info.delivery_tag) }
           end
 
           # Drop a delivery from the DLQ (nack without requeue).
@@ -452,8 +492,7 @@ module Onetime
 
           # A lost commit reply is not a rollback signal. Stop and close the
           # dedicated channel without trying to settle this delivery again.
-          # This batches publish/ack; it does not guarantee cross-queue atomicity
-          # on broker failure: https://www.rabbitmq.com/docs/semantics
+          # Each commit covers one publish or one settlement of one delivery.
           def commit_transaction(channel, context, message_id)
             channel.tx_commit
           rescue StandardError => ex
@@ -477,8 +516,8 @@ module Onetime
             ) == 1
           end
 
-          # The message is already settled (publish and ack committed), so a
-          # failure here is logged and counted, never raised: the publishing
+          # The copy is already live (publish committed and not returned), so
+          # a failure here is logged and counted, never raised: the publishing
           # reservation then holds off another replay until its TTL expires.
           def finalize_replay(message_id, owner, results)
             completed = dbclient.eval(
@@ -491,7 +530,7 @@ module Onetime
             raise 'Replay reservation ownership lost'
           rescue StandardError => ex
             results[:errors] += 1
-            scheduler_logger.error "[DlqEmailConsumerJob] Replay settled but marker finalization unknown: #{ex.class}",
+            scheduler_logger.error "[DlqEmailConsumerJob] Replay published but marker finalization unknown: #{ex.class}",
               message_id: message_id
           end
 

@@ -71,6 +71,8 @@ class MockExchange
     @publishes = publishes
   end
 
+  def on_return; end
+
   def publish(payload, **opts)
     @publishes << { payload: payload, **opts }
   end
@@ -153,7 +155,7 @@ end
 
 # Helper to build a results hash
 def fresh_results
-  { replayed: 0, discarded_non_auth: 0, discarded_expired: 0, errors: 0, deferred: 0 }
+  { replayed: 0, discarded_non_auth: 0, discarded_expired: 0, errors: 0, deferred: 0, unroutable: 0 }
 end
 
 # Properties of a raw email dead-lettered from the email queue
