@@ -75,6 +75,14 @@ RSpec.describe 'Domain image content validation' do
       icon_logic.raise_concerns
       expect(icon_logic.content_type).to eq('image/x-icon')
     end
+
+    it 'gates on the bytes, not a missing or generic multipart type' do
+      ['', 'application/octet-stream', nil].each do |declared_type|
+        upload(png, declared_type)
+        expect(logic.content_type).to eq('image/png')
+        expect(logic.greenlighted).to be(true)
+      end
+    end
   end
 
   describe 'legacy image serving' do
@@ -105,4 +113,5 @@ RSpec.describe 'Domain image content validation' do
       expect(logic.content_length).to eq(png.bytesize.to_s)
     end
   end
+
 end

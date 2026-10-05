@@ -105,10 +105,12 @@ module DomainsAPI::Logic
 
         @bytes = @uploaded_file.size
         raise_form_error 'Image file is too large' if bytes > self.class.max_image_bytes
-        raise_form_error 'Invalid file type' unless self.class.accepted_mime_types.include?(@content_type)
 
         # Read once, bounded even if a stream misreports its size. Validate the
         # actual file format before writing any image field to the datastore.
+        # The multipart Content-Type is client-supplied, so it is neither a
+        # gate nor stored: a valid ICO sent as application/octet-stream passes,
+        # and an SVG labelled image/png does not.
         @file_content = @uploaded_file.read(self.class.max_image_bytes + 1).to_s
         @bytes        = @file_content.bytesize
         raise_form_error 'Image file is too large' if bytes > self.class.max_image_bytes
