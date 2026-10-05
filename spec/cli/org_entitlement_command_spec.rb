@@ -52,6 +52,7 @@ RSpec.describe 'Org Entitlement Command', type: :cli do
       revokes: [],
       standalone: false,
       dry_run: false,
+      memberships: nil,
     )
   end
 
@@ -188,6 +189,30 @@ RSpec.describe 'Org Entitlement Command', type: :cli do
       expect(JSON.parse(output[:stdout])['status']).to eq('no_change')
     end
 
+    it 'exits 1 and names the stale members when the cascade was partial' do
+      allow(operation).to receive(:call).and_return(
+        result.with(status: :partial, memberships: { success: 1, failed: 1, total: 2, failed_ids: ['mem_stale'] }),
+      )
+
+      output = run_cli_command_quietly('org', 'entitlement', 'grant', 'on_org_ext', 'custom_branding', '--yes')
+
+      expect(last_exit_code).to eq(1)
+      expect(output[:stdout]).to include('Members rematerialized: 1/2 (failed: 1)')
+      expect(output[:stdout]).to include('mem_stale')
+      expect(output[:stdout]).to include('bin/ots org reconcile on_org_ext --yes')
+    end
+
+    it 'exits 1 on a partial cascade in --json mode too' do
+      allow(operation).to receive(:call).and_return(
+        result.with(status: :partial, memberships: { success: 1, failed: 1, total: 2, failed_ids: ['mem_stale'] }),
+      )
+
+      output = run_cli_command_quietly('org', 'entitlement', 'grant', 'on_org_ext', 'custom_branding', '--yes', '--json')
+
+      expect(last_exit_code).to eq(1)
+      expect(JSON.parse(output[:stdout])['memberships']['failed_ids']).to eq(['mem_stale'])
+    end
+
     it 'exits 1 when the op refuses the input' do
       allow(operation).to receive(:call)
         .and_return(result.with(status: :missing_entitlement, effective: nil, grants: nil, revokes: nil))
@@ -243,7 +268,7 @@ RSpec.describe 'Org Entitlement Command', type: :cli do
       Onetime::Operations::Org::EntitlementOverride::Result.new(
         status: :revoked, org_id: 'on_org_ext', action: 'revoke', entitlement: 'api_access',
         effective: ['create_secrets'], grants: [], revokes: ['api_access'],
-        standalone: false, dry_run: false
+        standalone: false, dry_run: false, memberships: nil
       )
     end
 
@@ -274,7 +299,7 @@ RSpec.describe 'Org Entitlement Command', type: :cli do
       Onetime::Operations::Org::EntitlementOverride::Result.new(
         status: :cleared, org_id: 'on_org_ext', action: 'clear', entitlement: nil,
         effective: %w[api_access create_secrets], grants: [], revokes: [],
-        standalone: false, dry_run: false
+        standalone: false, dry_run: false, memberships: nil
       )
     end
 

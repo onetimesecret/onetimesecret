@@ -188,6 +188,57 @@ RSpec.describe Onetime::Operations::Org::EntitlementOverride do
       expect(org).not_to have_received(:rematerialize_all_memberships!)
       expect(result.memberships).to be_nil
     end
+
+    # rematerialize_all_memberships! reports permanent per-membership failures
+    # in its counts rather than raising. A member it could not reach keeps
+    # reading its previous set through membership.can?, so the op must not
+    # report the override as a success.
+    context 'when the cascade leaves a membership on its previous set' do
+      let(:membership_counts) { { success: 1, failed: 1, total: 2, failed_ids: ['mem_stale'] } }
+
+      it 'returns :partial, which adapters do not treat as ok' do
+        result = run('revoke', entitlement: 'api_access')
+
+        expect(result.status).to eq(:partial)
+        expect(result.memberships).to eq(membership_counts)
+        expect(described_class::OK_STATUSES).not_to include(:partial)
+      end
+
+      it 'has still applied the org-level change' do
+        result = run('revoke', entitlement: 'api_access')
+
+        expect(org).to have_received(:revoke_entitlement).with('api_access')
+        expect(result.revokes).to include('api_access')
+      end
+
+      it 'records the audit event as :partial naming the stale memberships' do
+        run('revoke', entitlement: 'api_access')
+
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).with(
+          actor: actor,
+          verb: 'organization.entitlement.revoke',
+          target: 'on_org_ext',
+          result: :partial,
+          detail: {
+            entitlement: 'api_access',
+            memberships_total: 2,
+            memberships_failed: 1,
+            memberships_failed_ids: ['mem_stale'],
+          },
+        )
+      end
+
+      it 'keeps the clear detail to the counts alone' do
+        grant_members << 'custom_branding'
+
+        result = run('clear')
+
+        expect(result.status).to eq(:partial)
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).with(
+          hash_including(result: :partial, detail: hash_excluding(:entitlement)),
+        )
+      end
+    end
   end
 
   describe 'revoke' do

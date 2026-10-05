@@ -76,6 +76,30 @@ RSpec.describe V2::Logic::Secrets::GenerateSecret, type: :integration do
       expect { build_logic('length' => '12', 'ttl' => ['3600']) }
         .to raise_error(OT::FormError, /Incorrect payload format/)
     end
+
+    # `params['secret'] || {}` turned an explicit JSON `false` into the empty
+    # default, so it slipped past the Hash check and generated a secret.
+    it 'rejects an explicit false secret payload instead of defaulting it' do
+      expect { described_class.new(build_logic('length' => '12').strategy_result, { 'secret' => false }) }
+        .to raise_error(OT::FormError, /Incorrect payload format/)
+    end
+
+    it 'still treats an absent secret payload as the empty default' do
+      logic = described_class.new(build_logic('length' => '12').strategy_result, {})
+
+      expect(logic.secret_value).to be_a(String)
+    end
+
+    it 'rejects an explicit false character_sets instead of treating it as empty' do
+      expect { build_logic('length' => '12', 'character_sets' => false, 'ttl' => '3600') }
+        .to raise_error(OT::FormError, /Incorrect payload format/)
+    end
+
+    it 'still falls back to the configured character sets when the key is absent' do
+      logic = build_logic('length' => '12', 'ttl' => '3600')
+
+      expect(logic.secret_value.length).to eq(12)
+    end
   end
 
   context 'when the requested length exceeds the ceiling' do

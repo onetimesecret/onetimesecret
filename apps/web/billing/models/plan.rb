@@ -9,6 +9,7 @@ require_relative '../metadata'
 require_relative '../config'
 require_relative '../region_normalizer'
 require_relative '../operations/catalog/metadata_validator'
+require 'onetime/models/features/with_entitlements'
 
 module Billing
   unless defined?(RECORD_LIMIT)
@@ -121,9 +122,11 @@ module Billing
       @limits_hash ||= begin
         # HashKey.hgetall returns Hash
         hash = limits.hgetall || {}
-        hash.transform_values do |v|
-          v == 'unlimited' ? Float::INFINITY : v.to_i
-        end
+        # The same parser the org's materialized limits use, so a plan cached
+        # by an earlier persister release with the raw "Infinity" spelling
+        # (or a "-1" from Stripe metadata) reads as unlimited rather than 0
+        # until the next catalog pull rewrites it as 'unlimited'.
+        hash.transform_values { |v| Onetime::Models::Features::WithEntitlements.parse_limit_value(v) }
       end
     end
 

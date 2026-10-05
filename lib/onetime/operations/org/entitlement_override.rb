@@ -115,6 +115,14 @@ module Onetime
           'clear' => :cleared,
         }.freeze
 
+        # The org-level sets changed, but the membership cascade left at least
+        # one member on its previous materialized set. Deliberately NOT in
+        # OK_STATUSES: `membership.can?` reads that stale set, so a revoke that
+        # did not reach every member has not revoked anything for them, however
+        # the org's own sets look. Adapters exit non-zero / respond non-2xx and
+        # point at `bin/ots org reconcile`, which re-runs the cascade.
+        PARTIAL_STATUS = :partial
+
         # Statuses an adapter should treat as "the op did what was asked".
         # Everything else (`:invalid_action`, `:missing_entitlement`) is an
         # operator-visible failure.
@@ -150,7 +158,7 @@ module Onetime
           detail: -> { { dry_run: @dry_run, action: @action } }
 
         # @!attribute status [r] Symbol — :granted | :revoked | :cleared |
-        #   :no_change | :planned | :invalid_action | :missing_entitlement
+        #   :partial | :no_change | :planned | :invalid_action | :missing_entitlement
         # @!attribute org_id [r] String — the org's PUBLIC id (extid). Never an objid.
         # @!attribute action [r] String — the normalized action ('grant'/'revoke'/'clear').
         # @!attribute entitlement [r] String, nil — nil for clear.
@@ -256,21 +264,23 @@ module Onetime
           end
 
           memberships = apply!
+          partial     = memberships[:failed].to_i.positive?
 
           # One audit event per applied override change (CONTRACT 4 / epic D4),
           # emitted from HERE. Adapters MUST NOT audit or the trail
-          # double-records. `detail` for clear stays {} — the cleared set is
-          # unbounded and the pre-extraction endpoint recorded {} too.
+          # double-records. A cascade that left members behind is recorded as
+          # :partial, never :success — the trail must not say a revoke landed
+          # when some members still carry the entitlement.
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: audit_verb,
             target: @org.extid,
-            result: :success,
-            detail: @action == 'clear' ? {} : { entitlement: @entitlement },
+            result: partial ? :partial : :success,
+            detail: applied_detail(memberships, partial),
           )
 
           build(
-            APPLIED_STATUS[@action],
+            partial ? PARTIAL_STATUS : APPLIED_STATUS[@action],
             effective: @org.materialized_entitlements.to_a,
             grants: @org.entitlements_grants.to_a,
             revokes: @org.entitlements_revokes.to_a,
@@ -359,6 +369,21 @@ module Onetime
           end
 
           @org.rematerialize_all_memberships!
+        end
+
+        # `detail` for clear stays {} — the cleared set is unbounded and the
+        # pre-extraction endpoint recorded {} too. A partial cascade adds the
+        # counts and the stale membership objids so the trail names who kept
+        # their previous set (same shape the reconcile op logs).
+        def applied_detail(memberships, partial)
+          detail = @action == 'clear' ? {} : { entitlement: @entitlement }
+          return detail unless partial
+
+          detail.merge(
+            memberships_total: memberships[:total],
+            memberships_failed: memberships[:failed],
+            memberships_failed_ids: memberships[:failed_ids],
+          )
         end
 
         # Membership in the sets is checked EXPLICITLY rather than trusting the

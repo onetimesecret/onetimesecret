@@ -32,10 +32,15 @@ module V2::Logic
       # variables only (no more params access).
       def process_params
         # All parameters are passed in the :secret hash (secret[:ttl], etc)
-        @payload = params['secret'] || {}
+        # Only an ABSENT secret (or JSON null) gets the empty default. `|| {}`
+        # also swallowed an explicit `false`, which then passed the Hash check
+        # and, on the generate endpoint, produced a default secret from a
+        # payload that should have been rejected.
+        @payload = params['secret']
+        @payload = {} if @payload.nil?
         # Anything but a Hash (a String, but also an Array from `secret[]=x`
-        # or a JSON scalar) would raise TypeError/NoMethodError out of the
-        # fetches below and surface as a 500. Reject it as a form error.
+        # or a JSON scalar such as `false`) would raise TypeError/NoMethodError
+        # out of the fetches below and surface as a 500. Reject it as a form error.
         raise_form_error 'Incorrect payload format' unless payload.is_a?(Hash)
 
         process_ttl

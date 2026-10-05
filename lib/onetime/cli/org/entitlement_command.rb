@@ -157,13 +157,26 @@ module Onetime
           print_set('Grants', result.grants)
           print_set('Revokes', result.revokes)
           print_set(result.dry_run ? 'Effective (projected)' : 'Effective', result.effective)
-          if result.memberships
-            m = result.memberships
-            puts "Members rematerialized: #{m[:success]}/#{m[:total]} (failed: #{m[:failed]})"
-            puts
-          end
+          print_cascade(result)
 
           exit 1 unless override_ok?(result)
+        end
+
+        # A partial cascade (status :partial) is the one APPLIED outcome that
+        # exits 1: the org's override sets changed, but the listed members still
+        # read their previous materialized set, so for them nothing was granted
+        # or revoked. failed_ids are membership OBJIDs, the identifier
+        # `bin/ots memberships doctor` works in.
+        def print_cascade(result)
+          m = result.memberships
+          return unless m
+
+          puts "Members rematerialized: #{m[:success]}/#{m[:total]} (failed: #{m[:failed]})"
+          if m[:failed].to_i.positive?
+            puts "  FAILED (still on their previous entitlements): #{Array(m[:failed_ids]).join(', ')}"
+            puts "  Retry the cascade with: bin/ots org reconcile #{result.org_id} --yes"
+          end
+          puts
         end
 
         def print_set(label, values)

@@ -61,7 +61,11 @@ module V2::Logic
         end
 
         # Build character set options from merged configuration
-        char_sets = merged_options['character_sets'] || {}
+        # nil (absent / JSON null) means "use the defaults"; any other
+        # non-Hash — including an explicit `false` that `|| {}` used to
+        # swallow — is a malformed payload.
+        char_sets = merged_options['character_sets']
+        char_sets = {} if char_sets.nil?
         raise_form_error 'Incorrect payload format', field: :character_sets unless char_sets.is_a?(Hash)
 
         secret_logger.debug 'Generating secret',

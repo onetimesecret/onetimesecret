@@ -28,15 +28,13 @@ module Billing
         # value "-1" (Metadata.normalize_limit), and the old `value == -1`
         # test never matched it, so plan.limits received "Infinity" — a
         # spelling no reader understood (`"Infinity".to_i` is 0). Every
-        # spelling of unlimited is persisted as the canonical 'unlimited'.
+        # spelling of unlimited is persisted as the canonical 'unlimited',
+        # decided by the same parser every limit READER uses.
         #
         # @param value [Integer, Float, String, nil]
         # @return [Boolean]
         def unlimited_limit?(value)
-          return true if value.is_a?(Float) && value.infinite?
-          return true if value.to_s.strip.casecmp?('unlimited')
-
-          ::Billing::Metadata.unlimited?(value)
+          Onetime::Models::Features::WithEntitlements.parse_limit_value(value) == Float::INFINITY
         end
 
         # Upsert single plan from Stripe data
