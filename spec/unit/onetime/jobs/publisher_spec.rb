@@ -707,13 +707,41 @@ RSpec.describe Onetime::Jobs::Publisher do
         expect(mailer_config).to have_received(:update_verification_status!).ordered
       end
 
-      context 'when the DNS record check has not completed yet' do
+      # Nothing will ever complete a DNS record check this call did not run on
+      # a jobs-disabled install, so a bare call settles the status from its
+      # own two answers instead of leaving 'pending' for good.
+      context 'when no DNS record check ran alongside' do
         let(:jobs_completed) { false }
+        let(:provider_verified) { 'true' }
 
-        it 'leaves verification_status for the remaining check to settle' do
+        before do
+          allow(mailer_config).to receive(:provider_verified).and_return(provider_verified)
+          allow(mailer_config).to receive(:parse_boolean_field) do |value|
+            { 'true' => true, 'false' => false }[value]
+          end
+          allow(mailer_config).to receive(:verification_status=) { |value| writes[:verification_status] = value }
+          allow(mailer_config).to receive(:verified_at=) { |value| writes[:verified_at] = value }
+          allow(mailer_config).to receive(:verification_status) { writes[:verification_status] }
+        end
+
+        it 'marks verified when DNS validated and the provider agreed (or could not say)' do
           publisher.enqueue_domain_validation('dom_inline')
 
           expect(mailer_config).not_to have_received(:update_verification_status!)
+          expect(writes[:verification_status]).to eq('verified')
+          expect(writes[:verified_at]).to match(/\A\d+\z/)
+          expect(writes[:saved]).to include(:verification_status, :verified_at)
+        end
+
+        context 'when the provider answered an authoritative no' do
+          let(:provider_verified) { 'false' }
+
+          it 'marks failed even though DNS validated' do
+            publisher.enqueue_domain_validation('dom_inline')
+
+            expect(writes[:verification_status]).to eq('failed')
+            expect(writes[:verified_at]).to be_nil
+          end
         end
       end
 

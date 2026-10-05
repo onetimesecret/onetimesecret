@@ -309,12 +309,7 @@ module Onetime
               ).call
             end
 
-            # Worker's closing step: the DNS record check ran inline just
-            # before this on the Verify Now path, so both checks are usually
-            # terminal here and the user-facing status is derived from the two
-            # outcomes rather than from DNS alone.
-            mailer_config.refresh!
-            mailer_config.update_verification_status! if mailer_config.jobs_completed?
+            settle_inline_verification_status(mailer_config, result)
           end
 
           return true
@@ -559,6 +554,33 @@ module Onetime
       # @param _payload [String] Raw JSON payload; unused in the sync path,
       #   accepted for signature symmetry with enqueue_billing_event
       # @return [Boolean] true when processing completes
+      # Closing step of the inline (jobs-disabled) domain validation.
+      #
+      # When the DNS record check also ran inline — the Verify Now path runs
+      # it just before this — both checks are terminal and the user-facing
+      # status is derived from the two outcomes exactly as the worker derives
+      # it. Otherwise nothing will ever complete that record check on a
+      # jobs-disabled install, so the status is settled from this call's own
+      # two answers, the DNS validation and the provider check, rather than
+      # left 'pending' for good. A bare synchronous call leaving 'pending' is
+      # the regression try/unit/jobs/domain_validation_*_try.rb pin.
+      #
+      # @return [String] the verification_status written
+      def settle_inline_verification_status(mailer_config, result)
+        mailer_config.refresh!
+        return mailer_config.update_verification_status! if mailer_config.jobs_completed?
+
+        provider_ok = mailer_config.parse_boolean_field(mailer_config.provider_verified)
+        verified    = result.error.nil? && result.all_verified && provider_ok != false
+        now         = Familia.now.to_i
+
+        mailer_config.verification_status = verified ? 'verified' : 'failed'
+        mailer_config.verified_at         = verified ? now.to_s : nil
+        mailer_config.updated             = now
+        mailer_config.save_fields(:verification_status, :verified_at, :updated)
+        mailer_config.verification_status
+      end
+
       def process_billing_event_synchronously(event, _payload)
         logger.info 'Jobs disabled, processing billing event synchronously',
           event_id: event.id,
