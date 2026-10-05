@@ -62,9 +62,9 @@ RSpec.describe 'Tenant host lookup failure responses', :shared_db_state, type: :
 
   def expect_failed_tenant_request
     request_env = last_request.env
-    resolution = request_env.fetch(Onetime::CustomDomainResolution::ENV_KEY)
-    expect(resolution).to be_read_failed
-    expect(resolution.error).to be(lookup_failure)
+    lookup = request_env.fetch(Onetime::CustomDomain::Lookup::ENV_KEY)
+    expect(lookup).to be_read_failed
+    expect(lookup.error).to be(lookup_failure)
     expect(request_env['onetime.domain_strategy']).to eq(:invalid)
     expect(request_env['onetime.display_domain']).to eq(tenant_domain)
     expect(request_env['HTTP_HOST']).to eq(canonical_host)

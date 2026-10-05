@@ -12,7 +12,6 @@ require 'spec_helper'
 require 'middleware/detect_host'
 require 'onetime/application/organization_loader'
 require 'onetime/middleware/domain_strategy'
-require 'onetime/custom_domain_resolution'
 require 'onetime/middleware/public_host_rewrite'
 require 'onetime/session'
 require_relative '../../apps/api/v2/application'
@@ -61,7 +60,7 @@ RSpec.describe Onetime::Application::OrganizationLoader do
       Rack::DetectHost.result_field_name => hostname,
       'onetime.display_domain' => hostname, 'onetime.domain_strategy' => :custom,
       'onetime.custom_domain' => domain,
-      Onetime::CustomDomainResolution::ENV_KEY => Onetime::CustomDomainResolution.found(hostname, domain),
+      Onetime::CustomDomain::Lookup::ENV_KEY => Onetime::CustomDomain::Lookup.found(hostname, domain),
     }
     env['HTTP_O_ORGANIZATION_ID'] = organization.objid if header
     allow(Onetime::Middleware::PublicHostRewrite).to receive(:enabled?).and_return(rewrite)
@@ -206,8 +205,8 @@ RSpec.describe Onetime::Application::OrganizationLoader do
         env   = {
           'HTTP_HOST' => 'origin.example.com',
           'onetime.display_domain' => 'denied.example.com', 'onetime.domain_strategy' => :invalid,
-          Onetime::CustomDomainResolution::ENV_KEY =>
-            Onetime::CustomDomainResolution.read_failed('denied.example.com', error),
+          Onetime::CustomDomain::Lookup::ENV_KEY =>
+            Onetime::CustomDomain::Lookup.read_failed('denied.example.com', error),
         }
         env['HTTP_O_ORGANIZATION_ID'] = organization.objid if header
 
@@ -322,8 +321,8 @@ RSpec.describe Onetime::Application::OrganizationLoader do
         env   = canonical_env.merge(
           'onetime.display_domain' => 'denied.example.com',
           'onetime.domain_strategy' => :invalid,
-          Onetime::CustomDomainResolution::ENV_KEY =>
-            Onetime::CustomDomainResolution.read_failed('denied.example.com', error),
+          Onetime::CustomDomain::Lookup::ENV_KEY =>
+            Onetime::CustomDomain::Lookup.read_failed('denied.example.com', error),
         )
         warm_cache
 

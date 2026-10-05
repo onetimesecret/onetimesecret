@@ -61,7 +61,7 @@ result = Onetime::Mail::Mailer.deliver(:secret_link, {
   recipient: @recipient,
   sender_email: @sender
 }, locale: 'en')
-result[:status]
+result.response[:status]
 #=> 'logged'
 
 ## Mailer.deliver with :secret_link returns correct recipient
@@ -71,7 +71,7 @@ result = Onetime::Mail::Mailer.deliver(:secret_link, {
   recipient: @recipient,
   sender_email: @sender
 })
-result[:to]
+result.response[:to]
 #=> @recipient
 
 ## Mailer.deliver_template accepts template instance
@@ -82,7 +82,7 @@ template = Onetime::Mail::Templates::SecretLink.new({
   sender_email: @sender
 })
 result = Onetime::Mail::Mailer.deliver_template(template)
-result[:status]
+result.response[:status]
 #=> 'logged'
 
 ## Mailer.deliver_raw sends normalized email hash
@@ -93,7 +93,7 @@ result = Onetime::Mail::Mailer.deliver_raw({
   subject: 'Test Subject',
   body: 'Test body content'
 })
-result[:status]
+result.response[:status]
 #=> 'logged'
 
 ## Mailer.deliver_raw handles formatted from address
@@ -104,7 +104,7 @@ result = Onetime::Mail::Mailer.deliver_raw({
   subject: 'Test Subject',
   body: 'Test body content'
 })
-result[:status]
+result.response[:status]
 #=> 'logged'
 
 ## Mailer.deliver with :welcome template works
@@ -113,7 +113,7 @@ result = Onetime::Mail::Mailer.deliver(:welcome, {
   email_address: @recipient,
   secret: @mock_secret
 })
-result[:status]
+result.response[:status]
 #=> 'logged'
 
 ## Mailer.deliver with :password_request template works
@@ -122,7 +122,7 @@ result = Onetime::Mail::Mailer.deliver(:password_request, {
   email_address: @recipient,
   secret: @mock_secret
 })
-result[:status]
+result.response[:status]
 #=> 'logged'
 
 ## Mailer.deliver with :incoming_secret template works
@@ -132,7 +132,7 @@ result = Onetime::Mail::Mailer.deliver(:incoming_secret, {
   recipient: @recipient,
   memo: 'Test memo'
 })
-result[:status]
+result.response[:status]
 #=> 'logged'
 
 ## Mailer.deliver with unknown template raises ArgumentError
@@ -151,7 +151,7 @@ result = Onetime::Mail.deliver(:secret_link, {
   recipient: @recipient,
   sender_email: @sender
 })
-result[:status]
+result.response[:status]
 #=> 'logged'
 
 ## Convenience method Onetime::Mail.deliver_raw works
@@ -162,5 +162,5 @@ result = Onetime::Mail.deliver_raw({
   subject: 'Raw email',
   body: 'Body'
 })
-result[:status]
+result.response[:status]
 #=> 'logged'

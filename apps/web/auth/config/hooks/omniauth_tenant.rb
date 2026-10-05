@@ -569,7 +569,7 @@ module Auth::Config::Hooks
     # Resolve custom domain from hostname.
     # Returns nil if no custom domain mapping exists.
     #
-    # With a Rack env the record comes from the request's shared resolution
+    # With a Rack env the record comes from the request's shared lookup
     # (#4220) when +host+ is the request's display domain, so this hook sees
     # the domain DomainStrategy resolved. A failed read answers nil here, as
     # it did through CustomDomain.load_by_display_domain. Without an env the
@@ -580,7 +580,7 @@ module Auth::Config::Hooks
     # @return [Onetime::CustomDomain, nil]
     def self.resolve_custom_domain(host, env = nil)
       return nil if host.to_s.empty?
-      return Onetime::CustomDomainResolution.for_host(env, host).record if env
+      return Onetime::CustomDomain::Lookup.for_host(env, host).record if env
 
       Onetime::CustomDomain.load_by_display_domain(host)
     rescue Redis::BaseError => ex

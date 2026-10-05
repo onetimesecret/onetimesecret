@@ -4,7 +4,6 @@
 
 require 'public_suffix'
 require_relative '../logger_methods'
-require_relative '../custom_domain_resolution'
 
 module Onetime
   module Middleware
@@ -27,11 +26,11 @@ module Onetime
     #   - env['onetime.domain_strategy'] : Classification symbol (:canonical, :subdomain, :custom, :invalid)
     #   - env['onetime.custom_domain']   : Resolved CustomDomain instance (:custom only)
     #   - env['onetime.custom_domain_id']: CustomDomain#identifier (:custom only)
-    #   - env['onetime.custom_domain_resolution']: Onetime::CustomDomainResolution
+    #   - env['onetime.custom_domain_lookup']: Onetime::CustomDomain::Lookup
     #     for the display domain (found, absent or read_failed), set whenever
     #     classification performed the custom-domain read. Not set when no read
     #     was needed (an exact canonical host, domains disabled, an unparseable
-    #     host); Onetime::CustomDomainResolution.for(env) reads on demand then.
+    #     host); Onetime::CustomDomain::Lookup.for(env) reads on demand then.
     #     Request-path code reads the domain through that method rather than
     #     calling CustomDomain.from_display_domain again (#4220).
     #
@@ -52,8 +51,8 @@ module Onetime
     #    customer domain :invalid, and every consumer testing `== :custom`
     #    silently downgrades it to the operator's own polarity.
     #
-    # The published Onetime::CustomDomainResolution tells the two apart
-    # (#4220): case 2 carries a read_failed resolution, while a host with no
+    # The published Onetime::CustomDomain::Lookup tells the two apart
+    # (#4220): case 2 carries a read_failed lookup, while a host with no
     # record carries an absent one. The classification symbol is unchanged:
     # both are still :invalid.
     #
@@ -129,7 +128,7 @@ module Onetime
     #   API v1 Logic::Base#custom_domain?                 false
     #   -- re-classified (session surface binding) --
     #   SessionSurface.for_env                            nil when the published
-    #                                                     resolution is absent or
+    #                                                     lookup is absent or
     #                                                     read_failed; with none
     #                                                     published, the healthy
     #                                                     answer (classify! again)
@@ -242,7 +241,7 @@ module Onetime
         domain_strategy = :canonical
 
         custom_domain = nil
-        resolution    = nil
+        lookup        = nil
         if domains_enabled?
           display_domain  = env[Rack::DetectHost.result_field_name]
           # OT.ld "[middleware] DomainStrategy: detected_host=#{display_domain.inspect} result_field_name=#{Rack::DetectHost.result_field_name}"
@@ -253,7 +252,7 @@ module Onetime
           )
           domain_strategy = classification.strategy
           custom_domain   = classification.custom_domain
-          resolution      = classification.resolution
+          lookup          = classification.lookup
         end
 
         resolved_domain_strategy = domain_strategy || :invalid # make sure never nil
@@ -264,7 +263,7 @@ module Onetime
         unless Onetime::Utils::DomainParser.basically_valid?(display_domain)
           display_domain = canonical_domain
           # The lookup, if any, was for the host that was just replaced.
-          resolution     = nil
+          lookup         = nil
         end
 
         env['onetime.display_domain']  = display_domain
@@ -273,12 +272,12 @@ module Onetime
         # Publish the lookup made during classification, keyed on the display
         # domain as written above, so downstream code shares this one read
         # (found, absent or read_failed). When classification needed no read
-        # the key is cleared and Onetime::CustomDomainResolution.for(env)
+        # the key is cleared and Onetime::CustomDomain::Lookup.for(env)
         # performs it on first use.
-        if resolution
-          env[Onetime::CustomDomainResolution::ENV_KEY] = resolution.with_host(display_domain)
+        if lookup
+          env[Onetime::CustomDomain::Lookup::ENV_KEY] = lookup.with_host(display_domain)
         else
-          env.delete(Onetime::CustomDomainResolution::ENV_KEY)
+          env.delete(Onetime::CustomDomain::Lookup::ENV_KEY)
         end
 
         # For :custom, resolve the CustomDomain#identifier once and stash it in
@@ -342,10 +341,10 @@ module Onetime
       module Chooserator
         # strategy      - :canonical, :subdomain, :custom, or nil
         # custom_domain - the record loaded while deciding :custom, else nil
-        # resolution    - Onetime::CustomDomainResolution for the lookup, or
+        # lookup        - Onetime::CustomDomain::Lookup for the read made, or
         #                 nil when classification did not need to read
-        Classification = Data.define(:strategy, :custom_domain, :resolution) do
-          def initialize(strategy:, custom_domain:, resolution: nil)
+        Classification = Data.define(:strategy, :custom_domain, :lookup) do
+          def initialize(strategy:, custom_domain:, lookup: nil)
             super
           end
         end
@@ -412,14 +411,14 @@ module Onetime
           #
           # A failed custom-domain read classifies the host nil (→ :invalid),
           # as before, and the returned Classification carries a read_failed
-          # resolution so callers can tell that apart from a host that is
-          # simply not registered (an absent resolution).
+          # lookup so callers can tell that apart from a host that is
+          # simply not registered (an absent lookup).
           #
           # @return [Classification]
           def classify(request_domain, canonical_domains, anchor_domains: nil)
             classification = classify_host(request_domain, canonical_domains, anchor_domains: anchor_domains)
-            if classification.resolution&.read_failed?
-              log_classification_error(classification.resolution.error, request_domain, canonical_domains)
+            if classification.lookup&.read_failed?
+              log_classification_error(classification.lookup.error, request_domain, canonical_domains)
             end
             classification
           rescue StandardError => ex
@@ -433,21 +432,21 @@ module Onetime
           # the host and not a failure.
           #
           # For a caller that must tell the two kinds of :invalid apart and
-          # has no published resolution to read (Onetime::SessionSurface off
+          # has no published lookup to read (Onetime::SessionSurface off
           # the middleware path). The middleware keeps {classify}.
           #
           # @return [Classification]
           # @raise [StandardError] when the custom-domain lookup fails
           def classify!(request_domain, canonical_domains, anchor_domains: nil)
             classification = classify_host(request_domain, canonical_domains, anchor_domains: anchor_domains)
-            raise classification.resolution.error if classification.resolution&.read_failed?
+            raise classification.lookup.error if classification.lookup&.read_failed?
 
             classification
           end
 
-          # The classification itself. The custom-domain read is captured as a
-          # CustomDomainResolution rather than raised, so {classify} and
-          # {classify!} can each react to a failed read in their own way.
+          # The classification itself. The custom-domain read is captured as
+          # an Onetime::CustomDomain::Lookup rather than raised, so {classify}
+          # and {classify!} can each react to a failed read in their own way.
           #
           # @return [Classification]
           def classify_host(request_domain, canonical_domains, anchor_domains: nil)
@@ -474,20 +473,20 @@ module Onetime
             # the arm this way keeps the pre-#4063 behavior identical whenever
             # the two sets are equal, while a pool member participates by exact
             # match alone. This arm runs before the custom-domain read, so it
-            # carries no resolution.
+            # carries no lookup.
             if canonical_without_lookup?(request_domain, canonical_domains, anchor_domains: sweep_domains)
               return Classification.new(strategy: :canonical, custom_domain: nil)
             end
 
-            resolution = Onetime::CustomDomainResolution.capture(request_domain.name) do
+            lookup = Onetime::CustomDomain::Lookup.capture(request_domain.name) do
               custom_domain_for(request_domain.name)
             end
 
             # A failed read stops here, as the raise it replaces did: the
             # sweeps below never run, so the host classifies nil.
-            strategy = if resolution.read_failed?
+            strategy = if lookup.read_failed?
                          nil
-                       elsif resolution.found?
+                       elsif lookup.found?
                          :custom
                        elsif sweep_domains.any? { |host| canonical?(request_domain, host) }
                          :canonical
@@ -495,7 +494,7 @@ module Onetime
                          :subdomain
                        end
 
-            Classification.new(strategy: strategy, custom_domain: resolution.record, resolution: resolution)
+            Classification.new(strategy: strategy, custom_domain: lookup.record, lookup: lookup)
           rescue PublicSuffix::DomainInvalid => ex
             Onetime.http_logger.debug 'Invalid domain in strategy selection',
               {

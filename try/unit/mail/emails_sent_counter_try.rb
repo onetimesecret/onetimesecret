@@ -10,7 +10,8 @@
 # global `Onetime::Customer.emails_sent` counter exactly once per delivered email.
 #
 # Covers:
-# - a real provider send (delivery_log_status == 'sent') increments the counter
+# - a real provider send (no not_transmitted_reason, so transmits?) increments
+#   the counter
 # - the Logger backend ('logged') does NOT increment (no real email leaves)
 # - the Disabled backend ('skipped') does NOT increment (no real email leaves)
 # - deliver returns the backend result on the counted path
@@ -42,6 +43,10 @@ end
 ## Base default delivery_log_status is 'sent' (real provider send)
 SentTestBackend.new({}).delivery_log_status
 #=> 'sent'
+
+## Base default transmits? is true (real provider send)
+SentTestBackend.new({}).transmits?
+#=> true
 
 ## A real provider send increments the global emails_sent counter by exactly 1
 before = Onetime::Customer.emails_sent.to_i
