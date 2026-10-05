@@ -323,6 +323,24 @@ AE.events.clear
 @bad_q.message_count
 #=> 0
 
+## a drop whose commit fails is reported as failed with an unknown outcome, and the replay stops
+orphan         = { id: 'orphan-2', headers: {}, content_type: 'application/json', payload: '{}', ts: Time.now.to_i }
+@dropfail_q    = FakeQueue.new([orphan, *sample_messages(1)])
+@dropfail_conn = FakeConnection.new(@dropfail_q) do |ch|
+  ch.define_singleton_method(:tx_commit) { raise(Onetime::Problem, 'commit timed out') }
+end
+@dropfail      = Onetime::Operations::Dlq::Replay.new(connection: @dropfail_conn, queue: @dlq, actor: @actor).call
+[@dropfail.replayed, @dropfail.failed, @dropfail.errors.map { |e| e[:message_id] }]
+#=> [0, 1, ['orphan-2']]
+
+## the error says the drop may not have happened
+@dropfail.errors.first[:error]
+#=> 'Replay stopped, outcome unknown: the broker did not confirm dropping this message, which has no original queue (commit timed out). It may still be in the DLQ.'
+
+## nothing was committed and the message after it was not touched
+[@dropfail_conn.channels.first.exchange.published.size, @dropfail_q.message_count]
+#=> [0, 2]
+
 # ---- Replay: empty queue mutates nothing, still records the attempt ----
 
 ## replaying an empty DLQ is a no-op (:empty) but the LIVE attempt is audited (#4337)

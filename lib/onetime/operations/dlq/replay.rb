@@ -235,10 +235,17 @@ module Onetime
             original = Store.original_queue(properties.headers)
             unless original
               results[:failed] += 1
+              begin
+                # Nack WITHOUT requeue — drop, so it can't dead-letter-loop forever.
+                channel.nack(delivery_info.delivery_tag, false, false)
+                channel.tx_commit
+              rescue StandardError => ex
+                results[:errors] << { message_id: properties.message_id, error: unconfirmed_drop_error(ex) }
+                # As after a failed commit below: the channel's state is
+                # unknown, so the replay stops.
+                break
+              end
               results[:errors] << { message_id: properties.message_id, error: 'No original queue found' }
-              # Nack WITHOUT requeue — drop, so it can't dead-letter-loop forever.
-              channel.nack(delivery_info.delivery_tag, false, false)
-              channel.tx_commit
               next
             end
 
@@ -301,6 +308,11 @@ module Onetime
           'Replay stopped, outcome unknown: the broker did not confirm the commit ' \
             "(#{ex.message}). The message may already be republished to #{original}; " \
             'replaying it again may repeat its side effects.'
+        end
+
+        def unconfirmed_drop_error(ex)
+          'Replay stopped, outcome unknown: the broker did not confirm dropping this message, ' \
+            "which has no original queue (#{ex.message}). It may still be in the DLQ."
         end
 
         # Delete the workers' idempotency claim on a message id, so the worker
