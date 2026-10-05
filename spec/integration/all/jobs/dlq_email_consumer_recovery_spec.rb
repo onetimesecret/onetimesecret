@@ -45,10 +45,26 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
   let(:worker_key) { Onetime::Jobs::QueueConfig.processing_claim_key(message_id) }
 
   # Dead-letter a copy of the message into the test DLQ, routed back to the
-  # test target.
-  def dead_letter
-    broker_channel.default_exchange.publish(payload, routing_key: dlq_name, message_id: message_id,
+  # test target. Waits for the broker's confirm: the job reads the DLQ's
+  # message count first, and that count can lag an unconfirmed publish.
+  def dead_letter(id = message_id)
+    broker_channel.confirm_select unless broker_channel.using_publisher_confirmations?
+    broker_channel.default_exchange.publish(payload, routing_key: dlq_name, message_id: id,
       content_type: 'application/json', headers: { 'x-death' => [{ 'queue' => target_name }] })
+    broker_channel.wait_for_confirms
+  end
+
+  # A queue's ready count, polled briefly until it reaches the expected
+  # value. The count can lag a publish or a requeue by a moment.
+  def ready_count(ch, name, expected)
+    queue    = ch.queue(name, durable: true)
+    deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 2
+    count    = queue.message_count
+    while count != expected && Process.clock_gettime(Process::CLOCK_MONOTONIC) < deadline
+      sleep 0.01
+      count = queue.message_count
+    end
+    count
   end
 
   def process_broker_message(ch)
@@ -84,10 +100,10 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
 
     redis.expire(reservation_key, 0)
     retry_channel = connection.create_channel
-    expect(retry_channel.queue(dlq_name, durable: true).message_count).to eq(1)
+    expect(ready_count(retry_channel, dlq_name, 1)).to eq(1)
     process_broker_message(retry_channel)
-    expect(retry_channel.queue(target_name, durable: true).message_count).to eq(1)
-    expect(retry_channel.queue(dlq_name, durable: true).message_count).to eq(0)
+    expect(ready_count(retry_channel, target_name, 1)).to eq(1)
+    expect(ready_count(retry_channel, dlq_name, 0)).to eq(0)
     expect(redis.get(completed_key)).to eq('completed')
     retry_channel.close
   end
@@ -102,10 +118,10 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
     redis.expire(reservation_key, 0)
 
     retry_channel = connection.create_channel
-    expect(retry_channel.queue(dlq_name, durable: true).message_count).to eq(1)
+    expect(ready_count(retry_channel, dlq_name, 1)).to eq(1)
     process_broker_message(retry_channel)
-    expect(retry_channel.queue(target_name, durable: true).message_count).to eq(1)
-    expect(retry_channel.queue(dlq_name, durable: true).message_count).to eq(0)
+    expect(ready_count(retry_channel, target_name, 1)).to eq(1)
+    expect(ready_count(retry_channel, dlq_name, 0)).to eq(0)
     retry_channel.close
   end
 
@@ -119,8 +135,8 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
     expect(broker_channel.default_exchange).to have_received(:publish).once
     expect(broker_channel).not_to be_open
     inspection = connection.create_channel
-    expect(inspection.queue(dlq_name, durable: true).message_count).to eq(2)
-    expect(inspection.queue(target_name, durable: true).message_count).to eq(0)
+    expect(ready_count(inspection, dlq_name, 2)).to eq(2)
+    expect(ready_count(inspection, target_name, 0)).to eq(0)
     inspection.close
   end
 end
