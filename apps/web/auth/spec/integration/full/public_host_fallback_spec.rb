@@ -298,4 +298,41 @@ RSpec.describe Auth::PublicHost, :aggregate_failures, :shared_db_state, type: :i
       expect(delivered).to be_empty
     end
   end
+
+  # Verified tenant without site.host: the account-independent preflight
+  # passes, but a nonmember recipient has neither a tenant nor a canonical
+  # credential origin. That refusal must not distinguish the account.
+  describe 'reset request for a recipient without a credential origin' do
+    let(:account_email) { unique_test_email('nonmember') }
+    let!(:account_id) { seed_account_with_password(account_email) }
+
+    before do
+      header 'Host', tenant_domain
+      header 'X-Forwarded-Proto', 'https'
+    end
+
+    def request_reset(login)
+      clear_cookies
+      csrf_json_post('/auth/reset-password-request', login: login)
+      [last_response.status, JSON.parse(last_response.body)]
+    end
+
+    it 'answers like a missing account without writing a key or sending email' do
+      response = request_reset(account_email)
+
+      expect(response.first).to eq(200)
+      expect(response).to eq(request_reset(unique_test_email('missing-nonmember')))
+      expect(auth_db[:account_password_reset_keys].where(id: account_id).count).to eq(0)
+      expect(delivered).to be_empty
+    end
+
+    it 'still raises for direct reset-key creation' do
+      auth = Auth::Router.new(candidate_env(tenant_domain)).rodauth
+      auth.instance_variable_set(:@account, auth_db[:accounts].where(id: account_id).first)
+      auth.instance_variable_set(:@reset_password_key_value, 'proposed-reset-key')
+
+      expect { auth.create_reset_password_key }.to raise_error(described_class::MissingAllowlistedOrigin)
+      expect(auth_db[:account_password_reset_keys].where(id: account_id).count).to eq(0)
+    end
+  end
 end
