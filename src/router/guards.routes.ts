@@ -1,7 +1,9 @@
 // src/router/guards.routes.ts
 
+import { globalComposer } from '@/i18n';
 import { loggingService } from '@/services/logging.service';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { usePageTitle } from '@/shared/composables/usePageTitle';
 import type { ClientAuthStatus } from '@/schemas/contracts/bootstrap';
@@ -297,6 +299,11 @@ function roleMeetsRequirement(
  * loop) when the requirement isn't met, or null to allow navigation. Fails
  * closed: an unknown role and a rejected fetch both redirect, because the
  * list endpoint enforces no role and provides no backend backstop.
+ *
+ * A refusal also raises a notice naming the role the page needs (#4566). The
+ * redirect alone read as a silent bounce: nothing on /dashboard said why the
+ * user was there, and the empty/not-found states of the org pages, which the
+ * guard pre-empts, never got a chance to say it either.
  */
 export async function handleOrgRoleRequirement(
   to: RouteLocationNormalized
@@ -315,8 +322,29 @@ export async function handleOrgRoleRequirement(
   const meets = orgExtid
     ? await singleOrgMeetsRole(store, orgExtid, required)
     : await anyOrgMeetsRole(store, required);
+  if (meets) return null;
 
-  return meets ? null : { path: '/dashboard' };
+  loggingService.debug('[RouterGuard] Org role requirement not met:', {
+    path: to.path,
+    required,
+  });
+  notifyOrgRoleRefused(required);
+  return { path: '/dashboard' };
+}
+
+/**
+ * Tell the user why they landed on /dashboard. The wording states the
+ * requirement rather than asserting the user's role, so it stays true when
+ * the guard failed closed on a rejected fetch (403, 404, or a network error)
+ * instead of on a known lesser role. Held for 10 s like the session notices
+ * in App.vue: the user has just been moved and needs time to read it.
+ */
+function notifyOrgRoleRefused(required: 'owner' | 'admin'): void {
+  const key =
+    required === 'owner'
+      ? 'web.organizations.owner_required_notice'
+      : 'web.organizations.admin_required_notice';
+  useNotificationsStore().show(globalComposer.t(key), 'info', 'top', 10000);
 }
 
 type OrganizationStore = ReturnType<typeof useOrganizationStore>;

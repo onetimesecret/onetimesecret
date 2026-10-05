@@ -89,6 +89,20 @@ vi.mock('@/shared/stores/organizationStore', () => ({
   useOrganizationStore: vi.fn(),
 }));
 
+// The org-role guard raises a notice when it refuses (#4566). Hoisted so the
+// factory below can close over it; vi.clearAllMocks() in beforeEach resets it.
+const { notificationShow } = vi.hoisted(() => ({ notificationShow: vi.fn() }));
+
+vi.mock('@/shared/stores/notificationsStore', () => ({
+  useNotificationsStore: vi.fn(() => ({ show: notificationShow })),
+}));
+
+// The guard translates outside any component scope via the global composer;
+// echo the key so assertions can name the string that was chosen.
+vi.mock('@/i18n', () => ({
+  globalComposer: { t: (key: string) => key },
+}));
+
 describe('Router Guards', () => {
   let router: Router;
   let pinia: ReturnType<typeof createTestingPinia>;
@@ -1069,14 +1083,24 @@ describe('Router Guards', () => {
           makeRoute({ path: '/orgs', meta: { requiresOrgRole: 'owner' } })
         );
         expect(result).toBeNull();
+        expect(notificationShow).not.toHaveBeenCalled();
       });
 
-      it('redirects to /dashboard when the user owns no org', async () => {
+      it('redirects to /dashboard with an owner-required notice when the user owns no org', async () => {
+        // #4566: the redirect alone was a silent bounce. The notice names the
+        // role the page needs, so the user knows why they are on /dashboard.
         useStore(makeStore({ organizations: [{ extid: 'on1', current_user_role: 'admin' }, { extid: 'on2', current_user_role: 'member' }] }));
         const result = await handleOrgRoleRequirement(
           makeRoute({ path: '/orgs', meta: { requiresOrgRole: 'owner' } })
         );
         expect(result).toEqual({ path: '/dashboard' });
+        expect(notificationShow).toHaveBeenCalledTimes(1);
+        expect(notificationShow).toHaveBeenCalledWith(
+          'web.organizations.owner_required_notice',
+          'info',
+          'top',
+          10000
+        );
       });
 
       it('fetches the list first when not yet loaded, then decides', async () => {
@@ -1117,12 +1141,18 @@ describe('Router Guards', () => {
         expect(result).toBeNull();
       });
 
-      it('redirects a member away from an admin-only route', async () => {
+      it('redirects a member away from an admin-only route with an admin-required notice', async () => {
         useStore(makeStore({ getOrganizationByExtid: () => ({ extid: 'on1', current_user_role: 'member' }) }));
         const result = await handleOrgRoleRequirement(
           makeRoute({ params: { extid: 'on1' }, meta: { requiresOrgRole: 'admin' } })
         );
         expect(result).toEqual({ path: '/dashboard' });
+        expect(notificationShow).toHaveBeenCalledWith(
+          'web.organizations.admin_required_notice',
+          'info',
+          'top',
+          10000
+        );
       });
 
       it('redirects an admin away from an owner-only route', async () => {
@@ -1176,6 +1206,15 @@ describe('Router Guards', () => {
           makeRoute({ params: { extid: 'on1' }, meta: { requiresOrgRole: 'admin' } })
         );
         expect(result).toEqual({ path: '/dashboard' });
+        // The fail-closed path says so too: the notice states the page's
+        // requirement, which holds whether the fetch was a 403, a 404, or a
+        // network error, rather than asserting a role the guard never learned.
+        expect(notificationShow).toHaveBeenCalledWith(
+          'web.organizations.admin_required_notice',
+          'info',
+          'top',
+          10000
+        );
       });
     });
   });

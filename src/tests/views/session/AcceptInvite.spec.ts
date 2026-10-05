@@ -11,7 +11,7 @@ import {
   mockCustomer,
 } from '@tests/fixtures/bootstrap.fixture';
 import { createTestI18n } from '@tests/setup';
-import { flushPromises, mount } from '@vue/test-utils';
+import { RouterLinkStub, flushPromises, mount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createMemoryHistory, createRouter } from 'vue-router';
@@ -114,7 +114,12 @@ describe('AcceptInvite', () => {
       routes: [
         { path: '/invite/:token', name: 'Accept Invite', component: AcceptInvite },
         { path: '/signin', name: 'Sign In', component: { template: '<div></div>' } },
-        { path: '/orgs', name: 'Organizations', component: { template: '<div></div>' } },
+        { path: '/dashboard', name: 'Dashboard', component: { template: '<div></div>' } },
+        {
+          path: '/org/:extid/:tab?',
+          name: 'Organization Settings',
+          component: { template: '<div></div>' },
+        },
         { path: '/', name: 'Home', component: { template: '<div></div>' } },
       ],
     });
@@ -127,7 +132,7 @@ describe('AcceptInvite', () => {
     getGlobalAxiosMock().reset();
   });
 
-  const mountComponent = async (token = 'test-token-123') => {
+  const mountComponent = async (token = 'test-token-123', stubs: Record<string, unknown> = {}) => {
     await router.push(`/invite/${token}`);
     await router.isReady();
 
@@ -137,6 +142,7 @@ describe('AcceptInvite', () => {
         provide: {
           api: createSharedApiInstance(),
         },
+        stubs,
       },
     });
     await flushPromises();
@@ -626,6 +632,45 @@ describe('AcceptInvite', () => {
       expect(wrapper.find('[data-testid="decline-invitation-btn"]').exists()).toBe(false);
     });
 
+    /**
+     * Post-accept target (#4566). /orgs is owner-only and an invitee owns
+     * nothing through the invite, so it bounced them to /dashboard without a
+     * word. The target now follows the role the invitation grants: an admin
+     * may open /org/:extid, a member has no org page and goes to /dashboard.
+     *
+     * Only setTimeout is faked, and only after mount: flushPromises schedules
+     * on setImmediate, and the mount itself must settle on real timers.
+     */
+    const acceptAndAdvance = async (invitation: Record<string, unknown>) => {
+      const axiosMock = getGlobalAxiosMock();
+      axiosMock.onGet('/api/invite/test-token-123').reply(200, { record: invitation });
+      axiosMock.onPost('/api/invite/test-token-123/accept').reply(200, {});
+
+      const wrapper = await mountComponent();
+      const push = vi.spyOn(router, 'push');
+      vi.useFakeTimers({ toFake: ['setTimeout'] });
+
+      await wrapper.find('[data-testid="accept-invitation-btn"]').trigger('click');
+      await flushPromises();
+      expect(wrapper.text()).toContain('web.organizations.invitations.accept_success');
+      expect(push).not.toHaveBeenCalled();
+
+      vi.advanceTimersByTime(2000);
+      return push;
+    };
+
+    it('sends a new member to the dashboard after the redirect delay', async () => {
+      const push = await acceptAndAdvance({ ...mockInvitation, role: 'member' });
+      expect(push).toHaveBeenCalledTimes(1);
+      expect(push).toHaveBeenCalledWith('/dashboard');
+    });
+
+    it('sends a new admin to the organization they joined', async () => {
+      const push = await acceptAndAdvance({ ...mockInvitation, role: 'admin' });
+      expect(push).toHaveBeenCalledTimes(1);
+      expect(push).toHaveBeenCalledWith(`/org/${mockInvitation.organization_id}`);
+    });
+
     it('shows error when accept fails', async () => {
       const axiosMock = getGlobalAxiosMock();
       axiosMock.onGet('/api/invite/test-token-123').reply(200, {
@@ -643,6 +688,38 @@ describe('AcceptInvite', () => {
       await flushPromises();
 
       expect(wrapper.find('.error-alert').exists()).toBe(true);
+    });
+  });
+
+  describe('Already Accepted Invitation', () => {
+    // status 'active' with actionable false: the state machine lands on
+    // already_accepted, whose link follows the same role rule as the
+    // post-accept redirect (#4566). The global router-link stub (setupRouter)
+    // renders no slot content, so these mount VTU's RouterLinkStub instead: it
+    // exposes `to` as a prop and renders the label.
+    const alreadyAccepted = { ...mockInvitation, status: 'active', actionable: false };
+
+    const linkFor = async (invitation: Record<string, unknown>) => {
+      getGlobalAxiosMock().onGet('/api/invite/test-token-123').reply(200, { record: invitation });
+      const wrapper = await mountComponent('test-token-123', { RouterLink: RouterLinkStub });
+      expect(wrapper.find('[data-testid="invite-already-accepted"]').exists()).toBe(true);
+      const link = wrapper
+        .findAllComponents(RouterLinkStub)
+        .find((c) => c.attributes('data-testid') === 'invite-already-accepted-link');
+      expect(link, 'the already-accepted link').toBeTruthy();
+      return link!;
+    };
+
+    it('links a member to the dashboard', async () => {
+      const link = await linkFor({ ...alreadyAccepted, role: 'member' });
+      expect(link.props('to')).toBe('/dashboard');
+      expect(link.text()).toContain('web.organizations.invitations.go_to_dashboard');
+    });
+
+    it('links an admin to the organization', async () => {
+      const link = await linkFor({ ...alreadyAccepted, role: 'admin' });
+      expect(link.props('to')).toBe(`/org/${mockInvitation.organization_id}`);
+      expect(link.text()).toContain('web.organizations.invitations.go_to_organization');
     });
   });
 

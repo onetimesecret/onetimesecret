@@ -239,9 +239,9 @@ export async function submitInviteSignup(page: Page, password: string): Promise<
 
 /**
  * Accept from the invite page's direct_accept state and wait for the join to
- * finish. Afterwards the view pushes to /orgs; a member who owns no org is
- * sent on to /dashboard by the owner-only /orgs guard, so only assert that
- * the invite page is left.
+ * finish. Afterwards the view sends the invitee where their new role lets
+ * them go (#4566): an admin to the joined org's page, a member to /dashboard.
+ * The role is the caller's, so only assert that one of those two is reached.
  */
 export async function acceptInvitationDirectly(page: Page): Promise<void> {
   await expect(page.getByTestId('invite-direct-accept')).toBeVisible({ timeout: 15_000 });
@@ -249,7 +249,7 @@ export async function acceptInvitationDirectly(page: Page): Promise<void> {
   await expect(page.getByTestId('invite-accepted')).toContainText(
     'Invitation accepted successfully'
   );
-  await expect(page).not.toHaveURL(/\/invite\//, { timeout: 10_000 });
+  await expect(page).toHaveURL(/\/(dashboard|org\/)/, { timeout: 10_000 });
 }
 
 /** Assert through the members API that `email` is a member with `role`. */
