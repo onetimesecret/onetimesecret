@@ -44,7 +44,7 @@ module Onetime
 
         # Ends the batch when a settlement or commit leaves the channel's
         # transaction in an unknown state. Must bypass process_message's
-        # discard-on-error path: settling another delivery on this channel
+        # error handling: settling another delivery on this channel
         # could commit an earlier, uncertain replay.
         class BatchStopped < StandardError
           attr_reader :message_id

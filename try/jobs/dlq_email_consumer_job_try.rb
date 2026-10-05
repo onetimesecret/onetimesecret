@@ -9,7 +9,7 @@
 #   - Config flag gating (enabled?)
 #   - Header extraction and cleaning (extract_original_queue, clean_headers)
 #   - Idempotency (reserve_replay): an owned reservation per message id,
-#     and a completed marker written only after the publish and the ack
+#     and a completed marker written only after the commit
 #   - Message routing: raw, auth template, non-auth template
 #   - Expired token discard logic
 #   - Duplicate message_id skip
@@ -414,7 +414,7 @@ call_private(:process_message, ch, di, props, payload, results)
 ch.publishes.first[:routing_key]
 #=> 'email.message.send'
 
-## process_message skips replay when message_id already claimed (idempotency)
+## process_message skips replay when message_id already completed (idempotency)
 ch = MockChannel.new
 di = MockDeliveryInfo.new(delivery_tag: 'tag-dup')
 msg_id = "dup-check-#{SecureRandom.hex(4)}"
@@ -422,7 +422,7 @@ track_key("dlq:replayed:#{msg_id}")
 headers = { 'x-death' => [{ 'queue' => 'email.message.send' }] }
 props = MockProperties.new(message_id: msg_id, headers: headers)
 payload = JSON.generate({ 'raw' => true, 'email' => { 'to' => 'u@e.com' } })
-# First call claims
+# First call completes the replay
 call_private(:process_message, ch, MockDeliveryInfo.new(delivery_tag: 'tag-first'), props, payload, fresh_results)
 # Second call with same message_id should skip
 results = fresh_results

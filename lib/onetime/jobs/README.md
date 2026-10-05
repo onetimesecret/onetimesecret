@@ -182,8 +182,10 @@ While it replays a message id, the job holds a reservation on it that only that 
 
 A message the job cannot settle is left unacked and returns to the DLQ when the job closes its channel at the end of the run. It is not nacked with requeue, which could put it back at the head of the DLQ for the same run to pop again. Besides a copy that another run holds and an unexpected error while processing a message, this covers:
 
-- A datastore error before the publish. The job releases its own reservation (if that fails too, the five-minute TTL bounds the wait) and the next run retries.
+- A datastore error before the publish. The job releases its own reservation and the next run retries.
 - A publish or ack error. The transaction is rolled back, so no copy is live. The job releases its reservation and the next run retries.
+
+  In both cases, if the release fails too, the reservation's TTL bounds the wait: five minutes, or one hour if publishing had already started.
 - A commit the broker does not confirm. The copy may or may not be live, so the job stops the batch and keeps the publishing reservation. If the commit applied, the message has left the DLQ. If it did not, the message returns to the DLQ and is replayed once the reservation expires (up to an hour). A second email is possible only if another copy of the same id is dead-lettered and replayed after that hour.
 - A `dlq:replayed:<id>` value of `1`, written by earlier versions before they published. It does not show that the replay happened, so the message waits until the marker expires (at most an hour) and is then replayed.
 
