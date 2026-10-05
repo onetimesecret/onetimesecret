@@ -25,7 +25,7 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
   let(:logger) { double('logger', info: nil, debug: nil, warn: nil, error: nil) }
   let(:redis) { Familia.dbclient }
   let(:payload) { JSON.generate('raw' => true, 'email' => { 'to' => 'test@example.com' }) }
-  let(:results) { { replayed: 0, discarded_non_auth: 0, discarded_expired: 0, errors: 0, deferred: 0 } }
+  let(:results) { { replayed: 0, discarded_non_auth: 0, discarded_expired: 0, errors: 0, deferred: 0, held: 0, unroutable: 0 } }
   let(:connection) do
     url = ENV.fetch('RABBITMQ_URL')
     uri = URI.parse(url)

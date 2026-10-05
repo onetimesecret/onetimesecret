@@ -131,7 +131,7 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
       "[DlqEmailConsumerJob] Replay unroutable: no queue named #{missing_name}; left in the DLQ",
       message_id: missing_id,
     ).once
-    expect(logger).to have_received(:info).with(/replayed=1 .*deferred=1 unroutable=1/)
+    expect(logger).to have_received(:info).with(/replayed=1 .*deferred=1 held=1 unroutable=1/)
     expect(described_class).to have_received(:release_reservation)
       .with(missing_id, anything, include_publishing: true).once
     expect(described_class).to have_received(:finalize_replay).with(message_id, anything, anything).once
@@ -152,7 +152,7 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
     end
   end
 
-  it 'defers malformed x-death metadata without leaking frames into the next replay commit' do
+  it 'discards malformed x-death metadata without leaking frames into the next replay commit' do
     queue.purge
     poison_id = "#{message_id}-poison"
     poison_headers = { 'x-death' => ['not-a-death-table'], 'x-schema-version' => 1 }
@@ -173,12 +173,11 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
       process.call(*args)
 
       if properties.message_id == poison_id
-        expect(results).to include(errors: 1, deferred: 1, replayed: 0)
+        expect(results).to include(errors: 1, deferred: 0, held: 0, replayed: 0)
         expect(channel).to be_open
         expect(exchange).not_to have_received(:publish)
-        [:ack, :nack, :reject, :tx_commit, :tx_rollback].each do |operation|
-          expect(channel).not_to have_received(operation)
-        end
+        expect(channel).to have_received(:nack).with(delivery_info.delivery_tag, false, false).once
+        expect(channel).to have_received(:tx_commit).once
         expect(described_class).not_to have_received(:reserve_replay)
       end
     end
@@ -187,28 +186,93 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
 
     expect(deliveries.keys).to eq([poison_id, message_id])
     expect(logger).to have_received(:error).with(
-      '[DlqEmailConsumerJob] Processing deferred: NoMethodError',
+      '[DlqEmailConsumerJob] No original queue in x-death headers; discarded', message_id: poison_id
     ).once
     expect(exchange).to have_received(:publish).with(payload,
       routing_key: target_name, mandatory: true, persistent: true, message_id: message_id,
       content_type: 'application/json', headers: { 'x-schema-version' => 1 }).once
     expect(channel).to have_received(:ack).with(deliveries.fetch(message_id)).once
     expect(channel).not_to have_received(:ack).with(deliveries.fetch(poison_id))
-    expect(channel).not_to have_received(:nack)
+    expect(channel).to have_received(:nack).once
     expect(channel).not_to have_received(:reject)
     expect(channel).not_to have_received(:tx_rollback)
-    expect(channel).to have_received(:tx_commit).twice
+    expect(channel).to have_received(:tx_commit).exactly(3).times
 
-    expect(queue.message_count).to eq(1)
+    expect(queue.message_count).to eq(0)
     expect(target.message_count).to eq(1)
-    _, retained_properties, retained_body = queue.pop
-    expect(retained_properties.message_id).to eq(poison_id)
-    expect(retained_properties.headers).to eq(poison_headers)
-    expect(retained_body).to eq(payload)
     _, replayed_properties, replayed_body = target.pop
     expect(replayed_properties.message_id).to eq(message_id)
     expect(replayed_properties.headers).to eq('x-schema-version' => 1)
     expect(replayed_body).to eq(payload)
+  end
+
+  describe 'a full batch of messages that cannot be replayed, ahead of one that can' do
+    let(:batch_size) { described_class::BATCH_SIZE }
+
+    def next_batch
+      allow(described_class).to receive(:acquire_channel).and_return([nil, connection.create_channel, false])
+      run_batch
+    end
+
+    def fill_dlq(headers)
+      queue.purge
+      batch_size.times do |index|
+        queue.publish(payload, persistent: true, message_id: "#{message_id}-stuck-#{index}",
+          content_type: 'application/json', headers: headers)
+      end
+      dead_letter(message_id)
+    end
+
+    it 'discards malformed x-death messages in the first batch and replays the message behind them in the second' do
+      fill_dlq('x-death' => ['invalid'])
+
+      run_batch
+      expect(queue.message_count).to eq(1)
+      expect(target.message_count).to eq(0)
+      expect(logger).to have_received(:info).with(/replayed=0 .*errors=#{batch_size} deferred=0 held=0/)
+
+      next_batch
+      expect(queue.message_count).to eq(0)
+      expect(target.message_count).to eq(1)
+      expect(target.pop[1].message_id).to eq(message_id)
+
+      next_batch
+      expect(target.message_count).to eq(0)
+    end
+
+    it 'replays the message behind unroutable replays in the first batch, and keeps them across batches' do
+      fill_dlq('x-death' => [{ 'queue' => "test.dlq-consumer.missing.#{suffix}" }])
+
+      run_batch
+      expect(queue.message_count).to eq(batch_size)
+      expect(target.message_count).to eq(1)
+      expect(target.pop[1].message_id).to eq(message_id)
+      expect(logger).to have_received(:info)
+        .with(/replayed=1 .*deferred=#{batch_size} held=#{batch_size} unroutable=#{batch_size}/)
+
+      2.times { next_batch }
+      expect(queue.message_count).to eq(batch_size)
+      expect(target.message_count).to eq(0)
+      expect(queue.pop[1].message_id).to eq("#{message_id}-stuck-0")
+    end
+
+    it 'replays the message behind messages whose processing raises, and keeps them across batches' do
+      fill_dlq('x-death' => [{ 'queue' => target_name }], 'x-test-raise' => true)
+      allow(described_class).to receive(:replay_message).and_wrap_original do |replay, *args|
+        raise NoMethodError, 'unexpected failure' if args[2].headers.key?('x-test-raise')
+
+        replay.call(*args)
+      end
+
+      run_batch
+      expect(queue.message_count).to eq(batch_size)
+      expect(target.message_count).to eq(1)
+      expect(target.pop[1].message_id).to eq(message_id)
+
+      2.times { next_batch }
+      expect(queue.message_count).to eq(batch_size)
+      expect(target.message_count).to eq(0)
+    end
   end
 
   it 'stops when the commit cannot be sent, without settling either DLQ delivery' do
