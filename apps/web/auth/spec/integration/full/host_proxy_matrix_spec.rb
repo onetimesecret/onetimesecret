@@ -788,6 +788,12 @@ RSpec.describe 'Host and proxy simulation matrix (#4223)', :shared_db_state, typ
     # Both sign-in methods on, so the reset route is served on the tenant
     # domain (Auth::SigninGate) and tenant SSO stays enabled.
     before do
+      # This matrix exercises authorized tenant emitters. Unrelated recipients
+      # are covered by public_host_email_link_spec's canonical-origin regression.
+      customer = Onetime::Customer.find_by_extid(auth_db[:accounts].where(id: account_id).get(:external_id))
+      Onetime::OrganizationMembership.ensure_membership(
+        test_organization, customer, role: 'member', domain_scope_id: test_custom_domain.objid,
+      )
       Onetime::CustomDomain::SigninConfig.create!(
         domain_id: test_custom_domain.identifier,
         enabled: true,

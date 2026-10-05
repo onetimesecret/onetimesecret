@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/security/reset_request_rate_limiter'
+require_relative '../../lib/public_host'
 
 #
 # Reset-Password-Request Preflight (rate limiting #3872, required origin H-05)
@@ -53,9 +54,9 @@ require 'onetime/security/reset_request_rate_limiter'
 # unhandled-exception error log — see overrides/error_handling.rb) to the
 # router's error_handler, which renders the ADR-013 429 body with retry_after.
 #
-# After rate limiting, require an allowlisted base_url (PublicBaseUrl override,
-# H-05), before any account lookup or reset-key write. Missing/unopen/throttled
-# accounts must not bypass an origin failure and expose account existence.
+# After rate limiting, require an allowlisted browser origin before account
+# lookup. The recipient-bound origin is required again before reset-key writes.
+# Missing/unopen/throttled accounts must not bypass an origin failure and expose account existence.
 # This check is independent of whether rate limiting is enabled: disabling
 # request counting must not permit request-authority credential links.
 #
@@ -84,7 +85,9 @@ module Auth::Config::Hooks
           client_ip = request.ip if client_ip.to_s.empty?
 
           enforce_reset_request_rate_limit!(client_ip, param_or_nil(login_param))
-          base_url
+          # Account-independent host preflight. Recipient membership is checked
+          # by create_reset_password_key before any credential key is written.
+          Auth::PublicHost.required_base_url!(request.env)
         end
       end
     end
