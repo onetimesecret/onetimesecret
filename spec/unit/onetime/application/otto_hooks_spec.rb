@@ -184,4 +184,38 @@ RSpec.describe Onetime::Application::OttoHooks do
       end
     end
   end
+
+  describe '#configure_otto_request_hook completion trace (debug mode)' do
+    let(:completion) { [] }
+    let(:traced)     { [] }
+    let(:spy_router) do
+      blocks = completion
+      Object.new.tap do |spy|
+        spy.define_singleton_method(:register_request_helpers) { |*| nil }
+        spy.define_singleton_method(:register_handler_wrapper) { |*, &_blk| nil }
+        spy.define_singleton_method(:register_error_handler) { |*, **, &_blk| nil }
+        spy.define_singleton_method(:on_request_complete) { |&blk| blocks << blk }
+      end
+    end
+    let(:http_logger) do
+      sink = traced
+      Object.new.tap { |l| l.define_singleton_method(:trace) { |_msg, payload| sink << payload } }
+    end
+
+    before do
+      allow(Onetime).to receive(:debug?).and_return(true)
+      allow(Onetime).to receive(:get_logger).and_call_original
+      allow(Onetime).to receive(:get_logger).with('HTTP').and_return(http_logger)
+      host.configure_otto_request_hook(spy_router)
+    end
+
+    it 'logs capability paths redacted, like RequestLogger' do
+      req = Rack::Request.new(Rack::MockRequest.env_for('/api/v2/receipt/bearer-receipt-value/burn'))
+
+      completion.last.call(req, Rack::Response.new, 1_000)
+
+      expect(traced.last[:path]).to eq('/api/v2/receipt/[REDACTED]/burn')
+      expect(traced.last.to_s).not_to include('bearer-receipt-value')
+    end
+  end
 end
