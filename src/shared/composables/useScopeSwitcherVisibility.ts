@@ -21,7 +21,7 @@ import { isOrganizationSwitcherEnabled } from '@/utils/features';
 import { useProductIdentity } from '@/shared/stores/identityStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import { ENTITLEMENTS } from '@/types/organization';
+import { ENTITLEMENTS, type Organization } from '@/types/organization';
 import { storeToRefs } from 'pinia';
 
 interface ScopeSwitcherVisibility {
@@ -46,14 +46,13 @@ export function useScopeSwitcherVisibility() {
   }));
 
   /**
-   * Owner + manage_orgs entitlement gate for the org switcher.
+   * Owner + manage_orgs entitlement gate for the org switcher, for one org.
    * Standalone (billing disabled): owner role alone is sufficient.
    * Billing enabled: owner + manage_orgs entitlement required.
    * When entitlements haven't been fetched yet (null), allow owners through
    * to avoid hiding the switcher during initial load.
    */
-  const canManageOrgs = computed(() => {
-    const org = organizationStore.currentOrganization;
+  const meetsSwitcherGate = (org: Organization | null): boolean => {
     if (org?.current_user_role !== 'owner') return false;
 
     if (!bootstrapStore.billing_enabled) return true;
@@ -61,6 +60,26 @@ export function useScopeSwitcherVisibility() {
     const ents = org.entitlements;
     if (!ents) return true; // not yet fetched — don't block owners
     return ents.includes(ENTITLEMENTS.MANAGE_ORGS);
+  };
+
+  /**
+   * Whether this user gets the org switcher. Met by the current org, or by
+   * any OTHER org in the list. The second half keeps the switcher on screen
+   * after the user selects an org they do not own: the selection survives a
+   * page load (#4565), so without it the only control that switches back
+   * would be gone for good. Only switcher visibility reads this; routes and
+   * per-org actions keep their own role checks.
+   *
+   * The list is consulted only for orgs other than the current one, so a
+   * single-org user is judged on the current org record alone, and so is
+   * everyone while the list has not loaded.
+   */
+  const canManageOrgs = computed(() => {
+    const current = organizationStore.currentOrganization;
+    if (meetsSwitcherGate(current)) return true;
+    return organizationStore.organizations.some(
+      (org) => org.objid !== current?.objid && meetsSwitcherGate(org)
+    );
   });
 
   /**
