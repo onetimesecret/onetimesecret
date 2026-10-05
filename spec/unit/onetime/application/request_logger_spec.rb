@@ -203,6 +203,7 @@ RSpec.describe Onetime::Application::RequestLogger do
         ['/api/v3/guest/receipt/bearer-receipt-value', '/api/v3/guest/receipt/[REDACTED]'],
         ['/api/v2/guest/secret/bearer-secret-value/reveal', '/api/v2/guest/secret/[REDACTED]/reveal'],
         ['/l/bearer-secret-value', '/l/[REDACTED]'],
+        ['/incoming/bearer-receipt-value', '/incoming/[REDACTED]'],
         ['/%73ecret/bearer-secret-value', '/secret/[REDACTED]'],
         ['/secret%2Fbearer-secret-value', '/secret/[REDACTED]'],
         ['/secret/bearer%2Dsecret%2Dvalue', '/secret/[REDACTED]'],
@@ -243,6 +244,19 @@ RSpec.describe Onetime::Application::RequestLogger do
 
       it 'does not exempt action-like strings on SPA capability routes' do
         expect(call(path: '/secret/conceal').last['path']).to eq('/secret/[REDACTED]')
+      end
+
+      it 'preserves the static incoming API routes' do
+        [%w[GET /api/incoming/config], %w[POST /api/incoming/secret], %w[POST /api/incoming/validate]].each do |method, path|
+          env = Rack::MockRequest.env_for(path, method: method)
+          middleware.call(env)
+          expect(captured.last.last['path']).to eq(path)
+        end
+        expect(call(path: '/incoming').last['path']).to eq('/incoming')
+      end
+
+      it 'does not exempt incoming API action names on the SPA route' do
+        expect(call(path: '/incoming/secret').last['path']).to eq('/incoming/[REDACTED]')
       end
     end
   end
