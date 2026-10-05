@@ -205,6 +205,12 @@ RSpec.describe Onetime::CustomDomain::BrandSettings do
         expect(described_class.valid_color?('')).to be false
         expect(described_class.valid_color?(nil)).to be false
       end
+
+      it 'rejects multi-line values (whole-string anchoring, not line anchoring)' do
+        expect(described_class.valid_color?("#FFF\n<script>")).to be false
+        expect(described_class.valid_color?("junk\n#FF0000")).to be false
+        expect(described_class.valid_color?("#FF0000\n")).to be false
+      end
     end
 
     describe '.valid_font?' do

@@ -39,7 +39,13 @@ module V2::Logic
         payload_with_string_keys = payload.transform_keys(&:to_s)
         merged_options           = config_with_string_keys.merge(payload_with_string_keys)
 
-        # Extract parameters from merged options
+        # Extract parameters from merged options. Nested form keys
+        # (`secret[length][]=`, `secret[character_sets]=x`) arrive as the
+        # wrong type and would raise NoMethodError on `to_i` / `keys` below.
+        unless scalar_param?(merged_options['length'])
+          raise_form_error 'Incorrect payload format', field: :length
+        end
+
         length = merged_options['length']&.to_i || merged_options['default_length'] || 12
 
         # Reject oversized lengths BEFORE strand allocates. process_secret runs
@@ -56,6 +62,7 @@ module V2::Logic
 
         # Build character set options from merged configuration
         char_sets = merged_options['character_sets'] || {}
+        raise_form_error 'Incorrect payload format', field: :character_sets unless char_sets.is_a?(Hash)
 
         secret_logger.debug 'Generating secret',
           {

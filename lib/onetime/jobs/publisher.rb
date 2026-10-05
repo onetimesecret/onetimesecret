@@ -282,6 +282,20 @@ module Onetime
               persist: true,
               bypass_cache: bypass_cache,
             ).call
+
+            # ValidateSenderConfig queued a provider check
+            # (provider_check_status = queued) that no worker runs on a
+            # jobs-disabled install, which left jobs_in_progress? true and
+            # computed_verification_status 'pending' indefinitely. Close it
+            # the way DomainValidationWorker's could-not-determine branch
+            # does: completed, provider_verified left unknown. The
+            # user-facing verification_status was already written above
+            # (persist: true).
+            require 'onetime/jobs/workers/job_lifecycle'
+            mailer_config.provider_check_status       = Onetime::Jobs::Workers::JobLifecycle::COMPLETED
+            mailer_config.provider_check_completed_at = Familia.now.to_i
+            mailer_config.updated                     = Familia.now.to_i
+            mailer_config.save_fields(:provider_check_status, :provider_check_completed_at, :updated)
           end
 
           return true
@@ -326,9 +340,12 @@ module Onetime
 
             mailer_config.dns_check_results.value = result[:records]
 
+            # Same rule as DnsRecordCheckWorker: verified only when at least
+            # one record was checked AND every one matched. [].all? is true,
+            # which marked an unprovisioned domain (no records yet) verified.
             records                              = result[:records] || []
             all_matched                          = records.all? { |r| r['value_matches'] == true || r[:value_matches] == true }
-            mailer_config.dns_verified           = all_matched
+            mailer_config.dns_verified           = records.any? && all_matched
             mailer_config.dns_check_status       = 'completed'
             mailer_config.dns_check_completed_at = Familia.now.to_i
             mailer_config.updated                = Familia.now.to_i
@@ -708,7 +725,15 @@ module Onetime
         when :templated
           return unless template && data
 
-          Onetime::Mail.deliver(template, data, sender_config: sender_config)
+          # Same contract as EmailWorker#deliver_templated_email: the caller's
+          # locale rides in the template data and the template reads it from
+          # `locale:`. Without this lift every fallback delivery (jobs disabled,
+          # RabbitMQ down) rendered in English regardless of the recipient's
+          # locale. Dup first so the caller's hash is left intact.
+          email_data = data.dup
+          locale     = Onetime::Mail.extract_locale!(email_data)
+
+          Onetime::Mail.deliver(template, email_data, locale: locale, sender_config: sender_config)
         when :raw
           return unless raw_email
 

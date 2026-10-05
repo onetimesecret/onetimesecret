@@ -162,6 +162,9 @@ module Onetime
         # @!attribute standalone [r] Boolean — true when billing is disabled on
         #   this install, i.e. the write has NO read-path effect. Adapters warn.
         # @!attribute dry_run [r] Boolean
+        # @!attribute memberships [r] Hash, nil — counts from
+        #   Organization#rematerialize_all_memberships! (:success, :failed,
+        #   :total, :failed_ids) on an applied run; nil otherwise.
         Result = Data.define(
           :status,
           :org_id,
@@ -172,6 +175,7 @@ module Onetime
           :revokes,
           :standalone,
           :dry_run,
+          :memberships,
         )
 
         # Is this entitlement name present in the billing catalog?
@@ -251,7 +255,7 @@ module Onetime
             )
           end
 
-          apply!
+          memberships = apply!
 
           # One audit event per applied override change (CONTRACT 4 / epic D4),
           # emitted from HERE. Adapters MUST NOT audit or the trail
@@ -270,6 +274,7 @@ module Onetime
             effective: @org.materialized_entitlements.to_a,
             grants: @org.entitlements_grants.to_a,
             revokes: @org.entitlements_revokes.to_a,
+            memberships: memberships,
           )
         end
 
@@ -334,12 +339,26 @@ module Onetime
           OT.le "[Org::EntitlementOverride] refusal audit failed: #{ex.class}: #{ex.message}"
         end
 
+        # Mutate the org's override sets, then push the result down to its
+        # members.
+        #
+        # The model methods reconcile only the ORG's materialized set. Every
+        # membership keeps its own materialized set (org ∩ role template), and
+        # require_entitlement! / require_entitlement_in! decide through
+        # membership.can? — so without this cascade a revoked entitlement kept
+        # working for every existing member (and a grant reached nobody) until
+        # some later plan apply or reconcile happened to rematerialize them.
+        # Same cascade ApplySubscriptionToOrg and the reconcile job perform.
+        #
+        # @return [Hash] rematerialize_all_memberships! counts
         def apply!
           case @action
           when 'grant'  then @org.grant_entitlement(@entitlement)
           when 'revoke' then @org.revoke_entitlement(@entitlement)
           when 'clear'  then @org.clear_entitlement_overrides
           end
+
+          @org.rematerialize_all_memberships!
         end
 
         # Membership in the sets is checked EXPLICITLY rather than trusting the
@@ -372,7 +391,7 @@ module Onetime
 
         # Single exit point for every non-applied status, so the refusal audit
         # cannot be forgotten at an early return.
-        def build(status, effective: nil, grants: nil, revokes: nil)
+        def build(status, effective: nil, grants: nil, revokes: nil, memberships: nil)
           record_refusal(status) if REFUSAL_STATUSES.include?(status)
 
           Result.new(
@@ -385,6 +404,7 @@ module Onetime
             revokes: revokes,
             standalone: !@org.billing_enabled?,
             dry_run: @dry_run,
+            memberships: memberships,
           )
         end
       end

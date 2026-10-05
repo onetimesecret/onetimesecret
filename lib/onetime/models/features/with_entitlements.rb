@@ -108,6 +108,14 @@ module Onetime
         end
 
         module InstanceMethods
+          # Spellings of "no limit" a stored limit value may carry. 'unlimited'
+          # is what PlanPersister writes; '-1' is the operator-facing convention
+          # in billing.yaml and Stripe metadata; 'infinity' is Float::INFINITY's
+          # to_s, which earlier persister releases wrote verbatim into
+          # plan.limits and from there into every org's limits_plan. Those
+          # materialized values are still in Redis, so readers must accept it.
+          UNLIMITED_LIMIT_VALUES = %w[unlimited -1 infinity].freeze
+
           # Check if model has a specific entitlement
           #
           # @param entitlement [String, Symbol] Entitlement to check
@@ -182,15 +190,18 @@ module Onetime
 
           # Parse a limit value from string/nil to numeric.
           #
-          # Kept here as a portable utility used by WithMaterializedLimits and
-          # WithPlanEntitlements. Lives in the base because it has no plan or
-          # organization coupling.
+          # The ONE parser for stored limit values: WithMaterializedLimits
+          # (materialized_limit_for, test_plan_limit_for) and
+          # WithPlanEntitlements all route through here so they cannot drift
+          # on which spellings mean unlimited. "Infinity".to_i is 0, which is
+          # how an unlimited plan limit used to read back as "none allowed".
           #
-          # @param val [String, Integer, nil] Raw limit value
+          # @param val [String, Integer, Float, nil] Raw limit value
           # @return [Numeric] Parsed limit (0, integer, or Float::INFINITY)
           def parse_limit_value(val)
-            return 0 if val.nil? || val.to_s.empty?
-            return Float::INFINITY if ['unlimited', '-1'].include?(val.to_s)
+            return 0 if val.nil? || val.to_s.strip.empty?
+            return Float::INFINITY if val.is_a?(Float) && val.infinite?
+            return Float::INFINITY if UNLIMITED_LIMIT_VALUES.include?(val.to_s.strip.downcase)
 
             val.to_i
           end

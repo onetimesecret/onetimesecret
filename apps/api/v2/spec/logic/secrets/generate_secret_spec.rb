@@ -53,6 +53,31 @@ RSpec.describe V2::Logic::Secrets::GenerateSecret, type: :integration do
     OT.conf.dig('site', 'secret_options', 'password_generation', 'maximum_length').to_i
   end
 
+  # Nested form keys (`secret[length][]=5`, `secret[character_sets]=x`) and
+  # JSON scalars arrive with the wrong type. Each used to raise NoMethodError
+  # or TypeError out of the constructor and surface as a 500.
+  context 'when the payload has the wrong shape' do
+    it 'rejects a non-Hash secret payload as a form error' do
+      expect { described_class.new(build_logic('length' => '12').strategy_result, { 'secret' => ['x'] }) }
+        .to raise_error(OT::FormError, /Incorrect payload format/)
+    end
+
+    it 'rejects an Array length as a form error instead of NoMethodError' do
+      expect { build_logic('length' => ['12'], 'ttl' => '3600') }
+        .to raise_error(OT::FormError, /Incorrect payload format/)
+    end
+
+    it 'rejects a non-Hash character_sets as a form error instead of NoMethodError' do
+      expect { build_logic('length' => '12', 'character_sets' => 'x', 'ttl' => '3600') }
+        .to raise_error(OT::FormError, /Incorrect payload format/)
+    end
+
+    it 'rejects an Array ttl as a form error instead of NoMethodError' do
+      expect { build_logic('length' => '12', 'ttl' => ['3600']) }
+        .to raise_error(OT::FormError, /Incorrect payload format/)
+    end
+  end
+
   context 'when the requested length exceeds the ceiling' do
     it 'raises a form error at construction, before strand ever allocates' do
       # Fail loudly if the guard is bypassed: strand must never be called with

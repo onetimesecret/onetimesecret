@@ -136,6 +136,7 @@ module ColonelAPI
               effective_entitlements: @result.effective,
               grants: @result.grants,
               revokes: @result.revokes,
+              memberships: @result.memberships,
             },
           }
         end

@@ -157,6 +157,11 @@ module Onetime
           print_set('Grants', result.grants)
           print_set('Revokes', result.revokes)
           print_set(result.dry_run ? 'Effective (projected)' : 'Effective', result.effective)
+          if result.memberships
+            m = result.memberships
+            puts "Members rematerialized: #{m[:success]}/#{m[:total]} (failed: #{m[:failed]})"
+            puts
+          end
 
           exit 1 unless override_ok?(result)
         end
@@ -183,6 +188,7 @@ module Onetime
             revokes: result.revokes,
             standalone: result.standalone,
             dry_run: result.dry_run,
+            memberships: result.memberships,
           )
           exit 1 unless override_ok?(result)
         end

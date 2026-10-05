@@ -32,6 +32,7 @@ RSpec.describe Onetime::Operations::Org::EntitlementOverride do
   let(:revoke_members)       { [] }
   let(:materialized_members) { (plan_members | grant_members) - revoke_members }
   let(:billing_enabled)      { true }
+  let(:membership_counts)    { { success: 2, failed: 0, total: 2, failed_ids: [] } }
 
   # Mirror of the model's apply_entitlements reconciliation.
   def reconcile!
@@ -63,6 +64,7 @@ RSpec.describe Onetime::Operations::Org::EntitlementOverride do
       revoke_members.clear
       reconcile!
     end
+    allow(instance).to receive(:rematerialize_all_memberships!).and_return(membership_counts)
 
     instance
   end
@@ -122,6 +124,69 @@ RSpec.describe Onetime::Operations::Org::EntitlementOverride do
 
       expect(result.status).to eq(:granted)
       expect(org).to have_received(:grant_entitlement).with('custom_branding')
+    end
+  end
+
+  # Memberships carry their own materialized set (org ∩ role template), and
+  # the authorization gates read THAT. An override that stopped at the org's
+  # set left every existing member on the old entitlements until an unrelated
+  # plan apply or reconcile rematerialized them.
+  describe 'membership cascade' do
+    it 'rematerializes every membership after a grant' do
+      result = run('grant', entitlement: 'custom_branding')
+
+      expect(org).to have_received(:rematerialize_all_memberships!).once
+      expect(result.memberships).to eq(membership_counts)
+    end
+
+    it 'rematerializes every membership after a revoke' do
+      result = run('revoke', entitlement: 'api_access')
+
+      expect(org).to have_received(:rematerialize_all_memberships!).once
+      expect(result.memberships).to eq(membership_counts)
+    end
+
+    it 'rematerializes every membership after a clear' do
+      grant_members << 'custom_branding'
+
+      result = run('clear')
+
+      expect(org).to have_received(:rematerialize_all_memberships!).once
+      expect(result.memberships).to eq(membership_counts)
+    end
+
+    it 'cascades AFTER the org-level mutation so members see the new set' do
+      order = []
+      allow(org).to receive(:revoke_entitlement) do |ent|
+        order << [:revoke, ent]
+        revoke_members << ent
+        reconcile!
+      end
+      allow(org).to receive(:rematerialize_all_memberships!) do
+        order << :rematerialize
+        membership_counts
+      end
+
+      run('revoke', entitlement: 'api_access')
+
+      expect(order).to eq([[:revoke, 'api_access'], :rematerialize])
+    end
+
+    it 'does not touch memberships on a dry run' do
+      result = run('grant', entitlement: 'custom_branding', dry_run: true)
+
+      expect(org).not_to have_received(:rematerialize_all_memberships!)
+      expect(result.memberships).to be_nil
+    end
+
+    it 'does not touch memberships when nothing changed' do
+      grant_members << 'custom_branding'
+
+      result = run('grant', entitlement: 'custom_branding')
+
+      expect(result.status).to eq(:no_change)
+      expect(org).not_to have_received(:rematerialize_all_memberships!)
+      expect(result.memberships).to be_nil
     end
   end
 

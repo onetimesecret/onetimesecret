@@ -1,6 +1,10 @@
 // src/tests/composables/useDismissableBanner.spec.ts
 
-import { useDismissableBanner, generateBannerId } from '@/shared/composables/useDismissableBanner';
+import {
+  fnv1a32Hex,
+  generateBannerId,
+  useDismissableBanner,
+} from '@/shared/composables/useDismissableBanner';
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 
 describe('useDismissableBanner', () => {
@@ -23,6 +27,49 @@ describe('useDismissableBanner', () => {
   it('should be visible by default when no prior state exists', () => {
     const { isVisible } = useDismissableBanner('new-banner-default');
     expect(isVisible.value).toBe(true);
+  });
+
+  // crypto.subtle is undefined outside secure contexts (a plain-HTTP self-hosted
+  // install). The ID used to collapse to `<prefix>-fallback` there, so a
+  // permanent dismissal of one global broadcast hid every later broadcast.
+  describe('generateBannerId without Web Crypto (non-secure context)', () => {
+    beforeEach(() => {
+      vi.stubGlobal('crypto', {});
+    });
+
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+    it('derives distinct IDs for distinct content', async () => {
+      const a = await generateBannerId({ prefix: 'gb', content: 'Maintenance tonight' });
+      const b = await generateBannerId({ prefix: 'gb', content: 'New pricing page' });
+
+      expect(a).not.toBe('gb-fallback');
+      expect(b).not.toBe('gb-fallback');
+      expect(a).not.toBe(b);
+    });
+
+    it('is stable for the same content', async () => {
+      const first = await generateBannerId({ prefix: 'gb', content: 'Maintenance tonight' });
+      const second = await generateBannerId({ prefix: 'gb', content: 'Maintenance tonight' });
+
+      expect(first).toBe(second);
+      expect(first).toMatch(/^gb-[0-9a-f]{8}$/);
+    });
+
+    it('still uses the default ID when there is no content', async () => {
+      expect(await generateBannerId({ prefix: 'gb', content: null })).toBe('gb-default');
+    });
+  });
+
+  describe('fnv1a32Hex', () => {
+    it('matches the reference FNV-1a 32-bit vectors', () => {
+      // https://datatracker.ietf.org/doc/draft-eastlake-fnv/ test vectors
+      expect(fnv1a32Hex('')).toBe('811c9dc5');
+      expect(fnv1a32Hex('a')).toBe('e40c292c');
+      expect(fnv1a32Hex('foobar')).toBe('bf9cf968');
+    });
   });
 
   describe('Permanent Dismissal (expirationDays = 0 or not provided)', () => {

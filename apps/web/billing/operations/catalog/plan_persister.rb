@@ -22,6 +22,23 @@ module Billing
       module PlanPersister
         extend self
 
+        # Does this limit value mean "no limit"?
+        #
+        # DataExtractor hands over Float::INFINITY for the Stripe metadata
+        # value "-1" (Metadata.normalize_limit), and the old `value == -1`
+        # test never matched it, so plan.limits received "Infinity" — a
+        # spelling no reader understood (`"Infinity".to_i` is 0). Every
+        # spelling of unlimited is persisted as the canonical 'unlimited'.
+        #
+        # @param value [Integer, Float, String, nil]
+        # @return [Boolean]
+        def unlimited_limit?(value)
+          return true if value.is_a?(Float) && value.infinite?
+          return true if value.to_s.strip.casecmp?('unlimited')
+
+          ::Billing::Metadata.unlimited?(value)
+        end
+
         # Upsert single plan from Stripe data
         #
         # Creates a new plan if it doesn't exist, or updates an existing one.
@@ -107,8 +124,7 @@ module Billing
           plan.limits.clear
           plan_data[:limits]&.each do |resource, value|
             key              = "#{resource}.max"
-            val              = value == -1 ? 'unlimited' : value.to_s
-            plan.limits[key] = val
+            plan.limits[key] = unlimited_limit?(value) ? 'unlimited' : value.to_s
           end
 
           # Merge prices into hashkey (interval => JSON price data)

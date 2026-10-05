@@ -33,13 +33,23 @@ module V2::Logic
       def process_params
         # All parameters are passed in the :secret hash (secret[:ttl], etc)
         @payload = params['secret'] || {}
-        raise_form_error 'Incorrect payload format' if payload.is_a?(String)
+        # Anything but a Hash (a String, but also an Array from `secret[]=x`
+        # or a JSON scalar) would raise TypeError/NoMethodError out of the
+        # fetches below and surface as a 500. Reject it as a form error.
+        raise_form_error 'Incorrect payload format' unless payload.is_a?(Hash)
 
         process_ttl
         process_secret
         process_passphrase
         process_recipient
         process_share_domain
+      end
+
+      # A payload field that may be coerced with to_i/to_s: absent, a String
+      # (form or JSON string) or a Numeric (JSON number). Arrays and Hashes
+      # from nested form keys are not.
+      def scalar_param?(value)
+        value.nil? || value.is_a?(String) || value.is_a?(Numeric)
       end
 
       def raise_concerns
@@ -102,6 +112,8 @@ module V2::Logic
 
       def process_ttl
         @ttl = payload.fetch('ttl', nil)
+        # `secret[ttl][]=1` arrives as an Array; `.to_i` below would raise.
+        raise_form_error 'Incorrect payload format', field: :ttl unless scalar_param?(ttl)
 
         # Get configuration options. We can rely on these values existing
         # because that are guaranteed by OT::Config.after_load.

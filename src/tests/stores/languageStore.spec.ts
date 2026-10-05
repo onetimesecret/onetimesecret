@@ -2,6 +2,7 @@
 
 import { ApplicationError } from '@/schemas';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { mockCustomer } from '../fixtures/bootstrap.fixture';
 import { SESSION_STORAGE_KEY, useLanguageStore } from '@/shared/stores/languageStore';
 import type { AxiosInstance } from 'axios';
 import type AxiosMockAdapter from 'axios-mock-adapter';
@@ -157,6 +158,27 @@ describe('Language Store', () => {
 
       await store.updateLanguage('fr');
       expect(axiosMock?.history.post[0].data).toBe(JSON.stringify({ locale: 'fr' }));
+    });
+
+    // The auth route guard re-applies bootstrapStore.cust.locale on every
+    // protected navigation. If updateLanguage leaves the snapshot stale, the
+    // next page change silently reverts the choice the user just made.
+    it('keeps the bootstrap snapshot locale in step with the saved preference', async () => {
+      bootstrapStore.update({ cust: { ...mockCustomer, locale: 'en' } });
+      axiosMock?.onPost('/api/account/update-locale').reply(200, {});
+
+      await store.updateLanguage('fr');
+
+      expect(bootstrapStore.cust?.locale).toBe('fr');
+    });
+
+    it('does not invent a customer when the visitor is anonymous', async () => {
+      bootstrapStore.update({ cust: null });
+      axiosMock?.onPost('/api/account/update-locale').reply(200, {});
+
+      await store.updateLanguage('fr');
+
+      expect(bootstrapStore.cust).toBeNull();
     });
 
     describe('Error Handling', () => {

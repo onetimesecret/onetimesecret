@@ -6,6 +6,8 @@ require 'json'
 require 'rack'
 require 'rack/multipart'
 
+require_relative '../application/request_logger'
+
 module Onetime
   module Middleware
     # ValidateMultipart
@@ -130,7 +132,8 @@ module Onetime
         @logger.warn 'Rejected malformed multipart request',
           {
             reason: reason,
-            path: env['PATH_INFO'],
+            # Full mount+path, with any secret key in it redacted.
+            path: Onetime::Application::RequestLogger.redacted_path(Rack::Request.new(env)),
             method: env['REQUEST_METHOD'],
             content_type: env['CONTENT_TYPE'],
             content_length: env['CONTENT_LENGTH'],
