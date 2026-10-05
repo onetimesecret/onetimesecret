@@ -114,11 +114,30 @@
     return Number.isInteger(mb) ? `${mb}MB` : `${Math.round(props.maxSizeBytes / 1024)}KB`;
   });
 
+  // The `accept` attribute only filters the file picker, so dropped files are
+  // checked against the same tokens: exact MIME, `type/*`, or `.ext`.
+  const acceptedTokens = computed(() =>
+    props.accept
+      .split(',')
+      .map((token) => token.trim().toLowerCase())
+      .filter(Boolean)
+  );
+
+  const isAccepted = (file: File) => {
+    const type = file.type.toLowerCase();
+    const name = file.name.toLowerCase();
+    return acceptedTokens.value.some((token) => {
+      if (token.startsWith('.')) return name.endsWith(token);
+      if (token.endsWith('/*')) return type.startsWith(token.slice(0, -1));
+      return type === token;
+    });
+  };
+
   const stageFile = async (file: File | undefined) => {
     if (!file) return;
     validationError.value = null;
     saveError.value = null;
-    if (!file.type.startsWith('image/')) {
+    if (!isAccepted(file)) {
       validationError.value = t('web.branding.image_invalid_type');
       return;
     }
