@@ -108,6 +108,33 @@ RSpec.describe Onetime::Mail::Mailer do
         expect(described_class.delivery_backend).to be_a(Onetime::Mail::Delivery::Logger)
       end
     end
+
+    # A quoted value in a config file keeps its whitespace; the YAML default
+    # for EMAILER_MODE is unquoted, so YAML strips it there.
+    context 'with a mode in mixed case and padded with whitespace' do
+      let(:mode) { ' SMTP ' }
+
+      it 'is the canonical provider name' do
+        expect(described_class.determine_provider).to eq('smtp')
+        expect(described_class.backend_provider).to eq('smtp')
+      end
+    end
+
+    context "with 'disabled' padded with whitespace" do
+      let(:mode) { " disabled\n" }
+
+      it 'is the disabled transport, not the logger fallback' do
+        expect(described_class.backend_provider).to eq('disabled')
+      end
+    end
+
+    context 'when given a name that differs only in case or whitespace' do
+      let(:mode) { 'smtp' }
+
+      it 'is the canonical provider name' do
+        expect(described_class.backend_provider(' Ses ')).to eq('ses')
+      end
+    end
   end
 
   describe 'sender_config support' do

@@ -36,6 +36,10 @@ require_relative 'models/custom_domain/sso_config'
 # Requires the config models above, so it loads after them.
 require_relative 'models/custom_domain/config_registry'
 
+# Per-request lookup result for a host's CustomDomain (a plain value object,
+# not a stored model).
+require_relative 'models/custom_domain/lookup'
+
 # Housekeeping chores - loaded after models so chore DSL is available.
 # Sort for deterministic load order across platforms.
 Dir.glob(File.join(__dir__, 'models', '*', 'chores', '*.rb')).sort.each do |chore_file|

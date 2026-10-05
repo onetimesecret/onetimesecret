@@ -30,7 +30,7 @@ module Onetime
   # (outside it, on the way OUT) share one object. No lock: a rack env
   # belongs to exactly one request on one thread.
   #
-  # The domain comes from the request's Onetime::CustomDomainResolution
+  # The domain comes from the request's Onetime::CustomDomain::Lookup
   # (#4220): the read DomainStrategy made while classifying the host, shared
   # with Auth::SigninGate and Auth::RestrictTo, or one read made on first use
   # when the middleware needed none. Built without a rack env (view_vars
@@ -110,7 +110,7 @@ module Onetime
     #   treated as a tenant host — the fail-closed side.
     # @param env [Hash, nil] the rack env this resolution was created for.
     #   When given, the domain is read from the request's shared
-    #   CustomDomainResolution instead of a lookup of its own. Nothing is
+    #   Onetime::CustomDomain::Lookup instead of a read of its own. Nothing is
     #   read at construction either way.
     def initialize(display_domain, domain_strategy = nil, env: nil)
       @display_domain  = display_domain.to_s
@@ -223,7 +223,7 @@ module Onetime
       @custom_domain = nil
       return nil if @display_domain.empty?
 
-      @custom_domain = custom_domain_resolution.record!
+      @custom_domain = custom_domain_lookup.record!
       @custom_domain&.identifier
     rescue Redis::BaseError => ex
       @custom_domain = nil
@@ -232,15 +232,15 @@ module Onetime
       operator_host? ? nil : DOMAIN_READ_FAILED
     end
 
-    # The request's shared resolution when this instance was created for a
-    # rack env that still shows the same display domain; a lookup of its own
+    # The request's shared lookup when this instance was created for a
+    # rack env that still shows the same display domain; a read of its own
     # otherwise.
-    def custom_domain_resolution
+    def custom_domain_lookup
       if @env && @env['onetime.display_domain'].to_s == @display_domain
-        return Onetime::CustomDomainResolution.for(@env)
+        return Onetime::CustomDomain::Lookup.for(@env)
       end
 
-      Onetime::CustomDomainResolution.lookup(@display_domain)
+      Onetime::CustomDomain::Lookup.read(@display_domain)
     end
 
     def read_sso_config

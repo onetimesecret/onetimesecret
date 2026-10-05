@@ -23,374 +23,370 @@ require_relative '../features/boolean_encoding'
 #   exposed to the frontend. This prevents enumeration attacks while still
 #   allowing the backend to route secrets to the correct recipient.
 #
-module Onetime
-  class CustomDomain < Familia::Horreum
-    class IncomingConfig < Familia::Horreum
-      include Familia::Features::Autoloader
-      include Onetime::Security::InputSanitizers
+class Onetime::CustomDomain::IncomingConfig < Familia::Horreum
+  include Familia::Features::Autoloader
+  include Onetime::Security::InputSanitizers
 
-      SCHEMA = 'models/domain-incoming-config'
+  SCHEMA = 'models/domain-incoming-config'
 
-      # Maximum number of recipients per domain
-      MAX_RECIPIENTS = 20
+  # Maximum number of recipients per domain
+  MAX_RECIPIENTS = 20
 
-      # Default policy values applied to all custom domains. Not user-configurable
-      # per-domain at this time; canonical-domain values still come from YAML
-      # (`features.incoming.*`). Consumed by RecipientResolver#config_data.
-      DEFAULTS = {
-        memo_max_length: 50,
-        default_ttl: 604_800,
-      }.freeze
+  # Default policy values applied to all custom domains. Not user-configurable
+  # per-domain at this time; canonical-domain values still come from YAML
+  # (`features.incoming.*`). Consumed by RecipientResolver#config_data.
+  DEFAULTS = {
+    memo_max_length: 50,
+    default_ttl: 604_800,
+  }.freeze
 
-      prefix :custom_domain__incoming_config
+  prefix :custom_domain__incoming_config
 
-      # domain_id is the CustomDomain's identifier (objid), used as our key.
-      # This creates a 1:1 relationship: one incoming config per domain.
-      identifier_field :domain_id
-      field :domain_id
+  # domain_id is the CustomDomain's identifier (objid), used as our key.
+  # This creates a 1:1 relationship: one incoming config per domain.
+  identifier_field :domain_id
+  field :domain_id
 
-      # Whether incoming secrets is enabled for this domain
-      field :enabled
+  # Whether incoming secrets is enabled for this domain
+  field :enabled
 
-      # Recipients stored as JSON array of {email:, name:} objects
-      # Email addresses are stored as-is; hashing happens at retrieval time
-      field :recipients_json
+  # Recipients stored as JSON array of {email:, name:} objects
+  # Email addresses are stored as-is; hashing happens at retrieval time
+  field :recipients_json
 
-      # Timestamps (Unix epoch integers)
-      field :created
-      field :updated
+  # Timestamps (Unix epoch integers)
+  field :created
+  field :updated
 
-      # Colonel-writable fields, aggregated into
-      # {Onetime::CustomDomain::ConfigRegistry::FIELD_SPECS} (the registry
-      # validates at load time that every key has a setter here). `enabled`
-      # stores a legacy 'true'/'false' STRING; the boolean_encoding feature
-      # (below) normalizes writes to that encoding and keeps #enabled?
-      # tolerant of both (#3951). Recipients stay workspace-managed in v1 —
-      # enabled only.
-      FIELD_SPECS = {
-        'enabled' => { type: :boolean, storage: :string },
-      }.freeze
+  # Colonel-writable fields, aggregated into
+  # {Onetime::CustomDomain::ConfigRegistry::FIELD_SPECS} (the registry
+  # validates at load time that every key has a setter here). `enabled`
+  # stores a legacy 'true'/'false' STRING; the boolean_encoding feature
+  # (below) normalizes writes to that encoding and keeps #enabled?
+  # tolerant of both (#3951). Recipients stay workspace-managed in v1 —
+  # enabled only.
+  FIELD_SPECS = {
+    'enabled' => { type: :boolean, storage: :string },
+  }.freeze
 
-      # Tolerant predicate + normalizing setter for `enabled` per the spec
-      # above (#3951). Must come after both the field declaration and the
-      # constant.
-      feature :boolean_encoding
+  # Tolerant predicate + normalizing setter for `enabled` per the spec
+  # above (#3951). Must come after both the field declaration and the
+  # constant.
+  feature :boolean_encoding
 
-      def init
-        self.enabled         ||= 'false'
-        self.recipients_json ||= '[]'
+  def init
+    self.enabled         ||= 'false'
+    self.recipients_json ||= '[]'
+  end
+
+  # Whether this config can actually receive secrets: enabled AND at
+  # least one recipient. This is the gate for pointing a domain's
+  # homepage at the incoming form (HomepageConfig secrets_mode
+  # 'incoming') — an enabled config with zero recipients has nowhere
+  # to deliver, so it does not count as ready.
+  #
+  # @return [Boolean]
+  def ready?
+    enabled? && recipients.any?
+  end
+
+  # Enable incoming secrets for this domain.
+  # @return [void]
+  def enable!
+    self.enabled = 'true'
+    self.updated = Familia.now.to_i
+    save
+  end
+
+  # Disable incoming secrets for this domain.
+  # @return [void]
+  def disable!
+    self.enabled = 'false'
+    self.updated = Familia.now.to_i
+    save
+  end
+
+  # Get the list of recipients (raw, with emails).
+  #
+  # @return [Array<Hash>] Array of {email:, name:} hashes
+  def recipients
+    return [] if recipients_json.to_s.empty?
+
+    JSON.parse(recipients_json, symbolize_names: true)
+  rescue JSON::ParserError => ex
+    OT.le "[IncomingConfig] Corrupt recipients_json for domain_id=#{domain_id}: #{ex.message}"
+    []
+  end
+
+  # Set the list of recipients.
+  #
+  # @param recipients_list [Array<Hash>] Array of {email:, name:} hashes
+  # @return [void]
+  # @raise [Onetime::Problem] if validation fails
+  def recipients=(recipients_list)
+    normalized = normalize_recipients(recipients_list)
+    validate_recipients!(normalized)
+
+    self.recipients_json = JSON.generate(normalized)
+    self.updated         = Familia.now.to_i
+  end
+
+  # Get recipients with hashed identifiers (safe for frontend/anonymous senders).
+  #
+  # Returns string keys ('digest', 'display_name') to match the shape produced
+  # by SetupIncomingRecipients for canonical domains. Consumers like
+  # CreateIncomingSecret#lookup_recipient_display_name rely on this exact shape
+  # (r['digest'] == hash).
+  #
+  # @return [Array<Hash>] Array of { 'digest' => ..., 'display_name' => ... }
+  # @raise [Onetime::Problem] if site.secret is not configured
+  def public_recipients
+    site_secret = self.class.ensure_site_secret
+
+    recipients.map do |r|
+      {
+        'digest' => self.class.hash_email(r[:email], site_secret),
+        'display_name' => r[:name],
+      }
+    end
+  end
+
+  # Default memo max length for this domain. Per-domain overrides are not
+  # currently a feature; the DEFAULTS constant is the source of truth.
+  def memo_max_length
+    DEFAULTS[:memo_max_length]
+  end
+
+  # Default secret TTL for this domain.
+  def default_ttl
+    DEFAULTS[:default_ttl]
+  end
+
+  # Look up email by recipient hash.
+  #
+  # @param hash [String] The recipient hash
+  # @return [String, nil] Email address if found, nil otherwise
+  # @raise [Onetime::Problem] if site.secret is not configured
+  def lookup_recipient_email(hash)
+    site_secret = self.class.ensure_site_secret
+
+    recipients.find do |r|
+      self.class.hash_email(r[:email], site_secret) == hash
+    end&.dig(:email)
+  end
+
+  # Add a recipient.
+  #
+  # @param email [String] Recipient email
+  # @param name [String] Recipient display name
+  # @return [void]
+  # @raise [Onetime::Problem] if validation fails
+  def add_recipient(email:, name:)
+    current = recipients
+    raise Onetime::Problem, "Maximum #{MAX_RECIPIENTS} recipients allowed" if current.size >= MAX_RECIPIENTS
+
+    normalized_email = sanitize_email(email)
+    raise Onetime::Problem, 'Recipient email already exists' if current.any? { it[:email] == normalized_email }
+
+    current << { email: normalized_email, name: sanitize_plain_text(name) }
+    self.recipients = current
+  end
+
+  # Remove a recipient by email.
+  #
+  # @param email [String] Recipient email to remove
+  # @return [void]
+  # @raise [Onetime::Problem] if recipient not found
+  def remove_recipient(email:)
+    normalized_email = sanitize_email(email)
+    current          = recipients
+    initial_size     = current.size
+
+    current.reject! { it[:email] == normalized_email }
+
+    raise Onetime::Problem, 'Recipient not found' if current.size == initial_size
+
+    self.recipients = current
+  end
+
+  # Clear all recipients.
+  #
+  # @return [void]
+  def clear_recipients!
+    self.recipients_json = '[]'
+    self.updated         = Familia.now.to_i
+    save
+  end
+
+  # Load the associated CustomDomain record.
+  #
+  # @return [CustomDomain, nil] The domain or nil if not found
+  def custom_domain
+    Onetime::CustomDomain.find_by_identifier(domain_id)
+  end
+
+  # Load the owning Organization via the CustomDomain.
+  #
+  # @return [Organization, nil] The organization or nil if not found
+  def organization
+    domain = custom_domain
+    return nil unless domain
+
+    Onetime::Organization.load(domain.org_id)
+  end
+
+  # Validate configuration.
+  #
+  # @return [Array<String>] List of validation error messages
+  def validation_errors
+    errors = []
+    errors << 'domain_id is required' if domain_id.to_s.empty?
+    errors
+  end
+
+  # Check if the configuration is valid.
+  #
+  # @return [Boolean] true if no validation errors
+  def valid?
+    validation_errors.empty?
+  end
+
+  private
+
+  # Normalize recipients array.
+  #
+  # @param recipients_list [Array] Raw recipients input
+  # @return [Array<Hash>] Normalized recipients with symbolized keys
+  def normalize_recipients(recipients_list)
+    Array(recipients_list).map do |r|
+      next nil unless r.is_a?(Hash)
+
+      email = sanitize_email(r[:email] || r['email'])
+      name  = sanitize_plain_text(r[:name] || r['name'])
+
+      next nil if email.empty?
+
+      { email: email, name: name.empty? ? email.split('@').first : name }
+    end.compact
+  end
+
+  # Validate recipients array.
+  #
+  # Flow: PUT /api/domains/:id/incoming/config -> PutIncomingConfig ->
+  #       IncomingConfig#recipients= -> normalize_recipients -> here
+  #
+  # Uses format-only regex (not Truemail) to avoid DNS latency on config
+  # saves. Truemail validation happens at secret-creation time via the
+  # logic layer.
+  #
+  # @param recipients_list [Array<Hash>] Normalized recipients
+  # @raise [Onetime::Problem] if validation fails
+  def validate_recipients!(recipients_list)
+    raise Onetime::Problem, "Maximum #{MAX_RECIPIENTS} recipients allowed" if recipients_list.size > MAX_RECIPIENTS
+
+    emails = recipients_list.map { it[:email] }
+    raise Onetime::Problem, 'Duplicate recipient emails not allowed' if emails.uniq.size != emails.size
+
+    recipients_list.each do |r|
+      unless r[:email].match?(OT::Utils::EmailFormat::BASIC_FORMAT)
+        raise Onetime::Problem, "Invalid email format: #{r[:email]}"
       end
+    end
+  end
 
-      # Whether this config can actually receive secrets: enabled AND at
-      # least one recipient. This is the gate for pointing a domain's
-      # homepage at the incoming form (HomepageConfig secrets_mode
-      # 'incoming') — an enabled config with zero recipients has nowhere
-      # to deliver, so it does not count as ready.
-      #
-      # @return [Boolean]
-      def ready?
-        enabled? && recipients.any?
-      end
+  class << self
+    # Find incoming config by domain ID.
+    #
+    # @param domain_id [String] CustomDomain identifier (objid)
+    # @return [CustomDomain::IncomingConfig, nil] The config or nil if not found
+    def find_by_domain_id(domain_id)
+      return nil if domain_id.to_s.empty?
 
-      # Enable incoming secrets for this domain.
-      # @return [void]
-      def enable!
-        self.enabled = 'true'
-        self.updated = Familia.now.to_i
-        save
-      end
+      load(domain_id)
+    end
 
-      # Disable incoming secrets for this domain.
-      # @return [void]
-      def disable!
-        self.enabled = 'false'
-        self.updated = Familia.now.to_i
-        save
-      end
+    # Check if a domain has incoming config.
+    #
+    # @param domain_id [String] CustomDomain identifier
+    # @return [Boolean] true if incoming config exists
+    def exists_for_domain?(domain_id)
+      return false if domain_id.to_s.empty?
 
-      # Get the list of recipients (raw, with emails).
-      #
-      # @return [Array<Hash>] Array of {email:, name:} hashes
-      def recipients
-        return [] if recipients_json.to_s.empty?
+      exists?(domain_id)
+    end
 
-        JSON.parse(recipients_json, symbolize_names: true)
-      rescue JSON::ParserError => ex
-        OT.le "[IncomingConfig] Corrupt recipients_json for domain_id=#{domain_id}: #{ex.message}"
-        []
-      end
+    # Create a new incoming config for a domain.
+    #
+    # @param domain_id [String] CustomDomain identifier
+    # @param attrs [Hash] Configuration attributes
+    # @return [CustomDomain::IncomingConfig] The created config
+    # @raise [Onetime::Problem] if config already exists
+    def create!(domain_id:, **attrs)
+      raise Onetime::Problem, 'domain_id is required' if domain_id.to_s.empty?
+      raise Onetime::Problem, 'Incoming config already exists for this domain' if exists_for_domain?(domain_id)
 
-      # Set the list of recipients.
-      #
-      # @param recipients_list [Array<Hash>] Array of {email:, name:} hashes
-      # @return [void]
-      # @raise [Onetime::Problem] if validation fails
-      def recipients=(recipients_list)
-        normalized = normalize_recipients(recipients_list)
-        validate_recipients!(normalized)
+      config = new(domain_id: domain_id)
 
-        self.recipients_json = JSON.generate(normalized)
-        self.updated         = Familia.now.to_i
-      end
+      config.enabled    = attrs[:enabled].to_s if attrs.key?(:enabled)
+      config.recipients = attrs[:recipients] if attrs.key?(:recipients)
 
-      # Get recipients with hashed identifiers (safe for frontend/anonymous senders).
-      #
-      # Returns string keys ('digest', 'display_name') to match the shape produced
-      # by SetupIncomingRecipients for canonical domains. Consumers like
-      # CreateIncomingSecret#lookup_recipient_display_name rely on this exact shape
-      # (r['digest'] == hash).
-      #
-      # @return [Array<Hash>] Array of { 'digest' => ..., 'display_name' => ... }
-      # @raise [Onetime::Problem] if site.secret is not configured
-      def public_recipients
-        site_secret = self.class.ensure_site_secret
+      now            = Familia.now.to_i
+      config.created = now
+      config.updated = now
 
-        recipients.map do |r|
-          {
-            'digest' => self.class.hash_email(r[:email], site_secret),
-            'display_name' => r[:name],
-          }
-        end
-      end
+      config.save
+      config
+    end
 
-      # Default memo max length for this domain. Per-domain overrides are not
-      # currently a feature; the DEFAULTS constant is the source of truth.
-      def memo_max_length
-        DEFAULTS[:memo_max_length]
-      end
+    # Delete incoming config for a domain.
+    #
+    # @param domain_id [String] CustomDomain identifier
+    # @return [Boolean] true if deleted, false if not found
+    def delete_for_domain!(domain_id)
+      return false if domain_id.to_s.empty?
 
-      # Default secret TTL for this domain.
-      def default_ttl
-        DEFAULTS[:default_ttl]
-      end
+      config = find_by_domain_id(domain_id)
+      return false unless config
 
-      # Look up email by recipient hash.
-      #
-      # @param hash [String] The recipient hash
-      # @return [String, nil] Email address if found, nil otherwise
-      # @raise [Onetime::Problem] if site.secret is not configured
-      def lookup_recipient_email(hash)
-        site_secret = self.class.ensure_site_secret
+      config.destroy!
+      true
+    end
 
-        recipients.find do |r|
-          self.class.hash_email(r[:email], site_secret) == hash
-        end&.dig(:email)
-      end
+    # List all domain incoming configs.
+    #
+    # @return [Array<CustomDomain::IncomingConfig>] All configs (newest first)
+    def all
+      instances.revrangeraw(0, -1).filter_map { |identifier| load(identifier) }
+    end
 
-      # Add a recipient.
-      #
-      # @param email [String] Recipient email
-      # @param name [String] Recipient display name
-      # @return [void]
-      # @raise [Onetime::Problem] if validation fails
-      def add_recipient(email:, name:)
-        current = recipients
-        raise Onetime::Problem, "Maximum #{MAX_RECIPIENTS} recipients allowed" if current.size >= MAX_RECIPIENTS
+    # Count of domains with incoming config.
+    #
+    # @return [Integer] Number of incoming configs
+    def count
+      instances.size
+    end
 
-        normalized_email = sanitize_email(email)
-        raise Onetime::Problem, 'Recipient email already exists' if current.any? { it[:email] == normalized_email }
+    # Compute SHA256 hash of email with site secret.
+    #
+    # @param email [String] Email address to hash
+    # @param secret [String] Site secret for hashing
+    # @return [String] Hex-encoded SHA256 hash
+    def hash_email(email, secret)
+      Digest::SHA256.hexdigest("#{email}:#{secret}")
+    end
 
-        current << { email: normalized_email, name: sanitize_plain_text(name) }
-        self.recipients = current
-      end
+    # Get site secret or raise if not configured.
+    #
+    # Reads from config on each call (no caching) to ensure tests and
+    # runtime config changes are reflected immediately.
+    #
+    # @return [String] The site secret
+    # @raise [Onetime::Problem] if site.secret is not configured
+    def ensure_site_secret
+      site_secret = OT.conf.dig('site', 'secret')
+      raise Onetime::Problem, 'site.secret must be configured' if site_secret.to_s.empty?
 
-      # Remove a recipient by email.
-      #
-      # @param email [String] Recipient email to remove
-      # @return [void]
-      # @raise [Onetime::Problem] if recipient not found
-      def remove_recipient(email:)
-        normalized_email = sanitize_email(email)
-        current          = recipients
-        initial_size     = current.size
-
-        current.reject! { it[:email] == normalized_email }
-
-        raise Onetime::Problem, 'Recipient not found' if current.size == initial_size
-
-        self.recipients = current
-      end
-
-      # Clear all recipients.
-      #
-      # @return [void]
-      def clear_recipients!
-        self.recipients_json = '[]'
-        self.updated         = Familia.now.to_i
-        save
-      end
-
-      # Load the associated CustomDomain record.
-      #
-      # @return [CustomDomain, nil] The domain or nil if not found
-      def custom_domain
-        Onetime::CustomDomain.find_by_identifier(domain_id)
-      end
-
-      # Load the owning Organization via the CustomDomain.
-      #
-      # @return [Organization, nil] The organization or nil if not found
-      def organization
-        domain = custom_domain
-        return nil unless domain
-
-        Onetime::Organization.load(domain.org_id)
-      end
-
-      # Validate configuration.
-      #
-      # @return [Array<String>] List of validation error messages
-      def validation_errors
-        errors = []
-        errors << 'domain_id is required' if domain_id.to_s.empty?
-        errors
-      end
-
-      # Check if the configuration is valid.
-      #
-      # @return [Boolean] true if no validation errors
-      def valid?
-        validation_errors.empty?
-      end
-
-      private
-
-      # Normalize recipients array.
-      #
-      # @param recipients_list [Array] Raw recipients input
-      # @return [Array<Hash>] Normalized recipients with symbolized keys
-      def normalize_recipients(recipients_list)
-        Array(recipients_list).map do |r|
-          next nil unless r.is_a?(Hash)
-
-          email = sanitize_email(r[:email] || r['email'])
-          name  = sanitize_plain_text(r[:name] || r['name'])
-
-          next nil if email.empty?
-
-          { email: email, name: name.empty? ? email.split('@').first : name }
-        end.compact
-      end
-
-      # Validate recipients array.
-      #
-      # Flow: PUT /api/domains/:id/incoming/config -> PutIncomingConfig ->
-      #       IncomingConfig#recipients= -> normalize_recipients -> here
-      #
-      # Uses format-only regex (not Truemail) to avoid DNS latency on config
-      # saves. Truemail validation happens at secret-creation time via the
-      # logic layer.
-      #
-      # @param recipients_list [Array<Hash>] Normalized recipients
-      # @raise [Onetime::Problem] if validation fails
-      def validate_recipients!(recipients_list)
-        raise Onetime::Problem, "Maximum #{MAX_RECIPIENTS} recipients allowed" if recipients_list.size > MAX_RECIPIENTS
-
-        emails = recipients_list.map { it[:email] }
-        raise Onetime::Problem, 'Duplicate recipient emails not allowed' if emails.uniq.size != emails.size
-
-        recipients_list.each do |r|
-          unless r[:email].match?(OT::Utils::EmailFormat::BASIC_FORMAT)
-            raise Onetime::Problem, "Invalid email format: #{r[:email]}"
-          end
-        end
-      end
-
-      class << self
-        # Find incoming config by domain ID.
-        #
-        # @param domain_id [String] CustomDomain identifier (objid)
-        # @return [CustomDomain::IncomingConfig, nil] The config or nil if not found
-        def find_by_domain_id(domain_id)
-          return nil if domain_id.to_s.empty?
-
-          load(domain_id)
-        end
-
-        # Check if a domain has incoming config.
-        #
-        # @param domain_id [String] CustomDomain identifier
-        # @return [Boolean] true if incoming config exists
-        def exists_for_domain?(domain_id)
-          return false if domain_id.to_s.empty?
-
-          exists?(domain_id)
-        end
-
-        # Create a new incoming config for a domain.
-        #
-        # @param domain_id [String] CustomDomain identifier
-        # @param attrs [Hash] Configuration attributes
-        # @return [CustomDomain::IncomingConfig] The created config
-        # @raise [Onetime::Problem] if config already exists
-        def create!(domain_id:, **attrs)
-          raise Onetime::Problem, 'domain_id is required' if domain_id.to_s.empty?
-          raise Onetime::Problem, 'Incoming config already exists for this domain' if exists_for_domain?(domain_id)
-
-          config = new(domain_id: domain_id)
-
-          config.enabled    = attrs[:enabled].to_s if attrs.key?(:enabled)
-          config.recipients = attrs[:recipients] if attrs.key?(:recipients)
-
-          now            = Familia.now.to_i
-          config.created = now
-          config.updated = now
-
-          config.save
-          config
-        end
-
-        # Delete incoming config for a domain.
-        #
-        # @param domain_id [String] CustomDomain identifier
-        # @return [Boolean] true if deleted, false if not found
-        def delete_for_domain!(domain_id)
-          return false if domain_id.to_s.empty?
-
-          config = find_by_domain_id(domain_id)
-          return false unless config
-
-          config.destroy!
-          true
-        end
-
-        # List all domain incoming configs.
-        #
-        # @return [Array<CustomDomain::IncomingConfig>] All configs (newest first)
-        def all
-          instances.revrangeraw(0, -1).filter_map { |identifier| load(identifier) }
-        end
-
-        # Count of domains with incoming config.
-        #
-        # @return [Integer] Number of incoming configs
-        def count
-          instances.size
-        end
-
-        # Compute SHA256 hash of email with site secret.
-        #
-        # @param email [String] Email address to hash
-        # @param secret [String] Site secret for hashing
-        # @return [String] Hex-encoded SHA256 hash
-        def hash_email(email, secret)
-          Digest::SHA256.hexdigest("#{email}:#{secret}")
-        end
-
-        # Get site secret or raise if not configured.
-        #
-        # Reads from config on each call (no caching) to ensure tests and
-        # runtime config changes are reflected immediately.
-        #
-        # @return [String] The site secret
-        # @raise [Onetime::Problem] if site.secret is not configured
-        def ensure_site_secret
-          site_secret = OT.conf.dig('site', 'secret')
-          raise Onetime::Problem, 'site.secret must be configured' if site_secret.to_s.empty?
-
-          site_secret
-        end
-      end
+      site_secret
     end
   end
 end

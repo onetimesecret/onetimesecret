@@ -229,16 +229,16 @@ module Onetime
           end
 
           # Release a previously-taken idempotency claim. A failure path that
-          # wants the message processed again needs this BEFORE requeue!, and
-          # before a reject! whose message DlqEmailConsumerJob replays: a
-          # broker redelivery and that automatic replay carry the same
-          # message_id, and within the claim TTL it is silently ack'd as a
-          # duplicate no-op instead of re-running. An operator replay
-          # (Onetime::Operations::Dlq::Replay) releases the claim itself, so a
-          # worker that keeps its claim on reject! is still reprocessed by
-          # one. Only safe for workers whose work is idempotent. A
-          # never-claimed msg_id is a harmless no-op delete. Raises on a
-          # datastore error; rescue clauses use release_processing_claim_safely.
+          # wants the message processed again needs this BEFORE requeue!: the
+          # broker redelivers under the same message_id, and within the claim
+          # TTL the redelivery is silently ack'd as a duplicate no-op instead
+          # of re-running. A message rejected to a DLQ does not need it to be
+          # replayed: the operator replay (Onetime::Operations::Dlq::Replay)
+          # and the automatic email replay (DlqEmailConsumerJob) release the
+          # claim themselves before they republish. Only safe for workers
+          # whose work is idempotent. A never-claimed msg_id is a harmless
+          # no-op delete. Raises on a datastore error; rescue clauses use
+          # release_processing_claim_safely.
           #
           # @param msg_id [String, nil] Message ID whose claim to release
           # @return [Boolean] true if a claim key was deleted
@@ -253,14 +253,21 @@ module Onetime
           # logged and swallowed, so the worker still logs the original error
           # and settles the message with its own reject!/requeue!.
           #
+          # The result says whether the claim is gone. A worker that requeues
+          # needs true: a redelivery under a claim that is still held is
+          # acked as a duplicate, so on false it rejects to the DLQ instead.
+          #
           # Call it only when this invocation took the claim (track the result
           # of claim_for_processing in a local). A claim this invocation did
           # not take belongs to another delivery of the same message id.
           #
           # @param msg_id [String, nil] Message ID whose claim to release
-          # @return [Boolean] true if a claim key was deleted
+          # @return [Boolean] true when no claim is held any more (deleted
+          #   now, or already gone); false when the datastore failed and the
+          #   claim may still be held
           def release_processing_claim_safely(msg_id)
             release_processing_claim(msg_id)
+            true
           rescue StandardError => ex
             log_error "Idempotency claim not released: #{ex.class}", message_id: msg_id
             false

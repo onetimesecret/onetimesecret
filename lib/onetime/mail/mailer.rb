@@ -199,7 +199,7 @@ module Onetime
         #   'smtp2go' | 'smtp' | 'logger' (the safe fallback).
         def determine_provider
           conf = emailer_config
-          mode = conf['mode']&.to_s&.downcase
+          mode = conf['mode']&.to_s&.strip&.downcase
 
           return mode if mode && !mode.empty?
 
@@ -220,15 +220,18 @@ module Onetime
         # The transport the delivery backend is built for: determine_provider,
         # except that a name which is neither a registered provider nor a
         # built-in transport resolves to 'logger', the backend such a name
-        # falls back to. Config-only; no backend is created.
+        # falls back to. Config-only; no backend is created. The name is the
+        # canonical one (lowercase, no surrounding whitespace), as the
+        # ProviderRegistry matches it.
         #
         # @return [String] a registered provider name, 'logger', 'disabled'
         #   or 'none'
         def backend_provider(configured = determine_provider)
-          return configured if ProviderRegistry.descriptor(configured)
-          return configured if BUILT_IN_TRANSPORTS.include?(configured)
+          descriptor = ProviderRegistry.descriptor(configured)
+          return descriptor.name if descriptor
 
-          'logger'
+          name = configured.to_s.strip.downcase
+          BUILT_IN_TRANSPORTS.include?(name) ? name : 'logger'
         end
 
         private

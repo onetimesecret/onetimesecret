@@ -181,9 +181,9 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker, type: :integration do
       expect(Familia.dbclient.exists?(redis_key)).to be_falsey
     end
 
-    it 'returns false when there is no claim or no message id' do
-      expect(worker.release_processing_claim_safely(msg_id)).to be false
-      expect(worker.release_processing_claim_safely(nil)).to be false
+    it 'returns true when there is no claim or no message id: none is held' do
+      expect(worker.release_processing_claim_safely(msg_id)).to be true
+      expect(worker.release_processing_claim_safely(nil)).to be true
     end
 
     it 'logs and returns false instead of raising on a datastore error' do

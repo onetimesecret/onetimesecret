@@ -409,14 +409,14 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
           shapes.each do |headers|
             it "keeps #{state} #{authority} invalid and preserves Host for #{peer} #{headers.inspect}" do
               out = run(peer: peer, **headers)
-              resolution = out[Onetime::CustomDomainResolution::ENV_KEY]
+              lookup = out[Onetime::CustomDomain::Lookup::ENV_KEY]
 
               aggregate_failures do
                 expect(out[Rack::DetectHost.result_field_name]).to eq(hostname)
                 expect(out['onetime.display_domain']).to eq(hostname)
                 expect(out['onetime.domain_strategy']).to eq(:invalid)
                 expect(Onetime::CustomDomain).to have_received(:from_display_domain).with(hostname)
-                expect(resolution).to have_attributes(host: hostname, state: state, record: nil)
+                expect(lookup).to have_attributes(host: hostname, state: state, record: nil)
                 expect(out).not_to have_key('onetime.custom_domain')
                 expect(out).not_to have_key('onetime.custom_domain_id')
                 expect(out).not_to have_key(described_class::ORIGINAL_HTTP_HOST)

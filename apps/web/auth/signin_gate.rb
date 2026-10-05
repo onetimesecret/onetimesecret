@@ -383,8 +383,8 @@ module Auth
 
       # CustomDomain identifier for the request host, or nil.
       #
-      # Read from the request's shared resolution (#4220), which DomainStrategy
-      # published or which is resolved here on first use. #record! re-raises a
+      # Read from the request's shared lookup (#4220), which DomainStrategy
+      # published or which is read here on first use. #record! re-raises a
       # failed read (#4157): answering nil instead would make the rescues above
       # unreachable for the FIRST of the two policy reads — a blip would
       # resolve as "host has no tenant config" and, on the :invalid
@@ -396,7 +396,7 @@ module Auth
         display_domain = env['onetime.display_domain']
         return nil if display_domain.to_s.empty?
 
-        Onetime::CustomDomainResolution.for(env).record!&.identifier
+        Onetime::CustomDomain::Lookup.for(env).record!&.identifier
       end
 
       # The router's shared 404 — a gated route must be indistinguishable from

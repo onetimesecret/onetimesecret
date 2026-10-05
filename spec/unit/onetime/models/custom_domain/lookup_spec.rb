@@ -1,8 +1,8 @@
-# spec/unit/onetime/custom_domain_resolution_spec.rb
+# spec/unit/onetime/models/custom_domain/lookup_spec.rb
 #
 # frozen_string_literal: true
 
-# Onetime::CustomDomainResolution (#4220): the found / absent / read_failed
+# Onetime::CustomDomain::Lookup (#4220): the found / absent / read_failed
 # value DomainStrategy publishes for the request host, and the accessors the
 # request-path consumers read it through. The consumers' own reactions to
 # each state are pinned by their own specs; the last group here checks only
@@ -10,44 +10,43 @@
 
 require 'spec_helper'
 require 'onetime/middleware/domain_strategy'
-require 'onetime/custom_domain_resolution'
 require 'onetime/tenant_sso_resolution'
 require 'onetime/session/surface'
-require_relative '../../../apps/web/auth/signin_gate'
-require_relative '../../../apps/web/auth/restrict_to'
-require_relative '../../../apps/web/auth/lib/public_host'
+require_relative '../../../../../apps/web/auth/signin_gate'
+require_relative '../../../../../apps/web/auth/restrict_to'
+require_relative '../../../../../apps/web/auth/lib/public_host'
 
-RSpec.describe Onetime::CustomDomainResolution do
+RSpec.describe Onetime::CustomDomain::Lookup do
   let(:record) { instance_double(Onetime::CustomDomain, identifier: 'domain-abc', verified: true) }
   let(:failure) { Redis::BaseError.new('connection reset') }
 
   describe 'states' do
     it 'found carries the record and its identifier' do
-      resolution = described_class.found('secrets.acme.com', record)
+      lookup = described_class.found('secrets.acme.com', record)
 
-      expect([resolution.found?, resolution.absent?, resolution.read_failed?]).to eq([true, false, false])
-      expect(resolution.record).to be(record)
-      expect(resolution.record!).to be(record)
-      expect(resolution.identifier).to eq('domain-abc')
-      expect(resolution.host).to eq('secrets.acme.com')
+      expect([lookup.found?, lookup.absent?, lookup.read_failed?]).to eq([true, false, false])
+      expect(lookup.record).to be(record)
+      expect(lookup.record!).to be(record)
+      expect(lookup.identifier).to eq('domain-abc')
+      expect(lookup.host).to eq('secrets.acme.com')
     end
 
     it 'absent has no record and does not raise' do
-      resolution = described_class.absent('nope.example.org')
+      lookup = described_class.absent('nope.example.org')
 
-      expect([resolution.found?, resolution.absent?, resolution.read_failed?]).to eq([false, true, false])
-      expect(resolution.record).to be_nil
-      expect(resolution.record!).to be_nil
-      expect(resolution.identifier).to be_nil
+      expect([lookup.found?, lookup.absent?, lookup.read_failed?]).to eq([false, true, false])
+      expect(lookup.record).to be_nil
+      expect(lookup.record!).to be_nil
+      expect(lookup.identifier).to be_nil
     end
 
     it 'read_failed keeps the exception, answers nil from #record and raises it from #record!' do
-      resolution = described_class.read_failed('secrets.acme.com', failure)
+      lookup = described_class.read_failed('secrets.acme.com', failure)
 
-      expect([resolution.found?, resolution.absent?, resolution.read_failed?]).to eq([false, false, true])
-      expect(resolution.record).to be_nil
-      expect(resolution.error).to be(failure)
-      expect { resolution.record! }.to raise_error(failure)
+      expect([lookup.found?, lookup.absent?, lookup.read_failed?]).to eq([false, false, true])
+      expect(lookup.record).to be_nil
+      expect(lookup.error).to be(failure)
+      expect { lookup.record! }.to raise_error(failure)
     end
 
     it 'is frozen' do
@@ -58,37 +57,33 @@ RSpec.describe Onetime::CustomDomainResolution do
     it 'rejects an unknown state' do
       expect { described_class.new(state: :maybe, host: 'a.example.org') }.to raise_error(ArgumentError)
     end
-
-    it 'leaves the authorization slot unset' do
-      expect(described_class.found('secrets.acme.com', record).authorization).to be_nil
-    end
   end
 
-  describe '.lookup' do
+  describe '.read' do
     it 'reads once through CustomDomain.from_display_domain' do
       allow(Onetime::CustomDomain).to receive(:from_display_domain).with('secrets.acme.com').and_return(record)
 
-      expect(described_class.lookup('secrets.acme.com')).to be_found
+      expect(described_class.read('secrets.acme.com')).to be_found
       expect(Onetime::CustomDomain).to have_received(:from_display_domain).once
     end
 
     it 'answers absent for a nil record' do
       allow(Onetime::CustomDomain).to receive(:from_display_domain).and_return(nil)
 
-      expect(described_class.lookup('nope.example.org')).to be_absent
+      expect(described_class.read('nope.example.org')).to be_absent
     end
 
     it 'answers read_failed, not absent, when the read raises' do
       allow(Onetime::CustomDomain).to receive(:from_display_domain).and_raise(failure)
 
-      resolution = described_class.lookup('secrets.acme.com')
-      expect(resolution).to be_read_failed
-      expect(resolution.error).to be(failure)
+      lookup = described_class.read('secrets.acme.com')
+      expect(lookup).to be_read_failed
+      expect(lookup.error).to be(failure)
     end
   end
 
   describe '.for' do
-    it 'returns the published resolution without reading' do
+    it 'returns the published lookup without reading' do
       published = described_class.found('secrets.acme.com', record)
       env       = { 'onetime.display_domain' => 'secrets.acme.com', described_class::ENV_KEY => published }
       allow(Onetime::CustomDomain).to receive(:from_display_domain)
@@ -116,7 +111,7 @@ RSpec.describe Onetime::CustomDomainResolution do
       expect(Onetime::CustomDomain).to have_received(:from_display_domain).once
     end
 
-    it 'ignores a published resolution for a different host' do
+    it 'ignores a published lookup for a different host' do
       env = {
         'onetime.display_domain' => 'example.com',
         described_class::ENV_KEY => described_class.found('secrets.acme.com', record),
@@ -137,7 +132,7 @@ RSpec.describe Onetime::CustomDomainResolution do
     let(:published) { described_class.found('secrets.acme.com', record) }
     let(:env) { { 'onetime.display_domain' => 'secrets.acme.com', described_class::ENV_KEY => published } }
 
-    it 'uses the request resolution when the host is the display domain' do
+    it 'uses the request lookup when the host is the display domain' do
       allow(Onetime::CustomDomain).to receive(:from_display_domain)
 
       expect(described_class.for_host(env, 'Secrets.Acme.com')).to be(published)
@@ -175,12 +170,12 @@ RSpec.describe Onetime::CustomDomainResolution do
       allow(Onetime::CustomDomain).to receive(:from_display_domain).with('secrets.acme.com').and_return(record)
 
       env        = call_for('secrets.acme.com')
-      resolution = env[described_class::ENV_KEY]
+      lookup = env[described_class::ENV_KEY]
 
       expect(env['onetime.domain_strategy']).to eq(:custom)
-      expect(resolution).to be_found
-      expect(resolution.record).to be(env['onetime.custom_domain'])
-      expect(resolution.host).to eq(env['onetime.display_domain'])
+      expect(lookup).to be_found
+      expect(lookup.record).to be(env['onetime.custom_domain'])
+      expect(lookup.host).to eq(env['onetime.display_domain'])
       expect(Onetime::CustomDomain).to have_received(:from_display_domain).once
     end
 
@@ -206,11 +201,11 @@ RSpec.describe Onetime::CustomDomainResolution do
       allow(Onetime::CustomDomain).to receive(:from_display_domain).and_raise(failure)
 
       env        = call_for('secrets.acme.com')
-      resolution = env[described_class::ENV_KEY]
+      lookup = env[described_class::ENV_KEY]
 
       expect(env['onetime.domain_strategy']).to eq(:invalid)
-      expect(resolution).to be_read_failed
-      expect(resolution.error).to be(failure)
+      expect(lookup).to be_read_failed
+      expect(lookup.error).to be(failure)
       expect(env).not_to have_key('onetime.custom_domain')
     end
 
@@ -250,14 +245,14 @@ RSpec.describe Onetime::CustomDomainResolution do
 
     before { allow(Onetime).to receive(:http_logger).and_return(instance_double(SemanticLogger::Logger, error: nil, debug: nil)) }
 
-    it 'classify returns the read_failed resolution with a nil strategy' do
+    it 'classify returns the read_failed lookup with a nil strategy' do
       allow(Onetime::CustomDomain).to receive(:from_display_domain).and_raise(failure)
 
       classification = chooser.classify('secrets.acme.com', 'example.com')
 
       expect(classification.strategy).to be_nil
       expect(classification.custom_domain).to be_nil
-      expect(classification.resolution).to be_read_failed
+      expect(classification.lookup).to be_read_failed
     end
 
     it 'classify! raises the read failure' do
@@ -266,15 +261,15 @@ RSpec.describe Onetime::CustomDomainResolution do
       expect { chooser.classify!('secrets.acme.com', 'example.com') }.to raise_error(failure)
     end
 
-    it 'carries no resolution for an exact canonical match' do
-      expect(chooser.classify('example.com', 'example.com').resolution).to be_nil
+    it 'carries no lookup for an exact canonical match' do
+      expect(chooser.classify('example.com', 'example.com').lookup).to be_nil
     end
   end
 
   # One read per request: after the middleware resolved the host, the
   # consumers below answer from the published value and never call the
   # loader. The loader is stubbed to raise so a second read would show.
-  describe 'consumers read the published resolution' do
+  describe 'consumers read the published lookup' do
     let(:published) { described_class.found('secrets.acme.com', record) }
     let(:env) do
       {

@@ -39,7 +39,8 @@ require_relative '../../operations/fetch_domain_favicon'
 #   1. Transient (Onetime::Http::SafeFetch::FetchTimeout) — the operation leaves
 #      the lifecycle at PROCESSING (no terminal stamp) and re-raises. We retry
 #      in-process a couple of times, then requeue! once for a RabbitMQ-level
-#      retry. If the redelivery times out too, we reject! to the DLQ.
+#      retry. If the redelivery times out too, or the idempotency claim cannot
+#      be released for the redelivery, we reject! to the DLQ.
 #   2. Unexpected (any other StandardError) — the operation stamps status=FAILED
 #      + favicon_fetch_error and re-raises. We reject! to the DLQ.
 #   3. Handled outcomes (icon written, none found, guard skip, domain missing)
@@ -57,8 +58,9 @@ require_relative '../../operations/fetch_domain_favicon'
 # idempotency claim is released and the broker redelivers it, which runs the
 # in-process retries a second time. A redelivered message that times out again
 # is rejected to the DLQ, so a host that never answers costs two deliveries and
-# not an endless loop. FaviconBackfillJob re-enqueues a domain left at
-# PROCESSING once STUCK_PROCESSING_S has passed.
+# not an endless loop. So is a message whose claim could not be released: its
+# redelivery would be acked as a duplicate. FaviconBackfillJob re-enqueues a
+# domain left at PROCESSING once STUCK_PROCESSING_S has passed.
 #
 
 module Onetime
@@ -167,14 +169,20 @@ module Onetime
             return reject!
           end
 
+          # The broker redelivers under the same message id. Release the claim
+          # this invocation took, or the redelivery is acked as a duplicate
+          # and the fetch is never retried. When the release fails the claim
+          # is still held, so the message goes to the DLQ instead, where an
+          # operator replay releases the claim before it republishes.
+          if claim_held && !release_processing_claim_safely(envelope.message_id)
+            log_error 'Favicon fetch timed out, claim not released, sending to DLQ', ex, domain_id: domain_id
+            return reject!
+          end
+
           log_info 'Favicon fetch timed out, requeueing for retry',
             domain_id: domain_id,
             error: ex.message,
             metadata: envelope.summary
-          # The broker redelivers under the same message id. Release the claim
-          # this invocation took, or the redelivery is acked as a duplicate
-          # and the fetch is never retried.
-          release_processing_claim_safely(envelope.message_id) if claim_held
           requeue!
         rescue StandardError => ex
           # Unexpected — the operation already stamped status=FAILED before
