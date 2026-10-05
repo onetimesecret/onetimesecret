@@ -6,6 +6,8 @@ require 'sneakers'
 require 'json'
 require_relative '../../utils/retry_helper'
 require_relative '../trace_propagation'
+require_relative '../queues/config'
+require_relative 'envelope'
 
 module Onetime
   module Jobs
@@ -17,6 +19,16 @@ module Onetime
       # - Message schema validation
       # - Retry logic with exponential backoff
       # - Dead letter queue handling
+      # - Idempotency claims keyed by message id
+      #
+      # Kicks runs work_with_params on a thread pool against ONE worker
+      # instance, so nothing about a message is kept on the worker. Each
+      # invocation builds an Envelope from its delivery info and properties
+      # and passes it (or a value read from it, such as the message id) to
+      # the helpers that need it.
+      #
+      # Kicks settles a message from the value work_with_params returns, so
+      # every path ends in ack!, reject! or requeue!.
       #
       # Example:
       #   class MyWorker
@@ -26,10 +38,19 @@ module Onetime
       #     from_queue 'my.queue', ack: true, threads: 4
       #
       #     def work_with_params(msg, delivery_info, metadata)
-      #       store_envelope(delivery_info, metadata)
-      #       data = parse_message(msg)
-      #       # ... do work ...
-      #       ack!
+      #       envelope = Envelope.new(delivery_info, metadata)
+      #
+      #       with_trace_context(envelope) do
+      #         data = decode_message(msg, envelope)
+      #         return reject! unless data
+      #
+      #         unless claim_for_processing(envelope.message_id)
+      #           log_info "Skipping duplicate message: #{envelope.message_id}"
+      #           return ack!
+      #         end
+      #         # ... do work ...
+      #         ack!
+      #       end
       #     end
       #   end
       #
@@ -56,80 +77,56 @@ module Onetime
         end
 
         module InstanceMethods
-          # AMQP envelope accessors - set by work_with_params
-          # These provide access to delivery_info and metadata from the AMQP envelope
-          attr_accessor :delivery_info, :metadata
-
-          # Store AMQP envelope for access by helper methods
-          # Call this at the start of work_with_params
-          # @param delivery_info [Bunny::DeliveryInfo] AMQP delivery info
-          # @param metadata [Bunny::MessageProperties] AMQP message properties
-          def store_envelope(delivery_info, metadata)
-            @delivery_info = delivery_info
-            @metadata      = metadata
-          end
-
-          # Extract Sentry trace headers from message metadata.
-          #
-          # Returns empty hash if no trace headers present (backwards compatible
-          # with messages published before trace propagation was implemented).
-          #
-          # @return [Hash<String, String>] Trace headers or empty hash
-          def extract_trace_headers
-            Onetime::Jobs::TracePropagation.parse_trace_headers(@metadata)
-          end
-
           # Continue Sentry trace from message headers and wrap processing.
           #
           # Links worker errors and performance data to the originating web
           # request in Sentry. Creates a new transaction if trace headers are
           # absent. Safe to call even if Sentry is not configured.
           #
+          # @param envelope [Envelope] the envelope of the message being worked
           # @param name [String] Transaction name (default: "rabbitmq.WorkerClass")
           # @param op [String] Span operation (default: 'queue.process')
           # @yield Block to execute within the transaction
           # @return Result of the block
-          def with_trace_context(name: nil, op: 'queue.process', &)
-            trace_headers    = extract_trace_headers
+          def with_trace_context(envelope, name: nil, op: 'queue.process', &)
             transaction_name = name || "rabbitmq.#{worker_name}"
 
             Onetime::Jobs::TracePropagation.continue_trace(
-              trace_headers,
+              envelope.trace_headers,
               name: transaction_name,
               op: op,
               &
             )
           end
 
-          # Parse and validate message payload
+          # Parse a message payload and check its schema version. Does not
+          # settle the message: Kicks settles from the value work_with_params
+          # returns, so the caller rejects with `return reject! unless data`.
+          # Every refusal is logged here.
           # @param msg [String] Raw message body
-          # @return [Hash, nil] Parsed message data, or nil if invalid
-          def parse_message(msg)
+          # @param envelope [Envelope] the envelope of the message being worked
+          # @return [Hash, nil] Parsed JSON object with symbol keys, or nil if
+          #   the body is not JSON, is not a JSON object (null, array, string,
+          #   number, boolean), or the schema version is unknown
+          def decode_message(msg, envelope)
+            message_id = envelope.message_id
             log_debug 'Parsing message', message_id: message_id, size: msg&.bytesize
-            data = JSON.parse(msg, symbolize_names: true)
-            return nil unless validate_schema(data)
+            data       = JSON.parse(msg, symbolize_names: true)
 
-            data
+            unless envelope.schema_version_known?
+              log_error "Unknown schema version: #{envelope.schema_version}", message_id: message_id
+              return nil
+            end
+            return data if data.is_a?(Hash)
+
+            # Every worker reads its payload by key, so only an object is a
+            # message. Anything else is refused here, once, for all of them.
+            reason = data.nil? ? 'Message payload is null' : 'Message payload is not a JSON object'
+            log_error reason, message_id: message_id
+            nil
           rescue JSON::ParserError => ex
             log_error "Invalid JSON: #{ex.message}", message_id: message_id
-            flush_logs
-            reject!
             nil
-          end
-
-          # Validate message schema version
-          # @return [Boolean] true if valid, false if invalid (also calls reject!)
-          def validate_schema(_data)
-            version = @metadata&.headers&.[]('x-schema-version') || 1
-
-            unless Onetime::Jobs::QueueConfig::Versions.const_defined?("V#{version}")
-              log_error "Unknown schema version: #{version}", message_id: message_id
-              flush_logs
-              reject!
-              return false
-            end
-
-            true
           end
 
           # @return [SemanticLogger::Logger] Logger for worker operations
@@ -209,30 +206,6 @@ module Onetime
             )
           end
 
-          # Extract metadata from message properties
-          #
-          # NOTE: redelivered? is useful for logging/debugging but not as a
-          # substitute for idempotency checks. A message can be delivered
-          # exactly once and still be a duplicate (publisher retry before
-          # broker ack), and a redelivered message might legitimately need
-          # processing (worker crashed before your code ran). The Valkey
-          # check remains the source of truth.
-          def message_metadata
-            {
-              delivery_tag: @delivery_info&.delivery_tag,
-              routing_key: @delivery_info&.routing_key,
-              redelivered: @delivery_info&.redelivered?,
-              message_id: message_id,
-              schema_version: @metadata&.headers&.[]('x-schema-version'),
-            }
-          end
-
-          # Get message ID from AMQP properties
-          # @return [String, nil] The message_id or nil if not present
-          def message_id
-            @metadata&.message_id
-          end
-
           # A simple predicate to be used as a read-only check only. Hot path
           # code should use claim_for_processing. This is an idempotency check.
           #
@@ -241,7 +214,7 @@ module Onetime
           def already_processed?(msg_id)
             return false unless msg_id
 
-            Familia.dbclient.exists?("job:processed:#{msg_id}")
+            Familia.dbclient.exists?(Onetime::Jobs::QueueConfig.processing_claim_key(msg_id))
           end
 
           # Idempotency check.
@@ -252,21 +225,45 @@ module Onetime
 
             ttl = Onetime::Jobs::QueueConfig::IDEMPOTENCY_TTL
             # Familia.dbclient.set returns true if SET NX succeeded, false if key existed
-            Familia.dbclient.set("job:processed:#{msg_id}", '1', nx: true, ex: ttl)
+            Familia.dbclient.set(Onetime::Jobs::QueueConfig.processing_claim_key(msg_id), '1', nx: true, ex: ttl)
           end
 
-          # Release a previously-taken idempotency claim. Call this from a
-          # failure path BEFORE reject!: without it, a DLQ replay of the same
-          # message_id within the claim TTL is silently ack'd as a duplicate
-          # no-op instead of re-running. Only safe for workers whose work is
-          # idempotent. A never-claimed msg_id is a harmless no-op delete.
+          # Release a previously-taken idempotency claim. A failure path that
+          # wants the message processed again needs this BEFORE requeue!, and
+          # before a reject! whose message DlqEmailConsumerJob replays: a
+          # broker redelivery and that automatic replay carry the same
+          # message_id, and within the claim TTL it is silently ack'd as a
+          # duplicate no-op instead of re-running. An operator replay
+          # (Onetime::Operations::Dlq::Replay) releases the claim itself, so a
+          # worker that keeps its claim on reject! is still reprocessed by
+          # one. Only safe for workers whose work is idempotent. A
+          # never-claimed msg_id is a harmless no-op delete. Raises on a
+          # datastore error; rescue clauses use release_processing_claim_safely.
           #
           # @param msg_id [String, nil] Message ID whose claim to release
           # @return [Boolean] true if a claim key was deleted
           def release_processing_claim(msg_id)
             return false unless msg_id
 
-            Familia.dbclient.del("job:processed:#{msg_id}").positive?
+            Familia.dbclient.del(Onetime::Jobs::QueueConfig.processing_claim_key(msg_id)).positive?
+          end
+
+          # Release an idempotency claim from a failure path without raising.
+          # Rescue clauses use this one: a datastore error while releasing is
+          # logged and swallowed, so the worker still logs the original error
+          # and settles the message with its own reject!/requeue!.
+          #
+          # Call it only when this invocation took the claim (track the result
+          # of claim_for_processing in a local). A claim this invocation did
+          # not take belongs to another delivery of the same message id.
+          #
+          # @param msg_id [String, nil] Message ID whose claim to release
+          # @return [Boolean] true if a claim key was deleted
+          def release_processing_claim_safely(msg_id)
+            release_processing_claim(msg_id)
+          rescue StandardError => ex
+            log_error "Idempotency claim not released: #{ex.class}", message_id: msg_id
+            false
           end
         end
       end

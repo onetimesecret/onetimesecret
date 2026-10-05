@@ -14,7 +14,8 @@
 #   3. Feature flag disabled -> ack, no processing (drop)
 #   4. Idempotency dup        -> ack, no reprocess
 #   5. Transient FetchTimeout -> retry in-process, then ack on success
-#   6. Transient exhausted    -> requeue (broker retry), NOT DLQ
+#   6. Transient exhausted    -> requeue once (broker retry); a redelivery
+#                                that times out again -> reject (DLQ)
 #   7. Hard StandardError     -> reject (DLQ), no retry
 #   8. not_found Result       -> ack (domain deleted between enqueue/process)
 #   9. Queue-config drift     -> QueueDeclarator.validate_worker! passes
@@ -35,8 +36,6 @@ RSpec.describe Onetime::Jobs::Workers::FaviconFetchWorker, type: :integration do
   # Test subclass captures the broker action without a real AMQP handler.
   let(:test_worker_class) do
     Class.new(described_class) do
-      attr_accessor :delivery_info
-
       def self.name
         'TestFaviconFetchWorker'
       end
@@ -89,6 +88,15 @@ RSpec.describe Onetime::Jobs::Workers::FaviconFetchWorker, type: :integration do
     )
   end
 
+  # The same message, delivered again by the broker after a requeue.
+  let(:redelivered_info) do
+    DeliveryInfoStub.new(
+      delivery_tag: 2,
+      routing_key: 'domain.favicon.fetch',
+      redelivered?: true,
+    )
+  end
+
   let(:metadata) do
     MetadataStub.new(
       message_id: message_id,
@@ -132,8 +140,6 @@ RSpec.describe Onetime::Jobs::Workers::FaviconFetchWorker, type: :integration do
   let(:operation) { instance_double(Onetime::Operations::FetchDomainFavicon) }
 
   before do
-    worker.store_envelope(delivery_info, metadata)
-
     # Feature flag ON for the processing paths (default is OFF in test config).
     allow(worker).to receive(:favicon_fetch_enabled?).and_return(true)
 
@@ -266,6 +272,90 @@ RSpec.describe Onetime::Jobs::Workers::FaviconFetchWorker, type: :integration do
         expect(worker.requeued?).to be true
         expect(worker.rejected?).to be false
         expect(worker.acked?).to be false
+      end
+
+      it 'releases the idempotency claim before requeueing' do
+        allow(operation).to receive(:call)
+          .and_raise(Onetime::Http::SafeFetch::FetchTimeout, 'always slow')
+
+        result = worker.work_with_params(message, delivery_info, metadata)
+
+        # The broker redelivers a requeued message under the same message
+        # id: a kept claim would ack the retry as a duplicate.
+        expect(result).to eq(:requeue)
+        expect(worker.requeued?).to be true
+        expect(Familia.dbclient.exists?("job:processed:#{message_id}")).to be_falsey
+      end
+
+      it 'processes the redelivery of a requeued message' do
+        calls = 0
+        allow(operation).to receive(:call) do
+          calls += 1
+          raise Onetime::Http::SafeFetch::FetchTimeout, 'slow endpoint' if calls <= 3
+
+          success_result
+        end
+
+        worker.work_with_params(message, delivery_info, metadata)
+        expect(worker.requeued?).to be true
+
+        redelivery = test_worker_class.new
+        allow(redelivery).to receive(:favicon_fetch_enabled?).and_return(true)
+        redelivery.work_with_params(message, redelivered_info, metadata)
+
+        expect(calls).to eq(4) # 3 timed-out attempts, then the redelivery
+        expect(redelivery.acked?).to be true
+      end
+
+      it 'still requeues when the claim cannot be released' do
+        allow(operation).to receive(:call)
+          .and_raise(Onetime::Http::SafeFetch::FetchTimeout, 'always slow')
+        allow(worker).to receive(:release_processing_claim)
+          .and_raise(Redis::CannotConnectError, 'datastore down')
+
+        result = worker.work_with_params(message, delivery_info, metadata)
+
+        expect(worker).to have_received(:release_processing_claim).with(message_id)
+        expect(result).to eq(:requeue)
+        expect(worker.rejected?).to be false
+      end
+
+      it 'rejects to the DLQ when the redelivery times out too' do
+        calls = 0
+        allow(operation).to receive(:call) do
+          calls += 1
+          raise Onetime::Http::SafeFetch::FetchTimeout, 'always slow'
+        end
+
+        result = worker.work_with_params(message, redelivered_info, metadata)
+
+        expect(calls).to eq(3) # the redelivery still gets its in-process retries
+        expect(result).to eq(:reject)
+        expect(worker.rejected?).to be true
+        expect(worker.requeued?).to be false
+        expect(worker.acked?).to be false
+      end
+
+      it 'keeps the claim when the redelivery is rejected' do
+        allow(operation).to receive(:call)
+          .and_raise(Onetime::Http::SafeFetch::FetchTimeout, 'always slow')
+
+        worker.work_with_params(message, redelivered_info, metadata)
+
+        # Same as the unexpected-error reject: nothing redelivers a
+        # dead-lettered message, and the backfill job's later re-enqueue
+        # carries a new message id.
+        expect(worker.rejected?).to be true
+        expect(Familia.dbclient.exists?("job:processed:#{message_id}")).to be_truthy
+      end
+
+      it 'leaves a claim held by another delivery in place' do
+        Familia.dbclient.set("job:processed:#{message_id}", '1')
+
+        worker.work_with_params(message, delivery_info, metadata)
+
+        expect(worker.acked?).to be true # duplicate
+        expect(Familia.dbclient.exists?("job:processed:#{message_id}")).to be_truthy
       end
     end
 

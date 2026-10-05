@@ -44,36 +44,64 @@ only for notification emails, so an operator can also follow a direct
 `Publisher.enqueue_email` message (password reset, invitation) to its
 outcome.
 
+`EmailWorker` outcomes:
+
+| Settled | Outcome   | Reason              | When                                                                                    |
+| ------- | --------- | ------------------- | --------------------------------------------------------------------------------------- |
+| ack     | `sent`    |                     | a mail provider accepted the message                                                    |
+| ack     | `skipped` | `log_only`          | the logger backend printed the message instead of sending it                            |
+| ack     | `skipped` | `not_dispatched`    | suppressed recipient, or delivery disabled                                              |
+| reject  | `failed`  | `invalid_message`   | not JSON, unknown schema version, wrong payload shape, no message id, or mailer refusal |
+| reject  | `failed`  | `permanent`         | non-transient `DeliveryError`                                                           |
+| reject  | `failed`  | `retries_exhausted` | still failing after the in-process retries                                              |
+| reject  | `failed`  | `error`             | any other error, including one raised before delivery started                           |
+
+`sent` means a mail provider accepted the message. Each delivery backend
+declares whether it transmits (`Delivery::Base#transmits?`); the logger
+backend does not, including when an unknown `emailer.mode` falls back to
+it, so its deliveries are never recorded or counted as `sent`. The
+`provider` field is the transport the mail backend is built for
+(`Mailer.backend_provider`), so that fallback shows `logger`, not the
+unknown name. A `skipped` / `not_dispatched` event with provider `disabled`
+or `none` is an install with delivery turned off; with any other provider
+it is a suppressed recipient.
+
+Every message the worker rejects writes exactly one `failed` event, whether
+or not a delivery was attempted. Three paths write nothing: a duplicate
+dropped by the idempotency claim (acked), a ping message (acked), and a
+process-level exception such as a shutdown signal, which is re-raised
+without settling the message.
+
 ## Record shape
 
 Stored as JSON in one sorted set, nil fields omitted. Every value passes an
 allowlist pattern; a value that does not fit is dropped.
 
-| Field            | Type   | Notes                                                                 |
-| ---------------- | ------ | --------------------------------------------------------------------- |
-| `id`             | string | unique per event                                                      |
-| `occurred_at`    | float  | epoch seconds, the sorted-set score                                   |
-| `channel`        | enum   | `email`, `webhook`                                                    |
-| `stage`          | enum   | `queue`, `delivery`                                                   |
-| `outcome`        | enum   | `queued`, `sent`, `failed`, `skipped`                                 |
-| `correlation_id` | string | source notification message id                                        |
-| `message_id`     | string | downstream queue message id (email only)                              |
-| `event_type`     | string | e.g. `secret.viewed`                                                  |
-| `template`       | string | template name; `raw` for raw emails                                   |
-| `customer_id`    | string | customer extid (`ur...`) only; never an objid, email or legacy custid |
-| `reason`         | code   | see below                                                             |
-| `error_class`    | string | exception class name                                                  |
-
-| `http_status` | integer | webhook only |
-| `target_host` | string | webhook only; host, never path or query |
-| `provider` | string | email only; configured transport name |
-| `provider_message_id` | string | email only; when the backend response carries one |
-| `duration_ms` | integer | |
-| `attempt_count` | integer | positive in-process attempts behind one terminal event; omitted for parse rejections |
+| Field                 | Type    | Notes                                                                                           |
+| --------------------- | ------- | ----------------------------------------------------------------------------------------------- |
+| `id`                  | string  | unique per event                                                                                |
+| `occurred_at`         | float   | epoch seconds, the sorted-set score                                                             |
+| `channel`             | enum    | `email`, `webhook`                                                                              |
+| `stage`               | enum    | `queue`, `delivery`                                                                             |
+| `outcome`             | enum    | `queued`, `sent`, `failed`, `skipped`                                                           |
+| `correlation_id`      | string  | source notification message id                                                                  |
+| `message_id`          | string  | downstream queue message id (email only)                                                        |
+| `event_type`          | string  | e.g. `secret.viewed`                                                                            |
+| `template`            | string  | template name; `raw` for raw emails                                                             |
+| `customer_id`         | string  | customer extid (`ur...`) only; never an objid, email or legacy custid                           |
+| `reason`              | code    | see below                                                                                       |
+| `error_class`         | string  | exception class name                                                                            |
+| `http_status`         | integer | webhook only                                                                                    |
+| `target_host`         | string  | webhook only; host, never path or query                                                         |
+| `provider`            | string  | email only; transport the mail backend is built for                                             |
+| `provider_message_id` | string  | email only; when the backend response carries one                                               |
+| `duration_ms`         | integer |                                                                                                 |
+| `attempt_count`       | integer | positive in-process attempts behind one terminal event; omitted when delivery was not attempted |
 
 Reason codes in use: `no_recipient`, `no_target`, `publish_failed`,
 `http_status`, `blocked_target`, `timeout`, `invalid_url`, `error`,
-`not_dispatched`, `permanent`, `retries_exhausted`, `invalid_message`.
+`not_dispatched`, `log_only`, `permanent`, `retries_exhausted`,
+`invalid_message`.
 
 ## Correlation
 
@@ -93,7 +121,15 @@ for its event.
   before any event is written.
 - DLQ replay that is processed again: a second terminal event under the
   same correlation id. The newest event for a (correlation_id, channel,
-  stage) is the current state.
+  stage) is the current state. A message rejected after its idempotency
+  claim was taken releases the claim, so its replay is delivered rather
+  than dropped as a duplicate. The claim is kept once delivery finished.
+- Duplicate email on replay: email delivery is at-least-once. If the
+  provider accepted the message but the delivery call then raised (a read
+  timeout after the accept, or an error after the send), the worker records
+  `failed`, releases the claim and rejects the message. A replay of that
+  message sends the email a second time and records a second terminal
+  event.
 
 ## Retries
 
@@ -103,14 +139,27 @@ with `attempt_count`. There is no per-attempt event.
 - Email: `EmailWorker` retries transient errors up to three times. Exhausted
   transient retries record `failed` / `retries_exhausted`; a non-transient
   `DeliveryError` records `failed` / `permanent` with `attempt_count` 1.
-- Messages rejected during parsing record `failed` / `invalid_message`
-  using the queue message id for both identifiers. No payload-derived
-  fields or attempt count are stored because delivery was not attempted.
+  An `ArgumentError` from the mailer (for example an unknown template) is
+  not retried and records `failed` / `invalid_message`.
+- Messages that are not JSON, are not a JSON object (`null`, an array, a
+  string, a number, a boolean), or carry an unknown schema version record
+  `failed` / `invalid_message` using the queue message id for both
+  identifiers. No payload-derived fields or attempt count are stored
+  because the payload was not accepted and delivery was not attempted.
+- Messages that are a JSON object with the wrong shape (`data` not an
+  object, `template` not a string or blank, a raw message without an email
+  object or recipient) or no message id are rejected before the
+  idempotency claim and record `failed` / `invalid_message` with no attempt
+  count. `correlation_id`, `event_type`, `template` and `customer_extid`
+  are copied only when they are strings.
+- An error raised before delivery starts (for example the idempotency
+  claim failing) records `failed` / `error` with no attempt count.
 - Webhook: no retry. A non-2xx response records `failed` / `http_status`
   with the status and target host. Other failures record their class and
   reason code. Exception text is omitted for every channel.
 - A backend that returns nil (suppressed recipient, or delivery disabled)
-  records `skipped` / `not_dispatched`.
+  records `skipped` / `not_dispatched`. The logger backend records
+  `skipped` / `log_only`.
 
 ## Privacy
 

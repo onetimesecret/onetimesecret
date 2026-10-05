@@ -126,14 +126,14 @@ module Onetime
         # @param metadata [Bunny::MessageProperties] AMQP message properties
         # rubocop:disable Metrics/PerceivedComplexity -- Worker handles validation, provider check, error states
         def work_with_params(msg, delivery_info, metadata)
-          store_envelope(delivery_info, metadata)
+          envelope = Envelope.new(delivery_info, metadata)
 
           data          = nil
           mailer_config = nil
           domain_id     = nil
-          with_trace_context do
-            data = parse_message(msg)
-            return unless data # parse_message handles reject on error
+          with_trace_context(envelope) do
+            data = decode_message(msg, envelope)
+            return reject! unless data # not a JSON object or unknown schema (logged): send to DLQ
 
             # Handle ping test messages (from: bin/ots queue ping)
             if data[:domain_id] == 'ping.test'
@@ -142,19 +142,19 @@ module Onetime
             end
 
             # Atomic idempotency claim: only one worker can claim a message
-            unless claim_for_processing(message_id)
-              log_info "Skipping duplicate message: #{message_id}"
+            unless claim_for_processing(envelope.message_id)
+              log_info "Skipping duplicate message: #{envelope.message_id}"
               return ack!
             end
 
             domain_id    = data[:domain_id]
             bypass_cache = data[:bypass_cache] || false  # Backward compat for in-flight messages
-            log_debug "Validating sender domain DNS: #{domain_id} (bypass_cache: #{bypass_cache}, metadata: #{message_metadata})"
+            log_debug "Validating sender domain DNS: #{domain_id} (bypass_cache: #{bypass_cache}, metadata: #{envelope.summary})"
 
             # Load the mailer config for this domain
             mailer_config = Onetime::CustomDomain::MailerConfig.find_by_domain_id(domain_id)
             unless mailer_config
-              log_error "MailerConfig not found for domain_id: #{domain_id}", message_id: message_id, metadata: message_metadata
+              log_error "MailerConfig not found for domain_id: #{domain_id}", message_id: envelope.message_id, metadata: envelope.summary
               return ack! # Don't retry -- config won't appear on its own
             end
 

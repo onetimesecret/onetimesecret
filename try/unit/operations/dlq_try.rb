@@ -17,6 +17,10 @@
 #   outcome: 'no_change' (#4337); a dry-run against an empty queue stays off the
 #   operator trail (its preview is an observation on the access trail)
 # - Replay dry-run: no mutation, NO operator-trail audit
+# - Replay releases each message's worker idempotency claim before it
+#   republishes, so a worker processes the replayed message; a dry run releases
+#   nothing; a claim that cannot be released keeps that message in the DLQ and
+#   is reported without stopping the batch
 # - Purge: empties the queue, records EXACTLY ONE audit event (verb queue.dlq.purge)
 # - Purge empty: no mutation, but the LIVE attempt still records ONE event with
 #   outcome: 'no_change' (#4337 — the trail must show the firing, not the timing)
@@ -37,6 +41,7 @@ require 'onetime/operations/dlq/list'
 require 'onetime/operations/dlq/peek'
 require 'onetime/operations/dlq/replay'
 require 'onetime/operations/dlq/purge'
+require 'onetime/jobs/workers/base_worker'
 
 AE = Onetime::ColonelAuditEvent
 
@@ -147,6 +152,31 @@ def sample_messages(n, original: 'billing.event.process')
     }
   end
 end
+
+# The claim step every queue worker runs before it processes a message.
+class ClaimProbeWorker
+  include Onetime::Jobs::Workers::BaseWorker
+
+  def attempt(message_id)
+    claim_for_processing(message_id) ? :processed : :skipped_duplicate
+  end
+end
+
+# Messages with ids no other test in this file uses, so the claim keys written
+# here are this section's own.
+def claim_messages(*ids)
+  ids.map do |id|
+    {
+      id: id,
+      headers: death_headers('notifications.alert.push'),
+      content_type: 'application/json',
+      payload: '{}',
+      ts: Time.now.to_i - 60,
+    }
+  end
+end
+
+def claim_key(id) = "job:processed:#{id}"
 
 @actor = 'ur1colonelpub' # a PUBLIC id (extid-shaped), never an objid
 @dlq   = 'dlq.billing.event'
@@ -312,6 +342,77 @@ end
 [AE.count, @bev['verb'], @bev['target'], @bev['result'], @bev['detail']['dry_run']]
 #=> [1, "queue.dlq.replay", "dlq.billing.event", "failure", false]
 
+# ---- Replay: releases the workers' idempotency claim -------------------
+#
+# A worker that rejects a message keeps the claim it took on the message id.
+# A replay republishes under the same id, so without a release the worker acks
+# the replayed message as a duplicate and does nothing.
+
+## the claim key Replay releases is the one the workers take
+Onetime::Jobs::QueueConfig.processing_claim_key('claim-try-a')
+#=> "job:processed:claim-try-a"
+
+## a worker that claimed a message and rejected it skips a second delivery of the same id
+@probe = ClaimProbeWorker.new
+Familia.dbclient.del(claim_key('claim-try-a'), claim_key('claim-try-b'))
+[@probe.attempt('claim-try-a'), @probe.attempt('claim-try-a')]
+#=> [:processed, :skipped_duplicate]
+
+## replaying the dead-lettered message releases its claim
+@claim_conn = FakeConnection.new(FakeQueue.new(claim_messages('claim-try-a', 'claim-try-b')))
+@claim_replay = Onetime::Operations::Dlq::Replay.new(connection: @claim_conn, queue: @dlq, actor: @actor).call
+[@claim_replay.status, @claim_replay.replayed, @claim_replay.failed, Familia.dbclient.exists?(claim_key('claim-try-a'))]
+#=> [:success, 2, 0, false]
+
+## so the worker processes the replayed message instead of skipping it
+@probe.attempt('claim-try-a')
+#=> :processed
+
+## the replayed message keeps its original message id
+@claim_conn.channels.first.exchange.published.map { |p| p[:opts][:message_id] }
+#=> ["claim-try-a", "claim-try-b"]
+
+## a dry run releases nothing: the claim is still held afterwards
+Familia.dbclient.del(claim_key('claim-try-dry'))
+@probe.attempt('claim-try-dry')
+@claim_dry = Onetime::Operations::Dlq::Replay.new(connection: FakeConnection.new(FakeQueue.new(claim_messages('claim-try-dry'))), queue: @dlq, actor: @actor, dry_run: true).call
+[@claim_dry.status, @probe.attempt('claim-try-dry')]
+#=> [:dry_run, :skipped_duplicate]
+
+## a message with no message id has no claim to release and is replayed as before
+@noid_conn = FakeConnection.new(FakeQueue.new(claim_messages(nil)))
+@noid = Onetime::Operations::Dlq::Replay.new(connection: @noid_conn, queue: @dlq, actor: @actor).call
+[@noid.status, @noid.replayed, @noid.failed, @noid_conn.channels.first.exchange.published.size]
+#=> [:success, 1, 0, 1]
+
+## a message dropped for having no original queue keeps its claim (nothing is republished)
+Familia.dbclient.del(claim_key('claim-try-orphan'))
+@probe.attempt('claim-try-orphan')
+@orphan = Onetime::Operations::Dlq::Replay.new(connection: FakeConnection.new(FakeQueue.new([{ id: 'claim-try-orphan', headers: {}, content_type: 'application/json', payload: '{}', ts: Time.now.to_i }])), queue: @dlq, actor: @actor).call
+[@orphan.failed, Familia.dbclient.exists?(claim_key('claim-try-orphan'))]
+#=> [1, true]
+
+## a claim that cannot be released is counted as failed and does not stop the batch
+@stuck_q = FakeQueue.new(claim_messages('claim-try-1', 'claim-try-stuck', 'claim-try-3'))
+@stuck_conn = FakeConnection.new(@stuck_q)
+@stuck_op = Onetime::Operations::Dlq::Replay.new(connection: @stuck_conn, queue: @dlq, actor: @actor)
+@stuck_op.define_singleton_method(:release_processing_claim) do |message_id|
+  raise(RedisClient::CannotConnectError, 'datastore down') if message_id == 'claim-try-stuck'
+
+  super(message_id)
+end
+@stuck = @stuck_op.call
+[@stuck.status, @stuck.replayed, @stuck.failed]
+#=> [:success, 2, 1]
+
+## the failure is reported per message, naming the claim
+@stuck.errors.map { |e| [e[:message_id], e[:error]] }
+#=> [["claim-try-stuck", "Idempotency claim not released: datastore down"]]
+
+## the message whose claim was not released stays in the DLQ; the others were republished
+[@stuck_q.message_count, @stuck_conn.channels.first.exchange.published.map { |p| p[:opts][:message_id] }]
+#=> [1, ["claim-try-1", "claim-try-3"]]
+
 # ---- Purge: success ---------------------------------------------------
 
 ## Purge empties the queue and reports the purged count
@@ -354,3 +455,4 @@ AE.events.clear
 
 # Cleanup
 AE.events.clear
+Familia.dbclient.del(*%w[a b dry orphan 1 stuck 3].map { |suffix| claim_key("claim-try-#{suffix}") })

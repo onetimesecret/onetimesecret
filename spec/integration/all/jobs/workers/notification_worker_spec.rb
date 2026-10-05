@@ -33,12 +33,13 @@ require 'support/amqp_stubs'
 require 'sneakers'
 require 'onetime/jobs/workers/notification_worker'
 require 'onetime/jobs/queues/config'
+require 'onetime/operations/dlq/replay'
 
 RSpec.describe Onetime::Jobs::Workers::NotificationWorker, type: :integration do
   # Create test worker class with accessible delivery_info
   let(:test_worker_class) do
     Class.new(Onetime::Jobs::Workers::NotificationWorker) do
-      attr_accessor :delivery_info, :acked, :rejected
+      attr_accessor :acked, :rejected
 
       def self.name
         'TestNotificationWorker'
@@ -93,9 +94,6 @@ RSpec.describe Onetime::Jobs::Workers::NotificationWorker, type: :integration do
   let(:operation_instance) { instance_double(Onetime::Operations::DispatchNotification) }
 
   before do
-    # Store envelope
-    worker.store_envelope(delivery_info, metadata)
-
     # Collapse the retry backoff: the sleep is Onetime::Utils::RetryHelper's
     # (BaseWorker#with_retry delegates to it, and it sleeps on itself), so a
     # stub on the worker never fires. Record the requested delays instead.
@@ -187,6 +185,45 @@ RSpec.describe Onetime::Jobs::Workers::NotificationWorker, type: :integration do
         expect(retry_delays.zip([1.0, 2.0])).to all(satisfy { |delay, base| delay.between?(base, base * 1.3) })
       end
 
+      context 'when the rejected message is replayed from the dead letter queue' do
+        let(:dlq_channel) { double('channel', default_exchange: double('exchange', publish: nil), ack: nil, open?: false) }
+        let(:dlq_properties) do
+          double(
+            'properties',
+            message_id: message_id,
+            content_type: 'application/json',
+            headers: { 'x-death' => [{ 'queue' => 'notifications.alert.push', 'reason' => 'rejected' }] },
+          )
+        end
+
+        before do
+          dlq = double('dlq', message_count: 1)
+          allow(dlq).to receive(:pop).and_return([double('delivery', delivery_tag: 1), dlq_properties, message])
+          allow(dlq_channel).to receive(:queue).and_return(dlq)
+          allow(Onetime::ColonelAuditEvent).to receive(:record)
+        end
+
+        it 'processes the replayed message instead of skipping it as a duplicate' do
+          allow(operation_instance).to receive(:call).and_raise(StandardError, 'Unexpected error')
+          worker.work_with_params(message, delivery_info, metadata)
+          expect(worker.rejected?).to be true
+
+          Onetime::Operations::Dlq::Replay.new(
+            connection: double('connection', create_channel: dlq_channel),
+            queue: 'dlq.notifications.alert',
+            actor: 'cli',
+          ).call
+
+          allow(operation_instance).to receive(:call).and_return({ via_bell: :success })
+          replayed_worker = test_worker_class.new
+          replayed_worker.work_with_params(message, delivery_info, metadata)
+
+          expect(replayed_worker.acked?).to be true
+          # Three failed attempts on the first delivery, one on the replay
+          expect(operation_instance).to have_received(:call).exactly(4).times
+        end
+      end
+
       it 'retries on transient errors' do
         call_count = 0
         allow(operation_instance).to receive(:call) do
@@ -252,8 +289,6 @@ RSpec.describe Onetime::Jobs::Workers::NotificationWorker, type: :integration do
       end
 
       it 'skips processing when message_id is nil (safety measure)' do
-        worker.store_envelope(delivery_info, metadata_without_id)
-
         worker.work_with_params(message, delivery_info, metadata_without_id)
 
         # Messages without message_id are acked but skipped
@@ -284,8 +319,6 @@ RSpec.describe Onetime::Jobs::Workers::NotificationWorker, type: :integration do
       end
 
       it 'rejects message with unknown schema version' do
-        worker.store_envelope(delivery_info, metadata_v99)
-
         worker.work_with_params(message, delivery_info, metadata_v99)
 
         expect(worker.rejected?).to be true
@@ -302,8 +335,6 @@ RSpec.describe Onetime::Jobs::Workers::NotificationWorker, type: :integration do
       end
 
       it 'defaults to schema version 1 and processes normally' do
-        worker.store_envelope(delivery_info, metadata_no_version)
-
         worker.work_with_params(message, delivery_info, metadata_no_version)
 
         expect(worker.acked?).to be true
@@ -320,8 +351,6 @@ RSpec.describe Onetime::Jobs::Workers::NotificationWorker, type: :integration do
       end
 
       it 'handles nil headers gracefully and defaults to version 1' do
-        worker.store_envelope(delivery_info, metadata_nil_headers)
-
         worker.work_with_params(message, delivery_info, metadata_nil_headers)
 
         expect(worker.acked?).to be true
@@ -350,8 +379,6 @@ RSpec.describe Onetime::Jobs::Workers::NotificationWorker, type: :integration do
     end
 
     it 'processes redelivered message normally (idempotency handles duplicates)' do
-      worker.store_envelope(delivery_info_redelivered, metadata)
-
       worker.work_with_params(message, delivery_info_redelivered, metadata)
 
       expect(worker.acked?).to be true
@@ -361,7 +388,6 @@ RSpec.describe Onetime::Jobs::Workers::NotificationWorker, type: :integration do
     it 'skips redelivered message if already processed' do
       # Pre-set idempotency key
       Familia.dbclient.setex("job:processed:#{message_id}", 3600, '1')
-      worker.store_envelope(delivery_info_redelivered, metadata)
 
       worker.work_with_params(message, delivery_info_redelivered, metadata)
 

@@ -4,21 +4,25 @@
 
 # Purpose:
 #   Verifies the shared worker functionality provided by BaseWorker module,
-#   including message parsing, idempotency checks, retry logic, and metadata
-#   extraction.
+#   including message parsing, idempotency checks, retry logic and trace
+#   continuation. The helpers take the message's Envelope as an argument;
+#   the Envelope itself is covered in
+#   spec/lib/onetime/jobs/workers/envelope_spec.rb.
 #
 # Test Categories:
-#   - Property extraction (Unit):
-#       * message_id: Extracts message_id from AMQP metadata properties
-#
 #   - Idempotency (Integration - requires Redis):
 #       * already_processed? returns true when key exists (read-only check)
 #       * already_processed? returns false when key absent
 #       * claim_for_processing atomically claims message with SET NX EX
 #
 #   - Message parsing (Unit):
-#       * parse_message returns hash from valid JSON
-#       * parse_message rejects invalid JSON (mocked reject!)
+#       * decode_message returns the parsed value from valid JSON
+#       * decode_message returns nil for invalid JSON, JSON null and an
+#         unknown schema version, and never settles the message
+#
+#   - Concurrency (Unit):
+#       * two messages worked at once on one worker instance each see
+#         their own envelope
 #
 #   - Retry logic (Unit):
 #       * with_retry retries on failure then succeeds
@@ -52,7 +56,7 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker, type: :integration do
       end
 
       # Sneakers::Worker requires these methods
-      attr_accessor :delivery_info, :properties, :metadata
+      attr_accessor :properties
 
       def initialize
         @acked = false
@@ -99,28 +103,7 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker, type: :integration do
     )
   end
 
-  before do
-    worker.store_envelope(delivery_info, metadata)
-  end
-
-  describe '#message_id' do
-    context 'when metadata has message_id' do
-      it 'extracts message_id from metadata.message_id' do
-        expect(worker.message_id).to eq(message_id_value)
-      end
-    end
-
-    context 'when metadata is nil' do
-      before { worker.metadata = nil }
-
-      it 'returns nil without raising error' do
-        expect(worker.message_id).to be_nil
-      end
-    end
-
-    # Note: delivery_info being nil doesn't affect message_id since
-    # message_id comes from metadata, not delivery_info
-  end
+  let(:envelope) { Onetime::Jobs::Workers::Envelope.new(delivery_info, metadata) }
 
   describe '#already_processed?' do
     let(:msg_id) { 'test-msg-789' }
@@ -185,49 +168,135 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker, type: :integration do
     end
   end
 
-  describe '#parse_message' do
+  describe '#release_processing_claim_safely' do
+    let(:msg_id) { 'test-msg-release-789' }
+    let(:redis_key) { "job:processed:#{msg_id}" }
+
+    after { Familia.dbclient.del(redis_key) }
+
+    it 'deletes the claim and returns true' do
+      worker.claim_for_processing(msg_id)
+
+      expect(worker.release_processing_claim_safely(msg_id)).to be true
+      expect(Familia.dbclient.exists?(redis_key)).to be_falsey
+    end
+
+    it 'returns false when there is no claim or no message id' do
+      expect(worker.release_processing_claim_safely(msg_id)).to be false
+      expect(worker.release_processing_claim_safely(nil)).to be false
+    end
+
+    it 'logs and returns false instead of raising on a datastore error' do
+      allow(worker).to receive(:release_processing_claim)
+        .and_raise(Redis::CannotConnectError, 'datastore down')
+      allow(worker).to receive(:log_error)
+
+      expect(worker.release_processing_claim_safely(msg_id)).to be false
+      expect(worker).to have_received(:log_error)
+        .with(/claim not released: Redis::CannotConnectError/, message_id: msg_id)
+    end
+  end
+
+  describe '#decode_message' do
+    let(:mock_logger) { instance_double(SemanticLogger::Logger, debug: nil, error: nil) }
+
     context 'with valid JSON' do
       let(:message_json) { '{"email":"test@example.com","template":"welcome"}' }
 
       it 'returns parsed hash with symbolized keys' do
-        result = worker.parse_message(message_json)
+        result = worker.decode_message(message_json, envelope)
 
-        expect(result).to be_a(Hash)
         expect(result).to eq({
           email: 'test@example.com',
           template: 'welcome'
         })
       end
 
-      it 'calls validate_schema on parsed data' do
-        expect(worker).to receive(:validate_schema).with(hash_including(email: 'test@example.com'))
-        worker.parse_message(message_json)
+      it 'does not settle the message' do
+        worker.decode_message(message_json, envelope)
+
+        expect(worker.acked?).to be false
+        expect(worker.rejected?).to be false
       end
     end
 
     context 'with invalid JSON' do
       let(:invalid_message) { 'not valid json {broken' }
 
-      it 'calls reject!' do
-        expect(worker).to receive(:reject!)
-        worker.parse_message(invalid_message)
-      end
-
-      it 'returns nil' do
-        allow(worker).to receive(:reject!)
-        result = worker.parse_message(invalid_message)
-
-        expect(result).to be_nil
+      it 'returns nil without settling the message' do
+        expect(worker.decode_message(invalid_message, envelope)).to be_nil
+        expect(worker.rejected?).to be false
       end
 
       it 'logs error message' do
-        allow(worker).to receive(:reject!)
-        mock_logger = instance_double(SemanticLogger::Logger)
         allow(worker).to receive(:logger).and_return(mock_logger)
-        allow(mock_logger).to receive(:debug)
-        expect(mock_logger).to receive(:error).with(/Invalid JSON/, hash_including(:worker))
 
-        worker.parse_message(invalid_message)
+        worker.decode_message(invalid_message, envelope)
+
+        expect(mock_logger).to have_received(:error).with(/Invalid JSON/, hash_including(:worker))
+      end
+    end
+
+    context 'with a JSON null body' do
+      it 'returns nil and logs why' do
+        allow(worker).to receive(:logger).and_return(mock_logger)
+
+        expect(worker.decode_message('null', envelope)).to be_nil
+        expect(mock_logger).to have_received(:error)
+          .with('Message payload is null', hash_including(message_id: message_id_value))
+      end
+    end
+
+    context 'with a JSON body that is not an object' do
+      ['[1, 2]', '[]', '"x"', '5', 'false', 'true'].each do |body|
+        it "returns nil for #{body} and logs why, without settling the message" do
+          allow(worker).to receive(:logger).and_return(mock_logger)
+
+          expect(worker.decode_message(body, envelope)).to be_nil
+          expect(mock_logger).to have_received(:error)
+            .with('Message payload is not a JSON object', hash_including(message_id: message_id_value))
+          expect(worker.rejected?).to be false
+        end
+      end
+    end
+
+    context 'with an unknown schema version' do
+      let(:metadata) do
+        MetadataStub.new(message_id: message_id_value, headers: { 'x-schema-version' => 999 })
+      end
+
+      it 'returns nil for a body that parses, without settling the message' do
+        expect(worker.decode_message('{"email":"test@example.com"}', envelope)).to be_nil
+        expect(worker.rejected?).to be false
+      end
+
+      it 'logs the version and the message id' do
+        allow(worker).to receive(:logger).and_return(mock_logger)
+
+        worker.decode_message('{"email":"test@example.com"}', envelope)
+
+        expect(mock_logger).to have_received(:error)
+          .with('Unknown schema version: 999', hash_including(:worker, message_id: message_id_value))
+      end
+    end
+
+    context 'with no schema version header' do
+      let(:metadata) { MetadataStub.new(message_id: message_id_value, headers: {}) }
+
+      it 'reads the message as version 1' do
+        expect(worker.decode_message('{"email":"test@example.com"}', envelope)).to eq(email: 'test@example.com')
+      end
+    end
+
+    context 'with an envelope built from nil delivery info and nil properties' do
+      let(:envelope) { Onetime::Jobs::Workers::Envelope.new(nil, nil) }
+
+      it 'parses the body and logs a nil message id' do
+        allow(worker).to receive(:logger).and_return(mock_logger)
+
+        expect(worker.decode_message('{"email":"test@example.com"}', envelope)).to eq(email: 'test@example.com')
+        expect(mock_logger).to have_received(:debug)
+          .with('Parsing message', hash_including(:worker, message_id: nil))
       end
     end
   end
@@ -434,83 +503,58 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker, type: :integration do
     end
   end
 
-  describe '#message_metadata' do
-    it 'extracts all metadata from delivery_info' do
-      metadata = worker.message_metadata
+  describe 'messages worked concurrently on one worker instance' do
+    # Kicks runs work_with_params on a thread pool against one worker
+    # instance, so two messages are in flight on the same object. Each call
+    # passes its own envelope down, so neither can read the other's.
+    let(:concurrent_worker_class) do
+      Class.new(test_worker_class) do
+        attr_writer :both_received
 
-      expect(metadata).to include(
-        delivery_tag: 1,
-        routing_key: 'email.message.send',
-        redelivered: false,
-        message_id: message_id_value,
-        schema_version: 1
-      )
-    end
+        def work_with_params(msg, delivery_info, metadata)
+          envelope = Onetime::Jobs::Workers::Envelope.new(delivery_info, metadata)
+          # Hold until the other message is in flight on this instance too.
+          @both_received.call
 
-    context 'when delivery_info and metadata are nil' do
-      before do
-        worker.delivery_info = nil
-        worker.metadata = nil
-      end
-
-      it 'returns hash with nil values' do
-        result = worker.message_metadata
-
-        expect(result).to include(
-          delivery_tag: nil,
-          routing_key: nil,
-          redelivered: nil,
-          message_id: nil,
-          schema_version: nil
-        )
-      end
-    end
-  end
-
-  describe '#validate_schema' do
-    let(:data) { { test: 'data' } }
-
-    context 'when schema version is valid (V1)' do
-      # Default metadata has 'x-schema-version' => 1
-      it 'does not reject the message' do
-        worker.validate_schema(data)
-        expect(worker.rejected?).to be false
+          data = decode_message(msg, envelope)
+          [envelope.message_id, envelope.summary[:delivery_tag], envelope.redelivered?, data.nil?]
+        end
       end
     end
 
-    context 'when schema version header is missing' do
-      let(:metadata) do
-        MetadataStub.new(
-          message_id: message_id_value,
-          headers: {}
-        )
+    it 'gives each message its own message id, delivery info and schema check' do
+      worker  = concurrent_worker_class.new
+      logged  = Queue.new
+      arrived = Queue.new
+      release = Queue.new
+      logger  = instance_double(SemanticLogger::Logger, error: nil)
+      allow(logger).to receive(:debug) { |_text, payload| logged << payload[:message_id] }
+      allow(worker).to receive(:logger).and_return(logger)
+      worker.both_received = lambda do
+        arrived << true
+        release.pop
       end
 
-      it 'defaults to version 1 and does not reject' do
-        worker.validate_schema(data)
-        expect(worker.rejected?).to be false
-      end
+      other_metadata = MetadataStub.new(message_id: 'msg-other-thread', headers: { 'x-schema-version' => 999 })
+      other_info     = DeliveryInfoStub.new(delivery_tag: 2, routing_key: 'email.message.send', redelivered?: true)
+
+      first  = Thread.new { worker.work_with_params('{"n":1}', delivery_info, metadata) }
+      second = Thread.new { worker.work_with_params('{"n":2}', other_info, other_metadata) }
+      2.times { arrived.pop }
+      2.times { release << true }
+
+      expect(first.value).to eq([message_id_value, 1, false, false])
+      expect(second.value).to eq(['msg-other-thread', 2, true, true])
+      expect(Array.new(2) { logged.pop }).to contain_exactly(message_id_value, 'msg-other-thread')
+      expect(logger).to have_received(:error).once
+        .with('Unknown schema version: 999', hash_including(message_id: 'msg-other-thread'))
     end
 
-    context 'when schema version is unknown' do
-      let(:metadata) do
-        MetadataStub.new(
-          message_id: message_id_value,
-          headers: { 'x-schema-version' => 999 }
-        )
-      end
+    it 'keeps no envelope on the worker' do
+      worker.decode_message('{"n":1}', envelope)
 
-      it 'rejects the message' do
-        worker.validate_schema(data)
-        expect(worker.rejected?).to be true
-      end
-
-      it 'logs an error' do
-        mock_logger = instance_double(SemanticLogger::Logger)
-        allow(worker).to receive(:logger).and_return(mock_logger)
-        expect(mock_logger).to receive(:error).with(/Unknown schema version: 999/, hash_including(:worker))
-        worker.validate_schema(data)
-      end
+      expect(worker.instance_variables).not_to include(:@delivery_info, :@metadata, :@envelope)
+      expect(worker).not_to respond_to(:message_id)
     end
   end
 
@@ -521,56 +565,6 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker, type: :integration do
   # traces from incoming messages, enabling distributed tracing across
   # RabbitMQ message boundaries.
   # ==========================================================================
-
-  describe '#extract_trace_headers' do
-    context 'when metadata contains trace headers' do
-      let(:metadata_with_trace) do
-        MetadataStub.new(
-          message_id: 'msg-trace-123',
-          headers: {
-            'x-schema-version' => 1,
-            'sentry-trace' => '00-abcd1234-5678ef90-01',
-            'baggage' => 'sentry-environment=production'
-          }
-        )
-      end
-
-      before do
-        worker.store_envelope(delivery_info, metadata_with_trace)
-      end
-
-      it 'extracts sentry-trace header' do
-        result = worker.extract_trace_headers
-
-        expect(result['sentry-trace']).to eq('00-abcd1234-5678ef90-01')
-      end
-
-      it 'extracts baggage header' do
-        result = worker.extract_trace_headers
-
-        expect(result['baggage']).to eq('sentry-environment=production')
-      end
-    end
-
-    context 'when metadata lacks trace headers' do
-      it 'returns empty hash' do
-        result = worker.extract_trace_headers
-
-        expect(result).to eq({})
-      end
-    end
-
-    context 'when metadata is nil' do
-      before do
-        worker.metadata = nil
-      end
-
-      it 'returns empty hash without raising' do
-        expect { worker.extract_trace_headers }.not_to raise_error
-        expect(worker.extract_trace_headers).to eq({})
-      end
-    end
-  end
 
   describe '#with_trace_context' do
     # Stub Sentry if not defined
@@ -604,7 +598,7 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker, type: :integration do
       it 'yields to the block' do
         block_called = false
 
-        worker.with_trace_context do
+        worker.with_trace_context(envelope) do
           block_called = true
         end
 
@@ -612,7 +606,7 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker, type: :integration do
       end
 
       it 'returns the result of the block' do
-        result = worker.with_trace_context do
+        result = worker.with_trace_context(envelope) do
           'worker result'
         end
 
@@ -624,7 +618,7 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker, type: :integration do
       let(:mock_transaction) { instance_double('Sentry::Transaction') }
       let(:mock_scope) { instance_double('Sentry::Scope') }
 
-      let(:metadata_with_trace) do
+      let(:metadata) do
         MetadataStub.new(
           message_id: 'msg-trace-456',
           headers: {
@@ -636,7 +630,6 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker, type: :integration do
       end
 
       before do
-        worker.store_envelope(delivery_info, metadata_with_trace)
         allow(Sentry).to receive(:initialized?).and_return(true)
         allow(Sentry).to receive(:with_scope).and_yield(mock_scope)
         allow(Sentry).to receive(:continue_trace).and_return(mock_transaction)
@@ -657,7 +650,7 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker, type: :integration do
           op: 'queue.process'
         ).and_return(mock_transaction)
 
-        worker.with_trace_context {}
+        worker.with_trace_context(envelope) {}
       end
 
       it 'uses default transaction name based on worker name' do
@@ -666,7 +659,7 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker, type: :integration do
           hash_including(name: 'rabbitmq.EmailWorker')
         ).and_return(mock_transaction)
 
-        worker.with_trace_context {}
+        worker.with_trace_context(envelope) {}
       end
 
       it 'allows custom transaction name' do
@@ -675,7 +668,7 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker, type: :integration do
           hash_including(name: 'custom.operation.name')
         ).and_return(mock_transaction)
 
-        worker.with_trace_context(name: 'custom.operation.name') {}
+        worker.with_trace_context(envelope, name: 'custom.operation.name') {}
       end
 
       it 'allows custom op parameter' do
@@ -684,13 +677,13 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker, type: :integration do
           hash_including(op: 'custom.op')
         ).and_return(mock_transaction)
 
-        worker.with_trace_context(op: 'custom.op') {}
+        worker.with_trace_context(envelope, op: 'custom.op') {}
       end
 
       it 'yields to the block' do
         block_called = false
 
-        worker.with_trace_context do
+        worker.with_trace_context(envelope) do
           block_called = true
         end
 
@@ -698,7 +691,7 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker, type: :integration do
       end
 
       it 'returns the result of the block' do
-        result = worker.with_trace_context do
+        result = worker.with_trace_context(envelope) do
           'traced result'
         end
 
@@ -719,7 +712,7 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker, type: :integration do
       it 'still yields to the block' do
         block_called = false
 
-        worker.with_trace_context do
+        worker.with_trace_context(envelope) do
           block_called = true
         end
 
@@ -733,7 +726,7 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker, type: :integration do
           op: 'queue.process'
         ).and_return(nil)
 
-        worker.with_trace_context {}
+        worker.with_trace_context(envelope) {}
       end
     end
   end
