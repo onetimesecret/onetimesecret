@@ -25,41 +25,8 @@ import { defineStore } from 'pinia';
 import { computed, ref, watch } from 'vue';
 import { z } from 'zod';
 
+import { useAuthStore } from './authStore';
 import { useBootstrapStore } from './bootstrapStore';
-
-/**
- * sessionStorage key for persisting selected organization within the session.
- * Used internally by the store for persistence.
- * Using sessionStorage ensures data is cleared on logout and doesn't leak between users.
- */
-export const SELECTED_ORG_STORAGE_KEY = 'selectedOrganizationId';
-
-/**
- * Load persisted organization ID from sessionStorage with error handling.
- */
-function loadPersistedOrgId(): string | null {
-  try {
-    return sessionStorage.getItem(SELECTED_ORG_STORAGE_KEY);
-  } catch (error) {
-    loggingService.error(new Error(`Failed to load persisted organization: ${error}`));
-    return null;
-  }
-}
-
-/**
- * Persist organization ID to sessionStorage with error handling.
- */
-function persistOrgId(orgId: string | null): void {
-  try {
-    if (orgId) {
-      sessionStorage.setItem(SELECTED_ORG_STORAGE_KEY, orgId);
-    } else {
-      sessionStorage.removeItem(SELECTED_ORG_STORAGE_KEY);
-    }
-  } catch (error) {
-    loggingService.error(new Error(`Failed to persist organization selection: ${error}`));
-  }
-}
 
 /* eslint-disable max-lines-per-function */
 export const useOrganizationStore = defineStore('organization', () => {
@@ -99,6 +66,15 @@ export const useOrganizationStore = defineStore('organization', () => {
     () =>
       (extid: string): Organization | undefined =>
         organizations.value.find((o) => o.extid === extid)
+  );
+
+  /**
+   * The organization to fall back to when nothing is selected: the default
+   * org, then the first in the list. Null until the list has an entry.
+   */
+  const defaultOrganization = computed(
+    (): Organization | null =>
+      organizations.value.find((o) => o.is_default) ?? organizations.value[0] ?? null
   );
 
   const isInitialized = computed(() => _initialized.value);
@@ -205,7 +181,9 @@ export const useOrganizationStore = defineStore('organization', () => {
         throw new Error('Unable to create organization. Please try again.');
       }
       organizations.value.push(orgResult.data.record);
-      currentOrganization.value = orgResult.data.record;
+      // The app moves the user into the org they just created; record that
+      // server-side too so a reload does not drop them back into the old one.
+      await selectOrganization(orgResult.data.record);
 
       return orgResult.data.record;
     } finally {
@@ -282,10 +260,47 @@ export const useOrganizationStore = defineStore('organization', () => {
   }
 
   /**
-   * Set the current organization
+   * Set the current organization for this tab only. Route-driven and
+   * housekeeping callers use this; it does not change what the server will
+   * hand back on the next page load. A user's explicit choice goes through
+   * selectOrganization.
    */
   function setCurrentOrganization(org: Organization | null) {
     currentOrganization.value = org;
+  }
+
+  /**
+   * Sync the selected organization to the backend (fire-and-forget).
+   *
+   * Page loads carry no O-Organization-ID header, so the bootstrap payload can
+   * only name the selected org if the server session remembers it. Sends the
+   * same identifier the axios request interceptor puts in that header (objid).
+   *
+   * The POST is a protected action (ADR-046#authority-action-gating), gated the
+   * same way as syncDomainContextToServer: the local selection still changes;
+   * only the server write is withheld.
+   */
+  async function syncOrganizationContextToServer(org: Organization): Promise<void> {
+    if (!org.objid) return;
+    if (!useAuthStore().protectedActionsAvailable) return;
+    try {
+      await $api.post('/api/account/update-organization-context', {
+        organization_id: org.objid,
+      });
+    } catch (error) {
+      console.warn('[organizationStore] Failed to sync to server:', error);
+    }
+  }
+
+  /**
+   * Make `org` the current organization as an explicit user choice (the scope
+   * switcher) and record it in the server session, which is the one authority
+   * for the selection across page loads. A failed sync leaves the in-app
+   * selection in place.
+   */
+  async function selectOrganization(org: Organization): Promise<void> {
+    currentOrganization.value = org;
+    await syncOrganizationContextToServer(org);
   }
 
   /**
@@ -395,34 +410,6 @@ export const useOrganizationStore = defineStore('organization', () => {
     loading.value = false;
   }
 
-  /**
-   * Restore persisted organization selection from sessionStorage.
-   * Returns the restored organization or null if not found.
-   * Priority: sessionStorage saved org > default org > first org
-   */
-  function restorePersistedSelection(): Organization | null {
-    if (organizations.value.length === 0) return null;
-
-    const savedOrgId = loadPersistedOrgId();
-    if (savedOrgId) {
-      const savedOrg = organizations.value.find(
-        (o) => o.objid === savedOrgId || o.extid === savedOrgId
-      );
-      if (savedOrg) return savedOrg;
-    }
-
-    // Fall back to default org, then first org
-    return organizations.value.find((o) => o.is_default) ?? organizations.value[0] ?? null;
-  }
-
-  // Watch currentOrganization and persist to sessionStorage
-  watch(
-    () => currentOrganization.value?.objid,
-    (newOrgId) => {
-      persistOrgId(newOrgId ?? null);
-    }
-  );
-
   // Watch bootstrap auth state and reset on logout
   // This ensures organization data is cleared when the user logs out
   //
@@ -449,11 +436,15 @@ export const useOrganizationStore = defineStore('organization', () => {
   // This eliminates the race condition where domain context needs organization
   // before fetchOrganizations completes. Bootstrap provides organization from
   // server-side OrganizationLoader, ensuring it's available immediately.
+  // It is also the only thing that restores the selection after a page load:
+  // the server session remembers the last selectOrganization() (#4565), so
+  // there is no client-side copy to restore from or to keep in agreement.
   watch(
     () => bootstrap.organization,
     (bootstrapOrg) => {
       // Only seed if we don't already have a currentOrganization
-      // This prevents overwriting user-selected organization with bootstrap default
+      // This prevents a mid-session bootstrap refresh from replacing the
+      // organization selected (or route-resolved) in this tab
       if (bootstrapOrg && !currentOrganization.value) {
         // Convert bootstrap org format to Organization type
         // Bootstrap provides minimal fields (objid, extid, display_name,
@@ -495,6 +486,7 @@ export const useOrganizationStore = defineStore('organization', () => {
     hasNonDefaultOrganizations,
     getOrganizationById,
     getOrganizationByExtid,
+    defaultOrganization,
     isInitialized,
     isListFetched,
 
@@ -506,7 +498,7 @@ export const useOrganizationStore = defineStore('organization', () => {
     updateOrganization,
     deleteOrganization,
     setCurrentOrganization,
-    restorePersistedSelection,
+    selectOrganization,
     fetchInvitations,
     createInvitation,
     resendInvitation,

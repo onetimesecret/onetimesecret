@@ -641,9 +641,8 @@ describe('MfaChallenge', () => {
 
       useBootstrapStore().billing_enabled = true;
       const orgStore = useOrganizationStore();
-      vi.mocked(orgStore.restorePersistedSelection).mockReturnValue({
-        extid: 'org_live1',
-      } as ReturnType<typeof orgStore.restorePersistedSelection>);
+      // fetchOrganizations is stubbed: seed the list the redirect resolves from.
+      orgStore.organizations = [{ extid: 'org_live1' }] as typeof orgStore.organizations;
 
       await submitOtp(wrapper);
 
@@ -670,9 +669,8 @@ describe('MfaChallenge', () => {
 
       useBootstrapStore().billing_enabled = true;
       const orgStore = useOrganizationStore();
-      vi.mocked(orgStore.restorePersistedSelection).mockReturnValue({
-        extid: 'org_live1',
-      } as ReturnType<typeof orgStore.restorePersistedSelection>);
+      // fetchOrganizations is stubbed: seed the list the redirect resolves from.
+      orgStore.organizations = [{ extid: 'org_live1' }] as typeof orgStore.organizations;
 
       await byTestId(wrapper, 'mfa-verify-webauthn-submit').trigger('click');
       await flushPromises();
@@ -696,9 +694,8 @@ describe('MfaChallenge', () => {
 
       useBootstrapStore().billing_enabled = true;
       const orgStore = useOrganizationStore();
-      vi.mocked(orgStore.restorePersistedSelection).mockReturnValue({
-        extid: 'org_live1',
-      } as ReturnType<typeof orgStore.restorePersistedSelection>);
+      // fetchOrganizations is stubbed: seed the list the redirect resolves from.
+      orgStore.organizations = [{ extid: 'org_live1' }] as typeof orgStore.organizations;
 
       await byTestId(wrapper, 'mfa-verify-webauthn-submit').trigger('click');
       await flushPromises();

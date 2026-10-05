@@ -4,11 +4,14 @@ import { setupTestPinia } from '../setup';
 import { setupBootstrapMock } from '../setup-bootstrap';
 import { baseBootstrap } from '@/tests/fixtures/bootstrap.fixture';
 
+import { useAuthStore } from '@/shared/stores/authStore';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { Organization } from '@/types/organization';
 import { lenientExtIdSchema, lenientObjIdSchema } from '@/types/identifiers';
 import type AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { nextTick } from 'vue';
 
 // Branded-ID helpers: OrganizationInvitation.id/invited_by and
 // .organization_id are lenientObjIdSchema/lenientExtIdSchema output
@@ -120,6 +123,192 @@ describe('Organization Store', () => {
 
       expect(org).toEqual(mockOrganization);
       expect(store.currentOrganization).toEqual(mockOrganization);
+    });
+  });
+
+  // The server session is the one authority for which organization is current
+  // across page loads (#4565): the bootstrap payload seeds it, and an explicit
+  // choice is written back through update-organization-context. Nothing is
+  // kept in sessionStorage.
+  describe('Current organization authority', () => {
+    const SYNC_URL = '/api/account/update-organization-context';
+
+    // The bootstrap payload's minimal organization record
+    const bootstrapOrg = (over: { objid: string; extid: string; display_name: string }) => ({
+      is_default: false,
+      planid: 'free_v1',
+      current_user_role: 'owner' as const,
+      entitlements: null,
+      limits: null,
+      ...over,
+    });
+    const acme = bootstrapOrg({ objid: 'org-acme', extid: 'onacme', display_name: 'Acme' });
+    const globex = bootstrapOrg({ objid: 'org-globex', extid: 'onglobex', display_name: 'Globex' });
+
+    const other: Organization = {
+      ...mockOrganization,
+      objid: 'org-999',
+      extid: 'on999xyz',
+      display_name: 'Other Organization',
+    };
+
+    const syncPosts = () => (axiosMock?.history.post ?? []).filter((r) => r.url === SYNC_URL);
+
+    // The server sync is a protected action (ADR-046#authority-action-gating).
+    const signIn = () => {
+      useBootstrapStore().authStatus = 'authenticated';
+    };
+
+    describe('seeding from the bootstrap payload', () => {
+      it('seeds currentOrganization at store creation', () => {
+        // A store created AFTER the payload is in place, as on a page load
+        setupBootstrapMock({ initialState: baseBootstrap });
+        useBootstrapStore().organization = acme;
+
+        const seeded = useOrganizationStore();
+
+        expect(seeded.currentOrganization).toMatchObject({
+          objid: 'org-acme',
+          extid: 'onacme',
+          display_name: 'Acme',
+          current_user_role: 'owner',
+        });
+      });
+
+      it('does not replace an existing selection on a bootstrap refresh', async () => {
+        store.setCurrentOrganization(other);
+
+        useBootstrapStore().organization = acme;
+        await nextTick();
+
+        expect(store.currentOrganization?.objid).toBe('org-999');
+      });
+
+      it('re-seeds from the next snapshot after $reset', async () => {
+        const bootstrap = useBootstrapStore();
+        bootstrap.organization = acme;
+        await nextTick();
+        expect(store.currentOrganization?.objid).toBe('org-acme');
+
+        // In-place account change: authStore clears account-scoped stores,
+        // then applies the new account's snapshot.
+        store.$reset();
+        expect(store.currentOrganization).toBeNull();
+        bootstrap.organization = globex;
+        await nextTick();
+
+        expect(store.currentOrganization?.objid).toBe('org-globex');
+      });
+
+      it('writes nothing to sessionStorage', async () => {
+        useBootstrapStore().organization = acme;
+        await nextTick();
+        store.setCurrentOrganization(other);
+        await nextTick();
+
+        expect(sessionStorage.getItem('selectedOrganizationId')).toBeNull();
+      });
+    });
+
+    describe('selectOrganization (explicit switch)', () => {
+      it('sets the current organization and posts its objid to the server', async () => {
+        signIn();
+        axiosMock?.onPost(SYNC_URL).reply(200, { success: true });
+
+        await store.selectOrganization(other);
+
+        expect(store.currentOrganization).toEqual(other);
+        expect(syncPosts()).toHaveLength(1);
+        // Same identifier the request interceptor sends as O-Organization-ID
+        expect(JSON.parse(syncPosts()[0].data)).toEqual({ organization_id: 'org-999' });
+      });
+
+      it('switches in-app before the server answers', async () => {
+        signIn();
+        axiosMock?.onPost(SYNC_URL).reply(200, { success: true });
+
+        const pending = store.selectOrganization(other);
+
+        expect(store.currentOrganization).toEqual(other);
+        await pending;
+      });
+
+      it('keeps the in-app selection when the sync fails', async () => {
+        signIn();
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        axiosMock?.onPost(SYNC_URL).reply(500, { message: 'boom' });
+
+        await expect(store.selectOrganization(other)).resolves.toBeUndefined();
+
+        expect(store.currentOrganization).toEqual(other);
+        expect(syncPosts()).toHaveLength(1);
+        expect(warn).toHaveBeenCalledTimes(1);
+      });
+
+      it('withholds the server write when protected actions are unavailable', async () => {
+        // authStatus is not 'authenticated' here
+        await store.selectOrganization(other);
+
+        expect(store.currentOrganization).toEqual(other);
+        expect(syncPosts()).toHaveLength(0);
+      });
+
+      it('withholds the server write in stale-session mode', async () => {
+        signIn();
+        useAuthStore().staleSession = true;
+
+        await store.selectOrganization(other);
+
+        expect(store.currentOrganization).toEqual(other);
+        expect(syncPosts()).toHaveLength(0);
+      });
+
+      it('syncs a newly created organization, which becomes current', async () => {
+        signIn();
+        axiosMock?.onPost('/api/organizations').reply(200, { record: mockOrganizationRaw });
+        axiosMock?.onPost(SYNC_URL).reply(200, { success: true });
+
+        await store.createOrganization({ display_name: 'Test Organization' });
+
+        expect(store.currentOrganization?.objid).toBe('org-123');
+        expect(syncPosts()).toHaveLength(1);
+        expect(JSON.parse(syncPosts()[0].data)).toEqual({ organization_id: 'org-123' });
+      });
+    });
+
+    describe('tab-local changes do not reach the server', () => {
+      it('route-driven fetchOrganization does not sync', async () => {
+        signIn();
+        axiosMock?.onGet('/api/organizations/on123abc').reply(200, { record: mockOrganizationRaw });
+
+        await store.fetchOrganization('on123abc');
+
+        expect(store.currentOrganization?.objid).toBe('org-123');
+        expect(syncPosts()).toHaveLength(0);
+      });
+
+      it('setCurrentOrganization does not sync', () => {
+        signIn();
+
+        store.setCurrentOrganization(other);
+
+        expect(store.currentOrganization).toEqual(other);
+        expect(syncPosts()).toHaveLength(0);
+      });
+    });
+
+    describe('defaultOrganization', () => {
+      it('is null with an empty list', () => {
+        expect(store.defaultOrganization).toBeNull();
+      });
+
+      it('prefers the default org, then the first', () => {
+        store.organizations = [other, { ...mockOrganization, is_default: true }];
+        expect(store.defaultOrganization?.objid).toBe('org-123');
+
+        store.organizations = [other, mockOrganization];
+        expect(store.defaultOrganization?.objid).toBe('org-999');
+      });
     });
   });
 

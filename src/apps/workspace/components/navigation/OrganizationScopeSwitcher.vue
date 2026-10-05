@@ -152,8 +152,9 @@ const onSelect = (id: string): void => {
   const org = orgForId(id);
   if (!org) return;
 
-  // setCurrentOrganization triggers the store's watcher to persist to localStorage
-  organizationStore.setCurrentOrganization(org);
+  // selectOrganization switches in-app at once and records the choice in the
+  // server session (fire-and-forget) so it survives a page load
+  void organizationStore.selectOrganization(org);
 
   // Handle route-aware navigation based on onOrgSwitch meta
   const switchTarget = onOrgSwitch.value;

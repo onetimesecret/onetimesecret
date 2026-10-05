@@ -57,11 +57,13 @@ const personal: TestOrg = { objid: 'o2', extid: 'org2', display_name: 'Personal'
 const mockOrganizations = ref<TestOrg[]>([acme, personal]);
 const mockCurrentOrganization = ref<TestOrg | null>(acme);
 const mockSetCurrentOrganization = vi.fn();
+const mockSelectOrganization = vi.fn();
 const mockOrgStore = reactive({
   organizations: mockOrganizations,
   currentOrganization: mockCurrentOrganization,
   hasOrganizations: true,
   setCurrentOrganization: mockSetCurrentOrganization,
+  selectOrganization: mockSelectOrganization,
 });
 vi.mock('@/shared/stores/organizationStore', () => ({
   useOrganizationStore: () => mockOrgStore,
@@ -116,7 +118,10 @@ describe('OrganizationScopeSwitcher real-HeadlessUI close behaviour', () => {
     await nextTick();
     await flushPromises();
 
-    expect(mockSetCurrentOrganization).toHaveBeenCalled();
+    // The explicit choice goes through the server-syncing action (#4565),
+    // not the tab-local setter.
+    expect(mockSelectOrganization).toHaveBeenCalledWith(personal);
+    expect(mockSetCurrentOrganization).not.toHaveBeenCalled();
     expect(dropdown(wrapper).exists()).toBe(false);
   });
 

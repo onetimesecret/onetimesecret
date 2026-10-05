@@ -5,6 +5,7 @@ import { loggingService } from '@/services/logging.service';
 import { usePostAuthRedirect } from '@/shared/composables/usePostAuthRedirect';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
+import type { Organization } from '@/types/organization';
 import { createTestingPinia } from '@pinia/testing';
 import { setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -47,8 +48,14 @@ describe('usePostAuthRedirect', () => {
     mockRoute.query = { product: 'identity_plus_v1', interval: 'monthly' };
   };
 
-  const orgOf = (over: { extid?: string; planid?: string } | null) =>
-    over as ReturnType<ReturnType<typeof useOrganizationStore>['restorePersistedSelection']>;
+  // fetchOrganizations is stubbed, so seed the list it would have loaded. The
+  // composable resolves the org from that list (current, else default/first).
+  const seedOrgs = (
+    orgStore: ReturnType<typeof useOrganizationStore>,
+    ...orgs: { objid?: string; extid?: string; planid?: string; is_default?: boolean }[]
+  ) => {
+    orgStore.organizations = orgs as Organization[];
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -61,7 +68,7 @@ describe('usePostAuthRedirect', () => {
       seedBillingQuery();
       useBootstrapStore().billing_enabled = true;
       const orgStore = useOrganizationStore();
-      vi.mocked(orgStore.restorePersistedSelection).mockReturnValue(orgOf({ extid: 'org_q1' }));
+      seedOrgs(orgStore, { extid: 'org_q1' });
 
       await usePostAuthRedirect().navigateAfterAuth(undefined);
 
@@ -76,7 +83,7 @@ describe('usePostAuthRedirect', () => {
       mockRoute.query = { product: 'x&change=true', interval: 'month#frag' };
       useBootstrapStore().billing_enabled = true;
       const orgStore = useOrganizationStore();
-      vi.mocked(orgStore.restorePersistedSelection).mockReturnValue(orgOf({ extid: 'org_q1' }));
+      seedOrgs(orgStore, { extid: 'org_q1' });
 
       await usePostAuthRedirect().handleBillingRedirect(undefined);
 
@@ -130,9 +137,7 @@ describe('usePostAuthRedirect', () => {
       mockRoute.query = { product: 'x&change=true', interval: 'year' };
       useBootstrapStore().billing_enabled = true;
       const orgStore = useOrganizationStore();
-      vi.mocked(orgStore.restorePersistedSelection).mockReturnValue(
-        orgOf({ extid: 'org_sub1', planid: 'identity_plus_v1' })
-      );
+      seedOrgs(orgStore, { extid: 'org_sub1', planid: 'identity_plus_v1' });
 
       const redirected = await usePostAuthRedirect().handleBillingRedirect(undefined);
 
@@ -147,9 +152,7 @@ describe('usePostAuthRedirect', () => {
       mockRoute.query = { product: 'identity_plus_v1', interval: 'year' };
       useBootstrapStore().billing_enabled = true;
       const orgStore = useOrganizationStore();
-      vi.mocked(orgStore.restorePersistedSelection).mockReturnValue(
-        orgOf({ extid: 'org_sub1', planid: 'identity_plus_v1' })
-      );
+      seedOrgs(orgStore, { extid: 'org_sub1', planid: 'identity_plus_v1' });
 
       const redirected = await usePostAuthRedirect().handleBillingRedirect(undefined);
 
@@ -247,12 +250,63 @@ describe('usePostAuthRedirect', () => {
       seedBillingQuery();
       useBootstrapStore().billing_enabled = true;
       const orgStore = useOrganizationStore();
-      vi.mocked(orgStore.restorePersistedSelection).mockReturnValue(orgOf(null));
+      seedOrgs(orgStore);
 
       const redirected = await usePostAuthRedirect().handleBillingRedirect(undefined);
 
       expect(redirected).toBe(false);
       expect(routerPushMock).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('which organization the billing redirect targets (#4565)', () => {
+    const personal = { objid: 'o_default', extid: 'org_default', is_default: true };
+    const team = { objid: 'o_team', extid: 'org_team' };
+
+    it('uses the list record of the current (server-seeded) organization', async () => {
+      seedBillingQuery();
+      useBootstrapStore().billing_enabled = true;
+      const orgStore = useOrganizationStore();
+      seedOrgs(orgStore, personal, team);
+      // The bootstrap seed is a minimal record; the list record is the one
+      // that carries the plan, so the lookup goes by objid into the list.
+      orgStore.currentOrganization = { objid: 'o_team', extid: 'org_team' } as Organization;
+
+      await usePostAuthRedirect().handleBillingRedirect(undefined);
+
+      expect(routerPushMock).toHaveBeenCalledWith({
+        path: '/billing/org_team/plans',
+        query: { product: 'identity_plus_v1', interval: 'monthly' },
+      });
+    });
+
+    it('falls back to the default organization when none is current', async () => {
+      seedBillingQuery();
+      useBootstrapStore().billing_enabled = true;
+      const orgStore = useOrganizationStore();
+      seedOrgs(orgStore, team, personal);
+
+      await usePostAuthRedirect().handleBillingRedirect(undefined);
+
+      expect(routerPushMock).toHaveBeenCalledWith({
+        path: '/billing/org_default/plans',
+        query: { product: 'identity_plus_v1', interval: 'monthly' },
+      });
+    });
+
+    it('falls back to the default organization when the current one is not in the list', async () => {
+      seedBillingQuery();
+      useBootstrapStore().billing_enabled = true;
+      const orgStore = useOrganizationStore();
+      seedOrgs(orgStore, team, personal);
+      orgStore.currentOrganization = { objid: 'o_gone', extid: 'org_gone' } as Organization;
+
+      await usePostAuthRedirect().handleBillingRedirect(undefined);
+
+      expect(routerPushMock).toHaveBeenCalledWith({
+        path: '/billing/org_default/plans',
+        query: { product: 'identity_plus_v1', interval: 'monthly' },
+      });
     });
   });
 });
