@@ -21,6 +21,10 @@ RSpec.describe 'Tenant host lookup failure responses', :shared_db_state, type: :
   before do
     expect(Onetime.auth_config.orgs_sso_enabled?).to be(true),
       'Run this spec through tests/lanes/run full-sqlite; tenant SSO must register at boot.'
+    customer = Onetime::Customer.find_by_extid(auth_db[:accounts].where(id: account_id).get(:external_id))
+    Onetime::OrganizationMembership.ensure_membership(
+      test_organization, customer, role: 'member', domain_scope_id: test_custom_domain.objid,
+    )
     Onetime::Application::MiddlewareStack.ip_privacy_security_config
     Onetime::CustomDomain::SigninConfig.create!(
       domain_id: test_custom_domain.identifier,
