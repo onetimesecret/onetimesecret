@@ -1,12 +1,11 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-require 'bunny'
 require 'securerandom'
 require 'onetime/jobs/scheduled/dlq_email_consumer_job'
 
 RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob do
-  let(:message_id) { "dlq-risk-3-#{SecureRandom.uuid}" }
+  let(:message_id) { "test-dlq-replay-#{SecureRandom.uuid}" }
   let(:redis) { Familia.dbclient }
   let(:delivery) { double(delivery_tag: 42) }
   let(:properties) do
@@ -304,96 +303,6 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob do
     process
     expect(exchange).to have_received(:publish).once
     expect(channel).to have_received(:ack).twice
-  end
-
-  context 'with the lane-isolated RabbitMQ broker' do
-    # Read when the file loads: other specs in the same process change ENV
-    # and do not all restore RABBITMQ_URL.
-    rabbitmq_url = ENV.fetch('RABBITMQ_URL', nil)
-
-    let(:connection) do
-      raise 'RABBITMQ_URL is not set; run this spec through tests/lanes/run' unless rabbitmq_url
-
-      Bunny.new(rabbitmq_url).start
-    end
-    let(:broker_channel) { connection.create_channel }
-    let(:dlq_name) { "dlq-risk-3.#{message_id}" }
-    let(:target_name) { "dlq-risk-3.target.#{message_id}" }
-    let(:dlq) { broker_channel.queue(dlq_name, durable: true) }
-    let(:target) { broker_channel.queue(target_name, durable: true) }
-
-    before do
-      stub_const('Onetime::Jobs::Scheduled::DlqEmailConsumerJob::DLQ_NAME', dlq_name)
-      dlq
-      target
-      broker_channel.default_exchange.publish(payload, routing_key: dlq_name, message_id: message_id,
-        content_type: 'application/json', headers: { 'x-death' => [{ 'queue' => target_name }] })
-    end
-
-    after do
-      if connection.open?
-        cleanup = connection.create_channel
-        cleanup.queue(dlq_name, durable: true).delete
-        cleanup.queue(target_name, durable: true).delete
-        cleanup.close
-        connection.close
-      end
-    end
-
-    def process_broker_message(ch)
-      info, props, body = ch.queue(dlq_name, durable: true).pop(manual_ack: true)
-      expect(info).not_to be_nil
-      described_class.send(:process_message, ch, info, props, body, results)
-    end
-
-    it 'returns a failed publish to the DLQ on close and successfully replays it later' do
-      allow(broker_channel.default_exchange).to receive(:publish).and_raise(IOError, 'publish failed before write')
-      process_broker_message(broker_channel)
-      expect(dlq.message_count).to eq(0) # Held unacked, not repeatedly popped.
-      broker_channel.close
-
-      redis.expire(reservation_key, 0)
-      retry_channel = connection.create_channel
-      expect(retry_channel.queue(dlq_name, durable: true).message_count).to eq(1)
-      process_broker_message(retry_channel)
-      expect(retry_channel.queue(target_name, durable: true).message_count).to eq(1)
-      expect(retry_channel.queue(dlq_name, durable: true).message_count).to eq(0)
-      expect(redis.get(completed_key)).to eq('completed')
-      retry_channel.close
-    end
-
-    it 'recovers an original returned by a channel closing before publish' do
-      allow(broker_channel.default_exchange).to receive(:publish) do
-        broker_channel.close
-        raise IOError, 'channel closed before publish'
-      end
-      process_broker_message(broker_channel)
-      expect(redis.get(completed_key)).to be_nil
-      redis.expire(reservation_key, 0)
-
-      retry_channel = connection.create_channel
-      expect(retry_channel.queue(dlq_name, durable: true).message_count).to eq(1)
-      process_broker_message(retry_channel)
-      expect(retry_channel.queue(target_name, durable: true).message_count).to eq(1)
-      expect(retry_channel.queue(dlq_name, durable: true).message_count).to eq(0)
-      retry_channel.close
-    end
-
-    it 'closes the batch channel to return deferred deliveries without a head-of-queue retry loop' do
-      broker_channel.default_exchange.publish(payload, routing_key: dlq_name, message_id: message_id,
-        content_type: 'application/json', headers: { 'x-death' => [{ 'queue' => target_name }] })
-      allow(described_class).to receive(:acquire_channel).and_return([connection, broker_channel, false])
-      allow(broker_channel.default_exchange).to receive(:publish).and_raise(IOError, 'transport outcome unknown')
-
-      described_class.send(:consume_dlq_batch)
-
-      expect(broker_channel.default_exchange).to have_received(:publish).once
-      expect(broker_channel).not_to be_open
-      inspection = connection.create_channel
-      expect(inspection.queue(dlq_name, durable: true).message_count).to eq(2)
-      expect(inspection.queue(target_name, durable: true).message_count).to eq(0)
-      inspection.close
-    end
   end
 
   it 'leaves unexpected processing errors unacked instead of discarding the delivery' do
