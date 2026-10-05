@@ -21,6 +21,10 @@ module Onetime
       # are always replayed since they are auth-critical by definition and
       # their token lifecycle is managed by Rodauth internally.
       #
+      # A replay releases the EmailWorker's idempotency claim on the message
+      # id before it republishes the message, so the worker delivers the
+      # replay instead of acking it as a duplicate (see #replay_message).
+      #
       # Configuration:
       #   jobs:
       #     dlq_consumer:
@@ -32,6 +36,18 @@ module Onetime
       class DlqEmailConsumerJob < ScheduledJob
         DLQ_NAME   = 'dlq.email.message'
         BATCH_SIZE = 50
+
+        # Marks a message id as replayed (KEYS[1]) and, only when this call
+        # set the mark, deletes the email worker's idempotency claim on it
+        # (KEYS[2]). Returns 1 when it set the mark, 0 when the id was
+        # already marked.
+        CLAIM_REPLAY_LUA = <<~LUA
+          if redis.call('SET', KEYS[1], '1', 'NX', 'EX', ARGV[1]) then
+            redis.call('DEL', KEYS[2])
+            return 1
+          end
+          return 0
+        LUA
 
         # Auth templates whose DLQ messages are worth replaying.
         # Maps template name to config for token extraction and deadline lookup.
@@ -92,7 +108,7 @@ module Onetime
             end
 
             to_process = [available, BATCH_SIZE].min
-            results    = { replayed: 0, discarded_non_auth: 0, discarded_expired: 0, errors: 0 }
+            results    = { replayed: 0, discarded_non_auth: 0, discarded_expired: 0, errors: 0, deferred: 0 }
 
             to_process.times do
               delivery_info, properties, payload = queue.pop(manual_ack: true)
@@ -105,10 +121,13 @@ module Onetime
                                   "replayed=#{results[:replayed]} " \
                                   "discarded_non_auth=#{results[:discarded_non_auth]} " \
                                   "discarded_expired=#{results[:discarded_expired]} " \
-                                  "errors=#{results[:errors]}"
+                                  "errors=#{results[:errors]} " \
+                                  "deferred=#{results[:deferred]}"
           rescue Bunny::NotFound
             scheduler_logger.debug "[DlqEmailConsumerJob] Queue #{DLQ_NAME} not declared yet"
           ensure
+            # Closing the channel returns the messages left unacked (deferred
+            # replays) to the DLQ for the next run.
             channel&.close if channel&.open?
             conn&.close if own_connection
           end
@@ -205,14 +224,26 @@ module Onetime
             false # On error, allow replay (err on the side of delivery)
           end
 
+          # Republish a DLQ message to the queue it was dead-lettered from,
+          # once per message id.
+          #
+          # The worker that rejected the message may still hold its
+          # idempotency claim on the id: the worker releases it on the way
+          # to the DLQ, but only best-effort. A replay under a held claim is
+          # acked by the worker as a duplicate and never sent, so the claim
+          # is released here before the message is republished, as the
+          # operator replay (Onetime::Operations::Dlq::Replay) does.
+          #
+          # The claim is released and the id marked as replayed in one
+          # script (#claim_replay). When the datastore call raises, the
+          # message is left unacked; closing the channel at the end of the
+          # batch returns it to the DLQ, and the next run tries again. It is
+          # not nacked with requeue: RabbitMQ can put it back at the head of
+          # the DLQ, where this batch would pop it again. If the script ran
+          # before the error reached the job (a read timeout), the next run
+          # finds the id marked and drops the message as already replayed.
           def replay_message(channel, delivery_info, properties, payload, results)
             message_id = properties.message_id
-
-            # Idempotency: skip if already replayed
-            if message_id && !claim_for_replay(message_id)
-              channel.ack(delivery_info.delivery_tag)
-              return
-            end
 
             original_queue = extract_original_queue(properties.headers)
             unless original_queue
@@ -220,6 +251,23 @@ module Onetime
               channel.nack(delivery_info.delivery_tag, false, false)
               results[:errors] += 1
               return
+            end
+
+            if message_id
+              begin
+                first_replay = claim_replay(message_id)
+              rescue StandardError => ex
+                scheduler_logger.error "[DlqEmailConsumerJob] Replay deferred to the next run: #{ex.class}",
+                  message_id: message_id
+                results[:deferred] += 1
+                return
+              end
+
+              # Idempotency: skip if already replayed
+              unless first_replay
+                channel.ack(delivery_info.delivery_tag)
+                return
+              end
             end
 
             channel.default_exchange.publish(
@@ -235,16 +283,30 @@ module Onetime
             results[:replayed] += 1
           end
 
-          # Idempotency claim via Redis SET NX
-          # @return [Boolean] true if claimed (first time), false if already seen
-          def claim_for_replay(message_id)
-            Familia.dbclient.set(
-              "dlq:replayed:#{message_id}",
-              '1',
-              nx: true,
-              ex: QueueConfig::IDEMPOTENCY_TTL,
-            )
+          # Mark a message id as replayed and release the worker's claim on
+          # it, unless the id is already marked. One script, so only the run
+          # that sets the mark deletes the claim: a run that finds the id
+          # marked, also when an overlapping run marked it a moment earlier,
+          # leaves alone the claim a live copy of the replayed message holds.
+          # A message id with no claim (the worker released it, or it
+          # expired) is a no-op delete.
+          #
+          # @return [Boolean] true if this run is the first to replay it
+          # @raise [StandardError] on a datastore error
+          def claim_replay(message_id)
+            dbclient.eval(
+              CLAIM_REPLAY_LUA,
+              keys: [replay_claim_key(message_id), QueueConfig.processing_claim_key(message_id)],
+              argv: [QueueConfig::IDEMPOTENCY_TTL],
+            ) == 1
           end
+
+          def replay_claim_key(message_id)
+            "dlq:replayed:#{message_id}"
+          end
+
+          # The datastore client. A seam for tests that interleave two runs.
+          def dbclient = Familia.dbclient
 
           def extract_original_queue(headers)
             return nil unless headers

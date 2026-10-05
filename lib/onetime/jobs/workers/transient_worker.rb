@@ -31,18 +31,18 @@ module Onetime
           prefetch: ENV.fetch('TRANSIENT_WORKER_PREFETCH', 5).to_i
 
         def work_with_params(msg, delivery_info, metadata)
-          store_envelope(delivery_info, metadata)
+          envelope = Envelope.new(delivery_info, metadata)
 
-          with_trace_context do
-            data = parse_message(msg)
-            return unless data
+          with_trace_context(envelope) do
+            data = decode_message(msg, envelope)
+            return reject! unless data # not a JSON object or unknown schema (logged): send to DLQ
 
             # Skip idempotency for transient messages - they're fire-and-forget
             action = data[:action]&.to_sym
 
             case action
             when :ping
-              handle_ping(data)
+              handle_ping(data, envelope.message_id)
             else
               log_info "Unknown transient action: #{action}", data: data
             end
@@ -56,7 +56,7 @@ module Onetime
 
         private
 
-        def handle_ping(data)
+        def handle_ping(data, message_id)
           log_info 'Received ping',
             ping_id: data[:ping_id],
             timestamp: data[:timestamp],

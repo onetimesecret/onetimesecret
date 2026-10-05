@@ -40,7 +40,7 @@ module Onetime
   # it when its custom-domain lookup RAISES, so during a datastore blip a
   # real custom domain or platform subdomain arrives here as `:invalid` (see
   # the class doc of {Onetime::Middleware::DomainStrategy}). The two are
-  # told apart by the Onetime::CustomDomainResolution the middleware
+  # told apart by the Onetime::CustomDomain::Lookup the middleware
   # published for the host (#4220): read_failed is the outage, absent is a
   # host we do not serve. When nothing was published for the host (an env
   # the middleware did not build), the request is classified again with the
@@ -204,8 +204,8 @@ module Onetime
         # which says which kind of :invalid this is without reading again: a
         # failed read is an outage, and an absent record means the middleware
         # classified a healthy answer, so the host is one we do not serve.
-        published = env[Onetime::CustomDomainResolution::ENV_KEY]
-        if published.is_a?(Onetime::CustomDomainResolution) && published.host == host
+        published = env[Onetime::CustomDomain::Lookup::ENV_KEY]
+        if published.is_a?(Onetime::CustomDomain::Lookup) && published.host == host
           raise published.error if published.read_failed?
           return nil if published.absent?
         end

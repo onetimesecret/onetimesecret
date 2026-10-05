@@ -38,6 +38,12 @@ class CapturingBackend < Onetime::Mail::Delivery::Base
   def delivery_log_status
     'captured'
   end
+
+  # Captured, not handed to a provider: Base#transmits? is false, so the
+  # message is not counted in emails_sent.
+  def not_transmitted_reason
+    'captured'
+  end
 end
 
 @capturing_backend = CapturingBackend.new
@@ -198,3 +204,13 @@ Onetime::Mail::Mailer.deliver(:secret_link, {
 }, sender_config: @enabled_config)
 @capturing_backend.last_email[:to]
 #=> @recipient
+
+## a captured message is not counted as sent
+before = Onetime::Customer.emails_sent.to_i
+Onetime::Mail::Mailer.deliver(:secret_link, {
+  secret_key: 'counter_test',
+  recipient: @recipient,
+  sender_email: @sender
+}, sender_config: @enabled_config)
+[@capturing_backend.last_email[:to], Onetime::Customer.emails_sent.to_i - before]
+#=> [@recipient, 0]
