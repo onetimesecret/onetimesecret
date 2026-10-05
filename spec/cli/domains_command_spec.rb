@@ -30,6 +30,7 @@ RSpec.describe 'Domains Command', type: :cli do
       trd: nil,
       org_id: 'org123',
       verified: 'true',
+      ownership_verified: 'true',
       verification_state: 'verified',
       resolving: 'false',
       status: 'active',
