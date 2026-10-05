@@ -195,9 +195,16 @@ module Onetime
 
     # nil means unset; an explicit false must never fall back to legacy true.
     # Reads use hydrated values only and never perform DNS or datastore I/O.
-    def ownership_verified
-      @ownership_verified.nil? ? @verified : @ownership_verified
+    #
+    # PREPENDED (not `def ownership_verified` in the class body) because
+    # Familia's method_added guard raises on in-class redefinition of a
+    # field-generated method.
+    OwnershipVerifiedFallback = Module.new do
+      def ownership_verified
+        @ownership_verified.nil? ? @verified : @ownership_verified
+      end
     end
+    prepend OwnershipVerifiedFallback
 
     # Compatibility for callers using the old flag name. All writes now target
     # the canonical field; bare bang reads retain Familia's raw-byte semantics.
