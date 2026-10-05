@@ -14,5 +14,7 @@ Fixed
   id another replay has reserved, whose original queue does not exist, or
   whose processing raises an unexpected error stays in the dead letter
   queue and no longer counts against the batch: the run continues to the
-  messages behind it, passing over at most 500. The batch summary counts
-  these under ``held``.
+  messages behind it. A run is bounded by time (240 seconds) rather than
+  by a count of such messages, and once a run has found a queue missing it
+  holds the other messages for that queue without a publish, so any number
+  of them fit in the budget. The batch summary counts these under ``held``.

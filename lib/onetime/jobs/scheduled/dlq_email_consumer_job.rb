@@ -43,16 +43,23 @@ module Onetime
         DLQ_NAME   = 'dlq.email.message'
         BATCH_SIZE = 50
 
-        # Held messages one run passes over before it stops. A held message
-        # is deferred for a reason that another attempt in the same run
-        # would not change: another replay has reserved its id, it has a
-        # legacy marker, its original queue does not exist, or processing
-        # it raised an unexpected error. It is left unacked and does not
-        # count against BATCH_SIZE, so held messages at the front of the
-        # DLQ do not use up the batch ahead of the messages behind them.
-        # Deferrals after a datastore or publish error do count: each can
-        # cost a timeout.
-        HELD_LIMIT = 500
+        # Seconds a run may spend popping messages, under the 5-minute
+        # schedule. A held message is deferred for a reason that another
+        # attempt in the same run would not change: another replay has
+        # reserved its id, it has a legacy marker, its original queue does
+        # not exist, or processing it raised an unexpected error. It is left
+        # unacked and does not count against BATCH_SIZE, so held messages at
+        # the front of the DLQ do not use up the batch ahead of the messages
+        # behind them. Closing the channel returns them to the front of the
+        # DLQ, so a run that stopped on a count of held messages would meet
+        # the same ones first on every run and never reach the messages
+        # behind them. The run is bounded by time instead: a message held
+        # for a queue this run already found missing costs no broker or
+        # datastore round trip (see #replay_message), so a run passes over
+        # any number of them within the budget. Deferrals after a datastore
+        # or publish error do count against the batch: each can cost a
+        # timeout.
+        RUN_BUDGET = 240
 
         # Ends the batch when a settlement or commit leaves the channel's
         # transaction in an unknown state. Must bypass process_message's
@@ -169,7 +176,7 @@ module Onetime
           end
 
           def consume_dlq_batch
-            results                       = { replayed: 0, discarded_non_auth: 0, discarded_expired: 0, errors: 0, deferred: 0, held: 0, unroutable: 0 }
+            results                       = new_results
             conn, channel, own_connection = acquire_channel
             return unless channel
 
@@ -189,8 +196,9 @@ module Onetime
             # Held messages stay unacked on this channel, so the broker does
             # not hand them out again during the run and the loop reaches the
             # messages behind them.
-            popped = 0
-            while popped < available && popped - results[:held] < BATCH_SIZE && results[:held] < HELD_LIMIT
+            popped   = 0
+            deadline = monotonic_now + RUN_BUDGET
+            while popped < available && popped - results[:held] < BATCH_SIZE && monotonic_now < deadline
               delivery_info, properties, payload = queue.pop(manual_ack: true)
               break unless delivery_info
 
@@ -257,8 +265,19 @@ module Onetime
             conn&.close unless channel
           end
 
+          # Counters for one run, plus the queue names the broker returned a
+          # replay from as unroutable during the run (see #replay_message).
+          def new_results
+            counters = [:replayed, :discarded_non_auth, :discarded_expired, :errors, :deferred, :held, :unroutable]
+            counters.to_h { |name| [name, 0] }.merge(missing_queues: Set.new)
+          end
+
           def batch_counts(results)
-            results.map { |name, count| "#{name}=#{count}" }.join(' ')
+            results.filter_map { |name, count| "#{name}=#{count}" if count.is_a?(Integer) }.join(' ')
+          end
+
+          def monotonic_now
+            Process.clock_gettime(Process::CLOCK_MONOTONIC)
           end
 
           def process_message(channel, delivery_info, properties, payload, results)
@@ -349,7 +368,7 @@ module Onetime
           #    this call. An id marked completed is acked without a publish
           #    (the one-hour replay cap). An id reserved by another owner, or
           #    with a legacy marker, is deferred as held: the batch passes
-          #    over it without counting it (see HELD_LIMIT).
+          #    over it without counting it (see RUN_BUDGET).
           # 2. start_replay: switch the reservation to its publishing form
           #    with the one-hour TTL and release the worker's idempotency
           #    claim, so the worker delivers the replay instead of acking it
@@ -388,7 +407,10 @@ module Onetime
           # - Returned as unroutable (the original queue does not exist): no
           #   copy is live. The reservation is released and the delivery is
           #   left unacked and held, so it is tried again on every run until
-          #   the queue exists or the DLQ's message TTL removes it.
+          #   the queue exists or the DLQ's message TTL removes it. The queue
+          #   name is remembered for the rest of the run, and later messages
+          #   for it are held without a reservation or a publish. A queue
+          #   recreated during a run is tried again on the next run.
           # - Ack, or its commit, fails after the publish is committed: the
           #   copy is live and the delivery returns to the DLQ. The batch
           #   stops. The id is already marked completed, so the next run
@@ -405,6 +427,11 @@ module Onetime
                 message_id: message_id
               discard_message(channel, delivery_info, message_id)
               results[:errors] += 1
+              return
+            end
+
+            if results[:missing_queues].include?(original_queue)
+              hold_unroutable(original_queue, message_id, results, known: true)
               return
             end
 
@@ -476,11 +503,8 @@ module Onetime
 
             if returned
               release_reservation(message_id, owner, include_publishing: true) if message_id
-              results[:unroutable] += 1
-              results[:deferred]   += 1
-              results[:held]       += 1
-              scheduler_logger.error "[DlqEmailConsumerJob] Replay unroutable: no queue named #{original_queue}; left in the DLQ",
-                message_id: message_id
+              results[:missing_queues] << original_queue
+              hold_unroutable(original_queue, message_id, results)
               return
             end
 
@@ -491,6 +515,23 @@ module Onetime
             finalize_replay(message_id, owner, results) if message_id
 
             settle(channel, 'replay acknowledgement', message_id) { channel.ack(delivery_info.delivery_tag) }
+          end
+
+          # Leave a delivery unacked and held because its original queue does
+          # not exist. Closing the channel at the end of the run returns it to
+          # the DLQ. A queue the run already reported missing is logged at
+          # debug level; the batch summary carries the count.
+          def hold_unroutable(original_queue, message_id, results, known: false)
+            results[:unroutable] += 1
+            results[:deferred]   += 1
+            results[:held]       += 1
+
+            message = "[DlqEmailConsumerJob] Replay unroutable: no queue named #{original_queue}; left in the DLQ"
+            if known
+              scheduler_logger.debug message, message_id: message_id
+            else
+              scheduler_logger.error message, message_id: message_id
+            end
           end
 
           # Drop a delivery from the DLQ (nack without requeue).

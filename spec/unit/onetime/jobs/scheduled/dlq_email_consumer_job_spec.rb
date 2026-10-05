@@ -24,6 +24,12 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob do
       double('properties', message_id: 'dlq-message-1', content_type: 'application/json',
         headers: { 'x-death' => [{ 'queue' => 'email.message.send' }], 'x-schema-version' => 1 })
     end
+    # The second message is dead-lettered from another queue, so a run that
+    # found the first queue missing still publishes it.
+    let(:other_properties) do
+      double('properties', message_id: 'dlq-message-2', content_type: 'application/json',
+        headers: { 'x-death' => [{ 'queue' => 'email.message.schedule' }], 'x-schema-version' => 1 })
+    end
     let(:delivery) { double('delivery', delivery_tag: 1) }
     let(:exchange) { double('exchange', publish: nil, on_return: nil) }
     let(:channel) do
@@ -43,7 +49,7 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob do
       allow(described_class).to receive(:acquire_channel).and_return([nil, channel, false])
       allow(channel).to receive(:queue).with(described_class::DLQ_NAME, durable: true, passive: true).and_return(queue)
       allow(queue).to receive(:pop).with(manual_ack: true).and_return(
-        [delivery, properties, payload], [double('delivery2', delivery_tag: 2), properties, payload])
+        [delivery, properties, payload], [double('delivery2', delivery_tag: 2), other_properties, payload])
     end
 
     def run_batch
@@ -257,19 +263,56 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob do
         run_batch
       end
 
-      it 'passes over unroutable replays without counting them against the batch' do
-        return_publish_on_commit(times: 2)
+      it 'passes over unroutable replays without counting them against the batch, ' \
+         'and holds later messages for a queue the run found missing without a reservation or a publish' do
+        # Only the first replay is returned; the second, for the same queue,
+        # is never published.
+        return_publish_on_commit(times: 1)
+        allow(queue).to receive(:pop).with(manual_ack: true).and_return(
+          deliveries[0], deliveries[1], [double('delivery3', delivery_tag: 3), other_properties, payload]
+        )
         expect(queue).to receive(:pop).exactly(3).times
         expect(channel).to receive(:ack).with(3).once
+        expect(channel).not_to receive(:nack)
+        expect(logger).to receive(:error).with(/Replay unroutable: no queue named email\.message\.send/,
+          message_id: 'dlq-message-1').once
+        expect(logger).to receive(:debug).with(/Replay unroutable: no queue named email\.message\.send/,
+          message_id: 'dlq-message-1').once
         expect(logger).to receive(:info).with(/replayed=1 .*deferred=2 held=2 unroutable=2/)
+        run_batch
+        expect(exchange).to have_received(:publish).with(payload, hash_including(routing_key: 'email.message.send')).once
+        expect(exchange).to have_received(:publish).with(payload, hash_including(routing_key: 'email.message.schedule')).once
+        expect(described_class).to have_received(:reserve_replay).with('dlq-message-1', anything).once
+        expect(described_class).to have_received(:reserve_replay).with('dlq-message-2', anything).once
+      end
+
+      it 'reaches a replayable message behind more unroutable messages than the old held limit' do
+        return_publish_on_commit(times: 1)
+        blocked = Array.new(600) { |i| [double("blocked#{i}", delivery_tag: i + 1), properties, payload] }
+        live    = [double('live', delivery_tag: 601), other_properties, payload]
+        allow(queue).to receive(:message_count).and_return(601)
+        allow(queue).to receive(:pop).with(manual_ack: true).and_return(*blocked, live)
+        expect(channel).to receive(:ack).with(601).once
+        expect(logger).to receive(:info).with(/replayed=1 .*deferred=600 held=600 unroutable=600/)
+        run_batch
+        expect(exchange).to have_received(:publish).twice
+      end
+
+      it 'stops popping messages once the run budget is spent' do
+        stub_const("#{described_class.name}::RUN_BUDGET", 0)
+        allow(described_class).to receive(:monotonic_now).and_return(1000.0)
+        allow(described_class).to receive(:reserve_replay).and_return(0)
+        expect(queue).not_to receive(:pop)
+        expect(exchange).not_to receive(:publish)
+        expect(logger).to receive(:info).with(/replayed=0 .*deferred=0 held=0/)
         run_batch
       end
 
-      it 'stops after HELD_LIMIT held messages' do
-        stub_const("#{described_class.name}::HELD_LIMIT", 2)
+      it 'pops the next message while the run budget remains' do
+        clock = [0, 1, 239, 240]
+        allow(described_class).to receive(:monotonic_now) { clock.shift }
         allow(described_class).to receive(:reserve_replay).and_return(0)
         expect(queue).to receive(:pop).twice
-        expect(exchange).not_to receive(:publish)
         expect(logger).to receive(:info).with(/replayed=0 .*deferred=2 held=2/)
         run_batch
       end
@@ -376,7 +419,7 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob do
     let(:payload) { JSON.generate('raw' => true, 'body' => 'test auth email') }
     let(:exchange) { double(publish: nil, on_return: nil) }
     let(:channel) { tx_channel(exchange) }
-    let(:results) { { replayed: 0, discarded_non_auth: 0, discarded_expired: 0, errors: 0, deferred: 0, held: 0, unroutable: 0 } }
+    let(:results) { described_class.send(:new_results) }
     let(:logger) { double(info: nil, warn: nil, error: nil, debug: nil) }
     let(:completed_key) { "dlq:replayed:#{message_id}" }
     let(:reservation_key) { "dlq:replay:reservation:#{message_id}" }
@@ -688,6 +731,8 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob do
       expect(results).to include(replayed: 0, deferred: 1, held: 1, unroutable: 1)
       expect(logger).to have_received(:error).with(/Replay unroutable/, message_id: message_id)
 
+      # The next run starts without the missing-queue memory of this one.
+      results[:missing_queues].clear
       allow(channel).to receive(:tx_commit).and_return(nil)
       process
       expect(exchange).to have_received(:publish).twice
