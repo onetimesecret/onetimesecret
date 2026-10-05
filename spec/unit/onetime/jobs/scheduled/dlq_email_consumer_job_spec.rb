@@ -223,7 +223,7 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob do
     let(:payload) { JSON.generate('raw' => true, 'body' => 'test auth email') }
     let(:exchange) { double(publish: nil) }
     let(:channel) { tx_channel(exchange) }
-    let(:results) { { replayed: 0, discarded_non_auth: 0, discarded_expired: 0, errors: 0, deferred: 0 } }
+    let(:results) { { replayed: 0, discarded_non_auth: 0, discarded_expired: 0, errors: 0, deferred: 0, held: 0 } }
     let(:logger) { double(info: nil, warn: nil, error: nil, debug: nil) }
     let(:completed_key) { "dlq:replayed:#{message_id}" }
     let(:reservation_key) { "dlq:replay:reservation:#{message_id}" }
@@ -545,6 +545,14 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob do
       process
       expect(exchange).to have_received(:publish).once
       expect(channel).to have_received(:ack).twice
+    end
+
+    it 'discards a template message whose data is false instead of deferring it' do
+      template_payload = JSON.generate('template' => 'password_reset', 'data' => false)
+      described_class.send(:process_message, channel, delivery, properties, template_payload, results)
+      expect(channel).to have_received(:nack).with(42, false, false)
+      expect(exchange).not_to have_received(:publish)
+      expect(results).to include(errors: 1, deferred: 0)
     end
 
     it 'leaves unexpected processing errors unacked instead of discarding the delivery' do

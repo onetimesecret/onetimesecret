@@ -17,6 +17,8 @@ Fixed
   message still in the dead letter queue is replayed after up to an hour.
   After upgrading, a message the previous version marked as replayed
   waits until that mark expires (at most an hour) and is then replayed.
+  Messages waiting this way do not count against the batch of 50, so a run
+  continues to the messages behind them (it passes over at most 500).
 
 Changed
 -------
