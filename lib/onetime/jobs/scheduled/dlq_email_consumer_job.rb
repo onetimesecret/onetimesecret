@@ -41,6 +41,13 @@ module Onetime
         DLQ_NAME   = 'dlq.email.message'
         BATCH_SIZE = 50
 
+        # Held replays one run passes over before it stops. A held replay is
+        # one whose id another replay has reserved, or that has a legacy
+        # marker. It is left unacked and does not count against BATCH_SIZE,
+        # so held messages at the front of the DLQ do not use up the batch
+        # ahead of the messages behind them.
+        HELD_LIMIT = 500
+
         # Seconds a replay reservation lasts before publishing starts.
         RESERVATION_TTL = 300
 
@@ -152,13 +159,17 @@ module Onetime
               return
             end
 
-            to_process = [available, BATCH_SIZE].min
-            results    = { replayed: 0, discarded_non_auth: 0, discarded_expired: 0, errors: 0, deferred: 0 }
+            results = { replayed: 0, discarded_non_auth: 0, discarded_expired: 0, errors: 0, deferred: 0, held: 0 }
+            popped  = 0
 
-            to_process.times do
+            # Held replays stay unacked on this channel, so the broker does
+            # not hand them out again during the run and the loop reaches the
+            # messages behind them.
+            while popped < available && popped - results[:held] < BATCH_SIZE && results[:held] < HELD_LIMIT
               delivery_info, properties, payload = queue.pop(manual_ack: true)
               break unless delivery_info
 
+              popped += 1
               process_message(channel, delivery_info, properties, payload, results)
               break unless channel.open?
             end
@@ -168,7 +179,8 @@ module Onetime
                                   "discarded_non_auth=#{results[:discarded_non_auth]} " \
                                   "discarded_expired=#{results[:discarded_expired]} " \
                                   "errors=#{results[:errors]} " \
-                                  "deferred=#{results[:deferred]}"
+                                  "deferred=#{results[:deferred]} " \
+                                  "held=#{results[:held]}"
           rescue Bunny::NotFound
             scheduler_logger.debug "[DlqEmailConsumerJob] Queue #{DLQ_NAME} not declared yet"
           ensure
@@ -282,7 +294,8 @@ module Onetime
           # 1. reserve_replay: take a short reservation on the id, owned by
           #    this call. An id marked completed is acked without a publish
           #    (the one-hour replay cap). An id reserved by another owner, or
-          #    with a legacy marker, is deferred.
+          #    with a legacy marker, is deferred as held: the batch passes
+          #    over it without counting it (see HELD_LIMIT).
           # 2. start_replay: switch the reservation to its publishing form
           #    with the one-hour TTL and release the worker's idempotency
           #    claim, so the worker delivers the replay instead of acking it
@@ -327,7 +340,7 @@ module Onetime
 
               unless reservation == 1 && start_replay(message_id, owner)
                 release_reservation(message_id, owner) if reservation == 1
-                defer_replay(message_id, results, 'reservation or legacy marker held')
+                defer_replay(message_id, results, 'reservation or legacy marker held', held: true)
                 return
               end
             end
@@ -403,8 +416,9 @@ module Onetime
               message_id: message_id
           end
 
-          def defer_replay(message_id, results, reason)
+          def defer_replay(message_id, results, reason, held: false)
             results[:deferred] += 1
+            results[:held]     += 1 if held
             scheduler_logger.warn "[DlqEmailConsumerJob] Replay deferred: #{reason}", message_id: message_id
           end
 

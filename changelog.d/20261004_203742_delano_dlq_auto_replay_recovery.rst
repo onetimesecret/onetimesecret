@@ -16,6 +16,8 @@ Fixed
   replays that message again, and that replay can send the email a second
   time. After upgrading, a message the previous version marked as replayed
   waits until that mark expires (at most an hour) and is then replayed.
+  Messages waiting this way do not count against the batch of 50, so a run
+  continues to the messages behind them (it passes over at most 500).
 
 Changed
 -------

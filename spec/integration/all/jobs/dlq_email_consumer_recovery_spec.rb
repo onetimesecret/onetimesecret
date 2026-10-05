@@ -23,7 +23,7 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
   let(:logger) { double('logger', info: nil, debug: nil, warn: nil, error: nil) }
   let(:redis) { Familia.dbclient }
   let(:payload) { JSON.generate('raw' => true, 'email' => { 'to' => 'test@example.com' }) }
-  let(:results) { { replayed: 0, discarded_non_auth: 0, discarded_expired: 0, errors: 0, deferred: 0 } }
+  let(:results) { { replayed: 0, discarded_non_auth: 0, discarded_expired: 0, errors: 0, deferred: 0, held: 0 } }
   let(:connection) do
     url = ENV.fetch('RABBITMQ_URL')
     uri = URI.parse(url)
@@ -137,6 +137,42 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
     inspection = connection.create_channel
     expect(ready_count(inspection, dlq_name, 2)).to eq(2)
     expect(ready_count(inspection, target_name, 0)).to eq(0)
+    inspection.close
+  end
+
+  it 'passes over a held replay at the front of the DLQ without counting it against the batch' do
+    other_id = "#{message_id}-behind"
+    dead_letter(other_id)
+    redis.set(reservation_key, 'publishing:another-run', ex: 3600)
+    stub_const("#{described_class.name}::BATCH_SIZE", 1)
+    allow(described_class).to receive(:acquire_channel).and_return([connection, broker_channel, false])
+
+    described_class.send(:consume_dlq_batch)
+
+    inspection = connection.create_channel
+    expect(ready_count(inspection, dlq_name, 1)).to eq(1)
+    expect(ready_count(inspection, target_name, 1)).to eq(1)
+    _info, props, _body = inspection.queue(target_name, durable: true).pop
+    expect(props.message_id).to eq(other_id)
+    expect(redis.get(reservation_key)).to eq('publishing:another-run')
+    inspection.close
+  ensure
+    redis.del("dlq:replayed:#{other_id}", "dlq:replay:reservation:#{other_id}",
+      Onetime::Jobs::QueueConfig.processing_claim_key(other_id))
+  end
+
+  it 'stops a run once it has passed over HELD_LIMIT held replays' do
+    dead_letter
+    redis.set(reservation_key, 'publishing:another-run', ex: 3600)
+    stub_const("#{described_class.name}::HELD_LIMIT", 1)
+    allow(described_class).to receive(:acquire_channel).and_return([connection, broker_channel, false])
+    allow(described_class).to receive(:process_message).and_call_original
+
+    described_class.send(:consume_dlq_batch)
+
+    expect(described_class).to have_received(:process_message).once
+    inspection = connection.create_channel
+    expect(ready_count(inspection, dlq_name, 2)).to eq(2)
     inspection.close
   end
 end

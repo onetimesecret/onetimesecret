@@ -15,7 +15,7 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob do
   let(:payload) { JSON.generate('raw' => true, 'body' => 'test auth email') }
   let(:exchange) { double(publish: nil) }
   let(:channel) { double(default_exchange: exchange, ack: nil, nack: nil, open?: true) }
-  let(:results) { { replayed: 0, discarded_non_auth: 0, discarded_expired: 0, errors: 0, deferred: 0 } }
+  let(:results) { { replayed: 0, discarded_non_auth: 0, discarded_expired: 0, errors: 0, deferred: 0, held: 0 } }
   let(:logger) { double(info: nil, warn: nil, error: nil, debug: nil) }
   let(:completed_key) { "dlq:replayed:#{message_id}" }
   let(:reservation_key) { "dlq:replay:reservation:#{message_id}" }

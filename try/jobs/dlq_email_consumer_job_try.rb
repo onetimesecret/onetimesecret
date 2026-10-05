@@ -145,7 +145,7 @@ end
 
 # Helper to build a results hash
 def fresh_results
-  { replayed: 0, discarded_non_auth: 0, discarded_expired: 0, errors: 0, deferred: 0 }
+  { replayed: 0, discarded_non_auth: 0, discarded_expired: 0, errors: 0, deferred: 0, held: 0 }
 end
 
 # Properties of a raw email dead-lettered from the email queue
