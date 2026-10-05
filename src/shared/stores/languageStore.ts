@@ -181,6 +181,11 @@ export const useLanguageStore = defineStore('language', () => {
 
     await setGlobalLocale(validatedLocale); // via i18n
     setCurrentLocale(validatedLocale); // save to session storage
+
+    // Remember who asked. An auth refresh can swap the bootstrap customer
+    // while the request is in flight; the snapshot patch below belongs to the
+    // account that made the request, not to whoever is signed in afterwards.
+    const requester = bootstrapCust.value;
     await $api.post('/api/account/update-locale', { locale: validatedLocale });
 
     // The server now holds the new preference, so the local bootstrap snapshot
@@ -188,8 +193,9 @@ export const useLanguageStore = defineStore('language', () => {
     // bootstrapStore.cust.locale on every protected navigation and nothing
     // refreshes that snapshot on navigation, so a stale value there reverted
     // the user's choice (and overwrote the stored locale) on the next page.
-    if (bootstrapCust.value) {
-      bootstrapStore.update({ cust: { ...bootstrapCust.value, locale: validatedLocale } });
+    const current = bootstrapCust.value;
+    if (requester && current && current.extid === requester.extid) {
+      bootstrapStore.update({ cust: { ...current, locale: validatedLocale } });
     }
     return validatedLocale;
   }

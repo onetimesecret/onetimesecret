@@ -105,6 +105,24 @@ RSpec.describe ColonelAPI::Logic::Colonel::ManageEntitlementOverride do
     end
   end
 
+  context 'when the membership cascade raised before reaching any member' do
+    let(:op_result) do
+      result_with(:partial, memberships: {
+        success: 0, failed: nil, total: nil, failed_ids: [], cascade_error: 'RuntimeError: valkey unreachable',
+      })
+    end
+
+    it 'refuses to answer 200 and names the error instead of "nil of nil"' do
+      expect { run }.to raise_error(OT::FormError) { |ex|
+        expect(ex.message).to include('cascade raised (RuntimeError: valkey unreachable)')
+        expect(ex.message).to include('every member still carries their previous entitlements')
+        expect(ex.message).to include('org reconcile')
+        expect(ex.message).not_to include(' of ')
+        expect(ex.field).to eq(:memberships)
+      }
+    end
+  end
+
   context 'when the op refuses the input' do
     let(:op_result) { result_with(:missing_entitlement) }
 

@@ -172,6 +172,23 @@ describe('Language Store', () => {
       expect(bootstrapStore.cust?.locale).toBe('fr');
     });
 
+    // If an auth refresh swaps the account while the preference request is in
+    // flight, the patch must not land on the account that signed in afterwards.
+    it('does not write the requesting account\'s choice onto a customer who signed in mid-request', async () => {
+      bootstrapStore.update({ cust: { ...mockCustomer, locale: 'en' } });
+      axiosMock?.onPost('/api/account/update-locale').reply(() => {
+        bootstrapStore.update({
+          cust: { ...mockCustomer, objid: 'cust_obj_other', extid: 'cust_ext_other', locale: 'de' },
+        });
+        return [200, {}];
+      });
+
+      await store.updateLanguage('fr');
+
+      expect(bootstrapStore.cust?.extid).toBe('cust_ext_other');
+      expect(bootstrapStore.cust?.locale).toBe('de');
+    });
+
     it('does not invent a customer when the visitor is anonymous', async () => {
       bootstrapStore.update({ cust: null });
       axiosMock?.onPost('/api/account/update-locale').reply(200, {});

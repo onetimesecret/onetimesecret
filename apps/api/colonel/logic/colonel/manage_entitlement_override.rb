@@ -174,12 +174,23 @@ module ColonelAPI
           when Onetime::Operations::Org::EntitlementOverride::PARTIAL_STATUS
             cascade = result.memberships || {}
             raise_form_error(
-              "Override applied, but #{cascade[:failed]} of #{cascade[:total]} memberships could not be " \
-              're-materialized and still carry their previous entitlements; ' \
+              "Override applied, but #{partial_cascade_summary(cascade)}; " \
               'run `bin/ots org reconcile` to retry the cascade',
               field: :memberships,
               details: { memberships: cascade },
             )
+          end
+        end
+
+        # Two shapes of :partial — some members failed, or the cascade itself
+        # raised before reaching anyone (counts unknown).
+        def partial_cascade_summary(cascade)
+          if cascade[:cascade_error]
+            "the membership cascade raised (#{cascade[:cascade_error]}) and every member " \
+              'still carries their previous entitlements'
+          else
+            "#{cascade[:failed]} of #{cascade[:total]} memberships could not be " \
+              're-materialized and still carry their previous entitlements'
           end
         end
 

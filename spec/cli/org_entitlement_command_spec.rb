@@ -202,6 +202,22 @@ RSpec.describe 'Org Entitlement Command', type: :cli do
       expect(output[:stdout]).to include('bin/ots org reconcile on_org_ext --yes')
     end
 
+    it 'exits 1 and says nobody was reached when the cascade itself raised' do
+      allow(operation).to receive(:call).and_return(
+        result.with(
+          status: :partial,
+          memberships: { success: 0, failed: nil, total: nil, failed_ids: [], cascade_error: 'RuntimeError: valkey unreachable' },
+        ),
+      )
+
+      output = run_cli_command_quietly('org', 'entitlement', 'grant', 'on_org_ext', 'custom_branding', '--yes')
+
+      expect(last_exit_code).to eq(1)
+      expect(output[:stdout]).to include('the cascade raised (RuntimeError: valkey unreachable)')
+      expect(output[:stdout]).to include('Every member is still on their previous entitlements')
+      expect(output[:stdout]).to include('bin/ots org reconcile on_org_ext --yes')
+    end
+
     it 'exits 1 on a partial cascade in --json mode too' do
       allow(operation).to receive(:call).and_return(
         result.with(status: :partial, memberships: { success: 1, failed: 1, total: 2, failed_ids: ['mem_stale'] }),

@@ -273,29 +273,48 @@ module Onetime
             bypass_cache: bypass_cache
 
           require 'onetime/operations/validate_sender_domain'
+          require 'onetime/operations/check_provider_verification'
           require 'onetime/models/custom_domain/mailer_config'
+          require 'onetime/jobs/workers/job_lifecycle'
 
           mailer_config = Onetime::CustomDomain::MailerConfig.find_by_domain_id(domain_id)
           if mailer_config
-            Onetime::Operations::ValidateSenderDomain.new(
+            # Same steps as DomainValidationWorker, inline. persist: false for
+            # the same reason the worker passes it: verification_status is
+            # derived by update_verification_status! once BOTH checks are
+            # terminal, never written from DNS alone ahead of the provider
+            # check. (This fallback used to persist 'verified' from DNS and
+            # then close the provider check with provider_verified unknown.)
+            result = Onetime::Operations::ValidateSenderDomain.new(
               mailer_config: mailer_config,
-              persist: true,
+              persist: false,
               bypass_cache: bypass_cache,
             ).call
 
-            # ValidateSenderConfig queued a provider check
-            # (provider_check_status = queued) that no worker runs on a
-            # jobs-disabled install, which left jobs_in_progress? true and
-            # computed_verification_status 'pending' indefinitely. Close it
-            # the way DomainValidationWorker's could-not-determine branch
-            # does: completed, provider_verified left unknown. The
-            # user-facing verification_status was already written above
-            # (persist: true).
-            require 'onetime/jobs/workers/job_lifecycle'
-            mailer_config.provider_check_status       = Onetime::Jobs::Workers::JobLifecycle::COMPLETED
-            mailer_config.provider_check_completed_at = Familia.now.to_i
-            mailer_config.updated                     = Familia.now.to_i
-            mailer_config.save_fields(:provider_check_status, :provider_check_completed_at, :updated)
+            if result.error
+              # The worker retries, then fails the job to the DLQ. Inline there
+              # is nothing to retry into: close the job as failed so the status
+              # can settle instead of staying 'pending' forever.
+              mailer_config.provider_check_status       = Onetime::Jobs::Workers::JobLifecycle::FAILED
+              mailer_config.provider_check_completed_at = Familia.now.to_i
+              mailer_config.last_error                  = result.error.to_s
+              mailer_config.updated                     = Familia.now.to_i
+              mailer_config.save_fields(:provider_check_status, :provider_check_completed_at, :last_error, :updated)
+            else
+              Onetime::Operations::CheckProviderVerification.new(
+                mailer_config: mailer_config,
+                dns_all_verified: result.all_verified,
+                domain_id: domain_id,
+                logger: logger,
+              ).call
+            end
+
+            # Worker's closing step: the DNS record check ran inline just
+            # before this on the Verify Now path, so both checks are usually
+            # terminal here and the user-facing status is derived from the two
+            # outcomes rather than from DNS alone.
+            mailer_config.refresh!
+            mailer_config.update_verification_status! if mailer_config.jobs_completed?
           end
 
           return true
