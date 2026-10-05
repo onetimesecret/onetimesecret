@@ -145,30 +145,41 @@ module Onetime
           ensure
             # Closing the channel returns the messages left unacked (deferred
             # replays) to the DLQ for the next run.
-            channel&.close if channel&.open?
-            conn&.close if own_connection
+            begin
+              # Bunny's channel-close handshake can initiate recovery on a
+              # closed transport even with automatically_recover disabled.
+              channel&.close if channel&.open? && (!own_connection || conn&.open?)
+            ensure
+              conn&.close if own_connection
+            end
           end
 
-          # Use the shared RabbitMQ connection ($rmq_conn) to create a dedicated
-          # channel. A dedicated channel (not from $rmq_channel_pool) is used
-          # because passive queue declarations and manual_ack operations can
-          # trigger channel-level exceptions that would corrupt a pooled channel.
-          # Falls back to a standalone connection if the shared one is unavailable.
+          # A batch must stay on one broker connection: after automatic recovery,
+          # Bunny silently skips acknowledgements of pre-recovery delivery tags.
+          # Use an owned, non-recovering connection instead of the shared publisher
+          # connection so a disconnect fails the batch rather than reporting a
+          # replay whose DLQ delivery was never acknowledged. The next scheduled
+          # run opens a fresh connection; shared publisher recovery is unchanged.
           #
           # @return [Array(Bunny::Session, Bunny::Channel, Boolean)]
           #   connection, channel, and whether we own the connection (must close it)
           def acquire_channel
-            if $rmq_conn&.open?
-              [$rmq_conn, $rmq_conn.create_channel, false]
-            else
-              url  = OT.conf.dig('jobs', 'rabbitmq_url')
-              conn = Bunny.new(url)
-              conn.start
-              [conn, conn.create_channel, true]
-            end
+            url     = OT.conf.dig('jobs', 'rabbitmq_url')
+            options = {
+              automatically_recover: false,
+              recover_from_connection_close: false,
+              continuation_timeout: 15_000,
+              logger: Onetime.get_logger('Bunny'),
+            }.merge(QueueConfig.tls_options(url))
+            conn    = Bunny.new(url, **options)
+            conn.start
+            channel = conn.create_channel
+            [conn, channel, true]
           rescue Bunny::TCPConnectionFailed, Bunny::ConnectionTimeout => ex
             scheduler_logger.error "[DlqEmailConsumerJob] Connection failed: #{ex.message}"
             [nil, nil, false]
+          ensure
+            conn&.close unless channel
           end
 
           def batch_counts(results)
