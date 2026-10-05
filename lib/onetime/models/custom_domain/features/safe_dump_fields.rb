@@ -66,9 +66,9 @@ module Onetime::CustomDomain::Features
       base.safe_dump_field :vhost_fetch_failed_at, ->(obj) { obj.vhost_fetch_failed_at&.to_i }
       # Native fields are real booleans; `!!` only maps nil (undetermined) to
       # false for the API's plain-boolean contract.
-      base.safe_dump_field :ownership_verified, ->(obj) { !!obj.ownership_verified }
+      base.safe_dump_field :ownership_verified, ->(obj) { !!obj.ownership_verified } # boolean_field native
       # Legacy API alias; this is ownership alone, not the derived lifecycle.
-      base.safe_dump_field :verified, ->(obj) { !!obj.ownership_verified }
+      base.safe_dump_field :verified, ->(obj) { !!obj.ownership_verified } # boolean_field native
       base.safe_dump_field :resolving, ->(obj) { !!obj.resolving } # boolean_field native
       base.safe_dump_field :created
       base.safe_dump_field :updated
