@@ -93,7 +93,7 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob do
       expect(logger).to receive(:error).with(
         /Replay unroutable: no queue named email\.message\.send; left in the DLQ/, message_id: 'dlq-message-1'
       )
-      expect(logger).to receive(:info).with(/replayed=1.*deferred=1 unroutable=1/)
+      expect(logger).to receive(:info).with(/replayed=1.*deferred=1 held=1 unroutable=1/)
       run_batch
     end
 
@@ -198,13 +198,101 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob do
       end
     end
 
-    it 'commits the missing-route discard in transaction mode' do
-      allow(properties).to receive(:headers).and_return(nil)
-      allow(queue).to receive(:message_count).and_return(1)
-      expect(channel).to receive(:nack).with(1, false, false).ordered
-      expect(channel).to receive(:tx_commit).ordered
-      expect(exchange).not_to receive(:publish)
-      run_batch
+    {
+      'no headers' => nil,
+      'no x-death header' => { 'x-schema-version' => 1 },
+      'an empty x-death array' => { 'x-death' => [] },
+      'an x-death entry that is not a table' => { 'x-death' => ['invalid'] },
+      'an x-death header that is not an array' => { 'x-death' => 'invalid' },
+      'an x-death table in place of the array' => { 'x-death' => { 'queue' => 'email.message.send' } },
+      'an x-death entry without a queue' => { 'x-death' => [{ 'reason' => 'rejected' }] },
+      'an empty queue name' => { 'x-death' => [{ 'queue' => '' }] },
+      'a queue name that is not a string' => { 'x-death' => [{ 'queue' => 7 }] },
+    }.each do |name, headers|
+      it "commits the missing-route discard for #{name}" do
+        allow(properties).to receive(:headers).and_return(headers)
+        allow(queue).to receive(:message_count).and_return(1)
+        expect(channel).to receive(:nack).with(1, false, false).ordered
+        expect(channel).to receive(:tx_commit).ordered
+        expect(exchange).not_to receive(:publish)
+        expect(described_class).not_to receive(:reserve_replay)
+        expect(logger).to receive(:error).with(/No original queue in x-death headers; discarded/,
+          message_id: 'dlq-message-1')
+        expect(logger).to receive(:info).with(/errors=1 deferred=0 held=0/)
+        run_batch
+      end
+    end
+
+    describe 'held messages' do
+      let(:deliveries) { (1..4).map { |tag| [double("delivery#{tag}", delivery_tag: tag), properties, payload] } }
+
+      before do
+        stub_const("#{described_class.name}::BATCH_SIZE", 1)
+        allow(queue).to receive(:message_count).and_return(deliveries.size)
+        allow(queue).to receive(:pop).with(manual_ack: true).and_return(*deliveries)
+      end
+
+      it 'passes over reserved ids without counting them against the batch' do
+        allow(described_class).to receive(:reserve_replay).and_return(0, 0, 1)
+        expect(queue).to receive(:pop).exactly(3).times
+        expect(exchange).to receive(:publish).once
+        expect(channel).to receive(:ack).with(3).once
+        expect(channel).not_to receive(:nack)
+        expect(logger).to receive(:info).with(/replayed=1 .*deferred=2 held=2/)
+        run_batch
+      end
+
+      it 'passes over unexpected processing errors without counting them against the batch' do
+        calls = 0
+        allow(described_class).to receive(:replay_message).and_wrap_original do |replay, *args|
+          calls += 1
+          raise NoMethodError, 'unexpected failure' if calls < 3
+
+          replay.call(*args)
+        end
+        expect(queue).to receive(:pop).exactly(3).times
+        expect(channel).to receive(:ack).with(3).once
+        expect(channel).not_to receive(:nack)
+        expect(logger).to receive(:info).with(/replayed=1 .*errors=2 deferred=2 held=2/)
+        run_batch
+      end
+
+      it 'passes over unroutable replays without counting them against the batch' do
+        return_publish_on_commit(times: 2)
+        expect(queue).to receive(:pop).exactly(3).times
+        expect(channel).to receive(:ack).with(3).once
+        expect(logger).to receive(:info).with(/replayed=1 .*deferred=2 held=2 unroutable=2/)
+        run_batch
+      end
+
+      it 'stops after HELD_LIMIT held messages' do
+        stub_const("#{described_class.name}::HELD_LIMIT", 2)
+        allow(described_class).to receive(:reserve_replay).and_return(0)
+        expect(queue).to receive(:pop).twice
+        expect(exchange).not_to receive(:publish)
+        expect(logger).to receive(:info).with(/replayed=0 .*deferred=2 held=2/)
+        run_batch
+      end
+
+      it 'does not pop more messages than the DLQ held when the run started' do
+        allow(described_class).to receive(:reserve_replay).and_return(0)
+        expect(queue).to receive(:pop).exactly(4).times
+        run_batch
+      end
+
+      it 'counts a deferral after a datastore error against the batch' do
+        allow(described_class).to receive(:reserve_replay).and_raise(Redis::TimeoutError, 'datastore unavailable')
+        expect(queue).to receive(:pop).once
+        expect(logger).to receive(:info).with(/deferred=1 held=0/)
+        run_batch
+      end
+
+      it 'counts a deferral after a publish error against the batch' do
+        allow(exchange).to receive(:publish).and_raise(IOError, 'publish interrupted')
+        expect(queue).to receive(:pop).once
+        expect(logger).to receive(:info).with(/deferred=1 held=0/)
+        run_batch
+      end
     end
 
     it 'commits the duplicate ack without republishing' do
@@ -288,7 +376,7 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob do
     let(:payload) { JSON.generate('raw' => true, 'body' => 'test auth email') }
     let(:exchange) { double(publish: nil, on_return: nil) }
     let(:channel) { tx_channel(exchange) }
-    let(:results) { { replayed: 0, discarded_non_auth: 0, discarded_expired: 0, errors: 0, deferred: 0, unroutable: 0 } }
+    let(:results) { { replayed: 0, discarded_non_auth: 0, discarded_expired: 0, errors: 0, deferred: 0, held: 0, unroutable: 0 } }
     let(:logger) { double(info: nil, warn: nil, error: nil, debug: nil) }
     let(:completed_key) { "dlq:replayed:#{message_id}" }
     let(:reservation_key) { "dlq:replay:reservation:#{message_id}" }
@@ -597,7 +685,7 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob do
       expect(channel).not_to have_received(:tx_rollback)
       expect(redis.get(completed_key)).to be_nil
       expect(redis.get(reservation_key)).to be_nil
-      expect(results).to include(replayed: 0, deferred: 1, unroutable: 1)
+      expect(results).to include(replayed: 0, deferred: 1, held: 1, unroutable: 1)
       expect(logger).to have_received(:error).with(/Replay unroutable/, message_id: message_id)
 
       allow(channel).to receive(:tx_commit).and_return(nil)
@@ -648,8 +736,7 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob do
       process
       expect(channel).not_to have_received(:ack)
       expect(channel).not_to have_received(:nack)
-      expect(results[:errors]).to eq(1)
-      expect(results[:deferred]).to eq(1)
+      expect(results).to include(errors: 1, deferred: 1, held: 1)
     end
   end
 end
