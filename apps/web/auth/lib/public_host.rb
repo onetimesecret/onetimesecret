@@ -305,7 +305,7 @@ module Auth
       external_id = (account[:external_id] || account['external_id']).to_s
       return nil if external_id.empty?
 
-      domain       = Onetime::CustomDomainResolution.for_host(env, host).record!
+      domain       = Onetime::CustomDomain::Lookup.for_host(env, host).record!
       organization = domain.primary_organization
       customer     = Onetime::Customer.find_by_extid(external_id)
       return nil unless organization && customer
