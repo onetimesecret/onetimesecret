@@ -8,7 +8,15 @@ require 'onetime/jobs/scheduled/dlq_email_consumer_job'
 
 RSpec.describe 'DLQ email consumer connection failure', :rabbitmq, type: :integration do
   let(:job) { Onetime::Jobs::Scheduled::DlqEmailConsumerJob }
-  let(:url) { ENV.fetch('RABBITMQ_URL') }
+  let(:url) do
+    url = ENV.fetch('RABBITMQ_URL')
+    uri = URI.parse(url)
+    unless uri.host == '127.0.0.1' && uri.port == 2156
+      raise "Refusing to run against #{uri.host}:#{uri.port}; expected the lane test broker on 127.0.0.1:2156"
+    end
+
+    url
+  end
   let(:logger) { instance_double(SemanticLogger::Logger, debug: nil, info: nil, warn: nil, error: nil) }
   let(:suffix) { SecureRandom.hex(6) }
   let(:dlq_name) { "test.dlq.email.reconnect.#{suffix}" }
@@ -65,7 +73,7 @@ RSpec.describe 'DLQ email consumer connection failure', :rabbitmq, type: :integr
     observer.close
   end
 
-  it 'fails visibly on a disconnect during the token lookup and retries on a fresh connection next run' do
+  it 'stops the batch on a disconnect during the token lookup and retries on a fresh connection next run' do
     allow(job).to receive(:token_expired?) do
       recovery_count = @batch_channel.recoveries_counter.get
       @batch_connection.transport.socket.close
@@ -82,7 +90,11 @@ RSpec.describe 'DLQ email consumer connection failure', :rabbitmq, type: :integr
       false
     end
 
-    expect { job.send(:consume_dlq_batch) }.to raise_error(StandardError)
+    # The failed publish and rollback end the batch as a logged stop
+    # (BatchStopped), not as a raised error.
+    job.send(:consume_dlq_batch)
+
+    expect(logger).to have_received(:error).with(/batch stopped/i, anything)
     expect(logger).not_to have_received(:info).with(/Batch complete/)
     expect(target.message_count).to eq(0)
     Timeout.timeout(5) { sleep 0.01 until dlq.message_count == 1 }
