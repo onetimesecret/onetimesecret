@@ -50,7 +50,7 @@
       currentImage: null,
       hint: '',
       removeLabel: '',
-      accept: 'image/*',
+      accept: 'image/jpeg,image/png,image/gif,image/webp,image/bmp,image/tiff',
       maxSizeBytes: DEFAULT_MAX_BYTES,
       onRemove: undefined,
     }
