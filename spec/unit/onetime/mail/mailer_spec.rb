@@ -84,6 +84,32 @@ RSpec.describe Onetime::Mail::Mailer do
   # verified.
   # ==========================================================================
 
+  describe '.backend_provider' do
+    before { allow(described_class).to receive(:emailer_config).and_return('mode' => mode) }
+
+    %w[smtp ses logger disabled none].each do |name|
+      context "with mode #{name}" do
+        let(:mode) { name }
+
+        it 'is the configured transport' do
+          expect(described_class.backend_provider).to eq(name)
+        end
+      end
+    end
+
+    context 'with a mode that names no transport' do
+      let(:mode) { 'carrier-pigeon' }
+
+      it "is 'logger', the backend the mailer falls back to" do
+        allow_any_instance_of(Onetime::Mail::Delivery::Logger).to receive(:puts)
+
+        expect(described_class.backend_provider).to eq('logger')
+        expect(described_class.determine_provider).to eq('carrier-pigeon')
+        expect(described_class.delivery_backend).to be_a(Onetime::Mail::Delivery::Logger)
+      end
+    end
+  end
+
   describe 'sender_config support' do
     let(:global_from) { 'global@example.com' }
     let(:global_reply_to) { nil }

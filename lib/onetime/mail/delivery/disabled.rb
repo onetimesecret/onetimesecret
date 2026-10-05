@@ -26,6 +26,16 @@ module Onetime
           'skipped'
         end
 
+        # Marks the backend as one that does not transmit, which keeps it
+        # out of the emails_sent counter. The code itself is not reported:
+        # perform_delivery returns nil, so Base#deliver returns nil and
+        # callers see "nothing dispatched", the same as a suppressed
+        # recipient. Callers that need a mailbox to be reachable rely on
+        # that nil.
+        def not_transmitted_reason
+          'disabled'
+        end
+
         private
 
         def validate_config!

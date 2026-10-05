@@ -21,6 +21,16 @@ module Onetime
       #     html_body: "<html>...</html>"    # optional
       #   }
       #
+      # What Base#deliver returns when the backend handled the message
+      # without handing it to a mail provider (see Base#transmits?). It is
+      # deliberately not nil: nil means nothing was done with the message at
+      # all, and callers that need a mailbox to have been reachable refuse on
+      # nil. A log-only delivery in development must not trip that refusal.
+      #
+      #   reason   - reason code, the backend's not_transmitted_reason
+      #   response - whatever the backend's perform_delivery returned
+      NotTransmitted = Data.define(:reason, :response)
+
       class Base
         attr_reader :config
 
@@ -48,8 +58,11 @@ module Onetime
         # Deliver an email message with unified error handling.
         # Subclasses implement perform_delivery and classify_error.
         # @param email [Hash] Email parameters (to, from, subject, text_body, html_body)
-        # @return [Object] Provider-specific response, or nil when the recipient
-        #   is on the suppression list (send skipped, nothing dispatched)
+        # @return [Object, NotTransmitted, nil] Provider-specific response when
+        #   a provider accepted the message. nil when nothing was done with it
+        #   (suppressed recipient, or the Disabled backend, whose
+        #   perform_delivery returns nil). NotTransmitted when a backend that
+        #   does not transmit still handled it (Logger).
         def deliver(email)
           email = normalize_email(email)
 
@@ -63,6 +76,8 @@ module Onetime
 
           result = perform_delivery(email)
           log_delivery(email, delivery_log_status)
+          return not_transmitted(result) unless transmits?
+
           record_sent_metric
           result
         rescue Onetime::Mail::DeliveryError
@@ -102,6 +117,27 @@ module Onetime
           'sent'
         end
 
+        # Subclass hook: the reason code for a backend that does not hand
+        # messages to a mail provider (Logger, Disabled). nil, the default,
+        # means the backend transmits.
+        #
+        # This is the one place a backend says so. The emails_sent counter and
+        # the value #deliver returns both derive from it, so a caller recording
+        # the outcome (EmailWorker) cannot count a message as sent that the
+        # counter did not. The code reaches callers only through
+        # NotTransmitted, so only when perform_delivery returned a response
+        # (see #not_transmitted).
+        # @return [String, nil]
+        def not_transmitted_reason
+          nil
+        end
+
+        # @return [Boolean] whether a successful perform_delivery means a mail
+        #   provider accepted the message
+        def transmits?
+          not_transmitted_reason.nil?
+        end
+
         # Provider name for logging
         # @return [String]
         def provider_name
@@ -115,15 +151,14 @@ module Onetime
         #
         # This is the single point every backend's successful send converges on,
         # so the counter is incremented exactly once per delivered email. Only real
-        # provider sends count: the Disabled backend reports 'skipped' and the
-        # Logger backend reports 'logged' — neither emits an actual email, so they
-        # must not inflate the metric.
+        # provider sends count: the Disabled and Logger backends do not transmit
+        # (see #transmits?), so they must not inflate the metric.
         #
         # A metrics write must never disrupt mail delivery, so the increment is
         # guarded (Onetime::Customer may be absent in isolated mailer tests) and
         # any error is swallowed.
         def record_sent_metric
-          return unless delivery_log_status == 'sent'
+          return unless transmits?
           return unless defined?(Onetime::Customer)
 
           Onetime::Customer.emails_sent.increment
@@ -132,6 +167,14 @@ module Onetime
             OT.le "[mail] emails_sent counter increment failed: #{ex.message}"
           end
           nil
+        end
+
+        # The #deliver return value for a backend that does not transmit. A nil
+        # response stays nil: the backend did nothing with the message.
+        def not_transmitted(response)
+          return nil if response.nil?
+
+          NotTransmitted.new(reason: not_transmitted_reason, response: response)
         end
 
         # The suppression-list check guarding every send (the deliverability
