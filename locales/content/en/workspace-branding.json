@@ -136,8 +136,8 @@
     "content_hash": "5260dda5"
   },
   "web.branding.logo_modal_hint": {
-    "text": "PNG, JPG or SVG. Recommended 128x128px, up to 1MB.",
-    "content_hash": "75d00802"
+    "text": "PNG or JPG. Recommended 128x128px, up to 1MB.",
+    "content_hash": "0a8f287c"
   },
   "web.branding.logo_modal_save": {
     "text": "Save logo",
@@ -180,8 +180,8 @@
     "content_hash": "03693698"
   },
   "web.branding.favicon_field_hint": {
-    "text": "ICO, PNG or SVG. Uploading replaces the fetched icon.",
-    "content_hash": "dfa0bfcb"
+    "text": "ICO or PNG. Uploading replaces the fetched icon.",
+    "content_hash": "08086ced"
   },
   "web.branding.favicon_preview_alt": {
     "text": "Domain favicon",
@@ -192,8 +192,8 @@
     "content_hash": "db7dca40"
   },
   "web.branding.favicon_modal_hint": {
-    "text": "ICO, PNG or SVG. Up to 256KB. Replaces the auto-fetched icon.",
-    "content_hash": "c9eafc83"
+    "text": "ICO or PNG. Up to 256KB. Replaces the auto-fetched icon.",
+    "content_hash": "1cfc01a3"
   },
   "web.branding.favicon_modal_save": {
     "text": "Save favicon",

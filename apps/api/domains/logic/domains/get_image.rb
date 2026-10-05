@@ -2,7 +2,10 @@
 #
 # frozen_string_literal: true
 
+require 'base64'
+
 require_relative '../base'
+require 'onetime/image_content'
 
 module DomainsAPI::Logic
   module Domains
@@ -37,7 +40,7 @@ module DomainsAPI::Logic
         @image_type    = %w[logo icon].include?(tmp_image_type) ? tmp_image_type : nil
 
         # We capture the file extension for the image but we just log
-        # it. The response content type is determined by the stored value.
+        # it. The response content type is determined from the stored bytes.
         @image_ext = sanitize_identifier(params['image_ext'])
 
         OT.ld "[GetImage] domain_id=#{custom_domain_id} type=#{image_type} ext=#{image_ext}"
@@ -66,8 +69,17 @@ module DomainsAPI::Logic
 
       def process
         # Decode the base64 content back to binary
-        @image_data     = Base64.strict_decode64(encoded_content)
-        @content_length = @image_data&.bytesize.to_s || '0'
+        begin
+          @image_data = Base64.strict_decode64(encoded_content)
+        rescue ArgumentError
+          raise_not_found 'Invalid image content'
+        end
+
+        # Legacy uploads also pass through this gate: SVG/XML and unknown
+        # formats must never be served inline, even with a forged stored MIME.
+        @content_type   = Onetime::ImageContent.content_type(@image_data)
+        raise_not_found 'Invalid image content' unless @content_type
+        @content_length = @image_data.bytesize.to_s
 
         success_data
       end
