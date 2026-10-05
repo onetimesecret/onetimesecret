@@ -85,7 +85,7 @@ module Onetime
         payload = {}
 
         payload[:method]     = request.request_method if capture?(:method)
-        payload[:path]       = request.path if capture?(:path)
+        payload[:path]       = redacted_path(request) if capture?(:path)
         payload[:status]     = status if capture?(:status)
         payload[:request_id] = request.env['HTTP_X_REQUEST_ID'] if capture?(:request_id)
         payload[:ip]         = request.ip if capture?(:ip)
@@ -120,6 +120,47 @@ module Onetime
         payload[:duration_ms] = duration_μs / 1000.0 if capture?(:duration_ms)
 
         payload
+      end
+
+      # Capability URLs are credentials. Classify the combined mount/path
+      # after decoding so encoded route names and separators cannot bypass
+      # redaction. Keep only known action suffixes after the capability.
+      def redacted_path(request)
+        original = request.path
+        decoded  = original
+        3.times do
+          next_path = Rack::Utils.unescape_path(decoded)
+          break if next_path == decoded
+
+          decoded = next_path
+        end
+        segments = decoded.split('/', -1)
+        index    = segments.index { |segment| %w[secret receipt private metadata l].include?(segment) }
+        return original unless index && segments.length > index + 1
+
+        return original if static_capability_action?(segments, index, request)
+
+        segments.each_index do |position|
+          next if position <= index || segments[position].empty?
+          next if position == segments.length - 1 && position > index + 1 && %w[burn reveal status].include?(segments[position])
+
+          segments[position] = '[REDACTED]'
+        end
+        segments.join('/')
+      rescue ArgumentError, EncodingError
+        '[REDACTED]'
+      end
+
+      def static_capability_action?(segments, index, request)
+        return false unless segments.length == index + 2
+        return false unless segments[0...index].each_cons(2).any? { |left, right| left == 'api' && %w[v1 v2 v3].include?(right) }
+
+        route, action = segments[index, 2]
+        if route == 'secret'
+          %w[POST OPTIONS].include?(request.request_method) && %w[conceal generate status].include?(action)
+        else
+          %w[receipt private metadata].include?(route) && request.get? && action == 'recent'
+        end
       end
 
       def capture?(field)
