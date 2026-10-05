@@ -82,7 +82,11 @@ RSpec.describe 'DLQ email consumer connection failure', :rabbitmq, type: :integr
   it 'stops the batch on a disconnect during the token lookup and retries on a fresh connection next run' do
     allow(job).to receive(:token_expired?) do
       recovery_count = @batch_channel.recoveries_counter.get
-      @batch_connection.transport.socket.close
+      # shutdown first: closing the descriptor alone does not wake the
+      # reader thread's blocked read on Linux.
+      socket = @batch_connection.transport.socket
+      socket.shutdown
+      socket.close
 
       Timeout.timeout(10) do
         if @batch_connection.automatically_recover?
