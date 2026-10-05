@@ -21,22 +21,27 @@ require_relative '../middleware/domain_strategy'
 # 6. Return nil (lazy creation happens later in auth_org)
 #
 # Domain scope:
-# Every selection above (header, cache hit, session, domain, fallbacks) is
-# subject to the membership's domain scope when the request has a custom
-# domain. See #scope_permits? for where the request's domains come from.
-# When the scope leaves no organization, the context carries
-# domain_scope_refused: true and auth_org does not select one either.
+# Every selection above (header, session, domain, fallbacks) is subject to
+# the membership's domain scope when the request has a custom domain. See
+# #scope_permits? for where the request's domains come from. When the scope
+# leaves no organization, the context carries domain_scope_refused: true
+# and auth_org does not select one either.
 #
-# Performance:
-# - Positive results cached in session for 5 minutes
-# - Negative results (nil org) are NOT cached, allowing immediate retry
-# - Cache invalidated on explicit organization switch
-# - The cache entry is written with symbol keys and the session blob is
-#   JSON (Onetime::SessionCodec), so an entry read back on a LATER request
-#   has string keys and the symbol-key reads below miss it. In practice
-#   the entry is hit only by a second load in the request that wrote it
-#   (Sessions::TrackMetadata at commit). Pinned in
-#   spec/unit/organization_loader_cache_scope_spec.rb; left as it is here.
+# Explicit selection (#4565):
+# session['organization_id'] is the server's record of the workspace the
+# user picked. It is written only by #select_organization (reached through
+# POST /api/account/update-organization-context), which applies the same
+# membership, archived and domain-scope checks as the header. Page loads
+# carry no O-Organization-ID header, so this value is what keeps the
+# selection across a full reload. It is re-checked on every request and
+# cleared once the membership is gone or the organization is archived.
+#
+# No caching:
+# Every call resolves from the datastore. There is no session cache of the
+# result: membership, archived state and domain scope are read each time,
+# including on the second load a request makes (Sessions::TrackMetadata at
+# session commit). An 'org_context:<customer objid>' key in an older
+# session blob is a leftover from the removed cache and is not read.
 #
 # Usage:
 #   class MyAuthStrategy < Otto::Security::AuthStrategy
@@ -52,67 +57,32 @@ require_relative '../middleware/domain_strategy'
 module Onetime
   module Application
     module OrganizationLoader
-      # Cache TTL for organization context (seconds)
-      CACHE_TTL = 300
+      # So the selection methods can be called without mixing the loader in
+      # (RequestHelpers#switch_organization, the Account API logic class).
+      extend self
 
       # Load organization context for authenticated customer
       #
       # @param customer [Onetime::Customer] Authenticated customer
       # @param session [Hash] Rack session
       # @param env [Hash] Rack environment
-      # @return [Hash] Context hash with organization data
+      # @return [Hash] Context hash with organization data. :scope_domains is
+      #   the request's custom domains (see #request_scope_domains), kept so a
+      #   selection made later in the request is checked against the same scope.
       def load_organization_context(customer, session, env)
         return {} if customer.nil? || customer&.anonymous?
 
-        cache_key = "org_context:#{customer.objid}"
-
-        # Resolve the request's scope before any selection, including cache hits.
+        # Resolve the request's scope before any selection.
         # Canonical hosts need no lookup; a failed custom-domain read raises here.
         domains = request_scope_domains(env)
 
-        # Check header override BEFORE cache — SPA org switches must bypass cache
-        header_result = resolve_header_context(customer, session, cache_key, env, domains)
-        return header_result if header_result
-
-        # Check session cache (only stores IDs, not full objects)
-        cached = session[cache_key] if session
-
-        if cached && cached[:expires_at] && cached[:expires_at] > Familia.now.to_i
-          OT.ld "[OrganizationLoader] Using cached IDs for #{customer.objid}"
-
-          # Reload objects from cached IDs
-          org = cached[:organization_id] ? Onetime::Organization.load(cached[:organization_id]) : nil
-
-          # Invalidate cache if the org was archived since it was cached
-          # (e.g. SSO self-heal archived the personal workspace mid-session)
-          if org&.archived?
-            session.delete(cache_key)
-            OT.ld "[OrganizationLoader] Cached org #{org.objid} is archived, invalidating"
-          elsif org && !scope_permits?(org, customer, domains)
-            # The entry was written for another domain, or the membership's
-            # scope changed since. Drop it and select again below.
-            session.delete(cache_key)
-            OT.ld "[OrganizationLoader] Cached org #{org.objid} is outside the member's domain scope, invalidating"
-          else
-            return {
-              organization: org,
-              organization_id: org&.objid,
-              expires_at: cached[:expires_at],
-            }
-          end
-        end
-
-        # Determine organization (read-only - no writes during auth phase)
-        org = determine_organization(customer, session, env, domains)
-
-        # Only cache positive results (when org is found).
-        # Negative results (nil) are NOT cached, allowing immediate retry
-        # when org creation fails or is pending.
-        if session && org
-          session[cache_key] = {
-            organization_id: org.objid,
-            expires_at: Familia.now.to_i + CACHE_TTL,
-          }
+        # The header decides first (SPA XHRs), then the session selection and
+        # the fallbacks (read-only - no writes during auth phase).
+        org = resolve_header_org(customer, env, domains)
+        if org
+          OT.ld "[OrganizationLoader] Using header override: #{org.objid}"
+        else
+          org = determine_organization(customer, session, env, domains)
         end
 
         OT.ld "[OrganizationLoader] Loaded context for #{customer.objid}: org=#{org&.objid}"
@@ -120,7 +90,7 @@ module Onetime
         context = {
           organization: org,
           organization_id: org&.objid,
-          expires_at: Familia.now.to_i + CACHE_TTL,
+          scope_domains: domains,
         }
 
         # No organization because the domain scope withheld one is a refusal,
@@ -132,19 +102,42 @@ module Onetime
         context
       end
 
-      # Clear organization context cache for customer
+      # The organization `org_id` names, when the customer may select it on
+      # this request: a member, not archived, and permitted by the membership's
+      # domain scope. The same checks the O-Organization-ID header gets.
       #
-      # Call this after organization switch or membership changes
+      # @param customer [Onetime::Customer] Authenticated customer
+      # @param org_id [String] Organization objid
+      # @param context [Hash, nil] the context #load_organization_context
+      #   returned for this request. Without its :scope_domains the scope cannot
+      #   be checked and nothing is selectable.
+      # @return [Onetime::Organization, nil]
+      def selectable_organization(customer, org_id, context)
+        domains = context[:scope_domains] if context.is_a?(Hash)
+        return unless customer && !customer.anonymous? && domains.is_a?(Array)
+
+        permitted_organization(customer, org_id, domains)
+      end
+
+      # Record an explicit organization selection in the session, after the
+      # checks in #selectable_organization. Takes effect on the next request;
+      # the session is left as it was when the selection is refused.
       #
-      # @param customer [Onetime::Customer] Customer
+      # @param customer [Onetime::Customer] Authenticated customer
       # @param session [Hash] Rack session
-      def clear_organization_cache(customer, session)
-        return unless customer && session
+      # @param org_id [String] Organization objid
+      # @param context [Hash, nil] see #selectable_organization
+      # @return [Onetime::Organization, nil] the selected organization, or nil
+      #   when refused
+      def select_organization(customer, session, org_id, context)
+        return unless session
 
-        cache_key = "org_context:#{customer.objid}"
-        session.delete(cache_key)
+        org = selectable_organization(customer, org_id, context)
+        return unless org
 
-        OT.ld "[OrganizationLoader] Cleared cache for #{customer.objid}"
+        session['organization_id'] = org.objid
+        OT.ld "[OrganizationLoader] Recorded explicit selection for #{customer.objid}: #{org.objid}"
+        org
       end
 
       private
@@ -160,12 +153,12 @@ module Onetime
       # @return [Onetime::Organization, nil] Selected organization
       def determine_organization(customer, session, env, domains = request_scope_domains(env))
         # NOTE: Header override (O-Organization-ID) is handled in load_organization_context
-        # BEFORE the cache check. If we reach here, no valid header was present.
+        # first. If we reach here, no valid header was present.
 
         # 1. Explicit selection from session
         if session && session['organization_id']
           org = Onetime::Organization.load(session['organization_id'])
-          if org && org.member?(customer)
+          if org && org.member?(customer) && !org.archived?
             if scope_permits?(org, customer, domains)
               OT.ld "[OrganizationLoader] Using explicit selection: #{org.objid}"
               return org
@@ -175,7 +168,8 @@ module Onetime
             # and the steps below choose among what the scope permits.
             OT.ld "[OrganizationLoader] Explicit selection outside the member's domain scope: #{org.objid}"
           else
-            # Clear invalid selection
+            # Clear a selection that no longer holds: the organization is
+            # gone or archived, or the membership was removed.
             session.delete('organization_id')
           end
         end
@@ -251,58 +245,30 @@ module Onetime
       end
       # rubocop:enable Metrics/PerceivedComplexity
 
-      # Handle header-based org selection with cache short-circuit.
-      # Returns a context hash if header resolves, nil otherwise.
-      def resolve_header_context(customer, session, cache_key, env, domains)
-        org_id_header = env&.dig('HTTP_O_ORGANIZATION_ID')
-        return unless org_id_header.is_a?(String) && !org_id_header.empty?
-
-        # Short-circuit: if header matches cached org and TTL is valid,
-        # skip membership re-validation. The domain scope is still checked:
-        # the entry may have been written on another domain.
-        cached = session[cache_key] if session
-        if cached && cached[:organization_id] == org_id_header && cached[:expires_at]&.>(Familia.now.to_i)
-          org = Onetime::Organization.load(cached[:organization_id])
-          if org && scope_permits?(org, customer, domains)
-            OT.ld "[OrganizationLoader] Header cache hit for #{org.objid}"
-            return { organization: org, organization_id: org.objid, expires_at: cached[:expires_at] }
-          elsif org
-            session.delete(cache_key)
-            OT.ld "[OrganizationLoader] Header cache org #{org.objid} is outside the member's domain scope, invalidating"
-          end
-        end
-
-        # Cache miss or org switch — full membership + scope validation
-        header_org = resolve_header_org(customer, env, domains)
-        return unless header_org
-
-        OT.ld "[OrganizationLoader] Using header override: #{header_org.objid}"
-        expires = Familia.now.to_i + CACHE_TTL
-        if session
-          session[cache_key] = { organization_id: header_org.objid, expires_at: expires }
-        end
-        { organization: header_org, organization_id: header_org.objid, expires_at: expires }
-      end
-
-      # Resolve org from O-Organization-ID header, verifying membership
-      # and domain scope. Returns nil if header absent, invalid, or denied.
+      # Resolve org from O-Organization-ID header, verifying membership,
+      # archived state and domain scope. Returns nil if header absent,
+      # invalid, or denied.
       def resolve_header_org(customer, env, domains)
         org_id_header = env&.dig('HTTP_O_ORGANIZATION_ID')
         return unless org_id_header.is_a?(String) && !org_id_header.empty?
 
-        org = Onetime::Organization.load(org_id_header)
-        unless org && org.member?(customer) && header_org_accessible?(org, customer, domains)
-          OT.ld "[OrganizationLoader] Header org invalid or unauthorized: #{org_id_header}"
-          return
-        end
-
+        org = permitted_organization(customer, org_id_header, domains)
+        OT.ld "[OrganizationLoader] Header org invalid or unauthorized: #{org_id_header}" unless org
         org
       end
 
-      # Verify that the header-selected org is accessible given domain scope.
-      # The header should select among accessible orgs, not bypass scoping.
-      def header_org_accessible?(org, customer, domains)
-        scope_permits?(org, customer, domains)
+      # The organization with objid `org_id` when the customer is a member, it
+      # is not archived, and the domain scope permits it. A header or an
+      # explicit selection chooses among accessible organizations; it does not
+      # bypass scoping.
+      def permitted_organization(customer, org_id, domains)
+        return unless org_id.is_a?(String) && !org_id.empty?
+
+        org = Onetime::Organization.load(org_id)
+        return unless org && org.member?(customer) && !org.archived?
+        return unless scope_permits?(org, customer, domains)
+
+        org
       end
 
       # Whether the customer's membership in `org` may be used on this

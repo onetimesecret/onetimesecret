@@ -161,7 +161,10 @@ module Auth::Config::Hooks
         if domain_id
           customer = Onetime::Customer.find_by_extid(account[:external_id])
           if customer
-            result = Onetime::ErrorHandler.safe_execute(
+            # Nothing to invalidate afterwards: OrganizationLoader resolves the
+            # organization on every request, so the next one sees the new
+            # membership.
+            Onetime::ErrorHandler.safe_execute(
               'join_domain_organization_login',
               account_id: account_id,
               domain_id: domain_id,
@@ -170,14 +173,6 @@ module Auth::Config::Hooks
                 customer: customer,
                 domain_id: domain_id,
               ).call
-            end
-
-            # Clear org cache so next request picks up the domain org
-            # OrganizationLoader caches in session with key "org_context:#{customer.objid}"
-            if result&.dig(:joined)
-              cache_key = "org_context:#{customer.objid}"
-              session.delete(cache_key)
-              OT.ld "[after_login] Cleared org cache for #{customer.custid} after domain org join"
             end
           end
         end
