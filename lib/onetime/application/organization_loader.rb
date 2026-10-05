@@ -366,8 +366,8 @@ module Onetime
         # The read DomainStrategy made for the display domain. When it
         # failed, the request classified :invalid and carries no record, so
         # raise here as the Host read does rather than check no scope at all.
-        published = env[Onetime::CustomDomainResolution::ENV_KEY]
-        published.record! if published.is_a?(Onetime::CustomDomainResolution)
+        published = env[Onetime::CustomDomain::Lookup::ENV_KEY]
+        published.record! if published.is_a?(Onetime::CustomDomain::Lookup)
 
         if env['onetime.domain_strategy'].to_s == 'custom'
           resolved = env['onetime.custom_domain']
@@ -379,7 +379,7 @@ module Onetime
 
       # CustomDomain for the raw Host header's host, or nil for a canonical host.
       #
-      # Shares the request's resolution (#4220) when that host is the display
+      # Shares the request's lookup (#4220) when that host is the display
       # domain DomainStrategy resolved; any other non-canonical host is read
       # directly. A failed read raises here, as CustomDomain.from_display_domain did.
       def request_host_domain(env, host)
@@ -393,7 +393,7 @@ module Onetime
           anchor_domains: Onetime::Utils::CanonicalHosts.anchor_hosts,
         )
 
-        Onetime::CustomDomainResolution.for_host(env, host).record!
+        Onetime::CustomDomain::Lookup.for_host(env, host).record!
       end
     end
   end

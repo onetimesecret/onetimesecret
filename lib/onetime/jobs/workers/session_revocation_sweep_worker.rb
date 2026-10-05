@@ -57,15 +57,18 @@ module Onetime
         # @param delivery_info [Bunny::DeliveryInfo] AMQP delivery info
         # @param metadata [Bunny::MessageProperties] AMQP message properties
         def work_with_params(msg, delivery_info, metadata)
-          store_envelope(delivery_info, metadata)
+          envelope = Envelope.new(delivery_info, metadata)
 
           # Assigned inside the block but declared here: block-locals are
           # invisible to the method-level rescue, which tags its log with it.
           custid = nil
 
-          with_trace_context do
-            data = parse_message(msg)
-            return unless data # parse_message handles reject on error
+          # Whether this invocation took the idempotency claim.
+          claim_held = false
+
+          with_trace_context(envelope) do
+            data = decode_message(msg, envelope)
+            return reject! unless data # not a JSON object or unknown schema (logged): send to DLQ
 
             custid = data[:custid]
 
@@ -76,12 +79,13 @@ module Onetime
             end
 
             # Atomic idempotency claim: only one worker can claim a message
-            unless claim_for_processing(message_id)
-              log_info "Skipping duplicate message: #{message_id}"
+            unless claim_for_processing(envelope.message_id)
+              log_info "Skipping duplicate message: #{envelope.message_id}"
               return ack!
             end
+            claim_held = true
 
-            log_debug "Sweeping sessions: #{custid} (metadata: #{message_metadata})"
+            log_debug "Sweeping sessions: #{custid} (metadata: #{envelope.summary})"
 
             # `custid:` is a genuine id-only entry point: the payload carries an
             # identifier, never a record, so resolution happens in the op.
@@ -115,8 +119,13 @@ module Onetime
           # is safe. Releasing the claim is safe for exactly that reason — and
           # required: without it the claim's 1h TTL turns an operator's
           # immediate DLQ replay into a silent ack-no-op duplicate skip.
-          release_processing_claim(message_id)
+          #
+          # The error is logged first, and the release cannot raise, so a
+          # datastore outage still ends in this log line and the reject. Only
+          # a claim this invocation took is released: an error raised before
+          # the claim leaves another delivery's claim alone.
           log_error 'Unexpected error running session revocation sweep', ex, custid: custid
+          release_processing_claim_safely(envelope.message_id) if claim_held
           reject! # Send to DLQ
         end
       end

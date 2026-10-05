@@ -20,6 +20,11 @@ require 'spec_helper'
 require 'sneakers'
 require 'onetime/jobs/workers/email_worker'
 require 'onetime/jobs/workers/notification_worker'
+require 'onetime/jobs/workers/dns_record_check_worker'
+require 'onetime/jobs/workers/domain_validation_worker'
+require 'onetime/jobs/workers/favicon_fetch_worker'
+require 'onetime/jobs/workers/session_revocation_sweep_worker'
+require 'onetime/jobs/workers/transient_worker'
 require 'onetime/jobs/queues/config'
 
 # Load billing worker only when billing is enabled
@@ -108,6 +113,44 @@ RSpec.describe 'Sneakers Worker Harness', type: :integration do
     end
   end
 
+  # Kicks settles a message from the value work_with_params returns; nil
+  # leaves it unacknowledged, holding a prefetch slot. Every worker must
+  # return :reject for a message it cannot decode.
+  describe 'undecodable messages' do
+    [
+      *ALL_WORKERS,
+      Onetime::Jobs::Workers::DnsRecordCheckWorker,
+      Onetime::Jobs::Workers::DomainValidationWorker,
+      Onetime::Jobs::Workers::FaviconFetchWorker,
+      Onetime::Jobs::Workers::SessionRevocationSweepWorker,
+      Onetime::Jobs::Workers::TransientWorker,
+    ].each do |worker_class|
+      context worker_class.name.split('::').last do
+        let(:worker) { worker_class.new }
+
+        it 'returns :reject for a message that is not JSON' do
+          metadata = double('metadata', message_id: 'harness-not-json', headers: { 'x-schema-version' => 1 })
+
+          expect(worker.work_with_params('not valid json', nil, metadata)).to eq(:reject)
+        end
+
+        it 'returns :reject for an unknown schema version' do
+          metadata = double('metadata', message_id: 'harness-schema', headers: { 'x-schema-version' => 999 })
+
+          expect(worker.work_with_params('{"key": "value"}', nil, metadata)).to eq(:reject)
+        end
+
+        ['[]', '"x"', '5', 'false'].each do |body|
+          it "returns :reject for the JSON body #{body}, which is not an object" do
+            metadata = double('metadata', message_id: 'harness-not-object', headers: { 'x-schema-version' => 1 })
+
+            expect(worker.work_with_params(body, nil, metadata)).to eq(:reject)
+          end
+        end
+      end
+    end
+  end
+
   describe 'worker instantiation' do
     ALL_WORKERS.each do |worker_class|
       context worker_class.name.split('::').last do
@@ -129,12 +172,14 @@ RSpec.describe 'Sneakers Worker Harness', type: :integration do
           expect(worker).to respond_to(:reject!)
         end
 
-        it 'responds to store_envelope' do
-          expect(worker).to respond_to(:store_envelope)
+        it 'takes the message envelope as an argument to decode_message' do
+          expect(worker.method(:decode_message).arity).to eq(2)
         end
 
-        it 'responds to parse_message' do
-          expect(worker).to respond_to(:parse_message)
+        it 'keeps no message envelope on the instance' do
+          expect(worker).not_to respond_to(:delivery_info)
+          expect(worker).not_to respond_to(:metadata)
+          expect(worker).not_to respond_to(:message_id)
         end
 
         it 'responds to claim_for_processing' do
@@ -143,10 +188,6 @@ RSpec.describe 'Sneakers Worker Harness', type: :integration do
 
         it 'responds to already_processed?' do
           expect(worker).to respond_to(:already_processed?)
-        end
-
-        it 'responds to message_metadata' do
-          expect(worker).to respond_to(:message_metadata)
         end
       end
     end
@@ -218,68 +259,31 @@ RSpec.describe 'Sneakers Worker Harness', type: :integration do
 
     let(:worker) { test_worker_class.new }
 
-    describe '#store_envelope' do
-      it 'stores delivery_info and metadata accessors' do
-        delivery_info = double('delivery_info', delivery_tag: 123)
-        metadata = double('metadata', message_id: 'test-123', headers: {})
-
-        worker.store_envelope(delivery_info, metadata)
-
-        expect(worker.delivery_info).to eq(delivery_info)
-        expect(worker.metadata).to eq(metadata)
-      end
-    end
-
-    describe '#parse_message' do
-      before do
-        # Store minimal envelope for validate_schema
+    describe '#decode_message' do
+      # A minimal envelope for the schema version check
+      let(:envelope) do
         metadata = double('metadata', message_id: nil, headers: { 'x-schema-version' => 1 })
-        worker.store_envelope(nil, metadata)
+        Onetime::Jobs::Workers::Envelope.new(nil, metadata)
       end
 
       it 'parses valid JSON' do
-        result = worker.parse_message('{"key": "value"}')
+        result = worker.decode_message('{"key": "value"}', envelope)
         expect(result).to eq({ key: 'value' })
       end
 
-      it 'rejects invalid JSON' do
-        result = worker.parse_message('not valid json')
+      it 'returns nil for invalid JSON and leaves settling to the caller' do
+        result = worker.decode_message('not valid json', envelope)
         expect(result).to be_nil
-        expect(worker.rejected).to be true
+        expect(worker.rejected).to be_nil
       end
 
-      it 'rejects unknown schema versions' do
+      it 'returns nil for unknown schema versions' do
         metadata = double('metadata', message_id: nil, headers: { 'x-schema-version' => 999 })
-        worker.store_envelope(nil, metadata)
+        unknown  = Onetime::Jobs::Workers::Envelope.new(nil, metadata)
 
-        result = worker.parse_message('{"key": "value"}')
+        result = worker.decode_message('{"key": "value"}', unknown)
         expect(result).to be_nil
-        expect(worker.rejected).to be true
-      end
-    end
-
-    describe '#message_metadata' do
-      it 'returns structured metadata hash' do
-        delivery_info = double(
-          'delivery_info',
-          delivery_tag: 42,
-          routing_key: 'test.queue',
-          redelivered?: false
-        )
-        metadata = double(
-          'metadata',
-          message_id: 'msg-abc',
-          headers: { 'x-schema-version' => 1 }
-        )
-
-        worker.store_envelope(delivery_info, metadata)
-        meta = worker.message_metadata
-
-        expect(meta[:delivery_tag]).to eq(42)
-        expect(meta[:routing_key]).to eq('test.queue')
-        expect(meta[:redelivered]).to be false
-        expect(meta[:message_id]).to eq('msg-abc')
-        expect(meta[:schema_version]).to eq(1)
+        expect(worker.rejected).to be_nil
       end
     end
 
@@ -317,19 +321,41 @@ RSpec.describe 'Sneakers Worker Harness', type: :integration do
   end
 
   describe 'thread safety considerations' do
-    it 'each worker instance has isolated state' do
-      worker1 = Onetime::Jobs::Workers::EmailWorker.new
-      worker2 = Onetime::Jobs::Workers::EmailWorker.new
+    # Kicks runs work_with_params on a thread pool against one worker
+    # instance. Both pings are held at their first log line until the other
+    # is in flight, then each must report its own message id.
+    it 'two messages worked at once on one worker instance each see their own message id' do
+      worker  = Onetime::Jobs::Workers::TransientWorker.new
+      arrived = Queue.new
+      release = Queue.new
+      pings   = Queue.new
+      logger  = instance_double(SemanticLogger::Logger, error: nil)
+      allow(logger).to receive(:debug) do |text, _payload|
+        if text == 'Parsing message'
+          arrived << true
+          release.pop
+        end
+      end
+      allow(logger).to receive(:info) { |_text, payload| pings << payload.slice(:ping_id, :message_id) }
+      allow(worker).to receive(:logger).and_return(logger)
 
-      delivery_info1 = double('di1', delivery_tag: 1)
-      delivery_info2 = double('di2', delivery_tag: 2)
-      metadata = double('metadata', message_id: nil, headers: {})
+      threads = %w[a b].map do |name|
+        Thread.new do
+          worker.work_with_params(
+            JSON.generate(action: 'ping', ping_id: "ping-#{name}"),
+            double("delivery_info_#{name}", delivery_tag: 1, routing_key: 'system.transient', redelivered?: false),
+            double("metadata_#{name}", message_id: "msg-#{name}", headers: { 'x-schema-version' => 1 }),
+          )
+        end
+      end
+      2.times { arrived.pop }
+      2.times { release << true }
 
-      worker1.store_envelope(delivery_info1, metadata)
-      worker2.store_envelope(delivery_info2, metadata)
-
-      expect(worker1.delivery_info.delivery_tag).to eq(1)
-      expect(worker2.delivery_info.delivery_tag).to eq(2)
+      expect(threads.map(&:value)).to eq([:ack, :ack])
+      expect(Array.new(2) { pings.pop }).to contain_exactly(
+        { ping_id: 'ping-a', message_id: 'msg-a' },
+        { ping_id: 'ping-b', message_id: 'msg-b' },
+      )
     end
   end
 

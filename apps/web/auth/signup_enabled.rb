@@ -153,7 +153,7 @@ module Auth
 
       # The per-domain opt-in record for the request host, or nil.
       #
-      # The domain comes from the request's shared resolution (#4220), and
+      # The domain comes from the request's shared lookup (#4220), and
       # #record! re-raises a failed read for the reason documented on
       # Auth::SigninEnabled.signin_config_for (#4157): the failure must reach
       # the rescue above explicitly, not dissolve into "host has no tenant
@@ -164,7 +164,7 @@ module Auth
         display_domain = env['onetime.display_domain']
         return nil if display_domain.to_s.empty?
 
-        domain_id = Onetime::CustomDomainResolution.for(env).record!&.identifier
+        domain_id = Onetime::CustomDomain::Lookup.for(env).record!&.identifier
         return nil unless domain_id
 
         Onetime::CustomDomain::SignupConfig.find_by_domain_id(domain_id)

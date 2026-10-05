@@ -41,7 +41,7 @@ RSpec.describe Billing::Workers::BillingWorker, :billing do
   # Create test worker class with accessible delivery_info
   let(:test_worker_class) do
     Class.new(described_class) do
-      attr_accessor :delivery_info, :acked, :rejected
+      attr_accessor :acked, :rejected
 
       def self.name
         'TestBillingWorker'
@@ -125,9 +125,6 @@ RSpec.describe Billing::Workers::BillingWorker, :billing do
   end
 
   before do
-    # Store envelope
-    worker.store_envelope(delivery_info, metadata)
-
     # Mock sleep to speed up retry tests
     allow(worker).to receive(:sleep)
 
@@ -274,6 +271,19 @@ RSpec.describe Billing::Workers::BillingWorker, :billing do
       end
     end
 
+    context 'with a JSON body that is not an object' do
+      it 'rejects [] without touching the event record' do
+        allow(worker).to receive(:mark_event_failed)
+
+        expect { worker.work_with_params('[]', delivery_info, metadata) }.not_to raise_error
+
+        expect(worker.rejected?).to be true
+        expect(worker.acked?).to be false
+        expect(worker).not_to have_received(:mark_event_failed)
+        expect(Billing::Operations::ProcessWebhookEvent).not_to have_received(:new)
+      end
+    end
+
     context 'with missing payload' do
       let(:message_without_payload) do
         JSON.generate(
@@ -344,8 +354,6 @@ RSpec.describe Billing::Workers::BillingWorker, :billing do
       end
 
       it 'skips processing when message_id is nil (safety measure)' do
-        worker.store_envelope(delivery_info, metadata_without_id)
-
         worker.work_with_params(message, delivery_info, metadata_without_id)
 
         # Messages without message_id are acked but skipped
@@ -412,8 +420,6 @@ RSpec.describe Billing::Workers::BillingWorker, :billing do
     end
 
     it 'processes redelivered message normally (idempotency handles duplicates)' do
-      worker.store_envelope(delivery_info_redelivered, metadata)
-
       worker.work_with_params(message, delivery_info_redelivered, metadata)
 
       expect(worker.acked?).to be true
@@ -423,7 +429,6 @@ RSpec.describe Billing::Workers::BillingWorker, :billing do
     it 'skips redelivered message if already processed' do
       # Pre-set idempotency key
       Familia.dbclient.setex("job:processed:#{message_id}", 3600, '1')
-      worker.store_envelope(delivery_info_redelivered, metadata)
 
       worker.work_with_params(message, delivery_info_redelivered, metadata)
 

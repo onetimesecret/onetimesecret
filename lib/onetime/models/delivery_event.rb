@@ -20,10 +20,24 @@ module Onetime
   # acceptance for delivery: `queued` is only valid at stage `queue`, and
   # `sent` only at stage `delivery`.
   #
+  # EmailWorker outcomes at stage `delivery`:
+  #
+  #   | Outcome | Reason            | Meaning                                  |
+  #   |---------|-------------------|------------------------------------------|
+  #   | sent    |                   | a mail provider accepted the message     |
+  #   | skipped | log_only          | the logger backend printed it; not sent  |
+  #   | skipped | not_dispatched    | suppressed recipient, or mail disabled   |
+  #   | failed  | invalid_message   | rejected without a delivery attempt, or  |
+  #   |         |                   | the mailer refused the input             |
+  #   | failed  | permanent         | non-transient delivery error             |
+  #   | failed  | retries_exhausted | still failing after in-process retries   |
+  #   | failed  | error             | any other error                          |
+  #
   # This is not provider deliverability data. Bounces, complaints,
   # suppressions and provider message history stay with
   # Onetime::EmailSuppression and the colonel email deliverability endpoints.
-  # `sent` here means the mail backend accepted the message.
+  # `sent` here means a mail provider accepted the message. A backend that
+  # does not transmit (logger, disabled) never produces `sent`.
   #
   # ## Correlation
   #
@@ -38,11 +52,13 @@ module Onetime
   # ## Retries and duplicates
   #
   # Events are append-only. A worker writes ONE terminal event per processed
-  # message, after its in-process retries finish, with `attempt_count`. A
-  # redelivered queue message is dropped by the worker's idempotency claim
-  # before any event is written. A DLQ replay that is processed again adds a
-  # second terminal event under the same correlation id; the newest event for
-  # a (correlation_id, channel, stage) is the current state.
+  # message, after its in-process retries finish, with `attempt_count`. Every
+  # message the worker rejects gets a `failed` event, including one rejected
+  # before any delivery attempt (no `attempt_count`). A redelivered queue
+  # message is dropped by the worker's idempotency claim before any event is
+  # written, and a ping message writes none. A DLQ replay that is processed
+  # again adds a second terminal event under the same correlation id; the
+  # newest event for a (correlation_id, channel, stage) is the current state.
   #
   # ## What is stored
   #

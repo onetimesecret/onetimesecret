@@ -172,6 +172,12 @@ channel.queue_declare(
 
 The DLQ preserves the original message plus headers showing why it was dead-lettered, letting you inspect failures, fix bugs, and replay messages after deploying fixes.
 
+`bin/ots queue dlq replay <queue>` (and the colonel replay endpoint) republishes each message to its original queue under its original message id. Workers keep a one-hour idempotency claim on each message id and skip a second message with the same id, so the replay releases that claim first: the worker processes a replayed message again rather than acking it as a duplicate. Side effects the first attempt completed before it failed (an email, a webhook call) can repeat. A message whose claim cannot be released because the datastore is unreachable is left in the DLQ and listed under `Errors:`.
+
+The replay's channel is in transaction mode: the republish and the ack that removes the message from the DLQ take effect together at `tx_commit`. A message whose publish or ack fails is rolled back and listed under `Errors:`. Like a message whose claim cannot be released, it is left unacked rather than nacked with requeue, which could put it back at the head of the DLQ for the same replay to pop again. Closing the channel at the end of the replay returns it to the DLQ, so each message is tried at most once per replay. If the broker does not confirm a commit, the replay stops and reports the message with an outcome-unknown error: the republished copy may be live, and replaying the message again may repeat its side effects.
+
+`DlqEmailConsumerJob` (`jobs.dlq_consumer`, every five minutes) replays auth emails from `dlq.email.message` automatically (raw Rodauth emails always, templated ones while their token is valid) and discards the rest. It also releases the email worker's claim before it republishes, once per message id (a one-hour `dlq:replayed:<id>` key). When the datastore fails during those steps, the message is left unacked and returns to the DLQ for the next run. Email delivery is therefore at-least-once: if the provider accepted an email before the delivery call raised (a read timeout, for example), the replay sends it a second time.
+
 
 ## Cascading Failure Scenario
 

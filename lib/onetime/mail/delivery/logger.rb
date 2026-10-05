@@ -30,12 +30,17 @@ module Onetime
           # the logs b/c the log level was set incorrectly.
           puts output
 
-          # Return a simple success indicator
+          # Base#deliver wraps this in NotTransmitted: the message was
+          # written to the log, not sent.
           { status: 'logged', to: email[:to] }
         end
 
         def delivery_log_status
           'logged'
+        end
+
+        def not_transmitted_reason
+          'log_only'
         end
       end
     end

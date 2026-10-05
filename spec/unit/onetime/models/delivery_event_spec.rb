@@ -173,8 +173,12 @@ RSpec.describe Onetime::DeliveryEvent do
     end
 
     it 'returns nil instead of raising when the store is unavailable' do
-      store = described_class.events
-      allow(store.dbclient).to receive(:eval).and_raise(RedisClient::CannotConnectError, 'down')
+      # The store is frozen and hands out a client per call, so neither can
+      # be stubbed in place: wrap the store and replace its client.
+      client = double('dbclient')
+      allow(client).to receive(:eval).and_raise(RedisClient::CannotConnectError, 'down')
+      store = SimpleDelegator.new(described_class.events)
+      allow(store).to receive(:dbclient).and_return(client)
       allow(described_class).to receive(:events).and_return(store)
 
       expect(described_class.record(channel: 'email', stage: 'queue', outcome: 'queued')).to be_nil
