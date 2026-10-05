@@ -162,7 +162,9 @@ gem 'truemail', '~> 3.3'
 # (2.11.2 remains the behavior floor for blank VERIFIABLE_ID_HMAC_SECRET
 # rejection, delano/familia#335, and for nil declared fields persisting as HDEL
 # instead of the JSON string "null".)
-gem 'familia', '~> 2.12'
+# 2.13 floor: configure_related_field (delano/familia#428), which
+# SecretActivity.configure! uses to apply the retention cap at boot.
+gem 'familia', '~> 2.13'
 gem 'pg', '~> 1.6'
 gem 'sequel', '~> 5.0'
 gem 'sqlite3', '~> 2.0'
