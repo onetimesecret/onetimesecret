@@ -17,6 +17,7 @@ module Onetime
       #   username: SMTP username (ENV: SMTP_USERNAME)
       #   password: SMTP password (ENV: SMTP_PASSWORD)
       #   tls:      Enable STARTTLS (ENV: SMTP_TLS, default: true)
+      #   ssl:      Enable implicit TLS/SMTPS (ENV: SMTP_SSL, default: false)
       #   domain:   HELO domain (ENV: SMTP_DOMAIN)
       #
       class SMTP < Base
@@ -127,8 +128,14 @@ module Onetime
           settings = {
             address: config['host'] || ENV['SMTP_HOST'] || 'localhost',
             port: (config['port'] || ENV['SMTP_PORT'] || '587').to_i,
-            enable_starttls_auto: resolve_tls_setting,
           }
+
+          if resolve_ssl_setting
+            settings[:ssl]                   = true
+            settings[:enable_starttls_auto] = false
+          else
+            settings[:enable_starttls_auto] = resolve_tls_setting
+          end
 
           # Add domain if configured
           domain            = config['domain'] || ENV.fetch('SMTP_DOMAIN', nil)
@@ -151,6 +158,13 @@ module Onetime
           return config['tls'] unless config['tls'].nil?
 
           ENV['SMTP_TLS'] != 'false'
+        end
+
+        def resolve_ssl_setting
+          value = config['ssl']
+          value = ENV['SMTP_SSL'] if value.nil?
+
+          value == true || value == 'true'
         end
       end
     end

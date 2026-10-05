@@ -214,4 +214,29 @@ RSpec.describe Onetime::Mail::Delivery::SMTP do
       )
     end
   end
+
+  describe '#smtp_settings' do
+    context 'when implicit TLS is enabled' do
+      let(:config) do
+        { 'host' => 'smtp.example.com', 'port' => 465, 'tls' => true, 'ssl' => true }
+      end
+
+      it 'uses implicit TLS without attempting STARTTLS' do
+        settings = smtp.send(:smtp_settings)
+
+        expect(settings).to include(ssl: true, enable_starttls_auto: false)
+      end
+    end
+
+    context 'when SMTP_SSL is enabled in the environment' do
+      it 'enables implicit TLS without attempting STARTTLS' do
+        allow(ENV).to receive(:[]).and_call_original
+        allow(ENV).to receive(:[]).with('SMTP_SSL').and_return('true')
+
+        settings = smtp.send(:smtp_settings)
+
+        expect(settings).to include(ssl: true, enable_starttls_auto: false)
+      end
+    end
+  end
 end
