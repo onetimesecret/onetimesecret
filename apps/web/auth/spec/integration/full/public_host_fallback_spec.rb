@@ -109,8 +109,11 @@ RSpec.describe Auth::PublicHost, :aggregate_failures, :shared_db_state, type: :i
     expect_refused_origin(env)
   end
 
-  it 'retains a verified tenant without site.host' do
-    expect_origin(candidate_env(tenant_domain), "https://#{tenant_domain}")
+  it 'requires recipient authorization for credential URLs without site.host' do
+    env = candidate_env(tenant_domain)
+    expect { Auth::Router.new(env).rodauth.base_url }
+      .to raise_error(described_class::MissingAllowlistedOrigin)
+    expect(resolver.full_host_for(env)).to eq("https://#{tenant_domain}")
   end
 
   it 'retains a configured canonical candidate without site.host' do
@@ -132,8 +135,10 @@ RSpec.describe Auth::PublicHost, :aggregate_failures, :shared_db_state, type: :i
       expect_origin(candidate_env('unregistered.tenant-example.com'), 'https://operator.example.org:8443')
     end
 
-    it 'retains tenant precedence over the configured fallback' do
-      expect_origin(candidate_env(tenant_domain), "https://#{tenant_domain}")
+    it 'uses canonical credentials while retaining the tenant SSO origin' do
+      env = candidate_env(tenant_domain)
+      expect(Auth::Router.new(env).rodauth.base_url).to eq('https://operator.example.org:8443')
+      expect(resolver.full_host_for(env)).to eq("https://#{tenant_domain}")
     end
   end
 

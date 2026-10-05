@@ -2,53 +2,10 @@
 #
 # frozen_string_literal: true
 
-# =============================================================================
-# TEST TYPE: Integration — the DELIVERED transactional email link (#4221)
-# =============================================================================
-#
-# THE DEFECT. Rodauth composes every `*_email_link` through `token_link` ->
-# `route_url` -> `base_url`, and stock `base_url` is
-# `"#{request.scheme}://#{request.host}"`. Behind the custom-domain proxy
-# `Host:` has been rewritten to the origin target and the host the visitor
-# actually used arrives in `X-Forwarded-Host`, so the link in the email named
-# the canonical host — a host the recipient never visited, and one where
-# Auth::SigninGate answers 404 on any install whose global sign-in is off.
-#
-# THE FIX under test: config/overrides/public_base_url.rb overrides `base_url`
-# (and adds `public_display_domain` for branding) through Auth::PublicHost.
-#
-# WHY THIS FILE EXISTS ALONGSIDE unit/public_base_url_spec.rb. That unit spec
-# proves the policy and proves the override is wired into a real Rodauth
-# configuration. It stops at `base_url`. Nothing there proves that the string
-# a RECIPIENT would click carries the public host: the email blocks
-# (config/email/*.rb) read `base_url` and `public_display_domain` themselves,
-# the mail templates compose the body, and Auth::Config::Email::Delivery hands
-# the rendered result to Onetime::Jobs::Publisher. These examples drive the
-# real mounted Rack stack end to end and assert on what Delivery emits.
-#
-# WHY RESET-PASSWORD AND NOT THE MAGIC LINK. The three email blocks changed by
-# #4221 (email_auth, reset_password, verify_account) share ONE seam —
-# `base_url` — and reset-password is the only one of the three reachable in
-# this lane: spec/auth.test.yaml pins `email_auth: false` and
-# `verify_account: false`, so neither route is mounted and an example against
-# either would skip vacuously. Enabling email_auth here is not a local choice:
-# it turns on `use_multi_phase_login?` for every full-mode spec in the shared
-# process. So reset-password stands in for the family, and the unit spec
-# covers `base_url` itself, which is what the other two read.
-#
-# REQUIREMENTS:
-# - Valkey running on port 2163: pnpm run test:database:start
-# - AUTH_DATABASE_URL set (SQLite or PostgreSQL)
-# - AUTHENTICATION_MODE=full
-#
-# RUN:
-#   tests/lanes/run full-sqlite
-#   # or directly:
-#   RACK_ENV=test AUTHENTICATION_MODE=full AUTH_DATABASE_URL='sqlite::memory:' \
-#     ORGS_SSO_ENABLED=true bundle exec rspec \
-#     apps/web/auth/spec/integration/full/public_host_email_link_spec.rb
-#
-# =============================================================================
+# Delivered credential email integration: verified domain ownership plus
+# active target-account membership retains tenant reset links and redemption.
+# An unrelated recipient receives canonical links and canonical branding.
+# Run: tests/lanes/run full-pg-agnostic --only apps/web/auth/spec/integration/full/public_host_email_link_spec.rb
 
 require_relative '../../spec_helper'
 require 'rack/test'
@@ -92,6 +49,7 @@ RSpec.describe 'delivered email links use the public host (#4221)', type: :integ
   let!(:tenant) { build_signin_domain(tenant_domain) }
 
   let!(:account_id) { seed_account_with_password(account_email) }
+  let(:authorized_recipient) { true }
 
   def build_signin_domain(host)
     owner = Onetime::Customer.new(email: "owner-#{run_id}@test.local")
@@ -117,6 +75,11 @@ RSpec.describe 'delivered email links use the public host (#4221)', type: :integ
   end
 
   before do
+    if authorized_recipient
+      organization = @fixtures.first[0]
+      customer = Onetime::Customer.find_by_extid(auth_db[:accounts].where(id: account_id).get(:external_id))
+      organization.add_members_instance(customer, through_attrs: { role: 'member', status: 'active' })
+    end
     # The delivery seam. Auth::Config::Email::Delivery's send_email hook hands
     # Rodauth's rendered Mail object to the publisher as a plain hash; capturing
     # it here is the closest observation point to an actual send.
@@ -214,6 +177,20 @@ RSpec.describe 'delivered email links use the public host (#4221)', type: :integ
         'the reset key row survived redemption — the key was not actually consumed'
     end
 
+    it 'retains an authorized tenant origin when site.host is unset' do
+      saved_host = OT.conf['site']['host']
+      begin
+        OT.conf['site']['host'] = nil
+        @delivered.clear
+        auth_db[:account_password_reset_keys].where(id: account_id).delete
+        request_password_reset(host: origin_host, forwarded: tenant_domain)
+        expect(URI.parse(reset_link).host).to eq(tenant_domain)
+        expect(auth_db[:account_password_reset_keys].where(id: account_id).count).to eq(1)
+      ensure
+        OT.conf['site']['host'] = saved_host
+      end
+    end
+
     it 'brands the subject with the public host too' do
       # public_display_domain, not request.host: a link on the tenant domain
       # inside an email that says "Reset your password (canonical.example)"
@@ -228,6 +205,18 @@ RSpec.describe 'delivered email links use the public host (#4221)', type: :integ
       request_password_reset(host: tenant_domain)
 
       expect(URI.parse(reset_link).host).to eq(tenant_domain)
+    end
+  end
+
+  describe 'an unrelated recipient on a verified tenant domain' do
+    let(:authorized_recipient) { false }
+
+    it 'delivers the credential and branding on the canonical origin' do
+      request_password_reset(host: origin_host, forwarded: tenant_domain)
+
+      expect(URI.parse(reset_link).host).to eq(URI.parse(Auth::PublicHost.canonical_base_url).host)
+      expect(delivered_email[:subject].to_s).to include(Auth::PublicHost.canonical_host)
+      expect(delivered_email[:body].to_s).not_to include(tenant_domain)
     end
   end
 
