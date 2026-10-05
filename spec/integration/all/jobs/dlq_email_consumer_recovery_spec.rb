@@ -53,6 +53,11 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
       content_type: 'application/json', headers: { 'x-death' => [{ 'queue' => target_name }] })
   end
 
+  # A closed channel's unacked deliveries return to the queue asynchronously.
+  def await_dlq_depth(ch, depth)
+    Timeout.timeout(5) { sleep 0.01 until ch.queue(dlq_name, durable: true).message_count == depth }
+  end
+
   # One message on its own channel, in transaction mode as consume_dlq_batch
   # sets it up.
   def process_broker_message(ch)
@@ -91,7 +96,7 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
     expect(redis.get(reservation_key)).to be_nil
     expect(redis.get(completed_key)).to be_nil
     retry_channel = connection.create_channel
-    expect(retry_channel.queue(dlq_name, durable: true).message_count).to eq(1)
+    await_dlq_depth(retry_channel, 1)
     process_broker_message(retry_channel)
     expect(retry_channel.queue(target_name, durable: true).message_count).to eq(1)
     expect(retry_channel.queue(dlq_name, durable: true).message_count).to eq(0)
@@ -110,7 +115,7 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
     expect(redis.get(reservation_key)).to be_nil
 
     retry_channel = connection.create_channel
-    expect(retry_channel.queue(dlq_name, durable: true).message_count).to eq(1)
+    await_dlq_depth(retry_channel, 1)
     process_broker_message(retry_channel)
     expect(retry_channel.queue(target_name, durable: true).message_count).to eq(1)
     expect(retry_channel.queue(dlq_name, durable: true).message_count).to eq(0)
@@ -128,14 +133,14 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
     # The next run finds the delivery back in the DLQ. It must not ack it
     # as already replayed: no copy reached the target queue.
     retry_channel = connection.create_channel
-    expect(retry_channel.queue(dlq_name, durable: true).message_count).to eq(1)
+    await_dlq_depth(retry_channel, 1)
     process_broker_message(retry_channel)
     expect(results[:deferred]).to eq(1)
     retry_channel.close
 
     redis.expire(reservation_key, 0)
     final_channel = connection.create_channel
-    expect(final_channel.queue(dlq_name, durable: true).message_count).to eq(1)
+    await_dlq_depth(final_channel, 1)
     expect(final_channel.queue(target_name, durable: true).message_count).to eq(0)
     process_broker_message(final_channel)
     expect(final_channel.queue(target_name, durable: true).message_count).to eq(1)

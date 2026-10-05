@@ -21,6 +21,9 @@ RSpec.describe 'DLQ email consumer connection failure', :rabbitmq, type: :integr
   let(:suffix) { SecureRandom.hex(6) }
   let(:dlq_name) { "test.dlq.email.reconnect.#{suffix}" }
   let(:target_name) { "test.email.reconnect.#{suffix}" }
+  let(:message_id) { "test-dlq-reconnect-#{suffix}" }
+  let(:completed_key) { "dlq:replayed:#{message_id}" }
+  let(:reservation_key) { "dlq:replay:reservation:#{message_id}" }
   let(:network_errors) { Queue.new }
   let(:error_handler) { double('session error handler') }
   let(:observer) { Bunny.new(url, automatically_recover: false, continuation_timeout: 5_000).start }
@@ -53,6 +56,7 @@ RSpec.describe 'DLQ email consumer connection failure', :rabbitmq, type: :integr
       JSON.generate(template: 'password_reset', data: { account_id: 'test-account' }),
       headers: { 'x-death' => [{ 'queue' => target_name }] },
       content_type: 'application/json',
+      message_id: message_id,
     )
     expect(observer_channel.wait_for_confirms).to be true
     expect(dlq.message_count).to eq(1)
@@ -66,6 +70,8 @@ RSpec.describe 'DLQ email consumer connection failure', :rabbitmq, type: :integr
 
   after do
     $rmq_conn = @previous_connection
+    Familia.dbclient.del(completed_key, reservation_key,
+      Onetime::Jobs::QueueConfig.processing_claim_key(message_id))
     @batch_connection.close if @batch_connection&.open?
     @shared_connection.close if @shared_connection&.open?
     dlq.delete
@@ -100,6 +106,9 @@ RSpec.describe 'DLQ email consumer connection failure', :rabbitmq, type: :integr
     Timeout.timeout(5) { sleep 0.01 until dlq.message_count == 1 }
     expect(@batch_channel.recoveries_counter.get).to eq(0)
     expect(@shared_connection).to be_open
+    # Nothing was committed, so the id is neither reserved nor completed.
+    expect(Familia.dbclient.exists?(reservation_key)).to be(false)
+    expect(Familia.dbclient.exists?(completed_key)).to be(false)
 
     failed_connection = @batch_connection
     allow(job).to receive(:token_expired?).and_return(false)
@@ -109,5 +118,6 @@ RSpec.describe 'DLQ email consumer connection failure', :rabbitmq, type: :integr
     expect(dlq.message_count).to eq(0)
     expect(target.message_count).to eq(1)
     expect(logger).to have_received(:info).with(/Batch complete: replayed=1 /)
+    expect(Familia.dbclient.get(completed_key)).to eq('completed')
   end
 end
