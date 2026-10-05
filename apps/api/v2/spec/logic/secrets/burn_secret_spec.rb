@@ -77,6 +77,59 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
   let(:receipt)  { pair.first }
   let(:secret)   { pair.last }
 
+  context 'capability logging' do
+    let(:messages) { [] }
+
+    before do
+      logger = double('secret logger')
+      [:debug, :info, :warn].each do |level|
+        allow(logger).to receive(level) { |message, payload| messages << [message, payload] }
+      end
+      allow(Onetime).to receive(:get_logger).and_call_original
+      allow(Onetime).to receive(:get_logger).with('Secret').and_return(logger)
+    end
+
+    [false, true].each do |commit|
+      it "omits full identifiers when continue=#{commit}" do
+        receipt_id = receipt.identifier
+        secret_id = secret.identifier
+        logic = build_logic('identifier' => receipt_id, 'continue' => commit)
+        logic.process_params
+        logic.process
+
+        expect(messages).not_to be_empty
+        expect(messages.to_s).not_to include(receipt_id, secret_id)
+        expect(messages.first.last[:receipt_identifier]).to eq(receipt.shortid)
+      end
+    end
+
+    it 'omits full identifiers on passphrase rejection' do
+      secret.update_passphrase!('correct-passphrase')
+      receipt_id = receipt.identifier
+      secret_id = secret.identifier
+      logic = build_logic('identifier' => receipt_id, 'continue' => true, 'passphrase' => 'wrong')
+      logic.process_params
+      allow(logic).to receive(:raise_form_error)
+      logic.process
+
+      expect(messages.map(&:first)).to include('Burn failed - incorrect passphrase')
+      expect(messages.to_s).not_to include(receipt_id, secret_id)
+    end
+
+    it 'omits full identifiers when a concurrent burn consumes the secret' do
+      receipt_id = receipt.identifier
+      secret_id = secret.identifier
+      logic = build_logic('identifier' => receipt_id, 'continue' => true)
+      logic.process_params
+      pin_stale_secret_on(logic)
+      Onetime::Secret.load(secret_id).burned!
+      logic.process
+
+      expect(messages.map(&:first)).to include('Burn failed - secret already consumed')
+      expect(messages.to_s).not_to include(receipt_id, secret_id)
+    end
+  end
+
   context 'when continue is the string "false"' do
     it 'does not greenlight and leaves the secret intact' do
       logic = build_logic('identifier' => receipt.identifier, 'continue' => 'false')

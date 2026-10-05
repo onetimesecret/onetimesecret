@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'base64'
+require 'onetime/image_content'
 require_relative '../../policies/domain_config_authorization'
 
 module DomainsAPI::Logic
@@ -63,14 +64,18 @@ module DomainsAPI::Logic
       def process
         OT.ld "[#{self.class}] Logo for #{custom_domain.display_domain}"
 
-        image[:content_type] ||= 'application/octet-stream' # ¯\_(ツ)_/¯
+        # Same gate as the public GetImage: a stored SVG or unknown format is
+        # never served there, so the editor shows it as absent too instead of
+        # displaying a logo recipients never see.
+        @content_type = detected_content_type
+        raise_not_found 'Image not found' unless @content_type
 
         success_data
       end
 
       def success_data
         {
-          record: image.hgetall, # encoded filename content_type
+          record: image.hgetall.merge('content_type' => @content_type), # encoded filename content_type
           details: {},
         }
       end
@@ -86,6 +91,12 @@ module DomainsAPI::Logic
       end
 
       private
+
+      def detected_content_type
+        Onetime::ImageContent.content_type(Base64.strict_decode64(image['encoded']))
+      rescue ArgumentError
+        nil
+      end
 
       # e.g. custom_domain.logo
       def _image_field

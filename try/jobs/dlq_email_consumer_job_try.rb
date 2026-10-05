@@ -153,9 +153,9 @@ def call_private(method, *args)
   @job.send(method, *args)
 end
 
-# Helper to build a results hash
+# Helper to build a results hash, as consume_dlq_batch does
 def fresh_results
-  { replayed: 0, discarded_non_auth: 0, discarded_expired: 0, errors: 0, deferred: 0, held: 0, unroutable: 0 }
+  call_private(:new_results)
 end
 
 # Properties of a raw email dead-lettered from the email queue

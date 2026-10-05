@@ -300,7 +300,7 @@ module Onetime
               return
             end
 
-            if data['data'] && !data['data'].is_a?(Hash)
+            unless data['data'].nil? || data['data'].is_a?(Hash)
               raise JSON::ParserError, 'Expected template data to be an object'
             end
 

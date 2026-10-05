@@ -29,11 +29,11 @@
 
   // Favicon-appropriate upload constraints — deliberately NOT the logo limits.
   // Accept the formats a favicon actually ships in: .ico (which the shared logo
-  // allowlist omits) plus PNG and SVG. Cap the size far below the shared 2MB
+  // allowlist omits) plus PNG. Cap the size far below the shared 2MB
   // image limit — real favicons are a few KB to tens of KB, so 256KB is generous
   // headroom while still rejecting oversized files client-side. The server
   // (UpdateDomainIcon) enforces its own allowlist + ceiling as the real gate.
-  const FAVICON_ACCEPT = 'image/png,image/svg+xml,image/x-icon,image/vnd.microsoft.icon,.ico';
+  const FAVICON_ACCEPT = 'image/png,image/x-icon,image/vnd.microsoft.icon,.ico';
   const FAVICON_MAX_BYTES = 256 * 1024; // 256KB
 
   // Pass a getter so the composable tracks prop changes (a commit swaps it).

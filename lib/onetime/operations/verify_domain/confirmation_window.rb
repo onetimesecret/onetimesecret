@@ -5,14 +5,14 @@
 module Onetime
   module Operations
     class VerifyDomain
-      # Bounds how long an indeterminate TXT check may hold `verified`.
+      # Bounds how long an indeterminate TXT check may hold ownership_verified.
       #
-      # An indeterminate check ("could not tell") leaves `verified` alone, so
+      # An indeterminate check ("could not tell") leaves ownership_verified alone, so
       # a transient resolver failure never demotes a correctly-configured
       # domain. Left unbounded, that also means a domain whose checks never
       # settle again stays verified forever. This puts a limit on it: once a
       # verified domain has gone MAX_AGE with every check indeterminate, the
-      # next indeterminate check withdraws `verified`.
+      # next indeterminate check withdraws ownership_verified.
       #
       # Two fields on CustomDomain carry the state:
       #
@@ -54,7 +54,7 @@ module Onetime
           @max_age               = max_age
           @unconfirmed_since     = domain.verified_unconfirmed_since
           @last_confirmed_at     = domain.verified_confirmed_at
-          @verified_before_check = domain.verified.to_s == 'true'
+          @verified_before_check = domain.ownership_verified == true
           @applicable            = dns_result[:indeterminate] == true &&
                                    @verified_before_check &&
                                    domain.verified_by_override != true
@@ -93,16 +93,16 @@ module Onetime
           @domain.verified_unconfirmed_since = nil
         end
 
-        # No definitive outcome was stored. Withdraws `verified` when the
+        # No definitive outcome was stored. Withdraws ownership_verified when the
         # window has expired, starts the clock when there is none, and
         # otherwise changes nothing. The caller saves the domain.
         #
-        # @return [Boolean] whether `verified` was withdrawn
+        # @return [Boolean] whether ownership_verified was withdrawn
         def record_unsettled
           return false unless @applicable
 
           if expired?
-            @domain.verified! false
+            @domain.ownership_verified! false
             @domain.verified_unconfirmed_since = nil
             return true
           end

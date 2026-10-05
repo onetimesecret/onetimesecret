@@ -25,7 +25,7 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
   let(:logger) { double('logger', info: nil, debug: nil, warn: nil, error: nil) }
   let(:redis) { Familia.dbclient }
   let(:payload) { JSON.generate('raw' => true, 'email' => { 'to' => 'test@example.com' }) }
-  let(:results) { { replayed: 0, discarded_non_auth: 0, discarded_expired: 0, errors: 0, deferred: 0, held: 0, unroutable: 0 } }
+  let(:results) { described_class.send(:new_results) }
   let(:connection) do
     url = ENV.fetch('RABBITMQ_URL')
     uri = URI.parse(url)
@@ -47,10 +47,31 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
   let(:worker_key) { Onetime::Jobs::QueueConfig.processing_claim_key(message_id) }
 
   # Dead-letter a copy of the message into the test DLQ, routed back to the
-  # test target.
-  def dead_letter
-    broker_channel.default_exchange.publish(payload, routing_key: dlq_name, message_id: message_id,
+  # test target. Waits for the broker's confirm: the job reads the DLQ's
+  # message count first, and that count can lag an unconfirmed publish.
+  # Publishes on its own channel: a channel in confirm mode cannot switch to
+  # the transaction mode the job puts broker_channel in.
+  def dead_letter(id = message_id)
+    publisher = connection.create_channel
+    publisher.confirm_select
+    publisher.default_exchange.publish(payload, routing_key: dlq_name, message_id: id,
       content_type: 'application/json', headers: { 'x-death' => [{ 'queue' => target_name }] })
+    publisher.wait_for_confirms
+  ensure
+    publisher&.close
+  end
+
+  # A queue's ready count, polled briefly until it reaches the expected
+  # value. The count can lag a publish or a requeue by a moment.
+  def ready_count(ch, name, expected)
+    queue    = ch.queue(name, durable: true)
+    deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 2
+    count    = queue.message_count
+    while count != expected && Process.clock_gettime(Process::CLOCK_MONOTONIC) < deadline
+      sleep 0.01
+      count = queue.message_count
+    end
+    count
   end
 
   # A closed channel's unacked deliveries return to the queue asynchronously.
@@ -96,10 +117,10 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
     expect(redis.get(reservation_key)).to be_nil
     expect(redis.get(completed_key)).to be_nil
     retry_channel = connection.create_channel
-    await_dlq_depth(retry_channel, 1)
+    expect(ready_count(retry_channel, dlq_name, 1)).to eq(1)
     process_broker_message(retry_channel)
-    expect(retry_channel.queue(target_name, durable: true).message_count).to eq(1)
-    expect(retry_channel.queue(dlq_name, durable: true).message_count).to eq(0)
+    expect(ready_count(retry_channel, target_name, 1)).to eq(1)
+    expect(ready_count(retry_channel, dlq_name, 0)).to eq(0)
     expect(redis.get(completed_key)).to eq('completed')
     retry_channel.close
   end
@@ -115,10 +136,10 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
     expect(redis.get(reservation_key)).to be_nil
 
     retry_channel = connection.create_channel
-    await_dlq_depth(retry_channel, 1)
+    expect(ready_count(retry_channel, dlq_name, 1)).to eq(1)
     process_broker_message(retry_channel)
-    expect(retry_channel.queue(target_name, durable: true).message_count).to eq(1)
-    expect(retry_channel.queue(dlq_name, durable: true).message_count).to eq(0)
+    expect(ready_count(retry_channel, target_name, 1)).to eq(1)
+    expect(ready_count(retry_channel, dlq_name, 0)).to eq(0)
     retry_channel.close
   end
 
@@ -162,8 +183,46 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
     expect(broker_channel.default_exchange).to have_received(:publish).twice
     expect(broker_channel).not_to be_open
     inspection = connection.create_channel
-    expect(inspection.queue(dlq_name, durable: true).message_count).to eq(2)
-    expect(inspection.queue(target_name, durable: true).message_count).to eq(0)
+    expect(ready_count(inspection, dlq_name, 2)).to eq(2)
+    expect(ready_count(inspection, target_name, 0)).to eq(0)
+    inspection.close
+  end
+
+  it 'passes over a held replay at the front of the DLQ without counting it against the batch' do
+    other_id = "#{message_id}-behind"
+    dead_letter(other_id)
+    redis.set(reservation_key, 'publishing:another-run', ex: 3600)
+    stub_const("#{described_class.name}::BATCH_SIZE", 1)
+    allow(described_class).to receive(:acquire_channel).and_return([connection, broker_channel, false])
+
+    described_class.send(:consume_dlq_batch)
+
+    inspection = connection.create_channel
+    expect(ready_count(inspection, dlq_name, 1)).to eq(1)
+    expect(ready_count(inspection, target_name, 1)).to eq(1)
+    _info, props, _body = inspection.queue(target_name, durable: true).pop
+    expect(props.message_id).to eq(other_id)
+    expect(redis.get(reservation_key)).to eq('publishing:another-run')
+    inspection.close
+  ensure
+    redis.del("dlq:replayed:#{other_id}", "dlq:replay:reservation:#{other_id}",
+      Onetime::Jobs::QueueConfig.processing_claim_key(other_id))
+  end
+
+  it 'stops a run once its time budget is spent, leaving held replays in the DLQ' do
+    dead_letter
+    redis.set(reservation_key, 'publishing:another-run', ex: 3600)
+    # Deadline, one in-budget check, then a clock past the deadline.
+    clock = [0, 0, described_class::RUN_BUDGET + 1]
+    allow(described_class).to receive(:monotonic_now) { clock.shift }
+    allow(described_class).to receive(:acquire_channel).and_return([connection, broker_channel, false])
+    allow(described_class).to receive(:process_message).and_call_original
+
+    described_class.send(:consume_dlq_batch)
+
+    expect(described_class).to have_received(:process_message).once
+    inspection = connection.create_channel
+    expect(ready_count(inspection, dlq_name, 2)).to eq(2)
     inspection.close
   end
 end

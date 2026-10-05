@@ -4,6 +4,7 @@
 
 require 'chunky_png'
 require_relative '../base'
+require 'onetime/image_content'
 
 module Core
   module Logic
@@ -82,6 +83,14 @@ module Core
           else
             # Serve custom favicon from Redis (cached or generate)
             serve_custom_favicon
+            # Existing uploads and derived caches predate byte validation. Do
+            # not send active content under a forged raster Content-Type.
+            detected_type = Onetime::ImageContent.content_type(icon_data)
+            if detected_type
+              @content_type = detected_type
+            else
+              serve_default_favicon
+            end
           end
         end
 

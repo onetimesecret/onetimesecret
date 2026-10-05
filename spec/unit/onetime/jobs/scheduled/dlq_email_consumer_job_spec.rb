@@ -776,6 +776,14 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob do
       expect(channel).to have_received(:ack).twice
     end
 
+    it 'discards a template message whose data is false instead of deferring it' do
+      template_payload = JSON.generate('template' => 'password_reset', 'data' => false)
+      described_class.send(:process_message, channel, delivery, properties, template_payload, results)
+      expect(channel).to have_received(:nack).with(42, false, false)
+      expect(exchange).not_to have_received(:publish)
+      expect(results).to include(errors: 1, deferred: 0)
+    end
+
     it 'leaves unexpected processing errors unacked instead of discarding the delivery' do
       allow(described_class).to receive(:replay_message).and_raise(RuntimeError, 'unexpected failure')
       process

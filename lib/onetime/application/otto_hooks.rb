@@ -15,6 +15,7 @@ require_relative 'error_resolver'
 require_relative 'error_correlation'
 require_relative 'middleware_stack'
 require_relative 'network_requirements'
+require_relative 'request_logger'
 
 module Onetime
   module Application
@@ -269,7 +270,7 @@ module Onetime
           logger.trace 'Request completed',
             {
               method: req.request_method,
-              path: req.path,
+              path: RequestLogger.redacted_path(req),
               status: res.status,
               duration: duration / 1_000_000.0,  # Convert microseconds to seconds for SemanticLogger
               user_id: user_id,
