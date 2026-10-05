@@ -6,7 +6,7 @@ require 'onetime/jobs/scheduled/dlq_email_consumer_job'
 
 RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob do
   let(:url) { 'amqp://127.0.0.1:2156' }
-  let(:channel) { instance_double(Bunny::Channel, open?: true, close: nil) }
+  let(:channel) { instance_double(Bunny::Channel, open?: true, close: nil, tx_select: nil) }
   let(:connection) { instance_double(Bunny::Session, start: nil, create_channel: channel, open?: true, close: nil) }
   let(:logger) { instance_double(SemanticLogger::Logger, debug: nil, info: nil, error: nil) }
 

@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'securerandom'
+
 require_relative '../scheduled_job'
 require_relative '../queues/config'
 
@@ -22,8 +24,11 @@ module Onetime
       # their token lifecycle is managed by Rodauth internally.
       #
       # A replay releases the EmailWorker's idempotency claim on the message
-      # id before it republishes the message, so the worker delivers the
-      # replay instead of acking it as a duplicate (see #replay_message).
+      # id right before it republishes the message, so the worker delivers
+      # the replay instead of acking it as a duplicate. The id is held by an
+      # owned reservation while the replay runs and is marked completed only
+      # after the broker confirms the commit of the publish and the ack (see
+      # #replay_message).
       #
       # Configuration:
       #   jobs:
@@ -37,14 +42,69 @@ module Onetime
         DLQ_NAME   = 'dlq.email.message'
         BATCH_SIZE = 50
 
-        # Marks a message id as replayed (KEYS[1]) and, only when this call
-        # set the mark, deletes the email worker's idempotency claim on it
-        # (KEYS[2]). Returns 1 when it set the mark, 0 when the id was
-        # already marked.
-        CLAIM_REPLAY_LUA = <<~LUA
-          if redis.call('SET', KEYS[1], '1', 'NX', 'EX', ARGV[1]) then
-            redis.call('DEL', KEYS[2])
-            return 1
+        # Ends the batch when a settlement or commit leaves the channel's
+        # transaction in an unknown state. Must bypass process_message's
+        # error handling: settling another delivery on this channel
+        # could commit an earlier, uncertain replay.
+        class BatchStopped < StandardError
+          attr_reader :message_id
+
+          def initialize(message = nil, message_id: nil)
+            super(message)
+            @message_id = message_id
+          end
+        end
+
+        # Seconds a replay reservation lasts before publishing starts.
+        RESERVATION_TTL = 300
+
+        # Keys: completed marker, reservation. ARGV: owner, RESERVATION_TTL.
+        # Returns 2 when the id is marked completed, 1 when this owner now
+        # holds the reservation, 0 when the replay must wait: another owner
+        # holds the reservation, or a legacy '1' marker is present. Legacy
+        # markers were written before publishing, so they do not prove the
+        # replay completed.
+        RESERVE_REPLAY_LUA = <<~LUA
+          local marker = redis.call('GET', KEYS[1])
+          if marker == 'completed' then return 2 end
+          if marker then return 0 end
+          if redis.call('SET', KEYS[2], ARGV[1], 'NX', 'EX', ARGV[2]) then return 1 end
+          return 0
+        LUA
+
+        # Keys: completed marker, reservation, worker claim. ARGV: owner,
+        # IDEMPOTENCY_TTL. Returns 1 when this owner may publish, 0 when it
+        # no longer holds the reservation or the id has a marker. Switches
+        # the reservation to its publishing form with the longer TTL, which
+        # stays in place if the commit outcome is unknown, and
+        # releases the worker's claim so the replayed copy is delivered.
+        START_REPLAY_LUA = <<~LUA
+          if redis.call('GET', KEYS[2]) ~= ARGV[1] then return 0 end
+          if redis.call('EXISTS', KEYS[1]) == 1 then return 0 end
+          redis.call('SET', KEYS[2], 'publishing:' .. ARGV[1], 'EX', ARGV[2])
+          redis.call('DEL', KEYS[3])
+          return 1
+        LUA
+
+        # Keys: completed marker, reservation. ARGV: owner, IDEMPOTENCY_TTL.
+        # Marks the id completed and drops the reservation, only while this
+        # owner still holds the publishing reservation. Returns 1 or 0.
+        COMPLETE_REPLAY_LUA = <<~LUA
+          if redis.call('GET', KEYS[2]) ~= 'publishing:' .. ARGV[1] then return 0 end
+          redis.call('SET', KEYS[1], 'completed', 'EX', ARGV[2])
+          redis.call('DEL', KEYS[2])
+          return 1
+        LUA
+
+        # Keys: reservation. ARGV: owner, '1' to include the publishing form.
+        # Deletes the reservation only when this owner holds it. The
+        # publishing form is included only when the copy cannot be live: the
+        # publish was never attempted (a lost reply from START_REPLAY_LUA),
+        # or its transaction was not committed.
+        RELEASE_RESERVATION_LUA = <<~LUA
+          local reservation = redis.call('GET', KEYS[1])
+          if reservation == ARGV[1] or (ARGV[2] == '1' and reservation == 'publishing:' .. ARGV[1]) then
+            return redis.call('DEL', KEYS[1])
           end
           return 0
         LUA
@@ -96,6 +156,7 @@ module Onetime
           end
 
           def consume_dlq_batch
+            results                       = { replayed: 0, discarded_non_auth: 0, discarded_expired: 0, errors: 0, deferred: 0 }
             conn, channel, own_connection = acquire_channel
             return unless channel
 
@@ -108,32 +169,47 @@ module Onetime
             end
 
             to_process = [available, BATCH_SIZE].min
-            results    = { replayed: 0, discarded_non_auth: 0, discarded_expired: 0, errors: 0, deferred: 0 }
+
+            # Every publish, ack and nack below takes effect only at tx_commit.
+            # The channel is dedicated to this batch (#acquire_channel), so
+            # transaction mode does not reach other publishers.
+            channel.tx_select
 
             to_process.times do
               delivery_info, properties, payload = queue.pop(manual_ack: true)
               break unless delivery_info
 
               process_message(channel, delivery_info, properties, payload, results)
+              break unless channel.open?
             end
 
-            scheduler_logger.info '[DlqEmailConsumerJob] Batch complete: ' \
-                                  "replayed=#{results[:replayed]} " \
-                                  "discarded_non_auth=#{results[:discarded_non_auth]} " \
-                                  "discarded_expired=#{results[:discarded_expired]} " \
-                                  "errors=#{results[:errors]} " \
-                                  "deferred=#{results[:deferred]}"
+            scheduler_logger.info "[DlqEmailConsumerJob] Batch complete: #{batch_counts(results)}"
+          rescue BatchStopped => ex
+            # Messages not popped yet stay in the DLQ for the next run.
+            scheduler_logger.error "[DlqEmailConsumerJob] #{ex.message}; counts before the stop: #{batch_counts(results)}",
+              message_id: ex.message_id
+          rescue Bunny::NetworkFailure => ex
+            # Bunny can interrupt outside the publish/commit guards. A commit
+            # may already have reached the broker; leave reservations untouched.
+            scheduler_logger.error "[DlqEmailConsumerJob] Batch stopped: #{ex.class}; outcome may be unknown; counts before the stop: #{batch_counts(results)}"
           rescue Bunny::NotFound
             scheduler_logger.debug "[DlqEmailConsumerJob] Queue #{DLQ_NAME} not declared yet"
           ensure
             # Closing the channel returns the messages left unacked (deferred
             # replays) to the DLQ for the next run.
             begin
-              # Bunny's channel-close handshake can initiate recovery on a
-              # closed transport even with automatically_recover disabled.
-              channel&.close if channel&.open? && (!own_connection || conn&.open?)
-            ensure
-              conn&.close if own_connection
+              # Transport and reader-loop failures can both interrupt this
+              # thread. Finish shutdown (including joining the reader) before
+              # handling a second, pending notification of the disconnect.
+              Thread.handle_interrupt(Bunny::NetworkFailure => :never) do
+                  # A channel-close handshake on a dead transport can recover
+                  # the connection even with automatically_recover disabled.
+                  channel&.close if channel&.open? && (!own_connection || conn&.open?)
+              ensure
+                  conn&.close if own_connection
+              end
+            rescue Bunny::NetworkFailure => ex
+              scheduler_logger.error "[DlqEmailConsumerJob] Batch stopped during cleanup: #{ex.class}; outcome may be unknown; counts before the stop: #{batch_counts(results)}"
             end
           end
 
@@ -165,8 +241,13 @@ module Onetime
             conn&.close unless channel
           end
 
+          def batch_counts(results)
+            results.map { |name, count| "#{name}=#{count}" }.join(' ')
+          end
+
           def process_message(channel, delivery_info, properties, payload, results)
             data = JSON.parse(payload, symbolize_names: false)
+            raise JSON::ParserError, 'Expected an email object' unless data.is_a?(Hash)
 
             # Raw Rodauth emails (password reset, verify account, email auth)
             # are always auth-critical. They have no template field; Rodauth
@@ -179,9 +260,13 @@ module Onetime
             template = data['template']
 
             unless template && AUTH_TEMPLATES.key?(template)
-              channel.nack(delivery_info.delivery_tag, false, false)
+              discard_message(channel, delivery_info, properties.message_id)
               results[:discarded_non_auth] += 1
               return
+            end
+
+            if data['data'] && !data['data'].is_a?(Hash)
+              raise JSON::ParserError, 'Expected template data to be an object'
             end
 
             # Auth template: check if the token is still valid
@@ -190,26 +275,28 @@ module Onetime
 
             unless token
               # No token in payload, can't verify validity
-              channel.nack(delivery_info.delivery_tag, false, false)
+              discard_message(channel, delivery_info, properties.message_id)
               results[:discarded_expired] += 1
               return
             end
 
             if token_expired?(config, token)
-              channel.nack(delivery_info.delivery_tag, false, false)
+              discard_message(channel, delivery_info, properties.message_id)
               results[:discarded_expired] += 1
               return
             end
 
             replay_message(channel, delivery_info, properties, payload, results)
+          rescue BatchStopped, Bunny::NetworkFailure
+            raise
           rescue JSON::ParserError => ex
             scheduler_logger.error "[DlqEmailConsumerJob] Invalid JSON: #{ex.message}"
-            channel.nack(delivery_info.delivery_tag, false, false)
+            discard_message(channel, delivery_info, properties.message_id)
             results[:errors] += 1
           rescue StandardError => ex
-            scheduler_logger.error "[DlqEmailConsumerJob] Error processing message: #{ex.message}"
-            channel.nack(delivery_info.delivery_tag, false, false)
-            results[:errors] += 1
+            scheduler_logger.error "[DlqEmailConsumerJob] Processing deferred: #{ex.class}"
+            results[:errors]   += 1
+            results[:deferred] += 1
           end
 
           # Check whether the auth token has expired by querying the deadline table.
@@ -235,84 +322,204 @@ module Onetime
             false # On error, allow replay (err on the side of delivery)
           end
 
-          # Republish a DLQ message to the queue it was dead-lettered from,
-          # once per message id.
+          # Republish a DLQ message to the queue it was dead-lettered from.
           #
-          # The worker that rejected the message may still hold its
-          # idempotency claim on the id: the worker releases it on the way
-          # to the DLQ, but only best-effort. A replay under a held claim is
-          # acked by the worker as a duplicate and never sent, so the claim
-          # is released here before the message is republished, as the
-          # operator replay (Onetime::Operations::Dlq::Replay) does.
+          # A message with an id goes through three datastore steps:
           #
-          # The claim is released and the id marked as replayed in one
-          # script (#claim_replay). When the datastore call raises, the
-          # message is left unacked; closing the channel at the end of the
-          # batch returns it to the DLQ, and the next run tries again. It is
-          # not nacked with requeue: RabbitMQ can put it back at the head of
-          # the DLQ, where this batch would pop it again. If the script ran
-          # before the error reached the job (a read timeout), the next run
-          # finds the id marked and drops the message as already replayed.
+          # 1. reserve_replay: take a short reservation on the id, owned by
+          #    this call. An id marked completed is acked without a publish
+          #    (the one-hour replay cap). An id reserved by another owner, or
+          #    with a legacy marker, is deferred.
+          # 2. start_replay: switch the reservation to its publishing form
+          #    with the one-hour TTL and release the worker's idempotency
+          #    claim, so the worker delivers the replay instead of acking it
+          #    as a duplicate. The worker's own release is best-effort.
+          # 3. finalize_replay, after the broker confirms the commit: mark
+          #    the id completed and drop the reservation.
+          #
+          # The republish and the ack of the DLQ delivery are committed in one
+          # AMQP transaction, so no copy goes live before the commit.
+          #
+          # A deferred message is left unacked. Closing the channel at the end
+          # of the batch returns it to the DLQ for a later run. It is not
+          # nacked with requeue: RabbitMQ can put it back at the head of the
+          # DLQ, where this batch would pop it again.
+          #
+          # No failure drops the message:
+          #
+          # - Datastore error before the publish: the call releases its own
+          #   reservation (best-effort; otherwise the reservation TTL bounds
+          #   the wait) and defers.
+          # - Publish or ack error: the transaction is rolled back and the
+          #   reservation released, so the next run replays the message. A
+          #   failed rollback also stops the batch; no commit was sent, so
+          #   the copy is not live and the reservation is still released.
+          # - Commit the broker does not confirm: the copy may or may not be
+          #   live. The batch stops and the publishing reservation is kept.
+          #   If the commit applied, the delivery has left the DLQ. If not,
+          #   the delivery returns to the DLQ and is replayed once the
+          #   reservation expires.
           def replay_message(channel, delivery_info, properties, payload, results)
             message_id = properties.message_id
 
             original_queue = extract_original_queue(properties.headers)
             unless original_queue
               scheduler_logger.warn '[DlqEmailConsumerJob] No original queue in x-death headers'
-              channel.nack(delivery_info.delivery_tag, false, false)
+              discard_message(channel, delivery_info, message_id)
               results[:errors] += 1
               return
             end
 
+            owner = SecureRandom.uuid if message_id
+
             if message_id
               begin
-                first_replay = claim_replay(message_id)
+                reservation = reserve_replay(message_id, owner)
+                started     = reservation == 1 && start_replay(message_id, owner)
               rescue StandardError => ex
-                scheduler_logger.error "[DlqEmailConsumerJob] Replay deferred to the next run: #{ex.class}",
-                  message_id: message_id
-                results[:deferred] += 1
+                release_reservation(message_id, owner, include_publishing: true)
+                defer_replay(message_id, results, "datastore result unknown; publish not attempted: #{ex.class}")
                 return
               end
 
               # Idempotency: skip if already replayed
-              unless first_replay
-                channel.ack(delivery_info.delivery_tag)
+              if reservation == 2
+                settle(channel, 'duplicate acknowledgement', message_id) { channel.ack(delivery_info.delivery_tag) }
+                return
+              end
+
+              unless started
+                release_reservation(message_id, owner) if reservation == 1
+                defer_replay(message_id, results, 'reservation or legacy marker held')
                 return
               end
             end
 
-            channel.default_exchange.publish(
-              payload,
-              routing_key: original_queue,
-              persistent: true,
-              message_id: message_id,
-              content_type: properties.content_type,
-              headers: clean_headers(properties.headers),
-            )
+            begin
+              channel.default_exchange.publish(
+                payload,
+                routing_key: original_queue,
+                persistent: true,
+                message_id: message_id,
+                content_type: properties.content_type,
+                headers: clean_headers(properties.headers),
+              )
+              channel.ack(delivery_info.delivery_tag)
+            rescue StandardError => ex
+              # Nothing is live without a commit, whether or not the rollback
+              # succeeds, so the next run may replay this message.
+              release_reservation(message_id, owner, include_publishing: true) if message_id
 
-            channel.ack(delivery_info.delivery_tag)
+              # Roll back before continuing, otherwise the next message's
+              # commit could publish this copy without its DLQ acknowledgement.
+              begin
+                channel.tx_rollback
+              rescue StandardError => rollback_error
+                stop = "Replay rollback failed; batch stopped: #{rollback_error.class}"
+                raise BatchStopped.new(stop, message_id: message_id)
+              end
+              defer_replay(message_id, results, "rolled back before commit: #{ex.class}")
+              return
+            end
+
+            # On an unconfirmed commit the publishing reservation stays in
+            # place: BatchStopped skips finalize_replay.
+            context = "replay to #{original_queue}; the message may already be republished"
+            commit_transaction(channel, context, message_id)
+
             results[:replayed] += 1
+            finalize_replay(message_id, owner, results) if message_id
           end
 
-          # Mark a message id as replayed and release the worker's claim on
-          # it, unless the id is already marked. One script, so only the run
-          # that sets the mark deletes the claim: a run that finds the id
-          # marked, also when an overlapping run marked it a moment earlier,
-          # leaves alone the claim a live copy of the replayed message holds.
-          # A message id with no claim (the worker released it, or it
-          # expired) is a no-op delete.
-          #
-          # @return [Boolean] true if this run is the first to replay it
+          # Drop a delivery from the DLQ (nack without requeue).
+          def discard_message(channel, delivery_info, message_id)
+            settle(channel, 'discard', message_id) { channel.nack(delivery_info.delivery_tag, false, false) }
+          end
+
+          # Settle one delivery and commit it. Transaction mode lasts for the
+          # channel's lifetime, so a settlement takes effect only at commit.
+          # A settlement that raises stops the batch instead of settling the
+          # delivery a second way: the first frame may have reached the broker.
+          def settle(channel, context, message_id)
+            begin
+              yield
+            rescue StandardError => ex
+              stop = "#{context.capitalize} failed before commit; batch stopped: #{ex.class}"
+              raise BatchStopped.new(stop, message_id: message_id)
+            end
+            commit_transaction(channel, context, message_id)
+          end
+
+          # A lost commit reply is not a rollback signal. Stop and close the
+          # dedicated channel without trying to settle this delivery again.
+          # This batches publish/ack; it does not guarantee cross-queue atomicity
+          # on broker failure: https://www.rabbitmq.com/docs/semantics
+          def commit_transaction(channel, context, message_id)
+            channel.tx_commit
+          rescue StandardError => ex
+            stop = "Batch stopped, outcome unknown: broker did not confirm #{context} (#{ex.class})"
+            raise BatchStopped.new(stop, message_id: message_id)
+          end
+
+          # @return [Integer] 2 completed, 1 reserved, 0 deferred
           # @raise [StandardError] on a datastore error
-          def claim_replay(message_id)
+          def reserve_replay(message_id, owner)
+            dbclient.eval(RESERVE_REPLAY_LUA, keys: replay_keys(message_id), argv: [owner, RESERVATION_TTL])
+          end
+
+          # @return [Boolean] true when this owner may publish
+          # @raise [StandardError] on a datastore error
+          def start_replay(message_id, owner)
             dbclient.eval(
-              CLAIM_REPLAY_LUA,
-              keys: [replay_claim_key(message_id), QueueConfig.processing_claim_key(message_id)],
-              argv: [QueueConfig::IDEMPOTENCY_TTL],
+              START_REPLAY_LUA,
+              keys: [*replay_keys(message_id), QueueConfig.processing_claim_key(message_id)],
+              argv: [owner, QueueConfig::IDEMPOTENCY_TTL],
             ) == 1
           end
 
-          def replay_claim_key(message_id)
+          # The message is already settled (publish and ack committed), so a
+          # failure here is logged and counted, never raised: the publishing
+          # reservation then holds off another replay until its TTL expires.
+          def finalize_replay(message_id, owner, results)
+            completed = dbclient.eval(
+              COMPLETE_REPLAY_LUA,
+              keys: replay_keys(message_id),
+              argv: [owner, QueueConfig::IDEMPOTENCY_TTL],
+            ) == 1
+            return if completed
+
+            raise 'Replay reservation ownership lost'
+          rescue StandardError => ex
+            results[:errors] += 1
+            scheduler_logger.error "[DlqEmailConsumerJob] Replay settled but marker finalization unknown: #{ex.class}",
+              message_id: message_id
+          end
+
+          def release_reservation(message_id, owner, include_publishing: false)
+            dbclient.eval(
+              RELEASE_RESERVATION_LUA,
+              keys: [reservation_key(message_id)],
+              argv: [owner, include_publishing ? '1' : '0'],
+            )
+          rescue StandardError => ex
+            scheduler_logger.error "[DlqEmailConsumerJob] Reservation release unknown; waiting for TTL: #{ex.class}",
+              message_id: message_id
+          end
+
+          def defer_replay(message_id, results, reason)
+            results[:deferred] += 1
+            scheduler_logger.warn "[DlqEmailConsumerJob] Replay deferred: #{reason}", message_id: message_id
+          end
+
+          def replay_keys(message_id)
+            [replayed_marker_key(message_id), reservation_key(message_id)]
+          end
+
+          def reservation_key(message_id)
+            "dlq:replay:reservation:#{message_id}"
+          end
+
+          def replayed_marker_key(message_id)
             "dlq:replayed:#{message_id}"
           end
 
