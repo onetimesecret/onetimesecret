@@ -114,4 +114,34 @@ RSpec.describe 'Domain image content validation' do
     end
   end
 
+  describe 'brand editor image read' do
+    let(:logic) { DomainsAPI::Logic::Domains::GetDomainLogo.allocate }
+
+    before do
+      logic.instance_variable_set(:@custom_domain, instance_double(Onetime::CustomDomain, display_domain: 'example.com'))
+      allow(logic).to receive(:raise_not_found) { |message| raise ArgumentError, message }
+    end
+
+    def stored_image(encoded, stored_type)
+      fields = { 'encoded' => encoded, 'content_type' => stored_type, 'filename' => 'logo' }
+      image  = instance_double(Familia::HashKey, hgetall: fields)
+      allow(image).to receive(:[]) { |key| fields[key.to_s] }
+      logic.instance_variable_set(:@image, image)
+      logic.process
+    end
+
+    it 'treats a stored SVG as absent, as the public image route does' do
+      expect { stored_image(Base64.strict_encode64(svg), 'image/svg+xml') }
+        .to raise_error(ArgumentError, 'Image not found')
+    end
+
+    it 'treats corrupt base64 as absent' do
+      expect { stored_image('not base64!', 'image/png') }.to raise_error(ArgumentError, 'Image not found')
+    end
+
+    it 'returns raster bytes with their detected MIME' do
+      record = stored_image(Base64.strict_encode64(png), 'text/html')[:record]
+      expect(record).to include('encoded' => Base64.strict_encode64(png), 'content_type' => 'image/png')
+    end
+  end
 end
