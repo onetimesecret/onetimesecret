@@ -11,10 +11,11 @@ Fixed
   the dead letter queue. A message whose replay fails stays in the dead
   letter queue for a later run and is counted as ``deferred``.
 
-  If the republish or the removal from the dead letter queue fails, the job
-  cannot tell whether the copy went out. It waits up to an hour before it
-  replays that message again, and that replay can send the email a second
-  time. After upgrading, a message the previous version marked as replayed
+  If the republish or the removal from the dead letter queue fails, both
+  are rolled back and the next run replays the message. If the broker does
+  not confirm the commit, the job cannot tell whether the copy went out; a
+  message still in the dead letter queue is replayed after up to an hour.
+  After upgrading, a message the previous version marked as replayed
   waits until that mark expires (at most an hour) and is then replayed.
   Messages waiting this way do not count against the batch of 50, so a run
   continues to the messages behind them (it passes over at most 500).

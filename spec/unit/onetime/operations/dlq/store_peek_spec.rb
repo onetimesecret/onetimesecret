@@ -12,8 +12,8 @@
 # app-observable guarantee that makes peek safe:
 #
 #   peek is READ-ONLY. Every message it pops is popped with a MANUAL ack and
-#   immediately nack-requeued (requeue: true), so the queue is left exactly as
-#   found — even when projecting a message raises mid-loop.
+#   nack-requeued (requeue: true) after scanning, including when projecting a
+#   message raises mid-loop. Requeue does not guarantee unchanged queue order.
 #
 # Pure unit test: the Bunny channel/queue are mocked (no live RabbitMQ). The
 # doubles mirror the shapes exercised by the live-broker specs in
@@ -49,7 +49,7 @@ RSpec.describe Onetime::Operations::Dlq::Store do
     [delivery_info, properties, payload]
   end
 
-  # Default: two distinct messages, each popped once then requeued.
+  # Projection fixtures only; store_inspection_spec models broker requeue state.
   let(:messages) do
     [
       delivery(tag: 'tag-1', message_id: 'msg-1', payload: '{"data":"one"}'),

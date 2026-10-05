@@ -107,50 +107,54 @@ module Onetime
           }
         end
 
-        # Non-destructively peek up to `count` messages from a DLQ. Each message is
-        # popped with a manual ack and IMMEDIATELY nack-requeued, so the queue is
-        # left exactly as found — a read, not a drain. Byte-for-byte the historic
-        # CLI `peek_messages` projection (`payload_preview` is capped at 200 chars).
+        # Peek up to `count` messages without consuming them. Each pop is a
+        # manual-ack delivery held until the scan ends: requeueing it at once can
+        # put the same message back at the head before the next pop, so the scan
+        # would read the head again instead of moving on. While held, scanned
+        # messages are invisible to other consumers and to `message_count`.
+        # Requeue may change order. The historic CLI projection caps
+        # `payload_preview` at 200 chars.
         #
         # @param channel [Object]
         # @param dlq_name [String]
         # @param count [Integer] how many messages to peek (already clamped)
         # @return [Array<Hash>] message summaries
         def peek(channel, dlq_name, count)
-          messages = []
-          queue    = queue_handle(channel, dlq_name)
+          messages      = []
+          delivery_tags = []
+          queue         = queue_handle(channel, dlq_name)
 
           count.times do
             delivery_info, properties, payload = queue.pop(manual_ack: true)
             break unless delivery_info
 
-            begin
-              death = extract_death_info(properties.headers)
-              messages << {
-                delivery_tag: delivery_info.delivery_tag,
-                message_id: properties.message_id,
-                timestamp: properties.timestamp&.to_i,
-                age: format_age(properties.timestamp),
-                original_queue: death[:queue],
-                death_reason: death[:reason],
-                death_count: death[:count],
-                error: death[:error],
-                content_type: properties.content_type,
-                payload_preview: payload.to_s[0..200],
-              }
-            ensure
-              # Always nack WITH requeue so the peek leaves the DLQ untouched.
-              channel.nack(delivery_info.delivery_tag, false, true)
-            end
+            delivery_tags << delivery_info.delivery_tag
+            death = extract_death_info(properties.headers)
+            messages << {
+              delivery_tag: delivery_info.delivery_tag,
+              message_id: properties.message_id,
+              timestamp: properties.timestamp&.to_i,
+              age: format_age(properties.timestamp),
+              original_queue: death[:queue],
+              death_reason: death[:reason],
+              death_count: death[:count],
+              error: death[:error],
+              content_type: properties.content_type,
+              payload_preview: payload.to_s[0..200],
+            }
           end
 
           messages
+        ensure
+          requeue_deliveries(channel, dlq_name, delivery_tags)
         end
 
         # Locate a single message by id or 1-based index, returning its full detail
-        # (headers, death info, parsed payload) or nil. Non-destructive: every popped
-        # message is nack-requeued. Byte-for-byte the historic CLI `find_message` +
-        # `build_message_detail`.
+        # (headers, death info, parsed payload) or nil. Scanned messages stay
+        # unacked until traversal ends, then are nack-requeued without consuming
+        # them (see {peek}). The scan stops at the match, an empty pop, or
+        # `total` messages, so a miss holds up to `total` deliveries at once.
+        # Requeue may change order. Uses the historic CLI detail projection.
         #
         # @param channel [Object]
         # @param dlq_name [String]
@@ -159,13 +163,15 @@ module Onetime
         # @param total [Integer] queue depth (caller-measured)
         # @return [Hash, nil]
         def find_message(channel, dlq_name, message_id, index, total)
-          queue = queue_handle(channel, dlq_name)
-          found = nil
+          delivery_tags = []
+          queue         = queue_handle(channel, dlq_name)
+          found         = nil
 
           total.times do |i|
             delivery_info, properties, payload = queue.pop(manual_ack: true)
             break unless delivery_info
 
+            delivery_tags << delivery_info.delivery_tag
             match = if message_id
                       properties.message_id == message_id
                     else
@@ -174,12 +180,36 @@ module Onetime
 
             found = build_message_detail(delivery_info, properties, payload) if match
 
-            # Requeue every message we inspected — read-only.
-            channel.nack(delivery_info.delivery_tag, false, true)
             break if found
           end
 
           found
+        ensure
+          requeue_deliveries(channel, dlq_name, delivery_tags)
+        end
+
+        # Nack-requeue the deliveries an inspection held, one tag at a time in
+        # delivery order. Per-tag nacks (not `multiple: true`) touch only this
+        # scan's deliveries even if the caller's channel carries others.
+        #
+        # A failed nack leaves the rest outstanding. Closing the channel makes the
+        # broker requeue every unacked delivery on it, including tags not yet
+        # attempted, so callers pass a channel dedicated to the inspection (Peek
+        # and Show do). The error is then re-raised.
+        #
+        # @param channel [Object]
+        # @param dlq_name [String] for the failure log
+        # @param delivery_tags [Array<Integer>]
+        def requeue_deliveries(channel, dlq_name, delivery_tags)
+          delivery_tags.each { |tag| channel.nack(tag, false, true) }
+        rescue StandardError => ex
+          Onetime.get_logger('Operations').warn 'DLQ inspection requeue failed; closing channel',
+            queue: dlq_name,
+            deliveries: delivery_tags.size,
+            error: ex.message,
+            error_class: ex.class.name
+          channel.close if channel.open?
+          raise
         end
 
         # Full single-message detail projection. Byte-for-byte the historic CLI

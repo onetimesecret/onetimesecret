@@ -228,7 +228,10 @@ export const customDomainCanonical = z.object({
   /** Domain status (pending, active, error, suspended). */
   status: z.string().optional(),
 
-  /** Whether DNS TXT record is verified. */
+  /** Whether domain ownership is verified (canonical name). */
+  ownership_verified: z.boolean().optional(),
+
+  /** Legacy alias of `ownership_verified`. */
   verified: z.boolean(),
 
   /** Whether DNS A/CNAME record is resolving correctly. */

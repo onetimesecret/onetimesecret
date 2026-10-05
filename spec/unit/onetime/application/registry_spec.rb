@@ -70,4 +70,22 @@ RSpec.describe Onetime::Application::Registry do
       expect(mappings).not_to have_key('/spec-registry-skipped')
     end
   end
+
+  describe '.reset!' do
+    # A live instance with a singleton class (what a per-instance stub leaves
+    # behind) is `< Base` too. Registering it made create_mount_mappings raise
+    # on its nil uri_prefix and drop every mount after it.
+    it 'does not re-register the singleton class of a live application instance' do
+      normal_app.skip = false
+      instance        = normal_app.allocate
+      singleton       = instance.singleton_class
+      singleton.skip  = false # class ivars are not inherited; opt it in too
+
+      described_class.reset!
+
+      expect(described_class.application_classes).to include(normal_app)
+      expect(described_class.application_classes).not_to include(singleton)
+      expect(described_class.application_classes.select(&:singleton_class?)).to be_empty
+    end
+  end
 end

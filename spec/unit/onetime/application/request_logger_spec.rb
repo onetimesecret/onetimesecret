@@ -190,4 +190,75 @@ RSpec.describe Onetime::Application::RequestLogger do
       end
     end
   end
+  %w[minimal standard debug].each do |mode|
+    context "capability paths in #{mode} capture" do
+      let(:config) { { 'capture' => mode } }
+
+      [
+        ['/secret/bearer-secret-value', '/secret/[REDACTED]'],
+        ['/receipt/bearer-receipt-value/burn', '/receipt/[REDACTED]/burn'],
+        ['/api/v1/private/bearer-receipt-value', '/api/v1/private/[REDACTED]'],
+        ['/api/v1/metadata/bearer-receipt-value/burn', '/api/v1/metadata/[REDACTED]/burn'],
+        ['/api/v2/secret/bearer-secret-value/status', '/api/v2/secret/[REDACTED]/status'],
+        ['/api/v3/guest/receipt/bearer-receipt-value', '/api/v3/guest/receipt/[REDACTED]'],
+        ['/api/v2/guest/secret/bearer-secret-value/reveal', '/api/v2/guest/secret/[REDACTED]/reveal'],
+        ['/l/bearer-secret-value', '/l/[REDACTED]'],
+        ['/incoming/bearer-receipt-value', '/incoming/[REDACTED]'],
+        ['/%73ecret/bearer-secret-value', '/secret/[REDACTED]'],
+        ['/secret%2Fbearer-secret-value', '/secret/[REDACTED]'],
+        ['/secret/bearer%2Dsecret%2Dvalue', '/secret/[REDACTED]'],
+        ['/receipt/bearer-receipt-value/bearer-secret-value', '/receipt/[REDACTED]/[REDACTED]'],
+      ].each do |path, redacted|
+        it "redacts #{path}" do
+          _level, payload = call(path: path)
+          expect(payload['path']).to eq(redacted)
+          expect(payload.to_s).not_to include('bearer-secret-value', 'bearer-receipt-value')
+        end
+      end
+
+      it 'redacts capability paths split across SCRIPT_NAME and PATH_INFO' do
+        env = Rack::MockRequest.env_for('/bearer-secret-value')
+        env['SCRIPT_NAME'] = '/mounted/api/v2/secret'
+        middleware.call(env)
+        expect(captured.last.last['path']).to eq('/mounted/api/v2/secret/[REDACTED]')
+      end
+
+      it 'keeps the response intact and hides unclassifiable invalid UTF-8 paths' do
+        env = Rack::MockRequest.env_for('/secret/%FF')
+        expect(middleware.call(env).first).to eq(200)
+        expect(captured.last.last['path']).to eq('[REDACTED]')
+      end
+
+      it 'redacts repeatedly encoded capability routes' do
+        expect(call(path: '/%2573ecret/bearer-secret-value').last['path']).to eq('/secret/[REDACTED]')
+      end
+
+      it 'preserves static API actions and receipt listing' do
+        %w[/api/v2/secret/conceal /api/v3/guest/secret/generate /api/v2/secret/status].each do |path|
+          env = Rack::MockRequest.env_for(path, method: 'POST')
+          middleware.call(env)
+          expect(captured.last.last['path']).to eq(path)
+        end
+        expect(call(path: '/api/v1/receipt/recent').last['path']).to eq('/api/v1/receipt/recent')
+      end
+
+      it 'does not exempt action-like strings on SPA capability routes' do
+        expect(call(path: '/secret/conceal').last['path']).to eq('/secret/[REDACTED]')
+      end
+
+      it 'preserves the static incoming API routes' do
+        [%w[GET /api/incoming/config], %w[POST /api/incoming/secret], %w[POST /api/incoming/validate]].each do |method, path|
+          env = Rack::MockRequest.env_for(path, method: method)
+          middleware.call(env)
+          expect(captured.last.last['path']).to eq(path)
+        end
+        expect(call(path: '/incoming').last['path']).to eq('/incoming')
+      end
+
+      it 'does not exempt incoming API action names on the SPA route' do
+        expect(call(path: '/incoming/secret').last['path']).to eq('/incoming/[REDACTED]')
+      end
+    end
+  end
+
 end

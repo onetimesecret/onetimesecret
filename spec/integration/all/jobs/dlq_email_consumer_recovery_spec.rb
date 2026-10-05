@@ -3,9 +3,10 @@
 # frozen_string_literal: true
 
 # DlqEmailConsumerJob against a real RabbitMQ broker and the test Valkey:
-# a replay whose publish fails leaves the original in the DLQ, unacked until
-# the job's channel closes, and a later run replays it. The replay
-# reservation and completed marker are the job's real datastore keys.
+# a replay that fails or is not confirmed leaves the original in the DLQ,
+# unacked until the job's channel closes, and a later run replays it instead
+# of acking it as a duplicate. The replay reservation and completed marker
+# are the job's real datastore keys.
 #
 # The double-based unit spec for the same paths is
 # spec/unit/onetime/jobs/scheduled/dlq_email_consumer_job_spec.rb.
@@ -17,6 +18,7 @@
 require 'spec_helper'
 require 'bunny'
 require 'securerandom'
+require 'timeout'
 require 'onetime/jobs/scheduled/dlq_email_consumer_job'
 
 RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :integration do
@@ -47,11 +49,16 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
   # Dead-letter a copy of the message into the test DLQ, routed back to the
   # test target. Waits for the broker's confirm: the job reads the DLQ's
   # message count first, and that count can lag an unconfirmed publish.
+  # Publishes on its own channel: a channel in confirm mode cannot switch to
+  # the transaction mode the job puts broker_channel in.
   def dead_letter(id = message_id)
-    broker_channel.confirm_select unless broker_channel.using_publisher_confirmations?
-    broker_channel.default_exchange.publish(payload, routing_key: dlq_name, message_id: id,
+    publisher = connection.create_channel
+    publisher.confirm_select
+    publisher.default_exchange.publish(payload, routing_key: dlq_name, message_id: id,
       content_type: 'application/json', headers: { 'x-death' => [{ 'queue' => target_name }] })
-    broker_channel.wait_for_confirms
+    publisher.wait_for_confirms
+  ensure
+    publisher&.close
   end
 
   # A queue's ready count, polled briefly until it reaches the expected
@@ -67,7 +74,15 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
     count
   end
 
+  # A closed channel's unacked deliveries return to the queue asynchronously.
+  def await_dlq_depth(ch, depth)
+    Timeout.timeout(5) { sleep 0.01 until ch.queue(dlq_name, durable: true).message_count == depth }
+  end
+
+  # One message on its own channel, in transaction mode as consume_dlq_batch
+  # sets it up.
   def process_broker_message(ch)
+    ch.tx_select
     info, props, body = ch.queue(dlq_name, durable: true).pop(manual_ack: true)
     expect(info).not_to be_nil
     described_class.send(:process_message, ch, info, props, body, results)
@@ -98,7 +113,9 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
     expect(dlq.message_count).to eq(0) # Held unacked, not repeatedly popped.
     broker_channel.close
 
-    redis.expire(reservation_key, 0)
+    # The rollback released the reservation, so the next run replays it.
+    expect(redis.get(reservation_key)).to be_nil
+    expect(redis.get(completed_key)).to be_nil
     retry_channel = connection.create_channel
     expect(ready_count(retry_channel, dlq_name, 1)).to eq(1)
     process_broker_message(retry_channel)
@@ -113,9 +130,10 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
       broker_channel.close
       raise IOError, 'channel closed before publish'
     end
-    process_broker_message(broker_channel)
+    expect { process_broker_message(broker_channel) }
+      .to raise_error(described_class::BatchStopped, /rollback failed/i)
     expect(redis.get(completed_key)).to be_nil
-    redis.expire(reservation_key, 0)
+    expect(redis.get(reservation_key)).to be_nil
 
     retry_channel = connection.create_channel
     expect(ready_count(retry_channel, dlq_name, 1)).to eq(1)
@@ -125,14 +143,44 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
     retry_channel.close
   end
 
+  it 'keeps a replay whose commit was not applied, and replays it after the uncertainty window' do
+    allow(broker_channel).to receive(:tx_commit).and_raise(IOError, 'commit write interrupted')
+    expect { process_broker_message(broker_channel) }
+      .to raise_error(described_class::BatchStopped, /outcome unknown/i)
+    broker_channel.close
+    expect(redis.get(reservation_key)).to start_with('publishing:')
+    expect(redis.get(completed_key)).to be_nil
+
+    # The next run finds the delivery back in the DLQ. It must not ack it
+    # as already replayed: no copy reached the target queue.
+    retry_channel = connection.create_channel
+    await_dlq_depth(retry_channel, 1)
+    process_broker_message(retry_channel)
+    expect(results[:deferred]).to eq(1)
+    retry_channel.close
+
+    redis.expire(reservation_key, 0)
+    final_channel = connection.create_channel
+    await_dlq_depth(final_channel, 1)
+    expect(final_channel.queue(target_name, durable: true).message_count).to eq(0)
+    process_broker_message(final_channel)
+    expect(final_channel.queue(target_name, durable: true).message_count).to eq(1)
+    expect(final_channel.queue(dlq_name, durable: true).message_count).to eq(0)
+    expect(redis.get(completed_key)).to eq('completed')
+    final_channel.close
+  end
+
   it 'closes the batch channel to return deferred deliveries without a head-of-queue retry loop' do
     dead_letter
+    Timeout.timeout(5) { sleep 0.01 until dlq.message_count == 2 }
     allow(described_class).to receive(:acquire_channel).and_return([connection, broker_channel, false])
-    allow(broker_channel.default_exchange).to receive(:publish).and_raise(IOError, 'transport outcome unknown')
+    allow(broker_channel.default_exchange).to receive(:publish).and_raise(IOError, 'publish failed before commit')
 
     described_class.send(:consume_dlq_batch)
 
-    expect(broker_channel.default_exchange).to have_received(:publish).once
+    # Both copies share one id: each attempt is rolled back and releases the
+    # reservation, so the second copy is attempted too.
+    expect(broker_channel.default_exchange).to have_received(:publish).twice
     expect(broker_channel).not_to be_open
     inspection = connection.create_channel
     expect(ready_count(inspection, dlq_name, 2)).to eq(2)

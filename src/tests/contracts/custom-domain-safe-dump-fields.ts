@@ -25,6 +25,7 @@ export const CUSTOM_DOMAIN_SAFE_DUMP_FIELDS = [
   'icon',
   'status',
   'vhost',
+  'ownership_verified',
   'verified',
   'created',
   'updated',
