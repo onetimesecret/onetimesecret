@@ -9,7 +9,7 @@ require_relative '../metadata'
 require_relative '../config'
 require_relative '../region_normalizer'
 require_relative '../operations/catalog/metadata_validator'
-require 'onetime/models/features/with_entitlements'
+require_relative '../../../../lib/onetime/models/features/with_entitlements'
 
 module Billing
   unless defined?(RECORD_LIMIT)
