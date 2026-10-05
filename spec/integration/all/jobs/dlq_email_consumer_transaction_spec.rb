@@ -123,6 +123,65 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
     end
   end
 
+  it 'defers malformed x-death metadata without leaking frames into the next replay commit' do
+    queue.purge
+    poison_id = "#{message_id}-poison"
+    poison_headers = { 'x-death' => ['not-a-death-table'], 'x-schema-version' => 1 }
+    queue.publish(payload, persistent: true, message_id: poison_id,
+      content_type: 'application/json', headers: poison_headers)
+    dead_letter(message_id)
+
+    exchange = channel.default_exchange
+    allow(exchange).to receive(:publish).and_call_original
+    [:ack, :nack, :reject, :tx_commit, :tx_rollback].each do |operation|
+      allow(channel).to receive(operation).and_call_original
+    end
+
+    deliveries = {}
+    allow(described_class).to receive(:process_message).and_wrap_original do |process, *args|
+      _, delivery_info, properties, _, results = args
+      deliveries[properties.message_id] = delivery_info.delivery_tag
+      process.call(*args)
+
+      if properties.message_id == poison_id
+        expect(results).to include(errors: 1, deferred: 1, replayed: 0)
+        expect(channel).to be_open
+        expect(exchange).not_to have_received(:publish)
+        [:ack, :nack, :reject, :tx_commit, :tx_rollback].each do |operation|
+          expect(channel).not_to have_received(operation)
+        end
+        expect(described_class).not_to have_received(:reserve_replay)
+      end
+    end
+
+    run_batch
+
+    expect(deliveries.keys).to eq([poison_id, message_id])
+    expect(logger).to have_received(:error).with(
+      '[DlqEmailConsumerJob] Processing deferred: NoMethodError',
+    ).once
+    expect(exchange).to have_received(:publish).with(payload,
+      routing_key: target_name, persistent: true, message_id: message_id,
+      content_type: 'application/json', headers: { 'x-schema-version' => 1 }).once
+    expect(channel).to have_received(:ack).with(deliveries.fetch(message_id)).once
+    expect(channel).not_to have_received(:ack).with(deliveries.fetch(poison_id))
+    expect(channel).not_to have_received(:nack)
+    expect(channel).not_to have_received(:reject)
+    expect(channel).not_to have_received(:tx_rollback)
+    expect(channel).to have_received(:tx_commit).once
+
+    expect(queue.message_count).to eq(1)
+    expect(target.message_count).to eq(1)
+    _, retained_properties, retained_body = queue.pop
+    expect(retained_properties.message_id).to eq(poison_id)
+    expect(retained_properties.headers).to eq(poison_headers)
+    expect(retained_body).to eq(payload)
+    _, replayed_properties, replayed_body = target.pop
+    expect(replayed_properties.message_id).to eq(message_id)
+    expect(replayed_properties.headers).to eq('x-schema-version' => 1)
+    expect(replayed_body).to eq(payload)
+  end
+
   it 'stops when the commit cannot be sent, without settling either DLQ delivery' do
     dead_letter("#{message_id}-second")
     allow(channel).to receive(:tx_commit).and_raise(IOError, 'commit write interrupted')
