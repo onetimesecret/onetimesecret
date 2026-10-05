@@ -205,7 +205,7 @@ Onetime::Jobs::Scheduled::FaviconBackfillJob.send(:eligible?, @legacy, Familia.n
 ## Backfill does not recreate a deleted domain object
 @domain.dbclient.del(@domain.dbkey)
 @copied = @domain.do_chore!(:migrate_ownership_verified)
-[@copied, @domain.dbclient.exists(@domain.dbkey)]
+[@copied, @domain.dbclient.exists?(@domain.dbkey)]
 #=> [false, false]
 
 # ---------------------------------------------------------------------------
