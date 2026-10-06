@@ -7,5 +7,7 @@ Added
   (``destinations.file``, off by default) next to the console, each with
   its own ``level`` and ``formatter``. Category levels still decide which
   events are generated; a destination level only filters what that
-  destination writes. The defaults are unchanged: stdout for servers,
-  stderr for ``bin/ots``, no file (#4683).
+  destination writes. A file that cannot be opened stops boot; a write
+  that fails later is reported once per process on stderr. The defaults
+  are unchanged: stdout for servers, stderr for ``bin/ots``, no file
+  (#4683).

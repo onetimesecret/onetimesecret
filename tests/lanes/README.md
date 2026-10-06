@@ -247,7 +247,9 @@ Events that `--log-console` kept off the console are in `app.log` only.
 The file destination is installed by `spec/spec_helper.rb`,
 `try/support/test_helpers.rb`, or the application's boot, whichever comes
 first. A tryout file run alone with `--only` that loads neither helper and
-never boots is not captured.
+never boots is not captured: `app.log` stays empty. Such a process has no
+log appender at all, so its log events are written nowhere, with or without
+these flags. Nothing that would have been printed is missing.
 
 #### Levels: what is generated, and what a destination shows
 
