@@ -6,13 +6,13 @@ Tracking: [#4607](https://github.com/onetimesecret/onetimesecret/issues/4607).
 
 ## Summary
 
-Operator-managed domains separate permission to use a registered domain from observations about whether that domain resolves or serves valid HTTPS. The canonical strategy is `operator_managed`, its display name is “Operator-managed domains,” and certificate management remains external. Operator policy authorizes only a trusted current registration; it never authorizes an arbitrary Host or SNI name and never permits internal certificate issuance.
+Operator-managed domains separate permission to use a registered domain from observations about whether that domain resolves or serves valid HTTPS. The canonical strategy is `operator_managed`, its display name is “Operator-managed domains,” and certificate management remains external. Operator policy authorizes only a current registration; it never authorizes an arbitrary Host or SNI name and never permits internal certificate issuance.
 
 This document defines proposed runtime behavior. Existing runtime booleans, strategy classes, APIs, caches, schedulers, and certificate gates do not yet satisfy this contract; configuration changes alone do not activate the behavior described here.
 
 ## Goals
 
-- Operator-controlled deployments use trusted registered domains without TXT challenges.
+- Operator-controlled deployments use registered domains without TXT challenges.
 - Authorization, ownership evidence, DNS health, HTTPS health, and certificate management remain separate concepts.
 - Every protected consumer uses one request-time authorization decision.
 - A switch to either TXT-enforced strategy rejects policy-only authorization on the first protected request.
@@ -32,7 +32,6 @@ This document defines proposed runtime behavior. Existing runtime booleans, stra
 - **TXT-enforced strategy**: `approximated` or `caddy_on_demand`.
 - **Current registration**: a live domain record whose canonical hostname lookup resolves to that record, whose organization exists, and whose active assignment lineage belongs to that organization.
 - **Assignment lineage**: the identity of one uninterrupted assignment of one canonical hostname to one organization. It is distinct from the hostname and domain record identifier.
-- **Trusted registration**: a current registration created, transferred, or adopted while operator-managed registration trust is explicitly enabled.
 - **Protected consumer**: a runtime surface that serves, publishes, selects, or issues credentials for a custom-domain hostname.
 - **Health observation**: a timestamped DNS, expected-target, or HTTPS result. It is not authorization evidence.
 - **Effective strategy**: the canonical strategy selected for the exact current domain registration by applying ADR-015's per-domain override first and the install-level strategy second.
@@ -60,7 +59,7 @@ For every domain-specific operation, strategy resolution receives the exact curr
 
 - With `strict_strategy: true`, a nonblank unknown strategy is a configuration error. Startup or configuration activation fails; no fallback strategy becomes active.
 - With `strict_strategy: false`, a nonblank unknown strategy produces an operator-visible warning and resolves to the default `operator_managed` strategy.
-- Unknown-value fallback does not bypass the trusted-registration requirement. Without trusted registration or another eligible basis, the resulting authorization basis is `none`.
+- Unknown-value fallback does not authorize an unregistered hostname. Without a current registration or another eligible basis, the resulting authorization basis is `none`.
 
 ### Canonical output
 
@@ -77,13 +76,9 @@ requires_txt_proof: false
 
 Strict-mode rejection produces no effective-strategy payload because the configuration does not activate.
 
-### Trusted-registration prerequisite
+### Registration trust
 
-Operator-policy authorization is disabled unless the deployment explicitly enables operator-managed registration trust. Enabling it is an operator attestation that every principal permitted to create, transfer, or adopt custom-domain registrations is trusted to assign those hostnames.
-
-The attestation applies prospectively. It marks a lineage trusted when that lineage is created, transferred, or adopted; it does not retroactively trust an existing lineage. A pre-existing registration becomes trusted only through an explicit operator adoption action, which ends the prior lineage and creates a new trusted lineage. Disabling the attestation immediately makes `operator_policy` ineligible but does not invalidate eligible TXT proof or an active explicit override.
-
-Open signup, ordinary organization ownership, an entitlement, or self-hosted deployment status does not imply trusted registration. Deployments that permit untrusted users to register arbitrary domains do not enable this attestation.
+Operator policy trusts the deployment's domain registration path: whoever may register a domain on the install may use it. The application does not verify, record, or gate that trust. Selecting `operator_managed` on a deployment where untrusted users can register arbitrary hostnames is an operator decision outside this specification (see the risk statement in ADR-049).
 
 ## Authorization model
 
@@ -95,7 +90,7 @@ The authorization result is a typed value with exactly one effective basis:
 | --- | --- |
 | `txt_proof` | Eligible TXT evidence proves control for the current assignment lineage. |
 | `explicit_override` | An active operator override authorizes the current assignment lineage. |
-| `operator_policy` | The effective strategy is `operator_managed` and the current registration is trusted. |
+| `operator_policy` | The effective strategy is `operator_managed` and the registration is current. |
 | `none` | No eligible basis authorizes the current registration. |
 
 The authorization result contains at least `authorized`, `basis`, canonical `strategy`, current `assignment_lineage`, and a stable denial reason when `basis` is `none`.
@@ -107,7 +102,7 @@ Authorization is evaluated against the exact current registration and its effect
 1. A missing, orphaned, inconsistent, deleted, or non-current registration returns `none`.
 2. An active explicit override bound to the current assignment lineage returns `explicit_override`.
 3. Eligible TXT evidence bound to the current assignment lineage returns `txt_proof`.
-4. A trusted current registration under `operator_managed` returns `operator_policy`.
+4. A current registration under `operator_managed` returns `operator_policy`.
 5. Every other state returns `none`.
 
 An unregistered Host or SNI name always returns `none`. A syntactically valid host, a host that reaches the deployment, and a host that resolves to deployment infrastructure remain unregistered until the current-registration conditions are satisfied.
@@ -118,15 +113,14 @@ Health observations do not participate in this decision. DNS failure, target mis
 
 `Y` in the override or TXT column means eligible evidence for the current lineage, not a legacy boolean.
 
-| Current registration | Strategy | Trusted registration | Override | TXT proof | Authorized | Effective basis |
-| --- | --- | --- | --- | --- | --- | --- |
-| No | any | any | any | any | No | `none` |
-| Yes | any | any | Y | any | Yes | `explicit_override` |
-| Yes | any | any | N | Y | Yes | `txt_proof` |
-| Yes | `operator_managed` | Y | N | N | Yes | `operator_policy` |
-| Yes | `operator_managed` | N | N | N | No | `none` |
-| Yes | `approximated` | any | N | N | No | `none` |
-| Yes | `caddy_on_demand` | any | N | N | No | `none` |
+| Current registration | Strategy | Override | TXT proof | Authorized | Effective basis |
+| --- | --- | --- | --- | --- | --- |
+| No | any | any | any | No | `none` |
+| Yes | any | Y | any | Yes | `explicit_override` |
+| Yes | any | N | Y | Yes | `txt_proof` |
+| Yes | `operator_managed` | N | N | Yes | `operator_policy` |
+| Yes | `approximated` | N | N | No | `none` |
+| Yes | `caddy_on_demand` | N | N | No | `none` |
 
 An override remains the reported basis while active even when eligible TXT evidence also exists. A passing TXT check does not silently clear an explicit override.
 
@@ -174,19 +168,18 @@ An indeterminate TXT check may retain eligible proof only through the existing b
 
 | Event | Assignment lineage | TXT evidence | Override evidence | Operator policy |
 | --- | --- | --- | --- | --- |
-| Initial trusted registration | New lineage | None until a passing TXT check | None until explicitly created | Eligible under `operator_managed` |
+| Initial registration | New lineage | None until a passing TXT check | None until explicitly created | Eligible under `operator_managed` |
 | Strategy change only | Unchanged | Preserved if otherwise eligible | Preserved if active | Re-evaluated from target strategy |
-| Transfer to another organization | New lineage | Prior evidence ineligible | Prior override ineligible | Eligible only if the new lineage is trusted |
+| Transfer to another organization | New lineage | Prior evidence ineligible | Prior override ineligible | Eligible under `operator_managed` |
 | Orphaning | No current lineage | Ineligible | Ineligible | Ineligible |
-| Orphan adoption | New lineage | Prior evidence ineligible | Prior override ineligible | Eligible only if the adopted lineage is trusted |
-| Operator adoption of an existing untrusted registration | New trusted lineage | Prior evidence ineligible | Prior override ineligible | Eligible under `operator_managed` |
+| Orphan adoption | New lineage | Prior evidence ineligible | Prior override ineligible | Eligible under `operator_managed` |
 | Domain deletion | Lineage ended | Ineligible | Ineligible | Ineligible |
-| Same hostname recreated | New lineage | Never inherited | Never inherited | Eligible only if the new lineage is trusted |
+| Same hostname recreated | New lineage | Never inherited | Never inherited | Eligible under `operator_managed` |
 | Definitive TXT demotion | Lineage remains; proof-bearing authorization lineage ends | Invalidated | Active override remains active | May authorize only under `operator_managed` |
-| Policy re-promotion after demotion | Lineage remains | Ended TXT proof remains ineligible | Active override remains active | Eligible under `operator_managed` when trusted |
+| Policy re-promotion after demotion | Lineage remains | Ended TXT proof remains ineligible | Active override remains active | Eligible under `operator_managed` |
 | Later return to TXT enforcement | Lineage remains | Requires a new passing TXT check if prior proof ended | Active override remains eligible | Never eligible |
 
-Transfer, orphan adoption, and operator adoption of an existing untrusted registration are authorization boundaries even when the domain record identifier or TXT fields are reused. Deletion and recreation are boundaries even when the hostname and challenge value happen to match.
+Transfer and orphan adoption are authorization boundaries even when the domain record identifier or TXT fields are reused. Deletion and recreation are boundaries even when the hostname and challenge value happen to match.
 
 ## Immediate strategy-transition semantics
 
@@ -203,7 +196,7 @@ Consequently, switching a domain from `operator_managed` to either TXT-enforced 
 | `passthrough` or `external` spelling | `operator_managed` spelling | No semantic transition; aliases normalize to the same strategy. | External management remains in effect. |
 | `operator_managed` | `approximated` | `operator_policy` is ineligible immediately; current-lineage TXT proof or override is required. | Provider-managed operations are permitted only after eligible authorization. |
 | `operator_managed` | `caddy_on_demand` | `operator_policy` is ineligible immediately; current-lineage TXT proof or override is required. | Internal ACME is denied until the basis is `txt_proof` or `explicit_override`. |
-| `approximated` or `caddy_on_demand` | `operator_managed` | Existing eligible override or TXT proof remains the basis; otherwise a trusted current registration uses `operator_policy`. | Management becomes external; no internal request, renewal, replacement, or deletion occurs. |
+| `approximated` or `caddy_on_demand` | `operator_managed` | Existing eligible override or TXT proof remains the basis; otherwise the current registration uses `operator_policy`. | Management becomes external; no internal request, renewal, replacement, or deletion occurs. |
 | `approximated` | `caddy_on_demand` | Eligible current-lineage TXT proof or override remains valid. | Provider management stops; internal ACME follows the certificate matrix. |
 | `caddy_on_demand` | `approximated` | Eligible current-lineage TXT proof or override remains valid. | Internal ACME stops; provider management follows the certificate matrix. |
 | TXT-enforced | Same TXT-enforced strategy | Only eligible current-lineage TXT proof or override authorizes. | Existing strategy behavior continues. |
@@ -360,7 +353,7 @@ A domain response exposes:
 - Typed DNS, expected-target, HTTPS, and freshness outcomes with reason and check time.
 - Certificate-management mode.
 
-An unknown or stale health result remains visibly unknown or stale. A prior successful value is not copied into the current outcome. Admin and management surfaces can distinguish a missing registration, untrusted lineage, absent evidence, invalidated evidence, and a strategy-cutover denial.
+An unknown or stale health result remains visibly unknown or stale. A prior successful value is not copied into the current outcome. Admin and management surfaces can distinguish a missing registration, absent evidence, invalidated evidence, and a strategy-cutover denial.
 
 ## Compatibility and rollout
 
@@ -370,16 +363,15 @@ An unknown or stale health result remains visibly unknown or stale. A prior succ
 - There is no passthrough-user migration, deprecation window, feature-flag rollout, dual behavior, or staged old/new client period. The maintainer reports no installed passthrough user base requiring those mechanisms.
 - Existing passthrough assumed-health behavior is removed rather than emulated. Initial health is `unobserved` and later results are observed values.
 - Legacy booleans and timestamps are not upgraded into evidence. Affected TXT-enforced assignments require a new TXT pass or explicit override.
-- Existing records do not become trusted lineages merely because the strategy defaults to `operator_managed`; operator adoption establishes prospective trust.
+- Existing current registrations are authorized by `operator_policy` as soon as the effective strategy is `operator_managed`; no adoption or migration step is required.
 
 ## Dependencies and constraints
 
-- Trusted registration is a deployment and assignment prerequisite, not an inference from self-hosting.
 - The active strategy revision and current assignment lineage are available to every protected request so stale workers and caches fail closed.
 - Public-network egress protection applies to every HTTPS probe of a customer-controlled hostname.
 - [ADR-015](../../adr/adr-015-domain-validation-per-domain-strategy.md) remains applicable. Its per-domain override and install-level fallback determine the effective strategy enforced on every protected request.
 - [ADR-016](../../adr/adr-016-domain-validation-state-model.md) remains applicable to separation of proof and serving health. Its statement that passthrough has no health axis is replaced by this proposal when implemented.
-- [ADR-017](../../adr/adr-017-domain-validation-link-creation-gate.md) remains applicable to the separation of authorization from certificate issuance. Its passthrough TXT requirement, staged passthrough rollout, and optional `require_verified` gate for `approximated` are replaced by the trusted `operator_managed` policy, no-migration decision, and mandatory protected-consumer authorization gate in this proposal when implemented.
+- [ADR-017](../../adr/adr-017-domain-validation-link-creation-gate.md) remains applicable to the separation of authorization from certificate issuance. Its passthrough TXT requirement, staged passthrough rollout, and optional `require_verified` gate for `approximated` are replaced by the `operator_managed` policy, no-migration decision, and mandatory protected-consumer authorization gate in this proposal when implemented.
 - Until runtime implementation and explicit acceptance land, accepted ADRs and existing code remain the operative behavior.
 
 ## Acceptance criteria
@@ -390,14 +382,14 @@ An unknown or stale health result remains visibly unknown or stale. A prior succ
 2. Inputs `operator_managed`, `passthrough`, and `external`, in any case with surrounding whitespace, produce identical behavior and canonical output `operator_managed`.
 3. Input `caddy` still produces canonical output `caddy_on_demand`.
 4. A strict unknown value prevents configuration activation and produces no fallback payload.
-5. A non-strict unknown value warns, activates `operator_managed`, emits only that canonical value, and does not authorize an untrusted registration.
+5. A non-strict unknown value warns, activates `operator_managed`, emits only that canonical value, and does not authorize an unregistered hostname.
 
 ### Registration and authorization
 
-6. A trusted current registration under `operator_managed` is authorized as `operator_policy` without TXT evidence.
+6. A current registration under `operator_managed` is authorized as `operator_policy` without TXT evidence.
 7. An unregistered hostname, orphaned record, missing organization, stale hostname index, or ended lineage is denied under `operator_managed`.
-8. Enabling trusted registration does not retroactively authorize an existing lineage; explicit adoption creates a new trusted lineage.
-9. Disabling trusted registration removes policy-only authorization on the first protected request while leaving eligible TXT proof and overrides usable.
+8. A registration is authorized by `operator_policy` with no adoption, flag, or operator action beyond the registration itself.
+9. Switching the effective strategy to `operator_managed` authorizes every current registration on the first protected request and neither creates nor invalidates TXT proof or overrides.
 10. DNS `not_resolved`, expected-target `mismatched`, HTTPS `invalid`, HTTPS `unreachable`, stale observations, and unobserved health each leave `operator_policy` authorization unchanged.
 11. A successful DNS lookup, target match, HTTPS handshake, or certificate issuance creates no TXT evidence and no override.
 
