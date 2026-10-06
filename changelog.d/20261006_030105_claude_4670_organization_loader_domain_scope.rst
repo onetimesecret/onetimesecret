@@ -16,6 +16,6 @@ Changed
 
 - On a canonical host, organization loading no longer reads the custom-domain
   index, so an outage of that index no longer affects it there. On a custom
-  domain whose record could not be read, the request fails; behind a proxy
-  that rewrites ``Host``, the failed read used to leave nothing to check and
-  an organization was loaded without the scope check. (#4623)
+  domain whose record could not be read, an authenticated request fails;
+  behind a proxy that rewrites ``Host``, the failed read used to leave nothing
+  to check and an organization was loaded without the scope check. (#4623)
