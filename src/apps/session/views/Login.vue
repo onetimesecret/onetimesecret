@@ -83,6 +83,7 @@ const authErrorMessages: Record<string, string> = {
   sso_issuer_mismatch: 'web.login.errors.sso_issuer_mismatch',
   sso_config_unusable: 'web.login.errors.sso_config_unusable',
   sso_domain_unverified: 'web.login.errors.sso_domain_unverified',
+  domain_unavailable: 'web.login.errors.domain_unavailable',
   token_missing: 'web.login.errors.token_missing',
   token_expired: 'web.login.errors.token_expired',
   token_invalid: 'web.login.errors.token_invalid',

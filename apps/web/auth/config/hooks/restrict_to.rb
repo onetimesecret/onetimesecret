@@ -58,6 +58,13 @@ module Auth::Config::Hooks
   module RestrictTo
     def self.configure(auth)
       auth.before_rodauth do
+        # The request's domain record could not be read (#4668): one answer
+        # for every Rodauth route on such a host, before any gate runs. The
+        # gates rescue only Redis::BaseError around their own reads, so the
+        # same unreadable record used to answer 503 SigninPolicyUnavailable
+        # or 500 ServerError depending on the exception class. See
+        # refuse_unavailable_domain! below.
+        Auth::Config::Hooks::RestrictTo.refuse_unavailable_domain!(self)
         # Availability first, then method narrowing: a host that is not
         # offering sign-in (or registration) at all has no method question to
         # answer. The two availability gates cover DISJOINT route sets (the
@@ -78,6 +85,39 @@ module Auth::Config::Hooks
         # that stands where both apply.
         Auth::SigninGate.enforce_route!(self)
       end
+    end
+
+    # Refuse every Rodauth route on a host whose CustomDomain record could
+    # not be read (#4668), with Onetime::DomainUnavailable (503).
+    #
+    # Consults only the lookup DomainStrategy published for the request
+    # (Onetime::CustomDomain::Lookup, state read_failed: the host classified
+    # :invalid because its read raised) and never reads itself. A canonical
+    # host classifies without a read and publishes nothing, so it is
+    # untouched; an internal request (Rodauth's internal_request feature
+    # calls before_rodauth with a bare env) carries no lookup and passes.
+    #
+    # The exception class the read raised is logged, not answered: the
+    # response is the same whatever it was. The gates' own rescue of
+    # Redis::BaseError stays with them; it also covers their SigninConfig
+    # reads, a different failure that keeps SigninPolicyUnavailable.
+    #
+    # @param rodauth [Rodauth::Auth]
+    # @raise [Onetime::DomainUnavailable] when the request's domain read failed
+    def self.refuse_unavailable_domain!(rodauth)
+      lookup = rodauth.request.env[Onetime::CustomDomain::Lookup::ENV_KEY]
+      return unless lookup.is_a?(Onetime::CustomDomain::Lookup) && lookup.read_failed?
+
+      Auth::Logging.log_auth_event(
+        :rodauth_domain_lookup_failed,
+        level: :error,
+        route: rodauth.current_route,
+        host: lookup.host,
+        error_class: lookup.error.class.name,
+        error: lookup.error.message,
+      )
+
+      raise Onetime::DomainUnavailable
     end
 
     # SECONDARY email_auth surface that is NOT its own route: with the
