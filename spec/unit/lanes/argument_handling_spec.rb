@@ -296,6 +296,116 @@ RSpec.describe 'tests/lanes/run argument handling' do
     end
   end
 
+  # A lane env file or overlay runs in the runner's own shell. The flag
+  # state the argument parser filled in is the runner's: an overlay line such
+  # as `LOG_CONSOLE=warn` would otherwise hold the console to warn with no
+  # flag on the command line, `LOG_CONSOLE=off` would skip the check that
+  # off needs a log file, and `CAPTURE_LOGS=1` would turn capture on.
+  describe 'an overlay that sets the runner\'s own state' do
+    {
+      'QUIET' => ['1', '--quiet'],
+      'CAPTURE_LOGS' => ['1', '--capture-logs'],
+      'LOG_CONSOLE' => ['warn', '--log-console'],
+      'SKIP_CODEGEN' => ['1', '--skip-codegen'],
+      'PRINT_KEY' => ['1', '--print-key'],
+      'CONSOLE' => ['1', '--console'],
+      'PASSTHROUGH' => ['1', '-- <rspec args>'],
+    }.each do |name, (value, flag)|
+      it "refuses #{name}=#{value} and names #{flag}" do
+        probe.with_overlay("#{name}=#{value}\n") do |overlay|
+          output, status = probe.run('selftest', '--overlay', overlay, '--print-key')
+
+          expect(status.exitstatus).to eq(64), output
+          expect(output).to include("tests/lanes/overlays/#{overlay}.env sets #{name}, which is the runner's own state")
+          expect(output).to include("pass #{flag} on the command line instead")
+          expect(output).not_to include('lane=selftest')
+        end
+      end
+    end
+
+    it 'refuses LOG_CONSOLE=off, which would skip the check that off needs a log file' do
+      probe.with_overlay("LOG_CONSOLE=off\n") do |overlay|
+        output, status = probe.run('selftest', '--overlay', overlay, '--print-key')
+
+        expect(status.exitstatus).to eq(64), output
+        expect(output).to include('sets LOG_CONSOLE')
+        expect(output).not_to include('log_console=off')
+      end
+    end
+
+    # Same value, but sourced under allexport: the name would be exported to
+    # every task of the run.
+    it 'refuses a line that assigns the value the variable already has' do
+      probe.with_overlay("QUIET=0\n") do |overlay|
+        output, status = probe.run('selftest', '--overlay', overlay, '--print-key')
+
+        expect(status.exitstatus).to eq(64), output
+        expect(output).to include('sets QUIET')
+      end
+    end
+
+    it 'refuses a line that unsets one' do
+      probe.with_overlay("unset CAPTURE_LOGS\n") do |overlay|
+        output, status = probe.run('selftest', '--overlay', overlay, '--print-key')
+
+        expect(status.exitstatus).to eq(64), output
+        expect(output).to include('sets CAPTURE_LOGS')
+      end
+    end
+
+    %w[LANE REPO_ROOT OVERLAY_KEY].each do |name|
+      it "refuses #{name}, which no flag sets" do
+        probe.with_overlay("#{name}=elsewhere\n") do |overlay|
+          output, status = probe.run('selftest', '--overlay', overlay, '--print-key')
+
+          expect(status.exitstatus).to eq(64), output
+          expect(output).to include("sets #{name}, which is the runner's own state")
+          expect(output).to include('cannot change which lane or checkout a run is')
+        end
+      end
+    end
+
+    it 'leaves an overlay that sets its own variables alone, with every flag' do
+      probe.with_overlay("ARGUMENT_HANDLING_SPEC_SETTING=1\nLANES_DATASTORE_DB=7\n") do |overlay|
+        output, status = probe.run('selftest', '--overlay', overlay, '--capture-logs', '--log-console', 'off',
+                                   '--quiet', '--print-key')
+
+        expect(status).to be_success, output
+        expect(output).to include("lane=selftest overlays=#{overlay} db=7")
+        expect(probe.field(output, 'log_console')).to start_with('off ')
+      end
+    end
+  end
+
+  # rspec reads SPEC_OPTS after the command line, and a formatter there
+  # replaces every formatter the run chose, the JSON results one included:
+  # the run would write no results and report nothing wrong. The caller's
+  # SPEC_OPTS is scrubbed; an env file is the one place left to set it.
+  describe 'an overlay that sets SPEC_OPTS' do
+    ['--format documentation', '--format=json', '-f d', '-fd', '--seed 1 --out results.txt', '-o results.txt',
+     '--seed 1 -fp',].each do |opts|
+      it "refuses a formatter or its output file: #{opts}" do
+        probe.with_overlay("SPEC_OPTS='#{opts}'\n") do |overlay|
+          output, status = probe.run('selftest', '--overlay', overlay, '--print-key')
+
+          expect(status.exitstatus).to eq(64), output
+          expect(output).to include('SPEC_OPTS in a lane env file or overlay selects an rspec formatter')
+          expect(output).not_to include('lane=selftest')
+        end
+      end
+    end
+
+    ['--seed 1234', '--fail-fast', '--order defined --only-failures', '--force-color'].each do |opts|
+      it "accepts options that select no formatter: #{opts}" do
+        probe.with_overlay("SPEC_OPTS='#{opts}'\n") do |overlay|
+          output, status = probe.run('selftest', '--overlay', overlay, '--print-key')
+
+          expect(status).to be_success, output
+        end
+      end
+    end
+  end
+
   describe 'without a lane named' do
     # --which answers from the ownership table alone; a lane-less --only
     # infers from it (exact single owner, or exit 64 naming the candidates);

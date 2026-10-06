@@ -330,6 +330,16 @@ under `lib/onetime` reads any of the four. The runner assigns them: an
 exported value in the calling shell is scrubbed like any other, and a lane
 `env` file or overlay that sets one exits 64.
 
+The same holds for the runner's own variables. A lane `env` file or overlay
+is sourced in the runner's shell, so a line such as `LOG_CONSOLE=warn`,
+`QUIET=1` or `CAPTURE_LOGS=1` would change what the run does with no flag on
+the command line. A file that sets, exports or unsets one of them exits 64
+and is named with the variable and the flag to pass instead. A `SPEC_OPTS`
+in one of these files that selects a formatter (`--format`, `-f`, `--out`,
+`-o`) also exits 64: rspec reads `SPEC_OPTS` last, and a formatter there
+replaces the run's formatters, the JSON results one included. Other
+`SPEC_OPTS` options (`--seed`, `--fail-fast`) are accepted.
+
 #### In CI
 
 The composite action (`.github/actions/run-test-lane`) runs every lane with

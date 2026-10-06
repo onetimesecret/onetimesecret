@@ -723,23 +723,87 @@ if [[ ${#OVERLAYS[@]} -gt 0 ]]; then
 fi
 LANES_ISOLATION_KEY="${LANE}|${OVERLAY_KEY}|${REPO_ROOT}"
 
-set -a
-# shellcheck source=/dev/null
-source "${LANES_DIR}/base.env"
-# shellcheck source=/dev/null
-source "${LANE_DIR}/env"
-if [[ ${#OVERLAYS[@]} -gt 0 ]]; then
-  for name in "${OVERLAYS[@]}"; do
-    overlay_file="${LANES_DIR}/overlays/${name}.env"
-    if [[ ! -f "${overlay_file}" ]]; then
-      echo "error: unknown overlay '${name}' (no ${overlay_file})" >&2
+# ── Lane environment: base.env -> lane env -> overlays ───────────────────
+# Each file is sourced under allexport, so every assignment in it becomes
+# part of the task environment. That is the point for a lane's settings and
+# a hazard for the runner's own: the files run in this shell, and a line
+# such as `LOG_CONSOLE=warn` or `QUIET=1` assigns the variable the argument
+# parser filled in above. The run would then do something no flag on its
+# command line asked for (hold the app console to warn, turn capture on,
+# skip the value checks the parser already made), and the name would be
+# exported to every task as well.
+#
+# The command line is the only way to set that state. Everything the parser
+# and the lane resolution assigned is snapshotted here, with its attributes
+# (`declare -p` prints both), and compared after each file. A file that
+# changed, exported or unset one of the names stops the run, named with the
+# variable, like a flag that cannot be honored. The same reasoning as for
+# the LANES_* names the runner assigns further down.
+#
+# allexport is on for the `source` alone, so nothing this block assigns for
+# itself is exported.
+declare -A _lanes_control_flag=(
+  [SKIP_CODEGEN]='--skip-codegen' [PRINT_KEY]='--print-key' [QUIET]='--quiet'
+  [CAPTURE_LOGS]='--capture-logs' [LOG_CONSOLE]='--log-console'
+  [CONSOLE]='--console' [PASSTHROUGH]='-- <rspec args>'
+  [OVERLAYS]='--overlay' [ONLY]='--only' [RSPEC_ARGS]='-- <rspec args>'
+  [LANE]='' [LANE_DIR]='' [LANES_DIR]='' [REPO_ROOT]=''
+  [OVERLAY_KEY]='' [LANES_ISOLATION_KEY]=''
+)
+declare -A _lanes_control_state=()
+for _lanes_name in "${!_lanes_control_flag[@]}"; do
+  _lanes_control_state[${_lanes_name}]="$(declare -p "${_lanes_name}" 2>/dev/null || true)"
+done
+_lanes_source_env() {
+  local _file="$1" _name
+  set -a
+  # shellcheck source=/dev/null
+  source "${_file}"
+  set +a
+  for _name in "${!_lanes_control_flag[@]}"; do
+    if [[ "$(declare -p "${_name}" 2>/dev/null || true)" != "${_lanes_control_state[${_name}]}" ]]; then
+      echo "error: ${_file#"${REPO_ROOT}/"} sets ${_name}, which is the runner's own state" >&2
+      if [[ -n "${_lanes_control_flag[${_name}]}" ]]; then
+        echo "  remove the line and pass ${_lanes_control_flag[${_name}]} on the command line instead" >&2
+      else
+        echo "  remove the line: a lane env file or overlay cannot change which lane or checkout a run is" >&2
+      fi
       exit 64
     fi
-    # shellcheck source=/dev/null
-    source "${overlay_file}"
   done
+}
+_lanes_source_env "${LANES_DIR}/base.env"
+_lanes_source_env "${LANE_DIR}/env"
+if [[ ${#OVERLAYS[@]} -gt 0 ]]; then
+  for _lanes_name in "${OVERLAYS[@]}"; do
+    _lanes_overlay_file="${LANES_DIR}/overlays/${_lanes_name}.env"
+    if [[ ! -f "${_lanes_overlay_file}" ]]; then
+      echo "error: unknown overlay '${_lanes_name}' (no ${_lanes_overlay_file})" >&2
+      exit 64
+    fi
+    _lanes_source_env "${_lanes_overlay_file}"
+  done
+  builtin unset _lanes_overlay_file
 fi
-set +a
+builtin unset -f _lanes_source_env
+builtin unset _lanes_name _lanes_control_flag _lanes_control_state
+
+# SPEC_OPTS is the one way left to change the run's rspec formatters from an
+# env file. rspec reads it after .rspec and after the command line, and a
+# `--format` there REPLACES the formatter list the command line built: the
+# JSON results formatter with it, so the run would write no results file and
+# report nothing wrong. The caller's SPEC_OPTS was scrubbed, so a value here
+# came from one of the files above. Other options (--seed, --fail-fast) are
+# left alone; a formatter or its output file is refused. rspec's only
+# single-dash options starting with f or o are those two.
+_lanes_spec_opts_format='(^|[[:space:]])(--format|--out|-f|-o)'
+if [[ "${SPEC_OPTS:-}" =~ ${_lanes_spec_opts_format} ]]; then
+  echo "error: SPEC_OPTS in a lane env file or overlay selects an rspec formatter (${BASH_REMATCH[2]})" >&2
+  echo "  rspec reads SPEC_OPTS last, so it would replace the run's formatters, the JSON" >&2
+  echo "  results one included. Remove it; use --quiet, or pass a formatter after -- with --only" >&2
+  exit 64
+fi
+builtin unset _lanes_spec_opts_format
 
 # ── Per-worktree datastore isolation ─────────────────────────────────────
 # Every checkout of this repo (worktrees included) shares the one test
