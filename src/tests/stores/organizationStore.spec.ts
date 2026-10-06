@@ -333,6 +333,53 @@ describe('Organization Store', () => {
         expect(warn).toHaveBeenCalledTimes(1);
       });
 
+      // A reset (logout, in-place account change) must not let a selection
+      // queued under the old account go out under the new session.
+      it('drops a queued selection when the store is reset', async () => {
+        signIn();
+        axiosMock?.onPost(SYNC_URL).reply(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 10));
+          return [200, { success: true }];
+        });
+
+        const first = store.selectOrganization(other);
+        const second = store.selectOrganization(mockOrganization);
+        store.$reset();
+        await Promise.all([first, second]);
+
+        expect(syncPosts().map((r) => JSON.parse(r.data).organization_id)).toEqual(['org-999']);
+      });
+
+      it('sends a selection made after a reset without waiting on the old chain', async () => {
+        signIn();
+        axiosMock?.onPost(SYNC_URL).reply(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 10));
+          return [200, { success: true }];
+        });
+
+        const stale = store.selectOrganization(other);
+        store.$reset();
+        await store.selectOrganization(mockOrganization);
+
+        expect(syncPosts().map((r) => JSON.parse(r.data).organization_id)).toEqual(['org-999', 'org-123']);
+        await stale;
+      });
+
+      it('does not send a queued selection once protected actions are unavailable', async () => {
+        signIn();
+        axiosMock?.onPost(SYNC_URL).reply(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 10));
+          return [200, { success: true }];
+        });
+
+        const first = store.selectOrganization(other);
+        const second = store.selectOrganization(mockOrganization);
+        useAuthStore().staleSession = true;
+        await Promise.all([first, second]);
+
+        expect(syncPosts().map((r) => JSON.parse(r.data).organization_id)).toEqual(['org-999']);
+      });
+
       it('syncs a newly created organization, which becomes current', async () => {
         signIn();
         axiosMock?.onPost('/api/organizations').reply(200, { record: mockOrganizationRaw });

@@ -298,26 +298,34 @@ export const useOrganizationStore = defineStore('organization', () => {
   // server keeps whichever write lands last, and two requests in flight at
   // once can land in either order. While a write is in flight, later
   // selections replace each other in `queuedSelection`; only the newest is
-  // sent once the reply arrives.
+  // sent once the reply arrives. $reset bumps the generation so a chain
+  // that outlives it (logout, in-place account change) sends nothing more.
   let syncInFlight: Promise<void> | null = null;
   let queuedSelection: Organization | null = null;
+  let syncGeneration = 0;
 
   async function postOrganizationContexts(first: Organization): Promise<void> {
+    const generation = syncGeneration;
     let next: Organization | null = first;
-    while (next) {
-      const org = next;
-      next = null;
-      try {
-        await $api.post('/api/account/update-organization-context', {
-          organization_id: org.objid,
-        });
-      } catch (error) {
-        console.warn('[organizationStore] Failed to sync to server:', error);
+    try {
+      while (next) {
+        const org = next;
+        next = null;
+        try {
+          await $api.post('/api/account/update-organization-context', {
+            organization_id: org.objid,
+          });
+        } catch (error) {
+          console.warn('[organizationStore] Failed to sync to server:', error);
+        }
+        if (generation !== syncGeneration) return;
+        if (!useAuthStore().protectedActionsAvailable) return;
+        next = queuedSelection;
+        queuedSelection = null;
       }
-      next = queuedSelection;
-      queuedSelection = null;
+    } finally {
+      if (generation === syncGeneration) syncInFlight = null;
     }
-    syncInFlight = null;
   }
 
   /**
@@ -430,6 +438,9 @@ export const useOrganizationStore = defineStore('organization', () => {
    */
   function $reset() {
     abort();
+    syncGeneration += 1;
+    queuedSelection = null;
+    syncInFlight = null;
     organizations.value = [];
     currentOrganization.value = null;
     invitations.value = [];
