@@ -680,7 +680,8 @@ module Onetime
           if OT.conf.dig('site', 'middleware', cookie_tossing[:key].to_s)
             builder.use cookie_tossing[:klass]
           else
-            OT.lw "[Security] CookieTossing protection DISABLED (site.middleware.#{cookie_tossing[:key]}=false)"
+            warn_once :cookie_tossing_disabled,
+              "[Security] CookieTossing protection DISABLED (site.middleware.#{cookie_tossing[:key]}=false)"
           end
 
           # Add session middleware early in the stack (before other middleware)
