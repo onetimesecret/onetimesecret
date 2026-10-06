@@ -299,9 +299,9 @@ The runner owns `app.log` and `mail.log`:
   alone. `run-all` passes none of these flags to the lanes it starts.
 - Two runs of the same lane and overlay set in one checkout share the files,
   the second truncating under the first. That is not supported.
-- A file that cannot be created (the path is a directory or not a regular
-  file, the directory is not writable) ends the run with exit 73 before any
-  task, with the reason on stderr and in `last.log`.
+- A file that cannot be created (the path is a directory, a symbolic link
+  or not a regular file, the directory is not writable) ends the run with
+  exit 73 before any task, with the reason on stderr and in `last.log`.
 - A capture that did not stay whole is an error. The runner says so, marks
   the `app log:` line `(incomplete)`, and turns an otherwise green run into
   exit 74; a run that already failed keeps its own exit code. Three things

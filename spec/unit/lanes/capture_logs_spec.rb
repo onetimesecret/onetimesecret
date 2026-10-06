@@ -305,6 +305,23 @@ RSpec.describe 'tests/lanes/run --capture-logs files' do
       end
     end
 
+    # `-f` follows a link, so one to a regular file would pass as the
+    # runner's own and the truncation would empty a file outside the run
+    # directory.
+    it 'stops before any task, leaving the target alone, when app.log is a symbolic link to a file' do
+      probe.with_scratch do |scratch|
+        target = File.join(File.dirname(scratch.app_log), 'not-the-runners.txt')
+        File.write(target, "kept\n")
+        File.symlink(target, scratch.app_log)
+
+        run = probe.run('selftest', '--overlay', scratch.overlay, '--capture-logs')
+
+        expect_refused(run, scratch, scratch.app_log, 'the path is a symbolic link')
+        expect(File.read(target)).to eq("kept\n")
+        expect(File.symlink?(scratch.app_log)).to be(true)
+      end
+    end
+
     it 'stops before any task when the run directory is not writable' do
       skip 'file permissions do not bind the superuser' if Process.uid.zero?
 

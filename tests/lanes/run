@@ -1691,6 +1691,11 @@ if [[ ${CAPTURE_LOGS} -eq 1 ]]; then
       # and a device would pass it and then fail the end-of-run check as
       # "removed". Neither is a file the runner can own; say so now.
       _lanes_reason='the path exists and is not a regular file'
+    elif [[ -L "${_lanes_file}" ]]; then
+      # -e and -f follow a link, so one to a regular file, or to nothing,
+      # gets here. The truncation below would empty or create a file that
+      # is somewhere else and not the runner's.
+      _lanes_reason='the path is a symbolic link'
     elif ! { : > "${_lanes_file}"; } 2>/dev/null; then
       _lanes_reason='the file cannot be created or truncated; check that the directory and the file are writable'
     else
