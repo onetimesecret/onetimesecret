@@ -390,6 +390,30 @@ RSpec.describe 'Rhales Migration Integration', type: :integration do
           expect(notice.text).to include('This page is taking longer than expected to load')
         end
 
+        it 'announces from a live region that exists before the reveal' do
+          # A region that appears together with its content registers as new,
+          # not changed, so the role sits on an always-present wrapper and the
+          # animated element inside it carries no role of its own.
+          region = doc.css('#app .app-fallback .loader-stalled-region').first
+          expect(region).not_to be_nil
+          expect(region['role']).to eq('status')
+          notice = region.css('> .loader-stalled').first
+          expect(notice).not_to be_nil
+          expect(notice['role']).to be_nil
+          expect(inline_style).not_to match(/\.loader-stalled-region\s*\{[^}]*(visibility|display|opacity)/m)
+        end
+
+        it 'flags a failed entry-script fetch from the head script' do
+          # Registered in <head> before the Vite tags so a 404 on the entry
+          # module (stale chunk hash in cached HTML) flips the shell to the
+          # failure state at once instead of after the CSS timer.
+          listener = doc.css('head script[nonce]').map(&:text).find { |t| t.include?("addEventListener('error'") }
+          expect(listener).not_to be_nil
+          expect(listener).to include("target.type === 'module'")
+          expect(listener).to include("dataset.appFailed = 'true'")
+          expect(rendered_html.index("addEventListener('error'")).to be < rendered_html.index('<meta')
+        end
+
         it 'offers a scriptless reload of the current URL' do
           # An empty href resolves to the document URL; the shell sets no <base>.
           link = doc.css('#app .loader-stalled a.loader-stalled-action').first
@@ -427,7 +451,8 @@ RSpec.describe 'Rhales Migration Integration', type: :integration do
 
         it 'is present in the admin shell too' do
           admin_doc = Nokogiri::HTML(Core::Views::AdminPoint.new(request).render)
-          expect(admin_doc.css('#app .app-fallback .loader-stalled')).not_to be_empty
+          expect(admin_doc.css('#app .app-fallback .loader-stalled-region[role="status"] .loader-stalled')).not_to be_empty
+          expect(admin_doc.css('head script[nonce]').map(&:text).join).to include("dataset.appFailed = 'true'")
         end
 
         context 'with a request id' do
