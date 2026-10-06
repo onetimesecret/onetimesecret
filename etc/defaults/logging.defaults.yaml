@@ -5,7 +5,11 @@
 # Strategic categories for debugging and operational instrumentation:
 #   App       - Default fallback for application-level logging
 #   Auth      - Authentication/authorization flows
+#   Billing   - Stripe checkout, subscription webhooks, plan catalog sync
+#   Boot      - Initialization
 #   Bunny     - RabbitMQ AMQP client (connection, heartbeats)
+#   Chores    - Model housekeeping chores
+#   CLI       - Command-line interface operations
 #   Ents      - Plan materialization, grants/revokes, plan→permission application
 #   Familia   - Redis operations via Familia ORM
 #   HTTP      - HTTP requests, responses, and middleware
