@@ -64,48 +64,12 @@
 # =============================================================================
 
 require_relative '../../spec_helper'
-require_relative '../../support/tenant_test_fixtures'
-require 'rack/test'
+require_relative '../../support/host_proxy_matrix_support'
 
 module HostProxyMatrix
-  # A host with no CustomDomain record, on a registrable domain that is not
-  # a peer of any canonical host used below.
-  UNREGISTERED = 'unregistered.tenant-example.com'
-
-  # A public address for the connecting peer. With no trusted-proxy
-  # configuration (the default, and the test configuration) DetectHost
-  # honours forwarded host headers from a private or loopback peer only.
-  PUBLIC_PEER = '203.0.113.7'
-
-  TENANT_ORIGIN    = 'https://{tenant}'
-  CANONICAL_ORIGIN = 'https://{canonical}'
-
-  # site.host in spec/config.test.yaml. An IP literal: DetectHost never
-  # accepts it, and with the domains feature on it is not a parseable member
-  # of the canonical set.
-  SITE_HOST        = '127.0.0.1:3000'
-  SITE_HOST_ORIGIN = 'https://127.0.0.1:3000'
-
-  # What a request served as the tenant's verified custom domain produces.
-  TENANT = {
-    detected: '{tenant}',
-    display: '{tenant}',
-    strategy: :custom,
-    origin: TENANT_ORIGIN,
-    tenant_host: '{tenant}',
-    webauthn_host: '{tenant}',
-  }.freeze
-
-  # What a request served as features.domains.default produces.
-  CANONICAL = {
-    rack_host: '{canonical}',
-    detected: '{canonical}',
-    display: '{canonical}',
-    strategy: :canonical,
-    origin: CANONICAL_ORIGIN,
-    tenant_host: nil,
-    webauthn_host: '{canonical}',
-  }.freeze
+  # The shapes and their outcomes are the constants in
+  # support/host_proxy_matrix_support.rb (UNREGISTERED, PUBLIC_PEER, SITE_HOST,
+  # TENANT, CANONICAL, OFF). The tables below are this file's.
 
   # ---------------------------------------------------------------------------
   # Domains feature ON. features.domains.default = canonical.example.org,
@@ -399,15 +363,6 @@ module HostProxyMatrix
   # the display domain is site.host whatever the request named. So only a
   # request DetectHost resolved to site.host itself is rewritten (N12).
   # ---------------------------------------------------------------------------
-  OFF = {
-    detected: nil,
-    display: SITE_HOST,
-    strategy: :canonical,
-    origin: "http://#{SITE_HOST}",
-    tenant_host: nil,
-    webauthn_host: nil,
-  }.freeze
-
   DOMAINS_OFF = [
     { id: 'N01', case: 'IP-literal site.host in Host',
       headers: { 'Host' => SITE_HOST }, proto: nil,
@@ -646,97 +601,7 @@ module HostProxyMatrix
 end
 
 RSpec.describe 'Host and proxy simulation matrix (#4223)', :shared_db_state, type: :integration do
-  include Rack::Test::Methods
-
-  # :shared_db_state for the reason tenant_sso_proxy_host_spec.rb gives: the
-  # fixtures come from this context's `let!` hooks and the per-example flush
-  # can land after them. Each example builds under a unique run id and tears
-  # down in `after`.
-  include_context 'tenant fixtures'
-
-  before(:all) { boot_onetime_app }
-
-  # The stack pins Rack's forwarded-header family when it is built
-  # (MiddlewareStack.ip_privacy_security_config). spec/spec_helper.rb resets
-  # that pin after every example while the mounted stack stays memoized, so
-  # without this every example after the first in a process would run with
-  # Rack's default family, which a deployment never has. Re-apply it the way
-  # the stack build does.
-  before { Onetime::Application::MiddlewareStack.ip_privacy_security_config }
-
-  # Every row needs SSO on at boot, not only the emitter rows: the request
-  # rows read their origin through OmniAuth's full_host resolver, which is
-  # installed with the SSO feature. Stated once here so a lane without the
-  # flag (full-pg) reports the precondition instead of a nil resolver.
-  before do
-    expect(Onetime.auth_config.orgs_sso_enabled?).to be(true),
-      'HP-PRE-01: this matrix requires ORGS_SSO_ENABLED=true at boot. ' \
-      'Run tests/lanes/run full-sqlite --only ' \
-      'apps/web/auth/spec/integration/full/host_proxy_matrix_spec.rb ' \
-      '(or full-pg-agnostic for Postgres); shell exports are scrubbed by the runner.'
-  end
-
-  # Replace the row's placeholders with this example's hosts.
-  def fill(value)
-    return value unless value.is_a?(String)
-
-    value.gsub('{tenant}', tenant_domain).gsub('{canonical}', matrix_canonical_host)
-  end
-
-  # Put the tenant's CustomDomain record in the state the row names.
-  def prepare_record(state)
-    case state
-    when :unverified
-      test_custom_domain.verified = false
-      test_custom_domain.save
-    when :read_fails
-      # The index read every display-domain loader starts with, so the
-      # middleware, Auth::PublicHost and the tenant hook all see the failure.
-      allow(Onetime::CustomDomain).to receive(:display_domain_id_for)
-        .and_raise(Redis::BaseError.new('simulated read failure'))
-    end
-  end
-
-  # Run the block with site.host replaced, when the row asks for it.
-  # DomainStrategy derives its canonical set from OT.conf at
-  # initialize_from_config, so both are updated and both are put back.
-  def with_site_host(host = :unchanged)
-    return yield if host == :unchanged
-
-    saved = OT.conf['site']['host']
-    begin
-      OT.conf['site']['host'] = fill(host)
-      Onetime::Middleware::DomainStrategy.initialize_from_config(OT.conf['features']['domains'])
-      yield
-    ensure
-      OT.conf['site']['host'] = saved
-      Onetime::Middleware::DomainStrategy.initialize_from_config(OT.conf['features']['domains'])
-    end
-  end
-
-  # Apply the row's connecting peer and headers to every later request of
-  # this example.
-  def apply_topology(row)
-    env 'REMOTE_ADDR', HostProxyMatrix::PUBLIC_PEER if row[:peer] == :public
-    header 'X-Forwarded-Proto', 'https' unless row.key?(:proto) && row[:proto].nil?
-    row[:headers].each { |name, value| header name, fill(value) }
-  end
-
-  # The row as it reads for this run: with the rewrite on, the row's
-  # `rewritten:` values replace the ones they name.
-  def row_for_run(row)
-    rewrite_on ? row.merge(row.fetch(:rewritten, {})) : row
-  end
-
-  # What the rewrite did to the request, in both runs: whether it rewrote,
-  # and that the Host as sent is still readable.
-  def expect_rewrite_record(row)
-    env = last_request.env
-
-    expect(env.key?(Onetime::Middleware::PublicHostRewrite::ORIGINAL_HTTP_HOST))
-      .to eq(rewrite_on && row.key?(:rewritten))
-    expect(Onetime::Middleware::PublicHostRewrite.original_http_host(env)).to eq(fill(row[:headers]['Host']))
-  end
+  include_context 'host proxy rows'
 
   def observed
     env     = last_request.env
@@ -812,12 +677,6 @@ RSpec.describe 'Host and proxy simulation matrix (#4223)', :shared_db_state, typ
       Onetime::CustomDomain::SigninConfig.delete_for_domain!(test_custom_domain.identifier)
       # :shared_db_state skips the per-example auth database clear.
       clear_auth_database
-    end
-
-    def origin_of(url)
-      uri     = URI.parse(url)
-      default = uri.scheme == 'https' ? 443 : 80
-      uri.port == default ? "#{uri.scheme}://#{uri.host}" : "#{uri.scheme}://#{uri.host}:#{uri.port}"
     end
 
     rows.each do |row|
