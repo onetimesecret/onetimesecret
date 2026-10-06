@@ -484,6 +484,7 @@ RSpec.describe 'tests/lanes/run --capture-logs files' do
         broken = Object.new
         broken.define_singleton_method(:write) { |*| raise error }
         broken.define_singleton_method(:close) { nil }
+        broken.define_singleton_method(:flush) { nil }
         sink.instance_variable_set(:@file, broken)
         allow(sink).to receive(:reopen)
 
