@@ -20,9 +20,11 @@
 #
 #   id, case     the example name
 #   headers      request headers, with the placeholders above
-#   peer         :public sends the request from a public address; by default
-#                it comes from loopback, which DetectHost's legacy heuristic
-#                trusts when no proxy trust is configured
+#   peer         :public sends the request from a public address, and
+#                :trusted_public from one inside the CIDR list the
+#                trusted-proxy rows configure; by default it comes from
+#                loopback, which DetectHost's legacy heuristic trusts when no
+#                proxy trust is configured
 #   proto        nil sends no X-Forwarded-Proto; otherwise https is sent
 #   record       :unverified or :read_fails puts the tenant's CustomDomain
 #                record in that state; nil leaves it verified
@@ -48,6 +50,15 @@ module HostProxyMatrix
   # configuration (the default, and the test configuration) DetectHost
   # honours forwarded host headers from a private or loopback peer only.
   PUBLIC_PEER = '203.0.113.7'
+
+  # A public address inside the CIDR list the trusted-proxy rows configure
+  # (host_proxy_trusted_proxy_spec.rb). Not trusted anywhere else.
+  TRUSTED_PEER      = '198.51.100.10'
+  TRUSTED_PEER_CIDR = '198.51.100.0/24'
+
+  # What a request row observes after the stack ran. See the header of
+  # integration/full/host_proxy_matrix_spec.rb for each key.
+  OBSERVED_KEYS = [:rack_host, :detected, :display, :strategy, :origin, :tenant_host, :webauthn_host].freeze
 
   TENANT_ORIGIN    = 'https://{tenant}'
   CANONICAL_ORIGIN = 'https://{canonical}'
@@ -199,6 +210,7 @@ RSpec.shared_context 'host proxy rows' do
   # this example.
   def apply_topology(row)
     env 'REMOTE_ADDR', HostProxyMatrix::PUBLIC_PEER if row[:peer] == :public
+    env 'REMOTE_ADDR', HostProxyMatrix::TRUSTED_PEER if row[:peer] == :trusted_public
     header 'X-Forwarded-Proto', 'https' unless row.key?(:proto) && row[:proto].nil?
     row[:headers].each { |name, value| header name, fill(value) }
   end
@@ -215,6 +227,39 @@ RSpec.shared_context 'host proxy rows' do
     expect(env.key?(Onetime::Middleware::PublicHostRewrite::ORIGINAL_HTTP_HOST))
       .to eq(rewrite_on && row.key?(:rewritten))
     expect(Onetime::Middleware::PublicHostRewrite.original_http_host(env)).to eq(fill(row[:headers]['Host']))
+  end
+
+  # What the stack left in the env of the last request, and what the two
+  # auth-URL readers build on it.
+  def observed
+    env     = last_request.env
+    request = Rack::Request.new(env)
+    {
+      rack_host: request.host,
+      rack_base_url: request.base_url,
+      detected: env[Rack::DetectHost.result_field_name],
+      display: env['onetime.display_domain'],
+      strategy: env['onetime.domain_strategy'],
+      origin: OmniAuth.config.full_host.call(env),
+      email_origin: Auth::PublicHost.allowlisted_base_url(env),
+      tenant_host: Auth::Config::Features::OmniAuth.public_host_for(env),
+      webauthn_host: Auth::PublicHost.webauthn_host(env),
+    }
+  end
+
+  # The request matrix's assertions for one row, after its request was sent.
+  def expect_observed(row)
+    actual   = observed
+    expects  = row_for_run(row)
+    expected = HostProxyMatrix::OBSERVED_KEYS.to_h { |key| [key, fill(expects[key])] }
+
+    expect(actual.slice(*HostProxyMatrix::OBSERVED_KEYS)).to eq(expected)
+    expect_rewrite_record(row)
+    # The redirect_uri and the emailed link read one chain.
+    expect(actual[:email_origin]).to eq(actual[:origin])
+    expect(actual[:rack_base_url]).to eq(fill(expects[:rack_base_url])) if expects.key?(:rack_base_url)
+    # Whatever the row sent, no auth URL carries a comma.
+    expect(actual[:origin]).not_to include(',')
   end
 
   # scheme://host, with the port only when it is not the scheme default.

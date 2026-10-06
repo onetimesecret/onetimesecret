@@ -455,8 +455,6 @@ module HostProxyMatrix
     end
   end
 
-  OBSERVED_KEYS = [:rack_host, :detected, :display, :strategy, :origin, :tenant_host, :webauthn_host].freeze
-
   # ---------------------------------------------------------------------------
   # Emitter rows: what POST /auth/sso/entra hands the IdP, and what the
   # reset-password email carries.
@@ -603,22 +601,6 @@ end
 RSpec.describe 'Host and proxy simulation matrix (#4223)', :shared_db_state, type: :integration do
   include_context 'host proxy rows'
 
-  def observed
-    env     = last_request.env
-    request = Rack::Request.new(env)
-    {
-      rack_host: request.host,
-      rack_base_url: request.base_url,
-      detected: env[Rack::DetectHost.result_field_name],
-      display: env['onetime.display_domain'],
-      strategy: env['onetime.domain_strategy'],
-      origin: OmniAuth.config.full_host.call(env),
-      email_origin: Auth::PublicHost.allowlisted_base_url(env),
-      tenant_host: Auth::Config::Features::OmniAuth.public_host_for(env),
-      webauthn_host: Auth::PublicHost.webauthn_host(env),
-    }
-  end
-
   shared_examples 'a request matrix' do |rows|
     rows.each do |row|
       suffix = row[:changes_with] ? " (current behaviour; #{row[:changes_with]})" : ''
@@ -630,17 +612,7 @@ RSpec.describe 'Host and proxy simulation matrix (#4223)', :shared_db_state, typ
           header 'Accept', 'application/json'
           get '/auth'
 
-          actual   = observed
-          expects  = row_for_run(row)
-          expected = HostProxyMatrix::OBSERVED_KEYS.to_h { |key| [key, fill(expects[key])] }
-
-          expect(actual.slice(*HostProxyMatrix::OBSERVED_KEYS)).to eq(expected)
-          expect_rewrite_record(row)
-          # The redirect_uri and the emailed link read one chain.
-          expect(actual[:email_origin]).to eq(actual[:origin])
-          expect(actual[:rack_base_url]).to eq(fill(expects[:rack_base_url])) if expects.key?(:rack_base_url)
-          # Whatever the row sent, no auth URL carries a comma.
-          expect(actual[:origin]).not_to include(',')
+          expect_observed(row)
         end
       end
     end
