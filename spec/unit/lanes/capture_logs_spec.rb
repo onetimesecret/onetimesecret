@@ -279,6 +279,21 @@ RSpec.describe 'tests/lanes/run --capture-logs files' do
       end
     end
 
+    # A device stands in for anything that exists and is not a regular file.
+    # It accepts the truncation, so without the check the run would go on
+    # and report the file as removed at the end (exit 74); a FIFO in its
+    # place would block the runner outright.
+    it 'stops before any task when app.log is not a regular file' do
+      probe.with_scratch do |scratch|
+        File.symlink(File::NULL, scratch.app_log)
+
+        run = probe.run('selftest', '--overlay', scratch.overlay, '--capture-logs')
+
+        expect_refused(run, scratch, scratch.app_log, 'the path exists and is not a regular file')
+        expect(File.symlink?(scratch.app_log)).to be(true)
+      end
+    end
+
     it 'stops before any task when the run directory is not writable' do
       skip 'file permissions do not bind the superuser' if Process.uid.zero?
 

@@ -1568,6 +1568,11 @@ if [[ ${CAPTURE_LOGS} -eq 1 ]]; then
     _lanes_reason=''
     if [[ -d "${_lanes_file}" ]]; then
       _lanes_reason='the path is a directory'
+    elif [[ -e "${_lanes_file}" && ! -f "${_lanes_file}" ]]; then
+      # A FIFO would block the truncation below until something read it,
+      # and a device would pass it and then fail the end-of-run check as
+      # "removed". Neither is a file the runner can own; say so now.
+      _lanes_reason='the path exists and is not a regular file'
     elif ! { : > "${_lanes_file}"; } 2>/dev/null; then
       _lanes_reason='the file cannot be created or truncated; check that the directory and the file are writable'
     fi
