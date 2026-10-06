@@ -140,6 +140,14 @@ module Onetime
     #                                                     (refused, session kept)
     #   RecentReauth, ReauthOffer / ReauthPolicy,         the descriptor above;
     #   WebAuthn surface_scope, OmniAuth Connect          nil refuses, as before
+    #   -- organization scope (reads the published lookup) --
+    #   OrganizationLoader#request_scope_domains          UNREGISTERED_HOST (every
+    #                                                     organization withheld)
+    #                                                     when the published
+    #                                                     lookup is absent; raises
+    #                                                     when it read_failed; []
+    #                                                     (no scope, as :canonical)
+    #                                                     with none published
     #
     # The surface binding cannot use either rule. Reading :invalid as "no
     # surface" destroyed every custom-domain and subdomain session on a
