@@ -317,10 +317,10 @@ module Onetime
         # Explicit override takes precedence
         return ENV['BACKTRACE_LINES'].to_i if ENV['BACKTRACE_LINES']
 
-        # Production defaults to 3 lines, others unlimited
-        case Onetime.mode
-        when 'production' then 3
-        end
+        # Production defaults to 3 lines, others unlimited. The environment
+        # (RACK_ENV), not Onetime.mode: mode is the entry point (:app, :cli,
+        # ...) and is never 'production'.
+        3 if Onetime.production?
       end
 
       # The event this formatter renders: the Log itself when its exception's

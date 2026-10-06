@@ -259,6 +259,44 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
     end
   end
 
+  describe '#backtrace_limit' do
+    before do
+      allow(ENV).to receive(:[]).and_call_original
+      allow(ENV).to receive(:[]).with('BACKTRACE_LINES').and_return(nil)
+      allow(ENV).to receive(:fetch).and_call_original
+    end
+
+    def with_rack_env(value)
+      allow(ENV).to receive(:fetch).with('RACK_ENV', 'production').and_return(value)
+    end
+
+    # Onetime.mode is the entry point (:app, :cli, :test, ...), never the
+    # environment name, so the limit has to come from RACK_ENV.
+    it 'limits backtraces to 3 lines in production, whatever the mode' do
+      with_rack_env('production')
+
+      expect(Onetime.mode).not_to eq('production')
+      expect(instance.send(:backtrace_limit)).to eq(3)
+    end
+
+    it 'is unlimited outside production' do
+      %w[development testing staging].each do |env|
+        with_rack_env(env)
+        expect(instance.send(:backtrace_limit)).to be_nil
+      end
+    end
+
+    it 'lets BACKTRACE_LINES override the environment default' do
+      allow(ENV).to receive(:[]).with('BACKTRACE_LINES').and_return('7')
+
+      with_rack_env('production')
+      expect(instance.send(:backtrace_limit)).to eq(7)
+
+      with_rack_env('development')
+      expect(instance.send(:backtrace_limit)).to eq(7)
+    end
+  end
+
   # The production console formatter: build_formatter wraps the configured
   # formatter in a proc that renders a copy of the event with a shortened
   # exception backtrace.
