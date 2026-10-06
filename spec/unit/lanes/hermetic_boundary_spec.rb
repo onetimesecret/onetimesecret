@@ -243,8 +243,8 @@ RSpec.describe 'tests/lanes/run hermetic boundary' do
   end
 
   it 'exports the rspec status file path, keyed by lane and overlay set, below the scrub' do
-    # The one runner-assigned name the app side reads (spec_helper sets
-    # example_status_persistence_file_path from it). Exported after the
+    # The runner-assigned name the app side reads on every run (spec_helper
+    # sets example_status_persistence_file_path from it). Exported after the
     # scrub, so a keep-list or ordering slip would show up here, not in a
     # real lane. Absolute, so a spec that chdirs cannot move it.
     expect(env['LANES_RSPEC_STATUS_FILE']).to start_with('/')

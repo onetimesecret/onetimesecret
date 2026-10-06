@@ -157,6 +157,16 @@ rescue StandardError => ex
   SemanticLogger.default_level = :warn
 end
 
+# Under `tests/lanes/run --quiet-logs` (CI) or `--quiet`, the logger mail
+# backend stops printing each delivered email to standard out. The backend
+# writes with a bare `puts`, outside SemanticLogger, so the log floor the
+# runner sets does not reach it: on a full-mode lane the printed emails are
+# about 40% of the run's output. Deliveries are still made and recorded.
+if ENV['LANES_QUIET_LOGS'] == '1'
+  require 'onetime/mail/delivery/logger'
+  Onetime::Mail::Delivery::Logger.output = File.open(File::NULL, 'w')
+end
+
 # Load test utilities
 Dir[File.join(spec_root, 'support', '*.rb')].each { |f| require f }
 Dir[File.join(spec_root, 'support', 'shared_contexts', '*.rb')].each { |f| require f }

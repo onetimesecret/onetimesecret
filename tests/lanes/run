@@ -328,6 +328,7 @@ list_lanes() {
 if [[ $# -eq 0 || "${1:-}" == "--list" || "${1:-}" == "-l" ]]; then
   echo "usage: tests/lanes/run [<lane>] [--overlay <name>]... [--only <path>]..."
   echo "                            [--skip-codegen] [--print-key] [--quiet]"
+  echo "                            [--quiet-logs]"
   echo "                            [-- <rspec args>]"
   echo "       tests/lanes/run <lane> [--overlay <name>]... --console"
   echo "       tests/lanes/run --which <path>"
@@ -350,11 +351,18 @@ if [[ $# -eq 0 || "${1:-}" == "--list" || "${1:-}" == "-l" ]]; then
   echo "                 DEBUG_LOGGERS, both read by setup_loggers.rb); the"
   echo "                 tryouts legs already run --agent outside CI. Default"
   echo "                 output is unchanged without it."
+  echo "  --quiet-logs   the app-output half of --quiet alone: the app logs at"
+  echo "                 error and above only, and the logger mail backend"
+  echo "                 stops printing delivered emails (LANES_QUIET_LOGS,"
+  echo "                 read by spec/spec_helper.rb). rspec's formatters are"
+  echo "                 untouched, so it works with RSPEC_OUTPUT_FILE; CI"
+  echo "                 runs every lane with it. --quiet implies it."
   echo "  --console      start the app console (bin/ots console) in the lane's"
   echo "                 environment — same scrub, overlays, datastore index"
   echo "                 and exec boundary as a run — instead of its tasks."
   echo "                 Preserves an existing RabbitMQ vhost for inspection."
-  echo "                 Runs no tests: not with --only, --quiet or --."
+  echo "                 Runs no tests: not with --only, --quiet,"
+  echo "                 --quiet-logs or --."
   echo "  --skip-codegen skip the lane's declared codegen (LANES_CODEGEN in"
   echo "                 its env file). A direct run ALWAYS generates; this is"
   echo "                 for a caller that generated once before fanning out."
@@ -432,6 +440,7 @@ ONLY=()
 SKIP_CODEGEN=0
 PRINT_KEY=0
 QUIET=0
+QUIET_LOGS=0
 CONSOLE=0
 # `--` ends the runner's own parsing; the rest of argv is rspec's. Kept as
 # an array (never re-split) so a quoted `-e 'two words'` arrives intact.
@@ -479,6 +488,10 @@ while [[ $# -gt 0 ]]; do
       QUIET=1
       shift
       ;;
+    --quiet-logs)
+      QUIET_LOGS=1
+      shift
+      ;;
     --console)
       CONSOLE=1
       shift
@@ -506,6 +519,10 @@ if [[ ${CONSOLE} -eq 1 ]]; then
   fi
   if [[ ${QUIET} -eq 1 ]]; then
     echo "error: --quiet selects an rspec formatter; --console runs no rspec" >&2
+    exit 64
+  fi
+  if [[ ${QUIET_LOGS} -eq 1 ]]; then
+    echo "error: --quiet-logs quiets a test run's app output; --console runs no tests" >&2
     exit 64
   fi
   if [[ ${SKIP_CODEGEN} -eq 1 ]]; then
@@ -808,7 +825,8 @@ fi
 # it. Two lanes in one worktree get two directories, two worktrees get two
 # tmp/ trees, and nothing clobbers a sibling's files. tmp/ is gitignored.
 #
-# LANES_RSPEC_STATUS_FILE is the one the app side reads:
+# LANES_RSPEC_STATUS_FILE is one of two names the app side reads (the
+# other is LANES_QUIET_LOGS, under --quiet-logs below):
 # spec/spec_helper.rb sets example_status_persistence_file_path from it
 # when — and only when — it is present, so plain rspec outside the runner
 # is unchanged and `--only <path> -- --only-failures` / `--next-failure`
@@ -825,8 +843,7 @@ export LANES_RSPEC_STATUS_FILE
 # lane makes, whether a rake task assembled it or --only did. Set here,
 # below the scrub (a caller's SPEC_OPTS was cleared with everything else,
 # so this is the only one the task process can see) and only under the
-# flag, so a default run's output — CI's logs — is byte-for-byte what it
-# was.
+# flag, so a default run's output is byte-for-byte what it was.
 #
 # The replacement is also the one cost: the rake tasks' `--format json --out
 # $RSPEC_OUTPUT_FILE` goes with the progress formatter, so a run that was
@@ -848,7 +865,14 @@ if [[ ${QUIET} -eq 1 ]]; then
   # the task process runs from the repo root (the cd below) where ./ resolves.
   SPEC_OPTS="--require ./tests/lanes/support/quiet_formatter --format Lanes::QuietFormatter"
   export SPEC_OPTS
+  QUIET_LOGS=1
+fi
 
+# ── --quiet-logs ─────────────────────────────────────────────────────────
+# The app-output half of --quiet, selectable alone because it replaces no
+# rspec formatter: a run with RSPEC_OUTPUT_FILE set — every CI lane, through
+# .github/actions/run-test-lane — can take it where it has to refuse --quiet.
+if [[ ${QUIET_LOGS} -eq 1 ]]; then
   # The application's own log lines are the other, larger half of a lane's
   # output — on a full `simple` run ~50k of ~55k lines are the seven
   # `HTTP -- [Security] ... DISABLED` warnings each app boot logs — and the
@@ -868,6 +892,12 @@ if [[ ${QUIET} -eq 1 ]]; then
   # (the audit sink must not be silenceable by a level change). Measured on
   # a full `simple` run: ~55k lines -> ~2.5k. Assigned here, below the
   # scrub and only under the flag: a default run's app log is what it was.
+  #
+  # The logger mail backend is app output too, and neither knob reaches it:
+  # it prints each delivered email, bodies included, with a bare `puts`
+  # (lib/onetime/mail/delivery/logger.rb). Measured on a full-pg-agnostic CI
+  # run: 581 emails, 3.5 MB of the run's 8.9 MB. LANES_QUIET_LOGS tells
+  # spec/spec_helper.rb to point the backend's output at the null device.
   LOG_LEVEL=error
   DEBUG_LOGGERS=''
   for _lanes_name in App Auth Billing Boot Bunny Ents Familia HTTP Jobs Org \
@@ -875,7 +905,8 @@ if [[ ${QUIET} -eq 1 ]]; then
     DEBUG_LOGGERS+="${DEBUG_LOGGERS:+,}${_lanes_name}:error"
   done
   builtin unset _lanes_name
-  export LOG_LEVEL DEBUG_LOGGERS
+  LANES_QUIET_LOGS=1
+  export LOG_LEVEL DEBUG_LOGGERS LANES_QUIET_LOGS
 fi
 
 # ── --print-key ──────────────────────────────────────────────────────────
@@ -893,6 +924,7 @@ if [[ ${PRINT_KEY} -eq 1 ]]; then
   echo "run_dir=${LANES_RUN_DIR} status_file=${LANES_RSPEC_STATUS_FILE}" \
        "spec_opts=${SPEC_OPTS:-none}"
   echo "log_level=${LOG_LEVEL:-none} debug_loggers=${DEBUG_LOGGERS:-none}"
+  echo "quiet_logs=${LANES_QUIET_LOGS:-none}"
   exit 0
 fi
 

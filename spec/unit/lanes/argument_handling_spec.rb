@@ -77,6 +77,7 @@ RSpec.describe 'tests/lanes/run argument handling' do
     [
       [0,  %w[--print-key]],
       [0,  %w[--quiet --print-key]],
+      [0,  %w[--quiet-logs --print-key]],
       [64, %w[--bogus --print-key]],
       [64, %w[--print-key --bogus]],
       [64, %w[--print-key -- --only-failures]],
@@ -92,6 +93,7 @@ RSpec.describe 'tests/lanes/run argument handling' do
       [0,  %w[--console --overlay billing --print-key]],
       [64, %w[--console --only spec/unit/lanes/hermetic_boundary_spec.rb --print-key]],
       [64, %w[--console --quiet --print-key]],
+      [64, %w[--console --quiet-logs --print-key]],
       [64, %w[--console --skip-codegen --print-key]],
       [64, %w[--console -- --only-failures]],
     ].each do |want, args|
@@ -148,6 +150,31 @@ RSpec.describe 'tests/lanes/run argument handling' do
                                  env: { 'RSPEC_OUTPUT_FILE' => 'tmp/argument-handling-results.json' })
       expect(status.exitstatus).to eq(64), output
       expect(output).to include('RSPEC_OUTPUT_FILE cannot be honored')
+    end
+  end
+
+  describe '--quiet-logs' do
+    # CI's flag (.github/actions/run-test-lane): the app-output half of
+    # --quiet, which has to coexist with the results file --quiet refuses.
+    it 'sets the log floor and the mail-output switch, and no formatter' do
+      output, status = probe.run('selftest', '--quiet-logs', '--print-key',
+                                 env: { 'RSPEC_OUTPUT_FILE' => 'tmp/argument-handling-results.json' })
+      expect(status).to be_success, output
+      expect(probe.field(output, 'spec_opts')).to eq('none')
+      expect(probe.field(output, 'log_level')).to start_with('error ')
+      expect(probe.field(output, 'quiet_logs')).to eq('1')
+    end
+
+    it 'is implied by --quiet' do
+      output, status = probe.run('selftest', '--quiet', '--print-key')
+      expect(status).to be_success, output
+      expect(probe.field(output, 'quiet_logs')).to eq('1')
+    end
+
+    it 'leaves the mail-output switch unset without either flag' do
+      output, status = probe.run('selftest', '--print-key')
+      expect(status).to be_success, output
+      expect(probe.field(output, 'quiet_logs')).to eq('none')
     end
   end
 

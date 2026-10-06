@@ -171,6 +171,26 @@ part of a default run back out of `last.log`, drop the timestamped lines:
 $ grep -vE '^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9:.]+ [A-Z] \[' tmp/lanes/simple/base/last.log
 ```
 
+#### App output only: `--quiet-logs`
+
+```console
+$ tests/lanes/run full-pg-agnostic --quiet-logs
+```
+
+`--quiet-logs` is the app-output half of `--quiet` without the formatter:
+the same `LOG_LEVEL`/`DEBUG_LOGGERS` floor at `error`, and
+`LANES_QUIET_LOGS=1`, which `spec/spec_helper.rb` reads to point the logger
+mail backend's output at the null device. That backend prints every
+delivered email, bodies included, with a bare `puts` that no log level
+reaches. rspec's formatters are untouched, so the flag works with
+`RSPEC_OUTPUT_FILE`, and CI runs every lane with it
+(`.github/actions/run-test-lane`). `--quiet` implies it.
+
+Measured on one CI run of `full-pg-agnostic` (2,976 examples): 8.9 MB of
+output by default, of which 3.5 MB was 581 printed emails and 2.5 MB was
+info and warn log lines. What remains under the flag is rspec's output and
+error-level log lines with their backtraces.
+
 ### Last run output: `tmp/lanes/<lane>/<overlays>/last.log`
 
 Every run, full lane or `--only`, is also written to
@@ -239,8 +259,8 @@ which is how test-mode settings have leaked before.
 A console is not a run: it skips the codegen phase like `--only` (a missing
 generated locale is a logged line at boot, not a failure), leaves
 `last.log` untouched, and prints no timing line. It takes the lane name and
-overlays only; `--only`, `--quiet`, `--skip-codegen` and `--` exit 64 with
-it. Under `sqlite::memory:` (`full-sqlite`, `full-mfa`,
+overlays only; `--only`, `--quiet`, `--quiet-logs`, `--skip-codegen` and
+`--` exit 64 with it. Under `sqlite::memory:` (`full-sqlite`, `full-mfa`,
 `full-saml-platform`) the auth database is empty and unmigrated in a fresh
 process, so the console logs `no such table: accounts` at boot; the
 PostgreSQL lanes address the per-worktree database the lane's runs use.
@@ -445,13 +465,13 @@ runs. Toolchain prerequisites a lane cannot generate — built frontend assets,
 Playwright browsers — are installed by the CI job and by `bin/setup --test`;
 the lane preflights them rather than installing them.
 
-What CI sees of a run is what a local default run prints: the task's stderr
-merged into its stdout through the `tee` into
+What CI sees of a run is what a local `--quiet-logs` run prints: the task's
+stderr merged into its stdout through the `tee` into
 `tmp/lanes/<lane>/<overlays>/last.log` (written in CI too, with the rspec status
 file beside it), then the runner's timing line and its `log: ... (exit N)` line
 on stderr. A reader of the runner's stdout alone (`2>/dev/null`,
-`Open3.capture2`) therefore sees the task's stderr as well. Neither `--quiet`
-nor the tty-only color flags apply there. The supported CI exceptions are
+`Open3.capture2`) therefore sees the task's stderr as well. Neither `--quiet`'s
+formatter nor the tty-only color flags apply there. The supported CI exceptions are
 constrained environments that cannot run the compose topology:
 `devcontainer-ci.yml` and macOS `installer.yml` run the fast suite directly.
 They validate installation paths, not lane behavior.
