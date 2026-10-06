@@ -27,8 +27,9 @@ module Onetime
       # id right before it republishes the message, so the worker delivers
       # the replay instead of acking it as a duplicate. The id is held by an
       # owned reservation while the replay runs and is marked completed only
-      # after the broker confirms the commit of the publish and the ack (see
-      # #replay_message).
+      # after the broker confirms the commit of the publish and has not
+      # returned the message as unroutable. The DLQ delivery is acked after
+      # that (see #replay_message).
       #
       # Configuration:
       #   jobs:
@@ -42,12 +43,23 @@ module Onetime
         DLQ_NAME   = 'dlq.email.message'
         BATCH_SIZE = 50
 
-        # Held replays one run passes over before it stops. A held replay is
-        # one whose id another replay has reserved, or that has a legacy
-        # marker. It is left unacked and does not count against BATCH_SIZE,
-        # so held messages at the front of the DLQ do not use up the batch
-        # ahead of the messages behind them.
-        HELD_LIMIT = 500
+        # Seconds a run may spend popping messages, under the 5-minute
+        # schedule. A held message is deferred for a reason that another
+        # attempt in the same run would not change: another replay has
+        # reserved its id, it has a legacy marker, its original queue does
+        # not exist, or processing it raised an unexpected error. It is left
+        # unacked and does not count against BATCH_SIZE, so held messages at
+        # the front of the DLQ do not use up the batch ahead of the messages
+        # behind them. Closing the channel returns them to the front of the
+        # DLQ, so a run that stopped on a count of held messages would meet
+        # the same ones first on every run and never reach the messages
+        # behind them. The run is bounded by time instead: a message held
+        # for a queue this run already found missing costs no broker or
+        # datastore round trip (see #replay_message), so a run passes over
+        # any number of them within the budget. Deferrals after a datastore
+        # or publish error do count against the batch: each can cost a
+        # timeout.
+        RUN_BUDGET = 240
 
         # Ends the batch when a settlement or commit leaves the channel's
         # transaction in an unknown state. Must bypass process_message's
@@ -107,7 +119,8 @@ module Onetime
         # Deletes the reservation only when this owner holds it. The
         # publishing form is included only when the copy cannot be live: the
         # publish was never attempted (a lost reply from START_REPLAY_LUA),
-        # or its transaction was not committed.
+        # its transaction was not committed, or the broker returned it as
+        # unroutable.
         RELEASE_RESERVATION_LUA = <<~LUA
           local reservation = redis.call('GET', KEYS[1])
           if reservation == ARGV[1] or (ARGV[2] == '1' and reservation == 'publishing:' .. ARGV[1]) then
@@ -163,7 +176,7 @@ module Onetime
           end
 
           def consume_dlq_batch
-            results                       = { replayed: 0, discarded_non_auth: 0, discarded_expired: 0, errors: 0, deferred: 0, held: 0 }
+            results                       = new_results
             conn, channel, own_connection = acquire_channel
             return unless channel
 
@@ -175,17 +188,17 @@ module Onetime
               return
             end
 
-            popped = 0
-
             # Every publish, ack and nack below takes effect only at tx_commit.
             # The channel is dedicated to this batch (#acquire_channel), so
             # transaction mode does not reach other publishers.
             channel.tx_select
 
-            # Held replays stay unacked on this channel, so the broker does
+            # Held messages stay unacked on this channel, so the broker does
             # not hand them out again during the run and the loop reaches the
             # messages behind them.
-            while popped < available && popped - results[:held] < BATCH_SIZE && results[:held] < HELD_LIMIT
+            popped   = 0
+            deadline = monotonic_now + RUN_BUDGET
+            while popped < available && popped - results[:held] < BATCH_SIZE && monotonic_now < deadline
               delivery_info, properties, payload = queue.pop(manual_ack: true)
               break unless delivery_info
 
@@ -252,8 +265,19 @@ module Onetime
             conn&.close unless channel
           end
 
+          # Counters for one run, plus the queue names the broker returned a
+          # replay from as unroutable during the run (see #replay_message).
+          def new_results
+            counters = [:replayed, :discarded_non_auth, :discarded_expired, :errors, :deferred, :held, :unroutable]
+            counters.to_h { |name| [name, 0] }.merge(missing_queues: Set.new)
+          end
+
           def batch_counts(results)
-            results.map { |name, count| "#{name}=#{count}" }.join(' ')
+            results.filter_map { |name, count| "#{name}=#{count}" if count.is_a?(Integer) }.join(' ')
+          end
+
+          def monotonic_now
+            Process.clock_gettime(Process::CLOCK_MONOTONIC)
           end
 
           def process_message(channel, delivery_info, properties, payload, results)
@@ -305,9 +329,12 @@ module Onetime
             discard_message(channel, delivery_info, properties.message_id)
             results[:errors] += 1
           rescue StandardError => ex
+            # Not discarded: the error may be a defect in this job, and the
+            # message is replayable once that is fixed.
             scheduler_logger.error "[DlqEmailConsumerJob] Processing deferred: #{ex.class}"
             results[:errors]   += 1
             results[:deferred] += 1
+            results[:held]     += 1
           end
 
           # Check whether the auth token has expired by querying the deadline table.
@@ -341,16 +368,23 @@ module Onetime
           #    this call. An id marked completed is acked without a publish
           #    (the one-hour replay cap). An id reserved by another owner, or
           #    with a legacy marker, is deferred as held: the batch passes
-          #    over it without counting it (see HELD_LIMIT).
+          #    over it without counting it (see RUN_BUDGET).
           # 2. start_replay: switch the reservation to its publishing form
           #    with the one-hour TTL and release the worker's idempotency
           #    claim, so the worker delivers the replay instead of acking it
           #    as a duplicate. The worker's own release is best-effort.
-          # 3. finalize_replay, after the broker confirms the commit: mark
-          #    the id completed and drop the reservation.
+          # 3. finalize_replay, after the broker confirms the commit of the
+          #    publish without returning the message: mark the id completed
+          #    and drop the reservation.
           #
-          # The republish and the ack of the DLQ delivery are committed in one
-          # AMQP transaction, so no copy goes live before the commit.
+          # The republish and the ack of the DLQ delivery are committed
+          # separately, publish first. A publish to the default exchange
+          # succeeds when no queue has the routing key's name; the broker
+          # reports that only by returning a mandatory message, and it sends
+          # the return when it applies the commit. In one transaction the
+          # ack would already be applied by then. So the publish is
+          # committed alone, and the delivery is acked only when that commit
+          # brought no return.
           #
           # A deferred message is left unacked. Closing the channel at the end
           # of the batch returns it to the DLQ for a later run. It is not
@@ -362,23 +396,45 @@ module Onetime
           # - Datastore error before the publish: the call releases its own
           #   reservation (best-effort; otherwise the reservation TTL bounds
           #   the wait) and defers.
-          # - Publish or ack error: the transaction is rolled back and the
+          # - Publish error: the transaction is rolled back and the
           #   reservation released, so the next run replays the message. A
           #   failed rollback also stops the batch; no commit was sent, so
           #   the copy is not live and the reservation is still released.
-          # - Commit the broker does not confirm: the copy may or may not be
-          #   live. The batch stops and the publishing reservation is kept.
-          #   If the commit applied, the delivery has left the DLQ. If not,
-          #   the delivery returns to the DLQ and is replayed once the
-          #   reservation expires.
+          # - Publish commit the broker does not confirm: the copy may or
+          #   may not be live. The batch stops and the publishing reservation
+          #   is kept. The delivery returns to the DLQ and is replayed once
+          #   the reservation expires.
+          # - Returned as unroutable (the original queue does not exist): no
+          #   copy is live. The reservation is released and the delivery is
+          #   left unacked and held, so it is tried again on every run until
+          #   the queue exists or the DLQ's message TTL removes it. The queue
+          #   name is remembered for the rest of the run, and later messages
+          #   for it are held without a reservation or a publish. A queue
+          #   recreated during a run is tried again on the next run.
+          # - Ack, or its commit, fails after the publish is committed: the
+          #   copy is live and the delivery returns to the DLQ. The batch
+          #   stops. The id is already marked completed, so a run within the
+          #   hour acks the delivery without a second publish. The marker is
+          #   not extended: a longer one would also drop a replayed copy that
+          #   fails again. A message without an id has no marker, and one no
+          #   run reaches within the hour has an expired one; both are
+          #   published again.
           def replay_message(channel, delivery_info, properties, payload, results)
             message_id = properties.message_id
 
+            # Without a queue name the message can never be replayed, on this
+            # run or a later one, so it is dropped rather than deferred.
             original_queue = extract_original_queue(properties.headers)
             unless original_queue
-              scheduler_logger.warn '[DlqEmailConsumerJob] No original queue in x-death headers'
+              scheduler_logger.error '[DlqEmailConsumerJob] No original queue in x-death headers; discarded',
+                message_id: message_id
               discard_message(channel, delivery_info, message_id)
               results[:errors] += 1
+              return
+            end
+
+            if results[:missing_queues].include?(original_queue)
+              hold_unroutable(original_queue, message_id, results, known: true)
               return
             end
 
@@ -407,23 +463,32 @@ module Onetime
               end
             end
 
+            # The broker returns the message on this channel's reader thread
+            # before it confirms the commit, so the flag is settled by the
+            # time tx_commit returns. Only this publish is in the transaction.
+            returned = false
+            exchange = channel.default_exchange
+            exchange.on_return do |*|
+              returned = true
+            end
+
             begin
-              channel.default_exchange.publish(
+              exchange.publish(
                 payload,
                 routing_key: original_queue,
+                mandatory: true,
                 persistent: true,
                 message_id: message_id,
                 content_type: properties.content_type,
                 headers: clean_headers(properties.headers),
               )
-              channel.ack(delivery_info.delivery_tag)
             rescue StandardError => ex
               # Nothing is live without a commit, whether or not the rollback
               # succeeds, so the next run may replay this message.
               release_reservation(message_id, owner, include_publishing: true) if message_id
 
               # Roll back before continuing, otherwise the next message's
-              # commit could publish this copy without its DLQ acknowledgement.
+              # commit could publish this copy as well.
               begin
                 channel.tx_rollback
               rescue StandardError => rollback_error
@@ -435,12 +500,41 @@ module Onetime
             end
 
             # On an unconfirmed commit the publishing reservation stays in
-            # place: BatchStopped skips finalize_replay.
+            # place: BatchStopped skips everything below.
             context = "replay to #{original_queue}; the message may already be republished"
             commit_transaction(channel, context, message_id)
 
+            if returned
+              release_reservation(message_id, owner, include_publishing: true) if message_id
+              results[:missing_queues] << original_queue
+              hold_unroutable(original_queue, message_id, results)
+              return
+            end
+
+            # The copy is live. Mark the id completed before the ack, so a
+            # delivery whose ack fails is acked by a run within the hour and
+            # not published a second time.
             results[:replayed] += 1
             finalize_replay(message_id, owner, results) if message_id
+
+            settle(channel, 'replay acknowledgement', message_id) { channel.ack(delivery_info.delivery_tag) }
+          end
+
+          # Leave a delivery unacked and held because its original queue does
+          # not exist. Closing the channel at the end of the run returns it to
+          # the DLQ. A queue the run already reported missing is logged at
+          # debug level; the batch summary carries the count.
+          def hold_unroutable(original_queue, message_id, results, known: false)
+            results[:unroutable] += 1
+            results[:deferred]   += 1
+            results[:held]       += 1
+
+            message = "[DlqEmailConsumerJob] Replay unroutable: no queue named #{original_queue}; left in the DLQ"
+            if known
+              scheduler_logger.debug message, message_id: message_id
+            else
+              scheduler_logger.error message, message_id: message_id
+            end
           end
 
           # Drop a delivery from the DLQ (nack without requeue).
@@ -464,8 +558,7 @@ module Onetime
 
           # A lost commit reply is not a rollback signal. Stop and close the
           # dedicated channel without trying to settle this delivery again.
-          # This batches publish/ack; it does not guarantee cross-queue atomicity
-          # on broker failure: https://www.rabbitmq.com/docs/semantics
+          # Each commit covers one publish or one settlement of one delivery.
           def commit_transaction(channel, context, message_id)
             channel.tx_commit
           rescue StandardError => ex
@@ -489,8 +582,8 @@ module Onetime
             ) == 1
           end
 
-          # The message is already settled (publish and ack committed), so a
-          # failure here is logged and counted, never raised: the publishing
+          # The copy is already live (publish committed and not returned), so
+          # a failure here is logged and counted, never raised: the publishing
           # reservation then holds off another replay until its TTL expires.
           def finalize_replay(message_id, owner, results)
             completed = dbclient.eval(
@@ -503,7 +596,7 @@ module Onetime
             raise 'Replay reservation ownership lost'
           rescue StandardError => ex
             results[:errors] += 1
-            scheduler_logger.error "[DlqEmailConsumerJob] Replay settled but marker finalization unknown: #{ex.class}",
+            scheduler_logger.error "[DlqEmailConsumerJob] Replay published but marker finalization unknown: #{ex.class}",
               message_id: message_id
           end
 
@@ -539,11 +632,17 @@ module Onetime
           # The datastore client. A seam for tests that interleave two runs.
           def dbclient = Familia.dbclient
 
+          # The queue the message was dead-lettered from, read from the
+          # first x-death entry. The broker writes x-death as an array of
+          # tables; any other shape, or a missing or empty queue name, gives
+          # nil.
+          #
+          # @return [String, nil]
           def extract_original_queue(headers)
-            return nil unless headers
-
-            death = headers['x-death']&.first
-            death&.fetch('queue', nil)
+            deaths = headers['x-death'] if headers.is_a?(Hash)
+            death  = deaths.first if deaths.is_a?(Array)
+            queue  = death['queue'] if death.is_a?(Hash)
+            queue if queue.is_a?(String) && !queue.empty?
           end
 
           def clean_headers(headers)

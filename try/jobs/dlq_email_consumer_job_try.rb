@@ -71,6 +71,8 @@ class MockExchange
     @publishes = publishes
   end
 
+  def on_return; end
+
   def publish(payload, **opts)
     @publishes << { payload: payload, **opts }
   end
@@ -151,9 +153,9 @@ def call_private(method, *args)
   @job.send(method, *args)
 end
 
-# Helper to build a results hash
+# Helper to build a results hash, as consume_dlq_batch does
 def fresh_results
-  { replayed: 0, discarded_non_auth: 0, discarded_expired: 0, errors: 0, deferred: 0, held: 0 }
+  call_private(:new_results)
 end
 
 # Properties of a raw email dead-lettered from the email queue
@@ -295,6 +297,27 @@ call_private(:extract_original_queue, { 'some-other' => 'header' })
 ## extract_original_queue returns nil when x-death is empty
 call_private(:extract_original_queue, { 'x-death' => [] })
 #=> nil
+
+## extract_original_queue returns nil when an x-death entry is not a table
+call_private(:extract_original_queue, { 'x-death' => ['invalid'] })
+#=> nil
+
+## extract_original_queue returns nil when x-death is not an array
+[call_private(:extract_original_queue, { 'x-death' => 'invalid' }), call_private(:extract_original_queue, { 'x-death' => { 'queue' => 'q' } })]
+#=> [nil, nil]
+
+## extract_original_queue returns nil when the queue name is empty or not a string
+[call_private(:extract_original_queue, { 'x-death' => [{ 'queue' => '' }] }), call_private(:extract_original_queue, { 'x-death' => [{ 'queue' => 7 }] })]
+#=> [nil, nil]
+
+## process_message nacks a raw replay with malformed x-death without requeue
+ch = MockChannel.new
+di = MockDeliveryInfo.new(delivery_tag: 'tag-bad-xdeath')
+props = MockProperties.new(message_id: "bad-xdeath-#{SecureRandom.hex(4)}", headers: { 'x-death' => ['invalid'] })
+results = fresh_results
+call_private(:process_message, ch, di, props, JSON.generate({ 'raw' => true, 'email' => { 'to' => 'u@e.com' } }), results)
+[ch.nacks.map { |nack| nack[:requeue] }, ch.publishes.size, results[:errors], results[:deferred]]
+#=> [[false], 0, 1, 0]
 
 ## clean_headers strips x-death and x-first-death headers
 headers = {

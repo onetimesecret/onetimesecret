@@ -199,7 +199,33 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
     self.allowed_signup_domains_json = normalized.empty? ? nil : JSON.generate(normalized)
   end
 
+  # Whether allowed_signup_domains_json holds something we cannot read as a
+  # domain list.
+  #
+  # allowed_signup_domains (above) swallows JSON::ParserError and returns
+  # [], which valid_email_domain? reads as "no allowlist → allow all". That
+  # is fine for display, but on the sign-up gate it would silently disable
+  # the restriction the value encodes, so validate_domain_allowlist denies
+  # when this is true. An absent/empty value is NOT corrupt (that is the
+  # legitimate cleared state written by allowed_signup_domains=); a
+  # well-formed empty array is not corrupt either. Mirrors
+  # SsoConfig#allowed_domains_corrupt?.
+  #
+  # @return [Boolean] true when a value is present but unreadable as an Array
+  def allowed_signup_domains_corrupt?
+    raw = allowed_signup_domains_json.to_s
+    return false if raw.empty?
+
+    !JSON.parse(raw).is_a?(Array)
+  rescue JSON::ParserError
+    true
+  end
+
   # Validate an email address against the allowed domains list.
+  #
+  # NOTE: returns true when the list is empty. That reading suits display
+  # surfaces; the sign-up gate (validate_domain_allowlist) refuses an empty
+  # or corrupt list instead of falling through to this.
   #
   # @param email [String] Email address to validate
   # @return [Boolean] true if email domain is allowed
@@ -512,9 +538,19 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
   end
 
   # Domain allowlist validation.
+  #
+  # Fails closed. The operator chose domain_allowlist, so a list we cannot
+  # read (corrupt JSON) or an empty list cannot admit anyone: the empty list
+  # is already an invalid configuration (see validation_errors), and the
+  # colonel upsert path can persist it without running those checks.
+  # valid_email_domain? keeps its "empty list → allow all" reading for
+  # display surfaces; only this sign-up gate is strict. Same reasoning as
+  # SsoConfig#allowed_domains_corrupt? on the SSO sign-in path.
   def validate_domain_allowlist(email)
     # Must also pass format check
     return false unless Onetime::Utils::EmailFormat.valid_format?(email)
+    return false if allowed_signup_domains_corrupt?
+    return false if allowed_signup_domains.empty?
 
     valid_email_domain?(email)
   end

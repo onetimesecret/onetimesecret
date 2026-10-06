@@ -4,13 +4,13 @@
 
 # DlqEmailConsumerJob with channel doubles, in two groups:
 #
-# - AMQP transaction: the order of tx_select, publish, ack/nack, and
-#   tx_commit, and where a failure stops the batch. The same paths against a
+# - AMQP transaction: the order of tx_select, publish, tx_commit, ack/nack,
+#   and tx_commit, and where a failure stops the batch. The same paths against a
 #   real broker are in
 #   spec/integration/all/jobs/dlq_email_consumer_transaction_spec.rb.
 # - Replay reservation: the datastore scripts (real Valkey) that reserve a
-#   message id, mark it completed after the commit, and keep a failed replay
-#   retryable.
+#   message id, mark it completed after the publish commit, and keep a failed
+#   replay retryable.
 
 require 'spec_helper'
 require 'securerandom'
@@ -24,8 +24,14 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob do
       double('properties', message_id: 'dlq-message-1', content_type: 'application/json',
         headers: { 'x-death' => [{ 'queue' => 'email.message.send' }], 'x-schema-version' => 1 })
     end
+    # The second message is dead-lettered from another queue, so a run that
+    # found the first queue missing still publishes it.
+    let(:other_properties) do
+      double('properties', message_id: 'dlq-message-2', content_type: 'application/json',
+        headers: { 'x-death' => [{ 'queue' => 'email.message.schedule' }], 'x-schema-version' => 1 })
+    end
     let(:delivery) { double('delivery', delivery_tag: 1) }
-    let(:exchange) { double('exchange', publish: nil) }
+    let(:exchange) { double('exchange', publish: nil, on_return: nil) }
     let(:channel) do
       double('channel', default_exchange: exchange, ack: nil, nack: nil,
         tx_select: nil, tx_commit: nil, tx_rollback: nil, open?: true, close: nil)
@@ -43,49 +49,113 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob do
       allow(described_class).to receive(:acquire_channel).and_return([nil, channel, false])
       allow(channel).to receive(:queue).with(described_class::DLQ_NAME, durable: true, passive: true).and_return(queue)
       allow(queue).to receive(:pop).with(manual_ack: true).and_return(
-        [delivery, properties, payload], [double('delivery2', delivery_tag: 2), properties, payload])
+        [delivery, properties, payload], [double('delivery2', delivery_tag: 2), other_properties, payload])
     end
 
     def run_batch
       described_class.send(:consume_dlq_batch)
     end
 
-    it 'selects transactions before popping and commits publish and ack in order' do
+    # The broker returns an unroutable mandatory message while it applies
+    # the commit of the publish, before it confirms that commit.
+    def return_publish_on_commit(times: 1)
+      handler = nil
+      allow(exchange).to receive(:on_return) { |&block| handler = block }
+      published = false
+      allow(exchange).to receive(:publish) { published = true }
+      allow(channel).to receive(:tx_commit) do
+        if published && times.positive?
+          times -= 1
+          handler.call
+        end
+        published = false
+      end
+    end
+
+    it 'selects transactions before popping, commits the publish, then commits the ack' do
       allow(queue).to receive(:message_count).and_return(1)
       expect(channel).to receive(:tx_select).ordered
       expect(queue).to receive(:pop).with(manual_ack: true).ordered.and_return([delivery, properties, payload])
       expect(exchange).to receive(:publish).with(payload, routing_key: 'email.message.send',
-        persistent: true, message_id: 'dlq-message-1', content_type: 'application/json',
+        mandatory: true, persistent: true, message_id: 'dlq-message-1', content_type: 'application/json',
         headers: { 'x-schema-version' => 1 }).ordered
-      expect(channel).to receive(:ack).with(1).ordered
       expect(channel).to receive(:tx_commit).ordered
       expect(described_class).to receive(:finalize_replay).with('dlq-message-1', anything, anything).ordered
+      expect(channel).to receive(:ack).with(1).ordered
+      expect(channel).to receive(:tx_commit).ordered
       expect(logger).to receive(:info).with(/replayed=1/)
       run_batch
     end
 
-    [:publish, :ack].each do |failure|
-      it "rolls back a failed #{failure}, releases its reservation, and continues to the next message" do
-        target = failure == :publish ? exchange : channel
-        calls = 0
-        allow(target).to receive(failure) do
-          calls += 1
-          raise IOError, 'interrupted before commit' if calls == 1
-        end
-        expect(channel).to receive(:tx_rollback).once.ordered
-        expect(channel).to receive(:tx_commit).once.ordered
-        expect(channel).not_to receive(:nack)
-        expect(described_class).to receive(:release_reservation)
-          .with('dlq-message-1', anything, include_publishing: true).once
-        expect(described_class).to receive(:finalize_replay).once
-        expect(logger).to receive(:warn).with(/rolled back before commit: IOError/, message_id: 'dlq-message-1')
-        expect(logger).to receive(:info).with(/replayed=1.*deferred=1/)
-        run_batch
+    it 'leaves a returned replay unacked, releases its reservation, and continues to the next message' do
+      return_publish_on_commit
+      expect(channel).to receive(:ack).with(2).once
+      expect(channel).not_to receive(:ack).with(1)
+      expect(channel).not_to receive(:nack)
+      expect(channel).not_to receive(:tx_rollback)
+      expect(described_class).to receive(:release_reservation)
+        .with('dlq-message-1', anything, include_publishing: true).once
+      expect(described_class).to receive(:finalize_replay).once
+      expect(logger).to receive(:error).with(
+        /Replay unroutable: no queue named email\.message\.send; left in the DLQ/, message_id: 'dlq-message-1'
+      )
+      expect(logger).to receive(:info).with(/replayed=1.*deferred=1 held=1 unroutable=1/)
+      run_batch
+    end
+
+    it 'rolls back a failed publish, releases its reservation, and continues to the next message' do
+      calls = 0
+      allow(exchange).to receive(:publish) do
+        calls += 1
+        raise IOError, 'interrupted before commit' if calls == 1
       end
+      expect(channel).to receive(:tx_rollback).once.ordered
+      expect(channel).to receive(:tx_commit).twice.ordered
+      expect(channel).not_to receive(:nack)
+      expect(described_class).to receive(:release_reservation)
+        .with('dlq-message-1', anything, include_publishing: true).once
+      expect(described_class).to receive(:finalize_replay).once
+      expect(logger).to receive(:warn).with(/rolled back before commit: IOError/, message_id: 'dlq-message-1')
+      expect(logger).to receive(:info).with(/replayed=1.*deferred=1/)
+      run_batch
+    end
+
+    it 'stops on a failed ack after the publish commit, with the id already marked completed' do
+      allow(channel).to receive(:ack).and_raise(IOError, 'ack interrupted')
+      expect(queue).to receive(:pop).once
+      expect(channel).to receive(:tx_commit).once
+      expect(channel).not_to receive(:tx_rollback)
+      expect(channel).not_to receive(:nack)
+      # The copy is live: the reservation is finalized, not released.
+      expect(described_class).not_to receive(:release_reservation)
+      expect(described_class).to receive(:finalize_replay).once
+      expect(logger).to receive(:error).with(
+        /Replay acknowledgement failed before commit; batch stopped: IOError; counts before the stop: replayed=1/,
+        message_id: 'dlq-message-1',
+      )
+      expect(channel).to receive(:close)
+      run_batch
+    end
+
+    it 'stops on an unconfirmed ack commit, with the id already marked completed' do
+      commits = 0
+      allow(channel).to receive(:tx_commit) do
+        commits += 1
+        raise IOError, 'commit reply lost' if commits == 2
+      end
+      expect(queue).to receive(:pop).once
+      expect(channel).to receive(:ack).with(1).once
+      expect(channel).not_to receive(:tx_rollback)
+      expect(described_class).not_to receive(:release_reservation)
+      expect(described_class).to receive(:finalize_replay).once
+      expect(logger).to receive(:error).with(
+        /outcome unknown: broker did not confirm replay acknowledgement.*replayed=1/, message_id: 'dlq-message-1'
+      )
+      run_batch
     end
 
     it 'stops without settling the delivery or popping another message when rollback fails' do
-      allow(channel).to receive(:ack).and_raise(IOError, 'ack interrupted')
+      allow(exchange).to receive(:publish).and_raise(IOError, 'publish interrupted')
       allow(channel).to receive(:tx_rollback).and_raise(IOError, 'channel closed')
       expect(queue).to receive(:pop).once
       expect(channel).not_to receive(:tx_commit)
@@ -106,6 +176,7 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob do
       expect(described_class).not_to receive(:finalize_replay)
       expect(queue).to receive(:pop).once
       expect(channel).not_to receive(:tx_rollback)
+      expect(channel).not_to receive(:ack)
       expect(channel).not_to receive(:nack)
       expect(logger).to receive(:error).with(
         /outcome unknown.*may already be republished.*counts before the stop: replayed=0/i,
@@ -133,13 +204,138 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob do
       end
     end
 
-    it 'commits the missing-route discard in transaction mode' do
-      allow(properties).to receive(:headers).and_return(nil)
-      allow(queue).to receive(:message_count).and_return(1)
-      expect(channel).to receive(:nack).with(1, false, false).ordered
-      expect(channel).to receive(:tx_commit).ordered
-      expect(exchange).not_to receive(:publish)
-      run_batch
+    {
+      'no headers' => nil,
+      'no x-death header' => { 'x-schema-version' => 1 },
+      'an empty x-death array' => { 'x-death' => [] },
+      'an x-death entry that is not a table' => { 'x-death' => ['invalid'] },
+      'an x-death header that is not an array' => { 'x-death' => 'invalid' },
+      'an x-death table in place of the array' => { 'x-death' => { 'queue' => 'email.message.send' } },
+      'an x-death entry without a queue' => { 'x-death' => [{ 'reason' => 'rejected' }] },
+      'an empty queue name' => { 'x-death' => [{ 'queue' => '' }] },
+      'a queue name that is not a string' => { 'x-death' => [{ 'queue' => 7 }] },
+    }.each do |name, headers|
+      it "commits the missing-route discard for #{name}" do
+        allow(properties).to receive(:headers).and_return(headers)
+        allow(queue).to receive(:message_count).and_return(1)
+        expect(channel).to receive(:nack).with(1, false, false).ordered
+        expect(channel).to receive(:tx_commit).ordered
+        expect(exchange).not_to receive(:publish)
+        expect(described_class).not_to receive(:reserve_replay)
+        expect(logger).to receive(:error).with(/No original queue in x-death headers; discarded/,
+          message_id: 'dlq-message-1')
+        expect(logger).to receive(:info).with(/errors=1 deferred=0 held=0/)
+        run_batch
+      end
+    end
+
+    describe 'held messages' do
+      let(:deliveries) { (1..4).map { |tag| [double("delivery#{tag}", delivery_tag: tag), properties, payload] } }
+
+      before do
+        stub_const("#{described_class.name}::BATCH_SIZE", 1)
+        allow(queue).to receive(:message_count).and_return(deliveries.size)
+        allow(queue).to receive(:pop).with(manual_ack: true).and_return(*deliveries)
+      end
+
+      it 'passes over reserved ids without counting them against the batch' do
+        allow(described_class).to receive(:reserve_replay).and_return(0, 0, 1)
+        expect(queue).to receive(:pop).exactly(3).times
+        expect(exchange).to receive(:publish).once
+        expect(channel).to receive(:ack).with(3).once
+        expect(channel).not_to receive(:nack)
+        expect(logger).to receive(:info).with(/replayed=1 .*deferred=2 held=2/)
+        run_batch
+      end
+
+      it 'passes over unexpected processing errors without counting them against the batch' do
+        calls = 0
+        allow(described_class).to receive(:replay_message).and_wrap_original do |replay, *args|
+          calls += 1
+          raise NoMethodError, 'unexpected failure' if calls < 3
+
+          replay.call(*args)
+        end
+        expect(queue).to receive(:pop).exactly(3).times
+        expect(channel).to receive(:ack).with(3).once
+        expect(channel).not_to receive(:nack)
+        expect(logger).to receive(:info).with(/replayed=1 .*errors=2 deferred=2 held=2/)
+        run_batch
+      end
+
+      it 'passes over unroutable replays without counting them against the batch, ' \
+         'and holds later messages for a queue the run found missing without a reservation or a publish' do
+        # Only the first replay is returned; the second, for the same queue,
+        # is never published.
+        return_publish_on_commit(times: 1)
+        allow(queue).to receive(:pop).with(manual_ack: true).and_return(
+          deliveries[0], deliveries[1], [double('delivery3', delivery_tag: 3), other_properties, payload]
+        )
+        expect(queue).to receive(:pop).exactly(3).times
+        expect(channel).to receive(:ack).with(3).once
+        expect(channel).not_to receive(:nack)
+        expect(logger).to receive(:error).with(/Replay unroutable: no queue named email\.message\.send/,
+          message_id: 'dlq-message-1').once
+        expect(logger).to receive(:debug).with(/Replay unroutable: no queue named email\.message\.send/,
+          message_id: 'dlq-message-1').once
+        expect(logger).to receive(:info).with(/replayed=1 .*deferred=2 held=2 unroutable=2/)
+        run_batch
+        expect(exchange).to have_received(:publish).with(payload, hash_including(routing_key: 'email.message.send')).once
+        expect(exchange).to have_received(:publish).with(payload, hash_including(routing_key: 'email.message.schedule')).once
+        expect(described_class).to have_received(:reserve_replay).with('dlq-message-1', anything).once
+        expect(described_class).to have_received(:reserve_replay).with('dlq-message-2', anything).once
+      end
+
+      it 'reaches a replayable message behind more unroutable messages than the old held limit' do
+        return_publish_on_commit(times: 1)
+        blocked = Array.new(600) { |i| [double("blocked#{i}", delivery_tag: i + 1), properties, payload] }
+        live    = [double('live', delivery_tag: 601), other_properties, payload]
+        allow(queue).to receive(:message_count).and_return(601)
+        allow(queue).to receive(:pop).with(manual_ack: true).and_return(*blocked, live)
+        expect(channel).to receive(:ack).with(601).once
+        expect(logger).to receive(:info).with(/replayed=1 .*deferred=600 held=600 unroutable=600/)
+        run_batch
+        expect(exchange).to have_received(:publish).twice
+      end
+
+      it 'stops popping messages once the run budget is spent' do
+        stub_const("#{described_class.name}::RUN_BUDGET", 0)
+        allow(described_class).to receive(:monotonic_now).and_return(1000.0)
+        allow(described_class).to receive(:reserve_replay).and_return(0)
+        expect(queue).not_to receive(:pop)
+        expect(exchange).not_to receive(:publish)
+        expect(logger).to receive(:info).with(/replayed=0 .*deferred=0 held=0/)
+        run_batch
+      end
+
+      it 'pops the next message while the run budget remains' do
+        clock = [0, 1, 239, 240]
+        allow(described_class).to receive(:monotonic_now) { clock.shift }
+        allow(described_class).to receive(:reserve_replay).and_return(0)
+        expect(queue).to receive(:pop).twice
+        expect(logger).to receive(:info).with(/replayed=0 .*deferred=2 held=2/)
+        run_batch
+      end
+
+      it 'does not pop more messages than the DLQ held when the run started' do
+        allow(described_class).to receive(:reserve_replay).and_return(0)
+        expect(queue).to receive(:pop).exactly(4).times
+        run_batch
+      end
+
+      it 'counts a deferral after a datastore error against the batch' do
+        allow(described_class).to receive(:reserve_replay).and_raise(Redis::TimeoutError, 'datastore unavailable')
+        expect(queue).to receive(:pop).once
+        expect(logger).to receive(:info).with(/deferred=1 held=0/)
+        run_batch
+      end
+
+      it 'counts a deferral after a publish error against the batch' do
+        allow(exchange).to receive(:publish).and_raise(IOError, 'publish interrupted')
+        expect(queue).to receive(:pop).once
+        expect(logger).to receive(:info).with(/deferred=1 held=0/)
+        run_batch
+      end
     end
 
     it 'commits the duplicate ack without republishing' do
@@ -221,9 +417,9 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob do
         headers: { 'x-death' => [{ 'queue' => 'email.message.send' }] })
     end
     let(:payload) { JSON.generate('raw' => true, 'body' => 'test auth email') }
-    let(:exchange) { double(publish: nil) }
+    let(:exchange) { double(publish: nil, on_return: nil) }
     let(:channel) { tx_channel(exchange) }
-    let(:results) { { replayed: 0, discarded_non_auth: 0, discarded_expired: 0, errors: 0, deferred: 0, held: 0 } }
+    let(:results) { described_class.send(:new_results) }
     let(:logger) { double(info: nil, warn: nil, error: nil, debug: nil) }
     let(:completed_key) { "dlq:replayed:#{message_id}" }
     let(:reservation_key) { "dlq:replay:reservation:#{message_id}" }
@@ -267,7 +463,7 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob do
       expect(redis.get(reservation_key)).to be_nil
       expect(redis.get(completed_key)).to be_nil
 
-      retry_exchange = double(publish: nil)
+      retry_exchange = double(publish: nil, on_return: nil)
       retry_channel = tx_channel(retry_exchange)
       process(retry_channel)
 
@@ -288,7 +484,7 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob do
       allow(exchange).to receive(:publish).and_return(nil)
       process
       expect(channel).to have_received(:ack).with(42).once
-      expect(channel).to have_received(:tx_commit).once
+      expect(channel).to have_received(:tx_commit).twice
       expect(redis.get(completed_key)).to eq('completed')
       expect(redis.get(reservation_key)).to be_nil
       expect(results).to include(replayed: 1, deferred: 1)
@@ -303,12 +499,12 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob do
       expect(redis.get(completed_key)).to be_nil
       expect(results[:replayed]).to eq(0)
 
-      # The commit was not applied, so the delivery is back in the DLQ. The
-      # next run neither acks it as a duplicate nor publishes it again yet.
+      # Applied or not, the delivery was not acked and is back in the DLQ.
+      # The next run neither acks it as a duplicate nor publishes it again yet.
       allow(channel).to receive(:tx_commit).and_return(nil)
       process
       expect(exchange).to have_received(:publish).once
-      expect(channel).to have_received(:ack).once
+      expect(channel).not_to have_received(:ack)
       expect(channel).not_to have_received(:nack)
       expect(results[:deferred]).to eq(1)
 
@@ -372,18 +568,18 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob do
       expect { process }.to raise_error(described_class::BatchStopped)
       allow(channel).to receive(:tx_commit).and_return(nil)
 
-      # Another dead-lettered copy of the same id waits out the window.
+      # The unacked delivery, back in the DLQ, waits out the window.
       process
       expect(redis.get(worker_key)).to eq('1')
       expect(exchange).to have_received(:publish).once
-      expect(channel).to have_received(:ack).once
+      expect(channel).not_to have_received(:ack)
 
       # After the window, the replay runs again and can send a second email.
       redis.expire(reservation_key, 0)
       process
       expect(exchange).to have_received(:publish).twice
       expect(redis.get(worker_key)).to be_nil
-      expect(channel).to have_received(:ack).twice
+      expect(channel).to have_received(:ack).once
     end
 
     it 'acks a completed marker without touching the live worker claim' do
@@ -475,7 +671,7 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob do
     end
 
     it 'defers a second delivery of the same id while the first replay is publishing, then acks it' do
-      second_exchange = double(publish: nil)
+      second_exchange = double(publish: nil, on_return: nil)
       second_channel = tx_channel(second_exchange)
       allow(exchange).to receive(:publish) do
         # The replayed copy is claimed by a worker, and an overlapping run pops
@@ -500,16 +696,49 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob do
       expect(redis.get(worker_key)).to eq('1')
     end
 
-    it 'rolls back and releases the reservation when acknowledgement raises' do
-      allow(channel).to receive(:ack).and_raise(IOError, 'ack failed before commit')
-      process
+    it 'acks on the next run, without a second publish, a delivery whose ack failed' do
+      allow(channel).to receive(:ack).and_raise(IOError, 'ack failed after the publish commit')
+      expect { process }.to raise_error(described_class::BatchStopped, /replay acknowledgement failed/i)
       expect(exchange).to have_received(:publish).once
-      expect(channel).to have_received(:tx_rollback).once
-      expect(channel).not_to have_received(:tx_commit)
+      expect(channel).to have_received(:tx_commit).once
+      expect(channel).not_to have_received(:tx_rollback)
+      expect(channel).not_to have_received(:nack)
+      expect(redis.get(completed_key)).to eq('completed')
+      expect(redis.get(reservation_key)).to be_nil
+      expect(results).to include(replayed: 1, deferred: 0)
+
+      retry_channel = tx_channel(exchange)
+      process(retry_channel)
+      expect(exchange).to have_received(:publish).once
+      expect(retry_channel).to have_received(:ack).with(42)
+      expect(results[:replayed]).to eq(1)
+    end
+
+    it 'keeps a replay the broker returned as unroutable, and replays it once the queue exists' do
+      handler = nil
+      allow(exchange).to receive(:on_return) { |&block| handler = block }
+      allow(channel).to receive(:tx_commit) { handler.call }
+      redis.set(worker_key, '1', ex: 3600)
+
+      process
+
+      expect(exchange).to have_received(:publish).once
+      expect(channel).not_to have_received(:ack)
+      expect(channel).not_to have_received(:nack)
+      expect(channel).not_to have_received(:tx_rollback)
       expect(redis.get(completed_key)).to be_nil
       expect(redis.get(reservation_key)).to be_nil
-      expect(channel).not_to have_received(:nack)
-      expect(results[:deferred]).to eq(1)
+      expect(results).to include(replayed: 0, deferred: 1, held: 1, unroutable: 1)
+      expect(logger).to have_received(:error).with(/Replay unroutable/, message_id: message_id)
+
+      # The next run starts without the missing-queue memory of this one.
+      results[:missing_queues].clear
+      allow(channel).to receive(:tx_commit).and_return(nil)
+      process
+      expect(exchange).to have_received(:publish).twice
+      expect(channel).to have_received(:ack).with(42).once
+      expect(redis.get(completed_key)).to eq('completed')
+      expect(results).to include(replayed: 1, deferred: 1, unroutable: 1)
     end
 
     it 'reports finalization failure after settlement without releasing the live worker claim' do
@@ -560,8 +789,7 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob do
       process
       expect(channel).not_to have_received(:ack)
       expect(channel).not_to have_received(:nack)
-      expect(results[:errors]).to eq(1)
-      expect(results[:deferred]).to eq(1)
+      expect(results).to include(errors: 1, deferred: 1, held: 1)
     end
   end
 end

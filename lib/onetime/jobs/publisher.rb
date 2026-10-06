@@ -273,15 +273,43 @@ module Onetime
             bypass_cache: bypass_cache
 
           require 'onetime/operations/validate_sender_domain'
+          require 'onetime/operations/check_provider_verification'
           require 'onetime/models/custom_domain/mailer_config'
+          require 'onetime/jobs/workers/job_lifecycle'
 
           mailer_config = Onetime::CustomDomain::MailerConfig.find_by_domain_id(domain_id)
           if mailer_config
-            Onetime::Operations::ValidateSenderDomain.new(
+            # Same steps as DomainValidationWorker, inline. persist: false for
+            # the same reason the worker passes it: verification_status is
+            # derived by update_verification_status! once BOTH checks are
+            # terminal, never written from DNS alone ahead of the provider
+            # check. (This fallback used to persist 'verified' from DNS and
+            # then close the provider check with provider_verified unknown.)
+            result = Onetime::Operations::ValidateSenderDomain.new(
               mailer_config: mailer_config,
-              persist: true,
+              persist: false,
               bypass_cache: bypass_cache,
             ).call
+
+            if result.error
+              # The worker retries, then fails the job to the DLQ. Inline there
+              # is nothing to retry into: close the job as failed so the status
+              # can settle instead of staying 'pending' forever.
+              mailer_config.provider_check_status       = Onetime::Jobs::Workers::JobLifecycle::FAILED
+              mailer_config.provider_check_completed_at = Familia.now.to_i
+              mailer_config.last_error                  = result.error.to_s
+              mailer_config.updated                     = Familia.now.to_i
+              mailer_config.save_fields(:provider_check_status, :provider_check_completed_at, :last_error, :updated)
+            else
+              Onetime::Operations::CheckProviderVerification.new(
+                mailer_config: mailer_config,
+                dns_all_verified: result.all_verified,
+                domain_id: domain_id,
+                logger: logger,
+              ).call
+            end
+
+            settle_inline_verification_status(mailer_config, result)
           end
 
           return true
@@ -326,9 +354,12 @@ module Onetime
 
             mailer_config.dns_check_results.value = result[:records]
 
+            # Same rule as DnsRecordCheckWorker: verified only when at least
+            # one record was checked AND every one matched. [].all? is true,
+            # which marked an unprovisioned domain (no records yet) verified.
             records                              = result[:records] || []
             all_matched                          = records.all? { |r| r['value_matches'] == true || r[:value_matches] == true }
-            mailer_config.dns_verified           = all_matched
+            mailer_config.dns_verified           = records.any? && all_matched
             mailer_config.dns_check_status       = 'completed'
             mailer_config.dns_check_completed_at = Familia.now.to_i
             mailer_config.updated                = Familia.now.to_i
@@ -523,6 +554,33 @@ module Onetime
       # @param _payload [String] Raw JSON payload; unused in the sync path,
       #   accepted for signature symmetry with enqueue_billing_event
       # @return [Boolean] true when processing completes
+      # Closing step of the inline (jobs-disabled) domain validation.
+      #
+      # When the DNS record check also ran inline — the Verify Now path runs
+      # it just before this — both checks are terminal and the user-facing
+      # status is derived from the two outcomes exactly as the worker derives
+      # it. Otherwise nothing will ever complete that record check on a
+      # jobs-disabled install, so the status is settled from this call's own
+      # two answers, the DNS validation and the provider check, rather than
+      # left 'pending' for good. A bare synchronous call leaving 'pending' is
+      # the regression try/unit/jobs/domain_validation_*_try.rb pin.
+      #
+      # @return [String] the verification_status written
+      def settle_inline_verification_status(mailer_config, result)
+        mailer_config.refresh!
+        return mailer_config.update_verification_status! if mailer_config.jobs_completed?
+
+        provider_ok = mailer_config.parse_boolean_field(mailer_config.provider_verified)
+        verified    = result.error.nil? && result.all_verified && provider_ok != false
+        now         = Familia.now.to_i
+
+        mailer_config.verification_status = verified ? 'verified' : 'failed'
+        mailer_config.verified_at         = verified ? now.to_s : nil
+        mailer_config.updated             = now
+        mailer_config.save_fields(:verification_status, :verified_at, :updated)
+        mailer_config.verification_status
+      end
+
       def process_billing_event_synchronously(event, _payload)
         logger.info 'Jobs disabled, processing billing event synchronously',
           event_id: event.id,
@@ -708,7 +766,15 @@ module Onetime
         when :templated
           return unless template && data
 
-          Onetime::Mail.deliver(template, data, sender_config: sender_config)
+          # Same contract as EmailWorker#deliver_templated_email: the caller's
+          # locale rides in the template data and the template reads it from
+          # `locale:`. Without this lift every fallback delivery (jobs disabled,
+          # RabbitMQ down) rendered in English regardless of the recipient's
+          # locale. Dup first so the caller's hash is left intact.
+          email_data = data.dup
+          locale     = Onetime::Mail.extract_locale!(email_data)
+
+          Onetime::Mail.deliver(template, email_data, locale: locale, sender_config: sender_config)
         when :raw
           return unless raw_email
 

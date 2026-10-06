@@ -25,7 +25,7 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
   let(:logger) { double('logger', info: nil, debug: nil, warn: nil, error: nil) }
   let(:redis) { Familia.dbclient }
   let(:payload) { JSON.generate('raw' => true, 'email' => { 'to' => 'test@example.com' }) }
-  let(:results) { { replayed: 0, discarded_non_auth: 0, discarded_expired: 0, errors: 0, deferred: 0, held: 0 } }
+  let(:results) { described_class.send(:new_results) }
   let(:connection) do
     url = ENV.fetch('RABBITMQ_URL')
     uri = URI.parse(url)
@@ -209,10 +209,12 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
       Onetime::Jobs::QueueConfig.processing_claim_key(other_id))
   end
 
-  it 'stops a run once it has passed over HELD_LIMIT held replays' do
+  it 'stops a run once its time budget is spent, leaving held replays in the DLQ' do
     dead_letter
     redis.set(reservation_key, 'publishing:another-run', ex: 3600)
-    stub_const("#{described_class.name}::HELD_LIMIT", 1)
+    # Deadline, one in-budget check, then a clock past the deadline.
+    clock = [0, 0, described_class::RUN_BUDGET + 1]
+    allow(described_class).to receive(:monotonic_now) { clock.shift }
     allow(described_class).to receive(:acquire_channel).and_return([connection, broker_channel, false])
     allow(described_class).to receive(:process_message).and_call_original
 

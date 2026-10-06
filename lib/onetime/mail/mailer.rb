@@ -353,13 +353,29 @@ module Onetime
           send(descriptor.provider_config_method, conf)
         end
 
+        # Treat a blank config value as absent.
+        #
+        # config.defaults.yaml renders `pass: "<%= ENV['SMTP_PASSWORD'] %>"`
+        # (quoted so credentials with YAML-significant characters survive), so
+        # an unset SMTP_PASSWORD arrives here as "" rather than nil. "" is
+        # truthy, which made every `conf['pass'] || ENV.fetch(...)` chain below
+        # stop at the empty string and never reach SENDGRID_API_KEY,
+        # AWS_SECRET_ACCESS_KEY, etc. Run each candidate through this so the
+        # first non-blank value wins, as the env reference documents.
+        #
+        # @param value [Object, nil]
+        # @return [Object, nil] value, or nil when nil/blank
+        def present(value)
+          value.to_s.strip.empty? ? nil : value
+        end
+
         def smtp_provider_config(conf)
           {
-            'host' => conf['host'] || ENV.fetch('SMTP_HOST', nil),
-            'port' => conf['port'] || ENV.fetch('SMTP_PORT', nil),
-            'username' => conf['user'] || ENV.fetch('SMTP_USERNAME', nil),
-            'password' => conf['pass'] || ENV.fetch('SMTP_PASSWORD', nil),
-            'domain' => conf['domain'] || ENV.fetch('SMTP_DOMAIN', nil),
+            'host' => present(conf['host']) || present(ENV.fetch('SMTP_HOST', nil)),
+            'port' => present(conf['port']) || present(ENV.fetch('SMTP_PORT', nil)),
+            'username' => present(conf['user']) || present(ENV.fetch('SMTP_USERNAME', nil)),
+            'password' => present(conf['pass']) || present(ENV.fetch('SMTP_PASSWORD', nil)),
+            'domain' => present(conf['domain']) || present(ENV.fetch('SMTP_DOMAIN', nil)),
             'tls' => conf['tls'],
             'allow_unauthenticated_fallback' => conf['allow_unauthenticated_fallback'],
           }
@@ -367,15 +383,32 @@ module Onetime
 
         def ses_provider_config(conf)
           {
-            'region' => conf['region'] || ENV.fetch('AWS_REGION', nil),
-            'access_key_id' => conf['user'] || ENV.fetch('AWS_ACCESS_KEY_ID', nil),
-            'secret_access_key' => conf['pass'] || ENV.fetch('AWS_SECRET_ACCESS_KEY', nil),
+            'region' => ses_region(conf),
+            'access_key_id' => present(conf['user']) || present(ENV.fetch('AWS_ACCESS_KEY_ID', nil)),
+            'secret_access_key' => present(conf['pass']) || present(ENV.fetch('AWS_SECRET_ACCESS_KEY', nil)),
           }
+        end
+
+        # Placeholder emailer.region renders when EMAILER_REGION is unset
+        # (`region: <%= ENV['EMAILER_REGION'] || 'smtp' %>`). It keeps the
+        # SMTP-shaped config valid but is not an AWS region.
+        SES_REGION_PLACEHOLDER = 'smtp'
+        private_constant :SES_REGION_PLACEHOLDER
+
+        # Resolve the SES region: EMAILER_REGION (emailer.region), then
+        # AWS_REGION. The 'smtp' placeholder default is not a region, so it is
+        # skipped rather than handed to Aws::SESV2::Client. Returns nil when
+        # nothing is configured; Delivery::SES applies its own us-east-1
+        # default and provisioning reports the key as missing.
+        def ses_region(conf)
+          region = present(conf['region'])
+          region = nil if region.to_s.strip == SES_REGION_PLACEHOLDER
+          region || present(ENV.fetch('AWS_REGION', nil))
         end
 
         def sendgrid_provider_config(conf)
           {
-            'api_key' => conf['sendgrid_api_key'] || conf['pass'] || ENV.fetch('SENDGRID_API_KEY', nil),
+            'api_key' => present(conf['sendgrid_api_key']) || present(conf['pass']) || present(ENV.fetch('SENDGRID_API_KEY', nil)),
           }
         end
 
@@ -383,7 +416,7 @@ module Onetime
           lm_conf = provider_config('lettermint')
           {
             # Sending API token (x-lettermint-token header) - for email delivery
-            'api_token' => conf['lettermint_api_token'] || lm_conf['api_token'] || conf['pass'] || ENV.fetch('LETTERMINT_API_TOKEN', nil),
+            'api_token' => present(conf['lettermint_api_token']) || present(lm_conf['api_token']) || present(conf['pass']) || present(ENV.fetch('LETTERMINT_API_TOKEN', nil)),
             # Team API token (Authorization: Bearer header) - for domain provisioning
             'team_token' => conf['lettermint_team_token'] || lm_conf['team_token'] || ENV.fetch('LETTERMINT_TEAM_TOKEN', nil),
             'base_url' => conf['lettermint_base_url'] || lm_conf['api_base_url'] || ENV.fetch('LETTERMINT_BASE_URL', nil),
