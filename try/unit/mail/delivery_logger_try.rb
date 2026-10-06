@@ -68,6 +68,18 @@ backend = Onetime::Mail::Delivery::Disabled.new({})
 [backend.transmits?, backend.deliver(@test_email)]
 #=> [false, nil]
 
+## Logger writes to standard out unless its output is pointed elsewhere
+Onetime::Mail::Delivery::Logger.output.equal?($stdout)
+#=> true
+
+## Logger writes the email to the output it was given
+io = StringIO.new
+Onetime::Mail::Delivery::Logger.output = io
+Onetime::Mail::Delivery::Logger.new({}).deliver(@test_email)
+Onetime::Mail::Delivery::Logger.output = nil
+[io.string.include?('=== EMAIL (Logger) ==='), io.string.include?('Subject: Test Subject')]
+#=> [true, true]
+
 ## Logger deliver wraps the hash with status 'logged'
 backend = Onetime::Mail::Delivery::Logger.new({})
 result = backend.deliver(@test_email)

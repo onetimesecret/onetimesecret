@@ -11,6 +11,18 @@ module Onetime
       # Outputs email content to logs instead of sending.
       #
       class Logger < Base
+        class << self
+          # Where delivered emails are written. A spec run that wants a
+          # quiet log points this at the null device instead of stubbing
+          # `puts` (see spec/spec_helper.rb).
+          attr_writer :output
+
+          # Read per delivery, so a reassigned $stdout is honored.
+          def output
+            @output || $stdout
+          end
+        end
+
         def perform_delivery(email)
           output = <<~EMAIL
             === EMAIL (Logger) ===
@@ -28,7 +40,7 @@ module Onetime
           # Log straight to standard out, bypassing our centralized semantic
           # logger. This avoids confusing scenarios where nothing appears in
           # the logs b/c the log level was set incorrectly.
-          puts output
+          self.class.output.puts output
 
           # Base#deliver wraps this in NotTransmitted: the message was
           # written to the log, not sent.
