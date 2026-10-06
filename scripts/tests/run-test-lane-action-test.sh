@@ -292,6 +292,22 @@ def summary():
         check("- Total:" not in text and text.count("- No results in") == 3, f"empty results misreported:\n{text}")
 
 
+@case("only the fresh-clone job calls the runner without the action")
+def direct_callers():
+    # fresh-clone.yml runs the documented contributor commands as written
+    # (CONTRIBUTING.md, "Run what CI runs"). Any other workflow that runs a
+    # lane goes through the action, which is where the log profile and the
+    # log artifact are.
+    for name, text in workflows.items():
+        direct = [line.strip() for line in text.splitlines()
+                  if "tests/lanes/run " in line and not line.lstrip().startswith("#")]
+        if name == "fresh-clone.yml":
+            check(direct == ["run: tests/lanes/run unit", "run: tests/lanes/run browser"],
+                  f"fresh-clone.yml no longer runs the documented commands: {direct}")
+        else:
+            check(direct == [], f"{name} calls tests/lanes/run directly: {direct}")
+
+
 if failures:
     print(f"FAIL: {len(failures)} case(s)")
     sys.exit(1)
