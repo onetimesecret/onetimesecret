@@ -3,7 +3,9 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require 'fileutils'
 require 'open3'
+require 'securerandom'
 require 'tmpdir'
 
 # The argument surface of tests/lanes/run (#4492): which flag combinations
@@ -61,6 +63,17 @@ module LaneArgumentProbe
   def field(output, key)
     output[/(?:\A|\s)#{Regexp.escape(key)}=(.*)$/, 1]
   end
+
+  # A throwaway overlay file under a name no other example or process in
+  # this checkout picks, removed whatever the block does.
+  def with_overlay(contents)
+    name = "argument-handling-#{Process.pid}-#{SecureRandom.hex(4)}"
+    path = File.join(repo_root, 'tests', 'lanes', 'overlays', "#{name}.env")
+    File.write(path, contents)
+    yield name
+  ensure
+    FileUtils.rm_f(path) if path
+  end
 end
 
 RSpec.describe 'tests/lanes/run argument handling' do
@@ -96,6 +109,30 @@ RSpec.describe 'tests/lanes/run argument handling' do
       [64, %w[--console --quiet-logs --print-key]],
       [64, %w[--console --skip-codegen --print-key]],
       [64, %w[--console -- --only-failures]],
+      [0,  %w[--capture-logs --print-key]],
+      [0,  %w[--capture-logs --log-console off --print-key]],
+      [0,  %w[--capture-logs --log-console off --quiet --print-key]],
+      [0,  %w[--capture-logs --log-console error --print-key]],
+      [0,  %w[--capture-logs --only spec/unit/lanes/hermetic_boundary_spec.rb --print-key]],
+      [0,  %w[--log-console trace --print-key]],
+      [0,  %w[--log-console debug --print-key]],
+      [0,  %w[--log-console info --print-key]],
+      [0,  %w[--log-console warn --print-key]],
+      [0,  %w[--log-console error --print-key]],
+      [0,  %w[--log-console fatal --print-key]],
+      [0,  %w[--log-console warn --log-console warn --print-key]],
+      [64, %w[--log-console off --print-key]],
+      [64, %w[--log-console off --quiet --print-key]],
+      [64, %w[--log-console warn --log-console error --print-key]],
+      [64, %w[--capture-logs --log-console off --log-console warn --print-key]],
+      [64, %w[--log-console verbose --print-key]],
+      [64, %w[--log-console OFF --capture-logs --print-key]],
+      [64, %w[--log-console Warn --print-key]],
+      [64, %w[--log-console --print-key]],
+      [64, %w[--print-key --log-console]],
+      [64, %w[--console --capture-logs --print-key]],
+      [64, %w[--console --log-console warn --print-key]],
+      [64, %w[--console --capture-logs --log-console off --print-key]],
     ].each do |want, args|
       it "exits #{want} for: selftest #{args.join(' ')}" do
         output, status = probe.run('selftest', *args)
@@ -175,6 +212,92 @@ RSpec.describe 'tests/lanes/run argument handling' do
       output, status = probe.run('selftest', '--print-key')
       expect(status).to be_success, output
       expect(probe.field(output, 'quiet_logs')).to eq('none')
+    end
+  end
+
+  describe '--capture-logs and --log-console' do
+    # What the flags derive, read back through --print-key. That they reach
+    # the task process as exported names, and that nothing the caller
+    # exported does, is hermetic_boundary_spec.rb; the files themselves are
+    # capture_logs_spec.rb.
+    let(:run_dir) { File.join(probe.repo_root, 'tmp', 'lanes', 'selftest', 'base') }
+
+    it 'selects neither a log file nor a console setting without the flags' do
+      output, status = probe.run('selftest', '--print-key')
+      expect(status).to be_success, output
+      expect(probe.field(output, 'app_log')).to eq('none')
+      expect(probe.field(output, 'mail_log')).to eq('none')
+      expect(probe.field(output, 'log_console')).to start_with('none ')
+      expect(probe.field(output, 'rspec_console')).to eq('none')
+    end
+
+    it 'puts app.log and mail.log in the run directory, as absolute paths' do
+      output, status = probe.run('selftest', '--capture-logs', '--print-key')
+      expect(status).to be_success, output
+      expect(probe.field(output, 'app_log')).to eq(File.join(run_dir, 'app.log'))
+      expect(probe.field(output, 'mail_log')).to eq(File.join(run_dir, 'mail.log'))
+      expect(probe.field(output, 'log_console')).to start_with('none ')
+    end
+
+    it 'keys the log files by overlay set, like the status file' do
+      output, status = probe.run('selftest', '--overlay', 'billing', '--capture-logs', '--print-key')
+      # selftest is a simple-mode lane and billing needs full mode, but that
+      # check sits below --print-key: the derivation is what is read here.
+      expect(status).to be_success, output
+      expect(probe.field(output, 'app_log')).to end_with('/tmp/lanes/selftest/billing/app.log')
+      expect(probe.field(output, 'mail_log')).to end_with('/tmp/lanes/selftest/billing/mail.log')
+    end
+
+    it 'gives an --only run the same files' do
+      output, status = probe.run('selftest', '--capture-logs', '--log-console', 'off', '--print-key',
+                                 '--only', 'spec/unit/lanes/hermetic_boundary_spec.rb')
+      expect(status).to be_success, output
+      expect(probe.field(output, 'app_log')).to eq(File.join(run_dir, 'app.log'))
+      expect(probe.field(output, 'log_console')).to start_with('off ')
+    end
+
+    it 'passes the console setting through as given' do
+      %w[trace debug info warn error fatal].each do |level|
+        output, status = probe.run('selftest', '--log-console', level, '--print-key')
+        expect(status).to be_success, output
+        expect(probe.field(output, 'log_console')).to start_with("#{level} ")
+        expect(probe.field(output, 'app_log')).to eq('none')
+      end
+    end
+
+    it 'says why --log-console off needs a log file' do
+      output, status = probe.run('selftest', '--log-console', 'off', '--print-key')
+      expect(status.exitstatus).to eq(64), output
+      expect(output).to include('--log-console off needs --capture-logs')
+    end
+
+    it 'names the accepted values when the value is not one of them' do
+      output, status = probe.run('selftest', '--log-console', 'verbose', '--print-key')
+      expect(status.exitstatus).to eq(64), output
+      expect(output).to include('trace debug info warn error fatal')
+    end
+
+    it 'marks the quiet console formatter under --quiet' do
+      output, status = probe.run('selftest', '--quiet', '--print-key')
+      expect(status).to be_success, output
+      expect(probe.field(output, 'rspec_console')).to eq('quiet')
+    end
+
+    # The four names are the runner's to assign. A lane env file or an
+    # overlay is sourced below the scrub, so it could set one where the
+    # caller's shell cannot; the runner refuses the run instead of writing
+    # to a path it never created or dropping the line without a word.
+    %w[LANES_APP_LOG_FILE LANES_MAIL_LOG_FILE LANES_APP_LOG_CONSOLE LANES_RSPEC_CONSOLE].each do |name|
+      it "refuses an overlay that sets #{name}" do
+        probe.with_overlay("#{name}=/tmp/overlay-chosen\n") do |overlay|
+          [[], %w[--capture-logs --log-console off --quiet]].each do |flags|
+            output, status = probe.run('selftest', '--overlay', overlay, *flags, '--print-key')
+            expect(status.exitstatus).to eq(64), output
+            expect(output).to include("#{name} is assigned by the runner")
+            expect(output).not_to include('app_log=')
+          end
+        end
+      end
     end
   end
 

@@ -56,6 +56,14 @@ module LaneHermeticProbe
   # accepts them, `compgen -e` does not enumerate them, and `unset` cannot
   # clear them — they can only leave at the exec boundary.
   ODD_NAMES = ['FOO-BAR', 'ORGS.SSO'].freeze
+  # Names the runner assigns itself, and only under a flag: the log floor of
+  # a bare --quiet, rspec's option string, and the log capture profile
+  # (--capture-logs, --log-console, --quiet). A caller who exports one must
+  # not thereby select a log file, silence the console or change a level.
+  RUNNER_ASSIGNED = %w[
+    LOG_LEVEL DEBUG_LOGGERS SPEC_OPTS
+    LANES_APP_LOG_FILE LANES_MAIL_LOG_FILE LANES_APP_LOG_CONSOLE LANES_RSPEC_CONSOLE
+  ].freeze
 
   module_function
 
@@ -144,6 +152,7 @@ module LaneHermeticProbe
       'Home' => CANARY,
       'Coverage' => CANARY,
     }.merge(ODD_NAMES.to_h { |name| [name, CANARY] })
+      .merge(RUNNER_ASSIGNED.to_h { |name| [name, CANARY] })
   end
 
   # Sourced by the runner's own shell at startup. Two exported functions
@@ -177,19 +186,26 @@ module LaneHermeticProbe
     output[start...finish].lines.drop(1)
   end
 
-  # One subprocess for the whole file: the input is constant, and the lane
-  # is deliberately cheap enough that this stays well under a second.
-  def result
-    @result ||= capture
+  # One subprocess per flag set for the whole file: the input is constant,
+  # and the lane is deliberately cheap enough that each stays well under a
+  # second. No flags is the run nearly every example reads.
+  def result(*flags)
+    (@results ||= {})[flags] ||= capture(*flags)
   end
 
-  def capture
+  def capture(*flags)
     Dir.mktmpdir('ots-lane-selftest') do |dir|
       rc = File.join(dir, 'poison.bash')
       File.write(rc, bash_env_contents)
 
+      # RSPEC_OUTPUT_FILE is keep-listed, so a CI unit lane hands it to this
+      # process and on to the runner, which refuses --quiet beside it.
+      # Removed for the flagged runs only; the plain run keeps whatever the
+      # caller has, as before.
+      env    = poisoned_env(rc)
+      env    = env.merge('RSPEC_OUTPUT_FILE' => nil) unless flags.empty?
       runner = File.join(repo_root, 'tests', 'lanes', 'run')
-      output, status = Open3.capture2e(poisoned_env(rc), runner, 'selftest', chdir: repo_root)
+      output, status = Open3.capture2e(env, runner, 'selftest', *flags, chdir: repo_root)
       last_log = File.read(File.join(repo_root, 'tmp', 'lanes', 'selftest', 'base', 'last.log'))
 
       env_lines = section(output, 'env', 'functions')
@@ -372,6 +388,68 @@ RSpec.describe 'tests/lanes/run hermetic boundary' do
     expect(env).not_to have_key('SHELLOPTS')
     expect(env).not_to have_key('BASHOPTS')
     expect(env.keys.grep(/\A_lanes_/)).to be_empty
+  end
+
+  describe 'names the runner assigns under a flag' do
+    # The caller exported every one of them (poisoned_env). A plain run must
+    # deliver none: the value-based check above already covers the canary,
+    # and this covers the names, so an empty or rewritten survivor fails too.
+    it 'delivers none of them on a run with no flag, whatever the caller exported' do
+      LaneHermeticProbe::RUNNER_ASSIGNED.each do |name|
+        expect(env).not_to have_key(name), "#{name} reached the task process: #{env[name].inspect}"
+      end
+    end
+
+    context 'with --capture-logs --log-console off --quiet' do
+      let(:flagged) { probe.result('--capture-logs', '--log-console', 'off', '--quiet') }
+      let(:env)     { flagged[:env] }
+
+      it 'runs, and still leaks nothing the caller exported' do
+        expect(flagged[:status]).to be_success, flagged[:output]
+        expect(flagged[:output]).not_to include(LaneHermeticProbe::CANARY)
+      end
+
+      it "delivers the runner's own log file paths, absolute and inside the run directory" do
+        run_dir = File.join(probe.repo_root, 'tmp', 'lanes', 'selftest', 'base')
+        expect(env['LANES_APP_LOG_FILE']).to eq(File.join(run_dir, 'app.log'))
+        expect(env['LANES_MAIL_LOG_FILE']).to eq(File.join(run_dir, 'mail.log'))
+      end
+
+      it 'delivers the console settings the flags selected' do
+        expect(env['LANES_APP_LOG_CONSOLE']).to eq('off')
+        expect(env['LANES_RSPEC_CONSOLE']).to eq('quiet')
+        expect(env['SPEC_OPTS']).to include('Lanes::QuietFormatter')
+      end
+
+      it 'delivers no log floor: capture keeps what a bare --quiet discards' do
+        expect(env).not_to have_key('LOG_LEVEL')
+        expect(env).not_to have_key('DEBUG_LOGGERS')
+      end
+    end
+
+    context 'with a bare --quiet' do
+      let(:env) { probe.result('--quiet')[:env] }
+
+      it "delivers the runner's log floor and none of the capture names" do
+        expect(env['LOG_LEVEL']).to eq('error')
+        expect(env['DEBUG_LOGGERS']).to match(/\A(?:[A-Za-z]+:error,)*[A-Za-z]+:error\z/)
+        expect(env['LANES_RSPEC_CONSOLE']).to eq('quiet')
+        %w[LANES_APP_LOG_FILE LANES_MAIL_LOG_FILE LANES_APP_LOG_CONSOLE].each do |name|
+          expect(env).not_to have_key(name)
+        end
+      end
+    end
+
+    context 'with --log-console warn alone' do
+      let(:env) { probe.result('--log-console', 'warn')[:env] }
+
+      it 'delivers the console threshold and nothing else from the list' do
+        expect(env['LANES_APP_LOG_CONSOLE']).to eq('warn')
+        (LaneHermeticProbe::RUNNER_ASSIGNED - ['LANES_APP_LOG_CONSOLE']).each do |name|
+          expect(env).not_to have_key(name)
+        end
+      end
+    end
   end
 
   it 'passes the keep-listed variables through untouched' do

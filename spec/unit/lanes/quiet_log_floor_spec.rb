@@ -47,4 +47,28 @@ RSpec.describe 'tests/lanes/run --quiet app-log floor' do
   it 'sets neither knob without --quiet' do
     expect(print_key).to eq('log_level=none debug_loggers=none')
   end
+
+  # The floor discards an event where it is generated, so no destination can
+  # recover it. --capture-logs exists to keep those events (#4683): under it
+  # the runner sets no floor at all, and --log-console decides what the
+  # console shows of what the categories admit.
+  describe 'under --capture-logs' do
+    [
+      %w[--capture-logs],
+      %w[--capture-logs --quiet],
+      %w[--quiet --capture-logs],
+      %w[--capture-logs --log-console off],
+      %w[--capture-logs --log-console off --quiet],
+      %w[--capture-logs --log-console error --quiet],
+    ].each do |flags|
+      it "sets neither knob for: #{flags.join(' ')}" do
+        expect(print_key(*flags)).to eq('log_level=none debug_loggers=none')
+      end
+    end
+  end
+
+  it 'keeps the floor for a bare --quiet beside a console threshold' do
+    expect(print_key('--quiet', '--log-console', 'warn')).to eq(print_key('--quiet'))
+    expect(print_key('--quiet')).to start_with('log_level=error ')
+  end
 end
