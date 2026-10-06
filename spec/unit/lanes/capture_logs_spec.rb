@@ -397,26 +397,58 @@ RSpec.describe 'tests/lanes/run --capture-logs files' do
     # A process that finds its log file missing creates it again (the
     # application opens with O_CREAT), so a file being there at the end does
     # not show that it holds the whole run. The runner hard-links each file
-    # at the start and compares at the end.
+    # at the start, compares at the end, and then removes the links: a link
+    # left behind would keep the space of a log that is deleted afterwards.
     describe 'a file that was removed and created again' do
-      it 'makes a hard link beside each file at the start' do
+      # The links exist only during the run, so the stub reports them.
+      def report_links(scratch)
+        <<~SH
+          [ "${LANES_APP_LOG_FILE}" -ef "#{scratch.app_anchor}" ] && echo "app-log-linked"
+          [ "${LANES_MAIL_LOG_FILE}" -ef "#{scratch.mail_anchor}" ] && echo "mail-log-linked"
+          exit 0
+        SH
+      end
+
+      it 'makes a hard link beside each file for the length of the run' do
+        probe.with_scratch do |scratch|
+          run = run_only(scratch, report_links(scratch))
+
+          expect(run.exitstatus).to eq(0), run.all
+          expect(run.all).to include("app-log-linked\n", "mail-log-linked\n")
+        end
+      end
+
+      it 'links the files of this run when a run that never reached its end left its links' do
+        probe.with_scratch do |scratch|
+          File.write(scratch.app_log, "earlier run\n")
+          File.link(scratch.app_log, scratch.app_anchor)
+          File.write(scratch.mail_anchor, "earlier run\n")
+
+          run = run_only(scratch, report_links(scratch))
+
+          expect(run.exitstatus).to eq(0), run.all
+          expect(run.all).to include("app-log-linked\n", "mail-log-linked\n")
+        end
+      end
+
+      it 'removes the links at the end of a run of the lane tasks' do
         probe.with_scratch do |scratch|
           run = probe.run('selftest', '--overlay', scratch.overlay, '--capture-logs')
 
           expect(run.exitstatus).to eq(0), run.all
-          expect(File.identical?(scratch.app_log, scratch.app_anchor)).to be(true)
-          expect(File.identical?(scratch.mail_log, scratch.mail_anchor)).to be(true)
+          expect(Dir.children(scratch.directory)).to contain_exactly('app.log', 'mail.log', 'last.log')
+          expect(File.stat(scratch.app_log).nlink).to eq(1)
+          expect(File.stat(scratch.mail_log).nlink).to eq(1)
         end
       end
 
-      it 'links the files of this run when an earlier run left its links' do
+      it 'removes the links at the end of a run that failed' do
         probe.with_scratch do |scratch|
-          2.times do
-            run = probe.run('selftest', '--overlay', scratch.overlay, '--capture-logs')
-            expect(run.exitstatus).to eq(0), run.all
-          end
+          run = run_only(scratch, 'exit 1')
 
-          expect(File.identical?(scratch.app_log, scratch.app_anchor)).to be(true)
+          expect(run.exitstatus).to eq(1), run.all
+          expect(File.exist?(scratch.app_anchor)).to be(false)
+          expect(File.exist?(scratch.mail_anchor)).to be(false)
         end
       end
 
@@ -435,8 +467,9 @@ RSpec.describe 'tests/lanes/run --capture-logs files' do
           )
           expect(run.stderr).to include("[lane:selftest] app log: #{scratch.app_log} (incomplete)\n")
           expect(File.read(scratch.app_log)).to eq("after\n")
-          # What was written before the removal is still reachable.
-          expect(File.read(scratch.app_anchor)).to eq("before\n")
+          # The link goes once it has been compared, and with it what was
+          # written before the removal.
+          expect(File.exist?(scratch.app_anchor)).to be(false)
         end
       end
 
@@ -452,6 +485,9 @@ RSpec.describe 'tests/lanes/run --capture-logs files' do
       it 'removes the links with the files on a run that captures nothing' do
         probe.with_scratch do |scratch|
           probe.run('selftest', '--overlay', scratch.overlay, '--capture-logs')
+          # As a run that ended before its epilogue leaves them.
+          File.link(scratch.app_log, scratch.app_anchor)
+          File.link(scratch.mail_log, scratch.mail_anchor)
           File.write(scratch.write_failed, "left by an earlier run\n")
 
           run = probe.run('selftest', '--overlay', scratch.overlay)

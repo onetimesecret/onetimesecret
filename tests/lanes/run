@@ -1648,7 +1648,9 @@ fi
 #       and the link keeps the first inode allocated, so a re-created file
 #       can never be given the same one. A file system without hard links
 #       cannot give that answer, and the run stops here like any other
-#       file that cannot be created.
+#       file that cannot be created. The epilogue removes the link once it
+#       has compared, so that deleting a log after the run frees its space;
+#       a link found here is from a run that ended before its epilogue.
 #   app.log.write-failed
 #       Written by a test process when a write to app.log fails
 #       (tests/lanes/support/log_capture.rb). Removed here, so one found at
@@ -1671,7 +1673,7 @@ if [[ ${CAPTURE_LOGS} -eq 1 ]]; then
       _lanes_reason='the file cannot be created or truncated; check that the directory and the file are writable'
     else
       # rm first: GNU ln -f refuses to replace a link to the same file, which
-      # is what the previous run's anchor is after the truncation above.
+      # is what an anchor left by an earlier run is after the truncation above.
       _lanes_anchor="${_lanes_file%/*}/.${_lanes_file##*/}.anchor"
       if ! { rm -f -- "${_lanes_anchor}" && ln -- "${_lanes_file}" "${_lanes_anchor}"; } 2>/dev/null; then
         _lanes_reason="the hard link ${_lanes_anchor} cannot be created; the run directory must be on a file system that supports hard links"
@@ -2018,6 +2020,7 @@ _lanes_epilogue='
       elif [[ ! "${_f}" -ef "${_anchor}" ]]; then
         _capture_err="${_capture_err}${_capture_err:+; }${_f} is not the file this run started with (it was removed and created again, or ${_anchor} is gone)"
       fi
+      rm -f -- "${_anchor}" 2>/dev/null || true
     done
     _marker="${_app_log}.write-failed"
     if [[ -e "${_marker}" ]]; then

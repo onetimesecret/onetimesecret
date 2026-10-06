@@ -310,9 +310,9 @@ The runner owns `app.log` and `mail.log`:
   - Either file is not the one the run started with: it was removed and a
     later process created it again, so the earlier events are not in it. The
     runner hard-links each file at the start (`.app.log.anchor`,
-    `.mail.log.anchor`) and compares; the earlier content stays readable
-    through the link. The run directory therefore needs a file system with
-    hard links.
+    `.mail.log.anchor`), compares at the end, and then removes the links, so
+    the earlier content is not kept. The run directory therefore needs a
+    file system with hard links.
   - A write to `app.log` failed with an I/O error. A test process records
     it in `app.log.write-failed`, and the application prints
     `[SetupLoggers] Cannot write to the log file <path>` on stderr, which
