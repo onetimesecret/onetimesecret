@@ -33,13 +33,14 @@ module Onetime
     # raised, a registered tenant classifies :invalid too, and only the
     # published Onetime::CustomDomain::Lookup (read_failed, as opposed to
     # absent) tells it from an unregistered host. The application fails
-    # closed on such a request itself — the sign-in policy gates raise
-    # Onetime::SigninPolicyUnavailable, which the router answers with a 503
-    # (otto_hooks.rb) — and a refusal here would turn every browser POST from
-    # that tenant behind a Host-rewriting proxy into a bare 403 for the whole
-    # outage, with the application's own answer never reached. This admits
-    # nothing that was refused before #4669, which admitted every :invalid
-    # host.
+    # closed on such a request itself — the sign-in policy gates answer 503
+    # through the Onetime::AuthPolicyUnavailable family
+    # (apps/web/auth/error_translator.rb for the auth router, otto_hooks.rb
+    # for the Otto mounts), and #4668 is defining the user-facing responses —
+    # and a refusal here would turn every browser POST from that tenant
+    # behind a Host-rewriting proxy into a bare 403 for the whole outage,
+    # with the application's own answer never reached. This admits nothing
+    # that was refused before #4669, which admitted every :invalid host.
     #
     # A forged Origin cannot match because an attacker cannot move
     # display_domain. An absent or empty display_domain fails closed: allow_if

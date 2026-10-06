@@ -118,6 +118,13 @@ module Onetime
     #   ConfigSerializer#operator_domain?                 false
     #   ConfigSerializer#resolve_signin (via that helper) tenant-safe (OFF,
     #                                                     SSO carve-out only)
+    #   HttpOriginOptions.classified_display_domain?      false (Origin refused)
+    #                                                     unless the published
+    #                                                     lookup is read_failed
+    #                                                     for the display domain,
+    #                                                     which is admitted so the
+    #                                                     sign-in gates' 503 is
+    #                                                     reached
     #   -- `== :custom` identity test (branding, routing, narrowing) --
     #   Core::Controllers::Base#custom_domain_request?    false
     #   Auth::RestrictTo `custom_host:`                   false (no narrowing)
