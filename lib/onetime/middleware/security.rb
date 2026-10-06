@@ -103,8 +103,11 @@ module Onetime
             unless middleware_settings[middleware_key]
               # Flag a disabled component when project guidance says the
               # operator's configuration choice merits review.
+              # NOTE: This output gets extremely noisy in test coverage, to the
+              # extand that GA workflows sometimes fail due to log output
+              # exceeding the 4MB limit. So we log to debug only.
               if warn_when_disabled_keys.include?(middleware_key)
-                OT.lw "[Security] #{name} protection DISABLED (site.middleware.#{middleware_key}=false)"
+                OT.ld "[Security] #{name} protection DISABLED (site.middleware.#{middleware_key}=false)"
               end
               next
             end
