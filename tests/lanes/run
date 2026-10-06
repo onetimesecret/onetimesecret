@@ -371,7 +371,9 @@ if [[ $# -eq 0 || "${1:-}" == "--list" || "${1:-}" == "-l" ]]; then
   echo "                 and app.log is not everything the run printed (rspec"
   echo "                 and other direct output stay in last.log). A file that"
   echo "                 cannot be created ends the run with exit 73 before"
-  echo "                 any task."
+  echo "                 any task. A file that is gone when the run ends, or a"
+  echo "                 write to app.log the app reported as failed, turns an"
+  echo "                 otherwise green run into exit 74."
   echo "  --log-console <off|trace|debug|info|warn|error|fatal>"
   echo "                 what the app's log prints on the console. off: nothing"
   echo "                 (needs --capture-logs, or the events would have no"
@@ -1783,8 +1785,9 @@ fi
 # infra exit code (69), matching every other services-unavailable exit here.
 #
 # The epilogue is builtins plus tee(1) — echo, the /dev/tcp probe port_open
-# uses, and the copy into last.log — so its one PATH dependence is a
-# coreutil every CI image and every dev box has. It defines no functions
+# uses, and the copy into last.log — and, under --capture-logs only, one
+# grep(1) over last.log, so its PATH dependences are tools every CI image
+# and every dev box has. It defines no functions
 # (nothing for spec/unit/lanes/hermetic_boundary_spec.rb's function-table
 # assertion to see: an unexported function would not reach the task child
 # anyway). The task command runs with the exact argv and `env -u`-stripped
@@ -1803,6 +1806,27 @@ fi
 # Probing only on nonzero exit is deliberate: a service that dies after the
 # last spec passed did not invalidate anything.
 #
+# Under --capture-logs the epilogue also checks that the capture it is about
+# to report is whole, because nothing else can. The files existed when the
+# tasks started (the runner created them, or the run stopped), and a process
+# that cannot open app.log stops at load or at boot. What neither catches is
+# a failure after that:
+#   - a file that is gone by the end of the run. Something removed it, and
+#     whatever was written to it afterwards went to an unlinked file.
+#   - a write the application could not complete. SemanticLogger rescues an
+#     appender's error and reports it only through its own internal logger,
+#     on stderr: `Failed to log to appender: <appender name>` (likewise
+#     flush, re-open, close). stderr is in last.log, so that is where to
+#     look, for the name the application gives its file destination
+#     (SetupLoggers::FileSink). spec/unit/lanes/capture_logs_spec.rb feeds a
+#     line SemanticLogger really produced through a run, so a gem upgrade
+#     that rewords it fails there instead of silently disarming this.
+# Either one is reported on stderr and in last.log, marks the `app log:`
+# line, and turns an otherwise green run into exit 74 (EX_IOERR): a run that
+# was asked to keep its logs and lost some must not read as a success. A run
+# that already failed keeps its own exit code. A file that was removed and
+# then re-created by a later process is not detected.
+#
 # The timing line comes ahead of the log lines, in every mode (--quiet
 # included: it is one line, and the run it describes is the one that needs
 # it). Under --capture-logs the path of app.log follows it, on stderr and in
@@ -1818,6 +1842,7 @@ _lanes_epilogue='
   _us_codegen="$1"; shift
   _phase="$1"; shift
   _app_log="$1"; shift
+  _mail_log="$1"; shift
   _ports=()
   while [[ $# -gt 0 && "$1" != "--" ]]; do _ports+=("$1"); shift; done
   shift
@@ -1852,7 +1877,22 @@ _lanes_epilogue='
   fi
   echo "[lane:${_lane}] time: preflight ${_t_preflight} codegen ${_t_codegen} ${_phase} ${_t_phase} (total ${_t_total})" >&2
   if [[ -n "${_app_log}" ]]; then
-    echo "[lane:${_lane}] app log: ${_app_log}" | tee -a "${_log}" >&2
+    _capture_err=""
+    for _f in "${_app_log}" "${_mail_log}"; do
+      if [[ ! -f "${_f}" ]]; then
+        _capture_err="${_capture_err}${_capture_err:+; }${_f} was removed during the run"
+      fi
+    done
+    if grep -E -q -- "Failed to [a-z -]+ appender: Onetime::Initializers::SetupLoggers::FileSink" "${_log}" 2>/dev/null; then
+      _capture_err="${_capture_err}${_capture_err:+; }a process reported a failed write to the app log (\"Failed to ... appender\" in ${_log})"
+    fi
+    _capture_note=""
+    if [[ -n "${_capture_err}" ]]; then
+      echo "[lane:${_lane}] error: log capture is incomplete: ${_capture_err}" | tee -a "${_log}" >&2
+      _capture_note=" (incomplete)"
+      if [[ ${_rc} -eq 0 ]]; then _rc=74; fi
+    fi
+    echo "[lane:${_lane}] app log: ${_app_log}${_capture_note}" | tee -a "${_log}" >&2
   fi
   echo "[lane:${_lane}] log: ${_log} (exit ${_rc})" | tee -a "${_log}" >&2
   exit "${_rc}"
@@ -1862,7 +1902,7 @@ if [[ ${#ONLY[@]} -eq 0 ]]; then
   _lanes_setup_phase=tasks
   exec env ${_lanes_strip[@]+"${_lanes_strip[@]}"} bash -c "${_lanes_epilogue}" \
     lanes-epilogue "${LANE}" "${LANES_LAST_LOG}" "${_lanes_us_preflight}" "${_lanes_us_codegen}" tasks \
-    "${LANES_APP_LOG_FILE:-}" \
+    "${LANES_APP_LOG_FILE:-}" "${LANES_MAIL_LOG_FILE:-}" \
     ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"} -- \
     bash -euo pipefail "${LANE_DIR}/tasks"
 fi
@@ -1888,6 +1928,6 @@ _lanes_setup_phase=only
 # a VM crash does not care whether the run was a full lane or one file.
 exec env ${_lanes_strip[@]+"${_lanes_strip[@]}"} bash -c "${_lanes_epilogue}" \
   lanes-epilogue "${LANE}" "${LANES_LAST_LOG}" "${_lanes_us_preflight}" "${_lanes_us_codegen}" only \
-  "${LANES_APP_LOG_FILE:-}" \
+  "${LANES_APP_LOG_FILE:-}" "${LANES_MAIL_LOG_FILE:-}" \
   ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"} -- \
   "${_only_cmd[@]}"

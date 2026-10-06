@@ -222,6 +222,12 @@ The runner owns both files:
 - A file that cannot be created (the path is a directory, the directory is
   not writable) ends the run with exit 73 before any task, with the reason on
   stderr and in `last.log`.
+- A capture that did not stay whole is an error: when either file is gone at
+  the end of the run, or a process reported a failed write to `app.log`
+  (SemanticLogger's `Failed to log to appender` line on stderr, which the
+  runner looks for in `last.log`), the runner says so, marks the `app log:`
+  line `(incomplete)`, and turns an otherwise green run into exit 74. A run
+  that already failed keeps its own exit code.
 - The path of `app.log` is printed just above the `log:` line and recorded in
   `last.log`, including when setup fails after the files were created.
   `--print-key` shows both paths and the console settings.

@@ -6,7 +6,9 @@ require 'spec_helper'
 require 'fileutils'
 require 'open3'
 require 'securerandom'
+require 'shellwords'
 require 'socket'
+require 'stringio'
 require 'tmpdir'
 
 # The files `tests/lanes/run --capture-logs` owns (#4683): app.log and
@@ -304,6 +306,127 @@ RSpec.describe 'tests/lanes/run --capture-logs files' do
 
         expect_refused(run, scratch, scratch.app_log, 'cannot be created or truncated')
         expect(File.binread(scratch.app_log)).to eq('previous-run-app-log')
+      end
+    end
+  end
+
+  describe 'a capture that did not stay whole' do
+    # The runner created the files and the test processes opened them, so
+    # what is left to catch is a failure during the run. The stub stands in
+    # for `bundle exec rspec <path>` and does to the files what a misbehaving
+    # run would.
+    def run_only(scratch, fake_bundle)
+      probe.with_fake_commands('bundle' => fake_bundle) do |fake_path|
+        probe.run(
+          'selftest', '--overlay', scratch.overlay, '--capture-logs',
+          '--only', 'spec/unit/lanes/capture_logs_spec.rb',
+          env: { 'PATH' => fake_path },
+        )
+      end
+    end
+
+    it 'turns a green run into exit 74 when app.log is gone at the end' do
+      probe.with_scratch do |scratch|
+        run = run_only(scratch, 'rm -f "${LANES_APP_LOG_FILE}"')
+        log = File.read(scratch.last_log)
+
+        expect(run.exitstatus).to eq(74), run.all
+        error = "[lane:selftest] error: log capture is incomplete: #{scratch.app_log} was removed during the run\n"
+        expect(run.stderr).to include(error)
+        expect(log).to include(error)
+        expect(run.stderr).to include("[lane:selftest] app log: #{scratch.app_log} (incomplete)\n")
+        expect(log).to end_with(exit_records(log, 74).first)
+      end
+    end
+
+    it 'does the same when mail.log is gone at the end' do
+      probe.with_scratch do |scratch|
+        run = run_only(scratch, 'rm -f "${LANES_MAIL_LOG_FILE}"')
+
+        expect(run.exitstatus).to eq(74), run.all
+        expect(run.stderr).to include("#{scratch.mail_log} was removed during the run")
+      end
+    end
+
+    it "keeps a failed run's own exit code, and still says the capture is incomplete" do
+      probe.with_scratch do |scratch|
+        run = run_only(scratch, "rm -f \"${LANES_APP_LOG_FILE}\"\nexit 3")
+        log = File.read(scratch.last_log)
+
+        expect(run.exitstatus).to eq(3), run.all
+        expect(run.stderr).to include('error: log capture is incomplete')
+        expect(exit_records(log, 3).length).to eq(1)
+      end
+    end
+
+    it 'says nothing when both files are still there' do
+      probe.with_scratch do |scratch|
+        run = run_only(scratch, 'echo "appended-by-the-run" >> "${LANES_APP_LOG_FILE}"')
+
+        expect(run.exitstatus).to eq(0), run.all
+        expect(run.all).not_to include('incomplete')
+      end
+    end
+
+    # A write to the log file that fails after it was opened raises nothing
+    # in the application: SemanticLogger rescues the appender's error and
+    # reports it through its own internal logger, on stderr. The runner looks
+    # for that report in last.log. The line used here is not a copy of the
+    # wording: it is what SemanticLogger writes when the application's own
+    # file appender raises, so a gem upgrade that rewords it, or a rename of
+    # the appender class, fails this example instead of disarming the check.
+    describe 'a write the application could not complete' do
+      def reported_write_failure
+        internal = StringIO.new
+        sink     = Onetime::Initializers::SetupLoggers::FileSink.new(
+          File.join(Dir.tmpdir, "capture-logs-sink-#{Process.pid}-#{SecureRandom.hex(4)}.log"),
+          append: true,
+        )
+        allow(sink).to receive(:log).and_raise(Errno::ENOSPC)
+
+        appenders = SemanticLogger::Appenders.new(SemanticLogger::Appender::IO.new(internal, level: :warn))
+        appenders << sink
+        event     = SemanticLogger::Log.new('CaptureLogsSpec', :error)
+        event.assign(message: 'an event the file could not take')
+        appenders.log(event)
+
+        internal.string.lines.first.to_s.chomp
+      end
+
+      it 'is reported by SemanticLogger on one line that names the file appender' do
+        expect(reported_write_failure)
+          .to match(/Failed to log to appender: Onetime::Initializers::SetupLoggers::FileSink\b.*ENOSPC/)
+      end
+
+      it 'turns a green run into exit 74 when that report is in the run output' do
+        line    = reported_write_failure
+        overlay = "CAPTURE_LOGS_SPEC_STDERR_LINE=#{Shellwords.escape(line)}\n"
+
+        # The selftest task prints its environment, so an overlay variable is
+        # a way to put a chosen line into the run's output, and so into
+        # last.log, without a fixture lane.
+        probe.with_scratch(overlay) do |scratch|
+          run = probe.run('selftest', '--overlay', scratch.overlay, '--capture-logs')
+          log = File.read(scratch.last_log)
+
+          expect(run.exitstatus).to eq(74), run.all
+          expect(log).to include(line)
+          expect(run.stderr).to include('error: log capture is incomplete: a process reported a failed write')
+          expect(run.stderr).to include("[lane:selftest] app log: #{scratch.app_log} (incomplete)\n")
+          expect(File.file?(scratch.app_log)).to be(true)
+        end
+      end
+
+      it 'is not looked for on a run that captures nothing' do
+        line    = reported_write_failure
+        overlay = "CAPTURE_LOGS_SPEC_STDERR_LINE=#{Shellwords.escape(line)}\n"
+
+        probe.with_scratch(overlay) do |scratch|
+          run = probe.run('selftest', '--overlay', scratch.overlay)
+
+          expect(run.exitstatus).to eq(0), run.all
+          expect(run.all).not_to include('incomplete')
+        end
       end
     end
   end
