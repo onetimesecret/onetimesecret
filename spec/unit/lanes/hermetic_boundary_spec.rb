@@ -32,6 +32,9 @@ module LaneHermeticProbe
   # Distinctive enough that finding it anywhere in the child's environment
   # is unambiguous evidence of a leak.
   CANARY    = 'lane-selftest-canary-8f3a1c'
+  # What a flagged run is given as RSPEC_OUTPUT_FILE (keep-listed, so it is
+  # supposed to arrive). The selftest lane runs no rspec; nothing writes it.
+  RESULTS   = 'tmp/lane-selftest-results.json'
   # Distinct from CANARY: the keep-listed names are supposed to arrive, so
   # their value must not be the string the leak assertions scan for.
   KEEPSAKE  = 'lane-selftest-keepsake-2b7d40'
@@ -56,10 +59,11 @@ module LaneHermeticProbe
   # accepts them, `compgen -e` does not enumerate them, and `unset` cannot
   # clear them — they can only leave at the exec boundary.
   ODD_NAMES = ['FOO-BAR', 'ORGS.SSO'].freeze
-  # Names the runner assigns itself, and only under a flag: the log floor of
-  # a bare --quiet, rspec's option string, and the log capture profile
-  # (--capture-logs, --log-console, --quiet). A caller who exports one must
-  # not thereby select a log file, silence the console or change a level.
+  # Names the runner assigns itself: the log floor of a bare --quiet and the
+  # log capture profile (--capture-logs, --log-console, --quiet), each only
+  # under its flag, and rspec's option string, only on a terminal and only
+  # for color. A caller who exports one must not thereby select a log file,
+  # silence the console, change a level or replace rspec's formatters.
   RUNNER_ASSIGNED = %w[
     LOG_LEVEL DEBUG_LOGGERS SPEC_OPTS
     LANES_APP_LOG_FILE LANES_MAIL_LOG_FILE LANES_APP_LOG_CONSOLE LANES_RSPEC_CONSOLE
@@ -199,11 +203,11 @@ module LaneHermeticProbe
       File.write(rc, bash_env_contents)
 
       # RSPEC_OUTPUT_FILE is keep-listed, so a CI unit lane hands it to this
-      # process and on to the runner, which refuses --quiet beside it.
-      # Removed for the flagged runs only; the plain run keeps whatever the
-      # caller has, as before.
+      # process and on to the runner. The flagged runs get a value of their
+      # own, which is how the --quiet pairing is read back below; the plain
+      # run keeps whatever the caller has, as before.
       env    = poisoned_env(rc)
-      env    = env.merge('RSPEC_OUTPUT_FILE' => nil) unless flags.empty?
+      env    = env.merge('RSPEC_OUTPUT_FILE' => RESULTS) unless flags.empty?
       runner = File.join(repo_root, 'tests', 'lanes', 'run')
       output, status = Open3.capture2e(env, runner, 'selftest', *flags, chdir: repo_root)
       last_log = File.read(File.join(repo_root, 'tmp', 'lanes', 'selftest', 'base', 'last.log'))
@@ -418,7 +422,15 @@ RSpec.describe 'tests/lanes/run hermetic boundary' do
       it 'delivers the console settings the flags selected' do
         expect(env['LANES_APP_LOG_CONSOLE']).to eq('off')
         expect(env['LANES_RSPEC_CONSOLE']).to eq('quiet')
-        expect(env['SPEC_OPTS']).to include('Lanes::QuietFormatter')
+      end
+
+      # --quiet is one exported name. A `--format` in SPEC_OPTS would replace
+      # every formatter an rspec command line carries, the JSON one that
+      # writes the results file included, so the runner puts none there: the
+      # two requests reach the task process side by side (#4683).
+      it 'delivers the results file path beside --quiet, and no SPEC_OPTS' do
+        expect(env['RSPEC_OUTPUT_FILE']).to eq(LaneHermeticProbe::RESULTS)
+        expect(env).not_to have_key('SPEC_OPTS')
       end
 
       it 'delivers no log floor: capture keeps what a bare --quiet discards' do
@@ -434,7 +446,7 @@ RSpec.describe 'tests/lanes/run hermetic boundary' do
         expect(env['LOG_LEVEL']).to eq('error')
         expect(env['DEBUG_LOGGERS']).to match(/\A(?:[A-Za-z]+:error,)*[A-Za-z]+:error\z/)
         expect(env['LANES_RSPEC_CONSOLE']).to eq('quiet')
-        %w[LANES_APP_LOG_FILE LANES_MAIL_LOG_FILE LANES_APP_LOG_CONSOLE].each do |name|
+        %w[LANES_APP_LOG_FILE LANES_MAIL_LOG_FILE LANES_APP_LOG_CONSOLE SPEC_OPTS].each do |name|
           expect(env).not_to have_key(name)
         end
       end

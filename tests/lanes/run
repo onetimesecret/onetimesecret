@@ -346,16 +346,21 @@ if [[ $# -eq 0 || "${1:-}" == "--list" || "${1:-}" == "-l" ]]; then
   echo "  -- <args>      everything after it goes to rspec verbatim (never to"
   echo "                 tryouts). Needs --only. e.g. -- --only-failures,"
   echo "                 -- --next-failure, -- -e 'description'."
-  echo "  --quiet        rspec prints failures and the summary only (SPEC_OPTS"
-  echo "                 selects tests/lanes/support/quiet_formatter.rb). Alone"
+  echo "  --quiet        rspec prints failures, pending examples, the summary"
+  echo "                 and the seed, and nothing per passing example"
+  echo "                 (tests/lanes/support/quiet_formatter.rb, for the lane's"
+  echo "                 tasks and for --only). A results file asked for with"
+  echo "                 RSPEC_OUTPUT_FILE is still written. Alone"
   echo "                 it also holds the app's log at error and above"
   echo "                 (LOG_LEVEL and DEBUG_LOGGERS, both read by"
   echo "                 setup_loggers.rb): events below that are discarded,"
   echo "                 not kept anywhere. With --capture-logs the levels are"
   echo "                 left alone, so nothing is discarded before it can"
   echo "                 reach app.log, and --log-console decides what the"
-  echo "                 console shows. The tryouts legs already run --agent"
-  echo "                 outside CI. Default output is unchanged without it."
+  echo "                 console shows. Tryouts are not affected: their legs"
+  echo "                 already run --agent outside CI, and --only on a"
+  echo "                 *_try.rb file always does. Default output is"
+  echo "                 unchanged without it."
   echo "  --capture-logs the app also writes its log to app.log in the run"
   echo "                 directory (tmp/lanes/<lane>/<overlays>/, beside"
   echo "                 last.log), and the emails the logger mail backend"
@@ -912,8 +917,10 @@ export LANES_RSPEC_STATUS_FILE
 #                          destination, a level name holds it to that level
 #                          and above. Unset leaves the console as it was.
 #   LANES_RSPEC_CONSOLE    --quiet: `quiet` asks for the quiet console
-#                          formatter. (SPEC_OPTS, below, is what selects
-#                          it today.)
+#                          formatter. Read by
+#                          tests/lanes/support/rspec_format.rb, which every
+#                          rspec command line of the run gets its formatter
+#                          flags from.
 #
 # The flags are the only way to set them. The caller's shell cannot: the
 # scrub cleared its exports. A lane env file or an overlay could, since both
@@ -950,34 +957,29 @@ if [[ -n "${LOG_CONSOLE}" ]]; then
 fi
 
 # ── --quiet ──────────────────────────────────────────────────────────────
-# rspec reads SPEC_OPTS last, after .rspec and after the command line, and a
-# `--format` there REPLACES the formatter list the other two built — which is
-# what makes one exported name enough to quiet every rspec invocation a
-# lane makes, whether a rake task assembled it or --only did. Set here,
-# below the scrub (a caller's SPEC_OPTS was cleared with everything else,
-# so this is the only one the task process can see) and only under the
-# flag, so a default run's output is byte-for-byte what it was.
+# One exported name, and no formatter flag: LANES_RSPEC_CONSOLE=quiet asks
+# for tests/lanes/support/quiet_formatter.rb on the console, and
+# tests/lanes/support/rspec_format.rb turns it into flags wherever an rspec
+# command line is assembled — the rake tasks (rspec_format_options in
+# lib/tasks/spec.rake), the browser lane's tasks file, and --only at the
+# bottom of this script. Each of those puts the console formatter and, when
+# RSPEC_OUTPUT_FILE is set, the JSON one on the command line together.
 #
-# The replacement is also the one cost: the rake tasks' `--format json --out
-# $RSPEC_OUTPUT_FILE` goes with the progress formatter, so a run that was
-# asked for a results file cannot also be quiet. That is a CI-only pairing
-# (RSPEC_OUTPUT_FILE is CI plumbing, keep-listed for that reason); refuse it
-# rather than silently write no results.
+# Nothing here goes into SPEC_OPTS. rspec reads that last, after .rspec and
+# after the command line, and a `--format` in it REPLACES the formatter list
+# the other two built: the JSON formatter with it, which is why --quiet once
+# had to refuse a run that asked for a results file. The runner must put no
+# `--format` there (spec/unit/lanes/hermetic_boundary_spec.rb).
+#
+# Assigned here, below the scrub (a caller's value was cleared with
+# everything else) and only under the flag, so a default run's output is
+# byte-for-byte what it was.
 #
 # Tryouts needs nothing here: try:unit and try:integration:simple already
-# pass --agent outside CI (lib/tasks/spec.rake), as does --only for a
-# *_try.rb file.
+# pass --agent outside CI (lib/tasks/spec.rake), and --only passes it for a
+# *_try.rb file always. A quiet --only run of tryouts files therefore prints
+# what a plain one does: the failures and the summary.
 if [[ ${QUIET} -eq 1 ]]; then
-  if [[ -n "${RSPEC_OUTPUT_FILE:-}" ]]; then
-    echo "error: --quiet replaces rspec's formatters, so RSPEC_OUTPUT_FILE cannot be honored" >&2
-    echo "  unset RSPEC_OUTPUT_FILE (CI plumbing) or drop --quiet" >&2
-    exit 64
-  fi
-  # Repo-relative `./` path, not ${REPO_ROOT}: rspec Shellwords-splits
-  # SPEC_OPTS, so a checkout path with a space would break the --require, and
-  # the task process runs from the repo root (the cd below) where ./ resolves.
-  SPEC_OPTS="--require ./tests/lanes/support/quiet_formatter --format Lanes::QuietFormatter"
-  export SPEC_OPTS
   LANES_RSPEC_CONSOLE=quiet
   export LANES_RSPEC_CONSOLE
 fi
@@ -1039,8 +1041,7 @@ if [[ ${PRINT_KEY} -eq 1 ]]; then
   echo "lane=${LANE} overlays=${OVERLAY_KEY:-none} db=${LANES_DATASTORE_DB}" \
        "redis=${REDIS_URL:-n/a} auth_db=${AUTH_DATABASE_URL:-n/a}" \
        "key=${LANES_ISOLATION_KEY}"
-  echo "run_dir=${LANES_RUN_DIR} status_file=${LANES_RSPEC_STATUS_FILE}" \
-       "spec_opts=${SPEC_OPTS:-none}"
+  echo "run_dir=${LANES_RUN_DIR} status_file=${LANES_RSPEC_STATUS_FILE}"
   echo "log_level=${LOG_LEVEL:-none} debug_loggers=${DEBUG_LOGGERS:-none}"
   # One path per line: a checkout path may contain spaces.
   echo "app_log=${LANES_APP_LOG_FILE:-none}"
@@ -1441,8 +1442,8 @@ cd "${REPO_ROOT}"
 #
 # tee costs the task process its terminal: rspec and tryouts see a pipe on
 # stdout and drop colors. When the runner itself is on a terminal, say so
-# explicitly — `--force-color` for rspec through SPEC_OPTS (appended, so
-# --quiet's formatter stays), FORCE_COLOR for tryouts (lib/tryouts/console.rb)
+# explicitly — `--force-color` for rspec through SPEC_OPTS (it selects no
+# formatter, so it replaces none), FORCE_COLOR for tryouts (lib/tryouts/console.rb)
 # — so an interactive run looks as it did. CI and run-all pipe the runner's
 # stdout, so neither is set there and their output is untouched.
 #
@@ -1921,10 +1922,32 @@ fi
 #
 # The runner was chosen by filename up in the argument section (tryouts own
 # `*_try.rb`, rspec owns the rest; mixing them was rejected there).
+#
+# rspec gets its formatters from the place the rake tasks get theirs
+# (tests/lanes/support/rspec_format.rb), on the command line: under --quiet
+# the quiet console formatter, and with RSPEC_OUTPUT_FILE set the JSON one
+# as well, writing <stem>_only.json — a name no rake task uses, so an --only
+# run never truncates a lane's results. With neither, no flag is added and
+# .rspec decides, as before. They come ahead of the `--` arguments, so a
+# `--format` passed there adds a formatter and removes none.
+#
+# Tryouts has no such flags: --agent already prints the failures and the
+# summary only, with or without --quiet, and writes no results file.
 if [[ ${_only_try} -eq 1 ]]; then
   _only_cmd=(bundle exec try --agent "${ONLY[@]}")
 else
-  _only_cmd=(bundle exec rspec "${ONLY[@]}" ${RSPEC_ARGS[@]+"${RSPEC_ARGS[@]}"})
+  _only_format=()
+  _only_format_lines="$(ruby tests/lanes/support/rspec_format.rb --only)" || {
+    _only_format_rc=$?
+    echo "[lane:${LANE}] error: could not choose the rspec formatters for --only (tests/lanes/support/rspec_format.rb, exit ${_only_format_rc})" \
+      | tee -a "${LANES_LAST_LOG}" >&2
+    exit "${_only_format_rc}"
+  }
+  if [[ -n "${_only_format_lines}" ]]; then
+    mapfile -t _only_format <<< "${_only_format_lines}"
+  fi
+  _only_cmd=(bundle exec rspec "${ONLY[@]}" ${_only_format[@]+"${_only_format[@]}"} \
+             ${RSPEC_ARGS[@]+"${RSPEC_ARGS[@]}"})
 fi
 
 echo "[lane:${LANE}] --only: ${_only_cmd[*]}" | tee -a "${LANES_LAST_LOG}"

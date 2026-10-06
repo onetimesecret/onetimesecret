@@ -134,20 +134,45 @@ $ tests/lanes/run simple --quiet --only apps/api/domains/spec/integration/simple
 ```
 
 `--quiet` makes every rspec invocation in the run print failures (with their
-diffs and rerun lines), pending examples and the summary — nothing per
-passing example. It works by exporting `SPEC_OPTS` to select
-`tests/lanes/support/quiet_formatter.rb`; rspec reads `SPEC_OPTS` after
-`.rspec` and after the command line, so one variable covers the rake tasks
-and `--only` alike. Without the flag `SPEC_OPTS` is not set and the output
-is exactly what it was, which is what CI logs.
+diffs, locations and rerun lines), pending examples, the summary and the
+seed — nothing per passing example
+(`tests/lanes/support/quiet_formatter.rb`). The runner exports
+`LANES_RSPEC_CONSOLE=quiet` and chooses no formatter itself:
+`tests/lanes/support/rspec_format.rb` turns the name into flags wherever an
+rspec command line is put together — the rake tasks (`rspec_format_options`
+in `lib/tasks/spec.rake`), the `browser` lane's tasks file, and `--only`.
+Without the flag the name is not set and the output is exactly what it was.
 
-Tryouts legs need no switch: `try:unit`, `try:integration:simple` and
-`--only` on a `*_try.rb` file already pass `--agent` outside CI.
+The quiet formatter replaces the console formatter only. A run with
+`RSPEC_OUTPUT_FILE` set (CI plumbing, on the keep-list) still gets
+`--format json --out <file>` on the same command line, so `--quiet` and a
+results file go together. Nothing is put into `SPEC_OPTS`: a `--format` there
+replaces every formatter of every command line, the JSON one included, which
+is why `--quiet` used to exit 64 beside a results file.
 
-The one trade-off: the `--format` in `SPEC_OPTS` replaces the rake tasks'
-whole formatter list, including `--format json --out $RSPEC_OUTPUT_FILE`.
-A run with `RSPEC_OUTPUT_FILE` set (CI plumbing) therefore rejects `--quiet`
-with exit 64 rather than silently writing no results file.
+Each rspec invocation writes a results file of its own:
+
+- A lane whose rake task runs rspec more than once suffixes the stem: `unit`
+  writes `<stem>_root_fast.json`, `<stem>_apps_fast.json` and
+  `<stem>_apps_config_ru.json`.
+- A lane with a single invocation writes `<stem>.json` (`full-mfa` and
+  `full-saml-platform` write `<stem>_mfa.json` and
+  `<stem>_saml_platform.json`).
+- An `--only` run writes `<stem>_only.json`, a name no lane uses. Without
+  `--quiet` or a results file it adds no formatter and `.rspec` decides, as
+  for plain rspec.
+- A task that normally runs alone takes a suffix from its own name when one
+  rake process runs it beside others (`rake spec:integration:all` writes
+  `<stem>_integration_simple.json`, and so on), so no invocation truncates a
+  file another one wrote.
+- An invocation whose process dies before rspec finishes leaves its file
+  empty. Its examples are in no results file; the run's exit status is what
+  reports that.
+
+Tryouts are not affected by `--quiet` and write no results file. `try:unit`
+and `try:integration:simple` already pass `--agent` outside CI, and `--only`
+on a `*_try.rb` file always does, so a quiet `--only` run of tryouts prints
+what a plain one prints: the failures and the summary.
 
 Without `--capture-logs`, `--quiet` also floors the application's own log
 at `error`. The app's log lines
@@ -236,7 +261,8 @@ The flags reach the test processes as `LANES_APP_LOG_FILE`,
 `LANES_MAIL_LOG_FILE`, `LANES_APP_LOG_CONSOLE` and, for `--quiet`,
 `LANES_RSPEC_CONSOLE`, exported below the scrub. The three log names are
 read by `spec/logging.test.yaml` and `tests/lanes/support/log_capture.rb`
-(loaded by `spec/spec_helper.rb` and `try/support/test_helpers.rb`); nothing
+(loaded by `spec/spec_helper.rb` and `try/support/test_helpers.rb`), and
+`LANES_RSPEC_CONSOLE` by `tests/lanes/support/rspec_format.rb`; nothing
 under `lib/onetime` reads any of the four. The runner assigns them: an
 exported value in the calling shell is scrubbed like any other, and a lane
 `env` file or overlay that sets one exits 64.

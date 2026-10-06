@@ -66,7 +66,8 @@ module LaneCaptureProbe
   # stdout and stderr apart: where a diagnostic lands is part of what is
   # asserted. CI is removed so the lane keeps its derived datastore index
   # (and so the provisioning step the PostgreSQL example needs is reached);
-  # RSPEC_OUTPUT_FILE because the runner refuses --quiet beside it.
+  # RSPEC_OUTPUT_FILE because a nested run has no business with the outer
+  # run's results path.
   def run(*args, env: {})
     stdout, stderr, status = Open3.capture3(
       { 'CI' => nil, 'RSPEC_OUTPUT_FILE' => nil, 'LANES_NO_AUTOSTART' => '1' }.merge(env),

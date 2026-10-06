@@ -21,9 +21,10 @@ require 'tmpdir'
 #
 # RSPEC_OUTPUT_FILE is keep-listed by the runner, so a CI unit lane (which
 # sets it through run-test-lane/action.yml) would hand it to every child
-# here and the --quiet rows would trip the runner's --quiet/RSPEC_OUTPUT_FILE
-# refusal and read as a parsing regression. Removed, not emptied: the
-# refusal tests -n. The one example that WANTS the pairing sets it itself.
+# here. Nothing below depends on it any more (--quiet used to refuse a run
+# that had it), but a nested run has no business with the outer run's
+# results path, so it is removed. The examples about the pairing set it
+# themselves.
 #
 # The log-floor half of --quiet (LOG_LEVEL, DEBUG_LOGGERS) is pinned to the
 # initializer's logger table by quiet_log_floor_spec.rb; the ownership table
@@ -59,8 +60,7 @@ module LaneArgumentProbe
     )
   end
 
-  # One --print-key field, to the end of its line: spec_opts is the last
-  # field of the run_dir line and its value carries spaces.
+  # One --print-key field, to the end of its line: a path may carry spaces.
   def field(output, key)
     output[/(?:\A|\s)#{Regexp.escape(key)}=(.*)$/, 1]
   end
@@ -165,27 +165,34 @@ RSpec.describe 'tests/lanes/run argument handling' do
   end
 
   describe '--quiet' do
-    # An env effect, not an exit code: SPEC_OPTS must carry the quiet
-    # formatter under the flag and must be absent without it (default
-    # output is CI's output).
-    it 'selects the quiet formatter through SPEC_OPTS' do
+    # The flag exports one name (hermetic_boundary_spec.rb reads it in the
+    # task process) and chooses no formatter itself: the flags are put
+    # together per rspec command line by tests/lanes/support/rspec_format.rb
+    # (rspec_format_spec.rb), beside the JSON formatter.
+    it 'asks for the quiet console formatter and derives no rspec flag' do
       output, status = probe.run('selftest', '--quiet', '--print-key')
       expect(status).to be_success, output
-      expect(probe.field(output, 'spec_opts'))
-        .to match(%r{\A--require \S*quiet_formatter --format Lanes::QuietFormatter\z})
+      expect(probe.field(output, 'rspec_console')).to eq('quiet')
+      expect(output).not_to include('--format')
+      expect(output).not_to include('spec_opts')
     end
 
-    it 'leaves SPEC_OPTS unset without the flag' do
-      output, status = probe.run('selftest', '--print-key')
-      expect(status).to be_success, output
-      expect(probe.field(output, 'spec_opts')).to eq('none')
-    end
-
-    it 'refuses to replace the formatters RSPEC_OUTPUT_FILE depends on' do
+    # It used to exit 64 here: the formatter went into SPEC_OPTS, which
+    # replaced the JSON formatter the results file depends on (#4683).
+    it 'works beside RSPEC_OUTPUT_FILE' do
       output, status = probe.run('selftest', '--quiet', '--print-key',
                                  env: { 'RSPEC_OUTPUT_FILE' => 'tmp/argument-handling-results.json' })
-      expect(status.exitstatus).to eq(64), output
-      expect(output).to include('RSPEC_OUTPUT_FILE cannot be honored')
+      expect(status).to be_success, output
+      expect(output).not_to include('cannot be honored')
+      expect(probe.field(output, 'rspec_console')).to eq('quiet')
+    end
+
+    it 'works beside RSPEC_OUTPUT_FILE for an --only run too' do
+      output, status = probe.run('selftest', '--quiet', '--print-key',
+                                 '--only', 'spec/unit/lanes/hermetic_boundary_spec.rb',
+                                 env: { 'RSPEC_OUTPUT_FILE' => 'tmp/argument-handling-results.json' })
+      expect(status).to be_success, output
+      expect(probe.field(output, 'rspec_console')).to eq('quiet')
     end
   end
 
@@ -205,15 +212,18 @@ RSpec.describe 'tests/lanes/run argument handling' do
       expect(probe.field(output, 'rspec_console')).to eq('none')
     end
 
-    # CI's flags (.github/actions/run-test-lane) select no formatter, so
-    # they have to coexist with the results file a bare --quiet refuses.
-    it 'works beside RSPEC_OUTPUT_FILE and replaces no formatter' do
-      output, status = probe.run('selftest', '--capture-logs', '--log-console', 'off', '--print-key',
-                                 env: { 'RSPEC_OUTPUT_FILE' => 'tmp/argument-handling-results.json' })
-      expect(status).to be_success, output
-      expect(probe.field(output, 'spec_opts')).to eq('none')
-      expect(probe.field(output, 'log_console')).to start_with('off ')
-      expect(probe.field(output, 'log_level')).to start_with('none ')
+    # CI's flags (.github/actions/run-test-lane) have to coexist with the
+    # results file it asks for, with and without --quiet.
+    it 'works beside RSPEC_OUTPUT_FILE and derives no rspec flag' do
+      [[], %w[--quiet]].each do |quiet|
+        output, status = probe.run('selftest', '--capture-logs', '--log-console', 'off', *quiet, '--print-key',
+                                   env: { 'RSPEC_OUTPUT_FILE' => 'tmp/argument-handling-results.json' })
+        expect(status).to be_success, output
+        expect(output).not_to include('--format')
+        expect(probe.field(output, 'log_console')).to start_with('off ')
+        expect(probe.field(output, 'log_level')).to start_with('none ')
+        expect(probe.field(output, 'rspec_console')).to eq(quiet.empty? ? 'none' : 'quiet')
+      end
     end
 
     it 'puts app.log and mail.log in the run directory, as absolute paths' do
