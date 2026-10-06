@@ -574,12 +574,12 @@ module HostProxyMatrix
     { id: 'H05-E06', case: 'missing site.host does not turn a failed tenant lookup into an emitted credential',
       site_host: nil, record: :read_fails,
       headers: { 'Host' => '{canonical}', 'X-Forwarded-Host' => '{tenant}' },
-      idp: nil, sso_location: '/signin?auth_error=sso_failed',
+      idp: nil, sso_location: '/signin?auth_error=domain_unavailable',
       link: nil, reset_status: 503 },
     { id: 'E12', case: 'read failure, tenant in X-Forwarded-Host',
       record: :read_fails, headers: { 'Host' => '{canonical}', 'X-Forwarded-Host' => '{tenant}' },
       changes_with: '#4220',
-      idp: nil, sso_location: '/signin?auth_error=sso_failed',
+      idp: nil, sso_location: '/signin?auth_error=domain_unavailable',
       link: nil, reset_status: 503 },
   ].freeze
 

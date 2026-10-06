@@ -151,6 +151,34 @@ describe('authStore refresh coordinator (#4459)', () => {
 
       expect(requests()).toBe(1);
     });
+
+    it('a session mutation aborts the ordinary flight instead of joining it', async () => {
+      await mountWith(authenticatedBootstrap);
+      // The flight already in the air was served before the preview override
+      // was written; joining it would land the pre-override fields as current.
+      const preMutation = deferred();
+      const withOverride: BootstrapPayload = {
+        ...authenticatedBootstrap,
+        entitlement_preview_planid: 'pro_month',
+        entitlement_preview_plan_name: 'Pro',
+      };
+      axiosMock
+        .onGet(ENDPOINT)
+        .replyOnce(() => preMutation.promise)
+        .onGet(ENDPOINT)
+        .reply(() => [200, next(withOverride)]);
+
+      const first = store.refresh({ kind: 'ordinary', reason: 'interval' });
+      const second = store.refresh({ kind: 'session-mutation', reason: 'plan-preview' });
+      expect(requests()).toBe(2);
+
+      expect(await second).toBe('applied');
+      preMutation.resolve([200, next(authenticatedBootstrap)]);
+      expect(await first).toBe('superseded');
+
+      expect(bootstrapStore.entitlement_preview_planid).toBe('pro_month');
+      expect(bootstrapStore.entitlement_preview_plan_name).toBe('Pro');
+    });
   });
 
   describe('generations', () => {

@@ -453,3 +453,11 @@ nor the tty-only color flags apply there. The supported CI exceptions are
 constrained environments that cannot run the compose topology:
 `devcontainer-ci.yml` and macOS `installer.yml` run the fast suite directly.
 They validate installation paths, not lane behavior.
+
+`ci-verdict` is the required CI check for `main`. It runs on every pull
+request, whatever the PR touches, and passes only when every test job in
+`ci.yml` succeeded or was skipped because the `changes` job found nothing in
+its path. A job skipped although its path changed (a failed lint or build, a
+cancelled run), a failed or cancelled `changes` job, or `[ci-skip]` fails it.
+Add a row to `.github/scripts/ci-verdict.sh` when adding a test job;
+`scripts/tests/ci-verdict-test.sh` fails otherwise.

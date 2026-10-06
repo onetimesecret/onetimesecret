@@ -203,6 +203,35 @@ module Onetime
     DEFAULT_MESSAGE = 'Sign-up is temporarily unavailable. Please try again shortly.'
   end
 
+  # The CustomDomain record for the REQUEST HOST could not be read (#4668).
+  # DomainStrategy made the read while classifying the host, the read
+  # raised, and Onetime::CustomDomain::Lookup published the failure for the
+  # request (state read_failed); the host classified :invalid. Raised by the
+  # auth router's before_rodauth hook (apps/web/auth/config/hooks/restrict_to.rb)
+  # for every Rodauth route on such a host, before any sign-in gate runs. The
+  # SSO request and callback phases are served by OmniAuth outside Rodauth's
+  # routes, so they answer the same condition with a redirect to
+  # /signin?auth_error=domain_unavailable (apps/web/auth/config/hooks/omniauth_tenant.rb)
+  # carrying the same copy.
+  #
+  # ONE answer for every exception class the read raised, deliberately. The
+  # lookup keeps any StandardError (Lookup.capture), while the gates rescue
+  # only Redis::BaseError around their reads, so the same unreadable record
+  # used to answer 503 SigninPolicyUnavailable or 500 ServerError depending
+  # on what the datastore client raised, and SSO fell to the generic
+  # sso_failed. The result stays fail-closed: no credential email, no IdP
+  # URL, no change to reset keys. The copy does not guess at the visitor's
+  # intent: the domain is not available, and its owner should get in touch.
+  #
+  # No register_error_handler entry in lib/onetime/application/otto_hooks.rb:
+  # nothing under Otto raises it, and Core's handling of an :invalid host is
+  # unchanged. The Roda auth router maps it through Auth::ErrorTranslator's
+  # AuthPolicyUnavailable family entry: 503, retry_after in the body, lifted
+  # into Retry-After by Onetime::Middleware::RetryAfterHeader.
+  class DomainUnavailable < AuthPolicyUnavailable
+    DEFAULT_MESSAGE = 'This domain is not available. If this is your domain, contact us.'
+  end
+
   # Raised by Organization.create! when the contact_email unique index already
   # holds a reservation for that address (the HSETNX check-and-reserve lost).
   # Rescue this class, never match on the message: the call sites that carry a

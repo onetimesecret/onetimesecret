@@ -109,6 +109,15 @@ module Auth::Config::Hooks
       auth.omniauth_setup do
         host = HELPERS.public_host(request)
 
+        # DOMAIN RECORD UNREADABLE (#4668). Refused first, on every phase
+        # this hook runs on. The restrict_to gate below reads the same
+        # lookup through #record!, which re-raises what the read raised, and
+        # OmniAuth::Strategy#call! rescues any StandardError from a phase
+        # into fail!, so the visitor used to land on the generic sso_failed.
+        # The callback phase takes the same path: a flow whose host became
+        # unreadable mid-flow never reaches the identity.
+        HELPERS.refuse_unavailable_domain(host, request, self)
+
         # RESTRICT_TO ENFORCEMENT
         # (ADR-034#restrict-to-is-an-access-control-not-a-display-preference
         # / #reject-as-not-found-not-forbidden, #4139).
@@ -1256,6 +1265,53 @@ module Auth::Config::Hooks
       clear_pending_tenant_context(rodauth.session)
 
       rodauth.send(:redirect, '/signin?auth_error=sso_domain_unverified')
+    end
+
+    # Refuse SSO on a host whose CustomDomain record could not be read
+    # (#4668), on every phase omniauth_setup runs on.
+    #
+    # Consults only the lookup DomainStrategy published for the request
+    # (Onetime::CustomDomain::Lookup, state read_failed) and never reads
+    # itself: Lookup.for_host would read, and publish, for a canonical host,
+    # and acting on that read would refuse the operator's own providers
+    # during a datastore blip the rest of this hook survives
+    # (resolve_custom_domain answers nil, canonical_domain? keeps the
+    # platform defaults). A published read_failed lookup is always for a
+    # non-canonical host, which is the host public_host returns.
+    #
+    # Same shape as refuse_unverified_tenant_domain: the whole pending
+    # tenant context is dropped first, so a flow started while the record
+    # was readable cannot complete through a callback that arrives while it
+    # is not, nor later on the platform path once the markers are gone.
+    # Then a redirect to /signin with auth_error=domain_unavailable, the
+    # same copy Onetime::DomainUnavailable gives the Rodauth routes. The
+    # exception class is logged, never answered: the redirect is the same
+    # whatever the read raised. Scalars only.
+    #
+    # @param host [String] request public host
+    # @param request [Rack::Request] current request
+    # @param rodauth [Rodauth] Rodauth instance (for session + redirect)
+    # @return [nil] when the request's domain read did not fail; otherwise
+    #   the redirect halts the request
+    def self.refuse_unavailable_domain(host, request, rodauth)
+      lookup = request.env[Onetime::CustomDomain::Lookup::ENV_KEY]
+      return unless lookup.is_a?(Onetime::CustomDomain::Lookup) && lookup.read_failed?
+
+      pending_tenant_flow_dropped = pending_tenant_flow?(rodauth.session)
+
+      Auth::Logging.log_auth_event(
+        :omniauth_domain_lookup_failed,
+        level: :error,
+        host: host,
+        path: request.path,
+        error_class: lookup.error.class.name,
+        error: lookup.error.message,
+        pending_tenant_flow_dropped: pending_tenant_flow_dropped,
+      )
+
+      clear_pending_tenant_context(rodauth.session)
+
+      rodauth.send(:redirect, '/signin?auth_error=domain_unavailable')
     end
 
     # Derive the SAML SP identifiers for a TENANT flow from the request's

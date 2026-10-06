@@ -40,6 +40,7 @@ RSpec.describe Onetime::Middleware::HttpOriginOptions do
         'HTTP_HOST' => canonical_host,
         'HTTP_ORIGIN' => "https://#{custom_domain}",
         'onetime.display_domain' => custom_domain,
+        'onetime.domain_strategy' => :custom,
       )
       expect(status).to eq(200)
     end
@@ -49,6 +50,7 @@ RSpec.describe Onetime::Middleware::HttpOriginOptions do
         'HTTP_HOST' => canonical_host,
         'HTTP_ORIGIN' => 'https://evil.example.org',
         'onetime.display_domain' => custom_domain,
+        'onetime.domain_strategy' => :custom,
       )
       expect(status).to eq(403)
     end
@@ -58,6 +60,7 @@ RSpec.describe Onetime::Middleware::HttpOriginOptions do
         'HTTP_HOST' => canonical_host,
         'HTTP_ORIGIN' => "http://#{custom_domain}",
         'onetime.display_domain' => custom_domain,
+        'onetime.domain_strategy' => :custom,
       )
       expect(status).to eq(403)
     end
@@ -67,8 +70,91 @@ RSpec.describe Onetime::Middleware::HttpOriginOptions do
         'HTTP_HOST' => canonical_host,
         'HTTP_ORIGIN' => "https://#{custom_domain}:8443",
         'onetime.display_domain' => custom_domain,
+        'onetime.domain_strategy' => :custom,
       )
       expect(status).to eq(403)
+    end
+  end
+
+  # #4669. A host that is not canonical, a subdomain of one, or a registered
+  # custom domain classifies :invalid but keeps its name as display_domain,
+  # so the comparison alone admitted the Origin of any host the install does
+  # not serve. It is now made only for a classified host — or for a
+  # registered custom domain whose record could not be read, which
+  # classifies :invalid as well and is told apart by the published lookup.
+  describe 'classification of the display domain' do
+    let(:lookup_key) { Onetime::CustomDomain::Lookup::ENV_KEY }
+    let(:read_failed) { Onetime::CustomDomain::Lookup.read_failed(custom_domain, Redis::BaseError.new('down')) }
+
+    def display_post(origin: "https://#{custom_domain}", **env)
+      post('/auth/login',
+        'HTTP_HOST' => canonical_host,
+        'HTTP_ORIGIN' => origin,
+        'onetime.display_domain' => custom_domain,
+        **env,
+      )
+    end
+
+    def invalid_post(lookup, origin: "https://#{custom_domain}")
+      display_post(origin: origin, 'onetime.domain_strategy' => :invalid, lookup_key => lookup)
+    end
+
+    %i[canonical subdomain custom].each do |strategy|
+      it "admits the matching Origin of a host classified #{strategy.inspect}" do
+        expect(display_post('onetime.domain_strategy' => strategy)).to eq(200)
+      end
+
+      it "still refuses a non-matching Origin on a host classified #{strategy.inspect}" do
+        expect(display_post(origin: 'https://evil.example.org', 'onetime.domain_strategy' => strategy)).to eq(403)
+        expect(display_post(origin: "http://#{custom_domain}", 'onetime.domain_strategy' => strategy)).to eq(403)
+      end
+    end
+
+    it 'reads the classification as a String too' do
+      expect(display_post('onetime.domain_strategy' => 'custom')).to eq(200)
+      expect(display_post('onetime.domain_strategy' => 'invalid')).to eq(403)
+    end
+
+    it 'refuses an :invalid host whose lookup is absent (read fine, not registered)' do
+      expect(invalid_post(Onetime::CustomDomain::Lookup.absent(custom_domain))).to eq(403)
+    end
+
+    it 'admits an :invalid host whose lookup is read_failed (a registered tenant during an outage)' do
+      expect(invalid_post(read_failed)).to eq(200)
+    end
+
+    it 'still refuses a non-matching Origin on an :invalid host whose lookup is read_failed' do
+      expect(invalid_post(read_failed, origin: 'https://evil.example.org')).to eq(403)
+      expect(invalid_post(read_failed, origin: "http://#{custom_domain}")).to eq(403)
+      expect(invalid_post(read_failed, origin: "https://#{custom_domain}:8443")).to eq(403)
+    end
+
+    it 'refuses an :invalid host with no published lookup' do
+      expect(display_post('onetime.domain_strategy' => :invalid)).to eq(403)
+      expect(invalid_post(nil)).to eq(403)
+    end
+
+    it 'refuses an :invalid host when the published lookup is for another host' do
+      other = Onetime::CustomDomain::Lookup.read_failed('other-tenant.example.net', Redis::BaseError.new('down'))
+      expect(invalid_post(other)).to eq(403)
+    end
+
+    it 'refuses a missing or unrecognized classification' do
+      expect(display_post).to eq(403)
+      expect(display_post('onetime.domain_strategy' => nil)).to eq(403)
+      expect(display_post('onetime.domain_strategy' => :default)).to eq(403)
+    end
+
+    it 'answers the classification directly, independent of the Origin' do
+      env = {
+        'onetime.display_domain' => custom_domain,
+        'onetime.domain_strategy' => :invalid,
+        lookup_key => read_failed,
+      }
+      expect(described_class.classified_display_domain?(env)).to be(true)
+      expect(described_class.classified_display_domain?(env.merge(lookup_key => nil))).to be(false)
+      expect(described_class.classified_display_domain?('onetime.domain_strategy' => :subdomain)).to be(true)
+      expect(described_class.classified_display_domain?({})).to be(false)
     end
   end
 
