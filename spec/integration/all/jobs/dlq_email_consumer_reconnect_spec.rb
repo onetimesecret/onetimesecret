@@ -95,7 +95,10 @@ RSpec.describe 'DLQ email consumer connection failure', :rabbitmq, type: :integr
       Timeout.timeout(5) { Queue.new.pop }
     end
 
-    [:after_pop, :before_commit, :after_commit].each do |phase|
+    # The publish and the DLQ ack are committed separately. :before_commit
+    # and :after_commit disconnect around the publish commit,
+    # :before_ack_commit after it is confirmed and the ack frame is written.
+    [:after_pop, :before_commit, :after_commit, :before_ack_commit].each do |phase|
       it "logs a stop for a disconnect #{phase} without losing the delivery or clearing an uncertain reservation" do
         allow(job).to receive(:token_expired?).and_return(false)
         allow(job).to receive(:acquire_channel).and_wrap_original do |original|
@@ -110,7 +113,11 @@ RSpec.describe 'DLQ email consumer connection failure', :rabbitmq, type: :integr
           acquired
         end
         unless phase == :after_pop
+          commits = 0
           allow(job).to receive(:commit_transaction).and_wrap_original do |commit, *args|
+            commits += 1
+            next commit.call(*args) if phase == :before_ack_commit && commits == 1
+
             commit.call(*args) if phase == :after_commit
             disconnect_batch
           end
@@ -123,13 +130,20 @@ RSpec.describe 'DLQ email consumer connection failure', :rabbitmq, type: :integr
         expect(@batch_channel.recoveries_counter.get).to eq(0)
         expect(@batch_connection).not_to be_open
         expect(@shared_connection).to be_open
-        committed = phase == :after_commit
-        Timeout.timeout(5) { sleep 0.01 until dlq.message_count == (committed ? 0 : 1) }
-        expect(target.message_count).to eq(committed ? 1 : 0)
-        expect(Familia.dbclient.get(completed_key)).to be_nil
-        if phase == :after_pop
+        # The delivery is never acked, so it is back in the DLQ in every phase.
+        published = [:after_commit, :before_ack_commit].include?(phase)
+        Timeout.timeout(5) { sleep 0.01 until dlq.message_count == 1 }
+        expect(target.message_count).to eq(published ? 1 : 0)
+        case phase
+        when :after_pop
+          expect(Familia.dbclient.get(completed_key)).to be_nil
+          expect(Familia.dbclient.get(reservation_key)).to be_nil
+        when :before_ack_commit
+          # The publish commit was confirmed, so the id is marked completed.
+          expect(Familia.dbclient.get(completed_key)).to eq('completed')
           expect(Familia.dbclient.get(reservation_key)).to be_nil
         else
+          expect(Familia.dbclient.get(completed_key)).to be_nil
           expect(Familia.dbclient.get(reservation_key)).to start_with('publishing:')
         end
 
@@ -141,17 +155,21 @@ RSpec.describe 'DLQ email consumer connection failure', :rabbitmq, type: :integr
           acquired
         end
         # An uncertain replay waits for the existing reservation to expire.
-        if phase == :before_commit
+        uncertain = [:before_commit, :after_commit].include?(phase)
+        if uncertain
           job.send(:consume_dlq_batch)
           expect(dlq.message_count).to eq(1)
-          expect(target.message_count).to eq(0)
+          expect(target.message_count).to eq(published ? 1 : 0)
           Familia.dbclient.del(reservation_key)
         end
         job.send(:consume_dlq_batch)
         expect(@batch_connection).not_to equal(failed_connection)
         expect(dlq.message_count).to eq(0)
-        expect(target.message_count).to eq(1)
-        expect(Familia.dbclient.get(completed_key)).to eq('completed') unless committed
+        # A publish commit that applied without its confirmation is published
+        # again after the reservation expires. A confirmed one is not: the
+        # next run acks the delivery on its completed marker.
+        expect(target.message_count).to eq(phase == :after_commit ? 2 : 1)
+        expect(Familia.dbclient.get(completed_key)).to eq('completed')
       end
     end
   end
