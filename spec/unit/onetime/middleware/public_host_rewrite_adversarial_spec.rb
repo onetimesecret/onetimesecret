@@ -177,7 +177,13 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
     Rack::Request.forwarded_priority = original
   end
 
+  # The broken-read host makes the domain strategy log an error with a full
+  # backtrace on every example that reaches it, several thousand times per
+  # run. That line is the middleware behaving correctly, not something this
+  # spec asserts, so keep it out of the test output.
   before do
+    quiet_http_logger = SemanticLogger['HTTP'].tap { |logger| logger.level = :fatal }
+    allow(Onetime).to receive(:http_logger).and_return(quiet_http_logger)
     allow(described_class).to receive(:enabled?).and_return(true)
     allow(Onetime::CustomDomain).to receive(:from_display_domain) do |name|
       raise StandardError, 'datastore unavailable' if name == 'broken-read.example.net'
