@@ -4,8 +4,10 @@
 #
 # When [ci-skip] is set, all outputs are false.
 # When [ci-all] is set or workflow files changed, all outputs are true.
-# Otherwise, outputs match the path filter results; auth also selects Ruby
-# so forced/browser-only auth changes get lint, built assets, and core tests.
+# Otherwise, outputs match the path filter results. Auth selection is its own
+# flag: it adds the auth jobs and never turns on the ordinary Ruby jobs. The
+# auth jobs get the frontend build they need from build-assets, whose gate in
+# ci.yml includes auth.
 #
 # Environment variables (inputs):
 #   SKIP_CI          - true if [ci-skip] detected
@@ -61,7 +63,6 @@ else
   OCI="$FILTER_OCI"
   GA_WORKFLOW_FILES=false
   AUTH="$FILTER_AUTH"
-  [[ "$AUTH" != "true" ]] || RUBY=true
 fi
 
 # Output results

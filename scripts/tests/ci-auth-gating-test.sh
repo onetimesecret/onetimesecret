@@ -115,8 +115,6 @@ def compute_cases():
             expected = {key: inputs["FILTER_" + key.upper()]
                         for key in ("ruby", "typescript", "frontend", "oci", "auth")}
             expected["ga_workflow_files"] = "false"
-            if expected["auth"] == "true":
-                expected["ruby"] = "true"
         for file_mode in (False, True):
             with tempfile.TemporaryDirectory() as directory:
                 output = Path(directory) / "output"
@@ -152,7 +150,7 @@ def invalid_auth():
                       "invalid selection must publish no partial outputs, even under overrides")
 
 
-def selector_promotion():
+def selector_independence():
     for event, labels, paths, reason in (
         ("pull_request", '["ci:auth"]', "false", "label:ci:auth"),
         ("pull_request", "[]", "true", "paths"),
@@ -168,11 +166,11 @@ def selector_promotion():
               f"selector {event}/{labels}/{paths}: {selected.stdout}")
         computed = run(compute, {**defaults(), "FILTER_AUTH": outputs(selected.stdout)["auth"],
                                  "GITHUB_OUTPUT": ""})
-        check(computed.returncode == 0, f"promotion: {computed.stderr}")
+        check(computed.returncode == 0, f"selection: {computed.stderr}")
         check(outputs(computed.stdout) == {
-            "ruby": "true", "auth": "true", "typescript": "false", "frontend": "false",
+            "ruby": "false", "auth": "true", "typescript": "false", "frontend": "false",
             "oci": "false", "ga_workflow_files": "false",
-        }, f"label/path/event auth must select Ruby without unrelated filters: {computed.stdout}")
+        }, f"label/path/event auth is its own flag and must not turn on Ruby or any other filter: {computed.stdout}")
 
 
 jobs = block(workflow, "jobs", 0)
@@ -240,13 +238,14 @@ def shared_wiring():
 
 
 def prerequisites_and_gates():
-    for job_id in ("ruby-lint", "build-assets", "ruby-unit"):
+    for job_id in ("ruby-lint", "ruby-unit"):
         job = block(jobs, job_id, 2)
-        check("needs.changes.outputs.ruby == 'true'" in job, f"auth promotion selects {job_id}")
-        check("needs.changes.outputs.auth" not in job, f"ordinary Ruby retains {job_id}")
+        check("needs.changes.outputs.ruby == 'true'" in job, f"Ruby changes select {job_id}")
+        check("needs.changes.outputs.auth" not in job, f"auth selection alone must not run {job_id}")
     check(scalar(block(jobs, "build-assets", 2), "if", 4) ==
-          "needs.changes.outputs.frontend == 'true' || needs.changes.outputs.ruby == 'true'",
-          "auth-only selection still builds frontend prerequisites via Ruby")
+          "needs.changes.outputs.frontend == 'true' || needs.changes.outputs.ruby == 'true' "
+          "|| needs.changes.outputs.auth == 'true'",
+          "auth-only selection still gets the frontend build its jobs download")
     browser = block(jobs, "ruby-auth-browser", 2)
     integration = block(jobs, "ruby-integration-auth", 2)
     for job_id, job in (("ruby-auth-browser", browser), ("ruby-integration-auth", integration)):
@@ -415,7 +414,7 @@ def reporting():
 for stable_id, test in (
     ("CI-AUTH-01", compute_cases),
     ("CI-AUTH-02", invalid_auth),
-    ("CI-AUTH-03", selector_promotion),
+    ("CI-AUTH-03", selector_independence),
     ("CI-AUTH-04", triggers),
     ("CI-AUTH-05", shared_wiring),
     ("CI-AUTH-06", prerequisites_and_gates),

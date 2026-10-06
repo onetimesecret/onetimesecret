@@ -47,7 +47,14 @@ esac
 EXPECTED=()
 expect() { EXPECTED+=("$1	$2	$3"); }
 
-either() { [[ "$1" == "true" || "$2" == "true" ]] && echo true || echo false; }
+# true when any argument is the string true.
+either() {
+  local flag
+  for flag in "$@"; do
+    [[ "$flag" == "true" ]] && { echo true; return; }
+  done
+  echo false
+}
 
 on_pull_request=false
 [[ "$EVENT_NAME" == "pull_request" ]] && on_pull_request=true
@@ -57,7 +64,7 @@ expect ruby-lint                "$RUBY"                     "ruby"
 expect typescript-lint          "$TYPESCRIPT"               "typescript"
 expect hygiene                  "$on_pull_request"          "pull_request event"
 expect i18n-validate            "$TYPESCRIPT"               "typescript"
-expect build-assets             "$(either "$FRONTEND" "$RUBY")" "frontend or ruby"
+expect build-assets             "$(either "$FRONTEND" "$RUBY" "$AUTH")" "frontend, ruby or auth"
 expect ruby-unit                "$RUBY"                     "ruby"
 expect ruby-auth-browser        "$AUTH"                     "auth"
 expect ruby-integration-auth    "$AUTH"                     "auth"

@@ -424,7 +424,9 @@ jobs:
     timeout-minutes: 10
     runs-on: *runs-on
     needs: [changes]
-    if: needs.changes.outputs.frontend == 'true' || needs.changes.outputs.ruby == 'true'
+    # Auth is here because the auth jobs download this build and can be
+    # selected (a label, a frontend auth path) when the Ruby flag is off.
+    if: needs.changes.outputs.frontend == 'true' || needs.changes.outputs.ruby == 'true' || needs.changes.outputs.auth == 'true'
     steps:
       - *checkout-step
 

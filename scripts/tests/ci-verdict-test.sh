@@ -201,6 +201,25 @@ assert_eq "CV-AUTH-04: selected auth with failed lint exit" 1 "$status"
 assert_contains "CV-AUTH-04: forcing auth adds two failures to the existing six" \
   '❌ 8 job(s) did not pass' "$out"
 
+# --- auth selected on its own: a label or a frontend auth path, no Ruby flag ---
+printf '\nauth selected without a Ruby change\n'
+AUTH_ONLY=("${ALL_SKIPPED[@]}" RESULT_HYGIENE=success RESULT_BUILD_ASSETS=success
+  RESULT_RUBY_AUTH_BROWSER=success RESULT_RUBY_INTEGRATION_AUTH=success)
+out="$(verdict AUTH=true "${AUTH_ONLY[@]}")"
+status=$?
+protects "auth selection is its own flag: it needs the build and the auth jobs, not the ordinary Ruby jobs"
+assert_eq "CV-AUTH-07: auth-only run exit" 0 "$status"
+assert_contains "CV-AUTH-07: ruby-unit not expected" "| ruby-unit | skipped | ✅ no ruby change |" "$out"
+assert_contains "CV-AUTH-07: full-mode rows not expected" \
+  "| ruby-integration-full | skipped | ✅ no ruby change |" "$out"
+
+out="$(verdict AUTH=true "${AUTH_ONLY[@]}" RESULT_BUILD_ASSETS=skipped)"
+status=$?
+protects "the auth jobs download the frontend build, so a skipped build under auth selection is a failure"
+assert_eq "CV-AUTH-08: auth-only run without a build exit" 1 "$status"
+assert_contains "CV-AUTH-08: build expected for auth" \
+  "| build-assets | skipped | ❌ expected to run (frontend, ruby or auth changed) but was skipped:" "$out"
+
 printf '\nmissing or malformed auth selection\n'
 protects "a missing or malformed required auth output fails closed even when all jobs report success"
 # The command substitution is intentionally an unexpanded invalid input.
