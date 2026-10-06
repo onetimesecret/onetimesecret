@@ -79,19 +79,21 @@ module HostProxyMatrix
       origin: FOREIGN_ORIGIN, status: 403),
     shape(:doubled_tenant, id: 'G12', case: 'doubled verified custom domain Host, Origin names the tenant',
       origin: TENANT_ORIGIN, status: 302, idp: :tenant),
-    # ALLOW_IF admits https://{display domain} for a display domain that
-    # classified :invalid (H-03 in tools/host-seam/follow-up-validation.md).
-    # The SSO route then refuses the request.
+    # ALLOW_IF admits https://{display domain} only for a host that
+    # classified :canonical, :subdomain or :custom, or an :invalid one whose
+    # lookup read failed (H-03, #4669). An unregistered host is none of them.
     shape(:unregistered_forwarded, id: 'G13', case: 'unregistered forwarded host, Origin names it (H-03)',
-      origin: "https://#{UNREGISTERED}", status: 302, location: '/signin?auth_error=sso_not_configured'),
+      origin: "https://#{UNREGISTERED}", status: 403),
     # Admitted by ALLOW_IF (the record exists, so the display domain is the
     # tenant). With no sign-in configuration the gate answers 404 for an
     # unverified tenant (#4517; the emitter matrix's E11 configures sign-in
     # and gets the sso_domain_unverified redirect instead).
     shape(:unverified_forwarded, id: 'G14', case: 'unverified custom domain, Origin names it',
       origin: TENANT_ORIGIN, status: 404),
+    # Admitted: the lookup read failed (#4669). The route answers with the
+    # domain-unavailable redirect (#4668).
     shape(:read_fails_forwarded, id: 'G15', case: 'read failure, Origin names the tenant',
-      origin: TENANT_ORIGIN, status: 302, location: '/signin?auth_error=sso_failed'),
+      origin: TENANT_ORIGIN, status: 302, location: '/signin?auth_error=domain_unavailable'),
     shape(:forwarded_public_peer, id: 'G16', case: 'X-Forwarded-Host from a public peer, Origin names the tenant',
       origin: TENANT_ORIGIN, status: 403),
   ].freeze
