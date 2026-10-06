@@ -1937,6 +1937,16 @@ fi
 # in a process that loaded no helper and whose stderr did not reach last.log,
 # and a file truncated in place.
 #
+# The epilogue shell is started with --norc. bash sources ~/.bashrc in a
+# non-interactive shell in one case: started with -c, standard input a
+# network connection, and a top-level shell (SHLVL below 2), which is its
+# guess at "run by rshd or sshd". The scrub cleared SHLVL, so this `bash -c`
+# is a top-level shell again, and a runner whose stdin is a socket (an agent
+# harness, a command run over ssh) met all three: the caller's ~/.bashrc ran
+# below the scrub and its exports reached every task. --norc is the switch
+# for exactly that file. The shell exports SHLVL=1 itself, so no bash a task
+# starts is top-level (spec/unit/lanes/hermetic_boundary_spec.rb).
+#
 # The timing line comes ahead of the log lines, in every mode (--quiet
 # included: it is one line, and the run it describes is the one that needs
 # it). Under --capture-logs the path of app.log follows it, on stderr and in
@@ -2018,7 +2028,7 @@ _lanes_epilogue='
 
 if [[ ${#ONLY[@]} -eq 0 ]]; then
   _lanes_setup_phase=tasks
-  exec env ${_lanes_strip[@]+"${_lanes_strip[@]}"} bash -c "${_lanes_epilogue}" \
+  exec env ${_lanes_strip[@]+"${_lanes_strip[@]}"} bash --norc -c "${_lanes_epilogue}" \
     lanes-epilogue "${LANE}" "${LANES_LAST_LOG}" "${_lanes_us_preflight}" "${_lanes_us_codegen}" tasks \
     "${LANES_APP_LOG_FILE:-}" "${LANES_MAIL_LOG_FILE:-}" \
     ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"} -- \
@@ -2066,7 +2076,7 @@ echo "[lane:${LANE}] --only: ${_only_cmd[*]}" | tee -a "${LANES_LAST_LOG}"
 _lanes_setup_phase=only
 # Same mid-run service-loss epilogue (and last.log) as the tasks exec above:
 # a VM crash does not care whether the run was a full lane or one file.
-exec env ${_lanes_strip[@]+"${_lanes_strip[@]}"} bash -c "${_lanes_epilogue}" \
+exec env ${_lanes_strip[@]+"${_lanes_strip[@]}"} bash --norc -c "${_lanes_epilogue}" \
   lanes-epilogue "${LANE}" "${LANES_LAST_LOG}" "${_lanes_us_preflight}" "${_lanes_us_codegen}" only \
   "${LANES_APP_LOG_FILE:-}" "${LANES_MAIL_LOG_FILE:-}" \
   ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"} -- \

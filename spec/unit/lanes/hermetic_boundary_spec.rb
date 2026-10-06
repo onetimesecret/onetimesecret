@@ -394,6 +394,41 @@ RSpec.describe 'tests/lanes/run hermetic boundary' do
     expect(env.keys.grep(/\A_lanes_/)).to be_empty
   end
 
+  # bash sources ~/.bashrc in a non-interactive shell too, in one case: it
+  # was started with -c, its standard input is a network connection, and it
+  # is a top-level shell (SHLVL below 2) — its guess at "run by rshd/sshd".
+  # The runner's last step is `bash -c <epilogue>`, started after the scrub
+  # cleared SHLVL, so a runner whose stdin is a socket (an agent harness, an
+  # ssh command) met all three, and whatever the caller's ~/.bashrc exports
+  # reached the task process from below the scrub. HOME is keep-listed, so
+  # the file is the caller's real one.
+  it 'does not source ~/.bashrc into the task process when stdin is a socket' do
+    require 'socket'
+
+    Dir.mktmpdir('ots-lane-home') do |home|
+      File.write(File.join(home, '.bashrc'), <<~RC)
+        echo "bashrc-ran-#{probe::CANARY}"
+        export OTS_LANE_BASHRC_CANARY=#{probe::CANARY}
+      RC
+
+      stdin, peer    = UNIXSocket.pair
+      reader, writer = IO.pipe
+      pid            = Process.spawn(
+        { 'HOME' => home, 'LANES_NO_AUTOSTART' => '1', 'RSPEC_OUTPUT_FILE' => nil },
+        File.join(probe.repo_root, 'tests', 'lanes', 'run'), 'selftest',
+        in: stdin, out: writer, err: writer, chdir: probe.repo_root
+      )
+      writer.close
+      output    = reader.read
+      _, status = Process.wait2(pid)
+      [stdin, peer, reader].each(&:close)
+
+      expect(status).to be_success, output
+      expect(output).to include('--- lane:selftest env ---')
+      expect(output).not_to include(probe::CANARY)
+    end
+  end
+
   describe 'names the runner assigns under a flag' do
     # The caller exported every one of them (poisoned_env). A plain run must
     # deliver none: the value-based check above already covers the canary,
