@@ -317,12 +317,13 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
       YAML.safe_load(yaml, permitted_classes: [Symbol, Date, Time], aliases: true).fetch('loggers').keys
     end
 
-    it 'applies the configured level of each category it defines' do
-      config = { 'loggers' => { 'Auth' => 'trace', 'HTTP' => 'fatal' } }
+    it 'applies the configured level of every category under loggers:' do
+      config = { 'loggers' => { 'Chores' => 'info', 'CLI' => 'debug', 'SetupLoggersSpecAdHoc' => 'trace' } }
       cache  = instance.send(:create_cached_loggers, config)
 
-      expect(cache['Auth'].level).to eq(:trace)
-      expect(cache['HTTP'].level).to eq(:fatal)
+      expect(cache['Chores'].level).to eq(:info)
+      expect(cache['CLI'].level).to eq(:debug)
+      expect(cache['SetupLoggersSpecAdHoc'].level).to eq(:trace)
     end
 
     it 'gives a defined category the config does not name the default level' do
@@ -332,46 +333,14 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
       expect(cache['App'].level).to eq(SemanticLogger.default_level)
     end
 
-    # Chores and CLI are listed at info in the shipped config and have never
-    # been applied: both run at the default level. Applying them would make a
-    # default `bin/ots` command print its info lines on stderr, which is a
-    # change to the default output (#4683 leaves the defaults as they are).
-    it 'does not apply a level to Chores or CLI, which follow the default level' do
-      config = { 'loggers' => { 'Chores' => 'info', 'CLI' => 'info', 'SetupLoggersSpecAdHoc' => 'trace' } }
-      cache  = instance.send(:create_cached_loggers, config)
-
-      expect(cache.keys).not_to include('Chores', 'CLI', 'SetupLoggersSpecAdHoc')
-
-      was = SemanticLogger.default_level
-      begin
-        %i[warn error].each do |default|
-          SemanticLogger.default_level = default
-          expect(Onetime.get_logger('Chores').level).to eq(default)
-          expect(Onetime.get_logger('CLI').level).to eq(default)
-        end
-      ensure
-        SemanticLogger.default_level = was
-      end
-    end
-
-    it 'gives Chores and CLI no DEBUG_* flag' do
-      expect(described_class.logger_definitions.keys).not_to include('Chores', 'CLI')
-      expect(described_class.logger_definitions.values).not_to include('DEBUG_CHORES', 'DEBUG_CLI')
-    end
-
-    # The gap between the shipped configs and the initializer is exactly the
-    # recorded one. A category added to a config without a definition (it
-    # would have no level, no DEBUG_* flag and no entry in the lane runner's
-    # --quiet floor, which spec/unit/lanes/quiet_log_floor_spec.rb pins to
-    # logger_definitions) fails here.
-    it 'defines every category the shipped logging configs name, except the recorded ones' do
+    # A category the shipped configs name but the initializer does not define
+    # has no DEBUG_* flag and no entry in the lane runner's --quiet floor
+    # (spec/unit/lanes/quiet_log_floor_spec.rb pins that list to
+    # logger_definitions).
+    it 'defines every category the shipped logging configs name' do
       %w[etc/defaults/logging.defaults.yaml spec/logging.test.yaml].each do |path|
-        undefined = configured_logger_names(path) - described_class.logger_definitions.keys
-        expect(undefined - described_class::UNAPPLIED_CONFIG_CATEGORIES).to be_empty, path
+        expect(described_class.logger_definitions.keys).to include(*configured_logger_names(path)), path
       end
-
-      expect(configured_logger_names('etc/defaults/logging.defaults.yaml'))
-        .to include(*described_class::UNAPPLIED_CONFIG_CATEGORIES)
     end
   end
 

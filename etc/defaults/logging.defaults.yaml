@@ -59,11 +59,6 @@ formatter: <%= ENV['LOG_FORMATTER'] || 'color' %>  # Since v0.24.0
 # Named logger levels
 # Each category can be configured independently. Loggers added here are
 # made available by the setup_loggers initializer.
-#
-# Chores and CLI are the exception: the level written here is not applied,
-# and both run at default_level (or LOG_LEVEL). They are listed because the
-# application logs under those names. To set one for a run, use
-# DEBUG_LOGGERS, for example DEBUG_LOGGERS=CLI:info.
 loggers:
   App: warn       # Default application logger  # Since v0.24.0
   Auth: info      # Authentication/authorization flows  # Since v0.24.0

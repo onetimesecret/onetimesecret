@@ -13,12 +13,9 @@ module Onetime
   module Initializers
     # Configures SemanticLogger with strategic categories for debugging.
     #
-    # Categories: App, Auth, Billing, Boot, Bunny, Ents, Familia, HTTP, Jobs,
-    # Org, Otto, Rhales, Scheduler, Secret, Sequel, Session, Workers.
-    #
-    # Chores and CLI are logger names the application uses, and the shipped
-    # config lists a level for each, but they are not categories here (see
-    # UNAPPLIED_CONFIG_CATEGORIES): both run at the default level.
+    # Categories: App, Auth, Billing, Boot, Bunny, Chores, CLI, Ents, Familia,
+    # HTTP, Jobs, Org, Otto, Rhales, Scheduler, Secret, Sequel, Session,
+    # Workers.
     #
     # Configuration loaded from etc/logging.yaml with environment variable
     # overrides. Logger instances are cached because SemanticLogger[]
@@ -69,6 +66,8 @@ module Onetime
         'Billing' => 'DEBUG_BILLING',
         'Boot' => 'DEBUG_BOOT',
         'Bunny' => 'DEBUG_BUNNY',
+        'Chores' => 'DEBUG_CHORES',
+        'CLI' => 'DEBUG_CLI',
         'Ents' => 'DEBUG_ENTS',
         'Familia' => 'DEBUG_FAMILIA',
         'HTTP' => 'DEBUG_HTTP',
@@ -83,19 +82,9 @@ module Onetime
         'Workers' => 'DEBUG_WORKERS',
       }.freeze
 
-      # Categories the shipped logging config names under `loggers:` whose
-      # level this initializer does not apply.
-      #
-      # Chores and CLI have been listed at info since they were added to the
-      # config, but were never in logger_definitions, so both have always run
-      # at the default level (warn, or LOG_LEVEL). Applying the listed level
-      # would make a default `bin/ots` command print its info lines on stderr
-      # and add Chores info lines to server output: a change to the default
-      # output, which needs its own decision and release note. Until then
-      # this records the gap, and a spec keeps it from growing
-      # (spec/unit/onetime/initializers/setup_loggers_spec.rb).
-      # DEBUG_LOGGERS=CLI:info sets either one for a run.
-      UNAPPLIED_CONFIG_CATEGORIES = %w[Chores CLI].freeze
+      # Console backtrace lines per logged exception in production, when
+      # BACKTRACE_LINES is unset.
+      PRODUCTION_BACKTRACE_LINES = 20
 
       # An appender this initializer added, with the settings it was built
       # from. `identity` is compared on a rerun to tell an unchanged
@@ -705,11 +694,12 @@ module Onetime
 
       # Create and cache logger instances with levels from config.
       #
-      # Only the categories in logger_definitions. A name the config lists
-      # under `loggers:` that is not defined there gets no logger here and no
-      # level (see UNAPPLIED_CONFIG_CATEGORIES).
+      # Every category named under `loggers:` in the config gets its level,
+      # not only the ones logger_definitions lists: the config file is what an
+      # operator edits, and a level written there must not be silently ignored.
       def create_cached_loggers(config)
-        self.class.logger_definitions.each_with_object({}) do |(name, _), cache|
+        names = self.class.logger_definitions.keys | (config['loggers'] || {}).keys.map(&:to_s)
+        names.each_with_object({}) do |name, cache|
           level        = config.dig('loggers', name)&.to_sym || SemanticLogger.default_level
           warn " initialize #{name}=#{level}" if @debug_boot
           logger       = SemanticLogger[name]

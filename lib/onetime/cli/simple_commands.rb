@@ -92,9 +92,6 @@ module Onetime
           Session   - Session lifecycle management
           Workers   - RabbitMQ worker message processing
 
-          Chores and CLI run at the default level: the level etc/logging.yaml
-          lists for them is not applied. DEBUG_LOGGERS sets either one.
-
           ENVIRONMENT VARIABLES (Applied in Order)
           ═════════════════════════════════════════
 
@@ -112,8 +109,7 @@ module Onetime
              Effect:  Sets specific logger levels, overriding YAML configuration
 
           4. DEBUG_* - Individual quick flags (override YAML config), one per
-             category above except Chores and CLI: DEBUG_<CATEGORY>=1.
-             For example:
+             category above: DEBUG_<CATEGORY>=1. For example:
              DEBUG_APP=1       - Set App logger to debug
              DEBUG_AUTH=1      - Set Auth logger to debug
              DEBUG_BUNNY=1     - Set Bunny logger to debug (RabbitMQ)
