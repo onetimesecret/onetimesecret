@@ -8,4 +8,5 @@ Security
   organization context. Such a host counted as having no domain scope, so a
   member confined to one custom domain could select any of their
   organizations there, ``O-Organization-ID`` included. Every organization is
-  now withheld on it, for org-scoped members too. (#4225)
+  now withheld on it, for org-scoped members too, and no default workspace
+  is created there for a customer who has none yet. (#4225)

@@ -25,7 +25,8 @@ require_relative '../middleware/domain_strategy'
 # subject to the membership's domain scope when the request has a custom
 # domain. See #scope_permits? for where the request's domains come from.
 # On an unregistered host, a display domain that was read and has no
-# record, every organization is withheld (#4225).
+# record, every organization is withheld (#4225), and so is the default
+# workspace auth_org would otherwise create for a customer who has none.
 # When the scope leaves no organization, the context carries
 # domain_scope_refused: true and auth_org does not select one either.
 #
@@ -61,7 +62,8 @@ module Onetime
       # display domain was read and has no record (#4225). The nil element
       # reaches OrganizationMembership#can_access_domain?, which refuses a
       # nil domain, so #scope_permits? refuses every membership, org-scoped
-      # ones included, and #scope_withheld_any? reports the refusal.
+      # ones included, and #scope_withheld_any? reports the refusal for
+      # every customer, one with no organization yet included.
       UNREGISTERED_HOST = [nil].freeze
 
       # Load organization context for authenticated customer
@@ -336,12 +338,18 @@ module Onetime
 
       # Whether the domain scope withheld at least one of the customer's
       # organizations on this request. Always false with no custom domain.
+      # Always true on an unregistered host (UNREGISTERED_HOST), whether or
+      # not the customer has an organization yet: the refusal has to reach
+      # Logic::OrganizationContext#auth_org for a customer with none too,
+      # or it would create their default workspace on a host the install
+      # does not serve.
       #
       # @param customer [Onetime::Customer]
       # @param domains [Array<Onetime::CustomDomain>] from #request_scope_domains
       # @return [Boolean]
       def scope_withheld_any?(customer, domains)
         return false if domains.empty?
+        return true if domains.equal?(UNREGISTERED_HOST)
 
         customer.organization_instances.to_a.any? { |o| !scope_permits?(o, customer, domains) }
       end

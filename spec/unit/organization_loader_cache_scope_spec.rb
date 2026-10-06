@@ -418,9 +418,19 @@ RSpec.describe Onetime::Application::OrganizationLoader do
       expect(Onetime::CustomDomain).not_to have_received(:from_display_domain)
     end
 
+    # A customer with no organization yet is refused as well. Without the
+    # refusal marker, Logic::OrganizationContext#auth_org would create their
+    # default workspace on the unregistered host (review finding on #4672).
+    it 'withholds organization context from a customer with no organizations' do
+      allow(customer).to receive(:organization_instances).and_return([])
+      env = unregistered_env('origin.example.com')
+      expect_withheld(loader.load_organization_context(customer, session, env))
+    end
+
     # DomainStrategy publishes no lookup for a host it could not detect or
-    # parse, so nothing was read and nothing is withheld. Kept as it was: an
-    # open point, not a disposition.
+    # parse, so nothing was read and nothing is withheld. Kept by maintainer
+    # decision (2026-10-06, recorded on #4672): such a request is served as
+    # the canonical host, which is what sending the canonical Host gets.
     it 'keeps an :invalid request with no published lookup unscoped' do
       env     = { 'HTTP_HOST' => 'origin.example.com',
                   'onetime.display_domain' => unregistered_host, 'onetime.domain_strategy' => :invalid }
@@ -551,6 +561,21 @@ RSpec.describe Onetime::Application::OrganizationLoader do
     end
 
     it 'keeps the refusal on an unregistered host' do
+      env     = {
+        'HTTP_HOST' => 'origin.example.com',
+        'onetime.display_domain' => 'unregistered.example.com', 'onetime.domain_strategy' => :invalid,
+        Onetime::CustomDomain::Lookup::ENV_KEY => Onetime::CustomDomain::Lookup.absent('unregistered.example.com'),
+      }
+      context = loader.load_organization_context(customer, session, env)
+      expect(context[:organization]).to be_nil
+      expect(context[:domain_scope_refused]).to be(true)
+
+      expect(Auth::Operations::EnsureDefaultWorkspace).not_to receive(:new)
+      expect(receipt_logic(context).auth_org).to be_nil
+    end
+
+    it 'keeps the refusal on an unregistered host for a customer with no organizations' do
+      allow(customer).to receive(:organization_instances).and_return([])
       env     = {
         'HTTP_HOST' => 'origin.example.com',
         'onetime.display_domain' => 'unregistered.example.com', 'onetime.domain_strategy' => :invalid,
