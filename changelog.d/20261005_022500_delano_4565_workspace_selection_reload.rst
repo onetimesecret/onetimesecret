@@ -8,12 +8,19 @@ Fixed
 - The scope switcher stays available after selecting a workspace you do
   not own, as long as you own another one. (#4565)
 
+- A workspace chosen just before a page reload is kept when the reload
+  overtakes the request that records it. (#4565)
+
+- The scope switcher shows the settings gear only for workspaces whose
+  settings you can open (owner or admin). (#4565)
+
 Changed
 -------
 
 - Archived organizations are no longer resolved from the
-  ``O-Organization-ID`` header or a stored session selection; the request
-  falls back to the default organization. (#4565)
+  ``O-Organization-ID`` header, a stored session selection or the
+  request's custom domain; the request falls back to the default
+  organization. (#4565)
 
 Removed
 -------
