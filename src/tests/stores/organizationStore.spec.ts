@@ -440,10 +440,12 @@ describe('Organization Store', () => {
           PENDING_ORG_SELECTION_KEY,
           JSON.stringify({ objid, at: Date.now() - ageMs })
         );
-      const slowReply = (status = 200) => async () => {
-        await new Promise((resolve) => setTimeout(resolve, 10));
-        return [status, { success: status === 200 }];
-      };
+      const slowReply =
+        (status = 200) =>
+        async (): Promise<[number, { success: boolean }]> => {
+          await new Promise((resolve) => setTimeout(resolve, 10));
+          return [status, { success: status === 200 }];
+        };
       const loadList = async () => {
         axiosMock?.onGet('/api/organizations').reply(200, {
           records: [mockOrganizationRaw],
