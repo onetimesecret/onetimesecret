@@ -283,6 +283,21 @@ describe('Login.vue auth_error handling', () => {
       expect(alert.text()).not.toContain('web.login.errors.sso_not_configured');
     });
 
+    it('displays the domain-unavailable copy when auth_error=domain_unavailable', async () => {
+      // The custom domain record for the request host could not be read
+      // (#4668): the auth backend refuses sign-in on it with one general
+      // message, which must not read as the generic SSO failure or as SSO
+      // being unconfigured.
+      wrapper = await createWrapper({ auth_error: 'domain_unavailable' });
+      await flushPromises();
+
+      const alert = wrapper.find('[role="alert"]');
+      expect(alert.exists()).toBe(true);
+      expect(alert.text()).toContain('web.login.errors.domain_unavailable');
+      expect(alert.text()).not.toContain('web.login.errors.sso_failed');
+      expect(alert.text()).not.toContain('web.login.errors.sso_not_configured');
+    });
+
     it('shows a generic error for unknown codes (never a blank page)', async () => {
       // Regression guard for issue #3478: an auth_error code this bundle does
       // not recognize (e.g. from a backend newer than the deployed frontend)
@@ -419,6 +434,20 @@ describe('Login.vue auth_error handling', () => {
       await flushPromises();
 
       expect(wrapper.find('nav[aria-label="Additional sign-in options"]').exists()).toBe(false);
+    });
+
+    it('still shows the auth_error banner on the disabled page', async () => {
+      // A failed read of the request host's custom-domain record (#4668) both
+      // redirects here with auth_error=domain_unavailable AND turns
+      // features.signin off, so the alert has to render outside the
+      // disabled-panel conditional or the visitor never sees why.
+      wrapper = await createWrapper({ auth_error: 'domain_unavailable' }, disabledState);
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="signin-disabled-panel"]').exists()).toBe(true);
+      const alert = wrapper.find('[role="alert"]');
+      expect(alert.exists()).toBe(true);
+      expect(alert.text()).toContain('web.login.errors.domain_unavailable');
     });
 
     it('renders the auth form when features.signin is true', async () => {
