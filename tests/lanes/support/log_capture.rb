@@ -28,6 +28,10 @@
 #     config reaches it.
 #   - A value the runner should never have exported stops the process here,
 #     before any test runs, instead of at the first boot or never.
+#   - A write to the log file that fails later raises nothing in the
+#     application. With LANES_APP_LOG_FILE set, each failed write is recorded
+#     in <that path>.write-failed, which the runner looks for at the end of
+#     the run and reports as an incomplete capture (exit 74).
 #
 # The mail file is separate on purpose. It holds raw message bodies that
 # never pass the log scrubber, and the application log is not a transcript
@@ -46,8 +50,41 @@ module Lanes
     APP_LOG_CONSOLE = 'LANES_APP_LOG_CONSOLE'
     MAIL_LOG_FILE   = 'LANES_MAIL_LOG_FILE'
 
+    # Appended to the app log's path: the file a failed write is recorded
+    # in. tests/lanes/run removes it at the start of a run and derives the
+    # same name at the end.
+    WRITE_FAILED_SUFFIX = '.write-failed'
+
     CONSOLE_OFF    = 'off'
     CONSOLE_LEVELS = %w[trace debug info warn error fatal].freeze
+
+    # The listener watch_app_log adds: one line per failed write to the app
+    # log, appended to <app log>.write-failed.
+    #
+    # A marker that cannot be written (the same full disk, usually) is left
+    # to the application's line on standard error, which the runner also
+    # looks for.
+    class WriteFailureMarker
+      attr_reader :app_log
+
+      def initialize(app_log)
+        @app_log = app_log
+      end
+
+      def path
+        "#{app_log}#{WRITE_FAILED_SUFFIX}"
+      end
+
+      # @param file_name [String] the log file the write failed on
+      # @param error [SystemCallError, IOError]
+      def call(file_name, error)
+        return unless file_name == app_log
+
+        File.open(path, 'a') { |marker| marker.puts "pid #{Process.pid}: #{error.class}: #{error.message}" }
+      rescue SystemCallError, IOError
+        nil
+      end
+    end
 
     module_function
 
@@ -69,7 +106,10 @@ module Lanes
           'and no log file, application log events would have no destination'
       end
 
-      install_app_log(app_log) if app_log
+      if app_log
+        install_app_log(app_log)
+        watch_app_log(app_log)
+      end
       install_mail_log(file_setting(env, MAIL_LOG_FILE))
     end
 
@@ -101,6 +141,25 @@ module Lanes
       )
     rescue Onetime::ConfigError => ex
       raise Error, "#{APP_LOG_FILE}: #{ex.message}"
+    end
+
+    # Record every failed write to +path+ from now on.
+    #
+    # The application reports an I/O error on its log file to listeners
+    # (SetupLoggers::FileSink.write_failure_listeners) and on standard error.
+    # The listener added here is the report that does not depend on where
+    # this process's standard error goes: a spec may have replaced it, or the
+    # process may be a forked child whose output a spec collects. A forked
+    # child inherits the listener.
+    #
+    # One marker listener per process: a second call for the same path adds
+    # nothing, and one for another path replaces the first.
+    def watch_app_log(path)
+      listeners = Onetime::Initializers::SetupLoggers::FileSink.write_failure_listeners
+      return if listeners.any? { |listener| listener.is_a?(WriteFailureMarker) && listener.app_log == path }
+
+      listeners.reject! { |listener| listener.is_a?(WriteFailureMarker) }
+      listeners << WriteFailureMarker.new(path)
     end
 
     # Point the logger mail backend at the mail file, or leave it alone.

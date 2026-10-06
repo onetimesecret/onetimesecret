@@ -376,8 +376,8 @@ if [[ $# -eq 0 || "${1:-}" == "--list" || "${1:-}" == "-l" ]]; then
   echo "                 and app.log is not everything the run printed (rspec"
   echo "                 and other direct output stay in last.log). A file that"
   echo "                 cannot be created ends the run with exit 73 before"
-  echo "                 any task. A file that is gone when the run ends, or a"
-  echo "                 write to app.log the app reported as failed, turns an"
+  echo "                 any task. A file that is gone or was replaced when the"
+  echo "                 run ends, or a failed write to app.log, turns an"
   echo "                 otherwise green run into exit 74."
   echo "  --log-console <off|trace|debug|info|warn|error|fatal>"
   echo "                 what the app's log prints on the console. off: nothing"
@@ -1560,6 +1560,23 @@ fi
 # and 69 used above. The diagnostic goes to stderr and into last.log, which
 # exists by now; the EXIT trap just installed adds the exit record.
 #
+# Two more files in the run directory let the end of the run tell whether
+# the capture stayed whole (the epilogue below reads both):
+#
+#   .app.log.anchor, .mail.log.anchor
+#       A hard link to each file, made here. A test process that finds its
+#       log file missing creates it again (the app opens with O_CREAT), so
+#       "the file exists at the end" does not show that it is the file the
+#       run started with. The link does: `-ef` compares device and inode,
+#       and the link keeps the first inode allocated, so a re-created file
+#       can never be given the same one. A file system without hard links
+#       cannot give that answer, and the run stops here like any other
+#       file that cannot be created.
+#   app.log.write-failed
+#       Written by a test process when a write to app.log fails
+#       (tests/lanes/support/log_capture.rb). Removed here, so one found at
+#       the end is from this run.
+#
 # Created here rather than beside last.log so that trap covers a failure,
 # and before provisioning so the files exist however setup ends — CI
 # collects them on failure too.
@@ -1575,6 +1592,13 @@ if [[ ${CAPTURE_LOGS} -eq 1 ]]; then
       _lanes_reason='the path exists and is not a regular file'
     elif ! { : > "${_lanes_file}"; } 2>/dev/null; then
       _lanes_reason='the file cannot be created or truncated; check that the directory and the file are writable'
+    else
+      # rm first: GNU ln -f refuses to replace a link to the same file, which
+      # is what the previous run's anchor is after the truncation above.
+      _lanes_anchor="${_lanes_file%/*}/.${_lanes_file##*/}.anchor"
+      if ! { rm -f -- "${_lanes_anchor}" && ln -- "${_lanes_file}" "${_lanes_anchor}"; } 2>/dev/null; then
+        _lanes_reason="the hard link ${_lanes_anchor} cannot be created; the run directory must be on a file system that supports hard links"
+      fi
     fi
     if [[ -n "${_lanes_reason}" ]]; then
       { echo "error: --capture-logs cannot create ${_lanes_file}"
@@ -1583,10 +1607,18 @@ if [[ ${CAPTURE_LOGS} -eq 1 ]]; then
       exit 73
     fi
   done
-  builtin unset _lanes_file _lanes_reason
+  builtin unset _lanes_file _lanes_reason _lanes_anchor
+  if ! rm -f -- "${_lanes_app_log}.write-failed" 2>/dev/null; then
+    { echo "error: --capture-logs cannot remove ${_lanes_app_log}.write-failed"
+      echo "  left by an earlier run; this run would be reported as incomplete. No task was run."
+    } | tee -a "${LANES_LAST_LOG}" >&2 || true
+    exit 73
+  fi
   _lanes_capture_created=1
 elif [[ ${CONSOLE} -eq 0 ]]; then
-  rm -f -- "${_lanes_app_log}" "${_lanes_mail_log}" 2>/dev/null || true
+  rm -f -- "${_lanes_app_log}" "${_lanes_mail_log}" \
+           "${_lanes_app_log%/*}/.app.log.anchor" "${_lanes_app_log%/*}/.mail.log.anchor" \
+           "${_lanes_app_log}.write-failed" 2>/dev/null || true
 fi
 
 # The per-worktree PG database has to exist before the lane's specs open a
@@ -1790,8 +1822,8 @@ fi
 # infra exit code (69), matching every other services-unavailable exit here.
 #
 # The epilogue is builtins plus tee(1) — echo, the /dev/tcp probe port_open
-# uses, and the copy into last.log — and, under --capture-logs only, one
-# grep(1) over last.log, so its PATH dependences are tools every CI image
+# uses, and the copy into last.log — and, under --capture-logs only, at most
+# one grep(1) over last.log, so its PATH dependences are tools every CI image
 # and every dev box has. It defines no functions
 # (nothing for spec/unit/lanes/hermetic_boundary_spec.rb's function-table
 # assertion to see: an unexported function would not reach the task child
@@ -1818,19 +1850,28 @@ fi
 # a failure after that:
 #   - a file that is gone by the end of the run. Something removed it, and
 #     whatever was written to it afterwards went to an unlinked file.
-#   - a write the application could not complete. SemanticLogger rescues an
-#     appender's error and reports it only through its own internal logger,
-#     on stderr: `Failed to log to appender: <appender name>` (likewise
-#     flush, re-open, close). stderr is in last.log, so that is where to
-#     look, for the name the application gives its file destination
-#     (SetupLoggers::FileSink). spec/unit/lanes/capture_logs_spec.rb feeds a
-#     line SemanticLogger really produced through a run, so a gem upgrade
-#     that rewords it fails there instead of silently disarming this.
-# Either one is reported on stderr and in last.log, marks the `app log:`
+#   - a file that is there but is not the one the run started with: removed,
+#     then created again by a later process, so what was written before is
+#     not in it. Compared against the hard link made beside it at the start.
+#   - a write the application could not complete. Two reports, both the
+#     application's own and both for I/O errors only (SystemCallError,
+#     IOError; SetupLoggers::FileSink#log):
+#       app.log.write-failed, which a test process that loaded the helpers
+#       writes (tests/lanes/support/log_capture.rb). It does not depend on
+#       where that process's stderr went.
+#       The line FileSink prints on stderr, naming this run's app.log, looked
+#       for in last.log. This covers a process that boots the application
+#       without the test helpers, and a marker that could not be written.
+#     SemanticLogger's own `Failed to log to appender: <name>` line is NOT
+#     the signal. It is printed for any exception raised while an appender
+#     runs, and a thread interrupted mid-log (Bunny::ShutdownSignal into a
+#     reader thread at session close) is not a failed write.
+# Any of these is reported on stderr and in last.log, marks the `app log:`
 # line, and turns an otherwise green run into exit 74 (EX_IOERR): a run that
 # was asked to keep its logs and lost some must not read as a success. A run
-# that already failed keeps its own exit code. A file that was removed and
-# then re-created by a later process is not detected.
+# that already failed keeps its own exit code. Not detected: a failed write
+# in a process that loaded no helper and whose stderr did not reach last.log,
+# and a file truncated in place.
 #
 # The timing line comes ahead of the log lines, in every mode (--quiet
 # included: it is one line, and the run it describes is the one that needs
@@ -1884,12 +1925,20 @@ _lanes_epilogue='
   if [[ -n "${_app_log}" ]]; then
     _capture_err=""
     for _f in "${_app_log}" "${_mail_log}"; do
+      _anchor="${_f%/*}/.${_f##*/}.anchor"
       if [[ ! -f "${_f}" ]]; then
         _capture_err="${_capture_err}${_capture_err:+; }${_f} was removed during the run"
+      elif [[ ! "${_f}" -ef "${_anchor}" ]]; then
+        _capture_err="${_capture_err}${_capture_err:+; }${_f} is not the file this run started with (it was removed and created again, or ${_anchor} is gone)"
       fi
     done
-    if grep -E -q -- "Failed to [a-z -]+ appender: Onetime::Initializers::SetupLoggers::FileSink" "${_log}" 2>/dev/null; then
-      _capture_err="${_capture_err}${_capture_err:+; }a process reported a failed write to the app log (\"Failed to ... appender\" in ${_log})"
+    _marker="${_app_log}.write-failed"
+    if [[ -e "${_marker}" ]]; then
+      _marker_line=""
+      read -r _marker_line < "${_marker}" 2>/dev/null || true
+      _capture_err="${_capture_err}${_capture_err:+; }a process could not write to the app log (${_marker_line:-no detail}; ${_marker})"
+    elif grep -F -q -- "[SetupLoggers] Cannot write to the log file ${_app_log}:" "${_log}" 2>/dev/null; then
+      _capture_err="${_capture_err}${_capture_err:+; }a process reported a failed write to the app log (\"Cannot write to the log file\" in ${_log})"
     fi
     _capture_note=""
     if [[ -n "${_capture_err}" ]]; then

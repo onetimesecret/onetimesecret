@@ -293,12 +293,29 @@ The runner owns `app.log` and `mail.log`:
 - A file that cannot be created (the path is a directory or not a regular
   file, the directory is not writable) ends the run with exit 73 before any
   task, with the reason on stderr and in `last.log`.
-- A capture that did not stay whole is an error: when either file is gone at
-  the end of the run, or a process reported a failed write to `app.log`
-  (SemanticLogger's `Failed to log to appender` line on stderr, which the
-  runner looks for in `last.log`), the runner says so, marks the `app log:`
-  line `(incomplete)`, and turns an otherwise green run into exit 74. A run
-  that already failed keeps its own exit code.
+- A capture that did not stay whole is an error. The runner says so, marks
+  the `app log:` line `(incomplete)`, and turns an otherwise green run into
+  exit 74; a run that already failed keeps its own exit code. Three things
+  are checked at the end of the run:
+  - Either file is gone.
+  - Either file is not the one the run started with: it was removed and a
+    later process created it again, so the earlier events are not in it. The
+    runner hard-links each file at the start (`.app.log.anchor`,
+    `.mail.log.anchor`) and compares; the earlier content stays readable
+    through the link. The run directory therefore needs a file system with
+    hard links.
+  - A write to `app.log` failed with an I/O error. A test process records
+    it in `app.log.write-failed`, and the application prints
+    `[SetupLoggers] Cannot write to the log file <path>` on stderr, which
+    the runner looks for in `last.log` when there is no marker.
+
+  SemanticLogger's own `Failed to log to appender` line is not treated as a
+  failed write. It is printed for any exception raised while an appender
+  runs, including a thread interrupted while logging (Bunny's reader thread
+  at session close).
+
+  Not detected: a failed write in a process that loaded neither test helper
+  and whose stderr did not reach `last.log`, and a file truncated in place.
 - The path of `app.log` is printed just above the `log:` line and recorded in
   `last.log`, including when setup fails after the files were created.
   `--print-key` shows both paths and the console settings.

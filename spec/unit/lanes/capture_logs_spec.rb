@@ -40,6 +40,16 @@ module LaneCaptureProbe
     def app_log  = File.join(directory, 'app.log')
     def mail_log = File.join(directory, 'mail.log')
     def last_log = File.join(directory, 'last.log')
+
+    # The hard links the runner makes beside the two files, and the file a
+    # test process records a failed write in.
+    def app_anchor   = File.join(directory, '.app.log.anchor')
+    def mail_anchor  = File.join(directory, '.mail.log.anchor')
+    def write_failed = "#{app_log}.write-failed"
+
+    def overlay_path
+      File.join(LaneCaptureProbe.repo_root, 'tests', 'lanes', 'overlays', "#{overlay}.env")
+    end
   end
 
   module_function
@@ -384,60 +394,219 @@ RSpec.describe 'tests/lanes/run --capture-logs files' do
       end
     end
 
+    # A process that finds its log file missing creates it again (the
+    # application opens with O_CREAT), so a file being there at the end does
+    # not show that it holds the whole run. The runner hard-links each file
+    # at the start and compares at the end.
+    describe 'a file that was removed and created again' do
+      it 'makes a hard link beside each file at the start' do
+        probe.with_scratch do |scratch|
+          run = probe.run('selftest', '--overlay', scratch.overlay, '--capture-logs')
+
+          expect(run.exitstatus).to eq(0), run.all
+          expect(File.identical?(scratch.app_log, scratch.app_anchor)).to be(true)
+          expect(File.identical?(scratch.mail_log, scratch.mail_anchor)).to be(true)
+        end
+      end
+
+      it 'links the files of this run when an earlier run left its links' do
+        probe.with_scratch do |scratch|
+          2.times do
+            run = probe.run('selftest', '--overlay', scratch.overlay, '--capture-logs')
+            expect(run.exitstatus).to eq(0), run.all
+          end
+
+          expect(File.identical?(scratch.app_log, scratch.app_anchor)).to be(true)
+        end
+      end
+
+      it 'turns a green run into exit 74 when app.log is not the file the run started with' do
+        probe.with_scratch do |scratch|
+          recreate = <<~SH
+            echo "before" >> "${LANES_APP_LOG_FILE}"
+            rm -f "${LANES_APP_LOG_FILE}"
+            echo "after" >> "${LANES_APP_LOG_FILE}"
+          SH
+          run = run_only(scratch, recreate)
+
+          expect(run.exitstatus).to eq(74), run.all
+          expect(run.stderr).to include(
+            "[lane:selftest] error: log capture is incomplete: #{scratch.app_log} is not the file this run started with",
+          )
+          expect(run.stderr).to include("[lane:selftest] app log: #{scratch.app_log} (incomplete)\n")
+          expect(File.read(scratch.app_log)).to eq("after\n")
+          # What was written before the removal is still reachable.
+          expect(File.read(scratch.app_anchor)).to eq("before\n")
+        end
+      end
+
+      it 'does the same for mail.log' do
+        probe.with_scratch do |scratch|
+          run = run_only(scratch, 'rm -f "${LANES_MAIL_LOG_FILE}"; : >> "${LANES_MAIL_LOG_FILE}"')
+
+          expect(run.exitstatus).to eq(74), run.all
+          expect(run.stderr).to include("#{scratch.mail_log} is not the file this run started with")
+        end
+      end
+
+      it 'removes the links with the files on a run that captures nothing' do
+        probe.with_scratch do |scratch|
+          probe.run('selftest', '--overlay', scratch.overlay, '--capture-logs')
+          File.write(scratch.write_failed, "left by an earlier run\n")
+
+          run = probe.run('selftest', '--overlay', scratch.overlay)
+
+          expect(run.exitstatus).to eq(0), run.all
+          expect(Dir.children(scratch.directory)).to eq(['last.log'])
+        end
+      end
+    end
+
     # A write to the log file that fails after it was opened raises nothing
-    # in the application: SemanticLogger rescues the appender's error and
-    # reports it through its own internal logger, on stderr. The runner looks
-    # for that report in last.log. The line used here is not a copy of the
-    # wording: it is what SemanticLogger writes when the application's own
-    # file appender raises, so a gem upgrade that rewords it, or a rename of
-    # the appender class, fails this example instead of disarming the check.
+    # in the application. The application's file sink reports I/O errors
+    # itself (SetupLoggers::FileSink#log): to listeners, one of which the
+    # test profile uses to write <app log>.write-failed, and on standard
+    # error. The runner looks for the marker, and failing that for the line
+    # in last.log. Both are produced here by the real sink and the real
+    # listener, so a change to either fails these examples instead of
+    # disarming the check.
     describe 'a write the application could not complete' do
-      def reported_write_failure
-        internal = StringIO.new
-        sink     = Onetime::Initializers::SetupLoggers::FileSink.new(
-          File.join(Dir.tmpdir, "capture-logs-sink-#{Process.pid}-#{SecureRandom.hex(4)}.log"),
-          append: true,
-        )
-        allow(sink).to receive(:log).and_raise(Errno::ENOSPC)
+      # Fail one write to +path+ through the application's sink, with the
+      # profile's listener watching +watched+. Returns the line the sink
+      # printed on standard error.
+      def failed_write_report(path, watched: path, error: Errno::ENOSPC.new('probe'))
+        sink_class = Onetime::Initializers::SetupLoggers::FileSink
+        listeners  = sink_class.write_failure_listeners
+        saved      = listeners.dup
+        listeners.replace([Lanes::LogCapture::WriteFailureMarker.new(watched)])
 
-        appenders = SemanticLogger::Appenders.new(SemanticLogger::Appender::IO.new(internal, level: :warn))
-        appenders << sink
-        event     = SemanticLogger::Log.new('CaptureLogsSpec', :error)
-        event.assign(message: 'an event the file could not take')
-        appenders.log(event)
+        sink   = sink_class.new(path, append: true)
+        broken = Object.new
+        broken.define_singleton_method(:write) { |*| raise error }
+        broken.define_singleton_method(:close) { nil }
+        sink.instance_variable_set(:@file, broken)
+        allow(sink).to receive(:reopen)
 
-        internal.string.lines.first.to_s.chomp
+        event = SemanticLogger::Log.new('CaptureLogsSpec', :error).tap { |log| log.assign(message: 'lost') }
+        was   = $stderr
+        begin
+          $stderr = StringIO.new
+          expect { sink.log(event) }.to raise_error(error.class)
+          $stderr.string.chomp
+        ensure
+          $stderr = was
+        end
+      ensure
+        listeners&.replace(saved)
       end
 
-      it 'is reported by SemanticLogger on one line that names the file appender' do
-        expect(reported_write_failure)
-          .to match(/Failed to log to appender: Onetime::Initializers::SetupLoggers::FileSink\b.*ENOSPC/)
+      # The selftest task prints its environment, so an overlay variable is
+      # a way to put a chosen line into the run's output, and so into
+      # last.log, without a fixture lane.
+      def print_in_run(scratch, line)
+        File.write(scratch.overlay_path, "CAPTURE_LOGS_SPEC_STDERR_LINE=#{Shellwords.escape(line)}\n")
       end
 
-      it 'turns a green run into exit 74 when that report is in the run output' do
-        line    = reported_write_failure
-        overlay = "CAPTURE_LOGS_SPEC_STDERR_LINE=#{Shellwords.escape(line)}\n"
+      it 'turns a green run into exit 74 when a test process recorded one' do
+        probe.with_scratch do |scratch|
+          # The stub writes the marker the way the listener does, during the
+          # run: the runner removes one it finds at the start.
+          marker_line = nil
+          Dir.mktmpdir('capture-logs-marker') do |dir|
+            elsewhere = File.join(dir, 'app.log')
+            failed_write_report(elsewhere)
+            marker_line = File.read("#{elsewhere}.write-failed")
+          end
+          expect(marker_line).to match(/\Apid \d+: Errno::ENOSPC: .*probe/)
 
-        # The selftest task prints its environment, so an overlay variable is
-        # a way to put a chosen line into the run's output, and so into
-        # last.log, without a fixture lane.
-        probe.with_scratch(overlay) do |scratch|
+          run = run_only(scratch, "printf '%s' #{Shellwords.escape(marker_line)} > \"${LANES_APP_LOG_FILE}.write-failed\"")
+
+          expect(run.exitstatus).to eq(74), run.all
+          expect(run.stderr).to include(
+            "error: log capture is incomplete: a process could not write to the app log (#{marker_line.chomp}; #{scratch.write_failed})",
+          )
+          expect(run.stderr).to include("[lane:selftest] app log: #{scratch.app_log} (incomplete)\n")
+          expect(File.read(scratch.last_log)).to include('a process could not write to the app log')
+        end
+      end
+
+      it 'removes a marker an earlier run left, so it is not held against this one' do
+        probe.with_scratch do |scratch|
+          File.write(scratch.write_failed, "pid 1: Errno::ENOSPC: left by an earlier run\n")
+
+          run = probe.run('selftest', '--overlay', scratch.overlay, '--capture-logs')
+
+          expect(run.exitstatus).to eq(0), run.all
+          expect(File.exist?(scratch.write_failed)).to be(false)
+          expect(run.all).not_to include('incomplete')
+        end
+      end
+
+      it "turns a green run into exit 74 when the sink's own report is in the run output" do
+        probe.with_scratch do |scratch|
+          line = failed_write_report(scratch.app_log, watched: '/nowhere/app.log')
+          expect(line).to start_with("[SetupLoggers] Cannot write to the log file #{scratch.app_log}: Errno::ENOSPC: ")
+          expect(File.exist?(scratch.write_failed)).to be(false)
+          print_in_run(scratch, line)
+
           run = probe.run('selftest', '--overlay', scratch.overlay, '--capture-logs')
           log = File.read(scratch.last_log)
 
           expect(run.exitstatus).to eq(74), run.all
           expect(log).to include(line)
-          expect(run.stderr).to include('error: log capture is incomplete: a process reported a failed write')
+          expect(run.stderr).to include('error: log capture is incomplete: a process reported a failed write to the app log')
           expect(run.stderr).to include("[lane:selftest] app log: #{scratch.app_log} (incomplete)\n")
           expect(File.file?(scratch.app_log)).to be(true)
         end
       end
 
-      it 'is not looked for on a run that captures nothing' do
-        line    = reported_write_failure
-        overlay = "CAPTURE_LOGS_SPEC_STDERR_LINE=#{Shellwords.escape(line)}\n"
+      it 'is not held against a run when the report names another log file' do
+        probe.with_scratch do |scratch|
+          Dir.mktmpdir('capture-logs-other') do |dir|
+            print_in_run(scratch, failed_write_report(File.join(dir, 'app.log')))
+          end
 
-        probe.with_scratch(overlay) do |scratch|
+          run = probe.run('selftest', '--overlay', scratch.overlay, '--capture-logs')
+
+          expect(run.exitstatus).to eq(0), run.all
+          expect(File.read(scratch.last_log)).to include('[SetupLoggers] Cannot write to the log file')
+          expect(run.all).not_to include('incomplete')
+        end
+      end
+
+      # SemanticLogger prints this for any exception raised while an
+      # appender runs. Bunny raises ShutdownSignal into its reader thread
+      # when a session closes, and a thread that is logging at that moment
+      # produces the line on every RabbitMQ lane. It is not a failed write,
+      # and a green lane must stay green.
+      it "stays green when SemanticLogger's own appender-failure line is in the run output" do
+        internal  = StringIO.new
+        appenders = SemanticLogger::Appenders.new(SemanticLogger::Appender::IO.new(internal, level: :warn))
+        sink      = Onetime::Initializers::SetupLoggers::FileSink.new(
+          File.join(Dir.tmpdir, "capture-logs-sink-#{Process.pid}-#{SecureRandom.hex(4)}.log"), append: true
+        )
+        interrupted = stub_const('LaneCaptureProbe::ShutdownSignal', Class.new(StandardError))
+        allow(sink).to receive(:log).and_raise(interrupted)
+        appenders << sink
+        appenders.log(SemanticLogger::Log.new('CaptureLogsSpec', :error).tap { |log| log.assign(message: 'interrupted') })
+        line = internal.string.lines.first.to_s.chomp
+        expect(line).to match(/Failed to log to appender: Onetime::Initializers::SetupLoggers::FileSink\b.*LaneCaptureProbe::ShutdownSignal/)
+
+        probe.with_scratch do |scratch|
+          print_in_run(scratch, line)
+
+          run = probe.run('selftest', '--overlay', scratch.overlay, '--capture-logs')
+
+          expect(run.exitstatus).to eq(0), run.all
+          expect(File.read(scratch.last_log)).to include(line)
+          expect(run.all).not_to include('incomplete')
+        end
+      end
+
+      it 'is not looked for on a run that captures nothing' do
+        probe.with_scratch do |scratch|
+          print_in_run(scratch, failed_write_report(scratch.app_log, watched: '/nowhere/app.log'))
+
           run = probe.run('selftest', '--overlay', scratch.overlay)
 
           expect(run.exitstatus).to eq(0), run.all

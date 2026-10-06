@@ -304,6 +304,94 @@ RSpec.describe 'lane log capture profile' do
       end
     end
 
+    # A write that fails after the file was opened raises nothing in the
+    # application. The profile records it beside the log, where the runner
+    # looks at the end of the run (spec/unit/lanes/capture_logs_spec.rb).
+    context 'with LANES_APP_LOG_FILE, when a write to the file fails' do
+      let(:listeners) { setup_loggers::FileSink.write_failure_listeners }
+      let(:marker) { "#{app_log}#{Lanes::LogCapture::WRITE_FAILED_SUFFIX}" }
+
+      # The handle is replaced by one whose write raises; reopen does
+      # nothing, so the stock appender's one retry fails the same way.
+      def fail_write(sink, error)
+        broken = Object.new
+        broken.define_singleton_method(:write) { |*| raise error }
+        broken.define_singleton_method(:close) { nil }
+        sink.instance_variable_set(:@file, broken)
+        allow(sink).to receive(:reopen)
+
+        # The sink's own line on standard error (once per process) is kept
+        # off this run's console.
+        event = SemanticLogger::Log.new('LaneLogCaptureSpec', :error).tap { |log| log.assign(message: 'lost') }
+        was   = $stderr
+        begin
+          $stderr = StringIO.new
+          expect { sink.log(event) }.to raise_error(error.class)
+        ensure
+          $stderr = was
+        end
+      end
+
+      it 'watches the file with one listener, however often it is installed' do
+        2.times { install('LANES_APP_LOG_FILE' => app_log) }
+
+        expect(listeners.map(&:class)).to eq([Lanes::LogCapture::WriteFailureMarker])
+        expect(listeners.first.app_log).to eq(app_log)
+        expect(File.exist?(marker)).to be(false)
+      end
+
+      it 'watches the new file when the path changes' do
+        other = File.join(tmpdir, 'other.log')
+        install('LANES_APP_LOG_FILE' => app_log)
+        install('LANES_APP_LOG_FILE' => other)
+
+        expect(listeners.map(&:app_log)).to eq([other])
+      end
+
+      it 'leaves the listeners alone without the variable' do
+        install('LANES_MAIL_LOG_FILE' => mail_log)
+
+        expect(listeners).to be_empty
+      end
+
+      it 'records each failed write in <app log>.write-failed' do
+        install('LANES_APP_LOG_FILE' => app_log)
+        sink = registry.fetch(:file).appender
+
+        fail_write(sink, Errno::ENOSPC.new('probe'))
+        fail_write(sink, IOError.new('closed stream'))
+
+        expect(File.read(marker).lines).to match(
+          [
+            /\Apid #{Process.pid}: Errno::ENOSPC: .*probe/,
+            /\Apid #{Process.pid}: IOError: closed stream/,
+          ],
+        )
+      end
+
+      it 'records nothing for another log file' do
+        install('LANES_APP_LOG_FILE' => app_log)
+        other = setup_loggers::FileSink.new(File.join(tmpdir, 'other.log'), append: true)
+        other.reopen
+
+        fail_write(other, Errno::ENOSPC.new('probe'))
+
+        expect(File.exist?(marker)).to be(false)
+      ensure
+        other&.close
+      end
+
+      it 'leaves the write error as it was when the marker cannot be written' do
+        install('LANES_APP_LOG_FILE' => app_log)
+        sink = registry.fetch(:file).appender
+        FileUtils.mkdir_p(marker) # a directory where the marker would go
+
+        fail_write(sink, Errno::ENOSPC.new('probe'))
+
+        expect(File.directory?(marker)).to be(true)
+      end
+    end
+
     context 'with a setting that cannot be honored' do
       it 'refuses a console value that is neither off nor a level' do
         %w[verbose OFF false 0].each do |value|
