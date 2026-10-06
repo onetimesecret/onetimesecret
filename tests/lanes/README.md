@@ -214,39 +214,85 @@ $ tests/lanes/run --capture-logs --only spec/api/v2/secret_ttl_entitlement_spec.
 ```
 
 `--capture-logs` gives the run two more files in its run directory
-(`tmp/lanes/<lane>/<overlays>/`, beside `last.log`):
+(`tmp/lanes/<lane>/<overlays>/`, `base` when no overlay is set), beside
+`last.log`. A full lane and an `--only` run get the same files.
 
-- `app.log` receives the application's log events, appended by every process
-  of the run, in addition to the console. The runner sets no level floor
-  under this flag, with or without `--quiet`, so the file holds everything
-  the configured category levels admit, expected error-level events included.
-- `mail.log` receives the emails the logger mail backend delivers, which it
-  otherwise prints to stdout. It is raw message content that no log
-  scrubbing has seen, and it is a separate file for that reason.
+| File       | Holds                                                                                                                             |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `app.log`  | The application's log events, appended by every process of the run. Plain text, full backtraces, passed through the log scrubber. |
+| `mail.log` | The emails the logger mail backend delivers, which it otherwise prints to stdout. Raw content that no log scrubbing has seen.     |
+| `last.log` | The console transcript: what the run printed. Every run writes it, with or without these flags ("Last run output" below).         |
 
 `--log-console <off|trace|debug|info|warn|error|fatal>` filters what the
 application's log prints on the console and does not affect `app.log`: `off`
 removes the console destination, a level shows that level and above. `off`
 without `--capture-logs` exits 64, because the events would have no
-destination. CI runs every lane with `--capture-logs --log-console off`
-(`.github/actions/run-test-lane`).
+destination.
 
-`app.log` is not a transcript of the run. rspec's and tryouts' own output,
-and anything written directly to stdout or stderr, are in `last.log` only.
+`app.log` is not a transcript of the run. These are in `last.log` only:
 
-The runner owns both files:
+- rspec's and tryouts' own output;
+- anything written directly to stdout or stderr. OmniAuth is one: it logs
+  through its own logger on stdout, not through the application's.
+
+Events that `--log-console` kept off the console are in `app.log` only.
+
+The file destination is installed by `spec/spec_helper.rb`,
+`try/support/test_helpers.rb`, or the application's boot, whichever comes
+first. A tryout file run alone with `--only` that loads neither helper and
+never boots is not captured.
+
+#### Levels: what is generated, and what a destination shows
+
+Two controls, applied in this order:
+
+1. Category levels decide which events are generated: `loggers:` in
+   `spec/logging.test.yaml` (`Auth: info`, `HTTP: warn`, ...), and
+   `default_level: warn` for every other category and for specs that never
+   boot the application.
+2. A destination level decides which of those events one destination writes.
+   `--log-console warn` is the console's. `app.log` has none and receives
+   every generated event.
+
+A destination cannot bring back an event its category rejected. With
+`Auth: info` no Auth debug event is generated, so none reaches `app.log`
+whatever the console is set to. The profile raises no level either, with or
+without `--quiet`, so the expected error-level events are in `app.log`.
+
+#### A debug rerun of one failure
+
+The scrub removes `DEBUG_LOGGERS` and `LOG_LEVEL` from the calling shell. To
+lower a category for one rerun, put it in a throwaway overlay and capture the
+run:
+
+```console
+$ echo 'DEBUG_LOGGERS=Auth:debug,Session:debug' > tests/lanes/overlays/debug.env
+$ tests/lanes/run full-sqlite --overlay debug --capture-logs --log-console off \
+    --only apps/web/auth/spec/integration/full/omniauth_csrf_spec.rb:145
+$ less tmp/lanes/full-sqlite/debug/app.log
+$ rm tests/lanes/overlays/debug.env
+```
+
+`DEBUG_LOGGERS` takes `<Category>:<level>` pairs and is applied after the
+levels in `spec/logging.test.yaml`. The overlay is part of the run's identity:
+its files are in `tmp/lanes/<lane>/debug/`, and outside CI it uses a datastore
+index of its own. Do not commit the overlay file.
+
+#### File ownership and limits
+
+The runner owns `app.log` and `mail.log`:
 
 - They are created empty at the start of every run that asks for them, full
   lane or `--only`. Disk use is therefore bounded across runs and unbounded
   within one.
 - A run without the flag removes them, so a file found beside `last.log` is
   always from the run `last.log` describes. A `--console` session leaves them
-  alone.
+  alone. `run-all` passes none of these flags to the lanes it starts.
 - Two runs of the same lane and overlay set in one checkout share the files,
   the second truncating under the first. That is not supported.
-- A file that cannot be created (the path is a directory, the directory is
-  not writable) ends the run with exit 73 before any task, with the reason on
-  stderr and in `last.log`.
+- A file that cannot be created (the path is a directory or not a regular
+  file, the directory is not writable) ends the run with exit 73 before any
+  task, with the reason on stderr and in `last.log`.
 - A capture that did not stay whole is an error: when either file is gone at
   the end of the run, or a process reported a failed write to `app.log`
   (SemanticLogger's `Failed to log to appender` line on stderr, which the
@@ -266,6 +312,31 @@ read by `spec/logging.test.yaml` and `tests/lanes/support/log_capture.rb`
 under `lib/onetime` reads any of the four. The runner assigns them: an
 exported value in the calling shell is scrubbed like any other, and a lane
 `env` file or overlay that sets one exits 64.
+
+#### In CI
+
+The composite action (`.github/actions/run-test-lane`) runs every lane with
+`--capture-logs --log-console off --quiet` and uploads `app.log` and
+`last.log` as one artifact, `lane-logs-<lane>-<overlay or base>`
+(`lane-logs-unit-base`, `lane-logs-full-pg-billing`). The upload runs when the
+lane passes, when it fails, and when it dies before rspec writes any results.
+The job summary links the artifact and names the directory on the runner.
+
+- `mail.log` is not uploaded.
+- The artifact is kept for 3 days. A re-run attempt uploads its own artifact
+  under the same name; the earlier attempt's is not replaced.
+- Anyone with read access to the repository can download the artifact while
+  it exists, as they can read the job log. `app.log` passed the log scrubber.
+  `last.log` is the job's console output, and nothing scrubs it.
+- `ci.yml`, `migration-tests.yml` and `ruby-4-preview.yml` all run lanes
+  through the action. `fresh-clone.yml` does not: it runs
+  `tests/lanes/run unit` and `tests/lanes/run browser` exactly as
+  `CONTRIBUTING.md` documents them, with the default output and no log
+  artifact.
+- To roll back, remove the three flags from the action's `Run lane` step.
+  Lanes then print their full output as before, and `last.log` is still
+  uploaded. Nothing else needs to change: without the flags the application
+  logs to the console only.
 
 Measured on one CI run of `full-pg-agnostic` (2,976 examples) with default
 output: 8.9 MB, of which 3.5 MB was 581 printed emails and 2.5 MB was info
@@ -546,15 +617,18 @@ runs. Toolchain prerequisites a lane cannot generate — built frontend assets,
 Playwright browsers — are installed by the CI job and by `bin/setup --test`;
 the lane preflights them rather than installing them.
 
-What CI sees of a run is what a local `--capture-logs --log-console off` run
-prints: the task's stderr merged into its stdout through the `tee` into
-`tmp/lanes/<lane>/<overlays>/last.log` (written in CI too, with the rspec status
-file beside it), then the runner's timing line and its `log: ... (exit N)` line
-on stderr. A reader of the runner's stdout alone (`2>/dev/null`,
-`Open3.capture2`) therefore sees the task's stderr as well. Neither `--quiet`'s
-formatter nor the tty-only color flags apply there. The supported CI exceptions are
-constrained environments that cannot run the compose topology:
-`devcontainer-ci.yml` and macOS `installer.yml` run the fast suite directly.
+What CI sees of a run is what a local
+`--capture-logs --log-console off --quiet` run prints: the task's stderr
+merged into its stdout through the `tee` into
+`tmp/lanes/<lane>/<overlays>/last.log` (written in CI too, with the rspec
+status file beside it), then the runner's timing line, its `app log:` line and
+its `log: ... (exit N)` line on stderr. A reader of the runner's stdout alone
+(`2>/dev/null`, `Open3.capture2`) therefore sees the task's stderr as well.
+The tty-only color flags do not apply there. The application's log is in the
+`lane-logs-*` artifact, not in the job output (see "Captured logs", "In CI").
+The supported CI exceptions are constrained environments that cannot run the
+compose topology: `devcontainer-ci.yml` and macOS `installer.yml` run the fast
+suite directly, without the lane runner and so without the capture profile.
 They validate installation paths, not lane behavior.
 
 `ci-verdict` is the required CI check for `main`. It runs on every pull
