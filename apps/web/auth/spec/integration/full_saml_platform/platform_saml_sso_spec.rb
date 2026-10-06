@@ -89,11 +89,9 @@ module PlatformSamlSsoSpec
   ENV['SAML_IDP_CERT'] = IDP.cert_pem
 end
 
-# :full_auth_mode is explicit, as in integration/full_mfa: the directory-derived
-# tag (spec/spec_helper.rb) matches only /integration/full/, and that tag is
-# what installs the full-mode suite database and MockAuthConfig before boot.
-RSpec.describe 'Platform SAML SSO', :full_auth_mode, :shared_db_state, type: :integration,
-  lane_env: { 'ORGS_SSO_ENABLED' => 'true', 'SAML_ENABLED' => 'true', 'SAML_IDP_ENTITY_ID' => PlatformSamlSsoSpec::ENTITY_ID } do
+# The examples, as a shared group: the describe at the end of the file runs
+# them with site.network.public_host_rewrite off and on (#4223).
+RSpec.shared_examples 'platform SAML SSO' do
   include Rack::Test::Methods
 
   before(:all) { boot_onetime_app }
@@ -784,6 +782,102 @@ RSpec.describe 'Platform SAML SSO', :full_auth_mode, :shared_db_state, type: :in
 
       expect(last_response.headers['Location'].to_s).not_to include('auth_error')
       expect(identity_rows.size).to eq(1)
+    end
+  end
+
+  # ==========================================================================
+  # Proxy shapes (#4223)
+  # ==========================================================================
+  #
+  # The platform host of this lane is the test configuration's IP-literal
+  # site.host. Rack::DetectHost accepts no IP literal, so a request for the
+  # platform host is never rewritten, with the setting on or off, and a
+  # Host-rewriting proxy in front of the PLATFORM host cannot be expressed
+  # here: that needs a lane that boots with a hostname site.host.
+  #
+  # What can be expressed is the proxy in front of a TENANT whose origin
+  # target is the platform host. The raw Host then names the platform, and
+  # platform SAML must still answer as it does for the tenant.
+  describe 'behind a Host-rewriting proxy' do
+    include_context 'domains enabled'
+
+    let(:platform_authority) { URI.parse(platform_base).authority }
+
+    it 'does not rewrite a request for the platform host' do
+      get "#{platform_base}/auth/sso/saml/metadata"
+
+      expect(last_request.env[Rack::DetectHost.result_field_name]).to be_nil
+      expect_host_rewrite(platform_authority, rewritten: false)
+    end
+
+    it 'refuses platform SAML for a tenant in X-Forwarded-Host when the origin target is the platform host' do
+      tenant_host = "proxied-#{run_id}.saml-platform.example.com"
+      owner       = Onetime::Customer.new(email: "proxied-owner-#{run_id}@saml-platform.example.com")
+      owner.save
+      org         = Onetime::Organization.create!("Proxied Org #{run_id}", owner, "proxied-contact-#{run_id}@saml-platform.example.com")
+      domain      = Onetime::CustomDomain.new(display_domain: tenant_host, org_id: org.org_id)
+      domain.verified = true
+      domain.save
+      Onetime::CustomDomain.display_domain_index.put(tenant_host, domain.domainid)
+      allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+
+      # What the layers below the rewrite received: the tenant, classified
+      # :custom, with Rack's host following the setting.
+      expect_proxied_tenant = lambda do
+        env = last_request.env
+        expect(env['onetime.domain_strategy']).to eq(:custom)
+        expect(env['onetime.display_domain']).to eq(tenant_host)
+        expect_host_rewrite(platform_authority, rewritten: rewrite_on)
+        expect(Rack::Request.new(env).host).to eq(rewrite_on ? tenant_host : URI.parse(platform_base).host)
+      end
+
+      begin
+        header 'X-Forwarded-Host', tenant_host
+
+        post "#{platform_base}/auth/sso/saml"
+        expect_proxied_tenant.call
+        expect(last_response.status).to eq(302), "#{last_response.status} #{last_response.body[0, 200]}"
+        expect(last_response.headers['Location'].to_s).to include('auth_error=sso_not_configured')
+        expect(last_response.headers['Location'].to_s).not_to include('SAMLRequest')
+        expect(pending_request_id).to be_nil
+
+        get "#{platform_base}/auth/sso/saml/metadata"
+        expect_proxied_tenant.call
+        expect(last_response.headers['Location'].to_s).to include('auth_error=sso_not_configured')
+        expect(last_response.body).not_to include('EntityDescriptor')
+
+        header 'Origin', 'https://login.platform-idp.test'
+        post "#{platform_base}/auth/sso/saml/callback", { 'SAMLResponse' => 'untrusted-response' }
+        expect_proxied_tenant.call
+        expect(last_response.status).to eq(403)
+        expect(last_response.headers['Location']).to be_nil
+        expect(identity_rows).to be_empty
+      ensure
+        header 'Origin', nil
+        header 'X-Forwarded-Host', nil
+        Onetime::CustomDomain.display_domain_index.remove(tenant_host) rescue nil
+        domain.destroy! rescue nil
+        org.destroy! rescue nil
+        owner.destroy! rescue nil
+      end
+    end
+  end
+end
+
+# :full_auth_mode is explicit, as in integration/full_mfa: the directory-derived
+# tag (spec/spec_helper.rb) matches only /integration/full/, and that tag is
+# what installs the full-mode suite database and MockAuthConfig before boot.
+RSpec.describe 'Platform SAML SSO', :full_auth_mode, :shared_db_state, type: :integration,
+  lane_env: { 'ORGS_SSO_ENABLED' => 'true', 'SAML_ENABLED' => 'true', 'SAML_IDP_ENTITY_ID' => PlatformSamlSsoSpec::ENTITY_ID } do
+  # Every example with the setting off (the default) and on. The outcomes
+  # are the same: platform SAML keys on the display domain and the pinned
+  # ACS, not on Rack's host.
+  [false, true].each do |rewrite|
+    context "with public_host_rewrite #{rewrite ? 'on' : 'off'}" do
+      let(:rewrite_on) { rewrite }
+
+      include_context 'public host rewrite setting'
+      include_examples 'platform SAML SSO'
     end
   end
 end
