@@ -52,6 +52,45 @@
 # need; the off-host cases need the feature on for a canonical-SET peer
 # (`canonical_host`, features.domains.default) and a custom domain.
 #
+# PUBLIC_HOST_REWRITE (#4223). Every example runs twice, with
+# site.network.public_host_rewrite off and on (the describe at the end of
+# the file). The outcomes are the same in both.
+#
+# KNOWN LIMIT: THIS LANE CANNOT PUT A HOST-REWRITING PROXY IN FRONT OF THE
+# PLATFORM HOST. No request for the platform host is ever rewritten here,
+# so "platform SAML with the setting on" is covered for every shape EXCEPT
+# that one. The chain of reasons, each checkable in the code named:
+#
+#   1. The platform host is site.host, and spec/config.test.yaml writes
+#      site.host as the literal '127.0.0.1:3000'. No environment variable
+#      reaches it, so a lane cannot change it.
+#   2. The platform ACS URL is built from site.host when the saml route
+#      registers at boot and is then fixed for the process:
+#      Saml.platform_registration_options records it and
+#      Saml.platform_base_url returns the recorded value from then on (the
+#      'keeps the actual boot ACS host' example). It cannot be moved to a
+#      hostname after boot, and Auth::Config configures once per process.
+#   3. Rack::DetectHost accepts no IP literal, from Host or from
+#      X-Forwarded-Host. A request for 127.0.0.1:3000 has no detected host.
+#   4. PublicHostRewrite#rewrite_target needs a detected host that matches
+#      the display domain. With none, it returns nil and the request passes
+#      through unchanged.
+#
+# So the proxied platform shape (Host: the origin target, X-Forwarded-Host:
+# the platform host) is not sendable: step 3 drops the forwarded host and
+# the request is no longer a request for the platform. Covering it needs a
+# process that BOOTS with a hostname site.host, which means either making
+# site.host in spec/config.test.yaml readable from a lane variable or a
+# second test configuration, and then checking this file's examples that
+# rely on the IP literal (the paragraph above, and 'on the platform host
+# with a stale CustomDomain record'). That has not been done.
+#
+# What IS covered, in 'behind a Host-rewriting proxy' at the end of the
+# shared group: one example pins steps 3 and 4 (the platform host is not
+# rewritten in either setting), and one sends the shape that can be
+# expressed, a TENANT in X-Forwarded-Host with the platform host as the
+# origin target, where the request IS rewritten with the setting on.
+#
 # REQUIREMENTS:
 # - Valkey on 2163, AUTHENTICATION_MODE=full, ORGS_SSO_ENABLED=true,
 #   SAML_IDP_SSO_SERVICE_URL, SAML_IDP_ENTITY_ID, SESSION_COOKIE_SAME_SITE=lax,
@@ -789,11 +828,11 @@ RSpec.shared_examples 'platform SAML SSO' do
   # Proxy shapes (#4223)
   # ==========================================================================
   #
-  # The platform host of this lane is the test configuration's IP-literal
-  # site.host. Rack::DetectHost accepts no IP literal, so a request for the
-  # platform host is never rewritten, with the setting on or off, and a
-  # Host-rewriting proxy in front of the PLATFORM host cannot be expressed
-  # here: that needs a lane that boots with a hostname site.host.
+  # See KNOWN LIMIT in the file header: the platform host of this lane is
+  # the IP-literal site.host, Rack::DetectHost accepts no IP literal, and so
+  # a Host-rewriting proxy in front of the PLATFORM host cannot be expressed
+  # here. The first example pins the mechanism, so a change that makes the
+  # platform host detectable fails it and points back at that note.
   #
   # What can be expressed is the proxy in front of a TENANT whose origin
   # target is the platform host. The raw Host then names the platform, and
