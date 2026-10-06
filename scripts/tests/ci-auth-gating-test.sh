@@ -293,22 +293,26 @@ def matrix(job_id):
 
 
 def matrix_coverage():
-    # Frozen pre-extraction full matrix; not derived from the changed workflow or git HEAD.
+    # Frozen copy of the eight full-mode cases; not derived from the changed
+    # workflow or git HEAD. Every Ruby change runs the whole suite on SQLite
+    # and the PG-only specs, each with billing off and on. Auth selection
+    # adds the second pass of the whole suite on PostgreSQL and the two
+    # feature-specific boots.
     general = [
         ("SQLite, billing: off", "full-sqlite", "", "valkey rabbitmq", "rspec_full_sqlite_billing_off_results.json"),
         ("SQLite, billing: on", "full-sqlite", "billing", "valkey rabbitmq", "rspec_full_sqlite_billing_on_results.json"),
         ("PG, billing: off", "full-pg", "", "valkey rabbitmq postgres", "rspec_full_postgres_billing_off_results.json"),
         ("PG, billing: on", "full-pg", "billing", "valkey rabbitmq postgres", "rspec_full_postgres_billing_on_results.json"),
-        ("PG agnostic, billing: off", "full-pg-agnostic", "", "valkey rabbitmq postgres", "rspec_full_pg_agnostic_billing_off_results.json"),
-        ("PG agnostic, billing: on", "full-pg-agnostic", "billing", "valkey rabbitmq postgres", "rspec_full_pg_agnostic_billing_on_results.json"),
     ]
     auth = [
+        ("PG agnostic, billing: off", "full-pg-agnostic", "", "valkey rabbitmq postgres", "rspec_full_pg_agnostic_billing_off_results.json"),
+        ("PG agnostic, billing: on", "full-pg-agnostic", "billing", "valkey rabbitmq postgres", "rspec_full_pg_agnostic_billing_on_results.json"),
         ("SQLite, MFA", "full-mfa", "", "valkey rabbitmq", "rspec_full_mfa_results.json"),
         ("SQLite, platform SAML", "full-saml-platform", "", "valkey rabbitmq", "rspec_full_saml_platform_results.json"),
     ]
     actual_general, actual_auth = matrix("ruby-integration-full"), matrix("ruby-integration-auth")
-    check(actual_general == general, f"six general full rows changed: {actual_general}")
-    check(actual_auth == auth, f"two auth configuration rows changed: {actual_auth}")
+    check(actual_general == general, f"the four full rows every Ruby change runs changed: {actual_general}")
+    check(actual_auth == auth, f"the four auth-selected rows changed: {actual_auth}")
     check(len(set(actual_general + actual_auth)) == 8, "matrix split must neither drop nor duplicate an old case")
     full = block(jobs, "ruby-integration-full", 2)
     check(scalar(full, "steps", 4) == "&full-integration-steps", "full job defines shared steps")

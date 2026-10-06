@@ -25,9 +25,11 @@ name: CI
 #
 # Path Filtering:
 # - Ruby-only changes skip TypeScript jobs
-# - TypeScript-only changes skip Ruby jobs unless the shared auth selector matches
-# - MFA, platform SAML, and the SAML browser lane use .github/auth-paths.yml
-# - The ci:auth PR label forces auth coverage; shared runtime changes select it too
+# - TypeScript-only changes skip Ruby jobs
+# - Auth coverage (the PG re-run of the full-mode suite, the MFA and platform
+#   SAML boots, the SAML browser lane) runs when the PR touches a path in
+#   .github/auth-paths.yml or carries the ci:auth label. It is a flag of its
+#   own: it adds those jobs and does not turn on the ordinary Ruby jobs.
 # - Nightly, main/tag push, and merge-group runs cover every configuration
 # - Workflow file changes (.github/**) run all jobs
 # - Use [ci-all] in commit message to force all jobs
@@ -755,6 +757,11 @@ jobs:
     # billing overlay. The matrix only picks lane, overlay, and services.
     # PG roles come from compose.test.yml's initdb mount (first boot), so
     # there is no separate psql setup step.
+    #
+    # These four rows run on every Ruby change: the whole full-mode suite on
+    # SQLite with billing off and on, and the PG-only specs with billing off
+    # and on. The second pass of the whole suite on PostgreSQL is in
+    # ruby-integration-auth below.
     strategy:
       fail-fast: false
       matrix:
@@ -779,16 +786,6 @@ jobs:
             overlay: 'billing'
             services: 'valkey rabbitmq postgres'
             results-file: 'rspec_full_postgres_billing_on_results.json'
-          - name: 'PG agnostic, billing: off'
-            lane: full-pg-agnostic
-            overlay: ''
-            services: 'valkey rabbitmq postgres'
-            results-file: 'rspec_full_pg_agnostic_billing_off_results.json'
-          - name: 'PG agnostic, billing: on'
-            lane: full-pg-agnostic
-            overlay: 'billing'
-            services: 'valkey rabbitmq postgres'
-            results-file: 'rspec_full_pg_agnostic_billing_on_results.json'
 
     steps: &full-integration-steps
       - *checkout-step
@@ -822,8 +819,13 @@ jobs:
           overlay: ${{ matrix.overlay }}
           results-file: ${{ matrix.results-file }}
 
-  # The six general full-mode rows above retain application/DB coverage on
-  # every Ruby change. Only the feature-specific boots are selected by auth.
+  # Selected by auth (a path in .github/auth-paths.yml, the ci:auth label, or
+  # any non-PR event), not by every Ruby change: the database-agnostic
+  # full-mode suite run a second time against PostgreSQL, and the two
+  # feature-specific boots. The PG agnostic rows are the slowest in the
+  # matrix and run the same specs as the SQLite rows above on a second
+  # engine, so a PR that touches no auth path leaves them to the main,
+  # nightly and release runs.
   ruby-integration-auth:
     name: 'T3 · Ruby Auth Configuration (${{ matrix.name }})'
     timeout-minutes: 10
@@ -834,6 +836,16 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - name: 'PG agnostic, billing: off'
+            lane: full-pg-agnostic
+            overlay: ''
+            services: 'valkey rabbitmq postgres'
+            results-file: 'rspec_full_pg_agnostic_billing_off_results.json'
+          - name: 'PG agnostic, billing: on'
+            lane: full-pg-agnostic
+            overlay: 'billing'
+            services: 'valkey rabbitmq postgres'
+            results-file: 'rspec_full_pg_agnostic_billing_on_results.json'
           - name: 'SQLite, MFA'
             lane: full-mfa
             overlay: ''
