@@ -26,7 +26,9 @@ This mode is not permission to use an arbitrary hostname. Authorization comes
 from the operator trusting the current registration of a domain to a customer.
 DNS and HTTPS observations can describe whether that registration is usable,
 but they cannot create or revoke the operator's authorization and cannot prove
-ownership.
+ownership. The summary table in the
+[operator-managed domains specification](../specs/domain-validation/operator-managed-domains.md)
+contrasts the two concerns row by row.
 
 The deployment context for this proposal reports no installed `passthrough`
 user base to migrate. The strategy has not worked as a usable mode in project or

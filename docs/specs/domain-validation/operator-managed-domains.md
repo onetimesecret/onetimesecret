@@ -8,6 +8,19 @@ Tracking: [#4607](https://github.com/onetimesecret/onetimesecret/issues/4607).
 
 Operator-managed domains separate permission to use a registered domain from observations about whether that domain resolves or serves valid HTTPS. The canonical strategy is `operator_managed`, its display name is “Operator-managed domains,” and certificate management remains external. Operator policy authorizes only a current registration; it never authorizes an arbitrary Host or SNI name and never permits internal certificate issuance.
 
+The distinction is between **authorization** and **operational health**:
+
+| Concern | Operator-managed mode |
+| --- | --- |
+| May this deployment serve the configured domain? | Trust the operator-controlled registration (see [Registration trust](#registration-trust)) |
+| Must the domain publish a TXT challenge? | No |
+| Does DNS resolve? | Check and report |
+| Does DNS point to an expected destination? | Check only when an expected target is configured |
+| Is HTTPS working? | Probe where supported; report failures |
+| Who provisions certificates? | Existing infrastructure |
+
+A resolution or TLS failure reports an operational problem; it does not revoke the operator's ownership assertion. Conversely, a successful DNS lookup does not manufacture ownership evidence.
+
 This document defines proposed runtime behavior. Existing runtime booleans, strategy classes, APIs, caches, schedulers, and certificate gates do not yet satisfy this contract; configuration changes alone do not activate the behavior described here.
 
 ## Goals
