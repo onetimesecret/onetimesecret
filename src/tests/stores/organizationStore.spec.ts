@@ -263,6 +263,76 @@ describe('Organization Store', () => {
         expect(syncPosts()).toHaveLength(0);
       });
 
+      // Two writes in flight at once can land on the server in either order,
+      // and a reload shows whichever landed last. The store sends the next
+      // selection only after the previous reply.
+      it('sends a second selection only after the first reply arrives', async () => {
+        signIn();
+        const events: string[] = [];
+        axiosMock?.onPost(SYNC_URL).reply(async (config) => {
+          const { organization_id: id } = JSON.parse(config.data);
+          events.push(`sent:${id}`);
+          // The first reply is the slow one; the second would overtake it
+          // if the writes were not serialized.
+          await new Promise((resolve) => setTimeout(resolve, id === 'org-999' ? 30 : 0));
+          events.push(`replied:${id}`);
+          return [200, { success: true }];
+        });
+
+        const first = store.selectOrganization(other);
+        const second = store.selectOrganization(mockOrganization);
+        await Promise.all([first, second]);
+
+        expect(store.currentOrganization).toEqual(mockOrganization);
+        expect(events).toEqual([
+          'sent:org-999',
+          'replied:org-999',
+          'sent:org-123',
+          'replied:org-123',
+        ]);
+      });
+
+      it('skips a selection the user moved on from before its turn', async () => {
+        signIn();
+        const third: Organization = { ...mockOrganization, objid: 'org-333', extid: 'on333abc' };
+        axiosMock?.onPost(SYNC_URL).reply(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 10));
+          return [200, { success: true }];
+        });
+
+        await Promise.all([
+          store.selectOrganization(other),
+          store.selectOrganization(mockOrganization),
+          store.selectOrganization(third),
+        ]);
+
+        expect(store.currentOrganization).toEqual(third);
+        expect(syncPosts().map((r) => JSON.parse(r.data).organization_id)).toEqual([
+          'org-999',
+          'org-333',
+        ]);
+      });
+
+      it('keeps sending later selections after one fails', async () => {
+        signIn();
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        axiosMock?.onPost(SYNC_URL).reply((config) => {
+          const { organization_id: id } = JSON.parse(config.data);
+          return id === 'org-999' ? [500, { message: 'boom' }] : [200, { success: true }];
+        });
+
+        await Promise.all([
+          store.selectOrganization(other),
+          store.selectOrganization(mockOrganization),
+        ]);
+
+        expect(syncPosts().map((r) => JSON.parse(r.data).organization_id)).toEqual([
+          'org-999',
+          'org-123',
+        ]);
+        expect(warn).toHaveBeenCalledTimes(1);
+      });
+
       it('syncs a newly created organization, which becomes current', async () => {
         signIn();
         axiosMock?.onPost('/api/organizations').reply(200, { record: mockOrganizationRaw });

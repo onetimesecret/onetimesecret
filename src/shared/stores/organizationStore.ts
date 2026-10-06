@@ -270,7 +270,9 @@ export const useOrganizationStore = defineStore('organization', () => {
   }
 
   /**
-   * Sync the selected organization to the backend (fire-and-forget).
+   * Sync the selected organization to the backend (fire-and-forget). Resolves
+   * once this selection has been sent, or skipped because a later one
+   * replaced it while it waited.
    *
    * Page loads carry no O-Organization-ID header, so the bootstrap payload can
    * only name the selected org if the server session remembers it. Sends the
@@ -283,13 +285,39 @@ export const useOrganizationStore = defineStore('organization', () => {
   async function syncOrganizationContextToServer(org: Organization): Promise<void> {
     if (!org.objid) return;
     if (!useAuthStore().protectedActionsAvailable) return;
-    try {
-      await $api.post('/api/account/update-organization-context', {
-        organization_id: org.objid,
-      });
-    } catch (error) {
-      console.warn('[organizationStore] Failed to sync to server:', error);
+    if (syncInFlight) {
+      // Wait for the reply, then send only the newest selection made since.
+      queuedSelection = org;
+      return syncInFlight;
     }
+    syncInFlight = postOrganizationContexts(org);
+    return syncInFlight;
+  }
+
+  // Selections are written one at a time, in the order they were made: the
+  // server keeps whichever write lands last, and two requests in flight at
+  // once can land in either order. While a write is in flight, later
+  // selections replace each other in `queuedSelection`; only the newest is
+  // sent once the reply arrives.
+  let syncInFlight: Promise<void> | null = null;
+  let queuedSelection: Organization | null = null;
+
+  async function postOrganizationContexts(first: Organization): Promise<void> {
+    let next: Organization | null = first;
+    while (next) {
+      const org = next;
+      next = null;
+      try {
+        await $api.post('/api/account/update-organization-context', {
+          organization_id: org.objid,
+        });
+      } catch (error) {
+        console.warn('[organizationStore] Failed to sync to server:', error);
+      }
+      next = queuedSelection;
+      queuedSelection = null;
+    }
+    syncInFlight = null;
   }
 
   /**
