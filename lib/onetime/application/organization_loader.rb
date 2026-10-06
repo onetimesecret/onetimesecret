@@ -38,6 +38,10 @@ require_relative '../middleware/domain_strategy'
 # carry no O-Organization-ID header, so this value is what keeps the
 # selection across a full reload. It is re-checked on every request and
 # cleared once the membership is gone or the organization is archived.
+# session['organization_selected_at'] is written with it: when the user made
+# the selection (epoch milliseconds, server clock). The endpoint uses it to
+# refuse a selection sent again after a page load once the session holds a
+# different one made since.
 #
 # No caching:
 # Every call resolves from the datastore. There is no session cache of the

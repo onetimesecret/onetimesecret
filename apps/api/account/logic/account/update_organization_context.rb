@@ -20,10 +20,17 @@ module AccountAPI::Logic
     #
     # A refusal does not say which of these failed, and the session is
     # left as it was.
+    #
+    # The SPA sends a selection again when a page load overtook the first
+    # request (#4565). Such a request carries selection_age_ms: how long ago
+    # the user made the selection. It is refused when the session holds a
+    # different selection made since, so an older choice cannot replace a
+    # newer one. Sending the same selection twice leaves the session as the
+    # first one left it.
     class UpdateOrganizationContext < UpdateAccountField
       include Onetime::LoggerMethods
 
-      attr_reader :new_organization_id, :old_organization_id
+      attr_reader :new_organization_id, :old_organization_id, :selection_age_ms
 
       # Organization objids are UUID strings (36 chars); anything much longer
       # is not one and is kept out of the datastore key lookup.
@@ -31,10 +38,21 @@ module AccountAPI::Logic
       # Allowed characters in an identifier. A value with anything else is
       # refused rather than stripped down to a different identifier.
       ORGANIZATION_ID_PATTERN    = /\A[a-zA-Z0-9_-]+\z/
+      # The SPA stops sending a selection again one minute after the user
+      # made it. An age far beyond that is not one of its requests.
+      MAX_SELECTION_AGE_MS       = 600_000
 
       def process_params
         @new_organization_id = normalize_organization_id(params['organization_id'])
         @old_organization_id = sess&.[]('organization_id')
+        @resent              = !params['selection_age_ms'].nil?
+        @selection_age_ms    = normalize_selection_age(params['selection_age_ms'])
+      end
+
+      # Whole milliseconds from 0 to MAX_SELECTION_AGE_MS; nil for anything else.
+      def normalize_selection_age(value)
+        age = Integer(value.to_s.strip, 10, exception: false)
+        age if age&.between?(0, MAX_SELECTION_AGE_MS)
       end
 
       def normalize_organization_id(value)
@@ -70,11 +88,40 @@ module AccountAPI::Logic
 
       def field_specific_concerns
         raise_form_error 'Organization is required' if new_organization_id.nil? || new_organization_id.empty?
+        raise_form_error 'Invalid selection age' if invalid_selection_age?
         raise_form_error 'Invalid organization' unless selectable_organization
+        raise_form_error 'Selection superseded' if superseded?
       end
 
       def valid_update?
-        !selectable_organization.nil?
+        !selectable_organization.nil? && !invalid_selection_age? && !superseded?
+      end
+
+      # A selection sent again after a page load (see the class comment).
+      def resent?
+        @resent
+      end
+
+      def invalid_selection_age?
+        resent? && selection_age_ms.nil?
+      end
+
+      # When the user made this selection, in epoch milliseconds on the
+      # server clock: now, or the stated age ago for one sent again. The age
+      # is a difference taken on the client, so the two clocks need not agree.
+      def selected_at
+        @selected_at ||= (Familia.now * 1000).to_i - selection_age_ms.to_i
+      end
+
+      # Whether the session holds a different selection made after this one.
+      # Only a selection sent again can be superseded: one made now is the
+      # newest by definition. A session whose selection carries no time
+      # (written before the time was recorded) supersedes nothing.
+      def superseded?
+        return false unless resent?
+        return false if old_organization_id.to_s.empty? || old_organization_id == new_organization_id
+
+        sess['organization_selected_at'].to_i > selected_at
       end
 
       def perform_update
@@ -95,6 +142,7 @@ module AccountAPI::Logic
           sess,
           new_organization_id,
           request_organization_context,
+          at: selected_at,
         )
         raise_form_error 'Invalid organization' unless selected
 

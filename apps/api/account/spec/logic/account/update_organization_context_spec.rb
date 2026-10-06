@@ -67,6 +67,9 @@ RSpec.describe AccountAPI::Logic::Account::UpdateOrganizationContext do
 
   let(:params) { { 'organization_id' => target_org.objid } }
 
+  # Now, in the unit session['organization_selected_at'] is kept in
+  let(:now_ms) { (Time.now.to_f * 1000).to_i }
+
   before do
     allow(OT).to receive(:info)
     allow(OT).to receive(:ld)
@@ -345,6 +348,109 @@ RSpec.describe AccountAPI::Logic::Account::UpdateOrganizationContext do
         let(:params) { { 'organization_id' => 'org target/222' } }
 
         it_behaves_like 'a refused selection'
+      end
+
+      context 'with a selection sent again after a newer one was recorded' do
+        let(:params) { { 'organization_id' => target_org.objid, 'selection_age_ms' => 5_000 } }
+
+        before { session['organization_selected_at'] = now_ms - 1_000 }
+
+        it_behaves_like 'a refused selection'
+      end
+
+      context 'with a selection age that is not a number' do
+        let(:params) { { 'organization_id' => target_org.objid, 'selection_age_ms' => 'soon' } }
+
+        it_behaves_like 'a refused selection'
+      end
+    end
+
+    # The SPA sends a selection again when a page load overtook the first
+    # request. It states how long ago the user made it (selection_age_ms),
+    # and gives way to a different selection the session recorded since.
+    context 'when the selection is sent again after a page load' do
+      let(:params) { { 'organization_id' => target_org.objid, 'selection_age_ms' => 5_000 } }
+
+      before { session['organization_id'] = default_org.objid }
+
+      context 'and the session holds a different selection made since' do
+        before { session['organization_selected_at'] = now_ms - 1_000 }
+
+        it 'refuses it as superseded' do
+          expect { logic.raise_concerns }.to raise_error(Onetime::FormError, /Selection superseded/)
+        end
+      end
+
+      context 'and the session holds a different selection made before it' do
+        before { session['organization_selected_at'] = now_ms - 30_000 }
+
+        it 'records the selection with the time the user made it' do
+          expect { logic.raise_concerns }.not_to raise_error
+          logic.process
+
+          expect(session['organization_id']).to eq(target_org.objid)
+          expect(session['organization_selected_at']).to be_within(2_000).of(now_ms - 5_000)
+        end
+      end
+
+      context 'and the session holds a selection with no recorded time' do
+        it 'records the selection' do
+          logic.process
+          expect(session['organization_id']).to eq(target_org.objid)
+        end
+      end
+
+      # The first request did land; sending it again changes nothing.
+      context 'and the session already holds this selection' do
+        before do
+          session['organization_id']          = target_org.objid
+          session['organization_selected_at'] = now_ms - 1_000
+        end
+
+        it 'accepts it' do
+          expect { logic.raise_concerns }.not_to raise_error
+          logic.process
+          expect(session['organization_id']).to eq(target_org.objid)
+        end
+      end
+
+      # An organization that cannot be selected is refused as such, whatever
+      # the session holds.
+      context 'and the organization is not selectable' do
+        let(:params) { { 'organization_id' => 'org-unknown-999', 'selection_age_ms' => 5_000 } }
+
+        before { session['organization_selected_at'] = now_ms - 1_000 }
+
+        it 'refuses it as an invalid organization' do
+          expect { logic.raise_concerns }.to raise_error(Onetime::FormError, /Invalid organization/)
+        end
+      end
+
+      ['soon', '-1', '1.5', (described_class::MAX_SELECTION_AGE_MS + 1).to_s, ''].each do |age|
+        context "and the age is #{age.inspect}" do
+          let(:params) { { 'organization_id' => target_org.objid, 'selection_age_ms' => age } }
+
+          it 'refuses it' do
+            expect { logic.raise_concerns }.to raise_error(Onetime::FormError, /Invalid selection age/)
+          end
+        end
+      end
+    end
+
+    # A selection made now is the newest there is: it is never weighed
+    # against what the session holds.
+    context 'when a selection made now meets a session selection dated later' do
+      before do
+        session['organization_id']          = default_org.objid
+        session['organization_selected_at'] = now_ms + 60_000
+      end
+
+      it 'records the selection and when it was made' do
+        expect { logic.raise_concerns }.not_to raise_error
+        logic.process
+
+        expect(session['organization_id']).to eq(target_org.objid)
+        expect(session['organization_selected_at']).to be_within(2_000).of(now_ms)
       end
     end
 
