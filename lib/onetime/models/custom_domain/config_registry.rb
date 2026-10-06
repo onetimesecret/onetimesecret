@@ -72,7 +72,9 @@ module Onetime::CustomDomain::ConfigRegistry
   # one-file change (edit the model's FIELD_SPECS).
   #
   # Spec semantics (interpreted by coerce_field! / apply_field below):
-  #   type :boolean  — accepts JSON true/false plus 'true'/'false'/'1'/'0';
+  #   type :boolean  — accepts JSON true/false plus the OT::Utils yes/no
+  #                    token tables ('true'/'1'/'yes'/'on'/'y'/'t' and their
+  #                    negatives, case-insensitive), rejects anything else;
   #                    storage :native assigns the boolean as-is (SigninConfig,
   #                    SignupConfig's real-boolean fields), storage :string
   #                    assigns 'true'/'false' (the string-encoded models).
@@ -219,13 +221,14 @@ module Onetime::CustomDomain::ConfigRegistry
 
     private
 
+    # Strict: unrecognized input raises instead of landing on false. Both
+    # recognizers are consulted so this accepts the same spellings as the
+    # domain-config logic's parse_boolean, which writes the same fields.
     def coerce_boolean!(field, value)
-      case value
-      when true, 'true', '1', 1 then true
-      when false, 'false', '0', 0 then false
-      else
-        raise Onetime::Problem, "#{field} must be a boolean"
-      end
+      return true  if OT::Utils.explicit_yes?(value)
+      return false if OT::Utils.explicit_no?(value)
+
+      raise Onetime::Problem, "#{field} must be a boolean"
     end
 
     def coerce_enum!(field, value, spec)

@@ -111,7 +111,7 @@ module Onetime
         region                = product.metadata[Billing::Metadata::FIELD_REGION] || 'N/A'
         display_order         = product.metadata[Billing::Metadata::FIELD_DISPLAY_ORDER] || '100'
         show_on_plans         = product.metadata[Billing::Metadata::FIELD_SHOW_ON_PLANS_PAGE] || 'true'
-        show_on_plans_display = %w[true 1 yes].include?(show_on_plans.downcase) ? 'yes' : 'no'
+        show_on_plans_display = Onetime::Utils.explicit_yes?(show_on_plans) ? 'yes' : 'no'
         active                = product.active ? 'yes' : 'no'
 
         format(

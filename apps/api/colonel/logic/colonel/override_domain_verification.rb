@@ -147,9 +147,8 @@ module ColonelAPI
           return nil if value.nil?
           return nil if value.to_s.strip.empty?
 
-          normalized = value.to_s.strip.downcase
-          return true  if %w[true 1 yes on].include?(normalized)
-          return false if %w[false 0 no off].include?(normalized)
+          return true  if OT::Utils.explicit_yes?(value)
+          return false if OT::Utils.explicit_no?(value)
 
           raise_form_error("Invalid boolean value for #{field}: #{value.inspect}", field: field)
         end
