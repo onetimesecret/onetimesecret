@@ -21,7 +21,7 @@ Build in `src/apps/admin/` (or a shared admin components dir), composed **on top
 
 ## Grounding — files & pointers
 - Reuse (build ON these): `src/shared/components/ui/{EmptyState,ErrorDisplay,DetailField,CopyButton,SplitButton,ButtonGroup}.vue`, `src/shared/components/modals/{ConfirmDialog,PasswordConfirmModal,SimpleModal}.vue`, `src/shared/components/closet/{TableSkeleton,ListSkeleton,CardGridSkeleton}.vue`, `src/shared/components/icons/OIcon.vue`, notifications in `src/shared/components/ui/notifications/`.
-- Mine the workspace app for proven table/settings patterns: `src/apps/workspace/components/domains/DomainsTable.vue`, `src/apps/workspace/components/members/MembersTable.vue`, `src/apps/workspace/components/settings/{SettingsSection,SettingsPageHeader,SettingsNavigation}.vue`.
+- Mine the workspace app for proven table/settings patterns: `src/apps/workspace/components/domains/DomainsTable.vue`, `src/apps/workspace/components/members/MembersTable.vue`, `src/apps/workspace/components/settings/SettingsPageHeader.vue`.
 - Anti-patterns to replace: `src/apps/colonel/ColonelUsers.vue:43-70` (7× repeated `<th>` class strings), `src/apps/colonel/ColonelSecrets.vue:44-104` (duplicated table structure), `src/apps/colonel/ColonelOrganizations.vue:281-323` (inline filter selects), `:347` (table).
 - Existing thin wrappers that stay: `src/apps/colonel/components/ColonelListPage.vue` (page chrome), `ColonelPagination.vue`.
 
