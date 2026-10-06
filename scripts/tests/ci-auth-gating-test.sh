@@ -97,6 +97,7 @@ def defaults():
     return {key: "false" for key in (
         "SKIP_CI", "RUN_ALL", "GA_WORKFLOWS", "FILTER_RUBY",
         "FILTER_TYPESCRIPT", "FILTER_FRONTEND", "FILTER_OCI", "FILTER_AUTH",
+        "FILTER_BILLING",
     )}
 
 
@@ -107,13 +108,13 @@ def compute_cases():
         inputs = dict(zip(keys, values))
         if inputs["SKIP_CI"] == "true":
             expected = dict.fromkeys(("ruby", "typescript", "frontend", "oci", "auth",
-                                      "ga_workflow_files"), "false")
+                                      "billing", "ga_workflow_files"), "false")
         elif inputs["RUN_ALL"] == "true" or inputs["GA_WORKFLOWS"] == "true":
             expected = dict.fromkeys(("ruby", "typescript", "frontend", "oci", "auth",
-                                      "ga_workflow_files"), "true")
+                                      "billing", "ga_workflow_files"), "true")
         else:
             expected = {key: inputs["FILTER_" + key.upper()]
-                        for key in ("ruby", "typescript", "frontend", "oci", "auth")}
+                        for key in ("ruby", "typescript", "frontend", "oci", "auth", "billing")}
             expected["ga_workflow_files"] = "false"
         for file_mode in (False, True):
             with tempfile.TemporaryDirectory() as directory:
@@ -129,7 +130,7 @@ def compute_cases():
                     expected = {**expected, "existing": "kept"}
                 check(actual == expected,
                       f"compute {inputs}, file={file_mode}: expected {expected}, got {actual}")
-    print("  512 compute/output-mode cases", flush=True)
+    print("  1024 compute/output-mode cases", flush=True)
 
 
 def invalid_auth():
@@ -169,8 +170,19 @@ def selector_independence():
         check(computed.returncode == 0, f"selection: {computed.stderr}")
         check(outputs(computed.stdout) == {
             "ruby": "false", "auth": "true", "typescript": "false", "frontend": "false",
-            "oci": "false", "ga_workflow_files": "false",
+            "oci": "false", "billing": "false", "ga_workflow_files": "false",
         }, f"label/path/event auth is its own flag and must not turn on Ruby or any other filter: {computed.stdout}")
+    computed = run(compute, {**defaults(), "FILTER_BILLING": "true", "GITHUB_OUTPUT": ""})
+    check(computed.returncode == 0, f"billing selection: {computed.stderr}")
+    check(outputs(computed.stdout) == {
+        "ruby": "false", "auth": "false", "typescript": "false", "frontend": "false",
+        "oci": "false", "billing": "true", "ga_workflow_files": "false",
+    }, f"billing is its own flag and must not turn on Ruby, auth or any other filter: {computed.stdout}")
+    inputs = defaults()
+    del inputs["FILTER_BILLING"]
+    computed = run(compute, {**inputs, "RUN_ALL": "true", "GITHUB_OUTPUT": ""})
+    check(computed.returncode == 0 and outputs(computed.stdout)["billing"] == "true",
+          "a run-all event skips the path filter, so billing has no input and must still be selected")
 
 
 jobs = block(workflow, "jobs", 0)
@@ -230,7 +242,7 @@ def shared_wiring():
         "SKIP_CI": "steps.check-flags.outputs.skip_ci", "RUN_ALL": "steps.check-flags.outputs.run_all",
         "GA_WORKFLOWS": "steps.filter.outputs.ga_workflow_files", "FILTER_AUTH": "steps.auth.outputs.auth",
         **{"FILTER_" + name.upper(): "steps.filter.outputs." + name
-           for name in ("ruby", "typescript", "frontend", "oci")},
+           for name in ("ruby", "typescript", "frontend", "oci", "billing")},
     }.items():
         check(scalar(compute_env, key, 10) == expression(value), f"compute receives {key}")
     check(scalar(compute_step, "run", 8) == "./.github/scripts/compute-path-filter-outputs.sh",
@@ -244,8 +256,8 @@ def prerequisites_and_gates():
         check("needs.changes.outputs.auth" not in job, f"auth selection alone must not run {job_id}")
     check(scalar(block(jobs, "build-assets", 2), "if", 4) ==
           "needs.changes.outputs.frontend == 'true' || needs.changes.outputs.ruby == 'true' "
-          "|| needs.changes.outputs.auth == 'true'",
-          "auth-only selection still gets the frontend build its jobs download")
+          "|| needs.changes.outputs.auth == 'true' || needs.changes.outputs.billing == 'true'",
+          "auth-only and billing-only selection still get the frontend build their jobs download")
     browser = block(jobs, "ruby-auth-browser", 2)
     integration = block(jobs, "ruby-integration-auth", 2)
     for job_id, job in (("ruby-auth-browser", browser), ("ruby-integration-auth", integration)):
@@ -260,10 +272,29 @@ def prerequisites_and_gates():
         "(needs.build-assets.result == 'success' || needs.build-assets.result == 'skipped') && "
         "!contains(needs.*.result, 'cancelled')"
     ), "auth jobs run independently of Ruby output, accept successful/skipped prerequisites, reject failure/cancel")
+    billing = block(jobs, "ruby-integration-billing", 2)
+    check(scalar(billing, "needs", 4) == "[changes, ruby-lint, build-assets]",
+          "ruby-integration-billing: same lint/assets prerequisites as the other full-mode jobs")
+    check(not re.search(r"^    continue-on-error:", billing, re.M), "ruby-integration-billing remains blocking")
+    check(" ".join(block(billing, "if", 4).split()) == (
+        "always() && needs.changes.outputs.billing == 'true' && "
+        "(needs.ruby-lint.result == 'success' || needs.ruby-lint.result == 'skipped') && "
+        "(needs.build-assets.result == 'success' || needs.build-assets.result == 'skipped') && "
+        "!contains(needs.*.result, 'cancelled')"
+    ), "billing rows run on the billing flag alone, not on Ruby or auth selection")
+    changes = block(jobs, "changes", 2)
+    check(scalar(block(changes, "outputs", 4), "billing", 6) == expression("steps.compute.outputs.billing"),
+          "changes publishes the billing flag")
+    names = re.findall(r"^              - '\{apps,lib,etc,spec,try\}/\*\*/\*(\{[^}]+\})\*(/\*\*)?'$", changes, re.M)
+    check([suffix for _, suffix in names] == ["", "/**"] and names[0][0] == names[1][0],
+          f"the billing filter's file and directory lines must carry the same name list: {names}")
+    for path in ("apps/web/billing/**", "tests/lanes/overlays/**"):
+        check(f"              - '{path}'" in changes, f"billing filter lists {path}")
     simple = block(jobs, "ruby-integration-simple", 2)
     check(scalar(simple, "if", 4) == "&if-ruby-integration |", "general Ruby gate remains shared")
     check("needs.changes.outputs.ruby == 'true'" in block(simple, "if", 4)
-          and "outputs.auth" not in block(simple, "if", 4), "general integration stays selected for ordinary Ruby")
+          and "outputs.auth" not in block(simple, "if", 4)
+          and "outputs.billing" not in block(simple, "if", 4), "general integration stays selected for ordinary Ruby")
     for job_id in ("ruby-integration-api", "ruby-integration-full", "ruby-integration-disabled"):
         check(scalar(block(jobs, job_id, 2), "if", 4) == "*if-ruby-integration",
               f"{job_id} retains the general Ruby gate")
@@ -294,26 +325,37 @@ def matrix(job_id):
 
 def matrix_coverage():
     # Frozen copy of the eight full-mode cases; not derived from the changed
-    # workflow or git HEAD. Every Ruby change runs the whole suite on SQLite
-    # and the PG-only specs, each with billing off and on. Auth selection
+    # workflow or git HEAD. Every Ruby change runs the whole suite once, on
+    # SQLite, and the PG-only specs, both with billing off. Auth selection
     # adds the second pass of the whole suite on PostgreSQL and the two
-    # feature-specific boots.
+    # feature-specific boots. Billing selection adds the three lanes again
+    # with the billing overlay.
     general = [
         ("SQLite, billing: off", "full-sqlite", "", "valkey rabbitmq", "rspec_full_sqlite_billing_off_results.json"),
-        ("SQLite, billing: on", "full-sqlite", "billing", "valkey rabbitmq", "rspec_full_sqlite_billing_on_results.json"),
         ("PG, billing: off", "full-pg", "", "valkey rabbitmq postgres", "rspec_full_postgres_billing_off_results.json"),
-        ("PG, billing: on", "full-pg", "billing", "valkey rabbitmq postgres", "rspec_full_postgres_billing_on_results.json"),
     ]
     auth = [
         ("PG agnostic, billing: off", "full-pg-agnostic", "", "valkey rabbitmq postgres", "rspec_full_pg_agnostic_billing_off_results.json"),
-        ("PG agnostic, billing: on", "full-pg-agnostic", "billing", "valkey rabbitmq postgres", "rspec_full_pg_agnostic_billing_on_results.json"),
         ("SQLite, MFA", "full-mfa", "", "valkey rabbitmq", "rspec_full_mfa_results.json"),
         ("SQLite, platform SAML", "full-saml-platform", "", "valkey rabbitmq", "rspec_full_saml_platform_results.json"),
     ]
+    billing = [
+        ("SQLite", "full-sqlite", "billing", "valkey rabbitmq", "rspec_full_sqlite_billing_on_results.json"),
+        ("PG", "full-pg", "billing", "valkey rabbitmq postgres", "rspec_full_postgres_billing_on_results.json"),
+        ("PG agnostic", "full-pg-agnostic", "billing", "valkey rabbitmq postgres", "rspec_full_pg_agnostic_billing_on_results.json"),
+    ]
     actual_general, actual_auth = matrix("ruby-integration-full"), matrix("ruby-integration-auth")
-    check(actual_general == general, f"the four full rows every Ruby change runs changed: {actual_general}")
-    check(actual_auth == auth, f"the four auth-selected rows changed: {actual_auth}")
-    check(len(set(actual_general + actual_auth)) == 8, "matrix split must neither drop nor duplicate an old case")
+    actual_billing = matrix("ruby-integration-billing")
+    check(actual_general == general, f"the two full rows every Ruby change runs changed: {actual_general}")
+    check(actual_auth == auth, f"the three auth-selected rows changed: {actual_auth}")
+    check(actual_billing == billing, f"the three billing-selected rows changed: {actual_billing}")
+    check(all(row[2] == "" for row in actual_general + actual_auth),
+          "billing-on rows belong to ruby-integration-billing only")
+    # Lane, overlay and results file identify a case; the display name may differ per job.
+    check(len({row[1:] for row in actual_general + actual_auth + actual_billing}) == 8,
+          "matrix split must neither drop nor duplicate an old case")
+    check(scalar(block(jobs, "ruby-integration-billing", 2), "steps", 4) == "*full-integration-steps",
+          "billing rows run the same steps, not a divergent copy")
     full = block(jobs, "ruby-integration-full", 2)
     check(scalar(full, "steps", 4) == "&full-integration-steps", "full job defines shared steps")
     check(scalar(block(jobs, "ruby-integration-auth", 2), "steps", 4) == "*full-integration-steps",
@@ -399,13 +441,15 @@ def reporting():
     for report_id in ("aggregate-test-results", "ci-verdict", "ci-metrics"):
         report = block(jobs, report_id, 2)
         needs = block(report, "needs", 4)
-        for job_id in ("ruby-auth-browser", "ruby-integration-auth"):
+        for job_id in ("ruby-auth-browser", "ruby-integration-auth", "ruby-integration-billing"):
             check(len(re.findall(r"^      - " + job_id + r"$", needs, re.M)) == 1,
                   f"{report_id} must wait for {job_id} exactly once")
         check(scalar(report, "if", 4) == "always()", f"{report_id} runs even on skipped/failed auth")
     verdict_env = block(block(jobs, "ci-verdict", 2), "env", 8)
     check(scalar(verdict_env, "AUTH", 10) == expression("needs.changes.outputs.auth"), "verdict receives required auth selection")
-    for job_id in ("ruby-auth-browser", "ruby-integration-auth"):
+    check(scalar(verdict_env, "BILLING", 10) == expression("needs.changes.outputs.billing"),
+          "verdict receives the billing selection; without it a skipped billing job reads as unselected")
+    for job_id in ("ruby-auth-browser", "ruby-integration-auth", "ruby-integration-billing"):
         variable = "RESULT_" + job_id.upper().replace("-", "_")
         check(scalar(verdict_env, variable, 10) == expression(f"needs.{job_id}.result"),
               f"verdict receives {job_id}'s result")

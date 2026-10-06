@@ -30,6 +30,9 @@ name: CI
 #   SAML boots, the SAML browser lane) runs when the PR touches a path in
 #   .github/auth-paths.yml or carries the ci:auth label. It is a flag of its
 #   own: it adds those jobs and does not turn on the ordinary Ruby jobs.
+# - Billing coverage (the full-mode lanes repeated with billing on) runs when
+#   the PR touches a billing path (the `billing` filter in the changes job).
+#   Also a flag of its own.
 # - Nightly, main/tag push, and merge-group runs cover every configuration
 # - Workflow file changes (.github/**) run all jobs
 # - Use [ci-all] in commit message to force all jobs
@@ -127,6 +130,7 @@ jobs:
       oci: ${{ steps.compute.outputs.oci }}
       ga_workflow_files: ${{ steps.compute.outputs.ga_workflow_files }}
       auth: ${{ steps.compute.outputs.auth }}
+      billing: ${{ steps.compute.outputs.billing }}
       # Read by ci-verdict: [ci-skip] skips every job, which must not read as
       # a pass for the required check.
       skip_ci: ${{ steps.check-flags.outputs.skip_ci }}
@@ -202,6 +206,18 @@ jobs:
               - 'scripts/entrypoint.sh'
               - 'etc/**'
               - 'config.ru'
+            # Selects ruby-integration-billing: the full-mode lanes repeated
+            # with billing on. The billing app, anything in backend code,
+            # configuration or specs named for a billing concept, and the
+            # overlay that turns billing on. The two name lines carry the
+            # same list; scripts/tests/ci-auth-gating-test.sh fails when they
+            # drift apart. Frontend billing code is left out: these are Ruby
+            # suites.
+            billing:
+              - 'apps/web/billing/**'
+              - '{apps,lib,etc,spec,try}/**/*{[Bb]illing,[Ss]tripe,[Ee]ntitlement,[Ss]ubscription,[Pp]lan}*'
+              - '{apps,lib,etc,spec,try}/**/*{[Bb]illing,[Ss]tripe,[Ee]ntitlement,[Ss]ubscription,[Pp]lan}*/**'
+              - 'tests/lanes/overlays/**'
             ga_workflow_files:
               - '.github/workflows/**'
               - '.github/actions/**'
@@ -223,6 +239,7 @@ jobs:
           FILTER_FRONTEND: ${{ steps.filter.outputs.frontend }}
           FILTER_OCI: ${{ steps.filter.outputs.oci }}
           FILTER_AUTH: ${{ steps.auth.outputs.auth }}
+          FILTER_BILLING: ${{ steps.filter.outputs.billing }}
         run: ./.github/scripts/compute-path-filter-outputs.sh
 
       - name: Generate job summary
@@ -235,6 +252,7 @@ jobs:
           echo "| Frontend | ${{ steps.compute.outputs.frontend }} |" >> $GITHUB_STEP_SUMMARY
           echo "| OCI | ${{ steps.compute.outputs.oci }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Auth | ${{ steps.compute.outputs.auth }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Billing | ${{ steps.compute.outputs.billing }} |" >> "$GITHUB_STEP_SUMMARY"
 
   # ============================================================================
   # TIER 1: LINT & BUILD JOBS (~2 min)
@@ -428,7 +446,7 @@ jobs:
     needs: [changes]
     # Auth is here because the auth jobs download this build and can be
     # selected (a label, a frontend auth path) when the Ruby flag is off.
-    if: needs.changes.outputs.frontend == 'true' || needs.changes.outputs.ruby == 'true' || needs.changes.outputs.auth == 'true'
+    if: needs.changes.outputs.frontend == 'true' || needs.changes.outputs.ruby == 'true' || needs.changes.outputs.auth == 'true' || needs.changes.outputs.billing == 'true'
     steps:
       - *checkout-step
 
@@ -758,10 +776,11 @@ jobs:
     # PG roles come from compose.test.yml's initdb mount (first boot), so
     # there is no separate psql setup step.
     #
-    # These four rows run on every Ruby change: the whole full-mode suite on
-    # SQLite with billing off and on, and the PG-only specs with billing off
-    # and on. The second pass of the whole suite on PostgreSQL is in
-    # ruby-integration-auth below.
+    # These two rows run on every Ruby change: the whole full-mode suite
+    # once, on SQLite, and the PG-only specs, both with billing off. The
+    # second pass of the whole suite on PostgreSQL is in
+    # ruby-integration-auth below, and every billing-on row is in
+    # ruby-integration-billing.
     strategy:
       fail-fast: false
       matrix:
@@ -771,21 +790,11 @@ jobs:
             overlay: ''
             services: 'valkey rabbitmq'
             results-file: 'rspec_full_sqlite_billing_off_results.json'
-          - name: 'SQLite, billing: on'
-            lane: full-sqlite
-            overlay: 'billing'
-            services: 'valkey rabbitmq'
-            results-file: 'rspec_full_sqlite_billing_on_results.json'
           - name: 'PG, billing: off'
             lane: full-pg
             overlay: ''
             services: 'valkey rabbitmq postgres'
             results-file: 'rspec_full_postgres_billing_off_results.json'
-          - name: 'PG, billing: on'
-            lane: full-pg
-            overlay: 'billing'
-            services: 'valkey rabbitmq postgres'
-            results-file: 'rspec_full_postgres_billing_on_results.json'
 
     steps: &full-integration-steps
       - *checkout-step
@@ -822,9 +831,9 @@ jobs:
   # Selected by auth (a path in .github/auth-paths.yml, the ci:auth label, or
   # any non-PR event), not by every Ruby change: the database-agnostic
   # full-mode suite run a second time against PostgreSQL, and the two
-  # feature-specific boots. The PG agnostic rows are the slowest in the
-  # matrix and run the same specs as the SQLite rows above on a second
-  # engine, so a PR that touches no auth path leaves them to the main,
+  # feature-specific boots. The PG agnostic row is the slowest in the
+  # matrix and runs the same specs as the SQLite row above on a second
+  # engine, so a PR that touches no auth path leaves it to the main,
   # nightly and release runs.
   ruby-integration-auth:
     name: 'T3 · Ruby Auth Configuration (${{ matrix.name }})'
@@ -841,11 +850,6 @@ jobs:
             overlay: ''
             services: 'valkey rabbitmq postgres'
             results-file: 'rspec_full_pg_agnostic_billing_off_results.json'
-          - name: 'PG agnostic, billing: on'
-            lane: full-pg-agnostic
-            overlay: 'billing'
-            services: 'valkey rabbitmq postgres'
-            results-file: 'rspec_full_pg_agnostic_billing_on_results.json'
           - name: 'SQLite, MFA'
             lane: full-mfa
             overlay: ''
@@ -856,6 +860,45 @@ jobs:
             overlay: ''
             services: 'valkey rabbitmq'
             results-file: 'rspec_full_saml_platform_results.json'
+    steps: *full-integration-steps
+
+  # Selected by billing (a path in the `billing` filter of the changes job,
+  # or any non-PR event), not by every Ruby change and not by auth: the three
+  # full-mode lanes repeated with the billing overlay. They run the same
+  # specs as their billing-off rows with BILLING_ENABLED=true, so a PR that
+  # touches no billing path leaves them to the main, nightly and release
+  # runs. Billing's own specs are in the unit lane and run on every Ruby
+  # change.
+  ruby-integration-billing:
+    name: 'T3 · Ruby Billing Configuration (${{ matrix.name }})'
+    timeout-minutes: 10
+    runs-on: *runs-on
+    needs: [changes, ruby-lint, build-assets]
+    if: |
+      always() &&
+      needs.changes.outputs.billing == 'true' &&
+      (needs.ruby-lint.result == 'success' || needs.ruby-lint.result == 'skipped') &&
+      (needs.build-assets.result == 'success' || needs.build-assets.result == 'skipped') &&
+      !contains(needs.*.result, 'cancelled')
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: 'SQLite'
+            lane: full-sqlite
+            overlay: 'billing'
+            services: 'valkey rabbitmq'
+            results-file: 'rspec_full_sqlite_billing_on_results.json'
+          - name: 'PG'
+            lane: full-pg
+            overlay: 'billing'
+            services: 'valkey rabbitmq postgres'
+            results-file: 'rspec_full_postgres_billing_on_results.json'
+          - name: 'PG agnostic'
+            lane: full-pg-agnostic
+            overlay: 'billing'
+            services: 'valkey rabbitmq postgres'
+            results-file: 'rspec_full_pg_agnostic_billing_on_results.json'
     steps: *full-integration-steps
 
   ruby-integration-disabled:
@@ -997,6 +1040,7 @@ jobs:
       - ruby-unit
       - ruby-auth-browser
       - ruby-integration-auth
+      - ruby-integration-billing
       - ruby-integration-simple
       - ruby-integration-api
       - ruby-integration-full
@@ -1083,6 +1127,7 @@ jobs:
       - ruby-unit
       - ruby-auth-browser
       - ruby-integration-auth
+      - ruby-integration-billing
       - typescript-unit
       - ruby-integration-simple
       - ruby-integration-api
@@ -1107,6 +1152,7 @@ jobs:
           FRONTEND: ${{ needs.changes.outputs.frontend }}
           OCI: ${{ needs.changes.outputs.oci }}
           AUTH: ${{ needs.changes.outputs.auth }}
+          BILLING: ${{ needs.changes.outputs.billing }}
           RESULT_HOST_PROXY_WIRE: ${{ needs.host-proxy-wire.result }}
           RESULT_RUBY_LINT: ${{ needs.ruby-lint.result }}
           RESULT_TYPESCRIPT_LINT: ${{ needs.typescript-lint.result }}
@@ -1116,6 +1162,7 @@ jobs:
           RESULT_RUBY_UNIT: ${{ needs.ruby-unit.result }}
           RESULT_RUBY_AUTH_BROWSER: ${{ needs.ruby-auth-browser.result }}
           RESULT_RUBY_INTEGRATION_AUTH: ${{ needs.ruby-integration-auth.result }}
+          RESULT_RUBY_INTEGRATION_BILLING: ${{ needs.ruby-integration-billing.result }}
           RESULT_TYPESCRIPT_UNIT: ${{ needs.typescript-unit.result }}
           RESULT_RUBY_INTEGRATION_SIMPLE: ${{ needs.ruby-integration-simple.result }}
           RESULT_RUBY_INTEGRATION_API: ${{ needs.ruby-integration-api.result }}
@@ -1138,6 +1185,7 @@ jobs:
       - ruby-unit
       - ruby-auth-browser
       - ruby-integration-auth
+      - ruby-integration-billing
       - typescript-unit
       - ruby-integration-simple
       - ruby-integration-api
@@ -1178,6 +1226,7 @@ jobs:
             echo "| Ruby Unit | ${{ needs.ruby-unit.result }} |"
             echo "| Ruby Auth Browser | ${{ needs.ruby-auth-browser.result }} |"
             echo "| Ruby Auth Configuration | ${{ needs.ruby-integration-auth.result }} |"
+            echo "| Ruby Billing Configuration | ${{ needs.ruby-integration-billing.result }} |"
             echo "| TypeScript Unit | ${{ needs.typescript-unit.result }} |"
             echo "| Ruby Integration (Simple) | ${{ needs.ruby-integration-simple.result }} |"
             echo "| Ruby Integration (API Contract) | ${{ needs.ruby-integration-api.result }} |"

@@ -4,10 +4,10 @@
 #
 # When [ci-skip] is set, all outputs are false.
 # When [ci-all] is set or workflow files changed, all outputs are true.
-# Otherwise, outputs match the path filter results. Auth selection is its own
-# flag: it adds the auth jobs and never turns on the ordinary Ruby jobs. The
-# auth jobs get the frontend build they need from build-assets, whose gate in
-# ci.yml includes auth.
+# Otherwise, outputs match the path filter results. Auth and billing selection
+# are flags of their own: each adds its jobs and never turns on the ordinary
+# Ruby jobs. Those jobs get the frontend build they need from build-assets,
+# whose gate in ci.yml includes both flags.
 #
 # Environment variables (inputs):
 #   SKIP_CI          - true if [ci-skip] detected
@@ -18,9 +18,10 @@
 #   FILTER_FRONTEND  - true if frontend files changed
 #   FILTER_OCI       - true if Docker/OCI files changed
 #   FILTER_AUTH      - shared auth selector result (paths, label, or event)
+#   FILTER_BILLING   - true if billing files changed
 #
 # Outputs (to GITHUB_OUTPUT):
-#   ruby, typescript, frontend, oci, auth, ga_workflow_files
+#   ruby, typescript, frontend, oci, auth, billing, ga_workflow_files
 
 set -e
 
@@ -32,6 +33,7 @@ FILTER_RUBY="${FILTER_RUBY:-false}"
 FILTER_TYPESCRIPT="${FILTER_TYPESCRIPT:-false}"
 FILTER_FRONTEND="${FILTER_FRONTEND:-false}"
 FILTER_OCI="${FILTER_OCI:-false}"
+FILTER_BILLING="${FILTER_BILLING:-false}"
 FILTER_AUTH="${FILTER_AUTH:-}"
 case "$FILTER_AUTH" in
   true | false) ;;
@@ -47,6 +49,7 @@ if [[ "$SKIP_CI" == "true" ]]; then
   OCI=false
   GA_WORKFLOW_FILES=false
   AUTH=false
+  BILLING=false
 elif [[ "$RUN_ALL" == "true" || "$GA_WORKFLOWS" == "true" ]]; then
   # Run everything
   RUBY=true
@@ -55,6 +58,7 @@ elif [[ "$RUN_ALL" == "true" || "$GA_WORKFLOWS" == "true" ]]; then
   OCI=true
   GA_WORKFLOW_FILES=true
   AUTH=true
+  BILLING=true
 else
   # Use path filter results
   RUBY="$FILTER_RUBY"
@@ -63,6 +67,7 @@ else
   OCI="$FILTER_OCI"
   GA_WORKFLOW_FILES=false
   AUTH="$FILTER_AUTH"
+  BILLING="$FILTER_BILLING"
 fi
 
 # Output results
@@ -72,6 +77,7 @@ if [[ -n "$GITHUB_OUTPUT" ]]; then
   echo "frontend=$FRONTEND" >> "$GITHUB_OUTPUT"
   echo "oci=$OCI" >> "$GITHUB_OUTPUT"
   echo "auth=$AUTH" >> "$GITHUB_OUTPUT"
+  echo "billing=$BILLING" >> "$GITHUB_OUTPUT"
   echo "ga_workflow_files=$GA_WORKFLOW_FILES" >> "$GITHUB_OUTPUT"
 else
   # Local testing - print to stdout
@@ -80,5 +86,6 @@ else
   echo "frontend=$FRONTEND"
   echo "oci=$OCI"
   echo "auth=$AUTH"
+  echo "billing=$BILLING"
   echo "ga_workflow_files=$GA_WORKFLOW_FILES"
 fi

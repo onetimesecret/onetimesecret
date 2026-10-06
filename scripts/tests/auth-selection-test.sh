@@ -396,7 +396,7 @@ positive = [
     'tests/browser/saml_callback_spec.rb', 'tests/browser/saml_callback.mjs',
     'tests/lanes/browser/tasks', 'tests/lanes/full-mfa/env',
     'tests/lanes/full-saml-platform/env', 'tests/lanes/full-pg-agnostic/tasks',
-    'tests/lanes/full-sqlite/env', 'tests/lanes/overlays/billing.env',
+    'tests/lanes/full-sqlite/env',
     'e2e/auth/signup-redirect-preservation.spec.ts', 'e2e/all/auth-hydration.spec.ts',
     'e2e/system/connected-identities-custom-host.spec.ts',
     'e2e/system/tenant_connect_seed.rb', 'e2e/system/tenant_connect_test_boot.rb',
@@ -414,6 +414,8 @@ for base in ('spec', 'apps/web/new_app/spec', 'apps/api/new_app/spec'):
     for lane in ('full', 'full_mfa', 'full_saml_platform'):
         positive.append(f'{base}/integration/{lane}/nested/routes_spec.rb')
 negative = [
+    # Selected by the billing filter in ci.yml, not by auth.
+    'tests/lanes/overlays/billing.env',
     # Documentation and repository metadata, whatever it is called.
     'README.md', 'docs/auth-guide.md', 'docs/development/auth-ci.md', 'changelog.d/auth.md',
     '.simplecov', '.ruby-version', '.rspec',
