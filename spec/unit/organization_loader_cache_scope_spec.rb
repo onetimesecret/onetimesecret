@@ -357,6 +357,54 @@ RSpec.describe Onetime::Application::OrganizationLoader do
     end
   end
 
+  # Organization#archive! leaves domains attached, so the Host can name a
+  # domain whose organization is archived. rewrite: true puts the custom
+  # domain in HTTP_HOST, which is what the domain-based step reads.
+  context 'an archived organization that still owns the request domain' do
+    let(:archived_org) do
+      double('archived organization', objid: 'org_archived', archived?: true, is_default: false)
+    end
+    let(:archived_domain) do
+      double('archived-org domain', objid: 'domain_archived', primary_organization: archived_org)
+    end
+    let(:customer) do
+      double('customer', objid: 'customer_scoped', custid: 'scoped@example.com',
+        extid: 'customer_external', anonymous?: false, default_org_id: '',
+        organization_instances: [archived_org, organization])
+    end
+
+    before do
+      # Org-scoped memberships: the domain scope permits both organizations.
+      membership.domain_scope_id = nil
+      allow(Onetime::Organization).to receive(:load).with(archived_org.objid).and_return(archived_org)
+      allow(archived_org).to receive(:member?).with(customer).and_return(true)
+      allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+        .with(archived_org.objid, customer.objid).and_return(Onetime::OrganizationMembership.new)
+    end
+
+    it 'is not given by the domain-based step; an active organization is chosen' do
+      context = load_context(archived_domain, 'archived.example.com', rewrite: true, header: false)
+      expect(context[:organization]).to eq(organization)
+      expect(context).not_to have_key(:domain_scope_refused)
+    end
+
+    it 'is not reached through a refused session selection' do
+      session['organization_id'] = archived_org.objid
+
+      context = load_context(archived_domain, 'archived.example.com', rewrite: true, header: false)
+      expect(context[:organization]).to eq(organization)
+      expect(session).not_to have_key('organization_id')
+    end
+
+    it 'is not reached through a refused header' do
+      env                           = request_env(archived_domain, 'archived.example.com', rewrite: true, header: false)
+      env['HTTP_O_ORGANIZATION_ID'] = archived_org.objid
+
+      context = loader.load_organization_context(customer, session, env)
+      expect(context[:organization]).to eq(organization)
+    end
+  end
+
   # The explicit selection (#4565). `organization` stays the customer's first
   # organization, so it is what the fallback steps choose; `selected_org` is
   # only ever reached through session['organization_id'] and `header_org`

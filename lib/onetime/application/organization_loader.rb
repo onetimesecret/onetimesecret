@@ -177,12 +177,16 @@ module Onetime
         # 2. Domain-based selection. Which organization a request is GIVEN is
         # keyed on the Host header's record only, as before; whether it may
         # be given is decided over all of the request's domains.
+        #
+        # An archived organization can still own the domain
+        # (Organization#archive! leaves domains attached), so it is skipped
+        # here as in every other step and the steps below choose instead.
         if env && env['HTTP_HOST']
           host   = env['HTTP_HOST'].split(':').first # Remove port
           domain = request_host_domain(env, host)
           if domain
             org = domain.primary_organization
-            if org && org.member?(customer)
+            if org && org.member?(customer) && !org.archived?
               if scope_permits?(org, customer, domains)
                 OT.ld "[OrganizationLoader] Using domain-based selection: #{org.objid} (#{host})"
                 return org
