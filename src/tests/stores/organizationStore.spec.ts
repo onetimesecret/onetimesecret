@@ -469,12 +469,18 @@ describe('Organization Store', () => {
         const raw = sessionStorage.getItem(PENDING_ORG_SELECTION_KEY);
         return raw ? JSON.parse(raw).objid : null;
       };
+      // When the noted selection was made (epoch ms), or null without a note
+      const notedAt = (): number | null => {
+        const raw = sessionStorage.getItem(PENDING_ORG_SELECTION_KEY);
+        return raw ? JSON.parse(raw).at : null;
+      };
       // A note left by an earlier page load, `ageMs` ago, by `custid`
       const leaveNote = (objid: string, ageMs = 0, custid = CUSTID) =>
         sessionStorage.setItem(
           PENDING_ORG_SELECTION_KEY,
           JSON.stringify({ objid, at: Date.now() - ageMs, custid })
         );
+      const syncBodies = () => syncPosts().map((r) => JSON.parse(r.data));
       const slowReply =
         (status = 200) =>
         async (): Promise<[number, { success: boolean }]> => {
@@ -498,6 +504,15 @@ describe('Organization Store', () => {
 
         await pending;
         expect(note()).toBeNull();
+      });
+
+      it('is sent without an age', async () => {
+        signIn();
+        axiosMock?.onPost(SYNC_URL).reply(200, { success: true });
+
+        await store.selectOrganization(other);
+
+        expect(syncBodies()).toEqual([{ organization_id: 'org-999' }]);
       });
 
       // Without an account to name, the note could be sent as someone else.
@@ -625,16 +640,61 @@ describe('Organization Store', () => {
 
       // The first successful list fetch of a page load sends the note again.
       describe('after a page load', () => {
-        it('is sent again when the list loads, and becomes current', async () => {
+        it('is sent again when the list loads, and becomes current once accepted', async () => {
           signIn();
           leaveNote('org-123');
-          axiosMock?.onPost(SYNC_URL).reply(200, { success: true });
+          axiosMock?.onPost(SYNC_URL).reply(slowReply());
 
           await loadList();
 
-          expect(store.currentOrganization?.objid).toBe('org-123');
+          // Not before the server has accepted it
+          expect(store.currentOrganization).toBeNull();
+          await vi.waitFor(() => expect(store.currentOrganization?.objid).toBe('org-123'));
+          expect(note()).toBeNull();
+          expect(syncBodies().map((body) => body.organization_id)).toEqual(['org-123']);
+        });
+
+        // The server orders it against selections made since by its age.
+        it('is sent with its age, counted from the selection', async () => {
+          signIn();
+          leaveNote('org-123', 5_000);
+          axiosMock?.onPost(SYNC_URL).reply(200, { success: true });
+
+          await loadList();
           await vi.waitFor(() => expect(note()).toBeNull());
-          expect(syncPosts().map((r) => JSON.parse(r.data).organization_id)).toEqual(['org-123']);
+
+          const [body] = syncBodies();
+          expect(body.selection_age_ms).toBeGreaterThanOrEqual(5_000);
+          expect(body.selection_age_ms).toBeLessThan(10_000);
+        });
+
+        it('does not become current when the server refuses it', async () => {
+          signIn();
+          vi.spyOn(console, 'warn').mockImplementation(() => {});
+          leaveNote('org-123');
+          axiosMock?.onPost(SYNC_URL).reply(422, { message: 'Selection superseded' });
+
+          await loadList();
+          await vi.waitFor(() => expect(note()).toBeNull());
+
+          expect(store.currentOrganization).toBeNull();
+          expect(syncPosts()).toHaveLength(1);
+        });
+
+        it('does not become current without an answer, and keeps its age', async () => {
+          signIn();
+          const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+          leaveNote('org-123', 5_000);
+          const at = notedAt();
+          axiosMock?.onPost(SYNC_URL).networkError();
+
+          await loadList();
+          await vi.waitFor(() => expect(warn).toHaveBeenCalledTimes(1));
+          await new Promise((resolve) => setTimeout(resolve, 0));
+
+          expect(store.currentOrganization).toBeNull();
+          // Still counted from the selection, not from this attempt
+          expect(notedAt()).toBe(at);
         });
 
         it('is dropped, not sent, when another account left it', async () => {
@@ -659,6 +719,31 @@ describe('Organization Store', () => {
 
           expect(syncPosts()).toHaveLength(0);
           expect(sessionStorage.getItem(PENDING_ORG_SELECTION_KEY)).toBeNull();
+        });
+
+        it('gives way to a selection made while it is on its way', async () => {
+          signIn();
+          leaveNote('org-123');
+          axiosMock?.onPost(SYNC_URL).reply(slowReply());
+
+          await loadList();
+          await store.selectOrganization(other);
+
+          expect(store.currentOrganization).toEqual(other);
+          expect(syncBodies().map((body) => body.organization_id)).toEqual(['org-123', 'org-999']);
+          expect(note()).toBeNull();
+        });
+
+        it('does not move a tab the route moved while it was on its way', async () => {
+          signIn();
+          leaveNote('org-123');
+          axiosMock?.onPost(SYNC_URL).reply(slowReply());
+
+          await loadList();
+          store.setCurrentOrganization(other);
+          await vi.waitFor(() => expect(note()).toBeNull());
+
+          expect(store.currentOrganization).toEqual(other);
         });
 
         it('is dropped, not sent, when it is too old', async () => {

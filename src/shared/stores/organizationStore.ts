@@ -36,11 +36,10 @@ import { useBootstrapStore } from './bootstrapStore';
  * session stays the one authority for the selection across page loads.
  *
  * The value is `{ objid, at, custid }`: the organization, when the user chose
- * it, and the account that chose it. A note older than
- * PENDING_ORG_SELECTION_MAX_AGE_MS is never sent again: the reload it exists
- * for follows the selection within seconds, and anything older could undo a
- * newer choice made elsewhere. A note left by another account is never sent
- * either.
+ * it, and the account that chose it. `at` is never moved forward by a later
+ * attempt. A note older than PENDING_ORG_SELECTION_MAX_AGE_MS is never sent
+ * again: the reload it exists for follows the selection within seconds. A
+ * note left by another account is never sent either.
  */
 export const PENDING_ORG_SELECTION_KEY = 'pendingOrganizationSelection';
 export const PENDING_ORG_SELECTION_MAX_AGE_MS = 60_000;
@@ -87,6 +86,9 @@ function writePendingSelection(objid: string | null, custid = ''): void {
     // sent again after a page load.
   }
 }
+
+/** How the server answered a selection write, if it did. */
+type SelectionReply = 'accepted' | 'refused' | 'unanswered';
 
 /* eslint-disable max-lines-per-function */
 export const useOrganizationStore = defineStore('organization', () => {
@@ -379,41 +381,85 @@ export const useOrganizationStore = defineStore('organization', () => {
   // answers it (PENDING_ORG_SELECTION_KEY). An answer of any status settles
   // it; a request that got no answer (network failure, or the page unloading
   // mid-request) leaves the note for resumePendingSelection, which
-  // fetchOrganizations runs when the list first loads.
+  // fetchOrganizations runs when the list first loads. A selection sent
+  // again takes its turn in the same chain, so one made after the page load
+  // goes out after it.
   let syncInFlight: Promise<void> | null = null;
   let queuedSelection: Organization | null = null;
   let syncGeneration = 0;
   let pendingSelectionResumed = false;
+  // Counts selectOrganization calls, so a selection sent again can tell
+  // whether the user has chosen since.
+  let selectionsMade = 0;
 
   function settlePendingSelection(objid: string): void {
     // A later selection has replaced the note; that one is still unanswered.
     if (readPendingNote()?.objid === objid) writePendingSelection(null);
   }
 
-  /** Send one selection. True when the server answered it, with any status. */
-  async function postOrganizationContext(org: Organization): Promise<boolean> {
+  /**
+   * Send one selection. `ageMs` marks it as one sent again after a page load
+   * and says how long ago the user made it; the server refuses it when the
+   * session holds a different selection made since.
+   */
+  async function postOrganizationContext(
+    org: Organization,
+    ageMs?: number
+  ): Promise<SelectionReply> {
     try {
-      await $api.post('/api/account/update-organization-context', {
-        organization_id: org.objid,
-      });
-      return true;
+      await $api.post(
+        '/api/account/update-organization-context',
+        ageMs === undefined
+          ? { organization_id: org.objid }
+          : { organization_id: org.objid, selection_age_ms: ageMs }
+      );
+      return 'accepted';
     } catch (error) {
       console.warn('[organizationStore] Failed to sync to server:', error);
       // A request the server never answered rejects with no `response`.
-      return (error as { response?: unknown } | null)?.response !== undefined;
+      const answered = (error as { response?: unknown } | null)?.response !== undefined;
+      return answered ? 'refused' : 'unanswered';
     }
   }
 
-  async function postOrganizationContexts(first: Organization): Promise<void> {
+  /**
+   * Send again a selection made at `at`, before this page load. The tab
+   * moves to it only once the server has accepted it, and only if nothing
+   * else moved the tab while the request was on its way.
+   */
+  async function resendOrganizationContext(org: Organization, at: number): Promise<SelectionReply> {
+    const generation = syncGeneration;
+    const selections = selectionsMade;
+    const shown = currentOrganization.value?.objid;
+    const reply = await postOrganizationContext(org, Math.max(0, Date.now() - at));
+    const untouched =
+      generation === syncGeneration &&
+      selections === selectionsMade &&
+      currentOrganization.value?.objid === shown;
+    if (reply === 'accepted' && untouched) currentOrganization.value = org;
+    return reply;
+  }
+
+  /**
+   * Send `first`, then whatever was selected while each write was in flight.
+   * `resentFrom` is given when `first` is a selection sent again after a page
+   * load: the time the user made it.
+   */
+  async function postOrganizationContexts(first: Organization, resentFrom?: number): Promise<void> {
     const generation = syncGeneration;
     let next: Organization | null = first;
+    let resent = resentFrom;
     try {
       while (next) {
         const org = next;
         next = null;
-        const answered = await postOrganizationContext(org);
+        const reply =
+          resent === undefined
+            ? await postOrganizationContext(org)
+            : await resendOrganizationContext(org, resent);
+        resent = undefined;
         if (generation !== syncGeneration) return;
-        if (answered) settlePendingSelection(org.objid);
+        if (reply !== 'unanswered') settlePendingSelection(org.objid);
         next = queuedSelection;
         queuedSelection = null;
         if (next && !useAuthStore().protectedActionsAvailable) {
@@ -435,6 +481,7 @@ export const useOrganizationStore = defineStore('organization', () => {
    * selection in place.
    */
   async function selectOrganization(org: Organization): Promise<void> {
+    selectionsMade += 1;
     currentOrganization.value = org;
     await syncOrganizationContextToServer(org);
   }
@@ -446,13 +493,15 @@ export const useOrganizationStore = defineStore('organization', () => {
    * come back on the previous organization.
    *
    * Runs once per page load, when the list first loads (the note holds only
-   * an objid; the list supplies the record). The organization becomes current
-   * in this tab again, as it was when the user chose it, and the write goes
-   * out through selectOrganization like any other selection. A note that is
-   * too old, was left by another account, or names an organization that is
-   * not in the list, is dropped.
-   * While protected actions are unavailable nothing changes: the tab is not
-   * moved to a selection the server would not be told about.
+   * an objid; the list supplies the record). The write goes out with its age
+   * and the tab stays on the organization the server rendered until the
+   * server accepts it (resendOrganizationContext): refused or unanswered,
+   * the tab keeps showing what the server holds. The note is left as it is,
+   * so its age keeps counting from the user's choice.
+   *
+   * A note is dropped, not sent, when it is too old, when another account
+   * left it, or when it names an organization that is not in the list. While
+   * protected actions are unavailable nothing is sent or dropped.
    */
   function resumePendingSelection(): void {
     if (pendingSelectionResumed) return;
@@ -467,11 +516,11 @@ export const useOrganizationStore = defineStore('organization', () => {
     const fresh = age >= 0 && age <= PENDING_ORG_SELECTION_MAX_AGE_MS;
     const own = note?.custid !== '' && note?.custid === useBootstrapStore().custid;
     const org = fresh && own ? organizations.value.find((o) => o.objid === note?.objid) : undefined;
-    if (!org) {
+    if (!note || !org) {
       writePendingSelection(null);
       return;
     }
-    void selectOrganization(org);
+    syncInFlight = postOrganizationContexts(org, note.at);
   }
 
   /**
@@ -615,7 +664,7 @@ export const useOrganizationStore = defineStore('organization', () => {
   // session remembers the last selectOrganization() (#4565), so there is no
   // client-side copy to restore from or to keep in agreement. The one thing
   // kept client-side is a note of a write the server has not answered yet
-  // (see resumePendingSelection).
+  // (see resumePendingSelection), which the server accepts or refuses.
   watch(
     () => bootstrap.organization,
     (bootstrapOrg) => {
