@@ -11,6 +11,7 @@ source "${TEST_DIR}/lib/assert.sh"
 SCRIPT="${REPO_ROOT}/.github/scripts/compute-auth-selection.sh"
 FILTERS="${REPO_ROOT}/.github/auth-paths.yml"
 ACTION="${REPO_ROOT}/.github/actions/detect-auth-changes/action.yml"
+WORKFLOW="${REPO_ROOT}/.github/workflows/ci.yml"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
@@ -230,7 +231,7 @@ protects 'the path list selects auth code and the selected jobs'"'"' own tests, 
 # The matcher implements the subset the list uses: *, **, **/, {a,b} and
 # two-letter [Aa] classes (dotfiles included, as in paths-filter/picomatch).
 # It rejects other syntax so the list cannot drift past what is tested here.
-path_results="$(python3 - "$FILTERS" "$ACTION" <<'PY'
+path_results="$(python3 - "$FILTERS" "$ACTION" "$WORKFLOW" <<'PY'
 import re
 import sys
 from pathlib import Path
@@ -396,7 +397,6 @@ positive = [
     'tests/browser/saml_callback_spec.rb', 'tests/browser/saml_callback.mjs',
     'tests/lanes/browser/tasks', 'tests/lanes/full-mfa/env',
     'tests/lanes/full-saml-platform/env', 'tests/lanes/full-pg-agnostic/tasks',
-    'tests/lanes/full-sqlite/env',
     'e2e/auth/signup-redirect-preservation.spec.ts', 'e2e/all/auth-hydration.spec.ts',
     'e2e/system/connected-identities-custom-host.spec.ts',
     'e2e/system/tenant_connect_seed.rb', 'e2e/system/tenant_connect_test_boot.rb',
@@ -446,6 +446,7 @@ negative = [
     'try/support/auth_mode_config.rb',
     # Lanes every Ruby change runs, and the runner itself.
     'tests/lanes/unit/tasks', 'tests/lanes/simple/env', 'tests/lanes/run',
+    'tests/lanes/full-sqlite/env', 'tests/lanes/full-pg/tasks',
     'tests/lanes/base.env', 'tests/fixtures/session.json',
     # Shared frontend code and the other applications.
     'src/main.ts', 'src/App.vue', 'src/i18n.ts', 'src/admin.ts',
@@ -469,6 +470,32 @@ negative = [
     'vite.config.ts', 'tsconfig.json', 'public/schemas/bootstrap.json',
     '.github/scripts/ci-verdict.sh', 'scripts/tests/auth-selection-test.sh',
 ]
+
+# Lane definitions follow the ci.yml jobs that run them: each lane an
+# auth-selected job runs selects auth, and each lane a job run on every Ruby
+# change uses does not. Read from ci.yml so a lane added to either side is
+# checked without a fixture edit here.
+workflow = Path(sys.argv[3]).read_text()
+
+
+def job_lanes(job):
+    block = re.search(rf'^  {re.escape(job)}:\n(.*?)(?=^  [a-z0-9-]+:\n|\Z)', workflow, re.M | re.S)
+    if not block:
+        raise ValueError(f'ci.yml has no {job} job')
+    lanes = re.findall(r"^ +lane: '?([a-z0-9-]+)'?$", block[1], re.M)
+    if not lanes:
+        raise ValueError(f'{job} names no lane')
+    return lanes
+
+
+for job, selected in (('ruby-integration-auth', True), ('ruby-auth-browser', True),
+                      ('ruby-unit', False), ('ruby-integration-simple', False),
+                      ('ruby-integration-api', False), ('ruby-integration-full', False),
+                      ('ruby-integration-disabled', False)):
+    for lane in job_lanes(job):
+        for name in ('env', 'tasks'):
+            (positive if selected else negative).append(f'tests/lanes/{lane}/{name}')
+
 for expected, paths in ((True, positive), (False, negative)):
     for path in paths:
         actual = any(m.fullmatch(path) for m in matchers)

@@ -45,14 +45,16 @@ auth:
 
   # Tests and lane definitions only the selected jobs run. full_billing is a
   # different suite, so the directories are spelled out instead of full*.
-  # The billing overlay is not here: the rows that use it are selected by the
-  # billing filter in ci.yml.
+  # The lanes are spelled out too: full-sqlite and full-pg run on every Ruby
+  # change, so their definitions select nothing here. The billing overlay is
+  # not here either: the rows that use it are selected by the billing filter
+  # in ci.yml.
   - '**/spec/integration/full/**'
   - '**/spec/integration/full_mfa/**'
   - '**/spec/integration/full_saml_platform/**'
   - 'tests/browser/**'
   - 'tests/lanes/browser/**'
-  - 'tests/lanes/full-*/**'
+  - 'tests/lanes/{full-pg-agnostic,full-mfa,full-saml-platform}/**'
   - 'e2e/auth/**'
   - 'e2e/system/**'
   - 'e2e/all/auth-hydration*'
