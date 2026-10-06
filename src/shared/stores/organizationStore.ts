@@ -35,10 +35,12 @@ import { useBootstrapStore } from './bootstrapStore';
  * overtakes the write can send it again (resumePendingSelection). The server
  * session stays the one authority for the selection across page loads.
  *
- * The value is `{ objid, at }`. A note older than
+ * The value is `{ objid, at, custid }`: the organization, when the user chose
+ * it, and the account that chose it. A note older than
  * PENDING_ORG_SELECTION_MAX_AGE_MS is never sent again: the reload it exists
  * for follows the selection within seconds, and anything older could undo a
- * newer choice made elsewhere.
+ * newer choice made elsewhere. A note left by another account is never sent
+ * either.
  */
 export const PENDING_ORG_SELECTION_KEY = 'pendingOrganizationSelection';
 export const PENDING_ORG_SELECTION_MAX_AGE_MS = 60_000;
@@ -46,6 +48,7 @@ export const PENDING_ORG_SELECTION_MAX_AGE_MS = 60_000;
 interface PendingSelectionNote {
   objid: string;
   at: number;
+  custid: string;
 }
 
 function readPendingNote(): PendingSelectionNote | null {
@@ -53,8 +56,12 @@ function readPendingNote(): PendingSelectionNote | null {
     const raw = sessionStorage.getItem(PENDING_ORG_SELECTION_KEY);
     if (!raw) return null;
     const note = JSON.parse(raw) as Partial<PendingSelectionNote> | null;
-    if (typeof note?.objid === 'string' && typeof note.at === 'number') {
-      return { objid: note.objid, at: note.at };
+    if (
+      typeof note?.objid === 'string' &&
+      typeof note.at === 'number' &&
+      typeof note.custid === 'string'
+    ) {
+      return { objid: note.objid, at: note.at, custid: note.custid };
     }
   } catch {
     // Unavailable storage or an unreadable value: the same as no note.
@@ -62,10 +69,15 @@ function readPendingNote(): PendingSelectionNote | null {
   return null;
 }
 
-function writePendingSelection(objid: string | null): void {
+/**
+ * Note `objid` as chosen now by `custid`, or drop the note (null). Nothing is
+ * noted without an account to name: it could not be told whose selection it
+ * was after a page load.
+ */
+function writePendingSelection(objid: string | null, custid = ''): void {
   try {
-    if (objid) {
-      const note: PendingSelectionNote = { objid, at: Date.now() };
+    if (objid && custid) {
+      const note: PendingSelectionNote = { objid, at: Date.now(), custid };
       sessionStorage.setItem(PENDING_ORG_SELECTION_KEY, JSON.stringify(note));
     } else {
       sessionStorage.removeItem(PENDING_ORG_SELECTION_KEY);
@@ -346,7 +358,7 @@ export const useOrganizationStore = defineStore('organization', () => {
       queuedSelection = null;
       return;
     }
-    writePendingSelection(org.objid);
+    writePendingSelection(org.objid, useBootstrapStore().custid);
     if (syncInFlight) {
       // Wait for the reply, then send only the newest selection made since.
       queuedSelection = org;
@@ -437,7 +449,8 @@ export const useOrganizationStore = defineStore('organization', () => {
    * an objid; the list supplies the record). The organization becomes current
    * in this tab again, as it was when the user chose it, and the write goes
    * out through selectOrganization like any other selection. A note that is
-   * too old, or names an organization that is not in the list, is dropped.
+   * too old, was left by another account, or names an organization that is
+   * not in the list, is dropped.
    * While protected actions are unavailable nothing changes: the tab is not
    * moved to a selection the server would not be told about.
    */
@@ -452,7 +465,8 @@ export const useOrganizationStore = defineStore('organization', () => {
     const note = readPendingNote();
     const age = note ? Date.now() - note.at : -1;
     const fresh = age >= 0 && age <= PENDING_ORG_SELECTION_MAX_AGE_MS;
-    const org = fresh ? organizations.value.find((o) => o.objid === note?.objid) : undefined;
+    const own = note?.custid !== '' && note?.custid === useBootstrapStore().custid;
+    const org = fresh && own ? organizations.value.find((o) => o.objid === note?.objid) : undefined;
     if (!org) {
       writePendingSelection(null);
       return;

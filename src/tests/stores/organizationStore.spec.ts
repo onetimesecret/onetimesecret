@@ -193,8 +193,11 @@ describe('Organization Store', () => {
     const syncPosts = () => (axiosMock?.history.post ?? []).filter((r) => r.url === SYNC_URL);
 
     // The server sync is a protected action (ADR-046#authority-action-gating).
+    // The account is named too: a pending selection is noted for one account.
+    const CUSTID = 'ur-signed-in';
     const signIn = () => {
       useBootstrapStore().authStatus = 'authenticated';
+      useBootstrapStore().custid = CUSTID;
     };
 
     describe('seeding from the bootstrap payload', () => {
@@ -466,11 +469,11 @@ describe('Organization Store', () => {
         const raw = sessionStorage.getItem(PENDING_ORG_SELECTION_KEY);
         return raw ? JSON.parse(raw).objid : null;
       };
-      // A note left by an earlier page load, `ageMs` ago
-      const leaveNote = (objid: string, ageMs = 0) =>
+      // A note left by an earlier page load, `ageMs` ago, by `custid`
+      const leaveNote = (objid: string, ageMs = 0, custid = CUSTID) =>
         sessionStorage.setItem(
           PENDING_ORG_SELECTION_KEY,
-          JSON.stringify({ objid, at: Date.now() - ageMs })
+          JSON.stringify({ objid, at: Date.now() - ageMs, custid })
         );
       const slowReply =
         (status = 200) =>
@@ -494,6 +497,18 @@ describe('Organization Store', () => {
         expect(note()).toBe('org-999');
 
         await pending;
+        expect(note()).toBeNull();
+      });
+
+      // Without an account to name, the note could be sent as someone else.
+      it('is not noted when the account is not known', async () => {
+        useBootstrapStore().authStatus = 'authenticated';
+        vi.spyOn(console, 'warn').mockImplementation(() => {});
+        axiosMock?.onPost(SYNC_URL).networkError();
+
+        await store.selectOrganization(other);
+
+        expect(syncPosts()).toHaveLength(1);
         expect(note()).toBeNull();
       });
 
@@ -620,6 +635,30 @@ describe('Organization Store', () => {
           expect(store.currentOrganization?.objid).toBe('org-123');
           await vi.waitFor(() => expect(note()).toBeNull());
           expect(syncPosts().map((r) => JSON.parse(r.data).organization_id)).toEqual(['org-123']);
+        });
+
+        it('is dropped, not sent, when another account left it', async () => {
+          signIn();
+          leaveNote('org-123', 0, 'ur-someone-else');
+
+          await loadList();
+
+          expect(store.currentOrganization).toBeNull();
+          expect(syncPosts()).toHaveLength(0);
+          expect(note()).toBeNull();
+        });
+
+        it('is dropped when it names no account', async () => {
+          signIn();
+          sessionStorage.setItem(
+            PENDING_ORG_SELECTION_KEY,
+            JSON.stringify({ objid: 'org-123', at: Date.now() })
+          );
+
+          await loadList();
+
+          expect(syncPosts()).toHaveLength(0);
+          expect(sessionStorage.getItem(PENDING_ORG_SELECTION_KEY)).toBeNull();
         });
 
         it('is dropped, not sent, when it is too old', async () => {
