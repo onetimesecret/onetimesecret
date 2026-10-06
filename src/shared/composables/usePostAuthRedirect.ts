@@ -209,7 +209,10 @@ export function usePostAuthRedirect() {
 
       // Check subscription status - delegate to helper if subscribed
       if (currentPlanId) {
-        return handleExistingSubscription(org.extid, currentPlanId, product, interval);
+        // `await` is load-bearing: a bare `return promise` inside a try block
+        // hands the rejection past the catch below, so a failed push here
+        // would abort the login instead of falling back to /billing/plans.
+        return await handleExistingSubscription(org.extid, currentPlanId, product, interval);
       }
 
       // No active subscription - proceed to plans page for checkout
