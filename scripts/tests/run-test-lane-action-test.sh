@@ -313,6 +313,19 @@ def summary():
         text = page.read_text()
         check("- Total:" not in text and text.count("- No results in") == 3, f"empty results misreported:\n{text}")
 
+        # A results file cut off mid-write is not empty and is not JSON: the
+        # files that can be read are still totalled, and it is named.
+        page.write_text("")
+        (tmp / "rspec_x_results_root_fast.json").write_text(
+            json.dumps({"summary": {"example_count": 3, "failure_count": 1}}))
+        (tmp / "rspec_x_results_apps_fast.json").write_text('{"summary": {"example_count": 2, "failu')
+        status, _, log = execute("Generate job summary", scratch, env)
+        check(status == 0, f"summary step failed with a cut-off results file: {log}")
+        text = page.read_text()
+        check("- Total: 3\n" in text and "- Failures: 1\n" in text, f"readable results lost beside a cut-off file:\n{text}")
+        check("- No results in `tmp/rspec_x_results_apps_fast.json`" in text and text.count("- No results in") == 2,
+              f"a cut-off results file is not named:\n{text}")
+
 
 @case("only the fresh-clone job calls the runner without the action")
 def direct_callers():

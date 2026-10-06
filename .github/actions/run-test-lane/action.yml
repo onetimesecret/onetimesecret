@@ -233,9 +233,11 @@ runs:
           empty_results=()
 
           # An rspec process that dies before it finishes leaves its results
-          # file empty. Its examples are in no total; say so by name.
+          # file empty, or cut off part-way and not JSON. Its examples are in
+          # no total; say so by name. One such file given to the jq below
+          # would blank the totals of the files that can be read.
           for results_file in "${results_files[@]}"; do
-            if [ -s "$results_file" ]; then
+            if [ -s "$results_file" ] && jq -e 'type == "object"' "$results_file" > /dev/null 2>&1; then
               existing_results+=("$results_file")
             elif [ -f "$results_file" ]; then
               empty_results+=("$results_file")
