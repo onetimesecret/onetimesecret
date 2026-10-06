@@ -7,6 +7,7 @@
 // - allowed-tags list stays minimal (only <a>)
 
 import GlobalBroadcast from '@/shared/components/ui/GlobalBroadcast.vue';
+import { createTestI18n } from '@tests/setup';
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { beforeEach, describe, expect, it } from 'vitest';
 
@@ -16,6 +17,7 @@ function mountBroadcast(content: string): VueWrapper {
   return mount(GlobalBroadcast, {
     props: { content, show: true },
     global: {
+      plugins: [createTestI18n()],
       stubs: {
         OIcon: true,
         MovingGlobules: true,
