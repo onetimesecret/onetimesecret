@@ -436,6 +436,20 @@ describe('Login.vue auth_error handling', () => {
       expect(wrapper.find('nav[aria-label="Additional sign-in options"]').exists()).toBe(false);
     });
 
+    it('still shows the auth_error banner on the disabled page', async () => {
+      // A failed read of the request host's custom-domain record (#4668) both
+      // redirects here with auth_error=domain_unavailable AND turns
+      // features.signin off, so the alert has to render outside the
+      // disabled-panel conditional or the visitor never sees why.
+      wrapper = await createWrapper({ auth_error: 'domain_unavailable' }, disabledState);
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="signin-disabled-panel"]').exists()).toBe(true);
+      const alert = wrapper.find('[role="alert"]');
+      expect(alert.exists()).toBe(true);
+      expect(alert.text()).toContain('web.login.errors.domain_unavailable');
+    });
+
     it('renders the auth form when features.signin is true', async () => {
       wrapper = await createWrapper({}, { bootstrap: { features: { signin: true } } });
       await flushPromises();

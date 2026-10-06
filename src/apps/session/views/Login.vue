@@ -204,6 +204,23 @@ const handleLinkSent = () => {
     :hide-background-icon="isCustom"
     :show-return-home="signinDisabled">
     <template #form>
+      <!-- Auth error from redirects (SSO failure, invalid magic link, etc.).
+           Deliberately outside the sign-in-disabled conditional below: the auth
+           backend redirects to /signin?auth_error=domain_unavailable when the
+           request host's custom-domain record could not be read (#4668), and
+           that same failed read turns features.signin off, so the banner must
+           render on the disabled page too. -->
+      <!-- prettier-ignore-attribute class -->
+      <div
+        v-if="authError"
+        role="alert"
+        data-testid="signin-auth-error"
+        class="
+          mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700
+          dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+        {{ authError }}
+      </div>
+
       <!-- Sign-in disabled for this domain: friendly notice instead of the
            auth form. AuthView's return-home link provides the way out. -->
       <div
@@ -256,18 +273,6 @@ const handleLinkSent = () => {
             class="size-5 shrink-0 text-blue-500 dark:text-blue-400"
             aria-hidden="true" />
           <span>{{ authNotice }}</span>
-        </div>
-
-        <!-- Auth error from redirects (SSO failure, invalid magic link, etc.) -->
-        <!-- prettier-ignore-attribute class -->
-        <div
-          v-if="authError"
-          role="alert"
-          data-testid="signin-auth-error"
-          class="
-            mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700
-            dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
-          {{ authError }}
         </div>
 
         <AuthMethodSelector
