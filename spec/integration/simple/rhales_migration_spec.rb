@@ -377,6 +377,71 @@ RSpec.describe 'Rhales Migration Integration', type: :integration do
         expect(fallback_div).not_to be_nil
       end
 
+      # Stalled-load notice (#4596): shown by a CSS timer when the bundle never
+      # runs. It must be server-rendered inside the element the mount empties,
+      # hidden by default, revealed without script, and carry the request id so
+      # a recipient can quote it to support.
+      describe 'stalled-load notice' do
+        let(:inline_style) { doc.css('body > style').map(&:text).join }
+
+        it 'is server-rendered inside the fallback that mount() empties' do
+          notice = doc.css('#app .app-fallback .loader-stalled').first
+          expect(notice).not_to be_nil
+          expect(notice.text).to include('This page is taking longer than expected to load')
+        end
+
+        it 'offers a scriptless reload of the current URL' do
+          # An empty href resolves to the document URL; the shell sets no <base>.
+          link = doc.css('#app .loader-stalled a.loader-stalled-action').first
+          expect(link).not_to be_nil
+          expect(link['href']).to eq('')
+          expect(link.text).to eq('Reload page')
+        end
+
+        it 'is hidden until a CSS delay reveals it' do
+          expect(inline_style).to match(/\.loader-stalled\s*\{[^}]*visibility:\s*hidden/m)
+          expect(inline_style).to match(/--stalled-delay:\s*\d+s/)
+          expect(inline_style).to include('@keyframes stalled-reveal')
+        end
+
+        it 'keeps the timer under prefers-reduced-motion' do
+          expect(inline_style).to match(
+            /prefers-reduced-motion:\s*reduce\)\s*\{[^}]*\.loader-stalled\s*\{[^}]*stalled-reveal[^}]*var\(--stalled-delay\)/m,
+          )
+        end
+
+        it 'omits the support reference when the request carries no id' do
+          expect(doc.css('.loader-stalled-ref')).to be_empty
+        end
+
+        it 'is present in the admin shell too' do
+          admin_doc = Nokogiri::HTML(Core::Views::AdminPoint.new(request).render)
+          expect(admin_doc.css('#app .app-fallback .loader-stalled')).not_to be_empty
+        end
+
+        context 'with a request id' do
+          before { request.env['HTTP_X_REQUEST_ID'] = 'trace-4596-abc' }
+
+          it 'renders the id as the support reference' do
+            ref = doc.css('#app .loader-stalled .loader-stalled-ref').first
+            expect(ref).not_to be_nil
+            expect(ref.text).to eq('trace-4596-abc')
+          end
+
+          it 'keeps the id out of window.__BOOTSTRAP_ME__' do
+            expect(view.serialized_data.to_json).not_to include('trace-4596-abc')
+          end
+        end
+
+        it 'escapes a client-supplied request id' do
+          # Rack::RequestId accepts any visible-ASCII header value, so the
+          # reflected id must be escaped on the way into the shell.
+          request.env['HTTP_X_REQUEST_ID'] = '<img src=x onerror=alert(1)>'
+          expect(rendered_html).not_to include('<img src=x')
+          expect(doc.css('.loader-stalled-ref').first.text).to eq('<img src=x onerror=alert(1)>')
+        end
+      end
+
       it 'sets html lang attribute from locale' do
         expect(doc.css('html').first['lang']).to eq(locale)
       end
