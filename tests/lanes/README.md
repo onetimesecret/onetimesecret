@@ -357,11 +357,21 @@ lane passes, when it fails, and when it dies before rspec writes any results.
 The job summary links the artifact and names the directory on the runner.
 
 - `mail.log` is not uploaded.
-- The artifact is kept for 3 days. A re-run attempt uploads its own artifact
-  under the same name; the earlier attempt's is not replaced.
+- The artifact is kept for 3 days.
+- A re-run attempt uploads its own artifact under the same name, and the
+  earlier attempt's is not replaced. This is what this repository's runs
+  show (CI run 37408734822, three attempts, lists `unified-test-report`
+  three times and `rspec-unit-results` twice); GitHub's documentation does
+  not state it. If it stopped holding, the upload step would fail on a
+  re-run with a name conflict.
 - Anyone with read access to the repository can download the artifact while
-  it exists, as they can read the job log. `app.log` passed the log scrubber.
-  `last.log` is the job's console output, and nothing scrubs it.
+  it exists, as they can read the job log (GitHub Docs, "Downloading workflow
+  artifacts", lists read access to the repository as the requirement).
+  `app.log` passed the log scrubber. `last.log` is the job's console output,
+  and nothing scrubs it.
+- The job summary gives the size in bytes of `last.log` (the console
+  output), `app.log` and `mail.log`, and the lane's elapsed seconds, for
+  every run.
 - `ci.yml`, `migration-tests.yml` and `ruby-4-preview.yml` all run lanes
   through the action. `fresh-clone.yml` does not: it runs
   `tests/lanes/run unit` and `tests/lanes/run browser` exactly as

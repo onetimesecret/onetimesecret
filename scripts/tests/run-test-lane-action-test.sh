@@ -213,13 +213,22 @@ def run_lane():
     ):
         with tempfile.TemporaryDirectory() as scratch:
             stub_runner(scratch, record)
+            output = Path(scratch) / "output"
+            output.touch()
             status, _, log = execute("Run lane", scratch, {
-                "LANE": lane, "OVERLAY": overlay, "RESULTS_FILE": results, "STUB_RC": str(rc)})
+                "LANE": lane, "OVERLAY": overlay, "RESULTS_FILE": results, "STUB_RC": str(rc),
+                "GITHUB_OUTPUT": str(output)})
             check(status == rc, f"{lane}: exit {status}, expected {rc}: {log}")
+            # The elapsed time is for the summary, on a red lane as on a green one.
+            check(re.fullmatch(r"\d+", outputs(output).get("seconds", "")),
+                  f"{lane}: no elapsed seconds in the step outputs (exit {rc}): {outputs(output)}")
             check((Path(scratch) / "args").read_text().split("\n")[:-1] == expected_args, f"{lane}: runner arguments changed")
             check((Path(scratch) / "results").read_text() == expected_results, f"{lane}: RSPEC_OUTPUT_FILE changed")
             check((Path(scratch) / "tmp").is_dir(), f"{lane}: tmp/ was not created for the results file")
     check("LANES_NO_AUTOSTART: '1'" in steps["Run lane"], "CI owns the service lifecycle")
+    check("      id: run-lane" in steps["Run lane"]
+          and "LANE_SECONDS: ${{ steps.run-lane.outputs.seconds }}" in steps["Generate job summary"],
+          "the summary no longer receives the lane's elapsed seconds")
 
 
 @case("logs upload on every outcome, apart from the results, without mail.log")
@@ -261,24 +270,37 @@ def summary():
         (tmp / "rspec_x_results_apps_config_ru.json").touch()
         (tmp / "rspec_other_results.json").write_text(json.dumps({"summary": {"example_count": 100, "failure_count": 9}}))
         page = Path(scratch) / "summary"
+        logs = Path(scratch) / "lanes/full-pg/billing"
+        logs.mkdir(parents=True)
+        (logs / "last.log").write_text("x" * 120)
+        (logs / "app.log").write_text("y" * 4567)
+        (logs / "mail.log").write_text("")
         env = {"LANE": "full-pg", "OVERLAY": "billing", "RESULTS_FILE": "rspec_x_results.json",
                "LOG_ARTIFACT": "lane-logs-full-pg-billing", "LOG_ARTIFACT_URL": "https://example.test/artifacts/1",
-               "LOG_DIR": "/work/tmp/lanes/full-pg/billing", "GITHUB_STEP_SUMMARY": str(page)}
+               "LOG_DIR": str(logs), "LANE_SECONDS": "83", "GITHUB_STEP_SUMMARY": str(page)}
         status, _, log = execute("Generate job summary", scratch, env)
         check(status == 0, f"summary step failed: {log}")
         text = page.read_text()
         for expected in ("| lane | `full-pg` |", "| overlay | `billing` |", "- Total: 5", "- Failures: 1",
                          "- No results in `tmp/rspec_x_results_apps_config_ru.json`",
                          "[`lane-logs-full-pg-billing`](https://example.test/artifacts/1)",
-                         "- On the runner: `/work/tmp/lanes/full-pg/billing`"):
+                         f"- On the runner: `{logs}`",
+                         # The measured size of the console output and of each
+                         # captured file, and the lane's elapsed time.
+                         "- `last.log` (console output): 120 bytes",
+                         "- `app.log` (application log): 4567 bytes",
+                         "- `mail.log` (delivered emails, not uploaded): 0 bytes",
+                         "- Lane run: 83s"):
             check(expected in text, f"summary lost: {expected}\n{text}")
 
         # A lane that died before any results or logs, with no results file asked for.
         page.write_text("")
         status, _, log = execute("Generate job summary", scratch, {
-            **env, "OVERLAY": "", "RESULTS_FILE": "", "LOG_ARTIFACT_URL": ""})
+            **env, "OVERLAY": "", "RESULTS_FILE": "", "LOG_ARTIFACT_URL": "",
+            "LOG_DIR": str(Path(scratch) / "no-such-directory"), "LANE_SECONDS": ""})
         check(status == 0, f"summary step failed without results: {log}")
         text = page.read_text()
+        check("bytes" not in text and "Lane run" not in text, f"sizes or a time were reported for a run that left none:\n{text}")
         check("### RSpec" not in text and "overlay" not in text, f"empty inputs were reported:\n{text}")
         check("`lane-logs-full-pg-billing` was not uploaded" in text, f"a missing artifact is not reported:\n{text}")
 

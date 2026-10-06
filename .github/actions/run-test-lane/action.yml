@@ -74,7 +74,11 @@ runs:
     # cannot match the 'rspec-*-results' pattern the aggregate job downloads
     # (scripts/tests/run-test-lane-action-test.sh checks both for every
     # caller). A re-run attempt uploads under the same name beside the
-    # earlier attempt's artifact, as the RSpec results already do.
+    # earlier attempt's artifact, as the RSpec results already do. That is
+    # this repository's run history, not a documented guarantee: CI run
+    # 37408734822 (three attempts) lists rspec-unit-results twice and
+    # unified-test-report three times. Were it to change, this step would
+    # fail on a re-run with a name conflict.
     - name: Locate lane logs
       id: lane-logs
       shell: bash
@@ -105,6 +109,7 @@ runs:
         echo "Lane logs: ${dir}/app.log and last.log, uploaded as artifact ${name}"
 
     - name: Run lane
+      id: run-lane
       shell: bash
       env:
         LANE: ${{ inputs.lane }}
@@ -134,7 +139,13 @@ runs:
         if [ -n "$OVERLAY" ]; then
           args+=(--overlay "$OVERLAY")
         fi
-        "${args[@]}"
+        # The lane's wall-clock seconds, for the job summary. Recorded
+        # whatever the lane's exit status, which stays this step's.
+        started=$SECONDS
+        status=0
+        "${args[@]}" || status=$?
+        echo "seconds=$((SECONDS - started))" >> "$GITHUB_OUTPUT"
+        exit "$status"
 
     # The lane writes RSpec's JSON to tmp/ but nothing collected it, so the
     # T5 aggregate job had nothing to aggregate (its unified report read
@@ -203,6 +214,7 @@ runs:
         LOG_ARTIFACT: ${{ steps.lane-logs.outputs.name }}
         LOG_ARTIFACT_URL: ${{ steps.lane-logs-upload.outputs.artifact-url }}
         LOG_DIR: ${{ steps.lane-logs.outputs.dir }}
+        LANE_SECONDS: ${{ steps.run-lane.outputs.seconds }}
       run: |
         echo "## Lane Results" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
@@ -252,5 +264,17 @@ runs:
               echo "- Artifact: \`${LOG_ARTIFACT}\` was not uploaded (the run left no log files, or the upload failed)"
             fi
             echo "- On the runner: \`${LOG_DIR}\`"
+            # What this run wrote and how long it took, measured: last.log
+            # is the console transcript, so its size is the console output.
+            # The numbers to compare a change to the log profile against.
+            for entry in "last.log:console output" "app.log:application log" "mail.log:delivered emails, not uploaded"; do
+              log_file="${LOG_DIR}/${entry%%:*}"
+              if [ -f "$log_file" ]; then
+                echo "- \`${entry%%:*}\` (${entry#*:}): $(wc -c < "$log_file" | tr -d '[:space:]') bytes"
+              fi
+            done
+            if [ -n "${LANE_SECONDS}" ]; then
+              echo "- Lane run: ${LANE_SECONDS}s"
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
         fi
