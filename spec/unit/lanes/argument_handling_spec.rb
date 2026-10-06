@@ -11,12 +11,13 @@ require 'tmpdir'
 # The argument surface of tests/lanes/run (#4492): which flag combinations
 # the runner accepts, which it refuses with exit 64, what --quiet,
 # --capture-logs and --log-console select (#4683), and how a lane-less
-# --only and --which resolve through the ownership table. Every example is one process spawn against the `selftest` lane
-# with --print-key, which returns right after the derivation and before any
-# service, codegen or task — so nothing here needs a datastore and a parsing
-# error (exit 64) fires before --print-key is honored, which is what makes
-# the nonzero rows meaningful. The --only paths only have to exist;
-# --print-key never opens them.
+# --only and --which resolve through the ownership table. Every example is
+# one process spawn against the `selftest` lane with --print-key, which
+# returns right after the derivation and before any service, codegen or
+# task — so nothing here needs a datastore and a parsing error (exit 64)
+# fires before --print-key is honored, which is what makes the nonzero rows
+# meaningful. The --only paths only have to exist; --print-key never opens
+# them.
 #
 # RSPEC_OUTPUT_FILE is keep-listed by the runner, so a CI unit lane (which
 # sets it through run-test-lane/action.yml) would hand it to every child

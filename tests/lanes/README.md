@@ -314,10 +314,11 @@ A console is not a run: it skips the codegen phase like `--only` (a missing
 generated locale is a logged line at boot, not a failure), leaves
 `last.log` untouched, and prints no timing line. It takes the lane name and
 overlays only; `--only`, `--quiet`, `--capture-logs`, `--log-console`,
-`--skip-codegen` and `--` exit 64 with it. Under `sqlite::memory:` (`full-sqlite`, `full-mfa`,
-`full-saml-platform`) the auth database is empty and unmigrated in a fresh
-process, so the console logs `no such table: accounts` at boot; the
-PostgreSQL lanes address the per-worktree database the lane's runs use.
+`--skip-codegen` and `--` exit 64 with it. Under `sqlite::memory:`
+(`full-sqlite`, `full-mfa`, `full-saml-platform`) the auth database is empty
+and unmigrated in a fresh process, so the console logs
+`no such table: accounts` at boot; the PostgreSQL lanes address the
+per-worktree database the lane's runs use.
 The console claims the lane's same-lane liveness token exactly as a run
 does, so while a run of that lane and overlay set is live it exits 69
 (`another lane run already holds valkey DB ...`); open it after the run.
