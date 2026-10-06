@@ -842,11 +842,25 @@ RSpec.shared_examples 'platform SAML SSO' do
 
     let(:platform_authority) { URI.parse(platform_base).authority }
 
-    it 'does not rewrite a request for the platform host' do
+    it 'does not rewrite a request for the platform host, which is why the proxied platform shape is not covered' do
       get "#{platform_base}/auth/sso/saml/metadata"
 
-      expect(last_request.env[Rack::DetectHost.result_field_name]).to be_nil
+      # Step 3 of KNOWN LIMIT: no detected host for an IP literal.
+      expect(last_request.env[Rack::DetectHost.result_field_name]).to be_nil,
+        'The platform host is now detectable. The KNOWN LIMIT note in this file header no longer ' \
+        'holds: add the Host-rewriting-proxy rows for the platform host and remove the note.'
+      # Step 4: nothing to rewrite to, with the setting on as well.
       expect_host_rewrite(platform_authority, rewritten: false)
+
+      # The same from the proxy side: the platform host in X-Forwarded-Host
+      # is dropped, so the request resolves on its Host and never becomes a
+      # request for the platform.
+      header 'X-Forwarded-Host', platform_authority
+      get 'https://origin-target.internal/auth/sso/saml/metadata'
+      expect(last_request.env[Rack::DetectHost.result_field_name]).to eq('origin-target.internal')
+      expect(Onetime::SsoProvider::Saml.platform_host?(last_request.env['onetime.display_domain'])).to be(false)
+    ensure
+      header 'X-Forwarded-Host', nil
     end
 
     it 'refuses platform SAML for a tenant in X-Forwarded-Host when the origin target is the platform host' do
