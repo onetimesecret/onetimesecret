@@ -329,8 +329,7 @@ list_lanes() {
 if [[ $# -eq 0 || "${1:-}" == "--list" || "${1:-}" == "-l" ]]; then
   echo "usage: tests/lanes/run [<lane>] [--overlay <name>]... [--only <path>]..."
   echo "                            [--skip-codegen] [--print-key] [--quiet]"
-  echo "                            [--quiet-logs] [--capture-logs]"
-  echo "                            [--log-console <off|level>]"
+  echo "                            [--capture-logs] [--log-console <off|level>]"
   echo "                            [-- <rspec args>]"
   echo "       tests/lanes/run <lane> [--overlay <name>]... --console"
   echo "       tests/lanes/run --which <path>"
@@ -348,19 +347,15 @@ if [[ $# -eq 0 || "${1:-}" == "--list" || "${1:-}" == "-l" ]]; then
   echo "                 tryouts). Needs --only. e.g. -- --only-failures,"
   echo "                 -- --next-failure, -- -e 'description'."
   echo "  --quiet        rspec prints failures and the summary only (SPEC_OPTS"
-  echo "                 selects tests/lanes/support/quiet_formatter.rb) and"
-  echo "                 the app logs at error and above only (LOG_LEVEL and"
-  echo "                 DEBUG_LOGGERS, both read by setup_loggers.rb); the"
-  echo "                 tryouts legs already run --agent outside CI. Default"
-  echo "                 output is unchanged without it. With --capture-logs"
-  echo "                 the log levels are left alone: nothing is discarded"
-  echo "                 before it can reach app.log."
-  echo "  --quiet-logs   the app-output half of --quiet alone: the app logs at"
-  echo "                 error and above only, and the logger mail backend"
-  echo "                 stops printing delivered emails (LANES_QUIET_LOGS,"
-  echo "                 read by spec/spec_helper.rb). rspec's formatters are"
-  echo "                 untouched, so it works with RSPEC_OUTPUT_FILE; CI"
-  echo "                 runs every lane with it. --quiet implies it."
+  echo "                 selects tests/lanes/support/quiet_formatter.rb). Alone"
+  echo "                 it also holds the app's log at error and above"
+  echo "                 (LOG_LEVEL and DEBUG_LOGGERS, both read by"
+  echo "                 setup_loggers.rb): events below that are discarded,"
+  echo "                 not kept anywhere. With --capture-logs the levels are"
+  echo "                 left alone, so nothing is discarded before it can"
+  echo "                 reach app.log, and --log-console decides what the"
+  echo "                 console shows. The tryouts legs already run --agent"
+  echo "                 outside CI. Default output is unchanged without it."
   echo "  --capture-logs the app also writes its log to app.log in the run"
   echo "                 directory (tmp/lanes/<lane>/<overlays>/, beside"
   echo "                 last.log), and the emails the logger mail backend"
@@ -387,7 +382,7 @@ if [[ $# -eq 0 || "${1:-}" == "--list" || "${1:-}" == "-l" ]]; then
   echo "                 and exec boundary as a run — instead of its tasks."
   echo "                 Preserves an existing RabbitMQ vhost for inspection."
   echo "                 Runs no tests: not with --only, --quiet,"
-  echo "                 --quiet-logs, --capture-logs, --log-console or --."
+  echo "                 --capture-logs, --log-console or --."
   echo "  --skip-codegen skip the lane's declared codegen (LANES_CODEGEN in"
   echo "                 its env file). A direct run ALWAYS generates; this is"
   echo "                 for a caller that generated once before fanning out."
@@ -467,7 +462,6 @@ ONLY=()
 SKIP_CODEGEN=0
 PRINT_KEY=0
 QUIET=0
-QUIET_LOGS=0
 CAPTURE_LOGS=0
 LOG_CONSOLE=''
 CONSOLE=0
@@ -515,10 +509,6 @@ while [[ $# -gt 0 ]]; do
       ;;
     --quiet)
       QUIET=1
-      shift
-      ;;
-    --quiet-logs)
-      QUIET_LOGS=1
       shift
       ;;
     --capture-logs)
@@ -572,10 +562,6 @@ if [[ ${CONSOLE} -eq 1 ]]; then
   fi
   if [[ ${QUIET} -eq 1 ]]; then
     echo "error: --quiet selects an rspec formatter; --console runs no rspec" >&2
-    exit 64
-  fi
-  if [[ ${QUIET_LOGS} -eq 1 ]]; then
-    echo "error: --quiet-logs quiets a test run's app output; --console runs no tests" >&2
     exit 64
   fi
   if [[ ${CAPTURE_LOGS} -eq 1 ]]; then
@@ -895,23 +881,23 @@ fi
 # tmp/ trees, and nothing clobbers a sibling's files. tmp/ is gitignored.
 #
 # LANES_RSPEC_STATUS_FILE is one of the runner-assigned names the test side
-# reads (the others are the log capture names below, and LANES_QUIET_LOGS
-# under --quiet-logs): spec/spec_helper.rb sets
-# example_status_persistence_file_path from it
-# when — and only when — it is present, so plain rspec outside the runner
-# is unchanged and `--only <path> -- --only-failures` / `--next-failure`
-# work in here. Exported below the scrub, so it survives it, and absolute,
-# so a spec that chdirs cannot move it.
+# reads (the others are the log capture names below): spec/spec_helper.rb
+# sets example_status_persistence_file_path from it when — and only when —
+# it is present, so plain rspec outside the runner is unchanged and
+# `--only <path> -- --only-failures` / `--next-failure` work in here.
+# Exported below the scrub, so it survives it, and absolute, so a spec that
+# chdirs cannot move it.
 LANES_RUN_DIR="tmp/lanes/${LANE}/${OVERLAY_KEY:-base}"
 LANES_RSPEC_STATUS_FILE="${REPO_ROOT}/${LANES_RUN_DIR}/rspec-status.txt"
 export LANES_RSPEC_STATUS_FILE
 
 # ── Log capture profile: --capture-logs, --log-console, --quiet ──────────
 # Four names carry the profile to the test side. Nothing under lib/onetime
-# reads them; the readers are spec/logging.test.yaml (ERB, at every boot
-# under RACK_ENV=test), tests/lanes/support/log_capture.rb (loaded by
-# spec/spec_helper.rb and try/support/test_helpers.rb, for processes that
-# never boot, and for the mail backend) and lib/tasks/spec.rake:
+# reads them; the readers of the three log names are spec/logging.test.yaml
+# (ERB, at every boot under RACK_ENV=test) and
+# tests/lanes/support/log_capture.rb (loaded by spec/spec_helper.rb and
+# try/support/test_helpers.rb, for processes that never boot, and for the
+# mail backend):
 #
 #   LANES_APP_LOG_FILE     --capture-logs: the app appends its log events to
 #                          this file as well as the console.
@@ -923,8 +909,9 @@ export LANES_RSPEC_STATUS_FILE
 #   LANES_APP_LOG_CONSOLE  --log-console: `off` removes the app's console
 #                          destination, a level name holds it to that level
 #                          and above. Unset leaves the console as it was.
-#   LANES_RSPEC_CONSOLE    --quiet: `quiet` selects the quiet console
-#                          formatter.
+#   LANES_RSPEC_CONSOLE    --quiet: `quiet` asks for the quiet console
+#                          formatter. (SPEC_OPTS, below, is what selects
+#                          it today.)
 #
 # The flags are the only way to set them. The caller's shell cannot: the
 # scrub cleared its exports. A lane env file or an overlay could, since both
@@ -991,46 +978,42 @@ if [[ ${QUIET} -eq 1 ]]; then
   export SPEC_OPTS
   LANES_RSPEC_CONSOLE=quiet
   export LANES_RSPEC_CONSOLE
-  # The error floor below discards events where they are generated, before
-  # any destination sees them. That is the point of a bare --quiet (fast
-  # local iteration, nothing kept) and the opposite of --capture-logs, which
-  # exists so that nothing is discarded: under it the levels stay as the
-  # lane configured them and --log-console decides what the console shows.
-  if [[ ${CAPTURE_LOGS} -eq 0 ]]; then
-    QUIET_LOGS=1
-  fi
 fi
 
-# ── --quiet-logs ─────────────────────────────────────────────────────────
-# The app-output half of --quiet, selectable alone because it replaces no
-# rspec formatter: a run with RSPEC_OUTPUT_FILE set — every CI lane, through
-# .github/actions/run-test-lane — can take it where it has to refuse --quiet.
-if [[ ${QUIET_LOGS} -eq 1 ]]; then
-  # The application's own log lines are the other, larger half of a lane's
-  # output — on a full `simple` run ~50k of ~55k lines are the seven
-  # `HTTP -- [Security] ... DISABLED` warnings each app boot logs — and the
-  # formatter cannot touch them. Two existing knobs can, both read by
-  # lib/onetime/initializers/setup_loggers.rb on every boot the run makes:
-  # LOG_LEVEL sets SemanticLogger.default_level, which every category listed
-  # under `loggers:` in spec/logging.test.yaml then overrides with its own
-  # pinned level (HTTP: warn, Auth: info, ...), so LOG_LEVEL alone moves
-  # nothing that prints; DEBUG_LOGGERS=<name>:<level>,... is applied after
-  # those and wins per category — at any level, the name notwithstanding.
-  # So: the default to error for every category the yaml does not name, and
-  # every category the initializer defines (its logger_definitions, which
-  # spec/unit/lanes/quiet_log_floor_spec.rb pins this list to) to error
-  # explicitly. Errors and fatals still print, so a real failure's log line
-  # stays beside its rspec failure — and so does the ColonelAudit stream,
-  # whose logger Onetime::ColonelAuditEvent pins at info itself, on purpose
-  # (the audit sink must not be silenceable by a level change). Measured on
-  # a full `simple` run: ~55k lines -> ~2.5k. Assigned here, below the
-  # scrub and only under the flag: a default run's app log is what it was.
-  #
-  # The logger mail backend is app output too, and neither knob reaches it:
-  # it prints each delivered email, bodies included, with a bare `puts`
-  # (lib/onetime/mail/delivery/logger.rb). Measured on a full-pg-agnostic CI
-  # run: 581 emails, 3.5 MB of the run's 8.9 MB. LANES_QUIET_LOGS tells
-  # spec/spec_helper.rb to point the backend's output at the null device.
+# ── --quiet without --capture-logs: the app-log floor ────────────────────
+# The application's own log lines are the other, larger half of a lane's
+# output — on a full `simple` run ~50k of ~55k lines are the seven
+# `HTTP -- [Security] ... DISABLED` warnings each app boot logs — and the
+# formatter cannot touch them. A bare --quiet is for fast local iteration
+# with nothing kept, so it raises the level at which events are generated:
+# two existing knobs, both read by lib/onetime/initializers/setup_loggers.rb
+# on every boot the run makes. LOG_LEVEL sets SemanticLogger.default_level,
+# which every category listed under `loggers:` in spec/logging.test.yaml
+# then overrides with its own pinned level (HTTP: warn, Auth: info, ...), so
+# LOG_LEVEL alone moves nothing that prints; DEBUG_LOGGERS=<name>:<level>,...
+# is applied after those and wins per category — at any level, the name
+# notwithstanding. So: the default to error for every category the yaml
+# does not name, and every category the initializer defines (its
+# logger_definitions, which spec/unit/lanes/quiet_log_floor_spec.rb pins
+# this list to) to error explicitly. Errors and fatals still print, so a
+# real failure's log line stays beside its rspec failure — and so does the
+# ColonelAudit stream, whose logger Onetime::ColonelAuditEvent pins at info
+# itself, on purpose (the audit sink must not be silenceable by a level
+# change). Measured on a full `simple` run: ~55k lines -> ~2.5k.
+#
+# The floor discards an event where it is generated, before any destination
+# sees it, which is the opposite of what --capture-logs is for. Under that
+# flag the runner sets neither knob, with or without --quiet: the levels
+# stay as the lane configured them, app.log receives what they admit, and
+# --log-console decides what the console shows of it.
+#
+# The floor does not reach the logger mail backend, which prints each
+# delivered email with a bare `puts` (lib/onetime/mail/delivery/logger.rb);
+# --capture-logs is what moves those off the console, into mail.log.
+#
+# Assigned here, below the scrub and only under the flag: a default run's
+# app log is what it was.
+if [[ ${QUIET} -eq 1 && ${CAPTURE_LOGS} -eq 0 ]]; then
   LOG_LEVEL=error
   DEBUG_LOGGERS=''
   for _lanes_name in App Auth Billing Boot Bunny Chores CLI Ents Familia HTTP \
@@ -1039,8 +1022,7 @@ if [[ ${QUIET_LOGS} -eq 1 ]]; then
     DEBUG_LOGGERS+="${DEBUG_LOGGERS:+,}${_lanes_name}:error"
   done
   builtin unset _lanes_name
-  LANES_QUIET_LOGS=1
-  export LOG_LEVEL DEBUG_LOGGERS LANES_QUIET_LOGS
+  export LOG_LEVEL DEBUG_LOGGERS
 fi
 
 # ── --print-key ──────────────────────────────────────────────────────────
@@ -1058,7 +1040,6 @@ if [[ ${PRINT_KEY} -eq 1 ]]; then
   echo "run_dir=${LANES_RUN_DIR} status_file=${LANES_RSPEC_STATUS_FILE}" \
        "spec_opts=${SPEC_OPTS:-none}"
   echo "log_level=${LOG_LEVEL:-none} debug_loggers=${DEBUG_LOGGERS:-none}"
-  echo "quiet_logs=${LANES_QUIET_LOGS:-none}"
   # One path per line: a checkout path may contain spaces.
   echo "app_log=${LANES_APP_LOG_FILE:-none}"
   echo "mail_log=${LANES_MAIL_LOG_FILE:-none}"

@@ -9,9 +9,9 @@ require 'securerandom'
 require 'tmpdir'
 
 # The argument surface of tests/lanes/run (#4492): which flag combinations
-# the runner accepts, which it refuses with exit 64, what --quiet exports,
-# and how a lane-less --only and --which resolve through the ownership
-# table. Every example is one process spawn against the `selftest` lane
+# the runner accepts, which it refuses with exit 64, what --quiet,
+# --capture-logs and --log-console select (#4683), and how a lane-less
+# --only and --which resolve through the ownership table. Every example is one process spawn against the `selftest` lane
 # with --print-key, which returns right after the derivation and before any
 # service, codegen or task — so nothing here needs a datastore and a parsing
 # error (exit 64) fires before --print-key is honored, which is what makes
@@ -90,7 +90,6 @@ RSpec.describe 'tests/lanes/run argument handling' do
     [
       [0,  %w[--print-key]],
       [0,  %w[--quiet --print-key]],
-      [0,  %w[--quiet-logs --print-key]],
       [64, %w[--bogus --print-key]],
       [64, %w[--print-key --bogus]],
       [64, %w[--print-key -- --only-failures]],
@@ -106,7 +105,6 @@ RSpec.describe 'tests/lanes/run argument handling' do
       [0,  %w[--console --overlay billing --print-key]],
       [64, %w[--console --only spec/unit/lanes/hermetic_boundary_spec.rb --print-key]],
       [64, %w[--console --quiet --print-key]],
-      [64, %w[--console --quiet-logs --print-key]],
       [64, %w[--console --skip-codegen --print-key]],
       [64, %w[--console -- --only-failures]],
       [0,  %w[--capture-logs --print-key]],
@@ -190,31 +188,6 @@ RSpec.describe 'tests/lanes/run argument handling' do
     end
   end
 
-  describe '--quiet-logs' do
-    # CI's flag (.github/actions/run-test-lane): the app-output half of
-    # --quiet, which has to coexist with the results file --quiet refuses.
-    it 'sets the log floor and the mail-output switch, and no formatter' do
-      output, status = probe.run('selftest', '--quiet-logs', '--print-key',
-                                 env: { 'RSPEC_OUTPUT_FILE' => 'tmp/argument-handling-results.json' })
-      expect(status).to be_success, output
-      expect(probe.field(output, 'spec_opts')).to eq('none')
-      expect(probe.field(output, 'log_level')).to start_with('error ')
-      expect(probe.field(output, 'quiet_logs')).to eq('1')
-    end
-
-    it 'is implied by --quiet' do
-      output, status = probe.run('selftest', '--quiet', '--print-key')
-      expect(status).to be_success, output
-      expect(probe.field(output, 'quiet_logs')).to eq('1')
-    end
-
-    it 'leaves the mail-output switch unset without either flag' do
-      output, status = probe.run('selftest', '--print-key')
-      expect(status).to be_success, output
-      expect(probe.field(output, 'quiet_logs')).to eq('none')
-    end
-  end
-
   describe '--capture-logs and --log-console' do
     # What the flags derive, read back through --print-key. That they reach
     # the task process as exported names, and that nothing the caller
@@ -229,6 +202,17 @@ RSpec.describe 'tests/lanes/run argument handling' do
       expect(probe.field(output, 'mail_log')).to eq('none')
       expect(probe.field(output, 'log_console')).to start_with('none ')
       expect(probe.field(output, 'rspec_console')).to eq('none')
+    end
+
+    # CI's flags (.github/actions/run-test-lane) select no formatter, so
+    # they have to coexist with the results file a bare --quiet refuses.
+    it 'works beside RSPEC_OUTPUT_FILE and replaces no formatter' do
+      output, status = probe.run('selftest', '--capture-logs', '--log-console', 'off', '--print-key',
+                                 env: { 'RSPEC_OUTPUT_FILE' => 'tmp/argument-handling-results.json' })
+      expect(status).to be_success, output
+      expect(probe.field(output, 'spec_opts')).to eq('none')
+      expect(probe.field(output, 'log_console')).to start_with('off ')
+      expect(probe.field(output, 'log_level')).to start_with('none ')
     end
 
     it 'puts app.log and mail.log in the run directory, as absolute paths' do

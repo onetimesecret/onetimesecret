@@ -71,12 +71,16 @@ runs:
         if [ -n "$RESULTS_FILE" ]; then
           export RSPEC_OUTPUT_FILE="tmp/${RESULTS_FILE}"
         fi
-        # --quiet-logs: app logs at error and above, no printed emails. A
-        # full-mode lane's default output is ~9 MB, nearly all of it info
-        # and warn log lines and email bodies; rspec's own output and the
-        # results file are untouched. For the full log of one failure, run
-        # `tests/lanes/run --only <path>:<LINE>` locally.
-        args=(tests/lanes/run "$LANE" --quiet-logs)
+        # --capture-logs --log-console off: the app's log goes to app.log
+        # in the lane's run directory (tmp/lanes/<lane>/<overlay or base>/)
+        # and not to the console, and delivered emails go to mail.log beside
+        # it. A full-mode lane's default output is ~9 MB, nearly all of it
+        # log lines and email bodies; the test runners' own output and the
+        # results file are untouched. No log level is raised, so the file
+        # holds the error-level events too. Nothing here uploads the file:
+        # for the log of one failure, run
+        # `tests/lanes/run --capture-logs --only <path>:<LINE>` locally.
+        args=(tests/lanes/run "$LANE" --capture-logs --log-console off)
         if [ -n "$OVERLAY" ]; then
           args+=(--overlay "$OVERLAY")
         fi

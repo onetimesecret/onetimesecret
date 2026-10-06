@@ -20,9 +20,11 @@ name: Ruby 4 Preview
 #   workflow is advisory, so the composite's result-artifact and summary
 #   reporting would be noise (gating and reporting policy is CI's
 #   per-workflow decision; tests/lanes/README.md rule 4). The log
-#   profile is not reporting, so each call passes the same flag the
-#   composite does (--quiet-logs): a full-mode lane's default output is
-#   ~9 MB of info/warn lines and email bodies. Keep the two in step.
+#   profile is not reporting, so each call selects one as the composite
+#   does: a full-mode lane's default output is ~9 MB of info/warn lines
+#   and email bodies. The composite turns the app's console log off
+#   (--log-console off); this workflow uploads no log file, so it keeps
+#   error-level events on the console instead (--log-console error).
 # - Artifacts are scoped per workflow run, so there is no collision with
 #   the main CI workflow's `frontend-build` artifact.
 # - `continue-on-error` is at the step level (not job level) on every
@@ -145,7 +147,7 @@ jobs:
         continue-on-error: true
         env:
           LANES_NO_AUTOSTART: '1'
-        run: tests/lanes/run unit --quiet-logs
+        run: tests/lanes/run unit --capture-logs --log-console error
 
   ruby-integration-simple:
     name: Ruby 4 · Integration (Simple Mode)
@@ -185,7 +187,7 @@ jobs:
         continue-on-error: true
         env:
           LANES_NO_AUTOSTART: '1'
-        run: tests/lanes/run simple --quiet-logs
+        run: tests/lanes/run simple --capture-logs --log-console error
 
   ruby-integration-full:
     name: 'Ruby 4 · Integration (Full, ${{ matrix.name }})'
@@ -238,7 +240,7 @@ jobs:
           LANE: ${{ matrix.lane }}
           OVERLAY: ${{ matrix.overlay }}
         run: |
-          args=(tests/lanes/run "$LANE" --quiet-logs)
+          args=(tests/lanes/run "$LANE" --capture-logs --log-console error)
           if [ -n "$OVERLAY" ]; then
             args+=(--overlay "$OVERLAY")
           fi
@@ -272,4 +274,4 @@ jobs:
         continue-on-error: true
         env:
           LANES_NO_AUTOSTART: '1'
-        run: tests/lanes/run disabled --quiet-logs
+        run: tests/lanes/run disabled --capture-logs --log-console error

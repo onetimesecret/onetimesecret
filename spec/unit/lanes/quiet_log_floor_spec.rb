@@ -40,10 +40,6 @@ RSpec.describe 'tests/lanes/run --quiet app-log floor' do
     expect(entries.map(&:first).sort).to eq(Onetime::Initializers::SetupLoggers.logger_definitions.keys.sort)
   end
 
-  it 'sets the same floor under --quiet-logs, the flag CI runs every lane with' do
-    expect(print_key('--quiet-logs')).to eq(print_key('--quiet'))
-  end
-
   it 'sets neither knob without --quiet' do
     expect(print_key).to eq('log_level=none debug_loggers=none')
   end
