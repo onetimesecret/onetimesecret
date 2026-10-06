@@ -307,8 +307,10 @@ one runner type.
 Ruby test suites enter through lanes and `compose.test.yml`:
 
 - `.github/workflows/ci.yml` uses the `run-test-lane` composite action for Ruby
-  jobs. The composite uploads CI-only RSpec result artifacts and writes job
-  summaries; `ci.yml` supplies `COVERAGE` through `GITHUB_ENV`. Full-mode matrix
+  jobs. The composite selects the log capture profile
+  (`--capture-logs --log-console off --quiet`), uploads CI-only RSpec result
+  artifacts and the lane's log artifact, and writes job summaries; `ci.yml`
+  supplies `COVERAGE` through `GITHUB_ENV`. Full-mode matrix
   rows are lane and overlay combinations. The `ruby-auth-browser` job runs the
   `browser` lane through the same composite, separately from the `unit` lane;
   CI never runs `--only` — a suite CI needs is a lane. The `browser`,

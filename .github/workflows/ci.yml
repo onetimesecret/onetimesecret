@@ -21,7 +21,7 @@ name: CI
 # Composite Actions:
 # - setup-ruby-test-env: Ruby environment, artifacts, config, secrets
 # - setup-node-env: Node.js, pnpm, caching
-# - run-test-lane: Lane execution + result artifacts + job summary
+# - run-test-lane: Lane execution + result and log artifacts + job summary
 #
 # Path Filtering:
 # - Ruby-only changes skip TypeScript jobs
