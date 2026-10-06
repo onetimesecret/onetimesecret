@@ -105,6 +105,18 @@ loggers:
 #
 # Every event passes the URI scrubber (Onetime::LogScrubber) before it reaches
 # any destination, the file included.
+#
+# Limits of the file destination:
+#   - It holds the application's log events, not everything the process
+#     prints. Output written outside these loggers stays where it was: the
+#     `logger` mail backend prints each email to stdout, and OmniAuth logs
+#     through its own logger on stdout.
+#   - A file that cannot be opened stops boot. A write that fails later does
+#     not: SemanticLogger reports it on stderr ("Failed to log to appender")
+#     and the process keeps running.
+#
+# The test lanes use this block to keep a run's log in a file and off the
+# console (`tests/lanes/run --capture-logs`, tests/lanes/README.md).
 destinations:
   # stdout in server modes, stderr under the CLI.
   console:

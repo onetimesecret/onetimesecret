@@ -41,7 +41,14 @@ loggers:
 #
 # These choose where an event is written. The category levels above still
 # decide which events exist: the file cannot hold an event its category
-# rejected.
+# rejected. To lower a category for one rerun, set DEBUG_LOGGERS (for
+# example Auth:debug) in a throwaway overlay; it is applied after the levels
+# above. See "A debug rerun of one failure" in tests/lanes/README.md.
+#
+# The file is not everything a run prints. The logger mail backend writes
+# outside these loggers and goes to LANES_MAIL_LOG_FILE, which is not read
+# here (tests/lanes/support/log_capture.rb); rspec, tryouts and direct
+# prints stay on the console.
 #
 # A key is written only when it has a value, because a null here would
 # replace the default beneath it. Values are quoted: a bare `off` is a YAML
