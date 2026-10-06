@@ -141,12 +141,13 @@ assert_contains 'force input passed' 'FORCE_AUTH: ${{ inputs.force }}' "$action"
 assert_contains 'false fallback only outside PRs' "FILTER_AUTH: \${{ github.event_name != 'pull_request' && 'false' || steps.filter.outputs.auth }}" "$action"
 assert_contains 'compute script invoked' 'run: bash .github/scripts/compute-auth-selection.sh' "$action"
 
-protects 'actual external YAML globs select shared/auth changes but leave independent billing/dashboard/test changes out'
+protects 'the path list selects auth code and the selected jobs'"'"' own tests, and leaves shared code, other suites and translations out'
 # PyYAML is optional in the bare shell-tests job. The fallback accepts only this
 # file's simple auth: list of quoted positive globs; it fails on unfamiliar YAML
 # rather than silently testing the wrong thing. Exercise it even with PyYAML.
-# The matcher implements the *, ** and **/ subset used here (dotfiles included,
-# as in paths-filter/picomatch). Reject other syntax so it cannot drift silently.
+# The matcher implements the subset the list uses: *, **, **/, {a,b} and
+# two-letter [Aa] classes (dotfiles included, as in paths-filter/picomatch).
+# It rejects other syntax so the list cannot drift past what is tested here.
 path_results="$(python3 - "$FILTERS" "$ACTION" <<'PY'
 import re
 import sys
@@ -162,7 +163,7 @@ for raw in text.splitlines():
     if line == 'auth:' and not header:
         header = True
         continue
-    match = re.fullmatch(r"  - '([a-zA-Z0-9_./*\-]+)'", line)
+    match = re.fullmatch(r"  - '([a-zA-Z0-9_./*\-{},\[\]]+)'", line)
     if not header or not match:
         raise ValueError(f'unsupported filters YAML: {raw}')
     fixture.append(match[1])
@@ -197,12 +198,35 @@ else:
 assert set(filters) == {'auth'}
 patterns = filters['auth']
 assert all(isinstance(p, str) for p in patterns)
+assert len(set(patterns)) == len(patterns), 'duplicate glob'
+
+# The name list appears twice, once matching files and once matching
+# directories. Both lines must carry the same names.
+named = [p for p in patterns if '[Aa]uth' in p]
+assert len(named) == 2 and named[0].endswith('}*') and named[1] == named[0] + '/**', \
+    'the file and directory forms of the auth name list differ'
+
+
+def expand(pattern):
+    """Brace expansion, innermost first; the list uses no nesting."""
+    match = re.search(r'\{([^{}]*)\}', pattern)
+    if not match:
+        if '{' in pattern or '}' in pattern:
+            raise ValueError(f'unbalanced braces: {pattern}')
+        return [pattern]
+    expanded = []
+    for alternative in match[1].split(','):
+        if not alternative:
+            raise ValueError(f'empty brace alternative: {pattern}')
+        expanded.extend(expand(pattern[:match.start()] + alternative + pattern[match.end():]))
+    return expanded
+
 
 def glob_regex(pattern):
-    parts = []
     for segment in pattern.split('/'):
         if '**' in segment and segment != '**':
             raise ValueError(f'unsupported glob: {pattern}')
+    parts = []
     i = 0
     while i < len(pattern):
         if pattern[i:i+3] == '**/':
@@ -214,87 +238,145 @@ def glob_regex(pattern):
         elif pattern[i] == '*':
             parts.append('[^/]*')
             i += 1
+        elif pattern[i] == '[':
+            letters = re.match(r'\[([A-Za-z]{2})\]', pattern[i:])
+            if not letters:
+                raise ValueError(f'unsupported character class: {pattern}')
+            parts.append('[' + letters[1] + ']')
+            i += 4
+        elif pattern[i] in ']{},':
+            raise ValueError(f'unsupported glob: {pattern}')
         else:
             parts.append(re.escape(pattern[i]))
             i += 1
     return re.compile(''.join(parts))
 
-matchers = [glob_regex(p) for p in patterns]
+
+matchers = [glob_regex(simple) for pattern in patterns for simple in expand(pattern)]
 positive = [
-    'lib/onetime/new_unknown_module.rb', 'lib/.hidden/auth.rb',
-    'etc/new_unknown_config.yaml', 'apps/web/auth/database.rb',
-    'apps/web/core/routes.txt', 'apps/api/base_json_api.rb',
-    'apps/api/account/logic/change_password.rb',
-    'apps/api/domains/logic/update_domain_sso_config.rb',
-    'apps/api/organizations/logic/members.rb', 'apps/api/invite/routes.txt',
-    'apps/internal/routes.txt', 'bin/ots', 'config.ru', 'Rakefile',
-    'migrations/new_migration.rb', 'Gemfile', 'Gemfile.lock', '.ruby-version',
-    'tests/browser/auth_spec.rb', 'tests/lanes/full-mfa/env',
-    'tests/lanes/full-saml-platform/env', 'tests/fixtures/session.json',
-    'spec/support/new_helper.rb', 'spec/spec_helper.rb', 'spec/auth.test.yaml',
-    'try/support/auth_mode_config.rb', 'try/integration/auth/new_try.rb',
-    'try/integration/authentication/new_try.rb', 'try/integration/boot/new_try.rb',
-    'try/integration/domain_auth_enforcement_try.rb',
-    'src/apps/session/views/Login.vue', 'src/shared/stores/authStore.ts',
-    'src/shared/new_dependency.ts', 'src/router/guards.routes.ts',
-    'src/plugins/core/appInitializer.ts', 'src/api/index.ts',
-    'src/schemas/contracts/bootstrap.ts', 'src/services/bootstrap.service.ts',
-    'src/services/sso.service.ts', 'src/types/auth.ts', 'src/utils/redirect.ts',
-    'src/utils/sessionTransition.ts', 'src/main.ts', 'src/App.vue', 'src/i18n.ts',
-    'src/assets/style.css', 'src/apps/workspace/routes/index.ts',
-    'src/apps/secret/routes/index.ts', 'src/apps/session/routes.ts',
-    'src/apps/workspace/account/ConnectedIdentities.vue',
+    # Applications that are auth throughout, and the sign-in pages.
+    'apps/web/auth/database.rb', 'apps/web/auth/migrations/001_initial.rb',
+    'apps/web/auth/spec/unit/config_spec.rb',
+    'apps/api/account/logic/account/destroy_account.rb', 'apps/api/invite/routes.txt',
+    'src/apps/session/views/Login.vue', 'src/apps/session/routes.ts',
+    'src/apps/session/components/NewHelper.vue',
+    # Files named for an auth concept, including ones that do not exist yet.
+    'lib/onetime/auth_config.rb', 'lib/onetime/session.rb', 'lib/.hidden/auth.rb',
+    'lib/onetime/tenant_sso_resolution.rb', 'lib/onetime/new_oidc_client.rb',
+    'lib/onetime/middleware/saml_callback_transport.rb',
+    'lib/onetime/middleware/csrf_response_header.rb',
+    'lib/onetime/middleware/identity_resolution.rb',
+    'lib/onetime/models/custom_domain/sso_config.rb',
+    'lib/onetime/security/login_rate_limiter.rb', 'lib/onetime/utils/totp.rb',
+    'lib/onetime/logic/credential_change_session_revocation.rb',
+    'lib/onetime/mail/templates/magic_link.html.erb',
+    'lib/onetime/mail/templates/password_request.txt.erb',
+    'lib/onetime/cli/passwords_command.rb', 'lib/onetime/signup_validation.rb',
+    'apps/api/v2/auth_strategies.rb', 'apps/web/core/controllers/authentication.rb',
+    'apps/web/core/views/serializers/authentication_serializer.rb',
+    'apps/api/colonel/logic/colonel/revoke_customer_session.rb',
+    'etc/defaults/auth.defaults.yaml',
+    'spec/support/auth_mode_helpers.rb', 'spec/unit/onetime/mfa_policy_spec.rb',
+    'src/shared/stores/authStore.ts', 'src/shared/stores/csrfStore.ts',
+    'src/shared/stores/identityStore.ts', 'src/shared/composables/useMfa.ts',
+    'src/shared/composables/useWebAuthn.ts', 'src/shared/composables/useMagicLink.ts',
+    'src/shared/composables/useReauth.ts', 'src/shared/utils/sso.ts',
+    'src/services/sso.service.ts', 'src/types/auth.ts', 'src/utils/sessionTransition.ts',
+    'src/schemas/contracts/session-failure.ts',
     'src/apps/workspace/components/domains/DomainSsoConfigForm.vue',
-    'src/apps/workspace/components/dashboard/DomainHeader.vue',
-    'src/apps/workspace/components/dashboard/DomainsTableActionsCell.vue',
-    'src/apps/workspace/components/dashboard/DomainsTableDomainCell.vue',
-    'src/apps/workspace/components/dashboard/DeliveryPanel.vue',
-    'src/apps/workspace/components/dashboard/LanguageSelector.vue',
-    'src/apps/workspace/components/dashboard/SecretPreview.vue',
-    'src/apps/workspace/components/dashboard/brand/BrandPreviewColumn.vue',
-    'src/apps/workspace/components/dashboard/brand/BrandLogoField.vue',
-    'src/apps/workspace/components/billing/EntitlementUpgradePrompt.vue',
-    'src/tests/views/session/Login.spec.ts', 'src/tests/apps/session/Login.spec.ts',
-    'src/tests/stores/authStore.spec.ts', 'src/tests/composables/useMfa.spec.ts',
-    'src/tests/composables/useAuth.billing.spec.ts', 'src/tests/setup.ts',
-    'e2e/auth/signup-redirect-preservation.spec.ts',
-    'e2e/all/auth-hydration.spec.ts', 'e2e/full/domain-sso-config.spec.ts',
-    'e2e/full/invite-token-security.spec.ts', 'e2e/full/mfa-bootstrap-reactivity.spec.ts',
+    'src/apps/workspace/domains/DomainSignin.vue',
+    'src/tests/stores/authStore.spec.ts',
+    # Directories named for an auth concept.
+    'lib/onetime/session/store.rb', 'lib/onetime/sso_provider/base.rb',
+    'lib/onetime/application/auth_strategies/basic.rb',
+    'lib/onetime/operations/sessions/revoke.rb', 'lib/onetime/cli/sso/backfill_issuer_command.rb',
+    'apps/api/domains/logic/sso_config/update.rb',
+    'apps/api/organizations/logic/invitations/create.rb',
+    'src/shared/components/auth/StaleSessionNotice.vue', 'src/schemas/api/auth/index.ts',
+    'spec/unit/onetime/session/store_spec.rb',
+    # Auth code the names miss.
+    'apps/web/core/views/serializers/config_serializer.rb',
+    'src/apps/workspace/account/settings/ProfileSettings.vue',
+    'src/apps/workspace/components/account/APIKeyCard.vue',
+    'src/services/bootstrap.service.ts', 'src/shared/stores/bootstrapStore.ts',
+    'src/schemas/contracts/bootstrap.ts', 'locales/content/en/session-auth.json',
+    'locales/content/en/session-auth-extended.json',
+    # Boot configuration and gems.
+    'etc/defaults/config.defaults.yaml', 'Gemfile', 'Gemfile.lock',
+    # Tests and lane definitions only the selected jobs run.
+    'tests/browser/saml_callback_spec.rb', 'tests/browser/saml_callback.mjs',
+    'tests/lanes/browser/tasks', 'tests/lanes/full-mfa/env',
+    'tests/lanes/full-saml-platform/env', 'tests/lanes/full-pg-agnostic/tasks',
+    'tests/lanes/full-sqlite/env', 'tests/lanes/overlays/billing.env',
+    'e2e/auth/signup-redirect-preservation.spec.ts', 'e2e/all/auth-hydration.spec.ts',
     'e2e/system/connected-identities-custom-host.spec.ts',
-    'e2e/system/tenant-sso-unverified-domain.spec.ts',
     'e2e/system/tenant_connect_seed.rb', 'e2e/system/tenant_connect_test_boot.rb',
     'e2e/support/fixtures.ts', 'e2e/global.setup.ts', 'e2e/playwright.config.ts',
-    'package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', '.node-version',
-    '.bash-version', 'Dockerfile', 'docker/bake.hcl', 'compose.test.yml',
-    'vite.config.ts', 'tsconfig.json', 'public/schemas/bootstrap.json',
-    'templates/auth.html.erb', 'templates/mail/welcome.html.erb',
-    'locales/content/en/auth.json', '.github/auth-paths.yml',
-    '.github/workflows/ci.yml', '.github/actions/detect-auth-changes/action.yml',
-    '.github/scripts/compute-auth-selection.sh', 'scripts/tests/auth-selection-test.sh',
+    'compose.e2e.yml',
+    # The selection machinery and the workflows it gates.
+    '.github/auth-paths.yml', '.github/scripts/compute-auth-selection.sh',
+    '.github/scripts/read-pr-labels.sh', '.github/workflows/ci.yml',
+    '.github/workflows/e2e-full-auth.yml', '.github/workflows/e2e-tenant-connect.yml',
+    '.github/actions/detect-auth-changes/action.yml',
+    '.github/actions/setup-ruby-test-env/action.yml',
 ]
 # Pin all three exact full-auth directories across root and arbitrary apps.
 for base in ('spec', 'apps/web/new_app/spec', 'apps/api/new_app/spec'):
     for lane in ('full', 'full_mfa', 'full_saml_platform'):
-        positive.append(f'{base}/integration/{lane}/nested/auth_spec.rb')
+        positive.append(f'{base}/integration/{lane}/nested/routes_spec.rb')
 negative = [
-    'README.md', 'docs/auth-guide.md', 'changelog.d/auth.md', '.simplecov',
-    'src/admin.ts', 'src/apps/admin/routes.ts',
-    'src/apps/admin/views/AdminOverview.vue',
-    'src/apps/secret/components/SecretForm.vue',
+    # Documentation and repository metadata, whatever it is called.
+    'README.md', 'docs/auth-guide.md', 'docs/development/auth-ci.md', 'changelog.d/auth.md',
+    '.simplecov', '.ruby-version', '.rspec',
+    # Shared backend code: the lanes every Ruby change runs cover it.
+    'lib/onetime.rb', 'lib/onetime/boot.rb', 'lib/onetime/config.rb',
+    'lib/onetime/models/secret.rb', 'lib/onetime/models/customer.rb',
+    'lib/onetime/models/organization.rb', 'lib/onetime/middleware/security.rb',
+    'lib/onetime/application/middleware_stack.rb',
+    'lib/onetime/mail/templates/secret_link.html.erb',
+    'lib/onetime/jobs/workers/email_worker.rb', 'lib/tasks/spec.rake',
+    'etc/defaults/logging.defaults.yaml', 'etc/examples/puma.example.rb',
+    'apps/api/v2/logic/secrets/conceal_secret.rb',
+    'apps/api/domains/logic/domains/add_domain.rb',
+    'apps/api/organizations/logic/members.rb', 'apps/web/core/controllers/page.rb',
+    'apps/internal/acme/application.rb',
+    'bin/ots', 'config.ru', 'Rakefile', 'migrations/2026-07-27/01_backfill.rb',
+    # Billing and the suites that are not auth coverage.
     'apps/web/billing/logic/checkout.rb',
     'apps/web/billing/spec/integration/full_billing/checkout_spec.rb',
     'spec/integration/full_billing/checkout_spec.rb',
-    'try/integration/billing/checkout_try.rb',
+    'spec/spec_helper.rb', 'spec/support/model_helpers.rb',
+    'spec/integration/integration_spec_helper.rb',
+    'spec/integration/simple/adapter_spec.rb', 'spec/integration/all/routes_spec.rb',
+    'spec/integration/disabled/public_access_spec.rb',
+    'spec/unit/onetime/models/secret_spec.rb',
+    # Tryouts run in the unit and simple lanes only, so no selected job loads them.
+    'try/integration/auth/new_try.rb', 'try/unit/session_try.rb',
+    'try/support/auth_mode_config.rb',
+    # Lanes every Ruby change runs, and the runner itself.
+    'tests/lanes/unit/tasks', 'tests/lanes/simple/env', 'tests/lanes/run',
+    'tests/lanes/base.env', 'tests/fixtures/session.json',
+    # Shared frontend code and the other applications.
+    'src/main.ts', 'src/App.vue', 'src/i18n.ts', 'src/admin.ts',
+    'src/router/index.ts', 'src/plugins/core/appInitializer.ts',
+    'src/api/index.ts', 'src/utils/redirect.ts', 'src/assets/style.css',
+    'src/shared/components/ui/BaseButton.vue', 'src/shared/stores/secretStore.ts',
+    'src/apps/admin/routes.ts', 'src/apps/secret/components/SecretForm.vue',
     'src/apps/workspace/billing/Invoices.vue',
     'src/apps/workspace/dashboard/DashboardIndex.vue',
-    'src/tests/apps/workspace/billing/checkout.spec.ts',
-    'src/tests/apps/workspace/dashboard/Dashboard.spec.ts',
-    'src/tests/views/dashboard/Dashboard.spec.ts',
-    'src/tests/composables/useSecret.spec.ts',
-    'src/tests/services/billing.service.spec.ts',
+    'src/apps/workspace/routes/index.ts',
     'src/tests/stores/secretStore.spec.ts',
-    'e2e/full-billing/checkout.spec.ts', 'e2e/all/secret-context.spec.ts',
-    'e2e/visual/secret.spec.ts',
+    'src/tests/apps/workspace/billing/checkout.spec.ts',
+    # Translations, and English copy that is not sign-in copy.
+    'locales/content/de/session-auth.json', 'locales/content/en/secret-manage.json',
+    'locales/content/en/workspace-billing.json',
+    # Browser suites the two auth workflows do not run.
+    'e2e/full/domain-sso-config.spec.ts', 'e2e/full-billing/checkout.spec.ts',
+    'e2e/all/secret-context.spec.ts', 'e2e/visual/secret.spec.ts',
+    # Build inputs and unrelated CI scripts.
+    'package.json', 'pnpm-lock.yaml', 'Dockerfile', 'compose.test.yml',
+    'vite.config.ts', 'tsconfig.json', 'public/schemas/bootstrap.json',
+    '.github/scripts/ci-verdict.sh', 'scripts/tests/auth-selection-test.sh',
 ]
 for expected, paths in ((True, positive), (False, negative)):
     for path in paths:
@@ -311,7 +393,7 @@ if [[ "$status" -eq 0 ]]; then
     assert_eq "path $path" "$expected" "$actual"
     count=$((count + 1))
   done <<< "$path_results"
-  assert_at_least 'path fixtures exercised' 90 "$count" 'positive/negative glob fixtures'
+  assert_at_least 'path fixtures exercised' 150 "$count" 'positive/negative glob fixtures'
 fi
 
 finish
