@@ -34,7 +34,8 @@ module Onetime
     #   LOG_LEVEL        - Global default level (trace/debug/info/warn/error/fatal)
     #   ONETIME_DEBUG    - Sets global default to debug when truthy
     #   BACKTRACE_LEVEL  - Level at which backtraces are included (default: error)
-    #   BACKTRACE_LINES  - Max exception backtrace lines on the console (default: unlimited)
+    #   BACKTRACE_LINES  - Max exception backtrace lines on the console
+    #                      (default: 20 in production, unlimited elsewhere; 0 = unlimited)
     #   DEBUG_*          - Per-category debug flags (e.g., DEBUG_AUTH=1)
     #   DEBUG_LOGGERS    - Fine-grained control (e.g., "Auth:debug,Secret:trace")
     #
@@ -617,15 +618,16 @@ module Onetime
         OT.mode?(:cli) ? :stderr : :stdout
       end
 
-      # Build the console formatter, with the exception backtrace limit when
-      # one is set.
+      # Build the console formatter with environment-aware exception handling
       #
-      # Backtraces are written in full unless BACKTRACE_LINES is set. With it,
-      # only the console is shortened: the file destination always writes the
-      # whole backtrace, and error tracking (Sentry) is not affected.
+      # In production, exception backtraces are truncated to reduce log noise.
+      # Full backtraces go to error tracking (Sentry), not application logs.
+      # Only the console is shortened: the file destination always writes the
+      # whole backtrace.
       #
       # Environment variables:
-      #   BACKTRACE_LINES - Max backtrace lines on the console (default: unlimited)
+      #   BACKTRACE_LINES - Max backtrace lines to include (default: 20 in
+      #     production, unlimited elsewhere; 0 = unlimited)
       #
       def build_formatter(config)
         truncating_formatter(default_console_formatter(config), backtrace_limit)
@@ -645,28 +647,39 @@ module Onetime
       # @param max_lines [Integer, nil] backtrace limit; nil = unlimited
       # @return [Symbol, Proc]
       def truncating_formatter(base_formatter, max_lines)
-        # No limit: the standard formatter, full backtraces
+        # In development/test, use standard formatter with full backtraces
         return base_formatter unless max_lines
 
-        # A limit: wrap the formatter to truncate exception backtraces
+        # In production, wrap formatter to truncate exception backtraces
         formatter = SemanticLogger::Formatters.factory(base_formatter)
         proc do |log, logger|
           formatter.call(with_truncated_backtrace(log, max_lines), logger)
         end
       end
 
-      # The console backtrace line limit: BACKTRACE_LINES, and nothing else.
-      #
-      # There is no per-environment default. This method once named a 3-line
-      # production default, but compared Onetime.mode (the entry point: :app,
-      # :cli, ...) to 'production', which never matched, so production has
-      # always logged full backtraces. Starting to truncate them would change
-      # what a default deployment prints; an operator who wants the short form
-      # sets BACKTRACE_LINES.
+      # Determine backtrace line limit based on environment
       #
       # @return [Integer, nil] Max lines, or nil for unlimited
       def backtrace_limit
-        ENV['BACKTRACE_LINES'].to_i if ENV['BACKTRACE_LINES']
+        # Explicit override takes precedence. A value that is not a positive
+        # integer (0 is the one to use) means unlimited; blank counts as unset.
+        lines = ENV['BACKTRACE_LINES'].to_s.strip
+        return (lines.to_i.positive? ? lines.to_i : nil) unless lines.empty?
+
+        # Production defaults to PRODUCTION_BACKTRACE_LINES, others unlimited.
+        # The environment (RACK_ENV), not Onetime.mode: mode is the entry point
+        # (:app, :cli, ...) and is never 'production'.
+        PRODUCTION_BACKTRACE_LINES if production_environment?
+      end
+
+      # Onetime.env raises on a RACK_ENV it does not recognize (an empty one
+      # included). Logger setup runs before anything can report that, so it
+      # does not fail here: such a value gets the production limit, as an
+      # unset RACK_ENV does.
+      def production_environment?
+        Onetime.production?
+      rescue RuntimeError
+        true
       end
 
       # The event this formatter renders: the Log itself when its exception's

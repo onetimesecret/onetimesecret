@@ -288,24 +288,60 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
       allow(ENV).to receive(:fetch).with('RACK_ENV', 'production').and_return(value)
     end
 
-    # The default production console has always carried full backtraces: the
-    # 3-line production default this method once named compared Onetime.mode
-    # to 'production' and never applied. Truncating by default would change
-    # what a default deployment prints (#4683 keeps the defaults as they are).
-    it 'is unlimited by default in every environment, production included' do
-      %w[production development testing staging].each do |env|
+    # Onetime.mode is the entry point (:app, :cli, :test, ...), never the
+    # environment name, so the limit has to come from RACK_ENV.
+    it 'limits backtraces to 20 lines in production, whatever the mode' do
+      with_rack_env('production')
+
+      expect(Onetime.mode).not_to eq('production')
+      expect(described_class::PRODUCTION_BACKTRACE_LINES).to eq(20)
+      expect(instance.send(:backtrace_limit)).to eq(20)
+    end
+
+    it 'is unlimited outside production' do
+      %w[development testing staging].each do |env|
         with_rack_env(env)
-        expect(instance.send(:backtrace_limit)).to be_nil, env
+        expect(instance.send(:backtrace_limit)).to be_nil
       end
     end
 
-    it 'takes the limit from BACKTRACE_LINES in every environment' do
+    # Onetime.env raises on these; setting up the loggers must not.
+    it 'applies the production limit under a RACK_ENV it does not recognize' do
+      ['', ' test', 'prodution'].each do |env|
+        with_rack_env(env)
+        expect(instance.send(:backtrace_limit)).to eq(20), env.inspect
+      end
+    end
+
+    it 'lets BACKTRACE_LINES override the environment default' do
       allow(ENV).to receive(:[]).with('BACKTRACE_LINES').and_return('7')
 
-      %w[production development].each do |env|
-        with_rack_env(env)
-        expect(instance.send(:backtrace_limit)).to eq(7), env
+      with_rack_env('production')
+      expect(instance.send(:backtrace_limit)).to eq(7)
+
+      with_rack_env('development')
+      expect(instance.send(:backtrace_limit)).to eq(7)
+    end
+
+    # How an operator gets full backtraces back in production. A negative
+    # count would otherwise reach Array#first and raise in the formatter.
+    it 'is unlimited in production when BACKTRACE_LINES is 0 or not a positive integer' do
+      with_rack_env('production')
+
+      %w[0 -1 all].each do |value|
+        allow(ENV).to receive(:[]).with('BACKTRACE_LINES').and_return(value)
+        expect(instance.send(:backtrace_limit)).to be_nil, value
       end
+    end
+
+    it 'treats a blank BACKTRACE_LINES as unset' do
+      allow(ENV).to receive(:[]).with('BACKTRACE_LINES').and_return('  ')
+
+      with_rack_env('production')
+      expect(instance.send(:backtrace_limit)).to eq(20)
+
+      with_rack_env('development')
+      expect(instance.send(:backtrace_limit)).to be_nil
     end
   end
 
@@ -344,10 +380,10 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
     end
   end
 
-  # The console formatter under a backtrace limit (BACKTRACE_LINES):
-  # build_formatter wraps the configured formatter in a proc that renders a
-  # copy of the event with a shortened exception backtrace.
-  describe 'truncating formatter output' do
+  # The production console formatter: build_formatter wraps the configured
+  # formatter in a proc that renders a copy of the event with a shortened
+  # exception backtrace.
+  describe 'production formatter output' do
     let(:secret) { 's3cret' }
     let(:io) { StringIO.new }
     let(:appenders) { [] }
@@ -403,6 +439,25 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
       expect(ex.backtrace).to eq(backtrace)
       expect(full_io.string).to include(*backtrace)
       expect(full_io.string).not_to include('more lines)')
+    end
+
+    # The limit backtrace_limit itself gives in production, not a stubbed one.
+    it 'prints the first 20 lines of a longer backtrace by default in production' do
+      allow(ENV).to receive(:[]).and_call_original
+      allow(ENV).to receive(:[]).with('BACKTRACE_LINES').and_return(nil)
+      allow(ENV).to receive(:fetch).and_call_original
+      allow(ENV).to receive(:fetch).with('RACK_ENV', 'production').and_return('production')
+      formatter = instance.send(:build_formatter, { 'formatter' => 'default' })
+      appenders << SemanticLogger.add_appender(io: io, formatter: formatter, level: :trace, filter: /\ASetupLoggersSpec\z/)
+      backtrace = Array.new(25) { |i| "/app/lib/frame_#{format('%02d', i)}.rb:1:in 'call'" }
+      ex        = IOError.new('down').tap { |e| e.set_backtrace(backtrace.dup) }
+
+      SemanticLogger['SetupLoggersSpec'].tap { |l| l.level = :trace }.error('failed', exception: ex)
+      SemanticLogger.flush
+
+      expect(io.string).to include(*backtrace.first(20), '... (5 more lines)')
+      expect(io.string).not_to include(backtrace[20])
+      expect(ex.backtrace).to eq(backtrace)
     end
   end
 
