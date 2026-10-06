@@ -68,6 +68,22 @@ function nextSnapshot(payload: Parameters<typeof newerSnapshot>[0]) {
   return newerSnapshot(payload, ++snapshotVersionBump);
 }
 
+/**
+ * Pin the auto-init refresh before driving login.
+ *
+ * useAuth() creates the auth store, whose init() dispatches the unordered-
+ * hydration GET /bootstrap/me synchronously. login() then POSTs and refreshes
+ * again. Against the zero-delay axios mock both settle on microtask FIFO, so
+ * the auto-init snapshot is always applied first and the login refresh is the
+ * newer one. That ordering is what keeps the login refresh from being reported
+ * as `superseded` (login() returns false, error stays null). Waiting for the
+ * watermark makes the order explicit instead of relying on scheduler FIFO, so
+ * a future false from login() is a product change, not a race in this file.
+ */
+async function authReady() {
+  await vi.waitFor(() => expect(useBootstrapStore().watermark).not.toBeNull());
+}
+
 function createMockOrganization(overrides: Partial<OrganizationWire> = {}): OrganizationWire {
   const now = Math.floor(Date.now() / 1000);
   return createWireOrganization({
@@ -161,6 +177,7 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
       setRouteQuery({ interval: 'month' });
 
       const { login } = useAuth();
+      await authReady();
 
       // Mock successful login response
       axiosMock.onPost('/auth/login').reply(200, {
@@ -184,6 +201,7 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
       setRouteQuery({ product: 'identity' });
 
       const { login } = useAuth();
+      await authReady();
 
       axiosMock.onPost('/auth/login').reply(200, {
         success: 'Logged in successfully',
@@ -205,6 +223,7 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
       setRouteQuery({});
 
       const { login } = useAuth();
+      await authReady();
 
       axiosMock.onPost('/auth/login').reply(200, {
         success: 'Logged in successfully',
@@ -252,6 +271,7 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
       setRouteQuery({ product: 'identity', interval: 'month' });
 
       const { login } = useAuth();
+      await authReady();
 
       axiosMock.onPost('/auth/login').reply(200, {
         success: 'Logged in successfully',
@@ -274,6 +294,7 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
       setRouteQuery({ product: 'identity', interval: 'month' });
 
       const { login } = useAuth();
+      await authReady();
 
       axiosMock.onPost('/auth/login').reply(200, {
         success: 'Logged in successfully',
@@ -286,44 +307,12 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
     });
   });
 
-  describe('handleBillingRedirect - Valid Plan, No Subscription', () => {
-    // TODO: These tests document expected behavior for billing redirect with valid plans.
-    // Currently failing due to test infrastructure issues with async handler/store mocking.
-    // The tests will pass once:
-    // 1. useAsyncHandler error handling is properly mocked
-    // 2. All required API endpoints are mocked with correct schema shapes
-    // See: handleBillingRedirect in useAuth.ts for implementation
-
-    it.todo('should redirect to billing plans when user has no existing subscription');
-    /* Expected behavior:
-      setRouteQuery({ product: 'identity', interval: 'month' });
-      const { login } = useAuth();
-      axiosMock.onPost('/auth/login').reply(200, { success: 'Logged in successfully' });
-      const org = createMockOrganization(); // Default is free plan (no paid subscription)
-      axiosMock.onGet('/api/organizations').reply(200, { records: [org], count: 1 });
-      await login('test@example.com', 'password123');
-      const expected = { path: `/billing/${org.extid}/plans`, query: { product: 'identity', interval: 'month' } };
-      expect(router.push).toHaveBeenCalledWith(expected);
-    */
-
-    it.todo('should use the default organization for billing redirect');
-    /* Expected behavior:
-      setRouteQuery({ product: 'unlimited', interval: 'year' });
-      const defaultOrg = createMockOrganization({ extid: 'on_default', is_default: true });
-      const otherOrg = createMockOrganization({ extid: 'on_other', is_default: false });
-      const orgs = { records: [otherOrg, defaultOrg], count: 2 };
-      axiosMock.onGet('/api/organizations').reply(200, orgs);
-      await login('test@example.com', 'password123');
-      const expected = { path: '/billing/on_default/plans', query: { product: 'unlimited', interval: 'year' } };
-      expect(router.push).toHaveBeenCalledWith(expected);
-    */
-  });
-
   describe('handleBillingRedirect - No Organization Found', () => {
     it('should redirect to dashboard when no organization exists', async () => {
       setRouteQuery({ product: 'identity', interval: 'month' });
 
       const { login } = useAuth();
+      await authReady();
 
       axiosMock.onPost('/auth/login').reply(200, {
         success: 'Logged in successfully',
@@ -348,6 +337,7 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
       setRouteQuery({ product: 'identity', interval: 'month' });
 
       const { login } = useAuth();
+      await authReady();
 
       axiosMock.onPost('/auth/login').reply(200, {
         success: 'Logged in successfully',
@@ -386,6 +376,7 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
     it('should not attempt billing redirect when MFA is required', async () => {
       setRouteQuery({ product: 'identity', interval: 'month' });
       const { login } = useAuth();
+      await authReady();
       axiosMock.onPost('/auth/login').reply(200, {
         success: 'MFA verification required',
         mfa_required: true,
@@ -405,6 +396,7 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
     it('forwards ?redirect alongside the plan intent to /mfa-verify', async () => {
       setRouteQuery({ product: 'identity', interval: 'month', redirect: '/dashboard' });
       const { login } = useAuth();
+      await authReady();
       axiosMock.onPost('/auth/login').reply(200, {
         success: 'MFA verification required',
         mfa_required: true,
@@ -420,6 +412,7 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
 
     it('pushes a bare /mfa-verify when there is nothing to forward', async () => {
       const { login } = useAuth();
+      await authReady();
       axiosMock.onPost('/auth/login').reply(200, {
         success: 'MFA verification required',
         mfa_required: true,
@@ -449,7 +442,8 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
         return Promise.resolve();
       });
 
-      const { login } = useAuth();
+      const { login, error } = useAuth();
+      await authReady();
 
       axiosMock.onPost('/auth/login').reply(200, {
         success: 'Logged in successfully',
@@ -465,6 +459,9 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
 
       // Login should still succeed despite navigation error, and the plan
       // intent survives on the extid-less route whose guard retries the org.
+      // A thrown verification_unavailable lands in `error` via onError; a
+      // `superseded` return leaves it null. Checking it first names the branch.
+      expect(error.value).toBeNull();
       expect(result).toBe(true);
       expect(router.push).toHaveBeenCalledWith(
         expect.objectContaining({ path: '/billing/on1234abc/plans' })
@@ -483,6 +480,7 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
       setRouteQuery({ product: 'identity', interval: 'month' });
 
       const { login } = useAuth();
+      await authReady();
 
       axiosMock.onPost('/auth/login').reply(200, {
         success: 'Logged in successfully',
@@ -509,6 +507,7 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
       setRouteQuery({ product: 'professional', interval: 'year' });
 
       const { login } = useAuth();
+      await authReady();
 
       // Verify billing params are sent to login endpoint
       let loginPayload: Record<string, unknown> | undefined;
@@ -531,22 +530,28 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
       });
     });
 
-    // TODO: This test documents the expected end-to-end flow for billing redirect.
-    // Currently failing due to test infrastructure issues.
-    it.todo('should redirect to billing after successful login with valid params');
-    /* Expected behavior:
+    it('routes to the org-scoped plan change flow after login from the route query fallback', async () => {
+      // No billing_redirect in the login response, so the plan intent comes
+      // from the route query. createMockOrganization() is free_v1, which is a
+      // plan like any other: the redirect carries `change: 'true'`.
       setRouteQuery({ product: 'identity', interval: 'month' });
+
       const { login, isLoading } = useAuth();
+      await authReady();
+
       axiosMock.onPost('/auth/login').reply(200, { success: 'Logged in successfully' });
       const org = createMockOrganization();
       axiosMock.onGet('/api/organizations').reply(200, { records: [org], count: 1 });
+
       expect(isLoading.value).toBe(false);
-      const result = await login('test@example.com', 'password123');
-      expect(result).toBe(true);
+      expect(await login('test@example.com', 'password123')).toBe(true);
       expect(isLoading.value).toBe(false);
-      const expected = { path: `/billing/${org.extid}/plans`, query: { product: 'identity', interval: 'month' } };
-      expect(router.push).toHaveBeenCalledWith(expected);
-    */
+
+      expect(router.push).toHaveBeenCalledWith({
+        path: `/billing/${org.extid}/plans`,
+        query: { product: 'identity', interval: 'month', change: 'true' },
+      });
+    });
   });
 });
 
@@ -610,6 +615,7 @@ describe('useAuth - Billing Redirect Valid Flag (Future)', () => {
     setRouteQuery({ product: 'invalid_product', interval: 'month' });
 
     const { login } = useAuth();
+    await authReady();
 
     axiosMock.onPost('/auth/login').reply(200, {
       success: 'Logged in successfully',
@@ -639,6 +645,7 @@ describe('useAuth - Billing Redirect Valid Flag (Future)', () => {
     setRouteQuery({ product: 'identity_plus_v1' });
 
     const { login } = useAuth();
+    await authReady();
 
     axiosMock.onPost('/auth/login').reply(200, {
       success: 'Logged in successfully',
@@ -661,12 +668,14 @@ describe('useAuth - Billing Redirect Valid Flag (Future)', () => {
   });
 
   it('routes a valid billing_redirect for a free_v1 org to the org-scoped plan change flow', async () => {
-    // Current contract: planid is always present, so even free_v1 goes through
-    // handleExistingSubscription; the skipped "no subscription" sibling below
-    // describes what would apply if planid could ever be absent.
+    // planid is required by organizationSchema (default 'free_v1'), so a free
+    // org is routed relative to its current plan like any other. The plans
+    // page ignores `change` and picks checkout vs plan-change from the backend
+    // subscription status, so this is also the checkout path for free orgs.
     setRouteQuery({ product: 'identity', interval: 'month' });
 
     const { login } = useAuth();
+    await authReady();
 
     axiosMock.onPost('/auth/login').reply(200, {
       success: 'Logged in successfully',
@@ -692,44 +701,6 @@ describe('useAuth - Billing Redirect Valid Flag (Future)', () => {
     expect(router.push).toHaveBeenCalledWith({
       path: `/billing/${org.extid}/plans`,
       query: { product: 'identity', interval: 'month', change: 'true' },
-    });
-  });
-
-  it.skip('should redirect to checkout when billing_redirect.valid is true and no subscription', async () => {
-    // SKIP REASON: the "no subscription" branch is unreachable with a
-    // schema-valid org record. organizationSchema (src/schemas/contracts/
-    // organization.ts) requires `planid` to be a canonical plan id (default
-    // 'free_v1'), so `currentPlanId` is always truthy and every org routes
-    // through handleExistingSubscription: a free_v1 org gets
-    // `{ product, interval, change: 'true' }`, not the bare pair asserted
-    // here (see 'free plan upgrading to paid' below). Re-enable only if the
-    // contract makes planid nullable or the free tier stops counting as a
-    // subscription.
-    setRouteQuery({ product: 'identity', interval: 'month' });
-
-    const { login } = useAuth();
-
-    axiosMock.onPost('/auth/login').reply(200, {
-      success: 'Logged in successfully',
-      billing_redirect: {
-        valid: true,
-        product: 'identity',
-        interval: 'month',
-      },
-    });
-
-    const org = createMockOrganization(); // Default is free plan (no paid subscription)
-    axiosMock.onGet('/api/organizations').reply(200, {
-      records: [org],
-      count: 1,
-    });
-
-    await login('test@example.com', 'password123');
-
-    // Should redirect to billing plans for checkout
-    expect(router.push).toHaveBeenCalledWith({
-      path: `/billing/${org.extid}/plans`,
-      query: { product: 'identity', interval: 'month' },
     });
   });
 });
@@ -789,6 +760,7 @@ describe('useAuth - Subscription Status Checks', () => {
     setRouteQuery({ product: 'identity', interval: 'month' });
 
     const { login } = useAuth();
+    await authReady();
 
     axiosMock.onPost('/auth/login').reply(200, {
       success: 'Logged in successfully',
@@ -814,6 +786,7 @@ describe('useAuth - Subscription Status Checks', () => {
     setRouteQuery({ product: 'unlimited', interval: 'month' });
 
     const { login } = useAuth();
+    await authReady();
 
     axiosMock.onPost('/auth/login').reply(200, {
       success: 'Logged in successfully',
@@ -841,6 +814,7 @@ describe('useAuth - Subscription Status Checks', () => {
     setRouteQuery({ product: 'identity', interval: 'month' });
 
     const { login } = useAuth();
+    await authReady();
 
     axiosMock.onPost('/auth/login').reply(200, {
       success: 'Logged in successfully',
