@@ -151,7 +151,15 @@ export const useOrganizationStore = defineStore('organization', () => {
   }
 
   /**
-   * Fetch all organizations for the current user
+   * Fetch all organizations for the current user.
+   *
+   * Throws when the response fails schema validation instead of returning an
+   * empty list. Consumers that fail closed (route guards deciding whether the
+   * user holds a role in any org) must be able to distinguish a failed lookup
+   * from a confirmed empty list; swallowing the parse failure made a malformed
+   * response indistinguishable from "owns no org" and surfaced as a role
+   * refusal. On a throw the store is left exactly as a network rejection
+   * leaves it: `organizations` untouched and `isListFetched` not set.
    */
   async function fetchOrganizations(): Promise<Organization[]> {
     abort(); // Cancel any previous list fetch (deduplication)
@@ -165,9 +173,7 @@ export const useOrganizationStore = defineStore('organization', () => {
 
       const result = gracefulParse(organizationsResponseSchema, response.data, 'OrganizationsResponse');
       if (!result.ok) {
-        organizations.value = [];
-        _listFetched.value = true;
-        return [];
+        throw new Error('Unable to load organizations. Please try again.');
       }
       organizations.value = result.data.records;
       _listFetched.value = true;

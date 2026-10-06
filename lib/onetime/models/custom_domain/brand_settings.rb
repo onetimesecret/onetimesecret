@@ -219,6 +219,11 @@ module Onetime
       end
 
       # Coerces a value to boolean
+      #
+      # Nil-preserving: an absent setting stays absent so the defaults in
+      # BrandSettingsConstants apply. Not OT::Utils.explicit_yes?, which is
+      # two-state and would turn nil into false.
+      #
       # @param value [Object] Value to coerce
       # @return [Boolean, nil] Coerced boolean or nil
       def self.coerce_boolean(value)

@@ -8,6 +8,7 @@
 import { resolveCspNonce, useDnsWidget } from '@/shared/composables/useDnsWidget';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { getGlobalAxiosMock } from '@/tests/setup-stores';
+import { createTestI18n } from '@tests/setup';
 import { mount } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { defineComponent, h } from 'vue';
@@ -27,7 +28,10 @@ function mountWidgetHost() {
       return () => h('div', { id: 'apxdnswidget' });
     },
   });
-  return mount(Host, { attachTo: document.body });
+  return mount(Host, {
+    attachTo: document.body,
+    global: { plugins: [createTestI18n()] },
+  });
 }
 
 /** Capture the <script> element appended to document.head by loadAssets. */

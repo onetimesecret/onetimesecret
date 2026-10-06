@@ -268,6 +268,10 @@ module Onetime
           string.empty? ? nil : string.to_i
         end
 
+        # Nil-preserving decoder for a Stripe event attribute, not operator
+        # input: Stripe sends a JSON boolean, and an absent livemode must stay
+        # unknown rather than read as false. OT::Utils.explicit_yes? is
+        # two-state and would lose that.
         def boolean_or_nil(value)
           return nil if value.nil? || value.to_s.empty?
 

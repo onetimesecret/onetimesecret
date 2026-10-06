@@ -231,6 +231,11 @@ class Onetime::CustomDomain::MailerConfig < Familia::Horreum
   # colonel drift view) must use this rather than a `.to_s == 'true'`
   # coercion, which would render "unknown" as an authoritative false.
   #
+  # Not OT::Utils.explicit_yes? for the same reason: it is a two-state
+  # recognizer and would collapse nil into false. The stored values are
+  # written by the worker as 'true' / 'false', so the wider operator-input
+  # token set would gain nothing either.
+  #
   # @param value [String, Boolean, nil] The field value
   # @return [Boolean, nil] true, false, or nil if unknown
   def parse_boolean_field(value)

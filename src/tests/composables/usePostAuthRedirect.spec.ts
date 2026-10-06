@@ -68,29 +68,32 @@ describe('usePostAuthRedirect', () => {
       seedBillingQuery();
       useBootstrapStore().billing_enabled = true;
       const orgStore = useOrganizationStore();
-      seedOrgs(orgStore, { extid: 'org_q1' });
+      // A free org is still an org with a plan (planid is required, default
+      // 'free_v1'), so it takes the same plan-relative route as a subscriber.
+      seedOrgs(orgStore, { extid: 'org_q1', planid: 'free_v1' });
 
       await usePostAuthRedirect().navigateAfterAuth(undefined);
 
       expect(orgStore.fetchOrganizations).toHaveBeenCalledTimes(1);
       expect(routerPushMock).toHaveBeenCalledWith({
         path: '/billing/org_q1/plans',
-        query: { product: 'identity_plus_v1', interval: 'monthly' },
+        query: { product: 'identity_plus_v1', interval: 'monthly', change: 'true' },
       });
     });
 
-    it('keeps reserved characters in ONE query param on the checkout destination', async () => {
+    it('keeps reserved characters in ONE query param on the plans destination', async () => {
       mockRoute.query = { product: 'x&change=true', interval: 'month#frag' };
       useBootstrapStore().billing_enabled = true;
       const orgStore = useOrganizationStore();
-      seedOrgs(orgStore, { extid: 'org_q1' });
+      seedOrgs(orgStore, { extid: 'org_q1', planid: 'free_v1' });
 
       await usePostAuthRedirect().handleBillingRedirect(undefined);
 
-      // String interpolation would have split `&change=true` into a second param.
+      // String interpolation would have split `&change=true` into a second param
+      // and collided with the real `change` key the composable appends.
       expect(routerPushMock).toHaveBeenCalledWith({
         path: '/billing/org_q1/plans',
-        query: { product: 'x&change=true', interval: 'month#frag' },
+        query: { product: 'x&change=true', interval: 'month#frag', change: 'true' },
       });
     });
 
@@ -260,8 +263,13 @@ describe('usePostAuthRedirect', () => {
   });
 
   describe('which organization the billing redirect targets (#4565)', () => {
-    const personal = { objid: 'o_default', extid: 'org_default', is_default: true };
-    const team = { objid: 'o_team', extid: 'org_team' };
+    const personal = {
+      objid: 'o_default',
+      extid: 'org_default',
+      is_default: true,
+      planid: 'free_v1',
+    };
+    const team = { objid: 'o_team', extid: 'org_team', planid: 'free_v1' };
 
     it('uses the list record of the current (server-seeded) organization', async () => {
       seedBillingQuery();
@@ -276,7 +284,7 @@ describe('usePostAuthRedirect', () => {
 
       expect(routerPushMock).toHaveBeenCalledWith({
         path: '/billing/org_team/plans',
-        query: { product: 'identity_plus_v1', interval: 'monthly' },
+        query: { product: 'identity_plus_v1', interval: 'monthly', change: 'true' },
       });
     });
 
@@ -290,7 +298,7 @@ describe('usePostAuthRedirect', () => {
 
       expect(routerPushMock).toHaveBeenCalledWith({
         path: '/billing/org_default/plans',
-        query: { product: 'identity_plus_v1', interval: 'monthly' },
+        query: { product: 'identity_plus_v1', interval: 'monthly', change: 'true' },
       });
     });
 
@@ -305,7 +313,7 @@ describe('usePostAuthRedirect', () => {
 
       expect(routerPushMock).toHaveBeenCalledWith({
         path: '/billing/org_default/plans',
-        query: { product: 'identity_plus_v1', interval: 'monthly' },
+        query: { product: 'identity_plus_v1', interval: 'monthly', change: 'true' },
       });
     });
   });

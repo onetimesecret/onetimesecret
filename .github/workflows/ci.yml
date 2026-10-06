@@ -30,6 +30,17 @@ name: CI
 # - Use [ci-all] in commit message to force all jobs
 # - Use [ci-skip] in commit message to skip CI entirely
 #
+# Required check (ruleset on main): `ci-verdict`, one job over every test
+# job. It passes only when each job succeeded or was skipped because the
+# `changes` job found nothing in its path; a skipped job whose path did
+# change (a failed prerequisite, a cancelled run) fails it, as does a failed
+# or cancelled `changes`, or [ci-skip]. The pull_request trigger above has no
+# `paths:` filter on purpose: a PR that a trigger-level filter excludes gets
+# no run at all, so a required check never reports and the PR cannot merge
+# (GitHub docs, "Troubleshooting required status checks"). The `changes` job
+# does the path-based skipping instead. Same shape as e2e.yml's
+# notify-results.
+#
 # Debug Logging (Repository Variables):
 # - ACTIONS_STEP_DEBUG=true    Enable purple debug output for all steps
 # - ACTIONS_RUNNER_DEBUG=true  Enable runner diagnostic logging
@@ -100,6 +111,9 @@ jobs:
       frontend: ${{ steps.compute.outputs.frontend }}
       oci: ${{ steps.compute.outputs.oci }}
       ga_workflow_files: ${{ steps.compute.outputs.ga_workflow_files }}
+      # Read by ci-verdict: [ci-skip] skips every job, which must not read as
+      # a pass for the required check.
+      skip_ci: ${{ steps.check-flags.outputs.skip_ci }}
     steps:
       - &checkout-step
         name: Checkout code
@@ -968,6 +982,74 @@ jobs:
           path: test-results/unified-report.json
           retention-days: 30
           if-no-files-found: warn
+
+  # The required status check for main (ruleset "Default"). No `name:` on
+  # purpose: the ruleset matches the check by its displayed name, and without
+  # `name:` that is the job id, `ci-verdict`, which does not change when a
+  # job is renamed or added (the tiered display names above do).
+  #
+  # always(), not !cancelled(): when the whole run is cancelled (by hand, or
+  # superseded by a newer push via the concurrency group) this job must still
+  # run and fail. A skipped job counts as passing for a required check, so
+  # skipping it would leave the SHA mergeable with no verdict.
+  #
+  # The verdict itself is .github/scripts/ci-verdict.sh (tested by
+  # scripts/tests/ci-verdict-test.sh): per job, "expected to run" is derived
+  # from the same `changes` outputs the job's own `if:` reads, so a job that
+  # was skipped for a path the PR does not touch passes and a job that was
+  # skipped although its path changed — a failed lint, a failed build, a
+  # cancelled run — fails. Add a row there when adding a test job here; the
+  # test fails the build otherwise. Reporting jobs (aggregate-test-results,
+  # ci-metrics) are not in `needs`: they are not verdicts.
+  ci-verdict:
+    runs-on: *runs-on
+    timeout-minutes: 2
+    needs:
+      - changes
+      - host-proxy-wire
+      - ruby-lint
+      - typescript-lint
+      - hygiene
+      - i18n-validate
+      - build-assets
+      - ruby-unit
+      - typescript-unit
+      - ruby-integration-simple
+      - ruby-integration-api
+      - ruby-integration-full
+      - ruby-integration-disabled
+      - check-oci-image
+    if: always()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          sparse-checkout: .github/scripts
+          sparse-checkout-cone-mode: false
+
+      - name: Require every test job to pass, or to be skipped for an untouched path
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          CHANGES_RESULT: ${{ needs.changes.result }}
+          SKIP_CI: ${{ needs.changes.outputs.skip_ci }}
+          RUBY: ${{ needs.changes.outputs.ruby }}
+          TYPESCRIPT: ${{ needs.changes.outputs.typescript }}
+          FRONTEND: ${{ needs.changes.outputs.frontend }}
+          OCI: ${{ needs.changes.outputs.oci }}
+          RESULT_HOST_PROXY_WIRE: ${{ needs.host-proxy-wire.result }}
+          RESULT_RUBY_LINT: ${{ needs.ruby-lint.result }}
+          RESULT_TYPESCRIPT_LINT: ${{ needs.typescript-lint.result }}
+          RESULT_HYGIENE: ${{ needs.hygiene.result }}
+          RESULT_I18N_VALIDATE: ${{ needs.i18n-validate.result }}
+          RESULT_BUILD_ASSETS: ${{ needs.build-assets.result }}
+          RESULT_RUBY_UNIT: ${{ needs.ruby-unit.result }}
+          RESULT_TYPESCRIPT_UNIT: ${{ needs.typescript-unit.result }}
+          RESULT_RUBY_INTEGRATION_SIMPLE: ${{ needs.ruby-integration-simple.result }}
+          RESULT_RUBY_INTEGRATION_API: ${{ needs.ruby-integration-api.result }}
+          RESULT_RUBY_INTEGRATION_FULL: ${{ needs.ruby-integration-full.result }}
+          RESULT_RUBY_INTEGRATION_DISABLED: ${{ needs.ruby-integration-disabled.result }}
+          RESULT_CHECK_OCI_IMAGE: ${{ needs.check-oci-image.result }}
+        run: ./.github/scripts/ci-verdict.sh
 
   ci-metrics:
     name: T5 · CI Metrics

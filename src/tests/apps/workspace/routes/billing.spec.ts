@@ -13,6 +13,13 @@ let mockBillingEnabled = true;
 const mockOrganizations: Array<{ extid: string }> = [];
 let mockCurrentOrganization: { extid: string } | null = null;
 const mockFetchOrganizations = vi.fn();
+// vi.mock factories are hoisted above this file's consts, so the spy the
+// factory references must be hoisted with them.
+const { mockLoggingWarn } = vi.hoisted(() => ({ mockLoggingWarn: vi.fn() }));
+
+vi.mock('@/services/logging.service', () => ({
+  loggingService: { debug: vi.fn(), info: vi.fn(), warn: mockLoggingWarn, error: vi.fn() },
+}));
 
 vi.mock('@/shared/stores/bootstrapStore', () => ({
   useBootstrapStore: () => ({
@@ -192,5 +199,22 @@ describe('createBillingRedirect guard', () => {
     const redirect = guards[1] as BillingRedirectGuard;
     const result = await redirect(incoming());
     expect(result).toEqual({ name: 'Dashboard' });
+  });
+
+  // fetchOrganizations rejects on a malformed body as well as on a network
+  // failure. An unhandled rejection in beforeEnter aborts the navigation with
+  // a router error; the guard must fall back to the dashboard instead.
+  it('redirects to Dashboard when the organization lookup rejects', async () => {
+    mockFetchOrganizations.mockRejectedValue(
+      new Error('Unable to load organizations. Please try again.')
+    );
+    const guards = getGuardsForPath('/billing/plans');
+    const redirect = guards[1] as BillingRedirectGuard;
+    const result = await redirect(incoming({ product: 'identity_plus_v1' }));
+    expect(result).toEqual({ name: 'Dashboard' });
+    expect(mockLoggingWarn).toHaveBeenCalledWith(
+      expect.stringContaining('Organization lookup failed'),
+      { error: 'Unable to load organizations. Please try again.' }
+    );
   });
 });

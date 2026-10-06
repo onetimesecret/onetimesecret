@@ -129,10 +129,19 @@ export function usePostAuthRedirect() {
   }
 
   /**
-   * Handles redirect for users with existing subscriptions.
+   * Routes a validated plan intent relative to the org's current plan.
+   *
+   * Every org has a plan id: organizationSchema's `planid` is a required
+   * CanonicalPlanIdSchema and the backend model defaults it to 'free_v1', so
+   * the free tier is a plan, not the absence of one. There is deliberately no
+   * "no subscription, go straight to checkout" branch here. The plans page
+   * decides checkout vs plan-change from the backend subscription status
+   * (has_active_subscription), which comes from the Stripe subscription, so a
+   * free_v1 org landing with `change=true` still gets the checkout action.
+   *
    * @returns true if redirect was performed
    */
-  async function handleExistingSubscription(
+  async function redirectForCurrentPlan(
     orgExtid: string,
     currentPlanId: string,
     product: string,
@@ -140,7 +149,7 @@ export function usePostAuthRedirect() {
   ): Promise<boolean> {
     // Plan IDs are canonical family IDs (e.g., 'identity_plus_v1') - compare directly
     if (currentPlanId === product) {
-      // Already subscribed to the same plan - redirect to billing overview
+      // Already on the requested plan - redirect to billing overview
       loggingService.info('[postAuthRedirect] User already subscribed to requested plan', {
         currentPlan: currentPlanId,
         requestedProduct: product,
@@ -150,15 +159,16 @@ export function usePostAuthRedirect() {
       return true;
     }
 
-    // Subscribed to a different plan - redirect to plan change flow
-    loggingService.info(
-      '[postAuthRedirect] User has different subscription, redirecting to plans',
-      {
-        currentPlan: currentPlanId,
-        requestedProduct: product,
-      }
-    );
-    // Object form for the same encoding reason as handleBillingRedirect below.
+    // On a different plan (including free) - hand the intent to the plans page
+    loggingService.info('[postAuthRedirect] User on a different plan, redirecting to plans', {
+      currentPlan: currentPlanId,
+      requestedProduct: product,
+    });
+    // `{ path, query }` on purpose: product/interval can come from the route
+    // query (extractBillingParams' fallback tier), so interpolating them into
+    // a raw URL would let a '&' or '#' inject or truncate the query. The
+    // object form encodes each value. `query` must be given explicitly: a
+    // bare `{ path }` push drops it.
     await router.push({
       path: `/billing/${orgExtid}/plans`,
       query: { product, interval, change: 'true' },
@@ -173,8 +183,7 @@ export function usePostAuthRedirect() {
    *
    * Safety checks:
    * 1. Validates billing_redirect.valid flag from backend
-   * 2. Checks if user already has an active subscription
-   * 3. Redirects appropriately based on subscription status
+   * 2. Resolves the org and routes relative to its current plan
    *
    * @param response - Login response that may contain billing_redirect
    */
@@ -195,7 +204,7 @@ export function usePostAuthRedirect() {
     }
 
     try {
-      // Fetch organizations to get the default org's extid and subscription status
+      // Fetch organizations to get the default org's extid and current plan
       await organizationStore.fetchOrganizations();
       // Prefer the list record of the current org (seeded from the server's
       // bootstrap payload), else the default org, then the first.
@@ -209,32 +218,12 @@ export function usePostAuthRedirect() {
         return false;
       }
 
-      // The org record from /api/organizations carries the subscription plan
-      const currentPlanId = org.planid;
-
-      // Check subscription status - delegate to helper if subscribed
-      if (currentPlanId) {
-        return handleExistingSubscription(org.extid, currentPlanId, product, interval);
-      }
-
-      // No active subscription - proceed to plans page for checkout
-      loggingService.debug('[postAuthRedirect] Redirecting to billing plans', {
-        org: org.extid,
-        product,
-        interval,
-      });
-      // `{ path, query }` on purpose: product/interval can come from the route
-      // query (extractBillingParams' fallback tier), so interpolating them into
-      // a raw URL would let a '&' or '#' inject or truncate the query. The
-      // object form encodes each value. `query` must be given explicitly — a
-      // bare `{ path }` push drops it.
-      await router.push({
-        path: `/billing/${org.extid}/plans`,
-        query: { product, interval },
-      });
-      return true;
+      // `await` is load-bearing: a bare `return promise` inside a try block
+      // hands the rejection past the catch below, so a failed push here
+      // would abort the login instead of falling back to /billing/plans.
+      return await redirectForCurrentPlan(org.extid, org.planid, product, interval);
     } catch (err) {
-      // Org resolution failed, but the plan intent itself is still valid —
+      // Org resolution failed, but the plan intent itself is still valid:
       // don't drop it. Push the extid-less plans route; its guard
       // (createBillingRedirect) retries org resolution and forwards the
       // query, so a transient fetch failure no longer loses the selection.
