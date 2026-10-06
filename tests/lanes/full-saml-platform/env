@@ -6,7 +6,7 @@
 # here would flip the full-sqlite/full-pg lanes — where the saml route is
 # the tenant PLACEHOLDER (blank trust anchors) and the tenant e2e asserts
 # the canonical host answers 404 / refuses — from green to red.
-# CI job: ruby-integration-full (T3, "SQLite, platform SAML" matrix row)
+# CI job: ruby-integration-auth (T3, "SQLite, platform SAML" matrix row), selected by auth
 #
 # SAML_IDP_CERT is deliberately NOT here. The spec mints the IdP keypair at
 # load time (spec/support/saml/test_idp.rb — no key material is checked in;

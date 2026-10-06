@@ -1,7 +1,7 @@
 # Lane: full-pg-agnostic — DB-agnostic full-mode specs run against
 # PostgreSQL (catches SQLite/PG behavior drift in specs that claim to be
 # database-neutral).
-# CI job: ruby-integration-full (T3, "PG agnostic" rows; billing via overlay)
+# CI job: ruby-integration-auth (T3, "PG agnostic" rows; billing via overlay), selected by auth
 #
 # Same database env as full-pg; see that lane for where roles come from.
 AUTHENTICATION_MODE=full

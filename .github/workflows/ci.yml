@@ -459,9 +459,9 @@ jobs:
 
   ruby-unit:
     name: T2 · Ruby Unit Tests
-    # The unit lane alone takes 5-7 minutes on a hosted runner and the job
-    # adds about 3 minutes of setup and the browser lane, so a slow runner
-    # was cancelling a passing run at 10. Same budget as the TypeScript job.
+    # The unit lane alone takes 5-8 minutes on a hosted runner and the job
+    # adds its setup on top, so a slow runner was cancelling a passing run at
+    # 10. Same budget as the TypeScript job.
     timeout-minutes: 15
     runs-on: *runs-on
     needs: [changes, ruby-lint, build-assets]

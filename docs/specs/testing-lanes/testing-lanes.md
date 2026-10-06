@@ -45,11 +45,11 @@ specs.
 | Lane | Services | Runs | CI job |
 | --- | --- | --- | --- |
 | `unit` | valkey, rabbitmq | `try:unit`, `spec:fast` | ruby-unit (T2) |
-| `browser` | valkey, rabbitmq | `rspec tests/browser` (Playwright: chromium, firefox, webkit) | ruby-unit (T2) — browser lane step |
+| `browser` | valkey, rabbitmq | `rspec tests/browser` (Playwright: chromium, firefox, webkit) | ruby-auth-browser (T2) |
 | `simple` | valkey, rabbitmq | `try:integration:simple`, `spec:integration:simple` | ruby-integration-simple (T3) |
 | `full-sqlite` | valkey, rabbitmq | `spec:integration:full` | ruby-integration-full — SQLite rows |
 | `full-pg` | valkey, rabbitmq, postgres | `spec:integration:full:postgres` | ruby-integration-full — PG rows |
-| `full-pg-agnostic` | valkey, rabbitmq, postgres | `spec:integration:full:agnostic_on_pg` | ruby-integration-full — PG agnostic rows |
+| `full-pg-agnostic` | valkey, rabbitmq, postgres | `spec:integration:full:agnostic_on_pg` | ruby-integration-auth — PG agnostic rows |
 | `disabled` | valkey, rabbitmq | `spec:integration:disabled` | ruby-integration-disabled (T3) |
 | `api` | valkey, rabbitmq | `spec:api` | blocking step, T3 simple job |
 | `smoke` | valkey, rabbitmq | `pnpm test:smoke` | local-only |
@@ -309,9 +309,11 @@ Ruby test suites enter through lanes and `compose.test.yml`:
 - `.github/workflows/ci.yml` uses the `run-test-lane` composite action for Ruby
   jobs. The composite uploads CI-only RSpec result artifacts and writes job
   summaries; `ci.yml` supplies `COVERAGE` through `GITHUB_ENV`. Full-mode matrix
-  rows are lane and overlay combinations. The `ruby-unit` job runs the
-  `browser` lane as a step before the `unit` lane, through the same composite;
-  CI never runs `--only` — a suite CI needs is a lane.
+  rows are lane and overlay combinations. The `ruby-auth-browser` job runs the
+  `browser` lane through the same composite, separately from the `unit` lane;
+  CI never runs `--only` — a suite CI needs is a lane. The `browser`,
+  `full-mfa`, `full-saml-platform` and `full-pg-agnostic` lanes run on a pull
+  request only when auth is selected (`docs/development/auth-ci.md`).
 - `.github/workflows/migration-tests.yml` runs the `migrations-*` lanes through
   the same composite. Its concurrent-boot job is intentionally CI
   orchestration, not a lane, although it uses `compose.test.yml` services.

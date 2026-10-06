@@ -253,13 +253,13 @@ does, so while a run of that lane and overlay set is live it exits 69
 | Lane                 | Services                   | Runs                                                          | CI job                                           |
 | -------------------- | -------------------------- | ------------------------------------------------------------- | ------------------------------------------------ |
 | `unit`               | valkey, rabbitmq           | `try:unit`, `spec:fast`                                       | ruby-unit (T2)                                   |
-| `browser`            | valkey, rabbitmq           | `rspec tests/browser` (Playwright: chromium, firefox, webkit) | ruby-unit (T2) — browser lane step               |
+| `browser`            | valkey, rabbitmq           | `rspec tests/browser` (Playwright: chromium, firefox, webkit) | ruby-auth-browser (T2)                           |
 | `simple`             | valkey, rabbitmq           | `try:integration:simple`, `spec:integration:simple`           | ruby-integration-simple (T3)                     |
 | `full-sqlite`        | valkey, rabbitmq           | `spec:integration:full`                                       | ruby-integration-full — SQLite rows              |
-| `full-mfa`           | valkey, rabbitmq           | `spec:integration:full:mfa`                                   | ruby-integration-full — SQLite MFA row           |
-| `full-saml-platform` | valkey, rabbitmq           | `spec:integration:full:saml_platform`                         | ruby-integration-full — SQLite platform SAML row |
+| `full-mfa`           | valkey, rabbitmq           | `spec:integration:full:mfa`                                   | ruby-integration-auth — SQLite MFA row           |
+| `full-saml-platform` | valkey, rabbitmq           | `spec:integration:full:saml_platform`                         | ruby-integration-auth — SQLite platform SAML row |
 | `full-pg`            | valkey, rabbitmq, postgres | `spec:integration:full:postgres`                              | ruby-integration-full — PG rows                  |
-| `full-pg-agnostic`   | valkey, rabbitmq, postgres | `spec:integration:full:agnostic_on_pg`                        | ruby-integration-full — PG agnostic rows         |
+| `full-pg-agnostic`   | valkey, rabbitmq, postgres | `spec:integration:full:agnostic_on_pg`                        | ruby-integration-auth — PG agnostic rows         |
 | `disabled`           | valkey, rabbitmq           | `spec:integration:disabled`                                   | ruby-integration-disabled (T3)                   |
 | `api`                | valkey, rabbitmq           | `spec:api`                                                    | blocking step, T3 simple job                     |
 | `smoke`              | valkey, rabbitmq           | `pnpm test:smoke`                                             | local-only                                       |
