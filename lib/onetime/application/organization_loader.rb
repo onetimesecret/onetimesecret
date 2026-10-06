@@ -138,15 +138,19 @@ module Onetime
       # @param session [Hash] Rack session
       # @param org_id [String] Organization objid
       # @param context [Hash, nil] see #selectable_organization
+      # @param at [Integer, nil] when the user made the selection, in epoch
+      #   milliseconds on the server clock. Now, unless the caller knows it
+      #   was made earlier.
       # @return [Onetime::Organization, nil] the selected organization, or nil
       #   when refused
-      def select_organization(customer, session, org_id, context)
+      def select_organization(customer, session, org_id, context, at: nil)
         return unless session
 
         org = selectable_organization(customer, org_id, context)
         return unless org
 
-        session['organization_id'] = org.objid
+        session['organization_id']          = org.objid
+        session['organization_selected_at'] = at || (Familia.now * 1000).to_i
         OT.ld "[OrganizationLoader] Recorded explicit selection for #{customer.objid}: #{org.objid}"
         org
       end
@@ -182,6 +186,7 @@ module Onetime
             # Clear a selection that no longer holds: the organization is
             # gone or archived, or the membership was removed.
             session.delete('organization_id')
+            session.delete('organization_selected_at')
           end
         end
 

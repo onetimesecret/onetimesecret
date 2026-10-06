@@ -348,6 +348,22 @@ RSpec.describe AccountAPI::Logic::Account::UpdateOrganizationContext do
       end
     end
 
+    # The time belongs to the selection and goes when the selection goes.
+    context 'when the loader drops a selection that no longer holds' do
+      before do
+        logic.process
+        allow(target_org).to receive(:archived?).and_return(true)
+        allow(customer).to receive_messages(default_org_id: '', organization_instances: [default_org])
+      end
+
+      it 'drops its time with it' do
+        loader = Class.new { include Onetime::Application::OrganizationLoader }.new
+        loader.load_organization_context(customer, session, {})
+
+        expect(session).not_to include('organization_id', 'organization_selected_at')
+      end
+    end
+
     # raise_concerns and perform_update each read the datastore. A change
     # landing between them makes the loader refuse the write; the response
     # must not then claim the selection was recorded.
