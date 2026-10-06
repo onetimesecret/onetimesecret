@@ -628,6 +628,14 @@ module Onetime
         # Interprets the API's verified flags, which arrive as JSON booleans
         # but are matched tolerantly against string encodings.
         #
+        # Deliberately NOT OT::Utils.explicit_yes?. That helper decodes
+        # operator and user intent (env vars, form params), where "yes",
+        # "on", "y" and "t" are all reasonable spellings. This decodes a
+        # provider's wire format to decide whether DKIM, return-path and
+        # tracking are verified. The provider sends `true`; anything else
+        # is a format change we want to notice, not silently accept as
+        # verified.
+        #
         # @param value [Object] Raw flag value
         # @return [Boolean]
         #
