@@ -784,7 +784,23 @@ source "${LANE_DIR}/env"
 set +a
 _lanes_check_control_state "${LANE_DIR}/env"
 if [[ ${#OVERLAYS[@]} -gt 0 ]]; then
+  # An overlay is sourced inside this loop, so a `break` or `continue` in
+  # the file that is not inside a loop of its own acts on this one: the rest
+  # of the pass is skipped, which leaves allexport on and the file
+  # unchecked. _lanes_overlay_file is emptied once an overlay has been
+  # checked. One still set at the next pass, or after the loop, is an
+  # overlay that ended its pass early, and the run stops like any other
+  # overlay that cannot be honored.
+  _lanes_refuse_loop_control() {
+    set +a
+    [[ -n "${_lanes_overlay_file}" ]] || return 0
+    echo "error: ${_lanes_overlay_file#"${REPO_ROOT}/"} has a break or continue outside a loop of its own" >&2
+    echo "  remove the line: it ended the runner's pass over this overlay, so the rest of the file was not read" >&2
+    exit 64
+  }
+  _lanes_overlay_file=""
   for _lanes_name in "${OVERLAYS[@]}"; do
+    _lanes_refuse_loop_control
     _lanes_overlay_file="${LANES_DIR}/overlays/${_lanes_name}.env"
     if [[ ! -f "${_lanes_overlay_file}" ]]; then
       echo "error: unknown overlay '${_lanes_name}' (no ${_lanes_overlay_file})" >&2
@@ -795,7 +811,10 @@ if [[ ${#OVERLAYS[@]} -gt 0 ]]; then
     source "${_lanes_overlay_file}"
     set +a
     _lanes_check_control_state "${_lanes_overlay_file}"
+    _lanes_overlay_file=""
   done
+  _lanes_refuse_loop_control
+  builtin unset -f _lanes_refuse_loop_control
   builtin unset _lanes_overlay_file
 fi
 builtin unset -f _lanes_check_control_state

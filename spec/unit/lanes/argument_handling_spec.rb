@@ -365,6 +365,23 @@ RSpec.describe 'tests/lanes/run argument handling' do
       end
     end
 
+    # The overlay is sourced inside the runner's loop over --overlay names,
+    # and bash applies a `break` or `continue` in a sourced file to that
+    # loop. Either one would skip the refusal above and leave allexport on.
+    %w[break continue].each do |word|
+      it "refuses an overlay that leaves the runner's loop with #{word}, whatever it set first" do
+        probe.with_overlay("QUIET=1\n#{word}\n") do |overlay|
+          output, status = probe.run('selftest', '--overlay', overlay, '--print-key')
+
+          expect(status.exitstatus).to eq(64), output
+          expect(output).to include(
+            "error: tests/lanes/overlays/#{overlay}.env has a break or continue outside a loop of its own",
+          )
+          expect(output).not_to include('lane=selftest')
+        end
+      end
+    end
+
     it 'leaves an overlay that sets its own variables alone, with every flag' do
       probe.with_overlay("ARGUMENT_HANDLING_SPEC_SETTING=1\nLANES_DATASTORE_DB=7\n") do |overlay|
         output, status = probe.run('selftest', '--overlay', overlay, '--capture-logs', '--log-console', 'off',
