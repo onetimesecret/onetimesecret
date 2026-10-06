@@ -5,6 +5,7 @@ import ListSkeleton from '@/shared/components/closet/ListSkeleton.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { usePreviewPlanMode } from '@/shared/composables/usePreviewPlanMode';
 import { useAuthStore } from '@/shared/stores/authStore';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { createApi } from '@/api';
 import {
@@ -19,6 +20,7 @@ import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 const authStore = useAuthStore();
+const bootstrapStore = useBootstrapStore();
 const organizationStore = useOrganizationStore();
 const $api = createApi();
 
@@ -57,6 +59,13 @@ interface Plan {
 interface PlansResponse {
   plans: Plan[];
   source: 'stripe' | 'local_config';
+}
+
+/** POST /api/colonel/entitlement-preview response (SetEntitlementPreview logic). */
+interface PreviewResponse {
+  status: 'active' | 'cleared';
+  test_planid?: string;
+  test_plan_name?: string;
 }
 
 // Test plan mode composable
@@ -115,6 +124,28 @@ const actualPlanName = computed(() => {
 });
 
 /**
+ * Reflect an override the server has already confirmed applying.
+ *
+ * The banner and this modal's active/current markers derive from the
+ * bootstrap preview fields. Writing the POST response into them means the UI
+ * shows the applied override even when the follow-up refresh fails. The
+ * follow-up is a `session-mutation` refresh, so the snapshot that later
+ * overwrites these fields was requested after the POST committed and carries
+ * the same server truth.
+ */
+const reflectAppliedOverride = (planId: string | null, response: PreviewResponse | undefined) => {
+  if (planId === null) {
+    bootstrapStore.$patch({ entitlement_preview_planid: null, entitlement_preview_plan_name: null });
+    return;
+  }
+  const localName = plans.value.find((p) => p.planid === planId)?.name;
+  bootstrapStore.$patch({
+    entitlement_preview_planid: response?.test_planid ?? planId,
+    entitlement_preview_plan_name: response?.test_plan_name ?? localName ?? planId,
+  });
+};
+
+/**
  * Sync client state after the preview override changes on the server.
  *
  * The override is applied server-side on every read (ADR-020), so plain
@@ -123,27 +154,79 @@ const actualPlanName = computed(() => {
  * fetchOrganizations() reloads the org records whose entitlements/limits
  * `useEntitlements` gates features on.
  *
+ * The refresh is `session-mutation`, not `ordinary`: an ordinary request
+ * joins any GET /bootstrap/me already in flight, and one served before the
+ * POST committed would land the pre-override preview fields as 'applied'
+ * and revert what reflectAppliedOverride() wrote. The coordinator aborts
+ * that flight and issues a request that postdates the write.
+ *
  * fetchOrganizations() refreshes the `organizations` list but not
  * `currentOrganization`, which is the ref most feature gating passes to
  * useEntitlements(). Re-point it at the refreshed record (matched by objid)
  * so gating reflects the preview flip instead of the pre-flip entitlements.
+ *
+ * Returns false instead of throwing when the refresh did not land: either
+ * fetchOrganizations() rejected (network, or a malformed response) or the
+ * auth refresh resolved without applying a snapshot. The override is already
+ * applied server-side by the time this runs, so the caller must not report
+ * either case as the override failing.
  */
-const syncPreviewState = async () => {
-  const [, refreshedOrgs] = await Promise.all([
-    authStore.refresh({ kind: 'ordinary', reason: 'plan-preview' }),
-    organizationStore.fetchOrganizations(),
-  ]);
+const syncPreviewState = async (): Promise<boolean> => {
+  try {
+    const [refreshOutcome, refreshedOrgs] = await Promise.all([
+      authStore.refresh({ kind: 'session-mutation', reason: 'plan-preview' }),
+      organizationStore.fetchOrganizations(),
+    ]);
 
-  const currentObjid = organizationStore.currentOrganization?.objid;
-  if (currentObjid) {
-    const refreshed = refreshedOrgs.find((o) => o.objid === currentObjid);
-    if (refreshed) {
-      organizationStore.setCurrentOrganization(refreshed);
+    const currentObjid = organizationStore.currentOrganization?.objid;
+    if (currentObjid) {
+      const refreshed = refreshedOrgs.find((o) => o.objid === currentObjid);
+      if (refreshed) {
+        organizationStore.setCurrentOrganization(refreshed);
+      }
     }
+
+    // 'superseded' means a newer refresh owns the snapshot, which is at least
+    // as fresh as this one. 'refused' is a session verdict the coordinator
+    // acts on itself; the modal is not the place to describe it.
+    return refreshOutcome !== 'failed' && refreshOutcome !== 'allocation-unavailable';
+  } catch (err: unknown) {
+    console.error('Failed to refresh after preview override:', err);
+    return false;
   }
 };
 
-const handleActivateTestMode = async (planId: string) => {
+/** Only a rejected POST reports `ok: false`; a 2xx means the override is applied server-side. */
+const postOverride = async (
+  planId: string | null
+): Promise<{ ok: true; response: PreviewResponse | undefined } | { ok: false }> => {
+  try {
+    const result = await $api.post<PreviewResponse>('/api/colonel/entitlement-preview', {
+      planid: planId,
+    });
+    return { ok: true, response: result.data };
+  } catch (err: unknown) {
+    console.error('Failed to set entitlement preview:', err);
+    return { ok: false };
+  }
+};
+
+interface OverrideMessages {
+  /** The POST itself failed; nothing changed server-side. */
+  postFailed: string;
+  /** The POST succeeded but the client could not refresh to show it. */
+  refreshFailed: string;
+}
+
+/**
+ * Submit an override (planId) or clear it (null), then refetch server state
+ * so the banner and feature gating reflect it without a page reload.
+ *
+ * The two failure modes get distinct messages because they leave the operator
+ * in different states: a failed POST changed nothing, while a failed refresh
+ * follows an override the server has already applied.
+ */
+const applyOverride = async (planId: string | null, messages: OverrideMessages) => {
   // ADR-046#authority-action-gating: refuse the submit when authority is not established.
   // Close the modal so the operator is not left staring at a dead control.
   if (!canSubmitMutation()) {
@@ -154,43 +237,34 @@ const handleActivateTestMode = async (planId: string) => {
   error.value = null;
 
   try {
-    await $api.post('/api/colonel/entitlement-preview', { planid: planId });
+    const posted = await postOverride(planId);
+    if (!posted.ok) {
+      error.value = messages.postFailed;
+      return;
+    }
 
-    // Refetch server state so the banner and feature gating reflect the
-    // selected plan (no page reload needed).
-    await syncPreviewState();
-    emit('close');
-  } catch (err: unknown) {
-    console.error('Failed to activate test mode:', err);
-    error.value = 'Failed to activate test mode. Please try again.';
+    reflectAppliedOverride(planId, posted.response);
+    if (await syncPreviewState()) {
+      emit('close');
+    } else {
+      error.value = messages.refreshFailed;
+    }
   } finally {
     isLoading.value = false;
   }
 };
 
-const handleResetToActual = async () => {
-  // ADR-046#authority-action-gating: refuse the submit when authority is not established.
-  if (!canSubmitMutation()) {
-    emit('close');
-    return;
-  }
-  isLoading.value = true;
-  error.value = null;
+const handleActivateTestMode = (planId: string) =>
+  applyOverride(planId, {
+    postFailed: t('web.colonel.activateTestModeFailed'),
+    refreshFailed: t('web.colonel.activateTestModeRefreshFailed'),
+  });
 
-  try {
-    await $api.post('/api/colonel/entitlement-preview', { planid: null });
-
-    // Refetch server state so the banner and feature gating return to the
-    // real plan (no page reload needed).
-    await syncPreviewState();
-    emit('close');
-  } catch (err: unknown) {
-    console.error('Failed to reset test mode:', err);
-    error.value = 'Failed to reset test mode. Please try again.';
-  } finally {
-    isLoading.value = false;
-  }
-};
+const handleResetToActual = () =>
+  applyOverride(null, {
+    postFailed: t('web.colonel.resetTestModeFailed'),
+    refreshFailed: t('web.colonel.resetTestModeRefreshFailed'),
+  });
 
 const handleClose = () => {
   if (!isLoading.value) {

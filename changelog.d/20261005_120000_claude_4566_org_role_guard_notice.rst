@@ -13,4 +13,5 @@ Fixed
   organization owner or admin role now sees a notice instead of arriving
   on the dashboard silently: the requirement when their role is known,
   or that access could not be confirmed when the organization lookup
-  failed (#4566).
+  failed. When another notice is already on screen, this one waits
+  behind it instead of replacing it (#4566).

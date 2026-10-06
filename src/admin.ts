@@ -38,8 +38,17 @@ window.addEventListener('vite:preloadError', (event) => {
  * chunk stays free of customer route code.
  */
 const app = createApp(App);
-app.use(AppInitializer, { router: createAdminRouter(), debug: false });
-app.mount('#app');
+try {
+  app.use(AppInitializer, { router: createAdminRouter(), debug: false });
+  app.mount('#app');
+} catch (error) {
+  // Startup threw before the app took over #app, so loading cannot complete.
+  // Flag the server-rendered shell: its stalled-load notice (#4596) then
+  // switches from the timeout copy to a detected failure and stops the orb.
+  // Rethrow so the error still reaches the console and global handlers.
+  document.documentElement.dataset.appFailed = 'true';
+  throw error;
+}
 
 // Deterministic app-readiness signal for E2E tests (see src/main.ts for the
 // rationale). Gated on router.isReady() so the initial admin route resolves.

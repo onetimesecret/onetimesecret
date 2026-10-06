@@ -67,6 +67,22 @@
         });
       })();
     </script>
+    <script nonce="{{app.nonce}}">
+      // Stalled-load notice (#4596). If the entry module fails to fetch (a
+      // stale chunk hash in cached HTML after a deploy, an asset host that is
+      // unreachable or blocked) no app code will ever run, so flag the shell
+      // now instead of waiting out the CSS timer. Resource errors do not
+      // bubble, so capture them on window. The shell emits one module script,
+      // the Vite entry (dev adds the Vite client, whose failure means the
+      // same thing), so filter on that and ignore images, fonts and
+      // stylesheets. Registered before the tag is parsed so no event is lost.
+      window.addEventListener('error', (event) => {
+        var target = event.target;
+        if (target && target.tagName === 'SCRIPT' && target.type === 'module') {
+          document.documentElement.dataset.appFailed = 'true';
+        }
+      }, true);
+    </script>
     {{> partials/head}}
   </head>
   <body class="font-serif bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
@@ -76,7 +92,29 @@
            data attributes on .app-fallback below. They can appear together, one or
            the other, or neither:
              data-show-orb="true|false"   tri-color spinning orb
-             data-show-text="true|false"  "Loading..." text with blinking dots -->
+             data-show-text="true|false"  "Loading..." text with blinking dots
+           The third piece, .loader-stalled, is always present but hidden: the CSS
+           below reveals it after --stalled-delay when the app has not mounted
+           (#4596). Vue's mount() empties #app, so a normal load never shows it.
+           It cannot depend on script: an edge rewrite such as Cloudflare Rocket
+           Loader disables inline scripts too, and <noscript> stays hidden because
+           scripting is still enabled.
+           The copy describes a timeout, not a failure: the delay only says the
+           page is late, so the orb keeps spinning and the first step is a reload.
+           Two failures are detectable once script does run: the head script
+           flags an entry module that fails to fetch, and the entry script
+           (src/main.ts, src/admin.ts) flags a startup exception. Both set
+           html[data-app-failed], which stops the orb, swaps in the second
+           heading and reveals the notice at once.
+           The live region is the wrapper, not the revealed element: assistive
+           tech announces a change inside a region that already exists, and
+           treats a region that appears with its content as new, not changed.
+           The reload link has an empty href, which resolves to the current URL
+           without script (the shell sets no <base>). Reloading is safe on every
+           route that renders this shell: each is a GET of the shell, and the
+           secret reveal is a POST on the API. "Contact support" stays unlinked
+           on purpose: the shell has no per-domain support destination, and a
+           recipient on a custom domain is not our customer. -->
       <div class="app-fallback" data-show-orb="true" data-show-text="false">
         <div class="app-fallback-inner">
           <div class="loader-orb" aria-hidden="true"></div>
@@ -84,6 +122,17 @@
           <noscript>
             <p>JavaScript is required to use this application.</p>
           </noscript>
+        </div>
+        <div class="loader-stalled-region" role="status">
+          <div class="loader-stalled">
+            <p class="loader-stalled-title loader-stalled-title-late">This page is taking longer than expected to load.</p>
+            <p class="loader-stalled-title loader-stalled-title-failed">We couldn't load this page.</p>
+            <p><a class="loader-stalled-action" href="">Reload page</a></p>
+            <p>If the problem continues, contact support or the person who sent you this link.</p>
+            {{#if request_id}}
+            <p class="loader-stalled-meta">Reference: <code class="loader-stalled-ref">{{request_id}}</code></p>
+            {{/if}}
+          </div>
         </div>
       </div>
     </div>
@@ -159,6 +208,93 @@
         0%, 20% { opacity: 0; }
         40%, 100% { opacity: 1; }
       }
+      /* Stalled-load notice (#4596). Revealed by animation-delay alone, with no
+         script involved; visibility keeps it out of the accessibility tree
+         until then. Its wrapper sits below the orb, out of flow, so the orb
+         stays centred on every load. The delay must exceed the time a normal load
+         takes to mount on a slow connection, or the notice would flash during
+         ordinary loads. Measured 2026-10-05 against the deployed bundle (2.4 MB
+         brotli main chunk) under DevTools "Slow 4G" throttling: mount at
+         ~20.4s. 30s keeps a margin; lower it when the bundle shrinks. */
+      .app-fallback {
+        --stalled-delay: 30s;
+        position: relative;
+      }
+      /* The wrapper is the live region. It stays in the accessibility tree from
+         first paint, with no visibility or display of its own, so the reveal
+         inside it registers as a change. */
+      .loader-stalled-region {
+        position: absolute;
+        top: calc(50% + 3rem);
+        left: 1rem;
+        right: 1rem;
+        margin: 0 auto;
+        max-width: 28rem;
+        text-align: center;
+      }
+      .loader-stalled {
+        visibility: hidden;
+        opacity: 0;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        animation: stalled-reveal 0.4s ease-out var(--stalled-delay) forwards;
+      }
+      .loader-stalled p { margin: 0 0 0.5rem; }
+      .loader-stalled-title { font-weight: 600; color: #111827; }
+      html.dark .loader-stalled-title { color: #f3f4f6; }
+      .loader-stalled-title-failed { display: none; }
+      /* White on the orb orange (#dc4a22) measures 4.2:1, under the 4.5:1 AA
+         minimum for 15px bold text. These darker shades measure 5.2:1 and
+         6.5:1. */
+      .loader-stalled-action {
+        display: inline-block;
+        margin: 0.25rem 0 0.75rem;
+        padding: 0.5rem 1.25rem;
+        border-radius: 0.375rem;
+        background-color: #c2401d;
+        color: #ffffff;
+        font-weight: 600;
+        text-decoration: none;
+      }
+      .loader-stalled-action:hover,
+      .loader-stalled-action:focus-visible { background-color: #a93619; }
+      /* The reference is diagnostic detail, not the recipient's task: it sits
+         last and smaller, in the body colour so it stays readable, and selects
+         as one unit so it can be copied intact. */
+      .loader-stalled-meta {
+        margin-top: 0.75rem;
+        font-size: 0.85rem;
+      }
+      .loader-stalled-ref {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        user-select: all;
+      }
+      @keyframes stalled-reveal {
+        from { visibility: hidden; opacity: 0; }
+        to   { visibility: visible; opacity: 1; }
+      }
+      /* The reveal is a timer, not motion, so it has to survive a reduced-motion
+         reset. A reset that zeroes animation-duration still honours the delay;
+         one that sets `animation: none` would hide the notice for good, and one
+         that zeroes animation-delay would show it on every load. There is no
+         global reset today; this rule keeps the timer if an un-layered one is
+         added, as a step reveal with higher specificity and later source
+         position. An important declaration inside a cascade layer would still
+         win, so a reset must not land in one. */
+      @media (prefers-reduced-motion: reduce) {
+        .app-fallback .loader-stalled {
+          animation: stalled-reveal 0.01s linear var(--stalled-delay) forwards !important;
+        }
+      }
+      /* Detected startup failure. The entry script sets html[data-app-failed]
+         when setup or mount throws, so loading cannot complete: the orb stops,
+         the heading changes, and the zeroed delay reveals the notice at once.
+         Elapsed time alone never sets this state. */
+      html[data-app-failed] .app-fallback { --stalled-delay: 0s; }
+      html[data-app-failed] .loader-orb { animation: none; }
+      html[data-app-failed] .loader-text { display: none; }
+      html[data-app-failed] .loader-stalled-title-late { display: none; }
+      html[data-app-failed] .loader-stalled-title-failed { display: block; }
       /* Hide fallback once Vue mounts (adds data-v-app attribute) */
       #app[data-v-app] .app-fallback { display: none; }
     </style>
