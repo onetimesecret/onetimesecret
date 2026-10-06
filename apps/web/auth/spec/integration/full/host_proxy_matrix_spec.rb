@@ -53,6 +53,20 @@
 # run in CI, so its expectations are sent through this stack instead and a
 # row the application does not meet fails here.
 #
+# The other emitters and configurations, under the same shapes
+# (support/host_proxy_matrix_support.rb):
+#   - host_proxy_origin_spec.rb: the Origin check on SSO initiation
+#   - host_proxy_document_spec.rb: CSP form-action and og/twitter tags
+#   - host_proxy_link_emitters_spec.rb: sso-link-confirm email, V1 secret
+#     links, billing redirect
+#   - host_proxy_trusted_proxy_spec.rb: site.network.trusted_proxy configured
+#   - ../full_mfa/host_proxy_webauthn_spec.rb: a live WebAuthn ceremony
+#   - ../full_saml_platform/platform_saml_sso_spec.rb: platform SAML with the
+#     rewrite off and on. NOT COVERED THERE OR ANYWHERE: a Host-rewriting
+#     proxy in front of the platform host. That lane's platform host is an
+#     IP literal, which DetectHost never accepts; see KNOWN LIMIT in that
+#     file's header before trying to add the row.
+#
 # Related, not duplicated here:
 #   - tenant_sso_proxy_host_spec.rb: tenant SSO outcomes on a rewritten Host
 #   - public_host_email_link_spec.rb: the emailed key redeems
