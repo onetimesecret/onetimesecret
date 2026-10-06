@@ -93,7 +93,7 @@ module LaneOwnershipProbe
       while (word = rest.shift)
         case word
         when '--exclude-pattern' then exclude = rest.shift
-        when '--tag', '--format', '--out' then rest.shift
+        when '--tag', '--format', '--out', '--require' then rest.shift
         when /\A-/ then next
         else paths << word
         end
