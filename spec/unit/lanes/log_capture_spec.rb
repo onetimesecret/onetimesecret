@@ -508,6 +508,23 @@ RSpec.describe 'lane log capture profile' do
     end
   end
 
+  # SetupLoggers leaves a console appender it did not add alone: SemanticLogger
+  # refuses a second one. A tryout that adds its own before it boots therefore
+  # owns the console for the rest of the process, which every later tryout
+  # file shares, and a console threshold or a disabled console
+  # (LANES_APP_LOG_CONSOLE) never applies to it. The boot installs the
+  # console the config asks for; a tryout has no need for another.
+  describe 'the tryout files' do
+    it 'add no console appender of their own' do
+      console_appender = /add_appender\(\s*io:\s*(?:\$stdout|\$stderr|STDOUT|STDERR)\b/
+      offenders        = Dir.glob(File.join(Onetime::HOME, '{try,apps}', '**', '*_try.rb')).select do |path|
+        File.read(path).match?(console_appender)
+      end
+
+      expect(offenders.map { |path| path.delete_prefix("#{Onetime::HOME}/") }).to be_empty
+    end
+  end
+
   describe 'Lanes::LogCapture.install_or_abort!' do
     it 'ends the process with one line on standard error' do
       missing = File.join(tmpdir, 'no-such-directory', 'app.log')
