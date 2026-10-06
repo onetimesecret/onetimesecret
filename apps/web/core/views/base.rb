@@ -136,6 +136,11 @@ module Core
           'brand_og_image_url' => view_vars['brand_og_image_url'],
           'twitter_card_type' => view_vars['twitter_card_type'],
           'show_default_svg_favicon' => view_vars['show_default_svg_favicon'],
+          # Stalled-load notice (#4596): the request id is rendered into the
+          # server shell so a recipient can quote it to support. Template-only;
+          # it never enters window.__BOOTSTRAP_ME__. Rhales escapes it, which
+          # matters because Rack::RequestId accepts a client-supplied header.
+          'request_id' => req.env['HTTP_X_REQUEST_ID'],
           'vite_assets_html' => vite_assets(
             nonce: view_vars['nonce'],
             development: view_vars['frontend_development'],
