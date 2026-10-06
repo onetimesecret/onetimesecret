@@ -742,6 +742,11 @@ LANES_ISOLATION_KEY="${LANE}|${OVERLAY_KEY}|${REPO_ROOT}"
 #
 # allexport is on for the `source` alone, so nothing this block assigns for
 # itself is exported.
+#
+# Each `source` is at the top level of this script and only the comparison
+# is a function. Sourced inside a function, a `declare` or `typeset` line in
+# a file would make a variable local to that function: gone on return, never
+# exported, and nothing printed.
 declare -A _lanes_control_flag=(
   [SKIP_CODEGEN]='--skip-codegen' [PRINT_KEY]='--print-key' [QUIET]='--quiet'
   [CAPTURE_LOGS]='--capture-logs' [LOG_CONSOLE]='--log-console'
@@ -754,12 +759,8 @@ declare -A _lanes_control_state=()
 for _lanes_name in "${!_lanes_control_flag[@]}"; do
   _lanes_control_state[${_lanes_name}]="$(declare -p "${_lanes_name}" 2>/dev/null || true)"
 done
-_lanes_source_env() {
+_lanes_check_control_state() {  # $1 = the file just sourced
   local _file="$1" _name
-  set -a
-  # shellcheck source=/dev/null
-  source "${_file}"
-  set +a
   for _name in "${!_lanes_control_flag[@]}"; do
     if [[ "$(declare -p "${_name}" 2>/dev/null || true)" != "${_lanes_control_state[${_name}]}" ]]; then
       echo "error: ${_file#"${REPO_ROOT}/"} sets ${_name}, which is the runner's own state" >&2
@@ -772,8 +773,16 @@ _lanes_source_env() {
     fi
   done
 }
-_lanes_source_env "${LANES_DIR}/base.env"
-_lanes_source_env "${LANE_DIR}/env"
+set -a
+# shellcheck source=/dev/null
+source "${LANES_DIR}/base.env"
+set +a
+_lanes_check_control_state "${LANES_DIR}/base.env"
+set -a
+# shellcheck source=/dev/null
+source "${LANE_DIR}/env"
+set +a
+_lanes_check_control_state "${LANE_DIR}/env"
 if [[ ${#OVERLAYS[@]} -gt 0 ]]; then
   for _lanes_name in "${OVERLAYS[@]}"; do
     _lanes_overlay_file="${LANES_DIR}/overlays/${_lanes_name}.env"
@@ -781,11 +790,15 @@ if [[ ${#OVERLAYS[@]} -gt 0 ]]; then
       echo "error: unknown overlay '${_lanes_name}' (no ${_lanes_overlay_file})" >&2
       exit 64
     fi
-    _lanes_source_env "${_lanes_overlay_file}"
+    set -a
+    # shellcheck source=/dev/null
+    source "${_lanes_overlay_file}"
+    set +a
+    _lanes_check_control_state "${_lanes_overlay_file}"
   done
   builtin unset _lanes_overlay_file
 fi
-builtin unset -f _lanes_source_env
+builtin unset -f _lanes_check_control_state
 builtin unset _lanes_name _lanes_control_flag _lanes_control_state
 
 # SPEC_OPTS is the one way left to change the run's rspec formatters from an

@@ -375,6 +375,43 @@ RSpec.describe 'tests/lanes/run argument handling' do
         expect(probe.field(output, 'log_console')).to start_with('off ')
       end
     end
+
+    # The files are sourced at the top level of the runner. Sourced inside a
+    # function, a `declare` or `typeset` line would make a variable local to
+    # that function: gone on return, never exported, and nothing printed.
+    # This one runs the selftest tasks, which print the environment they got.
+    it 'hands the tasks a variable an overlay assigns with declare or typeset' do
+      overlay_lines = <<~ENV
+        declare -x ARGUMENT_HANDLING_SPEC_DECLARE_X=one
+        declare ARGUMENT_HANDLING_SPEC_DECLARE=two
+        typeset ARGUMENT_HANDLING_SPEC_TYPESET=three
+        ARGUMENT_HANDLING_SPEC_PLAIN=four
+      ENV
+
+      probe.with_overlay(overlay_lines) do |overlay|
+        output, status = probe.run('selftest', '--overlay', overlay, env: { 'CI' => nil })
+
+        expect(status).to be_success, output
+        expect(output.lines.map(&:chomp)).to include(
+          'ARGUMENT_HANDLING_SPEC_DECLARE_X=one', 'ARGUMENT_HANDLING_SPEC_DECLARE=two',
+          'ARGUMENT_HANDLING_SPEC_TYPESET=three', 'ARGUMENT_HANDLING_SPEC_PLAIN=four'
+        )
+      ensure
+        FileUtils.rm_rf(File.join(probe.repo_root, 'tmp', 'lanes', 'selftest', overlay))
+      end
+    end
+
+    ['declare QUIET=1', 'declare -x CAPTURE_LOGS=1', 'typeset LOG_CONSOLE=warn'].each do |line|
+      it "refuses the runner's own state assigned with a declaration: #{line}" do
+        probe.with_overlay("#{line}\n") do |overlay|
+          output, status = probe.run('selftest', '--overlay', overlay, '--print-key')
+
+          expect(status.exitstatus).to eq(64), output
+          expect(output).to include("which is the runner's own state")
+          expect(output).not_to include('lane=selftest')
+        end
+      end
+    end
   end
 
   # rspec reads SPEC_OPTS after the command line, and a formatter there
