@@ -125,11 +125,13 @@
   },
   "web.organizations.owner_required_notice": {
     "text": "That page is only available to organization owners.",
-    "context": "Notice shown on the dashboard after the app redirects a signed-in user away from a page that requires the owner role in an organization (for example the organizations list). States the requirement, not the user's role."
+    "context": "Notice shown on the dashboard after the app redirects a signed-in user away from a page that requires the owner role in an organization (for example the organizations list). States the requirement, not the user's role.",
+    "content_hash": "ef800faa"
   },
   "web.organizations.admin_required_notice": {
     "text": "That page is only available to organization owners and admins.",
-    "context": "Notice shown on the dashboard after the app redirects a signed-in user away from a page that requires the owner or admin role in a specific organization (its settings, members, or domains). States the requirement, not the user's role."
+    "context": "Notice shown on the dashboard after the app redirects a signed-in user away from a page that requires the owner or admin role in a specific organization (its settings, members, or domains). States the requirement, not the user's role.",
+    "content_hash": "41d85083"
   },
   "web.organizations.fetch_organization_error": {
     "text": "Failed to load organization",
@@ -1207,11 +1209,13 @@
   },
   "web.organizations.invitations.go_to_organization": {
     "text": "Go to Organization",
-    "context": "Button text on an already-accepted invitation, shown to a user whose role (admin) lets them open the organization's settings page."
+    "context": "Button text on an already-accepted invitation, shown to a user whose role (admin) lets them open the organization's settings page.",
+    "content_hash": "c786a92e"
   },
   "web.organizations.invitations.go_to_dashboard": {
     "text": "Go to Dashboard",
-    "context": "Button text on an already-accepted invitation, shown to a user whose role (member) has no organization page to open; leads to their dashboard."
+    "context": "Button text on an already-accepted invitation, shown to a user whose role (member) has no organization page to open; leads to their dashboard.",
+    "content_hash": "73aefc65"
   },
   "web.organizations.invitations.already_member": {
     "text": "You are already a member of this organization",
