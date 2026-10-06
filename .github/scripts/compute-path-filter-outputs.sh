@@ -4,7 +4,8 @@
 #
 # When [ci-skip] is set, all outputs are false.
 # When [ci-all] is set or workflow files changed, all outputs are true.
-# Otherwise, outputs match the path filter results.
+# Otherwise, outputs match the path filter results; auth also selects Ruby
+# so forced/browser-only auth changes get lint, built assets, and core tests.
 #
 # Environment variables (inputs):
 #   SKIP_CI          - true if [ci-skip] detected
@@ -14,9 +15,10 @@
 #   FILTER_TYPESCRIPT - true if TypeScript files changed
 #   FILTER_FRONTEND  - true if frontend files changed
 #   FILTER_OCI       - true if Docker/OCI files changed
+#   FILTER_AUTH      - shared auth selector result (paths, label, or event)
 #
 # Outputs (to GITHUB_OUTPUT):
-#   ruby, typescript, frontend, oci, ga_workflow_files
+#   ruby, typescript, frontend, oci, auth, ga_workflow_files
 
 set -e
 
@@ -28,6 +30,11 @@ FILTER_RUBY="${FILTER_RUBY:-false}"
 FILTER_TYPESCRIPT="${FILTER_TYPESCRIPT:-false}"
 FILTER_FRONTEND="${FILTER_FRONTEND:-false}"
 FILTER_OCI="${FILTER_OCI:-false}"
+FILTER_AUTH="${FILTER_AUTH:-}"
+case "$FILTER_AUTH" in
+  true | false) ;;
+  *) echo '::error::FILTER_AUTH must be true or false.' >&2; exit 1 ;;
+esac
 
 # Compute outputs
 if [[ "$SKIP_CI" == "true" ]]; then
@@ -37,6 +44,7 @@ if [[ "$SKIP_CI" == "true" ]]; then
   FRONTEND=false
   OCI=false
   GA_WORKFLOW_FILES=false
+  AUTH=false
 elif [[ "$RUN_ALL" == "true" || "$GA_WORKFLOWS" == "true" ]]; then
   # Run everything
   RUBY=true
@@ -44,6 +52,7 @@ elif [[ "$RUN_ALL" == "true" || "$GA_WORKFLOWS" == "true" ]]; then
   FRONTEND=true
   OCI=true
   GA_WORKFLOW_FILES=true
+  AUTH=true
 else
   # Use path filter results
   RUBY="$FILTER_RUBY"
@@ -51,6 +60,8 @@ else
   FRONTEND="$FILTER_FRONTEND"
   OCI="$FILTER_OCI"
   GA_WORKFLOW_FILES=false
+  AUTH="$FILTER_AUTH"
+  [[ "$AUTH" != "true" ]] || RUBY=true
 fi
 
 # Output results
@@ -59,6 +70,7 @@ if [[ -n "$GITHUB_OUTPUT" ]]; then
   echo "typescript=$TYPESCRIPT" >> "$GITHUB_OUTPUT"
   echo "frontend=$FRONTEND" >> "$GITHUB_OUTPUT"
   echo "oci=$OCI" >> "$GITHUB_OUTPUT"
+  echo "auth=$AUTH" >> "$GITHUB_OUTPUT"
   echo "ga_workflow_files=$GA_WORKFLOW_FILES" >> "$GITHUB_OUTPUT"
 else
   # Local testing - print to stdout
@@ -66,5 +78,6 @@ else
   echo "typescript=$TYPESCRIPT"
   echo "frontend=$FRONTEND"
   echo "oci=$OCI"
+  echo "auth=$AUTH"
   echo "ga_workflow_files=$GA_WORKFLOW_FILES"
 fi

@@ -33,7 +33,7 @@ printf '%s\n' "$ASSERT_SUITE"
 verdict() {
   env -i PATH="$PATH" \
     EVENT_NAME=pull_request CHANGES_RESULT=success SKIP_CI=false \
-    RUBY=false TYPESCRIPT=false FRONTEND=false OCI=false \
+    RUBY=false TYPESCRIPT=false FRONTEND=false OCI=false AUTH=false \
     "$@" bash "$SCRIPT" 2>&1
 }
 
@@ -43,6 +43,7 @@ ALL_SUCCESS=(
   RESULT_TYPESCRIPT_LINT=success RESULT_HYGIENE=success
   RESULT_I18N_VALIDATE=success RESULT_BUILD_ASSETS=success
   RESULT_RUBY_UNIT=success RESULT_TYPESCRIPT_UNIT=success
+  RESULT_RUBY_AUTH_BROWSER=success RESULT_RUBY_INTEGRATION_AUTH=success
   RESULT_RUBY_INTEGRATION_SIMPLE=success RESULT_RUBY_INTEGRATION_API=success
   RESULT_RUBY_INTEGRATION_FULL=success RESULT_RUBY_INTEGRATION_DISABLED=success
   RESULT_CHECK_OCI_IMAGE=success
@@ -51,12 +52,12 @@ ALL_SKIPPED=("${ALL_SUCCESS[@]//=success/=skipped}")
 
 # --- everything ran and passed -----------------------------------------------
 printf '\nall jobs ran and passed\n'
-out="$(verdict RUBY=true TYPESCRIPT=true FRONTEND=true OCI=true "${ALL_SUCCESS[@]}")"
+out="$(verdict RUBY=true TYPESCRIPT=true FRONTEND=true OCI=true AUTH=true "${ALL_SUCCESS[@]}")"
 status=$?
 protects "a fully green run is a pass"
 assert_eq "exit 0" "0" "$status"
 assert_contains "pass line" "✅ Every test job passed" "$out"
-assert_line_count "thirteen passed rows" "13" "| success | ✅ passed |" "$out"
+assert_line_count "fifteen passed rows" "15" "| success | ✅ passed |" "$out"
 
 # --- a docs-only PR: nothing relevant changed, everything skipped ------------
 printf '\ndocs-only PR, every job skipped, hygiene ran\n'
@@ -71,12 +72,17 @@ assert_contains "check-oci-image skipped for no oci/frontend change" "| check-oc
 printf '\nruby-only PR\n'
 out="$(verdict RUBY=true "${ALL_SUCCESS[@]}" \
   RESULT_TYPESCRIPT_LINT=skipped RESULT_I18N_VALIDATE=skipped \
-  RESULT_TYPESCRIPT_UNIT=skipped RESULT_CHECK_OCI_IMAGE=skipped)"
+  RESULT_TYPESCRIPT_UNIT=skipped RESULT_CHECK_OCI_IMAGE=skipped \
+  RESULT_RUBY_AUTH_BROWSER=skipped RESULT_RUBY_INTEGRATION_AUTH=skipped)"
 status=$?
 protects "skipped jobs on the untouched side of the path filter are not failures"
 assert_eq "exit 0" "0" "$status"
 assert_contains "typescript-unit skipped ok" "| typescript-unit | skipped | ✅ no typescript change |" "$out"
 assert_contains "build-assets expected via ruby" "| build-assets | success | ✅ passed |" "$out"
+for job in ruby-auth-browser ruby-integration-auth; do
+  assert_contains "CV-AUTH-01: ordinary Ruby skips $job" \
+    "| $job | skipped | ✅ no auth change |" "$out"
+done
 
 # --- a T3 lane failed ---------------------------------------------------------
 printf '\nan integration lane failed\n'
@@ -92,7 +98,8 @@ printf '\nruby-lint failed and skipped the ruby test jobs\n'
 out="$(verdict RUBY=true "${ALL_SUCCESS[@]}" \
   RESULT_RUBY_LINT=failure RESULT_RUBY_UNIT=skipped \
   RESULT_RUBY_INTEGRATION_SIMPLE=skipped RESULT_RUBY_INTEGRATION_API=skipped \
-  RESULT_RUBY_INTEGRATION_FULL=skipped RESULT_RUBY_INTEGRATION_DISABLED=skipped)"
+  RESULT_RUBY_INTEGRATION_FULL=skipped RESULT_RUBY_INTEGRATION_DISABLED=skipped \
+  RESULT_RUBY_AUTH_BROWSER=skipped RESULT_RUBY_INTEGRATION_AUTH=skipped)"
 status=$?
 protects "a job skipped because its prerequisite failed is a failure, not a pass: this is the case GitHub alone gets wrong"
 assert_eq "exit 1" "1" "$status"
@@ -150,6 +157,66 @@ status=$?
 protects "an empty needs.<job>.result (a job removed from needs, a typo in the env block) is a failure, not a pass"
 assert_eq "exit 1" "1" "$status"
 assert_contains "unset row" "| ruby-unit | <unset> | ❌ did not succeed |" "$out"
+
+# --- auth expectations are independent of the Ruby flag ----------------------
+printf '\nauth-specific job results\n'
+for job in ruby-auth-browser ruby-integration-auth; do
+  result_var="RESULT_${job^^}"
+  result_var="${result_var//-/_}"
+  for auth in true false; do
+    for result in success failure cancelled skipped '' unknown; do
+      out="$(verdict AUTH="$auth" "${ALL_SUCCESS[@]}" "$result_var=$result")"
+      status=$?
+      expected=1
+      if [[ "$result" == success || ( "$auth" == false && "$result" == skipped ) ]]; then
+        expected=0
+      fi
+      protects "each auth job requires success when selected, accepts an unselected skip, and never accepts a failed or missing result"
+      assert_eq "CV-AUTH-02: $job auth=$auth result=[$result] exit" "$expected" "$status"
+      if [[ "$result" == skipped && "$auth" == true ]]; then
+        assert_contains "CV-AUTH-02: $job expected despite RUBY=false" \
+          "| $job | skipped | ❌ expected to run (auth changed) but was skipped:" "$out"
+      elif [[ "$expected" == 1 ]]; then
+        assert_contains "CV-AUTH-02: $job bad result row" \
+          "| $job | ${result:-<unset>} | ❌ did not succeed |" "$out"
+      fi
+    done
+  done
+done
+
+out="$(verdict RUBY=true AUTH=true "${ALL_SUCCESS[@]}" \
+  RESULT_RUBY_AUTH_BROWSER=skipped RESULT_RUBY_INTEGRATION_AUTH=skipped)"
+status=$?
+protects "both selected auth jobs skipped by a failed prerequisite count as failures"
+assert_eq "CV-AUTH-03: both selected auth jobs skipped exit" 1 "$status"
+assert_contains "CV-AUTH-03: both auth failures counted" '❌ 2 job(s) did not pass' "$out"
+
+out="$(verdict RUBY=true AUTH=true "${ALL_SUCCESS[@]}" \
+  RESULT_RUBY_LINT=failure RESULT_RUBY_UNIT=skipped \
+  RESULT_RUBY_INTEGRATION_SIMPLE=skipped RESULT_RUBY_INTEGRATION_API=skipped \
+  RESULT_RUBY_INTEGRATION_FULL=skipped RESULT_RUBY_INTEGRATION_DISABLED=skipped \
+  RESULT_RUBY_AUTH_BROWSER=skipped RESULT_RUBY_INTEGRATION_AUTH=skipped)"
+status=$?
+assert_eq "CV-AUTH-04: selected auth with failed lint exit" 1 "$status"
+assert_contains "CV-AUTH-04: forcing auth adds two failures to the existing six" \
+  '❌ 8 job(s) did not pass' "$out"
+
+printf '\nmissing or malformed auth selection\n'
+protects "a missing or malformed required auth output fails closed even when all jobs report success"
+# The command substitution is intentionally an unexpanded invalid input.
+# shellcheck disable=SC2016
+for bad in '' TRUE False 1 null ' true' 'false ' $'false\n' '$(exit 0)'; do
+  out="$(verdict "${ALL_SUCCESS[@]}" AUTH="$bad")"
+  status=$?
+  assert_eq "CV-AUTH-05: malformed auth=[$bad] exit" 1 "$status"
+  assert_contains "CV-AUTH-05: malformed auth diagnostic" \
+    'Auth selection is missing or malformed' "$out"
+done
+out="$(verdict "${ALL_SUCCESS[@]}" env -u AUTH)"
+status=$?
+assert_eq "CV-AUTH-06: unset auth exit" 1 "$status"
+assert_contains "CV-AUTH-06: unset auth diagnostic" \
+  'Auth selection is missing or malformed' "$out"
 
 # --- every test job in ci.yml has a row ---------------------------------------
 printf '\nci.yml and the script agree on the job list\n'

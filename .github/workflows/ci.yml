@@ -25,7 +25,10 @@ name: CI
 #
 # Path Filtering:
 # - Ruby-only changes skip TypeScript jobs
-# - TypeScript-only changes skip Ruby jobs
+# - TypeScript-only changes skip Ruby jobs unless the shared auth selector matches
+# - MFA, platform SAML, and the SAML browser lane use .github/auth-paths.yml
+# - The ci:auth PR label forces auth coverage; shared runtime changes select it too
+# - Nightly, main/tag push, and merge-group runs cover every configuration
 # - Workflow file changes (.github/**) run all jobs
 # - Use [ci-all] in commit message to force all jobs
 # - Use [ci-skip] in commit message to skip CI entirely
@@ -60,9 +63,16 @@ on:
   push:
     branches:
       - main
+    tags:
+      - 'v*'
+  schedule:
+    - cron: '3 4 * * *'
+  merge_group:
+    types: [checks_requested]
   # Runs on synthetic merge commit (PR branch merged into base). If your branch
   # diverges from main, CI tests the merged result — not your branch in isolation.
   pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
     branches:
       - main
       - develop
@@ -87,7 +97,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  # Label runs must not cancel an in-flight code-change run or its verdict.
+  group: ci-${{ github.workflow }}-${{ github.ref }}-${{ (github.event.action == 'labeled' || github.event.action == 'unlabeled') && format('label-{0}', github.run_id) || 'normal' }}
   cancel-in-progress: true
 
 jobs:
@@ -111,6 +122,7 @@ jobs:
       frontend: ${{ steps.compute.outputs.frontend }}
       oci: ${{ steps.compute.outputs.oci }}
       ga_workflow_files: ${{ steps.compute.outputs.ga_workflow_files }}
+      auth: ${{ steps.compute.outputs.auth }}
       # Read by ci-verdict: [ci-skip] skips every job, which must not read as
       # a pass for the required check.
       skip_ci: ${{ steps.check-flags.outputs.skip_ci }}
@@ -122,10 +134,11 @@ jobs:
       - name: Check for CI flags
         id: check-flags
         run: |
-          DISPATCH_RUN_ALL="${{ github.event_name == 'workflow_dispatch' && inputs.run_all == true }}"
+          DISPATCH_RUN_ALL="${{ (github.event_name == 'workflow_dispatch' && inputs.run_all == true) || github.event_name == 'schedule' || github.event_name == 'push' || github.event_name == 'merge_group' }}"
           ./.github/scripts/detect-ci-flags.sh "$DISPATCH_RUN_ALL"
 
       - name: Detect file changes
+        if: steps.check-flags.outputs.run_all != 'true'
         uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         id: filter
         with:
@@ -138,6 +151,7 @@ jobs:
               - '.rubocop_todo.yml'
               - '.ruby-version'
               - '.rspec'
+              - '.simplecov'
               - 'spec/**'
               - 'try/**'
               - 'tests/**'
@@ -188,6 +202,12 @@ jobs:
               - '.github/workflows/**'
               - '.github/actions/**'
 
+      - name: Detect auth changes
+        id: auth
+        uses: ./.github/actions/detect-auth-changes
+        with:
+          force: ${{ steps.check-flags.outputs.run_all }}
+
       - name: Compute final outputs
         id: compute
         env:
@@ -198,6 +218,7 @@ jobs:
           FILTER_TYPESCRIPT: ${{ steps.filter.outputs.typescript }}
           FILTER_FRONTEND: ${{ steps.filter.outputs.frontend }}
           FILTER_OCI: ${{ steps.filter.outputs.oci }}
+          FILTER_AUTH: ${{ steps.auth.outputs.auth }}
         run: ./.github/scripts/compute-path-filter-outputs.sh
 
       - name: Generate job summary
@@ -209,6 +230,7 @@ jobs:
           echo "| TypeScript | ${{ steps.compute.outputs.typescript }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Frontend | ${{ steps.compute.outputs.frontend }} |" >> $GITHUB_STEP_SUMMARY
           echo "| OCI | ${{ steps.compute.outputs.oci }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Auth | ${{ steps.compute.outputs.auth }} |" >> "$GITHUB_STEP_SUMMARY"
 
   # ============================================================================
   # TIER 1: LINT & BUILD JOBS (~2 min)
@@ -473,22 +495,6 @@ jobs:
       - name: Setup Node.js environment
         uses: ./.github/actions/setup-node-env
 
-      # The browser lane's one prerequisite the runner cannot provide. The
-      # same trio bin/setup --test installs locally; --with-deps adds the OS
-      # packages, which setup never does (sudo/apt).
-      - name: Install Playwright browsers for the browser lane
-        run: pnpm exec playwright install --with-deps chromium firefox webkit
-
-      # tests/lanes/browser: the real-browser SAML callback matrix, run as the
-      # lane a contributor runs (`tests/lanes/run browser`), with its own
-      # codegen and results artifact. Before the coverage switch below on
-      # purpose: SimpleCov stays scoped to the unit lane.
-      - name: Run browser lane
-        uses: ./.github/actions/run-test-lane
-        with:
-          lane: browser
-          results-file: 'rspec_browser_results.json'
-
       # Diagnostic probe for CI-only hash mismatch (issue being investigated).
       # A CI-layer concern, not part of the lane contract — env mirrors the
       # unit lane (tests/lanes/base.env + unit/env). Non-blocking (|| true).
@@ -553,6 +559,36 @@ jobs:
           file: coverage/coverage.xml
           language: Ruby
           label: code-coverage/rspec
+
+  ruby-auth-browser:
+    name: T2 · Ruby Auth Browser (SAML)
+    timeout-minutes: 10
+    runs-on: *runs-on
+    needs: [changes, ruby-lint, build-assets]
+    if: &if-auth-tests |
+      always() &&
+      needs.changes.outputs.auth == 'true' &&
+      (needs.ruby-lint.result == 'success' || needs.ruby-lint.result == 'skipped') &&
+      (needs.build-assets.result == 'success' || needs.build-assets.result == 'skipped') &&
+      !contains(needs.*.result, 'cancelled')
+    steps:
+      - *checkout-step
+      - *start-core-services
+      - name: Setup Ruby test environment
+        uses: ./.github/actions/setup-ruby-test-env
+      - name: Setup Python for locale sync
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.14'
+      - name: Setup Node.js environment
+        uses: ./.github/actions/setup-node-env
+      - name: Install Playwright browsers for the browser lane
+        run: pnpm exec playwright install --with-deps chromium firefox webkit
+      - name: Run browser lane
+        uses: ./.github/actions/run-test-lane
+        with:
+          lane: browser
+          results-file: 'rspec_browser_results.json'
 
   typescript-unit:
     name: T2 · TypeScript Unit Tests
@@ -729,16 +765,6 @@ jobs:
             overlay: 'billing'
             services: 'valkey rabbitmq'
             results-file: 'rspec_full_sqlite_billing_on_results.json'
-          - name: 'SQLite, MFA'
-            lane: full-mfa
-            overlay: ''
-            services: 'valkey rabbitmq'
-            results-file: 'rspec_full_mfa_results.json'
-          - name: 'SQLite, platform SAML'
-            lane: full-saml-platform
-            overlay: ''
-            services: 'valkey rabbitmq'
-            results-file: 'rspec_full_saml_platform_results.json'
           - name: 'PG, billing: off'
             lane: full-pg
             overlay: ''
@@ -760,7 +786,7 @@ jobs:
             services: 'valkey rabbitmq postgres'
             results-file: 'rspec_full_pg_agnostic_billing_on_results.json'
 
-    steps:
+    steps: &full-integration-steps
       - *checkout-step
 
       - name: Start test services
@@ -791,6 +817,30 @@ jobs:
           lane: ${{ matrix.lane }}
           overlay: ${{ matrix.overlay }}
           results-file: ${{ matrix.results-file }}
+
+  # The six general full-mode rows above retain application/DB coverage on
+  # every Ruby change. Only the feature-specific boots are selected by auth.
+  ruby-integration-auth:
+    name: 'T3 · Ruby Auth Configuration (${{ matrix.name }})'
+    timeout-minutes: 10
+    runs-on: *runs-on
+    needs: [changes, ruby-lint, build-assets]
+    if: *if-auth-tests
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: 'SQLite, MFA'
+            lane: full-mfa
+            overlay: ''
+            services: 'valkey rabbitmq'
+            results-file: 'rspec_full_mfa_results.json'
+          - name: 'SQLite, platform SAML'
+            lane: full-saml-platform
+            overlay: ''
+            services: 'valkey rabbitmq'
+            results-file: 'rspec_full_saml_platform_results.json'
+    steps: *full-integration-steps
 
   ruby-integration-disabled:
     name: T3 · Ruby Integration (Disabled Mode)
@@ -929,6 +979,8 @@ jobs:
     timeout-minutes: 5
     needs:
       - ruby-unit
+      - ruby-auth-browser
+      - ruby-integration-auth
       - ruby-integration-simple
       - ruby-integration-api
       - ruby-integration-full
@@ -1013,6 +1065,8 @@ jobs:
       - i18n-validate
       - build-assets
       - ruby-unit
+      - ruby-auth-browser
+      - ruby-integration-auth
       - typescript-unit
       - ruby-integration-simple
       - ruby-integration-api
@@ -1036,6 +1090,7 @@ jobs:
           TYPESCRIPT: ${{ needs.changes.outputs.typescript }}
           FRONTEND: ${{ needs.changes.outputs.frontend }}
           OCI: ${{ needs.changes.outputs.oci }}
+          AUTH: ${{ needs.changes.outputs.auth }}
           RESULT_HOST_PROXY_WIRE: ${{ needs.host-proxy-wire.result }}
           RESULT_RUBY_LINT: ${{ needs.ruby-lint.result }}
           RESULT_TYPESCRIPT_LINT: ${{ needs.typescript-lint.result }}
@@ -1043,6 +1098,8 @@ jobs:
           RESULT_I18N_VALIDATE: ${{ needs.i18n-validate.result }}
           RESULT_BUILD_ASSETS: ${{ needs.build-assets.result }}
           RESULT_RUBY_UNIT: ${{ needs.ruby-unit.result }}
+          RESULT_RUBY_AUTH_BROWSER: ${{ needs.ruby-auth-browser.result }}
+          RESULT_RUBY_INTEGRATION_AUTH: ${{ needs.ruby-integration-auth.result }}
           RESULT_TYPESCRIPT_UNIT: ${{ needs.typescript-unit.result }}
           RESULT_RUBY_INTEGRATION_SIMPLE: ${{ needs.ruby-integration-simple.result }}
           RESULT_RUBY_INTEGRATION_API: ${{ needs.ruby-integration-api.result }}
@@ -1063,6 +1120,8 @@ jobs:
       - i18n-validate
       - build-assets
       - ruby-unit
+      - ruby-auth-browser
+      - ruby-integration-auth
       - typescript-unit
       - ruby-integration-simple
       - ruby-integration-api
@@ -1100,6 +1159,8 @@ jobs:
           echo "| i18n Validation | ${{ needs.i18n-validate.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Build Assets | ${{ needs.build-assets.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Ruby Unit | ${{ needs.ruby-unit.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Ruby Auth Browser | ${{ needs.ruby-auth-browser.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Ruby Auth Configuration | ${{ needs.ruby-integration-auth.result }} |" >> "$GITHUB_STEP_SUMMARY"
           echo "| TypeScript Unit | ${{ needs.typescript-unit.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Ruby Integration (Simple) | ${{ needs.ruby-integration-simple.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Ruby Integration (API Contract) | ${{ needs.ruby-integration-api.result }} |" >> $GITHUB_STEP_SUMMARY
