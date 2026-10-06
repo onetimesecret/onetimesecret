@@ -352,7 +352,9 @@ module Onetime
       def self.valid_color?(color)
         return false if color.nil? || color.empty?
 
-        color.match?(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)
+        # \A/\z, not ^/$: Ruby's ^ and $ match at line boundaries, so
+        # "#FFF\n<anything>" would otherwise validate and be stored.
+        color.match?(/\A#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})\z/)
       end
 
       # Normalizes a hex color to 6-digit form.

@@ -90,6 +90,17 @@ RSpec.describe Billing::Plan, type: :billing do
       expect(plan.limits_hash['total_members_per_org.max']).to eq(Float::INFINITY)
     end
 
+    # Plans persisted by earlier releases carry Float::INFINITY's to_s and the
+    # Stripe metadata convention verbatim. Until a catalog pull rewrites them
+    # the cached plan must still read them as unlimited, not as 0.
+    it 'reads the legacy "Infinity" and "-1" spellings as Float::INFINITY' do
+      plan.limits['custom_domains.max'] = 'Infinity'
+      plan.limits['api_keys.max']       = '-1'
+
+      expect(plan.limits_hash['custom_domains.max']).to eq(Float::INFINITY)
+      expect(plan.limits_hash['api_keys.max']).to eq(Float::INFINITY)
+    end
+
     it 'memoizes the hash' do
       first_call = plan.limits_hash
       second_call = plan.limits_hash

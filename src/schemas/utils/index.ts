@@ -4,5 +4,6 @@
  * Utility schemas for common validation patterns
  */
 
+export * from './email';
 export * from './feature_flags';
 export * from './identifiers';

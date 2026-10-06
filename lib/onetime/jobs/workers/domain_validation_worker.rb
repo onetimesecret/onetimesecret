@@ -7,6 +7,7 @@ require_relative 'job_lifecycle'
 require_relative '../queues/config'
 require_relative '../queues/declarator'
 require_relative '../../operations/validate_sender_domain'
+require_relative '../../operations/check_provider_verification'
 require_relative '../../models/custom_domain/mailer_config'
 require 'onetime/mail/mailer'
 require 'onetime/mail/provider_registry'
@@ -192,102 +193,17 @@ module Onetime
               bypass_cache: bypass_cache,
               error: result.error
 
-            # Provider-level verification: ask the provider API if the domain is verified.
-            # This complements the DNS validation above.
-            provider_api_verified = nil
-            begin
-              provider = mailer_config.effective_provider
-              if Onetime::Mail::ProviderRegistry.provisioning_provider?(provider)
-                require 'onetime/mail/sender_strategies'
-                sender_strategy = Onetime::Mail::SenderStrategies.for_provider(provider)
-                creds           = Onetime::Mail::Mailer.provider_credentials(provider)
-
-                # Guard on REQUIRED keys, not hash emptiness: key-level checks
-                # stay correct even when a builder bakes non-secret defaults
-                # into the hash (smtp2go now signals a missing api_key with an
-                # empty hash, but this guard never depended on that). Skipping
-                # here keeps the doomed API call from running (the strategy
-                # would return verified: nil anyway under the tri-state
-                # contract) and logs exactly which keys are missing.
-                missing = Onetime::Mail::ProviderRegistry.missing_required_credentials(provider, creds)
-                if missing.empty?
-                  provider_result       = sender_strategy.check_provider_verification_status(mailer_config, credentials: creds)
-                  provider_api_verified = provider_result[:verified]
-                  log_info "Provider verification check: #{domain_id}",
-                    provider: provider,
-                    verified: provider_result[:verified],
-                    status: provider_result[:status]
-                else
-                  log_info "Skipping provider check: missing #{provider} credentials",
-                    provider: provider,
-                    missing_keys: missing
-                end
-              end
-
-              # Persist the provider's current domain status back into provider_dns_data
-              # so the UI can surface it (e.g. 'verified', 'pending_verification').
-              #
-              # provider_dns_data is a jsonkey (its own Redis key), so this writes
-              # immediately. It must happen BEFORE the scalar assignments below:
-              # Familia 2.12 warns when a related key is written while the parent
-              # holds unsaved scalar fields. Same ordering as DnsRecordCheckWorker.
-              if provider_result
-                current_provider_data                 = mailer_config.provider_dns_data.value || {}
-                provider_records                      = provider_result.dig(:details, :dns_records) || []
-                mailer_config.provider_dns_data.value = current_provider_data.merge(
-                  'status' => provider_result[:status],
-                  'dns_records' => provider_records,
-                  'raw_provider_response' => provider_result[:details],
-                )
-              end
-
-              # Set provider_verified from the provider API check. Two distinct
-              # situations look similar but must behave differently, so we
-              # distinguish by whether the check RAN (provider_result non-nil),
-              # not by the verified value alone:
-              #
-              #   - provider_result is nil: the check never ran (provider is
-              #     smtp, or no credentials configured). Fall back to the DNS
-              #     result (degraded mode - better than leaving nil).
-              #   - provider_result[:verified] is nil: the check ran but was
-              #     inconclusive (missing/rotated API key, provider API error,
-              #     transport failure). Leave provider_verified UNTOUCHED and
-              #     exclude it from save_fields, keeping the previously stored
-              #     value. An error must never demote: a rotated key or a
-              #     network blip would otherwise silently flip a verified
-              #     domain to failed on the next scheduled check. Only an
-              #     authoritative provider "no" (verified: false) may demote.
-              provider_check_inconclusive = provider_result && provider_api_verified.nil?
-              if provider_result.nil?
-                mailer_config.provider_verified = result.all_verified
-              elsif !provider_check_inconclusive
-                mailer_config.provider_verified = provider_api_verified
-              end
-
-              # Record provider status when verification fails (or was
-              # inconclusive) so UI can explain why; cleared on verified: true.
-              mailer_config.last_error = if provider_check_inconclusive
-                                           "Provider check inconclusive: #{provider_result[:message]}"
-                                         elsif provider_api_verified == false && provider_result
-                                           "Provider status: #{provider_result[:status]}"
-                                         end
-
-              mailer_config.provider_check_status       = JobLifecycle::COMPLETED
-              mailer_config.provider_check_completed_at = Familia.now.to_i
-              mailer_config.updated                     = Familia.now.to_i
-              save_list                                 = [:provider_check_status, :provider_check_completed_at, :last_error, :updated]
-              save_list.unshift(:provider_verified) unless provider_check_inconclusive
-              mailer_config.save_fields(*save_list)
-            rescue StandardError => ex
-              # Provider check failure should not fail the overall worker
-              log_error "Provider verification check failed for #{domain_id}", ex
-              # Mark as completed (not failed - the worker itself didn't crash)
-              # but don't set provider_verified since we couldn't determine it
-              mailer_config.provider_check_status       = JobLifecycle::COMPLETED
-              mailer_config.provider_check_completed_at = Familia.now.to_i
-              mailer_config.updated                     = Familia.now.to_i
-              mailer_config.save_fields(:provider_check_status, :provider_check_completed_at, :updated)
-            end
+            # Provider-level verification: ask the provider API if the domain
+            # is verified, complementing the DNS validation above. Shared with
+            # the jobs-disabled fallback in Publisher#enqueue_domain_validation
+            # so both paths close the provider check the same way (tri-state
+            # provider_verified; a raise inside completes without demoting).
+            Onetime::Operations::CheckProviderVerification.new(
+              mailer_config: mailer_config,
+              dns_all_verified: result.all_verified,
+              domain_id: domain_id,
+              logger: logger,
+            ).call
 
             # Refresh from Redis so we see the DNS worker's latest status, not our
             # in-memory copy which was loaded before that worker ran.

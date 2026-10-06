@@ -22,6 +22,7 @@
  * @see {@link "shapes/v3/customer"} - V3 wire format with native types
  */
 
+import { wireEmailSchema } from '@/schemas/utils/email';
 import { z } from 'zod';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -223,8 +224,9 @@ export const customerCanonical = z.object({
   /** External ID (user-facing, used in public APIs). */
   extid: z.string(),
 
-  /** Email address (unique per customer). */
-  email: z.email(),
+  /** Email address (unique per customer). Read contract: mirrors what the
+   * server stores rather than Zod's stricter default pattern. */
+  email: wireEmailSchema,
 
   // ─────────────────────────────────────────────────────────────────────────
   // Status fields

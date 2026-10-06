@@ -136,6 +136,7 @@ module ColonelAPI
               effective_entitlements: @result.effective,
               grants: @result.grants,
               revokes: @result.revokes,
+              memberships: @result.memberships,
             },
           }
         end
@@ -158,12 +159,38 @@ module ColonelAPI
         #
         # :no_change is a successful, idempotent 200 — the entitlement is already
         # in the requested state, so the response below describes reality.
+        #
+        # :partial is NOT a 200. The org-level sets changed, but some members
+        # still read their previous materialized set, so a revoke has not
+        # revoked anything for them. The op already recorded the :partial
+        # audit event; this surface only refuses to call it a success and
+        # carries the counts so the admin UI can name the stale members.
         def handle_result_status(result)
           case result.status
           when :invalid_action
             raise_form_error(VALID_ACTIONS_MESSAGE, field: :action)
           when :missing_entitlement
             raise_form_error('Entitlement is required for grant/revoke', field: :entitlement)
+          when Onetime::Operations::Org::EntitlementOverride::PARTIAL_STATUS
+            cascade = result.memberships || {}
+            raise_form_error(
+              "Override applied, but #{partial_cascade_summary(cascade)}; " \
+              'run `bin/ots org reconcile` to retry the cascade',
+              field: :memberships,
+              details: { memberships: cascade },
+            )
+          end
+        end
+
+        # Two shapes of :partial — some members failed, or the cascade itself
+        # raised before reaching anyone (counts unknown).
+        def partial_cascade_summary(cascade)
+          if cascade[:cascade_error]
+            "the membership cascade raised (#{cascade[:cascade_error]}) and every member " \
+              'still carries their previous entitlements'
+          else
+            "#{cascade[:failed]} of #{cascade[:total]} memberships could not be " \
+              're-materialized and still carry their previous entitlements'
           end
         end
 

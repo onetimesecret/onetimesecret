@@ -576,6 +576,13 @@ describe('Transform Error Handling', () => {
         'user@example.com',
         'user+tag@example.com',
         'user.name@sub.example.com',
+        // Accepted by the server (Truemail / VALID_EMAIL_PATTERN) but rejected
+        // by Zod's default pattern; a read contract must not be stricter than
+        // what the server stores, or hydration fails for that account.
+        'first&last@company.com',
+        "o'neil@example.com",
+        'josé@example.com',
+        'a!b#c$d%e*f=g?h^i`j{k|l}m~n@example.com',
       ];
 
       for (const email of validEmails) {

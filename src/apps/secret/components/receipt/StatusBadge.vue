@@ -28,6 +28,15 @@
     // schema would throw on legacy receipts the display layer is built to
     // absorb (#3829).
     const stateValue = props.record.secret_state || props.record.state;
+    const displayStatus = getDisplayStatus(stateValue, props.expiresIn);
+
+    // A revealed or burned secret is gone; the TTL clock no longer describes
+    // it. The receipt outlives the secret (receipt TTL is twice the secret's),
+    // so without this a creator opening the receipt after the secret's TTL saw
+    // "Expired" or "Expiring soon" in place of "Revealed" / "Burned".
+    if (displayStatus === 'revealed' || displayStatus === 'burned') {
+      return displayStatus;
+    }
 
     // Map expiration states to display states
     if (expirationState.value === 'expired') {
@@ -37,7 +46,6 @@
       return 'expiring_soon';
     }
 
-    const displayStatus = getDisplayStatus(stateValue, props.expiresIn);
     if (displayStatus === 'new' && props.record.is_previewed) {
       return 'previewed';
     }
