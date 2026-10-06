@@ -93,6 +93,39 @@ RSpec.describe Core::Controllers::Welcome do
     allow(controller).to receive(:http_logger).and_return(double('Logger', debug: nil, info: nil, warn: nil, error: nil))
   end
 
+  describe '#customer_portal_redirect' do
+    let(:domain_strategy) { :canonical }
+
+    before do
+      allow(res).to receive(:do_not_cache!)
+      allow(req).to receive(:path).and_return('/account/billing_portal')
+    end
+
+    # The handler used to read the deprecated customer-level Stripe id and
+    # call Stripe inline; every failure (including the routine "no such
+    # customer") then hit raise_form_error, undefined on controllers, and
+    # surfaced as a 500. The legacy URL now converges on the organization-
+    # aware route, which owns the authorization gate and the no-Stripe-id case.
+    it 'redirects to the organization-aware billing portal route' do
+      expect { controller.customer_portal_redirect }.not_to raise_error
+
+      expect(@redirect_location).to eq('/billing/portal')
+    end
+
+    it 'marks the response as not cacheable' do
+      controller.customer_portal_redirect
+
+      expect(res).to have_received(:do_not_cache!)
+    end
+
+    it 'does not talk to Stripe from the legacy route' do
+      stripe = stub_const('Stripe::BillingPortal::Session', double('Stripe::BillingPortal::Session'))
+      expect(stripe).not_to receive(:create)
+
+      controller.customer_portal_redirect
+    end
+  end
+
   describe '#welcome' do
     context 'when checkout param is missing' do
       let(:params) { {} }

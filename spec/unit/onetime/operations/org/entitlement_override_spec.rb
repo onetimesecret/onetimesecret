@@ -32,6 +32,7 @@ RSpec.describe Onetime::Operations::Org::EntitlementOverride do
   let(:revoke_members)       { [] }
   let(:materialized_members) { (plan_members | grant_members) - revoke_members }
   let(:billing_enabled)      { true }
+  let(:membership_counts)    { { success: 2, failed: 0, total: 2, failed_ids: [] } }
 
   # Mirror of the model's apply_entitlements reconciliation.
   def reconcile!
@@ -63,6 +64,7 @@ RSpec.describe Onetime::Operations::Org::EntitlementOverride do
       revoke_members.clear
       reconcile!
     end
+    allow(instance).to receive(:rematerialize_all_memberships!).and_return(membership_counts)
 
     instance
   end
@@ -122,6 +124,218 @@ RSpec.describe Onetime::Operations::Org::EntitlementOverride do
 
       expect(result.status).to eq(:granted)
       expect(org).to have_received(:grant_entitlement).with('custom_branding')
+    end
+  end
+
+  # Memberships carry their own materialized set (org ∩ role template), and
+  # the authorization gates read THAT. An override that stopped at the org's
+  # set left every existing member on the old entitlements until an unrelated
+  # plan apply or reconcile rematerialized them.
+  describe 'membership cascade' do
+    it 'rematerializes every membership after a grant' do
+      result = run('grant', entitlement: 'custom_branding')
+
+      expect(org).to have_received(:rematerialize_all_memberships!).once
+      expect(result.memberships).to eq(membership_counts)
+    end
+
+    it 'rematerializes every membership after a revoke' do
+      result = run('revoke', entitlement: 'api_access')
+
+      expect(org).to have_received(:rematerialize_all_memberships!).once
+      expect(result.memberships).to eq(membership_counts)
+    end
+
+    it 'rematerializes every membership after a clear' do
+      grant_members << 'custom_branding'
+
+      result = run('clear')
+
+      expect(org).to have_received(:rematerialize_all_memberships!).once
+      expect(result.memberships).to eq(membership_counts)
+    end
+
+    it 'cascades AFTER the org-level mutation so members see the new set' do
+      order = []
+      allow(org).to receive(:revoke_entitlement) do |ent|
+        order << [:revoke, ent]
+        revoke_members << ent
+        reconcile!
+      end
+      allow(org).to receive(:rematerialize_all_memberships!) do
+        order << :rematerialize
+        membership_counts
+      end
+
+      run('revoke', entitlement: 'api_access')
+
+      expect(order).to eq([[:revoke, 'api_access'], :rematerialize])
+    end
+
+    it 'does not touch memberships on a dry run' do
+      result = run('grant', entitlement: 'custom_branding', dry_run: true)
+
+      expect(org).not_to have_received(:rematerialize_all_memberships!)
+      expect(result.memberships).to be_nil
+    end
+
+    # A live no-change is the operator's natural RETRY after a :partial run.
+    # The org's sets already match, but the members a previous cascade missed
+    # still read their old set, so the cascade runs again (D15 note).
+    it 'still cascades on a live no-change so a retry converges the members' do
+      grant_members << 'custom_branding'
+      reconcile!
+
+      result = run('grant', entitlement: 'custom_branding')
+
+      expect(result.status).to eq(:no_change)
+      expect(org).not_to have_received(:grant_entitlement)
+      expect(org).to have_received(:rematerialize_all_memberships!).once
+      expect(result.memberships).to eq(membership_counts)
+    end
+
+    it 'does not touch memberships on a dry-run no-change' do
+      grant_members << 'custom_branding'
+      reconcile!
+
+      result = run('grant', entitlement: 'custom_branding', dry_run: true)
+
+      expect(result.status).to eq(:no_change)
+      expect(org).not_to have_received(:rematerialize_all_memberships!)
+      expect(result.memberships).to be_nil
+    end
+
+    context 'when a live no-change retry still leaves a membership behind' do
+      let(:membership_counts) { { success: 1, failed: 1, total: 2, failed_ids: ['mem_stale'] } }
+
+      before do
+        revoke_members << 'api_access'
+        reconcile!
+      end
+
+      it 'returns :partial instead of calling the retry a no-change success' do
+        result = run('revoke', entitlement: 'api_access')
+
+        expect(result.status).to eq(:partial)
+        expect(result.memberships).to eq(membership_counts)
+        expect(org).not_to have_received(:revoke_entitlement)
+      end
+
+      it 'audits :partial with the no_change marker, never a no-change success' do
+        run('revoke', entitlement: 'api_access')
+
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+          actor: actor,
+          verb: 'organization.entitlement.revoke',
+          target: 'on_org_ext',
+          result: :partial,
+          detail: {
+            entitlement: 'api_access',
+            memberships_total: 2,
+            memberships_failed: 1,
+            memberships_failed_ids: ['mem_stale'],
+            outcome: 'no_change',
+          },
+        )
+      end
+    end
+
+    # Loading the active memberships sits OUTSIDE the per-member rescue in
+    # rematerialize_all_memberships!. A raise there happens after the org's
+    # sets changed; it must not escape as a generic failure that hides the
+    # applied revoke.
+    context 'when the cascade raises before reaching any member' do
+      before do
+        allow(org).to receive(:rematerialize_all_memberships!).and_raise(RuntimeError, 'valkey unreachable')
+        allow(OT).to receive(:le)
+      end
+
+      it 'returns :partial carrying the error, with the counts unknown' do
+        result = run('revoke', entitlement: 'api_access')
+
+        expect(result.status).to eq(:partial)
+        expect(result.memberships).to eq(
+          success: 0, failed: nil, total: nil, failed_ids: [], cascade_error: 'RuntimeError: valkey unreachable',
+        )
+      end
+
+      it 'has still applied the org-level change and does not raise' do
+        result = nil
+        expect { result = run('revoke', entitlement: 'api_access') }.not_to raise_error
+
+        expect(org).to have_received(:revoke_entitlement).with('api_access')
+        expect(result.revokes).to include('api_access')
+      end
+
+      it 'records :partial naming the error, not a generic :failure' do
+        run('revoke', entitlement: 'api_access')
+
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+          actor: actor,
+          verb: 'organization.entitlement.revoke',
+          target: 'on_org_ext',
+          result: :partial,
+          detail: {
+            entitlement: 'api_access',
+            memberships_total: nil,
+            memberships_failed: nil,
+            memberships_failed_ids: [],
+            cascade_error: 'RuntimeError: valkey unreachable',
+          },
+        )
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record).with(hash_including(result: :failure))
+      end
+    end
+
+    # rematerialize_all_memberships! reports permanent per-membership failures
+    # in its counts rather than raising. A member it could not reach keeps
+    # reading its previous set through membership.can?, so the op must not
+    # report the override as a success.
+    context 'when the cascade leaves a membership on its previous set' do
+      let(:membership_counts) { { success: 1, failed: 1, total: 2, failed_ids: ['mem_stale'] } }
+
+      it 'returns :partial, which adapters do not treat as ok' do
+        result = run('revoke', entitlement: 'api_access')
+
+        expect(result.status).to eq(:partial)
+        expect(result.memberships).to eq(membership_counts)
+        expect(described_class::OK_STATUSES).not_to include(:partial)
+      end
+
+      it 'has still applied the org-level change' do
+        result = run('revoke', entitlement: 'api_access')
+
+        expect(org).to have_received(:revoke_entitlement).with('api_access')
+        expect(result.revokes).to include('api_access')
+      end
+
+      it 'records the audit event as :partial naming the stale memberships' do
+        run('revoke', entitlement: 'api_access')
+
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).with(
+          actor: actor,
+          verb: 'organization.entitlement.revoke',
+          target: 'on_org_ext',
+          result: :partial,
+          detail: {
+            entitlement: 'api_access',
+            memberships_total: 2,
+            memberships_failed: 1,
+            memberships_failed_ids: ['mem_stale'],
+          },
+        )
+      end
+
+      it 'keeps the clear detail to the counts alone' do
+        grant_members << 'custom_branding'
+
+        result = run('clear')
+
+        expect(result.status).to eq(:partial)
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).with(
+          hash_including(result: :partial, detail: hash_excluding(:entitlement)),
+        )
+      end
     end
   end
 

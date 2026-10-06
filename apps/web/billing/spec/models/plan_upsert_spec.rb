@@ -426,19 +426,31 @@ RSpec.describe 'Billing::Operations::Catalog::PlanPersister.upsert_from_stripe_d
     end
 
     it 'handles limits with unlimited value' do
-      # The implementation converts -1 to 'unlimited' string when storing
+      # Every spelling of unlimited is stored as the canonical 'unlimited'.
+      # DataExtractor hands this persister Float::INFINITY for the Stripe
+      # metadata value "-1" (Metadata.normalize_limit); the old `value == -1`
+      # test never matched it and "Infinity" went into storage, which every
+      # reader parsed as 0.
       data = build_plan_data(
-        limits: { 'secrets' => -1, 'recipients' => 'unlimited' }
+        limits: {
+          'secrets' => -1,
+          'recipients' => 'unlimited',
+          'custom_domains' => Float::INFINITY,
+          'teams' => 'Infinity',
+        }
       )
       plan = Billing::Operations::Catalog::PlanPersister.upsert_from_stripe_data(data)
 
       # Check raw storage (string values)
       expect(plan.limits['secrets.max']).to eq('unlimited')
       expect(plan.limits['recipients.max']).to eq('unlimited')
+      expect(plan.limits['custom_domains.max']).to eq('unlimited')
+      expect(plan.limits['teams.max']).to eq('unlimited')
 
       # Check parsed limits_hash (converts to Float::INFINITY)
       expect(plan.limits_hash['secrets.max']).to eq(Float::INFINITY)
       expect(plan.limits_hash['recipients.max']).to eq(Float::INFINITY)
+      expect(plan.limits_hash['custom_domains.max']).to eq(Float::INFINITY)
     end
   end
 end

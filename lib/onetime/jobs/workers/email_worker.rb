@@ -325,13 +325,9 @@ module Onetime
           email_data = data[:data] || {}
 
           # Extract locale from payload, fall back to configured default locale.
-          # A blank locale ("") is truthy in Ruby and would slip past a bare `||`,
-          # so normalize (strip) first and treat blank/whitespace the same as missing.
-          # Stripping here canonicalizes the value for every enqueue site on the queued
-          # delivery path, avoiding an invalid I18n locale like :" en ". (The in-process
-          # Publisher fallback path takes a different route and always renders 'en'.)
-          locale = (email_data.delete(:locale) || email_data.delete('locale')).to_s.strip
-          locale = OT.default_locale if locale.empty?
+          # Shared with the in-process Publisher fallback so both delivery paths
+          # render the recipient's locale.
+          locale = Onetime::Mail.extract_locale!(email_data)
 
           Onetime::Mail.deliver(template, email_data, locale: locale, sender_config: sender_config)
         end

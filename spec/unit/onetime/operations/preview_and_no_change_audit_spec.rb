@@ -427,6 +427,9 @@ RSpec.describe 'preview and no-change auditing' do
           entitlements_revokes: double('RevokesSet', to_a: []),
           entitlements_plan: double('PlanSet', to_a: []),
           materialized_entitlements: double('MaterializedSet', to_a: ['custom_branding']),
+          # A LIVE no-change still runs the membership cascade (D15 note in the
+          # op); a cascade that reached everyone keeps the row a no-change.
+          rematerialize_all_memberships!: { success: 0, failed: 0, total: 0, failed_ids: [] },
         )
       end
 

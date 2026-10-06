@@ -236,13 +236,14 @@ rescue Onetime::Problem
 end
 #=> :raised_problem
 
-# --- Corrupted JSON Fail-Open Behavior ---
+# --- Corrupted JSON: display helpers fail open, the sign-up gate fails closed ---
 #
-# Security note: When allowed_signup_domains_json contains invalid JSON,
-# allowed_signup_domains silently returns [] which makes valid_email_domain?
-# return true for ANY email. This is intentional fail-open behavior to avoid
-# blocking legitimate signups due to data corruption, but operators should
-# monitor for JSON parse errors in production logs.
+# When allowed_signup_domains_json contains invalid JSON, allowed_signup_domains
+# returns [] so config surfaces keep rendering, and valid_email_domain? reads
+# that as "no allowlist". The sign-up gate must not inherit that reading: the
+# operator chose domain_allowlist, so an unreadable or empty list denies every
+# sign-up (allowed_signup_domains_corrupt?, validate_domain_allowlist) rather
+# than silently admitting everyone. Same stance as SsoConfig on the SSO path.
 
 ## Create config with valid allowlist to corrupt
 @ts3 = Familia.now.to_i
@@ -278,8 +279,42 @@ end
 @corrupt_config.valid_signup_email?('not-an-email')
 #=> false
 
-## valid_signup_email? allows any valid email format when JSON is corrupted
+## allowed_signup_domains_corrupt? is true for unreadable JSON
+@corrupt_config.allowed_signup_domains_corrupt?
+#=> true
+
+## allowed_signup_domains_corrupt? is false for a readable list
+@allowlist_config.allowed_signup_domains_corrupt?
+#=> false
+
+## allowed_signup_domains_corrupt? is false for the cleared (nil) state
+@cfg_allowlist.allowed_signup_domains_corrupt?
+#=> false
+
+## allowed_signup_domains_corrupt? is true for well-formed JSON that is not an array
+@corrupt_config.allowed_signup_domains_json = '{"acme.com": true}'
+@corrupt_config.allowed_signup_domains_corrupt?
+#=> true
+
+## valid_signup_email? denies every address when the allowlist JSON is corrupted (fail-closed)
+@corrupt_config.allowed_signup_domains_json = '{invalid json['
 @corrupt_config.valid_signup_email?('anyone@anywhere.com')
+#=> false
+
+## valid_signup_email? denies the previously allowed domain too while the list is unreadable
+@corrupt_config.valid_signup_email?('user@valid.com')
+#=> false
+
+## valid_signup_email? denies every address when domain_allowlist has no domains
+@empty_allowlist = Onetime::CustomDomain::SignupConfig.new(
+  domain_id: 'test_dummy_empty',
+  validation_strategy: 'domain_allowlist',
+)
+@empty_allowlist.valid_signup_email?('anyone@anywhere.com')
+#=> false
+
+## valid_email_domain? alone still reads an empty list as unrestricted (display helper)
+@empty_allowlist.valid_email_domain?('anyone@anywhere.com')
 #=> true
 
 # --- Network Validation Strategy Tests (mx / smtp) ---

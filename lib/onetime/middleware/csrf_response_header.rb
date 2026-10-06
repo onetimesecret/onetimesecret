@@ -5,6 +5,7 @@
 require 'rack/constants'
 
 require_relative 'instrumented_authenticity_token'
+require_relative '../application/request_logger'
 
 module Onetime
   module Middleware
@@ -125,11 +126,13 @@ module Onetime
       # REJECTION and is distinct from the Part 2 cookie-drop warning.
       def log_csrf_rejection(env, had_csrf)
         # SCRIPT_NAME carries the URLMap mount prefix (e.g. "/api"); PATH_INFO is
-        # only the remainder. Join them so the logged path is the full request path
-        # rather than a prefix-stripped fragment.
+        # only the remainder. Rack::Request#path joins them so the logged path is
+        # the full request path rather than a prefix-stripped fragment. A refused
+        # POST /api/v3/secret/<key>/reveal leaves that key live, so it goes
+        # through the capability redactor before it reaches the log.
         context = {
           method: env['REQUEST_METHOD'],
-          path: "#{env['SCRIPT_NAME']}#{env['PATH_INFO']}",
+          path: Onetime::Application::RequestLogger.redacted_path(Rack::Request.new(env)),
         }
 
         if had_csrf

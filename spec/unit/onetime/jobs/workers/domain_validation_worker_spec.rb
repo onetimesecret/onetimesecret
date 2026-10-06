@@ -175,7 +175,6 @@ RSpec.describe Onetime::Jobs::Workers::DomainValidationWorker do
 
       before do
         allow(strategy).to receive(:check_provider_verification_status)
-        allow(worker).to receive(:log_info)
       end
 
       it 'skips the provider check entirely (no doomed API call)' do
@@ -185,7 +184,7 @@ RSpec.describe Onetime::Jobs::Workers::DomainValidationWorker do
 
       it 'logs the exact missing key names' do
         work
-        expect(worker).to have_received(:log_info)
+        expect(worker.logger).to have_received(:info)
           .with(/Skipping provider check: missing smtp2go credentials/,
             hash_including(missing_keys: %w[api_key]))
       end
