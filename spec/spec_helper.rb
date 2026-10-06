@@ -157,15 +157,24 @@ rescue StandardError => ex
   SemanticLogger.default_level = :warn
 end
 
-# Under `tests/lanes/run --quiet-logs` (CI) or `--quiet`, the logger mail
-# backend stops printing each delivered email to standard out. The backend
-# writes with a bare `puts`, outside SemanticLogger, so the log floor the
-# runner sets does not reach it: on a full-mode lane the printed emails are
-# about 40% of the run's output. Deliveries are still made and recorded.
-if ENV['LANES_QUIET_LOGS'] == '1'
-  require 'onetime/mail/delivery/logger'
-  Onetime::Mail::Delivery::Logger.output = File.open(File::NULL, 'w')
-end
+# Log capture for a lane run (`tests/lanes/run --capture-logs`). Nothing
+# happens here unless the runner exported one of its LANES_*_LOG_* names.
+#
+# With LANES_APP_LOG_FILE set, the application log file is installed now
+# rather than at boot, so specs that never boot the application are captured
+# too. Specs that do boot get the same file, and the console the runner asked
+# for, from the `destinations` block in spec/logging.test.yaml. Category
+# levels are not touched: the default level set above, and the per-category
+# levels a boot applies, decide which events exist, as they do without it.
+#
+# With LANES_MAIL_LOG_FILE set, the logger mail backend appends each
+# delivered email to that file instead of printing it. The backend writes
+# outside SemanticLogger, so the logging config does not reach it.
+#
+# A file that cannot be opened, or a value the runner would not have
+# exported, ends the process here with a message.
+require_relative '../tests/lanes/support/log_capture'
+Lanes::LogCapture.install_or_abort!
 
 # Load test utilities
 Dir[File.join(spec_root, 'support', '*.rb')].each { |f| require f }
