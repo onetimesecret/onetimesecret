@@ -364,7 +364,7 @@ test.describe('Scope Switcher - switching behavior', () => {
     await expect(orgSwitcher.trigger(page)).toContainText(other.name);
     // The server session holds the selection; the write is fire-and-forget
     await expect.poll(() => serverWorkspaceExtid(page)).toBe(other.extid);
-    // and it is the only copy: nothing is kept in the tab's sessionStorage
+    // and it is the only copy: the tab keeps no selection in sessionStorage
     expect(await page.evaluate(() => sessionStorage.getItem('selectedOrganizationId'))).toBeNull();
   });
 
