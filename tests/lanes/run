@@ -1649,9 +1649,11 @@ fi
 #       and the link keeps the first inode allocated, so a re-created file
 #       can never be given the same one. A file system without hard links
 #       cannot give that answer, and the run stops here like any other
-#       file that cannot be created. The epilogue removes the link once it
-#       has compared, so that deleting a log after the run frees its space;
-#       a link found here is from a run that ended before its epilogue.
+#       file that cannot be created. The epilogue removes a link that still
+#       matches its file, so that deleting a log after the run frees its
+#       space, and leaves one that does not: it holds what the removed
+#       file had. A link found here is from such a run, or from one that
+#       ended before its epilogue.
 #   app.log.write-failed
 #       Written by a test process when a write to app.log fails
 #       (tests/lanes/support/log_capture.rb). Removed here, so one found at
@@ -2016,12 +2018,21 @@ _lanes_epilogue='
     _capture_err=""
     for _f in "${_app_log}" "${_mail_log}"; do
       _anchor="${_f%/*}/.${_f##*/}.anchor"
+      if [[ -f "${_f}" && "${_f}" -ef "${_anchor}" ]]; then
+        rm -f -- "${_anchor}" 2>/dev/null || true
+        continue
+      fi
+      # Not the file the run started with. The link is left in place: it is
+      # that file, with what was written before the removal, and the error
+      # names it. The start of the next run removes it.
       if [[ ! -f "${_f}" ]]; then
         _capture_err="${_capture_err}${_capture_err:+; }${_f} was removed during the run"
-      elif [[ ! "${_f}" -ef "${_anchor}" ]]; then
-        _capture_err="${_capture_err}${_capture_err:+; }${_f} is not the file this run started with (it was removed and created again, or ${_anchor} is gone)"
+        [[ ! -f "${_anchor}" ]] || _capture_err="${_capture_err} (what it held is kept in ${_anchor})"
+      elif [[ -f "${_anchor}" ]]; then
+        _capture_err="${_capture_err}${_capture_err:+; }${_f} is not the file this run started with (it was removed and created again, what it held before that is kept in ${_anchor})"
+      else
+        _capture_err="${_capture_err}${_capture_err:+; }${_f} is not the file this run started with (${_anchor} is gone)"
       fi
-      rm -f -- "${_anchor}" 2>/dev/null || true
     done
     _marker="${_app_log}.write-failed"
     if [[ -e "${_marker}" ]]; then

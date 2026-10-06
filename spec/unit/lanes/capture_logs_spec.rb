@@ -357,7 +357,8 @@ RSpec.describe 'tests/lanes/run --capture-logs files' do
         log = File.read(scratch.last_log)
 
         expect(run.exitstatus).to eq(74), run.all
-        error = "[lane:selftest] error: log capture is incomplete: #{scratch.app_log} was removed during the run\n"
+        error = "[lane:selftest] error: log capture is incomplete: #{scratch.app_log} was removed during the run " \
+                "(what it held is kept in #{scratch.app_anchor})\n"
         expect(run.stderr).to include(error)
         expect(log).to include(error)
         expect(run.stderr).to include("[lane:selftest] app log: #{scratch.app_log} (incomplete)\n")
@@ -442,7 +443,7 @@ RSpec.describe 'tests/lanes/run --capture-logs files' do
         end
       end
 
-      it 'removes the links at the end of a run that failed' do
+      it 'removes the links at the end of a run that failed with its capture whole' do
         probe.with_scratch do |scratch|
           run = run_only(scratch, 'exit 1')
 
@@ -463,13 +464,38 @@ RSpec.describe 'tests/lanes/run --capture-logs files' do
 
           expect(run.exitstatus).to eq(74), run.all
           expect(run.stderr).to include(
-            "[lane:selftest] error: log capture is incomplete: #{scratch.app_log} is not the file this run started with",
+            "[lane:selftest] error: log capture is incomplete: #{scratch.app_log} is not the file this run started with " \
+            "(it was removed and created again, what it held before that is kept in #{scratch.app_anchor})\n",
           )
           expect(run.stderr).to include("[lane:selftest] app log: #{scratch.app_log} (incomplete)\n")
           expect(File.read(scratch.app_log)).to eq("after\n")
-          # The link goes once it has been compared, and with it what was
-          # written before the removal.
+          # The link that no longer matches stays, with what was written
+          # before the removal. The one that still matches goes.
+          expect(File.read(scratch.app_anchor)).to eq("before\n")
+          expect(File.exist?(scratch.mail_anchor)).to be(false)
+        end
+      end
+
+      it 'keeps the link of a log that is gone at the end, and replaces it at the next start' do
+        probe.with_scratch do |scratch|
+          run = run_only(scratch, 'echo "before" >> "${LANES_APP_LOG_FILE}"; rm -f "${LANES_APP_LOG_FILE}"')
+
+          expect(run.exitstatus).to eq(74), run.all
+          expect(File.read(scratch.app_anchor)).to eq("before\n")
+
+          run = run_only(scratch, 'true')
+
+          expect(run.exitstatus).to eq(0), run.all
           expect(File.exist?(scratch.app_anchor)).to be(false)
+        end
+      end
+
+      it 'says so when the link itself is gone' do
+        probe.with_scratch do |scratch|
+          run = run_only(scratch, %(rm -f "#{scratch.app_anchor}"))
+
+          expect(run.exitstatus).to eq(74), run.all
+          expect(run.stderr).to include("#{scratch.app_log} is not the file this run started with (#{scratch.app_anchor} is gone)\n")
         end
       end
 
