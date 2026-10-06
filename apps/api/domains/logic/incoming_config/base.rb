@@ -94,15 +94,14 @@ module DomainsAPI
 
         # Parse boolean from various input formats.
         #
+        # Same token table as ConfigChangeLogger#extract_new_value; the two
+        # must agree or the audit log records a different value than the one
+        # stored.
+        #
         # @param value [Boolean, String, Integer, nil] Value to parse
         # @return [Boolean] true if value represents truthy, false otherwise
         def parse_boolean(value)
-          case value
-          when true, 'true', '1', 1
-            true
-          else
-            false
-          end
+          OT::Utils.explicit_yes?(value)
         end
 
         # Parse recipients from request body.

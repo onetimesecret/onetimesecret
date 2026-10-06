@@ -71,8 +71,12 @@ end
 @harness.compute(@full, { 'enabled' => 'true' }, safe_fields: ['enabled'], boolean_fields: ['enabled'])
 #=> { 'enabled' => { from: false, to: true } }
 
-## Boolean coercion: only true/'true'/'1'/1 are truthy
+## Boolean coercion uses OT::Utils.explicit_yes?, the same table as the write path
 @harness.compute(@full, { 'enabled' => 'yes' }, safe_fields: ['enabled'], boolean_fields: ['enabled'])
+#=> { 'enabled' => { from: false, to: true } }
+
+## Boolean coercion: an unrecognized token is false, not an error
+@harness.compute(@full, { 'enabled' => 'maybe' }, safe_fields: ['enabled'], boolean_fields: ['enabled'])
 #=> {}
 
 ## Config lacking the boolean predicate yields nil old value, no NoMethodError
