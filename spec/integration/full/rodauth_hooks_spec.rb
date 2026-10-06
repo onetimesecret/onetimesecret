@@ -38,13 +38,17 @@ RSpec.describe 'Rodauth Security Hooks', type: :integration do
   def ensure_csrf_token
     return @csrf_token if defined?(@csrf_token) && @csrf_token
 
+    # Rack::Test keeps the Content-Type a previous json_post set; a GET with a
+    # JSON content type and no body trips the request parser.
+    header 'Content-Type', nil
     header 'Accept', 'application/json'
     get '/auth'
     @csrf_token = last_response.headers['X-CSRF-Token']
     @csrf_token
   end
 
-  # Reset CSRF token to force a new session on next request
+  # Forget the cached CSRF token so the next request fetches the session's
+  # current one (auth requests can rotate it).
   def reset_csrf_token
     @csrf_token = nil
   end
@@ -75,10 +79,10 @@ RSpec.describe 'Rodauth Security Hooks', type: :integration do
     auth_db[:account_lockouts].where(id: account_id).count > 0
   end
 
-  # Helper to clear lockout data for an account
-  def clear_lockout_data(account_id)
-    auth_db[:account_login_failures].where(id: account_id).delete
-    auth_db[:account_lockouts].where(id: account_id).delete
+  # Messages the audit_logging feature wrote for an account
+  # (apps/web/auth/config/features/audit_logging.rb registers the text per event)
+  def audit_messages(account_id)
+    auth_db[:account_authentication_audit_logs].where(account_id: account_id).map(:message)
   end
 
   describe 'before_create_account hook' do
@@ -131,55 +135,108 @@ RSpec.describe 'Rodauth Security Hooks', type: :integration do
   end
 
   describe 'before_login_attempt and after_login_failure hooks' do
-    # Rodauth lockout requires an existing account to track failures
-    # These tests create an account first, then test lockout behavior
-
+    # Rodauth's lockout feature (apps/web/auth/config/features/lockout.rb,
+    # max_invalid_logins 5) and the app's hooks of the same names compose:
+    # Rodauth chains hook methods through `super`, so one failed attempt both
+    # increments account_login_failures and runs the app's after_login_failure
+    # block, and a locked account is refused in before_login_attempt before
+    # the password is checked.
+    #
+    # The account is written straight into the auth database so the attempts
+    # run in an anonymous session; creating it over HTTP would leave the
+    # Rack::Test session signed in. Every attempt fetches a fresh CSRF token.
     let(:lockout_test_email) { "lockout-test-#{SecureRandom.hex(8)}@example.com" }
     let(:lockout_test_password) { 'SecureP@ss123!' }
-
-    # Create account and return its ID for lockout testing
-    def create_test_account_for_lockout
-      json_post '/auth/create-account', {
-        login: lockout_test_email,
-        'login-confirm': lockout_test_email,
-        password: lockout_test_password,
-        'password-confirm': lockout_test_password
-      }
-
-      # Get the account ID from the database
-      account = auth_db[:accounts].where(email: lockout_test_email).first
-
-      # Reset session after account creation so login attempts are unauthenticated
-      reset_csrf_token
-
-      account[:id] if account
+    let(:max_invalid_logins) { 5 }
+    let!(:account_id) do
+      create_verified_account(db: auth_db, email: lockout_test_email, password: lockout_test_password)[:id]
     end
 
-    # NOTE: These lockout tracking tests are pending because they require
-    # maintaining session state across account creation and multiple login
-    # attempts, which is complex with CSRF protection. Each request cycle
-    # needs proper session/CSRF token handling, and the authenticated session
-    # from account creation conflicts with unauthenticated login attempts.
-    #
-    # Rodauth's lockout feature is well-tested in the Rodauth gem itself.
-    # These tests are retained as documentation of expected behavior.
+    def attempt_login(password)
+      reset_csrf_token
+      json_post '/auth/login', { login: lockout_test_email, password: password }
+    end
+
+    # Wrong-password attempts, each answered as a bad password rather than a
+    # lockout refusal.
+    def fail_login(times)
+      times.times do
+        attempt_login('wrong-password')
+        expect(last_response.status).to eq(401), last_response.body
+      end
+    end
+
     context 'lockout tracking (Rodauth SQL-based)' do
       it 'allows initial login attempts for existing account' do
-        skip 'Complex session state with CSRF - Rodauth lockout is tested by Rodauth gem'
+        fail_login(max_invalid_logins - 1)
+
+        expect(login_failure_count(account_id)).to eq(max_invalid_logins - 1)
+        expect(account_locked?(account_id)).to be(false)
+
+        # One short of the limit, the right password still signs in.
+        attempt_login(lockout_test_password)
+        expect(last_response.status).to eq(200), last_response.body
       end
 
       it 'locks account after max_invalid_logins (5) failed attempts' do
-        skip 'Complex session state with CSRF - Rodauth lockout is tested by Rodauth gem'
+        fail_login(max_invalid_logins)
+
+        # The attempt that reaches the limit is still answered as a bad
+        # password (asserted above). Rodauth writes the lockout row as its
+        # side effect and the app's audit registration records it once.
+        lockout = auth_db[:account_lockouts].where(id: account_id).first
+        expect(lockout).not_to be_nil
+        expect(lockout[:key]).not_to be_nil
+        expect(lockout[:deadline]).not_to be_nil
+        expect(audit_messages(account_id).count('Account locked due to failed login attempts')).to eq(1)
+
+        # Locked: the correct password is refused before it is checked, the
+        # refusal is not counted as another failure, and no session results.
+        attempt_login(lockout_test_password)
+        expect(last_response.status).to eq(403), last_response.body
+        expect(JSON.parse(last_response.body)['error']).to match(/locked/i)
+        expect(login_failure_count(account_id)).to eq(max_invalid_logins)
+
+        header 'Content-Type', nil
+        get '/auth/account'
+        expect(last_response.status).to eq(401)
       end
 
       it 'tracks login failures in SQL database' do
-        skip 'Complex session state with CSRF - Rodauth lockout is tested by Rodauth gem'
+        allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+
+        expect(auth_db[:account_login_failures].where(id: account_id).count).to eq(0)
+
+        fail_login(1)
+        expect(login_failure_count(account_id)).to eq(1)
+
+        fail_login(2)
+        expect(login_failure_count(account_id)).to eq(3)
+        expect(account_locked?(account_id)).to be(false)
+
+        # The same chained hook ran the app's after_login_failure block (its
+        # :login_failure log event) and the audit_logging per-failure row.
+        expect(Auth::Logging).to have_received(:log_auth_event).with(:login_failure, any_args).exactly(3).times
+        expect(audit_messages(account_id).count('Login failed - invalid credentials')).to eq(3)
       end
     end
 
     context 'successful login clears lockout data' do
       it 'resets failure counter on successful login' do
-        skip 'Complex session state with CSRF - Rodauth lockout is tested by Rodauth gem'
+        fail_login(3)
+        expect(login_failure_count(account_id)).to eq(3)
+
+        attempt_login(lockout_test_password)
+        expect(last_response.status).to eq(200), last_response.body
+
+        expect(auth_db[:account_login_failures].where(id: account_id).count).to eq(0)
+        expect(account_locked?(account_id)).to be(false)
+
+        # The count starts over: the earlier failures no longer bring the
+        # account closer to lockout.
+        clear_cookies
+        fail_login(1)
+        expect(login_failure_count(account_id)).to eq(1)
       end
     end
   end
