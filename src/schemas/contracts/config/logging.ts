@@ -105,6 +105,25 @@ const destinationsSchema = z.object({
 });
 
 /**
+ * Optional syslog appender for the operator audit sink (#4334).
+ * Off by default; when enabled it receives the ColonelAudit category and
+ * nothing else. `facility` is a syslog facility name (local0, daemon, ...).
+ */
+const auditSyslogSchema = z.object({
+  enabled: z.boolean().optional(),
+  url: z.string().optional(),
+  level: logLevelSchema.optional(),
+  facility: z.string().optional(),
+});
+
+/**
+ * Operator audit sink
+ */
+const auditSchema = z.object({
+  syslog: auditSyslogSchema.optional(),
+});
+
+/**
  * Complete logging configuration schema
  *
  * Matches the structure from etc/defaults/logging.defaults.yaml
@@ -114,6 +133,7 @@ const loggingConfigSchema = z.object({
   formatter: formatterSchema.optional(),
   loggers: loggersSchema.optional(),
   destinations: destinationsSchema.optional(),
+  audit: auditSchema.optional(),
   http: httpLoggingSchema.optional(),
 });
 
@@ -123,6 +143,7 @@ export type HttpCapture = z.infer<typeof httpCaptureSchema>;
 export type Loggers = z.infer<typeof loggersSchema>;
 export type HttpLogging = z.infer<typeof httpLoggingSchema>;
 export type LogDestinations = z.infer<typeof destinationsSchema>;
+export type LogAudit = z.infer<typeof auditSchema>;
 export type LoggingConfig = z.infer<typeof loggingConfigSchema>;
 
 export {
@@ -133,6 +154,7 @@ export {
   loggersSchema,
   httpLoggingSchema,
   destinationsSchema,
+  auditSchema,
 };
 
 /**

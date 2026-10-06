@@ -182,6 +182,17 @@ describe('contract vs shape: defaults are absent on contracts, applied on shapes
       loggingConfigShape.parse({ destinations: { console: { level: 'loud' } } })
     ).toThrow();
   });
+
+  // The audit block as etc/defaults/logging.defaults.yaml ships it (#4334).
+  // Without it in the contract, parsing a logging config dropped the block.
+  it('logging keeps the audit syslog block', () => {
+    const audit = {
+      syslog: { enabled: false, url: 'syslog://localhost', level: 'info', facility: 'local0' },
+    };
+    expect(loggingConfigShape.parse({ audit }).audit).toEqual(audit);
+    expect(loggingConfigShape.parse({}).audit).toBeUndefined();
+    expect(() => loggingConfigShape.parse({ audit: { syslog: { level: 'loud' } } })).toThrow();
+  });
 });
 
 describe('contract vs shape: value bounds are absent on contracts, enforced on shapes', () => {
