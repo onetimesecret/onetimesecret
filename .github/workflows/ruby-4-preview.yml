@@ -19,7 +19,10 @@ name: Ruby 4 Preview
 #   invoked directly (not via the run-test-lane composite): this
 #   workflow is advisory, so the composite's result-artifact and summary
 #   reporting would be noise (gating and reporting policy is CI's
-#   per-workflow decision; tests/lanes/README.md rule 4).
+#   per-workflow decision; tests/lanes/README.md rule 4). The log
+#   profile is not reporting, so each call passes the same flag the
+#   composite does (--quiet-logs): a full-mode lane's default output is
+#   ~9 MB of info/warn lines and email bodies. Keep the two in step.
 # - Artifacts are scoped per workflow run, so there is no collision with
 #   the main CI workflow's `frontend-build` artifact.
 # - `continue-on-error` is at the step level (not job level) on every
@@ -142,7 +145,7 @@ jobs:
         continue-on-error: true
         env:
           LANES_NO_AUTOSTART: '1'
-        run: tests/lanes/run unit
+        run: tests/lanes/run unit --quiet-logs
 
   ruby-integration-simple:
     name: Ruby 4 · Integration (Simple Mode)
@@ -182,7 +185,7 @@ jobs:
         continue-on-error: true
         env:
           LANES_NO_AUTOSTART: '1'
-        run: tests/lanes/run simple
+        run: tests/lanes/run simple --quiet-logs
 
   ruby-integration-full:
     name: 'Ruby 4 · Integration (Full, ${{ matrix.name }})'
@@ -235,7 +238,7 @@ jobs:
           LANE: ${{ matrix.lane }}
           OVERLAY: ${{ matrix.overlay }}
         run: |
-          args=(tests/lanes/run "$LANE")
+          args=(tests/lanes/run "$LANE" --quiet-logs)
           if [ -n "$OVERLAY" ]; then
             args+=(--overlay "$OVERLAY")
           fi
@@ -269,4 +272,4 @@ jobs:
         continue-on-error: true
         env:
           LANES_NO_AUTOSTART: '1'
-        run: tests/lanes/run disabled
+        run: tests/lanes/run disabled --quiet-logs

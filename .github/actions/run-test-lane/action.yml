@@ -71,7 +71,12 @@ runs:
         if [ -n "$RESULTS_FILE" ]; then
           export RSPEC_OUTPUT_FILE="tmp/${RESULTS_FILE}"
         fi
-        args=(tests/lanes/run "$LANE")
+        # --quiet-logs: app logs at error and above, no printed emails. A
+        # full-mode lane's default output is ~9 MB, nearly all of it info
+        # and warn log lines and email bodies; rspec's own output and the
+        # results file are untouched. For the full log of one failure, run
+        # `tests/lanes/run --only <path>:<LINE>` locally.
+        args=(tests/lanes/run "$LANE" --quiet-logs)
         if [ -n "$OVERLAY" ]; then
           args+=(--overlay "$OVERLAY")
         fi
