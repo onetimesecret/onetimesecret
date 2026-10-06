@@ -347,6 +347,41 @@ RSpec.describe AccountAPI::Logic::Account::UpdateOrganizationContext do
         it_behaves_like 'a refused selection'
       end
     end
+
+    # raise_concerns and perform_update each read the datastore. A change
+    # landing between them makes the loader refuse the write; the response
+    # must not then claim the selection was recorded.
+    context 'when the membership is revoked between the checks' do
+      before do
+        session['organization_id'] = default_org.objid
+        allow(target_org).to receive(:member?).with(customer).and_return(true, false)
+        logic.raise_concerns
+      end
+
+      it 'refuses with the same error as the first check' do
+        expect { logic.process }.to raise_error(Onetime::FormError, /Invalid organization/)
+      end
+
+      it 'leaves the session as it was' do
+        before_session = session.dup
+        expect { logic.process }.to raise_error(Onetime::FormError)
+        expect(session).to eq(before_session)
+      end
+
+      it 'does not mark the field as modified' do
+        expect { logic.process }.to raise_error(Onetime::FormError)
+        expect(logic.modified?(:organization_context)).to be false
+      end
+
+      it 'does not log the update' do
+        app_log = instance_double(SemanticLogger::Logger, info: nil, debug: nil)
+        allow(Onetime).to receive(:get_logger).and_call_original
+        allow(Onetime).to receive(:get_logger).with('App').and_return(app_log)
+
+        expect { logic.process }.to raise_error(Onetime::FormError)
+        expect(app_log).not_to have_received(:info).with('Organization context updated', anything)
+      end
+    end
   end
 
   describe '#success_data' do

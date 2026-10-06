@@ -86,12 +86,25 @@ module AccountAPI::Logic
           }
 
         # The loader writes sess['organization_id'] after repeating the checks.
-        Onetime::Application::OrganizationLoader.select_organization(
+        # They can fail here even though raise_concerns passed: the membership
+        # or the organization may have changed in between. Refuse the same way
+        # as the first check, so the response never reports a selection the
+        # session does not hold.
+        selected = Onetime::Application::OrganizationLoader.select_organization(
           cust,
           sess,
           new_organization_id,
           request_organization_context,
         )
+        raise_form_error 'Invalid organization' unless selected
+
+        app_logger.info 'Organization context updated',
+          {
+            customer_id: cust.extid,
+            session_id: session_sid,
+            old_organization_id: old_organization_id,
+            new_organization_id: new_organization_id,
+          }
       end
 
       # The organization the param names, when this user may select it on
@@ -122,15 +135,10 @@ module AccountAPI::Logic
         strategy_result.metadata[:organization_context]
       end
 
-      def log_update
-        app_logger.info 'Organization context updated',
-          {
-            customer_id: cust.extid,
-            session_id: session_sid,
-            old_organization_id: old_organization_id,
-            new_organization_id: new_organization_id,
-          }
-      end
+      # The base class logs before perform_update runs. The update is only
+      # known to have happened after the loader's recheck, so the info line
+      # is emitted from perform_update instead.
+      def log_update; end
     end
   end
 end
