@@ -5,7 +5,8 @@
 # explicit session selection. The request's custom domains come from the Host
 # header's record AND from the custom domain DomainStrategy resolved, so a
 # proxy that rewrites Host to the origin target does not drop the check while
-# site.network.public_host_rewrite is off.
+# site.network.public_host_rewrite is off. A display domain that was read and
+# has no record withholds every organization (#4225).
 #
 # The loader keeps no cache in the session (the file name predates that):
 # every load reads membership, archived state and scope again. The explicit
@@ -331,6 +332,121 @@ RSpec.describe Onetime::Application::OrganizationLoader do
     end
   end
 
+  # The display domain was read and has no record: DomainStrategy classified
+  # the request :invalid and published an absent lookup for it. The host is
+  # one the deployment does not serve, so every organization is withheld
+  # (#4225), from an org-scoped member too: the scope is checked through
+  # OrganizationMembership#can_access_domain?, which refuses a nil domain.
+  # Both proxy shapes: Host rewritten to the origin target, and Host
+  # preserved, where the loader shares the published lookup for the Host.
+  context 'an unregistered display host' do
+    let(:unregistered_host) { 'unregistered.example.com' }
+
+    before do
+      allow(Onetime::CustomDomain).to receive(:from_display_domain).with(unregistered_host).and_return(nil)
+    end
+
+    def unregistered_env(http_host, header: false)
+      env = {
+        'HTTP_HOST' => http_host,
+        'onetime.display_domain' => unregistered_host, 'onetime.domain_strategy' => :invalid,
+        Onetime::CustomDomain::Lookup::ENV_KEY => Onetime::CustomDomain::Lookup.absent(unregistered_host),
+      }
+      env['HTTP_O_ORGANIZATION_ID'] = organization.objid if header
+      env
+    end
+
+    def expect_withheld(context)
+      expect(context[:organization]).to be_nil
+      expect(context[:organization_id]).to be_nil
+      expect(context[:domain_scope_refused]).to be(true)
+    end
+
+    { 'Host rewritten to the origin target' => 'origin.example.com',
+      'Host preserved' => 'unregistered.example.com:443' }.each do |shape, http_host|
+      [false, true].each do |header|
+        context "#{shape}, #{header ? 'matching header' : 'no header'}" do
+          it 'withholds the organization: unselected and session-selected' do
+            env = unregistered_env(http_host, header: header)
+            expect_withheld(loader.load_organization_context(customer, session, env))
+            expect(session).to eq({})
+
+            session['organization_id'] = organization.objid
+            expect_withheld(loader.load_organization_context(customer, session, env))
+            # The selection is left in place, as it is on a sibling domain.
+            expect(session['organization_id']).to eq(organization.objid)
+          end
+
+          it 'withholds the organization from an org-scoped member too' do
+            membership.domain_scope_id = nil
+            expect(membership.org_scoped?).to be(true)
+            env = unregistered_env(http_host, header: header)
+            expect_withheld(loader.load_organization_context(customer, session, env))
+          end
+        end
+      end
+    end
+
+    it 'shares the published lookup for a preserved Host instead of reading again' do
+      env = unregistered_env('unregistered.example.com:443')
+      expect_withheld(loader.load_organization_context(customer, session, env))
+      expect(Onetime::CustomDomain).not_to have_received(:from_display_domain)
+    end
+
+    # A customer with no organization yet is refused as well. Without the
+    # refusal marker, Logic::OrganizationContext#auth_org would create their
+    # default workspace on the unregistered host (review finding on #4672).
+    it 'withholds organization context from a customer with no organizations' do
+      allow(customer).to receive(:organization_instances).and_return([])
+      env = unregistered_env('origin.example.com')
+      expect_withheld(loader.load_organization_context(customer, session, env))
+    end
+
+    # DomainStrategy publishes no lookup for a host it could not detect or
+    # parse, so nothing was read and nothing is withheld. Kept by maintainer
+    # decision (2026-10-06, recorded on #4672): such a request is served as
+    # the canonical host, which is what sending the canonical Host gets.
+    it 'keeps an :invalid request with no published lookup unscoped' do
+      env     = { 'HTTP_HOST' => 'origin.example.com',
+                  'onetime.display_domain' => unregistered_host, 'onetime.domain_strategy' => :invalid }
+      context = loader.load_organization_context(customer, session, env)
+      expect(context[:organization]).to eq(organization)
+      expect(context).not_to have_key(:domain_scope_refused)
+    end
+  end
+
+  # The issue's direct shape (#4225): Host names the tenant domain itself,
+  # no proxy in between, as DomainStrategy leaves it.
+  context 'a direct request to the tenant domain' do
+    def direct_env(domain, hostname, header:)
+      env = {
+        'HTTP_HOST' => "#{hostname}:443",
+        'onetime.display_domain' => hostname, 'onetime.domain_strategy' => :custom,
+        'onetime.custom_domain' => domain,
+        Onetime::CustomDomain::Lookup::ENV_KEY => Onetime::CustomDomain::Lookup.found(hostname, domain),
+      }
+      env['HTTP_O_ORGANIZATION_ID'] = organization.objid if header
+      env
+    end
+
+    it 'denies a domain-scoped member the header organization on the sibling domain' do
+      env     = direct_env(denied_domain, 'denied.example.com', header: true)
+      context = loader.load_organization_context(customer, session, env)
+      expect(context[:organization]).to be_nil
+      expect(context[:domain_scope_refused]).to be(true)
+      expect(session).to eq({})
+      expect(Onetime::CustomDomain).not_to have_received(:from_display_domain)
+    end
+
+    it 'grants an org-scoped member the header organization there' do
+      membership.domain_scope_id = nil
+      env     = direct_env(denied_domain, 'denied.example.com', header: true)
+      context = loader.load_organization_context(customer, session, env)
+      expect(context[:organization]).to eq(organization)
+      expect(session).to eq({})
+    end
+  end
+
   context 'an organization on another domain than its own' do
     let(:other_org) do
       double('other organization', objid: 'org_other', archived?: false, is_default: false)
@@ -585,6 +701,20 @@ RSpec.describe Onetime::Application::OrganizationLoader do
           expect(loader.select_organization(customer, session, selected_org.objid, context)).to be_nil
         end
 
+        # The selection write is held to the same scope as the loads (#4225):
+        # selected_org's membership is org-scoped and is refused all the same.
+        it 'refuses every organization on an unregistered host' do
+          env     = {
+            'HTTP_HOST' => 'origin.example.com',
+            'onetime.display_domain' => 'unregistered.example.com', 'onetime.domain_strategy' => :invalid,
+            Onetime::CustomDomain::Lookup::ENV_KEY => Onetime::CustomDomain::Lookup.absent('unregistered.example.com'),
+          }
+          context = loader.load_organization_context(customer, session, env)
+          expect(context[:domain_scope_refused]).to be(true)
+
+          expect(loader.select_organization(customer, session, selected_org.objid, context)).to be_nil
+        end
+
         it 'refuses when the request carries no loader context, so the scope is unknown' do
           [nil, {}, { organization: organization }].each do |context|
             expect(loader.select_organization(customer, session, selected_org.objid, context)).to be_nil
@@ -657,6 +787,35 @@ RSpec.describe Onetime::Application::OrganizationLoader do
         expect(logic.auth_membership).to be_nil
         expect { logic.raise_concerns }.to raise_error(Onetime::EntitlementRequired)
       end
+    end
+
+    it 'keeps the refusal on an unregistered host' do
+      env     = {
+        'HTTP_HOST' => 'origin.example.com',
+        'onetime.display_domain' => 'unregistered.example.com', 'onetime.domain_strategy' => :invalid,
+        Onetime::CustomDomain::Lookup::ENV_KEY => Onetime::CustomDomain::Lookup.absent('unregistered.example.com'),
+      }
+      context = loader.load_organization_context(customer, session, env)
+      expect(context[:organization]).to be_nil
+      expect(context[:domain_scope_refused]).to be(true)
+
+      expect(Auth::Operations::EnsureDefaultWorkspace).not_to receive(:new)
+      expect(receipt_logic(context).auth_org).to be_nil
+    end
+
+    it 'keeps the refusal on an unregistered host for a customer with no organizations' do
+      allow(customer).to receive(:organization_instances).and_return([])
+      env     = {
+        'HTTP_HOST' => 'origin.example.com',
+        'onetime.display_domain' => 'unregistered.example.com', 'onetime.domain_strategy' => :invalid,
+        Onetime::CustomDomain::Lookup::ENV_KEY => Onetime::CustomDomain::Lookup.absent('unregistered.example.com'),
+      }
+      context = loader.load_organization_context(customer, session, env)
+      expect(context[:organization]).to be_nil
+      expect(context[:domain_scope_refused]).to be(true)
+
+      expect(Auth::Operations::EnsureDefaultWorkspace).not_to receive(:new)
+      expect(receipt_logic(context).auth_org).to be_nil
     end
 
     it 'does not mark a refusal when an organization was selected' do

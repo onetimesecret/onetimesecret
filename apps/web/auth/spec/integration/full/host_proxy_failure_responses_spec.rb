@@ -8,6 +8,11 @@ require_relative '../../support/tenant_test_fixtures'
 # Baseline characterization: the same legitimate tenant request before and
 # during an identity lookup failure. Only the lookup is stubbed; classification,
 # policy gates, OmniAuth, error translation and email composition stay mounted.
+#
+# A failed read gets ONE answer whatever the read raised (#4668): the Rodauth
+# routes answer 503 with Onetime::DomainUnavailable, SSO initiation lands on
+# /signin?auth_error=domain_unavailable. Both stay fail-closed: no email, no
+# IdP URL, reset keys unchanged.
 RSpec.describe 'Tenant host lookup failure responses', :shared_db_state, type: :integration do
   include Rack::Test::Methods
   include_context 'tenant fixtures'
@@ -50,6 +55,7 @@ RSpec.describe 'Tenant host lookup failure responses', :shared_db_state, type: :
   end
 
   def fail_tenant_lookup!
+    allow(Auth::Logging).to receive(:log_auth_event).and_call_original
     allow(Onetime::CustomDomain).to receive(:from_display_domain).and_wrap_original do |original, host|
       raise lookup_failure if host == tenant_domain
 
@@ -64,7 +70,10 @@ RSpec.describe 'Tenant host lookup failure responses', :shared_db_state, type: :
     expect_host_rewrite(canonical_host, rewritten: rewrite_on)
   end
 
-  def expect_failed_tenant_request
+  # `logged_event` names the domain-unavailable check that answered: the
+  # refusal is logged there with the exception class and message as scalars,
+  # not by a gate's own rescue, which knows only Redis::BaseError.
+  def expect_failed_tenant_request(logged_event)
     request_env = last_request.env
     lookup = request_env.fetch(Onetime::CustomDomain::Lookup::ENV_KEY)
     expect(lookup).to be_read_failed
@@ -76,6 +85,15 @@ RSpec.describe 'Tenant host lookup failure responses', :shared_db_state, type: :
     expect_host_rewrite(canonical_host, rewritten: false)
     expect(@delivered).to be_empty
     expect(last_response.body).not_to include(lookup_failure.message, "secret-#{test_run_id}")
+    expect(Auth::Logging).to have_received(:log_auth_event).with(
+      logged_event,
+      hash_including(
+        level: :error,
+        host: tenant_domain,
+        error_class: lookup_failure.class.name,
+        error: lookup_failure.message,
+      ),
+    )
   end
 
   [false, true].each do |rewrite|
@@ -87,7 +105,7 @@ RSpec.describe 'Tenant host lookup failure responses', :shared_db_state, type: :
         context "when CustomDomain lookup raises #{error_class}" do
           let(:lookup_failure) { error_class.new('private tenant lookup failure detail') }
 
-          it 'refuses SSO with the baseline failure redirect, not an IdP authorization URL' do
+          it 'refuses SSO with the domain-unavailable redirect, not an IdP authorization URL' do
             post '/auth/sso/entra'
             expect(last_response.status).to eq(302)
             healthy_location = URI.parse(last_response.headers.fetch('Location'))
@@ -104,11 +122,11 @@ RSpec.describe 'Tenant host lookup failure responses', :shared_db_state, type: :
             post '/auth/sso/entra'
 
             expect(last_response.status).to eq(302)
-            expect(last_response.headers.fetch('Location')).to eq('/signin?auth_error=sso_failed')
-            expect_failed_tenant_request
+            expect(last_response.headers.fetch('Location')).to eq('/signin?auth_error=domain_unavailable')
+            expect_failed_tenant_request(:omniauth_domain_lookup_failed)
           end
 
-          it "refuses password-reset emission with #{error_class == Redis::BaseError ? 503 : 500}" do
+          it 'refuses password-reset emission with the domain-unavailable 503' do
             csrf_json_post('/auth/reset-password-request', login: account_email)
             expect(last_response.status).to eq(200)
             expect(@delivered.size).to eq(1)
@@ -122,22 +140,17 @@ RSpec.describe 'Tenant host lookup failure responses', :shared_db_state, type: :
             fail_tenant_lookup!
             csrf_json_post('/auth/reset-password-request', login: account_email)
 
-            if error_class == Redis::BaseError
-              expect(last_response.status).to eq(503)
-              expect(json_body).to include(
-                'error' => 'Sign-in is temporarily unavailable. Please try again shortly.',
-                'error_type' => 'SigninPolicyUnavailable',
-                'retry_after' => 5,
-              )
-              expect(last_response.headers['Retry-After']).to eq('5')
-            else
-              expect(last_response.status).to eq(500)
-              expect(json_body).to include('error' => 'Internal Server Error', 'error_type' => 'ServerError')
-            end
+            expect(last_response.status).to eq(503)
+            expect(json_body).to include(
+              'error' => 'This domain is not available. If this is your domain, contact us.',
+              'error_type' => 'DomainUnavailable',
+              'retry_after' => 5,
+            )
+            expect(last_response.headers['Retry-After']).to eq('5')
             expect(last_response.headers['Location']).to be_nil
             expect(last_response.body).not_to include('reset-password?key=', 'redirect_uri=')
             expect(auth_db[:account_password_reset_keys].where(id: account_id).all).to eq(reset_keys)
-            expect_failed_tenant_request
+            expect_failed_tenant_request(:rodauth_domain_lookup_failed)
           end
         end
       end
