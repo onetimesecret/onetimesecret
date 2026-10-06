@@ -414,10 +414,12 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
 
   # The console and file destinations (#4683), end to end: real appenders,
   # real formatters and filters, a real file. Every appender the process
-  # already has is set aside for the example and put back afterwards, so each
-  # example starts from an empty appender list and leaves the suite's own
-  # logging as it found it.
+  # already has is set aside for the example and put back afterwards (the
+  # shared context), so each example starts from an empty appender list and
+  # leaves the suite's own logging as it found it.
   describe 'log destinations' do
+    include_context 'with isolated log appenders'
+
     let(:tmpdir) { Dir.mktmpdir('setup_loggers_spec') }
     let(:log_path) { File.join(tmpdir, 'app.log') }
     let(:console_io) { StringIO.new }
@@ -429,20 +431,7 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
       YAML.safe_load(ERB.new(File.read(path)).result, permitted_classes: [Symbol, Date, Time], aliases: true)
     end
 
-    around do |example|
-      was_registered  = Onetime::LogScrubber.registered?
-      saved_appenders = SemanticLogger.appenders.to_a
-      saved_registry  = registry.dup
-      saved_appenders.each { |appender| SemanticLogger.appenders.delete(appender) }
-      registry.clear
-      example.run
-    ensure
-      SemanticLogger.appenders.to_a.each { |appender| SemanticLogger.remove_appender(appender) }
-      saved_appenders.each { |appender| SemanticLogger.appenders << appender }
-      registry.replace(saved_registry)
-      SemanticLogger::Logger.subscribers&.delete(Onetime::LogScrubber) unless was_registered
-      FileUtils.remove_entry(tmpdir) if File.directory?(tmpdir)
-    end
+    after { FileUtils.remove_entry(tmpdir) if File.directory?(tmpdir) }
 
     # The console device is a StringIO unless an example asks for the real one.
     before { allow(instance).to receive(:log_device).and_return(console_io) }
