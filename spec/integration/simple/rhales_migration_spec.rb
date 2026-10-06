@@ -398,6 +398,17 @@ RSpec.describe 'Rhales Migration Integration', type: :integration do
           expect(link.text).to eq('Reload page')
         end
 
+        it 'carries a detected-failure state the entry script can switch on' do
+          # src/main.ts sets html[data-app-failed] when startup throws; the
+          # shell then stops the orb, swaps the heading and drops the delay.
+          failed = doc.css('#app .loader-stalled .loader-stalled-title-failed').first
+          expect(failed).not_to be_nil
+          expect(failed.text).to include("We couldn't load this page")
+          expect(inline_style).to match(/\.loader-stalled-title-failed\s*\{[^}]*display:\s*none/m)
+          expect(inline_style).to match(/html\[data-app-failed\]\s+\.app-fallback\s*\{[^}]*--stalled-delay:\s*0s/m)
+          expect(inline_style).to match(/html\[data-app-failed\]\s+\.loader-orb\s*\{[^}]*animation:\s*none/m)
+        end
+
         it 'is hidden until a CSS delay reveals it' do
           expect(inline_style).to match(/\.loader-stalled\s*\{[^}]*visibility:\s*hidden/m)
           expect(inline_style).to match(/--stalled-delay:\s*\d+s/)

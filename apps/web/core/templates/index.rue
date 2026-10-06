@@ -84,10 +84,16 @@
            scripting is still enabled.
            The copy describes a timeout, not a failure: the delay only says the
            page is late, so the orb keeps spinning and the first step is a reload.
+           The one detectable failure is a startup exception once script does
+           run: the entry script (src/main.ts, src/admin.ts) then sets
+           html[data-app-failed], which stops the orb, swaps in the second
+           heading and reveals the notice at once.
            The reload link has an empty href, which resolves to the current URL
            without script (the shell sets no <base>). Reloading is safe on every
            route that renders this shell: each is a GET of the shell, and the
-           secret reveal is a POST on the API. -->
+           secret reveal is a POST on the API. "Contact support" stays unlinked
+           on purpose: the shell has no per-domain support destination, and a
+           recipient on a custom domain is not our customer. -->
       <div class="app-fallback" data-show-orb="true" data-show-text="false">
         <div class="app-fallback-inner">
           <div class="loader-orb" aria-hidden="true"></div>
@@ -97,10 +103,10 @@
           </noscript>
         </div>
         <div class="loader-stalled" role="status">
-          <p class="loader-stalled-title">This page is taking longer than expected to load.</p>
-          <p>Try reloading the page.</p>
+          <p class="loader-stalled-title loader-stalled-title-late">This page is taking longer than expected to load.</p>
+          <p class="loader-stalled-title loader-stalled-title-failed">We couldn't load this page.</p>
           <p><a class="loader-stalled-action" href="">Reload page</a></p>
-          <p>If it still won't open, get in touch with your usual support contact. If someone sent you this link, you can let them know instead.</p>
+          <p>If the problem continues, contact support or the person who sent you this link.</p>
           {{#if request_id}}
           <p class="loader-stalled-meta">Reference: <code class="loader-stalled-ref">{{request_id}}</code></p>
           {{/if}}
@@ -208,6 +214,7 @@
       .loader-stalled p { margin: 0 0 0.5rem; }
       .loader-stalled-title { font-weight: 600; color: #111827; }
       html.dark .loader-stalled-title { color: #f3f4f6; }
+      .loader-stalled-title-failed { display: none; }
       .loader-stalled-action {
         display: inline-block;
         margin: 0.25rem 0 0.75rem;
@@ -221,13 +228,12 @@
       .loader-stalled-action:hover,
       .loader-stalled-action:focus-visible { background-color: #c2401d; }
       /* The reference is diagnostic detail, not the recipient's task: it sits
-         last, muted, and selects as one unit so it can be copied intact. */
+         last and smaller, in the body colour so it stays readable, and selects
+         as one unit so it can be copied intact. */
       .loader-stalled-meta {
         margin-top: 0.75rem;
-        font-size: 0.8rem;
-        color: #9ca3af;
+        font-size: 0.85rem;
       }
-      html.dark .loader-stalled-meta { color: #6b7280; }
       .loader-stalled-ref {
         font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
         user-select: all;
@@ -247,6 +253,15 @@
           animation: stalled-reveal 0.01s linear var(--stalled-delay) forwards !important;
         }
       }
+      /* Detected startup failure. The entry script sets html[data-app-failed]
+         when setup or mount throws, so loading cannot complete: the orb stops,
+         the heading changes, and the zeroed delay reveals the notice at once.
+         Elapsed time alone never sets this state. */
+      html[data-app-failed] .app-fallback { --stalled-delay: 0s; }
+      html[data-app-failed] .loader-orb { animation: none; }
+      html[data-app-failed] .loader-text { display: none; }
+      html[data-app-failed] .loader-stalled-title-late { display: none; }
+      html[data-app-failed] .loader-stalled-title-failed { display: block; }
       /* Hide fallback once Vue mounts (adds data-v-app attribute) */
       #app[data-v-app] .app-fallback { display: none; }
     </style>
