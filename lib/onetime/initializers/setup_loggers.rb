@@ -53,6 +53,10 @@ module Onetime
       # (spec/unit/onetime/models/colonel_audit_event_spec.rb).
       AUDIT_SINK_LOGGER_NAME = 'ColonelAudit'
 
+      # Level the sink emits at (Onetime::ColonelAuditEvent::SINK_LEVEL). A
+      # literal for the same reason, pinned by the same spec.
+      AUDIT_SINK_LEVEL = :info
+
       # Exact-name filter for the audit syslog appender. SemanticLogger matches
       # `filter` against the logger NAME, and a loose pattern would quietly
       # start copying unrelated categories into the operator's audit
@@ -414,7 +418,20 @@ module Onetime
       def audit_syslog_appender?
         # Matched by class NAME: the constant is only defined once
         # add_appender has loaded the appender file.
-        SemanticLogger.appenders.any? { |appender| appender.class.name.to_s.end_with?('Appender::Syslog') }
+        audit_syslog_appenders.any?
+      end
+
+      # Whether a syslog appender would write an audit event. Its `level`
+      # setting applies to audit events too — the console and the file let
+      # them past theirs (destination_filter) — so one set above the sink's
+      # level is present and takes nothing.
+      def audit_syslog_destination?
+        event = SemanticLogger::Log.new(AUDIT_SINK_LOGGER_NAME, AUDIT_SINK_LEVEL)
+        audit_syslog_appenders.any? { |appender| appender.should_log?(event) }
+      end
+
+      def audit_syslog_appenders
+        SemanticLogger.appenders.select { |appender| appender.class.name.to_s.end_with?('Appender::Syslog') }
       end
 
       # Settings of the console destination, or nil when it is disabled.
@@ -514,12 +531,12 @@ module Onetime
       # and the file both disabled and no audit syslog appender, it would be
       # written nowhere, and nothing at runtime would say so.
       def ensure_audit_destination!
-        return if owned_appender? || foreign_console_appender? || audit_syslog_appender?
+        return if owned_appender? || foreign_console_appender? || audit_syslog_destination?
 
         raise Onetime::ConfigError,
           'Logging has no destination for audit events: destinations.console and ' \
-          'destinations.file are both disabled and the audit syslog appender is not active. ' \
-          'Enable at least one of them.'
+          'destinations.file are both disabled and no audit syslog appender is active ' \
+          "whose level admits #{AUDIT_SINK_LEVEL}. Enable at least one of them."
       end
 
       # OPTIONAL syslog appender for the operator audit sink (#4334).

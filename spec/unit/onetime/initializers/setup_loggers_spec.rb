@@ -485,14 +485,14 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
     # The console device is a StringIO unless an example asks for the real one.
     before { allow(instance).to receive(:log_device).and_return(console_io) }
 
-    def config(console: {}, file: nil, audit_syslog: false)
+    def config(console: {}, file: nil, audit_syslog: false, audit_syslog_level: nil)
       {
         'formatter' => 'default',
         'destinations' => {
           'console' => console,
           'file' => file ? { 'enabled' => true, 'path' => log_path }.merge(file) : { 'enabled' => false },
         },
-        'audit' => { 'syslog' => { 'enabled' => audit_syslog } },
+        'audit' => { 'syslog' => { 'enabled' => audit_syslog, 'level' => audit_syslog_level }.compact },
       }
     end
 
@@ -796,6 +796,25 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
           expect { install(console: { 'enabled' => false }, audit_syslog: true) }
             .to raise_error(Onetime::ConfigError, /no destination for audit events/)
         end.to output(/audit syslog appender not enabled/).to_stderr
+      end
+
+      # The sink emits at info, and unlike the console and the file the
+      # syslog appender applies its level to audit events.
+      it 'refuse a configuration whose only destination, syslog, is set above their level' do
+        stub_syslog
+
+        expect { install(console: { 'enabled' => false }, audit_syslog: true, audit_syslog_level: 'error') }
+          .to raise_error(Onetime::ConfigError, /no destination for audit events.*level admits info/)
+      end
+
+      it 'accept a syslog appender set above their level while the console takes them' do
+        syslog_lines = stub_syslog
+        install(audit_syslog: true, audit_syslog_level: 'error')
+
+        audit_emitter.info('operator action')
+
+        expect(console_log).to include('operator action')
+        expect(syslog_lines).to be_empty
       end
     end
 

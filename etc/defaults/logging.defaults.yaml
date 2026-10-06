@@ -101,7 +101,7 @@ loggers:
 # Audit events (the `ColonelAudit` category, see `audit:` below) pass every
 # destination level, so a quiet console still shows them. Boot fails if they
 # would have no destination at all: console and file both disabled, and the
-# audit syslog appender not active.
+# audit syslog appender not active or its level set above info.
 #
 # Every event passes the URI scrubber (Onetime::LogScrubber) before it reaches
 # any destination, the file included.
