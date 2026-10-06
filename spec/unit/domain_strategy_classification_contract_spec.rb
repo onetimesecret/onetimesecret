@@ -25,6 +25,7 @@
 
 require 'spec_helper'
 require 'onetime/middleware/domain_strategy'
+require 'onetime/application/organization_loader'
 require_relative '../../apps/web/auth/restrict_to'
 require_relative '../../apps/api/v1/logic/base'
 require 'onetime/session/customer_session_evaluator'
@@ -402,6 +403,54 @@ RSpec.describe 'DomainStrategy classification contract' do
 
       expect { Auth::RestrictTo.resolution_for(env_for(:custom)) }
         .to raise_error(Onetime::SigninPolicyUnavailable)
+    end
+  end
+
+  # ----------------------------------------------------- organization scope
+  #
+  # An absent published lookup withholds every organization (#4225); a failed
+  # read raises; with none published nothing is scoped, as on :canonical.
+  describe 'OrganizationLoader#request_scope_domains — reads the published lookup' do
+    let(:loader) { Class.new { include Onetime::Application::OrganizationLoader }.new }
+    let(:record) { instance_double(Onetime::CustomDomain, objid: 'domain-1') }
+    let(:lookup_key) { Onetime::CustomDomain::Lookup::ENV_KEY }
+
+    def scope_domains(env)
+      loader.send(:request_scope_domains, env)
+    end
+
+    DomainStrategyContract::OPERATOR.each do |strategy|
+      it "answers [] (no scope) for #{strategy.inspect}" do
+        expect(scope_domains(env_for(strategy))).to eq([])
+      end
+    end
+
+    it 'answers the resolved record for :custom' do
+      env = env_for(:custom).merge(
+        'onetime.custom_domain' => record,
+        lookup_key => Onetime::CustomDomain::Lookup.found('tenant.example.com', record),
+      )
+      expect(scope_domains(env)).to eq([record])
+    end
+
+    it 'answers UNREGISTERED_HOST, the same frozen object, for :invalid with an absent lookup' do
+      lookup = Onetime::CustomDomain::Lookup.absent('tenant.example.com')
+      expect(scope_domains(env_for(:invalid).merge(lookup_key => lookup)))
+        .to equal(Onetime::Application::OrganizationLoader::UNREGISTERED_HOST)
+    end
+
+    it 'raises for :invalid with a read_failed lookup' do
+      failure = Redis::BaseError.new('connection reset')
+      lookup  = Onetime::CustomDomain::Lookup.read_failed('tenant.example.com', failure)
+      expect { scope_domains(env_for(:invalid).merge(lookup_key => lookup)) }.to raise_error(Redis::BaseError)
+    end
+
+    # The open point (#4225): nothing was read for these, so nothing is
+    # withheld. Pinned as current behaviour, not decided.
+    [:invalid, nil].each do |strategy|
+      it "answers [] for #{strategy.inspect} with nothing published" do
+        expect(scope_domains(env_for(strategy))).to eq([])
+      end
     end
   end
 
