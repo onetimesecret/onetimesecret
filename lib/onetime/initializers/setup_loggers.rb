@@ -13,9 +13,12 @@ module Onetime
   module Initializers
     # Configures SemanticLogger with strategic categories for debugging.
     #
-    # Categories: App, Auth, Billing, Boot, Bunny, Chores, CLI, Ents, Familia,
-    # HTTP, Jobs, Org, Otto, Rhales, Scheduler, Secret, Sequel, Session,
-    # Workers.
+    # Categories: App, Auth, Billing, Boot, Bunny, Ents, Familia, HTTP, Jobs,
+    # Org, Otto, Rhales, Scheduler, Secret, Sequel, Session, Workers.
+    #
+    # Chores and CLI are logger names the application uses, and the shipped
+    # config lists a level for each, but they are not categories here (see
+    # UNAPPLIED_CONFIG_CATEGORIES): both run at the default level.
     #
     # Configuration loaded from etc/logging.yaml with environment variable
     # overrides. Logger instances are cached because SemanticLogger[]
@@ -34,7 +37,7 @@ module Onetime
     #   LOG_LEVEL        - Global default level (trace/debug/info/warn/error/fatal)
     #   ONETIME_DEBUG    - Sets global default to debug when truthy
     #   BACKTRACE_LEVEL  - Level at which backtraces are included (default: error)
-    #   BACKTRACE_LINES  - Max exception backtrace lines (default: 3 in prod, unlimited in dev)
+    #   BACKTRACE_LINES  - Max exception backtrace lines on the console (default: unlimited)
     #   DEBUG_*          - Per-category debug flags (e.g., DEBUG_AUTH=1)
     #   DEBUG_LOGGERS    - Fine-grained control (e.g., "Auth:debug,Secret:trace")
     #
@@ -66,8 +69,6 @@ module Onetime
         'Billing' => 'DEBUG_BILLING',
         'Boot' => 'DEBUG_BOOT',
         'Bunny' => 'DEBUG_BUNNY',
-        'Chores' => 'DEBUG_CHORES',
-        'CLI' => 'DEBUG_CLI',
         'Ents' => 'DEBUG_ENTS',
         'Familia' => 'DEBUG_FAMILIA',
         'HTTP' => 'DEBUG_HTTP',
@@ -81,6 +82,20 @@ module Onetime
         'Session' => 'DEBUG_SESSION',
         'Workers' => 'DEBUG_WORKERS',
       }.freeze
+
+      # Categories the shipped logging config names under `loggers:` whose
+      # level this initializer does not apply.
+      #
+      # Chores and CLI have been listed at info since they were added to the
+      # config, but were never in logger_definitions, so both have always run
+      # at the default level (warn, or LOG_LEVEL). Applying the listed level
+      # would make a default `bin/ots` command print its info lines on stderr
+      # and add Chores info lines to server output: a change to the default
+      # output, which needs its own decision and release note. Until then
+      # this records the gap, and a spec keeps it from growing
+      # (spec/unit/onetime/initializers/setup_loggers_spec.rb).
+      # DEBUG_LOGGERS=CLI:info sets either one for a run.
+      UNAPPLIED_CONFIG_CATEGORIES = %w[Chores CLI].freeze
 
       # An appender this initializer added, with the settings it was built
       # from. `identity` is compared on a rerun to tell an unchanged
@@ -565,15 +580,15 @@ module Onetime
         OT.mode?(:cli) ? :stderr : :stdout
       end
 
-      # Build the console formatter with environment-aware exception handling
+      # Build the console formatter, with the exception backtrace limit when
+      # one is set.
       #
-      # In production, exception backtraces are truncated to reduce log noise.
-      # Full backtraces go to error tracking (Sentry), not application logs.
-      # Only the console is shortened: the file destination always writes the
-      # whole backtrace.
+      # Backtraces are written in full unless BACKTRACE_LINES is set. With it,
+      # only the console is shortened: the file destination always writes the
+      # whole backtrace, and error tracking (Sentry) is not affected.
       #
       # Environment variables:
-      #   BACKTRACE_LINES - Max backtrace lines to include (default: 3 in prod, unlimited in dev)
+      #   BACKTRACE_LINES - Max backtrace lines on the console (default: unlimited)
       #
       def build_formatter(config)
         truncating_formatter(default_console_formatter(config), backtrace_limit)
@@ -593,27 +608,28 @@ module Onetime
       # @param max_lines [Integer, nil] backtrace limit; nil = unlimited
       # @return [Symbol, Proc]
       def truncating_formatter(base_formatter, max_lines)
-        # In development/test, use standard formatter with full backtraces
+        # No limit: the standard formatter, full backtraces
         return base_formatter unless max_lines
 
-        # In production, wrap formatter to truncate exception backtraces
+        # A limit: wrap the formatter to truncate exception backtraces
         formatter = SemanticLogger::Formatters.factory(base_formatter)
         proc do |log, logger|
           formatter.call(with_truncated_backtrace(log, max_lines), logger)
         end
       end
 
-      # Determine backtrace line limit based on environment
+      # The console backtrace line limit: BACKTRACE_LINES, and nothing else.
+      #
+      # There is no per-environment default. This method once named a 3-line
+      # production default, but compared Onetime.mode (the entry point: :app,
+      # :cli, ...) to 'production', which never matched, so production has
+      # always logged full backtraces. Starting to truncate them would change
+      # what a default deployment prints; an operator who wants the short form
+      # sets BACKTRACE_LINES.
       #
       # @return [Integer, nil] Max lines, or nil for unlimited
       def backtrace_limit
-        # Explicit override takes precedence
-        return ENV['BACKTRACE_LINES'].to_i if ENV['BACKTRACE_LINES']
-
-        # Production defaults to 3 lines, others unlimited. The environment
-        # (RACK_ENV), not Onetime.mode: mode is the entry point (:app, :cli,
-        # ...) and is never 'production'.
-        3 if Onetime.production?
+        ENV['BACKTRACE_LINES'].to_i if ENV['BACKTRACE_LINES']
       end
 
       # The event this formatter renders: the Log itself when its exception's
@@ -641,12 +657,11 @@ module Onetime
 
       # Create and cache logger instances with levels from config.
       #
-      # Every category named under `loggers:` in the config gets its level,
-      # not only the ones logger_definitions lists: the config file is what an
-      # operator edits, and a level written there must not be silently ignored.
+      # Only the categories in logger_definitions. A name the config lists
+      # under `loggers:` that is not defined there gets no logger here and no
+      # level (see UNAPPLIED_CONFIG_CATEGORIES).
       def create_cached_loggers(config)
-        names = self.class.logger_definitions.keys | (config['loggers'] || {}).keys.map(&:to_s)
-        names.each_with_object({}) do |name, cache|
+        self.class.logger_definitions.each_with_object({}) do |(name, _), cache|
           level        = config.dig('loggers', name)&.to_sym || SemanticLogger.default_level
           warn " initialize #{name}=#{level}" if @debug_boot
           logger       = SemanticLogger[name]

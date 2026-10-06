@@ -288,30 +288,24 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
       allow(ENV).to receive(:fetch).with('RACK_ENV', 'production').and_return(value)
     end
 
-    # Onetime.mode is the entry point (:app, :cli, :test, ...), never the
-    # environment name, so the limit has to come from RACK_ENV.
-    it 'limits backtraces to 3 lines in production, whatever the mode' do
-      with_rack_env('production')
-
-      expect(Onetime.mode).not_to eq('production')
-      expect(instance.send(:backtrace_limit)).to eq(3)
-    end
-
-    it 'is unlimited outside production' do
-      %w[development testing staging].each do |env|
+    # The default production console has always carried full backtraces: the
+    # 3-line production default this method once named compared Onetime.mode
+    # to 'production' and never applied. Truncating by default would change
+    # what a default deployment prints (#4683 keeps the defaults as they are).
+    it 'is unlimited by default in every environment, production included' do
+      %w[production development testing staging].each do |env|
         with_rack_env(env)
-        expect(instance.send(:backtrace_limit)).to be_nil
+        expect(instance.send(:backtrace_limit)).to be_nil, env
       end
     end
 
-    it 'lets BACKTRACE_LINES override the environment default' do
+    it 'takes the limit from BACKTRACE_LINES in every environment' do
       allow(ENV).to receive(:[]).with('BACKTRACE_LINES').and_return('7')
 
-      with_rack_env('production')
-      expect(instance.send(:backtrace_limit)).to eq(7)
-
-      with_rack_env('development')
-      expect(instance.send(:backtrace_limit)).to eq(7)
+      %w[production development].each do |env|
+        with_rack_env(env)
+        expect(instance.send(:backtrace_limit)).to eq(7), env
+      end
     end
   end
 
@@ -323,13 +317,12 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
       YAML.safe_load(yaml, permitted_classes: [Symbol, Date, Time], aliases: true).fetch('loggers').keys
     end
 
-    it 'applies the configured level of every category under loggers:' do
-      config = { 'loggers' => { 'Chores' => 'info', 'CLI' => 'debug', 'SetupLoggersSpecAdHoc' => 'trace' } }
+    it 'applies the configured level of each category it defines' do
+      config = { 'loggers' => { 'Auth' => 'trace', 'HTTP' => 'fatal' } }
       cache  = instance.send(:create_cached_loggers, config)
 
-      expect(cache['Chores'].level).to eq(:info)
-      expect(cache['CLI'].level).to eq(:debug)
-      expect(cache['SetupLoggersSpecAdHoc'].level).to eq(:trace)
+      expect(cache['Auth'].level).to eq(:trace)
+      expect(cache['HTTP'].level).to eq(:fatal)
     end
 
     it 'gives a defined category the config does not name the default level' do
@@ -339,21 +332,53 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
       expect(cache['App'].level).to eq(SemanticLogger.default_level)
     end
 
-    # A category the shipped configs name but the initializer does not define
-    # has no DEBUG_* flag and no entry in the lane runner's --quiet floor
-    # (spec/unit/lanes/quiet_log_floor_spec.rb pins that list to
-    # logger_definitions).
-    it 'defines every category the shipped logging configs name' do
-      %w[etc/defaults/logging.defaults.yaml spec/logging.test.yaml].each do |path|
-        expect(described_class.logger_definitions.keys).to include(*configured_logger_names(path)), path
+    # Chores and CLI are listed at info in the shipped config and have never
+    # been applied: both run at the default level. Applying them would make a
+    # default `bin/ots` command print its info lines on stderr, which is a
+    # change to the default output (#4683 leaves the defaults as they are).
+    it 'does not apply a level to Chores or CLI, which follow the default level' do
+      config = { 'loggers' => { 'Chores' => 'info', 'CLI' => 'info', 'SetupLoggersSpecAdHoc' => 'trace' } }
+      cache  = instance.send(:create_cached_loggers, config)
+
+      expect(cache.keys).not_to include('Chores', 'CLI', 'SetupLoggersSpecAdHoc')
+
+      was = SemanticLogger.default_level
+      begin
+        %i[warn error].each do |default|
+          SemanticLogger.default_level = default
+          expect(Onetime.get_logger('Chores').level).to eq(default)
+          expect(Onetime.get_logger('CLI').level).to eq(default)
+        end
+      ensure
+        SemanticLogger.default_level = was
       end
+    end
+
+    it 'gives Chores and CLI no DEBUG_* flag' do
+      expect(described_class.logger_definitions.keys).not_to include('Chores', 'CLI')
+      expect(described_class.logger_definitions.values).not_to include('DEBUG_CHORES', 'DEBUG_CLI')
+    end
+
+    # The gap between the shipped configs and the initializer is exactly the
+    # recorded one. A category added to a config without a definition (it
+    # would have no level, no DEBUG_* flag and no entry in the lane runner's
+    # --quiet floor, which spec/unit/lanes/quiet_log_floor_spec.rb pins to
+    # logger_definitions) fails here.
+    it 'defines every category the shipped logging configs name, except the recorded ones' do
+      %w[etc/defaults/logging.defaults.yaml spec/logging.test.yaml].each do |path|
+        undefined = configured_logger_names(path) - described_class.logger_definitions.keys
+        expect(undefined - described_class::UNAPPLIED_CONFIG_CATEGORIES).to be_empty, path
+      end
+
+      expect(configured_logger_names('etc/defaults/logging.defaults.yaml'))
+        .to include(*described_class::UNAPPLIED_CONFIG_CATEGORIES)
     end
   end
 
-  # The production console formatter: build_formatter wraps the configured
-  # formatter in a proc that renders a copy of the event with a shortened
-  # exception backtrace.
-  describe 'production formatter output' do
+  # The console formatter under a backtrace limit (BACKTRACE_LINES):
+  # build_formatter wraps the configured formatter in a proc that renders a
+  # copy of the event with a shortened exception backtrace.
+  describe 'truncating formatter output' do
     let(:secret) { 's3cret' }
     let(:io) { StringIO.new }
     let(:appenders) { [] }
