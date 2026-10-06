@@ -20,7 +20,9 @@ Changed
 - The automatic DLQ email job commits the republish and the removal from the
   dead letter queue separately, where it committed them in one AMQP
   transaction. If the removal fails after the republish is committed, the
-  message stays in the dead letter queue and the next run removes it
-  without republishing. If the broker does not confirm the republish commit
+  message stays in the dead letter queue; a run within the next hour removes
+  it without republishing. A message without a message id, or one the job
+  does not reach again within that hour, is republished and the email is
+  sent a second time. If the broker does not confirm the republish commit
   and it had applied, the email is sent a second time after the one-hour
   reservation expires.

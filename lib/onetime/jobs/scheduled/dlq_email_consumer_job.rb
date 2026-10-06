@@ -413,9 +413,12 @@ module Onetime
           #   recreated during a run is tried again on the next run.
           # - Ack, or its commit, fails after the publish is committed: the
           #   copy is live and the delivery returns to the DLQ. The batch
-          #   stops. The id is already marked completed, so the next run
-          #   acks the delivery without a second publish. A message without
-          #   an id has no marker and is published again.
+          #   stops. The id is already marked completed, so a run within the
+          #   hour acks the delivery without a second publish. The marker is
+          #   not extended: a longer one would also drop a replayed copy that
+          #   fails again. A message without an id has no marker, and one no
+          #   run reaches within the hour has an expired one; both are
+          #   published again.
           def replay_message(channel, delivery_info, properties, payload, results)
             message_id = properties.message_id
 
@@ -509,8 +512,8 @@ module Onetime
             end
 
             # The copy is live. Mark the id completed before the ack, so a
-            # delivery whose ack fails is acked by the next run and not
-            # published a second time.
+            # delivery whose ack fails is acked by a run within the hour and
+            # not published a second time.
             results[:replayed] += 1
             finalize_replay(message_id, owner, results) if message_id
 
