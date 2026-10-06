@@ -25,11 +25,11 @@
 
 require 'spec_helper'
 require 'onetime/middleware/domain_strategy'
-require 'onetime/middleware/http_origin_options'
 require_relative '../../apps/web/auth/restrict_to'
 require_relative '../../apps/api/v1/logic/base'
 require 'onetime/session/customer_session_evaluator'
 require 'onetime/session/failure_code'
+require 'onetime/middleware/http_origin_options'
 
 module DomainStrategyContract
   # Every value env['onetime.domain_strategy'] can carry at a consumer.
