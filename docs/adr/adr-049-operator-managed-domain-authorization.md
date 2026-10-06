@@ -42,6 +42,11 @@ The canonical strategy name is `operator_managed`. `passthrough` and `external`
 are input aliases and normalize immediately to `operator_managed`; persisted
 and emitted strategy values use the canonical name.
 
+These names and aliases apply to the custom-domain validation strategy only.
+The `validation_strategy` field on `SignupConfig` selects an email-address
+validation strategy and also accepts `passthrough`; it is unrelated to this
+decision and is not renamed or normalized by it.
+
 A trusted, current registration under operator control authorizes that domain
 for its assigned customer without TXT proof. The registration must still exist,
 remain assigned through the trusted operator path, and match the requested
@@ -61,7 +66,10 @@ Domain state is separated into three concerns:
    is external under `operator_managed`. Operator-policy authorization must not
    authorize OTS's internal ACME path or be consumed as ACME ownership proof.
 
-The effective per-domain strategy from ADR-015 is enforced at request time. A
+The strategy in effect for a domain is enforced at request time. Today that is
+the install-level `features.domains.validation_strategy`. ADR-015 is accepted
+but not implemented; if its per-domain override lands, it takes precedence as
+that ADR specifies and the same request-time enforcement applies to it. A
 switch from `operator_managed` to either TXT-enforced strategy immediately
 stops operator-policy authorization from qualifying, including before any
 scheduled refresh, worker pass, or cache update. The first request under the
