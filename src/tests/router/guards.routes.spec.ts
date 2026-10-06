@@ -89,12 +89,21 @@ vi.mock('@/shared/stores/organizationStore', () => ({
   useOrganizationStore: vi.fn(),
 }));
 
-// The org-role guard raises a notice when it refuses (#4566). Hoisted so the
-// factory below can close over it; vi.clearAllMocks() in beforeEach resets it.
-const { notificationShow } = vi.hoisted(() => ({ notificationShow: vi.fn() }));
+// The org-role guard raises a notice when it refuses (#4566), unless one is
+// already on screen. Hoisted so the factory below can close over them;
+// vi.clearAllMocks() in beforeEach resets the spy and the visible flag.
+const { notificationShow, notificationState } = vi.hoisted(() => ({
+  notificationShow: vi.fn(),
+  notificationState: { isVisible: false },
+}));
 
 vi.mock('@/shared/stores/notificationsStore', () => ({
-  useNotificationsStore: vi.fn(() => ({ show: notificationShow })),
+  useNotificationsStore: vi.fn(() => ({
+    show: notificationShow,
+    get isVisible() {
+      return notificationState.isVisible;
+    },
+  })),
 }));
 
 // The guard translates outside any component scope via the global composer;
@@ -132,6 +141,7 @@ describe('Router Guards', () => {
     } as unknown as Router;
 
     vi.clearAllMocks();
+    notificationState.isVisible = false;
   });
 
   it('should setup router guards', () => {
@@ -1129,6 +1139,28 @@ describe('Router Guards', () => {
           makeRoute({ path: '/orgs', meta: { requiresOrgRole: 'owner' } })
         );
         expect(result).toEqual({ path: '/dashboard' });
+        // The check did not complete, so the notice reports unconfirmed
+        // access instead of naming a role the guard never learned.
+        expect(notificationShow).toHaveBeenCalledWith(
+          'web.organizations.access_unconfirmed_notice',
+          'info',
+          'top',
+          10000
+        );
+      });
+
+      it('leaves a notice already on screen in place and still redirects', async () => {
+        // The notifications store has one message slot. App.vue's
+        // session-transition notice (shown by the page that loads after the
+        // session was replaced elsewhere) must not be overwritten by the role
+        // notice when that page's route is itself refused.
+        notificationState.isVisible = true;
+        useStore(makeStore({ organizations: [{ extid: 'on1', current_user_role: 'member' }] }));
+        const result = await handleOrgRoleRequirement(
+          makeRoute({ path: '/orgs', meta: { requiresOrgRole: 'owner' } })
+        );
+        expect(result).toEqual({ path: '/dashboard' });
+        expect(notificationShow).not.toHaveBeenCalled();
       });
     });
 
@@ -1206,11 +1238,11 @@ describe('Router Guards', () => {
           makeRoute({ params: { extid: 'on1' }, meta: { requiresOrgRole: 'admin' } })
         );
         expect(result).toEqual({ path: '/dashboard' });
-        // The fail-closed path says so too: the notice states the page's
-        // requirement, which holds whether the fetch was a 403, a 404, or a
-        // network error, rather than asserting a role the guard never learned.
+        // The fail-closed path says so too: whether the fetch was a 403, a
+        // 404, or a network error, the guard never learned a role, so the
+        // notice reports unconfirmed access instead of naming the requirement.
         expect(notificationShow).toHaveBeenCalledWith(
-          'web.organizations.admin_required_notice',
+          'web.organizations.access_unconfirmed_notice',
           'info',
           'top',
           10000

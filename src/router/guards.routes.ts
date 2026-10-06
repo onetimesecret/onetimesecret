@@ -300,10 +300,12 @@ function roleMeetsRequirement(
  * closed: an unknown role and a rejected fetch both redirect, because the
  * list endpoint enforces no role and provides no backend backstop.
  *
- * A refusal also raises a notice naming the role the page needs (#4566). The
- * redirect alone read as a silent bounce: nothing on /dashboard said why the
- * user was there, and the empty/not-found states of the org pages, which the
- * guard pre-empts, never got a chance to say it either.
+ * A refusal also raises a notice (#4566): the role the page needs when the
+ * guard learned the user's role, or that access could not be confirmed when
+ * the lookup failed. The redirect alone read as a silent bounce: nothing on
+ * /dashboard said why the user was there, and the empty/not-found states of
+ * the org pages, which the guard pre-empts, never got a chance to say it
+ * either.
  */
 export async function handleOrgRoleRequirement(
   to: RouteLocationNormalized
@@ -327,24 +329,39 @@ export async function handleOrgRoleRequirement(
   loggingService.debug('[RouterGuard] Org role requirement not met:', {
     path: to.path,
     required,
+    roleKnown: meets !== null,
   });
-  notifyOrgRoleRefused(required);
+  notifyOrgRoleRefused(required, meets === null ? 'unconfirmed' : 'refused');
   return { path: '/dashboard' };
 }
 
 /**
- * Tell the user why they landed on /dashboard. The wording states the
- * requirement rather than asserting the user's role, so it stays true when
- * the guard failed closed on a rejected fetch (403, 404, or a network error)
- * instead of on a known lesser role. Held for 10 s like the session notices
- * in App.vue: the user has just been moved and needs time to read it.
+ * Tell the user why they landed on /dashboard. A role the guard learned is
+ * reported as the page's requirement. A lookup that failed (403, 404, or a
+ * network error) is reported as unconfirmed access instead: the user may hold
+ * the role and the check simply did not complete, so naming the requirement
+ * would read as a refusal. Held for 10 s like the session notices in
+ * App.vue: the user has just been moved and needs time to read it.
+ *
+ * The notifications store has a single message slot. A notice already on
+ * screen (App.vue's session-transition notice after a forced reload, an error
+ * toast) is left in place rather than replaced; the redirect still happens.
  */
-function notifyOrgRoleRefused(required: 'owner' | 'admin'): void {
-  const key =
-    required === 'owner'
-      ? 'web.organizations.owner_required_notice'
-      : 'web.organizations.admin_required_notice';
-  useNotificationsStore().show(globalComposer.t(key), 'info', 'top', 10000);
+function notifyOrgRoleRefused(
+  required: 'owner' | 'admin',
+  outcome: 'refused' | 'unconfirmed'
+): void {
+  const notifications = useNotificationsStore();
+  if (notifications.isVisible) return;
+
+  let key = 'web.organizations.access_unconfirmed_notice';
+  if (outcome === 'refused') {
+    key =
+      required === 'owner'
+        ? 'web.organizations.owner_required_notice'
+        : 'web.organizations.admin_required_notice';
+  }
+  notifications.show(globalComposer.t(key), 'info', 'top', 10000);
 }
 
 type OrganizationStore = ReturnType<typeof useOrganizationStore>;
@@ -352,7 +369,8 @@ type OrganizationStore = ReturnType<typeof useOrganizationStore>;
 /**
  * List-page scope (`/orgs`): met when any NON-DEFAULT org the user belongs to
  * satisfies `required`. The list is fetched first so a fresh deep link doesn't
- * bounce a real owner; a failed fetch fails closed.
+ * bounce a real owner. A rejected fetch returns null: the guard fails closed
+ * and reports the check as unconfirmed.
  *
  * Default workspaces are excluded for non-owners because every user gets one —
  * checking them would let regular members access the orgs list page (see #3326).
@@ -361,12 +379,12 @@ type OrganizationStore = ReturnType<typeof useOrganizationStore>;
 async function anyOrgMeetsRole(
   store: OrganizationStore,
   required: 'owner' | 'admin'
-): Promise<boolean> {
+): Promise<boolean | null> {
   if (!store.isListFetched) {
     try {
       await store.fetchOrganizations();
     } catch {
-      return false;
+      return null;
     }
   }
   return store.organizations.some(
@@ -377,13 +395,14 @@ async function anyOrgMeetsRole(
 /**
  * Single-org scope: resolve the org named by `extid` (cached list, bootstrap
  * current org, or a fetch when the role is unknown) and test its role. A
- * rejected fetch — e.g. a non-member's backend 403 — fails closed.
+ * rejected fetch (e.g. a non-member's backend 403) returns null: the guard
+ * fails closed and reports the check as unconfirmed.
  */
 async function singleOrgMeetsRole(
   store: OrganizationStore,
   extid: string,
   required: 'owner' | 'admin'
-): Promise<boolean> {
+): Promise<boolean | null> {
   let org =
     store.getOrganizationByExtid(extid) ??
     (store.currentOrganization?.extid === extid ? store.currentOrganization : null);
@@ -392,7 +411,7 @@ async function singleOrgMeetsRole(
     try {
       org = await store.fetchOrganization(extid);
     } catch {
-      return false;
+      return null;
     }
   }
 

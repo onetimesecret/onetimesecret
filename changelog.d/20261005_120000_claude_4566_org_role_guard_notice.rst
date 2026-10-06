@@ -10,5 +10,7 @@ Fixed
   dashboard with no explanation. The "already accepted" view links the
   same way (#4566).
 - A signed-in user redirected away from a page that needs an
-  organization owner or admin role now sees a notice naming the
-  requirement instead of arriving on the dashboard silently (#4566).
+  organization owner or admin role now sees a notice instead of arriving
+  on the dashboard silently: the requirement when their role is known,
+  or that access could not be confirmed when the organization lookup
+  failed (#4566).

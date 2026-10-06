@@ -133,6 +133,11 @@
     "context": "Notice shown on the dashboard after the app redirects a signed-in user away from a page that requires the owner or admin role in a specific organization (its settings, members, or domains). States the requirement, not the user's role.",
     "content_hash": "41d85083"
   },
+  "web.organizations.access_unconfirmed_notice": {
+    "text": "Could not confirm your organization access.",
+    "context": "Notice shown on the dashboard after the app redirects a signed-in user away from an organization page because the organization lookup failed (forbidden, not found, or a network error) before the user's role could be read. Deliberately claims nothing about the user's role: they may hold it and the check simply did not complete.",
+    "content_hash": "4a61de5b"
+  },
   "web.organizations.fetch_organization_error": {
     "text": "Failed to load organization",
     "content_hash": "6b5fa342"
