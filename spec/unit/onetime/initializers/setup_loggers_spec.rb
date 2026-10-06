@@ -297,6 +297,41 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
     end
   end
 
+  describe '#create_cached_loggers' do
+    let(:repo_root) { File.expand_path('../../../..', __dir__) }
+
+    def configured_logger_names(relative_path)
+      yaml = ERB.new(File.read(File.join(repo_root, relative_path))).result
+      YAML.safe_load(yaml, permitted_classes: [Symbol, Date, Time], aliases: true).fetch('loggers').keys
+    end
+
+    it 'applies the configured level of every category under loggers:' do
+      config = { 'loggers' => { 'Chores' => 'info', 'CLI' => 'debug', 'SetupLoggersSpecAdHoc' => 'trace' } }
+      cache  = instance.send(:create_cached_loggers, config)
+
+      expect(cache['Chores'].level).to eq(:info)
+      expect(cache['CLI'].level).to eq(:debug)
+      expect(cache['SetupLoggersSpecAdHoc'].level).to eq(:trace)
+    end
+
+    it 'gives a defined category the config does not name the default level' do
+      cache = instance.send(:create_cached_loggers, { 'loggers' => {} })
+
+      expect(cache.keys).to match_array(described_class.logger_definitions.keys)
+      expect(cache['App'].level).to eq(SemanticLogger.default_level)
+    end
+
+    # A category the shipped configs name but the initializer does not define
+    # has no DEBUG_* flag and no entry in the lane runner's --quiet floor
+    # (spec/unit/lanes/quiet_log_floor_spec.rb pins that list to
+    # logger_definitions).
+    it 'defines every category the shipped logging configs name' do
+      %w[etc/defaults/logging.defaults.yaml spec/logging.test.yaml].each do |path|
+        expect(described_class.logger_definitions.keys).to include(*configured_logger_names(path)), path
+      end
+    end
+  end
+
   # The production console formatter: build_formatter wraps the configured
   # formatter in a proc that renders a copy of the event with a shortened
   # exception backtrace.

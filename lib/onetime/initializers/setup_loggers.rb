@@ -13,8 +13,9 @@ module Onetime
   module Initializers
     # Configures SemanticLogger with strategic categories for debugging.
     #
-    # Categories: App, Auth, Billing, Boot, Bunny, Ents, Familia, HTTP,
-    # Jobs, Org, Otto, Rhales, Secret, Sequel, Session.
+    # Categories: App, Auth, Billing, Boot, Bunny, Chores, CLI, Ents, Familia,
+    # HTTP, Jobs, Org, Otto, Rhales, Scheduler, Secret, Sequel, Session,
+    # Workers.
     #
     # Configuration loaded from etc/logging.yaml with environment variable
     # overrides. Logger instances are cached because SemanticLogger[]
@@ -56,6 +57,8 @@ module Onetime
         'Billing' => 'DEBUG_BILLING',
         'Boot' => 'DEBUG_BOOT',
         'Bunny' => 'DEBUG_BUNNY',
+        'Chores' => 'DEBUG_CHORES',
+        'CLI' => 'DEBUG_CLI',
         'Ents' => 'DEBUG_ENTS',
         'Familia' => 'DEBUG_FAMILIA',
         'HTTP' => 'DEBUG_HTTP',
@@ -346,9 +349,14 @@ module Onetime
         log.dup.tap { |copy| copy.exception = exception }
       end
 
-      # Create and cache logger instances with levels from config
+      # Create and cache logger instances with levels from config.
+      #
+      # Every category named under `loggers:` in the config gets its level,
+      # not only the ones logger_definitions lists: the config file is what an
+      # operator edits, and a level written there must not be silently ignored.
       def create_cached_loggers(config)
-        self.class.logger_definitions.each_with_object({}) do |(name, _), cache|
+        names = self.class.logger_definitions.keys | (config['loggers'] || {}).keys.map(&:to_s)
+        names.each_with_object({}) do |name, cache|
           level        = config.dig('loggers', name)&.to_sym || SemanticLogger.default_level
           warn " initialize #{name}=#{level}" if @debug_boot
           logger       = SemanticLogger[name]
