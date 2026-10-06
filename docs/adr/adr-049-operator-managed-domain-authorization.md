@@ -1,16 +1,16 @@
 ---
 id: "049"
-status: proposed
+status: accepted
 title: "ADR-049: Operator-Managed Domain Authorization"
 ---
 
 ## Status
 
-Proposed
+Accepted
 
 ## Date
 
-2026-09-28
+2026-10-05
 
 ## Context
 
@@ -95,9 +95,9 @@ or staged old/new client rollout is required. All consumers adopt the canonical
 name and aliases as one change; retaining the aliases is vocabulary
 compatibility, not evidence of an installed user base.
 
-### Proposed partial supersession
+### Partial supersession
 
-If accepted, this ADR supersedes only these clauses of ADR-016:
+This ADR supersedes only these clauses of ADR-016:
 
 - the Decision's statement that the ownership axis is universal and computed
   the same way regardless of strategy, insofar as it requires TXT ownership
@@ -112,7 +112,7 @@ ADR-016's separation of ownership from serving and certificate status, its
 non-conflation rules, and its decisions for TXT-enforced strategies remain
 intact.
 
-If accepted, this ADR supersedes only these clauses of ADR-017:
+This ADR supersedes only these clauses of ADR-017:
 
 - the Decision's `passthrough` requirement for one-time TXT proof before use as
   a `share_domain`;
