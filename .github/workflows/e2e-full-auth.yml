@@ -45,49 +45,23 @@ name: E2E Full Auth
 on:
   workflow_dispatch:
   pull_request:
-    # No `branches:` filter, unlike e2e.yml: stacked PRs (base = a feature
-    # branch) must exercise this lane too, or a change lands on the feature
-    # branch untested and the eventual PR to main is the first real run. The
-    # paths filter below is what keeps this lane off unrelated PRs.
-    paths:
-      # The suite and its harness
-      - 'e2e/**'
-      - '.github/workflows/e2e-full-auth.yml'
-      # Composite actions this lane calls (generate-test-secrets below).
-      - '.github/actions/**'
-      - 'compose.test.yml'
-      - 'compose.e2e.yml'
-      # What the browser renders
-      - 'src/**'
-      - 'templates/**'
-      - 'package.json'
-      - 'pnpm-lock.yaml'
-      - 'vite.config.ts'
-      # The auth surface itself: Rodauth config, hooks, the verify/signin
-      # routes, and the redirect plumbing this lane exists to guard.
-      - 'apps/web/auth/**'
-      # Web Core serves the HTML shell and hydration data every page in this
-      # lane boots from (views, templates, the Rhales schemas).
-      - 'apps/web/core/**'
-      - 'etc/auth.yaml'
-      - 'etc/defaults/auth.defaults.yaml'
-      # Backend: the signup logic class, the mail delivery backends, the job
-      # publisher and the EmailWorker are all in this tree.
-      - 'lib/onetime/**'
-      # This lane boots the app on the runner, so its boot surface is part of
-      # its trigger surface: the seeded config (holding the autoverify, rate-
-      # limit, emailer and jobs knobs this lane sets), the gem lockfile, the
-      # entrypoint and the rack config.
-      - 'etc/defaults/config.defaults.yaml'
-      - 'Gemfile.lock'
-      - 'bin/ots'
-      - 'config.ru'
+    # No base-branch restriction: stacked PRs need this lane too. The shared
+    # detector gates the test job, not the workflow, so every PR gets a verdict.
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+  schedule:
+    - cron: '23 4 * * *'
+  push:
+    tags: ['v*']
+  merge_group:
+    types: [checks_requested]
 
 permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  # Label events get independent groups: even an unrelated label must not
+  # cancel an in-flight test or verdict. Normal updates still supersede runs.
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ (github.event.action == 'labeled' || github.event.action == 'unlabeled') && format('label-{0}', github.run_id) || 'normal' }}
   cancel-in-progress: true
 
 env:
@@ -98,8 +72,26 @@ env:
   WORKER_LOG: tmp/e2e-full-auth-worker.log
 
 jobs:
+  changes:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      auth: ${{ steps.detect.outputs.auth }}
+      reason: ${{ steps.detect.outputs.reason }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - name: Detect auth changes
+        id: detect
+        uses: ./.github/actions/detect-auth-changes
+
   e2e-full-auth:
     name: signup → verify email → signin (real SMTP)
+    needs: changes
+    if: needs.changes.outputs.auth == 'true'
     runs-on: ubuntu-24.04
     # Must exceed Playwright's globalTimeout (20 min, e2e/playwright.config.ts)
     # plus setup, build, boot and artifact upload — a cold bundle install +
@@ -458,3 +450,36 @@ jobs:
             kill "$(cat "$pidfile")" 2>/dev/null || true
           done
           docker compose -f compose.test.yml -f compose.e2e.yml down --volumes || true
+
+  auth-e2e-verdict:
+    # Require this check, not the conditional test job. Detection errors and
+    # unexpected skips must fail even when GitHub would treat a skip as passing.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    needs: [changes, e2e-full-auth]
+    if: always()
+    steps:
+      - name: Require auth tests to pass, or an intentional skip
+        env:
+          CHANGES_RESULT: ${{ needs.changes.result }}
+          AUTH_CHANGED: ${{ needs.changes.outputs.auth }}
+          TEST_RESULT: ${{ needs.e2e-full-auth.result }}
+        run: |
+          if [ "$CHANGES_RESULT" != "success" ]; then
+            echo "Change detection did not succeed (changes: $CHANGES_RESULT)."
+            exit 1
+          fi
+
+          if [ "$AUTH_CHANGED" = "false" ] && [ "$TEST_RESULT" = "skipped" ]; then
+            echo "No auth-relevant changes; auth E2E tests intentionally skipped."
+            exit 0
+          fi
+
+          if [ "$AUTH_CHANGED" = "true" ] && [ "$TEST_RESULT" = "success" ]; then
+            echo "Auth E2E tests passed."
+            exit 0
+          fi
+
+          echo "No passing auth E2E verdict (auth: '$AUTH_CHANGED', tests: $TEST_RESULT)."
+          echo "Expected auth=false with skipped tests, or auth=true with successful tests."
+          exit 1
