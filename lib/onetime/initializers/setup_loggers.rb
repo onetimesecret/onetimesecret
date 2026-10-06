@@ -140,17 +140,29 @@ module Onetime
         private
 
         # Reporting must not replace the write error it reports, so nothing
-        # raised here leaves this method.
+        # raised here leaves this method. Each part is rescued on its own: a
+        # standard error that cannot be written to, or one listener that
+        # raises, must not keep the remaining listeners from being called.
         def report_write_failure(error)
-          unless @write_failure_reported_in == Process.pid
-            @write_failure_reported_in = Process.pid
-            # Not Kernel#warn: that prints nothing under -W0.
-            $stderr.write(
-              "#{WRITE_FAILURE_PREFIX} #{file_name}: #{error.class}: #{error.message}. " \
-              "Log events are being lost. Reported once per process.\n",
-            )
+          warn_of_write_failure(error)
+          self.class.write_failure_listeners.each do |listener|
+            listener.call(file_name, error)
+          rescue StandardError
+            nil
           end
-          self.class.write_failure_listeners.each { |listener| listener.call(file_name, error) }
+        rescue StandardError
+          nil
+        end
+
+        def warn_of_write_failure(error)
+          return if @write_failure_reported_in == Process.pid
+
+          @write_failure_reported_in = Process.pid
+          # Not Kernel#warn: that prints nothing under -W0.
+          $stderr.write(
+            "#{WRITE_FAILURE_PREFIX} #{file_name}: #{error.class}: #{error.message}. " \
+            "Log events are being lost. Reported once per process.\n",
+          )
         rescue StandardError
           nil
         end

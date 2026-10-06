@@ -1168,6 +1168,25 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
           sink = failing_sink(Errno::EIO.new('probe'))
 
           expect { expect { sink.log(event) }.to raise_error(Errno::EIO) }.to output.to_stderr
+          expect(listener_calls).to eq([[log_path, Errno::EIO]])
+        end
+
+        # The line on standard error is the best-effort half of the report.
+        # A process whose standard error is closed still has to tell its
+        # listeners: the lane runner's marker file comes from one.
+        it 'calls the listeners when standard error cannot be written to' do
+          listen
+          sink     = failing_sink(Errno::ENOSPC.new('probe'))
+          original = $stderr
+          $stderr  = StringIO.new.tap(&:close)
+
+          begin
+            expect { sink.log(event) }.to raise_error(Errno::ENOSPC)
+          ensure
+            $stderr = original
+          end
+
+          expect(listener_calls).to eq([[log_path, Errno::ENOSPC]])
         end
 
         it 'reports nothing for a write that succeeds' do
