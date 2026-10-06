@@ -11,7 +11,7 @@ import {
   mockCustomer,
 } from '@tests/fixtures/bootstrap.fixture';
 import { createTestI18n } from '@tests/setup';
-import { RouterLinkStub, flushPromises, mount } from '@vue/test-utils';
+import { RouterLinkStub, flushPromises, mount, type Stubs } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createMemoryHistory, createRouter } from 'vue-router';
@@ -132,7 +132,7 @@ describe('AcceptInvite', () => {
     getGlobalAxiosMock().reset();
   });
 
-  const mountComponent = async (token = 'test-token-123', stubs: Record<string, unknown> = {}) => {
+  const mountComponent = async (token = 'test-token-123', stubs: Stubs = {}) => {
     await router.push(`/invite/${token}`);
     await router.isReady();
 
