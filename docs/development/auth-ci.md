@@ -1,17 +1,18 @@
-# Auth CI selection
+# Auth and billing CI selection
 
 The slow, auth-specific parts of CI run on a pull request only when the PR
-touches auth code or carries the `ci:auth` label. Everything runs on `main`,
-nightly, on release tags, and in the merge queue.
+touches auth code or carries the `ci:auth` label. The billing-on rows run
+only when the PR touches billing code. Everything runs on `main`, nightly, on
+release tags, and in the merge queue.
 
 ## What is selected
 
 The [auth path list](../../.github/auth-paths.yml) and the `ci:auth` label
 select these jobs:
 
-- The `full-pg-agnostic` lane with billing off and on. It runs the
-  database-agnostic full-mode suite a second time, against PostgreSQL, and is
-  the slowest row in the Ruby matrix.
+- The `full-pg-agnostic` lane. It runs the database-agnostic full-mode suite
+  a second time, against PostgreSQL, and is the slowest row in the Ruby
+  matrix.
 - The `full-mfa` and `full-saml-platform` configuration lanes.
 - The `browser` lane, which exercises SAML callbacks in Chromium, Firefox, and
   WebKit.
@@ -21,14 +22,34 @@ select these jobs:
 
 ## What every Ruby change still runs
 
-Full authentication mode is tested on every Ruby change. Four full-mode rows
-are not selected by auth: the whole full-mode suite on SQLite, and the
-PostgreSQL-only specs, each with billing off and on. The unit, simple-mode,
-disabled-mode and API lanes, Tryouts, and Vitest keep their existing
-path-based selection.
+Full authentication mode is tested on every Ruby change. Two full-mode rows
+are not selected by auth or billing: the whole full-mode suite once, on
+SQLite, and the PostgreSQL-only specs, both with billing off. The unit,
+simple-mode, disabled-mode and API lanes, Tryouts, and Vitest keep their
+existing path-based selection. Billing's own specs under `apps/web/billing/`
+are part of the unit lane, so they run on every Ruby change too.
 
 [Container E2E](../../.github/workflows/e2e.yml) keeps its own selection and
 both its simple and full-mode rows.
+
+## Billing rows
+
+The `ruby-integration-billing` job repeats the three full-mode lanes
+(`full-sqlite`, `full-pg`, `full-pg-agnostic`) with the billing overlay, which
+sets `BILLING_ENABLED=true`. They run the same specs as the billing-off rows.
+
+On a pull request the job runs only when the diff matches the `billing`
+filter in the `changes` job of [ci.yml](../../.github/workflows/ci.yml): the
+billing app, anything in backend code, configuration or specs named for a
+billing concept (billing, Stripe, entitlement, subscription, plan), and the
+overlay file. Frontend billing code does not select it. Auth selection does
+not select it either, and the `ci:auth` label has no effect on it. To run the
+billing rows on a PR that touches no billing path, put `[ci-all]` in a commit
+message; that runs every main-CI job.
+
+Billing is a flag of its own, like auth: it adds the billing job and the
+frontend build it downloads, and nothing else. The job runs regardless of
+paths on every event listed under "When everything runs" below.
 
 ## When auth runs on a pull request
 
@@ -96,9 +117,9 @@ results rather than treating the skipped test job as a pass.
 
 ## Required checks
 
-Keep `ci-verdict` as the stable main-CI check. It covers the SAML browser job
-and the auth-selected matrix, and rejects a missing or malformed auth
-selection.
+Keep `ci-verdict` as the stable main-CI check. It covers the SAML browser job,
+the auth-selected matrix and the billing-selected matrix, and rejects a
+missing or malformed auth selection.
 
 The specialized workflows expose stable verdicts:
 

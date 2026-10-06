@@ -255,11 +255,11 @@ does, so while a run of that lane and overlay set is live it exits 69
 | `unit`               | valkey, rabbitmq           | `try:unit`, `spec:fast`                                       | ruby-unit (T2)                                   |
 | `browser`            | valkey, rabbitmq           | `rspec tests/browser` (Playwright: chromium, firefox, webkit) | ruby-auth-browser (T2)                           |
 | `simple`             | valkey, rabbitmq           | `try:integration:simple`, `spec:integration:simple`           | ruby-integration-simple (T3)                     |
-| `full-sqlite`        | valkey, rabbitmq           | `spec:integration:full`                                       | ruby-integration-full — SQLite rows              |
+| `full-sqlite`        | valkey, rabbitmq           | `spec:integration:full`                                       | ruby-integration-full — SQLite row               |
 | `full-mfa`           | valkey, rabbitmq           | `spec:integration:full:mfa`                                   | ruby-integration-auth — SQLite MFA row           |
 | `full-saml-platform` | valkey, rabbitmq           | `spec:integration:full:saml_platform`                         | ruby-integration-auth — SQLite platform SAML row |
-| `full-pg`            | valkey, rabbitmq, postgres | `spec:integration:full:postgres`                              | ruby-integration-full — PG rows                  |
-| `full-pg-agnostic`   | valkey, rabbitmq, postgres | `spec:integration:full:agnostic_on_pg`                        | ruby-integration-auth — PG agnostic rows         |
+| `full-pg`            | valkey, rabbitmq, postgres | `spec:integration:full:postgres`                              | ruby-integration-full — PG row                   |
+| `full-pg-agnostic`   | valkey, rabbitmq, postgres | `spec:integration:full:agnostic_on_pg`                        | ruby-integration-auth — PG agnostic row          |
 | `disabled`           | valkey, rabbitmq           | `spec:integration:disabled`                                   | ruby-integration-disabled (T3)                   |
 | `api`                | valkey, rabbitmq           | `spec:api`                                                    | blocking step, T3 simple job                     |
 | `smoke`              | valkey, rabbitmq           | `pnpm test:smoke`                                             | local-only                                       |
@@ -277,7 +277,9 @@ same holds for the three rspec legs inside `rake spec:fast`. A red leg never
 silently skips the ones after it.
 
 Use `--overlay billing` only with full-mode lanes. Billing requires
-`AUTHENTICATION_MODE=full`; other lanes reject the overlay.
+`AUTHENTICATION_MODE=full`; other lanes reject the overlay. In CI the overlay
+rows are the `ruby-integration-billing` job, which runs on a pull request
+only when it changes a billing path (`docs/development/auth-ci.md`).
 
 Create a lane when a change selects a different test suite or a materially
 different runtime (such as authentication mode or database engine). Use an
