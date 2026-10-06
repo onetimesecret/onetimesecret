@@ -304,9 +304,9 @@ module Onetime
         return base_formatter unless max_lines
 
         # In production, wrap formatter to truncate exception backtraces
+        formatter = SemanticLogger::Formatters.factory(base_formatter)
         proc do |log, logger|
-          truncate_exception_backtrace(log, max_lines)
-          SemanticLogger::Formatters.factory(base_formatter).call(log, logger)
+          formatter.call(with_truncated_backtrace(log, max_lines), logger)
         end
       end
 
@@ -323,15 +323,27 @@ module Onetime
         end
       end
 
-      # Truncate exception backtrace in-place
-      def truncate_exception_backtrace(log, max_lines)
-        return unless log.exception&.backtrace
+      # The event this formatter renders: the Log itself when its exception's
+      # backtrace is within the limit, otherwise a copy carrying a copy of the
+      # exception with the shortened backtrace.
+      #
+      # Nothing is truncated in place. SemanticLogger hands the same Log to
+      # every appender, and the exception (with its backtrace Array) belongs
+      # to the caller, who may still re-raise it or report it to Sentry.
+      # Truncating here must not shorten what they see.
+      #
+      # clone rather than dup: Onetime::LogScrubber's exception copies carry
+      # their scrubbed text in singleton methods, which dup drops.
+      #
+      # Only the outermost exception is shortened; a cause keeps its backtrace.
+      def with_truncated_backtrace(log, max_lines)
+        backtrace = log.exception&.backtrace
+        return log unless backtrace && backtrace.size > max_lines
 
-        original_size = log.exception.backtrace.size
-        return if original_size <= max_lines
+        exception = log.exception.clone(freeze: false)
+        exception.set_backtrace(backtrace.first(max_lines) << "... (#{backtrace.size - max_lines} more lines)")
 
-        log.exception.backtrace.slice!(max_lines..-1)
-        log.exception.backtrace << "... (#{original_size - max_lines} more lines)"
+        log.dup.tap { |copy| copy.exception = exception }
       end
 
       # Create and cache logger instances with levels from config

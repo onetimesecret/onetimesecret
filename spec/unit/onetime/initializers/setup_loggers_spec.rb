@@ -260,7 +260,8 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
   end
 
   # The production console formatter: build_formatter wraps the configured
-  # formatter in a proc that truncates exception backtraces in place.
+  # formatter in a proc that renders a copy of the event with a shortened
+  # exception backtrace.
   describe 'production formatter output' do
     let(:secret) { 's3cret' }
     let(:io) { StringIO.new }
@@ -291,6 +292,32 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
       expect(formatter).to be_a(Proc)
       expect(io.string).to include('failed at https://***@h.example/x?***', 'down redis://***@db/0?***', 'more lines)')
       expect(io.string).not_to include(secret)
+    end
+
+    # SemanticLogger hands one Log to every appender, and the exception is
+    # the caller's: it may still be re-raised or reported to Sentry.
+    it 'truncates for its own appender only, leaving the exception and later appenders whole' do
+      allow(instance).to receive(:backtrace_limit).and_return(1)
+      full_io   = StringIO.new
+      formatter = instance.send(:build_formatter, { 'formatter' => 'default' })
+      appenders << SemanticLogger.add_appender(io: io, formatter: formatter, level: :trace, filter: /\ASetupLoggersSpec\z/)
+      appenders << SemanticLogger.add_appender(io: full_io, formatter: :default, level: :trace, filter: /\ASetupLoggersSpec\z/)
+      ex        = begin
+        raise IOError, 'down'
+      rescue IOError => e
+        e
+      end
+      backtrace = ex.backtrace.dup
+
+      SemanticLogger['SetupLoggersSpec'].tap { |l| l.level = :trace }.error('failed', exception: ex)
+      SemanticLogger.flush
+
+      expect(backtrace.size).to be > 1
+      expect(io.string).to include(backtrace.first, "... (#{backtrace.size - 1} more lines)")
+      expect(io.string).not_to include(backtrace.last)
+      expect(ex.backtrace).to eq(backtrace)
+      expect(full_io.string).to include(*backtrace)
+      expect(full_io.string).not_to include('more lines)')
     end
   end
 
