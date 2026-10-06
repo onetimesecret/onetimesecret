@@ -211,6 +211,13 @@ Details:
   A proxy that preserves `Host` gets the same three results in either
   setting. A foreign `Origin` is refused in every case, and the CSRF token
   check still applies.
+- An `Origin` naming a host that is not a canonical host, a subdomain of
+  one, or a registered custom domain is refused behind a proxy that rewrites
+  `Host`, whether or not this setting is on (it used to be admitted when it
+  matched the detected host). A registered custom domain whose record could
+  not be read is still admitted, so the application's own refusal answers
+  the request. A proxy that preserves `Host` is unchanged: the request's own
+  authority already matches that `Origin`.
 - The admin host gate runs before the rewrite and is unchanged by it.
 - A proxy that preserves `Host` needs none of this: the request already
   carries the public host and nothing is rewritten.
