@@ -170,6 +170,18 @@ describe('contract vs shape: defaults are absent on contracts, applied on shapes
     expect(s.default_level).toBe('info');
     expect(s.formatter).toBe('color');
   });
+
+  // The destinations block as etc/defaults/logging.defaults.yaml ships it.
+  it('logging keeps the destinations block', () => {
+    const destinations = {
+      console: { enabled: true, level: null, formatter: null },
+      file: { enabled: false, path: null, level: null, formatter: null },
+    };
+    expect(loggingConfigShape.parse({ destinations }).destinations).toEqual(destinations);
+    expect(() =>
+      loggingConfigShape.parse({ destinations: { console: { level: 'loud' } } })
+    ).toThrow();
+  });
 });
 
 describe('contract vs shape: value bounds are absent on contracts, enforced on shapes', () => {
