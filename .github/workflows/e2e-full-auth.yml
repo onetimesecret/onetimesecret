@@ -47,7 +47,9 @@ on:
   pull_request:
     # No base-branch restriction: stacked PRs need this lane too. The shared
     # detector gates the test job, not the workflow, so every PR gets a verdict.
-    types: [opened, synchronize, reopened, labeled, unlabeled]
+    # No label events either: the detector reads the PR's labels live, so
+    # ci:auth applies to a re-run or the next push without a run per label.
+    types: [opened, synchronize, reopened]
   schedule:
     - cron: '23 4 * * *'
   push:
@@ -59,9 +61,7 @@ permissions:
   contents: read
 
 concurrency:
-  # Label events get independent groups: even an unrelated label must not
-  # cancel an in-flight test or verdict. Normal updates still supersede runs.
-  group: ${{ github.workflow }}-${{ github.ref }}-${{ (github.event.action == 'labeled' || github.event.action == 'unlabeled') && format('label-{0}', github.run_id) || 'normal' }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:

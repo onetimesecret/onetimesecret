@@ -20,9 +20,11 @@ for name in FILTER_AUTH FORCE_AUTH; do
   esac
 done
 
-# Slurp enforces exactly one JSON value; jq normally accepts a stream of values.
-# Check shape before lookup so null, objects, or non-string entries cannot look
-# like an absent ci:auth label. Never echo untrusted labels into workflow commands.
+# LABELS_JSON is the PR's current label set (read-pr-labels.sh), not the
+# label that triggered anything. Slurp enforces exactly one JSON value; jq
+# normally accepts a stream of values. Check shape before lookup so null,
+# objects, or non-string entries cannot look like an absent ci:auth label.
+# Never echo untrusted labels into workflow commands.
 if ! label_auth="$(printf '%s' "${LABELS_JSON-}" | jq -er -s '
   if length == 1 and (.[0] | type == "array" and all(.[]; type == "string"))
   then (.[0] | index("ci:auth") != null | tostring)

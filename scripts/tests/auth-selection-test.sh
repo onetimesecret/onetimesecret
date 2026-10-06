@@ -68,8 +68,8 @@ for event in pull_request schedule push merge_group workflow_dispatch; do
   done
 done
 
-protects 'label/unlabel runs use the current full label set, not the triggering label or a substring'
-expect_selection 'ci:auth still present after unrelated unlabel' true label:ci:auth \
+protects 'the decision reads the whole current label set and matches ci:auth exactly, never a substring'
+expect_selection 'ci:auth present on its own' true label:ci:auth \
   LABELS_JSON='["ci:auth"]'
 expect_selection 'ci:auth removed, unrelated label remains' false no-auth-changes \
   LABELS_JSON='["unrelated"]'
@@ -130,13 +130,95 @@ assert_contains 'summary shows auth' 'auth: `true`' "$(cat "$TMP/summary")"
 assert_contains 'summary shows reason' 'reason: `paths`' "$(cat "$TMP/summary")"
 expect_selection 'local mode without optional files' false no-auth-changes
 
-protects 'the local action uses a pinned cumulative-PR filter and passes current labels without masking PR errors'
+protects 'the label reader returns the PR'"'"'s current labels as one JSON line and fails closed on any lookup problem'
+LABELS="${REPO_ROOT}/.github/scripts/read-pr-labels.sh"
+STUB="$TMP/bin"
+mkdir -p "$STUB"
+# A stand-in for gh: records its arguments, then prints GH_STUB_BODY or fails.
+cat > "$STUB/gh" <<'SH'
+#!/usr/bin/env bash
+printf '%s\n' "$*" >> "$GH_ARGS_LOG"
+if [[ "${GH_STUB_EXIT:-0}" != 0 ]]; then
+  echo 'gh: Not Found (HTTP 404)' >&2
+  exit "$GH_STUB_EXIT"
+fi
+printf '%s' "${GH_STUB_BODY-}"
+SH
+chmod +x "$STUB/gh"
+
+read_labels() {
+  : > "$TMP/gh-args"
+  env -i PATH="$STUB:$PATH" GH_TOKEN=test-token GH_ARGS_LOG="$TMP/gh-args" \
+    GITHUB_REPOSITORY=onetimesecret/onetimesecret PR_NUMBER=42 "$@" bash "$LABELS" 2>&1
+}
+
+expect_labels() {
+  local label="$1" expected="$2" body="$3" out status
+  out="$(read_labels GH_STUB_BODY="$body")"
+  status=$?
+  assert_eq "$label: exit" 0 "$status"
+  assert_eq "$label: labels" "$expected" "$out"
+}
+
+reject_labels() {
+  local label="$1" error="$2" out status
+  shift 2
+  : > "$TMP/output"
+  out="$(read_labels GITHUB_OUTPUT="$TMP/output" "$@")"
+  status=$?
+  assert_eq "$label: exit" 1 "$status"
+  assert_contains "$label: diagnostic" "$error" "$out"
+  assert_eq "$label: no labels output" '' "$(cat "$TMP/output")"
+}
+
+expect_labels 'two labels' '["ci:auth","bug"]' \
+  '{"number":42,"labels":[{"id":1,"name":"ci:auth"},{"id":2,"name":"bug"}]}'
+assert_eq 'one read of the pull request, nothing else' \
+  'api repos/onetimesecret/onetimesecret/pulls/42' "$(cat "$TMP/gh-args")"
+expect_labels 'a PR without labels is an empty list, not a failure' '[]' '{"number":42,"labels":[]}'
+hostile='{"labels":[{"name":"quote\"and\nnewline"},{"name":"étiquette"},{"name":"ci:auth"}]}'
+out="$(read_labels GH_STUB_BODY="$hostile")"
+assert_eq 'hostile label names stay on one JSON line' 1 "$(printf '%s\n' "$out" | wc -l | tr -d ' ')"
+expect_selection 'reader output feeds the selector unchanged' true label:ci:auth LABELS_JSON="$out"
+
+reject_labels 'API failure' 'Could not read the pull request' GH_STUB_EXIT=1 GH_STUB_BODY='{"labels":[]}'
+for bad in '' 'null' '[]' '"ci:auth"' '{"message":"Not Found"}' '{"labels":null}' \
+  '{"labels":{}}' '{"labels":[{"name":1}]}' '{"labels":[{}]}' '{"labels":["ci:auth"]}' '{'; do
+  reject_labels "unusable response [$bad]" 'not a pull request with a list of labels' GH_STUB_BODY="$bad"
+done
+for bad in '' 0 007 12a '42 ' '42;id' '$(id)' ../43; do
+  reject_labels "invalid PR number [$bad]" PR_NUMBER PR_NUMBER="$bad" GH_STUB_BODY='{"labels":[]}'
+  assert_eq "invalid PR number [$bad]: the API is never called" '' "$(cat "$TMP/gh-args")"
+done
+reject_labels 'unset PR number' PR_NUMBER env -u PR_NUMBER GH_STUB_BODY='{"labels":[]}'
+for bad in '' onetimesecret 'a/b/c' 'a b/c' '../x/y?z'; do
+  reject_labels "invalid repository [$bad]" GITHUB_REPOSITORY GITHUB_REPOSITORY="$bad" GH_STUB_BODY='{"labels":[]}'
+done
+out="$(env -i PATH="$STUB:$PATH" GH_ARGS_LOG="$TMP/gh-args" GITHUB_REPOSITORY=a/b PR_NUMBER=1 \
+  GH_STUB_BODY='{"labels":[]}' bash "$LABELS" --all 2>&1)"
+assert_eq 'label reader rejects flags' 1 "$?"
+assert_contains 'label reader flag diagnostic' 'environment inputs only' "$out"
+
+printf 'existing=kept\n' > "$TMP/output"
+out="$(read_labels GITHUB_OUTPUT="$TMP/output" GH_STUB_BODY='{"labels":[{"name":"ci:auth"}]}')"
+assert_eq 'label file output exit' 0 "$?"
+assert_eq 'label file output does not duplicate stdout' '' "$out"
+assert_eq 'labels appended as one output' $'existing=kept\njson=["ci:auth"]' "$(cat "$TMP/output")"
+
+protects 'the local action uses a pinned cumulative-PR filter and the live label set, without masking PR errors'
 action="$(cat "$ACTION")"
 assert_contains 'pinned paths-filter' 'dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d' "$action"
 assert_contains 'filter runs only for PR' "if: github.event_name == 'pull_request'" "$action"
 assert_contains 'external filters file' 'filters: .github/auth-paths.yml' "$action"
 assert_contains 'event context passed' 'EVENT_NAME: ${{ github.event_name }}' "$action"
-assert_contains 'current PR labels and explicit non-PR empty array' "LABELS_JSON: \${{ github.event_name != 'pull_request' && '[]' || toJSON(github.event.pull_request.labels.*.name) }}" "$action"
+assert_contains 'label reader invoked' 'run: bash .github/scripts/read-pr-labels.sh' "$action"
+assert_contains 'label reader gets the PR number' 'PR_NUMBER: ${{ github.event.pull_request.number }}' "$action"
+assert_contains 'live labels on PRs and an explicit empty array elsewhere' "LABELS_JSON: \${{ github.event_name != 'pull_request' && '[]' || steps.labels.outputs.json }}" "$action"
+case "$action" in
+  *github.event.pull_request.labels*) frozen=present ;;
+  *) frozen=absent ;;
+esac
+assert_eq 'the frozen event-payload labels are not consulted' absent "$frozen"
 assert_contains 'force input passed' 'FORCE_AUTH: ${{ inputs.force }}' "$action"
 assert_contains 'false fallback only outside PRs' "FILTER_AUTH: \${{ github.event_name != 'pull_request' && 'false' || steps.filter.outputs.auth }}" "$action"
 assert_contains 'compute script invoked' 'run: bash .github/scripts/compute-auth-selection.sh' "$action"
@@ -185,14 +267,21 @@ else:
         assert action['outputs'][name]['value'] == '${{ steps.compute.outputs.' + name + ' }}'
     assert action['runs']['using'] == 'composite'
     steps = action['runs']['steps']
-    assert len(steps) == 2
-    assert steps[0]['if'] == "github.event_name == 'pull_request'"
+    assert [step['id'] for step in steps] == ['filter', 'labels', 'compute']
+    for step in steps[:2]:
+        assert step['if'] == "github.event_name == 'pull_request'"
+        assert 'continue-on-error' not in step, 'a failed lookup must fail the job'
     assert steps[0]['with']['filters'] == '.github/auth-paths.yml'
     assert steps[1]['shell'] == 'bash'
-    assert set(steps[1]['env']) == {'FILTER_AUTH', 'FORCE_AUTH', 'EVENT_NAME', 'LABELS_JSON'}
-    assert steps[1]['env']['LABELS_JSON'] == (
-        "${{ github.event_name != 'pull_request' && '[]' || "
-        "toJSON(github.event.pull_request.labels.*.name) }}"
+    assert steps[1]['env'] == {
+        'GH_TOKEN': '${{ github.token }}',
+        'PR_NUMBER': '${{ github.event.pull_request.number }}',
+    }
+    assert steps[2]['shell'] == 'bash'
+    assert 'if' not in steps[2], 'selection runs on every event'
+    assert set(steps[2]['env']) == {'FILTER_AUTH', 'FORCE_AUTH', 'EVENT_NAME', 'LABELS_JSON'}
+    assert steps[2]['env']['LABELS_JSON'] == (
+        "${{ github.event_name != 'pull_request' && '[]' || steps.labels.outputs.json }}"
     )
 
 assert set(filters) == {'auth'}

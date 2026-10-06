@@ -50,11 +50,7 @@ def scalar(text, key, indent):
 
 
 checkout = "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803"
-concurrency_group = (
-    "${{ github.workflow }}-${{ github.ref }}-${{ "
-    "(github.event.action == 'labeled' || github.event.action == 'unlabeled') "
-    "&& format('label-{0}', github.run_id) || 'normal' }}"
-)
+concurrency_group = "${{ github.workflow }}-${{ github.ref }}"
 workflows = [
     ("e2e-full-auth.yml", "e2e-full-auth", "auth-e2e-verdict", "23 4 * * *",
      "signup → verify email → signin (real SMTP)"),
@@ -73,8 +69,12 @@ for filename, test_id, verdict_id, cron, test_name in workflows:
     check(not block(events, "workflow_dispatch", 2).strip(),
           f"{filename}: manual dispatch remains unchanged")
     check(scalar(block(events, "pull_request", 2), "types", 4)
-          == "[opened, synchronize, reopened, labeled, unlabeled]",
-          f"{filename}: PR updates and label events trigger detection")
+          == "[opened, synchronize, reopened]",
+          f"{filename}: PR updates trigger detection; a label event must not start a run")
+    check(not re.search(r"\b(?:un)?labeled\b",
+                        "\n".join(line for line in events.splitlines()
+                                  if not line.lstrip().startswith("#"))),
+          f"{filename}: no label events: the detector reads the PR's labels live")
     check(block(events, "schedule", 2).strip() == f"- cron: '{cron}'",
           f"{filename}: staggered daily full coverage")
     check(scalar(block(events, "push", 2), "tags", 4) == "['v*']",
@@ -83,9 +83,9 @@ for filename, test_id, verdict_id, cron, test_name in workflows:
           f"{filename}: merge queue gets a verdict")
     concurrency = block(text, "concurrency", 0)
     check(scalar(concurrency, "group", 2) == concurrency_group,
-          f"{filename}: each label event is isolated from all in-flight runs")
+          f"{filename}: one concurrency group per ref")
     check(scalar(concurrency, "cancel-in-progress", 2) == "true",
-          f"{filename}: normal updates still supersede old runs")
+          f"{filename}: a new push supersedes the run before it")
 
     jobs = block(text, "jobs", 0)
     check(set(re.findall(r"^  ([a-z0-9-]+):", jobs, re.M))

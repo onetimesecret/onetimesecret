@@ -190,8 +190,10 @@ def triggers():
     check(scalar(block(events, "merge_group", 2), "types", 4) == "[checks_requested]",
           "merge queue must trigger checks")
     pr = block(events, "pull_request", 2)
-    check(scalar(pr, "types", 4) == "[opened, synchronize, reopened, labeled, unlabeled]",
-          "label changes must reevaluate the current auth selection")
+    check(scalar(pr, "types", 4) == "[opened, synchronize, reopened]",
+          "code changes trigger CI; a label event must not start a second full run")
+    check(not re.search(r"\b(?:un)?labeled\b", executable(events)),
+          "no label events: the selector reads the PR's labels live instead")
     check(not re.search(r"^ +paths(?:-ignore)?:", events, re.M), "required verdict must not be path-filtered")
     changes = block(jobs, "changes", 2)
     dispatch = re.findall(r'^ +DISPATCH_RUN_ALL="(.+)"$', changes, re.M)
@@ -204,11 +206,8 @@ def triggers():
           "the event override must reach CI flag detection")
     concurrency = block(workflow, "concurrency", 0)
     check(scalar(concurrency, "group", 2) == "ci-" + expression("github.workflow")
-          + "-" + expression("github.ref") + "-" + expression(
-        "(github.event.action == 'labeled' || github.event.action == 'unlabeled') "
-        "&& format('label-{0}', github.run_id) || 'normal'"
-    ), "label events must not cancel an in-flight code-change run")
-    check(scalar(concurrency, "cancel-in-progress", 2) == "true", "normal pushes still supersede runs")
+          + "-" + expression("github.ref"), "one concurrency group per ref")
+    check(scalar(concurrency, "cancel-in-progress", 2) == "true", "a new push supersedes the run before it")
 
 
 def shared_wiring():

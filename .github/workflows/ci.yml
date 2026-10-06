@@ -71,8 +71,11 @@ on:
     types: [checks_requested]
   # Runs on synthetic merge commit (PR branch merged into base). If your branch
   # diverges from main, CI tests the merged result — not your branch in isolation.
+  # No label events: the ci:auth label is read live by the auth selector, so
+  # it applies to a re-run or the next push, and labelling a PR never starts
+  # a second full run of this workflow.
   pull_request:
-    types: [opened, synchronize, reopened, labeled, unlabeled]
+    types: [opened, synchronize, reopened]
     branches:
       - main
       - develop
@@ -97,8 +100,7 @@ permissions:
   contents: read
 
 concurrency:
-  # Label runs must not cancel an in-flight code-change run or its verdict.
-  group: ci-${{ github.workflow }}-${{ github.ref }}-${{ (github.event.action == 'labeled' || github.event.action == 'unlabeled') && format('label-{0}', github.run_id) || 'normal' }}
+  group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:

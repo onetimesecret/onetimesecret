@@ -1,7 +1,8 @@
 # Call after checkout; the caller needs contents: read and pull-requests: read.
-# Callers own event triggers (including main/tag push and PR labeled/unlabeled).
+# Callers own event triggers. None of them listens for label events: the
+# ci:auth label is read live, so it applies to a re-run or to the next push.
 name: Detect auth changes
-description: Select shared auth coverage from cumulative PR paths, current labels, or forcing.
+description: Select shared auth coverage from cumulative PR paths, the PR's current labels, or forcing.
 
 inputs:
   force:
@@ -29,6 +30,17 @@ runs:
       with:
         filters: .github/auth-paths.yml
 
+    # The event payload's labels are frozen when the run is created. Ask the
+    # API instead, so a label added after the run started is seen by a re-run.
+    - name: Read current PR labels
+      id: labels
+      if: github.event_name == 'pull_request'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+      run: bash .github/scripts/read-pr-labels.sh
+
     - name: Compute auth selection
       id: compute
       shell: bash
@@ -38,7 +50,7 @@ runs:
         FILTER_AUTH: ${{ github.event_name != 'pull_request' && 'false' || steps.filter.outputs.auth }}
         FORCE_AUTH: ${{ inputs.force }}
         EVENT_NAME: ${{ github.event_name }}
-        # Use the full current PR label set, not the triggering label. Other
-        # events have no labels: pass an explicit array, not an absent projection.
-        LABELS_JSON: ${{ github.event_name != 'pull_request' && '[]' || toJSON(github.event.pull_request.labels.*.name) }}
+        # Other events have no labels: pass an explicit array. A PR whose
+        # lookup produced nothing reaches the script empty and fails closed.
+        LABELS_JSON: ${{ github.event_name != 'pull_request' && '[]' || steps.labels.outputs.json }}
       run: bash .github/scripts/compute-auth-selection.sh
