@@ -508,6 +508,100 @@ RSpec.describe 'lane log capture profile' do
     end
   end
 
+  # OmniAuth's default logger is a stdlib Logger on STDOUT with the progname
+  # "omniauth". It stands in here as a module with the one method the profile
+  # uses, so that this spec never loads the gem into a simple-mode process.
+  describe 'Lanes::LogCapture.route_omniauth_logger' do
+    let(:omniauth_stdout) { StringIO.new }
+    let(:default_logger) { Logger.new(omniauth_stdout).tap { |logger| logger.progname = 'omniauth' } }
+    let(:omniauth_config) { Struct.new(:logger).new(default_logger) }
+
+    def stub_omniauth
+      config = omniauth_config
+      stub_const('OmniAuth', Module.new { define_singleton_method(:config) { config } })
+    end
+
+    def log_as_omniauth
+      OmniAuth.config.logger.debug('(oidc) Request phase initiated.')
+      OmniAuth.config.logger.error('(saml) Authentication failure! invalid_ticket encountered.')
+    end
+
+    context 'in a process that captures its log to a file' do
+      before { Lanes::LogCapture.install!('LANES_APP_LOG_FILE' => app_log) }
+
+      it 'sends every OmniAuth line to the log file and none to standard out' do
+        stub_omniauth
+
+        Lanes::LogCapture.route_omniauth_logger
+        log_as_omniauth
+
+        expect(File.read(app_log).lines.grep(/Auth::OmniAuth/)).to match(
+          [/ D .*\(oidc\) Request phase initiated\./, / E .*\(saml\) Authentication failure!/],
+        )
+        expect(omniauth_stdout.string).to be_empty
+      end
+
+      it 'keeps the lines off a console that is off, and holds them to its level otherwise' do
+        stub_omniauth
+        boot_destinations('LANES_APP_LOG_FILE' => app_log, 'LANES_APP_LOG_CONSOLE' => 'warn')
+
+        Lanes::LogCapture.route_omniauth_logger
+        log_as_omniauth
+
+        expect(console_io.string).to include('Authentication failure!')
+        expect(console_io.string).not_to include('Request phase initiated')
+      end
+
+      it 'is the same logger when called again' do
+        stub_omniauth
+
+        Lanes::LogCapture.route_omniauth_logger
+        routed = OmniAuth.config.logger
+        Lanes::LogCapture.route_omniauth_logger
+
+        expect(routed).to be_a(SemanticLogger::Logger)
+        expect(OmniAuth.config.logger).to equal(routed)
+      end
+
+      it 'routes again after OmniAuth put its default logger back' do
+        stub_omniauth
+        Lanes::LogCapture.route_omniauth_logger
+
+        omniauth_config.logger = default_logger
+        Lanes::LogCapture.route_omniauth_logger
+
+        expect(OmniAuth.config.logger).to be_a(SemanticLogger::Logger)
+      end
+
+      it 'leaves a logger that is not the OmniAuth default alone' do
+        chosen                 = Logger.new(StringIO.new)
+        omniauth_config.logger = chosen
+        stub_omniauth
+
+        Lanes::LogCapture.route_omniauth_logger
+
+        expect(OmniAuth.config.logger).to equal(chosen)
+      end
+
+      it 'does nothing, and loads nothing, when OmniAuth is not defined' do
+        hide_const('OmniAuth')
+
+        expect { Lanes::LogCapture.route_omniauth_logger }.not_to raise_error
+        expect(defined?(OmniAuth)).to be_nil
+      end
+    end
+
+    it 'leaves OmniAuth alone in a process without the log file' do
+      stub_omniauth
+
+      Lanes::LogCapture.route_omniauth_logger
+      log_as_omniauth
+
+      expect(OmniAuth.config.logger).to equal(default_logger)
+      expect(omniauth_stdout.string).to include('Request phase initiated')
+    end
+  end
+
   # SetupLoggers leaves a console appender it did not add alone: SemanticLogger
   # refuses a second one. A tryout that adds its own before it boots therefore
   # owns the console for the rest of the process, which every later tryout

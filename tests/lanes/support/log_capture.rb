@@ -28,6 +28,12 @@
 #     config reaches it.
 #   - A value the runner should never have exported stops the process here,
 #     before any test runs, instead of at the first boot or never.
+#   - OmniAuth logs through a stdlib Logger of its own, on standard out.
+#     In a process that has the log file, route_omniauth_logger points it at
+#     the application's logging instead, so its lines pass the log scrubber,
+#     land in the file and follow the console setting. Called before each
+#     rspec example (spec/spec_helper.rb), because OmniAuth is only loaded
+#     once a full-mode application boots.
 #   - A write to the log file that fails later raises nothing in the
 #     application. With LANES_APP_LOG_FILE set, each failed write is recorded
 #     in <that path>.write-failed, which the runner looks for at the end of
@@ -54,6 +60,11 @@ module Lanes
     # in. tests/lanes/run removes it at the start of a run and derives the
     # same name at the end.
     WRITE_FAILED_SUFFIX = '.write-failed'
+
+    # The logger OmniAuth is pointed at. A name under Auth, as the auth
+    # application's own loggers are (Auth::WebAuthn, Auth::Reauth), and not a
+    # category of the logging config.
+    OMNIAUTH_LOGGER_NAME = 'Auth::OmniAuth'
 
     CONSOLE_OFF    = 'off'
     CONSOLE_LEVELS = %w[trace debug info warn error fatal].freeze
@@ -160,6 +171,34 @@ module Lanes
 
       listeners.reject! { |listener| listener.is_a?(WriteFailureMarker) }
       listeners << WriteFailureMarker.new(path)
+    end
+
+    # Send OmniAuth's log lines through the application's logging, in a
+    # process that captures its log to a file. Does nothing otherwise.
+    #
+    # OmniAuth's default logger is a stdlib Logger on STDOUT
+    # (OmniAuth::Configuration.default_logger) and the application sets no
+    # other, so on a full-mode lane every request and callback phase printed
+    # a `DEBUG -- omniauth:` line that no console setting could reach and
+    # that no file kept. This is a test-profile decision only: what a
+    # deployment's OmniAuth prints is not changed.
+    #
+    # Only the default logger is replaced, so a spec that sets its own keeps
+    # it, and a reset OmniAuth configuration is routed again on the next
+    # call. OmniAuth is never loaded here: a simple-mode process must keep
+    # not having it. The logger's own level is trace, so every line OmniAuth
+    # writes is generated, as it was on standard out; the destinations decide
+    # where it goes.
+    #
+    # @return [void]
+    def route_omniauth_logger
+      return unless Onetime::Initializers::SetupLoggers.owned_appenders.key?(:file)
+      return unless defined?(::OmniAuth) && ::OmniAuth.respond_to?(:config)
+
+      current = ::OmniAuth.config.logger
+      return unless current.instance_of?(::Logger) && current.progname == 'omniauth'
+
+      ::OmniAuth.config.logger = SemanticLogger[OMNIAUTH_LOGGER_NAME].tap { |logger| logger.level = :trace }
     end
 
     # Point the logger mail backend at the mail file, or leave it alone.

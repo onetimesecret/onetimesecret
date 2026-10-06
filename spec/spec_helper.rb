@@ -173,8 +173,16 @@ end
 #
 # A file that cannot be opened, or a value the runner would not have
 # exported, ends the process here with a message.
+#
+# OmniAuth logs through a logger of its own on standard out. Under a captured
+# run it is pointed at the application's logging before each example (it is
+# only loaded once a full-mode application boots, so not here). Without a log
+# file the hook returns at its first line.
 require_relative '../tests/lanes/support/log_capture'
 Lanes::LogCapture.install_or_abort!
+RSpec.configure do |config|
+  config.before { Lanes::LogCapture.route_omniauth_logger }
+end
 
 # Load test utilities
 Dir[File.join(spec_root, 'support', '*.rb')].each { |f| require f }

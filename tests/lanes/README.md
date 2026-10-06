@@ -232,8 +232,15 @@ destination.
 `app.log` is not a transcript of the run. These are in `last.log` only:
 
 - rspec's and tryouts' own output;
-- anything written directly to stdout or stderr. OmniAuth is one: it logs
-  through its own logger on stdout, not through the application's.
+- anything written directly to stdout or stderr.
+
+OmniAuth logs through a logger of its own on stdout, not through the
+application's. In an rspec process of a captured run that logger is pointed
+at the application's logging before each example, under the name
+`Auth::OmniAuth`: its lines are then in `app.log`, pass the log scrubber and
+follow `--log-console`. Without `--capture-logs`, in tryouts, and in a server
+process a spec starts, they stay on stdout. This is a test-profile setting;
+what a deployment's OmniAuth prints is unchanged.
 
 Events that `--log-console` kept off the console are in `app.log` only.
 
