@@ -343,16 +343,16 @@ export async function handleOrgRoleRequirement(
  * would read as a refusal. Held for 10 s like the session notices in
  * App.vue: the user has just been moved and needs time to read it.
  *
- * The notifications store has a single message slot. A notice already on
+ * The notifications store shows one message at a time. A notice already on
  * screen (App.vue's session-transition notice after a forced reload, an error
- * toast) is left in place rather than replaced; the redirect still happens.
+ * toast) is neither replaced nor allowed to swallow this one: the explanation
+ * queues behind it and shows when it clears. The redirect happens either way.
  */
 function notifyOrgRoleRefused(
   required: 'owner' | 'admin',
   outcome: 'refused' | 'unconfirmed'
 ): void {
   const notifications = useNotificationsStore();
-  if (notifications.isVisible) return;
 
   let key = 'web.organizations.access_unconfirmed_notice';
   if (outcome === 'refused') {
@@ -361,7 +361,7 @@ function notifyOrgRoleRefused(
         ? 'web.organizations.owner_required_notice'
         : 'web.organizations.admin_required_notice';
   }
-  notifications.show(globalComposer.t(key), 'info', 'top', 10000);
+  notifications.enqueue(globalComposer.t(key), 'info', 'top', 10000);
 }
 
 type OrganizationStore = ReturnType<typeof useOrganizationStore>;

@@ -4,7 +4,7 @@ import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { NotificationSeverity } from '@/types/ui/notifications';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties, storeToRefs } from 'pinia';
-import { inject, ref } from 'vue';
+import { inject, nextTick, ref } from 'vue';
 
 export type NotificationPosition = 'top' | 'bottom';
 
@@ -24,11 +24,26 @@ export type NotificationsStore = {
   // Actions
   init: () => void;
   show: (msg: string, sev: 'success' | 'error' | 'info', pos?: NotificationPosition, dur?: number) => void;
+  enqueue: (msg: string, sev: 'success' | 'error' | 'info', pos?: NotificationPosition, dur?: number) => void;
   hide: () => void;
   $reset: () => void;
 } & PiniaCustomProperties;
 
 const DEFAULT_AUTO_HIDE_MS = 5000;
+
+/**
+ * Upper bound on notices waiting behind the visible one. Three is already
+ * more than a user will read in sequence; past that the app is flooding, and
+ * holding more would only delay the ones that were accepted first.
+ */
+const MAX_PENDING = 3;
+
+interface PendingNotice {
+  msg: string;
+  sev: NotificationSeverity;
+  pos?: NotificationPosition;
+  dur?: number;
+}
 
 /**
  * Frontend notification management store integrated with server-side messages
@@ -53,7 +68,7 @@ const DEFAULT_AUTO_HIDE_MS = 5000;
  * ```
  */
 
-// eslint-disable-next-line max-lines-per-function
+// eslint-disable-next-line max-lines-per-function, max-statements
 export const useNotificationsStore = defineStore('notifications', () => {
   const $api = inject('api') as AxiosInstance; // eslint-disable-line
   const bootstrapStore = useBootstrapStore();
@@ -67,6 +82,10 @@ export const useNotificationsStore = defineStore('notifications', () => {
   const duration = ref(DEFAULT_AUTO_HIDE_MS);
   const _initialized = ref(false);
   let _hideTimerId: ReturnType<typeof setTimeout> | null = null;
+  // Notices waiting for the visible one to clear. Plain array, not a ref: the
+  // host renders only the visible slot and nothing else needs to react to it.
+  const _pending: PendingNotice[] = [];
+  let _drainScheduled = false;
 
   /**
    * Initialize notification store
@@ -123,7 +142,50 @@ export const useNotificationsStore = defineStore('notifications', () => {
     }
   }
 
-  /** Hide the current notification and reset its state. */
+  /**
+   * Show a notification without displacing one already on screen.
+   *
+   * Idle store: identical to show(). Otherwise the notice waits and is shown
+   * when the visible one clears, whether its timer fires or hide() is called
+   * (the host's dismiss button). A sticky notice (duration <= 0) holds the
+   * queue until hide(): there is no timer to drain it, and the sticky notice
+   * was made sticky because the user has to see it.
+   *
+   * The queue is bounded by MAX_PENDING; once full the newest arrival is
+   * refused rather than evicting an earlier one, so a caller that was accepted
+   * stays accepted. A message whose text matches the visible notice or one
+   * already waiting is skipped: the guards and App.vue can re-raise the same
+   * explanation on consecutive navigations, and repeating it is noise.
+   *
+   * show() keeps its replace-immediately semantics and leaves the queue alone.
+   */
+  function enqueue(
+    msg: string,
+    sev: NotificationSeverity,
+    pos?: NotificationPosition,
+    dur?: number
+  ) {
+    // A hidden store with notices still pending is mid-drain (see hide()):
+    // the new arrival joins the line instead of jumping it.
+    if (!isVisible.value && _pending.length === 0) {
+      show(msg, sev, pos, dur);
+      return;
+    }
+    if (message.value === msg) return;
+    if (_pending.some((entry) => entry.msg === msg)) return;
+    if (_pending.length >= MAX_PENDING) return;
+    _pending.push({ msg, sev, pos, dur });
+  }
+
+  /**
+   * Hide the current notification, then show the next queued one if any.
+   *
+   * The drain waits for the next tick so the host renders the hidden state in
+   * between. Showing the next notice synchronously would flip isVisible back
+   * to true before Vue flushes, and the toast's Transition and progress-bar
+   * animation would never observe the change: the queued text would swap in
+   * place with no enter animation, which is easy to miss.
+   */
   function hide() {
     if (_hideTimerId !== null) {
       clearTimeout(_hideTimerId);
@@ -133,14 +195,26 @@ export const useNotificationsStore = defineStore('notifications', () => {
     message.value = '';
     severity.value = null;
     duration.value = DEFAULT_AUTO_HIDE_MS;
+
+    if (_pending.length === 0 || _drainScheduled) return;
+    _drainScheduled = true;
+    void nextTick(() => {
+      _drainScheduled = false;
+      // show() or enqueue() put something on screen in the meantime; the
+      // queue drains when that notice clears. $reset() empties the queue.
+      if (isVisible.value) return;
+      const next = _pending.shift();
+      if (next) show(next.msg, next.sev, next.pos, next.dur);
+    });
   }
 
-  /** Reset store to initial state (clears message, severity, visibility, position). */
+  /** Reset store to initial state (clears message, severity, visibility, position, queue). */
   function $reset() {
     if (_hideTimerId !== null) {
       clearTimeout(_hideTimerId);
       _hideTimerId = null;
     }
+    _pending.length = 0;
     message.value = '';
     severity.value = null;
     isVisible.value = false;
@@ -162,6 +236,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
 
     // Actions
     show,
+    enqueue,
     hide,
     $reset,
   };
