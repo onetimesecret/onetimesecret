@@ -157,6 +157,21 @@ module Onetime
           Lower levels include all higher levels. Setting level to 'warn' will
           show warn, error, and fatal messages.
 
+          DESTINATIONS
+          ═════════════
+
+          The levels above decide which events are generated. Where they are
+          written is set under `destinations:` in etc/logging.yaml:
+
+          console   - stdout for servers, stderr for the CLI (on by default)
+          file      - appended to destinations.file.path (off by default)
+
+          Each destination takes an optional `level` and `formatter` of its
+          own. A destination level only filters events that were generated:
+          a file at level debug still needs the category at debug, for
+          example DEBUG_LOGGERS=Auth:debug. Audit events pass every
+          destination level.
+
           CONFIGURATION FILE
           ═══════════════════
 
