@@ -49,6 +49,24 @@ interface BannerIdOptions {
 }
 
 /**
+ * FNV-1a (32-bit) over the UTF-16 code units of `input`, as 8 hex characters.
+ *
+ * Not cryptographic and not meant to be: a banner ID only has to differ
+ * between broadcasts with different text. Used when Web Crypto is
+ * unavailable, which is every non-secure context (`crypto.subtle` is
+ * undefined on a plain-HTTP self-hosted install).
+ */
+export function fnv1a32Hex(input: string): string {
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < input.length; i++) {
+    hash ^= input.charCodeAt(i);
+    // 32-bit FNV prime multiply, kept in uint32 via Math.imul.
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return hash.toString(16).padStart(8, '0');
+}
+
+/**
  * Generates a unique banner ID based on content
  * @param options - Object containing prefix and content
  * @returns Generated banner ID
@@ -65,8 +83,11 @@ export async function generateBannerId(options: BannerIdOptions): Promise<string
   const { generateHash } = useHash();
   const hashHex = await generateHash(content);
 
-  // Use first 8 characters of the hash for the banner ID
-  const shortHash = hashHex ? hashHex.substring(0, 8) : 'fallback';
+  // Use first 8 characters of the hash for the banner ID. When Web Crypto is
+  // unavailable (non-secure context) fall back to a content hash rather than a
+  // constant: a shared constant ID made dismissing one global broadcast hide
+  // every future broadcast on HTTP installs (expirationDays 0 = permanent).
+  const shortHash = hashHex ? hashHex.substring(0, 8) : fnv1a32Hex(content);
 
   return `${prefix}-${shortHash}`;
 }

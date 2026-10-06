@@ -250,6 +250,17 @@ RSpec.describe Onetime::Middleware::CsrfResponseHeader do
       )
     end
 
+    # A refused reveal leaves the secret live, so the key in its path is a
+    # credential and must not reach the WARN log.
+    it 'redacts the capability key from the logged path' do
+      key = 'abcdef0123456789secretkey'
+      expect(OT).to receive(:lw).with(anything, hash_including(path: '/api/v3/secret/[REDACTED]/reveal'))
+
+      middleware.call(
+        env_for(method: 'POST', session: session, script_name: '/api/v3', path_info: "/secret/#{key}/reveal"),
+      )
+    end
+
     it 'does not log for a safe method' do
       expect(OT).not_to receive(:lw)
 

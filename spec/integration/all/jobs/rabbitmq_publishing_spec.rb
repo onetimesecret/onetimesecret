@@ -301,7 +301,10 @@ RSpec.describe 'RabbitMQ Publishing', :rabbitmq, type: :integration do
         )
 
         expect(result).to be false
-        expect(Onetime::Mail).to have_received(:deliver).with(:test_template, { email: 'test@example.com' }, sender_config: nil)
+        # The sync fallback lifts the locale exactly as EmailWorker does, so
+        # the recipient's language survives a RabbitMQ outage.
+        expect(Onetime::Mail).to have_received(:deliver)
+          .with(:test_template, { email: 'test@example.com' }, locale: OT.default_locale, sender_config: nil)
       end
     end
   end

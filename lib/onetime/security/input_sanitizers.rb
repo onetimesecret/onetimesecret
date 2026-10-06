@@ -58,8 +58,9 @@ module Onetime
       #
       # We store plain text and render plain text, but sanitize in the
       # middle using HTML-centric tools. Sanitize.fragment returns HTML
-      # (e.g. `R&D` → `R&amp;D`), so the final step decodes the entities
-      # it introduces to get back to plain text for storage.
+      # (`R&D` → `R&amp;D`, `x < 5` → `x &lt; 5`, U+00A0 → `&nbsp;`), so the
+      # final step decodes the entities it introduces to get back to plain
+      # text for storage.
       #
       # Strips all HTML tags and decodes HTML entities so the stored value
       # is raw text. Frontend frameworks (Vue, React) handle output encoding
@@ -77,16 +78,31 @@ module Onetime
         # preserves, and a final blanket decode would re-introduce them.
         result            = value.to_s
         max_decode_passes = 10
+        converged         = false
         max_decode_passes.times do
           decoded   = CGI.unescapeHTML(result)
           sanitized = Sanitize.fragment(decoded)
-          break if sanitized == result
+          if sanitized == result
+            converged = true
+            break
+          end
 
           result = sanitized
         end
-        # Sanitize encodes literal & as &amp; — decode just that entity
-        # so we store raw text (frontend frameworks handle output encoding)
-        result            = result.gsub('&amp;', '&').strip.gsub(WHITESPACE_NORMALIZE_PATTERN, ' ')
+
+        # Fail closed. A payload still changing after ten decode passes is
+        # nested encoding (`&amp;amp;...lt;script`), and decoding it below
+        # would hand back live markup. No legitimate text needs that depth.
+        return '' unless converged
+
+        # At the fixed point, decoding `result` gives text that Sanitize only
+        # re-encoded (it stripped nothing), so a full decode is safe and is
+        # what makes the stored value plain text again. Decode through
+        # Nokogiri, not CGI.unescapeHTML: Sanitize's serializer emits
+        # `&nbsp;` for U+00A0 and CGI leaves named entities alone, which
+        # used to store `a&nbsp;b` and `x &lt; 5` as literal entity text.
+        result = Nokogiri::HTML5.fragment(result).text
+        result = result.strip.gsub(WHITESPACE_NORMALIZE_PATTERN, ' ')
         max_length ? result.slice(0, max_length) : result
       end
 

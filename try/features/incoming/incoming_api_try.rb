@@ -137,6 +137,16 @@ rescue OT::FormError => e
 end
 #=> true
 
+## CreateIncomingSecret rejects a non-Hash secret payload as a form error, not a crash
+begin
+  logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, { 'secret' => ['Test secret content'] })
+  logic.process_params
+  :no_error
+rescue OT::FormError => ex
+  ex.message
+end
+#=> 'Incorrect payload format'
+
 ## CreateIncomingSecret raises error when feature is disabled
 begin
   logic = Incoming::Logic::CreateIncomingSecret.new(@strategy_result, {

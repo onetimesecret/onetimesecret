@@ -5,11 +5,13 @@
 // disturbing terminal states, legacy states, or time-based overrides.
 //
 // Precedence under test (StatusBadge `status` computed):
-//   1. composable expirationState 'expired'/'warning'  (highest)
-//   2. getDisplayStatus(state, expiresIn) — 'expiring_soon' when state is
+//   1. terminal display states 'revealed'/'burned' (the secret is gone, so
+//      the TTL clock no longer applies)  (highest)
+//   2. composable expirationState 'expired'/'warning'
+//   3. getDisplayStatus(state, expiresIn) — 'expiring_soon' when state is
 //      NEW and server-authoritative expiresIn < 1800
-//   3. is_previewed override — only when the display status is 'new'
-//   4. STATE_TO_DISPLAY mapping (terminal + legacy states pass through)
+//   4. is_previewed override — only when the display status is 'new'
+//   5. STATE_TO_DISPLAY mapping (legacy states pass through)
 
 import { mount } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -163,5 +165,35 @@ describe('StatusBadge — #3829 previewed display state', () => {
       makeRecord({ state: 'new', is_previewed: true, previewed: PREVIEWED_AT })
     );
     expect(wrapper.text().trim()).toBe('web.STATUS.expired');
+  });
+
+  // The receipt lives twice as long as the secret, so it is routinely opened
+  // after the secret's TTL has run out. A secret that was already revealed or
+  // burned has not "expired"; the clock-derived override must not hide the
+  // terminal state.
+  describe('terminal states beat the expiration clock', () => {
+    it('shows revealed, not expired, once the secret TTL has passed', () => {
+      expirationStateRef.value = 'expired';
+      const wrapper = mountBadge(makeRecord({ state: 'revealed' }));
+      expect(wrapper.text().trim()).toBe('web.STATUS.revealed');
+    });
+
+    it('shows burned, not expiring soon, inside the warning window', () => {
+      expirationStateRef.value = 'warning';
+      const wrapper = mountBadge(makeRecord({ state: 'burned' }));
+      expect(wrapper.text().trim()).toBe('web.STATUS.burned');
+    });
+
+    it('treats the legacy received alias as revealed', () => {
+      expirationStateRef.value = 'expired';
+      const wrapper = mountBadge(makeRecord({ state: 'received' }));
+      expect(wrapper.text().trim()).toBe('web.STATUS.revealed');
+    });
+
+    it('still reports expired for a secret that was never revealed', () => {
+      expirationStateRef.value = 'expired';
+      const wrapper = mountBadge(makeRecord({ state: 'new' }));
+      expect(wrapper.text().trim()).toBe('web.STATUS.expired');
+    });
   });
 });
