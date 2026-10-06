@@ -24,6 +24,8 @@ require_relative '../middleware/domain_strategy'
 # Every selection above (header, cache hit, session, domain, fallbacks) is
 # subject to the membership's domain scope when the request has a custom
 # domain. See #scope_permits? for where the request's domains come from.
+# On an unregistered host, a display domain that was read and has no
+# record, every organization is withheld (#4225).
 # When the scope leaves no organization, the context carries
 # domain_scope_refused: true and auth_org does not select one either.
 #
@@ -54,6 +56,13 @@ module Onetime
     module OrganizationLoader
       # Cache TTL for organization context (seconds)
       CACHE_TTL = 300
+
+      # What #request_scope_domains answers on an unregistered host: the
+      # display domain was read and has no record (#4225). The nil element
+      # reaches OrganizationMembership#can_access_domain?, which refuses a
+      # nil domain, so #scope_permits? refuses every membership, org-scoped
+      # ones included, and #scope_withheld_any? reports the refusal.
+      UNREGISTERED_HOST = [nil].freeze
 
       # Load organization context for authenticated customer
       #
@@ -309,7 +318,8 @@ module Onetime
       # request: true when the request has no custom domain, otherwise only
       # when the membership can access every one of them
       # (OrganizationMembership#can_access_domain?). No membership is a
-      # refusal.
+      # refusal, and so is an unregistered host (UNREGISTERED_HOST): its nil
+      # domain is one no membership can access.
       #
       # @param org [Onetime::Organization]
       # @param customer [Onetime::Customer]
@@ -349,10 +359,13 @@ module Onetime
       #   tenant domain appears.
       #
       # Usually zero or one record; two when the Host header and the display
-      # domain name different custom domains.
+      # domain name different custom domains. UNREGISTERED_HOST when the
+      # display domain was read and has no record (#4225), whatever the Host
+      # header names.
       #
       # @param env [Hash, nil] Rack environment
-      # @return [Array<Onetime::CustomDomain>]
+      # @return [Array<Onetime::CustomDomain>] the request's custom domains,
+      #   or UNREGISTERED_HOST
       def request_scope_domains(env)
         return [] unless env
 
@@ -368,6 +381,15 @@ module Onetime
         # raise here as the Host read does rather than check no scope at all.
         published = env[Onetime::CustomDomain::Lookup::ENV_KEY]
         published.record! if published.is_a?(Onetime::CustomDomain::Lookup)
+
+        # When that read found no record, the request is on a host the
+        # deployment does not serve. Behind a proxy that rewrites Host to
+        # the origin target the Host read found nothing either, and an empty
+        # scope would admit every organization, as on a canonical host.
+        if unregistered_display_host?(env, published)
+          OT.ld "[OrganizationLoader] Unregistered host #{published.host}: withholding every organization"
+          return UNREGISTERED_HOST
+        end
 
         if env['onetime.domain_strategy'].to_s == 'custom'
           resolved = env['onetime.custom_domain']
@@ -394,6 +416,23 @@ module Onetime
         )
 
         Onetime::CustomDomain::Lookup.for_host(env, host).record!
+      end
+
+      # Whether the request's display domain was read and has no record:
+      # DomainStrategy classified it :invalid and published an absent
+      # lookup for it. An :invalid request with no lookup published is not
+      # one: the host could not be detected or parsed, so nothing was read.
+      # Nor is a failed read, which #request_scope_domains raises on first.
+      #
+      # @param env [Hash] Rack environment
+      # @param published [Onetime::CustomDomain::Lookup, nil] the value under
+      #   Onetime::CustomDomain::Lookup::ENV_KEY
+      # @return [Boolean]
+      def unregistered_display_host?(env, published)
+        return false unless env['onetime.domain_strategy'].to_s == 'invalid'
+        return false unless published.is_a?(Onetime::CustomDomain::Lookup) && published.absent?
+
+        published.host == env['onetime.display_domain'].to_s
       end
     end
   end
