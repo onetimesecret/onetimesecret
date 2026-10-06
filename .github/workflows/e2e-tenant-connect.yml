@@ -74,6 +74,9 @@ on:
   schedule:
     - cron: '43 4 * * *'
   push:
+    # Every commit on main and every release tag runs this lane, whatever
+    # the commit touched.
+    branches: [main]
     tags: ['v*']
   merge_group:
     types: [checks_requested]

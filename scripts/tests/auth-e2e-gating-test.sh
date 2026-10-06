@@ -64,8 +64,10 @@ for filename, test_id, verdict_id, cron, test_name in workflows:
     check(set(re.findall(r"^  ([a-z_]+):", events, re.M)) == {
         "workflow_dispatch", "pull_request", "schedule", "push", "merge_group"
     }, f"{filename}: required event coverage")
-    check(not re.search(r"^ +(?:paths|paths-ignore|branches|branches-ignore):", events, re.M),
+    check(not re.search(r"^ +(?:paths|paths-ignore):", events, re.M),
           f"{filename}: PR verdict must not be workflow-filtered")
+    check(not re.search(r"^ +(?:branches|branches-ignore):", block(events, "pull_request", 2), re.M),
+          f"{filename}: stacked PRs get a verdict whatever their base branch")
     check(not block(events, "workflow_dispatch", 2).strip(),
           f"{filename}: manual dispatch remains unchanged")
     check(scalar(block(events, "pull_request", 2), "types", 4)
@@ -77,6 +79,8 @@ for filename, test_id, verdict_id, cron, test_name in workflows:
           f"{filename}: no label events: the detector reads the PR's labels live")
     check(block(events, "schedule", 2).strip() == f"- cron: '{cron}'",
           f"{filename}: staggered daily full coverage")
+    check(scalar(block(events, "push", 2), "branches", 4) == "[main]",
+          f"{filename}: every commit on main gets full coverage")
     check(scalar(block(events, "push", 2), "tags", 4) == "['v*']",
           f"{filename}: release tags get full coverage")
     check(scalar(block(events, "merge_group", 2), "types", 4) == "[checks_requested]",
