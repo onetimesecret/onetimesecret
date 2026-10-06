@@ -12,14 +12,24 @@ module Onetime
       #
       class Logger < Base
         class << self
-          # Where delivered emails are written. A spec run that wants a
-          # quiet log points this at the null device instead of stubbing
-          # `puts` (see spec/spec_helper.rb).
+          # Where delivered emails are written. A test run that keeps them
+          # off the console points this at a file instead of stubbing `puts`.
+          # nil puts the default back.
           attr_writer :output
 
           # Read per delivery, so a reassigned $stdout is honored.
           def output
             @output || $stdout
+          end
+
+          # Write to +io+ for the duration of the block, then put back
+          # whatever was set before. nil selects the default for the block.
+          def with_output(io)
+            previous = @output
+            @output  = io
+            yield
+          ensure
+            @output = previous
           end
         end
 
