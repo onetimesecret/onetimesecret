@@ -42,10 +42,7 @@ module Onetime
           # @param key [String] Limit key (e.g., "teams.max")
           # @return [Numeric] Limit value, Float::INFINITY for "unlimited"
           def materialized_limit_for(key)
-            val = limits_plan[key]
-            return 0 if val.nil?
-
-            val == 'unlimited' ? Float::INFINITY : val.to_i
+            parse_limit_value(limits_plan[key])
           end
 
           # Get limit for a resource (org-scoped)
@@ -156,22 +153,12 @@ module Onetime
             plan = ::Billing::Plan.load(test_planid)
             if plan
               limits_hash = plan.limits.hgetall || {}
-              val         = limits_hash[key]
-              return 0 if val.nil? || val.to_s.empty?
-              return Float::INFINITY if val == 'unlimited'
-
-              return val.to_i
+              return parse_limit_value(limits_hash[key])
             end
 
             # Fall back to billing.yaml config when Stripe cache is empty
             config_plan = ::Billing::Plan.load_from_config(test_planid)
-            if config_plan
-              val = config_plan[:limits][key]
-              return 0 if val.nil?
-              return Float::INFINITY if val == 'unlimited'
-
-              return val.to_i
-            end
+            return parse_limit_value(config_plan[:limits][key]) if config_plan
 
             0
           end

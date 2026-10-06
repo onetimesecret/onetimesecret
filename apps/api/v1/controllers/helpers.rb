@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../../../../lib/onetime/helpers/session_helpers'
+require_relative '../../../../lib/onetime/application/request_logger'
 
 module V1
   unless defined?(V1::BADAGENTS)
@@ -78,13 +79,13 @@ module V1
     rescue OT::MissingSecret
       secret_not_found_response
     rescue OT::RecordNotFound => ex
-      OT.ld "[carefully] RecordNotFound: #{ex.message} (#{req.path})"
+      OT.ld "[carefully] RecordNotFound: #{ex.message} (#{redacted_request_path})"
       not_found_response ex.message
     rescue Familia::FieldTypeError => ex
       # session may be a Hash fallback when no session middleware is available
       session_id       = (session.respond_to?(:id) && session.id&.to_s) || req.cookies['onetime.session'] || 'unknown'
       short_session_id = session_id.length <= 10 ? session_id : session_id[0, 10] + '...'
-      OT.le "[attempt-saving-non-string-to-db] #{obscured} (#{req.client_ipaddress}): #{short_session_id} (#{req.path})"
+      OT.le "[attempt-saving-non-string-to-db] #{obscured} (#{req.client_ipaddress}): #{short_session_id} (#{redacted_request_path})"
 
       # Track attempts to save non-string data to the database as a warning error
       capture_error ex, :warning
@@ -111,7 +112,7 @@ module V1
       # session may be a Hash fallback when no session middleware is available
       session_id       = (session.respond_to?(:id) && session.id&.to_s) || req.cookies['onetime.session'] || 'unknown'
       short_session_id = session_id.length <= 10 ? session_id : session_id[0, 10] + '...'
-      OT.le "#{ex.class}: #{ex.message} -- #{req.path} -- #{req.client_ipaddress} #{custid} #{short_session_id} #{locale} #{content_type}"
+      OT.le "#{ex.class}: #{ex.message} -- #{redacted_request_path} -- #{req.client_ipaddress} #{custid} #{short_session_id} #{locale} #{content_type}"
       OT.le ex.backtrace.join("\n")
 
       # Track the unexected errors
@@ -193,9 +194,14 @@ module V1
     def stringify_request_details(req)
       header_details = collect_proxy_header_details(req.env)
 
+      # Capability routes carry the secret/receipt key in the path, and that
+      # key is a live credential (v1 ShowReceipt has no owner check; the
+      # receipt still exposes secret_key until reveal). Log the full
+      # mount+path through the same redactor the request logger uses rather
+      # than the bare PATH_INFO.
       details = [
         req.ip,
-        "#{req.request_method} #{req.path_info}",
+        "#{req.request_method} #{Onetime::Application::RequestLogger.redacted_path(req)}",
         "Proxy[#{header_details}]",
       ]
 
@@ -278,6 +284,13 @@ module V1
     # to disabled when config is absent — account features are rendered
     # unavailable unless authentication is explicitly configured.
     # See lib/onetime/helpers/session_helpers.rb.
+
+    # The request path with capability keys replaced, for log lines. Never
+    # log req.path / req.path_info directly: on /secret, /receipt, /private
+    # and /metadata routes the path IS the credential.
+    def redacted_request_path
+      Onetime::Application::RequestLogger.redacted_path(req)
+    end
 
     def log_customer_activity
       return if cust.nil? || cust.anonymous?
