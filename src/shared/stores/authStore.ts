@@ -17,6 +17,7 @@ import {
   isClockRegression,
   pairOf,
   parseCompleteSnapshot,
+  type RefreshKindForOrdering,
   type SnapshotDecision,
 } from '@/utils/snapshotOrdering';
 import { addBreadcrumb } from '@sentry/vue';
@@ -67,6 +68,12 @@ import { useBootstrapStore } from './bootstrapStore';
  * - An `auth-mutation` request aborts whatever is in flight and starts again,
  *   so a response that began before a login/logout/MFA step cannot land after
  *   it. Local sign-out invalidates the generation too.
+ * - A `session-mutation` request aborts the flight too: this tab has just
+ *   changed server-side session state that the snapshot carries (the plan
+ *   preview override), and a response served before that write would apply
+ *   the pre-mutation values as if they were current. Unlike `auth-mutation`
+ *   it is classified as ordinary, so a session that ended or was replaced
+ *   still takes the forced page load path.
  * - A failure (network, timeout, 5xx incl. 503, a payload that fails the
  *   contract, or a snapshot that says `unavailable`) mutates nothing. It is
  *   retried with exponential backoff and full jitter, never sooner than the
@@ -123,7 +130,7 @@ export const AUTH_CHECK_CONFIG = {
 /** Why the tab took the forced page load path (ADR-046). */
 export type ForcedPageLoadCause = SessionTransition | 'anomaly';
 
-export type RefreshKind = 'ordinary' | 'auth-mutation';
+export type RefreshKind = 'ordinary' | 'auth-mutation' | 'session-mutation';
 
 /** Why a refresh was requested. Diagnostic only; it never changes the outcome. */
 export type RefreshReason =
@@ -597,7 +604,9 @@ export const useAuthStore = defineStore('auth', () => {
       return inFlight.promise;
     }
 
-    if (request.kind === 'auth-mutation') inFlight?.controller.abort();
+    // Either mutation kind must postdate the write it follows, so a flight
+    // that may have been served before it cannot answer for it.
+    if (request.kind !== 'ordinary') inFlight?.controller.abort();
     clearRetry();
 
     generation += 1;
@@ -770,7 +779,7 @@ export const useAuthStore = defineStore('auth', () => {
     const status = effectiveAuthStatus(payload);
     const decision = classifySnapshot({
       generationIsCurrent: mine === generation,
-      kind: request.kind,
+      kind: orderingKind(request.kind),
       watermark,
       retiredEpochs: bootstrapStore.retiredEpochs,
       priorSession: bootstrapStore.lastSnapshotReportedSession,
@@ -1255,6 +1264,15 @@ export const useAuthStore = defineStore('auth', () => {
     $reset,
   };
 });
+
+/**
+ * Only an authentication mutation may accept a session that ended or was
+ * replaced in place. A session-mutation changed nothing about who is signed
+ * in, so its response is ordered like an ordinary one.
+ */
+function orderingKind(kind: RefreshKind): RefreshKindForOrdering {
+  return kind === 'auth-mutation' ? 'auth-mutation' : 'ordinary';
+}
 
 /**
  * The 503 GET /bootstrap/me answers when the ordering pair cannot be

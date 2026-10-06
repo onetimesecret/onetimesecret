@@ -1,37 +1,9 @@
 // src/tests/setup-components.ts
 
-import { config } from '@vue/test-utils';
-import { createI18n } from 'vue-i18n';
 import { vi } from 'vitest';
 
-// Create a test i18n instance
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  fallbackLocale: 'en',
-  messages: {
-    en: {
-      // Add minimal translations for component tests
-      'toggle-dark-mode': 'Toggle dark mode',
-      'switch-to-blank-mode': 'Switch to light mode',
-      'blank-mode-enabled': 'Light mode enabled',
-      'dark-mode-enabled': 'Dark mode enabled',
-      theme: {
-        toggle: 'Toggle theme',
-        dark: 'Dark mode',
-        light: 'Light mode',
-      },
-      common: {
-        loading: 'Loading...',
-        submit: 'Submit',
-        cancel: 'Cancel',
-      },
-    } as never,
-  },
-});
-
-// Configure Vue Test Utils global options
-config.global.plugins = [i18n];
+// Specs own i18n installation via createTestI18n() (ADR-014). Vue Test Utils
+// concatenates global and per-mount plugins, so a default here installs twice.
 
 // Mock localStorage for theme and other component needs
 // Create a functional localStorage mock that actually stores data
