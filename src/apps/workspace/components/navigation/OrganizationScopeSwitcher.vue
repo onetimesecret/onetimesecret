@@ -132,6 +132,14 @@ const orgById = computed<Record<string, Organization>>(() => {
 const orgForId = (id: string): Organization | undefined => orgById.value[id];
 
 /**
+ * Whether the settings route (/org/:extid, requiresOrgRole: 'admin') will let
+ * this user in: the org has an extid to navigate to and the user is its owner
+ * or an admin. An unknown role gets no gear.
+ */
+const canOpenSettings = (org: Organization): boolean =>
+  !!org.extid && (org.current_user_role === 'owner' || org.current_user_role === 'admin');
+
+/**
  * The normalized rows handed to the engine. The engine never sees a raw org.
  */
 const organizationItems = computed<ScopeSwitcherItem[]>(() =>
@@ -139,8 +147,8 @@ const organizationItems = computed<ScopeSwitcherItem[]>(() =>
     id: idForOrg(org),
     label: getOrganizationDisplayName(org),
     isCurrent: isCurrentOrganization(org),
-    // Gear (settings) shows for orgs that carry an extid to navigate to.
-    hasSettings: !!org.extid,
+    // Gear (settings) shows only on rows whose settings page would open.
+    hasSettings: canOpenSettings(org),
   }))
 );
 
