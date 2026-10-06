@@ -1062,6 +1062,98 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
         expect(handle).to be_closed
         expect(file_log).to include('after close')
       end
+
+      # A write to the open file that fails. SemanticLogger rescues what an
+      # appender raises and prints one "Failed to log to appender" line per
+      # event on its internal logger, for any exception at all; the sink
+      # reports the I/O errors itself.
+      describe 'a write that fails' do
+        let(:listener_calls) { [] }
+
+        # The file handle is replaced by one whose write raises. The stock
+        # appender retries once after a reopen, which would put a working
+        # handle back, so reopen does nothing here. A plain object, not a
+        # double: the sink closes it after the example, on removal.
+        def failing_sink(error)
+          install(console: { 'enabled' => false }, file: {})
+          sink   = registry.fetch(:file).appender
+          broken = Object.new
+          broken.define_singleton_method(:write) { |*| raise error }
+          broken.define_singleton_method(:close) { nil }
+          sink.instance_variable_set(:@file, broken)
+          allow(sink).to receive(:reopen)
+          sink
+        end
+
+        def event
+          SemanticLogger::Log.new('SetupLoggersSpec', :error).tap { |log| log.assign(message: 'an event the file could not take') }
+        end
+
+        def listen
+          described_class::FileSink.write_failure_listeners << ->(file_name, error) { listener_calls << [file_name, error.class] }
+        end
+
+        it 'says so once per process on standard error, naming the file and the error' do
+          sink = failing_sink(Errno::ENOSPC.new('probe'))
+          prefix = Regexp.escape("#{described_class::FileSink::WRITE_FAILURE_PREFIX} #{log_path}: Errno::ENOSPC: ")
+          line   = /\A#{prefix}.*probe.*\n\z/
+
+          expect { expect { sink.log(event) }.to raise_error(Errno::ENOSPC) }.to output(line).to_stderr
+          expect { expect { sink.log(event) }.to raise_error(Errno::ENOSPC) }.not_to output.to_stderr
+          expect(described_class::FileSink::WRITE_FAILURE_PREFIX).to eq('[SetupLoggers] Cannot write to the log file')
+        end
+
+        # A forked child inherits the sink, and with it the parent's record
+        # of having reported.
+        it 'says so again in another process' do
+          sink = failing_sink(Errno::ENOSPC.new('probe'))
+          expect { expect { sink.log(event) }.to raise_error(Errno::ENOSPC) }.to output.to_stderr
+
+          allow(Process).to receive(:pid).and_return(Process.pid + 1)
+
+          expect { expect { sink.log(event) }.to raise_error(Errno::ENOSPC) }.to output(/Cannot write to the log file/).to_stderr
+        end
+
+        it 'calls each listener with the path and the error, for every failed write' do
+          listen
+          sink = failing_sink(IOError.new('closed stream'))
+
+          expect do
+            2.times { expect { sink.log(event) }.to raise_error(IOError) }
+          end.to output.to_stderr
+
+          expect(listener_calls).to eq([[log_path, IOError], [log_path, IOError]])
+        end
+
+        # Bunny raises ShutdownSignal (a StandardError) into its reader
+        # thread when a session closes, and the thread may be inside an
+        # appender at that moment. That is not a failed write.
+        it 'does not report an error that is not an I/O error' do
+          listen
+          interrupted = Class.new(StandardError)
+          sink        = failing_sink(interrupted.new('interrupted while logging'))
+
+          expect { expect { sink.log(event) }.to raise_error(interrupted) }.not_to output.to_stderr
+          expect(listener_calls).to be_empty
+        end
+
+        it 'raises the write error when a listener raises' do
+          described_class::FileSink.write_failure_listeners << ->(*) { raise 'listener failed' }
+          listen
+          sink = failing_sink(Errno::EIO.new('probe'))
+
+          expect { expect { sink.log(event) }.to raise_error(Errno::EIO) }.to output.to_stderr
+        end
+
+        it 'reports nothing for a write that succeeds' do
+          listen
+          install(console: { 'enabled' => false }, file: {})
+
+          expect { emitter.error('written') }.not_to output.to_stderr
+          expect(listener_calls).to be_empty
+          expect(file_log).to include('written')
+        end
+      end
     end
 
     describe '.install_destinations' do

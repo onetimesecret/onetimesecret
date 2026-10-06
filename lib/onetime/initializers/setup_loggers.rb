@@ -108,13 +108,61 @@ module Onetime
       # SemanticLogger.remove_appender would leave the replaced file open
       # until garbage collection. A closed sink that is logged to again
       # reopens its file, as the stock appender does on first use.
+      #
+      # It also reports a write that fails. SemanticLogger rescues whatever an
+      # appender raises and mentions it once per event on its internal logger
+      # ("Failed to log to appender"), in the same words for a full disk as
+      # for a thread that was interrupted while logging. An I/O error on the
+      # log file is the one that loses events from then on, so #log says so
+      # itself: one line on standard error per process, and a call to each
+      # listener, for SystemCallError and IOError only. The error is raised
+      # again, so SemanticLogger handles it as it always has.
       class FileSink < SemanticLogger::Appender::File
+        # Start of the line printed on standard error; the file's path and
+        # the error follow. The lane runner looks for it (tests/lanes/run).
+        WRITE_FAILURE_PREFIX = '[SetupLoggers] Cannot write to the log file'
+
+        @write_failure_listeners = []
+
+        class << self
+          # Callables run with (file_name, exception) on every failed write,
+          # on the thread that was writing. Add one with <<.
+          #
+          # @return [Array<#call>]
+          attr_reader :write_failure_listeners
+        end
+
+        def log(log)
+          super
+        rescue SystemCallError, IOError => ex
+          report_write_failure(ex)
+          raise
+        end
+
         def close
           @file&.close
         rescue IOError
           nil
         ensure
           @file = nil
+        end
+
+        private
+
+        # Reporting must not replace the write error it reports, so nothing
+        # raised here leaves this method.
+        def report_write_failure(error)
+          unless @write_failure_reported_in == Process.pid
+            @write_failure_reported_in = Process.pid
+            # Not Kernel#warn: that prints nothing under -W0.
+            $stderr.write(
+              "#{WRITE_FAILURE_PREFIX} #{file_name}: #{error.class}: #{error.message}. " \
+              "Log events are being lost. Reported once per process.\n",
+            )
+          end
+          self.class.write_failure_listeners.each { |listener| listener.call(file_name, error) }
+        rescue StandardError
+          nil
         end
       end
 
