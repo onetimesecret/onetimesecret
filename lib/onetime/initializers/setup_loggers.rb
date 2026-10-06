@@ -21,6 +21,15 @@ module Onetime
     # overrides. Logger instances are cached because SemanticLogger[]
     # creates new instances on each call.
     #
+    # Two separate controls decide what is written where:
+    #
+    #   Category levels (`loggers:`, LOG_LEVEL, DEBUG_*) decide which events
+    #   are generated at all.
+    #
+    #   Destinations (`destinations:` — console and file) each write the
+    #   generated events that pass their own optional threshold. A destination
+    #   cannot recover an event its category rejected.
+    #
     # Environment variables:
     #   LOG_LEVEL        - Global default level (trace/debug/info/warn/error/fatal)
     #   ONETIME_DEBUG    - Sets global default to debug when truthy
@@ -73,8 +82,45 @@ module Onetime
         'Workers' => 'DEBUG_WORKERS',
       }.freeze
 
+      # An appender this initializer added, with the settings it was built
+      # from. `identity` is compared on a rerun to tell an unchanged
+      # destination from a changed one.
+      OwnedAppender = Data.define(:appender, :identity)
+
+      # SemanticLogger's file appender with a working #close.
+      #
+      # The stock appender (4.18) inherits Subscriber#close, a no-op, so
+      # SemanticLogger.remove_appender would leave the replaced file open
+      # until garbage collection. A closed sink that is logged to again
+      # reopens its file, as the stock appender does on first use.
+      class FileSink < SemanticLogger::Appender::File
+        def close
+          @file&.close
+        rescue IOError
+          nil
+        ensure
+          @file = nil
+        end
+      end
+
+      # role (:console, :file) => OwnedAppender. Process-wide, like the
+      # SemanticLogger appender list it describes: every instance of this
+      # initializer reconciles against the same record.
+      @owned_appenders = {}
+
       class << self
-        attr_reader :logger_definitions
+        attr_reader :logger_definitions, :owned_appenders
+
+        # Install the configured log destinations in a process that does not
+        # run boot (a spec helper, a script). See #install_destinations.
+        #
+        # @param config [Hash, nil] logging config; nil loads the resolved
+        #   logging config files, as boot does
+        # @return [void]
+        def install_destinations(config = nil)
+          initializer = new
+          config.nil? ? initializer.install_destinations : initializer.install_destinations(config)
+        end
       end
 
       def execute(_context)
@@ -91,8 +137,7 @@ module Onetime
         SemanticLogger.application = 'onetimesecret'
 
         configure_default_level(config)
-        configure_appender(config)
-        configure_audit_syslog_appender(config)
+        install_destinations(config)
 
         cached_loggers = create_cached_loggers(config)
         apply_env_overrides(cached_loggers)
@@ -126,6 +171,36 @@ module Onetime
         SemanticLogger.reopen if defined?(SemanticLogger)
       rescue StandardError => ex
         warn "[SetupLoggers] Error during reconnect: #{ex.message}"
+      end
+
+      # Bring the appenders in line with the logging config: the console and
+      # file destinations from the `destinations` block, and the optional
+      # audit syslog appender.
+      #
+      # This is all of the initializer's appender handling and nothing else:
+      # category levels, the default level and the external-library loggers
+      # are left alone. It is safe to call again. An unchanged destination is
+      # kept (no duplicate), a changed one is replaced (no stale file path),
+      # and an appender this initializer did not add is never touched.
+      #
+      # @param config [Hash] logging config (string keys, as loaded from YAML)
+      # @return [void]
+      # @raise [Onetime::ConfigError] for an invalid destination setting, a
+      #   log file that cannot be opened, or a configuration that leaves audit
+      #   events without any destination
+      def install_destinations(config = load_logging_config)
+        Onetime::LogScrubber.register!
+
+        # Both are read and validated before any appender changes. The
+        # console goes first, so that it is in place to show the error when
+        # the log file cannot be opened.
+        console = console_destination(config)
+        file    = file_destination(config)
+
+        configure_console_appender(console)
+        configure_file_appender(file)
+        configure_audit_syslog_appender(config)
+        ensure_audit_destination!
       end
 
       private
@@ -169,18 +244,217 @@ module Onetime
         SemanticLogger.backtrace_level = ENV['BACKTRACE_LEVEL']&.to_sym || :error
       end
 
-      def configure_appender(config)
-        # Skip if console appender already exists (prevents duplicates during test reruns)
-        return if SemanticLogger.appenders.any?(SemanticLogger::Appender::IO)
+      # The console destination: one appender on stdout, or on stderr under
+      # the CLI (see #log_device).
+      #
+      # A console appender that someone else added — a tryout's
+      # `add_appender(io: $stdout)` — already is the console. SemanticLogger
+      # refuses a second one, so ours is left out rather than requested and
+      # refused with a warning.
+      #
+      # @param destination [Hash, nil] from #console_destination; nil = disabled
+      def configure_console_appender(destination)
+        destination = nil if destination && foreign_console_appender?
 
-        formatter = build_formatter(config)
+        reconcile(:console, destination) do
+          SemanticLogger::Appender.factory(
+            io: log_device,
+            formatter: truncating_formatter(destination[:formatter], destination[:backtrace_lines]),
+            filter: destination_filter(destination[:level]),
+          )
+        end
+      end
 
-        # Async appender handles logging in background thread. The reopen hook in
-        # reconnect method ensures fresh threads after fork, preventing zombie references.
-        SemanticLogger.add_appender(
-          io: log_device,
-          formatter: formatter,
+      # The file destination: every admitted event, appended to one file.
+      #
+      # The file is opened here, not on the first event. SemanticLogger opens
+      # lazily, does not create directories, and reports a failed write only
+      # on stderr; a log file that was asked for and cannot be written must
+      # stop setup instead.
+      #
+      # @param destination [Hash, nil] from #file_destination; nil = disabled
+      def configure_file_appender(destination)
+        reconcile(:file, destination) do
+          # Never truncated: several processes may append to the same file
+          # (a forked server, test processes run in sequence). Each line is
+          # one write on an O_APPEND handle.
+          sink = FileSink.new(
+            destination[:path],
+            append: true,
+            formatter: destination[:formatter],
+            filter: destination_filter(destination[:level]),
+          )
+          open_file_sink(sink)
+        end
+      end
+
+      def open_file_sink(sink)
+        sink.reopen
+        sink
+      rescue SystemCallError, IOError, ArgumentError => ex
+        raise Onetime::ConfigError,
+          "Cannot open the log file #{sink.file_name} (logging destinations.file.path): " \
+          "#{ex.class}: #{ex.message}. The directory must exist and be writable."
+      end
+
+      # Make the appender list match one destination's settings.
+      #
+      # The replacement is built by the block BEFORE the current appender is
+      # removed, so a destination that cannot be built raises with the current
+      # one still in place.
+      #
+      # @param role [Symbol] :console or :file
+      # @param wanted [Hash, nil] the destination's settings; nil = disabled
+      # @yieldreturn [SemanticLogger::Subscriber] the appender for `wanted`
+      def reconcile(role, wanted)
+        owned = owned_appender(role)
+        return if owned&.identity == wanted
+
+        replacement = yield if wanted
+
+        if owned
+          self.class.owned_appenders.delete(role)
+          SemanticLogger.remove_appender(owned.appender) # removes and closes
+        end
+        return unless replacement && SemanticLogger.add_appender(appender: replacement)
+
+        self.class.owned_appenders[role] = OwnedAppender.new(appender: replacement, identity: wanted)
+      end
+
+      # The appender this initializer added for a role, if SemanticLogger
+      # still has it. A record whose appender was removed behind our back
+      # (SemanticLogger.close, clear_appenders!) is dropped, and the appender
+      # closed, so the next reconcile adds a fresh one.
+      def owned_appender(role)
+        owned = self.class.owned_appenders[role]
+        return unless owned
+        return owned if SemanticLogger.appenders.any? { |appender| appender.equal?(owned.appender) }
+
+        self.class.owned_appenders.delete(role)
+        owned.appender.close
+        nil
+      end
+
+      def owned_appender?
+        [:console, :file].any? { |role| owned_appender(role) }
+      end
+
+      def foreign_console_appender?
+        ours = owned_appender(:console)&.appender
+        SemanticLogger.appenders.any? do |appender|
+          !appender.equal?(ours) && appender.respond_to?(:console_output?) && appender.console_output?
+        end
+      end
+
+      def audit_syslog_appender?
+        # Matched by class NAME: the constant is only defined once
+        # add_appender has loaded the appender file.
+        SemanticLogger.appenders.any? { |appender| appender.class.name.to_s.end_with?('Appender::Syslog') }
+      end
+
+      # Settings of the console destination, or nil when it is disabled.
+      #
+      # The stream is recorded by name, not by object: a spec that swaps
+      # $stdout for a StringIO around a command must not make a rerun move
+      # the appender onto that temporary object.
+      def console_destination(config)
+        return unless destination_enabled?(config, 'console', default: true)
+
+        {
+          stream: console_stream,
+          level: destination_level(config, 'console'),
+          formatter: destination_formatter(config, 'console') || default_console_formatter(config),
+          backtrace_lines: backtrace_limit,
+        }
+      end
+
+      # Settings of the file destination, or nil when it is disabled.
+      #
+      # A relative path is resolved against the application root, so the file
+      # does not depend on the directory the process was started from.
+      def file_destination(config)
+        return unless destination_enabled?(config, 'file', default: false)
+
+        path = destination_settings(config, 'file')['path'].to_s.strip
+        if path.empty?
+          raise Onetime::ConfigError,
+            'logging destinations.file.enabled is true but destinations.file.path is not set'
+        end
+
+        {
+          path: File.expand_path(path, Onetime::HOME),
+          level: destination_level(config, 'file'),
+          # Plain text unless told otherwise: a file is not a terminal.
+          formatter: destination_formatter(config, 'file') || :default,
+        }
+      end
+
+      def destination_settings(config, role)
+        settings = config.dig('destinations', role)
+        settings.is_a?(Hash) ? settings : {}
+      end
+
+      def destination_enabled?(config, role, default:)
+        Onetime::Utils::Strings.strict_bool!(
+          "logging destinations.#{role}.enabled",
+          destination_settings(config, role)['enabled'],
+          default: default,
         )
+      end
+
+      # @return [Symbol, nil] the destination's threshold; nil = none
+      def destination_level(config, role)
+        level = destination_settings(config, role)['level'].to_s.strip.downcase
+        return if level.empty?
+        return level.to_sym if SemanticLogger::Levels::LEVELS.include?(level.to_sym)
+
+        raise Onetime::ConfigError,
+          "logging destinations.#{role}.level is not a log level. " \
+          "Use one of #{SemanticLogger::Levels::LEVELS.join('/')}, or leave it unset for no threshold."
+      end
+
+      # @return [Symbol, nil] the destination's own formatter; nil = unset
+      def destination_formatter(config, role)
+        formatter = destination_settings(config, role)['formatter'].to_s.strip
+        return if formatter.empty?
+
+        SemanticLogger::Formatters.factory(formatter.to_sym)
+        formatter.to_sym
+      rescue ArgumentError
+        raise Onetime::ConfigError,
+          "logging destinations.#{role}.formatter is not a known formatter. " \
+          'Use color, json or default, or leave it unset.'
+      end
+
+      # A destination threshold, as an appender filter.
+      #
+      # A filter rather than the appender's own `level:` because audit events
+      # must pass: ColonelAudit emits at info, and a console held to warn for
+      # quiet output would otherwise drop the audit stream from the one place
+      # it is written by default.
+      #
+      # @param level [Symbol, nil]
+      # @return [Proc, nil] nil = no threshold, the appender takes everything
+      def destination_filter(level)
+        return unless level
+
+        floor = SemanticLogger::Levels.index(level)
+        ->(log) { log.name == AUDIT_SINK_LOGGER_NAME || (log.level_index || 0) >= floor }
+      end
+
+      # Audit events must always have somewhere to go.
+      #
+      # Onetime::ColonelAuditEvent writes each event to the log BEFORE it
+      # writes it to Valkey; that line is the durable copy. With the console
+      # and the file both disabled and no audit syslog appender, it would be
+      # written nowhere, and nothing at runtime would say so.
+      def ensure_audit_destination!
+        return if owned_appender? || foreign_console_appender? || audit_syslog_appender?
+
+        raise Onetime::ConfigError,
+          'Logging has no destination for audit events: destinations.console and ' \
+          'destinations.file are both disabled and the audit syslog appender is not active. ' \
+          'Enable at least one of them.'
       end
 
       # OPTIONAL syslog appender for the operator audit sink (#4334).
@@ -205,14 +479,12 @@ module Onetime
       # FILTERED to the audit category ({AUDIT_SINK_FILTER}), so enabling it
       # ships the audit stream and nothing else.
       #
-      # Idempotent for the same reason configure_appender is: test reruns and
-      # re-executed initializers must not stack duplicate appenders. Matched by
-      # class NAME because the constant is only defined once add_appender has
-      # loaded the appender file.
+      # Idempotent: test reruns and re-executed initializers must not stack
+      # duplicate appenders.
       def configure_audit_syslog_appender(config)
         settings = config.dig('audit', 'syslog') || {}
         return unless OT::Utils.yes?(settings['enabled'])
-        return if SemanticLogger.appenders.any? { |appender| appender.class.name.to_s.end_with?('Appender::Syslog') }
+        return if audit_syslog_appender?
 
         require 'syslog'
 
@@ -226,8 +498,9 @@ module Onetime
         )
       rescue StandardError, LoadError => ex
         # Never fail boot over an optional log destination. The sink still
-        # reaches stdout via the console appender, so the audit stream is not
-        # lost — only its second copy is.
+        # reaches the console or file destination, so the audit stream is not
+        # lost — only its second copy is. When neither of those is enabled,
+        # ensure_audit_destination! fails setup.
         warn "[SetupLoggers] audit syslog appender not enabled: #{ex.class}: #{ex.message}"
       end
 
@@ -284,25 +557,42 @@ module Onetime
       #
       # @return [IO]
       def log_device
-        OT.mode?(:cli) ? $stderr : $stdout
+        console_stream == :stderr ? $stderr : $stdout
       end
 
-      # Build formatter with environment-aware exception handling
+      # @return [Symbol] :stderr under the CLI, :stdout otherwise
+      def console_stream
+        OT.mode?(:cli) ? :stderr : :stdout
+      end
+
+      # Build the console formatter with environment-aware exception handling
       #
       # In production, exception backtraces are truncated to reduce log noise.
       # Full backtraces go to error tracking (Sentry), not application logs.
+      # Only the console is shortened: the file destination always writes the
+      # whole backtrace.
       #
       # Environment variables:
       #   BACKTRACE_LINES - Max backtrace lines to include (default: 3 in prod, unlimited in dev)
       #
       def build_formatter(config)
-        base_formatter = if OT.mode?(:cli)
-                           :color  # Human-readable for CLI
-                         else
-                           config['formatter']&.to_sym || :color
-                         end
-        max_lines      = backtrace_limit
+        truncating_formatter(default_console_formatter(config), backtrace_limit)
+      end
 
+      # The console formatter when destinations.console.formatter is unset:
+      # color under the CLI, the top-level `formatter` setting otherwise.
+      def default_console_formatter(config)
+        if OT.mode?(:cli)
+          :color # Human-readable for CLI
+        else
+          config['formatter']&.to_sym || :color
+        end
+      end
+
+      # @param base_formatter [Symbol] a SemanticLogger formatter name
+      # @param max_lines [Integer, nil] backtrace limit; nil = unlimited
+      # @return [Symbol, Proc]
+      def truncating_formatter(base_formatter, max_lines)
         # In development/test, use standard formatter with full backtraces
         return base_formatter unless max_lines
 

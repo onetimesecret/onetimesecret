@@ -80,6 +80,55 @@ loggers:
   Session: info   # Session lifecycle (create, update, destroy)  # Since v0.24.0
   Workers: info   # RabbitMQ worker message processing and orchestration  # Since v0.24.0
 
+# Log destinations
+#
+# Where the events are written. Two controls, applied in this order:
+#
+#   1. Category levels (`loggers:` above, LOG_LEVEL, DEBUG_LOGGERS, DEBUG_*)
+#      decide which events are GENERATED at all.
+#   2. A destination `level` decides which of those events that one
+#      destination writes.
+#
+# A destination cannot recover an event its category rejected: with
+# `Auth: info`, a file at `level: debug` still receives no Auth debug lines.
+# Lower the category to generate them (DEBUG_LOGGERS=Auth:debug) and they
+# reach every destination whose level admits them.
+#
+# The defaults below are the long-standing behavior: one console appender and
+# no file. Setting only `file.enabled` and `file.path` adds the file and
+# leaves the console as it is.
+#
+# Audit events (the `ColonelAudit` category, see `audit:` below) pass every
+# destination level, so a quiet console still shows them. Boot fails if they
+# would have no destination at all: console and file both disabled, and the
+# audit syslog appender not active.
+#
+# Every event passes the URI scrubber (Onetime::LogScrubber) before it reaches
+# any destination, the file included.
+destinations:
+  # stdout in server modes, stderr under the CLI.
+  console:
+    enabled: true  # Since unreleased
+    # trace, debug, info, warn, error or fatal. Unset: every generated event.
+    level: null  # Since unreleased
+    # color, json or default. Unset: the top-level `formatter` above in
+    # server modes, color under the CLI. A value here applies in every mode.
+    formatter: null  # Since unreleased
+  # A file that receives the same events, appended one line per event.
+  file:
+    enabled: false  # Since unreleased
+    # Absolute, or relative to the application root. The file is opened in
+    # append mode at boot and is never truncated or rotated by the
+    # application; its directory must already exist. Boot fails if the file
+    # cannot be opened. Several processes may append to the same file.
+    path: null  # Since unreleased
+    # Unset: every generated event.
+    level: null  # Since unreleased
+    # Unset: default (plain text, no color codes).
+    formatter: null  # Since unreleased
+    # Exception backtraces are always written in full here. The production
+    # backtrace limit (BACKTRACE_LINES) shortens the console only.
+
 # Operator audit sink (#4334)
 #
 # Every ColonelAuditEvent is emitted as a structured log line on its own
