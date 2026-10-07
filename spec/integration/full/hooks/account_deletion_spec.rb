@@ -97,6 +97,20 @@ RSpec.describe 'Account Deletion in Full Auth Mode', :full_auth_mode, type: :int
         expect(test_db[:account_password_hashes].where(id: account[:id]).first).to be_nil
       end
 
+      it 'deletes the remember key from account_remember_keys' do
+        customer = find_customer_by_email(test_email)
+        account = find_account_by_email(test_email)
+        remember_keys = test_db[:account_remember_keys].where(id: account[:id])
+
+        # Signup may already have issued one; the table holds one row per account.
+        remember_keys.insert(id: account[:id], key: SecureRandom.hex(32), deadline: Time.now + 86_400) if remember_keys.empty?
+        expect(remember_keys.count).to eq(1)
+
+        Auth::Operations::RemoveAuthenticationData.call(extid: customer.extid)
+
+        expect(remember_keys.count).to eq(0)
+      end
+
       it 'returns account_id on successful deletion' do
         customer = find_customer_by_email(test_email)
         account = find_account_by_email(test_email)
