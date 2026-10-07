@@ -20,9 +20,9 @@
 .github/workflows/build-and-publish-oci-images.yml	shellcheck:SC2086	7
 .github/workflows/build-and-publish-oci-images.yml	syntax-check	1
 .github/workflows/bump-api-docs.yml	shellcheck:SC2086	1
-.github/workflows/ci.yml	permissions	2
-.github/workflows/ci.yml	shellcheck:SC2086	28
-.github/workflows/ci.yml	shellcheck:SC2129	2
+.github/workflows/ci.yml	permissions	3
+.github/workflows/ci.yml	shellcheck:SC2086	12
+.github/workflows/ci.yml	shellcheck:SC2129	1
 .github/workflows/generate-translation-request.yml	shellcheck:SC2011	1
 .github/workflows/generate-translation-request.yml	shellcheck:SC2086	20
 .github/workflows/generate-translation-request.yml	shellcheck:SC2129	3

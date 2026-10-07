@@ -588,6 +588,8 @@ jobs:
   # lane so they run on their own (tests/lanes/billing/env). Same gate as
   # ruby-unit — every Ruby change — not the billing path filter, which selects
   # the billing-ON re-run of the full-mode suite (ruby-integration-billing).
+  # Coverage is uploaded under its own label, beside ruby-unit's, so the
+  # billing files it took from that job stay in Code Quality.
   ruby-billing:
     name: T2 · Ruby Billing Tests
     timeout-minutes: 10
@@ -598,8 +600,15 @@ jobs:
       needs.changes.outputs.ruby == 'true' &&
       (needs.ruby-lint.result == 'success' || needs.ruby-lint.result == 'skipped') &&
       (needs.build-assets.result == 'success' || needs.build-assets.result == 'skipped')
+    permissions:
+      contents: read
+      code-quality: write
     steps:
-      - *checkout-step
+      # The PR head commit, as in ruby-unit, so coverage lines map to the diff.
+      - name: Checkout code
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - *start-core-services
       - name: Setup Ruby test environment
         uses: ./.github/actions/setup-ruby-test-env
@@ -609,12 +618,22 @@ jobs:
           python-version: '3.14'
       - name: Setup Node.js environment
         uses: ./.github/actions/setup-node-env
+      # COVERAGE is on the lane runner's keep-list; see the note in ruby-unit.
+      - name: Enable coverage
+        run: echo "COVERAGE=true" >> "$GITHUB_ENV"
       - name: Run billing lane
         uses: ./.github/actions/run-test-lane
         with:
           lane: billing
           results-file: 'rspec_billing_results.json'
           debug-enabled: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+      - name: Upload coverage report
+        if: *if-coverage-upload
+        uses: actions/upload-code-coverage@d8e329117199404bba6fc81efe8093dc7c015e34 # v1.4.2
+        with:
+          file: coverage/coverage.xml
+          language: Ruby
+          label: code-coverage/rspec-billing
 
   ruby-auth-browser:
     name: T2 · Ruby Auth Browser (SAML)
