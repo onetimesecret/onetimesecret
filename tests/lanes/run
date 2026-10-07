@@ -996,6 +996,17 @@ if (( 10#${LANES_DATASTORE_DB} > 65535 )); then
   echo "error: LANES_DATASTORE_DB must be between 0 and 65535, got '${LANES_DATASTORE_DB}'" >&2
   exit 64
 fi
+# Plain decimal from here on: the string tests below (`!= 0`, the PG and
+# vhost rewrites) and the shim's arithmetic must see the same value, and a
+# pinned `00` or `007` would otherwise read as non-zero to one and zero to
+# the other. Rewritten only when it differs, so a pin that is already plain
+# decimal is never assigned to (spec/unit/lanes pins through a readonly
+# export, which an assignment would trip over).
+_lanes_db_dec=$(( 10#${LANES_DATASTORE_DB} ))
+if [[ "${LANES_DATASTORE_DB}" != "${_lanes_db_dec}" ]]; then
+  LANES_DATASTORE_DB="${_lanes_db_dec}"
+fi
+builtin unset _lanes_db_dec
 export LANES_DATASTORE_DB
 for _lanes_name in REDIS_URL VALKEY_URL; do
   if [[ -n "${!_lanes_name:-}" && "${!_lanes_name}" =~ ^(.*:2163)(/[0-9]+)?/?$ ]]; then

@@ -254,6 +254,28 @@ RSpec.describe 'tests/lanes/run datastore isolation key' do
       expect(fields['worker_dbs']).to eq('0,1,2')
     end
 
+    it 'reads a pinned index as a decimal, so 00 is the shared index to runner and shim alike' do
+      # The runner tests the index as a string in places (`!= 0`) and the
+      # shim does arithmetic on it; normalised once at validation, a pinned
+      # `00` is 0 to both rather than isolated to one and shared to the other.
+      # Pinned through an overlay, the documented way (with_pinned_index's
+      # readonly export cannot be rewritten by the runner).
+      name = "isolation-key-#{Process.pid}"
+      path = File.join(probe.repo_root, 'tests', 'lanes', 'overlays', "#{name}.env")
+      File.write(path, "LANES_DATASTORE_DB=00\n")
+      begin
+        output, status = probe.run('unit', '--overlay', name, '--workers', '2', '--print-key')
+      ensure
+        File.delete(path)
+      end
+      expect(status).to be_success, output
+      fields = output.scan(/(\w+)=(\S*)/).to_h
+
+      expect(fields['db']).to eq('0')
+      expect(fields['worker_dbs']).to eq('0,1')
+      expect(fields['redis']).to eq('redis://127.0.0.1:2163/0')
+    end
+
     it 'runs --only as one worker whatever the lane declares' do
       expect(probe.print_key('unit')['workers']).to eq('2')
       fields = probe.print_key('unit', '--only', LaneIsolationProbe::ONLY_TARGET)
