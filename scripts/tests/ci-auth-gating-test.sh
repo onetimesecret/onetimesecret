@@ -472,7 +472,7 @@ def lane_tasks():
         'cat "${try_log}"',
         "(( try_rc == 0 )) || failed+=(try:unit)",
         "(( spec_rc == 0 )) || failed+=(spec:fast)",
-        'ruby tests/lanes/support/merge_rspec_status.rb "${LANES_RSPEC_STATUS_FILE}" "${run_dir}/rspec-status.w*.txt"'
+        'bundle exec ruby tests/lanes/support/merge_rspec_status.rb "${LANES_RSPEC_STATUS_FILE}" "${run_dir}/rspec-status.w*.txt"'
         " || failed+=(merge-status)",
         "else",
         "bundle exec rake try:unit || failed+=(try:unit)",
