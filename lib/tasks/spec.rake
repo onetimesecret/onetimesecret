@@ -184,8 +184,22 @@ def sh_rspec(env, paths, options)
   begin
     sh worker_env, command
   ensure
-    Lanes::MergeRSpecStatus.main([status_file, worker_glob]) if worker_glob
+    merge_worker_status(status_file, worker_glob) if worker_glob
   end
+end
+
+# Folds the worker status files into the lane's after a split run. Called
+# from an `ensure`, so a failure here is reported and swallowed: it must not
+# replace the test result that is propagating, and a stale status file costs
+# one `--only-failures` rerun, not the run.
+#
+# @param status_file [String] the lane's status file
+# @param worker_glob [String] the per-worker files beside it
+def merge_worker_status(status_file, worker_glob)
+  rc = Lanes::MergeRSpecStatus.main([status_file, worker_glob])
+  warn "[spec.rake] merge_rspec_status exited #{rc}: #{status_file} may be stale" unless rc.zero?
+rescue StandardError => ex
+  warn "[spec.rake] could not merge the worker status files into #{status_file}: #{ex.class}: #{ex.message}"
 end
 
 # Auto-discover app-specific spec directories (co-located with their applications)
