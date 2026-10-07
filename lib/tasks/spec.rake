@@ -152,23 +152,25 @@ end.freeze
 # wanted, the only safe spellings are explicit directories with a
 # directory-relative exclude ('**/integration/**/*_spec.rb'), or both patterns
 # made absolute. `rake spec:verify_selection` fails on the mistake.
-# The billing lane's spec selection: directories, not a pattern, so that the
-# exclude resolves against each of them the way rspec resolves it in the
-# task's own process (see the HARD RULE). The exclude is spelled from the repo
-# root; it prefix-matches the billing app's tree and is used verbatim there,
-# and joins onto the root directories where it then matches nothing. The three
-# mode-less files it drops are UNRUN_SPECS in lib/tasks/spec_selection.rake.
+# The billing lane's spec selection: the whole billing app tree and the root
+# trees named for billing, as directories rather than a pattern — rspec's
+# default pattern under each, nothing excluded, nothing for the HARD RULE to
+# bite on. The three mode-less files in apps/web/billing/spec/integration/
+# are the lane's too: no integration task dispatches a mode-less file, and
+# they ran nowhere until this lane adopted them (ADOPTED_PATTERNS in
+# lib/tasks/spec_selection.rake). A mode subdirectory added there later
+# (integration/full/, say) would be loaded by this lane AND the full lanes;
+# spec:verify_selection reports that as an overlap.
 #
 # No --tag filters: the lane IS the membership. The ~500 :integration-tagged
 # billing examples that APPS_FAST_TAG_FILTERS never managed to exclude from
 # spec:fast run here, on purpose, with the rest of the billing tree.
-BILLING_SPEC_PATHS   = %w[
+BILLING_SPEC_PATHS = %w[
   apps/web/billing/spec
   spec/cli/billing
   spec/unit/billing
   spec/unit/onetime/operations/billing
 ].freeze
-BILLING_SPEC_EXCLUDE = 'apps/web/billing/spec/integration/**/*_spec.rb'
 
 # The same trees, as spec:fast's exclusions. Each exclude shares its include's
 # prefix ('spec/…' against ROOT_FAST_PATTERN, 'apps/…' against
@@ -241,8 +243,7 @@ namespace :spec do
   # (spec/unit/lanes/ownership_spec.rb) sees the paths it passes.
   desc 'Run the billing specs (the billing lane; one process)'
   task :billing do |task|
-    sh "bundle exec rspec #{BILLING_SPEC_PATHS.join(' ')} " \
-       "--exclude-pattern '#{BILLING_SPEC_EXCLUDE}' #{rspec_task_format_options(task)}"
+    sh "bundle exec rspec #{BILLING_SPEC_PATHS.join(' ')} #{rspec_task_format_options(task)}"
   end
 
   # Per-tree tasks below are kept for targeted runs (`rake spec:apps:web_auth`)

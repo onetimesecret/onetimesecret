@@ -205,7 +205,7 @@ module LaneOwnershipProbe
     %w[full-mfa                                     apps/*/*/spec/integration/full_mfa],
     %w[full-saml-platform                           apps/*/*/spec/integration/full_saml_platform],
     %w[simple                                       apps/*/*/spec/integration/simple],
-    %w[none                                         apps/web/billing/spec/integration/*_spec.rb],
+    %w[billing                                      apps/web/billing/spec/integration/*_spec.rb],
     %w[billing                                      try/unit/billing],
     %w[billing                                      try/unit/cli/billing],
     %w[unit                                         try/features],

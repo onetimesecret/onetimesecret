@@ -179,14 +179,19 @@ lanes_for_path() {  # <path>
       echo full-mfa ;;
     ${app}/spec/integration/full_saml_platform|${app}/spec/integration/full_saml_platform/*)
       echo full-saml-platform ;;
-    # A mode-less file directly under an app's integration/ is dispatched by
-    # no task (UNRUN_SPECS in lib/tasks/spec_selection.rake): no owner.
+    # The billing app's integration/ has no mode subdirectories; spec:billing
+    # loads the whole tree, mode-less files included (ADOPTED_PATTERNS in
+    # lib/tasks/spec_selection.rake). Ahead of the generic row below.
+    apps/web/billing/spec/integration|apps/web/billing/spec/integration/*)
+      echo billing ;;
+    # A mode-less file directly under any other app's integration/ is
+    # dispatched by no task (UNRUN_SPECS in lib/tasks/spec_selection.rake):
+    # no owner.
     ${app}/spec/integration|${app}/spec/integration/*)
       ;;
-    # spec:billing — the billing app's spec tree (minus its integration/
-    # subtree, above) and the root trees named for billing
-    # (BILLING_SPEC_PATHS in lib/tasks/spec.rake). Ahead of spec:fast, whose
-    # patterns exclude exactly these.
+    # spec:billing — the billing app's spec tree and the root trees named for
+    # billing (BILLING_SPEC_PATHS in lib/tasks/spec.rake). Ahead of spec:fast,
+    # whose patterns exclude exactly these.
     apps/web/billing/spec|apps/web/billing/spec/*|spec/cli/billing|spec/cli/billing/*|\
     spec/unit/billing|spec/unit/billing/*|spec/unit/onetime/operations/billing|spec/unit/onetime/operations/billing/*)
       echo billing ;;
