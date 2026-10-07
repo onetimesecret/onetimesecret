@@ -141,13 +141,10 @@ jobs:
 
       # One real operation on the result (the Homebrew-installer pattern:
       # assert a real outcome, not output text) — the fast suite on the
-      # environment the lane just built, and the billing suite that was
-      # part of it before it got its own lane.
+      # environment the lane just built. Not the billing suite: billing
+      # tests run only in main CI's nightly (docs/development/auth-ci.md).
       - name: RSpec fast suite on the macOS-built environment
         run: pnpm run test:rspec:fast
-
-      - name: RSpec billing suite on the macOS-built environment
-        run: pnpm run test:rspec:billing
 
       - name: Run bin/setup --test again (idempotency contract)
         run: /bin/bash bin/setup --test

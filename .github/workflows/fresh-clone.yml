@@ -8,7 +8,7 @@
 #   fresh runner
 #     -> bin/setup                              # the documented setup command
 #     -> bin/setup --test                       # the documented test lane
-#     -> tests/lanes/run unit && tests/lanes/run billing && pnpm test   # the documented suites
+#     -> tests/lanes/run unit && pnpm test       # the documented suites
 #     -> tests/lanes/run browser                # browsers from --test, OS deps CI-only
 #     -> bin/setup --test                       # second run = idempotency (Zulip)
 #     -> git status --porcelain == empty        # litter check (Zulip)
@@ -126,9 +126,6 @@ jobs:
 
       - name: 'Unit lane (TR-01: no build ever run)'
         run: tests/lanes/run unit
-
-      - name: 'Billing lane (the part of unit that runs on its own)'
-        run: tests/lanes/run billing
 
       # The browser lane proves bin/setup --test left tests/browser runnable:
       # the browsers themselves came from that step. The OS packages they link
