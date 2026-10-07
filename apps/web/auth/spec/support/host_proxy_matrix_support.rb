@@ -39,6 +39,7 @@
 require_relative 'tenant_test_fixtures'
 require_relative 'domains_enabled_context'
 require_relative 'public_host_rewrite_context'
+require_relative 'external_https_browser'
 require 'rack/test'
 
 module HostProxyMatrix
@@ -139,6 +140,9 @@ end
 
 RSpec.shared_context 'host proxy rows' do
   include Rack::Test::Methods
+  # The rows' browser is on https; what the proxy tells the app about the
+  # scheme is each row's `proto`. See external_https_browser.rb.
+  include_context 'external HTTPS browser'
 
   # :shared_db_state for the reason tenant_sso_proxy_host_spec.rb gives: the
   # fixtures come from this context's `let!` hooks and the per-example flush

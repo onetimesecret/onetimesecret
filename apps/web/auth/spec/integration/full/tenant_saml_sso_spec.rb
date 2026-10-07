@@ -44,6 +44,7 @@
 # =============================================================================
 
 require_relative '../../spec_helper'
+require_relative '../../support/external_https_browser'
 require_relative '../../../../../../spec/support/saml/test_idp'
 
 require 'base64'
@@ -1418,6 +1419,9 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
         end
 
         context 'with HTTPS and public port 8443' do
+          # The browser is on https; the session cookie it gets back is Secure.
+          include_context 'external HTTPS browser'
+
           before do
             header 'X-Forwarded-Proto', 'https'
             header 'X-Forwarded-Port', '8443'

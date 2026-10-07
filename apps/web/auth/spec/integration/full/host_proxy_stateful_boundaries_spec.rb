@@ -2,6 +2,7 @@
 
 require_relative '../../spec_helper'
 require_relative '../../support/tenant_test_fixtures'
+require_relative '../../support/external_https_browser'
 
 # Real login, session persistence and mounted routes; no injected rack.session.
 # Cookie replay deliberately bypasses browser host-only delivery so a refusal
@@ -70,6 +71,9 @@ RSpec.describe 'Host proxy stateful boundaries', :shared_db_state, type: :integr
   include Rack::Test::Methods
   include_context 'tenant fixtures'
   include_context 'domains enabled'
+  # proxy_headers sends X-Forwarded-Proto: https from a browser on https. The
+  # rows that carry a cookie by hand (header 'Cookie') are not affected.
+  include_context 'external HTTPS browser'
 
   before(:all) { boot_onetime_app }
 
@@ -254,11 +258,15 @@ RSpec.describe 'Host proxy stateful boundaries', :shared_db_state, type: :integr
 
   # Onetime::Session sits above the rewrite and commits the session after the
   # layers below have returned, so on the way out it sees the rewritten Host.
-  # Its cookie carries no Domain and takes Secure and SameSite from
-  # site.session; the lane's own secure:false is run next to secure:true.
+  # Its cookie carries no Domain and takes SameSite from site.session. Secure
+  # it takes from site.session too, and adds on any request it sees as https
+  # (Onetime::Session#set_cookie, upgrade-only): proxy_headers forwards
+  # https, so the lane's own secure:false still yields a Secure cookie, and
+  # is run next to secure:true.
   describe 'the session Set-Cookie, compared across the setting' do
     [
-      { secure: false, same_site: 'lax', attributes: ['path=/', 'expires=<time>', 'httponly', 'samesite=lax'] },
+      { secure: false, same_site: 'lax',
+        attributes: ['path=/', 'expires=<time>', 'secure', 'httponly', 'samesite=lax'] },
       { secure: true, same_site: 'strict',
         attributes: ['path=/', 'expires=<time>', 'secure', 'httponly', 'samesite=strict'] },
     ].each do |config|
