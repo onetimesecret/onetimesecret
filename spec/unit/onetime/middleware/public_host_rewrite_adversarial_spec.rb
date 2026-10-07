@@ -190,16 +190,22 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
     end
   end
 
-  def request_env(peer:, host:, xfh: nil, xfp: nil, forwarded: nil, scheme: 'https', extra: {})
-    env                           = Rack::MockRequest.env_for("#{scheme}://placeholder.invalid/auth/login")
+  # One origin-connection env per scheme, built once and copied per input:
+  # Rack::MockRequest.env_for is too slow to run for every input of a walk.
+  ENV_TEMPLATES = SCHEMES.to_h do |scheme|
+    env = Rack::MockRequest.env_for("#{scheme}://placeholder.invalid/auth/login")
     env.delete('HTTP_HOST')
+    env.update('SERVER_NAME' => 'origin.internal', 'SERVER_PORT' => '3000')
+    [scheme, env.freeze]
+  end.freeze
+
+  def request_env(peer:, host:, xfh: nil, xfp: nil, forwarded: nil, scheme: 'https', extra: {})
+    env                           = ENV_TEMPLATES.fetch(scheme).dup
     env['HTTP_HOST']              = host unless host.nil?
-    env['SERVER_NAME']            = 'origin.internal'
-    env['SERVER_PORT']            = '3000'
     env['HTTP_X_FORWARDED_HOST']  = xfh unless xfh.nil?
     env['HTTP_X_FORWARDED_PORT']  = xfp unless xfp.nil?
     env['HTTP_FORWARDED']         = forwarded unless forwarded.nil?
-    env.merge(PEERS.fetch(peer)).merge(extra)
+    env.merge!(PEERS.fetch(peer)).merge!(extra)
   end
 
   def run(**)
