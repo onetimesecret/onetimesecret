@@ -22,11 +22,12 @@ if [[ -n "${missing}" ]]; then
 fi
 
 # The same invocation shape as `tests/lanes/run browser --only <file>`, so
-# iterating on one file and running the lane agree. The JSON formatter is
-# added only when CI asks for results (RSPEC_OUTPUT_FILE is on the runner's
-# keep-list), mirroring rspec_format_options in lib/tasks/spec.rake.
-rspec_args=(tests/browser --format progress)
-if [[ -n "${RSPEC_OUTPUT_FILE:-}" ]]; then
-  rspec_args+=(--format json --out "${RSPEC_OUTPUT_FILE}")
-fi
-bundle exec rspec "${rspec_args[@]}"
+# iterating on one file and running the lane agree. The formatters come from
+# where the rake lanes get theirs (tests/lanes/support/rspec_format.rb,
+# behind rspec_format_options in lib/tasks/spec.rake): progress on the
+# console, or the quiet formatter under --quiet, and beside either one the
+# JSON formatter when CI asks for results (RSPEC_OUTPUT_FILE is on the
+# runner's keep-list).
+rspec_format="$(ruby tests/lanes/support/rspec_format.rb)"
+mapfile -t rspec_format <<< "${rspec_format}"
+bundle exec rspec tests/browser "${rspec_format[@]}"

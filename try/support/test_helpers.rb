@@ -92,6 +92,22 @@ require 'onetime/models'
 # Log using the current thread to avoid async/concurrency issues
 require 'semantic_logger/sync'
 
+# Log capture for a lane run (`tests/lanes/run --capture-logs`), the same
+# call spec/spec_helper.rb makes; tryouts do not load that file. Nothing
+# happens unless the runner exported one of its LANES_*_LOG_* names.
+#
+# LANES_APP_LOG_FILE: the application log file is installed now, so a tryout
+# that never boots is captured too. A tryout that boots gets the same file,
+# and the console the runner asked for, from spec/logging.test.yaml.
+# LANES_MAIL_LOG_FILE: the logger mail backend appends each delivered email
+# to that file instead of printing it.
+#
+# Every tryout file in a run shares one process, so this holds from the
+# first file that loads these helpers. A file that cannot be opened ends
+# that file's setup with a message, and the next file's, and the run fails.
+require_relative '../../tests/lanes/support/log_capture'
+Lanes::LogCapture.install_or_abort!
+
 # Config resolution is handled automatically by Onetime::Utils::ConfigResolver
 # when RACK_ENV=test - it uses spec/{name}.test.yaml files
 

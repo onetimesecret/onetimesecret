@@ -34,9 +34,25 @@ fi
 
 AGGREGATED=$(jq -r '.aggregated' "$REPORT_PATH")
 
+# Results files that were empty or not JSON: named, because the totals leave
+# them out. A test process that stops before rspec writes its results leaves
+# one behind.
+unreadable_files_note() {
+  local count
+  count=$(jq '(.unreadable_files // []) | length' "$REPORT_PATH")
+  [ "$count" -gt 0 ] || return 0
+  {
+    echo ""
+    echo "> :warning: $count results file(s) were empty or not JSON, and the totals leave them out. The test process stopped before it wrote its results; the lane's own job shows why."
+    echo ""
+    jq -r '.unreadable_files[] | "- `\(.)`"' "$REPORT_PATH"
+  } >> "$SUMMARY_FILE"
+}
+
 if [ "$AGGREGATED" != "true" ]; then
   REASON=$(jq -r '.reason' "$REPORT_PATH")
   echo "> :grey_question: No test results to aggregate ($REASON)" >> "$SUMMARY_FILE"
+  unreadable_files_note
   exit 0
 fi
 
@@ -65,6 +81,8 @@ fi
   echo "| Duration | ${DURATION}s |"
   echo "| Result Files | $FILE_COUNT |"
 } >> "$SUMMARY_FILE"
+
+unreadable_files_note
 
 # Show failures if any
 if [ "$FAILURES" -gt 0 ]; then

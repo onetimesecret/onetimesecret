@@ -11,6 +11,28 @@ module Onetime
       # Outputs email content to logs instead of sending.
       #
       class Logger < Base
+        class << self
+          # Where delivered emails are written. A test run that keeps them
+          # off the console points this at a file instead of stubbing `puts`.
+          # nil puts the default back.
+          attr_writer :output
+
+          # Read per delivery, so a reassigned $stdout is honored.
+          def output
+            @output || $stdout
+          end
+
+          # Write to +io+ for the duration of the block, then put back
+          # whatever was set before. nil selects the default for the block.
+          def with_output(io)
+            previous = @output
+            @output  = io
+            yield
+          ensure
+            @output = previous
+          end
+        end
+
         def perform_delivery(email)
           output = <<~EMAIL
             === EMAIL (Logger) ===
@@ -28,7 +50,7 @@ module Onetime
           # Log straight to standard out, bypassing our centralized semantic
           # logger. This avoids confusing scenarios where nothing appears in
           # the logs b/c the log level was set incorrectly.
-          puts output
+          self.class.output.puts output
 
           # Base#deliver wraps this in NotTransmitted: the message was
           # written to the log, not sent.

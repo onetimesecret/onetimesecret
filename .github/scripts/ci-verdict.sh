@@ -19,8 +19,9 @@
 #   EVENT_NAME       github.event_name
 #   CHANGES_RESULT   needs.changes.result
 #   SKIP_CI          needs.changes.outputs.skip_ci  ([ci-skip] in the commit)
-#   RUBY, TYPESCRIPT, FRONTEND, OCI
-#                    needs.changes.outputs.<flag>
+#   RUBY, TYPESCRIPT, FRONTEND, OCI, AUTH, BILLING_NIGHTLY
+#                    needs.changes.outputs.<flag>; BILLING_NIGHTLY is
+#                    the nightly-only selection, not a path
 #   RESULT_<JOB>     needs.<job>.result, JOB upper-cased with - as _
 #                    (RESULT_RUBY_UNIT, RESULT_CHECK_OCI_IMAGE, ...)
 #
@@ -36,13 +37,26 @@ RUBY="${RUBY:-false}"
 TYPESCRIPT="${TYPESCRIPT:-false}"
 FRONTEND="${FRONTEND:-false}"
 OCI="${OCI:-false}"
+BILLING_NIGHTLY="${BILLING_NIGHTLY:-false}"
+AUTH="${AUTH:-}"
+case "$AUTH" in
+  true | false) ;;
+  *) echo '❌ Auth selection is missing or malformed; there is no CI verdict.'; exit 1 ;;
+esac
 
 # job<TAB>expected-to-run (true|false)<TAB>why it runs
 # The order is the order of the jobs in ci.yml.
 EXPECTED=()
 expect() { EXPECTED+=("$1	$2	$3"); }
 
-either() { [[ "$1" == "true" || "$2" == "true" ]] && echo true || echo false; }
+# true when any argument is the string true.
+either() {
+  local flag
+  for flag in "$@"; do
+    [[ "$flag" == "true" ]] && { echo true; return; }
+  done
+  echo false
+}
 
 on_pull_request=false
 [[ "$EVENT_NAME" == "pull_request" ]] && on_pull_request=true
@@ -52,8 +66,13 @@ expect ruby-lint                "$RUBY"                     "ruby"
 expect typescript-lint          "$TYPESCRIPT"               "typescript"
 expect hygiene                  "$on_pull_request"          "pull_request event"
 expect i18n-validate            "$TYPESCRIPT"               "typescript"
-expect build-assets             "$(either "$FRONTEND" "$RUBY")" "frontend or ruby"
+expect build-assets             "$(either "$FRONTEND" "$RUBY" "$AUTH" "$BILLING_NIGHTLY")" "frontend, ruby, auth or nightly event"
 expect ruby-unit                "$RUBY"                     "ruby"
+expect ruby-billing             "$BILLING_NIGHTLY"          "nightly event"
+expect ruby-auth-browser        "$AUTH"                     "auth"
+expect ruby-integration-auth    "$AUTH"                     "auth"
+expect ruby-integration-billing "$BILLING_NIGHTLY"          "nightly event"
+expect ruby-billing-integration "$BILLING_NIGHTLY"          "nightly event"
 expect typescript-unit          "$TYPESCRIPT"               "typescript"
 expect ruby-integration-simple  "$RUBY"                     "ruby"
 expect ruby-integration-api     "$RUBY"                     "ruby"
@@ -117,7 +136,7 @@ done
 } | tee -a "${GITHUB_STEP_SUMMARY:-/dev/null}"
 
 echo
-echo "Changes: ruby=$RUBY typescript=$TYPESCRIPT frontend=$FRONTEND oci=$OCI (event: ${EVENT_NAME:-<unset>})"
+echo "Changes: ruby=$RUBY typescript=$TYPESCRIPT frontend=$FRONTEND oci=$OCI auth=$AUTH billing_nightly=$BILLING_NIGHTLY (event: ${EVENT_NAME:-<unset>})"
 
 if [[ "$failures" -gt 0 ]]; then
   echo "❌ $failures job(s) did not pass. See the rows marked ❌ above."

@@ -5,7 +5,11 @@
 # Strategic categories for debugging and operational instrumentation:
 #   App       - Default fallback for application-level logging
 #   Auth      - Authentication/authorization flows
+#   Billing   - Stripe checkout, subscription webhooks, plan catalog sync
+#   Boot      - Initialization
 #   Bunny     - RabbitMQ AMQP client (connection, heartbeats)
+#   Chores    - Model housekeeping chores
+#   CLI       - Command-line interface operations
 #   Ents      - Plan materialization, grants/revokes, plan→permission application
 #   Familia   - Redis operations via Familia ORM
 #   HTTP      - HTTP requests, responses, and middleware
@@ -75,6 +79,70 @@ loggers:
   Sequel: warn    # Database queries and operations (SQL logged at :trace level)  # Since v0.24.0
   Session: info   # Session lifecycle (create, update, destroy)  # Since v0.24.0
   Workers: info   # RabbitMQ worker message processing and orchestration  # Since v0.24.0
+
+# Log destinations
+#
+# Where the events are written. Two controls, applied in this order:
+#
+#   1. Category levels (`loggers:` above, LOG_LEVEL, DEBUG_LOGGERS, DEBUG_*)
+#      decide which events are GENERATED at all.
+#   2. A destination `level` decides which of those events that one
+#      destination writes.
+#
+# A destination cannot recover an event its category rejected: with
+# `Auth: info`, a file at `level: debug` still receives no Auth debug lines.
+# Lower the category to generate them (DEBUG_LOGGERS=Auth:debug) and they
+# reach every destination whose level admits them.
+#
+# The defaults below are the long-standing behavior: one console appender and
+# no file. Setting only `file.enabled` and `file.path` adds the file and
+# leaves the console as it is.
+#
+# Audit events (the `ColonelAudit` category, see `audit:` below) pass every
+# destination level, so a quiet console still shows them. Boot fails if they
+# would have no destination at all: console and file both disabled, and the
+# audit syslog appender not active or its level set above info.
+#
+# Every event passes the URI scrubber (Onetime::LogScrubber) before it reaches
+# any destination, the file included.
+#
+# Limits of the file destination:
+#   - It holds the application's log events, not everything the process
+#     prints. Output written outside these loggers stays where it was: the
+#     `logger` mail backend prints each email to stdout, and OmniAuth logs
+#     through its own logger on stdout.
+#   - A file that cannot be opened stops boot. A write that fails later does
+#     not, and the process keeps running. The application prints one line on
+#     stderr per process ("[SetupLoggers] Cannot write to the log file ..."),
+#     and SemanticLogger one per event it could not write ("Failed to log to
+#     appender").
+#
+# The test lanes use this block to keep a run's log in a file and off the
+# console (`tests/lanes/run --capture-logs`, tests/lanes/README.md).
+destinations:
+  # stdout in server modes, stderr under the CLI.
+  console:
+    enabled: true  # Since unreleased
+    # trace, debug, info, warn, error or fatal. Unset: every generated event.
+    level: null  # Since unreleased
+    # color, json or default. Unset: the top-level `formatter` above in
+    # server modes, color under the CLI. A value here applies in every mode.
+    formatter: null  # Since unreleased
+  # A file that receives the same events, appended one line per event.
+  file:
+    enabled: false  # Since unreleased
+    # Absolute, or relative to the application root. The file is opened in
+    # append mode at boot and is never truncated or rotated by the
+    # application; its directory must already exist. Boot fails if the file
+    # cannot be opened. Several processes may append to the same file.
+    path: null  # Since unreleased
+    # Unset: every generated event.
+    level: null  # Since unreleased
+    # Unset: default (plain text, no color codes).
+    formatter: null  # Since unreleased
+    # Exception backtraces are always written in full here. The production
+    # backtrace limit (20 lines; BACKTRACE_LINES overrides it, 0 = unlimited)
+    # shortens the console only.
 
 # Operator audit sink (#4334)
 #
