@@ -64,7 +64,7 @@ end
 #=> true
 
 ## Now determine org should select company org (respects default_org_id)
-# Need fresh session to avoid cache
+# Nothing is carried over from the previous load
 @context2 = @loader.load_organization_context(@cust, {}, {})
 @context2[:organization].objid == @company_org.objid
 #=> true

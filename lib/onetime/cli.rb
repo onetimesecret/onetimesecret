@@ -182,6 +182,9 @@ require_relative 'cli/email/config_command'
 require_relative 'cli/email/validate_command'
 require_relative 'cli/email/sync_feedback_command'
 
+# Load notification CLI commands
+require_relative 'cli/notifications/deliveries_command'
+
 # Load diagnostics CLI commands
 require_relative 'cli/diagnostics'
 require_relative 'cli/diagnostics/sentry/doctor_command'

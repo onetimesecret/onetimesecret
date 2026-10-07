@@ -134,5 +134,25 @@
   "api.organizations.members.errors.no_permission_to_remove": {
     "text": "Δεν έχετε δικαίωμα αφαίρεσης μελών",
     "source_hash": "b0ac7287"
+  },
+  "api.organizations.errors.delete_has_domains": {
+    "text": "Αφαιρέστε τους προσαρμοσμένους τομείς αυτού του οργανισμού πριν τον διαγράψετε: %{domains}",
+    "source_hash": "040a401e"
+  },
+  "api.organizations.errors.delete_drifted_domains_count": {
+    "text": "%{count} εγγραφή/εγγραφές τομέα εξακολουθούν να αναφέρονται σε αυτόν τον οργανισμό, αλλά δεν περιλαμβάνονται πλέον σε αυτόν. Επικοινωνήστε με την υποστήριξη για να αφαιρεθούν πριν διαγράψετε αυτόν τον οργανισμό.",
+    "source_hash": "f6e71a9a"
+  },
+  "api.organizations.errors.delete_is_default": {
+    "text": "Ο προεπιλεγμένος χώρος εργασίας σας δεν μπορεί να διαγραφεί. Επικοινωνήστε με την υποστήριξη αν χρειάζεστε την αφαίρεσή του.",
+    "source_hash": "bc2eaed5"
+  },
+  "api.organizations.errors.delete_active_subscription": {
+    "text": "Ακυρώστε τη συνδρομή αυτού του οργανισμού πριν τον διαγράψετε.",
+    "source_hash": "f0c54eca"
+  },
+  "api.organizations.errors.delete_last_org": {
+    "text": "Αυτός είναι ο μόνος οργανισμός σας. Δημιουργήστε έναν άλλον πριν διαγράψετε αυτόν.",
+    "source_hash": "7608a1d6"
   }
 }

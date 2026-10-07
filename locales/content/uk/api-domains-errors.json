@@ -46,5 +46,17 @@
   "api.domains.errors.homepage_incoming_not_ready": {
     "text": "Вхідні таємниці мають бути ввімкнені принаймні з одним одержувачем, перш ніж їх можна буде використовувати як головну сторінку.",
     "source_hash": "556da6e2"
+  },
+  "api.domains.errors.related_origins_invalid": {
+    "text": "Недійсне джерело (origin): %{origins}. Введіть схему та хост, наприклад https://vault.example.com",
+    "source_hash": "5acb92ca"
+  },
+  "api.domains.errors.related_origins_foreign_organization": {
+    "text": "Ці джерела належать іншій організації, і їх не можна додати: %{origins}",
+    "source_hash": "ac21c1e7"
+  },
+  "api.domains.errors.allowed_signup_domains_invalid": {
+    "text": "Недійсний домен: %{domains}. Введіть доменне ім'я, яке можна зареєструвати, наприклад example.com",
+    "source_hash": "2d93472c"
   }
 }

@@ -957,5 +957,53 @@
   "web.auth.webauthn.emailRequired": {
     "text": "Saisissez votre adresse e-mail pour vous connecter avec une clé d'accès",
     "source_hash": "7f07647f"
+  },
+  "web.auth.login.verification_unavailable": {
+    "text": "Votre connexion a réussi, mais nous n'avons pas pu confirmer votre session. Veuillez réessayer dans un instant.",
+    "source_hash": "9a19dfc9"
+  },
+  "web.auth.mfa.verification_unavailable": {
+    "text": "Votre mot de passe a été accepté, mais nous n'avons pas pu démarrer la vérification à deux facteurs. Veuillez réessayer dans un instant.",
+    "source_hash": "5fd5e240"
+  },
+  "web.auth.session.ended": {
+    "text": "Votre session a pris fin. Veuillez vous reconnecter.",
+    "source_hash": "673e9822"
+  },
+  "web.auth.session.replaced": {
+    "text": "Votre connexion a changé dans un autre onglet ; cette page a donc été rechargée.",
+    "source_hash": "3767d43b"
+  },
+  "web.auth.session.stale_session_title": {
+    "text": "Cette page n'est plus à jour",
+    "source_hash": "0293e093"
+  },
+  "web.auth.session.stale_session_notice": {
+    "text": "Votre session a changé depuis le chargement de cette page. Copiez tout ce que vous n'avez pas enregistré, puis rechargez la page pour continuer.",
+    "source_hash": "c62e236c"
+  },
+  "web.auth.session.reload_now": {
+    "text": "Recharger la page",
+    "source_hash": "437d0d63"
+  },
+  "web.auth.session.verification_unavailable_title": {
+    "text": "Impossible de vérifier votre session pour le moment",
+    "source_hash": "2130dda1"
+  },
+  "web.auth.session.verification_unavailable_body": {
+    "text": "Aucune déconnexion n'a eu lieu. Nous n'avons pas pu joindre le serveur pour confirmer votre session ; cette page est donc masquée jusqu'à ce que ce soit possible. Nous continuons d'essayer.",
+    "source_hash": "bb230c2c"
+  },
+  "web.auth.session.retry": {
+    "text": "Réessayer",
+    "source_hash": "d8b8392e"
+  },
+  "web.auth.session.retrying": {
+    "text": "Vérification…",
+    "source_hash": "ec963ffc"
+  },
+  "web.auth.session.retry_failed": {
+    "text": "Toujours indisponible. Veuillez réessayer dans un instant.",
+    "source_hash": "b81c022c"
   }
 }

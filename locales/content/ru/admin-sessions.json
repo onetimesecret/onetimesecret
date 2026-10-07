@@ -176,8 +176,8 @@
     "source_hash": "0c6605c1"
   },
   "web.admin.sessions.revoke.confirmDescription": {
-    "text": "Это немедленно завершит работу пользователя, удалив сессию {id}. Введите ID сессии для подтверждения.",
-    "source_hash": "9e08b1b8"
+    "text": "Это немедленно завершит работу пользователя, отозвав сессию {id}. Для подтверждения введите {token}.",
+    "source_hash": "80578692"
   },
   "web.admin.sessions.revoke.success": {
     "text": "Сессия отозвана",
@@ -188,12 +188,12 @@
     "source_hash": "34cb67a4"
   },
   "web.admin.sessions.scan.capped": {
-    "text": "Сканирование ограничено первыми {scanned} ключами — аутентифицированные сессии за пределами этого окна не показаны. Чтобы получить конкретную сессию, изучите её по ID.",
-    "source_hash": "fa418b4e"
+    "text": "Сканирование ограничено первыми ключами в количестве {scanned} — аутентифицированные сессии за пределами этого окна не показаны. Чтобы найти их, уточните запрос.",
+    "source_hash": "7a8d6fd5"
   },
   "web.admin.sessions.search.placeholder": {
-    "text": "Поиск по email или внешнему ID",
-    "source_hash": "f2dc5c06"
+    "text": "Поиск по адресу электронной почты, внешнему ID или дескриптору сессии",
+    "source_hash": "4894dec4"
   },
   "web.admin.sessions.sections.session": {
     "text": "Сессия",
@@ -210,5 +210,45 @@
   "web.admin.sessions.status.anonymous": {
     "text": "Анонимный",
     "source_hash": "e7a8aa2d"
+  },
+  "web.admin.sessions.authority.title": {
+    "text": "Не основной источник сессий в полном режиме аутентификации",
+    "source_hash": "796fb07f"
+  },
+  "web.admin.sessions.authority.description": {
+    "text": "Этот список — хранилище сессий Redis. Когда задан полный режим аутентификации, основное состояние сессий хранится в базе данных аккаунтов Rodauth, которую эта консоль не читает. Аккаунты, вошедшие через Rodauth, могут здесь не отображаться, а отзыв сессии здесь не завершает сессию Rodauth.",
+    "source_hash": "77bc4904"
+  },
+  "web.admin.sessions.authority.descriptionRevokeAll": {
+    "text": "Этот список — хранилище сессий Redis. Когда задан полный режим аутентификации, основное состояние сессий хранится в базе данных аккаунтов Rodauth, которую эта консоль не читает. Аккаунты, вошедшие через Rodauth, могут здесь не отображаться, а отзыв отдельной сессии здесь не завершает её сессию Rodauth. «Отозвать все» также завершает сессии Rodauth этого аккаунта.",
+    "source_hash": "f964663d"
+  },
+  "web.admin.sessions.authority.openAdmin": {
+    "text": "Открыть Rodauth Admin",
+    "source_hash": "ce523836"
+  },
+  "web.admin.sessions.authority.notConfigured": {
+    "text": "Задайте RODAUTH_ADMIN_URL, чтобы отсюда можно было перейти в Rodauth Admin.",
+    "source_hash": "c070dbfb"
+  },
+  "web.admin.sessions.columns.sessionHandle": {
+    "text": "Дескриптор сессии",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.errors.scanCapped": {
+    "text": "Эта сессия не найдена в просканированной выборке ключей. Откройте её из строки в списке, чтобы для поиска можно было использовать владельца.",
+    "source_hash": "67b73f7f"
+  },
+  "web.admin.sessions.fields.sessionHandle": {
+    "text": "Дескриптор сессии",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.revoke.ownSession": {
+    "text": "Это Ваша собственная сессия. Её отзыв приведёт к выходу из системы — вместо этого воспользуйтесь обычным выходом.",
+    "source_hash": "a6762292"
+  },
+  "web.admin.sessions.rodauthAdmin.open": {
+    "text": "Открыть в Rodauth Admin",
+    "source_hash": "467173c8"
   }
 }

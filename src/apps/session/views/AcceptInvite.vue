@@ -315,6 +315,32 @@
     isLoading.value = false;
   });
 
+  /**
+   * Where a member of this organization can go from here (#4566).
+   *
+   * Not /orgs: that page is owner-only (handleOrgRoleRequirement), and an
+   * invitee owns nothing they got through the invite, so it bounced them to
+   * /dashboard without a word. /org/:extid needs the admin role, so a new
+   * admin can open the organization they joined; a new member has no org page
+   * they may open and goes to the dashboard, where the switcher lists the org.
+   */
+  const canOpenJoinedOrg = computed(() => {
+    const role = invitation.value?.role;
+    return role === 'owner' || role === 'admin';
+  });
+
+  const joinedDestination = computed(() =>
+    canOpenJoinedOrg.value && invitation.value
+      ? `/org/${invitation.value.organization_id}`
+      : '/dashboard'
+  );
+
+  const joinedDestinationLabel = computed(() =>
+    canOpenJoinedOrg.value
+      ? t('web.organizations.invitations.go_to_organization')
+      : t('web.organizations.invitations.go_to_dashboard')
+  );
+
   const handleAccept = async () => {
     if (!authStore.isAuthenticated) {
       router.push({
@@ -351,7 +377,7 @@
       actionResult.value = 'accepted';
 
       setTimeout(() => {
-        router.push('/orgs');
+        router.push(joinedDestination.value);
       }, DIRECT_ACTION_REDIRECT_DELAY_MS);
     } catch (err) {
       const classified = classifyError(err);
@@ -522,9 +548,10 @@
 
       <div class="mt-6 text-center">
         <router-link
-          to="/orgs"
+          :to="joinedDestination"
+          data-testid="invite-already-accepted-link"
           class="inline-flex items-center rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
-          {{ t('web.organizations.invitations.go_to_organizations') }}
+          {{ joinedDestinationLabel }}
         </router-link>
       </div>
     </div>

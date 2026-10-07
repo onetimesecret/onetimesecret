@@ -82,7 +82,7 @@ assert_contains "browser lane unflagged: 20s against a median of 20s" \
 
 protects "a failed step shows its conclusion instead of a duration, and a failed baseline step never enters the median"
 assert_contains "TypeScript step failed; baseline is the one successful run (100s)" \
-  "| TypeScript Unit Tests · TypeScript tests with coverage | failure | 1m 40s |  | ❌ |" "$out"
+  "| TypeScript Unit Tests · TypeScript tests | failure | 1m 40s |  | ❌ |" "$out"
 
 protects "a step with no baseline is marked new rather than compared to nothing"
 assert_contains "Full/MFA row is new" \

@@ -1,0 +1,351 @@
+# spec/integration/all/jobs/dlq_email_consumer_transaction_spec.rb
+#
+# frozen_string_literal: true
+
+# DlqEmailConsumerJob against a real RabbitMQ broker: the replay publish is
+# committed first, and the DLQ ack is committed only when the broker did not
+# return the publish as unroutable. Failures are injected after the publish
+# or ack frame has been written, to check what the broker holds afterwards
+# in the target queue and in the DLQ.
+#
+# The replay reservation (Valkey) is stubbed; these examples cover only the
+# AMQP side. The double-based unit spec for the same paths is
+# spec/unit/onetime/jobs/scheduled/dlq_email_consumer_job_spec.rb.
+#
+# Requires the lane's test broker on 127.0.0.1:2156 (tests/lanes/README.md,
+# Service safety boundary). Run through the lane runner:
+#   tests/lanes/run simple --only spec/integration/all/jobs/dlq_email_consumer_transaction_spec.rb
+
+require 'spec_helper'
+require 'bunny'
+require 'onetime/jobs/scheduled/dlq_email_consumer_job'
+
+RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :integration do
+  let(:logger) { double('logger', info: nil, debug: nil, warn: nil, error: nil) }
+  let(:payload) { JSON.generate('raw' => true, 'email' => { 'to' => 'test@example.com' }) }
+  let(:connection) do
+    url = ENV.fetch('RABBITMQ_URL')
+    uri = URI.parse(url)
+    unless uri.host == '127.0.0.1' && uri.port == 2156
+      raise "Refusing to run against #{uri.host}:#{uri.port}; expected the lane test broker on 127.0.0.1:2156"
+    end
+
+    Bunny.new(url, automatically_recover: false, connection_timeout: 5, read_timeout: 5).tap(&:start)
+  end
+  let(:channel) { connection.create_channel }
+  let(:observer) { connection.create_channel }
+  let(:suffix) { SecureRandom.hex(12) }
+  let(:dlq_name) { "test.dlq-consumer.dlq.#{suffix}" }
+  let(:target_name) { "test.dlq-consumer.target.#{suffix}" }
+  let(:queue) { observer.queue(dlq_name, durable: true) }
+  let(:target) { observer.queue(target_name, durable: true) }
+  let(:message_id) { "test-dlq-consumer-#{suffix}" }
+
+  def run_batch
+    described_class.send(:consume_dlq_batch)
+  end
+
+  # A queue's ready count, polled briefly until it reaches the expected
+  # value. The broker confirms the job's tx_commit once the channel has
+  # handed the publish or ack to the queue process, not once the queue has
+  # applied it, so a count read on the observer channel right after the
+  # job's commit can be one step stale. A delivery the batch left unacked
+  # returns to the DLQ when the broker processes the end of the batch's
+  # channel, which can be after the close has returned to the job.
+  def depth(target_queue, expected)
+    deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 5
+    count    = target_queue.message_count
+    while count != expected && Process.clock_gettime(Process::CLOCK_MONOTONIC) < deadline
+      sleep 0.01
+      count = target_queue.message_count
+    end
+    count
+  end
+
+  def dlq_depth(expected)
+    depth(queue, expected)
+  end
+
+  # The job bounds its batch by the DLQ count it reads first, and a publish
+  # the observer channel has returned from can still be on its way to the
+  # queue, so setup waits for the DLQ to hold everything it published.
+  def await_dlq(expected)
+    count = dlq_depth(expected)
+    raise "DLQ holds #{count} messages after setup, expected #{expected}" unless count == expected
+  end
+
+  # Dead-letter a message into the test DLQ, routed back to the test target.
+  def dead_letter(id, body = payload)
+    queue.publish(body, persistent: true, message_id: id, content_type: 'application/json',
+      headers: { 'x-death' => [{ 'queue' => target_name }], 'x-schema-version' => 1 })
+  end
+
+  before do
+    allow(described_class).to receive(:scheduler_logger).and_return(logger)
+    allow(described_class).to receive(:reserve_replay).and_return(1)
+    allow(described_class).to receive(:start_replay).and_return(true)
+    allow(described_class).to receive(:finalize_replay)
+    allow(described_class).to receive(:release_reservation)
+    allow(described_class).to receive(:acquire_channel).and_return([nil, channel, false])
+    stub_const("#{described_class.name}::DLQ_NAME", dlq_name)
+    target
+    dead_letter(message_id)
+    await_dlq(1)
+  end
+
+  after do
+    if connection.open?
+      observer.queue_delete(dlq_name)
+      observer.queue_delete(target_name)
+      connection.close
+    end
+  end
+
+  it 'leaves one copy after an interrupted ack: the next run acks the delivery without publishing' do
+    allow(channel).to receive(:ack) do
+      # The publish is committed and its copy is live. Closing the channel
+      # before the ack returns the DLQ delivery to the DLQ.
+      channel.close
+      raise IOError, 'channel closed before ack'
+    end
+    run_batch
+    expect(described_class).to have_received(:finalize_replay).with(message_id, anything, anything).once
+    expect(described_class).not_to have_received(:release_reservation)
+    expect(dlq_depth(1)).to eq(1)
+    expect(depth(target, 1)).to eq(1)
+
+    # finalize_replay marked the id completed, which the next run reads.
+    allow(described_class).to receive(:reserve_replay).and_return(2)
+    allow(described_class).to receive(:acquire_channel).and_return([nil, connection.create_channel, false])
+    run_batch
+    expect(depth(queue, 0)).to eq(0)
+    expect(depth(target, 1)).to eq(1)
+    _, metadata, body = target.pop
+    expect(metadata.message_id).to eq(message_id)
+    expect(metadata.headers).to eq('x-schema-version' => 1)
+    expect(body).to eq(payload)
+  end
+
+  it 'rolls back a written publish before the next message commits on an open channel' do
+    dead_letter("#{message_id}-second")
+    await_dlq(2)
+    calls = 0
+    allow(channel.default_exchange).to receive(:publish).and_wrap_original do |operation, *args, **kwargs|
+      operation.call(*args, **kwargs)
+      calls += 1
+      raise IOError, 'publish interrupted after write' if calls == 1
+    end
+    run_batch
+    expect(depth(target, 1)).to eq(1)
+    expect(dlq_depth(1)).to eq(1)
+    expect(queue.pop[1].message_id).to eq(message_id)
+    expect(target.pop[1].message_id).to eq("#{message_id}-second")
+  end
+
+  it 'keeps a replay whose original queue does not exist, and replays it once the queue exists' do
+    queue.purge
+    missing_name = "test.dlq-consumer.missing.#{suffix}"
+    missing_id   = "#{message_id}-unroutable"
+    headers      = { 'x-death' => [{ 'queue' => missing_name }], 'x-schema-version' => 1 }
+    queue.publish(payload, persistent: true, message_id: missing_id,
+      content_type: 'application/json', headers: headers)
+    dead_letter(message_id)
+    await_dlq(2)
+
+    run_batch
+
+    # The message behind the unroutable one is replayed in the same batch.
+    expect(depth(target, 1)).to eq(1)
+    expect(target.pop[1].message_id).to eq(message_id)
+    expect(dlq_depth(1)).to eq(1)
+    expect(logger).to have_received(:error).with(
+      "[DlqEmailConsumerJob] Replay unroutable: no queue named #{missing_name}; left in the DLQ",
+      message_id: missing_id,
+    ).once
+    expect(logger).to have_received(:info).with(/replayed=1 .*deferred=1 held=1 unroutable=1/)
+    expect(described_class).to have_received(:release_reservation)
+      .with(missing_id, anything, include_publishing: true).once
+    expect(described_class).to have_received(:finalize_replay).with(message_id, anything, anything).once
+    expect(described_class).not_to have_received(:finalize_replay).with(missing_id, anything, anything)
+
+    missing = observer.queue(missing_name, durable: true)
+    begin
+      allow(described_class).to receive(:acquire_channel).and_return([nil, connection.create_channel, false])
+      run_batch
+      expect(depth(queue, 0)).to eq(0)
+      expect(depth(missing, 1)).to eq(1)
+      _, metadata, body = missing.pop
+      expect(metadata.message_id).to eq(missing_id)
+      expect(metadata.headers).to eq('x-schema-version' => 1)
+      expect(body).to eq(payload)
+    ensure
+      observer.queue_delete(missing_name)
+    end
+  end
+
+  it 'discards malformed x-death metadata without leaking frames into the next replay commit' do
+    queue.purge
+    poison_id = "#{message_id}-poison"
+    poison_headers = { 'x-death' => ['not-a-death-table'], 'x-schema-version' => 1 }
+    queue.publish(payload, persistent: true, message_id: poison_id,
+      content_type: 'application/json', headers: poison_headers)
+    dead_letter(message_id)
+    await_dlq(2)
+
+    exchange = channel.default_exchange
+    allow(exchange).to receive(:publish).and_call_original
+    [:ack, :nack, :reject, :tx_commit, :tx_rollback].each do |operation|
+      allow(channel).to receive(operation).and_call_original
+    end
+
+    deliveries = {}
+    allow(described_class).to receive(:process_message).and_wrap_original do |process, *args|
+      _, delivery_info, properties, _, results = args
+      deliveries[properties.message_id] = delivery_info.delivery_tag
+      process.call(*args)
+
+      if properties.message_id == poison_id
+        expect(results).to include(errors: 1, deferred: 0, held: 0, replayed: 0)
+        expect(channel).to be_open
+        expect(exchange).not_to have_received(:publish)
+        expect(channel).to have_received(:nack).with(delivery_info.delivery_tag, false, false).once
+        expect(channel).to have_received(:tx_commit).once
+        expect(described_class).not_to have_received(:reserve_replay)
+      end
+    end
+
+    run_batch
+
+    expect(deliveries.keys).to eq([poison_id, message_id])
+    expect(logger).to have_received(:error).with(
+      '[DlqEmailConsumerJob] No original queue in x-death headers; discarded', message_id: poison_id
+    ).once
+    expect(exchange).to have_received(:publish).with(payload,
+      routing_key: target_name, mandatory: true, persistent: true, message_id: message_id,
+      content_type: 'application/json', headers: { 'x-schema-version' => 1 }).once
+    expect(channel).to have_received(:ack).with(deliveries.fetch(message_id)).once
+    expect(channel).not_to have_received(:ack).with(deliveries.fetch(poison_id))
+    expect(channel).to have_received(:nack).once
+    expect(channel).not_to have_received(:reject)
+    expect(channel).not_to have_received(:tx_rollback)
+    expect(channel).to have_received(:tx_commit).exactly(3).times
+
+    expect(depth(queue, 0)).to eq(0)
+    expect(depth(target, 1)).to eq(1)
+    _, replayed_properties, replayed_body = target.pop
+    expect(replayed_properties.message_id).to eq(message_id)
+    expect(replayed_properties.headers).to eq('x-schema-version' => 1)
+    expect(replayed_body).to eq(payload)
+  end
+
+  describe 'a full batch of messages that cannot be replayed, ahead of one that can' do
+    let(:batch_size) { described_class::BATCH_SIZE }
+
+    def next_batch
+      allow(described_class).to receive(:acquire_channel).and_return([nil, connection.create_channel, false])
+      run_batch
+    end
+
+    def fill_dlq(headers)
+      queue.purge
+      batch_size.times do |index|
+        queue.publish(payload, persistent: true, message_id: "#{message_id}-stuck-#{index}",
+          content_type: 'application/json', headers: headers)
+      end
+      dead_letter(message_id)
+      await_dlq(batch_size + 1)
+    end
+
+    it 'discards malformed x-death messages in the first batch and replays the message behind them in the second' do
+      fill_dlq('x-death' => ['invalid'])
+
+      run_batch
+      expect(depth(queue, 1)).to eq(1)
+      expect(depth(target, 0)).to eq(0)
+      expect(logger).to have_received(:info).with(/replayed=0 .*errors=#{batch_size} deferred=0 held=0/)
+
+      next_batch
+      expect(depth(queue, 0)).to eq(0)
+      expect(depth(target, 1)).to eq(1)
+      expect(target.pop[1].message_id).to eq(message_id)
+
+      next_batch
+      expect(depth(target, 0)).to eq(0)
+    end
+
+    it 'replays the message behind unroutable replays in the first batch, and keeps them across batches' do
+      fill_dlq('x-death' => [{ 'queue' => "test.dlq-consumer.missing.#{suffix}" }])
+
+      run_batch
+      expect(dlq_depth(batch_size)).to eq(batch_size)
+      expect(depth(target, 1)).to eq(1)
+      expect(target.pop[1].message_id).to eq(message_id)
+      expect(logger).to have_received(:info)
+        .with(/replayed=1 .*deferred=#{batch_size} held=#{batch_size} unroutable=#{batch_size}/)
+
+      2.times do
+        next_batch
+        expect(dlq_depth(batch_size)).to eq(batch_size)
+      end
+      expect(depth(target, 0)).to eq(0)
+      expect(queue.pop[1].message_id).to eq("#{message_id}-stuck-0")
+    end
+
+    it 'replays the message behind messages whose processing raises, and keeps them across batches' do
+      fill_dlq('x-death' => [{ 'queue' => target_name }], 'x-test-raise' => true)
+      allow(described_class).to receive(:replay_message).and_wrap_original do |replay, *args|
+        raise NoMethodError, 'unexpected failure' if args[2].headers.key?('x-test-raise')
+
+        replay.call(*args)
+      end
+
+      run_batch
+      expect(dlq_depth(batch_size)).to eq(batch_size)
+      expect(depth(target, 1)).to eq(1)
+      expect(target.pop[1].message_id).to eq(message_id)
+
+      2.times do
+        next_batch
+        expect(dlq_depth(batch_size)).to eq(batch_size)
+      end
+      expect(depth(target, 0)).to eq(0)
+    end
+  end
+
+  it 'stops when the commit cannot be sent, without settling either DLQ delivery' do
+    dead_letter("#{message_id}-second")
+    await_dlq(2)
+    allow(channel).to receive(:tx_commit).and_raise(IOError, 'commit write interrupted')
+    expect(channel).not_to receive(:tx_rollback)
+    run_batch
+    expect(depth(target, 0)).to eq(0)
+    expect(dlq_depth(2)).to eq(2)
+  end
+
+  it 'stops after a publish commit the broker applied but whose confirmation is lost' do
+    dead_letter("#{message_id}-second")
+    await_dlq(2)
+    allow(channel).to receive(:tx_commit).and_wrap_original do |commit|
+      commit.call
+      raise IOError, 'commit confirmation lost'
+    end
+    run_batch
+    # The copy is live and neither delivery was acked. The first stays
+    # behind its publishing reservation until that expires.
+    expect(depth(target, 1)).to eq(1)
+    expect(dlq_depth(2)).to eq(2)
+    expect(described_class).not_to have_received(:release_reservation)
+    expect(described_class).not_to have_received(:finalize_replay)
+  end
+
+  it 'commits a message without an id followed by a non-auth discard' do
+    # A message without an id takes no replay reservation.
+    queue.publish(payload, persistent: true, content_type: 'application/json',
+      headers: { 'x-death' => [{ 'queue' => target_name }] })
+    queue.publish(JSON.generate('template' => 'secret_link'), persistent: true)
+    await_dlq(3) # with the dead letter from the before block
+    run_batch
+    expect(depth(queue, 0)).to eq(0)
+    expect(depth(target, 2)).to eq(2)
+  end
+end

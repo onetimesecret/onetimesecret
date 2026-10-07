@@ -509,8 +509,8 @@
     "source_hash": "7fbbb7e7"
   },
   "web.login.errors.identity_connect_conflict": {
-    "text": "Cette identité n'a pas pu être connectée. La connexion a peut-être été lancée sur le mauvais domaine, ou votre session a expiré. Veuillez vous reconnecter, puis la connecter depuis les paramètres de votre compte.",
-    "source_hash": "4238bbf2"
+    "text": "Cette identité n'a pas pu être connectée. Elle appartient peut-être déjà à un autre compte.",
+    "source_hash": "d8b71cf8"
   },
   "web.login.errors.org_join_failed": {
     "text": "Nous n'avons pas pu terminer votre ajout à votre organisation. Veuillez contacter votre administrateur.",
@@ -527,5 +527,25 @@
   "web.login.errors.sso_cancelled": {
     "text": "La connexion a été annulée. Vous pouvez réessayer quand vous le souhaitez.",
     "source_hash": "b5f3d3ec"
+  },
+  "web.login.errors.sso_issuer_mismatch": {
+    "text": "La connexion avec ce fournisseur est mal configurée. Veuillez contacter votre administrateur.",
+    "source_hash": "44df5918"
+  },
+  "web.login.errors.sso_config_unusable": {
+    "text": "L'authentification unique est configurée pour ce domaine, mais n'est pas utilisable actuellement. Contactez l'administrateur de votre organisation.",
+    "source_hash": "f704b391"
+  },
+  "web.login.errors.sso_domain_unverified": {
+    "text": "L'authentification unique n'est pas encore active pour ce domaine, car la vérification du domaine n'est pas terminée. Veuillez contacter votre administrateur.",
+    "source_hash": "bd981480"
+  },
+  "web.login.errors.tenant_sso_link_unavailable": {
+    "text": "Cette identité n'est associée à aucun compte sur ce domaine. Si vous pouvez vous connecter sur ce domaine avec un compte appartenant à cette organisation, connectez-la depuis Identités connectées. Sinon, demandez à un propriétaire de l'organisation d'inviter cette identité SSO, ou contactez l'assistance.",
+    "source_hash": "66e7376c"
+  },
+  "web.login.errors.identity_connect_wrong_domain": {
+    "text": "Cette identité n'a pas pu être connectée sur ce domaine. Lancez la connexion de cette identité depuis le site où votre session est ouverte ; sur le domaine d'une organisation, votre compte doit déjà appartenir à cette organisation.",
+    "source_hash": "d967c761"
   }
 }

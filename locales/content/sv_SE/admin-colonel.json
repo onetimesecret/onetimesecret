@@ -778,5 +778,37 @@
   "web.colonel.organizations.filters.searchPlaceholder": {
     "text": "Sök efter ID, namn eller e-post",
     "source_hash": "6fe16473"
+  },
+  "web.colonel.organizations.capped": {
+    "text": "Resultaten är begränsade: antalet som visas är ett minimivärde, inte totalen. Filtren omfattar alla organisationer som är kopplade till en prenumeration samt de senast uppdaterade; sök på ett exakt ID eller en exakt e-postadress för att nå övriga.",
+    "source_hash": "0743238d"
+  },
+  "web.impersonation.banner.label": {
+    "text": "Personifiering aktiv",
+    "source_hash": "d96f0e8d"
+  },
+  "web.impersonation.banner.viewingAs": {
+    "text": "Visar som {email}",
+    "source_hash": "cf2dd9c6"
+  },
+  "web.impersonation.banner.readOnly": {
+    "text": "Skrivskyddat: ändringar blockeras under personifiering.",
+    "source_hash": "46ed3b68"
+  },
+  "web.impersonation.banner.expiresIn": {
+    "text": "Avslutas om {time}",
+    "source_hash": "b4999fd8"
+  },
+  "web.impersonation.banner.stop": {
+    "text": "Avsluta personifiering",
+    "source_hash": "5cf74e38"
+  },
+  "web.impersonation.banner.stopping": {
+    "text": "Avslutar…",
+    "source_hash": "bbe85741"
+  },
+  "web.impersonation.banner.stopFailed": {
+    "text": "Det gick inte att avsluta personifieringen. Försök igen.",
+    "source_hash": "5aa72353"
   }
 }

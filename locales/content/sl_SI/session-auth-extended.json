@@ -954,5 +954,53 @@
   "web.auth.webauthn.emailRequired": {
     "text": "Vnesite svoj e-poštni naslov za prijavo s ključem za dostop",
     "source_hash": "7f07647f"
+  },
+  "web.auth.login.verification_unavailable": {
+    "text": "Prijava je uspela, vendar vaše seje nismo mogli potrditi. Poskusite znova čez nekaj trenutkov.",
+    "source_hash": "9a19dfc9"
+  },
+  "web.auth.mfa.verification_unavailable": {
+    "text": "Vaše geslo je bilo sprejeto, vendar dvostopenjskega preverjanja nismo mogli začeti. Poskusite znova čez nekaj trenutkov.",
+    "source_hash": "5fd5e240"
+  },
+  "web.auth.session.ended": {
+    "text": "Vaša seja se je končala. Prosimo, znova se prijavite.",
+    "source_hash": "673e9822"
+  },
+  "web.auth.session.replaced": {
+    "text": "Vaša prijava se je spremenila v drugem zavihku, zato je bila ta stran znova naložena.",
+    "source_hash": "3767d43b"
+  },
+  "web.auth.session.stale_session_title": {
+    "text": "Ta stran je zastarela",
+    "source_hash": "0293e093"
+  },
+  "web.auth.session.stale_session_notice": {
+    "text": "Vaša seja se je spremenila, odkar je bila ta stran naložena. Kopirajte vse, česar niste shranili, nato za nadaljevanje znova naložite stran.",
+    "source_hash": "c62e236c"
+  },
+  "web.auth.session.reload_now": {
+    "text": "Ponovno naložite stran",
+    "source_hash": "437d0d63"
+  },
+  "web.auth.session.verification_unavailable_title": {
+    "text": "Vaše seje trenutno ne moremo preveriti",
+    "source_hash": "2130dda1"
+  },
+  "web.auth.session.verification_unavailable_body": {
+    "text": "Niste bili odjavljeni. Strežnika nismo mogli doseči, da bi potrdili vašo sejo, zato je ta stran skrita, dokler to ne bo mogoče. Še naprej bomo poskušali.",
+    "source_hash": "bb230c2c"
+  },
+  "web.auth.session.retry": {
+    "text": "Poskusi znova",
+    "source_hash": "d8b8392e"
+  },
+  "web.auth.session.retrying": {
+    "text": "Preverjanje …",
+    "source_hash": "ec963ffc"
+  },
+  "web.auth.session.retry_failed": {
+    "text": "Še vedno ni na voljo. Poskusite znova čez nekaj trenutkov.",
+    "source_hash": "b81c022c"
   }
 }

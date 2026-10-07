@@ -778,5 +778,37 @@
   "web.colonel.organizations.filters.searchPlaceholder": {
     "text": "Serĉi laŭ ID, nomo aŭ retpoŝtadreso",
     "source_hash": "6fe16473"
+  },
+  "web.colonel.organizations.capped": {
+    "text": "Rezultoj estas limigitaj: la montrata nombro estas minimumo, ne la sumo. Filtriloj kovras ĉiun organizon ligitan al abono plus la plej lastatempe ĝisdatigitajn; serĉu per preciza ID aŭ retpoŝtadreso por atingi iun ajn alian.",
+    "source_hash": "0743238d"
+  },
+  "web.impersonation.banner.label": {
+    "text": "Imitado aktiva",
+    "source_hash": "d96f0e8d"
+  },
+  "web.impersonation.banner.viewingAs": {
+    "text": "Rigardante kiel {email}",
+    "source_hash": "cf2dd9c6"
+  },
+  "web.impersonation.banner.readOnly": {
+    "text": "Nurlega: ŝanĝoj estas blokitaj dum imitado.",
+    "source_hash": "46ed3b68"
+  },
+  "web.impersonation.banner.expiresIn": {
+    "text": "Finiĝas post {time}",
+    "source_hash": "b4999fd8"
+  },
+  "web.impersonation.banner.stop": {
+    "text": "Ĉesi imitadon",
+    "source_hash": "5cf74e38"
+  },
+  "web.impersonation.banner.stopping": {
+    "text": "Ĉesigante…",
+    "source_hash": "bbe85741"
+  },
+  "web.impersonation.banner.stopFailed": {
+    "text": "Ne eblis ĉesi imitadon. Reprovu.",
+    "source_hash": "5aa72353"
   }
 }

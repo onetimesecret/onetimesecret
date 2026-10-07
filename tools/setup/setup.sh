@@ -344,6 +344,8 @@ cmd_dev() {
   echo ""
   echo "  Note: pnpm run build was NOT run (intentional)."
   echo "  Prior build output was removed; the Vite dev server serves assets directly."
+  echo "  Anything that serves prebuilt assets needs an explicit build first:"
+  echo "    pnpm run build           # before bin/visual, or a production-mode server"
   echo ""
   if ! $has_direnv; then
     echo "  Without direnv, export the environment yourself in each shell:"

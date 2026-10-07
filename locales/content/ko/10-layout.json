@@ -350,5 +350,17 @@
   "web.layout.colonels_only_badge": {
     "text": "Colonel 전용",
     "source_hash": "3f1e2dbd"
+  },
+  "web.footer.dpa": {
+    "text": "데이터 처리 계약",
+    "source_hash": "112eae6b"
+  },
+  "web.footer.cookie_policy": {
+    "text": "쿠키 정책",
+    "source_hash": "ee290b3d"
+  },
+  "web.footer.acceptable_use": {
+    "text": "허용되는 사용 정책",
+    "source_hash": "34aa287a"
   }
 }

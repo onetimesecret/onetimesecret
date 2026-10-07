@@ -15,12 +15,17 @@ describe('jurisdictions', () => {
       expect(JURISDICTION_ICONS).toHaveProperty('CA');
       expect(JURISDICTION_ICONS).toHaveProperty('UK');
       expect(JURISDICTION_ICONS).toHaveProperty('NZ');
+      expect(JURISDICTION_ICONS).toHaveProperty('BR');
+      expect(JURISDICTION_ICONS).toHaveProperty('MX');
+      expect(JURISDICTION_ICONS).toHaveProperty('AU');
+      expect(JURISDICTION_ICONS).toHaveProperty('JP');
+      expect(JURISDICTION_ICONS).toHaveProperty('SG');
       expect(JURISDICTION_ICONS).toHaveProperty('APAC');
     });
 
-    it('uses fa6-solid collection for all icons', () => {
+    it('uses a registered sprite collection for all icons', () => {
       Object.values(JURISDICTION_ICONS).forEach((icon) => {
-        expect(icon.collection).toBe('fa6-solid');
+        expect(['fa6-solid', 'ots']).toContain(icon.collection);
       });
     });
   });
@@ -37,8 +42,8 @@ describe('jurisdictions', () => {
   describe('getJurisdictionIcon', () => {
     it('returns mapped icon for known identifier', () => {
       expect(getJurisdictionIcon('EU')).toEqual({
-        collection: 'fa6-solid',
-        name: 'earth-europe',
+        collection: 'ots',
+        name: 'earth-european-union',
       });
     });
 
@@ -55,10 +60,17 @@ describe('jurisdictions', () => {
     });
 
     it('returns correct icon for each known jurisdiction', () => {
-      expect(getJurisdictionIcon('US').name).toBe('earth-americas');
-      expect(getJurisdictionIcon('CA').name).toBe('earth-americas');
-      expect(getJurisdictionIcon('UK').name).toBe('earth-europe');
-      expect(getJurisdictionIcon('NZ').name).toBe('earth-oceania');
+      const ots = (name: string) => ({ collection: 'ots', name });
+      expect(getJurisdictionIcon('EU')).toEqual(ots('earth-european-union'));
+      expect(getJurisdictionIcon('US')).toEqual(ots('earth-united-states'));
+      expect(getJurisdictionIcon('CA')).toEqual(ots('earth-canada'));
+      expect(getJurisdictionIcon('UK')).toEqual(ots('earth-united-kingdom'));
+      expect(getJurisdictionIcon('NZ')).toEqual(ots('earth-new-zealand'));
+      expect(getJurisdictionIcon('BR')).toEqual(ots('earth-brazil'));
+      expect(getJurisdictionIcon('MX')).toEqual(ots('earth-mexico'));
+      expect(getJurisdictionIcon('AU')).toEqual(ots('earth-australia'));
+      expect(getJurisdictionIcon('JP')).toEqual(ots('earth-japan'));
+      expect(getJurisdictionIcon('SG')).toEqual(ots('earth-singapore'));
       expect(getJurisdictionIcon('APAC').name).toBe('earth-asia');
     });
   });

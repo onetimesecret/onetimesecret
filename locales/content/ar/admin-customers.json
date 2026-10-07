@@ -40,8 +40,8 @@
     "source_hash": "9feed9f1"
   },
   "web.admin.customers.actions.purge.confirmDescription": {
-    "text": "يؤدي هذا إلى حذف {email} وكل بياناته نهائياً. لا يمكن التراجع عن ذلك.",
-    "source_hash": "a74dd5d1"
+    "text": "يطلب هذا حذف {email} نهائياً. يُجرى فحص تمهيدي قبل تفكيك الحساب، ويرفض الإزالة النهائية إذا كانت لدى مساحة عمل نطاقات أو حالة فوترة أو أعضاء آخرون أو بيانات محتفَظ بها أو مراجع غير متّسقة. راجع أي عوائق وعالجها قبل إعادة المحاولة. لا يمكن التراجع عن ذلك بعد بدء التفكيك.",
+    "source_hash": "7b4e5e37"
   },
   "web.admin.customers.actions.purge.success": {
     "text": "تمت إزالة العميل نهائياً.",
@@ -60,8 +60,8 @@
     "source_hash": "227f57d7"
   },
   "web.admin.customers.actions.role.confirmDescription": {
-    "text": "تغيير {email} إلى دور {role}.",
-    "source_hash": "9ba063c6"
+    "text": "يغيّر هذا {email} إلى دور {role}. يمنح دور Colonel صلاحية وصول إدارية كاملة إلى كل حساب وسر ومؤسسة في هذا التثبيت. اكتب عنوان البريد الإلكتروني للحساب أدناه للتأكيد.",
+    "source_hash": "0ed85b97"
   },
   "web.admin.customers.actions.role.success": {
     "text": "تم تحديث الدور.",
@@ -116,8 +116,8 @@
     "source_hash": "62ed2854"
   },
   "web.admin.customers.actions.unverify.confirmDescription": {
-    "text": "وضع علامة على {email} كغير مُتحقق منه.",
-    "source_hash": "592ffd27"
+    "text": "يضع علامة على {email} كغير مُتحقَّق منه. لا يمكن لحساب غير مُتحقَّق منه أن يحمل دور Colonel أو مسؤول أو طاقم العمل، لذا يؤدي هذا أيضاً إلى سحب أي دور مرتفع الصلاحيات لديه. اكتب عنوان البريد الإلكتروني للحساب أدناه للتأكيد.",
+    "source_hash": "601f7382"
   },
   "web.admin.customers.actions.unverify.success": {
     "text": "تم إلغاء التحقق من العميل.",
@@ -568,8 +568,8 @@
     "source_hash": "69e69f49"
   },
   "web.admin.customers.detail.diagnostics.healthy": {
-    "text": "لم يتم العثور على حالة حظر. حالة المصادقة تبدو سليمة — تحقق من مشكلات جانب العميل (ملفات تعريف الارتباط، إعدادات تسجيل الدخول للنطاق المخصص) أو المنطقة الخاطئة.",
-    "source_hash": "f6d5f8d1"
+    "text": "لم يتم العثور على حالة حظر. تبدو أدلة المصادقة وسياق المؤسسة سليمة — تحقق من مشكلات جانب العميل (ملفات تعريف الارتباط، إعدادات تسجيل الدخول للنطاق المخصص) أو المنطقة الخاطئة.",
+    "source_hash": "e0e8450e"
   },
   "web.admin.customers.detail.diagnostics.authUnavailable": {
     "text": "قاعدة بيانات المصادقة غير متاحة (وضع المصادقة البسيط) — تم تخطي فحوصات SQL.",
@@ -690,5 +690,153 @@
   "web.admin.customers.verification.unverified": {
     "text": "لم يتم التحقق",
     "source_hash": "15133907"
+  },
+  "web.admin.customers.actions.impersonate.button": {
+    "text": "انتحال هوية العميل",
+    "source_hash": "38a7cfbe"
+  },
+  "web.admin.customers.actions.impersonate.confirmTitle": {
+    "text": "بدء انتحال الهوية؟",
+    "source_hash": "c6e4fa74"
+  },
+  "web.admin.customers.actions.impersonate.confirmDescription": {
+    "text": "يفتح جلسة محدودة المدة وللقراءة فقط بصفة {email}. تعرض كل صفحة شريط تنبيه حتى تقوم بالإيقاف، وتكون التغييرات محظورة، وتُسجَّل الجلسة في سجل التدقيق مع السبب الذي قدّمته.",
+    "source_hash": "713c01b4"
+  },
+  "web.admin.customers.actions.impersonate.reasonLabel": {
+    "text": "السبب (مطلوب)",
+    "source_hash": "d976f5d9"
+  },
+  "web.admin.customers.actions.impersonate.reasonPlaceholder": {
+    "text": "لماذا تحتاج إلى هذه الجلسة؟ أدرج مرجع التذكرة.",
+    "source_hash": "89a4835d"
+  },
+  "web.admin.customers.actions.impersonate.success": {
+    "text": "بدأ انتحال الهوية.",
+    "source_hash": "b4662bcc"
+  },
+  "web.admin.customers.actions.impersonate.unavailable": {
+    "text": "انتحال الهوية غير متاح لحسابات Colonel والحسابات المجهولة والحسابات المعلّقة.",
+    "source_hash": "fb6578b2"
+  },
+  "web.admin.customers.actions.purge.refused": {
+    "text": "تم رفض الإزالة النهائية. تم الإبقاء على العميل؛ عالج العوائق قبل إعادة المحاولة.",
+    "source_hash": "8e8a2ae1"
+  },
+  "web.admin.customers.actions.purge.partial": {
+    "text": "توقفت الإزالة النهائية بعد اكتمال جزء من التنظيف. لا تُبلغ عن النجاح ولا تُعِد المحاولة دون تحقّق؛ راجع المراحل المكتملة والعوائق.",
+    "source_hash": "a88fd15b"
+  },
+  "web.admin.customers.actions.purge.incomplete": {
+    "text": "لم تكتمل الإزالة النهائية (الحالة: {status}). راجع تفاصيل دورة الحياة قبل إعادة المحاولة.",
+    "source_hash": "c0c3d287"
+  },
+  "web.admin.customers.actions.purge.unreadableResult": {
+    "text": "أعاد الخادم نتيجة إزالة نهائية غير قابلة للقراءة. لم يتم الإبلاغ عن أي نجاح؛ تحقّق من حالة العميل ومساحة العمل قبل إعادة المحاولة.",
+    "source_hash": "cc837a77"
+  },
+  "web.admin.customers.actions.purge.resultStage": {
+    "text": "توقف عند المرحلة: {stage}.",
+    "source_hash": "d0e313bf"
+  },
+  "web.admin.customers.actions.purge.resultBlockers": {
+    "text": "العوائق: {blockers}.",
+    "source_hash": "00c1e196"
+  },
+  "web.admin.customers.actions.purge.resultPlannedActions": {
+    "text": "التنظيف المخطط له: {actions}.",
+    "source_hash": "6915205d"
+  },
+  "web.admin.customers.actions.purge.resultActions": {
+    "text": "التنظيف المكتمل: {actions}.",
+    "source_hash": "d34121b3"
+  },
+  "web.admin.customers.actions.purge.resultCompletedStages": {
+    "text": "المراحل المكتملة: {stages}.",
+    "source_hash": "67f68860"
+  },
+  "web.admin.customers.actions.role.button": {
+    "text": "تغيير الدور",
+    "source_hash": "a43a8d8c"
+  },
+  "web.admin.customers.actions.role.selfDemote": {
+    "text": "لا يمكنك خفض دور حساب Colonel الخاص بك. اطلب من Colonel آخر القيام بذلك، أو شغّل `bin/ots customers role demote`.",
+    "source_hash": "3e75d01b"
+  },
+  "web.admin.customers.actions.role.lastColonel": {
+    "text": "لا يمكنك خفض دور آخر Colonel متبقٍ — لن يبقى في التثبيت أي مسؤول. قم أولاً بترقية حساب آخر والتحقق منه.",
+    "source_hash": "9c59c731"
+  },
+  "web.admin.customers.actions.unverify.selfUnverify": {
+    "text": "لا يمكنك إلغاء التحقق من حسابك الخاص: يلزم وجود بريد إلكتروني مُتحقَّق منه لحمل دور Colonel.",
+    "source_hash": "8ab024fe"
+  },
+  "web.admin.customers.actions.unverify.lastColonel": {
+    "text": "لا يمكنك إلغاء التحقق من آخر Colonel متبقٍ — لا يمكن لحساب غير مُتحقَّق منه أن يحمل دور Colonel. قم أولاً بترقية حساب آخر والتحقق منه.",
+    "source_hash": "fc404616"
+  },
+  "web.admin.customers.detail.diagnostics.organizationContextBlocked": {
+    "text": "سياق المؤسسة محظور أو غير مكتمل. افحص مساحة العمل المفهرسة وأصلح انحراف فهرس الملكية أو العضوية أو البريد الإلكتروني لجهة الاتصال قبل اعتبار هذا الحساب سليماً.",
+    "source_hash": "5c5c89be"
+  },
+  "web.admin.customers.detail.diagnostics.organization": {
+    "text": "مساحة العمل: {id}",
+    "source_hash": "6ee50fe9"
+  },
+  "web.admin.customers.detail.diagnostics.remediation": {
+    "text": "المعالجة: {action}",
+    "source_hash": "83ddc7d7"
+  },
+  "web.admin.customers.detail.fields.internalId": {
+    "text": "المعرّف الداخلي",
+    "source_hash": "e468bb47"
+  },
+  "web.admin.customers.detail.organizations.open": {
+    "text": "فتح",
+    "source_hash": "ed077f3d"
+  },
+  "web.admin.customers.detail.rodauthAdmin.open": {
+    "text": "فتح في Rodauth Admin",
+    "source_hash": "467173c8"
+  },
+  "web.admin.customers.detail.sessions.revokeAll.selfDescription": {
+    "text": "يؤدي هذا إلى تسجيل خروجك من كل جهاز ومتصفح آخر، بما في ذلك الجلسات غير المعروضة في هذه القائمة. ويتم الإبقاء على الجلسة التي تعمل فيها الآن.",
+    "source_hash": "ae350040"
+  },
+  "web.admin.customers.list.capped": {
+    "text": "النتائج محدودة: العدد المعروض حد أدنى وليس العدد الإجمالي. قم بتضييق البحث أو عامل التصفية لرؤية كل النتائج.",
+    "source_hash": "27537844"
+  },
+  "web.admin.customers.list.orphanedAccounts.title": {
+    "text": "حساب في قاعدة بيانات المصادقة بلا سجل عميل",
+    "source_hash": "82cf7a27"
+  },
+  "web.admin.customers.list.orphanedAccounts.hint": {
+    "text": "تحتوي قاعدة بيانات المصادقة على حساب لهذا العنوان، لكن لا يرتبط به أي سجل عميل. لا يزال بإمكان هذا الشخص تسجيل الدخول؛ ولا يحتوي فهرس العملاء على أي شيء له. افتح العنوان لإجراء التشخيص.",
+    "source_hash": "0f903f23"
+  },
+  "web.admin.customers.list.orphanedAccounts.diagnose": {
+    "text": "فتح تشخيصات الحساب",
+    "source_hash": "55b3e826"
+  },
+  "web.admin.customers.list.orphanedAccounts.accountId": {
+    "text": "الحساب #{id}",
+    "source_hash": "485dee3c"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unverified": {
+    "text": "لم يتم التحقق",
+    "source_hash": "33c8e8de"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.verified": {
+    "text": "تم التحقق",
+    "source_hash": "4f783840"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.closed": {
+    "text": "مغلق",
+    "source_hash": "c21ead06"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unknown": {
+    "text": "غير معروف",
+    "source_hash": "b764cdc0"
   }
 }

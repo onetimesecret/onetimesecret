@@ -1630,5 +1630,37 @@
   "web.domains.sso.status_unavailable_hint": {
     "text": "Το SSO δεν μπορεί να προσφερθεί σε αυτόν τον τομέα αυτήν τη στιγμή. Ελέγξτε τα διαπιστευτήρια SSO και τις ρυθμίσεις σύνδεσης αυτού του τομέα.",
     "source_hash": "b03b14f4"
+  },
+  "web.domains.status_tooltip_pending_ssl": {
+    "text": "Ο τομέας επαληθεύτηκε — αναμένεται το πιστοποιητικό του",
+    "source_hash": "541bd705"
+  },
+  "web.domains.2_create_the_alias_record": {
+    "text": "2. Δημιουργήστε την εγγραφή ALIAS ή ANAME",
+    "source_hash": "17b04e6a"
+  },
+  "web.domains.sso.status_saml_disabled_badge": {
+    "text": "Το SAML απενεργοποιήθηκε",
+    "source_hash": "4e2eab51"
+  },
+  "web.domains.sso.status_saml_disabled_hint": {
+    "text": "Ο διαχειριστής του ιστότοπου απενεργοποίησε το SAML για αυτήν την εγκατάσταση. Η διαμόρφωσή σας διατηρείται και θα τεθεί ξανά σε λειτουργία όταν ενεργοποιηθεί ξανά το SAML. Μέχρι τότε, αυτός ο τομέας δεν προσφέρει σύνδεση μέσω SAML.",
+    "source_hash": "5ba9624c"
+  },
+  "web.domains.sso.status_domain_unverified_badge": {
+    "text": "Αναμονή επαλήθευσης τομέα",
+    "source_hash": "ea7459c2"
+  },
+  "web.domains.sso.status_domain_unverified_hint": {
+    "text": "Η επαλήθευση αυτού του τομέα δεν έχει ολοκληρωθεί, επομένως η σύνδεση SSO του δεν είναι ακόμη ενεργή στη σελίδα σύνδεσής του. Το SSO ενεργοποιείται μόλις επαληθευτεί ο τομέας και επιτραπεί το SSO για αυτόν εδώ.",
+    "source_hash": "57ee0066"
+  },
+  "web.domains.verify_outcome.indeterminate": {
+    "text": "Δεν ήταν δυνατή η ολοκλήρωση του ελέγχου DNS αυτήν τη στιγμή. Αυτό δεν σημαίνει ότι οι εγγραφές σας είναι λανθασμένες. Δοκιμάστε ξανά σε λίγα λεπτά.",
+    "source_hash": "4e76a9ef"
+  },
+  "web.domains.verify_outcome.record_not_found": {
+    "text": "Δεν βρήκαμε την αναμενόμενη εγγραφή TXT. Ελέγξτε ότι υπάρχει και ότι η τιμή της ταιριάζει ακριβώς. Οι νέες εγγραφές DNS μπορεί να χρειαστούν λίγα λεπτά για να εμφανιστούν.",
+    "source_hash": "6c847d46"
   }
 }

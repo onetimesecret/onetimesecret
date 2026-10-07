@@ -134,5 +134,17 @@
   "web.admin.audit.list.contractError": {
     "text": "I whakautu te tūmau, engari kāore ngā raraunga arotake i ōrite ki te hōputu e tūmanakohia ana. Kāore e taea te whakaatu i ngā takahanga — he hē pūrongo tēnei, ehara i te rārangi kau.",
     "source_hash": "7f48137e"
+  },
+  "web.admin.audit.export.csv": {
+    "text": "Kaweake CSV",
+    "source_hash": "91f71c14"
+  },
+  "web.admin.audit.export.ndjson": {
+    "text": "Kaweake NDJSON",
+    "source_hash": "3ee2c07c"
+  },
+  "web.admin.audit.export.hint": {
+    "text": "Ka hipoki ngā kaweake i te ara arotake katoa kua puritia i raro i ngā tātari o nāianei, ehara i tēnei whārangi anake. He tepe tō te pupuri — kei te tauranga rangitaki arotake te hītori roa ake.",
+    "source_hash": "163e8ad0"
   }
 }

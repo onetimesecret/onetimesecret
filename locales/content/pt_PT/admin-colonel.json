@@ -778,5 +778,37 @@
   "web.colonel.organizations.filters.searchPlaceholder": {
     "text": "Pesquisar por ID, nome ou e-mail",
     "source_hash": "6fe16473"
+  },
+  "web.colonel.organizations.capped": {
+    "text": "Os resultados estão limitados: a contagem mostrada é um valor mínimo, não o total. Os filtros abrangem todas as organizações associadas a uma subscrição, além das atualizadas mais recentemente; pesquisa por um ID exato ou e-mail para chegar a qualquer outra.",
+    "source_hash": "0743238d"
+  },
+  "web.impersonation.banner.label": {
+    "text": "Personificação ativa",
+    "source_hash": "d96f0e8d"
+  },
+  "web.impersonation.banner.viewingAs": {
+    "text": "A ver como {email}",
+    "source_hash": "cf2dd9c6"
+  },
+  "web.impersonation.banner.readOnly": {
+    "text": "Só de leitura: as alterações estão bloqueadas durante a personificação.",
+    "source_hash": "46ed3b68"
+  },
+  "web.impersonation.banner.expiresIn": {
+    "text": "Termina em {time}",
+    "source_hash": "b4999fd8"
+  },
+  "web.impersonation.banner.stop": {
+    "text": "Terminar personificação",
+    "source_hash": "5cf74e38"
+  },
+  "web.impersonation.banner.stopping": {
+    "text": "A terminar…",
+    "source_hash": "bbe85741"
+  },
+  "web.impersonation.banner.stopFailed": {
+    "text": "Não foi possível terminar a personificação. Tenta novamente.",
+    "source_hash": "5aa72353"
   }
 }

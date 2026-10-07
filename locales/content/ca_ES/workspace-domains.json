@@ -1630,5 +1630,37 @@
   "web.domains.sso.status_unavailable_hint": {
     "text": "Ara mateix l'SSO no es pot oferir en aquest domini. Comprova les credencials de l'SSO i la configuració d'inici de sessió d'aquest domini.",
     "source_hash": "b03b14f4"
+  },
+  "web.domains.status_tooltip_pending_ssl": {
+    "text": "Domini verificat — a l'espera del certificat",
+    "source_hash": "541bd705"
+  },
+  "web.domains.2_create_the_alias_record": {
+    "text": "2. Crear el registre ALIAS o ANAME",
+    "source_hash": "17b04e6a"
+  },
+  "web.domains.sso.status_saml_disabled_badge": {
+    "text": "SAML desactivat",
+    "source_hash": "4e2eab51"
+  },
+  "web.domains.sso.status_saml_disabled_hint": {
+    "text": "L'operador del lloc ha desactivat SAML per a aquesta instal·lació. La teva configuració es conserva i es reprèn quan SAML es torni a activar; fins aleshores, aquest domini no ofereix l'inici de sessió amb SAML.",
+    "source_hash": "5ba9624c"
+  },
+  "web.domains.sso.status_domain_unverified_badge": {
+    "text": "Pendent de la verificació del domini",
+    "source_hash": "ea7459c2"
+  },
+  "web.domains.sso.status_domain_unverified_hint": {
+    "text": "Aquest domini no ha acabat la verificació, així que la seva connexió SSO encara no està activa a la pàgina d'inici de sessió. L'SSO s'activa un cop el domini està verificat i l'SSO hi està permès aquí.",
+    "source_hash": "57ee0066"
+  },
+  "web.domains.verify_outcome.indeterminate": {
+    "text": "Ara mateix no hem pogut completar la comprovació de DNS. Això no vol dir que els teus registres siguin incorrectes. Si us plau, torna-ho a provar d'aquí a uns minuts.",
+    "source_hash": "4e76a9ef"
+  },
+  "web.domains.verify_outcome.record_not_found": {
+    "text": "No hem trobat el registre TXT esperat. Comprova que existeix i que el seu valor coincideix exactament. Els registres DNS nous poden trigar uns minuts a aparèixer.",
+    "source_hash": "6c847d46"
   }
 }

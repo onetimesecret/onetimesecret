@@ -7,9 +7,11 @@ require 'onetime/middleware/registry'
 require 'onetime/middleware/security'
 
 RSpec.describe Onetime::Middleware::Registry do
-  # The components Security mounts today, in mount order. ReferrerPolicy and
-  # PermissionsPolicy come from the 2026-08-02 audit (M-3.2, M-3.3).
-  SECURITY_MOUNTED = %w[
+  # The config-toggled protections, in registry order. ReferrerPolicy and
+  # PermissionsPolicy come from the 2026-08-02 audit (M-3.2, M-3.3). Security
+  # mounts all but CookieTossing, which MiddlewareStack mounts above the
+  # session middleware.
+  PROTECTIONS = %w[
     UTF8Sanitizer
     AuthenticityToken
     HttpOrigin
@@ -23,12 +25,14 @@ RSpec.describe Onetime::Middleware::Registry do
     StrictTransport
   ].freeze
 
+  SECURITY_MOUNTED = (PROTECTIONS - %w[CookieTossing]).freeze
+
   # Registered for later per-app profile steps; not consumed yet.
   NEW_THREE = %w[Deflater ContentSecurityPolicy SessionHijacking].freeze
 
   describe '.components' do
-    it 'contains exactly the 14 known entries, Security mounts first in order' do
-      expect(described_class.components.keys).to eq(SECURITY_MOUNTED + NEW_THREE)
+    it 'contains exactly the 14 known entries, the protections first in order' do
+      expect(described_class.components.keys).to eq(PROTECTIONS + NEW_THREE)
     end
 
     it 'is frozen' do
@@ -120,7 +124,7 @@ RSpec.describe Onetime::Middleware::Registry do
       expect(Onetime::Middleware::Security::WARN_WHEN_DISABLED_KEYS)
         .to match_array(%w[
           frame_options path_traversal strict_transport authenticity_token
-          utf8_sanitizer http_origin xss_header cookie_tossing ip_spoofing
+          utf8_sanitizer http_origin xss_header ip_spoofing
           referrer_policy permissions_policy
         ])
     end

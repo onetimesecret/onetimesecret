@@ -149,6 +149,17 @@ module Onetime
       # TTL for processed message idempotency keys (1 hour)
       IDEMPOTENCY_TTL = 3600
 
+      # Datastore key of the idempotency claim a worker takes on a message
+      # id. The only definition of the key: the workers claim and release
+      # through it (BaseWorker), and the DLQ replay operation releases
+      # through it before it republishes a message.
+      #
+      # @param message_id [String] AMQP message id
+      # @return [String]
+      def self.processing_claim_key(message_id)
+        "job:processed:#{message_id}"
+      end
+
       # Schema versioning constants
       CURRENT_SCHEMA_VERSION = 1
 

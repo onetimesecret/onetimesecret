@@ -350,5 +350,17 @@
   "web.layout.colonels_only_badge": {
     "text": "Yalnızca Colonel'lere Özel",
     "source_hash": "3f1e2dbd"
+  },
+  "web.footer.dpa": {
+    "text": "Veri İşleme Sözleşmesi",
+    "source_hash": "112eae6b"
+  },
+  "web.footer.cookie_policy": {
+    "text": "Çerez Politikası",
+    "source_hash": "ee290b3d"
+  },
+  "web.footer.acceptable_use": {
+    "text": "Kabul Edilebilir Kullanım Politikası",
+    "source_hash": "34aa287a"
   }
 }

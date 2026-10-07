@@ -109,6 +109,16 @@ module WebauthnFlowHelper
   # ==========================================================================
   def register_passkey(host, email:, password: AuthTestConstants::TEST_PASSWORD)
     header 'Host', host
+    register_passkey_as_sent(email: email, password: password, rp_id: host, origin: passkey_origin(host))
+  end
+
+  # The same registration for a request whose headers the caller has already
+  # set (a forwarded host, a port, a scheme): `rp_id` is the RP ID the server
+  # is expected to offer and `origin` the origin the browser would be on.
+  # `authenticator` lets two clients on different origins share one key.
+  def register_passkey_as_sent(email:, rp_id:, origin:, password: AuthTestConstants::TEST_PASSWORD,
+                               authenticator: WebAuthn::FakeAuthenticator.new)
+    expected_rp_id = rp_id
     csrf_json_post('/auth/login', login: email, password: password)
     expect(last_response.status).to eq(200),
       "Precondition failed: password login for passkey setup (#{last_response.status}: #{last_response.body})"
@@ -126,9 +136,9 @@ module WebauthnFlowHelper
     rp_id     = setup.dig('webauthn_setup', 'rp', 'id')
     expect(challenge).not_to be_nil
     expect(hmac).not_to be_nil
-    expect(rp_id).to eq(host), "Server offered RP ID #{rp_id.inspect} for host #{host}"
+    expect(rp_id).to eq(expected_rp_id), "Server offered RP ID #{rp_id.inspect}, expected #{expected_rp_id.inspect}"
 
-    client      = WebAuthn::FakeClient.new(passkey_origin(host))
+    client      = WebAuthn::FakeClient.new(origin, authenticator: authenticator)
     attestation = client.create(challenge: challenge, rp_id: rp_id)
 
     csrf_json_post(
@@ -142,7 +152,7 @@ module WebauthnFlowHelper
       "Phase-2 webauthn-setup should store the credential (#{last_response.status}: #{last_response.body})"
 
     clear_cookies
-    Passkey.new(client: client, origin: passkey_origin(host), rp_id: rp_id, webauthn_id: attestation['id'])
+    Passkey.new(client: client, origin: origin, rp_id: rp_id, webauthn_id: attestation['id'])
   end
 
   # ==========================================================================
@@ -157,6 +167,14 @@ module WebauthnFlowHelper
   # ==========================================================================
   def login_with_password_and_passkey(host, email:, passkey:, password: AuthTestConstants::TEST_PASSWORD)
     header 'Host', host
+    login_with_password_and_passkey_as_sent(email: email, passkey: passkey, password: password)
+  end
+
+  # The same login for a request whose headers the caller has already set.
+  # `expected_status` is the status of the assertion POST: 200 completes the
+  # login; anything else leaves the session at the second-factor step.
+  def login_with_password_and_passkey_as_sent(email:, passkey:, password: AuthTestConstants::TEST_PASSWORD,
+                                              expected_status: 200)
     csrf_json_post('/auth/login', login: email, password: password)
     expect(last_response.status).to eq(200),
       "Precondition failed: password login (#{last_response.status}: #{last_response.body})"
@@ -178,8 +196,8 @@ module WebauthnFlowHelper
       webauthn_auth_challenge: challenge,
       webauthn_auth_challenge_hmac: hmac,
     )
-    expect(last_response.status).to eq(200),
-      "Passkey second factor should complete the login (#{last_response.status}: #{last_response.body})"
+    expect(last_response.status).to eq(expected_status),
+      "Passkey second factor: expected #{expected_status} (#{last_response.status}: #{last_response.body})"
     last_response
   end
 

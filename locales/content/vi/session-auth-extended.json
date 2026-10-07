@@ -957,5 +957,53 @@
   "web.auth.webauthn.emailRequired": {
     "text": "Nhập địa chỉ email của bạn để đăng nhập bằng khóa truy cập",
     "source_hash": "7f07647f"
+  },
+  "web.auth.login.verification_unavailable": {
+    "text": "Bạn đã đăng nhập thành công, nhưng chúng tôi không thể xác nhận phiên của bạn. Vui lòng thử lại sau giây lát.",
+    "source_hash": "9a19dfc9"
+  },
+  "web.auth.mfa.verification_unavailable": {
+    "text": "Mật khẩu của bạn đã được chấp nhận, nhưng chúng tôi không thể bắt đầu bước xác minh hai yếu tố. Vui lòng thử lại sau giây lát.",
+    "source_hash": "5fd5e240"
+  },
+  "web.auth.session.ended": {
+    "text": "Phiên của bạn đã kết thúc. Vui lòng đăng nhập lại.",
+    "source_hash": "673e9822"
+  },
+  "web.auth.session.replaced": {
+    "text": "Trạng thái đăng nhập của bạn đã thay đổi ở một tab khác, nên trang này đã được tải lại.",
+    "source_hash": "3767d43b"
+  },
+  "web.auth.session.stale_session_title": {
+    "text": "Trang này đã lỗi thời",
+    "source_hash": "0293e093"
+  },
+  "web.auth.session.stale_session_notice": {
+    "text": "Phiên của bạn đã thay đổi kể từ khi trang này được tải. Hãy sao chép mọi nội dung bạn chưa lưu, sau đó tải lại trang để tiếp tục.",
+    "source_hash": "c62e236c"
+  },
+  "web.auth.session.reload_now": {
+    "text": "Tải lại trang",
+    "source_hash": "437d0d63"
+  },
+  "web.auth.session.verification_unavailable_title": {
+    "text": "Hiện chúng tôi không thể xác minh phiên của bạn",
+    "source_hash": "2130dda1"
+  },
+  "web.auth.session.verification_unavailable_body": {
+    "text": "Bạn chưa bị đăng xuất. Chúng tôi không thể kết nối đến máy chủ để xác nhận phiên của bạn, nên trang này được ẩn cho đến khi xác nhận được. Chúng tôi sẽ tiếp tục thử.",
+    "source_hash": "bb230c2c"
+  },
+  "web.auth.session.retry": {
+    "text": "Thử lại",
+    "source_hash": "d8b8392e"
+  },
+  "web.auth.session.retrying": {
+    "text": "Đang kiểm tra…",
+    "source_hash": "ec963ffc"
+  },
+  "web.auth.session.retry_failed": {
+    "text": "Vẫn chưa khả dụng. Vui lòng thử lại sau giây lát.",
+    "source_hash": "b81c022c"
   }
 }

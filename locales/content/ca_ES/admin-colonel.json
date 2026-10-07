@@ -778,5 +778,37 @@
   "web.colonel.organizations.filters.searchPlaceholder": {
     "text": "Cerca per identificador, nom o correu electrònic",
     "source_hash": "6fe16473"
+  },
+  "web.colonel.organizations.capped": {
+    "text": "Els resultats estan limitats: el recompte que es mostra és un mínim, no el total. Els filtres cobreixen totes les organitzacions vinculades a una subscripció i les actualitzades més recentment; cerca per un ID o un correu electrònic exactes per arribar a qualsevol altra.",
+    "source_hash": "0743238d"
+  },
+  "web.impersonation.banner.label": {
+    "text": "Suplantació activa",
+    "source_hash": "d96f0e8d"
+  },
+  "web.impersonation.banner.viewingAs": {
+    "text": "Visualitzant com a {email}",
+    "source_hash": "cf2dd9c6"
+  },
+  "web.impersonation.banner.readOnly": {
+    "text": "Només lectura: els canvis estan bloquejats durant la suplantació.",
+    "source_hash": "46ed3b68"
+  },
+  "web.impersonation.banner.expiresIn": {
+    "text": "Finalitza d'aquí a {time}",
+    "source_hash": "b4999fd8"
+  },
+  "web.impersonation.banner.stop": {
+    "text": "Atura la suplantació",
+    "source_hash": "5cf74e38"
+  },
+  "web.impersonation.banner.stopping": {
+    "text": "S'està aturant…",
+    "source_hash": "bbe85741"
+  },
+  "web.impersonation.banner.stopFailed": {
+    "text": "No s'ha pogut aturar la suplantació. Torna-ho a provar.",
+    "source_hash": "5aa72353"
   }
 }

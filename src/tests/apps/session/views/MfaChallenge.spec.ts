@@ -618,6 +618,9 @@ describe('MfaChallenge', () => {
   // -------------------------------------------------------------------------
 
   describe('billing intent from the verify response (#4306)', () => {
+    // Every org carries a plan id (free_v1 is the free tier), so the redirect
+    // always routes relative to the current plan and the plans page decides
+    // checkout vs plan change from the backend subscription status.
     const validIntent = {
       success: 'ok',
       billing_redirect: { product: 'identity_plus_v1', interval: 'year', valid: true },
@@ -641,9 +644,8 @@ describe('MfaChallenge', () => {
 
       useBootstrapStore().billing_enabled = true;
       const orgStore = useOrganizationStore();
-      vi.mocked(orgStore.restorePersistedSelection).mockReturnValue({
-        extid: 'org_live1',
-      } as ReturnType<typeof orgStore.restorePersistedSelection>);
+      // fetchOrganizations is stubbed: seed the list the redirect resolves from.
+      orgStore.organizations = [{ extid: 'org_live1', planid: 'free_v1' }] as typeof orgStore.organizations;
 
       await submitOtp(wrapper);
 
@@ -651,7 +653,7 @@ describe('MfaChallenge', () => {
       expect(authStore.setAuthenticated).toHaveBeenCalledWith(true);
       expect(routerPushMock).toHaveBeenCalledWith({
         path: '/billing/org_live1/plans',
-        query: { product: 'identity_plus_v1', interval: 'year' },
+        query: { product: 'identity_plus_v1', interval: 'year', change: 'true' },
       });
     });
 
@@ -670,9 +672,8 @@ describe('MfaChallenge', () => {
 
       useBootstrapStore().billing_enabled = true;
       const orgStore = useOrganizationStore();
-      vi.mocked(orgStore.restorePersistedSelection).mockReturnValue({
-        extid: 'org_live1',
-      } as ReturnType<typeof orgStore.restorePersistedSelection>);
+      // fetchOrganizations is stubbed: seed the list the redirect resolves from.
+      orgStore.organizations = [{ extid: 'org_live1', planid: 'free_v1' }] as typeof orgStore.organizations;
 
       await byTestId(wrapper, 'mfa-verify-webauthn-submit').trigger('click');
       await flushPromises();
@@ -683,7 +684,7 @@ describe('MfaChallenge', () => {
       expect(authStore.setAuthenticated).toHaveBeenCalledWith(true);
       expect(routerPushMock).toHaveBeenCalledWith({
         path: '/billing/org_live1/plans',
-        query: { product: 'identity_plus_v1', interval: 'year' },
+        query: { product: 'identity_plus_v1', interval: 'year', change: 'true' },
       });
     });
 
@@ -696,9 +697,8 @@ describe('MfaChallenge', () => {
 
       useBootstrapStore().billing_enabled = true;
       const orgStore = useOrganizationStore();
-      vi.mocked(orgStore.restorePersistedSelection).mockReturnValue({
-        extid: 'org_live1',
-      } as ReturnType<typeof orgStore.restorePersistedSelection>);
+      // fetchOrganizations is stubbed: seed the list the redirect resolves from.
+      orgStore.organizations = [{ extid: 'org_live1', planid: 'free_v1' }] as typeof orgStore.organizations;
 
       await byTestId(wrapper, 'mfa-verify-webauthn-submit').trigger('click');
       await flushPromises();
@@ -706,7 +706,7 @@ describe('MfaChallenge', () => {
       expect(mockWebAuthnState.mfaVerifyResponse.value).toBeNull();
       expect(routerPushMock).toHaveBeenCalledWith({
         path: '/billing/org_live1/plans',
-        query: { product: 'identity_plus_v1', interval: 'monthly' },
+        query: { product: 'identity_plus_v1', interval: 'monthly', change: 'true' },
       });
     });
 

@@ -134,5 +134,25 @@
   "api.organizations.members.errors.no_permission_to_remove": {
     "text": "멤버를 제거할 권한이 없습니다",
     "source_hash": "b0ac7287"
+  },
+  "api.organizations.errors.delete_has_domains": {
+    "text": "이 조직을 삭제하기 전에 조직의 사용자 지정 도메인을 제거하세요: %{domains}",
+    "source_hash": "040a401e"
+  },
+  "api.organizations.errors.delete_drifted_domains_count": {
+    "text": "도메인 레코드 %{count}개가 여전히 이 조직을 참조하지만 더 이상 조직에 나열되어 있지 않습니다. 이 조직을 삭제하기 전에 지원팀에 문의하여 해당 레코드를 제거해 주세요.",
+    "source_hash": "f6e71a9a"
+  },
+  "api.organizations.errors.delete_is_default": {
+    "text": "기본 워크스페이스는 삭제할 수 없습니다. 제거가 필요하면 지원팀에 문의하세요.",
+    "source_hash": "bc2eaed5"
+  },
+  "api.organizations.errors.delete_active_subscription": {
+    "text": "이 조직을 삭제하기 전에 조직의 구독을 취소하세요.",
+    "source_hash": "f0c54eca"
+  },
+  "api.organizations.errors.delete_last_org": {
+    "text": "유일한 조직입니다. 이 조직을 삭제하기 전에 다른 조직을 생성하세요.",
+    "source_hash": "7608a1d6"
   }
 }

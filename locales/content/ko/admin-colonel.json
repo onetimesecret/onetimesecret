@@ -778,5 +778,37 @@
   "web.colonel.organizations.filters.searchPlaceholder": {
     "text": "ID, 이름 또는 이메일로 검색",
     "source_hash": "6fe16473"
+  },
+  "web.colonel.organizations.capped": {
+    "text": "결과가 제한되어 있습니다. 표시된 개수는 전체가 아니라 최소값입니다. 필터는 구독에 연결된 모든 조직과 가장 최근에 업데이트된 조직을 대상으로 합니다. 그 밖의 조직을 찾으려면 정확한 ID 또는 이메일로 검색하세요.",
+    "source_hash": "0743238d"
+  },
+  "web.impersonation.banner.label": {
+    "text": "대리 접속 중",
+    "source_hash": "d96f0e8d"
+  },
+  "web.impersonation.banner.viewingAs": {
+    "text": "{email} 계정으로 보는 중",
+    "source_hash": "cf2dd9c6"
+  },
+  "web.impersonation.banner.readOnly": {
+    "text": "읽기 전용: 대리 접속 중에는 변경할 수 없습니다.",
+    "source_hash": "46ed3b68"
+  },
+  "web.impersonation.banner.expiresIn": {
+    "text": "{time} 후 종료",
+    "source_hash": "b4999fd8"
+  },
+  "web.impersonation.banner.stop": {
+    "text": "대리 접속 종료",
+    "source_hash": "5cf74e38"
+  },
+  "web.impersonation.banner.stopping": {
+    "text": "종료 중…",
+    "source_hash": "bbe85741"
+  },
+  "web.impersonation.banner.stopFailed": {
+    "text": "대리 접속을 종료할 수 없습니다. 다시 시도하세요.",
+    "source_hash": "5aa72353"
   }
 }

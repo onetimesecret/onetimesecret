@@ -48,12 +48,12 @@
     "source_hash": "acaede35"
   },
   "web.admin.domains.addDomain.strategy.caddy_on_demand": {
-    "text": "Caddy on-demand — сертификатите се издават автоматично при първата заявка.",
-    "source_hash": "deb90ae6"
+    "text": "Caddy on-demand — проверка на собствеността чрез DNS (TXT запис); сертификатите се издават автоматично след потвърждение.",
+    "source_hash": "1c926efa"
   },
   "web.admin.domains.addDomain.strategy.caddy": {
-    "text": "Caddy — сертификатите се издават автоматично при първата заявка.",
-    "source_hash": "a0f3c2dc"
+    "text": "Caddy — проверка на собствеността чрез DNS (TXT запис); сертификатите се издават автоматично след потвърждение.",
+    "source_hash": "5774ff90"
   },
   "web.admin.domains.addDomain.strategy.unknown": {
     "text": "Стратегия за валидиране за цялата инсталация.",
@@ -842,5 +842,81 @@
   "web.admin.domains.tls.none": {
     "text": "Не обслужва",
     "source_hash": "da8a5ab9"
+  },
+  "web.admin.domains.configs.edit.originsHint": {
+    "text": "По един произход (origin) на ред, включително схемата, например https://vault.example.com. Произход в домейн на друга организация се отхвърля.",
+    "source_hash": "4a4e1d33"
+  },
+  "web.admin.domains.configs.fields.related_origins": {
+    "text": "Свързани произходи за ключове за достъп",
+    "source_hash": "e6160714"
+  },
+  "web.admin.domains.dns.cnameStepInstall": {
+    "text": "2. Добавете CNAME запис, сочещ поддомейна към тази инсталация.",
+    "source_hash": "b8a329f9"
+  },
+  "web.admin.domains.dns.aliasStepInstall": {
+    "text": "2. Добавете ALIAS или ANAME запис, сочещ апекса към тази инсталация.",
+    "source_hash": "9a61ed66"
+  },
+  "web.admin.domains.dns.apexNote": {
+    "text": "Апекс домейнът не може да има CNAME запис. Ако DNS доставчикът няма ALIAS или ANAME запис, A запис към IP адреса на този сървър върши същата работа.",
+    "source_hash": "f69e3032"
+  },
+  "web.admin.domains.fields.verifiedByOverride": {
+    "text": "Да (заместване от оператора)",
+    "source_hash": "a1a8644f"
+  },
+  "web.admin.domains.list.capped": {
+    "text": "Резултатите са ограничени: показаният брой е долна граница, а не общият брой. Стеснете търсенето или филтъра, за да видите всичко.",
+    "source_hash": "27537844"
+  },
+  "web.admin.domains.override.button": {
+    "text": "Заместване на състоянието",
+    "source_hash": "c683774c"
+  },
+  "web.admin.domains.override.title": {
+    "text": "Заместване на състоянието на проверка",
+    "source_hash": "66dbebb2"
+  },
+  "web.admin.domains.override.description": {
+    "text": "Ръчно задаване на флаговете за проверка и разрешаване за този домейн. Използвайте с внимание.",
+    "source_hash": "bc3eb719"
+  },
+  "web.admin.domains.override.verified": {
+    "text": "Проверен",
+    "source_hash": "4f783840"
+  },
+  "web.admin.domains.override.resolving": {
+    "text": "Разрешаване",
+    "source_hash": "3287a034"
+  },
+  "web.admin.domains.override.apply": {
+    "text": "Прилагане на заместването",
+    "source_hash": "e2d1472a"
+  },
+  "web.admin.domains.override.cancel": {
+    "text": "Отказ",
+    "source_hash": "19766ed6"
+  },
+  "web.admin.domains.override.success": {
+    "text": "Състоянието на домейна е заместено.",
+    "source_hash": "42104cd0"
+  },
+  "web.admin.domains.override.noChange": {
+    "text": "Няма промени за прилагане.",
+    "source_hash": "07632d50"
+  },
+  "web.admin.domains.verify.success.indeterminate": {
+    "text": "DNS проверката не върна резултат за {domain}. Състоянието на потвърждение остана непроменено.",
+    "source_hash": "9c5ab974"
+  },
+  "web.admin.domains.verify.success.overrideHeld": {
+    "text": "TXT проверката за {domain} е неуспешна, но домейнът остава потвърден поради заместване от оператора.",
+    "source_hash": "e754aac8"
+  },
+  "web.admin.domains.verify.success.confirmationExpired": {
+    "text": "DNS проверката за {domain} не връща резултат повече от 7 дни. Домейнът вече не е потвърден.",
+    "source_hash": "a6901cb5"
   }
 }

@@ -134,5 +134,25 @@
   "api.organizations.members.errors.no_permission_to_remove": {
     "text": "Du har inte behörighet att ta bort medlemmar",
     "source_hash": "b0ac7287"
+  },
+  "api.organizations.errors.delete_has_domains": {
+    "text": "Ta bort den här organisationens anpassade domäner innan du raderar den: %{domains}",
+    "source_hash": "040a401e"
+  },
+  "api.organizations.errors.delete_drifted_domains_count": {
+    "text": "%{count} domänpost(er) refererar fortfarande till den här organisationen men listas inte längre i den. Kontakta supporten för att ta bort dem innan du raderar den här organisationen.",
+    "source_hash": "f6e71a9a"
+  },
+  "api.organizations.errors.delete_is_default": {
+    "text": "Din standardarbetsyta kan inte raderas. Kontakta supporten om du behöver få den borttagen.",
+    "source_hash": "bc2eaed5"
+  },
+  "api.organizations.errors.delete_active_subscription": {
+    "text": "Avsluta den här organisationens prenumeration innan du raderar den.",
+    "source_hash": "f0c54eca"
+  },
+  "api.organizations.errors.delete_last_org": {
+    "text": "Det här är din enda organisation. Skapa en till innan du raderar den här.",
+    "source_hash": "7608a1d6"
   }
 }

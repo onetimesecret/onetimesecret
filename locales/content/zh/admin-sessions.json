@@ -176,8 +176,8 @@
     "source_hash": "0c6605c1"
   },
   "web.admin.sessions.revoke.confirmDescription": {
-    "text": "此操作将删除会话 {id}，立即将该用户登出。请输入会话 ID 以确认。",
-    "source_hash": "9e08b1b8"
+    "text": "此操作将撤销会话 {id}，立即将该用户登出。请输入 {token} 以确认。",
+    "source_hash": "80578692"
   },
   "web.admin.sessions.revoke.success": {
     "text": "会话已撤销",
@@ -188,12 +188,12 @@
     "source_hash": "34cb67a4"
   },
   "web.admin.sessions.scan.capped": {
-    "text": "扫描上限为前 {scanned} 个键——超出此范围的已验证会话不会列出。可按 ID 检查特定会话以访问它。",
-    "source_hash": "fa418b4e"
+    "text": "扫描仅限前 {scanned} 个键——超出此范围的已验证会话不会列出。请缩小搜索范围以查找这些会话。",
+    "source_hash": "7a8d6fd5"
   },
   "web.admin.sessions.search.placeholder": {
-    "text": "按邮箱或外部 ID 搜索",
-    "source_hash": "f2dc5c06"
+    "text": "按邮箱、外部 ID 或会话句柄搜索",
+    "source_hash": "4894dec4"
   },
   "web.admin.sessions.sections.session": {
     "text": "会话",
@@ -210,5 +210,45 @@
   "web.admin.sessions.status.anonymous": {
     "text": "匿名",
     "source_hash": "e7a8aa2d"
+  },
+  "web.admin.sessions.authority.title": {
+    "text": "在完整身份验证模式下，此处并非会话的权威来源",
+    "source_hash": "796fb07f"
+  },
+  "web.admin.sessions.authority.description": {
+    "text": "此列表来自 Redis 会话存储。当身份验证模式设置为 full 时，权威的会话状态保存在 Rodauth 账户数据库中，而此控制台不会读取该数据库。通过 Rodauth 登录的账户可能不会显示在此处，并且在此处撤销会话不会结束 Rodauth 会话。",
+    "source_hash": "77bc4904"
+  },
+  "web.admin.sessions.authority.descriptionRevokeAll": {
+    "text": "此列表来自 Redis 会话存储。当身份验证模式设置为 full 时，权威的会话状态保存在 Rodauth 账户数据库中，而此控制台不会读取该数据库。通过 Rodauth 登录的账户可能不会显示在此处，并且在此处撤销单个会话不会结束其 Rodauth 会话。「撤销全部」还会结束该账户的 Rodauth 会话。",
+    "source_hash": "f964663d"
+  },
+  "web.admin.sessions.authority.openAdmin": {
+    "text": "打开 Rodauth Admin",
+    "source_hash": "ce523836"
+  },
+  "web.admin.sessions.authority.notConfigured": {
+    "text": "设置 RODAUTH_ADMIN_URL 后，即可从此处链接到 Rodauth Admin。",
+    "source_hash": "c070dbfb"
+  },
+  "web.admin.sessions.columns.sessionHandle": {
+    "text": "会话句柄",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.errors.scanCapped": {
+    "text": "在抽样的键空间中未找到此会话。请从列表中该会话所在的行打开它，以便通过其所有者进行查找。",
+    "source_hash": "67b73f7f"
+  },
+  "web.admin.sessions.fields.sessionHandle": {
+    "text": "会话句柄",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.revoke.ownSession": {
+    "text": "这是您自己的会话。撤销它会使您退出登录——请改用「退出登录」。",
+    "source_hash": "a6762292"
+  },
+  "web.admin.sessions.rodauthAdmin.open": {
+    "text": "在 Rodauth Admin 中打开",
+    "source_hash": "467173c8"
   }
 }

@@ -46,5 +46,17 @@
   "api.domains.errors.homepage_incoming_not_ready": {
     "text": "يجب تفعيل الأسرار الواردة مع مستلِم واحد على الأقل قبل استخدامها كصفحة رئيسية.",
     "source_hash": "556da6e2"
+  },
+  "api.domains.errors.related_origins_invalid": {
+    "text": "أصل غير صالح: %{origins}. أدخل المخطط والمضيف، على سبيل المثال https://vault.example.com",
+    "source_hash": "5acb92ca"
+  },
+  "api.domains.errors.related_origins_foreign_organization": {
+    "text": "تنتمي هذه الأصول إلى مؤسسة أخرى ولا يمكن إضافتها: %{origins}",
+    "source_hash": "ac21c1e7"
+  },
+  "api.domains.errors.allowed_signup_domains_invalid": {
+    "text": "نطاق غير صالح: %{domains}. أدخل اسم نطاق قابلاً للتسجيل، على سبيل المثال example.com",
+    "source_hash": "2d93472c"
   }
 }

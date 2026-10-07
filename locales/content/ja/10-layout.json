@@ -350,5 +350,17 @@
   "web.layout.colonels_only_badge": {
     "text": "Colonel専用",
     "source_hash": "3f1e2dbd"
+  },
+  "web.footer.dpa": {
+    "text": "データ処理契約",
+    "source_hash": "112eae6b"
+  },
+  "web.footer.cookie_policy": {
+    "text": "Cookieポリシー",
+    "source_hash": "ee290b3d"
+  },
+  "web.footer.acceptable_use": {
+    "text": "適正利用ポリシー",
+    "source_hash": "34aa287a"
   }
 }

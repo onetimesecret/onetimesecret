@@ -134,5 +134,17 @@
   "web.admin.audit.list.contractError": {
     "text": "El servidor respondió, pero los datos de auditoría no coincidían con el formato esperado. No se puede mostrar ningún evento: es un fallo de generación de informes, no un registro vacío.",
     "source_hash": "7f48137e"
+  },
+  "web.admin.audit.export.csv": {
+    "text": "Exportar CSV",
+    "source_hash": "91f71c14"
+  },
+  "web.admin.audit.export.ndjson": {
+    "text": "Exportar NDJSON",
+    "source_hash": "3ee2c07c"
+  },
+  "web.admin.audit.export.hint": {
+    "text": "Las exportaciones abarcan todo el historial conservado con los filtros actuales, no solo esta página. La retención es limitada: el historial más antiguo se encuentra en el destino del registro de auditoría.",
+    "source_hash": "163e8ad0"
   }
 }

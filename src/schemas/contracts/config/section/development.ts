@@ -23,7 +23,6 @@ const developmentSchema = z.object({
   enabled: z.boolean().optional(),
   debug: z.boolean().optional(),
   frontend_host: z.string().optional(),
-  domain_context_enabled: z.boolean().optional(),
   allow_nil_global_secret: z.boolean().optional(),
 });
 

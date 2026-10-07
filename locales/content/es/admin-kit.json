@@ -62,5 +62,29 @@
   "web.admin.kit.revealEmail.copy": {
     "text": "Copiar dirección de correo electrónico",
     "source_hash": "61b94846"
+  },
+  "web.admin.errors.rateLimited": {
+    "text": "Puedes volver a intentarlo en unos {minutes} minutos.",
+    "source_hash": "27f2d054"
+  },
+  "web.admin.errors.rateLimitedRecovery": {
+    "text": "Si necesitas actuar antes, borra el limitador con POST /api/colonel/ratelimit/reset para tu propia cuenta o ejecuta `bin/ots ratelimit keys <kind> <extid>`.",
+    "source_hash": "b77e1388"
+  },
+  "web.admin.kit.confirmDialog.reasonLabel": {
+    "text": "Motivo (opcional)",
+    "source_hash": "0f7d4664"
+  },
+  "web.admin.kit.confirmDialog.reasonPlaceholder": {
+    "text": "¿Por qué haces esto?",
+    "source_hash": "ef83fe82"
+  },
+  "web.admin.kit.confirmDialog.reasonHint": {
+    "text": "Queda anotado en el registro de auditoría de administración junto con esta acción.",
+    "source_hash": "23779076"
+  },
+  "web.admin.kit.filterBar.searchSubmit": {
+    "text": "Buscar",
+    "source_hash": "49c266ba"
   }
 }

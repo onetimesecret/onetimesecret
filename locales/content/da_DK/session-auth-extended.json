@@ -957,5 +957,53 @@
   "web.auth.webauthn.emailRequired": {
     "text": "Indtast din e-mailadresse for at logge ind med en adgangsnøgle",
     "source_hash": "7f07647f"
+  },
+  "web.auth.login.verification_unavailable": {
+    "text": "Dit login lykkedes, men vi kunne ikke bekræfte din session. Prøv igen om et øjeblik.",
+    "source_hash": "9a19dfc9"
+  },
+  "web.auth.mfa.verification_unavailable": {
+    "text": "Din adgangskode blev accepteret, men vi kunne ikke starte to-faktor-bekræftelsen. Prøv igen om et øjeblik.",
+    "source_hash": "5fd5e240"
+  },
+  "web.auth.session.ended": {
+    "text": "Din session er afsluttet. Log ind igen.",
+    "source_hash": "673e9822"
+  },
+  "web.auth.session.replaced": {
+    "text": "Dit login blev ændret i en anden fane, så denne side blev genindlæst.",
+    "source_hash": "3767d43b"
+  },
+  "web.auth.session.stale_session_title": {
+    "text": "Denne side er forældet",
+    "source_hash": "0293e093"
+  },
+  "web.auth.session.stale_session_notice": {
+    "text": "Din session er ændret, siden denne side blev indlæst. Kopiér alt, du ikke har gemt, og genindlæs derefter siden for at fortsætte.",
+    "source_hash": "c62e236c"
+  },
+  "web.auth.session.reload_now": {
+    "text": "Genindlæs side",
+    "source_hash": "437d0d63"
+  },
+  "web.auth.session.verification_unavailable_title": {
+    "text": "Vi kan ikke bekræfte din session lige nu",
+    "source_hash": "2130dda1"
+  },
+  "web.auth.session.verification_unavailable_body": {
+    "text": "Du er ikke blevet logget ud. Vi kunne ikke nå serveren for at bekræfte din session, så denne side er skjult, indtil vi kan. Vi bliver ved med at prøve.",
+    "source_hash": "bb230c2c"
+  },
+  "web.auth.session.retry": {
+    "text": "Prøv igen",
+    "source_hash": "d8b8392e"
+  },
+  "web.auth.session.retrying": {
+    "text": "Kontrollerer…",
+    "source_hash": "ec963ffc"
+  },
+  "web.auth.session.retry_failed": {
+    "text": "Stadig ikke tilgængelig. Prøv igen om et øjeblik.",
+    "source_hash": "b81c022c"
   }
 }

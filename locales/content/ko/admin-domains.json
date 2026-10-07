@@ -48,12 +48,12 @@
     "source_hash": "acaede35"
   },
   "web.admin.domains.addDomain.strategy.caddy_on_demand": {
-    "text": "Caddy 온디맨드 — 첫 요청 시 인증서가 자동으로 발급됩니다.",
-    "source_hash": "deb90ae6"
+    "text": "Caddy 온디맨드 — DNS 소유권 확인(TXT 레코드). 확인이 완료되면 인증서가 자동으로 발급됩니다.",
+    "source_hash": "1c926efa"
   },
   "web.admin.domains.addDomain.strategy.caddy": {
-    "text": "Caddy — 첫 요청 시 인증서가 자동으로 발급됩니다.",
-    "source_hash": "a0f3c2dc"
+    "text": "Caddy — DNS 소유권 확인(TXT 레코드). 확인이 완료되면 인증서가 자동으로 발급됩니다.",
+    "source_hash": "5774ff90"
   },
   "web.admin.domains.addDomain.strategy.unknown": {
     "text": "배포 전체 검증 전략입니다.",
@@ -842,5 +842,81 @@
   "web.admin.domains.tls.none": {
     "text": "제공되지 않음",
     "source_hash": "da8a5ab9"
+  },
+  "web.admin.domains.configs.edit.originsHint": {
+    "text": "한 줄에 하나의 출처를 스킴을 포함하여 입력하세요(예: https://vault.example.com). 다른 조직의 도메인에 있는 출처는 거부됩니다.",
+    "source_hash": "4a4e1d33"
+  },
+  "web.admin.domains.configs.fields.related_origins": {
+    "text": "관련 패스키 출처",
+    "source_hash": "e6160714"
+  },
+  "web.admin.domains.dns.cnameStepInstall": {
+    "text": "2. 하위 도메인을 이 설치 환경으로 지정하는 CNAME 레코드를 추가합니다.",
+    "source_hash": "b8a329f9"
+  },
+  "web.admin.domains.dns.aliasStepInstall": {
+    "text": "2. 최상위 도메인을 이 설치 환경으로 지정하는 ALIAS 또는 ANAME 레코드를 추가합니다.",
+    "source_hash": "9a61ed66"
+  },
+  "web.admin.domains.dns.apexNote": {
+    "text": "최상위 도메인에는 CNAME 레코드를 설정할 수 없습니다. DNS 제공업체가 ALIAS 또는 ANAME 레코드를 지원하지 않는 경우, 이 서버의 IP 주소를 가리키는 A 레코드로 같은 역할을 할 수 있습니다.",
+    "source_hash": "f69e3032"
+  },
+  "web.admin.domains.fields.verifiedByOverride": {
+    "text": "예 (운영자 재정의)",
+    "source_hash": "a1a8644f"
+  },
+  "web.admin.domains.list.capped": {
+    "text": "결과가 제한되어 있습니다. 표시된 개수는 전체가 아니라 최소값입니다. 모든 결과를 보려면 검색 범위를 좁히거나 필터를 적용하세요.",
+    "source_hash": "27537844"
+  },
+  "web.admin.domains.override.button": {
+    "text": "상태 재정의",
+    "source_hash": "c683774c"
+  },
+  "web.admin.domains.override.title": {
+    "text": "확인 상태 재정의",
+    "source_hash": "66dbebb2"
+  },
+  "web.admin.domains.override.description": {
+    "text": "이 도메인의 확인됨 및 확인 중 플래그를 수동으로 설정합니다. 신중하게 사용하세요.",
+    "source_hash": "bc3eb719"
+  },
+  "web.admin.domains.override.verified": {
+    "text": "확인됨",
+    "source_hash": "4f783840"
+  },
+  "web.admin.domains.override.resolving": {
+    "text": "확인 중",
+    "source_hash": "3287a034"
+  },
+  "web.admin.domains.override.apply": {
+    "text": "재정의 적용",
+    "source_hash": "e2d1472a"
+  },
+  "web.admin.domains.override.cancel": {
+    "text": "취소",
+    "source_hash": "19766ed6"
+  },
+  "web.admin.domains.override.success": {
+    "text": "도메인 상태가 재정의되었습니다.",
+    "source_hash": "42104cd0"
+  },
+  "web.admin.domains.override.noChange": {
+    "text": "적용할 변경 사항이 없습니다.",
+    "source_hash": "07632d50"
+  },
+  "web.admin.domains.verify.success.indeterminate": {
+    "text": "DNS 검사기가 {domain}에 대한 결과를 반환하지 않았습니다. 검증 상태는 변경되지 않았습니다.",
+    "source_hash": "9c5ab974"
+  },
+  "web.admin.domains.verify.success.overrideHeld": {
+    "text": "{domain}의 TXT 검사에 실패했지만, 운영자 재정의로 인해 검증된 상태가 유지됩니다.",
+    "source_hash": "e754aac8"
+  },
+  "web.admin.domains.verify.success.confirmationExpired": {
+    "text": "{domain}에 대한 DNS 검사가 7일 넘게 결과를 반환하지 않았습니다. 더 이상 검증된 상태가 아닙니다.",
+    "source_hash": "a6901cb5"
   }
 }

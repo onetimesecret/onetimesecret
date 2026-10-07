@@ -1226,5 +1226,129 @@
   "web.organizations.sso.enable_untested_warning": {
     "text": "لم يجتز هذا الاتصال أي اختبار هنا بعد. شغّل اختبار الاتصال قبل تفعيله، حتى لا يصل إعداد معطّل إلى صفحة تسجيل الدخول لديك.",
     "source_hash": "c1fbdeca"
+  },
+  "web.organizations.delete_organization_cancel_subscription_first": {
+    "text": "ألغِ اشتراك هذه المؤسسة قبل حذفها.",
+    "source_hash": "f0c54eca"
+  },
+  "web.organizations.sso.disable_action": {
+    "text": "تعطيل تسجيل الدخول الموحّد (SSO)",
+    "source_hash": "2f072272"
+  },
+  "web.organizations.sso.disable_confirm": {
+    "text": "هل تريد تعطيل اتصال تسجيل الدخول الموحّد (SSO) هذا؟ لن تُحفظ تعديلات النموذج غير المحفوظة. سيتم الاحتفاظ ببيانات الاعتماد المخزّنة.",
+    "source_hash": "608b142a"
+  },
+  "web.organizations.sso.disable_enforcement_warning": {
+    "text": "سيتم أيضاً إيقاف فرض تسجيل الدخول الموحّد (SSO) فقط، مما يسمح بطرق تسجيل الدخول الأخرى المُعدّة.",
+    "source_hash": "58abd552"
+  },
+  "web.organizations.sso.idp_sso_service_url": {
+    "text": "رابط خدمة SSO لدى IdP",
+    "source_hash": "0b33b1ac"
+  },
+  "web.organizations.sso.idp_sso_service_url_hint": {
+    "text": "نقطة نهاية HTTPS التي ينشرها موفّر الهوية الخاص بك لتسجيل الدخول الموحّد عبر SAML",
+    "source_hash": "bc6fdfd9"
+  },
+  "web.organizations.sso.idp_sso_service_url_placeholder": {
+    "text": "https://idp.example.com/sso/saml",
+    "source_hash": "513d0586"
+  },
+  "web.organizations.sso.idp_entity_id": {
+    "text": "معرّف كيان IdP (Entity ID)",
+    "source_hash": "14a4ab8b"
+  },
+  "web.organizations.sso.idp_entity_id_hint": {
+    "text": "معرّف المُصدِر من البيانات الوصفية لموفّر الهوية الخاص بك، تماماً كما هو منشور",
+    "source_hash": "c3d8320b"
+  },
+  "web.organizations.sso.idp_entity_id_placeholder": {
+    "text": "https://idp.example.com/metadata",
+    "source_hash": "0c46d14d"
+  },
+  "web.organizations.sso.idp_cert": {
+    "text": "شهادة توقيع IdP",
+    "source_hash": "c84000cd"
+  },
+  "web.organizations.sso.idp_cert_hint": {
+    "text": "شهادة X.509 (بتنسيق PEM) التي يوقّع بها موفّر الهوية الخاص بك التأكيدات. شهادة واحدة فقط؛ لا تُقبل البصمات.",
+    "source_hash": "b5e157f5"
+  },
+  "web.organizations.sso.idp_cert_placeholder": {
+    "text": "-----BEGIN CERTIFICATE-----",
+    "source_hash": "ddddb6cb"
+  },
+  "web.organizations.sso.sp_details": {
+    "text": "تفاصيل موفّر الخدمة (SP)",
+    "source_hash": "4b6617d2"
+  },
+  "web.organizations.sso.sp_details_hint": {
+    "text": "سجّل هذه القيم لدى موفّر الهوية الخاص بك",
+    "source_hash": "784e9410"
+  },
+  "web.organizations.sso.sp_details_preview_hint": {
+    "text": "معاينة مبنية على مسار تسجيل الدخول الافتراضي. احفظ هذه الإعدادات، ثم تأكّد من هذه القيم هنا قبل تسجيلها لدى موفّر الهوية الخاص بك.",
+    "source_hash": "fd9d3001"
+  },
+  "web.organizations.sso.domain_unverified_notice": {
+    "text": "تسجيل الدخول الموحّد معطّل على هذا النطاق حتى يتم التحقق من النطاق. لا يغيّر التحقق القيم أدناه.",
+    "source_hash": "4b56ea4b"
+  },
+  "web.organizations.sso.sp_entity_id": {
+    "text": "معرّف كيان SP (رابط البيانات الوصفية)",
+    "source_hash": "59bc544c"
+  },
+  "web.organizations.sso.acs_url": {
+    "text": "رابط خدمة مستهلك التأكيدات (ACS)",
+    "source_hash": "5dacfb65"
+  },
+  "web.organizations.sso.unreadable_field": {
+    "text": "تعذّرت قراءة القيمة المخزّنة. أدخلها مرة أخرى للمتابعة.",
+    "source_hash": "ca3b5fcc"
+  },
+  "web.organizations.sso.unreadable_fields_alert": {
+    "text": "تعذّرت قراءة بعض القيم المخزّنة ويجب إدخالها مرة أخرى: {fields}",
+    "source_hash": "e9fa9d16"
+  },
+  "web.organizations.sso.idp_cert_expired_alert": {
+    "text": "انتهت صلاحية شهادة موفّر الهوية في {date}. سيفشل تسجيل الدخول عبر هذا الاتصال حتى يتم حفظ شهادة سارية.",
+    "source_hash": "527fb721"
+  },
+  "web.organizations.sso.idp_cert_expiring_notice": {
+    "text": "تنتهي صلاحية شهادة موفّر الهوية في {date}. استبدلها قبل ذلك حتى يستمر تسجيل الدخول في العمل.",
+    "source_hash": "ccaf6ca7"
+  },
+  "web.organizations.sso.test_connection_hint_saml": {
+    "text": "يتحقق من رابط SSO ومعرّف الكيان (Entity ID) والشهادة محلياً؛ لا يتم الاتصال بموفّر الهوية",
+    "source_hash": "1dad3945"
+  },
+  "web.organizations.sso.configured_issuer": {
+    "text": "المُصدِر المُعدّ",
+    "source_hash": "6b307b7f"
+  },
+  "web.organizations.sso.discovery_issuer": {
+    "text": "المُصدِر المُكتشَف",
+    "source_hash": "9d74f978"
+  },
+  "web.organizations.sso.issuer_mismatch_hint": {
+    "text": "يجب أن تتطابق معرّفات مُصدِر OIDC تماماً، بما في ذلك أي شرطة مائلة في النهاية. عيّن رابط المُصدِر (Issuer URL) إلى القيمة المُكتشَفة المعروضة أعلاه.",
+    "source_hash": "ec144c88"
+  },
+  "web.organizations.sso.certificate_subject": {
+    "text": "موضوع الشهادة",
+    "source_hash": "d7816b16"
+  },
+  "web.organizations.sso.certificate_expires": {
+    "text": "انتهاء صلاحية الشهادة",
+    "source_hash": "1e73119d"
+  },
+  "web.organizations.sso.certificate_expires_in_days": {
+    "text": "خلال {n} يوم | خلال {n} أيام",
+    "source_hash": "df98ca65"
+  },
+  "web.organizations.sso.certificate_valid_from": {
+    "text": "الشهادة صالحة اعتباراً من",
+    "source_hash": "b13d3f30"
   }
 }

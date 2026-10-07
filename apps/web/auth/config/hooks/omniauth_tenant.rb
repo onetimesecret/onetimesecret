@@ -64,6 +64,18 @@ module Auth::Config::Hooks
     # (see .inject_saml_sp_identifiers). A name, for the same reason as above.
     SAML_STRATEGY_CLASS = 'OmniAuth::Strategies::RequestBoundSAML'
 
+    # How long the tenant markers a request phase parks stay usable, in
+    # seconds (#4610). A pending tenant context older than this is dropped
+    # by the next SSO request in the session (see .drop_expired_tenant_context).
+    # Ten minutes leaves room for a sign-in at the IdP, including a second
+    # factor.
+    PENDING_TENANT_CONTEXT_MAX_AGE = 600
+
+    # How far in the future a pending tenant context's start time may lie
+    # and still count as fresh, in seconds (#4610). The server answering the
+    # callback can run slightly behind the one that started the flow.
+    PENDING_TENANT_CONTEXT_CLOCK_SKEW = 60
+
     def self.configure(auth)
       # Single consumer for the validated tenant domain id. Reads the session
       # copy (pre-login callers) and the instance copy (after_login, which runs
@@ -97,6 +109,15 @@ module Auth::Config::Hooks
       auth.omniauth_setup do
         host = HELPERS.public_host(request)
 
+        # DOMAIN RECORD UNREADABLE (#4668). Refused first, on every phase
+        # this hook runs on. The restrict_to gate below reads the same
+        # lookup through #record!, which re-raises what the read raised, and
+        # OmniAuth::Strategy#call! rescues any StandardError from a phase
+        # into fail!, so the visitor used to land on the generic sso_failed.
+        # The callback phase takes the same path: a flow whose host became
+        # unreadable mid-flow never reaches the identity.
+        HELPERS.refuse_unavailable_domain(host, request, self)
+
         # RESTRICT_TO ENFORCEMENT
         # (ADR-034#restrict-to-is-an-access-control-not-a-display-preference
         # / #reject-as-not-found-not-forbidden, #4139).
@@ -116,6 +137,10 @@ module Auth::Config::Hooks
         unless Auth::RestrictTo.allows?(request.env, 'sso')
           HELPERS.reject_restricted_sso(host, request, self, :restrict_to_omniauth_rejected)
         end
+
+        # A pending tenant context past its age bound is dropped before
+        # anything reads it, on every phase (#4610).
+        HELPERS.drop_expired_tenant_context(session, host)
 
         # Skip tenant context storage during callback phase.
         # The setup hook fires for BOTH request and callback phases, but we only
@@ -139,7 +164,14 @@ module Auth::Config::Hooks
         # context below from a bare GET /auth/sso/saml/metadata would plant
         # "a tenant flow is pending" in the session of anyone who can be made
         # to load that URL. RE-VERIFY on an omniauth-saml bump.
-        is_request_phase = strategy.nil? || strategy.on_request_path?
+        #
+        # The bare request path reaches other_phase the same way for a method
+        # OmniAuth does not start a login for (a GET; allowed_request_methods
+        # is POST only), so the method is checked as Strategy#call! does.
+        is_request_phase = strategy.nil? || (
+          strategy.on_request_path? &&
+          ::OmniAuth.config.allowed_request_methods.include?(request.request_method.downcase.to_sym)
+        )
 
         # OIDC strategies require an explicit redirect_uri in both the
         # authorize request and token exchange. Unlike OAuth2-based strategies,
@@ -171,7 +203,7 @@ module Auth::Config::Hooks
         )
 
         # Attempt to resolve tenant from custom domain
-        custom_domain = HELPERS.resolve_custom_domain(host)
+        custom_domain = HELPERS.resolve_custom_domain(host, request.env)
 
         unless custom_domain
           # Check if this is the platform's canonical domain.
@@ -256,14 +288,6 @@ module Auth::Config::Hooks
         # second identical Redis read per callback.
         request.env['onetime.tenant_sso_config'] = sso_config
 
-        # Store tenant context in session for callback validation.
-        # Only during request phase — callback phase must NOT overwrite the
-        # stored context, otherwise the mismatch check is defeated.
-        if is_request_phase && !is_callback_phase
-          session[:omniauth_tenant_domain_id] = custom_domain.identifier
-          session[:omniauth_tenant_host]      = host
-        end
-
         Auth::Logging.log_auth_event(
           :omniauth_tenant_credentials_injecting,
           level: :info,
@@ -274,6 +298,22 @@ module Auth::Config::Hooks
 
         # Inject tenant-specific credentials into strategy
         HELPERS.inject_tenant_credentials(sso_config, request, self)
+
+        # Store context only after credential validation: a rejected provider
+        # must not renew the age of a different flow's pending binding.
+        # Callback and strategy sub-paths must not overwrite the stored context.
+        #
+        # The new start time never covers an earlier binding. The earlier
+        # flow's binding is dropped first, so a start refused after this
+        # point (the connect re-authentication redirect, a refusal in the
+        # strategy's own request phase) leaves no earlier request id or state
+        # for the new start time to keep usable.
+        if is_request_phase && !is_callback_phase
+          HELPERS.clear_pending_tenant_context(session)
+          session[:omniauth_tenant_domain_id]  = custom_domain.identifier
+          session[:omniauth_tenant_host]       = host
+          session[:omniauth_tenant_started_at] = Time.now.to_i
+        end
       end
 
       # ========================================================================
@@ -315,6 +355,7 @@ module Auth::Config::Hooks
 
         expected_domain_id = session.delete(:omniauth_tenant_domain_id)
         expected_host      = session.delete(:omniauth_tenant_host)
+        session.delete(:omniauth_tenant_started_at)
 
         # Tenant options were injected by HOST on this very callback
         # (omniauth_setup caches the record it injected from), yet no tenant
@@ -369,7 +410,7 @@ module Auth::Config::Hooks
         next unless expected_domain_id
 
         # Resolve current request's tenant context
-        current_domain = HELPERS.resolve_custom_domain(HELPERS.public_host(request))
+        current_domain = HELPERS.resolve_custom_domain(HELPERS.public_host(request), request.env)
 
         # Validate tenant context matches - domain_id must match exactly
         domain_mismatch = current_domain&.identifier != expected_domain_id
@@ -484,8 +525,8 @@ module Auth::Config::Hooks
     # Tenant SSO is keyed on CustomDomain#display_domain, so the lookup must
     # use the host the visitor typed, not the authority the origin happens to
     # see. Behind Approximated (and any Host-rewriting proxy) those differ:
-    # the browser asks for nz.example.com, Approximated forwards it as
-    # `Apx-Incoming-Host` and rewrites `Host:` to the origin target, so
+    # the browser asks for nz.example.com, the edge forwards it as
+    # `X-Forwarded-Host` and rewrites `Host:` to the origin target, so
     # `request.host` reads as the platform host and every custom-domain
     # lookup misses — the tenant SSO POST 302s to
     # `/signin?auth_error=sso_not_configured` while the same request's
@@ -537,10 +578,18 @@ module Auth::Config::Hooks
     # Resolve custom domain from hostname.
     # Returns nil if no custom domain mapping exists.
     #
+    # With a Rack env the record comes from the request's shared lookup
+    # (#4220) when +host+ is the request's display domain, so this hook sees
+    # the domain DomainStrategy resolved. A failed read answers nil here, as
+    # it did through CustomDomain.load_by_display_domain. Without an env the
+    # host is looked up directly.
+    #
     # @param host [String] Request hostname
+    # @param env [Hash, nil] Rack env of the current request
     # @return [Onetime::CustomDomain, nil]
-    def self.resolve_custom_domain(host)
+    def self.resolve_custom_domain(host, env = nil)
       return nil if host.to_s.empty?
+      return Onetime::CustomDomain::Lookup.for_host(env, host).record if env
 
       Onetime::CustomDomain.load_by_display_domain(host)
     rescue Redis::BaseError => ex
@@ -871,7 +920,9 @@ module Auth::Config::Hooks
     #
     # THE RULE. A tenant flow whose config is refused or gone at ANY phase
     # drops the whole pending context; a platform-fallback flow's own binding
-    # is never touched. Every refusal path applies it:
+    # is never touched by a refusal. (A new tenant start drops whatever
+    # binding is pending, platform-fallback included; see below.) Every
+    # refusal path applies it:
     #
     #   - handle_missing_tenant_config, request path: a new platform start
     #     supersedes any abandoned tenant request in the same session.
@@ -893,7 +944,11 @@ module Auth::Config::Hooks
     # One refusal cannot apply it: a SAML response POSTed to the ACS URL is
     # stripped of cookies by SamlCallbackTransport, so the 404 Stage answers
     # for a route that is no longer active never sees the initiating session
-    # (#4610).
+    # (#4610). A context left behind that way, or by a flow the visitor
+    # abandoned, ages out instead: drop_expired_tenant_context removes it
+    # once it is older than PENDING_TENANT_CONTEXT_MAX_AGE. A new tenant
+    # start (omniauth_setup, request path) also drops it before parking
+    # fresh markers, so the new start time never covers an earlier binding.
     #
     # The markers alone are not enough. before_omniauth_callback_route reads
     # a missing :omniauth_tenant_domain_id as "platform-level auth" and skips
@@ -921,7 +976,53 @@ module Auth::Config::Hooks
     def self.clear_pending_tenant_context(session)
       session.delete(:omniauth_tenant_domain_id)
       session.delete(:omniauth_tenant_host)
+      session.delete(:omniauth_tenant_started_at)
       Onetime::SsoProvider::FlowSessionKeys::ALL.each { |key| session.delete(key) }
+    end
+
+    # Drop a pending tenant context that is older than
+    # PENDING_TENANT_CONTEXT_MAX_AGE (#4610).
+    #
+    # The request phase stores the time it parked the tenant markers
+    # (:omniauth_tenant_started_at). omniauth_setup calls this first on every
+    # phase, so a callback arriving for an expired context finds neither the
+    # markers nor the per-strategy binding: the SAML strategy has no pending
+    # request id and the OAuth/OIDC strategies have no state, and the
+    # callback ends on the strategy's own failure path. A new request phase
+    # is unaffected; it writes fresh markers after this runs.
+    #
+    # Markers without a readable start time count as expired. That covers a
+    # session written before the start time was stored: a sign-in in
+    # progress across that deploy has to be started again.
+    #
+    # A start time up to PENDING_TENANT_CONTEXT_CLOCK_SKEW in the future is
+    # kept, so clock skew between servers does not drop a fresh sign-in.
+    # One further ahead counts as expired.
+    #
+    # A session with no tenant markers is left as it is, so a platform
+    # flow's binding is never touched here.
+    #
+    # @param session [#[], #delete] the Rack session (or a Hash standing in)
+    # @param host [String] request public host (for logging)
+    # @param now [Integer] current time, epoch seconds
+    # @return [Boolean] true when a context was dropped
+    def self.drop_expired_tenant_context(session, host, now: Time.now.to_i)
+      return false unless pending_tenant_flow?(session)
+
+      started_at = session[:omniauth_tenant_started_at] || session['omniauth_tenant_started_at']
+      age        = started_at.is_a?(Integer) ? now - started_at : nil
+      return false if age&.between?(-PENDING_TENANT_CONTEXT_CLOCK_SKEW, PENDING_TENANT_CONTEXT_MAX_AGE)
+
+      clear_pending_tenant_context(session)
+
+      Auth::Logging.log_auth_event(
+        :omniauth_tenant_context_expired,
+        level: :info,
+        host: host,
+        age_seconds: age,
+        pending_tenant_flow_dropped: true,
+      )
+      true
     end
 
     # Answer an SSO route that restrict_to takes away on this host with the
@@ -1164,6 +1265,53 @@ module Auth::Config::Hooks
       clear_pending_tenant_context(rodauth.session)
 
       rodauth.send(:redirect, '/signin?auth_error=sso_domain_unverified')
+    end
+
+    # Refuse SSO on a host whose CustomDomain record could not be read
+    # (#4668), on every phase omniauth_setup runs on.
+    #
+    # Consults only the lookup DomainStrategy published for the request
+    # (Onetime::CustomDomain::Lookup, state read_failed) and never reads
+    # itself: Lookup.for_host would read, and publish, for a canonical host,
+    # and acting on that read would refuse the operator's own providers
+    # during a datastore blip the rest of this hook survives
+    # (resolve_custom_domain answers nil, canonical_domain? keeps the
+    # platform defaults). A published read_failed lookup is always for a
+    # non-canonical host, which is the host public_host returns.
+    #
+    # Same shape as refuse_unverified_tenant_domain: the whole pending
+    # tenant context is dropped first, so a flow started while the record
+    # was readable cannot complete through a callback that arrives while it
+    # is not, nor later on the platform path once the markers are gone.
+    # Then a redirect to /signin with auth_error=domain_unavailable, the
+    # same copy Onetime::DomainUnavailable gives the Rodauth routes. The
+    # exception class is logged, never answered: the redirect is the same
+    # whatever the read raised. Scalars only.
+    #
+    # @param host [String] request public host
+    # @param request [Rack::Request] current request
+    # @param rodauth [Rodauth] Rodauth instance (for session + redirect)
+    # @return [nil] when the request's domain read did not fail; otherwise
+    #   the redirect halts the request
+    def self.refuse_unavailable_domain(host, request, rodauth)
+      lookup = request.env[Onetime::CustomDomain::Lookup::ENV_KEY]
+      return unless lookup.is_a?(Onetime::CustomDomain::Lookup) && lookup.read_failed?
+
+      pending_tenant_flow_dropped = pending_tenant_flow?(rodauth.session)
+
+      Auth::Logging.log_auth_event(
+        :omniauth_domain_lookup_failed,
+        level: :error,
+        host: host,
+        path: request.path,
+        error_class: lookup.error.class.name,
+        error: lookup.error.message,
+        pending_tenant_flow_dropped: pending_tenant_flow_dropped,
+      )
+
+      clear_pending_tenant_context(rodauth.session)
+
+      rodauth.send(:redirect, '/signin?auth_error=domain_unavailable')
     end
 
     # Derive the SAML SP identifiers for a TENANT flow from the request's

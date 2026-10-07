@@ -15,6 +15,7 @@ require_relative 'models/feedback'
 require_relative 'models/colonel_audit_event'
 require_relative 'models/daily_metric'
 require_relative 'models/email_suppression'
+require_relative 'models/delivery_event'
 require_relative 'models/session_metadata'
 require_relative 'models/sso_link_challenge'
 require_relative 'models/sso_link_verification'
@@ -34,6 +35,10 @@ require_relative 'models/custom_domain/sso_config'
 # Catalog of the seven per-domain config kinds (colonel config endpoints).
 # Requires the config models above, so it loads after them.
 require_relative 'models/custom_domain/config_registry'
+
+# Per-request lookup result for a host's CustomDomain (a plain value object,
+# not a stored model).
+require_relative 'models/custom_domain/lookup'
 
 # Housekeeping chores - loaded after models so chore DSL is available.
 # Sort for deterministic load order across platforms.

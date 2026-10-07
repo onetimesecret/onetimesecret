@@ -957,5 +957,53 @@
   "web.auth.webauthn.emailRequired": {
     "text": "Introduce tu dirección de correo electrónico para iniciar sesión con una llave de acceso",
     "source_hash": "7f07647f"
+  },
+  "web.auth.login.verification_unavailable": {
+    "text": "Has iniciado sesión correctamente, pero no pudimos confirmar tu sesión. Inténtalo de nuevo en un momento.",
+    "source_hash": "9a19dfc9"
+  },
+  "web.auth.mfa.verification_unavailable": {
+    "text": "Tu contraseña fue aceptada, pero no pudimos iniciar la verificación de dos factores. Inténtalo de nuevo en un momento.",
+    "source_hash": "5fd5e240"
+  },
+  "web.auth.session.ended": {
+    "text": "Tu sesión ha finalizado. Vuelve a iniciar sesión.",
+    "source_hash": "673e9822"
+  },
+  "web.auth.session.replaced": {
+    "text": "Tu inicio de sesión cambió en otra pestaña, por lo que esta página se ha recargado.",
+    "source_hash": "3767d43b"
+  },
+  "web.auth.session.stale_session_title": {
+    "text": "Esta página está desactualizada",
+    "source_hash": "0293e093"
+  },
+  "web.auth.session.stale_session_notice": {
+    "text": "Tu sesión cambió desde que se cargó esta página. Copia todo lo que no hayas guardado y luego recarga la página para continuar.",
+    "source_hash": "c62e236c"
+  },
+  "web.auth.session.reload_now": {
+    "text": "Recargar página",
+    "source_hash": "437d0d63"
+  },
+  "web.auth.session.verification_unavailable_title": {
+    "text": "No podemos verificar tu sesión en este momento",
+    "source_hash": "2130dda1"
+  },
+  "web.auth.session.verification_unavailable_body": {
+    "text": "No se ha cerrado tu sesión. No pudimos contactar con el servidor para confirmar tu sesión, por lo que esta página permanece oculta hasta que podamos. Seguiremos intentándolo.",
+    "source_hash": "bb230c2c"
+  },
+  "web.auth.session.retry": {
+    "text": "Intentar de nuevo",
+    "source_hash": "d8b8392e"
+  },
+  "web.auth.session.retrying": {
+    "text": "Comprobando…",
+    "source_hash": "ec963ffc"
+  },
+  "web.auth.session.retry_failed": {
+    "text": "Sigue sin estar disponible. Inténtalo de nuevo en un momento.",
+    "source_hash": "b81c022c"
   }
 }

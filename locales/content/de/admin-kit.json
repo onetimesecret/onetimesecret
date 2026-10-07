@@ -62,5 +62,29 @@
   "web.admin.kit.revealEmail.copy": {
     "text": "E-Mail-Adresse kopieren",
     "source_hash": "61b94846"
+  },
+  "web.admin.errors.rateLimited": {
+    "text": "Du kannst es in etwa {minutes} Minuten erneut versuchen.",
+    "source_hash": "27f2d054"
+  },
+  "web.admin.errors.rateLimitedRecovery": {
+    "text": "Wenn du früher handeln musst, setze die Ratenbegrenzung für dein eigenes Konto mit POST /api/colonel/ratelimit/reset zurück oder führe `bin/ots ratelimit keys <kind> <extid>` aus.",
+    "source_hash": "b77e1388"
+  },
+  "web.admin.kit.confirmDialog.reasonLabel": {
+    "text": "Grund (optional)",
+    "source_hash": "0f7d4664"
+  },
+  "web.admin.kit.confirmDialog.reasonPlaceholder": {
+    "text": "Warum tust du das?",
+    "source_hash": "ef83fe82"
+  },
+  "web.admin.kit.confirmDialog.reasonHint": {
+    "text": "Wird zusammen mit dieser Aktion im Admin-Audit-Protokoll aufgezeichnet.",
+    "source_hash": "23779076"
+  },
+  "web.admin.kit.filterBar.searchSubmit": {
+    "text": "Suchen",
+    "source_hash": "49c266ba"
   }
 }

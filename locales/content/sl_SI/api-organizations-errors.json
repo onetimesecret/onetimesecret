@@ -134,5 +134,25 @@
   "api.organizations.members.errors.no_permission_to_remove": {
     "text": "Nimate dovoljenja za odstranjevanje članov",
     "source_hash": "b0ac7287"
+  },
+  "api.organizations.errors.delete_has_domains": {
+    "text": "Pred izbrisom te organizacije odstranite njene domene po meri: %{domains}",
+    "source_hash": "040a401e"
+  },
+  "api.organizations.errors.delete_drifted_domains_count": {
+    "text": "Zapisi domen (%{count}) se še vedno sklicujejo na to organizacijo, vendar v njej niso več navedeni. Za njihovo odstranitev se pred izbrisom te organizacije obrnite na podporo.",
+    "source_hash": "f6e71a9a"
+  },
+  "api.organizations.errors.delete_is_default": {
+    "text": "Vašega privzetega delovnega prostora ni mogoče izbrisati. Če ga želite odstraniti, se obrnite na podporo.",
+    "source_hash": "bc2eaed5"
+  },
+  "api.organizations.errors.delete_active_subscription": {
+    "text": "Pred izbrisom te organizacije prekličite njeno naročnino.",
+    "source_hash": "f0c54eca"
+  },
+  "api.organizations.errors.delete_last_org": {
+    "text": "To je vaša edina organizacija. Preden jo izbrišete, ustvarite drugo.",
+    "source_hash": "7608a1d6"
   }
 }

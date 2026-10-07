@@ -509,8 +509,8 @@
     "source_hash": "7fbbb7e7"
   },
   "web.login.errors.identity_connect_conflict": {
-    "text": "Denna identitet kunde inte anslutas. Anslutningen kan ha startats på fel domän, eller så har din session gått ut. Logga in igen och anslut den sedan från dina kontoinställningar.",
-    "source_hash": "4238bbf2"
+    "text": "Den här identiteten kunde inte anslutas. Den kanske redan tillhör ett annat konto.",
+    "source_hash": "d8b71cf8"
   },
   "web.login.errors.org_join_failed": {
     "text": "Vi kunde inte slutföra att lägga till dig i din organisation. Kontakta din administratör.",
@@ -527,5 +527,25 @@
   "web.login.errors.sso_cancelled": {
     "text": "Inloggningen avbröts. Du kan försöka igen när du vill.",
     "source_hash": "b5f3d3ec"
+  },
+  "web.login.errors.sso_issuer_mismatch": {
+    "text": "Inloggning med den här leverantören är felkonfigurerad. Kontakta din administratör.",
+    "source_hash": "44df5918"
+  },
+  "web.login.errors.sso_config_unusable": {
+    "text": "Single sign-on för den här domänen är konfigurerat men kan inte användas just nu. Kontakta din organisations administratör.",
+    "source_hash": "f704b391"
+  },
+  "web.login.errors.sso_domain_unverified": {
+    "text": "Single sign-on för den här domänen är inte aktivt ännu eftersom verifieringen av domänen inte har slutförts. Kontakta din administratör.",
+    "source_hash": "bd981480"
+  },
+  "web.login.errors.tenant_sso_link_unavailable": {
+    "text": "Den här identiteten är inte ansluten till något konto på den här domänen. Om du kan logga in på den här domänen med ett konto som tillhör den här organisationen kan du ansluta den under Anslutna identiteter. Annars kan du be en ägare av organisationen att bjuda in den här SSO-identiteten, eller kontakta supporten.",
+    "source_hash": "66e7376c"
+  },
+  "web.login.errors.identity_connect_wrong_domain": {
+    "text": "Den här identiteten kunde inte anslutas på den här domänen. Starta anslutningen från webbplatsen där du är inloggad; på en organisations domän måste ditt konto redan tillhöra den organisationen.",
+    "source_hash": "d967c761"
   }
 }

@@ -389,7 +389,6 @@ OT.conf['site']['host']                              = @site_host
 @strategy_class.initialize_from_config(
   { 'enabled' => true, 'default' => @default_host, 'link_domains' => [@pool_host] },
 )
-@strategy_class.class_eval { @domain_context_enabled = false }
 env                                                  = { Rack::DetectHost.result_field_name => 'www.acme.com' }
 with_runtime_domains { middleware.call(env) }
 env['onetime.domain_strategy']
@@ -467,7 +466,6 @@ OT.conf['site']['host']                              = @site_host
 @strategy_class.initialize_from_config(
   { 'enabled' => true, 'default' => @default_host, 'link_domains' => [@pool_host] },
 )
-@strategy_class.class_eval { @domain_context_enabled = false }
 env                                                  = { Rack::DetectHost.result_field_name => 'other.acme.com' }
 with_runtime_domains { middleware.call(env) }
 env['onetime.domain_strategy']
@@ -480,7 +478,6 @@ OT.conf['site']['host']                              = @site_host
 @strategy_class.initialize_from_config(
   { 'enabled' => true, 'default' => @default_host, 'link_domains' => [@pool_host] },
 )
-@strategy_class.class_eval { @domain_context_enabled = false }
 env                                                  = { Rack::DetectHost.result_field_name => @pool_host }
 with_runtime_domains { middleware.call(env) }
 [env['onetime.display_domain'], env['onetime.domain_strategy']]
@@ -605,35 +602,6 @@ captured.any? { |msg| msg.include?('skipping unparseable canonical host') && msg
 [@strategy_class.canonical_host?('999'),
  @chooser.choose_strategy('999', @strategy_class.canonical_domains_parsed)]
 #=> [false, nil]
-
-# Implicit Override Consistency Tests (dev-only domain context feature)
-
-## Request to site.host is NOT an implicit override when default differs
-middleware                                           = @strategy_class.new(create_app)
-OT.conf['site']['host']                              = @site_host
-@strategy_class.initialize_from_config({ 'enabled' => true, 'default' => @default_host })
-@strategy_class.class_eval { @domain_context_enabled = true }
-env                                                  = { Rack::DetectHost.result_field_name => @site_host }
-middleware.detect_domain_override(env)
-#=> [nil, nil]
-
-## Request to default host is NOT an implicit override either
-middleware                                           = @strategy_class.new(create_app)
-OT.conf['site']['host']                              = @site_host
-@strategy_class.initialize_from_config({ 'enabled' => true, 'default' => @default_host })
-@strategy_class.class_eval { @domain_context_enabled = true }
-env                                                  = { Rack::DetectHost.result_field_name => @default_host }
-middleware.detect_domain_override(env)
-#=> [nil, nil]
-
-## Request outside the canonical set is still an implicit override
-middleware                                           = @strategy_class.new(create_app)
-OT.conf['site']['host']                              = @site_host
-@strategy_class.initialize_from_config({ 'enabled' => true, 'default' => @default_host })
-@strategy_class.class_eval { @domain_context_enabled = true }
-env                                                  = { Rack::DetectHost.result_field_name => 'custom.example.org' }
-middleware.detect_domain_override(env)
-#=> ['custom.example.org', :detected_host]
 
 # Drift guard (features.domains.default names a registered custom domain)
 # lives in the ConfigureDomains initializer so it runs once per boot, not

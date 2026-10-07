@@ -25,6 +25,7 @@ from __future__ import annotations
 import os
 import re
 import subprocess
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -139,6 +140,43 @@ class DeriveGovernanceContract(unittest.TestCase):
         )
         self.assertNotEqual(proc.returncode, 0, "malformed RULES_REF must fail")
         self.assertIn("invalid translation-rules ref", proc.stderr)
+
+    def test_tag_pin_missing_from_checkout_is_fetched(self) -> None:
+        # A pin bump to a tag the existing checkout has never seen must still
+        # check out. `git fetch origin <tag>` alone succeeds but only writes
+        # FETCH_HEAD, so the script used to fail with "ref ... unavailable".
+        # Local origin, no network. The script stops at "resolver not found"
+        # right after checkout, before it touches generated/i18n/.
+        git = ["git", "-c", "user.name=t", "-c", "user.email=t@t",
+               "-c", "commit.gpgsign=false", "-c", "tag.gpgsign=false",
+               "-c", "core.hooksPath=/dev/null"]
+        with tempfile.TemporaryDirectory() as tmp:
+            origin, rules = Path(tmp) / "origin", Path(tmp) / "rules"
+            subprocess.run(git + ["init", "-q", "-b", "main", str(origin)], check=True)
+            subprocess.run(git + ["-C", str(origin), "commit", "-q", "--allow-empty", "-m", "a"], check=True)
+            subprocess.run(git + ["clone", "-q", str(origin), str(rules)], check=True)
+            subprocess.run(git + ["-C", str(origin), "commit", "-q", "--allow-empty", "-m", "b"], check=True)
+            subprocess.run(git + ["-C", str(origin), "tag", "v9.9.9"], check=True)
+            tagged = subprocess.run(
+                git + ["-C", str(origin), "rev-parse", "v9.9.9"],
+                capture_output=True, text=True, check=True,
+            ).stdout.strip()
+
+            proc = subprocess.run(
+                ["bash", str(SCRIPT), str(rules)],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                timeout=60,
+                env={**os.environ, "RULES_REF": "v9.9.9"},
+            )
+            self.assertNotIn("unavailable", proc.stderr)
+            self.assertIn("resolver not found", proc.stderr)
+            head = subprocess.run(
+                git + ["-C", str(rules), "rev-parse", "HEAD"],
+                capture_output=True, text=True, check=True,
+            ).stdout.strip()
+            self.assertEqual(head, tagged)
 
 
 if __name__ == "__main__":

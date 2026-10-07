@@ -77,6 +77,11 @@ module Onetime
         # else (including `nil`, `''`, `0`, `'no'`, `'false'`) becomes
         # `'false'`. Kept deliberately small — adding entries is a public
         # contract change.
+        #
+        # Not OT::Utils::TRUTHY_VALUES / explicit_yes?: that table decodes
+        # operator input and may grow; this one defines what the persistence
+        # layer canonicalizes, and a value that round-trips today must keep
+        # round-tripping after a utils change.
         TRUTHY = %w[true 1 yes].freeze
 
         STORAGE_ENCODINGS = [:native, :string].freeze

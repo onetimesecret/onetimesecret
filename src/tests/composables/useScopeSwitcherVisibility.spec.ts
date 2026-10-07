@@ -46,8 +46,19 @@ vi.mock('@/shared/stores/identityStore', () => ({
 // Mock organizationStore — composable reads currentOrganization for role +
 // entitlements, and the organizations list for solo-context detection.
 // Wrap in reactive() so refs auto-unwrap when accessed as store properties.
-type MockOrg = { current_user_role?: string | null; entitlements?: string[] | null } | null;
-type MockListOrg = { member_count?: number; is_default?: boolean; planid?: string };
+type MockOrg = {
+  objid?: string;
+  current_user_role?: string | null;
+  entitlements?: string[] | null;
+} | null;
+type MockListOrg = {
+  objid?: string;
+  current_user_role?: string | null;
+  entitlements?: string[] | null;
+  member_count?: number;
+  is_default?: boolean;
+  planid?: string;
+};
 const mockCurrentOrganization = ref<MockOrg>({
   current_user_role: 'owner',
   entitlements: null,
@@ -650,6 +661,120 @@ describe('useScopeSwitcherVisibility', () => {
       await nextTick();
 
       expect(showOrgSwitcher.value).toBe(true);
+    });
+  });
+  // The switcher gate is a property of the user, not of the selection (#4565):
+  // the selected org now survives a page load, so a user who selects an org
+  // they do not own must keep the control that switches back.
+  describe('switcher gate across the organization list', () => {
+    const member = { objid: 'o_member', current_user_role: 'member', entitlements: null };
+    const owned = { objid: 'o_owned', current_user_role: 'owner', entitlements: null };
+    const adminOf = { objid: 'o_admin', current_user_role: 'admin', entitlements: null };
+
+    it('shows the switcher when the current org is member-role but the user owns another', () => {
+      mockCurrentOrganization.value = member;
+      mockOrganizations.value = [owned, member];
+
+      expect(useScopeSwitcherVisibility().showOrgSwitcher.value).toBe(true);
+    });
+
+    it('hides the switcher when the user owns none of their orgs (static chip)', () => {
+      mockCurrentOrganization.value = member;
+      mockOrganizations.value = [member, adminOf];
+
+      const { showOrgSwitcher, isSoloDefaultContext } = useScopeSwitcherVisibility();
+
+      expect(showOrgSwitcher.value).toBe(false);
+      // OrganizationContextBar renders the chip from exactly these two
+      expect(isSoloDefaultContext.value).toBe(false);
+    });
+
+    it('judges on the current org alone while the list has not loaded', () => {
+      mockOrganizations.value = [];
+
+      mockCurrentOrganization.value = member;
+      expect(useScopeSwitcherVisibility().showOrgSwitcher.value).toBe(false);
+
+      mockCurrentOrganization.value = owned;
+      expect(useScopeSwitcherVisibility().showOrgSwitcher.value).toBe(true);
+    });
+
+    it('reacts when the list arrives', async () => {
+      mockCurrentOrganization.value = member;
+      mockOrganizations.value = [];
+      const { showOrgSwitcher } = useScopeSwitcherVisibility();
+      expect(showOrgSwitcher.value).toBe(false);
+
+      mockOrganizations.value = [owned, member];
+      await nextTick();
+
+      expect(showOrgSwitcher.value).toBe(true);
+    });
+
+    it('does not let the list record of the current org override the current record', () => {
+      // A single-org user sees what they saw before: the list holds only the
+      // current org, and its list record is never consulted.
+      mockCurrentOrganization.value = { ...member, objid: 'o_only' };
+      mockOrganizations.value = [{ ...owned, objid: 'o_only', member_count: 2 }];
+
+      expect(useScopeSwitcherVisibility().showOrgSwitcher.value).toBe(false);
+    });
+
+    it('keeps a single-org non-owner on the static chip', () => {
+      mockCurrentOrganization.value = member;
+      mockOrganizations.value = [{ ...member, member_count: 3 }];
+
+      expect(useScopeSwitcherVisibility().showOrgSwitcher.value).toBe(false);
+    });
+
+    it('keeps the solo default context hidden', () => {
+      const solo = { objid: 'o_solo', current_user_role: 'owner', entitlements: null };
+      mockCurrentOrganization.value = solo;
+      mockOrganizations.value = [{ ...solo, is_default: true, member_count: 1, planid: 'free_v1' }];
+
+      const { showOrgSwitcher, isSoloDefaultContext } = useScopeSwitcherVisibility();
+
+      expect(isSoloDefaultContext.value).toBe(true);
+      expect(showOrgSwitcher.value).toBe(false);
+    });
+
+    it('stays hidden on a custom domain even when the user owns another org', () => {
+      mockIsCustomRef.value = true;
+      mockCurrentOrganization.value = member;
+      mockOrganizations.value = [owned, member];
+
+      expect(useScopeSwitcherVisibility().showOrgSwitcher.value).toBe(false);
+    });
+
+    it('stays hidden when the route hides it', () => {
+      mockRoute.meta = { scopesAvailable: { organization: 'hide' } };
+      mockCurrentOrganization.value = member;
+      mockOrganizations.value = [owned, member];
+
+      expect(useScopeSwitcherVisibility().showOrgSwitcher.value).toBe(false);
+    });
+
+    describe('with billing enabled', () => {
+      beforeEach(() => {
+        mockBillingEnabled.value = true;
+      });
+
+      it('shows the switcher when another owned org carries manage_orgs', () => {
+        mockCurrentOrganization.value = { ...owned, objid: 'o_free', entitlements: [] };
+        mockOrganizations.value = [
+          { ...owned, objid: 'o_free', entitlements: [] },
+          { ...owned, objid: 'o_paid', entitlements: ['manage_orgs'] },
+        ];
+
+        expect(useScopeSwitcherVisibility().showOrgSwitcher.value).toBe(true);
+      });
+
+      it('hides the switcher when no owned org carries manage_orgs', () => {
+        mockCurrentOrganization.value = member;
+        mockOrganizations.value = [{ ...owned, entitlements: [] }, member];
+
+        expect(useScopeSwitcherVisibility().showOrgSwitcher.value).toBe(false);
+      });
     });
   });
 });

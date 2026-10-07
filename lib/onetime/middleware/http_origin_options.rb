@@ -9,10 +9,10 @@ module Onetime
     # Shared options for Rack::Protection::HttpOrigin.
     #
     # HttpOrigin resolves the request host via Rack::Request#host, which reads
-    # the Host header (or X-Forwarded-Host when present). Behind a proxy tier
-    # that rewrites Host to the canonical origin and forwards the true public
-    # host in another header (Apx-Incoming-Host, X-Original-Host, Forwarded),
-    # that answer is wrong — which is exactly why the app mounts
+    # the Host header (X-Forwarded-Host is removed by StripForwardedHost
+    # before it runs). Behind a proxy tier that rewrites Host to the canonical
+    # origin and forwards the true public host in X-Forwarded-Host, that
+    # answer is wrong — which is exactly why the app mounts
     # Rack::DetectHost and DomainStrategy, whose validated result is published
     # as env['onetime.display_domain'].
     #
@@ -22,8 +22,27 @@ module Onetime
     #
     # The comparison here is exact and https-only, against a host that
     # DetectHost accepts from forwarded headers only behind trusted
-    # infrastructure and DomainStrategy classifies against registered custom
-    # domains. A forged Origin cannot match because an attacker cannot move
+    # infrastructure, and it is made only when DomainStrategy classified that
+    # host :canonical, :subdomain or :custom — a canonical host, a subdomain
+    # of one, or a registered custom domain. Any other host classifies
+    # :invalid but keeps its name as display_domain, so until #4669 the
+    # Origin of an unregistered host was admitted here whenever it named that
+    # host. It is refused now (.classified_display_domain?).
+    #
+    # One :invalid case is still admitted. When the custom-domain read
+    # raised, a registered tenant classifies :invalid too, and only the
+    # published Onetime::CustomDomain::Lookup (read_failed, as opposed to
+    # absent) tells it from an unregistered host. The application fails
+    # closed on such a request itself — the sign-in policy gates answer 503
+    # through the Onetime::AuthPolicyUnavailable family
+    # (apps/web/auth/error_translator.rb for the auth router, otto_hooks.rb
+    # for the Otto mounts), and #4668 is defining the user-facing responses —
+    # and a refusal here would turn every browser POST from that tenant
+    # behind a Host-rewriting proxy into a bare 403 for the whole outage,
+    # with the application's own answer never reached. This admits nothing
+    # that was refused before #4669, which admitted every :invalid host.
+    #
+    # A forged Origin cannot match because an attacker cannot move
     # display_domain. An absent or empty display_domain fails closed: allow_if
     # returns false and HttpOrigin's own Origin-vs-Host check decides.
     #
@@ -309,10 +328,59 @@ module Onetime
       end
       private_class_method :sso_callback_post_origin
 
+      # The classifications under which the display domain is a host this
+      # install serves: a canonical host, a subdomain of one, a registered
+      # custom domain. DomainStrategy answers :invalid for everything else.
+      CLASSIFIED_STRATEGIES = %w[canonical subdomain custom].freeze
+
+      # Is env['onetime.display_domain'] a host DomainStrategy classified
+      # (#4669) — or a registered custom domain it could not read?
+      #
+      # :invalid is a host the install does not serve, EXCEPT when the
+      # custom-domain read raised: a registered tenant classifies :invalid
+      # then as well, and only the published Onetime::CustomDomain::Lookup
+      # tells the two apart (absent: the read succeeded and found no record;
+      # read_failed: the read raised). The read_failed host is admitted so
+      # the application's own fail-closed answer is reached (see the module
+      # comment). Refused: an absent lookup, an :invalid host with no
+      # published lookup or with a lookup published for another host, and a
+      # missing or unrecognized classification.
+      #
+      # Compared as strings, like the :invalid test in
+      # .platform_saml_callback_host? and in PublicHostRewrite: the key holds
+      # a Symbol from the middleware and a String in some callers.
+      #
+      # @param env [Hash] Rack environment
+      # @return [Boolean]
+      def self.classified_display_domain?(env)
+        strategy = env['onetime.domain_strategy'].to_s
+        return true if CLASSIFIED_STRATEGIES.include?(strategy)
+        return false unless strategy == 'invalid'
+
+        lookup = env[Onetime::CustomDomain::Lookup::ENV_KEY]
+        return false unless lookup.is_a?(Onetime::CustomDomain::Lookup)
+        return false unless lookup.host == env['onetime.display_domain'].to_s
+
+        lookup.read_failed?
+      end
+
       # Accept an Origin that matches the host the application already
-      # resolved for this request. The scheme is hardcoded https: custom
-      # domains are only served over TLS, and a laxer scheme would let a
-      # network attacker on a plaintext leg mint a matching Origin.
+      # resolved and classified for this request. The scheme is hardcoded
+      # https: custom domains are only served over TLS, and a laxer scheme
+      # would let a network attacker on a plaintext leg mint a matching
+      # Origin.
+      #
+      # That holds for this lambda only. Rack::Protection::HttpOrigin first
+      # compares Origin with the request's own scheme://host[:port], so a
+      # request seen as http whose Host is the public host admits
+      # http://{that host} without reaching here: behind a Host-preserving
+      # proxy always, and behind a Host-rewriting proxy when
+      # site.network.public_host_rewrite is on (rows O12 and O19 in
+      # host_proxy_stateful_boundaries_spec.rb). The same comparison admits
+      # https://{display domain} from an unregistered host behind a
+      # Host-preserving proxy, where that is the request's own authority;
+      # only a Host-rewriting proxy brings such a request here (H-03 in the
+      # same spec).
       ALLOW_IF = ->(env) do
         next HttpOriginOptions.saml_callback_with_null_origin?(env) if env['HTTP_ORIGIN'] == 'null'
 
@@ -321,6 +389,7 @@ module Onetime
 
         display = env['onetime.display_domain'].to_s
         next false if display.empty?
+        next false unless HttpOriginOptions.classified_display_domain?(env)
 
         env['HTTP_ORIGIN'].to_s == "https://#{display}"
       end

@@ -778,5 +778,37 @@
   "web.colonel.organizations.filters.searchPlaceholder": {
     "text": "Tìm kiếm theo ID, tên hoặc email",
     "source_hash": "6fe16473"
+  },
+  "web.colonel.organizations.capped": {
+    "text": "Kết quả bị giới hạn: số lượng hiển thị là mức tối thiểu, không phải tổng số. Bộ lọc bao gồm mọi tổ chức gắn với đăng ký cùng các tổ chức được cập nhật gần đây nhất; hãy tìm kiếm theo ID hoặc email chính xác để truy cập bất kỳ tổ chức nào khác.",
+    "source_hash": "0743238d"
+  },
+  "web.impersonation.banner.label": {
+    "text": "Đang mạo danh",
+    "source_hash": "d96f0e8d"
+  },
+  "web.impersonation.banner.viewingAs": {
+    "text": "Đang xem với tư cách {email}",
+    "source_hash": "cf2dd9c6"
+  },
+  "web.impersonation.banner.readOnly": {
+    "text": "Chỉ đọc: mọi thay đổi đều bị chặn trong khi mạo danh.",
+    "source_hash": "46ed3b68"
+  },
+  "web.impersonation.banner.expiresIn": {
+    "text": "Kết thúc sau {time}",
+    "source_hash": "b4999fd8"
+  },
+  "web.impersonation.banner.stop": {
+    "text": "Dừng mạo danh",
+    "source_hash": "5cf74e38"
+  },
+  "web.impersonation.banner.stopping": {
+    "text": "Đang dừng…",
+    "source_hash": "bbe85741"
+  },
+  "web.impersonation.banner.stopFailed": {
+    "text": "Không thể dừng mạo danh. Vui lòng thử lại.",
+    "source_hash": "5aa72353"
   }
 }

@@ -458,6 +458,30 @@ describe('authStore snapshot acceptance (#4464)', () => {
       expect(eventNames()).toContain('session-replaced');
     });
 
+    it('on a session mutation: forced page load, as for an ordinary refresh', async () => {
+      // The plan preview override changes nothing about who is signed in, so
+      // its refresh must not accept another account in place the way an
+      // authentication mutation does.
+      await mountWith(authenticatedBootstrap);
+      const before = observe();
+      axiosMock.onGet(ENDPOINT).reply(
+        200,
+        toWire({
+          ...inOtherEpoch(authenticatedBootstrap),
+          cust: { ...mockCustomer, extid: 'ur-b', email: 'b@example.com' },
+          custid: 'ur-b',
+          email: 'b@example.com',
+        })
+      );
+
+      expect(await store.refresh({ kind: 'session-mutation', reason: 'plan-preview' })).toBe('refused');
+
+      expect(observe()).toEqual(before);
+      expect(bootstrapStore.custid).toBe(mockCustomer.extid);
+      expect(attemptForcedPageLoad).toHaveBeenCalledTimes(1);
+      expect(consumeSessionTransition()).toBe('replaced');
+    });
+
     it('on an authentication mutation: accepted as the start of a new stream', async () => {
       await mountWith(mfaPendingBootstrap);
       // Completing MFA may renew the SID; the new epoch may carry ANY version.

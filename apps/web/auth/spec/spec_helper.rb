@@ -117,6 +117,7 @@ require_relative 'support/auth_test_constants'
 require_relative 'support/mock_omniauth_strategy'
 require_relative 'support/config_recreator'
 require_relative 'support/domains_enabled_context'
+require_relative 'support/public_host_rewrite_context'
 require_relative '../database'
 
 # =============================================================================

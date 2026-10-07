@@ -134,5 +134,17 @@
   "web.admin.audit.list.contractError": {
     "text": "La servilo respondis, sed la revizio-datumoj ne kongruis kun la atendata formato. Neniuj eventoj montreblas — ĉi tio estas raportad-eraro, ne malplena protokolo.",
     "source_hash": "7f48137e"
+  },
+  "web.admin.audit.export.csv": {
+    "text": "Eksporti CSV",
+    "source_hash": "91f71c14"
+  },
+  "web.admin.audit.export.ndjson": {
+    "text": "Eksporti NDJSON",
+    "source_hash": "3ee2c07c"
+  },
+  "web.admin.audit.export.hint": {
+    "text": "Eksportoj kovras la tutan konservitan spuron laŭ la nunaj filtriloj, ne nur ĉi tiun paĝon. La konservado estas limigita — pli longa historio troviĝas en la celloko de la kontrola protokolo.",
+    "source_hash": "163e8ad0"
   }
 }

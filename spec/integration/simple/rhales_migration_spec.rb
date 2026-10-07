@@ -387,6 +387,107 @@ RSpec.describe 'Rhales Migration Integration', type: :integration do
         expect(fallback_div).not_to be_nil
       end
 
+      # Stalled-load notice (#4596): shown by a CSS timer when the bundle never
+      # runs. It must be server-rendered inside the element the mount empties,
+      # hidden by default, revealed without script, and carry the request id so
+      # a recipient can quote it to support.
+      describe 'stalled-load notice' do
+        let(:inline_style) { doc.css('body > style').map(&:text).join }
+
+        it 'is server-rendered inside the fallback that mount() empties' do
+          notice = doc.css('#app .app-fallback .loader-stalled').first
+          expect(notice).not_to be_nil
+          expect(notice.text).to include('This page is taking longer than expected to load')
+        end
+
+        it 'announces from a live region that exists before the reveal' do
+          # A region that appears together with its content registers as new,
+          # not changed, so the role sits on an always-present wrapper and the
+          # animated element inside it carries no role of its own.
+          region = doc.css('#app .app-fallback .loader-stalled-region').first
+          expect(region).not_to be_nil
+          expect(region['role']).to eq('status')
+          notice = region.css('> .loader-stalled').first
+          expect(notice).not_to be_nil
+          expect(notice['role']).to be_nil
+          expect(inline_style).not_to match(/\.loader-stalled-region\s*\{[^}]*(visibility|display|opacity)/m)
+        end
+
+        it 'flags a failed entry-script fetch from the head script' do
+          # Registered in <head> before the Vite tags so a 404 on the entry
+          # module (stale chunk hash in cached HTML) flips the shell to the
+          # failure state at once instead of after the CSS timer.
+          listener = doc.css('head script[nonce]').map(&:text).find { |t| t.include?("addEventListener('error'") }
+          expect(listener).not_to be_nil
+          expect(listener).to include("target.type === 'module'")
+          expect(listener).to include("dataset.appFailed = 'true'")
+          expect(rendered_html.index("addEventListener('error'")).to be < rendered_html.index('<meta')
+        end
+
+        it 'offers a scriptless reload of the current URL' do
+          # An empty href resolves to the document URL; the shell sets no <base>.
+          link = doc.css('#app .loader-stalled a.loader-stalled-action').first
+          expect(link).not_to be_nil
+          expect(link['href']).to eq('')
+          expect(link.text).to eq('Reload page')
+        end
+
+        it 'carries a detected-failure state the entry script can switch on' do
+          # src/main.ts sets html[data-app-failed] when startup throws; the
+          # shell then stops the orb, swaps the heading and drops the delay.
+          failed = doc.css('#app .loader-stalled .loader-stalled-title-failed').first
+          expect(failed).not_to be_nil
+          expect(failed.text).to include("We couldn't load this page")
+          expect(inline_style).to match(/\.loader-stalled-title-failed\s*\{[^}]*display:\s*none/m)
+          expect(inline_style).to match(/html\[data-app-failed\]\s+\.app-fallback\s*\{[^}]*--stalled-delay:\s*0s/m)
+          expect(inline_style).to match(/html\[data-app-failed\]\s+\.loader-orb\s*\{[^}]*animation:\s*none/m)
+        end
+
+        it 'is hidden until a CSS delay reveals it' do
+          expect(inline_style).to match(/\.loader-stalled\s*\{[^}]*visibility:\s*hidden/m)
+          expect(inline_style).to match(/--stalled-delay:\s*\d+s/)
+          expect(inline_style).to include('@keyframes stalled-reveal')
+        end
+
+        it 'keeps the timer under prefers-reduced-motion' do
+          expect(inline_style).to match(
+            /prefers-reduced-motion:\s*reduce\)\s*\{[^}]*\.loader-stalled\s*\{[^}]*stalled-reveal[^}]*var\(--stalled-delay\)/m,
+          )
+        end
+
+        it 'omits the support reference when the request carries no id' do
+          expect(doc.css('.loader-stalled-ref')).to be_empty
+        end
+
+        it 'is present in the admin shell too' do
+          admin_doc = Nokogiri::HTML(Core::Views::AdminPoint.new(request).render)
+          expect(admin_doc.css('#app .app-fallback .loader-stalled-region[role="status"] .loader-stalled')).not_to be_empty
+          expect(admin_doc.css('head script[nonce]').map(&:text).join).to include("dataset.appFailed = 'true'")
+        end
+
+        context 'with a request id' do
+          before { request.env['HTTP_X_REQUEST_ID'] = 'trace-4596-abc' }
+
+          it 'renders the id as the support reference' do
+            ref = doc.css('#app .loader-stalled .loader-stalled-ref').first
+            expect(ref).not_to be_nil
+            expect(ref.text).to eq('trace-4596-abc')
+          end
+
+          it 'keeps the id out of window.__BOOTSTRAP_ME__' do
+            expect(view.serialized_data.to_json).not_to include('trace-4596-abc')
+          end
+        end
+
+        it 'escapes a client-supplied request id' do
+          # Rack::RequestId accepts any visible-ASCII header value, so the
+          # reflected id must be escaped on the way into the shell.
+          request.env['HTTP_X_REQUEST_ID'] = '<img src=x onerror=alert(1)>'
+          expect(rendered_html).not_to include('<img src=x')
+          expect(doc.css('.loader-stalled-ref').first.text).to eq('<img src=x onerror=alert(1)>')
+        end
+      end
+
       it 'sets html lang attribute from locale' do
         expect(doc.css('html').first['lang']).to eq(locale)
       end

@@ -46,5 +46,17 @@
   "api.domains.errors.homepage_incoming_not_ready": {
     "text": "Me whakahohe te karere huna tae mai me te kaiwhiwhi kotahi neke atu i mua i te whakamahi hei whārangi kāinga.",
     "source_hash": "556da6e2"
+  },
+  "api.domains.errors.related_origins_invalid": {
+    "text": "Ehara i te taketake tika: %{origins}. Whakaurua te kaupapa URL me te kaihautū, hei tauira https://vault.example.com",
+    "source_hash": "5acb92ca"
+  },
+  "api.domains.errors.related_origins_foreign_organization": {
+    "text": "Nō tētahi atu whakahaere ēnei taketake, ā, kāore e taea te tāpiri: %{origins}",
+    "source_hash": "ac21c1e7"
+  },
+  "api.domains.errors.allowed_signup_domains_invalid": {
+    "text": "Ehara i te rohe tika: %{domains}. Whakaurua he ingoa rohe ka taea te rēhita, hei tauira example.com",
+    "source_hash": "2d93472c"
   }
 }

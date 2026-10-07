@@ -5,6 +5,8 @@
 require 'net/http'
 require 'uri'
 require 'securerandom'
+require_relative '../http/guard'
+require_relative '../models/delivery_event'
 
 module Onetime
   module Operations
@@ -22,6 +24,7 @@ module Onetime
     #   type: 'secret.viewed',         # Event type
     #   addressee: {                   # Who receives the notification
     #     custid: 'cust:abc123',
+    #     customer_extid: 'ur...',     # Optional, public customer id for delivery events
     #     email: 'user@example.com',
     #     webhook_url: 'https://...',  # Optional
     #   },
@@ -30,6 +33,13 @@ module Onetime
     #   channels: ['via_bell', 'via_email'], # Which delivery methods to use
     #   data: { ... }                  # Template-specific variables
     # }
+    #
+    # Delivery events (Onetime::DeliveryEvent) are recorded for the email
+    # and webhook channels: email at stage `queue` (the hand-off to
+    # email.message.send), webhook at stage `delivery` (around the HTTP
+    # request). The context's source_message_id is the correlation id; it is
+    # copied into the email payload so EmailWorker's terminal event shares
+    # it. Recording is best-effort and never changes the channel result.
     #
     class DispatchNotification
       include Onetime::LoggerMethods
@@ -47,12 +57,31 @@ module Onetime
       WEBHOOK_OPEN_TIMEOUT = 5
       WEBHOOK_READ_TIMEOUT = 10
 
+      # Raised for a non-2xx webhook response. Carries the status so the
+      # delivery event can record it without the response body.
+      class WebhookResponseError < StandardError
+        attr_reader :status
+
+        def initialize(message, status:)
+          super(message)
+          @status = status
+        end
+      end
+
       # @param data [Hash] Parsed notification data
       # @param context [Hash] Optional context (e.g., { source_message_id: 'abc' })
       def initialize(data:, context: {})
         @data    = data
         @context = context
         @results = {}
+      end
+
+      # Correlation id shared by every delivery event this dispatch writes.
+      # The source queue message id when there is one (NotificationWorker);
+      # a generated id otherwise (CLI, tests), so the chain still links.
+      # @return [String]
+      def correlation_id
+        @correlation_id ||= (@context[:source_message_id] || "gen-#{SecureRandom.uuid}").to_s
       end
 
       # Executes the notification dispatch
@@ -108,7 +137,78 @@ module Onetime
         logger.error "Failed to deliver to #{channel}",
           error: ex.message,
           error_class: ex.class.name
+        record_channel_error(channel, ex)
         :error
+      end
+
+      # One delivery event for a channel that raised. Email raises before or
+      # during publish, so its stage is `queue`; webhook raises around the
+      # HTTP request, so its stage is `delivery`.
+      def record_channel_error(channel, ex)
+        case channel
+        when 'via_email'
+          record_event(
+            channel: 'email',
+            stage: 'queue',
+            outcome: 'failed',
+            reason: 'publish_failed',
+            error: ex,
+          )
+        when 'via_webhook'
+          # A non-2xx response is recorded as its status only: the exception
+          # message quotes the response body, which is the remote side's
+          # text and is not stored.
+          http_error = ex.is_a?(WebhookResponseError)
+          record_event(
+            channel: 'webhook',
+            stage: 'delivery',
+            outcome: 'failed',
+            reason: webhook_failure_reason(ex),
+            error: (ex unless http_error),
+            http_status: (ex.status if http_error),
+            target_host: webhook_target_host,
+            attempt_count: 1,
+          )
+        end
+      rescue StandardError => ex
+        logger.error 'Delivery event not recorded', error_class: ex.class.name
+        nil
+      end
+
+      def webhook_failure_reason(ex)
+        case ex
+        when WebhookResponseError then 'http_status'
+        when Onetime::Http::Guard::Blocked then 'blocked_target'
+        when Net::OpenTimeout, Net::ReadTimeout then 'timeout'
+        when ArgumentError, URI::Error then 'invalid_url'
+        else 'error'
+        end
+      end
+
+      # Fields every event from this dispatch carries. Best-effort: a
+      # failure here is logged and never changes the channel result.
+      def record_event(**fields)
+        Onetime::DeliveryEvent.record(
+          correlation_id: correlation_id,
+          event_type: @data[:type],
+          template: @data[:template],
+          customer_id: (@data[:addressee] || {})[:customer_extid],
+          **fields,
+        )
+      rescue StandardError => ex
+        logger.error 'Delivery event not recorded', error_class: ex.class.name
+        nil
+      end
+
+      # Host of the addressee's webhook URL, for the event record only.
+      # @return [String, nil]
+      def webhook_target_host
+        url = (@data[:addressee] || {})[:webhook_url]
+        return nil unless url
+
+        URI.parse(url.to_s).host
+      rescue URI::Error
+        nil
       end
 
       # Store notification in Redis for bell notification display
@@ -160,21 +260,25 @@ module Onetime
 
         unless email
           logger.debug 'No email address for email notification, skipping'
+          record_event(channel: 'email', stage: 'queue', outcome: 'skipped', reason: 'no_recipient')
           return :skipped
         end
 
         email_payload = build_email_payload(email)
 
-        Onetime::Jobs::Publisher.new.publish(
+        message_id = Onetime::Jobs::Publisher.new.publish(
           'email.message.send',
           email_payload,
         )
 
         logger.debug 'Email notification queued', email: email, template: @data[:template]
+        record_event(channel: 'email', stage: 'queue', outcome: 'queued', message_id: message_id)
         :success
       end
 
-      # Build the email payload for the email worker
+      # Build the email payload for the email worker. The top-level
+      # correlation_id, event_type and customer_extid are read by EmailWorker
+      # for its delivery event; only `data` reaches the template.
       # @param email [String] Recipient email address
       # @return [Hash] Email payload
       def build_email_payload(email)
@@ -184,6 +288,9 @@ module Onetime
             locale: @data[:locale] || 'en',
             to: email,
           ),
+          correlation_id: correlation_id,
+          event_type: @data[:type],
+          customer_extid: (@data[:addressee] || {})[:customer_extid],
         }
       end
 
@@ -195,18 +302,36 @@ module Onetime
 
         unless webhook_url
           logger.debug 'No webhook_url for webhook notification, skipping'
+          record_event(channel: 'webhook', stage: 'delivery', outcome: 'skipped', reason: 'no_target')
           return :skipped
         end
 
-        payload  = build_webhook_payload
-        response = send_webhook_request(webhook_url, payload)
+        payload    = build_webhook_payload
+        started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        response   = send_webhook_request(webhook_url, payload)
 
         unless response.is_a?(Net::HTTPSuccess)
-          raise "Webhook returned #{response.code}: #{response.body&.slice(0, 200)}"
+          raise WebhookResponseError.new(
+            "Webhook returned #{response.code}: #{response.body&.slice(0, 200)}",
+            status: response.code,
+          )
         end
 
         logger.debug 'Webhook delivered', url: webhook_url, status: response.code
+        record_event(
+          channel: 'webhook',
+          stage: 'delivery',
+          outcome: 'sent',
+          http_status: response.code,
+          target_host: webhook_target_host,
+          duration_ms: elapsed_ms(started_at),
+          attempt_count: 1,
+        )
         :success
+      end
+
+      def elapsed_ms(started_at)
+        ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at) * 1000).round
       end
 
       # Build the webhook payload

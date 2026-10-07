@@ -638,5 +638,121 @@
   "web.admin.organizations.entitlements.summary.planUnknown": {
     "text": "Ismeretlen — nem sikerült összehasonlítani",
     "source_hash": "b607e540"
+  },
+  "web.admin.organizations.actions.plan.label": {
+    "text": "Csomag",
+    "source_hash": "fa8ed0bd"
+  },
+  "web.admin.organizations.actions.plan.apply": {
+    "text": "Alkalmaz",
+    "source_hash": "31e392d1"
+  },
+  "web.admin.organizations.actions.plan.confirmTitle": {
+    "text": "Módosítja a csomagot?",
+    "source_hash": "910a4de9"
+  },
+  "web.admin.organizations.actions.plan.confirmDescription": {
+    "text": "A(z) {org} átállítása a(z) {plan} csomagra.",
+    "source_hash": "aecf8277"
+  },
+  "web.admin.organizations.actions.plan.success": {
+    "text": "A csomag frissítve.",
+    "source_hash": "ebe8d40c"
+  },
+  "web.admin.organizations.actions.plan.problem": {
+    "text": "A csomag mentve, de a jogosultságok nem frissültek. Végezzen egyeztetést ennél a szervezetnél.",
+    "source_hash": "2addb095"
+  },
+  "web.admin.organizations.actions.plan.localConfigWarning": {
+    "text": "A csomagok helyi konfigurációból lettek betöltve — a Stripe nincs beállítva, vagy nem elérhető.",
+    "source_hash": "df83e326"
+  },
+  "web.admin.organizations.detail.delete.button": {
+    "text": "Szervezet törlése",
+    "source_hash": "a70d189a"
+  },
+  "web.admin.organizations.detail.delete.previewing": {
+    "text": "Terv betöltése…",
+    "source_hash": "c9773eb9"
+  },
+  "web.admin.organizations.detail.delete.warning": {
+    "text": "Véglegesen törli a szervezetet, annak tagságait és függőben lévő meghívásait, és e-mailt küld a korábbi tagoknak. Ez nem vonható vissza.",
+    "source_hash": "fd314131"
+  },
+  "web.admin.organizations.detail.delete.confirmTitle": {
+    "text": "Törli ezt a szervezetet?",
+    "source_hash": "6a3bba0f"
+  },
+  "web.admin.organizations.detail.delete.confirmDescription": {
+    "text": "Ez véglegesen törli a következőt: {org}. A megerősítéshez írja be újra a szervezet azonosítóját.",
+    "source_hash": "c63a0221"
+  },
+  "web.admin.organizations.detail.delete.membersLabel": {
+    "text": "Tagok",
+    "source_hash": "1044a4c0"
+  },
+  "web.admin.organizations.detail.delete.invitationsLabel": {
+    "text": "Függőben lévő meghívások",
+    "source_hash": "76198e63"
+  },
+  "web.admin.organizations.detail.delete.domainsLabel": {
+    "text": "Domének",
+    "source_hash": "ced67718"
+  },
+  "web.admin.organizations.detail.delete.defaultOrgLabel": {
+    "text": "Alapértelmezett munkaterület törlése a következőknél",
+    "source_hash": "d535ac2a"
+  },
+  "web.admin.organizations.detail.delete.forceDefault": {
+    "text": "Ez a tulajdonos alapértelmezett (személyes) munkaterülete. Törlés ennek ellenére.",
+    "source_hash": "1a8b0f7d"
+  },
+  "web.admin.organizations.detail.delete.forceSubscription": {
+    "text": "Az előfizetés aktív. Törlés ennek ellenére — ez nem mondja le a Stripe-számlázást.",
+    "source_hash": "51cb3456"
+  },
+  "web.admin.organizations.detail.delete.driftedDomainsLabel": {
+    "text": "Eltérést mutató domének",
+    "source_hash": "fef96f49"
+  },
+  "web.admin.organizations.detail.delete.driftedDomainsRepair": {
+    "text": "Javítás ezzel: bin/ots domains doctor --all --repair",
+    "source_hash": "14c9c59f"
+  },
+  "web.admin.organizations.detail.delete.success": {
+    "text": "{org} törölve.",
+    "source_hash": "9cdda5d0"
+  },
+  "web.admin.organizations.detail.delete.blocked.hasDomains": {
+    "text": "Letiltva: előbb távolítsa el az egyéni doméneket ({domains}).",
+    "source_hash": "dc3248b2"
+  },
+  "web.admin.organizations.detail.delete.blocked.driftedDomains": {
+    "text": "Letiltva: ezek a doménrekordok még mindig erre a szervezetre hivatkoznak, de hiányoznak a doménlistájából ({domains}). Előbb futtassa a bin/ots domains doctor --all --repair parancsot — felülbírálás nem lehetséges.",
+    "source_hash": "3136496c"
+  },
+  "web.admin.organizations.detail.delete.blocked.isDefault": {
+    "text": "Letiltva: ez a tulajdonos alapértelmezett munkaterülete. A törléshez jelölje be az alábbi felülbírálást.",
+    "source_hash": "09d5baa4"
+  },
+  "web.admin.organizations.detail.delete.blocked.activeSubscription": {
+    "text": "Letiltva: a szervezetnek aktív előfizetése van. Előbb mondja le a Stripe-ban, vagy jelölje be az alábbi felülbírálást.",
+    "source_hash": "68663641"
+  },
+  "web.admin.organizations.detail.delete.blocked.lastOrg": {
+    "text": "Letiltva: ez az egyetlen szervezet, amelynek a(z) {owner} tagja, és törlése után nem maradna munkaterülete. Felülbírálás nem lehetséges — előbb hozzon létre egy helyettesítő szervezetet.",
+    "source_hash": "f09b4f9a"
+  },
+  "web.admin.organizations.detail.delete.errors.planUnreadable": {
+    "text": "Nem sikerült beolvasni a törlési tervet a szerverről. Semmi sem lett törölve.",
+    "source_hash": "91406cbb"
+  },
+  "web.admin.organizations.detail.delete.errors.unverified": {
+    "text": "A szerver válasza nem volt ellenőrizhető. Töltse be újra a szervezetlistát, és ellenőrizze, hogy a törlés befejeződött-e.",
+    "source_hash": "7a261fb0"
+  },
+  "web.admin.organizations.detail.delete.errors.notApplied": {
+    "text": "A szerver előnézetet adott vissza, nem törlést. Semmi sem lett törölve.",
+    "source_hash": "9d84971d"
   }
 }

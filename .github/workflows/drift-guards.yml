@@ -7,8 +7,8 @@
 #
 # Three of them are still grep/sed-only and cost seconds. The fourth now starts
 # through bin/envref, which ADR-042 makes the supported entry point for that
-# tooling, so this job sets up Python and uv. Its implementation is unchanged
-# bash and awk; the added cost is the one-time environment setup, ~100ms per
+# tooling, so this job sets up Python and uv. Its check uses Bash and awk;
+# the added cost is the one-time environment setup, ~100ms per
 # invocation once warm. Calling the package-private script path directly would
 # save that and reintroduce exactly the by-path coupling ADR-042 removed.
 #
@@ -52,8 +52,14 @@ jobs:
           # `bin/envref check` compares against the merge-base with the PR's
           # base branch. The default shallow checkout has neither the base
           # branch nor enough history to find a merge-base, and the guard would
-          # quietly fall back to syntax-only checking.
+          # quietly fall back to syntax-only checking. The full fetch also
+          # brings local release tags. The guard also queries the explicitly
+          # configured release authority so partial local tags cannot make a
+          # shipped marker editable; strict mode fails if that query fails.
           fetch-depth: 0
+
+      - name: Configure release-tag authority
+        run: git remote add envref-release https://github.com/onetimesecret/onetimesecret.git
 
       # envref is a Python package (ADR-042). uv is installed through pip
       # rather than a new pinned action so this workflow gains no supply-chain
@@ -82,7 +88,7 @@ jobs:
       # pins the marker recognizer against the contract document and asserts
       # the two YAML walks agree, which is what the next step relies on. A
       # path filter would skip it exactly when an unrelated change breaks the
-      # contract, and it costs milliseconds in an environment already built.
+      # contract. The suite also checks real timeout and cancellation cleanup.
       - name: Run the envref test suite
         run: uv run --locked --project tools/envref python -m unittest discover -s tools/envref/tests
 
@@ -90,6 +96,29 @@ jobs:
         env:
           # Refuse to pass on a missing base ref rather than degrading to a
           # syntax-only check: a ratchet that silently stops ratcheting is
-          # worse than one that fails loudly.
+          # worse than one that fails loudly. Also require a successful
+          # release-tag query to the named authority and a nonempty stable-tag set.
           CONFIG_VERSION_REQUIRE_BASE: '1'
+          CONFIG_VERSION_RELEASE_REMOTE: envref-release
         run: ./bin/envref check
+
+  envref-macos:
+    name: envref tests (macOS)
+    runs-on: macos-14
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.14'
+
+      - name: Install uv
+        run: python -m pip install --disable-pip-version-check 'uv==0.8.17'
+
+      # Exercise Bash/job-control portability and process cancellation coverage
+      # without duplicating the drift checks.
+      - name: Run the envref test suite
+        run: uv run --locked --project tools/envref python -m unittest discover -s tools/envref/tests

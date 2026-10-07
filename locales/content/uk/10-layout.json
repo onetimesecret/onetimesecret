@@ -350,5 +350,17 @@
   "web.layout.colonels_only_badge": {
     "text": "Лише для Colonels",
     "source_hash": "3f1e2dbd"
+  },
+  "web.footer.dpa": {
+    "text": "Угода про обробку даних",
+    "source_hash": "112eae6b"
+  },
+  "web.footer.cookie_policy": {
+    "text": "Політика щодо файлів cookie",
+    "source_hash": "ee290b3d"
+  },
+  "web.footer.acceptable_use": {
+    "text": "Політика прийнятного використання",
+    "source_hash": "34aa287a"
   }
 }

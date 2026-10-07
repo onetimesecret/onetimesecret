@@ -37,6 +37,9 @@ module ColonelAPI
       # read nil here whenever the edge sent them; the middleware records the
       # names it deleted in STRIPPED_FORWARDED_HEADERS, reported alongside so
       # "nil because absent" and "nil because stripped" stay distinguishable.
+      # Apx-Incoming-Host is not listed: the application does not read it
+      # (#4384). What the edge received is still reported, in
+      # PROXY_DEBUG_HEADERS.
       FORWARDING_HEADERS = %w[
         HTTP_HOST
         HTTP_X_FORWARDED_FOR
@@ -45,13 +48,17 @@ module ColonelAPI
         HTTP_X_REAL_IP
         HTTP_X_CLIENT_IP
         HTTP_FORWARDED
-        HTTP_APX_INCOMING_HOST
       ].freeze
 
       # Env key StripForwardedHost leaves the names of the carriers it deleted
       # in (names only, never values). Literal rather than the middleware's
       # constant so this strategy does not load the middleware.
       STRIPPED_FORWARDED_HEADERS = 'onetime.stripped_forwarded_headers'
+
+      # Env key Onetime::Middleware::PublicHostRewrite keeps the received
+      # `Host` in when it rewrites the request (#4223). Absent on a request
+      # it did not rewrite. Literal for the same reason as above.
+      ORIGINAL_HTTP_HOST = 'onetime.original_http_host'
 
       # Destructive-action confirmation token (#4326). Carried as a REQUEST HEADER,
       # never a query parameter: the tokens are frequently PII (a target's email,
@@ -101,7 +108,7 @@ module ColonelAPI
               detected_host: env[Rack::DetectHost.result_field_name],
               stripped_forwarded_headers: header_names(env[STRIPPED_FORWARDED_HEADERS]),
             },
-            request_headers: header_values(env, FORWARDING_HEADERS),
+            request_headers: received_header_values(env, FORWARDING_HEADERS),
           },
         )
       end
@@ -110,6 +117,15 @@ module ColonelAPI
         keys.to_h do |key|
           [header_name(key), env[key]]
         end
+      end
+
+      # header_values, with `host` as the server received it: on a request
+      # PublicHostRewrite rewrote, HTTP_HOST holds the public host and the
+      # received value is in ORIGINAL_HTTP_HOST.
+      def received_header_values(env, keys)
+        values         = header_values(env, keys)
+        values['host'] = env[ORIGINAL_HTTP_HOST] if env.key?(ORIGINAL_HTTP_HOST)
+        values
       end
 
       def header_names(keys)

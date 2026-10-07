@@ -42,8 +42,8 @@ module Onetime::Receipt::Features
         if eaddrs.nil? || eaddrs.empty?
           secret_logger.info 'No email addresses specified for delivery',
             {
-              receipt_id: identifier,
-              secret_id: secret.identifier,
+              receipt_id: shortid,
+              secret_id: secret.shortid,
               user: cust.obscure_email,
               action: 'deliver_email',
             }
@@ -52,8 +52,8 @@ module Onetime::Receipt::Features
 
         secret_logger.debug 'Preparing email delivery',
           {
-            receipt_id: identifier,
-            secret_id: secret.identifier,
+            receipt_id: shortid,
+            secret_id: secret.shortid,
             user: cust.obscure_email,
             action: 'deliver_email',
           }
@@ -65,8 +65,8 @@ module Onetime::Receipt::Features
 
         secret_logger.info 'Delivering secret by email',
           {
-            receipt_id: identifier,
-            secret_id: secret.identifier,
+            receipt_id: shortid,
+            secret_id: secret.shortid,
             user: cust.obscure_email,
             recipient_count: eaddrs_safe.size,
             recipients: eaddrs_safe_str,
@@ -77,8 +77,8 @@ module Onetime::Receipt::Features
         if eaddrs.size > 1
           secret_logger.warn 'Multiple recipients detected',
             {
-              receipt_id: identifier,
-              secret_id: secret.identifier,
+              receipt_id: shortid,
+              secret_id: secret.shortid,
               recipient_count: eaddrs.size,
               action: 'deliver_email',
             }
@@ -156,17 +156,17 @@ module Onetime::Receipt::Features
         return unless state?(:new) || state?(:previewed)
         return unless compare_and_set_state!(:revealed, [:new, :previewed])
 
-        previous_state         = state
-        original_secret_id     = secret_identifier
-        self.state             = 'revealed'
-        self.revealed          = Familia.now.to_i
-        self.secret_identifier = ''
+        previous_state          = state
+        original_secret_shortid = secret_identifier.to_s.slice(0, 8)
+        self.state              = 'revealed'
+        self.revealed           = Familia.now.to_i
+        self.secret_identifier  = ''
         save update_expiration: false
 
         secret_logger.info 'Receipt state transition to revealed',
           {
             receipt_id: shortid,
-            secret_id: original_secret_id,
+            secret_id: original_secret_shortid,
             previous_state: previous_state,
             new_state: 'revealed',
             timestamp: revealed,
@@ -190,17 +190,17 @@ module Onetime::Receipt::Features
         return unless state?(:new) || state?(:previewed)
         return unless compare_and_set_state!(:orphaned, [:new, :previewed])
 
-        previous_state         = state
-        original_secret_id     = secret_identifier
-        self.state             = 'orphaned'
-        self.updated           = Familia.now.to_i
-        self.secret_identifier = ''
+        previous_state          = state
+        original_secret_shortid = secret_identifier.to_s.slice(0, 8)
+        self.state              = 'orphaned'
+        self.updated            = Familia.now.to_i
+        self.secret_identifier  = ''
         save update_expiration: false
 
         secret_logger.warn 'Receipt state transition to orphaned',
           {
             receipt_id: shortid,
-            secret_id: original_secret_id,
+            secret_id: original_secret_shortid,
             previous_state: previous_state,
             new_state: 'orphaned',
             timestamp: updated,
@@ -221,17 +221,17 @@ module Onetime::Receipt::Features
         return unless state?(:new) || state?(:previewed)
         return unless compare_and_set_state!(:burned, [:new, :previewed])
 
-        previous_state         = state
-        original_secret_id     = secret_identifier
-        self.state             = 'burned'
-        self.burned            = Familia.now.to_i
-        self.secret_identifier = ''
+        previous_state          = state
+        original_secret_shortid = secret_identifier.to_s.slice(0, 8)
+        self.state              = 'burned'
+        self.burned             = Familia.now.to_i
+        self.secret_identifier  = ''
         save update_expiration: false
 
         secret_logger.info 'Receipt state transition to burned',
           {
             receipt_id: shortid,
-            secret_id: original_secret_id,
+            secret_id: original_secret_shortid,
             previous_state: previous_state,
             new_state: 'burned',
             timestamp: burned,
@@ -254,18 +254,18 @@ module Onetime::Receipt::Features
         return unless state?(:new) || state?(:previewed)
         return unless compare_and_set_state!(:expired, [:new, :previewed])
 
-        previous_state         = state
-        original_secret_id     = secret_identifier
-        self.state             = 'expired'
-        self.updated           = Familia.now.to_i
-        self.secret_identifier = ''
-        self.secret_key        = ''
+        previous_state          = state
+        original_secret_shortid = secret_identifier.to_s.slice(0, 8)
+        self.state              = 'expired'
+        self.updated            = Familia.now.to_i
+        self.secret_identifier  = ''
+        self.secret_key         = ''
         save update_expiration: false
 
         secret_logger.info 'Receipt state transition to expired',
           {
             receipt_id: shortid,
-            secret_id: original_secret_id,
+            secret_id: original_secret_shortid,
             previous_state: previous_state,
             new_state: 'expired',
             timestamp: updated,

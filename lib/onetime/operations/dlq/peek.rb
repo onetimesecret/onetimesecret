@@ -12,9 +12,9 @@ module Onetime
       # /api/colonel/queues/dlq/:queue`) and the `bin/ots queue dlq list <queue>`
       # CLI are thin adapters over it.
       #
-      # READ-ONLY: every message is popped with a manual ack and immediately
-      # nack-requeued ({Store.peek}), so the queue is left exactly as found. No
-      # {Onetime::ColonelAuditEvent} (CONTRACT 4).
+      # READ-ONLY: every message is popped with a manual ack, held until the scan
+      # ends, then nack-requeued ({Store.peek}), so nothing is consumed. Requeue
+      # may change order. No {Onetime::ColonelAuditEvent} (CONTRACT 4).
       #
       # Bounded (CONTRACT 6): at most `limit` messages are inspected, clamped to
       # {MAX_LIMIT}, and never more than the queue actually holds — one request can
@@ -29,7 +29,7 @@ module Onetime
         DEFAULT_LIMIT = 20
         # Hard cap on how many messages a single peek inspects, so an operator can
         # never pop-and-requeue an unbounded queue on the request path.
-        MAX_LIMIT = 100
+        MAX_LIMIT     = 100
 
         # @param connection [Object] an already-open Bunny-like connection.
         # @param queue [String] a fully-resolved DLQ name (see {Store.resolve}).
@@ -45,8 +45,8 @@ module Onetime
           channel = @connection.create_channel
           queue   = Store.queue_handle(channel, @queue)
 
-          total = queue.message_count
-          count = [@limit, total].min
+          total    = queue.message_count
+          count    = [@limit, total].min
           messages = count.positive? ? Store.peek(channel, @queue, count) : []
 
           Result.new(

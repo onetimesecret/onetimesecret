@@ -45,6 +45,8 @@ require_relative '../../../config/hooks/omniauth_tenant'
 
 # The model + fixtures, for the provider-type tripwire and the SAML arm (#4450)
 require 'onetime/models/custom_domain/sso_config'
+# The request's shared lookup, which refuse_unavailable_domain reads (#4668)
+require 'onetime/models/custom_domain/lookup'
 require_relative '../../support/domain_sso_test_fixtures'
 
 RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
@@ -1301,6 +1303,104 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
   end
 
   # ==========================================================================
+  # refuse_unavailable_domain (#4668)
+  # ==========================================================================
+
+  describe '.refuse_unavailable_domain' do
+    let(:lookup_error) { RuntimeError.new('private tenant lookup failure detail') }
+    let(:lookup) { Onetime::CustomDomain::Lookup.read_failed('secrets.tenant.example', lookup_error) }
+    let(:request) do
+      double('Rack::Request', env: { Onetime::CustomDomain::Lookup::ENV_KEY => lookup }, path: '/auth/sso/entra')
+    end
+    # A tenant flow started while the record was readable: the markers, the
+    # strategy's own binding, and one unrelated key that must survive.
+    let(:session) do
+      {
+        omniauth_tenant_domain_id: 'dom_unreadable_123',
+        omniauth_tenant_host: 'secrets.tenant.example',
+        'saml_authn_request_id' => '_pending-request-id',
+        'omniauth.state' => 'pending-state',
+        account_id: 42,
+      }
+    end
+    let(:rodauth) do
+      double('Rodauth', session: session).tap do |r|
+        allow(r).to receive(:redirect) { throw :halt }
+      end
+    end
+
+    def refuse
+      catch(:halt) { helpers.refuse_unavailable_domain('secrets.tenant.example', request, rodauth) }
+    end
+
+    # Not sso_failed (OmniAuth's catch-all for an exception in a phase) and
+    # not sso_not_configured (no record was found): the record could not be
+    # read.
+    it 'redirects to domain_unavailable' do
+      refuse
+
+      expect(rodauth).to have_received(:redirect).with('/signin?auth_error=domain_unavailable')
+    end
+
+    # A callback for a flow started while the record was readable must not
+    # complete now, nor later on the platform path once the markers are gone.
+    it 'clears the pending tenant markers AND the per-strategy binding' do
+      refuse
+
+      expect(session).to eq(account_id: 42)
+    end
+
+    it 'audits a distinct event at :error with scalars only' do
+      refuse
+
+      expect(Auth::Logging).to have_received(:log_auth_event).with(
+        :omniauth_domain_lookup_failed,
+        level: :error,
+        host: 'secrets.tenant.example',
+        path: '/auth/sso/entra',
+        error_class: 'RuntimeError',
+        error: 'private tenant lookup failure detail',
+        pending_tenant_flow_dropped: true,
+      )
+    end
+
+    # The answer does not depend on what the read raised.
+    context 'when the read raised Redis::BaseError' do
+      let(:lookup_error) { Redis::BaseError.new('connection lost') }
+
+      it 'redirects the same way and logs the class' do
+        refuse
+
+        expect(rodauth).to have_received(:redirect).with('/signin?auth_error=domain_unavailable')
+        expect(Auth::Logging).to have_received(:log_auth_event).with(
+          :omniauth_domain_lookup_failed, hash_including(error_class: 'Redis::BaseError', error: 'connection lost')
+        )
+      end
+    end
+
+    # A canonical host classifies without a read and publishes nothing.
+    context 'when the request carries no lookup' do
+      let(:request) { double('Rack::Request', env: {}, path: '/auth/sso/entra') }
+
+      it 'returns without redirecting or touching the session' do
+        expect(refuse).to be_nil
+        expect(rodauth).not_to have_received(:redirect)
+        expect(session).to include(omniauth_tenant_domain_id: 'dom_unreadable_123')
+      end
+    end
+
+    context 'when the published lookup did not fail' do
+      let(:lookup) { Onetime::CustomDomain::Lookup.absent('secrets.tenant.example') }
+
+      it 'returns without redirecting' do
+        expect(refuse).to be_nil
+        expect(rodauth).not_to have_received(:redirect)
+        expect(Auth::Logging).not_to have_received(:log_auth_event).with(:omniauth_domain_lookup_failed, anything)
+      end
+    end
+  end
+
+  # ==========================================================================
   # refuse_if_awaiting_verification (#4579, QA-09)
   # ==========================================================================
 
@@ -1402,6 +1502,109 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
       expect(Auth::Logging).to have_received(:log_auth_event).with(
         :restrict_to_omniauth_rejected, hash_including(pending_tenant_flow_dropped: false)
       )
+    end
+  end
+
+  # ==========================================================================
+  # drop_expired_tenant_context (#4610)
+  # ==========================================================================
+
+  describe '.drop_expired_tenant_context' do
+    let(:now)     { 1_800_000_000 }
+    let(:max_age) { described_class::PENDING_TENANT_CONTEXT_MAX_AGE }
+    let(:session) do
+      {
+        omniauth_tenant_domain_id: 'domain-id',
+        omniauth_tenant_host: 'secrets.tenant.example',
+        omniauth_tenant_started_at: now - 30,
+        'omniauth.state' => 'pending-state',
+        'saml_authn_request_id' => '_pending-request',
+        account_id: 42,
+      }
+    end
+
+    def drop
+      helpers.drop_expired_tenant_context(session, 'secrets.tenant.example', now: now)
+    end
+
+    it 'keeps a context inside the age bound' do
+      before = session.dup
+
+      expect(drop).to be false
+      expect(session).to eq(before)
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+    end
+
+    it 'keeps a context exactly at the age bound' do
+      session[:omniauth_tenant_started_at] = now - max_age
+
+      expect(drop).to be false
+      expect(session).to include(:omniauth_tenant_domain_id, 'saml_authn_request_id')
+    end
+
+    it 'drops the markers and the binding once the context is older than the bound' do
+      session[:omniauth_tenant_started_at] = now - max_age - 1
+
+      expect(drop).to be true
+      expect(session).to eq(account_id: 42)
+      expect(Auth::Logging).to have_received(:log_auth_event).with(
+        :omniauth_tenant_context_expired,
+        level: :info,
+        host: 'secrets.tenant.example',
+        age_seconds: max_age + 1,
+        pending_tenant_flow_dropped: true,
+      )
+    end
+
+    it 'drops markers that carry no start time' do
+      session.delete(:omniauth_tenant_started_at)
+
+      expect(drop).to be true
+      expect(session).to eq(account_id: 42)
+      expect(Auth::Logging).to have_received(:log_auth_event).with(
+        :omniauth_tenant_context_expired, hash_including(age_seconds: nil)
+      )
+    end
+
+    it 'drops markers whose start time is not an integer' do
+      session[:omniauth_tenant_started_at] = (now - 30).to_s
+
+      expect(drop).to be true
+      expect(session).to eq(account_id: 42)
+    end
+
+    # The callback can reach a server whose clock runs behind the one that
+    # started the flow.
+    it 'keeps a start time ahead of the clock by no more than the skew allowance' do
+      session[:omniauth_tenant_started_at] = now + described_class::PENDING_TENANT_CONTEXT_CLOCK_SKEW
+
+      expect(drop).to be false
+      expect(session).to include(:omniauth_tenant_domain_id, 'saml_authn_request_id')
+    end
+
+    it 'drops markers whose start time lies further in the future than the skew allowance' do
+      session[:omniauth_tenant_started_at] = now + described_class::PENDING_TENANT_CONTEXT_CLOCK_SKEW + 1
+
+      expect(drop).to be true
+      expect(session).to eq(account_id: 42)
+    end
+
+    it 'reads the string-keyed form the live session stores' do
+      session = {
+        'omniauth_tenant_domain_id' => 'domain-id',
+        'omniauth_tenant_started_at' => now - 30,
+      }
+
+      expect(helpers.drop_expired_tenant_context(session, 'secrets.tenant.example', now: now)).to be false
+    end
+
+    # No tenant flow pending: a platform flow's binding is not touched.
+    it 'leaves a session without tenant markers untouched' do
+      session = { 'omniauth.state' => 'pending-state', account_id: 42 }
+
+      expect(helpers.drop_expired_tenant_context(session, 'canonical.example', now: now)).to be false
+      expect(session).to eq('omniauth.state' => 'pending-state', account_id: 42)
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
     end
   end
 

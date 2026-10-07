@@ -44,9 +44,8 @@ RSpec.describe Onetime::Application::AuthStrategies::BasicAuthStrategy, type: :i
       # Stateless calls (no rack.session in env) return nil; see context below.
       include_examples 'a valid session contract'
 
-      it 'session contains no auth state (only org_context cache allowed)' do
-        non_cache_keys = result.session.keys.reject { |k| k.to_s.start_with?('org_context:') }
-        expect(non_cache_keys).to eq([])
+      it 'session contains no auth state and no organization state' do
+        expect(result.session.keys).to eq([])
       end
     end
 

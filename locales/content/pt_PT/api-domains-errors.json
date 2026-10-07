@@ -46,5 +46,17 @@
   "api.domains.errors.homepage_incoming_not_ready": {
     "text": "As mensagens confidenciais recebidas têm de estar ativadas com pelo menos um destinatário antes de poderem ser usadas como página inicial.",
     "source_hash": "556da6e2"
+  },
+  "api.domains.errors.related_origins_invalid": {
+    "text": "Não é uma origem válida: %{origins}. Introduz o esquema e o host, por exemplo https://vault.example.com",
+    "source_hash": "5acb92ca"
+  },
+  "api.domains.errors.related_origins_foreign_organization": {
+    "text": "Estas origens pertencem a outra organização e não podem ser adicionadas: %{origins}",
+    "source_hash": "ac21c1e7"
+  },
+  "api.domains.errors.allowed_signup_domains_invalid": {
+    "text": "Não é um domínio válido: %{domains}. Introduz um nome de domínio registável, por exemplo example.com",
+    "source_hash": "2d93472c"
   }
 }

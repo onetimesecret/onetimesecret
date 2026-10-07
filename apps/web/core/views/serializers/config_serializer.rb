@@ -101,10 +101,9 @@ module Core
         output['support_email']               = view_vars['support_email']
         output['docs_host']                   = view_vars['docs_host']
 
-        # Pass development config to frontend (includes domain_context_enabled)
+        # Pass development config to frontend
         output['development'] = {
           'enabled' => development['enabled'] || false,
-          'domain_context_enabled' => development['domain_context_enabled'] || false,
         }
 
         sentry                = diagnostics.fetch('sentry', {})

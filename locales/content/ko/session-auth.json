@@ -509,8 +509,8 @@
     "source_hash": "7fbbb7e7"
   },
   "web.login.errors.identity_connect_conflict": {
-    "text": "이 계정을 연결할 수 없습니다. 잘못된 도메인에서 연결을 시작했거나 세션이 만료되었을 수 있습니다. 다시 로그인한 다음 계정 설정에서 연결하세요.",
-    "source_hash": "4238bbf2"
+    "text": "이 ID를 연결할 수 없습니다. 이미 다른 계정에 속해 있을 수 있습니다.",
+    "source_hash": "d8b71cf8"
   },
   "web.login.errors.org_join_failed": {
     "text": "조직에 추가를 완료할 수 없습니다. 관리자에게 문의하세요.",
@@ -527,5 +527,25 @@
   "web.login.errors.sso_cancelled": {
     "text": "로그인이 취소되었습니다. 준비되면 언제든지 다시 시도하실 수 있습니다.",
     "source_hash": "b5f3d3ec"
+  },
+  "web.login.errors.sso_issuer_mismatch": {
+    "text": "이 공급자를 통한 로그인이 잘못 구성되어 있습니다. 관리자에게 문의하세요.",
+    "source_hash": "44df5918"
+  },
+  "web.login.errors.sso_config_unusable": {
+    "text": "이 도메인의 Single Sign-On이 구성되어 있지만 현재 사용할 수 없습니다. 조직 관리자에게 문의하세요.",
+    "source_hash": "f704b391"
+  },
+  "web.login.errors.sso_domain_unverified": {
+    "text": "도메인 확인이 아직 완료되지 않아 이 도메인의 Single Sign-On이 아직 활성화되지 않았습니다. 관리자에게 문의하세요.",
+    "source_hash": "bd981480"
+  },
+  "web.login.errors.tenant_sso_link_unavailable": {
+    "text": "이 ID는 이 도메인의 계정에 연결되어 있지 않습니다. 이 조직에 속한 계정으로 이 도메인에서 로그인할 수 있다면 연결된 계정에서 이 ID를 연결하세요. 그렇지 않으면 조직 소유자에게 이 SSO ID를 초대해 달라고 요청하거나 지원팀에 문의하세요.",
+    "source_hash": "66e7376c"
+  },
+  "web.login.errors.identity_connect_wrong_domain": {
+    "text": "이 도메인에서는 이 ID를 연결할 수 없습니다. 로그인한 사이트에서 연결을 시작하세요. 조직의 도메인에서는 계정이 이미 해당 조직에 속해 있어야 합니다.",
+    "source_hash": "d967c761"
   }
 }

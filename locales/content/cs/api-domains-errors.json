@@ -46,5 +46,17 @@
   "api.domains.errors.homepage_incoming_not_ready": {
     "text": "Příchozí tajemství musí být povolena alespoň s jedním příjemcem, než je lze použít jako domovskou stránku.",
     "source_hash": "556da6e2"
+  },
+  "api.domains.errors.related_origins_invalid": {
+    "text": "Neplatný origin: %{origins}. Zadej schéma a hostitele, například https://vault.example.com",
+    "source_hash": "5acb92ca"
+  },
+  "api.domains.errors.related_origins_foreign_organization": {
+    "text": "Tyto originy patří jiné organizaci a nelze je přidat: %{origins}",
+    "source_hash": "ac21c1e7"
+  },
+  "api.domains.errors.allowed_signup_domains_invalid": {
+    "text": "Neplatná doména: %{domains}. Zadej registrovatelný název domény, například example.com",
+    "source_hash": "2d93472c"
   }
 }

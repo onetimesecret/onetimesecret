@@ -134,5 +134,25 @@
   "api.organizations.members.errors.no_permission_to_remove": {
     "text": "Vous n'avez pas l'autorisation de retirer des membres",
     "source_hash": "b0ac7287"
+  },
+  "api.organizations.errors.delete_has_domains": {
+    "text": "Supprimez les domaines personnalisés de cette organisation avant de la supprimer : %{domains}",
+    "source_hash": "040a401e"
+  },
+  "api.organizations.errors.delete_drifted_domains_count": {
+    "text": "%{count} enregistrement(s) de domaine font toujours référence à cette organisation mais n'y figurent plus. Veuillez contacter l'assistance pour les supprimer avant de supprimer cette organisation.",
+    "source_hash": "f6e71a9a"
+  },
+  "api.organizations.errors.delete_is_default": {
+    "text": "Votre espace de travail par défaut ne peut pas être supprimé. Contactez l'assistance si vous avez besoin de le supprimer.",
+    "source_hash": "bc2eaed5"
+  },
+  "api.organizations.errors.delete_active_subscription": {
+    "text": "Annulez l'abonnement de cette organisation avant de la supprimer.",
+    "source_hash": "f0c54eca"
+  },
+  "api.organizations.errors.delete_last_org": {
+    "text": "Il s'agit de votre seule organisation. Créez-en une autre avant de supprimer celle-ci.",
+    "source_hash": "7608a1d6"
   }
 }

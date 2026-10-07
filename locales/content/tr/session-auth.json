@@ -509,8 +509,8 @@
     "source_hash": "7fbbb7e7"
   },
   "web.login.errors.identity_connect_conflict": {
-    "text": "Bu kimlik bağlanamadı. Bağlantı yanlış alan adında başlatılmış olabilir veya oturumunuzun süresi dolmuş olabilir. Lütfen tekrar oturum açın, ardından hesap ayarlarınızdan bağlayın.",
-    "source_hash": "4238bbf2"
+    "text": "Bu kimlik bağlanamadı. Zaten başka bir hesaba ait olabilir.",
+    "source_hash": "d8b71cf8"
   },
   "web.login.errors.org_join_failed": {
     "text": "Sizi organizasyonunuza eklemeyi tamamlayamadık. Lütfen yöneticinizle iletişime geçin.",
@@ -527,5 +527,25 @@
   "web.login.errors.sso_cancelled": {
     "text": "Giriş iptal edildi. Hazır olduğunuzda tekrar deneyebilirsiniz.",
     "source_hash": "b5f3d3ec"
+  },
+  "web.login.errors.sso_issuer_mismatch": {
+    "text": "Bu sağlayıcıyla oturum açma yanlış yapılandırılmış. Lütfen yöneticinizle iletişime geçin.",
+    "source_hash": "44df5918"
+  },
+  "web.login.errors.sso_config_unusable": {
+    "text": "Bu alan adı için tek oturum açma (SSO) yapılandırılmış ancak şu anda kullanılamıyor. Kuruluşunuzun yöneticisiyle iletişime geçin.",
+    "source_hash": "f704b391"
+  },
+  "web.login.errors.sso_domain_unverified": {
+    "text": "Alan adının doğrulaması tamamlanmadığı için bu alan adında tek oturum açma (SSO) henüz etkin değil. Lütfen yöneticinizle iletişime geçin.",
+    "source_hash": "bd981480"
+  },
+  "web.login.errors.tenant_sso_link_unavailable": {
+    "text": "Bu kimlik, bu alan adındaki bir hesaba bağlı değil. Bu alan adında bu kuruluşa ait bir hesapla oturum açabiliyorsanız kimliği Bağlı Kimlikler bölümünden bağlayın. Aksi takdirde bir kuruluş sahibinden bu SSO kimliğini davet etmesini isteyin veya destek ekibiyle iletişime geçin.",
+    "source_hash": "66e7376c"
+  },
+  "web.login.errors.identity_connect_wrong_domain": {
+    "text": "Bu kimlik bu alan adında bağlanamadı. Bağlama işlemini oturum açtığınız siteden başlatın; bir kuruluşun alan adında hesabınızın zaten o kuruluşa ait olması gerekir.",
+    "source_hash": "d967c761"
   }
 }

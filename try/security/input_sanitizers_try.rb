@@ -108,6 +108,27 @@ end
 @sanitizer.sanitize_plain_text('  Hello World  ')
 #=> 'Hello World'
 
+## sanitize_plain_text: stores a bare less-than as text, not as &lt;
+@sanitizer.sanitize_plain_text('Reset < 5 min')
+#=> 'Reset < 5 min'
+
+## sanitize_plain_text: stores a bare greater-than as text, not as &gt;
+@sanitizer.sanitize_plain_text('a > b')
+#=> 'a > b'
+
+## sanitize_plain_text: stores a non-breaking space as the character, not as &nbsp;
+@sanitizer.sanitize_plain_text("Bonjour\u00A0!")
+#=> "Bonjour\u00A0!"
+
+## sanitize_plain_text: a less-than directly followed by a letter still opens a tag and is stripped
+@sanitizer.sanitize_plain_text('x <y and a > b')
+#=> 'x b'
+
+## sanitize_plain_text: fails closed on encoding nested deeper than the pass limit
+nested = 12.times.reduce('<script>alert(1)</script>') { |text, _| CGI.escapeHTML(text) }
+@sanitizer.sanitize_plain_text(nested)
+#=> ''
+
 ## sanitize_plain_text: handles nil input
 @sanitizer.sanitize_plain_text(nil)
 #=> ''

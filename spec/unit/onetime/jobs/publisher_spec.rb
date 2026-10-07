@@ -63,7 +63,7 @@ RSpec.describe Onetime::Jobs::Publisher do
 
       publisher.publish('test.queue', { data: 'test' })
 
-      expect(mock_exchange).to have_received(:publish) do |payload, options|
+      expect(mock_exchange).to have_received(:publish) do |_payload, options|
         expect(options[:message_id]).to match(/^[0-9a-f-]{36}$/)
       end
     end
@@ -233,7 +233,7 @@ RSpec.describe Onetime::Jobs::Publisher do
 
         publisher.enqueue_email(:welcome, { email: 'test@example.com' }, fallback: :sync)
 
-        expect(Onetime::Mail).to have_received(:deliver).with(:welcome, { email: 'test@example.com' }, sender_config: nil)
+        expect(Onetime::Mail).to have_received(:deliver).with(:welcome, { email: 'test@example.com' }, locale: 'en', sender_config: nil)
       end
 
       # Regression for #3486: a :sync delivery failure (e.g. unreachable SMTP)
@@ -296,7 +296,7 @@ RSpec.describe Onetime::Jobs::Publisher do
         # Wait for thread to complete with timeout
         Timeout.timeout(5) { sleep 0.05 until delivered.true? }
 
-        expect(Onetime::Mail).to have_received(:deliver).with(:welcome, { email: 'test@example.com' }, sender_config: nil)
+        expect(Onetime::Mail).to have_received(:deliver).with(:welcome, { email: 'test@example.com' }, locale: 'en', sender_config: nil)
       end
     end
 
@@ -513,7 +513,7 @@ RSpec.describe Onetime::Jobs::Publisher do
 
           publisher.enqueue_email(:welcome, { email: 'test@example.com' }, fallback: :sync, domain_id: 'dom_fallback')
 
-          expect(Onetime::Mail).to have_received(:deliver).with(:welcome, { email: 'test@example.com' }, sender_config: mock_config)
+          expect(Onetime::Mail).to have_received(:deliver).with(:welcome, { email: 'test@example.com' }, locale: 'en', sender_config: mock_config)
         end
       end
 
@@ -523,7 +523,7 @@ RSpec.describe Onetime::Jobs::Publisher do
 
           publisher.enqueue_email(:welcome, { email: 'test@example.com' }, fallback: :sync)
 
-          expect(Onetime::Mail).to have_received(:deliver).with(:welcome, { email: 'test@example.com' }, sender_config: nil)
+          expect(Onetime::Mail).to have_received(:deliver).with(:welcome, { email: 'test@example.com' }, locale: 'en', sender_config: nil)
         end
       end
 
@@ -546,6 +546,215 @@ RSpec.describe Onetime::Jobs::Publisher do
           publisher.enqueue_email_raw(raw_email, fallback: :sync, domain_id: 'dom_rawfb')
 
           expect(Onetime::Mail).to have_received(:deliver_raw).with(raw_email, sender_config: mock_config)
+        end
+      end
+    end
+
+    # Every enqueue site puts the recipient's locale in the template data;
+    # templates read it from the `locale:` argument. The fallback path used to
+    # drop it, so with jobs disabled (the default install) every templated
+    # email rendered in English. It must lift the locale out exactly the way
+    # EmailWorker#deliver_templated_email does.
+    describe 'fallback delivery locale' do
+      before do
+        $rmq_channel_pool = nil
+        allow(Onetime::Mail).to receive(:deliver)
+      end
+
+      it 'renders the template in the locale carried by the payload' do
+        publisher.enqueue_email(:welcome, { email: 'test@example.com', locale: 'de' }, fallback: :sync)
+
+        expect(Onetime::Mail).to have_received(:deliver)
+          .with(:welcome, { email: 'test@example.com' }, locale: 'de', sender_config: nil)
+      end
+
+      it 'accepts a string locale key and strips surrounding whitespace' do
+        publisher.enqueue_email(:welcome, { email: 'test@example.com', 'locale' => ' fr ' }, fallback: :sync)
+
+        expect(Onetime::Mail).to have_received(:deliver)
+          .with(:welcome, { email: 'test@example.com' }, locale: 'fr', sender_config: nil)
+      end
+
+      it 'falls back to the configured default locale when the payload locale is blank' do
+        allow(OT).to receive(:default_locale).and_return('es')
+
+        publisher.enqueue_email(:welcome, { email: 'test@example.com', locale: '' }, fallback: :sync)
+
+        expect(Onetime::Mail).to have_received(:deliver)
+          .with(:welcome, { email: 'test@example.com' }, locale: 'es', sender_config: nil)
+      end
+
+      it 'leaves the caller-supplied data hash untouched' do
+        data = { email: 'test@example.com', locale: 'de' }
+
+        publisher.enqueue_email(:welcome, data, fallback: :sync)
+
+        expect(data).to eq(email: 'test@example.com', locale: 'de')
+      end
+    end
+  end
+
+  # Jobs disabled (no RabbitMQ pool): the sender-domain checks run inline and
+  # must reach the same conclusions the workers do.
+  describe 'inline sender-domain checks without RabbitMQ' do
+    subject(:publisher) { described_class.new }
+
+    let(:writes) { { saved: [] } }
+    let(:dns_results) { double('dns_check_results', :value= => nil) }
+    let(:written_fields) do
+      [:dns_verified, :dns_check_status, :dns_check_completed_at, :provider_check_status,
+       :provider_check_completed_at, :updated]
+    end
+    let(:mailer_config) do
+      cfg = double('MailerConfig', effective_provider: 'ses', dns_check_results: dns_results)
+      written_fields.each do |field|
+        allow(cfg).to receive(:"#{field}=") { |value| writes[field] = value }
+      end
+      allow(cfg).to receive(:save_fields) { |*fields| writes[:saved].concat(fields) }
+      cfg
+    end
+
+    before do
+      $rmq_channel_pool = nil
+      require 'onetime/models/custom_domain/mailer_config'
+      require 'onetime/mail/sender_strategies'
+      require 'onetime/operations/validate_sender_domain'
+      allow(Onetime::CustomDomain::MailerConfig).to receive(:find_by_domain_id).with('dom_inline').and_return(mailer_config)
+    end
+
+    describe '#enqueue_dns_record_check' do
+      let(:strategy) { double('SenderStrategy') }
+
+      before do
+        allow(Onetime::Mail::SenderStrategies).to receive(:for_provider).with('ses').and_return(strategy)
+      end
+
+      # [].all? is true. An unprovisioned domain (no records yet) used to be
+      # marked dns_verified here while DnsRecordCheckWorker said the opposite.
+      it 'does not mark an empty record set as verified' do
+        allow(strategy).to receive(:check_dns_records).and_return({ records: [] })
+
+        publisher.enqueue_dns_record_check('dom_inline')
+
+        expect(writes[:dns_verified]).to be(false)
+        expect(writes[:dns_check_status]).to eq('completed')
+        expect(writes[:saved]).to include(:dns_verified, :dns_check_status)
+      end
+
+      it 'marks verified only when every checked record matched' do
+        allow(strategy).to receive(:check_dns_records).and_return(
+          { records: [{ 'value_matches' => true }, { 'value_matches' => true }] },
+        )
+
+        publisher.enqueue_dns_record_check('dom_inline')
+
+        expect(writes[:dns_verified]).to be(true)
+      end
+
+      it 'marks unverified when any record did not match' do
+        allow(strategy).to receive(:check_dns_records).and_return(
+          { records: [{ 'value_matches' => true }, { 'value_matches' => false }] },
+        )
+
+        publisher.enqueue_dns_record_check('dom_inline')
+
+        expect(writes[:dns_verified]).to be(false)
+      end
+    end
+
+    describe '#enqueue_domain_validation' do
+      let(:dns_result) { double('Result', error: nil, all_verified: true) }
+      let(:operation) { double('ValidateSenderDomain', call: dns_result) }
+      let(:provider_check) { double('CheckProviderVerification', call: nil) }
+      let(:jobs_completed) { true }
+
+      before do
+        require 'onetime/operations/check_provider_verification'
+        allow(Onetime::Operations::ValidateSenderDomain).to receive(:new).and_return(operation)
+        allow(Onetime::Operations::CheckProviderVerification).to receive(:new).and_return(provider_check)
+        allow(mailer_config).to receive(:last_error=) { |value| writes[:last_error] = value }
+        allow(mailer_config).to receive(:refresh!)
+        allow(mailer_config).to receive(:jobs_completed?).and_return(jobs_completed)
+        allow(mailer_config).to receive(:update_verification_status!).and_return('verified')
+      end
+
+      # The worker passes persist: false so verification_status is derived from
+      # BOTH outcomes by update_verification_status!, never written from DNS
+      # alone ahead of the provider check. The fallback must not differ.
+      it 'validates DNS without persisting a DNS-only verification_status' do
+        publisher.enqueue_domain_validation('dom_inline', bypass_cache: true)
+
+        expect(Onetime::Operations::ValidateSenderDomain).to have_received(:new)
+          .with(mailer_config: mailer_config, persist: false, bypass_cache: true)
+      end
+
+      # ValidateSenderConfig sets provider_check_status = queued; no worker
+      # runs on a jobs-disabled install. The same provider check the worker
+      # runs closes it here, instead of a bare "completed" with
+      # provider_verified left unknown.
+      it 'runs the same provider check the worker runs, fed the DNS outcome' do
+        publisher.enqueue_domain_validation('dom_inline')
+
+        expect(Onetime::Operations::CheckProviderVerification).to have_received(:new)
+          .with(mailer_config: mailer_config, dns_all_verified: true, domain_id: 'dom_inline', logger: anything)
+        expect(provider_check).to have_received(:call)
+      end
+
+      it 'derives the user-facing status from both outcomes once both checks are terminal' do
+        publisher.enqueue_domain_validation('dom_inline')
+
+        expect(mailer_config).to have_received(:refresh!).ordered
+        expect(mailer_config).to have_received(:update_verification_status!).ordered
+      end
+
+      # Nothing will ever complete a DNS record check this call did not run on
+      # a jobs-disabled install, so a bare call settles the status from its
+      # own two answers instead of leaving 'pending' for good.
+      context 'when no DNS record check ran alongside' do
+        let(:jobs_completed) { false }
+        let(:provider_verified) { 'true' }
+
+        before do
+          allow(mailer_config).to receive(:provider_verified).and_return(provider_verified)
+          allow(mailer_config).to receive(:parse_boolean_field) do |value|
+            { 'true' => true, 'false' => false }[value]
+          end
+          allow(mailer_config).to receive(:verification_status=) { |value| writes[:verification_status] = value }
+          allow(mailer_config).to receive(:verified_at=) { |value| writes[:verified_at] = value }
+          allow(mailer_config).to receive(:verification_status) { writes[:verification_status] }
+        end
+
+        it 'marks verified when DNS validated and the provider agreed (or could not say)' do
+          publisher.enqueue_domain_validation('dom_inline')
+
+          expect(mailer_config).not_to have_received(:update_verification_status!)
+          expect(writes[:verification_status]).to eq('verified')
+          expect(writes[:verified_at]).to match(/\A\d+\z/)
+          expect(writes[:saved]).to include(:verification_status, :verified_at)
+        end
+
+        context 'when the provider answered an authoritative no' do
+          let(:provider_verified) { 'false' }
+
+          it 'marks failed even though DNS validated' do
+            publisher.enqueue_domain_validation('dom_inline')
+
+            expect(writes[:verification_status]).to eq('failed')
+            expect(writes[:verified_at]).to be_nil
+          end
+        end
+      end
+
+      context 'when DNS validation itself errored' do
+        let(:dns_result) { double('Result', error: 'DNS lookup timed out', all_verified: false) }
+
+        it 'fails the provider check instead of leaving it queued, and skips the provider API' do
+          publisher.enqueue_domain_validation('dom_inline')
+
+          expect(writes[:provider_check_status]).to eq('failed')
+          expect(writes[:last_error]).to eq('DNS lookup timed out')
+          expect(writes[:saved]).to include(:provider_check_status, :last_error)
+          expect(Onetime::Operations::CheckProviderVerification).not_to have_received(:new)
         end
       end
     end
@@ -997,38 +1206,45 @@ RSpec.describe Onetime::Jobs::Publisher do
         instance_double(
           Onetime::CustomDomain::MailerConfig,
           domain_id: 'dom_sync',
+          # The inline path runs the provider check and derives the final
+          # status afterwards, as the worker does.
+          refresh!: true,
+          jobs_completed?: true,
+          update_verification_status!: 'verified',
         )
       end
+      let(:dns_result) { double('Result', error: nil, all_verified: true) }
 
       before do
         $rmq_channel_pool = nil
+        require 'onetime/operations/check_provider_verification'
         allow(Onetime::CustomDomain::MailerConfig).to receive(:find_by_domain_id).and_return(mock_config)
+        allow(Onetime::Operations::CheckProviderVerification).to receive(:new)
+          .and_return(double('CheckProviderVerification', call: nil))
       end
 
       it 'passes bypass_cache: true to ValidateSenderDomain operation' do
-        mock_operation = instance_double(Onetime::Operations::ValidateSenderDomain)
-        allow(mock_operation).to receive(:call)
+        mock_operation = instance_double(Onetime::Operations::ValidateSenderDomain, call: dns_result)
         allow(Onetime::Operations::ValidateSenderDomain).to receive(:new).and_return(mock_operation)
 
         publisher.enqueue_domain_validation('dom_sync', bypass_cache: true)
 
         expect(Onetime::Operations::ValidateSenderDomain).to have_received(:new).with(
           mailer_config: mock_config,
-          persist: true,
+          persist: false,
           bypass_cache: true,
         )
       end
 
       it 'passes bypass_cache: false when not provided' do
-        mock_operation = instance_double(Onetime::Operations::ValidateSenderDomain)
-        allow(mock_operation).to receive(:call)
+        mock_operation = instance_double(Onetime::Operations::ValidateSenderDomain, call: dns_result)
         allow(Onetime::Operations::ValidateSenderDomain).to receive(:new).and_return(mock_operation)
 
         publisher.enqueue_domain_validation('dom_sync')
 
         expect(Onetime::Operations::ValidateSenderDomain).to have_received(:new).with(
           mailer_config: mock_config,
-          persist: true,
+          persist: false,
           bypass_cache: false,
         )
       end

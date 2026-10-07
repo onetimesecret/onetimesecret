@@ -90,12 +90,12 @@ module Billing
       # @param delivery_info [Bunny::DeliveryInfo] AMQP delivery info
       # @param metadata [Bunny::MessageProperties] AMQP message properties
       def work_with_params(msg, delivery_info, metadata)
-        store_envelope(delivery_info, metadata)
+        envelope = Onetime::Jobs::Workers::Envelope.new(delivery_info, metadata)
 
         data = nil
-        with_trace_context do
-          data = parse_message(msg)
-          return unless data # parse_message handles reject on error
+        with_trace_context(envelope) do
+          data = decode_message(msg, envelope)
+          return reject! unless data # not a JSON object or unknown schema (logged): send to DLQ
 
           # Handle ping test messages (from: bin/ots queue ping)
           if data[:event_type] == 'ping.test'
@@ -104,12 +104,12 @@ module Billing
           end
 
           # Atomic idempotency claim: only one worker can claim a message
-          unless claim_for_processing(message_id)
-            log_info "Skipping duplicate message: #{message_id}"
+          unless claim_for_processing(envelope.message_id)
+            log_info "Skipping duplicate message: #{envelope.message_id}"
             return ack!
           end
 
-          log_debug "Processing billing event: #{data[:event_type]} (metadata: #{message_metadata})"
+          log_debug "Processing billing event: #{data[:event_type]} (metadata: #{envelope.summary})"
 
           # Reconstruct Stripe event from raw payload
           event = reconstruct_stripe_event(data)
@@ -118,7 +118,7 @@ module Billing
           # Delegate to operation with retry logic
           result = nil
           with_retry(max_retries: 3, base_delay: 2.0) do
-            result = process_event(event, data)
+            result = process_event(event, data, envelope.message_id)
           end
 
           # Handle circuit retry scheduling - don't mark as success if queued for retry
@@ -168,7 +168,8 @@ module Billing
       # Process the Stripe event via the billing operation
       # @param event [Stripe::Event] The Stripe event
       # @param data [Hash] Original message data (for context)
-      def process_event(event, data)
+      # @param message_id [String, nil] AMQP message id of the message carrying the event
+      def process_event(event, data, message_id)
         # Lookup the webhook event record for circuit retry scheduling
         webhook_event = Billing::StripeWebhookEvent.find_by_identifier(event.id)
 

@@ -778,5 +778,37 @@
   "web.colonel.organizations.filters.searchPlaceholder": {
     "text": "ID、名称、またはメールアドレスで検索",
     "source_hash": "6fe16473"
+  },
+  "web.colonel.organizations.capped": {
+    "text": "結果には上限があります: 表示されている件数は最小値であり、合計ではありません。フィルターの対象は、サブスクリプションに紐付いたすべての組織と、最近更新された組織です。それ以外の組織を表示するには、正確なIDまたはメールアドレスで検索してください。",
+    "source_hash": "0743238d"
+  },
+  "web.impersonation.banner.label": {
+    "text": "なりすまし中",
+    "source_hash": "d96f0e8d"
+  },
+  "web.impersonation.banner.viewingAs": {
+    "text": "{email} として表示中",
+    "source_hash": "cf2dd9c6"
+  },
+  "web.impersonation.banner.readOnly": {
+    "text": "読み取り専用: なりすまし中は変更できません。",
+    "source_hash": "46ed3b68"
+  },
+  "web.impersonation.banner.expiresIn": {
+    "text": "{time}後に終了",
+    "source_hash": "b4999fd8"
+  },
+  "web.impersonation.banner.stop": {
+    "text": "なりすましを終了",
+    "source_hash": "5cf74e38"
+  },
+  "web.impersonation.banner.stopping": {
+    "text": "終了しています…",
+    "source_hash": "bbe85741"
+  },
+  "web.impersonation.banner.stopFailed": {
+    "text": "なりすましを終了できませんでした。もう一度お試しください。",
+    "source_hash": "5aa72353"
   }
 }

@@ -1630,5 +1630,37 @@
   "web.domains.sso.status_unavailable_hint": {
     "text": "SSO teď na této doméně nelze nabídnout. Zkontroluj přihlašovací údaje SSO a nastavení přihlašování této domény.",
     "source_hash": "b03b14f4"
+  },
+  "web.domains.status_tooltip_pending_ssl": {
+    "text": "Doména ověřena — čeká se na její certifikát",
+    "source_hash": "541bd705"
+  },
+  "web.domains.2_create_the_alias_record": {
+    "text": "2. Vytvoř ALIAS nebo ANAME záznam",
+    "source_hash": "17b04e6a"
+  },
+  "web.domains.sso.status_saml_disabled_badge": {
+    "text": "SAML vypnuto",
+    "source_hash": "4e2eab51"
+  },
+  "web.domains.sso.status_saml_disabled_hint": {
+    "text": "Provozovatel webu vypnul SAML pro tuto instalaci. Tvoje konfigurace zůstane zachována a obnoví se, jakmile bude SAML znovu zapnuto; do té doby tato doména nenabízí přihlášení přes SAML.",
+    "source_hash": "5ba9624c"
+  },
+  "web.domains.sso.status_domain_unverified_badge": {
+    "text": "Čeká na ověření domény",
+    "source_hash": "ea7459c2"
+  },
+  "web.domains.sso.status_domain_unverified_hint": {
+    "text": "Ověření této domény ještě nebylo dokončeno, takže její připojení SSO zatím není na přihlašovací stránce aktivní. SSO se zapne, jakmile bude doména ověřena a SSO pro ni bude zde povoleno.",
+    "source_hash": "57ee0066"
+  },
+  "web.domains.verify_outcome.indeterminate": {
+    "text": "Kontrolu DNS se nám teď nepodařilo dokončit. Neznamená to, že jsou tvoje záznamy nesprávné. Zkus to prosím znovu za pár minut.",
+    "source_hash": "4e76a9ef"
+  },
+  "web.domains.verify_outcome.record_not_found": {
+    "text": "Očekávaný TXT záznam jsme nenašli. Zkontroluj, že existuje a že jeho hodnota přesně odpovídá. Zobrazení nových DNS záznamů může trvat několik minut.",
+    "source_hash": "6c847d46"
   }
 }

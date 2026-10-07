@@ -36,7 +36,7 @@
       "completed_at": "2026-09-25T12:03:00Z",
       "steps": [
         {
-          "name": "Run TypeScript tests with coverage",
+          "name": "Run TypeScript tests",
           "conclusion": "failure",
           "started_at": "2026-09-25T12:01:10Z",
           "completed_at": "2026-09-25T12:01:20Z"

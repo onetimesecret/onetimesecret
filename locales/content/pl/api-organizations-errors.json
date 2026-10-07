@@ -134,5 +134,25 @@
   "api.organizations.members.errors.no_permission_to_remove": {
     "text": "Nie masz uprawnień do usuwania członków",
     "source_hash": "b0ac7287"
+  },
+  "api.organizations.errors.delete_has_domains": {
+    "text": "Przed usunięciem tej organizacji usuń jej domeny niestandardowe: %{domains}",
+    "source_hash": "040a401e"
+  },
+  "api.organizations.errors.delete_drifted_domains_count": {
+    "text": "Niektóre rekordy domen nadal odwołują się do tej organizacji, ale nie są już w niej wymienione (liczba: %{count}). Skontaktuj się z pomocą techniczną, aby je usunąć przed usunięciem tej organizacji.",
+    "source_hash": "f6e71a9a"
+  },
+  "api.organizations.errors.delete_is_default": {
+    "text": "Nie można usunąć Twojego domyślnego obszaru roboczego. Skontaktuj się z pomocą techniczną, jeśli chcesz go usunąć.",
+    "source_hash": "bc2eaed5"
+  },
+  "api.organizations.errors.delete_active_subscription": {
+    "text": "Przed usunięciem tej organizacji anuluj jej subskrypcję.",
+    "source_hash": "f0c54eca"
+  },
+  "api.organizations.errors.delete_last_org": {
+    "text": "To Twoja jedyna organizacja. Utwórz inną, zanim usuniesz tę.",
+    "source_hash": "7608a1d6"
   }
 }

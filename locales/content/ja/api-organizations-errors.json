@@ -134,5 +134,25 @@
   "api.organizations.members.errors.no_permission_to_remove": {
     "text": "メンバーを削除する権限がありません",
     "source_hash": "b0ac7287"
+  },
+  "api.organizations.errors.delete_has_domains": {
+    "text": "この組織を削除する前に、組織のカスタムドメインを削除してください: %{domains}",
+    "source_hash": "040a401e"
+  },
+  "api.organizations.errors.delete_drifted_domains_count": {
+    "text": "%{count}件のドメインレコードがまだこの組織を参照していますが、組織の一覧には含まれていません。この組織を削除する前に、サポートに連絡してこれらを削除してください。",
+    "source_hash": "f6e71a9a"
+  },
+  "api.organizations.errors.delete_is_default": {
+    "text": "既定のワークスペースは削除できません。削除が必要な場合は、サポートにお問い合わせください。",
+    "source_hash": "bc2eaed5"
+  },
+  "api.organizations.errors.delete_active_subscription": {
+    "text": "この組織を削除する前に、組織のサブスクリプションをキャンセルしてください。",
+    "source_hash": "f0c54eca"
+  },
+  "api.organizations.errors.delete_last_org": {
+    "text": "これはお客様の唯一の組織です。この組織を削除する前に、別の組織を作成してください。",
+    "source_hash": "7608a1d6"
   }
 }

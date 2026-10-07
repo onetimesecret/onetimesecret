@@ -47,11 +47,11 @@ module Onetime
         # @param delivery_info [Bunny::DeliveryInfo] AMQP delivery info
         # @param metadata [Bunny::MessageProperties] AMQP message properties
         def work_with_params(msg, delivery_info, metadata)
-          store_envelope(delivery_info, metadata)
+          envelope = Envelope.new(delivery_info, metadata)
 
-          with_trace_context do
-            data = parse_message(msg)
-            return unless data # parse_message handles reject on error
+          with_trace_context(envelope) do
+            data = decode_message(msg, envelope)
+            return reject! unless data # not a JSON object or unknown schema (logged): send to DLQ
 
             # Handle ping test messages (from: bin/ots queue ping)
             if data[:type] == 'ping.test'
@@ -60,18 +60,18 @@ module Onetime
             end
 
             # Atomic idempotency claim: only one worker can claim a message
-            unless claim_for_processing(message_id)
-              log_info "Skipping duplicate message: #{message_id}"
+            unless claim_for_processing(envelope.message_id)
+              log_info "Skipping duplicate message: #{envelope.message_id}"
               return ack!
             end
 
-            log_debug "Processing notification: #{data[:type]} (metadata: #{message_metadata})"
+            log_debug "Processing notification: #{data[:type]} (metadata: #{envelope.summary})"
 
             # Delegate to operation with retry logic
             with_retry(max_retries: 2, base_delay: 1.0) do
               operation = Onetime::Operations::DispatchNotification.new(
                 data: data,
-                context: { source_message_id: message_id },
+                context: { source_message_id: envelope.message_id },
               )
               operation.call
             end

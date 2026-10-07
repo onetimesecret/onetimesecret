@@ -1630,5 +1630,37 @@
   "web.domains.sso.status_unavailable_hint": {
     "text": "לא ניתן להציע SSO בדומיין זה כרגע. בדוק את פרטי הכניסה של SSO ואת הגדרות הכניסה של דומיין זה.",
     "source_hash": "b03b14f4"
+  },
+  "web.domains.status_tooltip_pending_ssl": {
+    "text": "הדומיין אומת — ממתין לתעודה שלו",
+    "source_hash": "541bd705"
+  },
+  "web.domains.2_create_the_alias_record": {
+    "text": "2. צור רשומת ALIAS או ANAME",
+    "source_hash": "17b04e6a"
+  },
+  "web.domains.sso.status_saml_disabled_badge": {
+    "text": "SAML כבוי",
+    "source_hash": "4e2eab51"
+  },
+  "web.domains.sso.status_saml_disabled_hint": {
+    "text": "מפעיל האתר כיבה את SAML בהתקנה זו. התצורה שלך נשמרת ותחזור לפעול כאשר SAML יופעל מחדש; עד אז דומיין זה אינו מציע כניסה באמצעות SAML.",
+    "source_hash": "5ba9624c"
+  },
+  "web.domains.sso.status_domain_unverified_badge": {
+    "text": "ממתין לאימות הדומיין",
+    "source_hash": "ea7459c2"
+  },
+  "web.domains.sso.status_domain_unverified_hint": {
+    "text": "אימות דומיין זה טרם הושלם, ולכן חיבור ה-SSO שלו עדיין אינו פעיל בדף הכניסה שלו. SSO יופעל לאחר שהדומיין יאומת ו-SSO יותר עבורו כאן.",
+    "source_hash": "57ee0066"
+  },
+  "web.domains.verify_outcome.indeterminate": {
+    "text": "לא הצלחנו להשלים את בדיקת ה-DNS כרגע. אין פירוש הדבר שהרשומות שלך שגויות. נסה שוב בעוד מספר דקות.",
+    "source_hash": "4e76a9ef"
+  },
+  "web.domains.verify_outcome.record_not_found": {
+    "text": "לא מצאנו את רשומת ה-TXT הצפויה. ודא שהיא קיימת ושהערך שלה תואם בדיוק. רשומות DNS חדשות עשויות להופיע רק לאחר מספר דקות.",
+    "source_hash": "6c847d46"
   }
 }

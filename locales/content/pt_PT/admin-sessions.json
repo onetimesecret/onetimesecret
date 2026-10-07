@@ -176,8 +176,8 @@
     "source_hash": "0c6605c1"
   },
   "web.admin.sessions.revoke.confirmDescription": {
-    "text": "Isto termina imediatamente a sessão do utilizador ao eliminar a sessão {id}. Escreve o ID da sessão para confirmar.",
-    "source_hash": "9e08b1b8"
+    "text": "Isto termina imediatamente a sessão do utilizador ao revogar a sessão {id}. Escreve {token} para confirmar.",
+    "source_hash": "80578692"
   },
   "web.admin.sessions.revoke.success": {
     "text": "Sessão revogada",
@@ -188,12 +188,12 @@
     "source_hash": "34cb67a4"
   },
   "web.admin.sessions.scan.capped": {
-    "text": "Análise limitada às primeiras {scanned} chaves — as sessões autenticadas além desta janela não são listadas. Inspeciona uma sessão específica pelo ID para lá chegares.",
-    "source_hash": "fa418b4e"
+    "text": "Análise limitada às primeiras {scanned} chaves — as sessões autenticadas além desta janela não são listadas. Restringe a pesquisa para lá chegares.",
+    "source_hash": "7a8d6fd5"
   },
   "web.admin.sessions.search.placeholder": {
-    "text": "Pesquisar por e-mail ou ID externo",
-    "source_hash": "f2dc5c06"
+    "text": "Pesquisar por e-mail, ID externo ou identificador da sessão",
+    "source_hash": "4894dec4"
   },
   "web.admin.sessions.sections.session": {
     "text": "Sessão",
@@ -210,5 +210,45 @@
   "web.admin.sessions.status.anonymous": {
     "text": "Anónimo",
     "source_hash": "e7a8aa2d"
+  },
+  "web.admin.sessions.authority.title": {
+    "text": "Não é a autoridade de sessões no modo de autenticação completo",
+    "source_hash": "796fb07f"
+  },
+  "web.admin.sessions.authority.description": {
+    "text": "Esta lista é o armazenamento de sessões do Redis. Com o modo de autenticação definido como completo, o estado autoritativo das sessões está na base de dados de contas do Rodauth, que esta consola não lê. As contas com sessão iniciada através do Rodauth podem não aparecer aqui, e revogar uma sessão aqui não termina uma sessão do Rodauth.",
+    "source_hash": "77bc4904"
+  },
+  "web.admin.sessions.authority.descriptionRevokeAll": {
+    "text": "Esta lista é o armazenamento de sessões do Redis. Com o modo de autenticação definido como completo, o estado autoritativo das sessões está na base de dados de contas do Rodauth, que esta consola não lê. As contas com sessão iniciada através do Rodauth podem não aparecer aqui, e revogar uma única sessão aqui não termina a respetiva sessão do Rodauth. Revogar todas também termina as sessões do Rodauth da conta.",
+    "source_hash": "f964663d"
+  },
+  "web.admin.sessions.authority.openAdmin": {
+    "text": "Abrir o Rodauth Admin",
+    "source_hash": "ce523836"
+  },
+  "web.admin.sessions.authority.notConfigured": {
+    "text": "Define RODAUTH_ADMIN_URL para ligar ao Rodauth Admin a partir daqui.",
+    "source_hash": "c070dbfb"
+  },
+  "web.admin.sessions.columns.sessionHandle": {
+    "text": "Identificador da sessão",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.errors.scanCapped": {
+    "text": "Esta sessão não foi encontrada no espaço de chaves amostrado. Abre-a a partir da respetiva linha na lista para que o proprietário possa ser usado para a procurar.",
+    "source_hash": "67b73f7f"
+  },
+  "web.admin.sessions.fields.sessionHandle": {
+    "text": "Identificador da sessão",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.revoke.ownSession": {
+    "text": "Esta é a tua própria sessão. Revogá-la terminaria a tua sessão — usa antes a opção Terminar sessão.",
+    "source_hash": "a6762292"
+  },
+  "web.admin.sessions.rodauthAdmin.open": {
+    "text": "Abrir no Rodauth Admin",
+    "source_hash": "467173c8"
   }
 }

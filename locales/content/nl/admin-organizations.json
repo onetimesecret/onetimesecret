@@ -638,5 +638,121 @@
   "web.admin.organizations.entitlements.summary.planUnknown": {
     "text": "Onbekend — kon niet vergelijken",
     "source_hash": "b607e540"
+  },
+  "web.admin.organizations.actions.plan.label": {
+    "text": "Plan",
+    "source_hash": "fa8ed0bd"
+  },
+  "web.admin.organizations.actions.plan.apply": {
+    "text": "Toepassen",
+    "source_hash": "31e392d1"
+  },
+  "web.admin.organizations.actions.plan.confirmTitle": {
+    "text": "Plan wijzigen?",
+    "source_hash": "910a4de9"
+  },
+  "web.admin.organizations.actions.plan.confirmDescription": {
+    "text": "Zet {org} over naar het plan {plan}.",
+    "source_hash": "aecf8277"
+  },
+  "web.admin.organizations.actions.plan.success": {
+    "text": "Plan bijgewerkt.",
+    "source_hash": "ebe8d40c"
+  },
+  "web.admin.organizations.actions.plan.problem": {
+    "text": "Plan opgeslagen, maar de rechten zijn niet bijgewerkt. Voer Verzoenen uit op deze organisatie.",
+    "source_hash": "2addb095"
+  },
+  "web.admin.organizations.actions.plan.localConfigWarning": {
+    "text": "Plannen geladen uit lokale configuratie — Stripe is niet geconfigureerd of onbereikbaar.",
+    "source_hash": "df83e326"
+  },
+  "web.admin.organizations.detail.delete.button": {
+    "text": "Organisatie verwijderen",
+    "source_hash": "a70d189a"
+  },
+  "web.admin.organizations.detail.delete.previewing": {
+    "text": "Verwijderingsplan wordt geladen…",
+    "source_hash": "c9773eb9"
+  },
+  "web.admin.organizations.detail.delete.warning": {
+    "text": "Verwijdert de organisatie, de lidmaatschappen en de uitnodigingen in behandeling permanent, en stuurt de voormalige leden een e-mail. Dit kan niet ongedaan worden gemaakt.",
+    "source_hash": "fd314131"
+  },
+  "web.admin.organizations.detail.delete.confirmTitle": {
+    "text": "Deze organisatie verwijderen?",
+    "source_hash": "6a3bba0f"
+  },
+  "web.admin.organizations.detail.delete.confirmDescription": {
+    "text": "Hiermee wordt {org} permanent verwijderd. Typ de organisatie-id opnieuw ter bevestiging.",
+    "source_hash": "c63a0221"
+  },
+  "web.admin.organizations.detail.delete.membersLabel": {
+    "text": "Leden",
+    "source_hash": "1044a4c0"
+  },
+  "web.admin.organizations.detail.delete.invitationsLabel": {
+    "text": "Uitnodigingen in behandeling",
+    "source_hash": "76198e63"
+  },
+  "web.admin.organizations.detail.delete.domainsLabel": {
+    "text": "Domeinen",
+    "source_hash": "ced67718"
+  },
+  "web.admin.organizations.detail.delete.defaultOrgLabel": {
+    "text": "Wist de standaardwerkruimte voor",
+    "source_hash": "d535ac2a"
+  },
+  "web.admin.organizations.detail.delete.forceDefault": {
+    "text": "Dit is de standaardwerkruimte (persoonlijke werkruimte) van de eigenaar. Toch verwijderen.",
+    "source_hash": "1a8b0f7d"
+  },
+  "web.admin.organizations.detail.delete.forceSubscription": {
+    "text": "Het abonnement is actief. Toch verwijderen — hiermee wordt de facturatie in Stripe niet geannuleerd.",
+    "source_hash": "51cb3456"
+  },
+  "web.admin.organizations.detail.delete.driftedDomainsLabel": {
+    "text": "Afwijkende domeinen",
+    "source_hash": "fef96f49"
+  },
+  "web.admin.organizations.detail.delete.driftedDomainsRepair": {
+    "text": "Herstellen met: bin/ots domains doctor --all --repair",
+    "source_hash": "14c9c59f"
+  },
+  "web.admin.organizations.detail.delete.success": {
+    "text": "{org} verwijderd.",
+    "source_hash": "9cdda5d0"
+  },
+  "web.admin.organizations.detail.delete.blocked.hasDomains": {
+    "text": "Geblokkeerd: verwijder eerst de aangepaste domeinen ({domains}).",
+    "source_hash": "dc3248b2"
+  },
+  "web.admin.organizations.detail.delete.blocked.driftedDomains": {
+    "text": "Geblokkeerd: deze domeinrecords verwijzen nog naar deze organisatie, maar ontbreken in de domeinlijst ervan ({domains}). Voer eerst bin/ots domains doctor --all --repair uit — er is geen override.",
+    "source_hash": "3136496c"
+  },
+  "web.admin.organizations.detail.delete.blocked.isDefault": {
+    "text": "Geblokkeerd: dit is de standaardwerkruimte van de eigenaar. Vink de override hieronder aan om deze toch te verwijderen.",
+    "source_hash": "09d5baa4"
+  },
+  "web.admin.organizations.detail.delete.blocked.activeSubscription": {
+    "text": "Geblokkeerd: de organisatie heeft een actief abonnement. Annuleer het eerst in Stripe, of vink de override hieronder aan.",
+    "source_hash": "68663641"
+  },
+  "web.admin.organizations.detail.delete.blocked.lastOrg": {
+    "text": "Geblokkeerd: dit is de enige organisatie waartoe {owner} behoort, en na verwijdering zou diegene geen werkruimte meer hebben. Er is geen override — maak eerst een vervangende organisatie aan.",
+    "source_hash": "f09b4f9a"
+  },
+  "web.admin.organizations.detail.delete.errors.planUnreadable": {
+    "text": "Het verwijderingsplan kon niet van de server worden gelezen. Er is niets verwijderd.",
+    "source_hash": "91406cbb"
+  },
+  "web.admin.organizations.detail.delete.errors.unverified": {
+    "text": "Het antwoord van de server kon niet worden geverifieerd. Laad de organisatielijst opnieuw om te controleren of de verwijdering is voltooid.",
+    "source_hash": "7a261fb0"
+  },
+  "web.admin.organizations.detail.delete.errors.notApplied": {
+    "text": "De server gaf een voorbeeld terug, geen verwijdering. Er is niets verwijderd.",
+    "source_hash": "9d84971d"
   }
 }

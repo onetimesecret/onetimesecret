@@ -11,8 +11,9 @@ module Onetime
       # verb (epic #42 / D3). The `bin/ots queue dlq show <queue> --id/--index` CLI
       # is a thin adapter over it.
       #
-      # READ-ONLY: {Store.find_message} nack-requeues every inspected message, so
-      # the queue is left untouched. No {Onetime::ColonelAuditEvent} (CONTRACT 4).
+      # READ-ONLY: {Store.find_message} holds every inspected message until the
+      # scan ends, then nack-requeues them all, so nothing is consumed. Requeue
+      # may change order. No {Onetime::ColonelAuditEvent} (CONTRACT 4).
       #
       # Stateless, single `#call`, returns an immutable {Result}. `empty` is true
       # when the queue holds no messages (distinct from "found nothing matching"),

@@ -126,12 +126,9 @@ module DomainsAPI
 
         return value unless boolean_fields.include?(field)
 
-        case value
-        when true, 'true', '1', 1
-          true
-        else
-          false
-        end
+        # Same token table as the write path's parse_boolean (the domain-config
+        # logic classes), so the audit log records what was stored.
+        OT::Utils.explicit_yes?(value)
       end
 
       # Check if values are equal, handling nil and type coercion.

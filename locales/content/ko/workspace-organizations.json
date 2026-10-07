@@ -1226,5 +1226,129 @@
   "web.organizations.sso.enable_untested_warning": {
     "text": "이 연결은 아직 여기서 테스트를 통과하지 않았습니다. 잘못된 설정이 로그인 페이지에 노출되지 않도록, 켜기 전에 연결 테스트를 실행하세요.",
     "source_hash": "c1fbdeca"
+  },
+  "web.organizations.delete_organization_cancel_subscription_first": {
+    "text": "이 조직을 삭제하기 전에 조직의 구독을 취소하세요.",
+    "source_hash": "f0c54eca"
+  },
+  "web.organizations.sso.disable_action": {
+    "text": "SSO 비활성화",
+    "source_hash": "2f072272"
+  },
+  "web.organizations.sso.disable_confirm": {
+    "text": "이 SSO 연결을 비활성화하시겠습니까? 저장하지 않은 양식 편집 내용은 저장되지 않습니다. 저장된 자격 증명은 유지됩니다.",
+    "source_hash": "608b142a"
+  },
+  "web.organizations.sso.disable_enforcement_warning": {
+    "text": "SSO 전용 적용도 해제되어 구성된 다른 로그인 방법이 허용됩니다.",
+    "source_hash": "58abd552"
+  },
+  "web.organizations.sso.idp_sso_service_url": {
+    "text": "IdP SSO 서비스 URL",
+    "source_hash": "0b33b1ac"
+  },
+  "web.organizations.sso.idp_sso_service_url_hint": {
+    "text": "ID 공급자가 SAML Single Sign-On용으로 게시하는 HTTPS 엔드포인트",
+    "source_hash": "bc6fdfd9"
+  },
+  "web.organizations.sso.idp_sso_service_url_placeholder": {
+    "text": "https://idp.example.com/sso/saml",
+    "source_hash": "513d0586"
+  },
+  "web.organizations.sso.idp_entity_id": {
+    "text": "IdP Entity ID",
+    "source_hash": "14a4ab8b"
+  },
+  "web.organizations.sso.idp_entity_id_hint": {
+    "text": "ID 공급자의 메타데이터에 게시된 그대로의 발급자 식별자",
+    "source_hash": "c3d8320b"
+  },
+  "web.organizations.sso.idp_entity_id_placeholder": {
+    "text": "https://idp.example.com/metadata",
+    "source_hash": "0c46d14d"
+  },
+  "web.organizations.sso.idp_cert": {
+    "text": "IdP 서명 인증서",
+    "source_hash": "c84000cd"
+  },
+  "web.organizations.sso.idp_cert_hint": {
+    "text": "ID 공급자가 어설션 서명에 사용하는 X.509 인증서(PEM)입니다. 인증서는 하나만 입력할 수 있으며, 지문(fingerprint)은 허용되지 않습니다.",
+    "source_hash": "b5e157f5"
+  },
+  "web.organizations.sso.idp_cert_placeholder": {
+    "text": "-----BEGIN CERTIFICATE-----",
+    "source_hash": "ddddb6cb"
+  },
+  "web.organizations.sso.sp_details": {
+    "text": "서비스 공급자 정보",
+    "source_hash": "4b6617d2"
+  },
+  "web.organizations.sso.sp_details_hint": {
+    "text": "이 값을 ID 공급자에 등록하세요",
+    "source_hash": "784e9410"
+  },
+  "web.organizations.sso.sp_details_preview_hint": {
+    "text": "기본 로그인 경로를 기준으로 한 미리보기입니다. 이 구성을 저장한 다음, ID 공급자에 등록하기 전에 여기에서 이 값을 확인하세요.",
+    "source_hash": "fd9d3001"
+  },
+  "web.organizations.sso.domain_unverified_notice": {
+    "text": "도메인이 확인될 때까지 이 도메인에서는 Single Sign-On이 꺼져 있습니다. 확인을 거쳐도 아래 값은 변경되지 않습니다.",
+    "source_hash": "4b56ea4b"
+  },
+  "web.organizations.sso.sp_entity_id": {
+    "text": "SP Entity ID (메타데이터 URL)",
+    "source_hash": "59bc544c"
+  },
+  "web.organizations.sso.acs_url": {
+    "text": "Assertion Consumer Service URL",
+    "source_hash": "5dacfb65"
+  },
+  "web.organizations.sso.unreadable_field": {
+    "text": "저장된 값을 읽을 수 없습니다. 계속하려면 다시 입력하세요.",
+    "source_hash": "ca3b5fcc"
+  },
+  "web.organizations.sso.unreadable_fields_alert": {
+    "text": "일부 저장된 값을 읽을 수 없어 다시 입력해야 합니다: {fields}",
+    "source_hash": "e9fa9d16"
+  },
+  "web.organizations.sso.idp_cert_expired_alert": {
+    "text": "ID 공급자 인증서가 {date}에 만료되었습니다. 유효한 인증서를 저장할 때까지 이 연결을 통한 로그인은 실패합니다.",
+    "source_hash": "527fb721"
+  },
+  "web.organizations.sso.idp_cert_expiring_notice": {
+    "text": "ID 공급자 인증서가 {date}에 만료됩니다. 로그인이 계속 작동하도록 그 전에 인증서를 교체하세요.",
+    "source_hash": "ccaf6ca7"
+  },
+  "web.organizations.sso.test_connection_hint_saml": {
+    "text": "SSO URL, Entity ID 및 인증서를 로컬에서 확인합니다 (ID 공급자에 연결하지 않음)",
+    "source_hash": "1dad3945"
+  },
+  "web.organizations.sso.configured_issuer": {
+    "text": "구성된 발급자",
+    "source_hash": "6b307b7f"
+  },
+  "web.organizations.sso.discovery_issuer": {
+    "text": "검색된 발급자",
+    "source_hash": "9d74f978"
+  },
+  "web.organizations.sso.issuer_mismatch_hint": {
+    "text": "OIDC 발급자 식별자는 후행 슬래시를 포함하여 정확히 일치해야 합니다. 발급자 URL을 위에 표시된 검색된 값으로 설정하세요.",
+    "source_hash": "ec144c88"
+  },
+  "web.organizations.sso.certificate_subject": {
+    "text": "인증서 주체",
+    "source_hash": "d7816b16"
+  },
+  "web.organizations.sso.certificate_expires": {
+    "text": "인증서 만료일",
+    "source_hash": "1e73119d"
+  },
+  "web.organizations.sso.certificate_expires_in_days": {
+    "text": "{n}일 후 | {n}일 후",
+    "source_hash": "df98ca65"
+  },
+  "web.organizations.sso.certificate_valid_from": {
+    "text": "인증서 유효 시작일",
+    "source_hash": "b13d3f30"
   }
 }

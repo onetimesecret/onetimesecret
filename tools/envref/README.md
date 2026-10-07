@@ -36,6 +36,43 @@ environment is the drift ADR-042 exists to prevent.
 If `bin/envref` fails with "The lockfile at `uv.lock` needs to be updated",
 run `uv lock --project tools/envref` and commit the result.
 
+## Release-tag authority for `check`
+
+Select an existing Git remote that carries the project's release tags:
+
+```bash
+git config envref.releaseRemote upstream
+bin/envref check
+# Or override for one invocation:
+CONFIG_VERSION_RELEASE_REMOTE=upstream bin/envref check
+```
+
+`CONFIG_VERSION_RELEASE_REMOTE` wins whenever present, including an empty value
+(which means unknown authority). Otherwise `check` reads `envref.releaseRemote`.
+Only configured remote names are accepted, not URLs; there is no implicit
+`origin` default. Successful evidence names the selected remote, never its URL,
+so credentials embedded in the URL are not printed.
+
+The check unions local stable tags with the selected remote's advertised stable
+tags. The operator's choice of authority is trusted: query success is not proof
+of authority identity or historical completeness. Missing or invalid authority,
+query failure, or no stable tags means unknown evidence. With
+`CONFIG_VERSION_REQUIRE_BASE=1`, that fails the check; otherwise every concrete
+base-side marker is conservatively frozen. This strict setting also rejects a
+missing base ref. `--print-sites` needs neither a base nor a tag query.
+
+CI explicitly adds `envref-release` pointing to
+`https://github.com/onetimesecret/onetimesecret.git` and selects that name through
+the environment, independently of checkout `origin` or PR metadata. See the
+[marker policy](../../docs/development/config-version-annotations.md#policy)
+for the authority trust boundary and local setup requirements.
+
+The release query uses a Bash/job-control supervisor with a 15-second timeout.
+The outer check shell and CLI forward `SIGINT`/`SIGTERM` cancellation to allow
+query-group and watchdog cleanup. This is not a sandbox or an unconditional
+process-tree guarantee: `SIGKILL` is uncatchable, and children that escape the
+query's process group are outside this cleanup mechanism.
+
 ## Layout
 
 ```text
@@ -48,7 +85,8 @@ tools/envref/
 │   ├── annotate.py      writes and verifies markers
 │   ├── versionmap.py    resolves YAML settings to versions
 │   ├── docsgen.py       generates the docs-site page from .env.reference
-│   └── sh/              check / archaeology / resolve, unchanged bash + awk
+│   └── sh/              check / archaeology / resolve, Bash + awk
+│       └── release-tag-evidence.sh  private evidence acquisition/classification
 └── tests/
 ```
 
@@ -58,9 +96,10 @@ docstring of the function that does the work. Re-declaring them in `cli.py`
 would recreate, in the CLI layer, the duplicate-definition failure this
 tooling keeps finding in its own YAML walkers.
 
-`sh/` is bash and awk because porting 950 verified lines to Python would be a
-rewrite, and ADR-042 asks for behaviour-preserving migration. A tool package
-is allowed to be polyglot behind one entry point.
+`sh/` keeps the Bash and awk implementations behind the supported entry point.
+`sh/release-tag-evidence.sh` separates release-tag acquisition and deterministic
+classification from the marker rules; it is package-private, not another CLI.
+No public flags are added for authority selection.
 
 ## Tests
 
@@ -68,10 +107,14 @@ is allowed to be polyglot behind one entry point.
 uv run --locked --project tools/envref python -m unittest discover -s tools/envref/tests
 ```
 
-They run on every PR inside `drift-guards.yml`, in the environment that job
-already builds for `bin/envref check`. `pytest` is an optional convenience
-(`uv sync --extra test`); the suite itself is stdlib, matching
-`locales/scripts/tests`.
+They run on every PR inside `drift-guards.yml`: the existing Ubuntu guard job
+runs the suite, and a separate macOS job runs only the suite, not all drift
+checks. Both install the same pinned Python and uv versions. Release-query
+lifecycle coverage must exercise cancellation through the supported `bin/envref`
+entry point as well as direct shell/CLI invocation when changing cancellation
+forwarding; passing only package-private entry-point tests is not sufficient.
+`pytest` is an optional convenience (`uv sync --extra test`); the suite itself
+is stdlib, matching `locales/scripts/tests`.
 
 The suite's centrepiece is `test_yaml_walkers.py`, which asserts that all
 three YAML walks — `annotate.py`, `versionmap.py` and the awk inside
@@ -81,7 +124,8 @@ while this tooling lived in `scripts/`, where it could not be written: two
 top-level scripts cannot import each other. Making them modules of one package
 is what made it possible, and it is the clearest practical argument for
 ADR-042 in this repository. The awk walk answers through
-`bin/envref check --print-sites`, which runs no rules and reads no base ref.
+`bin/envref check --print-sites`, which runs no rules, reads no base ref, and
+performs no release-tag query.
 
 ## Two places this reads ADR-042 rather than following it literally
 

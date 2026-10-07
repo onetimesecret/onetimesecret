@@ -1,0 +1,86 @@
+# tools/host-seam/topologies.psv
+#
+# The topology matrix topology-probe.sh sends. Pipe-separated data: it is parsed line by
+# line, never executed. Three readers share it:
+#
+#   - tools/host-seam/topology-probe.sh       sends each row with curl
+#   - tools/host-seam/tests/topology-test.sh  checks the loader and grading
+#   - apps/web/auth/spec/integration/full/host_proxy_matrix_spec.rb
+#                                               sends each row through the
+#                                               mounted stack and asserts the
+#                                               expected strategy, so an
+#                                               expectation here that the
+#                                               application does not meet
+#                                               fails CI
+#
+# Fields: name|Host|Apx-Incoming-Host|X-Forwarded-Host|X-Original-Host|Forwarded|expected strategy
+# "-" means the header is not sent. Expected strategy is what DomainStrategy
+# SHOULD resolve when the probe source is inside the trusted-proxy set.
+#
+# Placeholders, filled by the reader:
+#   {canonical}        --canonical
+#   {custom}           --custom
+#   {origin}           --origin, the authority a Host-rewriting proxy leaves in Host
+#   {evil}             the attacker host
+#   {origin_strategy}  what a request resolving on Host: {origin} classifies as
+#
+# The application reads one forwarded carrier, X-Forwarded-Host, and only
+# when it holds a single value (#4384). The others are still sent, as the
+# controls that they are NOT read: Apx-Incoming-Host (T3, T4, T9, T11),
+# X-Original-Host (T6), RFC 7239 `Forwarded` (T7) and a comma-separated
+# X-Forwarded-Host (T12). A release before #4384 resolves T3, T6 and T12
+# `custom`, which this table reports as a mismatch.
+#
+# DetectHost precedence (detect_host.rb HEADER_PRECEDENCE) is:
+#   X-Forwarded-Host > Host
+
+T1-direct-canonical|{canonical}|-|-|-|-|canonical
+T2-direct-custom|{custom}|-|-|-|-|custom
+
+# T3: what Approximated sends when the edge does not translate it. Host is
+# rewritten to a non-canonical inbound target and the real host rides only
+# in Apx-Incoming-Host, which is not read: the request resolves on Host.
+T3-apx-only|{origin}|{custom}|-|-|-|{origin_strategy}
+T4-apx-rewrite-xfh|{origin}|{custom}|{custom}|-|-|custom
+
+# T5 is the production shape: Host rewritten to a non-canonical inbound
+# target, real host in X-Forwarded-Host. This is the #4224 reproduction.
+T5-xfh-only|{origin}|-|{custom}|-|-|custom
+T6-xoh-only|{origin}|-|-|{custom}|-|{origin_strategy}
+
+# T7: RFC 7239 `Forwarded: host=` is NOT a host source since #4121. The
+# request resolves on `Host:` alone, so its strategy depends on the origin.
+# `custom` here would mean the Forwarded host= parameter is being honored again.
+T7-forwarded-only|{origin}|-|-|-|{custom}|{origin_strategy}
+
+# T8: the inbound target IS the canonical host. A consumer reading the raw
+# Host header lands in the `canonical_domain?` branch of the omniauth setup
+# hook (platform-level request) instead of the tenant-fallback branch, so it
+# fails QUIETLY — platform credentials rather than `sso_not_configured`.
+# Only the tenant id in the authorize URL distinguishes the two.
+T8-xfh-onto-canonical|{canonical}|-|{custom}|-|-|custom
+
+# T9: attacker-supplied X-Forwarded-Host that the edge passed through, with
+# the tenant host beside it in Apx-Incoming-Host. DetectHost takes the
+# X-Forwarded-Host value from a trusted peer when it is a SYNTACTICALLY
+# valid domain name — it does not check whether the domain is known — so
+# `evil.attacker.example` is the detected host and the display domain.
+#
+# DomainStrategy classifies the unknown domain `invalid`, so the attacker
+# does NOT get to impersonate a tenant. What they get is DENIAL: the
+# tenant's own SSO fails for as long as they can attach the header.
+# Expected strategy is therefore `invalid` — what the application does with
+# a single X-Forwarded-Host from a trusted peer (matrix spec rows F06, F07) —
+# and a finding about the EDGE, which must overwrite inbound X-Forwarded-Host.
+# This is the carrier-sanitization half of #4223. T10 is the same request
+# with the canonical host in Host.
+#
+# If the evil host ever classifies `custom`, or reaches display_domain from
+# a carrier the app does not read (T11, T12), that is a different, worse bug.
+T9-xfh-shadows-apx|{origin}|{custom}|{evil}|-|-|invalid
+T10-xfh-spoof|{canonical}|-|{evil}|-|-|invalid
+T11-apx-spoof|{canonical}|{evil}|-|-|-|canonical
+
+# T12: a proxy that appended to X-Forwarded-Host instead of overwriting it.
+# Neither value is selected; the request resolves on Host.
+T12-xfh-multi|{origin}|-|{custom}, {evil}|-|-|{origin_strategy}

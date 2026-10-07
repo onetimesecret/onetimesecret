@@ -40,8 +40,8 @@
     "source_hash": "9feed9f1"
   },
   "web.admin.customers.actions.purge.confirmDescription": {
-    "text": "Ĉi tio por ĉiam forigas {email} kaj ĉiujn iliajn datumojn. Ĉi tio ne povas esti malfarita.",
-    "source_hash": "a74dd5d1"
+    "text": "Ĉi tio petas la porĉiaman forigon de {email}. Antaŭkontrolo ruliĝas antaŭ la malmuntado de la konto kaj rifuzas la forviŝadon, kiam laborspaco havas domajnojn, fakturadan staton, aliajn membrojn, konservitajn datumojn aŭ malkonsekvencajn referencojn. Revizu kaj solvu ĉiujn blokilojn antaŭ ol reprovi. Ĉi tio ne povas esti malfarita post kiam la malmuntado komenciĝas.",
+    "source_hash": "7b4e5e37"
   },
   "web.admin.customers.actions.purge.success": {
     "text": "Kliento forviŝita.",
@@ -60,8 +60,8 @@
     "source_hash": "227f57d7"
   },
   "web.admin.customers.actions.role.confirmDescription": {
-    "text": "Ŝanĝi {email} al la rolo {role}.",
-    "source_hash": "9ba063c6"
+    "text": "Ŝanĝas {email} al la rolo {role}. La colonel-rolo donas plenan administran aliron al ĉiu konto, sekreto kaj organizo en ĉi tiu instalaĵo. Tajpu la kontan retpoŝtadreson sube por konfirmi.",
+    "source_hash": "0ed85b97"
   },
   "web.admin.customers.actions.role.success": {
     "text": "Rolo ĝisdatigita.",
@@ -116,8 +116,8 @@
     "source_hash": "62ed2854"
   },
   "web.admin.customers.actions.unverify.confirmDescription": {
-    "text": "Marki {email} kiel ne konfirmitan.",
-    "source_hash": "592ffd27"
+    "text": "Markas {email} kiel ne konfirmitan. Nekonfirmita konto ne povas havi la rolon de colonel, administranto aŭ personaro, do ĉi tio ankaŭ forprenas ĉian altigitan rolon, kiun ĝi havas. Tajpu la kontan retpoŝtadreson sube por konfirmi.",
+    "source_hash": "601f7382"
   },
   "web.admin.customers.actions.unverify.success": {
     "text": "Konfirmo de kliento nuligita.",
@@ -568,8 +568,8 @@
     "source_hash": "69e69f49"
   },
   "web.admin.customers.detail.diagnostics.healthy": {
-    "text": "Neniu blokanta kondiĉo trovita. Aŭtentikiga stato ŝajnas sana — suspektu klient-flankajn problemojn (kuketoj, propra-domajna ensalut-agordo) aŭ malĝustan regionon.",
-    "source_hash": "f6d5f8d1"
+    "text": "Neniu blokanta kondiĉo trovita. La aŭtentikigaj kaj organizkuntekstaj indikoj ŝajnas sanaj — suspektu klient-flankajn problemojn (kuketoj, propra-domajna ensalut-agordo) aŭ malĝustan regionon.",
+    "source_hash": "e0e8450e"
   },
   "web.admin.customers.detail.diagnostics.authUnavailable": {
     "text": "Aŭtentikiga datumbazo ne disponebla (simpla aŭtentikiga reĝimo) — SQL-flankaj kontroloj estis preterpasitaj.",
@@ -690,5 +690,153 @@
   "web.admin.customers.verification.unverified": {
     "text": "Ne kontrolita",
     "source_hash": "15133907"
+  },
+  "web.admin.customers.actions.impersonate.button": {
+    "text": "Imiti klienton",
+    "source_hash": "38a7cfbe"
+  },
+  "web.admin.customers.actions.impersonate.confirmTitle": {
+    "text": "Ĉu komenci imitadon?",
+    "source_hash": "c6e4fa74"
+  },
+  "web.admin.customers.actions.impersonate.confirmDescription": {
+    "text": "Malfermas tempe limigitan, nurlegan seancon kiel {email}. Ĉiu paĝo montras standardon ĝis vi ĉesos, ŝanĝoj estas blokitaj, kaj la seanco estas registrita en la kontrola protokolo kun via kialo.",
+    "source_hash": "713c01b4"
+  },
+  "web.admin.customers.actions.impersonate.reasonLabel": {
+    "text": "Kialo (deviga)",
+    "source_hash": "d976f5d9"
+  },
+  "web.admin.customers.actions.impersonate.reasonPlaceholder": {
+    "text": "Kial ĉi tiu seanco necesas? Inkluzivu la referencon de la bileto.",
+    "source_hash": "89a4835d"
+  },
+  "web.admin.customers.actions.impersonate.success": {
+    "text": "Imitado komenciĝis.",
+    "source_hash": "b4662bcc"
+  },
+  "web.admin.customers.actions.impersonate.unavailable": {
+    "text": "Imitado ne disponeblas por colonel-kontoj, anonimaj kontoj kaj suspenditaj kontoj.",
+    "source_hash": "fb6578b2"
+  },
+  "web.admin.customers.actions.purge.refused": {
+    "text": "Forviŝado rifuzita. La kliento estis konservita; solvu la blokilojn antaŭ ol reprovi.",
+    "source_hash": "8e8a2ae1"
+  },
+  "web.admin.customers.actions.purge.partial": {
+    "text": "Forviŝado haltis post kiam parto de la purigado finiĝis. Ne raportu sukceson kaj ne reprovu blinde; revizu la finitajn etapojn kaj blokilojn.",
+    "source_hash": "a88fd15b"
+  },
+  "web.admin.customers.actions.purge.incomplete": {
+    "text": "Forviŝado ne finiĝis (stato: {status}). Revizu la vivciklajn detalojn antaŭ ol reprovi.",
+    "source_hash": "c0c3d287"
+  },
+  "web.admin.customers.actions.purge.unreadableResult": {
+    "text": "La servilo resendis nelegeblan rezulton de forviŝado. Neniu sukceso estis raportita; kontrolu la staton de la kliento kaj de la laborspaco antaŭ ol reprovi.",
+    "source_hash": "cc837a77"
+  },
+  "web.admin.customers.actions.purge.resultStage": {
+    "text": "Haltis ĉe etapo: {stage}.",
+    "source_hash": "d0e313bf"
+  },
+  "web.admin.customers.actions.purge.resultBlockers": {
+    "text": "Blokiloj: {blockers}.",
+    "source_hash": "00c1e196"
+  },
+  "web.admin.customers.actions.purge.resultPlannedActions": {
+    "text": "Planita purigado: {actions}.",
+    "source_hash": "6915205d"
+  },
+  "web.admin.customers.actions.purge.resultActions": {
+    "text": "Finita purigado: {actions}.",
+    "source_hash": "d34121b3"
+  },
+  "web.admin.customers.actions.purge.resultCompletedStages": {
+    "text": "Finitaj etapoj: {stages}.",
+    "source_hash": "67f68860"
+  },
+  "web.admin.customers.actions.role.button": {
+    "text": "Ŝanĝi rolon",
+    "source_hash": "a43a8d8c"
+  },
+  "web.admin.customers.actions.role.selfDemote": {
+    "text": "Vi ne povas degradi vian propran colonel-konton. Petu alian colonel-on fari tion, aŭ rulu `bin/ots customers role demote`.",
+    "source_hash": "3e75d01b"
+  },
+  "web.admin.customers.actions.role.lastColonel": {
+    "text": "Vi ne povas degradi la lastan restantan colonel-on — la instalaĵo havus neniun administranton. Unue promociu kaj konfirmu alian konton.",
+    "source_hash": "9c59c731"
+  },
+  "web.admin.customers.actions.unverify.selfUnverify": {
+    "text": "Vi ne povas nuligi la konfirmon de via propra konto: konfirmita retpoŝtadreso estas necesa por havi la colonel-rolon.",
+    "source_hash": "8ab024fe"
+  },
+  "web.admin.customers.actions.unverify.lastColonel": {
+    "text": "Vi ne povas nuligi la konfirmon de la lasta restanta colonel — nekonfirmita konto ne povas havi la colonel-rolon. Unue promociu kaj konfirmu alian konton.",
+    "source_hash": "fc404616"
+  },
+  "web.admin.customers.detail.diagnostics.organizationContextBlocked": {
+    "text": "La organiza kunteksto estas blokita aŭ nekompleta. Inspektu la indeksitan laborspacon kaj riparu devion en la indeksoj de posedo, membreco aŭ kontakta retpoŝtadreso antaŭ ol trakti ĉi tiun konton kiel sanan.",
+    "source_hash": "5c5c89be"
+  },
+  "web.admin.customers.detail.diagnostics.organization": {
+    "text": "Laborspaco: {id}",
+    "source_hash": "6ee50fe9"
+  },
+  "web.admin.customers.detail.diagnostics.remediation": {
+    "text": "Riparo: {action}",
+    "source_hash": "83ddc7d7"
+  },
+  "web.admin.customers.detail.fields.internalId": {
+    "text": "Interna ID",
+    "source_hash": "e468bb47"
+  },
+  "web.admin.customers.detail.organizations.open": {
+    "text": "Malfermi",
+    "source_hash": "ed077f3d"
+  },
+  "web.admin.customers.detail.rodauthAdmin.open": {
+    "text": "Malfermi en Rodauth Admin",
+    "source_hash": "467173c8"
+  },
+  "web.admin.customers.detail.sessions.revokeAll.selfDescription": {
+    "text": "Ĉi tio elsalutigas vin el ĉiu alia aparato kaj retumilo, inkluzive de seancoj ne montritaj en ĉi tiu listo. La seanco, en kiu vi nun laboras, estas konservata.",
+    "source_hash": "ae350040"
+  },
+  "web.admin.customers.list.capped": {
+    "text": "Rezultoj estas limigitaj: la montrata nombro estas minimumo, ne la sumo. Malvastigu la serĉon aŭ filtrilon por vidi ĉion.",
+    "source_hash": "27537844"
+  },
+  "web.admin.customers.list.orphanedAccounts.title": {
+    "text": "Konto en la aŭtentikiga datumbazo sen klienta registro",
+    "source_hash": "82cf7a27"
+  },
+  "web.admin.customers.list.orphanedAccounts.hint": {
+    "text": "La aŭtentikiga datumbazo tenas konton por ĉi tiu adreso, sed neniu klienta registro respondas al ĝi. La persono ankoraŭ povas ensaluti; la klienta indekso havas nenion pri tiu persono. Malfermu la adreson por diagnozo.",
+    "source_hash": "0f903f23"
+  },
+  "web.admin.customers.list.orphanedAccounts.diagnose": {
+    "text": "Malfermi kontan diagnozon",
+    "source_hash": "55b3e826"
+  },
+  "web.admin.customers.list.orphanedAccounts.accountId": {
+    "text": "Konto #{id}",
+    "source_hash": "485dee3c"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unverified": {
+    "text": "Nekonfirmita",
+    "source_hash": "33c8e8de"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.verified": {
+    "text": "Konfirmita",
+    "source_hash": "4f783840"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.closed": {
+    "text": "Fermita",
+    "source_hash": "c21ead06"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unknown": {
+    "text": "Nekonata",
+    "source_hash": "b764cdc0"
   }
 }

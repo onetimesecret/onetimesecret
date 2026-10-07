@@ -62,5 +62,29 @@
   "web.admin.kit.revealEmail.copy": {
     "text": "Kopii retpoŝtadreson",
     "source_hash": "61b94846"
+  },
+  "web.admin.errors.rateLimited": {
+    "text": "Vi povas reprovi post ĉirkaŭ {minutes} minutoj.",
+    "source_hash": "27f2d054"
+  },
+  "web.admin.errors.rateLimitedRecovery": {
+    "text": "Se vi devas agi pli frue, vakigu la limigilon per POST /api/colonel/ratelimit/reset por via propra konto, aŭ rulu `bin/ots ratelimit keys <kind> <extid>`.",
+    "source_hash": "b77e1388"
+  },
+  "web.admin.kit.confirmDialog.reasonLabel": {
+    "text": "Kialo (nedeviga)",
+    "source_hash": "0f7d4664"
+  },
+  "web.admin.kit.confirmDialog.reasonPlaceholder": {
+    "text": "Kial vi faras ĉi tion?",
+    "source_hash": "ef83fe82"
+  },
+  "web.admin.kit.confirmDialog.reasonHint": {
+    "text": "Registrita en la administra kontrola protokolo kune kun ĉi tiu ago.",
+    "source_hash": "23779076"
+  },
+  "web.admin.kit.filterBar.searchSubmit": {
+    "text": "Serĉi",
+    "source_hash": "49c266ba"
   }
 }

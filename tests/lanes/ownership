@@ -40,6 +40,8 @@ LANES_OWNERSHIP_ROOT="$(cd "${LANES_OWNERSHIP_DIR}/../.." && pwd)"
 
 declare -A LANES_OWNER_TASKS=(
   [unit]='try:unit spec:fast'
+  [billing]='try:billing spec:billing'
+  [billing-integration]='try:integration:billing spec:integration:billing'
   [browser]=''
   [simple]='try:integration:simple spec:integration:simple'
   [disabled]='spec:integration:disabled'
@@ -52,6 +54,7 @@ declare -A LANES_OWNER_TASKS=(
   [migrations-sqlite]='spec:integration:migrations:sqlite'
   [migrations-pg]='spec:integration:migrations:postgres spec:integration:migrations:verify_dual_url'
   [api]='spec:api'
+  [harness]='spec:lanes'
   # browser invokes rspec directly and is mapped explicitly below. Smoke runs
   # `pnpm test:smoke` and owns no path here; selftest runs no application code.
   # None of the three is a rake lane.
@@ -137,8 +140,9 @@ lanes_agnostic_excluded() {  # <normalized path>
 # Row order is precedence: the file-level rows first, then the integration
 # trees (which sit inside an app's spec tree and would otherwise fall to
 # unit), then the trees. A path that matches no row is a test no lane runs
-# (try/web, a mode-less apps/*/*/spec/integration file) or a path outside
-# the test trees, and prints nothing — saying so is the point.
+# (try/web, a mode-less apps/*/*/spec/integration file outside the billing
+# app) or a path outside the test trees, and prints nothing — saying so is
+# the point.
 # shellcheck disable=SC2254  # ${app} is a glob, expanded unquoted on purpose
 lanes_for_path() {  # <path>
   local p app='apps/[!/]*/[!/]*'
@@ -185,24 +189,56 @@ lanes_for_path() {  # <path>
       echo full-sqlite ;;
     ${app}/spec/integration/strategies|${app}/spec/integration/strategies/*)
       echo strategies ;;
-    # A mode-less file directly under an app's integration/ is dispatched by
-    # no task (UNRUN_SPECS in lib/tasks/spec_selection.rake): no owner.
+    # spec:integration:billing — the files directly under the billing app's
+    # integration/, which has no mode subdirectories (BILLING_INTEGRATION_SPEC_PATTERN
+    # in lib/tasks/spec.rake; ADOPTED_PATTERNS in lib/tasks/spec_selection.rake).
+    # One segment, like the task's non-recursive glob: a mode subdirectory
+    # added there is that mode's lanes' (the rows above), and the directory
+    # itself, which the task never passes, falls to the generic row below.
+    apps/web/billing/spec/integration/[!/]*_spec.rb)
+      echo billing-integration ;;
+    # A mode-less file under any app's integration/ is otherwise dispatched
+    # by no task (UNRUN_SPECS in lib/tasks/spec_selection.rake): no owner.
+    # Ahead of spec:billing, whose --exclude-pattern drops this subtree.
     ${app}/spec/integration|${app}/spec/integration/*)
       ;;
+    # spec:billing — the billing app's spec tree minus integration/ (above)
+    # and the root trees named for billing (BILLING_SPEC_PATHS in
+    # lib/tasks/spec.rake). Ahead of spec:fast, whose patterns exclude
+    # exactly these.
+    apps/web/billing/spec|apps/web/billing/spec/*|spec/cli/billing|spec/cli/billing/*|\
+    spec/unit/billing|spec/unit/billing/*|spec/unit/onetime/operations/billing|spec/unit/onetime/operations/billing/*)
+      echo billing ;;
+    # spec:lanes — the lane runner's own specs (HARNESS_SPEC_PATHS in
+    # lib/tasks/spec.rake), which spec:fast excludes. Ahead of spec:fast.
+    spec/unit/lanes|spec/unit/lanes/*)
+      echo harness ;;
     # spec:fast — spec/unit, spec/cli, spec/lib and every apps/*/*/spec tree
-    # minus its integration/ subtree (already dispatched above).
+    # minus its integration/ subtree and the billing and harness trees (all
+    # dispatched above).
     spec/unit|spec/unit/*|spec/cli|spec/cli/*|spec/lib|spec/lib/*|${app}/spec|${app}/spec/*)
       echo unit ;;
     spec/api|spec/api/*)
       echo api ;;
-    # try:unit — five try/ trees plus apps/**/try at any depth.
+    # try:billing — the billing app's tryouts and the two try/unit subtrees
+    # named for billing (BILLING_TRY_PATHS in lib/tasks/spec.rake), which
+    # try:unit leaves out. Ahead of try:unit.
+    apps/web/billing/try|apps/web/billing/try/*|try/unit/billing|try/unit/billing/*|\
+    try/unit/cli/billing|try/unit/cli/billing/*)
+      echo billing ;;
+    # try:unit — five try/ trees plus apps/**/try at any depth, minus the
+    # billing paths above.
     try/unit|try/unit/*|try/system|try/system/*|try/security|try/security/*|\
     try/features|try/features/*|try/jobs|try/jobs/*|apps/*/try|apps/*/try/*)
       echo unit ;;
-    # try:integration:simple — six subtrees and four files, by name.
+    # try:integration:billing — the one try/integration subtree named for
+    # billing, which try:integration:simple leaves out.
+    try/integration/billing|try/integration/billing/*)
+      echo billing-integration ;;
+    # try:integration:simple — five subtrees and four files, by name.
     try/integration/middleware|try/integration/middleware/*|try/integration/boot|try/integration/boot/*|\
     try/integration/web|try/integration/web/*|try/integration/api|try/integration/api/*|\
-    try/integration/email|try/integration/email/*|try/integration/billing|try/integration/billing/*|\
+    try/integration/email|try/integration/email/*|\
     try/integration/homepage_bypass_header_integration_try.rb|try/integration/homepage_mode_integration_try.rb|\
     try/integration/check_jobqueue_live_try.rb|try/integration/domain_auth_enforcement_try.rb)
       echo simple ;;

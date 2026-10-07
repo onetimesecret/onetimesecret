@@ -46,5 +46,17 @@
   "api.domains.errors.homepage_incoming_not_ready": {
     "text": "Indgående beskeder skal være aktiveret med mindst én modtager, før det kan bruges som hjemmeside.",
     "source_hash": "556da6e2"
+  },
+  "api.domains.errors.related_origins_invalid": {
+    "text": "Ikke en gyldig oprindelse: %{origins}. Angiv skema og vært, for eksempel https://vault.example.com",
+    "source_hash": "5acb92ca"
+  },
+  "api.domains.errors.related_origins_foreign_organization": {
+    "text": "Disse oprindelser tilhører en anden organisation og kan ikke tilføjes: %{origins}",
+    "source_hash": "ac21c1e7"
+  },
+  "api.domains.errors.allowed_signup_domains_invalid": {
+    "text": "Ikke et gyldigt domæne: %{domains}. Angiv et registrerbart domænenavn, for eksempel example.com",
+    "source_hash": "2d93472c"
   }
 }

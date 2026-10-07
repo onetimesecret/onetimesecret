@@ -957,5 +957,53 @@
   "web.auth.webauthn.emailRequired": {
     "text": "Adja meg az e-mail címét a hozzáférési kulccsal való bejelentkezéshez",
     "source_hash": "7f07647f"
+  },
+  "web.auth.login.verification_unavailable": {
+    "text": "A bejelentkezés sikeres volt, de nem tudtuk megerősíteni a munkamenetét. Kérjük, próbálja újra egy kis idő múlva.",
+    "source_hash": "9a19dfc9"
+  },
+  "web.auth.mfa.verification_unavailable": {
+    "text": "A jelszavát elfogadtuk, de nem tudtuk elindítani a kétfaktoros ellenőrzést. Kérjük, próbálja újra egy kis idő múlva.",
+    "source_hash": "5fd5e240"
+  },
+  "web.auth.session.ended": {
+    "text": "A munkamenete véget ért. Kérjük, jelentkezzen be újra.",
+    "source_hash": "673e9822"
+  },
+  "web.auth.session.replaced": {
+    "text": "A bejelentkezése egy másik lapon megváltozott, ezért ez az oldal újratöltődött.",
+    "source_hash": "3767d43b"
+  },
+  "web.auth.session.stale_session_title": {
+    "text": "Ez az oldal elavult",
+    "source_hash": "0293e093"
+  },
+  "web.auth.session.stale_session_notice": {
+    "text": "A munkamenete megváltozott az oldal betöltése óta. Másolja ki, amit még nem mentett, majd a folytatáshoz töltse be újra az oldalt.",
+    "source_hash": "c62e236c"
+  },
+  "web.auth.session.reload_now": {
+    "text": "Oldal újratöltése",
+    "source_hash": "437d0d63"
+  },
+  "web.auth.session.verification_unavailable_title": {
+    "text": "Jelenleg nem tudjuk ellenőrizni a munkamenetét",
+    "source_hash": "2130dda1"
+  },
+  "web.auth.session.verification_unavailable_body": {
+    "text": "Nem jelentkeztettük ki. Nem értük el a szervert a munkamenete megerősítéséhez, ezért ez az oldal rejtve marad, amíg ez nem sikerül. Továbbra is próbálkozunk.",
+    "source_hash": "bb230c2c"
+  },
+  "web.auth.session.retry": {
+    "text": "Újrapróbálkozás",
+    "source_hash": "d8b8392e"
+  },
+  "web.auth.session.retrying": {
+    "text": "Ellenőrzés…",
+    "source_hash": "ec963ffc"
+  },
+  "web.auth.session.retry_failed": {
+    "text": "Továbbra sem érhető el. Kérjük, próbálja újra egy kis idő múlva.",
+    "source_hash": "b81c022c"
   }
 }

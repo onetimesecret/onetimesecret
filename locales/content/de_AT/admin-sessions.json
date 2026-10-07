@@ -176,8 +176,8 @@
     "source_hash": "0c6605c1"
   },
   "web.admin.sessions.revoke.confirmDescription": {
-    "text": "Dadurch wird der Benutzer sofort abgemeldet, indem die Sitzung {id} gelöscht wird. Geben Sie die Sitzungs-ID zur Bestätigung ein.",
-    "source_hash": "9e08b1b8"
+    "text": "Dadurch wird der Benutzer sofort abgemeldet, indem die Sitzung {id} widerrufen wird. Geben Sie zur Bestätigung {token} ein.",
+    "source_hash": "80578692"
   },
   "web.admin.sessions.revoke.success": {
     "text": "Sitzung widerrufen",
@@ -188,12 +188,12 @@
     "source_hash": "34cb67a4"
   },
   "web.admin.sessions.scan.capped": {
-    "text": "Der Scan wurde auf die ersten {scanned} Schlüssel begrenzt — authentifizierte Sitzungen außerhalb dieses Fensters werden nicht aufgelistet. Prüfen Sie eine bestimmte Sitzung anhand der ID, um sie zu erreichen.",
-    "source_hash": "fa418b4e"
+    "text": "Der Scan wurde auf die ersten {scanned} Schlüssel begrenzt — authentifizierte Sitzungen außerhalb dieses Fensters werden nicht aufgelistet. Grenzen Sie die Suche ein, um sie zu erreichen.",
+    "source_hash": "7a8d6fd5"
   },
   "web.admin.sessions.search.placeholder": {
-    "text": "Nach E-Mail oder externer ID suchen",
-    "source_hash": "f2dc5c06"
+    "text": "Nach E-Mail, externer ID oder Sitzungs-Handle suchen",
+    "source_hash": "4894dec4"
   },
   "web.admin.sessions.sections.session": {
     "text": "Sitzung",
@@ -210,5 +210,45 @@
   "web.admin.sessions.status.anonymous": {
     "text": "Anonym",
     "source_hash": "e7a8aa2d"
+  },
+  "web.admin.sessions.authority.title": {
+    "text": "Nicht die maßgebliche Sitzungsquelle im vollständigen Authentifizierungsmodus",
+    "source_hash": "796fb07f"
+  },
+  "web.admin.sessions.authority.description": {
+    "text": "Diese Liste ist der Redis-Sitzungsspeicher. Wenn der Authentifizierungsmodus auf „full“ gesetzt ist, liegt der maßgebliche Sitzungsstatus in der Rodauth-Kontodatenbank, die diese Konsole nicht ausliest. Über Rodauth angemeldete Konten werden hier möglicherweise nicht angezeigt, und das Widerrufen einer Sitzung hier beendet keine Rodauth-Sitzung.",
+    "source_hash": "77bc4904"
+  },
+  "web.admin.sessions.authority.descriptionRevokeAll": {
+    "text": "Diese Liste ist der Redis-Sitzungsspeicher. Wenn der Authentifizierungsmodus auf „full“ gesetzt ist, liegt der maßgebliche Sitzungsstatus in der Rodauth-Kontodatenbank, die diese Konsole nicht ausliest. Über Rodauth angemeldete Konten werden hier möglicherweise nicht angezeigt, und das Widerrufen einer einzelnen Sitzung hier beendet nicht deren Rodauth-Sitzung. „Alle widerrufen“ beendet zusätzlich die Rodauth-Sitzungen des Kontos.",
+    "source_hash": "f964663d"
+  },
+  "web.admin.sessions.authority.openAdmin": {
+    "text": "Rodauth Admin öffnen",
+    "source_hash": "ce523836"
+  },
+  "web.admin.sessions.authority.notConfigured": {
+    "text": "Setzen Sie RODAUTH_ADMIN_URL, um von hier aus auf Rodauth Admin zu verlinken.",
+    "source_hash": "c070dbfb"
+  },
+  "web.admin.sessions.columns.sessionHandle": {
+    "text": "Sitzungs-Handle",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.errors.scanCapped": {
+    "text": "Diese Sitzung wurde im gesampelten Keyspace nicht gefunden. Öffnen Sie sie über ihre Zeile in der Liste, damit sie über den Inhaber nachgeschlagen werden kann.",
+    "source_hash": "67b73f7f"
+  },
+  "web.admin.sessions.fields.sessionHandle": {
+    "text": "Sitzungs-Handle",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.revoke.ownSession": {
+    "text": "Dies ist Ihre eigene Sitzung. Durch das Widerrufen würden Sie abgemeldet – verwenden Sie stattdessen die Abmeldung.",
+    "source_hash": "a6762292"
+  },
+  "web.admin.sessions.rodauthAdmin.open": {
+    "text": "In Rodauth Admin öffnen",
+    "source_hash": "467173c8"
   }
 }

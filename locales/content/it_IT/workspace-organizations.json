@@ -1226,5 +1226,129 @@
   "web.organizations.sso.enable_untested_warning": {
     "text": "Questa connessione non ha ancora superato una prova qui. Esegui “Prova connessione” prima di attivarla, così una configurazione non funzionante non arriva mai alla tua pagina di accesso.",
     "source_hash": "c1fbdeca"
+  },
+  "web.organizations.delete_organization_cancel_subscription_first": {
+    "text": "Annulla l'abbonamento di questa organizzazione prima di eliminarla.",
+    "source_hash": "f0c54eca"
+  },
+  "web.organizations.sso.disable_action": {
+    "text": "Disattiva SSO",
+    "source_hash": "2f072272"
+  },
+  "web.organizations.sso.disable_confirm": {
+    "text": "Disattivare questa connessione SSO? Le modifiche non salvate nel modulo andranno perse. Le credenziali memorizzate verranno conservate.",
+    "source_hash": "608b142a"
+  },
+  "web.organizations.sso.disable_enforcement_warning": {
+    "text": "Verrà disattivata anche l'imposizione del solo SSO, consentendo gli altri metodi di accesso configurati.",
+    "source_hash": "58abd552"
+  },
+  "web.organizations.sso.idp_sso_service_url": {
+    "text": "URL del servizio SSO dell'IdP",
+    "source_hash": "0b33b1ac"
+  },
+  "web.organizations.sso.idp_sso_service_url_hint": {
+    "text": "L'endpoint HTTPS che il tuo provider di identità pubblica per il Single Sign-On SAML",
+    "source_hash": "bc6fdfd9"
+  },
+  "web.organizations.sso.idp_sso_service_url_placeholder": {
+    "text": "https://idp.example.com/sso/saml",
+    "source_hash": "513d0586"
+  },
+  "web.organizations.sso.idp_entity_id": {
+    "text": "IdP Entity ID",
+    "source_hash": "14a4ab8b"
+  },
+  "web.organizations.sso.idp_entity_id_hint": {
+    "text": "L'identificatore dell'issuer presente nei metadati del tuo provider di identità, esattamente come pubblicato",
+    "source_hash": "c3d8320b"
+  },
+  "web.organizations.sso.idp_entity_id_placeholder": {
+    "text": "https://idp.example.com/metadata",
+    "source_hash": "0c46d14d"
+  },
+  "web.organizations.sso.idp_cert": {
+    "text": "Certificato di firma dell'IdP",
+    "source_hash": "c84000cd"
+  },
+  "web.organizations.sso.idp_cert_hint": {
+    "text": "Il certificato X.509 (PEM) con cui il tuo provider di identità firma le asserzioni. Un solo certificato; le impronte digitali non sono accettate.",
+    "source_hash": "b5e157f5"
+  },
+  "web.organizations.sso.idp_cert_placeholder": {
+    "text": "-----BEGIN CERTIFICATE-----",
+    "source_hash": "ddddb6cb"
+  },
+  "web.organizations.sso.sp_details": {
+    "text": "Dettagli del service provider",
+    "source_hash": "4b6617d2"
+  },
+  "web.organizations.sso.sp_details_hint": {
+    "text": "Registra questi valori presso il tuo provider di identità",
+    "source_hash": "784e9410"
+  },
+  "web.organizations.sso.sp_details_preview_hint": {
+    "text": "Anteprima basata sul percorso di accesso predefinito. Salva questa configurazione, poi conferma questi valori qui prima di registrarli presso il tuo provider di identità.",
+    "source_hash": "fd9d3001"
+  },
+  "web.organizations.sso.domain_unverified_notice": {
+    "text": "Il Single Sign-On è disattivato su questo dominio finché il dominio non viene verificato. La verifica non modifica i valori riportati di seguito.",
+    "source_hash": "4b56ea4b"
+  },
+  "web.organizations.sso.sp_entity_id": {
+    "text": "SP Entity ID (URL dei metadati)",
+    "source_hash": "59bc544c"
+  },
+  "web.organizations.sso.acs_url": {
+    "text": "Assertion Consumer Service URL",
+    "source_hash": "5dacfb65"
+  },
+  "web.organizations.sso.unreadable_field": {
+    "text": "Il valore memorizzato non può essere letto. Inseriscilo di nuovo per continuare.",
+    "source_hash": "ca3b5fcc"
+  },
+  "web.organizations.sso.unreadable_fields_alert": {
+    "text": "Alcuni valori memorizzati non possono essere letti e devono essere inseriti di nuovo: {fields}",
+    "source_hash": "e9fa9d16"
+  },
+  "web.organizations.sso.idp_cert_expired_alert": {
+    "text": "Il certificato del provider di identità è scaduto il {date}. L'accesso tramite questa connessione non riuscirà finché non verrà salvato un certificato valido.",
+    "source_hash": "527fb721"
+  },
+  "web.organizations.sso.idp_cert_expiring_notice": {
+    "text": "Il certificato del provider di identità scade il {date}. Sostituiscilo prima di tale data affinché l'accesso continui a funzionare.",
+    "source_hash": "ccaf6ca7"
+  },
+  "web.organizations.sso.test_connection_hint_saml": {
+    "text": "Controlla localmente l'URL SSO, l'Entity ID e il certificato; il provider di identità non viene contattato",
+    "source_hash": "1dad3945"
+  },
+  "web.organizations.sso.configured_issuer": {
+    "text": "Issuer configurato",
+    "source_hash": "6b307b7f"
+  },
+  "web.organizations.sso.discovery_issuer": {
+    "text": "Issuer rilevato",
+    "source_hash": "9d74f978"
+  },
+  "web.organizations.sso.issuer_mismatch_hint": {
+    "text": "Gli identificatori dell'issuer OIDC devono corrispondere esattamente, inclusa l'eventuale barra finale. Imposta l'Issuer URL sul valore rilevato mostrato sopra.",
+    "source_hash": "ec144c88"
+  },
+  "web.organizations.sso.certificate_subject": {
+    "text": "Soggetto del certificato",
+    "source_hash": "d7816b16"
+  },
+  "web.organizations.sso.certificate_expires": {
+    "text": "Scadenza del certificato",
+    "source_hash": "1e73119d"
+  },
+  "web.organizations.sso.certificate_expires_in_days": {
+    "text": "tra {n} giorno | tra {n} giorni",
+    "source_hash": "df98ca65"
+  },
+  "web.organizations.sso.certificate_valid_from": {
+    "text": "Certificato valido dal",
+    "source_hash": "b13d3f30"
   }
 }

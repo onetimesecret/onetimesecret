@@ -40,8 +40,8 @@
     "source_hash": "9feed9f1"
   },
   "web.admin.customers.actions.purge.confirmDescription": {
-    "text": "Hiermee worden {email} en al hun gegevens permanent verwijderd. Dit kan niet ongedaan worden gemaakt.",
-    "source_hash": "a74dd5d1"
+    "text": "Hiermee vraag je de permanente verwijdering van {email} aan. Vóór de afbraak van het account wordt een voorafgaande controle uitgevoerd die het wissen weigert wanneer een werkruimte domeinen, facturatiestatus, andere leden, bewaarde gegevens of inconsistente verwijzingen heeft. Bekijk eventuele blokkades en los ze op voordat je het opnieuw probeert. Zodra de afbraak begint, kan dit niet meer ongedaan worden gemaakt.",
+    "source_hash": "7b4e5e37"
   },
   "web.admin.customers.actions.purge.success": {
     "text": "Klant gewist.",
@@ -60,8 +60,8 @@
     "source_hash": "227f57d7"
   },
   "web.admin.customers.actions.role.confirmDescription": {
-    "text": "Wijzig {email} naar de rol {role}.",
-    "source_hash": "9ba063c6"
+    "text": "Wijzigt {email} naar de rol {role}. De colonel-rol geeft volledige beheerderstoegang tot elk account, elk bericht en elke organisatie op deze installatie. Typ hieronder het e-mailadres van het account ter bevestiging.",
+    "source_hash": "0ed85b97"
   },
   "web.admin.customers.actions.role.success": {
     "text": "Rol bijgewerkt.",
@@ -116,8 +116,8 @@
     "source_hash": "62ed2854"
   },
   "web.admin.customers.actions.unverify.confirmDescription": {
-    "text": "Markeer {email} als niet geverifieerd.",
-    "source_hash": "592ffd27"
+    "text": "Markeert {email} als niet geverifieerd. Een niet-geverifieerd account kan niet de colonel-, beheerders- of medewerkersrol hebben, dus hiermee wordt ook elke verhoogde rol van het account ingetrokken. Typ hieronder het e-mailadres van het account ter bevestiging.",
+    "source_hash": "601f7382"
   },
   "web.admin.customers.actions.unverify.success": {
     "text": "Verificatie van klant ingetrokken.",
@@ -568,8 +568,8 @@
     "source_hash": "69e69f49"
   },
   "web.admin.customers.detail.diagnostics.healthy": {
-    "text": "Geen blokkerende toestand gevonden. De auth-status ziet er gezond uit — denk aan problemen aan clientzijde (cookies, inlogconfiguratie voor aangepaste domeinen) of de verkeerde regio.",
-    "source_hash": "f6d5f8d1"
+    "text": "Geen blokkerende toestand gevonden. De gegevens over auth en organisatiecontext zien er gezond uit — denk aan problemen aan clientzijde (cookies, inlogconfiguratie voor aangepaste domeinen) of de verkeerde regio.",
+    "source_hash": "e0e8450e"
   },
   "web.admin.customers.detail.diagnostics.authUnavailable": {
     "text": "Auth-database niet beschikbaar (eenvoudige auth-modus) — controles aan SQL-zijde zijn overgeslagen.",
@@ -690,5 +690,153 @@
   "web.admin.customers.verification.unverified": {
     "text": "Niet geverifieerd",
     "source_hash": "15133907"
+  },
+  "web.admin.customers.actions.impersonate.button": {
+    "text": "Klant imiteren",
+    "source_hash": "38a7cfbe"
+  },
+  "web.admin.customers.actions.impersonate.confirmTitle": {
+    "text": "Imitatie starten?",
+    "source_hash": "c6e4fa74"
+  },
+  "web.admin.customers.actions.impersonate.confirmDescription": {
+    "text": "Opent een tijdgebonden alleen-lezen sessie als {email}. Elke pagina toont een banner totdat je stopt, wijzigingen zijn geblokkeerd en de sessie wordt samen met je reden vastgelegd in het auditlogboek.",
+    "source_hash": "713c01b4"
+  },
+  "web.admin.customers.actions.impersonate.reasonLabel": {
+    "text": "Reden (verplicht)",
+    "source_hash": "d976f5d9"
+  },
+  "web.admin.customers.actions.impersonate.reasonPlaceholder": {
+    "text": "Waarom is deze sessie nodig? Vermeld de ticketreferentie.",
+    "source_hash": "89a4835d"
+  },
+  "web.admin.customers.actions.impersonate.success": {
+    "text": "Imitatie gestart.",
+    "source_hash": "b4662bcc"
+  },
+  "web.admin.customers.actions.impersonate.unavailable": {
+    "text": "Imitatie is niet beschikbaar voor colonel-, anonieme en opgeschorte accounts.",
+    "source_hash": "fb6578b2"
+  },
+  "web.admin.customers.actions.purge.refused": {
+    "text": "Wissen geweigerd. De klant is behouden; los de blokkades op voordat je het opnieuw probeert.",
+    "source_hash": "8e8a2ae1"
+  },
+  "web.admin.customers.actions.purge.partial": {
+    "text": "Wissen gestopt nadat een deel van de opschoning was voltooid. Meld geen succes en probeer het niet blindelings opnieuw; bekijk de voltooide fasen en blokkades.",
+    "source_hash": "a88fd15b"
+  },
+  "web.admin.customers.actions.purge.incomplete": {
+    "text": "Wissen is niet voltooid (status: {status}). Bekijk de levenscyclusdetails voordat je het opnieuw probeert.",
+    "source_hash": "c0c3d287"
+  },
+  "web.admin.customers.actions.purge.unreadableResult": {
+    "text": "De server gaf een onleesbaar resultaat voor het wissen terug. Er is geen succes gemeld; controleer de status van de klant en de werkruimte voordat je het opnieuw probeert.",
+    "source_hash": "cc837a77"
+  },
+  "web.admin.customers.actions.purge.resultStage": {
+    "text": "Gestopt bij fase: {stage}.",
+    "source_hash": "d0e313bf"
+  },
+  "web.admin.customers.actions.purge.resultBlockers": {
+    "text": "Blokkades: {blockers}.",
+    "source_hash": "00c1e196"
+  },
+  "web.admin.customers.actions.purge.resultPlannedActions": {
+    "text": "Geplande opschoning: {actions}.",
+    "source_hash": "6915205d"
+  },
+  "web.admin.customers.actions.purge.resultActions": {
+    "text": "Voltooide opschoning: {actions}.",
+    "source_hash": "d34121b3"
+  },
+  "web.admin.customers.actions.purge.resultCompletedStages": {
+    "text": "Voltooide fasen: {stages}.",
+    "source_hash": "67f68860"
+  },
+  "web.admin.customers.actions.role.button": {
+    "text": "Rol wijzigen",
+    "source_hash": "a43a8d8c"
+  },
+  "web.admin.customers.actions.role.selfDemote": {
+    "text": "Je kunt je eigen colonel-account niet degraderen. Vraag een andere colonel om dit te doen, of voer `bin/ots customers role demote` uit.",
+    "source_hash": "3e75d01b"
+  },
+  "web.admin.customers.actions.role.lastColonel": {
+    "text": "Je kunt de laatst overgebleven colonel niet degraderen — de installatie zou dan geen beheerder meer hebben. Promoveer en verifieer eerst een ander account.",
+    "source_hash": "9c59c731"
+  },
+  "web.admin.customers.actions.unverify.selfUnverify": {
+    "text": "Je kunt de verificatie van je eigen account niet intrekken: een geverifieerd e-mailadres is vereist voor de colonel-rol.",
+    "source_hash": "8ab024fe"
+  },
+  "web.admin.customers.actions.unverify.lastColonel": {
+    "text": "Je kunt de verificatie van de laatst overgebleven colonel niet intrekken — een niet-geverifieerd account kan de colonel-rol niet hebben. Promoveer en verifieer eerst een ander account.",
+    "source_hash": "fc404616"
+  },
+  "web.admin.customers.detail.diagnostics.organizationContextBlocked": {
+    "text": "De organisatiecontext is geblokkeerd of onvolledig. Inspecteer de geïndexeerde werkruimte en herstel afwijkingen in de index voor eigendom, lidmaatschap of contact-e-mail voordat je dit account als gezond beschouwt.",
+    "source_hash": "5c5c89be"
+  },
+  "web.admin.customers.detail.diagnostics.organization": {
+    "text": "Werkruimte: {id}",
+    "source_hash": "6ee50fe9"
+  },
+  "web.admin.customers.detail.diagnostics.remediation": {
+    "text": "Herstelactie: {action}",
+    "source_hash": "83ddc7d7"
+  },
+  "web.admin.customers.detail.fields.internalId": {
+    "text": "Interne ID",
+    "source_hash": "e468bb47"
+  },
+  "web.admin.customers.detail.organizations.open": {
+    "text": "Openen",
+    "source_hash": "ed077f3d"
+  },
+  "web.admin.customers.detail.rodauthAdmin.open": {
+    "text": "Openen in Rodauth Admin",
+    "source_hash": "467173c8"
+  },
+  "web.admin.customers.detail.sessions.revokeAll.selfDescription": {
+    "text": "Hiermee word je op elk ander apparaat en in elke andere browser uitgelogd, ook bij sessies die niet in deze lijst staan. De sessie waarin je nu werkt, blijft behouden.",
+    "source_hash": "ae350040"
+  },
+  "web.admin.customers.list.capped": {
+    "text": "Resultaten zijn begrensd: het getoonde aantal is een ondergrens, niet het totaal. Verfijn de zoekopdracht of het filter om alles te zien.",
+    "source_hash": "27537844"
+  },
+  "web.admin.customers.list.orphanedAccounts.title": {
+    "text": "Account in auth-database zonder klantrecord",
+    "source_hash": "82cf7a27"
+  },
+  "web.admin.customers.list.orphanedAccounts.hint": {
+    "text": "De auth-database bevat een account voor dit adres, maar er is geen klantrecord aan gekoppeld. De persoon kan nog steeds inloggen; de klantindex heeft niets voor diegene. Open het adres voor diagnose.",
+    "source_hash": "0f903f23"
+  },
+  "web.admin.customers.list.orphanedAccounts.diagnose": {
+    "text": "Accountdiagnose openen",
+    "source_hash": "55b3e826"
+  },
+  "web.admin.customers.list.orphanedAccounts.accountId": {
+    "text": "Account #{id}",
+    "source_hash": "485dee3c"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unverified": {
+    "text": "Niet geverifieerd",
+    "source_hash": "33c8e8de"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.verified": {
+    "text": "Geverifieerd",
+    "source_hash": "4f783840"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.closed": {
+    "text": "Gesloten",
+    "source_hash": "c21ead06"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unknown": {
+    "text": "Onbekend",
+    "source_hash": "b764cdc0"
   }
 }

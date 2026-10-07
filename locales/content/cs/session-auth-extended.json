@@ -957,5 +957,53 @@
   "web.auth.webauthn.emailRequired": {
     "text": "Pro přihlášení pomocí passkey zadej svou e-mailovou adresu",
     "source_hash": "7f07647f"
+  },
+  "web.auth.login.verification_unavailable": {
+    "text": "Přihlášení proběhlo úspěšně, ale nepodařilo se nám potvrdit tvoji relaci. Zkus to prosím za chvíli znovu.",
+    "source_hash": "9a19dfc9"
+  },
+  "web.auth.mfa.verification_unavailable": {
+    "text": "Tvoje heslo bylo přijato, ale nepodařilo se nám spustit dvoufaktorové ověření. Zkus to prosím za chvíli znovu.",
+    "source_hash": "5fd5e240"
+  },
+  "web.auth.session.ended": {
+    "text": "Tvoje relace skončila. Přihlas se prosím znovu.",
+    "source_hash": "673e9822"
+  },
+  "web.auth.session.replaced": {
+    "text": "Tvoje přihlášení se změnilo na jiné kartě, proto byla tato stránka znovu načtena.",
+    "source_hash": "3767d43b"
+  },
+  "web.auth.session.stale_session_title": {
+    "text": "Tato stránka je zastaralá",
+    "source_hash": "0293e093"
+  },
+  "web.auth.session.stale_session_notice": {
+    "text": "Od načtení této stránky se tvoje relace změnila. Zkopíruj si vše, co nemáš uložené, a pak pro pokračování stránku znovu načti.",
+    "source_hash": "c62e236c"
+  },
+  "web.auth.session.reload_now": {
+    "text": "Znovu načíst stránku",
+    "source_hash": "437d0d63"
+  },
+  "web.auth.session.verification_unavailable_title": {
+    "text": "Tvoji relaci teď nemůžeme ověřit",
+    "source_hash": "2130dda1"
+  },
+  "web.auth.session.verification_unavailable_body": {
+    "text": "Tvoje přihlášení stále platí. Nepodařilo se nám spojit se serverem a potvrdit tvoji relaci, proto je tato stránka skrytá, dokud to nepůjde. Budeme to dál zkoušet.",
+    "source_hash": "bb230c2c"
+  },
+  "web.auth.session.retry": {
+    "text": "Zkusit znovu",
+    "source_hash": "d8b8392e"
+  },
+  "web.auth.session.retrying": {
+    "text": "Kontrola…",
+    "source_hash": "ec963ffc"
+  },
+  "web.auth.session.retry_failed": {
+    "text": "Stále nedostupné. Zkus to prosím za chvíli znovu.",
+    "source_hash": "b81c022c"
   }
 }

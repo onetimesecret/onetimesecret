@@ -957,5 +957,53 @@
   "web.auth.webauthn.emailRequired": {
     "text": "Introdueix la teva adreça de correu electrònic per iniciar sessió amb una clau d'accés",
     "source_hash": "7f07647f"
+  },
+  "web.auth.login.verification_unavailable": {
+    "text": "L'inici de sessió s'ha completat correctament, però no hem pogut confirmar la teva sessió. Si us plau, torna-ho a provar d'aquí a un moment.",
+    "source_hash": "9a19dfc9"
+  },
+  "web.auth.mfa.verification_unavailable": {
+    "text": "S'ha acceptat la teva contrasenya, però no hem pogut iniciar la verificació de dos factors. Si us plau, torna-ho a provar d'aquí a un moment.",
+    "source_hash": "5fd5e240"
+  },
+  "web.auth.session.ended": {
+    "text": "La teva sessió ha finalitzat. Si us plau, torna a iniciar la sessió.",
+    "source_hash": "673e9822"
+  },
+  "web.auth.session.replaced": {
+    "text": "El teu inici de sessió ha canviat en una altra pestanya, així que s'ha tornat a carregar aquesta pàgina.",
+    "source_hash": "3767d43b"
+  },
+  "web.auth.session.stale_session_title": {
+    "text": "Aquesta pàgina no està actualitzada",
+    "source_hash": "0293e093"
+  },
+  "web.auth.session.stale_session_notice": {
+    "text": "La teva sessió ha canviat des que es va carregar aquesta pàgina. Copia tot el que no hagis desat i després torna a carregar la pàgina per continuar.",
+    "source_hash": "c62e236c"
+  },
+  "web.auth.session.reload_now": {
+    "text": "Torna a carregar la pàgina",
+    "source_hash": "437d0d63"
+  },
+  "web.auth.session.verification_unavailable_title": {
+    "text": "Ara mateix no podem verificar la teva sessió",
+    "source_hash": "2130dda1"
+  },
+  "web.auth.session.verification_unavailable_body": {
+    "text": "No s'ha tancat la teva sessió. No hem pogut contactar amb el servidor per confirmar la teva sessió, així que aquesta pàgina queda oculta fins que puguem fer-ho. Continuarem intentant-ho.",
+    "source_hash": "bb230c2c"
+  },
+  "web.auth.session.retry": {
+    "text": "Torna-ho a provar",
+    "source_hash": "d8b8392e"
+  },
+  "web.auth.session.retrying": {
+    "text": "S'està comprovant…",
+    "source_hash": "ec963ffc"
+  },
+  "web.auth.session.retry_failed": {
+    "text": "Encara no està disponible. Si us plau, torna-ho a provar d'aquí a un moment.",
+    "source_hash": "b81c022c"
   }
 }

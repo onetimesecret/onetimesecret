@@ -74,6 +74,17 @@ module Onetime
 
         org = @strategy_result&.metadata&.dig(:organization_context, :organization)
 
+        # The membership's domain scope withheld the customer's organizations
+        # on this request's custom domain, or the request is on an
+        # unregistered host (#4225), where a customer with no organization
+        # yet is refused as well. That refusal stands: no lazy creation,
+        # which would hand out a default workspace on a host the install
+        # does not serve, and no fallback to the first organization, which
+        # has no scope check.
+        if org.nil? && @strategy_result&.metadata&.dig(:organization_context, :domain_scope_refused)
+          return @auth_org = nil
+        end
+
         # Lazy creation for authenticated users without org. A signup collision
         # is persisted as first-class account state, so later requests fail with
         # one stable actionable error instead of retrying provisioning and leaking

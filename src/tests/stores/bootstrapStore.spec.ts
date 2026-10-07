@@ -142,7 +142,6 @@ describe('bootstrapStore', () => {
       expect(store.authenticated).toBe(true);
       expect(store.cust?.role).toBe('colonel');
       expect(store.development?.enabled).toBe(true);
-      expect(store.development?.domain_context_enabled).toBe(true);
     });
 
     it('hydrates custom domains state correctly', () => {

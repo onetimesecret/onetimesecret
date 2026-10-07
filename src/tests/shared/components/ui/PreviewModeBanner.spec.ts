@@ -82,6 +82,12 @@ describe('PreviewModeBanner — reset gating (ADR-046#authority-action-gating)',
     expect(apiPostMock).toHaveBeenCalledWith('/api/colonel/entitlement-preview', {
       planid: null,
     });
+    // The post-reset refresh must postdate the POST, not join a flight that
+    // may still carry the override.
+    expect(useAuthStore().refresh).toHaveBeenCalledWith({
+      kind: 'session-mutation',
+      reason: 'plan-preview',
+    });
   });
 
   it.each(['unavailable', 'checking'] as const)(

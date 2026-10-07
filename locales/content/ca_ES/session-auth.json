@@ -509,8 +509,8 @@
     "source_hash": "7fbbb7e7"
   },
   "web.login.errors.identity_connect_conflict": {
-    "text": "Aquesta identitat no s'ha pogut connectar. La connexió pot haver-se iniciat al domini equivocat, o la teva sessió ha caducat. Torna a iniciar sessió, després connecta-la des de la configuració del teu compte.",
-    "source_hash": "4238bbf2"
+    "text": "No s'ha pogut connectar aquesta identitat. És possible que ja pertanyi a un altre compte.",
+    "source_hash": "d8b71cf8"
   },
   "web.login.errors.org_join_failed": {
     "text": "No hem pogut acabar d'afegir-te a la teva organització. Contacta amb el teu administrador.",
@@ -527,5 +527,25 @@
   "web.login.errors.sso_cancelled": {
     "text": "S'ha cancel·lat l'inici de sessió. Pots tornar-ho a provar quan vulguis.",
     "source_hash": "b5f3d3ec"
+  },
+  "web.login.errors.sso_issuer_mismatch": {
+    "text": "L'inici de sessió amb aquest proveïdor està mal configurat. Si us plau, contacta amb el teu administrador.",
+    "source_hash": "44df5918"
+  },
+  "web.login.errors.sso_config_unusable": {
+    "text": "L'inici de sessió únic per a aquest domini està configurat, però ara mateix no es pot utilitzar. Contacta amb l'administrador de la teva organització.",
+    "source_hash": "f704b391"
+  },
+  "web.login.errors.sso_domain_unverified": {
+    "text": "L'inici de sessió únic per a aquest domini encara no està actiu perquè el domini no ha acabat la verificació. Si us plau, contacta amb el teu administrador.",
+    "source_hash": "bd981480"
+  },
+  "web.login.errors.tenant_sso_link_unavailable": {
+    "text": "Aquesta identitat no està connectada a cap compte d'aquest domini. Si pots iniciar la sessió en aquest domini amb un compte que pertanyi a aquesta organització, connecta-la des d'Identitats connectades. Si no, demana a un propietari de l'organització que convidi aquesta identitat SSO o contacta amb el suport.",
+    "source_hash": "66e7376c"
+  },
+  "web.login.errors.identity_connect_wrong_domain": {
+    "text": "No s'ha pogut connectar aquesta identitat en aquest domini. Comença la connexió des del lloc on has iniciat la sessió; en el domini d'una organització, el teu compte ja ha de pertànyer a aquesta organització.",
+    "source_hash": "d967c761"
   }
 }

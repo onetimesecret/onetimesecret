@@ -2,6 +2,7 @@
 
 import { ApplicationError } from '@/schemas';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { mockCustomer } from '../fixtures/bootstrap.fixture';
 import { SESSION_STORAGE_KEY, useLanguageStore } from '@/shared/stores/languageStore';
 import type { AxiosInstance } from 'axios';
 import type AxiosMockAdapter from 'axios-mock-adapter';
@@ -157,6 +158,44 @@ describe('Language Store', () => {
 
       await store.updateLanguage('fr');
       expect(axiosMock?.history.post[0].data).toBe(JSON.stringify({ locale: 'fr' }));
+    });
+
+    // The auth route guard re-applies bootstrapStore.cust.locale on every
+    // protected navigation. If updateLanguage leaves the snapshot stale, the
+    // next page change silently reverts the choice the user just made.
+    it('keeps the bootstrap snapshot locale in step with the saved preference', async () => {
+      bootstrapStore.update({ cust: { ...mockCustomer, locale: 'en' } });
+      axiosMock?.onPost('/api/account/update-locale').reply(200, {});
+
+      await store.updateLanguage('fr');
+
+      expect(bootstrapStore.cust?.locale).toBe('fr');
+    });
+
+    // If an auth refresh swaps the account while the preference request is in
+    // flight, the patch must not land on the account that signed in afterwards.
+    it('does not write the requesting account\'s choice onto a customer who signed in mid-request', async () => {
+      bootstrapStore.update({ cust: { ...mockCustomer, locale: 'en' } });
+      axiosMock?.onPost('/api/account/update-locale').reply(() => {
+        bootstrapStore.update({
+          cust: { ...mockCustomer, objid: 'cust_obj_other', extid: 'cust_ext_other', locale: 'de' },
+        });
+        return [200, {}];
+      });
+
+      await store.updateLanguage('fr');
+
+      expect(bootstrapStore.cust?.extid).toBe('cust_ext_other');
+      expect(bootstrapStore.cust?.locale).toBe('de');
+    });
+
+    it('does not invent a customer when the visitor is anonymous', async () => {
+      bootstrapStore.update({ cust: null });
+      axiosMock?.onPost('/api/account/update-locale').reply(200, {});
+
+      await store.updateLanguage('fr');
+
+      expect(bootstrapStore.cust).toBeNull();
     });
 
     describe('Error Handling', () => {

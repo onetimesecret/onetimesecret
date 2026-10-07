@@ -46,5 +46,17 @@
   "api.domains.errors.homepage_incoming_not_ready": {
     "text": "Dohodne skrivnosti morajo biti omogočene z vsaj enim prejemnikom, preden jih je mogoče uporabiti kot domačo stran.",
     "source_hash": "556da6e2"
+  },
+  "api.domains.errors.related_origins_invalid": {
+    "text": "Neveljaven izvor: %{origins}. Vnesite shemo in gostitelja, na primer https://vault.example.com",
+    "source_hash": "5acb92ca"
+  },
+  "api.domains.errors.related_origins_foreign_organization": {
+    "text": "Ti izvori pripadajo drugi organizaciji in jih ni mogoče dodati: %{origins}",
+    "source_hash": "ac21c1e7"
+  },
+  "api.domains.errors.allowed_signup_domains_invalid": {
+    "text": "Neveljavna domena: %{domains}. Vnesite ime domene, ki ga je mogoče registrirati, na primer example.com",
+    "source_hash": "2d93472c"
   }
 }

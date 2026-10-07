@@ -46,5 +46,17 @@
   "api.domains.errors.homepage_incoming_not_ready": {
     "text": "Przychodzące sekrety muszą być włączone z co najmniej jednym odbiorcą, zanim będzie można ich użyć jako strony głównej.",
     "source_hash": "556da6e2"
+  },
+  "api.domains.errors.related_origins_invalid": {
+    "text": "Nieprawidłowe źródło: %{origins}. Wprowadź schemat i host, na przykład https://vault.example.com",
+    "source_hash": "5acb92ca"
+  },
+  "api.domains.errors.related_origins_foreign_organization": {
+    "text": "Te źródła należą do innej organizacji i nie można ich dodać: %{origins}",
+    "source_hash": "ac21c1e7"
+  },
+  "api.domains.errors.allowed_signup_domains_invalid": {
+    "text": "Nieprawidłowa domena: %{domains}. Wprowadź nazwę domeny, którą można zarejestrować, na przykład example.com",
+    "source_hash": "2d93472c"
   }
 }

@@ -29,8 +29,17 @@ window.addEventListener('vite:preloadError', (event) => {
  * Initialize and mount the Vue application with all required plugins.
  */
 const app = createApp(App);
-app.use(AppInitializer, { router: createAppRouter(), debug: false });
-app.mount('#app');
+try {
+  app.use(AppInitializer, { router: createAppRouter(), debug: false });
+  app.mount('#app');
+} catch (error) {
+  // Startup threw before the app took over #app, so loading cannot complete.
+  // Flag the server-rendered shell: its stalled-load notice (#4596) then
+  // switches from the timeout copy to a detected failure and stops the orb.
+  // Rethrow so the error still reaches the console and global handlers.
+  document.documentElement.dataset.appFailed = 'true';
+  throw error;
+}
 
 /**
  * Deterministic app-readiness signal for E2E tests

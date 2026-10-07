@@ -12,12 +12,33 @@
 
 require_relative '../../support/test_helpers'
 require 'open3'
+require 'stringio'
+require 'onetime/cli'
 
-# Helper to run CLI and capture output
+# Help output for a command, from the Dry::CLI registry in this process:
+# starting bin/ots for each one costs seconds apiece. --help prints the
+# banner to `out` and then exits, so the exit is caught here. The banner
+# names the program after $PROGRAM_NAME, which is 'ots' under bin/ots.
+def help_output(*args)
+  out           = StringIO.new
+  err           = StringIO.new
+  program_name  = $PROGRAM_NAME
+  $PROGRAM_NAME = 'ots'
+  begin
+    Dry::CLI.new(Onetime::CLI).call(arguments: [*args, '--help'], out: out, err: err)
+  rescue SystemExit
+    # --help exits 0 after printing the banner
+  ensure
+    $PROGRAM_NAME = program_name
+  end
+  out.string.empty? ? err.string : out.string
+end
+
+# Helper to run the real executable and capture output (smoke test only)
 def run_cli(*args)
   env = { 'ONETIME_HOME' => ENV['ONETIME_HOME'] }
   cmd = ['bin/ots', *args]
-  stdout, stderr, status = Open3.capture3(env, *cmd)
+  stdout, stderr, _status = Open3.capture3(env, *cmd)
   # Dry::CLI outputs help to stdout
   stdout.empty? ? stderr : stdout
 end
@@ -49,12 +70,12 @@ end
 
 # Cache help outputs for all commands/aliases we test
 @help_cache = {
-  customers: run_cli('customers', '--help'),
-  customer: run_cli('customer', '--help'),
-  worker: run_cli('worker', '--help'),
-  workers: run_cli('workers', '--help'),
-  version: run_cli('version', '--help'),
-  build: run_cli('build', '--help'),
+  customers: help_output('customers'),
+  customer: help_output('customer'),
+  worker: help_output('worker'),
+  workers: help_output('workers'),
+  version: help_output('version'),
+  build: help_output('build'),
 }
 
 # -------------------------------------------------------------------
@@ -167,4 +188,12 @@ extract_description(@help_cache[:version]) == extract_description(@help_cache[:b
 
 ## 'ots workers --help' shows "ots workers" in Command line (not worker)
 @help_cache[:workers].include?('ots workers')
+#=> true
+
+# -------------------------------------------------------------------
+# Smoke test: the executable prints the same help as the registry here
+# -------------------------------------------------------------------
+
+## 'bin/ots customer --help' as a separate process matches the in-process help
+run_cli('customer', '--help') == @help_cache[:customer]
 #=> true

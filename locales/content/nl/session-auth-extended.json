@@ -957,5 +957,53 @@
   "web.auth.webauthn.emailRequired": {
     "text": "Voer je e-mailadres in om in te loggen met een passkey",
     "source_hash": "7f07647f"
+  },
+  "web.auth.login.verification_unavailable": {
+    "text": "Je bent ingelogd, maar we konden je sessie niet bevestigen. Probeer het zo meteen opnieuw.",
+    "source_hash": "9a19dfc9"
+  },
+  "web.auth.mfa.verification_unavailable": {
+    "text": "Je wachtwoord is geaccepteerd, maar we konden de verificatie met tweefactorauthenticatie niet starten. Probeer het zo meteen opnieuw.",
+    "source_hash": "5fd5e240"
+  },
+  "web.auth.session.ended": {
+    "text": "Je sessie is beëindigd. Log opnieuw in.",
+    "source_hash": "673e9822"
+  },
+  "web.auth.session.replaced": {
+    "text": "Je inlogstatus is in een ander tabblad gewijzigd, daarom is deze pagina opnieuw geladen.",
+    "source_hash": "3767d43b"
+  },
+  "web.auth.session.stale_session_title": {
+    "text": "Deze pagina is verouderd",
+    "source_hash": "0293e093"
+  },
+  "web.auth.session.stale_session_notice": {
+    "text": "Je sessie is gewijzigd sinds deze pagina is geladen. Kopieer alles wat je nog niet hebt opgeslagen en laad de pagina daarna opnieuw om door te gaan.",
+    "source_hash": "c62e236c"
+  },
+  "web.auth.session.reload_now": {
+    "text": "Pagina opnieuw laden",
+    "source_hash": "437d0d63"
+  },
+  "web.auth.session.verification_unavailable_title": {
+    "text": "We kunnen je sessie nu niet verifiëren",
+    "source_hash": "2130dda1"
+  },
+  "web.auth.session.verification_unavailable_body": {
+    "text": "Je bent niet uitgelogd. We konden de server niet bereiken om je sessie te bevestigen, dus deze pagina blijft verborgen totdat dat lukt. We blijven het proberen.",
+    "source_hash": "bb230c2c"
+  },
+  "web.auth.session.retry": {
+    "text": "Opnieuw proberen",
+    "source_hash": "d8b8392e"
+  },
+  "web.auth.session.retrying": {
+    "text": "Controleren…",
+    "source_hash": "ec963ffc"
+  },
+  "web.auth.session.retry_failed": {
+    "text": "Nog steeds niet beschikbaar. Probeer het zo meteen opnieuw.",
+    "source_hash": "b81c022c"
   }
 }

@@ -19,7 +19,6 @@ const developmentShape = augment(developmentSchema, {
   enabled: (b) => b.default(false),
   debug: (b) => b.default(false),
   frontend_host: (s) => s.default('http://localhost:5173'),
-  domain_context_enabled: (b) => b.default(false),
   allow_nil_global_secret: (b) => b.default(false),
 });
 

@@ -9,6 +9,7 @@
 #   ots queue dlq list [queue-name]     List DLQ messages
 #   ots queue dlq show <queue> --id ID  Show specific message details
 #   ots queue dlq replay <queue>        Replay messages back to original queue
+#                                       (workers process them again)
 #   ots queue dlq purge <queue>         Remove messages from DLQ
 #
 # The DLQ list / show / replay / purge capability now lives in central operations
@@ -287,9 +288,11 @@ module Onetime
         end
       end
 
-      # Replay DLQ messages back to original queue
+      # Replay DLQ messages back to original queue. The operation releases
+      # each message's worker idempotency claim first, so the worker processes
+      # the replayed message instead of acking it as a duplicate.
       class DlqReplayCommand < DlqBase
-        desc 'Replay messages from DLQ back to original queue'
+        desc 'Replay messages from DLQ back to original queue; workers process them again'
 
         argument :queue,
           type: :string,

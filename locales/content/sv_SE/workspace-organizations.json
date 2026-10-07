@@ -1226,5 +1226,129 @@
   "web.organizations.sso.enable_untested_warning": {
     "text": "Den här anslutningen har ännu inte klarat ett test här. Kör Testa anslutning innan du aktiverar den, så att en felaktig konfiguration aldrig når din inloggningssida.",
     "source_hash": "c1fbdeca"
+  },
+  "web.organizations.delete_organization_cancel_subscription_first": {
+    "text": "Avsluta den här organisationens prenumeration innan du raderar den.",
+    "source_hash": "f0c54eca"
+  },
+  "web.organizations.sso.disable_action": {
+    "text": "Inaktivera SSO",
+    "source_hash": "2f072272"
+  },
+  "web.organizations.sso.disable_confirm": {
+    "text": "Inaktivera den här SSO-anslutningen? Osparade ändringar i formuläret sparas inte. Sparade autentiseringsuppgifter behålls.",
+    "source_hash": "608b142a"
+  },
+  "web.organizations.sso.disable_enforcement_warning": {
+    "text": "Kravet på enbart SSO stängs också av, vilket tillåter andra konfigurerade inloggningsmetoder.",
+    "source_hash": "58abd552"
+  },
+  "web.organizations.sso.idp_sso_service_url": {
+    "text": "URL för IdP:ns SSO-tjänst",
+    "source_hash": "0b33b1ac"
+  },
+  "web.organizations.sso.idp_sso_service_url_hint": {
+    "text": "HTTPS-slutpunkten som din identitetsleverantör publicerar för SAML single sign-on",
+    "source_hash": "bc6fdfd9"
+  },
+  "web.organizations.sso.idp_sso_service_url_placeholder": {
+    "text": "https://idp.example.com/sso/saml",
+    "source_hash": "513d0586"
+  },
+  "web.organizations.sso.idp_entity_id": {
+    "text": "IdP Entity ID",
+    "source_hash": "14a4ab8b"
+  },
+  "web.organizations.sso.idp_entity_id_hint": {
+    "text": "Issuer-identifieraren från din identitetsleverantörs metadata, exakt som den publiceras",
+    "source_hash": "c3d8320b"
+  },
+  "web.organizations.sso.idp_entity_id_placeholder": {
+    "text": "https://idp.example.com/metadata",
+    "source_hash": "0c46d14d"
+  },
+  "web.organizations.sso.idp_cert": {
+    "text": "IdP:ns signeringscertifikat",
+    "source_hash": "c84000cd"
+  },
+  "web.organizations.sso.idp_cert_hint": {
+    "text": "X.509-certifikatet (PEM) som din identitetsleverantör signerar intyg (assertions) med. Endast ett certifikat; fingeravtryck accepteras inte.",
+    "source_hash": "b5e157f5"
+  },
+  "web.organizations.sso.idp_cert_placeholder": {
+    "text": "-----BEGIN CERTIFICATE-----",
+    "source_hash": "ddddb6cb"
+  },
+  "web.organizations.sso.sp_details": {
+    "text": "Uppgifter om tjänsteleverantören",
+    "source_hash": "4b6617d2"
+  },
+  "web.organizations.sso.sp_details_hint": {
+    "text": "Registrera dessa värden hos din identitetsleverantör",
+    "source_hash": "784e9410"
+  },
+  "web.organizations.sso.sp_details_preview_hint": {
+    "text": "Förhandsvisning baserad på standardsökvägen för inloggning. Spara den här konfigurationen och bekräfta sedan värdena här innan du registrerar dem hos din identitetsleverantör.",
+    "source_hash": "fd9d3001"
+  },
+  "web.organizations.sso.domain_unverified_notice": {
+    "text": "Single sign-on är avstängt på denna domän tills domänen har verifierats. Verifieringen ändrar inte värdena nedan.",
+    "source_hash": "4b56ea4b"
+  },
+  "web.organizations.sso.sp_entity_id": {
+    "text": "SP Entity ID (metadata-URL)",
+    "source_hash": "59bc544c"
+  },
+  "web.organizations.sso.acs_url": {
+    "text": "Assertion Consumer Service-URL",
+    "source_hash": "5dacfb65"
+  },
+  "web.organizations.sso.unreadable_field": {
+    "text": "Det sparade värdet kunde inte läsas. Ange det igen för att fortsätta.",
+    "source_hash": "ca3b5fcc"
+  },
+  "web.organizations.sso.unreadable_fields_alert": {
+    "text": "Vissa sparade värden kunde inte läsas och måste anges igen: {fields}",
+    "source_hash": "e9fa9d16"
+  },
+  "web.organizations.sso.idp_cert_expired_alert": {
+    "text": "Identitetsleverantörens certifikat gick ut den {date}. Inloggning via den här anslutningen misslyckas tills ett giltigt certifikat har sparats.",
+    "source_hash": "527fb721"
+  },
+  "web.organizations.sso.idp_cert_expiring_notice": {
+    "text": "Identitetsleverantörens certifikat går ut den {date}. Ersätt det före dess så att inloggningen fortsätter att fungera.",
+    "source_hash": "ccaf6ca7"
+  },
+  "web.organizations.sso.test_connection_hint_saml": {
+    "text": "Kontrollerar SSO-URL:en, Entity ID och certifikatet lokalt; identitetsleverantören kontaktas inte",
+    "source_hash": "1dad3945"
+  },
+  "web.organizations.sso.configured_issuer": {
+    "text": "Konfigurerad Issuer",
+    "source_hash": "6b307b7f"
+  },
+  "web.organizations.sso.discovery_issuer": {
+    "text": "Upptäckt Issuer",
+    "source_hash": "9d74f978"
+  },
+  "web.organizations.sso.issuer_mismatch_hint": {
+    "text": "OIDC-issuer-identifierare måste matcha exakt, inklusive eventuellt avslutande snedstreck. Ställ in Issuer-URL på det upptäckta värdet som visas ovan.",
+    "source_hash": "ec144c88"
+  },
+  "web.organizations.sso.certificate_subject": {
+    "text": "Certifikatsubjekt",
+    "source_hash": "d7816b16"
+  },
+  "web.organizations.sso.certificate_expires": {
+    "text": "Certifikat går ut",
+    "source_hash": "1e73119d"
+  },
+  "web.organizations.sso.certificate_expires_in_days": {
+    "text": "om {n} dag | om {n} dagar",
+    "source_hash": "df98ca65"
+  },
+  "web.organizations.sso.certificate_valid_from": {
+    "text": "Certifikat giltigt från",
+    "source_hash": "b13d3f30"
   }
 }

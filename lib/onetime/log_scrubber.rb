@@ -58,11 +58,10 @@ module Onetime
   # Nothing is mutated in place. Strings, hashes, arrays and exceptions
   # belong to the caller, who may still use, re-raise or report them. The
   # scrubber assigns new objects to the SemanticLogger::Log, which Semantic
-  # Logger owns, and only when something changed. One exception: a copied
-  # exception shares its backtrace Array with the original, and the
-  # production formatter in SetupLoggers (truncate_exception_backtrace)
-  # slices that Array in place. It did the same to the original before this
-  # scrub existed, so that is not a change.
+  # Logger owns, and only when something changed. A copied exception shares
+  # its backtrace Array with the original; the production formatter in
+  # SetupLoggers (with_truncated_backtrace) shortens backtraces on a copy of
+  # its own and leaves that Array alone.
   #
   # Output that bypasses this scrub:
   #   - direct `warn`, `puts`, `$stdout` or `$stderr` writes

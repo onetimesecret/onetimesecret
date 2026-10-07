@@ -638,5 +638,121 @@
   "web.admin.organizations.entitlements.summary.planUnknown": {
     "text": "Unbekannt – Vergleich nicht möglich",
     "source_hash": "b607e540"
+  },
+  "web.admin.organizations.actions.plan.label": {
+    "text": "Tarif",
+    "source_hash": "fa8ed0bd"
+  },
+  "web.admin.organizations.actions.plan.apply": {
+    "text": "Anwenden",
+    "source_hash": "31e392d1"
+  },
+  "web.admin.organizations.actions.plan.confirmTitle": {
+    "text": "Tarif ändern?",
+    "source_hash": "910a4de9"
+  },
+  "web.admin.organizations.actions.plan.confirmDescription": {
+    "text": "{org} auf den Tarif {plan} ändern.",
+    "source_hash": "aecf8277"
+  },
+  "web.admin.organizations.actions.plan.success": {
+    "text": "Tarif aktualisiert.",
+    "source_hash": "ebe8d40c"
+  },
+  "web.admin.organizations.actions.plan.problem": {
+    "text": "Tarif gespeichert, aber die Berechtigungen wurden nicht aktualisiert. Führe für diese Organisation einen Abgleich aus.",
+    "source_hash": "2addb095"
+  },
+  "web.admin.organizations.actions.plan.localConfigWarning": {
+    "text": "Tarife aus lokaler Konfiguration geladen — Stripe ist nicht konfiguriert oder nicht erreichbar.",
+    "source_hash": "df83e326"
+  },
+  "web.admin.organizations.detail.delete.button": {
+    "text": "Organisation löschen",
+    "source_hash": "a70d189a"
+  },
+  "web.admin.organizations.detail.delete.previewing": {
+    "text": "Löschplan wird geladen…",
+    "source_hash": "c9773eb9"
+  },
+  "web.admin.organizations.detail.delete.warning": {
+    "text": "Löscht die Organisation, ihre Mitgliedschaften und ihre ausstehenden Einladungen dauerhaft und benachrichtigt die ehemaligen Mitglieder per E-Mail. Dies kann nicht rückgängig gemacht werden.",
+    "source_hash": "fd314131"
+  },
+  "web.admin.organizations.detail.delete.confirmTitle": {
+    "text": "Diese Organisation löschen?",
+    "source_hash": "6a3bba0f"
+  },
+  "web.admin.organizations.detail.delete.confirmDescription": {
+    "text": "Dadurch wird {org} dauerhaft gelöscht. Gib zur Bestätigung die Organisations-ID erneut ein.",
+    "source_hash": "c63a0221"
+  },
+  "web.admin.organizations.detail.delete.membersLabel": {
+    "text": "Mitglieder",
+    "source_hash": "1044a4c0"
+  },
+  "web.admin.organizations.detail.delete.invitationsLabel": {
+    "text": "Ausstehende Einladungen",
+    "source_hash": "76198e63"
+  },
+  "web.admin.organizations.detail.delete.domainsLabel": {
+    "text": "Domains",
+    "source_hash": "ced67718"
+  },
+  "web.admin.organizations.detail.delete.defaultOrgLabel": {
+    "text": "Entfernt den Standard-Arbeitsbereich für",
+    "source_hash": "d535ac2a"
+  },
+  "web.admin.organizations.detail.delete.forceDefault": {
+    "text": "Dies ist der (persönliche) Standard-Arbeitsbereich des Inhabers. Trotzdem löschen.",
+    "source_hash": "1a8b0f7d"
+  },
+  "web.admin.organizations.detail.delete.forceSubscription": {
+    "text": "Das Abonnement ist aktiv. Trotzdem löschen — dadurch wird die Stripe-Abrechnung nicht gekündigt.",
+    "source_hash": "51cb3456"
+  },
+  "web.admin.organizations.detail.delete.driftedDomainsLabel": {
+    "text": "Abweichende Domains",
+    "source_hash": "fef96f49"
+  },
+  "web.admin.organizations.detail.delete.driftedDomainsRepair": {
+    "text": "Reparieren mit: bin/ots domains doctor --all --repair",
+    "source_hash": "14c9c59f"
+  },
+  "web.admin.organizations.detail.delete.success": {
+    "text": "{org} gelöscht.",
+    "source_hash": "9cdda5d0"
+  },
+  "web.admin.organizations.detail.delete.blocked.hasDomains": {
+    "text": "Blockiert: Entferne zuerst die benutzerdefinierten Domains ({domains}).",
+    "source_hash": "dc3248b2"
+  },
+  "web.admin.organizations.detail.delete.blocked.driftedDomains": {
+    "text": "Blockiert: Diese Domain-Datensätze verweisen noch auf diese Organisation, fehlen aber in ihrer Domain-Liste ({domains}). Führe zuerst bin/ots domains doctor --all --repair aus — es gibt keine Überschreibung.",
+    "source_hash": "3136496c"
+  },
+  "web.admin.organizations.detail.delete.blocked.isDefault": {
+    "text": "Blockiert: Dies ist der Standard-Arbeitsbereich des Inhabers. Aktiviere unten die Überschreibung, um ihn trotzdem zu löschen.",
+    "source_hash": "09d5baa4"
+  },
+  "web.admin.organizations.detail.delete.blocked.activeSubscription": {
+    "text": "Blockiert: Die Organisation hat ein aktives Abonnement. Kündige es zuerst in Stripe oder aktiviere unten die Überschreibung.",
+    "source_hash": "68663641"
+  },
+  "web.admin.organizations.detail.delete.blocked.lastOrg": {
+    "text": "Blockiert: Dies ist die einzige Organisation, der {owner} angehört, und durch das Löschen hätte diese Person keinen Arbeitsbereich mehr. Es gibt keine Überschreibung — erstelle zuerst eine Ersatzorganisation.",
+    "source_hash": "f09b4f9a"
+  },
+  "web.admin.organizations.detail.delete.errors.planUnreadable": {
+    "text": "Der Löschplan konnte nicht vom Server gelesen werden. Es wurde nichts gelöscht.",
+    "source_hash": "91406cbb"
+  },
+  "web.admin.organizations.detail.delete.errors.unverified": {
+    "text": "Die Serverantwort konnte nicht überprüft werden. Lade die Organisationsliste neu, um zu prüfen, ob das Löschen abgeschlossen wurde.",
+    "source_hash": "7a261fb0"
+  },
+  "web.admin.organizations.detail.delete.errors.notApplied": {
+    "text": "Der Server hat eine Vorschau statt einer Löschung zurückgegeben. Es wurde nichts gelöscht.",
+    "source_hash": "9d84971d"
   }
 }

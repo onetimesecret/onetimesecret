@@ -350,5 +350,17 @@
   "web.layout.colonels_only_badge": {
     "text": "Chỉ dành cho Colonel",
     "source_hash": "3f1e2dbd"
+  },
+  "web.footer.dpa": {
+    "text": "Thỏa thuận xử lý dữ liệu",
+    "source_hash": "112eae6b"
+  },
+  "web.footer.cookie_policy": {
+    "text": "Chính sách cookie",
+    "source_hash": "ee290b3d"
+  },
+  "web.footer.acceptable_use": {
+    "text": "Chính sách sử dụng hợp lệ",
+    "source_hash": "34aa287a"
   }
 }
