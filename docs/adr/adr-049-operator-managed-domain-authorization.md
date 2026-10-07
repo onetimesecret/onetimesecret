@@ -1,16 +1,16 @@
 ---
 id: "049"
-status: proposed
+status: accepted
 title: "ADR-049: Operator-Managed Domain Authorization"
 ---
 
 ## Status
 
-Proposed
+Accepted
 
 ## Date
 
-2026-09-28
+2026-10-05
 
 ## Context
 
@@ -26,7 +26,9 @@ This mode is not permission to use an arbitrary hostname. Authorization comes
 from the operator trusting the current registration of a domain to a customer.
 DNS and HTTPS observations can describe whether that registration is usable,
 but they cannot create or revoke the operator's authorization and cannot prove
-ownership.
+ownership. The summary table in the
+[operator-managed domains specification](../specs/domain-validation/operator-managed-domains.md)
+contrasts the two concerns row by row.
 
 The deployment context for this proposal reports no installed `passthrough`
 user base to migrate. The strategy has not worked as a usable mode in project or
@@ -39,6 +41,11 @@ configuration aliases.
 The canonical strategy name is `operator_managed`. `passthrough` and `external`
 are input aliases and normalize immediately to `operator_managed`; persisted
 and emitted strategy values use the canonical name.
+
+These names and aliases apply to the custom-domain validation strategy only.
+The `validation_strategy` field on `SignupConfig` selects an email-address
+validation strategy and also accepts `passthrough`; it is unrelated to this
+decision and is not renamed or normalized by it.
 
 A trusted, current registration under operator control authorizes that domain
 for its assigned customer without TXT proof. The registration must still exist,
@@ -59,7 +66,10 @@ Domain state is separated into three concerns:
    is external under `operator_managed`. Operator-policy authorization must not
    authorize OTS's internal ACME path or be consumed as ACME ownership proof.
 
-The effective per-domain strategy from ADR-015 is enforced at request time. A
+The strategy in effect for a domain is enforced at request time. Today that is
+the install-level `features.domains.validation_strategy`. ADR-015 is accepted
+but not implemented; if its per-domain override lands, it takes precedence as
+that ADR specifies and the same request-time enforcement applies to it. A
 switch from `operator_managed` to either TXT-enforced strategy immediately
 stops operator-policy authorization from qualifying, including before any
 scheduled refresh, worker pass, or cache update. The first request under the
@@ -85,9 +95,9 @@ or staged old/new client rollout is required. All consumers adopt the canonical
 name and aliases as one change; retaining the aliases is vocabulary
 compatibility, not evidence of an installed user base.
 
-### Proposed partial supersession
+### Partial supersession
 
-If accepted, this ADR supersedes only these clauses of ADR-016:
+This ADR supersedes only these clauses of ADR-016:
 
 - the Decision's statement that the ownership axis is universal and computed
   the same way regardless of strategy, insofar as it requires TXT ownership
@@ -102,7 +112,7 @@ ADR-016's separation of ownership from serving and certificate status, its
 non-conflation rules, and its decisions for TXT-enforced strategies remain
 intact.
 
-If accepted, this ADR supersedes only these clauses of ADR-017:
+This ADR supersedes only these clauses of ADR-017:
 
 - the Decision's `passthrough` requirement for one-time TXT proof before use as
   a `share_domain`;
