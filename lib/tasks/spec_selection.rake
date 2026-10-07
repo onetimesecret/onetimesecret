@@ -145,6 +145,15 @@ module SpecSelection
     { name: 'billing_integration', paths: BILLING_INTEGRATION_SPEC_FILES }
   end
 
+  # The harness lane's invocation (spec:lanes): the lane runner's own specs,
+  # which spec:fast excludes. The legacy fan-out ran them under spec/unit, so
+  # they count toward what the lanes must still select between them.
+  #
+  # @return [Hash] invocation descriptor
+  def harness_invocation
+    { name: 'harness', paths: HARNESS_SPEC_PATHS }
+  end
+
   # Files the lanes pick up that NO legacy invocation ever claimed.
   #
   # spec/lib/onetime/jobs/workers/*_spec.rb arrived with #3810 and were run by
@@ -197,6 +206,7 @@ module SpecSelection
       'spec:fast' => fast_invocations.flat_map { |inv| files(**inv.except(:name, :tags)) }.sort.uniq,
       'spec:billing' => files(**billing_invocation.except(:name)),
       'spec:integration:billing' => files(**billing_integration_invocation.except(:name)),
+      'spec:lanes' => files(**harness_invocation.except(:name)),
       'spec:integration' => integration.sort.uniq,
       'spec:api' => Dir.glob('spec/api/**/*_spec.rb').sort.uniq,
     }
@@ -238,7 +248,7 @@ module SpecSelection
 end
 
 namespace :spec do
-  desc 'Verify spec:fast + the two billing lanes select exactly what the legacy 13-invocation fan-out did'
+  desc 'Verify spec:fast, the two billing lanes and the harness lane select exactly what the legacy 13-invocation fan-out did'
   task :verify_selection do
     SpecSelection.assert_legs_modeled!
 
@@ -249,7 +259,8 @@ namespace :spec do
     fast                = claims.fetch('spec:fast')
     billing             = claims.fetch('spec:billing')
     billing_integration = claims.fetch('spec:integration:billing')
-    current             = (fast + billing + billing_integration).sort.uniq
+    harness             = claims.fetch('spec:lanes')
+    current             = (fast + billing + billing_integration + harness).sort.uniq
     adopted             = SpecSelection.adopted_files
 
     dropped           = legacy - current
@@ -258,8 +269,8 @@ namespace :spec do
 
     unless dropped.empty? && added.empty? && missing_adoptions.empty?
       abort <<~MSG
-        spec:fast + spec:billing + spec:integration:billing selection drift —
-        the three lanes' invocations no longer select, between them, what the
+        spec:fast + spec:billing + spec:integration:billing + spec:lanes selection drift —
+        the four lanes' invocations no longer select, between them, what the
         legacy per-tree invocations select.
 
           dropped (legacy ran these, no lane does now):
@@ -285,6 +296,7 @@ namespace :spec do
     if billing_integration.empty?
       abort 'spec:integration:billing selects no files: check BILLING_INTEGRATION_SPEC_PATTERN in lib/tasks/spec.rake'
     end
+    abort 'spec:lanes selects no files: check HARNESS_SPEC_PATHS in lib/tasks/spec.rake' if harness.empty?
 
     # Orphan/overlap check. A spec file that no lane runs is invisible drift:
     # it passes review, passes CI, and is never executed. That is exactly how

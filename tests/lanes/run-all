@@ -81,7 +81,7 @@ source "${LANES_DIR}/ownership"
 #     the disqualifier: those writes land in the one repo-root generated/
 #     directory the other lanes are reading from, non-atomically, while
 #     they read it. Run it alone: `tests/lanes/run smoke`.
-DEFAULT_LANES=(unit billing simple disabled full-sqlite)
+DEFAULT_LANES=(unit billing simple disabled full-sqlite harness)
 
 usage() {
   echo "usage: tests/lanes/run-all [--parallel] [--dry-run] [<lane>...]"

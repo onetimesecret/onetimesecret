@@ -186,6 +186,7 @@ module LaneOwnershipProbe
     %w[billing                                      spec/cli/billing],
     %w[billing                                      spec/unit/billing],
     %w[billing                                      spec/unit/onetime/operations/billing],
+    %w[harness                                      spec/unit/lanes],
     %w[unit                                         spec/cli],
     %w[unit                                         spec/lib],
     %w[unit                                         spec/unit],
@@ -242,7 +243,7 @@ module LaneOwnershipProbe
   OWNERSHIP_WALK = %w[
     tests/browser/ tests/browser/*
     spec/*/ spec/integration/*/ spec/integration/full/database_triggers/*_spec.rb spec/integration/full/postgres_*_spec.rb
-    spec/cli/billing/ spec/unit/billing/ spec/unit/onetime/operations/billing/
+    spec/cli/billing/ spec/unit/billing/ spec/unit/onetime/operations/billing/ spec/unit/lanes/
     apps/*/*/spec/ apps/*/*/spec/integration/*/ apps/*/*/spec/integration/*_spec.rb
     apps/*/*/spec/integration/full/migrations/*_spec.rb
     apps/web/billing/try/

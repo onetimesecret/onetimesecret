@@ -320,6 +320,7 @@ RSpec.describe 'lane rspec reporting' do
       'full-pg-agnostic' => [''],
       'full-saml-platform' => ['_saml_platform'],
       'full-sqlite' => [''],
+      'harness' => [''],
       'migrations-pg' => [''],
       'migrations-sqlite' => [''],
       'simple' => [''],
@@ -334,7 +335,7 @@ RSpec.describe 'lane rspec reporting' do
       through_rake = lanes.reject { |_, invocations| invocations.empty? }.keys.sort
 
       expect(through_rake).to eq(%w[api billing billing-integration disabled full-mfa full-pg full-pg-agnostic
-                                    full-saml-platform full-sqlite migrations-pg migrations-sqlite simple unit])
+                                    full-saml-platform full-sqlite harness migrations-pg migrations-sqlite simple unit])
     end
 
     it 'never gives two invocations of one lane the same file' do

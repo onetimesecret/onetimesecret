@@ -53,6 +53,7 @@ declare -A LANES_OWNER_TASKS=(
   [migrations-sqlite]='spec:integration:migrations:sqlite'
   [migrations-pg]='spec:integration:migrations:postgres spec:integration:migrations:verify_dual_url'
   [api]='spec:api'
+  [harness]='spec:lanes'
   # browser invokes rspec directly and is mapped explicitly below. Smoke runs
   # `pnpm test:smoke` and owns no path here; selftest runs no application code.
   # None of the three is a rake lane.
@@ -201,9 +202,13 @@ lanes_for_path() {  # <path>
     apps/web/billing/spec|apps/web/billing/spec/*|spec/cli/billing|spec/cli/billing/*|\
     spec/unit/billing|spec/unit/billing/*|spec/unit/onetime/operations/billing|spec/unit/onetime/operations/billing/*)
       echo billing ;;
+    # spec:lanes — the lane runner's own specs (HARNESS_SPEC_PATHS in
+    # lib/tasks/spec.rake), which spec:fast excludes. Ahead of spec:fast.
+    spec/unit/lanes|spec/unit/lanes/*)
+      echo harness ;;
     # spec:fast — spec/unit, spec/cli, spec/lib and every apps/*/*/spec tree
-    # minus its integration/ subtree and the billing trees (both dispatched
-    # above).
+    # minus its integration/ subtree and the billing and harness trees (all
+    # dispatched above).
     spec/unit|spec/unit/*|spec/cli|spec/cli/*|spec/lib|spec/lib/*|${app}/spec|${app}/spec/*)
       echo unit ;;
     spec/api|spec/api/*)

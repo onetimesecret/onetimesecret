@@ -183,6 +183,15 @@ BILLING_SPEC_EXCLUDE = 'apps/web/billing/spec/integration/**/*_spec.rb'
 BILLING_INTEGRATION_SPEC_PATTERN = 'apps/web/billing/spec/integration/*_spec.rb'
 BILLING_INTEGRATION_SPEC_FILES   = Dir.glob(BILLING_INTEGRATION_SPEC_PATTERN).sort.freeze
 
+# The harness lane's spec selection (tests/lanes/harness, spec:lanes below):
+# the lane runner's own specs. Nearly every example there starts
+# tests/lanes/run as a subprocess (the selftest lane, --print-key, run-all
+# --dry-run), so the directory costs ~20s for examples that test the runner
+# and not the application. CI runs the lane only when a path those specs
+# exercise changed (the `harness` filter in ci.yml); spec:fast leaves the
+# directory out so every other pull request skips it.
+HARNESS_SPEC_PATHS = %w[spec/unit/lanes].freeze
+
 # The same trees, as spec:fast's exclusions. Each exclude shares its include's
 # prefix ('spec/…' against ROOT_FAST_PATTERN, 'apps/…' against
 # APPS_FAST_PATTERN), the one spelling the HARD RULE allows.
@@ -191,6 +200,7 @@ ROOT_FAST_EXCLUDE = [
   'spec/cli/billing/**/*_spec.rb',
   'spec/unit/billing/**/*_spec.rb',
   'spec/unit/onetime/operations/billing/**/*_spec.rb',
+  'spec/unit/lanes/**/*_spec.rb',
 ].join(',')
 APPS_FAST_PATTERN = 'apps/*/*/spec/**/*_spec.rb'
 APPS_FAST_EXCLUDE = [
@@ -256,6 +266,14 @@ namespace :spec do
   task :billing do |task|
     sh "bundle exec rspec #{BILLING_SPEC_PATHS.join(' ')} --exclude-pattern '#{BILLING_SPEC_EXCLUDE}' " \
        "#{rspec_task_format_options(task)}"
+  end
+
+  # The harness lane's rspec invocation (tests/lanes/harness): the lane
+  # runner's own specs, HARNESS_SPEC_PATHS above, which spec:fast excludes.
+  # Plain `sh` like spec:billing so the lane ownership oracle sees the paths.
+  desc 'Run the lane runner specs (the harness lane; one process)'
+  task :lanes do |task|
+    sh "bundle exec rspec #{HARNESS_SPEC_PATHS.join(' ')} #{rspec_task_format_options(task)}"
   end
 
   # Per-tree tasks below are kept for targeted runs (`rake spec:apps:web_auth`)

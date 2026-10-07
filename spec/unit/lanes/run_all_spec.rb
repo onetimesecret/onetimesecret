@@ -123,8 +123,8 @@ RSpec.describe 'tests/lanes/run-all' do
       output, status = probe.run('--dry-run')
 
       expect(status).to be_success
-      expect(output).to include('lanes:   unit billing simple disabled full-sqlite')
-      # The union of what the five lanes declare, generated once up front …
+      expect(output).to include('lanes:   unit billing simple disabled full-sqlite harness')
+      # The union of what the six lanes declare, generated once up front …
       expect(output).to include('codegen: locales schemas')
       # RabbitMQ vhost provisioning is a runner dependency, not a task
       # dependency: parallel children have autostart disabled, so the wrapper
@@ -132,7 +132,7 @@ RSpec.describe 'tests/lanes/run-all' do
       expect(output).to include('ports:   2163 2156 12156')
       # … and every child told so. A planned child without the flag is a
       # child that will regenerate into the shared generated/ mid-fan-out.
-      %w[unit billing simple disabled full-sqlite].each do |lane|
+      %w[unit billing simple disabled full-sqlite harness].each do |lane|
         expect(output).to include("tests/lanes/run #{lane} --skip-codegen")
       end
       expect(output).not_to include('tests/lanes/run smoke')
