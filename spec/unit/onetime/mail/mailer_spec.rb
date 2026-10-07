@@ -101,7 +101,7 @@ RSpec.describe Onetime::Mail::Mailer do
       let(:mode) { 'carrier-pigeon' }
 
       it "is 'logger', the backend the mailer falls back to" do
-        allow_any_instance_of(Onetime::Mail::Delivery::Logger).to receive(:puts)
+        allow(Onetime::Mail::Delivery::Logger).to receive(:output).and_return(StringIO.new)
 
         expect(described_class.backend_provider).to eq('logger')
         expect(described_class.determine_provider).to eq('carrier-pigeon')

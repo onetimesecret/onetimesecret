@@ -194,10 +194,10 @@ RSpec.describe DomainsAPI::Logic::SignupConfig::ChangeLogger do
       end
 
       context 'with integer 0' do
-        # Pins the asymmetry with `1`: only `true`, 'true', '1', 1 coerce
-        # truthy (change_logger.rb extract_new_value). Everything else,
-        # including 0, falls through to false. Matches existing false state
-        # so no change recorded.
+        # Pins the asymmetry with `1`: extract_new_value coerces through
+        # OT::Utils.explicit_yes?, a recognizer. Everything outside its
+        # truthy table, including 0, falls through to false. Matches existing
+        # false state so no change recorded.
         let(:new_params) { { 'enabled' => 0 } }
 
         it 'is coerced to false (matches existing false, no change recorded)' do

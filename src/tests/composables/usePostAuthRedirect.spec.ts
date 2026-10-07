@@ -61,29 +61,36 @@ describe('usePostAuthRedirect', () => {
       seedBillingQuery();
       useBootstrapStore().billing_enabled = true;
       const orgStore = useOrganizationStore();
-      vi.mocked(orgStore.restorePersistedSelection).mockReturnValue(orgOf({ extid: 'org_q1' }));
+      // A free org is still an org with a plan (planid is required, default
+      // 'free_v1'), so it takes the same plan-relative route as a subscriber.
+      vi.mocked(orgStore.restorePersistedSelection).mockReturnValue(
+        orgOf({ extid: 'org_q1', planid: 'free_v1' })
+      );
 
       await usePostAuthRedirect().navigateAfterAuth(undefined);
 
       expect(orgStore.fetchOrganizations).toHaveBeenCalledTimes(1);
       expect(routerPushMock).toHaveBeenCalledWith({
         path: '/billing/org_q1/plans',
-        query: { product: 'identity_plus_v1', interval: 'monthly' },
+        query: { product: 'identity_plus_v1', interval: 'monthly', change: 'true' },
       });
     });
 
-    it('keeps reserved characters in ONE query param on the checkout destination', async () => {
+    it('keeps reserved characters in ONE query param on the plans destination', async () => {
       mockRoute.query = { product: 'x&change=true', interval: 'month#frag' };
       useBootstrapStore().billing_enabled = true;
       const orgStore = useOrganizationStore();
-      vi.mocked(orgStore.restorePersistedSelection).mockReturnValue(orgOf({ extid: 'org_q1' }));
+      vi.mocked(orgStore.restorePersistedSelection).mockReturnValue(
+        orgOf({ extid: 'org_q1', planid: 'free_v1' })
+      );
 
       await usePostAuthRedirect().handleBillingRedirect(undefined);
 
-      // String interpolation would have split `&change=true` into a second param.
+      // String interpolation would have split `&change=true` into a second param
+      // and collided with the real `change` key the composable appends.
       expect(routerPushMock).toHaveBeenCalledWith({
         path: '/billing/org_q1/plans',
-        query: { product: 'x&change=true', interval: 'month#frag' },
+        query: { product: 'x&change=true', interval: 'month#frag', change: 'true' },
       });
     });
 

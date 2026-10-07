@@ -72,6 +72,58 @@ const httpLoggingSchema = z.object({
 });
 
 /**
+ * Console destination: stdout in server modes, stderr under the CLI.
+ * A null level means no destination threshold; a null formatter means the
+ * top-level formatter (color under the CLI).
+ */
+const consoleDestinationSchema = z.object({
+  enabled: z.boolean().optional(),
+  level: logLevelSchema.nullable().optional(),
+  formatter: formatterSchema.nullable().optional(),
+});
+
+/**
+ * File destination: the same events appended to one file.
+ * A null level means no destination threshold; a null formatter means
+ * plain text.
+ */
+const fileDestinationSchema = z.object({
+  enabled: z.boolean().optional(),
+  path: nullableString,
+  level: logLevelSchema.nullable().optional(),
+  formatter: formatterSchema.nullable().optional(),
+});
+
+/**
+ * Log destinations
+ * Category levels decide which events are generated; a destination level
+ * only filters what that destination writes.
+ */
+const destinationsSchema = z.object({
+  console: consoleDestinationSchema.optional(),
+  file: fileDestinationSchema.optional(),
+});
+
+/**
+ * Optional syslog appender for the operator audit sink (#4334).
+ * Off by default; when enabled it receives the ColonelAudit category and
+ * nothing else. `facility` is a syslog facility name (local0, daemon, ...).
+ */
+const auditSyslogSchema = z.object({
+  enabled: z.boolean().optional(),
+  url: z.string().optional(),
+  level: logLevelSchema.optional(),
+  facility: z.string().optional(),
+});
+
+/**
+ * Operator audit sink
+ */
+const auditSchema = z.object({
+  syslog: auditSyslogSchema.optional(),
+});
+
+/**
  * Complete logging configuration schema
  *
  * Matches the structure from etc/defaults/logging.defaults.yaml
@@ -80,6 +132,8 @@ const loggingConfigSchema = z.object({
   default_level: logLevelSchema.optional(),
   formatter: formatterSchema.optional(),
   loggers: loggersSchema.optional(),
+  destinations: destinationsSchema.optional(),
+  audit: auditSchema.optional(),
   http: httpLoggingSchema.optional(),
 });
 
@@ -88,6 +142,8 @@ export type Formatter = z.infer<typeof formatterSchema>;
 export type HttpCapture = z.infer<typeof httpCaptureSchema>;
 export type Loggers = z.infer<typeof loggersSchema>;
 export type HttpLogging = z.infer<typeof httpLoggingSchema>;
+export type LogDestinations = z.infer<typeof destinationsSchema>;
+export type LogAudit = z.infer<typeof auditSchema>;
 export type LoggingConfig = z.infer<typeof loggingConfigSchema>;
 
 export {
@@ -97,6 +153,8 @@ export {
   httpCaptureSchema,
   loggersSchema,
   httpLoggingSchema,
+  destinationsSchema,
+  auditSchema,
 };
 
 /**

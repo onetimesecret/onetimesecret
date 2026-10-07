@@ -8,7 +8,7 @@
 #   fresh runner
 #     -> bin/setup                              # the documented setup command
 #     -> bin/setup --test                       # the documented test lane
-#     -> tests/lanes/run unit && pnpm test      # the documented suites
+#     -> tests/lanes/run unit && pnpm test       # the documented suites
 #     -> tests/lanes/run browser                # browsers from --test, OS deps CI-only
 #     -> bin/setup --test                       # second run = idempotency (Zulip)
 #     -> git status --porcelain == empty        # litter check (Zulip)

@@ -111,6 +111,38 @@ describe('Organization Store', () => {
       expect(store.hasOrganizations).toBe(false);
     });
 
+    // Route guards that fail closed (handleOrgRoleRequirement) treat a thrown
+    // fetch as "access unconfirmed" but a returned empty list as a confirmed
+    // "owns no org" refusal. A malformed body must take the thrown path and
+    // leave the store as a network rejection would.
+    it('rejects on a malformed response and leaves the store untouched', async () => {
+      axiosMock?.onGet('/api/organizations').reply(200, {
+        records: [mockOrganizationRaw],
+        count: 1,
+      });
+      await store.fetchOrganizations();
+      expect(store.organizations).toHaveLength(1);
+
+      axiosMock?.reset();
+      axiosMock?.onGet('/api/organizations').reply(200, { records: 'not-an-array' });
+
+      await expect(store.fetchOrganizations()).rejects.toThrow(
+        'Unable to load organizations. Please try again.'
+      );
+      expect(store.organizations).toHaveLength(1);
+      expect(store.organizations[0]).toEqual(mockOrganization);
+      expect(store.loading).toBe(false);
+    });
+
+    it('does not mark the list as fetched when the response is malformed', async () => {
+      axiosMock?.onGet('/api/organizations').reply(200, { nope: true });
+
+      await expect(store.fetchOrganizations()).rejects.toThrow();
+
+      expect(store.isListFetched).toBe(false);
+      expect(store.organizations).toEqual([]);
+    });
+
     it('fetches a single organization by ID', async () => {
       axiosMock?.onGet('/api/organizations/on123abc').reply(200, {
         record: mockOrganizationRaw,

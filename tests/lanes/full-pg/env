@@ -1,5 +1,7 @@
 # Lane: full-pg — PostgreSQL-only full-mode specs (--tag postgres_database).
-# CI job: ruby-integration-full (T3, "PG" matrix rows; billing via overlay)
+# CI jobs: ruby-integration-full (T3, "PG" row) on every Ruby change;
+# ruby-integration-billing (the same lane with the billing overlay) nightly
+# only.
 #
 # Roles and passwords come from apps/web/auth/migrations/schemas/postgres/
 # initialize_test_db.sql, which compose.test.yml mounts into

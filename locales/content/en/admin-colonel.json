@@ -287,6 +287,26 @@
     "text": "Activate test mode",
     "content_hash": "0f469baa"
   },
+  "web.colonel.activateTestModeFailed": {
+    "text": "Failed to activate test mode. Please try again.",
+    "context": "Error in the colonel plan preview modal when the request to activate test mode fails; nothing changed server-side",
+    "content_hash": "3dc18737"
+  },
+  "web.colonel.activateTestModeRefreshFailed": {
+    "text": "Test mode was activated, but the page could not refresh. Reload to see the change.",
+    "context": "Error in the colonel plan preview modal when test mode was activated on the server but reloading the session and organization data afterwards failed",
+    "content_hash": "f053bd00"
+  },
+  "web.colonel.resetTestModeFailed": {
+    "text": "Failed to reset test mode. Please try again.",
+    "context": "Error in the colonel plan preview modal when the request to reset test mode fails; nothing changed server-side",
+    "content_hash": "3973f708"
+  },
+  "web.colonel.resetTestModeRefreshFailed": {
+    "text": "Test mode was reset, but the page could not refresh. Reload to see the change.",
+    "context": "Error in the colonel plan preview modal when test mode was reset on the server but reloading the session and organization data afterwards failed",
+    "content_hash": "92bf470b"
+  },
   "web.colonel.testModeActive": {
     "text": "Test mode active",
     "content_hash": "ae2c8dd9"

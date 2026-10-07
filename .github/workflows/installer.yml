@@ -141,7 +141,8 @@ jobs:
 
       # One real operation on the result (the Homebrew-installer pattern:
       # assert a real outcome, not output text) — the fast suite on the
-      # environment the lane just built.
+      # environment the lane just built. Not the billing suite: billing
+      # tests run only in main CI's nightly (docs/development/auth-ci.md).
       - name: RSpec fast suite on the macOS-built environment
         run: pnpm run test:rspec:fast
 
