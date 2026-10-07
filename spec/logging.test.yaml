@@ -27,6 +27,55 @@ loggers:
   Sequel: warn # Database queries and operations (SQL logged at :trace level)
   Session: info # Session lifecycle (create, update, destroy)
 
+# Log destinations for a lane run (`tests/lanes/run --capture-logs` and
+# `--log-console`). The runner exports these below its environment scrub;
+# with neither set, nothing is written here and the shipped defaults apply
+# (console on, file off).
+#
+#   LANES_APP_LOG_FILE=<absolute path>   enables the file destination. The
+#                                        file is appended to; the runner
+#                                        creates and truncates it.
+#   LANES_APP_LOG_CONSOLE=off            disables the console destination
+#   LANES_APP_LOG_CONSOLE=<level>        console threshold: trace, debug,
+#                                        info, warn, error or fatal
+#
+# These choose where an event is written. The category levels above still
+# decide which events exist: the file cannot hold an event its category
+# rejected. To lower a category for one rerun, set DEBUG_LOGGERS (for
+# example Auth:debug) in a throwaway overlay; it is applied after the levels
+# above. See "A debug rerun of one failure" in tests/lanes/README.md.
+#
+# The file is not everything a run prints. The logger mail backend writes
+# outside these loggers and goes to LANES_MAIL_LOG_FILE, which is not read
+# here (tests/lanes/support/log_capture.rb); rspec, tryouts and direct
+# prints stay on the console.
+#
+# A key is written only when it has a value, because a null here would
+# replace the default beneath it. Values are quoted: a bare `off` is a YAML
+# boolean. Any other value becomes the console level as given, so one that
+# is not a level stops setup.
+<%
+  require 'json'
+  lanes_app_log_file    = ENV['LANES_APP_LOG_FILE'].to_s.strip
+  lanes_app_log_console = ENV['LANES_APP_LOG_CONSOLE'].to_s.strip
+%>
+<% unless lanes_app_log_file.empty? && lanes_app_log_console.empty? %>
+destinations:
+<%   unless lanes_app_log_console.empty? %>
+  console:
+<%     if lanes_app_log_console == 'off' %>
+    enabled: false
+<%     else %>
+    level: <%= lanes_app_log_console.to_json %>
+<%     end %>
+<%   end %>
+<%   unless lanes_app_log_file.empty? %>
+  file:
+    enabled: true
+    path: <%= lanes_app_log_file.to_json %>
+<%   end %>
+<% end %>
+
 # HTTP request logging configuration
 http:
   # Set LOG_HTTP_REQUESTS=false to disable. Useful when running a reverse proxy

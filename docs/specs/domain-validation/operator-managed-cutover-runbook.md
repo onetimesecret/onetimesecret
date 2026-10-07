@@ -46,8 +46,8 @@ This runbook covers install-level strategy transitions. It does not define per-d
 | --- | --- | --- |
 | `operator_managed`, `passthrough`, or `external` | `caddy_on_demand` | Full cutover barrier required. Operator-policy authorization stops qualifying at activation. Each accepted assignment requires eligible TXT proof for its current lineage or an eligible explicit override. |
 | `operator_managed`, `passthrough`, or `external` | `approximated` | Full cutover barrier required. Operator-policy authorization stops qualifying at activation. Each accepted assignment requires eligible TXT proof for its current lineage or an eligible explicit override. |
-| `caddy_on_demand` | `operator_managed` | Full assignment inventory and coordinated activation required. Only an already-trusted current lineage or an explicit operator adoption into a new trusted lineage gains operator-policy authorization. Lineage-changing adoption makes prior TXT and override evidence ineligible; health remains separately identified. |
-| `approximated` | `operator_managed` | Full assignment and provider-resource inventories plus coordinated activation are required. Only an already-trusted current lineage or an explicit operator adoption into a new trusted lineage gains operator-policy authorization. Lineage-changing adoption makes prior TXT and override evidence ineligible; health remains separately identified. Every residual provider certificate and virtual host requires an approved retain, remove, or manual disposition before activation. |
+| `caddy_on_demand` | `operator_managed` | Full assignment inventory and coordinated activation required. Every current registration gains operator-policy authorization unless a higher-precedence basis applies; health remains separately identified. |
+| `approximated` | `operator_managed` | Full assignment and provider-resource inventories plus coordinated activation are required. Every current registration gains operator-policy authorization unless a higher-precedence basis applies; health remains separately identified. Every residual provider certificate and virtual host requires an approved retain, remove, or manual disposition before activation. |
 | `caddy_on_demand` | `approximated` | Target-strategy dry run and evidence eligibility review required. Source-strategy success is not automatically target-strategy proof. |
 | `approximated` | `caddy_on_demand` | Target-strategy dry run and evidence eligibility review required. Source-strategy success is not automatically target-strategy proof. |
 | `passthrough` or `external` | `operator_managed` | Alias normalization only. It is not a passthrough-user migration, but coordinated configuration deployment is still required so all processes agree on the canonical name and semantics. |
@@ -133,14 +133,14 @@ For each affected domain whose effective source strategy is `approximated` and t
 
 TXT proof and explicit overrides apply to an assignment, not merely to a domain string.
 
-The current assignment lineage is continuous while the canonical domain, organization/owner assignment, and assignment identity remain unchanged. Transfer, detach and re-attach, deletion and recreation, or operator adoption of an existing untrusted registration ends the prior lineage. Challenge rotation and TXT demotion do not end the assignment lineage; they are TXT-evidence boundaries. Operator-policy promotion without an adoption boundary does not create a TXT-proof lineage.
+The current assignment lineage is continuous while the canonical domain, organization/owner assignment, and assignment identity remain unchanged. Transfer, detach and re-attach, or deletion and recreation ends the prior lineage. Challenge rotation and TXT demotion do not end the assignment lineage; they are TXT-evidence boundaries. Operator-policy promotion does not create a TXT-proof lineage.
 
 Evidence eligibility has a shared assignment-lineage boundary and type-specific invalidation rules. Persisted provenance must establish all of the following:
 
 - the TXT proof or override belongs to the current assignment lineage;
 - TXT proof matched the current expected challenge identity and value, and no later challenge rotation, definitive TXT failure, or demotion invalidated that proof;
 - an explicit override names the current assignment lineage and remains active and unrevoked; challenge rotation or TXT demotion does not invalidate it;
-- a transfer, reassignment, detach and re-attach, deletion and recreation, or lineage-changing operator adoption makes both prior TXT proof and prior overrides ineligible;
+- a transfer, reassignment, detach and re-attach, or deletion and recreation makes both prior TXT proof and prior overrides ineligible;
 - the producing strategy and outcome are known and acceptable to the target policy;
 - the target evaluator can verify the evidence without inferring provenance from health or aggregate booleans.
 
@@ -161,7 +161,7 @@ When both an active current-lineage override and eligible TXT proof exist, the e
 
 A fresh target-strategy TXT pass may move an assignment without an active eligible override from policy-only or unknown into eligible TXT proof only when the result is bound to the same frozen assignment and challenge generation and is persisted as provenance during the activation transaction or revalidated inside the activation barrier.
 
-For an `operator_managed` target, every assignment is classified, in authorization-precedence order, as active current-lineage override, eligible current-lineage TXT proof, already-trusted current lineage, approved adoption into a new trusted lineage, or denied. Eligible TXT proof and overrides retain their basis when no lineage-changing adoption occurs. An approved adoption makes prior TXT and override evidence ineligible. An untrusted lineage with no eligible proof, override, or approved adoption remains denied.
+For an `operator_managed` target, every assignment is classified, in authorization-precedence order, as active current-lineage override, eligible current-lineage TXT proof, current registration under operator policy, or denied. Eligible TXT proof and overrides retain their basis. Only a malformed, orphaned, or otherwise non-current assignment is denied.
 
 ## Target-strategy dry run
 
@@ -182,7 +182,7 @@ A dry-run pass is candidate evidence, not activation. It cannot open serving or 
 
 ### Exception report
 
-The machine-readable exception report includes every assignment that the target evaluator would deny. For a TXT-enforced target, that includes every assignment not accepted by eligible TXT proof or explicit override. For an `operator_managed` target, it includes every untrusted assignment without eligible proof, an active override, or approved adoption, plus every malformed or inconsistent assignment. Each item records:
+The machine-readable exception report includes every assignment that the target evaluator would deny. For a TXT-enforced target, that includes every assignment not accepted by eligible TXT proof or explicit override. For an `operator_managed` target, it includes every malformed or inconsistent assignment. Each item records:
 
 - assignment and lineage identity;
 - classification and reason code;
@@ -210,7 +210,7 @@ The sequence is:
 1. Reconfirm that the freeze remains active and that inventory identities and mutation generations are unchanged.
 2. Reconcile the final exception report. Any unresolved, added, removed, or changed assignment aborts activation.
 3. For affected `approximated` → `operator_managed` domains, reconcile the provider-resource inventory against the provider control plane and require activation approval to include the complete disposition manifest. Any unlisted residual certificate or virtual host, missing disposition, or unapproved disposition aborts activation. Retain, remove, and manual actions remain operator change-process work; target activation does not grant the application permission to delete provider resources.
-4. Persist target authorization decisions with their assignment lineage and the new cutover generation. For a TXT-enforced target, persist eligible fresh proof and override decisions; policy-only and unknown/ineligible rows receive no qualifying TXT authorization. For an `operator_managed` target, retain eligible current-lineage proof and overrides, retain already-trusted lineages, and apply approved adoptions as new trusted lineages that inherit no prior proof or override.
+4. Persist target authorization decisions with their assignment lineage and the new cutover generation. For a TXT-enforced target, persist eligible fresh proof and override decisions; policy-only and unknown/ineligible rows receive no qualifying TXT authorization. For an `operator_managed` target, retain eligible current-lineage proof and overrides; every other current registration receives `operator_policy`.
 5. Activate the target configuration and target authorization evaluator for web processes, workers, scheduler, and ACME permission decisions under the same generation.
 6. Invalidate source-generation authorization and domain caches. Cache misses under the target generation are evaluated from eligible evidence; they do not fall back to source booleans.
 7. Start or release processes only while external serving and ACME isolation remains in place. Every process acknowledges the target strategy, configuration digest, cutover generation, and cache generation.
@@ -231,7 +231,7 @@ The fixture set includes:
 | --- | --- | --- |
 | Policy-only legacy flags | Operator-policy assignment with `verified=true` and `resolving=true`, no eligible proof or override | Denied on the first protected decision. |
 | Timestamp only | Policy-only assignment with `verified_confirmed_at` but no complete lineage/proof provenance | Denied. |
-| Ended lineage | Historical TXT pass for an assignment that was transferred, detached/re-attached, recreated, or replaced by lineage-changing adoption | Denied. |
+| Ended lineage | Historical TXT pass for an assignment that was transferred, detached/re-attached, or recreated | Denied. |
 | Invalidated TXT evidence | Historical TXT pass tied to a rotated challenge, definitive later TXT failure, or demotion, with no active current-lineage override | Denied; the current assignment lineage itself need not have ended. |
 | Stale source cache | Cached operator-managed allow decision from the source generation | Denied; cache generation mismatch is observable. |
 | Eligible TXT | Current-lineage, target-acceptable TXT proof | Allowed independently of DNS/HTTPS health. |
@@ -243,10 +243,9 @@ For an `operator_managed` target, the fixture set also includes:
 
 | Fixture | Stored state before cutover | Expected after activation |
 | --- | --- | --- |
-| Already trusted lineage | Current trusted registration | Allowed as `operator_policy` when no higher-precedence basis exists. |
-| Eligible proof or override | Current-lineage evidence without adoption | Allowed with the existing evidence basis, not relabeled as `operator_policy`. |
-| Approved adoption | Existing untrusted registration approved for adoption | Allowed as `operator_policy` on the new trusted lineage; prior proof and override are ineligible. |
-| Untrusted and not adopted | Current registration with no eligible proof, override, or approved adoption | Denied on the first protected decision. |
+| Current registration | Current registration without higher-precedence evidence | Allowed as `operator_policy`. |
+| Eligible proof or override | Current-lineage evidence | Allowed with the existing evidence basis, not relabeled as `operator_policy`. |
+| Non-current registration | Malformed, orphaned, or inconsistent assignment | Denied on the first protected decision. |
 
 Each fixture is exercised against every protected decision path, including custom-domain use/link creation, request-time serving authorization, ACME permission, and any worker path that makes an authorization decision.
 
@@ -289,7 +288,7 @@ The cutover succeeds only when:
 - every first-request case has the expected decision before refresh;
 - source-generation cache and late-write probes fail closed;
 - all expected eligible TXT and override assignments remain usable with the correct authorization basis;
-- policy-only and unknown/ineligible assignments remain denied under a TXT-enforced target, and untrusted, unadopted assignments without eligible evidence remain denied under an `operator_managed` target;
+- policy-only and unknown/ineligible assignments remain denied under a TXT-enforced target, and malformed or non-current assignments remain denied under an `operator_managed` target;
 - for affected `approximated` → `operator_managed` domains, the provider-control-plane inventory reconciles, every residual certificate and virtual host has an approved retain, remove, or manual disposition, queued orphan cleanup resolves the current effective strategy and skips deletion as `externally_managed`, and the application performs no provider request, renewal, replacement, import, or deletion after activation;
 - health reporting remains separate from authorization;
 - serving, ACME, workers, scheduler, registration, and transfer resume without generation mismatch;
@@ -316,7 +315,7 @@ An abort leaves the source strategy active, removes the maintenance barrier only
 
 Rollback begins immediately after activation when any of these occurs:
 
-- a policy-only, timestamp-only, ended-lineage, stale-cache, or unknown fixture receives an allow decision under a TXT-enforced target, or an untrusted, unadopted fixture without eligible evidence receives an allow decision under an `operator_managed` target;
+- a policy-only, timestamp-only, ended-lineage, stale-cache, or unknown fixture receives an allow decision under a TXT-enforced target, or a malformed or non-current fixture receives an allow decision under an `operator_managed` target;
 - web, worker, scheduler, or ACME processes report mixed strategy/configuration generations;
 - a source-generation write or cache entry affects a target decision;
 - an assignment accepted in the approved manifest is unexpectedly denied because the activation lost eligible evidence;
@@ -330,7 +329,7 @@ Rollback begins immediately after activation when any of these occurs:
 2. Capture the failed generation's decisions, logs, cache metadata, assignment generations, and post-activation inventory before changing configuration.
 3. Stop or fence every target-generation decision-maker and drain target-generation writers.
 4. Activate the immutable source configuration as a new rollback generation; do not restore a datastore or cache snapshot wholesale.
-5. Recompute source authorization from the source strategy, current assignment lineage, and persisted evidence. Apply normal basis precedence: an active current-lineage override remains `explicit_override`; otherwise eligible current-lineage TXT evidence remains `txt_proof`; otherwise a trusted current lineage under an operator-managed source may receive `operator_policy`. Do not relabel TXT proof or an override as operator policy.
+5. Recompute source authorization from the source strategy, current assignment lineage, and persisted evidence. Apply normal basis precedence: an active current-lineage override remains `explicit_override`; otherwise eligible current-lineage TXT evidence remains `txt_proof`; otherwise a current lineage under an operator-managed source receives `operator_policy`. Do not relabel TXT proof or an override as operator policy.
 6. Preserve the cutover classification of legacy flags, timestamp-only state, ended-lineage proof, and ineligible overrides. Rollback does not set `verified`, `resolving`, `verified_confirmed_at`, or `verified_by_override` from the pre-cutover snapshot, and it does not discard activation-committed evidence merely because the target generation failed.
 7. Invalidate both source-precutover and failed-target cache generations. Start processes under the rollback generation while traffic remains isolated.
 8. Run first-request checks proving that no assignment is authorized by replayed ineligible evidence and that expected source-policy behavior is restored.
@@ -386,11 +385,11 @@ Runtime implementation and tooling are ready for this runbook only when automate
 | --- | --- |
 | Operator-managed → `caddy_on_demand` | Policy-only state is denied before refresh; current-lineage TXT proof and override are accepted. |
 | Operator-managed → `approximated` | Policy-only state is denied before refresh; current-lineage TXT proof and override are accepted. |
-| TXT-enforced → operator-managed | Only already-trusted current lineages or registrations explicitly adopted into new trusted lineages are authorized as operator policy, without manufacturing TXT confirmation or assumed health; adoption inherits no prior TXT proof or override. |
+| TXT-enforced → operator-managed | Every current registration is authorized as operator policy without manufacturing TXT confirmation or assumed health; eligible TXT proof and overrides keep their own basis. |
 | `approximated` → `operator_managed` provider resources | Before activation, every residual provider certificate and virtual host is inventoried and has an approved retain, remove, or manual disposition. After activation, queued orphan cleanup re-resolves the effective strategy and records `externally_managed` without deletion; the application does not request, renew, replace, import, or delete provider resources. |
 | TXT-enforced → TXT-enforced | The target evaluator accepts only target-eligible current-lineage evidence or override. |
 | Legacy flags/timestamp | `verified`, `resolving`, `ready?`, and timestamp-only state cannot authorize. |
-| Assignment-lineage change | Transfer, detach/re-attach, recreation, and lineage-changing operator adoption make prior TXT proof and overrides ineligible. |
+| Assignment-lineage change | Transfer, detach/re-attach, and recreation make prior TXT proof and overrides ineligible. |
 | TXT evidence boundary | Challenge rotation, definitive TXT failure, and demotion invalidate affected TXT proof without ending the current assignment lineage or invalidating an active current-lineage override. |
 | Restart | A cold process produces the same target decision as a warm process. |
 | Stale cache | A source-generation allow entry is rejected after activation. |

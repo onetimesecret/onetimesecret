@@ -9,13 +9,14 @@
 # 1. Webhook fires → no matching org → pending record stored
 # 2. User creates account → pending matched → benefits applied
 #
-# Run: pnpm run test:rspec apps/web/billing/spec/integration/pending_federation_spec.rb
+# Run: tests/lanes/run billing-integration --only apps/web/billing/spec/integration/pending_federation_spec.rb
 #
-# NOTE: deliberately stays at the integration/ root (no mode subdirectory), so
-# no spec:integration:<mode> rake lane or CI job runs it. Moving it into
-# integration/simple/ would derive the :simple_auth_mode tag, which conflicts
-# with the manual rake vcr:billing:verify/rerecord lanes that run this tree
-# under AUTHENTICATION_MODE=full. Runs via those lanes or direct invocation.
+# NOTE: deliberately stays at the integration/ root (no mode subdirectory):
+# the billing-integration lane (spec:integration:billing, nightly in CI) runs
+# the files directly under integration/. Moving it into integration/simple/
+# would derive the :simple_auth_mode tag, which conflicts with the manual
+# rake vcr:billing:verify/rerecord tasks that run this tree under
+# AUTHENTICATION_MODE=full.
 
 require_relative '../support/billing_spec_helper'
 require_relative '../operations/process_webhook_event/shared_examples'

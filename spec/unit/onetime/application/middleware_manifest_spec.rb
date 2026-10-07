@@ -184,6 +184,27 @@ RSpec.describe 'Middleware manifest (characterization)' do
       middleware['cookie_tossing'] = saved
     end
 
+    it 'warns once per process that CookieTossing is off, however many applications build the stack' do
+      Onetime.d9s_enabled          = false
+      middleware                   = OT.conf['site']['middleware']
+      saved                        = middleware['cookie_tossing']
+      middleware['cookie_tossing'] = false
+      allow(OT).to receive(:lw)
+      Onetime::Application::MiddlewareStack.reset_warn_once!
+      2.times do
+        Onetime::Application::MiddlewareStack.configure(
+          recorder_class.new,
+          application_context: { name: 'ManifestSpec', prefix: '/manifest-spec' },
+        )
+      end
+      expect(OT).to have_received(:lw)
+        .with('[Security] CookieTossing protection DISABLED (site.middleware.cookie_tossing=false)')
+        .once
+    ensure
+      middleware['cookie_tossing'] = saved
+      Onetime::Application::MiddlewareStack.reset_warn_once!
+    end
+
     it 'only records `use` calls (no run/map/warmup at the universal layer)' do
       recorder = recorder_class.new
       Onetime::Application::MiddlewareStack.configure(

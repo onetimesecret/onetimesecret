@@ -1,6 +1,6 @@
 # Lane: browser — real-browser specs under tests/browser (the SAML callback
 # transport matrix: chromium, firefox and webkit driven by Playwright).
-# CI job: ruby-unit (T2), as its own lane step ahead of the unit lane.
+# CI job: ruby-auth-browser (T2), selected by auth (docs/development/auth-ci.md).
 #
 # Services: valkey and rabbitmq, the same pair the unit lane starts.
 # Valkey is used — Onetime::Security::SamlCallbackStore stages the

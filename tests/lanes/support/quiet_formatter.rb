@@ -17,9 +17,12 @@ require 'rspec/core/formatters/base_text_formatter'
 # loader collects notifications along the ancestor chain — so the whole
 # formatter is the inheritance.
 #
-# Loaded through SPEC_OPTS (`--require <this file> --format
-# Lanes::QuietFormatter`), which tests/lanes/run sets below its env scrub
-# and only under --quiet, so CI logs and default runs never see it.
+# Loaded by `--require <this file> --format Lanes::QuietFormatter` on the
+# rspec command line, which tests/lanes/support/rspec_format.rb adds when
+# LANES_RSPEC_CONSOLE=quiet (tests/lanes/run --quiet) and leaves out
+# otherwise, so a default run never sees it. It replaces the console
+# formatter only: the JSON formatter a run with RSPEC_OUTPUT_FILE has is
+# passed beside it.
 module Lanes
   class QuietFormatter < RSpec::Core::Formatters::BaseTextFormatter
     RSpec::Core::Formatters.register self

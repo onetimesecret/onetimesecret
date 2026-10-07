@@ -58,7 +58,8 @@ and loads the lane's own environment — the same entrypoint CI uses. It
 needs bash 5+ (macOS ships 3.2 — `brew install bash`); a too-old one is
 flagged by `bin/setup --doctor`. See [tests/lanes/](../../tests/lanes/)
 for the full lane matrix (integration, PostgreSQL-backed auth, billing,
-migrations).
+migrations). For when auth-specific suites run in CI and how to force them,
+see [Auth CI selection](./auth-ci.md).
 
 `bin/setup --test` puts the checkout in test mode: with direnv installed,
 every shell in the checkout loads `.env.test` and runs `RACK_ENV=test` until

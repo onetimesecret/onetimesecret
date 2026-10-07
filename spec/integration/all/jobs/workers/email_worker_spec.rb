@@ -930,7 +930,7 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker, type: :integration do
           # Run the real mail path; only the provider choice is controlled.
           allow(Onetime::Mail).to receive(:deliver_raw).and_call_original
           allow(Onetime::Mail::Mailer).to receive(:determine_provider).and_return(provider)
-          allow_any_instance_of(Onetime::Mail::Delivery::Logger).to receive(:puts)
+          allow(Onetime::Mail::Delivery::Logger).to receive(:output).and_return(StringIO.new)
           Onetime::Mail::Mailer.reset!
         end
 
