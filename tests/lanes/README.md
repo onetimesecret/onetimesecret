@@ -472,6 +472,7 @@ does, so while a run of that lane and overlay set is live it exits 69
 | Lane                 | Services                   | Runs                                                          | CI job                                           |
 | -------------------- | -------------------------- | ------------------------------------------------------------- | ------------------------------------------------ |
 | `unit`               | valkey, rabbitmq           | `try:unit`, `spec:fast`                                       | ruby-unit (T2)                                   |
+| `billing`            | valkey, rabbitmq           | `try:billing`, `spec:billing`                                 | ruby-billing (T2)                                |
 | `browser`            | valkey, rabbitmq           | `rspec tests/browser` (Playwright: chromium, firefox, webkit) | ruby-auth-browser (T2)                           |
 | `simple`             | valkey, rabbitmq           | `try:integration:simple`, `spec:integration:simple`           | ruby-integration-simple (T3)                     |
 | `full-sqlite`        | valkey, rabbitmq           | `spec:integration:full`                                       | ruby-integration-full — SQLite row               |
@@ -490,13 +491,22 @@ Start every service named for a lane. This includes RabbitMQ for `api`,
 `browser` and `smoke`, whose lane environment still declares its endpoint.
 `selftest` is the only service-free exception.
 
-A lane with several legs (`unit`, `simple`, `migrations-pg`) runs every leg
-even when an earlier one fails, then exits non-zero naming the red legs; the
-same holds for the three rspec legs inside `rake spec:fast`. A red leg never
-silently skips the ones after it.
+A lane with several legs (`unit`, `billing`, `simple`, `migrations-pg`) runs
+every leg even when an earlier one fails, then exits non-zero naming the red
+legs; the same holds for the three rspec legs inside `rake spec:fast`. A red
+leg never silently skips the ones after it.
+
+The `billing` lane is billing's own tests, carved out of `unit`: the billing
+app's spec and tryouts trees plus the root trees named for billing
+(`BILLING_SPEC_PATHS` and `BILLING_TRY_PATHS` in `lib/tasks/spec.rake`), in
+the same simple-mode, billing-off environment. `rake spec:verify_selection`
+proves `spec:fast` and `spec:billing` partition what `spec:fast` alone used
+to select. The lane runs no `--tag` filter: the `:integration`-tagged billing
+examples belong to it.
 
 Use `--overlay billing` only with full-mode lanes. Billing requires
-`AUTHENTICATION_MODE=full`; other lanes reject the overlay. In CI the overlay
+`AUTHENTICATION_MODE=full`; other lanes reject the overlay, the `billing`
+lane included — the lane and the overlay are different axes. In CI the overlay
 rows are the `ruby-integration-billing` job, which runs on a pull request
 only when it changes a billing path (`docs/development/auth-ci.md`).
 
@@ -593,7 +603,7 @@ To enable a local, gitignored overlay for that shell, write its name to
 ## Parallel local runs
 
 `tests/lanes/run-all` composes direct lane runs. With no lane names it runs
-`unit simple disabled full-sqlite`; use `--parallel` to fan them out:
+`unit billing simple disabled full-sqlite`; use `--parallel` to fan them out:
 
 ```console
 $ docker compose -f compose.test.yml up --wait -d

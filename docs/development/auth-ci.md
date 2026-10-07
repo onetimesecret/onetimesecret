@@ -26,8 +26,9 @@ Full authentication mode is tested on every Ruby change. Two full-mode rows
 are not selected by auth or billing: the whole full-mode suite once, on
 SQLite, and the PostgreSQL-only specs, both with billing off. The unit,
 simple-mode, disabled-mode and API lanes, Tryouts, and Vitest keep their
-existing path-based selection. Billing's own specs under `apps/web/billing/`
-are part of the unit lane, so they run on every Ruby change too.
+existing path-based selection. Billing's own specs and tryouts are the
+`billing` lane (ruby-billing), gated like the unit lane, so they run on every
+Ruby change too.
 
 [Container E2E](../../.github/workflows/e2e.yml) keeps its own selection and
 both its simple and full-mode rows.

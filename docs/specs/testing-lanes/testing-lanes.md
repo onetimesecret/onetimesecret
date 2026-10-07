@@ -45,6 +45,7 @@ specs.
 | Lane | Services | Runs | CI job |
 | --- | --- | --- | --- |
 | `unit` | valkey, rabbitmq | `try:unit`, `spec:fast` | ruby-unit (T2) |
+| `billing` | valkey, rabbitmq | `try:billing`, `spec:billing` | ruby-billing (T2) |
 | `browser` | valkey, rabbitmq | `rspec tests/browser` (Playwright: chromium, firefox, webkit) | ruby-auth-browser (T2) |
 | `simple` | valkey, rabbitmq | `try:integration:simple`, `spec:integration:simple` | ruby-integration-simple (T3) |
 | `full-sqlite` | valkey, rabbitmq | `spec:integration:full` | ruby-integration-full — SQLite row |
