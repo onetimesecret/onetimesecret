@@ -219,10 +219,12 @@ module LaneOwnershipProbe
     %w[full-sqlite,full-pg,migrations-pg            spec/integration/full/postgres_infrastructure_spec.rb],
     %w[full-sqlite,full-pg,full-pg-agnostic,full-mfa spec/integration/full/env_toggles/magic_links_spec.rb],
     %w[full-sqlite,full-pg,full-pg-agnostic,full-mfa spec/integration/full/routes/availability_spec.rb],
+    %w[full-sqlite,full-pg,full-pg-agnostic,full-mfa spec/integration/full/routes/resend_verification_email_spec.rb],
     %w[billing                                      apps/web/billing/spec],
     %w[billing                                      apps/web/billing/try],
     %w[unit                                         apps/*/*/spec],
     %w[full-sqlite,full-pg                          apps/*/*/spec/integration/full/migrations/*_spec.rb],
+    %w[full-sqlite,full-pg,full-pg-agnostic,full-mfa apps/web/auth/spec/integration/full/resend_verify_account_internal_request_spec.rb],
     %w[full-sqlite,full-pg,full-pg-agnostic,full-mfa apps/web/auth/spec/integration/full/restrict_to_enforcement_spec.rb],
     %w[full-sqlite,full-pg,full-pg-agnostic,full-mfa apps/web/auth/spec/integration/full/signin_enabled_enforcement_spec.rb],
     %w[full-sqlite,full-pg,full-pg-agnostic,full-mfa apps/web/auth/spec/integration/full/signin_gate_enforcement_spec.rb],
@@ -270,8 +272,9 @@ module LaneOwnershipProbe
     spec/cli/billing/ spec/unit/billing/ spec/unit/onetime/operations/billing/ spec/unit/lanes/
     apps/*/*/spec/ apps/*/*/spec/integration/*/ apps/*/*/spec/integration/*_spec.rb
     apps/*/*/spec/integration/full/migrations/*_spec.rb
-    spec/integration/full/env_toggles/magic_links_spec.rb spec/integration/full/routes/availability_spec.rb
+    spec/integration/full/env_toggles/magic_links_spec.rb spec/integration/full/routes/{availability,resend_verification_email}_spec.rb
     apps/web/auth/spec/integration/full/{restrict_to,signin_enabled,signin_gate}_enforcement_spec.rb
+    apps/web/auth/spec/integration/full/resend_verify_account_internal_request_spec.rb
     apps/web/billing/try/
     try/*/ try/integration/*/ try/integration/*_try.rb
     try/unit/billing/ try/unit/cli/billing/

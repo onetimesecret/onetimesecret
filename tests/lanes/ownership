@@ -169,7 +169,9 @@ lanes_for_path() {  # <path>
     apps/web/auth/spec/integration/full/restrict_to_enforcement_spec.rb|\
     apps/web/auth/spec/integration/full/signin_enabled_enforcement_spec.rb|\
     apps/web/auth/spec/integration/full/signin_gate_enforcement_spec.rb|\
-    spec/integration/full/env_toggles/magic_links_spec.rb|spec/integration/full/routes/availability_spec.rb)
+    apps/web/auth/spec/integration/full/resend_verify_account_internal_request_spec.rb|\
+    spec/integration/full/env_toggles/magic_links_spec.rb|spec/integration/full/routes/availability_spec.rb|\
+    spec/integration/full/routes/resend_verification_email_spec.rb)
       printf '%s\n' full-sqlite full-pg full-pg-agnostic full-mfa ;;
     # spec:integration:full, full:postgres, and full:agnostic_on_pg minus
     # the name shapes its --exclude-pattern drops.

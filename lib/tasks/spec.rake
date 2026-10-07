@@ -267,8 +267,8 @@ BILLING_INTEGRATION_SPEC_PATTERN = 'apps/web/billing/spec/integration/*_spec.rb'
 BILLING_INTEGRATION_SPEC_FILES   = Dir.glob(BILLING_INTEGRATION_SPEC_PATTERN).sort.freeze
 
 # Full-mode files that adapt to the auth feature set: an example that needs
-# MFA, email_auth (magic links) or WebAuthn skips when its route is not
-# mounted, and the mirror-image example skips when it is. The shared full
+# MFA, email_auth (magic links), WebAuthn or verify_account skips when the
+# feature is not loaded, and the mirror-image example skips when it is. The shared full
 # lanes boot with those features off, so spec:integration:full:mfa loads these
 # files too, by name: in its boot the feature-on examples execute and the
 # feature-off ones skip, and each example runs in some lane. Files, not
@@ -277,8 +277,10 @@ FULL_MFA_FEATURE_ADAPTIVE_SPECS = %w[
   apps/web/auth/spec/integration/full/restrict_to_enforcement_spec.rb
   apps/web/auth/spec/integration/full/signin_enabled_enforcement_spec.rb
   apps/web/auth/spec/integration/full/signin_gate_enforcement_spec.rb
+  apps/web/auth/spec/integration/full/resend_verify_account_internal_request_spec.rb
   spec/integration/full/env_toggles/magic_links_spec.rb
   spec/integration/full/routes/availability_spec.rb
+  spec/integration/full/routes/resend_verification_email_spec.rb
 ].freeze
 
 # The harness lane's spec selection (tests/lanes/harness, spec:lanes below):
@@ -503,6 +505,9 @@ namespace :spec do
         # Passkey-as-second-factor coverage (omniauth_connect_reauth_webauthn_spec)
         # needs the Rodauth webauthn feature set in the same one-shot boot.
         'AUTH_WEBAUTHN_ENABLED' => 'true',
+        # Email verification for the verify_account examples among the
+        # feature-adaptive files below.
+        'AUTH_VERIFY_ACCOUNT_ENABLED' => 'true',
       }
 
       # This task is the full-mfa lane's only task, so an empty glob would
