@@ -40,6 +40,7 @@ LANES_OWNERSHIP_ROOT="$(cd "${LANES_OWNERSHIP_DIR}/../.." && pwd)"
 
 declare -A LANES_OWNER_TASKS=(
   [unit]='try:unit spec:fast'
+  [billing]='try:billing spec:billing'
   [browser]=''
   [simple]='try:integration:simple spec:integration:simple'
   [disabled]='spec:integration:disabled'
@@ -182,13 +183,28 @@ lanes_for_path() {  # <path>
     # no task (UNRUN_SPECS in lib/tasks/spec_selection.rake): no owner.
     ${app}/spec/integration|${app}/spec/integration/*)
       ;;
+    # spec:billing — the billing app's spec tree (minus its integration/
+    # subtree, above) and the root trees named for billing
+    # (BILLING_SPEC_PATHS in lib/tasks/spec.rake). Ahead of spec:fast, whose
+    # patterns exclude exactly these.
+    apps/web/billing/spec|apps/web/billing/spec/*|spec/cli/billing|spec/cli/billing/*|\
+    spec/unit/billing|spec/unit/billing/*|spec/unit/onetime/operations/billing|spec/unit/onetime/operations/billing/*)
+      echo billing ;;
     # spec:fast — spec/unit, spec/cli, spec/lib and every apps/*/*/spec tree
-    # minus its integration/ subtree (already dispatched above).
+    # minus its integration/ subtree and the billing trees (both dispatched
+    # above).
     spec/unit|spec/unit/*|spec/cli|spec/cli/*|spec/lib|spec/lib/*|${app}/spec|${app}/spec/*)
       echo unit ;;
     spec/api|spec/api/*)
       echo api ;;
-    # try:unit — five try/ trees plus apps/**/try at any depth.
+    # try:billing — the billing app's tryouts and the two try/unit subtrees
+    # named for billing (BILLING_TRY_PATHS in lib/tasks/spec.rake), which
+    # try:unit leaves out. Ahead of try:unit.
+    apps/web/billing/try|apps/web/billing/try/*|try/unit/billing|try/unit/billing/*|\
+    try/unit/cli/billing|try/unit/cli/billing/*)
+      echo billing ;;
+    # try:unit — five try/ trees plus apps/**/try at any depth, minus the
+    # billing paths above.
     try/unit|try/unit/*|try/system|try/system/*|try/security|try/security/*|\
     try/features|try/features/*|try/jobs|try/jobs/*|apps/*/try|apps/*/try/*)
       echo unit ;;

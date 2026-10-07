@@ -4,7 +4,8 @@ AUTHENTICATION_MODE=simple
 
 # Generated prerequisites, produced by tests/lanes/run before the tasks
 # below (see the codegen phase there). spec/spec_helper.rb refuses to boot
-# with an empty generated/locales, and spec:fast includes the billing
-# catalog spec, which reads the gitignored
-# generated/schemas/config/billing.schema.json.
+# with an empty generated/locales, and spec:fast includes the config
+# validation specs, which read the gitignored
+# generated/schemas/config/static.schema.json. (Billing's catalog spec, the
+# other reader, is the billing lane's now.)
 LANES_CODEGEN='locales schemas'

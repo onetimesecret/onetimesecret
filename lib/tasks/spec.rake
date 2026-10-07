@@ -127,13 +127,18 @@ end.freeze
 #
 # spec:fast is THREE rspec processes (spec:root_fast, spec:apps_fast, and
 # spec:apps_config_ru), not one per spec tree. The split is a behaviour boundary,
-# not a performance
-# compromise: apps/web/billing/spec/support/billing_spec_helper.rb registers VCR
-# around-hooks and billing stubs on the GENERIC type: :cli key, and
-# spec/cli/**/*_spec.rb declares type: :cli — merging the two into one process
-# would wrap all 430 CLI examples in cassettes and stub Object#sleep under them.
-# The trees that carry no exclusions (spec/unit, spec/cli, spec/lib) keep their
-# own process for that reason.
+# not a performance compromise: apps/web/billing/spec/support/billing_spec_helper.rb
+# registers VCR around-hooks and billing stubs on GENERIC metadata keys (type:
+# :cli among them), scoped to the billing files by :file_path. The root trees
+# and the app trees keep separate processes so that scoping is the only thing
+# standing between the billing hooks and the 430 spec/cli examples that also
+# declare type: :cli.
+#
+# Billing is not in spec:fast at all. Its specs — the billing app's tree and
+# the root trees named for billing — are the billing lane's (tests/lanes/billing,
+# spec:billing below), excluded here by the same paths so that
+# `rake spec:verify_selection` can prove the two lanes partition what spec:fast
+# used to run.
 #
 # HARD RULE for anyone editing these patterns: never mix a 'spec/…'-prefixed
 # include pattern with an 'apps/…'-prefixed exclude pattern in ONE invocation.
@@ -147,10 +152,37 @@ end.freeze
 # wanted, the only safe spellings are explicit directories with a
 # directory-relative exclude ('**/integration/**/*_spec.rb'), or both patterns
 # made absolute. `rake spec:verify_selection` fails on the mistake.
+# The billing lane's spec selection: directories, not a pattern, so that the
+# exclude resolves against each of them the way rspec resolves it in the
+# task's own process (see the HARD RULE). The exclude is spelled from the repo
+# root; it prefix-matches the billing app's tree and is used verbatim there,
+# and joins onto the root directories where it then matches nothing. The three
+# mode-less files it drops are UNRUN_SPECS in lib/tasks/spec_selection.rake.
+#
+# No --tag filters: the lane IS the membership. The ~500 :integration-tagged
+# billing examples that APPS_FAST_TAG_FILTERS never managed to exclude from
+# spec:fast run here, on purpose, with the rest of the billing tree.
+BILLING_SPEC_PATHS   = %w[
+  apps/web/billing/spec
+  spec/cli/billing
+  spec/unit/billing
+  spec/unit/onetime/operations/billing
+].freeze
+BILLING_SPEC_EXCLUDE = 'apps/web/billing/spec/integration/**/*_spec.rb'
+
+# The same trees, as spec:fast's exclusions. Each exclude shares its include's
+# prefix ('spec/…' against ROOT_FAST_PATTERN, 'apps/…' against
+# APPS_FAST_PATTERN), the one spelling the HARD RULE allows.
 ROOT_FAST_PATTERN = 'spec/unit/**/*_spec.rb,spec/cli/**/*_spec.rb,spec/lib/**/*_spec.rb'
+ROOT_FAST_EXCLUDE = [
+  'spec/cli/billing/**/*_spec.rb',
+  'spec/unit/billing/**/*_spec.rb',
+  'spec/unit/onetime/operations/billing/**/*_spec.rb',
+].join(',')
 APPS_FAST_PATTERN = 'apps/*/*/spec/**/*_spec.rb'
 APPS_FAST_EXCLUDE = [
   'apps/*/*/spec/integration/**/*_spec.rb',
+  'apps/web/billing/spec/**/*_spec.rb',
   'apps/web/core/spec/controllers/config_generator_spec.rb',
   'apps/web/core/spec/controllers/page_bootstrap_me_spec.rb',
 ].join(',')
@@ -159,15 +191,14 @@ APPS_FAST_EXCLUDE = [
 # rspec-core 4.0.0.beta1 ANDs exclusion filters (MetadataFilter.apply? uses
 # all?), and spec/support/postgres_mode_suite_database.rb:378 contributes a
 # second exclusion rule whenever PostgreSQL is absent — which it always is here.
-# The consequence is that these flags exclude nothing and roughly 500
-# :integration-tagged billing examples run inside spec:fast right now.
+# The consequence is that these flags exclude nothing. The ~500
+# :integration-tagged billing examples they were meant to drop now run in the
+# billing lane (BILLING_SPEC_PATHS above), which runs no tag filter at all.
 #
-# Do not "fix" this alongside a consolidation: making the tags bite again would
-# silently REMOVE those ~500 examples from the fast lane, which is a lane
-# membership decision, not a refactor. Keeping the flags means an rspec-core
-# upgrade that restores OR-semantics changes what spec:fast covers without a
-# diff, so the follow-up is to decide the membership explicitly and then either
-# retag the billing specs or drop these flags.
+# Keeping the flags means an rspec-core upgrade that restores OR-semantics
+# changes what spec:fast covers without a diff, for whatever :integration or
+# :postgres_database tags remain in the other app trees. Dropping them is a
+# lane membership decision for those trees, not a refactor.
 APPS_FAST_TAG_FILTERS = '--tag ~postgres_database --tag ~integration'
 
 # The legs `spec:fast` runs, in order. See the task itself for why they are
@@ -180,8 +211,9 @@ namespace :spec do
   # exactly what the per-tree tasks below select.
   desc 'Run unit + CLI + lib specs (one process)'
   RSpec::Core::RakeTask.new(:root_fast) do |t|
-    t.pattern    = ROOT_FAST_PATTERN
-    t.rspec_opts = rspec_format_options('root_fast')
+    t.pattern         = ROOT_FAST_PATTERN
+    t.exclude_pattern = ROOT_FAST_EXCLUDE
+    t.rspec_opts      = rspec_format_options('root_fast')
   end
 
   desc 'Run every app spec tree except integration (one process)'
@@ -198,6 +230,19 @@ namespace :spec do
   RSpec::Core::RakeTask.new(:apps_config_ru) do |t|
     t.pattern    = 'apps/web/core/spec/controllers/{config_generator,page_bootstrap_me}_spec.rb'
     t.rspec_opts = rspec_format_options('apps_config_ru')
+  end
+
+  # The billing lane's rspec invocation (tests/lanes/billing). One process for
+  # the billing app's tree and the root billing trees: billing_spec_helper.rb
+  # scopes every hook it registers to the billing app's files by :file_path,
+  # so spec/cli/billing's type: :cli examples run beside them unwrapped, the
+  # same way the other app trees share a process in spec:apps_fast. Plain `sh`
+  # rather than RSpec::Core::RakeTask so the lane ownership oracle
+  # (spec/unit/lanes/ownership_spec.rb) sees the paths it passes.
+  desc 'Run the billing specs (the billing lane; one process)'
+  task :billing do |task|
+    sh "bundle exec rspec #{BILLING_SPEC_PATHS.join(' ')} " \
+       "--exclude-pattern '#{BILLING_SPEC_EXCLUDE}' #{rspec_task_format_options(task)}"
   end
 
   # Per-tree tasks below are kept for targeted runs (`rake spec:apps:web_auth`)
@@ -522,14 +567,49 @@ end
 # Tryouts test tasks
 # Tryouts is a documentation-first Ruby testing framework where tests are plain
 # Ruby code with comment expectations. These tasks mirror the RSpec structure.
+# The billing lane's tryouts (tests/lanes/billing): the billing app's tree and
+# the try/unit subtrees named for billing. try:unit leaves them out.
+BILLING_TRY_PATHS = %w[apps/web/billing/try try/unit/billing try/unit/cli/billing].freeze
+
+# +root+ as the paths tryouts should load so that none of +excluded+ is among
+# them. Tryouts has no exclude flag and recurses into every directory it is
+# given, so a directory on the way to an excluded one is replaced by its
+# children; every other directory stays one argument. Files are passed by
+# name only where a directory had to be opened.
+#
+# @param root [String] directory to expand
+# @param excluded [Array<String>] directories to leave out, repo-relative
+# @return [Array<String>] paths for the tryouts command line
+def try_paths_without(root, excluded)
+  return [] if excluded.include?(root)
+  return [root] if excluded.none? { |dir| dir.start_with?("#{root}/") }
+
+  Dir.children(root).sort.flat_map do |child|
+    path = File.join(root, child)
+    if File.directory?(path)
+      try_paths_without(path, excluded)
+    else
+      path.end_with?('_try.rb') ? [path] : []
+    end
+  end
+end
+
 namespace :try do
   desc 'Run unit tryouts (includes security, feature, and app-colocated tests)'
   task :unit do
     patterns  = %w[try/unit try/system try/security try/features try/jobs]
     patterns += Dir.glob('apps/**/try')
-    paths     = patterns.uniq.select { |p| Dir.exist?(p) }.join(' ')
+    paths     = patterns.uniq.select { |p| Dir.exist?(p) }
+    paths     = paths.flat_map { |p| try_paths_without(p, BILLING_TRY_PATHS) }.join(' ')
     # In CI: verbose output without agent mode; locally: agent mode for concise output
     flags     = ENV['CI'] ? '--stack --verbose --debug --fails' : '--agent'
+    sh "bundle exec tryouts #{flags} #{paths}".squeeze(' ') unless paths.empty?
+  end
+
+  desc 'Run the billing tryouts (the billing lane)'
+  task :billing do
+    paths = BILLING_TRY_PATHS.select { |p| Dir.exist?(p) }.join(' ')
+    flags = ENV['CI'] ? '--stack --verbose --debug --fails' : '--agent'
     sh "bundle exec tryouts #{flags} #{paths}".squeeze(' ') unless paths.empty?
   end
 

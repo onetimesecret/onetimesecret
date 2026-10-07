@@ -7,15 +7,17 @@
 #
 # spec:fast used to be 13 rspec processes: spec:unit, spec:cli, and one per
 # apps/*/*/spec tree. It is now three (spec:root_fast, spec:apps_fast, and
-# spec:apps_config_ru), and the whole value of that consolidation rests on
-# those invocations selecting exactly the files the 13 selected. That equivalence is NOT something a
-# reviewer can check by reading the globs: rspec resolves --pattern and
-# --exclude-pattern separately against each checked path, so an include and an
-# exclude that look symmetric can behave asymmetrically (see the HARD RULE in
-# lib/tasks/spec.rake). This file mechanises the check.
+# spec:apps_config_ru) plus the billing lane's one (spec:billing, which took
+# the billing trees out of spec:fast), and the whole value of that
+# consolidation rests on those invocations selecting, between them, exactly
+# the files the 13 selected — each file once. That equivalence is NOT
+# something a reviewer can check by reading the globs: rspec resolves
+# --pattern and --exclude-pattern separately against each checked path, so an
+# include and an exclude that look symmetric can behave asymmetrically (see
+# the HARD RULE in lib/tasks/spec.rake). This file mechanises the check.
 #
 #   rake spec:verify_selection        file-level, <1s, loads zero spec files
-#   rake spec:verify_selection:deep   example-ID level, ~35s, 16 rspec dry-runs
+#   rake spec:verify_selection:deep   example-ID level, ~35s, 18 rspec dry-runs
 #
 # The cheap task is the one meant to run everywhere (pre-commit, every CI job
 # that touches spec plumbing). It re-derives the LEGACY 13-invocation selection
@@ -47,14 +49,19 @@ module SpecSelection
   # catch. Measured: the known-leaky single-invocation form reports its 52 extra
   # integration files with the seed and reports zero without it.
   #
-  # @param pattern [String] rspec --pattern value (comma-separated globs)
+  # An invocation given directories instead of a pattern (spec:billing) is
+  # modelled with those directories as the checked paths and rspec's default
+  # pattern, which is what `rspec <dir>...` does.
+  #
+  # @param pattern [String, nil] rspec --pattern value (comma-separated globs)
   # @param exclude_pattern [String, nil] rspec --exclude-pattern value
+  # @param paths [Array<String>, nil] directories on the command line
   # @return [Array<String>] repo-relative spec file paths, sorted and unique
-  def files(pattern:, exclude_pattern: nil)
+  def files(pattern: nil, exclude_pattern: nil, paths: nil)
     cfg                             = RSpec::Core::Configuration.new
-    cfg.pattern                     = pattern
+    cfg.pattern                     = pattern if pattern
     cfg.exclude_pattern             = exclude_pattern if exclude_pattern
-    cfg.files_or_directories_to_run = cfg.default_path
+    cfg.files_or_directories_to_run = paths || cfg.default_path
     cfg.files_to_run.map { |f| f.delete_prefix("#{Dir.pwd}/") }.sort.uniq
   end
 
@@ -106,7 +113,7 @@ module SpecSelection
   # @return [Array<Hash>] invocation descriptors
   def fast_invocations
     [
-      { name: 'root_fast', pattern: ROOT_FAST_PATTERN },
+      { name: 'root_fast', pattern: ROOT_FAST_PATTERN, exclude_pattern: ROOT_FAST_EXCLUDE },
       {
         name: 'apps_fast',
         pattern: APPS_FAST_PATTERN,
@@ -118,6 +125,15 @@ module SpecSelection
         pattern: 'apps/web/core/spec/controllers/{config_generator,page_bootstrap_me}_spec.rb',
       },
     ]
+  end
+
+  # The billing lane's invocation (spec:billing), from the constants the task
+  # uses. Together with fast_invocations it must select what the legacy
+  # fan-out selected: the billing trees moved, they did not stop running.
+  #
+  # @return [Hash] invocation descriptor
+  def billing_invocation
+    { name: 'billing', paths: BILLING_SPEC_PATHS, exclude_pattern: BILLING_SPEC_EXCLUDE }
   end
 
   # Files root_fast picks up that NO legacy invocation ever claimed.
@@ -134,12 +150,13 @@ module SpecSelection
   # it cannot quietly become permanent, and a fourth orphan fails the task.
   #
   # These three sit directly in apps/web/billing/spec/integration/ with no mode
-  # subdirectory. APPS_FAST_EXCLUDE drops them from spec:fast, and every
-  # integration lane dispatches on apps/*/*/spec/integration/<mode>, so nothing
-  # matches them. Only the manual `rake vcr:billing:verify` (whole billing tree)
-  # ever loads them. Placing them means moving them under integration/full/ or
-  # giving the integration tasks a mode-less bucket — a lane membership decision
-  # for the billing tree, not something a rake consolidation should decide.
+  # subdirectory. BILLING_SPEC_EXCLUDE drops them from the billing lane, and
+  # every integration lane dispatches on apps/*/*/spec/integration/<mode>, so
+  # nothing matches them. Only the manual `rake vcr:billing:verify` (whole
+  # billing tree) ever loads them. Placing them means moving them under
+  # integration/full/ or giving the integration tasks a mode-less bucket — a
+  # lane membership decision for the billing tree, not something a rake
+  # consolidation should decide.
   UNRUN_SPECS = %w[
     apps/web/billing/spec/integration/pending_federation_spec.rb
     apps/web/billing/spec/integration/stripe_client_spec.rb
@@ -167,6 +184,7 @@ module SpecSelection
 
     {
       'spec:fast' => fast_invocations.flat_map { |inv| files(**inv.except(:name, :tags)) }.sort.uniq,
+      'spec:billing' => files(**billing_invocation.except(:name)),
       'spec:integration' => integration.sort.uniq,
       'spec:api' => Dir.glob('spec/api/**/*_spec.rb').sort.uniq,
     }
@@ -174,13 +192,15 @@ module SpecSelection
 
   # Assemble the command line for one invocation descriptor. Mirrors
   # RSpec::Core::RakeTask#spec_command's flag order closely enough that the
-  # dry-run exercises the same rspec argument parsing the lane does.
+  # dry-run exercises the same rspec argument parsing the lane does; a
+  # descriptor with paths mirrors spec:billing's `sh` instead.
   #
   # @param inv [Hash] invocation descriptor
   # @param out [String] path for the JSON formatter
   # @return [String] shell command
   def dry_run_command(inv, out)
-    parts = ['bundle exec rspec', "--pattern '#{inv[:pattern]}'"]
+    parts = ['bundle exec rspec']
+    parts << (inv[:paths] ? inv[:paths].join(' ') : "--pattern '#{inv[:pattern]}'")
     parts << "--exclude-pattern '#{inv[:exclude_pattern]}'" if inv[:exclude_pattern]
     parts << inv[:tags] if inv[:tags]
     parts << "--dry-run --format json --out #{out}"
@@ -206,7 +226,7 @@ module SpecSelection
 end
 
 namespace :spec do
-  desc 'Verify spec:fast selects exactly what the legacy 13-invocation fan-out did'
+  desc 'Verify spec:fast + spec:billing select exactly what the legacy 13-invocation fan-out did'
   task :verify_selection do
     SpecSelection.assert_legs_modeled!
 
@@ -214,7 +234,9 @@ namespace :spec do
       .flat_map { |inv| SpecSelection.files(**inv.except(:name, :tags)) }
       .sort.uniq
     claims  = SpecSelection.lane_claims
-    current = claims.fetch('spec:fast')
+    fast    = claims.fetch('spec:fast')
+    billing = claims.fetch('spec:billing')
+    current = (fast + billing).sort.uniq
     adopted = SpecSelection.files(pattern: SpecSelection::ADOPTED_PATTERN)
 
     dropped           = legacy - current
@@ -223,13 +245,14 @@ namespace :spec do
 
     unless dropped.empty? && added.empty? && missing_adoptions.empty?
       abort <<~MSG
-        spec:fast selection drift — the consolidated invocations no longer
-        select what the legacy per-tree invocations select.
+        spec:fast + spec:billing selection drift — the two lanes' invocations
+        no longer select, between them, what the legacy per-tree invocations
+        select.
 
-          dropped (legacy ran these, spec:fast no longer does):
+          dropped (legacy ran these, neither lane does now):
         #{dropped.empty? ? '    (none)' : dropped.map { |f| "    #{f}" }.join("\n")}
 
-          added (spec:fast runs these, no legacy invocation did, and they are
+          added (a lane runs these, no legacy invocation did, and they are
           not covered by the documented adoption #{SpecSelection::ADOPTED_PATTERN}):
         #{added.empty? ? '    (none)' : added.map { |f| "    #{f}" }.join("\n")}
 
@@ -240,6 +263,11 @@ namespace :spec do
         deliberate — update this guard in the same commit.
       MSG
     end
+
+    # The billing lane exists to run the billing trees, so an empty claim is a
+    # broken BILLING_SPEC_PATHS, not a lane with nothing to do. (A billing file
+    # that spec:fast also selects is caught by the overlap check below.)
+    abort 'spec:billing selects no files: check BILLING_SPEC_PATHS in lib/tasks/spec.rake' if billing.empty?
 
     # Orphan/overlap check. A spec file that no lane runs is invisible drift:
     # it passes review, passes CI, and is never executed. That is exactly how
@@ -275,9 +303,10 @@ namespace :spec do
     end
 
     puts format(
-      'spec:fast selection OK — %d files (%d adopted from spec/lib), %d integration, %d api, %d total',
-      current.size,
+      'spec:fast selection OK — %d files (%d adopted from spec/lib), %d billing, %d integration, %d api, %d total',
+      fast.size,
       adopted.size,
+      billing.size,
       claims.fetch('spec:integration').size,
       claims.fetch('spec:api').size,
       all.size,
@@ -285,7 +314,7 @@ namespace :spec do
   end
 
   namespace :verify_selection do
-    desc 'Verify spec:fast runs the same EXAMPLE IDs as the legacy fan-out (slow: 17 dry-runs)'
+    desc 'Verify spec:fast + spec:billing run the same EXAMPLE IDs as the legacy fan-out (slow: 18 dry-runs)'
     task :deep do
       require 'json'
 
@@ -310,13 +339,15 @@ namespace :spec do
           [{ name: 'adopted', pattern: SpecSelection::ADOPTED_PATTERN }],
         'legacy',
       )
-      current = collect.call(SpecSelection.fast_invocations, 'fast')
+      # Both lanes on the current side: the billing trees moved out of
+      # spec:fast, so spec:fast alone would report them as missing.
+      current = collect.call(SpecSelection.fast_invocations + [SpecSelection.billing_invocation], 'fast')
 
       missing = legacy - current
       extra   = current - legacy
 
       puts format(
-        'legacy=%d (uniq %d)  spec:fast=%d (uniq %d)  missing=%d  extra=%d',
+        'legacy=%d (uniq %d)  spec:fast+spec:billing=%d (uniq %d)  missing=%d  extra=%d',
         legacy.size,
         legacy.uniq.size,
         current.size,
@@ -327,23 +358,24 @@ namespace :spec do
 
       unless missing.empty? && extra.empty?
         abort <<~MSG
-          spec:fast example drift.
+          spec:fast + spec:billing example drift.
 
-            missing (legacy executed, spec:fast does not) — first 20 of #{missing.size}:
+            missing (legacy executed, neither lane does) — first 20 of #{missing.size}:
           #{missing.first(20).map { |id| "    #{id}" }.join("\n")}
 
-            extra (spec:fast executes, legacy did not) — first 20 of #{extra.size}:
+            extra (a lane executes, legacy did not) — first 20 of #{extra.size}:
           #{extra.first(20).map { |id| "    #{id}" }.join("\n")}
         MSG
       end
 
       # Duplicate IDs across invocations mean a file is loaded twice, which is
       # the file-level overlap check restated at example granularity — it also
-      # catches a shared-example host pulled in by two patterns.
+      # catches a shared-example host pulled in by two patterns, or a billing
+      # file both lanes load.
       dupes = current.tally.select { |_, count| count > 1 }.keys
-      abort "spec:fast executes #{dupes.size} example IDs twice: #{dupes.first(20)}" unless dupes.empty?
+      abort "the lanes execute #{dupes.size} example IDs twice: #{dupes.first(20)}" unless dupes.empty?
 
-      puts "spec:fast example selection OK — #{current.size} examples"
+      puts "spec:fast + spec:billing example selection OK — #{current.size} examples"
     end
   end
 end

@@ -312,6 +312,7 @@ RSpec.describe 'lane rspec reporting' do
     # here fails the example below until its file name is decided.
     {
       'api' => [''],
+      'billing' => [''],
       'disabled' => [''],
       'full-mfa' => ['_mfa'],
       'full-pg' => [''],
@@ -331,7 +332,7 @@ RSpec.describe 'lane rspec reporting' do
     it 'covers every lane that runs rspec through rake' do
       through_rake = lanes.reject { |_, invocations| invocations.empty? }.keys.sort
 
-      expect(through_rake).to eq(%w[api disabled full-mfa full-pg full-pg-agnostic full-saml-platform
+      expect(through_rake).to eq(%w[api billing disabled full-mfa full-pg full-pg-agnostic full-saml-platform
                                     full-sqlite migrations-pg migrations-sqlite simple unit])
     end
 
