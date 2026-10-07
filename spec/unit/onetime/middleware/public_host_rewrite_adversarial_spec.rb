@@ -201,7 +201,7 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
   def run(**)
     env = request_env(**)
     chain.call(env)
-    seen.last
+    seen.pop
   end
 
   def each_case
@@ -216,14 +216,40 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
     end
   end
 
-  def violations
-    found = []
-    each_case do |input|
-      out     = run(**input)
-      problem = yield(input, out)
-      found << "#{input.inspect} => #{problem}" if problem
+  # Each matrix input with the env the apps receive for it, per domains
+  # setting and scheme. The chain is deterministic and every example stubs
+  # it the same way, so the first example that needs a walk makes it and the
+  # others read it back: three walks of each_case per run instead of ten.
+  # An env keeps only the keys the examples read, directly or through
+  # Rack::Request#host, #port, #scheme and #base_url, and reading any other
+  # key raises. Equal envs share one frozen Hash.
+  walks = {}
+  define_method(:walks) { walks }
+  after(:context) { walks.clear }
+
+  def matrix(scheme: 'https')
+    walks[[domains_enabled, scheme]] ||= begin
+      keys     = [Rack::DetectHost.result_field_name, Rack::DetectHost.forwarded_authority_field_name,
+                  'onetime.display_domain', 'onetime.domain_strategy', 'onetime.custom_domain_id',
+                  described_class::ORIGINAL_HTTP_HOST, 'HTTP_HOST', 'SERVER_NAME', 'SERVER_PORT', 'HTTPS',
+                  'rack.url_scheme', 'HTTP_X_FORWARDED_HOST', 'HTTP_X_FORWARDED_PORT', 'HTTP_X_FORWARDED_SSL',
+                  'HTTP_X_FORWARDED_SCHEME', 'HTTP_X_FORWARDED_PROTO', 'HTTP_FORWARDED'].freeze
+      unkept   = ->(_, key) { raise KeyError, "#{key} is not kept for the matrix" unless keys.include?(key) }
+      distinct = Hash.new { |envs, env| envs[env] = env.freeze }
+      pairs    = []
+      each_case do |input|
+        out = Hash.new(&unkept).update(run(**input, scheme: scheme).slice(*keys))
+        pairs << [input.freeze, distinct[out]]
+      end
+      pairs.freeze
     end
-    found
+  end
+
+  def violations
+    matrix.filter_map do |input, out|
+      problem = yield(input, out)
+      "#{input.inspect} => #{problem}" if problem
+    end
   end
 
   def report(found)
@@ -686,8 +712,7 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
   SCHEMES.each do |scheme|
     it "gives Rack one port for #port and #base_url on a rewritten #{scheme} request" do
       found = []
-      each_case do |input|
-        out = run(**input, scheme: scheme)
+      matrix(scheme: scheme).each do |input, out|
         next unless rewritten?(out)
 
         req      = Rack::Request.new(out)
