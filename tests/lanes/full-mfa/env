@@ -2,7 +2,7 @@
 # enabled against in-memory SQLite. Both features are one-shot per process
 # (Auth::Config configures once), so this is the only lane that boots with
 # either; the shared full-sqlite/full-pg lanes keep both off.
-# CI job: ruby-integration-full (T3, "SQLite, MFA" matrix row)
+# CI job: ruby-integration-auth (T3, "SQLite, MFA" matrix row), selected by auth
 #
 # NOTE: lib/tasks/spec.rake hardcodes these values for the MFA task as a
 # defense against ambient env. Keeping identical values here makes the lane

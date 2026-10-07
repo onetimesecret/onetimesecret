@@ -10,9 +10,12 @@ require_relative '../support/test_helpers'
 require 'semantic_logger'
 require 'stringio'
 
-# Initialize SemanticLogger for tests
+# The appenders come from the boot below (the `destinations` block of the
+# logging config), not from this file: an appender added here would be one
+# SetupLoggers does not own, so a console threshold or a disabled console
+# (tests/lanes/run --log-console) would not apply to it, for this file or
+# for the files that share its process afterwards.
 SemanticLogger.default_level = :info
-SemanticLogger.add_appender(io: $stdout, formatter: :color) unless SemanticLogger.appenders.any?
 
 OT.boot! :test, true
 

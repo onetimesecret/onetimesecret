@@ -3,9 +3,9 @@
 #
 # SimpleCov configuration, auto-loaded by `require 'simplecov'`.
 #
-# Produces a Cobertura XML coverage report consumed by GitHub Code Quality.
-# Coverage is opt-in via COVERAGE=true so normal/local test runs are
-# unaffected. The unit suite still runs across more than one RSpec process
+# Produces a Cobertura XML report at coverage/coverage.xml. Coverage is
+# opt-in via COVERAGE=true so normal test runs, local and CI, are
+# unaffected; CI never sets it. The unit suite still runs across more than one RSpec process
 # (spec:fast is two: spec:root_fast and spec:apps_fast — it was thirteen before
 # the fan-out was consolidated), so each process gets a unique command name and
 # SimpleCov merges their results into a single coverage/coverage.xml. The

@@ -157,6 +157,33 @@ rescue StandardError => ex
   SemanticLogger.default_level = :warn
 end
 
+# Log capture for a lane run (`tests/lanes/run --capture-logs`). Nothing
+# happens here unless the runner exported one of its LANES_*_LOG_* names.
+#
+# With LANES_APP_LOG_FILE set, the application log file is installed now
+# rather than at boot, so specs that never boot the application are captured
+# too. Specs that do boot get the same file, and the console the runner asked
+# for, from the `destinations` block in spec/logging.test.yaml. Category
+# levels are not touched: the default level set above, and the per-category
+# levels a boot applies, decide which events exist, as they do without it.
+#
+# With LANES_MAIL_LOG_FILE set, the logger mail backend appends each
+# delivered email to that file instead of printing it. The backend writes
+# outside SemanticLogger, so the logging config does not reach it.
+#
+# A file that cannot be opened, or a value the runner would not have
+# exported, ends the process here with a message.
+#
+# OmniAuth logs through a logger of its own on standard out. Under a captured
+# run it is pointed at the application's logging before each example (it is
+# only loaded once a full-mode application boots, so not here). Without a log
+# file the hook returns at its first line.
+require_relative '../tests/lanes/support/log_capture'
+Lanes::LogCapture.install_or_abort!
+RSpec.configure do |config|
+  config.before { Lanes::LogCapture.route_omniauth_logger }
+end
+
 # Load test utilities
 Dir[File.join(spec_root, 'support', '*.rb')].each { |f| require f }
 Dir[File.join(spec_root, 'support', 'shared_contexts', '*.rb')].each { |f| require f }

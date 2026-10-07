@@ -68,6 +68,40 @@ backend = Onetime::Mail::Delivery::Disabled.new({})
 [backend.transmits?, backend.deliver(@test_email)]
 #=> [false, nil]
 
+## Logger writes to standard out unless its output is pointed elsewhere
+Onetime::Mail::Delivery::Logger.with_output(nil) do
+  Onetime::Mail::Delivery::Logger.output.equal?($stdout)
+end
+#=> true
+
+## Logger writes the email to the output it was given
+io = StringIO.new
+Onetime::Mail::Delivery::Logger.with_output(io) do
+  Onetime::Mail::Delivery::Logger.new({}).deliver(@test_email)
+end
+[io.string.include?('=== EMAIL (Logger) ==='), io.string.include?('Subject: Test Subject')]
+#=> [true, true]
+
+## Logger.with_output puts back the output that was set before the block
+previous = StringIO.new
+Onetime::Mail::Delivery::Logger.with_output(previous) do
+  Onetime::Mail::Delivery::Logger.with_output(StringIO.new) { nil }
+  Onetime::Mail::Delivery::Logger.output.equal?(previous)
+end
+#=> true
+
+## Logger.with_output puts the previous output back when the block raises
+previous = StringIO.new
+Onetime::Mail::Delivery::Logger.with_output(previous) do
+  begin
+    Onetime::Mail::Delivery::Logger.with_output(StringIO.new) { raise 'boom' }
+  rescue RuntimeError
+    nil
+  end
+  Onetime::Mail::Delivery::Logger.output.equal?(previous)
+end
+#=> true
+
 ## Logger deliver wraps the hash with status 'logged'
 backend = Onetime::Mail::Delivery::Logger.new({})
 result = backend.deliver(@test_email)

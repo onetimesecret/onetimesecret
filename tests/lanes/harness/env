@@ -1,0 +1,18 @@
+# Lane: harness — the lane runner's own specs (spec/unit/lanes).
+# CI job: ruby-unit (T2), as a second step after the unit lane, only when a
+# path these specs exercise changed (the `harness` filter in ci.yml).
+#
+# Carved out of `unit` (HARNESS_SPEC_PATHS in lib/tasks/spec.rake): nearly
+# every example starts tests/lanes/run as a subprocess (the selftest lane,
+# --print-key, run-all --dry-run), so the directory costs about 20 seconds
+# in CI for tests of the runner, not the application. Every other pull
+# request skips it.
+#
+# Services: isolation_key_spec.rb probes the test valkey (the owner marker
+# and liveness token live there) and last_log_spec.rb opens the rabbitmq
+# ports, so base.env's endpoints stay as they are.
+AUTHENTICATION_MODE=simple
+
+# spec/spec_helper.rb refuses to boot with an empty generated/locales. No
+# schemas: nothing here reads the generated config schema.
+LANES_CODEGEN='locales'

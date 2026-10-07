@@ -66,32 +66,20 @@ name: E2E Tenant Connect
 on:
   workflow_dispatch:
   pull_request:
-    # No `branches:` filter (same reasoning as e2e-full-auth.yml): stacked PRs
-    # must exercise this lane too. The paths filter keeps it off unrelated PRs.
-    paths:
-      # The journey, its shim, its seed and the harness it runs on
-      - 'e2e/system/**'
-      - 'e2e/support/**'
-      - 'e2e/playwright.config.ts'
-      - '.github/workflows/e2e-tenant-connect.yml'
-      # The auth surface under test: Rodauth config, the OmniAuth connect /
-      # tenant hooks, the operations behind them, the routes the panel calls.
-      - 'apps/web/auth/**'
-      # The availability ladder the tenant hook consults (its
-      # :domain_unverified rung is what the companion check refuses on), the
-      # SigninConfig gates it reads, the per-request resolution the /signin
-      # page builds its SSO buttons from, and the serializer that turns that
-      # resolution into the buttons (the companion check asserts none).
-      - 'lib/onetime/models/custom_domain/sso_config.rb'
-      - 'lib/onetime/models/custom_domain/signin_config.rb'
-      - 'lib/onetime/tenant_sso_resolution.rb'
-      - 'apps/web/core/views/serializers/config_serializer.rb'
-      # The panel and the availability rule the spec drives.
-      - 'src/apps/workspace/account/**'
-      - 'src/shared/utils/sso-link-evidence.ts'
-      # The sign-in page's auth_error banner, whose test id and
-      # sso_domain_unverified copy the companion check asserts.
-      - 'src/apps/session/views/Login.vue'
+    # No base-branch restriction: stacked PRs need this lane too. The shared
+    # detector gates the test job, not the workflow, so every PR gets a verdict.
+    # No label events either: the detector reads the PR's labels live, so
+    # ci:auth applies to a re-run or the next push without a run per label.
+    types: [opened, synchronize, reopened]
+  schedule:
+    - cron: '43 4 * * *'
+  push:
+    # Every commit on main and every release tag runs this lane, whatever
+    # the commit touched.
+    branches: [main]
+    tags: ['v*']
+  merge_group:
+    types: [checks_requested]
 
 permissions:
   contents: read
@@ -109,8 +97,26 @@ env:
   SERVER_LOG: tmp/e2e-tenant-connect-server.log
 
 jobs:
+  changes:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      auth: ${{ steps.detect.outputs.auth }}
+      reason: ${{ steps.detect.outputs.reason }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - name: Detect auth changes
+        id: detect
+        uses: ./.github/actions/detect-auth-changes
+
   e2e-tenant-connect:
     name: custom host → /reauth → Connect callback (armed test process)
+    needs: changes
+    if: needs.changes.outputs.auth == 'true'
     runs-on: ubuntu-24.04
     # Must exceed Playwright's globalTimeout (20 min) plus setup, build, boot
     # and artifact upload; see e2e-full-auth.yml for why the margin matters.
@@ -365,3 +371,36 @@ jobs:
             kill "$(cat tmp/e2e-tenant-connect-server.pid)" 2>/dev/null || true
           fi
           docker compose -f compose.test.yml down --volumes || true
+
+  tenant-connect-verdict:
+    # Require this check, not the conditional test job. Detection errors and
+    # unexpected skips must fail even when GitHub would treat a skip as passing.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    needs: [changes, e2e-tenant-connect]
+    if: always()
+    steps:
+      - name: Require tenant Connect tests to pass, or an intentional skip
+        env:
+          CHANGES_RESULT: ${{ needs.changes.result }}
+          AUTH_CHANGED: ${{ needs.changes.outputs.auth }}
+          TEST_RESULT: ${{ needs.e2e-tenant-connect.result }}
+        run: |
+          if [ "$CHANGES_RESULT" != "success" ]; then
+            echo "Change detection did not succeed (changes: $CHANGES_RESULT)."
+            exit 1
+          fi
+
+          if [ "$AUTH_CHANGED" = "false" ] && [ "$TEST_RESULT" = "skipped" ]; then
+            echo "No auth-relevant changes; tenant Connect E2E tests intentionally skipped."
+            exit 0
+          fi
+
+          if [ "$AUTH_CHANGED" = "true" ] && [ "$TEST_RESULT" = "success" ]; then
+            echo "Tenant Connect E2E tests passed."
+            exit 0
+          fi
+
+          echo "No passing tenant Connect verdict (auth: '$AUTH_CHANGED', tests: $TEST_RESULT)."
+          echo "Expected auth=false with skipped tests, or auth=true with successful tests."
+          exit 1

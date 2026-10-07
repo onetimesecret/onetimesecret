@@ -1,0 +1,3 @@
+# Lane tasks: executed top-to-bottom from the repo root by tests/lanes/run
+# (bash -euo pipefail). One leg: the runner's own specs, in one rspec process.
+bundle exec rake spec:lanes

@@ -643,6 +643,11 @@ RSpec.describe Onetime::ColonelAuditEvent do
         .to eq(Onetime::Initializers::SetupLoggers::AUDIT_SINK_LOGGER_NAME)
     end
 
+    it 'emits at the level the logging setup requires a destination to admit' do
+      expect(described_class::SINK_LEVEL)
+        .to eq(Onetime::Initializers::SetupLoggers::AUDIT_SINK_LEVEL)
+    end
+
     # Pinned in code, not read from the logging config: the durability story
     # must not go quiet because the application default level was raised.
     it 'pins its level rather than following the application default' do
