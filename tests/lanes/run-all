@@ -62,9 +62,10 @@ RUNNER="${LANES_DIR}/run"
 source "${LANES_DIR}/ownership"
 
 # ── Default lane set ─────────────────────────────────────────────────────
-# The four lanes that cover the auth-mode boundary a local change is most
-# likely to break: unit (no boundary), simple, disabled, full (SQLite).
-# Together they are the T2/T3 core of the CI matrix.
+# The five lanes that cover the auth-mode boundary a local change is most
+# likely to break: unit and billing (no boundary; billing is the part of
+# unit that was carved out), simple, disabled, full (SQLite). Together they
+# are the T2/T3 core of the CI matrix.
 #
 # Not here on purpose:
 #   - full-pg, full-pg-agnostic, api, migrations-* — real lanes, just
@@ -80,7 +81,7 @@ source "${LANES_DIR}/ownership"
 #     the disqualifier: those writes land in the one repo-root generated/
 #     directory the other lanes are reading from, non-atomically, while
 #     they read it. Run it alone: `tests/lanes/run smoke`.
-DEFAULT_LANES=(unit simple disabled full-sqlite)
+DEFAULT_LANES=(unit billing simple disabled full-sqlite)
 
 usage() {
   echo "usage: tests/lanes/run-all [--parallel] [--dry-run] [<lane>...]"
