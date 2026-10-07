@@ -660,13 +660,24 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
     end
 
     it 'limits invoices to 12' do
-      skip 'Requires creating 13+ invoices which is time-intensive'
+      organization.stripe_customer_id = 'cus_test_invoice_limit'
+      organization.save
 
-      # In a real integration test, you would:
-      # 1. Create Stripe customer
-      # 2. Create 13 invoices
-      # 3. Verify only 12 are returned
-      # 4. Verify has_more is true
+      # Stripe honours the limit server-side and reports the rest via has_more,
+      # so the contract here is the limit the controller asks for and that it
+      # passes has_more through.
+      page = build_invoice_list(Array.new(12) { |i| build_invoice('id' => "in_limit_#{i}") }, has_more: true)
+      allow(Stripe::Invoice).to receive(:list).and_return(page)
+
+      get "/billing/api/org/#{organization.extid}/invoices"
+
+      expect(last_response.status).to eq(200)
+      data = JSON.parse(last_response.body)
+      expect(data['invoices'].size).to eq(12)
+      expect(data['has_more']).to be(true)
+      expect(Stripe::Invoice).to have_received(:list).with(
+        hash_including(customer: 'cus_test_invoice_limit', limit: 12),
+      )
     end
 
     it 'returns 403 when customer is not organization member' do

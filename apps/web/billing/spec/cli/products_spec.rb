@@ -606,10 +606,41 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :integration, :vcr
         # Note: No cleanup - VCR tests dont need product deletion
       end
 
-      it 'preserves existing metadata not being updated', :code_smell, :integration, :stripe_sandbox_api do
-        # This test requires verifying state preservation across API calls
-        # stripe-mock doesn't maintain state between requests
-        skip 'Requires integration test - cannot verify state preservation with stripe-mock'
+      # Stubbed rather than recorded: the claim is about the metadata hash the
+      # command sends, which a stubbed retrieve/update pair observes directly.
+      it 'preserves existing metadata not being updated' do
+        existing = Stripe::Product.construct_from(
+          id: 'prod_preserve_meta',
+          name: 'Preserve Metadata Test',
+          metadata: {
+            app: 'onetimesecret',
+            plan_id: 'identity_plus_v1',
+            tier: 'single_account',
+            region: 'EU',
+            entitlements: 'api_access,custom_domains',
+            display_order: '10',
+            created: '2026-01-01T00:00:00Z',
+          },
+        )
+        allow(Stripe::Product).to receive(:retrieve).with('prod_preserve_meta').and_return(existing)
+        allow(Stripe::Product).to receive(:update) do |_id, params|
+          Stripe::Product.construct_from(id: 'prod_preserve_meta', name: existing.name, metadata: params[:metadata])
+        end
+        allow($stdin).to receive(:gets).and_return("y\n")
+
+        capture_stdout { command.call(product_id: 'prod_preserve_meta', tier: 'pro') }
+
+        expect(Stripe::Product).to have_received(:update).with(
+          'prod_preserve_meta',
+          hash_including(metadata: hash_including(
+            'tier' => 'pro',
+            'plan_id' => 'identity_plus_v1',
+            'region' => 'EU',
+            'entitlements' => 'api_access,custom_domains',
+            'display_order' => '10',
+            'created' => '2026-01-01T00:00:00Z',
+          )),
+        )
       end
 
       it 'ensures all expected metadata fields exist', :vcr do
