@@ -153,15 +153,19 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
     end
   end
 
+  # The strategy's config readers are plain singleton methods on this one
+  # instance, not RSpec stubs: a stub records every call it receives, and
+  # the chain calls these four on every one of the tens of thousands of
+  # inputs in a walk.
   let(:chain) do
     rewrite  = described_class.new(terminal)
     strategy = Onetime::Middleware::DomainStrategy.new(rewrite)
-    allow(strategy).to receive_messages(
-      domains_enabled?: domains_enabled,
-      canonical_domain: CANONICAL,
-      canonical_domains_parsed: [PublicSuffix.parse(CANONICAL)],
-      anchor_domains_parsed: [PublicSuffix.parse(CANONICAL)],
-    )
+    enabled  = domains_enabled
+    parsed   = [PublicSuffix.parse(CANONICAL)].freeze
+    strategy.define_singleton_method(:domains_enabled?) { enabled }
+    strategy.define_singleton_method(:canonical_domain) { CANONICAL }
+    strategy.define_singleton_method(:canonical_domains_parsed) { parsed }
+    strategy.define_singleton_method(:anchor_domains_parsed) { parsed }
     strip    = Onetime::Middleware::StripForwardedHost.new(strategy)
     Rack::DetectHost.new(strip, logger: Logger.new(IO::NULL))
   end
