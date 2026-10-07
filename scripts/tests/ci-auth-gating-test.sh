@@ -103,22 +103,22 @@ def defaults():
 
 def compute_cases():
     # Enumerate precedence and independent filters, in both output modes.
-    # billing_integration follows NIGHTLY alone: [ci-skip] turns it off, and
+    # billing_nightly follows NIGHTLY alone: [ci-skip] turns it off, and
     # neither run-all nor a workflow-file change turns it on.
     keys = tuple(defaults())
     for values in itertools.product(("false", "true"), repeat=len(keys)):
         inputs = dict(zip(keys, values))
         if inputs["SKIP_CI"] == "true":
             expected = dict.fromkeys(("ruby", "typescript", "frontend", "oci", "auth",
-                                      "billing_integration", "ga_workflow_files"), "false")
+                                      "billing_nightly", "ga_workflow_files"), "false")
         elif inputs["RUN_ALL"] == "true" or inputs["GA_WORKFLOWS"] == "true":
             expected = dict.fromkeys(("ruby", "typescript", "frontend", "oci", "auth",
                                       "ga_workflow_files"), "true")
-            expected["billing_integration"] = inputs["NIGHTLY"]
+            expected["billing_nightly"] = inputs["NIGHTLY"]
         else:
             expected = {key: inputs["FILTER_" + key.upper()]
                         for key in ("ruby", "typescript", "frontend", "oci", "auth")}
-            expected["billing_integration"] = inputs["NIGHTLY"]
+            expected["billing_nightly"] = inputs["NIGHTLY"]
             expected["ga_workflow_files"] = "false"
         for file_mode in (False, True):
             with tempfile.TemporaryDirectory() as directory:
@@ -174,21 +174,21 @@ def selector_independence():
         check(computed.returncode == 0, f"selection: {computed.stderr}")
         check(outputs(computed.stdout) == {
             "ruby": "false", "auth": "true", "typescript": "false", "frontend": "false",
-            "oci": "false", "billing_integration": "false", "ga_workflow_files": "false",
+            "oci": "false", "billing_nightly": "false", "ga_workflow_files": "false",
         }, f"label/path/event auth is its own flag and must not turn on Ruby or any other filter: {computed.stdout}")
     computed = run(compute, {**defaults(), "NIGHTLY": "true", "GITHUB_OUTPUT": ""})
     check(computed.returncode == 0, f"nightly selection: {computed.stderr}")
     check(outputs(computed.stdout) == {
         "ruby": "false", "auth": "false", "typescript": "false", "frontend": "false",
-        "oci": "false", "billing_integration": "true", "ga_workflow_files": "false",
+        "oci": "false", "billing_nightly": "true", "ga_workflow_files": "false",
     }, f"the nightly flag is its own flag and must not turn on Ruby, auth or any other filter: {computed.stdout}")
     inputs = defaults()
     del inputs["NIGHTLY"]
     computed = run(compute, {**inputs, "RUN_ALL": "true", "GITHUB_OUTPUT": ""})
-    check(computed.returncode == 0 and outputs(computed.stdout)["billing_integration"] == "false",
+    check(computed.returncode == 0 and outputs(computed.stdout)["billing_nightly"] == "false",
           "a run-all event (push, merge queue, [ci-all]) is not the nightly: billing integration stays unselected")
     computed = run(compute, {**inputs, "RUN_ALL": "true", "NIGHTLY": "true", "GITHUB_OUTPUT": ""})
-    check(computed.returncode == 0 and outputs(computed.stdout)["billing_integration"] == "true",
+    check(computed.returncode == 0 and outputs(computed.stdout)["billing_nightly"] == "true",
           "the scheduled run is a run-all run and still selects billing integration")
 
 
@@ -261,13 +261,13 @@ def shared_wiring():
 
 
 def prerequisites_and_gates():
-    for job_id in ("ruby-lint", "ruby-unit", "ruby-billing"):
+    for job_id in ("ruby-lint", "ruby-unit"):
         job = block(jobs, job_id, 2)
         check("needs.changes.outputs.ruby == 'true'" in job, f"Ruby changes select {job_id}")
         check("needs.changes.outputs.auth" not in job, f"auth selection alone must not run {job_id}")
     check(scalar(block(jobs, "build-assets", 2), "if", 4) ==
           "needs.changes.outputs.frontend == 'true' || needs.changes.outputs.ruby == 'true' "
-          "|| needs.changes.outputs.auth == 'true' || needs.changes.outputs.billing_integration == 'true'",
+          "|| needs.changes.outputs.auth == 'true' || needs.changes.outputs.billing_nightly == 'true'",
           "auth-only and nightly-only selection still get the frontend build their jobs download")
     browser = block(jobs, "ruby-auth-browser", 2)
     integration = block(jobs, "ruby-integration-auth", 2)
@@ -283,33 +283,36 @@ def prerequisites_and_gates():
         "(needs.build-assets.result == 'success' || needs.build-assets.result == 'skipped') && "
         "!contains(needs.*.result, 'cancelled')"
     ), "auth jobs run independently of Ruby output, accept successful/skipped prerequisites, reject failure/cancel")
-    # The two billing integration jobs share one nightly-only gate: the
-    # overlay matrix defines it, billing's own integration lane reuses it.
+    # The three billing jobs share one nightly-only gate: the billing lane's
+    # job defines it, the overlay matrix and billing's integration lane reuse it.
+    unit_billing = block(jobs, "ruby-billing", 2)
     billing = block(jobs, "ruby-integration-billing", 2)
     integration_billing = block(jobs, "ruby-billing-integration", 2)
-    for job_id, job in (("ruby-integration-billing", billing), ("ruby-billing-integration", integration_billing)):
+    for job_id, job in (("ruby-billing", unit_billing), ("ruby-integration-billing", billing),
+                        ("ruby-billing-integration", integration_billing)):
         check(scalar(job, "needs", 4) == "[changes, ruby-lint, build-assets]",
-              f"{job_id}: same lint/assets prerequisites as the other full-mode jobs")
+              f"{job_id}: same lint/assets prerequisites as the other test jobs")
         check(not re.search(r"^    continue-on-error:", job, re.M), f"{job_id} remains blocking")
-    check(scalar(billing, "if", 4) == "&if-billing-integration |", "the overlay matrix defines the shared nightly gate")
-    check(scalar(integration_billing, "if", 4) == "*if-billing-integration",
-          "billing's integration lane uses the same nightly gate")
-    check(" ".join(block(billing, "if", 4).split()) == (
-        "always() && needs.changes.outputs.billing_integration == 'true' && "
+        check("needs.changes.outputs.ruby" not in job, f"a Ruby change alone must not run {job_id}")
+    check(scalar(unit_billing, "if", 4) == "&if-billing-nightly |", "ruby-billing defines the shared nightly gate")
+    for job_id, job in (("ruby-integration-billing", billing), ("ruby-billing-integration", integration_billing)):
+        check(scalar(job, "if", 4) == "*if-billing-nightly", f"{job_id} uses the same nightly gate")
+    check(" ".join(block(unit_billing, "if", 4).split()) == (
+        "always() && needs.changes.outputs.billing_nightly == 'true' && "
         "(needs.ruby-lint.result == 'success' || needs.ruby-lint.result == 'skipped') && "
         "(needs.build-assets.result == 'success' || needs.build-assets.result == 'skipped') && "
         "!contains(needs.*.result, 'cancelled')"
-    ), "billing integration runs on the nightly flag alone, not on a path, Ruby or auth selection")
+    ), "billing runs on the nightly flag alone, not on a path, Ruby or auth selection")
     check(re.findall(r"^          lane: (.+)$", integration_billing, re.M) == ["billing-integration"],
           "ruby-billing-integration runs the billing-integration lane and nothing else")
     check("results-file: 'rspec_billing_integration_results.json'" in integration_billing,
           "billing integration results file is collected")
     changes = block(jobs, "changes", 2)
-    check(scalar(block(changes, "outputs", 4), "billing_integration", 6)
-          == expression("steps.compute.outputs.billing_integration"),
+    check(scalar(block(changes, "outputs", 4), "billing_nightly", 6)
+          == expression("steps.compute.outputs.billing_nightly"),
           "changes publishes the nightly billing integration flag")
     check(not re.search(r"^            billing:$", changes, re.M),
-          "no billing path filter: nothing on a pull request selects the billing integration jobs")
+          "no billing path filter: nothing on a pull request selects the billing jobs")
     simple = block(jobs, "ruby-integration-simple", 2)
     check(scalar(simple, "if", 4) == "&if-ruby-integration |", "general Ruby gate remains shared")
     check("needs.changes.outputs.ruby == 'true'" in block(simple, "if", 4)
@@ -461,16 +464,17 @@ def reporting():
     for report_id in ("aggregate-test-results", "ci-verdict", "ci-metrics"):
         report = block(jobs, report_id, 2)
         needs = block(report, "needs", 4)
-        for job_id in ("ruby-auth-browser", "ruby-integration-auth", "ruby-integration-billing",
+        for job_id in ("ruby-auth-browser", "ruby-integration-auth", "ruby-billing", "ruby-integration-billing",
                        "ruby-billing-integration"):
             check(len(re.findall(r"^      - " + job_id + r"$", needs, re.M)) == 1,
                   f"{report_id} must wait for {job_id} exactly once")
         check(scalar(report, "if", 4) == "always()", f"{report_id} runs even on skipped/failed auth")
     verdict_env = block(block(jobs, "ci-verdict", 2), "env", 8)
     check(scalar(verdict_env, "AUTH", 10) == expression("needs.changes.outputs.auth"), "verdict receives required auth selection")
-    check(scalar(verdict_env, "BILLING_INTEGRATION", 10) == expression("needs.changes.outputs.billing_integration"),
-          "verdict receives the nightly selection; without it a skipped billing integration job on the nightly reads as unselected")
-    for job_id in ("ruby-auth-browser", "ruby-integration-auth", "ruby-integration-billing", "ruby-billing-integration"):
+    check(scalar(verdict_env, "BILLING_NIGHTLY", 10) == expression("needs.changes.outputs.billing_nightly"),
+          "verdict receives the nightly selection; without it a skipped billing job on the nightly reads as unselected")
+    for job_id in ("ruby-auth-browser", "ruby-integration-auth", "ruby-billing", "ruby-integration-billing",
+                   "ruby-billing-integration"):
         variable = "RESULT_" + job_id.upper().replace("-", "_")
         check(scalar(verdict_env, variable, 10) == expression(f"needs.{job_id}.result"),
               f"verdict receives {job_id}'s result")

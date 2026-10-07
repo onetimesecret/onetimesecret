@@ -9,7 +9,7 @@
 # Those jobs get the frontend build they need from build-assets, whose gate
 # in ci.yml includes the flag.
 #
-# billing_integration is not a path output at all. It is the nightly-only
+# billing_nightly is not a path output at all. It is the nightly-only
 # selection — the scheduled run, or a manual dispatch with run_all — and
 # nothing else turns it on: not a path, not [ci-all], not a workflow-file
 # change, not a push to main or a merge-queue check. [ci-skip] still turns
@@ -27,7 +27,7 @@
 #   NIGHTLY          - true on the schedule event or a dispatch with run_all
 #
 # Outputs (to GITHUB_OUTPUT):
-#   ruby, typescript, frontend, oci, auth, billing_integration, ga_workflow_files
+#   ruby, typescript, frontend, oci, auth, billing_nightly, ga_workflow_files
 
 set -e
 
@@ -55,7 +55,7 @@ if [[ "$SKIP_CI" == "true" ]]; then
   OCI=false
   GA_WORKFLOW_FILES=false
   AUTH=false
-  BILLING_INTEGRATION=false
+  BILLING_NIGHTLY=false
 elif [[ "$RUN_ALL" == "true" || "$GA_WORKFLOWS" == "true" ]]; then
   # Run everything path-gated
   RUBY=true
@@ -64,7 +64,7 @@ elif [[ "$RUN_ALL" == "true" || "$GA_WORKFLOWS" == "true" ]]; then
   OCI=true
   GA_WORKFLOW_FILES=true
   AUTH=true
-  BILLING_INTEGRATION="$NIGHTLY"
+  BILLING_NIGHTLY="$NIGHTLY"
 else
   # Use path filter results
   RUBY="$FILTER_RUBY"
@@ -73,7 +73,7 @@ else
   OCI="$FILTER_OCI"
   GA_WORKFLOW_FILES=false
   AUTH="$FILTER_AUTH"
-  BILLING_INTEGRATION="$NIGHTLY"
+  BILLING_NIGHTLY="$NIGHTLY"
 fi
 
 # Output results
@@ -83,7 +83,7 @@ if [[ -n "$GITHUB_OUTPUT" ]]; then
   echo "frontend=$FRONTEND" >> "$GITHUB_OUTPUT"
   echo "oci=$OCI" >> "$GITHUB_OUTPUT"
   echo "auth=$AUTH" >> "$GITHUB_OUTPUT"
-  echo "billing_integration=$BILLING_INTEGRATION" >> "$GITHUB_OUTPUT"
+  echo "billing_nightly=$BILLING_NIGHTLY" >> "$GITHUB_OUTPUT"
   echo "ga_workflow_files=$GA_WORKFLOW_FILES" >> "$GITHUB_OUTPUT"
 else
   # Local testing - print to stdout
@@ -92,6 +92,6 @@ else
   echo "frontend=$FRONTEND"
   echo "oci=$OCI"
   echo "auth=$AUTH"
-  echo "billing_integration=$BILLING_INTEGRATION"
+  echo "billing_nightly=$BILLING_NIGHTLY"
   echo "ga_workflow_files=$GA_WORKFLOW_FILES"
 fi
