@@ -23,6 +23,11 @@ GITHUB_JOB
 COVERAGE
 RSPEC_OUTPUT_FILE
 TEST_ENV_NUMBER
+# Lane runner (tests/lanes/run) and its per-worker shim
+# (tests/lanes/support/worker-env): exported into the task process only.
+LANES_RSPEC_STATUS_FILE
+LANES_WORKERS
+LANES_WORKER
 VCR_MODE
 STRIPE_TEST_PRICE_ID
 STRIPE_TEST_PRICE_ID_ALT

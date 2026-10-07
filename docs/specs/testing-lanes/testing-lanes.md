@@ -126,11 +126,11 @@ overlay set, and repository root. This gives independently selected lanes in one
 checkout distinct backing state as well as isolating sibling worktrees. The
 index range is `1..65535`; Valkey is configured with 65536 databases (1024*64).
 
-| Datastore | Shared mode | Isolated mode |
-| --- | --- | --- |
-| Valkey | database `0` | database index `1..65535` |
-| PostgreSQL | `onetime_auth_test` | `onetime_auth_test_w<index>` |
-| RabbitMQ | vhost `/` | vhost `w<index>` |
+| Datastore | Shared mode | Isolated mode | Per worker |
+| --- | --- | --- | --- |
+| Valkey | database `0` | database index `1..65535` | one index per worker (below) |
+| PostgreSQL | `onetime_auth_test` | `onetime_auth_test_w<index>` | shared by the lane's workers |
+| RabbitMQ | vhost `/` | vhost `w<index>` | shared by the lane's workers |
 
 The index is exported as `LANES_DATASTORE_DB`. `spec/config.test.yaml` uses it
 for `redis.uri`, and the runner aligns `REDIS_URL` and `VALKEY_URL`. This
@@ -138,6 +138,29 @@ selects a database on the existing test service; it must never alter the host
 or port. The runner also rewrites the loopback RabbitMQ URL to `w<index>` and,
 before the task starts, recreates that vhost and grants its URL user full
 permissions through the management API on port 12156.
+
+### Per-worker indexes
+
+A lane may run its tasks over `n` workers (`LANES_WORKERS` in the lane `env`
+file, overridden by `--workers <n>`; absent or `1` is serial). Workers are
+isolated on the Valkey axis only: worker `k` (1-based) uses index
+`1 + ((index - 1 + (k - 1)) mod 65535)`, so worker 1 is the lane's own index
+and the list wraps inside `1..65535`, never onto `0`; in shared mode (index
+`0`) the workers use `0..n-1`. The PostgreSQL database and the RabbitMQ vhost
+stay one per lane, so the runner refuses more than one worker for a lane whose
+`AUTH_DATABASE_URL` is the test PostgreSQL, and for `smoke`. `--only` and
+`--console` run one process and use one worker.
+
+The runner claims every worker index (owner marker and liveness token) and
+reports the list through `--print-key` (`workers=<n> worker_dbs=<list>`).
+`tests/lanes/support/worker-env <k|auto> <command>` derives one worker's
+`LANES_DATASTORE_DB`, `REDIS_URL`/`VALKEY_URL`, a per-worker
+`LANES_RSPEC_STATUS_FILE` (`rspec-status.w<k>.txt`) and results path
+(`--out <stem>_w<k>.json`) from the lane's, exports `LANES_WORKER`, and
+executes the command; `auto` reads `TEST_ENV_NUMBER`, which `parallel_tests`
+sets. The per-worker status files are merged back into the lane's after the
+workers finish. Overlapping worker ranges of two lanes are detected by the
+owner marker like any other collision, not prevented.
 
 ### Shared mode and explicit assignment
 
@@ -292,7 +315,10 @@ prerequisites, ports, and paths without changing state.
 rejects `CI` (whose runners deliberately use shared datastore index 0), and
 rejects a duplicate lane. The smoke lane cannot be included in a parallel run:
 its task performs its own locale generation and is not safe to combine with
-other lanes. Run it alone (normally `tests/lanes/run smoke`).
+other lanes. Run it alone (normally `tests/lanes/run smoke`). Under
+`--parallel` every child is started with `--workers 1`: the lanes are the
+parallelism. A serial `run-all` leaves each lane its `LANES_WORKERS` default.
+The `--dry-run` plan prints each child command as it will run.
 
 ### Targeted execution
 
