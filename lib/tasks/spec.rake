@@ -266,6 +266,21 @@ BILLING_SPEC_EXCLUDE = 'apps/web/billing/spec/integration/**/*_spec.rb'
 BILLING_INTEGRATION_SPEC_PATTERN = 'apps/web/billing/spec/integration/*_spec.rb'
 BILLING_INTEGRATION_SPEC_FILES   = Dir.glob(BILLING_INTEGRATION_SPEC_PATTERN).sort.freeze
 
+# Full-mode files that adapt to the auth feature set: an example that needs
+# MFA, email_auth (magic links) or WebAuthn skips when its route is not
+# mounted, and the mirror-image example skips when it is. The shared full
+# lanes boot with those features off, so spec:integration:full:mfa loads these
+# files too, by name: in its boot the feature-on examples execute and the
+# feature-off ones skip, and each example runs in some lane. Files, not
+# directories: the rest of integration/full assumes the default feature set.
+FULL_MFA_FEATURE_ADAPTIVE_SPECS = %w[
+  apps/web/auth/spec/integration/full/restrict_to_enforcement_spec.rb
+  apps/web/auth/spec/integration/full/signin_enabled_enforcement_spec.rb
+  apps/web/auth/spec/integration/full/signin_gate_enforcement_spec.rb
+  spec/integration/full/env_toggles/magic_links_spec.rb
+  spec/integration/full/routes/availability_spec.rb
+].freeze
+
 # The harness lane's spec selection (tests/lanes/harness, spec:lanes below):
 # the lane runner's own specs. Nearly every example there starts
 # tests/lanes/run as a subprocess (the selftest lane, --print-key, run-all
@@ -492,9 +507,16 @@ namespace :spec do
 
       # This task is the full-mfa lane's only task, so an empty glob would
       # otherwise pass the "SQLite, MFA" CI row with zero examples (e.g.
-      # after a directory rename). Fail loudly instead.
+      # after a directory rename). Fail loudly instead. Same for a renamed
+      # feature-adaptive file: rspec would abort on the missing path, but name
+      # it here so the fix is obvious.
       patterns = Dir.glob('apps/*/*/spec/integration/full_mfa')
       abort '[spec:integration:full:mfa] no apps/*/*/spec/integration/full_mfa directories found' if patterns.empty?
+
+      missing = FULL_MFA_FEATURE_ADAPTIVE_SPECS.reject { |f| File.file?(f) }
+      abort "[spec:integration:full:mfa] FULL_MFA_FEATURE_ADAPTIVE_SPECS names missing file(s): #{missing.join(' ')}" if missing.any?
+
+      patterns += FULL_MFA_FEATURE_ADAPTIVE_SPECS
 
       # Distinct results file so this task never clobbers the full-mode JSON
       # output when both run in one rake process with RSPEC_OUTPUT_FILE set
