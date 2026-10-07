@@ -459,6 +459,7 @@ RSpec.describe AccountAPI::Logic::Account::UpdateOrganizationContext do
       before do
         logic.process
         allow(target_org).to receive(:archived?).and_return(true)
+        allow(default_org).to receive(:is_default).and_return(true)
         allow(customer).to receive_messages(default_org_id: '', organization_instances: [default_org])
       end
 
