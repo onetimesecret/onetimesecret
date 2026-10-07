@@ -1,7 +1,7 @@
 # Lane: full-sqlite — full auth mode against in-memory SQLite.
 # CI jobs: ruby-integration-full (T3, "SQLite" row) on every Ruby change;
-# ruby-integration-billing (the same lane with the billing overlay) when
-# billing is selected.
+# ruby-integration-billing (the same lane with the billing overlay) nightly
+# only.
 #
 # NOTE: lib/tasks/spec.rake hardcodes AUTH_DATABASE_URL/ORGS_SSO_ENABLED
 # for this task as a defense against ambient env. Keeping identical values

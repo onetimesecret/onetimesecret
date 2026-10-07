@@ -472,6 +472,8 @@ does, so while a run of that lane and overlay set is live it exits 69
 | Lane                 | Services                   | Runs                                                          | CI job                                           |
 | -------------------- | -------------------------- | ------------------------------------------------------------- | ------------------------------------------------ |
 | `unit`               | valkey, rabbitmq           | `try:unit`, `spec:fast`                                       | ruby-unit (T2)                                   |
+| `billing`            | valkey, rabbitmq           | `try:billing`, `spec:billing`                                 | ruby-billing (T2, nightly only)                  |
+| `billing-integration` | valkey, rabbitmq          | `try:integration:billing`, `spec:integration:billing`         | ruby-billing-integration (T3, nightly only)      |
 | `browser`            | valkey, rabbitmq           | `rspec tests/browser` (Playwright: chromium, firefox, webkit) | ruby-auth-browser (T2)                           |
 | `simple`             | valkey, rabbitmq           | `try:integration:simple`, `spec:integration:simple`           | ruby-integration-simple (T3)                     |
 | `full-sqlite`        | valkey, rabbitmq           | `spec:integration:full`                                       | ruby-integration-full — SQLite row               |
@@ -484,21 +486,50 @@ does, so while a run of that lane and overlay set is live it exits 69
 | `smoke`              | valkey, rabbitmq           | `pnpm test:smoke`                                             | local-only                                       |
 | `migrations-sqlite`  | valkey, rabbitmq           | `spec:integration:migrations:sqlite`                          | migration-tests.yml — SQLite job                 |
 | `migrations-pg`      | valkey, rabbitmq, postgres | `spec:integration:migrations:postgres` plus dual-URL check    | migration-tests.yml — PostgreSQL job             |
+| `harness`            | valkey, rabbitmq           | `spec:lanes` (`spec/unit/lanes`, the runner's own specs)      | ruby-unit (T2), second step, path-gated          |
 | `selftest`           | none                       | boundary fixture                                              | none — driven by `spec/unit/lanes/`              |
 
 Start every service named for a lane. This includes RabbitMQ for `api`,
 `browser` and `smoke`, whose lane environment still declares its endpoint.
 `selftest` is the only service-free exception.
 
-A lane with several legs (`unit`, `simple`, `migrations-pg`) runs every leg
-even when an earlier one fails, then exits non-zero naming the red legs; the
-same holds for the three rspec legs inside `rake spec:fast`. A red leg never
-silently skips the ones after it.
+A lane with several legs (`unit`, `billing`, `billing-integration`, `simple`,
+`migrations-pg`) runs every leg even when an earlier one fails, then exits
+non-zero naming the red legs; the same holds for the three rspec legs inside
+`rake spec:fast`. A red leg never silently skips the ones after it.
+
+The `harness` lane is the runner's own specs, `spec/unit/lanes/`, carved out
+of `unit` (`HARNESS_SPEC_PATHS` in `lib/tasks/spec.rake`): nearly every
+example starts `tests/lanes/run` as a subprocess, so the directory costs about
+20 seconds in CI for tests of the runner, not the application. The ruby-unit
+job runs it as a second step only when a path those specs exercise changed:
+`spec/unit/lanes/`, `tests/lanes/`, the two spec rake files, `spec_helper.rb`,
+the test logging config and the run-test-lane action (the `harness` filter in
+`ci.yml`; any `.github/` change or a run-all event selects it too). Locally it
+is in `run-all`'s default set, and `tests/lanes/run --only` on one of its
+files infers it.
+
+The `billing` lane is billing's own tests, carved out of `unit`: the billing
+app's spec and tryouts trees plus the root trees named for billing
+(`BILLING_SPEC_PATHS` and `BILLING_TRY_PATHS` in `lib/tasks/spec.rake`), in
+the same simple-mode, billing-off environment. The lane runs no `--tag`
+filter: the `:integration`-tagged billing examples belong to it. In CI it is
+nightly only, like every billing job (`docs/development/auth-ci.md`).
+
+The `billing-integration` lane is billing's integration tests: the mode-less
+spec files directly under `apps/web/billing/spec/integration/`
+(`BILLING_INTEGRATION_SPEC_PATTERN`; `spec:billing` excludes that subtree)
+and the `try/integration/billing` tryouts, which `simple` used to run. Same
+environment as `billing`, and nightly only in CI too, so a pull request, a
+push to `main` or a merge-queue check skips it (`docs/development/auth-ci.md`).
+`rake spec:verify_selection` proves `spec:fast`, `spec:billing` and
+`spec:integration:billing` partition what `spec:fast` alone used to select.
 
 Use `--overlay billing` only with full-mode lanes. Billing requires
-`AUTHENTICATION_MODE=full`; other lanes reject the overlay. In CI the overlay
-rows are the `ruby-integration-billing` job, which runs on a pull request
-only when it changes a billing path (`docs/development/auth-ci.md`).
+`AUTHENTICATION_MODE=full`; other lanes reject the overlay, the two billing
+lanes included — the lane and the overlay are different axes. In CI the
+overlay rows are the `ruby-integration-billing` job, nightly only like
+`ruby-billing-integration` (`docs/development/auth-ci.md`).
 
 Create a lane when a change selects a different test suite or a materially
 different runtime (such as authentication mode or database engine). Use an
@@ -593,7 +624,8 @@ To enable a local, gitignored overlay for that shell, write its name to
 ## Parallel local runs
 
 `tests/lanes/run-all` composes direct lane runs. With no lane names it runs
-`unit simple disabled full-sqlite`; use `--parallel` to fan them out:
+`unit billing simple disabled full-sqlite harness`; use `--parallel` to fan
+them out:
 
 ```console
 $ docker compose -f compose.test.yml up --wait -d

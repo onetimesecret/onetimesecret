@@ -2,8 +2,8 @@
 # PostgreSQL (catches SQLite/PG behavior drift in specs that claim to be
 # database-neutral).
 # CI jobs: ruby-integration-auth (T3, "PG agnostic" row), selected by auth;
-# ruby-integration-billing (the same lane with the billing overlay), selected
-# by billing.
+# ruby-integration-billing (the same lane with the billing overlay), nightly
+# only.
 #
 # Same database env as full-pg; see that lane for where roles come from.
 AUTHENTICATION_MODE=full

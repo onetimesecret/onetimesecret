@@ -8,7 +8,7 @@ name: CI
 # Architecture (Phase 6 - Test Lanes):
 # - Tier 0: Path filtering to skip irrelevant jobs
 # - Tier 1: Lint jobs + build-assets (parallel, fast feedback)
-# - Tier 2: Unit tests (ruby-unit, typescript-unit)
+# - Tier 2: Unit tests (ruby-unit, typescript-unit; ruby-billing nightly only)
 # - Tier 3: Integration tests (parallel: simple, API contract, full, disabled)
 # - Tier 4: Container validation uses pre-built assets
 #
@@ -30,10 +30,13 @@ name: CI
 #   SAML boots, the SAML browser lane) runs when the PR touches a path in
 #   .github/auth-paths.yml or carries the ci:auth label. It is a flag of its
 #   own: it adds those jobs and does not turn on the ordinary Ruby jobs.
-# - Billing coverage (the full-mode lanes repeated with billing on) runs when
-#   the PR touches a billing path (the `billing` filter in the changes job).
-#   Also a flag of its own.
-# - Nightly, main/tag push, and merge-group runs cover every configuration
+# - Billing coverage (billing's own lane, billing's integration lane, and
+#   the full-mode lanes repeated with billing on) runs nightly only: the
+#   `billing_nightly` flag is the schedule event, or a manual dispatch with
+#   run_all, never a path. A pull request, a push to main or a merge-queue
+#   check skips those jobs; the verdict expects them skipped.
+# - Nightly runs cover every configuration; main/tag push and merge-group
+#   runs cover everything but the nightly-only billing jobs
 # - Workflow file changes (.github/**) run all jobs
 # - Use [ci-all] in commit message to force all jobs
 # - Use [ci-skip] in commit message to skip CI entirely
@@ -63,8 +66,9 @@ name: CI
 # - push: checks out the pushed commit (github.sha), no merge.
 
 on:
-  # Establishes the default-branch coverage baseline that GitHub Code Quality
-  # compares against to show PR-relevant Ruby and TypeScript file coverage.
+  # Every commit on main gets a full run: it is the baseline the CI metrics
+  # breakdown compares pull requests against, and it is what notify-results
+  # reports for the default branch.
   push:
     branches:
       - main
@@ -79,14 +83,12 @@ on:
   # No label events: the ci:auth label is read live by the auth selector, so
   # it applies to a re-run or the next push, and labelling a PR never starts
   # a second full run of this workflow.
+  # No base-branch filter: a stacked PR (base chore/*, merge/*, another
+  # feature branch) gets the same lanes as a PR into main. The old list
+  # existed to avoid double runs against the push trigger, which now
+  # covers only main and tags.
   pull_request:
     types: [opened, synchronize, reopened]
-    branches:
-      - main
-      - develop
-      - 'rel/*'
-      - 'fix/*'
-      - 'feature/*'
   # Runs on exact branch tip selected in UI. No merge commit.
   workflow_dispatch:
     inputs:
@@ -130,7 +132,13 @@ jobs:
       oci: ${{ steps.compute.outputs.oci }}
       ga_workflow_files: ${{ steps.compute.outputs.ga_workflow_files }}
       auth: ${{ steps.compute.outputs.auth }}
-      billing: ${{ steps.compute.outputs.billing }}
+      # The lane runner's own specs (the harness lane, a second step of
+      # ruby-unit): a path those specs exercise changed.
+      harness: ${{ steps.compute.outputs.harness }}
+      # The nightly-only selection: true on the schedule event (or a manual
+      # dispatch with run_all), never from a path. Gates the three billing
+      # jobs.
+      billing_nightly: ${{ steps.compute.outputs.billing_nightly }}
       # Read by ci-verdict: [ci-skip] skips every job, which must not read as
       # a pass for the required check.
       skip_ci: ${{ steps.check-flags.outputs.skip_ci }}
@@ -206,18 +214,25 @@ jobs:
               - 'scripts/entrypoint.sh'
               - 'etc/**'
               - 'config.ru'
-            # Selects ruby-integration-billing: the full-mode lanes repeated
-            # with billing on. The billing app, anything in backend code,
-            # configuration or specs named for a billing concept, and the
-            # overlay that turns billing on. The two name lines carry the
-            # same list; scripts/tests/ci-auth-gating-test.sh fails when they
-            # drift apart. Frontend billing code is left out: these are Ruby
-            # suites.
-            billing:
-              - 'apps/web/billing/**'
-              - '{apps,lib,etc,spec,try}/**/*{[Bb]illing,[Ss]tripe,[Ee]ntitlement,[Ss]ubscription,[Pp]lan}*'
-              - '{apps,lib,etc,spec,try}/**/*{[Bb]illing,[Ss]tripe,[Ee]ntitlement,[Ss]ubscription,[Pp]lan}*/**'
-              - 'tests/lanes/overlays/**'
+            # The lane runner's own specs, spec/unit/lanes (the harness lane,
+            # HARNESS_SPEC_PATHS in lib/tasks/spec.rake): every path they
+            # exercise. They start tests/lanes/run as a subprocess, load the
+            # spec rake files through it and read what spec_helper and the
+            # test logging config give a run. A subset of `ruby`, so the
+            # ruby-unit job that hosts the step is selected whenever this is.
+            # The action path is listed for the reader; any .github/** change
+            # already forces every path flag (ga_workflow_files below).
+            harness:
+              - 'spec/unit/lanes/**'
+              - 'tests/lanes/**'
+              - 'lib/tasks/spec.rake'
+              - 'lib/tasks/spec_selection.rake'
+              - 'spec/spec_helper.rb'
+              - 'spec/logging.test.yaml'
+              - '.github/actions/run-test-lane/**'
+            # No billing filter: the billing jobs are nightly only (the
+            # billing_nightly output below), so no path selects them on a
+            # pull request.
             ga_workflow_files:
               - '.github/workflows/**'
               - '.github/actions/**'
@@ -238,21 +253,29 @@ jobs:
           FILTER_TYPESCRIPT: ${{ steps.filter.outputs.typescript }}
           FILTER_FRONTEND: ${{ steps.filter.outputs.frontend }}
           FILTER_OCI: ${{ steps.filter.outputs.oci }}
+          FILTER_HARNESS: ${{ steps.filter.outputs.harness }}
           FILTER_AUTH: ${{ steps.auth.outputs.auth }}
-          FILTER_BILLING: ${{ steps.filter.outputs.billing }}
+          # The nightly-only selection. The scheduled run, or a manual
+          # dispatch with run_all (the documented way to get a full run of a
+          # commit before a release). Not push, merge_group or [ci-all]:
+          # those force every path flag, and these jobs are not path-gated.
+          NIGHTLY: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.run_all == true) }}
         run: ./.github/scripts/compute-path-filter-outputs.sh
 
       - name: Generate job summary
         run: |
-          echo "## Path Filter Results" >> $GITHUB_STEP_SUMMARY
-          echo "| Category | Final |" >> $GITHUB_STEP_SUMMARY
-          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Ruby | ${{ steps.compute.outputs.ruby }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| TypeScript | ${{ steps.compute.outputs.typescript }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Frontend | ${{ steps.compute.outputs.frontend }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| OCI | ${{ steps.compute.outputs.oci }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Auth | ${{ steps.compute.outputs.auth }} |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Billing | ${{ steps.compute.outputs.billing }} |" >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "## Path Filter Results"
+            echo "| Category | Final |"
+            echo "|----------|-------|"
+            echo "| Ruby | ${{ steps.compute.outputs.ruby }} |"
+            echo "| TypeScript | ${{ steps.compute.outputs.typescript }} |"
+            echo "| Frontend | ${{ steps.compute.outputs.frontend }} |"
+            echo "| OCI | ${{ steps.compute.outputs.oci }} |"
+            echo "| Auth | ${{ steps.compute.outputs.auth }} |"
+            echo "| Harness (lane runner specs) | ${{ steps.compute.outputs.harness }} |"
+            echo "| Billing (nightly) | ${{ steps.compute.outputs.billing_nightly }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
 
   # ============================================================================
   # TIER 1: LINT & BUILD JOBS (~2 min)
@@ -446,7 +469,10 @@ jobs:
     needs: [changes]
     # Auth is here because the auth jobs download this build and can be
     # selected (a label, a frontend auth path) when the Ruby flag is off.
-    if: needs.changes.outputs.frontend == 'true' || needs.changes.outputs.ruby == 'true' || needs.changes.outputs.auth == 'true' || needs.changes.outputs.billing == 'true'
+    # Billing likewise: the nightly run is a run_all run and has every flag
+    # on, but a manual dispatch with run_all on a ref that moved no path
+    # still needs the build the billing jobs download.
+    if: needs.changes.outputs.frontend == 'true' || needs.changes.outputs.ruby == 'true' || needs.changes.outputs.auth == 'true' || needs.changes.outputs.billing_nightly == 'true'
     steps:
       - *checkout-step
 
@@ -490,16 +516,9 @@ jobs:
       (needs.build-assets.result == 'success' || needs.build-assets.result == 'skipped')
     permissions:
       contents: read
-      # Required to upload coverage data to GitHub Code Quality.
-      code-quality: write
 
     steps:
-      # Check out the PR head commit (not the merge commit) so coverage line
-      # numbers map correctly to the diff for GitHub Code Quality.
-      - name: Checkout code
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - *checkout-step
 
       # Services come from compose.test.yml (the single source of truth for
       # test service images and 21xx host ports) — the same containers a local
@@ -540,19 +559,10 @@ jobs:
           fi
           echo "::endgroup::"
 
-      # Enable SimpleCov for the test run below. COVERAGE reaches the lane's
-      # `rake spec:fast` process only because it is one of the six names on
-      # the keep-list in tests/lanes/run — the runner clears every exported
-      # variable except PATH, HOME, CI, LANES_NO_AUTOSTART, RSPEC_OUTPUT_FILE
-      # and COVERAGE before it loads the lane env. Do not copy this pattern
-      # for a new variable: writing it to GITHUB_ENV is not enough, the scrub
-      # discards it silently and the test process never sees it. A new
-      # variable belongs in tests/lanes/base.env (every lane) or the lane's
-      # own env file (one lane); the keep-list is for CI plumbing that cannot
-      # live in those files, and growing it is a reviewed exception each time.
-      - name: Enable coverage
-        run: echo "COVERAGE=true" >> "$GITHUB_ENV"
-
+      # Coverage is off in CI. SimpleCov stays opt-in for local runs
+      # (COVERAGE=true, see .simplecov); it is on the lane runner's keep-list
+      # so a local `COVERAGE=true tests/lanes/run unit` reaches the test
+      # process. Nothing here sets it.
       - name: Run unit lane
         uses: ./.github/actions/run-test-lane
         with:
@@ -560,29 +570,57 @@ jobs:
           results-file: 'rspec_unit_results.json'
           debug-enabled: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
 
-      # Uploads coverage/coverage.xml (Cobertura) to GitHub Code Quality.
-      #
-      # Runs only where the Code Quality API accepts the upload:
-      # - a pull request from this repository (forks cannot write Code
-      #   Quality data), which carries the PR number the API needs; or
-      # - the default branch (the push baseline, or a dispatch on it).
-      # Anything else is a workflow_dispatch on a feature branch, which has
-      # no PR number, and the API answers 400 "Only default branch is allowed
-      # if no pull_request_number is provided". That failed the job, and in
-      # typescript-unit it skipped the type-check step after it. Skipping is
-      # chosen over fail-on-error: false so a real upload failure on a PR or
-      # on main still fails the job.
-      - name: Upload coverage report
-        if: &if-coverage-upload >-
-          (github.event_name == 'pull_request' &&
-            github.event.pull_request.head.repo.full_name == github.repository) ||
-          (github.event_name != 'pull_request' &&
-            github.ref == format('refs/heads/{0}', github.event.repository.default_branch))
-        uses: actions/upload-code-coverage@d8e329117199404bba6fc81efe8093dc7c015e34 # v1.4.2
+      # The lane runner's own specs (spec/unit/lanes, tests/lanes/harness):
+      # nearly every example starts tests/lanes/run as a subprocess, about 20s
+      # for tests of the runner rather than the application, so the step runs
+      # only when a path they exercise changed (the harness filter in the
+      # changes job). !cancelled(): a red unit lane does not skip it, the way
+      # a lane's own legs are collected rather than chained.
+      - name: Run harness lane
+        if: ${{ !cancelled() && needs.changes.outputs.harness == 'true' }}
+        uses: ./.github/actions/run-test-lane
         with:
-          file: coverage/coverage.xml
-          language: Ruby
-          label: code-coverage/rspec
+          lane: harness
+          results-file: 'rspec_harness_results.json'
+
+  # The billing lane: billing's own specs and tryouts, carved out of the unit
+  # lane so they run on their own (tests/lanes/billing/env). Nightly only,
+  # like every billing job: the billing_nightly flag is the schedule event
+  # (or a manual dispatch with run_all), never a path, so a pull request, a
+  # push to main or a merge-queue check skips it and ci-verdict expects that
+  # skip. This job defines the gate the two T3 billing jobs reuse. Billing's
+  # integration tests are ruby-billing-integration; the billing-ON re-run of
+  # the full-mode suite is ruby-integration-billing.
+  ruby-billing:
+    name: T2 · Ruby Billing Tests
+    timeout-minutes: 10
+    runs-on: *runs-on
+    needs: [changes, ruby-lint, build-assets]
+    if: &if-billing-nightly |
+      always() &&
+      needs.changes.outputs.billing_nightly == 'true' &&
+      (needs.ruby-lint.result == 'success' || needs.ruby-lint.result == 'skipped') &&
+      (needs.build-assets.result == 'success' || needs.build-assets.result == 'skipped') &&
+      !contains(needs.*.result, 'cancelled')
+    permissions:
+      contents: read
+    steps:
+      - *checkout-step
+      - *start-core-services
+      - name: Setup Ruby test environment
+        uses: ./.github/actions/setup-ruby-test-env
+      - name: Setup Python for locale sync
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.14'
+      - name: Setup Node.js environment
+        uses: ./.github/actions/setup-node-env
+      - name: Run billing lane
+        uses: ./.github/actions/run-test-lane
+        with:
+          lane: billing
+          results-file: 'rspec_billing_results.json'
+          debug-enabled: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
 
   ruby-auth-browser:
     name: T2 · Ruby Auth Browser (SAML)
@@ -625,17 +663,8 @@ jobs:
       (needs.typescript-lint.result == 'success' || needs.typescript-lint.result == 'skipped')
     permissions:
       contents: read
-      # Lets the coverage action associate a push with an open PR when needed.
-      pull-requests: read
-      # Required to upload coverage data to GitHub Code Quality.
-      code-quality: write
     steps:
-      # Check out the PR head commit (not the merge commit) so coverage line
-      # numbers map correctly to the diff for GitHub Code Quality.
-      - name: Checkout code
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - *checkout-step
 
       - name: Setup Node.js environment
         uses: ./.github/actions/setup-node-env
@@ -648,22 +677,13 @@ jobs:
       - name: Generate locale files
         run: pnpm run locales:sync
 
-      - name: Run TypeScript tests with coverage
-        run: pnpm test:base run --coverage --printConsoleTrace
+      # Coverage is off in CI; `pnpm test:coverage` still produces it locally.
+      - name: Run TypeScript tests
+        run: pnpm test:base run --printConsoleTrace
 
-      # Uploads coverage/cobertura-coverage.xml (Cobertura) to Code Quality.
-      # Same condition as the Ruby unit job; see the comment there.
-      - name: Upload coverage report
-        if: *if-coverage-upload
-        uses: actions/upload-code-coverage@d8e329117199404bba6fc81efe8093dc7c015e34 # v1.4.2
-        with:
-          file: coverage/cobertura-coverage.xml
-          language: TypeScript
-          label: code-coverage/vitest
-
-      # Independent of the steps above: a failed test run or a failed
-      # coverage upload must not hide a type error in the tests, so this runs
-      # unless the job was cancelled. It still fails the job on its own.
+      # Independent of the step above: a failed test run must not hide a
+      # type error in the tests, so this runs unless the job was cancelled.
+      # It still fails the job on its own.
       - name: Run type checking tests
         if: ${{ !cancelled() }}
         continue-on-error: false
@@ -862,24 +882,17 @@ jobs:
             results-file: 'rspec_full_saml_platform_results.json'
     steps: *full-integration-steps
 
-  # Selected by billing (a path in the `billing` filter of the changes job,
-  # or any non-PR event), not by every Ruby change and not by auth: the three
-  # full-mode lanes repeated with the billing overlay. They run the same
-  # specs as their billing-off rows with BILLING_ENABLED=true, so a PR that
-  # touches no billing path leaves them to the main, nightly and release
-  # runs. Billing's own specs are in the unit lane and run on every Ruby
-  # change.
+  # Nightly only, on the gate ruby-billing defines: the three full-mode
+  # lanes repeated with the billing overlay. They run the same specs as
+  # their billing-off rows with BILLING_ENABLED=true. Not selected by any
+  # path, by a Ruby change or by auth; a pull request, a push to main or a
+  # merge-queue check skips them, and ci-verdict expects that skip.
   ruby-integration-billing:
     name: 'T3 · Ruby Billing Configuration (${{ matrix.name }})'
     timeout-minutes: 10
     runs-on: *runs-on
     needs: [changes, ruby-lint, build-assets]
-    if: |
-      always() &&
-      needs.changes.outputs.billing == 'true' &&
-      (needs.ruby-lint.result == 'success' || needs.ruby-lint.result == 'skipped') &&
-      (needs.build-assets.result == 'success' || needs.build-assets.result == 'skipped') &&
-      !contains(needs.*.result, 'cancelled')
+    if: *if-billing-nightly
     strategy:
       fail-fast: false
       matrix:
@@ -900,6 +913,44 @@ jobs:
             services: 'valkey rabbitmq postgres'
             results-file: 'rspec_full_pg_agnostic_billing_on_results.json'
     steps: *full-integration-steps
+
+  # Billing's own integration tests (tests/lanes/billing-integration/env):
+  # the mode-less specs directly under apps/web/billing/spec/integration/
+  # and the try/integration/billing tryouts, carved out of the billing and
+  # simple lanes. Same nightly-only gate as the other billing jobs.
+  ruby-billing-integration:
+    name: T3 · Ruby Billing Integration
+    timeout-minutes: 10
+    runs-on: *runs-on
+    needs: [changes, ruby-lint, build-assets]
+    if: *if-billing-nightly
+
+    steps:
+      - *checkout-step
+
+      - *start-core-services
+
+      - name: Setup Ruby test environment
+        uses: ./.github/actions/setup-ruby-test-env
+
+      - name: Setup Python for locale sync
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.14'
+
+      - name: Setup Node.js for locale sync
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version-file: '.node-version'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
+      - name: Run billing-integration lane
+        uses: ./.github/actions/run-test-lane
+        with:
+          lane: billing-integration
+          results-file: 'rspec_billing_integration_results.json'
 
   ruby-integration-disabled:
     name: T3 · Ruby Integration (Disabled Mode)
@@ -1038,9 +1089,11 @@ jobs:
     timeout-minutes: 5
     needs:
       - ruby-unit
+      - ruby-billing
       - ruby-auth-browser
       - ruby-integration-auth
       - ruby-integration-billing
+      - ruby-billing-integration
       - ruby-integration-simple
       - ruby-integration-api
       - ruby-integration-full
@@ -1125,9 +1178,11 @@ jobs:
       - i18n-validate
       - build-assets
       - ruby-unit
+      - ruby-billing
       - ruby-auth-browser
       - ruby-integration-auth
       - ruby-integration-billing
+      - ruby-billing-integration
       - typescript-unit
       - ruby-integration-simple
       - ruby-integration-api
@@ -1152,7 +1207,7 @@ jobs:
           FRONTEND: ${{ needs.changes.outputs.frontend }}
           OCI: ${{ needs.changes.outputs.oci }}
           AUTH: ${{ needs.changes.outputs.auth }}
-          BILLING: ${{ needs.changes.outputs.billing }}
+          BILLING_NIGHTLY: ${{ needs.changes.outputs.billing_nightly }}
           RESULT_HOST_PROXY_WIRE: ${{ needs.host-proxy-wire.result }}
           RESULT_RUBY_LINT: ${{ needs.ruby-lint.result }}
           RESULT_TYPESCRIPT_LINT: ${{ needs.typescript-lint.result }}
@@ -1160,9 +1215,11 @@ jobs:
           RESULT_I18N_VALIDATE: ${{ needs.i18n-validate.result }}
           RESULT_BUILD_ASSETS: ${{ needs.build-assets.result }}
           RESULT_RUBY_UNIT: ${{ needs.ruby-unit.result }}
+          RESULT_RUBY_BILLING: ${{ needs.ruby-billing.result }}
           RESULT_RUBY_AUTH_BROWSER: ${{ needs.ruby-auth-browser.result }}
           RESULT_RUBY_INTEGRATION_AUTH: ${{ needs.ruby-integration-auth.result }}
           RESULT_RUBY_INTEGRATION_BILLING: ${{ needs.ruby-integration-billing.result }}
+          RESULT_RUBY_BILLING_INTEGRATION: ${{ needs.ruby-billing-integration.result }}
           RESULT_TYPESCRIPT_UNIT: ${{ needs.typescript-unit.result }}
           RESULT_RUBY_INTEGRATION_SIMPLE: ${{ needs.ruby-integration-simple.result }}
           RESULT_RUBY_INTEGRATION_API: ${{ needs.ruby-integration-api.result }}
@@ -1183,9 +1240,11 @@ jobs:
       - i18n-validate
       - build-assets
       - ruby-unit
+      - ruby-billing
       - ruby-auth-browser
       - ruby-integration-auth
       - ruby-integration-billing
+      - ruby-billing-integration
       - typescript-unit
       - ruby-integration-simple
       - ruby-integration-api
@@ -1224,9 +1283,11 @@ jobs:
             echo "| i18n Validation | ${{ needs.i18n-validate.result }} |"
             echo "| Build Assets | ${{ needs.build-assets.result }} |"
             echo "| Ruby Unit | ${{ needs.ruby-unit.result }} |"
+            echo "| Ruby Billing | ${{ needs.ruby-billing.result }} |"
             echo "| Ruby Auth Browser | ${{ needs.ruby-auth-browser.result }} |"
             echo "| Ruby Auth Configuration | ${{ needs.ruby-integration-auth.result }} |"
             echo "| Ruby Billing Configuration | ${{ needs.ruby-integration-billing.result }} |"
+            echo "| Ruby Billing Integration | ${{ needs.ruby-billing-integration.result }} |"
             echo "| TypeScript Unit | ${{ needs.typescript-unit.result }} |"
             echo "| Ruby Integration (Simple) | ${{ needs.ruby-integration-simple.result }} |"
             echo "| Ruby Integration (API Contract) | ${{ needs.ruby-integration-api.result }} |"

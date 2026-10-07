@@ -29,7 +29,7 @@
 # email (simple: AUTH_AUTOVERIFY=true; full: AUTH_VERIFY_ACCOUNT_ENABLED=false)
 # and log email instead of sending it.
 #
-# Every pull request into develop, main or rel/* gets a run and a
+# Every pull request, whatever its base branch, gets a run and a
 # `notify-results` verdict, whatever it touches. The lanes run only when the
 # `changes` job finds an E2E-relevant path in the PR (its filter below holds
 # the list), or on workflow_dispatch; otherwise they are skipped and
@@ -65,8 +65,9 @@ on:
   # and the PR cannot merge (GitHub docs, "Troubleshooting required status
   # checks": a workflow skipped by path filtering leaves its checks pending,
   # which blocks merging). The `changes` job does the path-based skipping.
+  # No base-branch filter either, for the same reason: notify-results is
+  # required on stacked bases (chore/*, merge/*) as well as on main.
   pull_request:
-    branches: [develop, main, 'rel/*']
 
 permissions:
   contents: read

@@ -96,25 +96,29 @@ def outputs(text):
 def defaults():
     return {key: "false" for key in (
         "SKIP_CI", "RUN_ALL", "GA_WORKFLOWS", "FILTER_RUBY",
-        "FILTER_TYPESCRIPT", "FILTER_FRONTEND", "FILTER_OCI", "FILTER_AUTH",
-        "FILTER_BILLING",
+        "FILTER_TYPESCRIPT", "FILTER_FRONTEND", "FILTER_OCI", "FILTER_HARNESS",
+        "FILTER_AUTH", "NIGHTLY",
     )}
 
 
 def compute_cases():
     # Enumerate precedence and independent filters, in both output modes.
+    # billing_nightly follows NIGHTLY alone: [ci-skip] turns it off, and
+    # neither run-all nor a workflow-file change turns it on.
     keys = tuple(defaults())
     for values in itertools.product(("false", "true"), repeat=len(keys)):
         inputs = dict(zip(keys, values))
         if inputs["SKIP_CI"] == "true":
-            expected = dict.fromkeys(("ruby", "typescript", "frontend", "oci", "auth",
-                                      "billing", "ga_workflow_files"), "false")
+            expected = dict.fromkeys(("ruby", "typescript", "frontend", "oci", "harness", "auth",
+                                      "billing_nightly", "ga_workflow_files"), "false")
         elif inputs["RUN_ALL"] == "true" or inputs["GA_WORKFLOWS"] == "true":
-            expected = dict.fromkeys(("ruby", "typescript", "frontend", "oci", "auth",
-                                      "billing", "ga_workflow_files"), "true")
+            expected = dict.fromkeys(("ruby", "typescript", "frontend", "oci", "harness", "auth",
+                                      "ga_workflow_files"), "true")
+            expected["billing_nightly"] = inputs["NIGHTLY"]
         else:
             expected = {key: inputs["FILTER_" + key.upper()]
-                        for key in ("ruby", "typescript", "frontend", "oci", "auth", "billing")}
+                        for key in ("ruby", "typescript", "frontend", "oci", "harness", "auth")}
+            expected["billing_nightly"] = inputs["NIGHTLY"]
             expected["ga_workflow_files"] = "false"
         for file_mode in (False, True):
             with tempfile.TemporaryDirectory() as directory:
@@ -170,19 +174,22 @@ def selector_independence():
         check(computed.returncode == 0, f"selection: {computed.stderr}")
         check(outputs(computed.stdout) == {
             "ruby": "false", "auth": "true", "typescript": "false", "frontend": "false",
-            "oci": "false", "billing": "false", "ga_workflow_files": "false",
+            "oci": "false", "harness": "false", "billing_nightly": "false", "ga_workflow_files": "false",
         }, f"label/path/event auth is its own flag and must not turn on Ruby or any other filter: {computed.stdout}")
-    computed = run(compute, {**defaults(), "FILTER_BILLING": "true", "GITHUB_OUTPUT": ""})
-    check(computed.returncode == 0, f"billing selection: {computed.stderr}")
+    computed = run(compute, {**defaults(), "NIGHTLY": "true", "GITHUB_OUTPUT": ""})
+    check(computed.returncode == 0, f"nightly selection: {computed.stderr}")
     check(outputs(computed.stdout) == {
         "ruby": "false", "auth": "false", "typescript": "false", "frontend": "false",
-        "oci": "false", "billing": "true", "ga_workflow_files": "false",
-    }, f"billing is its own flag and must not turn on Ruby, auth or any other filter: {computed.stdout}")
+        "oci": "false", "harness": "false", "billing_nightly": "true", "ga_workflow_files": "false",
+    }, f"the nightly flag is its own flag and must not turn on Ruby, auth or any other filter: {computed.stdout}")
     inputs = defaults()
-    del inputs["FILTER_BILLING"]
+    del inputs["NIGHTLY"]
     computed = run(compute, {**inputs, "RUN_ALL": "true", "GITHUB_OUTPUT": ""})
-    check(computed.returncode == 0 and outputs(computed.stdout)["billing"] == "true",
-          "a run-all event skips the path filter, so billing has no input and must still be selected")
+    check(computed.returncode == 0 and outputs(computed.stdout)["billing_nightly"] == "false",
+          "a run-all event (push, merge queue, [ci-all]) is not the nightly: billing integration stays unselected")
+    computed = run(compute, {**inputs, "RUN_ALL": "true", "NIGHTLY": "true", "GITHUB_OUTPUT": ""})
+    check(computed.returncode == 0 and outputs(computed.stdout)["billing_nightly"] == "true",
+          "the scheduled run is a run-all run and still selects billing integration")
 
 
 jobs = block(workflow, "jobs", 0)
@@ -204,6 +211,8 @@ def triggers():
           "code changes trigger CI; a label event must not start a second full run")
     check(not re.search(r"\b(?:un)?labeled\b", executable(events)),
           "no label events: the selector reads the PR's labels live instead")
+    check(not re.search(r"^ +(?:branches|branches-ignore):", pr, re.M),
+          "stacked PRs get lanes whatever their base branch")
     check(not re.search(r"^ +paths(?:-ignore)?:", events, re.M), "required verdict must not be path-filtered")
     changes = block(jobs, "changes", 2)
     dispatch = re.findall(r'^ +DISPATCH_RUN_ALL="(.+)"$', changes, re.M)
@@ -242,9 +251,13 @@ def shared_wiring():
         "SKIP_CI": "steps.check-flags.outputs.skip_ci", "RUN_ALL": "steps.check-flags.outputs.run_all",
         "GA_WORKFLOWS": "steps.filter.outputs.ga_workflow_files", "FILTER_AUTH": "steps.auth.outputs.auth",
         **{"FILTER_" + name.upper(): "steps.filter.outputs." + name
-           for name in ("ruby", "typescript", "frontend", "oci", "billing")},
+           for name in ("ruby", "typescript", "frontend", "oci", "harness")},
+        # The nightly-only selection is the event, never a path filter output.
+        "NIGHTLY": "github.event_name == 'schedule' || "
+                   "(github.event_name == 'workflow_dispatch' && inputs.run_all == true)",
     }.items():
         check(scalar(compute_env, key, 10) == expression(value), f"compute receives {key}")
+    check("FILTER_BILLING" not in compute_env, "no billing path filter feeds compute: billing integration is nightly only")
     check(scalar(compute_step, "run", 8) == "./.github/scripts/compute-path-filter-outputs.sh",
           "compute runs the tested script")
 
@@ -256,8 +269,8 @@ def prerequisites_and_gates():
         check("needs.changes.outputs.auth" not in job, f"auth selection alone must not run {job_id}")
     check(scalar(block(jobs, "build-assets", 2), "if", 4) ==
           "needs.changes.outputs.frontend == 'true' || needs.changes.outputs.ruby == 'true' "
-          "|| needs.changes.outputs.auth == 'true' || needs.changes.outputs.billing == 'true'",
-          "auth-only and billing-only selection still get the frontend build their jobs download")
+          "|| needs.changes.outputs.auth == 'true' || needs.changes.outputs.billing_nightly == 'true'",
+          "auth-only and nightly-only selection still get the frontend build their jobs download")
     browser = block(jobs, "ruby-auth-browser", 2)
     integration = block(jobs, "ruby-integration-auth", 2)
     for job_id, job in (("ruby-auth-browser", browser), ("ruby-integration-auth", integration)):
@@ -272,24 +285,36 @@ def prerequisites_and_gates():
         "(needs.build-assets.result == 'success' || needs.build-assets.result == 'skipped') && "
         "!contains(needs.*.result, 'cancelled')"
     ), "auth jobs run independently of Ruby output, accept successful/skipped prerequisites, reject failure/cancel")
+    # The three billing jobs share one nightly-only gate: the billing lane's
+    # job defines it, the overlay matrix and billing's integration lane reuse it.
+    unit_billing = block(jobs, "ruby-billing", 2)
     billing = block(jobs, "ruby-integration-billing", 2)
-    check(scalar(billing, "needs", 4) == "[changes, ruby-lint, build-assets]",
-          "ruby-integration-billing: same lint/assets prerequisites as the other full-mode jobs")
-    check(not re.search(r"^    continue-on-error:", billing, re.M), "ruby-integration-billing remains blocking")
-    check(" ".join(block(billing, "if", 4).split()) == (
-        "always() && needs.changes.outputs.billing == 'true' && "
+    integration_billing = block(jobs, "ruby-billing-integration", 2)
+    for job_id, job in (("ruby-billing", unit_billing), ("ruby-integration-billing", billing),
+                        ("ruby-billing-integration", integration_billing)):
+        check(scalar(job, "needs", 4) == "[changes, ruby-lint, build-assets]",
+              f"{job_id}: same lint/assets prerequisites as the other test jobs")
+        check(not re.search(r"^    continue-on-error:", job, re.M), f"{job_id} remains blocking")
+        check("needs.changes.outputs.ruby" not in job, f"a Ruby change alone must not run {job_id}")
+    check(scalar(unit_billing, "if", 4) == "&if-billing-nightly |", "ruby-billing defines the shared nightly gate")
+    for job_id, job in (("ruby-integration-billing", billing), ("ruby-billing-integration", integration_billing)):
+        check(scalar(job, "if", 4) == "*if-billing-nightly", f"{job_id} uses the same nightly gate")
+    check(" ".join(block(unit_billing, "if", 4).split()) == (
+        "always() && needs.changes.outputs.billing_nightly == 'true' && "
         "(needs.ruby-lint.result == 'success' || needs.ruby-lint.result == 'skipped') && "
         "(needs.build-assets.result == 'success' || needs.build-assets.result == 'skipped') && "
         "!contains(needs.*.result, 'cancelled')"
-    ), "billing rows run on the billing flag alone, not on Ruby or auth selection")
+    ), "billing runs on the nightly flag alone, not on a path, Ruby or auth selection")
+    check(re.findall(r"^          lane: (.+)$", integration_billing, re.M) == ["billing-integration"],
+          "ruby-billing-integration runs the billing-integration lane and nothing else")
+    check("results-file: 'rspec_billing_integration_results.json'" in integration_billing,
+          "billing integration results file is collected")
     changes = block(jobs, "changes", 2)
-    check(scalar(block(changes, "outputs", 4), "billing", 6) == expression("steps.compute.outputs.billing"),
-          "changes publishes the billing flag")
-    names = re.findall(r"^              - '\{apps,lib,etc,spec,try\}/\*\*/\*(\{[^}]+\})\*(/\*\*)?'$", changes, re.M)
-    check([suffix for _, suffix in names] == ["", "/**"] and names[0][0] == names[1][0],
-          f"the billing filter's file and directory lines must carry the same name list: {names}")
-    for path in ("apps/web/billing/**", "tests/lanes/overlays/**"):
-        check(f"              - '{path}'" in changes, f"billing filter lists {path}")
+    check(scalar(block(changes, "outputs", 4), "billing_nightly", 6)
+          == expression("steps.compute.outputs.billing_nightly"),
+          "changes publishes the nightly billing integration flag")
+    check(not re.search(r"^            billing:$", changes, re.M),
+          "no billing path filter: nothing on a pull request selects the billing jobs")
     simple = block(jobs, "ruby-integration-simple", 2)
     check(scalar(simple, "if", 4) == "&if-ruby-integration |", "general Ruby gate remains shared")
     check("needs.changes.outputs.ruby == 'true'" in block(simple, "if", 4)
@@ -328,8 +353,8 @@ def matrix_coverage():
     # workflow or git HEAD. Every Ruby change runs the whole suite once, on
     # SQLite, and the PG-only specs, both with billing off. Auth selection
     # adds the second pass of the whole suite on PostgreSQL and the two
-    # feature-specific boots. Billing selection adds the three lanes again
-    # with the billing overlay.
+    # feature-specific boots. The nightly adds the three lanes again with
+    # the billing overlay.
     general = [
         ("SQLite, billing: off", "full-sqlite", "", "valkey rabbitmq", "rspec_full_sqlite_billing_off_results.json"),
         ("PG, billing: off", "full-pg", "", "valkey rabbitmq postgres", "rspec_full_postgres_billing_off_results.json"),
@@ -348,7 +373,7 @@ def matrix_coverage():
     actual_billing = matrix("ruby-integration-billing")
     check(actual_general == general, f"the two full rows every Ruby change runs changed: {actual_general}")
     check(actual_auth == auth, f"the three auth-selected rows changed: {actual_auth}")
-    check(actual_billing == billing, f"the three billing-selected rows changed: {actual_billing}")
+    check(actual_billing == billing, f"the three nightly billing-on rows changed: {actual_billing}")
     check(all(row[2] == "" for row in actual_general + actual_auth),
           "billing-on rows belong to ruby-integration-billing only")
     # Lane, overlay and results file identify a case; the display name may differ per job.
@@ -377,12 +402,17 @@ def matrix_coverage():
 def browser_extraction():
     unit = block(jobs, "ruby-unit", 2)
     browser = block(jobs, "ruby-auth-browser", 2)
-    check(re.findall(r"^          lane: (.+)$", unit, re.M) == ["unit"], "unit job runs only the unit lane")
+    check(re.findall(r"^          lane: (.+)$", unit, re.M) == ["unit", "harness"],
+          "unit job runs the unit lane, then the harness lane (the lane runner's own specs)")
     check("results-file: 'rspec_unit_results.json'" in unit, "unit artifact filename retained")
+    # The last step of the job, so the slice runs to the job's end.
+    check("      - name: Run harness lane\n" in unit, "unit job has the harness lane step")
+    harness = unit[unit.index("      - name: Run harness lane\n"):]
+    check(scalar(harness, "if", 8) == expression("!cancelled() && needs.changes.outputs.harness == 'true'"),
+          "the harness lane runs only when a path its specs exercise changed, and after a red unit lane")
+    check("results-file: 'rspec_harness_results.json'" in harness, "harness results file is its own artifact")
     check(not re.search(r"playwright|lane: browser|tests/browser", executable(unit), re.I),
           "ordinary Ruby unit job must not install or execute browsers")
-    check("file: coverage/coverage.xml" in unit and 'run: echo "COVERAGE=true" >> "$GITHUB_ENV"' in unit,
-          "unit coverage remains scoped to units")
     check(re.findall(r"^          lane: (.+)$", browser, re.M) == ["browser"], "auth browser job runs the original browser lane")
     check("results-file: 'rspec_browser_results.json'" in browser, "browser artifact filename retained")
     install = "run: pnpm exec playwright install --with-deps chromium firefox webkit"
@@ -392,7 +422,8 @@ def browser_extraction():
                          "uses: actions/setup-python@", "uses: ./.github/actions/setup-node-env",
                          "uses: ./.github/actions/run-test-lane"):
         check(prerequisite in browser, f"browser retains setup: {prerequisite}")
-    check("COVERAGE=true" not in browser, "browser extraction must not contaminate unit coverage")
+    check("COVERAGE=true" not in executable(jobs) and "upload-code-coverage" not in executable(jobs),
+          "coverage reporting stays off in CI (opt-in locally via COVERAGE=true)")
 
 
 def lane_tasks():
@@ -406,6 +437,8 @@ def lane_tasks():
         actual = executable((root / "tests/lanes" / lane / "tasks").read_text())
         check(actual == "bundle exec rake " + task, f"{lane}: lane tasks changed: {actual}")
     for lane, tasks in (("unit", ("try:unit", "spec:fast")),
+                        ("billing", ("try:billing", "spec:billing")),
+                        ("billing-integration", ("try:integration:billing", "spec:integration:billing")),
                         ("simple", ("try:integration:simple", "spec:integration:simple"))):
         actual = executable((root / "tests/lanes" / lane / "tasks").read_text())
         expected = '\n'.join([
@@ -439,15 +472,17 @@ def reporting():
     for report_id in ("aggregate-test-results", "ci-verdict", "ci-metrics"):
         report = block(jobs, report_id, 2)
         needs = block(report, "needs", 4)
-        for job_id in ("ruby-auth-browser", "ruby-integration-auth", "ruby-integration-billing"):
+        for job_id in ("ruby-auth-browser", "ruby-integration-auth", "ruby-billing", "ruby-integration-billing",
+                       "ruby-billing-integration"):
             check(len(re.findall(r"^      - " + job_id + r"$", needs, re.M)) == 1,
                   f"{report_id} must wait for {job_id} exactly once")
         check(scalar(report, "if", 4) == "always()", f"{report_id} runs even on skipped/failed auth")
     verdict_env = block(block(jobs, "ci-verdict", 2), "env", 8)
     check(scalar(verdict_env, "AUTH", 10) == expression("needs.changes.outputs.auth"), "verdict receives required auth selection")
-    check(scalar(verdict_env, "BILLING", 10) == expression("needs.changes.outputs.billing"),
-          "verdict receives the billing selection; without it a skipped billing job reads as unselected")
-    for job_id in ("ruby-auth-browser", "ruby-integration-auth", "ruby-integration-billing"):
+    check(scalar(verdict_env, "BILLING_NIGHTLY", 10) == expression("needs.changes.outputs.billing_nightly"),
+          "verdict receives the nightly selection; without it a skipped billing job on the nightly reads as unselected")
+    for job_id in ("ruby-auth-browser", "ruby-integration-auth", "ruby-billing", "ruby-integration-billing",
+                   "ruby-billing-integration"):
         variable = "RESULT_" + job_id.upper().replace("-", "_")
         check(scalar(verdict_env, variable, 10) == expression(f"needs.{job_id}.result"),
               f"verdict receives {job_id}'s result")

@@ -509,8 +509,8 @@ RSpec.describe 'tests/lanes/run argument handling' do
     it 'infers the lane for a lane-less --only with one owner' do
       output, status = probe.run('--only', 'spec/unit/lanes/hermetic_boundary_spec.rb', '--print-key')
       expect(status).to be_success, output
-      expect(output).to include('[lane:unit] inferred from --only')
-      expect(probe.field(output, 'lane').split.first).to eq('unit')
+      expect(output).to include('[lane:harness] inferred from --only')
+      expect(probe.field(output, 'lane').split.first).to eq('harness')
     end
 
     it 'names the candidates when a lane-less --only is ambiguous' do

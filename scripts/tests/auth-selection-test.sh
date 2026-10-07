@@ -489,9 +489,9 @@ def job_lanes(job):
 
 
 for job, selected in (('ruby-integration-auth', True), ('ruby-auth-browser', True),
-                      ('ruby-unit', False), ('ruby-integration-simple', False),
+                      ('ruby-unit', False), ('ruby-billing', False), ('ruby-integration-simple', False),
                       ('ruby-integration-api', False), ('ruby-integration-full', False),
-                      ('ruby-integration-disabled', False)):
+                      ('ruby-integration-disabled', False), ('ruby-billing-integration', False)):
     for lane in job_lanes(job):
         for name in ('env', 'tasks'):
             (positive if selected else negative).append(f'tests/lanes/{lane}/{name}')
