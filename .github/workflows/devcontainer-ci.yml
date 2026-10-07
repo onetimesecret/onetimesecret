@@ -58,3 +58,4 @@ jobs:
             redis-server --port 2163 --bind 127.0.0.1 --daemonize yes --save '' --appendonly no
             LANES_NO_AUTOSTART=1 bin/setup --test
             pnpm run test:rspec:fast
+            pnpm run test:rspec:billing

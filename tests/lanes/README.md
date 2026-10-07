@@ -685,8 +685,8 @@ The tty-only color flags do not apply there. The application's log is in the
 `lane-logs-*` artifact, not in the job output (see "Captured logs", "In CI").
 The supported CI exceptions are constrained environments that cannot run the
 compose topology: `devcontainer-ci.yml` and macOS `installer.yml` run the fast
-suite directly, without the lane runner and so without the capture profile.
-They validate installation paths, not lane behavior.
+and billing suites directly, without the lane runner and so without the
+capture profile. They validate installation paths, not lane behavior.
 
 `ci-verdict` is the required CI check for `main`. It runs on every pull
 request, whatever the PR touches, and passes only when every test job in

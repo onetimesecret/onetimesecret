@@ -337,7 +337,7 @@ def direct_callers():
         direct = [line.strip() for line in text.splitlines()
                   if "tests/lanes/run " in line and not line.lstrip().startswith("#")]
         if name == "fresh-clone.yml":
-            check(direct == ["run: tests/lanes/run unit", "run: tests/lanes/run browser"],
+            check(direct == ["run: tests/lanes/run unit", "run: tests/lanes/run billing", "run: tests/lanes/run browser"],
                   f"fresh-clone.yml no longer runs the documented commands: {direct}")
         else:
             check(direct == [], f"{name} calls tests/lanes/run directly: {direct}")
