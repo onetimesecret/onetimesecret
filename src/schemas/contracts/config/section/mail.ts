@@ -28,6 +28,7 @@ const emailerSchema = z.object({
   pass: nullableString,
   auth: nullableString, // 'login', 'plain', etc.
   tls: z.boolean().nullable().optional(),
+  ssl: z.boolean().nullable().optional(), // implicit TLS (SMTPS)
   feedback_to: nullableString,
   show_logo: z.boolean().optional(),
 });

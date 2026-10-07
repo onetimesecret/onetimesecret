@@ -377,6 +377,7 @@ module Onetime
             'password' => present(conf['pass']) || present(ENV.fetch('SMTP_PASSWORD', nil)),
             'domain' => present(conf['domain']) || present(ENV.fetch('SMTP_DOMAIN', nil)),
             'tls' => conf['tls'],
+            'ssl' => conf['ssl'],
             'allow_unauthenticated_fallback' => conf['allow_unauthenticated_fallback'],
           }
         end
