@@ -66,8 +66,9 @@ name: CI
 # - push: checks out the pushed commit (github.sha), no merge.
 
 on:
-  # Establishes the default-branch coverage baseline that GitHub Code Quality
-  # compares against to show PR-relevant Ruby and TypeScript file coverage.
+  # Every commit on main gets a full run: it is the baseline the CI metrics
+  # breakdown compares pull requests against, and it is what notify-results
+  # reports for the default branch.
   push:
     branches:
       - main
@@ -494,16 +495,9 @@ jobs:
       (needs.build-assets.result == 'success' || needs.build-assets.result == 'skipped')
     permissions:
       contents: read
-      # Required to upload coverage data to GitHub Code Quality.
-      code-quality: write
 
     steps:
-      # Check out the PR head commit (not the merge commit) so coverage line
-      # numbers map correctly to the diff for GitHub Code Quality.
-      - name: Checkout code
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - *checkout-step
 
       # Services come from compose.test.yml (the single source of truth for
       # test service images and 21xx host ports) — the same containers a local
@@ -544,49 +538,16 @@ jobs:
           fi
           echo "::endgroup::"
 
-      # Enable SimpleCov for the test run below. COVERAGE reaches the lane's
-      # `rake spec:fast` process only because it is one of the six names on
-      # the keep-list in tests/lanes/run — the runner clears every exported
-      # variable except PATH, HOME, CI, LANES_NO_AUTOSTART, RSPEC_OUTPUT_FILE
-      # and COVERAGE before it loads the lane env. Do not copy this pattern
-      # for a new variable: writing it to GITHUB_ENV is not enough, the scrub
-      # discards it silently and the test process never sees it. A new
-      # variable belongs in tests/lanes/base.env (every lane) or the lane's
-      # own env file (one lane); the keep-list is for CI plumbing that cannot
-      # live in those files, and growing it is a reviewed exception each time.
-      - name: Enable coverage
-        run: echo "COVERAGE=true" >> "$GITHUB_ENV"
-
+      # Coverage is off in CI. SimpleCov stays opt-in for local runs
+      # (COVERAGE=true, see .simplecov); it is on the lane runner's keep-list
+      # so a local `COVERAGE=true tests/lanes/run unit` reaches the test
+      # process. Nothing here sets it.
       - name: Run unit lane
         uses: ./.github/actions/run-test-lane
         with:
           lane: unit
           results-file: 'rspec_unit_results.json'
           debug-enabled: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
-
-      # Uploads coverage/coverage.xml (Cobertura) to GitHub Code Quality.
-      #
-      # Runs only where the Code Quality API accepts the upload:
-      # - a pull request from this repository (forks cannot write Code
-      #   Quality data), which carries the PR number the API needs; or
-      # - the default branch (the push baseline, or a dispatch on it).
-      # Anything else is a workflow_dispatch on a feature branch, which has
-      # no PR number, and the API answers 400 "Only default branch is allowed
-      # if no pull_request_number is provided". That failed the job, and in
-      # typescript-unit it skipped the type-check step after it. Skipping is
-      # chosen over fail-on-error: false so a real upload failure on a PR or
-      # on main still fails the job.
-      - name: Upload coverage report
-        if: &if-coverage-upload >-
-          (github.event_name == 'pull_request' &&
-            github.event.pull_request.head.repo.full_name == github.repository) ||
-          (github.event_name != 'pull_request' &&
-            github.ref == format('refs/heads/{0}', github.event.repository.default_branch))
-        uses: actions/upload-code-coverage@d8e329117199404bba6fc81efe8093dc7c015e34 # v1.4.2
-        with:
-          file: coverage/coverage.xml
-          language: Ruby
-          label: code-coverage/rspec
 
   # The billing lane: billing's own specs and tryouts, carved out of the unit
   # lane so they run on their own (tests/lanes/billing/env). Nightly only,
@@ -595,10 +556,7 @@ jobs:
   # push to main or a merge-queue check skips it and ci-verdict expects that
   # skip. This job defines the gate the two T3 billing jobs reuse. Billing's
   # integration tests are ruby-billing-integration; the billing-ON re-run of
-  # the full-mode suite is ruby-integration-billing. Coverage is uploaded
-  # under its own label, beside ruby-unit's, so the billing files it took
-  # from that job stay in Code Quality (the nightly runs on the default
-  # branch, which the upload condition accepts).
+  # the full-mode suite is ruby-integration-billing.
   ruby-billing:
     name: T2 · Ruby Billing Tests
     timeout-minutes: 10
@@ -612,13 +570,8 @@ jobs:
       !contains(needs.*.result, 'cancelled')
     permissions:
       contents: read
-      code-quality: write
     steps:
-      # The PR head commit, as in ruby-unit, so coverage lines map to the diff.
-      - name: Checkout code
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - *checkout-step
       - *start-core-services
       - name: Setup Ruby test environment
         uses: ./.github/actions/setup-ruby-test-env
@@ -628,22 +581,12 @@ jobs:
           python-version: '3.14'
       - name: Setup Node.js environment
         uses: ./.github/actions/setup-node-env
-      # COVERAGE is on the lane runner's keep-list; see the note in ruby-unit.
-      - name: Enable coverage
-        run: echo "COVERAGE=true" >> "$GITHUB_ENV"
       - name: Run billing lane
         uses: ./.github/actions/run-test-lane
         with:
           lane: billing
           results-file: 'rspec_billing_results.json'
           debug-enabled: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
-      - name: Upload coverage report
-        if: *if-coverage-upload
-        uses: actions/upload-code-coverage@d8e329117199404bba6fc81efe8093dc7c015e34 # v1.4.2
-        with:
-          file: coverage/coverage.xml
-          language: Ruby
-          label: code-coverage/rspec-billing
 
   ruby-auth-browser:
     name: T2 · Ruby Auth Browser (SAML)
@@ -686,17 +629,8 @@ jobs:
       (needs.typescript-lint.result == 'success' || needs.typescript-lint.result == 'skipped')
     permissions:
       contents: read
-      # Lets the coverage action associate a push with an open PR when needed.
-      pull-requests: read
-      # Required to upload coverage data to GitHub Code Quality.
-      code-quality: write
     steps:
-      # Check out the PR head commit (not the merge commit) so coverage line
-      # numbers map correctly to the diff for GitHub Code Quality.
-      - name: Checkout code
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - *checkout-step
 
       - name: Setup Node.js environment
         uses: ./.github/actions/setup-node-env
@@ -709,22 +643,13 @@ jobs:
       - name: Generate locale files
         run: pnpm run locales:sync
 
-      - name: Run TypeScript tests with coverage
-        run: pnpm test:base run --coverage --printConsoleTrace
+      # Coverage is off in CI; `pnpm test:coverage` still produces it locally.
+      - name: Run TypeScript tests
+        run: pnpm test:base run --printConsoleTrace
 
-      # Uploads coverage/cobertura-coverage.xml (Cobertura) to Code Quality.
-      # Same condition as the Ruby unit job; see the comment there.
-      - name: Upload coverage report
-        if: *if-coverage-upload
-        uses: actions/upload-code-coverage@d8e329117199404bba6fc81efe8093dc7c015e34 # v1.4.2
-        with:
-          file: coverage/cobertura-coverage.xml
-          language: TypeScript
-          label: code-coverage/vitest
-
-      # Independent of the steps above: a failed test run or a failed
-      # coverage upload must not hide a type error in the tests, so this runs
-      # unless the job was cancelled. It still fails the job on its own.
+      # Independent of the step above: a failed test run must not hide a
+      # type error in the tests, so this runs unless the job was cancelled.
+      # It still fails the job on its own.
       - name: Run type checking tests
         if: ${{ !cancelled() }}
         continue-on-error: false

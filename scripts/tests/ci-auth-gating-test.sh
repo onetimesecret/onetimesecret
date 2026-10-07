@@ -404,8 +404,6 @@ def browser_extraction():
     check("results-file: 'rspec_unit_results.json'" in unit, "unit artifact filename retained")
     check(not re.search(r"playwright|lane: browser|tests/browser", executable(unit), re.I),
           "ordinary Ruby unit job must not install or execute browsers")
-    check("file: coverage/coverage.xml" in unit and 'run: echo "COVERAGE=true" >> "$GITHUB_ENV"' in unit,
-          "unit coverage remains scoped to units")
     check(re.findall(r"^          lane: (.+)$", browser, re.M) == ["browser"], "auth browser job runs the original browser lane")
     check("results-file: 'rspec_browser_results.json'" in browser, "browser artifact filename retained")
     install = "run: pnpm exec playwright install --with-deps chromium firefox webkit"
@@ -415,7 +413,8 @@ def browser_extraction():
                          "uses: actions/setup-python@", "uses: ./.github/actions/setup-node-env",
                          "uses: ./.github/actions/run-test-lane"):
         check(prerequisite in browser, f"browser retains setup: {prerequisite}")
-    check("COVERAGE=true" not in browser, "browser extraction must not contaminate unit coverage")
+    check("COVERAGE=true" not in executable(jobs) and "upload-code-coverage" not in executable(jobs),
+          "coverage reporting stays off in CI (opt-in locally via COVERAGE=true)")
 
 
 def lane_tasks():
