@@ -77,6 +77,7 @@ RSpec.describe 'tests/lanes/run-all' do
     expect(status).to be_success
     expect(output).to include('usage: tests/lanes/run-all')
     expect(output).to include('--skip-codegen')
+    expect(output).to include('--workers 1 under --parallel')
   end
 
   it 'rejects an unknown lane before starting anything' do
@@ -136,6 +137,31 @@ RSpec.describe 'tests/lanes/run-all' do
         expect(output).to include("tests/lanes/run #{lane} --skip-codegen")
       end
       expect(output).not_to include('tests/lanes/run smoke')
+    end
+
+    # The lanes are the parallelism under --parallel: each child runs its
+    # tasks with one worker instead of its LANES_WORKERS default, or N lanes
+    # would fork N*4 rspec processes and claim as many valkey indexes. A
+    # serial run-all starts one lane at a time and leaves it its default.
+    it 'plans every child with --workers 1 under --parallel, exactly as it will run' do
+      output, status = probe.run('--parallel', '--dry-run', 'unit', 'simple')
+
+      expect(status).to be_success, output
+      expect(output).to include('[run-all] mode:    parallel')
+      %w[unit simple].each do |lane|
+        expect(output).to include("tests/lanes/run #{lane} --skip-codegen --workers 1 ->")
+      end
+      # And the command the wrapper runs is the one it printed.
+      expect(File.read(probe.wrapper)).to include('"${RUNNER}" "${lane}" "${CHILD_ARGS[@]}"')
+    end
+
+    it 'leaves each lane its own worker default in serial mode' do
+      output, status = probe.run('--dry-run', 'unit', 'simple')
+
+      expect(status).to be_success, output
+      expect(output).to include('[run-all] mode:    serial')
+      expect(output).to include('tests/lanes/run unit --skip-codegen ->')
+      expect(output).not_to include('--workers')
     end
 
     it 'does not read lane declarations from the calling environment' do
