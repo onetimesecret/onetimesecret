@@ -7,17 +7,18 @@
 #
 # spec:fast used to be 13 rspec processes: spec:unit, spec:cli, and one per
 # apps/*/*/spec tree. It is now three (spec:root_fast, spec:apps_fast, and
-# spec:apps_config_ru) plus the billing lane's one (spec:billing, which took
-# the billing trees out of spec:fast), and the whole value of that
-# consolidation rests on those invocations selecting, between them, exactly
-# the files the 13 selected — each file once. That equivalence is NOT
-# something a reviewer can check by reading the globs: rspec resolves
+# spec:apps_config_ru) plus the two billing lanes' one each (spec:billing,
+# which took the billing trees out of spec:fast, and spec:integration:billing,
+# which runs the billing app's mode-less integration files), and the whole
+# value of that consolidation rests on those invocations selecting, between
+# them, exactly the files the 13 selected — each file once. That equivalence
+# is NOT something a reviewer can check by reading the globs: rspec resolves
 # --pattern and --exclude-pattern separately against each checked path, so an
 # include and an exclude that look symmetric can behave asymmetrically (see
 # the HARD RULE in lib/tasks/spec.rake). This file mechanises the check.
 #
 #   rake spec:verify_selection        file-level, <1s, loads zero spec files
-#   rake spec:verify_selection:deep   example-ID level, ~35s, 19 rspec dry-runs
+#   rake spec:verify_selection:deep   example-ID level, ~35s, 20 rspec dry-runs
 #
 # The cheap task is the one meant to run everywhere (pre-commit, every CI job
 # that touches spec plumbing). It re-derives the LEGACY 13-invocation selection
@@ -133,7 +134,15 @@ module SpecSelection
   #
   # @return [Hash] invocation descriptor
   def billing_invocation
-    { name: 'billing', paths: BILLING_SPEC_PATHS }
+    { name: 'billing', paths: BILLING_SPEC_PATHS, exclude_pattern: BILLING_SPEC_EXCLUDE }
+  end
+
+  # The billing-integration lane's invocation (spec:integration:billing): the
+  # files the task passes, expanded from the same pattern at load.
+  #
+  # @return [Hash] invocation descriptor
+  def billing_integration_invocation
+    { name: 'billing_integration', paths: BILLING_INTEGRATION_SPEC_FILES }
   end
 
   # Files the lanes pick up that NO legacy invocation ever claimed.
@@ -143,11 +152,10 @@ module SpecSelection
   # are adopted by root_fast. The mode-less files directly under
   # apps/web/billing/spec/integration/ were never dispatched either: the
   # legacy per-app invocation excluded the whole integration/ subtree and
-  # every integration task reads integration/<mode>. The billing lane adopts
-  # them with the rest of its tree. Stating each adoption as a pattern rather
-  # than a file list means another file in either place is covered
-  # automatically, while a lane that stops selecting them still fails the
-  # guard loudly.
+  # every integration task reads integration/<mode>. The billing-integration
+  # lane adopts them. Stating each adoption as a pattern rather than a file
+  # list means another file in either place is covered automatically, while
+  # a lane that stops selecting them still fails the guard loudly.
   ADOPTED_PATTERNS = %w[
     spec/lib/**/*_spec.rb
     apps/web/billing/spec/integration/*_spec.rb
@@ -161,8 +169,9 @@ module SpecSelection
   # Spec files that are knowingly run by NO lane. Every entry is drift being
   # tolerated, not a category — the list is printed on every successful run so
   # it cannot quietly become permanent, and a new orphan fails the task. Empty
-  # since the billing lane adopted the three mode-less billing integration
-  # files; it stays so that the next tolerated orphan has a named place.
+  # since the billing-integration lane adopted the three mode-less billing
+  # integration files; it stays so that the next tolerated orphan has a named
+  # place.
   UNRUN_SPECS = %w[].freeze
 
   # Every *_spec.rb in the repo, bucketed by the lane that runs it. Buckets, not
@@ -187,6 +196,7 @@ module SpecSelection
     {
       'spec:fast' => fast_invocations.flat_map { |inv| files(**inv.except(:name, :tags)) }.sort.uniq,
       'spec:billing' => files(**billing_invocation.except(:name)),
+      'spec:integration:billing' => files(**billing_integration_invocation.except(:name)),
       'spec:integration' => integration.sort.uniq,
       'spec:api' => Dir.glob('spec/api/**/*_spec.rb').sort.uniq,
     }
@@ -228,18 +238,19 @@ module SpecSelection
 end
 
 namespace :spec do
-  desc 'Verify spec:fast + spec:billing select exactly what the legacy 13-invocation fan-out did'
+  desc 'Verify spec:fast + the two billing lanes select exactly what the legacy 13-invocation fan-out did'
   task :verify_selection do
     SpecSelection.assert_legs_modeled!
 
-    legacy  = SpecSelection.legacy_invocations
+    legacy              = SpecSelection.legacy_invocations
       .flat_map { |inv| SpecSelection.files(**inv.except(:name, :tags)) }
       .sort.uniq
-    claims  = SpecSelection.lane_claims
-    fast    = claims.fetch('spec:fast')
-    billing = claims.fetch('spec:billing')
-    current = (fast + billing).sort.uniq
-    adopted = SpecSelection.adopted_files
+    claims              = SpecSelection.lane_claims
+    fast                = claims.fetch('spec:fast')
+    billing             = claims.fetch('spec:billing')
+    billing_integration = claims.fetch('spec:integration:billing')
+    current             = (fast + billing + billing_integration).sort.uniq
+    adopted             = SpecSelection.adopted_files
 
     dropped           = legacy - current
     added             = (current - legacy) - adopted
@@ -247,11 +258,11 @@ namespace :spec do
 
     unless dropped.empty? && added.empty? && missing_adoptions.empty?
       abort <<~MSG
-        spec:fast + spec:billing selection drift — the two lanes' invocations
-        no longer select, between them, what the legacy per-tree invocations
-        select.
+        spec:fast + spec:billing + spec:integration:billing selection drift —
+        the three lanes' invocations no longer select, between them, what the
+        legacy per-tree invocations select.
 
-          dropped (legacy ran these, neither lane does now):
+          dropped (legacy ran these, no lane does now):
         #{dropped.empty? ? '    (none)' : dropped.map { |f| "    #{f}" }.join("\n")}
 
           added (a lane runs these, no legacy invocation did, and they are
@@ -259,7 +270,7 @@ namespace :spec do
         #{added.empty? ? '    (none)' : added.map { |f| "    #{f}" }.join("\n")}
 
           adopted but no longer selected (ROOT_FAST_PATTERN lost spec/lib, or
-          BILLING_SPEC_PATHS lost the billing app tree?):
+          BILLING_INTEGRATION_SPEC_PATTERN lost the mode-less billing files?):
         #{missing_adoptions.empty? ? '    (none)' : missing_adoptions.map { |f| "    #{f}" }.join("\n")}
 
         Fix the patterns in lib/tasks/spec.rake, or — if the change is
@@ -267,10 +278,13 @@ namespace :spec do
       MSG
     end
 
-    # The billing lane exists to run the billing trees, so an empty claim is a
-    # broken BILLING_SPEC_PATHS, not a lane with nothing to do. (A billing file
-    # that spec:fast also selects is caught by the overlap check below.)
+    # Each billing lane exists to run its trees, so an empty claim is a broken
+    # constant, not a lane with nothing to do. (A billing file that another
+    # lane also selects is caught by the overlap check below.)
     abort 'spec:billing selects no files: check BILLING_SPEC_PATHS in lib/tasks/spec.rake' if billing.empty?
+    if billing_integration.empty?
+      abort 'spec:integration:billing selects no files: check BILLING_INTEGRATION_SPEC_PATTERN in lib/tasks/spec.rake'
+    end
 
     # Orphan/overlap check. A spec file that no lane runs is invisible drift:
     # it passes review, passes CI, and is never executed. That is exactly how
@@ -306,9 +320,11 @@ namespace :spec do
     end
 
     puts format(
-      'spec:fast selection OK — %d files, %d billing (%d adopted between them), %d integration, %d api, %d total',
+      'spec:fast selection OK — %d files, %d billing, %d billing integration (%d adopted among them), ' \
+      '%d integration, %d api, %d total',
       fast.size,
       billing.size,
+      billing_integration.size,
       adopted.size,
       claims.fetch('spec:integration').size,
       claims.fetch('spec:api').size,
@@ -317,7 +333,7 @@ namespace :spec do
   end
 
   namespace :verify_selection do
-    desc 'Verify spec:fast + spec:billing run the same EXAMPLE IDs as the legacy fan-out (slow: 18 dry-runs)'
+    desc 'Verify spec:fast + the two billing lanes run the same EXAMPLE IDs as the legacy fan-out (slow: 20 dry-runs)'
     task :deep do
       require 'json'
 
@@ -342,15 +358,18 @@ namespace :spec do
         { name: "adopted_#{i}", pattern: pattern }
       end
       legacy    = collect.call(SpecSelection.legacy_invocations + adoptions, 'legacy')
-      # Both lanes on the current side: the billing trees moved out of
+      # All three lanes on the current side: the billing trees moved out of
       # spec:fast, so spec:fast alone would report them as missing.
-      current   = collect.call(SpecSelection.fast_invocations + [SpecSelection.billing_invocation], 'fast')
+      current   = collect.call(
+        SpecSelection.fast_invocations + [SpecSelection.billing_invocation, SpecSelection.billing_integration_invocation],
+        'fast',
+      )
 
       missing = legacy - current
       extra   = current - legacy
 
       puts format(
-        'legacy=%d (uniq %d)  spec:fast+spec:billing=%d (uniq %d)  missing=%d  extra=%d',
+        'legacy=%d (uniq %d)  spec:fast+spec:billing+spec:integration:billing=%d (uniq %d)  missing=%d  extra=%d',
         legacy.size,
         legacy.uniq.size,
         current.size,

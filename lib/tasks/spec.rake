@@ -154,23 +154,34 @@ end.freeze
 # made absolute. `rake spec:verify_selection` fails on the mistake.
 # The billing lane's spec selection: the whole billing app tree and the root
 # trees named for billing, as directories rather than a pattern — rspec's
-# default pattern under each, nothing excluded, nothing for the HARD RULE to
-# bite on. The three mode-less files in apps/web/billing/spec/integration/
-# are the lane's too: no integration task dispatches a mode-less file, and
-# they ran nowhere until this lane adopted them (ADOPTED_PATTERNS in
-# lib/tasks/spec_selection.rake). A mode subdirectory added there later
-# (integration/full/, say) would be loaded by this lane AND the full lanes;
-# spec:verify_selection reports that as an overlap.
+# default pattern under each. The one exclusion is the billing app's
+# integration/ subtree, spelled with the include's own prefix as the HARD
+# RULE requires: its mode-less files are the billing-integration lane's
+# (BILLING_INTEGRATION_SPEC_PATTERN below), and a mode subdirectory added
+# there later (integration/full/, say) belongs to that mode's lanes, as in
+# every other app tree.
 #
 # No --tag filters: the lane IS the membership. The ~500 :integration-tagged
 # billing examples that APPS_FAST_TAG_FILTERS never managed to exclude from
 # spec:fast run here, on purpose, with the rest of the billing tree.
-BILLING_SPEC_PATHS = %w[
+BILLING_SPEC_PATHS   = %w[
   apps/web/billing/spec
   spec/cli/billing
   spec/unit/billing
   spec/unit/onetime/operations/billing
 ].freeze
+BILLING_SPEC_EXCLUDE = 'apps/web/billing/spec/integration/**/*_spec.rb'
+
+# The billing-integration lane's spec selection (tests/lanes/billing-integration,
+# spec:integration:billing below): the files directly under the billing app's
+# integration/, which has no mode subdirectories. No integration task
+# dispatches a mode-less file — every spec:integration:<mode> reads
+# integration/<mode> — so these ran nowhere until a lane adopted them
+# (ADOPTED_PATTERNS in lib/tasks/spec_selection.rake). Non-recursive on
+# purpose: a mode subdirectory is the mode lanes'. Expanded at load so the
+# task passes files, which the lane ownership oracle models verbatim.
+BILLING_INTEGRATION_SPEC_PATTERN = 'apps/web/billing/spec/integration/*_spec.rb'
+BILLING_INTEGRATION_SPEC_FILES   = Dir.glob(BILLING_INTEGRATION_SPEC_PATTERN).sort.freeze
 
 # The same trees, as spec:fast's exclusions. Each exclude shares its include's
 # prefix ('spec/…' against ROOT_FAST_PATTERN, 'apps/…' against
@@ -243,7 +254,8 @@ namespace :spec do
   # (spec/unit/lanes/ownership_spec.rb) sees the paths it passes.
   desc 'Run the billing specs (the billing lane; one process)'
   task :billing do |task|
-    sh "bundle exec rspec #{BILLING_SPEC_PATHS.join(' ')} #{rspec_task_format_options(task)}"
+    sh "bundle exec rspec #{BILLING_SPEC_PATHS.join(' ')} --exclude-pattern '#{BILLING_SPEC_EXCLUDE}' " \
+       "#{rspec_task_format_options(task)}"
   end
 
   # Per-tree tasks below are kept for targeted runs (`rake spec:apps:web_auth`)
@@ -324,6 +336,28 @@ namespace :spec do
 
         sh env, "bundle exec rspec #{patterns.join(' ')} #{tag_filter} #{rspec_task_format_options(task)}"
       end
+    end
+
+    # The billing-integration lane's rspec invocation (tests/lanes/billing-integration):
+    # the mode-less files directly under apps/web/billing/spec/integration/,
+    # in the same simple-mode, billing-off environment as the billing lane
+    # they came from (the specs stub the billing configuration themselves and
+    # replay committed VCR cassettes). Files, not the directory: the
+    # directory would recurse into a mode subdirectory added later, which
+    # belongs to that mode's lanes. An empty list aborts rather than runs:
+    # `rspec` with no paths would run the whole default tree and report it
+    # as this lane's green.
+    desc 'Run the mode-less billing integration specs (the billing-integration lane)'
+    task :billing do |task|
+      if BILLING_INTEGRATION_SPEC_FILES.empty?
+        abort "spec:integration:billing selects no files: nothing matches #{BILLING_INTEGRATION_SPEC_PATTERN}"
+      end
+
+      env = {
+        'RACK_ENV' => 'test',
+        'AUTHENTICATION_MODE' => 'simple',
+      }
+      sh env, "bundle exec rspec #{BILLING_INTEGRATION_SPEC_FILES.join(' ')} #{rspec_task_format_options(task)}"
     end
 
     desc 'Run full-mode specs that require AUTH_MFA_ENABLED=true (own process)'
@@ -629,13 +663,13 @@ namespace :try do
 
       # NOTE: colonel_role_auth_try.rb excluded - requires full Rack app which
       # calls exit in CI environment. Run locally with: bundle exec try try/integration/colonel_role_auth_try.rb
+      # try/integration/billing is the billing-integration lane's (try:integration:billing).
       patterns = %w[
         try/integration/middleware
         try/integration/boot
         try/integration/web
         try/integration/api
         try/integration/email
-        try/integration/billing
         try/integration/homepage_bypass_header_integration_try.rb
         try/integration/homepage_mode_integration_try.rb
         try/integration/check_jobqueue_live_try.rb
@@ -643,6 +677,19 @@ namespace :try do
       ].select { |p| File.exist?(p) || Dir.exist?(p) }.join(' ')
 
       sh env, "bundle exec tryouts --agent #{patterns}" unless patterns.empty?
+    end
+
+    # The billing-integration lane's tryouts (tests/lanes/billing-integration):
+    # the one try/integration subtree named for billing, which try:integration:simple
+    # used to run. Same simple-mode environment; its own process and CI job.
+    desc 'Run the billing integration tryouts (the billing-integration lane)'
+    task :billing do
+      env = {
+        'RACK_ENV' => 'test',
+        'AUTHENTICATION_MODE' => 'simple',
+      }
+
+      sh env, 'bundle exec tryouts --agent try/integration/billing' if Dir.exist?('try/integration/billing')
     end
   end
 

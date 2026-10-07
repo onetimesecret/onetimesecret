@@ -313,6 +313,7 @@ RSpec.describe 'lane rspec reporting' do
     {
       'api' => [''],
       'billing' => [''],
+      'billing-integration' => [''],
       'disabled' => [''],
       'full-mfa' => ['_mfa'],
       'full-pg' => [''],
@@ -332,8 +333,8 @@ RSpec.describe 'lane rspec reporting' do
     it 'covers every lane that runs rspec through rake' do
       through_rake = lanes.reject { |_, invocations| invocations.empty? }.keys.sort
 
-      expect(through_rake).to eq(%w[api billing disabled full-mfa full-pg full-pg-agnostic full-saml-platform
-                                    full-sqlite migrations-pg migrations-sqlite simple unit])
+      expect(through_rake).to eq(%w[api billing billing-integration disabled full-mfa full-pg full-pg-agnostic
+                                    full-saml-platform full-sqlite migrations-pg migrations-sqlite simple unit])
     end
 
     it 'never gives two invocations of one lane the same file' do

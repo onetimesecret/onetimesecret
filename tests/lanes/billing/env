@@ -2,13 +2,15 @@
 # trees named for billing (spec/unit/billing, spec/cli/billing,
 # spec/unit/onetime/operations/billing, try/unit/billing, try/unit/cli/billing).
 # Carved out of the unit lane; same environment, its own process and CI job.
+# The billing app's integration/ subtree is not this lane's: its mode-less
+# files are the billing-integration lane's (nightly in CI).
 # CI job: ruby-billing (T2)
 #
 # Not the billing OVERLAY. `--overlay billing` turns billing on for the
-# full-mode lanes (ruby-integration-billing); this lane runs billing's own
-# specs, which stub the billing configuration themselves and replay committed
-# VCR cassettes, in simple mode with billing off like the unit lane they came
-# from.
+# full-mode lanes (ruby-integration-billing, nightly only); this lane runs
+# billing's own specs, which stub the billing configuration themselves and
+# replay committed VCR cassettes, in simple mode with billing off like the
+# unit lane they came from.
 AUTHENTICATION_MODE=simple
 
 # Generated prerequisites, produced by tests/lanes/run before the tasks
