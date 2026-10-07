@@ -129,6 +129,10 @@ RSpec.describe 'restrict_to enforcement — full mode (ADR-034#restrict-to-is-an
       enabled: true,
       signin_enabled: true,
       sso_enabled: true,
+      # A restrict_to='email_auth' host honors its restriction only while the
+      # domain itself has email-auth on (SigninConfig.restriction_available_for_custom_domain?);
+      # without it the host resolves :unavailable and 404s its own method too.
+      email_auth_enabled: restrict_to == 'email_auth',
       restrict_to: restrict_to,
     )
 
@@ -237,9 +241,9 @@ RSpec.describe 'restrict_to enforcement — full mode (ADR-034#restrict-to-is-an
     end
 
     it 'still serves its OWN method (the gate narrows, it does not close)' do
-      skip 'email_auth feature not enabled in this lane' unless route_mounted?('/email-auth-request')
+      skip 'email_auth feature not enabled in this lane' unless route_mounted?('/email-login-request')
 
-      response = post_as(host, '/auth/email-auth-request', login: "nobody-#{run_id}@example.com")
+      response = post_as(host, '/auth/email-login-request', login: "nobody-#{run_id}@example.com")
       expect(response.status).not_to eq(404),
         'the permitted method must stay reachable on its own restricted host'
     end
@@ -252,11 +256,11 @@ RSpec.describe 'restrict_to enforcement — full mode (ADR-034#restrict-to-is-an
       expect_not_found(post_as(host, '/auth/login', login: 'nobody@example.com', password: 'x' * 20), '/auth/login')
     end
 
-    it '404s POST /auth/email-auth-request' do
-      skip 'email_auth feature not enabled in this lane' unless route_mounted?('/email-auth-request')
+    it '404s POST /auth/email-login-request' do
+      skip 'email_auth feature not enabled in this lane' unless route_mounted?('/email-login-request')
 
-      expect_not_found(post_as(host, '/auth/email-auth-request', login: 'nobody@example.com'),
-        '/auth/email-auth-request')
+      expect_not_found(post_as(host, '/auth/email-login-request', login: 'nobody@example.com'),
+        '/auth/email-login-request')
     end
 
     it 'keeps the SSO linking routes reachable (they are an SSO continuation)' do
@@ -279,9 +283,9 @@ RSpec.describe 'restrict_to enforcement — full mode (ADR-034#restrict-to-is-an
     it 'rejects every method, including the one it names' do
       expect_not_found(post_as(host, '/auth/login', login: 'nobody@example.com', password: 'x' * 20), '/auth/login')
 
-      if route_mounted?('/email-auth-request')
-        expect_not_found(post_as(host, '/auth/email-auth-request', login: 'nobody@example.com'),
-          '/auth/email-auth-request')
+      if route_mounted?('/email-login-request')
+        expect_not_found(post_as(host, '/auth/email-login-request', login: 'nobody@example.com'),
+          '/auth/email-login-request')
       end
 
       if route_mounted?('/webauthn-login')
