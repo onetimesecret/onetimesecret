@@ -20,18 +20,35 @@ failed=()
 if (( ${LANES_WORKERS:-1} >= 2 )); then
   run_dir="${LANES_RSPEC_STATUS_FILE%/*}"
   try_log="${run_dir}/try-unit.log"
+  # Each leg's seconds, printed on one `[lane:unit] legs:` line at the end so
+  # a CI sample shows whether the side-by-side run pays on that runner. The
+  # background leg's end is only known inside its own group (`wait` returns
+  # the exit code alone), so it writes its seconds to a file beside its log.
+  try_seconds="${run_dir}/try-unit.seconds"
   try_rc=0
   spec_rc=0
-  rm -f "${run_dir}"/rspec-status.w*.txt
-  tests/lanes/support/worker-env 2 bundle exec rake try:unit >"${try_log}" 2>&1 &
+  merge_rc=0
+  rm -f "${run_dir}"/rspec-status.w*.txt "${try_seconds}"
+  legs_t0=${EPOCHSECONDS}
+  {
+    try_leg_rc=0
+    tests/lanes/support/worker-env 2 bundle exec rake try:unit || try_leg_rc=$?
+    echo $(( EPOCHSECONDS - legs_t0 )) >"${try_seconds}"
+    exit "${try_leg_rc}"
+  } >"${try_log}" 2>&1 &
   try_pid=$!
   tests/lanes/support/worker-env 1 bundle exec rake spec:fast || spec_rc=$?
+  spec_s=$(( EPOCHSECONDS - legs_t0 ))
   wait "${try_pid}" || try_rc=$?
   echo "[lane:unit] try:unit ran as worker 2 (exit ${try_rc}); its output follows, from ${try_log}"
   cat "${try_log}"
   (( try_rc == 0 )) || failed+=(try:unit)
   (( spec_rc == 0 )) || failed+=(spec:fast)
-  bundle exec ruby tests/lanes/support/merge_rspec_status.rb "${LANES_RSPEC_STATUS_FILE}" "${run_dir}/rspec-status.w*.txt" || failed+=(merge-status)
+  merge_t0=${EPOCHSECONDS}
+  bundle exec ruby tests/lanes/support/merge_rspec_status.rb "${LANES_RSPEC_STATUS_FILE}" "${run_dir}/rspec-status.w*.txt" || merge_rc=$?
+  (( merge_rc == 0 )) || failed+=(merge-status)
+  try_s="$(cat "${try_seconds}" 2>/dev/null || echo '?')"
+  echo "[lane:unit] legs: try:unit ${try_s}s (worker 2, background) spec:fast ${spec_s}s (worker 1) merge-status $(( EPOCHSECONDS - merge_t0 ))s — wall $(( EPOCHSECONDS - legs_t0 ))s"
 else
   bundle exec rake try:unit || failed+=(try:unit)
   bundle exec rake spec:fast || failed+=(spec:fast)

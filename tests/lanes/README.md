@@ -505,7 +505,9 @@ files, `tmp/<stem>_w<k>.json`, which CI's `tmp/<stem>*.json` glob already
 collects) and exports `LANES_WORKER=k`. `auto` reads `TEST_ENV_NUMBER`, so
 the same file is the `PARALLEL_TESTS_EXECUTABLE` the rake tasks hand
 `parallel_rspec`; the `unit` lane's tasks file calls it by number, one leg
-per worker. Results durations are summed per worker in
+per worker, and ends with one `[lane:unit] legs:` line giving each leg's
+seconds and the wall clock, so a CI sample shows whether running `try:unit`
+beside `spec:fast` pays on that runner. Results durations are summed per worker in
 `scripts/ci/aggregate-test-results.sh`, so a parallel lane's reported
 duration exceeds its wall clock.
 
