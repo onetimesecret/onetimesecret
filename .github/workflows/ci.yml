@@ -132,6 +132,9 @@ jobs:
       oci: ${{ steps.compute.outputs.oci }}
       ga_workflow_files: ${{ steps.compute.outputs.ga_workflow_files }}
       auth: ${{ steps.compute.outputs.auth }}
+      # The lane runner's own specs (the harness lane, a second step of
+      # ruby-unit): a path those specs exercise changed.
+      harness: ${{ steps.compute.outputs.harness }}
       # The nightly-only selection: true on the schedule event (or a manual
       # dispatch with run_all), never from a path. Gates the three billing
       # jobs.
@@ -211,6 +214,22 @@ jobs:
               - 'scripts/entrypoint.sh'
               - 'etc/**'
               - 'config.ru'
+            # The lane runner's own specs, spec/unit/lanes (the harness lane,
+            # HARNESS_SPEC_PATHS in lib/tasks/spec.rake): every path they
+            # exercise. They start tests/lanes/run as a subprocess, load the
+            # spec rake files through it and read what spec_helper and the
+            # test logging config give a run. A subset of `ruby`, so the
+            # ruby-unit job that hosts the step is selected whenever this is.
+            # The action path is listed for the reader; any .github/** change
+            # already forces every path flag (ga_workflow_files below).
+            harness:
+              - 'spec/unit/lanes/**'
+              - 'tests/lanes/**'
+              - 'lib/tasks/spec.rake'
+              - 'lib/tasks/spec_selection.rake'
+              - 'spec/spec_helper.rb'
+              - 'spec/logging.test.yaml'
+              - '.github/actions/run-test-lane/**'
             # No billing filter: the billing jobs are nightly only (the
             # billing_nightly output below), so no path selects them on a
             # pull request.
@@ -234,6 +253,7 @@ jobs:
           FILTER_TYPESCRIPT: ${{ steps.filter.outputs.typescript }}
           FILTER_FRONTEND: ${{ steps.filter.outputs.frontend }}
           FILTER_OCI: ${{ steps.filter.outputs.oci }}
+          FILTER_HARNESS: ${{ steps.filter.outputs.harness }}
           FILTER_AUTH: ${{ steps.auth.outputs.auth }}
           # The nightly-only selection. The scheduled run, or a manual
           # dispatch with run_all (the documented way to get a full run of a
@@ -244,15 +264,18 @@ jobs:
 
       - name: Generate job summary
         run: |
-          echo "## Path Filter Results" >> $GITHUB_STEP_SUMMARY
-          echo "| Category | Final |" >> $GITHUB_STEP_SUMMARY
-          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Ruby | ${{ steps.compute.outputs.ruby }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| TypeScript | ${{ steps.compute.outputs.typescript }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Frontend | ${{ steps.compute.outputs.frontend }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| OCI | ${{ steps.compute.outputs.oci }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Auth | ${{ steps.compute.outputs.auth }} |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Billing (nightly) | ${{ steps.compute.outputs.billing_nightly }} |" >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "## Path Filter Results"
+            echo "| Category | Final |"
+            echo "|----------|-------|"
+            echo "| Ruby | ${{ steps.compute.outputs.ruby }} |"
+            echo "| TypeScript | ${{ steps.compute.outputs.typescript }} |"
+            echo "| Frontend | ${{ steps.compute.outputs.frontend }} |"
+            echo "| OCI | ${{ steps.compute.outputs.oci }} |"
+            echo "| Auth | ${{ steps.compute.outputs.auth }} |"
+            echo "| Harness (lane runner specs) | ${{ steps.compute.outputs.harness }} |"
+            echo "| Billing (nightly) | ${{ steps.compute.outputs.billing_nightly }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
 
   # ============================================================================
   # TIER 1: LINT & BUILD JOBS (~2 min)
@@ -546,6 +569,19 @@ jobs:
           lane: unit
           results-file: 'rspec_unit_results.json'
           debug-enabled: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+
+      # The lane runner's own specs (spec/unit/lanes, tests/lanes/harness):
+      # nearly every example starts tests/lanes/run as a subprocess, about 20s
+      # for tests of the runner rather than the application, so the step runs
+      # only when a path they exercise changed (the harness filter in the
+      # changes job). !cancelled(): a red unit lane does not skip it, the way
+      # a lane's own legs are collected rather than chained.
+      - name: Run harness lane
+        if: ${{ !cancelled() && needs.changes.outputs.harness == 'true' }}
+        uses: ./.github/actions/run-test-lane
+        with:
+          lane: harness
+          results-file: 'rspec_harness_results.json'
 
   # The billing lane: billing's own specs and tryouts, carved out of the unit
   # lane so they run on their own (tests/lanes/billing/env). Nightly only,
