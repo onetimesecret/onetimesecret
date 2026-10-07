@@ -4,9 +4,38 @@
 # A chain that stops at the first failure silently skips the rest (#4168's
 # secondary issue: a red try:unit implied the rspec half was exercised when it
 # never ran) — same shape rake spec:fast fixes inside itself for its own legs.
+#
+# With two workers (LANES_WORKERS=2, the lane's default; --workers 1 for the
+# serial run) the two legs run side by side (#4551): try:unit as worker 2 in
+# the background, on the index next to the lane's and with its output held
+# in try-unit.log beside last.log, spec:fast as worker 1 in the foreground.
+# tests/lanes/support/worker-env gives each leg its index and URLs, and
+# worker 1 its own rspec status file (rspec-status.w1.txt), which is folded
+# back into the lane's once both legs are done so `--only ... --
+# --only-failures` keeps reading one file; a stale worker file from an
+# earlier run is removed first. The tryouts log is replayed after rspec
+# finishes, behind a marker line, so last.log carries both legs' output
+# whole rather than interleaved.
 failed=()
-bundle exec rake try:unit || failed+=(try:unit)
-bundle exec rake spec:fast || failed+=(spec:fast)
+if (( ${LANES_WORKERS:-1} >= 2 )); then
+  run_dir="${LANES_RSPEC_STATUS_FILE%/*}"
+  try_log="${run_dir}/try-unit.log"
+  try_rc=0
+  spec_rc=0
+  rm -f "${run_dir}"/rspec-status.w*.txt
+  tests/lanes/support/worker-env 2 bundle exec rake try:unit >"${try_log}" 2>&1 &
+  try_pid=$!
+  tests/lanes/support/worker-env 1 bundle exec rake spec:fast || spec_rc=$?
+  wait "${try_pid}" || try_rc=$?
+  echo "[lane:unit] try:unit ran as worker 2 (exit ${try_rc}); its output follows, from ${try_log}"
+  cat "${try_log}"
+  (( try_rc == 0 )) || failed+=(try:unit)
+  (( spec_rc == 0 )) || failed+=(spec:fast)
+  ruby tests/lanes/support/merge_rspec_status.rb "${LANES_RSPEC_STATUS_FILE}" "${run_dir}/rspec-status.w*.txt" || failed+=(merge-status)
+else
+  bundle exec rake try:unit || failed+=(try:unit)
+  bundle exec rake spec:fast || failed+=(spec:fast)
+fi
 if (( ${#failed[@]} > 0 )); then
   echo "[lane:unit] FAILED leg(s): ${failed[*]} — every leg ran; each leg's results are above" >&2
   exit 1
