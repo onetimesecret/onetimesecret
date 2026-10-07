@@ -561,7 +561,11 @@ RSpec.describe Onetime::Application::OrganizationLoader do
       it 'is read back from the stored session and decides a request with no header' do
         expect(canonical_context[:organization]).to eq(organization)
         expect(loader.select_organization(customer, session, selected_org.objid, canonical_context)).to eq(selected_org)
-        expect(session).to eq('organization_id' => selected_org.objid)
+        # The selection and when it was made (Familia.now above, in milliseconds).
+        expect(session).to eq(
+          'organization_id' => selected_org.objid,
+          'organization_selected_at' => 1_800_000_000_000,
+        )
 
         sid = store.send(:generate_sid)
         store.send(:write_session, rack_request, sid, session, {})
