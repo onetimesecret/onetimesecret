@@ -378,6 +378,15 @@ module Onetime
           return UNREGISTERED_HOST
         end
 
+        # Nothing published for an :invalid request: detection rejected the
+        # host (an IP literal, `localhost`, a malformed or missing Host), so
+        # nothing was read and nothing is withheld. Decided on #4678 and
+        # recorded in ADR-050, "Organization scope on a host that detection
+        # rejects": the request is scoped as one for the canonical host.
+        if env['onetime.domain_strategy'].to_s == 'invalid' && !published.is_a?(Onetime::CustomDomain::Lookup)
+          OT.ld "[OrganizationLoader] Nothing read for #{env['onetime.display_domain']}: no scope withheld (#4678)"
+        end
+
         if env['onetime.domain_strategy'].to_s == 'custom'
           resolved = env['onetime.custom_domain']
           domains << resolved if resolved && domains.none? { |d| d.objid == resolved.objid }

@@ -140,6 +140,14 @@ custom domain whose record could not be read, a request the application could
 not detect a host for (`localhost`, an IP literal), and any request while the
 custom-domains feature is off unless it resolved to `site.host` itself.
 
+A request the application could not detect a host for keeps the organization
+context a request for the canonical host gets: no custom domain can be read for
+an IP literal, `localhost` or a malformed `Host`, so the organization loader
+applies no domain scope to it (#4678, decided in
+[ADR-050](../adr/adr-050-request-host-authority.md#organization-scope-on-a-host-that-detection-rejects)).
+Whether the origin can be reached that way at all is the operator's network
+control, not the application's.
+
 Details:
 
 - The rewritten `Host` carries the public port the trusted proxy sent with the
