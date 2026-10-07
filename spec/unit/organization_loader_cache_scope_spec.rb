@@ -403,9 +403,11 @@ RSpec.describe Onetime::Application::OrganizationLoader do
     end
 
     # DomainStrategy publishes no lookup for a host it could not detect or
-    # parse, so nothing was read and nothing is withheld. Kept by maintainer
-    # decision (2026-10-06, recorded on #4672): such a request is served as
-    # the canonical host, which is what sending the canonical Host gets.
+    # parse, so nothing was read and nothing is withheld. Decided on #4678
+    # and recorded in docs/adr/adr-050-request-host-authority.md
+    # ("Organization scope on a host that detection rejects"): such a
+    # request is served as the canonical host, which is what sending the
+    # canonical Host gets.
     it 'keeps an :invalid request with no published lookup unscoped' do
       env     = { 'HTTP_HOST' => 'origin.example.com',
                   'onetime.display_domain' => unregistered_host, 'onetime.domain_strategy' => :invalid }

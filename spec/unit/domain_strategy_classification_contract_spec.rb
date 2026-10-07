@@ -410,7 +410,8 @@ RSpec.describe 'DomainStrategy classification contract' do
   # ----------------------------------------------------- organization scope
   #
   # An absent published lookup withholds every organization (#4225); a failed
-  # read raises; with none published nothing is scoped, as on :canonical.
+  # read raises; with none published nothing is scoped, as on :canonical
+  # (#4678, ADR-050 "Organization scope on a host that detection rejects").
   describe 'OrganizationLoader#request_scope_domains — reads the published lookup' do
     let(:loader) { Class.new { include Onetime::Application::OrganizationLoader }.new }
     let(:record) { instance_double(Onetime::CustomDomain, objid: 'domain-1') }
@@ -446,8 +447,9 @@ RSpec.describe 'DomainStrategy classification contract' do
       expect { scope_domains(env_for(:invalid).merge(lookup_key => lookup)) }.to raise_error(Redis::BaseError)
     end
 
-    # The open point (#4225): nothing was read for these, so nothing is
-    # withheld. Pinned as current behaviour, not decided.
+    # Nothing was read for these, so nothing is withheld. Decided on #4678
+    # and recorded in ADR-050 ("Organization scope on a host that detection
+    # rejects"): a host detection rejects carries no domain scope.
     [:invalid, nil].each do |strategy|
       it "answers [] for #{strategy.inspect} with nothing published" do
         expect(scope_domains(env_for(strategy))).to eq([])

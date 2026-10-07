@@ -117,6 +117,39 @@ host. Put a non-default public port in `HTTP_HOST`, then remove
 `SERVER_PORT` as the server's listening port. A matching received hostname
 is left intact, including its port; this is not universal port normalization.
 
+### Organization scope on a host that detection rejects
+
+Decided 2026-10-07 (#4678). A request whose `Host` is rejected by
+`Rack::DetectHost` (an IP literal, `localhost` and the other names on its
+invalid list, a malformed name, or no `Host` at all) carries no domain scope.
+`OrganizationLoader#request_scope_domains` answers an empty scope for it, as
+for a canonical host, and every membership is permitted. This is a different
+case from a display host that was read and has no record, where every
+organization is withheld (#4225, #4672).
+
+The rule rests on what a custom domain can be, not on the detection list.
+None of these hosts can be a custom-domain record, since `CustomDomain.valid?`
+requires a public-suffix-valid name, so none is ever read and no lookup is
+published for one. A host that cannot name a custom domain has no scope to
+apply. If detection were later widened to accept such a host, it would be
+read, found absent, and withheld; the dependency fails closed.
+
+Withholding would gain nothing. On a direct connection the client chooses
+`Host`, and a canonical `Host` classifies before any read and yields the same
+empty scope. Behind a trusted proxy a rejected forwarded host falls through
+to the proxy's `Host` and classifies `:canonical`. It would cost an on-box
+API client calling the origin by IP or `localhost` its organization context
+on a domains-enabled install, and `Logic::OrganizationContext#auth_org`
+neither lazy-creates nor falls back after a scope refusal.
+
+Follow-through, referencing #4678: one sentence in the proxy authority
+contract stating that such requests are served as the canonical host, so
+excluding direct-origin access is the operator's control, and a loader log
+line for the case beside its unregistered-host refusal. The behaviour is
+pinned by the examples for `:invalid` with nothing published in
+`spec/unit/organization_loader_cache_scope_spec.rb` and
+`spec/unit/domain_strategy_classification_contract_spec.rb`.
+
 ## Consequences
 
 - Mounted Rack code receives the public hostname without OTS-specific adapters;
@@ -145,7 +178,9 @@ Two policy gaps require explicit disposition:
   rewriting off but can check only B after rewriting. A membership permitted
   on B but not A can therefore pass that scope check only with rewriting on.
   Preserving A for membership checks or deliberately excluding transport A
-  requires an explicit policy decision and regression coverage.
+  requires an explicit policy decision and regression coverage. The host that
+  detection rejects is not part of this gap; it is decided under
+  [Organization scope on a host that detection rejects](#organization-scope-on-a-host-that-detection-rejects).
 
 Other unresolved concerns remain: the display-origin allowance on invalid
 classification, tenant lookup failure responses, and the Host-preserving

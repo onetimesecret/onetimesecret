@@ -155,6 +155,7 @@ module Onetime
     #                                                     when it read_failed; []
     #                                                     (no scope, as :canonical)
     #                                                     with none published
+    #                                                     (#4678, ADR-050)
     #
     # The surface binding cannot use either rule. Reading :invalid as "no
     # surface" destroyed every custom-domain and subdomain session on a
