@@ -1258,10 +1258,12 @@ jobs:
       - ruby-integration-billing
       - ruby-billing-integration
       - typescript-unit
+      - smoke-test
       - ruby-integration-simple
       - ruby-integration-api
       - ruby-integration-full
       - ruby-integration-disabled
+      - ruby-integration-strategies
       - check-oci-image
     if: always()
     steps:
@@ -1295,10 +1297,12 @@ jobs:
           RESULT_RUBY_INTEGRATION_BILLING: ${{ needs.ruby-integration-billing.result }}
           RESULT_RUBY_BILLING_INTEGRATION: ${{ needs.ruby-billing-integration.result }}
           RESULT_TYPESCRIPT_UNIT: ${{ needs.typescript-unit.result }}
+          RESULT_SMOKE_TEST: ${{ needs.smoke-test.result }}
           RESULT_RUBY_INTEGRATION_SIMPLE: ${{ needs.ruby-integration-simple.result }}
           RESULT_RUBY_INTEGRATION_API: ${{ needs.ruby-integration-api.result }}
           RESULT_RUBY_INTEGRATION_FULL: ${{ needs.ruby-integration-full.result }}
           RESULT_RUBY_INTEGRATION_DISABLED: ${{ needs.ruby-integration-disabled.result }}
+          RESULT_RUBY_INTEGRATION_STRATEGIES: ${{ needs.ruby-integration-strategies.result }}
           RESULT_CHECK_OCI_IMAGE: ${{ needs.check-oci-image.result }}
         run: ./.github/scripts/ci-verdict.sh
 

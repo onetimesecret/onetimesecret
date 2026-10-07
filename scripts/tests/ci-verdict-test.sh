@@ -48,6 +48,7 @@ ALL_SUCCESS=(
   RESULT_RUBY_INTEGRATION_SIMPLE=success RESULT_RUBY_INTEGRATION_API=success
   RESULT_RUBY_INTEGRATION_FULL=success RESULT_RUBY_INTEGRATION_DISABLED=success
   RESULT_RUBY_INTEGRATION_BILLING=success RESULT_RUBY_BILLING_INTEGRATION=success
+  RESULT_SMOKE_TEST=success RESULT_RUBY_INTEGRATION_STRATEGIES=success
   RESULT_CHECK_OCI_IMAGE=success
 )
 ALL_SKIPPED=("${ALL_SUCCESS[@]//=success/=skipped}")
@@ -60,7 +61,7 @@ status=$?
 protects "a fully green run (the nightly, where every job is selected) is a pass"
 assert_eq "exit 0" "0" "$status"
 assert_contains "pass line" "✅ Every test job passed" "$out"
-assert_line_count "seventeen passed rows" "17" "| success | ✅ passed |" "$out"
+assert_line_count "nineteen passed rows" "19" "| success | ✅ passed |" "$out"
 
 # --- a docs-only PR: nothing relevant changed, everything skipped ------------
 printf '\ndocs-only PR, every job skipped, hygiene ran\n'
@@ -75,7 +76,7 @@ assert_contains "check-oci-image skipped for no oci/frontend change" "| check-oc
 printf '\nruby-only PR\n'
 out="$(verdict RUBY=true "${ALL_SUCCESS[@]}" \
   RESULT_TYPESCRIPT_LINT=skipped RESULT_I18N_VALIDATE=skipped \
-  RESULT_TYPESCRIPT_UNIT=skipped RESULT_CHECK_OCI_IMAGE=skipped \
+  RESULT_TYPESCRIPT_UNIT=skipped RESULT_CHECK_OCI_IMAGE=skipped RESULT_SMOKE_TEST=skipped \
   RESULT_RUBY_AUTH_BROWSER=skipped RESULT_RUBY_INTEGRATION_AUTH=skipped \
   RESULT_RUBY_BILLING=skipped RESULT_RUBY_INTEGRATION_BILLING=skipped RESULT_RUBY_BILLING_INTEGRATION=skipped)"
 status=$?
@@ -107,6 +108,7 @@ out="$(verdict RUBY=true "${ALL_SUCCESS[@]}" \
   RESULT_RUBY_LINT=failure RESULT_RUBY_UNIT=skipped RESULT_RUBY_BILLING=skipped \
   RESULT_RUBY_INTEGRATION_SIMPLE=skipped RESULT_RUBY_INTEGRATION_API=skipped \
   RESULT_RUBY_INTEGRATION_FULL=skipped RESULT_RUBY_INTEGRATION_DISABLED=skipped \
+  RESULT_RUBY_INTEGRATION_STRATEGIES=skipped RESULT_SMOKE_TEST=skipped \
   RESULT_RUBY_AUTH_BROWSER=skipped RESULT_RUBY_INTEGRATION_AUTH=skipped)"
 status=$?
 protects "a job skipped because its prerequisite failed is a failure, not a pass: this is the case GitHub alone gets wrong"
@@ -116,7 +118,7 @@ assert_contains "ruby-unit skipped although ruby changed" \
   "| ruby-unit | skipped | ❌ expected to run (ruby changed) but was skipped: a prerequisite failed or the run was cancelled |" "$out"
 assert_contains "ruby-billing skipped and not expected on a pull request" \
   "| ruby-billing | skipped | ✅ no nightly event change |" "$out"
-assert_contains "six failures counted" "❌ 6 job(s) did not pass" "$out"
+assert_contains "seven failures counted" "❌ 7 job(s) did not pass" "$out"
 
 # --- the run was cancelled ----------------------------------------------------
 printf '\nrun cancelled mid-way\n'
@@ -205,11 +207,12 @@ out="$(verdict RUBY=true AUTH=true "${ALL_SUCCESS[@]}" \
   RESULT_RUBY_LINT=failure RESULT_RUBY_UNIT=skipped RESULT_RUBY_BILLING=skipped \
   RESULT_RUBY_INTEGRATION_SIMPLE=skipped RESULT_RUBY_INTEGRATION_API=skipped \
   RESULT_RUBY_INTEGRATION_FULL=skipped RESULT_RUBY_INTEGRATION_DISABLED=skipped \
+  RESULT_RUBY_INTEGRATION_STRATEGIES=skipped RESULT_SMOKE_TEST=skipped \
   RESULT_RUBY_AUTH_BROWSER=skipped RESULT_RUBY_INTEGRATION_AUTH=skipped)"
 status=$?
 assert_eq "CV-AUTH-04: selected auth with failed lint exit" 1 "$status"
-assert_contains "CV-AUTH-04: forcing auth adds two failures to the existing six" \
-  '❌ 8 job(s) did not pass' "$out"
+assert_contains "CV-AUTH-04: forcing auth adds two failures to the existing seven" \
+  '❌ 9 job(s) did not pass' "$out"
 
 # --- auth selected on its own: a label or a frontend auth path, no Ruby flag ---
 printf '\nauth selected without a Ruby change\n'

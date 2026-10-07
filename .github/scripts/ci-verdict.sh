@@ -58,6 +58,15 @@ either() {
   echo false
 }
 
+# true when every argument is the string true.
+all_of() {
+  local flag
+  for flag in "$@"; do
+    [[ "$flag" == "true" ]] || { echo false; return; }
+  done
+  echo true
+}
+
 on_pull_request=false
 [[ "$EVENT_NAME" == "pull_request" ]] && on_pull_request=true
 
@@ -74,10 +83,12 @@ expect ruby-integration-auth    "$AUTH"                     "auth"
 expect ruby-integration-billing "$BILLING_NIGHTLY"          "nightly event"
 expect ruby-billing-integration "$BILLING_NIGHTLY"          "nightly event"
 expect typescript-unit          "$TYPESCRIPT"               "typescript"
+expect smoke-test               "$(all_of "$RUBY" "$TYPESCRIPT")" "ruby and typescript"
 expect ruby-integration-simple  "$RUBY"                     "ruby"
 expect ruby-integration-api     "$RUBY"                     "ruby"
 expect ruby-integration-full    "$RUBY"                     "ruby"
 expect ruby-integration-disabled "$RUBY"                    "ruby"
+expect ruby-integration-strategies "$RUBY"                  "ruby"
 expect check-oci-image          "$(either "$OCI" "$FRONTEND")" "oci or frontend"
 
 rows=()

@@ -428,14 +428,17 @@ def browser_extraction():
 
 def lane_tasks():
     # Read contracts only; never execute the lane runner or Ruby tasks.
-    for lane, task in {
-        "full-sqlite": "spec:integration:full", "full-pg": "spec:integration:full:postgres",
-        "full-pg-agnostic": "spec:integration:full:agnostic_on_pg", "full-mfa": "spec:integration:full:mfa",
-        "full-saml-platform": "spec:integration:full:saml_platform", "api": "spec:api",
-        "disabled": "spec:integration:disabled",
+    # full-sqlite's second line runs spec:integration:oauth in its own process.
+    for lane, tasks in {
+        "full-sqlite": ("spec:integration:full", "spec:integration:oauth"),
+        "full-pg": ("spec:integration:full:postgres",),
+        "full-pg-agnostic": ("spec:integration:full:agnostic_on_pg",), "full-mfa": ("spec:integration:full:mfa",),
+        "full-saml-platform": ("spec:integration:full:saml_platform",), "api": ("spec:api",),
+        "disabled": ("spec:integration:disabled",),
     }.items():
         actual = executable((root / "tests/lanes" / lane / "tasks").read_text())
-        check(actual == "bundle exec rake " + task, f"{lane}: lane tasks changed: {actual}")
+        expected = "\n".join("bundle exec rake " + task for task in tasks)
+        check(actual == expected, f"{lane}: lane tasks changed: {actual}")
     for lane, tasks in (("unit", ("try:unit", "spec:fast")),
                         ("billing", ("try:billing", "spec:billing")),
                         ("billing-integration", ("try:integration:billing", "spec:integration:billing")),
