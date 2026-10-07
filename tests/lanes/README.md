@@ -473,6 +473,7 @@ does, so while a run of that lane and overlay set is live it exits 69
 | -------------------- | -------------------------- | ------------------------------------------------------------- | ------------------------------------------------ |
 | `unit`               | valkey, rabbitmq           | `try:unit`, `spec:fast`                                       | ruby-unit (T2)                                   |
 | `billing`            | valkey, rabbitmq           | `try:billing`, `spec:billing`                                 | ruby-billing (T2)                                |
+| `billing-integration` | valkey, rabbitmq          | `try:integration:billing`, `spec:integration:billing`         | ruby-billing-integration (T3, nightly only)      |
 | `browser`            | valkey, rabbitmq           | `rspec tests/browser` (Playwright: chromium, firefox, webkit) | ruby-auth-browser (T2)                           |
 | `simple`             | valkey, rabbitmq           | `try:integration:simple`, `spec:integration:simple`           | ruby-integration-simple (T3)                     |
 | `full-sqlite`        | valkey, rabbitmq           | `spec:integration:full`                                       | ruby-integration-full — SQLite row               |
@@ -491,24 +492,31 @@ Start every service named for a lane. This includes RabbitMQ for `api`,
 `browser` and `smoke`, whose lane environment still declares its endpoint.
 `selftest` is the only service-free exception.
 
-A lane with several legs (`unit`, `billing`, `simple`, `migrations-pg`) runs
-every leg even when an earlier one fails, then exits non-zero naming the red
-legs; the same holds for the three rspec legs inside `rake spec:fast`. A red
-leg never silently skips the ones after it.
+A lane with several legs (`unit`, `billing`, `billing-integration`, `simple`,
+`migrations-pg`) runs every leg even when an earlier one fails, then exits
+non-zero naming the red legs; the same holds for the three rspec legs inside
+`rake spec:fast`. A red leg never silently skips the ones after it.
 
 The `billing` lane is billing's own tests, carved out of `unit`: the billing
 app's spec and tryouts trees plus the root trees named for billing
 (`BILLING_SPEC_PATHS` and `BILLING_TRY_PATHS` in `lib/tasks/spec.rake`), in
-the same simple-mode, billing-off environment. `rake spec:verify_selection`
-proves `spec:fast` and `spec:billing` partition what `spec:fast` alone used
-to select. The lane runs no `--tag` filter: the `:integration`-tagged billing
-examples belong to it.
+the same simple-mode, billing-off environment. The lane runs no `--tag`
+filter: the `:integration`-tagged billing examples belong to it.
+
+The `billing-integration` lane is billing's integration tests: the mode-less
+spec files directly under `apps/web/billing/spec/integration/`
+(`BILLING_INTEGRATION_SPEC_PATTERN`; `spec:billing` excludes that subtree)
+and the `try/integration/billing` tryouts, which `simple` used to run. Same
+environment as `billing`; in CI it is nightly only, so a pull request, a push
+to `main` or a merge-queue check skips it (`docs/development/auth-ci.md`).
+`rake spec:verify_selection` proves `spec:fast`, `spec:billing` and
+`spec:integration:billing` partition what `spec:fast` alone used to select.
 
 Use `--overlay billing` only with full-mode lanes. Billing requires
-`AUTHENTICATION_MODE=full`; other lanes reject the overlay, the `billing`
-lane included — the lane and the overlay are different axes. In CI the overlay
-rows are the `ruby-integration-billing` job, which runs on a pull request
-only when it changes a billing path (`docs/development/auth-ci.md`).
+`AUTHENTICATION_MODE=full`; other lanes reject the overlay, the two billing
+lanes included — the lane and the overlay are different axes. In CI the
+overlay rows are the `ruby-integration-billing` job, nightly only like
+`ruby-billing-integration` (`docs/development/auth-ci.md`).
 
 Create a lane when a change selects a different test suite or a materially
 different runtime (such as authentication mode or database engine). Use an
