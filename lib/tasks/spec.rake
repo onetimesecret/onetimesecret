@@ -506,14 +506,15 @@ namespace :spec do
     # mirrors the environment they were verified green under; DB/route-matrix
     # variation is irrelevant since they touch no SQL.
     desc 'Run Redis-only auth strategy specs (isolated process; see #3468)'
-    task :strategies do
+    task :strategies do |task|
       env = {
         'RACK_ENV' => 'test',
         'AUTHENTICATION_MODE' => 'full',
         'AUTH_DATABASE_URL' => (ENV['AUTH_DATABASE_URL'].to_s.empty? ? 'sqlite::memory:' : ENV.fetch('AUTH_DATABASE_URL', nil)),
         'ORGS_SSO_ENABLED' => 'true',
       }
-      sh env, "bundle exec rspec apps/web/auth/spec/integration/strategies --tag ~postgres_database #{rspec_format_options}"
+      sh env, 'bundle exec rspec apps/web/auth/spec/integration/strategies --tag ~postgres_database ' \
+              "#{rspec_task_format_options(task)}"
     end
 
     desc 'Run DB-agnostic full mode specs against PostgreSQL'

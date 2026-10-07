@@ -319,11 +319,12 @@ RSpec.describe 'lane rspec reporting' do
       'full-pg' => [''],
       'full-pg-agnostic' => [''],
       'full-saml-platform' => ['_saml_platform'],
-      'full-sqlite' => [''],
+      'full-sqlite' => ['', '_oauth'],
       'harness' => [''],
       'migrations-pg' => [''],
       'migrations-sqlite' => [''],
       'simple' => [''],
+      'strategies' => [''],
       'unit' => %w[_root_fast _apps_fast _apps_config_ru],
     }.each do |lane, suffixes|
       it "keeps the file name(s) CI collects for the #{lane} lane" do
@@ -335,7 +336,8 @@ RSpec.describe 'lane rspec reporting' do
       through_rake = lanes.reject { |_, invocations| invocations.empty? }.keys.sort
 
       expect(through_rake).to eq(%w[api billing billing-integration disabled full-mfa full-pg full-pg-agnostic
-                                    full-saml-platform full-sqlite harness migrations-pg migrations-sqlite simple unit])
+                                    full-saml-platform full-sqlite harness migrations-pg migrations-sqlite simple
+                                    strategies unit])
     end
 
     it 'never gives two invocations of one lane the same file' do
@@ -349,8 +351,8 @@ RSpec.describe 'lane rspec reporting' do
     # the run would report only its last invocation.
     it 'suffixes the tasks an aggregate runs together, by their own names' do
       expect(outs(together.fetch('spec:integration:all')))
-        .to eq(%w[integration_simple integration_full integration_disabled mfa saml_platform]
-                 .map { |suffix| "#{stem}_#{suffix}.json" })
+        .to eq(%w[integration_simple integration_full integration_disabled mfa saml_platform oauth
+                  integration_strategies].map { |suffix| "#{stem}_#{suffix}.json" })
     end
 
     it 'never gives two invocations of one rake process the same file' do
