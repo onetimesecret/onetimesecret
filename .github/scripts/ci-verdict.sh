@@ -19,8 +19,9 @@
 #   EVENT_NAME       github.event_name
 #   CHANGES_RESULT   needs.changes.result
 #   SKIP_CI          needs.changes.outputs.skip_ci  ([ci-skip] in the commit)
-#   RUBY, TYPESCRIPT, FRONTEND, OCI, AUTH, BILLING
-#                    needs.changes.outputs.<flag>
+#   RUBY, TYPESCRIPT, FRONTEND, OCI, AUTH, BILLING_INTEGRATION
+#                    needs.changes.outputs.<flag>; BILLING_INTEGRATION is
+#                    the nightly-only selection, not a path
 #   RESULT_<JOB>     needs.<job>.result, JOB upper-cased with - as _
 #                    (RESULT_RUBY_UNIT, RESULT_CHECK_OCI_IMAGE, ...)
 #
@@ -36,7 +37,7 @@ RUBY="${RUBY:-false}"
 TYPESCRIPT="${TYPESCRIPT:-false}"
 FRONTEND="${FRONTEND:-false}"
 OCI="${OCI:-false}"
-BILLING="${BILLING:-false}"
+BILLING_INTEGRATION="${BILLING_INTEGRATION:-false}"
 AUTH="${AUTH:-}"
 case "$AUTH" in
   true | false) ;;
@@ -65,12 +66,13 @@ expect ruby-lint                "$RUBY"                     "ruby"
 expect typescript-lint          "$TYPESCRIPT"               "typescript"
 expect hygiene                  "$on_pull_request"          "pull_request event"
 expect i18n-validate            "$TYPESCRIPT"               "typescript"
-expect build-assets             "$(either "$FRONTEND" "$RUBY" "$AUTH" "$BILLING")" "frontend, ruby, auth or billing"
+expect build-assets             "$(either "$FRONTEND" "$RUBY" "$AUTH" "$BILLING_INTEGRATION")" "frontend, ruby, auth or nightly event"
 expect ruby-unit                "$RUBY"                     "ruby"
 expect ruby-billing             "$RUBY"                     "ruby"
 expect ruby-auth-browser        "$AUTH"                     "auth"
 expect ruby-integration-auth    "$AUTH"                     "auth"
-expect ruby-integration-billing "$BILLING"                  "billing"
+expect ruby-integration-billing "$BILLING_INTEGRATION"      "nightly event"
+expect ruby-billing-integration "$BILLING_INTEGRATION"      "nightly event"
 expect typescript-unit          "$TYPESCRIPT"               "typescript"
 expect ruby-integration-simple  "$RUBY"                     "ruby"
 expect ruby-integration-api     "$RUBY"                     "ruby"
@@ -134,7 +136,7 @@ done
 } | tee -a "${GITHUB_STEP_SUMMARY:-/dev/null}"
 
 echo
-echo "Changes: ruby=$RUBY typescript=$TYPESCRIPT frontend=$FRONTEND oci=$OCI auth=$AUTH billing=$BILLING (event: ${EVENT_NAME:-<unset>})"
+echo "Changes: ruby=$RUBY typescript=$TYPESCRIPT frontend=$FRONTEND oci=$OCI auth=$AUTH billing_integration=$BILLING_INTEGRATION (event: ${EVENT_NAME:-<unset>})"
 
 if [[ "$failures" -gt 0 ]]; then
   echo "❌ $failures job(s) did not pass. See the rows marked ❌ above."

@@ -34,7 +34,7 @@ verdict() {
   env -i PATH="$PATH" \
     EVENT_NAME=pull_request CHANGES_RESULT=success SKIP_CI=false \
     RUBY=false TYPESCRIPT=false FRONTEND=false OCI=false AUTH=false \
-    BILLING=false \
+    BILLING_INTEGRATION=false \
     "$@" bash "$SCRIPT" 2>&1
 }
 
@@ -47,15 +47,17 @@ ALL_SUCCESS=(
   RESULT_RUBY_AUTH_BROWSER=success RESULT_RUBY_INTEGRATION_AUTH=success
   RESULT_RUBY_INTEGRATION_SIMPLE=success RESULT_RUBY_INTEGRATION_API=success
   RESULT_RUBY_INTEGRATION_FULL=success RESULT_RUBY_INTEGRATION_DISABLED=success
-  RESULT_RUBY_INTEGRATION_BILLING=success RESULT_CHECK_OCI_IMAGE=success
+  RESULT_RUBY_INTEGRATION_BILLING=success RESULT_RUBY_BILLING_INTEGRATION=success
+  RESULT_CHECK_OCI_IMAGE=success
 )
 ALL_SKIPPED=("${ALL_SUCCESS[@]//=success/=skipped}")
 
 # --- everything ran and passed -----------------------------------------------
 printf '\nall jobs ran and passed\n'
-out="$(verdict RUBY=true TYPESCRIPT=true FRONTEND=true OCI=true AUTH=true BILLING=true "${ALL_SUCCESS[@]}")"
+out="$(verdict EVENT_NAME=schedule RUBY=true TYPESCRIPT=true FRONTEND=true OCI=true AUTH=true BILLING_INTEGRATION=true \
+  "${ALL_SUCCESS[@]}" RESULT_HYGIENE=skipped)"
 status=$?
-protects "a fully green run is a pass"
+protects "a fully green run (the nightly, where every job is selected) is a pass"
 assert_eq "exit 0" "0" "$status"
 assert_contains "pass line" "✅ Every test job passed" "$out"
 assert_line_count "seventeen passed rows" "17" "| success | ✅ passed |" "$out"
@@ -75,7 +77,7 @@ out="$(verdict RUBY=true "${ALL_SUCCESS[@]}" \
   RESULT_TYPESCRIPT_LINT=skipped RESULT_I18N_VALIDATE=skipped \
   RESULT_TYPESCRIPT_UNIT=skipped RESULT_CHECK_OCI_IMAGE=skipped \
   RESULT_RUBY_AUTH_BROWSER=skipped RESULT_RUBY_INTEGRATION_AUTH=skipped \
-  RESULT_RUBY_INTEGRATION_BILLING=skipped)"
+  RESULT_RUBY_INTEGRATION_BILLING=skipped RESULT_RUBY_BILLING_INTEGRATION=skipped)"
 status=$?
 protects "skipped jobs on the untouched side of the path filter are not failures"
 assert_eq "exit 0" "0" "$status"
@@ -85,8 +87,10 @@ for job in ruby-auth-browser ruby-integration-auth; do
   assert_contains "CV-AUTH-01: ordinary Ruby skips $job" \
     "| $job | skipped | ✅ no auth change |" "$out"
 done
-assert_contains "CV-BILLING-01: ordinary Ruby skips the billing rows" \
-  "| ruby-integration-billing | skipped | ✅ no billing change |" "$out"
+for job in ruby-integration-billing ruby-billing-integration; do
+  assert_contains "CV-BILLING-01: a pull request skips $job (nightly only)" \
+    "| $job | skipped | ✅ no nightly event change |" "$out"
+done
 
 # --- a T3 lane failed ---------------------------------------------------------
 printf '\nan integration lane failed\n'
@@ -218,55 +222,71 @@ assert_eq "CV-AUTH-07: auth-only run exit" 0 "$status"
 assert_contains "CV-AUTH-07: ruby-unit not expected" "| ruby-unit | skipped | ✅ no ruby change |" "$out"
 assert_contains "CV-AUTH-07: full-mode rows not expected" \
   "| ruby-integration-full | skipped | ✅ no ruby change |" "$out"
-assert_contains "CV-AUTH-07: billing rows not expected" \
-  "| ruby-integration-billing | skipped | ✅ no billing change |" "$out"
+for job in ruby-integration-billing ruby-billing-integration; do
+  assert_contains "CV-AUTH-07: $job not expected" \
+    "| $job | skipped | ✅ no nightly event change |" "$out"
+done
 
 out="$(verdict AUTH=true "${AUTH_ONLY[@]}" RESULT_BUILD_ASSETS=skipped)"
 status=$?
 protects "the auth jobs download the frontend build, so a skipped build under auth selection is a failure"
 assert_eq "CV-AUTH-08: auth-only run without a build exit" 1 "$status"
 assert_contains "CV-AUTH-08: build expected for auth" \
-  "| build-assets | skipped | ❌ expected to run (frontend, ruby, auth or billing changed) but was skipped:" "$out"
+  "| build-assets | skipped | ❌ expected to run (frontend, ruby, auth or nightly event changed) but was skipped:" "$out"
 
-# --- billing expectations are independent of the Ruby and auth flags ---------
-printf '\nbilling-specific job results\n'
-for billing in true false; do
-  for result in success failure cancelled skipped '' unknown; do
-    out="$(verdict BILLING="$billing" "${ALL_SUCCESS[@]}" "RESULT_RUBY_INTEGRATION_BILLING=$result")"
-    status=$?
-    expected=1
-    if [[ "$result" == success || ( "$billing" == false && "$result" == skipped ) ]]; then
-      expected=0
-    fi
-    protects "the billing rows require success when selected, accept an unselected skip, and never accept a failed or missing result"
-    assert_eq "CV-BILLING-02: billing=$billing result=[$result] exit" "$expected" "$status"
-    if [[ "$result" == skipped && "$billing" == true ]]; then
-      assert_contains "CV-BILLING-02: expected despite RUBY=false and AUTH=false" \
-        "| ruby-integration-billing | skipped | ❌ expected to run (billing changed) but was skipped:" "$out"
-    elif [[ "$expected" == 1 ]]; then
-      assert_contains "CV-BILLING-02: bad result row" \
-        "| ruby-integration-billing | ${result:-<unset>} | ❌ did not succeed |" "$out"
-    fi
+# --- the nightly-only billing integration jobs ---------------------------------
+# Their expectation is the billing_integration flag, which is the schedule
+# event (or a dispatch with run_all) and never a path: independent of the
+# Ruby and auth flags, and never true on a pull request.
+printf '\nbilling integration job results (nightly only)\n'
+for job in ruby-integration-billing ruby-billing-integration; do
+  result_var="RESULT_${job^^}"
+  result_var="${result_var//-/_}"
+  for nightly in true false; do
+    for result in success failure cancelled skipped '' unknown; do
+      out="$(verdict BILLING_INTEGRATION="$nightly" "${ALL_SUCCESS[@]}" "$result_var=$result")"
+      status=$?
+      expected=1
+      if [[ "$result" == success || ( "$nightly" == false && "$result" == skipped ) ]]; then
+        expected=0
+      fi
+      protects "each billing integration job requires success on the nightly, accepts a skip otherwise, and never accepts a failed or missing result"
+      assert_eq "CV-BILLING-02: $job nightly=$nightly result=[$result] exit" "$expected" "$status"
+      if [[ "$result" == skipped && "$nightly" == true ]]; then
+        assert_contains "CV-BILLING-02: $job expected on the nightly despite RUBY=false and AUTH=false" \
+          "| $job | skipped | ❌ expected to run (nightly event changed) but was skipped:" "$out"
+      elif [[ "$expected" == 1 ]]; then
+        assert_contains "CV-BILLING-02: $job bad result row" \
+          "| $job | ${result:-<unset>} | ❌ did not succeed |" "$out"
+      fi
+    done
   done
 done
 
-BILLING_ONLY=("${ALL_SKIPPED[@]}" RESULT_HYGIENE=success RESULT_BUILD_ASSETS=success
-  RESULT_RUBY_INTEGRATION_BILLING=success)
-out="$(verdict BILLING=true "${BILLING_ONLY[@]}")"
+NIGHTLY_ONLY=("${ALL_SKIPPED[@]}" RESULT_BUILD_ASSETS=success
+  RESULT_RUBY_INTEGRATION_BILLING=success RESULT_RUBY_BILLING_INTEGRATION=success)
+out="$(verdict EVENT_NAME=schedule BILLING_INTEGRATION=true "${NIGHTLY_ONLY[@]}")"
 status=$?
-protects "billing selection is its own flag: it needs the build and the billing rows, not the auth or ordinary Ruby jobs"
-assert_eq "CV-BILLING-03: billing-only run exit" 0 "$status"
+protects "the nightly selection is its own flag: it needs the build and the two billing integration jobs, not the auth or ordinary Ruby jobs"
+assert_eq "CV-BILLING-03: nightly-only run exit" 0 "$status"
 assert_contains "CV-BILLING-03: auth rows not expected" \
   "| ruby-integration-auth | skipped | ✅ no auth change |" "$out"
 assert_contains "CV-BILLING-03: full-mode rows not expected" \
   "| ruby-integration-full | skipped | ✅ no ruby change |" "$out"
+assert_contains "CV-BILLING-03: hygiene not expected off a pull request" \
+  "| hygiene | skipped | ✅ no pull_request event change |" "$out"
 
-out="$(verdict BILLING=true "${BILLING_ONLY[@]}" RESULT_BUILD_ASSETS=skipped)"
+out="$(verdict EVENT_NAME=schedule BILLING_INTEGRATION=true "${NIGHTLY_ONLY[@]}" RESULT_BUILD_ASSETS=skipped)"
 status=$?
-protects "the billing rows download the frontend build, so a skipped build under billing selection is a failure"
-assert_eq "CV-BILLING-04: billing-only run without a build exit" 1 "$status"
-assert_contains "CV-BILLING-04: build expected for billing" \
-  "| build-assets | skipped | ❌ expected to run (frontend, ruby, auth or billing changed) but was skipped:" "$out"
+protects "the billing integration jobs download the frontend build, so a skipped build on the nightly is a failure"
+assert_eq "CV-BILLING-04: nightly-only run without a build exit" 1 "$status"
+assert_contains "CV-BILLING-04: build expected for the nightly" \
+  "| build-assets | skipped | ❌ expected to run (frontend, ruby, auth or nightly event changed) but was skipped:" "$out"
+
+out="$(verdict "${ALL_SUCCESS[@]}" RESULT_RUBY_INTEGRATION_BILLING=skipped RESULT_RUBY_BILLING_INTEGRATION=skipped)"
+status=$?
+protects "a pull request never expects the billing integration jobs: a skip there is the normal case, not a missed run"
+assert_eq "CV-BILLING-05: pull request with both billing integration jobs skipped exit" 0 "$status"
 
 printf '\nmissing or malformed auth selection\n'
 protects "a missing or malformed required auth output fails closed even when all jobs report success"
