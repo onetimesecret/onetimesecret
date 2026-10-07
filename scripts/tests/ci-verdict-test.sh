@@ -43,7 +43,7 @@ ALL_SUCCESS=(
   RESULT_HOST_PROXY_WIRE=success RESULT_RUBY_LINT=success
   RESULT_TYPESCRIPT_LINT=success RESULT_HYGIENE=success
   RESULT_I18N_VALIDATE=success RESULT_BUILD_ASSETS=success
-  RESULT_RUBY_UNIT=success RESULT_TYPESCRIPT_UNIT=success
+  RESULT_RUBY_UNIT=success RESULT_RUBY_BILLING=success RESULT_TYPESCRIPT_UNIT=success
   RESULT_RUBY_AUTH_BROWSER=success RESULT_RUBY_INTEGRATION_AUTH=success
   RESULT_RUBY_INTEGRATION_SIMPLE=success RESULT_RUBY_INTEGRATION_API=success
   RESULT_RUBY_INTEGRATION_FULL=success RESULT_RUBY_INTEGRATION_DISABLED=success
@@ -58,7 +58,7 @@ status=$?
 protects "a fully green run is a pass"
 assert_eq "exit 0" "0" "$status"
 assert_contains "pass line" "✅ Every test job passed" "$out"
-assert_line_count "sixteen passed rows" "16" "| success | ✅ passed |" "$out"
+assert_line_count "seventeen passed rows" "17" "| success | ✅ passed |" "$out"
 
 # --- a docs-only PR: nothing relevant changed, everything skipped ------------
 printf '\ndocs-only PR, every job skipped, hygiene ran\n'
@@ -100,7 +100,7 @@ assert_contains "count line" "❌ 1 job(s) did not pass" "$out"
 # --- lint failed, so the ruby test jobs were skipped --------------------------
 printf '\nruby-lint failed and skipped the ruby test jobs\n'
 out="$(verdict RUBY=true "${ALL_SUCCESS[@]}" \
-  RESULT_RUBY_LINT=failure RESULT_RUBY_UNIT=skipped \
+  RESULT_RUBY_LINT=failure RESULT_RUBY_UNIT=skipped RESULT_RUBY_BILLING=skipped \
   RESULT_RUBY_INTEGRATION_SIMPLE=skipped RESULT_RUBY_INTEGRATION_API=skipped \
   RESULT_RUBY_INTEGRATION_FULL=skipped RESULT_RUBY_INTEGRATION_DISABLED=skipped \
   RESULT_RUBY_AUTH_BROWSER=skipped RESULT_RUBY_INTEGRATION_AUTH=skipped)"
@@ -110,7 +110,9 @@ assert_eq "exit 1" "1" "$status"
 assert_contains "ruby-lint failed" "| ruby-lint | failure | ❌ did not succeed |" "$out"
 assert_contains "ruby-unit skipped although ruby changed" \
   "| ruby-unit | skipped | ❌ expected to run (ruby changed) but was skipped: a prerequisite failed or the run was cancelled |" "$out"
-assert_contains "six failures counted" "❌ 6 job(s) did not pass" "$out"
+assert_contains "ruby-billing skipped although ruby changed" \
+  "| ruby-billing | skipped | ❌ expected to run (ruby changed) but was skipped: a prerequisite failed or the run was cancelled |" "$out"
+assert_contains "seven failures counted" "❌ 7 job(s) did not pass" "$out"
 
 # --- the run was cancelled ----------------------------------------------------
 printf '\nrun cancelled mid-way\n'
@@ -196,14 +198,14 @@ assert_eq "CV-AUTH-03: both selected auth jobs skipped exit" 1 "$status"
 assert_contains "CV-AUTH-03: both auth failures counted" '❌ 2 job(s) did not pass' "$out"
 
 out="$(verdict RUBY=true AUTH=true "${ALL_SUCCESS[@]}" \
-  RESULT_RUBY_LINT=failure RESULT_RUBY_UNIT=skipped \
+  RESULT_RUBY_LINT=failure RESULT_RUBY_UNIT=skipped RESULT_RUBY_BILLING=skipped \
   RESULT_RUBY_INTEGRATION_SIMPLE=skipped RESULT_RUBY_INTEGRATION_API=skipped \
   RESULT_RUBY_INTEGRATION_FULL=skipped RESULT_RUBY_INTEGRATION_DISABLED=skipped \
   RESULT_RUBY_AUTH_BROWSER=skipped RESULT_RUBY_INTEGRATION_AUTH=skipped)"
 status=$?
 assert_eq "CV-AUTH-04: selected auth with failed lint exit" 1 "$status"
-assert_contains "CV-AUTH-04: forcing auth adds two failures to the existing six" \
-  '❌ 8 job(s) did not pass' "$out"
+assert_contains "CV-AUTH-04: forcing auth adds two failures to the existing seven" \
+  '❌ 9 job(s) did not pass' "$out"
 
 # --- auth selected on its own: a label or a frontend auth path, no Ruby flag ---
 printf '\nauth selected without a Ruby change\n'

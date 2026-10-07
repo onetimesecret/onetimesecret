@@ -8,7 +8,7 @@ name: CI
 # Architecture (Phase 6 - Test Lanes):
 # - Tier 0: Path filtering to skip irrelevant jobs
 # - Tier 1: Lint jobs + build-assets (parallel, fast feedback)
-# - Tier 2: Unit tests (ruby-unit, typescript-unit)
+# - Tier 2: Unit tests (ruby-unit, ruby-billing, typescript-unit)
 # - Tier 3: Integration tests (parallel: simple, API contract, full, disabled)
 # - Tier 4: Container validation uses pre-built assets
 #
@@ -584,6 +584,38 @@ jobs:
           language: Ruby
           label: code-coverage/rspec
 
+  # The billing lane: billing's own specs and tryouts, carved out of the unit
+  # lane so they run on their own (tests/lanes/billing/env). Same gate as
+  # ruby-unit — every Ruby change — not the billing path filter, which selects
+  # the billing-ON re-run of the full-mode suite (ruby-integration-billing).
+  ruby-billing:
+    name: T2 · Ruby Billing Tests
+    timeout-minutes: 10
+    runs-on: *runs-on
+    needs: [changes, ruby-lint, build-assets]
+    if: |
+      always() &&
+      needs.changes.outputs.ruby == 'true' &&
+      (needs.ruby-lint.result == 'success' || needs.ruby-lint.result == 'skipped') &&
+      (needs.build-assets.result == 'success' || needs.build-assets.result == 'skipped')
+    steps:
+      - *checkout-step
+      - *start-core-services
+      - name: Setup Ruby test environment
+        uses: ./.github/actions/setup-ruby-test-env
+      - name: Setup Python for locale sync
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.14'
+      - name: Setup Node.js environment
+        uses: ./.github/actions/setup-node-env
+      - name: Run billing lane
+        uses: ./.github/actions/run-test-lane
+        with:
+          lane: billing
+          results-file: 'rspec_billing_results.json'
+          debug-enabled: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+
   ruby-auth-browser:
     name: T2 · Ruby Auth Browser (SAML)
     timeout-minutes: 10
@@ -1038,6 +1070,7 @@ jobs:
     timeout-minutes: 5
     needs:
       - ruby-unit
+      - ruby-billing
       - ruby-auth-browser
       - ruby-integration-auth
       - ruby-integration-billing
@@ -1125,6 +1158,7 @@ jobs:
       - i18n-validate
       - build-assets
       - ruby-unit
+      - ruby-billing
       - ruby-auth-browser
       - ruby-integration-auth
       - ruby-integration-billing
@@ -1160,6 +1194,7 @@ jobs:
           RESULT_I18N_VALIDATE: ${{ needs.i18n-validate.result }}
           RESULT_BUILD_ASSETS: ${{ needs.build-assets.result }}
           RESULT_RUBY_UNIT: ${{ needs.ruby-unit.result }}
+          RESULT_RUBY_BILLING: ${{ needs.ruby-billing.result }}
           RESULT_RUBY_AUTH_BROWSER: ${{ needs.ruby-auth-browser.result }}
           RESULT_RUBY_INTEGRATION_AUTH: ${{ needs.ruby-integration-auth.result }}
           RESULT_RUBY_INTEGRATION_BILLING: ${{ needs.ruby-integration-billing.result }}
@@ -1183,6 +1218,7 @@ jobs:
       - i18n-validate
       - build-assets
       - ruby-unit
+      - ruby-billing
       - ruby-auth-browser
       - ruby-integration-auth
       - ruby-integration-billing
@@ -1224,6 +1260,7 @@ jobs:
             echo "| i18n Validation | ${{ needs.i18n-validate.result }} |"
             echo "| Build Assets | ${{ needs.build-assets.result }} |"
             echo "| Ruby Unit | ${{ needs.ruby-unit.result }} |"
+            echo "| Ruby Billing | ${{ needs.ruby-billing.result }} |"
             echo "| Ruby Auth Browser | ${{ needs.ruby-auth-browser.result }} |"
             echo "| Ruby Auth Configuration | ${{ needs.ruby-integration-auth.result }} |"
             echo "| Ruby Billing Configuration | ${{ needs.ruby-integration-billing.result }} |"

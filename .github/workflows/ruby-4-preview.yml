@@ -145,6 +145,12 @@ jobs:
         with:
           lane: unit
 
+      - name: Run billing lane (Ruby 4)
+        continue-on-error: true
+        uses: ./.github/actions/run-test-lane
+        with:
+          lane: billing
+
   ruby-integration-simple:
     name: Ruby 4 · Integration (Simple Mode)
     runs-on: *runs-on

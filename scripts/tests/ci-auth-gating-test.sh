@@ -250,7 +250,7 @@ def shared_wiring():
 
 
 def prerequisites_and_gates():
-    for job_id in ("ruby-lint", "ruby-unit"):
+    for job_id in ("ruby-lint", "ruby-unit", "ruby-billing"):
         job = block(jobs, job_id, 2)
         check("needs.changes.outputs.ruby == 'true'" in job, f"Ruby changes select {job_id}")
         check("needs.changes.outputs.auth" not in job, f"auth selection alone must not run {job_id}")
@@ -406,6 +406,7 @@ def lane_tasks():
         actual = executable((root / "tests/lanes" / lane / "tasks").read_text())
         check(actual == "bundle exec rake " + task, f"{lane}: lane tasks changed: {actual}")
     for lane, tasks in (("unit", ("try:unit", "spec:fast")),
+                        ("billing", ("try:billing", "spec:billing")),
                         ("simple", ("try:integration:simple", "spec:integration:simple"))):
         actual = executable((root / "tests/lanes" / lane / "tasks").read_text())
         expected = '\n'.join([
