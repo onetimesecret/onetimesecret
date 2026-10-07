@@ -144,6 +144,12 @@ end
 # file would carry statuses this run assigned to another worker.
 WORKER_ENV_SHIM = 'tests/lanes/support/worker-env'
 
+# The integration modes whose task splits (with spec:api): the lanes that
+# set LANES_WORKERS in their env file. The disabled lane has no worker
+# default and keeps one process even under `--workers N`; add the mode here
+# to let it split.
+WORKER_INTEGRATION_MODES = %w[simple full].freeze
+
 # @return [Integer] rspec processes per invocation, 1 when unset
 def lanes_workers
   value = ENV.fetch('LANES_WORKERS', '').strip
@@ -421,7 +427,12 @@ namespace :spec do
           'spec/integration/all',
         ]
 
-        sh_rspec env, patterns, [tag_filter, rspec_task_format_options(task)].reject(&:empty?).join(' ')
+        options = [tag_filter, rspec_task_format_options(task)].reject(&:empty?).join(' ')
+        if WORKER_INTEGRATION_MODES.include?(mode)
+          sh_rspec env, patterns, options
+        else
+          sh env, "bundle exec rspec #{patterns.join(' ')} #{options}"
+        end
       end
     end
 
