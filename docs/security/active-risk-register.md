@@ -6,9 +6,11 @@ This is the canonical tracker for security work that remains actionable. Dated a
 historical risk registers preserve evidence; they do not define the current status of a finding.
 Source ratings are retained until a new assessment explicitly re-rates a risk.
 
-**Active items:** 20 existing items · 1 open investigation (severity unconfirmed) · **Accepted exceptions:** none recorded
+**Active items:** 19 existing items · 1 open investigation (severity unconfirmed) · **Accepted exceptions:** none recorded
 
 **Targeted update:** 2026-10-03 — added report 4c3c below; existing items were not reassessed.
+
+**Targeted update:** 2026-10-07 — RISK-2026-08-14-M11 moved to the [resolution log](records/resolution-log.md); tracking issues recorded for M01 (#4688) and M02 (#4689). Other items were not reassessed.
 
 ## How to use this register
 
@@ -24,9 +26,8 @@ Source ratings are retained until a new assessment explicitly re-rates a risk.
 
 | ID | Priority / risk | Status | Risk | Source and required action |
 |---|---|---|---|---|
-| RISK-2026-08-14-M01 | P2 / High | Open | Explicitly unverified IdP claims can still enable JIT creation or trusted platform email linking; verify-disabled federation remains a concrete residual. | [Historical M-1](risk-registers/risk-register-2026-08-14.md); decide and enforce a safe policy. |
-| RISK-2026-08-14-M02 | P2 / Medium-High | Open | Magic links can retain the Rodauth 24-hour deadline and be reused across resends instead of using the configured 15 minutes. | [Historical M-2](risk-registers/risk-register-2026-08-14.md); enable `set_deadline_values?`. |
-| RISK-2026-08-14-M11 | P2 / Medium | Open | `sqlite3` 2.9.5 use-after-free (`GHSA-mwm8-39rw-8826`). | [Historical M-11](risk-registers/risk-register-2026-08-14.md); update the lockfile. |
+| RISK-2026-08-14-M01 | P2 / High | Open | Explicitly unverified IdP claims can still enable JIT creation or trusted platform email linking; verify-disabled federation remains a concrete residual. | [Historical M-1](risk-registers/risk-register-2026-08-14.md); decide and enforce a safe policy. Tracking: #4688. |
+| RISK-2026-08-14-M02 | P2 / Medium-High | Open | Magic links can retain the Rodauth 24-hour deadline and be reused across resends instead of using the configured 15 minutes. | [Historical M-2](risk-registers/risk-register-2026-08-14.md); enable `set_deadline_values?`. Tracking: #4689. |
 | RISK-2026-08-14-M03 | P3 / Medium | Open | `email-login-request` and direct `verify-account-resend` account enumeration. | [Historical M-3](risk-registers/risk-register-2026-08-14.md); remove the response oracle. |
 | RISK-2026-08-14-M04 | P3 / Medium | Open | No source/IP limit on `email-login-request`, enabling mailbox bombing and repeated enumeration. | [Historical M-4](risk-registers/risk-register-2026-08-14.md); limit before account lookup. |
 | RISK-2026-08-14-M08 | P3 / Medium | Open | CSP nonce in the bootstrap payload weakens nonce-only CSP once an HTML-injection primitive exists. | [Historical M-8](risk-registers/risk-register-2026-08-14.md); remove the client-visible nonce from the bootstrap path. |
