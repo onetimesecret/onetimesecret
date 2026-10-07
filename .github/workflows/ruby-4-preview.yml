@@ -28,6 +28,12 @@ name: Ruby 4 Preview
 #   there — setup-ruby's bundle install, rubocop, or the lane run — is
 #   captured as a warning annotation on the step while the job itself
 #   completes successfully.
+# - Billing tests are nightly only, here as in ci.yml
+#   (docs/development/auth-ci.md): the billing lanes and the billing-on
+#   full-mode row are their own jobs, skipped on a pull request and run
+#   on the schedule below (or a dispatch). The other jobs run on a pull
+#   request and a dispatch, not on the schedule, so the nightly run is
+#   the billing jobs and the frontend build they download.
 
 on:
   pull_request:
@@ -37,6 +43,9 @@ on:
       - 'rel/*'
       - 'fix/*'
       - 'feature/*'
+  schedule:
+    # Nightly, for the billing jobs only; after main CI's 04:03 run.
+    - cron: '23 4 * * *'
   workflow_dispatch:
 
 permissions:
@@ -75,6 +84,7 @@ jobs:
     name: Ruby 4 · Lint
     runs-on: *runs-on
     timeout-minutes: 5
+    if: github.event_name != 'schedule'
     steps:
       - *checkout-step
 
@@ -112,7 +122,7 @@ jobs:
     runs-on: *runs-on
     timeout-minutes: 15
     needs: [build-assets]
-    if: always()
+    if: always() && github.event_name != 'schedule'
 
     steps:
       - *checkout-step
@@ -145,18 +155,51 @@ jobs:
         with:
           lane: unit
 
+  # Nightly only (see the design notes): billing's own lanes.
+  ruby-billing:
+    name: Ruby 4 · Billing Tests
+    runs-on: *runs-on
+    timeout-minutes: 15
+    needs: [build-assets]
+    if: always() && github.event_name != 'pull_request'
+
+    steps:
+      - *checkout-step
+
+      - *start-core-services
+
+      - name: Setup Ruby test environment (may fail on bundle install)
+        uses: ./.github/actions/setup-ruby-test-env
+        continue-on-error: true
+        with:
+          ruby-version: '4.0.2'
+
+      - name: Setup Python for locale sync
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.14'
+
+      - name: Setup Node.js environment
+        uses: ./.github/actions/setup-node-env
+
       - name: Run billing lane (Ruby 4)
         continue-on-error: true
         uses: ./.github/actions/run-test-lane
         with:
           lane: billing
 
+      - name: Run billing-integration lane (Ruby 4)
+        continue-on-error: true
+        uses: ./.github/actions/run-test-lane
+        with:
+          lane: billing-integration
+
   ruby-integration-simple:
     name: Ruby 4 · Integration (Simple Mode)
     runs-on: *runs-on
     timeout-minutes: 15
     needs: [build-assets]
-    if: always()
+    if: always() && github.event_name != 'schedule'
 
     steps:
       - *checkout-step
@@ -196,11 +239,11 @@ jobs:
     runs-on: *runs-on
     timeout-minutes: 15
     needs: [build-assets]
-    if: always()
+    if: always() && github.event_name != 'schedule'
 
-    # Same lane + overlay pairing as ci.yml's SQLite matrix rows; the
-    # billing rows are the full-sqlite lane with the billing overlay, and
-    # the MFA row is the only process that boots with AUTH_MFA_ENABLED.
+    # Same lane + overlay pairing as ci.yml's SQLite matrix rows; the MFA
+    # row is the only process that boots with AUTH_MFA_ENABLED. The
+    # billing-on row is the nightly-only job below.
     strategy:
       fail-fast: false
       matrix:
@@ -208,9 +251,6 @@ jobs:
           - name: 'SQLite, billing: off'
             lane: full-sqlite
             overlay: ''
-          - name: 'SQLite, billing: on'
-            lane: full-sqlite
-            overlay: 'billing'
           - name: 'SQLite, MFA'
             lane: full-mfa
             overlay: ''
@@ -218,7 +258,7 @@ jobs:
             lane: full-saml-platform
             overlay: ''
 
-    steps:
+    steps: &full-integration-steps
       - *checkout-step
 
       - *start-core-services
@@ -242,12 +282,32 @@ jobs:
           lane: ${{ matrix.lane }}
           overlay: ${{ matrix.overlay }}
 
+  # Nightly only (see the design notes): the full-sqlite lane with the
+  # billing overlay, as ci.yml's ruby-integration-billing SQLite row. A
+  # one-row matrix so the shared steps' matrix references resolve.
+  ruby-integration-full-billing:
+    name: 'Ruby 4 · Integration (Full, ${{ matrix.name }})'
+    runs-on: *runs-on
+    timeout-minutes: 15
+    needs: [build-assets]
+    if: always() && github.event_name != 'pull_request'
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: 'SQLite, billing: on'
+            lane: full-sqlite
+            overlay: 'billing'
+
+    steps: *full-integration-steps
+
   ruby-integration-disabled:
     name: Ruby 4 · Integration (Disabled Mode)
     runs-on: *runs-on
     timeout-minutes: 15
     needs: [build-assets]
-    if: always()
+    if: always() && github.event_name != 'schedule'
 
     steps:
       - *checkout-step
