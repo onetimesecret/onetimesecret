@@ -429,11 +429,9 @@ echo "  (bin/setup --test does this; on Linux the OS packages come from" >&2
 echo "  pnpm exec playwright install-deps, which uses sudo/apt)" >&2
 exit 69
 fi
-rspec_args=(tests/browser --format progress)
-if [[ -n "${RSPEC_OUTPUT_FILE:-}" ]]; then
-rspec_args+=(--format json --out "${RSPEC_OUTPUT_FILE}")
-fi
-bundle exec rspec "${rspec_args[@]}"'''
+rspec_format="$(ruby tests/lanes/support/rspec_format.rb)"
+mapfile -t rspec_format <<< "${rspec_format}"
+bundle exec rspec tests/browser "${rspec_format[@]}"'''
     check(browser == expected_browser, "browser lane's engine preflight, test scope, and JSON reporting stay unchanged")
 
 

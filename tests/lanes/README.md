@@ -134,23 +134,49 @@ $ tests/lanes/run simple --quiet --only apps/api/domains/spec/integration/simple
 ```
 
 `--quiet` makes every rspec invocation in the run print failures (with their
-diffs and rerun lines), pending examples and the summary — nothing per
-passing example. It works by exporting `SPEC_OPTS` to select
-`tests/lanes/support/quiet_formatter.rb`; rspec reads `SPEC_OPTS` after
-`.rspec` and after the command line, so one variable covers the rake tasks
-and `--only` alike. Without the flag `SPEC_OPTS` is not set and the output
-is exactly what it was, which is what CI logs.
+diffs, locations and rerun lines), pending examples, the summary and the
+seed — nothing per passing example
+(`tests/lanes/support/quiet_formatter.rb`). The runner exports
+`LANES_RSPEC_CONSOLE=quiet` and chooses no formatter itself:
+`tests/lanes/support/rspec_format.rb` turns the name into flags wherever an
+rspec command line is put together — the rake tasks (`rspec_format_options`
+in `lib/tasks/spec.rake`), the `browser` lane's tasks file, and `--only`.
+Without the flag the name is not set and the output is exactly what it was.
 
-Tryouts legs need no switch: `try:unit`, `try:integration:simple` and
-`--only` on a `*_try.rb` file already pass `--agent` outside CI.
+The quiet formatter replaces the console formatter only. A run with
+`RSPEC_OUTPUT_FILE` set (CI plumbing, on the keep-list) still gets
+`--format json --out <file>` on the same command line, so `--quiet` and a
+results file go together. Nothing is put into `SPEC_OPTS`: a `--format` there
+replaces every formatter of every command line, the JSON one included, which
+is why `--quiet` used to exit 64 beside a results file.
 
-The one trade-off: the `--format` in `SPEC_OPTS` replaces the rake tasks'
-whole formatter list, including `--format json --out $RSPEC_OUTPUT_FILE`.
-A run with `RSPEC_OUTPUT_FILE` set (CI plumbing) therefore rejects `--quiet`
-with exit 64 rather than silently writing no results file.
+Each rspec invocation writes a results file of its own:
 
-`--quiet` also floors the application's own log at `error`. The app's log
-lines (`2026-09-26 01:23:45.678901 W [pid:tid] HTTP -- ...`) are most of a
+- A lane whose rake task runs rspec more than once suffixes the stem: `unit`
+  writes `<stem>_root_fast.json`, `<stem>_apps_fast.json` and
+  `<stem>_apps_config_ru.json`.
+- A lane with a single invocation writes `<stem>.json` (`full-mfa` and
+  `full-saml-platform` write `<stem>_mfa.json` and
+  `<stem>_saml_platform.json`).
+- An `--only` run writes `<stem>_only.json`, a name no lane uses. Without
+  `--quiet` or a results file it adds no formatter and `.rspec` decides, as
+  for plain rspec.
+- A task that normally runs alone takes a suffix from its own name when one
+  rake process runs it beside others (`rake spec:integration:all` writes
+  `<stem>_integration_simple.json`, and so on), so no invocation truncates a
+  file another one wrote.
+- An invocation whose process dies before rspec finishes leaves its file
+  empty. Its examples are in no results file; the run's exit status is what
+  reports that.
+
+Tryouts are not affected by `--quiet` and write no results file. `try:unit`
+and `try:integration:simple` already pass `--agent` outside CI, and `--only`
+on a `*_try.rb` file always does, so a quiet `--only` run of tryouts prints
+what a plain one prints: the failures and the summary.
+
+Without `--capture-logs`, `--quiet` also floors the application's own log
+at `error`. The app's log lines
+(`2026-09-26 01:23:45.678901 W [pid:tid] HTTP -- ...`) are most of a
 full lane's output — a default `simple` run is ~55k lines, ~50k of them the
 seven `HTTP -- [Security] ... DISABLED` warnings each app boot logs — and
 the rspec formatter cannot touch them. Under the flag the runner exports
@@ -164,12 +190,204 @@ name. Errors and fatals still print, so a real failure's log line stays
 beside its rspec failure, and so does the `ColonelAudit` stream, which
 `Onetime::ColonelAuditEvent` pins at `info` on purpose (the audit sink must
 not be silenceable by a level change); a `simple --quiet` run is ~2.5k
-lines. Without the flag the app logs exactly as before. To read the rspec
-part of a default run back out of `last.log`, drop the timestamped lines:
+lines. Without the flag the app logs exactly as before.
+
+The floor discards events where they are generated, so nothing can recover
+them afterwards. With `--capture-logs` (below) the runner sets neither
+variable and the events go to a file instead. The floor does not reach the
+logger mail backend, which prints every delivered email; `--capture-logs`
+moves those into a file too.
+
+To read the rspec part of a default run back out of `last.log`, drop the
+timestamped lines:
 
 ```console
 $ grep -vE '^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9:.]+ [A-Z] \[' tmp/lanes/simple/base/last.log
 ```
+
+### Captured logs: `--capture-logs` and `--log-console`
+
+```console
+$ tests/lanes/run full-pg-agnostic --capture-logs --log-console off
+$ tests/lanes/run simple --capture-logs --log-console warn --quiet
+$ tests/lanes/run --capture-logs --only spec/api/v2/secret_ttl_entitlement_spec.rb:20
+```
+
+`--capture-logs` gives the run two more files in its run directory
+(`tmp/lanes/<lane>/<overlays>/`, `base` when no overlay is set), beside
+`last.log`. A full lane and an `--only` run get the same files.
+
+| File       | Holds                                                                                                                             |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `app.log`  | The application's log events, appended by every process of the run. Plain text, full backtraces, passed through the log scrubber. |
+| `mail.log` | The emails the logger mail backend delivers, which it otherwise prints to stdout. Raw content that no log scrubbing has seen.     |
+| `last.log` | The console transcript: what the run printed. Every run writes it, with or without these flags ("Last run output" below).         |
+
+`--log-console <off|trace|debug|info|warn|error|fatal>` filters what the
+application's log prints on the console and does not affect `app.log`: `off`
+removes the console destination, a level shows that level and above. `off`
+without `--capture-logs` exits 64, because the events would have no
+destination.
+
+`app.log` is not a transcript of the run. These are in `last.log` only:
+
+- rspec's and tryouts' own output;
+- anything written directly to stdout or stderr.
+
+OmniAuth logs through a logger of its own on stdout, not through the
+application's. In an rspec process of a captured run that logger is pointed
+at the application's logging before each example, under the name
+`Auth::OmniAuth`: its lines are then in `app.log`, pass the log scrubber and
+follow `--log-console`. Without `--capture-logs`, in tryouts, and in a server
+process a spec starts, they stay on stdout. This is a test-profile setting;
+what a deployment's OmniAuth prints is unchanged.
+
+Events that `--log-console` kept off the console are in `app.log` only.
+
+The file destination is installed by `spec/spec_helper.rb`,
+`try/support/test_helpers.rb`, or the application's boot, whichever comes
+first. A tryout file run alone with `--only` that loads neither helper and
+never boots is not captured: `app.log` stays empty. Such a process has no
+log appender at all, so its log events are written nowhere, with or without
+these flags. Nothing that would have been printed is missing.
+
+#### Levels: what is generated, and what a destination shows
+
+Two controls, applied in this order:
+
+1. Category levels decide which events are generated: `loggers:` in
+   `spec/logging.test.yaml` (`Auth: info`, `HTTP: warn`, ...), and
+   `default_level: warn` for every other category and for specs that never
+   boot the application.
+2. A destination level decides which of those events one destination writes.
+   `--log-console warn` is the console's. `app.log` has none and receives
+   every generated event.
+
+A destination cannot bring back an event its category rejected. With
+`Auth: info` no Auth debug event is generated, so none reaches `app.log`
+whatever the console is set to. The profile raises no level either, with or
+without `--quiet`, so the expected error-level events are in `app.log`.
+
+#### A debug rerun of one failure
+
+The scrub removes `DEBUG_LOGGERS` and `LOG_LEVEL` from the calling shell. To
+lower a category for one rerun, put it in a throwaway overlay and capture the
+run:
+
+```console
+$ echo 'DEBUG_LOGGERS=Auth:debug,Session:debug' > tests/lanes/overlays/debug.env
+$ tests/lanes/run full-sqlite --overlay debug --capture-logs --log-console off \
+    --only apps/web/auth/spec/integration/full/omniauth_csrf_spec.rb:145
+$ less tmp/lanes/full-sqlite/debug/app.log
+$ rm tests/lanes/overlays/debug.env
+```
+
+`DEBUG_LOGGERS` takes `<Category>:<level>` pairs and is applied after the
+levels in `spec/logging.test.yaml`. The overlay is part of the run's identity:
+its files are in `tmp/lanes/<lane>/debug/`, and outside CI it uses a datastore
+index of its own. Do not commit the overlay file.
+
+#### File ownership and limits
+
+The runner owns `app.log` and `mail.log`:
+
+- They are created empty at the start of every run that asks for them, full
+  lane or `--only`. Disk use is therefore bounded across runs and unbounded
+  within one.
+- A run without the flag removes them, so a file found beside `last.log` is
+  always from the run `last.log` describes. A `--console` session leaves them
+  alone. `run-all` passes none of these flags to the lanes it starts.
+- Two runs of the same lane and overlay set in one checkout share the files,
+  the second truncating under the first. That is not supported.
+- A file that cannot be created (the path is a directory, a symbolic link
+  or not a regular file, the directory is not writable) ends the run with
+  exit 73 before any task, with the reason on stderr and in `last.log`.
+- A capture that did not stay whole is an error. The runner says so, marks
+  the `app log:` line `(incomplete)`, and turns an otherwise green run into
+  exit 74; a run that already failed keeps its own exit code. Three things
+  are checked at the end of the run:
+  - Either file is gone.
+  - Either file is not the one the run started with: it was removed and a
+    later process created it again, so the earlier events are not in it. The
+    runner hard-links each file at the start (`.app.log.anchor`,
+    `.mail.log.anchor`) and compares at the end. A link that still matches
+    its file is removed. One that does not is left in place and named in the
+    error: it holds what was written before the removal, until the next run
+    starts. The run directory therefore needs a file system with hard links.
+  - A write to `app.log` failed with an I/O error. A test process records
+    it in `app.log.write-failed`, and the application prints
+    `[SetupLoggers] Cannot write to the log file <path>` on stderr, which
+    the runner looks for in `last.log` when there is no marker.
+
+  SemanticLogger's own `Failed to log to appender` line is not treated as a
+  failed write. It is printed for any exception raised while an appender
+  runs, including a thread interrupted while logging (Bunny's reader thread
+  at session close).
+
+  Not detected: a failed write in a process that loaded neither test helper
+  and whose stderr did not reach `last.log`, and a file truncated in place.
+- The path of `app.log` is printed just above the `log:` line and recorded in
+  `last.log`, including when setup fails after the files were created.
+  `--print-key` shows both paths and the console settings.
+
+The flags reach the test processes as `LANES_APP_LOG_FILE`,
+`LANES_MAIL_LOG_FILE`, `LANES_APP_LOG_CONSOLE` and, for `--quiet`,
+`LANES_RSPEC_CONSOLE`, exported below the scrub. The three log names are
+read by `spec/logging.test.yaml` and `tests/lanes/support/log_capture.rb`
+(loaded by `spec/spec_helper.rb` and `try/support/test_helpers.rb`), and
+`LANES_RSPEC_CONSOLE` by `tests/lanes/support/rspec_format.rb`; nothing
+under `lib/onetime` reads any of the four. The runner assigns them: an
+exported value in the calling shell is scrubbed like any other, and a lane
+`env` file or overlay that sets one exits 64.
+
+The same holds for the runner's own variables. A lane `env` file or overlay
+is sourced in the runner's shell, so a line such as `LOG_CONSOLE=warn`,
+`QUIET=1` or `CAPTURE_LOGS=1` would change what the run does with no flag on
+the command line. A file that sets, exports or unsets one of them exits 64
+and is named with the variable and the flag to pass instead. A `SPEC_OPTS`
+in one of these files that selects a formatter (`--format`, `-f`, `--out`,
+`-o`) also exits 64: rspec reads `SPEC_OPTS` last, and a formatter there
+replaces the run's formatters, the JSON results one included. Other
+`SPEC_OPTS` options (`--seed`, `--fail-fast`) are accepted.
+
+#### In CI
+
+The composite action (`.github/actions/run-test-lane`) runs every lane with
+`--capture-logs --log-console off --quiet` and uploads `app.log` and
+`last.log` as one artifact, `lane-logs-<lane>-<overlay or base>`
+(`lane-logs-unit-base`, `lane-logs-full-pg-billing`). The upload runs when the
+lane passes, when it fails, and when it dies before rspec writes any results.
+The job summary links the artifact and names the directory on the runner.
+
+- `mail.log` is not uploaded.
+- The artifact is kept for 3 days.
+- A re-run attempt uploads its own artifact under the same name, and the
+  earlier attempt's is not replaced. This is what this repository's runs
+  show (CI run 37408734822, three attempts, lists `unified-test-report`
+  three times and `rspec-unit-results` twice); GitHub's documentation does
+  not state it. If it stopped holding, the upload step would fail on a
+  re-run with a name conflict.
+- Anyone with read access to the repository can download the artifact while
+  it exists, as they can read the job log (GitHub Docs, "Downloading workflow
+  artifacts", lists read access to the repository as the requirement).
+  `app.log` passed the log scrubber. `last.log` is the job's console output,
+  and nothing scrubs it.
+- The job summary gives the size in bytes of `last.log` (the console
+  output), `app.log` and `mail.log`, and the lane's elapsed seconds, for
+  every run.
+- `ci.yml`, `migration-tests.yml` and `ruby-4-preview.yml` all run lanes
+  through the action. `fresh-clone.yml` does not: it runs
+  `tests/lanes/run unit` and `tests/lanes/run browser` exactly as
+  `CONTRIBUTING.md` documents them, with the default output and no log
+  artifact.
+- To roll back, remove the three flags from the action's `Run lane` step.
+  Lanes then print their full output as before, and `last.log` is still
+  uploaded. Nothing else needs to change: without the flags the application
+  logs to the console only.
+
+Measured on one CI run of `full-pg-agnostic` (2,976 examples) with default
+output: 8.9 MB, of which 3.5 MB was 581 printed emails and 2.5 MB was info
+and warn log lines.
 
 ### Last run output: `tmp/lanes/<lane>/<overlays>/last.log`
 
@@ -239,11 +457,12 @@ which is how test-mode settings have leaked before.
 A console is not a run: it skips the codegen phase like `--only` (a missing
 generated locale is a logged line at boot, not a failure), leaves
 `last.log` untouched, and prints no timing line. It takes the lane name and
-overlays only; `--only`, `--quiet`, `--skip-codegen` and `--` exit 64 with
-it. Under `sqlite::memory:` (`full-sqlite`, `full-mfa`,
-`full-saml-platform`) the auth database is empty and unmigrated in a fresh
-process, so the console logs `no such table: accounts` at boot; the
-PostgreSQL lanes address the per-worktree database the lane's runs use.
+overlays only; `--only`, `--quiet`, `--capture-logs`, `--log-console`,
+`--skip-codegen` and `--` exit 64 with it. Under `sqlite::memory:`
+(`full-sqlite`, `full-mfa`, `full-saml-platform`) the auth database is empty
+and unmigrated in a fresh process, so the console logs
+`no such table: accounts` at boot; the PostgreSQL lanes address the
+per-worktree database the lane's runs use.
 The console claims the lane's same-lane liveness token exactly as a run
 does, so while a run of that lane and overlay set is live it exits 69
 (`another lane run already holds valkey DB ...`); open it after the run.
@@ -445,15 +664,18 @@ runs. Toolchain prerequisites a lane cannot generate — built frontend assets,
 Playwright browsers — are installed by the CI job and by `bin/setup --test`;
 the lane preflights them rather than installing them.
 
-What CI sees of a run is what a local default run prints: the task's stderr
+What CI sees of a run is what a local
+`--capture-logs --log-console off --quiet` run prints: the task's stderr
 merged into its stdout through the `tee` into
-`tmp/lanes/<lane>/<overlays>/last.log` (written in CI too, with the rspec status
-file beside it), then the runner's timing line and its `log: ... (exit N)` line
-on stderr. A reader of the runner's stdout alone (`2>/dev/null`,
-`Open3.capture2`) therefore sees the task's stderr as well. Neither `--quiet`
-nor the tty-only color flags apply there. The supported CI exceptions are
-constrained environments that cannot run the compose topology:
-`devcontainer-ci.yml` and macOS `installer.yml` run the fast suite directly.
+`tmp/lanes/<lane>/<overlays>/last.log` (written in CI too, with the rspec
+status file beside it), then the runner's timing line, its `app log:` line and
+its `log: ... (exit N)` line on stderr. A reader of the runner's stdout alone
+(`2>/dev/null`, `Open3.capture2`) therefore sees the task's stderr as well.
+The tty-only color flags do not apply there. The application's log is in the
+`lane-logs-*` artifact, not in the job output (see "Captured logs", "In CI").
+The supported CI exceptions are constrained environments that cannot run the
+compose topology: `devcontainer-ci.yml` and macOS `installer.yml` run the fast
+suite directly, without the lane runner and so without the capture profile.
 They validate installation paths, not lane behavior.
 
 `ci-verdict` is the required CI check for `main`. It runs on every pull

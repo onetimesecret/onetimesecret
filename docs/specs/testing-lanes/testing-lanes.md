@@ -307,8 +307,10 @@ one runner type.
 Ruby test suites enter through lanes and `compose.test.yml`:
 
 - `.github/workflows/ci.yml` uses the `run-test-lane` composite action for Ruby
-  jobs. The composite uploads CI-only RSpec result artifacts and writes job
-  summaries; `ci.yml` supplies `COVERAGE` through `GITHUB_ENV`. Full-mode matrix
+  jobs. The composite selects the log capture profile
+  (`--capture-logs --log-console off --quiet`), uploads CI-only RSpec result
+  artifacts and the lane's log artifact, and writes job summaries; `ci.yml`
+  supplies `COVERAGE` through `GITHUB_ENV`. Full-mode matrix
   rows are lane and overlay combinations. The `ruby-auth-browser` job runs the
   `browser` lane through the same composite, separately from the `unit` lane;
   CI never runs `--only` — a suite CI needs is a lane. The `browser`,
@@ -319,8 +321,9 @@ Ruby test suites enter through lanes and `compose.test.yml`:
 - `.github/workflows/migration-tests.yml` runs the `migrations-*` lanes through
   the same composite. Its concurrent-boot job is intentionally CI
   orchestration, not a lane, although it uses `compose.test.yml` services.
-- `.github/workflows/ruby-4-preview.yml` invokes lanes directly because it is
-  advisory and does not need the composite's result plumbing.
+- `.github/workflows/ruby-4-preview.yml` runs lanes through the same composite
+  so it gets the same log profile and log artifact. It is advisory, so it
+  passes no results file and writes no RSpec results.
 - `.github/workflows/fresh-clone.yml` invokes `unit` and then `browser`
   directly after `bin/setup --test`, validating the documented contributor
   path — including that `bin/setup --test` leaves the browser workload

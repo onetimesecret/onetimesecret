@@ -72,16 +72,25 @@ module Onetime
           LOGGING CATEGORIES
           ══════════════════
 
-          App      - Default fallback for application-level logging
-          Auth     - Authentication/authorization flows
-          Bunny    - RabbitMQ AMQP client (connection, heartbeats)
-          Familia  - Redis operations via Familia ORM
-          HTTP     - HTTP requests, responses, and middleware
-          Otto     - Otto framework operations
-          Rhales   - Rhales template rendering
-          Secret   - Secret lifecycle (create, view, burn)
-          Sequel   - Database queries and operations
-          Session  - Session lifecycle management
+          App       - Default fallback for application-level logging
+          Auth      - Authentication/authorization flows
+          Billing   - Stripe checkout, subscription webhooks, plan catalog sync
+          Boot      - Initialization
+          Bunny     - RabbitMQ AMQP client (connection, heartbeats)
+          Chores    - Model housekeeping chores
+          CLI       - Command-line interface operations
+          Ents      - Entitlement materialization, grants/revokes
+          Familia   - Redis operations via Familia ORM
+          HTTP      - HTTP requests, responses, and middleware
+          Jobs      - Job publishing
+          Org       - Organization + membership lifecycle
+          Otto      - Otto framework operations
+          Rhales    - Rhales template rendering
+          Scheduler - Scheduled/recurring background jobs
+          Secret    - Secret lifecycle (create, view, burn)
+          Sequel    - Database queries and operations
+          Session   - Session lifecycle management
+          Workers   - RabbitMQ worker message processing
 
           ENVIRONMENT VARIABLES (Applied in Order)
           ═════════════════════════════════════════
@@ -99,7 +108,8 @@ module Onetime
              Example: DEBUG_LOGGERS=Auth:debug,Secret:trace,Familia:warn
              Effect:  Sets specific logger levels, overriding YAML configuration
 
-          4. DEBUG_* - Individual quick flags (override YAML config)
+          4. DEBUG_* - Individual quick flags (override YAML config), one per
+             category above: DEBUG_<CATEGORY>=1. For example:
              DEBUG_APP=1       - Set App logger to debug
              DEBUG_AUTH=1      - Set Auth logger to debug
              DEBUG_BUNNY=1     - Set Bunny logger to debug (RabbitMQ)
@@ -146,6 +156,21 @@ module Onetime
 
           Lower levels include all higher levels. Setting level to 'warn' will
           show warn, error, and fatal messages.
+
+          DESTINATIONS
+          ═════════════
+
+          The levels above decide which events are generated. Where they are
+          written is set under `destinations:` in etc/logging.yaml:
+
+          console   - stdout for servers, stderr for the CLI (on by default)
+          file      - appended to destinations.file.path (off by default)
+
+          Each destination takes an optional `level` and `formatter` of its
+          own. A destination level only filters events that were generated:
+          a file at level debug still needs the category at debug, for
+          example DEBUG_LOGGERS=Auth:debug. Audit events pass every
+          destination level.
 
           CONFIGURATION FILE
           ═══════════════════

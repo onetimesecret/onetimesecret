@@ -54,10 +54,14 @@
 # Environment Variables:
 #   RSPEC_OUTPUT_FILE - Path to JSON results file (e.g., tmp/rspec_results.json)
 #                       When set, adds JSON formatter output for CI reporting
+#   LANES_RSPEC_CONSOLE - `quiet` swaps the console's progress formatter for
+#                       tests/lanes/support/quiet_formatter.rb. Assigned by
+#                       tests/lanes/run --quiet; the results file is unaffected
 #
 # See also: docs/adr/adr-007-test-process-boundaries.md
 
 require 'rspec/core/rake_task'
+require_relative '../../tests/lanes/support/rspec_format'
 
 INTEGRATION_MODES = %w[simple full disabled].freeze
 
@@ -70,7 +74,15 @@ PG_TEST_MIGRATIONS_URL = ENV.fetch(
   'postgresql://onetime_migrator:migratepass@localhost:5432/onetime_auth_test',
 )
 
-# Build RSpec format options based on environment
+# RSpec format options for one rspec invocation
+#
+# The console formatter (progress, or the quiet one when tests/lanes/run
+# --quiet exported LANES_RSPEC_CONSOLE=quiet) plus the JSON formatter when
+# RSPEC_OUTPUT_FILE is set. The two are chosen independently and always passed
+# together: a `--format` anywhere else (SPEC_OPTS, say) would replace this
+# whole list and drop the results file. Lanes::RSpecFormat
+# (tests/lanes/support/rspec_format.rb) is where the list is put together, for
+# these tasks and for the runner's --only alike.
 #
 # +suffix+ names the JSON results file for ONE rspec invocation. A lane runs
 # several invocations in a single job under one RSPEC_OUTPUT_FILE, and rspec
@@ -83,12 +95,22 @@ PG_TEST_MIGRATIONS_URL = ENV.fetch(
 # @param suffix [String, nil] per-invocation discriminator for the JSON file
 # @return [String] RSpec format flags
 def rspec_format_options(suffix = nil)
-  opts    = ['--format progress']
-  if (out = ENV.fetch('RSPEC_OUTPUT_FILE', nil))
-    out = "#{out.delete_suffix('.json')}_#{suffix}.json" if suffix
-    opts << "--format json --out #{out}"
-  end
-  opts.join(' ')
+  Lanes::RSpecFormat.options(ENV, suffix: suffix)
+end
+
+# Format options for a task whose results file CI knows by its bare name
+#
+# migration-tests.yml uploads tmp/sqlite_migration_results.json by that exact
+# path, and every lane below runs its task as the one task of a rake process,
+# so there the file stays `<stem>.json`. The same task run beside others in
+# one rake process (spec:integration:all, spec:all, smoke:rspec, or several
+# names on one command line) takes a suffix from its own name instead, so no
+# invocation truncates the file another one wrote.
+#
+# @param task [Rake::Task] the task making the rspec invocation
+# @return [String] RSpec format flags
+def rspec_task_format_options(task)
+  rspec_format_options(Lanes::RSpecFormat.task_suffix(task.name, Rake.application.top_level_tasks))
 end
 
 # Auto-discover app-specific spec directories (co-located with their applications)
@@ -229,7 +251,7 @@ namespace :spec do
   namespace :integration do
     INTEGRATION_MODES.each do |mode|
       desc "Run integration specs for AUTHENTICATION_MODE=#{mode}"
-      task mode do
+      task mode do |task|
         env        = {
           'RACK_ENV' => 'test',
           'AUTHENTICATION_MODE' => mode,
@@ -254,7 +276,7 @@ namespace :spec do
           'spec/integration/all',
         ]
 
-        sh env, "bundle exec rspec #{patterns.join(' ')} #{tag_filter} #{rspec_format_options}"
+        sh env, "bundle exec rspec #{patterns.join(' ')} #{tag_filter} #{rspec_task_format_options(task)}"
       end
     end
 
@@ -333,7 +355,7 @@ namespace :spec do
     end
 
     desc 'Run full mode with PostgreSQL (PG-only specs)'
-    task 'full:postgres' do
+    task 'full:postgres' do |task|
       env      = {
         'RACK_ENV' => 'test',
         'AUTHENTICATION_MODE' => 'full',
@@ -345,11 +367,11 @@ namespace :spec do
         *Dir.glob('apps/*/*/spec/integration/full'),
         'spec/integration/full',
       ]
-      sh env, "bundle exec rspec #{patterns.join(' ')} --tag postgres_database #{rspec_format_options}"
+      sh env, "bundle exec rspec #{patterns.join(' ')} --tag postgres_database #{rspec_task_format_options(task)}"
     end
 
     desc 'Run DB-agnostic full mode specs against PostgreSQL'
-    task 'full:agnostic_on_pg' do
+    task 'full:agnostic_on_pg' do |task|
       env = {
         'RACK_ENV' => 'test',
         'AUTHENTICATION_MODE' => 'full',
@@ -370,7 +392,7 @@ namespace :spec do
         'spec/integration/all',
         *Dir.glob('apps/*/*/spec/integration/full'),
       ]
-      sh env, "bundle exec rspec #{patterns.join(' ')} --exclude-pattern '**/migrations/*_{postgres,sqlite}_spec.rb,**/{postgres,sqlite}*_spec.rb' #{rspec_format_options}"
+      sh env, "bundle exec rspec #{patterns.join(' ')} --exclude-pattern '**/migrations/*_{postgres,sqlite}_spec.rb,**/{postgres,sqlite}*_spec.rb' #{rspec_task_format_options(task)}"
     end
 
     # Migration/trigger suites, run by .github/workflows/migration-tests.yml
@@ -379,17 +401,17 @@ namespace :spec do
     # focused feedback on schema changes — not the whole full-mode matrix.
     namespace :migrations do
       desc 'Run SQLite migration/trigger specs'
-      task :sqlite do
+      task :sqlite do |task|
         env = {
           'RACK_ENV' => 'test',
           'AUTHENTICATION_MODE' => 'full',
           'AUTH_DATABASE_URL' => 'sqlite::memory:',
         }
-        sh env, "bundle exec rspec spec/integration/full/database_triggers/sqlite_spec.rb #{rspec_format_options}"
+        sh env, "bundle exec rspec spec/integration/full/database_triggers/sqlite_spec.rb #{rspec_task_format_options(task)}"
       end
 
       desc 'Run PostgreSQL migration/trigger/infrastructure specs'
-      task :postgres do
+      task :postgres do |task|
         env   = {
           'RACK_ENV' => 'test',
           'AUTHENTICATION_MODE' => 'full',
@@ -400,7 +422,7 @@ namespace :spec do
           spec/integration/full/database_triggers/postgres_spec.rb
           spec/integration/full/postgres_infrastructure_spec.rb
         ].join(' ')
-        sh env, "bundle exec rspec #{specs} --tag postgres_database #{rspec_format_options}"
+        sh env, "bundle exec rspec #{specs} --tag postgres_database #{rspec_task_format_options(task)}"
       end
 
       desc 'Verify migrations use the elevated connection (dual-URL config)'
@@ -452,9 +474,9 @@ namespace :spec do
   # (continue-on-error) — see .github/workflows/ci.yml — so visibility is kept
   # without blocking. Add it back to spec:all once #3225 greens the lane.
   desc 'Run API contract specs (spec/api/, mode-agnostic; needs Valkey on 2163)'
-  task :api do
+  task :api do |task|
     env = { 'RACK_ENV' => 'test', 'AUTHENTICATION_MODE' => 'simple' }
-    sh env, "bundle exec rspec spec/api #{rspec_format_options}"
+    sh env, "bundle exec rspec spec/api #{rspec_task_format_options(task)}"
   end
 
   # Two rspec processes, not thirteen. `rake spec:verify_selection` asserts the
@@ -552,7 +574,7 @@ end
 namespace :vcr do
   namespace :billing do
     desc 'Record NEW VCR cassettes for billing CLI specs (requires STRIPE_API_KEY)'
-    task :record do
+    task :record do |task|
       unless ENV['STRIPE_API_KEY']
         abort <<~MSG
           ERROR: STRIPE_API_KEY is required to record VCR cassettes.
@@ -581,11 +603,11 @@ namespace :vcr do
         apps/web/billing/spec/cli/products_spec.rb
       ].join(' ')
 
-      sh env, "bundle exec rspec #{specs} #{rspec_format_options}"
+      sh env, "bundle exec rspec #{specs} #{rspec_task_format_options(task)}"
     end
 
     desc 'Re-record ALL VCR cassettes for billing specs (requires STRIPE_API_KEY)'
-    task :rerecord do
+    task :rerecord do |task|
       unless ENV['STRIPE_API_KEY']
         abort <<~MSG
           ERROR: STRIPE_API_KEY is required to record VCR cassettes.
@@ -606,11 +628,11 @@ namespace :vcr do
         'DEFAULT_LOG_LEVEL' => 'error',
       }
 
-      sh env, "bundle exec rspec apps/web/billing/spec #{rspec_format_options}"
+      sh env, "bundle exec rspec apps/web/billing/spec #{rspec_task_format_options(task)}"
     end
 
     desc 'Verify billing specs run with existing VCR cassettes (no API key needed)'
-    task :verify do
+    task :verify do |task|
       env = {
         'RACK_ENV' => 'test',
         'AUTHENTICATION_MODE' => 'full',
@@ -619,7 +641,7 @@ namespace :vcr do
         'DEFAULT_LOG_LEVEL' => 'error',
       }
 
-      sh env, "bundle exec rspec apps/web/billing/spec #{rspec_format_options}"
+      sh env, "bundle exec rspec apps/web/billing/spec #{rspec_task_format_options(task)}"
     end
   end
 end

@@ -13,6 +13,7 @@
 #   tests/lanes/run unit
 #   tests/lanes/run full-pg --overlay billing
 #   tests/lanes/run --only spec/api/v2/secret_ttl_entitlement_spec.rb:20
+#   tests/lanes/run full-sqlite --capture-logs --log-console off
 #   tests/lanes/run full-sqlite --console
 #   tests/lanes/run --which apps/web/auth/spec/integration/full
 #
@@ -328,6 +329,7 @@ list_lanes() {
 if [[ $# -eq 0 || "${1:-}" == "--list" || "${1:-}" == "-l" ]]; then
   echo "usage: tests/lanes/run [<lane>] [--overlay <name>]... [--only <path>]..."
   echo "                            [--skip-codegen] [--print-key] [--quiet]"
+  echo "                            [--capture-logs] [--log-console <off|level>]"
   echo "                            [-- <rspec args>]"
   echo "       tests/lanes/run <lane> [--overlay <name>]... --console"
   echo "       tests/lanes/run --which <path>"
@@ -344,27 +346,62 @@ if [[ $# -eq 0 || "${1:-}" == "--list" || "${1:-}" == "-l" ]]; then
   echo "  -- <args>      everything after it goes to rspec verbatim (never to"
   echo "                 tryouts). Needs --only. e.g. -- --only-failures,"
   echo "                 -- --next-failure, -- -e 'description'."
-  echo "  --quiet        rspec prints failures and the summary only (SPEC_OPTS"
-  echo "                 selects tests/lanes/support/quiet_formatter.rb) and"
-  echo "                 the app logs at error and above only (LOG_LEVEL and"
-  echo "                 DEBUG_LOGGERS, both read by setup_loggers.rb); the"
-  echo "                 tryouts legs already run --agent outside CI. Default"
-  echo "                 output is unchanged without it."
+  echo "  --quiet        rspec prints failures, pending examples, the summary"
+  echo "                 and the seed, and nothing per passing example"
+  echo "                 (tests/lanes/support/quiet_formatter.rb, for the lane's"
+  echo "                 tasks and for --only). A results file asked for with"
+  echo "                 RSPEC_OUTPUT_FILE is still written. Alone"
+  echo "                 it also holds the app's log at error and above"
+  echo "                 (LOG_LEVEL and DEBUG_LOGGERS, both read by"
+  echo "                 setup_loggers.rb): events below that are discarded,"
+  echo "                 not kept anywhere. With --capture-logs the levels are"
+  echo "                 left alone, so nothing is discarded before it can"
+  echo "                 reach app.log, and --log-console decides what the"
+  echo "                 console shows. Tryouts are not affected: their legs"
+  echo "                 already run --agent outside CI, and --only on a"
+  echo "                 *_try.rb file always does. Default output is"
+  echo "                 unchanged without it."
+  echo "  --capture-logs the app also writes its log to app.log in the run"
+  echo "                 directory (tmp/lanes/<lane>/<overlays>/, beside"
+  echo "                 last.log), and the emails the logger mail backend"
+  echo "                 delivers go to mail.log there instead of stdout. Log"
+  echo "                 levels are untouched, so app.log holds every event the"
+  echo "                 categories admit, expected errors included. Both files"
+  echo "                 are truncated at the start of each run, full lane or"
+  echo "                 --only, and a run without the flag removes them: disk"
+  echo "                 use is bounded across runs and unbounded within one."
+  echo "                 Two runs of one lane and overlay set in one checkout"
+  echo "                 share the files; that is not supported. mail.log is"
+  echo "                 raw message content that no log scrubbing has seen,"
+  echo "                 and app.log is not everything the run printed (rspec"
+  echo "                 and other direct output stay in last.log). A file that"
+  echo "                 cannot be created ends the run with exit 73 before"
+  echo "                 any task. A file that is gone or was replaced when the"
+  echo "                 run ends, or a failed write to app.log, turns an"
+  echo "                 otherwise green run into exit 74."
+  echo "  --log-console <off|trace|debug|info|warn|error|fatal>"
+  echo "                 what the app's log prints on the console. off: nothing"
+  echo "                 (needs --capture-logs, or the events would have no"
+  echo "                 destination). A level: that level and above. app.log"
+  echo "                 is not affected either way."
   echo "  --console      start the app console (bin/ots console) in the lane's"
   echo "                 environment — same scrub, overlays, datastore index"
   echo "                 and exec boundary as a run — instead of its tasks."
   echo "                 Preserves an existing RabbitMQ vhost for inspection."
-  echo "                 Runs no tests: not with --only, --quiet or --."
+  echo "                 Runs no tests: not with --only, --quiet,"
+  echo "                 --capture-logs, --log-console or --."
   echo "  --skip-codegen skip the lane's declared codegen (LANES_CODEGEN in"
   echo "                 its env file). A direct run ALWAYS generates; this is"
   echo "                 for a caller that generated once before fanning out."
   echo "  --print-key    print the isolation key and datastore index this"
-  echo "                 lane+overlay set derives, then exit. Touches no"
-  echo "                 services and runs nothing."
+  echo "                 lane+overlay set derives, and the log files and"
+  echo "                 console settings the other flags select, then exit."
+  echo "                 Touches no services and runs nothing."
   echo
   echo "Every run (tasks or --only) is also written to tmp/lanes/<lane>/<overlays>/"
   echo "last.log; the path is printed at exit, after one line of wall-clock per"
-  echo "phase (preflight, codegen, tasks/only). --print-key shows the directory."
+  echo "phase (preflight, codegen, tasks/only) and, under --capture-logs, the"
+  echo "path of app.log. --print-key shows the directory."
   echo
   echo "Lanes:"
   list_lanes | sed 's/^/  /'
@@ -432,6 +469,8 @@ ONLY=()
 SKIP_CODEGEN=0
 PRINT_KEY=0
 QUIET=0
+CAPTURE_LOGS=0
+LOG_CONSOLE=''
 CONSOLE=0
 # `--` ends the runner's own parsing; the rest of argv is rspec's. Kept as
 # an array (never re-split) so a quoted `-e 'two words'` arrives intact.
@@ -479,6 +518,30 @@ while [[ $# -gt 0 ]]; do
       QUIET=1
       shift
       ;;
+    --capture-logs)
+      CAPTURE_LOGS=1
+      shift
+      ;;
+    --log-console)
+      # Validated here, in lower case exactly: the value is exported as
+      # given and the test side (tests/lanes/support/log_capture.rb,
+      # spec/logging.test.yaml) accepts nothing else. `OFF` or `Warn` would
+      # otherwise travel as far as the first process that boots.
+      [[ $# -ge 2 ]] || { echo "error: --log-console requires off or a level (trace debug info warn error fatal)" >&2; exit 64; }
+      case "$2" in
+        off|trace|debug|info|warn|error|fatal) ;;
+        *)
+          echo "error: --log-console '$2' is not off or a level (trace debug info warn error fatal)" >&2
+          exit 64
+          ;;
+      esac
+      if [[ -n "${LOG_CONSOLE}" && "${LOG_CONSOLE}" != "$2" ]]; then
+        echo "error: --log-console given twice with different values ('${LOG_CONSOLE}', '$2')" >&2
+        exit 64
+      fi
+      LOG_CONSOLE="$2"
+      shift 2
+      ;;
     --console)
       CONSOLE=1
       shift
@@ -508,10 +571,26 @@ if [[ ${CONSOLE} -eq 1 ]]; then
     echo "error: --quiet selects an rspec formatter; --console runs no rspec" >&2
     exit 64
   fi
+  if [[ ${CAPTURE_LOGS} -eq 1 ]]; then
+    echo "error: --capture-logs captures a test run's app log; --console runs no tests" >&2
+    exit 64
+  fi
+  if [[ -n "${LOG_CONSOLE}" ]]; then
+    echo "error: --log-console filters a test run's app log; --console runs no tests" >&2
+    exit 64
+  fi
   if [[ ${SKIP_CODEGEN} -eq 1 ]]; then
     echo "error: --console never runs the codegen phase; --skip-codegen has nothing to skip" >&2
     exit 64
   fi
+fi
+# With the console off and no log file, an application log event has no
+# destination at all. The test side refuses that too (every test process
+# would stop at load, and a booting one raises: audit events must have
+# somewhere to go), so say it once here instead of once per process.
+if [[ "${LOG_CONSOLE}" == off && ${CAPTURE_LOGS} -eq 0 ]]; then
+  echo "error: --log-console off needs --capture-logs; without a log file the app's log events would have no destination" >&2
+  exit 64
 fi
 # A lane's tasks file drives rspec through rake, where argv is the rake
 # task's to assemble; there is nowhere for trailing arguments to go but
@@ -644,23 +723,119 @@ if [[ ${#OVERLAYS[@]} -gt 0 ]]; then
 fi
 LANES_ISOLATION_KEY="${LANE}|${OVERLAY_KEY}|${REPO_ROOT}"
 
+# ── Lane environment: base.env -> lane env -> overlays ───────────────────
+# Each file is sourced under allexport, so every assignment in it becomes
+# part of the task environment. That is the point for a lane's settings and
+# a hazard for the runner's own: the files run in this shell, and a line
+# such as `LOG_CONSOLE=warn` or `QUIET=1` assigns the variable the argument
+# parser filled in above. The run would then do something no flag on its
+# command line asked for (hold the app console to warn, turn capture on,
+# skip the value checks the parser already made), and the name would be
+# exported to every task as well.
+#
+# The command line is the only way to set that state. Everything the parser
+# and the lane resolution assigned is snapshotted here, with its attributes
+# (`declare -p` prints both), and compared after each file. A file that
+# changed, exported or unset one of the names stops the run, named with the
+# variable, like a flag that cannot be honored. The same reasoning as for
+# the LANES_* names the runner assigns further down.
+#
+# allexport is on for the `source` alone, so nothing this block assigns for
+# itself is exported.
+#
+# Each `source` is at the top level of this script and only the comparison
+# is a function. Sourced inside a function, a `declare` or `typeset` line in
+# a file would make a variable local to that function: gone on return, never
+# exported, and nothing printed.
+declare -A _lanes_control_flag=(
+  [SKIP_CODEGEN]='--skip-codegen' [PRINT_KEY]='--print-key' [QUIET]='--quiet'
+  [CAPTURE_LOGS]='--capture-logs' [LOG_CONSOLE]='--log-console'
+  [CONSOLE]='--console' [PASSTHROUGH]='-- <rspec args>'
+  [OVERLAYS]='--overlay' [ONLY]='--only' [RSPEC_ARGS]='-- <rspec args>'
+  [LANE]='' [LANE_DIR]='' [LANES_DIR]='' [REPO_ROOT]=''
+  [OVERLAY_KEY]='' [LANES_ISOLATION_KEY]=''
+)
+declare -A _lanes_control_state=()
+for _lanes_name in "${!_lanes_control_flag[@]}"; do
+  _lanes_control_state[${_lanes_name}]="$(declare -p "${_lanes_name}" 2>/dev/null || true)"
+done
+_lanes_check_control_state() {  # $1 = the file just sourced
+  local _file="$1" _name
+  for _name in "${!_lanes_control_flag[@]}"; do
+    if [[ "$(declare -p "${_name}" 2>/dev/null || true)" != "${_lanes_control_state[${_name}]}" ]]; then
+      echo "error: ${_file#"${REPO_ROOT}/"} sets ${_name}, which is the runner's own state" >&2
+      if [[ -n "${_lanes_control_flag[${_name}]}" ]]; then
+        echo "  remove the line and pass ${_lanes_control_flag[${_name}]} on the command line instead" >&2
+      else
+        echo "  remove the line: a lane env file or overlay cannot change which lane or checkout a run is" >&2
+      fi
+      exit 64
+    fi
+  done
+}
 set -a
 # shellcheck source=/dev/null
 source "${LANES_DIR}/base.env"
+set +a
+_lanes_check_control_state "${LANES_DIR}/base.env"
+set -a
 # shellcheck source=/dev/null
 source "${LANE_DIR}/env"
+set +a
+_lanes_check_control_state "${LANE_DIR}/env"
 if [[ ${#OVERLAYS[@]} -gt 0 ]]; then
-  for name in "${OVERLAYS[@]}"; do
-    overlay_file="${LANES_DIR}/overlays/${name}.env"
-    if [[ ! -f "${overlay_file}" ]]; then
-      echo "error: unknown overlay '${name}' (no ${overlay_file})" >&2
+  # An overlay is sourced inside this loop, so a `break` or `continue` in
+  # the file that is not inside a loop of its own acts on this one: the rest
+  # of the pass is skipped, which leaves allexport on and the file
+  # unchecked. _lanes_overlay_file is emptied once an overlay has been
+  # checked. One still set at the next pass, or after the loop, is an
+  # overlay that ended its pass early, and the run stops like any other
+  # overlay that cannot be honored.
+  _lanes_refuse_loop_control() {
+    set +a
+    [[ -n "${_lanes_overlay_file}" ]] || return 0
+    echo "error: ${_lanes_overlay_file#"${REPO_ROOT}/"} has a break or continue outside a loop of its own" >&2
+    echo "  remove the line: it ended the runner's pass over this overlay, so the rest of the file was not read" >&2
+    exit 64
+  }
+  _lanes_overlay_file=""
+  for _lanes_name in "${OVERLAYS[@]}"; do
+    _lanes_refuse_loop_control
+    _lanes_overlay_file="${LANES_DIR}/overlays/${_lanes_name}.env"
+    if [[ ! -f "${_lanes_overlay_file}" ]]; then
+      echo "error: unknown overlay '${_lanes_name}' (no ${_lanes_overlay_file})" >&2
       exit 64
     fi
+    set -a
     # shellcheck source=/dev/null
-    source "${overlay_file}"
+    source "${_lanes_overlay_file}"
+    set +a
+    _lanes_check_control_state "${_lanes_overlay_file}"
+    _lanes_overlay_file=""
   done
+  _lanes_refuse_loop_control
+  builtin unset -f _lanes_refuse_loop_control
+  builtin unset _lanes_overlay_file
 fi
-set +a
+builtin unset -f _lanes_check_control_state
+builtin unset _lanes_name _lanes_control_flag _lanes_control_state
+
+# SPEC_OPTS is the one way left to change the run's rspec formatters from an
+# env file. rspec reads it after .rspec and after the command line, and a
+# `--format` there REPLACES the formatter list the command line built: the
+# JSON results formatter with it, so the run would write no results file and
+# report nothing wrong. The caller's SPEC_OPTS was scrubbed, so a value here
+# came from one of the files above. Other options (--seed, --fail-fast) are
+# left alone; a formatter or its output file is refused. rspec's only
+# single-dash options starting with f or o are those two.
+_lanes_spec_opts_format='(^|[[:space:]])(--format|--out|-f|-o)'
+if [[ "${SPEC_OPTS:-}" =~ ${_lanes_spec_opts_format} ]]; then
+  echo "error: SPEC_OPTS in a lane env file or overlay selects an rspec formatter (${BASH_REMATCH[2]})" >&2
+  echo "  rspec reads SPEC_OPTS last, so it would replace the run's formatters, the JSON" >&2
+  echo "  results one included. Remove it; use --quiet, or pass a formatter after -- with --only" >&2
+  exit 64
+fi
+builtin unset _lanes_spec_opts_format
 
 # ── Per-worktree datastore isolation ─────────────────────────────────────
 # Every checkout of this repo (worktrees included) shares the one test
@@ -808,70 +983,142 @@ fi
 # it. Two lanes in one worktree get two directories, two worktrees get two
 # tmp/ trees, and nothing clobbers a sibling's files. tmp/ is gitignored.
 #
-# LANES_RSPEC_STATUS_FILE is the one the app side reads:
-# spec/spec_helper.rb sets example_status_persistence_file_path from it
-# when — and only when — it is present, so plain rspec outside the runner
-# is unchanged and `--only <path> -- --only-failures` / `--next-failure`
-# work in here. Exported below the scrub, so it survives it, and absolute,
-# so a spec that chdirs cannot move it.
+# LANES_RSPEC_STATUS_FILE is one of the runner-assigned names the test side
+# reads (the others are the log capture names below): spec/spec_helper.rb
+# sets example_status_persistence_file_path from it when — and only when —
+# it is present, so plain rspec outside the runner is unchanged and
+# `--only <path> -- --only-failures` / `--next-failure` work in here.
+# Exported below the scrub, so it survives it, and absolute, so a spec that
+# chdirs cannot move it.
 LANES_RUN_DIR="tmp/lanes/${LANE}/${OVERLAY_KEY:-base}"
 LANES_RSPEC_STATUS_FILE="${REPO_ROOT}/${LANES_RUN_DIR}/rspec-status.txt"
 export LANES_RSPEC_STATUS_FILE
 
-# ── --quiet ──────────────────────────────────────────────────────────────
-# rspec reads SPEC_OPTS last, after .rspec and after the command line, and a
-# `--format` there REPLACES the formatter list the other two built — which is
-# what makes one exported name enough to quiet every rspec invocation a
-# lane makes, whether a rake task assembled it or --only did. Set here,
-# below the scrub (a caller's SPEC_OPTS was cleared with everything else,
-# so this is the only one the task process can see) and only under the
-# flag, so a default run's output — CI's logs — is byte-for-byte what it
-# was.
+# ── Log capture profile: --capture-logs, --log-console, --quiet ──────────
+# Four names carry the profile to the test side. Nothing under lib/onetime
+# reads them; the readers of the three log names are spec/logging.test.yaml
+# (ERB, at every boot under RACK_ENV=test) and
+# tests/lanes/support/log_capture.rb (loaded by spec/spec_helper.rb and
+# try/support/test_helpers.rb, for processes that never boot, and for the
+# mail backend):
 #
-# The replacement is also the one cost: the rake tasks' `--format json --out
-# $RSPEC_OUTPUT_FILE` goes with the progress formatter, so a run that was
-# asked for a results file cannot also be quiet. That is a CI-only pairing
-# (RSPEC_OUTPUT_FILE is CI plumbing, keep-listed for that reason); refuse it
-# rather than silently write no results.
+#   LANES_APP_LOG_FILE     --capture-logs: the app appends its log events to
+#                          this file as well as the console.
+#   LANES_MAIL_LOG_FILE    --capture-logs: the logger mail backend appends
+#                          each delivered email to this file instead of
+#                          printing it. Separate from app.log on purpose: it
+#                          is raw message content that no log scrubbing has
+#                          seen.
+#   LANES_APP_LOG_CONSOLE  --log-console: `off` removes the app's console
+#                          destination, a level name holds it to that level
+#                          and above. Unset leaves the console as it was.
+#   LANES_RSPEC_CONSOLE    --quiet: `quiet` asks for the quiet console
+#                          formatter. Read by
+#                          tests/lanes/support/rspec_format.rb, which every
+#                          rspec command line of the run gets its formatter
+#                          flags from.
 #
-# Tryouts needs nothing here: try:unit and try:integration:simple already
-# pass --agent outside CI (lib/tasks/spec.rake), as does --only for a
-# *_try.rb file.
-if [[ ${QUIET} -eq 1 ]]; then
-  if [[ -n "${RSPEC_OUTPUT_FILE:-}" ]]; then
-    echo "error: --quiet replaces rspec's formatters, so RSPEC_OUTPUT_FILE cannot be honored" >&2
-    echo "  unset RSPEC_OUTPUT_FILE (CI plumbing) or drop --quiet" >&2
+# The flags are the only way to set them. The caller's shell cannot: the
+# scrub cleared its exports. A lane env file or an overlay could, since both
+# are sourced under `set -a` above, and then a run would write its log to a
+# path the runner neither created nor truncated nor reports — or lose its
+# console with no flag on the command line to explain it. A silent unset
+# would be the other way to stop that, and would leave the author of the
+# overlay line believing it worked; refuse instead, as for a flag that
+# cannot be honored.
+for _lanes_name in LANES_APP_LOG_FILE LANES_MAIL_LOG_FILE \
+                   LANES_APP_LOG_CONSOLE LANES_RSPEC_CONSOLE; do
+  if [[ -n "${!_lanes_name+set}" ]]; then
+    echo "error: ${_lanes_name} is assigned by the runner (--capture-logs, --log-console, --quiet)" >&2
+    echo "  remove it from the lane env file or overlay that sets it, and pass the flag instead" >&2
     exit 64
   fi
-  # Repo-relative `./` path, not ${REPO_ROOT}: rspec Shellwords-splits
-  # SPEC_OPTS, so a checkout path with a space would break the --require, and
-  # the task process runs from the repo root (the cd below) where ./ resolves.
-  SPEC_OPTS="--require ./tests/lanes/support/quiet_formatter --format Lanes::QuietFormatter"
-  export SPEC_OPTS
+done
+builtin unset _lanes_name
 
-  # The application's own log lines are the other, larger half of a lane's
-  # output — on a full `simple` run ~50k of ~55k lines are the seven
-  # `HTTP -- [Security] ... DISABLED` warnings each app boot logs — and the
-  # formatter cannot touch them. Two existing knobs can, both read by
-  # lib/onetime/initializers/setup_loggers.rb on every boot the run makes:
-  # LOG_LEVEL sets SemanticLogger.default_level, which every category listed
-  # under `loggers:` in spec/logging.test.yaml then overrides with its own
-  # pinned level (HTTP: warn, Auth: info, ...), so LOG_LEVEL alone moves
-  # nothing that prints; DEBUG_LOGGERS=<name>:<level>,... is applied after
-  # those and wins per category — at any level, the name notwithstanding.
-  # So: the default to error for every category the yaml does not name, and
-  # every category the initializer defines (its logger_definitions, which
-  # spec/unit/lanes/quiet_log_floor_spec.rb pins this list to) to error
-  # explicitly. Errors and fatals still print, so a real failure's log line
-  # stays beside its rspec failure — and so does the ColonelAudit stream,
-  # whose logger Onetime::ColonelAuditEvent pins at info itself, on purpose
-  # (the audit sink must not be silenceable by a level change). Measured on
-  # a full `simple` run: ~55k lines -> ~2.5k. Assigned here, below the
-  # scrub and only under the flag: a default run's app log is what it was.
+# Absolute, like the status file, and beside it: one directory per lane and
+# overlay set holds everything the last run of that pair left behind. The
+# paths are derived whether or not the flag was given — a run without it
+# removes what an earlier capture left there (see "Last run output" below).
+_lanes_app_log="${REPO_ROOT}/${LANES_RUN_DIR}/app.log"
+_lanes_mail_log="${REPO_ROOT}/${LANES_RUN_DIR}/mail.log"
+if [[ ${CAPTURE_LOGS} -eq 1 ]]; then
+  LANES_APP_LOG_FILE="${_lanes_app_log}"
+  LANES_MAIL_LOG_FILE="${_lanes_mail_log}"
+  export LANES_APP_LOG_FILE LANES_MAIL_LOG_FILE
+fi
+if [[ -n "${LOG_CONSOLE}" ]]; then
+  LANES_APP_LOG_CONSOLE="${LOG_CONSOLE}"
+  export LANES_APP_LOG_CONSOLE
+fi
+
+# ── --quiet ──────────────────────────────────────────────────────────────
+# One exported name, and no formatter flag: LANES_RSPEC_CONSOLE=quiet asks
+# for tests/lanes/support/quiet_formatter.rb on the console, and
+# tests/lanes/support/rspec_format.rb turns it into flags wherever an rspec
+# command line is assembled — the rake tasks (rspec_format_options in
+# lib/tasks/spec.rake), the browser lane's tasks file, and --only at the
+# bottom of this script. Each of those puts the console formatter and, when
+# RSPEC_OUTPUT_FILE is set, the JSON one on the command line together.
+#
+# Nothing here goes into SPEC_OPTS. rspec reads that last, after .rspec and
+# after the command line, and a `--format` in it REPLACES the formatter list
+# the other two built: the JSON formatter with it, which is why --quiet once
+# had to refuse a run that asked for a results file. The runner must put no
+# `--format` there (spec/unit/lanes/hermetic_boundary_spec.rb).
+#
+# Assigned here, below the scrub (a caller's value was cleared with
+# everything else) and only under the flag, so a default run's output is
+# byte-for-byte what it was.
+#
+# Tryouts needs nothing here: try:unit and try:integration:simple already
+# pass --agent outside CI (lib/tasks/spec.rake), and --only passes it for a
+# *_try.rb file always. A quiet --only run of tryouts files therefore prints
+# what a plain one does: the failures and the summary.
+if [[ ${QUIET} -eq 1 ]]; then
+  LANES_RSPEC_CONSOLE=quiet
+  export LANES_RSPEC_CONSOLE
+fi
+
+# ── --quiet without --capture-logs: the app-log floor ────────────────────
+# The application's own log lines are the other, larger half of a lane's
+# output — on a full `simple` run ~50k of ~55k lines are the seven
+# `HTTP -- [Security] ... DISABLED` warnings each app boot logs — and the
+# formatter cannot touch them. A bare --quiet is for fast local iteration
+# with nothing kept, so it raises the level at which events are generated:
+# two existing knobs, both read by lib/onetime/initializers/setup_loggers.rb
+# on every boot the run makes. LOG_LEVEL sets SemanticLogger.default_level,
+# which every category listed under `loggers:` in spec/logging.test.yaml
+# then overrides with its own pinned level (HTTP: warn, Auth: info, ...), so
+# LOG_LEVEL alone moves nothing that prints; DEBUG_LOGGERS=<name>:<level>,...
+# is applied after those and wins per category — at any level, the name
+# notwithstanding. So: the default to error for every category the yaml
+# does not name, and every category the initializer defines (its
+# logger_definitions, which spec/unit/lanes/quiet_log_floor_spec.rb pins
+# this list to) to error explicitly. Errors and fatals still print, so a
+# real failure's log line stays beside its rspec failure — and so does the
+# ColonelAudit stream, whose logger Onetime::ColonelAuditEvent pins at info
+# itself, on purpose (the audit sink must not be silenceable by a level
+# change). Measured on a full `simple` run: ~55k lines -> ~2.5k.
+#
+# The floor discards an event where it is generated, before any destination
+# sees it, which is the opposite of what --capture-logs is for. Under that
+# flag the runner sets neither knob, with or without --quiet: the levels
+# stay as the lane configured them, app.log receives what they admit, and
+# --log-console decides what the console shows of it.
+#
+# The floor does not reach the logger mail backend, which prints each
+# delivered email with a bare `puts` (lib/onetime/mail/delivery/logger.rb);
+# --capture-logs is what moves those off the console, into mail.log.
+#
+# Assigned here, below the scrub and only under the flag: a default run's
+# app log is what it was.
+if [[ ${QUIET} -eq 1 && ${CAPTURE_LOGS} -eq 0 ]]; then
   LOG_LEVEL=error
   DEBUG_LOGGERS=''
-  for _lanes_name in App Auth Billing Boot Bunny Ents Familia HTTP Jobs Org \
-                     Otto Rhales Scheduler Secret Sequel Session Workers; do
+  for _lanes_name in App Auth Billing Boot Bunny Chores CLI Ents Familia HTTP \
+                     Jobs Org Otto Rhales Scheduler Secret Sequel Session \
+                     Workers; do
     DEBUG_LOGGERS+="${DEBUG_LOGGERS:+,}${_lanes_name}:error"
   done
   builtin unset _lanes_name
@@ -890,9 +1137,12 @@ if [[ ${PRINT_KEY} -eq 1 ]]; then
   echo "lane=${LANE} overlays=${OVERLAY_KEY:-none} db=${LANES_DATASTORE_DB}" \
        "redis=${REDIS_URL:-n/a} auth_db=${AUTH_DATABASE_URL:-n/a}" \
        "key=${LANES_ISOLATION_KEY}"
-  echo "run_dir=${LANES_RUN_DIR} status_file=${LANES_RSPEC_STATUS_FILE}" \
-       "spec_opts=${SPEC_OPTS:-none}"
+  echo "run_dir=${LANES_RUN_DIR} status_file=${LANES_RSPEC_STATUS_FILE}"
   echo "log_level=${LOG_LEVEL:-none} debug_loggers=${DEBUG_LOGGERS:-none}"
+  # One path per line: a checkout path may contain spaces.
+  echo "app_log=${LANES_APP_LOG_FILE:-none}"
+  echo "mail_log=${LANES_MAIL_LOG_FILE:-none}"
+  echo "log_console=${LANES_APP_LOG_CONSOLE:-none} rspec_console=${LANES_RSPEC_CONSOLE:-none}"
   exit 0
 fi
 
@@ -1288,8 +1538,8 @@ cd "${REPO_ROOT}"
 #
 # tee costs the task process its terminal: rspec and tryouts see a pipe on
 # stdout and drop colors. When the runner itself is on a terminal, say so
-# explicitly — `--force-color` for rspec through SPEC_OPTS (appended, so
-# --quiet's formatter stays), FORCE_COLOR for tryouts (lib/tryouts/console.rb)
+# explicitly — `--force-color` for rspec through SPEC_OPTS (it selects no
+# formatter, so it replaces none), FORCE_COLOR for tryouts (lib/tryouts/console.rb)
 # — so an interactive run looks as it did. CI and run-all pipe the runner's
 # stdout, so neither is set there and their output is untouched.
 #
@@ -1313,6 +1563,8 @@ fi
 # exec replaces this shell and drops the trap; the task epilogue then owns the
 # record as before. Console sessions install no trap and touch no log.
 _lanes_setup_phase=preflight
+# Set once app.log and mail.log exist for this run (--capture-logs, below).
+_lanes_capture_created=0
 _lanes_finish_setup_exit() {
   local _rc="$1" _now _total_us _preflight_us _codegen_us _run_phase
   local _t_preflight _t_codegen _t_total _record
@@ -1345,6 +1597,14 @@ _lanes_finish_setup_exit() {
   printf -v _t_total '%d.%ds' $(( _total_us / 1000000 )) $(( _total_us % 1000000 / 100000 ))
   echo "[lane:${LANE}] time: preflight ${_t_preflight} codegen ${_t_codegen} ${_run_phase} not-started (total ${_t_total})" >&2 || true
 
+  # Once the capture files exist they are part of what the run left behind,
+  # whatever stopped it: say where, as the task epilogue does.
+  if [[ ${_lanes_capture_created} -eq 1 ]]; then
+    printf -v _record '[lane:%s] app log: %s' "${LANE}" "${_lanes_app_log}"
+    printf '%s\n' "${_record}" >> "${LANES_LAST_LOG}" || true
+    printf '%s\n' "${_record}" >&2 || true
+  fi
+
   printf -v _record '[lane:%s] log: %s (exit %s)' "${LANE}" "${LANES_LAST_LOG}" "${_rc}"
   printf '%s\n' "${_record}" >> "${LANES_LAST_LOG}" || true
   printf '%s\n' "${_record}" >&2 || true
@@ -1374,6 +1634,97 @@ _lanes_run_setup() {
 
 if [[ ${CONSOLE} -eq 0 ]]; then
   trap '_lanes_finish_setup_exit "$?"' EXIT
+fi
+
+# ── Captured logs: app.log and mail.log ──────────────────────────────────
+# The test processes only ever append to these (several write to one file:
+# the rake legs of a lane in sequence, forked server children at once) and
+# never create a directory, so the runner owns the files' lifecycle. They
+# follow last.log's: one pair per lane and overlay set, emptied here at the
+# start of every run that asked for them — full lane or --only — which is
+# what bounds disk use across runs. Within a run nothing bounds it. Two
+# runs of one lane and overlay set in one checkout would share the pair,
+# the second truncating under the first; that is unsupported, like sharing
+# the datastore (the liveness token above stops most of them).
+#
+# A run that did NOT ask for them removes what an earlier one left, so a
+# file found beside last.log is always from the run last.log describes.
+#
+# A file that cannot be created is fatal, before provisioning, codegen or
+# any task: the app would otherwise fail on its first boot, or (a tryout
+# that never loads the helpers) run with its log going nowhere while the
+# runner reports a capture. EX_CANTCREAT (73, sysexits.h), beside the 64
+# and 69 used above. The diagnostic goes to stderr and into last.log, which
+# exists by now; the EXIT trap just installed adds the exit record.
+#
+# Two more files in the run directory let the end of the run tell whether
+# the capture stayed whole (the epilogue below reads both):
+#
+#   .app.log.anchor, .mail.log.anchor
+#       A hard link to each file, made here. A test process that finds its
+#       log file missing creates it again (the app opens with O_CREAT), so
+#       "the file exists at the end" does not show that it is the file the
+#       run started with. The link does: `-ef` compares device and inode,
+#       and the link keeps the first inode allocated, so a re-created file
+#       can never be given the same one. A file system without hard links
+#       cannot give that answer, and the run stops here like any other
+#       file that cannot be created. The epilogue removes a link that still
+#       matches its file, so that deleting a log after the run frees its
+#       space, and leaves one that does not: it holds what the removed
+#       file had. A link found here is from such a run, or from one that
+#       ended before its epilogue.
+#   app.log.write-failed
+#       Written by a test process when a write to app.log fails
+#       (tests/lanes/support/log_capture.rb). Removed here, so one found at
+#       the end is from this run.
+#
+# Created here rather than beside last.log so that trap covers a failure,
+# and before provisioning so the files exist however setup ends — CI
+# collects them on failure too.
+if [[ ${CAPTURE_LOGS} -eq 1 ]]; then
+  for _lanes_file in "${_lanes_app_log}" "${_lanes_mail_log}"; do
+    _lanes_reason=''
+    if [[ -d "${_lanes_file}" ]]; then
+      _lanes_reason='the path is a directory'
+    elif [[ -e "${_lanes_file}" && ! -f "${_lanes_file}" ]]; then
+      # A FIFO would block the truncation below until something read it,
+      # and a device would pass it and then fail the end-of-run check as
+      # "removed". Neither is a file the runner can own; say so now.
+      _lanes_reason='the path exists and is not a regular file'
+    elif [[ -L "${_lanes_file}" ]]; then
+      # -e and -f follow a link, so one to a regular file, or to nothing,
+      # gets here. The truncation below would empty or create a file that
+      # is somewhere else and not the runner's.
+      _lanes_reason='the path is a symbolic link'
+    elif ! { : > "${_lanes_file}"; } 2>/dev/null; then
+      _lanes_reason='the file cannot be created or truncated; check that the directory and the file are writable'
+    else
+      # rm first: GNU ln -f refuses to replace a link to the same file, which
+      # is what an anchor left by an earlier run is after the truncation above.
+      _lanes_anchor="${_lanes_file%/*}/.${_lanes_file##*/}.anchor"
+      if ! { rm -f -- "${_lanes_anchor}" && ln -- "${_lanes_file}" "${_lanes_anchor}"; } 2>/dev/null; then
+        _lanes_reason="the hard link ${_lanes_anchor} cannot be created; the run directory must be on a file system that supports hard links"
+      fi
+    fi
+    if [[ -n "${_lanes_reason}" ]]; then
+      { echo "error: --capture-logs cannot create ${_lanes_file}"
+        echo "  ${_lanes_reason}. No task was run."
+      } | tee -a "${LANES_LAST_LOG}" >&2 || true
+      exit 73
+    fi
+  done
+  builtin unset _lanes_file _lanes_reason _lanes_anchor
+  if ! rm -f -- "${_lanes_app_log}.write-failed" 2>/dev/null; then
+    { echo "error: --capture-logs cannot remove ${_lanes_app_log}.write-failed"
+      echo "  left by an earlier run; this run would be reported as incomplete. No task was run."
+    } | tee -a "${LANES_LAST_LOG}" >&2 || true
+    exit 73
+  fi
+  _lanes_capture_created=1
+elif [[ ${CONSOLE} -eq 0 ]]; then
+  rm -f -- "${_lanes_app_log}" "${_lanes_mail_log}" \
+           "${_lanes_app_log%/*}/.app.log.anchor" "${_lanes_app_log%/*}/.mail.log.anchor" \
+           "${_lanes_app_log}.write-failed" 2>/dev/null || true
 fi
 
 # The per-worktree PG database has to exist before the lane's specs open a
@@ -1577,8 +1928,9 @@ fi
 # infra exit code (69), matching every other services-unavailable exit here.
 #
 # The epilogue is builtins plus tee(1) — echo, the /dev/tcp probe port_open
-# uses, and the copy into last.log — so its one PATH dependence is a
-# coreutil every CI image and every dev box has. It defines no functions
+# uses, and the copy into last.log — and, under --capture-logs only, at most
+# one grep(1) over last.log, so its PATH dependences are tools every CI image
+# and every dev box has. It defines no functions
 # (nothing for spec/unit/lanes/hermetic_boundary_spec.rb's function-table
 # assertion to see: an unexported function would not reach the task child
 # anyway). The task command runs with the exact argv and `env -u`-stripped
@@ -1597,18 +1949,62 @@ fi
 # Probing only on nonzero exit is deliberate: a service that dies after the
 # last spec passed did not invalidate anything.
 #
-# The timing line comes second to last, in every mode (--quiet included:
-# it is one line, and the run it describes is the one that needs it). The
-# preflight and codegen microseconds arrive as arguments — they were
-# measured in the runner, before this shell existed — and the task's own
-# phase is clocked around the pipeline here. Tenths of a second, from
-# integer microseconds, the same way the runner counts them.
+# Under --capture-logs the epilogue also checks that the capture it is about
+# to report is whole, because nothing else can. The files existed when the
+# tasks started (the runner created them, or the run stopped), and a process
+# that cannot open app.log stops at load or at boot. What neither catches is
+# a failure after that:
+#   - a file that is gone by the end of the run. Something removed it, and
+#     whatever was written to it afterwards went to an unlinked file.
+#   - a file that is there but is not the one the run started with: removed,
+#     then created again by a later process, so what was written before is
+#     not in it. Compared against the hard link made beside it at the start.
+#   - a write the application could not complete. Two reports, both the
+#     application's own and both for I/O errors only (SystemCallError,
+#     IOError; SetupLoggers::FileSink#log):
+#       app.log.write-failed, which a test process that loaded the helpers
+#       writes (tests/lanes/support/log_capture.rb). It does not depend on
+#       where that process's stderr went.
+#       The line FileSink prints on stderr, naming this run's app.log, looked
+#       for in last.log. This covers a process that boots the application
+#       without the test helpers, and a marker that could not be written.
+#     SemanticLogger's own `Failed to log to appender: <name>` line is NOT
+#     the signal. It is printed for any exception raised while an appender
+#     runs, and a thread interrupted mid-log (Bunny::ShutdownSignal into a
+#     reader thread at session close) is not a failed write.
+# Any of these is reported on stderr and in last.log, marks the `app log:`
+# line, and turns an otherwise green run into exit 74 (EX_IOERR): a run that
+# was asked to keep its logs and lost some must not read as a success. A run
+# that already failed keeps its own exit code. Not detected: a failed write
+# in a process that loaded no helper and whose stderr did not reach last.log,
+# and a file truncated in place.
+#
+# The epilogue shell is started with --norc. bash sources ~/.bashrc in a
+# non-interactive shell in one case: started with -c, standard input a
+# network connection, and a top-level shell (SHLVL below 2), which is its
+# guess at "run by rshd or sshd". The scrub cleared SHLVL, so this `bash -c`
+# is a top-level shell again, and a runner whose stdin is a socket (an agent
+# harness, a command run over ssh) met all three: the caller's ~/.bashrc ran
+# below the scrub and its exports reached every task. --norc is the switch
+# for exactly that file. The shell exports SHLVL=1 itself, so no bash a task
+# starts is top-level (spec/unit/lanes/hermetic_boundary_spec.rb).
+#
+# The timing line comes ahead of the log lines, in every mode (--quiet
+# included: it is one line, and the run it describes is the one that needs
+# it). Under --capture-logs the path of app.log follows it, on stderr and in
+# last.log, so a reader of either knows where the app's events went; the
+# exit line stays last. The preflight and codegen microseconds arrive as
+# arguments — they were measured in the runner, before this shell existed —
+# and the task's own phase is clocked around the pipeline here. Tenths of a
+# second, from integer microseconds, the same way the runner counts them.
 _lanes_epilogue='
   _lane="$1"; shift
   _log="$1"; shift
   _us_preflight="$1"; shift
   _us_codegen="$1"; shift
   _phase="$1"; shift
+  _app_log="$1"; shift
+  _mail_log="$1"; shift
   _ports=()
   while [[ $# -gt 0 && "$1" != "--" ]]; do _ports+=("$1"); shift; done
   shift
@@ -1642,14 +2038,51 @@ _lanes_epilogue='
     fi
   fi
   echo "[lane:${_lane}] time: preflight ${_t_preflight} codegen ${_t_codegen} ${_phase} ${_t_phase} (total ${_t_total})" >&2
+  if [[ -n "${_app_log}" ]]; then
+    _capture_err=""
+    for _f in "${_app_log}" "${_mail_log}"; do
+      _anchor="${_f%/*}/.${_f##*/}.anchor"
+      if [[ -f "${_f}" && "${_f}" -ef "${_anchor}" ]]; then
+        rm -f -- "${_anchor}" 2>/dev/null || true
+        continue
+      fi
+      # Not the file the run started with. The link is left in place: it is
+      # that file, with what was written before the removal, and the error
+      # names it. The start of the next run removes it.
+      if [[ ! -f "${_f}" ]]; then
+        _capture_err="${_capture_err}${_capture_err:+; }${_f} was removed during the run"
+        [[ ! -f "${_anchor}" ]] || _capture_err="${_capture_err} (what it held is kept in ${_anchor})"
+      elif [[ -f "${_anchor}" ]]; then
+        _capture_err="${_capture_err}${_capture_err:+; }${_f} is not the file this run started with (it was removed and created again, what it held before that is kept in ${_anchor})"
+      else
+        _capture_err="${_capture_err}${_capture_err:+; }${_f} is not the file this run started with (${_anchor} is gone)"
+      fi
+    done
+    _marker="${_app_log}.write-failed"
+    if [[ -e "${_marker}" ]]; then
+      _marker_line=""
+      read -r _marker_line < "${_marker}" 2>/dev/null || true
+      _capture_err="${_capture_err}${_capture_err:+; }a process could not write to the app log (${_marker_line:-no detail}; ${_marker})"
+    elif grep -F -q -- "[SetupLoggers] Cannot write to the log file ${_app_log}:" "${_log}" 2>/dev/null; then
+      _capture_err="${_capture_err}${_capture_err:+; }a process reported a failed write to the app log (\"Cannot write to the log file\" in ${_log})"
+    fi
+    _capture_note=""
+    if [[ -n "${_capture_err}" ]]; then
+      echo "[lane:${_lane}] error: log capture is incomplete: ${_capture_err}" | tee -a "${_log}" >&2
+      _capture_note=" (incomplete)"
+      if [[ ${_rc} -eq 0 ]]; then _rc=74; fi
+    fi
+    echo "[lane:${_lane}] app log: ${_app_log}${_capture_note}" | tee -a "${_log}" >&2
+  fi
   echo "[lane:${_lane}] log: ${_log} (exit ${_rc})" | tee -a "${_log}" >&2
   exit "${_rc}"
 '
 
 if [[ ${#ONLY[@]} -eq 0 ]]; then
   _lanes_setup_phase=tasks
-  exec env ${_lanes_strip[@]+"${_lanes_strip[@]}"} bash -c "${_lanes_epilogue}" \
+  exec env ${_lanes_strip[@]+"${_lanes_strip[@]}"} bash --norc -c "${_lanes_epilogue}" \
     lanes-epilogue "${LANE}" "${LANES_LAST_LOG}" "${_lanes_us_preflight}" "${_lanes_us_codegen}" tasks \
+    "${LANES_APP_LOG_FILE:-}" "${LANES_MAIL_LOG_FILE:-}" \
     ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"} -- \
     bash -euo pipefail "${LANE_DIR}/tasks"
 fi
@@ -1663,17 +2096,40 @@ fi
 #
 # The runner was chosen by filename up in the argument section (tryouts own
 # `*_try.rb`, rspec owns the rest; mixing them was rejected there).
+#
+# rspec gets its formatters from the place the rake tasks get theirs
+# (tests/lanes/support/rspec_format.rb), on the command line: under --quiet
+# the quiet console formatter, and with RSPEC_OUTPUT_FILE set the JSON one
+# as well, writing <stem>_only.json — a name no rake task uses, so an --only
+# run never truncates a lane's results. With neither, no flag is added and
+# .rspec decides, as before. They come ahead of the `--` arguments, so a
+# `--format` passed there adds a formatter and removes none.
+#
+# Tryouts has no such flags: --agent already prints the failures and the
+# summary only, with or without --quiet, and writes no results file.
 if [[ ${_only_try} -eq 1 ]]; then
   _only_cmd=(bundle exec try --agent "${ONLY[@]}")
 else
-  _only_cmd=(bundle exec rspec "${ONLY[@]}" ${RSPEC_ARGS[@]+"${RSPEC_ARGS[@]}"})
+  _only_format=()
+  _only_format_lines="$(ruby tests/lanes/support/rspec_format.rb --only)" || {
+    _only_format_rc=$?
+    echo "[lane:${LANE}] error: could not choose the rspec formatters for --only (tests/lanes/support/rspec_format.rb, exit ${_only_format_rc})" \
+      | tee -a "${LANES_LAST_LOG}" >&2
+    exit "${_only_format_rc}"
+  }
+  if [[ -n "${_only_format_lines}" ]]; then
+    mapfile -t _only_format <<< "${_only_format_lines}"
+  fi
+  _only_cmd=(bundle exec rspec "${ONLY[@]}" ${_only_format[@]+"${_only_format[@]}"} \
+             ${RSPEC_ARGS[@]+"${RSPEC_ARGS[@]}"})
 fi
 
 echo "[lane:${LANE}] --only: ${_only_cmd[*]}" | tee -a "${LANES_LAST_LOG}"
 _lanes_setup_phase=only
 # Same mid-run service-loss epilogue (and last.log) as the tasks exec above:
 # a VM crash does not care whether the run was a full lane or one file.
-exec env ${_lanes_strip[@]+"${_lanes_strip[@]}"} bash -c "${_lanes_epilogue}" \
+exec env ${_lanes_strip[@]+"${_lanes_strip[@]}"} bash --norc -c "${_lanes_epilogue}" \
   lanes-epilogue "${LANE}" "${LANES_LAST_LOG}" "${_lanes_us_preflight}" "${_lanes_us_codegen}" only \
+  "${LANES_APP_LOG_FILE:-}" "${LANES_MAIL_LOG_FILE:-}" \
   ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"} -- \
   "${_only_cmd[@]}"
