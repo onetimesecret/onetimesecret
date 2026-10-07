@@ -57,9 +57,10 @@
 #   LANES_RSPEC_CONSOLE - `quiet` swaps the console's progress formatter for
 #                       tests/lanes/support/quiet_formatter.rb. Assigned by
 #                       tests/lanes/run --quiet; the results file is unaffected
-#   LANES_WORKERS     - rspec processes per invocation for the tasks that
-#                       split (see "In-lane workers" below); absent or 1 is
-#                       one process
+#   worker count      - rspec processes per invocation for the tasks that
+#                       split (see "In-lane workers" below, and
+#                       tests/lanes/support/workers.rb for the variable);
+#                       absent or 1 is one process
 #
 # See also: docs/adr/adr-007-test-process-boundaries.md
 
@@ -68,6 +69,7 @@ require 'shellwords'
 require 'rspec/core/rake_task'
 require_relative '../../tests/lanes/support/rspec_format'
 require_relative '../../tests/lanes/support/merge_rspec_status'
+require_relative '../../tests/lanes/support/workers'
 
 INTEGRATION_MODES = %w[simple full disabled].freeze
 
@@ -121,8 +123,10 @@ end
 
 # In-lane workers (#4551)
 # -----------------------
-# LANES_WORKERS, from a lane's env file or `tests/lanes/run --workers N`, is
-# the number of rspec processes a lane's invocation is split over. Absent,
+# The runner's worker count (Lanes::Workers.count, from a lane's env file or
+# `tests/lanes/run --workers N`; tests/lanes/support/workers.rb reads it,
+# since this file is copied into the image and may name no runner variable)
+# is the number of rspec processes a lane's invocation is split over. Absent,
 # empty or 1 is the serial command, exactly as before. Above 1 the tasks
 # that opt in (spec:integration:simple, spec:integration:full, spec:api) run
 # parallel_rspec instead: N `bundle exec rspec` processes over the same
@@ -145,39 +149,29 @@ end
 WORKER_ENV_SHIM = 'tests/lanes/support/worker-env'
 
 # The integration modes whose task splits (with spec:api): the lanes that
-# set LANES_WORKERS in their env file. The disabled lane has no worker
+# set a worker count in their env file. The disabled lane has no worker
 # default and keeps one process even under `--workers N`; add the mode here
 # to let it split.
 WORKER_INTEGRATION_MODES = %w[simple full].freeze
 
-# @return [Integer] rspec processes per invocation, 1 when unset
-def lanes_workers
-  value = ENV.fetch('LANES_WORKERS', '').strip
-  return 1 if value.empty?
-
-  workers = Integer(value, exception: false)
-  raise ArgumentError, "LANES_WORKERS must be a positive integer, not #{value.inspect}" unless workers&.positive?
-
-  workers
-end
-
-# One rspec invocation of a lane: serial, or split over LANES_WORKERS
-# processes. +options+ is the shell-quoted tail of the serial command (tag
-# filters and the format flags), +paths+ the directories and files.
+# One rspec invocation of a lane: serial, or split over the runner's worker
+# count (Lanes::Workers.count). +options+ is the shell-quoted tail of the
+# serial command (tag filters and the format flags), +paths+ the
+# directories and files.
 #
 # @param env [Hash] the lane's environment for the process(es)
 # @param paths [Array<String>] what rspec is given to run
 # @param options [String] rspec options, shell-quoted
 def sh_rspec(env, paths, options)
-  workers = lanes_workers
+  workers = Lanes::Workers.count
   if workers < 2
     sh env, "bundle exec rspec #{paths.join(' ')} #{options}"
     return
   end
 
   worker_env  = env.merge('PARALLEL_TESTS_EXECUTABLE' => "#{WORKER_ENV_SHIM} auto bundle exec rspec")
-  status_file = ENV.fetch('LANES_RSPEC_STATUS_FILE', '')
-  worker_glob = status_file.empty? ? nil : Lanes::MergeRSpecStatus.worker_glob(status_file)
+  status_file = Lanes::Workers.status_file
+  worker_glob = status_file && Lanes::MergeRSpecStatus.worker_glob(status_file)
   FileUtils.rm_f(Dir.glob(worker_glob)) if worker_glob
   command     = "bundle exec parallel_rspec -n #{workers} --first-is-1 --serialize-stdout " \
                 "-o #{Shellwords.escape(options)} #{paths.join(' ')}"
