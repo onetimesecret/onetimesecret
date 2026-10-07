@@ -4,7 +4,8 @@
 # Carved out of the unit lane; same environment, its own process and CI job.
 # The billing app's integration/ subtree is not this lane's: its mode-less
 # files are the billing-integration lane's (nightly in CI).
-# CI job: ruby-billing (T2)
+# CI job: ruby-billing (T2), nightly only — on a pull request, a push to
+# main, a tag or a merge-queue check it is skipped (docs/development/auth-ci.md).
 #
 # Not the billing OVERLAY. `--overlay billing` turns billing on for the
 # full-mode lanes (ruby-integration-billing, nightly only); this lane runs

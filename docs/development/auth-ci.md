@@ -1,9 +1,9 @@
 # Auth and billing CI selection
 
 The slow, auth-specific parts of CI run on a pull request only when the PR
-touches auth code or carries the `ci:auth` label. Billing integration
-coverage runs nightly only. Everything else runs on `main`, nightly, on
-release tags, and in the merge queue.
+touches auth code or carries the `ci:auth` label. Billing coverage runs
+nightly only. Everything else runs on `main`, nightly, on release tags, and
+in the merge queue.
 
 ## What is selected
 
@@ -27,39 +27,44 @@ are not selected by auth or billing: the whole full-mode suite once, on
 SQLite, and the PostgreSQL-only specs, both with billing off. The unit,
 simple-mode, disabled-mode and API lanes, Tryouts, and Vitest keep their
 existing path-based selection. Billing's own specs and tryouts are the
-`billing` lane (ruby-billing), gated like the unit lane, so they run on every
-Ruby change too.
+`billing` lane (ruby-billing), which is nightly only like every billing job
+(below).
 
 [Container E2E](../../.github/workflows/e2e.yml) keeps its own selection and
 both its simple and full-mode rows.
 
-## Billing integration (nightly only)
+## Billing (nightly only)
 
-Two jobs cover billing integration, and both run only on the nightly
-schedule:
+Three jobs cover billing, and all of them run only on the nightly schedule:
 
+- `ruby-billing` runs the `billing` lane: the billing app's specs and
+  tryouts and the root test trees named for billing.
+- `ruby-billing-integration` runs the `billing-integration` lane: the
+  mode-less specs directly under `apps/web/billing/spec/integration/` and the
+  `try/integration/billing` tryouts.
 - `ruby-integration-billing` repeats the three full-mode lanes
   (`full-sqlite`, `full-pg`, `full-pg-agnostic`) with the billing overlay,
   which sets `BILLING_ENABLED=true`. They run the same specs as the
   billing-off rows.
-- `ruby-billing-integration` runs the `billing-integration` lane: the
-  mode-less specs directly under `apps/web/billing/spec/integration/` and the
-  `try/integration/billing` tryouts.
 
-No path selects them. A pull request skips both whatever it touches, and so
-do a push to `main`, a tag push, a merge-queue check and the `[ci-all]`
-commit flag. The `changes` job publishes the selection as
-`billing_integration`, true on the `schedule` event or a manual dispatch with
+No path selects them. A pull request skips all three whatever it touches,
+and so do a push to `main`, a tag push, a merge-queue check and the
+`[ci-all]` commit flag. The `changes` job publishes the selection as
+`billing_nightly`, true on the `schedule` event or a manual dispatch with
 `run_all` ticked, and false otherwise; `[ci-skip]` turns it off too. The
-`ci-verdict` check expects both jobs skipped on every other event and
+`ci-verdict` check expects the three jobs skipped on every other event and
 requires them to pass on the nightly.
 
-To run them against a branch before the nightly does, use **Run workflow**
-with `run_all` ticked, or run the lanes locally: `tests/lanes/run
-billing-integration` and `tests/lanes/run full-sqlite --overlay billing`.
+The same rule holds outside main CI. The
+[Ruby 4 preview](../../.github/workflows/ruby-4-preview.yml) runs its
+billing lanes and its billing-on full-mode row on its own nightly schedule
+and skips them on a pull request. The install checks (installer,
+devcontainer, fresh-clone) run the fast suite only.
 
-Billing's unit tests are not affected: the `billing` lane (ruby-billing) runs
-on every Ruby change.
+To run the billing jobs against a branch before the nightly does, use **Run
+workflow** with `run_all` ticked, or run the lanes locally:
+`tests/lanes/run billing`, `tests/lanes/run billing-integration` and
+`tests/lanes/run full-sqlite --overlay billing`.
 
 ## When auth runs on a pull request
 
@@ -91,21 +96,20 @@ Auth runs regardless of paths on:
 - Manual dispatch of any of the three workflows.
 
 Main CI runs all of its jobs, not only the auth ones, on pushes to `main`,
-tags, scheduled runs and merge-queue checks, with one exception: the two
-billing integration jobs run on the scheduled run alone (see "Billing
-integration" above). Its manual `run_all` input selects every main-CI job,
-the billing integration jobs included; without it, a dispatch still runs
-auth but the other jobs keep path-based selection. The `[ci-all]` commit
-flag applies to main CI, not the separate E2E workflows, and does not select
-the billing integration jobs. `[ci-skip]` cannot produce a passing main-CI
-verdict.
+tags, scheduled runs and merge-queue checks, with one exception: the three
+billing jobs run on the scheduled run alone (see "Billing" above). Its
+manual `run_all` input selects every main-CI job, the billing jobs included;
+without it, a dispatch still runs auth but the other jobs keep path-based
+selection. The `[ci-all]` commit flag applies to main CI, not the separate
+E2E workflows, and does not select the billing jobs. `[ci-skip]` cannot
+produce a passing main-CI verdict.
 
 ### Before a release
 
 Check that the commit you are about to tag is green in **CI**, **E2E Full
 Auth** and **E2E Tenant Connect**. A push to `main` starts all three for that
-commit, but not the billing integration jobs: those need the nightly run that
-followed the push, or a **Run workflow** dispatch with `run_all` ticked. A
+commit, but not the billing jobs: those need the nightly run that followed
+the push, or a **Run workflow** dispatch with `run_all` ticked. A
 run is cancelled when another push to `main` lands behind it, so look at the
 commit's checks instead of assuming. For a commit without them, or any other
 ref such as a release branch, use **Run workflow** on the Actions page for
@@ -133,8 +137,8 @@ results rather than treating the skipped test job as a pass.
 ## Required checks
 
 Keep `ci-verdict` as the stable main-CI check. It covers the SAML browser job,
-the auth-selected matrix and the nightly-only billing integration jobs, and
-rejects a missing or malformed auth selection.
+the auth-selected matrix and the nightly-only billing jobs, and rejects a
+missing or malformed auth selection.
 
 The specialized workflows expose stable verdicts:
 

@@ -472,7 +472,7 @@ does, so while a run of that lane and overlay set is live it exits 69
 | Lane                 | Services                   | Runs                                                          | CI job                                           |
 | -------------------- | -------------------------- | ------------------------------------------------------------- | ------------------------------------------------ |
 | `unit`               | valkey, rabbitmq           | `try:unit`, `spec:fast`                                       | ruby-unit (T2)                                   |
-| `billing`            | valkey, rabbitmq           | `try:billing`, `spec:billing`                                 | ruby-billing (T2)                                |
+| `billing`            | valkey, rabbitmq           | `try:billing`, `spec:billing`                                 | ruby-billing (T2, nightly only)                  |
 | `billing-integration` | valkey, rabbitmq          | `try:integration:billing`, `spec:integration:billing`         | ruby-billing-integration (T3, nightly only)      |
 | `browser`            | valkey, rabbitmq           | `rspec tests/browser` (Playwright: chromium, firefox, webkit) | ruby-auth-browser (T2)                           |
 | `simple`             | valkey, rabbitmq           | `try:integration:simple`, `spec:integration:simple`           | ruby-integration-simple (T3)                     |
@@ -501,14 +501,15 @@ The `billing` lane is billing's own tests, carved out of `unit`: the billing
 app's spec and tryouts trees plus the root trees named for billing
 (`BILLING_SPEC_PATHS` and `BILLING_TRY_PATHS` in `lib/tasks/spec.rake`), in
 the same simple-mode, billing-off environment. The lane runs no `--tag`
-filter: the `:integration`-tagged billing examples belong to it.
+filter: the `:integration`-tagged billing examples belong to it. In CI it is
+nightly only, like every billing job (`docs/development/auth-ci.md`).
 
 The `billing-integration` lane is billing's integration tests: the mode-less
 spec files directly under `apps/web/billing/spec/integration/`
 (`BILLING_INTEGRATION_SPEC_PATTERN`; `spec:billing` excludes that subtree)
 and the `try/integration/billing` tryouts, which `simple` used to run. Same
-environment as `billing`; in CI it is nightly only, so a pull request, a push
-to `main` or a merge-queue check skips it (`docs/development/auth-ci.md`).
+environment as `billing`, and nightly only in CI too, so a pull request, a
+push to `main` or a merge-queue check skips it (`docs/development/auth-ci.md`).
 `rake spec:verify_selection` proves `spec:fast`, `spec:billing` and
 `spec:integration:billing` partition what `spec:fast` alone used to select.
 
@@ -693,8 +694,8 @@ The tty-only color flags do not apply there. The application's log is in the
 `lane-logs-*` artifact, not in the job output (see "Captured logs", "In CI").
 The supported CI exceptions are constrained environments that cannot run the
 compose topology: `devcontainer-ci.yml` and macOS `installer.yml` run the fast
-and billing suites directly, without the lane runner and so without the
-capture profile. They validate installation paths, not lane behavior.
+suite directly, without the lane runner and so without the capture profile.
+They validate installation paths, not lane behavior.
 
 `ci-verdict` is the required CI check for `main`. It runs on every pull
 request, whatever the PR touches, and passes only when every test job in
