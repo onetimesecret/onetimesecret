@@ -210,6 +210,67 @@ RSpec.describe 'tests/lanes/run datastore isolation key' do
     end
   end
 
+  describe 'worker indexes' do
+    # A run with N workers uses N indexes (#4551): worker 1 on the lane's own,
+    # the rest on the ones after it, wrapping inside 1..65535. The runner
+    # claims and prints the list; tests/lanes/support/worker-env derives each
+    # member for the task side (worker_env_spec.rb checks the two agree).
+    def shim_env(k, env)
+      shim = File.join(probe.repo_root, 'tests', 'lanes', 'support', 'worker-env')
+      output, status = Open3.capture2e(
+        { 'PATH' => ENV.fetch('PATH') }.merge(env), shim, k.to_s, 'env', unsetenv_others: true, chdir: probe.repo_root
+      )
+      raise "worker-env #{k} failed:\n#{output}" unless status.success?
+
+      output.lines.filter_map { |l| l.match(/\A([A-Za-z_][A-Za-z0-9_]*)=(.*)\n?\z/) { |m| [m[1], m[2]] } }.to_h
+    end
+
+    it 'lists one index per worker, the first being the lane\'s own' do
+      fields = probe.print_key('unit', '--workers', '3')
+      db     = Integer(fields['db'])
+
+      expect(fields['workers']).to eq('3')
+      expect(fields['worker_dbs']).to eq((0..2).map { |i| 1 + ((db - 1 + i) % 65535) }.join(','))
+      expect(fields['worker_dbs'].split(',').first).to eq(fields['db'])
+    end
+
+    it 'wraps at 65535 rather than landing a worker on 0 or past the last database' do
+      output, status = probe.with_pinned_index(65535) do |rc|
+        probe.run('unit', '--workers', '2', '--print-key', env: { 'BASH_ENV' => rc })
+      end
+      expect(status).to be_success, output
+      fields = output.scan(/(\w+)=(\S*)/).to_h
+
+      expect(fields['db']).to eq('65535')
+      expect(fields['worker_dbs']).to eq('65535,1')
+    end
+
+    it 'gives CI (base 0) the workers 0..N-1' do
+      output, status = probe.run('api', '--workers', '3', '--print-key', env: { 'CI' => '1' })
+      expect(status).to be_success, output
+      fields = output.scan(/(\w+)=(\S*)/).to_h
+
+      expect(fields['db']).to eq('0')
+      expect(fields['worker_dbs']).to eq('0,1,2')
+    end
+
+    it 'runs --only as one worker whatever the lane declares' do
+      expect(probe.print_key('unit')['workers']).to eq('2')
+      fields = probe.print_key('unit', '--only', LaneIsolationProbe::ONLY_TARGET)
+      expect(fields['workers']).to eq('1')
+      expect(fields['worker_dbs']).to eq(fields['db'])
+    end
+
+    it 'hands each worker its own redis URL through the shim' do
+      fields = probe.print_key('unit', '--workers', '3')
+      env    = { 'LANES_WORKERS' => '3', 'LANES_DATASTORE_DB' => fields['db'], 'REDIS_URL' => fields['redis'] }
+
+      urls = (1..3).map { |k| shim_env(k, env)['REDIS_URL'] }
+      expect(urls).to eq(fields['worker_dbs'].split(',').map { |i| "redis://127.0.0.1:2163/#{i}" })
+      expect(urls.first).to eq(fields['redis'])
+    end
+  end
+
   describe 'owner marker staleness' do
     before do
       skip 'test services (valkey 2163, rabbitmq 2156) are not up' unless probe.lane_services_up?

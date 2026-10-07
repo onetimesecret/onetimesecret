@@ -330,7 +330,7 @@ if [[ $# -eq 0 || "${1:-}" == "--list" || "${1:-}" == "-l" ]]; then
   echo "usage: tests/lanes/run [<lane>] [--overlay <name>]... [--only <path>]..."
   echo "                            [--skip-codegen] [--print-key] [--quiet]"
   echo "                            [--capture-logs] [--log-console <off|level>]"
-  echo "                            [-- <rspec args>]"
+  echo "                            [--workers <n>] [-- <rspec args>]"
   echo "       tests/lanes/run <lane> [--overlay <name>]... --console"
   echo "       tests/lanes/run --which <path>"
   echo
@@ -393,6 +393,14 @@ if [[ $# -eq 0 || "${1:-}" == "--list" || "${1:-}" == "-l" ]]; then
   echo "  --skip-codegen skip the lane's declared codegen (LANES_CODEGEN in"
   echo "                 its env file). A direct run ALWAYS generates; this is"
   echo "                 for a caller that generated once before fanning out."
+  echo "  --workers <n>  run the lane's tasks with <n> workers (1..64), each on"
+  echo "                 its own valkey DB index next to the lane's (worker 1"
+  echo "                 is the lane's own index; the list is in --print-key)."
+  echo "                 Overrides the lane's LANES_WORKERS default; 1 is the"
+  echo "                 serial run. Refused above 1 for the smoke lane and"
+  echo "                 for a lane whose AUTH_DATABASE_URL is the test"
+  echo "                 Postgres. --only and --console run one process and"
+  echo "                 ignore it. run-all --parallel passes --workers 1."
   echo "  --print-key    print the isolation key and datastore index this"
   echo "                 lane+overlay set derives, and the log files and"
   echo "                 console settings the other flags select, then exit."
@@ -472,6 +480,10 @@ QUIET=0
 CAPTURE_LOGS=0
 LOG_CONSOLE=''
 CONSOLE=0
+# --workers <n>: the CLI value only. Empty means "the lane's LANES_WORKERS
+# default, else 1"; the two are reconciled below the env files, which is
+# where the lane's default becomes known.
+WORKERS_OVERRIDE=''
 # `--` ends the runner's own parsing; the rest of argv is rspec's. Kept as
 # an array (never re-split) so a quoted `-e 'two words'` arrives intact.
 PASSTHROUGH=0
@@ -545,6 +557,25 @@ while [[ $# -gt 0 ]]; do
     --console)
       CONSOLE=1
       shift
+      ;;
+    --workers)
+      # A decimal count in 1..64. 64 is a ceiling on the index range a run
+      # claims next to its own (see the per-worker derivation below), not a
+      # measured limit; a machine with more cores than that gains nothing
+      # from more rspec processes than it has spec files per worker.
+      [[ $# -ge 2 ]] || { echo "error: --workers requires a count (1..64)" >&2; exit 64; }
+      case "$2" in
+        ''|*[!0-9]*)
+          echo "error: --workers '$2' is not a decimal count (1..64)" >&2
+          exit 64
+          ;;
+      esac
+      if (( 10#$2 < 1 || 10#$2 > 64 )); then
+        echo "error: --workers must be between 1 and 64, got '$2'" >&2
+        exit 64
+      fi
+      WORKERS_OVERRIDE=$(( 10#$2 ))
+      shift 2
       ;;
     *)
       echo "error: unknown argument '$1'" >&2
@@ -750,7 +781,7 @@ LANES_ISOLATION_KEY="${LANE}|${OVERLAY_KEY}|${REPO_ROOT}"
 declare -A _lanes_control_flag=(
   [SKIP_CODEGEN]='--skip-codegen' [PRINT_KEY]='--print-key' [QUIET]='--quiet'
   [CAPTURE_LOGS]='--capture-logs' [LOG_CONSOLE]='--log-console'
-  [CONSOLE]='--console' [PASSTHROUGH]='-- <rspec args>'
+  [CONSOLE]='--console' [WORKERS_OVERRIDE]='--workers' [PASSTHROUGH]='-- <rspec args>'
   [OVERLAYS]='--overlay' [ONLY]='--only' [RSPEC_ARGS]='-- <rspec args>'
   [LANE]='' [LANE_DIR]='' [LANES_DIR]='' [REPO_ROOT]=''
   [OVERLAY_KEY]='' [LANES_ISOLATION_KEY]=''
@@ -837,6 +868,58 @@ if [[ "${SPEC_OPTS:-}" =~ ${_lanes_spec_opts_format} ]]; then
 fi
 builtin unset _lanes_spec_opts_format
 
+# ── Workers: LANES_WORKERS ───────────────────────────────────────────────
+# How many processes the lane's tasks may fan out over (#4551). The lane's
+# env file sets the default (it is part of the lane's workload definition,
+# so it is NOT in the runner-state table above); --workers overrides it;
+# neither means 1, the serial run every lane had before. The count is the
+# runner's contract with lib/tasks/spec.rake (parallel_rspec -n) and with
+# tests/lanes/unit/tasks (one leg per worker), both of which hand each
+# worker its environment through tests/lanes/support/worker-env.
+#
+# Exported only above 1, so a serial run's task environment is what it was
+# — `export -n` strips the attribute an env file's allexport gave the name.
+#
+# --only and --console are one process by construction and ignore the
+# count rather than refuse it: a lane whose env file says 4 would otherwise
+# need --workers 1 on every iteration of one file.
+LANES_WORKERS="${WORKERS_OVERRIDE:-${LANES_WORKERS:-1}}"
+case "${LANES_WORKERS}" in
+  ''|*[!0-9]*)
+    echo "error: LANES_WORKERS must be a decimal count (1..64), got '${LANES_WORKERS}'" >&2
+    exit 64
+    ;;
+esac
+LANES_WORKERS=$(( 10#${LANES_WORKERS} ))
+if (( LANES_WORKERS < 1 || LANES_WORKERS > 64 )); then
+  echo "error: LANES_WORKERS must be between 1 and 64, got '${LANES_WORKERS}'" >&2
+  exit 64
+fi
+if [[ ${#ONLY[@]} -gt 0 || ${CONSOLE} -eq 1 ]]; then
+  LANES_WORKERS=1
+fi
+if (( LANES_WORKERS > 1 )); then
+  # The smoke lane is `pnpm test:smoke`, one command that flushes its
+  # datastore at task start; nothing in it takes a worker count.
+  if [[ "${LANE}" == smoke ]]; then
+    echo "error: the smoke lane runs one command (pnpm test:smoke) and takes no workers" >&2
+    echo "  drop --workers (or LANES_WORKERS from its env file)" >&2
+    exit 64
+  fi
+  # Workers get a valkey index each and nothing else: the PG database and
+  # the RabbitMQ vhost stay one per lane. A Postgres-backed lane would hand
+  # every worker one auth database and the migration-shaped specs in those
+  # lanes would race on it. Refused until the PG side is derived per worker.
+  if [[ "${AUTH_DATABASE_URL:-}" =~ 127\.0\.0\.1:2154 ]]; then
+    echo "error: --workers above 1 is not supported for a Postgres-backed lane (lane '${LANE}')" >&2
+    echo "  workers share the lane's one onetime_auth_test database; run it serially" >&2
+    exit 64
+  fi
+  export LANES_WORKERS
+else
+  export -n LANES_WORKERS
+fi
+
 # ── Per-worktree datastore isolation ─────────────────────────────────────
 # Every checkout of this repo (worktrees included) shares the one test
 # valkey on 127.0.0.1:2163. Two lane runs sharing DB 0 contaminate each
@@ -921,6 +1004,32 @@ for _lanes_name in REDIS_URL VALKEY_URL; do
   fi
 done
 builtin unset _lanes_name
+
+# ── Per-worker indexes ───────────────────────────────────────────────────
+# A run with LANES_WORKERS=N uses N valkey indexes, one per worker: worker 1
+# is the lane's own index (above), worker k the (k-1)th index after it,
+# wrapping inside 1..65535 so no worker lands on 0 (the shared datastore)
+# or past the last database the container has. With index 0 (CI) the
+# workers are 0..N-1, which keeps worker 1 on the unsuffixed datastore CI
+# addresses by name. The same formula is in tests/lanes/support/worker-env,
+# which derives a worker's environment from LANES_DATASTORE_DB and its
+# position — what is computed here is claimed (owner marker, liveness
+# token) and reported (--print-key); what the shim computes is used. The
+# two must agree, which spec/unit/lanes/worker_env_spec.rb checks.
+#
+# Not exported: no process reads the list. The task side sees one index at
+# a time, through the shim.
+_lanes_worker_dbs=()
+for (( _lanes_k = 1; _lanes_k <= LANES_WORKERS; _lanes_k++ )); do
+  if [[ "${LANES_DATASTORE_DB}" == 0 ]]; then
+    _lanes_worker_dbs+=( $(( _lanes_k - 1 )) )
+  else
+    _lanes_worker_dbs+=( $(( 1 + (10#${LANES_DATASTORE_DB} - 1 + _lanes_k - 1) % 65535 )) )
+  fi
+done
+builtin unset _lanes_k
+_lanes_worker_dbs_csv="${_lanes_worker_dbs[*]}"
+_lanes_worker_dbs_csv="${_lanes_worker_dbs_csv// /,}"
 
 # PostgreSQL gets the same treatment, as a database name rather than an
 # index: `onetime_auth_test` becomes `onetime_auth_test_w<index>`. A
@@ -1134,7 +1243,11 @@ fi
 # without paying for a lane run to find out. The second line is the file
 # side of the same derivation.
 if [[ ${PRINT_KEY} -eq 1 ]]; then
+  # workers and worker_dbs sit between db and redis: key stays last (its
+  # value is the one that carries a path), and every field before it keeps
+  # its place for the specs that read this line.
   echo "lane=${LANE} overlays=${OVERLAY_KEY:-none} db=${LANES_DATASTORE_DB}" \
+       "workers=${LANES_WORKERS} worker_dbs=${_lanes_worker_dbs_csv}" \
        "redis=${REDIS_URL:-n/a} auth_db=${AUTH_DATABASE_URL:-n/a}" \
        "key=${LANES_ISOLATION_KEY}"
   echo "run_dir=${LANES_RUN_DIR} status_file=${LANES_RSPEC_STATUS_FILE}"
@@ -1258,15 +1371,25 @@ done
 # before the pin would otherwise surface as opaque mid-suite connection
 # errors instead of one actionable line here. Subshell so a refused
 # connection can't take the runner down; the port was verified open above.
+#
+# One probe, on the highest index the run uses: the question is whether the
+# container has enough databases, and a container that accepts the largest
+# index accepts every smaller one. With workers that is the largest of the
+# per-worker list (which wraps, so it is not always the last worker's).
+_lanes_probe_db="${LANES_DATASTORE_DB}"
+for _lanes_name in "${_lanes_worker_dbs[@]}"; do
+  (( _lanes_name > _lanes_probe_db )) && _lanes_probe_db="${_lanes_name}"
+done
+builtin unset _lanes_name
 if [[ "${REDIS_URL:-}" =~ 127\.0\.0\.1:2163 ]]; then
   _lanes_reply="$( (
     exec 3<>"/dev/tcp/127.0.0.1/2163"
-    printf 'SELECT %s\r\n' "${LANES_DATASTORE_DB}" >&3
+    printf 'SELECT %s\r\n' "${_lanes_probe_db}" >&3
     IFS= read -r -t 5 _r <&3
     printf '%s' "${_r}"
   ) 2>/dev/null || true )"
   if [[ "${_lanes_reply}" != '+OK'* ]]; then
-    echo "error: valkey on 127.0.0.1:2163 rejected SELECT ${LANES_DATASTORE_DB}" \
+    echo "error: valkey on 127.0.0.1:2163 rejected SELECT ${_lanes_probe_db}" \
          "(${_lanes_reply:-no reply}). The container likely predates the" >&2
     echo "  --databases 65536 pin in compose.test.yml; recreate it:" >&2
     echo "  docker compose -f compose.test.yml up -d --force-recreate valkey" >&2
@@ -1274,6 +1397,7 @@ if [[ "${REDIS_URL:-}" =~ 127\.0\.0\.1:2163 ]]; then
   fi
   builtin unset _lanes_reply
 fi
+builtin unset _lanes_probe_db
 
 # ── RESP helpers ─────────────────────────────────────────────────────────
 # Three blocks below speak RESP to the test valkey — the owner marker, the
@@ -1311,32 +1435,40 @@ _lanes_resp_recv() {  # prints a bulk/simple reply payload; nothing for null bul
 # in its own subshell and swallows every failure: this is bookkeeping for a
 # detection heuristic, and a refresh that could take the run down would be
 # a worse bug than the collisions it reports.
+#
+# Both walk every worker index (one, for a serial run): each worker's
+# database carries the owner marker and each index has a liveness token in
+# DB 0, so a run of N workers keeps N of each alive and releases N.
 _lanes_token_refresh() {  # re-assert this run's claim before the TTL lapses
   ( LC_ALL=C
     exec 3<>"/dev/tcp/127.0.0.1/2163" || exit 0
-    _lanes_resp_send SELECT 0; _lanes_resp_recv >/dev/null || exit 0
-    _lanes_resp_send SET "${_lanes_active_key}" "${_lanes_active}" EX 60; _lanes_resp_recv >/dev/null || exit 0
-    # And the owner marker, which lanes delete out from under themselves:
-    # the unit lane's tryouts and every integration lane's after(:each)
-    # hook flush the whole database, repeatedly, for the length of the run.
-    # A marker asserted once at startup is therefore absent a large
-    # fraction of the time, and a colliding worktree walks straight in.
-    # NX, never a plain SET — if another run legitimately claimed the index
-    # in the gap, its marker is the true one and must not be overwritten.
-    _lanes_resp_send SELECT "${LANES_DATASTORE_DB}"; _lanes_resp_recv >/dev/null || exit 0
-    _lanes_resp_send SET _lanes:owner "${LANES_ISOLATION_KEY}" NX; _lanes_resp_recv >/dev/null || exit 0
+    for idx in "${_lanes_worker_dbs[@]}"; do
+      _lanes_resp_send SELECT 0; _lanes_resp_recv >/dev/null || exit 0
+      _lanes_resp_send SET "_lanes:active:${idx}" "${_lanes_active}" EX 60; _lanes_resp_recv >/dev/null || exit 0
+      # And the owner marker, which lanes delete out from under themselves:
+      # the unit lane's tryouts and every integration lane's after(:each)
+      # hook flush the whole database, repeatedly, for the length of the run.
+      # A marker asserted once at startup is therefore absent a large
+      # fraction of the time, and a colliding worktree walks straight in.
+      # NX, never a plain SET — if another run legitimately claimed the index
+      # in the gap, its marker is the true one and must not be overwritten.
+      _lanes_resp_send SELECT "${idx}"; _lanes_resp_recv >/dev/null || exit 0
+      _lanes_resp_send SET _lanes:owner "${LANES_ISOLATION_KEY}" NX; _lanes_resp_recv >/dev/null || exit 0
+    done
   ) 2>/dev/null || true
 }
-_lanes_token_release() {  # drop it — but only while it is still ours
+_lanes_token_release() {  # drop them — but only those still ours
   # The GET/compare is what makes a late release safe. A refresher that
-  # overslept its own TTL and lost the token to the next run must not then
+  # overslept its own TTL and lost a token to the next run must not then
   # delete that run's claim on its way out.
   ( LC_ALL=C
     exec 3<>"/dev/tcp/127.0.0.1/2163" || exit 0
     _lanes_resp_send SELECT 0; _lanes_resp_recv >/dev/null || exit 0
-    holder="$(_lanes_resp_send GET "${_lanes_active_key}"; _lanes_resp_recv)" || exit 0
-    [[ "${holder}" == "${_lanes_active}" ]] || exit 0
-    _lanes_resp_send DEL "${_lanes_active_key}"; _lanes_resp_recv >/dev/null || exit 0
+    for idx in "${_lanes_worker_dbs[@]}"; do
+      holder="$(_lanes_resp_send GET "_lanes:active:${idx}"; _lanes_resp_recv)" || exit 0
+      [[ "${holder}" == "${_lanes_active}" ]] || continue
+      _lanes_resp_send DEL "_lanes:active:${idx}"; _lanes_resp_recv >/dev/null || exit 0
+    done
   ) 2>/dev/null || true
 }
 
@@ -1361,43 +1493,51 @@ _lanes_token_release() {  # drop it — but only while it is still ours
 # The marker holds the whole isolation key, not just the path, so the abort
 # can say WHICH lane is holding the index — "another checkout" was true
 # when the key was a path and is now half the story.
+#
+# Claimed in every worker database, in worker order, with the same logic
+# each: a run of N workers writes N databases, and a foreign owner in any
+# of them is the same silent sharing. The abort names the index it found
+# taken, which is the lane's own for worker 1 and a neighbour for the rest.
 if [[ "${LANES_DATASTORE_DB}" != 0 && "${REDIS_URL:-}" =~ 127\.0\.0\.1:2163 ]]; then
-  _lanes_owner="$( (
-    LC_ALL=C  # ${#arg} must count bytes: RESP bulk lengths are byte counts
-    exec 3<>"/dev/tcp/127.0.0.1/2163" || exit 0
-    _lanes_resp_send SELECT "${LANES_DATASTORE_DB}"; _lanes_resp_recv >/dev/null || exit 0
-    _lanes_resp_send SET _lanes:owner "${LANES_ISOLATION_KEY}" NX; _lanes_resp_recv >/dev/null || exit 0
-    owner="$(_lanes_resp_send GET _lanes:owner; _lanes_resp_recv)" || exit 0
-    [[ "${owner}" == "${LANES_ISOLATION_KEY}" ]] && exit 0
-    # Staleness is a question about the OWNER'S PATH, which is field 3 of
-    # the marker — everything past the second '|', because a path may
-    # contain one. Testing -d on the whole composed value instead would
-    # find no such directory, call every live foreign owner stale, take its
-    # database over and let the run proceed: the guard would fail OPEN,
-    # which is worse than not having it (it reports success while doing the
-    # contamination it exists to stop).
-    owner_root="${owner#*|}"
-    owner_root="${owner_root#*|}"
-    if [[ -n "${owner}" && -d "${owner_root}" ]]; then
+  for _lanes_wdb in "${_lanes_worker_dbs[@]}"; do
+    _lanes_owner="$( (
+      LC_ALL=C  # ${#arg} must count bytes: RESP bulk lengths are byte counts
+      exec 3<>"/dev/tcp/127.0.0.1/2163" || exit 0
+      _lanes_resp_send SELECT "${_lanes_wdb}"; _lanes_resp_recv >/dev/null || exit 0
+      _lanes_resp_send SET _lanes:owner "${LANES_ISOLATION_KEY}" NX; _lanes_resp_recv >/dev/null || exit 0
+      owner="$(_lanes_resp_send GET _lanes:owner; _lanes_resp_recv)" || exit 0
+      [[ "${owner}" == "${LANES_ISOLATION_KEY}" ]] && exit 0
+      # Staleness is a question about the OWNER'S PATH, which is field 3 of
+      # the marker — everything past the second '|', because a path may
+      # contain one. Testing -d on the whole composed value instead would
+      # find no such directory, call every live foreign owner stale, take its
+      # database over and let the run proceed: the guard would fail OPEN,
+      # which is worse than not having it (it reports success while doing the
+      # contamination it exists to stop).
+      owner_root="${owner#*|}"
+      owner_root="${owner_root#*|}"
+      if [[ -n "${owner}" && -d "${owner_root}" ]]; then
+        printf '%s' "${owner}"; exit 1
+      fi
+      # Stale: overwrite, then confirm the takeover actually stuck with us.
+      _lanes_resp_send SET _lanes:owner "${LANES_ISOLATION_KEY}"; _lanes_resp_recv >/dev/null || exit 0
+      owner="$(_lanes_resp_send GET _lanes:owner; _lanes_resp_recv)" || exit 0
+      [[ "${owner}" == "${LANES_ISOLATION_KEY}" ]] && exit 0
       printf '%s' "${owner}"; exit 1
-    fi
-    # Stale: overwrite, then confirm the takeover actually stuck with us.
-    _lanes_resp_send SET _lanes:owner "${LANES_ISOLATION_KEY}"; _lanes_resp_recv >/dev/null || exit 0
-    owner="$(_lanes_resp_send GET _lanes:owner; _lanes_resp_recv)" || exit 0
-    [[ "${owner}" == "${LANES_ISOLATION_KEY}" ]] && exit 0
-    printf '%s' "${owner}"; exit 1
-  ) 2>/dev/null )" || {
-    # <lane>|<overlays>|<root>, the same shape this run would have written.
-    _lanes_other_rest="${_lanes_owner#*|}"
-    _lanes_other_overlays="${_lanes_other_rest%%|*}"
-    echo "error: valkey DB ${LANES_DATASTORE_DB} is in use by another live run:" >&2
-    echo "  lane=${_lanes_owner%%|*} overlays=${_lanes_other_overlays:-none} root=${_lanes_other_rest#*|}" >&2
-    echo "  this run: lane=${LANE} overlays=${OVERLAY_KEY:-none} root=${REPO_ROOT}" >&2
-    echo "hint: pin a free index for this run by setting LANES_DATASTORE_DB in" >&2
-    echo "  a lane env file or overlay (the calling shell can't; the scrub clears it)" >&2
-    exit 69
-  }
-  builtin unset _lanes_owner _lanes_other_rest _lanes_other_overlays
+    ) 2>/dev/null )" || {
+      # <lane>|<overlays>|<root>, the same shape this run would have written.
+      _lanes_other_rest="${_lanes_owner#*|}"
+      _lanes_other_overlays="${_lanes_other_rest%%|*}"
+      echo "error: valkey DB ${_lanes_wdb} is in use by another live run:" >&2
+      echo "  lane=${_lanes_owner%%|*} overlays=${_lanes_other_overlays:-none} root=${_lanes_other_rest#*|}" >&2
+      echo "  this run: lane=${LANE} overlays=${OVERLAY_KEY:-none} root=${REPO_ROOT}" \
+           "db=${LANES_DATASTORE_DB} workers=${LANES_WORKERS} worker_dbs=${_lanes_worker_dbs_csv}" >&2
+      echo "hint: pin a free index for this run by setting LANES_DATASTORE_DB in" >&2
+      echo "  a lane env file or overlay (the calling shell can't; the scrub clears it)" >&2
+      exit 69
+    }
+  done
+  builtin unset _lanes_owner _lanes_other_rest _lanes_other_overlays _lanes_wdb
 fi
 
 # ── Same-lane concurrency: detected, not serialized ──────────────────────
@@ -1437,37 +1577,46 @@ if [[ "${LANES_DATASTORE_DB}" != 0 && "${REDIS_URL:-}" =~ 127\.0\.0\.1:2163 ]]; 
   # and it is the PID the refresher polls and the PID that survives the
   # exec(2) at the bottom (exec replaces the image, not the process).
   _lanes_pid=$$
-  _lanes_active_key="_lanes:active:${LANES_DATASTORE_DB}"
   _lanes_active="${_lanes_pid}|${LANES_ISOLATION_KEY}"
-  _lanes_holder="$( (
-    LC_ALL=C
-    exec 3<>"/dev/tcp/127.0.0.1/2163" || exit 0
-    _lanes_resp_send SELECT 0; _lanes_resp_recv >/dev/null || exit 0
-    reply="$(_lanes_resp_send SET "${_lanes_active_key}" "${_lanes_active}" NX EX 60; _lanes_resp_recv)" || exit 0
-    [[ "${reply}" == '+OK'* ]] && exit 0
-    holder="$(_lanes_resp_send GET "${_lanes_active_key}"; _lanes_resp_recv)" || exit 0
-    holder_pid="${holder%%|*}"
-    if [[ -n "${holder}" && "${holder_pid}" =~ ^[0-9]+$ && "${holder_pid}" != "${_lanes_pid}" ]] &&
-       kill -0 "${holder_pid}" 2>/dev/null; then
-      printf '%s' "${holder}"; exit 1
-    fi
-    # Anything else is ours to take: our own token, a malformed one, or one
-    # whose process is gone (a run that was killed before its refresher
-    # could DEL it). Plain SET, no NX — the NX already lost.
-    _lanes_resp_send SET "${_lanes_active_key}" "${_lanes_active}" EX 60; _lanes_resp_recv >/dev/null || exit 0
-  ) 2>/dev/null )" || {
-    # <pid>|<lane>|<overlays>|<root> — one field more than the owner marker.
-    _lanes_other_pid="${_lanes_holder%%|*}"
-    _lanes_other_rest="${_lanes_holder#*|}"
-    echo "error: another lane run already holds valkey DB ${LANES_DATASTORE_DB} (pid ${_lanes_other_pid}):" >&2
-    echo "  lane=${_lanes_other_rest%%|*} key=${_lanes_other_rest}" >&2
-    echo "  this run: lane=${LANE} overlays=${OVERLAY_KEY:-none} root=${REPO_ROOT}" >&2
-    echo "hint: two runs of the same lane in one checkout share a datastore, which" >&2
-    echo "  is what this token detects. Wait for pid ${_lanes_other_pid} to finish, or give" >&2
-    echo "  this run its own index (LANES_DATASTORE_DB in a lane env file or overlay)." >&2
-    exit 69
-  }
-  builtin unset _lanes_holder _lanes_other_pid _lanes_other_rest
+  # One token per worker index, claimed in worker order. A run of N workers
+  # and a serial run of a neighbouring lane can meet on an index neither
+  # derived for itself (worker 3 of one lane is some other lane's worker
+  # 1); the token under the index, not under the lane, is what catches it.
+  for _lanes_wdb in "${_lanes_worker_dbs[@]}"; do
+    _lanes_active_key="_lanes:active:${_lanes_wdb}"
+    _lanes_holder="$( (
+      LC_ALL=C
+      exec 3<>"/dev/tcp/127.0.0.1/2163" || exit 0
+      _lanes_resp_send SELECT 0; _lanes_resp_recv >/dev/null || exit 0
+      reply="$(_lanes_resp_send SET "${_lanes_active_key}" "${_lanes_active}" NX EX 60; _lanes_resp_recv)" || exit 0
+      [[ "${reply}" == '+OK'* ]] && exit 0
+      holder="$(_lanes_resp_send GET "${_lanes_active_key}"; _lanes_resp_recv)" || exit 0
+      holder_pid="${holder%%|*}"
+      if [[ -n "${holder}" && "${holder_pid}" =~ ^[0-9]+$ && "${holder_pid}" != "${_lanes_pid}" ]] &&
+         kill -0 "${holder_pid}" 2>/dev/null; then
+        printf '%s' "${holder}"; exit 1
+      fi
+      # Anything else is ours to take: our own token, a malformed one, or one
+      # whose process is gone (a run that was killed before its refresher
+      # could DEL it). Plain SET, no NX — the NX already lost.
+      _lanes_resp_send SET "${_lanes_active_key}" "${_lanes_active}" EX 60; _lanes_resp_recv >/dev/null || exit 0
+    ) 2>/dev/null )" || {
+      # <pid>|<lane>|<overlays>|<root> — one field more than the owner marker.
+      _lanes_other_pid="${_lanes_holder%%|*}"
+      _lanes_other_rest="${_lanes_holder#*|}"
+      echo "error: another lane run already holds valkey DB ${_lanes_wdb} (pid ${_lanes_other_pid}):" >&2
+      echo "  lane=${_lanes_other_rest%%|*} key=${_lanes_other_rest}" >&2
+      echo "  this run: lane=${LANE} overlays=${OVERLAY_KEY:-none} root=${REPO_ROOT}" \
+           "db=${LANES_DATASTORE_DB} workers=${LANES_WORKERS} worker_dbs=${_lanes_worker_dbs_csv}" >&2
+      echo "hint: two runs of the same lane in one checkout share a datastore, which" >&2
+      echo "  is what this token detects. Wait for pid ${_lanes_other_pid} to finish, or give" >&2
+      echo "  this run its own index (LANES_DATASTORE_DB in a lane env file or overlay)." >&2
+      # Tokens claimed for the earlier workers of this run are left to their
+      # 60s TTL: the refresher that would release them is not started yet.
+      exit 69
+    }
+  done
+  builtin unset _lanes_holder _lanes_other_pid _lanes_other_rest _lanes_wdb _lanes_active_key
 fi
 
 # ── Liveness refresher ───────────────────────────────────────────────────
@@ -1517,9 +1666,10 @@ if [[ -n "${_lanes_active:-}" ]]; then
   ) </dev/null >/dev/null 2>&1 &
 fi
 
-printf -v _lanes_banner '[lane:%s] mode=%s overlays=%s billing=%s redis=%s db=%s auth_db=%s' \
+printf -v _lanes_banner '[lane:%s] mode=%s overlays=%s billing=%s redis=%s db=%s auth_db=%s workers=%s worker_dbs=%s' \
   "${LANE}" "${AUTHENTICATION_MODE:-?}" "${OVERLAY_KEY:-none}" "${BILLING_ENABLED:-false}" \
-  "${REDIS_URL:-?}" "${LANES_DATASTORE_DB}" "${AUTH_DATABASE_URL:-n/a}"
+  "${REDIS_URL:-?}" "${LANES_DATASTORE_DB}" "${AUTH_DATABASE_URL:-n/a}" \
+  "${LANES_WORKERS}" "${_lanes_worker_dbs_csv}"
 echo "${_lanes_banner}"
 
 cd "${REPO_ROOT}"
