@@ -211,6 +211,8 @@ def triggers():
           "code changes trigger CI; a label event must not start a second full run")
     check(not re.search(r"\b(?:un)?labeled\b", executable(events)),
           "no label events: the selector reads the PR's labels live instead")
+    check(not re.search(r"^ +(?:branches|branches-ignore):", pr, re.M),
+          "stacked PRs get lanes whatever their base branch")
     check(not re.search(r"^ +paths(?:-ignore)?:", events, re.M), "required verdict must not be path-filtered")
     changes = block(jobs, "changes", 2)
     dispatch = re.findall(r'^ +DISPATCH_RUN_ALL="(.+)"$', changes, re.M)

@@ -36,13 +36,8 @@ name: Ruby 4 Preview
 #   the billing jobs and the frontend build they download.
 
 on:
+  # No base-branch filter, as in ci.yml: stacked PRs run too.
   pull_request:
-    branches:
-      - main
-      - develop
-      - 'rel/*'
-      - 'fix/*'
-      - 'feature/*'
   schedule:
     # Nightly, for the billing jobs only; after main CI's 04:03 run.
     - cron: '23 4 * * *'

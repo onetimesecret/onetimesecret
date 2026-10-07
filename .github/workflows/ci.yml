@@ -83,14 +83,12 @@ on:
   # No label events: the ci:auth label is read live by the auth selector, so
   # it applies to a re-run or the next push, and labelling a PR never starts
   # a second full run of this workflow.
+  # No base-branch filter: a stacked PR (base chore/*, merge/*, another
+  # feature branch) gets the same lanes as a PR into main. The old list
+  # existed to avoid double runs against the push trigger, which now
+  # covers only main and tags.
   pull_request:
     types: [opened, synchronize, reopened]
-    branches:
-      - main
-      - develop
-      - 'rel/*'
-      - 'fix/*'
-      - 'feature/*'
   # Runs on exact branch tip selected in UI. No merge commit.
   workflow_dispatch:
     inputs:
