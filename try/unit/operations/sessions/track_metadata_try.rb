@@ -298,7 +298,7 @@ SM.load(@no_org_sid)&.destroy!
 #=> [false, true]
 
 ## org_id resolves to the customer's ACTIVE organization objid (via
-## OrganizationLoader — read-through, so it populates even without a warmed cache)
+## OrganizationLoader — resolved on every write, so it populates on the login write too)
 @org     = Onetime::Organization.create!("Track Org #{@nonce}", @cust, "trackorg_#{@nonce}@example.com")
 @org_sid = "tryorg_#{@nonce}"
 SM.load(@org_sid)&.destroy!

@@ -206,7 +206,12 @@ export function usePostAuthRedirect() {
     try {
       // Fetch organizations to get the default org's extid and current plan
       await organizationStore.fetchOrganizations();
-      const org = organizationStore.restorePersistedSelection();
+      // Prefer the list record of the current org (seeded from the server's
+      // bootstrap payload), else the default org, then the first.
+      const currentObjid = organizationStore.currentOrganization?.objid;
+      const org =
+        (currentObjid ? organizationStore.getOrganizationById(currentObjid) : undefined) ??
+        organizationStore.defaultOrganization;
 
       if (!org?.extid) {
         loggingService.warn('[postAuthRedirect] Billing redirect skipped - no organization found');

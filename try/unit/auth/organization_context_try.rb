@@ -91,7 +91,6 @@ context[:organization]&.objid
 #=> @org1.objid
 
 ## Organization selection: Explicit session selection
-@session.delete("org_context:#{@cust.objid}")  # Clear cache
 @session['organization_id'] = @org2.objid
 
 context = @strategy.load_organization_context(@cust, @session, @env)
@@ -99,7 +98,6 @@ context[:organization]&.objid
 #=> @org2.objid
 
 ## Organization selection: Invalid session ID cleared
-@session.delete("org_context:#{@cust.objid}")  # Clear cache
 @session['organization_id'] = 'invalid-org-id'
 
 context = @strategy.load_organization_context(@cust, @session, @env)
@@ -110,18 +108,25 @@ context[:organization]&.objid  # Should fall back to default
 @session.key?('organization_id')
 #=> false
 
-## Organization selection: Session caching stores context
-@session.delete('organization_id')
-@session.delete("org_context:#{@cust.objid}")
+## No session cache: a load writes nothing to the session
+@session.clear
 @context1 = @strategy.load_organization_context(@cust, @session, @env)
-@cache_key_test = "org_context:#{@cust.objid}"
-@session[@cache_key_test]
-#=:> Hash
+@session
+#=> {}
 
-## Organization selection: Cached context returns same organization
+## No session cache: a repeated load resolves the same organization
 @context2 = @strategy.load_organization_context(@cust, @session, @env)
 @context1[:organization]&.objid == @context2[:organization]&.objid
 #=> true
+
+## No session cache: a leftover org_context entry from an older session is not read
+@session.clear
+@session["org_context:#{@cust.objid}"] = {
+  'organization_id' => @org2.objid, 'expires_at' => Familia.now.to_i + 300
+}
+context = @strategy.load_organization_context(@cust, @session, @env)
+context[:organization]&.objid
+#=> @org1.objid
 
 ## Anonymous user with role 'anonymous': Returns empty context
 @session.clear
@@ -135,35 +140,92 @@ context = @strategy.load_organization_context(nil, @session, @env)
 context
 #=> {}
 
-## Cache clearing
-@session['organization_id'] = @org1.objid
-@session["org_context:#{@cust.objid}"] = { organization: @org1 }
-
-@strategy.clear_organization_cache(@cust, @session)
-@session["org_context:#{@cust.objid}"]
-#=> nil
-
-## Cache TTL: expires_at is set in the future using CACHE_TTL constant
+## Context shape: no cache expiry, and no custom domains on a canonical request
 @session.clear
-@before_load = Familia.now.to_i
-@ttl_context = @strategy.load_organization_context(@cust, @session, @env)
-@after_load = Familia.now.to_i
-@ttl_constant = Onetime::Application::OrganizationLoader::CACHE_TTL
-@ttl_context[:expires_at] >= @before_load + @ttl_constant
-#=> true
+context = @strategy.load_organization_context(@cust, @session, @env)
+[context.key?(:expires_at), context[:scope_domains]]
+#=> [false, []]
 
-## Cache TTL: expires_at is not more than TTL + 1 second after load started
-@ttl_context[:expires_at] <= @after_load + @ttl_constant + 1
-#=> true
+## select_organization: records the selection for a member
+@session.clear
+@select_context = @strategy.load_organization_context(@cust, @session, @env)
+selected = @strategy.select_organization(@cust, @session, @org2.objid, @select_context)
+[selected&.objid, @session['organization_id']]
+#=> [@org2.objid, @org2.objid]
 
-## Cache TTL: session cache also has correct expires_at
-@cache_key = "org_context:#{@cust.objid}"
-@session[@cache_key][:expires_at] >= @before_load + @ttl_constant
-#=> true
+## select_organization: the next load without a header resolves the selection
+context = @strategy.load_organization_context(@cust, @session, @env)
+context[:organization]&.objid
+#=> @org2.objid
 
-## Cache TTL: CACHE_TTL constant value is 300 (5 minutes)
-Onetime::Application::OrganizationLoader::CACHE_TTL
-#=> 300
+## select_organization: callable on the module, without mixing it in
+@module_session = {}
+selected = Onetime::Application::OrganizationLoader.select_organization(
+  @cust, @module_session, @org2.objid, @select_context
+)
+[selected&.objid, @module_session['organization_id']]
+#=> [@org2.objid, @org2.objid]
+
+## select_organization: refuses an organization the customer is not a member of
+@stranger = Onetime::Customer.create!(email: "orgcontext3-#{Time.now.to_i}@onetimesecret.com", role: 'customer')
+@org4 = Onetime::Organization.create!('Stranger Workspace', @stranger)
+selected = @strategy.select_organization(@cust, @session, @org4.objid, @select_context)
+[selected, @session['organization_id']]
+#=> [nil, @org2.objid]
+
+## select_organization: refuses an unknown organization id
+selected = @strategy.select_organization(@cust, @session, 'nonexistent-org-id', @select_context)
+[selected, @session['organization_id']]
+#=> [nil, @org2.objid]
+
+## select_organization: refuses without the request's context (scope unknown)
+@no_context_session = {}
+[
+  @strategy.select_organization(@cust, @no_context_session, @org2.objid, nil),
+  @strategy.select_organization(@cust, @no_context_session, @org2.objid, {}),
+  @no_context_session,
+]
+#=> [nil, nil, {}]
+
+## select_organization: refuses an archived organization
+@org2.archive!('organization_context_try')
+@archived_session = {}
+selected = @strategy.select_organization(@cust, @archived_session, @org2.objid, @select_context)
+[@org2.archived?, selected, @archived_session]
+#=> [true, nil, {}]
+
+## Archived selection: a selection made before the archive is cleared on the next load
+context = @strategy.load_organization_context(@cust, @session, @env)
+[context[:organization]&.objid, @session.key?('organization_id')]
+#=> [@org1.objid, false]
+
+## Archived header: the header no longer selects the archived organization
+@session.clear
+context = @strategy.load_organization_context(@cust, @session, { 'HTTP_O_ORGANIZATION_ID' => @org2.objid })
+context[:organization]&.objid
+#=> @org1.objid
+
+## Deleted selection: a selected organization that is then deleted falls back and is cleared
+@doomed_org = Onetime::Organization.create!('Doomed Workspace', @cust)
+@doomed_session = {}
+@doomed_context = @strategy.load_organization_context(@cust, @doomed_session, @env)
+@strategy.select_organization(@cust, @doomed_session, @doomed_org.objid, @doomed_context)
+@doomed_selected = @doomed_session['organization_id']
+@doomed_org.destroy!
+context = @strategy.load_organization_context(@cust, @doomed_session, @env)
+[@doomed_selected == @doomed_org.objid, context[:organization]&.objid, @doomed_session.key?('organization_id')]
+#=> [true, @org1.objid, false]
+
+## Deleted selection: the header no longer selects the deleted organization either
+context = @strategy.load_organization_context(@cust, {}, { 'HTTP_O_ORGANIZATION_ID' => @doomed_org.objid })
+context[:organization]&.objid
+#=> @org1.objid
+
+## Clean up selection test data
+@org4.destroy!
+@stranger.destroy!
+true
+#=> true
 
 ## Clean up test data
 @org1.destroy!

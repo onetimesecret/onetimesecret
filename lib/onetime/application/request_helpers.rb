@@ -98,8 +98,12 @@ module Onetime
 
       # Switch to a different organization
       #
-      # Updates session and clears cache. Organization change takes effect
-      # on the next request.
+      # Records the selection in session['organization_id'] through
+      # OrganizationLoader#select_organization, which refuses an organization
+      # the user is not a member of, an archived one, and one the membership's
+      # domain scope does not permit on this request. Organization change
+      # takes effect on the next request. The HTTP entry point for the same
+      # write is POST /api/account/update-organization-context.
       #
       # @param org_id [String] Organization objid to switch to
       # @return [Boolean] true if switch was successful
@@ -107,14 +111,13 @@ module Onetime
         return false unless user && org_id
         return false unless strategy_result&.session || env['rack.session']
 
-        org = Onetime::Organization.load(org_id)
-        return false unless org && org.member?(user)
-
-        session['organization_id'] = org_id
-
-        # Clear cache to force reload on next request
-        cache_key = "org_context:#{user.objid}"
-        session.delete(cache_key)
+        org = Onetime::Application::OrganizationLoader.select_organization(
+          user,
+          session,
+          org_id,
+          strategy_result&.metadata&.[](:organization_context),
+        )
+        return false unless org
 
         # Update current request's memoized values
         @organization = org

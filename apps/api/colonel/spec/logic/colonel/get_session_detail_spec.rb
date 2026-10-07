@@ -45,7 +45,10 @@ RSpec.describe ColonelAPI::Logic::Colonel::GetSessionDetail do
       'locale' => 'en',
       'ip_address' => '203.0.113.7',
       'user_agent' => 'Mozilla/5.0',
-      'org_context:019f4ac1-b8d6-7ca9-858d-ba3d7e1e0210' => true,
+      # The explicit selection, plus a leftover key of the removed loader cache
+      # whose suffix is the CUSTOMER objid and must not be read as the org.
+      'organization_id' => '019f4ac1-b8d6-7ca9-858d-ba3d7e1e0210',
+      'org_context:019f0000-aaaa-7bbb-8ccc-customer0001' => { 'organization_id' => 'stale' },
       'authenticated_at' => 1_700_000_000,
       'authenticated_by' => ['password'],
       'active_session_id' => 'as_1',

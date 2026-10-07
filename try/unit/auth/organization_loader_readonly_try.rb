@@ -82,14 +82,12 @@ context = @loader.load_organization_context(@customer, @session, @env)
 context[:organization_id].nil?
 #=> true
 
-## Nil organization means session does NOT cache (allows immediate retry)
+## Nil organization writes nothing to the session (the next request resolves again)
 # Clear session first
 @session.clear
 @loader.load_organization_context(@customer, @session, @env)
-cache_key = "org_context:#{@customer.objid}"
-# Nil orgs are NOT cached to allow immediate retry on failure
-@session[cache_key].nil?
-#=> true
+@session
+#=> {}
 
 ## Repeated calls still return nil without creating org
 context2 = @loader.load_organization_context(@customer, @session, @env)
@@ -109,10 +107,9 @@ context_with_org = @loader.load_organization_context(@customer_with_org, @sessio
 context_with_org[:organization]&.objid
 #=> @existing_org.objid
 
-## Customer with org has cached entry in session (positive result)
-cache_key_with_org = "org_context:#{@customer_with_org.objid}"
-@session_with_org[cache_key_with_org].class
-#=> Hash
+## Customer with org: the load writes nothing to the session either
+@session_with_org
+#=> {}
 
 ## Customer with org still has exactly one org after load
 @customer_with_org.organization_instances.count

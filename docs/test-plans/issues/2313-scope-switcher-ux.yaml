@@ -811,6 +811,45 @@ tests:
     type: functional
     covers: [useDomainScope, localStorage, hydration]
 
+  - id: TC-SS-063
+    intent: Organization selection persists across a page reload (#4565)
+    setup:
+      <<: *user_multi_org
+    target: /dashboard
+    action:
+      type: submit
+      element: Select the other organization then reload the page
+      data:
+        steps:
+          - Note current org
+          - Select the other org in the switcher
+          - Wait for POST /api/account/update-organization-context
+          - Reload the page
+          - Load /dashboard again
+    verify:
+      - selector: "[data-testid='org-scope-switcher-trigger']"
+        assertion: text_equals
+        expected: "{{selected_org_name}}"
+        description: Trigger names the selected organization after the reload
+      - selector: "[data-testid='org-scope-switcher-trigger']"
+        assertion: text_equals
+        expected: "{{selected_org_name}}"
+        description: Trigger still names it after a fresh load of /dashboard
+      - api: GET /bootstrap/me
+        assertions:
+          - path: "organization.extid"
+            operator: equals
+            value: "{{selected_org_extid}}"
+            description: >-
+              A request without the O-Organization-ID header gets the selected
+              organization; the server session holds the selection
+      - sessionStorage has no selectedOrganizationId key
+    postconditions:
+      - The server session keeps the selection for later page loads
+    priority: critical
+    type: functional
+    covers: [organizationStore, OrganizationScopeSwitcher, state persistence, hydration]
+
   # ===========================================================================
   # SECTION 6: Accessibility
   # ===========================================================================
