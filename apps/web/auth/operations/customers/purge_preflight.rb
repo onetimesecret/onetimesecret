@@ -11,21 +11,11 @@ module Auth
       # rubocop:disable Metrics/ClassLength -- one blocker taxonomy; splitting it
       # would scatter the refusal rules across files
       class PurgePreflight
-        BILLING_IDENTIFIER_FIELDS = [
-          :stripe_customer_id,
-          :stripe_subscription_id,
-          :stripe_checkout_email,
-          :billing_email,
-          :email_hash,
-          :email_hash_synced_at,
-        ].freeze
-
-        BILLING_STATUS_FIELDS = [
-          :subscription_status,
-          :subscription_period_end,
-          :subscription_federated_at,
-          :federation_notification_dismissed_at,
-          :complimentary,
+        # Historical identifiers and billing contacts are removed by the canonical
+        # organization destroy, not scrubbed before preflight. Unknown subscription
+        # state and outstanding replacement-checkout intent still need resolution.
+        NON_LIVE_SUBSCRIPTION_STATUSES = %w[canceled incomplete incomplete_expired paused].freeze
+        BILLING_MIGRATION_FIELDS       = [
           :pending_currency_migration,
           :migration_target_price_id,
           :migration_effective_after,
@@ -38,17 +28,6 @@ module Auth
           :description,
           :archived_at,
           :archived_comment,
-        ].freeze
-
-        # A half-finished v1->v2 migration is NOT the account's own content: the
-        # migration owns rows outside this organization, so deleting it here
-        # would strand them. These stay blocking.
-        IN_FLIGHT_MIGRATION_FIELDS = [
-          :v1_identifier,
-          :v1_source_custid,
-          :migration_status,
-          :migrated_at,
-          :migration_comment,
         ].freeze
 
         class Action
@@ -161,6 +140,7 @@ module Auth
 
         # @return [Plan]
         def call
+          add_blocker(:migration_in_flight) if migration_in_flight?(@customer)
           discover_participations
           discover_contact_email_holder
           discover_instances
@@ -498,11 +478,10 @@ module Auth
           blockers << :target_not_owner unless target_membership&.active? && target_membership.owner?
           blockers << :not_sole_owner unless owner_memberships.one? &&
                                              owner_memberships.first.customer_objid.to_s == customer_objid
-          # `owner_id`/`created_by` are compared tolerantly: rows predating the
-          # objid standardization chore still carry the customer's custid, and a
-          # legacy encoding is not drift.
+          # Ownership remains tied to current identity and active memberships.
+          # Creator attribution can carry a preserved v1 identity instead.
           blockers << :owner_id_mismatch unless customer_reference?(org.owner_id)
-          blockers << :creator_mismatch unless customer_reference?(org.created_by)
+          blockers << :creator_mismatch unless creator_reference?(org)
           blockers << :other_members unless raw_member_ids == [customer_objid]
           blockers << :stale_members if stale_member_ids.any?
           blockers << :has_domains if org.domain_count.to_i.positive?
@@ -510,7 +489,7 @@ module Auth
           blockers.concat(invitation_blockers(org))
           blockers << :retained_membership_records if @retained_memberships_by_org.fetch(org.objid.to_s, []).any?
           blockers << :billing_state if billing_state?(org)
-          blockers << :migration_in_flight if IN_FLIGHT_MIGRATION_FIELDS.any? { |field| field_present?(org, field) }
+          blockers << :migration_in_flight if migration_in_flight?(org)
           blockers.uniq
         end
 
@@ -538,6 +517,35 @@ module Auth
           return false if reference.empty?
 
           reference == customer_objid || reference == @customer.custid.to_s
+        end
+
+        def legacy_customer_reference?(value)
+          field_present?(@customer, :v1_custid) && value.to_s == @customer.v1_custid.to_s
+        end
+
+        def creator_reference?(org)
+          creator = org.created_by.to_s
+          return true if customer_reference?(creator)
+          return true if legacy_customer_reference?(creator)
+
+          # The v1 organization generator omitted created_by. Its completed
+          # output names the transformed customer key and original custid; both
+          # must bind to this customer. Email/contact equality alone is not proof
+          # of identity, and this fallback must never overwrite a different creator.
+          return false unless creator.empty? && org.migration_status.to_s == 'completed'
+          return false unless org.v1_identifier.to_s == @customer.dbkey.to_s
+
+          customer_reference?(org.v1_source_custid) || legacy_customer_reference?(org.v1_source_custid)
+        end
+
+        def migration_in_flight?(record)
+          return false unless record.respond_to?(:migration_status)
+
+          # Successful create_from_v1_customer! also writes provenance without a
+          # status. Only explicit state is a migration gate; timestamps, comments,
+          # and source identifiers remain useful after migration has finished.
+          status = record.migration_status.to_s.strip
+          !status.empty? && status != 'completed'
         end
 
         def invitation_blockers(org)
@@ -568,11 +576,12 @@ module Auth
 
         def billing_state?(org)
           return true if org.billing_live?
-          return true if BILLING_IDENTIFIER_FIELDS.any? { |field| field_present?(org, field) }
-          return true if BILLING_STATUS_FIELDS.any? { |field| billing_status_present?(org, field) }
 
-          planid = org.planid.to_s
-          !planid.empty? && planid != 'free_v1'
+          status = org.subscription_status.to_s.strip
+          return true unless status.empty? || NON_LIVE_SUBSCRIPTION_STATUSES.include?(status)
+          return true if status.empty? && field_present?(org, :stripe_subscription_id)
+
+          BILLING_MIGRATION_FIELDS.any? { |field| billing_status_present?(org, field) }
         end
 
         def retained_data_fields(org)
@@ -607,7 +616,7 @@ module Auth
 
           value = org.public_send(field).to_s.strip
           return false if value.empty?
-          return false if [:complimentary, :pending_currency_migration].include?(field) && value == 'false'
+          return false if field == :pending_currency_migration && value == 'false'
 
           true
         end
