@@ -1,10 +1,10 @@
 // src/apps/admin/composables/useResourceFetch.ts
 
-import type { ZodType } from 'zod';
-import { ref, type Ref } from 'vue';
+import type { ZodError, ZodType } from 'zod';
+import { ref, shallowRef, type Ref } from 'vue';
 
 import { useApi } from '@/shared/composables/useApi';
-import { gracefulParse } from '@/utils/schemaValidation';
+import { gracefulParse, schemaIssues, type SchemaIssue } from '@/utils/schemaValidation';
 
 import { noteAdminSessionExpiry } from '../utils/adminSessionExpiry';
 
@@ -25,6 +25,17 @@ export interface ResourceFetchConfig<TResponse> {
   context: string;
 }
 
+/** A response that failed its schema: which fields, and the body as received. */
+export interface ContractMismatch {
+  /** Failing paths and messages, never values, for showing the operator the cause. */
+  issues: SchemaIssue[];
+  /**
+   * The response body as received. Only for re-parsing parts of it through
+   * their own schemas so a view can render what is valid. Never render it directly.
+   */
+  payload: unknown;
+}
+
 export interface UseResourceFetch<TResponse> {
   /** The validated response (the whole `{ record, details }` envelope), or null. */
   data: Ref<TResponse | null>;
@@ -38,6 +49,8 @@ export interface UseResourceFetch<TResponse> {
    * the contract" (degrade) from "the request threw" (network/http — retry).
    */
   validationError: Ref<string | null>;
+  /** Set alongside `validationError`; null otherwise. */
+  mismatch: Ref<ContractMismatch | null>;
   /**
    * True when the last request failed with HTTP 404. Broken out from `error` so
    * every detail screen can render a first-class not-found state (the record was
@@ -52,6 +65,10 @@ export interface UseResourceFetch<TResponse> {
   reset: () => void;
 }
 
+function contractMismatch(error: ZodError | null, payload: unknown): ContractMismatch {
+  return { issues: error ? schemaIssues(error) : [], payload };
+}
+
 /** Narrow an unknown error to its HTTP status without importing axios types. */
 function httpStatusOf(err: unknown): number | undefined {
   return (err as { response?: { status?: number } } | null)?.response?.status;
@@ -64,8 +81,9 @@ function httpStatusOf(err: unknown): number | undefined {
  * validated record, and splits the two failure modes a detail view handles
  * differently:
  *
- *   - Zod validation mismatch → resolves `null`, sets `validationError`,
- *                               does NOT throw (the view degrades gracefully).
+ *   - Zod validation mismatch → resolves `null`, sets `validationError` and
+ *                               `mismatch`, does NOT throw (the view degrades
+ *                               gracefully).
  *   - Network / HTTP error    → sets `error` (+ `notFound` on 404) and THROWS.
  *
  * Built on the injected Axios `$api` (via {@link useApi}) and the existing
@@ -82,6 +100,8 @@ export function useResourceFetch<TResponse>(
   const loading = ref(false);
   const error = ref<Error | null>(null);
   const validationError = ref<string | null>(null);
+  // Shallow: the raw payload is only re-parsed, never watched field by field.
+  const mismatch = shallowRef<ContractMismatch | null>(null);
   const notFound = ref(false);
 
   // Remember the last params so `refresh()` re-issues an identical request.
@@ -106,6 +126,7 @@ export function useResourceFetch<TResponse>(
     loading.value = true;
     error.value = null;
     validationError.value = null;
+    mismatch.value = null;
     notFound.value = false;
 
     try {
@@ -115,6 +136,7 @@ export function useResourceFetch<TResponse>(
         // Contract mismatch: degrade quietly. gracefulParse already reported it.
         if (requestId === requestSeq) {
           validationError.value = config.context;
+          mismatch.value = contractMismatch(result.error, response.data);
           data.value = null;
         }
         return null;
@@ -155,9 +177,10 @@ export function useResourceFetch<TResponse>(
     loading.value = false;
     error.value = null;
     validationError.value = null;
+    mismatch.value = null;
     notFound.value = false;
     lastParams = undefined;
   }
 
-  return { data, loading, error, validationError, notFound, load, refresh, reset };
+  return { data, loading, error, validationError, mismatch, notFound, load, refresh, reset };
 }

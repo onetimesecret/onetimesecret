@@ -24,9 +24,24 @@ import { loggingService } from '@/services/logging.service';
  * Discriminated union for parse results.
  * Avoids ambiguity when null could be a valid domain value.
  */
-export type ParseResult<T> =
-  | { ok: true; data: T }
-  | { ok: false; error: z.ZodError | null };
+export type ParseResult<T> = { ok: true; data: T } | { ok: false; error: z.ZodError | null };
+
+/**
+ * One validation failure in display form: the field path and Zod's
+ * type-level message. Carries the same information gracefulParse logs and
+ * sends to Sentry, never the failing value.
+ */
+export interface SchemaIssue {
+  path: string;
+  message: string;
+}
+
+export function schemaIssues(error: z.ZodError): SchemaIssue[] {
+  return error.issues.map((issue) => ({
+    path: issue.path.join('.') || '(root)',
+    message: issue.message,
+  }));
+}
 
 /**
  * Determines if we're in a development or test environment.
