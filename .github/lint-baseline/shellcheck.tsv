@@ -20,3 +20,4 @@ scripts/corporate-branch-report.sh	SC2155	1
 scripts/corporate-branch-report.sh	SC2207	1
 scripts/install-tests/secret-rotation.sh	SC2034	1
 tools/host-seam/release-sweep.sh	SC2164	1
+tools/testsuite-installer/secret-rotation.sh	SC2034	1
