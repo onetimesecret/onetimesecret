@@ -213,6 +213,15 @@ const onOpenSettings = (id: string): void => {
 };
 
 /**
+ * Whether /orgs will let this user in, so the footer link is not a dead end.
+ * Mirrors the route's guard, anyOrgMeetsRole(store, 'owner') in
+ * src/router/guards.routes.ts: met when the user owns any org in the list.
+ */
+const canOpenOrganizationsList = computed(() =>
+  visibleOrganizations.value.some((org) => org.current_user_role === 'owner')
+);
+
+/**
  * Navigate to manage organizations page
  */
 const navigateToManageOrganizations = (close?: () => void): void => {
@@ -227,7 +236,7 @@ const navigateToManageOrganizations = (close?: () => void): void => {
     :items="organizationItems"
     :header="t('web.organizations.my_organizations')"
     :locked="props.locked"
-    :can-manage="true"
+    :can-manage="canOpenOrganizationsList"
     :trigger-aria-label="t('web.organizations.select_organization')"
     :trigger-title="currentOrganization ? getOrganizationDisplayName(currentOrganization) : undefined"
     :locked-title="t('web.organizations.switcher_locked')"

@@ -168,6 +168,41 @@ describe('OrganizationScopeSwitcher real-HeadlessUI close behaviour', () => {
     expect(dropdown(wrapper).exists()).toBe(false);
   });
 
+  // /orgs is owner-only (anyOrgMeetsRole(store, 'owner')); the footer link
+  // must not offer a page that bounces the user.
+  describe('"Manage Organizations" link', () => {
+    const memberOf: TestOrg = {
+      objid: 'o6',
+      extid: 'org6',
+      display_name: 'Member Of',
+      current_user_role: 'member',
+    };
+    const adminOf: TestOrg = {
+      objid: 'o7',
+      extid: 'org7',
+      display_name: 'Admin Of',
+      current_user_role: 'admin',
+    };
+
+    it('is hidden from a user who owns none of their orgs', async () => {
+      mockOrganizations.value = [memberOf, adminOf];
+      mockCurrentOrganization.value = memberOf;
+      wrapper = mount(OrganizationScopeSwitcher, { attachTo: document.body });
+      await openMenu(wrapper);
+
+      expect(wrapper.find('[data-testid="org-scope-manage-link"]').exists()).toBe(false);
+    });
+
+    it('is shown when the user owns any org in the list', async () => {
+      mockOrganizations.value = [memberOf, personal];
+      mockCurrentOrganization.value = memberOf;
+      wrapper = mount(OrganizationScopeSwitcher, { attachTo: document.body });
+      await openMenu(wrapper);
+
+      expect(wrapper.find('[data-testid="org-scope-manage-link"]').exists()).toBe(true);
+    });
+  });
+
   // The default icon marks this user's default (is_current_user_default), not
   // the OWNER's auto-created workspace (is_default), which a member of the
   // company's default workspace sees flagged too.
