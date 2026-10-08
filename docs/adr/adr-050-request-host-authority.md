@@ -182,11 +182,14 @@ Two policy gaps require explicit disposition:
   detection rejects is not part of this gap; it is decided under
   [Organization scope on a host that detection rejects](#organization-scope-on-a-host-that-detection-rejects).
 
-Other unresolved concerns remain: the display-origin allowance on invalid
-classification, tenant lookup failure responses, and the Host-preserving
-bare-Host/forwarded-port mismatch. In the latter case, Rack's `port` can include
-a trusted forwarded port that `base_url` omits; only actual rewrites normalize
-the pair.
+Of the other concerns listed here on 2026-10-05, two are closed: the
+display-origin allowance on invalid classification (#4673: the allowance is
+made only for a classified host) and the tenant lookup failure responses
+(#4675: one domain-unavailable answer, fail-closed). The Host-preserving
+bare-Host/forwarded-port mismatch remains and is tracked in #4681: Rack's
+`port` can include a trusted forwarded port that `base_url` omits; only
+actual rewrites normalize the pair. The two-custom-domain scope decision
+above is tracked in #4697 and the rollout gate in #4694.
 
 ## Related
 
@@ -196,4 +199,4 @@ the pair.
 - [Admin network isolation](../operations/admin-network-isolation.md)
 - [Organization authorization discriminators](../architecture/org-authorization-discriminators.md)
 - [ADR-035: Tenant Identity and Authentication-Policy Scope](adr-035-tenant-identity-auth-policy-scope.md)
-- [ADR-049: Operator-Managed Domain Authorization](adr-049-operator-managed-domain-authorization.md) (Proposed)
+- [ADR-049: Operator-Managed Domain Authorization](adr-049-operator-managed-domain-authorization.md) (Accepted)

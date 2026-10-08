@@ -5,6 +5,24 @@ plus the uncommitted test changes listed below. No production policy was changed
 and no commit was created. This is an execution record and finding ledger, not
 an accepted security policy or a claim that the remaining behavior is safe.
 
+## Status as of 2026-10-07
+
+Added after v0.26.15 (#4682). The execution record below is the 2026-10-03
+run at its baseline and is left as written. This table says what has closed
+each finding since and where main pins it. Paths are relative to the
+repository root.
+
+| Finding | Status on main | Closed by | Pinned in |
+| --- | --- | --- | --- |
+| H-02 cached selection skips scope | Closed for the cache and the selection paths. Open: the two-custom-domain scope decision (#4697, ADR-050) and the listing risk `RISK-2026-08-14-M06`. | b63aec32c in #4661: the loader keeps no session cache and resolves membership, archived state and scope on every call; the header and session-selection paths share one check. #4672: an unregistered display host withholds every organization. | `spec/unit/organization_loader_cache_scope_spec.rb` (header: the scope is applied to the fallback steps, the `O-Organization-ID` header and the explicit session selection) |
+| H-03 origin admission on an `:invalid` host | Closed | #4673 (f99666234): `HttpOriginOptions` admits `https://{display domain}` only for a host classified `:canonical`, `:subdomain` or `:custom`. An `:invalid` host with an absent lookup is refused; one whose read failed is still admitted so the application's own refusal answers. | `spec/unit/onetime/middleware/http_origin_options_spec.rb`; `apps/web/auth/spec/integration/full/host_proxy_stateful_boundaries_spec.rb`, "H-03: unregistered display host on the auth mount" |
+| H-04 lookup-failure responses | Closed as a response contract. A failed read still refuses the request; that is the fail-closed answer, not an open finding. | #4675 (46766ff30): one answer whatever the read raised, 503 `Onetime::DomainUnavailable` on the Rodauth routes and `/signin?auth_error=domain_unavailable` on SSO initiation; no email, no IdP URL, reset keys untouched. The 500 and the `sso_failed` redirect in the table below are gone. | `apps/web/auth/spec/integration/full/host_proxy_failure_responses_spec.rb` |
+| H-05 request-derived reset destination with `site.host` unset | Closed | ff8b11509 (within #4623): `required_base_url!` and `required_credential_base_url!` in `apps/web/auth/lib/public_host.rb` raise `Auth::PublicHost::MissingAllowlistedOrigin` instead of falling back to Rack's authority. | `apps/web/auth/spec/integration/full/host_proxy_matrix_spec.rb`, rows H05-E01 to H05-E07; `apps/web/auth/spec/integration/full/public_host_fallback_spec.rb`, "refuses without an account SELECT, INSERT, email, or persisted reset key", "also refuses direct reset-key creation before the database write", "gives the same refusal for existing and missing accounts" |
+
+Items 1 (deployment coverage) and 5 (validation disclosure) and the
+trust-boundary table are unchanged by this. The deployed provider, edge and
+server path remains uninventoried.
+
 ## Disposition of the five review items
 
 | Review item                              | Disposition                                                   | Evidence and remaining work                                                                                                                                                                                                                                                           |
@@ -18,6 +36,8 @@ an accepted security policy or a claim that the remaining behavior is safe.
 ## Findings and concrete reproductions
 
 ### H-02: cached organization selection skips scope validation
+
+*2026-10-07: closed for the cache and the selection paths; see [Status as of 2026-10-07](#status-as-of-2026-10-07).*
 
 [Organization loader reproduction](../../spec/unit/organization_loader_cache_scope_spec.rb)
 covers rewrite off/on, ordinary and matching-header caches, expiry, explicit
@@ -47,6 +67,8 @@ H-02 remains unresolved; no severity is inferred from provenance.
 
 ### H-03: origin acceptance is broader than protected-route admission
 
+*2026-10-07: closed by #4673; see [Status as of 2026-10-07](#status-as-of-2026-10-07).*
+
 [Stateful boundary tests](../../apps/web/auth/spec/integration/full/host_proxy_stateful_boundaries_spec.rb)
 exercise unregistered preserved and forwarded hosts with rewrite off/on.
 A foreign Origin is refused; an HTTPS Origin matching the invalid display domain
@@ -64,6 +86,8 @@ with concrete credentials/data and actual browser cookie delivery. Broader origi
 policy remains unresolved rather than accepted through proxy equivalence.
 
 ### H-05: missing `site.host` can emit a request-derived reset destination
+
+*2026-10-07: closed by ff8b11509; see [Status as of 2026-10-07](#status-as-of-2026-10-07).*
 
 [Emitter matrix](../../apps/web/auth/spec/integration/full/host_proxy_matrix_spec.rb)
 now distinguishes unchanged configuration from actual `site.host: nil`, verifies
@@ -88,6 +112,8 @@ enforce a missing-canonical-host policy, then retest these emitter paths; proxy
 compatibility alone is not a security disposition.
 
 ### H-04: failed tenant lookup has a visible availability consequence
+
+*2026-10-07: closed by #4675, which replaced the responses in the table below with one domain-unavailable answer; see [Status as of 2026-10-07](#status-as-of-2026-10-07).*
 
 [Failure-response tests](../../apps/web/auth/spec/integration/full/host_proxy_failure_responses_spec.rb)
 first establish healthy verified-tenant SSO/email behavior, then inject lookup
@@ -171,3 +197,6 @@ they remove H-04's availability consequence. Security resolution remains
 incomplete. The deployed provider/edge/server path and origin boundary still
 require inventory, authorized staging, origin-side observations, and appropriate
 operator policy decisions before a deployment-level acceptance claim.
+
+What has closed since this record was written is in
+[Status as of 2026-10-07](#status-as-of-2026-10-07).
