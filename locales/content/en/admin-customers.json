@@ -795,6 +795,10 @@
     "text": "Clear",
     "content_hash": "83b12c22"
   },
+  "web.admin.customers.detail.diagnostics.facts.rateLimiterPartial": {
+    "text": "No lockout found (per-IP check incomplete)",
+    "content_hash": "5300880b"
+  },
   "web.admin.customers.detail.diagnostics.facts.verification": {
     "text": "Verification email",
     "content_hash": "23fac8fb"
