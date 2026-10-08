@@ -62,13 +62,21 @@ module ColonelAPI
         # every other colonel domain response (VerifyCustomDomain, ListCustomDomains,
         # RepairDomain, TransferDomain) uses `domain_id`, and the frontend Zod
         # schema (colonelDomainDetailRecordSchema) requires it.
+        #
+        # The owner fields mirror the ListCustomDomains row, so a cold deep link
+        # to the detail page still knows the owning org. The console links to
+        # it by `org_extid`, never by the internal `org_id`.
         def domain_record
+          org = custom_domain.primary_organization
           custom_domain.safe_dump.merge(
             domain_id: custom_domain.domainid,
             verification_state: custom_domain.verification_state.to_s,
             verified_by_override: custom_domain.verified_by_override == true,
             resolving: custom_domain.resolving.to_s == 'true',
             ready: custom_domain.ready?,
+            org_id: custom_domain.org_id,
+            org_extid: org&.extid,
+            org_name: org&.display_name,
           )
         end
 
