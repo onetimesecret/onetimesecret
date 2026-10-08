@@ -19,6 +19,7 @@ export type ConsoleGroup =
   | 'identity'
   | 'security'
   | 'platform'
+  | 'data'
   | 'billing'
   | 'communications';
 
@@ -53,6 +54,7 @@ export const CONSOLE_GROUPS: { key: ConsoleGroup; labelKey: string }[] = [
   { key: 'identity', labelKey: 'web.colonel.nav.groups.identity' },
   { key: 'security', labelKey: 'web.colonel.nav.groups.security' },
   { key: 'platform', labelKey: 'web.colonel.nav.groups.platform' },
+  { key: 'data', labelKey: 'web.colonel.nav.groups.data' },
   { key: 'billing', labelKey: 'web.colonel.nav.groups.billing' },
   { key: 'communications', labelKey: 'web.colonel.nav.groups.communications' },
 ];
@@ -98,9 +100,17 @@ export const CONSOLE_SECTIONS: ConsoleSection[] = [
     // duplicate was removed so a future rename cannot miss one of them.
     labelKey: 'web.admin.secrets.title',
     icon: 'key',
-    group: 'platform',
+    group: 'data',
     hide: false,
     to: '/colonel/secrets',
+  },
+  {
+    key: 'schemas',
+    labelKey: 'web.admin.schemas.title',
+    icon: 'code-bracket',
+    group: 'data',
+    hide: false,
+    to: '/colonel/schemas',
   },
 
   {
