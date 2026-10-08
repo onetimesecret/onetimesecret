@@ -14,7 +14,7 @@
 # tests/lanes/run boots datastores these scripts never touch; bats would be a
 # new toolchain dependency, a new CI install step and a new thing to pin, for a
 # handful of pure-text assertions. The existing precedent for asserting on a
-# shell script's behaviour is hand-rolled bash — scripts/install-tests/*.sh and
+# shell script's behaviour is hand-rolled bash — tools/testsuite-installer/*.sh and
 # the scripts/check-*.sh drift guards — so these follow that shape.
 #
 # FAILURE OUTPUT

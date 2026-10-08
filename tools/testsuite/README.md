@@ -58,7 +58,7 @@ package to ShellCheck's `style` floor without a baseline.
 
 ## Why installation checks remain separate
 
-[`scripts/install-tests/`](../../scripts/install-tests/) owns installation and
+[`tools/testsuite-installer/`](../testsuite-installer/) owns installation and
 onboarding validation, not offline checks of repository automation. Its
 clean-room runner archives committed `HEAD` into Docker images; other scripts
 boot the application, test secret rotation, seed throwaway Compose secrets, or
