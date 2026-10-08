@@ -49,7 +49,7 @@ on:
       - '.node-version'
       - 'etc/defaults/**'
       - '.github/workflows/fresh-clone.yml'
-      - 'scripts/install-tests/ttfhw-chart.sh'
+      - 'tools/testsuite-installer/ttfhw-chart.sh'
       - 'tests/lanes/**'
   schedule:
     # Weekly: catches registry/runner/dependency rot with no commit
@@ -183,4 +183,4 @@ jobs:
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
-        run: scripts/install-tests/ttfhw-chart.sh
+        run: tools/testsuite-installer/ttfhw-chart.sh

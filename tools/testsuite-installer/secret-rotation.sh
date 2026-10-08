@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# scripts/install-tests/secret-rotation.sh
+# tools/testsuite-installer/secret-rotation.sh
 #
 # SECRET-rotation harness lane (install-onboarding C10 §5). Proves the
 # work-chunk's stated behavior verbatim: the app boots with a rotated SECRET
@@ -22,7 +22,7 @@
 # dev (6379/5212) or test (2163) datastores.
 #
 # Usage:
-#   scripts/install-tests/secret-rotation.sh
+#   tools/testsuite-installer/secret-rotation.sh
 #
 # Env knobs: ROT_APP_PORT (default 3213), ROT_DB_PORT (default 2129).
 

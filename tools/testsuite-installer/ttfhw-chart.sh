@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# scripts/install-tests/ttfhw-chart.sh
+# tools/testsuite-installer/ttfhw-chart.sh
 #
 # TTFHW trend chart (install-onboarding work-chunks, C7 residual "duration
 # charted/alarmed over time"). Renders the fresh-clone job's duration across
@@ -32,7 +32,7 @@
 #
 # Local dry run (charts history, no "this run" row):
 #   GH_TOKEN=$(gh auth token) GITHUB_REPOSITORY=onetimesecret/onetimesecret \
-#     scripts/install-tests/ttfhw-chart.sh
+#     tools/testsuite-installer/ttfhw-chart.sh
 
 set -euo pipefail
 

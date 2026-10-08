@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# scripts/install-tests/run.sh
+# tools/testsuite-installer/run.sh
 #
 # Tier-1 clean-room harness (install-onboarding testing-strategy §2). Runs a
 # documented install path from ZERO inside a pinned base image, so a maintainer
@@ -21,10 +21,10 @@
 #               (must now pass; C3 fixed it). We assert LANG stays unset.
 #
 # Usage:
-#   scripts/install-tests/run.sh --lane baremetal
-#   scripts/install-tests/run.sh --lane ruby-old
-#   scripts/install-tests/run.sh --lane posix
-#   scripts/install-tests/run.sh --lane all
+#   tools/testsuite-installer/run.sh --lane baremetal
+#   tools/testsuite-installer/run.sh --lane ruby-old
+#   tools/testsuite-installer/run.sh --lane posix
+#   tools/testsuite-installer/run.sh --lane all
 #
 # Requires a working Docker daemon. Not run by the fresh-clone lane (that one
 # needs no container); this is the installer-matrix harness.

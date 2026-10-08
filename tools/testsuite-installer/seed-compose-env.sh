@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# scripts/install-tests/seed-compose-env.sh
+# tools/testsuite-installer/seed-compose-env.sh
 #
 # Seeds throwaway secrets for the full-stack compose smoke lanes and writes
 # both targets compose needs:
