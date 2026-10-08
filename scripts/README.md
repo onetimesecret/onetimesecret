@@ -6,11 +6,10 @@ Utility and operational scripts for Onetime Secret.
 ## Directories
 
 - `ci/` - Scripts the OCI build workflow runs (Sentry sourcemap delivery and
-  its status reporting). Covered by `tests/`.
-- `tests/` - Executable shell tests for the scripts above. Run them all with
-  `scripts/tests/run.sh`; add one file per subject named `*-test.sh` and source
-  `lib/assert.sh`. No services, no network, no container runtime.
-- `install-tests/` - Clean-room install harnesses (require Docker)
+  its status reporting). Covered by `tools/testsuite/` via `bin/testsuite run`;
+  see the [testsuite package README](../tools/testsuite/README.md).
+- `install-tests/` - Clean-room install harnesses (require Docker), separate
+  from the offline CI-script test suite in `tools/testsuite/`.
 - `upgrades/` - Data transformation scripts for major version upgrades
 - `s6-rc.d/` - s6 service definitions for container supervision
 
