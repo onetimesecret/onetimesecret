@@ -1226,5 +1226,129 @@
   "web.organizations.sso.enable_untested_warning": {
     "text": "Ez a kapcsolat itt még nem ment át teszten. Bekapcsolás előtt futtassa a Kapcsolat tesztelése műveletet, hogy hibás beállítás soha ne kerüljön ki a bejelentkezési oldalára.",
     "source_hash": "c1fbdeca"
+  },
+  "web.organizations.delete_organization_cancel_subscription_first": {
+    "text": "A szervezet törlése előtt mondja le az előfizetését.",
+    "source_hash": "f0c54eca"
+  },
+  "web.organizations.sso.disable_action": {
+    "text": "SSO letiltása",
+    "source_hash": "2f072272"
+  },
+  "web.organizations.sso.disable_confirm": {
+    "text": "Letiltja ezt az SSO-kapcsolatot? Az űrlap nem mentett módosításai elvesznek. A tárolt hitelesítő adatok megmaradnak.",
+    "source_hash": "608b142a"
+  },
+  "web.organizations.sso.disable_enforcement_warning": {
+    "text": "A csak SSO kényszerítése is kikapcsol, így a többi beállított bejelentkezési mód is használható lesz.",
+    "source_hash": "58abd552"
+  },
+  "web.organizations.sso.idp_sso_service_url": {
+    "text": "IdP SSO-szolgáltatás URL-je",
+    "source_hash": "0b33b1ac"
+  },
+  "web.organizations.sso.idp_sso_service_url_hint": {
+    "text": "Az a HTTPS-végpont, amelyet az identitásszolgáltatója a SAML egyszeri bejelentkezéshez közzétesz",
+    "source_hash": "bc6fdfd9"
+  },
+  "web.organizations.sso.idp_sso_service_url_placeholder": {
+    "text": "https://idp.example.com/sso/saml",
+    "source_hash": "513d0586"
+  },
+  "web.organizations.sso.idp_entity_id": {
+    "text": "IdP entitásazonosító",
+    "source_hash": "14a4ab8b"
+  },
+  "web.organizations.sso.idp_entity_id_hint": {
+    "text": "A kibocsátó azonosítója az identitásszolgáltatója metaadataiból, pontosan a közzétett formában",
+    "source_hash": "c3d8320b"
+  },
+  "web.organizations.sso.idp_entity_id_placeholder": {
+    "text": "https://idp.example.com/metadata",
+    "source_hash": "0c46d14d"
+  },
+  "web.organizations.sso.idp_cert": {
+    "text": "IdP aláíró tanúsítvány",
+    "source_hash": "c84000cd"
+  },
+  "web.organizations.sso.idp_cert_hint": {
+    "text": "Az X.509-tanúsítvány (PEM), amellyel az identitásszolgáltatója az állításokat aláírja. Csak egy tanúsítvány adható meg; ujjlenyomatot nem fogadunk el.",
+    "source_hash": "b5e157f5"
+  },
+  "web.organizations.sso.idp_cert_placeholder": {
+    "text": "-----BEGIN CERTIFICATE-----",
+    "source_hash": "ddddb6cb"
+  },
+  "web.organizations.sso.sp_details": {
+    "text": "A szolgáltató (SP) adatai",
+    "source_hash": "4b6617d2"
+  },
+  "web.organizations.sso.sp_details_hint": {
+    "text": "Regisztrálja ezeket az értékeket az identitásszolgáltatójánál",
+    "source_hash": "784e9410"
+  },
+  "web.organizations.sso.sp_details_preview_hint": {
+    "text": "Előnézet az alapértelmezett bejelentkezési útvonal alapján. Mentse ezt a konfigurációt, majd ellenőrizze itt ezeket az értékeket, mielőtt regisztrálná őket az identitásszolgáltatójánál.",
+    "source_hash": "fd9d3001"
+  },
+  "web.organizations.sso.domain_unverified_notice": {
+    "text": "Az egyszeri bejelentkezés ki van kapcsolva ezen a doménen, amíg a domén ellenőrzése meg nem történik. Az ellenőrzés nem módosítja az alábbi értékeket.",
+    "source_hash": "4b56ea4b"
+  },
+  "web.organizations.sso.sp_entity_id": {
+    "text": "SP entitásazonosító (metaadat-URL)",
+    "source_hash": "59bc544c"
+  },
+  "web.organizations.sso.acs_url": {
+    "text": "Assertion Consumer Service URL",
+    "source_hash": "5dacfb65"
+  },
+  "web.organizations.sso.unreadable_field": {
+    "text": "A tárolt érték nem olvasható. A folytatáshoz adja meg újra.",
+    "source_hash": "ca3b5fcc"
+  },
+  "web.organizations.sso.unreadable_fields_alert": {
+    "text": "Néhány tárolt érték nem olvasható, ezért újra meg kell adni őket: {fields}",
+    "source_hash": "e9fa9d16"
+  },
+  "web.organizations.sso.idp_cert_expired_alert": {
+    "text": "Az identitásszolgáltató tanúsítványa lejárt (lejárat dátuma: {date}). Az ezen a kapcsolaton keresztüli bejelentkezés sikertelen lesz, amíg érvényes tanúsítványt nem ment.",
+    "source_hash": "527fb721"
+  },
+  "web.organizations.sso.idp_cert_expiring_notice": {
+    "text": "Az identitásszolgáltató tanúsítványa hamarosan lejár (lejárat dátuma: {date}). Cserélje le addig, hogy a bejelentkezés továbbra is működjön.",
+    "source_hash": "ccaf6ca7"
+  },
+  "web.organizations.sso.test_connection_hint_saml": {
+    "text": "Helyben ellenőrzi az SSO URL-t, az entitásazonosítót és a tanúsítványt; az identitásszolgáltatóhoz nem kapcsolódik",
+    "source_hash": "1dad3945"
+  },
+  "web.organizations.sso.configured_issuer": {
+    "text": "Beállított kibocsátó",
+    "source_hash": "6b307b7f"
+  },
+  "web.organizations.sso.discovery_issuer": {
+    "text": "Felderített kibocsátó",
+    "source_hash": "9d74f978"
+  },
+  "web.organizations.sso.issuer_mismatch_hint": {
+    "text": "Az OIDC-kibocsátóazonosítóknak pontosan egyezniük kell, a záró perjelet is beleértve. Állítsa a Kibocsátó URL-jét a fent látható felderített értékre.",
+    "source_hash": "ec144c88"
+  },
+  "web.organizations.sso.certificate_subject": {
+    "text": "Tanúsítvány tárgya",
+    "source_hash": "d7816b16"
+  },
+  "web.organizations.sso.certificate_expires": {
+    "text": "Tanúsítvány lejárata",
+    "source_hash": "1e73119d"
+  },
+  "web.organizations.sso.certificate_expires_in_days": {
+    "text": "{n} nap múlva | {n} nap múlva",
+    "source_hash": "df98ca65"
+  },
+  "web.organizations.sso.certificate_valid_from": {
+    "text": "Tanúsítvány érvényességének kezdete",
+    "source_hash": "b13d3f30"
   }
 }

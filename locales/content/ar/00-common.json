@@ -1543,5 +1543,17 @@
   "web.TITLES.connected_identities": {
     "text": "الهويات المرتبطة",
     "source_hash": "e132c4d9"
+  },
+  "web.COMMON.field": {
+    "text": "الحقل",
+    "source_hash": "f45fc1df"
+  },
+  "web.COMMON.unknown": {
+    "text": "غير معروف",
+    "source_hash": "b764cdc0"
+  },
+  "web.STATUS.pending_ssl": {
+    "text": "الشهادة قيد الانتظار",
+    "source_hash": "dd34f305"
   }
 }

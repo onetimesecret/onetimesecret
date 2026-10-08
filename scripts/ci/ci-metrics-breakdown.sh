@@ -38,7 +38,7 @@
 #
 # Steps of T2/T3 jobs whose name starts with "Run " and names a lane or tests:
 # "Run unit lane", "Run browser lane", "Run lane" (the T3 matrix), "Run
-# TypeScript tests with coverage". Diagnostic probes and setup steps are not
+# TypeScript tests". Diagnostic probes and setup steps are not
 # test execution and are left out. A step's row is keyed by job name and step
 # name, so a matrix row that gains or loses a lane shows as "new" or "not run"
 # instead of silently moving the baseline.

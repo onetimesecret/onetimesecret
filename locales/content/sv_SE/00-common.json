@@ -1543,5 +1543,17 @@
   "web.TITLES.connected_identities": {
     "text": "Anslutna identiteter",
     "source_hash": "e132c4d9"
+  },
+  "web.COMMON.field": {
+    "text": "Fält",
+    "source_hash": "f45fc1df"
+  },
+  "web.COMMON.unknown": {
+    "text": "Okänd",
+    "source_hash": "b764cdc0"
+  },
+  "web.STATUS.pending_ssl": {
+    "text": "Certifikat väntar",
+    "source_hash": "dd34f305"
   }
 }

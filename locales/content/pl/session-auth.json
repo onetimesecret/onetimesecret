@@ -509,8 +509,8 @@
     "source_hash": "7fbbb7e7"
   },
   "web.login.errors.identity_connect_conflict": {
-    "text": "Nie udało się połączyć tej tożsamości. Połączenie mogło zostać rozpoczęte w niewłaściwej domenie lub Twoja sesja wygasła. Zaloguj się ponownie, a następnie połącz ją w ustawieniach konta.",
-    "source_hash": "4238bbf2"
+    "text": "Nie udało się połączyć tej tożsamości. Może ona już należeć do innego konta.",
+    "source_hash": "d8b71cf8"
   },
   "web.login.errors.org_join_failed": {
     "text": "Nie udało się dokończyć dodawania Cię do Twojej organizacji. Skontaktuj się ze swoim administratorem.",
@@ -527,5 +527,25 @@
   "web.login.errors.sso_cancelled": {
     "text": "Logowanie zostało anulowane. Możesz spróbować ponownie, kiedy tylko zechcesz.",
     "source_hash": "b5f3d3ec"
+  },
+  "web.login.errors.sso_issuer_mismatch": {
+    "text": "Logowanie za pomocą tego dostawcy jest nieprawidłowo skonfigurowane. Skontaktuj się z administratorem.",
+    "source_hash": "44df5918"
+  },
+  "web.login.errors.sso_config_unusable": {
+    "text": "Jednokrotne logowanie dla tej domeny jest skonfigurowane, ale obecnie nie można go użyć. Skontaktuj się z administratorem swojej organizacji.",
+    "source_hash": "f704b391"
+  },
+  "web.login.errors.sso_domain_unverified": {
+    "text": "Jednokrotne logowanie dla tej domeny nie jest jeszcze aktywne, ponieważ domena nie ukończyła weryfikacji. Skontaktuj się z administratorem.",
+    "source_hash": "bd981480"
+  },
+  "web.login.errors.tenant_sso_link_unavailable": {
+    "text": "Ta tożsamość nie jest połączona z kontem w tej domenie. Jeśli możesz zalogować się w tej domenie na konto należące do tej organizacji, połącz ją w sekcji Połączone tożsamości. W przeciwnym razie poproś właściciela organizacji o zaproszenie tej tożsamości SSO lub skontaktuj się z pomocą techniczną.",
+    "source_hash": "66e7376c"
+  },
+  "web.login.errors.identity_connect_wrong_domain": {
+    "text": "Nie udało się połączyć tej tożsamości w tej domenie. Rozpocznij łączenie z witryny, na której masz aktywną sesję; w domenie organizacji Twoje konto musi już należeć do tej organizacji.",
+    "source_hash": "d967c761"
   }
 }

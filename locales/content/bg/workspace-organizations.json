@@ -1226,5 +1226,129 @@
   "web.organizations.sso.enable_untested_warning": {
     "text": "Тази връзка все още не е преминала тест тук. Изпълнете „Тест на връзката“, преди да я включите, за да не достигне неработеща конфигурация до вашата страница за влизане.",
     "source_hash": "c1fbdeca"
+  },
+  "web.organizations.delete_organization_cancel_subscription_first": {
+    "text": "Анулирайте абонамента на тази организация, преди да я изтриете.",
+    "source_hash": "f0c54eca"
+  },
+  "web.organizations.sso.disable_action": {
+    "text": "Деактивиране на SSO",
+    "source_hash": "2f072272"
+  },
+  "web.organizations.sso.disable_confirm": {
+    "text": "Да се деактивира ли тази SSO връзка? Незапазените промени във формуляра няма да бъдат запазени. Съхранените идентификационни данни ще бъдат запазени.",
+    "source_hash": "608b142a"
+  },
+  "web.organizations.sso.disable_enforcement_warning": {
+    "text": "Налагането само на SSO също ще бъде изключено, което ще позволи другите конфигурирани методи за влизане.",
+    "source_hash": "58abd552"
+  },
+  "web.organizations.sso.idp_sso_service_url": {
+    "text": "URL адрес на SSO услугата на IdP",
+    "source_hash": "0b33b1ac"
+  },
+  "web.organizations.sso.idp_sso_service_url_hint": {
+    "text": "HTTPS крайната точка, която вашият доставчик на идентичност публикува за единно влизане чрез SAML",
+    "source_hash": "bc6fdfd9"
+  },
+  "web.organizations.sso.idp_sso_service_url_placeholder": {
+    "text": "https://idp.example.com/sso/saml",
+    "source_hash": "513d0586"
+  },
+  "web.organizations.sso.idp_entity_id": {
+    "text": "IdP Entity ID",
+    "source_hash": "14a4ab8b"
+  },
+  "web.organizations.sso.idp_entity_id_hint": {
+    "text": "Идентификаторът на издателя от метаданните на вашия доставчик на идентичност, точно както е публикуван",
+    "source_hash": "c3d8320b"
+  },
+  "web.organizations.sso.idp_entity_id_placeholder": {
+    "text": "https://idp.example.com/metadata",
+    "source_hash": "0c46d14d"
+  },
+  "web.organizations.sso.idp_cert": {
+    "text": "Сертификат за подписване на IdP",
+    "source_hash": "c84000cd"
+  },
+  "web.organizations.sso.idp_cert_hint": {
+    "text": "X.509 сертификатът (PEM), с който вашият доставчик на идентичност подписва твърденията. Само един сертификат; пръстови отпечатъци не се приемат.",
+    "source_hash": "b5e157f5"
+  },
+  "web.organizations.sso.idp_cert_placeholder": {
+    "text": "-----BEGIN CERTIFICATE-----",
+    "source_hash": "ddddb6cb"
+  },
+  "web.organizations.sso.sp_details": {
+    "text": "Данни за доставчика на услугата",
+    "source_hash": "4b6617d2"
+  },
+  "web.organizations.sso.sp_details_hint": {
+    "text": "Регистрирайте тези стойности при вашия доставчик на идентичност",
+    "source_hash": "784e9410"
+  },
+  "web.organizations.sso.sp_details_preview_hint": {
+    "text": "Преглед въз основа на маршрута за влизане по подразбиране. Запазете тази конфигурация, след което потвърдете стойностите тук, преди да ги регистрирате при вашия доставчик на идентичност.",
+    "source_hash": "fd9d3001"
+  },
+  "web.organizations.sso.domain_unverified_notice": {
+    "text": "Единното влизане е изключено за този домейн, докато домейнът не бъде потвърден. Потвърждението не променя стойностите по-долу.",
+    "source_hash": "4b56ea4b"
+  },
+  "web.organizations.sso.sp_entity_id": {
+    "text": "SP Entity ID (URL адрес на метаданните)",
+    "source_hash": "59bc544c"
+  },
+  "web.organizations.sso.acs_url": {
+    "text": "URL адрес на Assertion Consumer Service",
+    "source_hash": "5dacfb65"
+  },
+  "web.organizations.sso.unreadable_field": {
+    "text": "Съхранената стойност не можа да бъде прочетена. Въведете я отново, за да продължите.",
+    "source_hash": "ca3b5fcc"
+  },
+  "web.organizations.sso.unreadable_fields_alert": {
+    "text": "Някои съхранени стойности не можаха да бъдат прочетени и трябва да бъдат въведени отново: {fields}",
+    "source_hash": "e9fa9d16"
+  },
+  "web.organizations.sso.idp_cert_expired_alert": {
+    "text": "Сертификатът на доставчика на идентичност е изтекъл на {date}. Влизането чрез тази връзка няма да работи, докато не бъде запазен валиден сертификат.",
+    "source_hash": "527fb721"
+  },
+  "web.organizations.sso.idp_cert_expiring_notice": {
+    "text": "Сертификатът на доставчика на идентичност изтича на {date}. Заменете го преди това, за да продължи да работи влизането.",
+    "source_hash": "ccaf6ca7"
+  },
+  "web.organizations.sso.test_connection_hint_saml": {
+    "text": "Проверява локално SSO URL адреса, Entity ID и сертификата; доставчикът на идентичност не се контактува",
+    "source_hash": "1dad3945"
+  },
+  "web.organizations.sso.configured_issuer": {
+    "text": "Конфигуриран Issuer",
+    "source_hash": "6b307b7f"
+  },
+  "web.organizations.sso.discovery_issuer": {
+    "text": "Открит Issuer",
+    "source_hash": "9d74f978"
+  },
+  "web.organizations.sso.issuer_mismatch_hint": {
+    "text": "Идентификаторите на OIDC издателя трябва да съвпадат точно, включително всяка наклонена черта в края. Задайте Issuer URL на откритата стойност, показана по-горе.",
+    "source_hash": "ec144c88"
+  },
+  "web.organizations.sso.certificate_subject": {
+    "text": "Субект на сертификата",
+    "source_hash": "d7816b16"
+  },
+  "web.organizations.sso.certificate_expires": {
+    "text": "Сертификатът изтича",
+    "source_hash": "1e73119d"
+  },
+  "web.organizations.sso.certificate_expires_in_days": {
+    "text": "след {n} ден | след {n} дни",
+    "source_hash": "df98ca65"
+  },
+  "web.organizations.sso.certificate_valid_from": {
+    "text": "Сертификатът е валиден от",
+    "source_hash": "b13d3f30"
   }
 }

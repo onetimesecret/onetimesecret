@@ -62,5 +62,29 @@
   "web.admin.kit.revealEmail.copy": {
     "text": "Tārua i te wāhitau īmēra",
     "source_hash": "61b94846"
+  },
+  "web.admin.errors.rateLimited": {
+    "text": "Ka taea e koe te ngana anō i roto i te {minutes} meneti pea.",
+    "source_hash": "27f2d054"
+  },
+  "web.admin.errors.rateLimitedRecovery": {
+    "text": "Mēnā me mahi wawe koe, ūkuia te kaiwhakarōrahi mā te POST /api/colonel/ratelimit/reset mō tō ake pūkete, whakahaerehia rānei te `bin/ots ratelimit keys <kind> <extid>`.",
+    "source_hash": "b77e1388"
+  },
+  "web.admin.kit.confirmDialog.reasonLabel": {
+    "text": "Take (kōwhiringa)",
+    "source_hash": "0f7d4664"
+  },
+  "web.admin.kit.confirmDialog.reasonPlaceholder": {
+    "text": "He aha koe e mahi ai i tēnei?",
+    "source_hash": "ef83fe82"
+  },
+  "web.admin.kit.confirmDialog.reasonHint": {
+    "text": "Ka tuhia ki te rangitaki arotake kaiwhakahaere i te taha o tēnei mahi.",
+    "source_hash": "23779076"
+  },
+  "web.admin.kit.filterBar.searchSubmit": {
+    "text": "Rapu",
+    "source_hash": "49c266ba"
   }
 }

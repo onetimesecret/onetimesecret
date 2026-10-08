@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require_relative '../../middleware/detect_host'
+
 module Onetime
   module Middleware
     # StripForwardedHost — remove client-settable forwarded-AUTHORITY signals
@@ -37,6 +39,23 @@ module Onetime
     # from one the proxy passed through. Both headers are deleted here, so the
     # host authority that reaches every later reader is `Host:` alone.
     #
+    # ## X-Forwarded-Port from a peer that is not a trusted proxy
+    #
+    # `Rack::Request#port` reads `X-Forwarded-Port` from any client whenever
+    # `Host` carries no port, and auth URLs (Auth::PublicHost) are built on
+    # that port. otto deletes the header for a peer that failed CONFIGURED
+    # proxy trust; with trust unconfigured it deletes nothing, so a direct
+    # client could put a port of its choosing into an emailed link. The
+    # header is deleted here unless Rack::DetectHost.from_trusted_proxy?
+    # holds — the verdict X-Forwarded-Host was accepted or refused on. A
+    # trusted proxy's value is kept: Rack and PublicHostRewrite read it.
+    #
+    # A trusted proxy's value is kept only when it is one port from 1 through
+    # 65535 (Rack::DetectHost.usable_port). Rack converts whatever is there
+    # with #to_i and takes the last entry of a list, so `abc`, `0`, `65536`
+    # or `-1` would otherwise become the port of a generated URL, and a list
+    # would be picked from although X-Forwarded-Host never is.
+    #
     # ## Whole-header delete, scheme handed to `rack.url_scheme`
     #
     # `Forwarded` multiplexes host with `proto`/`for`/`by`. An earlier version
@@ -49,10 +68,11 @@ module Onetime
     # itself BEFORE the delete and written to `rack.url_scheme`, the key
     # `Rack::Request#scheme` falls back to once no forwarded carrier is
     # present. No parsing happens here; Rack's answer before the strip is
-    # Rack's answer after it. `X-Forwarded-Proto` and `X-Forwarded-SSL` are
-    # not touched, so the X-Forwarded-* family continues to resolve on its
-    # own; `for=` has already been consumed by otto's IP resolution, which
-    # runs first.
+    # Rack's answer after it, but only for a trusted proxy. Untrusted
+    # X-Forwarded-Proto, X-Forwarded-Scheme and X-Forwarded-SSL are deleted
+    # before any scheme read, using the same trust verdict as forwarded host
+    # and port. `for=` has already been consumed by otto's IP resolution,
+    # which runs first.
     #
     # ## The write is UPGRADE-ONLY
     #
@@ -79,6 +99,27 @@ module Onetime
     # upgrade-only invariant. Downgrading is exactly what a forwarded value is
     # untrusted for; the `Forwarded`-only proxy this write exists to serve is
     # upgrading http to https, which still works.
+    #
+    # ## A forwarded `ws` or `wss` is read as `http` or `https`
+    #
+    # Rack accepts `ws` and `wss` as forwarded schemes (they are in
+    # `Rack::Request::ALLOWED_SCHEMES`) and has a default port for neither
+    # (`DEFAULT_PORTS`). With such a scheme and no port in the authority,
+    # `Rack::Request#port` falls through to `SERVER_PORT` — the port of the
+    # hop to the origin — while `#base_url` carries no port, so an origin
+    # built from `request.port` (Auth::PublicHost.origin_for,
+    # Rack::Protection::HttpOrigin) names the origin's port on the public
+    # host, and request-derived URLs start with `ws://` or `wss://`. That
+    # holds whether the proxy preserves `Host` or PublicHostRewrite writes
+    # it.
+    #
+    # The applications serve HTTP only, so a trusted proxy's `ws` is
+    # rewritten to `http` and its `wss` to `https`, in X-Forwarded-Proto,
+    # X-Forwarded-Scheme and the scheme carried from `Forwarded`. `#ssl?`
+    # answers the same before and after. Only whole entries are rewritten,
+    # split the way Rack splits the header, so the entry Rack selects from a
+    # list is the same one. An untrusted peer's headers are deleted as
+    # before.
     #
     # ## What was deleted is recorded by NAME
     #
@@ -137,14 +178,39 @@ module Onetime
 
       STRIPPED_CANDIDATES = [X_FORWARDED_HOST, FORWARDED].freeze
 
+      # Deleted from a peer that is not a trusted proxy, and from any peer
+      # when it is not one usable port.
+      X_FORWARDED_PORT = 'HTTP_X_FORWARDED_PORT'
+
+      FORWARDED_SCHEME_HEADERS = %w[
+        HTTP_X_FORWARDED_PROTO HTTP_X_FORWARDED_SCHEME HTTP_X_FORWARDED_SSL
+      ].freeze
+
+      # The two of those whose value names a scheme (X-Forwarded-SSL is
+      # on/off).
+      SCHEME_NAME_HEADERS = %w[HTTP_X_FORWARDED_PROTO HTTP_X_FORWARDED_SCHEME].freeze
+
+      # See "A forwarded `ws` or `wss` is read as `http` or `https`" above.
+      HTTP_SCHEMES = { 'ws' => 'http', 'wss' => 'https' }.freeze
+
+      # One whole `ws` or `wss` entry. Rack::Request#split_header strips the
+      # value and splits it on runs of comma, space and tab.
+      WEBSOCKET_ENTRY = /(?<![^, \t])wss?(?![^, \t])/
+
       def initialize(app)
         @app = app
       end
 
       def call(env)
         stripped = STRIPPED_CANDIDATES.select { |key| env.key?(key) }
+        stripped << X_FORWARDED_PORT if unusable_port?(env)
+        trusted = Rack::DetectHost.from_trusted_proxy?(env)
+        unless trusted
+          stripped.concat(FORWARDED_SCHEME_HEADERS.select { |key| env.key?(key) })
+        end
 
-        carry_forwarded_scheme(env) if stripped.include?(FORWARDED)
+        read_websocket_schemes_as_http(env) if trusted
+        carry_forwarded_scheme(env) if trusted && stripped.include?(FORWARDED)
 
         stripped.each { |key| env.delete(key) }
         env[STRIPPED_HEADERS] = stripped.freeze unless stripped.empty?
@@ -154,13 +220,31 @@ module Onetime
 
       private
 
+      def unusable_port?(env)
+        return false unless env.key?(X_FORWARDED_PORT)
+
+        !Rack::DetectHost.from_trusted_proxy?(env) || Rack::DetectHost.usable_port(env[X_FORWARDED_PORT]).nil?
+      end
+
       # Persist the scheme Rack resolves while `Forwarded` is still present,
       # but never below the one already established. See "The write is
       # UPGRADE-ONLY" above.
       def carry_forwarded_scheme(env)
         return if env[RACK_URL_SCHEME] == HTTPS_SCHEME || env['HTTPS'] == 'on'
 
-        env[RACK_URL_SCHEME] = Rack::Request.new(env).scheme
+        scheme               = Rack::Request.new(env).scheme
+        env[RACK_URL_SCHEME] = HTTP_SCHEMES.fetch(scheme, scheme)
+      end
+
+      # Rewrite `ws` and `wss` entries of a trusted proxy's scheme headers.
+      # A value Rack reads no such entry from is left as it arrived.
+      def read_websocket_schemes_as_http(env)
+        SCHEME_NAME_HEADERS.each do |key|
+          value = env[key]
+          next unless value.is_a?(String) && value.strip.match?(WEBSOCKET_ENTRY)
+
+          env[key] = value.strip.gsub(WEBSOCKET_ENTRY, HTTP_SCHEMES)
+        end
       end
     end
   end

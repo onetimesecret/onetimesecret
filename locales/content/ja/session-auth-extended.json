@@ -954,5 +954,53 @@
   "web.auth.webauthn.emailRequired": {
     "text": "パスキーでサインインするには、メールアドレスを入力してください",
     "source_hash": "7f07647f"
+  },
+  "web.auth.login.verification_unavailable": {
+    "text": "サインインには成功しましたが、セッションを確認できませんでした。しばらくしてからもう一度お試しください。",
+    "source_hash": "9a19dfc9"
+  },
+  "web.auth.mfa.verification_unavailable": {
+    "text": "パスワードは受け付けられましたが、二要素認証を開始できませんでした。しばらくしてからもう一度お試しください。",
+    "source_hash": "5fd5e240"
+  },
+  "web.auth.session.ended": {
+    "text": "セッションが終了しました。もう一度サインインしてください。",
+    "source_hash": "673e9822"
+  },
+  "web.auth.session.replaced": {
+    "text": "別のタブでサインイン状態が変更されたため、このページを再読み込みしました。",
+    "source_hash": "3767d43b"
+  },
+  "web.auth.session.stale_session_title": {
+    "text": "このページは最新ではありません",
+    "source_hash": "0293e093"
+  },
+  "web.auth.session.stale_session_notice": {
+    "text": "このページを読み込んだ後にセッションが変更されました。保存していない内容をコピーしてから、ページを再読み込みして続行してください。",
+    "source_hash": "c62e236c"
+  },
+  "web.auth.session.reload_now": {
+    "text": "ページを再読み込み",
+    "source_hash": "437d0d63"
+  },
+  "web.auth.session.verification_unavailable_title": {
+    "text": "現在、セッションを確認できません",
+    "source_hash": "2130dda1"
+  },
+  "web.auth.session.verification_unavailable_body": {
+    "text": "サインアウトはされていません。セッションを確認するためにサーバーに接続できなかったため、確認できるまでこのページは非表示になっています。引き続き再試行します。",
+    "source_hash": "bb230c2c"
+  },
+  "web.auth.session.retry": {
+    "text": "もう一度試す",
+    "source_hash": "d8b8392e"
+  },
+  "web.auth.session.retrying": {
+    "text": "確認しています…",
+    "source_hash": "ec963ffc"
+  },
+  "web.auth.session.retry_failed": {
+    "text": "まだ利用できません。しばらくしてからもう一度お試しください。",
+    "source_hash": "b81c022c"
   }
 }

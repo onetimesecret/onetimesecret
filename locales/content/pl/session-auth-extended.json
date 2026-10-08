@@ -957,5 +957,53 @@
   "web.auth.webauthn.emailRequired": {
     "text": "Wprowadź swój adres e-mail, aby zalogować się kluczem dostępu",
     "source_hash": "7f07647f"
+  },
+  "web.auth.login.verification_unavailable": {
+    "text": "Logowanie się powiodło, ale nie udało się potwierdzić Twojej sesji. Spróbuj ponownie za chwilę.",
+    "source_hash": "9a19dfc9"
+  },
+  "web.auth.mfa.verification_unavailable": {
+    "text": "Hasło zostało zaakceptowane, ale nie udało się rozpocząć weryfikacji dwuskładnikowej. Spróbuj ponownie za chwilę.",
+    "source_hash": "5fd5e240"
+  },
+  "web.auth.session.ended": {
+    "text": "Twoja sesja się zakończyła. Zaloguj się ponownie.",
+    "source_hash": "673e9822"
+  },
+  "web.auth.session.replaced": {
+    "text": "Twoje logowanie zmieniło się w innej karcie, więc ta strona została ponownie załadowana.",
+    "source_hash": "3767d43b"
+  },
+  "web.auth.session.stale_session_title": {
+    "text": "Ta strona jest nieaktualna",
+    "source_hash": "0293e093"
+  },
+  "web.auth.session.stale_session_notice": {
+    "text": "Twoja sesja zmieniła się od czasu załadowania tej strony. Skopiuj wszystko, czego nie zapisano, a następnie załaduj ponownie stronę, aby kontynuować.",
+    "source_hash": "c62e236c"
+  },
+  "web.auth.session.reload_now": {
+    "text": "Załaduj ponownie stronę",
+    "source_hash": "437d0d63"
+  },
+  "web.auth.session.verification_unavailable_title": {
+    "text": "Nie możemy teraz zweryfikować Twojej sesji",
+    "source_hash": "2130dda1"
+  },
+  "web.auth.session.verification_unavailable_body": {
+    "text": "Wylogowanie nie nastąpiło. Nie udało się połączyć z serwerem, aby potwierdzić Twoją sesję, więc ta strona jest ukryta, dopóki nie będzie to możliwe. Będziemy ponawiać próby.",
+    "source_hash": "bb230c2c"
+  },
+  "web.auth.session.retry": {
+    "text": "Spróbuj ponownie",
+    "source_hash": "d8b8392e"
+  },
+  "web.auth.session.retrying": {
+    "text": "Sprawdzanie…",
+    "source_hash": "ec963ffc"
+  },
+  "web.auth.session.retry_failed": {
+    "text": "Nadal niedostępne. Spróbuj ponownie za chwilę.",
+    "source_hash": "b81c022c"
   }
 }

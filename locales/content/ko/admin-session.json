@@ -1,0 +1,10 @@
+{
+  "web.admin.session.expired": {
+    "text": "관리자 세션이 만료되었습니다. 계속하려면 다시 로그인하세요.",
+    "source_hash": "e970de7c"
+  },
+  "web.admin.session.signIn": {
+    "text": "로그인",
+    "source_hash": "bfd402b2"
+  }
+}

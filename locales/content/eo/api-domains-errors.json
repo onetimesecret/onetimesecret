@@ -46,5 +46,17 @@
   "api.domains.errors.homepage_incoming_not_ready": {
     "text": "Envenantaj sekretoj devas esti ŝaltitaj kun almenaŭ unu ricevanto antaŭ ol ĝi povas esti uzata kiel la ĉefpaĝo.",
     "source_hash": "556da6e2"
+  },
+  "api.domains.errors.related_origins_invalid": {
+    "text": "Nevalida origino: %{origins}. Enigu la skemon kaj la gastiganton, ekzemple https://vault.example.com",
+    "source_hash": "5acb92ca"
+  },
+  "api.domains.errors.related_origins_foreign_organization": {
+    "text": "Ĉi tiuj originoj apartenas al alia organizo kaj ne povas esti aldonitaj: %{origins}",
+    "source_hash": "ac21c1e7"
+  },
+  "api.domains.errors.allowed_signup_domains_invalid": {
+    "text": "Nevalida domajno: %{domains}. Enigu registreblan domajnnomon, ekzemple example.com",
+    "source_hash": "2d93472c"
   }
 }

@@ -134,5 +134,25 @@
   "api.organizations.members.errors.no_permission_to_remove": {
     "text": "ليس لديك إذن لإزالة الأعضاء",
     "source_hash": "b0ac7287"
+  },
+  "api.organizations.errors.delete_has_domains": {
+    "text": "أزل النطاقات المخصّصة لهذه المؤسسة قبل حذفها: %{domains}",
+    "source_hash": "040a401e"
+  },
+  "api.organizations.errors.delete_drifted_domains_count": {
+    "text": "هناك %{count} من سجلات النطاقات لا تزال تشير إلى هذه المؤسسة ولكنها لم تعد مدرجة فيها. يرجى التواصل مع الدعم لإزالتها قبل حذف هذه المؤسسة.",
+    "source_hash": "f6e71a9a"
+  },
+  "api.organizations.errors.delete_is_default": {
+    "text": "لا يمكن حذف مساحة العمل الافتراضية الخاصة بك. تواصل مع الدعم إذا كنت بحاجة إلى إزالتها.",
+    "source_hash": "bc2eaed5"
+  },
+  "api.organizations.errors.delete_active_subscription": {
+    "text": "ألغِ اشتراك هذه المؤسسة قبل حذفها.",
+    "source_hash": "f0c54eca"
+  },
+  "api.organizations.errors.delete_last_org": {
+    "text": "هذه هي مؤسستك الوحيدة. أنشئ مؤسسة أخرى قبل حذف هذه المؤسسة.",
+    "source_hash": "7608a1d6"
   }
 }

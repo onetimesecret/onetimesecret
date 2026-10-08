@@ -48,12 +48,12 @@
     "source_hash": "acaede35"
   },
   "web.admin.domains.addDomain.strategy.caddy_on_demand": {
-    "text": "Caddy on-demand — certificati emessi automaticamente alla prima richiesta.",
-    "source_hash": "deb90ae6"
+    "text": "Caddy on-demand — controllo di proprietà tramite DNS (record TXT); certificati emessi automaticamente dopo la verifica.",
+    "source_hash": "1c926efa"
   },
   "web.admin.domains.addDomain.strategy.caddy": {
-    "text": "Caddy — certificati emessi automaticamente alla prima richiesta.",
-    "source_hash": "a0f3c2dc"
+    "text": "Caddy — controllo di proprietà tramite DNS (record TXT); certificati emessi automaticamente dopo la verifica.",
+    "source_hash": "5774ff90"
   },
   "web.admin.domains.addDomain.strategy.unknown": {
     "text": "Strategia di convalida a livello di deployment.",
@@ -842,5 +842,81 @@
   "web.admin.domains.tls.none": {
     "text": "Non attivo",
     "source_hash": "da8a5ab9"
+  },
+  "web.admin.domains.configs.edit.originsHint": {
+    "text": "Un'origine per riga, incluso lo schema, ad esempio https://vault.example.com. Un'origine sul dominio di un'altra organizzazione viene rifiutata.",
+    "source_hash": "4a4e1d33"
+  },
+  "web.admin.domains.configs.fields.related_origins": {
+    "text": "Origini passkey correlate",
+    "source_hash": "e6160714"
+  },
+  "web.admin.domains.dns.cnameStepInstall": {
+    "text": "2. Aggiungi un record CNAME che punta il sottodominio a questa installazione.",
+    "source_hash": "b8a329f9"
+  },
+  "web.admin.domains.dns.aliasStepInstall": {
+    "text": "2. Aggiungi un record ALIAS o ANAME che punta l'apex a questa installazione.",
+    "source_hash": "9a61ed66"
+  },
+  "web.admin.domains.dns.apexNote": {
+    "text": "Un dominio apex non può avere un record CNAME. Se il provider DNS non offre record ALIAS o ANAME, un record A verso l'indirizzo IP di questo server ottiene lo stesso risultato.",
+    "source_hash": "f69e3032"
+  },
+  "web.admin.domains.fields.verifiedByOverride": {
+    "text": "Sì (override dell'operatore)",
+    "source_hash": "a1a8644f"
+  },
+  "web.admin.domains.list.capped": {
+    "text": "I risultati sono limitati: il conteggio mostrato è un valore minimo, non il totale. Restringi la ricerca o il filtro per vedere tutto.",
+    "source_hash": "27537844"
+  },
+  "web.admin.domains.override.button": {
+    "text": "Esegui override dello stato",
+    "source_hash": "c683774c"
+  },
+  "web.admin.domains.override.title": {
+    "text": "Override dello stato di verifica",
+    "source_hash": "66dbebb2"
+  },
+  "web.admin.domains.override.description": {
+    "text": "Imposta manualmente gli indicatori di verifica e di risoluzione per questo dominio. Usa con cautela.",
+    "source_hash": "bc3eb719"
+  },
+  "web.admin.domains.override.verified": {
+    "text": "Verificato",
+    "source_hash": "4f783840"
+  },
+  "web.admin.domains.override.resolving": {
+    "text": "Risoluzione in corso",
+    "source_hash": "3287a034"
+  },
+  "web.admin.domains.override.apply": {
+    "text": "Applica override",
+    "source_hash": "e2d1472a"
+  },
+  "web.admin.domains.override.cancel": {
+    "text": "Annulla",
+    "source_hash": "19766ed6"
+  },
+  "web.admin.domains.override.success": {
+    "text": "Override dello stato del dominio applicato.",
+    "source_hash": "42104cd0"
+  },
+  "web.admin.domains.override.noChange": {
+    "text": "Nessuna modifica da applicare.",
+    "source_hash": "07632d50"
+  },
+  "web.admin.domains.verify.success.indeterminate": {
+    "text": "Il controllo DNS non ha restituito alcun risultato per {domain}. Il suo stato di verifica è rimasto invariato.",
+    "source_hash": "9c5ab974"
+  },
+  "web.admin.domains.verify.success.overrideHeld": {
+    "text": "Il controllo TXT per {domain} non è riuscito, ma il dominio resta verificato grazie a un override dell'operatore.",
+    "source_hash": "e754aac8"
+  },
+  "web.admin.domains.verify.success.confirmationExpired": {
+    "text": "Il controllo DNS per {domain} non restituisce alcun risultato da più di 7 giorni. Il dominio non è più verificato.",
+    "source_hash": "a6901cb5"
   }
 }

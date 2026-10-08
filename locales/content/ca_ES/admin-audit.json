@@ -134,5 +134,17 @@
   "web.admin.audit.list.contractError": {
     "text": "El servidor ha respost, però les dades d'auditoria no coincideixen amb el format esperat. No es poden mostrar esdeveniments — és un error de report, no un registre buit.",
     "source_hash": "7f48137e"
+  },
+  "web.admin.audit.export.csv": {
+    "text": "Exporta CSV",
+    "source_hash": "91f71c14"
+  },
+  "web.admin.audit.export.ndjson": {
+    "text": "Exporta NDJSON",
+    "source_hash": "3ee2c07c"
+  },
+  "web.admin.audit.export.hint": {
+    "text": "Les exportacions cobreixen tot l'historial conservat amb els filtres actuals, no només aquesta pàgina. La retenció és limitada — l'historial més antic es troba al destí del registre d'auditoria.",
+    "source_hash": "163e8ad0"
   }
 }

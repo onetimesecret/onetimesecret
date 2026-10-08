@@ -40,8 +40,8 @@
     "source_hash": "9feed9f1"
   },
   "web.admin.customers.actions.purge.confirmDescription": {
-    "text": "Detta raderar {email} och all deras data permanent. Detta kan inte ångras.",
-    "source_hash": "a74dd5d1"
+    "text": "Detta begär permanent radering av {email}. En förkontroll körs innan kontot avvecklas och avvisar rensningen om en arbetsyta har domäner, faktureringsstatus, andra medlemmar, bevarad data eller inkonsekventa referenser. Granska och åtgärda eventuella hinder innan du försöker igen. Detta kan inte ångras när avvecklingen har börjat.",
+    "source_hash": "7b4e5e37"
   },
   "web.admin.customers.actions.purge.success": {
     "text": "Kunden har rensats ut.",
@@ -60,8 +60,8 @@
     "source_hash": "227f57d7"
   },
   "web.admin.customers.actions.role.confirmDescription": {
-    "text": "Ändra {email} till rollen {role}.",
-    "source_hash": "9ba063c6"
+    "text": "Ändrar {email} till rollen {role}. Colonel-rollen ger full administrativ åtkomst till alla konton, hemligheter och organisationer på den här installationen. Skriv kontots e-postadress nedan för att bekräfta.",
+    "source_hash": "0ed85b97"
   },
   "web.admin.customers.actions.role.success": {
     "text": "Rollen har uppdaterats.",
@@ -116,8 +116,8 @@
     "source_hash": "62ed2854"
   },
   "web.admin.customers.actions.unverify.confirmDescription": {
-    "text": "Markera {email} som inte verifierad.",
-    "source_hash": "592ffd27"
+    "text": "Markerar {email} som inte verifierad. Ett overifierat konto kan inte ha rollen Colonel, Administratör eller Personal, så detta tar också bort eventuell förhöjd roll som kontot har. Skriv kontots e-postadress nedan för att bekräfta.",
+    "source_hash": "601f7382"
   },
   "web.admin.customers.actions.unverify.success": {
     "text": "Kunden har avverifierats.",
@@ -568,8 +568,8 @@
     "source_hash": "69e69f49"
   },
   "web.admin.customers.detail.diagnostics.healthy": {
-    "text": "Inget blockerande tillstånd hittades. Autentiseringsstatus ser frisk ut — misstänk klientsideproblem (cookies, inloggningskonfiguration för anpassad domän) eller fel region.",
-    "source_hash": "f6d5f8d1"
+    "text": "Inget blockerande tillstånd hittades. Underlaget för autentisering och organisationskontext ser felfritt ut – misstänk problem på klientsidan (cookies, inloggningskonfiguration för anpassad domän) eller fel region.",
+    "source_hash": "e0e8450e"
   },
   "web.admin.customers.detail.diagnostics.authUnavailable": {
     "text": "Autentiseringsdatabas inte tillgänglig (enkelt autentiseringsläge) — SQL-sidekontroller hoppades över.",
@@ -690,5 +690,153 @@
   "web.admin.customers.verification.unverified": {
     "text": "Inte verifierad",
     "source_hash": "15133907"
+  },
+  "web.admin.customers.actions.impersonate.button": {
+    "text": "Personifiera kund",
+    "source_hash": "38a7cfbe"
+  },
+  "web.admin.customers.actions.impersonate.confirmTitle": {
+    "text": "Starta personifiering?",
+    "source_hash": "c6e4fa74"
+  },
+  "web.admin.customers.actions.impersonate.confirmDescription": {
+    "text": "Öppnar en tidsbegränsad, skrivskyddad session som {email}. Varje sida visar en banner tills du avslutar, ändringar blockeras och sessionen registreras i granskningsloggen tillsammans med ditt skäl.",
+    "source_hash": "713c01b4"
+  },
+  "web.admin.customers.actions.impersonate.reasonLabel": {
+    "text": "Skäl (obligatoriskt)",
+    "source_hash": "d976f5d9"
+  },
+  "web.admin.customers.actions.impersonate.reasonPlaceholder": {
+    "text": "Varför behövs den här sessionen? Ange ärendereferensen.",
+    "source_hash": "89a4835d"
+  },
+  "web.admin.customers.actions.impersonate.success": {
+    "text": "Personifiering startad.",
+    "source_hash": "b4662bcc"
+  },
+  "web.admin.customers.actions.impersonate.unavailable": {
+    "text": "Personifiering är inte tillgänglig för Colonel-konton, anonyma konton och avstängda konton.",
+    "source_hash": "fb6578b2"
+  },
+  "web.admin.customers.actions.purge.refused": {
+    "text": "Rensningen avvisades. Kunden har bevarats; åtgärda hindren innan du försöker igen.",
+    "source_hash": "8e8a2ae1"
+  },
+  "web.admin.customers.actions.purge.partial": {
+    "text": "Rensningen stoppades efter att viss upprensning hade slutförts. Rapportera inte att den lyckades och försök inte igen i blindo; granska de slutförda stegen och hindren.",
+    "source_hash": "a88fd15b"
+  },
+  "web.admin.customers.actions.purge.incomplete": {
+    "text": "Rensningen slutfördes inte (status: {status}). Granska livscykeldetaljerna innan du försöker igen.",
+    "source_hash": "c0c3d287"
+  },
+  "web.admin.customers.actions.purge.unreadableResult": {
+    "text": "Servern returnerade ett oläsbart rensningsresultat. Inget lyckat resultat rapporterades; kontrollera kundens och arbetsytans status innan du försöker igen.",
+    "source_hash": "cc837a77"
+  },
+  "web.admin.customers.actions.purge.resultStage": {
+    "text": "Stoppades vid steg: {stage}.",
+    "source_hash": "d0e313bf"
+  },
+  "web.admin.customers.actions.purge.resultBlockers": {
+    "text": "Hinder: {blockers}.",
+    "source_hash": "00c1e196"
+  },
+  "web.admin.customers.actions.purge.resultPlannedActions": {
+    "text": "Planerad upprensning: {actions}.",
+    "source_hash": "6915205d"
+  },
+  "web.admin.customers.actions.purge.resultActions": {
+    "text": "Slutförd upprensning: {actions}.",
+    "source_hash": "d34121b3"
+  },
+  "web.admin.customers.actions.purge.resultCompletedStages": {
+    "text": "Slutförda steg: {stages}.",
+    "source_hash": "67f68860"
+  },
+  "web.admin.customers.actions.role.button": {
+    "text": "Ändra roll",
+    "source_hash": "a43a8d8c"
+  },
+  "web.admin.customers.actions.role.selfDemote": {
+    "text": "Du kan inte degradera ditt eget Colonel-konto. Be en annan Colonel att göra det, eller kör `bin/ots customers role demote`.",
+    "source_hash": "3e75d01b"
+  },
+  "web.admin.customers.actions.role.lastColonel": {
+    "text": "Du kan inte degradera den sista kvarvarande Colonel – installationen skulle stå utan administratör. Befordra och verifiera ett annat konto först.",
+    "source_hash": "9c59c731"
+  },
+  "web.admin.customers.actions.unverify.selfUnverify": {
+    "text": "Du kan inte avverifiera ditt eget konto: en verifierad e-postadress krävs för att ha Colonel-rollen.",
+    "source_hash": "8ab024fe"
+  },
+  "web.admin.customers.actions.unverify.lastColonel": {
+    "text": "Du kan inte avverifiera den sista kvarvarande Colonel – ett overifierat konto kan inte ha Colonel-rollen. Befordra och verifiera ett annat konto först.",
+    "source_hash": "fc404616"
+  },
+  "web.admin.customers.detail.diagnostics.organizationContextBlocked": {
+    "text": "Organisationskontexten är blockerad eller ofullständig. Granska den indexerade arbetsytan och reparera ägarskap, medlemskap eller avvikelser i indexet för kontakt-e-post innan du betraktar kontot som felfritt.",
+    "source_hash": "5c5c89be"
+  },
+  "web.admin.customers.detail.diagnostics.organization": {
+    "text": "Arbetsyta: {id}",
+    "source_hash": "6ee50fe9"
+  },
+  "web.admin.customers.detail.diagnostics.remediation": {
+    "text": "Åtgärd: {action}",
+    "source_hash": "83ddc7d7"
+  },
+  "web.admin.customers.detail.fields.internalId": {
+    "text": "Internt ID",
+    "source_hash": "e468bb47"
+  },
+  "web.admin.customers.detail.organizations.open": {
+    "text": "Öppna",
+    "source_hash": "ed077f3d"
+  },
+  "web.admin.customers.detail.rodauthAdmin.open": {
+    "text": "Öppna i Rodauth Admin",
+    "source_hash": "467173c8"
+  },
+  "web.admin.customers.detail.sessions.revokeAll.selfDescription": {
+    "text": "Detta loggar ut dig från alla andra enheter och webbläsare, inklusive sessioner som inte visas i den här listan. Sessionen du arbetar i just nu behålls.",
+    "source_hash": "ae350040"
+  },
+  "web.admin.customers.list.capped": {
+    "text": "Resultaten är begränsade: antalet som visas är ett minimivärde, inte totalen. Begränsa sökningen eller filtret för att se allt.",
+    "source_hash": "27537844"
+  },
+  "web.admin.customers.list.orphanedAccounts.title": {
+    "text": "Konto i autentiseringsdatabasen utan kundpost",
+    "source_hash": "82cf7a27"
+  },
+  "web.admin.customers.list.orphanedAccounts.hint": {
+    "text": "Autentiseringsdatabasen har ett konto för den här adressen, men ingen kundpost är kopplad till det. Personen kan fortfarande logga in; kundindexet har inget om personen. Öppna adressen för diagnostik.",
+    "source_hash": "0f903f23"
+  },
+  "web.admin.customers.list.orphanedAccounts.diagnose": {
+    "text": "Öppna kontodiagnostik",
+    "source_hash": "55b3e826"
+  },
+  "web.admin.customers.list.orphanedAccounts.accountId": {
+    "text": "Konto #{id}",
+    "source_hash": "485dee3c"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unverified": {
+    "text": "Inte verifierad",
+    "source_hash": "33c8e8de"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.verified": {
+    "text": "Verifierad",
+    "source_hash": "4f783840"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.closed": {
+    "text": "Stängd",
+    "source_hash": "c21ead06"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unknown": {
+    "text": "Okänd",
+    "source_hash": "b764cdc0"
   }
 }

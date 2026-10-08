@@ -32,551 +32,552 @@ require_relative '../../mail/provider_registry'
 #   - dns_records (jsonkey): Normalized Array of record hashes for UI display,
 #     each with :type, :name, :value keys. Populated during provisioning.
 #
-module Onetime
-  class CustomDomain < Familia::Horreum
-    class MailerConfig < Familia::Horreum
-      include Familia::Features::Autoloader
+class Onetime::CustomDomain::MailerConfig < Familia::Horreum
+  include Familia::Features::Autoloader
 
-      # Supported mail provider types, derived from the authoritative
-      # Onetime::Mail::ProviderRegistry. Historical ordering (smtp first)
-      # is preserved for stable display/serialization; the registry itself
-      # is ordered for auto-detection precedence.
-      # See lib/onetime/mail/mailer.rb for provider implementations.
-      PROVIDER_TYPES = (%w[smtp] + (Onetime::Mail::ProviderRegistry.providers - %w[smtp])).freeze
+  # Supported mail provider types, derived from the authoritative
+  # Onetime::Mail::ProviderRegistry. Historical ordering (smtp first)
+  # is preserved for stable display/serialization; the registry itself
+  # is ordered for auto-detection precedence.
+  # See lib/onetime/mail/mailer.rb for provider implementations.
+  PROVIDER_TYPES = (%w[smtp] + (Onetime::Mail::ProviderRegistry.providers - %w[smtp])).freeze
 
-      prefix :custom_domain__mailer_config
+  prefix :custom_domain__mailer_config
 
-      feature :encrypted_fields
+  feature :encrypted_fields
 
-      # domain_id is the CustomDomain's identifier (objid), used as our key.
-      # This creates a 1:1 relationship: one mailer config per domain.
-      identifier_field :domain_id
-      field :domain_id
+  # domain_id is the CustomDomain's identifier (objid), used as our key.
+  # This creates a 1:1 relationship: one mailer config per domain.
+  identifier_field :domain_id
+  field :domain_id
 
-      # Provider selection
-      field :provider         # One of PROVIDER_TYPES
+  # Provider selection
+  field :provider         # One of PROVIDER_TYPES
 
-      # Sender identity fields
-      field :from_name        # Display name for sender
-      field :from_address     # Sender email address
-      field :reply_to         # Reply-to address
+  # Sender identity fields
+  field :from_name        # Display name for sender
+  field :from_address     # Sender email address
+  field :reply_to         # Reply-to address
 
-      # DNS verification state (stored, updated by workers when both jobs complete)
-      # Values: 'pending' | 'verified' | 'failed'
-      # Updated by: DomainValidationWorker (after both jobs finish)
-      field :verification_status
-      field :verified_at          # Timestamp, cleared when from_address changes
+  # DNS verification state (stored, updated by workers when both jobs complete)
+  # Values: 'pending' | 'verified' | 'failed'
+  # Updated by: DomainValidationWorker (after both jobs finish)
+  field :verification_status
+  field :verified_at          # Timestamp, cleared when from_address changes
 
-      # Job lifecycle status fields (track WHERE the job is, not the outcome)
-      # Values: queued, processing, completed, failed
-      # See: lib/onetime/jobs/workers/job_lifecycle.rb
-      field :dns_check_status       # DnsRecordCheckWorker lifecycle
-      field :provider_check_status  # DomainValidationWorker lifecycle
+  # Job lifecycle status fields (track WHERE the job is, not the outcome)
+  # Values: queued, processing, completed, failed
+  # See: lib/onetime/jobs/workers/job_lifecycle.rb
+  field :dns_check_status       # DnsRecordCheckWorker lifecycle
+  field :provider_check_status  # DomainValidationWorker lifecycle
 
-      # Verification outcome fields (track WHAT the result was)
-      # nil = pending/unknown, true = passed, false = failed
-      # These are set by workers after check completes
-      field :dns_verified           # All DNS records have value_matches=true
-      field :provider_verified      # Provider API confirms domain is verified
+  # Verification outcome fields (track WHAT the result was)
+  # nil = pending/unknown, true = passed, false = failed
+  # These are set by workers after check completes
+  field :dns_verified           # All DNS records have value_matches=true
+  field :provider_verified      # Provider API confirms domain is verified
 
-      # Sending mode: 'platform' (OTS manages DNS via provider API) or
-      # future modes like 'byodns' (customer manages DNS manually).
-      # Currently only 'platform' is supported.
-      field :sending_mode
+  # Sending mode: 'platform' (OTS manages DNS via provider API) or
+  # future modes like 'byodns' (customer manages DNS manually).
+  # Currently only 'platform' is supported.
+  field :sending_mode
 
-      # Provider-specific DNS/identity data returned from provider APIs.
-      # Shape varies by provider:
-      #   SES: { dkim_tokens: [...], region: "us-east-1", identity_arn: "..." }
-      #   SendGrid: { subdomain: "em1234", dns_records: [...] }
-      jsonkey :provider_dns_data
+  # Provider-specific DNS/identity data returned from provider APIs.
+  # Shape varies by provider:
+  #   SES: { dkim_tokens: [...], region: "us-east-1", identity_arn: "..." }
+  #   SendGrid: { subdomain: "em1234", dns_records: [...] }
+  jsonkey :provider_dns_data
 
-      # Normalized DNS records for UI display.
-      # Uniform array format: [{ type: 'CNAME', name: '...', value: '...' }, ...]
-      # Populated during provisioning from provider-specific dns_records.
-      jsonkey :dns_records
+  # Normalized DNS records for UI display.
+  # Uniform array format: [{ type: 'CNAME', name: '...', value: '...' }, ...]
+  # Populated during provisioning from provider-specific dns_records.
+  jsonkey :dns_records
 
-      # Encrypted credential storage with domain-bound AAD
-      encrypted_field :api_key, aad_fields: [:domain_id]
+  # Encrypted credential storage with domain-bound AAD
+  encrypted_field :api_key, aad_fields: [:domain_id]
 
-      # Distributed lock for concurrent provisioning protection
-      lock :provisioning
+  # Distributed lock for concurrent provisioning protection
+  lock :provisioning
 
-      # General state
-      field :enabled          # Boolean string ('true'/'false')
+  # General state
+  field :enabled          # Boolean string ('true'/'false')
 
-      # Per-record DNS check results from DnsRecordCheckWorker.
-      # Array of hashes: [{type:, name:, value:, dns_exists:, value_matches:, error:}, ...]
-      # Pure fact-finding data — no pass/fail judgement.
-      jsonkey :dns_check_results
+  # Per-record DNS check results from DnsRecordCheckWorker.
+  # Array of hashes: [{type:, name:, value:, dns_exists:, value_matches:, error:}, ...]
+  # Pure fact-finding data — no pass/fail judgement.
+  jsonkey :dns_check_results
 
-      # Timestamps for dual verification completion tracking.
-      # Cleared when re-validate is triggered; set by respective workers.
-      field :dns_check_completed_at       # Unix timestamp, set by DnsRecordCheckWorker
-      field :provider_check_completed_at  # Unix timestamp, set by DomainValidationWorker
+  # Timestamps for dual verification completion tracking.
+  # Cleared when re-validate is triggered; set by respective workers.
+  field :dns_check_completed_at       # Unix timestamp, set by DnsRecordCheckWorker
+  field :provider_check_completed_at  # Unix timestamp, set by DomainValidationWorker
 
-      # Verification tracking fields (for caching and metrics)
-      field :last_check_at      # Unix timestamp of last verification attempt
-      field :check_duration_ms  # Duration of last check in milliseconds
-      field :check_count        # Total number of verification attempts
-      field :last_error         # Last error message if verification failed
+  # Verification tracking fields (for caching and metrics)
+  field :last_check_at      # Unix timestamp of last verification attempt
+  field :check_duration_ms  # Duration of last check in milliseconds
+  field :check_count        # Total number of verification attempts
+  field :last_error         # Last error message if verification failed
 
-      # Timestamps (Unix epoch integers)
-      field :created
-      field :updated
+  # Timestamps (Unix epoch integers)
+  field :created
+  field :updated
 
-      # Field encoding spec consumed by the boolean_encoding feature (below)
-      # and the registry's load-time setter check. Mailer is not
-      # colonel-editable (ConfigRegistry KINDS `editable: false`), so this
-      # does not enter the registry's composed FIELD_SPECS (#3951). The
-      # TRI-STATE worker-written outcome fields (dns_verified /
-      # provider_verified: nil = unknown) are deliberately excluded — they
-      # keep parse_boolean_field's nil-preserving semantics.
-      FIELD_SPECS = {
-        'enabled' => { type: :boolean, storage: :string },
-      }.freeze
+  # Field encoding spec consumed by the boolean_encoding feature (below)
+  # and the registry's load-time setter check. Mailer is not
+  # colonel-editable (ConfigRegistry KINDS `editable: false`), so this
+  # does not enter the registry's composed FIELD_SPECS (#3951). The
+  # TRI-STATE worker-written outcome fields (dns_verified /
+  # provider_verified: nil = unknown) are deliberately excluded — they
+  # keep parse_boolean_field's nil-preserving semantics.
+  FIELD_SPECS = {
+    'enabled' => { type: :boolean, storage: :string },
+  }.freeze
 
-      # Tolerant predicate + normalizing setter for `enabled` per the spec
-      # above (#3951). Must come after both the field declaration and the
-      # constant.
-      feature :boolean_encoding
+  # Tolerant predicate + normalizing setter for `enabled` per the spec
+  # above (#3951). Must come after both the field declaration and the
+  # constant.
+  feature :boolean_encoding
 
-      def init
-        self.enabled             ||= 'false'
-        self.verification_status ||= 'pending'
-        self.sending_mode        ||= 'platform'
-        # Job lifecycle fields default to nil (no job enqueued yet)
-        # Outcome fields default to nil (unknown/pending)
+  def init
+    self.enabled             ||= 'false'
+    self.verification_status ||= 'pending'
+    self.sending_mode        ||= 'platform'
+    # Job lifecycle fields default to nil (no job enqueued yet)
+    # Outcome fields default to nil (unknown/pending)
+  end
+
+  # Check if the sender address has been verified via DNS.
+  #
+  # @return [Boolean] true if verification_status is 'verified'
+  def verified?
+    verification_status == 'verified'
+  end
+
+  # Compute the effective verification status from outcome fields.
+  #
+  # This provides backward compatibility: code that reads verification_status
+  # will get a value derived from the more granular outcome fields.
+  #
+  # Logic:
+  #   - If either job is still active (queued/processing): 'pending'
+  #   - If both outcomes are true: 'verified'
+  #   - If either outcome is false: 'failed'
+  #   - If outcomes are nil but jobs completed: 'failed' (no data = failure)
+  #   - Default: 'pending'
+  #
+  # @return [String] 'pending', 'verified', or 'failed'
+  def computed_verification_status
+    require_relative '../../jobs/workers/job_lifecycle'
+    lifecycle = Onetime::Jobs::Workers::JobLifecycle
+
+    # If either job is still in progress, we're pending
+    return 'pending' if lifecycle.active?(dns_check_status)
+    return 'pending' if lifecycle.active?(provider_check_status)
+
+    # If we have outcome data, use it
+    dns_ok      = parse_boolean_field(dns_verified)
+    provider_ok = parse_boolean_field(provider_verified)
+
+    # Both must pass for verified status
+    if dns_ok == true && provider_ok == true
+      'verified'
+    elsif dns_ok == false || provider_ok == false ||
+          (lifecycle.terminal?(dns_check_status) && lifecycle.terminal?(provider_check_status))
+      'failed'
+    else
+      'pending'
+    end
+  end
+
+  # Check if both verification jobs have completed (regardless of outcome).
+  #
+  # @return [Boolean] true if both dns_check_status and provider_check_status are terminal
+  def jobs_completed?
+    require_relative '../../jobs/workers/job_lifecycle'
+    lifecycle = Onetime::Jobs::Workers::JobLifecycle
+
+    lifecycle.terminal?(dns_check_status) && lifecycle.terminal?(provider_check_status)
+  end
+
+  # Check if any verification job is still in progress.
+  #
+  # @return [Boolean] true if either job is queued or processing
+  def jobs_in_progress?
+    require_relative '../../jobs/workers/job_lifecycle'
+    lifecycle = Onetime::Jobs::Workers::JobLifecycle
+
+    lifecycle.active?(dns_check_status) || lifecycle.active?(provider_check_status)
+  end
+
+  # Update verification_status from outcome fields and persist.
+  #
+  # Called by workers after both jobs complete. Derives the final status
+  # from dns_verified and provider_verified, then stores it.
+  #
+  # @return [String] the new verification_status value
+  def update_verification_status!
+    new_status               = computed_verification_status
+    self.verification_status = new_status
+    self.updated             = Familia.now.to_i
+    save_fields(:verification_status, :updated)
+    new_status
+  end
+
+  # Parse a boolean field that may be stored as string, boolean, or nil.
+  #
+  # Public: the nil-preserving semantics are part of the tri-state
+  # contract for the worker-written outcome fields (dns_verified /
+  # provider_verified, nil = unknown). Serializers (e.g. ConfigRegistry's
+  # colonel drift view) must use this rather than a `.to_s == 'true'`
+  # coercion, which would render "unknown" as an authoritative false.
+  #
+  # Not OT::Utils.explicit_yes? for the same reason: it is a two-state
+  # recognizer and would collapse nil into false. The stored values are
+  # written by the worker as 'true' / 'false', so the wider operator-input
+  # token set would gain nothing either.
+  #
+  # @param value [String, Boolean, nil] The field value
+  # @return [Boolean, nil] true, false, or nil if unknown
+  def parse_boolean_field(value)
+    case value
+    when true, 'true'
+      true
+    when false, 'false'
+      false
+    end
+  end
+
+  # Update the from_address, resetting verification state.
+  #
+  # Changing the sender address invalidates any prior DNS verification
+  # (DKIM/SPF records are bound to the sender domain), so verified_at
+  # is cleared and verification_status reverts to 'pending'.
+  #
+  # @param new_address [String] The new sender email address
+  # @return [void]
+  def update_from_address(new_address)
+    self.from_address        = new_address
+    self.verified_at         = nil
+    self.verification_status = 'pending'
+    self.updated             = Familia.now.to_i
+    save
+  end
+
+  # Load the associated CustomDomain record.
+  #
+  # @return [CustomDomain, nil] The domain or nil if not found
+  def custom_domain
+    Onetime::CustomDomain.find_by_identifier(domain_id)
+  end
+
+  # Load the owning Organization via the CustomDomain.
+  #
+  # @return [Organization, nil] The organization or nil if not found
+  def organization
+    custom_domain&.primary_organization
+  end
+
+  # Validate that all required fields are present.
+  #
+  # @return [Array<String>] List of validation error messages
+  def validation_errors
+    errors = []
+
+    errors << 'domain_id is required' if domain_id.to_s.empty?
+    # Provider is optional - when empty, resolved from installation config
+    if !provider.to_s.empty? && !PROVIDER_TYPES.include?(provider)
+      errors << "provider must be one of: #{PROVIDER_TYPES.join(', ')}"
+    end
+    errors << 'from_address is required' if from_address.to_s.empty?
+
+    errors
+  end
+
+  # Check if the configuration is valid.
+  #
+  # @return [Boolean] true if no validation errors
+  def valid?
+    validation_errors.empty?
+  end
+
+  # Record a verification check attempt with timing and optional error.
+  #
+  # Updates tracking fields for caching decisions and operational metrics.
+  # Called by ValidateSenderDomain after each verification attempt.
+  #
+  # Uses save_fields for field-specific persistence to avoid race
+  # conditions where a full save could overwrite concurrent updates
+  # to other fields.
+  #
+  # @param duration_ms [Integer] How long the check took in milliseconds
+  # @param error [String, nil] Error message if the check failed
+  # @return [void]
+  def record_check_attempt(duration_ms, error = nil)
+    self.last_check_at     = Familia.now.to_i
+    self.check_duration_ms = duration_ms.to_i
+    self.check_count       = (check_count.to_i + 1).to_s
+    self.last_error        = error
+    self.updated           = Familia.now.to_i
+    save_fields(:last_check_at, :check_duration_ms, :check_count, :last_error, :updated)
+  end
+
+  # Check if a recent verification check was performed.
+  #
+  # Used for caching decisions to avoid excessive DNS lookups.
+  #
+  # @param max_age_seconds [Integer] Maximum age for a check to be considered recent
+  # @return [Boolean] true if a check was performed within max_age_seconds
+  def check_recent?(max_age_seconds = 300)
+    return false if last_check_at.to_s.empty?
+
+    (Familia.now.to_i - last_check_at.to_i) < max_age_seconds
+  end
+
+  # Check if the sender domain has been provisioned.
+  #
+  # A domain is considered provisioned when dns_records contains
+  # normalized records from the provider API (SES, SendGrid, etc.).
+  #
+  # @return [Boolean] true if dns_records is populated
+  def provisioned?
+    data = dns_records&.value
+    data.is_a?(Array) && !data.empty?
+  end
+
+  # Build DNS records required for email authentication.
+  #
+  # Returns the DNS records that must be configured at the domain registrar.
+  # After provisioning, this returns the actual records from the provider,
+  # enriched with per-record DNS check results when available.
+  #
+  # Each record includes:
+  #   - type: DNS record type (CNAME, TXT, etc.)
+  #   - name: DNS hostname
+  #   - value: DNS record value
+  #   - status: Overall verification status ('pending', 'verified', 'failed')
+  #   - dns_exists: Whether the DNS record was found (from DnsRecordCheckWorker)
+  #   - value_matches: Whether the DNS value matches provisioned value
+  #
+  # @return [Array<Hash>] DNS records for user to configure
+  def required_dns_records
+    return [] unless provisioned?
+
+    data                   = dns_records.value
+    dns_checks             = dns_check_results&.value || []
+    provider_data          = provider_dns_data&.value || {}
+    provider_records       = provider_data['dns_records'] || []
+    domain_provider_status = provider_data['status']
+    current_status         = verification_status || 'pending'
+
+    data.map do |record|
+      name  = record['name']
+      check = dns_checks.find { |c| c['name'] == name }
+
+      is_optional = [true, 'true'].include?(record['optional'])
+
+      # Per-record status from DNS check facts when available;
+      # fall back to overall status only when no check data exists yet.
+      # Optional records are never DNS-checked, so they stay 'pending'.
+      per_record_status = if is_optional
+                            'pending'
+                          elsif check
+                            check['value_matches'] ? 'verified' : 'failed'
+                          else
+                            current_status
+                          end
+
+      result             = {
+        'type' => record['type'],
+        'name' => name,
+        'value' => record['value'],
+        'status' => per_record_status,
+      }
+      result['optional'] = true if [true, 'true'].include?(record['optional'])
+      if check
+        result['dns_exists']    = check['dns_exists']
+        result['value_matches'] = check['value_matches']
       end
 
-      # Check if the sender address has been verified via DNS.
-      #
-      # @return [Boolean] true if verification_status is 'verified'
-      def verified?
-        verification_status == 'verified'
+      apply_provider_verification(result, name, provider_records, domain_provider_status)
+
+      result.compact
+    end
+  end
+
+  # Set provider_verified on a record hash by matching against provider
+  # DNS records, falling back to domain-level status.
+  #
+  # Lettermint uses 'active' for verified DNS records and 'verified'
+  # at the domain level. provider_status_verified? accepts both.
+  #
+  # @param result [Hash] Record hash to annotate (mutated in place)
+  # @param name [String] DNS record hostname to match
+  # @param provider_records [Array<Hash>] Per-record provider data
+  # @param domain_provider_status [String, nil] Domain-level provider status
+  def apply_provider_verification(result, name, provider_records, domain_provider_status)
+    if provider_records.any?
+      provider_rec                = provider_records.find { |p| p['name'].to_s == name }
+      record_status               = provider_rec&.dig('status')
+      effective_status            = record_status || domain_provider_status
+      result['provider_verified'] = provider_status_verified?(effective_status) unless effective_status.nil?
+    elsif domain_provider_status
+      result['provider_verified'] = provider_status_verified?(domain_provider_status)
+    end
+  end
+
+  # Whether a provider status string indicates verified.
+  #
+  # Lettermint uses 'active' for verified DNS records and 'verified'
+  # at the domain level. Other providers may use 'verified' directly.
+  #
+  # @param status [String] Provider status value
+  # @return [Boolean]
+  def provider_status_verified?(status)
+    %w[verified active].include?(status.to_s.downcase)
+  end
+
+  # Check if both DNS and provider verification have completed.
+  #
+  # Used by the frontend to determine when polling can stop.
+  #
+  # @return [Boolean] true if both checks have run since last re-validate
+  def both_checks_complete?
+    !dns_check_completed_at.to_s.empty? && !provider_check_completed_at.to_s.empty?
+  end
+
+  # Resolve effective provider for this mailer config.
+  #
+  # Uses the config's provider field if set, otherwise falls back to the
+  # installation-level sender provider (Mailer.determine_sender_provider).
+  # The result is normalized (stripped, lowercased) so every consumer —
+  # strategy dispatch, credential lookup, comparisons — sees a canonical
+  # provider name and need not re-normalize.
+  #
+  # @return [String] Lowercased provider name, or '' if not resolvable
+  def effective_provider
+    resolved = provider.to_s.strip.downcase
+    return resolved unless resolved.empty?
+
+    # Fallback to installation-level sender provider, which itself
+    # falls back to the sending transport (EMAILER_MODE).
+    Onetime::Mail::Mailer.determine_sender_provider.to_s.strip.downcase
+  end
+
+  class << self
+    # Find mailer config by domain ID.
+    #
+    # @param domain_id [String] CustomDomain identifier (objid)
+    # @return [CustomDomain::MailerConfig, nil] The config or nil if not found
+    def find_by_domain_id(domain_id)
+      return nil if domain_id.to_s.empty?
+
+      load(domain_id)
+    end
+
+    # Load sender config with graceful fallback.
+    #
+    # Wraps find_by_domain_id with broader error handling. Returns nil
+    # on missing config or any error — callers treat nil as "use
+    # system default sender config".
+    #
+    # @param domain_id [String] CustomDomain identifier (objid)
+    # @return [CustomDomain::MailerConfig, nil] The config or nil
+    def load_for_domain(domain_id)
+      config = find_by_domain_id(domain_id)
+      unless config
+        OT.info "[MailerConfig] No sender config for domain_id=#{domain_id}, using global mailer"
+        return nil
+      end
+      config
+    rescue StandardError => ex
+      OT.le "[MailerConfig] Failed to load sender config for domain_id=#{domain_id}: #{ex.message}"
+      nil
+    end
+
+    # Check if a domain has mailer configuration.
+    #
+    # @param domain_id [String] CustomDomain identifier
+    # @return [Boolean] true if mailer config exists
+    def exists_for_domain?(domain_id)
+      return false if domain_id.to_s.empty?
+
+      exists?(domain_id)
+    end
+
+    # Create a new mailer config for a domain.
+    #
+    # @param domain_id [String] CustomDomain identifier
+    # @param attrs [Hash] Configuration attributes
+    # @return [CustomDomain::MailerConfig] The created config
+    # @raise [Onetime::Problem] if config already exists or validation fails
+    def create!(domain_id:, **attrs)
+      raise Onetime::Problem, 'domain_id is required' if domain_id.to_s.empty?
+      raise Onetime::Problem, 'Mailer config already exists for this domain' if exists_for_domain?(domain_id)
+
+      config = new(domain_id: domain_id)
+
+      # Set provider and sender identity fields
+      config.provider     = attrs[:provider] if attrs.key?(:provider)
+      config.from_name    = attrs[:from_name] if attrs.key?(:from_name)
+      config.from_address = attrs[:from_address] if attrs.key?(:from_address)
+      config.reply_to     = attrs[:reply_to] if attrs.key?(:reply_to)
+      config.enabled      = attrs[:enabled].to_s if attrs.key?(:enabled)
+
+      # Set verification and mode fields
+      config.verification_status = attrs[:verification_status] if attrs.key?(:verification_status)
+      config.sending_mode        = attrs[:sending_mode] if attrs.key?(:sending_mode)
+
+      # Initialize timestamps
+      now            = Familia.now.to_i
+      config.created = now
+      config.updated = now
+
+      unless config.valid?
+        raise Onetime::Problem, config.validation_errors.join('; ')
       end
 
-      # Compute the effective verification status from outcome fields.
-      #
-      # This provides backward compatibility: code that reads verification_status
-      # will get a value derived from the more granular outcome fields.
-      #
-      # Logic:
-      #   - If either job is still active (queued/processing): 'pending'
-      #   - If both outcomes are true: 'verified'
-      #   - If either outcome is false: 'failed'
-      #   - If outcomes are nil but jobs completed: 'failed' (no data = failure)
-      #   - Default: 'pending'
-      #
-      # @return [String] 'pending', 'verified', or 'failed'
-      def computed_verification_status
-        require_relative '../../jobs/workers/job_lifecycle'
-        lifecycle = Onetime::Jobs::Workers::JobLifecycle
+      config.save
 
-        # If either job is still in progress, we're pending
-        return 'pending' if lifecycle.active?(dns_check_status)
-        return 'pending' if lifecycle.active?(provider_check_status)
-
-        # If we have outcome data, use it
-        dns_ok      = parse_boolean_field(dns_verified)
-        provider_ok = parse_boolean_field(provider_verified)
-
-        # Both must pass for verified status
-        if dns_ok == true && provider_ok == true
-          'verified'
-        elsif dns_ok == false || provider_ok == false ||
-              (lifecycle.terminal?(dns_check_status) && lifecycle.terminal?(provider_check_status))
-          'failed'
-        else
-          'pending'
-        end
+      # Set encrypted fields AFTER save so the AAD context includes
+      # aad_fields values (Familia's build_aad uses record.exists? to
+      # decide whether to include aad_fields in the AAD hash). Setting
+      # api_key before save would encrypt with pre-save AAD, but reveal
+      # after save computes post-save AAD -- causing decryption failure.
+      if attrs.key?(:api_key)
+        config.api_key = attrs[:api_key]
+        config.commit_fields
       end
 
-      # Check if both verification jobs have completed (regardless of outcome).
-      #
-      # @return [Boolean] true if both dns_check_status and provider_check_status are terminal
-      def jobs_completed?
-        require_relative '../../jobs/workers/job_lifecycle'
-        lifecycle = Onetime::Jobs::Workers::JobLifecycle
+      config
+    end
 
-        lifecycle.terminal?(dns_check_status) && lifecycle.terminal?(provider_check_status)
-      end
+    # Delete mailer config for a domain.
+    #
+    # @param domain_id [String] CustomDomain identifier
+    # @return [Boolean] true if deleted, false if not found
+    def delete_for_domain!(domain_id)
+      return false if domain_id.to_s.empty?
 
-      # Check if any verification job is still in progress.
-      #
-      # @return [Boolean] true if either job is queued or processing
-      def jobs_in_progress?
-        require_relative '../../jobs/workers/job_lifecycle'
-        lifecycle = Onetime::Jobs::Workers::JobLifecycle
+      config = find_by_domain_id(domain_id)
+      return false unless config
 
-        lifecycle.active?(dns_check_status) || lifecycle.active?(provider_check_status)
-      end
+      config.destroy!
 
-      # Update verification_status from outcome fields and persist.
-      #
-      # Called by workers after both jobs complete. Derives the final status
-      # from dns_verified and provider_verified, then stores it.
-      #
-      # @return [String] the new verification_status value
-      def update_verification_status!
-        new_status               = computed_verification_status
-        self.verification_status = new_status
-        self.updated             = Familia.now.to_i
-        save_fields(:verification_status, :updated)
-        new_status
-      end
+      true
+    end
 
-      # Parse a boolean field that may be stored as string, boolean, or nil.
-      #
-      # Public: the nil-preserving semantics are part of the tri-state
-      # contract for the worker-written outcome fields (dns_verified /
-      # provider_verified, nil = unknown). Serializers (e.g. ConfigRegistry's
-      # colonel drift view) must use this rather than a `.to_s == 'true'`
-      # coercion, which would render "unknown" as an authoritative false.
-      #
-      # @param value [String, Boolean, nil] The field value
-      # @return [Boolean, nil] true, false, or nil if unknown
-      def parse_boolean_field(value)
-        case value
-        when true, 'true'
-          true
-        when false, 'false'
-          false
-        end
-      end
+    # List all domain mailer configs.
+    #
+    # @return [Array<CustomDomain::MailerConfig>] All configs (newest first)
+    def all
+      instances.revrangeraw(0, -1).filter_map { |identifier| load(identifier) }
+    end
 
-      # Update the from_address, resetting verification state.
-      #
-      # Changing the sender address invalidates any prior DNS verification
-      # (DKIM/SPF records are bound to the sender domain), so verified_at
-      # is cleared and verification_status reverts to 'pending'.
-      #
-      # @param new_address [String] The new sender email address
-      # @return [void]
-      def update_from_address(new_address)
-        self.from_address        = new_address
-        self.verified_at         = nil
-        self.verification_status = 'pending'
-        self.updated             = Familia.now.to_i
-        save
-      end
-
-      # Load the associated CustomDomain record.
-      #
-      # @return [CustomDomain, nil] The domain or nil if not found
-      def custom_domain
-        Onetime::CustomDomain.find_by_identifier(domain_id)
-      end
-
-      # Load the owning Organization via the CustomDomain.
-      #
-      # @return [Organization, nil] The organization or nil if not found
-      def organization
-        custom_domain&.primary_organization
-      end
-
-      # Validate that all required fields are present.
-      #
-      # @return [Array<String>] List of validation error messages
-      def validation_errors
-        errors = []
-
-        errors << 'domain_id is required' if domain_id.to_s.empty?
-        # Provider is optional - when empty, resolved from installation config
-        if !provider.to_s.empty? && !PROVIDER_TYPES.include?(provider)
-          errors << "provider must be one of: #{PROVIDER_TYPES.join(', ')}"
-        end
-        errors << 'from_address is required' if from_address.to_s.empty?
-
-        errors
-      end
-
-      # Check if the configuration is valid.
-      #
-      # @return [Boolean] true if no validation errors
-      def valid?
-        validation_errors.empty?
-      end
-
-      # Record a verification check attempt with timing and optional error.
-      #
-      # Updates tracking fields for caching decisions and operational metrics.
-      # Called by ValidateSenderDomain after each verification attempt.
-      #
-      # Uses save_fields for field-specific persistence to avoid race
-      # conditions where a full save could overwrite concurrent updates
-      # to other fields.
-      #
-      # @param duration_ms [Integer] How long the check took in milliseconds
-      # @param error [String, nil] Error message if the check failed
-      # @return [void]
-      def record_check_attempt(duration_ms, error = nil)
-        self.last_check_at     = Familia.now.to_i
-        self.check_duration_ms = duration_ms.to_i
-        self.check_count       = (check_count.to_i + 1).to_s
-        self.last_error        = error
-        self.updated           = Familia.now.to_i
-        save_fields(:last_check_at, :check_duration_ms, :check_count, :last_error, :updated)
-      end
-
-      # Check if a recent verification check was performed.
-      #
-      # Used for caching decisions to avoid excessive DNS lookups.
-      #
-      # @param max_age_seconds [Integer] Maximum age for a check to be considered recent
-      # @return [Boolean] true if a check was performed within max_age_seconds
-      def check_recent?(max_age_seconds = 300)
-        return false if last_check_at.to_s.empty?
-
-        (Familia.now.to_i - last_check_at.to_i) < max_age_seconds
-      end
-
-      # Check if the sender domain has been provisioned.
-      #
-      # A domain is considered provisioned when dns_records contains
-      # normalized records from the provider API (SES, SendGrid, etc.).
-      #
-      # @return [Boolean] true if dns_records is populated
-      def provisioned?
-        data = dns_records&.value
-        data.is_a?(Array) && !data.empty?
-      end
-
-      # Build DNS records required for email authentication.
-      #
-      # Returns the DNS records that must be configured at the domain registrar.
-      # After provisioning, this returns the actual records from the provider,
-      # enriched with per-record DNS check results when available.
-      #
-      # Each record includes:
-      #   - type: DNS record type (CNAME, TXT, etc.)
-      #   - name: DNS hostname
-      #   - value: DNS record value
-      #   - status: Overall verification status ('pending', 'verified', 'failed')
-      #   - dns_exists: Whether the DNS record was found (from DnsRecordCheckWorker)
-      #   - value_matches: Whether the DNS value matches provisioned value
-      #
-      # @return [Array<Hash>] DNS records for user to configure
-      def required_dns_records
-        return [] unless provisioned?
-
-        data                   = dns_records.value
-        dns_checks             = dns_check_results&.value || []
-        provider_data          = provider_dns_data&.value || {}
-        provider_records       = provider_data['dns_records'] || []
-        domain_provider_status = provider_data['status']
-        current_status         = verification_status || 'pending'
-
-        data.map do |record|
-          name  = record['name']
-          check = dns_checks.find { |c| c['name'] == name }
-
-          is_optional = [true, 'true'].include?(record['optional'])
-
-          # Per-record status from DNS check facts when available;
-          # fall back to overall status only when no check data exists yet.
-          # Optional records are never DNS-checked, so they stay 'pending'.
-          per_record_status = if is_optional
-                                'pending'
-                              elsif check
-                                check['value_matches'] ? 'verified' : 'failed'
-                              else
-                                current_status
-                              end
-
-          result             = {
-            'type' => record['type'],
-            'name' => name,
-            'value' => record['value'],
-            'status' => per_record_status,
-          }
-          result['optional'] = true if [true, 'true'].include?(record['optional'])
-          if check
-            result['dns_exists']    = check['dns_exists']
-            result['value_matches'] = check['value_matches']
-          end
-
-          apply_provider_verification(result, name, provider_records, domain_provider_status)
-
-          result.compact
-        end
-      end
-
-      # Set provider_verified on a record hash by matching against provider
-      # DNS records, falling back to domain-level status.
-      #
-      # Lettermint uses 'active' for verified DNS records and 'verified'
-      # at the domain level. provider_status_verified? accepts both.
-      #
-      # @param result [Hash] Record hash to annotate (mutated in place)
-      # @param name [String] DNS record hostname to match
-      # @param provider_records [Array<Hash>] Per-record provider data
-      # @param domain_provider_status [String, nil] Domain-level provider status
-      def apply_provider_verification(result, name, provider_records, domain_provider_status)
-        if provider_records.any?
-          provider_rec                = provider_records.find { |p| p['name'].to_s == name }
-          record_status               = provider_rec&.dig('status')
-          effective_status            = record_status || domain_provider_status
-          result['provider_verified'] = provider_status_verified?(effective_status) unless effective_status.nil?
-        elsif domain_provider_status
-          result['provider_verified'] = provider_status_verified?(domain_provider_status)
-        end
-      end
-
-      # Whether a provider status string indicates verified.
-      #
-      # Lettermint uses 'active' for verified DNS records and 'verified'
-      # at the domain level. Other providers may use 'verified' directly.
-      #
-      # @param status [String] Provider status value
-      # @return [Boolean]
-      def provider_status_verified?(status)
-        %w[verified active].include?(status.to_s.downcase)
-      end
-
-      # Check if both DNS and provider verification have completed.
-      #
-      # Used by the frontend to determine when polling can stop.
-      #
-      # @return [Boolean] true if both checks have run since last re-validate
-      def both_checks_complete?
-        !dns_check_completed_at.to_s.empty? && !provider_check_completed_at.to_s.empty?
-      end
-
-      # Resolve effective provider for this mailer config.
-      #
-      # Uses the config's provider field if set, otherwise falls back to the
-      # installation-level sender provider (Mailer.determine_sender_provider).
-      # The result is normalized (stripped, lowercased) so every consumer —
-      # strategy dispatch, credential lookup, comparisons — sees a canonical
-      # provider name and need not re-normalize.
-      #
-      # @return [String] Lowercased provider name, or '' if not resolvable
-      def effective_provider
-        resolved = provider.to_s.strip.downcase
-        return resolved unless resolved.empty?
-
-        # Fallback to installation-level sender provider, which itself
-        # falls back to the sending transport (EMAILER_MODE).
-        Onetime::Mail::Mailer.determine_sender_provider.to_s.strip.downcase
-      end
-
-      class << self
-        # Find mailer config by domain ID.
-        #
-        # @param domain_id [String] CustomDomain identifier (objid)
-        # @return [CustomDomain::MailerConfig, nil] The config or nil if not found
-        def find_by_domain_id(domain_id)
-          return nil if domain_id.to_s.empty?
-
-          load(domain_id)
-        end
-
-        # Load sender config with graceful fallback.
-        #
-        # Wraps find_by_domain_id with broader error handling. Returns nil
-        # on missing config or any error — callers treat nil as "use
-        # system default sender config".
-        #
-        # @param domain_id [String] CustomDomain identifier (objid)
-        # @return [CustomDomain::MailerConfig, nil] The config or nil
-        def load_for_domain(domain_id)
-          config = find_by_domain_id(domain_id)
-          unless config
-            OT.info "[MailerConfig] No sender config for domain_id=#{domain_id}, using global mailer"
-            return nil
-          end
-          config
-        rescue StandardError => ex
-          OT.le "[MailerConfig] Failed to load sender config for domain_id=#{domain_id}: #{ex.message}"
-          nil
-        end
-
-        # Check if a domain has mailer configuration.
-        #
-        # @param domain_id [String] CustomDomain identifier
-        # @return [Boolean] true if mailer config exists
-        def exists_for_domain?(domain_id)
-          return false if domain_id.to_s.empty?
-
-          exists?(domain_id)
-        end
-
-        # Create a new mailer config for a domain.
-        #
-        # @param domain_id [String] CustomDomain identifier
-        # @param attrs [Hash] Configuration attributes
-        # @return [CustomDomain::MailerConfig] The created config
-        # @raise [Onetime::Problem] if config already exists or validation fails
-        def create!(domain_id:, **attrs)
-          raise Onetime::Problem, 'domain_id is required' if domain_id.to_s.empty?
-          raise Onetime::Problem, 'Mailer config already exists for this domain' if exists_for_domain?(domain_id)
-
-          config = new(domain_id: domain_id)
-
-          # Set provider and sender identity fields
-          config.provider     = attrs[:provider] if attrs.key?(:provider)
-          config.from_name    = attrs[:from_name] if attrs.key?(:from_name)
-          config.from_address = attrs[:from_address] if attrs.key?(:from_address)
-          config.reply_to     = attrs[:reply_to] if attrs.key?(:reply_to)
-          config.enabled      = attrs[:enabled].to_s if attrs.key?(:enabled)
-
-          # Set verification and mode fields
-          config.verification_status = attrs[:verification_status] if attrs.key?(:verification_status)
-          config.sending_mode        = attrs[:sending_mode] if attrs.key?(:sending_mode)
-
-          # Initialize timestamps
-          now            = Familia.now.to_i
-          config.created = now
-          config.updated = now
-
-          unless config.valid?
-            raise Onetime::Problem, config.validation_errors.join('; ')
-          end
-
-          config.save
-
-          # Set encrypted fields AFTER save so the AAD context includes
-          # aad_fields values (Familia's build_aad uses record.exists? to
-          # decide whether to include aad_fields in the AAD hash). Setting
-          # api_key before save would encrypt with pre-save AAD, but reveal
-          # after save computes post-save AAD -- causing decryption failure.
-          if attrs.key?(:api_key)
-            config.api_key = attrs[:api_key]
-            config.commit_fields
-          end
-
-          config
-        end
-
-        # Delete mailer config for a domain.
-        #
-        # @param domain_id [String] CustomDomain identifier
-        # @return [Boolean] true if deleted, false if not found
-        def delete_for_domain!(domain_id)
-          return false if domain_id.to_s.empty?
-
-          config = find_by_domain_id(domain_id)
-          return false unless config
-
-          config.destroy!
-
-          true
-        end
-
-        # List all domain mailer configs.
-        #
-        # @return [Array<CustomDomain::MailerConfig>] All configs (newest first)
-        def all
-          instances.revrangeraw(0, -1).filter_map { |identifier| load(identifier) }
-        end
-
-        # Count of domains with mailer configuration.
-        #
-        # @return [Integer] Number of mailer configs
-        def count
-          instances.size
-        end
-      end
+    # Count of domains with mailer configuration.
+    #
+    # @return [Integer] Number of mailer configs
+    def count
+      instances.size
     end
   end
 end

@@ -26,6 +26,13 @@ module Onetime
     #   - env['onetime.domain_strategy'] : Classification symbol (:canonical, :subdomain, :custom, :invalid)
     #   - env['onetime.custom_domain']   : Resolved CustomDomain instance (:custom only)
     #   - env['onetime.custom_domain_id']: CustomDomain#identifier (:custom only)
+    #   - env['onetime.custom_domain_lookup']: Onetime::CustomDomain::Lookup
+    #     for the display domain (found, absent or read_failed), set whenever
+    #     classification performed the custom-domain read. Not set when no read
+    #     was needed (an exact canonical host, domains disabled, an unparseable
+    #     host); Onetime::CustomDomain::Lookup.for(env) reads on demand then.
+    #     Request-path code reads the domain through that method rather than
+    #     calling CustomDomain.from_display_domain again (#4220).
     #
     # ## :invalid is NOT only a property of the hostname (#4139)
     #
@@ -43,6 +50,11 @@ module Onetime
     #    domain_strategy || :invalid`). So a datastore blip classifies a REAL
     #    customer domain :invalid, and every consumer testing `== :custom`
     #    silently downgrades it to the operator's own polarity.
+    #
+    # The published Onetime::CustomDomain::Lookup tells the two apart
+    # (#4220): case 2 carries a read_failed lookup, while a host with no
+    # record carries an absent one. The classification symbol is unchanged:
+    # both are still :invalid.
     #
     # Case 2 is why a fail-closed check must be a POSITIVE test against
     # :canonical/:subdomain and never `!= :custom` — see
@@ -106,6 +118,13 @@ module Onetime
     #   ConfigSerializer#operator_domain?                 false
     #   ConfigSerializer#resolve_signin (via that helper) tenant-safe (OFF,
     #                                                     SSO carve-out only)
+    #   HttpOriginOptions.classified_display_domain?      false (Origin refused)
+    #                                                     unless the published
+    #                                                     lookup is read_failed
+    #                                                     for the display domain,
+    #                                                     which is admitted so the
+    #                                                     sign-in gates' 503 is
+    #                                                     reached
     #   -- `== :custom` identity test (branding, routing, narrowing) --
     #   Core::Controllers::Base#custom_domain_request?    false
     #   Auth::RestrictTo `custom_host:`                   false (no narrowing)
@@ -115,22 +134,33 @@ module Onetime
     #   InitializeViewVars / GetFavicon                   default favicon
     #   API v1 Logic::Base#custom_domain?                 false
     #   -- re-classified (session surface binding) --
-    #   SessionSurface.for_env                            the healthy answer
-    #                                                     (Chooserator.classify!
-    #                                                     again), or nil if that
-    #                                                     read fails too
-    #   SessionSurface.match_status                       :unavailable if the
-    #                                                     read fails again, so
-    #                                                     the session is kept
+    #   SessionSurface.for_env                            nil when the published
+    #                                                     lookup is absent or
+    #                                                     read_failed; with none
+    #                                                     published, the healthy
+    #                                                     answer (classify! again)
+    #                                                     or nil if that read fails
+    #   SessionSurface.match_status                       :unavailable when the
+    #                                                     read failed, so the
+    #                                                     session is kept
     #   CustomerSessionEvaluator / Auth::SessionRecheck   :customer_unavailable
     #                                                     (refused, session kept)
     #   RecentReauth, ReauthOffer / ReauthPolicy,         the descriptor above;
     #   WebAuthn surface_scope, OmniAuth Connect          nil refuses, as before
+    #   -- organization scope (reads the published lookup) --
+    #   OrganizationLoader#request_scope_domains          UNREGISTERED_HOST (every
+    #                                                     organization withheld)
+    #                                                     when the published
+    #                                                     lookup is absent; raises
+    #                                                     when it read_failed; []
+    #                                                     (no scope, as :canonical)
+    #                                                     with none published
+    #                                                     (#4678, ADR-050)
     #
     # The surface binding cannot use either rule. Reading :invalid as "no
     # surface" destroyed every custom-domain and subdomain session on a
     # datastore blip. It classifies the host again instead, and reports an
-    # outage that persists as an outage.
+    # outage as an outage.
     #
     # The auth rows used to read "operator polarity": they chose their branch
     # on `== :custom`, so a case-2 :invalid INVERTED the default — custom
@@ -150,17 +180,9 @@ module Onetime
       @anchor_domains_parsed    = nil
       @link_domains             = nil
 
-      # Domain Context Override state (set at boot from config/env)
-      @domain_context_enabled  = nil
-      @domain_context_override = nil
-
       unless defined?(MAX_SUBDOMAIN_DEPTH)
         MAX_SUBDOMAIN_DEPTH = 10 # e.g., a.b.c.d.e.f.g.h.i.j.example.com
         MAX_TOTAL_LENGTH    = 253 # RFC 1034 section 3.1
-
-        # Domain Context Override constants
-        DOMAIN_CONTEXT_HEADER  = 'HTTP_O_DOMAIN_CONTEXT'
-        DOMAIN_CONTEXT_ENV_VAR = 'DOMAIN_CONTEXT'
       end
 
       # Initializes the DomainStrategy middleware instance.
@@ -235,50 +257,44 @@ module Onetime
         domain_strategy = :canonical
 
         custom_domain = nil
+        lookup        = nil
         if domains_enabled?
-          # Check for domain context override first (development feature)
-          override_domain, override_source = detect_domain_override(env)
-          if override_domain
-            display_domain  = override_domain
-            domain_strategy = :custom
-            custom_domain   = begin
-              Chooserator.custom_domain_for(display_domain)
-            rescue StandardError => ex
-              http_logger.error '[DomainStrategy] override domain lookup failed',
-                { exception: ex, domain: display_domain }
-              nil
-            end
-
-            http_logger.info '[DomainStrategy] override active',
-              {
-                domain: override_domain,
-                source: override_source,
-                strategy: domain_strategy,
-              }
-          else
-            display_domain  = env[Rack::DetectHost.result_field_name]
-            # OT.ld "[middleware] DomainStrategy: detected_host=#{display_domain.inspect} result_field_name=#{Rack::DetectHost.result_field_name}"
-            classification  = Chooserator.classify(
-              display_domain,
-              canonical_domains_parsed,
-              anchor_domains: anchor_domains_parsed,
-            )
-            domain_strategy = classification.strategy
-            custom_domain   = classification.custom_domain
-          end
+          display_domain  = env[Rack::DetectHost.result_field_name]
+          # OT.ld "[middleware] DomainStrategy: detected_host=#{display_domain.inspect} result_field_name=#{Rack::DetectHost.result_field_name}"
+          classification  = Chooserator.classify(
+            display_domain,
+            canonical_domains_parsed,
+            anchor_domains: anchor_domains_parsed,
+          )
+          domain_strategy = classification.strategy
+          custom_domain   = classification.custom_domain
+          lookup          = classification.lookup
         end
 
         resolved_domain_strategy = domain_strategy || :invalid # make sure never nil
 
         # Sanitize display_domain for use in response headers (defense in depth).
-        # Both code paths (DetectHost result and override header) should produce
-        # valid hostnames, but we guard here to prevent header injection.
+        # The DetectHost result should already be a valid hostname, but we
+        # guard here to prevent header injection.
         unless Onetime::Utils::DomainParser.basically_valid?(display_domain)
           display_domain = canonical_domain
+          # The lookup, if any, was for the host that was just replaced.
+          lookup         = nil
         end
 
         env['onetime.display_domain']  = display_domain
         env['onetime.domain_strategy'] = resolved_domain_strategy
+
+        # Publish the lookup made during classification, keyed on the display
+        # domain as written above, so downstream code shares this one read
+        # (found, absent or read_failed). When classification needed no read
+        # the key is cleared and Onetime::CustomDomain::Lookup.for(env)
+        # performs it on first use.
+        if lookup
+          env[Onetime::CustomDomain::Lookup::ENV_KEY] = lookup.with_host(display_domain)
+        else
+          env.delete(Onetime::CustomDomain::Lookup::ENV_KEY)
+        end
 
         # For :custom, resolve the CustomDomain#identifier once and stash it in
         # env so downstream code (surface-bound sessions, tenant SSO hooks) can
@@ -303,52 +319,11 @@ module Onetime
         [status, headers, body]
       end
 
-      # Detects domain context override from environment or request header.
-      #
-      # Override priority (first match wins):
-      # 1. DOMAIN_CONTEXT env var (set at process startup)
-      # 2. O-Domain-Context request header (per-request override)
-      #
-      # @param env [Hash] The Rack environment hash
-      # @return [Array<String, Symbol>, Array<nil, nil>] [domain, source] or [nil, nil]
-      def detect_domain_override(env)
-        detected_host = env[Rack::DetectHost.result_field_name]
-
-        http_logger.debug '[DomainStrategy] detect_domain_override check',
-          {
-            domain_context_enabled: domain_context_enabled?,
-            detected_host: detected_host,
-            env_var: ENV.fetch(DOMAIN_CONTEXT_ENV_VAR, nil),
-            header: env[DOMAIN_CONTEXT_HEADER],
-          }
-
-        return unless domain_context_enabled?
-
-        # Check env var first (process-level override)
-        env_override = ENV.fetch(DOMAIN_CONTEXT_ENV_VAR, nil)
-        return [env_override, :env_var] unless env_override.to_s.empty?
-
-        # Check request header (per-request override)
-        header_override = env[DOMAIN_CONTEXT_HEADER]
-        return [header_override, :header] unless header_override.to_s.empty?
-
-        # Implicit override: browser navigated to a host outside the canonical
-        # set. A request to site.host is NOT an implicit override even when
-        # features.domains.default names a different host.
-        return [detected_host, :detected_host] if detected_host && !canonical_host?(detected_host)
-
-        [nil, nil]
-      end
-
       # True when host matches one of the configured canonical hosts
       # (features.domains.default, site.host, or a features.domains.link_domains
       # member), normalized comparison.
       def canonical_host?(host)
         self.class.canonical_host?(host)
-      end
-
-      def domain_context_enabled?
-        self.class.domain_context_enabled
       end
 
       def canonical_domain
@@ -380,7 +355,15 @@ module Onetime
       end
 
       module Chooserator
-        Classification = Data.define(:strategy, :custom_domain)
+        # strategy      - :canonical, :subdomain, :custom, or nil
+        # custom_domain - the record loaded while deciding :custom, else nil
+        # lookup        - Onetime::CustomDomain::Lookup for the read made, or
+        #                 nil when classification did not need to read
+        Classification = Data.define(:strategy, :custom_domain, :lookup) do
+          def initialize(strategy:, custom_domain:, lookup: nil)
+            super
+          end
+        end
 
         class << self
           # Determines the domain strategy for a request domain.
@@ -442,19 +425,20 @@ module Onetime
           # deciding :custom, so middleware callers do not perform a second
           # datastore read outside this method's fail-closed rescue boundary.
           #
+          # A failed custom-domain read classifies the host nil (→ :invalid),
+          # as before, and the returned Classification carries a read_failed
+          # lookup so callers can tell that apart from a host that is
+          # simply not registered (an absent lookup).
+          #
           # @return [Classification]
           def classify(request_domain, canonical_domains, anchor_domains: nil)
-            classify!(request_domain, canonical_domains, anchor_domains: anchor_domains)
+            classification = classify_host(request_domain, canonical_domains, anchor_domains: anchor_domains)
+            if classification.lookup&.read_failed?
+              log_classification_error(classification.lookup.error, request_domain, canonical_domains)
+            end
+            classification
           rescue StandardError => ex
-            # Names, not objects: a PublicSuffix::Domain inspects to its ivars
-            # and reads as noise in the log line.
-            hosts = canonical_domains.is_a?(Array) ? canonical_domains : [canonical_domains]
-            Onetime.http_logger.error 'Unhandled error in domain strategy',
-              {
-                exception: ex,
-                request_domain: host_label(request_domain),
-                canonical_domains: hosts.compact.map { |host| host_label(host) },
-              }
+            log_classification_error(ex, request_domain, canonical_domains)
             Classification.new(strategy: nil, custom_domain: nil)
           end
 
@@ -463,14 +447,25 @@ module Onetime
           # unparseable host still answers nil, since that is a property of
           # the host and not a failure.
           #
-          # For a caller that must tell the two kinds of :invalid apart
-          # (Onetime::SessionSurface, re-classifying an :invalid request so a
-          # datastore outage does not read as "this session is on the wrong
-          # host"). The middleware keeps {classify}.
+          # For a caller that must tell the two kinds of :invalid apart and
+          # has no published lookup to read (Onetime::SessionSurface off
+          # the middleware path). The middleware keeps {classify}.
           #
           # @return [Classification]
           # @raise [StandardError] when the custom-domain lookup fails
           def classify!(request_domain, canonical_domains, anchor_domains: nil)
+            classification = classify_host(request_domain, canonical_domains, anchor_domains: anchor_domains)
+            raise classification.lookup.error if classification.lookup&.read_failed?
+
+            classification
+          end
+
+          # The classification itself. The custom-domain read is captured as
+          # an Onetime::CustomDomain::Lookup rather than raised, so {classify}
+          # and {classify!} can each react to a failed read in their own way.
+          #
+          # @return [Classification]
+          def classify_host(request_domain, canonical_domains, anchor_domains: nil)
             canonical_domains = [canonical_domains] unless canonical_domains.is_a?(Array)
             canonical_domains = canonical_domains.compact
             # Guard against empty canonical set (can happen if class init ran before Runtime.features was set)
@@ -493,21 +488,29 @@ module Onetime
             # the `www.` variant tolerance against the ANCHORS only. Splitting
             # the arm this way keeps the pre-#4063 behavior identical whenever
             # the two sets are equal, while a pool member participates by exact
-            # match alone.
-            strategy             = nil
-            custom_domain        = nil
-            if canonical_domains.any? { |host| exact_host?(request_domain, host) } ||
-               sweep_domains.any? { |host| equal_to?(request_domain, host) }
-              strategy = :canonical
-            elsif (custom_domain = custom_domain_for(request_domain.name))
-              strategy = :custom
-            elsif sweep_domains.any? { |host| canonical?(request_domain, host) } # rubocop:disable Lint/DuplicateBranch
-              strategy = :canonical
-            elsif sweep_domains.any? { |host| subdomain_of?(request_domain, host) }
-              strategy = :subdomain
+            # match alone. This arm runs before the custom-domain read, so it
+            # carries no lookup.
+            if canonical_without_lookup?(request_domain, canonical_domains, anchor_domains: sweep_domains)
+              return Classification.new(strategy: :canonical, custom_domain: nil)
             end
 
-            Classification.new(strategy: strategy, custom_domain: custom_domain)
+            lookup = Onetime::CustomDomain::Lookup.capture(request_domain.name) do
+              custom_domain_for(request_domain.name)
+            end
+
+            # A failed read stops here, as the raise it replaces did: the
+            # sweeps below never run, so the host classifies nil.
+            strategy = if lookup.read_failed?
+                         nil
+                       elsif lookup.found?
+                         :custom
+                       elsif sweep_domains.any? { |host| canonical?(request_domain, host) }
+                         :canonical
+                       elsif sweep_domains.any? { |host| subdomain_of?(request_domain, host) }
+                         :subdomain
+                       end
+
+            Classification.new(strategy: strategy, custom_domain: lookup.record, lookup: lookup)
           rescue PublicSuffix::DomainInvalid => ex
             Onetime.http_logger.debug 'Invalid domain in strategy selection',
               {
@@ -517,12 +520,39 @@ module Onetime
             Classification.new(strategy: nil, custom_domain: nil)
           end
 
+          def log_classification_error(exception, request_domain, canonical_domains)
+            # Names, not objects: a PublicSuffix::Domain inspects to its ivars
+            # and reads as noise in the log line.
+            hosts = canonical_domains.is_a?(Array) ? canonical_domains : [canonical_domains]
+            Onetime.http_logger.error 'Unhandled error in domain strategy',
+              {
+                exception: exception,
+                request_domain: host_label(request_domain),
+                canonical_domains: hosts.compact.map { |host| host_label(host) },
+              }
+          end
+
           # @param host [PublicSuffix::Domain, String, nil]
           # @return [String, nil] the bare host name for a log line
           def host_label(host)
             return nil if host.nil?
 
             host.respond_to?(:name) ? host.name : host.to_s
+          end
+
+          # The early canonical arm, shared with consumers that must not make
+          # canonical requests depend on the custom-domain datastore. Includes
+          # exact hosts and anchor www variants only, never the later sweeps.
+          # Accepts raw hosts or already-parsed PublicSuffix::Domain objects.
+          def canonical_without_lookup?(request_domain, canonical_domains, anchor_domains: nil)
+            request_domain    = Parser.parse(request_domain) unless request_domain.is_a?(PublicSuffix::Domain)
+            canonical_domains = parse_host_set(canonical_domains)
+            anchors           = anchor_domains.nil? ? canonical_domains : parse_host_set(anchor_domains)
+
+            canonical_domains.any? { |host| exact_host?(request_domain, host) } ||
+              anchors.any? { |host| equal_to?(request_domain, host) }
+          rescue PublicSuffix::DomainInvalid
+            false
           end
 
           # Parses a host set per-element, skipping unparseable hosts (e.g. an
@@ -698,11 +728,9 @@ module Onetime
           :canonical_domains,
           :canonical_domains_parsed,
           :anchor_domains_parsed,
-          :link_domains,
-          :domain_context_enabled
+          :link_domains
 
         alias domains_enabled? domains_enabled
-        alias domain_context_enabled? domain_context_enabled
 
         # Sets class instance variables based on the site configuration.
         def initialize_from_config(domains_config)
@@ -747,17 +775,12 @@ module Onetime
           # parsed set exists. Recomputed from the parsed set below.
           @link_domains             = [@canonical_domain].compact
 
-          # Load domain context override setting from development config
-          dev_config              = OT.conf&.dig('development') || {}
-          @domain_context_enabled = dev_config['domain_context_enabled'] == true
-
           Onetime.http_logger.debug 'DomainStrategy config loaded',
             {
               domains_enabled: domains_enabled,
               canonical_domain: canonical_domain,
               canonical_domains: canonical_domains,
               link_domains: link_domains,
-              domain_context_enabled: domain_context_enabled,
             }
 
           # We don't need to get into any domain parsing if domains are disabled
@@ -939,7 +962,6 @@ module Onetime
           @canonical_domains_parsed = nil
           @anchor_domains_parsed    = nil
           @link_domains             = nil
-          @domain_context_enabled   = nil
         end
       end
 

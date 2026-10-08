@@ -72,7 +72,7 @@ module Billing
           value = product.metadata[field]
           return default if value.nil? || value.to_s.strip.empty?
 
-          %w[true 1 yes].include?(value.to_s.downcase)
+          Onetime::Utils.explicit_yes?(value)
         end
 
         def extract_optional_string(product, field)

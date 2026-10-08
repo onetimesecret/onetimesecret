@@ -10,7 +10,8 @@
 #
 # 1. `truthy?` — the hoisted table. Ten colonel classes each had their own and
 #    two of them disagreed (purge_dlq / replay_dlq accepted only %w[1 true yes]
-#    and did not strip). This pins the widened, single form.
+#    and did not strip). It now delegates to OT::Utils.explicit_yes?; this pins
+#    that the app-wide table is a superset of the old colonel one.
 # 2. `supplied_confirmation` reads STRATEGY METADATA, never params — a `confirm`
 #    query parameter must not be a back door, because the whole point of the
 #    header transport is keeping target emails out of access logs and history.
@@ -50,6 +51,10 @@ end
 ## truthy? accepts the whole widened table, case- and whitespace-insensitively
 %W[true 1 yes on TRUE On \ yes\  #{"\ttrue\n"}].map { |v| @host.truthy?(v) }
 #=> [true, true, true, true, true, true, true, true]
+
+## truthy? also accepts the app-wide short forms
+%w[y t Y T].map { |v| @host.truthy?(v) }
+#=> [true, true, true, true]
 
 ## truthy? rejects everything else, including nil and the falsy strings
 [nil, '', 'false', '0', 'no', 'off', 'maybe', 'ontario'].map { |v| @host.truthy?(v) }

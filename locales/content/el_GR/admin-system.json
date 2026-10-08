@@ -282,5 +282,69 @@
   "web.admin.system.brand.stats.manifestKeys": {
     "text": "Κλειδιά δήλωσης",
     "source_hash": "c4267198"
+  },
+  "web.admin.system.backups.title": {
+    "text": "Κατάσταση αντιγράφων ασφαλείας",
+    "source_hash": "6100b034"
+  },
+  "web.admin.system.backups.description": {
+    "text": "Πρόσφατα συμβάντα αντιγράφων ασφαλείας και η τελευταία επιτυχής εκτέλεση από αυτόν τον κεντρικό υπολογιστή.",
+    "source_hash": "19070c41"
+  },
+  "web.admin.system.backups.loadError": {
+    "text": "Δεν ήταν δυνατή η φόρτωση της κατάστασης αντιγράφων ασφαλείας.",
+    "source_hash": "9b83029b"
+  },
+  "web.admin.system.backups.notConfigured": {
+    "text": "Δεν έχει διαμορφωθεί εδώ",
+    "source_hash": "d287939f"
+  },
+  "web.admin.system.backups.latest": {
+    "text": "Τελευταίο συμβάν",
+    "source_hash": "cd7ad68a"
+  },
+  "web.admin.system.backups.lastOk": {
+    "text": "Τελευταία επιτυχής εκτέλεση",
+    "source_hash": "81120703"
+  },
+  "web.admin.system.backups.artifact": {
+    "text": "Αρχείο αντιγράφου",
+    "source_hash": "e06171a1"
+  },
+  "web.admin.system.backups.unknownUnit": {
+    "text": "Άγνωστη μονάδα",
+    "source_hash": "d120e025"
+  },
+  "web.admin.system.backups.unknownError": {
+    "text": "Χωρίς λεπτομέρειες σφάλματος",
+    "source_hash": "b2c696e7"
+  },
+  "web.admin.system.backups.destination": {
+    "text": "Προορισμός",
+    "source_hash": "293d404a"
+  },
+  "web.admin.system.backups.shippedOf": {
+    "text": "Στάλθηκαν {shipped} από {candidates}",
+    "source_hash": "406119a9"
+  },
+  "web.admin.system.backups.freshness.notConfigured": {
+    "text": "Μη διαμορφωμένο",
+    "source_hash": "dd1841d2"
+  },
+  "web.admin.system.backups.freshness.notMonitored": {
+    "text": "Δεν παρακολουθείται",
+    "source_hash": "0f0d1855"
+  },
+  "web.admin.system.backups.freshness.fresh": {
+    "text": "Πρόσφατο",
+    "source_hash": "f810b668"
+  },
+  "web.admin.system.backups.freshness.stale": {
+    "text": "Παλιό — συναγερμός",
+    "source_hash": "c7a9733a"
+  },
+  "web.admin.system.backups.freshness.alarm": {
+    "text": "Συναγερμός",
+    "source_hash": "f3b67957"
   }
 }

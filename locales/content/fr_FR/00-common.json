@@ -1543,5 +1543,17 @@
   "web.TITLES.connected_identities": {
     "text": "Identités connectées",
     "source_hash": "e132c4d9"
+  },
+  "web.COMMON.field": {
+    "text": "Champ",
+    "source_hash": "f45fc1df"
+  },
+  "web.COMMON.unknown": {
+    "text": "Inconnu",
+    "source_hash": "b764cdc0"
+  },
+  "web.STATUS.pending_ssl": {
+    "text": "Certificat en attente",
+    "source_hash": "dd34f305"
   }
 }

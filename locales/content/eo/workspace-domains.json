@@ -1630,5 +1630,37 @@
   "web.domains.sso.status_unavailable_hint": {
     "text": "SSO ne povas esti proponata sur ĉi tiu domajno nun. Kontrolu la SSO-akreditaĵojn kaj la ensalutajn agordojn de ĉi tiu domajno.",
     "source_hash": "b03b14f4"
+  },
+  "web.domains.status_tooltip_pending_ssl": {
+    "text": "Domajno kontrolita — atendas sian atestilon",
+    "source_hash": "541bd705"
+  },
+  "web.domains.2_create_the_alias_record": {
+    "text": "2. Kreu la ALIAS- aŭ ANAME-registraĵon",
+    "source_hash": "17b04e6a"
+  },
+  "web.domains.sso.status_saml_disabled_badge": {
+    "text": "SAML malŝaltita",
+    "source_hash": "4e2eab51"
+  },
+  "web.domains.sso.status_saml_disabled_hint": {
+    "text": "La operatoro de la retejo malŝaltis SAML por ĉi tiu instalaĵo. Via agordo estas konservita kaj rekomenciĝos, kiam SAML estos denove ŝaltita; ĝis tiam ĉi tiu domajno proponas neniun SAML-ensaluton.",
+    "source_hash": "5ba9624c"
+  },
+  "web.domains.sso.status_domain_unverified_badge": {
+    "text": "Atendanta domajnan kontrolon",
+    "source_hash": "ea7459c2"
+  },
+  "web.domains.sso.status_domain_unverified_hint": {
+    "text": "Ĉi tiu domajno ankoraŭ ne finis la kontrolon, do ĝia SSO-konekto ankoraŭ ne estas aktiva sur ĝia ensaluta paĝo. SSO ŝaltiĝas, kiam la domajno estas kontrolita kaj SSO estas permesita por ĝi ĉi tie.",
+    "source_hash": "57ee0066"
+  },
+  "web.domains.verify_outcome.indeterminate": {
+    "text": "Ni ne povis fini la DNS-kontrolon ĝuste nun. Tio ne signifas, ke viaj registraĵoj estas malĝustaj. Bonvolu reprovi post kelkaj minutoj.",
+    "source_hash": "4e76a9ef"
+  },
+  "web.domains.verify_outcome.record_not_found": {
+    "text": "Ni ne trovis la atendatan TXT-registraĵon. Kontrolu, ke ĝi ekzistas kaj ke ĝia valoro kongruas precize. Novaj DNS-registraĵoj povas bezoni kelkajn minutojn por aperi.",
+    "source_hash": "6c847d46"
   }
 }

@@ -1,0 +1,10 @@
+{
+  "web.admin.session.expired": {
+    "text": "Срок действия Вашей сессии администратора истёк. Войдите снова, чтобы продолжить.",
+    "source_hash": "e970de7c"
+  },
+  "web.admin.session.signIn": {
+    "text": "Войти",
+    "source_hash": "bfd402b2"
+  }
+}

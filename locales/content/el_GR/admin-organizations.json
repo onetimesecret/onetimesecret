@@ -638,5 +638,121 @@
   "web.admin.organizations.entitlements.summary.planUnknown": {
     "text": "Άγνωστο — δεν ήταν δυνατή η σύγκριση",
     "source_hash": "b607e540"
+  },
+  "web.admin.organizations.actions.plan.label": {
+    "text": "Πρόγραμμα",
+    "source_hash": "fa8ed0bd"
+  },
+  "web.admin.organizations.actions.plan.apply": {
+    "text": "Εφαρμογή",
+    "source_hash": "31e392d1"
+  },
+  "web.admin.organizations.actions.plan.confirmTitle": {
+    "text": "Αλλαγή προγράμματος;",
+    "source_hash": "910a4de9"
+  },
+  "web.admin.organizations.actions.plan.confirmDescription": {
+    "text": "Αλλαγή του {org} στο πρόγραμμα {plan}.",
+    "source_hash": "aecf8277"
+  },
+  "web.admin.organizations.actions.plan.success": {
+    "text": "Το πρόγραμμα ενημερώθηκε.",
+    "source_hash": "ebe8d40c"
+  },
+  "web.admin.organizations.actions.plan.problem": {
+    "text": "Το πρόγραμμα αποθηκεύτηκε, αλλά τα δικαιώματα δεν ενημερώθηκαν. Εκτελέστε εναρμόνιση σε αυτόν τον οργανισμό.",
+    "source_hash": "2addb095"
+  },
+  "web.admin.organizations.actions.plan.localConfigWarning": {
+    "text": "Τα προγράμματα φορτώθηκαν από την τοπική διαμόρφωση — το Stripe δεν έχει διαμορφωθεί ή δεν είναι προσβάσιμο.",
+    "source_hash": "df83e326"
+  },
+  "web.admin.organizations.detail.delete.button": {
+    "text": "Διαγραφή οργανισμού",
+    "source_hash": "a70d189a"
+  },
+  "web.admin.organizations.detail.delete.previewing": {
+    "text": "Φόρτωση σχεδίου…",
+    "source_hash": "c9773eb9"
+  },
+  "web.admin.organizations.detail.delete.warning": {
+    "text": "Διαγράφει οριστικά τον οργανισμό, τις συμμετοχές μελών του και τις εκκρεμείς προσκλήσεις του, και στέλνει email στα πρώην μέλη. Δεν είναι δυνατή η αναίρεση.",
+    "source_hash": "fd314131"
+  },
+  "web.admin.organizations.detail.delete.confirmTitle": {
+    "text": "Διαγραφή αυτού του οργανισμού;",
+    "source_hash": "6a3bba0f"
+  },
+  "web.admin.organizations.detail.delete.confirmDescription": {
+    "text": "Αυτό διαγράφει οριστικά τον {org}. Πληκτρολογήστε ξανά το id του οργανισμού για επιβεβαίωση.",
+    "source_hash": "c63a0221"
+  },
+  "web.admin.organizations.detail.delete.membersLabel": {
+    "text": "Μέλη",
+    "source_hash": "1044a4c0"
+  },
+  "web.admin.organizations.detail.delete.invitationsLabel": {
+    "text": "Εκκρεμείς προσκλήσεις",
+    "source_hash": "76198e63"
+  },
+  "web.admin.organizations.detail.delete.domainsLabel": {
+    "text": "Τομείς",
+    "source_hash": "ced67718"
+  },
+  "web.admin.organizations.detail.delete.defaultOrgLabel": {
+    "text": "Καταργεί τον προεπιλεγμένο χώρο εργασίας για",
+    "source_hash": "d535ac2a"
+  },
+  "web.admin.organizations.detail.delete.forceDefault": {
+    "text": "Αυτός είναι ο προεπιλεγμένος (προσωπικός) χώρος εργασίας του κατόχου. Διαγραφή ούτως ή άλλως.",
+    "source_hash": "1a8b0f7d"
+  },
+  "web.admin.organizations.detail.delete.forceSubscription": {
+    "text": "Η συνδρομή είναι ενεργή. Διαγραφή ούτως ή άλλως — αυτό δεν ακυρώνει τη χρέωση στο Stripe.",
+    "source_hash": "51cb3456"
+  },
+  "web.admin.organizations.detail.delete.driftedDomainsLabel": {
+    "text": "Τομείς με απόκλιση",
+    "source_hash": "fef96f49"
+  },
+  "web.admin.organizations.detail.delete.driftedDomainsRepair": {
+    "text": "Επιδιόρθωση με: bin/ots domains doctor --all --repair",
+    "source_hash": "14c9c59f"
+  },
+  "web.admin.organizations.detail.delete.success": {
+    "text": "Ο {org} διαγράφηκε.",
+    "source_hash": "9cdda5d0"
+  },
+  "web.admin.organizations.detail.delete.blocked.hasDomains": {
+    "text": "Αποκλείεται: αφαιρέστε πρώτα τους προσαρμοσμένους τομείς ({domains}).",
+    "source_hash": "dc3248b2"
+  },
+  "web.admin.organizations.detail.delete.blocked.driftedDomains": {
+    "text": "Αποκλείεται: αυτές οι εγγραφές τομέων εξακολουθούν να αναφέρονται σε αυτόν τον οργανισμό, αλλά λείπουν από τη λίστα τομέων του ({domains}). Εκτελέστε πρώτα bin/ots domains doctor --all --repair — δεν υπάρχει παράκαμψη.",
+    "source_hash": "3136496c"
+  },
+  "web.admin.organizations.detail.delete.blocked.isDefault": {
+    "text": "Αποκλείεται: αυτός είναι ο προεπιλεγμένος χώρος εργασίας του κατόχου. Επιλέξτε την παράκαμψη παρακάτω για να τον διαγράψετε ούτως ή άλλως.",
+    "source_hash": "09d5baa4"
+  },
+  "web.admin.organizations.detail.delete.blocked.activeSubscription": {
+    "text": "Αποκλείεται: ο οργανισμός έχει ενεργή συνδρομή. Ακυρώστε την πρώτα στο Stripe ή επιλέξτε την παράκαμψη παρακάτω.",
+    "source_hash": "68663641"
+  },
+  "web.admin.organizations.detail.delete.blocked.lastOrg": {
+    "text": "Αποκλείεται: αυτός είναι ο μόνος οργανισμός στον οποίο ανήκει ο χρήστης {owner}, και η διαγραφή του θα τον άφηνε χωρίς χώρο εργασίας. Δεν υπάρχει παράκαμψη — δημιουργήστε πρώτα έναν οργανισμό αντικατάστασης.",
+    "source_hash": "f09b4f9a"
+  },
+  "web.admin.organizations.detail.delete.errors.planUnreadable": {
+    "text": "Δεν ήταν δυνατή η ανάγνωση του σχεδίου διαγραφής από τον διακομιστή. Δεν διαγράφηκε τίποτα.",
+    "source_hash": "91406cbb"
+  },
+  "web.admin.organizations.detail.delete.errors.unverified": {
+    "text": "Δεν ήταν δυνατή η επαλήθευση της απόκρισης του διακομιστή. Φορτώστε ξανά τη λίστα οργανισμών για να ελέγξετε αν ολοκληρώθηκε η διαγραφή.",
+    "source_hash": "7a261fb0"
+  },
+  "web.admin.organizations.detail.delete.errors.notApplied": {
+    "text": "Ο διακομιστής επέστρεψε προεπισκόπηση, όχι διαγραφή. Δεν διαγράφηκε τίποτα.",
+    "source_hash": "9d84971d"
   }
 }

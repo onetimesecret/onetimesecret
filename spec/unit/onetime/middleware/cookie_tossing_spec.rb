@@ -16,8 +16,8 @@ RSpec.describe Onetime::Middleware::CookieTossing do
   let(:downstream) { ->(_env) { [200, { 'content-type' => 'text/plain' }, ['downstream ran']] } }
   let(:middleware) { described_class.new(downstream) }
 
-  def request(cookie_header, path: '/api/account/', host: nil)
-    env = Rack::MockRequest.env_for(path)
+  def request(cookie_header, path: '/api/account/', host: nil, detected_host: nil)
+    env = Rack::MockRequest.env_for(path, Rack::DetectHost.result_field_name => detected_host)
     env['HTTP_HOST'] = host if host
     env['HTTP_COOKIE'] = cookie_header unless cookie_header.nil?
     env['rack.errors'] = StringIO.new
@@ -98,7 +98,8 @@ RSpec.describe Onetime::Middleware::CookieTossing do
     end
 
     # The gem's clear: an empty cookie with domain = request host, expires at
-    # the epoch, one per prefix of the request path.
+    # the epoch, one per prefix of the request path. With no detected host
+    # (as here), the request host is Rack's.
     it 'clears the offending cookie for the request host, per path prefix' do
       _status, headers, = request('onetime.session=a; onetime.session=b', path: '/api/account/', host: 'eu.example.com')
       lines = set_cookie_lines(headers)
@@ -124,6 +125,21 @@ RSpec.describe Onetime::Middleware::CookieTossing do
         end
       end
       expect(lines).not_to include(match(/domain=com;/i))
+    end
+
+    # Behind a proxy that rewrites Host to its origin target, Rack's host is
+    # that target; the browser holds its cookies for the host it addressed,
+    # which is the one DetectHost resolved.
+    it 'clears for the host DetectHost resolved, not the Host header, when there is one' do
+      _status, headers, = request(
+        'onetime.session=a; onetime.session=b',
+        path: '/auth',
+        host: 'origin.internal.example.net',
+        detected_host: 'secrets.acme.example.com',
+      )
+      domains           = set_cookie_lines(headers).map { |line| line[/domain=([^;]+)/i, 1] }.uniq
+
+      expect(domains).to eq(%w[secrets.acme.example.com acme.example.com example.com])
     end
 
     it 'clears only for the host itself on a single-label or IP-literal host' do

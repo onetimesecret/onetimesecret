@@ -282,5 +282,69 @@
   "web.admin.system.brand.stats.manifestKeys": {
     "text": "Manifest kulcsok",
     "source_hash": "c4267198"
+  },
+  "web.admin.system.backups.title": {
+    "text": "Biztonsági mentés állapota",
+    "source_hash": "6100b034"
+  },
+  "web.admin.system.backups.description": {
+    "text": "A legutóbbi biztonsági mentési események és az utolsó sikeres futtatás ezen a gazdagépen.",
+    "source_hash": "19070c41"
+  },
+  "web.admin.system.backups.loadError": {
+    "text": "Nem sikerült betölteni a biztonsági mentés állapotát.",
+    "source_hash": "9b83029b"
+  },
+  "web.admin.system.backups.notConfigured": {
+    "text": "Itt nincs beállítva",
+    "source_hash": "d287939f"
+  },
+  "web.admin.system.backups.latest": {
+    "text": "Legutóbbi esemény",
+    "source_hash": "cd7ad68a"
+  },
+  "web.admin.system.backups.lastOk": {
+    "text": "Utolsó sikeres futtatás",
+    "source_hash": "81120703"
+  },
+  "web.admin.system.backups.artifact": {
+    "text": "Artefaktum",
+    "source_hash": "e06171a1"
+  },
+  "web.admin.system.backups.unknownUnit": {
+    "text": "Ismeretlen egység",
+    "source_hash": "d120e025"
+  },
+  "web.admin.system.backups.unknownError": {
+    "text": "Nincs hibarészlet",
+    "source_hash": "b2c696e7"
+  },
+  "web.admin.system.backups.destination": {
+    "text": "Cél",
+    "source_hash": "293d404a"
+  },
+  "web.admin.system.backups.shippedOf": {
+    "text": "{shipped} / {candidates} elküldve",
+    "source_hash": "406119a9"
+  },
+  "web.admin.system.backups.freshness.notConfigured": {
+    "text": "Nincs beállítva",
+    "source_hash": "dd1841d2"
+  },
+  "web.admin.system.backups.freshness.notMonitored": {
+    "text": "Nincs felügyelve",
+    "source_hash": "0f0d1855"
+  },
+  "web.admin.system.backups.freshness.fresh": {
+    "text": "Friss",
+    "source_hash": "f810b668"
+  },
+  "web.admin.system.backups.freshness.stale": {
+    "text": "Elavult — riasztás",
+    "source_hash": "c7a9733a"
+  },
+  "web.admin.system.backups.freshness.alarm": {
+    "text": "Riasztás",
+    "source_hash": "f3b67957"
   }
 }

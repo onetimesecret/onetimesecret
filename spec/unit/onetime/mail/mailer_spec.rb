@@ -84,6 +84,59 @@ RSpec.describe Onetime::Mail::Mailer do
   # verified.
   # ==========================================================================
 
+  describe '.backend_provider' do
+    before { allow(described_class).to receive(:emailer_config).and_return('mode' => mode) }
+
+    %w[smtp ses logger disabled none].each do |name|
+      context "with mode #{name}" do
+        let(:mode) { name }
+
+        it 'is the configured transport' do
+          expect(described_class.backend_provider).to eq(name)
+        end
+      end
+    end
+
+    context 'with a mode that names no transport' do
+      let(:mode) { 'carrier-pigeon' }
+
+      it "is 'logger', the backend the mailer falls back to" do
+        allow(Onetime::Mail::Delivery::Logger).to receive(:output).and_return(StringIO.new)
+
+        expect(described_class.backend_provider).to eq('logger')
+        expect(described_class.determine_provider).to eq('carrier-pigeon')
+        expect(described_class.delivery_backend).to be_a(Onetime::Mail::Delivery::Logger)
+      end
+    end
+
+    # A quoted value in a config file keeps its whitespace; the YAML default
+    # for EMAILER_MODE is unquoted, so YAML strips it there.
+    context 'with a mode in mixed case and padded with whitespace' do
+      let(:mode) { ' SMTP ' }
+
+      it 'is the canonical provider name' do
+        expect(described_class.determine_provider).to eq('smtp')
+        expect(described_class.backend_provider).to eq('smtp')
+      end
+    end
+
+    context "with 'disabled' padded with whitespace" do
+      let(:mode) { " disabled\n" }
+
+      it 'is the disabled transport, not the logger fallback' do
+        expect(described_class.backend_provider).to eq('disabled')
+      end
+    end
+
+    context 'when given a name that differs only in case or whitespace' do
+      let(:mode) { 'smtp' }
+
+      it 'is the canonical provider name' do
+        expect(described_class.backend_provider(' Ses ')).to eq('ses')
+      end
+    end
+  end
+
   describe 'sender_config support' do
     let(:global_from) { 'global@example.com' }
     let(:global_reply_to) { nil }
@@ -317,6 +370,88 @@ RSpec.describe Onetime::Mail::Mailer do
       it 'returns empty hash' do
         result = described_class.provider_credentials('unknown')
         expect(result).to eq({})
+      end
+    end
+
+    # config.defaults.yaml renders `pass: "<%= ENV['SMTP_PASSWORD'] %>"`, so an
+    # unset SMTP_PASSWORD reaches the builders as "" (truthy), not nil. The
+    # provider-specific env fallbacks (SENDGRID_API_KEY, AWS_SECRET_ACCESS_KEY)
+    # are documented as "first non-empty wins" and must not be shadowed by it.
+    context 'when emailer.pass is rendered empty' do
+      let(:env_keys) { %w[SENDGRID_API_KEY AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_REGION SMTP_PASSWORD] }
+
+      around do |example|
+        saved = env_keys.to_h { |key| [key, ENV.fetch(key, nil)] }
+        env_keys.each { |key| ENV.delete(key) }
+        example.run
+      ensure
+        saved.each { |key, value| value.nil? ? ENV.delete(key) : (ENV[key] = value) }
+      end
+
+      before do
+        # Isolate from any email_providers.<provider> overrides.
+        allow(described_class).to receive(:provider_config).and_return({})
+      end
+
+      context 'for SendGrid' do
+        let(:config) { { 'mode' => 'sendgrid', 'pass' => '' } }
+
+        it 'falls through to SENDGRID_API_KEY' do
+          ENV['SENDGRID_API_KEY'] = 'SG.from-env'
+
+          expect(described_class.provider_credentials('sendgrid')).to eq('api_key' => 'SG.from-env')
+        end
+
+        it 'reports the key as absent rather than empty when nothing is set' do
+          expect(described_class.provider_credentials('sendgrid')).to eq('api_key' => nil)
+        end
+      end
+
+      context 'for SES' do
+        let(:config) { { 'mode' => 'ses', 'region' => 'smtp', 'user' => nil, 'pass' => '' } }
+
+        it 'falls through to the AWS_* environment variables' do
+          ENV['AWS_ACCESS_KEY_ID']     = 'AKIAFROMENV'
+          ENV['AWS_SECRET_ACCESS_KEY'] = 'secret-from-env'
+          ENV['AWS_REGION']            = 'eu-west-1'
+
+          expect(described_class.provider_credentials('ses')).to eq(
+            'region' => 'eu-west-1',
+            'access_key_id' => 'AKIAFROMENV',
+            'secret_access_key' => 'secret-from-env',
+          )
+        end
+
+        it "does not pass the 'smtp' placeholder region to the SES client" do
+          expect(described_class.provider_credentials('ses')['region']).to be_nil
+        end
+      end
+
+      context 'for SES with an explicit EMAILER_REGION' do
+        let(:config) { { 'mode' => 'ses', 'region' => 'us-west-2', 'user' => 'AKIAEXAMPLE', 'pass' => 'configured' } }
+
+        it 'prefers the configured region and credentials over the environment' do
+          ENV['AWS_REGION']            = 'eu-west-1'
+          ENV['AWS_SECRET_ACCESS_KEY'] = 'secret-from-env'
+
+          expect(described_class.provider_credentials('ses')).to eq(
+            'region' => 'us-west-2',
+            'access_key_id' => 'AKIAEXAMPLE',
+            'secret_access_key' => 'configured',
+          )
+        end
+      end
+
+      context 'for SMTP' do
+        let(:config) { { 'mode' => 'smtp', 'host' => 'smtp.example.com', 'user' => 'mailer', 'pass' => '' } }
+
+        it 'reports no password instead of an empty string' do
+          expect(described_class.provider_credentials('smtp')).to include(
+            'host' => 'smtp.example.com',
+            'username' => 'mailer',
+            'password' => nil,
+          )
+        end
       end
     end
 

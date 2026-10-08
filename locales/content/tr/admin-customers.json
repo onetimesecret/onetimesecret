@@ -40,8 +40,8 @@
     "source_hash": "9feed9f1"
   },
   "web.admin.customers.actions.purge.confirmDescription": {
-    "text": "Bu işlem {email} adresini ve tüm verilerini kalıcı olarak siler. Bu işlem geri alınamaz.",
-    "source_hash": "a74dd5d1"
+    "text": "Bu işlem, {email} hesabının kalıcı olarak silinmesini talep eder. Hesap kaldırılmadan önce bir ön kontrol çalışır ve bir çalışma alanında alan adları, faturalandırma durumu, başka üyeler, saklanan veriler veya tutarsız referanslar varsa kalıcı silmeyi reddeder. Yeniden denemeden önce tüm engelleri inceleyip giderin. Kaldırma işlemi başladıktan sonra bu işlem geri alınamaz.",
+    "source_hash": "7b4e5e37"
   },
   "web.admin.customers.actions.purge.success": {
     "text": "Müşteri kalıcı olarak silindi.",
@@ -60,8 +60,8 @@
     "source_hash": "227f57d7"
   },
   "web.admin.customers.actions.role.confirmDescription": {
-    "text": "{email} adresini {role} rolüne değiştir.",
-    "source_hash": "9ba063c6"
+    "text": "{email} hesabının rolünü {role} olarak değiştirir. Colonel rolü, bu kurulumdaki her hesaba, gizli mesaja ve kuruluşa tam yönetici erişimi verir. Onaylamak için aşağıya hesap e-posta adresini yazın.",
+    "source_hash": "0ed85b97"
   },
   "web.admin.customers.actions.role.success": {
     "text": "Rol güncellendi.",
@@ -116,8 +116,8 @@
     "source_hash": "62ed2854"
   },
   "web.admin.customers.actions.unverify.confirmDescription": {
-    "text": "{email} adresini doğrulanmamış olarak işaretle.",
-    "source_hash": "592ffd27"
+    "text": "{email} adresini doğrulanmamış olarak işaretler. Doğrulanmamış bir hesap Colonel, yönetici veya personel rolüne sahip olamaz; bu nedenle bu işlem hesabın sahip olduğu yükseltilmiş rolü de kaldırır. Onaylamak için aşağıya hesap e-posta adresini yazın.",
+    "source_hash": "601f7382"
   },
   "web.admin.customers.actions.unverify.success": {
     "text": "Müşteri doğrulaması kaldırıldı.",
@@ -568,8 +568,8 @@
     "source_hash": "69e69f49"
   },
   "web.admin.customers.detail.diagnostics.healthy": {
-    "text": "Engelleyici bir durum bulunamadı. Kimlik doğrulama durumu sağlıklı görünüyor — istemci tarafı sorunlarından (çerezler, özel alan adı oturum açma yapılandırması) veya yanlış bölgeden şüphelenin.",
-    "source_hash": "f6d5f8d1"
+    "text": "Engelleyici bir durum bulunamadı. Kimlik doğrulama ve kuruluş bağlamı bulguları sağlıklı görünüyor — istemci tarafı sorunlarından (çerezler, özel alan adı oturum açma yapılandırması) veya yanlış bölgeden şüphelenin.",
+    "source_hash": "e0e8450e"
   },
   "web.admin.customers.detail.diagnostics.authUnavailable": {
     "text": "Kimlik doğrulama veritabanı mevcut değil (basit kimlik doğrulama modu) — SQL tarafı kontrolleri atlandı.",
@@ -690,5 +690,153 @@
   "web.admin.customers.verification.unverified": {
     "text": "Doğrulanmadı",
     "source_hash": "15133907"
+  },
+  "web.admin.customers.actions.impersonate.button": {
+    "text": "Müşterinin kimliğine bürün",
+    "source_hash": "38a7cfbe"
+  },
+  "web.admin.customers.actions.impersonate.confirmTitle": {
+    "text": "Kimliğe bürünme başlatılsın mı?",
+    "source_hash": "c6e4fa74"
+  },
+  "web.admin.customers.actions.impersonate.confirmDescription": {
+    "text": "{email} olarak süresi sınırlı, salt okunur bir oturum açar. Siz durdurana kadar her sayfada bir afiş gösterilir, değişiklikler engellenir ve oturum, belirttiğiniz nedenle birlikte denetim günlüğüne kaydedilir.",
+    "source_hash": "713c01b4"
+  },
+  "web.admin.customers.actions.impersonate.reasonLabel": {
+    "text": "Neden (zorunlu)",
+    "source_hash": "d976f5d9"
+  },
+  "web.admin.customers.actions.impersonate.reasonPlaceholder": {
+    "text": "Bu oturum neden gerekli? Destek talebi referansını ekleyin.",
+    "source_hash": "89a4835d"
+  },
+  "web.admin.customers.actions.impersonate.success": {
+    "text": "Kimliğe bürünme başlatıldı.",
+    "source_hash": "b4662bcc"
+  },
+  "web.admin.customers.actions.impersonate.unavailable": {
+    "text": "Colonel, anonim ve askıya alınmış hesaplar için kimliğe bürünme kullanılamaz.",
+    "source_hash": "fb6578b2"
+  },
+  "web.admin.customers.actions.purge.refused": {
+    "text": "Kalıcı silme reddedildi. Müşteri korundu; yeniden denemeden önce engelleri giderin.",
+    "source_hash": "8e8a2ae1"
+  },
+  "web.admin.customers.actions.purge.partial": {
+    "text": "Kalıcı silme, temizleme işleminin bir kısmı tamamlandıktan sonra durdu. Başarılı olarak bildirmeyin veya körü körüne yeniden denemeyin; tamamlanan aşamaları ve engelleri inceleyin.",
+    "source_hash": "a88fd15b"
+  },
+  "web.admin.customers.actions.purge.incomplete": {
+    "text": "Kalıcı silme tamamlanmadı (durum: {status}). Yeniden denemeden önce yaşam döngüsü ayrıntılarını inceleyin.",
+    "source_hash": "c0c3d287"
+  },
+  "web.admin.customers.actions.purge.unreadableResult": {
+    "text": "Sunucu okunamayan bir kalıcı silme sonucu döndürdü. Başarı bildirilmedi; yeniden denemeden önce müşteri ve çalışma alanı durumunu doğrulayın.",
+    "source_hash": "cc837a77"
+  },
+  "web.admin.customers.actions.purge.resultStage": {
+    "text": "Durduğu aşama: {stage}.",
+    "source_hash": "d0e313bf"
+  },
+  "web.admin.customers.actions.purge.resultBlockers": {
+    "text": "Engeller: {blockers}.",
+    "source_hash": "00c1e196"
+  },
+  "web.admin.customers.actions.purge.resultPlannedActions": {
+    "text": "Planlanan temizleme: {actions}.",
+    "source_hash": "6915205d"
+  },
+  "web.admin.customers.actions.purge.resultActions": {
+    "text": "Tamamlanan temizleme: {actions}.",
+    "source_hash": "d34121b3"
+  },
+  "web.admin.customers.actions.purge.resultCompletedStages": {
+    "text": "Tamamlanan aşamalar: {stages}.",
+    "source_hash": "67f68860"
+  },
+  "web.admin.customers.actions.role.button": {
+    "text": "Rolü değiştir",
+    "source_hash": "a43a8d8c"
+  },
+  "web.admin.customers.actions.role.selfDemote": {
+    "text": "Kendi Colonel hesabınızın rolünü düşüremezsiniz. Bu işlemi başka bir Colonel kullanıcısından isteyin veya `bin/ots customers role demote` komutunu çalıştırın.",
+    "source_hash": "3e75d01b"
+  },
+  "web.admin.customers.actions.role.lastColonel": {
+    "text": "Kalan son Colonel hesabının rolünü düşüremezsiniz — kurulumda hiç yönetici kalmaz. Önce başka bir hesabı yükseltin ve doğrulayın.",
+    "source_hash": "9c59c731"
+  },
+  "web.admin.customers.actions.unverify.selfUnverify": {
+    "text": "Kendi hesabınızın doğrulamasını kaldıramazsınız: Colonel rolüne sahip olmak için doğrulanmış bir e-posta adresi gereklidir.",
+    "source_hash": "8ab024fe"
+  },
+  "web.admin.customers.actions.unverify.lastColonel": {
+    "text": "Kalan son Colonel hesabının doğrulamasını kaldıramazsınız — doğrulanmamış bir hesap Colonel rolüne sahip olamaz. Önce başka bir hesabı yükseltin ve doğrulayın.",
+    "source_hash": "fc404616"
+  },
+  "web.admin.customers.detail.diagnostics.organizationContextBlocked": {
+    "text": "Kuruluş bağlamı engellenmiş veya eksik. Bu hesabı sağlıklı kabul etmeden önce dizinlenmiş çalışma alanını inceleyin ve sahiplik, üyelik veya iletişim e-postası dizinindeki sapmaları onarın.",
+    "source_hash": "5c5c89be"
+  },
+  "web.admin.customers.detail.diagnostics.organization": {
+    "text": "Çalışma alanı: {id}",
+    "source_hash": "6ee50fe9"
+  },
+  "web.admin.customers.detail.diagnostics.remediation": {
+    "text": "Düzeltme: {action}",
+    "source_hash": "83ddc7d7"
+  },
+  "web.admin.customers.detail.fields.internalId": {
+    "text": "Dahili Kimlik",
+    "source_hash": "e468bb47"
+  },
+  "web.admin.customers.detail.organizations.open": {
+    "text": "Aç",
+    "source_hash": "ed077f3d"
+  },
+  "web.admin.customers.detail.rodauthAdmin.open": {
+    "text": "Rodauth Admin'de aç",
+    "source_hash": "467173c8"
+  },
+  "web.admin.customers.detail.sessions.revokeAll.selfDescription": {
+    "text": "Bu işlem, oturumunuzu diğer tüm cihaz ve tarayıcılardan kapatır; bu listede gösterilmeyen oturumlar da buna dahildir. Şu anda çalıştığınız oturum korunur.",
+    "source_hash": "ae350040"
+  },
+  "web.admin.customers.list.capped": {
+    "text": "Sonuçlar sınırlıdır: gösterilen sayı toplam değil, bir alt sınırdır. Tümünü görmek için aramayı veya filtreyi daraltın.",
+    "source_hash": "27537844"
+  },
+  "web.admin.customers.list.orphanedAccounts.title": {
+    "text": "Müşteri kaydı olmayan kimlik doğrulama veritabanı hesabı",
+    "source_hash": "82cf7a27"
+  },
+  "web.admin.customers.list.orphanedAccounts.hint": {
+    "text": "Kimlik doğrulama veritabanında bu adres için bir hesap var, ancak bu hesaba karşılık gelen bir müşteri kaydı yok. Kişi yine de oturum açabilir; müşteri dizininde bu kişiye ait bir kayıt bulunmaz. Tanılama için adresi açın.",
+    "source_hash": "0f903f23"
+  },
+  "web.admin.customers.list.orphanedAccounts.diagnose": {
+    "text": "Hesap tanılamasını aç",
+    "source_hash": "55b3e826"
+  },
+  "web.admin.customers.list.orphanedAccounts.accountId": {
+    "text": "Hesap #{id}",
+    "source_hash": "485dee3c"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unverified": {
+    "text": "Doğrulanmadı",
+    "source_hash": "33c8e8de"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.verified": {
+    "text": "Doğrulandı",
+    "source_hash": "4f783840"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.closed": {
+    "text": "Kapatıldı",
+    "source_hash": "c21ead06"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unknown": {
+    "text": "Bilinmiyor",
+    "source_hash": "b764cdc0"
   }
 }

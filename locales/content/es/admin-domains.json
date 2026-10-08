@@ -48,12 +48,12 @@
     "source_hash": "acaede35"
   },
   "web.admin.domains.addDomain.strategy.caddy_on_demand": {
-    "text": "Caddy on-demand — certificados emitidos automáticamente en la primera solicitud.",
-    "source_hash": "deb90ae6"
+    "text": "Caddy on-demand — comprobación de propiedad por DNS (registro TXT); los certificados se emiten automáticamente una vez verificado.",
+    "source_hash": "1c926efa"
   },
   "web.admin.domains.addDomain.strategy.caddy": {
-    "text": "Caddy — certificados emitidos automáticamente en la primera solicitud.",
-    "source_hash": "a0f3c2dc"
+    "text": "Caddy — comprobación de propiedad por DNS (registro TXT); los certificados se emiten automáticamente una vez verificado.",
+    "source_hash": "5774ff90"
   },
   "web.admin.domains.addDomain.strategy.unknown": {
     "text": "Estrategia de validación para toda la implementación.",
@@ -842,5 +842,81 @@
   "web.admin.domains.tls.none": {
     "text": "Sin servir",
     "source_hash": "da8a5ab9"
+  },
+  "web.admin.domains.configs.edit.originsHint": {
+    "text": "Un origen por línea, incluido el esquema, por ejemplo https://vault.example.com. Se rechaza cualquier origen en el dominio de otra organización.",
+    "source_hash": "4a4e1d33"
+  },
+  "web.admin.domains.configs.fields.related_origins": {
+    "text": "Orígenes relacionados de llaves de acceso",
+    "source_hash": "e6160714"
+  },
+  "web.admin.domains.dns.cnameStepInstall": {
+    "text": "2. Añade un registro CNAME que apunte el subdominio a esta instalación.",
+    "source_hash": "b8a329f9"
+  },
+  "web.admin.domains.dns.aliasStepInstall": {
+    "text": "2. Añade un registro ALIAS o ANAME que apunte el ápex a esta instalación.",
+    "source_hash": "9a61ed66"
+  },
+  "web.admin.domains.dns.apexNote": {
+    "text": "Un dominio ápex no puede tener un registro CNAME. Si el proveedor de DNS no ofrece registros ALIAS o ANAME, un registro A que apunte a la dirección IP de este servidor cumple la misma función.",
+    "source_hash": "f69e3032"
+  },
+  "web.admin.domains.fields.verifiedByOverride": {
+    "text": "Sí (anulación del operador)",
+    "source_hash": "a1a8644f"
+  },
+  "web.admin.domains.list.capped": {
+    "text": "Los resultados están limitados: el recuento mostrado es un mínimo, no el total. Acota la búsqueda o el filtro para verlo todo.",
+    "source_hash": "27537844"
+  },
+  "web.admin.domains.override.button": {
+    "text": "Anular estado",
+    "source_hash": "c683774c"
+  },
+  "web.admin.domains.override.title": {
+    "text": "Anular el estado de verificación",
+    "source_hash": "66dbebb2"
+  },
+  "web.admin.domains.override.description": {
+    "text": "Establece manualmente los indicadores de verificado y de resolución de este dominio. Úsalo con precaución.",
+    "source_hash": "bc3eb719"
+  },
+  "web.admin.domains.override.verified": {
+    "text": "Verificado",
+    "source_hash": "4f783840"
+  },
+  "web.admin.domains.override.resolving": {
+    "text": "Resolviendo",
+    "source_hash": "3287a034"
+  },
+  "web.admin.domains.override.apply": {
+    "text": "Aplicar anulación",
+    "source_hash": "e2d1472a"
+  },
+  "web.admin.domains.override.cancel": {
+    "text": "Cancelar",
+    "source_hash": "19766ed6"
+  },
+  "web.admin.domains.override.success": {
+    "text": "Se ha anulado el estado del dominio.",
+    "source_hash": "42104cd0"
+  },
+  "web.admin.domains.override.noChange": {
+    "text": "No hay cambios que aplicar.",
+    "source_hash": "07632d50"
+  },
+  "web.admin.domains.verify.success.indeterminate": {
+    "text": "El comprobador de DNS no devolvió ningún resultado para {domain}. Su estado de verificación no se ha modificado.",
+    "source_hash": "9c5ab974"
+  },
+  "web.admin.domains.verify.success.overrideHeld": {
+    "text": "La comprobación TXT falló para {domain}, pero sigue verificado debido a una anulación del operador.",
+    "source_hash": "e754aac8"
+  },
+  "web.admin.domains.verify.success.confirmationExpired": {
+    "text": "La comprobación de DNS de {domain} no ha devuelto ningún resultado durante más de 7 días. Ya no está verificado.",
+    "source_hash": "a6901cb5"
   }
 }

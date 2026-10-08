@@ -2,11 +2,12 @@
 #
 # frozen_string_literal: true
 
-# NOTE: deliberately stays at the integration/ root (no mode subdirectory), so
-# no spec:integration:<mode> rake lane or CI job runs it. Moving it into
-# integration/simple/ would derive the :simple_auth_mode tag, which conflicts
-# with the manual rake vcr:billing:verify/rerecord lanes that run this tree
-# under AUTHENTICATION_MODE=full. Runs via those lanes or direct invocation.
+# NOTE: deliberately stays at the integration/ root (no mode subdirectory):
+# the billing-integration lane (spec:integration:billing, nightly in CI) runs
+# the files directly under integration/. Moving it into integration/simple/
+# would derive the :simple_auth_mode tag, which conflicts with the manual
+# rake vcr:billing:verify/rerecord tasks that run this tree under
+# AUTHENTICATION_MODE=full.
 
 require_relative '../support/billing_spec_helper'
 require_relative '../../lib/webhook_validator'

@@ -47,6 +47,68 @@ RSpec.describe Onetime::Middleware::StripForwardedHost do
     end
   end
 
+  describe 'X-Forwarded-Port' do
+    def port_env(**extra)
+      Rack::MockRequest.env_for('https://onetime.test/', 'HTTP_HOST' => 'onetime.test',
+        'HTTP_X_FORWARDED_PORT' => '8443', **extra)
+    end
+
+    it 'deletes the header from a public peer when no proxy trust is configured' do
+      env = call_with(port_env('REMOTE_ADDR' => '203.0.113.7'))
+
+      expect(env).not_to have_key('HTTP_X_FORWARDED_PORT')
+      expect(Rack::Request.new(env).port).to eq(443)
+      expect(env[described_class::STRIPPED_HEADERS]).to eq(['HTTP_X_FORWARDED_PORT'])
+    end
+
+    it 'keeps the header from a private peer when no proxy trust is configured' do
+      env = call_with(port_env('REMOTE_ADDR' => '10.0.0.5'))
+
+      expect(Rack::Request.new(env).port).to eq(8443)
+      expect(env).not_to have_key(described_class::STRIPPED_HEADERS)
+    end
+
+    it 'keeps the header from a peer that passed configured proxy trust' do
+      env = call_with(port_env('REMOTE_ADDR' => '203.0.113.7', Rack::DetectHost::VIA_TRUSTED_PROXY_KEY => true))
+
+      expect(Rack::Request.new(env).port).to eq(8443)
+    end
+
+    [false, nil, 'true'].each do |trust|
+      it "deletes the header from a private peer whose proxy trust signal is #{trust.inspect}" do
+        env = call_with(port_env('REMOTE_ADDR' => '10.0.0.5', Rack::DetectHost::VIA_TRUSTED_PROXY_KEY => trust))
+
+        expect(env).not_to have_key('HTTP_X_FORWARDED_PORT')
+      end
+    end
+
+    it 'deletes the header when the peer address is missing' do
+      env = port_env
+      env.delete('REMOTE_ADDR')
+
+      expect(call_with(env)).not_to have_key('HTTP_X_FORWARDED_PORT')
+    end
+
+    # Rack::Request#port converts whatever is there with #to_i and takes the
+    # last entry of a list.
+    ['0', '65536', '-1', 'abc', '', '8443, 443', "8443\n9", '8443abc'].each do |value|
+      it "deletes #{value.inspect} from a trusted proxy" do
+        env = call_with(port_env('REMOTE_ADDR' => '203.0.113.7', Rack::DetectHost::VIA_TRUSTED_PROXY_KEY => true,
+          'HTTP_X_FORWARDED_PORT' => value))
+
+        expect(env).not_to have_key('HTTP_X_FORWARDED_PORT')
+        expect(Rack::Request.new(env).port).to eq(443)
+        expect(env[described_class::STRIPPED_HEADERS]).to eq(['HTTP_X_FORWARDED_PORT'])
+      end
+    end
+
+    it 'keeps a padded single port from a trusted proxy' do
+      env = call_with(port_env('REMOTE_ADDR' => '10.0.0.5', 'HTTP_X_FORWARDED_PORT' => ' 8443 '))
+
+      expect(Rack::Request.new(env).port).to eq(8443)
+    end
+  end
+
   describe 'RFC 7239 Forwarded' do
     it 'deletes the header unconditionally' do
       env = call_with(Rack::MockRequest.env_for('http://onetime.test/', 'HTTP_FORWARDED' => 'for=192.0.2.60;proto=https;host=evil.example.com'))
@@ -98,12 +160,125 @@ RSpec.describe Onetime::Middleware::StripForwardedHost do
     end
   end
 
+  describe 'untrusted scheme carriers' do
+    %w[HTTP_X_FORWARDED_PROTO HTTP_X_FORWARDED_SCHEME HTTP_X_FORWARDED_SSL HTTP_FORWARDED].each do |carrier|
+      it "ignores #{carrier} even when a private peer is explicitly denied" do
+        Rack::Request.forwarded_priority = [:forwarded, :x_forwarded]
+        value = case carrier
+                when 'HTTP_FORWARDED' then 'proto=https'
+                when 'HTTP_X_FORWARDED_SSL' then 'on'
+                else 'https'
+                end
+        env = call_with(Rack::MockRequest.env_for('http://onetime.test/',
+          carrier => value,
+          'REMOTE_ADDR' => '10.0.0.5',
+          'otto.via_trusted_proxy' => false))
+        aggregate_failures do
+          expect(env).not_to have_key(carrier)
+          expect(env['rack.url_scheme']).to eq('http')
+          expect(Rack::Request.new(env).scheme).to eq('http')
+          expect(env[described_class::STRIPPED_HEADERS]).to include(carrier)
+        end
+      end
+    end
+  end
+
+  # Rack accepts ws and wss as forwarded schemes and has a default port for
+  # neither, so #port falls through to SERVER_PORT while #base_url carries
+  # no port. This app serves HTTP only: a trusted proxy's ws is read as
+  # http and its wss as https.
+  describe 'websocket schemes from a trusted proxy' do
+    let(:trusted) { { 'REMOTE_ADDR' => '203.0.113.7', Rack::DetectHost::VIA_TRUSTED_PROXY_KEY => true } }
+
+    # A proxy that preserves Host: nothing is rewritten below this middleware.
+    def proxied_env(**extra)
+      Rack::MockRequest.env_for('http://secrets.acme.com/', 'HTTP_HOST' => 'secrets.acme.com',
+        'SERVER_NAME' => 'origin.internal', 'SERVER_PORT' => '3000', **trusted, **extra)
+    end
+
+    before { Rack::Request.forwarded_priority = [:x_forwarded] }
+
+    it 'is needed because Rack alone gives a Host-preserving proxy the origin port under wss' do
+      request = Rack::Request.new(proxied_env('HTTP_X_FORWARDED_PROTO' => 'wss'))
+
+      expect([request.scheme, request.port, request.base_url]).to eq(['wss', '3000', 'wss://secrets.acme.com'])
+    end
+
+    {
+      'ws' => ['http', false, 80, 'http'],
+      'wss' => ['https', true, 443, 'https'],
+      'https, wss' => ['https', true, 443, 'https, https'],
+      'wss, http' => ['http', false, 80, 'https, http'],
+      "ws\twss" => ['https', true, 443, "http\thttps"],
+      'javascript, ws' => ['http', false, 80, 'javascript, http'],
+      " wss\n" => ['https', true, 443, 'https'],
+    }.each do |value, (scheme, ssl, port, rewritten)|
+      %w[HTTP_X_FORWARDED_PROTO HTTP_X_FORWARDED_SCHEME].each do |carrier|
+        it "reads #{carrier} #{value.inspect} as #{scheme}" do
+          before  = Rack::Request.new(proxied_env(carrier => value))
+          env     = call_with(proxied_env(carrier => value))
+          request = Rack::Request.new(env)
+
+          aggregate_failures do
+            expect(env[carrier]).to eq(rewritten)
+            expect(request.scheme).to eq(scheme)
+            expect(request.ssl?).to eq(ssl)
+            expect(request.ssl?).to eq(before.ssl?)
+            expect(request.port).to eq(port)
+            expect(URI.parse(request.base_url).port).to eq(port)
+            expect(request.base_url).to eq("#{scheme}://secrets.acme.com")
+            expect(env).not_to have_key(described_class::STRIPPED_HEADERS)
+          end
+        end
+      end
+    end
+
+    it 'normalises X-Forwarded-Scheme when X-Forwarded-Proto names no scheme' do
+      env = call_with(proxied_env('HTTP_X_FORWARDED_PROTO' => 'on', 'HTTP_X_FORWARDED_SCHEME' => 'wss'))
+
+      expect(Rack::Request.new(env).scheme).to eq('https')
+    end
+
+    %w[wsx news WSS wss:// ws-wss].each do |value|
+      it "leaves #{value.inspect} as it is: Rack reads no scheme from it" do
+        env = call_with(proxied_env('HTTP_X_FORWARDED_PROTO' => value))
+
+        expect(env['HTTP_X_FORWARDED_PROTO']).to eq(value)
+        expect(Rack::Request.new(env).scheme).to eq('http')
+      end
+    end
+
+    { 'wss' => 'https', 'ws' => 'http' }.each do |proto, scheme|
+      it "carries Forwarded proto=#{proto} into rack.url_scheme as #{scheme}" do
+        Rack::Request.forwarded_priority = [:forwarded]
+
+        env     = call_with(proxied_env('HTTP_FORWARDED' => "proto=#{proto}"))
+        request = Rack::Request.new(env)
+
+        aggregate_failures do
+          expect(env['rack.url_scheme']).to eq(scheme)
+          expect(request.scheme).to eq(scheme)
+          expect(URI.parse(request.base_url).port).to eq(request.port)
+        end
+      end
+    end
+
+    it 'does not let Forwarded proto=ws lower a request that is already https' do
+      Rack::Request.forwarded_priority = [:forwarded]
+
+      env = call_with(proxied_env('HTTP_FORWARDED' => 'proto=ws', 'rack.url_scheme' => 'https'))
+
+      expect(Rack::Request.new(env).scheme).to eq('https')
+    end
+  end
+
   describe 'post-strip Rack resolution' do
     let(:env) do
       Rack::MockRequest.env_for(
         'http://onetime.test/',
         'HTTP_X_FORWARDED_HOST' => 'evil.example.com',
         'HTTP_FORWARDED' => 'for=192.0.2.60;proto=https;host=evil.example.com',
+        'otto.via_trusted_proxy' => true,
       )
     end
 
@@ -127,7 +302,7 @@ RSpec.describe Onetime::Middleware::StripForwardedHost do
       expect(Rack::Request.new(call_with(env)).scheme).to eq('http')
     end
 
-    it 'still resolves scheme from the untouched X-Forwarded-Proto under the default family' do
+    it 'still resolves scheme from a trusted X-Forwarded-Proto under the default family' do
       Rack::Request.forwarded_priority = [:x_forwarded]
 
       env['HTTP_X_FORWARDED_PROTO'] = 'https'

@@ -19,7 +19,7 @@ Part of the Colonel Admin Rebuild epic. Phase-1 reference slice, UI half: the bi
 - UI kit (from #11): DataTable, FilterBar, DetailDrawer, ConfirmDialog, StatCard, JsonViewer.
 - Store (from #12): `useAdminCustomers` + shared paginated-fetch composable; validation via `gracefulParse` from `src/schemas/api/account/responses/colonel`.
 - Endpoints (from #20): colonel role change / verify-unverify / purge / doctor, plus index-backed `List`/`Show`. Colonel API: `/api/colonel`, routes `apps/api/colonel/routes.txt`, handlers `apps/api/colonel/logic/colonel/*.rb`.
-- Replace: `src/apps/colonel/ColonelUsers.vue:43-70` (hand-rolled table). Mine `src/apps/workspace/components/members/MembersTable.vue` and `src/apps/workspace/components/settings/{SettingsSection,SettingsPageHeader}.vue` for detail-page + settings-panel patterns.
+- Replace: `src/apps/colonel/ColonelUsers.vue:43-70` (hand-rolled table). Mine `src/apps/workspace/components/members/MembersTable.vue` and `src/apps/workspace/components/settings/SettingsPageHeader.vue` for detail-page + settings-panel patterns.
 - Lives under `src/apps/admin/` (URL stays `/colonel`), behind `experimental.admin_v2`.
 
 ## Acceptance criteria

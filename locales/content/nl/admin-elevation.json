@@ -1,0 +1,46 @@
+{
+  "web.admin.elevation.banner.active": {
+    "text": "Verhoogde toegang actief — nog {remaining}",
+    "source_hash": "3e446719"
+  },
+  "web.admin.elevation.banner.activeRecentAuth": {
+    "text": "Verhoogd ZONDER wachtwoord (recent ingelogd) — nog {remaining}",
+    "source_hash": "6bc7f4ca"
+  },
+  "web.admin.elevation.banner.drop": {
+    "text": "Verhoogde toegang beëindigen",
+    "source_hash": "b4960d01"
+  },
+  "web.admin.elevation.errors.noPassword": {
+    "text": "Dit account heeft geen wachtwoord en kan daarom geen step-up-authenticatie voltooien.",
+    "source_hash": "ba0d40e8"
+  },
+  "web.admin.elevation.errors.noGrace": {
+    "text": "Vraag een beheerder om COLONEL_ELEVATION_REAUTH_GRACE in te stellen, of om step-up uit te schakelen met COLONEL_ELEVATION_ENABLED=false.",
+    "source_hash": "ac501a95"
+  },
+  "web.admin.elevation.errors.failed": {
+    "text": "Step-up-authenticatie mislukt. Destructieve acties blijven vergrendeld.",
+    "source_hash": "f17909ec"
+  },
+  "web.admin.elevation.prompt.title": {
+    "text": "Bevestig dat jij het bent",
+    "source_hash": "6176eec2"
+  },
+  "web.admin.elevation.prompt.description": {
+    "text": "Deze actie is destructief. Voer je wachtwoord opnieuw in om destructieve acties de komende {minutes} minuten te ontgrendelen.",
+    "source_hash": "2e85bbdd"
+  },
+  "web.admin.elevation.prompt.confirm": {
+    "text": "Ontgrendelen",
+    "source_hash": "4ac709aa"
+  },
+  "web.admin.elevation.prompt.confirmItsYou": {
+    "text": "Bevestigen dat ik het ben",
+    "source_hash": "f718279a"
+  },
+  "web.admin.elevation.prompt.confirmItsYouDescription": {
+    "text": "Je account heeft geen wachtwoord. Bevestig om destructieve acties de komende {minutes} minuten te ontgrendelen.",
+    "source_hash": "d8d63a3a"
+  }
+}

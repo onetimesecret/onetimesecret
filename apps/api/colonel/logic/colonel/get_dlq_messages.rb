@@ -13,9 +13,9 @@ module ColonelAPI
       #
       # Thin adapter over {Onetime::Operations::Dlq::Peek} — the single
       # implementation of the per-queue DLQ list verb (epic #42). Feeds the DLQ
-      # console's detail drawer: a non-destructive peek (pop + immediate
-      # nack-requeue) of up to `limit` dead-letter payloads for inspection via
-      # JsonViewer.
+      # console's detail drawer: a non-destructive peek (manual-ack pops, all
+      # nack-requeued when the scan ends) of up to `limit` dead-letter payloads
+      # for inspection via JsonViewer.
       #
       # Read-only: no ColonelAuditEvent (CONTRACT 4).
       #

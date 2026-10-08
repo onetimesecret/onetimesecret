@@ -101,6 +101,9 @@ RSpec.describe 'Middleware manifest (characterization)' do
     #   - Onetime::Application::RequestLogger: absent (logging http.enabled: false)
     #   - Sentry::Rack::CaptureExceptions: absent when diagnostics is disabled;
     #     characterized in its own example below with d9s_enabled pinned true.
+    #   - Onetime::Middleware::CookieTossing: present (site.middleware.
+    #     cookie_tossing is on in the test config, as in the defaults); its
+    #     absence when off is the example below.
     universal_middleware_base = [
       'Onetime::Middleware::AssumeHttps',
       'Otto::Security::Middleware::IPPrivacyMiddleware',
@@ -118,6 +121,9 @@ RSpec.describe 'Middleware manifest (characterization)' do
       'Onetime::Middleware::SamlCallbackTransport::Boundary',
       'Onetime::Middleware::ValidateMultipart',
       'Rack::Parser',
+      # CookieTossing must stay directly above Onetime::Session: a refused
+      # request loads no session and its 403 sets no session cookie.
+      'Onetime::Middleware::CookieTossing',
       'Onetime::Session',
       'Onetime::Middleware::SessionSkip',
       'Onetime::Middleware::IdentityResolution',
@@ -126,6 +132,10 @@ RSpec.describe 'Middleware manifest (characterization)' do
       'Otto::Locale::Middleware',
       'Middleware::I18nLocale',
       'Onetime::Middleware::DomainStrategy',
+      # PublicHostRewrite reads DomainStrategy's classification, and must
+      # stay below StripForwardedHost: Rack reads X-Forwarded-Host ahead of
+      # the Host it writes.
+      'Onetime::Middleware::PublicHostRewrite',
       'Onetime::Middleware::RetryAfterHeader',
       'Onetime::Middleware::SessionFailureCode',
       'Onetime::Middleware::ApiCachePolicy',
@@ -167,6 +177,37 @@ RSpec.describe 'Middleware manifest (characterization)' do
         'Sentry::Rack::CaptureExceptions',
       )
       expect(recorded_names).to eq expected
+    end
+
+    it 'leaves out CookieTossing when site.middleware.cookie_tossing is off' do
+      Onetime.d9s_enabled          = false
+      middleware                   = OT.conf['site']['middleware']
+      saved                        = middleware['cookie_tossing']
+      middleware['cookie_tossing'] = false
+      expect(recorded_names).to eq(universal_middleware_base - ['Onetime::Middleware::CookieTossing'])
+    ensure
+      middleware['cookie_tossing'] = saved
+    end
+
+    it 'warns once per process that CookieTossing is off, however many applications build the stack' do
+      Onetime.d9s_enabled          = false
+      middleware                   = OT.conf['site']['middleware']
+      saved                        = middleware['cookie_tossing']
+      middleware['cookie_tossing'] = false
+      allow(OT).to receive(:lw)
+      Onetime::Application::MiddlewareStack.reset_warn_once!
+      2.times do
+        Onetime::Application::MiddlewareStack.configure(
+          recorder_class.new,
+          application_context: { name: 'ManifestSpec', prefix: '/manifest-spec' },
+        )
+      end
+      expect(OT).to have_received(:lw)
+        .with('[Security] CookieTossing protection DISABLED (site.middleware.cookie_tossing=false)')
+        .once
+    ensure
+      middleware['cookie_tossing'] = saved
+      Onetime::Application::MiddlewareStack.reset_warn_once!
     end
 
     it 'only records `use` calls (no run/map/warmup at the universal layer)' do

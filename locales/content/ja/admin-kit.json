@@ -62,5 +62,29 @@
   "web.admin.kit.revealEmail.copy": {
     "text": "メールアドレスをコピー",
     "source_hash": "61b94846"
+  },
+  "web.admin.errors.rateLimited": {
+    "text": "約{minutes}分後に再試行できます。",
+    "source_hash": "27f2d054"
+  },
+  "web.admin.errors.rateLimitedRecovery": {
+    "text": "すぐに操作する必要がある場合は、自分のアカウントに対して POST /api/colonel/ratelimit/reset でリミッターをクリアするか、`bin/ots ratelimit keys <kind> <extid>` を実行してください。",
+    "source_hash": "b77e1388"
+  },
+  "web.admin.kit.confirmDialog.reasonLabel": {
+    "text": "理由 (任意)",
+    "source_hash": "0f7d4664"
+  },
+  "web.admin.kit.confirmDialog.reasonPlaceholder": {
+    "text": "この操作を行う理由を入力してください",
+    "source_hash": "ef83fe82"
+  },
+  "web.admin.kit.confirmDialog.reasonHint": {
+    "text": "この操作とともに管理者の監査ログに記録されます。",
+    "source_hash": "23779076"
+  },
+  "web.admin.kit.filterBar.searchSubmit": {
+    "text": "検索",
+    "source_hash": "49c266ba"
   }
 }

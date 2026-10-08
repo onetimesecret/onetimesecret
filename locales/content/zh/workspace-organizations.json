@@ -1226,5 +1226,129 @@
   "web.organizations.sso.enable_untested_warning": {
     "text": "此连接尚未在此通过测试。请在启用前运行「测试连接」，以免有问题的配置出现在您的登录页面上。",
     "source_hash": "c1fbdeca"
+  },
+  "web.organizations.delete_organization_cancel_subscription_first": {
+    "text": "删除此组织前，请先取消其订阅。",
+    "source_hash": "f0c54eca"
+  },
+  "web.organizations.sso.disable_action": {
+    "text": "停用 SSO",
+    "source_hash": "2f072272"
+  },
+  "web.organizations.sso.disable_confirm": {
+    "text": "停用此 SSO 连接？未保存的表单修改将不会被保存。已存储的凭据将被保留。",
+    "source_hash": "608b142a"
+  },
+  "web.organizations.sso.disable_enforcement_warning": {
+    "text": "「强制仅 SSO」也将被关闭，从而允许使用其他已配置的登录方式。",
+    "source_hash": "58abd552"
+  },
+  "web.organizations.sso.idp_sso_service_url": {
+    "text": "IdP SSO 服务 URL",
+    "source_hash": "0b33b1ac"
+  },
+  "web.organizations.sso.idp_sso_service_url_hint": {
+    "text": "您的身份提供商为 SAML 单点登录发布的 HTTPS 端点",
+    "source_hash": "bc6fdfd9"
+  },
+  "web.organizations.sso.idp_sso_service_url_placeholder": {
+    "text": "https://idp.example.com/sso/saml",
+    "source_hash": "513d0586"
+  },
+  "web.organizations.sso.idp_entity_id": {
+    "text": "IdP 实体 ID",
+    "source_hash": "14a4ab8b"
+  },
+  "web.organizations.sso.idp_entity_id_hint": {
+    "text": "身份提供商元数据中的颁发者标识符，须与其发布的值完全一致",
+    "source_hash": "c3d8320b"
+  },
+  "web.organizations.sso.idp_entity_id_placeholder": {
+    "text": "https://idp.example.com/metadata",
+    "source_hash": "0c46d14d"
+  },
+  "web.organizations.sso.idp_cert": {
+    "text": "IdP 签名证书",
+    "source_hash": "c84000cd"
+  },
+  "web.organizations.sso.idp_cert_hint": {
+    "text": "您的身份提供商用于签署断言的 X.509 证书（PEM 格式）。仅限一个证书，不接受指纹。",
+    "source_hash": "b5e157f5"
+  },
+  "web.organizations.sso.idp_cert_placeholder": {
+    "text": "-----BEGIN CERTIFICATE-----",
+    "source_hash": "ddddb6cb"
+  },
+  "web.organizations.sso.sp_details": {
+    "text": "服务提供商详情",
+    "source_hash": "4b6617d2"
+  },
+  "web.organizations.sso.sp_details_hint": {
+    "text": "请在您的身份提供商处登记这些值",
+    "source_hash": "784e9410"
+  },
+  "web.organizations.sso.sp_details_preview_hint": {
+    "text": "此预览基于默认登录路由。请先保存此配置，并在此处确认这些值，然后再将其登记到您的身份提供商。",
+    "source_hash": "fd9d3001"
+  },
+  "web.organizations.sso.domain_unverified_notice": {
+    "text": "在此域名完成验证之前，其单点登录处于关闭状态。验证不会更改以下值。",
+    "source_hash": "4b56ea4b"
+  },
+  "web.organizations.sso.sp_entity_id": {
+    "text": "SP 实体 ID（元数据 URL）",
+    "source_hash": "59bc544c"
+  },
+  "web.organizations.sso.acs_url": {
+    "text": "断言使用者服务 URL",
+    "source_hash": "5dacfb65"
+  },
+  "web.organizations.sso.unreadable_field": {
+    "text": "无法读取已存储的值。请重新输入以继续。",
+    "source_hash": "ca3b5fcc"
+  },
+  "web.organizations.sso.unreadable_fields_alert": {
+    "text": "部分已存储的值无法读取，必须重新输入：{fields}",
+    "source_hash": "e9fa9d16"
+  },
+  "web.organizations.sso.idp_cert_expired_alert": {
+    "text": "身份提供商证书已于 {date} 过期。在保存有效的证书之前，通过此连接登录将会失败。",
+    "source_hash": "527fb721"
+  },
+  "web.organizations.sso.idp_cert_expiring_notice": {
+    "text": "身份提供商证书将于 {date} 过期。请在此之前更换证书，以确保登录正常进行。",
+    "source_hash": "ccaf6ca7"
+  },
+  "web.organizations.sso.test_connection_hint_saml": {
+    "text": "在本地检查 SSO URL、实体 ID 和证书，不会联系身份提供商",
+    "source_hash": "1dad3945"
+  },
+  "web.organizations.sso.configured_issuer": {
+    "text": "已配置的颁发者",
+    "source_hash": "6b307b7f"
+  },
+  "web.organizations.sso.discovery_issuer": {
+    "text": "已发现的颁发者",
+    "source_hash": "9d74f978"
+  },
+  "web.organizations.sso.issuer_mismatch_hint": {
+    "text": "OIDC 颁发者标识符必须完全匹配，包括末尾的斜杠。请将颁发者网址设置为上方显示的已发现值。",
+    "source_hash": "ec144c88"
+  },
+  "web.organizations.sso.certificate_subject": {
+    "text": "证书主体",
+    "source_hash": "d7816b16"
+  },
+  "web.organizations.sso.certificate_expires": {
+    "text": "证书到期时间",
+    "source_hash": "1e73119d"
+  },
+  "web.organizations.sso.certificate_expires_in_days": {
+    "text": "{n} 天后 | {n} 天后",
+    "source_hash": "df98ca65"
+  },
+  "web.organizations.sso.certificate_valid_from": {
+    "text": "证书生效时间",
+    "source_hash": "b13d3f30"
   }
 }

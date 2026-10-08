@@ -74,7 +74,10 @@ RSpec.describe 'WithMaterializedEntitlements', billing: true do
     cm = class_methods_mod
 
     Class.new do
-      # Pull in InstanceMethods and ClassMethods (mirrors what base.include/extend does)
+      # Pull in InstanceMethods and ClassMethods (mirrors what base.include/extend does).
+      # WithEntitlements first, as on Organization: it owns parse_limit_value,
+      # which WithMaterializedLimits routes every stored limit through.
+      include Onetime::Models::Features::WithEntitlements::InstanceMethods
       include Onetime::Models::Features::WithMaterializedEntitlements::InstanceMethods
       include Onetime::Models::Features::WithMaterializedLimits::InstanceMethods
       extend cm
@@ -536,8 +539,12 @@ RSpec.describe 'WithMaterializedEntitlements', billing: true do
 
   describe '#materialized_limit_for' do
     before do
-      org.limits_plan['teams.max']          = '5'
+      org.limits_plan['teams.max']           = '5'
       org.limits_plan['secret_lifetime.max'] = 'unlimited'
+      # Written by earlier PlanPersister releases, which stored
+      # Float::INFINITY.to_s verbatim; still present in materialized orgs.
+      org.limits_plan['custom_domains.max']  = 'Infinity'
+      org.limits_plan['organizations.max']   = '-1'
     end
 
     it 'returns integer for numeric limit' do
@@ -546,6 +553,14 @@ RSpec.describe 'WithMaterializedEntitlements', billing: true do
 
     it 'returns Float::INFINITY for "unlimited"' do
       expect(org.materialized_limit_for('secret_lifetime.max')).to eq(Float::INFINITY)
+    end
+
+    it 'returns Float::INFINITY for a stored "Infinity" instead of 0' do
+      expect(org.materialized_limit_for('custom_domains.max')).to eq(Float::INFINITY)
+    end
+
+    it 'returns Float::INFINITY for the operator convention "-1"' do
+      expect(org.materialized_limit_for('organizations.max')).to eq(Float::INFINITY)
     end
 
     it 'returns 0 for unknown key' do

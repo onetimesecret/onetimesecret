@@ -48,12 +48,12 @@
     "source_hash": "acaede35"
   },
   "web.admin.domains.addDomain.strategy.caddy_on_demand": {
-    "text": "Caddy on-demand——首次请求时自动签发证书。",
-    "source_hash": "deb90ae6"
+    "text": "Caddy on-demand——通过 DNS 所有权检查（TXT 记录），验证通过后自动签发证书。",
+    "source_hash": "1c926efa"
   },
   "web.admin.domains.addDomain.strategy.caddy": {
-    "text": "Caddy——首次请求时自动签发证书。",
-    "source_hash": "a0f3c2dc"
+    "text": "Caddy——通过 DNS 所有权检查（TXT 记录），验证通过后自动签发证书。",
+    "source_hash": "5774ff90"
   },
   "web.admin.domains.addDomain.strategy.unknown": {
     "text": "部署范围的验证策略。",
@@ -842,5 +842,81 @@
   "web.admin.domains.tls.none": {
     "text": "未提供服务",
     "source_hash": "da8a5ab9"
+  },
+  "web.admin.domains.configs.edit.originsHint": {
+    "text": "每行填写一个源，需包含协议，例如 https://vault.example.com。位于其他组织域名上的源将被拒绝。",
+    "source_hash": "4a4e1d33"
+  },
+  "web.admin.domains.configs.fields.related_origins": {
+    "text": "相关的通行密钥源",
+    "source_hash": "e6160714"
+  },
+  "web.admin.domains.dns.cnameStepInstall": {
+    "text": "2. 添加一条 CNAME 记录，将子域名指向此安装实例。",
+    "source_hash": "b8a329f9"
+  },
+  "web.admin.domains.dns.aliasStepInstall": {
+    "text": "2. 添加一条 ALIAS 或 ANAME 记录，将顶级域指向此安装实例。",
+    "source_hash": "9a61ed66"
+  },
+  "web.admin.domains.dns.apexNote": {
+    "text": "顶级域不能设置 CNAME 记录。如果 DNS 提供商不支持 ALIAS 或 ANAME 记录，可添加一条指向此服务器 IP 地址的 A 记录，效果相同。",
+    "source_hash": "f69e3032"
+  },
+  "web.admin.domains.fields.verifiedByOverride": {
+    "text": "是（运营方覆盖）",
+    "source_hash": "a1a8644f"
+  },
+  "web.admin.domains.list.capped": {
+    "text": "结果数量有上限：显示的数量为下限，而非总数。请缩小搜索或筛选范围以查看全部结果。",
+    "source_hash": "27537844"
+  },
+  "web.admin.domains.override.button": {
+    "text": "覆盖状态",
+    "source_hash": "c683774c"
+  },
+  "web.admin.domains.override.title": {
+    "text": "覆盖验证状态",
+    "source_hash": "66dbebb2"
+  },
+  "web.admin.domains.override.description": {
+    "text": "手动设置此域名的「已验证」和「正在解析」标志。请谨慎使用。",
+    "source_hash": "bc3eb719"
+  },
+  "web.admin.domains.override.verified": {
+    "text": "已验证",
+    "source_hash": "4f783840"
+  },
+  "web.admin.domains.override.resolving": {
+    "text": "正在解析",
+    "source_hash": "3287a034"
+  },
+  "web.admin.domains.override.apply": {
+    "text": "应用覆盖",
+    "source_hash": "e2d1472a"
+  },
+  "web.admin.domains.override.cancel": {
+    "text": "取消",
+    "source_hash": "19766ed6"
+  },
+  "web.admin.domains.override.success": {
+    "text": "域名状态已覆盖。",
+    "source_hash": "42104cd0"
+  },
+  "web.admin.domains.override.noChange": {
+    "text": "没有可应用的更改。",
+    "source_hash": "07632d50"
+  },
+  "web.admin.domains.verify.success.indeterminate": {
+    "text": "DNS 检查器未返回 {domain} 的结果。其验证状态保持不变。",
+    "source_hash": "9c5ab974"
+  },
+  "web.admin.domains.verify.success.overrideHeld": {
+    "text": "{domain} 的 TXT 检查失败，但由于运营方覆盖，该域名仍保持已验证状态。",
+    "source_hash": "e754aac8"
+  },
+  "web.admin.domains.verify.success.confirmationExpired": {
+    "text": "{domain} 的 DNS 检查已超过 7 天未返回结果。该域名已不再处于已验证状态。",
+    "source_hash": "a6901cb5"
   }
 }

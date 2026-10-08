@@ -25,11 +25,13 @@ module Onetime
     # - XSS protection headers
     # - Frame options to prevent clickjacking
     # - Path traversal protection
-    # - Cookie tossing prevention
     # - IP spoofing protection
     # - Strict Transport Security configuration
     #
     # Each protection can be individually enabled/disabled via configuration.
+    #
+    # Cookie tossing prevention is not mounted here: it must run above
+    # Onetime::Session, and MiddlewareStack mounts it there.
     #
     class Security
       # The components this wrapper mounts, in mount order. The definitions
@@ -44,7 +46,6 @@ module Onetime
         PermissionsPolicy
         FrameOptions
         PathTraversal
-        CookieTossing
         IPSpoofing
         StrictTransport
       ].freeze
@@ -95,6 +96,7 @@ module Onetime
         # Define middleware components with their corresponding settings keys
         components               = self.class.middleware_components
         warn_when_disabled_keys  = WARN_WHEN_DISABLED_KEYS
+        security                 = self.class
         Rack::Builder.new do
           # Apply each middleware if configured
           components.each do |name, config|
@@ -105,7 +107,7 @@ module Onetime
               # Flag a disabled component when project guidance says the
               # operator's configuration choice merits review.
               if warn_when_disabled_keys.include?(middleware_key)
-                OT.lw "[Security] #{name} protection DISABLED (site.middleware.#{middleware_key}=false)"
+                security.warn_disabled(name, middleware_key)
               end
               next
             end
@@ -133,6 +135,29 @@ module Onetime
           @middleware_components ||= COMPONENT_NAMES
             .to_h { |name| [name, Registry.fetch(name)] }
             .freeze
+        end
+
+        # Warn that a component is disabled, once per process. Every
+        # application mounts this middleware, so a warning per build repeats
+        # the same line once per app at boot, and the spec suites, which
+        # build the applications thousands of times, wrote enough of them to
+        # push CI job logs past their size limit. The warning stays at warn
+        # level so the operator still sees it in the startup log.
+        #
+        # No require_relative for MiddlewareStack: it mounts this middleware,
+        # so the constant is loaded by the time anything builds it. A
+        # standalone build without it warns on every build instead.
+        #
+        # @param name [String] component display name, e.g. 'FrameOptions'
+        # @param key [String] the site.middleware toggle
+        # @return [void]
+        def warn_disabled(name, key)
+          message = "[Security] #{name} protection DISABLED (site.middleware.#{key}=false)"
+          if defined?(Onetime::Application::MiddlewareStack)
+            Onetime::Application::MiddlewareStack.warn_once(:"security_#{key}_disabled", message)
+          else
+            OT.lw message
+          end
         end
       end
     end

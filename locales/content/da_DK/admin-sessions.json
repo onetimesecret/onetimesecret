@@ -176,8 +176,8 @@
     "source_hash": "0c6605c1"
   },
   "web.admin.sessions.revoke.confirmDescription": {
-    "text": "Dette logger straks brugeren ud ved at slette session {id}. Skriv sessions-ID'et for at bekræfte.",
-    "source_hash": "9e08b1b8"
+    "text": "Dette logger straks brugeren ud ved at tilbagekalde session {id}. Skriv {token} for at bekræfte.",
+    "source_hash": "80578692"
   },
   "web.admin.sessions.revoke.success": {
     "text": "Session tilbagekaldt",
@@ -188,12 +188,12 @@
     "source_hash": "34cb67a4"
   },
   "web.admin.sessions.scan.capped": {
-    "text": "Scanning begrænset til de første {scanned} nøgler — godkendte sessioner ud over dette vindue vises ikke. Inspicer en bestemt session via ID for at nå den.",
-    "source_hash": "fa418b4e"
+    "text": "Scanning begrænset til de første {scanned} nøgler — godkendte sessioner ud over dette vindue vises ikke. Indsnævr søgningen for at nå dem.",
+    "source_hash": "7a8d6fd5"
   },
   "web.admin.sessions.search.placeholder": {
-    "text": "Søg efter e-mail eller eksternt ID",
-    "source_hash": "f2dc5c06"
+    "text": "Søg efter e-mail, eksternt ID eller sessionsreference",
+    "source_hash": "4894dec4"
   },
   "web.admin.sessions.sections.session": {
     "text": "Session",
@@ -210,5 +210,45 @@
   "web.admin.sessions.status.anonymous": {
     "text": "Anonym",
     "source_hash": "e7a8aa2d"
+  },
+  "web.admin.sessions.authority.title": {
+    "text": "Ikke den autoritative sessionskilde i fuld godkendelsestilstand",
+    "source_hash": "796fb07f"
+  },
+  "web.admin.sessions.authority.description": {
+    "text": "Denne liste er Redis-sessionslageret. Når godkendelsestilstanden er sat til full, ligger den autoritative sessionstilstand i Rodauth-kontodatabasen, som denne konsol ikke læser. Konti, der er logget ind via Rodauth, vises muligvis ikke her, og hvis du tilbagekalder en session her, afsluttes en Rodauth-session ikke.",
+    "source_hash": "77bc4904"
+  },
+  "web.admin.sessions.authority.descriptionRevokeAll": {
+    "text": "Denne liste er Redis-sessionslageret. Når godkendelsestilstanden er sat til full, ligger den autoritative sessionstilstand i Rodauth-kontodatabasen, som denne konsol ikke læser. Konti, der er logget ind via Rodauth, vises muligvis ikke her, og hvis du tilbagekalder en enkelt session her, afsluttes dens Rodauth-session ikke. “Tilbagekald alle” afslutter også kontoens Rodauth-sessioner.",
+    "source_hash": "f964663d"
+  },
+  "web.admin.sessions.authority.openAdmin": {
+    "text": "Åbn Rodauth Admin",
+    "source_hash": "ce523836"
+  },
+  "web.admin.sessions.authority.notConfigured": {
+    "text": "Angiv RODAUTH_ADMIN_URL for at linke til Rodauth Admin herfra.",
+    "source_hash": "c070dbfb"
+  },
+  "web.admin.sessions.columns.sessionHandle": {
+    "text": "Sessionsreference",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.errors.scanCapped": {
+    "text": "Denne session blev ikke fundet i det udtagne nøglerum. Åbn den fra dens række på listen, så ejeren kan bruges til at slå den op.",
+    "source_hash": "67b73f7f"
+  },
+  "web.admin.sessions.fields.sessionHandle": {
+    "text": "Sessionsreference",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.revoke.ownSession": {
+    "text": "Dette er din egen session. Hvis du tilbagekalder den, bliver du logget ud — brug log ud i stedet.",
+    "source_hash": "a6762292"
+  },
+  "web.admin.sessions.rodauthAdmin.open": {
+    "text": "Åbn i Rodauth Admin",
+    "source_hash": "467173c8"
   }
 }

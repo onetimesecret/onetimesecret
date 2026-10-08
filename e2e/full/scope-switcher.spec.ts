@@ -12,8 +12,9 @@
 //     /receipt/:id locks both; /account and its settings pages hide both.
 //   - Org switcher (src/shared/composables/useScopeSwitcherVisibility.ts):
 //     ENABLE_ORGS (features.organizations.enabled), the user owns the current
-//     org, not a custom-domain host, and not the "solo default" context
-//     (exactly one org, the auto-created default, free plan, one member).
+//     org or another of their orgs, not a custom-domain host, and not the
+//     "solo default" context (exactly one org, the auto-created default, free
+//     plan, one member).
 //   - Domain switcher: domains enabled on the server (useDomainContext
 //     isContextActive).
 //
@@ -157,6 +158,27 @@ async function bootstrapFlags(
     orgSwitcherEnabled: data.features?.organizations?.enabled === true,
     domainsEnabled: data.domains_enabled === true,
   };
+}
+
+/**
+ * The workspace the server names as current for the page's session. A page
+ * load sends no O-Organization-ID header and neither does this request, so
+ * the answer is what the server session remembers (#4565).
+ */
+async function serverWorkspaceExtid(page: Page): Promise<string | undefined> {
+  const response = await page.request.get('/bootstrap/me');
+  expect(response.ok(), 'GET /bootstrap/me').toBe(true);
+  const data = (await response.json()) as { organization?: { extid?: string } };
+  return data.organization?.extid;
+}
+
+/** The switcher's write of a selection to the server session. */
+function workspaceSelectionSaved(page: Page) {
+  return page.waitForResponse(
+    (response) =>
+      response.request().method() === 'POST' &&
+      new URL(response.url()).pathname === '/api/account/update-organization-context'
+  );
 }
 
 // -----------------------------------------------------------------------------
@@ -340,10 +362,10 @@ test.describe('Scope Switcher - switching behavior', () => {
     await expect(page).toHaveURL(/\/dashboard$/);
     await expect(orgSwitcher.trigger(page)).toHaveAttribute('title', other.name);
     await expect(orgSwitcher.trigger(page)).toContainText(other.name);
-    // organizationStore persists the selection for this tab
-    await expect
-      .poll(() => page.evaluate(() => sessionStorage.getItem('selectedOrganizationId')))
-      .toBe(other.objid);
+    // The server session holds the selection; the write is fire-and-forget
+    await expect.poll(() => serverWorkspaceExtid(page)).toBe(other.extid);
+    // and it is the only copy: the tab keeps no selection in sessionStorage
+    expect(await page.evaluate(() => sessionStorage.getItem('selectedOrganizationId'))).toBeNull();
   });
 
   test('TC-SS-023: The row gear opens that workspace settings and closes the dropdown', async ({
@@ -388,6 +410,34 @@ test.describe('Scope Switcher - switching behavior', () => {
 
     await expect(page).toHaveURL(new RegExp(`/org/${other.extid}/domains$`));
     await expect(orgSwitcher.trigger(page)).toHaveAttribute('title', other.name);
+  });
+
+  test('TC-SS-063: The selected workspace survives a page reload', async ({
+    ownerPage: page,
+    owner,
+  }) => {
+    await page.goto('/dashboard');
+    const current = await currentWorkspace(page, owner);
+    const other = otherWorkspace(owner, current);
+
+    // Wait for the server write, or the reload could overtake it
+    const saved = workspaceSelectionSaved(page);
+    await selectWorkspace(page, other);
+    expect((await saved).ok(), 'POST /api/account/update-organization-context').toBe(true);
+    await expect(orgSwitcher.trigger(page)).toHaveAttribute('title', other.name);
+
+    await page.reload();
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+    await expect(orgSwitcher.trigger(page)).toHaveAttribute('title', other.name);
+    await expect(orgSwitcher.trigger(page)).toContainText(other.name);
+
+    // A fresh page load of a route that names no workspace
+    await page.goto('/dashboard');
+    await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+    await expect(orgSwitcher.trigger(page)).toHaveAttribute('title', other.name);
+
+    // The server names it without being told which workspace the tab holds
+    expect(await serverWorkspaceExtid(page)).toBe(other.extid);
   });
 });
 
@@ -747,7 +797,7 @@ test.describe('Scope Switcher - two workspaces with custom domains', () => {
  * | TC-SS-018  | Security settings: org switcher hidden                  | Medium   | Automated  |
  * | TC-SS-020  | Org dropdown opens on click                             | High     | Automated  |
  * | TC-SS-021  | Dropdown lists workspaces, marks the current one        | High     | Automated  |
- * | TC-SS-022  | Selecting a workspace makes it current                  | Critical | Automated  |
+ * | TC-SS-022  | Selecting a workspace makes it current, saved in session| Critical | Automated  |
  * | TC-SS-023  | Row gear opens workspace settings                       | High     | Automated  |
  * | TC-SS-024  | Manage Workspaces opens /orgs                           | Medium   | Automated  |
  * | TC-SS-030  | Domain dropdown opens with the custom domain            | High     | Automated* |
@@ -763,6 +813,7 @@ test.describe('Scope Switcher - two workspaces with custom domains', () => {
  * | TC-SS-054  | Workspace switch resets unavailable domain scope        | High     | fixme      |
  * | TC-SS-060  | Selected workspace carries into in-app navigation       | High     | Automated  |
  * | TC-SS-061  | Selected domain carries into in-app navigation          | High     | Automated* |
+ * | TC-SS-063  | Selected workspace survives a page reload               | Critical | Automated  |
  * | TC-SS-070  | Org switcher accessible name                            | Medium   | Automated  |
  * | TC-SS-071  | Domain switcher accessible name                         | Medium   | Automated* |
  * | TC-SS-072  | Dropdown is a menu labelled by its trigger              | Medium   | Automated  |

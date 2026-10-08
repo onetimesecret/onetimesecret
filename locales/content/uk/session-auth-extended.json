@@ -957,5 +957,53 @@
   "web.auth.webauthn.emailRequired": {
     "text": "Введіть Вашу електронну адресу, щоб увійти за допомогою ключа доступу",
     "source_hash": "7f07647f"
+  },
+  "web.auth.login.verification_unavailable": {
+    "text": "Вхід виконано успішно, але нам не вдалося підтвердити Вашу сесію. Будь ласка, спробуйте ще раз за мить.",
+    "source_hash": "9a19dfc9"
+  },
+  "web.auth.mfa.verification_unavailable": {
+    "text": "Ваш пароль прийнято, але нам не вдалося розпочати двофакторну перевірку. Будь ласка, спробуйте ще раз за мить.",
+    "source_hash": "5fd5e240"
+  },
+  "web.auth.session.ended": {
+    "text": "Вашу сесію завершено. Будь ласка, увійдіть знову.",
+    "source_hash": "673e9822"
+  },
+  "web.auth.session.replaced": {
+    "text": "Ваш вхід змінився в іншій вкладці, тому цю сторінку було перезавантажено.",
+    "source_hash": "3767d43b"
+  },
+  "web.auth.session.stale_session_title": {
+    "text": "Ця сторінка застаріла",
+    "source_hash": "0293e093"
+  },
+  "web.auth.session.stale_session_notice": {
+    "text": "Ваша сесія змінилася після завантаження цієї сторінки. Скопіюйте все, що Ви не зберегли, а потім перезавантажте сторінку, щоб продовжити.",
+    "source_hash": "c62e236c"
+  },
+  "web.auth.session.reload_now": {
+    "text": "Перезавантажити сторінку",
+    "source_hash": "437d0d63"
+  },
+  "web.auth.session.verification_unavailable_title": {
+    "text": "Зараз ми не можемо перевірити Вашу сесію",
+    "source_hash": "2130dda1"
+  },
+  "web.auth.session.verification_unavailable_body": {
+    "text": "Ви не вийшли з системи. Нам не вдалося зв'язатися із сервером, щоб підтвердити Вашу сесію, тому цю сторінку приховано, доки це не стане можливим. Ми продовжуватимемо спроби.",
+    "source_hash": "bb230c2c"
+  },
+  "web.auth.session.retry": {
+    "text": "Спробувати ще раз",
+    "source_hash": "d8b8392e"
+  },
+  "web.auth.session.retrying": {
+    "text": "Перевірка…",
+    "source_hash": "ec963ffc"
+  },
+  "web.auth.session.retry_failed": {
+    "text": "Досі недоступно. Будь ласка, спробуйте ще раз за мить.",
+    "source_hash": "b81c022c"
   }
 }

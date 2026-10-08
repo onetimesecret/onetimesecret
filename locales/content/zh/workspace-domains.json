@@ -1630,5 +1630,37 @@
   "web.domains.sso.status_unavailable_hint": {
     "text": "目前无法在此域名上提供 SSO。请检查 SSO 凭据以及此域名的登录设置。",
     "source_hash": "b03b14f4"
+  },
+  "web.domains.status_tooltip_pending_ssl": {
+    "text": "域名已验证 — 正在等待证书签发",
+    "source_hash": "541bd705"
+  },
+  "web.domains.2_create_the_alias_record": {
+    "text": "2. 创建 ALIAS 或 ANAME 记录",
+    "source_hash": "17b04e6a"
+  },
+  "web.domains.sso.status_saml_disabled_badge": {
+    "text": "SAML 已关闭",
+    "source_hash": "4e2eab51"
+  },
+  "web.domains.sso.status_saml_disabled_hint": {
+    "text": "站点运营方已为此安装实例关闭 SAML。您的配置会被保留，并在重新开启 SAML 后恢复生效。在此之前，此域名不提供 SAML 登录。",
+    "source_hash": "5ba9624c"
+  },
+  "web.domains.sso.status_domain_unverified_badge": {
+    "text": "等待域名验证",
+    "source_hash": "ea7459c2"
+  },
+  "web.domains.sso.status_domain_unverified_hint": {
+    "text": "此域名尚未完成验证，因此其 SSO 连接尚未在登录页面上启用。域名验证通过且此处允许该域名使用 SSO 后，SSO 将随即开启。",
+    "source_hash": "57ee0066"
+  },
+  "web.domains.verify_outcome.indeterminate": {
+    "text": "我们暂时无法完成 DNS 检查。这并不表示您的记录有误。请在几分钟后重试。",
+    "source_hash": "4e76a9ef"
+  },
+  "web.domains.verify_outcome.record_not_found": {
+    "text": "我们未找到预期的 TXT 记录。请确认该记录存在且其值完全匹配。新的 DNS 记录可能需要几分钟才会生效。",
+    "source_hash": "6c847d46"
   }
 }

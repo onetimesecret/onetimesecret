@@ -48,12 +48,12 @@
     "source_hash": "acaede35"
   },
   "web.admin.domains.addDomain.strategy.caddy_on_demand": {
-    "text": "Caddy on-demand — אישורים מונפקים אוטומטית בבקשה הראשונה.",
-    "source_hash": "deb90ae6"
+    "text": "Caddy on-demand — בדיקת בעלות על DNS (רשומת TXT); תעודות מונפקות אוטומטית לאחר האימות.",
+    "source_hash": "1c926efa"
   },
   "web.admin.domains.addDomain.strategy.caddy": {
-    "text": "Caddy — אישורים מונפקים אוטומטית בבקשה הראשונה.",
-    "source_hash": "a0f3c2dc"
+    "text": "Caddy — בדיקת בעלות על DNS (רשומת TXT); תעודות מונפקות אוטומטית לאחר האימות.",
+    "source_hash": "5774ff90"
   },
   "web.admin.domains.addDomain.strategy.unknown": {
     "text": "אסטרטגיית אימות לכלל הפריסה.",
@@ -842,5 +842,81 @@
   "web.admin.domains.tls.none": {
     "text": "לא משרת",
     "source_hash": "da8a5ab9"
+  },
+  "web.admin.domains.configs.edit.originsHint": {
+    "text": "מקור אחד בכל שורה, כולל הסכמה, לדוגמה https://vault.example.com. מקור בדומיין של ארגון אחר נדחה.",
+    "source_hash": "4a4e1d33"
+  },
+  "web.admin.domains.configs.fields.related_origins": {
+    "text": "מקורות קשורים למפתחות גישה",
+    "source_hash": "e6160714"
+  },
+  "web.admin.domains.dns.cnameStepInstall": {
+    "text": "2. הוסף רשומת CNAME המפנה את תת-הדומיין להתקנה זו.",
+    "source_hash": "b8a329f9"
+  },
+  "web.admin.domains.dns.aliasStepInstall": {
+    "text": "2. הוסף רשומת ALIAS או ANAME המפנה את ה-apex להתקנה זו.",
+    "source_hash": "9a61ed66"
+  },
+  "web.admin.domains.dns.apexNote": {
+    "text": "דומיין ראשי (apex) אינו יכול להכיל רשומת CNAME. אם ספק ה-DNS אינו תומך ברשומת ALIAS או ANAME, רשומת A לכתובת ה-IP של שרת זה משיגה את אותה מטרה.",
+    "source_hash": "f69e3032"
+  },
+  "web.admin.domains.fields.verifiedByOverride": {
+    "text": "כן (עקיפת מפעיל)",
+    "source_hash": "a1a8644f"
+  },
+  "web.admin.domains.list.capped": {
+    "text": "התוצאות מוגבלות: המספר המוצג הוא רף מינימלי, לא הסכום הכולל. צמצם את החיפוש או את המסנן כדי לראות הכל.",
+    "source_hash": "27537844"
+  },
+  "web.admin.domains.override.button": {
+    "text": "עקוף סטטוס",
+    "source_hash": "c683774c"
+  },
+  "web.admin.domains.override.title": {
+    "text": "עקוף סטטוס אימות",
+    "source_hash": "66dbebb2"
+  },
+  "web.admin.domains.override.description": {
+    "text": "הגדר ידנית את דגלי האימות והפתרון של דומיין זה. השתמש בזהירות.",
+    "source_hash": "bc3eb719"
+  },
+  "web.admin.domains.override.verified": {
+    "text": "מאומת",
+    "source_hash": "4f783840"
+  },
+  "web.admin.domains.override.resolving": {
+    "text": "בתהליך פתרון",
+    "source_hash": "3287a034"
+  },
+  "web.admin.domains.override.apply": {
+    "text": "החל עקיפה",
+    "source_hash": "e2d1472a"
+  },
+  "web.admin.domains.override.cancel": {
+    "text": "בטל",
+    "source_hash": "19766ed6"
+  },
+  "web.admin.domains.override.success": {
+    "text": "סטטוס הדומיין נעקף.",
+    "source_hash": "42104cd0"
+  },
+  "web.admin.domains.override.noChange": {
+    "text": "אין שינויים להחלה.",
+    "source_hash": "07632d50"
+  },
+  "web.admin.domains.verify.success.indeterminate": {
+    "text": "בודק ה-DNS לא החזיר תוצאה עבור {domain}. סטטוס האימות שלו נותר ללא שינוי.",
+    "source_hash": "9c5ab974"
+  },
+  "web.admin.domains.verify.success.overrideHeld": {
+    "text": "בדיקת ה-TXT נכשלה עבור {domain}, אך הוא נשאר מאומת בשל עקיפת מפעיל.",
+    "source_hash": "e754aac8"
+  },
+  "web.admin.domains.verify.success.confirmationExpired": {
+    "text": "בדיקת ה-DNS עבור {domain} לא החזירה תוצאה במשך יותר מ-7 ימים. הוא כבר אינו מאומת.",
+    "source_hash": "a6901cb5"
   }
 }

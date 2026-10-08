@@ -5,6 +5,7 @@
 //
 // Architecture: contract → shape → API
 
+import { wireEmailSchema } from '@/schemas/utils/email';
 import { captureMessage } from '@/services/diagnostics.service';
 
 /**
@@ -213,7 +214,7 @@ export type UpdateOrganizationPayload = z.infer<typeof updateOrganizationPayload
 export const organizationInvitationContractSchema = z.object({
   id: lenientObjIdSchema,
   organization_id: lenientExtIdSchema,
-  email: z.email(),
+  email: wireEmailSchema,
   role: z.enum(['member', 'admin']),
   status: invitationStatusSchema,
   invited_by: lenientObjIdSchema,
@@ -242,7 +243,7 @@ export type CreateInvitationPayload = z.infer<typeof createInvitationPayloadSche
  */
 export const organizationMemberContractSchema = z.object({
   extid: lenientExtIdSchema,
-  email: z.email(),
+  email: wireEmailSchema,
   role: organizationRoleSchema,
   joined_at: z.number(),
   is_owner: z.boolean(),

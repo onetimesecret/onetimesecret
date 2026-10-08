@@ -1,6 +1,7 @@
 // src/apps/workspace/routes/billing.ts
 
 import WorkspaceLayout from '@/apps/workspace/layouts/WorkspaceLayout.vue';
+import { loggingService } from '@/services/logging.service';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { RouteLocationNormalized, RouteRecordRaw } from 'vue-router';
@@ -44,7 +45,17 @@ function createBillingRedirect(targetPage: string) {
     const organizationStore = useOrganizationStore();
 
     if (organizationStore.organizations.length === 0) {
-      await organizationStore.fetchOrganizations();
+      try {
+        await organizationStore.fetchOrganizations();
+      } catch (error) {
+        // A failed lookup (network or malformed body) must not abort the
+        // navigation with an unhandled guard error. Land on the dashboard the
+        // same way the no-org path does; the billing pages fetch again.
+        loggingService.warn('[billing] Organization lookup failed, redirecting to Dashboard', {
+          error: error instanceof Error ? error.message : String(error),
+        });
+        return { name: 'Dashboard' };
+      }
     }
 
     const org = organizationStore.currentOrganization || organizationStore.organizations[0];

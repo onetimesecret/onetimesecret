@@ -1630,5 +1630,37 @@
   "web.domains.sso.status_unavailable_hint": {
     "text": "De momento, o SSO não pode ser disponibilizado neste domínio. Verifica as credenciais de SSO e as definições de início de sessão deste domínio.",
     "source_hash": "b03b14f4"
+  },
+  "web.domains.status_tooltip_pending_ssl": {
+    "text": "Domínio verificado — a aguardar o respetivo certificado",
+    "source_hash": "541bd705"
+  },
+  "web.domains.2_create_the_alias_record": {
+    "text": "2. Criar o registo ALIAS ou ANAME",
+    "source_hash": "17b04e6a"
+  },
+  "web.domains.sso.status_saml_disabled_badge": {
+    "text": "SAML desativado",
+    "source_hash": "4e2eab51"
+  },
+  "web.domains.sso.status_saml_disabled_hint": {
+    "text": "O operador do site desativou o SAML nesta instalação. A tua configuração é mantida e volta a funcionar quando o SAML for reativado; até lá, este domínio não disponibiliza início de sessão SAML.",
+    "source_hash": "5ba9624c"
+  },
+  "web.domains.sso.status_domain_unverified_badge": {
+    "text": "A aguardar verificação do domínio",
+    "source_hash": "ea7459c2"
+  },
+  "web.domains.sso.status_domain_unverified_hint": {
+    "text": "Este domínio ainda não concluiu a verificação, pelo que a respetiva ligação SSO ainda não está ativa na página de início de sessão. O SSO fica ativo assim que o domínio for verificado e o SSO for permitido para ele aqui.",
+    "source_hash": "57ee0066"
+  },
+  "web.domains.verify_outcome.indeterminate": {
+    "text": "Não conseguimos concluir a verificação de DNS neste momento. Isto não significa que os teus registos estejam errados. Tenta novamente daqui a alguns minutos.",
+    "source_hash": "4e76a9ef"
+  },
+  "web.domains.verify_outcome.record_not_found": {
+    "text": "Não encontrámos o registo TXT esperado. Verifica se existe e se o valor corresponde exatamente. Os novos registos DNS podem demorar alguns minutos a aparecer.",
+    "source_hash": "6c847d46"
   }
 }

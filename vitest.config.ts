@@ -96,8 +96,9 @@ export default defineConfig({
     globalSetup: ['src/tests/globalSetup.ts'],
     coverage: {
       provider: 'v8',
-      // Cobertura XML is uploaded to GitHub Code Quality; `text` prints a
-      // summary in the CI log. Only emitted when run with --coverage.
+      // `text` prints a summary; cobertura writes coverage/cobertura-coverage.xml
+      // for tooling. Only emitted when run with --coverage (pnpm test:coverage);
+      // CI does not pass it.
       reporter: ['text', 'cobertura'],
       reportsDirectory: 'coverage',
       // Extension-scoped. A bare `src/**` also handed the v8 provider the

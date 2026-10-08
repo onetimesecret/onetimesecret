@@ -93,7 +93,7 @@ module LaneOwnershipProbe
       while (word = rest.shift)
         case word
         when '--exclude-pattern' then exclude = rest.shift
-        when '--tag', '--format', '--out' then rest.shift
+        when '--tag', '--format', '--out', '--require' then rest.shift
         when /\A-/ then next
         else paths << word
         end
@@ -183,6 +183,10 @@ module LaneOwnershipProbe
     %w[api                                          spec/api],
     %w[browser                                      tests/browser],
     %w[browser                                      tests/browser/*],
+    %w[billing                                      spec/cli/billing],
+    %w[billing                                      spec/unit/billing],
+    %w[billing                                      spec/unit/onetime/operations/billing],
+    %w[harness                                      spec/unit/lanes],
     %w[unit                                         spec/cli],
     %w[unit                                         spec/lib],
     %w[unit                                         spec/unit],
@@ -194,6 +198,8 @@ module LaneOwnershipProbe
     %w[full-sqlite,full-pg,migrations-sqlite        spec/integration/full/database_triggers/sqlite_spec.rb],
     %w[full-sqlite,full-pg,migrations-pg            spec/integration/full/database_triggers/postgres_spec.rb],
     %w[full-sqlite,full-pg,migrations-pg            spec/integration/full/postgres_infrastructure_spec.rb],
+    %w[billing                                      apps/web/billing/spec],
+    %w[billing                                      apps/web/billing/try],
     %w[unit                                         apps/*/*/spec],
     %w[full-sqlite,full-pg                          apps/*/*/spec/integration/full/migrations/*_spec.rb],
     %w[full-sqlite,full-pg,full-pg-agnostic         apps/*/*/spec/integration/full],
@@ -202,7 +208,9 @@ module LaneOwnershipProbe
     %w[full-sqlite                                  apps/*/*/spec/integration/oauth],
     %w[strategies                                   apps/*/*/spec/integration/strategies],
     %w[simple                                       apps/*/*/spec/integration/simple],
-    %w[none                                         apps/web/billing/spec/integration/*_spec.rb],
+    %w[billing-integration                          apps/web/billing/spec/integration/*_spec.rb],
+    %w[billing                                      try/unit/billing],
+    %w[billing                                      try/unit/cli/billing],
     %w[unit                                         try/features],
     %w[unit                                         try/jobs],
     %w[unit                                         try/security],
@@ -210,7 +218,7 @@ module LaneOwnershipProbe
     %w[unit                                         try/unit],
     %w[shared                                       try/support],
     %w[simple                                       try/integration/api],
-    %w[simple                                       try/integration/billing],
+    %w[billing-integration                          try/integration/billing],
     %w[simple                                       try/integration/boot],
     %w[simple                                       try/integration/email],
     %w[simple                                       try/integration/middleware],
@@ -237,9 +245,12 @@ module LaneOwnershipProbe
   OWNERSHIP_WALK = %w[
     tests/browser/ tests/browser/*
     spec/*/ spec/integration/*/ spec/integration/full/database_triggers/*_spec.rb spec/integration/full/postgres_*_spec.rb
+    spec/cli/billing/ spec/unit/billing/ spec/unit/onetime/operations/billing/ spec/unit/lanes/
     apps/*/*/spec/ apps/*/*/spec/integration/*/ apps/*/*/spec/integration/*_spec.rb
     apps/*/*/spec/integration/full/migrations/*_spec.rb
+    apps/web/billing/try/
     try/*/ try/integration/*/ try/integration/*_try.rb
+    try/unit/billing/ try/unit/cli/billing/
   ].freeze
 
   # The table's own functions, run by the shell that defines them: one bash

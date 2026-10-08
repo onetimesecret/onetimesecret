@@ -1,0 +1,17 @@
+{
+  "name": "ots-globe-generator",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Isolated generator for the regional globe icons in src/shared/components/icons/sprites/OtsSprites.vue. Not part of the application bundle or the root pnpm workspace.",
+  "scripts": {
+    "build": "node build.mjs",
+    "check": "node build.mjs --check"
+  },
+  "dependencies": {
+    "clipper-lib": "^6.4.2",
+    "d3-geo": "^3.1.1",
+    "topojson-client": "^3.1.0",
+    "world-atlas": "^2.0.2"
+  }
+}

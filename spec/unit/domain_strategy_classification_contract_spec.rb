@@ -25,10 +25,12 @@
 
 require 'spec_helper'
 require 'onetime/middleware/domain_strategy'
+require 'onetime/application/organization_loader'
 require_relative '../../apps/web/auth/restrict_to'
 require_relative '../../apps/api/v1/logic/base'
 require 'onetime/session/customer_session_evaluator'
 require 'onetime/session/failure_code'
+require 'onetime/middleware/http_origin_options'
 
 module DomainStrategyContract
   # Every value env['onetime.domain_strategy'] can carry at a consumer.
@@ -405,6 +407,56 @@ RSpec.describe 'DomainStrategy classification contract' do
     end
   end
 
+  # ----------------------------------------------------- organization scope
+  #
+  # An absent published lookup withholds every organization (#4225); a failed
+  # read raises; with none published nothing is scoped, as on :canonical
+  # (#4678, ADR-050 "Organization scope on a host that detection rejects").
+  describe 'OrganizationLoader#request_scope_domains — reads the published lookup' do
+    let(:loader) { Class.new { include Onetime::Application::OrganizationLoader }.new }
+    let(:record) { instance_double(Onetime::CustomDomain, objid: 'domain-1') }
+    let(:lookup_key) { Onetime::CustomDomain::Lookup::ENV_KEY }
+
+    def scope_domains(env)
+      loader.send(:request_scope_domains, env)
+    end
+
+    DomainStrategyContract::OPERATOR.each do |strategy|
+      it "answers [] (no scope) for #{strategy.inspect}" do
+        expect(scope_domains(env_for(strategy))).to eq([])
+      end
+    end
+
+    it 'answers the resolved record for :custom' do
+      env = env_for(:custom).merge(
+        'onetime.custom_domain' => record,
+        lookup_key => Onetime::CustomDomain::Lookup.found('tenant.example.com', record),
+      )
+      expect(scope_domains(env)).to eq([record])
+    end
+
+    it 'answers UNREGISTERED_HOST, the same frozen object, for :invalid with an absent lookup' do
+      lookup = Onetime::CustomDomain::Lookup.absent('tenant.example.com')
+      expect(scope_domains(env_for(:invalid).merge(lookup_key => lookup)))
+        .to equal(Onetime::Application::OrganizationLoader::UNREGISTERED_HOST)
+    end
+
+    it 'raises for :invalid with a read_failed lookup' do
+      failure = Redis::BaseError.new('connection reset')
+      lookup  = Onetime::CustomDomain::Lookup.read_failed('tenant.example.com', failure)
+      expect { scope_domains(env_for(:invalid).merge(lookup_key => lookup)) }.to raise_error(Redis::BaseError)
+    end
+
+    # Nothing was read for these, so nothing is withheld. Decided on #4678
+    # and recorded in ADR-050 ("Organization scope on a host that detection
+    # rejects"): a host detection rejects carries no domain scope.
+    [:invalid, nil].each do |strategy|
+      it "answers [] for #{strategy.inspect} with nothing published" do
+        expect(scope_domains(env_for(strategy))).to eq([])
+      end
+    end
+  end
+
   # -------------------------------------------------------- session surface
   #
   # SessionSurface takes neither polarity: it classifies an :invalid request
@@ -564,6 +616,57 @@ RSpec.describe 'DomainStrategy classification contract' do
         'Unhandled error in domain strategy',
         hash_including(request_domain: 'tenant.example.com', canonical_domains: ['other.example.org']),
       )
+    end
+  end
+
+  # -------------------------------------------------------------- http origin
+  #
+  # The Origin check is a consumer with its own polarity (#4669):
+  # HttpOriginOptions.classified_display_domain? lets an Origin naming the
+  # display domain through only when the host classified :canonical,
+  # :subdomain or :custom. An :invalid host is refused — with one exception,
+  # decided by the published lookup rather than the symbol. A REGISTERED
+  # domain whose read raised classifies :invalid too (row 1's blip), and
+  # refusing its Origin would turn every browser POST from that tenant behind
+  # a Host-rewriting proxy into a bare 403 for the whole outage, before the
+  # sign-in gates' own 503 could answer. So read_failed is the one :invalid
+  # case admitted; absent (read fine, no record), nothing published, a lookup
+  # for another host, and nil are refused.
+  describe 'HttpOriginOptions.classified_display_domain? — Origin of the display domain' do
+    let(:lookup_key) { Onetime::CustomDomain::Lookup::ENV_KEY }
+    let(:read_failed) do
+      Onetime::CustomDomain::Lookup.read_failed('tenant.example.com', Redis::BaseError.new('connection reset'))
+    end
+
+    def classified?(env)
+      Onetime::Middleware::HttpOriginOptions.classified_display_domain?(env)
+    end
+
+    DomainStrategyContract::CLASSIFICATIONS.each do |strategy|
+      expected = [:canonical, :subdomain, :custom].include?(strategy)
+
+      it "answers #{expected} for #{strategy.inspect} with nothing published" do
+        expect(classified?(env_for(strategy))).to be(expected)
+      end
+    end
+
+    it 'refuses an :invalid host whose lookup is absent — read fine, not registered' do
+      absent = Onetime::CustomDomain::Lookup.absent('tenant.example.com')
+      expect(classified?(env_for(:invalid).merge(lookup_key => absent))).to be(false)
+    end
+
+    it 'admits an :invalid host whose lookup is read_failed — the registered tenant during an outage' do
+      expect(classified?(env_for(:invalid).merge(lookup_key => read_failed))).to be(true)
+    end
+
+    it 'refuses the same read_failed lookup labelled for another host' do
+      other = read_failed.with_host('other.example.com')
+      expect(classified?(env_for(:invalid).merge(lookup_key => other))).to be(false)
+    end
+
+    it 'accepts a String classification — the env key is not always a Symbol' do
+      expect(classified?(env_for('custom'))).to be(true)
+      expect(classified?(env_for('invalid'))).to be(false)
     end
   end
 end

@@ -1226,5 +1226,129 @@
   "web.organizations.sso.enable_untested_warning": {
     "text": "この接続はまだここでのテストに合格していません。不完全な設定がサインインページに影響しないよう、有効にする前に「接続テスト」を実行してください。",
     "source_hash": "c1fbdeca"
+  },
+  "web.organizations.delete_organization_cancel_subscription_first": {
+    "text": "この組織を削除する前に、組織のサブスクリプションをキャンセルしてください。",
+    "source_hash": "f0c54eca"
+  },
+  "web.organizations.sso.disable_action": {
+    "text": "SSOを無効化",
+    "source_hash": "2f072272"
+  },
+  "web.organizations.sso.disable_confirm": {
+    "text": "このSSO接続を無効にしますか?フォームの未保存の編集内容は保存されません。保存済みの資格情報は保持されます。",
+    "source_hash": "608b142a"
+  },
+  "web.organizations.sso.disable_enforcement_warning": {
+    "text": "SSO専用の強制も無効になり、設定済みの他のサインイン方法が使用できるようになります。",
+    "source_hash": "58abd552"
+  },
+  "web.organizations.sso.idp_sso_service_url": {
+    "text": "IdP SSOサービスURL",
+    "source_hash": "0b33b1ac"
+  },
+  "web.organizations.sso.idp_sso_service_url_hint": {
+    "text": "IDプロバイダーがSAMLシングルサインオン用に公開しているHTTPSエンドポイント",
+    "source_hash": "bc6fdfd9"
+  },
+  "web.organizations.sso.idp_sso_service_url_placeholder": {
+    "text": "https://idp.example.com/sso/saml",
+    "source_hash": "513d0586"
+  },
+  "web.organizations.sso.idp_entity_id": {
+    "text": "IdPエンティティID",
+    "source_hash": "14a4ab8b"
+  },
+  "web.organizations.sso.idp_entity_id_hint": {
+    "text": "IDプロバイダーのメタデータに記載されている発行者識別子 (公開されているとおりに正確に入力)",
+    "source_hash": "c3d8320b"
+  },
+  "web.organizations.sso.idp_entity_id_placeholder": {
+    "text": "https://idp.example.com/metadata",
+    "source_hash": "0c46d14d"
+  },
+  "web.organizations.sso.idp_cert": {
+    "text": "IdP署名証明書",
+    "source_hash": "c84000cd"
+  },
+  "web.organizations.sso.idp_cert_hint": {
+    "text": "IDプロバイダーがアサーションの署名に使用するX.509証明書 (PEM)。証明書は1つのみです。フィンガープリントは使用できません。",
+    "source_hash": "b5e157f5"
+  },
+  "web.organizations.sso.idp_cert_placeholder": {
+    "text": "-----BEGIN CERTIFICATE-----",
+    "source_hash": "ddddb6cb"
+  },
+  "web.organizations.sso.sp_details": {
+    "text": "サービスプロバイダーの詳細",
+    "source_hash": "4b6617d2"
+  },
+  "web.organizations.sso.sp_details_hint": {
+    "text": "これらの値をIDプロバイダーに登録してください",
+    "source_hash": "784e9410"
+  },
+  "web.organizations.sso.sp_details_preview_hint": {
+    "text": "既定のサインインルートに基づくプレビューです。この設定を保存し、IDプロバイダーに登録する前に、ここで値を確認してください。",
+    "source_hash": "fd9d3001"
+  },
+  "web.organizations.sso.domain_unverified_notice": {
+    "text": "ドメインが検証されるまで、このドメインではシングルサインオンは無効です。検証しても以下の値は変わりません。",
+    "source_hash": "4b56ea4b"
+  },
+  "web.organizations.sso.sp_entity_id": {
+    "text": "SPエンティティID (メタデータURL)",
+    "source_hash": "59bc544c"
+  },
+  "web.organizations.sso.acs_url": {
+    "text": "アサーションコンシューマーサービスURL",
+    "source_hash": "5dacfb65"
+  },
+  "web.organizations.sso.unreadable_field": {
+    "text": "保存されている値を読み取れませんでした。続行するには再度入力してください。",
+    "source_hash": "ca3b5fcc"
+  },
+  "web.organizations.sso.unreadable_fields_alert": {
+    "text": "保存されている一部の値を読み取れなかったため、再度入力する必要があります: {fields}",
+    "source_hash": "e9fa9d16"
+  },
+  "web.organizations.sso.idp_cert_expired_alert": {
+    "text": "IDプロバイダーの証明書は{date}に有効期限が切れました。有効な証明書が保存されるまで、この接続によるサインインは失敗します。",
+    "source_hash": "527fb721"
+  },
+  "web.organizations.sso.idp_cert_expiring_notice": {
+    "text": "IDプロバイダーの証明書は{date}に有効期限が切れます。サインインを引き続き利用できるよう、それまでに証明書を置き換えてください。",
+    "source_hash": "ccaf6ca7"
+  },
+  "web.organizations.sso.test_connection_hint_saml": {
+    "text": "SSO URL、エンティティID、証明書をローカルで確認します (IDプロバイダーへの接続は行いません)",
+    "source_hash": "1dad3945"
+  },
+  "web.organizations.sso.configured_issuer": {
+    "text": "設定済みの発行者",
+    "source_hash": "6b307b7f"
+  },
+  "web.organizations.sso.discovery_issuer": {
+    "text": "検出された発行者",
+    "source_hash": "9d74f978"
+  },
+  "web.organizations.sso.issuer_mismatch_hint": {
+    "text": "OIDCの発行者識別子は、末尾のスラッシュも含めて完全に一致する必要があります。発行者URLを上記の検出された値に設定してください。",
+    "source_hash": "ec144c88"
+  },
+  "web.organizations.sso.certificate_subject": {
+    "text": "証明書のサブジェクト",
+    "source_hash": "d7816b16"
+  },
+  "web.organizations.sso.certificate_expires": {
+    "text": "証明書の有効期限",
+    "source_hash": "1e73119d"
+  },
+  "web.organizations.sso.certificate_expires_in_days": {
+    "text": "{n}日後",
+    "source_hash": "df98ca65"
+  },
+  "web.organizations.sso.certificate_valid_from": {
+    "text": "証明書の有効開始日",
+    "source_hash": "b13d3f30"
   }
 }

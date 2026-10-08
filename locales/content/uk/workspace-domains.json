@@ -1630,5 +1630,37 @@
   "web.domains.sso.status_unavailable_hint": {
     "text": "Наразі SSO не може бути запропоновано на цьому домені. Перевірте облікові дані SSO та налаштування входу цього домену.",
     "source_hash": "b03b14f4"
+  },
+  "web.domains.status_tooltip_pending_ssl": {
+    "text": "Домен підтверджено — очікується сертифікат",
+    "source_hash": "541bd705"
+  },
+  "web.domains.2_create_the_alias_record": {
+    "text": "2. Створіть запис ALIAS або ANAME",
+    "source_hash": "17b04e6a"
+  },
+  "web.domains.sso.status_saml_disabled_badge": {
+    "text": "SAML вимкнено",
+    "source_hash": "4e2eab51"
+  },
+  "web.domains.sso.status_saml_disabled_hint": {
+    "text": "Оператор сайту вимкнув SAML для цієї інсталяції. Вашу конфігурацію збережено, і вона знову запрацює, коли SAML буде ввімкнено; доти цей домен не пропонує входу через SAML.",
+    "source_hash": "5ba9624c"
+  },
+  "web.domains.sso.status_domain_unverified_badge": {
+    "text": "Очікує підтвердження домену",
+    "source_hash": "ea7459c2"
+  },
+  "web.domains.sso.status_domain_unverified_hint": {
+    "text": "Підтвердження цього домену не завершено, тому його з'єднання SSO ще не активне на сторінці входу. SSO ввімкнеться, щойно домен буде підтверджено і SSO буде дозволено для нього тут.",
+    "source_hash": "57ee0066"
+  },
+  "web.domains.verify_outcome.indeterminate": {
+    "text": "Нам не вдалося завершити перевірку DNS саме зараз. Це не означає, що Ваші записи неправильні. Будь ласка, спробуйте ще раз за кілька хвилин.",
+    "source_hash": "4e76a9ef"
+  },
+  "web.domains.verify_outcome.record_not_found": {
+    "text": "Ми не знайшли очікуваний запис TXT. Переконайтеся, що він існує і його значення точно збігається. Нові записи DNS можуть з'являтися протягом кількох хвилин.",
+    "source_hash": "6c847d46"
   }
 }

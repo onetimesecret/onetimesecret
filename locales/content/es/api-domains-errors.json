@@ -46,5 +46,17 @@
   "api.domains.errors.homepage_incoming_not_ready": {
     "text": "Los secretos entrantes deben estar habilitados con al menos un destinatario antes de poder usarse como página de inicio.",
     "source_hash": "556da6e2"
+  },
+  "api.domains.errors.related_origins_invalid": {
+    "text": "No es un origen válido: %{origins}. Introduce el esquema y el host, por ejemplo https://vault.example.com",
+    "source_hash": "5acb92ca"
+  },
+  "api.domains.errors.related_origins_foreign_organization": {
+    "text": "Estos orígenes pertenecen a otra organización y no se pueden añadir: %{origins}",
+    "source_hash": "ac21c1e7"
+  },
+  "api.domains.errors.allowed_signup_domains_invalid": {
+    "text": "No es un dominio válido: %{domains}. Introduce un nombre de dominio registrable, por ejemplo example.com",
+    "source_hash": "2d93472c"
   }
 }

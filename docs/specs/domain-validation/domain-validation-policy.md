@@ -37,9 +37,14 @@ machine (`verification_state`, lines 639-647):
 :unverified → :pending → :resolving → :verified
 ```
 
-`:unverified` = no `txt_validation_value`. `:pending` = challenge set,
-`resolving` field false. `:resolving` = `resolving` true, `verified` false.
-`:verified` = both true. `ready?` (lines 656-658) ⇔ `:verified`. This method
+`txt_validation_value` is the application's generated expected challenge, not
+proof that a TXT record exists in DNS. `:unverified` = no generated challenge.
+`:pending` = challenge set, `resolving` false, regardless of ownership.
+`:resolving` = challenge set, `resolving` true, `ownership_verified` false.
+`:verified` = challenge set and both flags true. The legacy `verified` flag
+means ownership alone; `verification_state` combines it with resolving.
+See [Domain ownership and verification lifecycle](ownership-verification.md)
+for field compatibility and rollout guidance. `ready?` ⇔ `:verified`. This method
 does a pure in-memory boolean check on already-loaded fields — no DNS or
 network I/O — **confirmed compliant** with Caddy's documented "ask/permission
 endpoint must be a fast, constant-time, network-free lookup" guidance (see

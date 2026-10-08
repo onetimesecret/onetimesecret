@@ -176,8 +176,8 @@
     "source_hash": "0c6605c1"
   },
   "web.admin.sessions.revoke.confirmDescription": {
-    "text": "セッション{id}を削除することで、ユーザーを即座にログアウトさせます。確認のため、セッションIDを入力してください。",
-    "source_hash": "9e08b1b8"
+    "text": "セッション {id} を取り消し、ユーザーを直ちにログアウトさせます。確認のため {token} を入力してください。",
+    "source_hash": "80578692"
   },
   "web.admin.sessions.revoke.success": {
     "text": "セッションが取り消されました",
@@ -188,12 +188,12 @@
     "source_hash": "34cb67a4"
   },
   "web.admin.sessions.scan.capped": {
-    "text": "スキャンは最初の{scanned}キーに制限されています。この範囲外の認証済みセッションはリストに表示されません。IDで特定のセッションを検査してアクセスしてください。",
-    "source_hash": "fa418b4e"
+    "text": "スキャンは最初の{scanned}件のキーで打ち切られました — この範囲外の認証済みセッションは一覧に表示されません。表示するには検索条件を絞り込んでください。",
+    "source_hash": "7a8d6fd5"
   },
   "web.admin.sessions.search.placeholder": {
-    "text": "メールまたは外部IDで検索",
-    "source_hash": "f2dc5c06"
+    "text": "メール、外部ID、またはセッションハンドルで検索",
+    "source_hash": "4894dec4"
   },
   "web.admin.sessions.sections.session": {
     "text": "セッション",
@@ -210,5 +210,45 @@
   "web.admin.sessions.status.anonymous": {
     "text": "匿名",
     "source_hash": "e7a8aa2d"
+  },
+  "web.admin.sessions.authority.title": {
+    "text": "フル認証モードでは、この一覧はセッションの正式な情報源ではありません",
+    "source_hash": "796fb07f"
+  },
+  "web.admin.sessions.authority.description": {
+    "text": "この一覧はRedisのセッションストアです。認証モードが full に設定されている場合、正式なセッション状態はRodauthのアカウントデータベースにあり、このコンソールはそれを読み取りません。Rodauth経由でログインしたアカウントはここに表示されない場合があり、ここでセッションを取り消してもRodauthのセッションは終了しません。",
+    "source_hash": "77bc4904"
+  },
+  "web.admin.sessions.authority.descriptionRevokeAll": {
+    "text": "この一覧はRedisのセッションストアです。認証モードが full に設定されている場合、正式なセッション状態はRodauthのアカウントデータベースにあり、このコンソールはそれを読み取りません。Rodauth経由でログインしたアカウントはここに表示されない場合があり、ここで個別のセッションを無効化しても、そのRodauthセッションは終了しません。「すべて無効化」を実行すると、そのアカウントのRodauthセッションも終了します。",
+    "source_hash": "f964663d"
+  },
+  "web.admin.sessions.authority.openAdmin": {
+    "text": "Rodauth Adminを開く",
+    "source_hash": "ce523836"
+  },
+  "web.admin.sessions.authority.notConfigured": {
+    "text": "ここからRodauth Adminにリンクするには、RODAUTH_ADMIN_URL を設定してください。",
+    "source_hash": "c070dbfb"
+  },
+  "web.admin.sessions.columns.sessionHandle": {
+    "text": "セッションハンドル",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.errors.scanCapped": {
+    "text": "このセッションは、サンプリングされたキー空間内で見つかりませんでした。所有者の情報で検索できるよう、一覧の該当する行から開いてください。",
+    "source_hash": "67b73f7f"
+  },
+  "web.admin.sessions.fields.sessionHandle": {
+    "text": "セッションハンドル",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.revoke.ownSession": {
+    "text": "これはあなた自身のセッションです。取り消すとログアウトされます — 代わりにログアウト機能を使用してください。",
+    "source_hash": "a6762292"
+  },
+  "web.admin.sessions.rodauthAdmin.open": {
+    "text": "Rodauth Adminで開く",
+    "source_hash": "467173c8"
   }
 }

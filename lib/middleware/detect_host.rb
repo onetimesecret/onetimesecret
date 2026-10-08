@@ -20,30 +20,66 @@ module Rack
   #
   # In environments where the application is behind reverse proxies, load
   # balancers, or CDN services (like AWS ALB, nginx, or CloudFlare), the
-  # client-requested host may be forwarded via headers like
-  # `X-Forwarded-Host` or `X-Original-Host`. Rack does not trust these
-  # headers by default for security reasons, as they can be spoofed by
-  # clients.
+  # client-requested host may be forwarded in `X-Forwarded-Host`. Rack does
+  # not trust that header by default, as it can be set by clients.
   #
-  # However, in controlled environments where these proxy headers are set by
-  # trusted infrastructure components, it's necessary to respect these headers
-  # to accurately determine the host for proper URL generation, redirection,
-  # and processing in multi-tenant applications.
+  # However, in controlled environments where the header is set by trusted
+  # infrastructure components, it's necessary to respect it to accurately
+  # determine the host for proper URL generation, redirection, and
+  # processing in multi-tenant applications.
   #
-  # This middleware prioritizes host detection in the following order
+  # ### The reverse-proxy authority contract (#4384)
+  #
+  # The application reads the request authority from exactly two places
   # (mirroring HEADER_PRECEDENCE below):
   #
-  # 1. `X-Forwarded-Host` - Commonly used by proxies and load balancers.
-  # 2. `Apx-Incoming-Host` - Approximated.app custom-domain ingress.
-  # 3. `X-Original-Host` - Used by various proxy services.
-  # 4. `Host` - Default HTTP host header.
+  # 1. `X-Forwarded-Host` - only from a trusted proxy (see Security
+  #    Considerations), and only when it carries a single value.
+  # 2. `Host` - the direct/default authority.
   #
-  # RFC 7239 `Forwarded` is deliberately excluded. Its `host=` parameter is
-  # not part of this application's proxy-managed host-header contract. It is
-  # still OBSERVED: the first `host=`, validated like any forwarded host, is
-  # published to `env[rfc7239_host_field_name]` (never selected) so that the
-  # admin-surface provenance rule can refuse a Host-rewriting edge that
-  # carries the public host only there. See `.rfc7239_host`.
+  # The proxy in front of the application adapts everything else to that:
+  # it overwrites `X-Forwarded-Host` with the host the browser asked for
+  # whenever it rewrites `Host`, never appends to or passes through a
+  # client-supplied value, and removes the other carriers
+  # (`Apx-Incoming-Host`, `X-Original-Host`, RFC 7239 `Forwarded`) before
+  # the request reaches the application. See docs/operations/
+  # proxy-authority-header.md.
+  #
+  # A comma-separated `X-Forwarded-Host` is not a chain to pick from under
+  # an overwrite-only contract. It is skipped with a WARN and detection
+  # continues with `Host`.
+  #
+  # The other carriers never supply the detected host. They are still
+  # OBSERVED, so the admin-surface provenance rule can keep declining a
+  # request whose edge rewrote `Host` and carried the public host somewhere
+  # this middleware does not read:
+  #
+  # - the first `host=` of RFC 7239 `Forwarded` is published to
+  #   `env[rfc7239_host_field_name]` (see `.rfc7239_host`);
+  # - the hosts named by `Apx-Incoming-Host`, `X-Original-Host`, and the
+  #   first value of a skipped multi-valued `X-Forwarded-Host` are published
+  #   to `env[unselected_hosts_field_name]` (see `.unselected_hosts`).
+  #
+  # ### Userinfo in an authority
+  #
+  # A header value with an `@` in it (`user:pw@example.com`,
+  # `https://user@example.com/`) names no host here, in any carrier. A
+  # request authority has no userinfo, and reading one as `host:port` takes
+  # the user name for the host.
+  #
+  # - In `Host`: no host is detected.
+  # - In a single-valued `X-Forwarded-Host` from a trusted proxy: no host is
+  #   detected, and detection does NOT continue with `Host`. Other unusable
+  #   values (an IP literal, `localhost`, a malformed name) do continue with
+  #   `Host`; this one stops because the value was read as the host `user`
+  #   before, which is no served host and no admin-allowlisted host, and
+  #   continuing with `Host` would serve and admit requests that were
+  #   refused.
+  # - In an observed carrier (`Apx-Incoming-Host`, `X-Original-Host`, the
+  #   first value of a multi-valued `X-Forwarded-Host`, the first `host=` of
+  #   `Forwarded`): no host is observed, and the header's name is published
+  #   to `env[userinfo_carriers_field_name]` so the admin-surface provenance
+  #   rule can decline the request as it does a disagreeing host.
   #
   # It also includes validation to filter out invalid or local hosts (e.g.,
   # `localhost`, `127.0.0.1`) and IP addresses, ensuring only legitimate
@@ -73,9 +109,9 @@ module Rack
   #
   # ### Security Considerations
   #
-  # **Trusted Proxy Validation**: This middleware only trusts forwarded host
-  # headers (X-Forwarded-Host, X-Original-Host, Apx-Incoming-Host) when the
-  # request arrived via a trusted reverse proxy. The otto trust key
+  # **Trusted Proxy Validation**: This middleware only trusts
+  # X-Forwarded-Host when the request arrived via a trusted reverse proxy.
+  # The otto trust key
   # is TRI-STATE (otto#228) and, when present, authoritative in BOTH
   # directions:
   #
@@ -103,11 +139,10 @@ module Rack
   # ### Note on Rack's Default Behavior
   #
   # While Rack's `request.host` method provides basic host detection using
-  # the `Host` header, it does not, by default, consider proxy-related headers
-  # like `X-Forwarded-Host` unless explicitly configured. This middleware
-  # enhances host detection by considering these headers, which is essential
-  # in proxy and load-balanced environments where the original host is forwarded
-  # by trusted components.
+  # the `Host` header, it does not, by default, consider `X-Forwarded-Host`
+  # unless explicitly configured. This middleware adds that, which is
+  # needed in proxy and load-balanced environments where the original host
+  # is forwarded by trusted components.
   #
   class DetectHost
     include Middleware::Logging
@@ -122,19 +157,27 @@ module Rack
       # a private/loopback address — see the trust decision in #call.
       # Every header listed here is an implicit contract with the proxy
       # tier: the trusted-proxy gate assumes the proxy overwrites or strips
-      # it, so an entry the proxy doesn't manage becomes a client spoofing
-      # vector THROUGH trusted infra (the example Caddyfile pins
-      # X-Original-Host but would pass an unlisted header untouched). That
-      # is why the IIS originals (X-Original-URL, X-Rewrite-URL) and
-      # X-Forwarded-Server (names the proxy itself) are absent — add a
-      # header only together with proxy-config guidance that sanitizes it.
-      # RFC 7239 Forwarded is deliberately excluded: no proxy deployment
-      # contract manages its host= parameter. Scheme-only headers
-      # (X-Forwarded-Proto, CF-Visitor, ...) don't belong here either: this
-      # middleware detects hosts, not schemes.
+      # it, so an entry the proxy doesn't manage is one a client can set
+      # THROUGH trusted infra. The list is one header (#4384) because it is
+      # the one every other layer already keys on: otto's
+      # IPPrivacyMiddleware deletes it from a peer that fails configured
+      # proxy trust, StripForwardedHost deletes it before any app reads
+      # request.host, and Rack::Request#forwarded_authority reads it.
+      # Vendor carriers (Apx-Incoming-Host, X-Original-Host), the IIS
+      # originals (X-Original-URL, X-Rewrite-URL), X-Forwarded-Server
+      # (names the proxy itself) and RFC 7239 Forwarded are translated or
+      # removed at the edge. Scheme-only headers (X-Forwarded-Proto,
+      # CF-Visitor, ...) don't belong here either: this middleware detects
+      # hosts, not schemes.
       FORWARDED_HEADERS = [
-        'X-Forwarded-Host',   # Common proxy header (AWS ALB, nginx)
-        'Apx-Incoming-Host',  # Approximated-specific (approximated.app custom-domain ingress); like all forwarded headers, only honored behind trusted infra
+        'X-Forwarded-Host',
+      ].freeze
+
+      # Carriers this middleware read before #4384 and no longer selects.
+      # They are observed only (see .unselected_hosts): a value that still
+      # arrives here means the edge did not translate or remove it.
+      UNSELECTED_HOST_HEADERS = [
+        'Apx-Incoming-Host',  # Approximated custom-domain ingress
         'X-Original-Host',    # Various proxy services
       ].freeze
 
@@ -152,6 +195,10 @@ module Rack
         '::1',
       ].freeze
 
+      # The name RFC 7239 Forwarded is listed under in
+      # env[userinfo_carriers_field_name].
+      RFC7239_HEADER = 'Forwarded'
+
       # Rack env key written by Otto's IPPrivacyMiddleware. Referenced from
       # Otto::EnvKeys so a rename upstream has exactly one surface to update
       # (previously a duplicated literal pinned by a tryout).
@@ -164,6 +211,15 @@ module Rack
     class << self
       attr_accessor :result_field_name
 
+      # Validated `host:port` authority for the selected, trusted
+      # X-Forwarded-Host. The port is the one that header carries or, when
+      # it is a bare hostname, the single-valued X-Forwarded-Port sent with
+      # it. Never populated from Host or observed carriers, and absent when
+      # X-Forwarded-Host was not the selected header.
+      def forwarded_authority_field_name
+        "#{result_field_name}.forwarded_authority"
+      end
+
       # Env key under which the observed RFC 7239 `host=` is published — a
       # sidecar of result_field_name, so a renamed result field carries its
       # observation with it. Absent when the request has no readable, valid
@@ -172,6 +228,24 @@ module Rack
       # @return [String]
       def rfc7239_host_field_name
         "#{result_field_name}.rfc7239_host"
+      end
+
+      # Env key under which the hosts named by carriers this middleware
+      # does not select are published — a sidecar of result_field_name,
+      # like rfc7239_host_field_name. Absent when there are none.
+      #
+      # @return [String]
+      def unselected_hosts_field_name
+        "#{result_field_name}.unselected_hosts"
+      end
+
+      # Env key under which the names of the observed carriers whose value
+      # holds userinfo are published (see .userinfo_carriers) — a sidecar of
+      # result_field_name. Absent when there are none.
+      #
+      # @return [String]
+      def userinfo_carriers_field_name
+        "#{result_field_name}.userinfo_carriers"
       end
     end
 
@@ -198,14 +272,17 @@ module Rack
     # This method:
     # 1. Determines if request is from a trusted proxy (otto's trusted-proxy
     #    signal, or a private/loopback REMOTE_ADDR)
-    # 2. Examines headers in order of precedence (forwarded headers only from trusted proxies)
+    # 2. Examines headers in order of precedence (X-Forwarded-Host only from
+    #    trusted proxies, and only when single-valued)
     # 3. Normalizes and validates each potential host
     # 4. Accepts the first valid host found
     # 5. Stores the result in env[result_field_name]
-    # 6. Passes the request to the next middleware
+    # 6. Publishes what the unselected carriers named, for the admin gate
+    # 7. Passes the request to the next middleware
     def call(env)
       result_field_name = self.class.result_field_name
       detected_host     = nil
+      env.delete(self.class.forwarded_authority_field_name)
 
       # Determine which headers to check based on whether request comes from
       # a trusted proxy. Forwarded headers can be spoofed by clients, so they
@@ -241,11 +318,7 @@ module Rack
       #    keeping default-config self-hosted installs behind a local
       #    reverse proxy (nginx/Caddy on the same box or LAN) working.
       remote_addr        = env['REMOTE_ADDR']
-      from_trusted_proxy = if env.key?(VIA_TRUSTED_PROXY_KEY)
-        env[VIA_TRUSTED_PROXY_KEY] == true
-      else
-        self.class.private_ip?(remote_addr)
-      end
+      from_trusted_proxy = self.class.from_trusted_proxy?(env)
 
       headers_to_check = if from_trusted_proxy
         HEADER_PRECEDENCE
@@ -257,12 +330,40 @@ module Rack
 
       # Try headers in order of precedence
       headers_to_check.each do |header|
-        header_key = "HTTP_#{header.tr('-', '_').upcase}"
-        host       = self.class.normalize_host(env[header_key])
+        header_key = self.class.env_key(header)
+
+        # Overwrite-only contract: more than one X-Forwarded-Host value is
+        # a proxy that appended instead of overwriting. Neither value is
+        # selected; detection continues with Host.
+        if header != 'Host' && self.class.multi_valued?(env[header_key])
+          logger.warn(
+            "[DetectHost] Ignoring #{header} with #{self.class.value_count(env[header_key])} values; " \
+            'the proxy must overwrite it with a single host. Falling back to Host',
+          )
+          next
+        end
+
+        # See "Userinfo in an authority" in the class doc: no host, and no
+        # fall back to Host.
+        if header != 'Host' && self.class.userinfo?(env[header_key])
+          logger.warn(
+            "[DetectHost] Refusing #{header} with userinfo ('@') in it; no host is detected for " \
+            'this request. The proxy must send a bare host or host:port',
+          )
+          break
+        end
+
+        host = self.class.normalize_host(env[header_key])
         next if host.nil?
 
         if self.class.valid_domain_name?(host)
           detected_host = host
+          if header == 'X-Forwarded-Host'
+            authority                                      = self.class.forwarded_authority(
+              env[header_key], host, env[self.class.env_key('X-Forwarded-Port')]
+            )
+            env[self.class.forwarded_authority_field_name] = authority if authority
+          end
           logger.debug("[DetectHost] #{host} via #{header_key}")
           break # stop on first valid host
         elsif self.class.private_ip?(host)
@@ -289,6 +390,15 @@ module Rack
       rfc7239_host                            = self.class.rfc7239_host(env['HTTP_FORWARDED'])
       env[self.class.rfc7239_host_field_name] = rfc7239_host if rfc7239_host
 
+      # Same for the carriers dropped from the precedence list in #4384.
+      unselected                                  = self.class.unselected_hosts(env)
+      env[self.class.unselected_hosts_field_name] = unselected unless unselected.empty?
+
+      # And for an observed carrier whose value cannot be read as a host
+      # because it holds userinfo.
+      userinfo                                     = self.class.userinfo_carriers(env)
+      env[self.class.userinfo_carriers_field_name] = userinfo unless userinfo.empty?
+
       @app.call(env)
     end
 
@@ -300,10 +410,12 @@ module Rack
     # the time this middleware runs, IPPrivacyMiddleware may have rewritten
     # it, so it does not necessarily identify the connecting peer.
     #
-    # Escalates to WARN when Apx-Incoming-Host is among the discarded
-    # headers: Approximated ingress always sends it and a legitimate direct
-    # public client never does, so a discard here is the exact signature of
-    # the 2026-08-05 incident (custom domains falling back to canonical).
+    # Logs at WARN when X-Forwarded-Host is discarded: a proxy that is not
+    # recognised as trusted is the signature of the 2026-08-05 incident
+    # (custom domains falling back to canonical). With proxy trust
+    # configured, otto removes the header from a peer that fails it before
+    # this middleware runs, so this line appears only in the unconfigured
+    # (private-peer heuristic) mode; otto's own log is the signal otherwise.
     #
     # @param env [Hash] Rack environment hash
     # @param remote_addr [String, nil] env['REMOTE_ADDR'] after any rewrite
@@ -314,22 +426,15 @@ module Rack
                      "private_ip=#{self.class.private_ip?(remote_addr)}, " \
                      "remote_addr=#{remote_addr} (post-proxy-resolution)"
 
-      discarded    = FORWARDED_HEADERS.select do |header|
-        env.key?("HTTP_#{header.tr('-', '_').upcase}")
-      end
+      discarded    = FORWARDED_HEADERS.select { |header| env.key?(self.class.env_key(header)) }
 
       if discarded.empty?
         logger.debug("[DetectHost] Untrusted source, no forwarded host headers present (#{trust_inputs})")
-      elsif discarded.include?('Apx-Incoming-Host')
+      else
         logger.warn(
           "[DetectHost] Discarding forwarded host headers (#{discarded.join(', ')}) " \
-          'from untrusted source; Apx-Incoming-Host present — matches the 2026-08-05 ' \
-          "Approximated-ingress incident signature (#{trust_inputs})",
-        )
-      else
-        logger.debug(
-          "[DetectHost] Discarding forwarded host headers (#{discarded.join(', ')}) " \
-          "from untrusted source (#{trust_inputs})",
+          'from untrusted source; if this peer is your reverse proxy, custom domains ' \
+          "are resolving on Host — configure site.network.trusted_proxy (#{trust_inputs})",
         )
       end
     end
@@ -341,11 +446,133 @@ module Rack
       # @return [String, nil] Normalized host without port number, or nil if empty
       #
       # Takes the first host if multiple are provided (comma-separated), then
-      # delegates port stripping and normalization to DomainParser.
+      # delegates port stripping and normalization to DomainParser. #call
+      # never selects from a multi-valued X-Forwarded-Host (see
+      # .multi_valued?); the first-value read remains for Host and for the
+      # observations.
+      #
+      # A value with userinfo names no host, in the URL form too (see
+      # "Userinfo in an authority" in the class doc).
       def normalize_host(value_unsafe)
-        first_host = value_unsafe.to_s.split(',').first.to_s
+        first_host = first_value(value_unsafe)
+        return nil if first_host.include?('@')
 
         Onetime::Utils::DomainParser.extract_hostname(first_host)
+      end
+
+      # The first comma-separated entry of a header value.
+      #
+      # @param value_unsafe [String, nil] Raw header value
+      # @return [String]
+      def first_value(value_unsafe)
+        value_unsafe.to_s.split(',').first.to_s
+      end
+
+      # Whether the entry .normalize_host reads from a header value holds
+      # userinfo.
+      #
+      # @param value_unsafe [String, nil] Raw header value
+      # @return [Boolean]
+      def userinfo?(value_unsafe)
+        first_value(value_unsafe).include?('@')
+      end
+
+      # Whether forwarded headers on this request came from trusted
+      # infrastructure: otto's verdict when it recorded one, the
+      # private/loopback-peer heuristic otherwise. See the trust decision in
+      # #call. Shared with StripForwardedHost so the host and the port are
+      # trusted on one verdict.
+      #
+      # @param env [Hash] Rack environment
+      # @return [Boolean]
+      def from_trusted_proxy?(env)
+        if env.key?(VIA_TRUSTED_PROXY_KEY)
+          env[VIA_TRUSTED_PROXY_KEY] == true
+        else
+          private_ip?(env['REMOTE_ADDR'])
+        end
+      end
+
+      # Retain only a plain DNS authority with a usable port. Host detection
+      # is deliberately more permissive (e.g. URL extraction); do not carry
+      # that extra syntax into the rewritten HTTP_HOST.
+      #
+      # The port in the value itself wins. A bare hostname takes the port
+      # from +forwarded_port+ (X-Forwarded-Port) when that is one numeric
+      # value: the common proxy setup sends the hostname and the port in
+      # separate headers. A port written in the value that is unusable is
+      # not replaced, and a list of ports is not picked from.
+      def forwarded_authority(value, host, forwarded_port = nil)
+        match = value.to_s.strip.match(/\A([a-z0-9.-]+)(?::([0-9]{1,5}))?\z/i)
+        return nil unless match && normalize_host(match[1]) == host
+
+        port = usable_port(match[2] || forwarded_port)
+        return nil unless port
+
+        "#{host}:#{port}"
+      end
+
+      # The port a header value names, or nil unless it is one number from 1
+      # through 65535. `Rack::Request#port` applies no such check to
+      # X-Forwarded-Port: it converts each comma-separated entry with #to_i
+      # and takes the last, so `abc` reads as 0 and `65536` as itself.
+      # StripForwardedHost uses this to decide whether Rack may see the
+      # header at all.
+      #
+      # @param value_unsafe [String, nil] Raw port text
+      # @return [Integer, nil]
+      def usable_port(value_unsafe)
+        port = value_unsafe.to_s.strip[/\A[0-9]{1,5}\z/].to_i
+        port if (1..65_535).cover?(port)
+      end
+
+      # Rack env key for an HTTP header name.
+      #
+      # @param header [String] e.g. 'X-Forwarded-Host'
+      # @return [String] e.g. 'HTTP_X_FORWARDED_HOST'
+      def env_key(header)
+        "HTTP_#{header.tr('-', '_').upcase}"
+      end
+
+      # Whether a header value carries more than one entry. A repeated
+      # header reaches Rack comma-joined, the same shape as a proxy that
+      # appended, so both count.
+      #
+      # @param value_unsafe [String, nil] Raw header value
+      # @return [Boolean]
+      def multi_valued?(value_unsafe)
+        value_unsafe.to_s.include?(',')
+      end
+
+      # How many comma-separated entries a header value carries, counting
+      # empty ones.
+      #
+      # @param value_unsafe [String, nil] Raw header value
+      # @return [Integer]
+      def value_count(value_unsafe)
+        value_unsafe.to_s.split(',', -1).size
+      end
+
+      # The hosts named by carriers this middleware does not select:
+      # UNSELECTED_HOST_HEADERS, and the first value of a multi-valued
+      # X-Forwarded-Host. Each is normalized and validated exactly as a
+      # forwarded host header would be; anything that fails is no
+      # observation. Read regardless of peer trust — what to make of them
+      # is the admin-surface provenance rule's decision.
+      #
+      # @param env [Hash] Rack environment hash
+      # @return [Array<String>] distinct hosts, frozen; empty when none
+      def unselected_hosts(env)
+        values  = UNSELECTED_HOST_HEADERS.map { |header| env[env_key(header)] }
+        FORWARDED_HEADERS.each do |header|
+          value = env[env_key(header)]
+          values << value if multi_valued?(value)
+        end
+
+        values.filter_map do |value|
+          host = normalize_host(value)
+          host if host && valid_domain_name?(host)
+        end.uniq.freeze
       end
 
       # The host an RFC 7239 Forwarded value asserts, or nil.
@@ -364,18 +591,44 @@ module Rack
       # `host=` anywhere in the header wins, mirroring the first-value
       # convention used for X-Forwarded-Host.
       def rfc7239_host(value_unsafe)
-        return nil if value_unsafe.nil?
-
-        first = case Rack::Utils.forwarded_values(value_unsafe)
-                in { host: [first_host, *] }
-                  first_host
-                else
-                  nil
-                end
-        host  = normalize_host(first)
+        host = normalize_host(rfc7239_first_host(value_unsafe))
         return nil if host.nil? || !valid_domain_name?(host)
 
         host
+      end
+
+      # The first `host=` parameter of an RFC 7239 Forwarded value as Rack
+      # parses it, unvalidated, or nil.
+      #
+      # @param value_unsafe [String, nil] Raw Forwarded header value
+      # @return [String, nil]
+      def rfc7239_first_host(value_unsafe)
+        return nil if value_unsafe.nil?
+
+        case Rack::Utils.forwarded_values(value_unsafe)
+        in { host: [first_host, *] }
+          first_host
+        else
+          nil
+        end
+      end
+
+      # Names of the observed carriers whose value holds userinfo: the
+      # headers .unselected_hosts reads, and RFC 7239 Forwarded (listed as
+      # RFC7239_HEADER) for its first `host=`. The entry checked is the one
+      # the observation would have read. A single-valued X-Forwarded-Host is
+      # not an observed carrier and is never listed; #call handles it.
+      #
+      # @param env [Hash] Rack environment hash
+      # @return [Array<String>] header names, frozen; empty when none
+      def userinfo_carriers(env)
+        carriers = UNSELECTED_HOST_HEADERS.select { |header| userinfo?(env[env_key(header)]) }
+        FORWARDED_HEADERS.each do |header|
+          value = env[env_key(header)]
+          carriers << header if multi_valued?(value) && userinfo?(value)
+        end
+        carriers << RFC7239_HEADER if userinfo?(rfc7239_first_host(env['HTTP_FORWARDED']))
+        carriers.freeze
       end
 
       # Determines if a string is a valid host for use in this application.

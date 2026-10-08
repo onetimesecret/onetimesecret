@@ -957,5 +957,53 @@
   "web.auth.webauthn.emailRequired": {
     "text": "Введите Ваш адрес электронной почты, чтобы войти с помощью ключа доступа",
     "source_hash": "7f07647f"
+  },
+  "web.auth.login.verification_unavailable": {
+    "text": "Вход выполнен, но нам не удалось подтвердить Вашу сессию. Пожалуйста, повторите попытку чуть позже.",
+    "source_hash": "9a19dfc9"
+  },
+  "web.auth.mfa.verification_unavailable": {
+    "text": "Ваш пароль принят, но нам не удалось начать двухфакторную проверку. Пожалуйста, повторите попытку чуть позже.",
+    "source_hash": "5fd5e240"
+  },
+  "web.auth.session.ended": {
+    "text": "Ваша сессия завершена. Пожалуйста, войдите снова.",
+    "source_hash": "673e9822"
+  },
+  "web.auth.session.replaced": {
+    "text": "Состояние входа изменилось в другой вкладке, поэтому эта страница была перезагружена.",
+    "source_hash": "3767d43b"
+  },
+  "web.auth.session.stale_session_title": {
+    "text": "Эта страница устарела",
+    "source_hash": "0293e093"
+  },
+  "web.auth.session.stale_session_notice": {
+    "text": "Ваша сессия изменилась после загрузки этой страницы. Скопируйте всё несохранённое, а затем перезагрузите страницу, чтобы продолжить.",
+    "source_hash": "c62e236c"
+  },
+  "web.auth.session.reload_now": {
+    "text": "Перезагрузить страницу",
+    "source_hash": "437d0d63"
+  },
+  "web.auth.session.verification_unavailable_title": {
+    "text": "Сейчас мы не можем проверить Вашу сессию",
+    "source_hash": "2130dda1"
+  },
+  "web.auth.session.verification_unavailable_body": {
+    "text": "Вы не вышли из системы. Нам не удалось связаться с сервером для подтверждения Вашей сессии, поэтому эта страница скрыта, пока это не удастся. Мы продолжаем попытки.",
+    "source_hash": "bb230c2c"
+  },
+  "web.auth.session.retry": {
+    "text": "Повторить попытку",
+    "source_hash": "d8b8392e"
+  },
+  "web.auth.session.retrying": {
+    "text": "Проверка…",
+    "source_hash": "ec963ffc"
+  },
+  "web.auth.session.retry_failed": {
+    "text": "По-прежнему недоступно. Пожалуйста, повторите попытку чуть позже.",
+    "source_hash": "b81c022c"
   }
 }

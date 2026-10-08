@@ -638,5 +638,121 @@
   "web.admin.organizations.entitlements.summary.planUnknown": {
     "text": "Nekonata — ne eblis kompari",
     "source_hash": "b607e540"
+  },
+  "web.admin.organizations.actions.plan.label": {
+    "text": "Plano",
+    "source_hash": "fa8ed0bd"
+  },
+  "web.admin.organizations.actions.plan.apply": {
+    "text": "Apliki",
+    "source_hash": "31e392d1"
+  },
+  "web.admin.organizations.actions.plan.confirmTitle": {
+    "text": "Ĉu ŝanĝi planon?",
+    "source_hash": "910a4de9"
+  },
+  "web.admin.organizations.actions.plan.confirmDescription": {
+    "text": "Ŝanĝi {org} al la plano {plan}.",
+    "source_hash": "aecf8277"
+  },
+  "web.admin.organizations.actions.plan.success": {
+    "text": "Plano ĝisdatigita.",
+    "source_hash": "ebe8d40c"
+  },
+  "web.admin.organizations.actions.plan.problem": {
+    "text": "Plano konservita, sed la rajtigoj ne estis ĝisdatigitaj. Rulu akordigon por ĉi tiu organizo.",
+    "source_hash": "2addb095"
+  },
+  "web.admin.organizations.actions.plan.localConfigWarning": {
+    "text": "Planoj ŝargitaj el loka agordo — Stripe ne estas agordita aŭ ne atingebla.",
+    "source_hash": "df83e326"
+  },
+  "web.admin.organizations.detail.delete.button": {
+    "text": "Forigi organizon",
+    "source_hash": "a70d189a"
+  },
+  "web.admin.organizations.detail.delete.previewing": {
+    "text": "Ŝargante planon…",
+    "source_hash": "c9773eb9"
+  },
+  "web.admin.organizations.detail.delete.warning": {
+    "text": "Por ĉiam forigas la organizon, ĝiajn membrecojn kaj ĝiajn atendantajn invitojn, kaj sendas retpoŝton al la iamaj membroj. Ĉi tio ne povas esti malfarita.",
+    "source_hash": "fd314131"
+  },
+  "web.admin.organizations.detail.delete.confirmTitle": {
+    "text": "Ĉu forigi ĉi tiun organizon?",
+    "source_hash": "6a3bba0f"
+  },
+  "web.admin.organizations.detail.delete.confirmDescription": {
+    "text": "Ĉi tio por ĉiam forigas {org}. Retajpu la ID de la organizo por konfirmi.",
+    "source_hash": "c63a0221"
+  },
+  "web.admin.organizations.detail.delete.membersLabel": {
+    "text": "Membroj",
+    "source_hash": "1044a4c0"
+  },
+  "web.admin.organizations.detail.delete.invitationsLabel": {
+    "text": "Atendantaj invitoj",
+    "source_hash": "76198e63"
+  },
+  "web.admin.organizations.detail.delete.domainsLabel": {
+    "text": "Domajnoj",
+    "source_hash": "ced67718"
+  },
+  "web.admin.organizations.detail.delete.defaultOrgLabel": {
+    "text": "Vakigas la defaŭltan laborspacon por",
+    "source_hash": "d535ac2a"
+  },
+  "web.admin.organizations.detail.delete.forceDefault": {
+    "text": "Ĉi tio estas la defaŭlta (persona) laborspaco de la posedanto. Forigi ĝin tamen.",
+    "source_hash": "1a8b0f7d"
+  },
+  "web.admin.organizations.detail.delete.forceSubscription": {
+    "text": "La abono estas aktiva. Forigi tamen — ĉi tio ne nuligas la fakturadon ĉe Stripe.",
+    "source_hash": "51cb3456"
+  },
+  "web.admin.organizations.detail.delete.driftedDomainsLabel": {
+    "text": "Deviintaj domajnoj",
+    "source_hash": "fef96f49"
+  },
+  "web.admin.organizations.detail.delete.driftedDomainsRepair": {
+    "text": "Riparu per: bin/ots domains doctor --all --repair",
+    "source_hash": "14c9c59f"
+  },
+  "web.admin.organizations.detail.delete.success": {
+    "text": "{org} forigita.",
+    "source_hash": "9cdda5d0"
+  },
+  "web.admin.organizations.detail.delete.blocked.hasDomains": {
+    "text": "Blokita: unue forigu la proprajn domajnojn ({domains}).",
+    "source_hash": "dc3248b2"
+  },
+  "web.admin.organizations.detail.delete.blocked.driftedDomains": {
+    "text": "Blokita: ĉi tiuj domajnaj registroj ankoraŭ referencas ĉi tiun organizon, sed mankas en ĝia domajnlisto ({domains}). Unue rulu bin/ots domains doctor --all --repair — ne ekzistas superrego.",
+    "source_hash": "3136496c"
+  },
+  "web.admin.organizations.detail.delete.blocked.isDefault": {
+    "text": "Blokita: ĉi tio estas la defaŭlta laborspaco de la posedanto. Marku la superregon sube por forigi ĝin tamen.",
+    "source_hash": "09d5baa4"
+  },
+  "web.admin.organizations.detail.delete.blocked.activeSubscription": {
+    "text": "Blokita: la organizo havas aktivan abonon. Unue nuligu ĝin ĉe Stripe, aŭ marku la superregon sube.",
+    "source_hash": "68663641"
+  },
+  "web.admin.organizations.detail.delete.blocked.lastOrg": {
+    "text": "Blokita: ĉi tio estas la sola organizo, al kiu {owner} apartenas, kaj ĝia forigo lasus tiun personon sen laborspaco. Ne ekzistas superrego — unue kreu anstataŭan organizon.",
+    "source_hash": "f09b4f9a"
+  },
+  "web.admin.organizations.detail.delete.errors.planUnreadable": {
+    "text": "Ne eblis legi la forigplanon de la servilo. Nenio estis forigita.",
+    "source_hash": "91406cbb"
+  },
+  "web.admin.organizations.detail.delete.errors.unverified": {
+    "text": "La respondo de la servilo ne povis esti kontrolita. Reŝargu la liston de organizoj por kontroli, ĉu la forigo finiĝis.",
+    "source_hash": "7a261fb0"
+  },
+  "web.admin.organizations.detail.delete.errors.notApplied": {
+    "text": "La servilo resendis antaŭrigardon, ne forigon. Nenio estis forigita.",
+    "source_hash": "9d84971d"
   }
 }

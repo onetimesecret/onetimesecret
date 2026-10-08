@@ -1630,5 +1630,37 @@
   "web.domains.sso.status_unavailable_hint": {
     "text": "SSO kan op dit moment niet worden aangeboden op dit domein. Controleer de SSO-inloggegevens en de inloginstellingen van dit domein.",
     "source_hash": "b03b14f4"
+  },
+  "web.domains.status_tooltip_pending_ssl": {
+    "text": "Domein geverifieerd — wacht op het certificaat",
+    "source_hash": "541bd705"
+  },
+  "web.domains.2_create_the_alias_record": {
+    "text": "2. Maak het ALIAS- of ANAME-record aan",
+    "source_hash": "17b04e6a"
+  },
+  "web.domains.sso.status_saml_disabled_badge": {
+    "text": "SAML uitgeschakeld",
+    "source_hash": "4e2eab51"
+  },
+  "web.domains.sso.status_saml_disabled_hint": {
+    "text": "De sitebeheerder heeft SAML voor deze installatie uitgeschakeld. Je configuratie blijft bewaard en wordt weer actief zodra SAML opnieuw wordt ingeschakeld; tot die tijd biedt dit domein geen inloggen via SAML aan.",
+    "source_hash": "5ba9624c"
+  },
+  "web.domains.sso.status_domain_unverified_badge": {
+    "text": "Wacht op domeinverificatie",
+    "source_hash": "ea7459c2"
+  },
+  "web.domains.sso.status_domain_unverified_hint": {
+    "text": "De verificatie van dit domein is nog niet voltooid, dus de SSO-verbinding is nog niet actief op de inlogpagina. SSO wordt ingeschakeld zodra het domein is geverifieerd en SSO hier voor het domein is toegestaan.",
+    "source_hash": "57ee0066"
+  },
+  "web.domains.verify_outcome.indeterminate": {
+    "text": "We konden de DNS-controle zojuist niet voltooien. Dit betekent niet dat je records onjuist zijn. Probeer het over een paar minuten opnieuw.",
+    "source_hash": "4e76a9ef"
+  },
+  "web.domains.verify_outcome.record_not_found": {
+    "text": "We hebben het verwachte TXT-record niet gevonden. Controleer of het bestaat en of de waarde exact overeenkomt. Het kan een paar minuten duren voordat nieuwe DNS-records zichtbaar zijn.",
+    "source_hash": "6c847d46"
   }
 }

@@ -1,0 +1,10 @@
+{
+  "web.admin.session.expired": {
+    "text": "انتهت صلاحية جلسة الإدارة الخاصة بك. سجّل الدخول مرة أخرى للمتابعة.",
+    "source_hash": "e970de7c"
+  },
+  "web.admin.session.signIn": {
+    "text": "تسجيل الدخول",
+    "source_hash": "bfd402b2"
+  }
+}

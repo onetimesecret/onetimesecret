@@ -1,0 +1,10 @@
+{
+  "web.admin.session.expired": {
+    "text": "Η συνεδρία διαχειριστή σας έληξε. Συνδεθείτε ξανά για να συνεχίσετε.",
+    "source_hash": "e970de7c"
+  },
+  "web.admin.session.signIn": {
+    "text": "Σύνδεση",
+    "source_hash": "bfd402b2"
+  }
+}

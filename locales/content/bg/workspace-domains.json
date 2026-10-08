@@ -1630,5 +1630,37 @@
   "web.domains.sso.status_unavailable_hint": {
     "text": "В момента SSO не може да бъде предложено на този домейн. Проверете идентификационните данни за SSO и настройките за влизане на този домейн.",
     "source_hash": "b03b14f4"
+  },
+  "web.domains.status_tooltip_pending_ssl": {
+    "text": "Домейнът е потвърден — изчаква се сертификатът му",
+    "source_hash": "541bd705"
+  },
+  "web.domains.2_create_the_alias_record": {
+    "text": "2. Създайте ALIAS или ANAME запис",
+    "source_hash": "17b04e6a"
+  },
+  "web.domains.sso.status_saml_disabled_badge": {
+    "text": "SAML е изключено",
+    "source_hash": "4e2eab51"
+  },
+  "web.domains.sso.status_saml_disabled_hint": {
+    "text": "Операторът на сайта е изключил SAML за тази инсталация. Конфигурацията ви се запазва и се възобновява, когато SAML бъде включено отново; дотогава този домейн не предлага влизане чрез SAML.",
+    "source_hash": "5ba9624c"
+  },
+  "web.domains.sso.status_domain_unverified_badge": {
+    "text": "Изчаква потвърждение на домейна",
+    "source_hash": "ea7459c2"
+  },
+  "web.domains.sso.status_domain_unverified_hint": {
+    "text": "Потвърждението на този домейн не е завършено, затова SSO връзката му все още не е активна на страницата му за влизане. SSO се включва, след като домейнът бъде потвърден и SSO бъде разрешено за него тук.",
+    "source_hash": "57ee0066"
+  },
+  "web.domains.verify_outcome.indeterminate": {
+    "text": "В момента не успяхме да завършим DNS проверката. Това не означава, че записите ви са грешни. Моля, опитайте отново след няколко минути.",
+    "source_hash": "4e76a9ef"
+  },
+  "web.domains.verify_outcome.record_not_found": {
+    "text": "Не открихме очаквания TXT запис. Проверете дали съществува и дали стойността му съвпада точно. Новите DNS записи може да се появят след няколко минути.",
+    "source_hash": "6c847d46"
   }
 }

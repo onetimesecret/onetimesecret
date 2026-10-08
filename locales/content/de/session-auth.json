@@ -509,8 +509,8 @@
     "source_hash": "7fbbb7e7"
   },
   "web.login.errors.identity_connect_conflict": {
-    "text": "Diese Identität konnte nicht verbunden werden. Möglicherweise wurde die Verbindung auf der falschen Domain gestartet oder deine Sitzung ist abgelaufen. Bitte melde dich erneut an und verbinde sie dann in deinen Kontoeinstellungen.",
-    "source_hash": "4238bbf2"
+    "text": "Diese Identität konnte nicht verbunden werden. Möglicherweise gehört sie bereits zu einem anderen Konto.",
+    "source_hash": "d8b71cf8"
   },
   "web.login.errors.org_join_failed": {
     "text": "Wir konnten dich nicht vollständig zu deiner Organisation hinzufügen. Bitte wende dich an deinen Administrator.",
@@ -527,5 +527,25 @@
   "web.login.errors.sso_cancelled": {
     "text": "Die Anmeldung wurde abgebrochen. Du kannst es jederzeit erneut versuchen.",
     "source_hash": "b5f3d3ec"
+  },
+  "web.login.errors.sso_issuer_mismatch": {
+    "text": "Die Anmeldung mit diesem Anbieter ist falsch konfiguriert. Bitte wende dich an deinen Administrator.",
+    "source_hash": "44df5918"
+  },
+  "web.login.errors.sso_config_unusable": {
+    "text": "Single Sign-On ist für diese Domain konfiguriert, aber derzeit nicht nutzbar. Wende dich an den Administrator deiner Organisation.",
+    "source_hash": "f704b391"
+  },
+  "web.login.errors.sso_domain_unverified": {
+    "text": "Single Sign-On ist für diese Domain noch nicht aktiv, da die Verifizierung der Domain noch nicht abgeschlossen ist. Bitte wende dich an deinen Administrator.",
+    "source_hash": "bd981480"
+  },
+  "web.login.errors.tenant_sso_link_unavailable": {
+    "text": "Diese Identität ist mit keinem Konto auf dieser Domain verbunden. Wenn du dich auf dieser Domain mit einem Konto anmelden kannst, das zu dieser Organisation gehört, verbinde sie unter „Verbundene Identitäten“. Bitte andernfalls einen Inhaber der Organisation, diese SSO-Identität einzuladen, oder wende dich an den Support.",
+    "source_hash": "66e7376c"
+  },
+  "web.login.errors.identity_connect_wrong_domain": {
+    "text": "Diese Identität konnte auf dieser Domain nicht verbunden werden. Starte die Verbindung auf der Website, bei der du angemeldet bist; auf der Domain einer Organisation muss dein Konto bereits zu dieser Organisation gehören.",
+    "source_hash": "d967c761"
   }
 }

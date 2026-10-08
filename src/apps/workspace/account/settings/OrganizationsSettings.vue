@@ -265,7 +265,15 @@
             </div>
           </div>
 
-          <!-- Empty State -->
+          <!--
+            Empty State. Not the first-run path its copy suggests: /orgs is
+            owner-only (handleOrgRoleRequirement), so a user who owns no org is
+            redirected with a notice before this mounts. It renders only when
+            the refetch above disagrees with the list the guard saw: the last
+            owned org was deleted elsewhere, or the response failed to parse.
+            Opening /orgs to users with no org, so this becomes their way to
+            create one, is an access decision, not a UI fix (#4566).
+          -->
           <div
             v-else
             class="py-12 text-center">

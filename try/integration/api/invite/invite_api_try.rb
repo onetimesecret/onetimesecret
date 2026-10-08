@@ -37,11 +37,6 @@ def enable_runtime_domains!
   Onetime::Runtime.features = Onetime::Runtime.features.with(domains_enabled: true)
 end
 
-# Helper to enable domain context override at middleware level
-def enable_domain_context!
-  Onetime::Middleware::DomainStrategy.class_eval { @domain_context_enabled = true }
-end
-
 # Helper to fully enable domains for branding tests
 def enable_domains_for_branding_tests!
   # IMPORTANT: Must modify OT.conf directly because DomainStrategy.initialize
@@ -52,9 +47,6 @@ def enable_domains_for_branding_tests!
     'enabled' => true,
     'default' => 'onetimesecret.com'
   }
-  OT.conf['development'] ||= {}
-  OT.conf['development']['domain_context_enabled'] = true
-
   enable_runtime_domains!
 end
 
@@ -362,10 +354,11 @@ resp['record'].key?('auth_methods')
 #=> false
 
 ## Setup custom domain env and request - returns branding when custom domain configured
-# The middleware sets these env vars when domain_strategy is :custom
+# The request arrives on the custom domain's host, which DomainStrategy
+# classifies :custom from the registered record
 @custom_domain_env = {
   'HTTP_ACCEPT' => 'application/json',
-  'HTTP_O_DOMAIN_CONTEXT' => @custom_domain.display_domain,
+  'HTTP_HOST' => @custom_domain.display_domain,
   'onetime.domain_strategy' => :custom,
   'onetime.display_domain' => @custom_domain.display_domain,
 }
@@ -533,8 +526,6 @@ sso_method.keys.all? { |k| allowed_fields.include?(k) }
 # Reset domain config to test defaults to avoid affecting other tests
 OT.conf['features'] ||= {}
 OT.conf['features']['domains'] = { 'enabled' => false, 'default' => nil }
-OT.conf['development'] ||= {}
-OT.conf['development']['domain_context_enabled'] = false
 Onetime::Runtime.features = Onetime::Runtime.features.with(domains_enabled: false)
 Onetime::Middleware::DomainStrategy.reset! if Onetime::Middleware::DomainStrategy.respond_to?(:reset!)
 

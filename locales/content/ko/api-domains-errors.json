@@ -46,5 +46,17 @@
   "api.domains.errors.homepage_incoming_not_ready": {
     "text": "수신 비밀 메시지를 홈페이지로 사용하려면 먼저 하나 이상의 수신자와 함께 활성화해야 합니다.",
     "source_hash": "556da6e2"
+  },
+  "api.domains.errors.related_origins_invalid": {
+    "text": "유효한 출처가 아닙니다: %{origins}. 스킴과 호스트를 입력하세요(예: https://vault.example.com)",
+    "source_hash": "5acb92ca"
+  },
+  "api.domains.errors.related_origins_foreign_organization": {
+    "text": "다음 출처는 다른 조직에 속해 있어 추가할 수 없습니다: %{origins}",
+    "source_hash": "ac21c1e7"
+  },
+  "api.domains.errors.allowed_signup_domains_invalid": {
+    "text": "유효한 도메인이 아닙니다: %{domains}. 등록 가능한 도메인 이름을 입력하세요(예: example.com)",
+    "source_hash": "2d93472c"
   }
 }

@@ -1,0 +1,10 @@
+{
+  "web.admin.session.expired": {
+    "text": "Kua pau tō wātū kaiwhakahaere. Takiuru anō kia haere tonu ai.",
+    "source_hash": "e970de7c"
+  },
+  "web.admin.session.signIn": {
+    "text": "Takiuru",
+    "source_hash": "bfd402b2"
+  }
+}

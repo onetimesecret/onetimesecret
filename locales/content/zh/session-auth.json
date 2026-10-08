@@ -509,8 +509,8 @@
     "source_hash": "7fbbb7e7"
   },
   "web.login.errors.identity_connect_conflict": {
-    "text": "无法关联此身份。关联流程可能是在错误的域名上发起的，或者您的会话已过期。请重新登录，然后在账户设置中进行关联。",
-    "source_hash": "4238bbf2"
+    "text": "无法关联此身份。它可能已属于另一个账户。",
+    "source_hash": "d8b71cf8"
   },
   "web.login.errors.org_join_failed": {
     "text": "我们无法完成将您加入组织的操作。请联系您的管理员。",
@@ -527,5 +527,25 @@
   "web.login.errors.sso_cancelled": {
     "text": "登录已取消。您可以在准备好后随时重试。",
     "source_hash": "b5f3d3ec"
+  },
+  "web.login.errors.sso_issuer_mismatch": {
+    "text": "此提供商的登录配置有误。请联系您的管理员。",
+    "source_hash": "44df5918"
+  },
+  "web.login.errors.sso_config_unusable": {
+    "text": "此域名的单点登录已配置，但目前无法使用。请联系您所在组织的管理员。",
+    "source_hash": "f704b391"
+  },
+  "web.login.errors.sso_domain_unverified": {
+    "text": "此域名尚未完成验证，因此其单点登录尚未启用。请联系您的管理员。",
+    "source_hash": "bd981480"
+  },
+  "web.login.errors.tenant_sso_link_unavailable": {
+    "text": "此身份未关联到此域名上的任何账户。如果您可以在此域名上使用属于该组织的账户登录，请在「已关联的身份」中关联此身份。否则，请让组织所有者邀请此 SSO 身份，或联系支持团队。",
+    "source_hash": "66e7376c"
+  },
+  "web.login.errors.identity_connect_wrong_domain": {
+    "text": "无法在此域名上关联此身份。请从您当前登录的站点发起关联。在组织的域名上，您的账户必须已属于该组织。",
+    "source_hash": "d967c761"
   }
 }

@@ -46,5 +46,17 @@
   "api.domains.errors.homepage_incoming_not_ready": {
     "text": "Els secrets entrants s'han d'activar amb almenys un destinatari abans de poder-los fer servir com a pàgina d'inici.",
     "source_hash": "556da6e2"
+  },
+  "api.domains.errors.related_origins_invalid": {
+    "text": "No és un origen vàlid: %{origins}. Introdueix l'esquema i l'amfitrió, per exemple https://vault.example.com",
+    "source_hash": "5acb92ca"
+  },
+  "api.domains.errors.related_origins_foreign_organization": {
+    "text": "Aquests orígens pertanyen a una altra organització i no es poden afegir: %{origins}",
+    "source_hash": "ac21c1e7"
+  },
+  "api.domains.errors.allowed_signup_domains_invalid": {
+    "text": "No és un domini vàlid: %{domains}. Introdueix un nom de domini registrable, per exemple example.com",
+    "source_hash": "2d93472c"
   }
 }

@@ -221,6 +221,25 @@ RSpec.describe Onetime::Middleware::ValidateMultipart do
     end
   end
 
+  describe 'rejection log line' do
+    it 'logs the full mount path with any secret key redacted' do
+      key    = 'abcdef0123456789secretkey'
+      logger = instance_double(SemanticLogger::Logger)
+      allow(Onetime).to receive(:get_logger).with('ValidateMultipart').and_return(logger)
+
+      env = env_for(content_type: "multipart/form-data; boundary=#{boundary}", body: 'no boundary here')
+        .merge('SCRIPT_NAME' => '/api/v1', 'PATH_INFO' => "/secret/#{key}")
+
+      expect(logger).to receive(:warn).with(
+        'Rejected malformed multipart request',
+        hash_including(path: '/api/v1/secret/[REDACTED]'),
+      )
+
+      status, = described_class.new(downstream).call(env)
+      expect(status).to eq(400)
+    end
+  end
+
   describe 'non-multipart requests' do
     it 'does not touch a JSON POST' do
       env      = env_for(content_type: 'application/json', body: '{"secret":"hi"}')

@@ -176,8 +176,8 @@
     "source_hash": "0c6605c1"
   },
   "web.admin.sessions.revoke.confirmDescription": {
-    "text": "Spowoduje to natychmiastowe wylogowanie użytkownika przez usunięcie sesji {id}. Wpisz identyfikator sesji, aby potwierdzić.",
-    "source_hash": "9e08b1b8"
+    "text": "Spowoduje to natychmiastowe wylogowanie użytkownika przez unieważnienie sesji {id}. Wpisz {token}, aby potwierdzić.",
+    "source_hash": "80578692"
   },
   "web.admin.sessions.revoke.success": {
     "text": "Sesja unieważniona",
@@ -188,12 +188,12 @@
     "source_hash": "34cb67a4"
   },
   "web.admin.sessions.scan.capped": {
-    "text": "Skanowanie ograniczone do pierwszych {scanned} kluczy — uwierzytelnione sesje poza tym oknem nie są wyświetlane. Sprawdź konkretną sesję według identyfikatora, aby do niej dotrzeć.",
-    "source_hash": "fa418b4e"
+    "text": "Skanowanie ograniczone do pierwszych {scanned} kluczy — uwierzytelnione sesje poza tym oknem nie są wyświetlane. Zawęź wyszukiwanie, aby do nich dotrzeć.",
+    "source_hash": "7a8d6fd5"
   },
   "web.admin.sessions.search.placeholder": {
-    "text": "Szukaj według e-maila lub identyfikatora zewnętrznego",
-    "source_hash": "f2dc5c06"
+    "text": "Szukaj według e-maila, identyfikatora zewnętrznego lub uchwytu sesji",
+    "source_hash": "4894dec4"
   },
   "web.admin.sessions.sections.session": {
     "text": "Sesja",
@@ -210,5 +210,45 @@
   "web.admin.sessions.status.anonymous": {
     "text": "Anonimowy",
     "source_hash": "e7a8aa2d"
+  },
+  "web.admin.sessions.authority.title": {
+    "text": "To nie jest nadrzędne źródło sesji w pełnym trybie uwierzytelniania",
+    "source_hash": "796fb07f"
+  },
+  "web.admin.sessions.authority.description": {
+    "text": "Ta lista to magazyn sesji Redis. Gdy tryb uwierzytelniania jest ustawiony na full, nadrzędny stan sesji znajduje się w bazie danych kont Rodauth, której ta konsola nie odczytuje. Konta zalogowane przez Rodauth mogą się tu nie pojawiać, a unieważnienie sesji w tym miejscu nie kończy sesji Rodauth.",
+    "source_hash": "77bc4904"
+  },
+  "web.admin.sessions.authority.descriptionRevokeAll": {
+    "text": "Ta lista to magazyn sesji Redis. Gdy tryb uwierzytelniania jest ustawiony na full, nadrzędny stan sesji znajduje się w bazie danych kont Rodauth, której ta konsola nie odczytuje. Konta zalogowane przez Rodauth mogą się tu nie pojawiać, a unieważnienie pojedynczej sesji w tym miejscu nie kończy odpowiadającej jej sesji Rodauth. Opcja Unieważnij wszystkie kończy również sesje Rodauth tego konta.",
+    "source_hash": "f964663d"
+  },
+  "web.admin.sessions.authority.openAdmin": {
+    "text": "Otwórz Rodauth Admin",
+    "source_hash": "ce523836"
+  },
+  "web.admin.sessions.authority.notConfigured": {
+    "text": "Ustaw RODAUTH_ADMIN_URL, aby dodać tutaj link do Rodauth Admin.",
+    "source_hash": "c070dbfb"
+  },
+  "web.admin.sessions.columns.sessionHandle": {
+    "text": "Uchwyt sesji",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.errors.scanCapped": {
+    "text": "Nie znaleziono tej sesji w próbkowanej przestrzeni kluczy. Otwórz ją z jej wiersza na liście, aby można było ją wyszukać według właściciela.",
+    "source_hash": "67b73f7f"
+  },
+  "web.admin.sessions.fields.sessionHandle": {
+    "text": "Uchwyt sesji",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.revoke.ownSession": {
+    "text": "To Twoja własna sesja. Jej unieważnienie spowoduje wylogowanie Cię — zamiast tego użyj opcji wylogowania.",
+    "source_hash": "a6762292"
+  },
+  "web.admin.sessions.rodauthAdmin.open": {
+    "text": "Otwórz w Rodauth Admin",
+    "source_hash": "467173c8"
   }
 }

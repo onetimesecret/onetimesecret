@@ -30,8 +30,10 @@ const handleReset = async () => {
   try {
     await $api.post('/api/colonel/entitlement-preview', { planid: null });
 
-    // Refresh bootstrap state to clear test mode (no page reload needed)
-    await authStore.refresh({ kind: 'ordinary', reason: 'plan-preview' });
+    // Refresh bootstrap state to clear test mode (no page reload needed).
+    // `session-mutation` so the request postdates the POST instead of joining
+    // a flight that may still carry the override.
+    await authStore.refresh({ kind: 'session-mutation', reason: 'plan-preview' });
   } catch (err: unknown) {
     console.error('Failed to reset test mode:', err);
   } finally {

@@ -134,5 +134,17 @@
   "web.admin.audit.list.contractError": {
     "text": "השרת הגיב, אך נתוני הביקורת לא תאמו את הפורמט הצפוי. לא ניתן להציג אירועים — זו תקלת דיווח, לא יומן ריק.",
     "source_hash": "7f48137e"
+  },
+  "web.admin.audit.export.csv": {
+    "text": "ייצא CSV",
+    "source_hash": "91f71c14"
+  },
+  "web.admin.audit.export.ndjson": {
+    "text": "ייצא NDJSON",
+    "source_hash": "3ee2c07c"
+  },
+  "web.admin.audit.export.hint": {
+    "text": "הייצוא כולל את כל רשומות הביקורת השמורות לפי המסננים הנוכחיים, ולא רק את הדף הזה. תקופת השמירה מוגבלת — היסטוריה ארוכה יותר נשמרת ביעד הפלט של יומן הביקורת.",
+    "source_hash": "163e8ad0"
   }
 }

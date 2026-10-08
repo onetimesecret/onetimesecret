@@ -42,11 +42,20 @@ module Onetime
       #
       # `grant` and `revoke` are idempotent and cheaply detectable: if the
       # entitlement is already in the target set and absent from the opposite
-      # set, the op returns `:no_change` and mutates NOTHING. Since #4337 the
-      # attempt is still recorded: a LIVE no-change lands on the OPERATOR trail
-      # under the same verb with `outcome: 'no_change'`, and a dry-run
-      # no-change stays on the OBSERVATION trail as a preview (previews never
-      # touch the operator trail, and `dry_run` defaults to true here).
+      # set, the op returns `:no_change` and leaves the org's override sets
+      # untouched. Since #4337 the attempt is still recorded: a LIVE no-change
+      # lands on the OPERATOR trail under the same verb with
+      # `outcome: 'no_change'`, and a dry-run no-change stays on the
+      # OBSERVATION trail as a preview (previews never touch the operator
+      # trail, and `dry_run` defaults to true here).
+      #
+      # A LIVE no-change still runs the membership cascade. Memberships hold
+      # their own materialized sets, so after a `:partial` run the org can say
+      # the override landed while some members still read the old set.
+      # Repeating the command is the operator's natural retry; a `:no_change`
+      # that skipped the cascade would report that retry as a success without
+      # removing anything. The cascade converges the members (or comes back
+      # `:partial` again); the org's sets are not written.
       #
       # `clear` ALWAYS applies and ALWAYS audits, even when both sets are already
       # empty. It is not a cheap check (the sets are the state, and "already
@@ -115,6 +124,14 @@ module Onetime
           'clear' => :cleared,
         }.freeze
 
+        # The org-level sets changed, but the membership cascade left at least
+        # one member on its previous materialized set. Deliberately NOT in
+        # OK_STATUSES: `membership.can?` reads that stale set, so a revoke that
+        # did not reach every member has not revoked anything for them, however
+        # the org's own sets look. Adapters exit non-zero / respond non-2xx and
+        # point at `bin/ots org reconcile`, which re-runs the cascade.
+        PARTIAL_STATUS = :partial
+
         # Statuses an adapter should treat as "the op did what was asked".
         # Everything else (`:invalid_action`, `:missing_entitlement`) is an
         # operator-visible failure.
@@ -150,7 +167,7 @@ module Onetime
           detail: -> { { dry_run: @dry_run, action: @action } }
 
         # @!attribute status [r] Symbol — :granted | :revoked | :cleared |
-        #   :no_change | :planned | :invalid_action | :missing_entitlement
+        #   :partial | :no_change | :planned | :invalid_action | :missing_entitlement
         # @!attribute org_id [r] String — the org's PUBLIC id (extid). Never an objid.
         # @!attribute action [r] String — the normalized action ('grant'/'revoke'/'clear').
         # @!attribute entitlement [r] String, nil — nil for clear.
@@ -162,6 +179,11 @@ module Onetime
         # @!attribute standalone [r] Boolean — true when billing is disabled on
         #   this install, i.e. the write has NO read-path effect. Adapters warn.
         # @!attribute dry_run [r] Boolean
+        # @!attribute memberships [r] Hash, nil — counts from
+        #   Organization#rematerialize_all_memberships! (:success, :failed,
+        #   :total, :failed_ids) on an applied run or a live no-change; nil on
+        #   a dry run or a refusal. When the cascade raised before reaching any
+        #   member, :failed/:total are nil and :cascade_error holds the error.
         Result = Data.define(
           :status,
           :org_id,
@@ -172,6 +194,7 @@ module Onetime
           :revokes,
           :standalone,
           :dry_run,
+          :memberships,
         )
 
         # Is this entitlement name present in the billing catalog?
@@ -224,17 +247,9 @@ module Onetime
           # observation, exactly like the :planned path below, so the default
           # preview-first workflow never writes operator-trail rows.
           if no_change?(grants, revokes)
-            if @dry_run
-              record_preview_event(outcome: 'no_change')
-            else
-              record_no_change_event
-            end
-            return build(
-              :no_change,
-              effective: @org.materialized_entitlements.to_a,
-              grants: grants,
-              revokes: revokes,
-            )
+            return preview_no_change(grants, revokes) if @dry_run
+
+            return live_no_change(grants, revokes)
           end
 
           if @dry_run
@@ -251,25 +266,28 @@ module Onetime
             )
           end
 
-          apply!
+          memberships = apply!
+          partial     = cascade_incomplete?(memberships)
 
           # One audit event per applied override change (CONTRACT 4 / epic D4),
           # emitted from HERE. Adapters MUST NOT audit or the trail
-          # double-records. `detail` for clear stays {} — the cleared set is
-          # unbounded and the pre-extraction endpoint recorded {} too.
+          # double-records. A cascade that left members behind is recorded as
+          # :partial, never :success — the trail must not say a revoke landed
+          # when some members still carry the entitlement.
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: audit_verb,
             target: @org.extid,
-            result: :success,
-            detail: @action == 'clear' ? {} : { entitlement: @entitlement },
+            result: partial ? :partial : :success,
+            detail: applied_detail(memberships, partial),
           )
 
           build(
-            APPLIED_STATUS[@action],
+            partial ? PARTIAL_STATUS : APPLIED_STATUS[@action],
             effective: @org.materialized_entitlements.to_a,
             grants: @org.entitlements_grants.to_a,
             revokes: @org.entitlements_revokes.to_a,
+            memberships: memberships,
           )
         end
 
@@ -315,6 +333,52 @@ module Onetime
           record_no_change_attempt({ entitlement: @entitlement })
         end
 
+        # Dry-run no-change: nothing to do, nothing touched, one observation.
+        def preview_no_change(grants, revokes)
+          record_preview_event(outcome: 'no_change')
+          build(
+            :no_change,
+            effective: @org.materialized_entitlements.to_a,
+            grants: grants,
+            revokes: revokes,
+          )
+        end
+
+        # Live no-change: the org's sets already match, so only the membership
+        # cascade runs (see the D15 note in the class comment). A cascade that
+        # still leaves members behind is `:partial`, audited as such with the
+        # `outcome: 'no_change'` marker so the trail shows this was a retry
+        # that found nothing to change on the org itself.
+        def live_no_change(grants, revokes)
+          memberships = cascade!
+
+          if cascade_incomplete?(memberships)
+            Onetime::ColonelAuditEvent.record(
+              actor: @actor,
+              verb: audit_verb,
+              target: @org.extid,
+              result: :partial,
+              detail: applied_detail(memberships, true).merge(outcome: NO_CHANGE_OUTCOME),
+            )
+            return build(
+              PARTIAL_STATUS,
+              effective: @org.materialized_entitlements.to_a,
+              grants: grants,
+              revokes: revokes,
+              memberships: memberships,
+            )
+          end
+
+          record_no_change_event
+          build(
+            :no_change,
+            effective: @org.materialized_entitlements.to_a,
+            grants: grants,
+            revokes: revokes,
+            memberships: memberships,
+          )
+        end
+
         # Same verb/target/actor as the success event. Best-effort: never break
         # the op.
         def record_refusal(status)
@@ -334,12 +398,70 @@ module Onetime
           OT.le "[Org::EntitlementOverride] refusal audit failed: #{ex.class}: #{ex.message}"
         end
 
+        # Mutate the org's override sets, then push the result down to its
+        # members.
+        #
+        # The model methods reconcile only the ORG's materialized set. Every
+        # membership keeps its own materialized set (org ∩ role template), and
+        # require_entitlement! / require_entitlement_in! decide through
+        # membership.can? — so without this cascade a revoked entitlement kept
+        # working for every existing member (and a grant reached nobody) until
+        # some later plan apply or reconcile happened to rematerialize them.
+        # Same cascade ApplySubscriptionToOrg and the reconcile job perform.
+        #
+        # @return [Hash] cascade! counts
         def apply!
           case @action
           when 'grant'  then @org.grant_entitlement(@entitlement)
           when 'revoke' then @org.revoke_entitlement(@entitlement)
           when 'clear'  then @org.clear_entitlement_overrides
           end
+
+          cascade!
+        end
+
+        # Push the org's sets down to its members.
+        #
+        # Per-member failures come back in the counts. A raise BEFORE the
+        # per-member loop (loading the active memberships) would otherwise
+        # escape through audit_failures as a generic `:failure` AFTER the org's
+        # sets had already changed — the operator would see a failed command
+        # with no sign that the override landed, and no cascade result naming
+        # who kept the old set. Shape it as a cascade that reached nobody:
+        # `:partial`, counts unknown, the error kept for the trail.
+        #
+        # @return [Hash] { success:, failed:, total:, failed_ids: } plus
+        #   :cascade_error when the cascade itself raised
+        def cascade!
+          @org.rematerialize_all_memberships!
+        rescue StandardError => ex
+          OT.le '[Org::EntitlementOverride] membership cascade raised',
+            exception: ex,
+            org: @org.extid,
+            action: @action
+          { success: 0, failed: nil, total: nil, failed_ids: [], cascade_error: "#{ex.class}: #{ex.message}" }
+        end
+
+        # Did the cascade leave any member on its previous set?
+        def cascade_incomplete?(memberships)
+          memberships[:failed].to_i.positive? || memberships.key?(:cascade_error)
+        end
+
+        # `detail` for clear stays {} — the cleared set is unbounded and the
+        # pre-extraction endpoint recorded {} too. A partial cascade adds the
+        # counts and the stale membership objids so the trail names who kept
+        # their previous set (same shape the reconcile op logs).
+        def applied_detail(memberships, partial)
+          detail = @action == 'clear' ? {} : { entitlement: @entitlement }
+          return detail unless partial
+
+          detail                 = detail.merge(
+            memberships_total: memberships[:total],
+            memberships_failed: memberships[:failed],
+            memberships_failed_ids: memberships[:failed_ids],
+          )
+          detail[:cascade_error] = memberships[:cascade_error] if memberships[:cascade_error]
+          detail
         end
 
         # Membership in the sets is checked EXPLICITLY rather than trusting the
@@ -372,7 +494,7 @@ module Onetime
 
         # Single exit point for every non-applied status, so the refusal audit
         # cannot be forgotten at an early return.
-        def build(status, effective: nil, grants: nil, revokes: nil)
+        def build(status, effective: nil, grants: nil, revokes: nil, memberships: nil)
           record_refusal(status) if REFUSAL_STATUSES.include?(status)
 
           Result.new(
@@ -385,6 +507,7 @@ module Onetime
             revokes: revokes,
             standalone: !@org.billing_enabled?,
             dry_run: @dry_run,
+            memberships: memberships,
           )
         end
       end

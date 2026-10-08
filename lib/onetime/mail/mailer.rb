@@ -69,7 +69,8 @@ module Onetime
         # @param template_name [Symbol] Template name (:secret_link, :welcome, etc.)
         # @param data [Hash] Template data
         # @param locale [String] Locale code (default: 'en')
-        # @return [Object] Delivery response
+        # @return [Object, Delivery::NotTransmitted, nil] Delivery response
+        #   (see Delivery::Base#deliver)
         def deliver(template_name, data = {}, locale: 'en', sender_config: nil)
           template_class = template_class_for(template_name)
           template       = template_class.new(data, locale: locale)
@@ -198,7 +199,7 @@ module Onetime
         #   'smtp2go' | 'smtp' | 'logger' (the safe fallback).
         def determine_provider
           conf = emailer_config
-          mode = conf['mode']&.to_s&.downcase
+          mode = conf['mode']&.to_s&.strip&.downcase
 
           return mode if mode && !mode.empty?
 
@@ -210,6 +211,27 @@ module Onetime
           # precedence order (e.g. region+user -> ses is tested before
           # host -> smtp). No match -> logger (safe fallback).
           ProviderRegistry.detect_provider(conf) || 'logger'
+        end
+
+        # Transports that are not in the ProviderRegistry: disabled/none
+        # swallow mail, logger writes it to the log.
+        BUILT_IN_TRANSPORTS = %w[disabled none logger].freeze
+
+        # The transport the delivery backend is built for: determine_provider,
+        # except that a name which is neither a registered provider nor a
+        # built-in transport resolves to 'logger', the backend such a name
+        # falls back to. Config-only; no backend is created. The name is the
+        # canonical one (lowercase, no surrounding whitespace), as the
+        # ProviderRegistry matches it.
+        #
+        # @return [String] a registered provider name, 'logger', 'disabled'
+        #   or 'none'
+        def backend_provider(configured = determine_provider)
+          descriptor = ProviderRegistry.descriptor(configured)
+          return descriptor.name if descriptor
+
+          name = configured.to_s.strip.downcase
+          BUILT_IN_TRANSPORTS.include?(name) ? name : 'logger'
         end
 
         private
@@ -281,25 +303,19 @@ module Onetime
         end
 
         def create_delivery_backend
-          provider = determine_provider
-          config   = build_provider_config(provider)
+          configured = determine_provider
+          provider   = backend_provider(configured)
+          unless provider == configured
+            log_error "[mail] Unknown provider '#{configured}', falling back to logger"
+          end
+          config     = build_provider_config(configured)
 
           log_info "[mail] Using #{provider} delivery backend"
 
           descriptor = ProviderRegistry.descriptor(provider)
           return descriptor.delivery_class.new(config) if descriptor
 
-          # Non-provider transports (not in the registry): disabled/none
-          # swallow mail, logger writes it to the log.
-          case provider
-          when 'disabled', 'none'
-            Delivery::Disabled.new(config)
-          when 'logger'
-            Delivery::Logger.new(config)
-          else
-            log_error "[mail] Unknown provider '#{provider}', falling back to logger"
-            Delivery::Logger.new(config)
-          end
+          provider == 'logger' ? Delivery::Logger.new(config) : Delivery::Disabled.new(config)
         end
 
         # Returns the delivery backend for the given sender config.
@@ -337,29 +353,63 @@ module Onetime
           send(descriptor.provider_config_method, conf)
         end
 
+        # Treat a blank config value as absent.
+        #
+        # config.defaults.yaml renders `pass: "<%= ENV['SMTP_PASSWORD'] %>"`
+        # (quoted so credentials with YAML-significant characters survive), so
+        # an unset SMTP_PASSWORD arrives here as "" rather than nil. "" is
+        # truthy, which made every `conf['pass'] || ENV.fetch(...)` chain below
+        # stop at the empty string and never reach SENDGRID_API_KEY,
+        # AWS_SECRET_ACCESS_KEY, etc. Run each candidate through this so the
+        # first non-blank value wins, as the env reference documents.
+        #
+        # @param value [Object, nil]
+        # @return [Object, nil] value, or nil when nil/blank
+        def present(value)
+          value.to_s.strip.empty? ? nil : value
+        end
+
         def smtp_provider_config(conf)
           {
-            'host' => conf['host'] || ENV.fetch('SMTP_HOST', nil),
-            'port' => conf['port'] || ENV.fetch('SMTP_PORT', nil),
-            'username' => conf['user'] || ENV.fetch('SMTP_USERNAME', nil),
-            'password' => conf['pass'] || ENV.fetch('SMTP_PASSWORD', nil),
-            'domain' => conf['domain'] || ENV.fetch('SMTP_DOMAIN', nil),
+            'host' => present(conf['host']) || present(ENV.fetch('SMTP_HOST', nil)),
+            'port' => present(conf['port']) || present(ENV.fetch('SMTP_PORT', nil)),
+            'username' => present(conf['user']) || present(ENV.fetch('SMTP_USERNAME', nil)),
+            'password' => present(conf['pass']) || present(ENV.fetch('SMTP_PASSWORD', nil)),
+            'domain' => present(conf['domain']) || present(ENV.fetch('SMTP_DOMAIN', nil)),
             'tls' => conf['tls'],
+            'ssl' => conf['ssl'],
             'allow_unauthenticated_fallback' => conf['allow_unauthenticated_fallback'],
           }
         end
 
         def ses_provider_config(conf)
           {
-            'region' => conf['region'] || ENV.fetch('AWS_REGION', nil),
-            'access_key_id' => conf['user'] || ENV.fetch('AWS_ACCESS_KEY_ID', nil),
-            'secret_access_key' => conf['pass'] || ENV.fetch('AWS_SECRET_ACCESS_KEY', nil),
+            'region' => ses_region(conf),
+            'access_key_id' => present(conf['user']) || present(ENV.fetch('AWS_ACCESS_KEY_ID', nil)),
+            'secret_access_key' => present(conf['pass']) || present(ENV.fetch('AWS_SECRET_ACCESS_KEY', nil)),
           }
+        end
+
+        # Placeholder emailer.region renders when EMAILER_REGION is unset
+        # (`region: <%= ENV['EMAILER_REGION'] || 'smtp' %>`). It keeps the
+        # SMTP-shaped config valid but is not an AWS region.
+        SES_REGION_PLACEHOLDER = 'smtp'
+        private_constant :SES_REGION_PLACEHOLDER
+
+        # Resolve the SES region: EMAILER_REGION (emailer.region), then
+        # AWS_REGION. The 'smtp' placeholder default is not a region, so it is
+        # skipped rather than handed to Aws::SESV2::Client. Returns nil when
+        # nothing is configured; Delivery::SES applies its own us-east-1
+        # default and provisioning reports the key as missing.
+        def ses_region(conf)
+          region = present(conf['region'])
+          region = nil if region.to_s.strip == SES_REGION_PLACEHOLDER
+          region || present(ENV.fetch('AWS_REGION', nil))
         end
 
         def sendgrid_provider_config(conf)
           {
-            'api_key' => conf['sendgrid_api_key'] || conf['pass'] || ENV.fetch('SENDGRID_API_KEY', nil),
+            'api_key' => present(conf['sendgrid_api_key']) || present(conf['pass']) || present(ENV.fetch('SENDGRID_API_KEY', nil)),
           }
         end
 
@@ -367,7 +417,7 @@ module Onetime
           lm_conf = provider_config('lettermint')
           {
             # Sending API token (x-lettermint-token header) - for email delivery
-            'api_token' => conf['lettermint_api_token'] || lm_conf['api_token'] || conf['pass'] || ENV.fetch('LETTERMINT_API_TOKEN', nil),
+            'api_token' => present(conf['lettermint_api_token']) || present(lm_conf['api_token']) || present(conf['pass']) || present(ENV.fetch('LETTERMINT_API_TOKEN', nil)),
             # Team API token (Authorization: Bearer header) - for domain provisioning
             'team_token' => conf['lettermint_team_token'] || lm_conf['team_token'] || ENV.fetch('LETTERMINT_TEAM_TOKEN', nil),
             'base_url' => conf['lettermint_base_url'] || lm_conf['api_base_url'] || ENV.fetch('LETTERMINT_BASE_URL', nil),

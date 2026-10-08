@@ -957,5 +957,53 @@
   "web.auth.webauthn.emailRequired": {
     "text": "Ange din e-postadress för att logga in med en nyckel",
     "source_hash": "7f07647f"
+  },
+  "web.auth.login.verification_unavailable": {
+    "text": "Inloggningen lyckades, men vi kunde inte bekräfta din session. Försök igen om en stund.",
+    "source_hash": "9a19dfc9"
+  },
+  "web.auth.mfa.verification_unavailable": {
+    "text": "Ditt lösenord godkändes, men vi kunde inte starta tvåfaktorsverifieringen. Försök igen om en stund.",
+    "source_hash": "5fd5e240"
+  },
+  "web.auth.session.ended": {
+    "text": "Din session har avslutats. Logga in igen.",
+    "source_hash": "673e9822"
+  },
+  "web.auth.session.replaced": {
+    "text": "Din inloggning ändrades i en annan flik, så den här sidan lästes in igen.",
+    "source_hash": "3767d43b"
+  },
+  "web.auth.session.stale_session_title": {
+    "text": "Den här sidan är inaktuell",
+    "source_hash": "0293e093"
+  },
+  "web.auth.session.stale_session_notice": {
+    "text": "Din session har ändrats sedan den här sidan lästes in. Kopiera allt du inte har sparat och läs sedan in sidan igen för att fortsätta.",
+    "source_hash": "c62e236c"
+  },
+  "web.auth.session.reload_now": {
+    "text": "Läs in sidan igen",
+    "source_hash": "437d0d63"
+  },
+  "web.auth.session.verification_unavailable_title": {
+    "text": "Vi kan inte verifiera din session just nu",
+    "source_hash": "2130dda1"
+  },
+  "web.auth.session.verification_unavailable_body": {
+    "text": "Du har inte loggats ut. Vi kunde inte nå servern för att bekräfta din session, så den här sidan är dold tills vi kan det. Vi fortsätter att försöka.",
+    "source_hash": "bb230c2c"
+  },
+  "web.auth.session.retry": {
+    "text": "Försök igen",
+    "source_hash": "d8b8392e"
+  },
+  "web.auth.session.retrying": {
+    "text": "Kontrollerar…",
+    "source_hash": "ec963ffc"
+  },
+  "web.auth.session.retry_failed": {
+    "text": "Fortfarande inte tillgänglig. Försök igen om en stund.",
+    "source_hash": "b81c022c"
   }
 }

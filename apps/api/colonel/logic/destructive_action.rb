@@ -38,7 +38,6 @@ module ColonelAPI
     # try/unit/colonel/dry_run_side_effects_try.rb.
     module DestructiveAction
       MAX_CONFIRM_LENGTH = 255
-      TRUTHY_VALUES      = %w[true 1 yes on].freeze
 
       # The only two tiers guard_destructive_action! accepts. A typo'd tier would
       # silently drop elevation and the destructive budget once P3/P5 land, so it
@@ -47,9 +46,13 @@ module ColonelAPI
 
       # Hoisted from the ten colonel classes that each defined their own (two of
       # which disagreed: purge_dlq/replay_dlq accepted only %w[1 true yes] and did
-      # not strip). This is the widest of the existing forms.
+      # not strip), then pointed at the app-wide table so colonel flags accept
+      # the same spellings as every other operator input. A recognizer, not a
+      # partition: an unrecognized value is false, so a misspelt `dry_run`
+      # reads as a live run. Verbs where that matters guard the apply path
+      # with guard_destructive_action!, not with this check.
       def truthy?(value)
-        TRUTHY_VALUES.include?(value.to_s.strip.downcase)
+        OT::Utils.explicit_yes?(value)
       end
 
       # The supplied confirmation token, or ''.

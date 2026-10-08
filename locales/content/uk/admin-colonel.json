@@ -778,5 +778,37 @@
   "web.colonel.organizations.filters.searchPlaceholder": {
     "text": "Шукати за ID, назвою або електронною адресою",
     "source_hash": "6fe16473"
+  },
+  "web.colonel.organizations.capped": {
+    "text": "Результати обмежено: показана кількість є нижньою межею, а не загальною кількістю. Фільтри охоплюють усі організації, пов'язані з підпискою, а також нещодавно оновлені; щоб знайти будь-яку іншу, шукайте за точним ID або email.",
+    "source_hash": "0743238d"
+  },
+  "web.impersonation.banner.label": {
+    "text": "Активний вхід від імені клієнта",
+    "source_hash": "d96f0e8d"
+  },
+  "web.impersonation.banner.viewingAs": {
+    "text": "Перегляд від імені {email}",
+    "source_hash": "cf2dd9c6"
+  },
+  "web.impersonation.banner.readOnly": {
+    "text": "Лише читання: під час входу від імені клієнта зміни заблоковано.",
+    "source_hash": "46ed3b68"
+  },
+  "web.impersonation.banner.expiresIn": {
+    "text": "Завершиться через {time}",
+    "source_hash": "b4999fd8"
+  },
+  "web.impersonation.banner.stop": {
+    "text": "Завершити вхід від імені",
+    "source_hash": "5cf74e38"
+  },
+  "web.impersonation.banner.stopping": {
+    "text": "Завершення…",
+    "source_hash": "bbe85741"
+  },
+  "web.impersonation.banner.stopFailed": {
+    "text": "Не вдалося завершити вхід від імені клієнта. Спробуйте ще раз.",
+    "source_hash": "5aa72353"
   }
 }

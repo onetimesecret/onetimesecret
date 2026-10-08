@@ -134,5 +134,25 @@
   "api.organizations.members.errors.no_permission_to_remove": {
     "text": "Não tens permissão para remover membros",
     "source_hash": "b0ac7287"
+  },
+  "api.organizations.errors.delete_has_domains": {
+    "text": "Remove os domínios personalizados desta organização antes de a eliminares: %{domains}",
+    "source_hash": "040a401e"
+  },
+  "api.organizations.errors.delete_drifted_domains_count": {
+    "text": "Registos de domínio que ainda fazem referência a esta organização, mas que já não estão listados nela: %{count}. Contacta o suporte para os remover antes de eliminares esta organização.",
+    "source_hash": "f6e71a9a"
+  },
+  "api.organizations.errors.delete_is_default": {
+    "text": "O teu espaço de trabalho predefinido não pode ser eliminado. Contacta o suporte se precisares de o remover.",
+    "source_hash": "bc2eaed5"
+  },
+  "api.organizations.errors.delete_active_subscription": {
+    "text": "Cancela a subscrição desta organização antes de a eliminares.",
+    "source_hash": "f0c54eca"
+  },
+  "api.organizations.errors.delete_last_org": {
+    "text": "Esta é a tua única organização. Cria outra antes de eliminares esta.",
+    "source_hash": "7608a1d6"
   }
 }

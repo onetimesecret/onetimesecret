@@ -778,5 +778,37 @@
   "web.colonel.organizations.filters.searchPlaceholder": {
     "text": "Rechercher par identifiant, nom ou courriel",
     "source_hash": "6fe16473"
+  },
+  "web.colonel.organizations.capped": {
+    "text": "Les résultats sont plafonnés : le nombre affiché est un minimum, pas le total. Les filtres couvrent toutes les organisations liées à un abonnement ainsi que les plus récemment mises à jour ; recherchez par identifiant exact ou par courriel pour atteindre toute autre organisation.",
+    "source_hash": "0743238d"
+  },
+  "web.impersonation.banner.label": {
+    "text": "Emprunt d'identité actif",
+    "source_hash": "d96f0e8d"
+  },
+  "web.impersonation.banner.viewingAs": {
+    "text": "Affichage en tant que {email}",
+    "source_hash": "cf2dd9c6"
+  },
+  "web.impersonation.banner.readOnly": {
+    "text": "Lecture seule : les modifications sont bloquées pendant l'emprunt d'identité.",
+    "source_hash": "46ed3b68"
+  },
+  "web.impersonation.banner.expiresIn": {
+    "text": "Prend fin dans {time}",
+    "source_hash": "b4999fd8"
+  },
+  "web.impersonation.banner.stop": {
+    "text": "Arrêter l'emprunt d'identité",
+    "source_hash": "5cf74e38"
+  },
+  "web.impersonation.banner.stopping": {
+    "text": "Arrêt en cours…",
+    "source_hash": "bbe85741"
+  },
+  "web.impersonation.banner.stopFailed": {
+    "text": "Impossible d'arrêter l'emprunt d'identité. Réessayez.",
+    "source_hash": "5aa72353"
   }
 }

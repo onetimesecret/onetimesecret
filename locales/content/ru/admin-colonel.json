@@ -778,5 +778,37 @@
   "web.colonel.organizations.filters.searchPlaceholder": {
     "text": "Поиск по ID, названию или адресу электронной почты",
     "source_hash": "6fe16473"
+  },
+  "web.colonel.organizations.capped": {
+    "text": "Результаты ограничены: показанное количество — это минимум, а не итог. Фильтры охватывают все организации, связанные с подпиской, а также недавно обновлённые; чтобы найти любую другую, выполните поиск по точному ID или адресу электронной почты.",
+    "source_hash": "0743238d"
+  },
+  "web.impersonation.banner.label": {
+    "text": "Активен вход от имени пользователя",
+    "source_hash": "d96f0e8d"
+  },
+  "web.impersonation.banner.viewingAs": {
+    "text": "Просмотр от имени {email}",
+    "source_hash": "cf2dd9c6"
+  },
+  "web.impersonation.banner.readOnly": {
+    "text": "Только чтение: во время входа от имени пользователя изменения заблокированы.",
+    "source_hash": "46ed3b68"
+  },
+  "web.impersonation.banner.expiresIn": {
+    "text": "Завершится через {time}",
+    "source_hash": "b4999fd8"
+  },
+  "web.impersonation.banner.stop": {
+    "text": "Завершить вход от имени",
+    "source_hash": "5cf74e38"
+  },
+  "web.impersonation.banner.stopping": {
+    "text": "Завершение…",
+    "source_hash": "bbe85741"
+  },
+  "web.impersonation.banner.stopFailed": {
+    "text": "Не удалось завершить вход от имени. Повторите попытку.",
+    "source_hash": "5aa72353"
   }
 }

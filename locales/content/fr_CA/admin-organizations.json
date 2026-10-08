@@ -638,5 +638,121 @@
   "web.admin.organizations.entitlements.summary.planUnknown": {
     "text": "Inconnu — impossible de comparer",
     "source_hash": "b607e540"
+  },
+  "web.admin.organizations.actions.plan.label": {
+    "text": "Forfait",
+    "source_hash": "fa8ed0bd"
+  },
+  "web.admin.organizations.actions.plan.apply": {
+    "text": "Appliquer",
+    "source_hash": "31e392d1"
+  },
+  "web.admin.organizations.actions.plan.confirmTitle": {
+    "text": "Changer de forfait ?",
+    "source_hash": "910a4de9"
+  },
+  "web.admin.organizations.actions.plan.confirmDescription": {
+    "text": "Faire passer {org} au forfait {plan}.",
+    "source_hash": "aecf8277"
+  },
+  "web.admin.organizations.actions.plan.success": {
+    "text": "Forfait mis à jour.",
+    "source_hash": "ebe8d40c"
+  },
+  "web.admin.organizations.actions.plan.problem": {
+    "text": "Forfait enregistré, mais les droits n'ont pas été mis à jour. Lancez une réconciliation sur cette organisation.",
+    "source_hash": "2addb095"
+  },
+  "web.admin.organizations.actions.plan.localConfigWarning": {
+    "text": "Forfaits chargés depuis la configuration locale — Stripe n'est pas configuré ou est inaccessible.",
+    "source_hash": "df83e326"
+  },
+  "web.admin.organizations.detail.delete.button": {
+    "text": "Supprimer l'organisation",
+    "source_hash": "a70d189a"
+  },
+  "web.admin.organizations.detail.delete.previewing": {
+    "text": "Chargement du plan de suppression…",
+    "source_hash": "c9773eb9"
+  },
+  "web.admin.organizations.detail.delete.warning": {
+    "text": "Supprime définitivement l'organisation, ses adhésions et ses invitations en attente, et envoie un courriel aux anciens membres. Cette action est irréversible.",
+    "source_hash": "fd314131"
+  },
+  "web.admin.organizations.detail.delete.confirmTitle": {
+    "text": "Supprimer cette organisation ?",
+    "source_hash": "6a3bba0f"
+  },
+  "web.admin.organizations.detail.delete.confirmDescription": {
+    "text": "Cette action supprime définitivement {org}. Saisissez de nouveau l'identifiant de l'organisation pour confirmer.",
+    "source_hash": "c63a0221"
+  },
+  "web.admin.organizations.detail.delete.membersLabel": {
+    "text": "Membres",
+    "source_hash": "1044a4c0"
+  },
+  "web.admin.organizations.detail.delete.invitationsLabel": {
+    "text": "Invitations en attente",
+    "source_hash": "76198e63"
+  },
+  "web.admin.organizations.detail.delete.domainsLabel": {
+    "text": "Domaines",
+    "source_hash": "ced67718"
+  },
+  "web.admin.organizations.detail.delete.defaultOrgLabel": {
+    "text": "Efface l'espace de travail par défaut de",
+    "source_hash": "d535ac2a"
+  },
+  "web.admin.organizations.detail.delete.forceDefault": {
+    "text": "Il s'agit de l'espace de travail par défaut (personnel) du propriétaire. Le supprimer quand même.",
+    "source_hash": "1a8b0f7d"
+  },
+  "web.admin.organizations.detail.delete.forceSubscription": {
+    "text": "L'abonnement est actif. Supprimer quand même — cela n'annule pas la facturation Stripe.",
+    "source_hash": "51cb3456"
+  },
+  "web.admin.organizations.detail.delete.driftedDomainsLabel": {
+    "text": "Domaines présentant un écart",
+    "source_hash": "fef96f49"
+  },
+  "web.admin.organizations.detail.delete.driftedDomainsRepair": {
+    "text": "Réparer avec : bin/ots domains doctor --all --repair",
+    "source_hash": "14c9c59f"
+  },
+  "web.admin.organizations.detail.delete.success": {
+    "text": "Organisation {org} supprimée.",
+    "source_hash": "9cdda5d0"
+  },
+  "web.admin.organizations.detail.delete.blocked.hasDomains": {
+    "text": "Bloqué : supprimez d'abord les domaines personnalisés ({domains}).",
+    "source_hash": "dc3248b2"
+  },
+  "web.admin.organizations.detail.delete.blocked.driftedDomains": {
+    "text": "Bloqué : ces enregistrements de domaine font encore référence à cette organisation, mais sont absents de sa liste de domaines ({domains}). Exécutez d'abord bin/ots domains doctor --all --repair — aucune dérogation n'est possible.",
+    "source_hash": "3136496c"
+  },
+  "web.admin.organizations.detail.delete.blocked.isDefault": {
+    "text": "Bloqué : il s'agit de l'espace de travail par défaut du propriétaire. Cochez la dérogation ci-dessous pour le supprimer quand même.",
+    "source_hash": "09d5baa4"
+  },
+  "web.admin.organizations.detail.delete.blocked.activeSubscription": {
+    "text": "Bloqué : l'organisation a un abonnement actif. Annulez-le d'abord dans Stripe, ou cochez la dérogation ci-dessous.",
+    "source_hash": "68663641"
+  },
+  "web.admin.organizations.detail.delete.blocked.lastOrg": {
+    "text": "Bloqué : il s'agit de la seule organisation à laquelle {owner} appartient, et la supprimer laisserait cette personne sans espace de travail. Aucune dérogation n'est possible — créez d'abord une organisation de remplacement.",
+    "source_hash": "f09b4f9a"
+  },
+  "web.admin.organizations.detail.delete.errors.planUnreadable": {
+    "text": "Impossible de lire le plan de suppression depuis le serveur. Rien n'a été supprimé.",
+    "source_hash": "91406cbb"
+  },
+  "web.admin.organizations.detail.delete.errors.unverified": {
+    "text": "La réponse du serveur n'a pas pu être vérifiée. Rechargez la liste des organisations pour vérifier si la suppression a été effectuée.",
+    "source_hash": "7a261fb0"
+  },
+  "web.admin.organizations.detail.delete.errors.notApplied": {
+    "text": "Le serveur a renvoyé un aperçu, et non une suppression. Rien n'a été supprimé.",
+    "source_hash": "9d84971d"
   }
 }

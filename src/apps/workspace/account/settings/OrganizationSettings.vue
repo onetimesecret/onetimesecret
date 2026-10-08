@@ -1068,7 +1068,14 @@
       <!-- Loading State -->
       <SettingsSkeleton v-if="isLoading" />
 
-      <!-- Error State: Organization not found or failed to load -->
+      <!--
+        Error State: Organization not found or failed to load. A deep link to
+        an unknown or foreign :extid never reaches this: the route guard
+        (handleOrgRoleRequirement) fetches that org first and redirects to
+        /dashboard with a notice when it rejects. This renders when the guard
+        was satisfied from the cached list and loadOrganization then failed:
+        the org was deleted elsewhere, or the request itself failed (#4566).
+      -->
       <div
         v-else-if="orgNotFound || (error && !organization)"
         class="flex items-center justify-center py-12">

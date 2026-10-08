@@ -70,6 +70,23 @@ module Onetime
       Mailer.deliver(template_name, data, locale: locale, sender_config: sender_config)
     end
 
+    # Pull the recipient locale out of a template payload.
+    #
+    # Every enqueue site tucks the locale into the template data (as :locale
+    # or 'locale'); templates read it from the `locale:` argument instead, so
+    # both delivery paths (the queued EmailWorker and the in-process Publisher
+    # fallback) must lift it out the same way. The key is removed from `data`.
+    # A blank locale ("") is truthy in Ruby and would slip past a bare `||`,
+    # so strip first and treat blank/whitespace the same as missing; stripping
+    # also canonicalizes the value, avoiding an invalid I18n locale like " en ".
+    #
+    # @param data [Hash] Template data (mutated: the locale key is deleted)
+    # @return [String] The payload locale, or OT.default_locale when absent
+    def self.extract_locale!(data)
+      locale = (data.delete(:locale) || data.delete('locale')).to_s.strip
+      locale.empty? ? OT.default_locale : locale
+    end
+
     # Convenience method for delivering raw emails
     # @see Mailer.deliver_raw
     def self.deliver_raw(email, sender_config: nil)

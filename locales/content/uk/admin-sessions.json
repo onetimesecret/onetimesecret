@@ -176,8 +176,8 @@
     "source_hash": "0c6605c1"
   },
   "web.admin.sessions.revoke.confirmDescription": {
-    "text": "Це негайно завершує сесію користувача, видаляючи сесію {id}. Введіть ID сесії для підтвердження.",
-    "source_hash": "9e08b1b8"
+    "text": "Це негайно виконує вихід користувача, відкликаючи сесію {id}. Введіть {token} для підтвердження.",
+    "source_hash": "80578692"
   },
   "web.admin.sessions.revoke.success": {
     "text": "Сесію відкликано",
@@ -188,12 +188,12 @@
     "source_hash": "34cb67a4"
   },
   "web.admin.sessions.scan.capped": {
-    "text": "Сканування обмежено першими {scanned} ключами — автентифіковані сесії за межами цього вікна не відображаються. Щоб дістатися до конкретної сесії, перевірте її за ID.",
-    "source_hash": "fa418b4e"
+    "text": "Сканування обмежено першими {scanned} ключами — автентифіковані сесії за межами цього вікна не відображаються. Звузьте пошук, щоб дістатися до них.",
+    "source_hash": "7a8d6fd5"
   },
   "web.admin.sessions.search.placeholder": {
-    "text": "Пошук за email або зовнішнім ID",
-    "source_hash": "f2dc5c06"
+    "text": "Пошук за email, зовнішнім ID або дескриптором сесії",
+    "source_hash": "4894dec4"
   },
   "web.admin.sessions.sections.session": {
     "text": "Сесія",
@@ -210,5 +210,45 @@
   "web.admin.sessions.status.anonymous": {
     "text": "Анонімно",
     "source_hash": "e7a8aa2d"
+  },
+  "web.admin.sessions.authority.title": {
+    "text": "Не є основним джерелом сесій у повному режимі автентифікації",
+    "source_hash": "796fb07f"
+  },
+  "web.admin.sessions.authority.description": {
+    "text": "Цей список — сховище сесій Redis. Коли встановлено повний режим автентифікації, основний стан сесій зберігається в базі даних облікових записів Rodauth, яку ця консоль не читає. Облікові записи, що ввійшли через Rodauth, можуть тут не відображатися, а відкликання сесії тут не завершує сесію Rodauth.",
+    "source_hash": "77bc4904"
+  },
+  "web.admin.sessions.authority.descriptionRevokeAll": {
+    "text": "Цей список — сховище сесій Redis. Коли встановлено повний режим автентифікації, основний стан сесій зберігається в базі даних облікових записів Rodauth, яку ця консоль не читає. Облікові записи, що ввійшли через Rodauth, можуть тут не відображатися, а відкликання окремої сесії тут не завершує відповідну сесію Rodauth. «Відкликати всі» також завершує сесії Rodauth цього облікового запису.",
+    "source_hash": "f964663d"
+  },
+  "web.admin.sessions.authority.openAdmin": {
+    "text": "Відкрити Rodauth Admin",
+    "source_hash": "ce523836"
+  },
+  "web.admin.sessions.authority.notConfigured": {
+    "text": "Установіть RODAUTH_ADMIN_URL, щоб додати звідси посилання на Rodauth Admin.",
+    "source_hash": "c070dbfb"
+  },
+  "web.admin.sessions.columns.sessionHandle": {
+    "text": "Дескриптор сесії",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.errors.scanCapped": {
+    "text": "Цю сесію не знайдено у вибірці простору ключів. Відкрийте її з відповідного рядка списку, щоб для пошуку можна було використати власника.",
+    "source_hash": "67b73f7f"
+  },
+  "web.admin.sessions.fields.sessionHandle": {
+    "text": "Дескриптор сесії",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.revoke.ownSession": {
+    "text": "Це Ваша власна сесія. Її відкликання виконає Ваш вихід із системи — натомість скористайтеся виходом.",
+    "source_hash": "a6762292"
+  },
+  "web.admin.sessions.rodauthAdmin.open": {
+    "text": "Відкрити в Rodauth Admin",
+    "source_hash": "467173c8"
   }
 }

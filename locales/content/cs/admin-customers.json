@@ -40,8 +40,8 @@
     "source_hash": "9feed9f1"
   },
   "web.admin.customers.actions.purge.confirmDescription": {
-    "text": "Tímto trvale smažeš {email} a všechna jeho data. Tuto akci nelze vrátit zpět.",
-    "source_hash": "a74dd5d1"
+    "text": "Tímto požádáš o trvalé smazání {email}. Před odstraněním účtu proběhne předběžná kontrola, která vymazání odmítne, pokud má pracovní prostor domény, stav fakturace, další členy, uchovávaná data nebo nekonzistentní odkazy. Před dalším pokusem zkontroluj a vyřeš všechny překážky. Jakmile odstraňování začne, nelze ho vrátit zpět.",
+    "source_hash": "7b4e5e37"
   },
   "web.admin.customers.actions.purge.success": {
     "text": "Zákazník vymazán.",
@@ -60,8 +60,8 @@
     "source_hash": "227f57d7"
   },
   "web.admin.customers.actions.role.confirmDescription": {
-    "text": "Změnit {email} na roli {role}.",
-    "source_hash": "9ba063c6"
+    "text": "Změní {email} na roli {role}. Role Colonel uděluje plný administrátorský přístup ke všem účtům, tajemstvím a organizacím v této instalaci. Pro potvrzení zadej níže e-mailovou adresu účtu.",
+    "source_hash": "0ed85b97"
   },
   "web.admin.customers.actions.role.success": {
     "text": "Role aktualizována.",
@@ -116,8 +116,8 @@
     "source_hash": "62ed2854"
   },
   "web.admin.customers.actions.unverify.confirmDescription": {
-    "text": "Označit {email} jako neověřený.",
-    "source_hash": "592ffd27"
+    "text": "Označí {email} jako neověřený. Neověřený účet nemůže mít roli Colonel, Správce ani Personál, takže mu tímto odebereš i případnou zvýšenou roli. Pro potvrzení zadej níže e-mailovou adresu účtu.",
+    "source_hash": "601f7382"
   },
   "web.admin.customers.actions.unverify.success": {
     "text": "Ověření zákazníka zrušeno.",
@@ -568,8 +568,8 @@
     "source_hash": "69e69f49"
   },
   "web.admin.customers.detail.diagnostics.healthy": {
-    "text": "Nebyla nalezena žádná blokující podmínka. Stav autentizace vypadá v pořádku — podezření na problémy na straně klienta (cookies, konfigurace přihlášení vlastní domény) nebo nesprávný region.",
-    "source_hash": "f6d5f8d1"
+    "text": "Nebyla nalezena žádná blokující podmínka. Stav autentizace i kontext organizace vypadají v pořádku — podezření na problémy na straně klienta (cookies, konfigurace přihlášení vlastní domény) nebo nesprávný region.",
+    "source_hash": "e0e8450e"
   },
   "web.admin.customers.detail.diagnostics.authUnavailable": {
     "text": "Autentizační databáze není dostupná (jednoduchý režim autentizace) — kontroly na straně SQL byly přeskočeny.",
@@ -690,5 +690,153 @@
   "web.admin.customers.verification.unverified": {
     "text": "Neověřeno",
     "source_hash": "15133907"
+  },
+  "web.admin.customers.actions.impersonate.button": {
+    "text": "Zosobnit zákazníka",
+    "source_hash": "38a7cfbe"
+  },
+  "web.admin.customers.actions.impersonate.confirmTitle": {
+    "text": "Zahájit zosobnění?",
+    "source_hash": "c6e4fa74"
+  },
+  "web.admin.customers.actions.impersonate.confirmDescription": {
+    "text": "Otevře časově omezenou relaci pouze pro čtení jako {email}. Dokud ji neukončíš, zobrazuje se na každé stránce banner, změny jsou zablokované a relace se zaznamená do protokolu auditu i s tvým důvodem.",
+    "source_hash": "713c01b4"
+  },
+  "web.admin.customers.actions.impersonate.reasonLabel": {
+    "text": "Důvod (povinné)",
+    "source_hash": "d976f5d9"
+  },
+  "web.admin.customers.actions.impersonate.reasonPlaceholder": {
+    "text": "Proč je tato relace potřeba? Uveď odkaz na tiket.",
+    "source_hash": "89a4835d"
+  },
+  "web.admin.customers.actions.impersonate.success": {
+    "text": "Zosobnění zahájeno.",
+    "source_hash": "b4662bcc"
+  },
+  "web.admin.customers.actions.impersonate.unavailable": {
+    "text": "Zosobnění není dostupné pro účty Colonel, anonymní a pozastavené účty.",
+    "source_hash": "fb6578b2"
+  },
+  "web.admin.customers.actions.purge.refused": {
+    "text": "Vymazání odmítnuto. Zákazník byl zachován; před dalším pokusem vyřeš překážky.",
+    "source_hash": "8e8a2ae1"
+  },
+  "web.admin.customers.actions.purge.partial": {
+    "text": "Vymazání se zastavilo po dokončení části čištění. Nehlas úspěch a nezkoušej to naslepo znovu; zkontroluj dokončené fáze a překážky.",
+    "source_hash": "a88fd15b"
+  },
+  "web.admin.customers.actions.purge.incomplete": {
+    "text": "Vymazání nebylo dokončeno (stav: {status}). Před dalším pokusem zkontroluj podrobnosti životního cyklu.",
+    "source_hash": "c0c3d287"
+  },
+  "web.admin.customers.actions.purge.unreadableResult": {
+    "text": "Server vrátil nečitelný výsledek vymazání. Úspěch nebyl nahlášen; před dalším pokusem ověř stav zákazníka a pracovního prostoru.",
+    "source_hash": "cc837a77"
+  },
+  "web.admin.customers.actions.purge.resultStage": {
+    "text": "Zastaveno ve fázi: {stage}.",
+    "source_hash": "d0e313bf"
+  },
+  "web.admin.customers.actions.purge.resultBlockers": {
+    "text": "Překážky: {blockers}.",
+    "source_hash": "00c1e196"
+  },
+  "web.admin.customers.actions.purge.resultPlannedActions": {
+    "text": "Plánované čištění: {actions}.",
+    "source_hash": "6915205d"
+  },
+  "web.admin.customers.actions.purge.resultActions": {
+    "text": "Dokončené čištění: {actions}.",
+    "source_hash": "d34121b3"
+  },
+  "web.admin.customers.actions.purge.resultCompletedStages": {
+    "text": "Dokončené fáze: {stages}.",
+    "source_hash": "67f68860"
+  },
+  "web.admin.customers.actions.role.button": {
+    "text": "Změnit roli",
+    "source_hash": "a43a8d8c"
+  },
+  "web.admin.customers.actions.role.selfDemote": {
+    "text": "Svůj vlastní účet Colonel nemůžeš degradovat. Požádej o to jiný účet Colonel, nebo spusť `bin/ots customers role demote`.",
+    "source_hash": "3e75d01b"
+  },
+  "web.admin.customers.actions.role.lastColonel": {
+    "text": "Poslední zbývající účet Colonel nelze degradovat — instalace by neměla žádného administrátora. Nejprve povýš a ověř jiný účet.",
+    "source_hash": "9c59c731"
+  },
+  "web.admin.customers.actions.unverify.selfUnverify": {
+    "text": "Ověření vlastního účtu nemůžeš zrušit: role Colonel vyžaduje ověřený e-mail.",
+    "source_hash": "8ab024fe"
+  },
+  "web.admin.customers.actions.unverify.lastColonel": {
+    "text": "Ověření posledního zbývajícího účtu Colonel nelze zrušit — neověřený účet nemůže mít roli Colonel. Nejprve povýš a ověř jiný účet.",
+    "source_hash": "fc404616"
+  },
+  "web.admin.customers.detail.diagnostics.organizationContextBlocked": {
+    "text": "Kontext organizace je zablokovaný nebo neúplný. Než budeš tento účet považovat za funkční, zkontroluj indexovaný pracovní prostor a oprav nesoulad v indexu vlastnictví, členství nebo kontaktního e-mailu.",
+    "source_hash": "5c5c89be"
+  },
+  "web.admin.customers.detail.diagnostics.organization": {
+    "text": "Pracovní prostor: {id}",
+    "source_hash": "6ee50fe9"
+  },
+  "web.admin.customers.detail.diagnostics.remediation": {
+    "text": "Náprava: {action}",
+    "source_hash": "83ddc7d7"
+  },
+  "web.admin.customers.detail.fields.internalId": {
+    "text": "Interní ID",
+    "source_hash": "e468bb47"
+  },
+  "web.admin.customers.detail.organizations.open": {
+    "text": "Otevřít",
+    "source_hash": "ed077f3d"
+  },
+  "web.admin.customers.detail.rodauthAdmin.open": {
+    "text": "Otevřít v Rodauth Admin",
+    "source_hash": "467173c8"
+  },
+  "web.admin.customers.detail.sessions.revokeAll.selfDescription": {
+    "text": "Tímto se odhlásíš ze všech ostatních zařízení a prohlížečů, včetně relací, které v tomto seznamu nejsou zobrazeny. Relace, ve které právě pracuješ, zůstane zachována.",
+    "source_hash": "ae350040"
+  },
+  "web.admin.customers.list.capped": {
+    "text": "Výsledky jsou omezené: zobrazený počet je spodní hranice, ne celkový počet. Pro zobrazení všeho upřesni hledání nebo filtr.",
+    "source_hash": "27537844"
+  },
+  "web.admin.customers.list.orphanedAccounts.title": {
+    "text": "Účet v autentizační databázi bez záznamu zákazníka",
+    "source_hash": "82cf7a27"
+  },
+  "web.admin.customers.list.orphanedAccounts.hint": {
+    "text": "Autentizační databáze obsahuje účet pro tuto adresu, ale neodpovídá mu žádný záznam zákazníka. Daná osoba se stále může přihlásit; index zákazníků pro ni nic neobsahuje. Pro diagnostiku otevři tuto adresu.",
+    "source_hash": "0f903f23"
+  },
+  "web.admin.customers.list.orphanedAccounts.diagnose": {
+    "text": "Otevřít diagnostiku účtu",
+    "source_hash": "55b3e826"
+  },
+  "web.admin.customers.list.orphanedAccounts.accountId": {
+    "text": "Účet č. {id}",
+    "source_hash": "485dee3c"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unverified": {
+    "text": "Neověřený",
+    "source_hash": "33c8e8de"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.verified": {
+    "text": "Ověřený",
+    "source_hash": "4f783840"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.closed": {
+    "text": "Uzavřený",
+    "source_hash": "c21ead06"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unknown": {
+    "text": "Neznámý",
+    "source_hash": "b764cdc0"
   }
 }

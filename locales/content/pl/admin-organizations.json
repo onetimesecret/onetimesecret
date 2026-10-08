@@ -638,5 +638,121 @@
   "web.admin.organizations.entitlements.summary.planUnknown": {
     "text": "Nieznana — nie udało się porównać",
     "source_hash": "b607e540"
+  },
+  "web.admin.organizations.actions.plan.label": {
+    "text": "Plan",
+    "source_hash": "fa8ed0bd"
+  },
+  "web.admin.organizations.actions.plan.apply": {
+    "text": "Zastosuj",
+    "source_hash": "31e392d1"
+  },
+  "web.admin.organizations.actions.plan.confirmTitle": {
+    "text": "Zmienić plan?",
+    "source_hash": "910a4de9"
+  },
+  "web.admin.organizations.actions.plan.confirmDescription": {
+    "text": "Zmień plan dla {org} na {plan}.",
+    "source_hash": "aecf8277"
+  },
+  "web.admin.organizations.actions.plan.success": {
+    "text": "Plan zaktualizowany.",
+    "source_hash": "ebe8d40c"
+  },
+  "web.admin.organizations.actions.plan.problem": {
+    "text": "Plan został zapisany, ale uprawnienia nie zostały zaktualizowane. Uruchom uzgodnienie dla tej organizacji.",
+    "source_hash": "2addb095"
+  },
+  "web.admin.organizations.actions.plan.localConfigWarning": {
+    "text": "Plany załadowane z lokalnej konfiguracji — Stripe nie jest skonfigurowany lub niedostępny.",
+    "source_hash": "df83e326"
+  },
+  "web.admin.organizations.detail.delete.button": {
+    "text": "Usuń organizację",
+    "source_hash": "a70d189a"
+  },
+  "web.admin.organizations.detail.delete.previewing": {
+    "text": "Ładowanie planu usunięcia…",
+    "source_hash": "c9773eb9"
+  },
+  "web.admin.organizations.detail.delete.warning": {
+    "text": "Trwale usuwa organizację, jej członkostwa i oczekujące zaproszenia oraz wysyła e-mail do byłych członków. Tej operacji nie można cofnąć.",
+    "source_hash": "fd314131"
+  },
+  "web.admin.organizations.detail.delete.confirmTitle": {
+    "text": "Usunąć tę organizację?",
+    "source_hash": "6a3bba0f"
+  },
+  "web.admin.organizations.detail.delete.confirmDescription": {
+    "text": "Spowoduje to trwałe usunięcie {org}. Wpisz ponownie identyfikator organizacji, aby potwierdzić.",
+    "source_hash": "c63a0221"
+  },
+  "web.admin.organizations.detail.delete.membersLabel": {
+    "text": "Członkowie",
+    "source_hash": "1044a4c0"
+  },
+  "web.admin.organizations.detail.delete.invitationsLabel": {
+    "text": "Oczekujące zaproszenia",
+    "source_hash": "76198e63"
+  },
+  "web.admin.organizations.detail.delete.domainsLabel": {
+    "text": "Domeny",
+    "source_hash": "ced67718"
+  },
+  "web.admin.organizations.detail.delete.defaultOrgLabel": {
+    "text": "Czyści domyślny obszar roboczy dla",
+    "source_hash": "d535ac2a"
+  },
+  "web.admin.organizations.detail.delete.forceDefault": {
+    "text": "To jest domyślny (osobisty) obszar roboczy właściciela. Usuń go mimo to.",
+    "source_hash": "1a8b0f7d"
+  },
+  "web.admin.organizations.detail.delete.forceSubscription": {
+    "text": "Subskrypcja jest aktywna. Usuń mimo to — nie anuluje to płatności w Stripe.",
+    "source_hash": "51cb3456"
+  },
+  "web.admin.organizations.detail.delete.driftedDomainsLabel": {
+    "text": "Rozbieżne domeny",
+    "source_hash": "fef96f49"
+  },
+  "web.admin.organizations.detail.delete.driftedDomainsRepair": {
+    "text": "Napraw za pomocą: bin/ots domains doctor --all --repair",
+    "source_hash": "14c9c59f"
+  },
+  "web.admin.organizations.detail.delete.success": {
+    "text": "Usunięto {org}.",
+    "source_hash": "9cdda5d0"
+  },
+  "web.admin.organizations.detail.delete.blocked.hasDomains": {
+    "text": "Zablokowane: najpierw usuń domeny niestandardowe ({domains}).",
+    "source_hash": "dc3248b2"
+  },
+  "web.admin.organizations.detail.delete.blocked.driftedDomains": {
+    "text": "Zablokowane: te rekordy domen nadal odwołują się do tej organizacji, ale brakuje ich na jej liście domen ({domains}). Najpierw uruchom bin/ots domains doctor --all --repair — nie ma możliwości nadpisania.",
+    "source_hash": "3136496c"
+  },
+  "web.admin.organizations.detail.delete.blocked.isDefault": {
+    "text": "Zablokowane: to jest domyślny obszar roboczy właściciela. Zaznacz poniższe nadpisanie, aby mimo to go usunąć.",
+    "source_hash": "09d5baa4"
+  },
+  "web.admin.organizations.detail.delete.blocked.activeSubscription": {
+    "text": "Zablokowane: organizacja ma aktywną subskrypcję. Najpierw anuluj ją w Stripe lub zaznacz poniższe nadpisanie.",
+    "source_hash": "68663641"
+  },
+  "web.admin.organizations.detail.delete.blocked.lastOrg": {
+    "text": "Zablokowane: to jedyna organizacja, do której należy {owner}, a jej usunięcie pozostawiłoby tę osobę bez obszaru roboczego. Nie ma możliwości nadpisania — najpierw utwórz organizację zastępczą.",
+    "source_hash": "f09b4f9a"
+  },
+  "web.admin.organizations.detail.delete.errors.planUnreadable": {
+    "text": "Nie można odczytać planu usunięcia z serwera. Nic nie zostało usunięte.",
+    "source_hash": "91406cbb"
+  },
+  "web.admin.organizations.detail.delete.errors.unverified": {
+    "text": "Nie można zweryfikować odpowiedzi serwera. Załaduj ponownie listę organizacji, aby sprawdzić, czy usuwanie zostało ukończone.",
+    "source_hash": "7a261fb0"
+  },
+  "web.admin.organizations.detail.delete.errors.notApplied": {
+    "text": "Serwer zwrócił podgląd, a nie usunięcie. Nic nie zostało usunięte.",
+    "source_hash": "9d84971d"
   }
 }

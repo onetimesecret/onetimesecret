@@ -767,6 +767,24 @@ site:
     # https (mixed-content downgrade of generated URLs).
     assume_https: <%= ENV['ASSUME_HTTPS'] == 'true' %>  # Since v0.26.2
 
+    # Public host rewrite (opt-in, default off).
+    #
+    # For installs behind a proxy that rewrites Host to the origin target
+    # and sends the public hostname in X-Forwarded-Host. When true, a request
+    # classified as a canonical host, a subdomain of one, or a registered
+    # custom domain has its Host set to that hostname before the mounted
+    # apps run, so code that reads the request host directly sees the same
+    # host as the rest of the application. The Host header as received stays
+    # available in env['onetime.original_http_host']. Requests that do not
+    # classify, and requests whose Host already names the public host, are
+    # left as they are. No effect behind a proxy that preserves Host and
+    # overwrites or removes X-Forwarded-Host.
+    # The public port comes from the trusted proxy, never from an origin-hop
+    # Host: the port in X-Forwarded-Host or, when that is a bare hostname,
+    # a single-valued X-Forwarded-Port. The scheme-default port is left out.
+    # See docs/operations/proxy-authority-header.md.
+    public_host_rewrite: <%= ENV['PUBLIC_HOST_REWRITE'] == 'true' %>  # Since unreleased
+
   # Admin (Colonel) Configuration
   # Host and network posture for the Colonel admin surfaces. The two factors
   # below are INDEPENDENT: a request must pass every gate that is active, and
@@ -961,8 +979,8 @@ site:
     # are already fail-closed and the rest of the app is innocent.
     # Set "*" to turn the gate off on purpose.
     #
-    # A forwarded host header (X-Forwarded-Host, Apx-Incoming-Host,
-    # X-Original-Host) only counts toward this gate when
+    # The forwarded host header (X-Forwarded-Host) only counts toward this
+    # gate when
     # site.network.trusted_proxy is configured AND the peer passed it. Behind a
     # proxy that forwards the public hostname instead of rewriting Host, set
     # trusted_proxy or both admin surfaces 404 (see
@@ -1350,6 +1368,7 @@ emailer:
   pass: "<%= ENV['SMTP_PASSWORD'] %>"
   auth: <%= ENV['SMTP_AUTH'] || nil %>
   tls: <%= ENV['SMTP_TLS'] %>
+  ssl: <%= ENV['SMTP_SSL'] %>  # Since unreleased
   # Recipient ("To:") address for /feedback submissions.
   # When set, feedback emails are delivered here instead of the first colonel
   # in the database. Useful for routing to a shared inbox or alias.
@@ -1901,16 +1920,6 @@ development:
   # - Set to 'http://localhost:5173' to use built-in proxy
   # - Leave empty when using a reverse proxy (like nginx, caddy, etc)
   frontend_host: <%= ENV['FRONTEND_HOST'] || 'http://localhost:5173' %>
-  # Domain Context Override for persona-based testing
-  #
-  # When enabled, allows simulating custom domain experiences without
-  # actual DNS/domain setup. Supports three override mechanisms:
-  # - DOMAIN_CONTEXT env var: Set at server startup for entire process
-  # - O-Domain-Context header: Per-request override for API/curl testing
-  # - Colonel UI component: Browser-based override via sessionStorage
-  #
-  # SECURITY: Must remain false in production. No query param support.
-  domain_context_enabled: <%= ENV['DOMAIN_CONTEXT_ENABLED'] == 'true' %>  # Since v0.24.0
   # DEVELOPMENT TOOL: Allow application to run without a site.secret
   #
   # Only effective when development.enabled is true. The config normalization

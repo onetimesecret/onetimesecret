@@ -1630,5 +1630,37 @@
   "web.domains.sso.status_unavailable_hint": {
     "text": "Az SSO jelenleg nem kínálható fel ezen a doménen. Ellenőrizze az SSO-hitelesítő adatokat és ennek a doménnek a bejelentkezési beállításait.",
     "source_hash": "b03b14f4"
+  },
+  "web.domains.status_tooltip_pending_ssl": {
+    "text": "A domén ellenőrizve — várakozás a tanúsítványra",
+    "source_hash": "541bd705"
+  },
+  "web.domains.2_create_the_alias_record": {
+    "text": "2. ALIAS vagy ANAME rekord létrehozása",
+    "source_hash": "17b04e6a"
+  },
+  "web.domains.sso.status_saml_disabled_badge": {
+    "text": "SAML kikapcsolva",
+    "source_hash": "4e2eab51"
+  },
+  "web.domains.sso.status_saml_disabled_hint": {
+    "text": "A webhely üzemeltetője kikapcsolta a SAML-t ezen a telepítésen. Az Ön konfigurációja megmarad, és a SAML visszakapcsolásakor ismét érvénybe lép; addig ez a domén nem kínál SAML-bejelentkezést.",
+    "source_hash": "5ba9624c"
+  },
+  "web.domains.sso.status_domain_unverified_badge": {
+    "text": "Doménellenőrzésre vár",
+    "source_hash": "ea7459c2"
+  },
+  "web.domains.sso.status_domain_unverified_hint": {
+    "text": "Ennek a doménnek az ellenőrzése még nem fejeződött be, ezért az SSO-kapcsolata még nem aktív a bejelentkezési oldalán. Az SSO akkor kapcsol be, amikor a domén ellenőrzése megtörtént, és itt engedélyezve van számára az SSO.",
+    "source_hash": "57ee0066"
+  },
+  "web.domains.verify_outcome.indeterminate": {
+    "text": "A DNS-ellenőrzést most nem tudtuk befejezni. Ez nem jelenti azt, hogy a rekordjai hibásak. Kérjük, próbálja újra néhány perc múlva.",
+    "source_hash": "4e76a9ef"
+  },
+  "web.domains.verify_outcome.record_not_found": {
+    "text": "Nem találtuk a várt TXT-rekordot. Ellenőrizze, hogy létezik-e, és hogy az értéke pontosan egyezik-e. Az új DNS-rekordok megjelenése néhány percig tarthat.",
+    "source_hash": "6c847d46"
   }
 }

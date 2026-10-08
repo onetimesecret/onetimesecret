@@ -18,11 +18,16 @@ export interface JurisdictionIconConfig {
  * Used when jurisdiction config doesn't include icon data.
  */
 export const JURISDICTION_ICONS: Record<string, JurisdictionIconConfig> = {
-  EU: { collection: 'fa6-solid', name: 'earth-europe' },
-  US: { collection: 'fa6-solid', name: 'earth-americas' },
-  CA: { collection: 'fa6-solid', name: 'earth-americas' },
-  UK: { collection: 'fa6-solid', name: 'earth-europe' },
-  NZ: { collection: 'fa6-solid', name: 'earth-oceania' },
+  EU: { collection: 'ots', name: 'earth-european-union' },
+  US: { collection: 'ots', name: 'earth-united-states' },
+  CA: { collection: 'ots', name: 'earth-canada' },
+  UK: { collection: 'ots', name: 'earth-united-kingdom' },
+  NZ: { collection: 'ots', name: 'earth-new-zealand' },
+  BR: { collection: 'ots', name: 'earth-brazil' },
+  MX: { collection: 'ots', name: 'earth-mexico' },
+  AU: { collection: 'ots', name: 'earth-australia' },
+  JP: { collection: 'ots', name: 'earth-japan' },
+  SG: { collection: 'ots', name: 'earth-singapore' },
   AT: { collection: 'fa6-solid', name: 'earth-europe' },
   APAC: { collection: 'fa6-solid', name: 'earth-asia' },
 };

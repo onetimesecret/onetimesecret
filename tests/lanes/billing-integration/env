@@ -1,0 +1,21 @@
+# Lane: billing-integration — billing's integration tests: the mode-less
+# specs directly under apps/web/billing/spec/integration/ and the
+# try/integration/billing tryouts. Carved out of the billing and simple
+# lanes respectively; same simple-mode, billing-off environment (the specs
+# stub the billing configuration themselves and replay committed VCR
+# cassettes), its own process and CI job.
+# CI job: ruby-billing-integration (T3), nightly only — on a pull request,
+# a push to main, a tag or a merge-queue check it is skipped
+# (docs/development/auth-ci.md).
+#
+# Not the billing OVERLAY. `--overlay billing` turns billing on for the
+# full-mode lanes (ruby-integration-billing, also nightly only); this lane
+# rejects it like every other simple-mode lane.
+AUTHENTICATION_MODE=simple
+
+# Generated prerequisites, produced by tests/lanes/run before the tasks
+# below (see the codegen phase there). spec/spec_helper.rb refuses to boot
+# with an empty generated/locales, so every lane that runs Ruby specs
+# declares it. (The billing catalog specs, which also read the generated
+# billing schema, are the billing lane's, not this one's.)
+LANES_CODEGEN='locales'

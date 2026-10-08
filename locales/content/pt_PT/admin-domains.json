@@ -48,12 +48,12 @@
     "source_hash": "acaede35"
   },
   "web.admin.domains.addDomain.strategy.caddy_on_demand": {
-    "text": "Caddy a pedido — certificados emitidos automaticamente no primeiro pedido.",
-    "source_hash": "deb90ae6"
+    "text": "Caddy a pedido — verificação de propriedade por DNS (registo TXT); certificados emitidos automaticamente após a verificação.",
+    "source_hash": "1c926efa"
   },
   "web.admin.domains.addDomain.strategy.caddy": {
-    "text": "Caddy — certificados emitidos automaticamente no primeiro pedido.",
-    "source_hash": "a0f3c2dc"
+    "text": "Caddy — verificação de propriedade por DNS (registo TXT); certificados emitidos automaticamente após a verificação.",
+    "source_hash": "5774ff90"
   },
   "web.admin.domains.addDomain.strategy.unknown": {
     "text": "Estratégia de validação para toda a implementação.",
@@ -842,5 +842,81 @@
   "web.admin.domains.tls.none": {
     "text": "Não está a servir",
     "source_hash": "da8a5ab9"
+  },
+  "web.admin.domains.configs.edit.originsHint": {
+    "text": "Uma origem por linha, incluindo o esquema, por exemplo https://vault.example.com. Uma origem num domínio de outra organização é recusada.",
+    "source_hash": "4a4e1d33"
+  },
+  "web.admin.domains.configs.fields.related_origins": {
+    "text": "Origens relacionadas de chaves de acesso",
+    "source_hash": "e6160714"
+  },
+  "web.admin.domains.dns.cnameStepInstall": {
+    "text": "2. Adiciona um registo CNAME a apontar o subdomínio para esta instalação.",
+    "source_hash": "b8a329f9"
+  },
+  "web.admin.domains.dns.aliasStepInstall": {
+    "text": "2. Adiciona um registo ALIAS ou ANAME a apontar o apex para esta instalação.",
+    "source_hash": "9a61ed66"
+  },
+  "web.admin.domains.dns.apexNote": {
+    "text": "Um domínio apex não pode ter um registo CNAME. Se o fornecedor de DNS não tiver registos ALIAS ou ANAME, um registo A para o endereço IP deste servidor tem o mesmo efeito.",
+    "source_hash": "f69e3032"
+  },
+  "web.admin.domains.fields.verifiedByOverride": {
+    "text": "Sim (substituição pelo operador)",
+    "source_hash": "a1a8644f"
+  },
+  "web.admin.domains.list.capped": {
+    "text": "Os resultados estão limitados: a contagem mostrada é um valor mínimo, não o total. Restringe a pesquisa ou o filtro para veres tudo.",
+    "source_hash": "27537844"
+  },
+  "web.admin.domains.override.button": {
+    "text": "Substituir estado",
+    "source_hash": "c683774c"
+  },
+  "web.admin.domains.override.title": {
+    "text": "Substituir estado de verificação",
+    "source_hash": "66dbebb2"
+  },
+  "web.admin.domains.override.description": {
+    "text": "Define manualmente os indicadores de verificado e a resolver para este domínio. Usa com cuidado.",
+    "source_hash": "bc3eb719"
+  },
+  "web.admin.domains.override.verified": {
+    "text": "Verificado",
+    "source_hash": "4f783840"
+  },
+  "web.admin.domains.override.resolving": {
+    "text": "A resolver",
+    "source_hash": "3287a034"
+  },
+  "web.admin.domains.override.apply": {
+    "text": "Aplicar substituição",
+    "source_hash": "e2d1472a"
+  },
+  "web.admin.domains.override.cancel": {
+    "text": "Cancelar",
+    "source_hash": "19766ed6"
+  },
+  "web.admin.domains.override.success": {
+    "text": "Estado do domínio substituído.",
+    "source_hash": "42104cd0"
+  },
+  "web.admin.domains.override.noChange": {
+    "text": "Nenhuma alteração a aplicar.",
+    "source_hash": "07632d50"
+  },
+  "web.admin.domains.verify.success.indeterminate": {
+    "text": "O verificador de DNS não devolveu nenhum resultado para {domain}. O respetivo estado de verificação ficou inalterado.",
+    "source_hash": "9c5ab974"
+  },
+  "web.admin.domains.verify.success.overrideHeld": {
+    "text": "A verificação TXT falhou para {domain}, mas continua verificado devido a uma substituição pelo operador.",
+    "source_hash": "e754aac8"
+  },
+  "web.admin.domains.verify.success.confirmationExpired": {
+    "text": "A verificação de DNS de {domain} não devolve nenhum resultado há mais de 7 dias. Já não está verificado.",
+    "source_hash": "a6901cb5"
   }
 }

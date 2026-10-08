@@ -46,5 +46,17 @@
   "api.domains.errors.homepage_incoming_not_ready": {
     "text": "Bí mật đến phải được bật với ít nhất một người nhận trước khi có thể dùng làm trang chủ.",
     "source_hash": "556da6e2"
+  },
+  "api.domains.errors.related_origins_invalid": {
+    "text": "Nguồn gốc không hợp lệ: %{origins}. Hãy nhập giao thức và máy chủ, ví dụ https://vault.example.com",
+    "source_hash": "5acb92ca"
+  },
+  "api.domains.errors.related_origins_foreign_organization": {
+    "text": "Các nguồn gốc này thuộc về tổ chức khác và không thể thêm: %{origins}",
+    "source_hash": "ac21c1e7"
+  },
+  "api.domains.errors.allowed_signup_domains_invalid": {
+    "text": "Tên miền không hợp lệ: %{domains}. Hãy nhập một tên miền có thể đăng ký, ví dụ example.com",
+    "source_hash": "2d93472c"
   }
 }

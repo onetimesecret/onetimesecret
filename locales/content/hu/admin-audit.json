@@ -134,5 +134,17 @@
   "web.admin.audit.list.contractError": {
     "text": "A szerver válaszolt, de az audit adatok nem feleltek meg a várt formátumnak. Nem lehet eseményeket megjeleníteni — ez egy jelentéskészítési hiba, nem üres napló.",
     "source_hash": "7f48137e"
+  },
+  "web.admin.audit.export.csv": {
+    "text": "CSV exportálása",
+    "source_hash": "91f71c14"
+  },
+  "web.admin.audit.export.ndjson": {
+    "text": "NDJSON exportálása",
+    "source_hash": "3ee2c07c"
+  },
+  "web.admin.audit.export.hint": {
+    "text": "Az exportálás a jelenlegi szűrőknek megfelelő teljes megőrzött naplót tartalmazza, nem csak ezt az oldalt. A megőrzés korlátozott — a hosszabb előzmények az auditnapló célrendszerében érhetők el.",
+    "source_hash": "163e8ad0"
   }
 }

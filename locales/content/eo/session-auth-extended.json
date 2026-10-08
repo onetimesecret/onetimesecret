@@ -957,5 +957,53 @@
   "web.auth.webauthn.emailRequired": {
     "text": "Enigu vian retpoŝtadreson por ensaluti per pasŝlosilo",
     "source_hash": "7f07647f"
+  },
+  "web.auth.login.verification_unavailable": {
+    "text": "Via ensaluto sukcesis, sed ni ne povis konfirmi vian seancon. Bonvolu reprovi post momento.",
+    "source_hash": "9a19dfc9"
+  },
+  "web.auth.mfa.verification_unavailable": {
+    "text": "Via pasvorto estis akceptita, sed ni ne povis komenci la dufaktoran konfirmon. Bonvolu reprovi post momento.",
+    "source_hash": "5fd5e240"
+  },
+  "web.auth.session.ended": {
+    "text": "Via seanco finiĝis. Bonvolu ensaluti denove.",
+    "source_hash": "673e9822"
+  },
+  "web.auth.session.replaced": {
+    "text": "Via ensaluto ŝanĝiĝis en alia langeto, do ĉi tiu paĝo estis reŝargita.",
+    "source_hash": "3767d43b"
+  },
+  "web.auth.session.stale_session_title": {
+    "text": "Ĉi tiu paĝo estas malaktuala",
+    "source_hash": "0293e093"
+  },
+  "web.auth.session.stale_session_notice": {
+    "text": "Via seanco ŝanĝiĝis post kiam ĉi tiu paĝo ŝargiĝis. Kopiu ĉion, kion vi ne konservis, poste reŝargu la paĝon por daŭrigi.",
+    "source_hash": "c62e236c"
+  },
+  "web.auth.session.reload_now": {
+    "text": "Reŝargi paĝon",
+    "source_hash": "437d0d63"
+  },
+  "web.auth.session.verification_unavailable_title": {
+    "text": "Ni nun ne povas konfirmi vian seancon",
+    "source_hash": "2130dda1"
+  },
+  "web.auth.session.verification_unavailable_body": {
+    "text": "Vi ne estis elsalutigita. Ni ne povis atingi la servilon por konfirmi vian seancon, do ĉi tiu paĝo estas kaŝita ĝis ni povos. Ni daŭre provos.",
+    "source_hash": "bb230c2c"
+  },
+  "web.auth.session.retry": {
+    "text": "Reprovi",
+    "source_hash": "d8b8392e"
+  },
+  "web.auth.session.retrying": {
+    "text": "Kontrolante…",
+    "source_hash": "ec963ffc"
+  },
+  "web.auth.session.retry_failed": {
+    "text": "Ankoraŭ nedisponebla. Bonvolu reprovi post momento.",
+    "source_hash": "b81c022c"
   }
 }

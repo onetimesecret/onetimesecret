@@ -377,18 +377,19 @@ module Auth
 
       # CustomDomain identifier for the request host, or nil.
       #
-      # from_display_domain, NOT load_by_display_domain (#4157): the latter
-      # rescues Redis::BaseError internally and returns nil, which would make
-      # resolution_for's rescue unreachable for the FIRST of the three reads its
-      # comment names — a blip would resolve as "host has no tenant config" and
-      # inherit the operator's global restrict_to instead of failing closed.
+      # Read from the request's shared lookup (#4220), which DomainStrategy
+      # published or which is read here on first use. #record! re-raises a
+      # failed read (#4157): answering nil instead would make resolution_for's
+      # rescue unreachable for the FIRST of the three reads its comment names —
+      # a blip would resolve as "host has no tenant config" and inherit the
+      # operator's global restrict_to instead of failing closed.
       #
       # @raise [Redis::BaseError] handled by resolution_for
       def domain_id_for(env)
         display_domain = env['onetime.display_domain']
         return nil if display_domain.to_s.empty?
 
-        Onetime::CustomDomain.from_display_domain(display_domain)&.identifier
+        Onetime::CustomDomain::Lookup.for(env).record!&.identifier
       end
 
       # The router's shared 404 — a gated route must be indistinguishable from

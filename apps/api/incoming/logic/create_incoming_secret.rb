@@ -47,7 +47,9 @@ module Incoming
       def process_params
         # All parameters are passed in the :secret hash like other V3 endpoints
         @payload = params['secret'] || {}
-        raise_form_error 'Incorrect payload format' if @payload.is_a?(String)
+        # A non-Hash payload (String, or an Array from `secret[]=x`) would
+        # raise TypeError out of the reads below and surface as a 500.
+        raise_form_error 'Incorrect payload format' unless @payload.is_a?(Hash)
 
         # Extract memo with safe default max length (domain config applied later)
         @memo = sanitize_plain_text(@payload['memo'].to_s, max_length: 500)

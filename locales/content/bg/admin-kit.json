@@ -62,5 +62,29 @@
   "web.admin.kit.revealEmail.copy": {
     "text": "Копиране на имейл адреса",
     "source_hash": "61b94846"
+  },
+  "web.admin.errors.rateLimited": {
+    "text": "Можете да опитате отново след около {minutes} минути.",
+    "source_hash": "27f2d054"
+  },
+  "web.admin.errors.rateLimitedRecovery": {
+    "text": "Ако трябва да действате по-рано, изчистете ограничителя с POST /api/colonel/ratelimit/reset за собствения си акаунт или изпълнете `bin/ots ratelimit keys <kind> <extid>`.",
+    "source_hash": "b77e1388"
+  },
+  "web.admin.kit.confirmDialog.reasonLabel": {
+    "text": "Причина (по избор)",
+    "source_hash": "0f7d4664"
+  },
+  "web.admin.kit.confirmDialog.reasonPlaceholder": {
+    "text": "Защо извършвате това действие?",
+    "source_hash": "ef83fe82"
+  },
+  "web.admin.kit.confirmDialog.reasonHint": {
+    "text": "Записва се в административния одитен дневник заедно с това действие.",
+    "source_hash": "23779076"
+  },
+  "web.admin.kit.filterBar.searchSubmit": {
+    "text": "Търсене",
+    "source_hash": "49c266ba"
   }
 }

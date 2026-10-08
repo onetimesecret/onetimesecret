@@ -158,60 +158,24 @@ module Core
         res.redirect req.app_path('/')
       end
 
-      # Redirects authenticated users to the Stripe Customer Portal
-      #
-      # This endpoint creates a Stripe Customer Portal session for the authenticated user
-      # and redirects them to manage their subscription, billing information, and payment methods.
+      # Legacy entry point for the Stripe Customer Portal
       #
       # GET /account/billing_portal
       #
-      # @return [HTTP 302] Redirects to the Stripe Customer Portal if successful
-      # @return [HTTP 400] Returns a form error if there's a Stripe error or unexpected issue
+      # Billing identities live on the Organization now; the customer-level
+      # stripe_customer_id this handler used to read is a deprecated migration
+      # field that is empty for every account created since the move, so the
+      # inline Stripe call failed for them — and its rescue branches called
+      # raise_form_error, which controllers do not define, turning every
+      # failure into a 500. Hand the request to the organization-aware portal
+      # route instead; it carries the ownership gate and the "no Stripe
+      # customer yet" handling in one place (Billing::Controllers::Plans).
       #
-      # @note This endpoint requires authentication. It uses the customer's Stripe Customer ID
-      #       stored in our system to create the portal session.
-      #
-      # @see https://stripe.com/docs/billing/subscriptions/customer-portal For more information on Stripe Customer Portal
-      #
-      # @example
-      #   GET /account/billing
-      #   # => Redirects to https://billing.stripe.com/session/...
-      #
-      # @raise [OT::FormError] If there's an error creating the Stripe session or an unexpected error occurs
+      # @return [HTTP 302] Redirect to /billing/portal
       #
       def customer_portal_redirect
         res.do_not_cache!
-
-        # Get the Stripe Customer ID from our customer instance
-        customer_id = cust.stripe_customer_id
-
-        site_host   = Onetime.conf['site']['host']
-        is_secure   = Onetime.conf.dig('site', 'ssl') != false
-        return_url  = "#{is_secure ? 'https' : 'http'}://#{site_host}/account"
-
-        # Create a Stripe Customer Portal session
-        stripe_session = Stripe::BillingPortal::Session.create(
-          {
-            customer: customer_id,
-            return_url: return_url,
-          },
-        )
-
-        # Continue the redirect
-        res.redirect stripe_session.url
-      rescue Stripe::StripeError => ex
-            http_logger.error 'Stripe customer portal creation failed',
-              {
-                exception: ex,
-                customer_id: customer_id,
-              }
-            raise_form_error(ex.message)
-      rescue StandardError => ex
-            http_logger.error 'Unexpected error creating customer portal session',
-              {
-                exception: ex,
-              }
-            raise_form_error('An unexpected error occurred')
+        res.redirect '/billing/portal'
       end
 
       private

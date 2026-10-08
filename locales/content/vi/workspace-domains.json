@@ -1630,5 +1630,37 @@
   "web.domains.sso.status_unavailable_hint": {
     "text": "Hiện chưa thể cung cấp SSO trên tên miền này. Hãy kiểm tra thông tin xác thực SSO và cài đặt đăng nhập của tên miền này.",
     "source_hash": "b03b14f4"
+  },
+  "web.domains.status_tooltip_pending_ssl": {
+    "text": "Tên miền đã được xác minh — đang chờ chứng chỉ",
+    "source_hash": "541bd705"
+  },
+  "web.domains.2_create_the_alias_record": {
+    "text": "2. Tạo bản ghi ALIAS hoặc ANAME",
+    "source_hash": "17b04e6a"
+  },
+  "web.domains.sso.status_saml_disabled_badge": {
+    "text": "SAML đã bị tắt",
+    "source_hash": "4e2eab51"
+  },
+  "web.domains.sso.status_saml_disabled_hint": {
+    "text": "Người vận hành trang web đã tắt SAML cho bản cài đặt này. Cấu hình của bạn được giữ nguyên và sẽ hoạt động trở lại khi SAML được bật lại; cho đến lúc đó, tên miền này không cung cấp đăng nhập SAML.",
+    "source_hash": "5ba9624c"
+  },
+  "web.domains.sso.status_domain_unverified_badge": {
+    "text": "Đang chờ xác minh tên miền",
+    "source_hash": "ea7459c2"
+  },
+  "web.domains.sso.status_domain_unverified_hint": {
+    "text": "Tên miền này chưa hoàn tất xác minh, nên kết nối SSO của nó chưa hoạt động trên trang đăng nhập. SSO sẽ được bật khi tên miền được xác minh và SSO được cho phép cho tên miền tại đây.",
+    "source_hash": "57ee0066"
+  },
+  "web.domains.verify_outcome.indeterminate": {
+    "text": "Chúng tôi không thể hoàn tất kiểm tra DNS lúc này. Điều này không có nghĩa là bản ghi của bạn bị sai. Vui lòng thử lại sau vài phút.",
+    "source_hash": "4e76a9ef"
+  },
+  "web.domains.verify_outcome.record_not_found": {
+    "text": "Chúng tôi không tìm thấy bản ghi TXT như mong đợi. Hãy kiểm tra xem bản ghi có tồn tại và giá trị có khớp chính xác không. Bản ghi DNS mới có thể mất vài phút để xuất hiện.",
+    "source_hash": "6c847d46"
   }
 }

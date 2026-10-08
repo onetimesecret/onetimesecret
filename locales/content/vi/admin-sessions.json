@@ -176,8 +176,8 @@
     "source_hash": "0c6605c1"
   },
   "web.admin.sessions.revoke.confirmDescription": {
-    "text": "Thao tác này đăng xuất người dùng ngay lập tức bằng cách xóa phiên {id}. Nhập ID phiên để xác nhận.",
-    "source_hash": "9e08b1b8"
+    "text": "Thao tác này đăng xuất người dùng ngay lập tức bằng cách thu hồi phiên {id}. Nhập {token} để xác nhận.",
+    "source_hash": "80578692"
   },
   "web.admin.sessions.revoke.success": {
     "text": "Đã thu hồi phiên",
@@ -188,12 +188,12 @@
     "source_hash": "34cb67a4"
   },
   "web.admin.sessions.scan.capped": {
-    "text": "Quá trình quét giới hạn ở {scanned} khóa đầu tiên — các phiên đã xác thực ngoài khoảng này không được liệt kê. Kiểm tra một phiên cụ thể theo ID để truy cập nó.",
-    "source_hash": "fa418b4e"
+    "text": "Quá trình quét giới hạn ở {scanned} khóa đầu tiên — các phiên đã xác thực ngoài khoảng này không được liệt kê. Hãy thu hẹp tìm kiếm để truy cập chúng.",
+    "source_hash": "7a8d6fd5"
   },
   "web.admin.sessions.search.placeholder": {
-    "text": "Tìm theo email hoặc external ID",
-    "source_hash": "f2dc5c06"
+    "text": "Tìm theo email, external ID hoặc định danh phiên",
+    "source_hash": "4894dec4"
   },
   "web.admin.sessions.sections.session": {
     "text": "Phiên",
@@ -210,5 +210,45 @@
   "web.admin.sessions.status.anonymous": {
     "text": "Ẩn danh",
     "source_hash": "e7a8aa2d"
+  },
+  "web.admin.sessions.authority.title": {
+    "text": "Không phải nguồn phiên có thẩm quyền trong chế độ xác thực đầy đủ",
+    "source_hash": "796fb07f"
+  },
+  "web.admin.sessions.authority.description": {
+    "text": "Danh sách này là kho lưu trữ phiên Redis. Khi chế độ xác thực được đặt là full, trạng thái phiên có thẩm quyền nằm trong cơ sở dữ liệu tài khoản Rodauth, mà bảng điều khiển này không đọc. Các tài khoản đăng nhập qua Rodauth có thể không xuất hiện ở đây, và việc thu hồi một phiên ở đây không kết thúc phiên Rodauth.",
+    "source_hash": "77bc4904"
+  },
+  "web.admin.sessions.authority.descriptionRevokeAll": {
+    "text": "Danh sách này là kho lưu trữ phiên Redis. Khi chế độ xác thực được đặt là full, trạng thái phiên có thẩm quyền nằm trong cơ sở dữ liệu tài khoản Rodauth, mà bảng điều khiển này không đọc. Các tài khoản đăng nhập qua Rodauth có thể không xuất hiện ở đây, và việc thu hồi một phiên riêng lẻ ở đây không kết thúc phiên Rodauth của nó. Thu hồi tất cả cũng sẽ kết thúc các phiên Rodauth của tài khoản.",
+    "source_hash": "f964663d"
+  },
+  "web.admin.sessions.authority.openAdmin": {
+    "text": "Mở Rodauth Admin",
+    "source_hash": "ce523836"
+  },
+  "web.admin.sessions.authority.notConfigured": {
+    "text": "Đặt RODAUTH_ADMIN_URL để liên kết đến Rodauth Admin từ đây.",
+    "source_hash": "c070dbfb"
+  },
+  "web.admin.sessions.columns.sessionHandle": {
+    "text": "Định danh phiên",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.errors.scanCapped": {
+    "text": "Không tìm thấy phiên này trong không gian khóa đã lấy mẫu. Hãy mở phiên từ hàng của nó trong danh sách để có thể dùng chủ sở hữu để tra cứu.",
+    "source_hash": "67b73f7f"
+  },
+  "web.admin.sessions.fields.sessionHandle": {
+    "text": "Định danh phiên",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.revoke.ownSession": {
+    "text": "Đây là phiên của chính bạn. Thu hồi phiên này sẽ đăng xuất bạn — hãy dùng chức năng đăng xuất thay thế.",
+    "source_hash": "a6762292"
+  },
+  "web.admin.sessions.rodauthAdmin.open": {
+    "text": "Mở trong Rodauth Admin",
+    "source_hash": "467173c8"
   }
 }

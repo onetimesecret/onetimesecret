@@ -509,8 +509,8 @@
     "source_hash": "7fbbb7e7"
   },
   "web.login.errors.identity_connect_conflict": {
-    "text": "Não foi possível conectar esta identidade. A conexão pode ter sido iniciada no domínio errado ou sua sessão expirou. Entre novamente e depois conecte-a nas configurações da sua conta.",
-    "source_hash": "4238bbf2"
+    "text": "Não foi possível conectar esta identidade. Ela pode já pertencer a outra conta.",
+    "source_hash": "d8b71cf8"
   },
   "web.login.errors.org_join_failed": {
     "text": "Não foi possível concluir sua adição à organização. Entre em contato com seu administrador.",
@@ -527,5 +527,25 @@
   "web.login.errors.sso_cancelled": {
     "text": "O início de sessão foi cancelado. Você pode tentar novamente quando quiser.",
     "source_hash": "b5f3d3ec"
+  },
+  "web.login.errors.sso_issuer_mismatch": {
+    "text": "O início de sessão com este provedor está configurado incorretamente. Entre em contato com o seu administrador.",
+    "source_hash": "44df5918"
+  },
+  "web.login.errors.sso_config_unusable": {
+    "text": "O single sign-on deste domínio está configurado, mas não pode ser usado no momento. Entre em contato com o administrador da sua organização.",
+    "source_hash": "f704b391"
+  },
+  "web.login.errors.sso_domain_unverified": {
+    "text": "O single sign-on deste domínio ainda não está ativo porque a verificação do domínio não foi concluída. Entre em contato com o seu administrador.",
+    "source_hash": "bd981480"
+  },
+  "web.login.errors.tenant_sso_link_unavailable": {
+    "text": "Esta identidade não está conectada a uma conta neste domínio. Se você consegue entrar neste domínio com uma conta que pertence a esta organização, conecte-a em Identidades conectadas. Caso contrário, peça a um proprietário da organização para convidar esta identidade SSO ou entre em contato com o suporte.",
+    "source_hash": "66e7376c"
+  },
+  "web.login.errors.identity_connect_wrong_domain": {
+    "text": "Não foi possível conectar esta identidade neste domínio. Inicie a conexão a partir do site em que você entrou; no domínio de uma organização, sua conta já deve pertencer a essa organização.",
+    "source_hash": "d967c761"
   }
 }

@@ -40,6 +40,7 @@
 require 'spec_helper'
 require 'support/amqp_stubs'
 require 'sneakers'
+require 'timeout'
 require 'onetime/jobs/workers/email_worker'
 require 'onetime/jobs/queues/config'
 
@@ -47,7 +48,7 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker, type: :integration do
   # Create test worker class with accessible delivery_info
   let(:test_worker_class) do
     Class.new(Onetime::Jobs::Workers::EmailWorker) do
-      attr_accessor :delivery_info, :acked, :rejected
+      attr_accessor :acked, :rejected
 
       def self.name
         'TestEmailWorker'
@@ -59,12 +60,16 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker, type: :integration do
         @rejected = false
       end
 
+      # Kicks settles a message from the value work_with_params returns
+      # (:ack / :reject), so keep the real return values.
       def ack!
         @acked = true
+        super
       end
 
       def reject!
         @rejected = true
+        super
       end
 
       def acked?
@@ -99,9 +104,6 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker, type: :integration do
   end
 
   before do
-    # Store envelope is called by work_with_params, but we can also pre-set for tests
-    worker.store_envelope(delivery_info, metadata)
-
     # Mock Onetime::Mail module
     allow(Onetime::Mail).to receive(:deliver)
     allow(Onetime::Mail).to receive(:deliver_raw)
@@ -304,6 +306,19 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker, type: :integration do
 
         expect(Familia.dbclient.exists?("job:processed:#{message_id}")).to be_truthy
       end
+
+      # Rodauth enqueues Mail::Message#to, which is a list of addresses.
+      it 'delivers to a recipient given as a list of addresses' do
+        listed = JSON.generate(raw: true, email: { to: ['user@example.com'], subject: 'Test Email' })
+
+        worker.work_with_params(listed, delivery_info, metadata)
+
+        expect(Onetime::Mail).to have_received(:deliver_raw).with(
+          { to: ['user@example.com'], subject: 'Test Email' },
+          sender_config: nil
+        )
+        expect(worker.acked?).to be true
+      end
     end
 
     context 'idempotency handling' do
@@ -370,16 +385,65 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker, type: :integration do
         expect(retry_delays).to be_empty
       end
 
-      it 'keeps idempotency key even when delivery fails after retries' do
-        # claim_for_processing atomically sets the key BEFORE attempting delivery,
-        # so the key exists regardless of delivery success/failure. This prevents
-        # re-processing on redelivery even if the original attempt failed.
+      it 'releases the idempotency key when delivery fails after retries' do
+        # The claim is taken before delivery. A failed message goes to the
+        # DLQ, and its replay carries the same message id: a kept claim
+        # would ack the replay as a duplicate without delivering it.
         allow(Onetime::Mail).to receive(:deliver).and_raise(StandardError, 'Delivery failed')
 
         worker.work_with_params(message, delivery_info, metadata)
 
-        # Key was set by claim_for_processing at the start
+        expect(worker.rejected?).to be true
+        expect(Familia.dbclient.exists?("job:processed:#{message_id}")).to be_falsey
+      end
+
+      it 'releases the idempotency key on a non-transient delivery error' do
+        allow(Onetime::Mail).to receive(:deliver)
+          .and_raise(Onetime::Mail::DeliveryError.new('SMTP error', transient: false))
+
+        worker.work_with_params(message, delivery_info, metadata)
+
+        expect(Familia.dbclient.exists?("job:processed:#{message_id}")).to be_falsey
+      end
+
+      it 'delivers a replay of a failed message with the same message id' do
+        calls = 0
+        allow(Onetime::Mail).to receive(:deliver) do
+          calls += 1
+          raise Onetime::Mail::DeliveryError.new('SMTP error', transient: false) if calls == 1
+
+          double('response')
+        end
+
+        expect(worker.work_with_params(message, delivery_info, metadata)).to eq(:reject)
+        expect(worker.work_with_params(message, delivery_info, metadata)).to eq(:ack)
+        expect(calls).to eq(2)
+      end
+
+      it 'keeps the idempotency key when an error follows a finished delivery' do
+        allow(worker).to receive(:ack!).and_raise(StandardError, 'ack failed')
+
+        worker.work_with_params(message, delivery_info, metadata)
+
+        expect(Onetime::Mail).to have_received(:deliver).once
         expect(Familia.dbclient.exists?("job:processed:#{message_id}")).to be_truthy
+      end
+
+      it 'leaves a claim held by another delivery of the same id when the message is rejected unclaimed' do
+        Familia.dbclient.setex("job:processed:#{message_id}", 3600, '1')
+
+        worker.work_with_params(JSON.generate(data: { recipient: 'test@example.com' }), delivery_info, metadata)
+
+        expect(worker.rejected?).to be true
+        expect(Familia.dbclient.exists?("job:processed:#{message_id}")).to be_truthy
+      end
+
+      it 'rejects the message when the first log line raises' do
+        allow(worker).to receive(:log_info).and_call_original
+        allow(worker).to receive(:log_info).with('Message received', any_args).and_raise(StandardError, 'appender down')
+
+        expect(worker.work_with_params(message, delivery_info, metadata)).to eq(:reject)
+        expect(Onetime::Mail).not_to have_received(:deliver)
       end
     end
 
@@ -636,6 +700,625 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker, type: :integration do
         worker.work_with_params(message, delivery_info, metadata)
 
         expect(worker.acked?).to be true
+      end
+    end
+
+    context 'delivery events (#4479)' do
+      let(:message_id) { "evt-#{SecureRandom.hex(6)}" }
+      let(:message) do
+        JSON.generate(
+          template: 'secret_viewed',
+          correlation_id: 'notif-msg-1',
+          event_type: 'secret.viewed',
+          customer_extid: 'ur2a3b4c5d',
+          data: { secret_key: 'abc123', to: 'user@example.com', locale: 'en' },
+        )
+      end
+
+      def recorded
+        Onetime::DeliveryEvent.recent(20)
+      end
+
+      before { Onetime::DeliveryEvent.events.clear }
+      after  { Onetime::DeliveryEvent.events.clear }
+
+      it 'records one terminal sent event carrying the correlation id from the payload' do
+        allow(Onetime::Mail).to receive(:deliver).and_return(double('response', message_id: 'ses-0100'))
+
+        worker.work_with_params(message, delivery_info, metadata)
+
+        expect(worker.acked?).to be true
+        expect(recorded.size).to eq(1)
+        expect(recorded.first).to include(
+          'channel' => 'email',
+          'stage' => 'delivery',
+          'outcome' => 'sent',
+          'correlation_id' => 'notif-msg-1',
+          'message_id' => message_id,
+          'event_type' => 'secret.viewed',
+          'template' => 'secret_viewed',
+          'customer_id' => 'ur2a3b4c5d',
+          'provider_message_id' => 'ses-0100',
+          'attempt_count' => 1,
+        )
+        expect(recorded.first['provider']).to eq(Onetime::Mail::Mailer.backend_provider)
+        expect(recorded.first.to_json).not_to include('user@example.com', 'abc123')
+      end
+
+      it 'records one failed event with the attempt count after retries are exhausted' do
+        allow(Onetime::Mail).to receive(:deliver)
+          .and_raise(Onetime::Mail::DeliveryError.new('SMTP delivery error: 451 try later for user@example.com', transient: true))
+
+        worker.work_with_params(message, delivery_info, metadata)
+
+        expect(worker.rejected?).to be true
+        expect(recorded.size).to eq(1)
+        expect(recorded.first).to include(
+          'outcome' => 'failed',
+          'reason' => 'retries_exhausted',
+          'error_class' => 'Onetime::Mail::DeliveryError',
+          'attempt_count' => 4,
+          'correlation_id' => 'notif-msg-1',
+        )
+        expect(recorded.first).not_to have_key('error_message')
+        expect(recorded.first.to_json).not_to include('user@example.com')
+      end
+
+      it 'records a permanent failure without retries' do
+        allow(Onetime::Mail).to receive(:deliver)
+          .and_raise(Onetime::Mail::DeliveryError.new('rejected', transient: false))
+
+        worker.work_with_params(message, delivery_info, metadata)
+
+        expect(recorded.first).to include('outcome' => 'failed', 'reason' => 'permanent', 'attempt_count' => 1)
+      end
+
+      it 'records skipped when the backend returns nil (suppressed recipient or delivery disabled)' do
+        allow(Onetime::Mail).to receive(:deliver).and_return(nil)
+
+        worker.work_with_params(message, delivery_info, metadata)
+
+        expect(worker.acked?).to be true
+        expect(recorded.first).to include('outcome' => 'skipped', 'reason' => 'not_dispatched')
+      end
+
+      it 'uses its own queue message id as the correlation id for a legacy payload' do
+        legacy = JSON.generate(template: 'secret_link', data: { secret_key: 'abc123', recipient: 'user@example.com' })
+        allow(Onetime::Mail).to receive(:deliver).and_return(double('response'))
+
+        worker.work_with_params(legacy, delivery_info, metadata)
+
+        expect(recorded.first).to include(
+          'correlation_id' => message_id,
+          'message_id' => message_id,
+          'template' => 'secret_link',
+        )
+        expect(recorded.first).not_to have_key('event_type')
+      end
+
+      it 'records nothing for a duplicate message' do
+        Familia.dbclient.setex("job:processed:#{message_id}", 3600, '1')
+
+        worker.work_with_params(message, delivery_info, metadata)
+
+        expect(worker.acked?).to be true
+        expect(recorded).to be_empty
+      end
+
+      it 'records a failed invalid_message event for a malformed payload' do
+        worker.work_with_params(JSON.generate(data: { to: 'user@example.com' }), delivery_info, metadata)
+
+        expect(worker.rejected?).to be true
+        expect(recorded.size).to eq(1)
+        expect(recorded.first).to include(
+          'outcome' => 'failed',
+          'reason' => 'invalid_message',
+          'error_class' => 'Onetime::Jobs::Workers::EmailWorker::InvalidMessage',
+        )
+        expect(recorded.first).not_to have_key('attempt_count')
+        expect(Onetime::Mail).not_to have_received(:deliver)
+        expect(retry_delays).to be_empty
+      end
+
+      context 'when parsing rejects the message before delivery' do
+        before { allow(Onetime::DeliveryEvent).to receive(:record).and_call_original }
+
+        shared_examples 'an observable parse rejection' do
+          it 'records one failed event using only the envelope id and zero delivery attempts' do
+            expect(worker).to receive(:reject!).once.and_call_original
+            expect(worker).not_to receive(:claim_for_processing)
+
+            settled = worker.work_with_params(invalid_message, delivery_info, invalid_metadata)
+
+            expect(settled).to eq(:reject)
+            expect(worker.rejected?).to be true
+            expect(worker.acked?).to be false
+            expect(Onetime::Mail).not_to have_received(:deliver)
+            expect(Onetime::Mail).not_to have_received(:deliver_raw)
+            expect(Onetime::DeliveryEvent).to have_received(:record).once.with(hash_including(
+              channel: 'email',
+              stage: 'delivery',
+              outcome: 'failed',
+              reason: 'invalid_message',
+              message_id: message_id,
+              correlation_id: message_id,
+              attempt_count: 0,
+              event_type: nil,
+              template: nil,
+              customer_id: nil,
+            ))
+            expect(recorded.size).to eq(1)
+            expect(recorded.first).to include(
+              'outcome' => 'failed',
+              'reason' => 'invalid_message',
+              'message_id' => message_id,
+              'correlation_id' => message_id,
+            )
+            # DeliveryEvent currently omits zero counts from the stored shape;
+            # the recorder call above verifies that no delivery was attempted.
+            expect(recorded.first.keys & %w[event_type template customer_id error_class error_message]).to be_empty
+            expect(recorded.first.to_json).not_to include('untrusted', 'user@example.com', 'abc123')
+            expect(retry_delays).to be_empty
+          end
+
+          it 'still rejects once when recording the parse failure raises' do
+            allow(Onetime::DeliveryEvent).to receive(:record).and_raise(RedisClient::CannotConnectError, 'down')
+            expect(worker).to receive(:reject!).once.and_call_original
+
+            worker.work_with_params(invalid_message, delivery_info, invalid_metadata)
+
+            expect(worker.rejected?).to be true
+            expect(worker.acked?).to be false
+            expect(Onetime::DeliveryEvent).to have_received(:record).once
+          end
+        end
+
+        context 'with malformed JSON' do
+          let(:invalid_message) { '{"template":"untrusted","body":"abc123 user@example.com"' }
+          let(:invalid_metadata) { metadata }
+
+          include_examples 'an observable parse rejection'
+        end
+
+        context 'with a JSON null body' do
+          let(:invalid_message) { 'null' }
+          let(:invalid_metadata) { metadata }
+
+          include_examples 'an observable parse rejection'
+
+          it 'logs why the message was rejected' do
+            allow(worker).to receive(:log_error).and_call_original
+
+            worker.work_with_params(invalid_message, delivery_info, invalid_metadata)
+
+            expect(worker).to have_received(:log_error).with('Message payload is null', message_id: message_id)
+          end
+        end
+
+        context 'with an unsupported schema' do
+          let(:invalid_message) do
+            JSON.generate(
+              template: 'untrusted',
+              correlation_id: 'untrusted-correlation',
+              event_type: 'untrusted.event',
+              customer_extid: 'uruntrusted',
+              data: { secret_key: 'abc123', to: 'user@example.com' },
+            )
+          end
+          let(:invalid_metadata) do
+            MetadataStub.new(message_id: message_id, headers: { 'x-schema-version' => 999 })
+          end
+
+          include_examples 'an observable parse rejection'
+        end
+      end
+
+      context 'with a backend that does not transmit' do
+        let(:message) do
+          JSON.generate(
+            raw: true,
+            correlation_id: 'notif-msg-1',
+            email: { to: 'user@example.com', from: 'noreply@example.com', subject: 'Hello', body: 'Body' },
+          )
+        end
+
+        def sent_count_today
+          Onetime::DeliveryEvent.daily_counts(1).first[:counts].fetch('email:delivery:sent', 0)
+        end
+
+        before do
+          # Run the real mail path; only the provider choice is controlled.
+          allow(Onetime::Mail).to receive(:deliver_raw).and_call_original
+          allow(Onetime::Mail::Mailer).to receive(:determine_provider).and_return(provider)
+          allow(Onetime::Mail::Delivery::Logger).to receive(:output).and_return(StringIO.new)
+          Onetime::Mail::Mailer.reset!
+        end
+
+        after { Onetime::Mail::Mailer.reset! }
+
+        shared_examples 'a log-only delivery' do
+          it 'acks and records one skipped log_only event, never sent' do
+            sent_before = sent_count_today
+
+            settled = worker.work_with_params(message, delivery_info, metadata)
+
+            expect(settled).to eq(:ack)
+            expect(Onetime::Mail::Mailer.delivery_backend).to be_a(Onetime::Mail::Delivery::Logger)
+            expect(recorded.size).to eq(1)
+            expect(recorded.first).to include(
+              'outcome' => 'skipped',
+              'reason' => 'log_only',
+              'provider' => 'logger',
+              'template' => 'raw',
+              'correlation_id' => 'notif-msg-1',
+              'attempt_count' => 1,
+            )
+            expect(recorded.first).not_to have_key('provider_message_id')
+            expect(sent_count_today).to eq(sent_before)
+          end
+        end
+
+        context 'with the logger backend' do
+          let(:provider) { 'logger' }
+
+          include_examples 'a log-only delivery'
+        end
+
+        context 'with an unknown provider that falls back to the logger' do
+          let(:provider) { 'carrier-pigeon' }
+
+          include_examples 'a log-only delivery'
+        end
+
+        context 'with delivery disabled' do
+          let(:provider) { 'disabled' }
+
+          it 'records one skipped not_dispatched event' do
+            worker.work_with_params(message, delivery_info, metadata)
+
+            expect(worker.acked?).to be true
+            expect(recorded.size).to eq(1)
+            expect(recorded.first).to include('outcome' => 'skipped', 'reason' => 'not_dispatched')
+          end
+
+          it 'names the disabled transport, which tells it apart from a suppressed recipient' do
+            worker.work_with_params(message, delivery_info, metadata)
+
+            expect(recorded.first).to include('provider' => 'disabled')
+          end
+        end
+      end
+
+      context 'delivery status on the customer record' do
+        let(:message) do
+          JSON.generate(template: 'email_change_confirmation', data: { customer_objid: 'cust-objid-1' })
+        end
+        let(:customer) { double('customer') }
+
+        before do
+          allow(Onetime::Customer).to receive(:find_by_identifier).with('cust-objid-1').and_return(customer)
+          allow(customer).to receive(:pending_email_delivery_status=)
+        end
+
+        it "is 'sent' when the backend accepted the message" do
+          allow(Onetime::Mail).to receive(:deliver).and_return(double('response'))
+
+          worker.work_with_params(message, delivery_info, metadata)
+
+          expect(customer).to have_received(:pending_email_delivery_status=).with('sent')
+        end
+
+        it "is 'skipped' for a log-only delivery, and the message is still acked" do
+          allow(Onetime::Mail).to receive(:deliver)
+            .and_return(Onetime::Mail::Delivery::NotTransmitted.new(reason: 'log_only', response: {}))
+
+          worker.work_with_params(message, delivery_info, metadata)
+
+          expect(worker.acked?).to be true
+          expect(customer).to have_received(:pending_email_delivery_status=).with('skipped')
+        end
+
+        it "is 'failed' when delivery fails" do
+          allow(Onetime::Mail).to receive(:deliver)
+            .and_raise(Onetime::Mail::DeliveryError.new('rejected', transient: false))
+
+          worker.work_with_params(message, delivery_info, metadata)
+
+          expect(customer).to have_received(:pending_email_delivery_status=).with('failed')
+        end
+      end
+
+      context 'when the payload shape is invalid' do
+        before { allow(Onetime::DeliveryEvent).to receive(:record).and_call_original }
+
+        shared_examples 'a rejected invalid message' do
+          it 'rejects without delivering and records exactly one failed invalid_message event' do
+            expect(worker).not_to receive(:claim_for_processing)
+
+            settled = worker.work_with_params(invalid_message, delivery_info, metadata)
+
+            expect(settled).to eq(:reject)
+            expect(worker.rejected?).to be true
+            expect(worker.acked?).to be false
+            expect(Onetime::Mail).not_to have_received(:deliver)
+            expect(Onetime::Mail).not_to have_received(:deliver_raw)
+            expect(retry_delays).to be_empty
+            expect(Onetime::DeliveryEvent).to have_received(:record).once
+            expect(recorded.size).to eq(1)
+            expect(recorded.first).to include(
+              'channel' => 'email',
+              'stage' => 'delivery',
+              'outcome' => 'failed',
+              'reason' => 'invalid_message',
+              'message_id' => message_id,
+            )
+            expect(recorded.first).not_to have_key('attempt_count')
+            expect(recorded.first.to_json).not_to include('user@example.com')
+          end
+
+          it 'still rejects once when recording raises' do
+            allow(Onetime::DeliveryEvent).to receive(:record).and_raise(RedisClient::CannotConnectError, 'down')
+            expect(worker).to receive(:reject!).once.and_call_original
+
+            expect(worker.work_with_params(invalid_message, delivery_info, metadata)).to eq(:reject)
+            expect(Onetime::DeliveryEvent).to have_received(:record).once
+          end
+        end
+
+        context 'with a numeric template' do
+          let(:invalid_message) { '{"template":123,"correlation_id":"probe-B","data":{}}' }
+
+          include_examples 'a rejected invalid message'
+
+          it 'keeps the correlation id and drops the mistyped template' do
+            worker.work_with_params(invalid_message, delivery_info, metadata)
+
+            expect(recorded.first).to include('correlation_id' => 'probe-B')
+            expect(recorded.first).not_to have_key('template')
+          end
+        end
+
+        context 'with a payload that is not an object' do
+          let(:invalid_message) { '["secret_link", {"to": "user@example.com"}]' }
+
+          include_examples 'a rejected invalid message'
+        end
+
+        context 'with data that is not an object' do
+          let(:invalid_message) { JSON.generate(template: 'secret_link', data: 'user@example.com') }
+
+          include_examples 'a rejected invalid message'
+        end
+
+        context 'with a raw message whose email is not an object' do
+          let(:invalid_message) { JSON.generate(raw: true, email: 'user@example.com') }
+
+          include_examples 'a rejected invalid message'
+        end
+
+        context 'with a raw message that has no recipient' do
+          let(:invalid_message) { JSON.generate(raw: true, email: { subject: 'Hello' }) }
+
+          include_examples 'a rejected invalid message'
+        end
+
+        # The mailer sends to a String, or to the first entry of an Array,
+        # and turns anything else into its to_s: false would be sent to
+        # "false" and 42 to "42".
+        {
+          'false' => false,
+          'a number' => 42,
+          'whitespace only' => ' ',
+          'an empty list' => [],
+          'a list whose first entry is not a string' => [nil, 'user@example.com'],
+          'a list whose first entry is blank' => ['', 'user@example.com'],
+          'an object' => { address: 'user@example.com' },
+        }.each do |label, recipient|
+          context "with a raw message whose recipient is #{label}" do
+            let(:invalid_message) { JSON.generate(raw: true, email: { to: recipient, subject: 'Hello' }) }
+
+            include_examples 'a rejected invalid message'
+          end
+        end
+
+        context 'with a blank template' do
+          let(:invalid_message) { JSON.generate(template: ' ', data: {}) }
+
+          include_examples 'a rejected invalid message'
+        end
+      end
+
+      context 'when the message has no message id' do
+        let(:metadata) { MetadataStub.new(message_id: nil, headers: { 'x-schema-version' => 1 }) }
+
+        it 'rejects it with one failed invalid_message event instead of acking it as a duplicate' do
+          settled = worker.work_with_params(message, delivery_info, metadata)
+
+          expect(settled).to eq(:reject)
+          expect(Onetime::Mail).not_to have_received(:deliver)
+          expect(recorded.size).to eq(1)
+          expect(recorded.first).to include(
+            'outcome' => 'failed', 'reason' => 'invalid_message', 'correlation_id' => 'notif-msg-1',
+          )
+          expect(recorded.first).not_to have_key('message_id')
+        end
+      end
+
+      it 'records one failed event when the idempotency claim raises' do
+        allow(worker).to receive(:claim_for_processing).and_raise(RedisClient::CannotConnectError, 'down')
+
+        settled = worker.work_with_params(message, delivery_info, metadata)
+
+        expect(settled).to eq(:reject)
+        expect(Onetime::Mail).not_to have_received(:deliver)
+        expect(recorded.size).to eq(1)
+        expect(recorded.first).to include(
+          'outcome' => 'failed',
+          'reason' => 'error',
+          'error_class' => 'RedisClient::CannotConnectError',
+          'correlation_id' => 'notif-msg-1',
+        )
+        expect(recorded.first).not_to have_key('attempt_count')
+      end
+
+      it 'does not retry a message the mailer rejects as invalid' do
+        allow(Onetime::Mail).to receive(:deliver).and_raise(ArgumentError, 'Unknown template: secret_viewed')
+
+        worker.work_with_params(message, delivery_info, metadata)
+
+        expect(worker.rejected?).to be true
+        expect(Onetime::Mail).to have_received(:deliver).once
+        expect(retry_delays).to be_empty
+        expect(recorded.size).to eq(1)
+        expect(recorded.first).to include(
+          'outcome' => 'failed', 'reason' => 'invalid_message', 'error_class' => 'ArgumentError', 'attempt_count' => 1,
+        )
+      end
+
+      it 'records nothing for a ping message without a data object' do
+        expect(Onetime::DeliveryEvent).not_to receive(:record)
+
+        settled = worker.work_with_params(JSON.generate(template: 'ping_test'), delivery_info, metadata)
+
+        expect(settled).to eq(:ack)
+        expect(recorded).to be_empty
+      end
+
+      it 'records both terminal events for overlapping calls on the same worker instance' do
+        first_started = Queue.new
+        release_first = Queue.new
+        worker_instance = worker
+        first_message = JSON.generate(template: 'secret_viewed', data: { secret_key: 'first' })
+        second_message = JSON.generate(template: 'secret_viewed', data: { secret_key: 'second' })
+        first_metadata = MetadataStub.new(message_id: "#{message_id}-first", headers: { 'x-schema-version' => 1 })
+        second_metadata = MetadataStub.new(message_id: "#{message_id}-second", headers: { 'x-schema-version' => 1 })
+        envelope = delivery_info
+        response = double('response', message_id: 'provider-first')
+        allow(Onetime::Mail).to receive(:deliver) do |_template, data, **_options|
+          if data[:secret_key] == 'first'
+            first_started << true
+            release_first.pop
+            response
+          else
+            raise Onetime::Mail::DeliveryError.new('rejected', transient: false)
+          end
+        end
+
+        first_thread = Thread.new { worker_instance.work_with_params(first_message, envelope, first_metadata) }
+        Timeout.timeout(10) { first_started.pop }
+        worker_instance.work_with_params(second_message, envelope, second_metadata)
+        release_first << true
+        Timeout.timeout(10) { first_thread.value }
+
+        expect(recorded.size).to eq(2)
+        events = recorded.to_h { |event| [event['message_id'], event] }
+        expect(events.fetch(first_metadata.message_id)).to include(
+          'outcome' => 'sent', 'correlation_id' => first_metadata.message_id, 'attempt_count' => 1,
+        )
+        expect(events.fetch(second_metadata.message_id)).to include(
+          'outcome' => 'failed', 'reason' => 'permanent', 'correlation_id' => second_metadata.message_id,
+          'attempt_count' => 1,
+        )
+      ensure
+        first_thread&.kill
+        first_thread&.join
+      end
+
+      it 'keeps the single sent event when acknowledgment raises after successful delivery' do
+        allow(Onetime::Mail).to receive(:deliver).and_return(double('response'))
+        allow(worker).to receive(:ack!).and_raise(StandardError, 'ack failed')
+        expect(Onetime::DeliveryEvent).to receive(:record).once.and_call_original
+
+        worker.work_with_params(message, delivery_info, metadata)
+
+        expect(worker.rejected?).to be true
+        expect(recorded.size).to eq(1)
+        expect(recorded.first).to include('outcome' => 'sent', 'message_id' => message_id, 'attempt_count' => 1)
+      end
+
+      it 'does not record again when recording fails and acknowledgment then raises' do
+        allow(Onetime::Mail).to receive(:deliver).and_return(double('response'))
+        allow(worker).to receive(:ack!).and_raise(StandardError, 'ack failed')
+        expect(Onetime::DeliveryEvent).to receive(:record).once
+          .with(hash_including(outcome: 'sent', message_id: message_id))
+          .and_raise(RedisClient::CannotConnectError, 'down')
+
+        worker.work_with_params(message, delivery_info, metadata)
+
+        expect(worker.rejected?).to be true
+        expect(recorded).to be_empty
+      end
+
+      it 'records nothing for a ping message' do
+        ping = JSON.generate(template: 'ping_test', data: { test: true, ping_id: 'ping-1' })
+        expect(worker).not_to receive(:claim_for_processing)
+        expect(Onetime::DeliveryEvent).not_to receive(:record)
+
+        worker.work_with_params(ping, delivery_info, metadata)
+
+        expect(worker.acked?).to be true
+        expect(Onetime::Mail).not_to have_received(:deliver)
+        expect(recorded).to be_empty
+      end
+
+      it 'does not reset an in-flight guard when another call starts before acknowledgment fails' do
+        first_at_ack = Queue.new
+        release_first_ack = Queue.new
+        second_started = Queue.new
+        release_second = Queue.new
+        worker_instance = worker
+        first_message = JSON.generate(template: 'secret_viewed', data: { secret_key: 'first' })
+        second_message = JSON.generate(template: 'secret_viewed', data: { secret_key: 'second' })
+        first_metadata = MetadataStub.new(message_id: "#{message_id}-first", headers: { 'x-schema-version' => 1 })
+        second_metadata = MetadataStub.new(message_id: "#{message_id}-second", headers: { 'x-schema-version' => 1 })
+        envelope = delivery_info
+        response = double('response')
+        allow(Onetime::Mail).to receive(:deliver) do |_template, data, **_options|
+          if data[:secret_key] == 'second'
+            second_started << true
+            release_second.pop
+          end
+          response
+        end
+        first_ack = true
+        allow(worker_instance).to receive(:ack!) do
+          if first_ack
+            first_ack = false
+            first_at_ack << true
+            release_first_ack.pop
+            raise StandardError, 'ack failed'
+          end
+        end
+
+        first_thread = Thread.new { worker_instance.work_with_params(first_message, envelope, first_metadata) }
+        Timeout.timeout(10) { first_at_ack.pop }
+        second_thread = Thread.new { worker_instance.work_with_params(second_message, envelope, second_metadata) }
+        Timeout.timeout(10) { second_started.pop }
+        release_first_ack << true
+        Timeout.timeout(10) { first_thread.value }
+        release_second << true
+        Timeout.timeout(10) { second_thread.value }
+
+        expect(recorded.size).to eq(2)
+        expect(recorded.map { |event| event['outcome'] }).to eq(%w[sent sent])
+        expect(recorded.map { |event| event['message_id'] }).to contain_exactly(
+          first_metadata.message_id, second_metadata.message_id,
+        )
+      ensure
+        first_thread&.kill
+        second_thread&.kill
+        first_thread&.join
+        second_thread&.join
+      end
+
+      it 'still acknowledges when event recording fails' do
+        allow(Onetime::Mail).to receive(:deliver).and_return(double('response'))
+        allow(Onetime::DeliveryEvent).to receive(:record).and_raise(RedisClient::CannotConnectError, 'down')
+
+        worker.work_with_params(message, delivery_info, metadata)
+
+        expect(worker.acked?).to be true
+        expect(worker.rejected?).to be false
       end
     end
   end

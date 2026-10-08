@@ -40,8 +40,8 @@
     "source_hash": "9feed9f1"
   },
   "web.admin.customers.actions.purge.confirmDescription": {
-    "text": "此操作将永久删除 {email} 及其所有数据。此操作无法撤销。",
-    "source_hash": "a74dd5d1"
+    "text": "此操作将请求永久删除 {email}。拆除账户前会先运行预检，如果某个工作区存在域名、账单状态、其他成员、保留的数据或不一致的引用，预检将拒绝彻底删除。重试前请检查并解决所有阻止因素。拆除开始后，此操作无法撤销。",
+    "source_hash": "7b4e5e37"
   },
   "web.admin.customers.actions.purge.success": {
     "text": "客户已彻底删除。",
@@ -60,8 +60,8 @@
     "source_hash": "227f57d7"
   },
   "web.admin.customers.actions.role.confirmDescription": {
-    "text": "将 {email} 更改为{role}角色。",
-    "source_hash": "9ba063c6"
+    "text": "将 {email} 更改为{role}角色。Colonel 角色拥有此安装实例上所有账户、内容和组织的完全管理权限。请在下方输入账户邮箱地址以确认。",
+    "source_hash": "0ed85b97"
   },
   "web.admin.customers.actions.role.success": {
     "text": "角色已更新。",
@@ -116,8 +116,8 @@
     "source_hash": "62ed2854"
   },
   "web.admin.customers.actions.unverify.confirmDescription": {
-    "text": "将 {email} 标记为未验证。",
-    "source_hash": "592ffd27"
+    "text": "将 {email} 标记为未验证。未验证的账户不能拥有 Colonel、管理员或员工角色，因此此操作还会移除其拥有的任何高级角色。请在下方输入账户邮箱地址以确认。",
+    "source_hash": "601f7382"
   },
   "web.admin.customers.actions.unverify.success": {
     "text": "客户已取消验证。",
@@ -568,8 +568,8 @@
     "source_hash": "69e69f49"
   },
   "web.admin.customers.detail.diagnostics.healthy": {
-    "text": "未发现阻断性问题。身份验证状态正常——请排查客户端问题（Cookie、自定义域名登录配置）或区域是否选错。",
-    "source_hash": "f6d5f8d1"
+    "text": "未发现阻断性问题。身份验证和组织上下文的证据均显示正常——请排查客户端问题（Cookie、自定义域名登录配置）或区域是否选错。",
+    "source_hash": "e0e8450e"
   },
   "web.admin.customers.detail.diagnostics.authUnavailable": {
     "text": "身份验证数据库不可用（简易身份验证模式）——已跳过 SQL 侧检查。",
@@ -690,5 +690,153 @@
   "web.admin.customers.verification.unverified": {
     "text": "未验证",
     "source_hash": "15133907"
+  },
+  "web.admin.customers.actions.impersonate.button": {
+    "text": "模拟客户身份",
+    "source_hash": "38a7cfbe"
+  },
+  "web.admin.customers.actions.impersonate.confirmTitle": {
+    "text": "开始身份模拟？",
+    "source_hash": "c6e4fa74"
+  },
+  "web.admin.customers.actions.impersonate.confirmDescription": {
+    "text": "将以 {email} 的身份打开一个限时的只读会话。在您停止之前，每个页面都会显示横幅，所有更改都会被禁止，且该会话会连同您填写的原因一起记录在审计日志中。",
+    "source_hash": "713c01b4"
+  },
+  "web.admin.customers.actions.impersonate.reasonLabel": {
+    "text": "原因（必填）",
+    "source_hash": "d976f5d9"
+  },
+  "web.admin.customers.actions.impersonate.reasonPlaceholder": {
+    "text": "为什么需要此会话？请附上工单编号。",
+    "source_hash": "89a4835d"
+  },
+  "web.admin.customers.actions.impersonate.success": {
+    "text": "身份模拟已开始。",
+    "source_hash": "b4662bcc"
+  },
+  "web.admin.customers.actions.impersonate.unavailable": {
+    "text": "Colonel、匿名和已暂停的账户无法使用身份模拟。",
+    "source_hash": "fb6578b2"
+  },
+  "web.admin.customers.actions.purge.refused": {
+    "text": "已拒绝彻底删除。客户已保留，请先解决阻止因素再重试。",
+    "source_hash": "8e8a2ae1"
+  },
+  "web.admin.customers.actions.purge.partial": {
+    "text": "彻底删除在部分清理完成后停止。请勿报告成功，也不要盲目重试，请检查已完成的阶段和阻止因素。",
+    "source_hash": "a88fd15b"
+  },
+  "web.admin.customers.actions.purge.incomplete": {
+    "text": "彻底删除未完成（状态：{status}）。重试前请检查生命周期详情。",
+    "source_hash": "c0c3d287"
+  },
+  "web.admin.customers.actions.purge.unreadableResult": {
+    "text": "服务器返回了无法读取的彻底删除结果。系统未报告成功，重试前请核实客户和工作区的状态。",
+    "source_hash": "cc837a77"
+  },
+  "web.admin.customers.actions.purge.resultStage": {
+    "text": "停止于阶段：{stage}。",
+    "source_hash": "d0e313bf"
+  },
+  "web.admin.customers.actions.purge.resultBlockers": {
+    "text": "阻止因素：{blockers}。",
+    "source_hash": "00c1e196"
+  },
+  "web.admin.customers.actions.purge.resultPlannedActions": {
+    "text": "计划的清理：{actions}。",
+    "source_hash": "6915205d"
+  },
+  "web.admin.customers.actions.purge.resultActions": {
+    "text": "已完成的清理：{actions}。",
+    "source_hash": "d34121b3"
+  },
+  "web.admin.customers.actions.purge.resultCompletedStages": {
+    "text": "已完成的阶段：{stages}。",
+    "source_hash": "67f68860"
+  },
+  "web.admin.customers.actions.role.button": {
+    "text": "更改角色",
+    "source_hash": "a43a8d8c"
+  },
+  "web.admin.customers.actions.role.selfDemote": {
+    "text": "您无法降级自己的 Colonel 账户。请让另一位 Colonel 执行此操作，或运行 `bin/ots customers role demote`。",
+    "source_hash": "3e75d01b"
+  },
+  "web.admin.customers.actions.role.lastColonel": {
+    "text": "您无法降级最后一位 Colonel——否则此安装实例将没有管理员。请先提升并验证另一个账户。",
+    "source_hash": "9c59c731"
+  },
+  "web.admin.customers.actions.unverify.selfUnverify": {
+    "text": "您无法取消验证自己的账户：拥有 Colonel 角色需要已验证的邮箱。",
+    "source_hash": "8ab024fe"
+  },
+  "web.admin.customers.actions.unverify.lastColonel": {
+    "text": "您无法取消验证最后一位 Colonel——未验证的账户不能拥有 Colonel 角色。请先提升并验证另一个账户。",
+    "source_hash": "fc404616"
+  },
+  "web.admin.customers.detail.diagnostics.organizationContextBlocked": {
+    "text": "组织上下文受阻或不完整。在将此账户视为正常之前，请检查已索引的工作区，并修复所有权、成员资格或联系邮箱索引的偏差。",
+    "source_hash": "5c5c89be"
+  },
+  "web.admin.customers.detail.diagnostics.organization": {
+    "text": "工作区：{id}",
+    "source_hash": "6ee50fe9"
+  },
+  "web.admin.customers.detail.diagnostics.remediation": {
+    "text": "修复措施：{action}",
+    "source_hash": "83ddc7d7"
+  },
+  "web.admin.customers.detail.fields.internalId": {
+    "text": "内部 ID",
+    "source_hash": "e468bb47"
+  },
+  "web.admin.customers.detail.organizations.open": {
+    "text": "打开",
+    "source_hash": "ed077f3d"
+  },
+  "web.admin.customers.detail.rodauthAdmin.open": {
+    "text": "在 Rodauth Admin 中打开",
+    "source_hash": "467173c8"
+  },
+  "web.admin.customers.detail.sessions.revokeAll.selfDescription": {
+    "text": "此操作将把您从所有其他设备和浏览器中登出，包括未在此列表中显示的会话。您当前正在使用的会话将被保留。",
+    "source_hash": "ae350040"
+  },
+  "web.admin.customers.list.capped": {
+    "text": "结果数量有上限：显示的数量为下限，而非总数。请缩小搜索或筛选范围以查看全部结果。",
+    "source_hash": "27537844"
+  },
+  "web.admin.customers.list.orphanedAccounts.title": {
+    "text": "身份验证数据库中的账户没有对应的客户记录",
+    "source_hash": "82cf7a27"
+  },
+  "web.admin.customers.list.orphanedAccounts.hint": {
+    "text": "身份验证数据库中存有此地址的账户，但没有与之对应的客户记录。此人仍可登录，但客户索引中没有其任何信息。请打开该地址进行诊断。",
+    "source_hash": "0f903f23"
+  },
+  "web.admin.customers.list.orphanedAccounts.diagnose": {
+    "text": "打开账户诊断",
+    "source_hash": "55b3e826"
+  },
+  "web.admin.customers.list.orphanedAccounts.accountId": {
+    "text": "账户 #{id}",
+    "source_hash": "485dee3c"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unverified": {
+    "text": "未验证",
+    "source_hash": "33c8e8de"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.verified": {
+    "text": "已验证",
+    "source_hash": "4f783840"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.closed": {
+    "text": "已关闭",
+    "source_hash": "c21ead06"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unknown": {
+    "text": "未知",
+    "source_hash": "b764cdc0"
   }
 }

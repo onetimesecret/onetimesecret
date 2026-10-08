@@ -1,0 +1,46 @@
+{
+  "web.admin.elevation.banner.active": {
+    "text": "גישה מורחבת פעילה — נותרו {remaining}",
+    "source_hash": "3e446719"
+  },
+  "web.admin.elevation.banner.activeRecentAuth": {
+    "text": "גישה מורחבת ללא סיסמה (התחברות אחרונה) — נותרו {remaining}",
+    "source_hash": "6bc7f4ca"
+  },
+  "web.admin.elevation.banner.drop": {
+    "text": "בטל גישה מורחבת",
+    "source_hash": "b4960d01"
+  },
+  "web.admin.elevation.errors.noPassword": {
+    "text": "לחשבון זה אין סיסמה, ולכן אין באפשרותו להשלים אימות מוגבר.",
+    "source_hash": "ba0d40e8"
+  },
+  "web.admin.elevation.errors.noGrace": {
+    "text": "בקש ממנהל להגדיר את COLONEL_ELEVATION_REAUTH_GRACE, או להשבית את האימות המוגבר באמצעות COLONEL_ELEVATION_ENABLED=false.",
+    "source_hash": "ac501a95"
+  },
+  "web.admin.elevation.errors.failed": {
+    "text": "האימות המוגבר נכשל. פעולות הרסניות נשארות נעולות.",
+    "source_hash": "f17909ec"
+  },
+  "web.admin.elevation.prompt.title": {
+    "text": "אשר שזה אתה",
+    "source_hash": "6176eec2"
+  },
+  "web.admin.elevation.prompt.description": {
+    "text": "פעולה זו הרסנית. הזן מחדש את הסיסמה שלך כדי לבטל את נעילת הפעולות ההרסניות ל-{minutes} הדקות הבאות.",
+    "source_hash": "2e85bbdd"
+  },
+  "web.admin.elevation.prompt.confirm": {
+    "text": "בטל נעילה",
+    "source_hash": "4ac709aa"
+  },
+  "web.admin.elevation.prompt.confirmItsYou": {
+    "text": "אשר שזה אני",
+    "source_hash": "f718279a"
+  },
+  "web.admin.elevation.prompt.confirmItsYouDescription": {
+    "text": "לחשבון שלך אין סיסמה. אשר כדי לבטל את נעילת הפעולות ההרסניות ל-{minutes} הדקות הבאות.",
+    "source_hash": "d8d63a3a"
+  }
+}

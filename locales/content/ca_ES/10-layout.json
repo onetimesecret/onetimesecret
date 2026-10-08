@@ -350,5 +350,17 @@
   "web.layout.colonels_only_badge": {
     "text": "Només colonels",
     "source_hash": "3f1e2dbd"
+  },
+  "web.footer.dpa": {
+    "text": "Acord de tractament de dades",
+    "source_hash": "112eae6b"
+  },
+  "web.footer.cookie_policy": {
+    "text": "Política de galetes",
+    "source_hash": "ee290b3d"
+  },
+  "web.footer.acceptable_use": {
+    "text": "Política d'ús acceptable",
+    "source_hash": "34aa287a"
   }
 }

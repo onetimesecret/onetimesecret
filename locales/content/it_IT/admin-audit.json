@@ -134,5 +134,17 @@
   "web.admin.audit.list.contractError": {
     "text": "Il server ha risposto, ma i dati di audit non corrispondono al formato previsto. Non è possibile mostrare alcun evento: si tratta di un errore di reportistica, non di un registro vuoto.",
     "source_hash": "7f48137e"
+  },
+  "web.admin.audit.export.csv": {
+    "text": "Esporta CSV",
+    "source_hash": "91f71c14"
+  },
+  "web.admin.audit.export.ndjson": {
+    "text": "Esporta NDJSON",
+    "source_hash": "3ee2c07c"
+  },
+  "web.admin.audit.export.hint": {
+    "text": "Le esportazioni coprono l'intero registro conservato con i filtri attuali, non solo questa pagina. La conservazione è limitata: la cronologia più lunga si trova nella destinazione del registro di controllo.",
+    "source_hash": "163e8ad0"
   }
 }

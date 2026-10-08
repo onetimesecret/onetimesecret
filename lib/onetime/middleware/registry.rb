@@ -6,8 +6,10 @@
 # Central registry of security/middleware components.
 #
 # This is the single component table that middleware consumers draw from.
-# It is consumed by Onetime::Middleware::Security (which mounts the nine
-# config-toggled protections) and by the per-app middleware profiles
+# It is consumed by Onetime::Middleware::Security (which mounts eight of the
+# config-toggled protections), by Onetime::Application::MiddlewareStack
+# (which mounts CookieTossing above the session middleware), and by the
+# per-app middleware profiles
 # (Onetime::Application::MiddlewareProfile), which replaced the ad-hoc
 # environment-conditional `use` blocks (e.g. apps/web/auth/application.rb's
 # former production-only stack).
@@ -90,7 +92,8 @@ module Onetime
         #   forge, so no CSRF vector (Basic-Auth API-key clients, anonymous/programmatic
         #   callers, unauthenticated secret recipients, the /api/incoming/* inbound surface)
         # - Web/SPA + session-authenticated API routes: Must include X-CSRF-Token header
-        #   (Axios interceptor) or 'shrimp' form param
+        #   (Axios interceptor) or 'shrimp' form param, whatever Authorization header
+        #   the request also carries
         #
         # Note: API v1 has no session/cookie auth (Basic Auth or anonymous only), so v1
         # requests never carry an authenticated session and always bypass. API v2/v3
@@ -124,18 +127,31 @@ module Onetime
               # forge against. A CSRF attack rides the victim's session cookie, so the
               # discriminator MUST be the authenticated session — not merely the presence
               # of an Authorization header.
-              #   - Basic Auth (API key): a stateless credential sent explicitly per
-              #     request; no ambient cookie => no CSRF vector => bypass.
-              #   - No authenticated session cookie (anonymous/programmatic clients, v1
-              #     which has no session auth, unauthenticated secret recipients, and the
-              #     entire /api/incoming/* inbound surface): nothing to forge => bypass.
+              #   - No authenticated session cookie (Basic Auth API-key clients,
+              #     anonymous/programmatic clients, v1 which has no session auth
+              #     STRATEGY, unauthenticated secret recipients, and the entire
+              #     /api/incoming/* inbound surface): nothing to forge => bypass.
+              #     BasicAuthStrategy never marks the session authenticated, so an
+              #     API-key client keeping a cookie jar still bypasses.
               #   - Session-cookie-authenticated API request (logged-in SPA user): fall
               #     through and require a valid X-CSRF-Token. The SPA sends it on every
               #     request (axios interceptor), so this does not break the app; it only
               #     rejects a forged cross-site request that presents no token.
+              #     An Authorization header does not exempt it: every route chain that
+              #     includes `sessionauth` lists it before `basicauth`, so the session
+              #     answers and the header is never read; a session-only route ignores
+              #     the header entirely. NOTE: the discriminator is the authenticated
+              #     session, not the route's auth chain. `Onetime::Session` sits in the
+              #     universal stack (application/middleware_stack.rb), so EVERY /api/
+              #     request carries `rack.session` even on surfaces (v1, basicauth-only
+              #     routes) that never consult it to authenticate. A client that holds
+              #     an authenticated web-session cookie AND presents `Authorization:
+              #     Basic` is therefore required to send the token, even though the
+              #     route authenticates on the key alone; it must send the token or use
+              #     a cookie jar separate from its browser login. This is intended: a
+              #     request carrying a forgeable ambient credential is treated as
+              #     forgeable regardless of what else it carries.
               if req.path.start_with?('/api/')
-                return true if env['HTTP_AUTHORIZATION'].to_s.start_with?('Basic ')
-
                 session = env['rack.session']
                 return true unless session && session['authenticated'] == true
                 # else: session-authenticated API request -> fall through, require token
@@ -251,6 +267,8 @@ module Onetime
         # host cannot compete with the real one. Onetime::Middleware::
         # CookieTossing binds the gem's check to site.session.key and gives it
         # per-request state (see that file). On by default since v0.26.14.
+        # Mounted by MiddlewareStack directly above Onetime::Session, not by
+        # Security.
         'CookieTossing' => {
           key: :cookie_tossing,
           klass: Onetime::Middleware::CookieTossing,

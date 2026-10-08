@@ -1,0 +1,56 @@
+# Call after checkout; the caller needs contents: read and pull-requests: read.
+# Callers own event triggers. None of them listens for label events: the
+# ci:auth label is read live, so it applies to a re-run or to the next push.
+name: Detect auth changes
+description: Select shared auth coverage from cumulative PR paths, the PR's current labels, or forcing.
+
+inputs:
+  force:
+    description: 'Run auth regardless of paths; only the strings true and false are accepted.'
+    required: false
+    default: 'false'
+
+outputs:
+  auth:
+    description: 'Boolean string indicating whether auth coverage must run.'
+    value: ${{ steps.compute.outputs.auth }}
+  reason:
+    description: 'Selection reason: event:<event>, force, label:ci:auth, paths, or no-auth-changes.'
+    value: ${{ steps.compute.outputs.reason }}
+
+runs:
+  using: composite
+  steps:
+    # The pulls API returns the cumulative PR diff, not just the latest commit.
+    # Never invoke git detection for events whose coverage is unconditional.
+    - name: Filter cumulative PR paths
+      id: filter
+      if: github.event_name == 'pull_request'
+      uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+      with:
+        filters: .github/auth-paths.yml
+
+    # The event payload's labels are frozen when the run is created. Ask the
+    # API instead, so a label added after the run started is seen by a re-run.
+    - name: Read current PR labels
+      id: labels
+      if: github.event_name == 'pull_request'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+      run: bash .github/scripts/read-pr-labels.sh
+
+    - name: Compute auth selection
+      id: compute
+      shell: bash
+      env:
+        # A skipped filter has no output. Supply false only off the PR path;
+        # missing/malformed PR outputs must reach the script and fail closed.
+        FILTER_AUTH: ${{ github.event_name != 'pull_request' && 'false' || steps.filter.outputs.auth }}
+        FORCE_AUTH: ${{ inputs.force }}
+        EVENT_NAME: ${{ github.event_name }}
+        # Other events have no labels: pass an explicit array. A PR whose
+        # lookup produced nothing reaches the script empty and fails closed.
+        LABELS_JSON: ${{ github.event_name != 'pull_request' && '[]' || steps.labels.outputs.json }}
+      run: bash .github/scripts/compute-auth-selection.sh

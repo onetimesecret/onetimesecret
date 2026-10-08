@@ -176,8 +176,8 @@
     "source_hash": "0c6605c1"
   },
   "web.admin.sessions.revoke.confirmDescription": {
-    "text": "Ka takiputa tonu tēnei i te kaiwhakamahi mā te muku i te wātū {id}. Patohia te ID wātū hei whakaū.",
-    "source_hash": "9e08b1b8"
+    "text": "Ka takiputa tonu tēnei i te kaiwhakamahi mā te whakakore i te wātū {id}. Pātōhia te {token} hei whakaū.",
+    "source_hash": "80578692"
   },
   "web.admin.sessions.revoke.success": {
     "text": "Kua whakakorea te wātū",
@@ -188,12 +188,12 @@
     "source_hash": "34cb67a4"
   },
   "web.admin.sessions.scan.capped": {
-    "text": "Kua tepea te matawai ki ngā kī tuatahi {scanned} — kāore ngā wātū kua whakamotuhēhētia kei tua atu i tēnei matapihi e whakarārangihia. Tirohia tētahi wātū motuhake mā te ID kia tae atu ki reira.",
-    "source_hash": "fa418b4e"
+    "text": "Kua tepea te matawai ki ngā kī tuatahi {scanned} — kāore ngā wātū kua whakamotuhēhētia kei tua atu i tēnei matapihi e whakarārangihia. Whakaitihia te rapunga kia tae atu ki a rātou.",
+    "source_hash": "7a8d6fd5"
   },
   "web.admin.sessions.search.placeholder": {
-    "text": "Rapua mā te īmēra, ID ā-waho rānei",
-    "source_hash": "f2dc5c06"
+    "text": "Rapua mā te īmēra, te ID ā-waho, te kakau wātū rānei",
+    "source_hash": "4894dec4"
   },
   "web.admin.sessions.sections.session": {
     "text": "Wātū",
@@ -210,5 +210,45 @@
   "web.admin.sessions.status.anonymous": {
     "text": "Ingoakore",
     "source_hash": "e7a8aa2d"
+  },
+  "web.admin.sessions.authority.title": {
+    "text": "Ehara i te mana wātū i te aratau whakamotuhēhē full",
+    "source_hash": "796fb07f"
+  },
+  "web.admin.sessions.authority.description": {
+    "text": "Ko tēnei rārangi te pātaka wātū Redis. Ina tautuhia te aratau whakamotuhēhē ki te full, kei te pātengi raraunga pūkete Rodauth te tūnga wātū whai mana, ā, kāore tēnei papatono e pānui i taua pātengi. Kāore pea e puta i konei ngā pūkete i takiuru mā Rodauth, ā, ki te whakakorea he wātū i konei, kāore e mutu tētahi wātū Rodauth.",
+    "source_hash": "77bc4904"
+  },
+  "web.admin.sessions.authority.descriptionRevokeAll": {
+    "text": "Ko tēnei rārangi te pātaka wātū Redis. Ina tautuhia te aratau whakamotuhēhē ki te full, kei te pātengi raraunga pūkete Rodauth te tūnga wātū whai mana, ā, kāore tēnei papatono e pānui i taua pātengi. Kāore pea e puta i konei ngā pūkete i takiuru mā Rodauth, ā, ki te whakakorea he wātū kotahi i konei, kāore e mutu tōna wātū Rodauth. Ka whakamutu hoki te Whakakore katoa i ngā wātū Rodauth o te pūkete.",
+    "source_hash": "f964663d"
+  },
+  "web.admin.sessions.authority.openAdmin": {
+    "text": "Whakatuwhera Rodauth Admin",
+    "source_hash": "ce523836"
+  },
+  "web.admin.sessions.authority.notConfigured": {
+    "text": "Tautuhia te RODAUTH_ADMIN_URL kia hono atu ki Rodauth Admin mai i konei.",
+    "source_hash": "c070dbfb"
+  },
+  "web.admin.sessions.columns.sessionHandle": {
+    "text": "Kakau Wātū",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.errors.scanCapped": {
+    "text": "Kāore i kitea tēnei wātū i te mokowā kī i tauiratia. Whakatuwheratia mai i tōna rārangi i te rārangi kia taea ai te whakamahi i te rangatira hei rapu i a ia.",
+    "source_hash": "67b73f7f"
+  },
+  "web.admin.sessions.fields.sessionHandle": {
+    "text": "Kakau Wātū",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.revoke.ownSession": {
+    "text": "Ko tēnei tō ake wātū. Ki te whakakorea, ka takiputa koe — whakamahia kē te takiputa.",
+    "source_hash": "a6762292"
+  },
+  "web.admin.sessions.rodauthAdmin.open": {
+    "text": "Whakatuwhera i Rodauth Admin",
+    "source_hash": "467173c8"
   }
 }

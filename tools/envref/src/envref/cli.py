@@ -18,6 +18,7 @@ entry point.
 """
 
 import os
+import signal
 import subprocess
 import sys
 
@@ -51,8 +52,48 @@ def _run_sh(script: str, argv: list[str]) -> int:
         print(f"FAIL: {exc}", file=sys.stderr)
         return 2
     env = dict(os.environ, ENVREF_REPO_ROOT=str(root))
-    proc = subprocess.run(["bash", str(sh_script(script)), *argv], cwd=root, env=env, check=False)
-    return proc.returncode
+    if script != "check-config-versions.sh":
+        proc = subprocess.run(
+            ["bash", str(sh_script(script)), *argv],
+            cwd=root,
+            env=env,
+            check=False,
+        )
+        return proc.returncode
+
+    child = None
+    cancelled = 0
+
+    def cancel(signum, _frame):
+        nonlocal cancelled
+        if cancelled:
+            return
+        cancelled = signum
+        if child is not None:
+            # The shell owns its query supervisor and reaps it on TERM. Forward
+            # INT as TERM too: asynchronous Bash children can inherit ignored INT.
+            try:
+                child.terminate()
+            except ProcessLookupError:
+                pass
+
+    previous = {
+        sig: signal.signal(sig, cancel)
+        for sig in (signal.SIGINT, signal.SIGTERM)
+    }
+    try:
+        if not cancelled:
+            with subprocess.Popen(
+                ["bash", str(sh_script(script)), *argv], cwd=root, env=env
+            ) as child:
+                if cancelled:
+                    child.terminate()
+                status = child.wait()
+            return 128 + cancelled if cancelled else status
+        return 128 + cancelled
+    finally:
+        for sig, handler in previous.items():
+            signal.signal(sig, handler)
 
 
 @app.command(name="check")
@@ -64,6 +105,8 @@ def check(*, print_sites: bool = False) -> int:
 
     Reads CONFIG_VERSION_BASE_REF, CONFIG_VERSION_REQUIRE_BASE and
     GITHUB_BASE_REF from the environment; see the script header for the order.
+    Select the release authority with CONFIG_VERSION_RELEASE_REMOTE or
+    git config envref.releaseRemote. There is no implicit origin authority.
 
     Parameters
     ----------
@@ -73,7 +116,9 @@ def check(*, print_sites: bool = False) -> int:
         walk saying what it saw, so it can be compared against the two Python
         walks; test_yaml_walkers.py asserts they agree.
     """
-    return _run_sh("check-config-versions.sh", ["--print-sites"] if print_sites else [])
+    return _run_sh(
+        "check-config-versions.sh", ["--print-sites"] if print_sites else []
+    )
 
 
 @app.command(name="archaeology")

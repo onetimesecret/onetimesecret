@@ -176,8 +176,8 @@
     "source_hash": "0c6605c1"
   },
   "web.admin.sessions.revoke.confirmDescription": {
-    "text": "Detta loggar omedelbart ut användaren genom att radera session {id}. Skriv sessions-ID:t för att bekräfta.",
-    "source_hash": "9e08b1b8"
+    "text": "Detta loggar omedelbart ut användaren genom att återkalla session {id}. Skriv {token} för att bekräfta.",
+    "source_hash": "80578692"
   },
   "web.admin.sessions.revoke.success": {
     "text": "Sessionen har återkallats",
@@ -188,12 +188,12 @@
     "source_hash": "34cb67a4"
   },
   "web.admin.sessions.scan.capped": {
-    "text": "Skanningen begränsades till de första {scanned} nycklarna – autentiserade sessioner utanför det här fönstret listas inte. Inspektera en specifik session med dess ID för att nå den.",
-    "source_hash": "fa418b4e"
+    "text": "Genomsökningen begränsades till de första {scanned} nycklarna – autentiserade sessioner utanför det här fönstret listas inte. Begränsa sökningen för att nå dem.",
+    "source_hash": "7a8d6fd5"
   },
   "web.admin.sessions.search.placeholder": {
-    "text": "Sök efter e-post eller externt ID",
-    "source_hash": "f2dc5c06"
+    "text": "Sök efter e-post, externt ID eller sessionshandtag",
+    "source_hash": "4894dec4"
   },
   "web.admin.sessions.sections.session": {
     "text": "Session",
@@ -210,5 +210,45 @@
   "web.admin.sessions.status.anonymous": {
     "text": "Anonym",
     "source_hash": "e7a8aa2d"
+  },
+  "web.admin.sessions.authority.title": {
+    "text": "Inte sessionsauktoriteten i fullständigt autentiseringsläge",
+    "source_hash": "796fb07f"
+  },
+  "web.admin.sessions.authority.description": {
+    "text": "Den här listan är Redis-sessionslagret. När autentiseringsläget är inställt på full finns det auktoritativa sessionstillståndet i Rodauths kontodatabas, som den här konsolen inte läser. Konton som loggat in via Rodauth kanske inte visas här, och att återkalla en session här avslutar inte en Rodauth-session.",
+    "source_hash": "77bc4904"
+  },
+  "web.admin.sessions.authority.descriptionRevokeAll": {
+    "text": "Den här listan är Redis-sessionslagret. När autentiseringsläget är inställt på full finns det auktoritativa sessionstillståndet i Rodauths kontodatabas, som den här konsolen inte läser. Konton som loggat in via Rodauth kanske inte visas här, och att återkalla en enskild session här avslutar inte dess Rodauth-session. Återkalla alla avslutar även kontots Rodauth-sessioner.",
+    "source_hash": "f964663d"
+  },
+  "web.admin.sessions.authority.openAdmin": {
+    "text": "Öppna Rodauth Admin",
+    "source_hash": "ce523836"
+  },
+  "web.admin.sessions.authority.notConfigured": {
+    "text": "Ställ in RODAUTH_ADMIN_URL för att länka till Rodauth Admin härifrån.",
+    "source_hash": "c070dbfb"
+  },
+  "web.admin.sessions.columns.sessionHandle": {
+    "text": "Sessionshandtag",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.errors.scanCapped": {
+    "text": "Den här sessionen hittades inte i det genomsökta urvalet av nyckelrymden. Öppna den från dess rad i listan så att ägaren kan användas för att slå upp den.",
+    "source_hash": "67b73f7f"
+  },
+  "web.admin.sessions.fields.sessionHandle": {
+    "text": "Sessionshandtag",
+    "source_hash": "2f08034d"
+  },
+  "web.admin.sessions.revoke.ownSession": {
+    "text": "Det här är din egen session. Om du återkallar den loggas du ut – använd utloggning i stället.",
+    "source_hash": "a6762292"
+  },
+  "web.admin.sessions.rodauthAdmin.open": {
+    "text": "Öppna i Rodauth Admin",
+    "source_hash": "467173c8"
   }
 }

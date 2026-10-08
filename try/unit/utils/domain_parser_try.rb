@@ -102,6 +102,22 @@ Onetime::Utils::DomainParser.extract_hostname('https://')
 Onetime::Utils::DomainParser.extract_hostname('http://user:pass@')
 #=> nil
 
+## Extract hostname returns nil for a plain authority with userinfo (not host "user")
+Onetime::Utils::DomainParser.extract_hostname('user:pw@example.com')
+#=> nil
+
+## Extract hostname returns nil for a plain authority with a user and no password
+Onetime::Utils::DomainParser.extract_hostname('user@example.com')
+#=> nil
+
+## Extract hostname still reads the host of a URL with userinfo
+Onetime::Utils::DomainParser.extract_hostname('https://user:pw@example.com/path')
+#=> 'example.com'
+
+## A plain authority with userinfo is within no domain
+Onetime::Utils::DomainParser.hostname_within_domain?('example.com:pw@evil.test', 'example.com')
+#=> false
+
 ## Extract hostname returns nil for scheme-only URL
 Onetime::Utils::DomainParser.extract_hostname('ftp://')
 #=> nil

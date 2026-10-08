@@ -48,12 +48,12 @@
     "source_hash": "acaede35"
   },
   "web.admin.domains.addDomain.strategy.caddy_on_demand": {
-    "text": "Caddy on-demand — certifikater udstedes automatisk ved første anmodning.",
-    "source_hash": "deb90ae6"
+    "text": "Caddy on-demand — DNS-ejerskabskontrol (TXT-post); certifikater udstedes automatisk, når domænet er bekræftet.",
+    "source_hash": "1c926efa"
   },
   "web.admin.domains.addDomain.strategy.caddy": {
-    "text": "Caddy — certifikater udstedes automatisk ved første anmodning.",
-    "source_hash": "a0f3c2dc"
+    "text": "Caddy — DNS-ejerskabskontrol (TXT-post); certifikater udstedes automatisk, når domænet er bekræftet.",
+    "source_hash": "5774ff90"
   },
   "web.admin.domains.addDomain.strategy.unknown": {
     "text": "Valideringsstrategi for hele installationen.",
@@ -842,5 +842,81 @@
   "web.admin.domains.tls.none": {
     "text": "Serverer ikke",
     "source_hash": "da8a5ab9"
+  },
+  "web.admin.domains.configs.edit.originsHint": {
+    "text": "Én oprindelse per linje, inklusive skemaet, for eksempel https://vault.example.com. En oprindelse på en anden organisations domæne afvises.",
+    "source_hash": "4a4e1d33"
+  },
+  "web.admin.domains.configs.fields.related_origins": {
+    "text": "Relaterede oprindelser for adgangsnøgler",
+    "source_hash": "e6160714"
+  },
+  "web.admin.domains.dns.cnameStepInstall": {
+    "text": "2. Tilføj en CNAME-post, der peger underdomænet mod denne installation.",
+    "source_hash": "b8a329f9"
+  },
+  "web.admin.domains.dns.aliasStepInstall": {
+    "text": "2. Tilføj en ALIAS- eller ANAME-post, der peger apex mod denne installation.",
+    "source_hash": "9a61ed66"
+  },
+  "web.admin.domains.dns.apexNote": {
+    "text": "Et apex-domæne kan ikke have en CNAME-post. Hvis DNS-udbyderen ikke har ALIAS- eller ANAME-poster, gør en A-post til denne servers IP-adresse samme nytte.",
+    "source_hash": "f69e3032"
+  },
+  "web.admin.domains.fields.verifiedByOverride": {
+    "text": "Ja (tilsidesat af operatør)",
+    "source_hash": "a1a8644f"
+  },
+  "web.admin.domains.list.capped": {
+    "text": "Resultaterne er begrænset: det viste antal er et minimum, ikke totalen. Indsnævr søgningen eller filteret for at se alt.",
+    "source_hash": "27537844"
+  },
+  "web.admin.domains.override.button": {
+    "text": "Tilsidesæt status",
+    "source_hash": "c683774c"
+  },
+  "web.admin.domains.override.title": {
+    "text": "Tilsidesæt bekræftelsesstatus",
+    "source_hash": "66dbebb2"
+  },
+  "web.admin.domains.override.description": {
+    "text": "Angiv manuelt flagene for bekræftet og opslag for dette domæne. Brug med forsigtighed.",
+    "source_hash": "bc3eb719"
+  },
+  "web.admin.domains.override.verified": {
+    "text": "Bekræftet",
+    "source_hash": "4f783840"
+  },
+  "web.admin.domains.override.resolving": {
+    "text": "Slår op",
+    "source_hash": "3287a034"
+  },
+  "web.admin.domains.override.apply": {
+    "text": "Anvend tilsidesættelse",
+    "source_hash": "e2d1472a"
+  },
+  "web.admin.domains.override.cancel": {
+    "text": "Annuller",
+    "source_hash": "19766ed6"
+  },
+  "web.admin.domains.override.success": {
+    "text": "Domænestatus tilsidesat.",
+    "source_hash": "42104cd0"
+  },
+  "web.admin.domains.override.noChange": {
+    "text": "Ingen ændringer at anvende.",
+    "source_hash": "07632d50"
+  },
+  "web.admin.domains.verify.success.indeterminate": {
+    "text": "DNS-kontrollen returnerede intet resultat for {domain}. Domænets bekræftelsesstatus blev ikke ændret.",
+    "source_hash": "9c5ab974"
+  },
+  "web.admin.domains.verify.success.overrideHeld": {
+    "text": "TXT-kontrollen mislykkedes for {domain}, men domænet forbliver bekræftet på grund af en tilsidesættelse fra en operatør.",
+    "source_hash": "e754aac8"
+  },
+  "web.admin.domains.verify.success.confirmationExpired": {
+    "text": "DNS-kontrollen for {domain} har ikke returneret noget resultat i mere end 7 dage. Domænet er ikke længere bekræftet.",
+    "source_hash": "a6901cb5"
   }
 }

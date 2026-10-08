@@ -191,7 +191,7 @@ result = Onetime::Mail.deliver(:feedback_email, {
   message: @feedback_message,
   display_domain: @feedback_domain
 })
-result[:status]
+result.response[:status]
 #=> 'logged'
 
 ## Mailer.deliver with :feedback_email returns correct recipient (colonel)
@@ -202,7 +202,7 @@ result = Onetime::Mail.deliver(:feedback_email, {
   message: @feedback_message,
   display_domain: @feedback_domain
 })
-result[:to]
+result.response[:to]
 #=> @recipient_email
 
 ## FeedbackEmail to_email builds correct hash with colonel as recipient

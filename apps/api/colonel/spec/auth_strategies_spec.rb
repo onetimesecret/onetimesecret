@@ -16,7 +16,8 @@ RSpec.describe ColonelAPI::AuthStrategies::SessionAuthStrategy do
       'REMOTE_ADDR' => '10.0.0.4',
       'HTTP_HOST' => 'origin.example.test',
       'HTTP_X_FORWARDED_FOR' => '203.0.113.9',
-      'HTTP_APX_INCOMING_HOST' => 'tenant.example.test',
+      'HTTP_APX_INCOMING_HOST' => 'ignored.example.test',
+      'HTTP_X_OTS_PROXY_DEBUG_RECEIVED_APX_INCOMING_HOST' => 'tenant.example.test',
       'HTTP_X_OTS_PROXY_DEBUG_PEER' => '198.51.100.10',
       'otto.client_ip' => '203.0.113.0',
       'otto.via_trusted_proxy' => true,
@@ -38,7 +39,7 @@ RSpec.describe ColonelAPI::AuthStrategies::SessionAuthStrategy do
           'x-ots-proxy-debug-received-x-real-ip' => nil,
           'x-ots-proxy-debug-received-x-client-ip' => nil,
           'x-ots-proxy-debug-received-forwarded' => nil,
-          'x-ots-proxy-debug-received-apx-incoming-host' => nil,
+          'x-ots-proxy-debug-received-apx-incoming-host' => 'tenant.example.test',
         },
         rack: {
           remote_addr: '10.0.0.4',
@@ -55,9 +56,21 @@ RSpec.describe ColonelAPI::AuthStrategies::SessionAuthStrategy do
           'x-real-ip' => nil,
           'x-client-ip' => nil,
           'forwarded' => nil,
-          'apx-incoming-host' => 'tenant.example.test',
         },
       )
+    end
+
+    it 'reports the Host the server received on a request PublicHostRewrite rewrote' do
+      env['onetime.original_http_host'] = env['HTTP_HOST']
+      env['HTTP_HOST']                  = 'tenant.example.test'
+
+      metadata = strategy.send(:build_metadata, env)
+
+      expect(metadata[:proxy_header_debug][:request_headers]['host']).to eq('origin.example.test')
+    end
+
+    it 'reads the received Host through the env key the middleware writes' do
+      expect(described_class::ORIGINAL_HTTP_HOST).to eq(Onetime::Middleware::PublicHostRewrite::ORIGINAL_HTTP_HOST)
     end
 
     it 'reports the carriers StripForwardedHost deleted, by wire name' do
@@ -76,6 +89,13 @@ RSpec.describe ColonelAPI::AuthStrategies::SessionAuthStrategy do
       # diagnostics silently went back to "permanently absent".
       expect([described_class::STRIPPED_FORWARDED_HEADERS, Onetime::Session::STRIPPED_FORWARDED_HEADERS])
         .to all(eq(Onetime::Middleware::StripForwardedHost::STRIPPED_HEADERS))
+    end
+
+    it 'names the same forwarded scheme carriers in Session as the middleware deletes' do
+      # Session's dropped-secure-cookie warning picks the scheme carriers out
+      # of the stripped-name record by its own list.
+      expect(Onetime::Session::FORWARDED_SCHEME_HEADERS)
+        .to eq(Onetime::Middleware::StripForwardedHost::FORWARDED_SCHEME_HEADERS)
     end
 
     it 'reads detected_host through the configurable result field name' do

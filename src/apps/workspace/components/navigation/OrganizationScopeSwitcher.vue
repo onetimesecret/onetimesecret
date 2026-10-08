@@ -132,6 +132,14 @@ const orgById = computed<Record<string, Organization>>(() => {
 const orgForId = (id: string): Organization | undefined => orgById.value[id];
 
 /**
+ * Whether the settings route (/org/:extid, requiresOrgRole: 'admin') will let
+ * this user in: the org has an extid to navigate to and the user is its owner
+ * or an admin. An unknown role gets no gear.
+ */
+const canOpenSettings = (org: Organization): boolean =>
+  !!org.extid && (org.current_user_role === 'owner' || org.current_user_role === 'admin');
+
+/**
  * The normalized rows handed to the engine. The engine never sees a raw org.
  */
 const organizationItems = computed<ScopeSwitcherItem[]>(() =>
@@ -139,8 +147,8 @@ const organizationItems = computed<ScopeSwitcherItem[]>(() =>
     id: idForOrg(org),
     label: getOrganizationDisplayName(org),
     isCurrent: isCurrentOrganization(org),
-    // Gear (settings) shows for orgs that carry an extid to navigate to.
-    hasSettings: !!org.extid,
+    // Gear (settings) shows only on rows whose settings page would open.
+    hasSettings: canOpenSettings(org),
   }))
 );
 
@@ -152,8 +160,9 @@ const onSelect = (id: string): void => {
   const org = orgForId(id);
   if (!org) return;
 
-  // setCurrentOrganization triggers the store's watcher to persist to localStorage
-  organizationStore.setCurrentOrganization(org);
+  // selectOrganization switches in-app at once and records the choice in the
+  // server session (fire-and-forget) so it survives a page load
+  void organizationStore.selectOrganization(org);
 
   // Handle route-aware navigation based on onOrgSwitch meta
   const switchTarget = onOrgSwitch.value;

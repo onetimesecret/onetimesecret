@@ -62,5 +62,29 @@
   "web.admin.kit.revealEmail.copy": {
     "text": "E-posta adresini kopyala",
     "source_hash": "61b94846"
+  },
+  "web.admin.errors.rateLimited": {
+    "text": "Yaklaşık {minutes} dakika sonra tekrar deneyebilirsiniz.",
+    "source_hash": "27f2d054"
+  },
+  "web.admin.errors.rateLimitedRecovery": {
+    "text": "Daha önce işlem yapmanız gerekiyorsa, kendi hesabınız için POST /api/colonel/ratelimit/reset ile sınırlayıcıyı temizleyin veya `bin/ots ratelimit keys <kind> <extid>` komutunu çalıştırın.",
+    "source_hash": "b77e1388"
+  },
+  "web.admin.kit.confirmDialog.reasonLabel": {
+    "text": "Neden (isteğe bağlı)",
+    "source_hash": "0f7d4664"
+  },
+  "web.admin.kit.confirmDialog.reasonPlaceholder": {
+    "text": "Bunu neden yapıyorsunuz?",
+    "source_hash": "ef83fe82"
+  },
+  "web.admin.kit.confirmDialog.reasonHint": {
+    "text": "Bu işlemle birlikte yönetici denetim günlüğüne kaydedilir.",
+    "source_hash": "23779076"
+  },
+  "web.admin.kit.filterBar.searchSubmit": {
+    "text": "Ara",
+    "source_hash": "49c266ba"
   }
 }

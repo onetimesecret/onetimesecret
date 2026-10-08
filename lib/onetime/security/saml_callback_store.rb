@@ -136,10 +136,19 @@ module Onetime
       end
       private :positive_integer_setting
 
-      # Include the resolved public host as well as the Rack authority. Behind
-      # a rewriting proxy multiple tenants can share the latter. No input here
-      # authorizes a host; the normal tenant/setup/ACS gates still run on GET.
+      # Include the resolved public host as well as the inbound Rack authority.
+      # Keep the latter stable across PublicHostRewrite setting changes without
+      # accepting alternate scopes. Multiple tenants can share an origin; the
+      # public-host fields and normal tenant/setup/ACS gates still apply.
       def scope(env)
+        if env.key?('onetime.original_http_host')
+          original_host = env['onetime.original_http_host']
+          # PublicHostRewrite also overwrites SERVER_NAME, so an absent Host
+          # cannot be reconstructed safely from the remaining server fields.
+          raise ArgumentError, 'Original SAML callback authority unavailable' if original_host.nil?
+
+          env = env.merge('HTTP_HOST' => original_host)
+        end
         req      = Rack::Request.new(env)
         detected = defined?(Rack::DetectHost) ? env[Rack::DetectHost.result_field_name] : nil
         [req.base_url, env['onetime.display_domain'].to_s, detected.to_s, req.path]

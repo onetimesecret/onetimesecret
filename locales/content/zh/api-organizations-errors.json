@@ -134,5 +134,25 @@
   "api.organizations.members.errors.no_permission_to_remove": {
     "text": "您没有移除成员的权限",
     "source_hash": "b0ac7287"
+  },
+  "api.organizations.errors.delete_has_domains": {
+    "text": "删除此组织前，请先移除其自定义域名：%{domains}",
+    "source_hash": "040a401e"
+  },
+  "api.organizations.errors.delete_drifted_domains_count": {
+    "text": "有 %{count} 条域名记录仍引用此组织，但已不在其列表中。删除此组织前，请联系支持团队移除这些记录。",
+    "source_hash": "f6e71a9a"
+  },
+  "api.organizations.errors.delete_is_default": {
+    "text": "您的默认工作区无法删除。如需移除，请联系支持团队。",
+    "source_hash": "bc2eaed5"
+  },
+  "api.organizations.errors.delete_active_subscription": {
+    "text": "删除此组织前，请先取消其订阅。",
+    "source_hash": "f0c54eca"
+  },
+  "api.organizations.errors.delete_last_org": {
+    "text": "这是您唯一的组织。请先创建另一个组织，然后再删除此组织。",
+    "source_hash": "7608a1d6"
   }
 }

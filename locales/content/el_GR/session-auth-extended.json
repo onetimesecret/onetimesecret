@@ -957,5 +957,53 @@
   "web.auth.webauthn.emailRequired": {
     "text": "Εισάγετε τη διεύθυνση email σας για να συνδεθείτε με κλειδί πρόσβασης",
     "source_hash": "7f07647f"
+  },
+  "web.auth.login.verification_unavailable": {
+    "text": "Η σύνδεσή σας ήταν επιτυχής, αλλά δεν ήταν δυνατή η επιβεβαίωση της συνεδρίας σας. Δοκιμάστε ξανά σε λίγο.",
+    "source_hash": "9a19dfc9"
+  },
+  "web.auth.mfa.verification_unavailable": {
+    "text": "Ο κωδικός πρόσβασής σας έγινε αποδεκτός, αλλά δεν ήταν δυνατή η έναρξη της επαλήθευσης δύο παραγόντων. Δοκιμάστε ξανά σε λίγο.",
+    "source_hash": "5fd5e240"
+  },
+  "web.auth.session.ended": {
+    "text": "Η συνεδρία σας έληξε. Συνδεθείτε ξανά.",
+    "source_hash": "673e9822"
+  },
+  "web.auth.session.replaced": {
+    "text": "Η σύνδεσή σας άλλαξε σε άλλη καρτέλα, γι' αυτό αυτή η σελίδα φορτώθηκε ξανά.",
+    "source_hash": "3767d43b"
+  },
+  "web.auth.session.stale_session_title": {
+    "text": "Αυτή η σελίδα δεν είναι ενημερωμένη",
+    "source_hash": "0293e093"
+  },
+  "web.auth.session.stale_session_notice": {
+    "text": "Η συνεδρία σας άλλαξε από τη στιγμή που φορτώθηκε αυτή η σελίδα. Αντιγράψτε ό,τι δεν έχετε αποθηκεύσει και, στη συνέχεια, φορτώστε ξανά τη σελίδα για να συνεχίσετε.",
+    "source_hash": "c62e236c"
+  },
+  "web.auth.session.reload_now": {
+    "text": "Επαναφόρτωση σελίδας",
+    "source_hash": "437d0d63"
+  },
+  "web.auth.session.verification_unavailable_title": {
+    "text": "Δεν είναι δυνατή η επαλήθευση της συνεδρίας σας αυτήν τη στιγμή",
+    "source_hash": "2130dda1"
+  },
+  "web.auth.session.verification_unavailable_body": {
+    "text": "Δεν έχετε αποσυνδεθεί. Δεν ήταν δυνατή η επικοινωνία με τον διακομιστή για την επιβεβαίωση της συνεδρίας σας, γι' αυτό αυτή η σελίδα είναι κρυφή μέχρι να γίνει δυνατή. Θα συνεχίσουμε να προσπαθούμε.",
+    "source_hash": "bb230c2c"
+  },
+  "web.auth.session.retry": {
+    "text": "Δοκιμάστε ξανά",
+    "source_hash": "d8b8392e"
+  },
+  "web.auth.session.retrying": {
+    "text": "Έλεγχος…",
+    "source_hash": "ec963ffc"
+  },
+  "web.auth.session.retry_failed": {
+    "text": "Εξακολουθεί να μην είναι διαθέσιμο. Δοκιμάστε ξανά σε λίγο.",
+    "source_hash": "b81c022c"
   }
 }

@@ -241,10 +241,11 @@ module Auth
 
       # The per-domain opt-in record for the request host, or nil.
       #
-      # from_display_domain, NOT load_by_display_domain (#4157): the latter
-      # rescues Redis::BaseError internally and returns nil, which would make
-      # the rescue above unreachable for the FIRST of the two reads — a blip
-      # would silently resolve as "host has no tenant config", and on a
+      # The domain comes from the request's shared lookup (#4220), which
+      # DomainStrategy published or which is read here on first use.
+      # #record! re-raises a failed read (#4157): answering nil instead would
+      # make the rescue above unreachable for the FIRST of the two reads — a
+      # blip would silently resolve as "host has no tenant config", and on a
       # :custom-classified host that still means default-OFF, but on any host
       # whose classification ALSO degraded it would inherit operator defaults.
       # Letting the error out keeps the failure explicit.
@@ -254,7 +255,7 @@ module Auth
         display_domain = env['onetime.display_domain']
         return nil if display_domain.to_s.empty?
 
-        domain_id = Onetime::CustomDomain.from_display_domain(display_domain)&.identifier
+        domain_id = Onetime::CustomDomain::Lookup.for(env).record!&.identifier
         return nil unless domain_id
 
         Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain_id)

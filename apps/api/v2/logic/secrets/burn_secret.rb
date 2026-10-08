@@ -77,7 +77,7 @@ module V2::Logic
 
         secret_logger.debug 'Secret burn initiated',
           {
-            receipt_identifier: receipt.identifier,
+            receipt_identifier: receipt.shortid,
             secret_identifier: potential_secret.shortid,
             viewable: viewable,
             has_passphrase: potential_secret.has_passphrase?,
@@ -115,7 +115,7 @@ module V2::Logic
             secret_logger.info 'Secret burned successfully',
               {
                 secret_identifier: secret.shortid,
-                receipt_identifier: receipt.identifier,
+                receipt_identifier: receipt.shortid,
                 owner_id: owner&.extid,
                 user_id: cust&.extid,
                 action: 'burn',
@@ -125,7 +125,7 @@ module V2::Logic
             secret_logger.warn 'Burn failed - secret already consumed',
               {
                 secret_identifier: secret.shortid,
-                receipt_identifier: receipt.identifier,
+                receipt_identifier: receipt.shortid,
                 user_id: cust&.extid,
                 action: 'burn',
                 result: :already_consumed,
@@ -141,7 +141,7 @@ module V2::Logic
 
           secret_logger.warn 'Burn failed - incorrect passphrase',
             {
-              receipt_identifier: receipt.identifier,
+              receipt_identifier: receipt.shortid,
               secret_identifier: potential_secret.shortid,
               user_id: cust&.extid,
               action: 'burn',

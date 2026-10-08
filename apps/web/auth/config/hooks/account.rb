@@ -242,7 +242,7 @@ module Auth::Config::Hooks
         provisioning_origin = if hook_invite_token != ''
                                 'invite'
                               elsif request.env['onetime.display_domain'] &&
-                                    Onetime::CustomDomain.load_by_display_domain(request.env['onetime.display_domain'])
+                                    Onetime::CustomDomain::Lookup.for(request.env).record
                                 'domain_signup'
                               else
                                 'canonical_signup'

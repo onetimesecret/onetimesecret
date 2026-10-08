@@ -8,7 +8,7 @@ module Auth
   #
   # Behind a Host-rewriting proxy (Approximated, and any origin-target
   # rewriter) the Rack authority is NOT what the visitor typed: the browser
-  # asks for nz.example.com, the proxy forwards that in `Apx-Incoming-Host`
+  # asks for nz.example.com, the proxy forwards that in `X-Forwarded-Host`
   # and rewrites `Host:` to the origin target. Anything derived from
   # `request.host` / `request.base_url` therefore names the wrong host —
   # tenant lookups miss (#4224), SSO redirect_uris are rejected as
@@ -81,26 +81,34 @@ module Auth
   # URL can carry is either a TXT-verified tenant or a canonical-set member,
   # and the value never comes from `request.host` / a forwarded header.
   #
-  # ## One chain for every auth URL (#4517)
+  # ## Browser-origin allowlist and recipient-bound credential email origins
+  #
+  # The browser-origin chain below remains shared by SSO consumers. Rodauth
+  # credential emails additionally require #credential_host's target-account
+  # membership check before accepting its tenant tier. Ownership verification
+  # of a domain does not authorize sending another account's token to it.
+  #
+  # ## Browser-origin chain (#4517)
   #
   # `allowlisted_base_url` / `allowlisted_host` compose the tiers in the one
-  # order every auth-URL consumer must share:
+  # order browser-origin consumers share:
   #
   #   1. the TXT-verified tenant host the request resolved to (`resolve`)
   #   2. the request's own host when it is in the canonical set
   #      (`canonical_request_host`)
   #   3. the configured canonical host, request-independent (`canonical_host`)
   #
-  # A consumer may append its own last resort BEHIND tier 3 for the
-  # "site.host unconfigured" misconfiguration, and nothing else. Rodauth's
-  # `base_url` override has read this chain since the G-01 host-allowlist
+  # SSO URL consumers require this chain to resolve, even when site.host
+  # is unconfigured: `required_base_url!` raises rather than trusting Rack's
+  # authority (H-05). Rodauth's `base_url` override has read this chain since
+  # the G-01 host-allowlist
   # work (#4319; #4221 introduced only the tenant tier); OmniAuth's
   # `full_host` had only tier 1 and fell straight to Rack's authority, so an
   # SSO redirect_uri on the canonical host carried the raw `Host:` header
   # verbatim — including a doubled `Host: a, a` from a misconfigured
   # proxy_set_header (#4517) — while the email link for the same request was
-  # built on the canonical host. The two must never disagree about the host,
-  # so both read here.
+  # built on the canonical host. SSO reads this browser-origin chain;
+  # credential email origins now additionally check recipient membership.
   #
   # Local development is served by tier 2: DomainStrategy pins
   # `display_domain` to the primary canonical host whenever the domains
@@ -118,10 +126,15 @@ module Auth
   #
   # Consumers: Auth::Config::Features::OmniAuth.full_host_for (SSO
   # redirect_uri / callback_url, SAML ACS URL and SP entity ID) and
-  # Auth::Config::Overrides::PublicBaseUrl (Rodauth `base_url`, hence every
-  # `*_email_link`, and the WebAuthn origin).
+  # Auth::Config::Overrides::PublicBaseUrl (recipient-bound Rodauth `base_url`
+  # and credential email branding) and WebAuthn's browser-origin helpers.
   #
   module PublicHost
+    # A missing safe URL origin is a configuration failure, not permission to
+    # use the request authority. The router logs this type and returns its
+    # generic 500 without exposing configuration details to the client.
+    class MissingAllowlistedOrigin < StandardError; end
+
     # @param env [Hash] Rack environment
     # @return [String, nil] the public host, or nil to keep the caller's own
     #   (canonical) derivation — no resolved host, only canonical-set ones, or
@@ -130,7 +143,7 @@ module Auth
       candidates = [env['onetime.display_domain'], env[Rack::DetectHost.result_field_name]]
 
       candidates.map(&:to_s).find do |host|
-        served_custom_host?(host)
+        served_custom_host?(host, env)
       end
     end
 
@@ -144,15 +157,21 @@ module Auth
     # than reading as an absent tenant — a link then builds on the canonical
     # host, never on an unverifiable one.
     #
+    # With a Rack env the record comes from the request's shared lookup
+    # (#4220) when +host+ is the request's display domain; a failed read
+    # recorded there is re-raised and rescued to false below, the same as a
+    # failed read made here. Any other host is read directly.
+    #
     # @param host [String] a candidate host (already coerced to String)
+    # @param env [Hash, nil] Rack env of the current request
     # @return [Boolean]
-    def self.served_custom_host?(host)
+    def self.served_custom_host?(host, env = nil)
       return false if host.empty?
       # Port- and case-insensitive, and covers the whole canonical set
       # (features.domains.default, site.host, link_domains).
       return false if Onetime::Middleware::DomainStrategy.canonical_host?(host)
 
-      record = Onetime::CustomDomain.from_display_domain(host)
+      record = Onetime::CustomDomain::Lookup.for_host(env, host).record!
       !record.nil? && !!record.verified # boolean_field native
     rescue StandardError
       # Datastore blip (or any unexpected error): fail closed. The auth link
@@ -251,13 +270,69 @@ module Auth
     # Never `request.host` / Rack's `base_url`: the raw authority is what a
     # client-settable forwarded header or a doubled `Host:` header lands in.
     # nil only when site.host is unconfigured AND the request resolved to no
-    # allowlisted host; the caller decides its own last resort for that
-    # misconfiguration.
+    # allowlisted host. SSO URL consumers must use #required_base_url!
+    # to reject that misconfiguration without a request-authority fallback.
     #
     # @param env [Hash] Rack environment
     # @return [String, nil] origin
     def self.allowlisted_base_url(env)
       base_url(env) || canonical_request_base_url(env) || canonical_base_url
+    end
+
+    # Required browser origin for SSO URLs. Credential emails instead use
+    # #required_credential_base_url!, which checks recipient membership. Keep
+    # the optional helpers' nil contracts for callers that only inspect hosts.
+    #
+    # @param env [Hash] Rack environment
+    # @return [String] allowlisted origin
+    # @raise [MissingAllowlistedOrigin] no verified tenant or canonical origin
+    def self.required_base_url!(env)
+      allowlisted_base_url(env) || raise(
+        MissingAllowlistedOrigin,
+        'No allowlisted auth origin; configure site.host or use a verified tenant or canonical host',
+      )
+    end
+
+    # Credential email origins require authorization for the recipient account,
+    # in addition to proof that the request host is a verified custom domain.
+    # Domain ownership alone says nothing about the recipient's relationship
+    # to its organization. Never derive that relationship from a submitted email
+    # address, signup request, or the request's current session account.
+    def self.credential_host(env, account)
+      host = resolve(env)
+      return nil unless host && account.is_a?(Hash)
+
+      external_id = (account[:external_id] || account['external_id']).to_s
+      return nil if external_id.empty?
+
+      domain       = Onetime::CustomDomain::Lookup.for_host(env, host).record!
+      organization = domain.primary_organization
+      customer     = Onetime::Customer.find_by_extid(external_id)
+      return nil unless organization && customer
+
+      membership = Onetime::OrganizationMembership.find_by_org_customer(organization.objid, customer.objid)
+      return nil unless membership&.active? && membership.can_access_domain?(domain)
+
+      host
+    rescue StandardError
+      # Missing/unreadable membership never authorizes a tenant credential URL.
+      nil
+    end
+
+    def self.credential_base_url(env, account)
+      host = credential_host(env, account)
+      (host && origin_for(env, host)) || canonical_request_base_url(env) || canonical_base_url
+    end
+
+    def self.required_credential_base_url!(env, account)
+      credential_base_url(env, account) || raise(
+        MissingAllowlistedOrigin,
+        'No allowlisted auth origin for recipient account; configure a canonical host',
+      )
+    end
+
+    def self.credential_display_host(env, account)
+      credential_host(env, account) || canonical_request_host(env) || canonical_host
     end
 
     # Host-only counterpart of #allowlisted_base_url, same tiers, same order.

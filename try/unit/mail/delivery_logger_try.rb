@@ -49,36 +49,89 @@ backend = Onetime::Mail::Delivery::Logger.new({})
 backend.provider_name
 #=> 'Logger'
 
-## Logger deliver returns hash with status 'logged'
+## Logger does not transmit
+Onetime::Mail::Delivery::Logger.new({}).transmits?
+#=> false
+
+## Logger deliver returns NotTransmitted with reason 'log_only', not a provider response
 backend = Onetime::Mail::Delivery::Logger.new({})
 result = backend.deliver(@test_email)
-result[:status]
+[result.class, result.reason]
+#=> [Onetime::Mail::Delivery::NotTransmitted, 'log_only']
+
+## Logger deliver result is not nil (nil means nothing was done with the message)
+Onetime::Mail::Delivery::Logger.new({}).deliver(@test_email).nil?
+#=> false
+
+## Disabled does not transmit and deliver returns nil
+backend = Onetime::Mail::Delivery::Disabled.new({})
+[backend.transmits?, backend.deliver(@test_email)]
+#=> [false, nil]
+
+## Logger writes to standard out unless its output is pointed elsewhere
+Onetime::Mail::Delivery::Logger.with_output(nil) do
+  Onetime::Mail::Delivery::Logger.output.equal?($stdout)
+end
+#=> true
+
+## Logger writes the email to the output it was given
+io = StringIO.new
+Onetime::Mail::Delivery::Logger.with_output(io) do
+  Onetime::Mail::Delivery::Logger.new({}).deliver(@test_email)
+end
+[io.string.include?('=== EMAIL (Logger) ==='), io.string.include?('Subject: Test Subject')]
+#=> [true, true]
+
+## Logger.with_output puts back the output that was set before the block
+previous = StringIO.new
+Onetime::Mail::Delivery::Logger.with_output(previous) do
+  Onetime::Mail::Delivery::Logger.with_output(StringIO.new) { nil }
+  Onetime::Mail::Delivery::Logger.output.equal?(previous)
+end
+#=> true
+
+## Logger.with_output puts the previous output back when the block raises
+previous = StringIO.new
+Onetime::Mail::Delivery::Logger.with_output(previous) do
+  begin
+    Onetime::Mail::Delivery::Logger.with_output(StringIO.new) { raise 'boom' }
+  rescue RuntimeError
+    nil
+  end
+  Onetime::Mail::Delivery::Logger.output.equal?(previous)
+end
+#=> true
+
+## Logger deliver wraps the hash with status 'logged'
+backend = Onetime::Mail::Delivery::Logger.new({})
+result = backend.deliver(@test_email)
+result.response[:status]
 #=> 'logged'
 
 ## Logger deliver returns recipient in result
 backend = Onetime::Mail::Delivery::Logger.new({})
 result = backend.deliver(@test_email)
-result[:to]
+result.response[:to]
 #=> 'recipient@test.com'
 
 ## Logger deliver handles missing reply_to
 backend = Onetime::Mail::Delivery::Logger.new({})
 result = backend.deliver(@minimal_email)
-result[:status]
+result.response[:status]
 #=> 'logged'
 
 ## Logger deliver handles missing html_body
 email_no_html = @test_email.merge(html_body: nil)
 backend = Onetime::Mail::Delivery::Logger.new({})
 result = backend.deliver(email_no_html)
-result[:status]
+result.response[:status]
 #=> 'logged'
 
 ## Logger deliver handles empty html_body
 email_empty_html = @test_email.merge(html_body: '')
 backend = Onetime::Mail::Delivery::Logger.new({})
 result = backend.deliver(email_empty_html)
-result[:status]
+result.response[:status]
 #=> 'logged'
 
 ## Logger config is stored (keys stringified at the Base boundary)

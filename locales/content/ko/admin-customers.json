@@ -40,8 +40,8 @@
     "source_hash": "9feed9f1"
   },
   "web.admin.customers.actions.purge.confirmDescription": {
-    "text": "{email}과(와) 해당 고객의 모든 데이터를 영구적으로 삭제합니다. 이 작업은 취소할 수 없습니다.",
-    "source_hash": "a74dd5d1"
+    "text": "{email}의 영구 삭제를 요청합니다. 계정 해체 전에 사전 점검이 실행되며, 워크스페이스에 도메인, 결제 상태, 다른 멤버, 보존된 데이터 또는 일관되지 않은 참조가 있으면 완전 삭제가 거부됩니다. 다시 시도하기 전에 차단 요인을 검토하고 해결하세요. 해체가 시작된 후에는 되돌릴 수 없습니다.",
+    "source_hash": "7b4e5e37"
   },
   "web.admin.customers.actions.purge.success": {
     "text": "고객이 완전 삭제되었습니다.",
@@ -60,8 +60,8 @@
     "source_hash": "227f57d7"
   },
   "web.admin.customers.actions.role.confirmDescription": {
-    "text": "{email}을(를) {role} 역할로 변경합니다.",
-    "source_hash": "9ba063c6"
+    "text": "{email}을(를) {role} 역할로 변경합니다. 이 설치 환경에서 colonel 역할은 모든 계정, 비밀 메시지 및 조직에 대한 전체 관리 권한을 부여합니다. 확인하려면 아래에 계정 이메일 주소를 입력하세요.",
+    "source_hash": "0ed85b97"
   },
   "web.admin.customers.actions.role.success": {
     "text": "역할이 업데이트되었습니다.",
@@ -116,8 +116,8 @@
     "source_hash": "62ed2854"
   },
   "web.admin.customers.actions.unverify.confirmDescription": {
-    "text": "{email}을(를) 인증되지 않음으로 표시합니다.",
-    "source_hash": "592ffd27"
+    "text": "{email}을(를) 인증되지 않음으로 표시합니다. 인증되지 않은 계정은 colonel, 관리자 또는 직원 역할을 가질 수 없으므로, 이 계정에 부여된 상위 역할도 함께 제거됩니다. 확인하려면 아래에 계정 이메일 주소를 입력하세요.",
+    "source_hash": "601f7382"
   },
   "web.admin.customers.actions.unverify.success": {
     "text": "고객 인증이 해제되었습니다.",
@@ -568,8 +568,8 @@
     "source_hash": "69e69f49"
   },
   "web.admin.customers.detail.diagnostics.healthy": {
-    "text": "차단 조건을 찾을 수 없습니다. 인증 상태가 정상으로 보입니다 — 클라이언트 측 문제(쿠키, 사용자 지정 도메인 로그인 설정) 또는 잘못된 지역을 의심하세요.",
-    "source_hash": "f6d5f8d1"
+    "text": "차단 조건을 찾을 수 없습니다. 인증 및 조직 컨텍스트 증거가 정상으로 보입니다 — 클라이언트 측 문제(쿠키, 사용자 지정 도메인 로그인 설정) 또는 잘못된 지역을 의심하세요.",
+    "source_hash": "e0e8450e"
   },
   "web.admin.customers.detail.diagnostics.authUnavailable": {
     "text": "인증 데이터베이스를 사용할 수 없습니다(단순 인증 모드) — SQL 측 검사를 건너뛰었습니다.",
@@ -690,5 +690,153 @@
   "web.admin.customers.verification.unverified": {
     "text": "확인되지 않음",
     "source_hash": "15133907"
+  },
+  "web.admin.customers.actions.impersonate.button": {
+    "text": "고객으로 대리 접속",
+    "source_hash": "38a7cfbe"
+  },
+  "web.admin.customers.actions.impersonate.confirmTitle": {
+    "text": "대리 접속을 시작하시겠습니까?",
+    "source_hash": "c6e4fa74"
+  },
+  "web.admin.customers.actions.impersonate.confirmDescription": {
+    "text": "{email} 계정으로 시간 제한이 있는 읽기 전용 세션을 엽니다. 종료할 때까지 모든 페이지에 배너가 표시되고 변경은 차단되며, 이 세션은 입력한 사유와 함께 감사 로그에 기록됩니다.",
+    "source_hash": "713c01b4"
+  },
+  "web.admin.customers.actions.impersonate.reasonLabel": {
+    "text": "사유 (필수)",
+    "source_hash": "d976f5d9"
+  },
+  "web.admin.customers.actions.impersonate.reasonPlaceholder": {
+    "text": "이 세션이 필요한 이유는 무엇입니까? 티켓 참조 번호를 포함하세요.",
+    "source_hash": "89a4835d"
+  },
+  "web.admin.customers.actions.impersonate.success": {
+    "text": "대리 접속이 시작되었습니다.",
+    "source_hash": "b4662bcc"
+  },
+  "web.admin.customers.actions.impersonate.unavailable": {
+    "text": "Colonel, 익명 및 정지된 계정에는 대리 접속을 사용할 수 없습니다.",
+    "source_hash": "fb6578b2"
+  },
+  "web.admin.customers.actions.purge.refused": {
+    "text": "완전 삭제가 거부되었습니다. 고객은 그대로 유지되었습니다. 다시 시도하기 전에 차단 요인을 해결하세요.",
+    "source_hash": "8e8a2ae1"
+  },
+  "web.admin.customers.actions.purge.partial": {
+    "text": "일부 정리가 완료된 후 완전 삭제가 중단되었습니다. 성공으로 보고하거나 무작정 다시 시도하지 마세요. 완료된 단계와 차단 요인을 검토하세요.",
+    "source_hash": "a88fd15b"
+  },
+  "web.admin.customers.actions.purge.incomplete": {
+    "text": "완전 삭제가 완료되지 않았습니다 (상태: {status}). 다시 시도하기 전에 수명 주기 세부 정보를 검토하세요.",
+    "source_hash": "c0c3d287"
+  },
+  "web.admin.customers.actions.purge.unreadableResult": {
+    "text": "서버가 읽을 수 없는 완전 삭제 결과를 반환했습니다. 성공이 보고되지 않았으므로 다시 시도하기 전에 고객 및 워크스페이스 상태를 확인하세요.",
+    "source_hash": "cc837a77"
+  },
+  "web.admin.customers.actions.purge.resultStage": {
+    "text": "중단된 단계: {stage}.",
+    "source_hash": "d0e313bf"
+  },
+  "web.admin.customers.actions.purge.resultBlockers": {
+    "text": "차단 요인: {blockers}.",
+    "source_hash": "00c1e196"
+  },
+  "web.admin.customers.actions.purge.resultPlannedActions": {
+    "text": "예정된 정리: {actions}.",
+    "source_hash": "6915205d"
+  },
+  "web.admin.customers.actions.purge.resultActions": {
+    "text": "완료된 정리: {actions}.",
+    "source_hash": "d34121b3"
+  },
+  "web.admin.customers.actions.purge.resultCompletedStages": {
+    "text": "완료된 단계: {stages}.",
+    "source_hash": "67f68860"
+  },
+  "web.admin.customers.actions.role.button": {
+    "text": "역할 변경",
+    "source_hash": "a43a8d8c"
+  },
+  "web.admin.customers.actions.role.selfDemote": {
+    "text": "자신의 colonel 계정은 강등할 수 없습니다. 다른 colonel에게 요청하거나 `bin/ots customers role demote`를 실행하세요.",
+    "source_hash": "3e75d01b"
+  },
+  "web.admin.customers.actions.role.lastColonel": {
+    "text": "마지막으로 남은 colonel은 강등할 수 없습니다 — 설치 환경에 관리자가 없게 됩니다. 먼저 다른 계정을 승격하고 인증하세요.",
+    "source_hash": "9c59c731"
+  },
+  "web.admin.customers.actions.unverify.selfUnverify": {
+    "text": "자신의 계정 인증은 해제할 수 없습니다: colonel 역할을 가지려면 인증된 이메일이 필요합니다.",
+    "source_hash": "8ab024fe"
+  },
+  "web.admin.customers.actions.unverify.lastColonel": {
+    "text": "마지막으로 남은 colonel의 인증은 해제할 수 없습니다 — 인증되지 않은 계정은 colonel 역할을 가질 수 없습니다. 먼저 다른 계정을 승격하고 인증하세요.",
+    "source_hash": "fc404616"
+  },
+  "web.admin.customers.detail.diagnostics.organizationContextBlocked": {
+    "text": "조직 컨텍스트가 차단되었거나 불완전합니다. 이 계정을 정상으로 간주하기 전에 인덱싱된 워크스페이스를 검사하고 소유권, 멤버십 또는 연락처 이메일 인덱스 편차를 복구하세요.",
+    "source_hash": "5c5c89be"
+  },
+  "web.admin.customers.detail.diagnostics.organization": {
+    "text": "워크스페이스: {id}",
+    "source_hash": "6ee50fe9"
+  },
+  "web.admin.customers.detail.diagnostics.remediation": {
+    "text": "해결 조치: {action}",
+    "source_hash": "83ddc7d7"
+  },
+  "web.admin.customers.detail.fields.internalId": {
+    "text": "내부 ID",
+    "source_hash": "e468bb47"
+  },
+  "web.admin.customers.detail.organizations.open": {
+    "text": "열기",
+    "source_hash": "ed077f3d"
+  },
+  "web.admin.customers.detail.rodauthAdmin.open": {
+    "text": "Rodauth Admin에서 열기",
+    "source_hash": "467173c8"
+  },
+  "web.admin.customers.detail.sessions.revokeAll.selfDescription": {
+    "text": "이 목록에 표시되지 않은 세션을 포함하여 다른 모든 기기와 브라우저에서 로그아웃됩니다. 지금 작업 중인 세션은 유지됩니다.",
+    "source_hash": "ae350040"
+  },
+  "web.admin.customers.list.capped": {
+    "text": "결과가 제한되어 있습니다. 표시된 개수는 전체가 아니라 최소값입니다. 모든 결과를 보려면 검색 범위를 좁히거나 필터를 적용하세요.",
+    "source_hash": "27537844"
+  },
+  "web.admin.customers.list.orphanedAccounts.title": {
+    "text": "고객 레코드가 없는 인증 데이터베이스 계정",
+    "source_hash": "82cf7a27"
+  },
+  "web.admin.customers.list.orphanedAccounts.hint": {
+    "text": "인증 데이터베이스에 이 주소의 계정이 있지만 연결된 고객 레코드가 없습니다. 해당 사용자는 여전히 로그인할 수 있지만, 고객 인덱스에는 이 사용자에 대한 항목이 없습니다. 진단하려면 이 주소를 여세요.",
+    "source_hash": "0f903f23"
+  },
+  "web.admin.customers.list.orphanedAccounts.diagnose": {
+    "text": "계정 진단 열기",
+    "source_hash": "55b3e826"
+  },
+  "web.admin.customers.list.orphanedAccounts.accountId": {
+    "text": "계정 #{id}",
+    "source_hash": "485dee3c"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unverified": {
+    "text": "인증되지 않음",
+    "source_hash": "33c8e8de"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.verified": {
+    "text": "인증됨",
+    "source_hash": "4f783840"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.closed": {
+    "text": "폐쇄됨",
+    "source_hash": "c21ead06"
+  },
+  "web.admin.customers.list.orphanedAccounts.status.unknown": {
+    "text": "알 수 없음",
+    "source_hash": "b764cdc0"
   }
 }

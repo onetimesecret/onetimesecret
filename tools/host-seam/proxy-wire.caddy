@@ -1,0 +1,18 @@
+# Disposable wire-check fixture, not a deployment configuration.
+# Same overwrite/removal operations as caddy-approximated-lane.caddy,
+# without developer certificates, static files, or an application datastore.
+{
+	admin off
+	auto_https off
+}
+
+http://:{$HOST_SEAM_PROXY_PORT} {
+	bind 127.0.0.1
+	reverse_proxy 127.0.0.1:{$HOST_SEAM_CAPTURE_PORT} {
+		header_up Host origin-target.internal
+		header_up X-Forwarded-Host {http.request.host}
+		header_up -Apx-Incoming-Host
+		header_up -X-Original-Host
+		header_up -Forwarded
+	}
+}
