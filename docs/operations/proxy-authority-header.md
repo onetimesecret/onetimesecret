@@ -145,8 +145,12 @@ context a request for the canonical host gets: no custom domain can be read for
 an IP literal, `localhost` or a malformed `Host`, so the organization loader
 applies no domain scope to it (#4678, decided in
 [ADR-050](../adr/adr-050-request-host-authority.md#organization-scope-on-a-host-that-detection-rejects)).
-Whether the origin can be reached that way at all is the operator's network
-control, not the application's.
+The loader reads `Host` on its own. When `Host` names a registered custom
+domain and the forwarded host could not be used, which is the case for a
+trusted `X-Forwarded-Host` with userinfo in it since detection refuses it
+without falling through to `Host`, that record's scope applies, as it does
+with the custom-domains feature off. Whether the origin can be reached that
+way at all is the operator's network control, not the application's.
 
 Details:
 
