@@ -178,11 +178,11 @@ reserve the purged customer's normalized email or leave ownership/member
 references to that customer. Local customer, contact-email, and billing index
 claims can then be reused for a new customer and workspace.
 
-This does not by itself establish that signup accepts the address. In full-auth
-mode, the duplicate-signup hook currently also matches closed SQL account rows:
-an exact-email signup after purge can still be refused even though local index
-cleanup succeeded. That registration-policy issue is separate from purge
-eligibility and cleanup.
+In full-auth mode, the duplicate-signup hook normalizes the submitted email and
+excludes closed SQL account rows from its conflict check. A retained closed row
+alone does not prevent signup with the same address. A non-closed SQL account or
+an existing Redis customer still blocks reuse, and normal signup validation
+continues to apply.
 
 Local index release is not data restoration. A new account does not inherit the
 old account's organizations or retained workspace data. No recovery path may
@@ -190,9 +190,9 @@ adopt a workspace based only on email equality.
 
 In full authentication mode, account teardown retains a closed,
 credential-stripped SQL account row and its authentication audit history. The
-SQL uniqueness constraint permits a new live row with the same address, but the
-duplicate-signup hook limitation above still applies. Purge confirmation must
-not claim that every datum in every store is deleted.
+SQL uniqueness constraint permits a new live row with the same address. Signup
+creates a new identity rather than reopening the closed account. Purge
+confirmation must not claim that every datum in every store is deleted.
 
 ## Self-service deletion
 
