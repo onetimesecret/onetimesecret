@@ -55,6 +55,22 @@
     "text": "Default",
     "content_hash": "21b111cb"
   },
+  "web.organizations.make_default": {
+    "text": "Make default",
+    "content_hash": "f43b9425"
+  },
+  "web.organizations.make_default_label": {
+    "text": "Make {name} your default workspace",
+    "content_hash": "fa37587b"
+  },
+  "web.organizations.make_default_success": {
+    "text": "{name} is now your default workspace",
+    "content_hash": "6c0e3cb6"
+  },
+  "web.organizations.make_default_error": {
+    "text": "Could not make {name} your default workspace. Please try again.",
+    "content_hash": "fb61d78e"
+  },
   "web.organizations.create_organization": {
     "text": "Create Organization",
     "content_hash": "e27f4540"

@@ -1,6 +1,11 @@
 // src/shared/stores/organizationStore.ts
 // @see src/tests/stores/organizationStore.spec.ts - Test fixtures for Organization schema
 
+import { updateDefaultOrganizationRequestSchema } from '@/schemas/api/account/requests/update-default-organization';
+import {
+  type UpdateDefaultOrganizationResponse,
+  updateDefaultOrganizationResponseSchema,
+} from '@/schemas/api/account/responses/default-organization';
 import {
   organizationResponseSchema,
   organizationsResponseSchema,
@@ -526,6 +531,51 @@ export const useOrganizationStore = defineStore('organization', () => {
   }
 
   /**
+   * Make `org` this user's default organization. The server records the
+   * default and also selects the org for the current session, so the tab
+   * follows: the default flag moves locally, the list is refetched, and the
+   * org becomes current. Counts as the newest selection, so a queued or noted
+   * older one is not sent after it. Throws on refusal or an unreadable
+   * response; nothing local changes then. A failed refetch does not throw:
+   * the change was made, and the local flags already show it.
+   */
+  async function setDefaultOrganization(
+    org: Organization
+  ): Promise<UpdateDefaultOrganizationResponse> {
+    const payload = updateDefaultOrganizationRequestSchema.parse({ organization_id: org.objid });
+    const response = await $api.post('/api/account/update-default-organization', payload);
+
+    const result = gracefulParse(
+      updateDefaultOrganizationResponseSchema,
+      response.data,
+      'UpdateDefaultOrganizationResponse'
+    );
+    if (!result.ok) {
+      throw new Error('Unable to update the default organization. Please try again.');
+    }
+
+    selectionsMade += 1;
+    queuedSelection = null;
+    writePendingSelection(null);
+
+    organizations.value = organizations.value.map((o) => ({
+      ...o,
+      is_current_user_default: o.objid === org.objid,
+    }));
+    try {
+      await fetchOrganizations();
+    } catch (error) {
+      console.warn('[organizationStore] Failed to refresh after the default change:', error);
+    }
+    currentOrganization.value = organizations.value.find((o) => o.objid === org.objid) ?? {
+      ...org,
+      is_current_user_default: true,
+    };
+
+    return result.data;
+  }
+
+  /**
    * Fetch pending invitations for an organization
    *
    * @param extid - The external ID for API calls
@@ -729,6 +779,7 @@ export const useOrganizationStore = defineStore('organization', () => {
     deleteOrganization,
     setCurrentOrganization,
     selectOrganization,
+    setDefaultOrganization,
     fetchInvitations,
     createInvitation,
     resendInvitation,

@@ -913,6 +913,88 @@ describe('Organization Store', () => {
       });
     });
 
+    describe('setDefaultOrganization', () => {
+      const DEFAULT_URL = '/api/account/update-default-organization';
+      const defaultPosts = () =>
+        (axiosMock?.history.post ?? []).filter((r) => r.url === DEFAULT_URL);
+      // The list as the server returns it once `org-999` is the default
+      const listAfter = {
+        records: [
+          { ...mockOrganizationRaw, is_current_user_default: false },
+          {
+            ...mockOrganizationRaw,
+            objid: 'org-999',
+            extid: 'on999xyz',
+            display_name: 'Other Organization',
+            is_current_user_default: true,
+          },
+        ],
+        count: 2,
+      };
+
+      beforeEach(() => {
+        store.organizations = [{ ...mockOrganization, is_current_user_default: true }, other];
+        store.setCurrentOrganization(store.organizations[0]);
+      });
+
+      it('posts the objid, refetches the list, and makes the org current', async () => {
+        signIn();
+        axiosMock?.onPost(DEFAULT_URL).reply(200, {
+          organization_id: 'org-999',
+          previous_default_organization_id: 'org-123',
+        });
+        axiosMock?.onGet('/api/organizations').reply(200, listAfter);
+
+        const result = await store.setDefaultOrganization(other);
+
+        expect(JSON.parse(defaultPosts()[0].data)).toEqual({ organization_id: 'org-999' });
+        expect(result).toEqual({
+          organization_id: 'org-999',
+          previous_default_organization_id: 'org-123',
+        });
+        expect(store.defaultOrganization?.objid).toBe('org-999');
+        expect(store.currentOrganization?.objid).toBe('org-999');
+        expect(store.currentOrganization?.is_current_user_default).toBe(true);
+        // The server selected it already; nothing is written back
+        expect(syncPosts()).toHaveLength(0);
+      });
+
+      it('moves the default flag locally when the refetch fails', async () => {
+        signIn();
+        vi.spyOn(console, 'warn').mockImplementation(() => {});
+        axiosMock?.onPost(DEFAULT_URL).reply(200, {
+          organization_id: 'org-999',
+          previous_default_organization_id: null,
+        });
+        axiosMock?.onGet('/api/organizations').reply(500);
+
+        await store.setDefaultOrganization(other);
+
+        expect(store.organizations.map((o) => o.is_current_user_default)).toEqual([false, true]);
+        expect(store.currentOrganization?.objid).toBe('org-999');
+      });
+
+      it('throws and changes nothing when the server refuses', async () => {
+        signIn();
+        axiosMock?.onPost(DEFAULT_URL).reply(422, { message: 'Invalid organization' });
+
+        await expect(store.setDefaultOrganization(other)).rejects.toBeTruthy();
+
+        expect(store.defaultOrganization?.objid).toBe('org-123');
+        expect(store.currentOrganization?.objid).toBe('org-123');
+        expect(axiosMock?.history.get ?? []).toHaveLength(0);
+      });
+
+      it('throws on a response without the new default', async () => {
+        signIn();
+        axiosMock?.onPost(DEFAULT_URL).reply(200, { success: true });
+
+        await expect(store.setDefaultOrganization(other)).rejects.toThrow(
+          'Unable to update the default organization. Please try again.'
+        );
+        expect(store.currentOrganization?.objid).toBe('org-123');
+      });
+    });
   });
 
   describe('Creating organizations', () => {
