@@ -1159,7 +1159,7 @@ jobs:
   # skipping it would leave the SHA mergeable with no verdict.
   #
   # The verdict itself is .github/scripts/ci-verdict.sh (tested by
-  # scripts/tests/ci-verdict-test.sh): per job, "expected to run" is derived
+  # tools/testsuite/ci-verdict-test.sh): per job, "expected to run" is derived
   # from the same `changes` outputs the job's own `if:` reads, so a job that
   # was skipped for a path the PR does not touch passes and a job that was
   # skipped although its path changed — a failed lint, a failed build, a

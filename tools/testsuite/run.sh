@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 #
-# scripts/tests/run.sh
+# tools/testsuite/run.sh
 #
-# Runs the executable shell tests in this directory — every scripts/tests/*-test.sh —
+# Runs the executable shell tests in this directory — every tools/testsuite/*-test.sh —
 # and the ones tool packages own (ADR-042): every tools/*/tests/*-test.sh.
 #
 # Usage:
-#   scripts/tests/run.sh                  # everything
-#   scripts/tests/run.sh sentry-status    # only files whose name contains this
-#   UPDATE_GOLDEN=1 scripts/tests/run.sh  # rewrite the golden fixtures
+#   bin/testsuite run                      # everything
+#   bin/testsuite run sentry-status        # only files whose name contains this
+#   UPDATE_GOLDEN=1 bin/testsuite run       # rewrite the golden fixtures
 #
 # These are pure-text tests over scripts/ci/*.sh and the workflow files that
 # call them. They need no network, no Sentry instance, no datastore and no
@@ -31,7 +31,7 @@ REPO_ROOT="$(cd "${TEST_DIR}/../.." && pwd)"
 # without this guard is a confusing syntax error inside a file the reader did
 # not write. Same requirement and same remedy as tests/lanes/run.
 if [ "${BASH_VERSINFO[0]:-0}" -lt 4 ]; then
-  printf 'scripts/tests/run.sh needs bash 4+ (this is %s).\n' "${BASH_VERSION:-unknown}" >&2
+  printf 'bin/testsuite run needs bash 4+ (this is %s).\n' "${BASH_VERSION:-unknown}" >&2
   printf 'macOS ships 3.2: brew install bash, then re-run.\n' >&2
   exit 1
 fi

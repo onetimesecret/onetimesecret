@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# scripts/tests/sentry-status-sanitize-test.sh
+# tools/testsuite/sentry-status-sanitize-test.sh
 #
 # Covers the two text-neutralising functions in scripts/ci/sentry-status.sh:
 # sanitize() at the record seam and md_code() at the render seam.
@@ -40,7 +40,7 @@ set -uo pipefail
 
 TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${TEST_DIR}/../.." && pwd)"
-# shellcheck source=scripts/tests/lib/assert.sh
+# shellcheck source=tools/testsuite/lib/assert.sh
 source "${TEST_DIR}/lib/assert.sh"
 
 STATUS_SCRIPT="${REPO_ROOT}/scripts/ci/sentry-status.sh"

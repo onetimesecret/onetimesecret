@@ -1,4 +1,4 @@
-# scripts/tests/lib/assert.sh
+# tools/testsuite/lib/assert.sh
 #
 # Sourced, never executed, so it carries no shebang — the
 # check-shebang-scripts-are-executable hook would otherwise demand a +x bit
@@ -6,7 +6,7 @@
 # dialect a shebang would have.
 # shellcheck shell=bash
 #
-# Assertion helpers for the executable shell tests in scripts/tests/*-test.sh.
+# Assertion helpers for the executable shell tests in tools/testsuite/*-test.sh.
 #
 # WHY NOT A FRAMEWORK
 #

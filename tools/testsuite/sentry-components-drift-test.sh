@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# scripts/tests/sentry-components-drift-test.sh
+# tools/testsuite/sentry-components-drift-test.sh
 #
 # Asserts that the component names build-and-publish-oci-images.yml can put in
 # SENTRY_EXPECTED_COMPONENTS are names something actually records.
@@ -42,7 +42,7 @@ set -uo pipefail
 
 TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${TEST_DIR}/../.." && pwd)"
-# shellcheck source=scripts/tests/lib/assert.sh
+# shellcheck source=tools/testsuite/lib/assert.sh
 source "${TEST_DIR}/lib/assert.sh"
 
 WORKFLOW="${REPO_ROOT}/.github/workflows/build-and-publish-oci-images.yml"

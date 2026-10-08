@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# scripts/tests/ci-verdict-test.sh
+# tools/testsuite/ci-verdict-test.sh
 #
 # Covers .github/scripts/ci-verdict.sh, the required `ci-verdict` check in
 # ci.yml.
@@ -19,7 +19,7 @@ set -uo pipefail
 
 TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${TEST_DIR}/../.." && pwd)"
-# shellcheck source=scripts/tests/lib/assert.sh
+# shellcheck source=tools/testsuite/lib/assert.sh
 source "${TEST_DIR}/lib/assert.sh"
 
 SCRIPT="${REPO_ROOT}/.github/scripts/ci-verdict.sh"

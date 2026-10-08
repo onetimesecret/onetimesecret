@@ -6,7 +6,7 @@ set -uo pipefail
 
 TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${TEST_DIR}/../.." && pwd)"
-# shellcheck source=scripts/tests/lib/assert.sh
+# shellcheck source=tools/testsuite/lib/assert.sh
 source "${TEST_DIR}/lib/assert.sh"
 SCRIPT="${REPO_ROOT}/.github/scripts/compute-auth-selection.sh"
 FILTERS="${REPO_ROOT}/.github/auth-paths.yml"
@@ -468,7 +468,7 @@ negative = [
     # Build inputs and unrelated CI scripts.
     'package.json', 'pnpm-lock.yaml', 'Dockerfile', 'compose.test.yml',
     'vite.config.ts', 'tsconfig.json', 'public/schemas/bootstrap.json',
-    '.github/scripts/ci-verdict.sh', 'scripts/tests/auth-selection-test.sh',
+    '.github/scripts/ci-verdict.sh', 'tools/testsuite/auth-selection-test.sh',
 ]
 
 # Lane definitions follow the ci.yml jobs that run them: each lane an

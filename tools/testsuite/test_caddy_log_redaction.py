@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Bounded real-Caddy test; no Ruby, datastore, external upstream or TLS issuance.
 
-Run: python3 scripts/tests/test_caddy_log_redaction.py
+Run: bin/testsuite caddy
 Requires the example's Caddy build (including transform-encoder).
 """
 

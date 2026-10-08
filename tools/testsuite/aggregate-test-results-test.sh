@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# scripts/tests/aggregate-test-results-test.sh
+# tools/testsuite/aggregate-test-results-test.sh
 #
 # Covers .github/scripts/aggregate-test-results.sh and the summary
 # .github/scripts/generate-test-summary.sh renders from its report.
@@ -22,7 +22,7 @@ set -uo pipefail
 
 TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${TEST_DIR}/../.." && pwd)"
-# shellcheck source=scripts/tests/lib/assert.sh
+# shellcheck source=tools/testsuite/lib/assert.sh
 source "${TEST_DIR}/lib/assert.sh"
 
 AGGREGATE="${REPO_ROOT}/.github/scripts/aggregate-test-results.sh"

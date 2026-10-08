@@ -12,7 +12,7 @@
 # expected may be skipped (or may have run and succeeded).
 #
 # Each row of EXPECTED mirrors that job's `if:` in ci.yml. Keep them in step:
-# scripts/tests/ci-verdict-test.sh checks that every test job in ci.yml has a
+# tools/testsuite/ci-verdict-test.sh checks that every test job in ci.yml has a
 # row here, but it cannot check that the gate expressions agree.
 #
 # Environment variables (inputs):

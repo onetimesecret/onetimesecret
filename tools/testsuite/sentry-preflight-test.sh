@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# scripts/tests/sentry-preflight-test.sh
+# tools/testsuite/sentry-preflight-test.sh
 #
 # Covers the classification ladder in scripts/ci/sentry-sourcemap-preflight.sh:
 # which inputs produce status=skipped, status=blocked and status=ready, and
@@ -33,7 +33,7 @@ set -uo pipefail
 
 TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${TEST_DIR}/../.." && pwd)"
-# shellcheck source=scripts/tests/lib/assert.sh
+# shellcheck source=tools/testsuite/lib/assert.sh
 source "${TEST_DIR}/lib/assert.sh"
 
 PREFLIGHT="${REPO_ROOT}/scripts/ci/sentry-sourcemap-preflight.sh"

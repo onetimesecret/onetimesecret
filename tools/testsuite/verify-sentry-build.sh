@@ -11,8 +11,8 @@
 # - No credentials leak into build output
 #
 # Usage:
-#   ./scripts/tests/verify-sentry-build.sh          # Run all checks
-#   ./scripts/tests/verify-sentry-build.sh --quick  # Skip build, check existing output
+#   bin/testsuite verify-sentry-build          # Run all checks
+#   bin/testsuite verify-sentry-build --quick  # Skip build, check existing output
 #
 # Exit codes:
 #   0 - All checks passed

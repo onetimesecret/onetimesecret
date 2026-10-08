@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# scripts/tests/sentry-status-render-test.sh
+# tools/testsuite/sentry-status-render-test.sh
 #
 # Covers `scripts/ci/sentry-status.sh render [expected-component ...]`.
 #
@@ -25,7 +25,7 @@ set -uo pipefail
 
 TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${TEST_DIR}/../.." && pwd)"
-# shellcheck source=scripts/tests/lib/assert.sh
+# shellcheck source=tools/testsuite/lib/assert.sh
 source "${TEST_DIR}/lib/assert.sh"
 
 STATUS_SCRIPT="${REPO_ROOT}/scripts/ci/sentry-status.sh"

@@ -11,7 +11,7 @@
 # that wants the coverage on its PR gets the ci:auth label.
 #
 # Positive globs only. Braces and one-character classes are the only syntax
-# beyond * and **; scripts/tests/auth-selection-test.sh matches the same
+# beyond * and **; tools/testsuite/auth-selection-test.sh matches the same
 # subset and rejects anything else. paths-filter matches dotfiles too.
 auth:
   # Applications that are auth from top to bottom, and the sign-in pages.

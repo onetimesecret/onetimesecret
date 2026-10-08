@@ -1,9 +1,9 @@
-# scripts/tests/test_logtide_ship.py
+# tools/testsuite/test_logtide_ship.py
 
 """Tests for scripts/logtide-ship.py.
 
 Run from repo root:
-    python3 -m pytest scripts/tests/test_logtide_ship.py -v
+    bin/testsuite logtide -v
 
 Requirements: pytest, httpx. cyclopts is only required to import the module
 itself; if it's missing the entire module skips. respx is not used — we mock
@@ -31,7 +31,7 @@ import pytest
 # -- Module loader ------------------------------------------------------
 # logtide-ship.py has a hyphen, so we can't `import` it normally.
 
-_SCRIPT = Path(__file__).resolve().parents[1] / "logtide-ship.py"
+_SCRIPT = Path(__file__).resolve().parents[2] / "scripts" / "logtide-ship.py"
 
 
 def _load_module():
