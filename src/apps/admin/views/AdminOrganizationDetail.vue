@@ -1430,8 +1430,26 @@
           row-key="extid"
           :empty-text="t('web.admin.organizations.detail.domains.empty')"
           testid="domains-table">
+          <!-- The domain name is the way through to its colonel record, by the
+               domain's PUBLIC id (the colonel domain endpoints resolve by extid
+               only). A real router-link so middle-click and open-in-new-tab
+               work, same as the member rows above. -->
           <template #cell-display_domain="{ row }">
-            <div class="font-medium text-gray-900 dark:text-white">{{ row.display_domain }}</div>
+            <router-link
+              :to="{ name: 'AdminDomainDetail', params: { id: row.extid } }"
+              :data-testid="`domain-detail-${row.extid}`"
+              :title="t('web.admin.organizations.detail.domains.openDomain')"
+              class="inline-flex items-center gap-1 font-medium text-gray-900 hover:text-brand-600 hover:underline focus:ring-2 focus:ring-brand-500 focus:outline-none dark:text-white dark:hover:text-brand-400">
+              {{ row.display_domain }}
+              <OIcon
+                collection="heroicons"
+                name="arrow-top-right-on-square"
+                size="3"
+                aria-hidden="true" />
+              <span class="sr-only">{{
+                t('web.admin.organizations.detail.domains.openDomain')
+              }}</span>
+            </router-link>
             <div class="font-mono text-xs text-gray-400 dark:text-gray-500">
               {{ row.base_domain }}
             </div>
