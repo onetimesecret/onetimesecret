@@ -169,7 +169,7 @@ jobs:
       - name: Proof of life (incl. first-account step)
         if: steps.pin.outputs.published == 'true'
         env:
-          POL_CREATE_ACCOUNT: "1"
+          POL_CREATE_ACCOUNT: '1'
           POL_EXEC: docker compose -f docker/compose/docker-compose.simple.yml exec -T app
         run: bin/testsuite-installer proof-of-life http://127.0.0.1:3000
 
