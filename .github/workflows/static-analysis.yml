@@ -108,8 +108,8 @@ jobs:
 
       # No services, no network, no container runtime: these are pure-text
       # assertions over scripts/ci/*.sh and the workflows that call them.
-      - name: Run scripts/tests
-        run: bash tools/testsuite/run.sh
+      - name: Run testsuite
+        run: bash bin/testsuite run
 
   lint:
     name: shellcheck + actionlint

@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# ADR-042: package logic and command parsing live in tools/testsuite/.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+exec "${BASH:-bash}" "$ROOT/tools/testsuite/testsuite.sh" "$@"
