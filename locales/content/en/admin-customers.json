@@ -147,6 +147,15 @@
     "text": "Retry",
     "content_hash": "942087cc"
   },
+  "web.admin.customers.detail.contractMismatch.title": {
+    "text": "Part of this customer's data did not match the expected format."
+  },
+  "web.admin.customers.detail.contractMismatch.body": {
+    "text": "Sections that failed are not shown. Everything else on this page passed validation. Fields that failed:"
+  },
+  "web.admin.customers.detail.sectionInvalid": {
+    "text": "Not shown: this section did not match the expected format."
+  },
   "web.admin.customers.detail.yes": {
     "text": "Yes",
     "content_hash": "85a39ab3"

@@ -86,5 +86,8 @@
   "web.admin.errors.rateLimitedRecovery": {
     "text": "If you must act sooner, clear the limiter with POST /api/colonel/ratelimit/reset for your own account, or run `bin/ots ratelimit keys <kind> <extid>`.",
     "content_hash": "b77e1388"
+  },
+  "web.admin.kit.schemaIssues.more": {
+    "text": "and {count} more"
   }
 }
