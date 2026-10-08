@@ -78,7 +78,8 @@ module ColonelAPI
                 organization_id: org.objid,
                 extid: org.extid,
                 display_name: org.display_name,
-                is_default: org.is_default,
+                # Only default workspaces set this field; team orgs leave it nil.
+                is_default: org.is_default.to_s == 'true',
               }
             end
           end
