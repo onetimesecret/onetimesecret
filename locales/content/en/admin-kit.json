@@ -88,6 +88,7 @@
     "content_hash": "b77e1388"
   },
   "web.admin.kit.schemaIssues.more": {
-    "text": "and {count} more"
+    "text": "and {count} more",
+    "content_hash": "1a261270"
   }
 }
