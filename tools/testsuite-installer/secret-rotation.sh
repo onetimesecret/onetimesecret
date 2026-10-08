@@ -22,7 +22,7 @@
 # dev (6379/5212) or test (2163) datastores.
 #
 # Usage:
-#   tools/testsuite-installer/secret-rotation.sh
+#   bin/testsuite-installer secret-rotation
 #
 # Env knobs: ROT_APP_PORT (default 3213), ROT_DB_PORT (default 2129).
 

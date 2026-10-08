@@ -15,7 +15,7 @@
 #   3. Boot puma production-mode the documented operator way: the .env
 #      sourced with `set -a` (README bare-metal sequence), overriding only
 #      the connection/port knobs so the throwaway datastore is used.
-#   4. tools/testsuite-installer/proof-of-life.sh — homepage + asset round-trip
+#   4. bin/testsuite-installer proof-of-life — homepage + asset round-trip
 #      + v1 create/reveal/at-most-once.
 #
 # Under LANG=C Ruby's Encoding.default_external is US-ASCII: any reader of
@@ -29,7 +29,7 @@
 # dev (6379/5212) or test (2163) datastores.
 #
 # Usage:
-#   tools/testsuite-installer/baremetal-boot.sh
+#   bin/testsuite-installer baremetal-boot
 #
 # Env knobs: BM_APP_PORT (default 3214), BM_DB_PORT (default 2130).
 
@@ -140,7 +140,7 @@ pass "puma answering under LANG=C"
 
 # --- 4. proof of life (homepage + asset probe + v1 round-trip) -----------------
 echo "4. proof of life"
-"$ROOT/tools/testsuite-installer/proof-of-life.sh" "$BASE" \
+"${BASH:-bash}" "$ROOT/bin/testsuite-installer" proof-of-life "$BASE" \
   || die "proof-of-life failed against the bare-metal boot"
 
 echo ""

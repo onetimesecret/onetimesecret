@@ -21,10 +21,10 @@
 #               (must now pass; C3 fixed it). We assert LANG stays unset.
 #
 # Usage:
-#   tools/testsuite-installer/run.sh --lane baremetal
-#   tools/testsuite-installer/run.sh --lane ruby-old
-#   tools/testsuite-installer/run.sh --lane posix
-#   tools/testsuite-installer/run.sh --lane all
+#   bin/testsuite-installer run --lane baremetal
+#   bin/testsuite-installer run --lane ruby-old
+#   bin/testsuite-installer run --lane posix
+#   bin/testsuite-installer run --lane all
 #
 # Requires a working Docker daemon. Not run by the fresh-clone lane (that one
 # needs no container); this is the installer-matrix harness.

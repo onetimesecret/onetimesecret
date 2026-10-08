@@ -12,7 +12,7 @@
 # rot on timestamps/versions — see the strategy doc's rejection of
 # runme/byexample/tesh).
 #
-# Runnable locally (`tools/testsuite-installer/check-docs-commands.sh`) and in CI
+# Runnable locally (`bin/testsuite-installer check-docs-commands`) and in CI
 # (docs-command-drift.yml) — the same artifact, so the two cannot diverge.
 #
 # Exit 0 = every documented command's target exists; exit 1 = drift found.

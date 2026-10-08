@@ -30,8 +30,8 @@
 #     green on a pristine clone with no `pnpm run build` ever run.
 #
 # The job's DURATION is the TTFHW proxy for the contributor path — the measured
-# documented-path duration lands in the step summary, and ttfhw-chart.sh charts
-# the job duration against recent successful runs (warning annotation on a
+# documented-path duration lands in the step summary; the public command
+# bin/testsuite-installer ttfhw-chart charts recent successful runs (warning on a
 # regression past the median).
 # ==============================================================================
 name: Fresh-clone contributor path
@@ -49,6 +49,8 @@ on:
       - '.node-version'
       - 'etc/defaults/**'
       - '.github/workflows/fresh-clone.yml'
+      - 'bin/testsuite-installer'
+      - 'tools/testsuite-installer/testsuite-installer.sh'
       - 'tools/testsuite-installer/ttfhw-chart.sh'
       - 'tests/lanes/**'
   schedule:
@@ -60,7 +62,7 @@ on:
 
 permissions:
   contents: read
-  actions: read # ttfhw-chart.sh reads past run/job durations
+  actions: read # bin/testsuite-installer ttfhw-chart reads past run/job durations
 
 jobs:
   fresh-clone:
@@ -183,4 +185,4 @@ jobs:
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
-        run: tools/testsuite-installer/ttfhw-chart.sh
+        run: bin/testsuite-installer ttfhw-chart

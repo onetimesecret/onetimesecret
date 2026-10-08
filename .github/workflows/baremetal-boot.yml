@@ -10,17 +10,19 @@
 # proof-of-life asset probe as a lane (a real Vite build, not a container's
 # baked assets).
 #
-#   fresh runner -> bin/setup -> tools/testsuite-installer/baremetal-boot.sh
+#   fresh runner -> bin/setup -> bin/testsuite-installer baremetal-boot
 #     (LANG=C: rake ots:secrets -> pnpm run build -> puma production boot
 #      -> proof-of-life: homepage + /dist/assets/*.js + v1 at-most-once)
 #
-# Same artifact locally and in CI: tools/testsuite-installer/baremetal-boot.sh.
+# Same command locally and in CI: bin/testsuite-installer baremetal-boot.
 # ==============================================================================
 name: Bare-metal boot lane
 
 on:
   pull_request:
     paths:
+      - 'bin/testsuite-installer'
+      - 'tools/testsuite-installer/testsuite-installer.sh'
       - 'tools/testsuite-installer/baremetal-boot.sh'
       - 'tools/testsuite-installer/proof-of-life.sh'
       - 'lib/tasks/init.rake'
@@ -77,4 +79,4 @@ jobs:
         run: bin/setup
 
       - name: Run bare-metal boot lane
-        run: ./tools/testsuite-installer/baremetal-boot.sh
+        run: bin/testsuite-installer baremetal-boot

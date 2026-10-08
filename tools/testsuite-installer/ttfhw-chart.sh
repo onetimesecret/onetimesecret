@@ -32,7 +32,7 @@
 #
 # Local dry run (charts history, no "this run" row):
 #   GH_TOKEN=$(gh auth token) GITHUB_REPOSITORY=onetimesecret/onetimesecret \
-#     tools/testsuite-installer/ttfhw-chart.sh
+#     bin/testsuite-installer ttfhw-chart
 
 set -euo pipefail
 

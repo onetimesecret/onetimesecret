@@ -24,7 +24,7 @@
 # and any future Goss spec call the identical assertion.
 #
 # Usage:
-#   tools/testsuite-installer/proof-of-life.sh http://127.0.0.1:3000
+#   bin/testsuite-installer proof-of-life http://127.0.0.1:3000
 #
 # Exit 0 = the instance is alive and the core loop works; nonzero = a specific
 # assertion failed (message on stderr names which).
