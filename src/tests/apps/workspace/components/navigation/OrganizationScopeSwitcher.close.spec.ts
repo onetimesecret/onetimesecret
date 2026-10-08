@@ -48,6 +48,7 @@ type TestOrg = {
   extid?: string;
   display_name: string;
   is_default?: boolean;
+  is_current_user_default?: boolean;
   planid?: string;
   current_user_role?: 'owner' | 'admin' | 'member' | null;
 };
@@ -58,6 +59,7 @@ const personal: TestOrg = {
   extid: 'org2',
   display_name: 'Personal',
   is_default: true,
+  is_current_user_default: true,
   current_user_role: 'owner',
 };
 
@@ -164,5 +166,36 @@ describe('OrganizationScopeSwitcher real-HeadlessUI close behaviour', () => {
 
     expect(mockPush).toHaveBeenCalledWith('/orgs');
     expect(dropdown(wrapper).exists()).toBe(false);
+  });
+
+  // The default icon marks this user's default (is_current_user_default), not
+  // the OWNER's auto-created workspace (is_default), which a member of the
+  // company's default workspace sees flagged too.
+  describe('default icon', () => {
+    const triggerIcon = (w: VueWrapper) =>
+      w.find('[data-testid="org-scope-switcher-trigger"] [data-icon="building-office"]');
+
+    it("is not shown on someone else's default workspace", () => {
+      const companyDefault: TestOrg = {
+        objid: 'o8',
+        extid: 'org8',
+        display_name: 'Company',
+        is_default: true,
+        is_current_user_default: false,
+        current_user_role: 'member',
+      };
+      mockOrganizations.value = [companyDefault, personal];
+      mockCurrentOrganization.value = companyDefault;
+      wrapper = mount(OrganizationScopeSwitcher, { attachTo: document.body });
+
+      expect(triggerIcon(wrapper).exists()).toBe(false);
+    });
+
+    it("is shown on this user's default", () => {
+      mockCurrentOrganization.value = personal;
+      wrapper = mount(OrganizationScopeSwitcher, { attachTo: document.body });
+
+      expect(triggerIcon(wrapper).exists()).toBe(true);
+    });
   });
 });

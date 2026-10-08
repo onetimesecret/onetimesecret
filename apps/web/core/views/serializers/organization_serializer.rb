@@ -63,7 +63,9 @@ module Core
         #
         # Includes only the fields needed for:
         # - Domain context initialization (id, extid)
-        # - Basic display (display_name, is_default)
+        # - Basic display (display_name, is_default, is_current_user_default).
+        #   is_default marks the OWNER's default workspace; whether this is
+        #   the current user's default is is_current_user_default.
         # - Plan identity and role (planid, current_user_role)
         # - Feature gating and quota display (entitlements, limits)
         #
@@ -81,6 +83,7 @@ module Core
             'extid' => org.extid,
             'display_name' => org.display_name,
             'is_default' => org.is_default || false,
+            'is_current_user_default' => current_user_default?(org, cust),
             'planid' => org.planid,
             'current_user_role' => determine_user_role(org, cust),
             'entitlements' => entitlements,
@@ -161,6 +164,19 @@ module Core
             'custom_domains' => normalize.call(org.limit_for(:custom_domains)),
             'secret_lifetime' => normalize.call(org.limit_for(:secret_lifetime)),
           }
+        end
+
+        # Whether org is the current user's default organization
+        # (OrganizationLoader.default_organization). False with no user.
+        #
+        # @param org [Onetime::Organization] Organization
+        # @param cust [Onetime::Customer, nil] Current user
+        # @return [Boolean]
+        def current_user_default?(org, cust)
+          return false unless cust && !cust.anonymous?
+
+          default_org = Onetime::Application::OrganizationLoader.default_organization(cust)
+          !default_org.nil? && default_org.objid == org.objid
         end
 
         # Determine the current user's role in the organization

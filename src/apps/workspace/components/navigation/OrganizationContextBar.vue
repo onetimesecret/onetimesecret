@@ -37,9 +37,10 @@ const {
   isSoloDefaultContext,
 } = useScopeSwitcherVisibility();
 
-// The static org-name chip is the fallback when the switcher is hidden by role
-// (admins/members still need workspace context). It is suppressed for a solo
-// default org, where the switcher is hidden to declutter the new-user surface.
+// The static org-name chip is the fallback when the switcher is hidden (e.g. a
+// user whose one org they do not own still needs workspace context). It is
+// suppressed for a solo default org, where the switcher is hidden to declutter
+// the new-user surface.
 const showStaticOrgName = computed(() =>
   isLoaded.value &&
   visibility.value.organization !== 'hide' &&
@@ -54,8 +55,9 @@ const orgDisplayName = computed(() =>
   organizationStore.currentOrganization?.display_name || ''
 );
 
+// This user's default, not the owner's auto-created workspace (is_default)
 const orgIsDefault = computed(() =>
-  organizationStore.currentOrganization?.is_default ?? false
+  organizationStore.currentOrganization?.is_current_user_default ?? false
 );
 
 const orgInitial = computed(() =>
@@ -90,8 +92,8 @@ onMounted(async () => {
   }
 
   // No current organization after the list fetch (the bootstrap payload named
-  // none): fall back to the default org, then the first. Tab-local only; the
-  // server keeps whatever selection it has.
+  // none): fall back to this user's default org, then the first. Tab-local
+  // only; the server keeps whatever selection it has.
   if (!organizationStore.currentOrganization && organizationStore.defaultOrganization) {
     organizationStore.setCurrentOrganization(organizationStore.defaultOrganization);
   }
@@ -114,12 +116,12 @@ const shouldShow = computed(() =>
 <template>
   <!-- Inline context switchers (wrapper styling provided by parent slot) -->
   <template v-if="shouldShow">
-    <!-- Organization Switcher (owners) -->
+    <!-- Organization Switcher (owners, and users in more than one org) -->
     <OrganizationScopeSwitcher
       v-if="showOrgSwitcher"
       :locked="lockOrgSwitcher" />
 
-    <!-- Static org name (admins/members — no switcher, but establishes workspace context) -->
+    <!-- Static org name (switcher hidden, but establishes workspace context) -->
     <div
       v-else-if="showStaticOrgName"
       class="inline-flex h-10 items-center gap-2 rounded-lg bg-gray-100 px-3 text-sm font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300"

@@ -131,12 +131,14 @@ export const useOrganizationStore = defineStore('organization', () => {
   );
 
   /**
-   * The organization to fall back to when nothing is selected: the default
-   * org, then the first in the list. Null until the list has an entry.
+   * The organization to fall back to when nothing is selected: this user's
+   * default org, then the first in the list. Null until the list has an
+   * entry. Reads `is_current_user_default`, not `is_default`: a member of
+   * someone else's default workspace sees that org flagged `is_default` too.
    */
   const defaultOrganization = computed(
     (): Organization | null =>
-      organizations.value.find((o) => o.is_default) ?? organizations.value[0] ?? null
+      organizations.value.find((o) => o.is_current_user_default) ?? organizations.value[0] ?? null
   );
 
   const isInitialized = computed(() => _initialized.value);
@@ -674,7 +676,8 @@ export const useOrganizationStore = defineStore('organization', () => {
       if (bootstrapOrg && !currentOrganization.value) {
         // Convert bootstrap org format to Organization type
         // Bootstrap provides minimal fields (objid, extid, display_name,
-        // is_default, planid, current_user_role, entitlements, limits)
+        // is_default, is_current_user_default, planid, current_user_role,
+        // entitlements, limits)
         // Full data comes from fetchOrganization
         currentOrganization.value = {
           objid: bootstrapOrg.objid,
@@ -684,6 +687,7 @@ export const useOrganizationStore = defineStore('organization', () => {
           owner_id: '',
           contact_email: null,
           is_default: bootstrapOrg.is_default,
+          is_current_user_default: bootstrapOrg.is_current_user_default ?? false,
           planid: bootstrapOrg.planid ?? 'free_v1',
           current_user_role: bootstrapOrg.current_user_role ?? null,
           entitlements: bootstrapOrg.entitlements ?? null,

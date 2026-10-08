@@ -644,7 +644,13 @@ export const colonelUserDetailOrganizationSchema = z.object({
   organization_id: z.string(),
   extid: z.string(),
   display_name: z.string().nullable(),
+  /** The org is its OWNER's auto-created workspace (not necessarily this customer's). */
   is_default: z.boolean(),
+  /**
+   * The org is THIS customer's default organization. Optional, defaulting to
+   * false, for deploy skew with a backend that does not send it yet.
+   */
+  is_customer_default: z.boolean().optional().default(false),
 });
 
 /** Lifetime counters coerced to Integer server-side (never opaque Counters). */

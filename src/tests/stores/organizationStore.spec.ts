@@ -55,6 +55,8 @@ describe('Organization Store', () => {
     // Absent on the wire above; the schema normalizes it to false so a payload
     // without the flag never reads as "delete blocked" in the UI.
     active_subscription: false,
+    // Absent on the wire above too; normalized to false like is_default.
+    is_current_user_default: false,
     created: new Date('2024-01-01T00:00:00Z'),
     updated: new Date('2024-01-01T00:00:00Z'),
   };
@@ -214,6 +216,16 @@ describe('Organization Store', () => {
           display_name: 'Acme',
           current_user_role: 'owner',
         });
+      });
+
+      it("carries the bootstrap org's is_current_user_default, false when absent", () => {
+        setupBootstrapMock({ initialState: baseBootstrap });
+        useBootstrapStore().organization = { ...acme, is_current_user_default: true };
+        expect(useOrganizationStore().currentOrganization?.is_current_user_default).toBe(true);
+
+        setupBootstrapMock({ initialState: baseBootstrap });
+        useBootstrapStore().organization = acme;
+        expect(useOrganizationStore().currentOrganization?.is_current_user_default).toBe(false);
       });
 
       it('does not replace an existing selection on a bootstrap refresh', async () => {
@@ -882,14 +894,25 @@ describe('Organization Store', () => {
         expect(store.defaultOrganization).toBeNull();
       });
 
-      it('prefers the default org, then the first', () => {
-        store.organizations = [other, { ...mockOrganization, is_default: true }];
+      it("prefers this user's default org, then the first", () => {
+        store.organizations = [other, { ...mockOrganization, is_current_user_default: true }];
         expect(store.defaultOrganization?.objid).toBe('org-123');
 
         store.organizations = [other, mockOrganization];
         expect(store.defaultOrganization?.objid).toBe('org-999');
       });
+
+      // is_default marks the OWNER's auto-created workspace; a member of
+      // someone else's default workspace sees it flagged too.
+      it("ignores is_default on someone else's default workspace", () => {
+        store.organizations = [
+          { ...other, is_default: true },
+          { ...mockOrganization, is_current_user_default: true },
+        ];
+        expect(store.defaultOrganization?.objid).toBe('org-123');
+      });
     });
+
   });
 
   describe('Creating organizations', () => {

@@ -268,6 +268,31 @@ RSpec.describe 'Colonel customer support features', type: :integration do
 
       expect(entry[:is_default]).to be(true)
     end
+
+    # is_default marks the org OWNER's default workspace; is_customer_default
+    # is this customer's own default (OrganizationLoader.default_organization).
+    it "reports is_customer_default only on the customer's own default" do
+      own = Onetime::Organization.create!("Own #{SecureRandom.hex(4)}", member, nil, is_default: true)
+      admin   = create_customer(email: "admin-#{SecureRandom.hex(4)}@example.com")
+      company = Onetime::Organization.create!("Company #{SecureRandom.hex(4)}", admin, nil, is_default: true)
+      company.add_members_instance(member, through_attrs: { role: 'member' })
+
+      entries = user_details(member)[:details][:organizations].to_h { |o| [o[:extid], o] }
+
+      expect(entries[own.extid]).to include(is_default: true, is_customer_default: true)
+      expect(entries[company.extid]).to include(is_default: true, is_customer_default: false)
+    end
+
+    it 'reports is_customer_default on the organization default_org_id names' do
+      admin   = create_customer(email: "admin-#{SecureRandom.hex(4)}@example.com")
+      company = Onetime::Organization.create!("Company #{SecureRandom.hex(4)}", admin)
+      company.add_members_instance(member, through_attrs: { role: 'member' })
+      member.default_org_id!(company.objid)
+
+      entry = user_details(member)[:details][:organizations].find { |o| o[:extid] == company.extid }
+
+      expect(entry[:is_customer_default]).to be(true)
+    end
   end
 
   # ---------------------------------------------------------------------------

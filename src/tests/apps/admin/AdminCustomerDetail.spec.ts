@@ -226,6 +226,68 @@ describe('AdminCustomerDetail (ticket #22)', () => {
       expect(wrapper.find('[data-testid="schema-issues"]').text()).toContain('record.extid');
     });
 
+    // The badge marks THIS customer's default (is_customer_default). is_default
+    // marks the org owner's auto-created workspace, so a customer invited
+    // into someone else's default workspace sees it set there too.
+    describe('organizations "Default" badge', () => {
+      type OrgEntry = {
+        organization_id: string;
+        extid: string;
+        display_name: string;
+        is_default: boolean;
+        is_customer_default?: boolean;
+      };
+      const withOrganizations = (organizations: OrgEntry[]) => {
+        const payload = detailPayload();
+        return { ...payload, details: { ...payload.details, organizations } };
+      };
+      const badgeIn = (w: VueWrapper, extid: string) =>
+        w
+          .findAll('[data-testid="organizations-list"] li')
+          .find((li) => li.text().includes(extid))
+          ?.find('[data-testid="organization-default-badge"]')
+          .exists();
+
+      it("follows is_customer_default, not the owner's is_default", async () => {
+        mockApi.get.mockResolvedValue({
+          data: withOrganizations([
+            {
+              organization_id: 'o1',
+              extid: 'og_company',
+              display_name: 'Company',
+              is_default: true,
+              is_customer_default: false,
+            },
+            {
+              organization_id: 'o2',
+              extid: 'og_own',
+              display_name: 'Own',
+              is_default: false,
+              is_customer_default: true,
+            },
+          ]),
+        });
+        wrapper = mountView();
+        await flushPromises();
+
+        expect(badgeIn(wrapper, 'og_company')).toBe(false);
+        expect(badgeIn(wrapper, 'og_own')).toBe(true);
+      });
+
+      it('renders the list without a badge when the field is absent (deploy skew)', async () => {
+        mockApi.get.mockResolvedValue({
+          data: withOrganizations([
+            { organization_id: 'o1', extid: 'og_acme', display_name: 'Acme', is_default: true },
+          ]),
+        });
+        wrapper = mountView();
+        await flushPromises();
+
+        expect(wrapper.find('[data-testid="section-invalid-organizations"]').exists()).toBe(false);
+        expect(badgeIn(wrapper, 'og_acme')).toBe(false);
+      });
+    });
+
     describe('contract mismatch confined to one details section', () => {
       const SECRET_MARKER = 'do-not-render-this-value';
 

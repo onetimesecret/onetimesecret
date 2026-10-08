@@ -79,9 +79,11 @@ const currentOrganization = computed<Organization | null>(() => {
 const shouldShow = computed(() => organizationStore.hasOrganizations);
 
 /**
- * Check if an organization is the default (personal) organization
+ * Check if an organization is this user's default. Not `is_default`: that
+ * marks the OWNER's auto-created workspace, so it is also true on someone
+ * else's default workspace the user was invited into.
  */
-const isDefaultOrg = (org: Organization | null): boolean => org?.is_default ?? false;
+const isDefaultOrg = (org: Organization | null): boolean => org?.is_current_user_default ?? false;
 
 /**
  * Check if current organization is the default

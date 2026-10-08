@@ -1310,8 +1310,10 @@
               </p>
             </div>
             <div class="ml-3 flex shrink-0 items-center gap-2">
+              <!-- This customer's default, not the owner's auto-created workspace -->
               <span
-                v-if="org.is_default"
+                v-if="org.is_customer_default"
+                data-testid="organization-default-badge"
                 class="rounded bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700 dark:bg-brand-900/30 dark:text-brand-300">
                 {{ t('web.admin.customers.detail.organizations.default') }}
               </span>
