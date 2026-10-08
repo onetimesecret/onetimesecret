@@ -148,13 +148,16 @@
     "content_hash": "942087cc"
   },
   "web.admin.customers.detail.contractMismatch.title": {
-    "text": "Part of this customer's data did not match the expected format."
+    "text": "Part of this customer's data did not match the expected format.",
+    "content_hash": "8c35eb7a"
   },
   "web.admin.customers.detail.contractMismatch.body": {
-    "text": "Sections that failed are not shown. Everything else on this page passed validation. Fields that failed:"
+    "text": "Sections that failed are not shown. Everything else on this page passed validation. Fields that failed:",
+    "content_hash": "58c401c5"
   },
   "web.admin.customers.detail.sectionInvalid": {
-    "text": "Not shown: this section did not match the expected format."
+    "text": "Not shown: this section did not match the expected format.",
+    "content_hash": "205919b9"
   },
   "web.admin.customers.detail.yes": {
     "text": "Yes",
