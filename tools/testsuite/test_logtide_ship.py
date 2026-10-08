@@ -16,7 +16,6 @@ import importlib.util
 import io
 import json
 import logging
-import os
 import queue as queue_mod
 import re
 import socket
@@ -370,7 +369,11 @@ class TestBuildEntryDispatch:
         assert e["metadata"]["logger"] == "L"
 
     def test_caddy_mode_routes_to_caddy_builder(self):
-        raw = {"ts": 1646861401.5, "request": {"method": "GET", "uri": "/"}, "status": 200}
+        raw = {
+            "ts": 1646861401.5,
+            "request": {"method": "GET", "uri": "/"},
+            "status": 200,
+        }
         line = json.dumps(raw)
         e = ls._build_entry(line, "svc", mode="caddy")
         assert "GET /" in e["message"]
@@ -461,7 +464,9 @@ class TestPreflight:
         assert "event=preflight_ok" in msgs
         assert "status=400" in msgs
 
-    def test_connection_error_warns_but_continues(self, monkeypatch, diag_caplog):
+    def test_connection_error_warns_but_continues(
+        self, monkeypatch, diag_caplog
+    ):
         def boom(_req):
             raise httpx.ConnectError("refused")
 
@@ -587,7 +592,11 @@ class TestBatch:
         _patched_client(monkeypatch, t)
         monkeypatch.setattr(ls, "_preflight", lambda *a, **k: None)
 
-        raw = {"timestamp": "2024-01-01T00:00:00.000Z", "level": "info", "message": "x"}
+        raw = {
+            "timestamp": "2024-01-01T00:00:00.000Z",
+            "level": "info",
+            "message": "x",
+        }
         stdin = io.StringIO(json.dumps(raw) + "\n")
         monkeypatch.setattr(sys, "stdin", stdin)
 
@@ -609,7 +618,8 @@ class TestValidateService:
             ls._validate_service("")
         assert exc.value.code == 2
         assert any(
-            "event=invalid_service" in r.getMessage() and "reason=empty" in r.getMessage()
+            "event=invalid_service" in r.getMessage()
+            and "reason=empty" in r.getMessage()
             for r in diag_caplog.records
         )
 
@@ -620,7 +630,9 @@ class TestValidateService:
     def test_too_long_exits(self, diag_caplog):
         with pytest.raises(SystemExit):
             ls._validate_service("x" * 129)
-        assert any("reason=too_long" in r.getMessage() for r in diag_caplog.records)
+        assert any(
+            "reason=too_long" in r.getMessage() for r in diag_caplog.records
+        )
 
     def test_boundary_128_ok(self):
         ls._validate_service("x" * 128)
@@ -628,7 +640,10 @@ class TestValidateService:
     def test_control_char_exits(self, diag_caplog):
         with pytest.raises(SystemExit):
             ls._validate_service("bad\x00name")
-        assert any("reason=control_chars" in r.getMessage() for r in diag_caplog.records)
+        assert any(
+            "reason=control_chars" in r.getMessage()
+            for r in diag_caplog.records
+        )
 
     def test_newline_rejected(self):
         with pytest.raises(SystemExit):
@@ -655,18 +670,24 @@ class TestValidateUrl:
     def test_ftp_scheme_exits(self, diag_caplog):
         with pytest.raises(SystemExit):
             ls._validate_url("ftp://x")
-        assert any("reason=bad_scheme" in r.getMessage() for r in diag_caplog.records)
+        assert any(
+            "reason=bad_scheme" in r.getMessage() for r in diag_caplog.records
+        )
 
     def test_missing_host_exits(self, diag_caplog):
         with pytest.raises(SystemExit):
             ls._validate_url("http://")
-        assert any("reason=missing_host" in r.getMessage() for r in diag_caplog.records)
+        assert any(
+            "reason=missing_host" in r.getMessage() for r in diag_caplog.records
+        )
 
     def test_preflight_invokes_url_validation(self, monkeypatch, diag_caplog):
         monkeypatch.setattr(ls, "LOGTIDE_URL", "ftp://nope")
         with pytest.raises(SystemExit):
             ls._preflight("follow", "svc", "json")
-        assert any("event=invalid_url" in r.getMessage() for r in diag_caplog.records)
+        assert any(
+            "event=invalid_url" in r.getMessage() for r in diag_caplog.records
+        )
 
 
 # -- _kv logfmt helper --------------------------------------------------
@@ -749,6 +770,7 @@ class TestFollowDropOldest:
         """Install a _shipper stub that leaves whatever is in the queue
         alone until it sees the shutdown sentinel — so drop-oldest is
         the only way the queue can make room."""
+
         def fake_shipper(q, *a, **k):
             # Wait for shutdown sentinel only. Don't drain data items.
             while True:
@@ -758,10 +780,12 @@ class TestFollowDropOldest:
                 # Put it back — we want to observe retained items.
                 # But we can't easily "peek", so instead: drain *after*
                 # sentinel seen. Store items on the function itself.
+
         # Simpler: no-op shipper that just blocks on sentinel.
         def noop_shipper(q, *a, **k):
             while q.get() is not None:
                 pass
+
         monkeypatch.setattr(ls, "_shipper", noop_shipper)
 
     def test_drop_oldest_keeps_newest(self, monkeypatch, diag_caplog):
