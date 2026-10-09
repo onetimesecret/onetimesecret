@@ -57,11 +57,19 @@
 #   LANES_RSPEC_CONSOLE - `quiet` swaps the console's progress formatter for
 #                       tests/lanes/support/quiet_formatter.rb. Assigned by
 #                       tests/lanes/run --quiet; the results file is unaffected
+#   worker count      - rspec processes per invocation for the tasks that
+#                       split (see "In-lane workers" below, and
+#                       tests/lanes/support/workers.rb for the variable);
+#                       absent or 1 is one process
 #
 # See also: docs/adr/adr-007-test-process-boundaries.md
 
+require 'fileutils'
+require 'shellwords'
 require 'rspec/core/rake_task'
 require_relative '../../tests/lanes/support/rspec_format'
+require_relative '../../tests/lanes/support/merge_rspec_status'
+require_relative '../../tests/lanes/support/workers'
 
 INTEGRATION_MODES = %w[simple full disabled].freeze
 
@@ -111,6 +119,81 @@ end
 # @return [String] RSpec format flags
 def rspec_task_format_options(task)
   rspec_format_options(Lanes::RSpecFormat.task_suffix(task.name, Rake.application.top_level_tasks))
+end
+
+# In-lane workers (#4551)
+# -----------------------
+# The runner's worker count (Lanes::Workers.count, from a lane's env file or
+# `tests/lanes/run --workers N`; tests/lanes/support/workers.rb reads it,
+# since this file is copied into the image and may name no runner variable)
+# is the number of rspec processes a lane's invocation is split over. Absent,
+# empty or 1 is the serial command, exactly as before. Above 1 the tasks
+# that opt in (spec:integration:simple, spec:integration:full, spec:api) run
+# parallel_rspec instead: N `bundle exec rspec` processes over the same
+# paths, each started through tests/lanes/support/worker-env, which gives
+# worker k (TEST_ENV_NUMBER, 1-based under --first-is-1) its own datastore
+# index and URLs, its own example status file
+# (<run dir>/rspec-status.w<k>.txt) and its own results file: the single
+# `--out tmp/<stem>.json` the task passes becomes tmp/<stem>_w<k>.json,
+# which .github/actions/run-test-lane already collects by tmp/<stem>*.json.
+# The rspec options are the same string the serial command gets, handed
+# whole to parallel_rspec's -o. Output is serialized per worker, in
+# completion order, and the exit status is non-zero when any worker's is.
+#
+# When the workers are done, whatever the exit status, their status files
+# are folded into the lane's (tests/lanes/support/merge_rspec_status.rb),
+# so `tests/lanes/run <lane> --only <file> -- --only-failures` keeps
+# reading one file. Stale worker files of an earlier run are removed first:
+# rspec keeps entries for files a process did not load, so an old worker
+# file would carry statuses this run assigned to another worker.
+WORKER_ENV_SHIM = 'tests/lanes/support/worker-env'
+
+# The integration modes whose task splits (with spec:api): the lanes that
+# set a worker count in their env file. The disabled lane has no worker
+# default and keeps one process even under `--workers N`; add the mode here
+# to let it split.
+WORKER_INTEGRATION_MODES = %w[simple full].freeze
+
+# One rspec invocation of a lane: serial, or split over the runner's worker
+# count (Lanes::Workers.count). +options+ is the shell-quoted tail of the
+# serial command (tag filters and the format flags), +paths+ the
+# directories and files.
+#
+# @param env [Hash] the lane's environment for the process(es)
+# @param paths [Array<String>] what rspec is given to run
+# @param options [String] rspec options, shell-quoted
+def sh_rspec(env, paths, options)
+  workers = Lanes::Workers.count
+  if workers < 2
+    sh env, "bundle exec rspec #{paths.join(' ')} #{options}"
+    return
+  end
+
+  worker_env  = env.merge('PARALLEL_TESTS_EXECUTABLE' => "#{WORKER_ENV_SHIM} auto bundle exec rspec")
+  status_file = Lanes::Workers.status_file
+  worker_glob = status_file && Lanes::MergeRSpecStatus.worker_glob(status_file)
+  FileUtils.rm_f(Dir.glob(worker_glob)) if worker_glob
+  command     = "bundle exec parallel_rspec -n #{workers} --first-is-1 --serialize-stdout " \
+                "-o #{Shellwords.escape(options)} #{paths.join(' ')}"
+  begin
+    sh worker_env, command
+  ensure
+    merge_worker_status(status_file, worker_glob) if worker_glob
+  end
+end
+
+# Folds the worker status files into the lane's after a split run. Called
+# from an `ensure`, so a failure here is reported and swallowed: it must not
+# replace the test result that is propagating, and a stale status file costs
+# one `--only-failures` rerun, not the run.
+#
+# @param status_file [String] the lane's status file
+# @param worker_glob [String] the per-worker files beside it
+def merge_worker_status(status_file, worker_glob)
+  rc = Lanes::MergeRSpecStatus.main([status_file, worker_glob])
+  warn "[spec.rake] merge_rspec_status exited #{rc}: #{status_file} may be stale" unless rc.zero?
+rescue StandardError => ex
+  warn "[spec.rake] could not merge the worker status files into #{status_file}: #{ex.class}: #{ex.message}"
 end
 
 # Auto-discover app-specific spec directories (co-located with their applications)
@@ -182,6 +265,23 @@ BILLING_SPEC_EXCLUDE = 'apps/web/billing/spec/integration/**/*_spec.rb'
 # task passes files, which the lane ownership oracle models verbatim.
 BILLING_INTEGRATION_SPEC_PATTERN = 'apps/web/billing/spec/integration/*_spec.rb'
 BILLING_INTEGRATION_SPEC_FILES   = Dir.glob(BILLING_INTEGRATION_SPEC_PATTERN).sort.freeze
+
+# Full-mode files that adapt to the auth feature set: an example that needs
+# MFA, email_auth (magic links), WebAuthn or verify_account skips when the
+# feature is not loaded, and the mirror-image example skips when it is. The shared full
+# lanes boot with those features off, so spec:integration:full:mfa loads these
+# files too, by name: in its boot the feature-on examples execute and the
+# feature-off ones skip, and each example runs in some lane. Files, not
+# directories: the rest of integration/full assumes the default feature set.
+FULL_MFA_FEATURE_ADAPTIVE_SPECS = %w[
+  apps/web/auth/spec/integration/full/restrict_to_enforcement_spec.rb
+  apps/web/auth/spec/integration/full/signin_enabled_enforcement_spec.rb
+  apps/web/auth/spec/integration/full/signin_gate_enforcement_spec.rb
+  apps/web/auth/spec/integration/full/resend_verify_account_internal_request_spec.rb
+  spec/integration/full/env_toggles/magic_links_spec.rb
+  spec/integration/full/routes/availability_spec.rb
+  spec/integration/full/routes/resend_verification_email_spec.rb
+].freeze
 
 # The harness lane's spec selection (tests/lanes/harness, spec:lanes below):
 # the lane runner's own specs. Nearly every example there starts
@@ -352,7 +452,12 @@ namespace :spec do
           'spec/integration/all',
         ]
 
-        sh env, "bundle exec rspec #{patterns.join(' ')} #{tag_filter} #{rspec_task_format_options(task)}"
+        options = [tag_filter, rspec_task_format_options(task)].reject(&:empty?).join(' ')
+        if WORKER_INTEGRATION_MODES.include?(mode)
+          sh_rspec env, patterns, options
+        else
+          sh env, "bundle exec rspec #{patterns.join(' ')} #{options}"
+        end
       end
     end
 
@@ -400,13 +505,23 @@ namespace :spec do
         # Passkey-as-second-factor coverage (omniauth_connect_reauth_webauthn_spec)
         # needs the Rodauth webauthn feature set in the same one-shot boot.
         'AUTH_WEBAUTHN_ENABLED' => 'true',
+        # Email verification for the verify_account examples among the
+        # feature-adaptive files below.
+        'AUTH_VERIFY_ACCOUNT_ENABLED' => 'true',
       }
 
       # This task is the full-mfa lane's only task, so an empty glob would
       # otherwise pass the "SQLite, MFA" CI row with zero examples (e.g.
-      # after a directory rename). Fail loudly instead.
+      # after a directory rename). Fail loudly instead. Same for a renamed
+      # feature-adaptive file: rspec would abort on the missing path, but name
+      # it here so the fix is obvious.
       patterns = Dir.glob('apps/*/*/spec/integration/full_mfa')
       abort '[spec:integration:full:mfa] no apps/*/*/spec/integration/full_mfa directories found' if patterns.empty?
+
+      missing = FULL_MFA_FEATURE_ADAPTIVE_SPECS.reject { |f| File.file?(f) }
+      abort "[spec:integration:full:mfa] FULL_MFA_FEATURE_ADAPTIVE_SPECS names missing file(s): #{missing.join(' ')}" if missing.any?
+
+      patterns += FULL_MFA_FEATURE_ADAPTIVE_SPECS
 
       # Distinct results file so this task never clobbers the full-mode JSON
       # output when both run in one rake process with RSPEC_OUTPUT_FILE set
@@ -574,7 +689,7 @@ namespace :spec do
   desc 'Run API contract specs (spec/api/, mode-agnostic; needs Valkey on 2163)'
   task :api do |task|
     env = { 'RACK_ENV' => 'test', 'AUTHENTICATION_MODE' => 'simple' }
-    sh env, "bundle exec rspec spec/api #{rspec_task_format_options(task)}"
+    sh_rspec env, ['spec/api'], rspec_task_format_options(task)
   end
 
   # Two rspec processes, not thirteen. `rake spec:verify_selection` asserts the

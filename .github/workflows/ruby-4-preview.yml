@@ -2,12 +2,12 @@
 ---
 name: Ruby 4 Preview
 
-# Standalone, non-blocking workflow that runs Ruby lint and tests under
-# Ruby 4.0.2 so the team can see what breaks before committing to the
-# upgrade. The Ruby-4-dependent steps are marked continue-on-error at
-# the step level, so failures surface as yellow warning annotations
-# (not red checks) and jobs still conclude green — visible signal
-# without blocking merge or polluting the PR check list.
+# Standalone, non-blocking nightly workflow that runs Ruby lint and tests
+# under Ruby 4.0.2 so the team can see what breaks before committing to
+# the upgrade. It runs on the schedule below and on a dispatch, never on
+# a pull request. The Ruby-4-dependent steps are marked continue-on-error
+# at the step level, so failures surface as yellow warning annotations
+# (not red checks) and jobs still conclude green.
 #
 # Design notes:
 # - Jobs are independent: each test job only needs build-assets for the
@@ -28,19 +28,25 @@ name: Ruby 4 Preview
 #   there — setup-ruby's bundle install, rubocop, or the lane run — is
 #   captured as a warning annotation on the step while the job itself
 #   completes successfully.
+# - The Gemfile takes its Ruby from .ruby-version, so Bundler refuses to
+#   load the bundle under any other Ruby. Every Ruby job therefore first
+#   pins the checkout with .github/scripts/pin-ruby-version.sh (the
+#   pin-ruby step: the one place the version under test is written),
+#   which rewrites .ruby-version and the lockfile's RUBY VERSION entry
+#   and leaves the locked gems as committed. That step is deliberately
+#   NOT continue-on-error: when it fails, this workflow is broken, not
+#   Ruby 4, and every later step would fail for the wrong reason.
 # - Billing tests are nightly only, here as in ci.yml
-#   (docs/development/auth-ci.md): the billing lanes and the billing-on
-#   full-mode row are their own jobs, skipped on a pull request and run
-#   on the schedule below (or a dispatch). The other jobs run on a pull
-#   request and a dispatch, not on the schedule, so the nightly run is
-#   the billing jobs and the frontend build they download.
+#   (docs/development/auth-ci.md). The whole workflow is nightly, so the
+#   billing lanes and the billing-on full-mode row run with every other
+#   job and no job has an event gate.
 
 on:
-  # No base-branch filter, as in ci.yml: stacked PRs run too.
-  pull_request:
   schedule:
-    # Nightly, for the billing jobs only; after main CI's 04:03 run.
+    # Nightly, after main CI's 04:03 run.
     - cron: '23 4 * * *'
+  # To run it against a branch:
+  #   gh workflow run ruby-4-preview.yml --ref <branch>
   workflow_dispatch:
 
 permissions:
@@ -79,19 +85,24 @@ jobs:
     name: Ruby 4 · Lint
     runs-on: *runs-on
     timeout-minutes: 5
-    if: github.event_name != 'schedule'
     steps:
       - *checkout-step
 
-      - name: Setup Ruby 4.0.2 (may fail on bundle install)
+      - &pin-ruby-step
+        name: Pin the checkout to Ruby 4.0.2
+        run: .github/scripts/pin-ruby-version.sh 4.0.2
+
+      - name: Setup Ruby
         uses: ruby/setup-ruby@003a5c4d8d6321bd302e38f6f0ec593f77f06600 # v1.319.0
         continue-on-error: true
         with:
-          ruby-version: '4.0.2'
+          ruby-version: '.ruby-version' # as pinned above
           bundler-cache: false # DEBUG: disabled to rule out stale cache
 
       - name: Install dependencies
         continue-on-error: true
+        env:
+          BUNDLE_FROZEN: 'true' # as ci.yml: the locked gems, only Ruby varies
         run: bundle install --jobs 4 --retry 3
 
       - name: Run Rubocop
@@ -117,7 +128,7 @@ jobs:
     runs-on: *runs-on
     timeout-minutes: 15
     needs: [build-assets]
-    if: always() && github.event_name != 'schedule'
+    if: always()
 
     steps:
       - *checkout-step
@@ -128,11 +139,11 @@ jobs:
         name: Start test services (valkey, rabbitmq)
         run: docker compose -f compose.test.yml up --wait -d valkey rabbitmq
 
+      - *pin-ruby-step
+
       - name: Setup Ruby test environment (may fail on bundle install)
         uses: ./.github/actions/setup-ruby-test-env
         continue-on-error: true
-        with:
-          ruby-version: '4.0.2'
 
       # Locale + JSON-schema generation is owned by the lane's tasks file;
       # it needs python3, node, and pnpm on PATH.
@@ -150,24 +161,23 @@ jobs:
         with:
           lane: unit
 
-  # Nightly only (see the design notes): billing's own lanes.
   ruby-billing:
     name: Ruby 4 · Billing Tests
     runs-on: *runs-on
     timeout-minutes: 15
     needs: [build-assets]
-    if: always() && github.event_name != 'pull_request'
+    if: always()
 
     steps:
       - *checkout-step
 
       - *start-core-services
 
+      - *pin-ruby-step
+
       - name: Setup Ruby test environment (may fail on bundle install)
         uses: ./.github/actions/setup-ruby-test-env
         continue-on-error: true
-        with:
-          ruby-version: '4.0.2'
 
       - name: Setup Python for locale sync
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -194,18 +204,18 @@ jobs:
     runs-on: *runs-on
     timeout-minutes: 15
     needs: [build-assets]
-    if: always() && github.event_name != 'schedule'
+    if: always()
 
     steps:
       - *checkout-step
 
       - *start-core-services
 
+      - *pin-ruby-step
+
       - name: Setup Ruby test environment (may fail on bundle install)
         uses: ./.github/actions/setup-ruby-test-env
         continue-on-error: true
-        with:
-          ruby-version: '4.0.2'
 
       - &setup-python-step
         name: Setup Python for locale sync
@@ -234,11 +244,11 @@ jobs:
     runs-on: *runs-on
     timeout-minutes: 15
     needs: [build-assets]
-    if: always() && github.event_name != 'schedule'
+    if: always()
 
-    # Same lane + overlay pairing as ci.yml's SQLite matrix rows; the MFA
-    # row is the only process that boots with AUTH_MFA_ENABLED. The
-    # billing-on row is the nightly-only job below.
+    # Same lane + overlay pairing as ci.yml's SQLite matrix rows; the
+    # billing rows are the full-sqlite lane with the billing overlay, and
+    # the MFA row is the only process that boots with AUTH_MFA_ENABLED.
     strategy:
       fail-fast: false
       matrix:
@@ -246,6 +256,9 @@ jobs:
           - name: 'SQLite, billing: off'
             lane: full-sqlite
             overlay: ''
+          - name: 'SQLite, billing: on'
+            lane: full-sqlite
+            overlay: 'billing'
           - name: 'SQLite, MFA'
             lane: full-mfa
             overlay: ''
@@ -253,16 +266,16 @@ jobs:
             lane: full-saml-platform
             overlay: ''
 
-    steps: &full-integration-steps
+    steps:
       - *checkout-step
 
       - *start-core-services
 
+      - *pin-ruby-step
+
       - name: Setup Ruby test environment (may fail on bundle install)
         uses: ./.github/actions/setup-ruby-test-env
         continue-on-error: true
-        with:
-          ruby-version: '4.0.2'
 
       - *setup-python-step
 
@@ -277,43 +290,23 @@ jobs:
           lane: ${{ matrix.lane }}
           overlay: ${{ matrix.overlay }}
 
-  # Nightly only (see the design notes): the full-sqlite lane with the
-  # billing overlay, as ci.yml's ruby-integration-billing SQLite row. A
-  # one-row matrix so the shared steps' matrix references resolve.
-  ruby-integration-full-billing:
-    name: 'Ruby 4 · Integration (Full, ${{ matrix.name }})'
-    runs-on: *runs-on
-    timeout-minutes: 15
-    needs: [build-assets]
-    if: always() && github.event_name != 'pull_request'
-
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: 'SQLite, billing: on'
-            lane: full-sqlite
-            overlay: 'billing'
-
-    steps: *full-integration-steps
-
   ruby-integration-disabled:
     name: Ruby 4 · Integration (Disabled Mode)
     runs-on: *runs-on
     timeout-minutes: 15
     needs: [build-assets]
-    if: always() && github.event_name != 'schedule'
+    if: always()
 
     steps:
       - *checkout-step
 
       - *start-core-services
 
+      - *pin-ruby-step
+
       - name: Setup Ruby test environment (may fail on bundle install)
         uses: ./.github/actions/setup-ruby-test-env
         continue-on-error: true
-        with:
-          ruby-version: '4.0.2'
 
       - *setup-python-step
 

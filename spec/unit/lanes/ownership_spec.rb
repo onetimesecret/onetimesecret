@@ -54,11 +54,18 @@ module LaneOwnershipProbe
     @path_bash_major = status.success? ? Integer(out.strip, exception: false) : nil
   end
 
+  # The rake tasks a lane's tasks file runs: `bundle exec rake <task>` at the
+  # start of a line, with or without the worker prefix
+  # `tests/lanes/support/worker-env <k> ` the unit lane's legs carry
+  # (#4551). A tasks file that names a task in two branches (serial and
+  # workers) names it once to the readers here: `.uniq` after `.scan`.
+  TASKS_RUN = %r{^\s*(?:tests/lanes/support/worker-env \S+ )?bundle exec rake ([a-z_:]+)}
+
   # Runs in its own process: loading the rake files defines tasks and
   # top-level constants (APP_SPECS, ROOT_FAST_PATTERN, ...) that have no
   # business in the spec process that runs everything after this file.
   # Prints one JSON object, lane => [repo-relative files its tasks select].
-  ORACLE = <<~'RUBY'
+  ORACLE = "TASKS_RUN = #{TASKS_RUN.inspect}\n" + <<~'RUBY'
     require 'rake'
     require 'rspec/core'
     require 'json'
@@ -79,19 +86,22 @@ module LaneOwnershipProbe
       cfg.files_to_run.map { |f| f.delete_prefix("#{Dir.pwd}/") }.sort.uniq
     end
 
-    # `sh env, "one string"` or `sh env, 'bundle', 'exec', ...`; only rspec and
+    # `sh env, "one string"` or `sh env, 'bundle', 'exec', ...`; only rspec,
+    # parallel_rspec (the same rspec options behind -o, LANES_WORKERS > 1) and
     # tryouts commands select test files (verify_dual_url runs a ruby -e).
     parse = lambda do |args|
       words = args.reject { |a| a.is_a?(Hash) }
       words = Shellwords.split(words.first) if words.size == 1
-      next nil unless words[0..1] == %w[bundle exec] && %w[rspec tryouts].include?(words[2])
+      next nil unless words[0..1] == %w[bundle exec] && %w[rspec parallel_rspec tryouts].include?(words[2])
 
-      runner = words[2]
+      runner = words[2] == 'parallel_rspec' ? 'rspec' : words[2]
       paths = []
       exclude = nil
       rest = words[3..]
       while (word = rest.shift)
         case word
+        when '-o' then rest = Shellwords.split(rest.shift) + rest
+        when '-n' then rest.shift
         when '--exclude-pattern' then exclude = rest.shift
         when '--tag', '--format', '--out', '--require' then rest.shift
         when /\A-/ then next
@@ -108,7 +118,7 @@ module LaneOwnershipProbe
     lanes = {}
     Dir.glob('tests/lanes/*/tasks').sort.each do |tasks|
       lane = tasks.split('/')[-2]
-      task_names = File.read(tasks).scan(/^\s*bundle exec rake ([a-z_:]+)/).flatten
+      task_names = File.read(tasks).scan(TASKS_RUN).flatten.uniq
       next if task_names.empty?
 
       lanes[lane] = task_names.flat_map do |name|
@@ -124,14 +134,23 @@ module LaneOwnershipProbe
     puts JSON.generate(lanes)
   RUBY
 
-  # lane => files, from the rake tasks. One subprocess for the whole file.
+  # lane => files, from the rake tasks. One subprocess for the whole file,
+  # with the lane's worker count as the runner would have left it (the
+  # harness lane has none, so this is the serial command of every task).
   def selection
     return @selection if defined?(@selection)
 
-    out, err, status = Open3.capture3('bundle', 'exec', 'ruby', '-e', ORACLE, chdir: repo_root)
+    @selection = selection_with('LANES_WORKERS' => nil)
+  end
+
+  # The same under +env+, e.g. a LANES_WORKERS that makes the tasks which
+  # split over workers (#4551) emit their parallel_rspec command.
+  def selection_with(env)
+    out, err, status = Open3.capture3(env.merge('LANES_RSPEC_STATUS_FILE' => nil),
+                                      'bundle', 'exec', 'ruby', '-e', ORACLE, chdir: repo_root)
     raise "ownership oracle failed (#{status.exitstatus}):\n#{err}\n#{out}" unless status.success?
 
-    @selection = JSON.parse(out)
+    JSON.parse(out)
   end
 
   # file => sorted owning lanes, for every file some task selects.
@@ -198,10 +217,17 @@ module LaneOwnershipProbe
     %w[full-sqlite,full-pg,migrations-sqlite        spec/integration/full/database_triggers/sqlite_spec.rb],
     %w[full-sqlite,full-pg,migrations-pg            spec/integration/full/database_triggers/postgres_spec.rb],
     %w[full-sqlite,full-pg,migrations-pg            spec/integration/full/postgres_infrastructure_spec.rb],
+    %w[full-sqlite,full-pg,full-pg-agnostic,full-mfa spec/integration/full/env_toggles/magic_links_spec.rb],
+    %w[full-sqlite,full-pg,full-pg-agnostic,full-mfa spec/integration/full/routes/availability_spec.rb],
+    %w[full-sqlite,full-pg,full-pg-agnostic,full-mfa spec/integration/full/routes/resend_verification_email_spec.rb],
     %w[billing                                      apps/web/billing/spec],
     %w[billing                                      apps/web/billing/try],
     %w[unit                                         apps/*/*/spec],
     %w[full-sqlite,full-pg                          apps/*/*/spec/integration/full/migrations/*_spec.rb],
+    %w[full-sqlite,full-pg,full-pg-agnostic,full-mfa apps/web/auth/spec/integration/full/resend_verify_account_internal_request_spec.rb],
+    %w[full-sqlite,full-pg,full-pg-agnostic,full-mfa apps/web/auth/spec/integration/full/restrict_to_enforcement_spec.rb],
+    %w[full-sqlite,full-pg,full-pg-agnostic,full-mfa apps/web/auth/spec/integration/full/signin_enabled_enforcement_spec.rb],
+    %w[full-sqlite,full-pg,full-pg-agnostic,full-mfa apps/web/auth/spec/integration/full/signin_gate_enforcement_spec.rb],
     %w[full-sqlite,full-pg,full-pg-agnostic         apps/*/*/spec/integration/full],
     %w[full-mfa                                     apps/*/*/spec/integration/full_mfa],
     %w[full-saml-platform                           apps/*/*/spec/integration/full_saml_platform],
@@ -246,6 +272,9 @@ module LaneOwnershipProbe
     spec/cli/billing/ spec/unit/billing/ spec/unit/onetime/operations/billing/ spec/unit/lanes/
     apps/*/*/spec/ apps/*/*/spec/integration/*/ apps/*/*/spec/integration/*_spec.rb
     apps/*/*/spec/integration/full/migrations/*_spec.rb
+    spec/integration/full/env_toggles/magic_links_spec.rb spec/integration/full/routes/{availability,resend_verification_email}_spec.rb
+    apps/web/auth/spec/integration/full/{restrict_to,signin_enabled,signin_gate}_enforcement_spec.rb
+    apps/web/auth/spec/integration/full/resend_verify_account_internal_request_spec.rb
     apps/web/billing/try/
     try/*/ try/integration/*/ try/integration/*_try.rb
     try/unit/billing/ try/unit/cli/billing/
@@ -284,7 +313,7 @@ module LaneOwnershipProbe
   def tasks_run
     @tasks_run ||= Dir.chdir(repo_root) do
       Dir.glob('tests/lanes/*/tasks').sort.to_h do |tasks|
-        [tasks.split('/')[-2], File.read(tasks).scan(/^\s*bundle exec rake ([a-z_:]+)/).flatten.sort.uniq]
+        [tasks.split('/')[-2], File.read(tasks).scan(TASKS_RUN).flatten.sort.uniq]
       end
     end
   end
@@ -322,6 +351,18 @@ RSpec.describe 'tests/lanes/ownership against lib/tasks/spec.rake' do
     expect(rake_lanes.keys).to include('unit', 'simple', 'full-sqlite', 'full-pg', 'api')
     empty = rake_lanes.select { |_, files| files.empty? }.keys
     expect(empty).to be_empty, "no files derived for lane(s) #{empty.join(', ')}"
+  end
+
+  # The tasks that split over LANES_WORKERS (#4551) hand parallel_rspec the
+  # same paths and options their serial command has; what a lane owns does
+  # not depend on how many processes run it.
+  it 'selects the same files for every lane with LANES_WORKERS=4 as serially' do
+    with_workers = probe.selection_with('LANES_WORKERS' => '4')
+
+    expect(with_workers.keys).to eq(probe.selection.keys)
+    with_workers.each do |lane, files|
+      expect(files).to eq(probe.selection.fetch(lane)), "lane '#{lane}' selects other files under LANES_WORKERS=4"
+    end
   end
 
   it 'answers --which with exactly the lanes whose tasks select the file' do

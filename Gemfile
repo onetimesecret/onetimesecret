@@ -267,6 +267,10 @@ group :test do
   # See spec_helper.rb for details about mock_redis as future alternative
   gem 'bunny-mock', '~> 1.7', require: false  # Mock RabbitMQ for testing
   gem 'climate_control'
+  # In-lane worker parallelism (#4551): lib/tasks/spec.rake runs the target
+  # lanes' integration and api specs through parallel_rspec when
+  # LANES_WORKERS > 1 (tests/lanes/README.md, isolation).
+  gem 'parallel_tests', '~> 5.0', require: false
   gem 'rack-test', require: false
   gem 'rspec', '4.0.0.beta1'
   gem 'simplecov', require: false

@@ -660,13 +660,24 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
     end
 
     it 'limits invoices to 12' do
-      skip 'Requires creating 13+ invoices which is time-intensive'
+      organization.stripe_customer_id = 'cus_test_invoice_limit'
+      organization.save
 
-      # In a real integration test, you would:
-      # 1. Create Stripe customer
-      # 2. Create 13 invoices
-      # 3. Verify only 12 are returned
-      # 4. Verify has_more is true
+      # Stripe honours the limit server-side and reports the rest via has_more,
+      # so the contract here is the limit the controller asks for and that it
+      # passes has_more through.
+      page = build_invoice_list(Array.new(12) { |i| build_invoice('id' => "in_limit_#{i}") }, has_more: true)
+      allow(Stripe::Invoice).to receive(:list).and_return(page)
+
+      get "/billing/api/org/#{organization.extid}/invoices"
+
+      expect(last_response.status).to eq(200)
+      data = JSON.parse(last_response.body)
+      expect(data['invoices'].size).to eq(12)
+      expect(data['has_more']).to be(true)
+      expect(Stripe::Invoice).to have_received(:list).with(
+        hash_including(customer: 'cus_test_invoice_limit', limit: 12),
+      )
     end
 
     it 'returns 403 when customer is not organization member' do
@@ -972,35 +983,65 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       end
     end
 
-    # Integration tests requiring real Stripe API (VCR cassettes)
-    # NOTE: These tests are skipped by default - run with STRIPE_API_KEY=sk_test_xxx to record cassettes
-    context 'with real Stripe subscription', :vcr, skip: 'Requires VCR cassettes: run with STRIPE_API_KEY=sk_test_xxx' do
-      let(:stripe_customer) do
-        cust = Stripe::Customer.create(email: customer.email)
-        payment_method = Stripe::PaymentMethod.create(
-          type: 'card',
-          card: { token: 'tok_visa' }
-        )
-        Stripe::PaymentMethod.attach(payment_method.id, { customer: cust.id })
-        Stripe::Customer.update(cust.id, {
-          invoice_settings: { default_payment_method: payment_method.id }
-        })
-        cust
-      end
-
+    # The success and Stripe-rejection paths, with Stripe's responses built
+    # by StripeMockFactory. These were real-Stripe contexts behind an
+    # unconditional skip: no committed cassette and no key could run them.
+    context 'with a stubbed Stripe subscription' do
       let(:subscription) do
-        Stripe::Subscription.create(
-          customer: stripe_customer.id,
-          items: [{ price: current_price_id }],
+        build_subscription(
+          'id' => 'sub_stub_plan_change',
+          'customer' => 'cus_stub_plan_change',
+          'currency' => 'cad',
+          'items_data' => [build_subscription_item_hash(
+            'id' => 'si_stub_plan_change',
+            'price_id' => current_price_id,
+            'price' => { 'recurring' => { 'interval' => 'month' } },
+          )],
         )
       end
 
       before do
         organization.update_from_stripe_subscription(subscription)
         organization.save
+        allow(Stripe::Subscription).to receive(:retrieve).with('sub_stub_plan_change').and_return(subscription)
+        # stub_test_plan_catalog! maps every price_test_* ID to test_plan_v1,
+        # the current plan. Point the target price at the catalog's other plan
+        # so a change is a change.
+        allow(Billing::Plan).to receive(:find_by_stripe_price_id).with(new_price_id)
+          .and_return(Billing::Plan.load('identity_plus_v1'))
+      end
+
+      let(:preview) do
+        proration = ->(flag) { { 'subscription_item_details' => { 'proration' => flag }, 'invoice_item_details' => nil } }
+        line = lambda do |amount, flag|
+          {
+            'object' => 'line_item',
+            'amount' => amount,
+            'currency' => 'cad',
+            'parent' => proration.call(flag),
+            'price' => nil,
+            'pricing' => { 'price_details' => { 'price' => new_price_id } },
+          }
+        end
+        build_upcoming_invoice(
+          'amount_due' => 1500,
+          'subtotal' => 1500,
+          'total' => 1500,
+          'ending_balance' => 0,
+          'next_payment_attempt' => (Time.now + (30 * 24 * 60 * 60)).to_i,
+          'total_taxes' => [],
+          'lines' => { 'object' => 'list', 'data' => [line.call(-950, true), line.call(2450, false)], 'has_more' => false },
+        )
+      end
+
+      before do
+        allow(Stripe::Price).to receive(:retrieve).with(new_price_id)
+          .and_return(build_price('id' => new_price_id, 'unit_amount' => 4900))
       end
 
       it 'returns proration preview for valid plan change' do
+        allow(Stripe::Invoice).to receive(:create_preview).and_return(preview)
+
         post "/billing/api/org/#{organization.extid}/preview-plan-change", {
           new_price_id: new_price_id,
         }.to_json, { 'CONTENT_TYPE' => 'application/json' }
@@ -1025,12 +1066,16 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
         expect(data['new_plan']).to have_key('interval')
       end
 
-      it 'returns 400 for invalid price_id' do
+      it 'returns 400 with Stripe\'s message when Stripe rejects the price' do
+        allow(Stripe::Invoice).to receive(:create_preview)
+          .and_raise(Stripe::InvalidRequestError.new("No such price: '#{new_price_id}'", 'price'))
+
         post "/billing/api/org/#{organization.extid}/preview-plan-change", {
-          new_price_id: 'price_invalid_xxxxx',
+          new_price_id: new_price_id,
         }.to_json, { 'CONTENT_TYPE' => 'application/json' }
 
         expect(last_response.status).to eq(400)
+        expect(last_response.body).to include('No such price')
       end
     end
 
@@ -1201,35 +1246,46 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       end
     end
 
-    # Integration tests requiring real Stripe API (VCR cassettes)
-    # NOTE: These tests are skipped by default - run with STRIPE_API_KEY=sk_test_xxx to record cassettes
-    context 'with real Stripe subscription', :vcr, skip: 'Requires VCR cassettes: run with STRIPE_API_KEY=sk_test_xxx' do
-      let(:stripe_customer) do
-        cust = Stripe::Customer.create(email: customer.email)
-        payment_method = Stripe::PaymentMethod.create(
-          type: 'card',
-          card: { token: 'tok_visa' }
-        )
-        Stripe::PaymentMethod.attach(payment_method.id, { customer: cust.id })
-        Stripe::Customer.update(cust.id, {
-          invoice_settings: { default_payment_method: payment_method.id }
-        })
-        cust
-      end
-
+    # The success and Stripe-rejection paths, with Stripe's responses built
+    # by StripeMockFactory. These were real-Stripe contexts behind an
+    # unconditional skip: no committed cassette and no key could run them.
+    context 'with a stubbed Stripe subscription' do
       let(:subscription) do
-        Stripe::Subscription.create(
-          customer: stripe_customer.id,
-          items: [{ price: current_price_id }],
+        build_subscription(
+          'id' => 'sub_stub_plan_change',
+          'customer' => 'cus_stub_plan_change',
+          'currency' => 'cad',
+          'items_data' => [build_subscription_item_hash(
+            'id' => 'si_stub_plan_change',
+            'price_id' => current_price_id,
+            'price' => { 'recurring' => { 'interval' => 'month' } },
+          )],
         )
       end
 
       before do
         organization.update_from_stripe_subscription(subscription)
         organization.save
+        allow(Stripe::Subscription).to receive(:retrieve).with('sub_stub_plan_change').and_return(subscription)
+        # stub_test_plan_catalog! maps every price_test_* ID to test_plan_v1,
+        # the current plan. Point the target price at the catalog's other plan
+        # so a change is a change.
+        allow(Billing::Plan).to receive(:find_by_stripe_price_id).with(new_price_id)
+          .and_return(Billing::Plan.load('identity_plus_v1'))
+      end
+
+      let(:updated_subscription) do
+        build_subscription(
+          'id' => 'sub_stub_plan_change',
+          'customer' => 'cus_stub_plan_change',
+          'currency' => 'cad',
+          'items_data' => [build_subscription_item_hash('id' => 'si_stub_plan_change', 'price_id' => new_price_id)],
+        )
       end
 
       it 'executes plan change successfully' do
+        allow(Stripe::Subscription).to receive(:update).and_return(updated_subscription)
+
         post "/billing/api/org/#{organization.extid}/change-plan", {
           new_price_id: new_price_id,
         }.to_json, { 'CONTENT_TYPE' => 'application/json' }
@@ -1244,6 +1300,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       end
 
       it 'updates organization planid after change' do
+        allow(Stripe::Subscription).to receive(:update).and_return(updated_subscription)
         old_planid = organization.planid
 
         post "/billing/api/org/#{organization.extid}/change-plan", {
@@ -1255,14 +1312,19 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
         # Reload organization to verify update
         organization.refresh!
         expect(organization.planid).not_to eq(old_planid)
+        expect(organization.planid).to eq('identity_plus_v1')
       end
 
-      it 'returns 400 for invalid price_id' do
+      it 'returns 400 with Stripe\'s message when Stripe rejects the price' do
+        allow(Stripe::Subscription).to receive(:update)
+          .and_raise(Stripe::InvalidRequestError.new("No such price: '#{new_price_id}'", 'price'))
+
         post "/billing/api/org/#{organization.extid}/change-plan", {
-          new_price_id: 'price_invalid_xxxxx',
+          new_price_id: new_price_id,
         }.to_json, { 'CONTENT_TYPE' => 'application/json' }
 
         expect(last_response.status).to eq(400)
+        expect(last_response.body).to include('No such price')
       end
     end
 
