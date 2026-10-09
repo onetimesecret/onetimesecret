@@ -592,6 +592,21 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
         expect(registry.keys).to eq([:console])
       end
 
+      # A path alone does not turn the destination on.
+      it 'leave a file destination with a path closed unless it is enabled' do
+        [{}, { 'enabled' => false }, { 'enabled' => nil }].each do |enabled|
+          file = { 'path' => log_path, 'level' => 'trace' }.merge(enabled)
+          instance.install_destinations(shipped_defaults.merge('destinations' => { 'console' => {}, 'file' => file }))
+
+          expect(file_sinks).to be_empty, enabled.inspect
+        end
+        emitter.error('an error')
+
+        expect(registry.keys).to eq([:console])
+        expect(File.exist?(log_path)).to be(false)
+        expect(console_log).to include('an error')
+      end
+
       it 'behave exactly as a config without a destinations block' do
         instance.install_destinations(shipped_defaults.except('destinations'))
 
@@ -1216,6 +1231,191 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
           expect(listener_calls).to be_empty
           expect(file_log).to include('written')
         end
+      end
+    end
+
+    # Category levels and the default level decide which events exist;
+    # destinations only route them. The levels and the variables that set
+    # them are process-wide, so both are put back after each example. A lane
+    # run with --quiet exports LOG_LEVEL and DEBUG_LOGGERS; each example
+    # starts with neither.
+    describe 'levels' do
+      around do |example|
+        saved_default   = SemanticLogger.default_level
+        saved_backtrace = SemanticLogger.backtrace_level
+        saved_env       = ENV.to_h
+        ['LOG_LEVEL', 'DEBUG_LOGGERS', *described_class.logger_definitions.values].each { |name| ENV.delete(name) }
+        example.run
+      ensure
+        ENV.replace(saved_env)
+        SemanticLogger.default_level   = saved_default
+        SemanticLogger.backtrace_level = saved_backtrace
+      end
+
+      before { allow(Onetime).to receive(:debug?).and_return(false) }
+
+      def default_level_for(config)
+        instance.send(:configure_default_level, config)
+        SemanticLogger.default_level
+      end
+
+      def cached_loggers(config)
+        instance.send(:create_cached_loggers, config).tap { |cache| instance.send(:apply_env_overrides, cache) }
+      end
+
+      it 'default to info, then the config default_level, then LOG_LEVEL' do
+        expect(default_level_for({})).to eq(:info)
+        expect(default_level_for('default_level' => 'error')).to eq(:error)
+
+        ENV['LOG_LEVEL'] = 'debug'
+
+        expect(default_level_for('default_level' => 'error')).to eq(:debug)
+      end
+
+      it 'go to debug for a category whose DEBUG_* flag is set, and only that one' do
+        ENV['DEBUG_SEQUEL'] = '1'
+
+        levels = cached_loggers('loggers' => { 'Sequel' => 'warn', 'Auth' => 'info' }).transform_values(&:level)
+
+        expect(levels).to include('Sequel' => :debug, 'Auth' => :info)
+      end
+
+      it 'take the level DEBUG_LOGGERS names, in either separator, over the config and the flag' do
+        ENV['DEBUG_AUTH']    = '1'
+        ENV['DEBUG_LOGGERS'] = 'Auth:error, Secret=trace,Malformed,SetupLoggersSpecAdHoc:fatal'
+
+        cache = cached_loggers('loggers' => { 'Auth' => 'info', 'Secret' => 'info', 'HTTP' => 'warn' })
+
+        expect(cache.transform_values(&:level)).to include(
+          'Auth' => :error, 'Secret' => :trace, 'HTTP' => :warn, 'SetupLoggersSpecAdHoc' => :fatal
+        )
+        expect(cache.keys).not_to include('Malformed')
+      end
+
+      # install_destinations is all of the appender handling: the default
+      # level and the loggers it finds keep the levels they had, whatever
+      # thresholds the destinations set.
+      it 'are not changed by installing destinations' do
+        SemanticLogger.default_level = :warn
+        cache  = cached_loggers(shipped_defaults)
+        before = [SemanticLogger.default_level, cache.transform_values(&:level)]
+
+        install(console: { 'level' => 'fatal' }, file: { 'level' => 'trace' })
+
+        expect([SemanticLogger.default_level, cache.transform_values(&:level)]).to eq(before)
+      end
+
+      # The audit sink emits through Onetime::ColonelAuditEvent.sink_logger,
+      # whose level the model pins at info. 'audit events' above use a
+      # stand-in logger of the same name; these use the model's.
+      describe "with every level raised, audit events through the model's logger" do
+        let(:model) { Onetime::ColonelAuditEvent }
+
+        def boot(settings)
+          instance.send(:configure_default_level, settings)
+          instance.install_destinations(settings)
+          cached_loggers(settings)
+        end
+
+        def emit_audit_event
+          model.sink_logger.public_send(model::SINK_LEVEL, model::SINK_MESSAGE, { 'verb' => 'setup_loggers.spec' })
+        end
+
+        it 'still reach the console' do
+          ENV['LOG_LEVEL'] = 'fatal'
+          raised = described_class.logger_definitions.keys.to_h { |name| [name, 'fatal'] }
+          cache  = boot(config(console: { 'level' => 'fatal' }).merge('loggers' => raised))
+
+          emit_audit_event
+          cache.each_value { |logger| logger.error('category error') }
+
+          expect(console_log).to include(model::SINK_MESSAGE, 'setup_loggers.spec')
+          expect(console_log).not_to include('category error')
+        end
+
+        # DEBUG_LOGGERS sets the level on a logger of that name it creates
+        # itself; the model keeps its own.
+        it 'still reach the console when DEBUG_LOGGERS names their category at fatal' do
+          ENV['DEBUG_LOGGERS'] = "#{described_class::AUDIT_SINK_LOGGER_NAME}:fatal"
+
+          boot(config.merge('default_level' => 'fatal'))
+          emit_audit_event
+
+          expect(console_log).to include(model::SINK_MESSAGE, 'setup_loggers.spec')
+        end
+      end
+    end
+
+    # spec/logging.test.yaml turns LANES_APP_LOG_CONSOLE / LANES_APP_LOG_FILE
+    # into a `destinations` block, and ConfigResolver resolves it only when
+    # RACK_ENV is exactly `test`. Here it is copied into a throwaway
+    # application root beside the shipped defaults, with etc/logging.yaml a
+    # copy of those defaults, and both variables are set as a captured lane
+    # run sets them.
+    describe 'the lane capture variables' do
+      let(:home) { File.join(tmpdir, 'home') }
+      let(:captured) { File.join(tmpdir, 'captured.log') }
+      let(:etc_yaml) { File.join(home, 'etc', 'logging.yaml') }
+
+      around do |example|
+        saved_env = ENV.to_h
+        example.run
+      ensure
+        ENV.replace(saved_env)
+      end
+
+      before do
+        defaults = File.join(Onetime::HOME, 'etc', 'defaults', 'logging.defaults.yaml')
+        test_yaml = File.join(Onetime::HOME, 'spec', 'logging.test.yaml')
+        FileUtils.mkdir_p([File.join(home, 'etc', 'defaults'), File.join(home, 'spec')])
+        FileUtils.cp(defaults, File.join(home, 'etc', 'defaults', 'logging.defaults.yaml'))
+        FileUtils.cp(defaults, etc_yaml)
+        FileUtils.cp(test_yaml, File.join(home, 'spec', 'logging.test.yaml'))
+        stub_const('Onetime::HOME', home)
+
+        ENV['LANES_APP_LOG_CONSOLE'] = 'off'
+        ENV['LANES_APP_LOG_FILE']    = captured
+      end
+
+      def loaded_destinations
+        instance.send(:load_logging_config).fetch('destinations')
+      end
+
+      # The control: the same files turn the console off and the file on
+      # under RACK_ENV=test, so the examples below are not passing on a
+      # fixture that could never bite.
+      it 'turn the console off and the file on under RACK_ENV=test' do
+        ENV['RACK_ENV'] = 'test'
+
+        expect(loaded_destinations).to include(
+          'console' => include('enabled' => false),
+          'file' => include('enabled' => true, 'path' => captured),
+        )
+      end
+
+      # Unset, another environment, or a near miss of `test`; and with no
+      # etc/logging.yaml, where the test file must not be the fallback.
+      it 'change nothing under any other RACK_ENV' do
+        [nil, 'production', 'TEST', ' test', 'testing'].each do |value|
+          value.nil? ? ENV.delete('RACK_ENV') : ENV['RACK_ENV'] = value
+
+          expect(loaded_destinations).to eq(shipped_defaults.fetch('destinations')), "RACK_ENV=#{value.inspect}"
+        end
+
+        FileUtils.rm(etc_yaml)
+
+        expect(loaded_destinations).to eq(shipped_defaults.fetch('destinations')), 'without etc/logging.yaml'
+      end
+
+      it 'leave the console on and open no file outside a test run' do
+        ENV['RACK_ENV'] = 'production'
+
+        instance.install_destinations
+        emitter.error('an error')
+
+        expect(registry.keys).to eq([:console])
+        expect(File.exist?(captured)).to be(false)
+        expect(console_log).to include('an error')
       end
     end
 
