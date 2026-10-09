@@ -156,10 +156,12 @@
    * OrganizationContextBar usually starts that fetch first, and a second
    * fetchOrganizations() would cancel it (and skip the bar's fallback
    * selection), so wait while a list fetch is in flight and check again
-   * once it settles.
+   * once it settles. Signing out resets the store; that is no reason to
+   * fetch.
    */
   let listRequested = false;
   const loadOrganizationsIfMissing = async () => {
+    if (!bootstrapStore.authenticated) return;
     if (organizationStore.isListFetched || organizationStore.isListLoading || listRequested) return;
     listRequested = true;
     try {

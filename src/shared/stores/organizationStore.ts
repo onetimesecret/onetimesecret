@@ -179,6 +179,7 @@ export const useOrganizationStore = defineStore('organization', () => {
       abortController.value.abort();
       abortController.value = null;
     }
+    _listLoading.value = false;
   }
 
   /**
@@ -635,8 +636,6 @@ export const useOrganizationStore = defineStore('organization', () => {
     const payload = updateDefaultOrganizationRequestSchema.parse({ organization_id: org.objid });
     const generation = syncGeneration;
     const selections = selectionsMade;
-    defaultChangesMade += 1;
-    const changes = defaultChangesMade;
 
     const result = gracefulParse(
       updateDefaultOrganizationResponseSchema,
@@ -648,6 +647,10 @@ export const useOrganizationStore = defineStore('organization', () => {
     }
     // Logged out or switched account since: nothing here is that account's.
     if (generation !== syncGeneration) return result.data;
+    // Counted once accepted, so a later change the server refuses can't keep
+    // this one from moving the tab.
+    defaultChangesMade += 1;
+    const changes = defaultChangesMade;
     // Earlier selections have been answered by now and may have moved the
     // tab; the server holds this choice after them.
     const shown = currentOrganization.value?.objid;

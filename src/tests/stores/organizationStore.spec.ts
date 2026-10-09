@@ -210,6 +210,19 @@ describe('Organization Store', () => {
         expect(store.isListLoading).toBe(false);
       });
 
+      it('is cleared by abort()', async () => {
+        const releases = gatedListReplies();
+        const fetching = store.fetchOrganizations().catch(() => undefined);
+
+        store.abort();
+        expect(store.isListLoading).toBe(false);
+
+        await vi.waitFor(() => expect(releases.length).toBeLessThanOrEqual(1));
+        releases[0]?.();
+        await fetching;
+        expect(store.isListLoading).toBe(false);
+      });
+
       it('is not set by other store actions', async () => {
         axiosMock?.onGet('/api/organizations/on123abc').reply(200, { record: mockOrganizationRaw });
         const fetching = store.fetchOrganization('on123abc');
@@ -1345,6 +1358,25 @@ describe('Organization Store', () => {
             'replied:default:org-333',
           ]);
           expect(store.currentOrganization?.objid).toBe('org-333');
+        });
+
+        it('becomes current when a later default change is refused', async () => {
+          signIn();
+          vi.spyOn(console, 'warn').mockImplementation(() => {});
+          axiosMock?.onPost(DEFAULT_URL).reply((config: AxiosRequestConfig) => {
+            const { organization_id: id } = JSON.parse(config.data);
+            return id === 'org-333'
+              ? [422, { message: 'Invalid organization' }]
+              : [200, { organization_id: id, previous_default_organization_id: 'org-123' }];
+          });
+          axiosMock?.onGet('/api/organizations').reply(200, listAfter);
+
+          const first = store.setDefaultOrganization(other);
+          const second = store.setDefaultOrganization(third);
+          await expect(second).rejects.toBeTruthy();
+          await first;
+
+          expect(store.currentOrganization?.objid).toBe('org-999');
         });
 
         // A fault in one write, not a reply, must not stall those behind it.

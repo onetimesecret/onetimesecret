@@ -54,6 +54,7 @@ vi.mock('@/shared/composables/useAccount', () => ({
 
 // Bootstrap store — exposes i18n_enabled / has_password via storeToRefs
 const bootstrapStore = {
+  authenticated: true,
   email: 'user@example.com',
   i18n_enabled: ref(false),
   has_password: ref(true),
@@ -106,6 +107,7 @@ let wrapper: VueWrapper | undefined;
 
 beforeEach(() => {
   vi.clearAllMocks();
+  bootstrapStore.authenticated = true;
   bootstrapStore.has_password.value = true;
   bootstrapStore.i18n_enabled.value = false;
   organizationStore.organizations = [];
@@ -459,6 +461,18 @@ describe('ProfileSettings default workspace: loading the organization list', () 
     expect(row().exists()).toBe(false);
     expect(errorSpy).toHaveBeenCalledTimes(1);
     errorSpy.mockRestore();
+  });
+
+  // Signing out resets the store, which clears isListFetched.
+  it('does not fetch after sign-out resets the store', async () => {
+    await mountWith([org('a'), org('b')]);
+
+    bootstrapStore.authenticated = false;
+    organizationStore.organizations = [];
+    organizationStore.isListFetched = false;
+    await flushPromises();
+
+    expect(organizationStore.fetchOrganizations).not.toHaveBeenCalled();
   });
 
   it('stays quiet when its fetch is superseded, and uses the list the other fetch brings', async () => {
