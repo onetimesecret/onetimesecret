@@ -147,7 +147,8 @@ module Auth::Config::Hooks
       #
       # DATABASE STATE:
       # - account_email_auth_keys has new row with unused token
-      # - Token valid until deadline (typically 24 hours)
+      # - Token valid until deadline (15 minutes after issue; see
+      #   config/features/email_auth.rb)
       #
       # USER EXPERIENCE:
       # - User sees "Check your email" confirmation message
