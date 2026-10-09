@@ -4,6 +4,7 @@
 
 require_relative '../utils/canonical_hosts'
 require_relative '../middleware/domain_strategy'
+require_relative '../membership_snapshot'
 
 #
 # Organization context loading for authenticated requests.
@@ -50,12 +51,20 @@ require_relative '../middleware/domain_strategy'
 # refuse a selection sent again after a page load once the session holds a
 # different one made since.
 #
-# No caching:
-# Every call resolves from the datastore. There is no session cache of the
-# result: membership, archived state and domain scope are read each time,
-# including on the second load a request makes (Sessions::TrackMetadata at
-# session commit). An 'org_context:<customer objid>' key in an older
-# session blob is a leftover from the removed cache and is not read.
+# No cache across requests:
+# Every request resolves from the datastore. There is no session cache of
+# the result; an 'org_context:<customer objid>' key in an older session blob
+# is a leftover from the removed cache and is not read. Within one request
+# the customer's memberships are read once, into the request's
+# Onetime::MembershipSnapshot: the membership list, each organization's
+# ownership and membership record, and the user's default organization
+# (#default_organization with no `orgs`). The second load a request makes
+# (Sessions::TrackMetadata at session commit) and the bootstrap serializer
+# read from the same snapshot. A membership or preference change made in
+# the request drops it (see MembershipSnapshot), so the next read starts
+# from the datastore again. The selection filtered by the request's domain
+# scope is computed from the snapshot's list each time and is never the
+# memoized user default.
 #
 # Usage:
 #   class MyAuthStrategy < Otto::Security::AuthStrategy
@@ -177,6 +186,12 @@ module Onetime
       # 2. Else the first non-archived organization in `orgs` with is_default
       #    that the customer owns.
       #
+      # With no `orgs`, this is the user's default over all of their
+      # memberships (the global preference), resolved once per request and
+      # kept in the request's MembershipSnapshot. With `orgs`, it is the
+      # default within that list (the loader passes the memberships the
+      # domain scope permits) and is computed each time.
+      #
       # @param customer [Onetime::Customer]
       # @param orgs [Array<Onetime::Organization>, nil] the organizations to
       #   choose among. The customer's memberships when nil; the loader passes
@@ -185,17 +200,10 @@ module Onetime
       def default_organization(customer, orgs = nil)
         return if customer.nil? || customer.anonymous?
 
-        orgs ||= customer.organization_instances.to_a
-        return if orgs.empty?
+        snapshot = Onetime::MembershipSnapshot.for(customer)
+        return user_default(customer, snapshot) if orgs.nil?
 
-        default_org_id = customer.default_org_id.to_s
-        unless default_org_id.empty?
-          chosen = orgs.find { |o| o.objid == default_org_id && !o.archived? }
-          return chosen if chosen
-        end
-
-        # owner? reads the membership, so it is checked last.
-        orgs.find { |o| o.is_default && !o.archived? && o.owner?(customer) }
+        choose_default(customer, snapshot, orgs)
       end
 
       # The default workspace this customer OWNS. #default_organization
@@ -222,21 +230,21 @@ module Onetime
       def owned_default_organization(customer, orgs = nil)
         return if customer.nil? || customer.anonymous?
 
-        orgs ||= customer.organization_instances.to_a
-        live   = orgs.reject(&:archived?)
+        snapshot = Onetime::MembershipSnapshot.for(customer)
+        live     = (orgs || snapshot.organizations).reject(&:archived?)
         return if live.empty?
 
         default_org_id = customer.default_org_id.to_s
         unless default_org_id.empty?
           chosen = live.find { |o| o.objid == default_org_id }
-          return chosen if chosen&.owner?(customer)
+          return chosen if chosen && snapshot.owner?(chosen)
         end
 
-        live.find { |o| o.is_default && o.owner?(customer) }
+        live.find { |o| o.is_default && snapshot.owner?(o) }
       end
 
       # The non-archived organizations the customer owns, in membership
-      # order. One membership read per live organization.
+      # order. One membership read per live organization, once per request.
       #
       # @param customer [Onetime::Customer]
       # @param orgs [Array<Onetime::Organization>, nil] see #default_organization
@@ -244,11 +252,33 @@ module Onetime
       def owned_organizations(customer, orgs = nil)
         return [] if customer.nil? || customer.anonymous?
 
-        orgs ||= customer.organization_instances.to_a
-        orgs.reject(&:archived?).select { |o| o.owner?(customer) }
+        snapshot = Onetime::MembershipSnapshot.for(customer)
+        (orgs || snapshot.organizations).reject(&:archived?).select { |o| snapshot.owner?(o) }
       end
 
       private
+
+      # The user's default over all of their memberships, resolved once per
+      # snapshot (see #default_organization).
+      def user_default(customer, snapshot)
+        snapshot.memo(:user_default) { choose_default(customer, snapshot, snapshot.organizations) }
+      end
+
+      # The default among `orgs` (see #default_organization): the live one
+      # customer.default_org_id names, else the first live is_default
+      # workspace the customer owns.
+      def choose_default(customer, snapshot, orgs)
+        return if orgs.empty?
+
+        default_org_id = customer.default_org_id.to_s
+        unless default_org_id.empty?
+          chosen = orgs.find { |o| o.objid == default_org_id && !o.archived? }
+          return chosen if chosen
+        end
+
+        # owner? reads the membership, so it is checked last.
+        orgs.find { |o| o.is_default && !o.archived? && snapshot.owner?(o) }
+      end
 
       # Determine which organization should be active for this request
       #
@@ -315,11 +345,15 @@ module Onetime
         # scope permits for this request, so an organization refused above
         # cannot come back through a different selection path. With no
         # custom domain on the request nothing is filtered and no membership
-        # is read.
-        orgs = customer.organization_instances.to_a
-        orgs = orgs.select { |o| scope_permits?(o, customer, domains) } unless domains.empty?
+        # is read: the default is then the user's default over all of their
+        # memberships, which the request's snapshot keeps for the serializer
+        # and the session commit. A domain-filtered selection is computed
+        # from the same list but never stands in for that default.
+        snapshot = Onetime::MembershipSnapshot.for(customer)
+        orgs     = snapshot.organizations
+        orgs     = orgs.select { |o| scope_permits?(o, customer, domains) } unless domains.empty?
 
-        default_org    = default_organization(customer, orgs)
+        default_org    = domains.empty? ? user_default(customer, snapshot) : choose_default(customer, snapshot, orgs)
         default_org_id = customer.default_org_id.to_s
 
         if !default_org_id.empty? && default_org&.objid != default_org_id
@@ -398,7 +432,7 @@ module Onetime
       def scope_permits?(org, customer, domains)
         return true if domains.empty?
 
-        membership = Onetime::OrganizationMembership.find_by_org_customer(org.objid, customer.objid)
+        membership = Onetime::MembershipSnapshot.for(customer).membership(org)
         return false unless membership
 
         domains.all? { |domain| membership.can_access_domain?(domain) }
@@ -419,7 +453,7 @@ module Onetime
         return false if domains.empty?
         return true if domains.equal?(UNREGISTERED_HOST)
 
-        customer.organization_instances.to_a.any? { |o| !scope_permits?(o, customer, domains) }
+        Onetime::MembershipSnapshot.for(customer).organizations.any? { |o| !scope_permits?(o, customer, domains) }
       end
 
       # The custom domains this request is for, from both places one can be

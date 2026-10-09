@@ -23,6 +23,7 @@ require_relative '../middleware/api_cache_policy'
 require_relative '../middleware/validate_multipart'
 require_relative '../middleware/entitlement_preview_context'
 require_relative '../middleware/impersonation_context'
+require_relative '../middleware/membership_snapshot_context'
 require_relative '../middleware/session_skip'
 require_relative '../middleware/saml_callback_transport'
 require 'otto'
@@ -666,6 +667,14 @@ module Onetime
           builder.use Onetime::Middleware::SamlCallbackTransport::Boundary
           builder.use Onetime::Middleware::ValidateMultipart
           builder.use Rack::Parser, parsers: @parsers
+
+          # Request store for the customer's organization memberships
+          # (Onetime::MembershipSnapshot): the auth-phase organization load,
+          # the bootstrap serializer and the session commit read them once.
+          # Above Onetime::Session so the store is still open when the
+          # session commits on the way out, and above CookieTossing so that
+          # one stays directly above the session.
+          builder.use Onetime::Middleware::MembershipSnapshotContext
 
           # Cookie tossing (#4466, RISK-2026-08-14-COOKIE-TOSSING): refuses a
           # request that carries the session cookie more than once. Directly

@@ -7,6 +7,7 @@ require 'argon2'
 require 'bcrypt'
 
 require_relative 'features'
+require_relative '../membership_snapshot'
 
 module Onetime
   # Customer
@@ -213,6 +214,37 @@ module Onetime
     # This allows customer support to set a specific org as default for a customer
     # without affecting the org's global is_default setting.
     field :default_org_id
+
+    # A request's Onetime::MembershipSnapshot keeps the default organization
+    # this preference resolved to; persisting a change to the preference
+    # drops it. Hooked at the writes, not the setter: Familia hydrates a
+    # loaded record through its setters, and the customer is loaded more
+    # than once in a request. Prepended after the field so Familia's
+    # conflict check does not see the overrides; `super` reaches the
+    # generated methods.
+    module MembershipSnapshotHooks
+      def save(...)
+        changed = dirty?(:default_org_id)
+        super
+      ensure
+        Onetime::MembershipSnapshot.forget(self) if changed
+      end
+
+      def commit_fields(...)
+        changed = dirty?(:default_org_id)
+        super
+      ensure
+        Onetime::MembershipSnapshot.forget(self) if changed
+      end
+
+      # The fast writer (UpdateDefaultOrganization uses it).
+      def default_org_id!(...)
+        super
+      ensure
+        Onetime::MembershipSnapshot.forget(self)
+      end
+    end
+    prepend MembershipSnapshotHooks
 
     # CustomDomain identifier at signup time.
     # Captured for re-verification and background job context where
