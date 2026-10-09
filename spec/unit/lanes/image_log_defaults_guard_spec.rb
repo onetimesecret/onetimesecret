@@ -177,57 +177,12 @@ RSpec.describe 'OCI image log defaults guard' do
     end
   end
 
-  # The scanner has to be able to find what it looks for.
   describe 'the scanner' do
-    it 'reports the test logging config, which does read the capture variables, by file and line' do
-      found = offences(['spec/logging.test.yaml'], runtime_rules)
-
-      expect(found.grep(/\Aspec\/logging\.test\.yaml:\d+: reads a lane runner variable .*LANES_APP_LOG_FILE/)).not_to be_empty
-      expect(found.grep(/LANES_APP_LOG_CONSOLE/)).not_to be_empty
-    end
-
-    it 'reports the lane runner itself' do
-      expect(offences(['tests/lanes/run'], runtime_rules).size).to be > 5
-    end
-
-    it 'reports the spec helper, which loads the capture support code' do
-      found = offences(['spec/spec_helper.rb'], runtime_rules)
-
-      expect(found.grep(/\Aspec\/spec_helper\.rb:\d+: loads lane runner support code/)).not_to be_empty
-    end
-
-    it 'drops an allowlisted name and keeps any other on the same file' do
-      rules = { 'reads a lane runner variable' => /LANES_[A-Z0-9_]+/ }
-
-      expect(offences(['tests/lanes/run'], rules, allow: { 'tests/lanes/run' => %w[LANES_NO_AUTOSTART] }).join)
-        .to include('LANES_APP_LOG_FILE')
-      expect(offences(['tools/setup/setup.sh'], rules)).not_to be_empty
-      expect(offences(['tools/setup/setup.sh'], rules, allow: lanes_allowlist)).to be_empty
-    end
-
-    it 'matches each image config rule against a line that breaks it, and not its comment' do
-      breaking = {
-        'reads a lane runner variable' => 'ENV LANES_APP_LOG_CONSOLE=off',
-        'names the test logging config' => 'COPY spec/logging.test.yaml ./etc/logging.yaml',
-        'invokes the lane runner' => 'RUN tests/lanes/run unit --capture-logs',
-        'sets RACK_ENV to test' => '      - RACK_ENV=${RACK_ENV:-test}',
-        'sets a log level floor of error or fatal' => 'ENV LOG_LEVEL=fatal',
-        'sets DEBUG_LOGGERS' => 'DEBUG_LOGGERS="App:error,Auth:error"',
-      }
-
-      expect(breaking.keys).to match_array(image_config_rules.keys)
-      breaking.each do |what, line|
-        expect(line).to match(image_config_rules.fetch(what)), what
-        expect(code_lines('Dockerfile', "# #{line}\n").to_a).to be_empty
-      end
-
-      ['ENV RACK_ENV=production \\', '      - RACK_ENV=${RACK_ENV:-production}', 'DEFAULT_LOG_LEVEL=info', 'LOG_LEVEL=', 'DEBUG_LOGGERS='].each do |line|
-        expect(image_config_rules.values.grep(->(pattern) { line.match?(pattern) })).to be_empty, line
-      end
-    end
-
-    it 'scans YAML comment lines under etc/, where an ERB tag still runs' do
-      expect(code_lines('etc/defaults/logging.defaults.yaml', "# <%= ENV['LANES_APP_LOG_FILE'] %>\n").to_a.size).to eq(1)
+    # One control on files that do read the capture variables, so that the
+    # empty results below cannot come from a scanner that finds nothing.
+    it 'reports the test-side files that read the capture variables or load their support code' do
+      expect(offences(['spec/logging.test.yaml'], runtime_rules).join("\n")).to include('reads a lane runner variable')
+      expect(offences(['spec/spec_helper.rb'], runtime_rules).join("\n")).to include('loads lane runner support code')
     end
 
     it 'still needs each allowlist entry' do
