@@ -16,6 +16,7 @@
   import { useOrganizationStore } from '@/shared/stores/organizationStore';
   import type { Organization } from '@/types/organization';
   import { getPlanLabel, isLegacyPlan } from '@/types/billing';
+  import axios from 'axios';
   import { computed, onMounted, ref } from 'vue';
   import { useRouter } from 'vue-router';
 
@@ -120,6 +121,8 @@
         'top'
       );
     } catch (error) {
+      // Signed out while the change waited its turn; nothing to report.
+      if (axios.isCancel(error)) return;
       console.error('[OrganizationsSettings] Error setting default organization:', error);
       notifications.show(
         t('web.organizations.make_default_error', { name: org.display_name }),

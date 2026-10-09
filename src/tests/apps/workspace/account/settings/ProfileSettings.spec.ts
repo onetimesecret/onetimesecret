@@ -8,6 +8,7 @@ import { organizationSchema } from '@/schemas/shapes/organizations/organization'
 import type { Organization } from '@/types/organization';
 import { createTestingPinia } from '@pinia/testing';
 import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
+import axios from 'axios';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { reactive, ref } from 'vue';
 import { createTestI18n } from '@tests/setup';
@@ -67,6 +68,7 @@ vi.mock('@/shared/stores/bootstrapStore', () => ({
 const organizationStore = reactive({
   organizations: [] as Organization[],
   isListFetched: true,
+  isListLoading: false,
   loading: false,
   fetchOrganizations: vi.fn(),
   setDefaultOrganization: vi.fn(),
@@ -100,37 +102,38 @@ const org = (objid: string, over: Record<string, unknown> = {}): Organization =>
 
 const i18n = createTestI18n();
 
+let wrapper: VueWrapper | undefined;
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  bootstrapStore.has_password.value = true;
+  bootstrapStore.i18n_enabled.value = false;
+  organizationStore.organizations = [];
+  organizationStore.isListFetched = true;
+  organizationStore.isListLoading = false;
+  organizationStore.loading = false;
+  organizationStore.fetchOrganizations.mockResolvedValue([]);
+  organizationStore.setDefaultOrganization.mockReset();
+});
+
+afterEach(() => {
+  wrapper?.unmount();
+  wrapper = undefined;
+});
+
+const mountComponent = () => {
+  wrapper = mount(ProfileSettings, {
+    global: {
+      plugins: [i18n, createTestingPinia({ createSpy: vi.fn, stubActions: false })],
+    },
+  });
+  return wrapper;
+};
+
 describe('ProfileSettings', () => {
-  let wrapper: VueWrapper;
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-    bootstrapStore.has_password.value = true;
-    bootstrapStore.i18n_enabled.value = false;
-    organizationStore.organizations = [];
-    organizationStore.isListFetched = true;
-    organizationStore.loading = false;
-    organizationStore.fetchOrganizations.mockResolvedValue([]);
-    organizationStore.setDefaultOrganization.mockReset();
-  });
-
-  afterEach(() => {
-    if (wrapper) wrapper.unmount();
-  });
-
-  const mountComponent = () =>
-    mount(ProfileSettings, {
-      global: {
-        plugins: [
-          i18n,
-          createTestingPinia({ createSpy: vi.fn, stubActions: false }),
-        ],
-      },
-    });
-
   describe('On mount', () => {
     it('fetches account info exactly once', async () => {
-      wrapper = mountComponent();
+      mountComponent();
       await flushPromises();
 
       expect(fetchAccountInfo).toHaveBeenCalledTimes(1);
@@ -141,9 +144,7 @@ describe('ProfileSettings', () => {
     // green-600 small text on the translucent card is ~3.2:1 and fails the
     // axe color-contrast rule; green-700 (light) / green-400 (dark) pass AA.
     it('renders the verified label with AA-contrast green classes', () => {
-      wrapper = mountComponent();
-
-      const label = wrapper
+      const label = mountComponent()
         .findAll('span.text-sm')
         .find((el) => el.text().includes('web.auth.account.verified'));
       expect(label).toBeDefined();
@@ -153,173 +154,329 @@ describe('ProfileSettings', () => {
       expect(label!.classes()).not.toContain('text-green-600');
     });
   });
+});
 
-  // Members who own no organization (invite, tenant SSO) cannot open /orgs,
-  // so this row is where they choose their default.
-  describe('Default workspace', () => {
-    const row = () => wrapper.find('[data-testid="default-workspace-setting"]');
-    const select = () =>
-      wrapper.find<HTMLSelectElement>('[data-testid="default-workspace-select"]');
+// ── Default workspace ───────────────────────────────────────────────────────
+// Members who own no organization (invite, tenant SSO) cannot open /orgs, so
+// this row is where they choose their default.
 
-    const choose = async (objid: string) => {
-      await select().setValue(objid);
-      await flushPromises();
-    };
+const row = () => wrapper!.find('[data-testid="default-workspace-setting"]');
+const select = () => wrapper!.find<HTMLSelectElement>('[data-testid="default-workspace-select"]');
+const saveButton = () => wrapper!.find('[data-testid="default-workspace-save"]');
 
-    it('is hidden for a user in a single organization', async () => {
-      organizationStore.organizations = [org('a', { is_current_user_default: true })];
-      wrapper = mountComponent();
-      await flushPromises();
+/** Like a store that saved: the default flag moves to `chosen`. */
+const moveDefaultTo = (chosen: Organization) => {
+  organizationStore.organizations = organizationStore.organizations.map((o) => ({
+    ...o,
+    is_current_user_default: o.objid === chosen.objid,
+  }));
+};
 
-      expect(row().exists()).toBe(false);
-    });
+/** setDefaultOrganization that succeeds and moves the flag */
+const saveSucceeds = (previous: string | null) =>
+  organizationStore.setDefaultOrganization.mockImplementation(async (chosen: Organization) => {
+    moveDefaultTo(chosen);
+    return { organization_id: chosen.objid, previous_default_organization_id: previous };
+  });
 
-    it('lists every organization when the user belongs to more than one', async () => {
-      organizationStore.organizations = [org('a', { is_current_user_default: true }), org('b')];
-      wrapper = mountComponent();
-      await flushPromises();
+const choose = async (objid: string) => {
+  await select().setValue(objid);
+  await flushPromises();
+};
 
-      expect(row().exists()).toBe(true);
-      expect(row().find('label').text()).toBe('web.settings.default_workspace.title');
-      expect(row().find('label').attributes('for')).toBe(select().attributes('id'));
-      const options = select().findAll('option');
-      expect(options.map((o) => o.text())).toEqual(['Org a', 'Org b']);
-    });
+const save = async () => {
+  await saveButton().trigger('click');
+  await flushPromises();
+};
 
-    it("starts on this user's default, not the owner's auto-created workspace", async () => {
-      organizationStore.organizations = [
-        org('a', { is_default: true }),
-        org('b', { is_current_user_default: true }),
-      ];
-      wrapper = mountComponent();
-      await flushPromises();
+const mountWith = async (orgs: Organization[]) => {
+  organizationStore.organizations = orgs;
+  mountComponent();
+  await flushPromises();
+};
 
-      expect(select().element.value).toBe('b');
-      expect(select().text()).not.toContain('web.settings.default_workspace.not_set');
-    });
+describe('ProfileSettings default workspace', () => {
+  it('is hidden for a user in a single organization', async () => {
+    await mountWith([org('a', { is_current_user_default: true })]);
 
-    it('shows a disabled "Not set" placeholder when no default is recorded', async () => {
-      organizationStore.organizations = [org('a'), org('b')];
-      wrapper = mountComponent();
-      await flushPromises();
+    expect(row().exists()).toBe(false);
+  });
 
-      const placeholder = select().find('option[value=""]');
-      expect(placeholder.exists()).toBe(true);
-      expect(placeholder.text()).toBe('web.settings.default_workspace.not_set');
-      expect(placeholder.attributes('disabled')).toBeDefined();
-      expect(select().element.value).toBe('');
-    });
+  it('lists every organization when the user belongs to more than one', async () => {
+    await mountWith([org('a', { is_current_user_default: true }), org('b')]);
 
-    it('saves the chosen organization as the default and reports success', async () => {
-      organizationStore.organizations = [org('a', { is_current_user_default: true }), org('b')];
-      organizationStore.setDefaultOrganization.mockImplementation(async (chosen: Organization) => {
-        organizationStore.organizations = organizationStore.organizations.map((o) => ({
-          ...o,
-          is_current_user_default: o.objid === chosen.objid,
-        }));
-        return { organization_id: chosen.objid, previous_default_organization_id: 'a' };
-      });
-      wrapper = mountComponent();
-      await flushPromises();
+    expect(row().exists()).toBe(true);
+    expect(row().find('label').text()).toBe('web.settings.default_workspace.title');
+    expect(row().find('label').attributes('for')).toBe(select().attributes('id'));
+    const options = select().findAll('option');
+    expect(options.map((o) => o.text())).toEqual(['Org a', 'Org b']);
+    expect(saveButton().text()).toBe('web.COMMON.word_save');
+  });
 
-      await choose('b');
+  it("starts on this user's default, not the owner's auto-created workspace", async () => {
+    await mountWith([org('a', { is_default: true }), org('b', { is_current_user_default: true })]);
 
-      expect(organizationStore.setDefaultOrganization).toHaveBeenCalledTimes(1);
-      expect(organizationStore.setDefaultOrganization).toHaveBeenCalledWith(
-        expect.objectContaining({ objid: 'b', extid: 'on_b' })
-      );
-      expect(select().element.value).toBe('b');
-      expect(select().attributes('disabled')).toBeUndefined();
-      expect(showMock).toHaveBeenCalledWith(
-        'web.organizations.make_default_success',
-        'success',
-        'top'
-      );
-    });
+    expect(select().element.value).toBe('b');
+    expect(select().text()).not.toContain('web.settings.default_workspace.not_set');
+  });
 
-    it('replaces the placeholder once a first default is chosen', async () => {
-      organizationStore.organizations = [org('a'), org('b')];
-      organizationStore.setDefaultOrganization.mockImplementation(async (chosen: Organization) => {
-        organizationStore.organizations = organizationStore.organizations.map((o) => ({
-          ...o,
-          is_current_user_default: o.objid === chosen.objid,
-        }));
-        return { organization_id: chosen.objid, previous_default_organization_id: null };
-      });
-      wrapper = mountComponent();
-      await flushPromises();
+  it('shows a disabled "Not set" placeholder when no default is recorded', async () => {
+    await mountWith([org('a'), org('b')]);
 
-      await choose('a');
+    const placeholder = select().find('option[value=""]');
+    expect(placeholder.exists()).toBe(true);
+    expect(placeholder.text()).toBe('web.settings.default_workspace.not_set');
+    expect(placeholder.attributes('disabled')).toBeDefined();
+    expect(select().element.value).toBe('');
+  });
+});
 
-      expect(organizationStore.setDefaultOrganization).toHaveBeenCalledWith(
-        expect.objectContaining({ objid: 'a' })
-      );
-      expect(select().find('option[value=""]').exists()).toBe(false);
-      expect(select().element.value).toBe('a');
-    });
+// WCAG 3.2.2: arrow keys on a closed select fire `change` in some browsers,
+// so choosing must not save; the Save button does.
+describe('ProfileSettings default workspace: choosing and saving', () => {
+  it('does not save when the selection changes', async () => {
+    await mountWith([org('a', { is_current_user_default: true }), org('b')]);
 
-    it('reports a failure and puts the select back on the stored default', async () => {
-      organizationStore.organizations = [org('a', { is_current_user_default: true }), org('b')];
-      organizationStore.setDefaultOrganization.mockRejectedValue(new Error('Invalid organization'));
-      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      wrapper = mountComponent();
-      await flushPromises();
+    await choose('b');
+    await select().trigger('keydown', { key: 'ArrowDown' });
+    await flushPromises();
 
-      await choose('b');
+    expect(organizationStore.setDefaultOrganization).not.toHaveBeenCalled();
+    expect(select().element.value).toBe('b');
+    expect(select().attributes('disabled')).toBeUndefined();
+  });
 
-      expect(organizationStore.setDefaultOrganization).toHaveBeenCalledTimes(1);
-      expect(select().element.value).toBe('a');
-      expect(select().attributes('disabled')).toBeUndefined();
-      expect(showMock).toHaveBeenCalledWith('web.organizations.make_default_error', 'error', 'top');
-      expect(showMock).not.toHaveBeenCalledWith(
-        'web.organizations.make_default_success',
-        expect.anything(),
-        expect.anything()
-      );
-      errorSpy.mockRestore();
-    });
+  it('marks Save unavailable while the choice is the saved default', async () => {
+    await mountWith([org('a', { is_current_user_default: true }), org('b')]);
 
-    it('goes back to "Not set" when a first choice fails', async () => {
-      organizationStore.organizations = [org('a'), org('b')];
-      organizationStore.setDefaultOrganization.mockRejectedValue(new Error('Invalid organization'));
-      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      wrapper = mountComponent();
-      await flushPromises();
+    expect(saveButton().attributes('aria-disabled')).toBe('true');
+    // aria-disabled, not disabled, so focus survives a press
+    expect(saveButton().attributes('disabled')).toBeUndefined();
+    await save();
+    expect(organizationStore.setDefaultOrganization).not.toHaveBeenCalled();
 
-      await choose('b');
+    await choose('b');
+    expect(saveButton().attributes('aria-disabled')).toBe('false');
+    await choose('a');
+    expect(saveButton().attributes('aria-disabled')).toBe('true');
+  });
 
-      expect(select().element.value).toBe('');
-      expect(select().find('option[value=""]').exists()).toBe(true);
-      expect(showMock).toHaveBeenCalledWith('web.organizations.make_default_error', 'error', 'top');
-      errorSpy.mockRestore();
-    });
+  it('saves the chosen organization on Save and reports success', async () => {
+    await mountWith([org('a', { is_current_user_default: true }), org('b')]);
+    saveSucceeds('a');
 
-    describe('loading the organization list', () => {
-      it('fetches the list when it has not been loaded', async () => {
-        organizationStore.isListFetched = false;
-        wrapper = mountComponent();
-        await flushPromises();
+    await choose('b');
+    await save();
 
-        expect(organizationStore.fetchOrganizations).toHaveBeenCalledTimes(1);
-      });
+    expect(organizationStore.setDefaultOrganization).toHaveBeenCalledTimes(1);
+    expect(organizationStore.setDefaultOrganization).toHaveBeenCalledWith(
+      expect.objectContaining({ objid: 'b', extid: 'on_b' })
+    );
+    expect(select().element.value).toBe('b');
+    expect(saveButton().attributes('aria-disabled')).toBe('true');
+    expect(showMock).toHaveBeenCalledWith(
+      'web.organizations.make_default_success',
+      'success',
+      'top'
+    );
+  });
 
-      it('does not fetch again when the list is loaded', async () => {
-        wrapper = mountComponent();
-        await flushPromises();
+  it('marks Save busy and ignores another press while saving', async () => {
+    await mountWith([org('a', { is_current_user_default: true }), org('b')]);
+    let finish: () => void = () => {};
+    organizationStore.setDefaultOrganization.mockImplementation(
+      (chosen: Organization) =>
+        new Promise((resolve) => {
+          finish = () => {
+            moveDefaultTo(chosen);
+            resolve({ organization_id: chosen.objid, previous_default_organization_id: 'a' });
+          };
+        })
+    );
 
-        expect(organizationStore.fetchOrganizations).not.toHaveBeenCalled();
-      });
+    await choose('b');
+    await save();
+    expect(saveButton().attributes('aria-busy')).toBe('true');
+    expect(saveButton().attributes('aria-disabled')).toBe('true');
+    expect(select().attributes('disabled')).toBeUndefined();
+    await save();
+    expect(organizationStore.setDefaultOrganization).toHaveBeenCalledTimes(1);
 
-      // OrganizationContextBar (in the layout) usually starts the fetch first;
-      // a second call would abort it.
-      it('does not start a second fetch while one is in flight', async () => {
-        organizationStore.isListFetched = false;
-        organizationStore.loading = true;
-        wrapper = mountComponent();
-        await flushPromises();
+    finish();
+    await flushPromises();
+    expect(saveButton().attributes('aria-busy')).toBe('false');
+  });
 
-        expect(organizationStore.fetchOrganizations).not.toHaveBeenCalled();
-      });
-    });
+  it('replaces the placeholder once a first default is saved', async () => {
+    await mountWith([org('a'), org('b')]);
+    saveSucceeds(null);
+
+    await choose('a');
+    await save();
+
+    expect(organizationStore.setDefaultOrganization).toHaveBeenCalledWith(
+      expect.objectContaining({ objid: 'a' })
+    );
+    expect(select().find('option[value=""]').exists()).toBe(false);
+    expect(select().element.value).toBe('a');
+  });
+
+  it('reports a failure and keeps the choice so Save can be pressed again', async () => {
+    await mountWith([org('a', { is_current_user_default: true }), org('b')]);
+    organizationStore.setDefaultOrganization.mockRejectedValue(new Error('Invalid organization'));
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await choose('b');
+    await save();
+
+    expect(organizationStore.setDefaultOrganization).toHaveBeenCalledTimes(1);
+    expect(select().element.value).toBe('b');
+    expect(saveButton().attributes('aria-disabled')).toBe('false');
+    expect(showMock).toHaveBeenCalledWith('web.organizations.make_default_error', 'error', 'top');
+    expect(showMock).not.toHaveBeenCalledWith(
+      'web.organizations.make_default_success',
+      expect.anything(),
+      expect.anything()
+    );
+    errorSpy.mockRestore();
+  });
+
+  it('stays quiet when a sign-out cancels the change', async () => {
+    await mountWith([org('a', { is_current_user_default: true }), org('b')]);
+    organizationStore.setDefaultOrganization.mockRejectedValue(new axios.CanceledError());
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await choose('b');
+    await save();
+
+    expect(showMock).not.toHaveBeenCalled();
+    expect(errorSpy).not.toHaveBeenCalled();
+    errorSpy.mockRestore();
+  });
+});
+
+describe('ProfileSettings default workspace: following the saved default', () => {
+  it('follows a default changed elsewhere (e.g. Make default on /orgs)', async () => {
+    await mountWith([org('a', { is_current_user_default: true }), org('b')]);
+
+    moveDefaultTo(organizationStore.organizations[1]);
+    await flushPromises();
+
+    expect(select().element.value).toBe('b');
+    expect(saveButton().attributes('aria-disabled')).toBe('true');
+  });
+
+  it('keeps an unsaved choice when the default changes elsewhere', async () => {
+    await mountWith([org('a', { is_current_user_default: true }), org('b'), org('c')]);
+
+    await choose('c');
+    moveDefaultTo(organizationStore.organizations[1]);
+    await flushPromises();
+
+    expect(select().element.value).toBe('c');
+    expect(saveButton().attributes('aria-disabled')).toBe('false');
+  });
+
+  it('starts over from the reloaded list after a store reset', async () => {
+    await mountWith([org('a', { is_current_user_default: true }), org('b'), org('c')]);
+    await choose('c');
+
+    organizationStore.organizations = [];
+    await flushPromises();
+    expect(row().exists()).toBe(false);
+
+    organizationStore.organizations = [org('a'), org('b', { is_current_user_default: true })];
+    await flushPromises();
+    expect(select().element.value).toBe('b');
+  });
+});
+
+describe('ProfileSettings default workspace: loading the organization list', () => {
+  it('fetches the list when it has not been loaded', async () => {
+    organizationStore.isListFetched = false;
+    await mountWith([]);
+
+    expect(organizationStore.fetchOrganizations).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not fetch again when the list is loaded', async () => {
+    await mountWith([]);
+
+    expect(organizationStore.fetchOrganizations).not.toHaveBeenCalled();
+  });
+
+  // OrganizationContextBar (in the layout) usually starts the fetch first;
+  // a second call would abort it.
+  it('waits while a list fetch is in flight, then fetches if the list is still missing', async () => {
+    organizationStore.isListFetched = false;
+    organizationStore.isListLoading = true;
+    await mountWith([]);
+    expect(organizationStore.fetchOrganizations).not.toHaveBeenCalled();
+
+    // that fetch failed or was cancelled; no list arrived
+    organizationStore.isListLoading = false;
+    await flushPromises();
+
+    expect(organizationStore.fetchOrganizations).toHaveBeenCalledTimes(1);
+  });
+
+  // `loading` is shared by every store action, so it is no reason to wait.
+  it('does not wait on other store actions', async () => {
+    organizationStore.isListFetched = false;
+    organizationStore.loading = true;
+    await mountWith([]);
+
+    expect(organizationStore.fetchOrganizations).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not fetch when the list fetch it waited on brought the list', async () => {
+    organizationStore.isListFetched = false;
+    organizationStore.isListLoading = true;
+    await mountWith([]);
+
+    organizationStore.organizations = [org('a', { is_current_user_default: true }), org('b')];
+    organizationStore.isListFetched = true;
+    organizationStore.isListLoading = false;
+    await flushPromises();
+
+    expect(organizationStore.fetchOrganizations).not.toHaveBeenCalled();
+    expect(row().exists()).toBe(true);
+  });
+
+  it('leaves the row hidden when the fetch fails, and does not retry', async () => {
+    organizationStore.isListFetched = false;
+    organizationStore.fetchOrganizations.mockRejectedValue(new Error('Network Error'));
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    await mountWith([]);
+
+    // a later list fetch settling does not start another attempt
+    organizationStore.isListLoading = true;
+    await flushPromises();
+    organizationStore.isListLoading = false;
+    await flushPromises();
+
+    expect(organizationStore.fetchOrganizations).toHaveBeenCalledTimes(1);
+    expect(row().exists()).toBe(false);
+    expect(errorSpy).toHaveBeenCalledTimes(1);
+    errorSpy.mockRestore();
+  });
+
+  it('stays quiet when its fetch is superseded, and uses the list the other fetch brings', async () => {
+    organizationStore.isListFetched = false;
+    organizationStore.fetchOrganizations.mockRejectedValue(new axios.CanceledError());
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    await mountWith([]);
+
+    expect(row().exists()).toBe(false);
+    expect(errorSpy).not.toHaveBeenCalled();
+
+    // the superseding fetch lands
+    organizationStore.organizations = [org('a'), org('b')];
+    organizationStore.isListFetched = true;
+    await flushPromises();
+
+    expect(row().exists()).toBe(true);
+    expect(organizationStore.fetchOrganizations).toHaveBeenCalledTimes(1);
+    errorSpy.mockRestore();
   });
 });

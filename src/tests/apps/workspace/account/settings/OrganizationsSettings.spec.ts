@@ -11,6 +11,7 @@
  */
 
 import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
+import axios from 'axios';
 import { createPinia, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -157,6 +158,24 @@ describe('OrganizationsSettings', () => {
     expect(badge('on_own').exists()).toBe(true);
     expect(makeDefault('on_company').exists()).toBe(true);
     expect(makeDefault('on_company').attributes('disabled')).toBeUndefined();
+    errorSpy.mockRestore();
+  });
+
+  it('stays quiet when a sign-out cancels the change', async () => {
+    const axiosMock = getGlobalAxiosMock();
+    axiosMock.onGet(LIST_URL).reply(200, { records: [own, company], count: 2 });
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    await mountPage();
+    // $reset while the change waits its turn rejects it as cancelled
+    vi.spyOn(useOrganizationStore(), 'setDefaultOrganization').mockRejectedValue(
+      new axios.CanceledError()
+    );
+
+    await makeDefault('on_company').trigger('click');
+    await flushPromises();
+
+    expect(showMock).not.toHaveBeenCalled();
+    expect(errorSpy).not.toHaveBeenCalled();
     errorSpy.mockRestore();
   });
 });
