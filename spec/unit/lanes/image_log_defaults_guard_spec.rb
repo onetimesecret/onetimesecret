@@ -185,6 +185,27 @@ RSpec.describe 'OCI image log defaults guard' do
       expect(offences(['spec/spec_helper.rb'], runtime_rules).join("\n")).to include('loads lane runner support code')
     end
 
+    # The image config files break none of these rules, so their empty
+    # result says nothing about whether a rule can match. One breaking line
+    # per rule keeps that check from passing on a rule that never fires.
+    it 'has an image config rule for each line that would turn on a test setting in the image' do
+      breaking = {
+        'reads a lane runner variable' => 'ENV LANES_APP_LOG_CONSOLE=off',
+        'names the test logging config' => 'COPY spec/logging.test.yaml ./etc/logging.yaml',
+        'invokes the lane runner' => 'RUN tests/lanes/run unit --capture-logs',
+        'sets RACK_ENV to test' => '      - RACK_ENV=${RACK_ENV:-test}',
+        'sets a log level floor of error or fatal' => 'ENV LOG_LEVEL=fatal',
+        'sets DEBUG_LOGGERS' => 'DEBUG_LOGGERS="App:error,Auth:error"',
+      }
+
+      expect(breaking.keys).to match_array(image_config_rules.keys)
+      breaking.each { |what, line| expect(line).to match(image_config_rules.fetch(what)), what }
+    end
+
+    it 'scans YAML comment lines under etc/, where an ERB tag still runs' do
+      expect(code_lines('etc/defaults/logging.defaults.yaml', "# <%= ENV['LANES_APP_LOG_FILE'] %>\n").to_a.size).to eq(1)
+    end
+
     it 'still needs each allowlist entry' do
       lanes_allowlist.each do |path, names|
         text = File.read(File.join(repo_root, path))
