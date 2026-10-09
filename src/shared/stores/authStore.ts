@@ -150,6 +150,8 @@ export type RefreshReason =
   | 'plan-preview'
   | 'password-change'
   | 'elevation'
+  | 'reauth'
+  | 'mfa-setup'
   | 'csrf'
   | 'check';
 

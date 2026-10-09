@@ -1,6 +1,7 @@
 // src/tests/composables/useReauth.spec.ts
 
 import { useReauth } from '@/shared/composables/useReauth';
+import { useAuthStore } from '@/shared/stores/authStore';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
 import type AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -142,5 +143,43 @@ describe('useReauth', () => {
     await expect(submitPassword('wrong')).resolves.toBe('error');
     expect(error.value).toBe('Password is incorrect');
     expect(errorCode.value).toBe('invalid_password');
+  });
+
+  // The proof is recorded under a new session id (#4466), and with it a new
+  // snapshot epoch (ADR-046). One auth-mutation refresh adopts it in place;
+  // the next ordinary refresh would otherwise read it as a replaced session
+  // and force a page load.
+  it('asks the auth store for one auth-mutation snapshot after a completed ceremony', async () => {
+    const authRefresh = vi.spyOn(useAuthStore(), 'refresh').mockResolvedValue('applied');
+    axiosMock.onPost('/auth/reauth').replyOnce(200, {
+      mfa_required: true,
+      mfa_methods: ['otp'],
+    });
+    axiosMock.onPost('/auth/reauth').replyOnce(200, {
+      success: 'Re-authentication complete',
+    });
+
+    const { submitPassword } = useReauth();
+
+    await expect(submitPassword('correct horse')).resolves.toBe('mfa_required');
+    expect(authRefresh).not.toHaveBeenCalled();
+
+    await expect(submitPassword('correct horse', '123456')).resolves.toBe('success');
+    expect(authRefresh).toHaveBeenCalledTimes(1);
+    expect(authRefresh).toHaveBeenCalledWith({ kind: 'auth-mutation', reason: 'reauth' });
+  });
+
+  it('does not ask for a snapshot when the ceremony is refused', async () => {
+    const authRefresh = vi.spyOn(useAuthStore(), 'refresh').mockResolvedValue('applied');
+    axiosMock.onPost('/auth/reauth').reply(503, {
+      error: 'Re-authentication could not be completed. Please try again.',
+      error_code: 'session_not_rotated',
+    });
+
+    const { submitPassword, errorCode } = useReauth();
+
+    await expect(submitPassword('correct horse')).resolves.toBe('error');
+    expect(errorCode.value).toBe('session_not_rotated');
+    expect(authRefresh).not.toHaveBeenCalled();
   });
 });

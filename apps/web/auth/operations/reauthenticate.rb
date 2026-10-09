@@ -7,6 +7,7 @@ require 'webauthn'
 
 require 'onetime/session/recent_reauth'
 require 'onetime/session/reauth_policy'
+require 'onetime/session/rotation'
 require 'onetime/session/sidecar'
 
 require_relative 'mfa_state_checker'
@@ -15,8 +16,25 @@ module Auth
   module Operations
     # Verify a complete local re-authentication ceremony for the account already
     # bound to the current session. This operation never establishes or replaces
-    # the login session; it only writes RecentReauth after all required factors
+    # the login session; it writes RecentReauth after all required factors
     # have succeeded.
+    #
+    # SESSION ID (#4466). The proof lets this session make one Connect
+    # attempt, a capability the session did not have before, so it is
+    # written under a NEW id: once every factor has verified,
+    # {Onetime::SessionRotation.rotate!} ends the old id the way a logout
+    # does and carries the session data (identity, active-session join key,
+    # surface marker, CSRF token) to a new one, and the proof is recorded
+    # there. A copy of the pre-ceremony id is signed out rather than handed
+    # the proof. The proof is a sidecar key bound to the id, so the rotation
+    # must come first; the WebAuthn challenge is consumed before it, and an
+    # older proof or Connect intent on the old id goes with the old id.
+    #
+    # If the old id cannot be ended, no proof is recorded and the request
+    # answers 503 `session_not_rotated`. What the session is left with is
+    # the colonel step-up's case (ColonelAPI::Logic::Colonel::ElevateSession
+    # #refuse_unrotated_session!): still signed in, without a proof, unless
+    # the old id was marked ended but not re-keyed, which signs it out.
     class Reauthenticate
       Result          = Data.define(:status, :body, :password_verified)
       CHALLENGE_FIELD = 'reauth_webauthn_challenge'
@@ -321,6 +339,15 @@ module Auth
       end
 
       def record(account_id, methods, password_verified: false)
+        unless renew_session_id(account_id)
+          return error(
+            503,
+            'Re-authentication could not be completed. Please try again.',
+            'session_not_rotated',
+            password_verified,
+          )
+        end
+
         proof = Onetime::RecentReauth.record(
           @session,
           @env,
@@ -334,6 +361,33 @@ module Auth
           body: { 'success' => 'Re-authentication complete' },
           password_verified: password_verified,
         )
+      end
+
+      # Move the session to a new id before the proof is recorded (see the
+      # class header). True when the old id is ended, or when the session has
+      # no server-side id to end (a bare Hash, as in the unit specs), the
+      # same nil case the MFA hook and the colonel step-up continue on. The
+      # rescue is here because #call maps ArgumentError and TypeError to a
+      # failed passkey.
+      def renew_session_id(account_id)
+        rotation = Onetime::SessionRotation.rotate!(@session)
+        return true if rotation.nil? || rotation.complete
+
+        reauth_logger.error 'Re-authentication refused: the previous session id could not be ended',
+          account_id: account_id,
+          reason: rotation.reason
+        false
+      rescue StandardError => ex
+        reauth_logger.error 'Re-authentication refused: the previous session id could not be ended',
+          account_id: account_id,
+          reason: :error,
+          error_class: ex.class.name,
+          error: ex.message
+        false
+      end
+
+      def reauth_logger
+        Onetime.get_logger('Auth::Reauth')
       end
 
       def error(status, message, code, password_verified = false)

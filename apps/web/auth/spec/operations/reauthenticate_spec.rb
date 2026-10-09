@@ -105,6 +105,72 @@ RSpec.describe Auth::Operations::Reauthenticate do
     expect(result.body['error_code']).to eq('invalid_surface')
   end
 
+  # #4466: the proof goes under a new session id. The integration side (a
+  # real store, the old id ended) is
+  # spec/integration/full_mfa/reauth_session_rotation_spec.rb; these pin
+  # the order and the refusal.
+  describe 'session id renewal' do
+    def password_ceremony
+      operation.call(
+        account_id: 42,
+        offer: offer,
+        params: { 'method' => 'password', 'password' => 'correct-password' },
+      )
+    end
+
+    it 'renews the id before it records the proof' do
+      rotation = Onetime::SessionRotation::Result.new(old_sid: 'old', new_sid: 'new', complete: true)
+      allow(Onetime::SessionRotation).to receive(:rotate!).with(session).and_return(rotation)
+
+      expect(password_ceremony.status).to eq(200)
+      expect(Onetime::SessionRotation).to have_received(:rotate!).ordered
+      expect(Onetime::RecentReauth).to have_received(:record).ordered
+    end
+
+    it 'records no proof and answers 503 when the old id could not be ended' do
+      rotation = Onetime::SessionRotation::Result.new(
+        old_sid: 'old', new_sid: 'old', complete: false, reason: :marker_not_written,
+      )
+      allow(Onetime::SessionRotation).to receive(:rotate!).and_return(rotation)
+
+      result = password_ceremony
+
+      expect(result.status).to eq(503)
+      expect(result.body['error_code']).to eq('session_not_rotated')
+      expect(result.password_verified).to be(true)
+      expect(Onetime::RecentReauth).not_to have_received(:record)
+    end
+
+    it 'answers 503, not a failed passkey, when the rotation raises' do
+      # #call maps ArgumentError to invalid_webauthn; the rotation's own
+      # failure must not be reported as a rejected credential.
+      allow(Onetime::SessionRotation).to receive(:rotate!).and_raise(ArgumentError, 'boom')
+
+      result = password_ceremony
+
+      expect(result.status).to eq(503)
+      expect(result.body['error_code']).to eq('session_not_rotated')
+      expect(Onetime::RecentReauth).not_to have_received(:record)
+    end
+
+    it 'records the proof when the session has no server-side id to renew' do
+      allow(Onetime::SessionRotation).to receive(:rotate!).and_return(nil)
+
+      expect(password_ceremony.status).to eq(200)
+      expect(Onetime::RecentReauth).to have_received(:record)
+    end
+
+    it 'does not renew the id when the ceremony stops at the second-factor prompt' do
+      allow(Onetime::SessionRotation).to receive(:rotate!)
+      allow(mfa_state).to receive_messages(mfa_enabled?: true, has_otp_secret: true)
+
+      result = password_ceremony
+
+      expect(result.body).to include('mfa_required' => true)
+      expect(Onetime::SessionRotation).not_to have_received(:rotate!)
+    end
+  end
+
   it 'does not record when the password is wrong' do
     allow(Auth::Config).to receive(:valid_login_and_password?).and_return(false)
 
