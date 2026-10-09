@@ -72,7 +72,7 @@ runs:
     # The artifact is lane-logs-<lane>-<overlay or base>. A job runs one lane
     # and overlay pair, so the name is unique within a workflow run, and it
     # cannot match the 'rspec-*-results' pattern the aggregate job downloads
-    # (scripts/tests/run-test-lane-action-test.sh checks both for every
+    # (tools/testsuite/run-test-lane-action-test.sh checks both for every
     # caller). A re-run attempt uploads under the same name beside the
     # earlier attempt's artifact, as the RSpec results already do. That is
     # this repository's run history, not a documented guarantee: CI run

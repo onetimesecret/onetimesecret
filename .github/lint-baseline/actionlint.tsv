@@ -10,7 +10,7 @@
 # space-separated lists (bake tags, sentry project flags, the Sentry expected
 # component list) through unquoted expansions ON PURPOSE, because each element
 # must become its own argument. Quoting them would be a regression, not a fix —
-# scripts/tests/sentry-components-drift-test.sh asserts one of them stays
+# tools/testsuite/sentry-components-drift-test.sh asserts one of them stays
 # unquoted. They are baselined rather than disabled inline so the count is
 # visible and a NEW unquoted expansion still has to be justified.
 #

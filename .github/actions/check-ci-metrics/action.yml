@@ -247,7 +247,7 @@ runs:
     # (scripts/ci/ci-metrics-breakdown.sh) reports per-tier completion state
     # and each test step's own duration against the median of recent
     # successful main runs. Baseline runs are fetched here; the script itself
-    # is offline and covered by scripts/tests/ci-metrics-breakdown-test.sh.
+    # is offline and covered by tools/testsuite/ci-metrics-breakdown-test.sh.
     - name: Fetch baseline runs from main
       id: baseline
       shell: bash
