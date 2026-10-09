@@ -27,7 +27,11 @@ name: Ruby 4 Preview
 #   step whose outcome depends on Ruby 4 gem compatibility. Any failure
 #   there — setup-ruby's bundle install, rubocop, or the lane run — is
 #   captured as a warning annotation on the step while the job itself
-#   completes successfully.
+#   completes successfully. Such a step also *concludes* success in the
+#   checks API, so each job ends with a report step that reads every
+#   advisory step's `outcome` and writes it to the job summary and the
+#   log (.github/scripts/ruby4-step-outcomes.sh). Read that table, not
+#   the green check, to know what passed under Ruby 4.
 # - The Gemfile takes its Ruby from .ruby-version, so Bundler refuses to
 #   load the bundle under any other Ruby. Every Ruby job therefore first
 #   pins the checkout with .github/scripts/pin-ruby-version.sh (the
@@ -93,6 +97,7 @@ jobs:
         run: .github/scripts/pin-ruby-version.sh 4.0.2
 
       - name: Setup Ruby
+        id: setup-ruby
         uses: ruby/setup-ruby@003a5c4d8d6321bd302e38f6f0ec593f77f06600 # v1.319.0
         continue-on-error: true
         with:
@@ -100,12 +105,14 @@ jobs:
           bundler-cache: false # DEBUG: disabled to rule out stale cache
 
       - name: Install dependencies
+        id: bundle
         continue-on-error: true
         env:
           BUNDLE_FROZEN: 'true' # as ci.yml: the locked gems, only Ruby varies
         run: bundle install --jobs 4 --retry 3
 
       - name: Run Rubocop
+        id: rubocop
         continue-on-error: true
         run: |
           mkdir -p tmp
@@ -113,6 +120,15 @@ jobs:
             --format progress \
             --format json --out tmp/rubocop_results.json \
             --fail-level warning
+
+      - name: Report step outcomes
+        if: always()
+        env:
+          STEP_OUTCOMES: |
+            Setup Ruby=${{ steps.setup-ruby.outcome }}
+            Install dependencies=${{ steps.bundle.outcome }}
+            Run Rubocop=${{ steps.rubocop.outcome }}
+        run: .github/scripts/ruby4-step-outcomes.sh
 
       - name: Upload Rubocop results
         if: always()
@@ -142,6 +158,7 @@ jobs:
       - *pin-ruby-step
 
       - name: Setup Ruby test environment (may fail on bundle install)
+        id: setup-env
         uses: ./.github/actions/setup-ruby-test-env
         continue-on-error: true
 
@@ -156,10 +173,19 @@ jobs:
         uses: ./.github/actions/setup-node-env
 
       - name: Run unit lane (Ruby 4)
+        id: lane-unit
         continue-on-error: true
         uses: ./.github/actions/run-test-lane
         with:
           lane: unit
+
+      - name: Report step outcomes
+        if: always()
+        env:
+          STEP_OUTCOMES: |
+            Setup Ruby test environment=${{ steps.setup-env.outcome }}
+            Run unit lane=${{ steps.lane-unit.outcome }}
+        run: .github/scripts/ruby4-step-outcomes.sh
 
   ruby-billing:
     name: Ruby 4 · Billing Tests
@@ -176,6 +202,7 @@ jobs:
       - *pin-ruby-step
 
       - name: Setup Ruby test environment (may fail on bundle install)
+        id: setup-env
         uses: ./.github/actions/setup-ruby-test-env
         continue-on-error: true
 
@@ -188,16 +215,27 @@ jobs:
         uses: ./.github/actions/setup-node-env
 
       - name: Run billing lane (Ruby 4)
+        id: lane-billing
         continue-on-error: true
         uses: ./.github/actions/run-test-lane
         with:
           lane: billing
 
       - name: Run billing-integration lane (Ruby 4)
+        id: lane-billing-integration
         continue-on-error: true
         uses: ./.github/actions/run-test-lane
         with:
           lane: billing-integration
+
+      - name: Report step outcomes
+        if: always()
+        env:
+          STEP_OUTCOMES: |
+            Setup Ruby test environment=${{ steps.setup-env.outcome }}
+            Run billing lane=${{ steps.lane-billing.outcome }}
+            Run billing-integration lane=${{ steps.lane-billing-integration.outcome }}
+        run: .github/scripts/ruby4-step-outcomes.sh
 
   ruby-integration-simple:
     name: Ruby 4 · Integration (Simple Mode)
@@ -214,6 +252,7 @@ jobs:
       - *pin-ruby-step
 
       - name: Setup Ruby test environment (may fail on bundle install)
+        id: setup-env
         uses: ./.github/actions/setup-ruby-test-env
         continue-on-error: true
 
@@ -234,10 +273,19 @@ jobs:
         uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
 
       - name: Run simple lane (Ruby 4)
+        id: lane-simple
         continue-on-error: true
         uses: ./.github/actions/run-test-lane
         with:
           lane: simple
+
+      - name: Report step outcomes
+        if: always()
+        env:
+          STEP_OUTCOMES: |
+            Setup Ruby test environment=${{ steps.setup-env.outcome }}
+            Run simple lane=${{ steps.lane-simple.outcome }}
+        run: .github/scripts/ruby4-step-outcomes.sh
 
   ruby-integration-full:
     name: 'Ruby 4 · Integration (Full, ${{ matrix.name }})'
@@ -274,6 +322,7 @@ jobs:
       - *pin-ruby-step
 
       - name: Setup Ruby test environment (may fail on bundle install)
+        id: setup-env
         uses: ./.github/actions/setup-ruby-test-env
         continue-on-error: true
 
@@ -284,11 +333,20 @@ jobs:
       - *install-pnpm-step
 
       - name: Run lane (Ruby 4)
+        id: lane-full
         continue-on-error: true
         uses: ./.github/actions/run-test-lane
         with:
           lane: ${{ matrix.lane }}
           overlay: ${{ matrix.overlay }}
+
+      - name: Report step outcomes
+        if: always()
+        env:
+          STEP_OUTCOMES: |
+            Setup Ruby test environment=${{ steps.setup-env.outcome }}
+            Run ${{ matrix.lane }} lane=${{ steps.lane-full.outcome }}
+        run: .github/scripts/ruby4-step-outcomes.sh
 
   ruby-integration-disabled:
     name: Ruby 4 · Integration (Disabled Mode)
@@ -305,6 +363,7 @@ jobs:
       - *pin-ruby-step
 
       - name: Setup Ruby test environment (may fail on bundle install)
+        id: setup-env
         uses: ./.github/actions/setup-ruby-test-env
         continue-on-error: true
 
@@ -315,7 +374,16 @@ jobs:
       - *install-pnpm-step
 
       - name: Run disabled lane (Ruby 4)
+        id: lane-disabled
         continue-on-error: true
         uses: ./.github/actions/run-test-lane
         with:
           lane: disabled
+
+      - name: Report step outcomes
+        if: always()
+        env:
+          STEP_OUTCOMES: |
+            Setup Ruby test environment=${{ steps.setup-env.outcome }}
+            Run disabled lane=${{ steps.lane-disabled.outcome }}
+        run: .github/scripts/ruby4-step-outcomes.sh

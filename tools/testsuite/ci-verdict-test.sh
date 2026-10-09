@@ -89,7 +89,7 @@ for job in ruby-auth-browser ruby-integration-auth; do
 done
 for job in ruby-billing ruby-integration-billing ruby-billing-integration; do
   assert_contains "CV-BILLING-01: a pull request skips $job (nightly only)" \
-    "| $job | skipped | ✅ no nightly event change |" "$out"
+    "| $job | skipped | ✅ no nightly/release event change |" "$out"
 done
 
 # --- a T3 lane failed ---------------------------------------------------------
@@ -115,7 +115,7 @@ assert_contains "ruby-lint failed" "| ruby-lint | failure | ❌ did not succeed 
 assert_contains "ruby-unit skipped although ruby changed" \
   "| ruby-unit | skipped | ❌ expected to run (ruby changed) but was skipped: a prerequisite failed or the run was cancelled |" "$out"
 assert_contains "ruby-billing skipped and not expected on a pull request" \
-  "| ruby-billing | skipped | ✅ no nightly event change |" "$out"
+  "| ruby-billing | skipped | ✅ no nightly/release event change |" "$out"
 assert_contains "six failures counted" "❌ 6 job(s) did not pass" "$out"
 
 # --- the run was cancelled ----------------------------------------------------
@@ -224,7 +224,7 @@ assert_contains "CV-AUTH-07: full-mode rows not expected" \
   "| ruby-integration-full | skipped | ✅ no ruby change |" "$out"
 for job in ruby-billing ruby-integration-billing ruby-billing-integration; do
   assert_contains "CV-AUTH-07: $job not expected" \
-    "| $job | skipped | ✅ no nightly event change |" "$out"
+    "| $job | skipped | ✅ no nightly/release event change |" "$out"
 done
 
 out="$(verdict AUTH=true "${AUTH_ONLY[@]}" RESULT_BUILD_ASSETS=skipped)"
@@ -232,7 +232,7 @@ status=$?
 protects "the auth jobs download the frontend build, so a skipped build under auth selection is a failure"
 assert_eq "CV-AUTH-08: auth-only run without a build exit" 1 "$status"
 assert_contains "CV-AUTH-08: build expected for auth" \
-  "| build-assets | skipped | ❌ expected to run (frontend, ruby, auth or nightly event changed) but was skipped:" "$out"
+  "| build-assets | skipped | ❌ expected to run (frontend, ruby, auth or nightly/release event changed) but was skipped:" "$out"
 
 # --- the nightly-only billing jobs ---------------------------------------------
 # Their expectation is the billing_nightly flag, which is the schedule event
@@ -254,7 +254,7 @@ for job in ruby-billing ruby-integration-billing ruby-billing-integration; do
       assert_eq "CV-BILLING-02: $job nightly=$nightly result=[$result] exit" "$expected" "$status"
       if [[ "$result" == skipped && "$nightly" == true ]]; then
         assert_contains "CV-BILLING-02: $job expected on the nightly despite RUBY=false and AUTH=false" \
-          "| $job | skipped | ❌ expected to run (nightly event changed) but was skipped:" "$out"
+          "| $job | skipped | ❌ expected to run (nightly/release event changed) but was skipped:" "$out"
       elif [[ "$expected" == 1 ]]; then
         assert_contains "CV-BILLING-02: $job bad result row" \
           "| $job | ${result:-<unset>} | ❌ did not succeed |" "$out"
@@ -281,7 +281,7 @@ status=$?
 protects "the billing jobs download the frontend build, so a skipped build on the nightly is a failure"
 assert_eq "CV-BILLING-04: nightly-only run without a build exit" 1 "$status"
 assert_contains "CV-BILLING-04: build expected for the nightly" \
-  "| build-assets | skipped | ❌ expected to run (frontend, ruby, auth or nightly event changed) but was skipped:" "$out"
+  "| build-assets | skipped | ❌ expected to run (frontend, ruby, auth or nightly/release event changed) but was skipped:" "$out"
 
 out="$(verdict "${ALL_SUCCESS[@]}" RESULT_RUBY_BILLING=skipped \
   RESULT_RUBY_INTEGRATION_BILLING=skipped RESULT_RUBY_BILLING_INTEGRATION=skipped)"
