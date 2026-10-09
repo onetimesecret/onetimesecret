@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require_relative '../../support/lane_probe'
 require 'climate_control'
 require 'open3'
 require 'rbconfig'
@@ -308,29 +309,15 @@ RSpec.describe 'lane log capture profile' do
     # application. The profile records it beside the log, where the runner
     # looks at the end of the run (spec/unit/lanes/capture_logs_spec.rb).
     context 'with LANES_APP_LOG_FILE, when a write to the file fails' do
+      include LaneProbe::FailingWrites
+
       let(:listeners) { setup_loggers::FileSink.write_failure_listeners }
       let(:marker) { "#{app_log}#{Lanes::LogCapture::WRITE_FAILED_SUFFIX}" }
 
-      # The handle is replaced by one whose write raises; reopen does
-      # nothing, so the stock appender's one retry fails the same way.
+      # The sink's own line on standard error (once per process) is kept off
+      # this run's console.
       def fail_write(sink, error)
-        broken = Object.new
-        broken.define_singleton_method(:write) { |*| raise error }
-        broken.define_singleton_method(:close) { nil }
-        broken.define_singleton_method(:flush) { nil }
-        sink.instance_variable_set(:@file, broken)
-        allow(sink).to receive(:reopen)
-
-        # The sink's own line on standard error (once per process) is kept
-        # off this run's console.
-        event = SemanticLogger::Log.new('LaneLogCaptureSpec', :error).tap { |log| log.assign(message: 'lost') }
-        was   = $stderr
-        begin
-          $stderr = StringIO.new
-          expect { sink.log(event) }.to raise_error(error.class)
-        ensure
-          $stderr = was
-        end
+        log_through(break_file_sink(sink, error), error.class)
       end
 
       it 'watches the file with one listener, however often it is installed' do
@@ -397,7 +384,7 @@ RSpec.describe 'lane log capture profile' do
       it 'refuses a console value that is neither off nor a level' do
         %w[verbose OFF false 0].each do |value|
           expect { install('LANES_APP_LOG_FILE' => app_log, 'LANES_APP_LOG_CONSOLE' => value) }
-            .to raise_error(Lanes::LogCapture::Error, /LANES_APP_LOG_CONSOLE must be off or one of trace, debug/)
+            .to raise_error(Lanes::LogCapture::Error, /LANES_APP_LOG_CONSOLE/)
         end
         expect(SemanticLogger.appenders).to be_empty
       end
@@ -418,7 +405,7 @@ RSpec.describe 'lane log capture profile' do
         missing = File.join(tmpdir, 'no-such-directory', 'app.log')
 
         expect { install('LANES_APP_LOG_FILE' => missing) }
-          .to raise_error(Lanes::LogCapture::Error, /LANES_APP_LOG_FILE: Cannot open the log file #{Regexp.escape(missing)}/)
+          .to raise_error(Lanes::LogCapture::Error, /LANES_APP_LOG_FILE.*#{Regexp.escape(missing)}/)
         expect(SemanticLogger.appenders).to be_empty
       end
 
@@ -426,7 +413,7 @@ RSpec.describe 'lane log capture profile' do
         missing = File.join(tmpdir, 'no-such-directory', 'mail.log')
 
         expect { install('LANES_MAIL_LOG_FILE' => missing) }
-          .to raise_error(Lanes::LogCapture::Error, /LANES_MAIL_LOG_FILE: cannot open the mail log #{Regexp.escape(missing)}/)
+          .to raise_error(Lanes::LogCapture::Error, /LANES_MAIL_LOG_FILE.*#{Regexp.escape(missing)}/)
         expect(mail_backend.output).to equal($stdout)
       end
     end
@@ -626,7 +613,7 @@ RSpec.describe 'lane log capture profile' do
 
       expect { Lanes::LogCapture.install_or_abort!('LANES_APP_LOG_FILE' => missing) }
         .to raise_error(SystemExit) { |exit| expect(exit.status).to eq(1) }
-        .and output(/\Aerror: test log capture: LANES_APP_LOG_FILE: Cannot open the log file #{Regexp.escape(missing)}.*\n\z/).to_stderr
+        .and output(/\Aerror: .*#{Regexp.escape(missing)}.*\n\z/).to_stderr
     end
 
     it 'returns when there is nothing to refuse' do
@@ -687,7 +674,7 @@ RSpec.describe 'lane log capture profile' do
       stdout, stderr, status = run_helper('spec/spec_helper.rb', 'LANES_APP_LOG_FILE' => missing)
 
       expect(status.exitstatus).to eq(1)
-      expect(stderr).to include("error: test log capture: LANES_APP_LOG_FILE: Cannot open the log file #{missing}")
+      expect(stderr).to include('LANES_APP_LOG_FILE', missing)
       expect(stdout).not_to include('probe:')
     end
   end

@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require_relative '../../support/lane_probe'
 require 'open3'
 require 'socket'
 require 'tempfile'
@@ -56,26 +57,9 @@ module LaneIsolationProbe
   # a spec must not start containers.
   LANE_PORTS        = [VALKEY_PORT, 2156].freeze
 
+  extend LaneProbe
+
   module_function
-
-  def repo_root
-    File.expand_path('../../..', __dir__)
-  end
-
-  def runner
-    File.join(repo_root, 'tests', 'lanes', 'run')
-  end
-
-  def bash_floor
-    @bash_floor ||= Integer(File.read(File.join(repo_root, '.bash-version')).strip)
-  end
-
-  def path_bash_major
-    return @path_bash_major if defined?(@path_bash_major)
-
-    out, status = Open3.capture2e('bash', '-c', 'echo "${BASH_VERSINFO[0]}"')
-    @path_bash_major = status.success? ? Integer(out.strip, exception: false) : nil
-  end
 
   def lane_services_up?
     return @lane_services_up if defined?(@lane_services_up)
@@ -185,11 +169,7 @@ end
 RSpec.describe 'tests/lanes/run datastore isolation key' do
   let(:probe) { LaneIsolationProbe }
 
-  before do
-    major = probe.path_bash_major
-    floor = probe.bash_floor
-    skip "bash #{floor}+ is not on PATH (macOS: brew install bash)" if major.nil? || major < floor
-  end
+  include_context 'with the lane runner bash'
 
   describe 'key composition' do
     it 'derives a different index for each lane in one checkout' do

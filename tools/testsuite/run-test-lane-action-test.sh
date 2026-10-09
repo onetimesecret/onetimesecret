@@ -61,6 +61,48 @@ def read_steps(text):
     return {key: "\n".join(value) + "\n" for key, value in found.items()}
 
 
+def scalar(value):
+    """A YAML scalar as written on one line, without a trailing comment or
+    surrounding quotes."""
+    value = re.sub(r"\s+#\s.*$", "", value).strip()
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in "'\"":
+        value = value[1:-1]
+    return value
+
+
+def expression(value):
+    """An `if:` or `${{ }}` value with the wrapper and spacing normalised."""
+    value = value.strip()
+    if value.startswith("${{") and value.endswith("}}"):
+        value = value[3:-2]
+    return " ".join(value.split())
+
+
+def step_fields(step_text):
+    """One step's keys: scalars as strings, `with:` and `env:` as dicts, a
+    block scalar as its list of lines. Key order and comments do not matter;
+    only this action's two levels of nesting are read."""
+    fields, parent, block = {}, None, None
+    for line in step_text.splitlines():
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        depth = len(line) - len(line.lstrip())
+        if block is not None and depth > block[0]:
+            block[1].append(line.strip())
+            continue
+        block = None
+        key, _, value = line.strip().partition(":")
+        target = fields if depth == 6 else fields.setdefault(parent, {})
+        if depth == 6:
+            parent = key
+        if value.strip() == "|":
+            target[key] = []
+            block = (depth, target[key])
+        elif value.strip() or depth != 6:
+            target[key] = scalar(value)
+    return fields
+
+
 def run_block(step_text):
     lines = step_text.splitlines()
     check(lines.count("      run: |") == 1, "expected one run block in the step")
@@ -225,9 +267,10 @@ def run_lane():
             check((Path(scratch) / "args").read_text().split("\n")[:-1] == expected_args, f"{lane}: runner arguments changed")
             check((Path(scratch) / "results").read_text() == expected_results, f"{lane}: RSPEC_OUTPUT_FILE changed")
             check((Path(scratch) / "tmp").is_dir(), f"{lane}: tmp/ was not created for the results file")
-    check("LANES_NO_AUTOSTART: '1'" in steps["Run lane"], "CI owns the service lifecycle")
-    check("      id: run-lane" in steps["Run lane"]
-          and "LANE_SECONDS: ${{ steps.run-lane.outputs.seconds }}" in steps["Generate job summary"],
+    run_step = step_fields(steps["Run lane"])
+    check(run_step.get("env", {}).get("LANES_NO_AUTOSTART") == "1", "CI owns the service lifecycle")
+    seconds = step_fields(steps["Generate job summary"]).get("env", {}).get("LANE_SECONDS", "")
+    check(run_step.get("id") == "run-lane" and expression(seconds) == "steps.run-lane.outputs.seconds",
           "the summary no longer receives the lane's elapsed seconds")
 
 
@@ -236,22 +279,24 @@ def upload_step():
     order = list(steps)
     check(order.index("Locate lane logs") < order.index("Run lane") < order.index("Upload lane logs")
           < order.index("Generate job summary"), f"step order changed: {order}")
-    check("if:" not in steps["Locate lane logs"], "the path is located before the lane, unconditionally")
-    upload = "\n".join(line for line in steps["Upload lane logs"].splitlines() if not line.lstrip().startswith("#"))
-    for expected in ("      id: lane-logs-upload",
-                     "      if: always() && steps.lane-logs.outputs.name != ''",
-                     "      uses: actions/upload-artifact@",
-                     "        name: ${{ steps.lane-logs.outputs.name }}",
-                     "          ${{ steps.lane-logs.outputs.dir }}/app.log",
-                     "          ${{ steps.lane-logs.outputs.dir }}/last.log",
-                     "        retention-days: 3",
-                     "        if-no-files-found: ignore"):
-        check(expected in upload, f"log upload lost: {expected.strip()}")
-    check("mail.log" not in upload, "mail.log is raw email content and is not uploaded")
-    check(len(re.findall(r"^          \S", upload, re.M)) == 2, "the log upload names exactly two files")
-    results = steps["Upload RSpec results"]
-    check("      if: always() && steps.results-artifact.outputs.name != ''" in results
-          and "        path: ${{ steps.results-artifact.outputs.glob }}" in results,
+    check("if" not in step_fields(steps["Locate lane logs"]), "the path is located before the lane, unconditionally")
+    upload = step_fields(steps["Upload lane logs"])
+    upload_with = upload.get("with", {})
+    check(upload.get("id") == "lane-logs-upload", f"log upload id changed: {upload.get('id')}")
+    check(expression(upload.get("if", "")) == "always() && steps.lane-logs.outputs.name != ''",
+          f"log upload condition changed: {upload.get('if')}")
+    check(upload.get("uses", "").startswith("actions/upload-artifact@"), f"log upload action changed: {upload.get('uses')}")
+    check(expression(upload_with.get("name", "")) == "steps.lane-logs.outputs.name",
+          f"log artifact name changed: {upload_with.get('name')}")
+    paths = upload_with.get("path", [])
+    check(isinstance(paths, list) and sorted(paths) == ["${{ steps.lane-logs.outputs.dir }}/app.log",
+                                                       "${{ steps.lane-logs.outputs.dir }}/last.log"],
+          f"the log upload names exactly app.log and last.log (mail.log is raw email content): {paths}")
+    check(upload_with.get("retention-days") == "3", f"log retention changed: {upload_with.get('retention-days')}")
+    check(upload_with.get("if-no-files-found") == "ignore", "a lane that left no logs must not fail the upload")
+    results = step_fields(steps["Upload RSpec results"])
+    check(expression(results.get("if", "")) == "always() && steps.results-artifact.outputs.name != ''"
+          and expression(results.get("with", {}).get("path", "")) == "steps.results-artifact.outputs.glob",
           "the RSpec results upload changed")
     # The aggregation script takes these names from a merged download.
     for name in ("app.log", "last.log"):

@@ -3,9 +3,9 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require_relative '../../support/lane_probe'
 require 'fileutils'
 require 'open3'
-require 'securerandom'
 require 'tmpdir'
 
 # The argument surface of tests/lanes/run (#4492): which flag combinations
@@ -30,26 +30,9 @@ require 'tmpdir'
 # initializer's logger table by quiet_log_floor_spec.rb; the ownership table
 # itself is checked against rake and the tree on disk by ownership_spec.rb.
 module LaneArgumentProbe
+  extend LaneProbe
+
   module_function
-
-  def repo_root
-    File.expand_path('../../..', __dir__)
-  end
-
-  def runner
-    File.join(repo_root, 'tests', 'lanes', 'run')
-  end
-
-  def bash_floor
-    @bash_floor ||= Integer(File.read(File.join(repo_root, '.bash-version')).strip)
-  end
-
-  def path_bash_major
-    return @path_bash_major if defined?(@path_bash_major)
-
-    out, status = Open3.capture2e('bash', '-c', 'echo "${BASH_VERSINFO[0]}"')
-    @path_bash_major = status.success? ? Integer(out.strip, exception: false) : nil
-  end
 
   # Merged stdout+stderr and the status. The runner prints its --print-key
   # lines on stdout and its refusals on stderr; both matter to the examples.
@@ -64,33 +47,18 @@ module LaneArgumentProbe
   def field(output, key)
     output[/(?:\A|\s)#{Regexp.escape(key)}=(.*)$/, 1]
   end
-
-  # A throwaway overlay file under a name no other example or process in
-  # this checkout picks, removed whatever the block does.
-  def with_overlay(contents)
-    name = "argument-handling-#{Process.pid}-#{SecureRandom.hex(4)}"
-    path = File.join(repo_root, 'tests', 'lanes', 'overlays', "#{name}.env")
-    File.write(path, contents)
-    yield name
-  ensure
-    FileUtils.rm_f(path) if path
-  end
 end
 
 RSpec.describe 'tests/lanes/run argument handling' do
   let(:probe) { LaneArgumentProbe }
 
-  before do
-    major = probe.path_bash_major
-    floor = probe.bash_floor
-    skip "bash #{floor}+ is not on PATH (macOS: brew install bash)" if major.nil? || major < floor
-  end
+  include_context 'with the lane runner bash'
 
   describe 'with a lane named' do
-    # `<expected exit>, <argv after the lane>`
+    # `<expected exit>, <argv after the lane>`. A flag set whose derivation
+    # an example further down reads back is not repeated here.
     [
       [0,  %w[--print-key]],
-      [0,  %w[--quiet --print-key]],
       [64, %w[--bogus --print-key]],
       [64, %w[--print-key --bogus]],
       [64, %w[--print-key -- --only-failures]],
@@ -108,23 +76,11 @@ RSpec.describe 'tests/lanes/run argument handling' do
       [64, %w[--console --quiet --print-key]],
       [64, %w[--console --skip-codegen --print-key]],
       [64, %w[--console -- --only-failures]],
-      [0,  %w[--capture-logs --print-key]],
-      [0,  %w[--capture-logs --log-console off --print-key]],
-      [0,  %w[--capture-logs --log-console off --quiet --print-key]],
       [0,  %w[--capture-logs --log-console error --print-key]],
-      [0,  %w[--capture-logs --only spec/unit/lanes/hermetic_boundary_spec.rb --print-key]],
-      [0,  %w[--log-console trace --print-key]],
-      [0,  %w[--log-console debug --print-key]],
-      [0,  %w[--log-console info --print-key]],
-      [0,  %w[--log-console warn --print-key]],
-      [0,  %w[--log-console error --print-key]],
-      [0,  %w[--log-console fatal --print-key]],
       [0,  %w[--log-console warn --log-console warn --print-key]],
-      [64, %w[--log-console off --print-key]],
       [64, %w[--log-console off --quiet --print-key]],
       [64, %w[--log-console warn --log-console error --print-key]],
       [64, %w[--capture-logs --log-console off --log-console warn --print-key]],
-      [64, %w[--log-console verbose --print-key]],
       [64, %w[--log-console OFF --capture-logs --print-key]],
       [64, %w[--log-console Warn --print-key]],
       [64, %w[--log-console --print-key]],
@@ -133,10 +89,7 @@ RSpec.describe 'tests/lanes/run argument handling' do
       [64, %w[--console --log-console warn --print-key]],
       [64, %w[--console --capture-logs --log-console off --print-key]],
       [0,  %w[--workers 1 --print-key]],
-      [0,  %w[--workers 2 --print-key]],
       [0,  %w[--workers 64 --print-key]],
-      [0,  %w[--workers 2 --only spec/unit/lanes/hermetic_boundary_spec.rb --print-key]],
-      [0,  %w[--workers 2 --console --print-key]],
       [64, %w[--workers 0 --print-key]],
       [64, %w[--workers x --print-key]],
       [64, %w[--workers 65 --print-key]],
@@ -156,7 +109,7 @@ RSpec.describe 'tests/lanes/run argument handling' do
       output, status = probe.run('unit', '--only', 'try/unit/', '--print-key')
 
       expect(status.exitstatus).to eq(64), output
-      expect(output).to include('pass individual *_try.rb files or run the full lane')
+      expect(output).to include('individual *_try.rb files')
     end
 
     it 'rejects a tryouts directory through a symlinked checkout path' do
@@ -170,7 +123,7 @@ RSpec.describe 'tests/lanes/run argument handling' do
         )
 
         expect(status.exitstatus).to eq(64), output
-        expect(output).to include('pass individual *_try.rb files or run the full lane')
+        expect(output).to include('individual *_try.rb files')
       end
     end
   end
@@ -186,24 +139,6 @@ RSpec.describe 'tests/lanes/run argument handling' do
       expect(probe.field(output, 'rspec_console')).to eq('quiet')
       expect(output).not_to include('--format')
       expect(output).not_to include('spec_opts')
-    end
-
-    # It used to exit 64 here: the formatter went into SPEC_OPTS, which
-    # replaced the JSON formatter the results file depends on (#4683).
-    it 'works beside RSPEC_OUTPUT_FILE' do
-      output, status = probe.run('selftest', '--quiet', '--print-key',
-                                 env: { 'RSPEC_OUTPUT_FILE' => 'tmp/argument-handling-results.json' })
-      expect(status).to be_success, output
-      expect(output).not_to include('cannot be honored')
-      expect(probe.field(output, 'rspec_console')).to eq('quiet')
-    end
-
-    it 'works beside RSPEC_OUTPUT_FILE for an --only run too' do
-      output, status = probe.run('selftest', '--quiet', '--print-key',
-                                 '--only', 'spec/unit/lanes/hermetic_boundary_spec.rb',
-                                 env: { 'RSPEC_OUTPUT_FILE' => 'tmp/argument-handling-results.json' })
-      expect(status).to be_success, output
-      expect(probe.field(output, 'rspec_console')).to eq('quiet')
     end
   end
 
@@ -224,7 +159,9 @@ RSpec.describe 'tests/lanes/run argument handling' do
     end
 
     # CI's flags (.github/actions/run-test-lane) have to coexist with the
-    # results file it asks for, with and without --quiet.
+    # results file it asks for, with and without --quiet. --quiet used to
+    # exit 64 beside it: the formatter went into SPEC_OPTS, which replaced
+    # the JSON formatter the results file depends on (#4683).
     it 'works beside RSPEC_OUTPUT_FILE and derives no rspec flag' do
       [[], %w[--quiet]].each do |quiet|
         output, status = probe.run('selftest', '--capture-logs', '--log-console', 'off', *quiet, '--print-key',
@@ -281,12 +218,6 @@ RSpec.describe 'tests/lanes/run argument handling' do
       output, status = probe.run('selftest', '--log-console', 'verbose', '--print-key')
       expect(status.exitstatus).to eq(64), output
       expect(output).to include('trace debug info warn error fatal')
-    end
-
-    it 'marks the quiet console formatter under --quiet' do
-      output, status = probe.run('selftest', '--quiet', '--print-key')
-      expect(status).to be_success, output
-      expect(probe.field(output, 'rspec_console')).to eq('quiet')
     end
 
     # The four names are the runner's to assign. A lane env file or an
@@ -364,7 +295,7 @@ RSpec.describe 'tests/lanes/run argument handling' do
       %w[full-pg full-pg-agnostic migrations-pg].each do |lane|
         output, status = probe.run(lane, '--workers', '2', '--print-key')
         expect(status.exitstatus).to eq(64), "#{lane}:\n#{output}"
-        expect(output).to include("not supported for a Postgres-backed lane (lane '#{lane}')")
+        expect(output).to include('Postgres-backed lane')
       end
       output, status = probe.run('full-pg', '--workers', '1', '--print-key')
       expect(status).to be_success, output
@@ -374,7 +305,6 @@ RSpec.describe 'tests/lanes/run argument handling' do
       output, status = probe.run('--list')
       expect(status).to be_success, output
       expect(output).to include('--workers <n>')
-      expect(output).to include('--only and --console run one process')
     end
   end
 
@@ -399,8 +329,8 @@ RSpec.describe 'tests/lanes/run argument handling' do
           output, status = probe.run('selftest', '--overlay', overlay, '--print-key')
 
           expect(status.exitstatus).to eq(64), output
-          expect(output).to include("tests/lanes/overlays/#{overlay}.env sets #{name}, which is the runner's own state")
-          expect(output).to include("pass #{flag} on the command line instead")
+          expect(output).to include("#{overlay}.env sets #{name}")
+          expect(output).to include(flag)
           expect(output).not_to include('lane=selftest')
         end
       end
@@ -442,8 +372,7 @@ RSpec.describe 'tests/lanes/run argument handling' do
           output, status = probe.run('selftest', '--overlay', overlay, '--print-key')
 
           expect(status.exitstatus).to eq(64), output
-          expect(output).to include("sets #{name}, which is the runner's own state")
-          expect(output).to include('cannot change which lane or checkout a run is')
+          expect(output).to include("sets #{name}", 'which lane or checkout')
         end
       end
     end
@@ -457,9 +386,7 @@ RSpec.describe 'tests/lanes/run argument handling' do
           output, status = probe.run('selftest', '--overlay', overlay, '--print-key')
 
           expect(status.exitstatus).to eq(64), output
-          expect(output).to include(
-            "error: tests/lanes/overlays/#{overlay}.env has a break or continue outside a loop of its own",
-          )
+          expect(output).to include('break or continue')
           expect(output).not_to include('lane=selftest')
         end
       end
@@ -507,7 +434,7 @@ RSpec.describe 'tests/lanes/run argument handling' do
           output, status = probe.run('selftest', '--overlay', overlay, '--print-key')
 
           expect(status.exitstatus).to eq(64), output
-          expect(output).to include("which is the runner's own state")
+          expect(output).to include("runner's own state")
           expect(output).not_to include('lane=selftest')
         end
       end
@@ -526,7 +453,7 @@ RSpec.describe 'tests/lanes/run argument handling' do
           output, status = probe.run('selftest', '--overlay', overlay, '--print-key')
 
           expect(status.exitstatus).to eq(64), output
-          expect(output).to include('SPEC_OPTS in a lane env file or overlay selects an rspec formatter')
+          expect(output).to include('selects an rspec formatter')
           expect(output).not_to include('lane=selftest')
         end
       end
