@@ -267,6 +267,21 @@
     "text": "Select your preferred language",
     "content_hash": "475bba7a"
   },
+  "web.settings.default_workspace.title": {
+    "text": "Default workspace",
+    "context": "Label of the Preferences row where a user who belongs to several organizations chooses their default one",
+    "content_hash": "6d67c6eb"
+  },
+  "web.settings.default_workspace.description": {
+    "text": "The workspace you start in when you sign in",
+    "context": "Description under the Default workspace label in Preferences",
+    "content_hash": "f5bba5f7"
+  },
+  "web.settings.default_workspace.not_set": {
+    "text": "Not set",
+    "context": "Placeholder in the Default workspace select when the user has not chosen a default organization",
+    "content_hash": "4895f731"
+  },
   "web.settings.security_settings_description": {
     "text": "Manage authentication and account security",
     "content_hash": "945109d1"

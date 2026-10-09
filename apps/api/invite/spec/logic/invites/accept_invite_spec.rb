@@ -300,6 +300,47 @@ RSpec.describe InviteAPI::Logic::Invites::AcceptInvite do
         expect(result).to include(:user_id)
         expect(result[:user_id]).to eq(customer.extid)
       end
+
+      # No organization context from the auth strategy: the domain scope
+      # cannot be checked, so the loader refuses the selection. The
+      # membership is already written and the accept stands.
+      it 'keeps the accept when the session selection is refused' do
+        expect(auth_logger_double).to receive(:debug).with(
+          'Joined organization not selected for this session',
+          hash_including(organization_id: organization.extid),
+        )
+
+        expect(logic.process).to include(user_id: customer.extid, organization_selected: false)
+        expect(session).not_to include('organization_id')
+      end
+    end
+
+    # The user lands in the organization they just joined rather than in
+    # their default one.
+    context 'with the organization context the auth strategy loaded' do
+      let(:strategy_result) do
+        build_strategy_result(
+          session: session,
+          user: customer,
+          authenticated: true,
+          metadata: { organization_context: { scope_domains: [] } }
+        )
+      end
+
+      before do
+        # Not a member when the concerns run; a member once accept! has run.
+        allow(organization).to receive(:member?).with(customer).and_return(false, true)
+        allow(organization).to receive(:archived?).and_return(false)
+        allow(Onetime::Organization).to receive(:load).with(organization.objid).and_return(organization)
+        logic.raise_concerns
+      end
+
+      it 'selects the joined organization for the session' do
+        expect(logic.process).to include(organization_selected: true)
+
+        expect(session['organization_id']).to eq(organization.objid)
+        expect(session['organization_selected_at']).to be_a(Integer)
+      end
     end
   end
 
@@ -322,6 +363,7 @@ RSpec.describe InviteAPI::Logic::Invites::AcceptInvite do
     it 'returns organization details' do
       data = logic.success_data
       expect(data[:organization][:id]).to eq(organization.extid)
+      expect(data[:organization][:objid]).to eq(organization.objid)
       expect(data[:organization][:display_name]).to eq('Test Organization')
     end
 

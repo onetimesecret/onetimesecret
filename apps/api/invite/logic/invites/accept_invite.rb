@@ -96,6 +96,8 @@ module InviteAPI::Logic
         # flow, distinct from SSO JIT provisioning. See OrganizationMembership.
         @invitation.accept!(cust, provisioning_source: 'invited')
 
+        @organization_selected = select_joined_organization
+
         auth_logger.info 'User joined organization',
           event: 'invite.accepted',
           invitation_id: @invitation.objid,
@@ -112,14 +114,44 @@ module InviteAPI::Logic
           user_id: cust.extid,
           organization: {
             id: @organization.extid,
+            objid: @organization.objid,
             display_name: @organization.display_name,
           },
+          # Whether this session now has the joined organization selected.
+          # When false the client should load the page again rather than
+          # assume it (see #select_joined_organization).
+          organization_selected: @organization_selected == true,
           role: @invitation.role,
           joined_at: @invitation.joined_at,
         }
       end
 
       protected
+
+      # Make the joined organization this session's selection, so the user
+      # lands in it rather than in the default organization the loader would
+      # otherwise fall back to. Goes through the same membership, archived
+      # and domain-scope checks as POST /api/account/update-organization-context,
+      # against the request's custom domains (:scope_domains in the
+      # organization context the auth strategy loaded; a logic class never
+      # sees the Rack env). The membership is already written: a refused
+      # selection leaves the session as it was and the accept stands.
+      #
+      # @return [Boolean] whether the session now holds the joined organization
+      def select_joined_organization
+        selected = Onetime::Application::OrganizationLoader.select_organization(
+          cust,
+          sess,
+          @organization.objid,
+          strategy_result.metadata[:organization_context],
+        )
+        return true if selected
+
+        auth_logger.debug 'Joined organization not selected for this session',
+          invitation_id: @invitation.objid,
+          organization_id: @organization.extid
+        false
+      end
 
       def normalize_email(email)
         OT::Utils.normalize_email(email)

@@ -52,7 +52,13 @@ describe('usePostAuthRedirect', () => {
   // composable resolves the org from that list (current, else default/first).
   const seedOrgs = (
     orgStore: ReturnType<typeof useOrganizationStore>,
-    ...orgs: { objid?: string; extid?: string; planid?: string; is_default?: boolean }[]
+    ...orgs: {
+      objid?: string;
+      extid?: string;
+      planid?: string;
+      is_default?: boolean;
+      is_current_user_default?: boolean;
+    }[]
   ) => {
     orgStore.organizations = orgs as Organization[];
   };
@@ -263,10 +269,12 @@ describe('usePostAuthRedirect', () => {
   });
 
   describe('which organization the billing redirect targets (#4565)', () => {
+    // defaultOrganization reads this user's default (is_current_user_default)
     const personal = {
       objid: 'o_default',
       extid: 'org_default',
       is_default: true,
+      is_current_user_default: true,
       planid: 'free_v1',
     };
     const team = { objid: 'o_team', extid: 'org_team', planid: 'free_v1' };

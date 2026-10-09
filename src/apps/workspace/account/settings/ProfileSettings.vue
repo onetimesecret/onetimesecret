@@ -13,13 +13,18 @@
   import {
     useBootstrapStore,
   } from '@/shared/stores/bootstrapStore';
+  import { useNotificationsStore } from '@/shared/stores/notificationsStore';
+  import { useOrganizationStore } from '@/shared/stores/organizationStore';
   import { storeToRefs } from 'pinia';
   import { formatDisplayDate } from '@/utils/format';
   import { isOwnerOrAdminOf } from '@/utils/features';
-  import { computed, ref, onMounted } from 'vue';
+  import axios from 'axios';
+  import { computed, ref, onMounted, useId, watch } from 'vue';
 
   const { t } = useI18n();
   const { accountInfo, fetchAccountInfo } = useAccount();
+  const organizationStore = useOrganizationStore();
+  const notifications = useNotificationsStore();
 
   const bootstrapStore = useBootstrapStore();
   const { i18n_enabled, has_password } = storeToRefs(bootstrapStore);
@@ -54,8 +59,133 @@
     }
   };
 
+  /*
+   * Default workspace. Here rather than only on /orgs ("Make default"),
+   * which is owner-only: a user who joined by invitation or tenant SSO owns
+   * nothing, yet can belong to several organizations and needs to choose
+   * where a new session starts. The endpoint only requires membership.
+   */
+  const defaultWorkspaceId = useId();
+  const defaultWorkspaceLabelId = useId();
+  const defaultWorkspaceDescriptionId = useId();
+
+  // The list endpoint already leaves out archived organizations.
+  const organizations = computed(() => organizationStore.organizations);
+  const showDefaultWorkspace = computed(() => organizations.value.length > 1);
+
+  // This user's default (is_current_user_default), not the owner's
+  // auto-created workspace (is_default). Empty when none is recorded, e.g.
+  // an invitee who has not chosen one: the select then shows "Not set"
+  // instead of implying the first organization.
+  const currentDefaultObjid = computed(
+    () => organizations.value.find((org) => org.is_current_user_default)?.objid ?? ''
+  );
+  // What the select shows. Choosing saves nothing: the Save button does
+  // (WCAG 3.2.2; arrow keys on a closed select fire `change` in some
+  // browsers).
+  const selectedDefaultObjid = ref('');
+  const isSavingDefault = ref(false);
+
+  // The organization chosen but not saved yet, if it is still in the list.
+  const unsavedDefaultOrg = computed(() => {
+    const objid = selectedDefaultObjid.value;
+    if (objid === currentDefaultObjid.value) return null;
+    return organizations.value.find((o) => o.objid === objid) ?? null;
+  });
+  const canSaveDefault = computed(
+    () => unsavedDefaultOrg.value !== null && !isSavingDefault.value
+  );
+
+  // Follow the saved default (first load, "Make default" on /orgs, a store
+  // reset) unless the select holds an unsaved choice.
+  watch(
+    currentDefaultObjid,
+    (objid, previous) => {
+      if (previous === undefined || selectedDefaultObjid.value === previous) {
+        selectedDefaultObjid.value = objid;
+      }
+    },
+    { immediate: true }
+  );
+
+  // Drop an unsaved choice whose organization left the list.
+  watch(organizations, (orgs) => {
+    const objid = selectedDefaultObjid.value;
+    if (objid && !orgs.some((o) => o.objid === objid)) {
+      selectedDefaultObjid.value = currentDefaultObjid.value;
+    }
+  });
+
+  /**
+   * Save the chosen default. The server also selects the organization for
+   * this session, and the store makes it current in this tab, as "Make
+   * default" on /orgs does. On failure the choice stays in the select, so
+   * Save can be pressed again.
+   *
+   * The button is aria-disabled, not disabled, while there is nothing to
+   * save: a disabled button drops keyboard focus when it was just pressed.
+   */
+  const handleSaveDefaultWorkspace = async () => {
+    const org = unsavedDefaultOrg.value;
+    if (!org || isSavingDefault.value) return;
+
+    isSavingDefault.value = true;
+    try {
+      await organizationStore.setDefaultOrganization(org);
+      notifications.show(
+        t('web.organizations.make_default_success', { name: org.display_name }),
+        'success',
+        'top'
+      );
+    } catch (error) {
+      // Signed out while the change waited its turn; nothing to report.
+      if (axios.isCancel(error)) return;
+      console.error('[ProfileSettings] Error setting default organization:', error);
+      notifications.show(
+        t('web.organizations.make_default_error', { name: org.display_name }),
+        'error',
+        'top'
+      );
+    } finally {
+      isSavingDefault.value = false;
+    }
+  };
+
+  /*
+   * Load the organization list if nobody has. On workspace pages
+   * OrganizationContextBar usually starts that fetch first, and a second
+   * fetchOrganizations() would cancel it (and skip the bar's fallback
+   * selection), so wait while a list fetch is in flight and check again
+   * once it settles. Signing out resets the store; that is no reason to
+   * fetch.
+   */
+  let listRequested = false;
+  const loadOrganizationsIfMissing = async () => {
+    if (!bootstrapStore.authenticated) return;
+    if (organizationStore.isListFetched || organizationStore.isListLoading || listRequested) return;
+    listRequested = true;
+    try {
+      await organizationStore.fetchOrganizations();
+    } catch (error) {
+      if (axios.isCancel(error)) {
+        // Superseded by another list fetch; check again once that settles.
+        listRequested = false;
+        return;
+      }
+      // Not retried: the row stays hidden.
+      console.error('[ProfileSettings] Failed to fetch organizations:', error);
+    }
+  };
+
+  watch(
+    () => [organizationStore.isListFetched, organizationStore.isListLoading],
+    () => {
+      void loadOrganizationsIfMissing();
+    }
+  );
+
   onMounted(async () => {
-    await fetchAccountInfo();
+    await Promise.all([fetchAccountInfo(), loadOrganizationsIfMissing()]);
   });
 </script>
 
@@ -269,6 +399,73 @@
                     {{ t('web.translations.welcomes_contributors_for_both_existing_and_new_') }}
                   </p>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Default Workspace Setting -->
+          <div
+            v-if="showDefaultWorkspace"
+            class="px-6 py-4"
+            data-testid="default-workspace-setting">
+            <div class="flex items-center justify-between gap-4">
+              <div class="flex items-center gap-3">
+                <OIcon
+                  collection="heroicons"
+                  name="building-office"
+                  class="size-5 shrink-0 text-gray-500 dark:text-gray-400"
+                  aria-hidden="true" />
+                <div>
+                  <label
+                    :id="defaultWorkspaceLabelId"
+                    :for="defaultWorkspaceId"
+                    class="font-medium text-gray-900 dark:text-white">
+                    {{ t('web.settings.default_workspace.title') }}
+                  </label>
+                  <p
+                    :id="defaultWorkspaceDescriptionId"
+                    class="text-sm text-gray-500 dark:text-gray-400">
+                    {{ t('web.settings.default_workspace.description') }}
+                  </p>
+                </div>
+              </div>
+              <div class="flex shrink-0 items-center gap-2">
+                <select
+                  :id="defaultWorkspaceId"
+                  v-model="selectedDefaultObjid"
+                  :aria-describedby="defaultWorkspaceDescriptionId"
+                  data-testid="default-workspace-select"
+                  class="block w-36 rounded-md border-gray-300 shadow-sm
+                    focus:border-brand-500 focus:ring-brand-500 sm:w-56 sm:text-sm
+                    dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                  <option
+                    v-if="!currentDefaultObjid"
+                    value=""
+                    disabled>
+                    {{ t('web.settings.default_workspace.not_set') }}
+                  </option>
+                  <option
+                    v-for="org in organizations"
+                    :key="org.objid"
+                    :value="org.objid">
+                    {{ org.display_name }}
+                  </option>
+                </select>
+                <button
+                  type="button"
+                  :aria-disabled="!canSaveDefault"
+                  :aria-busy="isSavingDefault"
+                  :aria-describedby="defaultWorkspaceLabelId"
+                  data-testid="default-workspace-save"
+                  class="inline-flex items-center rounded-md px-3 py-2 text-sm font-medium
+                    text-gray-700 ring-1 ring-gray-300 ring-inset hover:bg-gray-50
+                    focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
+                    focus-visible:outline-brand-600 aria-disabled:cursor-not-allowed
+                    aria-disabled:opacity-50 dark:text-gray-300 dark:ring-gray-600
+                    dark:hover:bg-gray-700"
+                  @click="handleSaveDefaultWorkspace">
+                  {{ t('web.COMMON.word_save') }}
+                </button>
               </div>
             </div>
           </div>

@@ -215,6 +215,59 @@ RSpec.describe Core::Views::OrganizationSerializer do
     end
   end
 
+  # Not a degrade path: is_default marks the org OWNER's default workspace,
+  # so a member of someone else's default workspace sees it set there too.
+  # is_current_user_default answers for the viewer.
+  describe 'is_current_user_default' do
+    let(:org) do
+      instance_double(
+        Onetime::Organization,
+        objid: 'org_obj_123',
+        extid: 'onabc123',
+        display_name: 'Acme Workspace',
+        is_default: true,
+        archived?: false,
+        planid: 'identity_plus_v1',
+        entitlements: %w[create_secrets],
+      )
+    end
+
+    let(:cust) do
+      instance_double(
+        Onetime::Customer,
+        objid: 'cust_obj_1',
+        anonymous?: false,
+        default_org_id: '',
+        organization_instances: [org],
+      )
+    end
+
+    before do
+      allow(org).to receive(:limit_for).and_return(1)
+      allow(org).to receive(:member?).with(cust).and_return(true)
+      allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer).and_return(nil)
+      view_vars['cust'] = cust
+    end
+
+    it 'is true for the default workspace the user owns' do
+      allow(org).to receive(:owner?).with(cust).and_return(true)
+
+      expect(serialized_org).to include('is_default' => true, 'is_current_user_default' => true)
+    end
+
+    it "is false for another owner's default workspace the user is a member of" do
+      allow(org).to receive(:owner?).with(cust).and_return(false)
+
+      expect(serialized_org).to include('is_default' => true, 'is_current_user_default' => false)
+    end
+
+    it 'is false without a user' do
+      view_vars['cust'] = nil
+
+      expect(serialized_org['is_current_user_default']).to be(false)
+    end
+  end
+
   describe 'non-billing errors propagate untouched' do
     before do
       allow(org).to receive(:entitlements).and_raise(ArgumentError, 'not a plan problem')
