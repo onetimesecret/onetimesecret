@@ -3,10 +3,10 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require_relative '../../support/lane_probe'
 require 'fileutils'
 require 'json'
 require 'open3'
-require 'securerandom'
 require 'tmpdir'
 
 # What a lane's rspec invocations report, and where (#4683): the quiet
@@ -33,11 +33,6 @@ require 'tmpdir'
 # on the runner's keep-list, so in CI this process has the unit lane's, and
 # a nested rspec that inherited it would add a file to that lane's results.
 module LaneReportingProbe
-  Run = Struct.new(:stdout, :stderr, :status) do
-    def exitstatus = status.exitstatus
-    def all        = "#{stdout}#{stderr}"
-  end
-
   # A nested run and what it left in its results directory.
   FixtureRun = Struct.new(:run, :files, :log) do
     def summary(name) = JSON.parse(files.fetch(name)).fetch('summary')
@@ -151,26 +146,9 @@ module LaneReportingProbe
     'simple' => %w[_w1 _w2 _w3 _w4],
   }.freeze
 
+  extend LaneProbe
+
   module_function
-
-  def repo_root
-    File.expand_path('../../..', __dir__)
-  end
-
-  def runner
-    File.join(repo_root, 'tests', 'lanes', 'run')
-  end
-
-  def bash_floor
-    @bash_floor ||= Integer(File.read(File.join(repo_root, '.bash-version')).strip)
-  end
-
-  def path_bash_major
-    return @path_bash_major if defined?(@path_bash_major)
-
-    out, status = Open3.capture2e('bash', '-c', 'echo "${BASH_VERSINFO[0]}"')
-    @path_bash_major = status.success? ? Integer(out.strip, exception: false) : nil
-  end
 
   def quiet_formatter
     File.join(File.realpath(File.join(repo_root, 'tests', 'lanes', 'support')), 'quiet_formatter')
@@ -265,7 +243,7 @@ module LaneReportingProbe
       'bundle', 'exec', 'rake', '-f', File.join(repo_root, 'Rakefile'), 'spec:fast',
       chdir: tree
     )
-    Run.new(stdout, stderr, status)
+    LaneProbe::Run.new(stdout, stderr, status)
   end
 
   # One `rake spec:fast` per scenario for the whole file: the run, and the
@@ -310,50 +288,16 @@ module LaneReportingProbe
       RUBY
       options = write(dir, 'rspec-options', "--order random\n")
 
-      with_scratch do |overlay, log|
-        nested = run('selftest', '--overlay', overlay, '--quiet', '--only', fixture, '--', '--options', options,
+      with_scratch do |scratch|
+        nested = run('selftest', '--overlay', scratch.overlay, '--quiet', '--only', fixture, '--', '--options', options,
                      env: { 'RSPEC_OUTPUT_FILE' => File.join(results, 'only.json') })
-        FixtureRun.new(nested, read_directory(results), File.read(log))
+        FixtureRun.new(nested, read_directory(results), File.read(scratch.last_log))
       end
     end
   end
 
   def read_directory(dir)
     Dir.children(dir).sort.to_h { |name| [name, File.read(File.join(dir, name))] }
-  end
-
-  # stdout and stderr apart. CI is removed so the lane keeps its derived
-  # datastore index; the results path is the caller's to give.
-  def run(*args, env: {})
-    stdout, stderr, status = Open3.capture3(
-      { 'CI' => nil, 'RSPEC_OUTPUT_FILE' => nil, 'LANES_NO_AUTOSTART' => '1' }.merge(env),
-      runner, *args, chdir: repo_root
-    )
-    Run.new(stdout, stderr, status)
-  end
-
-  # A private run directory under tmp/lanes/selftest/, as in
-  # capture_logs_spec.rb, so no example shares last.log with another run.
-  def with_scratch
-    overlay      = "rspec-reporting-#{Process.pid}-#{SecureRandom.hex(4)}"
-    overlay_path = File.join(repo_root, 'tests', 'lanes', 'overlays', "#{overlay}.env")
-    directory    = File.join(repo_root, 'tmp', 'lanes', 'selftest', overlay)
-    File.write(overlay_path, '')
-    yield overlay, File.join(directory, 'last.log')
-  ensure
-    FileUtils.rm_f(overlay_path) if overlay_path
-    FileUtils.rm_rf(directory) if directory
-  end
-
-  def with_fake_commands(commands)
-    Dir.mktmpdir('ots-lane-commands') do |dir|
-      commands.each do |name, body|
-        path = File.join(dir, name)
-        File.write(path, "#!/bin/sh\n#{body}\n")
-        File.chmod(0o755, path)
-      end
-      yield [dir, ENV.fetch('PATH')].join(File::PATH_SEPARATOR)
-    end
   end
 end
 
@@ -560,11 +504,7 @@ RSpec.describe 'lane rspec reporting' do
   end
 
   describe 'tests/lanes/run --only' do
-    before do
-      major = probe.path_bash_major
-      floor = probe.bash_floor
-      skip "bash #{floor}+ is not on PATH (macOS: brew install bash)" if major.nil? || major < floor
-    end
+    include_context 'with the lane runner bash'
 
     # Never written: the examples that use it start a stub, not rspec.
     let(:results)      { File.join(Dir.tmpdir, 'ots-lane-reporting-unwritten', 'only.json') }
@@ -574,33 +514,21 @@ RSpec.describe 'lane rspec reporting' do
     # The stub stands in for `bundle exec ...` and prints the arguments it
     # was started with.
     def stubbed(*args, env: {})
-      probe.with_scratch do |overlay, _log|
+      probe.with_scratch do |scratch|
         probe.with_fake_commands('bundle' => 'echo "fake-bundle:$*"') do |fake_path|
-          probe.run('selftest', '--overlay', overlay, *args, env: env.merge('PATH' => fake_path))
+          probe.run('selftest', '--overlay', scratch.overlay, *args, env: env.merge('PATH' => fake_path))
         end
       end
     end
 
+    # Which flags each environment selects is the Lanes::RSpecFormat.only_argv
+    # table (rspec_format_spec.rb). These two show the runner puts what it
+    # prints on the command line, nothing when it prints nothing.
     it 'adds no formatter when neither --quiet nor a results file was asked for' do
       run = stubbed('--only', target)
 
       expect(run.exitstatus).to eq(0), run.all
       expect(run.stdout).to include("fake-bundle:exec rspec #{target}\n")
-    end
-
-    it 'adds the quiet formatter alone under --quiet' do
-      run = stubbed('--quiet', '--only', target)
-
-      expect(run.exitstatus).to eq(0), run.all
-      expect(run.stdout).to include("fake-bundle:exec rspec #{target} #{quiet_flags}\n")
-    end
-
-    it 'adds the JSON formatter, writing <stem>_only.json, and restates the console formatter of .rspec' do
-      run = stubbed('--only', target, env: { 'RSPEC_OUTPUT_FILE' => results })
-
-      expect(run.exitstatus).to eq(0), run.all
-      expect(run.stdout)
-        .to include("fake-bundle:exec rspec #{target} --format documentation --format json --out #{only_results}\n")
     end
 
     it 'adds both under --quiet with a results file, ahead of the arguments after --' do
@@ -626,17 +554,17 @@ RSpec.describe 'lane rspec reporting' do
     end
 
     it 'stops before the command, with the reason in last.log, when the flags cannot be chosen' do
-      probe.with_scratch do |overlay, log|
+      probe.with_scratch do |scratch|
         probe.with_fake_commands('bundle' => 'echo "fake-bundle:$*"') do |fake_path|
-          run = probe.run('selftest', '--overlay', overlay, '--only', target,
+          run = probe.run('selftest', '--overlay', scratch.overlay, '--only', target,
                           env: { 'PATH' => fake_path, 'RSPEC_OUTPUT_FILE' => "tmp/line\nbreak.json" })
 
           expect(run.exitstatus).to eq(64), run.all
           expect(run.stderr).to include('RSPEC_OUTPUT_FILE contains a line break')
           expect(run.stderr).to include('could not choose the rspec formatters for --only')
           expect(run.stdout).not_to include('fake-bundle:')
-          expect(File.read(log)).to include('could not choose the rspec formatters for --only')
-          expect(File.read(log).lines.grep(/^\[lane:selftest\] log: .* \(exit 64\)$/).length).to eq(1)
+          expect(File.read(scratch.last_log)).to include('could not choose the rspec formatters for --only')
+          expect(File.read(scratch.last_log).lines.grep(/^\[lane:selftest\] log: .* \(exit 64\)$/).length).to eq(1)
         end
       end
     end
@@ -689,11 +617,7 @@ RSpec.describe 'lane rspec reporting' do
       end
     end
 
-    before do
-      major = probe.path_bash_major
-      floor = probe.bash_floor
-      skip "bash #{floor}+ is not on PATH (macOS: brew install bash)" if major.nil? || major < floor
-    end
+    include_context 'with the lane runner bash'
 
     it 'prints progress by default' do
       output, status = browser_tasks({})

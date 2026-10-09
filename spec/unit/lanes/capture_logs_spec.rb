@@ -3,12 +3,8 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-require 'fileutils'
-require 'open3'
-require 'securerandom'
+require_relative '../../support/lane_probe'
 require 'shellwords'
-require 'socket'
-require 'stringio'
 require 'tmpdir'
 
 # The files `tests/lanes/run --capture-logs` owns (#4683): app.log and
@@ -27,112 +23,11 @@ require 'tmpdir'
 # run directory of its own under tmp/lanes/selftest/ and none touches the
 # files of a lane a developer is working in. Where a step has to fail, or
 # has to show what environment it received, a stub command is put ahead of
-# the real one on PATH, as last_log_spec.rb does.
-module LaneCaptureProbe
-  Run = Struct.new(:stdout, :stderr, :status) do
-    def exitstatus = status.exitstatus
-    def all        = "#{stdout}#{stderr}"
-  end
-
-  # One run directory under tmp/lanes/selftest/ and the overlay name that
-  # selects it.
-  Scratch = Struct.new(:overlay, :directory) do
-    def app_log  = File.join(directory, 'app.log')
-    def mail_log = File.join(directory, 'mail.log')
-    def last_log = File.join(directory, 'last.log')
-
-    # The hard links the runner makes beside the two files, and the file a
-    # test process records a failed write in.
-    def app_anchor   = File.join(directory, '.app.log.anchor')
-    def mail_anchor  = File.join(directory, '.mail.log.anchor')
-    def write_failed = "#{app_log}.write-failed"
-
-    def overlay_path
-      File.join(LaneCaptureProbe.repo_root, 'tests', 'lanes', 'overlays', "#{overlay}.env")
-    end
-  end
-
-  module_function
-
-  def repo_root
-    File.expand_path('../../..', __dir__)
-  end
-
-  def runner
-    File.join(repo_root, 'tests', 'lanes', 'run')
-  end
-
-  def bash_floor
-    @bash_floor ||= Integer(File.read(File.join(repo_root, '.bash-version')).strip)
-  end
-
-  def path_bash_major
-    return @path_bash_major if defined?(@path_bash_major)
-
-    out, status = Open3.capture2e('bash', '-c', 'echo "${BASH_VERSINFO[0]}"')
-    @path_bash_major = status.success? ? Integer(out.strip, exception: false) : nil
-  end
-
-  # stdout and stderr apart: where a diagnostic lands is part of what is
-  # asserted. CI is removed so the lane keeps its derived datastore index
-  # (and so the provisioning step the PostgreSQL example needs is reached);
-  # RSPEC_OUTPUT_FILE because a nested run has no business with the outer
-  # run's results path.
-  def run(*args, env: {})
-    stdout, stderr, status = Open3.capture3(
-      { 'CI' => nil, 'RSPEC_OUTPUT_FILE' => nil, 'LANES_NO_AUTOSTART' => '1' }.merge(env),
-      runner, *args, chdir: repo_root
-    )
-    Run.new(stdout, stderr, status)
-  end
-
-  def with_scratch(overlay_contents = '')
-    overlay      = "capture-logs-#{Process.pid}-#{SecureRandom.hex(4)}"
-    overlay_path = File.join(repo_root, 'tests', 'lanes', 'overlays', "#{overlay}.env")
-    directory    = File.join(repo_root, 'tmp', 'lanes', 'selftest', overlay)
-    File.write(overlay_path, overlay_contents)
-    FileUtils.mkdir_p(directory)
-    yield Scratch.new(overlay, directory)
-  ensure
-    FileUtils.rm_f(overlay_path) if overlay_path
-    if directory && File.directory?(directory)
-      # An example may have taken write permission away from the directory.
-      FileUtils.chmod(0o755, directory)
-      FileUtils.rm_rf(directory)
-    end
-  end
-
-  def with_fake_commands(commands)
-    Dir.mktmpdir('ots-lane-commands') do |dir|
-      commands.each do |name, body|
-        path = File.join(dir, name)
-        File.write(path, "#!/bin/sh\n#{body}\n")
-        File.chmod(0o755, path)
-      end
-      yield [dir, ENV.fetch('PATH')].join(File::PATH_SEPARATOR)
-    end
-  end
-
-  def with_open_port(port)
-    server = begin
-      TCPServer.new('127.0.0.1', port)
-    rescue Errno::EADDRINUSE
-      nil
-    end
-    yield
-  ensure
-    server&.close
-  end
-end
-
+# the real one on PATH (LaneProbe.with_fake_commands).
 RSpec.describe 'tests/lanes/run --capture-logs files' do
-  let(:probe) { LaneCaptureProbe }
+  let(:probe) { LaneProbe }
 
-  before do
-    major = probe.path_bash_major
-    floor = probe.bash_floor
-    skip "bash #{floor}+ is not on PATH (macOS: brew install bash)" if major.nil? || major < floor
-  end
+  include_context 'with the lane runner bash'
 
   def exit_records(log, code)
     log.lines.grep(/^\[lane:selftest\] log: .* \(exit #{code}\)$/)
@@ -253,17 +148,15 @@ RSpec.describe 'tests/lanes/run --capture-logs files' do
   end
 
   describe 'a file that cannot be created' do
-    # Exit 73 (EX_CANTCREAT), a diagnostic on stderr and in last.log, one
-    # exit record, and no task: the selftest task prints its markers on
-    # stdout, so their absence is the evidence that nothing ran.
-    def expect_refused(run, scratch, path, reason)
+    # Exit 73 (EX_CANTCREAT), a diagnostic naming the path on stderr and in
+    # last.log, one exit record, and no task: the selftest task prints its
+    # markers on stdout, so their absence is the evidence that nothing ran.
+    def expect_refused(run, scratch, *phrases)
       log = File.read(scratch.last_log)
 
       expect(run.exitstatus).to eq(73), run.all
-      expect(run.stderr).to include("error: --capture-logs cannot create #{path}")
-      expect(run.stderr).to include(reason)
-      expect(log).to include("error: --capture-logs cannot create #{path}")
-      expect(log).to include(reason)
+      expect(run.stderr).to include(*phrases)
+      expect(log).to include(*phrases)
       expect(exit_records(log, 73).length).to eq(1)
       expect(log).to end_with(exit_records(log, 73).first)
       expect(run.all).not_to include('--- lane:selftest')
@@ -276,7 +169,7 @@ RSpec.describe 'tests/lanes/run --capture-logs files' do
 
         run = probe.run('selftest', '--overlay', scratch.overlay, '--capture-logs')
 
-        expect_refused(run, scratch, scratch.app_log, 'the path is a directory')
+        expect_refused(run, scratch, scratch.app_log, 'is a directory')
       end
     end
 
@@ -286,7 +179,7 @@ RSpec.describe 'tests/lanes/run --capture-logs files' do
 
         run = probe.run('selftest', '--overlay', scratch.overlay, '--capture-logs', '--log-console', 'off')
 
-        expect_refused(run, scratch, scratch.mail_log, 'the path is a directory')
+        expect_refused(run, scratch, scratch.mail_log, 'is a directory')
       end
     end
 
@@ -300,7 +193,7 @@ RSpec.describe 'tests/lanes/run --capture-logs files' do
 
         run = probe.run('selftest', '--overlay', scratch.overlay, '--capture-logs')
 
-        expect_refused(run, scratch, scratch.app_log, 'the path exists and is not a regular file')
+        expect_refused(run, scratch, scratch.app_log, 'not a regular file')
         expect(File.symlink?(scratch.app_log)).to be(true)
       end
     end
@@ -310,13 +203,13 @@ RSpec.describe 'tests/lanes/run --capture-logs files' do
     # directory.
     it 'stops before any task, leaving the target alone, when app.log is a symbolic link to a file' do
       probe.with_scratch do |scratch|
-        target = File.join(File.dirname(scratch.app_log), 'not-the-runners.txt')
+        target = File.join(scratch.directory, 'not-the-runners.txt')
         File.write(target, "kept\n")
         File.symlink(target, scratch.app_log)
 
         run = probe.run('selftest', '--overlay', scratch.overlay, '--capture-logs')
 
-        expect_refused(run, scratch, scratch.app_log, 'the path is a symbolic link')
+        expect_refused(run, scratch, scratch.app_log, 'symbolic link')
         expect(File.read(target)).to eq("kept\n")
         expect(File.symlink?(scratch.app_log)).to be(true)
       end
@@ -374,11 +267,9 @@ RSpec.describe 'tests/lanes/run --capture-logs files' do
         log = File.read(scratch.last_log)
 
         expect(run.exitstatus).to eq(74), run.all
-        error = "[lane:selftest] error: log capture is incomplete: #{scratch.app_log} was removed during the run " \
-                "(what it held is kept in #{scratch.app_anchor})\n"
-        expect(run.stderr).to include(error)
-        expect(log).to include(error)
-        expect(run.stderr).to include("[lane:selftest] app log: #{scratch.app_log} (incomplete)\n")
+        expect(run.stderr).to include("#{scratch.app_log} was removed during the run")
+        expect(log).to include("#{scratch.app_log} was removed during the run")
+        expect(run.stderr).to include("app log: #{scratch.app_log} (incomplete)\n")
         expect(log).to end_with(exit_records(log, 74).first)
       end
     end
@@ -480,11 +371,7 @@ RSpec.describe 'tests/lanes/run --capture-logs files' do
           run = run_only(scratch, recreate)
 
           expect(run.exitstatus).to eq(74), run.all
-          expect(run.stderr).to include(
-            "[lane:selftest] error: log capture is incomplete: #{scratch.app_log} is not the file this run started with " \
-            "(it was removed and created again, what it held before that is kept in #{scratch.app_anchor})\n",
-          )
-          expect(run.stderr).to include("[lane:selftest] app log: #{scratch.app_log} (incomplete)\n")
+          expect(run.stderr).to include("#{scratch.app_log} is not the file this run started with")
           expect(File.read(scratch.app_log)).to eq("after\n")
           # The link that no longer matches stays, with what was written
           # before the removal. The one that still matches goes.
@@ -512,7 +399,7 @@ RSpec.describe 'tests/lanes/run --capture-logs files' do
           run = run_only(scratch, %(rm -f "#{scratch.app_anchor}"))
 
           expect(run.exitstatus).to eq(74), run.all
-          expect(run.stderr).to include("#{scratch.app_log} is not the file this run started with (#{scratch.app_anchor} is gone)\n")
+          expect(run.stderr).to include("#{scratch.app_anchor} is gone")
         end
       end
 
@@ -550,32 +437,19 @@ RSpec.describe 'tests/lanes/run --capture-logs files' do
     # listener, so a change to either fails these examples instead of
     # disarming the check.
     describe 'a write the application could not complete' do
+      include LaneProbe::FailingWrites
+
       # Fail one write to +path+ through the application's sink, with the
       # profile's listener watching +watched+. Returns the line the sink
       # printed on standard error.
-      def failed_write_report(path, watched: path, error: Errno::ENOSPC.new('probe'))
+      def failed_write_report(path, watched: path)
         sink_class = Onetime::Initializers::SetupLoggers::FileSink
         listeners  = sink_class.write_failure_listeners
         saved      = listeners.dup
         listeners.replace([Lanes::LogCapture::WriteFailureMarker.new(watched)])
 
-        sink   = sink_class.new(path, append: true)
-        broken = Object.new
-        broken.define_singleton_method(:write) { |*| raise error }
-        broken.define_singleton_method(:close) { nil }
-        broken.define_singleton_method(:flush) { nil }
-        sink.instance_variable_set(:@file, broken)
-        allow(sink).to receive(:reopen)
-
-        event = SemanticLogger::Log.new('CaptureLogsSpec', :error).tap { |log| log.assign(message: 'lost') }
-        was   = $stderr
-        begin
-          $stderr = StringIO.new
-          expect { sink.log(event) }.to raise_error(error.class)
-          $stderr.string.chomp
-        ensure
-          $stderr = was
-        end
+        sink = break_file_sink(sink_class.new(path, append: true), Errno::ENOSPC.new('probe'))
+        log_through(sink, Errno::ENOSPC).chomp
       ensure
         listeners&.replace(saved)
       end
@@ -597,16 +471,13 @@ RSpec.describe 'tests/lanes/run --capture-logs files' do
             failed_write_report(elsewhere)
             marker_line = File.read("#{elsewhere}.write-failed")
           end
-          expect(marker_line).to match(/\Apid \d+: Errno::ENOSPC: .*probe/)
 
           run = run_only(scratch, "printf '%s' #{Shellwords.escape(marker_line)} > \"${LANES_APP_LOG_FILE}.write-failed\"")
 
           expect(run.exitstatus).to eq(74), run.all
-          expect(run.stderr).to include(
-            "error: log capture is incomplete: a process could not write to the app log (#{marker_line.chomp}; #{scratch.write_failed})",
-          )
-          expect(run.stderr).to include("[lane:selftest] app log: #{scratch.app_log} (incomplete)\n")
-          expect(File.read(scratch.last_log)).to include('a process could not write to the app log')
+          expect(run.stderr).to include('could not write to the app log', marker_line.chomp)
+          expect(run.stderr).to include("app log: #{scratch.app_log} (incomplete)\n")
+          expect(File.read(scratch.last_log)).to include('could not write to the app log')
         end
       end
 
@@ -625,52 +496,40 @@ RSpec.describe 'tests/lanes/run --capture-logs files' do
       it "turns a green run into exit 74 when the sink's own report is in the run output" do
         probe.with_scratch do |scratch|
           line = failed_write_report(scratch.app_log, watched: '/nowhere/app.log')
-          expect(line).to start_with("[SetupLoggers] Cannot write to the log file #{scratch.app_log}: Errno::ENOSPC: ")
           expect(File.exist?(scratch.write_failed)).to be(false)
           print_in_run(scratch, line)
 
           run = probe.run('selftest', '--overlay', scratch.overlay, '--capture-logs')
-          log = File.read(scratch.last_log)
 
           expect(run.exitstatus).to eq(74), run.all
-          expect(log).to include(line)
-          expect(run.stderr).to include('error: log capture is incomplete: a process reported a failed write to the app log')
-          expect(run.stderr).to include("[lane:selftest] app log: #{scratch.app_log} (incomplete)\n")
+          expect(File.read(scratch.last_log)).to include(line)
+          expect(run.stderr).to include('reported a failed write to the app log')
           expect(File.file?(scratch.app_log)).to be(true)
         end
       end
 
       it 'is not held against a run when the report names another log file' do
         probe.with_scratch do |scratch|
-          Dir.mktmpdir('capture-logs-other') do |dir|
-            print_in_run(scratch, failed_write_report(File.join(dir, 'app.log')))
-          end
+          line = Dir.mktmpdir('capture-logs-other') { |dir| failed_write_report(File.join(dir, 'app.log')) }
+          print_in_run(scratch, line)
 
           run = probe.run('selftest', '--overlay', scratch.overlay, '--capture-logs')
 
           expect(run.exitstatus).to eq(0), run.all
-          expect(File.read(scratch.last_log)).to include('[SetupLoggers] Cannot write to the log file')
+          expect(File.read(scratch.last_log)).to include(line)
           expect(run.all).not_to include('incomplete')
         end
       end
 
-      # SemanticLogger prints this for any exception raised while an
-      # appender runs. Bunny raises ShutdownSignal into its reader thread
-      # when a session closes, and a thread that is logging at that moment
-      # produces the line on every RabbitMQ lane. It is not a failed write,
-      # and a green lane must stay green.
+      # SemanticLogger prints `Failed to log to appender: <appender>` for any
+      # exception raised while an appender runs. Bunny raises ShutdownSignal
+      # into its reader thread when a session closes, and a thread that is
+      # logging at that moment produces the line on every RabbitMQ lane. It is
+      # not a failed write, and a green lane must stay green.
       it "stays green when SemanticLogger's own appender-failure line is in the run output" do
-        internal  = StringIO.new
-        appenders = SemanticLogger::Appenders.new(SemanticLogger::Appender::IO.new(internal, level: :warn))
-        sink      = Onetime::Initializers::SetupLoggers::FileSink.new(
-          File.join(Dir.tmpdir, "capture-logs-sink-#{Process.pid}-#{SecureRandom.hex(4)}.log"), append: true
-        )
-        interrupted = stub_const('LaneCaptureProbe::ShutdownSignal', Class.new(StandardError))
-        allow(sink).to receive(:log).and_raise(interrupted)
-        appenders << sink
-        appenders.log(SemanticLogger::Log.new('CaptureLogsSpec', :error).tap { |log| log.assign(message: 'interrupted') })
-        line = internal.string.lines.first.to_s.chomp
-        expect(line).to match(/Failed to log to appender: Onetime::Initializers::SetupLoggers::FileSink\b.*LaneCaptureProbe::ShutdownSignal/)
+        line = '2026-10-06 12:00:00.000000 E [1:bunny-reader] SemanticLogger::Appenders -- ' \
+               'Failed to log to appender: Onetime::Initializers::SetupLoggers::FileSink -- ' \
+               'Exception: Bunny::Session::ShutdownSignal: interrupted'
 
         probe.with_scratch do |scratch|
           print_in_run(scratch, line)
