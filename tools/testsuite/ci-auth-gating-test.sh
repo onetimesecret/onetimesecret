@@ -252,8 +252,10 @@ def shared_wiring():
         "GA_WORKFLOWS": "steps.filter.outputs.ga_workflow_files", "FILTER_AUTH": "steps.auth.outputs.auth",
         **{"FILTER_" + name.upper(): "steps.filter.outputs." + name
            for name in ("ruby", "typescript", "frontend", "oci", "harness")},
-        # The nightly-only selection is the event, never a path filter output.
+        # The nightly-only selection is the event, never a path filter output:
+        # the schedule, a release tag, or a dispatch with run_all.
         "NIGHTLY": "github.event_name == 'schedule' || "
+                   "(github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) || "
                    "(github.event_name == 'workflow_dispatch' && inputs.run_all == true)",
     }.items():
         check(scalar(compute_env, key, 10) == expression(value), f"compute receives {key}")

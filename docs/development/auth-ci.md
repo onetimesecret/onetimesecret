@@ -1,9 +1,9 @@
 # Auth and billing CI selection
 
 The slow, auth-specific parts of CI run on a pull request only when the PR
-touches auth code or carries the `ci:auth` label. Billing coverage runs
-nightly only. Everything else runs on `main`, nightly, on release tags, and
-in the merge queue.
+touches auth code or carries the `ci:auth` label. Billing coverage runs on
+the nightly and on a release tag only. Everything else runs on `main`,
+nightly, on release tags, and in the merge queue.
 
 ## What is selected
 
@@ -27,15 +27,16 @@ are not selected by auth or billing: the whole full-mode suite once, on
 SQLite, and the PostgreSQL-only specs, both with billing off. The unit,
 simple-mode, disabled-mode and API lanes, Tryouts, and Vitest keep their
 existing path-based selection. Billing's own specs and tryouts are the
-`billing` lane (ruby-billing), which is nightly only like every billing job
-(below).
+`billing` lane (ruby-billing), which runs on the nightly and on a release tag
+like every billing job (below).
 
 [Container E2E](../../.github/workflows/e2e.yml) keeps its own selection and
 both its simple and full-mode rows.
 
-## Billing (nightly only)
+## Billing (nightly and release tags only)
 
-Three jobs cover billing, and all of them run only on the nightly schedule:
+Three jobs cover billing, and all of them run only on the nightly schedule
+and on a release-tag push:
 
 - `ruby-billing` runs the `billing` lane: the billing app's specs and
   tryouts and the root test trees named for billing.
@@ -48,12 +49,13 @@ Three jobs cover billing, and all of them run only on the nightly schedule:
   billing-off rows.
 
 No path selects them. A pull request skips all three whatever it touches,
-and so do a push to `main`, a tag push, a merge-queue check and the
-`[ci-all]` commit flag. The `changes` job publishes the selection as
-`billing_nightly`, true on the `schedule` event or a manual dispatch with
+and so do a push to `main`, a merge-queue check and the `[ci-all]` commit
+flag. The `changes` job publishes the selection as `billing_nightly`, true on
+the `schedule` event, on a push of a `v*` tag, or on a manual dispatch with
 `run_all` ticked, and false otherwise; `[ci-skip]` turns it off too. The
 `ci-verdict` check expects the three jobs skipped on every other event and
-requires them to pass on the nightly.
+requires them to pass on the nightly and on the tag, so a green release-tag
+run is evidence for every configuration.
 
 The same rule holds outside main CI. The
 [Ruby 4 preview](../../.github/workflows/ruby-4-preview.yml) runs only on

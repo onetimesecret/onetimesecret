@@ -21,7 +21,7 @@
 #   SKIP_CI          needs.changes.outputs.skip_ci  ([ci-skip] in the commit)
 #   RUBY, TYPESCRIPT, FRONTEND, OCI, AUTH, BILLING_NIGHTLY
 #                    needs.changes.outputs.<flag>; BILLING_NIGHTLY is
-#                    the nightly-only selection, not a path
+#                    the nightly/release-tag selection, not a path
 #   RESULT_<JOB>     needs.<job>.result, JOB upper-cased with - as _
 #                    (RESULT_RUBY_UNIT, RESULT_CHECK_OCI_IMAGE, ...)
 #
@@ -66,13 +66,13 @@ expect ruby-lint                "$RUBY"                     "ruby"
 expect typescript-lint          "$TYPESCRIPT"               "typescript"
 expect hygiene                  "$on_pull_request"          "pull_request event"
 expect i18n-validate            "$TYPESCRIPT"               "typescript"
-expect build-assets             "$(either "$FRONTEND" "$RUBY" "$AUTH" "$BILLING_NIGHTLY")" "frontend, ruby, auth or nightly event"
+expect build-assets             "$(either "$FRONTEND" "$RUBY" "$AUTH" "$BILLING_NIGHTLY")" "frontend, ruby, auth or nightly/release event"
 expect ruby-unit                "$RUBY"                     "ruby"
-expect ruby-billing             "$BILLING_NIGHTLY"          "nightly event"
+expect ruby-billing             "$BILLING_NIGHTLY"          "nightly/release event"
 expect ruby-auth-browser        "$AUTH"                     "auth"
 expect ruby-integration-auth    "$AUTH"                     "auth"
-expect ruby-integration-billing "$BILLING_NIGHTLY"          "nightly event"
-expect ruby-billing-integration "$BILLING_NIGHTLY"          "nightly event"
+expect ruby-integration-billing "$BILLING_NIGHTLY"          "nightly/release event"
+expect ruby-billing-integration "$BILLING_NIGHTLY"          "nightly/release event"
 expect typescript-unit          "$TYPESCRIPT"               "typescript"
 expect ruby-integration-simple  "$RUBY"                     "ruby"
 expect ruby-integration-api     "$RUBY"                     "ruby"
