@@ -108,12 +108,35 @@ in any tested engine.
 
 Scope limits for round 2: three engines at the versions named, development
 baseline with `MIDDLEWARE_HTTP_ORIGIN` unset and the production edge/proxy not
-exercised. The same-site sibling-origin case (a hostile page on a subdomain of
-the canonical host, which `Sec-Fetch-Site` would report as same-site) was not
-exercised: the attacker origin used is cross-site, and a resolvable sibling
-subdomain was not available in this environment. The invariant that no surface
-returns `WWW-Authenticate: Basic` to an unprompted request remains the
-operative block and is spec-guarded, not re-proven here.
+exercised. The invariant that no surface returns `WWW-Authenticate: Basic` to
+an unprompted request remains the operative block and is spec-guarded, not
+re-proven here.
+
+### Same-site sibling origin (round 2 addendum, 2026-10-09)
+
+The cross-site rows above use `http://127.0.0.1:8099`, which `Sec-Fetch-Site`
+reports as `cross-site`. A hostile page on a subdomain of the canonical host is
+reported as `same-site`, which a `Sec-Fetch-Site`-keyed mitigation would treat
+differently. That case was exercised separately by serving the attacker page
+over HTTPS at `https://local.onetime.dev:8099` — a sibling of
+`dev.onetime.dev` under the registrable domain `onetime.dev`, so schemeful
+same-site to the target.
+
+| Engine | Loaded | `Sec-Fetch-Site` sent | `Authorization` attached | Server result | Victim attribution |
+|---|---|---|---|---|---|
+| Firefox (1538) | yes | `same-site` (form POST and `no-cors` fetch) | none | `200` | `count: 0` |
+| Chromium (1243) | yes | `same-site` (form POST; absent on the opaque `no-cors` fetch) | none | opaque | `count: 0` |
+| WebKit (2336) | no | — | — | — | — |
+
+Firefox and Chromium confirm the browser labels the request `same-site` and
+still attaches no ambient Basic credential, so a same-site sibling is no more
+dangerous than a cross-site origin for this concern, and the victim's
+authenticated receipt list stayed empty. WebKit emits Fetch Metadata headers
+(observed in the cross-site rows), but did not load the self-signed sibling
+certificate under `ignoreHTTPSErrors`; its sibling data point is outstanding.
+The operative design consequence: a future control that rejects only
+`Sec-Fetch-Site: cross-site` would admit this same-site request, so such a
+control must treat same-site sibling origins as suspect as well.
 
 ## Conditional failure scenario
 
@@ -146,7 +169,7 @@ Use dedicated local test accounts and non-sensitive payloads. Record exact code 
 The Chromium round above covers the prerequisite and cross-site replay for one engine. [Round 2 (2026-10-09)](#browser-validation-round-2-chromium-firefox-webkit) closed items 1 and 2 and the core of item 4's `MIDDLEWARE_HTTP_ORIGIN`-unset path across all three engines. The remaining work is:
 
 1. ~~**Repeat the prerequisite test in Firefox and WebKit.**~~ Done 2026-10-09 (round 2, B1/B3): no reusable HTTP auth cache arose in Chromium, Firefox or WebKit.
-2. ~~**Repeat cross-site submission and consequence checks in those engines.**~~ Done 2026-10-09 (round 2, X-form/X-fetch/Attribution) with the corrected no-preflight shape: the cross-site POST reached the server, carried no `Authorization` in any engine, and attributed nothing to the victim. **Still open:** the same-site sibling-origin case (a hostile page on a subdomain of the canonical host), which round 2 did not exercise because no resolvable sibling subdomain was available; `Sec-Fetch-Site` would classify it same-site, so it is not covered by cross-site reasoning.
+2. ~~**Repeat cross-site submission and consequence checks in those engines.**~~ Done 2026-10-09 (round 2, X-form/X-fetch/Attribution) with the corrected no-preflight shape: the cross-site POST reached the server, carried no `Authorization` in any engine, and attributed nothing to the victim. **Mostly done:** the same-site sibling-origin case (a hostile page on a subdomain of the canonical host) was exercised 2026-10-09 via `https://local.onetime.dev:8099` (see the [round-2 sibling addendum](#same-site-sibling-origin-round-2-addendum-2026-10-09)). Chromium and Firefox sent `Sec-Fetch-Site: same-site`, attached no `Authorization`, and attributed nothing to the victim. WebKit's sibling data point is outstanding (it rejected the self-signed certificate). A `Sec-Fetch-Site: cross-site`-only mitigation would not cover this case.
 3. **Guard the invariant.** Confirm no application surface returns `WWW-Authenticate: Basic` to an unprompted (headerless) request. The Chromium block depends on this; a change to challenge selection (for example in `session_failure_code.rb`) reopens the concern and warrants re-running the full round.
    - Regression specs were added 2026-10-04 (parent `c5cb8c9a63`; the files they exercise are byte-identical to the `6090151320` probe baseline). A unit spec (`50b203c49a`, [`session_failure_code_spec.rb`](../../../spec/unit/onetime/middleware/session_failure_code_spec.rb), block `RISK-2026-10-03-4C3C`) drives the real `BasicAuthStrategy#parse_basic_auth_credentials` and asserts a headerless request stashes no challenge scheme while a present-but-malformed header stashes `Basic`; a route-level spec ([`basicauth_fallthrough_spec.rb`](../../../spec/api/v2/basicauth_fallthrough_spec.rb)) asserts a headerless `GET /api/v2/receipt/recent` 401 never carries `WWW-Authenticate: Basic` through the real Otto chain, while a rejected credential does. The unit guard was confirmed by mutation: stashing `SCHEME_BASIC` on the headerless path turned the assertion red (`expected nil, got "Basic"`). These guard the two paths that carry the scheme — the strategy parser and `Helpers#credentialed_failure`, the sole caller of `stash_scheme` — and are not proof that no surface anywhere emits `Basic` to an unprompted request. Note the `basicauth`-only 401 currently carries no challenge at all; an RFC 9110 §15.5.2 cleanup there would naturally choose `Basic` (the applicable scheme for that resource), which reopens this item.
 4. **Check controls and production edge.** Compare an empty authentication cache, an authenticated session without a CSRF token, and Origin protection enabled versus disabled; distinguish rejection by the browser, application, and proxy. The Chromium round ran against a development baseline with `MIDDLEWARE_HTTP_ORIGIN` unset; production edge and proxy behavior were not exercised.

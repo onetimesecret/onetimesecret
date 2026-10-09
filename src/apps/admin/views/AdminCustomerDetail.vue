@@ -379,13 +379,13 @@
    * must NOT fail the action — it degrades to a null redirect and hardNavigate
    * falls back to the app root.
    */
-  async function startImpersonation(): Promise<void> {
+  async function startImpersonation(headers: Record<string, string> | undefined): Promise<void> {
     // Last line of the fail-closed gate: the reason is required by the API and
     // the button is disabled without one, but never POST without it.
     const reason = impersonateReason.value.trim();
     if (!impersonateAvailable.value || !reason) throw new Error(impersonateBlockedReason.value);
 
-    const response = await $api.post(`${userUrl()}/impersonate`, { reason });
+    const response = await $api.post(`${userUrl()}/impersonate`, { reason }, { headers });
     const parsed = gracefulParse(
       colonelImpersonateResponseSchema,
       response.data,
@@ -430,7 +430,7 @@
         // can live. Hence the dialog asks here.
         return callMutation('post', `${userUrl()}/unsuspend`, { body: reasonBody(reason) });
       case 'impersonate':
-        return startImpersonation();
+        return startImpersonation(headers);
       case 'purge':
         // Last line of the fail-closed gate: no typed token, no DELETE — even
         // if the dialog were somehow reached with a blank one.

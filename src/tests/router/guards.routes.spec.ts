@@ -142,6 +142,8 @@ describe('Router Guards', () => {
     router = {
       beforeEach: vi.fn(),
       afterEach: vi.fn(),
+      // The router owns every path unless a test says otherwise (routerOwnsPath).
+      resolve: vi.fn(() => ({ name: 'Matched' })),
     } as unknown as Router;
 
     vi.clearAllMocks();
@@ -404,6 +406,56 @@ describe('Router Guards', () => {
     it('rejects a CRLF-carrying redirect and falls back to Dashboard', async () => {
       const result = await getMainGuard()(authRouteWithRedirect('/x%0D%0ASet-Cookie:%20a=b'));
       expect(result).toEqual({ name: 'Dashboard' });
+    });
+
+    describe('redirect to a path outside this bundle (/colonel from the customer router)', () => {
+      // Returning '/colonel' as a SPA redirect rendered the customer router's
+      // NotFound under the new URL. The guard hard-navigates instead and
+      // returns false to abort the SPA nav (same posture as the colonel gate).
+      // What the real customer router resolves /colonel to is pinned in
+      // src/tests/utils/navigation.spec.ts.
+      let originalLocation: Location;
+      let assignMock: ReturnType<typeof vi.fn>;
+
+      beforeEach(() => {
+        originalLocation = window.location;
+        assignMock = vi.fn();
+        Object.defineProperty(window, 'location', {
+          value: { assign: assignMock },
+          writable: true,
+          configurable: true,
+        });
+      });
+
+      afterEach(() => {
+        Object.defineProperty(window, 'location', {
+          value: originalLocation,
+          writable: true,
+          configurable: true,
+        });
+      });
+
+      it('hard-navigates and aborts instead of returning the path', async () => {
+        const guard = getMainGuard();
+        vi.mocked(router.resolve).mockReturnValueOnce({ name: 'NotFound' } as ReturnType<
+          Router['resolve']
+        >);
+
+        const result = await guard(authRouteWithRedirect('/colonel'));
+
+        expect(router.resolve).toHaveBeenCalledWith('/colonel');
+        expect(assignMock).toHaveBeenCalledWith('/colonel');
+        // false, not the Dashboard fallback: the main guard must not treat the
+        // abort as "no redirect" and fall through.
+        expect(result).toBe(false);
+      });
+
+      it('does not hard-navigate a path the router owns', async () => {
+        const result = await getMainGuard()(authRouteWithRedirect('/dashboard/settings'));
+
+        expect(result).toBe('/dashboard/settings');
+        expect(assignMock).not.toHaveBeenCalled();
+      });
     });
   });
 
