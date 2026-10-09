@@ -508,7 +508,7 @@ the same file is the `PARALLEL_TESTS_EXECUTABLE` the rake tasks hand
 per worker, and ends with one `[lane:unit] legs:` line giving each leg's
 seconds and the wall clock, so a CI sample shows whether running `try:unit`
 beside `spec:fast` pays on that runner. Results durations are summed per worker in
-`scripts/ci/aggregate-test-results.sh`, so a parallel lane's reported
+`.github/scripts/aggregate-test-results.sh`, so a parallel lane's reported
 duration exceeds its wall clock.
 
 ## Lanes

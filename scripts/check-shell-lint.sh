@@ -59,10 +59,18 @@ export SHELLCHECK_OPTS='--norc'
 # findings to the baseline for no present benefit.
 SHELLCHECK_SEVERITY="warning"
 
-# Directories held to the stricter floor with no baseline at all: the CI
+# Files held to the stricter floor with no baseline at all: the CI
 # reporting scripts and their tests. They are clean at `style` today and the
 # point of the lane is to keep the newest code the tidiest.
-STRICT_GLOBS=("scripts/ci" "tools/testsuite")
+STRICT_GLOBS=(
+  ".github/scripts/ci-metrics-breakdown.sh"
+  ".github/scripts/extract-frontend-dist.sh"
+  ".github/scripts/sentry-sourcemap-preflight.sh"
+  ".github/scripts/sentry-status.sh"
+  ".github/scripts/sentry-verify-artifacts.sh"
+  "tools/testsuite/*.sh"
+  "tools/testsuite/**/*.sh"
+)
 
 MODE="check"
 case "${1:-}" in
@@ -196,8 +204,8 @@ SHELLCHECK_HEADER="# .github/lint-baseline/shellcheck.tsv
 # the recorded one, fails the lane. A lower count passes and is reported so the
 # baseline can be tightened.
 #
-# Severity floor: ${SHELLCHECK_SEVERITY}. scripts/ci and tools/testsuite are held to
-# 'style' with no baseline; see scripts/check-shell-lint.sh.
+# Severity floor: ${SHELLCHECK_SEVERITY}. The CI reporting scripts and
+# tools/testsuite are held to 'style' with no baseline; see scripts/check-shell-lint.sh.
 #
 # These are debt, not exemptions. Nothing here is unfixable — SC2034 is an
 # unused variable, SC2164 is an unchecked cd, SC2155 masks an exit status.
@@ -250,10 +258,10 @@ compare shellcheck "$SHELLCHECK_BASELINE" "$sc_current" || rc=1
 compare actionlint "$ACTIONLINT_BASELINE" "$al_current" || rc=1
 
 # The strict tier. No baseline, so the message has to stand alone: these
-# directories are expected to be clean and a finding here is the finding.
+# files are expected to be clean and a finding here is the finding.
 strict_out=""
 for glob in "${STRICT_GLOBS[@]}"; do
-  mapfile -t strict_files < <(git ls-files --cached --others --exclude-standard "${glob}/*.sh" "${glob}/**/*.sh")
+  mapfile -t strict_files < <(git ls-files --cached --others --exclude-standard "$glob")
   [ "${#strict_files[@]}" -gt 0 ] || continue
   strict_out="${strict_out}$(shellcheck -f gcc -S style "${strict_files[@]}" 2>&1)"
 done
@@ -261,7 +269,7 @@ done
 if [ -n "$strict_out" ]; then
   printf 'shellcheck (strict, no baseline): findings in %s\n' "${STRICT_GLOBS[*]}"
   printf '%s\n' "$strict_out"
-  printf 'These directories are held to -S style with no baseline. Fix the finding,\n'
+  printf 'These files are held to -S style with no baseline. Fix the finding,\n'
   printf 'or add a targeted `# shellcheck disable=SCnnnn` with a reason above it.\n'
   rc=1
 fi

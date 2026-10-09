@@ -46,7 +46,7 @@ REPO_ROOT="$(cd "${TEST_DIR}/../.." && pwd)"
 source "${TEST_DIR}/lib/assert.sh"
 
 WORKFLOW="${REPO_ROOT}/.github/workflows/build-and-publish-oci-images.yml"
-CI_SCRIPTS_DIR="${REPO_ROOT}/scripts/ci"
+CI_SCRIPTS_DIR="${REPO_ROOT}/.github/scripts"
 
 printf '%s\n' "$ASSERT_SUITE"
 
@@ -56,7 +56,7 @@ if [ ! -f "$WORKFLOW" ]; then
 fi
 
 # Names passed to `record`, from both producers: the report()/warn() wrappers in
-# scripts/ci/*.sh (each is a one-line call into sentry-status.sh) and the
+# .github/scripts/*.sh (each is a one-line call into sentry-status.sh) and the
 # workflow's own inline `record` calls for the release, upload and deploy steps.
 # Matched on shape — component then state — so a new script is picked up without
 # editing this list.
@@ -123,7 +123,7 @@ assert_eq "no expected component is orphaned" "" "${orphans% }"
 if [ -n "$orphans" ]; then
   printf '       expected (from %s):\n         %s\n' \
     "$(basename "$WORKFLOW")" "${EXPECTED[*]}"
-  printf '       recorded (from scripts/ci/*.sh and .github/workflows/*.yml):\n         %s\n' \
+  printf '       recorded (from .github/scripts/*.sh and .github/workflows/*.yml):\n         %s\n' \
     "${RECORDED[*]}"
   printf '       Either the workflow name is misspelled, or a script renamed the\n'
   printf '       component it reports under. Both leave render asserting on a\n'
