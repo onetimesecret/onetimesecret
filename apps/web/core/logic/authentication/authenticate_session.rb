@@ -6,6 +6,7 @@ require 'onetime/logic/base'
 require 'onetime/colonel_signin_failure'
 require 'onetime/models/colonel_audit_event'
 require 'onetime/security/login_rate_limiter'
+require 'onetime/session/rotation'
 
 module Core::Logic
   module Authentication
@@ -182,6 +183,13 @@ module Core::Logic
             error_type: 'suspended'
         end
 
+        # Both paths below sign the caller in: the greenlit one writes the
+        # identity here, the pending one leaves that to the controller, which
+        # writes it into this same Rack session after #process returns. Either
+        # way the signed-in session starts under a new id, before any identity
+        # key is written. Raises when the old id cannot be ended.
+        start_new_session!
+
         if cust.pending?
           auth_logger.info 'Login pending customer verification',
             {
@@ -217,11 +225,8 @@ module Core::Logic
 
         @greenlighted = true
 
-        # Clear old session data to prevent session fixation
-        sess.clear
-        sess.replace! if sess.respond_to?(:replace!)
-
-        # Set session authentication data
+        # Set session authentication data (the session was emptied and
+        # re-keyed by start_new_session! above)
         sess['external_id']      = cust.extid
         sess['authenticated']    = true
         sess['authenticated_at'] = Familia.now.to_i
@@ -278,6 +283,84 @@ module Core::Logic
       end
 
       private
+
+      # Start the session this login establishes under a new id (#4466).
+      #
+      # The session the request arrived with was not started by this login:
+      # its id and its contents came from whatever the browser held before.
+      # So nothing of it is kept. The hash is cleared first (every key the
+      # previous occupant left, including the CSRF token, a remember-me
+      # deadline and a colonel step-up window), then
+      # {Onetime::SessionRotation.rotate!} ends the old id the way a logout
+      # does (SessionEnded marker, blob, sidecar keys) and re-keys this
+      # session hash in place. The request's commit
+      # writes whatever is put in afterwards under the new id, and the
+      # response sets the new cookie. Onetime::Middleware::CsrfResponseHeader
+      # mints a CSRF token into the new session on the way out. Full mode
+      # gets the same result from Rodauth's login_session, which runs this
+      # app's clear_session (session.destroy, apps/web/auth/config/base.rb)
+      # before it writes the account in.
+      #
+      # Called on both success paths, after credential verification and the
+      # suspended check, before any identity key is written.
+      #
+      # FAILURE: the login does not continue on a session whose old id could
+      # not be ended. The hash is left empty and
+      # {Onetime::SessionRotation::Incomplete} is raised, so the commit writes
+      # nothing signed-in under either id; the controller answers it as a
+      # failed sign-in. A nil result is a session that is not a Rack
+      # session-store session (a bare Hash): it has no server-side id that
+      # could have been set in advance, so the login continues.
+      #
+      # @raise [Onetime::SessionRotation::Incomplete]
+      def start_new_session!
+        previous_handle = session_log_handle
+        sess.clear
+
+        rotation = begin
+          Onetime::SessionRotation.rotate!(sess)
+        rescue StandardError => ex
+          refuse_unrotated_session!(previous_handle, reason: :error, error: "#{ex.class}: #{ex.message}")
+        end
+
+        if rotation.nil?
+          auth_logger.warn 'Login session not rotated: no server-side session id',
+            {
+              user_id: cust.objid,
+              session_class: sess.class.name,
+            }
+          return
+        end
+
+        refuse_unrotated_session!(previous_handle, reason: rotation.reason) unless rotation.complete
+
+        auth_logger.info 'Login session id rotated',
+          {
+            user_id: cust.objid,
+            previous_session_handle: Onetime::SessionEnded.handle_for(rotation.old_sid),
+            session_handle: Onetime::SessionEnded.handle_for(rotation.new_sid),
+          }
+      end
+
+      # Log and raise for a rotation that did not complete. Handles only,
+      # never session ids (#4461).
+      def refuse_unrotated_session!(previous_handle, reason:, error: nil)
+        sess.clear
+
+        auth_logger.error 'Login refused: the previous session id could not be ended',
+          {
+            user_id: cust.objid,
+            email: cust.obscure_email,
+            previous_session_handle: previous_handle,
+            session_handle: session_log_handle,
+            ip: @strategy_result.metadata[:ip],
+            reason: reason,
+            error: error,
+          }
+
+        raise Onetime::SessionRotation::Incomplete,
+          "session id rotation incomplete (#{reason}); login refused"
+      end
 
       # Record a colonel.signin event when the session just established belongs
       # to a colonel. The SIMPLE-auth-mode counterpart to

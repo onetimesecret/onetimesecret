@@ -216,13 +216,14 @@ module Onetime
       'link_sso_pending_bind' => { ttl: 900, encrypted: true, merge_on_read: false, externalize: false, destroy_warn: true },
       # #4327: the colonel step-up (sudo) window. Value is an object
       #   { "extid" => <acting colonel's public id>, "exp" => <unix seconds> }
-      # NOT a bare epoch: one onetime.session cookie can outlive an identity
-      # change (simple-mode login does not clear or renew the session; full-mode
-      # :renew carries the hash to a new sid), so a bare epoch would let identity
-      # B inherit identity A's live elevation. ColonelAPI::Logic::Colonel::
-      # Elevation#elevated? compares the stored extid against the CURRENT cust
-      # and ignores a mismatch — the codec's sid/field binding closes the other
-      # half (replay under a different sid).
+      # NOT a bare epoch: session data can cross an identity change (full-mode
+      # :renew carries the hash to a new sid; simple-mode login kept the
+      # existing session until #4466, and now clears it and moves it to a new
+      # id first), so a bare epoch would let identity B inherit identity A's
+      # live elevation. ColonelAPI::Logic::Colonel::Elevation#elevated?
+      # compares the stored extid against the CURRENT cust and ignores a
+      # mismatch — the codec's sid/field binding closes the other half (replay
+      # under a different sid).
       #
       # Absence is the safe state (admission rule): a miss means not elevated,
       # and every tier-1 colonel verb refuses. Externalized so the capability

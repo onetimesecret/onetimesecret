@@ -83,6 +83,43 @@ RSpec.describe Core::Controllers::Authentication do
         'id' => 'domain-abc',
       )
     end
+
+    # #4466: the logic raises Incomplete when the session id the request
+    # arrived with could not be ended. The login fails; no identity is written.
+    context 'when the logic refuses to sign in on a session it could not rotate' do
+      let(:message) { 'We could not sign you in. Please try again.' }
+
+      before do
+        logic = instance_double(Core::Logic::Authentication::AuthenticateSession, raise_concerns: nil)
+        allow(logic).to receive(:process).and_raise(
+          Onetime::SessionRotation::Incomplete, 'session id rotation incomplete (marker_not_written); login refused'
+        )
+        allow(Core::Logic::Authentication::AuthenticateSession).to receive(:new).and_return(logic)
+        allow(req).to receive_messages(
+          post?: true,
+          params: { 'login' => 'test@example.com', 'password' => 'correct-password' },
+        )
+      end
+
+      it 'answers a JSON client with a 503 error', :aggregate_failures do
+        env['HTTP_ACCEPT'] = 'application/json'
+
+        result = controller.send(:perform_authentication)
+
+        expect(res).to have_received(:status=).with(503)
+        expect(result).to eq(error: message)
+        expect(session_data).not_to have_key('authenticated')
+        expect(session_data).not_to have_key('external_id')
+      end
+
+      it 'sends an HTML client back to the sign-in page with the message', :aggregate_failures do
+        controller.send(:perform_authentication)
+
+        expect(res).to have_received(:redirect).with('/signin')
+        expect(session_data['error_message']).to eq(message)
+        expect(session_data).not_to have_key('authenticated')
+      end
+    end
   end
 
   describe '#logout' do

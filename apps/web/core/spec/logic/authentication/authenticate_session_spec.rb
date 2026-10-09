@@ -14,8 +14,7 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
   let(:rack_session) do
     session = double('RackSession')
     allow(session).to receive(:id).and_return(double(public_id: 'sess_def456'))
-    allow(session).to receive(:clear)
-    allow(session).to receive(:replace!)
+    allow(session).to receive(:clear) { session_data.clear }
     allow(session).to receive(:[]) { |key| session_data[key] }
     allow(session).to receive(:[]=) { |key, value| session_data[key] = value }
     session
@@ -101,6 +100,16 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
     allow_any_instance_of(described_class).to receive(:check_login_rate_limit!)
     allow_any_instance_of(described_class).to receive(:record_failed_login_attempt!)
     allow_any_instance_of(described_class).to receive(:clear_login_rate_limit!)
+
+    # The session-id rotation is the store's business (its own specs, and the
+    # real-route spec/integration/simple/login_session_rotation_spec.rb). Here
+    # a complete rotation by default; the '#4466 session id rotation' group
+    # below asserts the calls and overrides the result.
+    allow(Onetime::SessionRotation).to receive(:rotate!).and_return(complete_rotation)
+  end
+
+  let(:complete_rotation) do
+    Onetime::SessionRotation::Result.new(old_sid: 'sess_def456', new_sid: 'sess_new789', complete: true)
   end
 
   describe '#process_params' do
@@ -284,12 +293,6 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
           expect(logic.greenlighted).to be true
         end
 
-        it 'regenerates the session' do
-          expect(rack_session).to receive(:clear)
-          expect(rack_session).to receive(:replace!)
-          logic.process
-        end
-
         it 'sets session authentication fields' do
           logic.process
           expect(session_data['external_id']).to eq('ur_test123')
@@ -329,6 +332,127 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
         expect { logic.process }.to raise_error(Onetime::FormError) do |error|
           expect(error.message).to eq('Invalid email or password')
         end
+      end
+    end
+  end
+
+  # #4466: both success paths start the signed-in session under a new id.
+  # The previous occupant's data is cleared, Onetime::SessionRotation.rotate!
+  # re-keys the LIVE Rack session (the strategy result's session, which is
+  # env['rack.session']), and only then is any identity key written. The
+  # paths that refuse the login never rotate. The end-to-end check against
+  # the real store is spec/integration/simple/login_session_rotation_spec.rb.
+  describe '#4466 session id rotation' do
+    let(:session_data) { { 'seeded_by_previous_occupant' => 'yes', 'csrf' => 'pre-login-token' } }
+
+    before do
+      allow(logic).to receive(:send_verification_email)
+      logic.process_params
+    end
+
+    def expect_rotation_of_the_emptied_session
+      expect(Onetime::SessionRotation).to receive(:rotate!).with(rack_session).once do
+        expect(session_data).to be_empty
+        complete_rotation
+      end
+    end
+
+    it 'clears, then rotates, then writes the identity for a verified account', :aggregate_failures do
+      expect_rotation_of_the_emptied_session
+
+      logic.process
+
+      expect(session_data).to include('external_id' => 'ur_test123', 'authenticated' => true)
+      expect(session_data).not_to have_key('seeded_by_previous_occupant')
+      expect(session_data).not_to have_key('csrf')
+    end
+
+    it 'clears and rotates for a pending account, whose identity the controller writes' do
+      allow(customer).to receive(:pending?).and_return(true)
+      expect_rotation_of_the_emptied_session
+
+      logic.process
+
+      expect(session_data).to be_empty
+    end
+
+    it 'logs the rotation by session handle' do
+      expect(mock_logger).to receive(:info).with(
+        'Login session id rotated',
+        hash_including(
+          previous_session_handle: Onetime::SessionEnded.handle_for('sess_def456'),
+          session_handle: Onetime::SessionEnded.handle_for('sess_new789'),
+        ),
+      )
+
+      logic.process
+    end
+
+    it 'does not touch the session when the credentials are rejected', :aggregate_failures do
+      allow(customer).to receive(:passphrase?).with(test_password).and_return(false)
+      logic.process_params
+
+      expect { logic.process }.to raise_error(Onetime::FormError)
+      expect(Onetime::SessionRotation).not_to have_received(:rotate!)
+      expect(session_data).to include('seeded_by_previous_occupant' => 'yes')
+    end
+
+    it 'does not touch the session for a suspended account', :aggregate_failures do
+      allow(customer).to receive(:suspended?).and_return(true)
+
+      expect { logic.process }.to raise_error(Onetime::FormError)
+      expect(Onetime::SessionRotation).not_to have_received(:rotate!)
+      expect(session_data).to include('seeded_by_previous_occupant' => 'yes')
+    end
+
+    it 'continues for a session with no server-side id (nil result)', :aggregate_failures do
+      allow(Onetime::SessionRotation).to receive(:rotate!).and_return(nil)
+      expect(mock_logger).to receive(:warn).with('Login session not rotated: no server-side session id', anything)
+
+      logic.process
+
+      expect(session_data).to include('authenticated' => true)
+    end
+
+    context 'when the old id cannot be ended' do
+      let(:incomplete_rotation) do
+        Onetime::SessionRotation::Result.new(
+          old_sid: 'sess_def456', new_sid: 'sess_def456', complete: false, reason: :marker_not_written,
+        )
+      end
+
+      before { allow(Onetime::SessionRotation).to receive(:rotate!).and_return(incomplete_rotation) }
+
+      it 'refuses the login with nothing signed in left in the session', :aggregate_failures do
+        expect { logic.process }.to raise_error(Onetime::SessionRotation::Incomplete, /marker_not_written/)
+        expect(session_data).to be_empty
+        expect(logic.greenlighted).to be_nil
+        expect(customer).not_to have_received(:save)
+      end
+
+      it 'refuses a pending account before resending its verification email' do
+        allow(customer).to receive(:pending?).and_return(true)
+
+        expect { logic.process }.to raise_error(Onetime::SessionRotation::Incomplete)
+        expect(logic).not_to have_received(:send_verification_email)
+      end
+
+      it 'logs the refusal at error level by handle, never by session id' do
+        expect(mock_logger).to receive(:error).with(
+          'Login refused: the previous session id could not be ended',
+          hash_including(reason: :marker_not_written, previous_session_handle: Onetime::SessionEnded.handle_for('sess_def456')),
+        ) do |_message, payload|
+          expect(payload.values.map(&:to_s)).not_to include('sess_def456')
+        end
+
+        expect { logic.process }.to raise_error(Onetime::SessionRotation::Incomplete)
+      end
+
+      it 'refuses the login when the rotation raises', :aggregate_failures do
+        allow(Onetime::SessionRotation).to receive(:rotate!).and_raise(Redis::ConnectionError, 'connection refused')
+
+        expect { logic.process }.to raise_error(Onetime::SessionRotation::Incomplete, /error/)
+        expect(session_data).to be_empty
       end
     end
   end

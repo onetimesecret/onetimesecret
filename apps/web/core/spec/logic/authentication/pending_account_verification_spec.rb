@@ -69,6 +69,13 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
       allow(logic).to receive(:check_login_rate_limit!)
       allow(logic).to receive(:record_failed_login_attempt!)
       allow(logic).to receive(:clear_login_rate_limit!)
+
+      # A pending login starts its session under a new id too (#4466); that
+      # is covered in authenticate_session_spec.rb and the real-route
+      # spec/integration/simple/login_session_rotation_spec.rb.
+      allow(Onetime::SessionRotation).to receive(:rotate!).and_return(
+        Onetime::SessionRotation::Result.new(old_sid: 'sess_test123', new_sid: 'sess_new456', complete: true),
+      )
     end
 
     # Claude has a lot of trouble distinguishing between `=` and `==`
@@ -96,6 +103,7 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
       it 'logs that verification email is being resent' do
         logger = double('Logger')
         allow(logic).to receive(:auth_logger).and_return(logger)
+        allow(logger).to receive(:info)
         allow(logic).to receive(:send_verification_email)
 
         expect(logger).to receive(:info).with(
@@ -167,6 +175,7 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
       it 'still logs pending customer login' do
         logger = double('Logger')
         allow(logic).to receive(:auth_logger).and_return(logger)
+        allow(logger).to receive(:info)
 
         expect(logger).to receive(:info).with(
           'Login pending customer verification',

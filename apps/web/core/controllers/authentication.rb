@@ -5,6 +5,7 @@
 require 'onetime/session/impersonation'
 require 'onetime/session/surface'
 require 'onetime/session/remember_me'
+require 'onetime/session/rotation'
 
 require_relative 'base'
 
@@ -121,6 +122,11 @@ module Core
         # non-enumerating rejection (unknown email and wrong password alike);
         # `suspended` is only ever raised past a verified password. A pending
         # account is not refused: the logic answers it with success data.
+        #
+        # On both of its success paths the logic has already emptied the
+        # session and moved it to a new id (#4466,
+        # AuthenticateSession#start_new_session!) before the block below
+        # runs, so the block writes the identity into a fresh session.
         execute_with_error_handling(
           logic,
           success_message: 'You have been logged in',
@@ -131,9 +137,9 @@ module Core
         ) do
           cust_after = logic.cust
 
-          # Sync session data from logic class to Rack session
-          # The logic class modifies its own @sess copy, so we need to copy those changes
-          # to the actual Rack session for persistence
+          # The identity keys for both success paths. The logic's `sess` is
+          # this same Rack session; the greenlit path has already written
+          # most of these, the pending path none of them.
           session['external_id']      = cust_after.extid
           session['email']            = cust_after.email
           session['role']             = cust_after.role
@@ -145,20 +151,21 @@ module Core
           Onetime::SessionSurface.record(session, req.env)
           forget_customer_session_verdict
 
-          # #4327: an identity change must always land UNELEVATED. This path
-          # deliberately does not clear or renew the session (compare
-          # lib/onetime/helpers/session_helpers.rb, the other authenticate path,
-          # which does both), so without this the colonel step-up window minted
-          # by the previous occupant of this cookie would be inherited by the
-          # account signing in. Elevation is also identity-bound on read, so this
-          # is the second of two independent closures.
+          # #4327: an identity change must always land UNELEVATED. The logic
+          # cleared the session before this block runs, so a colonel step-up
+          # window minted by the previous occupant of this browser is already
+          # gone. The delete stays so this block does not depend on that:
+          # it writes the identity, and it is the last thing to touch the
+          # session before the commit. Elevation is also identity-bound on
+          # read (ColonelAPI::Logic::Colonel::Elevation#elevation_record).
           session.delete('elevated_until')
 
           # "Remember me" (Onetime::RememberMe): a fixed 14-day session
           # instead of the rolling default, carried by the session store
-          # alone; simple mode has no active-session row. Cleared first for
-          # the same reason as elevated_until: this path does not clear the
-          # session, and the previous occupant's choice is not this one's.
+          # alone; simple mode has no active-session row. Only this login's
+          # choice counts. The cleared session no longer holds the previous
+          # occupant's deadline; the delete is kept for the same reason as
+          # the elevated_until one above.
           session.delete(Onetime::RememberMe::SESSION_KEY)
           if Onetime::RememberMe.enabled? && Onetime::RememberMe.requested?(req.params[Onetime::RememberMe::PARAM])
             Onetime::RememberMe.stamp(session)
@@ -184,6 +191,20 @@ module Core
 
             res.redirect req.app_path('/colonel/')
           end
+        end
+      rescue Onetime::SessionRotation::Incomplete
+        # The credentials were accepted, but the session id this request
+        # arrived with could not be ended, so the logic refused to sign in on
+        # it and left the session empty (it has logged the details). Answered
+        # in the same shape as the fallback below; 503 rather than 401, since
+        # the credentials were not the problem. Signing in again is the
+        # recovery.
+        message = 'We could not sign you in. Please try again.'
+        if json_requested?
+          json_error(message, status: 503)
+        else
+          session['error_message'] = message
+          res.redirect req.app_path('/signin')
         end
       rescue OT::Unauthorized => ex
         # Fallback for other unauthorized errors

@@ -14,7 +14,11 @@ module Onetime
   # `session.destroy` (apps/web/auth/config/base.rb), and Rodauth then fills
   # the empty session again. This module is the same step for a session whose
   # data must SURVIVE: the second factor completing (RISK-2026-09-19-02), and
-  # the other establishment paths #4466 lists once they call it.
+  # the other establishment paths #4466 lists once they call it. Simple-mode
+  # password login (Core::Logic::Authentication::AuthenticateSession, which
+  # Rodauth does not serve) also calls it, on a session it has cleared first:
+  # nothing crosses, which matches what clear_session gives full mode, and
+  # an incomplete result refuses the login.
   #
   # ## The mechanism
   #
@@ -136,7 +140,7 @@ module Onetime
       # Step 1: end the old id before touching anything. A marker that cannot
       # be written means the old session stays exactly as it is.
       unless old_sid && SessionEnded.mark(old_sid, dbclient: db)
-        OT.le "[session_rotation] session not rotated: ended marker could not be written " \
+        OT.le '[session_rotation] session not rotated: ended marker could not be written ' \
               "(session_handle=#{handle(old_sid)})"
         return Result.new(old_sid: old_sid, new_sid: old_sid, complete: false, reason: :marker_not_written)
       end
@@ -183,7 +187,7 @@ module Onetime
     # A Rack session-store session: it can destroy itself through the store,
     # report its id, and take its data back.
     def rotatable?(session)
-      %i[destroy to_hash update id].all? { |m| session.respond_to?(m) }
+      [:destroy, :to_hash, :update, :id].all? { |m| session.respond_to?(m) }
     end
 
     private
@@ -201,7 +205,7 @@ module Onetime
     # @return [Hash{String => Object}] the values that were present
     def take_completed_fields(old_sid, fields, db)
       fields.each_with_object({}) do |field, values|
-        value = begin
+        value         = begin
           SessionSidecar.read(old_sid, field, dbclient: db)
         rescue StandardError
           nil
@@ -232,7 +236,7 @@ module Onetime
     def old_ended?(old_sid, db)
       SessionEnded.ended?(old_sid, dbclient: db)
     rescue StandardError => ex
-      OT.le "[session_rotation] could not confirm the old id ended " \
+      OT.le '[session_rotation] could not confirm the old id ended ' \
             "(session_handle=#{handle(old_sid)}): #{ex.class}: #{ex.message}"
       false
     end
@@ -249,7 +253,7 @@ module Onetime
       store.destroy_blob(db, key)
       !store.find_key(db, old_sid).nil?
     rescue StandardError => ex
-      OT.le "[session_rotation] could not confirm the old blob is gone " \
+      OT.le '[session_rotation] could not confirm the old blob is gone ' \
             "(session_handle=#{handle(old_sid)}): #{ex.class}: #{ex.message}"
       true
     end
