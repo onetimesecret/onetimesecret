@@ -5,6 +5,7 @@ import { setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { hardNavigate, routerOwnsPath } from '@/utils/navigation';
+import * as redirectUtils from '@/utils/redirect';
 
 // The customer route modules read bootstrapStore in their guards; give them a
 // store before import (same posture as sso-only-reachability.spec.ts).
@@ -33,6 +34,7 @@ describe('hardNavigate', () => {
   });
 
   afterEach(() => {
+    vi.restoreAllMocks();
     Object.defineProperty(window, 'location', {
       configurable: true,
       writable: true,
@@ -52,6 +54,8 @@ describe('hardNavigate', () => {
 
   it.each([
     ['absolute URL', 'https://evil.example/steal'],
+    ['script URL', 'javascript:alert(1)'],
+    ['data URL', 'data:text/html,<script>alert(1)</script>'],
     ['protocol-relative', '//evil.example'],
     ['backslash trick', '/\\evil.example'],
     ['traversal', '/a/../../etc/passwd'],
@@ -61,6 +65,46 @@ describe('hardNavigate', () => {
   ])('falls back instead of following a %s target', (_label, target) => {
     hardNavigate(target as string | null | undefined, '/colonel');
     expect(assign).toHaveBeenCalledWith('/colonel');
+  });
+
+  it('normalizes an internal path while preserving query and hash', () => {
+    hardNavigate('/./dashboard?tab=secrets#top', '/');
+    expect(assign).toHaveBeenCalledExactlyOnceWith('/dashboard?tab=secrets#top');
+  });
+
+  it('normalizes the selected fallback', () => {
+    hardNavigate(null, '/./colonel?tab=customers#top');
+    expect(assign).toHaveBeenCalledExactlyOnceWith('/colonel?tab=customers#top');
+  });
+
+  it.each(['/.//evil.example', '/%2e//evil.example'])(
+    'falls back to the root when normalization produces a protocol-relative path: %s',
+    (target) => {
+      hardNavigate(target, '/colonel');
+      expect(assign).toHaveBeenCalledExactlyOnceWith('/');
+    }
+  );
+
+  it('falls back to the root when the selected fallback normalizes to a protocol-relative path', () => {
+    hardNavigate(null, '/.//evil.example');
+    expect(assign).toHaveBeenCalledExactlyOnceWith('/');
+  });
+
+  it.each(['https://evil.example/steal', '//evil.example', 'javascript:alert(1)'])(
+    'rejects an unsafe destination at the sink even if the input validator accepts it: %s',
+    (target) => {
+      vi.spyOn(redirectUtils, 'isValidInternalPath').mockReturnValueOnce(true);
+      hardNavigate(target, '/colonel');
+      expect(assign).toHaveBeenCalledExactlyOnceWith('/');
+    }
+  );
+
+  it('falls back to the root when URL construction throws', () => {
+    vi.spyOn(globalThis, 'URL').mockImplementationOnce(function () {
+      throw new TypeError('Invalid URL');
+    });
+    hardNavigate('/colonel', '/');
+    expect(assign).toHaveBeenCalledExactlyOnceWith('/');
   });
 
   it('falls back to the root when the FALLBACK itself is unsafe', () => {

@@ -38,7 +38,24 @@ export function hardNavigate(target: string | null | undefined, fallback: string
   } else if (isValidInternalPath(fallback)) {
     destination = fallback;
   }
-  window.location.assign(destination);
+  try {
+    const resolved = new URL(destination, window.location.origin);
+    // Dot-segment normalization can produce '//host'; assigning that path
+    // would reinterpret it as an external authority even after the origin check.
+    const isSafeInternal =
+      resolved.origin === window.location.origin &&
+      resolved.pathname.startsWith('/') &&
+      !resolved.pathname.startsWith('//');
+
+    if (!isSafeInternal) {
+      window.location.assign('/');
+      return;
+    }
+
+    window.location.assign(`${resolved.pathname}${resolved.search}${resolved.hash}`);
+  } catch {
+    window.location.assign('/');
+  }
 }
 
 /**
