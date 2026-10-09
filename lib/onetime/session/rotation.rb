@@ -50,6 +50,13 @@ module Onetime
   #   apps/web/auth/spec/integration/full/verify_account_autologin_session_rotation_spec.rb:123
   # - Magic-link and passkey sign-in: renewed, clear_session (Rodauth
   #   `login`, the same route family). No rotation spec.
+  # - SSO link-confirm sign-in and link-SSO password sign-in: renewed,
+  #   clear_session (`rodauth.login` in apps/web/auth/routes/sso_link_confirm.rb
+  #   and apps/web/auth/routes/link_sso.rb). No rotation spec.
+  # - SSO Connect callback (binds an identity to the signed-in account):
+  #   renewed, clear_session (the callback ends in rodauth-omniauth
+  #   login("omniauth"); hooks/omniauth.rb, "Post-Connect Return Path").
+  #   No rotation spec.
   # - Second factor completed: renewed, rotate! (hooks/two_factor.rb).
   #   apps/web/auth/spec/integration/full_mfa/mfa_session_rotation_spec.rb:81
   # - Invite signup autologin: renewed, :renew.
@@ -72,6 +79,15 @@ module Onetime
   #   then :renew, or clear_session in full mode) and nothing signed in
   #   crosses. Not a rotation in this module's sense, and none is required
   #   by the rule.
+  #
+  # Open: these raise what the session can do and keep its id. Both are
+  # recorded in RISK-2026-09-19-02 (docs/security/active-risk-register.md).
+  #
+  # - Re-authentication proof (POST /auth/reauth): not renewed.
+  #   Auth::Operations::Reauthenticate#record writes the single-use
+  #   Onetime::RecentReauth proof under the current id.
+  # - TOTP and passkey setup: not renewed. Rodauth's
+  #   two_factor_update_session adds the factor to the session.
   #
   # ## The mechanism
   #

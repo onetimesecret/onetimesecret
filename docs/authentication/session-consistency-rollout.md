@@ -242,7 +242,7 @@ the path renews the id by its mechanism but no spec asserts it.
 | SSO Connect callback (binds an identity to the signed-in account) | Yes | The callback ends in rodauth-omniauth's `login("omniauth")`, then `login_session` | None |
 | Password change, simple mode | Yes | `:renew` (`AccountAPI::Logic::Account::UpdatePassword`) | None |
 | Impersonation start and stop | No, by the rule | Starting needs no step-up, the overlay is read-only, and stopping returns the colonel's own capability (`apps/web/auth/operations/customers/impersonate.rb`, `stop_impersonation.rb`) | Not applicable |
-| Organization switch (the account switching #4466 names) | No, by the rule | Changes the active organization, not the identity (`RequestHelpers#switch_organization`) | Not applicable |
+| Organization switch (taken here to be what #4466 calls account switching) | No, by the rule | Changes the active organization, not the identity (`RequestHelpers#switch_organization`) | Not applicable |
 | Re-authentication proof (`POST /auth/reauth`) | No (open) | `Onetime::RecentReauth.record` (`apps/web/auth/operations/reauthenticate.rb:324`) writes a single-use proof under the current id; the proof admits one SSO Connect initiation | Not applicable |
 | TOTP and passkey setup | No (open) | Rodauth's `two_factor_update_session` adds the factor to the session without a new id; `apps/web/auth/config/hooks/mfa.rb` and `webauthn.rb` add none | Not applicable |
 
