@@ -28,6 +28,14 @@ name: Ruby 4 Preview
 #   there — setup-ruby's bundle install, rubocop, or the lane run — is
 #   captured as a warning annotation on the step while the job itself
 #   completes successfully.
+# - The Gemfile takes its Ruby from .ruby-version, so Bundler refuses to
+#   load the bundle under any other Ruby. Every Ruby job therefore first
+#   pins the checkout with .github/scripts/pin-ruby-version.sh (the
+#   pin-ruby step: the one place the version under test is written),
+#   which rewrites .ruby-version and the lockfile's RUBY VERSION entry
+#   and leaves the locked gems as committed. That step is deliberately
+#   NOT continue-on-error: when it fails, this workflow is broken, not
+#   Ruby 4, and every later step would fail for the wrong reason.
 # - Billing tests are nightly only, here as in ci.yml
 #   (docs/development/auth-ci.md): the billing lanes and the billing-on
 #   full-mode row are their own jobs, skipped on a pull request and run
@@ -83,11 +91,15 @@ jobs:
     steps:
       - *checkout-step
 
-      - name: Setup Ruby 4.0.2 (may fail on bundle install)
+      - &pin-ruby-step
+        name: Pin the checkout to Ruby 4.0.2
+        run: .github/scripts/pin-ruby-version.sh 4.0.2
+
+      - name: Setup Ruby
         uses: ruby/setup-ruby@003a5c4d8d6321bd302e38f6f0ec593f77f06600 # v1.319.0
         continue-on-error: true
         with:
-          ruby-version: '4.0.2'
+          ruby-version: '.ruby-version' # as pinned above
           bundler-cache: false # DEBUG: disabled to rule out stale cache
 
       - name: Install dependencies
@@ -128,11 +140,11 @@ jobs:
         name: Start test services (valkey, rabbitmq)
         run: docker compose -f compose.test.yml up --wait -d valkey rabbitmq
 
+      - *pin-ruby-step
+
       - name: Setup Ruby test environment (may fail on bundle install)
         uses: ./.github/actions/setup-ruby-test-env
         continue-on-error: true
-        with:
-          ruby-version: '4.0.2'
 
       # Locale + JSON-schema generation is owned by the lane's tasks file;
       # it needs python3, node, and pnpm on PATH.
@@ -163,11 +175,11 @@ jobs:
 
       - *start-core-services
 
+      - *pin-ruby-step
+
       - name: Setup Ruby test environment (may fail on bundle install)
         uses: ./.github/actions/setup-ruby-test-env
         continue-on-error: true
-        with:
-          ruby-version: '4.0.2'
 
       - name: Setup Python for locale sync
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -201,11 +213,11 @@ jobs:
 
       - *start-core-services
 
+      - *pin-ruby-step
+
       - name: Setup Ruby test environment (may fail on bundle install)
         uses: ./.github/actions/setup-ruby-test-env
         continue-on-error: true
-        with:
-          ruby-version: '4.0.2'
 
       - &setup-python-step
         name: Setup Python for locale sync
@@ -258,11 +270,11 @@ jobs:
 
       - *start-core-services
 
+      - *pin-ruby-step
+
       - name: Setup Ruby test environment (may fail on bundle install)
         uses: ./.github/actions/setup-ruby-test-env
         continue-on-error: true
-        with:
-          ruby-version: '4.0.2'
 
       - *setup-python-step
 
@@ -309,11 +321,11 @@ jobs:
 
       - *start-core-services
 
+      - *pin-ruby-step
+
       - name: Setup Ruby test environment (may fail on bundle install)
         uses: ./.github/actions/setup-ruby-test-env
         continue-on-error: true
-        with:
-          ruby-version: '4.0.2'
 
       - *setup-python-step
 
