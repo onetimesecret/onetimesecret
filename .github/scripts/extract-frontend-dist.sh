@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# scripts/ci/extract-frontend-dist.sh
+# .github/scripts/extract-frontend-dist.sh
 #
 # Materialise the built frontend tree (public/web/dist) on the runner so the
 # Sentry sourcemap upload has something to upload.
@@ -29,7 +29,7 @@
 # no browser will ever request: green again, useless again. So: pull the image
 # that was just pushed and copy the exact tree out of it.
 #
-# NEVER exits non-zero. It reports through scripts/ci/sentry-status.sh and
+# NEVER exits non-zero. It reports through .github/scripts/sentry-status.sh and
 # writes `status=` to $GITHUB_OUTPUT:
 #
 #   status=skipped    no SENTRY_AUTH_TOKEN — quiet, expected on forks/clones
@@ -57,7 +57,7 @@
 set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-STATUS="${REPO_ROOT}/scripts/ci/sentry-status.sh"
+STATUS="${REPO_ROOT}/.github/scripts/sentry-status.sh"
 
 DIST_DEST="${DIST_DEST:-${REPO_ROOT}/public/web/dist}"
 IMAGE_DIST_PATH="${IMAGE_DIST_PATH:-/app/public/web/dist}"

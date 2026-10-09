@@ -1,13 +1,8 @@
-# apps/web/auth/try/operations/close_account_try.rb
+# apps/web/auth/try/operations/remove_authentication_data_try.rb
 #
 # frozen_string_literal: true
 
-# RemoveAuthenticationData Operation Test Suite
-#
-# Tests the deletion of auth accounts and all related data from the auth
-# database. This operation is used when a user deletes their account.
-
-# --- delete_redis_sessions: AES-GCM decode + sidecar purge (#3858) ---
+# RemoveAuthenticationData: the Redis session sweep (#3858).
 #
 # delete_redis_sessions SCANs session:* for blobs whose codec-DECODED
 # external_id matches the closing account, deletes each matching blob AND
@@ -16,13 +11,18 @@
 # JSON.parse(base64) path raised on every authenticated blob and silently
 # skipped it, leaving live sessions behind on account closure. These cases
 # assert the real Redis effects (the method swallows all errors, so nothing
-# else could catch a regression). Redis-only: no auth DB required, so they run
-# even when the accounts DB is absent (db: passed non-nil to skip the connect).
+# else could catch a regression). Redis-only: no auth DB required (db: passed
+# non-nil to skip the connect), so they run in the unit lane.
+#
+# The auth-DATABASE half of the operation (account row and dependent tables,
+# missing/empty extid, a non-existent account) is covered in full mode, where
+# a database always exists: spec/integration/full/hooks/account_deletion_spec.rb.
+# It used to live here behind a wrapper that returned each case's expected
+# value when no database was reachable, which is every run of the unit lane,
+# so those cases reported passes without executing.
 require 'onetime/session/codec'
 require 'onetime/session/sidecar'
 
-# Setup - Keep the lane's authentication mode. Database-backed cases are
-# skipped below when the lane does not provide an auth database.
 ENV['RACK_ENV'] = 'test'
 
 require_relative '../../../../../try/support/test_helpers'
@@ -31,135 +31,8 @@ require 'onetime'
 
 OT.boot! :test, false
 
-# Require auth database before using Auth::Database
 require 'auth/database'
 require_relative '../../operations/remove_authentication_data'
-
-# NOTE: Auth::Database.connection returns a LazyConnection proxy that is
-# truthy even when no database can be reached — it only answers "is this full
-# mode?". Ask #available?, which forces the connection behind a rescue, so a
-# lane without a provisioned database skips rather than exploding inside
-# Sequel::Migrator.run below.
-@db = Auth::Database.available? ? Auth::Database.connection : nil
-
-if @db
-  # Use the app's migrator rather than a hand-rolled Sequel::Migrator.run on
-  # @db: on PostgreSQL, DDL requires the elevated database_url_migrations
-  # credentials, and only Auth::Migrator knows to switch connections for them.
-  require 'auth/migrator'
-  Auth::Migrator.run_if_needed
-end
-
-# Skip this test file gracefully if auth database is not available.
-# This happens when running tests without a PostgreSQL database configured.
-# NOTE: Do not use `exit` or `raise` here — tryouts runs files in the same
-# process, so exit kills the batch and raise sets @setup_failed which also
-# halts all remaining files in the batch. Test cases use skip_without_db
-# to return the expected value when @db is nil.
-unless @db
-  warn '[SKIP] close_account_try.rb: Auth database not reachable (full auth mode requires database)'
-end
-
-def skip_without_db(expected, &)
-  return expected unless @db
-
-  yield
-end
-
-# Create a test account directly in the auth database
-if @db
-  @test_email = generate_unique_test_email('closeaccount')
-  @test_extid = "test_extid_#{SecureRandom.hex(8)}"
-
-  @db.transaction do
-    @account_id = @db[:accounts].insert(
-      email: @test_email,
-      status_id: 2,
-      external_id: @test_extid,
-      created_at: Time.now,
-      updated_at: Time.now,
-    )
-
-    # Insert related records to verify cascade deletion
-    @db[:account_password_hashes].insert(
-      id: @account_id,
-      password_hash: '$argon2id$v=19$m=16384,t=2,p=1$fakehash',
-      created_at: Time.now,
-    )
-
-    @db[:account_remember_keys].insert(
-      id: @account_id,
-      key: SecureRandom.hex(32),
-      deadline: Time.now + 86_400,
-    )
-  end
-end
-
-## RemoveAuthenticationData requires extid parameter
-skip_without_db(false) do
-  result = Auth::Operations::RemoveAuthenticationData.new(extid: nil).call
-  result[:success]
-end
-#=> false
-
-## RemoveAuthenticationData returns error for missing extid
-skip_without_db('External ID is required') do
-  result = Auth::Operations::RemoveAuthenticationData.new(extid: '').call
-  result[:error]
-end
-#=> 'External ID is required'
-
-## RemoveAuthenticationData returns error for non-existent account
-skip_without_db(false) do
-  result = Auth::Operations::RemoveAuthenticationData.new(extid: 'nonexistent_extid').call
-  result[:success]
-end
-#=> false
-
-## RemoveAuthenticationData returns error message for non-existent account
-skip_without_db(true) do
-  result = Auth::Operations::RemoveAuthenticationData.new(extid: 'nonexistent_extid').call
-  result[:error].include?('No auth account found')
-end
-#=> true
-
-## RemoveAuthenticationData successfully deletes account by extid
-skip_without_db(true) do
-  @delete_result = Auth::Operations::RemoveAuthenticationData.new(extid: @test_extid).call
-  @delete_result[:success]
-end
-#=> true
-
-## RemoveAuthenticationData returns account_id on success
-skip_without_db(@account_id) do
-  @delete_result[:account_id]
-end
-#=> @account_id
-
-## Account is deleted from accounts table
-skip_without_db(0) do
-  @db[:accounts].where(external_id: @test_extid).count
-end
-#=> 0
-
-## Password hash is deleted from account_password_hashes table
-skip_without_db(0) do
-  @db[:account_password_hashes].where(id: @account_id).count
-end
-#=> 0
-
-## Remember key is deleted from account_remember_keys table
-skip_without_db(0) do
-  @db[:account_remember_keys].where(id: @account_id).count
-end
-#=> 0
-
-## RemoveAuthenticationData class method works as convenience
-skip_without_db(false) do
-  result = Auth::Operations::RemoveAuthenticationData.call(extid: 'another_nonexistent')
-  result[:success]
-end
-#=> false
 
 ## an authenticated, AES-GCM-encrypted session blob for the closing account is
 ## deleted along with its sidecar keys, while a DIFFERENT account's blob
@@ -193,15 +66,3 @@ Onetime::SessionSidecar.write(@ca_sid, 'awaiting_mfa', true, codec: @ca_codec)
 Onetime::SessionSidecar.purge(@ca_sid)
 @ca_result
 #=> 1
-
-# Teardown
-if @db
-  begin
-    # Clean up any remaining test data (should be none if test passed)
-    @db[:account_remember_keys].where(id: @account_id).delete
-    @db[:account_password_hashes].where(id: @account_id).delete
-    @db[:accounts].where(id: @account_id).delete
-  rescue StandardError
-    # Ignore cleanup errors - data should already be deleted
-  end
-end

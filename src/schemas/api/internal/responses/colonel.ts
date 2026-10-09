@@ -325,6 +325,8 @@ export const colonelCustomDomainSchema = z.object({
   created: transforms.fromNumber.toDate,
   updated: transforms.fromNumber.toDateNullable,
   org_id: z.string(),
+  /** Owning org's PUBLIC id — what the console links by (null when the org is gone). */
+  org_extid: z.string().nullable().optional(),
   org_name: z.string(),
   brand: z.object({
     name: z.string().nullable(),

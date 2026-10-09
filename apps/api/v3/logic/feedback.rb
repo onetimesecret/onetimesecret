@@ -151,7 +151,14 @@ module V3
         # so admins can reply directly without copy/pasting from the body.
         # For anonymous submissions reply_to is omitted so the mailer falls
         # back to the configured from address (no inbox to reply to).
-        email_data[:reply_to] = sender.email unless is_anonymous
+        #
+        # Authenticated submitters also get their PUBLIC ids in the email,
+        # which links each one to its colonel page (customer and organizations).
+        unless is_anonymous
+          email_data[:reply_to]            = sender.email
+          email_data[:customer_extid]      = sender.extid
+          email_data[:organization_extids] = feedback_organization_extids(sender)
+        end
 
         begin
           # Non-critical: feedback is saved in Redis regardless of email
@@ -167,6 +174,18 @@ module V3
           # saved in Redis and available via the colonel interface.
         end
       end
+
+      # PUBLIC ids of the organizations the submitter belongs to. Best-effort:
+      # a failed lookup leaves the list empty rather than dropping the email.
+      def feedback_organization_extids(sender)
+        sender.organization_instances.to_a.filter_map do |org|
+          org.extid if org&.exists?
+        end
+      rescue StandardError => ex
+        logger.error 'Error loading organizations for feedback email', exception: ex
+        []
+      end
+      private :feedback_organization_extids
 
       # Resolve the To: address for feedback emails.
       #

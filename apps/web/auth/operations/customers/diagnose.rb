@@ -101,10 +101,17 @@ module Auth
         #   identifier is still used for the orphan authdb fallback — by email,
         #   extid, or numeric account id)
         # @param audit_log_limit [Integer] newest-first audit rows to include
-        def initialize(identifier: nil, customer: nil, audit_log_limit: DEFAULT_AUDIT_LOG_LIMIT)
-          @identifier      = identifier.to_s.strip
-          @customer        = customer
-          @audit_log_limit = audit_log_limit.to_i.clamp(1, MAX_AUDIT_LOG_LIMIT)
+        # @param rate_limit_scan_deadline [Numeric, nil] seconds the login
+        #   limiter's per-IP key SCAN may run (see RateLimit::Inspect). nil
+        #   (the CLI) walks the whole keyspace; the colonel endpoint passes a
+        #   budget so the page request finishes inside the proxy timeout, and
+        #   the section then says whether the walk finished.
+        def initialize(identifier: nil, customer: nil, audit_log_limit: DEFAULT_AUDIT_LOG_LIMIT,
+                       rate_limit_scan_deadline: nil)
+          @identifier               = identifier.to_s.strip
+          @customer                 = customer
+          @audit_log_limit          = audit_log_limit.to_i.clamp(1, MAX_AUDIT_LOG_LIMIT)
+          @rate_limit_scan_deadline = rate_limit_scan_deadline
         end
 
         # @return [Result]
@@ -414,9 +421,16 @@ module Auth
             return { available: false, reason: 'no email to inspect', reason_code: :no_email }
           end
 
-          result = Onetime::Operations::RateLimit::Inspect.new(kind: 'login', subject: email).call
+          result = Onetime::Operations::RateLimit::Inspect.new(
+            kind: 'login',
+            subject: email,
+            scan_deadline: @rate_limit_scan_deadline,
+          ).call
           {
             available: true,
+            # false: the per-IP SCAN stopped at the deadline, so a per-IP
+            # lockout may exist that `entries` does not show.
+            scan_complete: result.scan_complete,
             entries: result.entries.map do |entry|
               { key: entry.key, ttl: entry.ttl, value: entry.value, exists: entry.exists }
             end,
@@ -615,7 +629,10 @@ module Auth
           locked_keys = (limits[:entries] || []).select do |entry|
             entry[:exists] && entry[:key].start_with?('login:locked:')
           end
-          return if locked_keys.empty?
+          if locked_keys.empty?
+            check_partial_rate_limit_scan(limits, findings)
+            return
+          end
 
           add(
             findings,
@@ -623,6 +640,20 @@ module Auth
             :rate_limited,
             'Login rate limiter is ENGAGED for this email — attempts are rejected before ' \
             "authentication runs (TTL #{locked_keys.map { |entry| entry[:ttl] }.compact.max}s).",
+          )
+        end
+
+        # No lockout found, but the per-IP key SCAN stopped at its deadline, so
+        # "clear" is not established. Says so instead of implying it.
+        def check_partial_rate_limit_scan(limits, findings)
+          return unless limits[:scan_complete] == false
+
+          add(
+            findings,
+            :info,
+            :rate_limit_scan_incomplete,
+            'No login rate-limit lockout found, but the per-IP lockout check stopped early ' \
+            '(the key scan ran out of time). `bin/ots customers diagnose` runs the full check.',
           )
         end
 

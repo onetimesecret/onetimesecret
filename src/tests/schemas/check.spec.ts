@@ -1,4 +1,5 @@
 import { build } from 'esbuild';
+import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
@@ -9,15 +10,8 @@ import { responseSchemas as v1 } from '@/schemas/api/v1/responses/registry';
 import { responseSchemas as v2 } from '@/schemas/api/v2/responses/registry';
 import { responseSchemas as v3 } from '@/schemas/api/v3/responses/registry';
 import { allSchemas, checkPayload, closest, counted, type CheckResult } from '@/schemas/check';
+import { loggersSchema } from '@/schemas/contracts/config/logging';
 import { schemaRegistry } from '@/schemas/registry';
-
-/** Own keys that shadow Object.prototype members, as JSON.parse produces them. */
-function inheritedNames(): Record<string, unknown> {
-  return JSON.parse(
-    '{"id":1,"constructor":"private-value","toString":"private-value",' +
-      '"__proto__":{"private-nested-key":"private-value"}}'
-  ) as Record<string, unknown>;
-}
 
 function reportText(result: CheckResult): string {
   return JSON.stringify({
@@ -77,102 +71,7 @@ describe('checkPayload', () => {
       issueCount: 0,
       groups: new Map(),
       undeclared: [],
-      unchecked: [],
     });
-  });
-
-  it('reports keys named like Object.prototype members as undeclared without following them', () => {
-    const result = checkPayload(z.object({ id: z.number() }), inheritedNames());
-
-    expect(result.success).toBe(true);
-    expect(result.undeclared).toEqual(['constructor', 'toString', '__proto__']);
-    expect(result.groups.get('(root)')!.undeclared).toEqual(
-      new Set(['constructor', 'toString', '__proto__'])
-    );
-    expect(reportText(result)).not.toContain('private-');
-  });
-
-  it.each([
-    ['looseObject', z.looseObject({ id: z.number() })],
-    ['passthrough', z.object({ id: z.number() }).passthrough()],
-    ['catchall(unknown)', z.object({ id: z.number() }).catchall(z.unknown())],
-    ['catchall(any)', z.object({ id: z.number() }).catchall(z.any().optional())],
-  ])('lists keys a %s keeps as unchecked, not undeclared, without walking them', (_, loose) => {
-    const schema = z.object({ rows: z.array(loose) });
-    const result = checkPayload(schema, {
-      rows: [{ id: 1, extra: { 'private-nested-key': 'private-value' } }, { id: 2, other: true }],
-      topExtra: 'private-value',
-    });
-
-    expect(result.success).toBe(true);
-    expect(result.unchecked).toEqual(['rows[*].extra', 'rows[*].other']);
-    expect(result.undeclared).toEqual(['topExtra']);
-    expect(result.groups).toEqual(
-      new Map([
-        ['(root)', { missing: new Map(), problems: new Map(), undeclared: new Set(['topExtra']) }],
-      ])
-    );
-    expect(reportText(result)).not.toContain('private-');
-  });
-
-  it.each([
-    ['strictObject', z.strictObject({ id: z.number() })],
-    ['catchall(never)', z.object({ id: z.number() }).catchall(z.never())],
-  ])('keeps keys a %s rejects undeclared, beside the unrecognized_keys issue', (_, strict) => {
-    const result = checkPayload(strict, { id: 1, extra: 'private-value' });
-
-    expect(result.success).toBe(false);
-    expect(result.undeclared).toEqual(['extra']);
-    expect(result.unchecked).toEqual([]);
-    expect(result.groups).toEqual(
-      new Map([
-        [
-          '(root)',
-          {
-            missing: new Map(),
-            problems: new Map([['(root): Unrecognized key: "extra" (input: object(2 keys))', 1]]),
-            undeclared: new Set(['extra']),
-          },
-        ],
-      ])
-    );
-    expect(reportText(result)).not.toContain('private-');
-  });
-
-  it('treats a passthrough object reset with strip() as a plain object', () => {
-    const schema = z.object({ id: z.number() }).passthrough().strip();
-    const result = checkPayload(schema, { id: 1, extra: 'private-value' });
-
-    expect(result.success).toBe(true);
-    expect(result.undeclared).toEqual(['extra']);
-    expect(result.unchecked).toEqual([]);
-  });
-
-  it('checks keys under a typed catchall like declared fields', () => {
-    const schema = z.object({ id: z.number() }).catchall(z.enum(['on', 'off']));
-    expect(checkPayload(schema, { id: 1, featureA: 'on' })).toEqual({
-      success: true,
-      issueCount: 0,
-      groups: new Map(),
-      undeclared: [],
-      unchecked: [],
-    });
-
-    const invalid = checkPayload(schema, { id: 1, featureA: 'private-value' });
-    expect(invalid.success).toBe(false);
-    expect(invalid.undeclared).toEqual([]);
-    expect(invalid.unchecked).toEqual([]);
-    expect(counted(invalid.groups.get('(root)')!.problems)).toEqual([
-      'featureA: expected "on" | "off", got string(13)',
-    ]);
-    expect(reportText(invalid)).not.toContain('private-value');
-
-    // Object catchalls are walked like any declared object.
-    const nested = z.object({}).catchall(z.object({ id: z.number() }));
-    const result = checkPayload(nested, { a: { id: 1, extra: 'private-value' } });
-    expect(result.success).toBe(true);
-    expect(result.undeclared).toEqual(['a.extra']);
-    expect(reportText(result)).not.toContain('private-value');
   });
 
   it('reports undeclared keys on success without walking record keys or unknown values', () => {
@@ -204,6 +103,138 @@ describe('checkPayload', () => {
     );
     expect(reportText(result)).not.toContain('private-');
     expect(input.rows[0]).toHaveProperty('extra');
+  });
+
+  it('accepts custom logger keys covered by the logging catchall (F2)', () => {
+    const input = { App: 'info', Custom: 'debug' };
+    expect(loggersSchema.safeParse(input).success).toBe(true);
+    expect(checkPayload(loggersSchema, input)).toEqual({
+      success: true,
+      issueCount: 0,
+      groups: new Map(),
+      undeclared: [],
+    });
+  });
+
+  it('does not label passthrough keys as stripped or expand their unknown values (F2)', () => {
+    const schema = z.object({ id: z.number() }).passthrough();
+    const result = checkPayload(schema, {
+      id: 1,
+      extra: { 'private-nested-key': 'private-value' },
+    });
+    expect(result.success).toBe(true);
+    expect(result.undeclared).toEqual([]);
+    expect(result.groups.size).toBe(0);
+    expect(reportText(result)).not.toContain('private-');
+  });
+
+  it('walks typed catchall values and only reports their stripped nested keys (F2)', () => {
+    const schema = z.object({}).catchall(z.object({ id: z.number() }));
+    const result = checkPayload(schema, {
+      valid: { id: 1, extra: true },
+      invalid: { id: 'private-value', extra: true },
+    });
+    expect(result.success).toBe(false);
+    expect(result.issueCount).toBe(1);
+    expect(result.undeclared).toEqual(['valid.extra', 'invalid.extra']);
+    expect(counted(result.groups.get('invalid')!.problems)).toEqual([
+      'id: expected number, got string(13)',
+    ]);
+  });
+
+  it('reports rejected strict-object keys as errors, not stripped keys (F2)', () => {
+    const result = checkPayload(z.strictObject({ id: z.number() }), { id: 1, extra: true });
+    expect(result.success).toBe(false);
+    expect(result.issueCount).toBe(1);
+    expect(result.undeclared).toEqual([]);
+    expect(result.groups.get('(root)')!.undeclared.size).toBe(0);
+    expect(result.groups.get('(root)')!.problems.size).toBe(1);
+  });
+
+  it('reports stripped keys from the successful registered login union branch (F3)', () => {
+    const schema = allSchemas().get('v3.login')!;
+    const input = { success: 'ok', extra: true };
+    expect(schema.safeParse(input).success).toBe(true);
+    const result = checkPayload(schema, input);
+    expect(result.success).toBe(true);
+    expect(result.issueCount).toBe(0);
+    expect(result.undeclared).toEqual(['extra']);
+    expect(result.groups.get('(root)')!.undeclared).toEqual(new Set(['extra']));
+  });
+
+  it('walks successful nested discriminated-union branches in arrays (F3)', () => {
+    const row = z.discriminatedUnion('kind', [
+      z.object({ kind: z.literal('number'), value: z.number() }),
+      z.object({ kind: z.literal('text'), value: z.string() }),
+    ]);
+    const schema = z.object({ rows: z.array(row.optional()) });
+    const result = checkPayload(schema, {
+      rows: [
+        { kind: 'number', value: 1, extra: true },
+        { kind: 'text', value: 'private-value', other: true },
+        { kind: 'invalid', extra: true },
+      ],
+    });
+    expect(result.success).toBe(false);
+    expect(result.issueCount).toBe(1);
+    expect(result.undeclared).toEqual(['rows[*].extra', 'rows[*].other']);
+    expect(reportText(result)).not.toContain('private-value');
+  });
+
+  it('uses the first successful union branch without probing later branches (F3)', () => {
+    let laterCalls = 0;
+    const schema = z.union([
+      z.object({ id: z.number() }).transform(({ id }) => String(id)),
+      z.object({ id: z.number(), extra: z.boolean() }).transform((value) => {
+        laterCalls++;
+        return value;
+      }),
+    ]);
+    expect(checkPayload(schema, { id: 1, extra: true }).undeclared).toEqual(['extra']);
+    expect(laterCalls).toBe(0);
+  });
+
+  it('keeps failed unions opaque, including when catch suppresses their diagnostics (F3)', () => {
+    const schema = z.union([z.object({ id: z.number() }), z.object({ label: z.string() })]);
+    const input = { id: 'private-value', extra: true };
+    const failed = checkPayload(schema, input);
+    expect(failed.success).toBe(false);
+    expect(failed.issueCount).toBe(1);
+    expect(failed.undeclared).toEqual([]);
+    expect(failed.groups.get('(root)')!.problems.size).toBe(1);
+    expect(reportText(failed)).not.toContain('private-value');
+    expect(checkPayload(schema.catch({ id: 0 }), input)).toEqual({
+      success: true,
+      issueCount: 0,
+      groups: new Map(),
+      undeclared: [],
+    });
+  });
+
+  it('does not expand unions rejected or throwing beneath diagnostic-suppressing wrappers (F3)', () => {
+    const options = [z.object({ id: z.number() }), z.object({ label: z.string() })] as const;
+    const rejected = z
+      .union(options)
+      .refine(() => false)
+      .catch({ id: 0 });
+
+    const suppressed = z
+      .union([
+        z.unknown().transform(() => {
+          throw new Error('transform failed');
+        }),
+        z.string(),
+      ])
+      .nullable();
+    const input = { id: 1, extra: true };
+    expect(checkPayload(rejected, input).undeclared).toEqual([]);
+    expect(checkPayload(suppressed, null).success).toBe(true);
+    expect(closest(input, new Map([['rejected', rejected]]))).toEqual([
+      { name: 'rejected', issues: 0, matched: 1, undeclared: 0 },
+    ]);
+    expect(closest(null, new Map([['suppressed', suppressed]]))).toEqual([
+      { name: 'suppressed', issues: 0, matched: 1, undeclared: 0 },
+    ]);
   });
 
   it('groups repeated missing fields and problems across array items on failure', () => {
@@ -370,27 +401,46 @@ describe('closest', () => {
     ]);
   });
 
-  it('ranks inputs whose keys are named like Object.prototype members', () => {
+  it('counts accepted catchall and passthrough values without counting rejected keys (F2)', () => {
+    const input = { id: 1, valid: 2, invalid: 'private-value' };
     const schemas = new Map<string, z.ZodType>([
-      ['v3.other', z.object({ other: z.boolean() })],
-      ['v3.id', z.object({ id: z.number() })],
+      ['catchall', z.object({ id: z.number() }).catchall(z.number())],
+      ['passthrough', z.object({ id: z.number() }).passthrough()],
+      ['strict', z.strictObject({ id: z.number() })],
+      ['strip', z.object({ id: z.number() })],
     ]);
-    expect(closest(inheritedNames(), schemas)).toEqual([
-      { name: 'v3.id', issues: 0, matched: 1, undeclared: 3 },
-      { name: 'v3.other', issues: 1, matched: 0, undeclared: 4 },
+    expect(closest(input, schemas, 4)).toEqual([
+      { name: 'passthrough', issues: 0, matched: 3, undeclared: 0 },
+      { name: 'catchall', issues: 1, matched: 2, undeclared: 0 },
+      { name: 'strip', issues: 0, matched: 1, undeclared: 2 },
+      { name: 'strict', issues: 1, matched: 1, undeclared: 0 },
     ]);
   });
 
-  it('credits typed catchalls for extra keys but not loose objects that keep them unchecked', () => {
+  it('ranks successful unions by their branch leaves instead of one opaque leaf (F3)', () => {
     const schemas = new Map<string, z.ZodType>([
-      ['v3.loose', z.looseObject({ other: z.boolean() })],
-      ['v3.plain', z.object({ id: z.number() })],
-      ['v3.typed', z.object({}).catchall(z.number())],
+      ['weak', z.object({ success: z.string() })],
+      ['v3.login', allSchemas().get('v3.login')!],
     ]);
-    expect(closest({ id: 1, a: 2, b: 3 }, schemas)).toEqual([
-      { name: 'v3.typed', issues: 0, matched: 3, undeclared: 0 },
-      { name: 'v3.plain', issues: 0, matched: 1, undeclared: 2 },
-      { name: 'v3.loose', issues: 1, matched: 0, undeclared: 0 },
+    expect(closest({ success: 'ok', mfa_required: true, extra: true }, schemas)).toEqual([
+      { name: 'v3.login', issues: 0, matched: 2, undeclared: 1 },
+      { name: 'weak', issues: 0, matched: 1, undeclared: 2 },
+    ]);
+  });
+
+  it('preserves failed and diagnostic-suppressed union leaf scores (F3)', () => {
+    const schema = z.union([z.object({ id: z.number() }), z.object({ label: z.string() })]);
+    expect(
+      closest(
+        { id: 'private-value', extra: true },
+        new Map<string, z.ZodType>([
+          ['failed', schema],
+          ['suppressed', schema.catch({ id: 0 })],
+        ])
+      )
+    ).toEqual([
+      { name: 'suppressed', issues: 0, matched: 1, undeclared: 0 },
+      { name: 'failed', issues: 1, matched: 0, undeclared: 0 },
     ]);
   });
 
@@ -409,6 +459,149 @@ describe('closest', () => {
       { name: 'valid', issues: 0, matched: 1, undeclared: 0 },
     ]);
   });
+});
+
+describe('coverage QA regressions', () => {
+  it.each(['kind', ''])(
+    'never starts bypassed async transforms with discriminator %j (QA-01/QA-03)',
+    async (discriminator) => {
+      const root = fileURLToPath(new URL('../../../', import.meta.url));
+      const bundle = await build({
+        absWorkingDir: root,
+        stdin: {
+          resolveDir: root,
+          loader: 'ts',
+          contents: `
+          import { z } from 'zod';
+          import { checkPayload, closest } from './src/schemas/check';
+          let calls = 0;
+          const asyncValue = z.unknown().transform(async () => {
+            calls++;
+            throw new Error('async rejection');
+          });
+          const union = z.union([asyncValue, z.string()]);
+          const defaultUnion = z.union([z.literal('fallback'), asyncValue]);
+          const normalUnion = z.union([
+            z.object({ id: z.number() }), z.object({ label: z.string() }),
+          ]);
+          const discriminator = ${JSON.stringify(discriminator)};
+          const discriminated = z.discriminatedUnion(discriminator, [
+            z.object({ [discriminator]: z.literal('async'), value: asyncValue }),
+            z.object({ [discriminator]: z.literal('sync'), value: z.string() }),
+          ]);
+          const cases = [
+            [union.nullable(), null],
+            [union.optional(), undefined],
+            [union.default('fallback'), undefined],
+            [union.default('fallback').catch('fallback'), undefined],
+            [union.nullable().catch('fallback'), null],
+            [z.lazy(() => union.nullable()), null],
+            [z.object({ value: union.nullable() }), { value: null }],
+            [defaultUnion.prefault('fallback'), undefined],
+            [z.union([union.default('fallback'), z.string()]), undefined],
+            [z.preprocess(() => 'fallback', defaultUnion), null],
+            [discriminated, { [discriminator]: 'sync', value: 'ok', extra: true }, 2, ['extra']],
+            [discriminated, Object.assign(Object.create(null), { [discriminator]: 'sync', value: 'ok' })],
+            [z.object({
+              preprocessed: z.preprocess(() => 'fallback', defaultUnion),
+              normal: normalUnion,
+            }), { preprocessed: null, normal: { id: 1, extra: true } }, 2, ['normal.extra']],
+          ];
+          for (const [schema, input, matched = 1, undeclared = []] of cases) {
+            if (!schema.safeParse(input).success) throw new Error('invalid fixture');
+            const report = checkPayload(schema, input);
+            const candidates = closest(input, new Map([['test', schema]]));
+            await new Promise((resolve) => setImmediate(resolve));
+            if (!report.success || JSON.stringify(report.undeclared) !== JSON.stringify(undeclared)) {
+              throw new Error('check failed');
+            }
+            if (candidates.length !== 1 || candidates[0].issues !== 0 || candidates[0].matched !== matched || candidates[0].undeclared !== undeclared.length) {
+              throw new Error('candidate lost');
+            }
+          }
+          await new Promise((resolve) => setImmediate(resolve));
+          if (calls !== 0) throw new Error('bypassed transform invoked');
+        `,
+        },
+        bundle: true,
+        platform: 'node',
+        format: 'esm',
+        write: false,
+        logLevel: 'silent',
+      });
+      expect(() =>
+        execFileSync(process.execPath, ['--unhandled-rejections=strict', '--input-type=module'], {
+          input: bundle.outputFiles[0].text,
+          timeout: 5000,
+          stdio: 'pipe',
+        })
+      ).not.toThrow();
+    }
+  );
+
+  it.each(['optional', 'nullable', 'default', 'prefault', 'catch'] as const)(
+    'still traverses %s-wrapped unions when supplied input reaches the union (QA-01)',
+    (wrapper) => {
+      const union = z.union([z.object({ id: z.number() }), z.object({ label: z.string() })]);
+      const schemas = {
+        optional: union.optional(),
+        nullable: union.nullable(),
+        default: union.default({ id: 0 }),
+        prefault: union.prefault({ id: 0 }),
+        catch: union.catch({ id: 0 }),
+      };
+      const schema = schemas[wrapper];
+      const input = { id: 1, extra: true };
+      expect(checkPayload(schema, input).undeclared).toEqual(['extra']);
+      expect(closest(input, new Map([['wrapped', schema]]))).toEqual([
+        { name: 'wrapped', issues: 0, matched: 1, undeclared: 1 },
+      ]);
+    }
+  );
+
+  it.each(['toString', 'constructor', '__proto__'])(
+    'treats inherited shape name %s as a stripped key in the login union (QA-02)',
+    (key) => {
+      const schema = allSchemas().get('v3.login')!;
+      const input = JSON.parse(`{"success":"ok","${key}":"private-value"}`);
+      expect(schema.safeParse(input).success).toBe(true);
+      const result = checkPayload(schema, input);
+      expect(result.success).toBe(true);
+      expect(result.undeclared).toEqual([key]);
+      expect(reportText(result)).not.toContain('private-value');
+      expect(closest(input, new Map([['v3.login', schema]]))).toEqual([
+        { name: 'v3.login', issues: 0, matched: 1, undeclared: 1 },
+      ]);
+    }
+  );
+
+  it('still visits explicitly declared prototype-named fields (QA-02)', () => {
+    const schema = z.union([
+      z.object({ toString: z.string(), constructor: z.number() }),
+      z.object({ id: z.number() }),
+    ]);
+    const input = JSON.parse('{"toString":"private-value","constructor":1}');
+    expect(checkPayload(schema, input).undeclared).toEqual([]);
+    expect(closest(input, new Map([['declared', schema]]))).toEqual([
+      { name: 'declared', issues: 0, matched: 2, undeclared: 0 },
+    ]);
+  });
+
+  it.each(['toString', 'constructor', '__proto__'])(
+    'treats inherited shape name %s as a stripped key within typed catchalls (QA-02)',
+    (key) => {
+      const schema = z.object({}).catchall(z.object({ id: z.number() }));
+      const input = JSON.parse(`{"row":{"id":1,"${key}":"private-value"}}`);
+      expect(schema.safeParse(input).success).toBe(true);
+      const result = checkPayload(schema, input);
+      expect(result.success).toBe(true);
+      expect(result.undeclared).toEqual([`row.${key}`]);
+      expect(reportText(result)).not.toContain('private-value');
+      expect(closest(input, new Map([['catchall', schema]]))).toEqual([
+        { name: 'catchall', issues: 0, matched: 1, undeclared: 1 },
+      ]);
+    }
+  );
 });
 
 describe('counted', () => {

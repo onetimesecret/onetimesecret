@@ -23,15 +23,10 @@
  * are described by type and size (`string(24)`, `array(3)`), not content.
  * Key names and schema-provided messages are printed; custom messages must
  * not embed input values. The contents of `z.record` maps are not walked.
- * Schema diagnostics (e.g. unfamiliar entitlement warnings, which quote the
- * value) are suppressed while checking.
  *
  * Plain `z.object` strips unknown keys, so a payload can parse cleanly while
  * carrying fields the schema does not declare. Those are listed as
- * "undeclared", on success and on failure. Loose objects (`z.looseObject`,
- * `.passthrough()`) keep such keys without checking them; those are listed
- * as "unchecked" and their values are not walked. A typed `.catchall()`
- * checks extra keys like declared fields.
+ * "undeclared", on success and on failure.
  */
 
 import { readFileSync } from 'fs';
@@ -44,11 +39,6 @@ function usage(message?: string): never {
   console.error('Usage: check.ts --list | check.ts [--show-values] <schema> [file]');
   console.error('Reads JSON from stdin when no file is given.');
   process.exit(2);
-}
-
-function printKeys(heading: string, keys: string[]): void {
-  console.log(`${heading} (${keys.length}):`);
-  for (const key of keys) console.log(`  ${key}`);
 }
 
 function printGroups(groups: Map<string, Group>): void {
@@ -91,24 +81,13 @@ try {
   usage(`Could not read JSON (${(error as Error).name})`);
 }
 
-// Schema transforms report application drift with the raw value (e.g. an
-// unfamiliar entitlement). A checked document must not reach that path, from
-// the named schema or from any schema the ranking tries.
-const { result, candidates } = withoutSchemaDiagnostics(() => {
-  const checked = checkPayload(schema, input, showValues);
-  return { result: checked, candidates: checked.success ? [] : closest(input, schemas) };
-});
-const UNCHECKED = 'Unchecked keys, kept by a loose object';
+const result = withoutSchemaDiagnostics(() => checkPayload(schema, input, showValues));
 
 if (result.success) {
   console.log(`OK: valid against ${name}`);
   if (result.undeclared.length > 0) {
-    console.log();
-    printKeys('Undeclared keys, stripped by the schema', result.undeclared);
-  }
-  if (result.unchecked.length > 0) {
-    console.log();
-    printKeys(UNCHECKED, result.unchecked);
+    console.log(`\nUndeclared keys, stripped by the schema (${result.undeclared.length}):`);
+    for (const key of result.undeclared) console.log(`  ${key}`);
   }
   process.exit(0);
 }
@@ -116,13 +95,9 @@ if (result.success) {
 const hidden = showValues ? '' : ' Values hidden; --show-values prints them at failing paths.';
 console.log(`INVALID against ${name}: ${result.issueCount} issues.${hidden}\n`);
 printGroups(result.groups);
-if (result.unchecked.length > 0) {
-  printKeys(UNCHECKED, result.unchecked);
-  console.log();
-}
 
 console.log('Closest schemas (by fields recognised):');
-for (const c of candidates) {
+for (const c of withoutSchemaDiagnostics(() => closest(input, schemas))) {
   const status = c.issues === 0 ? 'valid' : `${c.issues} issues`;
   console.log(
     `  ${c.name.padEnd(36)} ${String(c.matched).padStart(4)} matched  ${status}, ${c.undeclared} undeclared`

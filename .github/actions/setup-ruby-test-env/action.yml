@@ -3,21 +3,23 @@
 # ==============================================================================
 # Setup Ruby Test Environment - Composite Action
 # ==============================================================================
-# Version: 1.1.0
+# Version: 1.2.0
 # Repository: onetimesecret/onetimesecret
 #
 # Prepares a complete Ruby test environment for CI jobs. Consolidates common
 # setup steps used across multiple Ruby test jobs.
 #
-# The Ruby pin lives in the repo, not here: the ruby-version input defaults
-# to '.ruby-version', which ruby/setup-ruby resolves by reading that file.
-# Pass a literal version only to override the pin (e.g. a preview lane).
+# The Ruby pin lives in the repo, not here: ruby/setup-ruby reads
+# .ruby-version. There is no version input. The Gemfile reads the same file
+# (`ruby file:`), so handing setup-ruby any other version only makes Bundler
+# refuse to load. To run under another Ruby (a preview lane), pin the
+# checkout first with .github/scripts/pin-ruby-version.sh.
 #
 # Setup Steps:
 #   1. Download frontend build artifacts (optional)
 #   2. Verify downloaded assets exist
 #   3. Enable memory overcommit for Redis
-#   4. Setup Ruby (from .ruby-version unless ruby-version overrides it)
+#   4. Setup Ruby (from .ruby-version)
 #      with bundler caching (deployment mode, so the lockfile is frozen)
 #   5. Install gem dependencies
 #   6. Copy default config files to etc/
@@ -28,12 +30,13 @@
 #     with:
 #       download-artifacts: 'true'
 #
-#   # Explicit override (e.g. a preview lane testing a newer Ruby):
+#   # Another Ruby (e.g. a preview lane testing a newer one):
+#   - run: .github/scripts/pin-ruby-version.sh 4.0.2
 #   - uses: ./.github/actions/setup-ruby-test-env
-#     with:
-#       ruby-version: '4.0.2'
 #
 # Changelog:
+#   1.2.0 - Remove the ruby-version override: under `ruby file:` it could only
+#           fail; pin the checkout with pin-ruby-version.sh instead
 #   1.1.0 - Read Ruby version from .ruby-version; ruby-version is override-only
 #   1.0.0 - Initial release consolidating Ruby setup from ci.yml
 # ==============================================================================
@@ -45,10 +48,6 @@ description: |
   Ruby/bundler setup, dependencies, config files, and test secrets.
 
 inputs:
-  ruby-version:
-    description: "Explicit Ruby version override. Default '.ruby-version' reads the repo pin."
-    required: false
-    default: '.ruby-version'
   download-artifacts:
     description: 'Whether to download frontend build artifacts'
     required: false
@@ -89,7 +88,7 @@ runs:
     - name: Setup Ruby
       uses: ruby/setup-ruby@003a5c4d8d6321bd302e38f6f0ec593f77f06600 # v1.319.0
       with:
-        ruby-version: ${{ inputs.ruby-version }}
+        ruby-version: '.ruby-version'
         bundler-cache: true
 
     - name: Setup test configuration

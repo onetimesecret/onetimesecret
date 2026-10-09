@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# scripts/ci/sentry-sourcemap-preflight.sh
+# .github/scripts/sentry-sourcemap-preflight.sh
 #
 # Pre-upload assertions for the "Upload frontend sourcemaps to Sentry" step of
 # .github/workflows/build-and-publish-oci-images.yml.
@@ -25,7 +25,7 @@
 #   4. the upload's --project / --dist not matching what a frontend event
 #      actually carries (bundles that exist but can never resolve).
 #
-# It NEVER exits non-zero. It classifies, reports via scripts/ci/sentry-status.sh,
+# It NEVER exits non-zero. It classifies, reports via .github/scripts/sentry-status.sh,
 # and writes `status=` to $GITHUB_OUTPUT so the workflow can decide whether the
 # upload is worth attempting:
 #
@@ -45,7 +45,7 @@
 set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-STATUS="${REPO_ROOT}/scripts/ci/sentry-status.sh"
+STATUS="${REPO_ROOT}/.github/scripts/sentry-status.sh"
 
 DIST_DIR="${SENTRY_DIST_DIR:-./public/web/dist}"
 UPLOAD_PROJECT="${SENTRY_PROJECT:-frontend}"

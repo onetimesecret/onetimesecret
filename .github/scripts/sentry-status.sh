@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# scripts/ci/sentry-status.sh
+# .github/scripts/sentry-status.sh
 #
 # Durable status reporter for the Sentry delivery steps of
 # .github/workflows/build-and-publish-oci-images.yml.

@@ -2,7 +2,7 @@
 #
 # tools/testsuite/ci-metrics-breakdown-test.sh
 #
-# Covers scripts/ci/ci-metrics-breakdown.sh, the test-step half of the T5 CI
+# Covers .github/scripts/ci-metrics-breakdown.sh, the test-step half of the T5 CI
 # Metrics report.
 #
 # WHAT THIS PROTECTS
@@ -21,7 +21,7 @@ REPO_ROOT="$(cd "${TEST_DIR}/../.." && pwd)"
 # shellcheck source=tools/testsuite/lib/assert.sh
 source "${TEST_DIR}/lib/assert.sh"
 
-SCRIPT="${REPO_ROOT}/scripts/ci/ci-metrics-breakdown.sh"
+SCRIPT="${REPO_ROOT}/.github/scripts/ci-metrics-breakdown.sh"
 FIXTURES="${TEST_DIR}/fixtures/ci-metrics"
 CURRENT="${FIXTURES}/current.json"
 BASELINE_A="${FIXTURES}/baseline-a.json"

@@ -137,3 +137,17 @@ the original evidence; each entry here identifies the fix and the baseline used 
 - **Residual:** a proxy that strips unknown request headers turns these refreshes back into
   activity (rollout notes). Full mode's absolute session lifetime still applies.
 - **Closure baseline:** `4f2a16370` (`main`, #4496) on 2026-09-20.
+
+## 2026-10-07
+
+### RISK-2026-08-14-M11 — Resolved
+
+- **Finding:** `sqlite3` 2.9.5 use-after-free (`GHSA-mwm8-39rw-8826`).
+- **Source:** [2026-08-14 historical risk register](../risk-registers/risk-register-2026-08-14.md), M-11.
+- **Resolution:** `Gemfile.lock` locks `sqlite3` 2.9.6 on all nine platform entries, with no 2.9.5
+  entry left. The advisory lists affected versions as `>= 1.4.0, <= 2.9.5` and the first patched
+  version as `2.9.6`. v0.26.13 still locked 2.9.5; v0.26.14 is the first tag that locks 2.9.6.
+  `Gemfile` already allowed it (`~> 2.0`).
+- **Verification:** lockfile inspection only, on `main` and `develop`. The installed gem was not
+  loaded and no test lane was run; the change is a version pin.
+- **Closure baseline:** `7d324f41d` (`main`) on 2026-10-07; first release `v0.26.14`.

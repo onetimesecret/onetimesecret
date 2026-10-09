@@ -1,6 +1,6 @@
 // src/schemas/check.ts
 
-import type { z } from 'zod';
+import { z } from 'zod';
 
 import { responseSchemas as incoming } from './api/incoming/responses/registry';
 import { responseSchemas as internal } from './api/internal/responses/registry';
@@ -82,13 +82,27 @@ interface Def {
   out?: z.core.$ZodType;
   getter?: () => z.core.$ZodType;
   shape?: Record<string, z.core.$ZodType>;
-  /** Schema for object keys outside `shape`: unknown when loose, never when strict. */
-  catchall?: z.core.$ZodType;
   element?: z.core.$ZodType;
+  catchall?: z.core.$ZodType;
+  options?: z.core.$ZodType[];
+  discriminator?: string;
 }
 
 function defOf(schema: z.core.$ZodType): Def {
   return schema._zod.def as unknown as Def;
+}
+
+interface CoverageInput {
+  value: unknown;
+  probeUnions: boolean;
+}
+
+// Missing prefaults are validated using a substituted value, not the original input.
+function bypassesInput(def: Def, value: unknown): boolean {
+  return (
+    (value === null && def.type === 'nullable') ||
+    (value === undefined && ['optional', 'default', 'prefault'].includes(def.type))
+  );
 }
 
 /**
@@ -96,15 +110,19 @@ function defOf(schema: z.core.$ZodType): Def {
  * the schema that checks the input. `z.preprocess` is a pipe whose input side
  * is a transform, so its output side is the one that describes the shape.
  */
-function unwrap(schema: z.core.$ZodType): z.core.$ZodType {
+function unwrap(schema: z.core.$ZodType, input?: CoverageInput): z.core.$ZodType {
   let current = schema;
   for (let depth = 0; depth < 32; depth++) {
     const def = defOf(current);
+    if (input && bypassesInput(def, input.value)) return current;
     let next: z.core.$ZodType | undefined;
     if (def.innerType) next = def.innerType;
     else if (def.type === 'lazy') next = def.getter?.();
     else if (def.type === 'pipe' && def.in) {
-      next = defOf(unwrap(def.in)).type === 'transform' ? def.out : def.in;
+      const preprocess = defOf(unwrap(def.in)).type === 'transform';
+      // The raw value may select branches the preprocessed input never visited.
+      if (input && preprocess) input.probeUnions = false;
+      next = preprocess ? def.out : def.in;
     }
     if (!next) return current;
     current = next;
@@ -112,49 +130,66 @@ function unwrap(schema: z.core.$ZodType): z.core.$ZodType {
   return current;
 }
 
-interface Coverage {
-  /** Leaf positions in the input that the schema declares and accepted. */
-  matched: number;
-  /** Input keys the schema does not declare, by display path. */
-  undeclared: Map<string, Path>;
-  /** Input keys a loose object keeps without checking, by display path. */
-  unchecked: Map<string, Path>;
+function successfulUnionBranch(
+  schema: z.core.$ZodType,
+  value: unknown,
+  probeUnions: boolean
+): z.core.$ZodType | undefined {
+  const def = defOf(schema);
+  if (!probeUnions || def.type !== 'union' || !def.options) return;
+  try {
+    // A catch wrapper may have suppressed this union's failure.
+    if (z.core.safeParse(schema, value).success) {
+      const discriminator = def.discriminator;
+      return def.options.find((option) => {
+        if (discriminator !== undefined) {
+          const values = option._zod.propValues?.[discriminator];
+          const actual = (value as Record<string, unknown>)[discriminator];
+          if (!values || ![...values].some((expected) => expected === actual)) return false;
+        }
+        return z.core.safeParse(option, value).success;
+      });
+    }
+  } catch {
+    // Coverage probes must not introduce errors suppressed by the original parse.
+  }
 }
 
-/**
- * How an object treats keys outside its shape. Plain objects strip them and
- * strict ones reject them (`never`); both leave them undeclared. A loose
- * object (`unknown`/`any`) keeps them unchecked, so they earn no credit and
- * their values are not walked. Any other catchall checks them like fields.
- */
-function extraKeys(def: Def): 'undeclared' | 'unchecked' | 'checked' {
-  if (!def.catchall) return 'undeclared';
-  const type = defOf(unwrap(def.catchall)).type;
-  if (type === 'never') return 'undeclared';
-  return type === 'unknown' || type === 'any' ? 'unchecked' : 'checked';
+interface Coverage {
+  /** Leaf positions in the input that the schema covers and accepted. */
+  matched: number;
+  /** Input keys stripped by the schema, by display path. */
+  undeclared: Map<string, Path>;
 }
 
 function coverage(schema: z.ZodType, input: unknown, issuePaths: Set<string>): Coverage {
-  const result: Coverage = { matched: 0, undeclared: new Map(), unchecked: new Map() };
-  const visit = (node: z.core.$ZodType, value: unknown, path: Path): void => {
-    const def = defOf(unwrap(node));
+  const result: Coverage = { matched: 0, undeclared: new Map() };
+  const visit = (node: z.core.$ZodType, input: CoverageInput, path: Path): void => {
+    const { value } = input;
+    const unwrapped = unwrap(node, input);
+    const def = defOf(unwrapped);
+    const branch = successfulUnionBranch(unwrapped, value, input.probeUnions);
+    if (branch) {
+      visit(branch, input, path);
+      return;
+    }
     if (def.type === 'object' && def.shape && isPlainObject(value)) {
-      const extra = extraKeys(def);
       for (const [key, child] of Object.entries(value)) {
         const childPath = [...path, key];
-        // Own keys only: `constructor` or `__proto__` must not resolve to
-        // Object.prototype members.
-        if (Object.hasOwn(def.shape, key)) visit(def.shape[key], child, childPath);
-        else if (extra === 'checked') visit(def.catchall!, child, childPath);
-        else result[extra].set(formatPath(childPath), childPath);
+        const childInput = { value: child, probeUnions: input.probeUnions };
+        if (Object.hasOwn(def.shape, key)) visit(def.shape[key], childInput, childPath);
+        else if (!def.catchall) result.undeclared.set(formatPath(childPath), childPath);
+        else if (defOf(def.catchall).type !== 'never') visit(def.catchall, childInput, childPath);
       }
     } else if (def.type === 'array' && def.element && Array.isArray(value)) {
-      value.forEach((item, i) => visit(def.element!, item, [...path, i]));
+      value.forEach((item, i) =>
+        visit(def.element!, { value: item, probeUnions: input.probeUnions }, [...path, i])
+      );
     } else if (!issuePaths.has(pathKey(path))) {
       result.matched++;
     }
   };
-  visit(schema, input, []);
+  visit(schema, { value: input, probeUnions: true }, []);
   return result;
 }
 
@@ -173,8 +208,6 @@ export interface CheckResult {
   issueCount: number;
   groups: Map<string, Group>;
   undeclared: string[];
-  /** Keys a loose object keeps without checking. Not grouped: they are not problems. */
-  unchecked: string[];
 }
 
 export function counted(map: Map<string, number>): string[] {
@@ -246,7 +279,6 @@ export function checkPayload(schema: z.ZodType, input: unknown, showValues = fal
     issueCount: issues.length,
     groups: groupIssues({ input, issues, undeclared: cov.undeclared.values() }, showValues),
     undeclared: [...cov.undeclared.keys()],
-    unchecked: [...cov.unchecked.keys()],
   };
 }
 
