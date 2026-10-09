@@ -699,6 +699,41 @@ RSpec.shared_examples 'platform SAML SSO' do
       expect(db[:accounts].where(id: rows.first[:account_id]).first[:email]).to eq(email)
     end
 
+    # #4466: the SAML sign-in reaches login_session through rodauth-omniauth's
+    # login("omniauth"), and the app's clear_session (session.destroy) ends
+    # the id the request phase ran on.
+    it 'signs in under a new session id and ends the one the request phase used', :aggregate_failures do
+      store   = Onetime::Operations::Sessions::Store
+      codec   = Onetime::SessionCodec.from_config
+      created_emails << email
+      request = start_login
+      old_sid = rack_mock_session.cookie_jar['onetime.session']
+      expect(old_sid).not_to be_nil
+      expect(store.find_key(Familia.dbclient, old_sid)).not_to be_nil
+
+      post_callback(answer(request), request.acs_url)
+      expect(last_response.headers['Location'].to_s).not_to include('auth_error')
+
+      new_sid = rack_mock_session.cookie_jar['onetime.session']
+      expect(new_sid).not_to be_nil
+      expect(new_sid).not_to eq(old_sid)
+      expect(store.find_key(Familia.dbclient, old_sid)).to be_nil
+      expect(Onetime::SessionEnded.ended?(old_sid)).to be(true)
+
+      account_id = db[:accounts].where(email: email).get(:id)
+      blob       = store.load_data(Familia.dbclient, store.find_key(Familia.dbclient, new_sid), codec: codec)
+      expect(blob).to include('authenticated' => true, 'account_id' => account_id)
+
+      status_for = lambda do |sid|
+        other = Rack::Test::Session.new(Rack::MockSession.new(app))
+        other.set_cookie("onetime.session=#{sid}", URI(platform_base))
+        other.get "#{platform_base}/api/account/", {}, { 'HTTP_ACCEPT' => 'application/json' }
+        other.last_response.status
+      end
+      expect(status_for.call(new_sid)).to eq(200)
+      expect(status_for.call(old_sid)).to eq(401)
+    end
+
     it 'signs the same user in again through the same identity' do
       sign_in
       clear_cookies
