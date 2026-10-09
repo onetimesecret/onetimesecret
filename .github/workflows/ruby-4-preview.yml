@@ -104,6 +104,8 @@ jobs:
 
       - name: Install dependencies
         continue-on-error: true
+        env:
+          BUNDLE_FROZEN: 'true' # as ci.yml: the locked gems, only Ruby varies
         run: bundle install --jobs 4 --retry 3
 
       - name: Run Rubocop
