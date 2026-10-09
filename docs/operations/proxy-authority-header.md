@@ -100,6 +100,15 @@ proxy_set_header X-Original-Host   "";
 proxy_set_header Forwarded         "";
 ```
 
+Keep the `X-Forwarded-Port ""` line. nginx's `$host` drops the port, so
+`proxy_set_header Host $host` with `X-Forwarded-Port` left to pass through
+sends a bare `Host` and the public port beside it. That request is not
+rewritten (its `Host` already names the public host), so `Rack::Request#port`
+reads the forwarded port while `#base_url` and `#url` carry none; the auth
+origin and emailed links get the port, readers of Rack's base URL do not
+(#4681). With the header removed, or with `Host $host:$server_port`, both
+agree.
+
 ## The admin host gate
 
 `/colonel` and `/api/colonel` answer only on the hosts in

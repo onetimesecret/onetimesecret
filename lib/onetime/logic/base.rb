@@ -47,6 +47,11 @@ module Onetime
 
       attr_accessor :domain_strategy, :display_domain, :custom_domain_id
 
+      # The request's shared CustomDomain lookup (#4220), lifted from the
+      # strategy metadata. nil when the request made no lookup (a canonical
+      # host, or the domains feature off). See Onetime::CustomDomain::Lookup.
+      attr_reader :custom_domain_lookup
+
       def initialize(strategy_result, params, locale = nil)
         @strategy_result = strategy_result
         @params          = params
@@ -300,6 +305,43 @@ module Onetime
       # @raise [Onetime::EntitlementRequired] If membership lacks the entitlement
       # @raise [Onetime::Forbidden] If user is not a member of the organization
       # @return [true] If entitlement check passes
+      # Whether the caller's active membership in +organization+ reaches
+      # +domain+, or, with no domain given, the organization-wide stream.
+      #
+      # A membership scoped to one custom domain (OrganizationMembership
+      # #domain_scope_id, as tenant SSO grants it) reaches only that domain:
+      # not a sibling domain of the same organization, and not a listing that
+      # spans every domain. An org-scoped membership reaches both. Colonels
+      # pass, as they do in require_entitlement_in!. RISK-2026-08-14-M06.
+      #
+      # @param organization [Onetime::Organization]
+      # @param domain [Onetime::CustomDomain, nil] nil for the org-wide stream
+      # @return [Boolean]
+      def membership_scope_reaches?(organization, domain = nil)
+        return true if has_system_role?('colonel')
+        return false if organization.nil? || anonymous_user?
+
+        membership = membership_in(organization)
+        return false unless membership&.active?
+
+        domain ? membership.can_access_domain?(domain) : membership.org_scoped?
+      end
+
+      # The caller's membership in +organization+, read once per logic
+      # instance so the entitlement and scope gates share one lookup.
+      #
+      # @param organization [Onetime::Organization]
+      # @return [Onetime::OrganizationMembership, nil]
+      def membership_in(organization)
+        @memberships_in ||= {}
+        return @memberships_in[organization.objid] if @memberships_in.key?(organization.objid)
+
+        @memberships_in[organization.objid] = Onetime::OrganizationMembership.find_by_org_customer(
+          organization.objid,
+          cust.objid,
+        )
+      end
+
       def require_entitlement_in!(organization, entitlement, error_key: nil)
         raise Onetime::Problem, 'Organization context unavailable' if organization.nil?
 
@@ -318,10 +360,7 @@ module Onetime
         end
 
         # Load user's membership in the target organization
-        membership = Onetime::OrganizationMembership.find_by_org_customer(
-          organization.objid,
-          cust.objid,
-        )
+        membership = membership_in(organization)
 
         # User must be a member of the target organization
         unless membership&.active?
@@ -381,9 +420,10 @@ module Onetime
       def extract_domain_context(strategy_result)
         return unless strategy_result
 
-        @domain_strategy  = strategy_result.metadata[:domain_strategy]
-        @display_domain   = strategy_result.metadata[:display_domain]
-        @custom_domain_id = strategy_result.metadata[:custom_domain_id]
+        @domain_strategy      = strategy_result.metadata[:domain_strategy]
+        @display_domain       = strategy_result.metadata[:display_domain]
+        @custom_domain_id     = strategy_result.metadata[:custom_domain_id]
+        @custom_domain_lookup = strategy_result.metadata[:custom_domain_lookup]
       end
 
       # Request rotation of the live Rack session. Logic paths that cross an

@@ -83,6 +83,13 @@ module OrganizationAPI::Logic
         # org plan ∩ role grants, so this admits only admins/owners of orgs
         # whose plan includes audit logs.
         require_entitlement_in!(@organization, 'audit_logs')
+
+        # The trail spans every custom domain of the organization, so a
+        # membership scoped to one domain does not reach it: it would read
+        # the sibling domains' share events (RISK-2026-08-14-M06).
+        return if membership_scope_reaches?(@organization)
+
+        raise_form_error('Secret activity is organization-wide', error_type: :forbidden)
       end
 
       def process

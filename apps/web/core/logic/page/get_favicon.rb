@@ -43,10 +43,10 @@ module Core
 
           OT.ld "[GetFavicon] strategy=#{domain_strategy} domain=#{display_domain}"
 
-          # Only try to load custom domain if strategy indicates it's a custom domain
-          if domain_strategy == :custom
-            @custom_domain = Onetime::CustomDomain.from_display_domain(display_domain)
-          end
+          # A :custom classification carries the record DomainStrategy loaded
+          # (#4220): read it from the request's shared lookup instead of
+          # looking the display domain up again.
+          @custom_domain = custom_domain_lookup&.record if domain_strategy == :custom
 
           @use_default = true # Default to OTS favicon
         end

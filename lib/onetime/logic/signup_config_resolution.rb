@@ -13,6 +13,9 @@ module Onetime
     #     path; see #signup_config_domain_strategy below for what the default
     #     costs you.
     #   - #signup_config_auth_setting(key) → the value of auth.{key} from site config
+    #   - #signup_config_custom_domain_lookup (optional) → the request's
+    #     Onetime::CustomDomain::Lookup, so the policy is read against the
+    #     record the request already resolved (#4220)
     module SignupConfigResolution
       private
 
@@ -50,12 +53,38 @@ module Onetime
         dd = signup_config_display_domain
         return unless dd
 
-        custom_domain = Onetime::CustomDomain.from_display_domain(dd)
+        custom_domain = signup_config_lookup_for(dd).record!
         return unless custom_domain
 
         Onetime::CustomDomain::SignupConfig.find_by_domain_id(custom_domain.identifier)
       rescue Redis::BaseError => ex
         signup_policy_read_failed!(ex)
+      end
+
+      # The CustomDomain lookup for +host+: the request's shared lookup
+      # (#4220) when the includer has one for that host, otherwise one read
+      # of its own, unpublished. #record! on the result re-raises a failed
+      # read, so the rescue in #domain_signup_config sees the same
+      # Redis::BaseError it saw from CustomDomain.from_display_domain.
+      #
+      # @param host [String]
+      # @return [Onetime::CustomDomain::Lookup]
+      def signup_config_lookup_for(host)
+        lookup = signup_config_custom_domain_lookup
+        return lookup if lookup.is_a?(Onetime::CustomDomain::Lookup) && lookup.host.to_s.casecmp?(host.to_s)
+
+        Onetime::CustomDomain::Lookup.read(host)
+      end
+
+      # Optional hook: the request's shared CustomDomain lookup. A
+      # request-scoped includer overrides this (Core::Controllers::Base reads
+      # it from the Rack env, CreateAccount from the strategy metadata) so the
+      # sign-up policy is read against the record the request already
+      # resolved. The default reads the display domain itself.
+      #
+      # @return [Onetime::CustomDomain::Lookup, nil]
+      def signup_config_custom_domain_lookup
+        nil
       end
 
       # The per-domain sign-up policy could not be read. Logged here, DECIDED
