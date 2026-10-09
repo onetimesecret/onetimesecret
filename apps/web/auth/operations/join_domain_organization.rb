@@ -135,6 +135,11 @@ module Auth
       def adopt_domain_default_org(domain_org)
         personal_org = resolve_personal_default_org
         return unless personal_org
+        # #4717: when the customer owns the domain org and it carries
+        # is_default, both resolution paths hand back the destination itself.
+        # Compare by objid, not identity: the explicit path loads a separate
+        # instance. Never archive the organization the customer is joining.
+        return if personal_org.objid == domain_org.objid
 
         # These two writes are intentionally ordered: repointing default_org_id
         # is the higher-priority fix (determines which org the customer sees on

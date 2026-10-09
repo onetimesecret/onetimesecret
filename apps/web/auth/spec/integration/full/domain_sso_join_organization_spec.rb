@@ -659,6 +659,118 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
   end
 
   # ==========================================================================
+  # #4717: the owner's own default organization must survive their login
+  # ==========================================================================
+  #
+  # The tenant org here IS the owner's default workspace (is_default: true):
+  # the auto-created workspace that was later given a custom domain and SSO.
+  # On the owner's tenant SSO login, JoinDomainOrganization takes the
+  # already_member path and retries adoption. Both resolution paths hand the
+  # self-heal the domain org itself (the explicit pointer names it; the
+  # owned-default lookup selects it), and nothing compares candidate to
+  # destination, so the owner's live, billed tenant org was soft-archived on
+  # every login. Archival is load-bearing for routing: every loader and
+  # resolver rejects archived?, so the owner lands on an orphaned account.
+  #
+  describe 'owner signs into their own default organization (#4717)', :shared_db_state do
+    let(:tenant_planid) { 'team_plus_v1' }
+    let(:tenant_stripe_customer_id) { "cus_#{test_run_id}" }
+
+    before do
+      tenant_organization.planid             = tenant_planid
+      tenant_organization.stripe_customer_id = tenant_stripe_customer_id
+      tenant_organization.save
+      tenant_organization.is_default! true
+
+      reloaded = Onetime::Organization.load(tenant_organization.objid)
+      expect(reloaded.is_default).to be_truthy, 'precondition: the tenant org is the owner default workspace'
+      expect(reloaded.owner?(tenant_org_owner)).to be(true), 'precondition: the signing-in customer owns the tenant org'
+      expect(reloaded.archived?).to be(false), 'precondition: the tenant org starts live'
+    end
+
+    after do
+      @personal_workspace&.destroy! rescue nil
+    end
+
+    def join_as_owner
+      Auth::Operations::JoinDomainOrganization.new(
+        customer: tenant_org_owner,
+        domain_id: tenant_custom_domain.identifier,
+      ).call
+    end
+
+    # Everything the owner's login must leave exactly as it found it.
+    def expect_tenant_org_untouched(default_org_id:)
+      reloaded = Onetime::Organization.load(tenant_organization.objid)
+      expect(reloaded.archived?).to be(false), 'the owner\'s own default organization must not be archived by their login'
+      expect(reloaded.archived_at.to_s).to be_empty
+      expect(reloaded.archived_comment.to_s).to be_empty
+      expect(reloaded.planid).to eq(tenant_planid)
+      expect(reloaded.stripe_customer_id).to eq(tenant_stripe_customer_id)
+
+      membership = Onetime::OrganizationMembership.find_by_org_customer(tenant_organization.objid, tenant_org_owner.objid)
+      expect(membership).not_to be_nil
+      expect(membership.role).to eq('owner')
+      expect(membership.active?).to be(true)
+
+      domain = Onetime::CustomDomain.find_by_identifier(tenant_custom_domain.identifier)
+      expect(domain.org_id).to eq(tenant_organization.org_id)
+
+      expect(Onetime::Customer.load(tenant_org_owner.objid).default_org_id.to_s).to eq(default_org_id.to_s)
+    end
+
+    it 'with the pointer naming the org: already_member, no adoption, org and pointer unchanged' do
+      tenant_org_owner.default_org_id = tenant_organization.objid
+      tenant_org_owner.save
+
+      result = join_as_owner
+
+      expect(result[:joined]).to be(false)
+      expect(result[:reason]).to eq('already_member')
+      expect_tenant_org_untouched(default_org_id: tenant_organization.objid)
+      expect(result).not_to have_key(:adoption), "no adoption may be reported, got: #{result[:adoption].inspect}"
+    end
+
+    it 'with the pointer empty (implicit path): already_member, no adoption, org and pointer unchanged' do
+      expect(tenant_org_owner.default_org_id.to_s).to be_empty, 'precondition: no explicit default pointer'
+
+      result = join_as_owner
+
+      expect(result[:joined]).to be(false)
+      expect(result[:reason]).to eq('already_member')
+      expect_tenant_org_untouched(default_org_id: '')
+      expect(result).not_to have_key(:adoption), "no adoption may be reported, got: #{result[:adoption].inspect}"
+    end
+
+    # A legitimate adoption (personal workspace A -> tenant org B) is followed
+    # by the next login, where B is now the owned default the pointer names.
+    # The retry must recognise B as the destination, not as a second candidate.
+    it 'after a legitimate adoption, the next login leaves the adopted org live with no second adoption' do
+      @personal_workspace = Onetime::Organization.create!(
+        "Personal #{test_run_id}",
+        tenant_org_owner,
+        "personal-#{test_run_id}@tenant.example.com",
+      )
+      @personal_workspace.is_default! true
+      tenant_org_owner.default_org_id = @personal_workspace.objid
+      tenant_org_owner.save
+
+      first = join_as_owner
+      expect(first[:reason]).to eq('already_member')
+      expect(first[:adoption]).to include(adopted: true, previous_default_org_id: @personal_workspace.objid),
+        "first login should adopt the tenant org, got: #{first.inspect}"
+      expect(Onetime::Customer.load(tenant_org_owner.objid).default_org_id).to eq(tenant_organization.objid)
+      expect(Onetime::Organization.load(tenant_organization.objid).archived?).to be(false),
+        'the adoption destination must stay live'
+
+      second = join_as_owner
+      expect(second[:reason]).to eq('already_member')
+      expect_tenant_org_untouched(default_org_id: tenant_organization.objid)
+      expect(second).not_to have_key(:adoption), "no second adoption may be reported, got: #{second[:adoption].inspect}"
+    end
+  end
+
+  # ==========================================================================
   # Domain-scoped SSO toggle: grant_org_scope on SsoConfig (#3384)
   # ==========================================================================
   #
