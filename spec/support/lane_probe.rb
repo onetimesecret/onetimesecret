@@ -157,13 +157,16 @@ module LaneProbe
       sink
     end
 
+    def failing_event
+      SemanticLogger::Log.new('LaneProbe', :error).tap { |log| log.assign(message: 'an event the file could not take') }
+    end
+
     # Log one event through +sink+, which must raise +error_class+, and
     # return what was printed on standard error meanwhile.
     def log_through(sink, error_class)
       was     = $stderr
       $stderr = StringIO.new
-      event   = SemanticLogger::Log.new('LaneProbe', :error).tap { |log| log.assign(message: 'an event the file could not take') }
-      expect { sink.log(event) }.to raise_error(error_class)
+      expect { sink.log(failing_event) }.to raise_error(error_class)
       $stderr.string
     ensure
       $stderr = was

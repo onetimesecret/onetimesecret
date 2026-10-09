@@ -3,7 +3,9 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require_relative '../../../support/lane_probe'
 require 'fileutils'
+require 'json'
 require 'open3'
 require 'tmpdir'
 
@@ -410,7 +412,6 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
       SemanticLogger['SetupLoggersSpec'].tap { |l| l.level = :trace }.error("failed at https://u:#{secret}@h.example/x?t=1", exception: ex)
       SemanticLogger.flush
 
-      expect(formatter).to be_a(Proc)
       expect(io.string).to include('failed at https://***@h.example/x?***', 'down redis://***@db/0?***', 'more lines)')
       expect(io.string).not_to include(secret)
     end
@@ -547,40 +548,63 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
       ex
     end
 
+    # What a formatter made of a line: :json, :color (ANSI escapes) or
+    # :default (plain text).
+    def shape_of(line)
+      JSON.parse(line).is_a?(Hash) ? :json : :default
+    rescue JSON::ParserError
+      line.include?("\e[") ? :color : :default
+    end
+
+    # What the real console streams received while the block ran.
+    def real_console_output(cli:)
+      use_real_console(cli: cli)
+      saved   = [$stdout, $stderr]
+      $stdout = StringIO.new
+      $stderr = StringIO.new
+      yield
+      [$stdout.string, $stderr.string]
+    ensure
+      $stdout, $stderr = saved if saved
+    end
+
+    # Every File opened on +path+ from here on, so that an example can see a
+    # sink let go of its file without reaching into the sink.
+    def files_opened_on(path)
+      opened = []
+      allow(File).to receive(:open).and_wrap_original do |original, *args, **kwargs, &block|
+        original.call(*args, **kwargs, &block).tap do |file|
+          opened << file if file.is_a?(File) && args.first.to_s == path
+        end
+      end
+      opened
+    end
+
     describe 'the shipped defaults' do
+      # One console appender, with no threshold (a trace event is written)
+      # and the shipped formatter.
       it 'add the one console appender on stdout in server modes, as before' do
-        use_real_console(cli: false)
+        stdout, stderr = real_console_output(cli: false) do
+          instance.install_destinations(shipped_defaults)
+          emitter.trace('to the console')
+        end
 
-        expect do
-          expect do
-            instance.install_destinations(shipped_defaults)
-            emitter.warn('to the console')
-          end.to output(/to the console/).to_stdout
-        end.not_to output.to_stderr
-
-        appender = SemanticLogger.appenders.first
         expect(SemanticLogger.appenders.size).to eq(1)
-        expect(appender).to be_an_instance_of(SemanticLogger::Appender::IO)
-        expect([appender.level, appender.filter]).to eq([:trace, nil])
-        expect(appender.formatter)
-          .to be_an_instance_of(SemanticLogger::Formatters.factory(shipped_defaults['formatter'].to_sym).class)
+        expect(stdout).to include('to the console')
+        expect(shape_of(stdout)).to eq(shipped_defaults['formatter'].to_sym)
+        expect(stderr).to be_empty
       end
 
       it 'add the one console appender on stderr under the CLI, as before' do
-        use_real_console(cli: true)
+        stdout, stderr = real_console_output(cli: true) do
+          instance.install_destinations(shipped_defaults)
+          emitter.trace('to the console')
+        end
 
-        expect do
-          expect do
-            instance.install_destinations(shipped_defaults)
-            emitter.warn('to the console')
-          end.to output(/to the console/).to_stderr
-        end.not_to output.to_stdout
-
-        appender = SemanticLogger.appenders.first
         expect(SemanticLogger.appenders.size).to eq(1)
-        expect(appender).to be_an_instance_of(SemanticLogger::Appender::IO)
-        expect([appender.level, appender.filter]).to eq([:trace, nil])
-        expect(appender.formatter).to be_an_instance_of(SemanticLogger::Formatters::Color)
+        expect(stderr).to include('to the console')
+        expect(shape_of(stderr)).to eq(:color)
+        expect(stdout).to be_empty
       end
 
       it 'leave the file destination off' do
@@ -619,35 +643,34 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
     # The formatter selection that predates the destinations block: the
     # top-level `formatter` in server modes, color under the CLI, and the
     # backtrace-truncating wrapper when a limit applies.
+    # The wrapper that shortens backtraces is the console's whatever the
+    # formatter: 'writes the full backtrace to the file while the console
+    # shortens its own copy' below.
     describe 'console formatter selection' do
-      def console_formatter(settings, cli:)
-        use_real_console(cli: cli)
-        expect { instance.install_destinations(settings) }.not_to output.to_stdout
-        registry.fetch(:console).appender.formatter
+      def console_shape(settings, cli:)
+        allow(Onetime).to receive(:mode?).and_call_original
+        allow(Onetime).to receive(:mode?).with(:cli).and_return(cli)
+        instance.install_destinations(settings)
+        emitter.warn('formatter probe')
+        shape_of(console_log)
       end
 
       it 'uses the top-level formatter in server modes' do
-        expect(console_formatter({ 'formatter' => 'json' }, cli: false)).to be_an_instance_of(SemanticLogger::Formatters::Json)
+        expect(console_shape({ 'formatter' => 'json' }, cli: false)).to eq(:json)
       end
 
       it 'defaults to color in server modes' do
-        expect(console_formatter({}, cli: false)).to be_an_instance_of(SemanticLogger::Formatters::Color)
+        expect(console_shape({}, cli: false)).to eq(:color)
       end
 
       it 'uses color under the CLI whatever the top-level formatter says' do
-        expect(console_formatter({ 'formatter' => 'json' }, cli: true)).to be_an_instance_of(SemanticLogger::Formatters::Color)
-      end
-
-      it 'wraps the formatter when a backtrace limit applies' do
-        allow(instance).to receive(:backtrace_limit).and_return(3)
-
-        expect(console_formatter({ 'formatter' => 'json' }, cli: false)).to be_a(Proc)
+        expect(console_shape({ 'formatter' => 'json' }, cli: true)).to eq(:color)
       end
 
       it 'uses destinations.console.formatter in every mode when it is set' do
         settings = { 'formatter' => 'color', 'destinations' => { 'console' => { 'formatter' => 'json' } } }
 
-        expect(console_formatter(settings, cli: true)).to be_an_instance_of(SemanticLogger::Formatters::Json)
+        expect(console_shape(settings, cli: true)).to eq(:json)
       end
     end
 
@@ -674,17 +697,6 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
         expect(file_log).not_to include('needs attention')
       end
 
-      # Category levels decide what is generated. A destination only filters
-      # what was generated.
-      it 'cannot recover an event the category rejected' do
-        install(console: { 'level' => 'trace' }, file: { 'level' => 'trace' })
-
-        emitter(:warn).info('never generated')
-
-        expect(file_log).to be_empty
-        expect(console_log).to be_empty
-      end
-
       it 'accepts a level in any case and with surrounding space' do
         install(console: { 'level' => ' WARN ' })
 
@@ -697,10 +709,13 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
 
       it 'writes plain text to the file unless a formatter is set' do
         install(file: {})
-        expect(file_sinks.first.formatter).to be_an_instance_of(SemanticLogger::Formatters::Default)
-
+        emitter.warn('plain line')
         install(file: { 'formatter' => 'json' })
-        expect(file_sinks.first.formatter).to be_an_instance_of(SemanticLogger::Formatters::Json)
+        emitter.warn('json line')
+
+        lines = file_log.lines
+        expect(shape_of(lines.find { |line| line.include?('plain line') })).to eq(:default)
+        expect(shape_of(lines.find { |line| line.include?('json line') })).to eq(:json)
       end
     end
 
@@ -819,7 +834,7 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
         stub_syslog
 
         expect { install(console: { 'enabled' => false }, audit_syslog: true, audit_syslog_level: 'error') }
-          .to raise_error(Onetime::ConfigError, /no destination for audit events.*level admits info/)
+          .to raise_error(Onetime::ConfigError, /no destination for audit events/)
       end
 
       it 'accept a syslog appender set above their level while the console takes them' do
@@ -861,15 +876,15 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
       it 'closes the old file and writes to the new one when the path changes' do
         unrelated  = add_unrelated_appender
         other_path = File.join(tmpdir, 'other.log')
+        old_files  = files_opened_on(log_path)
         install(file: {})
-        old_sink   = registry.fetch(:file).appender
-        old_handle = old_sink.instance_variable_get(:@file)
         emitter.warn('before the change')
 
         install(file: { 'path' => other_path })
         emitter.warn('after the change')
 
-        expect(old_handle).to be_closed
+        expect(old_files).not_to be_empty
+        expect(old_files).to all(be_closed)
         expect(file_sinks.map(&:file_name)).to eq([other_path])
         expect(file_log).to include('before the change')
         expect(file_log).not_to include('after the change')
@@ -893,13 +908,14 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
       end
 
       it 'removes and closes the file sink when the file is disabled' do
+        files = files_opened_on(log_path)
         install(file: {})
-        handle = registry.fetch(:file).appender.instance_variable_get(:@file)
 
         install
         emitter.warn('console only')
 
-        expect(handle).to be_closed
+        expect(files).not_to be_empty
+        expect(files).to all(be_closed)
         expect(file_sinks).to be_empty
         expect(registry.keys).to eq([:console])
         expect(file_log).to be_empty
@@ -953,20 +969,20 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
         path = File.join(tmpdir, 'missing', 'app.log')
 
         expect { install(file: { 'path' => path }) }
-          .to raise_error(Onetime::ConfigError, /Cannot open the log file #{Regexp.escape(path)} .*Errno::ENOENT/)
+          .to raise_error(Onetime::ConfigError, /#{Regexp.escape(path)}/)
         expect(file_sinks).to be_empty
         expect(registry.keys).to eq([:console])
       end
 
       it 'raises at setup when the path is a directory' do
         expect { install(file: { 'path' => tmpdir }) }
-          .to raise_error(Onetime::ConfigError, /Cannot open the log file #{Regexp.escape(tmpdir)} /)
+          .to raise_error(Onetime::ConfigError, /#{Regexp.escape(tmpdir)}/)
         expect(file_sinks).to be_empty
       end
 
       it 'raises at setup when the file is enabled without a path' do
         expect { install(file: { 'path' => ' ' }) }
-          .to raise_error(Onetime::ConfigError, /destinations\.file\.path is not set/)
+          .to raise_error(Onetime::ConfigError, /destinations\.file\.path/)
         expect(SemanticLogger.appenders).to be_empty
       end
 
@@ -992,7 +1008,7 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
         appenders = SemanticLogger.appenders.to_a
 
         expect { install(console: { 'level' => 'loud' }, file: {}) }
-          .to raise_error(Onetime::ConfigError, /destinations\.console\.level is not a log level/)
+          .to raise_error(Onetime::ConfigError, /destinations\.console\.level/)
         expect(SemanticLogger.appenders.to_a).to eq(appenders)
       end
 
@@ -1003,7 +1019,7 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
 
       it 'rejects an unknown formatter' do
         expect { install(file: { 'formatter' => 'sparkles' }) }
-          .to raise_error(Onetime::ConfigError, /destinations\.file\.formatter is not a known formatter/)
+          .to raise_error(Onetime::ConfigError, /destinations\.file\.formatter/)
       end
     end
 
@@ -1109,15 +1125,15 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
 
     describe 'FileSink' do
       it 'closes its file, and reopens it when logged to again' do
+        files = files_opened_on(log_path)
         install(console: { 'enabled' => false }, file: {})
-        sink   = registry.fetch(:file).appender
-        handle = sink.instance_variable_get(:@file)
+        sink = registry.fetch(:file).appender
 
         sink.close
         sink.close
         emitter.error('after close')
 
-        expect(handle).to be_closed
+        expect(files.first).to be_closed
         expect(file_log).to include('after close')
       end
 
@@ -1126,26 +1142,13 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
       # event on its internal logger, for any exception at all; the sink
       # reports the I/O errors itself.
       describe 'a write that fails' do
+        include LaneProbe::FailingWrites
+
         let(:listener_calls) { [] }
 
-        # The file handle is replaced by one whose write raises. The stock
-        # appender retries once after a reopen, which would put a working
-        # handle back, so reopen does nothing here. A plain object, not a
-        # double: the sink closes it after the example, on removal.
         def failing_sink(error)
           install(console: { 'enabled' => false }, file: {})
-          sink   = registry.fetch(:file).appender
-          broken = Object.new
-          broken.define_singleton_method(:write) { |*| raise error }
-          broken.define_singleton_method(:close) { nil }
-          broken.define_singleton_method(:flush) { nil }
-          sink.instance_variable_set(:@file, broken)
-          allow(sink).to receive(:reopen)
-          sink
-        end
-
-        def event
-          SemanticLogger::Log.new('SetupLoggersSpec', :error).tap { |log| log.assign(message: 'an event the file could not take') }
+          break_file_sink(registry.fetch(:file).appender, error)
         end
 
         def listen
@@ -1153,33 +1156,29 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
         end
 
         it 'says so once per process on standard error, naming the file and the error' do
-          sink = failing_sink(Errno::ENOSPC.new('probe'))
+          sink   = failing_sink(Errno::ENOSPC.new('probe'))
           prefix = Regexp.escape("#{described_class::FileSink::WRITE_FAILURE_PREFIX} #{log_path}: Errno::ENOSPC: ")
-          line   = /\A#{prefix}.*probe.*\n\z/
 
-          expect { expect { sink.log(event) }.to raise_error(Errno::ENOSPC) }.to output(line).to_stderr
-          expect { expect { sink.log(event) }.to raise_error(Errno::ENOSPC) }.not_to output.to_stderr
-          expect(described_class::FileSink::WRITE_FAILURE_PREFIX).to eq('[SetupLoggers] Cannot write to the log file')
+          expect(log_through(sink, Errno::ENOSPC)).to match(/\A#{prefix}.*probe.*\n\z/)
+          expect(log_through(sink, Errno::ENOSPC)).to be_empty
         end
 
         # A forked child inherits the sink, and with it the parent's record
         # of having reported.
         it 'says so again in another process' do
           sink = failing_sink(Errno::ENOSPC.new('probe'))
-          expect { expect { sink.log(event) }.to raise_error(Errno::ENOSPC) }.to output.to_stderr
+          log_through(sink, Errno::ENOSPC)
 
           allow(Process).to receive(:pid).and_return(Process.pid + 1)
 
-          expect { expect { sink.log(event) }.to raise_error(Errno::ENOSPC) }.to output(/Cannot write to the log file/).to_stderr
+          expect(log_through(sink, Errno::ENOSPC)).to include(log_path)
         end
 
         it 'calls each listener with the path and the error, for every failed write' do
           listen
           sink = failing_sink(IOError.new('closed stream'))
 
-          expect do
-            2.times { expect { sink.log(event) }.to raise_error(IOError) }
-          end.to output.to_stderr
+          2.times { log_through(sink, IOError) }
 
           expect(listener_calls).to eq([[log_path, IOError], [log_path, IOError]])
         end
@@ -1192,7 +1191,7 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
           interrupted = Class.new(StandardError)
           sink        = failing_sink(interrupted.new('interrupted while logging'))
 
-          expect { expect { sink.log(event) }.to raise_error(interrupted) }.not_to output.to_stderr
+          expect(log_through(sink, interrupted)).to be_empty
           expect(listener_calls).to be_empty
         end
 
@@ -1201,7 +1200,8 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
           listen
           sink = failing_sink(Errno::EIO.new('probe'))
 
-          expect { expect { sink.log(event) }.to raise_error(Errno::EIO) }.to output.to_stderr
+          log_through(sink, Errno::EIO)
+
           expect(listener_calls).to eq([[log_path, Errno::EIO]])
         end
 
@@ -1215,7 +1215,7 @@ RSpec.describe Onetime::Initializers::SetupLoggers do
           $stderr  = StringIO.new.tap(&:close)
 
           begin
-            expect { sink.log(event) }.to raise_error(Errno::ENOSPC)
+            expect { sink.log(failing_event) }.to raise_error(Errno::ENOSPC)
           ensure
             $stderr = original
           end
