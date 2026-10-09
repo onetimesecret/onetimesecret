@@ -1,0 +1,2 @@
+# Used instead of the root .dockerignore when building .oss-scanner/Dockerfile. The scanner image needs the whole
+# checkout, including .git, compose.test.yml and the test suites, so nothing is excluded.
