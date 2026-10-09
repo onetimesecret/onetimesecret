@@ -192,7 +192,7 @@
     "@apidevtools/swagger-parser": "12.1.0",
     "@axe-core/playwright": "4.13.0",
     "@eslint/js": "9.39.4",
-    "@eslint/plugin-kit": "0.7.2",
+    "@eslint/plugin-kit": "0.7.3",
     "@intlify/devtools-types": "11.3.0",
     "@intlify/eslint-plugin-vue-i18n": "4.3.0",
     "@intlify/unplugin-vue-i18n": "11.2.4",
