@@ -1,6 +1,7 @@
 // src/utils/navigation.ts
 
 import { isValidInternalPath } from '@/utils/redirect';
+import type { Router } from 'vue-router';
 
 /**
  * Full-page (non-SPA) navigation to a SERVER-SUPPLIED internal path.
@@ -38,4 +39,26 @@ export function hardNavigate(target: string | null | undefined, fallback: string
     destination = fallback;
   }
   window.location.assign(destination);
+}
+
+/**
+ * True when `router` has a route of its own for `target`, i.e. the path
+ * resolves to something other than the router's `NotFound` catch-all.
+ *
+ * The customer app and the admin console are separate bundles with separate
+ * route tables; the server picks the bundle per path. A `router.push` to a
+ * path the current router does not own never reaches the server: the address
+ * bar changes and the catch-all renders the SPA's 404 in place. That is what
+ * the post-sign-in `?redirect=/colonel` did from the customer bundle. Callers
+ * holding an arbitrary internal path check this first and fall back to
+ * {@link hardNavigate} when it is false.
+ *
+ * Both routers name their catch-all 'NotFound' (src/router/index.ts,
+ * src/apps/admin/router.ts).
+ *
+ * @param router - the router of the bundle currently running
+ * @param target - a validated internal path, possibly with ?query / #hash
+ */
+export function routerOwnsPath(router: Router, target: string): boolean {
+  return router.resolve(target).name !== 'NotFound';
 }

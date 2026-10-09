@@ -8,7 +8,7 @@ import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { Organization } from '@/types/organization';
 import { createTestingPinia } from '@pinia/testing';
 import { setActivePinia } from 'pinia';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // The composable only needs t(); pass-through keeps assertions on i18n keys.
 vi.mock('vue-i18n', () => ({
@@ -18,9 +18,13 @@ vi.mock('vue-i18n', () => ({
 // Factories dereference lazily, so mutating these consts per-test works.
 const mockRoute = { path: '/signin', query: {} as Record<string, unknown> };
 const routerPushMock = vi.fn();
+// Defaults to "this router owns the path"; the cross-bundle cases override it.
+// What the real customer router resolves /colonel to is pinned in
+// src/tests/utils/navigation.spec.ts.
+const routerResolveMock = vi.fn((_to: string) => ({ name: 'Matched' }));
 vi.mock('vue-router', () => ({
   useRoute: () => mockRoute,
-  useRouter: () => ({ push: routerPushMock, replace: vi.fn() }),
+  useRouter: () => ({ push: routerPushMock, replace: vi.fn(), resolve: routerResolveMock }),
 }));
 
 vi.mock('@/services/logging.service', () => ({
@@ -67,6 +71,70 @@ describe('usePostAuthRedirect', () => {
     vi.clearAllMocks();
     setActivePinia(createTestingPinia({ createSpy: vi.fn }));
     mockRoute.query = {};
+  });
+
+  describe('?redirect to a path outside this bundle (the /colonel 404)', () => {
+    // After the expired-admin-session sign-in (?redirect=/colonel), a push from
+    // the customer bundle rewrote the address bar and rendered the customer
+    // router's NotFound; only a refresh reached the server-served admin bundle.
+    const assign = vi.fn();
+    let original: Location;
+
+    beforeEach(() => {
+      original = window.location;
+      Object.defineProperty(window, 'location', {
+        configurable: true,
+        writable: true,
+        value: { ...original, assign },
+      });
+    });
+
+    afterEach(() => {
+      Object.defineProperty(window, 'location', {
+        configurable: true,
+        writable: true,
+        value: original,
+      });
+    });
+
+    it('hard-navigates when the router can only resolve it to NotFound', async () => {
+      mockRoute.query = { redirect: '/colonel' };
+      routerResolveMock.mockReturnValueOnce({ name: 'NotFound' });
+
+      await usePostAuthRedirect().navigateAfterAuth(undefined);
+
+      expect(routerResolveMock).toHaveBeenCalledWith('/colonel');
+      expect(assign).toHaveBeenCalledWith('/colonel');
+      expect(routerPushMock).not.toHaveBeenCalled();
+    });
+
+    it('keeps query and hash on the document load', async () => {
+      mockRoute.query = { redirect: '/colonel/customers?q=bob#list' };
+      routerResolveMock.mockReturnValueOnce({ name: 'NotFound' });
+
+      await usePostAuthRedirect().navigateAfterAuth(undefined);
+
+      expect(assign).toHaveBeenCalledWith('/colonel/customers?q=bob#list');
+    });
+
+    it('still pushes a path the router owns', async () => {
+      mockRoute.query = { redirect: '/dashboard' };
+
+      await usePostAuthRedirect().navigateAfterAuth(undefined);
+
+      expect(routerPushMock).toHaveBeenCalledWith('/dashboard');
+      expect(assign).not.toHaveBeenCalled();
+    });
+
+    it('never resolves an invalid redirect; falls back to pushing /', async () => {
+      mockRoute.query = { redirect: '//evil.example' };
+
+      await usePostAuthRedirect().navigateAfterAuth(undefined);
+
+      expect(routerResolveMock).not.toHaveBeenCalled();
+      expect(assign).not.toHaveBeenCalled();
+      expect(routerPushMock).toHaveBeenCalledWith('/');
+    });
   });
 
   describe('billing intent via the query tier (WebAuthn — no response body)', () => {
