@@ -118,7 +118,8 @@ Use the promises above to guide discovery; the following checks are starting poi
 ## How to exercise it
 
 - `ots-test-services` starts Valkey (127.0.0.1:2163), RabbitMQ (127.0.0.1:2156, management API on 12156) and
-  Postgres (127.0.0.1:2154).
+  Postgres (127.0.0.1:2154). Run it before any lane. `tests/lanes/run` and `bin/setup --test` start services with
+  Docker or Podman compose, which this image does not have, so neither can start them here.
 - Run tests only through `tests/lanes/run`. It clears the environment and points the app at the test services.
   Calling `rspec` or `try` directly inherits the wrong environment.
 - `tests/lanes/run --list` lists the lanes. The image installs Postgres and Playwright Chromium, Firefox and WebKit
