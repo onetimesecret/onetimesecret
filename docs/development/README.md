@@ -49,7 +49,7 @@ docker compose -f compose.test.yml up --wait -d  # test services (or: podman com
 pnpm run build                                  # required before the Ruby unit lane
 tests/lanes/run unit                            # Tryouts + RSpec fast suite (see: tests/lanes/run --list)
 pnpm test                                       # Vitest (frontend; no services needed)
-scripts/tests/run.sh                            # shell tests for the CI scripts (no services needed)
+bin/testsuite run                               # shell tests for the CI scripts (no services needed)
 scripts/check-shell-lint.sh                     # shellcheck + actionlint against the recorded baseline
 ```
 
@@ -71,7 +71,7 @@ download; on Linux the browsers may additionally need OS packages
 (`pnpm exec playwright install-deps`, which setup never runs for you).
 `bin/setup --doctor` reports whether the browser binaries are present.
 
-`scripts/tests/run.sh` covers the shell scripts that CI itself runs — the
+`bin/testsuite run` covers the shell scripts that CI itself runs — the
 Sentry sourcemap delivery reporters in `scripts/ci/`, whose failure mode is
 a green check next to a summary that says nothing shipped. They are outside
 the lane runner on purpose: no datastore, no Ruby, no network. Each test

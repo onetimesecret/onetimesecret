@@ -8,7 +8,7 @@ they source, and the opt-in hook that sets up new worktrees.
 | `setup.sh` | The lanes: dev (default), `--test`, `--init`, `--reconcile`, `--doctor` (with `--bundle`), `--console`, `--help`. |
 | `lib.sh` | Sourced by `setup.sh` and `new-worktree.sh`: output helpers, version gates, connectivity probes, dependency installs, `.envrc` generation, new-worktree helpers. Never executed. |
 | `new-worktree.sh` | post-checkout hook (`.pre-commit-config.yaml`, id `new-worktree-setup`). Runs `bin/setup --dev` or `--test` in a worktree git just created, once a clone opts in. See [New worktrees (opt-in)](../../docs/development/README.md#new-worktrees-opt-in). |
-| `tests/*-test.sh` | Shell tests, run by `scripts/tests/run.sh` (the `shell tests` job in `static-analysis.yml`). |
+| `tests/*-test.sh` | Shell tests, run by `bin/testsuite run` (the `shell tests` job in `static-analysis.yml`). |
 
 ## Entry points
 

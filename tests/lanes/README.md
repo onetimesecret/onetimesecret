@@ -782,4 +782,4 @@ request, whatever the PR touches, and passes only when every test job in
 its path. A job skipped although its path changed (a failed lint or build, a
 cancelled run), a failed or cancelled `changes` job, or `[ci-skip]` fails it.
 Add a row to `.github/scripts/ci-verdict.sh` when adding a test job;
-`scripts/tests/ci-verdict-test.sh` fails otherwise.
+`tools/testsuite/ci-verdict-test.sh` fails otherwise.

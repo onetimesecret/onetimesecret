@@ -1,0 +1,14 @@
+[project]
+name = "onetimesecret-testsuite"
+version = "0.1.0"
+description = "Python dependencies for the repository's opt-in tooling checks"
+requires-python = ">=3.11"
+dependencies = [
+  "cyclopts>=4,<5",
+  "httpx>=0.27,<1",
+  "pytest>=8,<10",
+]
+
+# Shell owns dispatch; the existing Python checks are scripts, not a library.
+[tool.uv]
+package = false

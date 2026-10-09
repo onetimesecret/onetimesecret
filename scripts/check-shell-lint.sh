@@ -62,7 +62,7 @@ SHELLCHECK_SEVERITY="warning"
 # Directories held to the stricter floor with no baseline at all: the CI
 # reporting scripts and their tests. They are clean at `style` today and the
 # point of the lane is to keep the newest code the tidiest.
-STRICT_GLOBS=("scripts/ci" "scripts/tests")
+STRICT_GLOBS=("scripts/ci" "tools/testsuite")
 
 MODE="check"
 case "${1:-}" in
@@ -196,7 +196,7 @@ SHELLCHECK_HEADER="# .github/lint-baseline/shellcheck.tsv
 # the recorded one, fails the lane. A lower count passes and is reported so the
 # baseline can be tightened.
 #
-# Severity floor: ${SHELLCHECK_SEVERITY}. scripts/ci and scripts/tests are held to
+# Severity floor: ${SHELLCHECK_SEVERITY}. scripts/ci and tools/testsuite are held to
 # 'style' with no baseline; see scripts/check-shell-lint.sh.
 #
 # These are debt, not exemptions. Nothing here is unfixable — SC2034 is an
@@ -215,7 +215,7 @@ ACTIONLINT_HEADER="# .github/lint-baseline/actionlint.tsv
 # space-separated lists (bake tags, sentry project flags, the Sentry expected
 # component list) through unquoted expansions ON PURPOSE, because each element
 # must become its own argument. Quoting them would be a regression, not a fix —
-# scripts/tests/sentry-components-drift-test.sh asserts one of them stays
+# tools/testsuite/sentry-components-drift-test.sh asserts one of them stays
 # unquoted. They are baselined rather than disabled inline so the count is
 # visible and a NEW unquoted expansion still has to be justified.
 #
