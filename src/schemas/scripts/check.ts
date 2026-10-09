@@ -32,6 +32,7 @@
 import { readFileSync } from 'fs';
 
 import { allSchemas, checkPayload, closest, counted, type Group } from '../check';
+import { withoutSchemaDiagnostics } from '../validationContext';
 
 function usage(message?: string): never {
   if (message) console.error(message);
@@ -80,7 +81,7 @@ try {
   usage(`Could not read JSON (${(error as Error).name})`);
 }
 
-const result = checkPayload(schema, input, showValues);
+const result = withoutSchemaDiagnostics(() => checkPayload(schema, input, showValues));
 
 if (result.success) {
   console.log(`OK: valid against ${name}`);
@@ -96,7 +97,7 @@ console.log(`INVALID against ${name}: ${result.issueCount} issues.${hidden}\n`);
 printGroups(result.groups);
 
 console.log('Closest schemas (by fields recognised):');
-for (const c of closest(input, schemas)) {
+for (const c of withoutSchemaDiagnostics(() => closest(input, schemas))) {
   const status = c.issues === 0 ? 'valid' : `${c.issues} issues`;
   console.log(
     `  ${c.name.padEnd(36)} ${String(c.matched).padStart(4)} matched  ${status}, ${c.undeclared} undeclared`
