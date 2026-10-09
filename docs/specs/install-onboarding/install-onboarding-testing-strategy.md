@@ -85,7 +85,7 @@ container that's allowed to mutate the filesystem), netdata (copy-pasteable
 `docker run -v $PWD:/netdata -w /netdata ubuntu:latest sh -x .../run-updater-check.sh`),
 and nvm (a README-documented dev/test container).
 
-**Minimal viable version (a day):** `scripts/install-tests/run.sh`
+**Minimal viable version (a day):** `bin/testsuite-installer run`
 
 ```bash
 # Shape, not final code. Each path gets a stage; each stage is one
@@ -204,8 +204,8 @@ For us: a path-filtered `installer.yml` that fires on changes to
 `install*.sh`, `bin/dev`, `lib/tasks/init.rake`, lockfiles, or the workflow
 itself, plus a weekly cron:
 
-- **Linux lanes**: invoke the Tier 1 harness (`scripts/install-tests/run.sh
-  --lane baremetal --distro ruby34`, etc.). One lane deliberately uses a
+- **Linux lanes**: invoke the Tier 1 harness (`bin/testsuite-installer run
+  --lane baremetal`, etc.). One lane deliberately uses a
   POSIX locale, one `ruby:3.3` (expect the documented failure).
 - **One `runs-on: macos-15` lane** executing `bash install-dev.sh` and
   `./install-test.sh`. This is the only honest test of stock **bash 3.2 +
@@ -275,11 +275,14 @@ brittle and none of the verified projects use them):
 3. API round-trip: create a secret, retrieve it once, second retrieval fails
    (the product's core invariant as a smoke test).
 
-Package this once as `scripts/install-tests/proof-of-life.sh <base-url>` so
+Package this once as `bin/testsuite-installer proof-of-life <base-url>` so
 Tier 1, 2a, 2b, 2c, and any future Goss spec (landscape doc §3) all call the
 identical assertion. `curl --fail --retry 10 --retry-connrefused` is the
 retry idiom; [hurl](https://github.com/Orange-OpenSource/hurl) is the upgrade
 path if the API assertions grow.
+
+`bin/testsuite-installer proof-of-life --print-script` emits the standalone
+smoke script for stdin streaming.
 
 ## 5. Tier 3 — Devcontainer as both the fix and the rig
 

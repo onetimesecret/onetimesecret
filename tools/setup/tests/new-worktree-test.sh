@@ -28,8 +28,8 @@ set -uo pipefail
 TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PKG_DIR="$(cd "${TEST_DIR}/.." && pwd)"
 REPO_ROOT="$(cd "${PKG_DIR}/../.." && pwd)"
-# shellcheck source=scripts/tests/lib/assert.sh
-source "${REPO_ROOT}/scripts/tests/lib/assert.sh"
+# shellcheck source=tools/testsuite/lib/assert.sh
+source "${REPO_ROOT}/tools/testsuite/lib/assert.sh"
 
 ZERO_REF=0000000000000000000000000000000000000000
 
