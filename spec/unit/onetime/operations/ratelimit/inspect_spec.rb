@@ -25,7 +25,7 @@ RSpec.describe Onetime::Operations::RateLimit::Inspect do
   it 'walks every pattern to the end when no deadline is given' do
     allow(db).to receive(:scan) do |cursor, match:, count:|
       expect(count).to eq(Onetime::Operations::RateLimit::Registry::SCAN_COUNT)
-      cursor == '0' ? ['7', []] : ['0', [match.sub('*', '203.0.113.9')]]
+      cursor == '0' ? ['7', []] : ['0', [match.delete_suffix('*') + '203.0.113.9']]
     end
 
     result = call
