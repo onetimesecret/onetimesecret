@@ -6,6 +6,7 @@ require 'onetime/logic/base'
 require 'onetime/colonel_signin_failure'
 require 'onetime/models/colonel_audit_event'
 require 'onetime/security/login_rate_limiter'
+require 'onetime/session/impersonation'
 require 'onetime/session/rotation'
 
 module Core::Logic
@@ -304,6 +305,17 @@ module Core::Logic
       # Called on both success paths, after credential verification and the
       # suspended check, before any identity key is written.
       #
+      # IMPERSONATION. A colonel impersonation marker in the session is ended
+      # with {Onetime::SessionImpersonation.stop!} before the clear, so the
+      # trail records its stop (ended_by: logout) instead of holding a start
+      # with no end; logout does the same (Core::Controllers::Authentication#logout,
+      # Onetime::Helpers::SessionHelpers#logout!). Over HTTP this login does
+      # not see a live marker today: Onetime::Middleware::ImpersonationContext
+      # answers every /auth request on such a session with 403
+      # impersonation_read_only, and stops an expired one (ended_by: expired)
+      # before the request goes on. The call keeps the trail complete if this
+      # logic is reached with a marker some other way.
+      #
       # FAILURE: the login does not continue on a session whose old id could
       # not be ended. The hash is left empty and
       # {Onetime::SessionRotation::Incomplete} is raised, so the commit writes
@@ -315,6 +327,7 @@ module Core::Logic
       # @raise [Onetime::SessionRotation::Incomplete]
       def start_new_session!
         previous_handle = session_log_handle
+        Onetime::SessionImpersonation.stop!(sess, ended_by: Onetime::SessionImpersonation::ENDED_BY_LOGOUT)
         sess.clear
 
         rotation = begin

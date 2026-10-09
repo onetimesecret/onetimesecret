@@ -13,12 +13,65 @@ module Onetime
   # Rodauth: `login_session` calls the app's `clear_session`, which is
   # `session.destroy` (apps/web/auth/config/base.rb), and Rodauth then fills
   # the empty session again. This module is the same step for a session whose
-  # data must SURVIVE: the second factor completing (RISK-2026-09-19-02), and
-  # the other establishment paths #4466 lists once they call it. Simple-mode
+  # data must SURVIVE: the second factor completing (RISK-2026-09-19-02) and
+  # the colonel step-up (ColonelAPI::Logic::Colonel::ElevateSession). Simple-mode
   # password login (Core::Logic::Authentication::AuthenticateSession, which
   # Rodauth does not serve) also calls it, on a session it has cleared first:
   # nothing crosses, which matches what clear_session gives full mode, and
   # an incomplete result refuses the login.
+  #
+  # ## Which transitions renew the id
+  #
+  # The rule: the id is renewed when the session GAINS capability (anonymous
+  # to signed in, partly to fully authenticated, a step-up window, a
+  # credential change), so that a copy of the earlier id, planted in advance
+  # or leaked, does not gain it too. It is not renewed when capability stays
+  # the same or shrinks, or when whoever holds the id could already make the
+  # transition at will: a new id would defend nothing, and it starts a new
+  # snapshot epoch (ADR-046).
+  #
+  # Mechanisms: `clear_session` is Rodauth's login_session running this app's
+  # clear_session (session.destroy), and nothing crosses; `rotate!` is this
+  # module; `:renew` is `rack.session.options[:renew]`
+  # (Onetime::Logic::Base#rotate_session!, or set by a Rodauth hook), applied
+  # by Rack at commit, and the session data crosses. Each line names the
+  # spec that shows the new id, or says there is none.
+  #
+  # - Password sign-in, full mode: renewed, clear_session.
+  #   spec/integration/full/customer_session_continuation_baseline_spec.rb:18
+  # - Password sign-in, simple mode: renewed, session cleared then rotate!.
+  #   spec/integration/simple/login_session_rotation_spec.rb:117
+  # - OIDC callback sign-in (first sign-in and returning identity): renewed,
+  #   clear_session (rodauth-omniauth login("omniauth")).
+  #   apps/web/auth/spec/integration/full/sso_callback_session_rotation_spec.rb:124, :134
+  # - Platform SAML callback sign-in: renewed, clear_session.
+  #   apps/web/auth/spec/integration/full_saml_platform/platform_saml_sso_spec.rb:705
+  # - Verify-account autologin: renewed, clear_session (autologin_session).
+  #   apps/web/auth/spec/integration/full/verify_account_autologin_session_rotation_spec.rb:123
+  # - Magic-link and passkey sign-in: renewed, clear_session (Rodauth
+  #   `login`, the same route family). No rotation spec.
+  # - Second factor completed: renewed, rotate! (hooks/two_factor.rb).
+  #   apps/web/auth/spec/integration/full_mfa/mfa_session_rotation_spec.rb:81
+  # - Invite signup autologin: renewed, :renew.
+  #   spec/integration/full/active_sessions_spec.rb:624
+  # - Password change, full mode: renewed, :renew (after_change_password).
+  #   spec/integration/full/hooks/account_lifecycle_spec.rb:487
+  # - Password change, simple mode: renewed, :renew
+  #   (AccountAPI::Logic::Account::UpdatePassword). No rotation spec.
+  # - Colonel step-up: renewed, rotate!; no window when it is incomplete.
+  #   spec/integration/full/colonel_elevation_session_rotation_spec.rb:69,
+  #   spec/integration/simple/colonel_elevation_session_rotation_spec.rb:67
+  # - Impersonation start and stop: none, by rule (any holder of the colonel
+  #   id can start one without a step-up; the overlay is read-only; stop
+  #   returns the colonel's own capability). See
+  #   Auth::Operations::Customers::Impersonate#call.
+  # - Organization switch (RequestHelpers#switch_organization): none, by
+  #   rule; it changes the active organization, not the identity.
+  # - Dropping elevation: none, by rule; capability shrinks.
+  # - Sign-out, and simple-mode password reset: the id is ended (cleared,
+  #   then :renew, or clear_session in full mode) and nothing signed in
+  #   crosses. Not a rotation in this module's sense, and none is required
+  #   by the rule.
   #
   # ## The mechanism
   #
@@ -100,10 +153,12 @@ module Onetime
   #    the values they had, so the surviving blob is in the state it was in
   #    (for MFA: still pending), and the result is incomplete.
   #
-  # An incomplete result means the caller must not continue on the session:
-  # {Onetime::SessionRotation::Incomplete} is what it raises after clearing
-  # the session hash (the MFA hook does this; the request then fails and the
-  # cleared hash is what the commit writes). A session that is not a Rack
+  # An incomplete result means the caller must not complete the transition
+  # on the session. A sign-in raises {Onetime::SessionRotation::Incomplete}
+  # after clearing the session hash (the MFA hook and simple-mode login do
+  # this; the request then fails and the cleared hash is what the commit
+  # writes). The colonel step-up writes no window and answers an error, and
+  # leaves the rest of the session as it was. A session that is not a Rack
   # session-store session (a bare Hash, as in internal requests and some
   # specs) has no server-side id to rotate and nothing to leave behind;
   # {rotate!} returns nil for it, which is not an incomplete rotation.

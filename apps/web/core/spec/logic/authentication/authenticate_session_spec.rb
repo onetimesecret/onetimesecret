@@ -405,6 +405,60 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
       expect(session_data).to include('seeded_by_previous_occupant' => 'yes')
     end
 
+    # An impersonation marker in the session is stopped, and its stop
+    # recorded, before the clear (logout does the same). Over HTTP the login
+    # does not see a live marker today, since ImpersonationContext refuses
+    # /auth requests on such a session; see start_new_session!.
+    context 'when the session still carries a colonel impersonation' do
+      let(:marker) do
+        {
+          'id' => 'imp_0123456789abcdef',
+          'target_extid' => 'ur_target',
+          'target_email' => 'target@example.com',
+          'reason' => 'support ticket',
+          'started_at' => Familia.now.to_i - 60,
+          'expires_at' => Familia.now.to_i + 600,
+        }
+      end
+      let(:session_data) do
+        { 'external_id' => 'ur_colonel_principal', Onetime::SessionImpersonation::SESSION_KEY => marker }
+      end
+
+      before { allow(Onetime::ColonelAuditEvent).to receive(:record) }
+
+      it 'records the stop, attributed to the principal, before the session is cleared', :aggregate_failures do
+        expect(Onetime::SessionRotation).to receive(:rotate!).with(rack_session).once do
+          expect(Onetime::ColonelAuditEvent).to have_received(:record).with(
+            hash_including(
+              actor: 'ur_colonel_principal',
+              verb: Onetime::SessionImpersonation::AUDIT_VERB_STOP,
+              target: 'ur_target',
+              detail: hash_including(
+                impersonation_id: 'imp_0123456789abcdef',
+                ended_by: Onetime::SessionImpersonation::ENDED_BY_LOGOUT,
+              ),
+            ),
+          ).once
+          expect(session_data).to be_empty
+          complete_rotation
+        end
+
+        logic.process
+
+        expect(session_data).not_to have_key(Onetime::SessionImpersonation::SESSION_KEY)
+        expect(session_data).to include('external_id' => 'ur_test123')
+      end
+    end
+
+    it 'records no impersonation stop for a session without a marker' do
+      allow(Onetime::ColonelAuditEvent).to receive(:record)
+
+      logic.process
+
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+        .with(hash_including(verb: Onetime::SessionImpersonation::AUDIT_VERB_STOP))
+    end
+
     it 'continues for a session with no server-side id (nil result)', :aggregate_failures do
       allow(Onetime::SessionRotation).to receive(:rotate!).and_return(nil)
       expect(mock_logger).to receive(:warn).with('Login session not rotated: no server-side session id', anything)
