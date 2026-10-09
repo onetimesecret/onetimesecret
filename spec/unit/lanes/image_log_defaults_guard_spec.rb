@@ -185,6 +185,18 @@ RSpec.describe 'OCI image log defaults guard' do
       expect(offences(['spec/spec_helper.rb'], runtime_rules).join("\n")).to include('loads lane runner support code')
     end
 
+    # The guard passes the allowlist, so an allowlist that dropped whole files
+    # would hide a new read in setup.sh. The runner reads setup.sh's allowed
+    # name and the capture variables: only the allowed name may drop out.
+    it 'drops the allowlisted names from a file and keeps its other reads' do
+      allow = { 'tests/lanes/run' => lanes_allowlist.fetch('tools/setup/setup.sh') }
+      unfiltered = offences(['tests/lanes/run'], runtime_rules)
+      filtered = offences(['tests/lanes/run'], runtime_rules, allow: allow)
+
+      expect(filtered.size).to be < unfiltered.size
+      expect(filtered.join("\n")).to include('LANES_APP_LOG_FILE')
+    end
+
     # The image config files break none of these rules, so their empty
     # result says nothing about whether a rule can match. One breaking line
     # per rule keeps that check from passing on a rule that never fires.
