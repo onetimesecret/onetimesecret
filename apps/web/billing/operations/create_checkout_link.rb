@@ -190,10 +190,11 @@ module Billing
         OT.conf&.dig('features', 'regions', 'current_jurisdiction') || 'LL'
       end
 
-      # Resolve the customer's default org with the same priority the
-      # billing grant path uses (explicit default_org_id, then is_default,
-      # then first non-archived org). Adapters (colonel logic, CLI) use this
-      # when the caller supplies only a customer.
+      # Resolve the org the checkout's subscription attaches to with the same
+      # rule the pro-bono grant uses: a live organization the customer OWNS
+      # (OrganizationLoader.owned_default_organization, else their first
+      # owned org), never one they merely joined. Adapters (colonel logic,
+      # CLI) use this when the caller supplies only a customer.
       #
       # @param customer [Onetime::Customer]
       # @return [Onetime::Organization, nil]

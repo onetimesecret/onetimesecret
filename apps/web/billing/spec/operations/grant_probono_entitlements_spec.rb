@@ -5,7 +5,8 @@
 # Unit tests for GrantProbonoEntitlements operation.
 #
 # Covers:
-# - default_org_for: prioritizes default_org_id, then is_default, then first
+# - default_org_for: owned organizations only — default_org_id when owned,
+#   then the owned is_default workspace, then the first owned org
 # - filter_eligible: keeps only LEGACY_PROBONO_PLANIDS customers
 # - find_eligible_customers: yields progress, returns filtered array
 # - .call with no org: returns :skipped_no_org without writes
@@ -36,6 +37,7 @@ RSpec.describe Billing::Operations::GrantProbonoEntitlements do
       email: customer_email,
       planid: 'identity',
       default_org_id: nil,
+      anonymous?: false,
       :planid= => nil,
       save: true,
     )
@@ -47,6 +49,7 @@ RSpec.describe Billing::Operations::GrantProbonoEntitlements do
       objid: 'org_obj_1',
       is_default: true,
       archived?: false,
+      owner?: true,
       planid: 'free_v1',
       complimentary: nil,
       :planid= => nil,
@@ -80,9 +83,9 @@ RSpec.describe Billing::Operations::GrantProbonoEntitlements do
   # ---------------------------------------------------------------------------
 
   describe '.default_org_for' do
-    let(:org_a) { double('OrgA', objid: 'a', is_default: false, archived?: false) }
-    let(:org_b) { double('OrgB', objid: 'b', is_default: true, archived?: false) }
-    let(:org_c) { double('OrgC', objid: 'c', is_default: false, archived?: false) }
+    let(:org_a) { double('OrgA', objid: 'a', is_default: false, archived?: false, owner?: true) }
+    let(:org_b) { double('OrgB', objid: 'b', is_default: true, archived?: false, owner?: true) }
+    let(:org_c) { double('OrgC', objid: 'c', is_default: false, archived?: false, owner?: true) }
 
     it 'returns nil when customer has no organizations' do
       allow(customer).to receive(:organization_instances)
@@ -115,12 +118,77 @@ RSpec.describe Billing::Operations::GrantProbonoEntitlements do
       expect(described_class.default_org_for(customer)).to eq(org_a)
     end
 
-    it 'falls back through default_org_id when it points at a non-member org' do
+    it 'falls back through default_org_id when it points at an organization the customer is not in' do
       allow(customer).to receive(:default_org_id).and_return('missing')
       allow(customer).to receive(:organization_instances)
         .and_return(double(to_a: [org_a, org_b]))
 
       expect(described_class.default_org_for(customer)).to eq(org_b)
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # Target selection: the grant writes planid/complimentary onto the target,
+  # so it must be a workspace the customer OWNS. A legacy pro-bono customer
+  # who joined another owner's default workspace lists that workspace with
+  # is_default too — selecting it would change THAT owner's plan.
+  # ---------------------------------------------------------------------------
+
+  describe 'target selection with the shared lookup fixture' do
+    include_context 'default workspace lookup fixture'
+
+    before do
+      allow(customer).to receive(:organization_instances)
+        .and_return(double(to_a: lookup_fixture_orgs))
+      allow(customer).to receive(:default_org_id).and_return(nil)
+      stub_workspace_ownership(customer)
+      [foreign_default, archived_default, owned_default].each do |o|
+        allow(o).to receive(:complimentary).and_return(nil)
+        allow(o).to receive(:planid=)
+        allow(o).to receive(:complimentary=)
+        allow(o).to receive(:save).and_return(true)
+      end
+    end
+
+    it '.default_org_for selects the owned live default, not the foreign default listed first' do
+      expect(described_class.default_org_for(customer)).to be(owned_default)
+    end
+
+    it '.default_org_for ignores a default_org_id naming a joined organization' do
+      allow(customer).to receive(:default_org_id).and_return(foreign_default.objid)
+
+      expect(described_class.default_org_for(customer)).to be(owned_default)
+    end
+
+    it 'grants to the owned workspace and never writes to the joined one' do
+      result = described_class.call(customer)
+
+      expect(result.granted?).to be(true)
+      expect(result.org_extid).to eq(owned_default.extid)
+      expect(owned_default).to have_received(:planid=).with('identity')
+      expect(owned_default).to have_received(:complimentary=).with('true')
+      expect(foreign_default).not_to have_received(:planid=)
+      expect(foreign_default).not_to have_received(:complimentary=)
+      expect(foreign_default).not_to have_received(:save)
+      expect(archived_default).not_to have_received(:planid=)
+    end
+
+    it 'grants to an explicit operator-selected organization instead' do
+      result = described_class.call(customer, org: foreign_default)
+
+      expect(result.org_extid).to eq(foreign_default.extid)
+      expect(foreign_default).to have_received(:planid=).with('identity')
+      expect(owned_default).not_to have_received(:planid=)
+    end
+
+    it 'skips a customer who owns no live organization rather than grant to a joined one' do
+      allow(customer).to receive(:organization_instances)
+        .and_return(double(to_a: [foreign_default, archived_default]))
+
+      result = described_class.call(customer)
+
+      expect(result.status).to eq(:skipped_no_org)
+      expect(foreign_default).not_to have_received(:planid=)
     end
   end
 
