@@ -156,6 +156,19 @@ describe('useResourceFetch', () => {
       expect(r.error.value).toBe(notFound);
     });
 
+    it('schema mismatch: exposes the failing paths and the payload as received', async () => {
+      const payload = { record: { id: 'a', name: null } };
+      mockApi.get.mockResolvedValue({ data: payload });
+      const r = makeFetcher();
+
+      await r.load();
+
+      expect(r.mismatch.value).toEqual({
+        issues: [{ path: 'record.name', message: expect.stringContaining('expected string') }],
+        payload,
+      });
+    });
+
     it('clears a prior validationError + notFound on the next successful fetch', async () => {
       const r = makeFetcher();
 
@@ -166,6 +179,7 @@ describe('useResourceFetch', () => {
       mockApi.get.mockResolvedValueOnce({ data: validPayload() });
       await r.load();
       expect(r.validationError.value).toBeNull();
+      expect(r.mismatch.value).toBeNull();
       expect(r.notFound.value).toBe(false);
     });
   });
@@ -226,9 +240,7 @@ describe('useResourceFetch', () => {
       fast.resolve({ data: otherPayload() });
       await second;
 
-      slow.reject(
-        Object.assign(new Error('Not Found'), { response: { status: 404 } })
-      );
+      slow.reject(Object.assign(new Error('Not Found'), { response: { status: 404 } }));
       // The stale caller still receives its own rejection…
       await expect(first).rejects.toThrow('Not Found');
       // …but the shared refs stay owned by the newer (successful) request.
@@ -275,6 +287,17 @@ describe('useResourceFetch', () => {
       expect(r.error.value).toBeNull();
       expect(r.validationError.value).toBeNull();
       expect(r.notFound.value).toBe(false);
+    });
+
+    it('clears a contract mismatch', async () => {
+      mockApi.get.mockResolvedValue({ data: { record: { id: 1 } } });
+      const r = makeFetcher();
+      await r.load();
+      expect(r.mismatch.value).not.toBeNull();
+
+      r.reset();
+
+      expect(r.mismatch.value).toBeNull();
     });
 
     it('invalidates an in-flight request so its late settle cannot repopulate state', async () => {

@@ -2,7 +2,7 @@
 #
 # tools/testsuite/sentry-status-render-test.sh
 #
-# Covers `scripts/ci/sentry-status.sh render [expected-component ...]`.
+# Covers `.github/scripts/sentry-status.sh render [expected-component ...]`.
 #
 # WHAT THIS PROTECTS
 #
@@ -28,7 +28,7 @@ REPO_ROOT="$(cd "${TEST_DIR}/../.." && pwd)"
 # shellcheck source=tools/testsuite/lib/assert.sh
 source "${TEST_DIR}/lib/assert.sh"
 
-STATUS_SCRIPT="${REPO_ROOT}/scripts/ci/sentry-status.sh"
+STATUS_SCRIPT="${REPO_ROOT}/.github/scripts/sentry-status.sh"
 GOLDEN_DIR="${TEST_DIR}/fixtures/sentry-status"
 
 mapfile -t SCRUB < <(sentry_scrub_args)

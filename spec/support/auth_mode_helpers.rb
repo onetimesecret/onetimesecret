@@ -29,7 +29,9 @@ module AuthModeHelpers
       @password_requirements_enabled = options.fetch(:password_requirements_enabled, true)
       @active_sessions_enabled = options.fetch(:active_sessions_enabled, true)
       @remember_me_enabled = options.fetch(:remember_me_enabled, true)
-      @verify_account_enabled = options.fetch(:verify_account_enabled, false)  # Disabled in test by default
+      # Off in tests unless the full-mfa lane exports AUTH_VERIFY_ACCOUNT_ENABLED,
+      # for the same one-shot reason as email_auth and webauthn below.
+      @verify_account_enabled = options.fetch(:verify_account_enabled) { ENV['AUTH_VERIFY_ACCOUNT_ENABLED'] == 'true' }
       @mfa_enabled = options.fetch(:mfa_enabled, true)
       # Magic links and passkeys default OFF, but honor env the same way the
       # SSO flags below do: this mock is what config.rb reads at the one-shot

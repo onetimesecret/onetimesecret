@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# scripts/ci/ci-metrics-breakdown.sh
+# .github/scripts/ci-metrics-breakdown.sh
 #
 # The test-run half of the T5 CI Metrics report: what actually completed, how
 # long each TEST STEP took, and how that compares with recent main.

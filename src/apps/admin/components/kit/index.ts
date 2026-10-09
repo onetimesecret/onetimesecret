@@ -23,6 +23,7 @@ export { default as AdminConfirmDialog } from './AdminConfirmDialog.vue';
 export { default as AdminModal } from './AdminModal.vue';
 export { default as AdminRecordPanel } from './AdminRecordPanel.vue';
 export { default as KitPagination } from './KitPagination.vue';
+export { default as SchemaIssueList } from './SchemaIssueList.vue';
 
 export type {
   CellAlign,

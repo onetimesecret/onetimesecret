@@ -2,7 +2,7 @@
 
 import { createAdminRouter } from '@/apps/admin/router';
 import adminRoutes, { adminDefaultMeta } from '@/apps/admin/routes';
-import { CONSOLE_SECTIONS } from '@/apps/admin/sections';
+import { CONSOLE_GROUPS, CONSOLE_SECTIONS } from '@/apps/admin/sections';
 import { createPinia, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { RouteRecordRaw } from 'vue-router';
@@ -114,6 +114,33 @@ describe('Admin Routes Configuration', () => {
       const router = createAdminRouter();
       await router.push('/colonel/does-not-exist-yet');
       expect(router.currentRoute.value.meta.layout).toBe(adminDefaultMeta.layout);
+    });
+  });
+
+  describe('Data tools', () => {
+    it('registers Schemas as an authenticated, colonel-only page', async () => {
+      const route = adminRoutes.find((r) => r.path === '/colonel/schemas');
+      expect(route?.name).toBe('AdminSchemas');
+      expect(route?.meta).toMatchObject({
+        title: 'web.admin.schemas.title',
+        requiresAuth: true,
+        requiresColonel: true,
+      });
+      const component = await (route?.component as () => Promise<unknown>)();
+      expect(component).toBeDefined();
+    });
+
+    it('groups Secret Receipts and Schemas under Data Tools', () => {
+      expect(CONSOLE_GROUPS.find((g) => g.key === 'data')?.labelKey).toBe(
+        'web.colonel.nav.groups.data'
+      );
+      expect(CONSOLE_SECTIONS.filter((s) => s.group === 'data').map((s) => s.to)).toEqual([
+        '/colonel/secrets',
+        '/colonel/schemas',
+      ]);
+      expect(
+        CONSOLE_SECTIONS.filter((s) => s.group === 'platform').map((s) => s.key)
+      ).not.toContain('secrets');
     });
   });
 

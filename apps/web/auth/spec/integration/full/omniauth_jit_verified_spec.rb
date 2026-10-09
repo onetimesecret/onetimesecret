@@ -33,7 +33,8 @@
 #      against the rejected first attempt at this fix, which verified almost
 #      anyone by checking status_id on the shared login path.
 #   3. NEGATIVE — an IdP that EXPLICITLY asserts email_verified: false does not
-#      get the verified stamp, even though Rodauth opened its account.
+#      get the verified stamp, even though Rodauth opened its account. JIT
+#      creation itself is still allowed (#4688 refuses trusted linking only).
 #
 # Layer note: apps/web/auth/spec/integration/full/omniauth_account_creation_spec.rb
 # pins the EnsureCustomerForAccount PARAMETER contract in isolation. This file pins the
@@ -220,6 +221,13 @@ RSpec.describe 'OmniAuth JIT provisioning sets verified (#3973)', type: :integra
         if last_response.status == 404
           skip 'OmniAuth route not registered (OIDC discovery not available at boot)'
         end
+
+        # JIT creation stays allowed on an explicit false (#4688): only trusted
+        # email linking is refused. The account is created; the Customer below
+        # carries the hold.
+        account = accounts.where(email: OT::Utils.normalize_email(email)).first
+        expect(account).not_to be_nil,
+          'An explicit email_verified: false must not refuse JIT creation'
 
         customer = customer_for(email)
         skip 'Callback did not JIT-provision a customer' if customer.nil?

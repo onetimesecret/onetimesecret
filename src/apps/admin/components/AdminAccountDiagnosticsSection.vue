@@ -250,8 +250,13 @@
 
   const rateLimiterLabel = computed<string>(() => {
     if (!sectionOk(sections.value?.rate_limits)) return unknownLabel();
-    return rateLimiterEngaged.value
-      ? t('web.admin.customers.detail.diagnostics.facts.rateLimiterEngaged')
+    if (rateLimiterEngaged.value) {
+      return t('web.admin.customers.detail.diagnostics.facts.rateLimiterEngaged');
+    }
+    // No lock found, but the per-IP scan stopped at the server's time budget:
+    // "Clear" would overstate it.
+    return sections.value?.rate_limits?.scan_complete === false
+      ? t('web.admin.customers.detail.diagnostics.facts.rateLimiterPartial')
       : t('web.admin.customers.detail.diagnostics.facts.rateLimiterClear');
   });
 

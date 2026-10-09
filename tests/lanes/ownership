@@ -18,7 +18,7 @@
 # file, even though `--tag postgres_database` then runs nothing in it. A
 # task's --exclude-pattern IS a path rule and is modelled (full:agnostic_on_pg
 # drops two engine-specific basename shapes, lanes_agnostic_excluded below).
-# The three files spec.rake names individually get their own rows.
+# The files spec.rake names individually get their own rows.
 #
 # LANES_OWNER_TASKS records, per lane, the rake tasks its tasks file runs —
 # the tasks whose patterns this table transcribes. spec/unit/lanes/
@@ -163,6 +163,16 @@ lanes_for_path() {  # <path>
       printf '%s\n' full-sqlite full-pg migrations-sqlite ;;
     spec/integration/full/database_triggers/postgres_spec.rb|spec/integration/full/postgres_infrastructure_spec.rb)
       printf '%s\n' full-sqlite full-pg migrations-pg ;;
+    # spec:integration:full:mfa names the feature-adaptive full-mode files
+    # (FULL_MFA_FEATURE_ADAPTIVE_SPECS in lib/tasks/spec.rake) on top of the
+    # three full lanes that load them through their directory.
+    apps/web/auth/spec/integration/full/restrict_to_enforcement_spec.rb|\
+    apps/web/auth/spec/integration/full/signin_enabled_enforcement_spec.rb|\
+    apps/web/auth/spec/integration/full/signin_gate_enforcement_spec.rb|\
+    apps/web/auth/spec/integration/full/resend_verify_account_internal_request_spec.rb|\
+    spec/integration/full/env_toggles/magic_links_spec.rb|spec/integration/full/routes/availability_spec.rb|\
+    spec/integration/full/routes/resend_verification_email_spec.rb)
+      printf '%s\n' full-sqlite full-pg full-pg-agnostic full-mfa ;;
     # spec:integration:full, full:postgres, and full:agnostic_on_pg minus
     # the name shapes its --exclude-pattern drops.
     spec/integration/full|spec/integration/full/*|${app}/spec/integration/full|${app}/spec/integration/full/*)

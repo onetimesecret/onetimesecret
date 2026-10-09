@@ -357,28 +357,22 @@ RSpec.configure do |config|
   # VCR: Wrap ALL billing tests in cassettes automatically
   # No need to tag individual tests with :vcr
   #
-  # IMPORTANT: Skip stripe_sandbox_api tests in CI when STRIPE_API_KEY is not set
-  # This must happen BEFORE VCR.use_cassette to avoid replaying stale cassettes
+  # stripe_sandbox_api examples replay their committed cassettes like every
+  # other billing example. In CI the record mode is :none and WebMock blocks
+  # the network (vcr_setup.rb), so a missing or stale cassette fails the
+  # example with VCR's unhandled-request error instead of skipping it.
   %i[billing cli controller integration].each do |test_type|
     config.around(:each, type: test_type, file_path: billing_spec_files) do |example|
-      if BILLING_VCR_SKIP_IN_CI && example.metadata[:stripe_sandbox_api]
-        skip 'Skipping Stripe sandbox test in CI - re-record cassettes with STRIPE_API_KEY'
-      else
-        VCR.use_cassette(vcr_cassette_name(example)) do
-          example.run
-        end
+      VCR.use_cassette(vcr_cassette_name(example)) do
+        example.run
       end
     end
   end
 
   # Symbol tag :integration also gets VCR wrapping
   config.around(:each, :integration, file_path: billing_spec_files) do |example|
-    if BILLING_VCR_SKIP_IN_CI && example.metadata[:stripe_sandbox_api]
-      skip 'Skipping Stripe sandbox test in CI - re-record cassettes with STRIPE_API_KEY'
-    else
-      VCR.use_cassette(vcr_cassette_name(example)) do
-        example.run
-      end
+    VCR.use_cassette(vcr_cassette_name(example)) do
+      example.run
     end
   end
 
@@ -410,7 +404,6 @@ RSpec.configure do |config|
 
   # Integration tests: both `type: :integration` and `:integration` symbol tag
   # get the same setup. Using a shared proc for consistency.
-  # Note: stripe_sandbox_api skip logic is handled in the around hooks above
   integration_setup = lambda do |_example|
     @sleep_delays = []
     mock_billing_config!

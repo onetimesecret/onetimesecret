@@ -10,7 +10,7 @@
 #   bin/testsuite run sentry-status        # only files whose name contains this
 #   UPDATE_GOLDEN=1 bin/testsuite run       # rewrite the golden fixtures
 #
-# These are pure-text tests over scripts/ci/*.sh and the workflow files that
+# These are pure-text tests over .github/scripts/*.sh and the workflow files that
 # call them. They need no network, no Sentry instance, no datastore and no
 # container runtime, which is why they live outside tests/lanes/ — the lane
 # runner exists to boot dockerized services and scrub Ruby's environment, and

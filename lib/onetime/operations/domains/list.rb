@@ -360,6 +360,9 @@ module Onetime
               created: domain.created,
               updated: domain.updated,
               org_id: domain.org_id,
+              # The owner's PUBLIC id: what the console links and routes by,
+              # so the internal org_id never lands in a URL.
+              org_extid: org&.extid,
               org_name: org ? org.display_name : 'Unknown',
               brand: brand_data,
               homepage_config: homepage_config && {

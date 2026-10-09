@@ -2,7 +2,7 @@
 #
 # tools/testsuite/sentry-status-sanitize-test.sh
 #
-# Covers the two text-neutralising functions in scripts/ci/sentry-status.sh:
+# Covers the two text-neutralising functions in .github/scripts/sentry-status.sh:
 # sanitize() at the record seam and md_code() at the render seam.
 #
 # WHAT THIS PROTECTS
@@ -43,7 +43,7 @@ REPO_ROOT="$(cd "${TEST_DIR}/../.." && pwd)"
 # shellcheck source=tools/testsuite/lib/assert.sh
 source "${TEST_DIR}/lib/assert.sh"
 
-STATUS_SCRIPT="${REPO_ROOT}/scripts/ci/sentry-status.sh"
+STATUS_SCRIPT="${REPO_ROOT}/.github/scripts/sentry-status.sh"
 CAP=700 # the length cap sanitize() applies
 
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/sentry-sanitize-test.XXXXXX")"

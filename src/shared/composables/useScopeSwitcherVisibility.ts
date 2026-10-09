@@ -63,12 +63,12 @@ export function useScopeSwitcherVisibility() {
   };
 
   /**
-   * Whether this user gets the org switcher. Met by the current org, or by
-   * any OTHER org in the list. The second half keeps the switcher on screen
-   * after the user selects an org they do not own: the selection survives a
-   * page load (#4565), so without it the only control that switches back
-   * would be gone for good. Only switcher visibility reads this; routes and
-   * per-org actions keep their own role checks.
+   * Whether this user meets the owner + manage_orgs gate. Met by the current
+   * org, or by any OTHER org in the list. The second half keeps the switcher
+   * on screen after the user selects an org they do not own: the selection
+   * survives a page load (#4565), so without it the only control that
+   * switches back would be gone for good. Only switcher visibility reads
+   * this; routes and per-org actions keep their own role checks.
    *
    * The list is consulted only for orgs other than the current one, so a
    * single-org user is judged on the current org record alone, and so is
@@ -81,6 +81,14 @@ export function useScopeSwitcherVisibility() {
       (org) => org.objid !== current?.objid && meetsSwitcherGate(org)
     );
   });
+
+  /**
+   * The user belongs to more than one organization, so there is something to
+   * switch between whatever they own. A free-plan owner who is a plain member
+   * of a paid org meets no owner gate, yet needs the switcher to get there.
+   * False while the list has not loaded.
+   */
+  const belongsToSeveralOrgs = computed(() => organizationStore.organizations.length > 1);
 
   /**
    * "Trivial solo" org context: the user has exactly one organization — their
@@ -112,13 +120,14 @@ export function useScopeSwitcherVisibility() {
     return typeof memberCount === 'number' && memberCount <= 1;
   });
 
-  // Hide org switcher on custom domains (the domain IS the org scope), and for
-  // a brand-new self-signup user whose only org is their solo default.
+  // Shown to users who meet the owner gate or have more than one org to pick
+  // from. Hidden on custom domains (the domain IS the org scope), and for a
+  // brand-new self-signup user whose only org is their solo default.
   const showOrgSwitcher = computed(
     () => !isCustom.value
       && visibility.value.organization !== 'hide'
       && isOrganizationSwitcherEnabled()
-      && canManageOrgs.value
+      && (canManageOrgs.value || belongsToSeveralOrgs.value)
       && !isSoloDefaultContext.value
   );
   const lockOrgSwitcher = computed(() => visibility.value.organization === 'locked');

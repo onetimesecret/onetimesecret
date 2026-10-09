@@ -32,10 +32,11 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
     def price_for(requested_interval)
       return nil unless requested_interval.to_sym == interval.to_sym
 
+      # String keys, like Billing::Plan#price_for (JSON-parsed prices_hash).
       {
-        stripe_price_id: stripe_price_id,
-        amount: amount,
-        currency: currency,
+        'stripe_price_id' => stripe_price_id,
+        'amount' => amount,
+        'currency' => currency,
       }
     end
 
@@ -56,7 +57,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
         amount: '2900',
         currency: 'cad',
         region: 'US',
-        entitlements: '["api_access","manage_teams"]',
+        entitlements: %w[api_access manage_teams],
         stripe_product_id: 'prod_test123',
         stripe_price_id: 'price_test123',
       )
@@ -70,7 +71,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
         amount: '99900',
         currency: 'eur',
         region: 'EU',
-        entitlements: '["api_access","manage_teams","custom_domains"]',
+        entitlements: %w[api_access manage_teams custom_domains],
         stripe_product_id: 'prod_eu456',
         stripe_price_id: 'price_eu456',
       )
@@ -93,7 +94,6 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
       end
 
       it 'formats plan rows with proper alignment' do
-        skip 'CLI output format test is fragile; revisit when output stabilizes'
         output = capture_stdout { command.call }
         # Plan ID should be displayed
         expect(output).to include('single_team_us')
@@ -123,7 +123,10 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
         output = capture_stdout { command.call }
         # CAPS column shows capabilities count
         expect(output).to match(/CAPS/)
-        expect(output).to match(/\d+\s*$/)  # Ends with a number (caps count)
+        # sample_plan has two entitlements; the count sits between REGION and
+        # the product ID. With a JSON string fixture it used to print the
+        # string's length (29) and this example still passed.
+        expect(output).to match(/^single_team_us .* US\s+2\s+prod_test123/)
       end
 
       context 'when cache is empty' do
@@ -213,9 +216,14 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
           expect(output).to include('No plan entries found')
         end
 
-        it 'exits early when Stripe not configured', :code_smell, :integration, :stripe_sandbox_api do
-          # This test requires actual missing Stripe config - integration test needed
-          skip 'Requires testing with missing Stripe configuration'
+        it 'exits early when Stripe not configured' do
+          allow(OT.billing_config).to receive(:stripe_key).and_return('nostripekey')
+          expect(Billing::Operations::Catalog::Pull).not_to receive(:call)
+          expect(Billing::Plan).not_to receive(:list_plans)
+
+          output = capture_stdout { command.call(refresh: true) }
+          expect(output).to include('STRIPE_API_KEY environment variable not set')
+          expect(output).not_to include('Refreshing plans from Stripe')
         end
       end
 
@@ -228,7 +236,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
             amount: '1000',
             currency: 'cad',
             region: 'US',
-            entitlements: '[]',
+            entitlements: [],
             stripe_product_id: 'prod_long',
             stripe_price_id: 'price_long',
           )
@@ -241,20 +249,17 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
         end
 
         it 'formats CAD amounts correctly' do
-          skip 'CLI output format test is fragile; revisit when output stabilizes'
           output = capture_stdout { command.call }
           expect(output).to match(/CAD 29\.00/)
         end
 
         it 'formats EUR amounts correctly' do
-          skip 'CLI output format test is fragile; revisit when output stabilizes'
           allow(Billing::Plan).to receive(:list_plans).and_return([sample_plan_eu])
           output = capture_stdout { command.call }
           expect(output).to match(/EUR 999\.00/)
         end
 
         it 'handles zero-entitlement plans' do
-          skip 'CLI output format test is fragile; revisit when output stabilizes'
           zero_cap_plan = MockPlan.new(
             plan_id: 'basic_us',
             tier: 'basic',
@@ -262,7 +267,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
             amount: '0',
             currency: 'cad',
             region: 'US',
-            entitlements: '[]',
+            entitlements: [],
             stripe_product_id: 'prod_basic',
             stripe_price_id: 'price_basic',
           )

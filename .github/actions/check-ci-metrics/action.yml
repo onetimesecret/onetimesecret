@@ -121,7 +121,7 @@ outputs:
     value: ${{ steps.evaluate.outputs.status }}
   breakdown-file:
     description: >-
-      Path of the markdown produced by scripts/ci/ci-metrics-breakdown.sh:
+      Path of the markdown produced by .github/scripts/ci-metrics-breakdown.sh:
       per-tier completion state and per-test-step time against the main
       baseline. Empty when the jobs listing could not be fetched.
     value: ${{ steps.breakdown.outputs.file }}
@@ -244,7 +244,7 @@ runs:
 
     # ── Test-step breakdown ─────────────────────────────────────────────
     # The tier figures above are critical path, not test time. The breakdown
-    # (scripts/ci/ci-metrics-breakdown.sh) reports per-tier completion state
+    # (.github/scripts/ci-metrics-breakdown.sh) reports per-tier completion state
     # and each test step's own duration against the median of recent
     # successful main runs. Baseline runs are fetched here; the script itself
     # is offline and covered by tools/testsuite/ci-metrics-breakdown-test.sh.
@@ -290,7 +290,7 @@ runs:
         for f in "${dir}"/base-*.json; do
           [ -f "$f" ] && baselines+=("$f")
         done
-        if scripts/ci/ci-metrics-breakdown.sh "${dir}/current.json" "${baselines[@]}" > "${dir}/breakdown.md"; then
+        if .github/scripts/ci-metrics-breakdown.sh "${dir}/current.json" "${baselines[@]}" > "${dir}/breakdown.md"; then
           echo "file=${dir}/breakdown.md" >> "$GITHUB_OUTPUT"
         else
           echo "::warning::ci-metrics-breakdown.sh failed; the test-step breakdown is omitted"

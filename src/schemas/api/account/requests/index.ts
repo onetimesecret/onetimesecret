@@ -7,6 +7,7 @@ export * from './get-account';
 export * from './get-entitlements';
 export * from './request-email-change';
 export * from './resend-email-change-confirmation';
+export * from './update-default-organization';
 export * from './update-domain-context';
 export * from './update-locale';
 export * from './update-notification-preference';

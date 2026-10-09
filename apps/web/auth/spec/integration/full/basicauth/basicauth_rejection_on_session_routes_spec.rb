@@ -125,12 +125,13 @@ RSpec.describe 'BasicAuth rejection on session-only routes', type: :integration,
   # which is absent/false for BasicAuth requests (no session cookie).
 
   describe 'session-only Account API routes reject BasicAuth' do
-    # Map of path => description for the 8 restricted account routes
+    # Map of path => description for the 9 restricted account routes
     {
       '/api/account/destroy' => 'DestroyAccount',
       '/api/account/change-password' => 'UpdatePassword',
       '/api/account/update-domain-context' => 'UpdateDomainContext',
       '/api/account/update-organization-context' => 'UpdateOrganizationContext',
+      '/api/account/update-default-organization' => 'UpdateDefaultOrganization',
       '/api/account/apitoken' => 'GenerateAPIToken',
       '/api/account/change-email' => 'RequestEmailChange',
       '/api/account/update-notification-preference' => 'UpdateNotificationPreference',

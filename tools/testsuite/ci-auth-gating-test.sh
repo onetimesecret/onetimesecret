@@ -436,18 +436,64 @@ def lane_tasks():
     }.items():
         actual = executable((root / "tests/lanes" / lane / "tasks").read_text())
         check(actual == "bundle exec rake " + task, f"{lane}: lane tasks changed: {actual}")
-    for lane, tasks in (("unit", ("try:unit", "spec:fast")),
-                        ("billing", ("try:billing", "spec:billing")),
-                        ("billing-integration", ("try:integration:billing", "spec:integration:billing")),
-                        ("simple", ("try:integration:simple", "spec:integration:simple"))):
-        actual = executable((root / "tests/lanes" / lane / "tasks").read_text())
-        expected = '\n'.join([
-            "failed=()", *(f"bundle exec rake {task} || failed+=({task})" for task in tasks),
+    def collected_legs(lane, tasks):
+        # The collected-legs tail every multi-leg lane ends with.
+        return [
+            *tasks,
             'if (( ${#failed[@]} > 0 )); then',
             f'echo "[lane:{lane}] FAILED leg(s): ${{failed[*]}} — every leg ran; each leg\'s results are above" >&2',
             "exit 1", "fi",
-        ])
+        ]
+
+    for lane, tasks in (("billing", ("try:billing", "spec:billing")),
+                        ("billing-integration", ("try:integration:billing", "spec:integration:billing")),
+                        ("simple", ("try:integration:simple", "spec:integration:simple"))):
+        actual = executable((root / "tests/lanes" / lane / "tasks").read_text())
+        expected = '\n'.join(["failed=()", *collected_legs(
+            lane, [f"bundle exec rake {task} || failed+=({task})" for task in tasks])])
         check(actual == expected, f"{lane}: existing independent task legs changed: {actual}")
+    # The unit lane (#4551): the same two legs, side by side under two workers
+    # (its LANES_WORKERS default, each leg through tests/lanes/support/worker-env)
+    # and serial, unchanged, under --workers 1. The rspec status file worker 1
+    # wrote is folded back into the lane's after both legs.
+    actual = executable((root / "tests/lanes/unit/tasks").read_text())
+    expected = '\n'.join(["failed=()", *collected_legs("unit", [
+        'if (( ${LANES_WORKERS:-1} >= 2 )); then',
+        'run_dir="${LANES_RSPEC_STATUS_FILE%/*}"',
+        'try_log="${run_dir}/try-unit.log"',
+        'try_seconds="${run_dir}/try-unit.seconds"',
+        "try_rc=0",
+        "spec_rc=0",
+        "merge_rc=0",
+        'rm -f "${run_dir}"/rspec-status.w*.txt "${try_seconds}"',
+        "legs_t0=${EPOCHSECONDS}",
+        "{",
+        "try_leg_rc=0",
+        "tests/lanes/support/worker-env 2 bundle exec rake try:unit || try_leg_rc=$?",
+        'echo $(( EPOCHSECONDS - legs_t0 )) >"${try_seconds}"',
+        'exit "${try_leg_rc}"',
+        '} >"${try_log}" 2>&1 &',
+        "try_pid=$!",
+        "tests/lanes/support/worker-env 1 bundle exec rake spec:fast || spec_rc=$?",
+        "spec_s=$(( EPOCHSECONDS - legs_t0 ))",
+        'wait "${try_pid}" || try_rc=$?',
+        'echo "[lane:unit] try:unit ran as worker 2 (exit ${try_rc}); its output follows, from ${try_log}"',
+        'cat "${try_log}"',
+        "(( try_rc == 0 )) || failed+=(try:unit)",
+        "(( spec_rc == 0 )) || failed+=(spec:fast)",
+        "merge_t0=${EPOCHSECONDS}",
+        'bundle exec ruby tests/lanes/support/merge_rspec_status.rb "${LANES_RSPEC_STATUS_FILE}" "${run_dir}/rspec-status.w*.txt"'
+        " || merge_rc=$?",
+        "(( merge_rc == 0 )) || failed+=(merge-status)",
+        'try_s="$(cat "${try_seconds}" 2>/dev/null || echo \'?\')"',
+        'echo "[lane:unit] legs: try:unit ${try_s}s (worker 2, background) spec:fast ${spec_s}s (worker 1)'
+        ' merge-status $(( EPOCHSECONDS - merge_t0 ))s — wall $(( EPOCHSECONDS - legs_t0 ))s"',
+        "else",
+        "bundle exec rake try:unit || failed+=(try:unit)",
+        "bundle exec rake spec:fast || failed+=(spec:fast)",
+        "fi",
+    ])])
+    check(actual == expected, f"unit: task legs changed: {actual}")
     browser = executable((root / "tests/lanes/browser/tasks").read_text())
     expected_browser = '''missing="$(node --input-type=module -e '
 import { chromium, firefox, webkit } from "@playwright/test";

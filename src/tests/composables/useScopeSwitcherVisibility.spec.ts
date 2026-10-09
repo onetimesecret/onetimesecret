@@ -678,9 +678,20 @@ describe('useScopeSwitcherVisibility', () => {
       expect(useScopeSwitcherVisibility().showOrgSwitcher.value).toBe(true);
     });
 
-    it('hides the switcher when the user owns none of their orgs (static chip)', () => {
+    // More than one org is something to switch between, whatever the user owns.
+    it('shows the switcher to a user in several orgs who owns none of them', () => {
       mockCurrentOrganization.value = member;
       mockOrganizations.value = [member, adminOf];
+
+      const { showOrgSwitcher, isSoloDefaultContext } = useScopeSwitcherVisibility();
+
+      expect(showOrgSwitcher.value).toBe(true);
+      expect(isSoloDefaultContext.value).toBe(false);
+    });
+
+    it('hides the switcher from a user whose one org they do not own (static chip)', () => {
+      mockCurrentOrganization.value = adminOf;
+      mockOrganizations.value = [{ ...adminOf, member_count: 3 }];
 
       const { showOrgSwitcher, isSoloDefaultContext } = useScopeSwitcherVisibility();
 
@@ -769,9 +780,28 @@ describe('useScopeSwitcherVisibility', () => {
         expect(useScopeSwitcherVisibility().showOrgSwitcher.value).toBe(true);
       });
 
-      it('hides the switcher when no owned org carries manage_orgs', () => {
-        mockCurrentOrganization.value = member;
-        mockOrganizations.value = [{ ...owned, entitlements: [] }, member];
+      // The reported case: a free default workspace (no manage_orgs) plus a
+      // paid org joined by invitation. No owner gate is met, but without the
+      // switcher the paid org could never be selected.
+      it('shows the switcher to a free-plan owner who joined another org as a member', () => {
+        const freeDefault = { ...owned, objid: 'o_free', entitlements: [], is_default: true };
+        const paidMember = { ...member, objid: 'o_paid', entitlements: ['manage_orgs'] };
+        mockCurrentOrganization.value = freeDefault;
+        mockOrganizations.value = [
+          { ...freeDefault, member_count: 1, planid: 'free_v1' },
+          { ...paidMember, member_count: 5, planid: 'identity_plus_v1' },
+        ];
+
+        const { showOrgSwitcher, isSoloDefaultContext } = useScopeSwitcherVisibility();
+
+        expect(isSoloDefaultContext.value).toBe(false);
+        expect(showOrgSwitcher.value).toBe(true);
+      });
+
+      it('hides the switcher for a single owned org without manage_orgs', () => {
+        const unentitled = { ...owned, entitlements: [] };
+        mockCurrentOrganization.value = unentitled;
+        mockOrganizations.value = [{ ...unentitled, member_count: 2 }];
 
         expect(useScopeSwitcherVisibility().showOrgSwitcher.value).toBe(false);
       });

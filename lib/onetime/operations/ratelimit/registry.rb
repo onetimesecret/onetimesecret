@@ -146,6 +146,16 @@ module Onetime
         # match (only the trailing template `*` stays a wildcard).
         SCAN_GLOB_METACHARS = /[\\*?\[\]]/
 
+        # COUNT hint for the Inspect/Reset SCANs of the {#scan_patterns_for}
+        # patterns. MATCH filters only what each call returns: the cursor still
+        # visits every key in the database, so a walk costs keyspace/COUNT
+        # round trips. Every model defaults to logical db 0, so the login
+        # limiter's keys share a database with every secret, receipt, customer
+        # and session, and a COUNT of 100 meant tens of thousands of round trips
+        # per call. A larger hint is the same non-blocking cursor walk with far
+        # fewer round trips; each call still does bounded work on the server.
+        SCAN_COUNT = 1000
+
         module_function
 
         # @return [Array<String>] the known limiter kinds, in registry order.

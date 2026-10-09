@@ -72,7 +72,7 @@ download; on Linux the browsers may additionally need OS packages
 `bin/setup --doctor` reports whether the browser binaries are present.
 
 `bin/testsuite run` covers the shell scripts that CI itself runs — the
-Sentry sourcemap delivery reporters in `scripts/ci/`, whose failure mode is
+Sentry sourcemap delivery reporters in `.github/scripts/`, whose failure mode is
 a green check next to a summary that says nothing shipped. They are outside
 the lane runner on purpose: no datastore, no Ruby, no network. Each test
 scrubs the ambient `SENTRY_*` variables, so a shell configured against the

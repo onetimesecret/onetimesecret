@@ -15,8 +15,11 @@ require_relative '../middleware/domain_strategy'
 # 0. Explicit header override via O-Organization-ID (SPA org switches)
 # 1. Explicit selection via session['organization_id']
 # 2. Domain-based selection (custom domain routing)
-# 3. Customer's default_org_id (per-customer preference set by support)
-# 4. Organization with is_default flag (typically personal workspace)
+# 3. Customer's default_org_id (per-customer preference: set by the customer
+#    via POST /api/account/update-default-organization, or by support)
+# 4. Organization with is_default flag that the customer OWNS (their personal
+#    workspace; another member's default workspace carries the flag too)
+# Steps 3-4 are #default_organization, which the API payloads use too.
 # 5. First available organization
 # 6. Return nil (lazy creation happens later in auth_org)
 #
@@ -159,6 +162,38 @@ module Onetime
         org
       end
 
+      # This customer's default organization: the one the loader falls back
+      # to (steps 3 and 4) when no header, session selection or custom domain
+      # chooses another. Organization#is_default marks the organization its
+      # OWNER's auto-created workspace, so another member's default workspace
+      # carries the flag too; only one the customer owns counts here.
+      #
+      # 1. The non-archived organization in `orgs` named by
+      #    customer.default_org_id.
+      # 2. Else the first non-archived organization in `orgs` with is_default
+      #    that the customer owns.
+      #
+      # @param customer [Onetime::Customer]
+      # @param orgs [Array<Onetime::Organization>, nil] the organizations to
+      #   choose among. The customer's memberships when nil; the loader passes
+      #   them already filtered by the request's domain scope.
+      # @return [Onetime::Organization, nil]
+      def default_organization(customer, orgs = nil)
+        return if customer.nil? || customer.anonymous?
+
+        orgs ||= customer.organization_instances.to_a
+        return if orgs.empty?
+
+        default_org_id = customer.default_org_id.to_s
+        unless default_org_id.empty?
+          chosen = orgs.find { |o| o.objid == default_org_id && !o.archived? }
+          return chosen if chosen
+        end
+
+        # owner? reads the membership, so it is checked last.
+        orgs.find { |o| o.is_default && !o.archived? && o.owner?(customer) }
+      end
+
       private
 
       # Determine which organization should be active for this request
@@ -216,9 +251,11 @@ module Onetime
           end
         end
 
-        # 3. Customer's explicitly set default organization
-        # This takes precedence over the org's is_default flag, allowing
-        # customer support to set a specific org as default per-customer.
+        # 3-4. The customer's default organization (#default_organization):
+        # customer.default_org_id (set by the customer, support, or the SSO
+        # self-heal), else the is_default workspace the customer owns.
+        # Archived organizations are skipped; a default workspace that was
+        # archived has been superseded by a domain org.
         #
         # Steps 3-5 choose only among organizations the membership's domain
         # scope permits for this request, so an organization refused above
@@ -228,23 +265,21 @@ module Onetime
         orgs = customer.organization_instances.to_a
         orgs = orgs.select { |o| scope_permits?(o, customer, domains) } unless domains.empty?
 
-        if customer.default_org_id.to_s.length.positive?
-          customer_default = orgs.find { |o| o.objid == customer.default_org_id && !o.archived? }
-          if customer_default
-            OT.ld "[OrganizationLoader] Using customer's default_org_id: #{customer_default.objid}"
-            return customer_default
-          else
-            # Customer's default_org_id references an org they're not a member of,
-            # or the org is archived. Fall through to other selection methods.
-            OT.ld "[OrganizationLoader] Customer default_org_id archived/invalid/not member: #{customer.default_org_id}"
-          end
+        default_org    = default_organization(customer, orgs)
+        default_org_id = customer.default_org_id.to_s
+
+        if !default_org_id.empty? && default_org&.objid != default_org_id
+          # Customer's default_org_id references an org they're not a member of,
+          # or the org is archived. Fall through to other selection methods.
+          OT.ld "[OrganizationLoader] Customer default_org_id archived/invalid/not member: #{default_org_id}"
         end
 
-        # 4. Organization with is_default flag (typically personal workspace)
-        #    Skip archived default workspaces — they've been superseded by a domain org.
-        default_org = orgs.find { |o| o.is_default && !o.archived? }
         if default_org
-          OT.ld "[OrganizationLoader] Using organization is_default flag: #{default_org.objid}"
+          if default_org.objid == default_org_id
+            OT.ld "[OrganizationLoader] Using customer's default_org_id: #{default_org.objid}"
+          else
+            OT.ld "[OrganizationLoader] Using organization is_default flag: #{default_org.objid}"
+          end
           return default_org
         end
 
@@ -378,7 +413,23 @@ module Onetime
           return UNREGISTERED_HOST
         end
 
-        if env['onetime.domain_strategy'].to_s == 'custom'
+        # Nothing published for an :invalid request: detection rejected the
+        # host (an IP literal, `localhost`, a malformed or missing Host), so
+        # no display domain was read. Decided on #4678 and recorded in
+        # ADR-050, "Organization scope on a host that detection rejects":
+        # when Host names no custom domain either, the request is scoped as
+        # one for the canonical host. The Host read above does not depend on
+        # detection. A trusted X-Forwarded-Host with userinfo in it stops
+        # detection without trying Host (Rack::DetectHost, "Userinfo in an
+        # authority"), and a Host that names a custom domain then carries
+        # that record's scope, as it does with the domains feature off.
+        strategy = env['onetime.domain_strategy'].to_s
+        if strategy == 'invalid' && !published.is_a?(Onetime::CustomDomain::Lookup) && domains.empty?
+          OT.ld "[OrganizationLoader] No custom domain for #{env['onetime.display_domain']} or Host: " \
+                'no scope withheld (#4678)'
+        end
+
+        if strategy == 'custom'
           resolved = env['onetime.custom_domain']
           domains << resolved if resolved && domains.none? { |d| d.objid == resolved.objid }
         end

@@ -198,10 +198,10 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
       allow(mock_logger).to receive(:error)
     end
 
-    context 'with valid privacy-preserving CIDRs', skip: 'CIDR validation implementation differs from spec - needs investigation' do
+    context 'with valid privacy-preserving CIDRs' do
       it 'compiles broad IPv4 ranges that should be accepted' do
         config = {
-          matching_cidrs: [
+          'matching_cidrs' => [
             '10.0.0.0/8',      # Very broad - should be accepted
             '172.16.0.0/16',   # Broad - should be accepted
             '192.168.0.0/24',  # Minimum acceptable - should be accepted
@@ -215,9 +215,9 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
         expect(result.all? { |cidr| cidr.is_a?(IPAddr) }).to be true
       end
 
-      it 'compiles the real-world CIDRs from the bug report (currently failing)' do
+      it 'compiles the real-world CIDRs from the bug report' do
         config = {
-          matching_cidrs: [
+          'matching_cidrs' => [
             '10.105.64.0/20',    # 4,094 IPs - should be accepted
             '172.116.128.0/17',  # 32,766 IPs - should be accepted
             '192.10.0.0/17',     # 32,766 IPs - should be accepted
@@ -226,15 +226,14 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
 
         result = test_instance.send(:compile_homepage_cidrs, config)
 
-        # These are currently being rejected by the buggy code
-        # Once fixed, all 3 should be accepted
+        # The inverted prefix check once rejected all three.
         expect(result).to be_an(Array)
         expect(result.length).to eq(3), "Expected all 3 broad CIDRs from logs to be accepted"
       end
 
       it 'compiles broad IPv6 ranges that should be accepted' do
         config = {
-          matching_cidrs: [
+          'matching_cidrs' => [
             '2001:db8::/32',     # Very broad - should be accepted
             '2001:db8:1234::/48', # Minimum acceptable - should be accepted
           ]
@@ -269,10 +268,30 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
       end
     end
 
-    context 'with invalid CIDR strings', skip: 'CIDR validation implementation differs from spec - needs investigation' do
+    context 'with mixed broad and narrow CIDRs' do
+      it 'keeps every entry that parses, in order' do
+        config = {
+          'matching_cidrs' => [
+            '10.0.0.0/16',       # Broad
+            '192.168.1.1/32',    # Single host
+            '172.16.0.0/20',     # Broad
+            '192.168.2.0/28',    # Narrow
+            '10.10.0.0/24',      # At the mask
+          ]
+        }
+
+        expect(mock_logger).not_to receive(:warn)
+
+        result = test_instance.send(:compile_homepage_cidrs, config)
+
+        expect(result.map(&:prefix)).to eq([16, 32, 20, 28, 24])
+      end
+    end
+
+    context 'with invalid CIDR strings' do
       it 'handles invalid CIDR syntax gracefully' do
         config = {
-          matching_cidrs: [
+          'matching_cidrs' => [
             'not-a-cidr',
             '999.999.999.999/24',
             'invalid',
@@ -289,7 +308,7 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
 
       it 'continues processing valid CIDRs after encountering invalid ones' do
         config = {
-          matching_cidrs: [
+          'matching_cidrs' => [
             '10.0.0.0/16',       # Valid broad - should be accepted
             'invalid-cidr',      # Invalid - should be skipped
             '172.16.0.0/20',     # Valid broad - should be accepted
@@ -655,7 +674,7 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
     end
   end
 
-  describe 'integration with determine_homepage_mode', skip: 'Integration tests depend on CIDR implementation - needs investigation' do
+  describe 'integration with determine_homepage_mode' do
     before do
       allow(OT).to receive(:info)
       allow(OT).to receive(:ld)
@@ -663,7 +682,7 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
 
     context 'with CIDR matching (priority 1)' do
       let(:mock_req) do
-        double('request', env: {
+        double('request', ip: '10.105.64.100', env: {
           'REMOTE_ADDR' => '10.105.64.100',
           'HTTP_X_FORWARDED_FOR' => nil
         })
@@ -675,12 +694,12 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
 
       it 'returns internal mode when client IP matches configured CIDR' do
         allow(OT).to receive(:conf).and_return({
-          site: {
-            interface: {
-              ui: {
-                homepage: {
-                  mode: 'internal',
-                  matching_cidrs: ['10.105.64.0/20'], # From the bug report - now fixed!
+          'site' => {
+            'interface' => {
+              'ui' => {
+                'homepage' => {
+                  'mode' => 'internal',
+                  'matching_cidrs' => ['10.105.64.0/20'], # From the bug report - now fixed!
                 }
               }
             }
@@ -693,12 +712,12 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
 
       it 'returns external mode when client IP matches configured CIDR' do
         allow(OT).to receive(:conf).and_return({
-          site: {
-            interface: {
-              ui: {
-                homepage: {
-                  mode: 'external',
-                  matching_cidrs: ['10.105.64.0/20'],
+          'site' => {
+            'interface' => {
+              'ui' => {
+                'homepage' => {
+                  'mode' => 'external',
+                  'matching_cidrs' => ['10.105.64.0/20'],
                 }
               }
             }
@@ -711,12 +730,12 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
 
       it 'returns nil when client IP does not match any CIDR' do
         allow(OT).to receive(:conf).and_return({
-          site: {
-            interface: {
-              ui: {
-                homepage: {
-                  mode: 'internal',
-                  matching_cidrs: ['192.168.1.0/24'], # Different range
+          'site' => {
+            'interface' => {
+              'ui' => {
+                'homepage' => {
+                  'mode' => 'internal',
+                  'matching_cidrs' => ['192.168.1.0/24'], # Different range
                 }
               }
             }
@@ -729,12 +748,12 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
 
       it 'matches against multiple configured CIDRs' do
         allow(OT).to receive(:conf).and_return({
-          site: {
-            interface: {
-              ui: {
-                homepage: {
-                  mode: 'internal',
-                  matching_cidrs: [
+          'site' => {
+            'interface' => {
+              'ui' => {
+                'homepage' => {
+                  'mode' => 'internal',
+                  'matching_cidrs' => [
                     '192.168.1.0/24',    # Does not match
                     '10.105.64.0/20',    # Matches!
                     '172.16.0.0/16'      # Does not match
@@ -752,7 +771,7 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
 
     context 'with header matching (priority 2 - fallback)' do
       let(:mock_req) do
-        double('request', env: {
+        double('request', ip: '203.0.113.0', env: {
           'REMOTE_ADDR' => '203.0.113.0',  # Public IP not in CIDR
           'HTTP_O_HOMEPAGE_MODE' => 'internal'
         })
@@ -764,13 +783,13 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
 
       it 'falls back to header when CIDR does not match' do
         allow(OT).to receive(:conf).and_return({
-          site: {
-            interface: {
-              ui: {
-                homepage: {
-                  mode: 'internal',
-                  matching_cidrs: ['10.0.0.0/8'],        # Does not match
-                  mode_header: 'O-Homepage-Mode'
+          'site' => {
+            'interface' => {
+              'ui' => {
+                'homepage' => {
+                  'mode' => 'internal',
+                  'matching_cidrs' => ['10.0.0.0/8'],        # Does not match
+                  'mode_header' => 'O-Homepage-Mode'
                 }
               }
             }
@@ -784,13 +803,13 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
       it 'returns nil when header does not match expected mode' do
         mock_req.env['HTTP_O_HOMEPAGE_MODE'] = 'external'  # Header says external
         allow(OT).to receive(:conf).and_return({
-          site: {
-            interface: {
-              ui: {
-                homepage: {
-                  mode: 'internal',  # Config expects internal
-                  matching_cidrs: ['10.0.0.0/8'],
-                  mode_header: 'O-Homepage-Mode'
+          'site' => {
+            'interface' => {
+              'ui' => {
+                'homepage' => {
+                  'mode' => 'internal',  # Config expects internal
+                  'matching_cidrs' => ['10.0.0.0/8'],
+                  'mode_header' => 'O-Homepage-Mode'
                 }
               }
             }
@@ -804,7 +823,7 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
 
     context 'with CIDR priority over header' do
       let(:mock_req) do
-        double('request', env: {
+        double('request', ip: '10.105.64.100', env: {
           'REMOTE_ADDR' => '10.105.64.100',
           'HTTP_O_HOMEPAGE_MODE' => 'external'  # Header says external
         })
@@ -816,13 +835,13 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
 
       it 'CIDR match takes priority over header' do
         allow(OT).to receive(:conf).and_return({
-          site: {
-            interface: {
-              ui: {
-                homepage: {
-                  mode: 'internal',
-                  matching_cidrs: ['10.105.64.0/20'],  # IP matches this
-                  mode_header: 'O-Homepage-Mode'
+          'site' => {
+            'interface' => {
+              'ui' => {
+                'homepage' => {
+                  'mode' => 'internal',
+                  'matching_cidrs' => ['10.105.64.0/20'],  # IP matches this
+                  'mode_header' => 'O-Homepage-Mode'
                 }
               }
             }
@@ -837,7 +856,7 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
 
     context 'with invalid configuration' do
       let(:mock_req) do
-        double('request', env: {
+        double('request', ip: '10.105.64.100', env: {
           'REMOTE_ADDR' => '10.105.64.100'
         })
       end
@@ -848,12 +867,12 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
 
       it 'returns nil when mode is not internal or external' do
         allow(OT).to receive(:conf).and_return({
-          site: {
-            interface: {
-              ui: {
-                homepage: {
-                  mode: 'invalid-mode',
-                  matching_cidrs: ['10.105.64.0/20']
+          'site' => {
+            'interface' => {
+              'ui' => {
+                'homepage' => {
+                  'mode' => 'invalid-mode',
+                  'matching_cidrs' => ['10.105.64.0/20']
                 }
               }
             }
@@ -866,9 +885,9 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
 
       it 'returns nil when homepage config is missing' do
         allow(OT).to receive(:conf).and_return({
-          site: {
-            interface: {
-              ui: {}
+          'site' => {
+            'interface' => {
+              'ui' => {}
             }
           }
         })
@@ -879,8 +898,8 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
 
       it 'returns nil when ui config is missing' do
         allow(OT).to receive(:conf).and_return({
-          site: {
-            interface: {}
+          'site' => {
+            'interface' => {}
           }
         })
 
@@ -890,12 +909,12 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
 
       it 'returns nil when mode is nil' do
         allow(OT).to receive(:conf).and_return({
-          site: {
-            interface: {
-              ui: {
-                homepage: {
-                  mode: nil,
-                  matching_cidrs: ['10.105.64.0/20']
+          'site' => {
+            'interface' => {
+              'ui' => {
+                'homepage' => {
+                  'mode' => nil,
+                  'matching_cidrs' => ['10.105.64.0/20']
                 }
               }
             }
@@ -909,7 +928,7 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
 
     context 'with no matches' do
       let(:mock_req) do
-        double('request', env: {
+        double('request', ip: '203.0.113.0', env: {
           'REMOTE_ADDR' => '203.0.113.0'  # Public IP not in CIDR
         })
       end
@@ -920,13 +939,13 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
 
       it 'returns nil when neither CIDR nor header match' do
         allow(OT).to receive(:conf).and_return({
-          site: {
-            interface: {
-              ui: {
-                homepage: {
-                  mode: 'internal',
-                  matching_cidrs: ['10.0.0.0/8'],
-                  mode_header: 'O-Homepage-Mode'
+          'site' => {
+            'interface' => {
+              'ui' => {
+                'homepage' => {
+                  'mode' => 'internal',
+                  'matching_cidrs' => ['10.0.0.0/8'],
+                  'mode_header' => 'O-Homepage-Mode'
                 }
               }
             }
@@ -940,7 +959,7 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
 
     context 'with narrow CIDRs and no otto.ip_match in env' do
       let(:mock_req) do
-        double('request', env: {
+        double('request', ip: '192.168.1.1', env: {
           'REMOTE_ADDR' => '192.168.1.1'
         })
       end
@@ -951,12 +970,12 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
 
       it 'does not judge a /32 CIDR on the fallback and returns nil' do
         allow(OT).to receive(:conf).and_return({
-          site: {
-            interface: {
-              ui: {
-                homepage: {
-                  mode: 'internal',
-                  matching_cidrs: ['192.168.1.1/32']  # Finer than the mask
+          'site' => {
+            'interface' => {
+              'ui' => {
+                'homepage' => {
+                  'mode' => 'internal',
+                  'matching_cidrs' => ['192.168.1.1/32']  # Finer than the mask
                 }
               }
             }
@@ -969,12 +988,12 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
 
       it 'does not judge a /28 CIDR on the fallback and returns nil' do
         allow(OT).to receive(:conf).and_return({
-          site: {
-            interface: {
-              ui: {
-                homepage: {
-                  mode: 'internal',
-                  matching_cidrs: ['192.168.1.0/28']  # Finer than the mask
+          'site' => {
+            'interface' => {
+              'ui' => {
+                'homepage' => {
+                  'mode' => 'internal',
+                  'matching_cidrs' => ['192.168.1.0/28']  # Finer than the mask
                 }
               }
             }
