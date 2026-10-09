@@ -126,6 +126,13 @@ lane run followed by `--only <dir> -- --only-failures` reruns exactly the
 failures the lane recorded. Plain rspec outside the runner leaves
 `LANES_RSPEC_STATUS_FILE` unset and records nothing.
 
+A lane run with workers (`--workers`, below) records per worker: worker `k`
+writes `rspec-status.w<k>.txt` beside the lane's file, and
+`tests/lanes/support/merge_rspec_status.rb` folds those back into
+`rspec-status.txt` once the workers finish, so `--only <dir> -- --only-failures`
+after a parallel lane run reruns the same failure set. An `--only` run is one
+process and records straight to the lane's file.
+
 ### Quiet output: `--quiet`
 
 ```console
@@ -467,31 +474,70 @@ The console claims the lane's same-lane liveness token exactly as a run
 does, so while a run of that lane and overlay set is live it exits 69
 (`another lane run already holds valkey DB ...`); open it after the run.
 
+### Workers: `--workers <n>`
+
+A lane's tasks can fan out over `n` processes inside one run (#4551). The
+lane's `env` file sets the default (`LANES_WORKERS`; it is part of the
+workload the lane defines, so an overlay may set it too), `--workers <n>`
+overrides it, and absent or `1` is the serial run every lane had before.
+
+```console
+$ tests/lanes/run full-sqlite                 # the lane's default: 4 workers
+$ tests/lanes/run full-sqlite --workers 1     # serial
+$ tests/lanes/run unit --workers 2 --print-key
+lane=unit overlays=none db=19374 workers=2 worker_dbs=19374,19375 redis=... key=...
+```
+
+Each worker gets a valkey index of its own, next to the lane's: worker 1 is
+the lane's own index and worker `k` is the `(k-1)`th after it, wrapping inside
+`1..65535` (the formula is in "Per-worktree datastore isolation" below;
+`--print-key` prints the list as `worker_dbs`). The PG database and the
+RabbitMQ vhost stay one per lane, which is why `--workers` above 1 is refused
+for a lane whose `AUTH_DATABASE_URL` is the test Postgres, and for `smoke`
+(one `pnpm` command). `--only` and `--console` are one process and ignore the
+count.
+
+The per-worker environment is handed out by `tests/lanes/support/worker-env
+<k|auto> <command>`: it derives the worker's index and URLs from the lane's,
+points `LANES_RSPEC_STATUS_FILE` at `rspec-status.w<k>.txt`, suffixes any
+`--out <path>` in the command with `_w<k>` (so `n` workers write `n` results
+files, `tmp/<stem>_w<k>.json`, which CI's `tmp/<stem>*.json` glob already
+collects) and exports `LANES_WORKER=k`. `auto` reads `TEST_ENV_NUMBER`, so
+the same file is the `PARALLEL_TESTS_EXECUTABLE` the rake tasks hand
+`parallel_rspec`; the `unit` lane's tasks file calls it by number, one leg
+per worker, and ends with one `[lane:unit] legs:` line giving each leg's
+seconds and the wall clock, so a CI sample shows whether running `try:unit`
+beside `spec:fast` pays on that runner. Results durations are summed per worker in
+`.github/scripts/aggregate-test-results.sh`, so a parallel lane's reported
+duration exceeds its wall clock.
+
 ## Lanes
 
-| Lane                 | Services                   | Runs                                                          | CI job                                           |
-| -------------------- | -------------------------- | ------------------------------------------------------------- | ------------------------------------------------ |
-| `unit`               | valkey, rabbitmq           | `try:unit`, `spec:fast`                                       | ruby-unit (T2)                                   |
-| `billing`            | valkey, rabbitmq           | `try:billing`, `spec:billing`                                 | ruby-billing (T2, nightly only)                  |
-| `billing-integration` | valkey, rabbitmq          | `try:integration:billing`, `spec:integration:billing`         | ruby-billing-integration (T3, nightly only)      |
-| `browser`            | valkey, rabbitmq           | `rspec tests/browser` (Playwright: chromium, firefox, webkit) | ruby-auth-browser (T2)                           |
-| `simple`             | valkey, rabbitmq           | `try:integration:simple`, `spec:integration:simple`           | ruby-integration-simple (T3)                     |
-| `full-sqlite`        | valkey, rabbitmq           | `spec:integration:full`                                       | ruby-integration-full — SQLite row               |
-| `full-mfa`           | valkey, rabbitmq           | `spec:integration:full:mfa`                                   | ruby-integration-auth — SQLite MFA row           |
-| `full-saml-platform` | valkey, rabbitmq           | `spec:integration:full:saml_platform`                         | ruby-integration-auth — SQLite platform SAML row |
-| `full-pg`            | valkey, rabbitmq, postgres | `spec:integration:full:postgres`                              | ruby-integration-full — PG row                   |
-| `full-pg-agnostic`   | valkey, rabbitmq, postgres | `spec:integration:full:agnostic_on_pg`                        | ruby-integration-auth — PG agnostic row          |
-| `disabled`           | valkey, rabbitmq           | `spec:integration:disabled`                                   | ruby-integration-disabled (T3)                   |
-| `api`                | valkey, rabbitmq           | `spec:api`                                                    | blocking step, T3 simple job                     |
-| `smoke`              | valkey, rabbitmq           | `pnpm test:smoke`                                             | local-only                                       |
-| `migrations-sqlite`  | valkey, rabbitmq           | `spec:integration:migrations:sqlite`                          | migration-tests.yml — SQLite job                 |
-| `migrations-pg`      | valkey, rabbitmq, postgres | `spec:integration:migrations:postgres` plus dual-URL check    | migration-tests.yml — PostgreSQL job             |
-| `harness`            | valkey, rabbitmq           | `spec:lanes` (`spec/unit/lanes`, the runner's own specs)      | ruby-unit (T2), second step, path-gated          |
-| `selftest`           | none                       | boundary fixture                                              | none — driven by `spec/unit/lanes/`              |
+| Lane                 | Services                   | Runs                                                          | Workers | CI job                                           |
+| -------------------- | -------------------------- | ------------------------------------------------------------- | ------- | ------------------------------------------------ |
+| `unit`               | valkey, rabbitmq           | `try:unit`, `spec:fast`                                       | 2 (one leg each) | ruby-unit (T2)                          |
+| `billing`            | valkey, rabbitmq           | `try:billing`, `spec:billing`                                 | 1       | ruby-billing (T2, nightly only)                  |
+| `billing-integration` | valkey, rabbitmq          | `try:integration:billing`, `spec:integration:billing`         | 1       | ruby-billing-integration (T3, nightly only)      |
+| `browser`            | valkey, rabbitmq           | `rspec tests/browser` (Playwright: chromium, firefox, webkit) | 1       | ruby-auth-browser (T2)                           |
+| `simple`             | valkey, rabbitmq           | `try:integration:simple`, `spec:integration:simple`           | 4 (rspec)| ruby-integration-simple (T3)                    |
+| `full-sqlite`        | valkey, rabbitmq           | `spec:integration:full`                                       | 4       | ruby-integration-full — SQLite row               |
+| `full-mfa`           | valkey, rabbitmq           | `spec:integration:full:mfa`                                   | 1       | ruby-integration-auth — SQLite MFA row           |
+| `full-saml-platform` | valkey, rabbitmq           | `spec:integration:full:saml_platform`                         | 1       | ruby-integration-auth — SQLite platform SAML row |
+| `full-pg`            | valkey, rabbitmq, postgres | `spec:integration:full:postgres`                              | 1 (PG)  | ruby-integration-full — PG row                   |
+| `full-pg-agnostic`   | valkey, rabbitmq, postgres | `spec:integration:full:agnostic_on_pg`                        | 1 (PG)  | ruby-integration-auth — PG agnostic row          |
+| `disabled`           | valkey, rabbitmq           | `spec:integration:disabled`                                   | 1       | ruby-integration-disabled (T3)                   |
+| `api`                | valkey, rabbitmq           | `spec:api`                                                    | 4       | blocking step, T3 simple job                     |
+| `smoke`              | valkey, rabbitmq           | `pnpm test:smoke`                                             | 1 (refused above) | local-only                             |
+| `migrations-sqlite`  | valkey, rabbitmq           | `spec:integration:migrations:sqlite`                          | 1       | migration-tests.yml — SQLite job                 |
+| `migrations-pg`      | valkey, rabbitmq, postgres | `spec:integration:migrations:postgres` plus dual-URL check    | 1 (PG)  | migration-tests.yml — PostgreSQL job             |
+| `harness`            | valkey, rabbitmq           | `spec:lanes` (`spec/unit/lanes`, the runner's own specs)      | 1       | ruby-unit (T2), second step, path-gated          |
+| `selftest`           | none                       | boundary fixture                                              | 1       | none — driven by `spec/unit/lanes/`              |
 
 Start every service named for a lane. This includes RabbitMQ for `api`,
 `browser` and `smoke`, whose lane environment still declares its endpoint.
-`selftest` is the only service-free exception.
+`selftest` is the only service-free exception. The Workers column is the
+lane's `LANES_WORKERS` default (`--workers` overrides it; PG lanes and
+`smoke` refuse more than one).
 
 A lane with several legs (`unit`, `billing`, `billing-integration`, `simple`,
 `migrations-pg`) runs every leg even when an earlier one fails, then exits
@@ -561,12 +607,27 @@ checkouts while sharing the local test service instances:
 - Valkey uses a deterministic index (`1..65535`) derived from the lane,
   normalized overlay set, and checkout root, exposed as `LANES_DATASTORE_DB`.
   Its host and port remain the test service.
-- PostgreSQL uses the corresponding `onetime_auth_test_w<index>` database.
-- RabbitMQ uses the corresponding `w<index>` vhost. Before a test run, the
-  runner recreates and grants the vhost through RabbitMQ's loopback-only
-  management API, preventing stale queues/messages from a prior run. Before a
-  console, it creates the vhost if absent and reapplies permissions without
-  deleting existing state.
+- A run with `n` workers (`LANES_WORKERS`, `--workers`) uses `n` consecutive
+  indexes: worker `k` gets `1 + ((index - 1 + (k - 1)) mod 65535)`, so worker
+  1 is the lane's own index and the list wraps past 65535 back to 1, never
+  onto 0. In CI (index 0) the workers are `0..n-1`. The runner claims every
+  worker index (owner marker and liveness token each), `--print-key` prints
+  the list as `worker_dbs`, and `tests/lanes/support/worker-env` derives one
+  worker's index and URLs from the lane's for the task side. Only worker 1's
+  marker outlives the run: the other workers' indexes are borrowed, and
+  their markers expire 60s after the last refresh and are removed when the
+  run ends. A run whose range overlaps a live run's indexes, or another
+  lane's own index, is refused like any other collision (exit 69, naming
+  the index), not rearranged.
+- PostgreSQL uses the corresponding `onetime_auth_test_w<index>` database
+  (one per lane: workers share it, which is why Postgres-backed lanes refuse
+  `--workers` above 1).
+- RabbitMQ uses the corresponding `w<index>` vhost, one per lane (workers
+  share it: the live-AMQP specs that use production queue names sit in one
+  file, so one worker). Before a test run, the runner recreates and grants
+  the vhost through RabbitMQ's loopback-only management API, preventing stale
+  queues/messages from a prior run. Before a console, it creates the vhost if
+  absent and reapplies permissions without deleting existing state.
 - CI and direct rspec commands outside the lane runner use the shared index,
   database, and vhost (`0` / `onetime_auth_test` / `/`). Do not rely on that
   mode for concurrent local worktrees. Direct TRYOUT commands are the
@@ -637,7 +698,13 @@ It generates the union of requested `LANES_CODEGEN` prerequisites once before
 starting children, then starts each child with `--skip-codegen`. This prevents
 parallel writes to shared `generated/` files. Logs and RSpec JSON results are
 written below `tmp/lanes/<timestamp>-<pid>/`; use `--dry-run` to inspect the
-plan without generating or running tests.
+plan without generating or running tests — it prints each child command as it
+will run.
+
+Under `--parallel` every child also gets `--workers 1`: the lanes are the
+parallelism, and each one's `LANES_WORKERS` default on top of that would fork
+four rspec processes per lane and claim as many valkey indexes. A serial
+`run-all` starts one lane at a time and leaves each its own default.
 
 `--parallel` requires test services to already be running and is rejected when
 `CI` is set. It also rejects a duplicate lane: two copies derive the same
@@ -683,8 +750,10 @@ than run a substituted diff).
 3. Each lane's `env` file declares generated prerequisites through
    `LANES_CODEGEN`; direct runs execute them, while `run-all` owns the shared
    one-time phase before children start.
-4. Lanes define the test environment and workload. CI owns gating,
-   parallelism, artifacts, and reporting policy.
+4. Lanes define the test environment and workload, in-lane workers included
+   (`LANES_WORKERS` in the lane's `env` is part of its workload definition,
+   like its tasks). CI owns gating, which lanes run beside each other,
+   artifacts, and reporting policy.
 
 ## CI contract
 

@@ -43,7 +43,8 @@ const timestampOverrides = {
  *
  * Derives from organizationCanonical contract, applies:
  * - Timestamps: number (Unix epoch seconds) -> Date
- * - Nullish normalization: is_default defaults to false
+ * - Nullish normalization: is_default and is_current_user_default default
+ *   to false
  *
  * Also extends with API-response fields not in the canonical model:
  * - billing_email: Secondary billing contact
@@ -81,6 +82,17 @@ export const organizationSchema = organizationCanonical.extend({
 
   // Nullish normalization
   is_default: z
+    .boolean()
+    .nullish()
+    .transform((v) => v ?? false),
+
+  // Whether this is the REQUESTING user's default organization (their
+  // default_org_id, else the default workspace they own). Per viewer, unlike
+  // `is_default`, which marks the org as its OWNER's auto-created workspace
+  // and so reads true for every member of someone else's default workspace.
+  // Drives the "Default" badge and icon; `is_default` keeps the deletion
+  // guards. Nullish -> false like `is_default`.
+  is_current_user_default: z
     .boolean()
     .nullish()
     .transform((v) => v ?? false),

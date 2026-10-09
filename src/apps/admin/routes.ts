@@ -77,6 +77,16 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
+    path: '/colonel/schemas',
+    name: 'AdminSchemas',
+    component: () => import('@/apps/admin/views/AdminSchemas.vue'),
+    meta: {
+      ...adminDefaultMeta,
+      title: 'web.admin.schemas.title',
+      sentryScrubParams: false,
+    },
+  },
+  {
     // Domains list (ticket #31): card grid + per-domain verify. No params.
     path: '/colonel/domains',
     name: 'AdminDomains',

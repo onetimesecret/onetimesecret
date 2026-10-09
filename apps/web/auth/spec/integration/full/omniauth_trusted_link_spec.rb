@@ -31,6 +31,11 @@
 #   3. TENANT path (session[:validated_omniauth_domain_id] present) + trust ON
 #        -> STILL refuses; the trust flag must never affect the multi-tenant
 #           surface. Redirect to tenant_sso_link_unavailable, no row created.
+#   4. PLATFORM path + trust flag ON + the IdP's email_verified claim (#4688,
+#      RISK-2026-08-14-M01)
+#        -> an explicit false, or a claim that could not be read, skips the
+#           auto-link (no row, :omniauth_trusted_link_held fires); an explicit
+#           true or an absent claim still links as in scenario 1.
 #
 # HOW IT DIFFERS FROM omniauth_spec.rb: that file asserts the *decision* in
 # isolation (pure logic); this file asserts the *effects* end-to-end through
@@ -130,6 +135,8 @@ RSpec.describe 'OmniAuth trusted-provider email linking (#3836 Phase 1)', type: 
   # Scenario 1 — PLATFORM path + trust flag ON -> auto-link
   # ==========================================================================
 
+  # setup_mock_auth sends email_verified: true in both info and raw_info, so
+  # this is also the explicit-true case for scenario 4.
   describe 'platform path, trust flag ON' do
     before { enable_platform_fallback }
 
@@ -224,6 +231,140 @@ RSpec.describe 'OmniAuth trusted-provider email linking (#3836 Phase 1)', type: 
       ensure
         teardown_mock_auth
       end
+    end
+  end
+
+  # ==========================================================================
+  # Scenario 4 — PLATFORM path + trust flag ON + email_verified claim (#4688)
+  # ==========================================================================
+  #
+  # The trust flag declares the IdP inside the trust boundary; it does not
+  # override that same IdP saying, on this callback, that it did not verify the
+  # address. An explicit false or an unreadable claim must skip the auto-link
+  # and fall through to the existing-account branch, as if trust were off. Its
+  # redirect target is incidental here for the same reason as scenario 2.
+  # Absence of the claim is not a hold: providers that never emit it keep
+  # linking.
+
+  describe 'platform path, trust flag ON, email_verified claim' do
+    before do
+      enable_platform_fallback
+      stub_trust_for('oidc', true)
+      allow(Auth::Logging).to receive(:log_auth_event).and_call_original
+    end
+
+    after { teardown_mock_auth }
+
+    # Register an OIDC mock whose email_verified claim is `claim` in both info
+    # and raw_info, or omitted from both when `claim` is :absent.
+    def mock_auth_with_claim(email:, uid:, claim:)
+      info     = { email: email, name: 'Claim User' }
+      raw_info = { sub: uid, email: email }
+      unless claim == :absent
+        info     = info.merge(email_verified: claim)
+        raw_info = raw_info.merge(email_verified: claim)
+      end
+
+      enable_omniauth_test_mode
+      OmniAuth.config.mock_auth[:oidc] = OmniAuth::AuthHash.new({
+        provider: 'oidc',
+        uid: uid,
+        info: info,
+        extra: { raw_info: raw_info },
+      })
+    end
+
+    def post_callback_or_skip
+      post '/auth/sso/oidc/callback'
+      return unless last_response.status == 404
+
+      skip 'OmniAuth route not registered (OIDC discovery not available at boot)'
+    end
+
+    def expect_not_linked(uid, hold:)
+      expect(last_response.status).to eq(302),
+        "Expected a 302 redirect, got #{last_response.status}: #{last_response.body}"
+      expect(identities.where(provider: 'oidc', uid: uid).count).to eq(0),
+        'A held email_verified claim must NOT create an account_identities row'
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:omniauth_email_linked_trusted_provider, anything)
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:omniauth_trusted_link_held, hash_including(provider: 'oidc', hold: hold))
+    end
+
+    def expect_linked(uid, account_id)
+      expect(last_response.status).to eq(302),
+        "Expected a post-login redirect, got #{last_response.status}: #{last_response.body}"
+      rows = identities.where(provider: 'oidc', uid: uid).all
+      expect(rows.size).to eq(1),
+        "Expected exactly one linked identity row, got #{rows.size}: #{rows.inspect}"
+      expect(rows.first[:account_id]).to eq(account_id)
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:omniauth_email_linked_trusted_provider, hash_including(provider: 'oidc'))
+      expect(Auth::Logging).not_to have_received(:log_auth_event)
+        .with(:omniauth_trusted_link_held, anything)
+    end
+
+    it 'does not auto-link when the IdP asserts email_verified: false' do
+      email = "claim-false-#{SecureRandom.hex(6)}@company.example.com"
+      uid   = "sub-#{SecureRandom.hex(8)}"
+      seed_existing_account(email)
+
+      mock_auth_with_claim(email: email, uid: uid, claim: false)
+      post_callback_or_skip
+
+      expect_not_linked(uid, hold: 'idp_unverified')
+    end
+
+    it 'does not auto-link when the IdP asserts email_verified: "false"' do
+      email = "claim-false-str-#{SecureRandom.hex(6)}@company.example.com"
+      uid   = "sub-#{SecureRandom.hex(8)}"
+      seed_existing_account(email)
+
+      mock_auth_with_claim(email: email, uid: uid, claim: 'false')
+      post_callback_or_skip
+
+      expect_not_linked(uid, hold: 'idp_unverified')
+    end
+
+    # A real unreadable claim needs an auth hash whose reads raise, which the
+    # OmniAuth test-mode mock does not carry through the callback. The reader's
+    # fail-closed rescue is covered at its own boundary in
+    # omniauth_jit_verified_spec.rb; this pins the wiring for that hold value.
+    it 'does not auto-link when the claim could not be read' do
+      email = "claim-unreadable-#{SecureRandom.hex(6)}@company.example.com"
+      uid   = "sub-#{SecureRandom.hex(8)}"
+      seed_existing_account(email)
+
+      allow(Auth::Config::Hooks::OmniAuth).to receive(:email_verification_hold)
+        .and_return('claim_unreadable')
+
+      mock_auth_with_claim(email: email, uid: uid, claim: true)
+      post_callback_or_skip
+
+      expect_not_linked(uid, hold: 'claim_unreadable')
+    end
+
+    it 'still links when the IdP asserts email_verified: true' do
+      email = "claim-true-#{SecureRandom.hex(6)}@company.example.com"
+      uid   = "sub-#{SecureRandom.hex(8)}"
+      account_id = seed_existing_account(email)
+
+      mock_auth_with_claim(email: email, uid: uid, claim: true)
+      post_callback_or_skip
+
+      expect_linked(uid, account_id)
+    end
+
+    it 'still links when the IdP omits the email_verified claim' do
+      email = "claim-absent-#{SecureRandom.hex(6)}@company.example.com"
+      uid   = "sub-#{SecureRandom.hex(8)}"
+      account_id = seed_existing_account(email)
+
+      mock_auth_with_claim(email: email, uid: uid, claim: :absent)
+      post_callback_or_skip
+
+      expect_linked(uid, account_id)
     end
   end
 

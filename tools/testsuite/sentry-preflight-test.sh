@@ -2,7 +2,7 @@
 #
 # tools/testsuite/sentry-preflight-test.sh
 #
-# Covers the classification ladder in scripts/ci/sentry-sourcemap-preflight.sh:
+# Covers the classification ladder in .github/scripts/sentry-sourcemap-preflight.sh:
 # which inputs produce status=skipped, status=blocked and status=ready, and
 # which component/state pair each one records.
 #
@@ -36,7 +36,7 @@ REPO_ROOT="$(cd "${TEST_DIR}/../.." && pwd)"
 # shellcheck source=tools/testsuite/lib/assert.sh
 source "${TEST_DIR}/lib/assert.sh"
 
-PREFLIGHT="${REPO_ROOT}/scripts/ci/sentry-sourcemap-preflight.sh"
+PREFLIGHT="${REPO_ROOT}/.github/scripts/sentry-sourcemap-preflight.sh"
 
 mapfile -t SCRUB < <(sentry_scrub_args)
 

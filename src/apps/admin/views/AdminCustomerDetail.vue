@@ -3,7 +3,12 @@
 <script setup lang="ts">
   import AdminAccountDiagnosticsSection from '@/apps/admin/components/AdminAccountDiagnosticsSection.vue';
   import AdminCustomerSessionsSection from '@/apps/admin/components/AdminCustomerSessionsSection.vue';
-  import { AdminConfirmDialog, DataTable, StatCard } from '@/apps/admin/components/kit';
+  import {
+    AdminConfirmDialog,
+    DataTable,
+    SchemaIssueList,
+    StatCard,
+  } from '@/apps/admin/components/kit';
   import type { DataTableColumn } from '@/apps/admin/components/kit';
   import RevealEmail from '@/apps/admin/components/RevealEmail.vue';
   import { useAdminDestructiveMutation } from '@/apps/admin/composables/useAdminDestructiveMutation';
@@ -12,6 +17,7 @@
   import { reasonBody, reasonQueryArgs } from '@/apps/admin/utils/operatorReason';
   import type {
     ColonelUserDetailReceipt,
+    ColonelUserDetails,
     ColonelUserDetailSecret,
     ColonelUserPurgeLifecycleItem,
     ColonelUserPurgeLifecycleResult,
@@ -19,7 +25,9 @@
   } from '@/schemas/api/internal/responses/colonel';
   import {
     colonelImpersonateResponseSchema,
+    colonelUserDetailRecordSchema,
     colonelUserDetailResponseSchema,
+    colonelUserDetailsSchema,
     colonelUserMutationResponseSchema,
     colonelUserPurgeLifecycleResultSchema,
     colonelUserPurgeResponseSchema,
@@ -71,6 +79,7 @@
     loading: userLoading,
     error: userError,
     validationError: userValidationError,
+    mismatch: userMismatch,
     notFound: userNotFound,
     load: loadUser,
     refresh: refreshUser,
@@ -80,12 +89,47 @@
     context: 'ColonelUserDetailResponse',
   });
 
-  const record = computed(() => userData.value?.record ?? null);
-  const details = computed(() => userData.value?.details ?? null);
+  type DetailSection = keyof ColonelUserDetails;
 
-  /** A non-404 network/HTTP failure, or a Zod contract mismatch. */
+  /**
+   * Contract-mismatch fallback. The whole-response parse failed somewhere, so
+   * re-parse the record and each details section through its own schema: one
+   * bad field then hides only its section, not the page. A section that fails
+   * is left out, and the template shows a notice in its place. Nothing reaches
+   * the template without passing a schema.
+   */
+  const partial = computed(() => {
+    if (userMismatch.value === null) return null;
+    const raw = (userMismatch.value.payload ?? {}) as {
+      record?: unknown;
+      details?: Record<string, unknown> | null;
+    };
+    const recordResult = colonelUserDetailRecordSchema.safeParse(raw.record);
+    const sections: Partial<Record<DetailSection, unknown>> = {};
+    const shape = colonelUserDetailsSchema.shape;
+    for (const key of Object.keys(shape) as DetailSection[]) {
+      const result = shape[key].safeParse(raw.details?.[key]);
+      if (result.success) sections[key] = result.data;
+    }
+    return {
+      record: recordResult.success ? recordResult.data : null,
+      details: sections as Partial<ColonelUserDetails>,
+    };
+  });
+
+  const record = computed(() => userData.value?.record ?? partial.value?.record ?? null);
+  const details = computed<Partial<ColonelUserDetails> | null>(
+    () => userData.value?.details ?? partial.value?.details ?? null
+  );
+
+  /**
+   * A non-404 network/HTTP failure, or a contract mismatch in the record
+   * itself. A mismatch confined to details sections degrades those sections.
+   */
   const loadFailed = computed(
-    () => (userError.value !== null && !userNotFound.value) || userValidationError.value !== null
+    () =>
+      (userError.value !== null && !userNotFound.value) ||
+      (userValidationError.value !== null && record.value === null)
   );
 
   // ---- Guarded actions ------------------------------------------------------
@@ -834,6 +878,10 @@
       <p class="mt-3 text-sm text-red-800 dark:text-red-200">
         {{ t('web.admin.customers.detail.loadError') }}
       </p>
+      <SchemaIssueList
+        v-if="userMismatch"
+        :issues="userMismatch.issues"
+        class="mx-auto mt-4 max-w-2xl text-left text-red-800 dark:text-red-200" />
       <button
         type="button"
         class="mt-4 inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-medium text-red-800 hover:bg-red-100 focus:ring-2 focus:ring-red-500 focus:outline-none dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
@@ -851,6 +899,29 @@
       v-else-if="record && details"
       class="space-y-6"
       data-testid="detail-content">
+      <!-- Contract mismatch confined to details sections: the page renders
+           what validated and names the fields that did not. -->
+      <div
+        v-if="partial"
+        class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800 dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-200"
+        role="status"
+        data-testid="detail-contract-mismatch">
+        <p class="flex items-start gap-2 text-sm font-medium">
+          <OIcon
+            collection="heroicons"
+            name="exclamation-triangle"
+            size="5"
+            class="shrink-0" />
+          {{ t('web.admin.customers.detail.contractMismatch.title') }}
+        </p>
+        <p class="mt-1 text-sm">
+          {{ t('web.admin.customers.detail.contractMismatch.body') }}
+        </p>
+        <SchemaIssueList
+          :issues="userMismatch?.issues ?? []"
+          class="mt-2" />
+      </div>
+
       <!-- Header -->
       <div
         class="flex flex-wrap items-center gap-3 border-b-2 border-gray-900 pb-4 dark:border-gray-100">
@@ -923,23 +994,23 @@
       <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         <StatCard
           :label="t('web.admin.customers.detail.sections.secrets')"
-          :value="details.secrets.count"
+          :value="details.secrets?.count ?? '—'"
           icon="key"
           testid="stat-secrets" />
         <StatCard
           :label="t('web.admin.customers.detail.sections.receipts')"
-          :value="details.receipts.count"
+          :value="details.receipts?.count ?? '—'"
           icon="receipt-percent"
           testid="stat-receipts" />
         <StatCard
           :label="t('web.admin.customers.detail.stats.secretsCreated')"
-          :value="details.stats.secrets_created" />
+          :value="details.stats?.secrets_created ?? '—'" />
         <StatCard
           :label="t('web.admin.customers.detail.stats.secretsShared')"
-          :value="details.stats.secrets_shared" />
+          :value="details.stats?.secrets_shared ?? '—'" />
         <StatCard
           :label="t('web.admin.customers.detail.stats.emailsSent')"
-          :value="details.stats.emails_sent" />
+          :value="details.stats?.emails_sent ?? '—'" />
       </div>
 
       <!-- Profile + Actions -->
@@ -1209,13 +1280,21 @@
         <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
           <h3 class="text-lg font-medium text-gray-900 dark:text-white">
             {{ t('web.admin.customers.detail.sections.organizations') }}
-            <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400"
+            <span
+              v-if="details.organizations"
+              class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400"
               >({{ details.organizations.length }})</span
             >
           </h3>
         </div>
+        <p
+          v-if="!details.organizations"
+          class="px-6 py-8 text-center text-sm text-amber-700 dark:text-amber-400"
+          data-testid="section-invalid-organizations">
+          {{ t('web.admin.customers.detail.sectionInvalid') }}
+        </p>
         <ul
-          v-if="details.organizations.length > 0"
+          v-else-if="details.organizations.length > 0"
           class="divide-y divide-gray-200 dark:divide-gray-800"
           data-testid="organizations-list">
           <li
@@ -1231,8 +1310,10 @@
               </p>
             </div>
             <div class="ml-3 flex shrink-0 items-center gap-2">
+              <!-- This customer's default, not the owner's auto-created workspace -->
               <span
-                v-if="org.is_default"
+                v-if="org.is_customer_default"
+                data-testid="organization-default-badge"
                 class="rounded bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700 dark:bg-brand-900/30 dark:text-brand-300">
                 {{ t('web.admin.customers.detail.organizations.default') }}
               </span>
@@ -1262,14 +1343,16 @@
         <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
           <h3 class="text-lg font-medium text-gray-900 dark:text-white">
             {{ t('web.admin.customers.detail.sections.secrets') }}
-            <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400"
+            <span
+              v-if="details.secrets"
+              class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400"
               >({{ details.secrets.count }})</span
             >
           </h3>
           <!-- The server told us this list is PARTIAL. Say so plainly — the
                count beside the heading is what is on screen, not the total. -->
           <p
-            v-if="details.secrets.truncated"
+            v-if="details.secrets?.truncated"
             class="mt-1.5 flex items-start gap-1.5 text-xs text-amber-700 dark:text-amber-400"
             data-testid="secrets-truncated">
             <OIcon
@@ -1282,7 +1365,14 @@
             }}</span>
           </p>
         </div>
+        <p
+          v-if="!details.secrets"
+          class="px-6 py-8 text-center text-sm text-amber-700 dark:text-amber-400"
+          data-testid="section-invalid-secrets">
+          {{ t('web.admin.customers.detail.sectionInvalid') }}
+        </p>
         <DataTable
+          v-else
           :columns="secretColumns"
           :rows="details.secrets.items"
           row-key="secret_id"
@@ -1307,12 +1397,14 @@
         <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
           <h3 class="text-lg font-medium text-gray-900 dark:text-white">
             {{ t('web.admin.customers.detail.sections.receipts') }}
-            <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400"
+            <span
+              v-if="details.receipts"
+              class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400"
               >({{ details.receipts.count }})</span
             >
           </h3>
           <p
-            v-if="details.receipts.truncated"
+            v-if="details.receipts?.truncated"
             class="mt-1.5 flex items-start gap-1.5 text-xs text-amber-700 dark:text-amber-400"
             data-testid="receipts-truncated">
             <OIcon
@@ -1325,7 +1417,14 @@
             }}</span>
           </p>
         </div>
+        <p
+          v-if="!details.receipts"
+          class="px-6 py-8 text-center text-sm text-amber-700 dark:text-amber-400"
+          data-testid="section-invalid-receipts">
+          {{ t('web.admin.customers.detail.sectionInvalid') }}
+        </p>
         <DataTable
+          v-else
           :columns="receiptColumns"
           :rows="details.receipts.items"
           row-key="receipt_id"

@@ -132,7 +132,7 @@ starts the backing services itself if they aren't up
 type-check need no services or lane: run them via pnpm directly.
 Details: `tests/lanes/README.md`.
 
-The shell scripts CI runs (`scripts/ci/`, `.github/scripts/`) are tested
+The shell scripts CI runs (`.github/scripts/`) are tested
 outside the lane runner — they touch no datastore and no Ruby. Run
 `bin/testsuite run` for those, and `scripts/check-shell-lint.sh` for
 shellcheck/actionlint. Both also run in the `Static analysis` workflow.

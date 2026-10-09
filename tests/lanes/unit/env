@@ -2,6 +2,10 @@
 # CI job: ruby-unit (T2)
 AUTHENTICATION_MODE=simple
 
+# Two workers: the tasks file runs try:unit and spec:fast side by side, one
+# valkey index each (#4551). --workers 1 on the command line is the serial run.
+LANES_WORKERS=2
+
 # Generated prerequisites, produced by tests/lanes/run before the tasks
 # below (see the codegen phase there). spec/spec_helper.rb refuses to boot
 # with an empty generated/locales, and spec:fast includes the config

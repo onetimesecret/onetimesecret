@@ -120,10 +120,34 @@ RSpec.describe Onetime::CLI::CustomersPurgeOneCommand do
     end
   end
 
+  [false, true].each do |json|
+    it "includes the full customer email in #{json ? 'JSON' : 'text'} results" do
+      customer = instance_double(Onetime::Customer,
+        anonymous?: false,
+        email: 'visible@example.com',
+        extid: 'ur_target')
+      operation = instance_double(Auth::Operations::Customers::Purge,
+        call: purge_result(status: :success))
+      allow(command).to receive(:boot_application!)
+      allow(command).to receive(:resolve_customer).and_return(customer)
+      allow(Auth::Operations::Customers::Purge).to receive(:new).and_return(operation)
+
+      output = capture_stdout do
+        command.call(identifier: 'ur_target', yes: true, json: json)
+      end
+
+      if json
+        expect(JSON.parse(output)['email']).to eq('visible@example.com')
+      else
+        expect(output).to eq("Purged visible@example.com (ur_target)\n")
+      end
+    end
+  end
+
   it 'explains preflight, blockers, and partial outcomes before confirmation' do
     customer = instance_double(Onetime::Customer,
       anonymous?: false,
-      obscure_email: 'v***@example.com',
+      email: 'visible@example.com',
       extid: 'ur_target')
     allow(command).to receive(:boot_application!)
     allow(command).to receive(:resolve_customer).and_return(customer)
@@ -134,6 +158,7 @@ RSpec.describe Onetime::CLI::CustomersPurgeOneCommand do
       command.call(identifier: 'ur_target')
     end
 
+    expect(output).to include('Purge visible@example.com (ur_target)? [y/N]')
     expect(output).to include('read-only organization preflight')
     expect(output).to include('Blockers refuse the purge without mutation')
     expect(output).to include('reported as partial; it does not imply rollback')

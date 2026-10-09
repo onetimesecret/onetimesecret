@@ -35,7 +35,9 @@ full:
     password_requirements: true
     active_sessions: true
     remember_me: true
-    verify_account: false  # Disabled in test mode
+    # Env-driven, default false, like email_auth below: only the full-mfa
+    # lane exports it, so every other lane signs up already-verified accounts.
+    verify_account: <%= ENV['AUTH_VERIFY_ACCOUNT_ENABLED'] == 'true' %>
     mfa: false
     # Env-driven, default false: only the full-mfa lane exports it
     # (tests/lanes/full-mfa/env), so magic links stay off everywhere else.

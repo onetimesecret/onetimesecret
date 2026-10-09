@@ -14,6 +14,11 @@ ORGS_SSO_ENABLED=true
 # (placeholder or platform) registers only with it on.
 SAML_ENABLED=true
 
+# Four rspec workers (parallel_rspec in lib/tasks/spec.rake), one valkey index
+# each; the in-memory SQLite is per process already (#4551). --workers 1 is
+# the serial run.
+LANES_WORKERS=4
+
 # Generated prerequisites, produced by tests/lanes/run before the tasks
 # below (see the codegen phase there). spec/spec_helper.rb refuses to boot
 # with an empty generated/locales, so every lane that runs Ruby specs

@@ -485,6 +485,8 @@ Set the value to the string `true` to enable; anything else (or unset) is disabl
 
 **What it does when true:** for the matched provider, `account_from_omniauth` returns the account located by the (normalized, case-insensitive) email instead of refusing. `rodauth-omniauth` then persists the `(provider, uid)` row and signs the user in — the intended auto-link. The lookup surface is unchanged: it is the *same* normalized email H-3 already used, just no longer refused. Each such link emits an `omniauth_email_linked_trusted_provider` audit event at level `warn`, so linking-by-trust is always visible in the audit log.
 
+**Except when the IdP says the email is unverified.** If the callback carries an explicit `email_verified: false` (or the string `"false"`), or the claim cannot be read, the trusted link is skipped and the sign-in is handled as if the flag were off. This emits an `omniauth_trusted_link_held` audit event at level `warn` with the hold reason. A callback that omits `email_verified` is not affected and links as described above. Signing in with a new email still creates an account; it stays unverified. See #4688.
+
 ### Threat-model caveat
 
 > You are declaring this IdP wholly inside your trust boundary. Enable only for single-tenant installs where the same operator controls both OTS and the IdP.

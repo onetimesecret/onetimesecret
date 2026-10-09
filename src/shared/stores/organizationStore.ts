@@ -2,11 +2,19 @@
 // @see src/tests/stores/organizationStore.spec.ts - Test fixtures for Organization schema
 
 import {
+  type UpdateDefaultOrganizationRequest,
+  updateDefaultOrganizationRequestSchema,
+} from '@/schemas/api/account/requests/update-default-organization';
+import {
+  type UpdateDefaultOrganizationResponse,
+  updateDefaultOrganizationResponseSchema,
+} from '@/schemas/api/account/responses/default-organization';
+import {
   organizationResponseSchema,
   organizationsResponseSchema,
 } from '@/schemas/api/organizations';
 import { loggingService } from '@/services/logging.service';
-import { gracefulParse } from '@/utils/schemaValidation';
+import { useApi } from '@/shared/composables/useApi';
 import type {
   CreateInvitationPayload,
   CreateOrganizationPayload,
@@ -20,7 +28,8 @@ import {
   organizationInvitationSchema,
   updateOrganizationPayloadSchema,
 } from '@/types/organization';
-import { useApi } from '@/shared/composables/useApi';
+import { gracefulParse } from '@/utils/schemaValidation';
+import { CanceledError } from 'axios';
 import { defineStore } from 'pinia';
 import { computed, ref, watch } from 'vue';
 import { z } from 'zod';
@@ -90,6 +99,8 @@ function writePendingSelection(objid: string | null, custid = ''): void {
 /** How the server answered a selection write, if it did. */
 type SelectionReply = 'accepted' | 'refused' | 'unanswered';
 
+const DEFAULT_CHANGE_FAILED = 'Unable to update the default organization. Please try again.';
+
 /* eslint-disable max-lines-per-function */
 export const useOrganizationStore = defineStore('organization', () => {
   const $api = useApi();
@@ -101,6 +112,9 @@ export const useOrganizationStore = defineStore('organization', () => {
   const _initialized = ref(false);
   const _listFetched = ref(false); // Tracks whether fetchOrganizations() was called (full list)
   const loading = ref(false);
+  // A list fetch is in flight. Unlike `loading`, which every action shares,
+  // this tells a caller whether fetchOrganizations() would cancel one.
+  const _listLoading = ref(false);
   // AbortController for list fetches only - single-org fetches don't need cancellation
   const abortController = ref<AbortController | null>(null);
 
@@ -131,16 +145,19 @@ export const useOrganizationStore = defineStore('organization', () => {
   );
 
   /**
-   * The organization to fall back to when nothing is selected: the default
-   * org, then the first in the list. Null until the list has an entry.
+   * The organization to fall back to when nothing is selected: this user's
+   * default org, then the first in the list. Null until the list has an
+   * entry. Reads `is_current_user_default`, not `is_default`: a member of
+   * someone else's default workspace sees that org flagged `is_default` too.
    */
   const defaultOrganization = computed(
     (): Organization | null =>
-      organizations.value.find((o) => o.is_default) ?? organizations.value[0] ?? null
+      organizations.value.find((o) => o.is_current_user_default) ?? organizations.value[0] ?? null
   );
 
   const isInitialized = computed(() => _initialized.value);
   const isListFetched = computed(() => _listFetched.value);
+  const isListLoading = computed(() => _listLoading.value);
 
   // Actions
 
@@ -162,6 +179,7 @@ export const useOrganizationStore = defineStore('organization', () => {
       abortController.value.abort();
       abortController.value = null;
     }
+    _listLoading.value = false;
   }
 
   /**
@@ -177,12 +195,14 @@ export const useOrganizationStore = defineStore('organization', () => {
    */
   async function fetchOrganizations(): Promise<Organization[]> {
     abort(); // Cancel any previous list fetch (deduplication)
-    abortController.value = new AbortController();
+    const controller = new AbortController();
+    abortController.value = controller;
     loading.value = true;
+    _listLoading.value = true;
 
     try {
       const response = await $api.get('/api/organizations', {
-        signal: abortController.value.signal,
+        signal: controller.signal,
       });
 
       const result = gracefulParse(organizationsResponseSchema, response.data, 'OrganizationsResponse');
@@ -195,6 +215,8 @@ export const useOrganizationStore = defineStore('organization', () => {
       return organizations.value;
     } finally {
       loading.value = false;
+      // A fetch that replaced this one still holds the flag.
+      if (abortController.value === controller) _listLoading.value = false;
     }
   }
 
@@ -363,19 +385,21 @@ export const useOrganizationStore = defineStore('organization', () => {
     writePendingSelection(org.objid, useBootstrapStore().custid);
     if (syncInFlight) {
       // Wait for the reply, then send only the newest selection made since.
-      queuedSelection = org;
+      queuedSelection = { org, ticket: writesJoined };
       return syncInFlight;
     }
-    syncInFlight = postOrganizationContexts(org);
-    return syncInFlight;
+    return joinChain((ticket) => postOrganizationContexts(org, ticket));
   }
 
   // Selections are written one at a time, in the order they were made: the
   // server keeps whichever write lands last, and two requests in flight at
   // once can land in either order. While a write is in flight, later
   // selections replace each other in `queuedSelection`; only the newest is
-  // sent once the reply arrives. $reset bumps the generation so a chain
-  // that outlives it (logout, in-place account change) sends nothing more.
+  // sent once the reply arrives. A default change (setDefaultOrganization)
+  // takes its turn in the same chain, since the server selects that org too:
+  // a selection queued before it goes out before it, one made after it goes
+  // out after it. $reset bumps the generation so a chain that outlives it
+  // (logout, in-place account change) sends nothing more.
   //
   // The newest selection is also noted in sessionStorage until the server
   // answers it (PENDING_ORG_SELECTION_KEY). An answer of any status settles
@@ -385,12 +409,19 @@ export const useOrganizationStore = defineStore('organization', () => {
   // again takes its turn in the same chain, so one made after the page load
   // goes out after it.
   let syncInFlight: Promise<void> | null = null;
-  let queuedSelection: Organization | null = null;
+  // `ticket` names the write that was the end of the chain when it was
+  // queued; that write sends it (takeQueuedSelection).
+  let queuedSelection: { org: Organization; ticket: number } | null = null;
   let syncGeneration = 0;
+  // Numbers the writes that joined the chain; the highest is its end.
+  let writesJoined = 0;
   let pendingSelectionResumed = false;
   // Counts selectOrganization calls, so a selection sent again can tell
   // whether the user has chosen since.
   let selectionsMade = 0;
+  // Counts setDefaultOrganization calls, so an earlier one answered later
+  // leaves the tab to the newer one.
+  let defaultChangesMade = 0;
 
   function settlePendingSelection(objid: string): void {
     // A later selection has replaced the note; that one is still unanswered.
@@ -441,36 +472,70 @@ export const useOrganizationStore = defineStore('organization', () => {
   }
 
   /**
+   * Add a write to the end of the chain and return it. `send` starts once the
+   * write before it has finished, and gets this write's ticket: selections
+   * made from now on are queued under it. A link never rejects, even when
+   * `send` throws, so the writes behind it always get their turn.
+   */
+  function joinChain(send: (ticket: number) => Promise<void>): Promise<void> {
+    const prior = syncInFlight;
+    writesJoined += 1;
+    const ticket = writesJoined;
+    syncInFlight = (async () => {
+      try {
+        if (prior) await prior;
+        await send(ticket);
+      } catch (error) {
+        // A fault, not a reply: senders handle every reply themselves.
+        console.warn('[organizationStore] Organization write failed:', error);
+      } finally {
+        if (ticket === writesJoined) syncInFlight = null;
+      }
+    })();
+    return syncInFlight;
+  }
+
+  /**
+   * Take the newest selection queued while write `ticket` was the end of
+   * the chain, to send next. One queued after a later write joined is left
+   * for that write, so it goes out after it.
+   */
+  function takeQueuedSelection(ticket: number): Organization | null {
+    const queued = queuedSelection;
+    if (!queued || queued.ticket !== ticket) return null;
+    queuedSelection = null;
+    if (!useAuthStore().protectedActionsAvailable) {
+      // The queued selection is withheld like any other protected write.
+      // Drop it here so a later chain does not send it after a newer one.
+      writePendingSelection(null);
+      return null;
+    }
+    return queued.org;
+  }
+
+  /**
    * Send `first`, then whatever was selected while each write was in flight.
    * `resentFrom` is given when `first` is a selection sent again after a page
    * load: the time the user made it.
    */
-  async function postOrganizationContexts(first: Organization, resentFrom?: number): Promise<void> {
+  async function postOrganizationContexts(
+    first: Organization,
+    ticket: number,
+    resentFrom?: number
+  ): Promise<void> {
     const generation = syncGeneration;
     let next: Organization | null = first;
     let resent = resentFrom;
-    try {
-      while (next) {
-        const org = next;
-        next = null;
-        const reply =
-          resent === undefined
-            ? await postOrganizationContext(org)
-            : await resendOrganizationContext(org, resent);
-        resent = undefined;
-        if (generation !== syncGeneration) return;
-        if (reply !== 'unanswered') settlePendingSelection(org.objid);
-        next = queuedSelection;
-        queuedSelection = null;
-        if (next && !useAuthStore().protectedActionsAvailable) {
-          // The queued selection is withheld like any other protected write.
-          // Drop it here so a later chain does not send it after a newer one.
-          writePendingSelection(null);
-          return;
-        }
-      }
-    } finally {
-      if (generation === syncGeneration) syncInFlight = null;
+    while (next) {
+      const org = next;
+      const reply =
+        resent === undefined
+          ? await postOrganizationContext(org)
+          : await resendOrganizationContext(org, resent);
+      resent = undefined;
+      if (generation !== syncGeneration) return;
+      if (reply !== 'unanswered') settlePendingSelection(org.objid);
+      next = takeQueuedSelection(ticket);
     }
   }
 
@@ -520,7 +585,105 @@ export const useOrganizationStore = defineStore('organization', () => {
       writePendingSelection(null);
       return;
     }
-    syncInFlight = postOrganizationContexts(org, note.at);
+    void joinChain((ticket) => postOrganizationContexts(org, ticket, note.at));
+  }
+
+  /**
+   * Send a default change as the newest write in the chain. Resolves with the
+   * reply body; rejects on a refusal, or with a CanceledError and unsent
+   * when the store was reset while it waited its turn (as an aborted request
+   * would). Either way the chain carries on to the selections made while it
+   * was on its way.
+   */
+  function postDefaultOrganization(
+    payload: UpdateDefaultOrganizationRequest,
+    generation: number
+  ): Promise<unknown> {
+    return new Promise((resolve, reject) => {
+      void joinChain(async (ticket) => {
+        if (generation !== syncGeneration) {
+          reject(new CanceledError());
+          return;
+        }
+        try {
+          const response = await $api.post('/api/account/update-default-organization', payload);
+          resolve(response.data);
+        } catch (error) {
+          reject(error);
+        }
+        if (generation !== syncGeneration) return;
+        const next = takeQueuedSelection(ticket);
+        if (next) await postOrganizationContexts(next, ticket);
+      });
+    });
+  }
+
+  /**
+   * Make `org` this user's default organization. The server records the
+   * default and also selects the org for the current session, so the write
+   * takes its turn in the selection chain: after the selections made before
+   * it, before those made after it. Until the server accepts it, it changes
+   * nothing: refused, earlier selections go out and apply as if it had not
+   * been made. Accepted, the tab follows: the default flag moves locally,
+   * the list is refetched, and the org becomes current unless a later
+   * choice or anything else moved the tab meanwhile. Throws on refusal or an
+   * unreadable response; nothing local changes then. A failed refetch does
+   * not throw: the change was made, and the local flags already show it.
+   */
+  async function setDefaultOrganization(
+    org: Organization
+  ): Promise<UpdateDefaultOrganizationResponse> {
+    const payload = updateDefaultOrganizationRequestSchema.parse({ organization_id: org.objid });
+    const generation = syncGeneration;
+    const selections = selectionsMade;
+
+    const result = gracefulParse(
+      updateDefaultOrganizationResponseSchema,
+      await postDefaultOrganization(payload, generation),
+      'UpdateDefaultOrganizationResponse'
+    );
+    if (!result.ok) {
+      throw new Error(DEFAULT_CHANGE_FAILED);
+    }
+    // Logged out or switched account since: nothing here is that account's.
+    if (generation !== syncGeneration) return result.data;
+    // Counted once accepted, so a later change the server refuses can't keep
+    // this one from moving the tab.
+    defaultChangesMade += 1;
+    const changes = defaultChangesMade;
+    // Earlier selections have been answered by now and may have moved the
+    // tab; the server holds this choice after them.
+    const shown = currentOrganization.value?.objid;
+
+    // The default belongs to the account, not to this tab: the flags move
+    // even when the user has chosen another org since.
+    organizations.value = organizations.value.map((o) => ({
+      ...o,
+      is_current_user_default: o.objid === org.objid,
+    }));
+    // A newer selection keeps its note; an older one is superseded.
+    if (selectionsMade === selections) writePendingSelection(null);
+    try {
+      await fetchOrganizations();
+    } catch (error) {
+      console.warn('[organizationStore] Failed to refresh after the default change:', error);
+    }
+
+    // Only if nothing moved the tab meanwhile: no reset, no later choice, no
+    // route change while the list reloaded.
+    const untouched =
+      generation === syncGeneration &&
+      selectionsMade === selections &&
+      defaultChangesMade === changes &&
+      currentOrganization.value?.objid === shown;
+    if (untouched) {
+      currentOrganization.value = organizations.value.find((o) => o.objid === org.objid) ?? {
+        ...org,
+        is_current_user_default: true,
+      };
+    }
+
+    return result.data;
   }
 
   /**
@@ -631,6 +794,7 @@ export const useOrganizationStore = defineStore('organization', () => {
     invitations.value = [];
     _initialized.value = false;
     _listFetched.value = false;
+    _listLoading.value = false;
     loading.value = false;
   }
 
@@ -674,7 +838,8 @@ export const useOrganizationStore = defineStore('organization', () => {
       if (bootstrapOrg && !currentOrganization.value) {
         // Convert bootstrap org format to Organization type
         // Bootstrap provides minimal fields (objid, extid, display_name,
-        // is_default, planid, current_user_role, entitlements, limits)
+        // is_default, is_current_user_default, planid, current_user_role,
+        // entitlements, limits)
         // Full data comes from fetchOrganization
         currentOrganization.value = {
           objid: bootstrapOrg.objid,
@@ -684,6 +849,7 @@ export const useOrganizationStore = defineStore('organization', () => {
           owner_id: '',
           contact_email: null,
           is_default: bootstrapOrg.is_default,
+          is_current_user_default: bootstrapOrg.is_current_user_default ?? false,
           planid: bootstrapOrg.planid ?? 'free_v1',
           current_user_role: bootstrapOrg.current_user_role ?? null,
           entitlements: bootstrapOrg.entitlements ?? null,
@@ -715,6 +881,7 @@ export const useOrganizationStore = defineStore('organization', () => {
     defaultOrganization,
     isInitialized,
     isListFetched,
+    isListLoading,
 
     // Actions
     init,
@@ -725,6 +892,7 @@ export const useOrganizationStore = defineStore('organization', () => {
     deleteOrganization,
     setCurrentOrganization,
     selectOrganization,
+    setDefaultOrganization,
     fetchInvitations,
     createInvitation,
     resendInvitation,

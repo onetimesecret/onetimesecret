@@ -409,11 +409,30 @@ RSpec.describe Onetime::Application::OrganizationLoader do
     # request is served as the canonical host, which is what sending the
     # canonical Host gets.
     it 'keeps an :invalid request with no published lookup unscoped' do
+      allow(OT).to receive(:ld)
       env     = { 'HTTP_HOST' => 'origin.example.com',
                   'onetime.display_domain' => unregistered_host, 'onetime.domain_strategy' => :invalid }
       context = loader.load_organization_context(customer, session, env)
       expect(context[:organization]).to eq(organization)
       expect(context).not_to have_key(:domain_scope_refused)
+      expect(OT).to have_received(:ld).with(/no scope withheld \(#4678\)/)
+    end
+
+    # Detection stops without trying Host for a trusted X-Forwarded-Host
+    # with userinfo in it (Rack::DetectHost, "Userinfo in an authority"), so
+    # a proxy that preserves a tenant Host leaves the request :invalid with
+    # nothing published and Host naming the tenant. The loader reads Host on
+    # its own: that record is the scope, as with the domains feature off,
+    # and the unscoped line above is not logged.
+    it 'applies the Host record to an :invalid request with no published lookup' do
+      allow(Onetime::CustomDomain).to receive(:from_display_domain).with('denied.example.com').and_return(denied_domain)
+      allow(OT).to receive(:ld)
+      env     = { 'HTTP_HOST' => 'denied.example.com:443',
+                  'onetime.display_domain' => 'origin.example.com', 'onetime.domain_strategy' => :invalid }
+      context = loader.load_organization_context(customer, session, env)
+      expect(context[:organization]).to be_nil
+      expect(context[:domain_scope_refused]).to be(true)
+      expect(OT).not_to have_received(:ld).with(/no scope withheld/)
     end
   end
 

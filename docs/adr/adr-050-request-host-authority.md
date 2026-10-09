@@ -137,10 +137,14 @@ read, found absent, and withheld; the dependency fails closed.
 Withholding would gain nothing. On a direct connection the client chooses
 `Host`, and a canonical `Host` classifies before any read and yields the same
 empty scope. Behind a trusted proxy a rejected forwarded host falls through
-to the proxy's `Host` and classifies `:canonical`. It would cost an on-box
-API client calling the origin by IP or `localhost` its organization context
-on a domains-enabled install, and `Logic::OrganizationContext#auth_org`
-neither lazy-creates nor falls back after a scope refusal.
+to the proxy's `Host` and classifies `:canonical`, except one with userinfo
+in it, which detection refuses without trying `Host` (`Rack::DetectHost`,
+"Userinfo in an authority"); the loader's own `Host` read is unaffected, so a
+preserved `Host` that names a custom domain carries that record's scope, as
+it does with the feature off. It would cost an on-box API client calling the
+origin by IP or `localhost` its organization context on a domains-enabled
+install, and `Logic::OrganizationContext#auth_org` neither lazy-creates nor
+falls back after a scope refusal.
 
 Follow-through, referencing #4678: one sentence in the proxy authority
 contract stating that such requests are served as the canonical host, so

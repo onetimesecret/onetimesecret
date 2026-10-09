@@ -226,3 +226,59 @@ template = Onetime::Mail::Templates::FeedbackEmail.new({
 email = template.to_email(from: 'noreply@example.com')
 email[:subject].include?('Feedback')
 #=> true
+
+## render_text links the submitter and each organization to its colonel page
+@linked = Onetime::Mail::Templates::FeedbackEmail.new({
+  recipient_email: @recipient_email,
+  email_address: @feedback_email,
+  message: @feedback_message,
+  display_domain: @feedback_domain,
+  user_id: 'urfeedback1',
+  customer_extid: 'urfeedback1',
+  organization_extids: %w[onfeedback1 onfeedback2],
+})
+
+@base = @linked.send(:site_baseuri)
+@text = @linked.render_text
+[
+  @text.include?("#{@base}/colonel/customers/urfeedback1"),
+  @text.include?("onfeedback1  #{@base}/colonel/organizations/onfeedback1"),
+  @text.include?("onfeedback2  #{@base}/colonel/organizations/onfeedback2"),
+]
+#=> [true, true, true]
+
+## render_html links the same colonel pages
+@html = @linked.render_html
+[
+  @html.include?(%(href="#{@base}/colonel/customers/urfeedback1")),
+  @html.include?(%(href="#{@base}/colonel/organizations/onfeedback1")),
+  @html.include?(%(href="#{@base}/colonel/organizations/onfeedback2")),
+]
+#=> [true, true, true]
+
+## colonel links go to the canonical site host, not the feedback's custom domain
+@text.include?("#{@feedback_domain}/colonel/")
+#=> false
+
+## anonymous feedback carries no colonel links
+template = Onetime::Mail::Templates::FeedbackEmail.new({
+  recipient_email: @recipient_email,
+  email_address: 'anonymous',
+  message: @feedback_message,
+  display_domain: @feedback_domain,
+  user_id: 'anon:abcd1234',
+})
+[template.render_text.include?('/colonel/'), template.render_html.include?('/colonel/')]
+#=> [false, false]
+
+## string-keyed ids (as deserialized from the email job queue) render too
+template = Onetime::Mail::Templates::FeedbackEmail.new({
+  recipient_email: @recipient_email,
+  email_address: @feedback_email,
+  message: @feedback_message,
+  display_domain: @feedback_domain,
+  'customer_extid' => 'urfeedback2',
+  'organization_extids' => ['onfeedback3'],
+})
+[template.colonel_customer_url, template.organizations.map { |org| org[:extid] }]
+#=> ["#{@base}/colonel/customers/urfeedback2", ['onfeedback3']]

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# scripts/ci/sentry-verify-artifacts.sh
+# .github/scripts/sentry-verify-artifacts.sh
 #
 # POST-UPLOAD verification: ask Sentry whether the release that was just
 # uploaded actually holds artifacts symbolication can resolve.
@@ -70,7 +70,7 @@
 set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-STATUS="${REPO_ROOT}/scripts/ci/sentry-status.sh"
+STATUS="${REPO_ROOT}/.github/scripts/sentry-status.sh"
 
 ORG="${SENTRY_ORG:-}"
 # Builds URLs, is never reported — same rule the workflow applies to its own ten

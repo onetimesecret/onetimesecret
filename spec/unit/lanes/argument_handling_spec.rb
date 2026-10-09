@@ -132,6 +132,17 @@ RSpec.describe 'tests/lanes/run argument handling' do
       [64, %w[--console --capture-logs --print-key]],
       [64, %w[--console --log-console warn --print-key]],
       [64, %w[--console --capture-logs --log-console off --print-key]],
+      [0,  %w[--workers 1 --print-key]],
+      [0,  %w[--workers 2 --print-key]],
+      [0,  %w[--workers 64 --print-key]],
+      [0,  %w[--workers 2 --only spec/unit/lanes/hermetic_boundary_spec.rb --print-key]],
+      [0,  %w[--workers 2 --console --print-key]],
+      [64, %w[--workers 0 --print-key]],
+      [64, %w[--workers x --print-key]],
+      [64, %w[--workers 65 --print-key]],
+      [64, %w[--workers -1 --print-key]],
+      [64, %w[--workers --print-key]],
+      [64, %w[--print-key --workers]],
     ].each do |want, args|
       it "exits #{want} for: selftest #{args.join(' ')}" do
         output, status = probe.run('selftest', *args)
@@ -296,6 +307,77 @@ RSpec.describe 'tests/lanes/run argument handling' do
     end
   end
 
+  describe '--workers' do
+    # The count a lane's tasks fan out over (#4551). The lane env file sets
+    # the default (LANES_WORKERS, part of the workload the lane defines, so
+    # an overlay may set it too); the flag overrides it; the runner's own
+    # record of the flag (WORKERS_OVERRIDE) is refused from a file like every
+    # other flag. What the count derives is isolation_key_spec.rb.
+    it 'defaults to one worker when neither the lane nor the flag says otherwise' do
+      output, status = probe.run('selftest', '--print-key')
+      expect(status).to be_success, output
+      expect(output).to include(' workers=1 ')
+    end
+
+    it 'takes the lane\'s LANES_WORKERS default and lets --workers override it' do
+      probe.with_overlay("LANES_WORKERS=3\n") do |overlay|
+        output, status = probe.run('selftest', '--overlay', overlay, '--print-key')
+        expect(status).to be_success, output
+        expect(output).to include(' workers=3 ')
+
+        output, status = probe.run('selftest', '--overlay', overlay, '--workers', '2', '--print-key')
+        expect(status).to be_success, output
+        expect(output).to include(' workers=2 ')
+      end
+    end
+
+    it 'validates a LANES_WORKERS from a file like the flag' do
+      # An empty value reads as unset (one worker), like an absent line.
+      %w[0 65 four].each do |value|
+        probe.with_overlay("LANES_WORKERS='#{value}'\n") do |overlay|
+          output, status = probe.run('selftest', '--overlay', overlay, '--print-key')
+          expect(status.exitstatus).to eq(64), "LANES_WORKERS=#{value.inspect} exited #{status.exitstatus}:\n#{output}"
+          expect(output).to include('LANES_WORKERS must be')
+        end
+      end
+    end
+
+    it 'runs one worker for --only and --console whatever was asked' do
+      output, status = probe.run('unit', '--workers', '4', '--only', 'spec/unit/lanes/hermetic_boundary_spec.rb',
+                                 '--print-key')
+      expect(status).to be_success, output
+      expect(output).to include(' workers=1 ')
+
+      output, status = probe.run('unit', '--workers', '4', '--console', '--print-key')
+      expect(status).to be_success, output
+      expect(output).to include(' workers=1 ')
+    end
+
+    it 'refuses more than one worker for the smoke lane' do
+      output, status = probe.run('smoke', '--workers', '2', '--print-key')
+      expect(status.exitstatus).to eq(64), output
+      expect(output).to include('smoke lane runs one command')
+      expect(output).not_to include('lane=smoke')
+    end
+
+    it 'refuses more than one worker for a Postgres-backed lane, and accepts one' do
+      %w[full-pg full-pg-agnostic migrations-pg].each do |lane|
+        output, status = probe.run(lane, '--workers', '2', '--print-key')
+        expect(status.exitstatus).to eq(64), "#{lane}:\n#{output}"
+        expect(output).to include("not supported for a Postgres-backed lane (lane '#{lane}')")
+      end
+      output, status = probe.run('full-pg', '--workers', '1', '--print-key')
+      expect(status).to be_success, output
+    end
+
+    it 'names the count and the flag in --help' do
+      output, status = probe.run('--list')
+      expect(status).to be_success, output
+      expect(output).to include('--workers <n>')
+      expect(output).to include('--only and --console run one process')
+    end
+  end
+
   # A lane env file or overlay runs in the runner's own shell. The flag
   # state the argument parser filled in is the runner's: an overlay line such
   # as `LOG_CONSOLE=warn` would otherwise hold the console to warn with no
@@ -309,6 +391,7 @@ RSpec.describe 'tests/lanes/run argument handling' do
       'SKIP_CODEGEN' => ['1', '--skip-codegen'],
       'PRINT_KEY' => ['1', '--print-key'],
       'CONSOLE' => ['1', '--console'],
+      'WORKERS_OVERRIDE' => ['2', '--workers'],
       'PASSTHROUGH' => ['1', '-- <rspec args>'],
     }.each do |name, (value, flag)|
       it "refuses #{name}=#{value} and names #{flag}" do

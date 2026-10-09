@@ -78,8 +78,18 @@ module ColonelAPI
                 organization_id: org.objid,
                 extid: org.extid,
                 display_name: org.display_name,
-                is_default: org.is_default,
+                # Only default workspaces set this field; team orgs leave it nil.
+                # It marks the org OWNER's default workspace, whoever this user is.
+                is_default: org.is_default.to_s == 'true',
               }
+            end
+
+            # This user's own default (OrganizationLoader.default_organization),
+            # which is_default alone cannot answer for a member of someone
+            # else's default workspace.
+            customer_default = Onetime::Application::OrganizationLoader.default_organization(user, @org_records)
+            @organizations.each do |entry|
+              entry[:is_customer_default] = entry[:organization_id] == customer_default&.objid
             end
           end
 

@@ -22,11 +22,11 @@ module Onetime
       # CONTRACT 4). The colonel endpoint (`POST /api/colonel/email/test`) and the
       # `bin/ots email test` CLI are thin adapters over it.
       #
-      # ## Behavioural parity (bit-for-bit)
+      # ## Behavioural parity
       #
-      # {.build} constructs the EXACT diagnostic email the CLI built inline before
-      # this extraction (same brand-aware subject/body, same provider/host probe),
-      # so the CLI's rendered output stays byte-identical. The CLI keeps its own
+      # {.build} constructs the one diagnostic email both callers send and
+      # print, so the CLI's rendered output and the console preview cannot
+      # drift from what is delivered. The CLI keeps its own
       # timing + status-line printing and simply routes the actual send through
       # this op; the op adds exactly one thing the inline send lacked: one
       # {Onetime::ColonelAuditEvent} per SUCCESSFUL real send.
@@ -76,25 +76,55 @@ module Onetime
         # the two can never drift. Brand-aware copy: a hardcoded vendor literal
         # would leak into a white-label install's outbound test email (#3612).
         #
+        # The RECIPIENT is often a customer, not an operator: the usual reason
+        # to send one is a support report that emails are not arriving. So the
+        # message is written for them, and it carries no delivery internals.
+        # The provider and the sending host are returned on the Diagnostic for
+        # the operator-facing output (CLI text/JSON, console response), but
+        # they never go into the subject or body: a mail provider name means
+        # nothing to a customer, and the host is an internal machine name.
+        #
         # @param to [String] recipient email address.
         # @return [Diagnostic]
         def self.build(to:)
           provider  = Onetime::Mail::Mailer.send(:determine_provider)
           hostname  = Socket.gethostname
-          timestamp = Time.now.utc.iso8601
+          sent_at   = Time.now.utc
+          timestamp = sent_at.iso8601
+          from      = Onetime::Mail::Mailer.from_address
 
           product_name = Onetime::CustomDomain::BrandSettingsConstants.global_defaults[:product_name] ||
                          Onetime::CustomDomain::BrandSettingsConstants::NEUTRAL_PRODUCT_NAME
 
           Diagnostic.new(
             to: to,
-            from: Onetime::Mail::Mailer.from_address,
-            subject: "[#{product_name}] Email delivery test - #{timestamp}",
-            text_body: "This is a test email from the #{product_name} CLI.\n\nProvider: #{provider}\nTimestamp: #{timestamp}\nHost: #{hostname}",
+            from: from,
+            subject: "Test email from #{product_name}",
+            text_body: recipient_body(product_name: product_name, from: from, sent_at: sent_at),
             provider: provider,
             host: hostname,
             timestamp: timestamp,
           )
+        end
+
+        # Plain-text body addressed to the person who receives it. English
+        # only: the op is not told the recipient's locale.
+        #
+        # @param product_name [String] brand product name.
+        # @param from [String] sending address, named so the recipient can
+        #   allow-list it.
+        # @param sent_at [Time] UTC send time.
+        # @return [String]
+        def self.recipient_body(product_name:, from:, sent_at:)
+          <<~BODY
+            Hello,
+
+            This is a test message from #{product_name}. We sent it to check that email from us reaches this address. You don't need to do anything.
+
+            If you contacted us about emails that didn't arrive: this message reached you, so delivery to this address is working. If other emails from us still go missing, check your spam or junk folder and add #{from} to your contacts.
+
+            Sent #{sent_at.strftime('%-d %B %Y at %H:%M UTC')}.
+          BODY
         end
 
         # @param to [String] recipient email address (caller validates format).

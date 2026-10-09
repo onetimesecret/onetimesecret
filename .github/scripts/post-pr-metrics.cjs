@@ -14,7 +14,7 @@
  * @param {Object} options.core - Core utilities from actions/github-script
  * @param {Object} options.tierData - Tier timing data with seconds and targets
  * @param {string} [options.breakdownFile] - Markdown from
- *   scripts/ci/ci-metrics-breakdown.sh (completion state and per-test-step
+ *   .github/scripts/ci-metrics-breakdown.sh (completion state and per-test-step
  *   time against the main baseline); embedded verbatim when present.
  */
 module.exports = async function postPrMetrics({ github, context, core, tierData, breakdownFile }) {
