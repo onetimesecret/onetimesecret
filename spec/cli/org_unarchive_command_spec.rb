@@ -2,12 +2,12 @@
 #
 # frozen_string_literal: true
 
-# CLI adapter tests for `bin/ots org unarchive ORG [--run] [--force]` (#4717).
+# CLI adapter tests for `bin/ots org unarchive ORG [--run]` (#4717).
 #
 # Pure adapter coverage: org resolution, the dry-run-by-default flow (no --run
-# means plan only, exit 0, nothing written), --run applying once, --force
-# threading, --json, and the status -> exit-code + operator-guidance mapping.
-# The guard, the clear and the audit event are the op's job and are covered
+# means plan only, exit 0, nothing written), --run applying once, --json, the
+# advisory pointer line, and the status -> exit-code mapping. The clear and
+# the audit event are the op's job and are covered
 # (against a real datastore) by spec/unit/onetime/operations/org/unarchive_spec.rb,
 # so here the op is stubbed at its constructor.
 #
@@ -46,7 +46,6 @@ RSpec.describe 'Org Unarchive Command', type: :cli do
         owner_id: 'ur_owner_ext',
         pointer_org_id: nil,
         archived_comment: archived_comment,
-        force: false,
         dry_run: dry_run,
       }.merge(overrides)
     )
@@ -120,15 +119,14 @@ RSpec.describe 'Org Unarchive Command', type: :cli do
   end
 
   describe 'op invocation' do
-    it 'passes the resolved org, the CLI sentinel actor, dry_run: true and force: false by default' do
+    it 'passes the resolved org, the CLI sentinel actor and dry_run: true by default — nothing else' do
       run_cli_command_quietly('org', 'unarchive', 'on_org_ext')
 
       expect(op_calls.size).to eq(1)
-      expect(op_calls.last).to include(
+      expect(op_calls.last).to eq(
         org: organization,
         actor: Onetime::CLI::Customers::Shared::CLI_ACTOR,
         dry_run: true,
-        force: false,
       )
     end
 
@@ -136,18 +134,6 @@ RSpec.describe 'Org Unarchive Command', type: :cli do
       run_cli_command_quietly('org', 'unarchive', 'on_org_ext', '--run')
 
       expect(op_calls.map { |args| args[:dry_run] }).to eq([false])
-    end
-
-    it 'threads --force through to the op' do
-      run_cli_command_quietly('org', 'unarchive', 'on_org_ext', '--run', '--force')
-
-      expect(op_calls.last).to include(dry_run: false, force: true)
-    end
-
-    it 'uses --force on the plan pass too' do
-      run_cli_command_quietly('org', 'unarchive', 'on_org_ext', '--force')
-
-      expect(op_calls.last).to include(dry_run: true, force: true)
     end
 
     it 'never audits from the adapter (the op owns the single event)' do
@@ -178,33 +164,37 @@ RSpec.describe 'Org Unarchive Command', type: :cli do
       expect(output[:stdout]).to match(/not archived/i)
     end
 
-    it ':default_pointer_elsewhere exits 1, names the other org and points at --force' do
-      stub_op_result(result_with(status: :default_pointer_elsewhere, dry_run: false, pointer_org_id: 'on_other_ext'))
+    # The pointer is advisory (see the op's spec): it tells the operator the
+    # owner will keep landing in another org after the repair. Printed on both
+    # passes, never an exit code.
+    describe 'advisory pointer' do
+      it 'names the other live org the owner defaults to on the dry run' do
+        stub_op_result(result_with(status: :planned, dry_run: true, pointer_org_id: 'on_other_ext'))
 
-      output = run_cli_command_quietly('org', 'unarchive', 'on_org_ext', '--run')
+        output = run_cli_command_quietly('org', 'unarchive', 'on_org_ext')
 
-      expect(last_exit_code).to eq(1)
-      expect(output[:stdout]).to include('on_other_ext')
-      expect(output[:stdout]).to include('--force')
-    end
+        expect(last_exit_code).to eq(0)
+        expect(output[:stdout]).to match(/default.*on_other_ext/i)
+      end
 
-    it ':default_pointer_elsewhere refuses on the plan pass with the same guidance' do
-      stub_op_result(result_with(status: :default_pointer_elsewhere, dry_run: true, pointer_org_id: 'on_other_ext'))
+      it 'names it after --run too' do
+        stub_op_result(result_with(status: :success, dry_run: false, pointer_org_id: 'on_other_ext'))
 
-      output = run_cli_command_quietly('org', 'unarchive', 'on_org_ext')
+        output = run_cli_command_quietly('org', 'unarchive', 'on_org_ext', '--run')
 
-      expect(last_exit_code).to eq(1)
-      expect(output[:stdout]).to include('--force')
-    end
+        expect(last_exit_code).to eq(0)
+        expect(output[:stdout]).to include('Unarchived on_org_ext (Test Org)')
+        expect(output[:stdout]).to match(/default.*on_other_ext/i)
+      end
 
-    it 'exits 1 on a refusal in --json mode, with the status and pointer in the payload' do
-      stub_op_result(result_with(status: :default_pointer_elsewhere, dry_run: false, pointer_org_id: 'on_other_ext'))
+      it 'is in the JSON payload' do
+        stub_op_result(result_with(status: :success, dry_run: false, pointer_org_id: 'on_other_ext'))
 
-      output = run_cli_command_quietly('org', 'unarchive', 'on_org_ext', '--run', '--json')
+        output = run_cli_command_quietly('org', 'unarchive', 'on_org_ext', '--run', '--json')
 
-      expect(last_exit_code).to eq(1)
-      payload = JSON.parse(output[:stdout])
-      expect(payload).to include('status' => 'default_pointer_elsewhere', 'pointer_org_id' => 'on_other_ext')
+        expect(last_exit_code).to eq(0)
+        expect(JSON.parse(output[:stdout])).to include('status' => 'success', 'pointer_org_id' => 'on_other_ext')
+      end
     end
   end
 
@@ -220,14 +210,13 @@ RSpec.describe 'Org Unarchive Command', type: :cli do
       output = run_cli_command_quietly('org', 'unarchive', 'on_org_ext', '--run', '--json')
 
       payload = JSON.parse(output[:stdout])
-      expect(payload).to include(
+      expect(payload).to eq(
         'status' => 'success',
         'org_id' => 'on_org_ext',
         'display_name' => 'Test Org',
         'owner_id' => 'ur_owner_ext',
         'pointer_org_id' => nil,
         'archived_comment' => archived_comment,
-        'force' => false,
         'dry_run' => false,
       )
     end

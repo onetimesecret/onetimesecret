@@ -14,9 +14,10 @@ Fixed
 Added
 -----
 
-- ``bin/ots org unarchive ORG [--run] [--force]`` restores an archived
-  organization. The default is a dry run that prints the owner, the
-  archived comment and where the owner's default points; ``--run``
-  applies and records one ``organization.unarchive`` audit event. See
+- ``bin/ots org unarchive ORG [--run]`` restores an archived
+  organization. The default is a dry run that prints the owner and the
+  archived comment, and notes when the owner's default workspace is a
+  different organization; ``--run`` applies and records one
+  ``organization.unarchive`` audit event. See
   ``docs/runbooks/sso-self-archived-organization.md`` for the repair
   procedure (#4717).

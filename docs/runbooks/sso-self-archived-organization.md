@@ -51,7 +51,8 @@ rest of this runbook does.
   fields together and records the change in the operator audit trail.
 - Do not repoint `default_org_id` as part of this repair unless the owner's
   pointer is actually wrong. For the self-archive case it already names the
-  archived organization and needs no change.
+  archived organization and needs no change. The command reports where the
+  pointer goes; it never changes it.
 - Treat any archived organization whose comment names a different organization
   as out of scope. Deciding whether to restore it is a separate judgement.
 
@@ -88,10 +89,13 @@ rest of this runbook does.
    Organization:     <org extid> (<display name>)
    Owner:            <owner extid>
    Archived comment: Superseded by domain org <org extid> via SSO self-heal
-   Owner default:    this organization, empty, or no live organization
 
    Dry run only — re-run with --run to apply.
    ```
+
+   When the owner's `default_org_id` names a different live organization the
+   dry run adds one line before the blank one:
+   `Owner default workspace: <other extid>; this organization will not become their default`.
 
 3. Keep only the organizations whose comment names their **own** extid (the
    one printed on the `Organization:` line). Those are the #4717 records. The
@@ -110,7 +114,7 @@ For each organization kept in the previous step:
    - the owner still holds an active `owner` membership
      (`bin/ots org doctor <ORG>` checks 1, 2 and 4);
    - the owner's `default_org_id` names this organization (the dry run above
-     prints `Owner default: this organization, ...`);
+     prints no `Owner default workspace:` line);
    - `planid`, `stripe_customer_id` and `stripe_subscription_id` are the values
      you expect for the tenant. The archive never touched them, so a mismatch
      here is a different problem; stop and investigate it first.
@@ -138,29 +142,27 @@ For each organization kept in the previous step:
    A domain scan should no longer report `archived_org_reference` for the
    tenant's domain.
 
-## `default_pointer_elsewhere`
+## The `Owner default workspace` advisory
 
-The command exits 1 with this status when the owner's `default_org_id` names
-a *different* organization that is live:
+Both passes print `Owner default workspace: <other extid>; this organization
+will not become their default` when the owner's `default_org_id` names a
+*different* organization that is live. The same value is `pointer_org_id` in
+the `--json` payload and in the audit event detail. It is information, not a
+refusal: the unarchive proceeds exactly as it would without it.
 
-```text
-Error: <org extid> (<display name>): the owner's default_org_id names another live organization (<other extid>), so restoring this one will not change where they land. Repoint the owner's default first, or re-run with --force to unarchive anyway
-```
+Why it matters: the sign-in self-heal archives only the workspace the owner's
+pointer resolves to (the explicit `default_org_id`, else the workspace they
+own with the default flag) when that workspace is not the domain organization
+they are joining. A pointer at a different live organization therefore leaves
+the restored one untouched, but the owner keeps landing in the other
+organization until someone repoints the default. Members can choose their own
+default workspace, so a pointer elsewhere may be deliberate.
 
-This is a prompt to decide about the pointer deliberately, not a sign that
-the record cannot be restored. It does not occur for the self-archive case,
-where the pointer already names the archived organization.
-
-`--force` is appropriate when you have confirmed that the organization should
-be live regardless of where the owner currently defaults, for example when the
-owner chose another workspace as their default on purpose (members can select
-their default workspace) and the archived organization still has members who
-need it. After a forced unarchive the command prints the pointer it overrode;
-repoint the owner's default only if that is what the owner wants.
-
-Do not use `--force` as a shortcut around an unexpected pointer. If the dry run
-shows a pointer you cannot explain, find out where it came from first
-(`bin/ots customers doctor <owner>`).
+The advisory does not appear for the self-archive case covered by this
+runbook, where the pointer already names the archived organization. If it
+does appear, find out where the pointer came from before deciding whether to
+change it (`bin/ots customers doctor <owner>`); do not repoint it as part of
+the unarchive.
 
 ## What this runbook does not cover
 

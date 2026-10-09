@@ -9,31 +9,28 @@
 # owner's OWN domain org when it was their is_default workspace). Modeled on
 # Onetime::Operations::Org::TransferOwnership: one Result with `status`,
 # `dry_run` defaulting to TRUE, exactly one `organization.unarchive` audit
-# event on the applied path, refusals audited as `result: :failure`.
+# event on the applied path.
 #
 # TWO LAYERS, on purpose (same split as delete_spec.rb):
 #
-#   1. Mocked contract (no datastore) — the statuses, the "a refusal or a
-#      preview writes NOTHING" assertions, the exactly-once audit event, and
+#   1. Mocked contract (no datastore) — the statuses, the "a preview or a
+#      no-change writes NOTHING" assertions, the exactly-once audit event, and
 #      the fact that the clear goes through Organization#unarchive! (the one
 #      primitive that resets archived_at AND archived_comment together).
 #
 #   2. Real datastore (Valkey on 2163, see spec/config.test.yaml) — the
 #      post-conditions that are unprovable with mocks: archived_at and
 #      archived_comment are really empty on reload, a dry run leaves them, the
-#      pointer guard reads the owner's live default_org_id, and the audit event
-#      lands in the operator trail exactly once.
+#      advisory pointer reads the owner's live default_org_id, and the audit
+#      event lands in the operator trail exactly once.
 #
-# ## The :default_pointer_elsewhere guard
+# ## pointer_org_id is advisory, never a guard
 #
-# Until PR 2 of #4717 lands, the login self-heal still archives any is_default
-# workspace the owner would resolve to. The comment on Organization#unarchive!
-# spells out the consequence: an unarchive is durable only while the owner's
-# default_org_id points at a DIFFERENT live org. Rather than leave the
-# operator to discover a re-archive on the customer's next login, the op
-# refuses by default when the owner's pointer names another live org, and
-# `force: true` overrides. A pointer that is empty, names this org, or names
-# an archived/missing org is not "elsewhere".
+# The self-heal only archives the workspace the owner's default pointer
+# resolves to (explicit pointer, else the owned is_default workspace), so a
+# pointer that names a DIFFERENT live org leaves this one untouched after the
+# unarchive. The Result reports that org's extid so the operator can see the
+# owner will not land here, and nothing refuses on it.
 #
 # Layer 2 registers every object it creates and destroys them in `after`. It
 # NEVER flushes — the test datastore is shared.
@@ -110,8 +107,15 @@ RSpec.describe Onetime::Operations::Org::Unarchive do
         expect(result.owner_id).to eq('ur_owner_ext')      # PUBLIC extid, never the objid
         expect(result.pointer_org_id).to be_nil            # pointer names THIS org: not elsewhere
         expect(result.archived_comment).to eq(archived_comment)
-        expect(result.force).to be(false)
         expect(result.dry_run).to be(false)
+      end
+
+      it 'exposes exactly the seven Result fields — there is no force override' do
+        expect(described_class::Result.members).to eq(
+          %i[status org_id display_name owner_id pointer_org_id archived_comment dry_run],
+        )
+        expect { described_class.new(org: org, actor: actor, force: true) }
+          .to raise_error(ArgumentError, /force/)
       end
 
       it 'clears the archive through Organization#unarchive! exactly once' do
@@ -128,7 +132,7 @@ RSpec.describe Onetime::Operations::Org::Unarchive do
           verb: 'organization.unarchive',
           target: 'on_org_ext',
           result: :success,
-          detail: hash_including(archived_comment: archived_comment, forced: false),
+          detail: hash_including(archived_comment: archived_comment, pointer_org_id: nil),
         )
       end
 
@@ -136,9 +140,9 @@ RSpec.describe Onetime::Operations::Org::Unarchive do
         expect(described_class::AUDIT_VERB).to eq('organization.unarchive')
       end
 
-      it 'treats :planned, :success and :not_archived as non-failures for the adapters' do
+      it 'treats :planned, :success and :not_archived as non-failures, and has no refusal statuses' do
         expect(described_class::OK_STATUSES).to contain_exactly(:planned, :success, :not_archived)
-        expect(described_class::REFUSAL_STATUSES).to contain_exactly(:default_pointer_elsewhere)
+        expect(described_class.const_defined?(:REFUSAL_STATUSES)).to be(false)
       end
     end
 
@@ -179,72 +183,53 @@ RSpec.describe Onetime::Operations::Org::Unarchive do
       end
     end
 
-    # The guard that keeps a repair from being undone by the next login (see
-    # the file header). A refusal is an ATTEMPTED privileged mutation and
-    # lands in the trail with the same verb/target as a success, like
-    # TransferOwnership's refusals.
-    describe ':default_pointer_elsewhere' do
+    # Advisory only (see the file header): a pointer at another live org is
+    # reported, never refused, and the unarchive proceeds exactly as it would
+    # with the pointer at this org.
+    describe 'pointer_org_id (advisory)' do
       before { allow(owner).to receive(:default_org_id).and_return('org-obj-other') }
 
-      it "refuses when the owner's default_org_id names a different LIVE org, writing nothing" do
+      it "reports the other LIVE org the owner's default_org_id names and still unarchives" do
         result = build.call
 
-        expect(result.status).to eq(:default_pointer_elsewhere)
+        expect(result.status).to eq(:success)
         expect(result.owner_id).to eq('ur_owner_ext')
         expect(result.pointer_org_id).to eq('on_other_ext') # PUBLIC extid of the org the pointer names
-        expect(org).not_to have_received(:unarchive!)
-        expect(org).not_to have_received(:save)
+        expect(org).to have_received(:unarchive!).once
       end
 
-      it 'records one result: :failure event naming the guard' do
+      it 'carries the pointer in the single success event, with no forced marker' do
+        recorded = []
+        allow(Onetime::ColonelAuditEvent).to receive(:record) { |**kwargs| recorded << kwargs }
+
         build.call
 
-        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
-          hash_including(
-            actor: actor,
-            verb: 'organization.unarchive',
-            target: 'on_org_ext',
-            result: :failure,
-            detail: hash_including(reason: 'default_pointer_elsewhere', pointer_org_id: 'on_other_ext'),
-          ),
-        )
+        expect(recorded.size).to eq(1)
+        expect(recorded.first).to include(verb: 'organization.unarchive', target: 'on_org_ext', result: :success)
+        expect(recorded.first[:detail]).to include(pointer_org_id: 'on_other_ext', archived_comment: archived_comment)
+        expect(recorded.first[:detail]).not_to have_key(:forced)
+        expect(recorded.first[:detail]).not_to have_key(:force)
       end
 
-      it 'refuses on a dry run as well (the plan pass surfaces the guard before any prompt)' do
+      it 'plans normally on a dry run, reporting the pointer and writing nothing' do
         result = build(dry_run: true).call
 
-        expect(result.status).to eq(:default_pointer_elsewhere)
+        expect(result.status).to eq(:planned)
+        expect(result.pointer_org_id).to eq('on_other_ext')
         expect(org).not_to have_received(:unarchive!)
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
       end
 
-      it 'force: true overrides the guard, unarchives, and marks the audit detail as forced' do
-        result = build(force: true).call
-
-        expect(result.status).to eq(:success)
-        expect(result.force).to be(true)
-        expect(result.pointer_org_id).to eq('on_other_ext') # still reported, so the operator sees what they overrode
-        expect(org).to have_received(:unarchive!).once
-        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
-          hash_including(
-            verb: 'organization.unarchive',
-            target: 'on_org_ext',
-            result: :success,
-            detail: hash_including(forced: true, pointer_org_id: 'on_other_ext'),
-          ),
-        )
-      end
-
-      it 'is not tripped by a pointer at an ARCHIVED other org (nothing live would re-archive this one)' do
+      it 'is nil for a pointer at an ARCHIVED other org' do
         allow(other_org).to receive(:archived?).and_return(true)
 
         result = build.call
 
         expect(result.status).to eq(:success)
         expect(result.pointer_org_id).to be_nil
-        expect(org).to have_received(:unarchive!).once
       end
 
-      it 'is not tripped by a pointer at a MISSING org' do
+      it 'is nil for a pointer at a MISSING org' do
         allow(owner).to receive(:default_org_id).and_return('org-obj-gone')
 
         result = build.call
@@ -253,13 +238,16 @@ RSpec.describe Onetime::Operations::Org::Unarchive do
         expect(result.pointer_org_id).to be_nil
       end
 
-      it 'is not tripped by an empty pointer' do
+      it 'is nil for an empty pointer' do
         allow(owner).to receive(:default_org_id).and_return('')
 
-        expect(build.call.status).to eq(:success)
+        result = build.call
+
+        expect(result.status).to eq(:success)
+        expect(result.pointer_org_id).to be_nil
       end
 
-      it 'is not tripped when owner_id resolves to no live customer (org doctor check 1)' do
+      it 'is nil when owner_id resolves to no live customer (org doctor check 1)' do
         allow(Onetime::Customer).to receive(:load).with('cust-obj-owner').and_return(nil)
 
         result = build.call
@@ -374,7 +362,7 @@ RSpec.describe Onetime::Operations::Org::Unarchive do
       expect(reloaded_org.archived?).to be(false)
     end
 
-    describe 'the pointer guard over a real default_org_id' do
+    describe 'the advisory pointer over a real default_org_id' do
       before do
         @elsewhere = Onetime::Organization.create!("Elsewhere #{suffix}", @owner)
         @orgs << @elsewhere
@@ -382,25 +370,21 @@ RSpec.describe Onetime::Operations::Org::Unarchive do
         @owner.save
       end
 
-      it 'refuses and leaves the archive in place when the pointer names another live org' do
+      it 'unarchives and reports the other live org the owner defaults to' do
         result = unarchive
 
-        expect(result.status).to eq(:default_pointer_elsewhere)
-        expect(result.pointer_org_id).to eq(@elsewhere.extid)
-        expect(reloaded_org.archived?).to be(true)
-      end
-
-      it 'unarchives under force: true' do
-        result = unarchive(force: true)
-
         expect(result.status).to eq(:success)
+        expect(result.pointer_org_id).to eq(@elsewhere.extid)
         expect(reloaded_org.archived?).to be(false)
       end
 
-      it 'proceeds once the other org is archived too' do
+      it 'reports nil once the other org is archived too' do
         @elsewhere.archive!('test')
 
-        expect(unarchive.status).to eq(:success)
+        result = unarchive
+
+        expect(result.status).to eq(:success)
+        expect(result.pointer_org_id).to be_nil
         expect(reloaded_org.archived?).to be(false)
       end
     end

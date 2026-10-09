@@ -384,16 +384,12 @@ module Onetime
     # archived_comment together; its caller is Onetime::Operations::Org::Unarchive
     # (`bin/ots org unarchive`), the #4717 repair verb.
     #
-    # NOTE: For personal workspaces (is_default: true) archived by the domain
-    # SSO self-heal (see JoinDomainOrganization#adopt_domain_default_org),
-    # unarchiving is durable only while the customer's default_org_id points at
-    # a different existing org (e.g. the domain org). The self-heal runs on
-    # every SSO login, including the already_member path; it no longer archives
-    # the domain org itself (#4717), but if this workspace would again resolve
-    # as the customer's default — default_org_id is empty or points back at
-    # this workspace — and it is not the domain org being joined, it will be
-    # re-archived on their next domain SSO login. To restore it permanently,
-    # also repoint default_org_id to the org the customer should default to.
+    # NOTE: The domain SSO self-heal (JoinDomainOrganization#adopt_domain_default_org)
+    # archives only the is_default workspace the owner's default pointer
+    # resolves to (explicit default_org_id, else the owned default) when it is
+    # not the domain org being joined, so a pointer at a different live org
+    # leaves a restored workspace untouched. Org::Unarchive reports that pointer
+    # (`pointer_org_id`) for the operator; nothing refuses on it.
     def unarchive!
       self.archived_at      = ''
       self.archived_comment = ''
