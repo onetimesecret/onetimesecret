@@ -6,9 +6,10 @@
 # Narrow on purpose. List the code that implements sign-in, sessions, SSO,
 # MFA, invitations and tenant identity, and the tests and configuration that
 # only those jobs run. Do not list shared code: every Ruby change already runs
-# the unit, simple, disabled, API and full-mode SQLite lanes, and nightly,
-# main and release-tag runs execute everything. A change outside this list
-# that wants the coverage on its PR gets the ci:auth label.
+# the unit, simple, disabled, API and full-mode SQLite lanes; main and
+# merge-queue runs execute everything but the billing jobs; the nightly and a
+# release tag execute everything. A change outside this list that wants the
+# coverage on its PR gets the ci:auth label.
 #
 # Positive globs only. Braces and one-character classes are the only syntax
 # beyond * and **; tools/testsuite/auth-selection-test.sh matches the same
@@ -61,8 +62,8 @@ auth:
   # different suite, so the directories are spelled out instead of full*.
   # The lanes are spelled out too: full-sqlite and full-pg run on every Ruby
   # change, so their definitions select nothing here. The billing overlay is
-  # not here either: the rows that use it are selected by the billing filter
-  # in ci.yml.
+  # not here either: no path selects the rows that use it (they are nightly
+  # and release-tag only, see docs/development/auth-ci.md).
   - '**/spec/integration/full/**'
   - '**/spec/integration/full_mfa/**'
   - '**/spec/integration/full_saml_platform/**'

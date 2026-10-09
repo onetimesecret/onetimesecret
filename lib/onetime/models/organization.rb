@@ -4,6 +4,8 @@
 
 require 'rack/utils'
 
+require_relative '../membership_snapshot'
+
 module Onetime
   # Organization Model
   #
@@ -38,6 +40,44 @@ module Onetime
 
     # Use 'organization' prefix to match config_name for Familia v2 participation lookups
     prefix :organization
+
+    # A request's Onetime::MembershipSnapshot must not outlive a change to
+    # what it reflects. Wraps the Familia-generated membership writers
+    # (Customer.participates_in :Organization, :members) and the archive
+    # toggles; prepended so `super` reaches the generated methods. Archiving
+    # affects every member's view, so it drops every snapshot in the request.
+    module MembershipSnapshotHooks
+      def add_members_instance(customer, ...)
+        super
+      ensure
+        Onetime::MembershipSnapshot.forget(customer)
+      end
+
+      def remove_members_instance(customer, ...)
+        super
+      ensure
+        Onetime::MembershipSnapshot.forget(customer)
+      end
+
+      def activate_members_instance(staged, customer, ...)
+        super
+      ensure
+        Onetime::MembershipSnapshot.forget(customer)
+      end
+
+      def archive!(...)
+        super
+      ensure
+        Onetime::MembershipSnapshot.forget_all
+      end
+
+      def unarchive!(...)
+        super
+      ensure
+        Onetime::MembershipSnapshot.forget_all
+      end
+    end
+    prepend MembershipSnapshotHooks
 
     feature :safe_dump_fields
 

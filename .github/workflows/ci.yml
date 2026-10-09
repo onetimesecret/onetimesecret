@@ -31,12 +31,13 @@ name: CI
 #   .github/auth-paths.yml or carries the ci:auth label. It is a flag of its
 #   own: it adds those jobs and does not turn on the ordinary Ruby jobs.
 # - Billing coverage (billing's own lane, billing's integration lane, and
-#   the full-mode lanes repeated with billing on) runs nightly only: the
-#   `billing_nightly` flag is the schedule event, or a manual dispatch with
-#   run_all, never a path. A pull request, a push to main or a merge-queue
-#   check skips those jobs; the verdict expects them skipped.
-# - Nightly runs cover every configuration; main/tag push and merge-group
-#   runs cover everything but the nightly-only billing jobs
+#   the full-mode lanes repeated with billing on) runs on the nightly and
+#   on a release tag only: the `billing_nightly` flag is the schedule
+#   event, a push of a v* tag, or a manual dispatch with run_all, never a
+#   path. A pull request, a push to main or a merge-queue check skips those
+#   jobs; the verdict expects them skipped.
+# - Nightly and release-tag runs cover every configuration; main push and
+#   merge-group runs cover everything but the billing jobs
 # - Workflow file changes (.github/**) run all jobs
 # - Use [ci-all] in commit message to force all jobs
 # - Use [ci-skip] in commit message to skip CI entirely
@@ -175,6 +176,12 @@ jobs:
               - 'lib/**'
               - 'bin/**'
               - 'config.ru'
+              # The shared inputs tests/lanes/ownership fans out to every
+              # lane: the rake entry point, the bash the runner requires,
+              # and the services every lane starts.
+              - 'Rakefile'
+              - '.bash-version'
+              - 'compose.test.yml'
               # host_proxy_matrix_spec.rb reads the probe's topology matrix
               # and calls its spoof predicate.
               - 'tools/host-seam/**'
@@ -255,11 +262,13 @@ jobs:
           FILTER_OCI: ${{ steps.filter.outputs.oci }}
           FILTER_HARNESS: ${{ steps.filter.outputs.harness }}
           FILTER_AUTH: ${{ steps.auth.outputs.auth }}
-          # The nightly-only selection. The scheduled run, or a manual
-          # dispatch with run_all (the documented way to get a full run of a
-          # commit before a release). Not push, merge_group or [ci-all]:
-          # those force every path flag, and these jobs are not path-gated.
-          NIGHTLY: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.run_all == true) }}
+          # The nightly-only selection. The scheduled run, a release tag
+          # (so the tagged commit has every configuration's result), or a
+          # manual dispatch with run_all (the documented way to get a full
+          # run of a commit before a release). Not a push to main,
+          # merge_group or [ci-all]: those force every path flag, and these
+          # jobs are not path-gated.
+          NIGHTLY: ${{ github.event_name == 'schedule' || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) || (github.event_name == 'workflow_dispatch' && inputs.run_all == true) }}
         run: ./.github/scripts/compute-path-filter-outputs.sh
 
       - name: Generate job summary
@@ -584,13 +593,14 @@ jobs:
           results-file: 'rspec_harness_results.json'
 
   # The billing lane: billing's own specs and tryouts, carved out of the unit
-  # lane so they run on their own (tests/lanes/billing/env). Nightly only,
-  # like every billing job: the billing_nightly flag is the schedule event
-  # (or a manual dispatch with run_all), never a path, so a pull request, a
-  # push to main or a merge-queue check skips it and ci-verdict expects that
-  # skip. This job defines the gate the two T3 billing jobs reuse. Billing's
-  # integration tests are ruby-billing-integration; the billing-ON re-run of
-  # the full-mode suite is ruby-integration-billing.
+  # lane so they run on their own (tests/lanes/billing/env). Nightly and
+  # release-tag only, like every billing job: the billing_nightly flag is
+  # the schedule event, a v* tag push or a manual dispatch with run_all,
+  # never a path, so a pull request, a push to main or a merge-queue check
+  # skips it and ci-verdict expects that skip. This job defines the gate the
+  # two T3 billing jobs reuse. Billing's integration tests are
+  # ruby-billing-integration; the billing-ON re-run of the full-mode suite is
+  # ruby-integration-billing.
   ruby-billing:
     name: T2 · Ruby Billing Tests
     timeout-minutes: 10
@@ -882,11 +892,12 @@ jobs:
             results-file: 'rspec_full_saml_platform_results.json'
     steps: *full-integration-steps
 
-  # Nightly only, on the gate ruby-billing defines: the three full-mode
-  # lanes repeated with the billing overlay. They run the same specs as
-  # their billing-off rows with BILLING_ENABLED=true. Not selected by any
-  # path, by a Ruby change or by auth; a pull request, a push to main or a
-  # merge-queue check skips them, and ci-verdict expects that skip.
+  # Nightly and release-tag only, on the gate ruby-billing defines: the
+  # three full-mode lanes repeated with the billing overlay. They run the
+  # same specs as their billing-off rows with BILLING_ENABLED=true. Not
+  # selected by any path, by a Ruby change or by auth; a pull request, a
+  # push to main or a merge-queue check skips them, and ci-verdict expects
+  # that skip.
   ruby-integration-billing:
     name: 'T3 · Ruby Billing Configuration (${{ matrix.name }})'
     timeout-minutes: 10

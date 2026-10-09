@@ -29,9 +29,10 @@ module Billing
     # free" is three local writes: org.planid, org.complimentary, and
     # materialized entitlements.
     #
-    # "This customer's org" is one they OWN ({.default_org_for}), or one an
-    # operator names explicitly (`org:`). The grant rewrites the target's
-    # plan, so a joined organization is never chosen implicitly.
+    # "This customer's org" is one they OWN ({.default_org_for}). The grant
+    # rewrites the target's plan, so a joined organization is never chosen.
+    # There is no explicit-target parameter: a cross-owner grant would need
+    # its own authorization contract before it is offered.
     #
     # Usage:
     #   result = Billing::Operations::GrantProbonoEntitlements.call(customer)
@@ -42,9 +43,6 @@ module Billing
     #
     #   # Re-materialize an already-complimentary org
     #   result = Billing::Operations::GrantProbonoEntitlements.call(customer, force: true)
-    #
-    #   # Explicit operator-selected target (skips the owned lookup)
-    #   result = Billing::Operations::GrantProbonoEntitlements.call(customer, org: org)
     #
     # Also exposes the helpers a batch caller needs:
     #   GrantProbonoEntitlements.find_eligible_customers { |scanned, total| ... }
@@ -68,16 +66,11 @@ module Billing
       # @param customer [Onetime::Customer]
       # @param dry_run [Boolean] When true, return :would_grant without writes
       # @param force [Boolean] When true, re-materialize already-complimentary orgs
-      # @param org [Onetime::Organization, nil] explicit operator-selected
-      #   target. Without it the target is the workspace the customer OWNS
-      #   ({.default_org_for}); an organization the customer merely joined is
-      #   never chosen implicitly, because the grant rewrites the target's
-      #   plan and that plan belongs to the organization's owner.
       # @return [GrantProbonoResult]
       # @raise [Billing::PlanCacheMissError] if the target plan is missing
       #   from both the cache and config (propagated from materialize_entitlements_for_org)
-      def self.call(customer, dry_run: false, force: false, org: nil)
-        new(customer, dry_run: dry_run, force: force, org: org).call
+      def self.call(customer, dry_run: false, force: false)
+        new(customer, dry_run: dry_run, force: force).call
       end
 
       # Scan all customers and return those eligible for the grant.
@@ -135,15 +128,14 @@ module Billing
         loader.owned_default_organization(customer, owned) || owned.first
       end
 
-      def initialize(customer, dry_run:, force:, org: nil)
+      def initialize(customer, dry_run:, force:)
         @customer = customer
         @dry_run  = dry_run
         @force    = force
-        @org      = org
       end
 
       def call
-        org = @org || self.class.default_org_for(@customer)
+        org = self.class.default_org_for(@customer)
         return no_org_result unless org
         return already_complimentary_result(org) if blocked_by_complimentary?(org)
         return would_grant_result(org) if @dry_run
