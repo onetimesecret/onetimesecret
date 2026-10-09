@@ -141,7 +141,8 @@ module Auth
       #
       # Idempotent and safe to call unconditionally:
       #   - no-op if the customer is missing/unverified,
-      #   - no-op if the customer has no organization,
+      #   - no-op if the customer owns no default workspace (a joined
+      #     organization is never the claim target; see #signup_workspace_for),
       #   - no-op if there is no pending record (or it was already claimed and
       #     consumed on a prior verification), because the pending record is
       #     destroyed on first successful claim.
@@ -166,9 +167,9 @@ module Auth
           return false
         end
 
-        org = default_organization_for(@customer)
+        org = signup_workspace_for(@customer)
         unless org
-          auth_logger.debug '[create-default-workspace] claim_pending_federation: no organization for customer, skipping'
+          auth_logger.debug '[create-default-workspace] claim_pending_federation: no owned default workspace for customer, skipping'
           return false
         end
 
@@ -177,16 +178,35 @@ module Auth
 
       private
 
-      # Locate the customer's default workspace (created at signup). Falls back
-      # to the customer's first organization when no explicit default is marked.
+      # The workspace a deferred federation claim lands on: the default
+      # workspace the customer OWNS (the one #create_default_organization made
+      # at signup). The claim writes a plan onto this organization, so a
+      # joined organization — another owner's default workspace carries the
+      # is_default flag too, and may be listed first — is never a candidate,
+      # and a default_org_id naming one is not followed. A customer whose own
+      # default workspace is gone (archived, or never created because they
+      # signed up through an invite) has nowhere to claim to: nil, and the
+      # pending record stays intact.
       #
       # @param customer [Onetime::Customer]
       # @return [Onetime::Organization, nil]
-      def default_organization_for(customer)
-        orgs = customer.organization_instances.to_a
-        return nil if orgs.empty?
+      def signup_workspace_for(customer)
+        Onetime::Application::OrganizationLoader.owned_default_organization(customer)
+      end
 
-        orgs.find { |org| org.is_default == true || org.is_default.to_s == 'true' } || orgs.first
+      # The workspace the concurrent lock holder provisioned for this
+      # customer: their owned default workspace (this operation), else the
+      # first organization they own (OrganizationAPI CreateOrganization takes
+      # the same lock and creates a non-default org). Nothing the customer
+      # merely joined counts as "provisioned" — if only a membership appeared
+      # there is no workspace to return, matching the nil the holder itself
+      # returns from #converge_on_existing_workspace.
+      #
+      # @param customer [Onetime::Customer]
+      # @return [Onetime::Organization, nil]
+      def provisioned_workspace_for(customer)
+        loader = Onetime::Application::OrganizationLoader
+        loader.owned_default_organization(customer) || loader.owned_organizations(customer).first
       end
 
       # Check if customer already has an organization (e.g., via invite)
@@ -263,7 +283,7 @@ module Auth
           sleep CREATE_LOCK_INTERVAL
           if workspace_already_exists?(quiet: true)
             converge_on_existing_workspace
-            return { organization: default_organization_for(@customer) }
+            return { organization: provisioned_workspace_for(@customer) }
           end
           break if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
         end

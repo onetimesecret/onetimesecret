@@ -107,6 +107,14 @@
     "text": "Plan",
     "content_hash": "fa8ed0bd"
   },
+  "web.admin.customers.plan_source.organization": {
+    "text": "Plan of the organization this customer owns and is billed for",
+    "content_hash": "5b3db49e"
+  },
+  "web.admin.customers.plan_source.customer": {
+    "text": "Legacy account plan (owns no organization)",
+    "content_hash": "79d99c2f"
+  },
   "web.admin.customers.columns.secrets": {
     "text": "Secrets",
     "content_hash": "d8707d41"

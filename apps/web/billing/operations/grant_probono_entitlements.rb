@@ -29,6 +29,10 @@ module Billing
     # free" is three local writes: org.planid, org.complimentary, and
     # materialized entitlements.
     #
+    # "This customer's org" is one they OWN ({.default_org_for}), or one an
+    # operator names explicitly (`org:`). The grant rewrites the target's
+    # plan, so a joined organization is never chosen implicitly.
+    #
     # Usage:
     #   result = Billing::Operations::GrantProbonoEntitlements.call(customer)
     #   result.granted?  # => true
@@ -38,6 +42,9 @@ module Billing
     #
     #   # Re-materialize an already-complimentary org
     #   result = Billing::Operations::GrantProbonoEntitlements.call(customer, force: true)
+    #
+    #   # Explicit operator-selected target (skips the owned lookup)
+    #   result = Billing::Operations::GrantProbonoEntitlements.call(customer, org: org)
     #
     # Also exposes the helpers a batch caller needs:
     #   GrantProbonoEntitlements.find_eligible_customers { |scanned, total| ... }
@@ -61,11 +68,16 @@ module Billing
       # @param customer [Onetime::Customer]
       # @param dry_run [Boolean] When true, return :would_grant without writes
       # @param force [Boolean] When true, re-materialize already-complimentary orgs
+      # @param org [Onetime::Organization, nil] explicit operator-selected
+      #   target. Without it the target is the workspace the customer OWNS
+      #   ({.default_org_for}); an organization the customer merely joined is
+      #   never chosen implicitly, because the grant rewrites the target's
+      #   plan and that plan belongs to the organization's owner.
       # @return [GrantProbonoResult]
       # @raise [Billing::PlanCacheMissError] if the target plan is missing
       #   from both the cache and config (propagated from materialize_entitlements_for_org)
-      def self.call(customer, dry_run: false, force: false)
-        new(customer, dry_run: dry_run, force: force).call
+      def self.call(customer, dry_run: false, force: false, org: nil)
+        new(customer, dry_run: dry_run, force: force, org: org).call
       end
 
       # Scan all customers and return those eligible for the grant.
@@ -100,32 +112,38 @@ module Billing
         customers.select { |cust| LEGACY_PROBONO_PLANIDS.include?(cust.planid.to_s) }
       end
 
-      # Pick the customer's default org using the same priority as
-      # OrganizationLoader: explicit default_org_id, then is_default flag,
-      # then first org. Skips the loader's session and domain-based paths.
+      # The workspace the customer OWNS that a grant (or a checkout link)
+      # applies to: OrganizationLoader.owned_default_organization — their
+      # default_org_id when it names a workspace they own, else the
+      # is_default workspace they own — else the first live organization
+      # they own (legacy accounts predate the is_default flag). Nil when the
+      # customer owns no live organization.
+      #
+      # Never an organization the customer merely joined, whatever
+      # default_org_id names and however the memberships are ordered: a
+      # member of another owner's default workspace lists it with is_default
+      # too, and the old first-flag scan picked it — writing this grant's
+      # planid and complimentary marker onto someone else's organization.
       #
       # @param customer [Onetime::Customer]
       # @return [Onetime::Organization, nil]
       def self.default_org_for(customer)
-        orgs = customer.organization_instances.to_a.reject(&:archived?)
-        return nil if orgs.empty?
+        loader = Onetime::Application::OrganizationLoader
+        owned  = loader.owned_organizations(customer)
+        return nil if owned.empty?
 
-        if customer.default_org_id.to_s.length.positive?
-          explicit = orgs.find { |o| o.objid == customer.default_org_id }
-          return explicit if explicit
-        end
-
-        orgs.find { |o| o.is_default } || orgs.first
+        loader.owned_default_organization(customer, owned) || owned.first
       end
 
-      def initialize(customer, dry_run:, force:)
+      def initialize(customer, dry_run:, force:, org: nil)
         @customer = customer
         @dry_run  = dry_run
         @force    = force
+        @org      = org
       end
 
       def call
-        org = self.class.default_org_for(@customer)
+        org = @org || self.class.default_org_for(@customer)
         return no_org_result unless org
         return already_complimentary_result(org) if blocked_by_complimentary?(org)
         return would_grant_result(org) if @dry_run
@@ -170,7 +188,7 @@ module Billing
           status: :skipped_no_org,
           customer_extid: @customer.extid,
           org_extid: nil,
-          reason: 'Customer has no organization',
+          reason: 'Customer owns no live organization',
         )
       end
 

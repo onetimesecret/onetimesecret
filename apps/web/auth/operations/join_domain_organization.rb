@@ -165,10 +165,16 @@ module Auth
 
       # Find the customer's personal default workspace eligible for adoption.
       #
-      # First checks default_org_id (explicit pointer). If unset, scans the
-      # customer's orgs for one with is_default: true — this is the path
+      # First checks default_org_id (explicit pointer): whatever it names is
+      # the candidate, and it is adopted only when it is the customer's own
+      # live default workspace — a preference for some other organization is
+      # left alone, never replaced by a different workspace. If unset, falls
+      # back to the default workspace the customer OWNS
+      # (OrganizationLoader.owned_default_organization) — the path
       # OrganizationLoader step 4 would take, so archiving it prevents the
-      # loader from returning the stale personal workspace.
+      # loader from returning the stale personal workspace. Another member's
+      # default workspace carries the is_default flag too; the owned lookup
+      # skips it instead of finding it first and giving up.
       #
       # @return [Onetime::Organization, nil]
       def resolve_personal_default_org
@@ -188,8 +194,10 @@ module Auth
         Onetime::Organization.load(default_org_id)
       end
 
+      # Owned, non-archived, is_default — selected inside the predicate so a
+      # foreign default listed earlier cannot shadow the customer's own.
       def resolve_implicit_default_org
-        customer.organization_instances.to_a.find { |o| o.is_default }
+        Onetime::Application::OrganizationLoader.owned_default_organization(customer)
       end
     end
   end

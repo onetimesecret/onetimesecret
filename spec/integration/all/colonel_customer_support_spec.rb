@@ -293,6 +293,37 @@ RSpec.describe 'Colonel customer support features', type: :integration do
 
       expect(entry[:is_customer_default]).to be(true)
     end
+
+    # details.billing reads out the organization the customer OWNS and is
+    # billed for. A joined organization carrying a Stripe customer, listed
+    # with its owner's is_default flag, is not this customer's billing.
+    it "reads billing from the customer's own workspace, not a joined paid organization" do
+      own     = Onetime::Organization.create!("Own #{SecureRandom.hex(4)}", member, nil, is_default: true)
+      admin   = create_customer(email: "admin-#{SecureRandom.hex(4)}@example.com")
+      company = Onetime::Organization.create!("Company #{SecureRandom.hex(4)}", admin, nil, is_default: true)
+      company.stripe_customer_id = "cus_#{SecureRandom.hex(6)}"
+      company.planid             = 'team_plus_v1'
+      company.save
+      company.add_members_instance(member, through_attrs: { role: 'member' })
+
+      billing = user_details(member)[:details][:billing]
+
+      expect(billing[:plan_source]).to eq('organization')
+      expect(billing[:organization][:extid]).to eq(own.extid)
+      expect(billing[:organization][:planid]).not_to eq('team_plus_v1')
+    end
+
+    it 'labels the legacy customer plan when the customer owns no organization' do
+      admin   = create_customer(email: "admin-#{SecureRandom.hex(4)}@example.com")
+      company = Onetime::Organization.create!("Company #{SecureRandom.hex(4)}", admin, nil, is_default: true)
+      company.add_members_instance(member, through_attrs: { role: 'member' })
+      member.planid = 'identity'
+      member.save
+
+      billing = user_details(member)[:details][:billing]
+
+      expect(billing).to include(plan_source: 'customer', plan_id: 'identity', organization: nil)
+    end
   end
 
   # ---------------------------------------------------------------------------

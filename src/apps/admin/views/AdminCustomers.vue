@@ -563,7 +563,18 @@
         </template>
 
         <template #cell-plan="{ row }">
-          {{ row.planid || t('web.admin.customers.detail.none') }}
+          <span>{{ row.planid || t('web.admin.customers.detail.none') }}</span>
+          <span
+            v-if="row.billing_organization"
+            class="block truncate text-xs text-gray-500 dark:text-gray-400"
+            :title="t('web.admin.customers.plan_source.organization')"
+            >{{ row.billing_organization.display_name }}</span
+          >
+          <span
+            v-else-if="row.plan_source === 'customer' && row.planid"
+            class="block text-xs text-gray-500 dark:text-gray-400"
+            >{{ t('web.admin.customers.plan_source.customer') }}</span
+          >
         </template>
 
         <template #cell-secrets="{ row }">

@@ -149,14 +149,30 @@ module OrganizationAPI::Logic
 
       # Check organization quota against customer's plan limits
       #
-      # Uses customer's primary organization plan for billing context.
+      # Billing context: the organization whose plan funds this creation is
+      # the customer's OWN billing organization — the default workspace they
+      # own (OrganizationLoader.owned_default_organization: where checkout
+      # puts their subscription), else the first live organization they own.
+      # An organization the customer merely joined is never the context: its
+      # plan is its owner's entitlement, not this customer's, and which one
+      # is listed first is an accident of membership order. A navigation
+      # preference (default_org_id) naming a joined organization is likewise
+      # not followed.
+      #
+      # Usage: the organizations the customer OWNS (live), not their
+      # memberships. The quota bounds how many organizations the plan pays
+      # for; joined organizations are funded by their owners' plans.
+      #
       # Only enforced when billing is enabled and plan cache is populated.
-      # Skipped for first organization creation (no primary org to check against).
+      # Skipped for a customer who owns no organization yet (no billing
+      # context to check against).
       def check_organization_quota!
         # Quota enforcement: fail-open when no billing, fail-closed when enabled.
         # See WithEntitlements module for design rationale.
 
-        primary_org = cust.organization_instances.to_a.reject(&:archived?).then { |orgs| orgs.find { |o| o.is_default } || orgs.first }
+        loader      = Onetime::Application::OrganizationLoader
+        owned_orgs  = loader.owned_organizations(cust)
+        primary_org = loader.owned_default_organization(cust, owned_orgs) || owned_orgs.first
 
         # Fail-open conditions: skip quota check
         return unless primary_org
@@ -166,7 +182,7 @@ module OrganizationAPI::Logic
         # Fail-closed: billing enabled, enforce quota
         # NOTE: at_limit?(resource, count) returns true when count >= limit,
         # meaning creating one more would exceed the plan's allowed quota.
-        current_count = cust.organization_instances.to_a.count { |o| !o.archived? }
+        current_count = owned_orgs.size
 
         return unless primary_org.at_limit?('organizations', current_count)
 

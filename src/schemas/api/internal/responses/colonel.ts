@@ -60,6 +60,21 @@ export const colonelUserSchema = z.object({
   created: transforms.fromNumber.toDate,
   last_login: transforms.fromNumber.toDateNullable,
   planid: z.string().nullable(),
+  /**
+   * Whose plan `planid` is: 'organization' — the plan of the organization
+   * this customer OWNS and is billed for (named by `billing_organization`);
+   * 'customer' — the legacy Customer#planid field, shown when they own no
+   * organization. A joined organization's plan is never shown as the
+   * customer's. Optional so pre-labelling payloads/fixtures keep parsing.
+   */
+  plan_source: z.enum(['organization', 'customer']).optional(),
+  billing_organization: z
+    .object({
+      extid: z.string(),
+      display_name: z.string(),
+    })
+    .nullable()
+    .optional(),
   secrets_count: z.number(),
   secrets_created: z.number(),
   secrets_shared: z.number(),
@@ -697,13 +712,21 @@ export const colonelUserBillingStripeSchema = z.object({
 
 /**
  * Billing summary on the customer detail page ("why was I charged" support).
- * `plan_id` comes from the customer model so the card renders even when every
- * Stripe path degrades; `organization` is the customer's billing org (Stripe
- * identifiers live on Organization, not Customer).
+ * `plan_id` comes from the billing org, else the customer model, so the card
+ * renders even when every Stripe path degrades; `organization` is the org the
+ * customer owns and is billed for (Stripe identifiers live on Organization,
+ * not Customer). A joined organization's billing is never shown here.
  */
 export const colonelUserBillingSchema = z.object({
   enabled: z.boolean(),
   plan_id: z.string().nullable(),
+  /**
+   * Whose plan `plan_id` is: 'organization' — the org this customer OWNS and
+   * is billed for (the `organization` block); 'customer' — the legacy
+   * Customer#planid field, when they own no organization. Optional so
+   * pre-labelling payloads keep parsing.
+   */
+  plan_source: z.enum(['organization', 'customer']).optional(),
   organization: z
     .object({
       extid: z.string(),
