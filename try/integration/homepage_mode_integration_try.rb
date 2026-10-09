@@ -41,7 +41,7 @@ def create_controller_with_config(env, homepage_config)
       mode_header_name = homepage_config['mode_header']
 
       # Priority 1: Check CIDR match
-      if client_ip && ip_matches_homepage_cidrs?(client_ip)
+      if homepage_cidrs_match?(client_ip)
         return configured_mode
       end
 
@@ -287,10 +287,12 @@ mode = controller.determine_homepage_mode
 mode
 #=> 'internal'
 
-## Integration: CIDR with invalid prefix is rejected, falls back to header
+## Integration: /32 without otto.ip_match is not judged, falls back to header
+# No IPPrivacyMiddleware ran, so there is no closure; the fallback skips
+# entries finer than /24 because it cannot tell a masked IP from a real one.
 config = {
   'mode' => 'internal',
-  'matching_cidrs' => ['192.168.1.1/32'],  # Too specific, will be rejected
+  'matching_cidrs' => ['192.168.1.1/32'],
   'mode_header' => 'O-Homepage-Mode'
 }
 env = {

@@ -57,7 +57,7 @@ site:
 # =============================================================================
 # Example 3: IPv6 Networks
 # =============================================================================
-# Support IPv6 CIDR ranges with /48 minimum prefix for privacy
+# Support IPv6 CIDR ranges alongside IPv4
 #
 site:
   interface:
@@ -65,8 +65,8 @@ site:
       homepage:
         mode: internal
         matching_cidrs:
-          - "2001:db8::/48"      # IPv6 network (minimum /48)
-          - "10.0.0.0/8"         # IPv4 network (minimum /24)
+          - "2001:db8::/48"      # IPv6 network
+          - "10.0.0.0/8"         # IPv4 network
         mode_header: "O-Homepage-Mode"
 
 # =============================================================================
@@ -105,13 +105,15 @@ site:
 #
 #
 # =============================================================================
-# Privacy Enforcement
+# CIDR Precision
 # =============================================================================
 #
-# CIDR blocks are validated for privacy:
-#   - IPv4: Minimum /24 prefix (max 254 hosts)
-#   - IPv6: Minimum /48 prefix
-#   - Prevents targeting individual IPs
+# CIDR blocks are matched at full precision:
+#   - Any prefix length works, down to /32 (IPv4) and /128 (IPv6)
+#   - Matching uses Otto's verdict-only otto.ip_match check, which
+#     answers yes or no without handing the app the unmasked IP
+#   - Without the IP privacy middleware (embedded or bare-Rack use), only
+#     entries at /24 (IPv4) or /48 (IPv6) or broader are matched
 #   - Invalid CIDRs are logged and rejected
 #
 #

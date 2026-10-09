@@ -75,12 +75,14 @@ site:
       #   mode: external
       #   mode_header: O-Homepage-Mode
       #
-      # Privacy Preservation
+      # CIDR Precision
       #
-      # CIDR Subnet Limitations:
-      #   - Minimum prefix length: /24 for IPv4 (supports any prefix up to /24, e.g., /8, /12, /16, /24)
-      #   - Minimum prefix length: /48 for IPv6 (supports any prefix up to /48)
-      #   - Prefix lengths greater than minimum are not supported for privacy
+      #   Entries are matched at full precision (down to /32 for IPv4, /128
+      #   for IPv6) through Otto's verdict-only env['otto.ip_match'] check,
+      #   which answers yes or no without handing the app the unmasked IP.
+      #   Requests that did not pass the IP privacy middleware fall back to
+      #   matching the resolved IP, and only entries at /24 (IPv4) or /48
+      #   (IPv6) or broader are used there.
       #
       # Proxy Configuration:
       #   The client IP used for CIDR matching is resolved by Rack::Request#ip,
