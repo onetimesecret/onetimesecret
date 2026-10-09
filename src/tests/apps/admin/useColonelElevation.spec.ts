@@ -27,6 +27,7 @@ import {
   __resetColonelElevationState,
   useColonelElevation,
 } from '@/apps/admin/composables/useColonelElevation';
+import { useAuthStore } from '@/shared/stores/authStore';
 
 const NOW = 1_700_000_000;
 
@@ -169,6 +170,41 @@ describe('useColonelElevation', () => {
     await elevation.elevate('recent_auth');
 
     expect(elevation.activeFactor.value).toBe('recent_auth');
+  });
+
+  // A granted window comes with a new session id, and with it a new snapshot
+  // epoch (#4466, ADR-046). One auth-mutation refresh adopts it in place; the
+  // next ordinary refresh would otherwise read it as a replaced session and
+  // force a page load.
+  it('asks the auth store for one auth-mutation snapshot after a granted window', async () => {
+    const authStore = useAuthStore();
+    const authRefresh = vi.spyOn(authStore, 'refresh').mockResolvedValue('applied');
+    mockApi.post.mockResolvedValue({ data: grantPayload() });
+    mockApi.get.mockResolvedValue({
+      data: statusPayload({
+        record: { elevated: true, expires_at: NOW + 600, seconds_remaining: 600 },
+      }),
+    });
+
+    const elevation = useColonelElevation();
+    await elevation.elevate('password', 'hunter2');
+
+    expect(authRefresh).toHaveBeenCalledTimes(1);
+    expect(authRefresh).toHaveBeenCalledWith({ kind: 'auth-mutation', reason: 'elevation' });
+  });
+
+  it('does not ask for a snapshot when the elevation fails', async () => {
+    const authStore = useAuthStore();
+    const authRefresh = vi.spyOn(authStore, 'refresh').mockResolvedValue('applied');
+    const err = Object.assign(new Error('nope'), {
+      response: { status: 403, data: { error: 'Password verification failed.' } },
+    });
+    mockApi.post.mockRejectedValue(err);
+
+    const elevation = useColonelElevation();
+    await elevation.elevate('password', 'wrong');
+
+    expect(authRefresh).not.toHaveBeenCalled();
   });
 
   it('reports a failed elevation without granting anything', async () => {

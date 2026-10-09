@@ -149,6 +149,7 @@ export type RefreshReason =
   | 'account-switch'
   | 'plan-preview'
   | 'password-change'
+  | 'elevation'
   | 'csrf'
   | 'check';
 

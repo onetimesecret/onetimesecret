@@ -4,6 +4,7 @@
 
 require_relative '../base'
 require 'onetime/security/colonel_rate_limiter'
+require 'onetime/session/rotation'
 
 module ColonelAPI
   module Logic
@@ -36,7 +37,11 @@ module ColonelAPI
       #                                weaker path.
       #   failure -> .record_security (drivable on demand by whoever holds the
       #                                cookie; the operator trail is count-capped
-      #                                with no TTL).
+      #                                with no TTL). A factor that verified but
+      #                                whose session id could not be renewed
+      #                                (below) is a failure too, with
+      #                                `reason: 'session_not_rotated'`: no
+      #                                window was granted.
       #   refusal of a tier-1 verb for want of elevation -> nothing at all, see
       #                                DestructiveAction#require_elevation!.
       #
@@ -44,12 +49,32 @@ module ColonelAPI
       # has no attr_reader. ColonelAuditEvent's SENSITIVE_KEY_PATTERN would blank
       # it; do not rely on that.
       #
+      # SESSION ID (#4466). The window gives this session id tier-1 capability,
+      # so it is written under a NEW id: once the factor verifies,
+      # {Onetime::SessionRotation.rotate!} ends the old id the way a logout
+      # does and carries the session data (identity, active-session join key,
+      # surface marker, CSRF token) to a new one, then the window is written.
+      # A copy of the pre-step-up id is then signed out rather than elevated
+      # (spec/integration/full/colonel_elevation_session_rotation_spec.rb).
+      # The response sets the new cookie; the console adopts the new snapshot
+      # epoch through an auth-mutation refresh
+      # (src/apps/admin/composables/useColonelElevation.ts).
+      #
+      # If the old id cannot be ended, no window is granted and the request
+      # answers {Onetime::ElevationFailed}. See #refuse_unrotated_session! for
+      # what that leaves the operator with.
+      #
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
       # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role.
       class ElevateSession < ColonelAPI::Logic::Base
         include Onetime::Security::ColonelRateLimiter
 
         AUDIT_VERB = 'colonel.elevate'
+
+        # The audit `reason` and the console message for a verified factor
+        # whose session id could not be renewed.
+        ROTATION_FAILED_REASON  = 'session_not_rotated'
+        ROTATION_FAILED_MESSAGE = 'Step-up could not be completed. Please try again.'
 
         attr_reader :factor
 
@@ -84,6 +109,7 @@ module ColonelAPI
             raise Onetime::ElevationFailed.new(failure_message, factor: factor)
           end
 
+          start_elevated_session!
           grant_elevation!
           record_success_audit
 
@@ -105,6 +131,61 @@ module ColonelAPI
         end
 
         private
+
+        # Move the session to a new id before the window is written (#4466,
+        # see the class header). Nothing is removed from the session: the
+        # operator stays signed in.
+        #
+        # A nil result is a session that is not a Rack session-store session
+        # (a bare Hash, as in the unit specs): it has no server-side id that
+        # could have been copied, so the step-up continues, as the MFA hook and
+        # simple-mode login do for the same case. sessionauth, the only
+        # strategy on this route, always hands over a Rack session.
+        #
+        # @raise [Onetime::ElevationFailed] when the old id could not be ended
+        def start_elevated_session!
+          previous_handle = session_log_handle
+
+          rotation = begin
+            Onetime::SessionRotation.rotate!(sess)
+          rescue StandardError => ex
+            refuse_unrotated_session!(previous_handle, reason: :error, error: "#{ex.class}: #{ex.message}")
+          end
+
+          if rotation.nil?
+            OT.lw '[ElevateSession] session id not rotated: no server-side session id',
+              user_id: cust.objid,
+              session_class: sess.class.name
+            return
+          end
+
+          refuse_unrotated_session!(previous_handle, reason: rotation.reason) unless rotation.complete
+
+          OT.li '[ElevateSession] session id rotated',
+            user_id: cust.objid,
+            previous_session_handle: Onetime::SessionEnded.handle_for(rotation.old_sid),
+            session_handle: Onetime::SessionEnded.handle_for(rotation.new_sid)
+        end
+
+        # No window on a session whose old id could not be ended. rotate!
+        # writes the session data back whatever happened, so the operator
+        # stays signed in, unelevated: under the old id when nothing was
+        # touched (:marker_not_written), under the new one when the old id
+        # survived the re-key (:blob_survived, :marker_not_confirmed). When
+        # the old id was marked ended but not re-keyed (:not_rekeyed, or a
+        # raise after the marker was written), the request's commit refuses
+        # that id and the operator signs in again. Handles only, never session ids (#4461).
+        def refuse_unrotated_session!(previous_handle, reason:, error: nil)
+          OT.le '[ElevateSession] step-up refused: the previous session id could not be ended',
+            user_id: cust.objid,
+            previous_session_handle: previous_handle,
+            session_handle: session_log_handle,
+            reason: reason,
+            error: error
+
+          record_failure_audit(reason: ROTATION_FAILED_REASON)
+          raise Onetime::ElevationFailed.new(ROTATION_FAILED_MESSAGE, factor: factor)
+        end
 
         # Distinguish the three ways recent_auth can fail so the console can help
         # rather than loop. None of these is an oracle: every fact is already in
@@ -149,13 +230,16 @@ module ColonelAPI
           OT.le('[ElevateSession] audit record failed', exception: ex)
         end
 
-        def record_failure_audit
+        def record_failure_audit(reason: nil)
+          detail          = { factor: factor }
+          detail[:reason] = reason if reason
+
           Onetime::ColonelAuditEvent.record_security(
             actor: cust.extid,
             verb: AUDIT_VERB,
             target: cust.extid,
             result: :failure,
-            detail: { factor: factor },
+            detail: detail,
           )
         rescue StandardError => ex
           OT.le('[ElevateSession] security audit record failed', exception: ex)
