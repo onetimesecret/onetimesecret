@@ -113,6 +113,30 @@ RSpec.describe 'Session-id renewal at re-authentication (#4466)', :full_auth_mod
     expect(last_response.body).not_to include(email)
   end
 
+  # The surface is checked before the id moves, so the only refusal that can
+  # follow the rotation is the proof's sidecar write failing. The id has
+  # moved by then; the response says so.
+  it 'signals the completed rotation when the proof write fails', :aggregate_failures do
+    sign_in
+    old_sid = current_sid
+    allow(Onetime::SessionSidecar).to receive(:write).and_call_original
+    allow(Onetime::SessionSidecar).to receive(:write).with(anything, proof_key, anything).and_return(nil)
+
+    reauth
+    expect(last_response.status).to eq(503), last_response.body
+    expect(json_body['error_code']).to eq('reauth_not_recorded')
+    new_sid = current_sid
+    expect(new_sid).not_to eq(old_sid)
+    expect(Onetime::SessionEnded.ended?(old_sid)).to be(true)
+    expect(blob_key(old_sid)).to be_nil
+    expect(Onetime::SessionSidecar.exists?(old_sid, proof_key)).to be(false)
+    expect(Onetime::SessionSidecar.exists?(new_sid, proof_key)).to be(false)
+    expect(json_body['session_rotated']).to be(true)
+    expect(account_read.status).to eq(200), last_response.body
+    clear_cookies
+    expect(account_read("onetime.session=#{old_sid}").status).to eq(401), last_response.body
+  end
+
   it 'keeps the id while the ceremony waits for a second factor', :aggregate_failures do
     secret,       = provision_totp(email)
     allow_immediate_otp_reuse!(account_id)
@@ -144,6 +168,7 @@ RSpec.describe 'Session-id renewal at re-authentication (#4466)', :full_auth_mod
     reauth
     expect(last_response.status).to eq(503), last_response.body
     expect(json_body['error_code']).to eq('session_not_rotated')
+    expect(json_body).not_to have_key('session_rotated')
     allow(Onetime::SessionEnded).to receive(:mark).and_call_original
 
     # Nothing was touched: same id, still signed in, no proof.

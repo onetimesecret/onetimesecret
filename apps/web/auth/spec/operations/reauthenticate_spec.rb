@@ -101,8 +101,28 @@ RSpec.describe Auth::Operations::Reauthenticate do
       params: { 'method' => 'password', 'password' => 'correct-password' },
     )
 
+    expect(result.status).to eq(503)
+    expect(result.body['error_code']).to eq('reauth_not_recorded')
+    # A bare Hash has no server-side id to move, so there is no rotation to
+    # signal.
+    expect(result.body).not_to have_key('session_rotated')
+  end
+
+  it 'refuses a request with no surface before the session id moves' do
+    allow(Onetime::SessionSurface).to receive(:for_env).with(env).and_return(nil)
+    allow(Onetime::SessionRotation).to receive(:rotate!)
+
+    result = operation.call(
+      account_id: 42,
+      offer: offer,
+      params: { 'method' => 'password', 'password' => 'correct-password' },
+    )
+
     expect(result.status).to eq(403)
     expect(result.body['error_code']).to eq('invalid_surface')
+    expect(result.body).not_to have_key('session_rotated')
+    expect(Onetime::SessionRotation).not_to have_received(:rotate!)
+    expect(Onetime::RecentReauth).not_to have_received(:record)
   end
 
   # #4466: the proof goes under a new session id. The integration side (a
@@ -127,6 +147,18 @@ RSpec.describe Auth::Operations::Reauthenticate do
       expect(Onetime::RecentReauth).to have_received(:record).ordered
     end
 
+    it 'signals the completed rotation when the proof write fails after it' do
+      rotation = Onetime::SessionRotation::Result.new(old_sid: 'old', new_sid: 'new', complete: true)
+      allow(Onetime::SessionRotation).to receive(:rotate!).with(session).and_return(rotation)
+      allow(Onetime::RecentReauth).to receive(:record).and_return(nil)
+
+      result = password_ceremony
+
+      expect(result.status).to eq(503)
+      expect(result.body).to include('error_code' => 'reauth_not_recorded', 'session_rotated' => true)
+      expect(result.password_verified).to be(true)
+    end
+
     it 'records no proof and answers 503 when the old id could not be ended' do
       rotation = Onetime::SessionRotation::Result.new(
         old_sid: 'old', new_sid: 'old', complete: false, reason: :marker_not_written,
@@ -137,7 +169,21 @@ RSpec.describe Auth::Operations::Reauthenticate do
 
       expect(result.status).to eq(503)
       expect(result.body['error_code']).to eq('session_not_rotated')
+      expect(result.body).not_to have_key('session_rotated')
       expect(result.password_verified).to be(true)
+      expect(Onetime::RecentReauth).not_to have_received(:record)
+    end
+
+    it 'does not signal an unconfirmed rotation even if the id changed' do
+      rotation = Onetime::SessionRotation::Result.new(
+        old_sid: 'old', new_sid: 'new', complete: false, reason: :marker_not_confirmed,
+      )
+      allow(Onetime::SessionRotation).to receive(:rotate!).and_return(rotation)
+
+      result = password_ceremony
+
+      expect(result.status).to eq(503)
+      expect(result.body).not_to have_key('session_rotated')
       expect(Onetime::RecentReauth).not_to have_received(:record)
     end
 
@@ -150,6 +196,7 @@ RSpec.describe Auth::Operations::Reauthenticate do
 
       expect(result.status).to eq(503)
       expect(result.body['error_code']).to eq('session_not_rotated')
+      expect(result.body).not_to have_key('session_rotated')
       expect(Onetime::RecentReauth).not_to have_received(:record)
     end
 

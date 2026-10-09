@@ -169,6 +169,59 @@ describe('useReauth', () => {
     expect(authRefresh).toHaveBeenCalledWith({ kind: 'auth-mutation', reason: 'reauth' });
   });
 
+  it.each(['password', 'webauthn'] as const)(
+    'adopts a confirmed rotation after a failed %s proof write without reporting success',
+    async (method) => {
+      const authRefresh = vi.spyOn(useAuthStore(), 'refresh').mockResolvedValue('applied');
+      if (method === 'webauthn') {
+        const { startAuthentication } = await import('@simplewebauthn/browser');
+        vi.mocked(startAuthentication).mockResolvedValue({ id: 'assertion' } as never);
+        axiosMock.onPost('/auth/reauth').replyOnce(200, {
+          webauthn_auth: { challenge: 'challenge', rpId: 'example.test' },
+          webauthn_auth_challenge: 'challenge-state',
+          webauthn_auth_challenge_hmac: 'challenge-hmac',
+        });
+      }
+      axiosMock.onPost('/auth/reauth').replyOnce(503, {
+        error: 'Re-authentication could not be recorded. Please try again.',
+        error_code: 'reauth_not_recorded',
+        session_rotated: true,
+      });
+
+      const { submitPassword, submitWebauthn, error, errorCode } = useReauth();
+      const result = method === 'password' ? submitPassword('correct horse') : submitWebauthn();
+
+      await expect(result).resolves.toBe('error');
+      expect(error.value).toBe('Re-authentication could not be recorded. Please try again.');
+      expect(errorCode.value).toBe('reauth_not_recorded');
+      expect(authRefresh).toHaveBeenCalledTimes(1);
+      expect(authRefresh).toHaveBeenCalledWith({ kind: 'auth-mutation', reason: 'reauth' });
+    }
+  );
+
+  it.each([undefined, false, 'true'])(
+    'does not adopt an epoch on a proof error with rotation signal %s',
+    async (sessionRotated) => {
+      const authRefresh = vi.spyOn(useAuthStore(), 'refresh').mockResolvedValue('applied');
+      axiosMock.onPost('/auth/reauth').replyOnce(403, {
+        error: 'Re-authentication is unavailable on this surface.',
+        error_code: 'invalid_surface',
+        ...(sessionRotated === undefined ? {} : { session_rotated: sessionRotated }),
+      });
+
+      await expect(useReauth().submitPassword('correct horse')).resolves.toBe('error');
+      expect(authRefresh).not.toHaveBeenCalled();
+    }
+  );
+
+  it('does not adopt an epoch after a network failure', async () => {
+    const authRefresh = vi.spyOn(useAuthStore(), 'refresh').mockResolvedValue('applied');
+    axiosMock.onPost('/auth/reauth').networkError();
+
+    await expect(useReauth().submitPassword('correct horse')).resolves.toBe('error');
+    expect(authRefresh).not.toHaveBeenCalled();
+  });
+
   it('does not ask for a snapshot when the ceremony is refused', async () => {
     const authRefresh = vi.spyOn(useAuthStore(), 'refresh').mockResolvedValue('applied');
     axiosMock.onPost('/auth/reauth').reply(503, {

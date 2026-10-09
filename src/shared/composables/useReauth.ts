@@ -142,6 +142,11 @@ export function useReauth() {
       mfaMethods.value = response.mfa_methods;
       return 'mfa_required';
     }
+    // A failed proof write can follow a completed rotation. Only the
+    // server's explicit confirmation permits adopting an epoch on error.
+    if (response.session_rotated === true) {
+      await authStore.refresh({ kind: 'auth-mutation', reason: 'reauth' });
+    }
     return setError(response.error, response.error_code);
   }
 
