@@ -198,9 +198,9 @@ RSpec.describe 'tests/lanes/run --capture-logs files' do
       end
     end
 
-    # `-f` follows a link, so one to a regular file would pass as the
+    # `-e` and `-f` follow a link, so one to a regular file would pass as the
     # runner's own and the truncation would empty a file outside the run
-    # directory.
+    # directory; one to nothing would have the truncation create its target.
     it 'stops before any task, leaving the target alone, when app.log is a symbolic link to a file' do
       probe.with_scratch do |scratch|
         target = File.join(scratch.directory, 'not-the-runners.txt')
@@ -215,6 +215,58 @@ RSpec.describe 'tests/lanes/run --capture-logs files' do
       end
     end
 
+    it 'stops before any task, creating nothing, when app.log is a symbolic link to nothing' do
+      probe.with_scratch do |scratch|
+        target = File.join(scratch.directory, 'nowhere.log')
+        File.symlink(target, scratch.app_log)
+
+        run = probe.run('selftest', '--overlay', scratch.overlay, '--capture-logs')
+
+        expect_refused(run, scratch, scratch.app_log, 'symbolic link')
+        expect(File.exist?(target)).to be(false)
+      end
+    end
+
+    it 'stops before any task, leaving the target alone, when mail.log is a symbolic link' do
+      probe.with_scratch do |scratch|
+        target = File.join(scratch.directory, 'not-the-runners.txt')
+        File.write(target, "kept\n")
+        File.symlink(target, scratch.mail_log)
+
+        run = probe.run('selftest', '--overlay', scratch.overlay, '--capture-logs')
+
+        expect_refused(run, scratch, scratch.mail_log, 'symbolic link')
+        expect(File.read(target)).to eq("kept\n")
+      end
+    end
+
+    # A file system without hard links cannot tell at the end whether the
+    # file is still the one the run started with. A stub `ln` that fails
+    # stands in for one.
+    it 'stops before any task when the hard link beside app.log cannot be made' do
+      probe.with_scratch do |scratch|
+        probe.with_fake_commands('ln' => 'exit 1') do |fake_path|
+          run = probe.run('selftest', '--overlay', scratch.overlay, '--capture-logs', env: { 'PATH' => fake_path })
+
+          expect_refused(run, scratch, scratch.app_log, 'hard link')
+        end
+      end
+    end
+
+    # A marker that stays would report this run as incomplete. A directory
+    # in its place is one `rm -f` cannot remove.
+    it 'stops before any task when the write-failed marker of an earlier run cannot be removed' do
+      probe.with_scratch do |scratch|
+        FileUtils.mkdir_p(scratch.write_failed)
+
+        run = probe.run('selftest', '--overlay', scratch.overlay, '--capture-logs')
+
+        expect_refused(run, scratch, "cannot remove #{scratch.write_failed}")
+      end
+    end
+
+    # These two skip under root, which file permissions do not bind; nothing
+    # else that is cheap to arrange makes the truncation fail for root.
     it 'stops before any task when the run directory is not writable' do
       skip 'file permissions do not bind the superuser' if Process.uid.zero?
 
