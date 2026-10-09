@@ -1137,6 +1137,7 @@ describe('Organization Store', () => {
             'replied:default:org-999',
           ]);
           expect(store.currentOrganization?.objid).toBe('org-999');
+          expect(store.defaultOrganization?.objid).toBe('org-999');
         });
 
         // The earlier write is still in flight when the later selection is
@@ -1213,6 +1214,30 @@ describe('Organization Store', () => {
 
           expect(store.currentOrganization).toEqual(third);
           expect(store.defaultOrganization?.objid).toBe('org-999');
+        });
+
+        // The refetch failing does not make the default change fall back to
+        // moving the tab over a choice made meanwhile.
+        it('keeps a selection made while the list reload fails', async () => {
+          signIn();
+          vi.spyOn(console, 'warn').mockImplementation(() => {});
+          const listHeld = gate();
+          logSelections([]);
+          logDefaults([]);
+          axiosMock?.onGet('/api/organizations').reply(async () => {
+            await listHeld.opened;
+            return [500];
+          });
+
+          const defaulting = store.setDefaultOrganization(other);
+          await vi.waitFor(() => expect(listLoads()).toHaveLength(1));
+          await store.selectOrganization(third);
+          listHeld.open();
+          await defaulting;
+
+          expect(store.currentOrganization).toEqual(third);
+          expect(store.defaultOrganization?.objid).toBe('org-999');
+          expect(store.organizations.map((o) => o.is_current_user_default)).toEqual([false, true]);
         });
 
         it('writes nothing once the store is reset while the list reloads', async () => {
