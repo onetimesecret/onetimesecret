@@ -2,6 +2,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useMfa } from '@/shared/composables/useMfa';
+import { useAuthStore } from '@/shared/stores/authStore';
 import { setupTestPinia } from '../setup';
 import QRCode from 'qrcode';
 import type AxiosMockAdapter from 'axios-mock-adapter';
@@ -249,6 +250,33 @@ describe('useMfa', () => {
       const result = await enableMfa('123456', 'password123');
 
       expect(result).toBe(true);
+    });
+
+    // The first second factor moves the session to a new id (#4466), and
+    // with it the snapshot epoch (ADR-046). One auth-mutation refresh adopts
+    // it in place; the next ordinary refresh would otherwise read it as a
+    // replaced session and force a page load.
+    it('asks the auth store for one auth-mutation snapshot after enabling', async () => {
+      const authRefresh = vi.spyOn(useAuthStore(), 'refresh').mockResolvedValue('applied');
+      axiosMock.onPost('/auth/otp-setup').reply(200, { success: 'Enabled' });
+
+      const { enableMfa } = useMfa();
+      const result = await enableMfa('123456', 'password123');
+
+      expect(result).toBe(true);
+      expect(authRefresh).toHaveBeenCalledTimes(1);
+      expect(authRefresh).toHaveBeenCalledWith({ kind: 'auth-mutation', reason: 'mfa-setup' });
+    });
+
+    it('does not ask for a snapshot when enabling fails', async () => {
+      const authRefresh = vi.spyOn(useAuthStore(), 'refresh').mockResolvedValue('applied');
+      axiosMock.onPost('/auth/otp-setup').reply(500, { error: 'Internal error' });
+
+      const { enableMfa } = useMfa();
+      const result = await enableMfa('123456', 'password123');
+
+      expect(result).toBe(false);
+      expect(authRefresh).not.toHaveBeenCalled();
     });
 
     it('handles invalid OTP code error', async () => {
