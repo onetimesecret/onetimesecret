@@ -97,15 +97,14 @@
 
   // ---- Owning organization ---------------------------------------------------
   //
-  // The detail endpoint returns the domain's safe_dump, which does NOT carry
-  // org_id / org_name (they are not safe_dump fields on CustomDomain). The store
-  // caches every list row it has seen, so arriving from the list gives us the
-  // owner; a cold deep-link degrades to an explicit "unknown" note instead of a
-  // wrong or empty value. The record fields are read first so this page picks
-  // the owner up automatically if the endpoint ever starts sending it.
+  // The owning org, from the detail record (GetCustomDomain merges the owner
+  // fields into its safe_dump) or else the cached list row. A domain whose org
+  // no longer loads has no org_extid, and the section degrades to an explicit
+  // "unknown" note instead of a wrong or empty value. Only the org's PUBLIC id
+  // is shown and linked: org_id is internal and must not land in a URL.
 
   const listRow = computed(() => store.rowFor(publicId.value));
-  const orgId = computed(() => record.value?.org_id || listRow.value?.org_id || '');
+  const orgExtid = computed(() => record.value?.org_extid || listRow.value?.org_extid || '');
   const orgName = computed(() => record.value?.org_name || listRow.value?.org_name || '');
 
   // ---- Read-out fields -------------------------------------------------------
@@ -877,18 +876,18 @@
         </div>
         <div class="px-6 py-5">
           <div
-            v-if="orgId"
+            v-if="orgExtid"
             class="flex flex-wrap items-center justify-between gap-3">
             <div class="min-w-0">
               <p class="truncate text-sm font-medium text-gray-900 dark:text-gray-100">
                 {{ orgName || t('web.admin.domains.detail.none') }}
               </p>
               <p class="truncate font-mono text-xs text-gray-400 dark:text-gray-500">
-                {{ orgId }}
+                {{ orgExtid }}
               </p>
             </div>
             <router-link
-              :to="{ name: 'AdminOrganizationDetail', params: { id: orgId } }"
+              :to="{ name: 'AdminOrganizationDetail', params: { id: orgExtid } }"
               data-testid="organization-link"
               class="inline-flex items-center gap-1.5 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800">
               {{ t('web.admin.domains.detail.organization.open') }}

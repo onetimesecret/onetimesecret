@@ -235,6 +235,42 @@ RSpec.describe 'Colonel customer support features', type: :integration do
   end
 
   # ---------------------------------------------------------------------------
+  # 2a. Organization list (GetUserDetails details.organizations)
+  #
+  # Only default workspaces set Organization#is_default; an org created with
+  # Organization.create! leaves it nil. The frontend schema requires a boolean,
+  # so a nil here fails the whole customer page.
+  # ---------------------------------------------------------------------------
+  describe 'GetUserDetails organizations' do
+    def user_details(target)
+      logic = ColonelAPI::Logic::Colonel::GetUserDetails.new(
+        strategy_result_for(colonel), { 'user_id' => target.extid },
+      )
+      logic.raise_concerns
+      logic.process
+    end
+
+    let(:member) { create_customer(email: "orgs-#{SecureRandom.hex(4)}@example.com") }
+
+    it 'reports is_default as false for an org that never set the field' do
+      org = Onetime::Organization.create!("Team #{SecureRandom.hex(4)}", member)
+      expect(org.is_default).to be_nil
+
+      entry = user_details(member)[:details][:organizations].find { |o| o[:extid] == org.extid }
+
+      expect(entry[:is_default]).to be(false)
+    end
+
+    it 'reports is_default as true for a default workspace' do
+      org = Onetime::Organization.create!("Default #{SecureRandom.hex(4)}", member, nil, is_default: true)
+
+      entry = user_details(member)[:details][:organizations].find { |o| o[:extid] == org.extid }
+
+      expect(entry[:is_default]).to be(true)
+    end
+  end
+
+  # ---------------------------------------------------------------------------
   # 2b. Activity read-out (GetUserDetails details.secrets / details.receipts)
   #
   # These sections used to walk the entire `secret:*:object` and

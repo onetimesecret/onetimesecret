@@ -1,0 +1,90 @@
+{
+  "web.admin.schemas.title": {
+    "text": "Schemas",
+    "content_hash": "bdae3cfc"
+  },
+  "web.admin.schemas.description": {
+    "text": "Browse the schemas available in this build and check a JSON payload using the same validator as the CLI.",
+    "content_hash": "d9e8bf3e"
+  },
+  "web.admin.schemas.privacy": {
+    "text": "Checks run in this browser. Payloads are not uploaded or saved. Reports include field names and schema messages; use redacted data.",
+    "content_hash": "d65c7f59"
+  },
+  "web.admin.schemas.available": {
+    "text": "Available schemas ({count})",
+    "content_hash": "ad7dc38d"
+  },
+  "web.admin.schemas.search": {
+    "text": "Filter schemas",
+    "content_hash": "315343ab"
+  },
+  "web.admin.schemas.searchPlaceholder": {
+    "text": "e.g. v3.secret or config/",
+    "content_hash": "71f4ee32"
+  },
+  "web.admin.schemas.noMatches": {
+    "text": "No schemas match this filter.",
+    "content_hash": "23ad3b31"
+  },
+  "web.admin.schemas.checkTitle": {
+    "text": "Check a payload",
+    "content_hash": "f75f1480"
+  },
+  "web.admin.schemas.payload": {
+    "text": "JSON payload",
+    "content_hash": "fe9718a2"
+  },
+  "web.admin.schemas.payloadPlaceholder": {
+    "text": "Paste a JSON document here",
+    "content_hash": "2213de23"
+  },
+  "web.admin.schemas.validate": {
+    "text": "Validate",
+    "content_hash": "40611abb"
+  },
+  "web.admin.schemas.clear": {
+    "text": "Clear payload",
+    "content_hash": "a22da974"
+  },
+  "web.admin.schemas.invalidJson": {
+    "text": "Invalid JSON. Check the syntax and try again.",
+    "content_hash": "84553fb7"
+  },
+  "web.admin.schemas.checkError": {
+    "text": "This schema could not check the payload. It may require asynchronous validation or contain a transform that failed.",
+    "content_hash": "b3585f44"
+  },
+  "web.admin.schemas.valid": {
+    "text": "Valid against {schema}",
+    "content_hash": "fadc8160"
+  },
+  "web.admin.schemas.invalid": {
+    "text": "Invalid against {schema}: {count} issues",
+    "content_hash": "36e8ad81"
+  },
+  "web.admin.schemas.undeclaredHint": {
+    "text": "Undeclared keys are not checked by this schema. Plain object schemas strip them from the parsed result.",
+    "content_hash": "efd3c036"
+  },
+  "web.admin.schemas.missing": {
+    "text": "Missing",
+    "content_hash": "6be36ca4"
+  },
+  "web.admin.schemas.undeclared": {
+    "text": "Undeclared",
+    "content_hash": "707556b4"
+  },
+  "web.admin.schemas.closest": {
+    "text": "Closest schemas",
+    "content_hash": "60c54f8b"
+  },
+  "web.admin.schemas.closestHint": {
+    "text": "Ranked by fields recognised, not a guarantee of the correct contract. Select a suggestion, then validate again.",
+    "content_hash": "244db206"
+  },
+  "web.admin.schemas.candidateStats": {
+    "text": "{matched} matched, {issues} issues, {undeclared} undeclared",
+    "content_hash": "88f16714"
+  }
+}

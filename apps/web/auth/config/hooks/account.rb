@@ -7,6 +7,7 @@
 # explicitly (mirroring the colonel logic classes) so the constant is loaded when
 # these hooks fire, rather than relying on ambient load order.
 require 'onetime/operations/sessions/revoke_all_for_customer_except_current'
+require 'auth/account_statuses'
 require 'auth/operations/customers/purge'
 require 'auth/operations/customers/purge_preflight'
 
@@ -52,7 +53,7 @@ module Auth::Config::Hooks
 
         # Check if email already exists in either database
         # SECURITY: Two-database consistency check prevents orphaned accounts
-        email = param(login_param)
+        email = normalize_login(param(login_param))
 
         # Per-domain signup validation (allowlist, MX, SMTP).
         # Resolves the CustomDomain by display_domain and enforces its
@@ -75,8 +76,10 @@ module Auth::Config::Hooks
           throw_rodauth_error
         end
 
-        # Check SQLite (auth database)
-        existing_account = db[:accounts].where(email: email).first
+        # Closed rows retain audit history but no longer reserve the address.
+        # The Redis check below still refuses reuse if customer cleanup is incomplete.
+        existing_account = db[:accounts].where(email: email)
+          .exclude(status_id: Auth::AccountStatuses::CLOSED).first
 
         if existing_account
           # The SQL row alone decides the answer; Redis only picks the log

@@ -80,6 +80,7 @@ import { createTestI18n } from '@tests/setup';
 const i18n = createTestI18n();
 
 const PUBLIC_ID = 'ur_alice';
+const INTERNAL_ID = 'cust_internal_alice';
 const EMAIL = 'alice@example.com';
 
 /** Wire-shape users page (numbers for dates) so the REAL schema runs unchanged. */
@@ -90,7 +91,9 @@ function usersPayload(overrides: { verified?: boolean } = {}) {
     details: {
       users: [
         {
-          user_id: PUBLIC_ID,
+          // Distinct from the extid on purpose: every URL must carry the
+          // PUBLIC id, and equal fixtures could not tell the two apart.
+          user_id: INTERNAL_ID,
           extid: PUBLIC_ID,
           email: EMAIL,
           role: 'customer',

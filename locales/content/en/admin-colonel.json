@@ -823,6 +823,10 @@
     "text": "Platform",
     "content_hash": "c78ffe19"
   },
+  "web.colonel.nav.groups.data": {
+    "text": "Data Tools",
+    "content_hash": "ce6db344"
+  },
   "web.colonel.nav.groups.billing": {
     "text": "Billing",
     "content_hash": "3ac8bbca"
