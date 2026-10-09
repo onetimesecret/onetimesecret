@@ -82,6 +82,8 @@ interface Def {
   out?: z.core.$ZodType;
   getter?: () => z.core.$ZodType;
   shape?: Record<string, z.core.$ZodType>;
+  /** Schema for object keys outside `shape`: unknown when loose, never when strict. */
+  catchall?: z.core.$ZodType;
   element?: z.core.$ZodType;
 }
 
@@ -115,17 +117,36 @@ interface Coverage {
   matched: number;
   /** Input keys the schema does not declare, by display path. */
   undeclared: Map<string, Path>;
+  /** Input keys a loose object keeps without checking, by display path. */
+  unchecked: Map<string, Path>;
+}
+
+/**
+ * How an object treats keys outside its shape. Plain objects strip them and
+ * strict ones reject them (`never`); both leave them undeclared. A loose
+ * object (`unknown`/`any`) keeps them unchecked, so they earn no credit and
+ * their values are not walked. Any other catchall checks them like fields.
+ */
+function extraKeys(def: Def): 'undeclared' | 'unchecked' | 'checked' {
+  if (!def.catchall) return 'undeclared';
+  const type = defOf(unwrap(def.catchall)).type;
+  if (type === 'never') return 'undeclared';
+  return type === 'unknown' || type === 'any' ? 'unchecked' : 'checked';
 }
 
 function coverage(schema: z.ZodType, input: unknown, issuePaths: Set<string>): Coverage {
-  const result: Coverage = { matched: 0, undeclared: new Map() };
+  const result: Coverage = { matched: 0, undeclared: new Map(), unchecked: new Map() };
   const visit = (node: z.core.$ZodType, value: unknown, path: Path): void => {
     const def = defOf(unwrap(node));
     if (def.type === 'object' && def.shape && isPlainObject(value)) {
+      const extra = extraKeys(def);
       for (const [key, child] of Object.entries(value)) {
         const childPath = [...path, key];
-        if (key in def.shape) visit(def.shape[key], child, childPath);
-        else result.undeclared.set(formatPath(childPath), childPath);
+        // Own keys only: `constructor` or `__proto__` must not resolve to
+        // Object.prototype members.
+        if (Object.hasOwn(def.shape, key)) visit(def.shape[key], child, childPath);
+        else if (extra === 'checked') visit(def.catchall!, child, childPath);
+        else result[extra].set(formatPath(childPath), childPath);
       }
     } else if (def.type === 'array' && def.element && Array.isArray(value)) {
       value.forEach((item, i) => visit(def.element!, item, [...path, i]));
@@ -152,6 +173,8 @@ export interface CheckResult {
   issueCount: number;
   groups: Map<string, Group>;
   undeclared: string[];
+  /** Keys a loose object keeps without checking. Not grouped: they are not problems. */
+  unchecked: string[];
 }
 
 export function counted(map: Map<string, number>): string[] {
@@ -223,6 +246,7 @@ export function checkPayload(schema: z.ZodType, input: unknown, showValues = fal
     issueCount: issues.length,
     groups: groupIssues({ input, issues, undeclared: cov.undeclared.values() }, showValues),
     undeclared: [...cov.undeclared.keys()],
+    unchecked: [...cov.unchecked.keys()],
   };
 }
 

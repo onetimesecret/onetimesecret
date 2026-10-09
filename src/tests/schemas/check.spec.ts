@@ -11,6 +11,14 @@ import { responseSchemas as v3 } from '@/schemas/api/v3/responses/registry';
 import { allSchemas, checkPayload, closest, counted, type CheckResult } from '@/schemas/check';
 import { schemaRegistry } from '@/schemas/registry';
 
+/** Own keys that shadow Object.prototype members, as JSON.parse produces them. */
+function inheritedNames(): Record<string, unknown> {
+  return JSON.parse(
+    '{"id":1,"constructor":"private-value","toString":"private-value",' +
+      '"__proto__":{"private-nested-key":"private-value"}}'
+  ) as Record<string, unknown>;
+}
+
 function reportText(result: CheckResult): string {
   return JSON.stringify({
     ...result,
@@ -69,7 +77,102 @@ describe('checkPayload', () => {
       issueCount: 0,
       groups: new Map(),
       undeclared: [],
+      unchecked: [],
     });
+  });
+
+  it('reports keys named like Object.prototype members as undeclared without following them', () => {
+    const result = checkPayload(z.object({ id: z.number() }), inheritedNames());
+
+    expect(result.success).toBe(true);
+    expect(result.undeclared).toEqual(['constructor', 'toString', '__proto__']);
+    expect(result.groups.get('(root)')!.undeclared).toEqual(
+      new Set(['constructor', 'toString', '__proto__'])
+    );
+    expect(reportText(result)).not.toContain('private-');
+  });
+
+  it.each([
+    ['looseObject', z.looseObject({ id: z.number() })],
+    ['passthrough', z.object({ id: z.number() }).passthrough()],
+    ['catchall(unknown)', z.object({ id: z.number() }).catchall(z.unknown())],
+    ['catchall(any)', z.object({ id: z.number() }).catchall(z.any().optional())],
+  ])('lists keys a %s keeps as unchecked, not undeclared, without walking them', (_, loose) => {
+    const schema = z.object({ rows: z.array(loose) });
+    const result = checkPayload(schema, {
+      rows: [{ id: 1, extra: { 'private-nested-key': 'private-value' } }, { id: 2, other: true }],
+      topExtra: 'private-value',
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.unchecked).toEqual(['rows[*].extra', 'rows[*].other']);
+    expect(result.undeclared).toEqual(['topExtra']);
+    expect(result.groups).toEqual(
+      new Map([
+        ['(root)', { missing: new Map(), problems: new Map(), undeclared: new Set(['topExtra']) }],
+      ])
+    );
+    expect(reportText(result)).not.toContain('private-');
+  });
+
+  it.each([
+    ['strictObject', z.strictObject({ id: z.number() })],
+    ['catchall(never)', z.object({ id: z.number() }).catchall(z.never())],
+  ])('keeps keys a %s rejects undeclared, beside the unrecognized_keys issue', (_, strict) => {
+    const result = checkPayload(strict, { id: 1, extra: 'private-value' });
+
+    expect(result.success).toBe(false);
+    expect(result.undeclared).toEqual(['extra']);
+    expect(result.unchecked).toEqual([]);
+    expect(result.groups).toEqual(
+      new Map([
+        [
+          '(root)',
+          {
+            missing: new Map(),
+            problems: new Map([['(root): Unrecognized key: "extra" (input: object(2 keys))', 1]]),
+            undeclared: new Set(['extra']),
+          },
+        ],
+      ])
+    );
+    expect(reportText(result)).not.toContain('private-');
+  });
+
+  it('treats a passthrough object reset with strip() as a plain object', () => {
+    const schema = z.object({ id: z.number() }).passthrough().strip();
+    const result = checkPayload(schema, { id: 1, extra: 'private-value' });
+
+    expect(result.success).toBe(true);
+    expect(result.undeclared).toEqual(['extra']);
+    expect(result.unchecked).toEqual([]);
+  });
+
+  it('checks keys under a typed catchall like declared fields', () => {
+    const schema = z.object({ id: z.number() }).catchall(z.enum(['on', 'off']));
+    expect(checkPayload(schema, { id: 1, featureA: 'on' })).toEqual({
+      success: true,
+      issueCount: 0,
+      groups: new Map(),
+      undeclared: [],
+      unchecked: [],
+    });
+
+    const invalid = checkPayload(schema, { id: 1, featureA: 'private-value' });
+    expect(invalid.success).toBe(false);
+    expect(invalid.undeclared).toEqual([]);
+    expect(invalid.unchecked).toEqual([]);
+    expect(counted(invalid.groups.get('(root)')!.problems)).toEqual([
+      'featureA: expected "on" | "off", got string(13)',
+    ]);
+    expect(reportText(invalid)).not.toContain('private-value');
+
+    // Object catchalls are walked like any declared object.
+    const nested = z.object({}).catchall(z.object({ id: z.number() }));
+    const result = checkPayload(nested, { a: { id: 1, extra: 'private-value' } });
+    expect(result.success).toBe(true);
+    expect(result.undeclared).toEqual(['a.extra']);
+    expect(reportText(result)).not.toContain('private-value');
   });
 
   it('reports undeclared keys on success without walking record keys or unknown values', () => {
@@ -264,6 +367,30 @@ describe('closest', () => {
       { name: 'tied', issues: 0, matched: 1, undeclared: 0 },
       { name: 'more-undeclared', issues: 0, matched: 1, undeclared: 1 },
       { name: 'more-issues', issues: 1, matched: 1, undeclared: 1 },
+    ]);
+  });
+
+  it('ranks inputs whose keys are named like Object.prototype members', () => {
+    const schemas = new Map<string, z.ZodType>([
+      ['v3.other', z.object({ other: z.boolean() })],
+      ['v3.id', z.object({ id: z.number() })],
+    ]);
+    expect(closest(inheritedNames(), schemas)).toEqual([
+      { name: 'v3.id', issues: 0, matched: 1, undeclared: 3 },
+      { name: 'v3.other', issues: 1, matched: 0, undeclared: 4 },
+    ]);
+  });
+
+  it('credits typed catchalls for extra keys but not loose objects that keep them unchecked', () => {
+    const schemas = new Map<string, z.ZodType>([
+      ['v3.loose', z.looseObject({ other: z.boolean() })],
+      ['v3.plain', z.object({ id: z.number() })],
+      ['v3.typed', z.object({}).catchall(z.number())],
+    ]);
+    expect(closest({ id: 1, a: 2, b: 3 }, schemas)).toEqual([
+      { name: 'v3.typed', issues: 0, matched: 3, undeclared: 0 },
+      { name: 'v3.plain', issues: 0, matched: 1, undeclared: 2 },
+      { name: 'v3.loose', issues: 1, matched: 0, undeclared: 0 },
     ]);
   });
 
