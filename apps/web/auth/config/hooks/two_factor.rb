@@ -305,6 +305,94 @@ module Auth::Config::Hooks
           add_billing_redirect_to_response
         end
       end
+
+      configure_setup_session_renewal(auth)
+    end
+
+    # ==========================================================================
+    # HELPERS: Session id at second-factor setup (#4466, RISK-2026-09-19-02)
+    # ==========================================================================
+    #
+    # Setting up the first second factor on a session that is not yet
+    # two-factor authenticated makes it one: Rodauth's otp-setup and
+    # webauthn-setup routes call two_factor_update_session(type), which
+    # appends the factor to authenticated_by and marks the session as
+    # using two-factor authentication, inside the setup transaction. The
+    # session then passes Rodauth's require_two_factor_authenticated gates
+    # (otp-disable, recovery-codes, webauthn-remove). That is a gain in
+    # capability, so the id is renewed the way the second factor at
+    # sign-in renews it (after_two_factor_authentication above): a copy of
+    # the earlier id is signed out rather than upgraded.
+    #
+    # The owning hooks call these: before_otp_setup and after_otp_setup in
+    # hooks/mfa.rb, before_webauthn_setup and after_webauthn_setup in
+    # hooks/webauthn.rb. A setup on a session that is already two-factor
+    # authenticated (a second passkey, TOTP after a passkey) does not mark
+    # the session and does not renew the id.
+    #
+    # FAILURE: the setup is refused. The marks Rodauth just added are taken
+    # off the session, and Onetime::SessionRotation::Incomplete propagates
+    # out of the setup transaction, which rolls back the new factor (and
+    # the recovery codes added with it). Nothing else in the session is
+    # removed: the user stays signed in as before the setup, unless the old
+    # id was marked ended but not re-keyed, which signs it out. The error
+    # reaches the router's error handler before the after_*_setup hooks do
+    # anything else, so no "MFA enabled" email is sent for a setup that was
+    # rolled back.
+    def self.configure_setup_session_renewal(auth)
+      # rubocop:disable Lint/NestedMethodDefinition -- auth_class_eval evaluates in Auth class context
+      auth.auth_class_eval do
+        # Called from before_*_setup, inside the setup transaction and before
+        # Rodauth decides whether to mark the session (the same
+        # two_factor_authenticated? test, in the same request).
+        def note_two_factor_state_before_setup
+          @two_factor_setup_marks_session = !two_factor_authenticated?
+        end
+
+        # Called first in after_*_setup.
+        #
+        # @param type [String] the factor Rodauth added: 'totp' or 'webauthn'
+        # @raise [Onetime::SessionRotation::Incomplete] when the old id could
+        #   not be ended; the setup transaction rolls back
+        def renew_session_id_after_factor_setup(type)
+          return unless @two_factor_setup_marks_session
+
+          rotation = Onetime::SessionRotation.rotate!(session)
+          if rotation.nil?
+            Auth::Logging.log_auth_event(
+              :session_rotation_skipped,
+              level: :warn,
+              account_id: account_id,
+              reason: 'no server-side session id to rotate',
+            )
+          elsif rotation.complete
+            Auth::Logging.log_auth_event(
+              :session_rotated,
+              level: :info,
+              account_id: account_id,
+              reason: "#{type}_setup",
+              session_handle: Onetime::SessionEnded.handle_for(rotation.new_sid),
+              previous_session_handle: Onetime::SessionEnded.handle_for(rotation.old_sid),
+            )
+          else
+            raise Onetime::SessionRotation::Incomplete,
+              "session id rotation incomplete (#{rotation.reason}); #{type} setup refused"
+          end
+        rescue StandardError => ex
+          two_factor_remove_session(type)
+          remove_session_value(authenticated_webauthn_id_session_key) if type == 'webauthn'
+          Auth::Logging.log_auth_event(
+            :session_rotation_FAILED,
+            level: :error,
+            account_id: account_id,
+            error: ex.message,
+            error_class: ex.class.name,
+            security_warning: "#{type} setup verified but the old session id could not be ended; setup refused",
+          )
+          raise
+        end
+      end
+      # rubocop:enable Lint/NestedMethodDefinition
     end
   end
 end

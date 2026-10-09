@@ -46,6 +46,12 @@ module Auth
           @ended_by = ended_by.to_s
         end
 
+        # No session-id rotation here, by the #4466 rule (rotate when the id
+        # gains capability; lib/onetime/session/rotation.rb). Stopping hands
+        # the id back the colonel's own capability, which it held before the
+        # impersonation started and kept as the principal throughout
+        # (Onetime::Helpers::SessionHelpers#has_role?).
+        #
         # @return [Result]
         def call
           marker = Onetime::SessionImpersonation.stop!(@session, ended_by: @ended_by)

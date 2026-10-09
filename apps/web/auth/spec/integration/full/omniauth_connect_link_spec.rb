@@ -1188,6 +1188,9 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
       )
       expect(last_response.status).to eq(200)
       expect(json_body).to include('success' => 'Re-authentication complete')
+      # The proof is recorded under a new session id (#4466).
+      expect(current_sid).not_to eq(sid)
+      sid = current_sid
       expect(Onetime::SessionSidecar.read(sid, Onetime::RecentReauth::KEY)).to include(
         'account_id' => account_id,
         'surface' => { 'kind' => 'custom', 'id' => tenant[:domain].identifier },
@@ -1214,6 +1217,10 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
         expect(persisted.objid).to eq(membership.objid)
         expect(persisted.domain_scope_id).to eq(tenant[:domain].objid)
         expect(intent_live?(sid)).to be(false)
+        # The callback ends in Rodauth's sign-in (login("omniauth")), which
+        # starts a new session id and ends this one (#4466).
+        expect(current_sid).not_to eq(sid)
+        expect(Onetime::SessionEnded.ended?(sid)).to be(true)
       ensure
         teardown_mock_auth
       end

@@ -58,14 +58,16 @@
 #   login.rb            before_login_attempt, after_login, after_login_failure
 #   logout.rb           before_logout, after_logout
 #   mfa.rb              before_otp_setup_route, after_otp_disable,
-#                       after_otp_setup, before_otp_auth_route,
+#                       before_otp_setup, after_otp_setup, before_otp_auth_route,
 #                       before_otp_authentication, after_otp_authentication_failure,
 #                       before_recovery_auth, after_add_recovery_codes,
 #                       before_view_recovery_codes
 #   two_factor.rb       after_two_factor_authentication (completion of ANY
 #                       second factor — OTP, recovery code, or WebAuthn
 #                       passkey; registered when mfa OR webauthn is enabled,
-#                       NOT only mfa — see the ownership note in that file)
+#                       NOT only mfa — see the ownership note in that file);
+#                       also the helpers mfa.rb and webauthn.rb call from
+#                       their setup hooks to renew the session id (#4466)
 #   email_auth.rb       before_email_auth_route, after_email_auth_request
 #   reset_password_request.rb  before_reset_password_request_route (rate
 #                       limiting per client IP + per submitted login, #3872,
@@ -82,7 +84,7 @@
 #   create_account.rb   before_create_account_route (rate limiting per client
 #                       IP, #3948; NOT before_create_account, which account.rb
 #                       owns and which fires later in the submission)
-#   webauthn.rb         after_webauthn_setup, before_webauthn_auth,
+#   webauthn.rb         before_webauthn_setup, after_webauthn_setup, before_webauthn_auth,
 #                       after_webauthn_auth_failure, before_webauthn_remove,
 #                       after_webauthn_remove
 #   omniauth_tenant.rb  before_omniauth_callback_route (sole owner — logs

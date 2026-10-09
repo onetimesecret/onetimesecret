@@ -8,6 +8,7 @@ import {
   type ReauthWebauthnChallenge,
 } from '@/schemas/api/auth/responses/auth';
 import { useApi } from '@/shared/composables/useApi';
+import { useAuthStore } from '@/shared/stores/authStore';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
 import type {
   AuthenticationResponseJSON,
@@ -39,6 +40,7 @@ type AxiosLikeError = {
 /* eslint-disable max-lines-per-function */
 export function useReauth() {
   const $api = useApi();
+  const authStore = useAuthStore();
   const csrfStore = useCsrfStore();
 
   const offer = ref<ReauthOfferResponse | null>(null);
@@ -128,11 +130,22 @@ export function useReauth() {
     }
     if ('success' in response) {
       mfaMethods.value = [];
+      // The proof is recorded under a new session id (#4466,
+      // Auth::Operations::Reauthenticate), and the snapshot epoch moves with
+      // it (ADR-046). An auth-mutation refresh adopts the new epoch in place;
+      // the next ordinary refresh would read it as a replaced session and
+      // reload.
+      await authStore.refresh({ kind: 'auth-mutation', reason: 'reauth' });
       return 'success';
     }
     if ('mfa_required' in response) {
       mfaMethods.value = response.mfa_methods;
       return 'mfa_required';
+    }
+    // A failed proof write can follow a completed rotation. Only the
+    // server's explicit confirmation permits adopting an epoch on error.
+    if (response.session_rotated === true) {
+      await authStore.refresh({ kind: 'auth-mutation', reason: 'reauth' });
     }
     return setError(response.error, response.error_code);
   }

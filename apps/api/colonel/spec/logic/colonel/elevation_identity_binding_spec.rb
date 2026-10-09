@@ -11,12 +11,13 @@ require 'colonel/logic'
 # The rejected first draft stored a bare epoch in `sess['elevated_until']` with
 # nothing recording WHO elevated. That defends the wrong boundary. The codec's
 # sid/field binding already stops a Redis-writing attacker replaying one
-# session's value under another sid; what leaks is an IDENTITY CHANGE WITHIN THE
-# SAME SID, and this codebase has two:
+# session's value under another sid; what leaks is an IDENTITY CHANGE that keeps
+# the session data. When this binding was added there were two:
 #
 #   - simple mode: Core::Controllers::Authentication#perform_authentication
-#     assigns the new identity into the session and neither clears nor renews it
-#     (compare session_helpers.rb, the other authenticate path, which does both);
+#     wrote the new identity into the existing session. Since #4466 the login
+#     logic clears the session and moves it to a new id first
+#     (Core::Logic::Authentication::AuthenticateSession#start_new_session!);
 #   - full mode: Rodauth's :renew after a password change carries the session
 #     hash to a new sid where it is re-externalized.
 #

@@ -2,6 +2,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useWebAuthn } from '@/shared/composables/useWebAuthn';
+import { useAuthStore } from '@/shared/stores/authStore';
 import { authenticatedBootstrap } from '@/tests/fixtures/bootstrap.fixture';
 import { toWire } from '@/tests/fixtures/bootstrap-wire';
 import { setupTestPinia } from '../setup';
@@ -493,6 +494,10 @@ describe('useWebAuthn', () => {
       axiosMock.onPost('/auth/webauthn-setup').replyOnce(200, {
         success: 'Credential registered',
       });
+      // A first second factor moves the session to a new id (#4466); the
+      // composable adopts the new snapshot epoch with one auth-mutation
+      // refresh.
+      const authRefresh = vi.spyOn(useAuthStore(), 'refresh').mockResolvedValue('applied');
 
       const { registerWebAuthn, error, isLoading } = useWebAuthn();
 
@@ -503,6 +508,8 @@ describe('useWebAuthn', () => {
       expect(result).toBe(true);
       expect(error.value).toBeNull();
       expect(isLoading.value).toBe(false);
+      expect(authRefresh).toHaveBeenCalledTimes(1);
+      expect(authRefresh).toHaveBeenCalledWith({ kind: 'auth-mutation', reason: 'mfa-setup' });
       // @simplewebauthn/browser v10+ uses { optionsJSON } wrapper
       expect(startRegistrationMock).toHaveBeenCalledWith({ optionsJSON: challengeOptions });
 
@@ -529,6 +536,7 @@ describe('useWebAuthn', () => {
       axiosMock.onPost('/auth/webauthn-setup').replyOnce(200, {
         success: 'Credential registered',
       });
+      vi.spyOn(useAuthStore(), 'refresh').mockResolvedValue('applied');
 
       const { registerWebAuthn, error } = useWebAuthn();
       const result = await registerWebAuthn();

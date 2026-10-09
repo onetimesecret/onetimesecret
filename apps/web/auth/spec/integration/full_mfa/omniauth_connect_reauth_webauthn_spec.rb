@@ -157,6 +157,9 @@ RSpec.describe 'Tenant Connect re-authentication with a WebAuthn second factor (
         )
         expect(last_response.status).to eq(200), last_response.body
         expect(json_body).to eq('success' => 'Re-authentication complete')
+        # The proof is recorded under a new session id (#4466).
+        expect(current_sid).not_to eq(sid)
+        sid = current_sid
         expect(Onetime::SessionSidecar.read(sid, reauth_key)).to include(
           'account_id' => account_id,
           'surface' => tenant_surface(tenant),
@@ -223,6 +226,9 @@ RSpec.describe 'Tenant Connect re-authentication with a WebAuthn second factor (
           webauthn_auth_challenge_hmac: challenge_body['webauthn_auth_challenge_hmac'],
         )
         expect(last_response.status).to eq(200), last_response.body
+        # The proof is recorded under a new session id (#4466).
+        expect(current_sid).not_to eq(sid)
+        sid = current_sid
         expect(Onetime::SessionSidecar.read(sid, reauth_key)).to include(
           'account_id' => account_id,
           'surface' => tenant_surface(tenant),
