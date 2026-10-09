@@ -1,6 +1,6 @@
 // src/schemas/check.ts
 
-import type { z } from 'zod';
+import { z } from 'zod';
 
 import { responseSchemas as incoming } from './api/incoming/responses/registry';
 import { responseSchemas as internal } from './api/internal/responses/registry';
@@ -83,10 +83,26 @@ interface Def {
   getter?: () => z.core.$ZodType;
   shape?: Record<string, z.core.$ZodType>;
   element?: z.core.$ZodType;
+  catchall?: z.core.$ZodType;
+  options?: z.core.$ZodType[];
+  discriminator?: string;
 }
 
 function defOf(schema: z.core.$ZodType): Def {
   return schema._zod.def as unknown as Def;
+}
+
+interface CoverageInput {
+  value: unknown;
+  probeUnions: boolean;
+}
+
+// Missing prefaults are validated using a substituted value, not the original input.
+function bypassesInput(def: Def, value: unknown): boolean {
+  return (
+    (value === null && def.type === 'nullable') ||
+    (value === undefined && ['optional', 'default', 'prefault'].includes(def.type))
+  );
 }
 
 /**
@@ -94,15 +110,19 @@ function defOf(schema: z.core.$ZodType): Def {
  * the schema that checks the input. `z.preprocess` is a pipe whose input side
  * is a transform, so its output side is the one that describes the shape.
  */
-function unwrap(schema: z.core.$ZodType): z.core.$ZodType {
+function unwrap(schema: z.core.$ZodType, input?: CoverageInput): z.core.$ZodType {
   let current = schema;
   for (let depth = 0; depth < 32; depth++) {
     const def = defOf(current);
+    if (input && bypassesInput(def, input.value)) return current;
     let next: z.core.$ZodType | undefined;
     if (def.innerType) next = def.innerType;
     else if (def.type === 'lazy') next = def.getter?.();
     else if (def.type === 'pipe' && def.in) {
-      next = defOf(unwrap(def.in)).type === 'transform' ? def.out : def.in;
+      const preprocess = defOf(unwrap(def.in)).type === 'transform';
+      // The raw value may select branches the preprocessed input never visited.
+      if (input && preprocess) input.probeUnions = false;
+      next = preprocess ? def.out : def.in;
     }
     if (!next) return current;
     current = next;
@@ -110,30 +130,66 @@ function unwrap(schema: z.core.$ZodType): z.core.$ZodType {
   return current;
 }
 
+function successfulUnionBranch(
+  schema: z.core.$ZodType,
+  value: unknown,
+  probeUnions: boolean
+): z.core.$ZodType | undefined {
+  const def = defOf(schema);
+  if (!probeUnions || def.type !== 'union' || !def.options) return;
+  try {
+    // A catch wrapper may have suppressed this union's failure.
+    if (z.core.safeParse(schema, value).success) {
+      const discriminator = def.discriminator;
+      return def.options.find((option) => {
+        if (discriminator !== undefined) {
+          const values = option._zod.propValues?.[discriminator];
+          const actual = (value as Record<string, unknown>)[discriminator];
+          if (!values || ![...values].some((expected) => expected === actual)) return false;
+        }
+        return z.core.safeParse(option, value).success;
+      });
+    }
+  } catch {
+    // Coverage probes must not introduce errors suppressed by the original parse.
+  }
+}
+
 interface Coverage {
-  /** Leaf positions in the input that the schema declares and accepted. */
+  /** Leaf positions in the input that the schema covers and accepted. */
   matched: number;
-  /** Input keys the schema does not declare, by display path. */
+  /** Input keys stripped by the schema, by display path. */
   undeclared: Map<string, Path>;
 }
 
 function coverage(schema: z.ZodType, input: unknown, issuePaths: Set<string>): Coverage {
   const result: Coverage = { matched: 0, undeclared: new Map() };
-  const visit = (node: z.core.$ZodType, value: unknown, path: Path): void => {
-    const def = defOf(unwrap(node));
+  const visit = (node: z.core.$ZodType, input: CoverageInput, path: Path): void => {
+    const { value } = input;
+    const unwrapped = unwrap(node, input);
+    const def = defOf(unwrapped);
+    const branch = successfulUnionBranch(unwrapped, value, input.probeUnions);
+    if (branch) {
+      visit(branch, input, path);
+      return;
+    }
     if (def.type === 'object' && def.shape && isPlainObject(value)) {
       for (const [key, child] of Object.entries(value)) {
         const childPath = [...path, key];
-        if (key in def.shape) visit(def.shape[key], child, childPath);
-        else result.undeclared.set(formatPath(childPath), childPath);
+        const childInput = { value: child, probeUnions: input.probeUnions };
+        if (Object.hasOwn(def.shape, key)) visit(def.shape[key], childInput, childPath);
+        else if (!def.catchall) result.undeclared.set(formatPath(childPath), childPath);
+        else if (defOf(def.catchall).type !== 'never') visit(def.catchall, childInput, childPath);
       }
     } else if (def.type === 'array' && def.element && Array.isArray(value)) {
-      value.forEach((item, i) => visit(def.element!, item, [...path, i]));
+      value.forEach((item, i) =>
+        visit(def.element!, { value: item, probeUnions: input.probeUnions }, [...path, i])
+      );
     } else if (!issuePaths.has(pathKey(path))) {
       result.matched++;
     }
   };
-  visit(schema, input, []);
+  visit(schema, { value: input, probeUnions: true }, []);
   return result;
 }
 
