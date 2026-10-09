@@ -15,6 +15,8 @@ RSpec.describe Auth::Operations::EnsureDefaultWorkspace do
       custid: 'cust_current',
       objid: 'cust_current',
       extid: 'ur_current',
+      anonymous?: false,
+      default_org_id: '',
       organization_instances: organizations,
       provisioning_failure_code: nil,
       clear_provisioning_failure!: false,
@@ -22,8 +24,9 @@ RSpec.describe Auth::Operations::EnsureDefaultWorkspace do
     )
   end
   let(:organization) do
-    double('Organization', objid: 'org_1', extid: 'on_1', is_default: true).tap do |org|
+    double('Organization', objid: 'org_1', extid: 'on_1', is_default: true, archived?: false).tap do |org|
       allow(org).to receive(:is_default!).with(true)
+      allow(org).to receive(:owner?).with(customer).and_return(true)
     end
   end
   let(:classifier) { instance_double(Auth::Operations::WorkspaceCollision) }
