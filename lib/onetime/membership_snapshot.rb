@@ -22,8 +22,11 @@ module Onetime
   #
   # A snapshot is dropped as soon as the request changes what it reflects:
   # Organization's membership writers (add, remove, activate), archive! and
-  # unarchive!, and Customer#default_org_id= call `forget`. The next read in
-  # that request starts from the datastore again.
+  # unarchive!, and the Customer writes that persist a changed default
+  # preference (`save` and `commit_fields` with default_org_id dirty, and
+  # `default_org_id!`) call `forget`. Assigning `default_org_id=` alone does
+  # not: Familia hydrates loaded records through the setters. The next read
+  # in that request starts from the datastore again.
   class MembershipSnapshot
     FIBER_KEY = :ots_membership_snapshots
 

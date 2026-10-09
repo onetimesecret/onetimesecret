@@ -4,9 +4,11 @@
 
 # A request's Onetime::MembershipSnapshot is dropped by the model writes that
 # change what it reflects: the Familia-generated membership writers on
-# Organization, archive!/unarchive!, and Customer#default_org_id=. Real
-# datastore: the hooks wrap generated methods, so a double would not prove
-# that `super` reaches them.
+# Organization, archive!/unarchive!, and the Customer writes that persist a
+# changed default preference (`save` with default_org_id dirty, and the
+# `default_org_id!` fast writer). Assigning the setter alone is not hooked.
+# Real datastore: the hooks wrap generated methods, so a double would not
+# prove that `super` reaches them.
 #
 # Run: tests/lanes/run unit --only spec/unit/onetime/models/membership_snapshot_invalidation_spec.rb
 require 'spec_helper'
