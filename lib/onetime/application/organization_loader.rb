@@ -378,7 +378,23 @@ module Onetime
           return UNREGISTERED_HOST
         end
 
-        if env['onetime.domain_strategy'].to_s == 'custom'
+        # Nothing published for an :invalid request: detection rejected the
+        # host (an IP literal, `localhost`, a malformed or missing Host), so
+        # no display domain was read. Decided on #4678 and recorded in
+        # ADR-050, "Organization scope on a host that detection rejects":
+        # when Host names no custom domain either, the request is scoped as
+        # one for the canonical host. The Host read above does not depend on
+        # detection. A trusted X-Forwarded-Host with userinfo in it stops
+        # detection without trying Host (Rack::DetectHost, "Userinfo in an
+        # authority"), and a Host that names a custom domain then carries
+        # that record's scope, as it does with the domains feature off.
+        strategy = env['onetime.domain_strategy'].to_s
+        if strategy == 'invalid' && !published.is_a?(Onetime::CustomDomain::Lookup) && domains.empty?
+          OT.ld "[OrganizationLoader] No custom domain for #{env['onetime.display_domain']} or Host: " \
+                'no scope withheld (#4678)'
+        end
+
+        if strategy == 'custom'
           resolved = env['onetime.custom_domain']
           domains << resolved if resolved && domains.none? { |d| d.objid == resolved.objid }
         end
