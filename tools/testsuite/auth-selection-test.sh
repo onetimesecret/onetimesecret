@@ -391,6 +391,13 @@ positive = [
     'src/services/bootstrap.service.ts', 'src/shared/stores/bootstrapStore.ts',
     'src/schemas/contracts/bootstrap.ts', 'locales/content/en/session-auth.json',
     'locales/content/en/session-auth-extended.json',
+    # The request-host seam.
+    'lib/middleware/detect_host.rb', 'lib/onetime/middleware/domain_strategy.rb',
+    'lib/onetime/middleware/strip_forwarded_host.rb',
+    'lib/onetime/middleware/public_host_rewrite.rb',
+    'lib/onetime/middleware/http_origin_options.rb',
+    'lib/onetime/models/custom_domain/lookup.rb',
+    'lib/onetime/application/organization_loader.rb',
     # Boot configuration and gems.
     'etc/defaults/config.defaults.yaml', 'Gemfile', 'Gemfile.lock',
     # Tests and lane definitions only the selected jobs run.
@@ -424,6 +431,8 @@ negative = [
     'lib/onetime/models/secret.rb', 'lib/onetime/models/customer.rb',
     'lib/onetime/models/organization.rb', 'lib/onetime/middleware/security.rb',
     'lib/onetime/application/middleware_stack.rb',
+    'lib/onetime/middleware/cookie_tossing.rb', 'lib/onetime/middleware/registry.rb',
+    'lib/onetime/models/custom_domain.rb', 'lib/onetime/utils/canonical_hosts.rb',
     'lib/onetime/mail/templates/secret_link.html.erb',
     'lib/onetime/jobs/workers/email_worker.rb', 'lib/tasks/spec.rake',
     'etc/defaults/logging.defaults.yaml', 'etc/examples/puma.example.rb',
