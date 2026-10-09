@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/logger_methods'
+require 'onetime/membership_snapshot'
 
 module Core
   module Views
@@ -169,6 +170,10 @@ module Core
         # Whether org is the current user's default organization
         # (OrganizationLoader.default_organization). False with no user.
         #
+        # The loader answers from the request's MembershipSnapshot: the
+        # membership list and the user's default it resolved during auth
+        # are not read again here.
+        #
         # @param org [Onetime::Organization] Organization
         # @param cust [Onetime::Customer, nil] Current user
         # @return [Boolean]
@@ -181,19 +186,20 @@ module Core
 
         # Determine the current user's role in the organization
         #
+        # Ownership and the membership record come from the request's
+        # MembershipSnapshot, shared with the loader.
+        #
         # @param org [Onetime::Organization] Organization
         # @param cust [Onetime::Customer] Current user
         # @return [String, nil] Role name or nil
         def determine_user_role(org, cust)
           return nil unless cust && !cust.anonymous?
 
-          if org.owner?(cust)
+          snapshot = Onetime::MembershipSnapshot.for(cust)
+          if snapshot.owner?(org)
             'owner'
           elsif org.member?(cust)
-            membership = Onetime::OrganizationMembership.find_by_org_customer(
-              org.objid, cust.objid
-            )
-            membership&.role || 'member'
+            snapshot.membership(org)&.role || 'member'
           end
         end
       end

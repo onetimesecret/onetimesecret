@@ -26,8 +26,10 @@ module OrganizationAPI::Logic
       def process
         OT.ld "[ListOrganizations] Listing organizations for user #{cust.extid}"
 
-        # Use Familia v2 reverse collection method
-        @organizations = cust.organization_instances.to_a.reject(&:archived?)
+        # The request's membership snapshot: the same list the auth-phase
+        # organization load read (Onetime::MembershipSnapshot), not a second
+        # read of Familia's reverse collection.
+        @organizations = Onetime::MembershipSnapshot.for(cust).organizations.reject(&:archived?)
 
         # Fallback if reverse lookup not working - use org: prefix (not organization:)
         if @organizations.empty? && !cust.participations.empty?

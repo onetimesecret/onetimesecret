@@ -23,6 +23,7 @@ require_relative '../middleware/api_cache_policy'
 require_relative '../middleware/validate_multipart'
 require_relative '../middleware/entitlement_preview_context'
 require_relative '../middleware/impersonation_context'
+require_relative '../middleware/membership_snapshot_context'
 require_relative '../middleware/session_skip'
 require_relative '../middleware/saml_callback_transport'
 require 'otto'
@@ -683,6 +684,13 @@ module Onetime
             warn_once :cookie_tossing_disabled,
               "[Security] CookieTossing protection DISABLED (site.middleware.#{cookie_tossing[:key]}=false)"
           end
+
+          # Request store for the customer's organization memberships
+          # (Onetime::MembershipSnapshot): the auth-phase organization load,
+          # the bootstrap serializer and the session commit read them once.
+          # Above Onetime::Session so the store is still open when the
+          # session commits on the way out.
+          builder.use Onetime::Middleware::MembershipSnapshotContext
 
           # Add session middleware early in the stack (before other middleware)
           session_config = Onetime.session_config
