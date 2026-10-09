@@ -13,6 +13,7 @@ import {
 } from '@/shared/stores/organizationStore';
 import type { Organization } from '@/types/organization';
 import { lenientExtIdSchema, lenientObjIdSchema } from '@/types/identifiers';
+import type { AxiosRequestConfig } from 'axios';
 import type AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { nextTick } from 'vue';
@@ -193,6 +194,12 @@ describe('Organization Store', () => {
     };
 
     const syncPosts = () => (axiosMock?.history.post ?? []).filter((r) => r.url === SYNC_URL);
+
+    // The objid the pending-selection note names, or null when there is no note
+    const note = (): string | null => {
+      const raw = sessionStorage.getItem(PENDING_ORG_SELECTION_KEY);
+      return raw ? JSON.parse(raw).objid : null;
+    };
 
     // The server sync is a protected action (ADR-046#authority-action-gating).
     // The account is named too: a pending selection is noted for one account.
@@ -476,11 +483,6 @@ describe('Organization Store', () => {
     // previous organization. The newest unanswered selection is noted in
     // sessionStorage so the next page load can send it again.
     describe('a write the server has not answered', () => {
-      // The objid the note names, or null when there is no note
-      const note = (): string | null => {
-        const raw = sessionStorage.getItem(PENDING_ORG_SELECTION_KEY);
-        return raw ? JSON.parse(raw).objid : null;
-      };
       // When the noted selection was made (epoch ms), or null without a note
       const notedAt = (): number | null => {
         const raw = sessionStorage.getItem(PENDING_ORG_SELECTION_KEY);
@@ -993,6 +995,194 @@ describe('Organization Store', () => {
           'Unable to update the default organization. Please try again.'
         );
         expect(store.currentOrganization?.objid).toBe('org-123');
+      });
+
+      // The server selects the org as well, so the default change and the
+      // selection writes share one chain: whichever lands last is what a
+      // reload shows, and that must be the user's last choice.
+      describe('ordered with selections', () => {
+        const third: Organization = {
+          ...mockOrganization,
+          objid: 'org-333',
+          extid: 'on333abc',
+          display_name: 'Third Organization',
+        };
+        const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+        // A promise that settles when `open()` is called, to hold a reply
+        const gate = () => {
+          let open!: () => void;
+          const opened = new Promise<void>((resolve) => {
+            open = resolve;
+          });
+          return { opened, open };
+        };
+        // Logs each selection write when sent and when answered, which is
+        // once `held` settles (10ms without it)
+        const logSelections = (events: string[], held?: Promise<void>) =>
+          axiosMock?.onPost(SYNC_URL).reply(async (config: AxiosRequestConfig) => {
+            const { organization_id: id } = JSON.parse(config.data);
+            events.push(`sent:${id}`);
+            await (held ?? delay(10));
+            events.push(`replied:${id}`);
+            return [200, { success: true }];
+          });
+        // The same for default changes, answered at once without `held`
+        const logDefaults = (events: string[], held?: Promise<void>) =>
+          axiosMock?.onPost(DEFAULT_URL).reply(async (config: AxiosRequestConfig) => {
+            const { organization_id: id } = JSON.parse(config.data);
+            events.push(`sent:default:${id}`);
+            if (held) await held;
+            events.push(`replied:default:${id}`);
+            return [200, { organization_id: id, previous_default_organization_id: 'org-123' }];
+          });
+        const listLoads = () => axiosMock?.history.get ?? [];
+
+        it('is sent only after a selection already on its way is answered', async () => {
+          signIn();
+          const events: string[] = [];
+          logSelections(events);
+          logDefaults(events);
+          axiosMock?.onGet('/api/organizations').reply(200, listAfter);
+
+          const switching = store.selectOrganization(third);
+          await store.setDefaultOrganization(other);
+          await switching;
+
+          expect(events).toEqual([
+            'sent:org-333',
+            'replied:org-333',
+            'sent:default:org-999',
+            'replied:default:org-999',
+          ]);
+          expect(store.currentOrganization?.objid).toBe('org-999');
+        });
+
+        // The earlier write is still in flight when the later selection is
+        // made; it must not take that selection ahead of the default change.
+        it('sends a selection made after it, after it', async () => {
+          signIn();
+          const events: string[] = [];
+          logSelections(events);
+          logDefaults(events);
+          axiosMock?.onGet('/api/organizations').reply(200, listAfter);
+
+          const switching = store.selectOrganization(third);
+          const defaulting = store.setDefaultOrganization(other);
+          const switchingBack = store.selectOrganization(mockOrganization);
+          await Promise.all([switching, defaulting, switchingBack]);
+
+          expect(events).toEqual([
+            'sent:org-333',
+            'replied:org-333',
+            'sent:default:org-999',
+            'replied:default:org-999',
+            'sent:org-123',
+            'replied:org-123',
+          ]);
+          expect(store.currentOrganization?.objid).toBe('org-123');
+        });
+
+        it('keeps a selection made while it is on its way, and its note', async () => {
+          signIn();
+          const events: string[] = [];
+          const defaultHeld = gate();
+          const selectionHeld = gate();
+          logSelections(events, selectionHeld.opened);
+          logDefaults(events, defaultHeld.opened);
+          axiosMock?.onGet('/api/organizations').reply(200, listAfter);
+
+          const defaulting = store.setDefaultOrganization(other);
+          await vi.waitFor(() => expect(events).toEqual(['sent:default:org-999']));
+          const switching = store.selectOrganization(third);
+          defaultHeld.open();
+          // The default reply has been handled once the list reloads
+          await vi.waitFor(() => expect(listLoads()).toHaveLength(1));
+
+          expect(events).toEqual([
+            'sent:default:org-999',
+            'replied:default:org-999',
+            'sent:org-333',
+          ]);
+          expect(note()).toBe('org-333');
+
+          selectionHeld.open();
+          await Promise.all([defaulting, switching]);
+
+          expect(store.currentOrganization).toEqual(third);
+          expect(store.defaultOrganization?.objid).toBe('org-999');
+          expect(note()).toBeNull();
+        });
+
+        it('keeps a selection made while the list reloads', async () => {
+          signIn();
+          const listHeld = gate();
+          logSelections([]);
+          logDefaults([]);
+          axiosMock?.onGet('/api/organizations').reply(async () => {
+            await listHeld.opened;
+            return [200, listAfter];
+          });
+
+          const defaulting = store.setDefaultOrganization(other);
+          await vi.waitFor(() => expect(listLoads()).toHaveLength(1));
+          await store.selectOrganization(third);
+          listHeld.open();
+          await defaulting;
+
+          expect(store.currentOrganization).toEqual(third);
+          expect(store.defaultOrganization?.objid).toBe('org-999');
+        });
+
+        it('writes nothing once the store is reset while the list reloads', async () => {
+          signIn();
+          vi.spyOn(console, 'warn').mockImplementation(() => {});
+          const listHeld = gate();
+          logDefaults([]);
+          axiosMock?.onGet('/api/organizations').reply(async () => {
+            await listHeld.opened;
+            return [200, listAfter];
+          });
+
+          const defaulting = store.setDefaultOrganization(other);
+          await vi.waitFor(() => expect(listLoads()).toHaveLength(1));
+          store.$reset();
+          listHeld.open();
+          await defaulting;
+
+          expect(store.currentOrganization).toBeNull();
+          expect(store.organizations).toEqual([]);
+        });
+
+        it('is not sent when the store is reset while it waits its turn', async () => {
+          signIn();
+          const events: string[] = [];
+          logSelections(events);
+          logDefaults(events);
+
+          const switching = store.selectOrganization(third);
+          const defaulting = store.setDefaultOrganization(other);
+          store.$reset();
+
+          await expect(defaulting).rejects.toThrow(
+            'Unable to update the default organization. Please try again.'
+          );
+          await switching;
+          expect(events).toEqual(['sent:org-333', 'replied:org-333']);
+        });
+
+        it('still sends a selection queued behind it when the server refuses', async () => {
+          signIn();
+          logSelections([]);
+          axiosMock?.onPost(DEFAULT_URL).reply(422, { message: 'Invalid organization' });
+
+          const defaulting = store.setDefaultOrganization(other);
+          const switching = store.selectOrganization(third);
+
+          await expect(defaulting).rejects.toBeTruthy();
+          await expect(switching).resolves.toBeUndefined();
+          expect(syncPosts().map((r) => JSON.parse(r.data).organization_id)).toEqual(['org-333']);
+          expect(store.currentOrganization).toEqual(third);
+        });
       });
     });
   });
