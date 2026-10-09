@@ -13,8 +13,10 @@ module Onetime
   # Rodauth: `login_session` calls the app's `clear_session`, which is
   # `session.destroy` (apps/web/auth/config/base.rb), and Rodauth then fills
   # the empty session again. This module is the same step for a session whose
-  # data must SURVIVE: the second factor completing (RISK-2026-09-19-02) and
-  # the colonel step-up (ColonelAPI::Logic::Colonel::ElevateSession). Simple-mode
+  # data must SURVIVE: the second factor completing (RISK-2026-09-19-02),
+  # the first second factor set up on a session, the re-authentication proof
+  # (Auth::Operations::Reauthenticate) and the colonel step-up
+  # (ColonelAPI::Logic::Colonel::ElevateSession). Simple-mode
   # password login (Core::Logic::Authentication::AuthenticateSession, which
   # Rodauth does not serve) also calls it, on a session it has cleared first:
   # nothing crosses, which matches what clear_session gives full mode, and
@@ -48,23 +50,42 @@ module Onetime
   #   apps/web/auth/spec/integration/full_saml_platform/platform_saml_sso_spec.rb:705
   # - Verify-account autologin: renewed, clear_session (autologin_session).
   #   apps/web/auth/spec/integration/full/verify_account_autologin_session_rotation_spec.rb:123
-  # - Magic-link and passkey sign-in: renewed, clear_session (Rodauth
-  #   `login`, the same route family). No rotation spec.
-  # - SSO link-confirm sign-in and link-SSO password sign-in: renewed,
-  #   clear_session (`rodauth.login` in apps/web/auth/routes/sso_link_confirm.rb
-  #   and apps/web/auth/routes/link_sso.rb). No rotation spec.
+  # - Magic-link sign-in: renewed, clear_session (Rodauth `login`).
+  #   apps/web/auth/spec/integration/full_mfa/magic_link_session_rotation_spec.rb:82
+  # - Passkey sign-in: renewed, clear_session (Rodauth `login`).
+  #   apps/web/auth/spec/integration/full_mfa/passkey_login_session_rotation_spec.rb:76
+  # - SSO link-confirm sign-in: renewed, clear_session (`rodauth.login` in
+  #   apps/web/auth/routes/sso_link_confirm.rb).
+  #   apps/web/auth/spec/integration/full/sso_link_confirm_session_rotation_spec.rb:65
+  # - Link-SSO password sign-in: renewed, clear_session (`rodauth.login` in
+  #   apps/web/auth/routes/link_sso.rb).
+  #   apps/web/auth/spec/integration/full/link_sso_session_rotation_spec.rb:65
   # - SSO Connect callback (binds an identity to the signed-in account):
   #   renewed, clear_session (the callback ends in rodauth-omniauth
   #   login("omniauth"); hooks/omniauth.rb, "Post-Connect Return Path").
-  #   No rotation spec.
+  #   apps/web/auth/spec/integration/full/omniauth_connect_link_spec.rb:1155
   # - Second factor completed: renewed, rotate! (hooks/two_factor.rb).
   #   apps/web/auth/spec/integration/full_mfa/mfa_session_rotation_spec.rb:81
+  # - First second factor set up (TOTP or passkey on a session that is not
+  #   yet two-factor authenticated): renewed, rotate! (hooks/two_factor.rb,
+  #   called from after_otp_setup and after_webauthn_setup); the setup is
+  #   refused when the old id cannot be ended. A further factor on a session
+  #   that is already two-factor authenticated: none, by rule (Rodauth does
+  #   not mark the session again, so nothing is gained).
+  #   apps/web/auth/spec/integration/full_mfa/factor_setup_session_rotation_spec.rb:117, :142, :157
+  # - Re-authentication proof (POST /auth/reauth): renewed, rotate!, before
+  #   the single-use Onetime::RecentReauth proof is recorded
+  #   (Auth::Operations::Reauthenticate); no proof when the old id cannot be
+  #   ended. A ceremony that stops at the second-factor prompt records
+  #   nothing and keeps the id.
+  #   apps/web/auth/spec/integration/full_mfa/reauth_session_rotation_spec.rb:74, :116
   # - Invite signup autologin: renewed, :renew.
   #   spec/integration/full/active_sessions_spec.rb:624
   # - Password change, full mode: renewed, :renew (after_change_password).
   #   spec/integration/full/hooks/account_lifecycle_spec.rb:487
   # - Password change, simple mode: renewed, :renew
-  #   (AccountAPI::Logic::Account::UpdatePassword). No rotation spec.
+  #   (AccountAPI::Logic::Account::UpdatePassword).
+  #   spec/integration/simple/password_change_session_rotation_spec.rb:86
   # - Colonel step-up: renewed, rotate!; no window when it is incomplete.
   #   spec/integration/full/colonel_elevation_session_rotation_spec.rb:69,
   #   spec/integration/simple/colonel_elevation_session_rotation_spec.rb:67
@@ -79,15 +100,6 @@ module Onetime
   #   then :renew, or clear_session in full mode) and nothing signed in
   #   crosses. Not a rotation in this module's sense, and none is required
   #   by the rule.
-  #
-  # Open: these raise what the session can do and keep its id. Both are
-  # recorded in RISK-2026-09-19-02 (docs/security/active-risk-register.md).
-  #
-  # - Re-authentication proof (POST /auth/reauth): not renewed.
-  #   Auth::Operations::Reauthenticate#record writes the single-use
-  #   Onetime::RecentReauth proof under the current id.
-  # - TOTP and passkey setup: not renewed. Rodauth's
-  #   two_factor_update_session adds the factor to the session.
   #
   # ## The mechanism
   #
