@@ -1,2 +1,36 @@
-# Used instead of the root .dockerignore when building .oss-scanner/Dockerfile. The scanner image needs the whole
-# checkout, including .git, compose.test.yml and the test suites, so nothing is excluded.
+# Used instead of the root .dockerignore when building .oss-scanner/Dockerfile. The root file is written for the
+# production image and excludes .git, compose.test.yml and the test suites, which the scanner image needs.
+#
+# The scanner builds from a fresh clone. Every pattern below matches only files git ignores, so a fresh clone has
+# none of them; they stop a local build from a working checkout copying credentials, local configuration, datastore
+# files and host-built dependencies into the image. Patterns are relative to the repository root.
+
+# Credentials and local configuration
+.env*
+!.env.example
+!.env.reference
+!.env.test.example
+.certs
+.bundle
+.mcp.json
+.serena
+etc/config
+etc/*.yaml
+etc/*.yml
+etc/*.rb
+
+# Local datastores, logs and notes
+data
+appendonlydir
+.appendonlydir
+*.rdb
+*.db
+*.log
+*.txt
+!LICENSE.txt
+log
+tmp
+coverage
+
+# Host-built dependencies, rebuilt inside the image
+**/node_modules
