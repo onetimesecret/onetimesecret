@@ -13,6 +13,7 @@
   import {
     useBootstrapStore,
   } from '@/shared/stores/bootstrapStore';
+  import { useProductIdentity } from '@/shared/stores/identityStore';
   import { useNotificationsStore } from '@/shared/stores/notificationsStore';
   import { useOrganizationStore } from '@/shared/stores/organizationStore';
   import { storeToRefs } from 'pinia';
@@ -28,6 +29,7 @@
 
   const bootstrapStore = useBootstrapStore();
   const { i18n_enabled, has_password } = storeToRefs(bootstrapStore);
+  const { isCustom } = storeToRefs(useProductIdentity());
   const canChangeEmail = computed(() => has_password.value && isOwnerOrAdminOf(bootstrapStore));
   const isOwner = computed(() => bootstrapStore.organization?.current_user_role === 'owner');
 
@@ -71,7 +73,13 @@
 
   // The list endpoint already leaves out archived organizations.
   const organizations = computed(() => organizationStore.organizations);
-  const showDefaultWorkspace = computed(() => organizations.value.length > 1);
+  // Not on a custom domain: the domain chooses the workspace there, and the
+  // endpoint refuses organizations outside the membership's domain scope.
+  // The list is not filtered by domain, so the row would offer refusals.
+  // Same rule as the workspace switcher (useScopeSwitcherVisibility).
+  const showDefaultWorkspace = computed(
+    () => !isCustom.value && organizations.value.length > 1
+  );
 
   // This user's default (is_current_user_default), not the owner's
   // auto-created workspace (is_default). Empty when none is recorded, e.g.
