@@ -9,7 +9,7 @@
 # Used by both regular signup (CreateAccount) and SSO signup (before_omniauth_create_account).
 #
 # Resolution order:
-#   1. If display_domain provided → load CustomDomain → load SignupConfig
+#   1. If display_domain provided → reuse the request's CustomDomain lookup → load SignupConfig
 #   2. If SignupConfig exists and is enabled → use its validation strategy
 #   3. Otherwise → fall back to global allowed_signup_domains config
 #
@@ -47,18 +47,16 @@ module Onetime
     #
     # @param email [String] Email address to validate
     # @param display_domain [String, nil] The custom domain context (from request)
+    # @param custom_domain_lookup [CustomDomain::Lookup, nil] The request's resolved domain
+    # @param domain_strategy [Symbol, String, nil] The request's host classification
     # @return [Boolean] true if email is allowed for signup
-    def valid_signup_email?(email, display_domain: nil)
-      # Try per-domain config first
-      if display_domain
-        custom_domain = CustomDomain.load_by_display_domain(display_domain)
-        if custom_domain
-          signup_config = CustomDomain::SignupConfig.find_by_domain_id(custom_domain.identifier)
-          if signup_config&.enabled?
-            return signup_config.valid_signup_email?(email)
-          end
-        end
-      end
+    def valid_signup_email?(email, display_domain: nil, custom_domain_lookup: nil, domain_strategy: nil)
+      signup_config = resolve_signup_config(
+        display_domain,
+        custom_domain_lookup: custom_domain_lookup,
+        domain_strategy: domain_strategy,
+      )
+      return signup_config.valid_signup_email?(email) if signup_config
 
       # Fall back to global config
       global_allowed_domains?(email)
@@ -96,17 +94,28 @@ module Onetime
     # not just the validation result.
     #
     # @param display_domain [String] The custom domain context
+    # @param custom_domain_lookup [CustomDomain::Lookup, nil] The request's resolved domain
+    # @param domain_strategy [Symbol, String, nil] The request's host classification
     # @return [CustomDomain::SignupConfig, nil] The enabled config or nil
-    def resolve_signup_config(display_domain)
+    # @raise [Onetime::SignupPolicyUnavailable] on an unreadable non-operator policy
+    def resolve_signup_config(display_domain, custom_domain_lookup: nil, domain_strategy: nil)
       return nil if display_domain.nil?
 
-      custom_domain = CustomDomain.load_by_display_domain(display_domain)
+      lookup        = custom_domain_lookup
+      unless lookup.is_a?(CustomDomain::Lookup) && lookup.host.to_s.casecmp?(display_domain.to_s)
+        lookup = CustomDomain::Lookup.read(display_domain)
+      end
+      # Absence permits global fallback; a failed policy read does not.
+      custom_domain = lookup.record!
       return nil unless custom_domain
 
       signup_config = CustomDomain::SignupConfig.find_by_domain_id(custom_domain.identifier)
       return nil unless signup_config&.enabled?
 
       signup_config
+    rescue Redis::BaseError => ex
+      OT.le "[signup] Sign-up validation policy lookup failed host=#{display_domain} #{ex.class}"
+      CustomDomain::SignupConfig.resolve_lookup_failure(domain_strategy: domain_strategy)
     end
   end
 end

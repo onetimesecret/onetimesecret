@@ -28,6 +28,8 @@ const mockRoute = { query: {} as Record<string, string> };
 vi.mock('vue-router', () => ({
   useRouter: () => ({
     push: mockRouterPush,
+    // Every redirect in this file is a customer-app path: the router owns it.
+    resolve: () => ({ name: 'Matched' }),
   }),
   useRoute: () => mockRoute,
 }));

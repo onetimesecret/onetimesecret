@@ -349,16 +349,27 @@ RSpec.describe Core::Views::DomainSerializer do
           'features' => { 'domains' => { 'enabled' => false } },
           'domain_strategy' => :custom,
           'display_domain' => custom_display_domain,
+          # The record DomainStrategy resolved for the request, as
+          # InitializeViewVars lifts it from env['onetime.custom_domain'].
+          'custom_domain' => custom_domain,
         }
       end
 
       before do
-        allow(Onetime::CustomDomain).to receive(:from_display_domain)
-          .with(custom_display_domain)
-          .and_return(custom_domain)
         allow(Onetime::CustomDomain::HomepageConfig).to receive(:find_by_domain_id)
           .with('domain123')
           .and_return(nil)
+      end
+
+      # #4220: the serializer reads the request's resolved record and never
+      # looks the display domain up again.
+      it 'reads the record from the view vars, not by display domain' do
+        allow(Onetime::CustomDomain).to receive(:from_display_domain)
+
+        result = described_class.serialize(custom_domain_view_vars)
+
+        expect(result['domain_id']).to eq('domain123')
+        expect(Onetime::CustomDomain).not_to have_received(:from_display_domain)
       end
 
       describe 'domain_branding boolean field types' do

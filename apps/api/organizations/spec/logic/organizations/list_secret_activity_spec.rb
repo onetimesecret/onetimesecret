@@ -56,7 +56,8 @@ RSpec.describe OrganizationAPI::Logic::Organizations::ListSecretActivity do
     instance_double(
       Onetime::OrganizationMembership,
       active?: true,
-      can?: true
+      can?: true,
+      org_scoped?: true
     )
   end
 
@@ -120,6 +121,15 @@ RSpec.describe OrganizationAPI::Logic::Organizations::ListSecretActivity do
       expect(membership).to receive(:can?).with('audit_logs').and_return(true)
 
       expect { logic.raise_concerns }.not_to raise_error
+    end
+
+    # RISK-2026-08-14-M06: the trail spans every custom domain of the
+    # organization, so a membership scoped to one domain does not reach it.
+    it 'rejects a domain-scoped member even when audit_logs is granted' do
+      allow(membership).to receive(:org_scoped?).and_return(false)
+
+      logic.process_params
+      expect { logic.raise_concerns }.to raise_error(OT::FormError, /organization-wide/)
     end
 
     it 'rejects members whose plan/role does not grant audit_logs' do

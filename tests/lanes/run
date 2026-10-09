@@ -37,6 +37,24 @@
 # exported (see "Last run output" below), so an interactive run's task
 # environment differs from a piped one's (CI, run-all) by those two names
 # and nothing else.
+#
+# Exit-code convention:
+# Runner-level errors use BSD's sysexits.h values, not project-specific
+# numbers. Its error range is 64..78, chosen to reduce clashes with other
+# programs' exit statuses; 84/89 would not carry those conventional meanings.
+# The shell treats any nonzero status as failure, not as a named error:
+# these meanings are a convention for callers, with details on stderr.
+#   0  success
+#   1  generic failure (including the bash bootstrap guards below)
+#  64  EX_USAGE: invalid arguments or lane selection
+#  69  EX_UNAVAILABLE: required service, tooling or DB index unavailable
+#  73  EX_CANTCREAT: requested log capture cannot be created
+#  74  EX_IOERR: requested log capture became incomplete
+# Choose by failure category, not one number per error. A DB reserved by
+# another lane is unavailable even when that lane is not running (69).
+# Otherwise preserve the task's exit status through tee. Mid-run service
+# loss overrides it with 69 because results are invalid; incomplete capture
+# changes only an otherwise successful run to 74, preserving prior failures.
 
 # ── bash major-version floor ────────────────────────────────────────────
 # The scrub below needs `mapfile` (bash 4) and expands the arrays it fills

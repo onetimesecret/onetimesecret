@@ -9,6 +9,7 @@ import { loggingService } from '@/services/logging.service';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
+import { hardNavigate, routerOwnsPath } from '@/utils/navigation';
 import { isValidInternalPath } from '@/utils/redirect';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
@@ -255,6 +256,14 @@ export function usePostAuthRedirect() {
     const redirectPath = getRedirectParam();
     if (redirectPath) {
       loggingService.debug('[postAuthRedirect] Redirecting to saved path', { redirectPath });
+      // A path this bundle has no route for (the admin console at /colonel,
+      // reached via the expired-session sign-in) must be a document load so
+      // the server serves the bundle that owns it. A push would only render
+      // this router's NotFound under the new URL.
+      if (!routerOwnsPath(router, redirectPath)) {
+        hardNavigate(redirectPath, '/');
+        return;
+      }
       await router.push(redirectPath);
       return;
     }

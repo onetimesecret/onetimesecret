@@ -114,6 +114,10 @@ module HostProxyMatrix
     doubled_tenant:        { headers: { 'Host' => '{tenant}, {tenant}' }, rewritten: {} },
     unregistered_host:     { headers: { 'Host' => UNREGISTERED } },
     unregistered_forwarded: { headers: { 'Host' => '{canonical}', 'X-Forwarded-Host' => UNREGISTERED } },
+    # Two :invalid shapes with no tenant anywhere (matrix rows H07 and D04):
+    # a host DetectHost does not accept, and an authority Rack cannot parse.
+    localhost:             { headers: { 'Host' => 'localhost:3000' }, proto: nil },
+    doubled_site_host:     { headers: { 'Host' => "#{SITE_HOST}, #{SITE_HOST}" }, proto: nil },
     forwarded_public_peer: { peer: :public, headers: { 'Host' => '{canonical}', 'X-Forwarded-Host' => '{tenant}' } },
     rfc7239_tenant:        { headers: { 'Host' => '{canonical}',
                                         'Forwarded' => 'for=198.51.100.1;host={tenant};proto=https' } },

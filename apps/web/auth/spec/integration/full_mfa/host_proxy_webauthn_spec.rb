@@ -24,9 +24,11 @@
 # Rack's host, so the rows have the same outcome with public_host_rewrite
 # off and on. `rewritten: {}` only records that the request is rewritten.
 #
-# Not here: the request.host fallback of webauthn_rp_id for a request that
-# classified :invalid (#4223 remaining scope 3). Sign-in is refused on such
-# a host before any ceremony starts; the last example pins that.
+# A request that classified :invalid never reaches a ceremony: sign-in is
+# refused on such a host (404), and a session signed in on a served host is
+# refused there by the session evaluator (surface_mismatch, 401). The last
+# three examples pin that, so the request-host fallback of webauthn_rp_id
+# (config/features/webauthn.rb) stays unreachable (#4223 remaining scope 3).
 #
 # RUN:
 #   tests/lanes/run full-mfa --only \
@@ -162,6 +164,52 @@ RSpec.describe 'Host and proxy simulation matrix: WebAuthn ceremony (#4223)',
         expect(last_request.env['onetime.domain_strategy']).to eq(:invalid)
         expect(Auth::PublicHost.webauthn_host(last_request.env)).to be_nil
         expect(last_response.status).to eq(404)
+      end
+
+      # The RP ID on a request that classified :invalid (#4223 remaining
+      # scope 3). Auth::PublicHost declines such a request and
+      # config/features/webauthn.rb would fall back to Rack's own authority:
+      # 'localhost' for H07, nil for D04 (an authority Rack cannot parse).
+      # Neither value is ever offered. Sign-in is refused on such a host (the
+      # example above), and a session signed in on a served host is refused
+      # there by Onetime::Session::CustomerSessionEvaluator (surface_mismatch)
+      # before Rodauth runs, so no registration or assertion ceremony starts
+      # on an :invalid request. These pin the refusal and the fallback value
+      # it keeps unreachable.
+      describe 'a request that classified :invalid' do
+        def sign_in_on_canonical
+          apply_topology(HostProxyMatrix.shape(:canonical_host))
+          csrf_json_post('/auth/login', login: account_email, password: AuthTestConstants::TEST_PASSWORD)
+          expect(last_response.status).to eq(200),
+            "Precondition failed: sign-in (#{last_response.status}: #{last_response.body})"
+          clear_topology(HostProxyMatrix.shape(:canonical_host))
+        end
+
+        it 'refuses the registration ceremony on localhost (H07), where the fallback would be Rack\'s host' do
+          sign_in_on_canonical
+          apply_topology(HostProxyMatrix.shape(:localhost))
+
+          csrf_json_post('/auth/webauthn-setup', password: AuthTestConstants::TEST_PASSWORD)
+
+          expect(last_request.env['onetime.domain_strategy']).to eq(:invalid)
+          expect(Auth::PublicHost.webauthn_host(last_request.env)).to be_nil
+          expect(Rack::Request.new(last_request.env).host).to eq('localhost')
+          expect(last_response.status).to eq(401)
+          expect(stored_rp_ids).to eq([])
+        end
+
+        it 'refuses the registration ceremony on a doubled IP-literal Host (D04), where the fallback would be nil' do
+          sign_in_on_canonical
+          apply_topology(HostProxyMatrix.shape(:doubled_site_host))
+
+          csrf_json_post('/auth/webauthn-setup', password: AuthTestConstants::TEST_PASSWORD)
+
+          expect(last_request.env['onetime.domain_strategy']).to eq(:invalid)
+          expect(Auth::PublicHost.webauthn_host(last_request.env)).to be_nil
+          expect(Rack::Request.new(last_request.env).host).to be_nil
+          expect(last_response.status).to eq(401)
+          expect(stored_rp_ids).to eq([])
+        end
       end
     end
   end

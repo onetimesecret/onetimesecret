@@ -29,14 +29,21 @@ module Auth::Config::Features
       # this request origin.
       #
       # Host derivation routes through Auth::PublicHost — the one audited place
-      # for it (finding G-16). On a registered custom domain the resolver swaps
-      # in the display domain (the origin the passkey was registered against);
-      # otherwise it declines and we keep the request host, which
-      # StripForwardedHost has already cleansed of any client-supplied
-      # forwarded authority, so dev/staging/prod on the canonical host keep
-      # working. These are verify-only values (a mismatch fails the ceremony,
-      # it does not redirect a link), so the request-host fallback is the safe
-      # default here rather than the canonical host.
+      # for it (finding G-16). On a classified host (canonical, a subdomain of
+      # one, or a registered custom domain) the resolver answers the display
+      # domain, the origin the passkey was registered against.
+      #
+      # On a request that classified :invalid the resolver declines and the
+      # fallback is Rack's own authority (#4223): the host after
+      # StripForwardedHost, or nil when Rack cannot parse the authority (a
+      # doubled Host, matrix row D04), which fails the ceremony. No ceremony
+      # runs on such a request today: the sign-in gate refuses it (404) and
+      # the session evaluator refuses a session signed in elsewhere
+      # (surface_mismatch), both before Rodauth. The fallback is kept as the
+      # value for that unreachable case because these are verify-only values
+      # (a mismatch fails the ceremony, it does not redirect a link), so
+      # Rack's host is safer than the canonical host, which the browser is
+      # not on. host_proxy_webauthn_spec.rb pins the refusal and the value.
       auth.webauthn_rp_id do
         public_host = Auth::PublicHost.webauthn_host(request.env)
         Onetime::Utils::DomainParser.extract_hostname(public_host) || request.host

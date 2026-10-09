@@ -721,7 +721,12 @@ module Auth::Config::Hooks
         display_domain = request.env['onetime.display_domain']
 
         # Use shared validation module for per-domain + global fallback
-        unless Onetime::SignupValidation.valid_signup_email?(email, display_domain: display_domain)
+        unless Onetime::SignupValidation.valid_signup_email?(
+          email,
+          display_domain: display_domain,
+          custom_domain_lookup: request.env[Onetime::CustomDomain::Lookup::ENV_KEY],
+          domain_strategy: request.env['onetime.domain_strategy'],
+        )
           Auth::Logging.log_auth_event(
             :omniauth_domain_rejected,
             level: :warn,

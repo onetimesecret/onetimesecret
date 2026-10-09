@@ -120,9 +120,9 @@ RSpec.describe V2::Logic::Secrets::ListReceipts do
 
   # auth_membership is the ADR-012 Stage 3 authority: require_entitlement!
   # consults auth_membership.can?, not auth_org.can?.
-  def stub_entitlements(logic, granted)
+  def stub_entitlements(logic, granted, org_scoped: true)
     org        = double('Organization', planid: 'testplan', extid: 'org_test')
-    membership = double('OrganizationMembership', active?: true, status: 'active')
+    membership = double('OrganizationMembership', active?: true, status: 'active', org_scoped?: org_scoped)
     allow(membership).to receive(:can?) { |entitlement| granted.include?(entitlement.to_s) }
     allow(logic).to receive(:auth_org).and_return(org)
     allow(logic).to receive(:auth_membership).and_return(membership)
@@ -210,6 +210,15 @@ RSpec.describe V2::Logic::Secrets::ListReceipts do
       logic = stub_entitlements(build_logic('scope' => 'org'), %w[api_access audit_logs])
 
       expect { logic.raise_concerns }.not_to raise_error
+    end
+
+    # RISK-2026-08-14-M06: the org-wide stream spans every custom domain, so
+    # a membership scoped to one domain must not read it even with the
+    # entitlement granted.
+    it 'refuses scope=org for a domain-scoped member holding audit_logs' do
+      logic = stub_entitlements(build_logic('scope' => 'org'), %w[api_access audit_logs], org_scoped: false)
+
+      expect { logic.raise_concerns }.to raise_error(OT::FormError, /organization-wide/)
     end
 
     it 'still allows the default scope on api_access alone' do
@@ -321,9 +330,10 @@ RSpec.describe V2::Logic::Secrets::ListReceipts do
 
     # The caller's membership in the DOMAIN's organization, which is what
     # require_entitlement_in! loads (not auth_membership).
-    def stub_domain_membership(granted)
+    def stub_domain_membership(granted, reaches_domain: true)
       membership = double('OrganizationMembership', active?: true, status: 'active')
       allow(membership).to receive(:can?) { |entitlement| granted.include?(entitlement.to_s) }
+      allow(membership).to receive(:can_access_domain?).with(domain).and_return(reaches_domain)
       allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer).and_return(membership)
       membership
     end
@@ -352,6 +362,25 @@ RSpec.describe V2::Logic::Secrets::ListReceipts do
       logic = domain_logic(%w[api_access])
 
       expect { logic.send(:query_domain_receipts) }.not_to raise_error
+    end
+
+    # RISK-2026-08-14-M06: accessible_by? admits every member of the owning
+    # organization, so a membership scoped to a SIBLING domain passed it and
+    # read this domain's receipts. The membership's own domain scope is the
+    # last gate, after the entitlement.
+    it 'refuses a member scoped to a sibling domain, even with audit_logs' do
+      stub_domain_membership(%w[api_access audit_logs], reaches_domain: false)
+      logic = domain_logic(%w[api_access])
+
+      expect { logic.send(:query_domain_receipts) }.to raise_error(OT::FormError, /Access denied to domain/)
+    end
+
+    it 'allows a member scoped to this domain' do
+      stub_domain_membership(%w[api_access audit_logs], reaches_domain: true)
+      logic = domain_logic(%w[api_access])
+
+      expect { logic.send(:query_domain_receipts) }.not_to raise_error
+      expect(logic.send(:query_domain_receipts)).to eq(%w[receipt_1])
     end
 
     it 'evaluates the entitlement in the domain\'s org, not the caller\'s auth_org' do
