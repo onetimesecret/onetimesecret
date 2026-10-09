@@ -52,6 +52,7 @@ RSpec.describe InviteAPI::Logic::Invites::ShowInvite do
   # and a custom domain.
   let(:domain_strategy) { :canonical }
   let(:display_domain)  { 'onetimesecret.com' }
+  let(:custom_domain_lookup) { nil }
 
   let(:strategy_result) do
     build_strategy_result(
@@ -62,6 +63,7 @@ RSpec.describe InviteAPI::Logic::Invites::ShowInvite do
         ip: client_ip,
         domain_strategy: domain_strategy,
         display_domain: display_domain,
+        custom_domain_lookup: custom_domain_lookup,
       }
     )
   end
@@ -192,7 +194,7 @@ RSpec.describe InviteAPI::Logic::Invites::ShowInvite do
 
     it 'resolves for the host THIS request arrived on' do
       # The logic layer receives a StrategyResult, not the Rack env, so it
-      # rebuilds the two keys Auth::RestrictTo reads. A resolution computed
+      # rebuilds the context Auth::RestrictTo reads. A resolution computed
       # from anything other than the request host would disagree with the gate
       # on POST /:token/signup, which is judged against exactly this host.
       expect(Auth::RestrictTo).to receive(:resolution_for).with(
@@ -229,6 +231,163 @@ RSpec.describe InviteAPI::Logic::Invites::ShowInvite do
       second.raise_concerns
 
       expect(second.process[:record][:effective_restrict_to]).to eq(first[:effective_restrict_to])
+    end
+  end
+
+  describe 'request-scoped custom-domain lookup [F2]' do
+    let(:domain_strategy) { :custom }
+    let(:display_domain) { 'signin.acme.example' }
+    let(:custom_domain_lookup) { Onetime::CustomDomain::Lookup.found(display_domain, custom_domain) }
+    let(:brand_settings) { double('BrandSettings', primary_color: '#123456') }
+    let(:custom_domain) do
+      instance_double(
+        Onetime::CustomDomain,
+        identifier: 'domain-acme-123',
+        display_domain: display_domain,
+        brand_settings: brand_settings,
+        brand: { 'name' => 'Acme' },
+        logo: {},
+        icon: {}
+      )
+    end
+    let(:signin_config) do
+      instance_double(
+        Onetime::CustomDomain::SigninConfig,
+        domain_id: 'domain-acme-123',
+        enabled?: true,
+        signin_enabled?: true,
+        restrict_to: 'password'
+      )
+    end
+    let(:lookup_error) { Redis::CannotConnectError.new('identity read failed') }
+
+    before do
+      allow(Auth::RestrictTo).to receive(:resolution_for).and_call_original
+      allow(Onetime.auth_config).to receive(:restrict_to).and_return(nil)
+      allow(Onetime.auth_config).to receive(:restrict_to_available?).and_return(true)
+      allow(Onetime.auth_config).to receive(:email_auth_enabled?).and_return(true)
+      allow(Onetime::CustomDomain::SigninConfig).to receive(:global_signin_enabled).and_return(true)
+      allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
+        .with('domain-acme-123').and_return(signin_config)
+      allow(Onetime::CustomDomain).to receive(:from_display_domain)
+        .with(display_domain).and_raise(lookup_error)
+    end
+
+    it 'uses the resolved identity for policy, branding and allowed methods despite a later outage' do
+      payload = record
+
+      expect(payload[:effective_restrict_to]).to eq(
+        state: 'restricted', restrict_to: 'password', source: 'domain'
+      )
+      expect(payload[:branding]).to eq(
+        primary_color: '#123456', display_name: 'Acme', logo_url: nil, icon_url: nil
+      )
+      expect(payload[:auth_methods]).to eq([{ type: 'password', enabled: true }])
+      expect(Onetime::CustomDomain).not_to have_received(:from_display_domain)
+    end
+
+    it 'uses the resolved record for branding even when resolution does not read identity' do
+      allow(Auth::RestrictTo).to receive(:resolution_for)
+        .and_return(resolution_for(:restricted, 'password', :domain))
+
+      payload = record
+
+      expect(payload[:branding][:display_name]).to eq('Acme')
+      expect(payload[:auth_methods]).to eq([{ type: 'password', enabled: true }])
+      expect(Onetime::CustomDomain).not_to have_received(:from_display_domain)
+    end
+
+    context 'when middleware found no record' do
+      let(:custom_domain_lookup) { Onetime::CustomDomain::Lookup.absent(display_domain) }
+
+      it 'keeps the absence without retrying or adding custom-domain fields' do
+        payload = record
+
+        expect(payload[:effective_restrict_to]).to eq(
+          state: 'unrestricted', restrict_to: nil, source: 'global'
+        )
+        expect(payload).not_to include(:branding, :auth_methods)
+        expect(Onetime::CustomDomain).not_to have_received(:from_display_domain)
+      end
+    end
+
+    context 'when middleware could not read identity' do
+      let(:custom_domain_lookup) { Onetime::CustomDomain::Lookup.read_failed(display_domain, lookup_error) }
+
+      it 'keeps the tenant policy failure without retrying' do
+        expect { record }.to raise_error(Onetime::SigninPolicyUnavailable)
+        expect(Onetime::CustomDomain).not_to have_received(:from_display_domain)
+      end
+
+      it 'preserves the raising loader semantics for the branding path' do
+        allow(Auth::RestrictTo).to receive(:resolution_for).and_return(resolution)
+
+        expect { record }.to raise_error { |error| expect(error).to equal(lookup_error) }
+        expect(Onetime::CustomDomain).not_to have_received(:from_display_domain)
+      end
+
+      context 'on an operator host' do
+        let(:domain_strategy) { :canonical }
+        let(:display_domain) { 'onetimesecret.com' }
+
+        it 'keeps the global policy fallback and omits custom-domain fields' do
+          allow(Onetime.auth_config).to receive(:restrict_to).and_return('password')
+
+          payload = record
+
+          expect(payload[:effective_restrict_to]).to eq(
+            state: 'restricted', restrict_to: 'password', source: 'global'
+          )
+          expect(payload).not_to include(:branding, :auth_methods)
+          expect(Onetime::CustomDomain).not_to have_received(:from_display_domain)
+        end
+      end
+    end
+
+    it 'still rejects an unreadable tenant sign-in config after identity was resolved' do
+      allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
+        .with('domain-acme-123').and_raise(Redis::CannotConnectError.new('policy read failed'))
+
+      expect { record }.to raise_error(Onetime::SigninPolicyUnavailable)
+      expect(Onetime::CustomDomain::SigninConfig).to have_received(:find_by_domain_id)
+        .with('domain-acme-123')
+      expect(Onetime::CustomDomain).not_to have_received(:from_display_domain)
+    end
+
+    context 'without a published lookup' do
+      let(:custom_domain_lookup) { nil }
+
+      it 'shares one fallback identity read between policy and presentation' do
+        allow(Onetime::CustomDomain).to receive(:from_display_domain)
+          .with(display_domain).and_return(custom_domain)
+
+        payload = record
+
+        expect(payload[:effective_restrict_to][:restrict_to]).to eq('password')
+        expect(payload[:branding][:display_name]).to eq('Acme')
+        expect(payload[:auth_methods]).to eq([{ type: 'password', enabled: true }])
+        expect(Onetime::CustomDomain).to have_received(:from_display_domain)
+          .with(display_domain).once
+      end
+    end
+
+    context 'with a lookup for another host' do
+      let(:custom_domain_lookup) do
+        Onetime::CustomDomain::Lookup.found('other.example', instance_double(Onetime::CustomDomain))
+      end
+
+      it 'reads the request host once instead of trusting the other host record' do
+        allow(Onetime::CustomDomain).to receive(:from_display_domain)
+          .with(display_domain).and_return(custom_domain)
+
+        payload = record
+
+        expect(payload[:effective_restrict_to][:restrict_to]).to eq('password')
+        expect(payload[:branding][:display_name]).to eq('Acme')
+        expect(payload[:auth_methods]).to eq([{ type: 'password', enabled: true }])
+        expect(Onetime::CustomDomain).to have_received(:from_display_domain)
+          .with(display_domain).once
+      end
     end
   end
 
@@ -493,6 +652,7 @@ RSpec.describe InviteAPI::Logic::Invites::ShowInvite do
   describe 'agreement with the POST /:token/signup gate' do
     let(:domain_strategy) { :custom }
     let(:display_domain)  { 'signin.acme.example' }
+    let(:custom_domain_lookup) { Onetime::CustomDomain::Lookup.absent(display_domain) }
     let(:valid_password)  { 'SecureP@ssw0rd123!' }
 
     let(:signup_logic) do
@@ -539,7 +699,8 @@ RSpec.describe InviteAPI::Logic::Invites::ShowInvite do
       expect(asked.first).to eq(asked.last)
       expect(asked.first).to eq(
         'onetime.domain_strategy' => :custom,
-        'onetime.display_domain' => 'signin.acme.example'
+        'onetime.display_domain' => 'signin.acme.example',
+        Onetime::CustomDomain::Lookup::ENV_KEY => custom_domain_lookup,
       )
     end
 
