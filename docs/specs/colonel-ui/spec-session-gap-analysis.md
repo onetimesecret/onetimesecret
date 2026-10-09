@@ -232,6 +232,21 @@ audits the capability rather than binding it to the credential. Binding it to a
 value the cookie does not carry (an elevation nonce echoed as a request header,
 or a sid rotation at grant time) is the follow-up.
 
+> **Note (2026-10-08, unreleased, #4466):** the step-up now starts a new
+> session id at grant time. `ColonelAPI::Logic::Colonel::ElevateSession`
+> (`apps/api/colonel/logic/colonel/elevate_session.rb`) calls
+> `Onetime::SessionRotation.rotate!` after the factor verifies and before the
+> window is written, and grants no window when the rotation does not
+> complete. The specs show the window written under a new id, the old id
+> ended, and the old cookie signed out
+> (`spec/integration/full/colonel_elevation_session_rotation_spec.rb:69`,
+> `:91`; `spec/integration/simple/colonel_elevation_session_rotation_spec.rb:67`).
+> So a copy of the id taken before the step-up does not gain the window. A
+> copy of the new id taken during the window still carries it; the
+> elevation nonce is not implemented (`apps/api/colonel/logic/colonel/elevation.rb`,
+> "Residual risk"). This change is not in v0.26.15 or earlier. The paragraph
+> above is kept as written.
+
 **Bounded for the admin API surface (#4331): 3.1, 3.2, 3.13.** `/api/colonel*`
 now additionally requires a colonel session to satisfy a **1h idle** and a **12h
 absolute** bound

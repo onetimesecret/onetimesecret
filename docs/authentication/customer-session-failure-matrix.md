@@ -506,6 +506,15 @@ Recorded as a baseline so #4466 and #4467 start from observed behaviour, in
   session data, the active-session row and the sidecar values across
   (`Onetime::SessionRotation`, called from `after_two_factor_authentication`;
   `apps/web/auth/spec/integration/full_mfa/mfa_session_rotation_spec.rb`).
+  The login above is the full-mode one. Unreleased (not in v0.26.15 or
+  earlier): simple-mode password sign-in and the colonel step-up now also
+  start a new ID (`spec/integration/simple/login_session_rotation_spec.rb`,
+  `spec/integration/full/colonel_elevation_session_rotation_spec.rb`). The
+  state of each establishment path is listed in
+  `lib/onetime/session/rotation.rb` ("Which transitions renew the id") and in
+  the rollout doc
+  ([session-consistency-rollout.md](./session-consistency-rollout.md),
+  "Session-id renewal by path").
 - **Remember-me continuation (#4467):** the baseline first pinned that
   Rodauth's remember credential outlived an active-session revocation. That
   mechanism is gone. The remember-me checkbox now extends the session itself
@@ -533,7 +542,7 @@ credential disclosure. None was reproduced:
   booleans from `auth_status`, and `effectiveAuthStatus()` in
   `src/schemas/contracts/bootstrap.ts` reads a payload without `auth_status`
   from the booleans, which can only withhold.
-- Login rotates the session ID (baseline spec).
+- Login rotates the session ID (baseline spec, full mode).
 
 One finding came from the browser run rather than the matrix: `GET /logout`
 could be undone by a request already in flight (see "The reported incident",

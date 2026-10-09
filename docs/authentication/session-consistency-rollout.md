@@ -189,4 +189,63 @@ here.
   paths [#4466](https://github.com/onetimesecret/onetimesecret/issues/4466)
   lists (account switching, impersonation, SSO callbacks, autologin after
   signup and verification) are not yet proven to rotate, and the register row
-  stays open for them.
+  stays open for them. The unreleased state of each path is in the next
+  section.
+
+## Session-id renewal by path (unreleased)
+
+These changes are not in v0.26.15 or earlier. They are tracked in
+[#4466](https://github.com/onetimesecret/onetimesecret/issues/4466) and in the
+register rows `RISK-2026-08-14-COOKIE-TOSSING` and `RISK-2026-09-19-02`.
+
+Two paths change behaviour:
+
+- **Simple-mode password sign-in** now clears the session and starts a new id,
+  for verified and pending accounts alike
+  (`AuthenticateSession#start_new_session!`,
+  `apps/web/core/logic/authentication/authenticate_session.rb`). Nothing from
+  the earlier session is carried. Before this change the verified path cleared
+  the session and called `sess.replace!`, which no Rack session class defines,
+  so the id was kept; the pending path did not clear the session at all. If
+  the old id cannot be ended, the sign-in is refused: `503` for a JSON client,
+  a redirect to `/signin` with a message otherwise. This path was not in the
+  #4466 list above. Spec: `spec/integration/simple/login_session_rotation_spec.rb`.
+- **Colonel step-up** (`POST /api/colonel/elevation`) now writes the window
+  under a new id and carries the session data across, so the operator stays
+  signed in (`apps/api/colonel/logic/colonel/elevate_session.rb`). If the old
+  id cannot be ended, no window is granted and the request answers `403`
+  `elevation_failed`. Specs:
+  `spec/integration/full/colonel_elevation_session_rotation_spec.rb`,
+  `spec/integration/simple/colonel_elevation_session_rotation_spec.rb`.
+
+The full list, with the rule it follows, is in
+`lib/onetime/session/rotation.rb` ("Which transitions renew the id"). The rule:
+renew the id when the session gains capability, not when capability stays the
+same or shrinks, or when whoever holds the id could already make the
+transition at will. "Spec" means a spec that asserts the new id; "None" means
+the path renews the id by its mechanism but no spec asserts it.
+
+| Path | New id | Mechanism | Spec |
+|---|---|---|---|
+| Password sign-in, full mode | Yes | Rodauth `login_session`, which calls `clear_session`; this app defines that as `session.destroy` (`apps/web/auth/config/base.rb`) | `spec/integration/full/customer_session_continuation_baseline_spec.rb:18` |
+| Password sign-in, simple mode | Yes (changed) | Session cleared, then `Onetime::SessionRotation.rotate!` | `spec/integration/simple/login_session_rotation_spec.rb:117` |
+| OIDC callback sign-in, first sign-in and returning identity | Yes | `login_session` (rodauth-omniauth `login("omniauth")`) | `apps/web/auth/spec/integration/full/sso_callback_session_rotation_spec.rb:124`, `:134` |
+| Platform SAML callback sign-in | Yes | `login_session` | `apps/web/auth/spec/integration/full_saml_platform/platform_saml_sso_spec.rb:705` |
+| Verify-account autologin | Yes | `login_session` (Rodauth `autologin_session`) | `apps/web/auth/spec/integration/full/verify_account_autologin_session_rotation_spec.rb:123` |
+| Invite signup autologin | Yes | `rack.session.options[:renew]` | `spec/integration/full/active_sessions_spec.rb:624` |
+| Second factor completed | Yes | `rotate!` (`apps/web/auth/config/hooks/two_factor.rb`) | `apps/web/auth/spec/integration/full_mfa/mfa_session_rotation_spec.rb:81` |
+| Password change, full mode | Yes | `:renew` (`after_change_password`) | `spec/integration/full/hooks/account_lifecycle_spec.rb:487` |
+| Colonel step-up | Yes (changed) | `rotate!`; no window when it does not complete | `spec/integration/full/colonel_elevation_session_rotation_spec.rb:69`, `spec/integration/simple/colonel_elevation_session_rotation_spec.rb:67` |
+| Magic-link and passkey sign-in | Yes | Rodauth `login`, then `login_session` | None |
+| SSO link-confirm sign-in | Yes | `rodauth.login('sso_link_confirm')` (`apps/web/auth/routes/sso_link_confirm.rb:233`) | None |
+| Link-SSO password sign-in | Yes | `rodauth.login('password')` (`apps/web/auth/routes/link_sso.rb:322`) | None |
+| SSO Connect callback (binds an identity to the signed-in account) | Yes | The callback ends in rodauth-omniauth's `login("omniauth")`, then `login_session` | None |
+| Password change, simple mode | Yes | `:renew` (`AccountAPI::Logic::Account::UpdatePassword`) | None |
+| Impersonation start and stop | No, by the rule | Starting needs no step-up, the overlay is read-only, and stopping returns the colonel's own capability (`apps/web/auth/operations/customers/impersonate.rb`, `stop_impersonation.rb`) | Not applicable |
+| Organization switch (the account switching #4466 names) | No, by the rule | Changes the active organization, not the identity (`RequestHelpers#switch_organization`) | Not applicable |
+| Re-authentication proof (`POST /auth/reauth`) | No (open) | `Onetime::RecentReauth.record` (`apps/web/auth/operations/reauthenticate.rb:324`) writes a single-use proof under the current id; the proof admits one SSO Connect initiation | Not applicable |
+| TOTP and passkey setup | No (open) | Rodauth's `two_factor_update_session` adds the factor to the session without a new id; `apps/web/auth/config/hooks/mfa.rb` and `webauthn.rb` add none | Not applicable |
+
+The last two rows raise what the session can do without a new id. They are
+recorded as open in `RISK-2026-09-19-02`; their severity has not been
+assessed.
