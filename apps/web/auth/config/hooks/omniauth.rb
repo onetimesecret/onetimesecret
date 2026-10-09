@@ -166,16 +166,42 @@ module Auth::Config::Hooks
         # account and persist the (provider, uid) row via its own upsert — the
         # intended auto-link. The account was located by the SAME normalized
         # email used by H-3, so no widening of the lookup surface occurs.
+        #
+        # #4688 (RISK-2026-08-14-M01): the operator's trust declaration covers
+        # the IdP as a boundary, not a callback in which that IdP says it did
+        # NOT verify the address. Consult the same email_verification_hold the
+        # JIT path uses: an explicit email_verified: false ('idp_unverified')
+        # or a claim we could not read ('claim_unreadable') skips the auto-link
+        # and falls through to the existing-account branch below, exactly as if
+        # trust were off. Absence of the claim is not a hold, so providers that
+        # never emit it keep linking as before. JIT creation is unaffected: a
+        # new account is still created, and after_omniauth_create_account keeps
+        # its Customer unverified on the same hold.
         if existing &&
            session[:validated_omniauth_domain_id].nil? &&
            Onetime.auth_config.trust_email_for_linking?(provider)
+          link_hold = Auth::Config::Hooks::OmniAuth.email_verification_hold(
+            info: omniauth_info,
+            extra: omniauth_extra,
+          )
+
+          if link_hold.nil?
+            Auth::Logging.log_auth_event(
+              :omniauth_email_linked_trusted_provider,
+              level: :warn,
+              email: OT::Utils.obscure_email(normalized_email),
+              provider: provider,
+            )
+            next existing
+          end
+
           Auth::Logging.log_auth_event(
-            :omniauth_email_linked_trusted_provider,
+            :omniauth_trusted_link_held,
             level: :warn,
             email: OT::Utils.obscure_email(normalized_email),
             provider: provider,
+            hold: link_hold,
           )
-          next existing
         end
 
         if existing

@@ -470,7 +470,8 @@ RSpec.describe 'OmniAuth hooks' do
   # HONESTY: like the H-3 block above, this is a REIMPLEMENTATION of the
   # decision boundary — it does NOT drive the production _account_from_omniauth
   # (which needs a real Rodauth callback + datastore). It mirrors the exact
-  # gate order in the hook: existing && platform-path && trust-flag -> link.
+  # gate order in the hook: existing && platform-path && trust-flag && no
+  # email_verified hold -> link.
   # End-to-end coverage of the return/upsert path is a follow-up.
   describe '#3836 trusted-provider email linking (decision boundary)' do
     let(:accounts_store) do
@@ -486,17 +487,19 @@ RSpec.describe 'OmniAuth hooks' do
     end
 
     # Mirrors the production gate order in _account_from_omniauth:
-    #   1. trust-link (existing && platform path && trust flag on) -> account
+    #   1. trust-link (existing && platform path && trust flag on && no
+    #      email_verified hold, #4688) -> account
     #   2. H-3 refusal (existing) -> refused/redirect
     #   3. new email -> nil (JIT create)
     #
     # `tenant_domain_id` models session[:validated_omniauth_domain_id]: nil on
-    # the platform path, set on a tenant callback.
-    def account_from_omniauth(omniauth_email, trust_flag:, tenant_domain_id: nil)
+    # the platform path, set on a tenant callback. `hold` models the return of
+    # email_verification_hold: nil, 'idp_unverified' or 'claim_unreadable'.
+    def account_from_omniauth(omniauth_email, trust_flag:, tenant_domain_id: nil, hold: nil)
       normalized_email = normalize_email(omniauth_email)
       existing         = find_account_by_email(normalized_email)
 
-      if existing && tenant_domain_id.nil? && trust_flag
+      if existing && tenant_domain_id.nil? && trust_flag && hold.nil?
         return { linked: true, account: existing }
       end
 
@@ -518,6 +521,25 @@ RSpec.describe 'OmniAuth hooks' do
       it 'links regardless of IdP email casing (uses the same normalization)' do
         result = account_from_omniauth('USER@EXAMPLE.COM', trust_flag: true)
         expect(result).to include(linked: true)
+      end
+    end
+
+    context 'trust flag ON, platform path, email_verified hold (#4688)' do
+      it 'refuses on an explicit email_verified: false' do
+        result = account_from_omniauth('user@example.com', trust_flag: true, hold: 'idp_unverified')
+        expect(result).to include(refused: true)
+        expect(result[:redirect]).to eq('/signin?auth_error=account_exists_link_required')
+        expect(result).not_to include(:linked)
+      end
+
+      it 'refuses when the claim could not be read' do
+        result = account_from_omniauth('user@example.com', trust_flag: true, hold: 'claim_unreadable')
+        expect(result).to include(refused: true)
+        expect(result).not_to include(:linked)
+      end
+
+      it 'still returns nil (JIT create) for a new email' do
+        expect(account_from_omniauth('new@example.com', trust_flag: true, hold: 'idp_unverified')).to be_nil
       end
     end
 
