@@ -56,10 +56,11 @@ and so do a push to `main`, a tag push, a merge-queue check and the
 requires them to pass on the nightly.
 
 The same rule holds outside main CI. The
-[Ruby 4 preview](../../.github/workflows/ruby-4-preview.yml) runs its
-billing lanes and its billing-on full-mode row on its own nightly schedule
-and skips them on a pull request. The install checks (installer,
-devcontainer, fresh-clone) run the fast suite only.
+[Ruby 4 preview](../../.github/workflows/ruby-4-preview.yml) runs only on
+its own nightly schedule or a dispatch, never on a pull request, so its
+billing lanes and billing-on full-mode row run there with everything else.
+The install checks (installer, devcontainer, fresh-clone) run the fast
+suite only.
 
 To run the billing jobs against a branch before the nightly does, use **Run
 workflow** with `run_all` ticked, or run the lanes locally:

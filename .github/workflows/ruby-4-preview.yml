@@ -2,12 +2,12 @@
 ---
 name: Ruby 4 Preview
 
-# Standalone, non-blocking workflow that runs Ruby lint and tests under
-# Ruby 4.0.2 so the team can see what breaks before committing to the
-# upgrade. The Ruby-4-dependent steps are marked continue-on-error at
-# the step level, so failures surface as yellow warning annotations
-# (not red checks) and jobs still conclude green — visible signal
-# without blocking merge or polluting the PR check list.
+# Standalone, non-blocking nightly workflow that runs Ruby lint and tests
+# under Ruby 4.0.2 so the team can see what breaks before committing to
+# the upgrade. It runs on the schedule below and on a dispatch, never on
+# a pull request. The Ruby-4-dependent steps are marked continue-on-error
+# at the step level, so failures surface as yellow warning annotations
+# (not red checks) and jobs still conclude green.
 #
 # Design notes:
 # - Jobs are independent: each test job only needs build-assets for the
@@ -37,18 +37,16 @@ name: Ruby 4 Preview
 #   NOT continue-on-error: when it fails, this workflow is broken, not
 #   Ruby 4, and every later step would fail for the wrong reason.
 # - Billing tests are nightly only, here as in ci.yml
-#   (docs/development/auth-ci.md): the billing lanes and the billing-on
-#   full-mode row are their own jobs, skipped on a pull request and run
-#   on the schedule below (or a dispatch). The other jobs run on a pull
-#   request and a dispatch, not on the schedule, so the nightly run is
-#   the billing jobs and the frontend build they download.
+#   (docs/development/auth-ci.md). The whole workflow is nightly, so the
+#   billing lanes and the billing-on full-mode row run with every other
+#   job and no job has an event gate.
 
 on:
-  # No base-branch filter, as in ci.yml: stacked PRs run too.
-  pull_request:
   schedule:
-    # Nightly, for the billing jobs only; after main CI's 04:03 run.
+    # Nightly, after main CI's 04:03 run.
     - cron: '23 4 * * *'
+  # To run it against a branch:
+  #   gh workflow run ruby-4-preview.yml --ref <branch>
   workflow_dispatch:
 
 permissions:
@@ -87,7 +85,6 @@ jobs:
     name: Ruby 4 · Lint
     runs-on: *runs-on
     timeout-minutes: 5
-    if: github.event_name != 'schedule'
     steps:
       - *checkout-step
 
@@ -131,7 +128,7 @@ jobs:
     runs-on: *runs-on
     timeout-minutes: 15
     needs: [build-assets]
-    if: always() && github.event_name != 'schedule'
+    if: always()
 
     steps:
       - *checkout-step
@@ -164,13 +161,12 @@ jobs:
         with:
           lane: unit
 
-  # Nightly only (see the design notes): billing's own lanes.
   ruby-billing:
     name: Ruby 4 · Billing Tests
     runs-on: *runs-on
     timeout-minutes: 15
     needs: [build-assets]
-    if: always() && github.event_name != 'pull_request'
+    if: always()
 
     steps:
       - *checkout-step
@@ -208,7 +204,7 @@ jobs:
     runs-on: *runs-on
     timeout-minutes: 15
     needs: [build-assets]
-    if: always() && github.event_name != 'schedule'
+    if: always()
 
     steps:
       - *checkout-step
@@ -248,11 +244,11 @@ jobs:
     runs-on: *runs-on
     timeout-minutes: 15
     needs: [build-assets]
-    if: always() && github.event_name != 'schedule'
+    if: always()
 
-    # Same lane + overlay pairing as ci.yml's SQLite matrix rows; the MFA
-    # row is the only process that boots with AUTH_MFA_ENABLED. The
-    # billing-on row is the nightly-only job below.
+    # Same lane + overlay pairing as ci.yml's SQLite matrix rows; the
+    # billing rows are the full-sqlite lane with the billing overlay, and
+    # the MFA row is the only process that boots with AUTH_MFA_ENABLED.
     strategy:
       fail-fast: false
       matrix:
@@ -260,6 +256,9 @@ jobs:
           - name: 'SQLite, billing: off'
             lane: full-sqlite
             overlay: ''
+          - name: 'SQLite, billing: on'
+            lane: full-sqlite
+            overlay: 'billing'
           - name: 'SQLite, MFA'
             lane: full-mfa
             overlay: ''
@@ -267,7 +266,7 @@ jobs:
             lane: full-saml-platform
             overlay: ''
 
-    steps: &full-integration-steps
+    steps:
       - *checkout-step
 
       - *start-core-services
@@ -291,32 +290,12 @@ jobs:
           lane: ${{ matrix.lane }}
           overlay: ${{ matrix.overlay }}
 
-  # Nightly only (see the design notes): the full-sqlite lane with the
-  # billing overlay, as ci.yml's ruby-integration-billing SQLite row. A
-  # one-row matrix so the shared steps' matrix references resolve.
-  ruby-integration-full-billing:
-    name: 'Ruby 4 · Integration (Full, ${{ matrix.name }})'
-    runs-on: *runs-on
-    timeout-minutes: 15
-    needs: [build-assets]
-    if: always() && github.event_name != 'pull_request'
-
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: 'SQLite, billing: on'
-            lane: full-sqlite
-            overlay: 'billing'
-
-    steps: *full-integration-steps
-
   ruby-integration-disabled:
     name: Ruby 4 · Integration (Disabled Mode)
     runs-on: *runs-on
     timeout-minutes: 15
     needs: [build-assets]
-    if: always() && github.event_name != 'schedule'
+    if: always()
 
     steps:
       - *checkout-step
