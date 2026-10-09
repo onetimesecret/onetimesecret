@@ -24,8 +24,8 @@ importers:
   .:
     dependencies:
       '@babel/helpers':
-        specifier: 7.29.2
-        version: 7.29.2
+        specifier: 7.29.7
+        version: 7.29.7
       '@codemirror/lang-json':
         specifier: 6.0.2
         version: 6.0.2
@@ -459,10 +459,6 @@ packages:
 
   '@babel/helper-validator-option@7.29.7':
     resolution: {integrity: sha512-N9ZErrD+yW5geCDtBqnOoxmR8+tNKiGuxKlDpuJxfsqpa2dFcexaziGAE/qoHLiDDreVNMupxGmSoNlyvsA3gw==}
-    engines: {node: '>=6.9.0'}
-
-  '@babel/helpers@7.29.2':
-    resolution: {integrity: sha512-HoGuUs4sCZNezVEKdVcwqmZN8GoHirLUcLaYVNBK2J0DadGtdcqgr3BCbvH8+XUo4NGjNl3VOtSjEKNzqfFgKw==}
     engines: {node: '>=6.9.0'}
 
   '@babel/helpers@7.29.7':
@@ -4959,11 +4955,6 @@ snapshots:
   '@babel/helper-validator-identifier@7.29.7': {}
 
   '@babel/helper-validator-option@7.29.7': {}
-
-  '@babel/helpers@7.29.2':
-    dependencies:
-      '@babel/template': 7.29.7
-      '@babel/types': 7.29.7
 
   '@babel/helpers@7.29.7':
     dependencies:
