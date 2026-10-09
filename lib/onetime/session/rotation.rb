@@ -76,8 +76,10 @@ module Onetime
   # - Re-authentication proof (POST /auth/reauth): renewed, rotate!, before
   #   the single-use Onetime::RecentReauth proof is recorded
   #   (Auth::Operations::Reauthenticate); no proof when the old id cannot be
-  #   ended. A ceremony that stops at the second-factor prompt records
-  #   nothing and keeps the id.
+  #   ended. A request with no surface is refused before the id moves; a
+  #   proof write that fails after it answers 503 with `session_rotated`
+  #   so the SPA adopts the new epoch. A ceremony that stops at the
+  #   second-factor prompt records nothing and keeps the id.
   #   apps/web/auth/spec/integration/full_mfa/reauth_session_rotation_spec.rb:74, :116
   # - Invite signup autologin: renewed, :renew.
   #   spec/integration/full/active_sessions_spec.rb:624
@@ -91,8 +93,11 @@ module Onetime
   #   spec/integration/simple/colonel_elevation_session_rotation_spec.rb:67
   # - Impersonation start and stop: none, by rule (any holder of the colonel
   #   id can start one without a step-up; the overlay is read-only; stop
-  #   returns the colonel's own capability). See
+  #   returns the colonel's own capability, and any holder of the id can
+  #   stop at will or wait out the expiry). See
   #   Auth::Operations::Customers::Impersonate#call.
+  #   spec/integration/full/impersonation_rack_spec.rb:153 (same id through
+  #   start and stop)
   # - Organization switch (RequestHelpers#switch_organization): none, by
   #   rule; it changes the active organization, not the identity.
   # - Dropping elevation: none, by rule; capability shrinks.

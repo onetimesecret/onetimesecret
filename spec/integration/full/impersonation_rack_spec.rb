@@ -152,9 +152,21 @@ RSpec.describe 'Colonel impersonation through the rack stack', type: :integratio
   describe 'the full operator round trip' do
     it 'starts, serves the target read-only, blocks writes, and restores the colonel' do
       # --- 1. START ----------------------------------------------------
+      # Ask once as the colonel, so the session id under test is the one
+      # that carries the colonel in (not one minted by the start).
+      bootstrap
+      colonel_sid = rack_mock_session.cookie_jar['onetime.session']
+      expect(colonel_sid).not_to be_nil
+
       start_impersonation
 
       expect(last_response.status).to eq(200), "start failed: #{last_response.body}"
+      # #4466: no new id at start or stop, by rule (lib/onetime/session/
+      # rotation.rb, "Which transitions renew the id"): any holder of the
+      # colonel id can start, stop, or wait out an impersonation, so a new
+      # id would defend nothing, and it would start a new snapshot epoch
+      # (ADR-046).
+      expect(rack_mock_session.cookie_jar['onetime.session']).to eq(colonel_sid)
       record = body_json['record']
       expect(record['impersonation_id']).to match(/\Aimp_[0-9a-f]{16}\z/)
       expect(record['target_extid']).to eq(target.extid)
@@ -237,7 +249,8 @@ RSpec.describe 'Colonel impersonation through the rack stack', type: :integratio
       expect(stop_record['target_extid']).to eq(target.extid)
       expect(stop_record['redirect']).to eq("/colonel/customers/#{target.extid}")
 
-      # --- 8. the colonel is back --------------------------------------
+      # --- 8. the colonel is back, under the same id ---------------------
+      expect(rack_mock_session.cookie_jar['onetime.session']).to eq(colonel_sid)
       restored = bootstrap
       expect(restored['impersonation']).to be_nil
       expect(restored['custid']).to eq(colonel.custid)

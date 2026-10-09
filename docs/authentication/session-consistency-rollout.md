@@ -185,12 +185,16 @@ here.
   a code; the session is kept (D3 in the failure matrix).
 - Completing the second factor now renews the session id as the password
   step does (`after_two_factor_authentication` calls
-  `Onetime::SessionRotation`; `RISK-2026-09-19-02`). The other establishment
-  paths [#4466](https://github.com/onetimesecret/onetimesecret/issues/4466)
-  lists (account switching, impersonation, SSO callbacks, autologin after
-  signup and verification) are not yet proven to rotate, and the register row
-  stays open for them. The unreleased state of each path is in the next
-  section.
+  `Onetime::SessionRotation`; `RISK-2026-09-19-02`). Of the other
+  establishment paths
+  [#4466](https://github.com/onetimesecret/onetimesecret/issues/4466) lists,
+  invite signup autologin has a spec that asserts the new id since v0.26.13
+  (`spec/integration/full/active_sessions_spec.rb`), and it is the only
+  signup that signs the account in (`create_account_autologin?` is off). SSO
+  callbacks and verify-account autologin renew the id but have no spec that
+  asserts it in this release. Impersonation and account switching are not
+  renewed in this release; see the next section for what each path does and
+  the rule it follows. The register row stays open for them.
 
 ## Session-id renewal by path (unreleased)
 
@@ -238,7 +242,11 @@ After each of these the SPA asks for one bootstrap snapshot as an
 authentication mutation (`reauth`, `mfa-setup`; `useReauth`, `useMfa`,
 `useWebAuthn`), which adopts the new snapshot epoch in place. Left to the next
 ordinary refresh, the new epoch would read as a session replaced elsewhere and
-force a page load (ADR-046).
+force a page load (ADR-046). Re-authentication checks the request's surface
+before the id moves, so `403 invalid_surface` never follows a renewal. When
+the proof cannot be saved after the renewal, the answer is
+`503 reauth_not_recorded` with `session_rotated: true`, and `useReauth` makes
+the same auth-mutation refresh while still reporting the error.
 
 The full list, with the rule it follows, is in
 `lib/onetime/session/rotation.rb` ("Which transitions renew the id"). The rule:
@@ -264,10 +272,10 @@ the path renews the id by its mechanism but no spec asserts it.
 | Link-SSO password sign-in | Yes | `rodauth.login('password')` (`apps/web/auth/routes/link_sso.rb:322`) | `apps/web/auth/spec/integration/full/link_sso_session_rotation_spec.rb:65` |
 | SSO Connect callback (binds an identity to the signed-in account) | Yes | The callback ends in rodauth-omniauth's `login("omniauth")`, then `login_session` | `apps/web/auth/spec/integration/full/omniauth_connect_link_spec.rb:1155` |
 | Password change, simple mode | Yes | `:renew` (`AccountAPI::Logic::Account::UpdatePassword`) | `spec/integration/simple/password_change_session_rotation_spec.rb:86` |
-| Re-authentication proof (`POST /auth/reauth`) | Yes (changed) | `rotate!` before `Onetime::RecentReauth.record` (`apps/web/auth/operations/reauthenticate.rb`); no proof when it does not complete | `apps/web/auth/spec/integration/full_mfa/reauth_session_rotation_spec.rb:74`, `:116` |
+| Re-authentication proof (`POST /auth/reauth`) | Yes (changed) | `rotate!` before `Onetime::RecentReauth.record` (`apps/web/auth/operations/reauthenticate.rb`); no proof when it does not complete; a request with no surface is refused before it | `apps/web/auth/spec/integration/full_mfa/reauth_session_rotation_spec.rb:74`, `:116` |
 | First second factor set up (TOTP or passkey) | Yes (changed) | `rotate!` (`apps/web/auth/config/hooks/two_factor.rb`, from `after_otp_setup` and `after_webauthn_setup`); the setup is refused when it does not complete | `apps/web/auth/spec/integration/full_mfa/factor_setup_session_rotation_spec.rb:117`, `:142` |
 | A further factor on a session already two-factor authenticated | No, by the rule | Rodauth does not mark the session again, so nothing is gained | `apps/web/auth/spec/integration/full_mfa/factor_setup_session_rotation_spec.rb:157` |
-| Impersonation start and stop | No, by the rule | Starting needs no step-up, the overlay is read-only, and stopping returns the colonel's own capability (`apps/web/auth/operations/customers/impersonate.rb`, `stop_impersonation.rb`) | Not applicable |
+| Impersonation start and stop | No, by the rule | Starting needs no step-up, the overlay is read-only, and stopping returns the colonel's own capability (`apps/web/auth/operations/customers/impersonate.rb`, `stop_impersonation.rb`) | `spec/integration/full/impersonation_rack_spec.rb:153` (same id through start and stop) |
 | Organization switch (taken here to be what #4466 calls account switching) | No, by the rule | Changes the active organization, not the identity (`RequestHelpers#switch_organization`) | Not applicable |
 Two related items are outside this table because no session renews its own
 id in them. A role grant made by an operator reaches the customer's existing

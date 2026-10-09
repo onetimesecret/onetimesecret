@@ -425,7 +425,8 @@ architectural — and its four named gaps all hold. Five amendments:
 4. **§4's remember-me finding gains one fact**: `load_memory` is never called, so
    the gap is latent and remember-me is non-functional today. That changes the
    fix from "add a cascade" to "add the cascade and the wiring together, or
-   disable the feature". See 2.5.
+   disable the feature". See 2.5. (2026-10-08: the feature was disabled; the
+   note under the 2.5 detail has the current state.)
 5. **§5's IP-masking premise holds** — verified: `IPPrivacyMiddleware` is mounted
    universally and rewrites `env['REMOTE_ADDR']` to the masked client IP before
    any downstream consumer, so `@session['ip_address'] = @request.ip`
@@ -479,7 +480,7 @@ ranking:
 | 1.6 — session ID in the console is the cookie value     | All of §4. Impersonation controls constrain nobody while the same operator can copy a live credential out of a read-only view |
 | 3.1 + 3.2 — idle and absolute lifetime on the blob path | All of §7, and 1.8's `expires_at`                                                                                             |
 | 5.3 — an external audit sink                            | 5.2, 5.4, 5.5, 5.6, 5.11. Tamper-evidence and retention are both cheaper downstream of a sink than in Redis                   |
-| 2.5 — remember-me cascade                               | Any future work on the remember feature; wiring `load_memory` without it ships a revocation bypass                            |
+| 2.5 — remember-me cascade                               | Any future work on the remember feature; wiring `load_memory` without it ships a revocation bypass (2026-10-08: the feature is disabled; see the 2.5 detail) |
 | 8.1 — trusted proxy default                             | Every IP-bearing field in §1 and §5. Until it is on, those fields record the ingress hop                                      |
 
 Twenty-two of the 67 were already itemized in `spec-session-path.md` §4/§5 and
