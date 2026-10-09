@@ -160,7 +160,15 @@ reports the list through `--print-key` (`workers=<n> worker_dbs=<list>`).
 executes the command; `auto` reads `TEST_ENV_NUMBER`, which `parallel_tests`
 sets. The per-worker status files are merged back into the lane's after the
 workers finish. Overlapping worker ranges of two lanes are detected by the
-owner marker like any other collision, not prevented.
+owner marker and the liveness token like any other collision, not prevented.
+
+Only the lane's own index (worker 1) keeps its owner marker after the run.
+The other workers' indexes are borrowed for the run: their markers carry a
+60-second TTL that the runner renews, and are removed when the run ends. A
+borrowed index's marker counts as a live owner only while the run that wrote
+it holds that index's liveness token. Without this, a finished multi-worker
+run would block every later lane whose own index it had borrowed, for as
+long as the borrowing checkout exists.
 
 ### Shared mode and explicit assignment
 
@@ -182,7 +190,9 @@ The runner stores an owner marker, `_lanes:owner`, containing the full
 isolation key in the selected Valkey database. It claims a fresh marker
 atomically with `SET NX`. A live owner from another checkout aborts the run and
 requires an explicit index pin. If the recorded checkout no longer exists, the
-runner may take over the stale marker and verifies the takeover.
+runner may take over the stale marker and verifies the takeover. A marker with a
+TTL is a borrowed worker index (see Workers): it is also stale once the run
+that wrote it no longer holds that index's liveness token.
 
 The same lane and overlay set cannot run twice in one checkout: they derive the
 same key. A TTL-backed liveness token in Valkey database 0 detects that state

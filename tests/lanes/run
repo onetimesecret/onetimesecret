@@ -1447,15 +1447,25 @@ _lanes_resp_recv() {  # prints a bulk/simple reply payload; nothing for null bul
 # detection heuristic, and a refresh that could take the run down would be
 # a worse bug than the collisions it reports.
 #
-# Both walk every worker index (one, for a serial run): each worker's
-# database carries the owner marker and each index has a liveness token in
-# DB 0, so a run of N workers keeps N of each alive and releases N.
+# Both walk every worker index (one, for a serial run): each index has a
+# liveness token in DB 0 and an owner marker in its own database, so a run
+# of N workers keeps N of each alive. The lane's own index (worker 1) keeps
+# its marker after the run; every other worker's marker is for this run only
+# (EX 60, renewed here, dropped on release), so the run leaves one behind.
 _lanes_token_refresh() {  # re-assert this run's claim before the TTL lapses
   ( LC_ALL=C
     exec 3<>"/dev/tcp/127.0.0.1/2163" || exit 0
-    for idx in "${_lanes_worker_dbs[@]}"; do
+    for pos in "${!_lanes_worker_dbs[@]}"; do
+      idx="${_lanes_worker_dbs[pos]}"
+      # NX, then renew only a token that is still ours. A plain SET would
+      # take back an index another run had taken over after this one's TTL
+      # lapsed, and the release would then delete that run's claim as ours.
+      # An index whose token is someone else's is theirs: leave its marker.
       _lanes_resp_send SELECT 0; _lanes_resp_recv >/dev/null || exit 0
-      _lanes_resp_send SET "_lanes:active:${idx}" "${_lanes_active}" EX 60; _lanes_resp_recv >/dev/null || exit 0
+      _lanes_resp_send SET "_lanes:active:${idx}" "${_lanes_active}" NX EX 60; _lanes_resp_recv >/dev/null || exit 0
+      holder="$(_lanes_resp_send GET "_lanes:active:${idx}"; _lanes_resp_recv)" || exit 0
+      [[ "${holder}" == "${_lanes_active}" ]] || continue
+      _lanes_resp_send EXPIRE "_lanes:active:${idx}" 60; _lanes_resp_recv >/dev/null || exit 0
       # And the owner marker, which lanes delete out from under themselves:
       # the unit lane's tryouts and every integration lane's after(:each)
       # hook flush the whole database, repeatedly, for the length of the run.
@@ -1464,7 +1474,16 @@ _lanes_token_refresh() {  # re-assert this run's claim before the TTL lapses
       # NX, never a plain SET — if another run legitimately claimed the index
       # in the gap, its marker is the true one and must not be overwritten.
       _lanes_resp_send SELECT "${idx}"; _lanes_resp_recv >/dev/null || exit 0
-      _lanes_resp_send SET _lanes:owner "${LANES_ISOLATION_KEY}" NX; _lanes_resp_recv >/dev/null || exit 0
+      if (( pos == 0 )); then
+        _lanes_resp_send SET _lanes:owner "${LANES_ISOLATION_KEY}" NX; _lanes_resp_recv >/dev/null || exit 0
+        continue
+      fi
+      # A worker's marker carries the TTL, and NX does not renew one that
+      # is already there: renew it here, but only while it is still ours.
+      _lanes_resp_send SET _lanes:owner "${LANES_ISOLATION_KEY}" NX EX 60; _lanes_resp_recv >/dev/null || exit 0
+      owner="$(_lanes_resp_send GET _lanes:owner; _lanes_resp_recv)" || exit 0
+      [[ "${owner}" == "${LANES_ISOLATION_KEY}" ]] || continue
+      _lanes_resp_send EXPIRE _lanes:owner 60; _lanes_resp_recv >/dev/null || exit 0
     done
   ) 2>/dev/null || true
 }
@@ -1472,12 +1491,27 @@ _lanes_token_release() {  # drop them — but only those still ours
   # The GET/compare is what makes a late release safe. A refresher that
   # overslept its own TTL and lost a token to the next run must not then
   # delete that run's claim on its way out.
+  #
+  # A worker's marker goes with its token, and only while the token is still
+  # this run's. The marker alone cannot say whose it is: the same lane in the
+  # same checkout, started after this run stopped answering, writes the same
+  # value, and that run's claim must survive this one's exit. The lane's own
+  # index keeps its marker; that one is meant to outlive the run.
   ( LC_ALL=C
     exec 3<>"/dev/tcp/127.0.0.1/2163" || exit 0
-    _lanes_resp_send SELECT 0; _lanes_resp_recv >/dev/null || exit 0
-    for idx in "${_lanes_worker_dbs[@]}"; do
+    for pos in "${!_lanes_worker_dbs[@]}"; do
+      idx="${_lanes_worker_dbs[pos]}"
+      _lanes_resp_send SELECT 0; _lanes_resp_recv >/dev/null || exit 0
       holder="$(_lanes_resp_send GET "_lanes:active:${idx}"; _lanes_resp_recv)" || exit 0
       [[ "${holder}" == "${_lanes_active}" ]] || continue
+      if (( pos > 0 )); then
+        _lanes_resp_send SELECT "${idx}"; _lanes_resp_recv >/dev/null || exit 0
+        owner="$(_lanes_resp_send GET _lanes:owner; _lanes_resp_recv)" || exit 0
+        if [[ "${owner}" == "${LANES_ISOLATION_KEY}" ]]; then
+          _lanes_resp_send DEL _lanes:owner; _lanes_resp_recv >/dev/null || exit 0
+        fi
+        _lanes_resp_send SELECT 0; _lanes_resp_recv >/dev/null || exit 0
+      fi
       _lanes_resp_send DEL "_lanes:active:${idx}"; _lanes_resp_recv >/dev/null || exit 0
     done
   ) 2>/dev/null || true
@@ -1509,13 +1543,25 @@ _lanes_token_release() {  # drop them — but only those still ours
 # each: a run of N workers writes N databases, and a foreign owner in any
 # of them is the same silent sharing. The abort names the index it found
 # taken, which is the lane's own for worker 1 and a neighbour for the rest.
+#
+# Only worker 1's index is the lane's own; the others are borrowed for the
+# run. Their markers carry a TTL (EX 60, renewed by the refresher, dropped
+# on release), because a borrowed index marked for good would turn away
+# every later lane whose own index it is — the checkout that left the
+# marker still exists, so the staleness test above would call it live
+# forever. The TTL is also how another run recognises such a marker: a
+# foreign marker with one is live only while its run still holds the
+# index's liveness token, and is stale otherwise.
 if [[ "${LANES_DATASTORE_DB}" != 0 && "${REDIS_URL:-}" =~ 127\.0\.0\.1:2163 ]]; then
-  for _lanes_wdb in "${_lanes_worker_dbs[@]}"; do
+  for _lanes_wpos in "${!_lanes_worker_dbs[@]}"; do
+    _lanes_wdb="${_lanes_worker_dbs[_lanes_wpos]}"
+    _lanes_owner_ttl=()
+    if (( _lanes_wpos > 0 )); then _lanes_owner_ttl=(EX 60); fi
     _lanes_owner="$( (
       LC_ALL=C  # ${#arg} must count bytes: RESP bulk lengths are byte counts
       exec 3<>"/dev/tcp/127.0.0.1/2163" || exit 0
       _lanes_resp_send SELECT "${_lanes_wdb}"; _lanes_resp_recv >/dev/null || exit 0
-      _lanes_resp_send SET _lanes:owner "${LANES_ISOLATION_KEY}" NX; _lanes_resp_recv >/dev/null || exit 0
+      _lanes_resp_send SET _lanes:owner "${LANES_ISOLATION_KEY}" NX "${_lanes_owner_ttl[@]}"; _lanes_resp_recv >/dev/null || exit 0
       owner="$(_lanes_resp_send GET _lanes:owner; _lanes_resp_recv)" || exit 0
       [[ "${owner}" == "${LANES_ISOLATION_KEY}" ]] && exit 0
       # Staleness is a question about the OWNER'S PATH, which is field 3 of
@@ -1528,10 +1574,26 @@ if [[ "${LANES_DATASTORE_DB}" != 0 && "${REDIS_URL:-}" =~ 127\.0\.0\.1:2163 ]]; 
       owner_root="${owner#*|}"
       owner_root="${owner_root#*|}"
       if [[ -n "${owner}" && -d "${owner_root}" ]]; then
-        printf '%s' "${owner}"; exit 1
+        # A marker with a TTL is another run's borrowed index: live while
+        # that run holds the index's token (<pid>|<its key>, pid alive).
+        # PTTL -2: the marker went between the GET and here (its run's
+        # release, or a flush), so it is no claim for good either.
+        ttl="$(_lanes_resp_send PTTL _lanes:owner; _lanes_resp_recv)" || exit 0
+        if [[ "${ttl#:}" =~ ^[0-9]+$ || "${ttl#:}" == -2 ]]; then
+          _lanes_resp_send SELECT 0; _lanes_resp_recv >/dev/null || exit 0
+          holder="$(_lanes_resp_send GET "_lanes:active:${_lanes_wdb}"; _lanes_resp_recv)" || exit 0
+          holder_pid="${holder%%|*}"
+          if [[ "${holder#*|}" == "${owner}" && "${holder_pid}" =~ ^[0-9]+$ ]] &&
+             kill -0 "${holder_pid}" 2>/dev/null; then
+            printf '%s' "${owner}"; exit 1
+          fi
+          _lanes_resp_send SELECT "${_lanes_wdb}"; _lanes_resp_recv >/dev/null || exit 0
+        else
+          printf '%s' "${owner}"; exit 1
+        fi
       fi
       # Stale: overwrite, then confirm the takeover actually stuck with us.
-      _lanes_resp_send SET _lanes:owner "${LANES_ISOLATION_KEY}"; _lanes_resp_recv >/dev/null || exit 0
+      _lanes_resp_send SET _lanes:owner "${LANES_ISOLATION_KEY}" "${_lanes_owner_ttl[@]}"; _lanes_resp_recv >/dev/null || exit 0
       owner="$(_lanes_resp_send GET _lanes:owner; _lanes_resp_recv)" || exit 0
       [[ "${owner}" == "${LANES_ISOLATION_KEY}" ]] && exit 0
       printf '%s' "${owner}"; exit 1
@@ -1548,7 +1610,7 @@ if [[ "${LANES_DATASTORE_DB}" != 0 && "${REDIS_URL:-}" =~ 127\.0\.0\.1:2163 ]]; 
       exit 69
     }
   done
-  builtin unset _lanes_owner _lanes_other_rest _lanes_other_overlays _lanes_wdb
+  builtin unset _lanes_owner _lanes_other_rest _lanes_other_overlays _lanes_wdb _lanes_wpos _lanes_owner_ttl
 fi
 
 # ── Same-lane concurrency: detected, not serialized ──────────────────────
@@ -1622,8 +1684,9 @@ if [[ "${LANES_DATASTORE_DB}" != 0 && "${REDIS_URL:-}" =~ 127\.0\.0\.1:2163 ]]; 
       echo "hint: two runs of the same lane in one checkout share a datastore, which" >&2
       echo "  is what this token detects. Wait for pid ${_lanes_other_pid} to finish, or give" >&2
       echo "  this run its own index (LANES_DATASTORE_DB in a lane env file or overlay)." >&2
-      # Tokens claimed for the earlier workers of this run are left to their
-      # 60s TTL: the refresher that would release them is not started yet.
+      # Tokens claimed for the earlier workers of this run, and the markers
+      # of its borrowed indexes, are left to their 60s TTL: the refresher
+      # that would release them is not started yet.
       exit 69
     }
   done
@@ -1667,10 +1730,14 @@ if [[ -n "${_lanes_active:-}" ]]; then
     trap 'exit 0' TERM HUP INT
     trap '_lanes_token_release' EXIT
     _lanes_ticks=0
-    while kill -0 "${_lanes_pid}" 2>/dev/null && (( _lanes_ticks < 2880 )); do
+    while (( _lanes_ticks < 2880 )); do
       # `|| true`: a signal that kills the sleep must reach the traps
       # above, not errexit.
       sleep 5 || true
+      # Checked after the sleep, not before it: the runner usually exits
+      # while this child sleeps, and a refresh on behalf of a finished run
+      # re-claims indexes a new run may already have taken.
+      kill -0 "${_lanes_pid}" 2>/dev/null || break
       _lanes_ticks=$(( _lanes_ticks + 1 ))
       _lanes_token_refresh
     done

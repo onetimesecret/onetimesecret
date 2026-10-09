@@ -613,9 +613,12 @@ checkouts while sharing the local test service instances:
   onto 0. In CI (index 0) the workers are `0..n-1`. The runner claims every
   worker index (owner marker and liveness token each), `--print-key` prints
   the list as `worker_dbs`, and `tests/lanes/support/worker-env` derives one
-  worker's index and URLs from the lane's for the task side. Two lanes whose
-  worker ranges overlap are caught by the owner marker like any other
-  collision (exit 69, naming the index), not prevented.
+  worker's index and URLs from the lane's for the task side. Only worker 1's
+  marker outlives the run: the other workers' indexes are borrowed, and
+  their markers expire 60s after the last refresh and are removed when the
+  run ends. A run whose range overlaps a live run's indexes, or another
+  lane's own index, is refused like any other collision (exit 69, naming
+  the index), not rearranged.
 - PostgreSQL uses the corresponding `onetime_auth_test_w<index>` database
   (one per lane: workers share it, which is why Postgres-backed lanes refuse
   `--workers` above 1).
