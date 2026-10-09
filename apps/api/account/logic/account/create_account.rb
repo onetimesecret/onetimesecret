@@ -214,7 +214,12 @@ module AccountAPI::Logic
       #   - Does not reveal which domains are allowed in error messages
       #   - Uses case-insensitive domain matching
       def allowed_signup_domain?(email)
-        Onetime::SignupValidation.valid_signup_email?(email, display_domain: display_domain)
+        Onetime::SignupValidation.valid_signup_email?(
+          email,
+          display_domain: display_domain,
+          custom_domain_lookup: custom_domain_lookup,
+          domain_strategy: domain_strategy,
+        )
       end
 
       def signup_config_display_domain

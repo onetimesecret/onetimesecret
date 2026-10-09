@@ -56,14 +56,19 @@ module Auth::Config::Hooks
         email = normalize_login(param(login_param))
 
         # Per-domain signup validation (allowlist, MX, SMTP).
-        # Resolves the CustomDomain by display_domain and enforces its
+        # Reuses the request's CustomDomain lookup and enforces its
         # SignupConfig if one is configured and enabled. Falls back to the
         # global allowed_signup_domains policy when no per-domain config
         # applies. Identical user-visible error message to the existing
         # email-conflict paths prevents enumeration of which domains, MX
         # records, or mailboxes are accepted.
         display_domain = request.env['onetime.display_domain']
-        unless Onetime::SignupValidation.valid_signup_email?(email, display_domain: display_domain)
+        unless Onetime::SignupValidation.valid_signup_email?(
+          email,
+          display_domain: display_domain,
+          custom_domain_lookup: request.env[Onetime::CustomDomain::Lookup::ENV_KEY],
+          domain_strategy: request.env['onetime.domain_strategy'],
+        )
           Auth::Logging.log_auth_event(
             :registration_blocked_signup_validation,
             level: :info,
