@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require_relative '../../support/lane_probe'
 require 'open3'
 require 'tmpdir'
 
@@ -76,28 +77,9 @@ module LaneHermeticProbe
   # would make a serial run look like worker N of something.
   WORKER_ASSIGNED = %w[LANES_WORKER TEST_ENV_NUMBER].freeze
 
+  extend LaneProbe
+
   module_function
-
-  def repo_root
-    File.expand_path('../../..', __dir__)
-  end
-
-  # The floor the runner enforces, read from the same pin file it reads —
-  # a literal here would be a third copy of the number (runner, doctor,
-  # spec) and the first one to go stale silently skips this whole file.
-  def bash_floor
-    @bash_floor ||= Integer(File.read(File.join(repo_root, '.bash-version')).strip)
-  end
-
-  # The runner's shebang is `#!/usr/bin/env bash`, so the bash that matters
-  # is the first one on PATH — not the shell that launched RSpec, and on
-  # macOS not /bin/bash either.
-  def path_bash_major
-    return @path_bash_major if defined?(@path_bash_major)
-
-    out, status = Open3.capture2e('bash', '-c', 'echo "${BASH_VERSINFO[0]}"')
-    @path_bash_major = status.success? ? Integer(out.strip, exception: false) : nil
-  end
 
   # Every name here is either a variable that must not survive, or one
   # whose lane-supplied value must win over the caller's.
@@ -260,11 +242,7 @@ RSpec.describe 'tests/lanes/run hermetic boundary' do
   let(:result) { probe.result }
   let(:env)    { result[:env] }
 
-  before do
-    major = probe.path_bash_major
-    floor = probe.bash_floor
-    skip "bash #{floor}+ is not on PATH (macOS: brew install bash)" if major.nil? || major < floor
-  end
+  include_context 'with the lane runner bash'
 
   it 'runs the selftest lane without services' do
     expect(result[:status]).to be_success, "tests/lanes/run selftest failed:\n#{result[:output]}"

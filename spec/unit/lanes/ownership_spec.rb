@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require_relative '../../support/lane_probe'
 require 'json'
 require 'open3'
 
@@ -33,26 +34,9 @@ require 'open3'
 # and are not a question a path resolver answers; the table names every
 # loading lane and the README says the tag then decides what runs.
 module LaneOwnershipProbe
+  extend LaneProbe
+
   module_function
-
-  def repo_root
-    File.expand_path('../../..', __dir__)
-  end
-
-  def runner
-    File.join(repo_root, 'tests', 'lanes', 'run')
-  end
-
-  def bash_floor
-    @bash_floor ||= Integer(File.read(File.join(repo_root, '.bash-version')).strip)
-  end
-
-  def path_bash_major
-    return @path_bash_major if defined?(@path_bash_major)
-
-    out, status = Open3.capture2e('bash', '-c', 'echo "${BASH_VERSINFO[0]}"')
-    @path_bash_major = status.success? ? Integer(out.strip, exception: false) : nil
-  end
 
   # The rake tasks a lane's tasks file runs: `bundle exec rake <task>` at the
   # start of a line, with or without the worker prefix
@@ -337,11 +321,7 @@ end
 RSpec.describe 'tests/lanes/ownership against lib/tasks/spec.rake' do
   let(:probe) { LaneOwnershipProbe }
 
-  before do
-    major = probe.path_bash_major
-    floor = probe.bash_floor
-    skip "bash #{floor}+ is not on PATH (macOS: brew install bash)" if major.nil? || major < floor
-  end
+  include_context 'with the lane runner bash'
 
   it 'derives a non-empty selection for every rake lane' do
     # The oracle is only worth trusting if it saw something: a lane whose
@@ -399,11 +379,7 @@ end
 RSpec.describe 'tests/lanes/ownership against the lane directories' do
   let(:probe) { LaneOwnershipProbe }
 
-  before do
-    major = probe.path_bash_major
-    floor = probe.bash_floor
-    skip "bash #{floor}+ is not on PATH (macOS: brew install bash)" if major.nil? || major < floor
-  end
+  include_context 'with the lane runner bash'
 
   it 'records, per lane, exactly the rake tasks its tasks file runs' do
     # A lane that picks up a task (or drops one) changes what paths it

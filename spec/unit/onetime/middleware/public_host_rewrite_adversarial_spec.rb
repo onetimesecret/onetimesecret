@@ -14,8 +14,8 @@ require 'onetime/middleware/public_host_rewrite'
 # Runs the real Rack::DetectHost -> StripForwardedHost -> DomainStrategy ->
 # PublicHostRewrite chain over the cross product of peer trust states and
 # hostile or malformed Host / X-Forwarded-Host / X-Forwarded-Port /
-# Forwarded values, and checks properties of the env the apps receive
-# rather than individual outputs.
+# Forwarded values, and checks properties of the env the apps receive and
+# of the response headers the chain sets, rather than individual outputs.
 RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
   CANONICAL  = 'example.com'
   REGISTERED = 'secrets.acme.com'
@@ -26,13 +26,14 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
     private_no_verdict: { 'REMOTE_ADDR' => '10.0.0.5' },
     loopback_no_verdict: { 'REMOTE_ADDR' => '127.0.0.1' },
     mapped_private_no_verdict: { 'REMOTE_ADDR' => '::ffff:10.0.0.5' },
+    ipv6_private_no_verdict: { 'REMOTE_ADDR' => 'fd00::5' },
     verdict_true: { 'REMOTE_ADDR' => '203.0.113.9', 'otto.via_trusted_proxy' => true },
     verdict_false_private: { 'REMOTE_ADDR' => '10.0.0.5', 'otto.via_trusted_proxy' => false },
     verdict_string: { 'REMOTE_ADDR' => '10.0.0.5', 'otto.via_trusted_proxy' => 'true' },
     verdict_nil: { 'REMOTE_ADDR' => '10.0.0.5', 'otto.via_trusted_proxy' => nil },
   }.freeze
 
-  TRUSTED_PEERS = [:private_no_verdict, :loopback_no_verdict, :verdict_true].freeze
+  TRUSTED_PEERS = [:private_no_verdict, :loopback_no_verdict, :ipv6_private_no_verdict, :verdict_true].freeze
 
   # Spec-side oracle, written by hand and independent of the code under
   # test: each Host value maps to the hostname host detection takes from it
@@ -42,6 +43,9 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
     ORIGIN => 'origin.internal',
     CANONICAL => CANONICAL,
     REGISTERED => REGISTERED,
+    # Host names are case-insensitive, so this Host already names the
+    # registered domain and is not rewritten.
+    REGISTERED.upcase => REGISTERED,
     "#{REGISTERED}:8443" => REGISTERED,
     'evil.test' => 'evil.test',
     'evil.test:8443' => 'evil.test',
@@ -132,7 +136,62 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
     "#{REGISTERED}." => :custom,
   }.freeze
 
-  FORWARDED_PORTS = [nil, '', '8443', '443', '80', '0', '65536', '8443, 443', 'abc', '-1', ' 8443 ', "8443\n9"].freeze
+  # X-Forwarded-Port => the port it names, or nil unless it is one number
+  # from 1 through 65535.
+  FORWARDED_PORT_NUMBERS = {
+    nil => nil,
+    '' => nil,
+    '8443' => 8443,
+    '443' => 443,
+    '80' => 80,
+    '0' => nil,
+    '65536' => nil,
+    '8443, 443' => nil,
+    'abc' => nil,
+    '-1' => nil,
+    ' 8443 ' => 8443,
+    "8443\n9" => nil,
+  }.freeze
+
+  FORWARDED_PORTS = FORWARDED_PORT_NUMBERS.keys.freeze
+
+  # The public port of a request rewritten from a trusted proxy's
+  # X-Forwarded-Host, for each value above that names a served host: the
+  # port in the value, :bare for a plain hostname, which takes
+  # X-Forwarded-Port instead, or nil for none. Only a plain host or
+  # host:port is read for a port. A port in the value outside 1..65535
+  # gives none; X-Forwarded-Port does not replace it.
+  FORWARDED_HOST_PORTS = {
+    REGISTERED => :bare,
+    REGISTERED.upcase => :bare,
+    "#{REGISTERED}." => :bare,
+    " #{REGISTERED} " => :bare,
+    "#{REGISTERED}:8443" => 8443,
+    "#{REGISTERED}:443" => 443,
+    "#{REGISTERED}:80" => 80,
+    "#{REGISTERED}:0" => nil,
+    "#{REGISTERED}:65536" => nil,
+    "#{REGISTERED}:99999" => nil,
+    "#{REGISTERED}:" => nil,
+    "#{REGISTERED}:abc" => nil,
+    "#{REGISTERED}:8443:9" => nil,
+    "#{REGISTERED}:8443/path" => nil,
+    "https://#{REGISTERED}" => nil,
+    "https://#{REGISTERED}:8443/x" => nil,
+    CANONICAL => :bare,
+    "www.#{CANONICAL}" => :bare,
+    "tenant.#{CANONICAL}" => :bare,
+  }.freeze
+
+  DEFAULT_PORTS = { 'https' => 443, 'http' => 80 }.freeze
+
+  # Hosts whose custom-domain read fails. The second is under the canonical
+  # host, so the subdomain check would accept it if a failed read went on to
+  # that check.
+  BROKEN_READS = ['broken-read.example.net', "broken-read.#{CANONICAL}"].freeze
+
+  # Where run puts the response headers the chain returned, beside the env.
+  RESPONSE_HEADERS_KEY = 'spec.response_headers'
 
   RFC7239 = [nil, 'host=evil.test', "host=#{REGISTERED};proto=http", 'for=a"b;host=evil.test'].freeze
 
@@ -156,9 +215,10 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
   # The strategy's config readers are plain singleton methods on this one
   # instance, not RSpec stubs: a stub records every call it receives, and
   # the chain calls these four on every one of the tens of thousands of
-  # inputs in a walk.
+  # inputs in a walk. PublicHostRewrite.enabled? is answered by a subclass
+  # for the same reason.
   let(:chain) do
-    rewrite  = described_class.new(terminal)
+    rewrite  = Class.new(described_class) { def self.enabled? = true }.new(terminal)
     strategy = Onetime::Middleware::DomainStrategy.new(rewrite)
     enabled  = domains_enabled
     parsed   = [PublicSuffix.parse(CANONICAL)].freeze
@@ -181,16 +241,15 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
     Rack::Request.forwarded_priority = original
   end
 
-  # The broken-read host makes the domain strategy log an error with a full
+  # A broken-read host makes the domain strategy log an error with a full
   # backtrace on every example that reaches it, several thousand times per
   # run. That line is the middleware behaving correctly, not something this
   # spec asserts, so keep it out of the test output.
   before do
     quiet_http_logger = SemanticLogger['HTTP'].tap { |logger| logger.level = :fatal }
     allow(Onetime).to receive(:http_logger).and_return(quiet_http_logger)
-    allow(described_class).to receive(:enabled?).and_return(true)
     allow(Onetime::CustomDomain).to receive(:from_display_domain) do |name|
-      raise StandardError, 'datastore unavailable' if name == 'broken-read.example.net'
+      raise StandardError, 'datastore unavailable' if BROKEN_READS.include?(name)
 
       name.to_s.chomp('.') == REGISTERED ? custom_domain : nil
     end
@@ -214,10 +273,12 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
     env.merge!(PEERS.fetch(peer)).merge!(extra)
   end
 
+  # The env the apps received, with the response headers DomainStrategy
+  # sets under RESPONSE_HEADERS_KEY.
   def run(**)
-    env = request_env(**)
-    chain.call(env)
-    seen.pop
+    env                     = request_env(**)
+    _status, headers, _body = chain.call(env)
+    seen.pop.merge!(RESPONSE_HEADERS_KEY => headers.slice('O-Domain-Strategy', 'O-Display-Domain').freeze)
   end
 
   def each_case
@@ -249,7 +310,8 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
                   'onetime.display_domain', 'onetime.domain_strategy', 'onetime.custom_domain_id',
                   described_class::ORIGINAL_HTTP_HOST, 'HTTP_HOST', 'SERVER_NAME', 'SERVER_PORT', 'HTTPS',
                   'rack.url_scheme', 'HTTP_X_FORWARDED_HOST', 'HTTP_X_FORWARDED_PORT', 'HTTP_X_FORWARDED_SSL',
-                  'HTTP_X_FORWARDED_SCHEME', 'HTTP_X_FORWARDED_PROTO', 'HTTP_FORWARDED'].freeze
+                  'HTTP_X_FORWARDED_SCHEME', 'HTTP_X_FORWARDED_PROTO', 'HTTP_FORWARDED',
+                  RESPONSE_HEADERS_KEY].freeze
       unkept   = ->(_, key) { raise KeyError, "#{key} is not kept for the matrix" unless keys.include?(key) }
       distinct = Hash.new { |envs, env| envs[env] = env.freeze }
       pairs    = []
@@ -292,6 +354,9 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
   end
 
 
+  # A plain host[:port] Host naming the given name, compiled once per name.
+  NAMED_AUTHORITY = Hash.new { |patterns, name| patterns[name] = /\A#{Regexp.escape(name)}(?::[0-9]+)?\z/i }
+
   # What the oracle tables expect for one matrix input, with the domains
   # feature on: the detected name, the display domain, the classification,
   # and whether the request is rewritten (a served name that the received
@@ -300,13 +365,34 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
     forwarded = TRUSTED_PEERS.include?(input[:peer]) ? FORWARDED_HOST_NAMES.fetch(input[:xfh]) : nil
     name      = forwarded == REFUSED ? nil : forwarded || HOST_NAMES.fetch(input[:host])
     strategy  = SERVED_STRATEGIES.fetch(name, :invalid)
-    named     = !name.nil? && input[:host].to_s.match?(/\A#{Regexp.escape(name)}(?::[0-9]+)?\z/i)
+    named     = !name.nil? && input[:host].to_s.match?(NAMED_AUTHORITY[name])
     {
       detected: name,
       display: name || CANONICAL,
       strategy: strategy,
       rewritten: strategy != :invalid && !named,
     }
+  end
+
+  # The authority a rewritten request carries in Host, and the port Rack
+  # reads from it. Only a trusted proxy's X-Forwarded-Host gives a public
+  # port (see FORWARDED_HOST_PORTS); a rewrite from a doubled Host gives
+  # none. The default port of the scheme is not written.
+  def expected_authority(input, scheme)
+    name    = expected_for(input).fetch(:detected)
+    default = DEFAULT_PORTS.fetch(scheme)
+    port    = expected_public_port(input)
+    [port && port != default ? "#{name}:#{port}" : name, port || default]
+  end
+
+  def expected_public_port(input)
+    return nil unless TRUSTED_PEERS.include?(input[:peer])
+
+    forwarded = FORWARDED_HOST_NAMES.fetch(input[:xfh])
+    return nil if forwarded.nil? || forwarded == REFUSED
+
+    port = FORWARDED_HOST_PORTS.fetch(input[:xfh])
+    port == :bare ? FORWARDED_PORT_NUMBERS.fetch(input[:xfp]) : port
   end
 
   it 'classifies every input as the spec-side oracle expects, rewritten or not' do
@@ -439,10 +525,49 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
     )
   end
 
+  # A request that is not rewritten keeps the Host it arrived with and the
+  # origin connection's SERVER_NAME and SERVER_PORT. A rewritten one carries
+  # the authority from expected_authority, and Rack reads its port back.
+  SCHEMES.each do |scheme|
+    it "leaves the authority and port the oracle expects on every #{scheme} input" do
+      found = []
+      matrix(scheme: scheme).each do |input, out|
+        expected = expected_for(input)
+        if expected[:rewritten]
+          authority, port = expected_authority(input, scheme)
+          actual          = [out['HTTP_HOST'], out['SERVER_NAME'], Rack::Request.new(out).port]
+          wanted          = [authority, expected[:detected], port]
+        else
+          actual = out.values_at('HTTP_HOST', 'SERVER_NAME', 'SERVER_PORT')
+          wanted = [input[:host], 'origin.internal', '3000']
+        end
+        next if actual == wanted
+
+        found << "#{input.inspect} => actual=#{actual.inspect} expected=#{wanted.inspect}"
+      end
+      report(found)
+    end
+  end
+
+  it 'reports the display domain and strategy the oracle expects in the response headers' do
+    report(
+      violations do |input, out|
+        expected = expected_for(input)
+        headers  = { 'O-Domain-Strategy' => expected[:strategy].to_s, 'O-Display-Domain' => expected[:display] }
+        next if out[RESPONSE_HEADERS_KEY] == headers
+
+        "headers=#{out[RESPONSE_HEADERS_KEY].inspect} expected=#{headers.inspect}"
+      end,
+    )
+  end
+
   describe 'input-specific lookup failures and unregistered hosts' do
     # .test is rejected by PublicSuffix before a lookup; use parseable hosts
     # so the failed-read and absent fixtures actually reach the datastore.
-    { 'broken-read.example.net' => :read_failed, 'unregistered.example.net' => :absent }.each do |hostname, state|
+    # Each BROKEN_READS host fails closed: it stays :invalid even where the
+    # subdomain check would accept it.
+    lookups = BROKEN_READS.to_h { |hostname| [hostname, :read_failed] }.merge('unregistered.example.net' => :absent)
+    lookups.each do |hostname, state|
       PEERS.each_key do |peer|
         [nil, '443', '8443'].each do |port|
           authority = port ? "#{hostname}:#{port}" : hostname
@@ -648,8 +773,6 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
       { host: ORIGIN, xfh: 'evil.test', xfp: '8443' } => nil,
     }.freeze
 
-    default_ports = { 'https' => 443, 'http' => 80 }.freeze
-
     def scheme_snapshot(env)
       request = Rack::Request.new(env)
       [request.scheme, request.ssl?, env['rack.url_scheme']]
@@ -691,7 +814,7 @@ RSpec.describe Onetime::Middleware::PublicHostRewrite, 'adversarial matrix' do
               out       = run(peer: peer, scheme: env_scheme, extra: extra.merge(forwarded), **headers)
               request   = Rack::Request.new(out)
               scheme    = replaceable && forwarded_scheme ? forwarded_scheme : origin_scheme
-              default   = default_ports[scheme]
+              default   = DEFAULT_PORTS[scheme]
 
               if oracle[:rewritten]
                 name      = oracle[:detected]

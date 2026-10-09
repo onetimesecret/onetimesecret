@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require_relative '../../support/lane_probe'
 require 'open3'
 require 'tmpdir'
 
@@ -29,29 +30,12 @@ require 'tmpdir'
 module LaneCodegenProbe
   BOGUS_TOKEN = 'ots-lane-codegen-probe-token'
 
+  extend LaneProbe
+
   module_function
-
-  def repo_root
-    File.expand_path('../../..', __dir__)
-  end
-
-  def runner
-    File.join(repo_root, 'tests', 'lanes', 'run')
-  end
 
   def last_log
     File.read(File.join(repo_root, 'tmp', 'lanes', 'selftest', 'base', 'last.log'))
-  end
-
-  def bash_floor
-    @bash_floor ||= Integer(File.read(File.join(repo_root, '.bash-version')).strip)
-  end
-
-  def path_bash_major
-    return @path_bash_major if defined?(@path_bash_major)
-
-    out, status = Open3.capture2e('bash', '-c', 'echo "${BASH_VERSINFO[0]}"')
-    @path_bash_major = status.success? ? Integer(out.strip, exception: false) : nil
   end
 
   # A lane declaration is an ordinary exported variable by the time the
@@ -81,11 +65,7 @@ end
 RSpec.describe 'tests/lanes/run codegen phase' do
   let(:probe) { LaneCodegenProbe }
 
-  before do
-    major = probe.path_bash_major
-    floor = probe.bash_floor
-    skip "bash #{floor}+ is not on PATH (macOS: brew install bash)" if major.nil? || major < floor
-  end
+  include_context 'with the lane runner bash'
 
   it 'runs the declared codegen on a direct lane invocation' do
     # The default has to be "generate". A direct run is what a developer

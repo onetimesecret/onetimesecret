@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require_relative '../../support/lane_probe'
 require 'open3'
 
 # tests/lanes/support/worker-env: the shim that hands one worker of a lane
@@ -18,29 +19,12 @@ require 'open3'
 # (or printf, for the argv rewrite) as the command, so nothing here needs
 # a service or a lane.
 module LaneWorkerEnvProbe
-  module_function
+  extend LaneProbe
 
-  def repo_root
-    File.expand_path('../../..', __dir__)
-  end
+  module_function
 
   def shim
     File.join(repo_root, 'tests', 'lanes', 'support', 'worker-env')
-  end
-
-  def runner
-    File.join(repo_root, 'tests', 'lanes', 'run')
-  end
-
-  def bash_floor
-    @bash_floor ||= Integer(File.read(File.join(repo_root, '.bash-version')).strip)
-  end
-
-  def path_bash_major
-    return @path_bash_major if defined?(@path_bash_major)
-
-    out, status = Open3.capture2e('bash', '-c', 'echo "${BASH_VERSINFO[0]}"')
-    @path_bash_major = status.success? ? Integer(out.strip, exception: false) : nil
   end
 
   # The shim with exactly the given environment (plus PATH, so it can find
@@ -92,11 +76,7 @@ RSpec.describe 'tests/lanes/support/worker-env' do
     }
   end
 
-  before do
-    major = probe.path_bash_major
-    floor = probe.bash_floor
-    skip "bash #{floor}+ is not on PATH (macOS: brew install bash)" if major.nil? || major < floor
-  end
+  include_context 'with the lane runner bash'
 
   describe 'the worker index' do
     it 'is the lane index for worker 1 and the ones after it for the rest' do

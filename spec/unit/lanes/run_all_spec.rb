@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require_relative '../../support/lane_probe'
 require 'open3'
 
 # Guard rails for tests/lanes/run-all, the fan-out wrapper over
@@ -17,25 +18,12 @@ require 'open3'
 # marker, liveness token, codegen phase) each have their own spec next to
 # this one.
 module LaneRunAllProbe
-  module_function
+  extend LaneProbe
 
-  def repo_root
-    File.expand_path('../../..', __dir__)
-  end
+  module_function
 
   def wrapper
     File.join(repo_root, 'tests', 'lanes', 'run-all')
-  end
-
-  def bash_floor
-    @bash_floor ||= Integer(File.read(File.join(repo_root, '.bash-version')).strip)
-  end
-
-  def path_bash_major
-    return @path_bash_major if defined?(@path_bash_major)
-
-    out, status = Open3.capture2e('bash', '-c', 'echo "${BASH_VERSINFO[0]}"')
-    @path_bash_major = status.success? ? Integer(out.strip, exception: false) : nil
   end
 
   # CI is scrubbed to nil by default: the wrapper reads it for the
@@ -65,11 +53,7 @@ end
 RSpec.describe 'tests/lanes/run-all' do
   let(:probe) { LaneRunAllProbe }
 
-  before do
-    major = probe.path_bash_major
-    floor = probe.bash_floor
-    skip "bash #{floor}+ is not on PATH (macOS: brew install bash)" if major.nil? || major < floor
-  end
+  include_context 'with the lane runner bash'
 
   it 'prints usage for --help' do
     output, status = probe.run('--help')
