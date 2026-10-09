@@ -20,6 +20,10 @@ require_relative '../middleware/domain_strategy'
 # 4. Organization with is_default flag that the customer OWNS (their personal
 #    workspace; another member's default workspace carries the flag too)
 # Steps 3-4 are #default_organization, which the API payloads use too.
+# Operations that act on the workspace the customer OWNS (SSO self-heal,
+# federation claim, pro-bono grant, organization quota) use
+# #owned_default_organization instead; it never follows a preference or a
+# flag to another member's workspace.
 # 5. First available organization
 # 6. Return nil (lazy creation happens later in auth_org)
 #
@@ -192,6 +196,56 @@ module Onetime
 
         # owner? reads the membership, so it is checked last.
         orgs.find { |o| o.is_default && !o.archived? && o.owner?(customer) }
+      end
+
+      # The default workspace this customer OWNS. #default_organization
+      # answers "where does this user land": its explicit step honours a
+      # default_org_id that names an organization the user merely belongs to.
+      # Operations that write to, bill, or draw entitlements from "the
+      # customer's workspace" need the one the customer owns instead: the
+      # SSO self-heal archives it, the deferred federation claim and the
+      # pro-bono grant change its plan, checkout binds its Stripe customer,
+      # and organization creation is funded by it. Another member's default
+      # workspace carries the is_default flag too and is never eligible here,
+      # whatever order the memberships are listed in.
+      #
+      # 1. The non-archived organization in `orgs` named by
+      #    customer.default_org_id, when the customer owns it. The preference
+      #    is honoured only within the customer's own workspaces; one that
+      #    names a joined organization is ignored rather than followed.
+      # 2. Else the first non-archived organization in `orgs` with is_default
+      #    that the customer owns.
+      #
+      # @param customer [Onetime::Customer]
+      # @param orgs [Array<Onetime::Organization>, nil] see #default_organization
+      # @return [Onetime::Organization, nil]
+      def owned_default_organization(customer, orgs = nil)
+        return if customer.nil? || customer.anonymous?
+
+        orgs ||= customer.organization_instances.to_a
+        live   = orgs.reject(&:archived?)
+        return if live.empty?
+
+        default_org_id = customer.default_org_id.to_s
+        unless default_org_id.empty?
+          chosen = live.find { |o| o.objid == default_org_id }
+          return chosen if chosen&.owner?(customer)
+        end
+
+        live.find { |o| o.is_default && o.owner?(customer) }
+      end
+
+      # The non-archived organizations the customer owns, in membership
+      # order. One membership read per live organization.
+      #
+      # @param customer [Onetime::Customer]
+      # @param orgs [Array<Onetime::Organization>, nil] see #default_organization
+      # @return [Array<Onetime::Organization>]
+      def owned_organizations(customer, orgs = nil)
+        return [] if customer.nil? || customer.anonymous?
+
+        orgs ||= customer.organization_instances.to_a
+        orgs.reject(&:archived?).select { |o| o.owner?(customer) }
       end
 
       private
