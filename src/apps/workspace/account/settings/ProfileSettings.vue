@@ -13,13 +13,18 @@
   import {
     useBootstrapStore,
   } from '@/shared/stores/bootstrapStore';
+  import { useNotificationsStore } from '@/shared/stores/notificationsStore';
+  import { useOrganizationStore } from '@/shared/stores/organizationStore';
   import { storeToRefs } from 'pinia';
   import { formatDisplayDate } from '@/utils/format';
   import { isOwnerOrAdminOf } from '@/utils/features';
-  import { computed, ref, onMounted } from 'vue';
+  import axios from 'axios';
+  import { computed, ref, onMounted, useId, watch } from 'vue';
 
   const { t } = useI18n();
   const { accountInfo, fetchAccountInfo } = useAccount();
+  const organizationStore = useOrganizationStore();
+  const notifications = useNotificationsStore();
 
   const bootstrapStore = useBootstrapStore();
   const { i18n_enabled, has_password } = storeToRefs(bootstrapStore);
@@ -54,8 +59,87 @@
     }
   };
 
+  /*
+   * Default workspace. Here rather than only on /orgs ("Make default"),
+   * which is owner-only: a user who joined by invitation or tenant SSO owns
+   * nothing, yet can belong to several organizations and needs to choose
+   * where a new session starts. The endpoint only requires membership.
+   */
+  const defaultWorkspaceId = useId();
+  const defaultWorkspaceDescriptionId = useId();
+
+  // The list endpoint already leaves out archived organizations.
+  const organizations = computed(() => organizationStore.organizations);
+  const showDefaultWorkspace = computed(() => organizations.value.length > 1);
+
+  // This user's default (is_current_user_default), not the owner's
+  // auto-created workspace (is_default). Empty when none is recorded, e.g.
+  // an invitee who has not chosen one: the select then shows "Not set"
+  // instead of implying the first organization.
+  const currentDefaultObjid = computed(
+    () => organizations.value.find((org) => org.is_current_user_default)?.objid ?? ''
+  );
+  const selectedDefaultObjid = ref('');
+  const isSavingDefault = ref(false);
+
+  watch(
+    currentDefaultObjid,
+    (objid) => {
+      selectedDefaultObjid.value = objid;
+    },
+    { immediate: true }
+  );
+
+  /**
+   * Save the chosen default. The server also selects the organization for
+   * this session, and the store makes it current in this tab, as "Make
+   * default" on /orgs does. On failure the select goes back to the stored
+   * default.
+   */
+  const handleDefaultWorkspaceChange = async () => {
+    const previous = currentDefaultObjid.value;
+    const org = organizations.value.find((o) => o.objid === selectedDefaultObjid.value);
+    if (!org || org.objid === previous) return;
+
+    isSavingDefault.value = true;
+    try {
+      await organizationStore.setDefaultOrganization(org);
+      notifications.show(
+        t('web.organizations.make_default_success', { name: org.display_name }),
+        'success',
+        'top'
+      );
+    } catch (error) {
+      console.error('[ProfileSettings] Error setting default organization:', error);
+      selectedDefaultObjid.value = previous;
+      notifications.show(
+        t('web.organizations.make_default_error', { name: org.display_name }),
+        'error',
+        'top'
+      );
+    } finally {
+      isSavingDefault.value = false;
+    }
+  };
+
+  /**
+   * Load the organization list unless it is loaded or loading. On workspace
+   * pages OrganizationContextBar usually starts this fetch first; a second
+   * call would cancel that one (fetchOrganizations aborts the previous list
+   * fetch) and skip the bar's fallback selection.
+   */
+  const ensureOrganizationsLoaded = async () => {
+    if (organizationStore.isListFetched || organizationStore.loading) return;
+    try {
+      await organizationStore.fetchOrganizations();
+    } catch (error) {
+      if (axios.isCancel(error)) return; // superseded by another list fetch
+      console.error('[ProfileSettings] Failed to fetch organizations:', error);
+    }
+  };
+
   onMounted(async () => {
-    await fetchAccountInfo();
+    await Promise.all([fetchAccountInfo(), ensureOrganizationsLoaded()]);
   });
 </script>
 
@@ -270,6 +354,59 @@
                   </p>
                 </div>
               </div>
+            </div>
+          </div>
+
+          <!-- Default Workspace Setting -->
+          <div
+            v-if="showDefaultWorkspace"
+            class="px-6 py-4"
+            data-testid="default-workspace-setting">
+            <div class="flex items-center justify-between gap-4">
+              <div class="flex items-center gap-3">
+                <OIcon
+                  collection="heroicons"
+                  name="building-office"
+                  class="size-5 shrink-0 text-gray-500 dark:text-gray-400"
+                  aria-hidden="true" />
+                <div>
+                  <label
+                    :for="defaultWorkspaceId"
+                    class="font-medium text-gray-900 dark:text-white">
+                    {{ t('web.settings.default_workspace.title') }}
+                  </label>
+                  <p
+                    :id="defaultWorkspaceDescriptionId"
+                    class="text-sm text-gray-500 dark:text-gray-400">
+                    {{ t('web.settings.default_workspace.description') }}
+                  </p>
+                </div>
+              </div>
+              <select
+                :id="defaultWorkspaceId"
+                v-model="selectedDefaultObjid"
+                :aria-describedby="defaultWorkspaceDescriptionId"
+                :aria-busy="isSavingDefault"
+                :disabled="isSavingDefault"
+                data-testid="default-workspace-select"
+                class="block w-40 shrink-0 rounded-md border-gray-300 shadow-sm
+                  focus:border-brand-500 focus:ring-brand-500
+                  disabled:cursor-not-allowed disabled:opacity-50 sm:w-64 sm:text-sm
+                  dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                @change="handleDefaultWorkspaceChange">
+                <option
+                  v-if="!currentDefaultObjid"
+                  value=""
+                  disabled>
+                  {{ t('web.settings.default_workspace.not_set') }}
+                </option>
+                <option
+                  v-for="org in organizations"
+                  :key="org.objid"
+                  :value="org.objid">
+                  {{ org.display_name }}
+                </option>
+              </select>
             </div>
           </div>
         </div>
