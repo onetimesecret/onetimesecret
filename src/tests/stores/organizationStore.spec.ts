@@ -4,11 +4,18 @@ import { setupTestPinia } from '../setup';
 import { setupBootstrapMock } from '../setup-bootstrap';
 import { baseBootstrap } from '@/tests/fixtures/bootstrap.fixture';
 
-import { useOrganizationStore } from '@/shared/stores/organizationStore';
+import { useAuthStore } from '@/shared/stores/authStore';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import {
+  PENDING_ORG_SELECTION_KEY,
+  PENDING_ORG_SELECTION_MAX_AGE_MS,
+  useOrganizationStore,
+} from '@/shared/stores/organizationStore';
 import type { Organization } from '@/types/organization';
 import { lenientExtIdSchema, lenientObjIdSchema } from '@/types/identifiers';
 import type AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { nextTick } from 'vue';
 
 // Branded-ID helpers: OrganizationInvitation.id/invited_by and
 // .organization_id are lenientObjIdSchema/lenientExtIdSchema output
@@ -53,6 +60,7 @@ describe('Organization Store', () => {
   };
 
   beforeEach(async () => {
+    sessionStorage.clear();
     const setup = await setupTestPinia();
     axiosMock = setup.axiosMock;
 
@@ -152,6 +160,735 @@ describe('Organization Store', () => {
 
       expect(org).toEqual(mockOrganization);
       expect(store.currentOrganization).toEqual(mockOrganization);
+    });
+  });
+
+  // The server session is the one authority for which organization is current
+  // across page loads (#4565): the bootstrap payload seeds it, and an explicit
+  // choice is written back through update-organization-context. The tab keeps
+  // no copy of the selection; sessionStorage holds only a note of a write the
+  // server has not answered yet.
+  describe('Current organization authority', () => {
+    const SYNC_URL = '/api/account/update-organization-context';
+
+    // The bootstrap payload's minimal organization record
+    const bootstrapOrg = (over: { objid: string; extid: string; display_name: string }) => ({
+      is_default: false,
+      planid: 'free_v1',
+      current_user_role: 'owner' as const,
+      entitlements: null,
+      limits: null,
+      ...over,
+    });
+    const acme = bootstrapOrg({ objid: 'org-acme', extid: 'onacme', display_name: 'Acme' });
+    const globex = bootstrapOrg({ objid: 'org-globex', extid: 'onglobex', display_name: 'Globex' });
+
+    const other: Organization = {
+      ...mockOrganization,
+      objid: 'org-999',
+      extid: 'on999xyz',
+      display_name: 'Other Organization',
+    };
+
+    const syncPosts = () => (axiosMock?.history.post ?? []).filter((r) => r.url === SYNC_URL);
+
+    // The server sync is a protected action (ADR-046#authority-action-gating).
+    // The account is named too: a pending selection is noted for one account.
+    const CUSTID = 'ur-signed-in';
+    const signIn = () => {
+      useBootstrapStore().authStatus = 'authenticated';
+      useBootstrapStore().custid = CUSTID;
+    };
+
+    describe('seeding from the bootstrap payload', () => {
+      it('seeds currentOrganization at store creation', () => {
+        // A store created AFTER the payload is in place, as on a page load
+        setupBootstrapMock({ initialState: baseBootstrap });
+        useBootstrapStore().organization = acme;
+
+        const seeded = useOrganizationStore();
+
+        expect(seeded.currentOrganization).toMatchObject({
+          objid: 'org-acme',
+          extid: 'onacme',
+          display_name: 'Acme',
+          current_user_role: 'owner',
+        });
+      });
+
+      it('does not replace an existing selection on a bootstrap refresh', async () => {
+        store.setCurrentOrganization(other);
+
+        useBootstrapStore().organization = acme;
+        await nextTick();
+
+        expect(store.currentOrganization?.objid).toBe('org-999');
+      });
+
+      it('re-seeds from the next snapshot after $reset', async () => {
+        const bootstrap = useBootstrapStore();
+        bootstrap.organization = acme;
+        await nextTick();
+        expect(store.currentOrganization?.objid).toBe('org-acme');
+
+        // In-place account change: authStore clears account-scoped stores,
+        // then applies the new account's snapshot.
+        store.$reset();
+        expect(store.currentOrganization).toBeNull();
+        bootstrap.organization = globex;
+        await nextTick();
+
+        expect(store.currentOrganization?.objid).toBe('org-globex');
+      });
+
+      it('writes nothing to sessionStorage', async () => {
+        useBootstrapStore().organization = acme;
+        await nextTick();
+        store.setCurrentOrganization(other);
+        await nextTick();
+
+        expect(sessionStorage.getItem('selectedOrganizationId')).toBeNull();
+        expect(sessionStorage.getItem(PENDING_ORG_SELECTION_KEY)).toBeNull();
+      });
+    });
+
+    describe('selectOrganization (explicit switch)', () => {
+      it('sets the current organization and posts its objid to the server', async () => {
+        signIn();
+        axiosMock?.onPost(SYNC_URL).reply(200, { success: true });
+
+        await store.selectOrganization(other);
+
+        expect(store.currentOrganization).toEqual(other);
+        expect(syncPosts()).toHaveLength(1);
+        // Same identifier the request interceptor sends as O-Organization-ID
+        expect(JSON.parse(syncPosts()[0].data)).toEqual({ organization_id: 'org-999' });
+      });
+
+      it('switches in-app before the server answers', async () => {
+        signIn();
+        axiosMock?.onPost(SYNC_URL).reply(200, { success: true });
+
+        const pending = store.selectOrganization(other);
+
+        expect(store.currentOrganization).toEqual(other);
+        await pending;
+      });
+
+      it('keeps the in-app selection when the sync fails', async () => {
+        signIn();
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        axiosMock?.onPost(SYNC_URL).reply(500, { message: 'boom' });
+
+        await expect(store.selectOrganization(other)).resolves.toBeUndefined();
+
+        expect(store.currentOrganization).toEqual(other);
+        expect(syncPosts()).toHaveLength(1);
+        expect(warn).toHaveBeenCalledTimes(1);
+      });
+
+      it('withholds the server write when protected actions are unavailable', async () => {
+        // authStatus is not 'authenticated' here
+        await store.selectOrganization(other);
+
+        expect(store.currentOrganization).toEqual(other);
+        expect(syncPosts()).toHaveLength(0);
+      });
+
+      it('withholds the server write in stale-session mode', async () => {
+        signIn();
+        useAuthStore().staleSession = true;
+
+        await store.selectOrganization(other);
+
+        expect(store.currentOrganization).toEqual(other);
+        expect(syncPosts()).toHaveLength(0);
+      });
+
+      // Two writes in flight at once can land on the server in either order,
+      // and a reload shows whichever landed last. The store sends the next
+      // selection only after the previous reply.
+      it('sends a second selection only after the first reply arrives', async () => {
+        signIn();
+        const events: string[] = [];
+        axiosMock?.onPost(SYNC_URL).reply(async (config) => {
+          const { organization_id: id } = JSON.parse(config.data);
+          events.push(`sent:${id}`);
+          // The first reply is the slow one; the second would overtake it
+          // if the writes were not serialized.
+          await new Promise((resolve) => setTimeout(resolve, id === 'org-999' ? 30 : 0));
+          events.push(`replied:${id}`);
+          return [200, { success: true }];
+        });
+
+        const first = store.selectOrganization(other);
+        const second = store.selectOrganization(mockOrganization);
+        await Promise.all([first, second]);
+
+        expect(store.currentOrganization).toEqual(mockOrganization);
+        expect(events).toEqual([
+          'sent:org-999',
+          'replied:org-999',
+          'sent:org-123',
+          'replied:org-123',
+        ]);
+      });
+
+      it('skips a selection the user moved on from before its turn', async () => {
+        signIn();
+        const third: Organization = { ...mockOrganization, objid: 'org-333', extid: 'on333abc' };
+        axiosMock?.onPost(SYNC_URL).reply(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 10));
+          return [200, { success: true }];
+        });
+
+        await Promise.all([
+          store.selectOrganization(other),
+          store.selectOrganization(mockOrganization),
+          store.selectOrganization(third),
+        ]);
+
+        expect(store.currentOrganization).toEqual(third);
+        expect(syncPosts().map((r) => JSON.parse(r.data).organization_id)).toEqual([
+          'org-999',
+          'org-333',
+        ]);
+      });
+
+      it('keeps sending later selections after one fails', async () => {
+        signIn();
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        axiosMock?.onPost(SYNC_URL).reply((config) => {
+          const { organization_id: id } = JSON.parse(config.data);
+          return id === 'org-999' ? [500, { message: 'boom' }] : [200, { success: true }];
+        });
+
+        await Promise.all([
+          store.selectOrganization(other),
+          store.selectOrganization(mockOrganization),
+        ]);
+
+        expect(syncPosts().map((r) => JSON.parse(r.data).organization_id)).toEqual([
+          'org-999',
+          'org-123',
+        ]);
+        expect(warn).toHaveBeenCalledTimes(1);
+      });
+
+      // A reset (logout, in-place account change) must not let a selection
+      // queued under the old account go out under the new session.
+      it('drops a queued selection when the store is reset', async () => {
+        signIn();
+        axiosMock?.onPost(SYNC_URL).reply(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 10));
+          return [200, { success: true }];
+        });
+
+        const first = store.selectOrganization(other);
+        const second = store.selectOrganization(mockOrganization);
+        store.$reset();
+        await Promise.all([first, second]);
+
+        expect(syncPosts().map((r) => JSON.parse(r.data).organization_id)).toEqual(['org-999']);
+      });
+
+      it('sends a selection made after a reset without waiting on the old chain', async () => {
+        signIn();
+        axiosMock?.onPost(SYNC_URL).reply(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 10));
+          return [200, { success: true }];
+        });
+
+        const stale = store.selectOrganization(other);
+        store.$reset();
+        await store.selectOrganization(mockOrganization);
+
+        expect(syncPosts().map((r) => JSON.parse(r.data).organization_id)).toEqual(['org-999', 'org-123']);
+        await stale;
+      });
+
+      it('does not send a queued selection once protected actions are unavailable', async () => {
+        signIn();
+        axiosMock?.onPost(SYNC_URL).reply(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 10));
+          return [200, { success: true }];
+        });
+
+        const first = store.selectOrganization(other);
+        const second = store.selectOrganization(mockOrganization);
+        useAuthStore().staleSession = true;
+        await Promise.all([first, second]);
+
+        expect(syncPosts().map((r) => JSON.parse(r.data).organization_id)).toEqual(['org-999']);
+      });
+
+      // The withheld selection must not stay queued: a later chain would
+      // send it after a newer selection and the server would end on it.
+      it('does not send a withheld queued selection after a later one', async () => {
+        signIn();
+        const third: Organization = { ...mockOrganization, objid: 'org-333', extid: 'on333abc' };
+        axiosMock?.onPost(SYNC_URL).reply(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 10));
+          return [200, { success: true }];
+        });
+
+        const first = store.selectOrganization(other);
+        const second = store.selectOrganization(mockOrganization);
+        useAuthStore().staleSession = true;
+        await Promise.all([first, second]);
+
+        useAuthStore().staleSession = false;
+        await store.selectOrganization(third);
+
+        expect(syncPosts().map((r) => JSON.parse(r.data).organization_id)).toEqual([
+          'org-999',
+          'org-333',
+        ]);
+      });
+
+      it('syncs a newly created organization, which becomes current', async () => {
+        signIn();
+        axiosMock?.onPost('/api/organizations').reply(200, { record: mockOrganizationRaw });
+        axiosMock?.onPost(SYNC_URL).reply(200, { success: true });
+
+        await store.createOrganization({ display_name: 'Test Organization' });
+
+        expect(store.currentOrganization?.objid).toBe('org-123');
+        expect(syncPosts()).toHaveLength(1);
+        expect(JSON.parse(syncPosts()[0].data)).toEqual({ organization_id: 'org-123' });
+      });
+    });
+
+    // A page load can overtake the write: the user reloads before the POST
+    // lands, the load reads the old session, and the tab comes back on the
+    // previous organization. The newest unanswered selection is noted in
+    // sessionStorage so the next page load can send it again.
+    describe('a write the server has not answered', () => {
+      // The objid the note names, or null when there is no note
+      const note = (): string | null => {
+        const raw = sessionStorage.getItem(PENDING_ORG_SELECTION_KEY);
+        return raw ? JSON.parse(raw).objid : null;
+      };
+      // When the noted selection was made (epoch ms), or null without a note
+      const notedAt = (): number | null => {
+        const raw = sessionStorage.getItem(PENDING_ORG_SELECTION_KEY);
+        return raw ? JSON.parse(raw).at : null;
+      };
+      // A note left by an earlier page load, `ageMs` ago, by `custid`
+      const leaveNote = (objid: string, ageMs = 0, custid = CUSTID) =>
+        sessionStorage.setItem(
+          PENDING_ORG_SELECTION_KEY,
+          JSON.stringify({ objid, at: Date.now() - ageMs, custid })
+        );
+      const syncBodies = () => syncPosts().map((r) => JSON.parse(r.data));
+      const slowReply =
+        (status = 200) =>
+        async (): Promise<[number, { success: boolean }]> => {
+          await new Promise((resolve) => setTimeout(resolve, 10));
+          return [status, { success: status === 200 }];
+        };
+      const loadList = async () => {
+        axiosMock?.onGet('/api/organizations').reply(200, {
+          records: [mockOrganizationRaw],
+          count: 1,
+        });
+        await store.fetchOrganizations();
+      };
+
+      it('is noted while in flight and settled by the reply', async () => {
+        signIn();
+        axiosMock?.onPost(SYNC_URL).reply(slowReply());
+
+        const pending = store.selectOrganization(other);
+        expect(note()).toBe('org-999');
+
+        await pending;
+        expect(note()).toBeNull();
+      });
+
+      it('is sent without an age', async () => {
+        signIn();
+        axiosMock?.onPost(SYNC_URL).reply(200, { success: true });
+
+        await store.selectOrganization(other);
+
+        expect(syncBodies()).toEqual([{ organization_id: 'org-999' }]);
+      });
+
+      // Without an account to name, the note could be sent as someone else.
+      it('is not noted when the account is not known', async () => {
+        useBootstrapStore().authStatus = 'authenticated';
+        vi.spyOn(console, 'warn').mockImplementation(() => {});
+        axiosMock?.onPost(SYNC_URL).networkError();
+
+        await store.selectOrganization(other);
+
+        expect(syncPosts()).toHaveLength(1);
+        expect(note()).toBeNull();
+      });
+
+      it('is settled by a refusal too', async () => {
+        signIn();
+        vi.spyOn(console, 'warn').mockImplementation(() => {});
+        axiosMock?.onPost(SYNC_URL).reply(422, { message: 'Invalid organization' });
+
+        await store.selectOrganization(other);
+
+        expect(note()).toBeNull();
+      });
+
+      it('stays noted when the request gets no answer', async () => {
+        signIn();
+        vi.spyOn(console, 'warn').mockImplementation(() => {});
+        axiosMock?.onPost(SYNC_URL).networkError();
+
+        await store.selectOrganization(other);
+
+        expect(store.currentOrganization).toEqual(other);
+        expect(note()).toBe('org-999');
+      });
+
+      it('names the newest selection until that one is answered', async () => {
+        signIn();
+        const notesAtSend: (string | null)[] = [];
+        axiosMock?.onPost(SYNC_URL).reply(async (config) => {
+          // The second write goes out after the first reply was handled
+          if (JSON.parse(config.data).organization_id === 'org-123') notesAtSend.push(note());
+          await new Promise((resolve) => setTimeout(resolve, 10));
+          return [200, { success: true }];
+        });
+
+        const first = store.selectOrganization(other);
+        expect(note()).toBe('org-999');
+        const second = store.selectOrganization(mockOrganization);
+        expect(note()).toBe('org-123');
+        await Promise.all([first, second]);
+
+        // The reply to org-999 did not settle the note for org-123.
+        expect(notesAtSend).toEqual(['org-123']);
+        expect(note()).toBeNull();
+      });
+
+      it('is not noted when the write is withheld, and an older note is dropped', async () => {
+        leaveNote('org-old');
+
+        // authStatus is not 'authenticated' here
+        await store.selectOrganization(other);
+
+        expect(syncPosts()).toHaveLength(0);
+        expect(note()).toBeNull();
+      });
+
+      it('is dropped when a queued selection is withheld', async () => {
+        signIn();
+        axiosMock?.onPost(SYNC_URL).reply(slowReply());
+
+        const first = store.selectOrganization(other);
+        const second = store.selectOrganization(mockOrganization);
+        useAuthStore().staleSession = true;
+        await Promise.all([first, second]);
+
+        expect(note()).toBeNull();
+      });
+
+      // The mirror of the queued case above: the newest selection is the
+      // withheld one, so the older one still waiting must not go out later.
+      it('does not send a queued selection once a newer one was withheld', async () => {
+        signIn();
+        const third: Organization = { ...mockOrganization, objid: 'org-333', extid: 'on333abc' };
+        axiosMock?.onPost(SYNC_URL).reply(slowReply());
+
+        const first = store.selectOrganization(other);
+        const second = store.selectOrganization(mockOrganization);
+        useAuthStore().staleSession = true;
+        await store.selectOrganization(third);
+        useAuthStore().staleSession = false;
+        await Promise.all([first, second]);
+
+        expect(store.currentOrganization).toEqual(third);
+        expect(syncPosts().map((r) => JSON.parse(r.data).organization_id)).toEqual(['org-999']);
+        expect(note()).toBeNull();
+      });
+
+      it('goes out unnoted when sessionStorage is unavailable', async () => {
+        signIn();
+        axiosMock?.onPost(SYNC_URL).reply(200, { success: true });
+        vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+          throw new Error('denied');
+        });
+        vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+          throw new Error('denied');
+        });
+
+        await expect(store.selectOrganization(other)).resolves.toBeUndefined();
+
+        expect(store.currentOrganization).toEqual(other);
+        expect(syncPosts()).toHaveLength(1);
+      });
+
+      it('is dropped when the store is reset', async () => {
+        signIn();
+        axiosMock?.onPost(SYNC_URL).reply(slowReply());
+
+        const pending = store.selectOrganization(other);
+        store.$reset();
+
+        expect(note()).toBeNull();
+        await pending;
+        expect(note()).toBeNull();
+      });
+
+      // The first successful list fetch of a page load sends the note again.
+      describe('after a page load', () => {
+        it('is sent again when the list loads, and becomes current once accepted', async () => {
+          signIn();
+          leaveNote('org-123');
+          axiosMock?.onPost(SYNC_URL).reply(slowReply());
+
+          await loadList();
+
+          // Not before the server has accepted it
+          expect(store.currentOrganization).toBeNull();
+          await vi.waitFor(() => expect(store.currentOrganization?.objid).toBe('org-123'));
+          expect(note()).toBeNull();
+          expect(syncBodies().map((body) => body.organization_id)).toEqual(['org-123']);
+        });
+
+        // The server orders it against selections made since by its age.
+        it('is sent with its age, counted from the selection', async () => {
+          signIn();
+          leaveNote('org-123', 5_000);
+          axiosMock?.onPost(SYNC_URL).reply(200, { success: true });
+
+          await loadList();
+          await vi.waitFor(() => expect(note()).toBeNull());
+
+          const [body] = syncBodies();
+          expect(body.selection_age_ms).toBeGreaterThanOrEqual(5_000);
+          expect(body.selection_age_ms).toBeLessThan(10_000);
+        });
+
+        it('does not become current when the server refuses it', async () => {
+          signIn();
+          vi.spyOn(console, 'warn').mockImplementation(() => {});
+          leaveNote('org-123');
+          axiosMock?.onPost(SYNC_URL).reply(422, { message: 'Selection superseded' });
+
+          await loadList();
+          await vi.waitFor(() => expect(note()).toBeNull());
+
+          expect(store.currentOrganization).toBeNull();
+          expect(syncPosts()).toHaveLength(1);
+        });
+
+        it('does not become current without an answer, and keeps its age', async () => {
+          signIn();
+          const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+          leaveNote('org-123', 5_000);
+          const at = notedAt();
+          axiosMock?.onPost(SYNC_URL).networkError();
+
+          await loadList();
+          await vi.waitFor(() => expect(warn).toHaveBeenCalledTimes(1));
+          await new Promise((resolve) => setTimeout(resolve, 0));
+
+          expect(store.currentOrganization).toBeNull();
+          // Still counted from the selection, not from this attempt
+          expect(notedAt()).toBe(at);
+        });
+
+        it('is dropped, not sent, when another account left it', async () => {
+          signIn();
+          leaveNote('org-123', 0, 'ur-someone-else');
+
+          await loadList();
+
+          expect(store.currentOrganization).toBeNull();
+          expect(syncPosts()).toHaveLength(0);
+          expect(note()).toBeNull();
+        });
+
+        it('is dropped when it names no account', async () => {
+          signIn();
+          sessionStorage.setItem(
+            PENDING_ORG_SELECTION_KEY,
+            JSON.stringify({ objid: 'org-123', at: Date.now() })
+          );
+
+          await loadList();
+
+          expect(syncPosts()).toHaveLength(0);
+          expect(sessionStorage.getItem(PENDING_ORG_SELECTION_KEY)).toBeNull();
+        });
+
+        it('gives way to a selection made while it is on its way', async () => {
+          signIn();
+          leaveNote('org-123');
+          axiosMock?.onPost(SYNC_URL).reply(slowReply());
+
+          await loadList();
+          await store.selectOrganization(other);
+
+          expect(store.currentOrganization).toEqual(other);
+          expect(syncBodies().map((body) => body.organization_id)).toEqual(['org-123', 'org-999']);
+          expect(note()).toBeNull();
+        });
+
+        it('does not move a tab the route moved while it was on its way', async () => {
+          signIn();
+          leaveNote('org-123');
+          axiosMock?.onPost(SYNC_URL).reply(slowReply());
+
+          await loadList();
+          store.setCurrentOrganization(other);
+          await vi.waitFor(() => expect(note()).toBeNull());
+
+          expect(store.currentOrganization).toEqual(other);
+        });
+
+        it('is dropped, not sent, when it is too old', async () => {
+          signIn();
+          leaveNote('org-123', PENDING_ORG_SELECTION_MAX_AGE_MS + 1);
+
+          await loadList();
+
+          expect(store.currentOrganization).toBeNull();
+          expect(syncPosts()).toHaveLength(0);
+          expect(note()).toBeNull();
+        });
+
+        it('is dropped when it is dated in the future', async () => {
+          signIn();
+          leaveNote('org-123', -60_000);
+
+          await loadList();
+
+          expect(syncPosts()).toHaveLength(0);
+          expect(note()).toBeNull();
+        });
+
+        it('is dropped when it is unreadable', async () => {
+          signIn();
+          sessionStorage.setItem(PENDING_ORG_SELECTION_KEY, 'org-123'); // not JSON
+
+          await loadList();
+
+          expect(store.currentOrganization).toBeNull();
+          expect(syncPosts()).toHaveLength(0);
+          expect(sessionStorage.getItem(PENDING_ORG_SELECTION_KEY)).toBeNull();
+        });
+
+        it('is dropped when it names an organization that is not in the list', async () => {
+          signIn();
+          leaveNote('org-gone');
+
+          await loadList();
+
+          expect(store.currentOrganization).toBeNull();
+          expect(syncPosts()).toHaveLength(0);
+          expect(note()).toBeNull();
+        });
+
+        it('changes nothing without a note', async () => {
+          signIn();
+
+          await loadList();
+
+          expect(store.currentOrganization).toBeNull();
+          expect(syncPosts()).toHaveLength(0);
+        });
+
+        // The tab must not move to a selection the server is not told about.
+        it('changes nothing while protected actions are unavailable', async () => {
+          signIn();
+          useAuthStore().staleSession = true;
+          leaveNote('org-123');
+
+          await loadList();
+
+          expect(store.currentOrganization).toBeNull();
+          expect(syncPosts()).toHaveLength(0);
+          expect(note()).toBe('org-123');
+        });
+
+        it('is not sent when the list fails to load', async () => {
+          signIn();
+          leaveNote('org-123');
+          axiosMock?.onGet('/api/organizations').reply(500);
+
+          await expect(store.fetchOrganizations()).rejects.toThrow();
+
+          expect(syncPosts()).toHaveLength(0);
+          expect(note()).toBe('org-123');
+        });
+
+        it('is sent once per page load', async () => {
+          signIn();
+          const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+          leaveNote('org-123');
+          axiosMock?.onPost(SYNC_URL).networkError();
+
+          await loadList();
+          await vi.waitFor(() => expect(warn).toHaveBeenCalledTimes(1));
+          // Let the chain finish. Unanswered again, so the note stays for
+          // the next page load.
+          await new Promise((resolve) => setTimeout(resolve, 0));
+          expect(note()).toBe('org-123');
+
+          // A later list fetch in the same page load must not move the tab back
+          store.setCurrentOrganization(other);
+          await loadList();
+
+          expect(store.currentOrganization).toEqual(other);
+          expect(syncPosts()).toHaveLength(1);
+        });
+
+        it('leaves a write made in this page load alone', async () => {
+          signIn();
+          axiosMock?.onPost(SYNC_URL).reply(slowReply());
+
+          const pending = store.selectOrganization(mockOrganization);
+          await loadList();
+          await pending;
+
+          expect(syncPosts()).toHaveLength(1);
+        });
+      });
+    });
+
+    describe('tab-local changes do not reach the server', () => {
+      it('route-driven fetchOrganization does not sync', async () => {
+        signIn();
+        axiosMock?.onGet('/api/organizations/on123abc').reply(200, { record: mockOrganizationRaw });
+
+        await store.fetchOrganization('on123abc');
+
+        expect(store.currentOrganization?.objid).toBe('org-123');
+        expect(syncPosts()).toHaveLength(0);
+      });
+
+      it('setCurrentOrganization does not sync', () => {
+        signIn();
+
+        store.setCurrentOrganization(other);
+
+        expect(store.currentOrganization).toEqual(other);
+        expect(syncPosts()).toHaveLength(0);
+      });
+    });
+
+    describe('defaultOrganization', () => {
+      it('is null with an empty list', () => {
+        expect(store.defaultOrganization).toBeNull();
+      });
+
+      it('prefers the default org, then the first', () => {
+        store.organizations = [other, { ...mockOrganization, is_default: true }];
+        expect(store.defaultOrganization?.objid).toBe('org-123');
+
+        store.organizations = [other, mockOrganization];
+        expect(store.defaultOrganization?.objid).toBe('org-999');
+      });
     });
   });
 

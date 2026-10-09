@@ -45,25 +45,39 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
     described_class.send(:consume_dlq_batch)
   end
 
-  # The DLQ's ready count, polled briefly until it reaches the expected
-  # value. A delivery the batch left unacked returns to the DLQ when the
-  # broker processes the end of the batch's channel, which can be after the
-  # close has returned to the job.
-  def dlq_depth(expected)
+  # A queue's ready count, polled briefly until it reaches the expected
+  # value. The broker confirms the job's tx_commit once the channel has
+  # handed the publish or ack to the queue process, not once the queue has
+  # applied it, so a count read on the observer channel right after the
+  # job's commit can be one step stale. A delivery the batch left unacked
+  # returns to the DLQ when the broker processes the end of the batch's
+  # channel, which can be after the close has returned to the job.
+  def depth(target_queue, expected)
     deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 5
-    count    = queue.message_count
+    count    = target_queue.message_count
     while count != expected && Process.clock_gettime(Process::CLOCK_MONOTONIC) < deadline
       sleep 0.01
-      count = queue.message_count
+      count = target_queue.message_count
     end
     count
+  end
+
+  def dlq_depth(expected)
+    depth(queue, expected)
+  end
+
+  # The job bounds its batch by the DLQ count it reads first, and a publish
+  # the observer channel has returned from can still be on its way to the
+  # queue, so setup waits for the DLQ to hold everything it published.
+  def await_dlq(expected)
+    count = dlq_depth(expected)
+    raise "DLQ holds #{count} messages after setup, expected #{expected}" unless count == expected
   end
 
   # Dead-letter a message into the test DLQ, routed back to the test target.
   def dead_letter(id, body = payload)
     queue.publish(body, persistent: true, message_id: id, content_type: 'application/json',
       headers: { 'x-death' => [{ 'queue' => target_name }], 'x-schema-version' => 1 })
-    observer.queue(dlq_name, passive: true) # synchronous barrier after the publish
   end
 
   before do
@@ -76,6 +90,7 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
     stub_const("#{described_class.name}::DLQ_NAME", dlq_name)
     target
     dead_letter(message_id)
+    await_dlq(1)
   end
 
   after do
@@ -97,14 +112,14 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
     expect(described_class).to have_received(:finalize_replay).with(message_id, anything, anything).once
     expect(described_class).not_to have_received(:release_reservation)
     expect(dlq_depth(1)).to eq(1)
-    expect(target.message_count).to eq(1)
+    expect(depth(target, 1)).to eq(1)
 
     # finalize_replay marked the id completed, which the next run reads.
     allow(described_class).to receive(:reserve_replay).and_return(2)
     allow(described_class).to receive(:acquire_channel).and_return([nil, connection.create_channel, false])
     run_batch
-    expect(queue.message_count).to eq(0)
-    expect(target.message_count).to eq(1)
+    expect(depth(queue, 0)).to eq(0)
+    expect(depth(target, 1)).to eq(1)
     _, metadata, body = target.pop
     expect(metadata.message_id).to eq(message_id)
     expect(metadata.headers).to eq('x-schema-version' => 1)
@@ -113,6 +128,7 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
 
   it 'rolls back a written publish before the next message commits on an open channel' do
     dead_letter("#{message_id}-second")
+    await_dlq(2)
     calls = 0
     allow(channel.default_exchange).to receive(:publish).and_wrap_original do |operation, *args, **kwargs|
       operation.call(*args, **kwargs)
@@ -120,7 +136,7 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
       raise IOError, 'publish interrupted after write' if calls == 1
     end
     run_batch
-    expect(target.message_count).to eq(1)
+    expect(depth(target, 1)).to eq(1)
     expect(dlq_depth(1)).to eq(1)
     expect(queue.pop[1].message_id).to eq(message_id)
     expect(target.pop[1].message_id).to eq("#{message_id}-second")
@@ -134,11 +150,12 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
     queue.publish(payload, persistent: true, message_id: missing_id,
       content_type: 'application/json', headers: headers)
     dead_letter(message_id)
+    await_dlq(2)
 
     run_batch
 
     # The message behind the unroutable one is replayed in the same batch.
-    expect(target.message_count).to eq(1)
+    expect(depth(target, 1)).to eq(1)
     expect(target.pop[1].message_id).to eq(message_id)
     expect(dlq_depth(1)).to eq(1)
     expect(logger).to have_received(:error).with(
@@ -155,8 +172,8 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
     begin
       allow(described_class).to receive(:acquire_channel).and_return([nil, connection.create_channel, false])
       run_batch
-      expect(queue.message_count).to eq(0)
-      expect(missing.message_count).to eq(1)
+      expect(depth(queue, 0)).to eq(0)
+      expect(depth(missing, 1)).to eq(1)
       _, metadata, body = missing.pop
       expect(metadata.message_id).to eq(missing_id)
       expect(metadata.headers).to eq('x-schema-version' => 1)
@@ -173,6 +190,7 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
     queue.publish(payload, persistent: true, message_id: poison_id,
       content_type: 'application/json', headers: poison_headers)
     dead_letter(message_id)
+    await_dlq(2)
 
     exchange = channel.default_exchange
     allow(exchange).to receive(:publish).and_call_original
@@ -212,8 +230,8 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
     expect(channel).not_to have_received(:tx_rollback)
     expect(channel).to have_received(:tx_commit).exactly(3).times
 
-    expect(queue.message_count).to eq(0)
-    expect(target.message_count).to eq(1)
+    expect(depth(queue, 0)).to eq(0)
+    expect(depth(target, 1)).to eq(1)
     _, replayed_properties, replayed_body = target.pop
     expect(replayed_properties.message_id).to eq(message_id)
     expect(replayed_properties.headers).to eq('x-schema-version' => 1)
@@ -235,23 +253,24 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
           content_type: 'application/json', headers: headers)
       end
       dead_letter(message_id)
+      await_dlq(batch_size + 1)
     end
 
     it 'discards malformed x-death messages in the first batch and replays the message behind them in the second' do
       fill_dlq('x-death' => ['invalid'])
 
       run_batch
-      expect(queue.message_count).to eq(1)
-      expect(target.message_count).to eq(0)
+      expect(depth(queue, 1)).to eq(1)
+      expect(depth(target, 0)).to eq(0)
       expect(logger).to have_received(:info).with(/replayed=0 .*errors=#{batch_size} deferred=0 held=0/)
 
       next_batch
-      expect(queue.message_count).to eq(0)
-      expect(target.message_count).to eq(1)
+      expect(depth(queue, 0)).to eq(0)
+      expect(depth(target, 1)).to eq(1)
       expect(target.pop[1].message_id).to eq(message_id)
 
       next_batch
-      expect(target.message_count).to eq(0)
+      expect(depth(target, 0)).to eq(0)
     end
 
     it 'replays the message behind unroutable replays in the first batch, and keeps them across batches' do
@@ -259,7 +278,7 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
 
       run_batch
       expect(dlq_depth(batch_size)).to eq(batch_size)
-      expect(target.message_count).to eq(1)
+      expect(depth(target, 1)).to eq(1)
       expect(target.pop[1].message_id).to eq(message_id)
       expect(logger).to have_received(:info)
         .with(/replayed=1 .*deferred=#{batch_size} held=#{batch_size} unroutable=#{batch_size}/)
@@ -268,7 +287,7 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
         next_batch
         expect(dlq_depth(batch_size)).to eq(batch_size)
       end
-      expect(target.message_count).to eq(0)
+      expect(depth(target, 0)).to eq(0)
       expect(queue.pop[1].message_id).to eq("#{message_id}-stuck-0")
     end
 
@@ -282,28 +301,30 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
 
       run_batch
       expect(dlq_depth(batch_size)).to eq(batch_size)
-      expect(target.message_count).to eq(1)
+      expect(depth(target, 1)).to eq(1)
       expect(target.pop[1].message_id).to eq(message_id)
 
       2.times do
         next_batch
         expect(dlq_depth(batch_size)).to eq(batch_size)
       end
-      expect(target.message_count).to eq(0)
+      expect(depth(target, 0)).to eq(0)
     end
   end
 
   it 'stops when the commit cannot be sent, without settling either DLQ delivery' do
     dead_letter("#{message_id}-second")
+    await_dlq(2)
     allow(channel).to receive(:tx_commit).and_raise(IOError, 'commit write interrupted')
     expect(channel).not_to receive(:tx_rollback)
     run_batch
-    expect(target.message_count).to eq(0)
+    expect(depth(target, 0)).to eq(0)
     expect(dlq_depth(2)).to eq(2)
   end
 
   it 'stops after a publish commit the broker applied but whose confirmation is lost' do
     dead_letter("#{message_id}-second")
+    await_dlq(2)
     allow(channel).to receive(:tx_commit).and_wrap_original do |commit|
       commit.call
       raise IOError, 'commit confirmation lost'
@@ -311,7 +332,7 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
     run_batch
     # The copy is live and neither delivery was acked. The first stays
     # behind its publishing reservation until that expires.
-    expect(target.message_count).to eq(1)
+    expect(depth(target, 1)).to eq(1)
     expect(dlq_depth(2)).to eq(2)
     expect(described_class).not_to have_received(:release_reservation)
     expect(described_class).not_to have_received(:finalize_replay)
@@ -322,9 +343,9 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob, :rabbitmq, type: :
     queue.publish(payload, persistent: true, content_type: 'application/json',
       headers: { 'x-death' => [{ 'queue' => target_name }] })
     queue.publish(JSON.generate('template' => 'secret_link'), persistent: true)
-    observer.queue(dlq_name, passive: true)
+    await_dlq(3) # with the dead letter from the before block
     run_batch
-    expect(queue.message_count).to eq(0)
-    expect(target.message_count).to eq(2)
+    expect(depth(queue, 0)).to eq(0)
+    expect(depth(target, 2)).to eq(2)
   end
 end

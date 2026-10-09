@@ -89,12 +89,11 @@ onMounted(async () => {
     }
   }
 
-  // Initialize currentOrganization if not already set (restores from localStorage)
-  if (!organizationStore.currentOrganization && organizationStore.hasOrganizations) {
-    const initialOrg = organizationStore.restorePersistedSelection();
-    if (initialOrg) {
-      organizationStore.setCurrentOrganization(initialOrg);
-    }
+  // No current organization after the list fetch (the bootstrap payload named
+  // none): fall back to the default org, then the first. Tab-local only; the
+  // server keeps whatever selection it has.
+  if (!organizationStore.currentOrganization && organizationStore.defaultOrganization) {
+    organizationStore.setCurrentOrganization(organizationStore.defaultOrganization);
   }
 
   isLoaded.value = true;

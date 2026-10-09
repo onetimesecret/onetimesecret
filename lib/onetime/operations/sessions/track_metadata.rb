@@ -28,10 +28,9 @@ module Onetime
       # must never break a request or a login.
       class TrackMetadata
         # OrganizationLoader is the single authoritative accessor for a session's
-        # active organization (explicit-selection → domain → default → first-org,
-        # with a per-request session cache). We call it rather than reading the
-        # cache directly so org_id is populated even on the login-time write,
-        # before any auth strategy has warmed the cache.
+        # active organization (explicit-selection → domain → default → first-org).
+        # We call it rather than reading the session directly so org_id is
+        # populated even on the login-time write, before any explicit selection.
         include Onetime::Application::OrganizationLoader
 
         # Otto's GeoResolver sentinel for "no country resolved" — normalized to
@@ -170,20 +169,18 @@ module Onetime
         #   the user can switch orgs mid-session — so it is resolved on every write,
         #   not stamped once at auth time.
         #
-        # WHERE IT COMES FROM (do not confuse the key with its value):
-        #   OrganizationLoader caches the active org in the session under the key
-        #   STRING `org_context:<customer.objid>`. The key's SUFFIX is the CUSTOMER
-        #   objid — it namespaces the cache entry per customer and is NOT an org id.
-        #   The key's VALUE is a hash `{ organization_id: <org.objid>, expires_at: }`
-        #   whose `organization_id` IS the real active-org objid. An earlier version
-        #   of this method read the key's suffix and concluded "no org source
-        #   exists" — that was a misread; the org objid lives in the value.
-        #
-        # We call load_organization_context (the canonical resolver) rather than
-        # reading that cache directly: the resolver read-throughs the cache and,
-        # on a miss (e.g. the login-time write, before any auth strategy has run),
-        # resolves and returns the org. That is what guarantees every authenticated
-        # session's metadata carries the active org, with no fallback branch here.
+        # WHERE IT COMES FROM:
+        #   load_organization_context (the canonical resolver), called with this
+        #   request's env and the session data being written. It applies the
+        #   O-Organization-ID header, then the explicit selection in
+        #   session['organization_id'], then the defaults. Nothing is cached in
+        #   the session, so this is a second resolution in the request (the auth
+        #   strategy made the first) and it also covers the login-time write,
+        #   before any auth strategy has run. That is what guarantees every
+        #   authenticated session's metadata carries the active org, with no
+        #   fallback branch here. An `org_context:<customer.objid>` key in an
+        #   older session blob is a leftover of a removed cache; its suffix is
+        #   the CUSTOMER objid, not an org id.
         #
         # Wrapped in its own rescue: an org-resolution hiccup must degrade org_id to
         # nil, never abort the whole sidecar row (ip/ua/user still get written).

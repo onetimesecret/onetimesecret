@@ -59,7 +59,6 @@ context[:organization]&.objid
 
 ## Header takes priority over session selection
 @session = { 'organization_id' => @org1.objid }
-@session.delete("org_context:#{@owner.objid}")
 @env = { 'HTTP_O_ORGANIZATION_ID' => @org2.objid }
 context = @strategy.load_organization_context(@owner, @session, @env)
 context[:organization]&.objid
@@ -79,7 +78,6 @@ context = @strategy.load_organization_context(@owner, @session, @env)
 
 ## Header with valid org ID but customer not a member: Falls back to default
 @session = {}
-@session.delete("org_context:#{@owner.objid}")
 @env = { 'HTTP_O_ORGANIZATION_ID' => @org3.objid }
 context = @strategy.load_organization_context(@owner, @session, @env)
 context[:organization]&.objid
@@ -91,7 +89,6 @@ context[:organization]&.objid
 
 ## Header with unauthorized org does not expose org3 data
 @session = {}
-@session.delete("org_context:#{@owner.objid}")
 @env = { 'HTTP_O_ORGANIZATION_ID' => @org3.objid }
 context = @strategy.load_organization_context(@owner, @session, @env)
 context[:organization]&.objid != @org3.objid
@@ -104,7 +101,6 @@ context[:organization]&.objid != @org3.objid
 
 ## Header with non-existent org ID: Falls back to default
 @session = {}
-@session.delete("org_context:#{@owner.objid}")
 @env = { 'HTTP_O_ORGANIZATION_ID' => 'nonexistent-org-id-12345' }
 context = @strategy.load_organization_context(@owner, @session, @env)
 context[:organization]&.objid
@@ -112,7 +108,6 @@ context[:organization]&.objid
 
 ## Header with empty string: Falls back to default
 @session = {}
-@session.delete("org_context:#{@owner.objid}")
 @env = { 'HTTP_O_ORGANIZATION_ID' => '' }
 context = @strategy.load_organization_context(@owner, @session, @env)
 context[:organization]&.objid
@@ -120,7 +115,6 @@ context[:organization]&.objid
 
 ## Header with nil value: Falls back to default
 @session = {}
-@session.delete("org_context:#{@owner.objid}")
 @env = { 'HTTP_O_ORGANIZATION_ID' => nil }
 context = @strategy.load_organization_context(@owner, @session, @env)
 context[:organization]&.objid
@@ -133,7 +127,6 @@ context[:organization]&.objid
 
 ## No header with session selection: Uses session org
 @session = { 'organization_id' => @org2.objid }
-@session.delete("org_context:#{@owner.objid}")
 @env = {}
 context = @strategy.load_organization_context(@owner, @session, @env)
 context[:organization]&.objid
@@ -150,29 +143,28 @@ context[:organization]&.objid
 # =============================================================================
 # Rapid Organization Switches (Simulating SPA Navigation)
 # =============================================================================
-# These tests verify that header-based org switching works correctly even when
-# the cache is warm. The cache should NOT prevent header from taking effect.
+# These tests verify that header-based org switching works correctly on one
+# session: each request resolves its own header and leaves nothing behind
+# in the session for the next one.
 
-## Rapid switch: First request warms cache with org1
+## Rapid switch: First request with org1 header
 @rapid_session = {}
 @env1 = { 'HTTP_O_ORGANIZATION_ID' => @org1.objid }
 @context1 = @strategy.load_organization_context(@owner, @rapid_session, @env1)
 @context1[:organization]&.objid
 #=> @org1.objid
 
-## Rapid switch: Verify cache was warmed (precondition for next test)
-@cache_key = "org_context:#{@owner.objid}"
-@rapid_session[@cache_key].nil?
-#=> false
+## Rapid switch: The header-based load wrote nothing to the session
+@rapid_session
+#=> {}
 
-## Rapid switch: Second request with DIFFERENT header (cache still warm) uses new header
-# This is the critical test - header must override warm cache
+## Rapid switch: Second request with DIFFERENT header uses new header
 @env2 = { 'HTTP_O_ORGANIZATION_ID' => @org2.objid }
 @context2 = @strategy.load_organization_context(@owner, @rapid_session, @env2)
 @context2[:organization]&.objid
 #=> @org2.objid
 
-## Rapid switch: Third request back to org1 (cache has org2) uses org1 from header
+## Rapid switch: Third request back to org1 uses org1 from header
 @env3 = { 'HTTP_O_ORGANIZATION_ID' => @org1.objid }
 @context3 = @strategy.load_organization_context(@owner, @rapid_session, @env3)
 @context3[:organization]&.objid
@@ -184,31 +176,33 @@ context[:organization]&.objid
 
 
 # =============================================================================
-# Header Bypasses Warm Cache (Explicit Verification)
+# Header vs. Explicit Session Selection
 # =============================================================================
-# This section explicitly tests that headers take precedence over cached context.
+# The header decides the request it is on. It does not change the session
+# selection, which is what a later request without a header (a page load)
+# resolves to.
 
-## Cache bypass: Warm cache with org1 (no header, session-based)
+## Header vs selection: session selects org1, no header resolves org1
 @bypass_session = { 'organization_id' => @org1.objid }
 @env_no_header = {}
-@context_cached = @strategy.load_organization_context(@owner, @bypass_session, @env_no_header)
-@context_cached[:organization]&.objid
+@context_selected = @strategy.load_organization_context(@owner, @bypass_session, @env_no_header)
+@context_selected[:organization]&.objid
 #=> @org1.objid
 
-## Cache bypass: Verify cache is now warm with org1
-@bypass_cache_key = "org_context:#{@owner.objid}"
-@bypass_session[@bypass_cache_key]&.dig(:organization_id) == @org1.objid
-#=> true
-
-## Cache bypass: Header for org2 must override warm cache containing org1
+## Header vs selection: Header for org2 overrides the selection for that request
 @env_header_org2 = { 'HTTP_O_ORGANIZATION_ID' => @org2.objid }
 @context_header_override = @strategy.load_organization_context(@owner, @bypass_session, @env_header_org2)
 @context_header_override[:organization]&.objid
 #=> @org2.objid
 
-## Cache bypass: Confirm header value differs from what was cached
-[@bypass_session[@bypass_cache_key]&.dig(:organization_id), @context_header_override[:organization_id]]
-#=> [@org2.objid, @org2.objid]
+## Header vs selection: The header left the session selection as it was
+@bypass_session
+#=> { 'organization_id' => @org1.objid }
+
+## Header vs selection: The next request without a header is back on the selection
+@context_after_header = @strategy.load_organization_context(@owner, @bypass_session, @env_no_header)
+@context_after_header[:organization]&.objid
+#=> @org1.objid
 
 
 # =============================================================================
@@ -229,7 +223,6 @@ context
 
 ## Header with path traversal attempt: Falls back gracefully without crash
 @session = {}
-@session.delete("org_context:#{@owner.objid}")
 @env = { 'HTTP_O_ORGANIZATION_ID' => '../../../etc/passwd' }
 context = @strategy.load_organization_context(@owner, @session, @env)
 context[:organization]&.objid
@@ -243,7 +236,6 @@ context[:organization]&.objid
 
 ## Header with leading/trailing whitespace: Falls back to default (invalid for Redis lookup)
 @session = {}
-@session.delete("org_context:#{@owner.objid}")
 @env = { 'HTTP_O_ORGANIZATION_ID' => "  #{@org2.objid}  " }
 context = @strategy.load_organization_context(@owner, @session, @env)
 context[:organization]&.objid
@@ -251,7 +243,6 @@ context[:organization]&.objid
 
 ## Header with CRLF injection attempt: Falls back to default (invalid ID)
 @session = {}
-@session.delete("org_context:#{@owner.objid}")
 @env = { 'HTTP_O_ORGANIZATION_ID' => "#{@org2.objid}\r\nX-Injected: true" }
 context = @strategy.load_organization_context(@owner, @session, @env)
 context[:organization]&.objid
@@ -259,7 +250,6 @@ context[:organization]&.objid
 
 ## Header with null byte injection: Falls back to default (invalid ID)
 @session = {}
-@session.delete("org_context:#{@owner.objid}")
 @env = { 'HTTP_O_ORGANIZATION_ID' => "#{@org2.objid}\x00malicious" }
 context = @strategy.load_organization_context(@owner, @session, @env)
 context[:organization]&.objid
@@ -267,23 +257,30 @@ context[:organization]&.objid
 
 
 # =============================================================================
-# Caching Behavior with Headers
+# Membership Is Checked on Every Header Request
 # =============================================================================
 
-## Cache is created after header-based load
+## A header-based load is not remembered: nothing is written to the session
 @session = {}
-@env = { 'HTTP_O_ORGANIZATION_ID' => @org1.objid }
-@context_cached = @strategy.load_organization_context(@owner, @session, @env)
-@cache_key = "org_context:#{@owner.objid}"
-@session[@cache_key].nil?
-#=> false
-
-## Header override works after clearing cache
-@session.delete(@cache_key)
 @env = { 'HTTP_O_ORGANIZATION_ID' => @org2.objid }
-@context_after_clear = @strategy.load_organization_context(@owner, @session, @env)
-@context_after_clear[:organization]&.objid
-#=> @org2.objid
+@context_first = @strategy.load_organization_context(@owner, @session, @env)
+[@context_first[:organization]&.objid, @session]
+#=> [@org2.objid, {}]
+
+## A membership removed between two requests is refused on the second
+@member = Onetime::Customer.create!(email: generate_unique_test_email("header_member"))
+@org2.add_members_instance(@member, through_attrs: { role: 'member' })
+@member_session = {}
+@member_before = @strategy.load_organization_context(@member, @member_session, @env)
+@org2.remove_members_instance(@member)
+@member_after = @strategy.load_organization_context(@member, @member_session, @env)
+[@member_before[:organization]&.objid, @member_after[:organization]&.objid]
+#=> [@org2.objid, nil]
+
+## Clean up the removed member
+@member.destroy!
+true
+#=> true
 
 
 # =============================================================================

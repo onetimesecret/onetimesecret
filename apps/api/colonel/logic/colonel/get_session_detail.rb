@@ -137,10 +137,9 @@ module ColonelAPI
               role: data['role'],
               locale: data['locale'],
               ip_address: data['ip_address'],
-              # User agent + the org the session is acting in — the "add more
+              # User agent + the org the session has selected — the "add more
               # information" fields the identity blob already carries but the
-              # read-out didn't surface. org_context keys are namespaced
-              # (`org_context:<uuid>`); extract_org_context recovers the id.
+              # read-out didn't surface. See extract_org_context.
               user_agent: data['user_agent'],
               org_context: extract_org_context(data),
               authenticated_at: data['authenticated_at'],
@@ -169,11 +168,13 @@ module ColonelAPI
           data.reject { |key, _| REDACTED_PAYLOAD_KEYS.include?(key.to_s) }
         end
 
-        # The active org id from the namespaced `org_context:<uuid>` key the
-        # session carries (nil for anonymous / single-org sessions).
+        # The objid of the organization the session explicitly selected
+        # (session['organization_id'], written by the update-organization-
+        # context endpoint). nil when the session never selected one and
+        # follows the default resolution in OrganizationLoader.
         def extract_org_context(data)
-          key = data.keys.find { |k| k.to_s.start_with?('org_context:') }
-          key&.to_s&.delete_prefix('org_context:')
+          selected = data['organization_id']
+          selected.to_s.empty? ? nil : selected.to_s
         end
       end
     end

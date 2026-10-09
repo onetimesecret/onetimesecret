@@ -4,7 +4,7 @@
 
 # Integration test: session-only routes reject BasicAuth callers at Otto layer.
 #
-# Nine POST routes are restricted to auth=sessionauth (no basicauth in the
+# Ten POST routes are restricted to auth=sessionauth (no basicauth in the
 # route declaration). This spec sends actual HTTP requests with valid
 # BasicAuth credentials to each restricted route and verifies that Otto
 # rejects them before the logic layer is reached.
@@ -125,11 +125,12 @@ RSpec.describe 'BasicAuth rejection on session-only routes', type: :integration,
   # which is absent/false for BasicAuth requests (no session cookie).
 
   describe 'session-only Account API routes reject BasicAuth' do
-    # Map of path => description for the 7 restricted account routes
+    # Map of path => description for the 8 restricted account routes
     {
       '/api/account/destroy' => 'DestroyAccount',
       '/api/account/change-password' => 'UpdatePassword',
       '/api/account/update-domain-context' => 'UpdateDomainContext',
+      '/api/account/update-organization-context' => 'UpdateOrganizationContext',
       '/api/account/apitoken' => 'GenerateAPIToken',
       '/api/account/change-email' => 'RequestEmailChange',
       '/api/account/update-notification-preference' => 'UpdateNotificationPreference',

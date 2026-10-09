@@ -1,17 +1,23 @@
 # frozen_string_literal: true
 
 # The membership's domain scope is applied to every way the loader can select
-# an organization: cold selection, the O-Organization-ID header, both cache
-# hits and the explicit session selection. The request's custom domains come
-# from the Host header's record AND from the custom domain DomainStrategy
-# resolved, so a proxy that rewrites Host to the origin target does not drop
-# the check while site.network.public_host_rewrite is off. A display domain
-# that was read and has no record withholds every organization (#4225).
+# an organization: the fallback steps, the O-Organization-ID header and the
+# explicit session selection. The request's custom domains come from the Host
+# header's record AND from the custom domain DomainStrategy resolved, so a
+# proxy that rewrites Host to the origin target does not drop the check while
+# site.network.public_host_rewrite is off. A display domain that was read and
+# has no record withholds every organization (#4225).
+#
+# The loader keeps no cache in the session (the file name predates that):
+# every load reads membership, archived state and scope again. The explicit
+# selection in session['organization_id'] is what persists, and the blocks
+# at the end cover how it is written, read back and cleared (#4565).
 #
 # Run: tests/lanes/run unit --only spec/unit/organization_loader_cache_scope_spec.rb
 require 'spec_helper'
 require 'middleware/detect_host'
 require 'onetime/application/organization_loader'
+require 'onetime/application/request_helpers'
 require 'onetime/middleware/domain_strategy'
 require 'onetime/middleware/public_host_rewrite'
 require 'onetime/session'
@@ -36,7 +42,6 @@ RSpec.describe Onetime::Application::OrganizationLoader do
   let(:membership) { Onetime::OrganizationMembership.new(domain_scope_id: allowed_domain.objid) }
   let(:receipt_index) { double('org receipt index', rangebyscore: ['sibling_receipt']) }
   let(:session) { {} }
-  let(:cache_key) { "org_context:#{customer.objid}" }
 
   before do
     allow(Familia).to receive(:now).and_return(1_800_000_000)
@@ -75,38 +80,28 @@ RSpec.describe Onetime::Application::OrganizationLoader do
       request_env(domain, hostname, rewrite: rewrite, header: header))
   end
 
-  def warm_cache
-    session[cache_key] = { organization_id: organization.objid, expires_at: Familia.now.to_i + 60 }
-  end
-
   [false, true].each do |rewrite|
     [false, true].each do |header|
       context "rewrite=#{rewrite}, #{header ? 'matching header' : 'no header'}" do
         it 'selects the organization on the domain the membership is scoped to' do
           context = load_context(allowed_domain, 'allowed.example.com', rewrite: rewrite, header: header)
           expect(context[:organization]).to eq(organization)
-          expect(session[cache_key][:expires_at]).to eq(Familia.now + described_class::CACHE_TTL)
+          expect(context[:scope_domains]).to eq([allowed_domain])
+          # Nothing is remembered in the session: the next load resolves again.
+          expect(session).to eq({})
         end
 
-        it 'cold selection returns no organization on the sibling domain' do
+        it 'returns no organization on the sibling domain' do
           expect(membership.can_access_domain?(denied_domain)).to be(false)
           context = load_context(denied_domain, 'denied.example.com', rewrite: rewrite, header: header)
           expect(context[:organization]).to be_nil
           expect(context[:organization_id]).to be_nil
-          expect(session.key?(cache_key)).to be(false)
+          expect(session).to eq({})
         end
 
-        it 'a cache entry written on the allowed domain is not used on the sibling domain' do
-          warm = load_context(allowed_domain, 'allowed.example.com', rewrite: rewrite, header: header)
-          expect(warm[:organization]).to eq(organization)
-          context = load_context(denied_domain, 'denied.example.com', rewrite: rewrite, header: header)
-          expect(context[:organization]).to be_nil
-          expect(session.key?(cache_key)).to be(false)
-        end
-
-        it 'an expired cache entry is not used on the sibling domain either' do
-          load_context(allowed_domain, 'allowed.example.com', rewrite: rewrite, header: header)
-          session[cache_key][:expires_at] = Familia.now.to_i
+        it 'a load on the allowed domain does not carry over to the sibling domain' do
+          first = load_context(allowed_domain, 'allowed.example.com', rewrite: rewrite, header: header)
+          expect(first[:organization]).to eq(organization)
           context = load_context(denied_domain, 'denied.example.com', rewrite: rewrite, header: header)
           expect(context[:organization]).to be_nil
         end
@@ -125,25 +120,33 @@ RSpec.describe Onetime::Application::OrganizationLoader do
           expect(context[:organization]).to eq(organization)
         end
 
-        it 'an org-scoped member gets the organization on either domain, cold and cached' do
+        it 'an org-scoped member gets the organization on either domain, on repeated loads' do
           membership.domain_scope_id = nil
           2.times do
             context = load_context(denied_domain, 'denied.example.com', rewrite: rewrite, header: header)
             expect(context[:organization]).to eq(organization)
           end
           session['organization_id'] = organization.objid
-          session.delete(cache_key)
           context = load_context(denied_domain, 'denied.example.com', rewrite: rewrite, header: header)
           expect(context[:organization]).to eq(organization)
         end
 
-        it 'a membership scope changed after the cache entry was written applies on the next load' do
-          load_context(allowed_domain, 'allowed.example.com', rewrite: rewrite, header: header)
+        it 'a membership scope changed between two loads applies on the second' do
+          first = load_context(allowed_domain, 'allowed.example.com', rewrite: rewrite, header: header)
+          expect(first[:organization]).to eq(organization)
           membership.domain_scope_id = denied_domain.objid
           expect(membership.can_access_domain?(allowed_domain)).to be(false)
           context = load_context(allowed_domain, 'allowed.example.com', rewrite: rewrite, header: header)
           expect(context[:organization]).to be_nil
-          expect(session.key?(cache_key)).to be(false)
+        end
+
+        it 'a membership removed between two loads applies on the second' do
+          first = load_context(allowed_domain, 'allowed.example.com', rewrite: rewrite, header: header)
+          expect(first[:organization]).to eq(organization)
+          allow(organization).to receive(:member?).with(customer).and_return(false)
+          allow(customer).to receive(:organization_instances).and_return([])
+          context = load_context(allowed_domain, 'allowed.example.com', rewrite: rewrite, header: header)
+          expect(context[:organization]).to be_nil
         end
       end
     end
@@ -169,31 +172,24 @@ RSpec.describe Onetime::Application::OrganizationLoader do
         expect(context[:organization]).to eq(organization)
       end
 
-      it 'returns no organization on the sibling domain: cold, cached and session-selected' do
+      it 'returns no organization on the sibling domain: unselected and session-selected' do
         env = unclassified_env('denied.example.com', header: header)
         expect(loader.load_organization_context(customer, session, env)[:organization]).to be_nil
-
-        warm_cache
-        expect(loader.load_organization_context(customer, session, env)[:organization]).to be_nil
-        expect(session.key?(cache_key)).to be(false)
 
         session['organization_id'] = organization.objid
         expect(loader.load_organization_context(customer, session, env)[:organization]).to be_nil
       end
 
-      it 'raises when the read of the Host record fails: cold, cached and session-selected' do
+      it 'raises when the read of the Host record fails: unselected and session-selected' do
         allow(Onetime::CustomDomain).to receive(:from_display_domain).with('denied.example.com')
           .and_raise(Redis::CannotConnectError, 'datastore unavailable')
         env = unclassified_env('denied.example.com', header: header)
         expect { loader.load_organization_context(customer, session, env) }.to raise_error(Redis::CannotConnectError)
 
-        warm_cache
-        expect { loader.load_organization_context(customer, session, env) }.to raise_error(Redis::CannotConnectError)
-        expect(session[cache_key][:organization_id]).to eq(organization.objid)
-
-        session.delete(cache_key)
         session['organization_id'] = organization.objid
         expect { loader.load_organization_context(customer, session, env) }.to raise_error(Redis::CannotConnectError)
+        # The selection is not dropped by a failed read.
+        expect(session['organization_id']).to eq(organization.objid)
       end
 
       # Behind a proxy that rewrites Host, a failed read of the display
@@ -212,9 +208,6 @@ RSpec.describe Onetime::Application::OrganizationLoader do
         env['HTTP_O_ORGANIZATION_ID'] = organization.objid if header
 
         expect { loader.load_organization_context(customer, session, env) }.to raise_error(Redis::CannotConnectError)
-
-        warm_cache
-        expect { loader.load_organization_context(customer, session, env) }.to raise_error(Redis::CannotConnectError)
       end
     end
   end
@@ -225,7 +218,7 @@ RSpec.describe Onetime::Application::OrganizationLoader do
         'onetime.domain_strategy' => :canonical }
     end
 
-    it 'gives a domain-scoped member the organization, cold, cached, by header and by session selection' do
+    it 'gives a domain-scoped member the organization, repeatedly, by header and by session selection' do
       2.times do
         expect(loader.load_organization_context(customer, session, canonical_env)[:organization]).to eq(organization)
       end
@@ -233,7 +226,6 @@ RSpec.describe Onetime::Application::OrganizationLoader do
       2.times do
         expect(loader.load_organization_context(customer, session, header_env)[:organization]).to eq(organization)
       end
-      session.delete(cache_key)
       session['organization_id'] = organization.objid
       expect(loader.load_organization_context(customer, session, canonical_env)[:organization]).to eq(organization)
     end
@@ -253,10 +245,9 @@ RSpec.describe Onetime::Application::OrganizationLoader do
       end
 
       ['origin.example.com', 'links.example.com', 'GO.EXAMPLE.NET:443', 'www.example.com'].each do |host|
-        [:cold, :cached, :header, :session].each do |selection|
+        [:unselected, :header, :session].each do |selection|
           it "uses #{selection} selection on #{host} without reading the custom-domain index" do
             env = canonical_env.merge('HTTP_HOST' => host, 'onetime.display_domain' => host.split(':').first.downcase)
-            warm_cache if selection == :cached
             env['HTTP_O_ORGANIZATION_ID'] = organization.objid if selection == :header
             session['organization_id']    = organization.objid if selection == :session
             allow(Onetime::CustomDomain).to receive(:from_display_domain).with(host.split(':').first.downcase)
@@ -282,8 +273,6 @@ RSpec.describe Onetime::Application::OrganizationLoader do
           expect(strategy).to eq(:canonical)
         end
         env = canonical_env.merge('HTTP_HOST' => 'www.example.com:443', 'onetime.display_domain' => 'links.example.com')
-        warm_cache
-
         expect(loader.load_organization_context(customer, session, env)[:organization]).to eq(organization)
         expect(Onetime::CustomDomain).not_to have_received(:from_display_domain)
       end
@@ -291,8 +280,6 @@ RSpec.describe Onetime::Application::OrganizationLoader do
       it 'does not bypass a tenant www sibling of a link-pool host' do
         env = canonical_env.merge('HTTP_HOST' => 'www.example.net:443')
         allow(Onetime::CustomDomain).to receive(:from_display_domain).with('www.example.net').and_return(denied_domain)
-        warm_cache
-
         context = loader.load_organization_context(customer, session, env)
         expect(context[:organization]).to be_nil
         expect(context[:domain_scope_refused]).to be(true)
@@ -325,16 +312,12 @@ RSpec.describe Onetime::Application::OrganizationLoader do
           Onetime::CustomDomain::Lookup::ENV_KEY =>
             Onetime::CustomDomain::Lookup.read_failed('denied.example.com', error),
         )
-        warm_cache
-
         expect { loader.load_organization_context(customer, session, env) }.to raise_error(error)
       end
 
       it 'does not treat a different raw tenant Host as canonical when middleware displays the origin' do
         env = canonical_env.merge('HTTP_HOST' => 'denied.example.com:443')
         allow(Onetime::CustomDomain).to receive(:from_display_domain).with('denied.example.com').and_return(denied_domain)
-        warm_cache
-
         context = loader.load_organization_context(customer, session, env)
         expect(context[:organization]).to be_nil
         expect(context[:domain_scope_refused]).to be(true)
@@ -344,8 +327,6 @@ RSpec.describe Onetime::Application::OrganizationLoader do
         env = canonical_env.merge('HTTP_HOST' => 'denied.example.com:443')
         allow(Onetime::CustomDomain).to receive(:from_display_domain).with('denied.example.com')
           .and_raise(Redis::CannotConnectError, 'domain index unavailable')
-        warm_cache
-
         expect { loader.load_organization_context(customer, session, env) }.to raise_error(Redis::CannotConnectError)
       end
     end
@@ -379,19 +360,16 @@ RSpec.describe Onetime::Application::OrganizationLoader do
       expect(context[:organization]).to be_nil
       expect(context[:organization_id]).to be_nil
       expect(context[:domain_scope_refused]).to be(true)
-      expect(session.key?(cache_key)).to be(false)
     end
 
     { 'Host rewritten to the origin target' => 'origin.example.com',
       'Host preserved' => 'unregistered.example.com:443' }.each do |shape, http_host|
       [false, true].each do |header|
         context "#{shape}, #{header ? 'matching header' : 'no header'}" do
-          it 'withholds the organization: cold, cached and session-selected' do
+          it 'withholds the organization: unselected and session-selected' do
             env = unregistered_env(http_host, header: header)
             expect_withheld(loader.load_organization_context(customer, session, env))
-
-            warm_cache
-            expect_withheld(loader.load_organization_context(customer, session, env))
+            expect(session).to eq({})
 
             session['organization_id'] = organization.objid
             expect_withheld(loader.load_organization_context(customer, session, env))
@@ -403,9 +381,6 @@ RSpec.describe Onetime::Application::OrganizationLoader do
             membership.domain_scope_id = nil
             expect(membership.org_scoped?).to be(true)
             env = unregistered_env(http_host, header: header)
-            expect_withheld(loader.load_organization_context(customer, session, env))
-
-            warm_cache
             expect_withheld(loader.load_organization_context(customer, session, env))
           end
         end
@@ -428,9 +403,11 @@ RSpec.describe Onetime::Application::OrganizationLoader do
     end
 
     # DomainStrategy publishes no lookup for a host it could not detect or
-    # parse, so nothing was read and nothing is withheld. Kept by maintainer
-    # decision (2026-10-06, recorded on #4672): such a request is served as
-    # the canonical host, which is what sending the canonical Host gets.
+    # parse, so nothing was read and nothing is withheld. Decided on #4678
+    # and recorded in docs/adr/adr-050-request-host-authority.md
+    # ("Organization scope on a host that detection rejects"): such a
+    # request is served as the canonical host, which is what sending the
+    # canonical Host gets.
     it 'keeps an :invalid request with no published lookup unscoped' do
       env     = { 'HTTP_HOST' => 'origin.example.com',
                   'onetime.display_domain' => unregistered_host, 'onetime.domain_strategy' => :invalid }
@@ -459,7 +436,7 @@ RSpec.describe Onetime::Application::OrganizationLoader do
       context = loader.load_organization_context(customer, session, env)
       expect(context[:organization]).to be_nil
       expect(context[:domain_scope_refused]).to be(true)
-      expect(session.key?(cache_key)).to be(false)
+      expect(session).to eq({})
       expect(Onetime::CustomDomain).not_to have_received(:from_display_domain)
     end
 
@@ -468,7 +445,7 @@ RSpec.describe Onetime::Application::OrganizationLoader do
       env     = direct_env(denied_domain, 'denied.example.com', header: true)
       context = loader.load_organization_context(customer, session, env)
       expect(context[:organization]).to eq(organization)
-      expect(session[cache_key][:organization_id]).to eq(organization.objid)
+      expect(session).to eq({})
     end
   end
 
@@ -498,34 +475,292 @@ RSpec.describe Onetime::Application::OrganizationLoader do
     end
   end
 
-  # The cache entry is written with symbol keys and the session blob is JSON,
-  # so the entry read back on a later request has string keys and the loader's
-  # symbol-key reads miss it. The entry is only ever hit by a second load in
-  # the request that wrote it (Sessions::TrackMetadata at commit).
-  describe 'the cache entry across requests (real session store)' do
-    let(:store) { Onetime::Session.new(->(_env) { [200, {}, []] }, secret: 'x' * 64) }
-    let(:rack_request) { Rack::Request.new(Rack::MockRequest.env_for('/')) }
+  # Organization#archive! leaves domains attached, so the Host can name a
+  # domain whose organization is archived. rewrite: true puts the custom
+  # domain in HTTP_HOST, which is what the domain-based step reads.
+  context 'an archived organization that still owns the request domain' do
+    let(:archived_org) do
+      double('archived organization', objid: 'org_archived', archived?: true, is_default: false)
+    end
+    let(:archived_domain) do
+      double('archived-org domain', objid: 'domain_archived', primary_organization: archived_org)
+    end
+    let(:customer) do
+      double('customer', objid: 'customer_scoped', custid: 'scoped@example.com',
+        extid: 'customer_external', anonymous?: false, default_org_id: '',
+        organization_instances: [archived_org, organization])
+    end
 
-    it 'comes back with string keys and is treated as a miss' do
-      env = request_env(allowed_domain, 'allowed.example.com', rewrite: true, header: false)
-      loader.load_organization_context(customer, session, env)
-      expect(session[cache_key].keys).to eq([:organization_id, :expires_at])
+    before do
+      # Org-scoped memberships: the domain scope permits both organizations.
+      membership.domain_scope_id = nil
+      allow(Onetime::Organization).to receive(:load).with(archived_org.objid).and_return(archived_org)
+      allow(archived_org).to receive(:member?).with(customer).and_return(true)
+      allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+        .with(archived_org.objid, customer.objid).and_return(Onetime::OrganizationMembership.new)
+    end
 
-      sid = store.send(:generate_sid)
-      store.send(:write_session, rack_request, sid, session, {})
-      _sid, reloaded = store.send(:find_session, rack_request, sid)
-
-      expect(reloaded[cache_key]).to eq(
-        'organization_id' => organization.objid, 'expires_at' => Familia.now.to_i + described_class::CACHE_TTL,
-      )
-      expect(reloaded[cache_key][:expires_at]).to be_nil
-
-      # A miss: the cold path runs and replaces the entry with a symbol-keyed one.
-      context = loader.load_organization_context(customer, reloaded, env)
+    it 'is not given by the domain-based step; an active organization is chosen' do
+      context = load_context(archived_domain, 'archived.example.com', rewrite: true, header: false)
       expect(context[:organization]).to eq(organization)
-      expect(reloaded[cache_key].keys).to eq([:organization_id, :expires_at])
-    ensure
-      store.send(:delete_session, rack_request, sid, {}) if sid
+      expect(context).not_to have_key(:domain_scope_refused)
+    end
+
+    it 'is not reached through a refused session selection' do
+      session['organization_id'] = archived_org.objid
+
+      context = load_context(archived_domain, 'archived.example.com', rewrite: true, header: false)
+      expect(context[:organization]).to eq(organization)
+      expect(session).not_to have_key('organization_id')
+    end
+
+    it 'is not reached through a refused header' do
+      env                           = request_env(archived_domain, 'archived.example.com', rewrite: true, header: false)
+      env['HTTP_O_ORGANIZATION_ID'] = archived_org.objid
+
+      context = loader.load_organization_context(customer, session, env)
+      expect(context[:organization]).to eq(organization)
+    end
+  end
+
+  # The explicit selection (#4565). `organization` stays the customer's first
+  # organization, so it is what the fallback steps choose; `selected_org` is
+  # only ever reached through session['organization_id'] and `header_org`
+  # only through the header.
+  describe 'the explicit session selection' do
+    let(:selected_org) do
+      double('selected organization', objid: 'org_selected', archived?: false, is_default: false)
+    end
+    let(:header_org) do
+      double('header organization', objid: 'org_header', archived?: false, is_default: false)
+    end
+    let(:customer) do
+      double('customer', objid: 'customer_scoped', custid: 'scoped@example.com',
+        extid: 'customer_external', anonymous?: false, default_org_id: '',
+        organization_instances: [organization, selected_org, header_org])
+    end
+    let(:canonical_env) do
+      { 'HTTP_HOST' => 'origin.example.com', 'onetime.display_domain' => 'origin.example.com',
+        'onetime.domain_strategy' => :canonical }
+    end
+    let(:canonical_context) { loader.load_organization_context(customer, session, canonical_env) }
+
+    before do
+      [selected_org, header_org].each do |org|
+        allow(Onetime::Organization).to receive(:load).with(org.objid).and_return(org)
+        allow(org).to receive(:member?).with(customer).and_return(true)
+        # Org-scoped memberships: no domain restriction.
+        allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+          .with(org.objid, customer.objid).and_return(Onetime::OrganizationMembership.new)
+      end
+      allow(Onetime::Organization).to receive(:load).with('org_unknown').and_return(nil)
+    end
+
+    describe 'across requests (real session store)' do
+      let(:store) { Onetime::Session.new(->(_env) { [200, {}, []] }, secret: 'x' * 64) }
+      let(:rack_request) { Rack::Request.new(Rack::MockRequest.env_for('/')) }
+
+      it 'is read back from the stored session and decides a request with no header' do
+        expect(canonical_context[:organization]).to eq(organization)
+        expect(loader.select_organization(customer, session, selected_org.objid, canonical_context)).to eq(selected_org)
+        # The selection and when it was made (Familia.now above, in milliseconds).
+        expect(session).to eq(
+          'organization_id' => selected_org.objid,
+          'organization_selected_at' => 1_800_000_000_000,
+        )
+
+        sid = store.send(:generate_sid)
+        store.send(:write_session, rack_request, sid, session, {})
+        _sid, reloaded = store.send(:find_session, rack_request, sid)
+
+        # A plain string under a string key: the JSON round trip changes nothing.
+        expect(reloaded['organization_id']).to eq(selected_org.objid)
+
+        context = loader.load_organization_context(customer, reloaded, canonical_env)
+        expect(context[:organization]).to eq(selected_org)
+        expect(context[:organization_id]).to eq(selected_org.objid)
+        expect(reloaded['organization_id']).to eq(selected_org.objid)
+      ensure
+        store.send(:delete_session, rack_request, sid, {}) if sid
+      end
+
+      it 'does not read a leftover org_context entry in an older session' do
+        session["org_context:#{customer.objid}"] = {
+          'organization_id' => selected_org.objid, 'expires_at' => Familia.now.to_i + 300
+        }
+        sid            = store.send(:generate_sid)
+        store.send(:write_session, rack_request, sid, session, {})
+        _sid, reloaded = store.send(:find_session, rack_request, sid)
+
+        context = loader.load_organization_context(customer, reloaded, canonical_env)
+        expect(context[:organization]).to eq(organization)
+      ensure
+        store.send(:delete_session, rack_request, sid, {}) if sid
+      end
+    end
+
+    describe 'precedence' do
+      it 'is header, then session selection, then the default' do
+        expect(loader.load_organization_context(customer, session, canonical_env)[:organization]).to eq(organization)
+
+        session['organization_id'] = selected_org.objid
+        expect(loader.load_organization_context(customer, session, canonical_env)[:organization]).to eq(selected_org)
+
+        header_env = canonical_env.merge('HTTP_O_ORGANIZATION_ID' => header_org.objid)
+        expect(loader.load_organization_context(customer, session, header_env)[:organization]).to eq(header_org)
+
+        # The header decided its own request only.
+        expect(session).to eq('organization_id' => selected_org.objid)
+        expect(loader.load_organization_context(customer, session, canonical_env)[:organization]).to eq(selected_org)
+      end
+
+      it 'falls from a refused header to the session selection' do
+        session['organization_id'] = selected_org.objid
+        allow(header_org).to receive(:member?).with(customer).and_return(false)
+        header_env                 = canonical_env.merge('HTTP_O_ORGANIZATION_ID' => header_org.objid)
+
+        expect(loader.load_organization_context(customer, session, header_env)[:organization]).to eq(selected_org)
+      end
+
+      it 'does not let the header select an archived organization' do
+        allow(header_org).to receive(:archived?).and_return(true)
+        header_env = canonical_env.merge('HTTP_O_ORGANIZATION_ID' => header_org.objid)
+
+        expect(loader.load_organization_context(customer, session, header_env)[:organization]).to eq(organization)
+      end
+    end
+
+    describe 'when the selection stops being valid' do
+      before { session['organization_id'] = selected_org.objid }
+
+      it 'is cleared once the membership is revoked' do
+        allow(selected_org).to receive(:member?).with(customer).and_return(false)
+        allow(customer).to receive(:organization_instances).and_return([organization, header_org])
+
+        context = loader.load_organization_context(customer, session, canonical_env)
+        expect(context[:organization]).to eq(organization)
+        expect(session).not_to have_key('organization_id')
+      end
+
+      it 'is cleared once the organization is archived' do
+        allow(selected_org).to receive(:archived?).and_return(true)
+
+        context = loader.load_organization_context(customer, session, canonical_env)
+        expect(context[:organization]).to eq(organization)
+        expect(session).not_to have_key('organization_id')
+      end
+
+      it 'is cleared once the organization no longer exists' do
+        allow(Onetime::Organization).to receive(:load).with(selected_org.objid).and_return(nil)
+
+        context = loader.load_organization_context(customer, session, canonical_env)
+        expect(context[:organization]).to eq(organization)
+        expect(session).not_to have_key('organization_id')
+      end
+    end
+
+    describe '#select_organization' do
+      it 'records the objid and returns the organization' do
+        expect(loader.select_organization(customer, session, selected_org.objid, canonical_context)).to eq(selected_org)
+        expect(session['organization_id']).to eq(selected_org.objid)
+      end
+
+      it 'is callable on the module itself' do
+        selected = described_class.select_organization(customer, session, selected_org.objid, canonical_context)
+        expect(selected).to eq(selected_org)
+        expect(session['organization_id']).to eq(selected_org.objid)
+      end
+
+      context 'when refused' do
+        before { session['organization_id'] = organization.objid }
+
+        after { expect(session).to eq('organization_id' => organization.objid) }
+
+        it 'refuses an organization the customer is not a member of' do
+          allow(selected_org).to receive(:member?).with(customer).and_return(false)
+          expect(loader.select_organization(customer, session, selected_org.objid, canonical_context)).to be_nil
+        end
+
+        it 'refuses an archived organization' do
+          allow(selected_org).to receive(:archived?).and_return(true)
+          expect(loader.select_organization(customer, session, selected_org.objid, canonical_context)).to be_nil
+        end
+
+        it 'refuses an unknown organization' do
+          expect(loader.select_organization(customer, session, 'org_unknown', canonical_context)).to be_nil
+        end
+
+        it 'refuses a blank or non-string id' do
+          ['', nil, 42].each do |org_id|
+            expect(loader.select_organization(customer, session, org_id, canonical_context)).to be_nil
+          end
+        end
+
+        it 'refuses an organization the domain scope does not permit on a custom domain' do
+          # A membership scoped to the allowed domain, selecting on the sibling.
+          allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+            .with(selected_org.objid, customer.objid)
+            .and_return(Onetime::OrganizationMembership.new(domain_scope_id: allowed_domain.objid))
+          context = load_context(denied_domain, 'denied.example.com', rewrite: false, header: false)
+          expect(context[:scope_domains]).to eq([denied_domain])
+
+          expect(loader.select_organization(customer, session, selected_org.objid, context)).to be_nil
+        end
+
+        # The selection write is held to the same scope as the loads (#4225):
+        # selected_org's membership is org-scoped and is refused all the same.
+        it 'refuses every organization on an unregistered host' do
+          env     = {
+            'HTTP_HOST' => 'origin.example.com',
+            'onetime.display_domain' => 'unregistered.example.com', 'onetime.domain_strategy' => :invalid,
+            Onetime::CustomDomain::Lookup::ENV_KEY => Onetime::CustomDomain::Lookup.absent('unregistered.example.com'),
+          }
+          context = loader.load_organization_context(customer, session, env)
+          expect(context[:domain_scope_refused]).to be(true)
+
+          expect(loader.select_organization(customer, session, selected_org.objid, context)).to be_nil
+        end
+
+        it 'refuses when the request carries no loader context, so the scope is unknown' do
+          [nil, {}, { organization: organization }].each do |context|
+            expect(loader.select_organization(customer, session, selected_org.objid, context)).to be_nil
+          end
+        end
+      end
+
+      it 'accepts the same organization on the domain its membership is scoped to' do
+        allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
+          .with(selected_org.objid, customer.objid)
+          .and_return(Onetime::OrganizationMembership.new(domain_scope_id: allowed_domain.objid))
+        context = load_context(allowed_domain, 'allowed.example.com', rewrite: false, header: false)
+
+        expect(loader.select_organization(customer, session, selected_org.objid, context)).to eq(selected_org)
+        expect(session['organization_id']).to eq(selected_org.objid)
+      end
+    end
+
+    # The request helper is the same write for code that holds a request.
+    describe 'RequestHelpers#switch_organization' do
+      let(:strategy_result) do
+        double('strategy result', user: customer, session: session, authenticated?: true,
+          metadata: { organization_context: canonical_context })
+      end
+      let(:request) do
+        Struct.new(:env).new({ 'otto.strategy_result' => strategy_result })
+          .extend(Onetime::Application::RequestHelpers)
+      end
+
+      it 'records the selection and reports success' do
+        expect(request.switch_organization(selected_org.objid)).to be(true)
+        expect(session['organization_id']).to eq(selected_org.objid)
+        expect(request.organization).to eq(selected_org)
+      end
+
+      it 'refuses an archived organization and leaves the session as it was' do
+        allow(selected_org).to receive(:archived?).and_return(true)
+        expect(request.switch_organization(selected_org.objid)).to be(false)
+        expect(session).not_to have_key('organization_id')
+      end
     end
   end
 
