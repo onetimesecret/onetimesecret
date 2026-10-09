@@ -668,6 +668,14 @@ module Onetime
           builder.use Onetime::Middleware::ValidateMultipart
           builder.use Rack::Parser, parsers: @parsers
 
+          # Request store for the customer's organization memberships
+          # (Onetime::MembershipSnapshot): the auth-phase organization load,
+          # the bootstrap serializer and the session commit read them once.
+          # Above Onetime::Session so the store is still open when the
+          # session commits on the way out, and above CookieTossing so that
+          # one stays directly above the session.
+          builder.use Onetime::Middleware::MembershipSnapshotContext
+
           # Cookie tossing (#4466, RISK-2026-08-14-COOKIE-TOSSING): refuses a
           # request that carries the session cookie more than once. Directly
           # above Onetime::Session, so the refusal loads no session and its
@@ -684,13 +692,6 @@ module Onetime
             warn_once :cookie_tossing_disabled,
               "[Security] CookieTossing protection DISABLED (site.middleware.#{cookie_tossing[:key]}=false)"
           end
-
-          # Request store for the customer's organization memberships
-          # (Onetime::MembershipSnapshot): the auth-phase organization load,
-          # the bootstrap serializer and the session commit read them once.
-          # Above Onetime::Session so the store is still open when the
-          # session commits on the way out.
-          builder.use Onetime::Middleware::MembershipSnapshotContext
 
           # Add session middleware early in the stack (before other middleware)
           session_config = Onetime.session_config
