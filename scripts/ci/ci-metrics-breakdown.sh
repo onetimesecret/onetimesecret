@@ -32,7 +32,7 @@
 # Jobs listings from the GitHub API (`/repos/{owner}/{repo}/actions/runs/{id}/
 # jobs?per_page=100`), saved to files: the current run first, then zero or more
 # successful main runs as the baseline. Nothing here talks to the network, so
-# scripts/tests/ci-metrics-breakdown-test.sh can drive it from fixtures.
+# tools/testsuite/ci-metrics-breakdown-test.sh can drive it from fixtures.
 #
 # WHICH STEPS COUNT
 #

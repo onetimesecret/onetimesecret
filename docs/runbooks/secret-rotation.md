@@ -85,7 +85,7 @@ a decrypt-only chain of previous secrets (`SECRET_PREVIOUS`).
    and restart running app processes again so they drop the mismatch state.
 4. Verify: `bundle exec rake ots:secrets:verify` exits 0, and a reveal of a
    pre-rotation secret still works (the harness lane
-   `scripts/install-tests/secret-rotation.sh` automates this proof).
+   `bin/testsuite-installer secret-rotation` automates this proof).
 5. **Retention:** keep each `SECRET_PREVIOUS` entry for at least the longest
    secret TTL plus the receipt TTL, then drop it.
 

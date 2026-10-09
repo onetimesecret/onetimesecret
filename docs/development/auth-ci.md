@@ -168,7 +168,7 @@ make a one-off PR run auth; label that PR instead. The list accepts `*`, `**`,
 `{a,b}` and two-letter classes such as `[Aa]`, and nothing else.
 
 The selector's path fixtures and the verdict regression tests live under
-[`scripts/tests/`](../../scripts/tests/), and run in the
+[`tools/testsuite/`](../../tools/testsuite/), and run in the
 [Static analysis workflow](../../.github/workflows/static-analysis.yml).
 
 Local Ruby execution is unchanged. Use the

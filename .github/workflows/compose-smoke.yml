@@ -45,10 +45,12 @@ on:
     paths:
       - 'docker-compose.yml'
       - 'docker/compose/**'
-      # Named individually, not globbed: scripts/install-tests/ also holds
+      # Named individually, not globbed: tools/testsuite-installer/ also holds
       # helpers for five other workflows, and this lane is a ~15min build+up.
-      - 'scripts/install-tests/proof-of-life.sh'
-      - 'scripts/install-tests/seed-compose-env.sh'
+      - 'bin/testsuite-installer'
+      - 'tools/testsuite-installer/testsuite-installer.sh'
+      - 'tools/testsuite-installer/proof-of-life.sh'
+      - 'tools/testsuite-installer/seed-compose-env.sh'
       - '.github/workflows/compose-smoke.yml'
       # full-stack-smoke builds from source, so image-definition changes
       # must exercise it too.
@@ -167,9 +169,9 @@ jobs:
       - name: Proof of life (incl. first-account step)
         if: steps.pin.outputs.published == 'true'
         env:
-          POL_CREATE_ACCOUNT: "1"
+          POL_CREATE_ACCOUNT: '1'
           POL_EXEC: docker compose -f docker/compose/docker-compose.simple.yml exec -T app
-        run: ./scripts/install-tests/proof-of-life.sh http://127.0.0.1:3000
+        run: bin/testsuite-installer proof-of-life http://127.0.0.1:3000
 
       - name: Dump logs on failure
         if: failure()
@@ -192,7 +194,7 @@ jobs:
       # see the script header for what each target covers and why full auth
       # mode needs AUTH_SECRET / ACCOUNT_ID_SECRET.
       - name: Seed throwaway secrets (compose interpolation + .env)
-        run: bash scripts/install-tests/seed-compose-env.sh
+        run: bin/testsuite-installer seed-compose-env
 
       # Build the app image FROM SOURCE via the same bake config releases
       # use, tagged so the compose default `onetimesecret/onetimesecret:
@@ -268,9 +270,9 @@ jobs:
       # authdb the entrypoint just migrated.
       - name: Proof of life (inside the app container, incl. first account)
         run: |
-          docker compose -f docker/compose/docker-compose.full.yml \
-            exec -T -e POL_CREATE_ACCOUNT=1 app bash -s -- http://127.0.0.1:3000 \
-            < scripts/install-tests/proof-of-life.sh
+          bin/testsuite-installer proof-of-life --print-script | \
+            docker compose -f docker/compose/docker-compose.full.yml \
+              exec -T -e POL_CREATE_ACCOUNT=1 app bash -s -- http://127.0.0.1:3000
 
       # Ingress: Caddy serves {$DOMAIN}:443 (DOMAIN=localhost here) with its
       # internal CA, static-serving only files that exist under PUBLIC_DIR
@@ -309,7 +311,7 @@ jobs:
       # Shared with full-stack-smoke — same $GITHUB_ENV + .env seeding, incl.
       # the full-mode AUTH_SECRET / ACCOUNT_ID_SECRET. See the script header.
       - name: Seed throwaway secrets (compose interpolation + .env)
-        run: bash scripts/install-tests/seed-compose-env.sh
+        run: bin/testsuite-installer seed-compose-env
 
       # No OTS_IMAGE_TAG override and no bake: compose resolves the pinned
       # default and pulls it from the registry (--quiet-pull). Bring up `app`
@@ -330,9 +332,9 @@ jobs:
       # /api/v2/status already proves the boot migration wrote to the volume.
       - name: Proof of life (inside the app container)
         run: |
-          docker compose -f docker/compose/docker-compose.full.yml \
-            exec -T app bash -s -- http://127.0.0.1:3000 \
-            < scripts/install-tests/proof-of-life.sh
+          bin/testsuite-installer proof-of-life --print-script | \
+            docker compose -f docker/compose/docker-compose.full.yml \
+              exec -T app bash -s -- http://127.0.0.1:3000
 
       - name: Dump logs on failure
         if: failure()
@@ -390,7 +392,7 @@ jobs:
             "$OTS_IMAGE"
 
       - name: Proof of life
-        run: ./scripts/install-tests/proof-of-life.sh http://127.0.0.1:3000
+        run: bin/testsuite-installer proof-of-life http://127.0.0.1:3000
 
       - name: Dump container logs on failure
         if: failure()
