@@ -173,12 +173,9 @@ RSpec.describe Billing::Operations::GrantProbonoEntitlements do
       expect(archived_default).not_to have_received(:planid=)
     end
 
-    it 'grants to an explicit operator-selected organization instead' do
-      result = described_class.call(customer, org: foreign_default)
-
-      expect(result.org_extid).to eq(foreign_default.extid)
-      expect(foreign_default).to have_received(:planid=).with('identity')
-      expect(owned_default).not_to have_received(:planid=)
+    it 'offers no explicit target: a cross-owner grant has no authorization contract' do
+      expect { described_class.call(customer, org: foreign_default) }.to raise_error(ArgumentError)
+      expect(foreign_default).not_to have_received(:planid=)
     end
 
     it 'skips a customer who owns no live organization rather than grant to a joined one' do
