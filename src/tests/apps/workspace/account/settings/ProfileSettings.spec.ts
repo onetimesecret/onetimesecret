@@ -63,6 +63,12 @@ vi.mock('@/shared/stores/bootstrapStore', () => ({
   useBootstrapStore: () => bootstrapStore,
 }));
 
+// Identity store: the row reads isCustom (hidden on custom domains).
+const isCustomRef = ref(false);
+vi.mock('@/shared/stores/identityStore', () => ({
+  useProductIdentity: () => ({ isCustom: isCustomRef }),
+}));
+
 // Organization store: only what the Default workspace row reads and calls.
 // The store's own behavior (request body, refetch, current org) is covered
 // end to end in OrganizationsSettings.spec.ts and organizationStore.spec.ts.
@@ -110,6 +116,7 @@ beforeEach(() => {
   bootstrapStore.authenticated = true;
   bootstrapStore.has_password.value = true;
   bootstrapStore.i18n_enabled.value = false;
+  isCustomRef.value = false;
   organizationStore.organizations = [];
   organizationStore.isListFetched = true;
   organizationStore.isListLoading = false;
@@ -230,6 +237,38 @@ describe('ProfileSettings default workspace', () => {
     expect(placeholder.text()).toBe('web.settings.default_workspace.not_set');
     expect(placeholder.attributes('disabled')).toBeDefined();
     expect(select().element.value).toBe('');
+  });
+
+  // Acceptance: a user who owns no organization (joined both by invitation)
+  // chooses between the two here. /orgs stays owner-only (router guard,
+  // guards.routes.spec.ts), so this row is their only entry point.
+  it('lets a user who owns no organization choose between two joined workspaces', async () => {
+    await mountWith([
+      org('a', { current_user_role: 'member', is_default: true, owner_id: 'cust-other-a' }),
+      org('b', { current_user_role: 'member', is_default: true, owner_id: 'cust-other-b' }),
+    ]);
+    saveSucceeds(null);
+
+    expect(select().findAll('option:not([disabled])').map((o) => o.text()))
+      .toEqual(['Org a', 'Org b']);
+
+    await choose('b');
+    await save();
+
+    expect(organizationStore.setDefaultOrganization).toHaveBeenCalledWith(
+      expect.objectContaining({ objid: 'b', current_user_role: 'member' })
+    );
+    expect(select().element.value).toBe('b');
+  });
+
+  // On a custom domain the domain picks the workspace, and the endpoint
+  // refuses organizations outside the membership's domain scope. The list
+  // is not filtered by domain, so the row is not shown (as the switcher).
+  it('is hidden on a custom domain', async () => {
+    isCustomRef.value = true;
+    await mountWith([org('a', { is_current_user_default: true }), org('b')]);
+
+    expect(row().exists()).toBe(false);
   });
 });
 

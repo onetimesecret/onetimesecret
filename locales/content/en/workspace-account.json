@@ -273,9 +273,9 @@
     "content_hash": "6d67c6eb"
   },
   "web.settings.default_workspace.description": {
-    "text": "The workspace you start in when you sign in",
-    "context": "Description under the Default workspace label in Preferences",
-    "content_hash": "f5bba5f7"
+    "text": "Used when no workspace is already selected. Saving also switches this tab.",
+    "context": "Description under the Default workspace label in Preferences. The default applies when nothing else (a custom domain, an earlier selection in this browser) picks the workspace; saving also makes it current in this tab.",
+    "content_hash": "7418e59e"
   },
   "web.settings.default_workspace.not_set": {
     "text": "Not set",
