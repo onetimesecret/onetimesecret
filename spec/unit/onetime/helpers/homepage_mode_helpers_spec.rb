@@ -246,60 +246,45 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
       end
     end
 
-    context 'with narrow CIDRs that violate privacy' do
-      it 'rejects narrow IPv4 ranges and logs privacy violations' do
+    # #4056: narrow entries are no longer dropped at compile. They are judged
+    # through env['otto.ip_match'] at full precision; only the no-closure
+    # fallback skips them (see "CIDR matching at /32 precision" below).
+    context 'with CIDRs narrower than the IP-privacy mask' do
+      it 'keeps narrow IPv4 and IPv6 ranges without a privacy warning' do
         config = {
           'matching_cidrs' => [
-            '192.168.1.1/32',  # Single host - should be rejected
-            '192.168.1.0/28',  # 14 IPs - should be rejected
-            '192.168.1.0/30',  # 2 IPs - should be rejected
-          ]
+            '192.168.1.1/32',
+            '192.168.1.0/28',
+            '2001:db8::1/128',
+            '2001:db8:1234::/64',
+          ],
         }
 
-        expect(mock_logger).to receive(:warn).with('[homepage_mode] CIDR rejected for privacy', hash_including(:cidr, :prefix)).at_least(3).times
+        expect(mock_logger).not_to receive(:warn)
 
         result = test_instance.send(:compile_homepage_cidrs, config)
 
-        expect(result).to be_an(Array)
-        expect(result).to be_empty, "Expected all narrow CIDRs to be rejected"
-      end
-
-      it 'rejects narrow IPv6 ranges and logs privacy violations' do
-        config = {
-          'matching_cidrs' => [
-            '2001:db8::1/128',      # Single host - should be rejected
-            '2001:db8:1234::/64',   # Single subnet - should be rejected
-            '2001:db8:1234::/56',   # Too narrow - should be rejected
-          ]
-        }
-
-        expect(mock_logger).to receive(:warn).with('[homepage_mode] CIDR rejected for privacy', hash_including(:cidr, :prefix)).at_least(3).times
-
-        result = test_instance.send(:compile_homepage_cidrs, config)
-
-        expect(result).to be_an(Array)
-        expect(result).to be_empty, "Expected all narrow IPv6 CIDRs to be rejected"
+        expect(result.map(&:prefix)).to eq([32, 28, 128, 64])
       end
     end
 
-    context 'with mixed valid and invalid CIDRs' do
-      it 'accepts broad CIDRs and rejects narrow ones' do
+    context 'with mixed broad and narrow CIDRs' do
+      it 'keeps every entry that parses, in order' do
         config = {
           'matching_cidrs' => [
-            '10.0.0.0/16',       # Broad - should be accepted
-            '192.168.1.1/32',    # Single host - should be rejected
-            '172.16.0.0/20',     # Broad - should be accepted
-            '192.168.2.0/28',    # Narrow - should be rejected
-            '10.10.0.0/24',      # Minimum acceptable - should be accepted
+            '10.0.0.0/16',       # Broad
+            '192.168.1.1/32',    # Single host
+            '172.16.0.0/20',     # Broad
+            '192.168.2.0/28',    # Narrow
+            '10.10.0.0/24',      # At the mask
           ]
         }
 
-        expect(mock_logger).to receive(:warn).with('[homepage_mode] CIDR rejected for privacy', hash_including(:cidr, :prefix)).at_least(2).times
+        expect(mock_logger).not_to receive(:warn)
 
         result = test_instance.send(:compile_homepage_cidrs, config)
 
-        expect(result).to be_an(Array)
-        expect(result.length).to eq(3), "Expected 3 broad CIDRs to be accepted, 2 narrow ones rejected"
+        expect(result.map(&:prefix)).to eq([16, 32, 20, 28, 24])
       end
     end
 
@@ -471,6 +456,161 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
 
       it 'returns false when no CIDRs are configured' do
         expect(test_instance.send(:ip_matches_homepage_cidrs?, '10.1.2.3')).to be false
+      end
+    end
+  end
+
+  # ===========================================================================
+  # CIDR matching at /32 precision (#4056)
+  # ===========================================================================
+  #
+  # Homepage CIDRs are judged through env['otto.ip_match'], the verdict-only
+  # closure IPPrivacyMiddleware installs over the PRE-MASK client IP. req.ip
+  # is already masked to the /24 (IPv6: /48) by then. The env below comes from
+  # the real universal mount (MiddlewareStack.ip_privacy_security_config), so
+  # the masking is the production one, not a stub.
+  #
+  # Both directions are pinned, and both flip if matching ever goes back to
+  # the masked value:
+  #   203.0.113.9/32 — full precision MATCHES its own client.
+  #   203.0.113.0/32 — full precision does NOT match .9, which masks to .0.
+  describe 'CIDR matching at /32 precision (#4056)' do
+    let(:log) { [] }
+    let(:logger) do
+      sink = log
+      Object.new.tap do |l|
+        %i[debug info warn error].each do |level|
+          l.define_singleton_method(level) { |*args| sink << [level, *args] }
+        end
+      end
+    end
+
+    def homepage_conf(cidrs, mode)
+      {
+        'site' => {
+          'network' => {}, # no trusted proxy: the client is REMOTE_ADDR
+          'interface' => {
+            'ui' => {
+              'homepage' => {
+                'mode' => mode,
+                'matching_cidrs' => cidrs,
+                'mode_header' => 'O-Homepage-Mode',
+              },
+            },
+          },
+        },
+      }
+    end
+
+    # The env the app sees after the universal IPPrivacyMiddleware mount.
+    def through_mount(env)
+      captured = {}
+      app      = ->(e) {
+        captured[:env] = e
+        [200, {}, ['ok']]
+      }
+      security_config = Onetime::Application::MiddlewareStack.ip_privacy_security_config
+      Otto::Security::Middleware::IPPrivacyMiddleware.new(app, security_config).call(env)
+      captured[:env]
+    end
+
+    def mode_for(cidrs, remote_addr, mode: 'external')
+      allow(OT).to receive(:conf).and_return(homepage_conf(cidrs, mode))
+      env = through_mount('REMOTE_ADDR' => remote_addr)
+      HomepageModeTestClass.new(Otto::Request.new(env), logger).determine_homepage_mode
+    end
+
+    # Same config, but the request never passed IPPrivacyMiddleware.
+    def mode_without_mount(cidrs, env, mode: 'external')
+      allow(OT).to receive(:conf).and_return(homepage_conf(cidrs, mode))
+      HomepageModeTestClass.new(Otto::Request.new(env), logger).determine_homepage_mode
+    end
+
+    it 'runs against a masked req.ip with the closure installed' do
+      allow(OT).to receive(:conf).and_return(homepage_conf([], 'external'))
+      env = through_mount('REMOTE_ADDR' => '203.0.113.9')
+
+      expect(Otto::Request.new(env).ip).to eq('203.0.113.0')
+      expect(env['otto.ip_match']).to respond_to(:call)
+    end
+
+    context 'with otto.ip_match present' do
+      it 'matches a /32 entry for its own client' do
+        expect(mode_for(['203.0.113.9/32'], '203.0.113.9')).to eq('external')
+        expect(mode_for(['203.0.113.9/32'], '203.0.113.9', mode: 'internal')).to eq('internal')
+      end
+
+      it 'does not match a /32 entry for a neighbour in the same masked /24' do
+        expect(mode_for(['203.0.113.9/32'], '203.0.113.7')).to be_nil
+      end
+
+      it 'does not match the /32 of the masked network address' do
+        expect(mode_for(['203.0.113.0/32'], '203.0.113.9')).to be_nil
+      end
+
+      it 'matches a /128 entry for its own client only' do
+        expect(mode_for(['2001:db8:1:2::9/128'], '2001:db8:1:2::9')).to eq('external')
+        expect(mode_for(['2001:db8:1:2::9/128'], '2001:db8:1:2::7')).to be_nil
+      end
+
+      it 'still matches ranges at or above the mask' do
+        expect(mode_for(['203.0.113.0/24'], '203.0.113.9')).to eq('external')
+        expect(mode_for(['198.51.100.0/24'], '203.0.113.9')).to be_nil
+      end
+
+      it 'never logs the unmasked client IP' do
+        mode_for(['203.0.113.9/32'], '203.0.113.9')
+        mode_for(['203.0.113.9/32'], '203.0.113.7')
+
+        expect(log).not_to be_empty
+        expect(log.inspect).not_to include('203.0.113.9')
+        expect(log.inspect).not_to include('203.0.113.7')
+      end
+    end
+
+    # No closure: same behaviour as before #4056. The resolved IP is compared,
+    # and only entries at or above the /24 (/48) floor are judged, because
+    # this path cannot tell a masked IP from a real one.
+    context 'with otto.ip_match absent' do
+      it 'does not judge entries finer than the mask' do
+        env = { 'REMOTE_ADDR' => '203.0.113.9' }
+        expect(mode_without_mount(['203.0.113.9/32'], env)).to be_nil
+      end
+
+      it 'compares the resolved IP against ranges at or above the mask' do
+        env = { 'REMOTE_ADDR' => '203.0.113.9' }
+        expect(mode_without_mount(['203.0.113.0/24'], env)).to eq('external')
+      end
+
+      it 'treats a non-callable value the same way, without calling it' do
+        env = { 'REMOTE_ADDR' => '203.0.113.9', 'otto.ip_match' => 'true' }
+        expect(mode_without_mount(['203.0.113.9/32'], env)).to be_nil
+        expect(mode_without_mount(['203.0.113.0/24'], env)).to eq('external')
+      end
+    end
+
+    context 'with malformed config or a failing matcher' do
+      it 'drops a malformed entry and still judges the valid ones' do
+        expect(mode_for(['not-a-cidr', '203.0.113.9/32'], '203.0.113.9')).to eq('external')
+        expect(log.map(&:first)).to include(:error)
+      end
+
+      it 'does not match when every entry is malformed' do
+        expect(mode_for(['not-a-cidr', '203.0.113.9/33'], '203.0.113.9')).to be_nil
+      end
+
+      it 'treats a raising matcher as no match and logs no address' do
+        raising = ->(_cidrs) { raise IPAddr::InvalidAddressError, 'invalid address: 203.0.113.9' }
+        env     = { 'otto.client_ip' => '203.0.113.0', 'otto.ip_match' => raising }
+
+        expect(mode_without_mount(['203.0.113.0/24'], env)).to be_nil
+        expect(log.map(&:first)).to include(:warn)
+        expect(log.inspect).not_to include('203.0.113.9')
+      end
+
+      it 'treats a non-boolean verdict as no match' do
+        env = { 'otto.client_ip' => '203.0.113.0', 'otto.ip_match' => ->(_cidrs) { 'yes' } }
+        expect(mode_without_mount(['203.0.113.0/24'], env)).to be_nil
       end
     end
   end
@@ -817,7 +957,7 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
       end
     end
 
-    context 'with privacy-violating narrow CIDRs (after fix)' do
+    context 'with narrow CIDRs and no otto.ip_match in env' do
       let(:mock_req) do
         double('request', ip: '192.168.1.1', env: {
           'REMOTE_ADDR' => '192.168.1.1'
@@ -828,14 +968,14 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
         test_instance.req = mock_req
       end
 
-      it 'rejects narrow /32 CIDR and returns nil' do
+      it 'does not judge a /32 CIDR on the fallback and returns nil' do
         allow(OT).to receive(:conf).and_return({
           'site' => {
             'interface' => {
               'ui' => {
                 'homepage' => {
                   'mode' => 'internal',
-                  'matching_cidrs' => ['192.168.1.1/32']  # Single host - privacy violation
+                  'matching_cidrs' => ['192.168.1.1/32']  # Finer than the mask
                 }
               }
             }
@@ -843,17 +983,17 @@ RSpec.describe Onetime::Helpers::HomepageModeHelpers do
         })
 
         mode = test_instance.determine_homepage_mode
-        expect(mode).to be_nil  # CIDR rejected, no match
+        expect(mode).to be_nil  # Fallback skips it, no match
       end
 
-      it 'rejects narrow /28 CIDR and returns nil' do
+      it 'does not judge a /28 CIDR on the fallback and returns nil' do
         allow(OT).to receive(:conf).and_return({
           'site' => {
             'interface' => {
               'ui' => {
                 'homepage' => {
                   'mode' => 'internal',
-                  'matching_cidrs' => ['192.168.1.0/28']  # Only 14 IPs - privacy violation
+                  'matching_cidrs' => ['192.168.1.0/28']  # Finer than the mask
                 }
               }
             }

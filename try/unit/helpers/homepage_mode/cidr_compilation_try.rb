@@ -38,33 +38,33 @@ cidrs = @controller.compile_homepage_cidrs({
 cidrs.length
 #=> 1
 
-## IPv4 CIDR Privacy Validation - /25 is Rejected
+## IPv4 CIDR Compilation - /25 is Kept (judged via otto.ip_match)
 cidrs = @controller.compile_homepage_cidrs({
   'matching_cidrs' => ['192.168.1.0/25']
 })
 cidrs.length
-#=> 0
+#=> 1
 
-## IPv4 CIDR Privacy Validation - /32 is Rejected
+## IPv4 CIDR Compilation - /32 is Kept (judged via otto.ip_match)
 cidrs = @controller.compile_homepage_cidrs({
   'matching_cidrs' => ['192.168.1.1/32']
 })
 cidrs.length
-#=> 0
+#=> 1
 
-## IPv6 CIDR Privacy Validation - /48 is Valid
+## IPv6 CIDR Compilation - /48 is Valid
 cidrs = @controller.compile_homepage_cidrs({
   'matching_cidrs' => ['2001:db8::/48']
 })
 cidrs.length
 #=> 1
 
-## IPv6 CIDR Privacy Validation - /64 is Rejected
+## IPv6 CIDR Compilation - /64 is Kept (judged via otto.ip_match)
 cidrs = @controller.compile_homepage_cidrs({
   'matching_cidrs' => ['2001:db8::/64']
 })
 cidrs.length
-#=> 0
+#=> 1
 
 ## Invalid CIDR String Handling
 cidrs = @controller.compile_homepage_cidrs({
