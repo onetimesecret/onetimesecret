@@ -1646,6 +1646,7 @@ describe('features utility', () => {
 
       it('covers the remaining built-in strategies', () => {
         expect(providerLabel('github')).toBe('GitHub');
+        expect(providerLabel('gitlab')).toBe('GitLab');
         expect(providerLabel('google')).toBe('Google');
         expect(providerLabel('apple')).toBe('Apple');
         expect(providerLabel('saml')).toBe('SAML');
