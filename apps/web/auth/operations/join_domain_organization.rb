@@ -16,7 +16,17 @@ module Auth
     # 3. User authenticated → this operation adds them as member
     # 4. OrganizationLoader now returns domain's org (not personal workspace)
     #
-    # Idempotent: If user is already a member, no-op.
+    # Login makes two of three separate decisions: it JOINS the customer to
+    # the domain org and CHOOSES it as their default (repointing
+    # default_org_id away from a personal default workspace they own).
+    # RETIRING a workspace is the third decision and belongs to an operator
+    # (Onetime::Operations::Org::Delete / Unarchive); the login path never
+    # archives an organization (#4717). The personal workspace stays listed
+    # and switchable; it does not shadow the domain org because the loader
+    # follows the explicit pointer first.
+    #
+    # Idempotent: If user is already a member, only the default repoint is
+    # retried, and it writes nothing when the pointer is already correct.
     #
     # @example
     #   JoinDomainOrganization.new(
@@ -57,8 +67,8 @@ module Auth
         if organization.member?(customer)
           OT.ld "[JoinDomainOrganization] Customer #{customer.custid} already member of #{organization.objid}"
 
-          # Retry adoption on subsequent logins: if a previous join succeeded
-          # but adopt_domain_default_org failed partway, the customer is
+          # Retry the default repoint on subsequent logins: if a previous
+          # join succeeded but the repoint failed, the customer is
           # already_member yet still defaulting to a personal workspace.
           adoption = adopt_domain_default_org(organization)
 
@@ -86,10 +96,10 @@ module Auth
 
         OT.info "[JoinDomainOrganization] Added #{customer.custid} to #{organization.objid} as member (via SSO on #{domain.display_domain})"
 
-        # Self-heal: repoint default_org_id away from personal workspace
-        # to the domain org, and soft-archive the personal workspace.
-        # Also called on the already_member path above (retry for partial failures).
-        # Guard conditions in resolve_personal_default_org prevent clobbering
+        # Self-heal: repoint default_org_id away from a personal workspace
+        # to the domain org. Nothing is archived. Also called on the
+        # already_member path above (retry for partial failures). Guard
+        # conditions in resolve_personal_default_org prevent clobbering
         # intentional multi-org ownership.
         adoption = adopt_domain_default_org(organization)
 
@@ -116,10 +126,11 @@ module Auth
         { joined: false, reason: reason }
       end
 
-      # After a first-time domain org join, check whether the customer is
-      # still defaulting to a personal workspace they own. If so, repoint
-      # default_org_id to the domain org and soft-archive the personal
-      # workspace so the customer operates in the domain context.
+      # After a domain org join, check whether the customer is still
+      # defaulting to a personal workspace they own. If so, repoint
+      # default_org_id to the domain org so the customer operates in the
+      # domain context. The personal workspace is left exactly as it was:
+      # live, listed, switchable (#4717 — login never archives).
       #
       # Covers two scenarios:
       #   A. default_org_id explicitly set to the personal workspace
@@ -128,7 +139,7 @@ module Auth
       #
       # Conditions are intentionally narrow to avoid clobbering intentional
       # multi-org setups — only fires when the target org has is_default: true,
-      # is owned by the customer, and is not already archived.
+      # is owned by the customer, and is not archived (legacy state).
       #
       # @param domain_org [Onetime::Organization] The domain org just joined
       # @return [Hash, nil] Adoption result or nil if conditions not met
@@ -138,30 +149,19 @@ module Auth
         # #4717: when the customer owns the domain org and it carries
         # is_default, both resolution paths hand back the destination itself.
         # Compare by objid, not identity: the explicit path loads a separate
-        # instance. Never archive the organization the customer is joining.
+        # instance. Repointing an org to itself would be a pointless write
+        # reported as an adoption, so return before writing.
         return if personal_org.objid == domain_org.objid
 
-        # These two writes are intentionally ordered: repointing default_org_id
-        # is the higher-priority fix (determines which org the customer sees on
-        # next request). If archive! fails after this succeeds, the customer
-        # still lands in the domain org — the personal workspace just remains
-        # unarchived (benign, and OrganizationLoader's archived? guard prevents
-        # it from shadowing the domain org).
-        #
-        # True cross-model atomicity requires Familia to support multi-instance
-        # atomic_write (MULTI/EXEC spanning two Horreum instances). Until then,
-        # each save is individually atomic via its own MULTI/EXEC.
+        # One write: the pointer. Individually atomic via Familia's MULTI/EXEC.
         customer.default_org_id = domain_org.objid
         customer.save
 
-        personal_org.archive!("Superseded by domain org #{domain_org.extid} via SSO self-heal")
-
-        OT.info "[JoinDomainOrganization] Adopted domain org #{domain_org.objid} as default for #{customer.custid}, archived personal workspace #{personal_org.objid}"
+        OT.info "[JoinDomainOrganization] Adopted domain org #{domain_org.objid} as default for #{customer.custid}, previous default workspace #{personal_org.objid} left live"
 
         {
           adopted: true,
           previous_default_org_id: personal_org.objid,
-          archived_org_id: personal_org.objid,
         }
       rescue StandardError => ex
         OT.le "[JoinDomainOrganization] adopt_domain_default_org error (non-fatal): #{ex.message}"
@@ -176,8 +176,8 @@ module Auth
       # left alone, never replaced by a different workspace. If unset, falls
       # back to the default workspace the customer OWNS
       # (OrganizationLoader.owned_default_organization) — the path
-      # OrganizationLoader step 4 would take, so archiving it prevents the
-      # loader from returning the stale personal workspace. Another member's
+      # OrganizationLoader step 4 would take, so repointing the explicit
+      # pointer is what stops the loader from returning it. Another member's
       # default workspace carries the is_default flag too; the owned lookup
       # skips it instead of finding it first and giving up.
       #
