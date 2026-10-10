@@ -251,6 +251,31 @@ describe('Admin Routes Configuration', () => {
     });
   });
 
+  describe('Jobs route (#4343)', () => {
+    it('registers the AdminJobs route at /colonel/jobs with no params', () => {
+      const route = adminRoutes.find((r: RouteRecordRaw) => r.path === '/colonel/jobs');
+      expect(route).toBeDefined();
+      expect(route?.name).toBe('AdminJobs');
+      expect(route?.meta?.title).toBe('web.admin.jobs.title');
+      // Queue / message / chore selection is in-page state, never a route param.
+      expect(route?.path).not.toContain(':');
+    });
+
+    it('jobs is a live platform section pointing at /colonel/jobs', () => {
+      const section = CONSOLE_SECTIONS.find((s) => s.key === 'jobs');
+      expect(section?.to).toBe('/colonel/jobs');
+      expect(section?.group).toBe('platform');
+      expect(section?.icon).toBe('clock');
+    });
+
+    it('navigates to the jobs screen', async () => {
+      setActivePinia(createPinia());
+      const router = createAdminRouter();
+      await router.push('/colonel/jobs');
+      expect(router.currentRoute.value.name).toBe('AdminJobs');
+    });
+  });
+
   describe('Observability routes (audit log)', () => {
     it('registers the ColonelAuditLog route at /colonel/audit', () => {
       const route = adminRoutes.find((r: RouteRecordRaw) => r.path === '/colonel/audit');

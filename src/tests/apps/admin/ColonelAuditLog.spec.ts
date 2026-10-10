@@ -219,12 +219,13 @@ describe('ColonelAuditLog (flight-recorder playback — observability lane)', ()
       'entitlement_preview',
       'banner',
       'queue',
+      'chore', // #4343: chore.run (Jobs screen); queue.dlq.* stays under 'queue'
       'email',
       'ratelimit',
       'ip',
       'colonel',
     ]);
-    expect(values).toHaveLength(13);
+    expect(values).toHaveLength(14);
   });
 
   it('sends a category prefix verbatim so it prefix-matches the whole family', async () => {
