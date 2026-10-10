@@ -67,12 +67,14 @@ gem 'omniauth-entra-id', '~> 3.1'
 gem 'omniauth-github', '~> 2.0'
 # omniauth-gitlab comes from the onetimesecret fork, pinned to a commit.
 # Upstream 4.1.0 (2022, the latest release) declares omniauth-oauth2 ~> 1.8.0,
-# which the omniauth-oauth2 floor below rejects. The fork is upstream master
-# with that constraint relaxed to ~> 1.8 (onetimesecret/omniauth-gitlab#1);
-# the strategy code is unchanged.
+# which the omniauth-oauth2 floor below rejects. The fork relaxes it to ~> 1.8
+# (onetimesecret/omniauth-gitlab#1). It also defaults the scope to read_user
+# and adds the instance URL to the auth hash as extra.site (#2). Neither
+# affects this app: the :gitlab definition passes read_user itself, and
+# nothing reads extra.site.
 gem 'omniauth-gitlab',
   git: 'https://github.com/onetimesecret/omniauth-gitlab.git',
-  ref: 'dcbab36c4c2807c6b4dca5a7599187fda853d6c3'
+  ref: 'f109c42fc34bd7cdbe90edde7f2ea3de1a8c110d'
 gem 'omniauth-google-oauth2', '~> 1.2'
 gem 'omniauth_openid_connect', '~> 0.8'
 # jwt is transitive (oauth2, omniauth-entra-id, omniauth-google-oauth2,

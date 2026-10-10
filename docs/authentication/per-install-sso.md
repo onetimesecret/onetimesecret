@@ -636,8 +636,7 @@ Note: For GitHub Organizations, use GitHub Apps instead of OAuth Apps for finer-
 Uses the `omniauth-gitlab` gem from the
 [onetimesecret fork](https://github.com/onetimesecret/omniauth-gitlab), pinned
 to a commit in the `Gemfile`. The released gem caps `omniauth-oauth2` at 1.8.x,
-which would downgrade it for every OAuth2 provider; the fork lifts that cap and
-leaves the strategy unchanged.
+which would downgrade it for every OAuth2 provider; the fork lifts that cap.
 
 GitLab is issuerless (plain OAuth2, like GitHub and Google), so it is available
 for platform SSO only; custom-domain (tenant) SSO refuses it. It signs in

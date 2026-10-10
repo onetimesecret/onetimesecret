@@ -399,9 +399,11 @@ tenant's own IdP EntityID.
   fork, pinned by commit): issuerless, and pinned to gitlab.com. The
   released gem (4.1.0) declares `omniauth-oauth2 ~> 1.8.0`, while the lock
   carries 1.9.0 (constant-time `state` comparison) and the `Gemfile` floors
-  it at `~> 1.9`. The fork relaxes that constraint to `~> 1.8` and leaves
-  the strategy as upstream wrote it; moving the pinned commit is a strategy
-  change, and `gitlab_strategy_spec.rb` is the check for it. The strategy's
+  it at `~> 1.9`. The fork relaxes that constraint to `~> 1.8`. It also
+  defaults the scope to `read_user` and adds the instance URL to `extra` as
+  `site`; the definition passes `read_user` itself, and nothing here reads
+  `extra.site`. Moving the pinned commit is a strategy change, and
+  `gitlab_strategy_spec.rb` is the check for it. The strategy's
   `redirect_url` option is never set, so the callback is always this host's
   callback path. There is deliberately no site override for a self-managed
   instance: the uid is the GitLab user id, unique only within one instance,
