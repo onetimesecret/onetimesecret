@@ -34,8 +34,10 @@ replaced. When the signed-in customer owned the domain organization and that
 organization carried the `is_default` flag (an auto-created workspace later
 promoted to the tenant organization), the workspace it resolved as "the
 personal default" was the domain organization itself, and nothing compared
-the two. The organization was archived on the owner's first tenant SSO login
-and re-archived on every later one.
+the two. The organization was archived on the owner's tenant SSO login, and
+again on the first login after any restore until the guard is live; an
+already-archived organization is skipped by the self-heal, so later logins
+did not archive it a second time.
 
 #4717 adds the comparison: the self-heal returns before writing when the
 candidate and the destination are the same organization. The guard does not
@@ -113,8 +115,12 @@ For each organization kept in the previous step:
 
    - the owner still holds an active `owner` membership
      (`bin/ots org doctor <ORG>` checks 1, 2 and 4);
-   - the owner's `default_org_id` names this organization (the dry run above
-     prints no `Owner default workspace:` line);
+   - the owner's `default_org_id` names this organization: read the
+     `default_org_id:` line of `bin/ots customers show <owner>` and compare it
+     with the org's `org_id` from the domain scan. A missing
+     `Owner default workspace:` line in the dry run is not proof of this; the
+     line is also absent when the pointer is empty or names an archived or
+     missing organization;
    - `planid`, `stripe_customer_id` and `stripe_subscription_id` are the values
      you expect for the tenant. The archive never touched them, so a mismatch
      here is a different problem; stop and investigate it first.

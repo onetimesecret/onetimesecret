@@ -21,9 +21,11 @@ module Onetime
       #
       # The tenant SSO self-heal (JoinDomainOrganization#adopt_domain_default_org)
       # archived the organization the customer was joining whenever the signed-in
-      # customer owned the domain org and it carried `is_default: true`. Every
-      # tenant SSO login of the owner re-archived it, with the self-referential
-      # comment "Superseded by domain org <its own extid> via SSO self-heal". The
+      # customer owned the domain org and it carried `is_default: true`. It was
+      # archived on the owner's tenant SSO login, and again on the first login
+      # after any restore until the guard is live (the self-heal skips an org
+      # that is already archived), with the self-referential comment
+      # "Superseded by domain org <its own extid> via SSO self-heal". The
       # guard that stops that is in the same PR; this op restores the records it
       # left behind. `Organization#unarchive!` is the only primitive that resets
       # `archived_at` AND `archived_comment` together, and this op is its only

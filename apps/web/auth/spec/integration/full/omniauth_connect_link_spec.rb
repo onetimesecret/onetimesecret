@@ -1845,9 +1845,17 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
       reloaded = Onetime::Organization.load(org.objid)
       expect(reloaded.archived?).to be(false), 'the owner\'s own default organization must not be archived by their Connect'
       expect(reloaded.archived_at.to_s).to be_empty
+      expect(reloaded.archived_comment.to_s).to be_empty
       expect(reloaded.planid).to eq('team_plus_v1')
       expect(reloaded.stripe_customer_id).to eq(stripe_customer_id)
-      expect(Onetime::OrganizationMembership.find_by_org_customer(org.objid, owner.objid)).to be_owner
+
+      membership = Onetime::OrganizationMembership.find_by_org_customer(org.objid, owner.objid)
+      expect(membership).to be_owner
+      expect(membership.active?).to be(true)
+
+      domain = Onetime::CustomDomain.find_by_identifier(@tenant[:domain].identifier)
+      expect(domain.org_id).to eq(org.org_id)
+
       expect(Onetime::Customer.load(owner.objid).default_org_id).to eq(org.objid)
     end
 
