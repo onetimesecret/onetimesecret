@@ -202,9 +202,17 @@ RSpec.describe Onetime::Operations::Org::Unarchive do
         expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
       end
 
-      it 'returns :not_archived on a dry run too' do
-        expect(build(dry_run: true).call.status).to eq(:not_archived)
+      it 'returns :not_archived on a dry run too, owner resolved, with no preview observation' do
+        result = build(dry_run: true).call
+
+        expect(result.status).to eq(:not_archived)
+        expect(result.owner_id).to eq('ur_owner_ext')
         expect(org).not_to have_received(:unarchive!)
+        expect(org).not_to have_received(:save)
+        # Nothing was planned, so there is nothing to preview: no #4337
+        # observation and no operator-trail event.
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record_access)
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
       end
     end
 
@@ -406,11 +414,16 @@ RSpec.describe Onetime::Operations::Org::Unarchive do
 
     it 'reports :not_archived for a live org, with the owner resolved, and changes nothing' do
       @org.unarchive!
+      updated_before = reloaded_org.updated.to_f
 
       result = unarchive
       expect(result.status).to eq(:not_archived)
       expect(result.owner_id).to eq(@owner.extid)
       expect(reloaded_org.archived?).to be(false)
+      expect(reloaded_org.updated.to_f).to eq(updated_before)
+      # No audit row of either kind for a no-op (D4: matches TransferOwnership :no_change).
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record_access)
     end
 
     # F4 (review on #4723): the CLI loads the org, then a billing webhook

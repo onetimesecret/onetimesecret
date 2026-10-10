@@ -177,5 +177,31 @@ RSpec.describe 'Onetime::Organization destroy!/archive! domain guard', :datastor
       expect(@org.archived?).to be(true)
       expect(OT).not_to have_received(:lw)
     end
+
+    # archive! writes through Familia#save_fields, which does not stamp
+    # `updated` the way save does (prepare_for_save); the method sets it
+    # explicitly. Pin that on the persisted record, for both arities.
+    it 'advances `updated` on the persisted record through the field-scoped write' do
+      @org.updated = Familia.now - 60
+      @org.save_fields(:updated) # save would re-stamp it
+      updated_before = Onetime::Organization.load(@org.objid).updated.to_f
+
+      @org.archive!('spec: updated stamp')
+
+      reloaded = Onetime::Organization.load(@org.objid)
+      expect(reloaded.archived?).to be(true)
+      expect(reloaded.archived_comment).to eq('spec: updated stamp')
+      expect(reloaded.updated.to_f).to be > updated_before
+    end
+
+    it 'advances `updated` without a comment too' do
+      @org.updated = Familia.now - 60
+      @org.save_fields(:updated) # save would re-stamp it
+      updated_before = Onetime::Organization.load(@org.objid).updated.to_f
+
+      @org.archive!
+
+      expect(Onetime::Organization.load(@org.objid).updated.to_f).to be > updated_before
+    end
   end
 end

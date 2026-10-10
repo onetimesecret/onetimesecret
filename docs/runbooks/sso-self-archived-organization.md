@@ -115,8 +115,15 @@ For each organization kept in the previous step:
 
    - the owner still holds an active `owner` membership. Check it directly:
      the Colonel organization detail (`GET /api/colonel/organizations/:org_id`)
-     lists `members[]` with `role`, `status` and `is_owner`, built from the
-     active memberships, so the owner must appear there with `role: owner`.
+     lists `members[]` with `role`, `status` and `is_owner`. The rows come from
+     the organization's members set; `role` and `status` are filled only from
+     an active membership. Find the row with `is_owner: true`: it must show
+     `role: owner`. A row with `is_owner: true` and `role: null`,
+     `status: null` means the owner's membership is inactive or missing, and
+     any other `role` means the owner no longer holds the owner role; stop and
+     repair the membership first in either case. If no row has
+     `is_owner: true`, the owner's customer record did not load: go back to
+     `bin/ots org doctor` checks 1 and 2.
      `bin/ots org doctor <ORG>` is not sufficient for this: checks 1 and 2
      only prove the owner exists and is in the members set, and check 4 only
      flags other owner-role memberships; an inactive or member-role owner
