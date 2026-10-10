@@ -71,10 +71,11 @@ gem 'omniauth-github', '~> 2.0'
 # (onetimesecret/omniauth-gitlab#1). It also defaults the scope to read_user
 # and adds the instance URL to the auth hash as extra.site (#2). Neither
 # affects this app: the :gitlab definition passes read_user itself, and
-# nothing reads extra.site.
+# nothing reads extra.site. The fork's version is 4.1.0.1 (#3), so the lock
+# does not read as the released gem.
 gem 'omniauth-gitlab',
   git: 'https://github.com/onetimesecret/omniauth-gitlab.git',
-  ref: 'f109c42fc34bd7cdbe90edde7f2ea3de1a8c110d'
+  ref: 'f9c4d0b1f25027a7ab6906937a252e5cf9761945'
 gem 'omniauth-google-oauth2', '~> 1.2'
 gem 'omniauth_openid_connect', '~> 0.8'
 # jwt is transitive (oauth2, omniauth-entra-id, omniauth-google-oauth2,

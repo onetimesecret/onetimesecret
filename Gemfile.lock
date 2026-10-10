@@ -1,9 +1,9 @@
 GIT
   remote: https://github.com/onetimesecret/omniauth-gitlab.git
-  revision: f109c42fc34bd7cdbe90edde7f2ea3de1a8c110d
-  ref: f109c42fc34bd7cdbe90edde7f2ea3de1a8c110d
+  revision: f9c4d0b1f25027a7ab6906937a252e5cf9761945
+  ref: f9c4d0b1f25027a7ab6906937a252e5cf9761945
   specs:
-    omniauth-gitlab (4.1.0)
+    omniauth-gitlab (4.1.0.1)
       omniauth (~> 2.0)
       omniauth-oauth2 (~> 1.8)
 
