@@ -1,6 +1,6 @@
 # SSO email-less accounts: Phase 2 proposal
 
-**Status: PROPOSED — not implemented.** Date: 2026-10-09.
+**Status: PROPOSED — not implemented.** Date: 2026-10-09. Design for G2 approval: [account-model-design](../specs/sso-email-less-accounts/account-model-design.md) and [ADR-051](../adr/adr-051-account-login-is-not-the-contact-email.md) (2026-10-10).
 
 Scope: followup item 3 from [#3478](https://github.com/onetimesecret/onetimesecret/issues/3478), revising the Phase 2 direction in [#3499](https://github.com/onetimesecret/onetimesecret/issues/3499). Followup item 1 is the [operator guide](../authentication/per-install-sso.md). Approval to document this proposal is not approval to implement it or widen tenant access.
 
