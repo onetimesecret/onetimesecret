@@ -90,11 +90,30 @@ RSpec.describe Onetime::Jobs::JobRun do
       expect(record['last_started_at']).to be_within(2).of(now)
       expect(record['run_count']).to eq(2)
     end
+
+    it 'returns a fresh run token each time and stores it on the record' do
+      first  = described_class.started('recorded')
+      second = described_class.started('recorded')
+
+      expect(first).to be_a(String).and match(/\A\d+-\h{8}\z/)
+      expect(second).not_to eq(first)
+      expect(raw('recorded')['run_token']).to eq(second)
+    end
+
+    it 'returns nil without a job_id' do
+      expect(described_class.started(nil)).to be_nil
+    end
   end
 
   describe '.finished' do
+    # Every example completes the run it started: `finished` writes only
+    # while the record still carries this token.
+    let(:token) { described_class.started('recorded') }
+
+    def finish(**opts) = described_class.finished('recorded', token: token, **opts)
+
     it 'records a success without touching the error counter' do
-      described_class.finished('recorded', status: 'success', duration_ms: 12, next_time: Time.at(now + 60))
+      expect(finish(status: 'success', duration_ms: 12, next_time: Time.at(now + 60))).to be(true)
 
       record = described_class.read('recorded')
       expect(record).to include(
@@ -106,27 +125,36 @@ RSpec.describe Onetime::Jobs::JobRun do
     end
 
     it 'leaves next_time alone when none is given' do
-      described_class.finished('recorded', status: 'success', duration_ms: 1, next_time: Time.at(now + 60))
-      described_class.finished('recorded', status: 'success', duration_ms: 1)
+      finish(status: 'success', duration_ms: 1, next_time: Time.at(now + 60))
+      finish(status: 'success', duration_ms: 1)
 
       expect(described_class.read('recorded')['next_time']).to eq(now + 60)
     end
 
     it 'counts an error and truncates its text to MAX_ERROR_LENGTH' do
-      described_class.finished('recorded', status: 'error', duration_ms: 3, error: "RuntimeError: #{'x' * 400}")
-      described_class.finished('recorded', status: 'error', duration_ms: 3, error: 'RuntimeError: again')
+      finish(status: 'error', duration_ms: 3, error: "RuntimeError: #{'x' * 400}")
+      finish(status: 'error', duration_ms: 3, error: 'RuntimeError: again')
 
       record = described_class.read('recorded')
       expect(record['error_count']).to eq(2)
       expect(record['last_error']).to eq('RuntimeError: again')
 
-      described_class.finished('recorded', status: 'error', duration_ms: 3, error: 'y' * 400)
+      finish(status: 'error', duration_ms: 3, error: 'y' * 400)
       expect(described_class.read('recorded')['last_error'].length).to eq(described_class::MAX_ERROR_LENGTH)
     end
 
+    it "records 'partial' with its error text but does not count it as an error" do
+      finish(status: 'partial', duration_ms: 3, error: '3 record(s) failed (first chore: standardize_planid)')
+
+      record = described_class.read('recorded')
+      expect(record).to include(
+        'last_status' => 'partial', 'last_error' => '3 record(s) failed (first chore: standardize_planid)',
+      )
+      expect(record['error_count']).to be_nil
+    end
+
     it 'stores error text with email addresses obscured' do
-      described_class.finished('recorded', status: 'error', duration_ms: 1,
-        error: 'Delivery failed for alice@example.com: timeout')
+      finish(status: 'error', duration_ms: 1, error: 'Delivery failed for alice@example.com: timeout')
 
       error = described_class.read('recorded')['last_error']
       expect(error).not_to include('alice@example.com')
@@ -134,7 +162,7 @@ RSpec.describe Onetime::Jobs::JobRun do
     end
 
     it 'stores error text with URI credentials redacted' do
-      described_class.finished('recorded', status: 'error', duration_ms: 1,
+      finish(status: 'error', duration_ms: 1,
         error: 'Connection refused (redis://ots:s3cretpass@cache.internal:6379/0) for alice@example.com')
 
       error = described_class.read('recorded')['last_error']
@@ -145,16 +173,55 @@ RSpec.describe Onetime::Jobs::JobRun do
     end
 
     it 'clears the previous error on a later success but keeps the count' do
-      described_class.finished('recorded', status: 'error', duration_ms: 1, error: 'boom')
-      described_class.finished('recorded', status: 'skipped', duration_ms: 1)
+      finish(status: 'error', duration_ms: 1, error: 'boom')
+      finish(status: 'skipped', duration_ms: 1)
 
       record = described_class.read('recorded')
       expect(record).to include('last_status' => 'skipped', 'last_error' => nil, 'error_count' => 1)
     end
 
     it 'refuses an unknown status and writes nothing' do
-      expect(described_class.finished('recorded', status: 'bogus', duration_ms: 1)).to be_nil
+      expect(described_class.finished('recorded', token: 'tok', status: 'bogus', duration_ms: 1)).to be_nil
       expect(described_class.read('recorded')).to be_nil
+    end
+
+    # Run A starts, run B starts (rufus overlap, or a console run beside the
+    # nightly one), then A finishes: the record describes B, and A's result
+    # must not replace it.
+    describe 'overlapping runs' do
+      it "leaves the newer run's record alone when the older run finishes, and says so" do
+        logger = instance_double(SemanticLogger::Logger)
+        allow(Onetime).to receive(:get_logger).with('Scheduler').and_return(logger)
+        expect(logger).to receive(:info).with(a_string_matching(/finished for recorded skipped.*status=error.*"late"/))
+
+        token_a = described_class.started('recorded')
+        token_b = described_class.started('recorded')
+
+        expect(described_class.finished('recorded', token: token_a, status: 'error', duration_ms: 5, error: 'late'))
+          .to be(false)
+
+        record = described_class.read('recorded')
+        expect(record).to include('last_status' => 'running', 'last_error' => nil, 'run_count' => 2)
+        expect(record['last_finished_at']).to be_nil
+        expect(record['error_count']).to be_nil
+        expect(raw('recorded')['run_token']).to eq(token_b)
+      end
+
+      it 'lets the newer run finish' do
+        described_class.started('recorded')
+        token_b = described_class.started('recorded')
+
+        expect(described_class.finished('recorded', token: token_b, status: 'success', duration_ms: 7)).to be(true)
+        expect(described_class.read('recorded')).to include('last_status' => 'success', 'last_duration_ms' => 7)
+      end
+
+      it 'writes nothing and returns nil without a token (the start was never recorded)' do
+        described_class.started('recorded')
+
+        expect(pinned_client).not_to receive(:eval)
+        expect(described_class.finished('recorded', token: nil, status: 'success', duration_ms: 1)).to be_nil
+        expect(described_class.read('recorded')['last_status']).to eq('running')
+      end
     end
   end
 
@@ -308,13 +375,32 @@ RSpec.describe Onetime::Jobs::JobRun do
       results = [
         described_class.register(job_class, kind: :every, expression: '1h'),
         described_class.started('recorded'),
-        described_class.finished('recorded', status: 'success', duration_ms: 1),
+        described_class.finished('recorded', token: 'tok', status: 'success', duration_ms: 1),
         described_class.scheduler_started!(job_count: 1),
         described_class.scheduler_heartbeat!,
       ]
 
       expect(results).to all(be_nil)
       expect(logger).to have_received(:warn).with(/\[JobRun\] .* failed .*Redis::CannotConnectError/).exactly(5).times
+    end
+
+    # redis-client appends the server URL, userinfo included, to a
+    # ConnectionError's message.
+    it 'logs the failure with URI credentials and addresses redacted' do
+      allow(described_class).to receive(:dbclient).and_raise(
+        Redis::CannotConnectError,
+        'Connection refused (redis://ots:s3cretpass@cache.internal:6379/0) for alice@example.com',
+      )
+
+      described_class.started('recorded')
+
+      expect(logger).to have_received(:warn).once.with(
+        a_string_starting_with(
+          '[JobRun] started failed for recorded: Redis::CannotConnectError: ' \
+          'Connection refused (redis://***@cache.internal:6379/0) for ',
+        ),
+      )
+      expect(logger).not_to have_received(:warn).with(/s3cretpass|ots:|alice@example\.com/)
     end
 
     it 'lets a reader raise' do

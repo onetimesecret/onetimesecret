@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require 'securerandom'
 require 'socket'
 
 module Onetime
@@ -24,11 +25,23 @@ module Onetime
     # Reads only touch known keys (one pipelined HGETALL batch). Nothing here
     # SCANs the keyspace.
     #
+    # Two invocations of one job can overlap (rufus `overlap: true`, or a
+    # console run alongside the nightly one). `started` stamps the record
+    # with a run token and `finished` writes only while that token is still
+    # the stored one, so a slow run finishing late cannot overwrite the
+    # record of the run that started after it.
+    #
     # Times are UTC epoch seconds. Hashes returned by readers use string keys.
     module JobRun
       KEY_PREFIX         = 'jobs:run'
       SCHEDULER_KEY      = 'jobs:scheduler'
-      STATUSES           = %w[running success error skipped].freeze
+      # 'partial': the run completed but some records failed (a chore that
+      # raised for some records, an org that would not materialize). It is
+      # not counted in error_count: that counter is for runs that did not
+      # complete (the block raised, or the job aborted), so it keeps meaning
+      # "runs that failed outright". A partial run's failures are in
+      # last_error.
+      STATUSES           = %w[running success partial error skipped].freeze
       NEVER              = 'never'
       MAX_ERROR_LENGTH   = 300
       HEARTBEAT_INTERVAL = 60 # seconds; SchedulerCommand refreshes heartbeat_at at this cadence
@@ -37,6 +50,18 @@ module Onetime
       # Reported (never stored) as last_error for a run a scheduler restart
       # cut off; see #interrupted?.
       INTERRUPTED_BY_RESTART = 'interrupted by scheduler restart'
+
+      # The conditional write behind #finished. KEYS[1] is the run record,
+      # ARGV[1] the caller's run token, ARGV[2] '1' to count an error, and
+      # ARGV[3..] the field/value pairs to HSET. Nothing is written unless the
+      # stored run_token is still ARGV[1]; the compare and the write happen in
+      # one script, so a run that started in between cannot lose its record.
+      FINISH = <<~LUA
+        if redis.call('HGET', KEYS[1], 'run_token') ~= ARGV[1] then return 0 end
+        redis.call('HSET', KEYS[1], unpack(ARGV, 3))
+        if ARGV[2] == '1' then redis.call('HINCRBY', KEYS[1], 'error_count', 1) end
+        return 1
+      LUA
 
       # Catalog sort: plain scheduled jobs first, then maintenance jobs.
       GROUP_ORDER = { 'scheduled' => 0, 'maintenance' => 1 }.freeze
@@ -92,24 +117,38 @@ module Onetime
         write_failed(:register, job_id, ex)
       end
 
+      # Marks the run as running and hands back the token #finished needs.
+      #
+      # @return [String, nil] the run token; nil when there is no job_id or
+      #   the write failed (a run whose start was never recorded has nothing
+      #   to complete, so #finished with a nil token writes nothing)
       def started(job_id)
         return nil unless job_id
 
+        token = "#{now}-#{SecureRandom.hex(4)}"
         dbclient.multi do |tx|
-          tx.hset(key(job_id), stringify('last_status' => 'running', 'last_started_at' => now))
+          tx.hset(
+            key(job_id),
+            stringify('last_status' => 'running', 'last_started_at' => now, 'run_token' => token),
+          )
           tx.hincrby(key(job_id), 'run_count', 1)
         end
-        true
+        token
       rescue StandardError => ex
         write_failed(:started, job_id, ex)
       end
 
+      # @param token [String, nil] what #started returned for this run; the
+      #   write happens only while the record still carries it
       # @param status [String] one of STATUSES other than 'running'
       # @param error [String, nil] stored email-obscured and truncated to
       #   MAX_ERROR_LENGTH; any other status clears the previous error
       # @param next_time [#to_i, nil] written only when given
-      def finished(job_id, status:, duration_ms:, error: nil, next_time: nil)
-        return nil unless job_id
+      # @return [true, false, nil] true when written; false when a later run
+      #   owns the record (nothing written); nil when there is no job_id or
+      #   token, or the write failed
+      def finished(job_id, token:, status:, duration_ms:, error: nil, next_time: nil)
+        return nil unless job_id && token
 
         status = status.to_s
         raise ArgumentError, "unknown status #{status.inspect}" unless STATUSES.include?(status)
@@ -122,11 +161,20 @@ module Onetime
         }
         fields['next_time'] = epoch(next_time) unless next_time.nil?
 
-        dbclient.multi do |tx|
-          tx.hset(key(job_id), stringify(fields))
-          tx.hincrby(key(job_id), 'error_count', 1) if status == 'error'
-        end
-        true
+        written = dbclient.eval(
+          FINISH,
+          keys: [key(job_id)],
+          argv: [token.to_s, status == 'error' ? '1' : '0', *stringify(fields).flatten],
+        )
+        return true if written == 1
+
+        # The outcome is dropped on purpose (a later run owns the record), but
+        # not silently: an 'error' finish lost here is otherwise invisible.
+        Onetime.get_logger('Scheduler').info(
+          "[JobRun] finished for #{job_id} skipped: a later run owns the record " \
+          "(status=#{status} error=#{fields['last_error'].inspect})",
+        )
+        false
       rescue StandardError => ex
         write_failed(:finished, job_id, ex)
       end
@@ -293,12 +341,19 @@ module Onetime
       def error_text(error)
         return '' if error.nil?
 
-        Onetime::Utils.obscure_email(Onetime::Utils.redact_uris_in_text(error.to_s))[0, MAX_ERROR_LENGTH]
+        redact(error)[0, MAX_ERROR_LENGTH]
       end
 
+      def redact(text)
+        Onetime::Utils.obscure_email(Onetime::Utils.redact_uris_in_text(text.to_s))
+      end
+
+      # The exception is usually the datastore's, and redis-client puts the
+      # server URL, credentials included, in a ConnectionError's message, so
+      # it is masked like stored error text before it reaches the log.
       def write_failed(operation, job_id, ex)
         Onetime.get_logger('Scheduler').warn(
-          "[JobRun] #{operation} failed for #{job_id}: #{ex.class}: #{ex.message}",
+          "[JobRun] #{operation} failed for #{job_id}: #{ex.class}: #{redact(ex.message)}",
         )
         nil
       rescue StandardError

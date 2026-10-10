@@ -83,8 +83,9 @@ RSpec.describe ColonelAPI::Logic::Colonel::ListChores do
 
   it 'merges the last console run from its chore.<id> run record' do
     id = 'housekeeping.organization.standardize_planid'
-    Onetime::Jobs::JobRun.started("chore.#{id}")
-    Onetime::Jobs::JobRun.finished("chore.#{id}", status: 'error', duration_ms: 1234, error: 'boom for alice@example.com')
+    token = Onetime::Jobs::JobRun.started("chore.#{id}")
+    Onetime::Jobs::JobRun.finished("chore.#{id}", token: token, status: 'error', duration_ms: 1234,
+      error: 'boom for alice@example.com')
 
     chore = row(run, id)
 

@@ -212,6 +212,67 @@ RSpec.describe Onetime::Jobs::ScheduledJob do
       expect { run_once { ran = true } }.not_to raise_error
       expect(ran).to be(true)
     end
+
+    # The base class finds no record-level failures; a job reports its own
+    # through `partial_failure` (HousekeepingJob, EntitlementMaterializeJob).
+    describe 'a report with record-level failures' do
+      let(:job_class) do
+        Class.new(described_class) do
+          def self.name = 'RecordedJob'
+
+          class << self
+            private
+
+            def partial_failure(report)
+              failed = report[:failed].to_i
+              failed.positive? ? "#{failed} record(s) failed" : nil
+            end
+          end
+        end
+      end
+
+      it "records 'partial' with the failure text and no error count" do
+        run_once { { failed: 2, succeeded: 5 } }
+
+        record = Onetime::Jobs::JobRun.read('recorded')
+        expect(record).to include('last_status' => 'partial', 'last_error' => '2 record(s) failed', 'run_count' => 1)
+        expect(record['error_count']).to be_nil
+      end
+
+      it 'records success when the hook finds nothing' do
+        run_once { { failed: 0, succeeded: 5 } }
+
+        expect(Onetime::Jobs::JobRun.read('recorded')).to include('last_status' => 'success', 'last_error' => nil)
+      end
+
+      it 'lets :aborted and :skipped take precedence' do
+        run_once { { failed: 2, aborted: 'catalog_pull_failed' } }
+        expect(Onetime::Jobs::JobRun.read('recorded')['last_status']).to eq('error')
+
+        run_once { { failed: 2, skipped: 'no_stripe_key' } }
+        expect(Onetime::Jobs::JobRun.read('recorded')['last_status']).to eq('skipped')
+      end
+    end
+
+    # The token `started` hands back is what lets `finished` refuse to
+    # overwrite a run that started later (JobRun spec: overlapping runs).
+    describe 'run token' do
+      before { allow(Onetime::Jobs::JobRun).to receive(:started).and_return('run-token') }
+
+      it 'passes the token from started to finished on success' do
+        expect(Onetime::Jobs::JobRun).to receive(:finished)
+          .with('recorded', hash_including(token: 'run-token', status: 'success'))
+
+        run_once { :done }
+      end
+
+      it 'passes the token from started to finished when the block raises' do
+        expect(Onetime::Jobs::JobRun).to receive(:finished)
+          .with('recorded', hash_including(token: 'run-token', status: 'error', error: 'RuntimeError: boom'))
+
+        run_once { raise 'boom' }
+      end
+    end
   end
 
   describe 'subclass implementation' do

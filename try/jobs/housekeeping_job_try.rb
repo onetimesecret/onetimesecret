@@ -272,6 +272,67 @@ report = @job.perform(@stub, :touch, limit: 1, budget: roomy)
 @job.perform(@stub, :touch).keys
 #=> [:model, :scanned, :chores]
 
+## perform reports truncated when a record follows the limit-th one (#4343)
+@stub.reset!
+@stub.chore(:touch) { |_| true }
+4.times { |i| @stub.add(status: "f#{i}") }
+report = @job.perform(@stub, :touch, limit: 3)
+[report[:scanned], report[:truncated], report[:chores][:touch][:modified]]
+#=> [3, true, 3]
+
+## perform reports truncated false when the population is exactly the limit
+@stub.reset!
+@stub.chore(:touch) { |_| true }
+3.times { |i| @stub.add(status: "g#{i}") }
+report = @job.perform(@stub, :touch, limit: 3)
+[report[:scanned], report[:truncated]]
+#=> [3, false]
+
+## perform with a limit but no budget adds only the truncated key
+@stub.reset!
+@stub.chore(:touch) { |_| true }
+@stub.add(status: 'h')
+@job.perform(@stub, :touch, limit: 5).keys
+#=> [:model, :scanned, :chores, :truncated]
+
+## run_outcome maps a nightly report with chore errors to 'partial' (#4343)
+# The nightly report nests one perform stats hash per model under :models;
+# errors are summed across models and chores, naming the first failing chore.
+report = {
+  models: {
+    'Onetime::Organization' => {
+      model: 'Onetime::Organization', scanned: 10,
+      chores: { standardize_planid: { modified: 7, errors: 2 }, other: { modified: 0, errors: 1 } },
+    },
+    'Onetime::Customer' => { model: 'Onetime::Customer', scanned: 4, chores: { tidy: { modified: 4, errors: 0 } } },
+  },
+}
+@job.send(:run_outcome, report)
+#=> ['partial', '3 record(s) failed (first chore: standardize_planid)']
+
+## run_outcome counts a model whose whole scan raised as a failure too
+report = {
+  models: {
+    'Onetime::Organization' => { model: 'Onetime::Organization', scanned: 2, chores: { tidy: { modified: 2, errors: 0 } } },
+    'Onetime::Customer' => { error: 'boom' },
+  },
+}
+@job.send(:run_outcome, report)
+#=> ['partial', '1 model(s) failed: Onetime::Customer: boom']
+
+## run_outcome is success when no chore and no model failed
+report = {
+  models: {
+    'Onetime::Organization' => { model: 'Onetime::Organization', scanned: 2, chores: { tidy: { modified: 2, errors: 0 } } },
+  },
+}
+@job.send(:run_outcome, report)
+#=> ['success', nil]
+
+## run_outcome is success for a nightly run with no models to scan
+@job.send(:run_outcome, { models: {} })
+#=> ['success', nil]
+
 # TEARDOWN
 
 @stub.reset!

@@ -36,6 +36,10 @@ module Billing
     # @!attribute budget_exhausted [Boolean] The run stopped because its
     #   wall-clock budget ran out (#4343); the counts cover the orgs reached.
     #   Optional at construction, default false.
+    # @!attribute truncated [Boolean] The run stopped at `limit` with at least
+    #   one more org after the last one scanned (#4343). False when there was
+    #   no limit, or the population fit within it: `scanned == limit` alone
+    #   cannot tell those apart. Optional at construction, default false.
     MaterializePlansResult = Data.define(
       :scanned,
       :succeeded,
@@ -47,8 +51,9 @@ module Billing
       :orgs_cascaded,
       :errors,
       :budget_exhausted,
+      :truncated,
     ) do
-      def initialize(budget_exhausted: false, **)
+      def initialize(budget_exhausted: false, truncated: false, **)
         super
       end
     end
@@ -101,7 +106,8 @@ module Billing
       #   active_for_org's internal batch primitive (see #run_cascade).
       # @param limit [Integer, nil] Stop after this many orgs are scanned
       #   (`scanned` counts every org reached, skipped ones included); nil
-      #   iterates all. The colonel console's bounded run (#4343).
+      #   iterates all. The colonel console's bounded run (#4343). The result's
+      #   `truncated` says whether an org followed the last one scanned.
       # @param budget [#exhausted?, nil] Wall-clock budget, checked before each
       #   org; when it runs out the iteration stops between orgs and the result
       #   reports `budget_exhausted: true`. See
@@ -138,6 +144,7 @@ module Billing
         @limit               = limit
         @budget              = budget
         @budget_exhausted    = false
+        @truncated           = false
         @counts              = Hash.new(0)
         @errors              = []
       end
@@ -146,7 +153,15 @@ module Billing
         log_start
         plans_cache = preload_plans
         @iterator.each_record(batch_size: @batch_size) do |org|
-          break if @limit && @counts[:scanned] >= @limit
+          # Reached only when an org follows the limit-th one: that (limit+1)th
+          # yield is the look-ahead that tells a capped run from a population
+          # of exactly `limit`. It is neither counted nor processed, and
+          # each_record had already loaded its batch for the plain `break`
+          # this replaces, so it costs nothing new.
+          if @limit && @counts[:scanned] >= @limit
+            @truncated = true
+            break
+          end
 
           if @budget&.exhausted?
             @budget_exhausted = true
@@ -418,6 +433,7 @@ module Billing
           orgs_cascaded: @counts[:orgs_cascaded],
           errors: @errors,
           budget_exhausted: @budget_exhausted,
+          truncated: @truncated,
         )
       end
 
@@ -440,7 +456,8 @@ module Billing
           orgs_cascaded: result.orgs_cascaded,
           memberships_succeeded: result.memberships_succeeded,
           memberships_failed: result.memberships_failed,
-          budget_exhausted: result.budget_exhausted
+          budget_exhausted: result.budget_exhausted,
+          truncated: result.truncated
       end
     end
   end

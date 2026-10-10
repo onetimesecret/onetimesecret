@@ -457,14 +457,32 @@ RSpec.describe Billing::Operations::MaterializePlans, :billing_cli do
         end
       end
 
-      it 'stops after `limit` orgs are scanned' do
+      it 'stops after `limit` orgs are scanned, reporting the orgs left as truncated' do
         result = described_class.call(iterator: org_iterator, limit: 2)
 
         expect(result.scanned).to eq(2)
         expect(result.succeeded).to eq(2)
         expect(result.budget_exhausted).to be false
+        expect(result.truncated).to be true
         orgs[0..1].each { |o| expect(o).to have_received(:materialize_entitlements_from_plan) }
         orgs[2..].each { |o| expect(o).not_to have_received(:materialize_entitlements_from_plan) }
+      end
+
+      # Both scan exactly `limit` orgs; the look-ahead at the (limit+1)th
+      # yield is what tells them apart, and it processes nothing.
+      it 'is truncated when one org follows the limit-th' do
+        result = described_class.call(iterator: org_iterator, limit: 3)
+
+        expect(result.scanned).to eq(3)
+        expect(result.truncated).to be true
+        expect(orgs[3]).not_to have_received(:materialize_entitlements_from_plan)
+      end
+
+      it 'is not truncated when the population is exactly the limit' do
+        result = described_class.call(iterator: org_iterator, limit: 4)
+
+        expect(result.scanned).to eq(4)
+        expect(result.truncated).to be false
       end
 
       it 'counts a skipped org toward the limit (scanned is every org reached)' do
@@ -498,15 +516,17 @@ RSpec.describe Billing::Operations::MaterializePlans, :billing_cli do
 
         expect(result.scanned).to eq(4)
         expect(result.budget_exhausted).to be false
+        expect(result.truncated).to be false
       end
 
-      it 'keeps budget_exhausted optional when the result is built elsewhere' do
+      it 'keeps budget_exhausted and truncated optional when the result is built elsewhere' do
         result = Billing::Operations::MaterializePlansResult.new(
           scanned: 0, succeeded: 0, failed: 0, skipped_no_plan: 0, skipped_plan_filter: 0,
           memberships_succeeded: 0, memberships_failed: 0, orgs_cascaded: 0, errors: []
         )
 
         expect(result.budget_exhausted).to be false
+        expect(result.truncated).to be false
       end
     end
   end

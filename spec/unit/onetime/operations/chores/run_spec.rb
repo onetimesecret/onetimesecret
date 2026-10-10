@@ -74,7 +74,8 @@ RSpec.describe Onetime::Operations::Chores::Run do
     allow(Onetime.billing_config).to receive(:enabled?).and_return(false)
     allow(Onetime::ColonelAuditEvent).to receive(:record)
     allow(Onetime::ColonelAuditEvent).to receive(:record_access)
-    allow(Onetime::Jobs::JobRun).to receive(:started)
+    # `started` hands back the run token `finished` must carry.
+    allow(Onetime::Jobs::JobRun).to receive(:started).and_return('run-token')
     allow(Onetime::Jobs::JobRun).to receive(:finished)
   end
 
@@ -223,13 +224,13 @@ RSpec.describe Onetime::Operations::Chores::Run do
       expect(Onetime::ColonelAuditEvent).not_to have_received(:record_access)
     end
 
-    it 'writes the run record: started, then success with the duration' do
+    it 'writes the run record: started, then success with the duration and the run token' do
       fake_model(2)
       run
 
       expect(Onetime::Jobs::JobRun).to have_received(:started).with(run_id).ordered
       expect(Onetime::Jobs::JobRun).to have_received(:finished)
-        .with(run_id, status: 'success', duration_ms: 42, error: nil).ordered
+        .with(run_id, token: 'run-token', status: 'success', duration_ms: 42, error: nil).ordered
     end
 
     it 'stops at the limit and reports capped' do
@@ -239,6 +240,28 @@ RSpec.describe Onetime::Operations::Chores::Run do
       expect(touched).to eq([0, 1, 2])
       expect(result.capped).to be true
       expect(result.report['scanned']).to eq(3)
+    end
+
+    # `scanned == limit` is what both of these produce; only the job's
+    # look-ahead tells them apart.
+    it 'is capped when one record follows the limit-th' do
+      touched = fake_model(4)
+      result  = run(limit: 3)
+
+      expect(touched).to eq([0, 1, 2])
+      expect(result).to have_attributes(capped: true, budget_exhausted: false)
+      expect(result.report['scanned']).to eq(3)
+    end
+
+    it 'is not capped when the population is exactly the limit' do
+      touched = fake_model(3)
+      result  = run(limit: 3)
+
+      expect(touched).to eq([0, 1, 2])
+      expect(result).to have_attributes(capped: false, budget_exhausted: false)
+      expect(result.report['scanned']).to eq(3)
+      expect(Onetime::ColonelAuditEvent).to have_received(:record)
+        .with(hash_including(detail: hash_including(capped: false, scanned: 3)))
     end
 
     it 'stops between records when the budget runs out and reports partial counts' do
@@ -271,7 +294,7 @@ RSpec.describe Onetime::Operations::Chores::Run do
     describe 'when records fail' do
       before { allow(OT).to receive(:le) }
 
-      it 'is partial when some records fail: an applied run, an error run record' do
+      it 'is partial when some records fail: an applied run, a partial run record' do
         touched = fake_model(4, raises: [1, 3])
 
         result = run
@@ -291,7 +314,7 @@ RSpec.describe Onetime::Operations::Chores::Run do
           fail_closed: true,
         )
         expect(Onetime::Jobs::JobRun).to have_received(:finished)
-          .with(run_id, status: 'error', duration_ms: 42, error: '2 of 4 records failed')
+          .with(run_id, token: 'run-token', status: 'partial', duration_ms: 42, error: '2 of 4 records failed')
       end
 
       it 'is partial, not a no-change, when every record fails' do
@@ -305,7 +328,7 @@ RSpec.describe Onetime::Operations::Chores::Run do
           .with(hash_including(result: :success, fail_closed: true,
             detail: hash_including(status: 'partial', errors: 2)))
         expect(Onetime::Jobs::JobRun).to have_received(:finished)
-          .with(run_id, status: 'error', duration_ms: 42, error: '2 of 2 records failed')
+          .with(run_id, token: 'run-token', status: 'partial', duration_ms: 42, error: '2 of 2 records failed')
       end
     end
 
@@ -323,7 +346,7 @@ RSpec.describe Onetime::Operations::Chores::Run do
         detail: { dry_run: false, limit: 100, error: 'RuntimeError', message: 'redis gone' },
       )
       expect(Onetime::Jobs::JobRun).to have_received(:finished)
-        .with(run_id, status: 'error', duration_ms: 42, error: 'RuntimeError: redis gone')
+        .with(run_id, token: 'run-token', status: 'error', duration_ms: 42, error: 'RuntimeError: redis gone')
     end
   end
 
@@ -355,7 +378,7 @@ RSpec.describe Onetime::Operations::Chores::Run do
         allow(pull).to receive(:call)
         allow(job).to receive(:perform)
         allow(materialize).to receive(:call).and_return(
-          materialize_result(scanned: 100, succeeded: 90, skipped_no_plan: 8, failed: 2),
+          materialize_result(scanned: 100, succeeded: 90, skipped_no_plan: 8, failed: 2, truncated: true),
         )
       end
 
@@ -369,6 +392,12 @@ RSpec.describe Onetime::Operations::Chores::Run do
           'scanned' => 100, 'would_materialize' => 90, 'skipped_no_plan' => 8, 'plan_not_found' => 2,
           'catalog_pulled' => false,
         )
+      end
+
+      it 'is not capped when exactly `limit` orgs exist (truncated false)' do
+        allow(materialize).to receive(:call).and_return(materialize_result(scanned: 100, succeeded: 100))
+
+        expect(run(dry_run: true)).to have_attributes(status: :dry_run, capped: false)
       end
 
       it 'never pulls the catalog or takes the live path' do
@@ -429,7 +458,8 @@ RSpec.describe Onetime::Operations::Chores::Run do
           fail_closed: true,
         )
         expect(Onetime::Jobs::JobRun).to have_received(:finished)
-          .with('chore.entitlement_materialize', status: 'error', duration_ms: 42, error: '1 of 40 records failed')
+          .with('chore.entitlement_materialize', token: 'run-token', status: 'partial', duration_ms: 42,
+            error: '1 of 40 records failed')
       end
 
       it 'is success with a clean run record when no org failed' do
@@ -438,7 +468,19 @@ RSpec.describe Onetime::Operations::Chores::Run do
 
         expect(run.status).to eq(:success)
         expect(Onetime::Jobs::JobRun).to have_received(:finished)
-          .with('chore.entitlement_materialize', status: 'success', duration_ms: 42, error: nil)
+          .with('chore.entitlement_materialize', token: 'run-token', status: 'success', duration_ms: 42, error: nil)
+      end
+
+      # Both runs scanned exactly `limit` orgs; only the materialize's
+      # look-ahead (`truncated`) says whether more were left.
+      it 'reads capped from the materialize, not from the count' do
+        allow(pull).to receive(:call).and_return(pull::Result.new(success: true, plans_synced: 3, catalog_verified: true))
+
+        allow(materialize).to receive(:call).and_return(materialize_result(scanned: 100, succeeded: 100, truncated: true))
+        expect(run).to have_attributes(status: :success, capped: true)
+
+        allow(materialize).to receive(:call).and_return(materialize_result(scanned: 100, succeeded: 100))
+        expect(run).to have_attributes(status: :success, capped: false)
       end
 
       # The pull is uninterruptible and comes before the materialize. A pull
@@ -523,7 +565,8 @@ RSpec.describe Onetime::Operations::Chores::Run do
           },
         )
         expect(Onetime::Jobs::JobRun).to have_received(:finished)
-          .with('chore.entitlement_materialize', status: 'error', duration_ms: 42, error: 'aborted: catalog_pull_failed')
+          .with('chore.entitlement_materialize', token: 'run-token', status: 'error', duration_ms: 42,
+            error: 'aborted: catalog_pull_failed')
       end
 
       it 'maps a missing Stripe key to skipped: a no-change attempt and a skipped run record' do
@@ -542,7 +585,7 @@ RSpec.describe Onetime::Operations::Chores::Run do
         )
         expect(Onetime::ColonelAuditEvent).not_to have_received(:record).with(hash_including(fail_closed: true))
         expect(Onetime::Jobs::JobRun).to have_received(:finished)
-          .with('chore.entitlement_materialize', status: 'skipped', duration_ms: 42, error: nil)
+          .with('chore.entitlement_materialize', token: 'run-token', status: 'skipped', duration_ms: 42, error: nil)
       end
     end
   end

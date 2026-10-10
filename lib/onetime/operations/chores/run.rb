@@ -31,7 +31,9 @@ module Onetime
       #
       # - `limit` records (default {DEFAULT_LIMIT}, at most {MAX_LIMIT};
       #   larger values are clamped). `capped` in the result means the run
-      #   stopped at the limit.
+      #   stopped at the limit with records left unreached: the job reports
+      #   it (`truncated`) from a look-ahead, because a count equal to the
+      #   limit is also what a population of exactly `limit` records gives.
       # - a wall-clock {Budget} of {BUDGET_SECONDS}, checked between records.
       #   `budget_exhausted` means it stopped because time ran out. The record
       #   loop always gets at least {MIN_LOOP_SECONDS} from its first check,
@@ -72,8 +74,9 @@ module Onetime
       #
       # A live run where any record failed (housekeeping `errors`, entitlement
       # `failed`) is `partial`, whether some or all failed: the other records
-      # were still written. Its JobRun record is `error`, "N of M records
-      # failed", so the console never shows a run with failures as a success.
+      # were still written. Its JobRun record is `partial`, "N of M records
+      # failed" (the status the nightly run of the same job records), so the
+      # console never shows a run with failures as a success.
       #
       # ## Audit (exactly one event per call)
       #
@@ -163,6 +166,7 @@ module Onetime
           @budget           = budget
           @capped           = false
           @budget_exhausted = false
+          @run_token        = nil
         end
 
         # @return [Result]
@@ -198,7 +202,7 @@ module Onetime
             limit: @limit,
             budget: @budget,
           )
-          @capped           = outcome.scanned >= @limit
+          @capped           = outcome.truncated
           @budget_exhausted = outcome.budget_exhausted
           {
             'scanned' => outcome.scanned,
@@ -211,8 +215,10 @@ module Onetime
 
         # ---- Live run -----------------------------------------------------
 
+        # The token from `started` goes to both `finished` calls, so this run
+        # cannot overwrite the record of one that started after it.
         def run_live
-          ::Onetime::Jobs::JobRun.started(@entry.run_id)
+          @run_token     = ::Onetime::Jobs::JobRun.started(@entry.run_id)
           status, report = @entry.housekeeping? ? run_housekeeping : run_entitlements
           record_run(status, report)
           finish_run(status, report)
@@ -220,6 +226,7 @@ module Onetime
         rescue StandardError => ex
           ::Onetime::Jobs::JobRun.finished(
             @entry.run_id,
+            token: @run_token,
             status: 'error',
             duration_ms: @budget.elapsed_ms,
             error: "#{ex.class}: #{ex.message}",
@@ -235,7 +242,7 @@ module Onetime
             budget: @budget,
           )
           counts            = stats[:chores].fetch(@entry.chore.to_sym)
-          @capped           = stats[:scanned] >= @limit
+          @capped           = stats[:truncated] == true
           @budget_exhausted = stats[:budget_exhausted] == true
           report            = {
             'model' => stats[:model],
@@ -253,7 +260,7 @@ module Onetime
             limit: @limit,
             budget: @budget,
           )
-          @capped           = job_report[:scanned].to_i >= @limit
+          @capped           = job_report[:truncated] == true
           @budget_exhausted = job_report[:budget_exhausted] == true
           status            = if job_report[:skipped]
                                 :skipped
@@ -322,16 +329,19 @@ module Onetime
           }.merge(summary(report))
         end
 
-        # JobRun vocabulary (D1): an aborted run is an error with the reason.
+        # JobRun vocabulary (D1): an aborted run is an error with the reason; a
+        # run with record failures is 'partial' with the count, as the nightly
+        # run records it (ScheduledJob.run_outcome).
         def finish_run(status, report)
           run_status, error = case status
                               when :success then ['success', nil]
                               when :skipped then ['skipped', nil]
-                              when :partial then ['error', "#{failed_count(report)} of #{report['scanned'].to_i} records failed"]
+                              when :partial then ['partial', "#{failed_count(report)} of #{report['scanned'].to_i} records failed"]
                               else ['error', "#{ABORTED}: #{report[ABORTED]}"]
                               end
           ::Onetime::Jobs::JobRun.finished(
             @entry.run_id,
+            token: @run_token,
             status: run_status,
             duration_ms: @budget.elapsed_ms,
             error: error,

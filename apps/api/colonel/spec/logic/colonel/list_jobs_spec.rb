@@ -90,7 +90,8 @@ RSpec.describe ColonelAPI::Logic::Colonel::ListJobs do
     Onetime::Jobs::JobRun.scheduler_started!(job_count: 1, started_at: started_at)
     Onetime::Jobs::JobRun.register(Onetime::Jobs::Scheduled::HeartbeatJob,
       kind: :every, expression: '1m', next_time: Time.at(started_at + 60))
-    Onetime::Jobs::JobRun.finished('heartbeat', status: 'error', duration_ms: 7, error: 'RuntimeError: boom')
+    token = Onetime::Jobs::JobRun.started('heartbeat')
+    Onetime::Jobs::JobRun.finished('heartbeat', token: token, status: 'error', duration_ms: 7, error: 'RuntimeError: boom')
 
     result = run
 

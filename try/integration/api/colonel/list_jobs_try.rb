@@ -103,7 +103,8 @@ heartbeat_row.values_at('last_status', 'run_count', 'error_count')
 #=> ['never', 0, 0]
 
 ## A finished run shows up in the job's row
-Onetime::Jobs::JobRun.finished('heartbeat', status: 'success', duration_ms: 5)
+token = Onetime::Jobs::JobRun.started('heartbeat')
+Onetime::Jobs::JobRun.finished('heartbeat', token: token, status: 'success', duration_ms: 5)
 heartbeat_row.values_at('last_status', 'last_duration_ms', 'last_error')
 #=> ['success', 5, nil]
 

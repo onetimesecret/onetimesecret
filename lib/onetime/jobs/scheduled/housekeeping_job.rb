@@ -75,7 +75,11 @@ module Onetime
           #   the class itself (CLI passes strings, in-process callers can pass
           #   the class directly)
           # @param chore_name [Symbol, String, nil] specific chore, or nil for all
-          # @param limit [Integer, nil] cap on records scanned; nil iterates all
+          # @param limit [Integer, nil] cap on records scanned; nil iterates all.
+          #   When given, the stats hash gains `truncated:` — true when a record
+          #   followed the limit-th one (the scan stopped with records left),
+          #   false when the population fit within the limit. `scanned == limit`
+          #   alone cannot tell those apart.
           # @param budget [#exhausted?, nil] wall-clock budget, checked before
           #   each record (Onetime::Operations::Chores::Budget, #4343). When it
           #   runs out the scan stops between records and the stats hash gains
@@ -95,10 +99,19 @@ module Onetime
             stats      = chore_keys.to_h { |key| [key, { modified: 0, errors: 0 }] }
             scanned    = 0
             exhausted  = false
+            truncated  = false
             batch_max  = housekeeping_batch_size
 
             klass.instances.each_record(batch_size: batch_max) do |record|
-              break if limit && scanned >= limit
+              # Reached only when a record follows the limit-th one: that
+              # (limit+1)th yield is the look-ahead that tells a capped scan
+              # from a population of exactly `limit`. It is neither counted
+              # nor processed, and each_record had already loaded its batch
+              # for the plain `break` this replaces, so it costs nothing new.
+              if limit && scanned >= limit
+                truncated = true
+                break
+              end
 
               if budget&.exhausted?
                 exhausted = true
@@ -110,6 +123,7 @@ module Onetime
             end
 
             report                    = { model: klass.name, scanned: scanned, chores: stats }
+            report[:truncated]        = truncated if limit
             report[:budget_exhausted] = exhausted if budget
             report
           end
@@ -132,6 +146,43 @@ module Onetime
           end
 
           private
+
+          # The nightly run's record-level failures, for ScheduledJob's
+          # 'partial' status (#4343): chore errors summed across every model
+          # and chore in `report[:models]`, plus models whose whole scan
+          # raised (run_all_models records those as `{ error: }`). Either
+          # leaves the other records written, so the run completed.
+          #
+          # @return [String, nil] e.g. "3 record(s) failed (first chore:
+          #   standardize_planid); 1 model(s) failed: Onetime::Customer: boom"
+          def partial_failure(report)
+            models = report[:models]
+            return nil unless models.is_a?(Hash)
+
+            failed_records = 0
+            first_chore    = nil
+            failed_models  = []
+
+            models.each do |model_name, stats|
+              if stats[:error]
+                failed_models << "#{model_name}: #{stats[:error]}"
+                next
+              end
+
+              stats.fetch(:chores, {}).each do |chore_key, counts|
+                errors = counts[:errors].to_i
+                next unless errors.positive?
+
+                failed_records += errors
+                first_chore   ||= chore_key
+              end
+            end
+
+            parts = []
+            parts << "#{failed_records} record(s) failed (first chore: #{first_chore})" if failed_records.positive?
+            parts << "#{failed_models.size} model(s) failed: #{failed_models.first}" unless failed_models.empty?
+            parts.empty? ? nil : parts.join('; ')
+          end
 
           def run_chores_for(klass, record, chore_keys, stats)
             chore_keys.each do |key|

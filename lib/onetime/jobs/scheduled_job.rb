@@ -100,7 +100,12 @@ module Onetime
         # Status: 'error' when the block raises or returns a report with
         # `:aborted` set (MaintenanceJob.with_stats returns its report, and an
         # aborted run is one the job itself logs as a failure); 'skipped' when
-        # the report sets `:skipped`; 'success' otherwise.
+        # the report sets `:skipped`; 'partial' when the job's
+        # `partial_failure` hook finds record-level failures in the report;
+        # 'success' otherwise.
+        #
+        # The token `JobRun.started` returns goes to both `finished` calls, so
+        # a run that overlaps a later one cannot overwrite its record.
         #
         # @param rufus_job [Rufus::Scheduler::Job, nil] the job rufus yields;
         #   its next_time is already the following occurrence (RepeatJob#trigger
@@ -108,12 +113,13 @@ module Onetime
         def safely_execute(rufus_job = nil)
           job_id  = JobRun.job_id_for(self)
           started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-          JobRun.started(job_id)
+          token   = JobRun.started(job_id)
 
           result        = yield
           status, error = run_outcome(result)
           JobRun.finished(
             job_id,
+            token: token,
             status: status,
             duration_ms: elapsed_ms(started),
             error: error,
@@ -123,6 +129,7 @@ module Onetime
         rescue StandardError => ex
           JobRun.finished(
             job_id,
+            token: token,
             status: 'error',
             duration_ms: elapsed_ms(started),
             error: "#{ex.class}: #{ex.message}",
@@ -138,7 +145,21 @@ module Onetime
           return ['error', "aborted: #{result[:aborted]}"] if result[:aborted]
           return ['skipped', nil] if result[:skipped]
 
+          failure = partial_failure(result)
+          return ['partial', failure] if failure
+
           ['success', nil]
+        end
+
+        # Record-level failures in a completed run, for jobs whose report
+        # carries them (HousekeepingJob, EntitlementMaterializeJob). A run
+        # that completed with failures used to record 'success' and clear
+        # last_error. The base class knows no report shape, so it finds none.
+        #
+        # @param _report [Hash] the block's return value
+        # @return [String, nil] short error text, or nil when nothing failed
+        def partial_failure(_report)
+          nil
         end
 
         # Record the registration. rufus returns the job id (a String) unless

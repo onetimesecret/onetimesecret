@@ -81,7 +81,9 @@ module Onetime
             # @param report [Hash] filled in place (symbol keys); also returned.
             #   `:skipped` / `:aborted` are set when nothing was materialized.
             # @param limit [Integer, nil] stop after this many orgs are scanned
-            #   (the console's bounded run); nil materializes every org.
+            #   (the console's bounded run); nil materializes every org. When
+            #   given, `report[:truncated]` says whether an org followed the
+            #   limit-th one (MaterializePlansResult#truncated).
             # @param budget [#exhausted?, nil] wall-clock budget checked between
             #   orgs; when it runs out `report[:budget_exhausted]` is true. The
             #   catalog pull itself is not interruptible.
@@ -104,6 +106,24 @@ module Onetime
             end
 
             private
+
+            # Orgs that failed to materialize, for ScheduledJob's 'partial'
+            # status (#4343): the run completed, the other orgs were written.
+            # `report[:errors]` holds `{ org_extid:, reason: }` rows; only the
+            # first reason goes into the run record (JobRun.error_text masks
+            # addresses and credentials in it, and the record carries no ids).
+            #
+            # @return [String, nil] e.g. "2 org(s) failed to materialize: Plan
+            #   'x' not found in catalog or config"
+            def partial_failure(report)
+              failed = report[:failed].to_i
+              return nil unless failed.positive?
+
+              first  = Array(report[:errors]).first
+              reason = first.is_a?(Hash) ? first[:reason] : first
+              text   = "#{failed} org(s) failed to materialize"
+              reason ? "#{text}: #{reason}" : text
+            end
 
             # Refresh the Redis plan cache from Stripe. Returns true only when
             # the cache is confirmed fresh; any failure aborts the run so we
@@ -164,6 +184,7 @@ module Onetime
               report[:orgs_cascaded]         = result.orgs_cascaded
               report[:memberships_succeeded] = result.memberships_succeeded
               report[:memberships_failed]    = result.memberships_failed
+              report[:truncated]             = result.truncated if limit
               report[:budget_exhausted]      = result.budget_exhausted if budget
 
               return unless result.failed.positive?
