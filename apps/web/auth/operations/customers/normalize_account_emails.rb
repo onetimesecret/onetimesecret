@@ -4,6 +4,7 @@
 
 # Loaded from the CLI (outside the auth app's autoloader), so every
 # dependency is required explicitly.
+require 'onetime/signup_validation'
 require 'auth/account_statuses'
 require 'auth/database'
 require 'auth/lib/logging'
@@ -33,28 +34,37 @@ module Auth
       # mutation — `ChangeEmail` with `allow_canonicalization: true` and the
       # user-facing follow-ups off (no verification reset, no session
       # revocation, no notices: nothing a user would recognise as their
-      # address changes). The SQL write is compare-and-set on the bytes the
-      # scan read, so a row that moved in between is reported, not clobbered.
+      # address changes). The bytes the scan read are handed to ChangeEmail
+      # as `expected_auth_email:`; it re-reads the row before any write and
+      # refuses (`:stale`, nothing written) unless the row still holds
+      # exactly those bytes, then compare-and-sets on them. A row that moved
+      # between scan and apply is therefore reported, not clobbered.
       #
       # ## What it refuses (never merges, never guesses)
       #
       #   :skipped_fold_unstable   canonical form is not fold-stable (ß -> ss):
       #                            the lowercase address is a DIFFERENT address
       #   :skipped_sql_collision   another accounts row (live OR closed) holds
-      #                            the canonical address
+      #                            the canonical address, or canonicalizes to
+      #                            it (every member of such a group is skipped)
       #   :skipped_no_customer     no Customer via external_id, the stored
       #                            address, or the canonical address
       #   :skipped_index_collision the Redis email index already maps the
       #                            canonical address to a different Customer
       #                            (the duplicate migration 007 left behind)
-      #   :error                   anything else, including an external_id
+      #   :error                   anything else: a canonical form that is not
+      #                            structurally a valid address, an external_id
       #                            that names a different extid than the
-      #                            Customer holding the address, and
-      #                            cross-store drift
+      #                            Customer holding the address, cross-store
+      #                            drift, a row that changed between scan and
+      #                            apply
       #
-      # Idempotent: a second run finds nothing. Dry run (the default) writes
-      # nothing to SQL or Redis — it does not even call ChangeEmail, whose
-      # preview records an observation event.
+      # A normalized row is not scanned again, so a second run re-does none of
+      # them; refused and errored rows are still candidates and are re-reported
+      # on every run until an operator resolves them (`after_id:` skips past
+      # them on a limited run). Dry run (the default) writes nothing to SQL or
+      # Redis — it does not even call ChangeEmail, whose preview records an
+      # observation event.
       class NormalizeAccountEmails
         include Onetime::LoggerMethods
 
@@ -85,17 +95,27 @@ module Auth
         #   @return [Array<Hash>] one per scanned row:
         #     { account_id:, outcome:, from:, to:, detail: } with the
         #     addresses OBSCURED
-        Result = Data.define(:dry_run, :stats, :rows)
+        # @!attribute last_account_id [r]
+        #   @return [Integer, nil] id of the last candidate this run processed
+        #     (candidates are processed in id order), nil when it processed
+        #     none. Pass it back as `after_id:` to resume a limited run past
+        #     rows it already reported.
+        Result = Data.define(:dry_run, :stats, :rows, :last_account_id)
 
         # @param dry_run [Boolean] report only (default). `false` applies.
-        # @param limit [Integer, nil] cap on mixed-case rows processed; nil = all
+        # @param limit [Integer, nil] cap on candidate rows processed; nil = all
+        # @param after_id [Integer, nil] process only candidates with
+        #   `id > after_id`; nil = from the start. Review item 9: a limited
+        #   run otherwise re-reports the same refused low-id rows forever and
+        #   never reaches the rest.
         # @param db [Sequel::Database, nil] defaults to Auth::Database.connection
         # @param actor [String] audit actor for the ChangeEmail events
-        def initialize(dry_run: true, limit: nil, db: nil, actor: DEFAULT_ACTOR)
-          @dry_run = dry_run ? true : false
-          @limit   = limit.nil? ? nil : Integer(limit)
-          @actor   = actor
-          @db      = db || (defined?(Auth::Database) ? Auth::Database.connection : nil)
+        def initialize(dry_run: true, limit: nil, after_id: nil, db: nil, actor: DEFAULT_ACTOR)
+          @dry_run  = dry_run ? true : false
+          @limit    = non_negative_integer(limit, 'limit')
+          @after_id = non_negative_integer(after_id, 'after_id')
+          @actor    = actor
+          @db       = db || (defined?(Auth::Database) ? Auth::Database.connection : nil)
           raise Onetime::Problem, 'Auth database unavailable (simple auth mode?)' unless @db
         end
 
@@ -104,36 +124,75 @@ module Auth
           stats                                    = { scanned: 0 }
           OUTCOMES.each { |outcome| stats[outcome] = 0 }
           rows                                     = []
+          last_account_id                          = nil
 
           candidate_rows.each do |row|
             report                   = process_row_safely(row)
             stats[:scanned]         += 1
             stats[report[:outcome]] += 1
             rows << report
+            last_account_id          = row[:id]
             log_row(report)
           end
 
           Auth::Logging.log_operation(
             :normalize_account_emails,
             dry_run: @dry_run,
+            last_account_id: last_account_id,
             **stats,
           )
 
-          Result.new(dry_run: @dry_run, stats: stats, rows: rows)
+          Result.new(dry_run: @dry_run, stats: stats, rows: rows, last_account_id: last_account_id)
         end
 
         private
 
+        # `Integer()` semantics for junk (raises), plus a floor: a negative
+        # cap or cursor has no meaning here.
+        def non_negative_integer(value, name)
+          return nil if value.nil?
+
+          int = Integer(value)
+          raise ArgumentError, "#{name}: must be a non-negative Integer (got #{value.inspect})" if int.negative?
+
+          int
+        end
+
         # ------------------------------------------------------------- scan
 
-        # Every row whose stored address is not already canonical, by id.
+        # The candidates this run processes, in id order: every row whose
+        # stored address is not already canonical, minus those at or below
+        # `after_id`, capped at `limit`.
+        #
         # Filtered in Ruby, not SQL: `email != LOWER(email)` is false on a
         # citext column, and SQL lower() is ASCII-only on SQLite and blind to
-        # NFC. Keyset-paged so the scan is bounded in memory and can stop at
-        # `limit` without abandoning a server-side cursor.
+        # NFC. Keyset-paged, so each page is bounded.
+        #
+        # The scan is ALWAYS complete — it does not stop at `limit` or start
+        # at `after_id` — because collision detection needs every candidate
+        # (review item 6): two rows that canonicalize to one address through
+        # a mapping lower() cannot see (KELVIN SIGN, Unicode whitespace
+        # padding) are invisible to `sql_holders` on SQLite, and a run that
+        # stopped scanning at `limit` could normalize the first and leave two
+        # canonical-equivalent holders. So every candidate is grouped by its
+        # canonical form first, any group with more than one member is
+        # remembered (`@canonical_peers`), and only THEN are `after_id` and
+        # `limit` applied. Memory is O(candidates): the mixed-case rows only
+        # (four small columns each), a small subset of the table, never the
+        # table itself.
         #
         # @return [Array<Hash>] { id:, email:, external_id:, status_id: }
         def candidate_rows
+          candidates       = all_candidates
+          @canonical_peers = candidates
+            .group_by { |row| OT::Utils.canonical_email(row[:email].to_s) }
+            .select { |_target, rows| rows.size > 1 }
+
+          selected = @after_id ? candidates.select { |row| row[:id] > @after_id } : candidates
+          @limit ? selected.first(@limit) : selected
+        end
+
+        def all_candidates
           candidates = []
           last_id    = 0
 
@@ -146,13 +205,7 @@ module Auth
               .all
             break if batch.empty?
 
-            batch.each do |row|
-              next unless mixed_case?(row[:email].to_s)
-
-              candidates << row
-              return candidates if @limit && candidates.size >= @limit
-            end
-
+            batch.each { |row| candidates << row if mixed_case?(row[:email].to_s) }
             last_id = batch.last[:id]
           end
 
@@ -178,13 +231,15 @@ module Auth
 
         # Decision order (every gate runs before any write):
         #   1. fold-unstable canonical form          -> :skipped_fold_unstable
-        #   2. another accounts row holds the target -> :skipped_sql_collision
-        #   3. no Customer resolvable                -> :skipped_no_customer
-        #   4. external_id names a different extid   -> :error (ambiguous link)
-        #   5. Customer holds a different address    -> :error (drift)
-        #   6. index maps target to another Customer -> :skipped_index_collision
-        #   7. dry run                               -> :normalized (nothing written)
-        #   8. ChangeEmail                           -> :normalized / mapped
+        #   2. target not structurally an address    -> :error
+        #   3. another accounts row holds the target
+        #      or canonicalizes to it                -> :skipped_sql_collision
+        #   4. no Customer resolvable                -> :skipped_no_customer
+        #   5. external_id names a different extid   -> :error (ambiguous link)
+        #   6. Customer holds a different address    -> :error (drift)
+        #   7. index maps target to another Customer -> :skipped_index_collision
+        #   8. dry run                               -> :normalized (nothing written)
+        #   9. ChangeEmail                           -> :normalized / mapped
         def process_row(row)
           stored = row[:email].to_s
           target = OT::Utils.canonical_email(stored)
@@ -200,7 +255,21 @@ module Auth
             )
           end
 
-          holders = sql_holders(row[:id], target)
+          # Review item 3: the same structural gate ChangeEmail applies to a
+          # same-mailbox rewrite, run here so a dry run and a live run agree
+          # (the dry run never calls ChangeEmail).
+          unless Onetime::SignupValidation.structurally_valid_email?(target)
+            return report(
+              row,
+              stored,
+              target,
+              :error,
+              'the canonical address is not structurally valid (local@domain.tld without ' \
+              'whitespace, commas or semicolons), so ChangeEmail would refuse it; left for the operator',
+            )
+          end
+
+          holders = collision_holders(row, target)
           unless holders.empty?
             return report(
               row,
@@ -271,6 +340,11 @@ module Auth
         # The single email mutation. Follow-ups a user would notice are off:
         # the address they know does not change. Verification stays (the
         # IdP proved the address), sessions stay, no notices are mailed.
+        #
+        # `expected_auth_email: stored` is the compare-and-set baseline: the
+        # bytes THIS scan read, not whatever ChangeEmail finds when it probes
+        # (review items 1/2/4). ChangeEmail refuses with `:stale` before any
+        # write when the row is gone or holds other bytes.
         def apply(row, customer, stored, target)
           result = ChangeEmail.new(
             customer: customer,
@@ -283,6 +357,7 @@ module Auth
             reason: AUDIT_REASON,
             allow_canonicalization: true,
             account_id: row[:id],
+            expected_auth_email: stored,
             db: @db,
           ).call
 
@@ -294,13 +369,20 @@ module Auth
             if result.auth_row_updated
               report(row, stored, target, :normalized, warnings.empty? ? nil : "warnings: #{warnings.join(', ')}")
             else
+              # Not expected to be reachable: the row existed at scan time
+              # and ChangeEmail refuses (:stale) when it is gone or changed,
+              # so a :success here means the Customer hash and indexes WERE
+              # rewritten while the accounts row was not. Say so; a "re-run"
+              # would find nothing (the stores now disagree, and the row may
+              # not even be a candidate any more).
               report(
                 row,
                 stored,
                 target,
                 :error,
-                "accounts row #{row[:id]} no longer held the scanned address at write time " \
-                "(compare-and-set matched 0 rows); re-run#{suffix}",
+                'ChangeEmail returned :success with auth_row_updated=false: the Redis Customer ' \
+                "record was rewritten to the canonical address but accounts row #{row[:id]} was " \
+                "not; the stores may now disagree. Run `bin/ots customers doctor #{customer.extid}`#{suffix}",
               )
             end
           when :stale
@@ -309,8 +391,8 @@ module Auth
               stored,
               target,
               :error,
-              "accounts row #{row[:id]} no longer held the scanned address at write time " \
-              "(compare-and-set matched 0 rows); nothing written; re-run#{suffix}",
+              "accounts row #{row[:id]} is gone or no longer held the scanned address when ChangeEmail " \
+              "re-read it (nothing written); the row changed between scan and apply, re-run#{suffix}",
             )
           when :email_taken
             report(
@@ -348,17 +430,33 @@ module Auth
           @db[:accounts]
         end
 
-        # Other rows holding the canonical address. Two predicates because the
-        # column differs by engine: citext equality is case-insensitive on
-        # PostgreSQL, plain String equality is exact on SQLite, and lower() is
-        # ASCII-only there. Closed rows count: ChangeEmail refuses an address
-        # a closed account holds for the same reason (#3916).
+        # Every other accounts row that holds the canonical address or
+        # canonicalizes to it, from two engine-agnostic sources (review item
+        # 6): rows ALREADY canonical come from `sql_holders` (exact equality,
+        # which citext also answers case-blind on PostgreSQL), rows still
+        # mixed-case come from the Ruby grouping the scan built
+        # (`@canonical_peers`). No SQL lower(): it is ASCII-only on SQLite
+        # and would miss a KELVIN SIGN or Unicode-whitespace-padded sibling.
+        # The two overlap on PostgreSQL (citext matches the mixed-case peers
+        # too), hence the de-duplication by id.
+        #
+        # @return [Array<Hash>] { id:, status_id: }, by id
+        def collision_holders(row, target)
+          peers = (@canonical_peers || {}).fetch(target, []).reject { |peer| peer[:id] == row[:id] }
+          (sql_holders(row[:id], target) + peers.map { |peer| peer.slice(:id, :status_id) })
+            .uniq { |holder| holder[:id] }
+            .sort_by { |holder| holder[:id] }
+        end
+
+        # Other rows holding EXACTLY the canonical address. Closed rows
+        # count: ChangeEmail refuses an address a closed account holds for
+        # the same reason (#3916).
         #
         # @return [Array<Hash>] { id:, status_id: }
         def sql_holders(own_id, target)
           accounts
             .exclude(id: own_id)
-            .where(Sequel.|({ email: target }, { Sequel.function(:lower, :email) => target }))
+            .where(email: target)
             .select(:id, :status_id)
             .order(:id)
             .all

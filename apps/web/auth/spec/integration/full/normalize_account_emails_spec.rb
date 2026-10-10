@@ -110,8 +110,8 @@ RSpec.describe 'Account email normalization repair (#4726)', type: :integration 
     Familia.dbclient.hgetall(email_index.dbkey)
   end
 
-  def new_operation(dry_run: true, limit: nil)
-    Auth::Operations::Customers::NormalizeAccountEmails.new(dry_run: dry_run, limit: limit)
+  def new_operation(dry_run: true, limit: nil, after_id: nil)
+    Auth::Operations::Customers::NormalizeAccountEmails.new(dry_run: dry_run, limit: limit, after_id: after_id)
   end
 
   def row_for(result, account_id)
@@ -242,6 +242,128 @@ RSpec.describe 'Account email normalization repair (#4726)', type: :integration 
       expect(row[:detail]).to include(other_id.to_s)
       expect(sql_email(account_id)).to eq(mixed)
       expect(sql_email(other_id)).to eq(target)
+    end
+
+    # Two rows that canonicalize to ONE address through a mapping SQL
+    # lower() cannot see (KELVIN SIGN U+212A -> 'k'; ASCII-only lower() on
+    # SQLite leaves it alone). Neither row holds the target exactly, so an
+    # equality probe misses both and a lower() probe misses the second.
+    # The grouping is done in Ruby over the whole candidate set, BEFORE
+    # `limit` applies, so a `--limit 1` run cannot normalize the first row
+    # and leave two canonical-equivalent holders behind.
+    context 'when the colliding row canonicalizes to the target through a non-ASCII mapping' do
+      let(:kelvin_target) { "kelvin-#{run}@example.com" }
+      let(:kelvin_ascii) { "Kelvin-#{run}@Example.COM" }
+      let(:kelvin_sign) { "Kelvin-#{run}@example.com" }
+
+      it 'skips BOTH members, naming the other, even with limit: 1' do
+        expect(OT::Utils.canonical_email(kelvin_sign)).to eq(kelvin_target)
+        customer  = create_customer(kelvin_target)
+        first_id  = insert_account(kelvin_ascii, external_id: customer.extid)
+        # Closed, so the PostgreSQL live-status partial unique index allows
+        # it; still a collision for every email-keyed lookup.
+        second_id = insert_account(kelvin_sign, external_id: nil, status_id: 3)
+        before_first  = account_row(first_id)
+        before_second = account_row(second_id)
+
+        limited = new_operation(dry_run: false, limit: 1).call
+
+        expect(limited.stats[:scanned]).to eq(1)
+        limited_row = row_for(limited, first_id)
+        expect(limited_row[:outcome]).to eq(:skipped_sql_collision)
+        expect(limited_row[:detail]).to include("#{second_id} (closed)")
+        expect(account_row(first_id)).to eq(before_first)
+        expect(account_row(second_id)).to eq(before_second)
+
+        full = new_operation(dry_run: false).call
+
+        expect(full.stats).to include(scanned: 2, skipped_sql_collision: 2, normalized: 0)
+        expect(row_for(full, first_id)[:detail]).to include("#{second_id} (closed)")
+        expect(row_for(full, second_id)[:detail]).to include("#{first_id} (live)")
+        expect(account_row(first_id)).to eq(before_first)
+        expect(account_row(second_id)).to eq(before_second)
+      end
+    end
+  end
+
+  # ==========================================================================
+  # 4b. Concurrent change between scan and apply
+  # ==========================================================================
+
+  describe 'row changed between scan and apply' do
+    # The scan reads the row, then the user (or another operator) changes the
+    # address before ChangeEmail runs. The repair must report it and leave
+    # the user's NEW address in place — never compare-and-set on whatever the
+    # probe finds and revert them to the canonical form of the OLD one.
+    it 'is reported as :error and the concurrent new address survives in both stores' do
+      customer   = create_customer(target)
+      account_id = insert_account(mixed, external_id: customer.extid)
+      moved_to   = "moved-#{run}@example.com"
+      operation  = new_operation(dry_run: false)
+
+      allow(Auth::Operations::Customers::ChangeEmail).to receive(:new).and_wrap_original do |original, **kwargs|
+        # Lands after the scan read `mixed`, before the mutation probes.
+        accounts.where(id: account_id).update(email: moved_to)
+        original.call(**kwargs)
+      end
+      before_hash  = Familia.dbclient.hgetall(customer.dbkey)
+      before_index = index_snapshot
+
+      result = operation.call
+
+      row = row_for(result, account_id)
+      expect(row[:outcome]).to eq(:error)
+      expect(row[:detail]).to include('between scan and apply')
+      expect(result.stats).to include(scanned: 1, error: 1, normalized: 0)
+      expect(sql_email(account_id)).to eq(moved_to)
+      expect(Familia.dbclient.hgetall(customer.dbkey)).to eq(before_hash)
+      expect(index_snapshot).to eq(before_index)
+      expect(Auth::Operations::Customers::ChangeEmail).to have_received(:new).with(
+        hash_including(account_id: account_id, expected_auth_email: mixed)
+      )
+    end
+  end
+
+  # ==========================================================================
+  # 4c. Internationalized addresses
+  # ==========================================================================
+
+  describe 'non-ASCII mixed-case row' do
+    # `EmailFormat.valid_format?` is ASCII-only; before review item 3 this row
+    # passed the dry run and failed live with :invalid_email on every run.
+    it 'normalizes on a live run' do
+      intl_mixed  = "JOSÉ-#{run}@Example.COM"
+      intl_target = OT::Utils.canonical_email(intl_mixed)
+      expect(intl_target).to eq("josé-#{run}@example.com")
+      customer   = create_customer(intl_target)
+      account_id = insert_account(intl_mixed, external_id: customer.extid)
+
+      preview = new_operation.call
+      expect(row_for(preview, account_id)[:outcome]).to eq(:normalized)
+
+      result = new_operation(dry_run: false).call
+
+      row = row_for(result, account_id)
+      expect(row[:outcome]).to eq(:normalized)
+      expect(sql_email(account_id)).to eq(intl_target)
+      expect(Onetime::Customer.find_by_email(sql_email(account_id))&.extid).to eq(customer.extid)
+    end
+
+    it 'reports a structurally invalid canonical form as :error on the dry run too' do
+      skip 'accounts.valid_email CHECK refuses the fixture on PostgreSQL' if db.database_type == :postgres
+
+      broken     = "Dotless-#{run}@localhost"
+      account_id = insert_account(broken, external_id: nil)
+      before_row = account_row(account_id)
+
+      preview = new_operation.call
+      expect(row_for(preview, account_id)[:outcome]).to eq(:error)
+      expect(row_for(preview, account_id)[:detail]).to include('not structurally valid')
+
+      result = new_operation(dry_run: false).call
+
+      expect(row_for(result, account_id)[:outcome]).to eq(:error)
+      expect(account_row(account_id)).to eq(before_row)
     end
   end
 
@@ -434,6 +556,42 @@ RSpec.describe 'Account email normalization repair (#4726)', type: :integration 
       expect(result.rows.map { |r| r[:account_id] } - ids).to be_empty
       normalized = ids.count { |id| sql_email(id) == sql_email(id).downcase }
       expect(normalized).to eq(2)
+    end
+  end
+
+  # ==========================================================================
+  # 12b. after_id: and last_account_id (resume a limited run)
+  # ==========================================================================
+
+  describe 'after_id: and last_account_id' do
+    it 'skips candidates at or below after_id and reports the last id processed' do
+      ids = 3.times.map do |i|
+        cust = create_customer("resume-#{i}-#{run}@example.com")
+        insert_account("Resume-#{i}-#{run}@Example.COM", external_id: cust.extid)
+      end
+      ids.sort!
+
+      first = new_operation(dry_run: false, limit: 1).call
+      expect(first.rows.map { |r| r[:account_id] }).to eq([ids[0]])
+      expect(first.last_account_id).to eq(ids[0])
+
+      second = new_operation(dry_run: false, after_id: first.last_account_id).call
+
+      expect(second.rows.map { |r| r[:account_id] }).to eq(ids[1..])
+      expect(second.stats).to include(scanned: 2, normalized: 2)
+      expect(second.last_account_id).to eq(ids[2])
+      ids.each { |id| expect(sql_email(id)).to eq(sql_email(id).downcase) }
+    end
+
+    it 'reports last_account_id nil when nothing was processed' do
+      result = new_operation.call
+
+      expect(result.last_account_id).to be_nil
+    end
+
+    it 'refuses a negative after_id or limit' do
+      expect { new_operation(after_id: -1) }.to raise_error(ArgumentError, /after_id/)
+      expect { new_operation(limit: -1) }.to raise_error(ArgumentError, /limit/)
     end
   end
 
