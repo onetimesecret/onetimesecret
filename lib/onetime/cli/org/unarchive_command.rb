@@ -23,10 +23,9 @@
 #   success       applied; exit 0.
 #
 # There is no refusal. When the owner's default_org_id names a different live
-# organization, both passes print one advisory line naming it: the sign-in
-# self-heal archives only the workspace the owner's pointer resolves to, so a
-# pointer at another live org leaves this one untouched after the repair, but
-# the owner will not land here until someone repoints it.
+# organization, both passes print one advisory line naming it: this
+# organization will not become the owner's default until someone repoints it.
+# A restored organization stays live; the login path never archives (#4717).
 #
 # The mutation + the admin audit event are performed by the shared
 # Onetime::Operations::Org::Unarchive op (the single implementation). This

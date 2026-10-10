@@ -20,12 +20,13 @@ module Onetime
       # ## Why this exists
       #
       # The tenant SSO self-heal (JoinDomainOrganization#adopt_domain_default_org)
-      # archived the organization the customer was joining whenever the signed-in
-      # customer owned the domain org and it carried `is_default: true`. Every
-      # tenant SSO login of the owner re-archived it, with the self-referential
-      # comment "Superseded by domain org <its own extid> via SSO self-heal". The
-      # guard that stops that is in the same PR; this op restores the records it
-      # left behind. `Organization#unarchive!` is the only primitive that resets
+      # used to archive the personal workspace it repointed away from, and —
+      # when the signed-in customer owned the domain org and it carried
+      # `is_default: true` — archived the organization being joined, with the
+      # self-referential comment "Superseded by domain org <its own extid> via
+      # SSO self-heal". The login path no longer archives anything (#4717);
+      # this op restores the records it left behind, and a restored org stays
+      # live. `Organization#unarchive!` is the only primitive that resets
       # `archived_at` AND `archived_comment` together, and this op is its only
       # caller.
       #
@@ -35,12 +36,11 @@ module Onetime
       #   :planned       dry run; no write, one preview observation (#4337).
       #   :success       `unarchive!` ran; one operator-trail event.
       #
-      # There is no refusal path. `pointer_org_id` is ADVISORY: the self-heal
-      # archives only the workspace the owner's default pointer resolves to
-      # (explicit `default_org_id`, else the owned `is_default` workspace), so a
-      # pointer at a different live org leaves this one untouched after the
-      # unarchive. The pointer is reported so the operator can see the owner
-      # will not land here; nothing refuses on it.
+      # There is no refusal path. `pointer_org_id` is ADVISORY: when the
+      # owner's `default_org_id` names a different live org, this organization
+      # will not become their default after the unarchive. The pointer is
+      # reported so the operator can see that; nothing refuses on it, and
+      # nothing re-archives a restored org.
       #
       # ## Audit (CONTRACT 4)
       #

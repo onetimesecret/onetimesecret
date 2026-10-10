@@ -28,24 +28,26 @@ workspace superseded by the tenant organization) and is not covered here.
 ## Cause
 
 `Auth::Operations::JoinDomainOrganization` runs on every tenant SSO login.
-After joining the customer to the domain organization it repoints their
-default to that organization and archives the personal default workspace it
-replaced. When the signed-in customer owned the domain organization and that
-organization carried the `is_default` flag (an auto-created workspace later
-promoted to the tenant organization), the workspace it resolved as "the
-personal default" was the domain organization itself, and nothing compared
-the two. The organization was archived on the owner's first tenant SSO login
-and re-archived on every later one.
+Before #4717, after joining the customer to the domain organization it
+repointed their default to that organization and archived the personal
+default workspace it replaced. When the signed-in customer owned the domain
+organization and that organization carried the `is_default` flag (an
+auto-created workspace later promoted to the tenant organization), the
+workspace it resolved as "the personal default" was the domain organization
+itself, and nothing compared the two. The organization was archived on the
+owner's tenant SSO login, and again on the first login after any restore.
 
-#4717 adds the comparison: the self-heal returns before writing when the
-candidate and the destination are the same organization. The guard does not
-restore records that were archived before it was deployed; that is what the
-rest of this runbook does.
+#4717 changes the login path so it never archives: it joins the customer and
+repoints their default, and leaves every workspace as it was. Records archived
+before that change are not restored by it; that is what the rest of this
+runbook does. A restored organization stays live regardless of when the login
+change is deployed.
 
 ## Safety rules
 
-- Deploy the guard before repairing. Until the guard is live, an owner SSO
-  login re-archives the organization you just restored.
+- A restore is durable: the login path never archives, so no sign-in undoes
+  it. If the running version predates #4717, deploy it first; until then an
+  owner SSO login can archive the organization again.
 - Do not clear `archived_at` or `archived_comment` directly in Redis/Valkey or
   from `bin/console`. `bin/ots org unarchive` is the only path that resets both
   fields together and records the change in the operator audit trail.
@@ -107,7 +109,7 @@ rest of this runbook does.
 
 For each organization kept in the previous step:
 
-1. Confirm the guard is deployed (the running version includes #4717).
+1. Confirm the running version includes #4717 (login never archives).
 
 2. Verify the surrounding state before writing anything:
 
@@ -150,13 +152,10 @@ will not become their default` when the owner's `default_org_id` names a
 the `--json` payload and in the audit event detail. It is information, not a
 refusal: the unarchive proceeds exactly as it would without it.
 
-Why it matters: the sign-in self-heal archives only the workspace the owner's
-pointer resolves to (the explicit `default_org_id`, else the workspace they
-own with the default flag) when that workspace is not the domain organization
-they are joining. A pointer at a different live organization therefore leaves
-the restored one untouched, but the owner keeps landing in the other
-organization until someone repoints the default. Members can choose their own
-default workspace, so a pointer elsewhere may be deliberate.
+Why it matters: the restored organization stays live either way, but the
+owner keeps landing in the other organization until someone repoints the
+default. Members can choose their own default workspace, so a pointer
+elsewhere may be deliberate.
 
 The advisory does not appear for the self-archive case covered by this
 runbook, where the pointer already names the archived organization. If it

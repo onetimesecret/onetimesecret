@@ -361,13 +361,17 @@ module Onetime
 
     # Soft-archive this organization.
     #
-    # POLICY: deliberately permissive about domains. All callers are SSO
-    # login-path self-heals (JoinDomainOrganization, BulkSsoMigration) —
-    # raising here would turn data drift into login failures, and
-    # reassigning domains would be an implicit ownership transfer of a
-    # security-sensitive resource. Archived orgs may therefore still own
-    # live domains; `bin/ots domains doctor` check #9
-    # (check_archived_org_reference) is the operator surface for that state.
+    # POLICY: the login path never archives (#4717). The only production
+    # caller left is Auth::Operations::BulkSsoMigration, slated for removal
+    # in the next PR; after that, archived state is legacy data that loaders
+    # and resolvers keep rejecting, restored by `bin/ots org unarchive`.
+    #
+    # Deliberately permissive about domains: raising here would turn data
+    # drift into failures for the caller, and reassigning domains would be an
+    # implicit ownership transfer of a security-sensitive resource. Archived
+    # orgs may therefore still own live domains; `bin/ots domains doctor`
+    # check #9 (check_archived_org_reference) is the operator surface for
+    # that state.
     def archive!(comment = nil)
       count = domain_count
       if count > 0
@@ -384,12 +388,10 @@ module Onetime
     # archived_comment together; its caller is Onetime::Operations::Org::Unarchive
     # (`bin/ots org unarchive`), the #4717 repair verb.
     #
-    # NOTE: The domain SSO self-heal (JoinDomainOrganization#adopt_domain_default_org)
-    # archives only the is_default workspace the owner's default pointer
-    # resolves to (explicit default_org_id, else the owned default) when it is
-    # not the domain org being joined, so a pointer at a different live org
-    # leaves a restored workspace untouched. Org::Unarchive reports that pointer
-    # (`pointer_org_id`) for the operator; nothing refuses on it.
+    # A restored organization stays live: the login path never archives
+    # (#4717), so nothing undoes this on the owner's next sign-in. Where the
+    # owner's default_org_id points is a separate question; Org::Unarchive
+    # reports it (`pointer_org_id`) for the operator and changes nothing.
     def unarchive!
       self.archived_at      = ''
       self.archived_comment = ''
