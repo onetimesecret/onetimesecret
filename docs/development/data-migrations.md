@@ -402,8 +402,40 @@ without aborting the migration; Redis duplicates skip individual entries.
 `account_identities`, documenting why pre-existing rows receive the `''`
 issuer sentinel. Parameterized, operator-run repairs of auth data do
 not belong in this directory; they are `Auth::Operations` classes with a
-`bin/ots` command in front, as `sso backfill-issuer` and
-`customers role reconcile` are. See the [auth migration guide](../../apps/web/auth/migrations/README.md).
+`bin/ots` command in front, as `sso backfill-issuer`,
+`customers role reconcile` and `customers normalize-emails` are. See the
+[auth migration guide](../../apps/web/auth/migrations/README.md).
+
+### Mixed-case SSO account emails (`bin/ots customers normalize-emails`)
+
+SSO sign-ins before #4726 stored the identity provider's casing in
+`accounts.email` while the Redis customer email index was keyed by the
+lowercase address, so every exact `Customer.find_by_email(account[:email])`
+reader (new-login alerts, MFA, active sessions, account teardown, re-auth
+offers) misses the customer for those rows. Migration 007 cannot be rerun
+and wrote Redis raw (see
+[raw-email-field-serialization](../runbooks/raw-email-field-serialization.md));
+this command goes through `Auth::Operations::Customers::ChangeEmail` for
+each row instead.
+
+```bash
+bin/ots customers normalize-emails              # dry run: one line per mixed-case row
+bin/ots customers normalize-emails --json       # {dry_run, stats, rows}
+bin/ots customers normalize-emails --confirm    # apply; --limit N to batch
+```
+
+Each row ends as `normalized`, `skipped_fold_unstable` (lowercasing would
+rewrite the address, e.g. `ß`), `skipped_sql_collision` (another accounts
+row, live or closed, holds the lowercase address), `skipped_index_collision`
+(the Redis index maps it to a different customer, the duplicate 007 left),
+`skipped_no_customer`, or `error`; the run continues past every one of
+them and a second run finds nothing to do. Sessions, verification and
+notifications are untouched. Collisions are never merged: decide which
+account keeps the address and use `bin/ots customers change-email` on the
+other. Addresses in the output and the log are obscured. Note that
+`customers doctor`'s `:auth_email_drift` check compares the two stores
+case-insensitively, so it neither reports these rows before the run nor
+confirms the repair after it; the dry run is the before/after check.
 
 ## Moving keys between Redis databases or instances
 

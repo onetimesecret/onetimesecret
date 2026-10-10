@@ -129,6 +129,19 @@ module Auth
       # status that is already `:partial`, so it carries the identical signal as
       # the `:verification_not_reset` WARNING instead.
       #
+      # ## Canonicalization is a change too (opt-in, #4726)
+      #
+      # rodauth-omniauth stored SSO addresses in the provider's casing while
+      # `Customer.create!` keyed Redis by the normalized form, so a row can hold
+      # the "same" address under different bytes — invisible to the citext
+      # column, fatal to every exact `find_by_email` reader. By default that
+      # request is `:no_change`. `allow_canonicalization: true` lets it through
+      # as a change (same ordering, same audit event, same follow-up gates) and
+      # makes the SQL write compare-and-set on the bytes read at probe time.
+      # `Customers::NormalizeAccountEmails` is the adapter; it turns off the
+      # verification reset, session revocation and notices, because nothing a
+      # user would recognise as their address changes.
+      #
       # ## Deliberately NOT touched
       #
       # * `Organization#billing_email` / `#stripe_checkout_email` / `#email_hash`
@@ -255,11 +268,34 @@ module Auth
         #   audit detail (D41).
         # @param allow_closed_account_reuse [Boolean] permit an address held by a
         #   CLOSED Rodauth account (invisible to both normal collision checks).
+        # @param allow_canonicalization [Boolean] #4726: a new address whose
+        #   normalized form equals the current one is `:no_change` by default.
+        #   With this on it is a real change whenever either store still holds
+        #   the address under different bytes (a mixed-case legacy accounts
+        #   row, or a Customer hash that migration 007 missed), so the stores
+        #   are rewritten to the normalized bytes. The SQL write then becomes
+        #   compare-and-set on the bytes read at probe time, so a concurrent
+        #   change to a DIFFERENT address is never clobbered (it reports as
+        #   `auth_row_updated: false`). Every existing caller keeps the
+        #   default; `Customers::NormalizeAccountEmails` is the one adapter
+        #   that sets it.
+        # @param account_id [Integer, nil] with `allow_canonicalization` only:
+        #   the accounts row to rewrite when it is NOT linked to the customer
+        #   by external_id (a pre-#4726 SSO row with a blank external_id whose
+        #   Customer resolves by address). Every other call resolves the row
+        #   by `external_id = customer.extid`, and that stays the only way to
+        #   pick a row for an ordinary change: raising here keeps a caller
+        #   from pointing the mutation at an arbitrary row.
         # @param db [Sequel::Database, nil] injectable; defaults to
         #   `Auth::Database.connection` at call time (nil in simple mode).
         def initialize(customer:, new_email:, actor:, dry_run: true,
                        require_verification: true, revoke_sessions: true, notify: true,
-                       reason: nil, ticket: nil, allow_closed_account_reuse: false, db: nil)
+                       reason: nil, ticket: nil, allow_closed_account_reuse: false,
+                       allow_canonicalization: false, account_id: nil, db: nil)
+          if account_id && !allow_canonicalization
+            raise ArgumentError, 'account_id: is only accepted together with allow_canonicalization: true'
+          end
+
           @customer                   = customer
           @new_email                  = OT::Utils.normalize_email(new_email)
           @actor                      = actor
@@ -267,6 +303,8 @@ module Auth
           @require_verification       = require_verification
           @revoke_sessions            = revoke_sessions
           @notify                     = notify
+          @allow_canonicalization     = allow_canonicalization
+          @account_id                 = account_id
           # NORMALIZED, not stored raw (#4338). {Onetime::AuditReason::MAX_LENGTH}
           # is 255 precisely so a provenance string is never silently clipped by
           # the audit model's 256-char per-value bound: what the operator typed
@@ -288,7 +326,7 @@ module Auth
           old_email = @customer.email.to_s
           return failure(:invalid_email) unless Onetime::Utils::EmailFormat.valid_format?(@new_email)
 
-          if OT::Utils.normalize_email(old_email) == @new_email
+          if OT::Utils.normalize_email(old_email) == @new_email && !canonicalization_pending?(old_email)
             record_no_change_event(old_email)
             return terminal(:no_change, old_email)
           end
@@ -377,6 +415,22 @@ module Auth
           !@customer.email.to_s.strip.empty?
         end
 
+        # #4726: with `allow_canonicalization` a same-when-normalized request
+        # still has work to do while EITHER store holds the address under
+        # other bytes. The Customer hash is compared directly; the accounts
+        # row is read once here (memoized with its id) so the SQL write can
+        # compare-and-set on exactly these bytes.
+        def canonicalization_pending?(old_email)
+          return false unless @allow_canonicalization
+          return true if old_email != @new_email
+
+          db = connection
+          return false unless db
+
+          auth_account_id(db)
+          !@auth_row_email.nil? && @auth_row_email != @new_email
+        end
+
         # Both stores are consulted and they genuinely disagree (see class docs).
         # @return [Symbol, nil] :email_taken, or nil when the address is free
         def collision_status
@@ -432,17 +486,34 @@ module Auth
           @connection ||= @db || (defined?(Auth::Database) ? Auth::Database.connection : nil)
         end
 
+        # The customer's accounts row: by external_id, or — canonicalization
+        # only — the row the caller named (see `account_id:`). Its id and the
+        # address bytes it held at this read are memoized together.
         def auth_account_id(db)
           return @auth_account_id if defined?(@auth_account_id)
 
-          extid            = @customer.extid.to_s
-          row              = extid.empty? ? nil : db[:accounts].where(external_id: extid).first
+          row =
+            if @account_id
+              db[:accounts].where(id: @account_id).first
+            else
+              extid = @customer.extid.to_s
+              extid.empty? ? nil : db[:accounts].where(external_id: extid).first
+            end
+
+          @auth_row_email  = row && row[:email]
           @auth_account_id = row && row[:id]
         end
 
         # SQL FIRST, inside db.transaction. Returns whether a row was updated;
         # `false` is the honest answer in simple mode / when no accounts row
         # exists, never a phantom success.
+        #
+        # Under `allow_canonicalization` the UPDATE is additionally keyed on
+        # the address bytes read by `auth_account_id`, so a row that moved to a
+        # different address since the probe is left alone (`false`), never
+        # rewritten to the canonical form of an address it no longer holds.
+        # Not applied by default: for an ordinary change the row's unique
+        # index is the guard and a blind UPDATE is the documented behavior.
         # @return [Boolean]
         def update_auth_row!
           db = connection
@@ -451,10 +522,11 @@ module Auth
           account_id = auth_account_id(db)
           return false unless account_id
 
+          target = db[:accounts].where(id: account_id)
+          target = target.where(email: @auth_row_email) if @allow_canonicalization && @auth_row_email
+
           rows = db.transaction do
-            db[:accounts]
-              .where(id: account_id)
-              .update(email: @new_email, updated_at: Sequel::CURRENT_TIMESTAMP)
+            target.update(email: @new_email, updated_at: Sequel::CURRENT_TIMESTAMP)
           end
           rows.to_i.positive?
         end
@@ -581,6 +653,10 @@ module Auth
           organizations.each do |org|
             next unless default_org?(org)
             next unless OT::Utils.normalize_email(org.contact_email.to_s) == normalized_old
+            # Only reachable under allow_canonicalization (otherwise the equal
+            # address was :no_change): a contact already holding the exact
+            # canonical bytes needs no rewrite.
+            next if org.contact_email.to_s == @new_email
 
             holder = Onetime::Organization.contact_email_index.get(@new_email)
             if !holder.nil? && holder.to_s != org.identifier.to_s
@@ -880,6 +956,9 @@ module Auth
         def warn_if_invites_orphaned
           old_email = @customer.email.to_s
           return if old_email.empty?
+          # Same bytes before and after (allow_canonicalization with a
+          # Customer hash already canonical): no invite can be orphaned.
+          return if old_email == @new_email
 
           orphaned = organizations.any? do |org|
             !Onetime::OrganizationMembership.find_pending_by_email(org, old_email).nil?
