@@ -121,6 +121,51 @@
     () => result.value?.record?.capped === true || result.value?.record?.budget_exhausted === true
   );
 
+  /**
+   * True when the status itself is not a clean finish: a run that is not
+   * `success` (partial / skipped / aborted / anything new), or a preview whose
+   * status is not `dry_run`. Drives the status colour in the result panel.
+   */
+  const resultStatusAttention = computed(() => {
+    const record = result.value?.record;
+    if (!record) return false;
+    return record.status !== (record.dry_run ? 'dry_run' : 'success');
+  });
+
+  /**
+   * One notification for a finished run, matched to what it reported. Only a
+   * `success` run that tripped neither bound is green.
+   */
+  function notifyRun(record: ColonelChoreRunRecord | null): void {
+    if (!record) {
+      notifications.show(t('web.admin.jobs.chores.result.unverified'), 'warning');
+      return;
+    }
+    switch (record.status) {
+      case 'success':
+        if (resultPartial.value) {
+          notifications.show(t('web.admin.jobs.chores.run.partial'), 'warning');
+        } else {
+          notifications.show(t('web.admin.jobs.chores.run.success'), 'success');
+        }
+        break;
+      case 'partial':
+        notifications.show(t('web.admin.jobs.chores.run.someFailed'), 'warning');
+        break;
+      case 'skipped':
+        notifications.show(t('web.admin.jobs.chores.run.skipped'), 'warning');
+        break;
+      case 'aborted':
+        notifications.show(t('web.admin.jobs.chores.run.aborted'), 'error');
+        break;
+      default:
+        notifications.show(
+          t('web.admin.jobs.chores.run.otherStatus', { status: record.status }),
+          'warning'
+        );
+    }
+  }
+
   // ---- Preview (dry run, no confirmation) -------------------------------------
 
   /** The chore whose preview is in flight or last failed. */
@@ -191,14 +236,10 @@
     const ok = await runChore(reason);
     if (!ok) return; // Failure message stays in the dialog for retry/cancel.
 
+    // The dialog closes on every acknowledged run; the result panel below stays
+    // up with the status and report until dismissed or the next run.
     runDialogOpen.value = false;
-    if (!result.value?.record) {
-      notifications.show(t('web.admin.jobs.chores.result.unverified'), 'warning');
-    } else if (resultPartial.value) {
-      notifications.show(t('web.admin.jobs.chores.run.partial'), 'warning');
-    } else {
-      notifications.show(t('web.admin.jobs.chores.run.success'), 'success');
-    }
+    notifyRun(result.value?.record ?? null);
     await loadChores();
   }
 
@@ -389,7 +430,12 @@
               {{ t('web.admin.jobs.chores.result.status') }}
             </dt>
             <dd
-              class="mt-0.5 font-mono text-gray-900 dark:text-white"
+              class="mt-0.5 font-mono"
+              :class="
+                resultStatusAttention
+                  ? 'text-amber-800 dark:text-amber-300'
+                  : 'text-gray-900 dark:text-white'
+              "
               data-testid="chores-result-status">
               {{ t(`web.admin.jobs.chores.status.${result.record.status}`, result.record.status) }}
             </dd>

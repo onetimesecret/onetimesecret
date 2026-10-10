@@ -11,6 +11,9 @@ import {
   colonelDlqMessageDetailResponseSchema,
   colonelDlqMessageDiscardResponseSchema,
   colonelDlqMessageReplayResponseSchema,
+  DLQ_DISCARD_OUTCOME_UNCONFIRMED,
+  DLQ_REPLAY_OUTCOME_NO_ORIGINAL_QUEUE,
+  DLQ_REPLAY_OUTCOME_UNROUTABLE,
 } from '@/schemas/api/internal/responses/colonel-queue';
 import { responseSchemas } from '@/schemas/api/internal/responses/registry';
 
@@ -433,5 +436,82 @@ describe('colonel Jobs schemas (#4343)', () => {
     ])('registers %s', (key, schema) => {
       expect(responseSchemas[key as keyof typeof responseSchemas]).toBe(schema);
     });
+  });
+});
+
+/**
+ * Refusal outcomes and run statuses (#4343 R1-2/R1-3/R1-4/R2-2). The server
+ * sends these as plain strings; the schemas must accept them so the console
+ * can branch on them instead of falling back to "response unreadable".
+ */
+describe('colonel Jobs schemas: refusal outcomes and run statuses (#4343)', () => {
+  it.each(['success', 'partial', 'dry_run', 'skipped', 'aborted', 'something_new'])(
+    'accepts RunChore status %s (a plain string, so a new value still parses)',
+    (status) => {
+      expect(colonelChoreRunResponseSchema.safeParse(choreRunPayload({ status })).success).toBe(
+        true
+      );
+    }
+  );
+
+  it.each([
+    DLQ_REPLAY_OUTCOME_NO_ORIGINAL_QUEUE,
+    DLQ_REPLAY_OUTCOME_UNROUTABLE,
+    'already_replayed',
+    'replay_in_progress',
+  ])('accepts a found replay ack KEPT in the DLQ with outcome %s', (outcome) => {
+    const parsed = colonelDlqMessageReplayResponseSchema.safeParse({
+      shrimp: '',
+      record: {
+        queue: 'dlq.billing.event',
+        message_id: 'm1',
+        found: true,
+        outcome,
+        scanned: 1,
+        truncated: false,
+        replayed: 0,
+        failed: 0,
+        would_replay: 0,
+        dry_run: false,
+      },
+      details: {
+        message: 'Not replayed',
+        errors: [{ message_id: 'm1', error: 'Message kept in the DLQ.' }],
+      },
+    });
+    expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      expect(parsed.data.record.outcome).toBe(outcome);
+      expect(parsed.data.details?.errors[0].error).toBe('Message kept in the DLQ.');
+    }
+  });
+
+  it('accepts an unconfirmed discard ack (discarded false, outcome unknown)', () => {
+    const parsed = colonelDlqMessageDiscardResponseSchema.safeParse({
+      shrimp: '',
+      record: {
+        queue: 'dlq.billing.event',
+        message_id: 'm1',
+        found: true,
+        outcome: DLQ_DISCARD_OUTCOME_UNCONFIRMED,
+        scanned: 1,
+        truncated: false,
+        discarded: false,
+        original_queue: 'billing.event.process',
+        dry_run: false,
+      },
+      details: { message: 'The broker did not confirm the commit.' },
+    });
+    expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      expect(parsed.data.record.outcome).toBe('unconfirmed');
+      expect(parsed.data.details?.message).toBe('The broker did not confirm the commit.');
+    }
+  });
+
+  it('pins the wire strings of the outcome constants the console branches on', () => {
+    expect(DLQ_REPLAY_OUTCOME_NO_ORIGINAL_QUEUE).toBe('no_original_queue');
+    expect(DLQ_REPLAY_OUTCOME_UNROUTABLE).toBe('unroutable');
+    expect(DLQ_DISCARD_OUTCOME_UNCONFIRMED).toBe('unconfirmed');
   });
 });

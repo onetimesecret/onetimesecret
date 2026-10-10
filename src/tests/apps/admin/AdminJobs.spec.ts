@@ -247,6 +247,29 @@ function replayAck(found: boolean) {
   };
 }
 
+/**
+ * A replay that FOUND the message but left it in the DLQ: no x-death header
+ * (`no_original_queue`) or the original queue is gone (`unroutable`).
+ */
+function replayKeptAck(outcome: 'no_original_queue' | 'unroutable', error: string) {
+  return {
+    shrimp: '',
+    record: {
+      queue: 'dlq.billing.event',
+      message_id: 'm1',
+      found: true,
+      outcome,
+      scanned: 1,
+      truncated: false,
+      replayed: 0,
+      failed: 0,
+      would_replay: 0,
+      dry_run: false,
+    },
+    details: { message: error, errors: [{ message_id: 'm1', error }] },
+  };
+}
+
 function discardAck() {
   return {
     shrimp: '',
@@ -261,6 +284,27 @@ function discardAck() {
       dry_run: false,
     },
     details: { message: 'Discarded message' },
+  };
+}
+
+const UNCONFIRMED_TEXT = 'Discard outcome unknown: the broker did not confirm the commit';
+
+/** The broker did not confirm the discard commit: `discarded` false, outcome unknown. */
+function discardUnconfirmedAck(found = true) {
+  return {
+    shrimp: '',
+    record: {
+      queue: 'dlq.billing.event',
+      message_id: 'm1',
+      found,
+      outcome: 'unconfirmed',
+      scanned: 1,
+      truncated: false,
+      discarded: false,
+      original_queue: 'billing.event.process',
+      dry_run: false,
+    },
+    details: { message: UNCONFIRMED_TEXT },
   };
 }
 
@@ -376,6 +420,25 @@ async function openPeek(w: VueWrapper): Promise<void> {
   await byTestId(w, 'dlq-peek-dlq.billing.event').trigger('click');
   await flushPromises();
 }
+
+/** Click a row verb on message m1, type the queue token, submit. */
+async function confirmMessageAction(w: VueWrapper, verb: 'replay' | 'discard'): Promise<void> {
+  await byTestId(w, `dlq-${verb}-m1`).trigger('click');
+  await dialogInput(w).setValue(QUEUE_SHORT);
+  await w.find('form').trigger('submit');
+  await flushPromises();
+}
+
+/** Open the run gate for the housekeeping chore, type its id, submit. */
+async function confirmChoreRun(w: VueWrapper): Promise<void> {
+  await byTestId(w, `chore-run-${HOUSEKEEPING_ID}`).trigger('click');
+  await dialogInput(w).setValue(HOUSEKEEPING_ID);
+  await w.find('form').trigger('submit');
+  await flushPromises();
+}
+
+/** The copyable CLI lookup the console offers after a truncated scan of m1. */
+const DEEP_SCAN_COMMAND = `bin/ots queue dlq show ${QUEUE_SHORT} --id m1 --max-scan N`;
 
 /** Rendered view under test; unmounted after each example. */
 let wrapper: VueWrapper | undefined;
@@ -532,6 +595,8 @@ describe('AdminJobs — dead-letter queues', () => {
       'web.admin.jobs.dlq.notVisible'
     );
     expect(byTestId(wrapper, 'dlq-inspect-truncated').text()).toBe('web.admin.jobs.dlq.truncated');
+    // The CLI stops at the same bound by default; the hint says how to go deeper.
+    expect(byTestId(wrapper, 'dlq-inspect-deep-scan').text()).toBe(DEEP_SCAN_COMMAND);
   });
 
   it('gates discard behind a DANGER dialog whose token is the short queue name', async () => {
@@ -624,6 +689,92 @@ describe('AdminJobs — dead-letter queues', () => {
     expect(showMock).not.toHaveBeenCalledWith('web.admin.jobs.dlq.replay.success', 'success');
     expect(byTestId(wrapper, 'dlq-last-action-not-visible').exists()).toBe(true);
     expect(byTestId(wrapper, 'dlq-last-action-truncated').exists()).toBe(true);
+    expect(byTestId(wrapper, 'dlq-last-action-deep-scan').text()).toBe(DEEP_SCAN_COMMAND);
+  });
+
+  it('reports a replay kept for lack of an original queue as a warning that suggests Discard', async () => {
+    const error = 'No x-death header: no original queue to replay to. Message kept in the DLQ.';
+    routeGets();
+    mockApi.post.mockResolvedValue({ data: replayKeptAck('no_original_queue', error) });
+    wrapper = await mountView();
+    await openPeek(wrapper);
+
+    await confirmMessageAction(wrapper, 'replay');
+
+    expect(showMock).toHaveBeenCalledTimes(1);
+    expect(showMock).toHaveBeenCalledWith('web.admin.jobs.dlq.replay.noOriginalQueue', 'warning');
+    expect(byTestId(wrapper, 'dlq-last-action-kept').text()).toBe(
+      'web.admin.jobs.dlq.replay.noOriginalQueue'
+    );
+    expect(byTestId(wrapper, 'dlq-last-action-note').text()).toBe(error);
+    expect(byTestId(wrapper, 'dlq-last-action-done').exists()).toBe(false);
+    expect(byTestId(wrapper, 'dlq-last-action-failed').exists()).toBe(false);
+
+    // The suggested way out opens the same DANGER discard gate as the row button.
+    await byTestId(wrapper, 'dlq-last-action-discard').trigger('click');
+    await flushPromises();
+    const dialog = openDialog(wrapper);
+    expect(dialog?.props('variant')).toBe('danger');
+    expect(dialog?.props('confirmToken')).toBe(QUEUE_SHORT);
+    expect(dialog?.props('description')).toBe('web.admin.jobs.dlq.discard.confirmDescription');
+  });
+
+  it('reports an unroutable replay as kept in the DLQ, without a Discard suggestion', async () => {
+    const error = 'Original queue billing.event.process does not exist. Message kept in the DLQ.';
+    routeGets();
+    mockApi.post.mockResolvedValue({ data: replayKeptAck('unroutable', error) });
+    wrapper = await mountView();
+    await openPeek(wrapper);
+
+    await confirmMessageAction(wrapper, 'replay');
+
+    expect(showMock).toHaveBeenCalledTimes(1);
+    expect(showMock).toHaveBeenCalledWith('web.admin.jobs.dlq.replay.unroutable', 'warning');
+    expect(byTestId(wrapper, 'dlq-last-action-kept').text()).toBe(
+      'web.admin.jobs.dlq.replay.unroutable'
+    );
+    expect(byTestId(wrapper, 'dlq-last-action-note').text()).toBe(error);
+    expect(byTestId(wrapper, 'dlq-last-action-discard').exists()).toBe(false);
+  });
+
+  it.each([
+    ['found', true],
+    ['not found', false],
+  ])(
+    'reports an unconfirmed discard (%s) as outcome unknown, never success or not-discarded',
+    async (_label, found) => {
+      routeGets();
+      mockApi.post.mockResolvedValue({ data: discardUnconfirmedAck(found) });
+      wrapper = await mountView();
+      await openPeek(wrapper);
+
+      await confirmMessageAction(wrapper, 'discard');
+
+      expect(showMock).toHaveBeenCalledTimes(1);
+      expect(showMock).toHaveBeenCalledWith('web.admin.jobs.dlq.discard.unconfirmed', 'warning');
+      expect(byTestId(wrapper, 'dlq-last-action-unconfirmed').text()).toBe(
+        'web.admin.jobs.dlq.discard.unconfirmed'
+      );
+      expect(byTestId(wrapper, 'dlq-last-action-note').text()).toBe(UNCONFIRMED_TEXT);
+      expect(byTestId(wrapper, 'dlq-last-action-failed').exists()).toBe(false);
+      expect(byTestId(wrapper, 'dlq-last-action-done').exists()).toBe(false);
+      expect(byTestId(wrapper, 'dlq-last-action-not-visible').exists()).toBe(false);
+    }
+  );
+
+  it('still reports a confirmed found-but-not-discarded ack (no outcome) as failed', async () => {
+    routeGets();
+    const ack = discardAck();
+    ack.record.discarded = false;
+    mockApi.post.mockResolvedValue({ data: ack });
+    wrapper = await mountView();
+    await openPeek(wrapper);
+
+    await confirmMessageAction(wrapper, 'discard');
+
+    expect(showMock).toHaveBeenCalledWith('web.admin.jobs.dlq.discard.failed', 'error');
+    expect(byTestId(wrapper, 'dlq-last-action-failed').exists()).toBe(true);
+    expect(byTestId(wrapper, 'dlq-last-action-unconfirmed').exists()).toBe(false);
   });
 
   it('keeps the dialog open with the server message on a 4xx', async () => {
@@ -691,6 +842,7 @@ describe('AdminJobs — chores', () => {
     expect(openDialog(wrapper)).toBeUndefined();
     expect(byTestId(wrapper, 'chores-result-preview').exists()).toBe(true);
     expect(byTestId(wrapper, 'chores-result-report').exists()).toBe(true);
+    expect(byTestId(wrapper, 'chores-result-status').classes()).not.toContain('text-amber-800');
   });
 
   it('runs behind a typed chore-id gate with a limit and reason', async () => {
@@ -738,6 +890,51 @@ describe('AdminJobs — chores', () => {
     expect(showMock).toHaveBeenCalledWith('web.admin.jobs.chores.run.partial', 'warning');
     expect(byTestId(wrapper, 'chores-result-capped').exists()).toBe(true);
     expect(byTestId(wrapper, 'chores-result-budget').exists()).toBe(true);
+  });
+
+  it.each([
+    ['partial', 'web.admin.jobs.chores.run.someFailed', 'warning'],
+    ['skipped', 'web.admin.jobs.chores.run.skipped', 'warning'],
+    ['aborted', 'web.admin.jobs.chores.run.aborted', 'error'],
+    ['something_new', 'web.admin.jobs.chores.run.otherStatus', 'warning'],
+  ])(
+    'reports a %s run with its own toast, never success, and keeps the result up',
+    async (status, key, type) => {
+      routeGets();
+      mockApi.post.mockResolvedValue({ data: choreRunAck({ status }) });
+      wrapper = await mountView();
+
+      await confirmChoreRun(wrapper);
+
+      expect(showMock).toHaveBeenCalledTimes(1);
+      expect(showMock).toHaveBeenCalledWith(key, type);
+      expect(openDialog(wrapper)).toBeUndefined();
+      expect(byTestId(wrapper, 'chores-result').exists()).toBe(true);
+      expect(byTestId(wrapper, 'chores-result-status').classes()).toContain('text-amber-800');
+    }
+  );
+
+  it('ranks a partial status above the bounds: some records failed AND stopped early', async () => {
+    routeGets();
+    mockApi.post.mockResolvedValue({ data: choreRunAck({ status: 'partial', capped: true }) });
+    wrapper = await mountView();
+
+    await confirmChoreRun(wrapper);
+
+    expect(showMock).toHaveBeenCalledTimes(1);
+    expect(showMock).toHaveBeenCalledWith('web.admin.jobs.chores.run.someFailed', 'warning');
+    expect(byTestId(wrapper, 'chores-result-capped').exists()).toBe(true);
+  });
+
+  it('shows a clean success status without the attention colour', async () => {
+    routeGets();
+    mockApi.post.mockResolvedValue({ data: choreRunAck() });
+    wrapper = await mountView();
+
+    await confirmChoreRun(wrapper);
+
+    expect(showMock).toHaveBeenCalledWith('web.admin.jobs.chores.run.success', 'success');
+    expect(byTestId(wrapper, 'chores-result-status').classes()).not.toContain('text-amber-800');
   });
 
   it('refuses to post an out-of-range limit', async () => {

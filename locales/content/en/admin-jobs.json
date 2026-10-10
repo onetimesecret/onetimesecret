@@ -232,8 +232,8 @@
     "content_hash": "4d940472"
   },
   "web.admin.jobs.dlq.truncated": {
-    "text": "The scan stopped after {scanned} messages, before the end of the queue. The message may be further back; the CLI can scan the whole queue.",
-    "content_hash": "0035c7f7"
+    "text": "The scan stopped after {scanned} messages, before the end of the queue, so the message may be further back. The CLI also stops there by default; to scan deeper, run:",
+    "content_hash": "10fcd3ff"
   },
   "web.admin.jobs.dlq.replay.button": {
     "text": "Replay",
@@ -255,6 +255,14 @@
     "text": "The message could not be replayed.",
     "content_hash": "6ccd3ef1"
   },
+  "web.admin.jobs.dlq.replay.noOriginalQueue": {
+    "text": "Not replayed: the message does not record which queue it came from. It was kept in the dead-letter queue. If it is no longer needed, discard it.",
+    "content_hash": "8c2b9d74"
+  },
+  "web.admin.jobs.dlq.replay.unroutable": {
+    "text": "Not replayed: its original queue does not exist. The message was kept in the dead-letter queue.",
+    "content_hash": "fefb638a"
+  },
   "web.admin.jobs.dlq.discard.button": {
     "text": "Discard",
     "content_hash": "eb1a70e3"
@@ -274,6 +282,10 @@
   "web.admin.jobs.dlq.discard.failed": {
     "text": "The message was found but not discarded.",
     "content_hash": "2d2f56b1"
+  },
+  "web.admin.jobs.dlq.discard.unconfirmed": {
+    "text": "Outcome unknown — the broker did not confirm. Peek the queue to check before retrying.",
+    "content_hash": "413ba22e"
   },
   "web.admin.jobs.dlq.result.title": {
     "text": "Last action",
@@ -367,6 +379,22 @@
     "text": "Chore run stopped early, so its counts are partial. See the result below.",
     "content_hash": "a070d612"
   },
+  "web.admin.jobs.chores.run.someFailed": {
+    "text": "Chore run finished, but some records failed. See the result below.",
+    "content_hash": "dca2c26b"
+  },
+  "web.admin.jobs.chores.run.skipped": {
+    "text": "Chore run was skipped. See the result below.",
+    "content_hash": "2178205a"
+  },
+  "web.admin.jobs.chores.run.aborted": {
+    "text": "Chore run was aborted. See the result below.",
+    "content_hash": "f76f1db1"
+  },
+  "web.admin.jobs.chores.run.otherStatus": {
+    "text": "Chore run ended with status {status}. See the result below.",
+    "content_hash": "5f5c370d"
+  },
   "web.admin.jobs.chores.result.title": {
     "text": "Result",
     "content_hash": "6e7d50e8"
@@ -410,6 +438,10 @@
   "web.admin.jobs.chores.status.success": {
     "text": "Succeeded",
     "content_hash": "6d9a6f97"
+  },
+  "web.admin.jobs.chores.status.partial": {
+    "text": "Some records failed",
+    "content_hash": "4d239eba"
   },
   "web.admin.jobs.chores.status.dry_run": {
     "text": "Preview",

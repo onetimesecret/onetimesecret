@@ -1,6 +1,7 @@
 <!-- src/apps/admin/components/jobs/JobsDlqSection.vue -->
 
 <script setup lang="ts">
+  import { dlqDeepScanCommand } from '@/apps/admin/components/jobs/jobsFormat';
   import {
     AdminConfirmDialog,
     DataTable,
@@ -20,6 +21,9 @@
     colonelDlqMessageDiscardResponseSchema,
     colonelDlqMessageReplayResponseSchema,
     colonelDlqMessagesResponseSchema,
+    DLQ_DISCARD_OUTCOME_UNCONFIRMED,
+    DLQ_REPLAY_OUTCOME_NO_ORIGINAL_QUEUE,
+    DLQ_REPLAY_OUTCOME_UNROUTABLE,
   } from '@/schemas/api/internal/responses/colonel-queue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useApi } from '@/shared/composables/useApi';
@@ -45,7 +49,13 @@
    * bounded scan from the head of the queue. A miss on a valid queue is HTTP
    * 200 with `found: false` (`outcome: 'not_visible'`): a worker may be holding
    * the delivery, someone may have replayed it first, or it sits deeper than
-   * the scan looked (`truncated`). The console says which, plainly.
+   * the scan looked (`truncated`). The console says which, plainly, and gives
+   * the CLI command that can scan deeper.
+   *
+   * KEPT AND UNCONFIRMED. A replay that found the message but had nowhere to
+   * send it (`no_original_queue`, `unroutable`) leaves it in the DLQ: a
+   * warning, never success. A discard the broker did not confirm (`unconfirmed`)
+   * reads "outcome unknown", never success and never "not discarded".
    *
    * IN-PAGE STATE: the open queue, the inspected message and the last action
    * result live in refs here, never in the query string — a query change would
@@ -165,19 +175,43 @@
 
   type MessageVerb = 'replay' | 'discard';
 
-  /** What the last replay/discard did, as read from its ack. */
+  /**
+   * What the last replay/discard did, as read from its ack:
+   *
+   * - `unverified`  the 2xx body did not match its schema — outcome unknown.
+   * - `not_visible` the bounded scan did not see the message.
+   * - `kept`        replay found the message but could not send it anywhere
+   *                 (`no_original_queue` / `unroutable`); it is still in the DLQ.
+   * - `unconfirmed` discard: the broker did not confirm, so the message may or
+   *                 may not be gone. Never "done", never "still there".
+   * - `done`        replayed (replay) or dropped (discard).
+   * - `failed`      found, not done, for any other reason.
+   */
+  type MessageActionState =
+    | 'unverified'
+    | 'not_visible'
+    | 'kept'
+    | 'unconfirmed'
+    | 'done'
+    | 'failed';
+
   interface MessageActionResult {
     verb: MessageVerb;
     messageId: string;
-    /** True when the ack did not match its schema — outcome unknown. */
-    unverified: boolean;
-    found: boolean;
-    /** Replayed (replay) or dropped (discard). */
-    done: boolean;
+    state: MessageActionState;
+    /** The server's `outcome`, when it sent one. */
+    outcome: string | null;
     scanned: number;
     truncated: boolean;
-    errors: string[];
+    /** Server explanations: replay `details.errors`, unconfirmed discard `details.message`. */
+    notes: string[];
   }
+
+  /** Replay outcomes where the message was found and deliberately left in the DLQ. */
+  const KEPT_OUTCOME_KEYS: ReadonlyMap<string, string> = new Map([
+    [DLQ_REPLAY_OUTCOME_NO_ORIGINAL_QUEUE, 'web.admin.jobs.dlq.replay.noOriginalQueue'],
+    [DLQ_REPLAY_OUTCOME_UNROUTABLE, 'web.admin.jobs.dlq.replay.unroutable'],
+  ]);
 
   const actionDialogOpen = ref(false);
   const actionVerb = ref<MessageVerb>('replay');
@@ -190,12 +224,11 @@
     return {
       verb,
       messageId,
-      unverified: true,
-      found: false,
-      done: false,
+      state: 'unverified',
+      outcome: null,
       scanned: 0,
       truncated: false,
-      errors: [],
+      notes: [],
     };
   }
 
@@ -208,19 +241,27 @@
     );
     if (!parsed.ok) return unverifiedResult('replay', messageId);
     const record = parsed.data.record;
+    const outcome = record.outcome ?? null;
+    // A kept outcome wins over the counts: it is never presented as replayed.
+    let state: MessageActionState;
+    if (outcome !== null && KEPT_OUTCOME_KEYS.has(outcome)) state = 'kept';
+    else if (!record.found) state = 'not_visible';
+    else state = record.replayed > 0 ? 'done' : 'failed';
     return {
       verb: 'replay',
       messageId,
-      unverified: false,
-      found: record.found,
-      done: record.replayed > 0,
+      state,
+      outcome,
       scanned: record.scanned,
       truncated: record.truncated,
-      errors: (parsed.data.details?.errors ?? []).map((e) => e.error),
+      notes: (parsed.data.details?.errors ?? []).map((e) => e.error),
     };
   }
 
-  /** Read a discard ack. */
+  /**
+   * Read a discard ack. `unconfirmed` is checked first: `discarded: false`
+   * there means "the broker did not say", not "found but not discarded".
+   */
   function readDiscardAck(messageId: string, payload: unknown): MessageActionResult {
     const parsed = gracefulParse(
       colonelDlqMessageDiscardResponseSchema,
@@ -229,16 +270,32 @@
     );
     if (!parsed.ok) return unverifiedResult('discard', messageId);
     const record = parsed.data.record;
+    const outcome = record.outcome ?? null;
+    const unconfirmed = outcome === DLQ_DISCARD_OUTCOME_UNCONFIRMED;
+    let state: MessageActionState;
+    if (unconfirmed) state = 'unconfirmed';
+    else if (!record.found) state = 'not_visible';
+    else state = record.discarded ? 'done' : 'failed';
+    const message = parsed.data.details?.message;
     return {
       verb: 'discard',
       messageId,
-      unverified: false,
-      found: record.found,
-      done: record.discarded,
+      state,
+      outcome,
       scanned: record.scanned,
       truncated: record.truncated,
-      errors: [],
+      notes: unconfirmed && message ? [message] : [],
     };
+  }
+
+  /** The i18n key for a kept replay's explanation. */
+  function keptKey(result: MessageActionResult): string {
+    return KEPT_OUTCOME_KEYS.get(result.outcome ?? '') ?? 'web.admin.jobs.dlq.replay.failed';
+  }
+
+  /** Discard is the way out for a message that records no original queue. */
+  function suggestsDiscard(result: MessageActionResult): boolean {
+    return result.state === 'kept' && result.outcome === DLQ_REPLAY_OUTCOME_NO_ORIGINAL_QUEUE;
   }
 
   const {
@@ -275,14 +332,24 @@
 
   /** One notification per action, matched to what actually happened. */
   function notifyAction(result: MessageActionResult): void {
-    if (result.unverified) {
-      notifications.show(t('web.admin.jobs.dlq.result.unverified'), 'warning');
-    } else if (!result.found) {
-      notifications.show(t('web.admin.jobs.dlq.result.notVisible'), 'warning');
-    } else if (!result.done) {
-      notifications.show(t(`web.admin.jobs.dlq.${result.verb}.failed`), 'error');
-    } else {
-      notifications.show(t(`web.admin.jobs.dlq.${result.verb}.success`), 'success');
+    switch (result.state) {
+      case 'unverified':
+        notifications.show(t('web.admin.jobs.dlq.result.unverified'), 'warning');
+        break;
+      case 'not_visible':
+        notifications.show(t('web.admin.jobs.dlq.result.notVisible'), 'warning');
+        break;
+      case 'kept':
+        notifications.show(t(keptKey(result)), 'warning');
+        break;
+      case 'unconfirmed':
+        notifications.show(t('web.admin.jobs.dlq.discard.unconfirmed'), 'warning');
+        break;
+      case 'done':
+        notifications.show(t(`web.admin.jobs.dlq.${result.verb}.success`), 'success');
+        break;
+      default:
+        notifications.show(t(`web.admin.jobs.dlq.${result.verb}.failed`), 'error');
     }
   }
 
@@ -463,37 +530,99 @@
           <span class="ml-1 font-mono tracking-normal normal-case">{{ lastAction.messageId }}</span>
         </p>
         <p
-          v-if="lastAction.unverified"
+          v-if="lastAction.state === 'unverified'"
           class="mt-1 text-amber-800 dark:text-amber-300">
           {{ t('web.admin.jobs.dlq.result.unverified') }}
         </p>
-        <template v-else-if="!lastAction.found">
+        <template v-else-if="lastAction.state === 'not_visible'">
           <p
             class="mt-1 text-amber-800 dark:text-amber-300"
             data-testid="dlq-last-action-not-visible">
             {{ t('web.admin.jobs.dlq.notVisible', { scanned: lastAction.scanned }) }}
           </p>
+          <template v-if="lastAction.truncated">
+            <p
+              class="mt-1 text-amber-800 dark:text-amber-300"
+              data-testid="dlq-last-action-truncated">
+              {{ t('web.admin.jobs.dlq.truncated', { scanned: lastAction.scanned }) }}
+            </p>
+            <code
+              class="mt-1 block font-mono text-xs break-all text-gray-900 dark:text-gray-100"
+              data-testid="dlq-last-action-deep-scan">
+              {{ dlqDeepScanCommand(selectedShort, lastAction.messageId) }}
+            </code>
+          </template>
+        </template>
+        <!-- Found, deliberately left in the DLQ: a warning, never success. -->
+        <template v-else-if="lastAction.state === 'kept'">
           <p
-            v-if="lastAction.truncated"
-            class="mt-1 text-amber-800 dark:text-amber-300"
-            data-testid="dlq-last-action-truncated">
-            {{ t('web.admin.jobs.dlq.truncated', { scanned: lastAction.scanned }) }}
+            class="mt-1 flex items-start gap-1 text-amber-800 dark:text-amber-300"
+            data-testid="dlq-last-action-kept">
+            <OIcon
+              collection="heroicons"
+              name="exclamation-triangle"
+              size="4"
+              class="mt-0.5 shrink-0" />
+            {{ t(keptKey(lastAction)) }}
+          </p>
+          <p
+            v-for="(note, index) in lastAction.notes"
+            :key="index"
+            class="mt-1 font-mono text-xs break-all text-gray-700 dark:text-gray-300"
+            data-testid="dlq-last-action-note">
+            {{ note }}
+          </p>
+          <button
+            v-if="suggestsDiscard(lastAction)"
+            type="button"
+            class="mt-2 inline-flex items-center gap-1 rounded-md border border-red-300 px-2.5 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:outline-none dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
+            data-testid="dlq-last-action-discard"
+            @click="requestAction('discard', lastAction.messageId)">
+            <OIcon
+              collection="heroicons"
+              name="trash"
+              size="4" />
+            {{ t('web.admin.jobs.dlq.discard.button') }}
+          </button>
+        </template>
+        <!-- Discard the broker did not confirm: neither done nor still there. -->
+        <template v-else-if="lastAction.state === 'unconfirmed'">
+          <p
+            class="mt-1 flex items-start gap-1 text-amber-800 dark:text-amber-300"
+            data-testid="dlq-last-action-unconfirmed">
+            <OIcon
+              collection="heroicons"
+              name="exclamation-triangle"
+              size="4"
+              class="mt-0.5 shrink-0" />
+            {{ t('web.admin.jobs.dlq.discard.unconfirmed') }}
+          </p>
+          <p
+            v-for="(note, index) in lastAction.notes"
+            :key="index"
+            class="mt-1 font-mono text-xs break-all text-gray-700 dark:text-gray-300"
+            data-testid="dlq-last-action-note">
+            {{ note }}
           </p>
         </template>
         <p
-          v-else-if="lastAction.done"
-          class="mt-1 text-gray-900 dark:text-gray-100">
+          v-else-if="lastAction.state === 'done'"
+          class="mt-1 text-gray-900 dark:text-gray-100"
+          data-testid="dlq-last-action-done">
           {{ t(`web.admin.jobs.dlq.${lastAction.verb}.success`) }}
         </p>
         <template v-else>
-          <p class="mt-1 text-amber-800 dark:text-amber-300">
+          <p
+            class="mt-1 text-amber-800 dark:text-amber-300"
+            data-testid="dlq-last-action-failed">
             {{ t(`web.admin.jobs.dlq.${lastAction.verb}.failed`) }}
           </p>
           <p
-            v-for="(message, index) in lastAction.errors"
+            v-for="(note, index) in lastAction.notes"
             :key="index"
-            class="mt-1 font-mono text-xs break-all text-gray-700 dark:text-gray-300">
-            {{ message }}
+            class="mt-1 font-mono text-xs break-all text-gray-700 dark:text-gray-300"
+            data-testid="dlq-last-action-note">
+            {{ note }}
           </p>
         </template>
       </div>
@@ -709,12 +838,18 @@
                     data-testid="dlq-inspect-not-visible">
                     {{ t('web.admin.jobs.dlq.notVisible', { scanned: inspectRecord.scanned }) }}
                   </p>
-                  <p
-                    v-if="inspectRecord.truncated"
-                    class="mt-1 text-xs text-amber-800 dark:text-amber-300"
-                    data-testid="dlq-inspect-truncated">
-                    {{ t('web.admin.jobs.dlq.truncated', { scanned: inspectRecord.scanned }) }}
-                  </p>
+                  <template v-if="inspectRecord.truncated">
+                    <p
+                      class="mt-1 text-xs text-amber-800 dark:text-amber-300"
+                      data-testid="dlq-inspect-truncated">
+                      {{ t('web.admin.jobs.dlq.truncated', { scanned: inspectRecord.scanned }) }}
+                    </p>
+                    <code
+                      class="mt-1 block font-mono text-xs break-all text-gray-900 dark:text-gray-100"
+                      data-testid="dlq-inspect-deep-scan">
+                      {{ dlqDeepScanCommand(selectedShort, message.message_id) }}
+                    </code>
+                  </template>
                 </template>
                 <JsonViewer
                   v-else

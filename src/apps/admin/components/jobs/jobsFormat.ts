@@ -85,6 +85,25 @@ export function runStatusBadgeClass(status: JobRunStatus): string {
   }
 }
 
+/**
+ * One shell argument for a command the operator copies: bare when it holds
+ * only characters no shell treats specially, otherwise single-quoted. A DLQ
+ * message id is whatever the publisher set, so it cannot be pasted raw.
+ */
+export function shellArg(value: string): string {
+  if (/^[\w.:@%+=,/-]+$/.test(value)) return value;
+  return `'${value.replace(/'/g, `'\\''`)}'`;
+}
+
+/**
+ * The CLI lookup for a message the console's bounded scan did not reach. The
+ * CLI stops at the same bound by default; `--max-scan` takes it deeper. `N` is
+ * left for the operator to choose.
+ */
+export function dlqDeepScanCommand(queueShort: string, messageId: string): string {
+  return `bin/ots queue dlq show ${shellArg(queueShort)} --id ${shellArg(messageId)} --max-scan N`;
+}
+
 /** Badge classes for a job's registration state on the running scheduler. */
 export function jobStateBadgeClass(state: 'scheduled' | 'not_scheduled' | 'unknown'): string {
   switch (state) {

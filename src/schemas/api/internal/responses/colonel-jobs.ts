@@ -143,7 +143,11 @@ export const colonelChoresDetailsSchema = z.object({
 export const colonelChoreRunRecordSchema = z.object({
   chore: z.string(),
   kind: choreKindSchema,
-  /** `success` | `dry_run` | `skipped` | `aborted` (rendered, not branched on). */
+  /**
+   * `success` | `partial` (some records errored) | `dry_run` | `skipped` |
+   * `aborted`. A plain string so a new value parses; the console treats a run
+   * as finished cleanly only when this is `success` and neither bound tripped.
+   */
   status: z.string(),
   dry_run: z.boolean(),
   limit: z.number(),

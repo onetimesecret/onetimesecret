@@ -157,11 +157,33 @@ export type ColonelDlqPurgeRecord = z.infer<typeof colonelDlqPurgeRecordSchema>;
 // for an unknown queue name.
 
 /**
- * Values the server may put in `outcome`. Kept as a documented constant rather
- * than a Zod enum on the wire: the UI branches on `found`, and an unforeseen
- * outcome string must not fail the whole response.
+ * Values the server may put in `outcome`. Kept as documented constants rather
+ * than a Zod enum on the wire: an unforeseen outcome string must not fail the
+ * whole response. The UI branches on the ones below and otherwise falls back
+ * to `found` and the counts.
  */
 export const DLQ_MESSAGE_OUTCOME_NOT_VISIBLE = 'not_visible';
+
+/**
+ * Replay, found: the message has no `x-death` header, so there is no queue to
+ * send it back to. It is KEPT in the DLQ (`replayed: 0`, `failed: 0`);
+ * `details.errors` explains. Discarding it is the way out.
+ */
+export const DLQ_REPLAY_OUTCOME_NO_ORIGINAL_QUEUE = 'no_original_queue';
+
+/**
+ * Replay, found: the original queue does not exist, so the broker could not
+ * route the copy. The message is KEPT in the DLQ (`replayed: 0`, `failed: 0`);
+ * `details.errors` explains.
+ */
+export const DLQ_REPLAY_OUTCOME_UNROUTABLE = 'unroutable';
+
+/**
+ * Discard: the broker did not confirm the commit, so the message may or may
+ * not be gone. `discarded` is false but must NOT be read as "still there";
+ * `details.message` explains.
+ */
+export const DLQ_DISCARD_OUTCOME_UNCONFIRMED = 'unconfirmed';
 
 /** Scan facts shared by the three per-message records. */
 const dlqMessageScanShape = {
@@ -169,7 +191,12 @@ const dlqMessageScanShape = {
   message_id: z.string(),
   /** False on a miss — see `outcome`. */
   found: z.boolean(),
-  /** `'not_visible'` on a miss; absent or null on a hit. */
+  /**
+   * `'not_visible'` on a miss. On a hit: absent or null when the verb did what
+   * it says, otherwise why not (`no_original_queue`, `unroutable`,
+   * `already_replayed`, `replay_in_progress`, `unconfirmed`, …). A plain string,
+   * so a new value parses.
+   */
   outcome: z.string().nullable().optional(),
   /** Messages examined by the bounded scan. */
   scanned: z.number(),
