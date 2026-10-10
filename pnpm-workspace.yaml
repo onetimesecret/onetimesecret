@@ -7,6 +7,8 @@ allowBuilds:
 overrides:
   '@babel/core': '>=7.29.6 <8'
   '@types/estree': '1.0.9'
+  # CVE-2026-45819 / GHSA-w5vr-8v7q-w6rv fixed in 2.11.0.
+  baseline-browser-mapping: '^2.11.0'
   esbuild: '>=0.28.1'
   # brace-expansion advisories are fixed on every maintenance line, not just v5.
   # A flat v5 pin is NOT possible: the tree needs three incompatible majors
@@ -18,15 +20,23 @@ overrides:
   'brace-expansion@1': '^1.1.21'
   'brace-expansion@2': '^2.1.7'
   'brace-expansion@5': '^5.0.12'
+  # CVE-2026-73088 / GHSA-73wf-gq98-2v4g and CVE-2026-73089 /
+  # GHSA-c83g-rgw3-j3cx fixed in 4.28.7.
+  browserslist: '^4.28.7'
   flatted: '^3.4.2'
   form-data: '>=4.0.6'
-  # CVE-2026-59869 / GHSA-5p4m-2wfm-xmqj / CVE-2026-53550 are fixed as of 4.2.0.
-  # Capped below 5: js-yaml@5 dropped CommonJS support, and gray-matter@4.0.3
+  # CVE-2026-59869 / GHSA-5p4m-2wfm-xmqj / CVE-2026-53550 are fixed as of 4.2.0;
+  # CVE-2026-84375 / GHSA-2883-xcg3-v3hh as of 4.3.2. Capped below 5: js-yaml@5 dropped CommonJS support, and gray-matter@4.0.3
   # (pulled in transitively) does `require('js-yaml').safeLoad`, which breaks
   # under the ESM-only build.
-  js-yaml: '>=4.2.0 <5'
+  js-yaml: '>=4.3.2 <5'
   markdown-it: '>=14.2.0'
-  undici: '>=6.27.0 <7'
+  # CVE-2026-67213 / GHSA-2v37-7h3g-55p8 fixed in 3.3.18 (v3 line, via postcss).
+  # The v5 line is a direct dependency, pinned in package.json above 5.1.6.
+  'nanoid@3': '^3.3.18'
+  # CVE-2026-19534 / GHSA-rfgv-xxqx-mfg5, CVE-2026-18540 / GHSA-r53p-7pc4-xj5r,
+  # CVE-2026-85024 / GHSA-3wwx-pv8p-q78v fixed in 6.28.1.
+  undici: '>=6.28.1 <7'
   ws: '>=8.21.0'
   yaml: '^2.8.3'
 
