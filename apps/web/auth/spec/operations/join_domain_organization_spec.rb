@@ -2,13 +2,20 @@
 #
 # frozen_string_literal: true
 
-# The SSO self-heal picks the personal workspace it archives from the
-# customer's OWN default workspace. On the shared lookup fixture (another
-# owner's default listed first, the customer's archived default second, their
-# live owned default third) the old implicit scan stopped at the first
-# is_default flag — the foreign one — and then gave up, so the customer kept
-# landing in their stale personal workspace. The integration coverage for the
-# full join flow is apps/web/auth/spec/integration/full/domain_sso_join_organization_spec.rb.
+# The SSO self-heal repoints default_org_id from the customer's OWN default
+# workspace to the domain org. On the shared lookup fixture (another owner's
+# default listed first, the customer's archived default second, their live
+# owned default third) the old implicit scan stopped at the first is_default
+# flag — the foreign one — and then gave up, so the customer kept landing in
+# their stale personal workspace.
+#
+# #4717 PR 2: login never archives. Joining an organization and choosing a
+# default are the login path's two decisions; retiring a workspace is an
+# operator decision (Onetime::Operations::Org::Delete / Unarchive). Every
+# `archive!` stub here RAISES, so a stray call from the login path is a loud
+# failure (the op rescues it into `adoption: nil`, which the adopting examples
+# then reject). The integration coverage for the full join flow is
+# apps/web/auth/spec/integration/full/domain_sso_join_organization_spec.rb.
 #
 # Run: tests/lanes/run unit --only apps/web/auth/spec/operations/join_domain_organization_spec.rb
 require 'spec_helper'
@@ -55,27 +62,40 @@ RSpec.describe Auth::Operations::JoinDomainOrganization do
     # already_member path: the self-heal retry runs without a new membership write.
     allow(domain_org).to receive(:member?).with(customer).and_return(true)
     stub_workspace_ownership(customer)
-    lookup_fixture_orgs.each { |org| allow(org).to receive(:archive!) }
+    forbid_archive(*lookup_fixture_orgs)
     allow(Onetime::Organization).to receive(:load) { |id| lookup_fixture_orgs.find { |o| o.objid == id } }
   end
 
+  # Recorded AND fatal: the spy lets an example name the offender, and the
+  # raise makes sure no path quietly archives on the way to a green result.
+  def forbid_archive(*orgs)
+    orgs.each do |org|
+      allow(org).to receive(:archive!).and_raise(RuntimeError, 'the login path must never archive an organization')
+    end
+  end
+
+  # The PR 2 adoption contract: a pointer-only repoint, nothing archived.
+  def expect_pointer_only_adoption(previous:)
+    expect(result[:reason]).to eq('already_member')
+    lookup_fixture_orgs.each { |org| expect(org).not_to have_received(:archive!) }
+    expect(result[:adoption]).to include(adopted: true, previous_default_org_id: previous.objid)
+    expect(result[:adoption]).not_to have_key(:archived_org_id)
+    expect(customer).to have_received(:default_org_id=).with(domain_org.objid)
+    expect(customer).to have_received(:save)
+  end
+
   context 'with no explicit preference (implicit fallback)' do
-    it 'adopts the domain org and archives the owned default, not the foreign one listed first' do
-      expect(result[:reason]).to eq('already_member')
-      expect(result[:adoption]).to include(adopted: true, archived_org_id: owned_default.objid)
-      expect(customer).to have_received(:default_org_id=).with(domain_org.objid)
-      expect(customer).to have_received(:save)
-      expect(owned_default).to have_received(:archive!)
-      expect(foreign_default).not_to have_received(:archive!)
-      expect(archived_default).not_to have_received(:archive!)
+    it 'repoints to the domain org from the owned default (not the foreign one listed first) and archives nothing' do
+      expect_pointer_only_adoption(previous: owned_default)
     end
 
     context 'when the customer owns no live default workspace' do
       let(:memberships) { [foreign_default, archived_default] }
 
-      it 'adopts nothing and archives nothing' do
+      it 'adopts nothing and writes nothing' do
         expect(result[:adoption]).to be_nil
         expect(customer).not_to have_received(:default_org_id=)
+        expect(customer).not_to have_received(:save)
         expect(foreign_default).not_to have_received(:archive!)
       end
     end
@@ -87,17 +107,21 @@ RSpec.describe Auth::Operations::JoinDomainOrganization do
     it 'leaves the preference alone instead of replacing it with the owned default' do
       expect(result[:adoption]).to be_nil
       expect(customer).not_to have_received(:default_org_id=)
+      expect(customer).not_to have_received(:save)
       expect(owned_default).not_to have_received(:archive!)
       expect(foreign_default).not_to have_received(:archive!)
     end
   end
 
-  context 'with an explicit preference naming the owned default' do
+  # The already_member path is the only path this file exercises (member? is
+  # stubbed true), so this IS the retry: a customer who joined earlier but is
+  # still pointed at their own default workspace gets repointed on the next
+  # login, with the workspace left live (decision D1, #4717).
+  context 'with an explicit preference naming the owned default (already-member retry)' do
     let(:default_org_id) { owned_default.objid }
 
-    it 'adopts through the explicit path' do
-      expect(result[:adoption]).to include(adopted: true, archived_org_id: owned_default.objid)
-      expect(owned_default).to have_received(:archive!)
+    it 'repoints through the explicit path and archives nothing' do
+      expect_pointer_only_adoption(previous: owned_default)
     end
   end
 
@@ -126,7 +150,7 @@ RSpec.describe Auth::Operations::JoinDomainOrganization do
 
     before do
       allow(domain_org).to receive(:owner?).with(customer).and_return(true)
-      allow(domain_org).to receive(:archive!)
+      forbid_archive(domain_org)
       allow(Onetime::Organization).to receive(:load) do |id|
         (lookup_fixture_orgs + [domain_org]).find { |o| o.objid == id }
       end
@@ -143,7 +167,9 @@ RSpec.describe Auth::Operations::JoinDomainOrganization do
       end
     end
 
-    context 'with the explicit pointer naming the domain org' do
+    # Pointer already at the destination: the already_member retry has
+    # nothing to repoint, so it performs no write at all.
+    context 'with the explicit pointer already at the domain org' do
       let(:default_org_id) { domain_org.objid }
 
       include_examples 'leaves the domain org and the pointer alone'
@@ -174,7 +200,7 @@ RSpec.describe Auth::Operations::JoinDomainOrganization do
 
       before do
         allow(domain_org_twin).to receive(:owner?).with(customer).and_return(true)
-        allow(domain_org_twin).to receive(:archive!)
+        forbid_archive(domain_org_twin)
         allow(Onetime::Organization).to receive(:load).with(domain_org.objid).and_return(domain_org_twin)
       end
 

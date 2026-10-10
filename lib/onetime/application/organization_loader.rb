@@ -211,8 +211,8 @@ module Onetime
       # default_org_id that names an organization the user merely belongs to.
       # Operations that write to, bill, or draw entitlements from "the
       # customer's workspace" need the one the customer owns instead: the
-      # SSO self-heal archives it, the deferred federation claim and the
-      # pro-bono grant change its plan, checkout binds its Stripe customer,
+      # SSO self-heal repoints away from it, the deferred federation claim and
+      # the pro-bono grant change its plan, checkout binds its Stripe customer,
       # and organization creation is funded by it. Another member's default
       # workspace carries the is_default flag too and is never eligible here,
       # whatever order the memberships are listed in.
@@ -338,8 +338,8 @@ module Onetime
         # 3-4. The customer's default organization (#default_organization):
         # customer.default_org_id (set by the customer, support, or the SSO
         # self-heal), else the is_default workspace the customer owns.
-        # Archived organizations are skipped; a default workspace that was
-        # archived has been superseded by a domain org.
+        # Archived organizations are skipped. Archived is legacy or operator
+        # state (login never archives, #4717); the loader never returns one.
         #
         # Steps 3-5 choose only among organizations the membership's domain
         # scope permits for this request, so an organization refused above
@@ -371,7 +371,7 @@ module Onetime
           return default_org
         end
 
-        # 5. First available organization (skip archived — they've been superseded)
+        # 5. First available organization (skip archived — legacy/operator state)
         first_org = orgs.find { |o| !o.archived? }
         if first_org
           OT.ld "[OrganizationLoader] Using first organization: #{first_org.objid}"
