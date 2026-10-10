@@ -25,8 +25,8 @@ module Onetime
     module Dlq
       # Shared DLQ primitives — the single source of the RabbitMQ queue-name
       # allowlist, the message projection shapes, and the death-header parsing that
-      # the DLQ verbs (List / Peek / Show / Replay / Purge) and the `bin/ots queue
-      # dlq` CLI are thin adapters over.
+      # the DLQ verbs (List / Peek / Show / Replay / Discard / Purge) and the
+      # `bin/ots queue dlq` CLI are thin adapters over.
       #
       # Context-free by contract (lib/onetime/operations/README.md): it knows
       # nothing about HTTP or the CLI. Callers pass an already-open Bunny-like
@@ -36,6 +36,34 @@ module Onetime
       # declares a queue that does not already exist.
       module Store
         module_function
+
+        # Most deliveries one per-message lookup ({with_message}) pops
+        # (CONTRACT 6: bounded work on the request path). Every popped
+        # delivery is a synchronous basic.get round trip and stays unacked
+        # until the scan ends, so the bound caps both the request time and
+        # how many messages one lookup hides from other consumers. An
+        # operator finds an id through Peek, which shows at most
+        # {Peek::MAX_LIMIT} (100) messages from the head; five times that
+        # still reaches the id after messages a consumer held during the
+        # peek have returned ahead of it. At a few milliseconds per round
+        # trip, 500 pops stay well inside the proxy's 15 s read timeout.
+        MAX_SCAN = 500
+
+        # The outcome of a per-message lookup that did not find the id. The
+        # id was not among the deliveries this scan could see, which is not
+        # proof it is gone: a consumer may hold it unacked (the email DLQ
+        # consumer holds deliveries for up to its 240 s run budget), it may
+        # sit deeper than {MAX_SCAN}, or the queue may not be declared yet.
+        NOT_VISIBLE = 'not_visible'
+
+        # Result of {with_message}.
+        #
+        # @!attribute found [r] Boolean the id was among the popped deliveries
+        # @!attribute scanned [r] Integer deliveries popped, the match included
+        # @!attribute truncated [r] Boolean the scan stopped at its bound
+        #   without a match while messages were still ready behind it
+        # @!attribute value [r] the block's return value; nil on a miss
+        Scan = Data.define(:found, :scanned, :truncated, :value)
 
         # Resolve a caller-supplied name to a full DLQ queue name. Mirrors the
         # historic CLI `resolve_dlq_name` mapping EXACTLY (bit-for-bit): a name that
@@ -188,14 +216,88 @@ module Onetime
           requeue_deliveries(channel, dlq_name, delivery_tags)
         end
 
+        # Find one message by id and hand its delivery to the block, for the
+        # per-message verbs (Show, and the live Replay and Discard).
+        # {find_message} cannot serve the live verbs: it requeues every
+        # delivery it popped, the match included.
+        #
+        # Pops up to `max_scan` deliveries (never more than {MAX_SCAN}). A
+        # delivery that does not match is held unacked, so the next pop moves
+        # on to the message behind it: nack-requeueing it at once would put it
+        # back at the head, where the next pop returns it again and the scan
+        # never gets past the first message (#4650). The scan stops at the
+        # match, an empty pop, or the bound.
+        #
+        # The held deliveries are nack-requeued one tag at a time in delivery
+        # order ({requeue_deliveries}) as soon as the scan ends, in an
+        # `ensure`, and BEFORE the block runs: so they are back in the queue
+        # whatever the block does, and the nacks are not caught in a
+        # transaction the block selects. RabbitMQ returns a requeued delivery
+        # to its original position in a classic queue when no other consumer
+        # took messages in between, and no other consumer can: this scan held
+        # everything ahead of the match. The queue therefore keeps its order.
+        # The channel must not be in transaction mode when this is called.
+        #
+        # The block receives the matched delivery and owns it: it acks it, or
+        # leaves it unacked. An unacked match returns to its position in the
+        # queue when the caller closes the channel, which every DLQ op does
+        # in its own `ensure`. The block runs only on a match.
+        #
+        # @param channel [Object] a Bunny-like channel dedicated to this lookup
+        # @param dlq_name [String]
+        # @param message_id [String] the AMQP message id to find
+        # @param max_scan [Integer] scan bound, clamped to 1..{MAX_SCAN}
+        # @yieldparam delivery_info [Object]
+        # @yieldparam properties [Object]
+        # @yieldparam payload [String]
+        # @return [Scan]
+        # @raise [Bunny::NotFound] from the passive declare when the queue does
+        #   not exist; the caller decides what that means
+        def with_message(channel, dlq_name, message_id, max_scan: MAX_SCAN)
+          raise ArgumentError, 'message_id is required' if message_id.to_s.empty?
+
+          limit     = max_scan.to_i.clamp(1, MAX_SCAN)
+          queue     = queue_handle(channel, dlq_name)
+          held      = []
+          scanned   = 0
+          match     = nil
+          truncated = false
+
+          begin
+            while scanned < limit
+              delivery_info, properties, payload = queue.pop(manual_ack: true)
+              break unless delivery_info
+
+              scanned += 1
+              # Held before the comparison, so a delivery whose properties
+              # raise is still returned.
+              held << delivery_info.delivery_tag
+              next unless properties.message_id == message_id
+
+              held.pop
+              match = [delivery_info, properties, payload]
+              break
+            end
+
+            # Asked while the scanned prefix is still held, so the count is
+            # only what lies behind it.
+            truncated = match.nil? && scanned >= limit && queue.message_count.positive?
+          ensure
+            requeue_deliveries(channel, dlq_name, held)
+          end
+
+          value = match ? yield(*match) : nil
+          Scan.new(found: !match.nil?, scanned: scanned, truncated: truncated, value: value)
+        end
+
         # Nack-requeue the deliveries an inspection held, one tag at a time in
         # delivery order. Per-tag nacks (not `multiple: true`) touch only this
         # scan's deliveries even if the caller's channel carries others.
         #
         # A failed nack leaves the rest outstanding. Closing the channel makes the
         # broker requeue every unacked delivery on it, including tags not yet
-        # attempted, so callers pass a channel dedicated to the inspection (Peek
-        # and Show do). The error is then re-raised.
+        # attempted, so callers pass a channel dedicated to the inspection (Peek,
+        # Show, Replay and Discard do). The error is then re-raised.
         #
         # @param channel [Object]
         # @param dlq_name [String] for the failure log
