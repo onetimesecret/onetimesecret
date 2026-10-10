@@ -55,8 +55,8 @@
 
   /** Records a console run touches by default — small, to stay inside the budget. */
   const CHORE_DEFAULT_LIMIT = 100;
-  /** Upper bound the server accepts for `limit`. */
-  const CHORE_MAX_LIMIT = 5000;
+  /** Upper bound the server accepts for `limit` (Chores::Run::MAX_LIMIT). */
+  const CHORE_MAX_LIMIT = 1000;
 
   const {
     data: choresData,
