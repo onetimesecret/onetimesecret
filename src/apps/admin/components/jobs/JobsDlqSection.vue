@@ -126,11 +126,21 @@
     validationError: peekValidationError,
     notFound: peekNotFound,
     load: loadPeek,
+    reset: resetPeek,
   } = useResourceFetch({
     url: () => queueUrl(selectedShort.value),
     schema: colonelDlqMessagesResponseSchema,
     context: 'ColonelDlqMessagesResponse',
   });
+
+  /**
+   * Short name of the queue the peek reader was last pointed at. Opening a
+   * DIFFERENT queue resets the reader first, so queue A's messages (and their
+   * row actions) never sit under queue B's heading while B loads; re-peeking
+   * the SAME queue (refresh, after a replay/discard) keeps the rows up so
+   * they do not flash.
+   */
+  let peekedShort: string | null = null;
 
   const peekRecord = computed(() => peekData.value?.record ?? null);
   const peekMessages = computed(() => peekData.value?.details?.messages ?? []);
@@ -166,6 +176,9 @@
   );
 
   function inspect(messageId: string): void {
+    // Switching messages: drop the previous detail so it is never shown under
+    // the new message's row while its load settles.
+    if (inspectedId.value !== messageId) resetInspect();
     inspectedId.value = messageId;
     loadInspect().catch(() => {});
   }
@@ -402,6 +415,9 @@
 
   function openQueue(row: ColonelDlqSummary): void {
     selectedQueue.value = row;
+    const short = shortName(row.queue);
+    if (short !== peekedShort) resetPeek();
+    peekedShort = short;
     closeInspect();
     lastAction.value = null;
     drawerOpen.value = true;
@@ -411,6 +427,9 @@
   function closeDrawer(): void {
     drawerOpen.value = false;
     selectedQueue.value = null;
+    // Forget the peeked queue so reopening it starts from a reset reader:
+    // rows from the closed drawer may have been replayed or discarded since.
+    peekedShort = null;
     closeInspect();
     lastAction.value = null;
   }

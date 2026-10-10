@@ -19,12 +19,14 @@ const NOW = 1_700_000_000;
 
 // Wire-shaped ListJobs response (Unix-second numbers, JSON nulls) so the REAL
 // colonelJobsResponseSchema runs unchanged.
-function jobsPayload(overrides: { page?: number; per_page?: number } = {}) {
+function jobsPayload(
+  overrides: { page?: number; per_page?: number; jobId?: string; alive?: boolean } = {}
+) {
   return {
     shrimp: '',
     record: {
       scheduler: {
-        alive: true,
+        alive: overrides.alive ?? true,
         started_at: NOW - 7200,
         heartbeat_at: NOW - 30,
         host: 'scheduler-1',
@@ -35,7 +37,7 @@ function jobsPayload(overrides: { page?: number; per_page?: number } = {}) {
     details: {
       jobs: [
         {
-          job_id: 'heartbeat',
+          job_id: overrides.jobId ?? 'heartbeat',
           job_class: 'Onetime::Jobs::Scheduled::HeartbeatJob',
           group: 'scheduled',
           state: 'scheduled',
@@ -60,6 +62,17 @@ function jobsPayload(overrides: { page?: number; per_page?: number } = {}) {
       },
     },
   };
+}
+
+/** Manually-settled promise so a test controls the order responses arrive. */
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return { promise, resolve, reject };
 }
 
 describe('useAdminJobs', () => {
@@ -144,6 +157,100 @@ describe('useAdminJobs', () => {
     expect(store.scheduler).toBeNull();
     expect(store.pagination).toBeNull();
     expect(store.error?.message).toBe('Network Error');
+  });
+
+  describe('overlapping requests', () => {
+    it('a stale page response never replaces the newer page or its scheduler', async () => {
+      const slow = deferred<{ data: unknown }>();
+      const fast = deferred<{ data: unknown }>();
+      mockApi.get
+        .mockImplementationOnce(() => slow.promise)
+        .mockImplementationOnce(() => fast.promise);
+      const store = useAdminJobs();
+
+      const first = store.fetchPage(1);
+      const second = store.fetchPage(2);
+
+      fast.resolve({ data: jobsPayload({ page: 2, jobId: 'page2' }) });
+      await second;
+      expect(store.jobs.map((j) => j.job_id)).toEqual(['page2']);
+      expect(store.scheduler?.alive).toBe(true);
+
+      // Page 1 settles late, with a dead scheduler. Nothing may land.
+      slow.resolve({ data: jobsPayload({ page: 1, jobId: 'page1', alive: false }) });
+      await first;
+
+      expect(store.jobs.map((j) => j.job_id)).toEqual(['page2']);
+      expect(store.scheduler?.alive).toBe(true);
+      expect(store.pagination?.page).toBe(2);
+      expect(store.page).toBe(2);
+    });
+
+    it('a stale failure neither blanks the newer rows nor clears the scheduler', async () => {
+      const slow = deferred<{ data: unknown }>();
+      const fast = deferred<{ data: unknown }>();
+      mockApi.get
+        .mockImplementationOnce(() => slow.promise)
+        .mockImplementationOnce(() => fast.promise);
+      const store = useAdminJobs();
+
+      const first = store.fetchPage(1);
+      const second = store.fetchPage(2);
+
+      fast.resolve({ data: jobsPayload({ page: 2, jobId: 'page2' }) });
+      await second;
+
+      slow.reject(new Error('socket hang up'));
+      // The caller of the stale request still sees its own failure.
+      await expect(first).rejects.toThrow('socket hang up');
+
+      expect(store.jobs.map((j) => j.job_id)).toEqual(['page2']);
+      expect(store.scheduler).not.toBeNull();
+      expect(store.pagination?.page).toBe(2);
+      expect(store.error).toBeNull();
+      expect(store.loading).toBe(false);
+    });
+
+    it('a stale schema mismatch does not empty the newer page', async () => {
+      const slow = deferred<{ data: unknown }>();
+      const fast = deferred<{ data: unknown }>();
+      mockApi.get
+        .mockImplementationOnce(() => slow.promise)
+        .mockImplementationOnce(() => fast.promise);
+      const store = useAdminJobs();
+
+      const first = store.fetchPage(1);
+      const second = store.fetchPage(2);
+
+      fast.resolve({ data: jobsPayload({ page: 2, jobId: 'page2' }) });
+      await second;
+
+      const bogus = jobsPayload();
+      (bogus.details.jobs[0] as Record<string, unknown>).last_status = 'bogus';
+      slow.resolve({ data: bogus });
+      expect(await first).toBeNull();
+
+      expect(store.jobs.map((j) => j.job_id)).toEqual(['page2']);
+      expect(store.scheduler).not.toBeNull();
+      expect(store.validationError).toBeNull();
+    });
+
+    it('$reset invalidates an in-flight request', async () => {
+      const slow = deferred<{ data: unknown }>();
+      mockApi.get.mockImplementationOnce(() => slow.promise);
+      const store = useAdminJobs();
+
+      const pending = store.fetchPage(2);
+      store.$reset();
+
+      slow.resolve({ data: jobsPayload({ page: 2 }) });
+      await pending;
+
+      expect(store.jobs).toEqual([]);
+      expect(store.scheduler).toBeNull();
+      expect(store.pagination).toBeNull();
+      expect(store.page).toBe(1);
+    });
   });
 
   it('$reset restores initial state', async () => {

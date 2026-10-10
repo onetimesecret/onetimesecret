@@ -79,6 +79,7 @@ export function runStatusBadgeClass(status: JobRunStatus): string {
     case 'running':
       return BADGE_ACTIVE;
     case 'error':
+    case 'partial':
       return BADGE_ATTENTION;
     default:
       return BADGE_NEUTRAL;

@@ -27,6 +27,10 @@
     "text": "Succeeded",
     "content_hash": "6d9a6f97"
   },
+  "web.admin.jobs.status.partial": {
+    "text": "Some records failed",
+    "content_hash": "4d239eba"
+  },
   "web.admin.jobs.status.error": {
     "text": "Failed",
     "content_hash": "031a8f0f"

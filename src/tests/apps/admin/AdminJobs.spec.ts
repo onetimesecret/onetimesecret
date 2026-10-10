@@ -69,6 +69,7 @@ const CHORES_URL = '/api/colonel/chores';
 /** The short queue name: the URL segment AND the X-OTS-Confirm token. */
 const QUEUE_SHORT = 'billing.event';
 const PEEK_URL = `${DLQ_URL}/${QUEUE_SHORT}`;
+const EMAIL_PEEK_URL = `${DLQ_URL}/email.message`;
 const MESSAGE_URL = `${PEEK_URL}/messages/m1`;
 
 const HOUSEKEEPING_ID = 'housekeeping.organization.standardize_owner_id';
@@ -146,15 +147,15 @@ function dlqPayload(connected = true) {
   };
 }
 
-function peekPayload() {
+function peekPayload(queue = 'dlq.billing.event', messageId = 'm1') {
   return {
     shrimp: '',
-    record: { queue: 'dlq.billing.event', total_messages: 2, showing: 2 },
+    record: { queue, total_messages: 2, showing: 2 },
     details: {
       messages: [
         {
           delivery_tag: 1,
-          message_id: 'm1',
+          message_id: messageId,
           timestamp: NOW - 60,
           age: '1m ago',
           original_queue: 'billing.event.process',
@@ -403,7 +404,11 @@ function choreRunAck(record: Record<string, unknown> = {}) {
 
 type GetRoutes = Record<string, () => unknown>;
 
-/** Route GETs by URL; anything unrouted rejects so a stray request is loud. */
+/**
+ * Route GETs by URL; anything unrouted rejects so a stray request is loud. A
+ * route may return a Promise of the whole `{ data }` response instead of a
+ * payload, so a spec can hold one response back (see {@link deferred}).
+ */
 function routeGets(overrides: GetRoutes = {}): void {
   const routes: GetRoutes = {
     [JOBS_URL]: () => jobsPayload(),
@@ -417,11 +422,23 @@ function routeGets(overrides: GetRoutes = {}): void {
     const route = routes[url];
     if (!route) return Promise.reject(new Error(`unrouted GET ${url}`));
     try {
-      return Promise.resolve({ data: route() });
+      const value = route();
+      return value instanceof Promise ? value : Promise.resolve({ data: value });
     } catch (err) {
       return Promise.reject(err);
     }
   });
+}
+
+/** Manually-settled promise so a test controls the order responses arrive. */
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return { promise, resolve, reject };
 }
 
 const getCount = (url: string) => mockApi.get.mock.calls.filter((c) => c[0] === url).length;
@@ -523,6 +540,22 @@ describe('AdminJobs — scheduler', () => {
     expect(byTestId(wrapper, 'jobs-scheduler-process').text()).toContain('scheduler-1 · 4242');
   });
 
+  it('renders a partial last run (finished, some records failed) in the attention tone', async () => {
+    const payload = jobsPayload();
+    const heartbeat = payload.details.jobs[0] as Record<string, unknown>;
+    heartbeat.last_status = 'partial';
+    heartbeat.last_error = '3 of 50 organizations failed to materialize';
+    routeGets({ [JOBS_URL]: () => payload });
+    wrapper = await mountView();
+
+    const badge = byTestId(wrapper, 'job-status-heartbeat');
+    expect(badge.text()).toBe('web.admin.jobs.status.partial');
+    expect(badge.classes()).toContain('bg-amber-100');
+    expect(byTestId(wrapper, 'job-error-heartbeat').text()).toBe(
+      '3 of 50 organizations failed to materialize'
+    );
+  });
+
   it('measures next-due and heartbeat ages from the fetch time, not render time', async () => {
     routeGets();
     wrapper = await mountView();
@@ -571,6 +604,107 @@ describe('AdminJobs — scheduler', () => {
 });
 
 // ---- Dead-letter queues -------------------------------------------------------
+
+/**
+ * Drawer freshness: what the peek / inspect panels show while a load for a
+ * DIFFERENT target is in flight, and that a same-target reload does not blank
+ * them first.
+ */
+describe('AdminJobs — dead-letter queues (drawer freshness)', () => {
+  useHarness();
+
+  it('switching queues drops the previous messages before the new peek settles', async () => {
+    const slow = deferred<{ data: unknown }>();
+    routeGets({ [EMAIL_PEEK_URL]: () => slow.promise });
+    wrapper = await mountView();
+    await openPeek(wrapper);
+    expect(byTestId(wrapper, 'dlq-message-m1').exists()).toBe(true);
+
+    await byTestId(wrapper, 'dlq-peek-dlq.email.message').trigger('click');
+    await flushPromises();
+
+    // Queue A's rows — and the replay/discard buttons carrying A's message
+    // ids — must not sit under queue B's heading while B loads.
+    expect(byTestId(wrapper, 'dlq-message-m1').exists()).toBe(false);
+    expect(byTestId(wrapper, 'dlq-replay-m1').exists()).toBe(false);
+    expect(byTestId(wrapper, 'dlq-drawer-loading').exists()).toBe(true);
+
+    slow.resolve({ data: peekPayload('dlq.email.message', 'e1') });
+    await flushPromises();
+    expect(byTestId(wrapper, 'dlq-message-e1').exists()).toBe(true);
+    expect(byTestId(wrapper, 'dlq-message-m1').exists()).toBe(false);
+  });
+
+  it('closing and reopening a queue drops its rows until the fresh peek settles', async () => {
+    routeGets();
+    wrapper = await mountView();
+    await openPeek(wrapper);
+    expect(byTestId(wrapper, 'dlq-message-m1').exists()).toBe(true);
+
+    wrapper.findComponent({ name: 'DetailDrawer' }).vm.$emit('close');
+    await flushPromises();
+
+    // Another operator may have replayed m1 while the drawer was closed, so
+    // the reopened drawer must not offer the old rows before the reload lands.
+    const slow = deferred<{ data: unknown }>();
+    routeGets({ [PEEK_URL]: () => slow.promise });
+    await openPeek(wrapper);
+
+    expect(byTestId(wrapper, 'dlq-message-m1').exists()).toBe(false);
+    expect(byTestId(wrapper, 'dlq-replay-m1').exists()).toBe(false);
+    expect(byTestId(wrapper, 'dlq-drawer-loading').exists()).toBe(true);
+
+    slow.resolve({ data: peekPayload() });
+    await flushPromises();
+    expect(byTestId(wrapper, 'dlq-message-m1').exists()).toBe(true);
+  });
+
+  it('re-peeking the same queue keeps its rows up while the reload is in flight', async () => {
+    routeGets();
+    wrapper = await mountView();
+    await openPeek(wrapper);
+
+    const slow = deferred<{ data: unknown }>();
+    routeGets({ [PEEK_URL]: () => slow.promise });
+    await byTestId(wrapper, 'dlq-drawer-refresh').trigger('click');
+    await flushPromises();
+
+    expect(byTestId(wrapper, 'dlq-message-m1').exists()).toBe(true);
+    expect(byTestId(wrapper, 'dlq-drawer-loading').exists()).toBe(false);
+
+    slow.resolve({ data: peekPayload() });
+    await flushPromises();
+    expect(byTestId(wrapper, 'dlq-message-m1').exists()).toBe(true);
+  });
+
+  it('switching the inspected message drops the previous detail before the new one loads', async () => {
+    const payload = peekPayload();
+    (payload.details.messages[1] as Record<string, unknown>).message_id = 'm2';
+    const slow = deferred<{ data: unknown }>();
+    routeGets({
+      [PEEK_URL]: () => payload,
+      [`${PEEK_URL}/messages/m2`]: () => slow.promise,
+    });
+    wrapper = await mountView();
+    await openPeek(wrapper);
+
+    await byTestId(wrapper, 'dlq-inspect-m1').trigger('click');
+    await flushPromises();
+    expect(byTestId(wrapper, 'dlq-inspect-json').exists()).toBe(true);
+
+    await byTestId(wrapper, 'dlq-inspect-m2').trigger('click');
+    await flushPromises();
+
+    // m1's detail must not render inside m2's panel while m2 loads.
+    expect(byTestId(wrapper, 'dlq-inspect-panel-m1').exists()).toBe(false);
+    expect(byTestId(wrapper, 'dlq-inspect-panel-m2').exists()).toBe(true);
+    expect(byTestId(wrapper, 'dlq-inspect-json').exists()).toBe(false);
+
+    slow.resolve({ data: inspectMiss() });
+    await flushPromises();
+    expect(byTestId(wrapper, 'dlq-inspect-not-visible').exists()).toBe(true);
+  });
+});
 
 describe('AdminJobs — dead-letter queues', () => {
   useHarness();
@@ -1009,6 +1143,95 @@ describe('AdminJobs — chores', () => {
 
     expect(showMock).toHaveBeenCalledWith('web.admin.jobs.chores.run.success', 'success');
     expect(byTestId(wrapper, 'chores-result-status').classes()).not.toContain('text-amber-800');
+  });
+
+  it('blocks Run while a preview is pending, and Preview while a run is pending', async () => {
+    routeGets();
+    const slowPreview = deferred<{ data: unknown }>();
+    mockApi.post.mockImplementationOnce(() => slowPreview.promise);
+    wrapper = await mountView();
+
+    await byTestId(wrapper, `chore-preview-${ENTITLEMENT_ID}`).trigger('click');
+    await flushPromises();
+
+    expect(byTestId(wrapper, `chore-run-${ENTITLEMENT_ID}`).attributes('disabled')).toBeDefined();
+    expect(byTestId(wrapper, `chore-run-${HOUSEKEEPING_ID}`).attributes('disabled')).toBeDefined();
+    expect(
+      byTestId(wrapper, `chore-preview-${ENTITLEMENT_ID}`).attributes('disabled')
+    ).toBeDefined();
+
+    slowPreview.resolve({
+      data: choreRunAck({
+        chore: ENTITLEMENT_ID,
+        kind: 'billing',
+        status: 'dry_run',
+        dry_run: true,
+      }),
+    });
+    await flushPromises();
+    expect(
+      byTestId(wrapper, `chore-run-${HOUSEKEEPING_ID}`).attributes('disabled')
+    ).toBeUndefined();
+
+    // And the other way round: a confirmed run in flight blocks Preview.
+    const slowRun = deferred<{ data: unknown }>();
+    mockApi.post.mockImplementationOnce(() => slowRun.promise);
+    await byTestId(wrapper, `chore-run-${HOUSEKEEPING_ID}`).trigger('click');
+    await dialogInput(wrapper).setValue(HOUSEKEEPING_ID);
+    await wrapper.find('form').trigger('submit');
+    await flushPromises();
+    expect(
+      byTestId(wrapper, `chore-preview-${ENTITLEMENT_ID}`).attributes('disabled')
+    ).toBeDefined();
+
+    slowRun.resolve({ data: choreRunAck() });
+    await flushPromises();
+    expect(
+      byTestId(wrapper, `chore-preview-${ENTITLEMENT_ID}`).attributes('disabled')
+    ).toBeUndefined();
+  });
+
+  it('a late preview result does not overwrite a confirmed run result', async () => {
+    routeGets();
+    const slowPreview = deferred<{ data: unknown }>();
+    mockApi.post.mockImplementation((_url: string, body: { dry_run: boolean }) =>
+      body.dry_run
+        ? slowPreview.promise
+        : Promise.resolve({ data: choreRunAck({ chore: ENTITLEMENT_ID, kind: 'billing' }) })
+    );
+    wrapper = await mountView();
+
+    await byTestId(wrapper, `chore-preview-${ENTITLEMENT_ID}`).trigger('click');
+    await flushPromises();
+
+    // The Run button is disabled while the preview is pending (previous
+    // example). Stage the race past the disabled attribute so the result
+    // sequence guard is exercised on its own.
+    byTestId(wrapper, `chore-run-${ENTITLEMENT_ID}`).element.dispatchEvent(
+      new MouseEvent('click', { bubbles: true })
+    );
+    await flushPromises();
+    await dialogInput(wrapper).setValue(ENTITLEMENT_ID);
+    await wrapper.find('form').trigger('submit');
+    await flushPromises();
+
+    expect(mockApi.post).toHaveBeenCalledTimes(2);
+    expect(byTestId(wrapper, 'chores-result').exists()).toBe(true);
+    expect(byTestId(wrapper, 'chores-result-preview').exists()).toBe(false);
+
+    // The obsolete preview settles. The run's report must stay.
+    slowPreview.resolve({
+      data: choreRunAck({
+        chore: ENTITLEMENT_ID,
+        kind: 'billing',
+        status: 'dry_run',
+        dry_run: true,
+      }),
+    });
+    await flushPromises();
+    expect(byTestId(wrapper, 'chores-result-preview').exists()).toBe(false);
+    // The status key has the raw status as its fallback in the test i18n.
+    expect(byTestId(wrapper, 'chores-result-status').text()).toBe('success');
   });
 
   it('refuses to post an out-of-range limit', async () => {

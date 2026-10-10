@@ -192,6 +192,14 @@ describe('colonel Jobs schemas (#4343)', () => {
       expect(parsed.success).toBe(false);
     });
 
+    it('accepts a partial run (finished, some records failed)', () => {
+      const parsed = colonelJobsResponseSchema.safeParse(
+        jobsPayload([job({ last_status: 'partial', last_error: '3 of 50 failed' })])
+      );
+      expect(parsed.success).toBe(true);
+      if (parsed.success) expect(parsed.data.details?.jobs[0].last_status).toBe('partial');
+    });
+
     it('accepts an aborted run (reported as error with an "aborted:" reason)', () => {
       const parsed = colonelJobsResponseSchema.safeParse(
         jobsPayload([job({ last_status: 'error', last_error: 'aborted: catalog pull failed' })])

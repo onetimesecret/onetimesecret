@@ -22,8 +22,18 @@ import { paginationSchema } from './colonel';
 // Shared enums
 // ============================================================================
 
-/** Status of a job's (or chore's) most recent run. `never` = no run recorded. */
-export const jobRunStatusSchema = z.enum(['never', 'running', 'success', 'error', 'skipped']);
+/**
+ * Status of a job's (or chore's) most recent run. `never` = no run recorded;
+ * `partial` = the run finished but some records failed (e.g. 3 of 50 orgs).
+ */
+export const jobRunStatusSchema = z.enum([
+  'never',
+  'running',
+  'success',
+  'partial',
+  'error',
+  'skipped',
+]);
 
 /** Which scheduled-job directory a job class lives in. */
 export const jobGroupSchema = z.enum(['scheduled', 'maintenance']);

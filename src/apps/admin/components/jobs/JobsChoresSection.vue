@@ -109,7 +109,16 @@
 
   const result = ref<ChoreResult | null>(null);
 
-  function captureResult(choreId: string, payload: unknown): void {
+  /**
+   * Monotonic id of the newest preview or run request. Both verbs write the
+   * one result panel; only the request that still matches this counter may
+   * commit, so a slow preview that settles after a confirmed run can never
+   * replace the run's report with its own.
+   */
+  let actionSeq = 0;
+
+  function captureResult(actionId: number, choreId: string, payload: unknown): void {
+    if (actionId !== actionSeq) return;
     const parsed = gracefulParse(colonelChoreRunResponseSchema, payload, 'ColonelChoreRunResponse');
     result.value = parsed.ok
       ? { chore: choreId, record: parsed.data.record, details: parsed.data.details ?? null }
@@ -176,11 +185,12 @@
     error: previewError,
     run: runPreview,
   } = useAdminMutation(async (chore: ColonelChore) => {
+    const actionId = ++actionSeq;
     const response = await $api.post(runUrl(chore.id), {
       dry_run: true,
       limit: CHORE_DEFAULT_LIMIT,
     });
-    captureResult(chore.id, response.data);
+    captureResult(actionId, chore.id, response.data);
   });
 
   async function preview(chore: ColonelChore): Promise<void> {
@@ -211,6 +221,7 @@
   } = useAdminDestructiveMutation(async (reason?: string) => {
     const chore = runTarget.value;
     if (!chore) throw new Error('No chore selected');
+    const actionId = ++actionSeq;
     // The chore id the operator retyped is the X-OTS-Confirm token (#4326);
     // the server confirms against its sanitized `params['chore']`.
     const response = await $api.post(
@@ -218,8 +229,15 @@
       { dry_run: false, limit: runLimitValue.value, ...reasonBody(reason) },
       { headers: confirmHeaders(chore.id) }
     );
-    captureResult(chore.id, response.data);
+    captureResult(actionId, chore.id, response.data);
   });
+
+  /**
+   * True while either verb is in flight. Preview and Run share the result
+   * panel, so neither may start while the other is pending: both row buttons
+   * are disabled, and the run dialog can only be opened from the Run button.
+   */
+  const actionBusy = computed(() => previewLoading.value || runLoading.value);
 
   function requestRun(chore: ColonelChore): void {
     runTarget.value = chore;
@@ -358,7 +376,7 @@
               v-if="row.supports_dry_run"
               type="button"
               class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-              :disabled="previewLoading"
+              :disabled="actionBusy"
               :data-testid="`chore-preview-${row.id}`"
               @click="preview(row)">
               <OIcon
@@ -370,6 +388,7 @@
             <button
               type="button"
               class="inline-flex items-center gap-1 rounded-md bg-brand-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-600"
+              :disabled="actionBusy"
               :data-testid="`chore-run-${row.id}`"
               @click="requestRun(row)">
               <OIcon
