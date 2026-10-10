@@ -170,7 +170,7 @@ module Auth
         # are NOT refusals — nothing was attempted that could fail. `:partial`
         # and `:verification_not_reset` are not here either: the swap LANDED and
         # `record_audit` already writes them as their own result strings (D38).
-        REFUSAL_STATUSES = [:not_found, :invalid_email, :email_taken].freeze
+        REFUSAL_STATUSES = [:not_found, :invalid_email, :email_taken, :stale].freeze
 
         # This is the highest-value account-takeover primitive an operator has.
         # A non-unique-violation SQL failure re-raises from the middle of the
@@ -225,6 +225,10 @@ module Auth
         #                      the unique constraint itself)
         #     :partial       — SQL committed but the Redis side did not complete;
         #                      see `warnings` for which way the drift runs
+        #     :stale         — `allow_canonicalization` only: the accounts row
+        #                      no longer held the bytes read at probe time, so
+        #                      the compare-and-set matched nothing. NOTHING was
+        #                      written to either store; re-probe and retry
         #     :verification_not_reset
         #                    — the swap LANDED but `require_verification: true`
         #                      could not be honoured: the account is still marked
@@ -354,6 +358,15 @@ module Auth
             return terminal(:email_taken, old_email) if unique_violation?(ex)
 
             raise
+          end
+
+          # Canonicalization compare-and-set lost (#4726): the row existed at
+          # probe time and no longer holds those bytes, so the UPDATE matched
+          # nothing. Stop here. Carrying on would rekey the Customer to the
+          # canonical form of an address SQL no longer holds — exactly the
+          # cross-store drift the CAS exists to prevent — and report success.
+          if @allow_canonicalization && !@auth_row_email.nil? && !auth_row_updated
+            return terminal(:stale, old_email)
           end
 
           # With no SQL serialization point the index entry is CLAIMED

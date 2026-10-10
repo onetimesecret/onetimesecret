@@ -303,6 +303,15 @@ module Auth
                 "(compare-and-set matched 0 rows); re-run#{suffix}",
               )
             end
+          when :stale
+            report(
+              row,
+              stored,
+              target,
+              :error,
+              "accounts row #{row[:id]} no longer held the scanned address at write time " \
+              "(compare-and-set matched 0 rows); nothing written; re-run#{suffix}",
+            )
           when :email_taken
             report(
               row,

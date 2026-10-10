@@ -442,6 +442,26 @@ RSpec.describe 'Account email normalization repair (#4726)', type: :integration 
   # ==========================================================================
 
   describe 'per-row error isolation' do
+    it 'reports a lost compare-and-set (ChangeEmail :stale) as :error and leaves the row for a re-run' do
+      cust  = create_customer(target)
+      id    = insert_account(mixed, external_id: cust.extid)
+      stale = Auth::Operations::Customers::ChangeEmail::Result.new(
+        status: :stale, extid: cust.extid, from: target, to: target, dry_run: false,
+        auth_row_updated: false, orgs_reindexed: 0, sessions_revoked: false,
+        verification_reset: false, warnings: [],
+      )
+      allow(Auth::Operations::Customers::ChangeEmail).to receive(:new)
+        .and_return(instance_double(Auth::Operations::Customers::ChangeEmail, call: stale))
+
+      result = new_operation(dry_run: false).call
+
+      row = row_for(result, id)
+      expect(row[:outcome]).to eq(:error)
+      expect(row[:detail]).to include('re-run')
+      expect(sql_email(id)).to eq(mixed)
+      expect(result.stats[:error]).to eq(1)
+    end
+
     it 'records one row as :error with detail and still normalizes the others' do
       healthy_cust = create_customer(target)
       healthy      = insert_account(mixed, external_id: healthy_cust.extid)

@@ -756,6 +756,64 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
   end
 
   # =========================================================================
+  # #4726: a same-when-normalized address is :no_change by default. With
+  # allow_canonicalization it is a change while the accounts row holds other
+  # bytes, written compare-and-set on those bytes; a lost CAS is :stale and
+  # must stop BEFORE any Redis write, or the two stores drift.
+  describe 'allow_canonicalization (#4726)' do
+    let(:new_email) { old_email }
+    let(:stored) { 'Old@Example.com' }
+    let(:my_account_row) { { id: 42, email: stored } }
+    let(:by_id_cas) { double('by_id_cas') }
+
+    before do
+      allow(by_id).to receive(:where).with(email: stored).and_return(by_id_cas)
+      allow(by_id_cas).to receive(:update) do |attrs|
+        trace << [:sql_cas_update, attrs[:email]]
+        1
+      end
+    end
+
+    it 'is :no_change without the flag even though the accounts row holds other bytes' do
+      result = op.call
+
+      expect(result.status).to eq(:no_change)
+      expect(trace).to eq([])
+    end
+
+    it 'rewrites both stores, compare-and-setting the SQL row on the probed bytes' do
+      result = op(allow_canonicalization: true).call
+
+      expect(result.status).to eq(:success)
+      expect(result.auth_row_updated).to be true
+      expect(trace.first).to eq([:sql_cas_update, old_email])
+      expect(trace).to include([:customer_email_assigned, old_email], [:customer_save])
+    end
+
+    it 'returns :stale and writes nothing to Redis when the compare-and-set matches no row' do
+      allow(by_id_cas).to receive(:update) do |attrs|
+        trace << [:sql_cas_update, attrs[:email]]
+        0
+      end
+
+      result = op(allow_canonicalization: true).call
+
+      expect(result.status).to eq(:stale)
+      expect(result.auth_row_updated).to be false
+      expect(trace).to eq([[:sql_cas_update, old_email]])
+      expect(customer).not_to have_received(:save)
+      expect(revoker).not_to have_received(:call)
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+        hash_including(result: :failure, detail: hash_including(reason: 'stale'))
+      )
+    end
+
+    it 'refuses account_id: without the flag' do
+      expect { op(account_id: 42) }.to raise_error(ArgumentError)
+    end
+  end
+
+  # =========================================================================
   describe 'delegation to sibling ops (one audit event per VERB)' do
     it 'delegates session revocation to RevokeAllForCustomer' do
       op.call
