@@ -362,6 +362,36 @@ RSpec.describe Onetime::Operations::Org::Unarchive do
       expect(reloaded_org.archived?).to be(false)
     end
 
+    # F4 (review on #4723): the CLI loads the org, then a billing webhook
+    # moves planid / subscription fields on a different instance, then the
+    # CLI's instance unarchives. Organization#unarchive! must write only its
+    # two fields; a whole-hash save from the stale instance would put the old
+    # billing values back and report success.
+    it 'leaves billing fields changed by another instance after this one was loaded intact' do
+      @org.planid                 = 'free_v1'
+      @org.stripe_subscription_id = "sub_old_#{suffix}"
+      @org.subscription_status    = 'canceled'
+      @org.save
+
+      stale = Onetime::Organization.load(@org.objid) # what the CLI holds
+
+      webhook = Onetime::Organization.load(@org.objid)
+      webhook.planid                 = 'team_plus_v1'
+      webhook.stripe_subscription_id = "sub_new_#{suffix}"
+      webhook.subscription_status    = 'active'
+      webhook.save
+
+      result = described_class.new(org: stale, actor: actor, dry_run: false).call
+      expect(result.status).to eq(:success)
+
+      org = reloaded_org
+      expect(org.archived?).to be(false)
+      expect(org.archived_comment.to_s).to be_empty
+      expect(org.planid).to eq('team_plus_v1')
+      expect(org.stripe_subscription_id).to eq("sub_new_#{suffix}")
+      expect(org.subscription_status).to eq('active')
+    end
+
     describe 'the advisory pointer over a real default_org_id' do
       before do
         @elsewhere = Onetime::Organization.create!("Elsewhere #{suffix}", @owner)
