@@ -1815,6 +1815,50 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
       expect(Onetime::Organization.load(personal.objid).archived?).to be(true)
     end
 
+    # #4717 — the owner's own default organization. The tenant org IS the
+    # owner's is_default workspace (auto-created, later given the domain and
+    # SSO). The already_member self-heal resolved it as the personal workspace
+    # to archive — the destination was never compared to the candidate — so
+    # the owner's live, billed tenant org was archived by their own Connect.
+    it 'post-login: the owner connecting on their own default organization leaves it live (#4717)' do
+      owner = @oauth_test_fixtures.last[:owner]
+      org   = @tenant[:org]
+      @membership.destroy!
+      auth_db[:accounts].where(id: actor_id).update(external_id: owner.extid)
+
+      stripe_customer_id     = "cus_#{SecureRandom.hex(4)}"
+      org.planid             = 'team_plus_v1'
+      org.stripe_customer_id = stripe_customer_id
+      org.save
+      org.is_default! true
+      owner.default_org_id = org.objid
+      owner.save
+      expect(Onetime::Organization.load(org.objid).owner?(owner)).to be(true)
+      expect(Onetime::Organization.load(org.objid).archived?).to be(false)
+
+      tenant_connect_callback
+
+      expect(identities.where(tuple).all).to contain_exactly(hash_including(account_id: actor_id))
+      expect(Auth::Operations::JoinDomainOrganization).to have_received(:new)
+        .with(customer: an_object_having_attributes(objid: owner.objid), domain_id: @tenant[:domain].identifier)
+
+      reloaded = Onetime::Organization.load(org.objid)
+      expect(reloaded.archived?).to be(false), 'the owner\'s own default organization must not be archived by their Connect'
+      expect(reloaded.archived_at.to_s).to be_empty
+      expect(reloaded.archived_comment.to_s).to be_empty
+      expect(reloaded.planid).to eq('team_plus_v1')
+      expect(reloaded.stripe_customer_id).to eq(stripe_customer_id)
+
+      membership = Onetime::OrganizationMembership.find_by_org_customer(org.objid, owner.objid)
+      expect(membership).to be_owner
+      expect(membership.active?).to be(true)
+
+      domain = Onetime::CustomDomain.find_by_identifier(@tenant[:domain].identifier)
+      expect(domain.org_id).to eq(org.org_id)
+
+      expect(Onetime::Customer.load(owner.objid).default_org_id).to eq(org.objid)
+    end
+
     it 'refuses a tenant session presented to the platform callback and consumes its intent' do
       allow(Auth::Logging).to receive(:log_auth_event).and_call_original
       clear_body_headers

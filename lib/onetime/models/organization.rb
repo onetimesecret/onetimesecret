@@ -377,24 +377,35 @@ module Onetime
 
       self.archived_at      = Familia.now.to_f
       self.archived_comment = comment if comment
-      save
+      # Field-scoped write (Familia#save_fields: one HMSET of the named fields),
+      # never a whole-hash save from this instance -- see unarchive!. save_fields
+      # does not stamp `updated` the way save does (prepare_for_save), so it is
+      # set and written here.
+      self.updated          = Familia.now
+      comment ? save_fields(:archived_at, :archived_comment, :updated) : save_fields(:archived_at, :updated)
     end
 
-    # Reverse a soft-archive.
+    # Reverse a soft-archive. The one primitive that resets archived_at AND
+    # archived_comment together; its caller is Onetime::Operations::Org::Unarchive
+    # (`bin/ots org unarchive`), the #4717 repair verb.
     #
-    # NOTE: For personal workspaces (is_default: true) archived by the domain
-    # SSO self-heal (see JoinDomainOrganization#adopt_domain_default_org),
-    # unarchiving is durable only while the customer's default_org_id points at
-    # a different active org (e.g. the domain org). The self-heal runs on every
-    # SSO login, including the already_member path, so if this workspace would
-    # again resolve as the customer's default — i.e. default_org_id is empty or
-    # points back at this workspace — it will be re-archived on their next
-    # domain SSO login. To restore it permanently, also repoint default_org_id
-    # to the org the customer should default to.
+    # NOTE: The domain SSO self-heal (JoinDomainOrganization#adopt_domain_default_org)
+    # archives only the is_default workspace the owner's default pointer
+    # resolves to (explicit default_org_id, else the owned default) when it is
+    # not the domain org being joined, so a pointer at a different live org
+    # leaves a restored workspace untouched. Org::Unarchive reports that pointer
+    # (`pointer_org_id`) for the operator; nothing refuses on it.
     def unarchive!
       self.archived_at      = ''
       self.archived_comment = ''
-      save
+      # Field-scoped write: Familia#save_fields persists ONLY the named fields
+      # (one HMSET in a transaction). A whole-hash `save` would write back every
+      # field this instance loaded, so a billing webhook that moved planid or
+      # the subscription fields between the CLI's load and this call would be
+      # silently reverted (F4 on #4723). `updated` is stamped explicitly because
+      # save_fields skips the timestamp pass save performs.
+      self.updated          = Familia.now
+      save_fields(:archived_at, :archived_comment, :updated)
     end
 
     # Re-materialize entitlements for all active memberships.

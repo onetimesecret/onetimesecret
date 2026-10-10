@@ -1,0 +1,186 @@
+# SSO Self-Archived Organization
+
+Use this runbook when a tenant (custom-domain SSO) organization has been
+soft-archived with a comment that names the organization's own public id, and
+its owner and members have lost organization-gated features.
+
+## Symptoms
+
+One or more of these conditions may appear:
+
+- the owner and the members of a tenant organization lose organization-gated
+  features (team secrets, custom-domain management, billing pages) while they
+  can still sign in;
+- `OrganizationLoader` returns no organization for them, because the loader
+  skips archived organizations;
+- the owner's `default_org_id` names an organization whose `archived_at` is
+  set;
+- `bin/ots domains doctor --all` reports `archived_org_reference` for the
+  tenant's domain;
+- the organization's `archived_comment` reads
+  `Superseded by domain org <extid> via SSO self-heal` where `<extid>` is the
+  organization's **own** public id.
+
+The self-referential comment is the distinguishing signal. A comment that
+names a *different* organization describes a legitimate adoption (a personal
+workspace superseded by the tenant organization) and is not covered here.
+
+## Cause
+
+`Auth::Operations::JoinDomainOrganization` runs on every tenant SSO login.
+After joining the customer to the domain organization it repoints their
+default to that organization and archives the personal default workspace it
+replaced. When the signed-in customer owned the domain organization and that
+organization carried the `is_default` flag (an auto-created workspace later
+promoted to the tenant organization), the workspace it resolved as "the
+personal default" was the domain organization itself, and nothing compared
+the two. The organization was archived on the owner's tenant SSO login, and
+again on the first login after any restore until the guard is live; an
+already-archived organization is skipped by the self-heal, so later logins
+did not archive it a second time.
+
+#4717 adds the comparison: the self-heal returns before writing when the
+candidate and the destination are the same organization. The guard does not
+restore records that were archived before it was deployed; that is what the
+rest of this runbook does.
+
+## Safety rules
+
+- Deploy the guard before repairing. Until the guard is live, an owner SSO
+  login re-archives the organization you just restored.
+- Do not clear `archived_at` or `archived_comment` directly in Redis/Valkey or
+  from `bin/console`. `bin/ots org unarchive` is the only path that resets both
+  fields together and records the change in the operator audit trail.
+- Do not repoint `default_org_id` as part of this repair unless the owner's
+  pointer is actually wrong. For the self-archive case it already names the
+  archived organization and needs no change. The command reports where the
+  pointer goes; it never changes it.
+- Treat any archived organization whose comment names a different organization
+  as out of scope. Deciding whether to restore it is a separate judgement.
+
+## Discover the affected organizations
+
+1. Scan every domain. Check 9 (`archived_org_reference`) is report-only and
+   fires when a domain's `org_id` points at an organization whose
+   `archived_at` is set:
+
+   ```console
+   bin/ots domains doctor --all
+   ```
+
+   Each affected domain is printed as `<fqdn> (<domain extid>)` followed by
+
+   ```text
+   [HIGH]     org_id '<org objid>' points to an archived organization [manual fix required]
+              Manual decision required: unarchive the organization, or move the domain (bin/ots domains transfer <fqdn> --to-org <ORG>)
+   ```
+
+   Note that the message carries the organization's internal id (`org_id`),
+   which `bin/ots org unarchive` accepts directly. With `--json` the same
+   finding is the issue whose `check` is `archived_org_reference`.
+
+2. For each reported organization, run the dry run. It writes nothing and
+   prints the archived comment:
+
+   ```console
+   bin/ots org unarchive <ORG>
+   ```
+
+   ```text
+   DRY RUN — nothing has been written yet
+   Organization:     <org extid> (<display name>)
+   Owner:            <owner extid>
+   Archived comment: Superseded by domain org <org extid> via SSO self-heal
+
+   Dry run only — re-run with --run to apply.
+   ```
+
+   When the owner's `default_org_id` names a different live organization the
+   dry run adds one line before the blank one:
+   `Owner default workspace: <other extid>; this organization will not become their default`.
+
+3. Keep only the organizations whose comment names their **own** extid (the
+   one printed on the `Organization:` line). Those are the #4717 records. The
+   same fields are visible in the Colonel organization detail
+   (`GET /api/colonel/organizations/:org_id`: `archived`, `archived_at`,
+   `archived_comment`).
+
+## Repair
+
+For each organization kept in the previous step:
+
+1. Confirm the guard is deployed (the running version includes #4717).
+
+2. Verify the surrounding state before writing anything:
+
+   - the owner still holds an active `owner` membership. Check it directly:
+     the Colonel organization detail (`GET /api/colonel/organizations/:org_id`)
+     lists `members[]` with `role`, `status` and `is_owner`, built from the
+     active memberships, so the owner must appear there with `role: owner`.
+     `bin/ots org doctor <ORG>` is not sufficient for this: checks 1 and 2
+     only prove the owner exists and is in the members set, and check 4 only
+     flags other owner-role memberships; an inactive or member-role owner
+     membership passes all three;
+   - the owner's `default_org_id` names this organization: read the
+     `default_org_id:` line of `bin/ots customers show <owner>` and compare it
+     with the org's `org_id` from the domain scan. A missing
+     `Owner default workspace:` line in the dry run is not proof of this; the
+     line is also absent when the pointer is empty or names an archived or
+     missing organization;
+   - `planid`, `stripe_customer_id` and `stripe_subscription_id` are the values
+     you expect for the tenant. The archive never touched them, so a mismatch
+     here is a different problem; stop and investigate it first.
+
+3. Apply:
+
+   ```console
+   bin/ots org unarchive <ORG> --run
+   ```
+
+   Expected output is `Unarchived <org extid> (<display name>)` with the
+   cleared comment on the next line. One `organization.unarchive` event with
+   `result: success` is recorded in the operator audit trail; the cleared
+   comment is kept in the event detail.
+
+4. Verify the repair holds. Ask the owner to sign in through the tenant SSO
+   (or sign in as them with an authorized test account on a staging copy),
+   then confirm the organization is still live:
+
+   ```console
+   bin/ots org unarchive <ORG>
+   ```
+
+   Expected: `<org extid> (<display name>) is not archived; nothing to do.`
+   A domain scan should no longer report `archived_org_reference` for the
+   tenant's domain.
+
+## The `Owner default workspace` advisory
+
+Both passes print `Owner default workspace: <other extid>; this organization
+will not become their default` when the owner's `default_org_id` names a
+*different* organization that is live. The same value is `pointer_org_id` in
+the `--json` payload and in the audit event detail. It is information, not a
+refusal: the unarchive proceeds exactly as it would without it.
+
+Why it matters: the sign-in self-heal archives only the workspace the owner's
+pointer resolves to (the explicit `default_org_id`, else the workspace they
+own with the default flag) when that workspace is not the domain organization
+they are joining. A pointer at a different live organization therefore leaves
+the restored one untouched, but the owner keeps landing in the other
+organization until someone repoints the default. Members can choose their own
+default workspace, so a pointer elsewhere may be deliberate.
+
+The advisory does not appear for the self-archive case covered by this
+runbook, where the pointer already names the archived organization. If it
+does appear, find out where the pointer came from before deciding whether to
+change it (`bin/ots customers doctor <owner>`); do not repoint it as part of
+the unarchive.
+
+## What this runbook does not cover
+
+- Personal workspaces archived by a legitimate adoption (comment names a
+  different organization). Restoring one of those is a product decision about
+  which workspace the customer should have.
+- Personal workspaces archived by the bulk install-level to domain-level SSO
+  migration (`bin/ots domains migrate-sso`), whose comment reads
+  `Bulk SSO migration to <domain>`.
