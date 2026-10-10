@@ -410,7 +410,10 @@ tenant's own IdP EntityID.
   and an issuerless identity is keyed `(provider, '', uid)`, so repointing
   the route at another instance would match that instance's users to the
   first instance's identity rows. A self-managed GitLab is configured as
-  generic OIDC with its URL as `OIDC_ISSUER`.
+  generic OIDC with its URL as `OIDC_ISSUER`. GitLab has no
+  `email_verified` claim, so for this strategy `email_verification_hold`
+  reads `confirmed_at` from `extra.raw_info` (`GET /api/v4/user`) instead:
+  a null or missing value holds trusted linking and the JIT verified stamp.
 - **Google/GitHub**: issuerless (see above). Google's OAuth2 strategy does
   return an id_token, but the strategy does not surface a validated `iss`
   via `options[:issuer]`; it is treated as issuerless by design.

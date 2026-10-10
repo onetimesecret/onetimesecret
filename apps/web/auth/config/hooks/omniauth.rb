@@ -170,11 +170,12 @@ module Auth::Config::Hooks
         # #4688 (RISK-2026-08-14-M01): the operator's trust declaration covers
         # the IdP as a boundary, not a callback in which that IdP says it did
         # NOT verify the address. Consult the same email_verification_hold the
-        # JIT path uses: an explicit email_verified: false ('idp_unverified')
-        # or a claim we could not read ('claim_unreadable') skips the auto-link
-        # and falls through to the existing-account branch below, exactly as if
-        # trust were off. Absence of the claim is not a hold, so providers that
-        # never emit it keep linking as before. JIT creation is unaffected: a
+        # JIT path uses: an explicit email_verified: false or, for GitLab, no
+        # confirmed_at ('idp_unverified'), or a claim we could not read
+        # ('claim_unreadable') skips the auto-link and falls through to the
+        # existing-account branch below, exactly as if trust were off. Absence
+        # of the claim is not a hold, so providers that never emit it keep
+        # linking as before. JIT creation is unaffected: a
         # new account is still created, and after_omniauth_create_account keeps
         # its Customer unverified on the same hold.
         if existing &&
@@ -183,6 +184,7 @@ module Auth::Config::Hooks
           link_hold = Auth::Config::Hooks::OmniAuth.email_verification_hold(
             info: omniauth_info,
             extra: omniauth_extra,
+            strategy: omniauth_strategy,
           )
 
           if link_hold.nil?
@@ -801,8 +803,9 @@ module Auth::Config::Hooks
         #      deployment opens SSO accounts unverified (or skip_status_checks?
         #      is on) the read is not VERIFIED and the Customer stays
         #      unverified — exactly the pre-fix behaviour.
-        #   3. The IdP did not EXPLICITLY assert email_verified: false, and the
-        #      claim could be read at all (email_verification_hold is nil).
+        #   3. The IdP did not EXPLICITLY assert email_verified: false (for
+        #      GitLab: did report a confirmed_at), and the claim could be read
+        #      at all (email_verification_hold is nil).
         #
         # This only mirrors an auth-store fact onto the Customer record; it
         # grants nothing the accounts row does not already grant. It also
@@ -821,6 +824,7 @@ module Auth::Config::Hooks
         verification_hold = Auth::Config::Hooks::OmniAuth.email_verification_hold(
           info: omniauth_info,
           extra: omniauth_extra,
+          strategy: omniauth_strategy,
         )
         sso_verified      = account_status == Auth::AccountStatuses::VERIFIED && verification_hold.nil?
 
@@ -991,7 +995,8 @@ module Auth::Config::Hooks
     # Two distinct reasons, kept apart because they call for different
     # operator follow-up (see Onetime::Customer::VERIFICATION_HOLDS):
     #
-    #   'idp_unverified'   — the IdP EXPLICITLY asserted email_verified: false.
+    #   'idp_unverified'   — the IdP EXPLICITLY asserted email_verified: false,
+    #                        or, for GitLab, reported no confirmed_at.
     #   'claim_unreadable' — a source raised while the claim was being read.
     #                        FAIL CLOSED: that is not "no claim", it is a claim
     #                        we could not inspect, and an explicit false may be
@@ -1006,6 +1011,13 @@ module Auth::Config::Hooks
     # treating it as a positive signal would be us inventing an assertion the
     # IdP never made. So this narrows the verified stamp and can never widen it.
     #
+    # GITLAB is the exception. It has no email_verified claim, but GET
+    # /api/v4/user (the strategy's raw_info) always carries confirmed_at, null
+    # until the account's email is confirmed. For the GitLab strategy that
+    # field replaces the claim, and a null or missing confirmed_at holds. The
+    # strategy is identified by class, `defined?` because omniauth-gitlab is
+    # only required when the GitLab provider registers.
+    #
     # Looks in `info` first, then `extra.raw_info` (OIDC UserInfo / the decoded
     # id_token). Both may be a plain Hash or an OmniAuth::AuthHash, and may be
     # string- or symbol-keyed, so every read goes through fetch_claim. Only the
@@ -1014,9 +1026,15 @@ module Auth::Config::Hooks
     #
     # @param info [Hash, OmniAuth::AuthHash, nil] omniauth_info
     # @param extra [Hash, OmniAuth::AuthHash, nil] omniauth_extra
+    # @param strategy [OmniAuth::Strategy, nil] omniauth_strategy
     # @return [String, nil] one of Onetime::Customer::VERIFICATION_HOLDS, or
     #   nil when nothing withholds the stamp (claim absent, nil, or truthy)
-    def self.email_verification_hold(info:, extra:)
+    def self.email_verification_hold(info:, extra:, strategy: nil)
+      if defined?(::OmniAuth::Strategies::GitLab) && strategy.is_a?(::OmniAuth::Strategies::GitLab)
+        confirmed_at = fetch_claim(fetch_claim(extra, 'raw_info'), 'confirmed_at')
+        return confirmed_at.to_s.strip.empty? ? 'idp_unverified' : nil
+      end
+
       claim = fetch_claim(info, 'email_verified')
       claim = fetch_claim(fetch_claim(extra, 'raw_info'), 'email_verified') if claim.nil?
       return nil if claim.nil?
