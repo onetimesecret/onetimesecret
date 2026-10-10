@@ -33,6 +33,7 @@
 require 'spec_helper'
 require 'onetime/audit_reason'
 require 'onetime/models/colonel_audit_event'
+require 'onetime/operations/chores/run'
 require 'onetime/operations/dlq/purge'
 require 'onetime/operations/dlq/replay'
 require 'onetime/operations/memberships/remove'
@@ -382,6 +383,62 @@ RSpec.describe 'operator-supplied reason on destructive verbs (#4338)' do
   # ---------------------------------------------------------------------------
   # The one place `reason` is NOT the operator's: membership refusals
   # ---------------------------------------------------------------------------
+  # ---------------------------------------------------------------------------
+  # Console chore runs (#4343)
+  # ---------------------------------------------------------------------------
+  describe Onetime::Operations::Chores::Run do
+    let(:chore) { 'housekeeping.organization.standardize_planid' }
+
+    before do
+      allow(Onetime::Jobs::JobRun).to receive(:started)
+      allow(Onetime::Jobs::JobRun).to receive(:finished)
+      allow(Onetime::Organization).to receive(:instances).and_return(double('instances', size: 3))
+      allow(Onetime::Jobs::Scheduled::HousekeepingJob).to receive(:perform).and_return(
+        model: 'Onetime::Organization', scanned: 3, budget_exhausted: false,
+        chores: { standardize_planid: { modified: 2, errors: 0 } },
+      )
+    end
+
+    def run(**opts)
+      described_class.new(chore: chore, actor: actor, **opts).call
+    end
+
+    let(:applied_detail) do
+      {
+        dry_run: false, limit: 100, capped: false, budget_exhausted: false, status: 'success',
+        scanned: 3, modified: 2, errors: 0,
+      }
+    end
+
+    it 'carries the reason onto the applied run' do
+      run(reason: reason)
+
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+        actor: actor,
+        verb: 'chore.run',
+        target: chore,
+        result: :success,
+        detail: applied_detail.merge(reason: reason),
+        fail_closed: true,
+      )
+    end
+
+    it 'leaves the applied detail byte-for-byte unchanged without one' do
+      run(reason: '  ')
+
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once
+        .with(hash_including(detail: applied_detail))
+    end
+
+    it 'carries the reason onto the preview observation' do
+      run(dry_run: true, reason: reason)
+
+      expect(Onetime::ColonelAuditEvent).to have_received(:record_access).once.with(
+        hash_including(detail: { limit: 100, would_scan: 3, total: 3, reason: reason, dry_run: true }),
+      )
+    end
+  end
+
   describe 'membership refusals keep `reason` meaning the refusal STATUS' do
     let(:org)      { double('Org', extid: 'org_1', objid: 'o1') }
     let(:customer) { double('Customer', extid: 'ur_m', objid: 'c1') }
