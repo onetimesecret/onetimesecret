@@ -23,9 +23,9 @@ provider appears on the login and signup pages with zero frontend changes.
    (e.g. `gem 'omniauth-github'`), then `bundle install`. A gem that caps
    a shared dependency below the locked version would downgrade it for
    every provider; the `Gemfile` floors `jwt` and `omniauth-oauth2` so such
-   a gem fails resolution instead. omniauth-gitlab is one (it caps
-   `omniauth-oauth2` at 1.8.x), which is why GitLab's strategy is an
-   in-repo port (`gitlab_strategy.rb`). If the gem's own
+   a gem fails resolution instead. The released omniauth-gitlab is one
+   (it caps `omniauth-oauth2` at 1.8.x), so the `Gemfile` takes it from a
+   fork that lifts the cap, pinned to a commit with `ref:`. If the gem's own
    defaults do not meet the gates this application needs, subclass the
    strategy under `lib/onetime/sso_provider/` and point the definition's
    `gem_require` at that file; the file requires the gem itself, so the gem
@@ -394,11 +394,16 @@ tenant's own IdP EntityID.
 - **Entra ID**: uid is `tid+oid` by default. If you ever set
   `ignore_tid: true`, cross-tenant safety rests entirely on issuer scoping —
   see the security note on the `:entra` registry entry.
-- **GitLab** (in-repo `OmniAuth::Strategies::GitLab`, ported from
-  omniauth-gitlab 4.1.0): issuerless, and pinned to gitlab.com. The gem is
-  not bundled because it declares `omniauth-oauth2 ~> 1.8.0`, while the lock
+- **GitLab** (`OmniAuth::Strategies::GitLab` from the
+  [onetimesecret/omniauth-gitlab](https://github.com/onetimesecret/omniauth-gitlab)
+  fork, pinned by commit): issuerless, and pinned to gitlab.com. The
+  released gem (4.1.0) declares `omniauth-oauth2 ~> 1.8.0`, while the lock
   carries 1.9.0 (constant-time `state` comparison) and the `Gemfile` floors
-  it at `~> 1.9`. There is deliberately no site override for a self-managed
+  it at `~> 1.9`. The fork relaxes that constraint to `~> 1.8` and leaves
+  the strategy as upstream wrote it; moving the pinned commit is a strategy
+  change, and `gitlab_strategy_spec.rb` is the check for it. The strategy's
+  `redirect_url` option is never set, so the callback is always this host's
+  callback path. There is deliberately no site override for a self-managed
   instance: the uid is the GitLab user id, unique only within one instance,
   and an issuerless identity is keyed `(provider, '', uid)`, so repointing
   the route at another instance would match that instance's users to the

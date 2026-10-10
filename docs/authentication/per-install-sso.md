@@ -633,10 +633,11 @@ Note: For GitHub Organizations, use GitHub Apps instead of OAuth Apps for finer-
 
 ### GitLab
 
-Uses an in-repo port of the `omniauth-gitlab` strategy
-(`lib/onetime/sso_provider/gitlab_strategy.rb`). The gem itself is not
-bundled: its latest release caps `omniauth-oauth2` at 1.8.x, which would
-downgrade it for every OAuth2 provider.
+Uses the `omniauth-gitlab` gem from the
+[onetimesecret fork](https://github.com/onetimesecret/omniauth-gitlab), pinned
+to a commit in the `Gemfile`. The released gem caps `omniauth-oauth2` at 1.8.x,
+which would downgrade it for every OAuth2 provider; the fork lifts that cap and
+leaves the strategy unchanged.
 
 GitLab is issuerless (plain OAuth2, like GitHub and Google), so it is available
 for platform SSO only; custom-domain (tenant) SSO refuses it. It signs in
@@ -1135,7 +1136,6 @@ SSO_FORM_ACTION_ORIGINS="https://authorize.example.gov"
 | `lib/onetime/sso_provider/registry.rb` | Provider definitions (one file per provider under `lib/onetime/sso_provider/`) |
 | `lib/onetime/sso_provider/saml.rb` | SAML definition, validators and the single hardened-options builder shared with tenant SAML |
 | `lib/onetime/sso_provider/request_bound_saml.rb` | `OmniAuth::Strategies::RequestBoundSAML` — the SAML gates |
-| `lib/onetime/sso_provider/gitlab_strategy.rb` | `OmniAuth::Strategies::GitLab` — in-repo port of the omniauth-gitlab strategy |
 | `lib/onetime/security/saml_assertion_replay_guard.rb` | Single-use assertion cache |
 | `lib/onetime/middleware/http_origin_options.rb` | Cross-site POST callback allowance (Apple, SAML) |
 
@@ -1155,7 +1155,7 @@ SSO_FORM_ACTION_ORIGINS="https://authorize.example.gov"
 | `apps/web/auth/spec/unit/omniauth_domain_validation_spec.rb` | Domain restriction logic |
 | `apps/web/auth/spec/config/hooks/omniauth_spec.rb` | Email normalization, SAML issuer resolution through the wired hooks |
 | `spec/unit/onetime/sso_provider/request_bound_saml_spec.rb` | SAML gates against real signed responses (`spec/support/saml/test_idp.rb`) |
-| `spec/unit/onetime/sso_provider/gitlab_strategy_spec.rb` | GitLab strategy round trip against stubbed gitlab.com endpoints |
+| `spec/unit/onetime/sso_provider/gitlab_strategy_spec.rb` | omniauth-gitlab strategy round trip against stubbed gitlab.com endpoints |
 | `apps/web/auth/spec/integration/full/tenant_saml_sso_spec.rb` | Tenant SAML sign-in end to end through Rodauth |
 | `apps/web/auth/spec/integration/full_saml_platform/platform_saml_sso_spec.rb` | Platform SAML sign-in end to end, including rejection of verified-custom-domain fallback (env-configured IdP); own lane `full-saml-platform` |
 
