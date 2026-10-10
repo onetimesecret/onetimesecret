@@ -690,7 +690,9 @@ module Auth::Config::Hooks
                  nil # No allowlist configured — every authenticated identity is permitted.
                elsif candidate.match?(/\A[[:space:]]*\z/)
                  :missing_email
-               elsif !email.is_a?(String) || !Onetime::SignupValidation.structurally_valid_email?(candidate)
+               elsif !email.is_a?(String) ||
+                     !Onetime::SignupValidation.structurally_valid_email?(candidate) ||
+                     !Auth::Config::Hooks::OmniAuth.fold_stable_email?(candidate)
                  :invalid_email
                elsif !sso_config.valid_email_domain?(candidate)
                  :domain_not_allowed

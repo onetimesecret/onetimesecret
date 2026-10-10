@@ -24,15 +24,10 @@ module Auth::Config::Hooks
   module OmniAuth
     # Rodauth builds the account from omniauth_email BEFORE the creation guard
     # validates it, and rodauth-omniauth persists it without normalize_login.
-    # Trim and lowercase at the accessor, the same transform the signup and
-    # tenant domain gates apply, so PostgreSQL receives the value they judged
-    # and an ASCII accounts.email matches the Customer email index (#2843).
-    # A provider's casing in SQL left the account's Customer unreachable by
+    # Canonicalize at the accessor so the domain gates, the account lookup,
+    # accounts.email and the Customer email index all see one value. A
+    # provider's casing in SQL left the account's Customer unreachable by
     # email (#4726).
-    #
-    # Deliberately not normalize_email: its case folding rewrites some
-    # non-ASCII addresses into different ones (ß -> ss), and the gates must
-    # judge the address the IdP asserted.
     module EmailNormalization
       def omniauth_email
         value = super
@@ -41,8 +36,34 @@ module Auth::Config::Hooks
         # email into a mailbox.
         return value unless value.is_a?(String)
 
-        value.gsub(/\A[[:space:]]+|[[:space:]]+\z/, '').downcase
+        Auth::Config::Hooks::OmniAuth.canonical_email(value)
       end
+    end
+
+    # Trimmed (Unicode whitespace, then String#strip's set, which adds NUL),
+    # NFC, lowercased. For a fold-stable address this equals
+    # OT::Utils.normalize_email, which normalize_login and Customer.create!
+    # use (#2843).
+    #
+    # @param value [String]
+    # @return [String]
+    def self.canonical_email(value)
+      value.gsub(/\A[[:space:]]+|[[:space:]]+\z/, '').strip.unicode_normalize(:nfc).downcase
+    end
+
+    # normalize_email case-FOLDS, which rewrites a few non-ASCII addresses
+    # into different ones (ß -> ss). Such a claim would be judged by the
+    # domain gates, matched to accounts, and keyed in the Customer index
+    # under an address the IdP did not assert, so SSO refuses it as
+    # invalid_email instead.
+    #
+    # @param email [String, Object] a canonical_email value; a non-String is
+    #   stable (the structural guards refuse it on their own)
+    # @return [Boolean]
+    def self.fold_stable_email?(email)
+      return true unless email.is_a?(String)
+
+      email.downcase(:fold) == email
     end
 
     # The only initiator of a platform Connect is the Connected Identities
@@ -163,6 +184,11 @@ module Auth::Config::Hooks
 
         session_account = resolve_omniauth_connect_account
         next session_account if session_account
+
+        # A claim case folding would rewrite must not locate an account by its
+        # folded form (a different address). Skip the email branches;
+        # before_omniauth_create_account refuses it as invalid_email.
+        next nil unless Auth::Config::Hooks::OmniAuth.fold_stable_email?(omniauth_email)
 
         # Not authenticated (or logged-in without connect intent): email is the
         # only signal available, so the email-based branches below apply. Locate
@@ -743,7 +769,9 @@ module Auth::Config::Hooks
         # (rather than letting a claim the CHECK rejects fall through to account
         # creation, which 500s as Sequel::CheckConstraintViolation) keeps the
         # user on a localized error instead of a frozen screen (#3478, #3971).
-        unless claim.is_a?(String) && Onetime::SignupValidation.structurally_valid_email?(email)
+        # A fold-unstable claim is refused here too (see fold_stable_email?).
+        unless claim.is_a?(String) && Onetime::SignupValidation.structurally_valid_email?(email) &&
+               Auth::Config::Hooks::OmniAuth.fold_stable_email?(email)
           Auth::Logging.log_auth_event(
             :omniauth_invalid_email,
             level: :warn,

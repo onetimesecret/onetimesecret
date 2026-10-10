@@ -198,36 +198,59 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
     end
   end
 
-  # Lowercasing is case mapping, not normalize_email's case folding: folding
-  # would turn straße.example.com into strasse.example.com before the gates.
+  # normalize_email case-folds, and 'straße' folds to 'strasse', a different
+  # address. SSO refuses such a claim rather than judge, match or store it
+  # under the folded form.
   describe 'case folding' do
-    let(:email) { "user-#{SecureRandom.hex(6)}@straße.example.com" }
+    let(:local) { "user-#{SecureRandom.hex(6)}" }
     let(:uid) { "fold-#{SecureRandom.uuid}" }
 
-    it 'judges the signup domain the IdP asserted, not its folded form' do
-      configure_allowed_domains(['strasse.example.com'])
-      setup_entra_mock_auth(email: email, uid: uid)
-      expect { post_sso_callback }.not_to change { auth_db[:accounts].count }
-      expect_auth_error_redirect('domain_not_allowed')
+    [nil, ['strasse.example.com']].each do |allowed|
+      it "refuses a claim case folding would rewrite (allowlist: #{allowed.inspect})" do
+        configure_allowed_domains(allowed)
+        setup_entra_mock_auth(email: "#{local}@straße.example.com", uid: uid)
+        expect { post_sso_callback }.not_to change { auth_db[:accounts].count }
+        expect_auth_error_redirect('invalid_email')
+      end
     end
 
-    it 'stores the asserted address unfolded and signs in through the stored link' do
-      setup_entra_mock_auth(email: email, uid: uid)
-      expect { post_sso_callback }.to change { auth_db[:accounts].count }.by(1)
-      account = expect_provisioned_account(email: email, uid: uid)
-      expect(account[:external_id]).not_to be_nil
-      expect(last_request.env['rack.session'].to_h)
-        .to include('authenticated' => true, 'account_id' => account[:id], 'external_id' => account[:external_id])
+    it 'does not locate an existing account by the folded address' do
+      owner_email = "#{local}@strasse.example.com"
+      owner_uid = "owner-#{SecureRandom.uuid}"
+      setup_entra_mock_auth(email: owner_email, uid: owner_uid)
+      post_sso_callback
+      expect_created_account(email: owner_email, uid: owner_uid)
+
+      clear_cookies
+      setup_entra_mock_auth(email: "#{local}@straße.example.com", uid: uid)
+      expect { post_sso_callback }.not_to change { auth_db[:account_identities].count }
+      expect_auth_error_redirect('invalid_email')
     end
   end
 
-  describe 'Unicode surrounding whitespace' do
+  describe 'canonical form' do
     it 'persists a trimmed email rather than a Unicode-padded mailbox' do
       email = unique_test_email('unicode-padded')
       uid = "unicode-#{SecureRandom.uuid}"
       setup_entra_mock_auth(email: "\u00a0#{email}\u2003", uid: uid)
       expect { post_sso_callback }.to change { auth_db[:accounts].count }.by(1)
       expect_created_account(email: email, uid: uid)
+    end
+
+    it 'persists an email trimmed of the NUL padding the gates strip' do
+      email = unique_test_email('nul-padded')
+      uid = "nul-#{SecureRandom.uuid}"
+      setup_entra_mock_auth(email: "\0#{email}\0", uid: uid)
+      expect { post_sso_callback }.to change { auth_db[:accounts].count }.by(1)
+      expect_created_account(email: email, uid: uid)
+    end
+
+    it 'persists the NFC form the Customer index uses for a decomposed email' do
+      decomposed = "josé-#{SecureRandom.hex(6)}@example.com"
+      uid = "nfd-#{SecureRandom.uuid}"
+      setup_entra_mock_auth(email: decomposed, uid: uid)
+      expect { post_sso_callback }.to change { auth_db[:accounts].count }.by(1)
+      expect_created_account(email: decomposed.unicode_normalize(:nfc), uid: uid)
     end
   end
 
@@ -294,6 +317,8 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
           ['not-an-email', 'invalid_email'],
           ['attacker@evil.com@example.com', 'invalid_email'],
           [['user@example.com'], 'invalid_email'],
+          # Listed domain (unique_test_email's); 'straße' folds to 'strasse'.
+          ['straße@integration-test.example.com', 'invalid_email'],
           ['user@disallowed.example.com', 'domain_not_allowed'],
         ].each do |claim, error|
           it "rejects #{claim.inspect} with #{error} without changing accounts or identities" do
