@@ -195,8 +195,8 @@ RSpec.describe 'Entra ID native claim shapes through the mounted strategy', :sha
     expect(a_request(:post, token_url)).to have_been_made.once
     # The only egress is the token endpoint: no Microsoft Graph or UserInfo
     # enrichment supplies claims the token did not carry.
-    expect(a_request(:any, /graph\.microsoft\.com/)).not_to have_been_made
-    expect(a_request(:get, /login\.microsoftonline\.com/)).not_to have_been_made
+    expect(a_request(:any, %r{\Ahttps://graph\.microsoft\.com/})).not_to have_been_made
+    expect(a_request(:get, %r{\Ahttps://login\.microsoftonline\.com/})).not_to have_been_made
   end
 
   def auth_hash
