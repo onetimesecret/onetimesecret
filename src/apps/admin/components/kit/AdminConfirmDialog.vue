@@ -265,7 +265,10 @@
                     </slot>
                   </div>
 
-                  <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                  <!-- min-w-0: as a flex item this box would otherwise grow to
+                       the width of the longest unbroken word (a chore id, an
+                       email) and be clipped by the panel's overflow-hidden. -->
+                  <div class="mt-3 min-w-0 text-center sm:ml-4 sm:mt-0 sm:text-left">
                     <DialogTitle
                       as="h3"
                       class="text-base font-semibold leading-6 text-gray-900 dark:text-white">
