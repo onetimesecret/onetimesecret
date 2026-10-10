@@ -195,16 +195,6 @@ RSpec.describe Onetime::Operations::Dlq::Replay, 'one message by id' do
       expect(Onetime::ColonelAuditEvent).to have_received(:record).with(hash_including(fail_closed: true))
     end
 
-    it 'drops a message with no original queue, as the bulk replay does' do
-      orphans = DlqFakeBroker.broker(%w[A B C], original_queue: nil)
-
-      result = replay('B', conn: orphans.connection)
-
-      expect(result).to have_attributes(replayed: 0, failed: 1,
-        errors: [{ message_id: 'B', error: 'No original queue found' }])
-      expect(orphans.ready_ids).to eq(%w[A C])
-    end
-
     it 'records a broker failure mid-scan as one failure event and re-raises' do
       conn = broker.connection do |ch|
         allow(ch).to receive(:queue).and_raise(IOError, 'broker gone')
@@ -214,6 +204,43 @@ RSpec.describe Onetime::Operations::Dlq::Replay, 'one message by id' do
       expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         hash_including(result: :failure, detail: hash_including(dry_run: false, message_id: 'C')),
       )
+    end
+  end
+
+  # Unlike the bulk replay, which drops such a message, the per-message
+  # replay keeps it: the operator asked to replay, not to destroy.
+  describe 'a message with no original queue' do
+    let(:broker) { DlqFakeBroker.broker(%w[A B C], original_queue: nil) }
+
+    it 'is kept in its place with outcome no_original_queue, nothing published' do
+      result = replay('B')
+
+      expect(result).to have_attributes(status: :refused, outcome: 'no_original_queue', found: true,
+        replayed: 0, failed: 0)
+      expect(result.errors).to match([{ message_id: 'B', error: a_string_including('use Discard to remove it') }])
+      expect(broker.published).to be_empty
+      expect(broker.events).not_to include([:drop, 'B'])
+      expect(broker.ready_ids).to eq(%w[A B C])
+    end
+
+    it 'records a no-change attempt carrying that outcome' do
+      replay('B', reason: 'retry after fix')
+
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+        actor: actor, verb: 'queue.dlq.replay', target: dlq, result: :success,
+        detail: { message_id: 'B', replayed: 0, failed: 0, refused: 'no_original_queue',
+                  reason: 'retry after fix', outcome: 'no_change' },
+      )
+    end
+
+    it 'does not take the email DLQ reservation for it' do
+      email = DlqFakeBroker.broker(%w[A B], original_queue: nil)
+      op    = described_class.new(connection: email.connection, queue: 'dlq.email.message', actor: actor,
+        message_id: 'B')
+      allow(op).to receive(:dbclient).and_raise('the reservation must not be touched')
+
+      expect(op.call).to have_attributes(outcome: 'no_original_queue')
+      expect(email.ready_ids).to eq(%w[A B])
     end
   end
 

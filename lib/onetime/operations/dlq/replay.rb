@@ -65,7 +65,11 @@ module Onetime
       # With `message_id:` the op replays that one message, with the same
       # steps as each message of a bulk replay (#replay_delivery): claim
       # release, then republish and DLQ ack committed together; a message
-      # that is not replayed is left unacked and returns to the DLQ.
+      # that is not replayed is left unacked and returns to the DLQ. One
+      # difference: a message with no original queue (no x-death) is NOT
+      # dropped as the bulk replay drops it. It is left in the DLQ with
+      # outcome `no_original_queue`; removing it is Discard's job, where the
+      # operator chose destruction.
       # {Store.with_message} finds it with a bounded scan
       # ({Store::MAX_SCAN}) that returns the messages ahead of it to their
       # places, so the rest of the queue keeps its order.
@@ -119,6 +123,15 @@ module Onetime
         ALREADY_REPLAYED   = 'already_replayed'
         REPLAY_IN_PROGRESS = 'replay_in_progress'
         REFUSED_STEPS      = [ALREADY_REPLAYED.to_sym, REPLAY_IN_PROGRESS.to_sym].freeze
+
+        # Per-message outcome for a message with no x-death queue: kept, not
+        # dropped (see the class comment).
+        NO_ORIGINAL_QUEUE = 'no_original_queue'
+
+        # Per-message steps after which nothing moved: the message is still
+        # in the DLQ and the attempt is a no-change attempt (#4337), with the
+        # step as its outcome.
+        NOT_REPLAYED_STEPS = [*REFUSED_STEPS, NO_ORIGINAL_QUEUE.to_sym].freeze
 
         # The email DLQ consumer whose reservation a per-message replay takes.
         EmailConsumer = Onetime::Jobs::Scheduled::DlqEmailConsumerJob
@@ -446,6 +459,15 @@ module Onetime
         # @return [Hash] { results:, step: }
         def replay_matched(channel, delivery_info, properties, payload)
           results = { replayed: 0, failed: 0, errors: [] }
+
+          # Kept rather than dropped: the operator asked to replay it, not to
+          # destroy it. Unacked, it returns to its place when the channel
+          # closes.
+          unless Store.original_queue(properties.headers)
+            results[:errors] << { message_id: properties.message_id, error: no_original_queue_error }
+            return { results: results, step: :no_original_queue }
+          end
+
           # Selected after the scan returned the messages ahead of the match,
           # so those nacks were not caught in this transaction.
           channel.tx_select
@@ -577,11 +599,13 @@ module Onetime
           results = scan.value[:results]
           step    = scan.value[:step]
 
-          if REFUSED_STEPS.include?(step)
+          if NOT_REPLAYED_STEPS.include?(step)
             record_no_change_attempt(
               with_reason(message_id: @message_id, replayed: 0, failed: 0, refused: step.to_s),
             )
-            return message_result(:refused, scan, results: results, outcome: step.to_s)
+            return message_result(
+              :refused, scan, results: { replayed: 0, failed: 0, errors: results[:errors] }, outcome: step.to_s
+            )
           end
 
           Onetime::ColonelAuditEvent.record(
@@ -615,6 +639,11 @@ module Onetime
         def already_replayed_error
           'Not republished: the email DLQ consumer already republished this message id within the ' \
             'last hour, so replaying it again would send the email twice. It stays in the DLQ.'
+        end
+
+        def no_original_queue_error
+          'Not replayed: no original queue recorded (no x-death header), so there is nowhere to ' \
+            'republish it. It stays in the DLQ; use Discard to remove it.'
         end
 
         def replay_in_progress_error

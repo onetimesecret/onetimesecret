@@ -122,6 +122,21 @@ RSpec.describe 'DLQ per-message ops', :rabbitmq, type: :integration do
     expect(letters(remaining_ids(4))).to eq(%w[A B C E])
   end
 
+  it 'keeps a message with no original queue instead of dropping it' do
+    orphan = "F-#{suffix}"
+    dlq.publish(JSON.generate(id: orphan), persistent: true, message_id: orphan, content_type: 'application/json')
+    raise 'test publish was not confirmed' unless observer.wait_for_confirms
+
+    await_dlq(6)
+
+    result = Onetime::Operations::Dlq::Replay.new(
+      connection: connection, queue: dlq_name, actor: actor, message_id: orphan,
+    ).call
+
+    expect(result).to have_attributes(status: :refused, outcome: 'no_original_queue', replayed: 0, failed: 0)
+    expect(letters(remaining_ids(6))).to eq(%w[A B C D E F])
+  end
+
   it 'discards a message behind the head, the rest staying in order' do
     result = Onetime::Operations::Dlq::Discard.new(
       connection: connection, queue: dlq_name, actor: actor, message_id: ids[2],
