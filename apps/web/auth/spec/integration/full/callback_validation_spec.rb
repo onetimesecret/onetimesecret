@@ -607,6 +607,13 @@ RSpec.describe 'Cross-Tenant Callback Validation', type: :integration do
         expect_rejected('invalid_email')
       end
 
+      it 'rejects a claim case folding would rewrite even when its domain is listed' do
+        # 'straße' folds to 'strasse', a different address (#4726).
+        enforce('straße@example.com', sso_config)
+
+        expect_rejected('invalid_email')
+      end
+
       it 'rejects a missing email claim' do
         enforce(nil, sso_config)
 
