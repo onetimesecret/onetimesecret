@@ -120,14 +120,16 @@ module Onetime
         # @return [Result]
         def call
           # Snapshot before anything moves: `unarchive!` clears the comment.
+          # Owner and pointer are read-only lookups and every status, including
+          # :not_archived, reports them (the Result contract), so they are
+          # resolved before the early return.
           @archived_comment = @org.archived_comment
+          resolve_owner_pointer!
 
           unless @org.archived?
             OT.info "[Org::Unarchive] #{@org.extid} is not archived; nothing to do (dry_run=#{@dry_run})"
             return build(:not_archived)
           end
-
-          resolve_owner_pointer!
 
           if @dry_run
             record_preview_event

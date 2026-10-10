@@ -40,14 +40,14 @@ owner's tenant SSO login, and again on the first login after any restore.
 #4717 changes the login path so it never archives: it joins the customer and
 repoints their default, and leaves every workspace as it was. Records archived
 before that change are not restored by it; that is what the rest of this
-runbook does. A restored organization stays live regardless of when the login
-change is deployed.
+runbook does. Once the login change is deployed, subsequent SSO sign-ins do
+not rearchive a restored organization.
 
 ## Safety rules
 
-- A restore is durable: the login path never archives, so no sign-in undoes
-  it. If the running version predates #4717, deploy it first; until then an
-  owner SSO login can archive the organization again.
+- Deploy the login change before restoring. Once it is deployed, subsequent
+  SSO sign-ins do not rearchive a restored organization; while the running
+  version predates #4717, an owner SSO login can archive it again.
 - Do not clear `archived_at` or `archived_comment` directly in Redis/Valkey or
   from `bin/console`. `bin/ots org unarchive` is the only path that resets both
   fields together and records the change in the operator audit trail.
@@ -113,8 +113,14 @@ For each organization kept in the previous step:
 
 2. Verify the surrounding state before writing anything:
 
-   - the owner still holds an active `owner` membership
-     (`bin/ots org doctor <ORG>` checks 1, 2 and 4);
+   - the owner still holds an active `owner` membership. Check it directly:
+     the Colonel organization detail (`GET /api/colonel/organizations/:org_id`)
+     lists `members[]` with `role`, `status` and `is_owner`, built from the
+     active memberships, so the owner must appear there with `role: owner`.
+     `bin/ots org doctor <ORG>` is not sufficient for this: checks 1 and 2
+     only prove the owner exists and is in the members set, and check 4 only
+     flags other owner-role memberships; an inactive or member-role owner
+     membership passes all three;
    - the owner's `default_org_id` names this organization: read the
      `default_org_id:` line of `bin/ots customers show <owner>` and compare it
      with the org's `org_id` from the domain scan. A missing
@@ -173,5 +179,5 @@ the unarchive.
   names a different organization). Restoring one of those is a product
   decision about which workspace the customer should have.
 - Personal workspaces whose comment reads `Bulk SSO migration to <domain>`.
-  These are legacy data from a removed operator tool; the same product
-  decision applies.
+  Those comments were written by `bin/ots domains migrate-sso`, not by the
+  sign-in path, and are out of scope for this repair.
