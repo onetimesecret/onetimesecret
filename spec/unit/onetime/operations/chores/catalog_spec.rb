@@ -186,4 +186,27 @@ RSpec.describe Onetime::Operations::Chores::Budget do
     expect(budget.exhausted?).to be true  # sticky; the clock is not read again
     expect(budget.elapsed_ms).to eq(5000)
   end
+
+  it 'gives a loop that starts late at least min_loop_seconds from its first check' do
+    now    = 100.0
+    budget = described_class.new(8, min_loop_seconds: 3, clock: -> { now })
+
+    now = 109.0 # a 9 s uninterruptible step before the loop
+    expect(budget.exhausted?).to be false # first check: the loop now has until 112
+    now = 111.5
+    expect(budget.exhausted?).to be false
+    now = 112.0
+    expect(budget.exhausted?).to be true
+  end
+
+  it 'leaves a loop that starts right away on the full allowance' do
+    now    = 100.0
+    budget = described_class.new(8, min_loop_seconds: 3, clock: -> { now })
+
+    expect(budget.exhausted?).to be false # first check at 100: floor ends at 103, allowance at 108
+    now = 107.9
+    expect(budget.exhausted?).to be false
+    now = 108.0
+    expect(budget.exhausted?).to be true
+  end
 end

@@ -33,7 +33,10 @@ module Onetime
       #   larger values are clamped). `capped` in the result means the run
       #   stopped at the limit.
       # - a wall-clock {Budget} of {BUDGET_SECONDS}, checked between records.
-      #   `budget_exhausted` means it stopped because time ran out.
+      #   `budget_exhausted` means it stopped because time ran out. The record
+      #   loop always gets at least {MIN_LOOP_SECONDS} from its first check,
+      #   so the entitlement run's catalog pull, which comes first and cannot
+      #   be interrupted, cannot leave the materialize with no time at all.
       #
       # Either way the counts in the report cover only the records reached;
       # the full-fleet run is the CLI command in the catalog entry.
@@ -72,8 +75,9 @@ module Onetime
       # - Live run that changed records: `chore.run`, `result: :success`,
       #   FAIL-CLOSED (#4333) — chores rewrite customer data, and the event is
       #   the only record that this operator triggered it.
-      # - Live run that changed nothing (nothing modified, nothing failed; or
-      #   the entitlement run skipped for want of a Stripe key): a no-change
+      # - Live run that changed nothing (nothing modified, nothing failed; for
+      #   the entitlement run, also no plans synced into the cache; or the
+      #   entitlement run skipped for want of a Stripe key): a no-change
       #   attempt on the operator trail (#4337).
       # - Entitlement run aborted by its pull gate: `result: :failure`,
       #   `outcome: 'aborted'`, not fail-closed (nothing was materialized).
@@ -90,9 +94,11 @@ module Onetime
 
         AUDIT_VERB = 'chore.run'
 
-        DEFAULT_LIMIT  = 100
-        MAX_LIMIT      = 1_000
-        BUDGET_SECONDS = 8
+        DEFAULT_LIMIT    = 100
+        MAX_LIMIT        = 1_000
+        BUDGET_SECONDS   = 8
+        # Floor for the record loop, from its first budget check; see Budget.
+        MIN_LOOP_SECONDS = 3
 
         # Outcome of an entitlement run its catalog-pull gate refused.
         ABORTED = 'aborted'
@@ -154,7 +160,7 @@ module Onetime
 
         # @return [Result]
         def call
-          @budget ||= Budget.new(BUDGET_SECONDS)
+          @budget ||= Budget.new(BUDGET_SECONDS, min_loop_seconds: MIN_LOOP_SECONDS)
           @dry_run ? preview : run_live
         end
 
@@ -283,15 +289,17 @@ module Onetime
           )
         end
 
-        # Nothing modified and nothing failed. A skipped entitlement run
-        # (no Stripe key) also moved nothing.
+        # Nothing modified and nothing failed. For the entitlement run the
+        # catalog pull is a write too: a pull that synced plans rewrote the
+        # plan cache even when the materialize reached no org. A skipped
+        # entitlement run (no Stripe key) moved nothing.
         def no_change?(status, report)
           return true if status == :skipped
 
           if @entry.housekeeping?
             report['modified'].to_i.zero? && report['errors'].to_i.zero?
           else
-            report['succeeded'].to_i.zero? && report['failed'].to_i.zero?
+            report['succeeded'].to_i.zero? && report['failed'].to_i.zero? && report['plans_synced'].to_i.zero?
           end
         end
 

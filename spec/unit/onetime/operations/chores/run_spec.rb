@@ -117,7 +117,8 @@ RSpec.describe Onetime::Operations::Chores::Run do
   it 'starts a fresh budget of BUDGET_SECONDS (at most 10 s) when none is given' do
     fake_model(0)
     expect(described_class::BUDGET_SECONDS).to be <= 10
-    expect(Onetime::Operations::Chores::Budget).to receive(:new).with(described_class::BUDGET_SECONDS).and_call_original
+    expect(Onetime::Operations::Chores::Budget).to receive(:new)
+      .with(described_class::BUDGET_SECONDS, min_loop_seconds: described_class::MIN_LOOP_SECONDS).and_call_original
 
     described_class.new(chore: chore_id, actor: actor).call
   end
@@ -394,6 +395,60 @@ RSpec.describe Onetime::Operations::Chores::Run do
           detail: {
             dry_run: false, limit: 100, capped: false, budget_exhausted: false, status: 'success',
             plans_synced: 3, scanned: 40, succeeded: 39, failed: 1, skipped_no_plan: 0,
+          },
+          fail_closed: true,
+        )
+      end
+
+      # The pull is uninterruptible and comes before the materialize. A pull
+      # slower than the whole budget used to leave the materialize stopping at
+      # its first org, every run.
+      it 'still materializes after a catalog pull slower than the budget' do
+        now    = 0.0
+        orgs   = Array.new(6) { |i| instance_double(Onetime::Organization, extid: "org_#{i}", planid: '') }
+        source = Class.new do
+          def initialize(orgs, tick) = (@orgs, @tick = orgs, tick)
+          def each_record(batch_size:)
+            @orgs.each do |org|
+              yield org
+              @tick.call
+            end
+          end
+        end.new(orgs, -> { now += 1 })
+
+        allow(pull).to receive(:call) do
+          now += 9 # past the 8 s budget before the first org
+          pull::Result.new(success: true, plans_synced: 3, catalog_verified: true)
+        end
+        allow(materialize).to receive(:call).and_wrap_original { |original, **kw| original.call(**kw, iterator: source) }
+        # Billing::Plan loads with billing enabled (the only time this chore
+        # is listed); the unit lane runs with billing off.
+        stub_const('Billing::Plan', double('Billing::Plan', list_plans: []))
+        allow(Onetime).to receive(:ents_logger).and_return(double('Logger', info: nil, debug: nil, warn: nil, error: nil))
+
+        result = run(budget: Onetime::Operations::Chores::Budget.new(
+          described_class::BUDGET_SECONDS, min_loop_seconds: described_class::MIN_LOOP_SECONDS, clock: -> { now }
+        ))
+
+        # First check at 9 s: the loop has until 12 s, one org per second.
+        expect(result).to have_attributes(status: :success, budget_exhausted: true)
+        expect(result.report).to include('plans_synced' => 3, 'scanned' => 3, 'skipped_no_plan' => 3)
+      end
+
+      it 'audits a pull that synced plans as a change, even with no org reached' do
+        allow(pull).to receive(:call).and_return(pull::Result.new(success: true, plans_synced: 3, catalog_verified: true))
+        allow(materialize).to receive(:call).and_return(materialize_result(scanned: 0, budget_exhausted: true))
+
+        run
+
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+          actor: actor,
+          verb: 'chore.run',
+          target: 'entitlement_materialize',
+          result: :success,
+          detail: {
+            dry_run: false, limit: 100, capped: false, budget_exhausted: true, status: 'success',
+            plans_synced: 3, scanned: 0, succeeded: 0, failed: 0, skipped_no_plan: 0,
           },
           fail_closed: true,
         )
