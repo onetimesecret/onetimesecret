@@ -42,11 +42,14 @@ module Onetime
         # @param queue [String] a fully-resolved DLQ name.
         # @param message_id [String, nil] match by message id …
         # @param index [Integer, nil] … or by 1-based position (caller supplies one).
-        def initialize(connection:, queue:, message_id: nil, index: nil)
+        # @param max_scan [Integer] bound on an id lookup's scan; only the CLI
+        #   passes more than {Store::MAX_SCAN}.
+        def initialize(connection:, queue:, message_id: nil, index: nil, max_scan: Store::MAX_SCAN)
           @connection = connection
           @queue      = queue
           @message_id = message_id
           @index      = index
+          @max_scan   = max_scan
         end
 
         # @return [Result]
@@ -73,7 +76,7 @@ module Onetime
         # The matched delivery is only projected, never settled: closing the
         # channel in #call returns it to its place in the queue.
         def show_by_id(channel)
-          scan = Store.with_message(channel, @queue, @message_id) do |delivery_info, properties, payload|
+          scan = Store.with_message(channel, @queue, @message_id, max_scan: @max_scan) do |delivery_info, properties, payload|
             Store.build_message_detail(delivery_info, properties, payload)
           end
 

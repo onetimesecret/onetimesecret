@@ -235,9 +235,12 @@ module Onetime
         #   exclusive with `count`.
         # @param reason [String, nil] OPTIONAL operator-supplied why (#4338);
         #   blank is absent. See {Onetime::AuditReason}.
+        # @param max_scan [Integer] bound on the per-message scan; only the
+        #   CLI passes more than {Store::MAX_SCAN}.
         # @raise [ArgumentError] when `count` and `message_id` are both given,
         #   or `message_id` is blank
-        def initialize(connection:, queue:, actor:, count: nil, dry_run: false, message_id: nil, reason: nil)
+        def initialize(connection:, queue:, actor:, count: nil, dry_run: false, message_id: nil, reason: nil,
+                       max_scan: Store::MAX_SCAN)
           raise ArgumentError, 'count and message_id are exclusive' if count && message_id
           raise ArgumentError, 'message_id must not be blank' if !message_id.nil? && message_id.to_s.strip.empty?
 
@@ -248,6 +251,7 @@ module Onetime
           @dry_run    = dry_run
           @message_id = message_id&.to_s
           @reason     = normalize_reason(reason)
+          @max_scan   = max_scan
         end
 
         # @return [Result]
@@ -566,7 +570,7 @@ module Onetime
         # is configured but not declared on the broker raises Bunny::NotFound
         # from the passive declare, which is a miss like any other.
         def scan_for_message(channel)
-          Store.with_message(channel, @queue, @message_id) do |delivery_info, properties, payload|
+          Store.with_message(channel, @queue, @message_id, max_scan: @max_scan) do |delivery_info, properties, payload|
             replay_matched(channel, delivery_info, properties, payload) unless @dry_run
           end
         rescue Bunny::NotFound

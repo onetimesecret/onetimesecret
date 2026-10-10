@@ -21,9 +21,14 @@ RSpec.describe 'DLQ per-message commands', type: :cli do
   let(:dlq) { 'dlq.billing.event' }
   let(:message_id) { '6f1c2d3e-0000-4000-8000-00000000abcd' }
   let(:op_calls) { [] }
+  let(:max_scan) { Onetime::Operations::Dlq::Store::MAX_SCAN }
+  # The truncation hint reads the queue depth on a channel of its own.
+  let(:depth_queue) { double('Bunny::Queue', message_count: 1200) }
+  let(:depth_channel) { double('Bunny::Channel', queue: depth_queue, open?: true, close: nil) }
 
   before do
-    allow(Bunny).to receive(:new).and_return(double('Bunny::Session', start: nil, close: nil))
+    allow(Bunny).to receive(:new)
+      .and_return(double('Bunny::Session', start: nil, close: nil, create_channel: depth_channel))
   end
 
   def output_of(*args)
@@ -52,9 +57,28 @@ RSpec.describe 'DLQ per-message commands', type: :cli do
 
       expect(last_exit_code).to eq(0)
       expect(op_calls).to match([
-        a_hash_including(queue: dlq, message_id: message_id, actor: 'cli', reason: 'customer waiting'),
+        a_hash_including(queue: dlq, message_id: message_id, actor: 'cli', reason: 'customer waiting',
+          max_scan: max_scan),
       ])
       expect(output[:stdout]).to include('Replayed: 1')
+    end
+
+    it 'passes a larger --max-scan to the op' do
+      output_of('queue', 'dlq', 'replay', 'billing.event', '--id', message_id, '--max-scan', '5000')
+
+      expect(op_calls).to match([a_hash_including(max_scan: 5000)])
+    end
+
+    it 'refuses a --max-scan that is not a positive integer' do
+      output = output_of('queue', 'dlq', 'replay', 'billing.event', '--id', message_id, '--max-scan', '0')
+
+      expect(last_exit_code).to eq(1)
+      expect(output[:stdout]).to include('Error: --max-scan must be a positive integer')
+      expect(op_calls).to be_empty
+
+      output = output_of('queue', 'dlq', 'replay', 'billing.event', '--id', message_id, '--max-scan', 'lots')
+      expect(last_exit_code).to eq(1)
+      expect(output[:stdout]).to include('--max-scan must be an integer')
     end
 
     it 'refuses --id together with --count before touching the broker' do
@@ -75,6 +99,7 @@ RSpec.describe 'DLQ per-message commands', type: :cli do
       expect(last_exit_code).to eq(1)
       expect(output[:stdout]).to include(
         "Message not visible: #{message_id} (scanned 500 message(s), stopped at the scan limit)",
+        'Scanned 500 of about 1200 message(s); the message may be deeper in the queue. Retry with --max-scan 1200.',
       )
     end
 
@@ -115,6 +140,53 @@ RSpec.describe 'DLQ per-message commands', type: :cli do
       expect(op_calls.size).to eq(1)
       expect(op_calls.first).to include(queue: dlq, count: nil, actor: 'cli', reason: 'endpoint fixed')
       expect(op_calls.first).not_to have_key(:message_id)
+    end
+  end
+
+  describe 'queue dlq show --id' do
+    def show_result(found:, scanned:, truncated:)
+      Onetime::Operations::Dlq::Show::Result.new(
+        found: found, empty: false, message: found ? { message_id: message_id } : nil,
+        scanned: scanned, truncated: truncated,
+      )
+    end
+
+    def stub_show(result)
+      allow(Onetime::Operations::Dlq::Show).to receive(:new) do |args|
+        op_calls << args
+        instance_double(Onetime::Operations::Dlq::Show, call: result)
+      end
+    end
+
+    it 'adds a truncation hint to a miss that stopped at the scan limit' do
+      stub_show(show_result(found: false, scanned: 500, truncated: true))
+
+      output = output_of('queue', 'dlq', 'show', 'billing.event', '--id', message_id)
+
+      expect(last_exit_code).to eq(1)
+      expect(output[:stdout]).to include(
+        "Message not found: #{message_id}",
+        'Scanned 500 of about 1200 message(s); the message may be deeper in the queue. Retry with --max-scan 1200.',
+      )
+      expect(op_calls).to match([a_hash_including(message_id: message_id, max_scan: max_scan)])
+    end
+
+    it 'prints no hint when the scan reached the end of the queue' do
+      stub_show(show_result(found: false, scanned: 12, truncated: false))
+
+      output = output_of('queue', 'dlq', 'show', 'billing.event', '--id', message_id)
+
+      expect(output[:stdout]).to include("Message not found: #{message_id}")
+      expect(output[:stdout]).not_to include('may be deeper')
+    end
+
+    it 'scans deeper with --max-scan' do
+      stub_show(show_result(found: true, scanned: 900, truncated: false))
+
+      output_of('queue', 'dlq', 'show', 'billing.event', '--id', message_id, '--max-scan', '2000', '--format', 'json')
+
+      expect(last_exit_code).to eq(0)
+      expect(op_calls).to match([a_hash_including(max_scan: 2000)])
     end
   end
 
@@ -160,8 +232,9 @@ RSpec.describe 'DLQ per-message commands', type: :cli do
         "Discarded message #{message_id} from #{dlq}",
       )
       expect(op_calls).to match([
-        a_hash_including(queue: dlq, message_id: message_id, actor: 'cli', dry_run: true, reason: 'poison'),
-        a_hash_including(queue: dlq, message_id: message_id, actor: 'cli', reason: 'poison'),
+        a_hash_including(queue: dlq, message_id: message_id, actor: 'cli', dry_run: true, reason: 'poison',
+          max_scan: max_scan),
+        a_hash_including(queue: dlq, message_id: message_id, actor: 'cli', reason: 'poison', max_scan: max_scan),
       ])
       expect(op_calls.last).not_to have_key(:dry_run)
     end
@@ -205,8 +278,22 @@ RSpec.describe 'DLQ per-message commands', type: :cli do
 
       expect(last_exit_code).to eq(1)
       expect(output[:stdout]).to include("Message not visible: #{message_id} (scanned 7 message(s))")
+      expect(output[:stdout]).not_to include('may be deeper')
       expect(op_calls.size).to eq(1)
       expect($stdin).not_to have_received(:gets)
+    end
+
+    it 'hints at --max-scan when the preview stopped at the scan limit, and passes it through' do
+      allow(Onetime::Operations::Dlq::Discard).to receive(:new) do |args|
+        op_calls << args
+        instance_double(Onetime::Operations::Dlq::Discard,
+          call: discard_result(status: :not_visible, found: false, outcome: 'not_visible', scanned: 800, truncated: true))
+      end
+
+      output = output_of('queue', 'dlq', 'discard', 'billing.event', '--id', message_id, '--max-scan', '800')
+
+      expect(output[:stdout]).to include('Scanned 800 of about 1200 message(s)', 'Retry with --max-scan 1200.')
+      expect(op_calls).to match([a_hash_including(dry_run: true, max_scan: 800)])
     end
 
     it 'exits 1 with the unknown-outcome text when the drop is not confirmed' do

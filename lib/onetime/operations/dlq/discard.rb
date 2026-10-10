@@ -97,8 +97,11 @@ module Onetime
         # @param dry_run [Boolean] find only — drop nothing; one preview
         #   observation (#4337).
         # @param reason [String, nil] OPTIONAL operator-supplied why (#4338).
+        # @param max_scan [Integer] bound on the scan; only the CLI passes
+        #   more than {Store::MAX_SCAN}.
         # @raise [ArgumentError] when `message_id` is blank
-        def initialize(connection:, queue:, message_id:, actor:, dry_run: false, reason: nil)
+        def initialize(connection:, queue:, message_id:, actor:, dry_run: false, reason: nil,
+                       max_scan: Store::MAX_SCAN)
           raise ArgumentError, 'message_id is required' if message_id.to_s.strip.empty?
 
           @connection = connection
@@ -107,6 +110,7 @@ module Onetime
           @actor      = actor
           @dry_run    = dry_run
           @reason     = normalize_reason(reason)
+          @max_scan   = max_scan
         end
 
         # @return [Result]
@@ -142,7 +146,7 @@ module Onetime
         # A queue that is configured but not declared on the broker raises
         # Bunny::NotFound from the passive declare: a miss like any other.
         def scan_for_message(channel)
-          Store.with_message(channel, @queue, @message_id) do |delivery_info, properties, _payload|
+          Store.with_message(channel, @queue, @message_id, max_scan: @max_scan) do |delivery_info, properties, _payload|
             original = Store.original_queue(properties.headers)
             @dry_run ? { original_queue: original } : drop(channel, delivery_info, original)
           end

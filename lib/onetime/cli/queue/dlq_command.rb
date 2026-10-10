@@ -77,6 +77,39 @@ module Onetime
           limit = result.truncated ? ', stopped at the scan limit' : ''
           "Message not visible: #{message_id} (scanned #{result.scanned.to_i} message(s)#{limit})"
         end
+
+        # `--max-scan` for the per-message lookups: Store::MAX_SCAN unless the
+        # operator asks for more. Only the CLI can raise it; the colonel
+        # endpoints always scan at most Store::MAX_SCAN.
+        def max_scan_option(value)
+          return Store::MAX_SCAN if value.nil?
+          return value if value.is_a?(Integer) && value.positive?
+
+          puts 'Error: --max-scan must be a positive integer'
+          exit 1
+        end
+
+        # Printed when a lookup stopped at its bound: the message may simply
+        # be deeper. M is the queue's ready count read after the lookup
+        # returned its messages, so "about".
+        def print_truncation_hint(conn, dlq_name, result)
+          return unless result.truncated
+
+          depth      = queue_depth(conn, dlq_name)
+          of         = depth ? " of about #{depth}" : ''
+          retry_with = depth && depth > result.scanned.to_i ? "--max-scan #{depth}" : 'a larger --max-scan'
+          puts "Scanned #{result.scanned.to_i}#{of} message(s); the message may be deeper in the queue. " \
+               "Retry with #{retry_with}."
+        end
+
+        def queue_depth(conn, dlq_name)
+          channel = conn.create_channel
+          Store.queue_handle(channel, dlq_name).message_count
+        rescue StandardError
+          nil
+        ensure
+          channel.close if channel&.open?
+        end
       end
 
       # List DLQ messages
@@ -214,13 +247,16 @@ module Onetime
           type: :integer,
           aliases: ['n'],
           desc: 'Message index (1-based) to show'
+        option :max_scan,
+          type: :integer,
+          desc: "Most messages to scan for --id (default #{Onetime::Operations::Dlq::Store::MAX_SCAN})"
         option :format,
           type: :string,
           default: 'text',
           aliases: ['f'],
           desc: 'Output format: text or json'
 
-        def call(queue:, id: nil, index: nil, format: 'text', **)
+        def call(queue:, id: nil, index: nil, max_scan: nil, format: 'text', **)
           boot_application!
 
           unless id || index
@@ -228,16 +264,17 @@ module Onetime
             exit 1
           end
 
+          max_scan = max_scan_option(max_scan)
           dlq_name = resolve_dlq_name(queue)
-          show_message(dlq_name, id, index, format)
+          show_message(dlq_name, id, index, format, max_scan)
         end
 
         private
 
-        def show_message(dlq_name, message_id, index, format)
+        def show_message(dlq_name, message_id, index, format, max_scan)
           with_rabbitmq_connection do |conn|
             result = Onetime::Operations::Dlq::Show.new(
-              connection: conn, queue: dlq_name, message_id: message_id, index: index,
+              connection: conn, queue: dlq_name, message_id: message_id, index: index, max_scan: max_scan,
             ).call
 
             if result.empty
@@ -247,6 +284,7 @@ module Onetime
 
             if result.message.nil?
               puts message_id ? "Message not found: #{message_id}" : "Message at index #{index} not found"
+              print_truncation_hint(conn, dlq_name, result) if message_id
               exit 1
             end
 
@@ -316,6 +354,9 @@ module Onetime
           type: :string,
           aliases: ['i'],
           desc: 'Replay only this message id (exclusive with --count)'
+        option :max_scan,
+          type: :integer,
+          desc: "Most messages to scan for --id (default #{Onetime::Operations::Dlq::Store::MAX_SCAN})"
         # OPTIONAL operator-supplied why (#4338), recorded in the audit
         # detail of the event the op writes.
         option :reason,
@@ -328,7 +369,7 @@ module Onetime
           aliases: ['f'],
           desc: 'Output format: text or json'
 
-        def call(queue:, count: nil, id: nil, reason: nil, format: 'text', **)
+        def call(queue:, count: nil, id: nil, reason: nil, max_scan: nil, format: 'text', **)
           boot_application!
 
           if id && count
@@ -341,9 +382,10 @@ module Onetime
             exit 1
           end
 
+          max_scan = max_scan_option(max_scan)
           dlq_name = resolve_dlq_name(queue)
           if id
-            replay_message(dlq_name, id, format, reason)
+            replay_message(dlq_name, id, format, reason, max_scan)
           else
             replay_messages(dlq_name, count, format, reason)
           end
@@ -380,15 +422,21 @@ module Onetime
 
         # One message by id (#4343). A miss or an email DLQ refusal exits 1;
         # a replay that ran prints the same results as a bulk replay.
-        def replay_message(dlq_name, message_id, format, reason)
+        def replay_message(dlq_name, message_id, format, reason, max_scan)
           with_rabbitmq_connection do |conn|
             result = Onetime::Operations::Dlq::Replay.new(
-              connection: conn, queue: dlq_name, message_id: message_id, actor: CLI_ACTOR, reason: reason,
+              connection: conn,
+              queue: dlq_name,
+              message_id: message_id,
+              actor: CLI_ACTOR,
+              reason: reason,
+              max_scan: max_scan,
             ).call
 
             case result.status
             when :not_visible
               puts not_visible_line(message_id, result)
+              print_truncation_hint(conn, dlq_name, result)
               exit 1
             when :refused
               puts "Not replayed (#{result.outcome}): #{result.errors.first&.fetch(:error, nil)}"
@@ -443,6 +491,9 @@ module Onetime
           type: :string,
           aliases: ['i'],
           desc: 'Message ID to discard (required)'
+        option :max_scan,
+          type: :integer,
+          desc: "Most messages to scan for --id (default #{Onetime::Operations::Dlq::Store::MAX_SCAN})"
         option :dry_run,
           type: :boolean,
           default: false,
@@ -463,7 +514,7 @@ module Onetime
           default: 'text',
           desc: 'Output format: text or json'
 
-        def call(queue:, id: nil, dry_run: false, force: false, reason: nil, format: 'text', **)
+        def call(queue:, id: nil, dry_run: false, force: false, reason: nil, max_scan: nil, format: 'text', **)
           boot_application!
 
           if id.to_s.strip.empty?
@@ -471,13 +522,14 @@ module Onetime
             exit 1
           end
 
+          max_scan = max_scan_option(max_scan)
           dlq_name = resolve_dlq_name(queue)
-          discard_message(dlq_name, id, dry_run: dry_run, force: force, format: format, reason: reason)
+          discard_message(dlq_name, id, dry_run: dry_run, force: force, format: format, reason: reason, max_scan: max_scan)
         end
 
         private
 
-        def discard_message(dlq_name, message_id, dry_run:, force:, format:, reason:)
+        def discard_message(dlq_name, message_id, dry_run:, force:, format:, reason:, max_scan:)
           with_rabbitmq_connection do |conn|
             # Find it first, for the prompt, WITHOUT dropping anything. Not
             # silent: the dry run records one OBSERVATION (`result:
@@ -489,10 +541,12 @@ module Onetime
               actor: CLI_ACTOR,
               dry_run: true,
               reason: reason,
+              max_scan: max_scan,
             ).call
 
             unless preview.found
               puts not_visible_line(message_id, preview)
+              print_truncation_hint(conn, dlq_name, preview)
               exit 1
             end
 
@@ -521,7 +575,12 @@ module Onetime
             end
 
             result = Onetime::Operations::Dlq::Discard.new(
-              connection: conn, queue: dlq_name, message_id: message_id, actor: CLI_ACTOR, reason: reason,
+              connection: conn,
+              queue: dlq_name,
+              message_id: message_id,
+              actor: CLI_ACTOR,
+              reason: reason,
+              max_scan: max_scan,
             ).call
 
             case result.status

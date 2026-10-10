@@ -37,8 +37,10 @@ module Onetime
       module Store
         module_function
 
-        # Most deliveries one per-message lookup ({with_message}) pops
-        # (CONTRACT 6: bounded work on the request path). Every popped
+        # Default and request-path bound on the deliveries one per-message
+        # lookup ({with_message}) pops (CONTRACT 6: bounded work on the
+        # request path). The colonel endpoints never pass another value; the
+        # CLI may raise it (`--max-scan`) for an operator at the shell. Every popped
         # delivery is a synchronous basic.get round trip and stays unacked
         # until the scan ends, so the bound caps both the request time and
         # how many messages one lookup hides from other consumers. An
@@ -221,8 +223,8 @@ module Onetime
         # {find_message} cannot serve the live verbs: it requeues every
         # delivery it popped, the match included.
         #
-        # Pops up to `max_scan` deliveries (never more than {MAX_SCAN}). A
-        # delivery that does not match is held unacked, so the next pop moves
+        # Pops up to `max_scan` deliveries ({MAX_SCAN} unless the caller,
+        # only ever the CLI, asks for more). A delivery that does not match is held unacked, so the next pop moves
         # on to the message behind it: nack-requeueing it at once would put it
         # back at the head, where the next pop returns it again and the scan
         # never gets past the first message (#4650). The scan stops at the
@@ -246,7 +248,7 @@ module Onetime
         # @param channel [Object] a Bunny-like channel dedicated to this lookup
         # @param dlq_name [String]
         # @param message_id [String] the AMQP message id to find
-        # @param max_scan [Integer] scan bound, clamped to 1..{MAX_SCAN}
+        # @param max_scan [Integer] scan bound, a positive integer
         # @yieldparam delivery_info [Object]
         # @yieldparam properties [Object]
         # @yieldparam payload [String]
@@ -256,7 +258,9 @@ module Onetime
         def with_message(channel, dlq_name, message_id, max_scan: MAX_SCAN)
           raise ArgumentError, 'message_id is required' if message_id.to_s.empty?
 
-          limit     = max_scan.to_i.clamp(1, MAX_SCAN)
+          limit = Integer(max_scan, exception: false)
+          raise ArgumentError, 'max_scan must be a positive integer' unless limit&.positive?
+
           queue     = queue_handle(channel, dlq_name)
           held      = []
           scanned   = 0

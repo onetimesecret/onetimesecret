@@ -80,12 +80,28 @@ RSpec.describe Onetime::Operations::Dlq::Store, '.with_message' do
       expect(scan).to have_attributes(found: false, scanned: 5, truncated: false)
     end
 
-    it 'never pops more than MAX_SCAN, whatever the caller asks for' do
+    it 'defaults to MAX_SCAN, the bound every request-path lookup uses' do
       stub_const("#{described_class}::MAX_SCAN", 3)
 
-      scan = described_class.with_message(channel, dlq_name, 'missing', max_scan: 50) { |*| nil }
+      scan = described_class.with_message(channel, dlq_name, 'missing') { |*| nil }
 
       expect(scan).to have_attributes(scanned: 3, truncated: true)
+    end
+
+    it 'honours a larger explicit bound (the CLI --max-scan)' do
+      stub_const("#{described_class}::MAX_SCAN", 3)
+
+      scan = described_class.with_message(channel, dlq_name, 'E', max_scan: 10) { |*| :found }
+
+      expect(scan).to have_attributes(found: true, scanned: 5, value: :found)
+    end
+
+    it 'refuses a bound that is not a positive integer, before popping' do
+      [0, -1, nil, 'many'].each do |bound|
+        expect { described_class.with_message(channel, dlq_name, 'A', max_scan: bound) { |*| nil } }
+          .to raise_error(ArgumentError, /max_scan/)
+      end
+      expect(pops).to be_empty
     end
 
     it 'keeps MAX_SCAN within the ledger ceiling and above the peek window' do
