@@ -113,8 +113,14 @@ For each organization kept in the previous step:
 
 2. Verify the surrounding state before writing anything:
 
-   - the owner still holds an active `owner` membership
-     (`bin/ots org doctor <ORG>` checks 1, 2 and 4);
+   - the owner still holds an active `owner` membership. Check it directly:
+     the Colonel organization detail (`GET /api/colonel/organizations/:org_id`)
+     lists `members[]` with `role`, `status` and `is_owner`, built from the
+     active memberships, so the owner must appear there with `role: owner`.
+     `bin/ots org doctor <ORG>` is not sufficient for this: checks 1 and 2
+     only prove the owner exists and is in the members set, and check 4 only
+     flags other owner-role memberships; an inactive or member-role owner
+     membership passes all three;
    - the owner's `default_org_id` names this organization: read the
      `default_org_id:` line of `bin/ots customers show <owner>` and compare it
      with the org's `org_id` from the domain scan. A missing

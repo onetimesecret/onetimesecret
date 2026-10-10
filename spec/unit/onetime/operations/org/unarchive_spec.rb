@@ -193,6 +193,10 @@ RSpec.describe Onetime::Operations::Org::Unarchive do
         result = build.call
 
         expect(result.status).to eq(:not_archived)
+        # The snapshot fields are populated on every status (Result contract):
+        # a live org with a real owner must not report owner_id nil.
+        expect(result.owner_id).to eq('ur_owner_ext')
+        expect(result.archived_comment).to eq(archived_comment)
         expect(org).not_to have_received(:unarchive!)
         expect(org).not_to have_received(:save)
         expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
@@ -400,10 +404,12 @@ RSpec.describe Onetime::Operations::Org::Unarchive do
       expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
     end
 
-    it 'reports :not_archived for a live org and changes nothing' do
+    it 'reports :not_archived for a live org, with the owner resolved, and changes nothing' do
       @org.unarchive!
 
-      expect(unarchive.status).to eq(:not_archived)
+      result = unarchive
+      expect(result.status).to eq(:not_archived)
+      expect(result.owner_id).to eq(@owner.extid)
       expect(reloaded_org.archived?).to be(false)
     end
 
@@ -425,6 +431,7 @@ RSpec.describe Onetime::Operations::Org::Unarchive do
       webhook.stripe_subscription_id = "sub_new_#{suffix}"
       webhook.subscription_status    = 'active'
       webhook.save
+      updated_before = reloaded_org.updated.to_f
 
       result = described_class.new(org: stale, actor: actor, dry_run: false).call
       expect(result.status).to eq(:success)
@@ -435,6 +442,8 @@ RSpec.describe Onetime::Operations::Org::Unarchive do
       expect(org.planid).to eq('team_plus_v1')
       expect(org.stripe_subscription_id).to eq("sub_new_#{suffix}")
       expect(org.subscription_status).to eq('active')
+      # The field-scoped write still advances `updated`, as save would have.
+      expect(org.updated.to_f).to be > updated_before
     end
 
     describe 'the advisory pointer over a real default_org_id' do

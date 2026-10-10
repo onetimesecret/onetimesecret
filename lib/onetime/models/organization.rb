@@ -382,8 +382,11 @@ module Onetime
       self.archived_at      = Familia.now.to_f
       self.archived_comment = comment if comment
       # Field-scoped write (Familia#save_fields: one HMSET of the named fields),
-      # never a whole-hash save from this instance -- see unarchive!.
-      comment ? save_fields(:archived_at, :archived_comment) : save_fields(:archived_at)
+      # never a whole-hash save from this instance -- see unarchive!. save_fields
+      # does not stamp `updated` the way save does (prepare_for_save), so it is
+      # set and written here.
+      self.updated          = Familia.now
+      comment ? save_fields(:archived_at, :archived_comment, :updated) : save_fields(:archived_at, :updated)
     end
 
     # Reverse a soft-archive. The one primitive that resets archived_at AND
@@ -401,8 +404,10 @@ module Onetime
       # (one HMSET in a transaction). A whole-hash `save` would write back every
       # field this instance loaded, so a billing webhook that moved planid or
       # the subscription fields between the CLI's load and this call would be
-      # silently reverted (F4 on #4723).
-      save_fields(:archived_at, :archived_comment)
+      # silently reverted (F4 on #4723). `updated` is stamped explicitly because
+      # save_fields skips the timestamp pass save performs.
+      self.updated          = Familia.now
+      save_fields(:archived_at, :archived_comment, :updated)
     end
 
     # Re-materialize entitlements for all active memberships.
