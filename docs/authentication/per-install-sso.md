@@ -1044,7 +1044,7 @@ These refusals redirect to `/signin?auth_error=...`. Identify whether the callba
 
 The [creation guard](../../apps/web/auth/config/hooks/omniauth.rb) logs `omniauth_missing_email`, `omniauth_invalid_email`, or `omniauth_domain_rejected`. Tenant policy refusals log `omniauth_tenant_domain_rejected` with a reason such as `missing_email`, `invalid_email`, `no_sso_config`, `allowlist_unreadable`, or `domain_not_allowed`. Other setup failures can be refused earlier with the codes in [Error Handling](#error-handling).
 
-With the user's consent, record only sanitized claim presence/type, provider and gem versions, flow type, and error code. Do not post tokens, full/raw auth hashes, private claim values, or identifying screenshots in GitHub. A missing Entra email claim is not a mailbox inventory result.
+With the user's consent, record only sanitized claim presence/type, provider and gem versions, flow type, and error code. Do not post tokens, full/raw auth hashes, private claim values, or identifying screenshots in GitHub. A missing Entra email claim is not a mailbox inventory result. The [Entra claim smoke test runbook](../runbooks/sso-entra-claim-smoke-test.md) gives the operator-approved procedure and the report format.
 
 ### Existing account with a missing email claim
 

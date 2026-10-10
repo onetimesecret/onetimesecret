@@ -229,7 +229,7 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
   end
 
   describe 'canonical form' do
-    it 'persists a trimmed email rather than a Unicode-padded mailbox' do
+    it 'persists a trimmed email rather than a Unicode-padded address' do
       email = unique_test_email('unicode-padded')
       uid = "unicode-#{SecureRandom.uuid}"
       setup_entra_mock_auth(email: "\u00a0#{email}\u2003", uid: uid)
