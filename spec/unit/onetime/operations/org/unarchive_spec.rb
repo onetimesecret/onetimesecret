@@ -165,6 +165,27 @@ RSpec.describe Onetime::Operations::Org::Unarchive do
       end
     end
 
+    describe 'preview observation (#4337)' do
+      it 'records exactly ONE record_access preview on a dry run, and no operator-trail event' do
+        build(dry_run: true).call
+
+        expect(Onetime::ColonelAuditEvent).to have_received(:record_access).once.with(
+          actor: actor,
+          verb: 'organization.unarchive',
+          target: 'on_org_ext',
+          result: 'preview',
+          detail: hash_including(dry_run: true, archived_comment: archived_comment, pointer_org_id: nil),
+        )
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+      end
+
+      it 'records no preview on the applied path' do
+        build.call
+
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record_access)
+      end
+    end
+
     describe ':not_archived (no change)' do
       before { allow(org).to receive(:archived?).and_return(false) }
 
@@ -255,6 +276,30 @@ RSpec.describe Onetime::Operations::Org::Unarchive do
         expect(result.status).to eq(:success)
         expect(result.owner_id).to be_nil
         expect(result.pointer_org_id).to be_nil
+      end
+    end
+
+    # The Onetime::AuditedFailure mechanism, pinned the same way as
+    # TransferOwnership's rollback spec: the success record sits AFTER
+    # unarchive!, so a raise there would otherwise leave no trace. Message
+    # expectations, not store reads: ColonelAuditEvent.record swallows its own
+    # errors.
+    describe 'a raising unarchive!' do
+      before { allow(org).to receive(:unarchive!).and_raise(Onetime::Problem, 'boom') }
+
+      it 're-raises and records ONE result: :failure event, never a success' do
+        expect { build.call }.to raise_error(Onetime::Problem, 'boom')
+
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+          hash_including(
+            actor: actor,
+            verb: 'organization.unarchive',
+            target: 'on_org_ext', # literal: a broken target lambda lands as 'unknown'
+            result: :failure,
+            detail: hash_including(error: 'Onetime::Problem', message: 'boom', dry_run: false),
+          ),
+        )
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record).with(hash_including(result: :success))
       end
     end
   end
