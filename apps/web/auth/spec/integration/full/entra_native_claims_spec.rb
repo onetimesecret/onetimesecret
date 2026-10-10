@@ -246,8 +246,8 @@ RSpec.describe 'Entra ID native claim shapes through the mounted strategy', :sha
   describe 'a token without the email claim' do
     # What a v2.0 token looks like when the app registration has no email
     # optional claim, or the directory has no value to put in it: the standard
-    # identity claims are present, `email` is absent, and nothing names a
-    # mailbox. preferred_username is present and email-shaped by design.
+    # identity claims are present, `email` is absent, and no claim stands
+    # in for it. preferred_username is present and email-shaped by design.
     let(:guest_upn) { "visitor_gmail.com#EXT\#@contoso-#{run_id}.onmicrosoft.com" }
 
     it 'yields a nil info.email and no mail key, and is refused as missing_email' do
