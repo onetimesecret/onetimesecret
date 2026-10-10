@@ -95,6 +95,10 @@
     "text": "Queues",
     "content_hash": "be77db11"
   },
+  "web.admin.audit.categories.chore": {
+    "text": "Chores",
+    "content_hash": "07cdacad"
+  },
   "web.admin.audit.categories.email": {
     "text": "Email",
     "content_hash": "969ccbd3"

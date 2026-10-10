@@ -1,0 +1,426 @@
+{
+  "web.admin.jobs.title": {
+    "text": "Jobs",
+    "content_hash": "2f17a0f8"
+  },
+  "web.admin.jobs.description": {
+    "text": "Scheduler status, dead-letter queues and maintenance chores.",
+    "content_hash": "674e0986"
+  },
+  "web.admin.jobs.retry": {
+    "text": "Retry",
+    "content_hash": "942087cc"
+  },
+  "web.admin.jobs.refresh": {
+    "text": "Refresh",
+    "content_hash": "0e916101"
+  },
+  "web.admin.jobs.status.never": {
+    "text": "Never run",
+    "content_hash": "3d40a69d"
+  },
+  "web.admin.jobs.status.running": {
+    "text": "Running",
+    "content_hash": "f4ccae29"
+  },
+  "web.admin.jobs.status.success": {
+    "text": "Succeeded",
+    "content_hash": "6d9a6f97"
+  },
+  "web.admin.jobs.status.error": {
+    "text": "Failed",
+    "content_hash": "031a8f0f"
+  },
+  "web.admin.jobs.status.skipped": {
+    "text": "Skipped",
+    "content_hash": "12698ce1"
+  },
+  "web.admin.jobs.scheduler.title": {
+    "text": "Scheduler",
+    "content_hash": "d3a27d96"
+  },
+  "web.admin.jobs.scheduler.description": {
+    "text": "Recurring jobs registered by the scheduler process. Times are relative to when this section was loaded.",
+    "content_hash": "aab61ad0"
+  },
+  "web.admin.jobs.scheduler.loadError": {
+    "text": "Could not load the scheduler status.",
+    "content_hash": "e05eb62c"
+  },
+  "web.admin.jobs.scheduler.empty": {
+    "text": "No scheduled jobs found.",
+    "content_hash": "bf1d52cc"
+  },
+  "web.admin.jobs.scheduler.alive": {
+    "text": "Running",
+    "content_hash": "f4ccae29"
+  },
+  "web.admin.jobs.scheduler.notSeen": {
+    "text": "Not seen",
+    "content_hash": "bd9008aa"
+  },
+  "web.admin.jobs.scheduler.notSeenHint": {
+    "text": "The scheduler has not reported a heartbeat recently, so it may be stopped. Last-run and next-due times may be out of date.",
+    "content_hash": "2a96d1ae"
+  },
+  "web.admin.jobs.scheduler.stats.status": {
+    "text": "Scheduler",
+    "content_hash": "d3a27d96"
+  },
+  "web.admin.jobs.scheduler.stats.process": {
+    "text": "Host and PID",
+    "content_hash": "16a2e446"
+  },
+  "web.admin.jobs.scheduler.stats.jobCount": {
+    "text": "Jobs registered",
+    "content_hash": "16ad36c7"
+  },
+  "web.admin.jobs.scheduler.stats.heartbeat": {
+    "text": "Last heartbeat",
+    "content_hash": "40f7951c"
+  },
+  "web.admin.jobs.scheduler.columns.job": {
+    "text": "Job",
+    "content_hash": "ad617a0f"
+  },
+  "web.admin.jobs.scheduler.columns.state": {
+    "text": "State",
+    "content_hash": "a3b50c47"
+  },
+  "web.admin.jobs.scheduler.columns.lastStatus": {
+    "text": "Last status",
+    "content_hash": "45da83c3"
+  },
+  "web.admin.jobs.scheduler.columns.lastRun": {
+    "text": "Last run",
+    "content_hash": "512a4821"
+  },
+  "web.admin.jobs.scheduler.columns.duration": {
+    "text": "Duration",
+    "content_hash": "4fc52a3c"
+  },
+  "web.admin.jobs.scheduler.columns.nextRun": {
+    "text": "Next run",
+    "content_hash": "b3c0ab96"
+  },
+  "web.admin.jobs.scheduler.columns.runs": {
+    "text": "Runs",
+    "content_hash": "848f54e8"
+  },
+  "web.admin.jobs.scheduler.columns.error": {
+    "text": "Last error",
+    "content_hash": "5488d837"
+  },
+  "web.admin.jobs.scheduler.group.scheduled": {
+    "text": "Scheduled",
+    "content_hash": "4724f344"
+  },
+  "web.admin.jobs.scheduler.group.maintenance": {
+    "text": "Maintenance",
+    "content_hash": "17ccfa5b"
+  },
+  "web.admin.jobs.scheduler.state.scheduled": {
+    "text": "Scheduled",
+    "content_hash": "4724f344"
+  },
+  "web.admin.jobs.scheduler.state.not_scheduled": {
+    "text": "Not scheduled",
+    "content_hash": "b3e24789"
+  },
+  "web.admin.jobs.scheduler.state.unknown": {
+    "text": "Unknown",
+    "content_hash": "b764cdc0"
+  },
+  "web.admin.jobs.scheduler.errorCount": {
+    "text": "{count} failed",
+    "content_hash": "cd8f5051"
+  },
+  "web.admin.jobs.dlq.title": {
+    "text": "Dead-letter queues",
+    "content_hash": "1f1c524a"
+  },
+  "web.admin.jobs.dlq.description": {
+    "text": "Messages that failed processing. Peek a queue to inspect, replay or discard a single message.",
+    "content_hash": "e0b84a55"
+  },
+  "web.admin.jobs.dlq.loadError": {
+    "text": "Could not load the dead-letter queues.",
+    "content_hash": "16e64dd6"
+  },
+  "web.admin.jobs.dlq.empty": {
+    "text": "No dead-letter queues are configured.",
+    "content_hash": "8ebbd61b"
+  },
+  "web.admin.jobs.dlq.disconnected": {
+    "text": "The message broker is not connected, so queue depths cannot be read.",
+    "content_hash": "b4203331"
+  },
+  "web.admin.jobs.dlq.peek": {
+    "text": "Peek",
+    "content_hash": "d5fa5ccb"
+  },
+  "web.admin.jobs.dlq.columns.queue": {
+    "text": "Queue",
+    "content_hash": "3b2fe03e"
+  },
+  "web.admin.jobs.dlq.columns.messages": {
+    "text": "Messages",
+    "content_hash": "04d7b483"
+  },
+  "web.admin.jobs.dlq.columns.consumers": {
+    "text": "Consumers",
+    "content_hash": "212b350d"
+  },
+  "web.admin.jobs.dlq.columns.actions": {
+    "text": "Actions",
+    "content_hash": "ff8059dc"
+  },
+  "web.admin.jobs.dlq.drawer.title": {
+    "text": "Dead-letter queue",
+    "content_hash": "425ab072"
+  },
+  "web.admin.jobs.dlq.drawer.summary": {
+    "text": "Showing {showing} of {total} messages from the head of the queue.",
+    "content_hash": "fbd5105f"
+  },
+  "web.admin.jobs.dlq.drawer.empty": {
+    "text": "This queue has no messages.",
+    "content_hash": "a50a0cd7"
+  },
+  "web.admin.jobs.dlq.drawer.loadError": {
+    "text": "Could not load messages for this queue.",
+    "content_hash": "9ebad9f7"
+  },
+  "web.admin.jobs.dlq.drawer.notFound": {
+    "text": "This dead-letter queue is not configured.",
+    "content_hash": "5485092f"
+  },
+  "web.admin.jobs.dlq.drawer.noMessageId": {
+    "text": "This message has no id, so it can only be handled from the CLI.",
+    "content_hash": "a6313db1"
+  },
+  "web.admin.jobs.dlq.fields.originalQueue": {
+    "text": "Original queue",
+    "content_hash": "15a84d47"
+  },
+  "web.admin.jobs.dlq.fields.deathReason": {
+    "text": "Death reason",
+    "content_hash": "f8533ba7"
+  },
+  "web.admin.jobs.dlq.fields.error": {
+    "text": "Error",
+    "content_hash": "54a0e8c1"
+  },
+  "web.admin.jobs.dlq.fields.payload": {
+    "text": "Payload preview",
+    "content_hash": "9bf708b6"
+  },
+  "web.admin.jobs.dlq.inspect.button": {
+    "text": "Inspect",
+    "content_hash": "e0723a86"
+  },
+  "web.admin.jobs.dlq.inspect.hide": {
+    "text": "Hide",
+    "content_hash": "ac20a57b"
+  },
+  "web.admin.jobs.dlq.inspect.loadError": {
+    "text": "Could not load this message.",
+    "content_hash": "8a38bab4"
+  },
+  "web.admin.jobs.dlq.notVisible": {
+    "text": "Message not visible after scanning {scanned} messages. A worker may be holding it, or it was already replayed or discarded.",
+    "content_hash": "4d940472"
+  },
+  "web.admin.jobs.dlq.truncated": {
+    "text": "The scan stopped after {scanned} messages, before the end of the queue. The message may be further back; the CLI can scan the whole queue.",
+    "content_hash": "0035c7f7"
+  },
+  "web.admin.jobs.dlq.replay.button": {
+    "text": "Replay",
+    "content_hash": "c8dae637"
+  },
+  "web.admin.jobs.dlq.replay.confirmTitle": {
+    "text": "Replay this message?",
+    "content_hash": "620fb7fa"
+  },
+  "web.admin.jobs.dlq.replay.confirmDescription": {
+    "text": "Message {id} will be republished to its original queue and removed from {queue}.",
+    "content_hash": "0a734289"
+  },
+  "web.admin.jobs.dlq.replay.success": {
+    "text": "Message replayed to its original queue.",
+    "content_hash": "81a11e68"
+  },
+  "web.admin.jobs.dlq.replay.failed": {
+    "text": "The message could not be replayed.",
+    "content_hash": "6ccd3ef1"
+  },
+  "web.admin.jobs.dlq.discard.button": {
+    "text": "Discard",
+    "content_hash": "eb1a70e3"
+  },
+  "web.admin.jobs.dlq.discard.confirmTitle": {
+    "text": "Discard this message?",
+    "content_hash": "c5a3247e"
+  },
+  "web.admin.jobs.dlq.discard.confirmDescription": {
+    "text": "Message {id} will be permanently removed from {queue}. This cannot be undone.",
+    "content_hash": "501f1a03"
+  },
+  "web.admin.jobs.dlq.discard.success": {
+    "text": "Message discarded.",
+    "content_hash": "92cf14c1"
+  },
+  "web.admin.jobs.dlq.discard.failed": {
+    "text": "The message was found but not discarded.",
+    "content_hash": "2d2f56b1"
+  },
+  "web.admin.jobs.dlq.result.title": {
+    "text": "Last action",
+    "content_hash": "455601d6"
+  },
+  "web.admin.jobs.dlq.result.notVisible": {
+    "text": "Nothing changed: the message was not visible.",
+    "content_hash": "97fb70a5"
+  },
+  "web.admin.jobs.dlq.result.unverified": {
+    "text": "The server accepted the request, but its response could not be read. Peek the queue again to check the result.",
+    "content_hash": "63c2ef97"
+  },
+  "web.admin.jobs.chores.title": {
+    "text": "Chores",
+    "content_hash": "07cdacad"
+  },
+  "web.admin.jobs.chores.description": {
+    "text": "Maintenance chores you can run on demand. A console run stops at its record limit or time budget; the CLI command processes every record.",
+    "content_hash": "7654989f"
+  },
+  "web.admin.jobs.chores.loadError": {
+    "text": "Could not load the chore list.",
+    "content_hash": "b0524ab6"
+  },
+  "web.admin.jobs.chores.empty": {
+    "text": "No chores are available.",
+    "content_hash": "96134261"
+  },
+  "web.admin.jobs.chores.columns.chore": {
+    "text": "Chore",
+    "content_hash": "12dc78e7"
+  },
+  "web.admin.jobs.chores.columns.kind": {
+    "text": "Kind",
+    "content_hash": "f5387f9b"
+  },
+  "web.admin.jobs.chores.columns.lastRun": {
+    "text": "Last run",
+    "content_hash": "512a4821"
+  },
+  "web.admin.jobs.chores.columns.lastStatus": {
+    "text": "Last status",
+    "content_hash": "45da83c3"
+  },
+  "web.admin.jobs.chores.columns.actions": {
+    "text": "Actions",
+    "content_hash": "ff8059dc"
+  },
+  "web.admin.jobs.chores.kind.housekeeping": {
+    "text": "Housekeeping",
+    "content_hash": "6f352b46"
+  },
+  "web.admin.jobs.chores.kind.billing": {
+    "text": "Billing",
+    "content_hash": "3ac8bbca"
+  },
+  "web.admin.jobs.chores.preview.button": {
+    "text": "Preview",
+    "content_hash": "324b134f"
+  },
+  "web.admin.jobs.chores.preview.failed": {
+    "text": "Preview of {chore} failed.",
+    "content_hash": "e88d9ff5"
+  },
+  "web.admin.jobs.chores.run.button": {
+    "text": "Run",
+    "content_hash": "00d60e31"
+  },
+  "web.admin.jobs.chores.run.confirmTitle": {
+    "text": "Run this chore?",
+    "content_hash": "d6483296"
+  },
+  "web.admin.jobs.chores.run.confirmDescription": {
+    "text": "{chore} writes changes to the records it processes. The run stops at the record limit or the time budget, whichever comes first.",
+    "content_hash": "ff828b06"
+  },
+  "web.admin.jobs.chores.run.limitLabel": {
+    "text": "Record limit",
+    "content_hash": "2bbe3152"
+  },
+  "web.admin.jobs.chores.run.limitHint": {
+    "text": "A whole number from 1 to {max}.",
+    "content_hash": "e9b9708a"
+  },
+  "web.admin.jobs.chores.run.success": {
+    "text": "Chore run finished.",
+    "content_hash": "50acef81"
+  },
+  "web.admin.jobs.chores.run.partial": {
+    "text": "Chore run stopped early, so its counts are partial. See the result below.",
+    "content_hash": "a070d612"
+  },
+  "web.admin.jobs.chores.result.title": {
+    "text": "Result",
+    "content_hash": "6e7d50e8"
+  },
+  "web.admin.jobs.chores.result.status": {
+    "text": "Status",
+    "content_hash": "920e413c"
+  },
+  "web.admin.jobs.chores.result.limit": {
+    "text": "Record limit",
+    "content_hash": "2bbe3152"
+  },
+  "web.admin.jobs.chores.result.duration": {
+    "text": "Duration",
+    "content_hash": "4fc52a3c"
+  },
+  "web.admin.jobs.chores.result.preview": {
+    "text": "Preview only: nothing was written.",
+    "content_hash": "65d70605"
+  },
+  "web.admin.jobs.chores.result.capped": {
+    "text": "Stopped at the record limit ({limit}). More records may remain; run it again or use the CLI command.",
+    "content_hash": "15a1f815"
+  },
+  "web.admin.jobs.chores.result.budgetExhausted": {
+    "text": "Stopped when the time budget ran out, so counts are partial. Run it again or use the CLI command.",
+    "content_hash": "6f4b6ceb"
+  },
+  "web.admin.jobs.chores.result.cli": {
+    "text": "Full run from the CLI",
+    "content_hash": "b70412e9"
+  },
+  "web.admin.jobs.chores.result.dismiss": {
+    "text": "Dismiss",
+    "content_hash": "48845bff"
+  },
+  "web.admin.jobs.chores.result.unverified": {
+    "text": "The server accepted the request, but its response could not be read. Refresh the list to check the last status.",
+    "content_hash": "14b3c8e7"
+  },
+  "web.admin.jobs.chores.status.success": {
+    "text": "Succeeded",
+    "content_hash": "6d9a6f97"
+  },
+  "web.admin.jobs.chores.status.dry_run": {
+    "text": "Preview",
+    "content_hash": "324b134f"
+  },
+  "web.admin.jobs.chores.status.skipped": {
+    "text": "Skipped",
+    "content_hash": "12698ce1"
+  },
+  "web.admin.jobs.chores.status.aborted": {
+    "text": "Aborted",
+    "content_hash": "d12da90a"
+  }
+}
