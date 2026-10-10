@@ -4,6 +4,19 @@ allowBuilds:
   unrs-resolver: true
   vue-demi: false
 
+auditConfig:
+  ignoreGhsas:
+    # CVE-2026-93687 / GHSA-vfj7-8cjw-p6xm (braces <=3.0.3, stack exhaustion on
+    # deeply nested patterns) has no fix: the advisory lists no patched version
+    # and 3.0.3 is the registry's latest. The ">=3.0.4" that `pnpm audit` prints
+    # comes from the npm audit database, not a real release. Both paths are
+    # build-time only and expand globs from our own config:
+    #   @sentry/vite-plugin -> unplugin@1 -> chokidar@3 -> braces
+    #   @intlify/unplugin-vue-i18n -> fast-glob@3 -> micromatch@4 -> braces
+    # Revisit when micromatch or fast-glob ships a release without the vulnerable
+    # braces. @sentry/vite-plugin 5.x drops the chokidar path but not fast-glob.
+    - GHSA-vfj7-8cjw-p6xm
+
 overrides:
   '@babel/core': '>=7.29.6 <8'
   # GHSA-p498-v437-472g fixed in 0.16.8 (via eslint).
