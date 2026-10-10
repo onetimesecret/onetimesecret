@@ -36,6 +36,9 @@ export const jobGroupSchema = z.enum(['scheduled', 'maintenance']);
  */
 export const jobStateSchema = z.enum(['scheduled', 'not_scheduled', 'unknown']);
 
+/** Which ScheduledJob helper registered the job (`cron`/`every`/`in_time`/`at_time`). */
+export const jobScheduleKindSchema = z.enum(['cron', 'every', 'in', 'at']);
+
 /** Chore family: housekeeping model chores, or the billing entitlement run. */
 export const choreKindSchema = z.enum(['housekeeping', 'billing']);
 
@@ -50,17 +53,22 @@ export const colonelJobSchema = z.object({
   job_class: z.string(),
   group: jobGroupSchema,
   state: jobStateSchema,
-  /** `cron` | `every` | `in` | `at`, or null when never registered. */
-  schedule_kind: z.string().nullable(),
+  /** The rufus helper that registered the job; null when never registered. */
+  schedule_kind: jobScheduleKindSchema.nullable(),
   /** The cron pattern / interval / delay / time as registered. */
   schedule_expression: z.string().nullable(),
+  /** Next occurrence; null when the job is `not_scheduled`. */
   next_time: z.number().nullable(),
   registered_at: z.number().nullable(),
+  /** An aborted run reports `error` with `last_error` = `"aborted: <reason>"`. */
   last_status: jobRunStatusSchema,
   last_started_at: z.number().nullable(),
   last_finished_at: z.number().nullable(),
   last_duration_ms: z.number().nullable(),
-  /** `"ErrorClass: message"` (truncated server-side), null when blank. */
+  /**
+   * `"ErrorClass: message"` (truncated, email addresses masked server-side),
+   * null when blank.
+   */
   last_error: z.string().nullable(),
   run_count: z.number(),
   error_count: z.number(),
