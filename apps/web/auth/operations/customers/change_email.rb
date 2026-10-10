@@ -685,7 +685,9 @@ module Auth
         # not a warning — it propagates to the compensable block and yields
         # `:partial`.
         def clear_pending_change
-          token = @customer.pending_email_change.to_s
+          # `.value`, not `.to_s`: Familia::StringKey#to_s returns the object's
+          # inspect string when the value is empty, which read as a live token.
+          token = @customer.pending_email_change.value.to_s
 
           @customer.pending_email_change.delete!
           @customer.pending_email_delivery_status.delete!

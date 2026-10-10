@@ -33,7 +33,7 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
   let(:old_email) { 'old@example.com' }
   let(:new_email) { 'new@example.com' }
 
-  let(:pending_change) { double('pending_email_change', to_s: '', delete!: true) }
+  let(:pending_change) { double('pending_email_change', value: '', delete!: true) }
   let(:pending_status) { double('pending_email_delivery_status', delete!: true) }
 
   let(:customer) do
@@ -744,7 +744,7 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
     it 'destroys a live pending verification secret and warns' do
       secret = double('Secret', destroy!: true)
       allow(customer).to receive(:pending_email_change).and_return(
-        double('pending', to_s: 'tok_live', delete!: true)
+        double('pending', value: 'tok_live', delete!: true)
       )
       allow(Onetime::Secret).to receive(:find_by_identifier).with('tok_live').and_return(secret)
 
