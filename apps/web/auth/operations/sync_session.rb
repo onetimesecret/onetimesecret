@@ -240,12 +240,14 @@ module Auth
 
       # Customer.create! keys the email index by the normalized address, but an
       # account row can carry other casing (an SSO row written before #4726, or
-      # a row #2843's migration skipped). Look up the normalized form first,
-      # then the stored form for a legacy index entry kept as entered.
+      # a row #2843's migration skipped). The stored form goes first: migration
+      # 007 leaves a mixed-case index entry in place when the lowercase key
+      # already belongs to another Customer, and that entry is this row's. The
+      # normalized form then covers a row whose Customer was keyed folded.
       # @return [Onetime::Customer, nil]
       def find_customer_by_email
         email = @account[:email].to_s
-        [OT::Utils.normalize_email(email), email].uniq.each do |candidate|
+        [email, OT::Utils.normalize_email(email)].uniq.each do |candidate|
           customer = Onetime::Customer.find_by_email(candidate)
           return customer if customer
         end

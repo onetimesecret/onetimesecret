@@ -202,6 +202,29 @@ RSpec.describe 'SyncSession Idempotency', type: :integration do
       expect_synced_to_existing_customer(result)
     end
 
+    it 'prefers the index entry kept as entered over the case-folded one' do
+      # Migration 007 leaves a mixed-case index key in place when the lowercase
+      # key already belongs to another Customer. The entry under the row's own
+      # casing is this account's Customer; the folded one is somebody else's.
+      legacy = Onetime::Customer.create!(email: "legacy-#{SecureRandom.hex(8)}@example.com", role: 'customer')
+      Onetime::Customer.email_index[test_email] = legacy.objid
+      test_db[:accounts].where(id: account_id).update(external_id: nil)
+
+      result = Auth::Operations::SyncSession.call(
+        account: account.merge(external_id: nil),
+        account_id: account_id,
+        session: session,
+        request: request
+      )
+
+      expect(result.extid).to eq(legacy.extid)
+      expect(session).to include('authenticated' => true, 'external_id' => legacy.extid)
+      expect(test_db[:accounts].where(id: account_id).get(:external_id)).to eq(legacy.extid)
+    ensure
+      Onetime::Customer.email_index.remove_field(test_email)
+      legacy&.destroy!
+    end
+
     it 'cannot move a Customer that another account already links' do
       # The email fallback may locate the Customer; the unique
       # accounts.external_id constraint refuses the link before the session
