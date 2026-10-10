@@ -692,7 +692,7 @@ module Auth::Config::Hooks
                  :missing_email
                elsif !email.is_a?(String) ||
                      !Onetime::SignupValidation.structurally_valid_email?(candidate) ||
-                     !Auth::Config::Hooks::OmniAuth.fold_stable_email?(candidate)
+                     !OT::Utils.fold_stable_email?(candidate)
                  :invalid_email
                elsif !sso_config.valid_email_domain?(candidate)
                  :domain_not_allowed

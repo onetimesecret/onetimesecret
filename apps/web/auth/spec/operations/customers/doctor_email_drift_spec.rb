@@ -3,12 +3,18 @@
 # frozen_string_literal: true
 
 # Unit tests for the three email-drift checks added to
-# Auth::Operations::Customers::Doctor by #3731 PR-C1:
+# Auth::Operations::Customers::Doctor by #3731 PR-C1, plus the case-only
+# sibling :auth_email_not_canonical (#4726):
 #
-#   :auth_email_drift       — one of the two Redis-vs-SQL comparisons in the
+#   :auth_email_drift       — one of the Redis-vs-SQL comparisons in the
 #                             doctor. Without it a ChangeEmail run that returned
 #                             :partial is undetectable, because every other
 #                             check compares Redis against Redis.
+#   :auth_email_not_canonical — the two stores match only case-insensitively;
+#                             report-only, naming the store that holds the
+#                             non-canonical bytes (accounts row -> `bin/ots
+#                             customers normalize-emails`; Customer record
+#                             under a canonical row -> `customers change-email`).
 #   :org_email_index_stale  — the org-scoped index Familia never auto-populates.
 #   :org_contact_email_stale — default workspaces contacting a dead address.
 #
@@ -147,6 +153,204 @@ RSpec.describe Auth::Operations::Customers::Doctor do
 
       expect { run }.not_to raise_error
       expect(issues).to be_empty
+    end
+  end
+
+  # =========================================================================
+  # The case-only sibling of :auth_email_drift (#4726). The drift check ignores
+  # case on purpose, so a row the identity provider's casing left behind
+  # passes it. The SQL-side examples list exactly the rows
+  # `bin/ots customers normalize-emails` would; the hash-side examples cover
+  # the residue that command cannot see (SQL canonical, Customer hash not).
+  describe ':auth_email_not_canonical' do
+    let(:by_external_id) { double('by_external_id') }
+    let(:by_id)          { double('by_id', update: 1) }
+    let(:accounts)       { double('accounts') }
+    let(:db)             { double('db') }
+
+    before do
+      allow(Auth::Database).to receive(:connection).and_return(db)
+      allow(db).to receive(:[]).with(:accounts).and_return(accounts)
+      allow(db).to receive(:transaction) { |&blk| blk.call }
+      allow(accounts).to receive(:where).with(external_id: 'ur_c').and_return(by_external_id)
+      allow(accounts).to receive(:where).with(id: 42).and_return(by_id)
+      allow(by_external_id).to receive(:select).with(:id, :email, :status_id).and_return(by_external_id)
+    end
+
+    def run(repair: false)
+      doctor(repair: repair).send(:check_auth_email_canonical, issues)
+    end
+
+    it 'reports nothing when the accounts row is already canonical' do
+      allow(by_external_id).to receive(:first).and_return({ id: 42, email: email })
+
+      run
+
+      expect(issues).to be_empty
+    end
+
+    it 'reports a high, non-repairable issue for a row that differs from the Customer only by case' do
+      allow(by_external_id).to receive(:first).and_return({ id: 42, email: 'LIVE@Example.com' })
+
+      run
+
+      expect(issues.size).to eq(1)
+      expect(issues.first).to include(
+        check: :auth_email_not_canonical,
+        severity: :high,
+        repairable: false,
+      )
+      expect(issues.first[:repair_action]).to include('normalize-emails')
+    end
+
+    it 'obscures the address in the reported message' do
+      allow(by_external_id).to receive(:first).and_return({ id: 42, email: 'LIVE@Example.com' })
+
+      run
+
+      expect(issues.first[:message]).not_to include('LIVE@Example.com')
+      expect(issues.first[:message]).not_to include(email)
+    end
+
+    # Same rows the normalize-emails scan finds: canonical_email is NFC +
+    # downcase, so a pre-normalization Customer that carries the raw bytes
+    # itself is still reported.
+    it 'reports a row whose Customer holds the same mixed-case bytes' do
+      allow(customer).to receive(:email).and_return('LIVE@Example.com')
+      allow(by_external_id).to receive(:first).and_return({ id: 42, email: 'LIVE@Example.com' })
+
+      run
+
+      expect(issues.size).to eq(1)
+      expect(issues.first[:check]).to eq(:auth_email_not_canonical)
+    end
+
+    it 'names the accounts row as the store holding the non-canonical bytes' do
+      allow(by_external_id).to receive(:first).and_return({ id: 42, email: 'LIVE@Example.com' })
+
+      run
+
+      expect(issues.first[:message]).to include('the auth accounts row')
+      expect(issues.first[:message]).not_to include('the Customer record')
+      expect(issues.first[:non_canonical_in]).to eq(['the auth accounts row'])
+    end
+
+    it 'never writes to the accounts row, even on a repair run' do
+      allow(by_external_id).to receive(:first).and_return({ id: 42, email: 'LIVE@Example.com' })
+
+      run(repair: true)
+
+      expect(by_id).not_to have_received(:update)
+      expect(issues.first[:repairable]).to be false
+    end
+
+    # The residue of a normalize-emails row that ended :partial: the SQL write
+    # landed, the Customer hash did not. normalize-emails selects by the SQL
+    # bytes and never revisits it; the drift check ignores case; so this is
+    # the only check that can see it.
+    context 'when the accounts row is canonical but the Customer record is not' do
+      before do
+        allow(customer).to receive(:email).and_return('LIVE@Example.com')
+        allow(by_external_id).to receive(:first).and_return({ id: 42, email: email })
+      end
+
+      it 'reports the same high, non-repairable check naming the Customer record' do
+        run
+
+        expect(issues.size).to eq(1)
+        expect(issues.first).to include(
+          check: :auth_email_not_canonical,
+          severity: :high,
+          repairable: false,
+          non_canonical_in: ['the Customer record'],
+        )
+        expect(issues.first[:message]).to include('the Customer record')
+        expect(issues.first[:message]).not_to include('the auth accounts row')
+      end
+
+      it 'points at change-email, not normalize-emails, which would not select the row' do
+        run
+
+        expect(issues.first[:repair_action]).to include('bin/ots customers change-email ur_c')
+        expect(issues.first[:repair_action]).not_to start_with('Run `bin/ots customers normalize-emails')
+      end
+
+      it 'obscures the address in the message and the repair hint' do
+        run
+
+        expect(issues.first[:message]).not_to include('LIVE@Example.com')
+        expect(issues.first[:message]).not_to include(email)
+        expect(issues.first[:repair_action]).not_to include(email)
+      end
+
+      it 'never writes anything, even on a repair run' do
+        run(repair: true)
+
+        expect(by_id).not_to have_received(:update)
+        expect(repaired).to be_empty
+      end
+
+      it 'is invisible to :auth_email_drift, which compares case-insensitively' do
+        doctor.send(:check_auth_email_drift, issues, repaired)
+
+        expect(issues).to be_empty
+      end
+    end
+
+    it 'names both stores when neither holds canonical bytes, and still points at normalize-emails' do
+      allow(customer).to receive(:email).and_return('LIVE@Example.com')
+      allow(by_external_id).to receive(:first).and_return({ id: 42, email: 'LIVE@Example.com' })
+
+      run
+
+      expect(issues.size).to eq(1)
+      expect(issues.first[:non_canonical_in]).to eq(['the auth accounts row', 'the Customer record'])
+      expect(issues.first[:message]).to include('the auth accounts row and the Customer record')
+      expect(issues.first[:repair_action]).to include('normalize-emails')
+    end
+
+    # A different address is :auth_email_drift territory; reporting it twice
+    # would double-count one row, and the drift repair settles both.
+    it 'stays silent when the two stores name different addresses' do
+      allow(by_external_id).to receive(:first).and_return({ id: 42, email: 'Stale@example.com' })
+
+      run
+
+      expect(issues).to be_empty
+    end
+
+    it 'stays silent when there is no accounts row at all' do
+      allow(by_external_id).to receive(:first).and_return(nil)
+
+      run
+
+      expect(issues).to be_empty
+    end
+
+    it 'is skipped entirely in simple mode (no auth database)' do
+      allow(Auth::Database).to receive(:connection).and_return(nil)
+
+      run
+
+      expect(issues).to be_empty
+    end
+
+    it 'never aborts the sweep when the auth database is unreachable' do
+      allow(by_external_id).to receive(:first).and_raise(StandardError, 'db down')
+
+      expect { run }.not_to raise_error
+      expect(issues).to be_empty
+    end
+
+    it 'shares the one memoized accounts read with :auth_email_drift' do
+      allow(by_external_id).to receive(:first).and_return({ id: 42, email: 'LIVE@Example.com' })
+      instance = doctor
+
+      instance.send(:check_auth_email_drift, issues, repaired)
+      instance.send(:check_auth_email_canonical, issues)
+
+      expect(by_external_id).to have_received(:first).once
+      expect(issues.map { |i| i[:check] }).to eq([:auth_email_not_canonical])
     end
   end
 
