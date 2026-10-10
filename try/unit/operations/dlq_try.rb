@@ -67,6 +67,11 @@ class FakeExchange
   def publish(payload, **opts)
     @channel.transactional { @published << { payload: payload, opts: opts } }
   end
+
+  # Every queue exists here, so nothing is ever returned.
+  def on_return(&)
+    self
+  end
 end
 
 class FakeQueue
@@ -131,6 +136,12 @@ class FakeChannel
 
   def queue(_name, **_opts)
     @queue
+  end
+
+  # The replay's passive-declare check of the original queue: every queue
+  # exists in these fakes.
+  def queue_declare(_name, **_opts)
+    true
   end
 
   def default_exchange

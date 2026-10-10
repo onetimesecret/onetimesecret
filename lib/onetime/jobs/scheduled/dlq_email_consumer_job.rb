@@ -629,6 +629,12 @@ module Onetime
             "dlq:replayed:#{message_id}"
           end
 
+          # The operator's per-message replay of this DLQ
+          # (Onetime::Operations::Dlq::Replay, #4343) takes the same
+          # reservation through the same scripts, so a run and an operator
+          # cannot republish one id at the same time.
+          public :replay_keys, :reservation_key, :replayed_marker_key
+
           # The datastore client. A seam for tests that interleave two runs.
           def dbclient = Familia.dbclient
 
@@ -645,10 +651,12 @@ module Onetime
             queue if queue.is_a?(String) && !queue.empty?
           end
 
+          # Mirrors Operations::Dlq::Store.clean_headers: every header the
+          # broker stamps on a dead-lettering, so the replayed copy is clean.
           def clean_headers(headers)
             return {} unless headers
 
-            headers.reject { |k, _| k.start_with?('x-death', 'x-first-death') }
+            headers.reject { |k, _| k.start_with?('x-death', 'x-first-death', 'x-last-death') }
           end
         end
       end

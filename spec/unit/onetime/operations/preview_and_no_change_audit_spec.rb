@@ -23,11 +23,13 @@
 
 # Every op in the cohort is required here, not just the ones with behavioural
 # examples below: the membership assertions at the bottom walk the whole list,
-# and loading all 22 is itself the check that the shared envelope resolves from
+# and loading all 24 is itself the check that the shared envelope resolves from
 # `lib/` and from `apps/web/auth/` alike.
 require 'spec_helper'
 require 'onetime/models/colonel_audit_event'
 require 'onetime/operations/audit_attempt'
+require 'onetime/operations/chores/run'
+require 'onetime/operations/dlq/discard'
 require 'onetime/operations/dlq/purge'
 require 'onetime/operations/dlq/replay'
 require 'onetime/operations/domains/ensure_domain_configs'
@@ -134,6 +136,50 @@ RSpec.describe 'preview and no-change auditing' do
           target: 'dlq.webhooks.payload',
           result: 'preview',
           detail: { dry_run: true, would_replay: 4, available: 10 },
+        )
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+      end
+    end
+
+    describe Onetime::Operations::Dlq::Discard do
+      it 'names the message it would drop on the observation trail, nothing on the operator trail' do
+        broker = DlqFakeBroker.broker(%w[m1 m2])
+
+        described_class.new(
+          connection: broker.connection, queue: 'dlq.webhooks.payload', message_id: 'm2',
+          actor: actor, dry_run: true,
+        ).call
+
+        expect(Onetime::ColonelAuditEvent).to have_received(:record_access).once.with(
+          actor: actor,
+          verb: described_class::AUDIT_VERB,
+          target: 'dlq.webhooks.payload',
+          result: 'preview',
+          detail: { dry_run: true, message_id: 'm2', found: true, original_queue: 'billing.event.process', scanned: 2 },
+        )
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+        expect(broker.ready_ids).to eq(%w[m1 m2])
+      end
+    end
+
+    # Housekeeping chores have no dry-run mode, so the preview counts the
+    # records a run would scan and runs nothing (#4343).
+    describe Onetime::Operations::Chores::Run do
+      it 'records the preview without running the chore' do
+        allow(Onetime::Organization).to receive(:instances).and_return(double('instances', size: 7))
+        expect(Onetime::Jobs::Scheduled::HousekeepingJob).not_to receive(:perform)
+
+        result = described_class.new(
+          chore: 'housekeeping.organization.standardize_planid', actor: actor, dry_run: true,
+        ).call
+
+        expect(result.status).to eq(:dry_run)
+        expect(Onetime::ColonelAuditEvent).to have_received(:record_access).once.with(
+          actor: actor,
+          verb: described_class::AUDIT_VERB,
+          target: 'housekeeping.organization.standardize_planid',
+          result: 'preview',
+          detail: { limit: 100, would_scan: 7, total: 7, dry_run: true },
         )
         expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
       end
@@ -400,6 +446,35 @@ RSpec.describe 'preview and no-change auditing' do
           target: 'dlq.email.message',
           result: :success,
           detail: { outcome: 'no_change', purged: 0 },
+        )
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record_access)
+      end
+    end
+
+    # A live chore run whose chore found nothing to change (#4343): the
+    # operator triggered it, so the trail shows it, as an attempt.
+    describe Onetime::Operations::Chores::Run do
+      before do
+        allow(Onetime::Jobs::JobRun).to receive(:started)
+        allow(Onetime::Jobs::JobRun).to receive(:finished)
+        allow(Onetime::Jobs::Scheduled::HousekeepingJob).to receive(:perform).and_return(
+          model: 'Onetime::Organization', scanned: 4, budget_exhausted: false,
+          chores: { standardize_planid: { modified: 0, errors: 0 } },
+        )
+      end
+
+      it 'records a live run that modified nothing as a no-change attempt' do
+        described_class.new(chore: 'housekeeping.organization.standardize_planid', actor: actor).call
+
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+          actor: actor,
+          verb: described_class::AUDIT_VERB,
+          target: 'housekeeping.organization.standardize_planid',
+          result: :success,
+          detail: {
+            dry_run: false, limit: 100, capped: false, budget_exhausted: false, status: 'success',
+            scanned: 4, modified: 0, errors: 0, outcome: 'no_change',
+          },
         )
         expect(Onetime::ColonelAuditEvent).not_to have_received(:record_access)
       end
@@ -775,6 +850,8 @@ RSpec.describe 'preview and no-change auditing' do
         Auth::Operations::Customers::SetRole,
         Auth::Operations::Customers::SetSuspension,
         Auth::Operations::Customers::SetVerification,
+        Onetime::Operations::Chores::Run,
+        Onetime::Operations::Dlq::Discard,
         Onetime::Operations::Dlq::Purge,
         Onetime::Operations::Dlq::Replay,
         Onetime::Operations::Domains::EnsureDomainConfigs,
@@ -801,8 +878,8 @@ RSpec.describe 'preview and no-change auditing' do
     end
 
     # The module has no default target, so every op owes one. Checked
-    # structurally rather than by calling it, since building 22 ops here would
-    # duplicate 22 specs' worth of fixtures to learn nothing extra.
+    # structurally rather than by calling it, since building 24 ops here would
+    # duplicate 24 specs' worth of fixtures to learn nothing extra.
     it 'supplies the target hook in every op, since the module has no default' do
       missing = cohort.reject do |op|
         (op.private_instance_methods(false) + op.instance_methods(false)).include?(:audit_target)
@@ -822,7 +899,7 @@ RSpec.describe 'preview and no-change auditing' do
 
       expect(missing).to be_empty
 
-      # And the other nineteen must carry the constant the default hook reads.
+      # And the other twenty-one must carry the constant the default hook reads.
       constant_verb = (cohort - computed).reject { |op| op.const_defined?(:AUDIT_VERB, false) }
 
       expect(constant_verb).to be_empty

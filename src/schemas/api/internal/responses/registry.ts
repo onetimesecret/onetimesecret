@@ -52,9 +52,10 @@ import {
 } from './colonel-secrets';
 
 // Colonel (admin) per-resource schemas — Phase-3 screens (tickets #40-45).
-// The DLQ console and the rate-limit inspect/reset UI were removed by design
-// review; their envelopes stay registry-only as the OpenAPI contract for the
-// still-live endpoints (list_dlqs.rb declares `response: 'colonelDlqList'`).
+// The rate-limit inspect/reset UI was removed by design review; its envelopes
+// stay registry-only as the OpenAPI contract for the still-live endpoints. The
+// DLQ console, removed by the same review, returned inside the Jobs screen
+// (#4343) alongside the scheduler read-out and chore triggers.
 import { colonelAccountDiagnosticsResponseSchema } from './colonel-account-diagnostics';
 import {
   colonelBannerClearResponseSchema,
@@ -101,7 +102,15 @@ import {
   colonelRateLimitResetResponseSchema,
 } from './colonel-emailtools';
 import {
+  colonelChoreRunResponseSchema,
+  colonelChoresResponseSchema,
+  colonelJobsResponseSchema,
+} from './colonel-jobs';
+import {
   colonelDlqListResponseSchema,
+  colonelDlqMessageDetailResponseSchema,
+  colonelDlqMessageDiscardResponseSchema,
+  colonelDlqMessageReplayResponseSchema,
   colonelDlqMessagesResponseSchema,
   colonelDlqPurgeResponseSchema,
   colonelDlqReplayResponseSchema,
@@ -212,6 +221,13 @@ export const responseSchemas = {
   colonelDlqMessages: colonelDlqMessagesResponseSchema,
   colonelDlqReplay: colonelDlqReplayResponseSchema,
   colonelDlqPurge: colonelDlqPurgeResponseSchema,
+  // #4343 jobs operability: per-message DLQ ops, scheduler read-out, chores
+  colonelDlqMessageDetail: colonelDlqMessageDetailResponseSchema,
+  colonelDlqMessageReplay: colonelDlqMessageReplayResponseSchema,
+  colonelDlqMessageDiscard: colonelDlqMessageDiscardResponseSchema,
+  colonelJobs: colonelJobsResponseSchema,
+  colonelChores: colonelChoresResponseSchema,
+  colonelChoreRun: colonelChoreRunResponseSchema,
   colonelDomainsOrphaned: colonelDomainsOrphanedResponseSchema,
   colonelDomainProbe: colonelDomainProbeResponseSchema,
   colonelDomainRepair: colonelDomainRepairResponseSchema,
