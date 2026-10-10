@@ -109,8 +109,8 @@ module Onetime
     field :created_by     # Immutable audit field — objid of organization creator. Set once at create!. See ADR-012.
     field :contact_email  # Primary billing/contact email
     field :is_default     # Boolean: true for auto-created workspace (prevents deletion)
-    field :archived_at      # Epoch timestamp: set when workspace is soft-archived by bulk migration
-    field :archived_comment # Free-text reason for archival (e.g. "Bulk SSO migration to domain X")
+    field :archived_at      # Epoch timestamp: set when an org was soft-archived (legacy state; no production writer)
+    field :archived_comment # Free-text reason recorded with the archive
 
     hashkey :urls
     jsonkey :caboose  # Migration metadata and payment link info
@@ -361,10 +361,11 @@ module Onetime
 
     # Soft-archive this organization.
     #
-    # POLICY: the login path never archives (#4717). The only production
-    # caller left is Auth::Operations::BulkSsoMigration, slated for removal
-    # in the next PR; after that, archived state is legacy data that loaders
-    # and resolvers keep rejecting, restored by `bin/ots org unarchive`.
+    # POLICY: there is no production writer (#4717). The login path never
+    # archives and the bulk SSO migration tool is gone. Archived state is
+    # legacy, read-only data: loaders and resolvers keep rejecting it, and
+    # `unarchive!` (via `bin/ots org unarchive`) is the only path back. This
+    # method remains for specs and any future operator verb.
     #
     # Deliberately permissive about domains: raising here would turn data
     # drift into failures for the caller, and reassigning domains would be an

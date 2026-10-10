@@ -77,7 +77,10 @@ module Auth
     # SAML issuer onto them would let a NameID that collides with an old `sub`
     # sign in as that account.
     #
-    # Idempotent, dry-run by default. Mirrors BulkSsoMigration's conventions.
+    # Idempotent, dry-run by default (`run: false` previews and writes
+    # nothing; `run: true` applies), reporting counts rather than raising on
+    # per-row skips -- the conventions shared by the other operator-run
+    # backfills under this namespace.
     #
     class BackfillTenantIssuer
       include Onetime::LoggerMethods

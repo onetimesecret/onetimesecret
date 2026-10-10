@@ -10,8 +10,10 @@
 # live domain to the org even though the sorted set has lost it (index
 # drift). Without the second check, drift lets the guard pass and the org is
 # destroyed while domain records still reference it (dangling org_id).
-# archive! stays deliberately permissive (SSO login-path self-heal callers);
-# it only warns.
+# archive! stays deliberately permissive about domains: it has no production
+# writer (#4717), reassigning domains would be an implicit ownership transfer,
+# and `bin/ots domains doctor` check #9 is the operator surface for an
+# archived org that still owns domains. It only warns.
 #
 # Real datastore (Valkey on 2163, see spec/config.test.yaml): the guard is
 # about index state, so it is exercised against real keys. Every object and
