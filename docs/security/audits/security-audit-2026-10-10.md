@@ -1,7 +1,7 @@
 # Security Audit — 2026-10-10: Tenant SSO email claims (G3 review)
 
 - **Report:** G3 (gate G3 of the [SSO email-less accounts proposal](../../planning/2026-1009-sso-email-less-accounts.md))
-- **Register:** proposed rows `RISK-2026-10-10-01` … `RISK-2026-10-10-03` (see "Proposed active-register rows"; not yet added)
+- **Register:** `RISK-2026-10-10-01` … `RISK-2026-10-10-03`, added to the [active register](../active-risk-register.md) on 2026-10-10. **Status pointer:** the operator rated all three Medium on 2026-10-10; the ratings in this report are the audit's own assessment and are retained as written.
 - **Scope:** The custom-domain (tenant) SSO surface: automatic account verification (including an absent `email_verified`), trusted-email linking, and email-domain authorization, each measured against what the identity provider actually guarantees about the `email` claim. Platform and self-hosted operators configure their own identity providers and own that trust; their surfaces are noted only where the same code path is shared. `ENTRA_TENANT_ID` is a directory UUID in every supported configuration; `common` and `organizations` are out of scope.
 - **Source-review baseline:** `3a30ad2eeb91b0927658d534c4a8dd6aceb9451d` (branch `fix/4726-legacy-email-repair`, merge-base with `main` `af99322661559ed611cca5324f659b7b1e2a880e`). The working tree carried uncommitted changes to the #4726 CLI and doctor files only; every file this audit relies on was unmodified at the baseline.
 - **Probe baseline:** same revision. Probes ran through the lane runner against the dockerized test services (`full-sqlite` and `full-mfa` lanes), using the OmniAuth mock strategy on the `oidc` route with Entra-shaped claim sets. The real Entra route was not exercised.
