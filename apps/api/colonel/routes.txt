@@ -6,7 +6,7 @@
 # Defense-in-depth: role=colonel enforces role check at Otto routing layer,
 # rejecting non-colonel requests before they reach the logic layer.
 #
-# network=admin_if_configured (#4332) marks the 15 tier-1 DESTRUCTIVE routes —
+# network=admin_if_configured (#4332) marks the 16 tier-1 DESTRUCTIVE routes —
 # exactly ColonelAPI::DestructiveActions::TIER1, and asserted against it by
 # spec/unit/onetime/application/colonel_route_annotations_spec.rb. It enforces
 # the admin route requirement only where the operator set BOTH
@@ -14,7 +14,7 @@
 # AdminNetworkIsolation is absent from the stack. The strict network=admin
 # below (on /system/proxy-headers) has no such fall-through and would 404 a
 # stock self-hosted install; do not use it on a route the console calls.
-# The 12 reversible tier-2 routes are deliberately NOT annotated.
+# The 14 reversible tier-2 routes are deliberately NOT annotated.
 
 # Colonel API  endpoints
 GET    /info                              ColonelAPI::Logic::Colonel::GetColonelInfo response=json auth=sessionauth role=colonel scope=internal
@@ -136,6 +136,15 @@ GET    /queues/dlq                        ColonelAPI::Logic::Colonel::ListDlqs r
 GET    /queues/dlq/:queue                 ColonelAPI::Logic::Colonel::GetDlqMessages response=json auth=sessionauth role=colonel scope=internal
 POST   /queues/dlq/:queue/replay          ColonelAPI::Logic::Colonel::ReplayDlq response=json auth=sessionauth role=colonel scope=internal
 POST   /queues/dlq/:queue/purge           ColonelAPI::Logic::Colonel::PurgeDlq response=json auth=sessionauth role=colonel network=admin_if_configured scope=internal
+# --- #4343 jobs operability: per-message DLQ ops (BEGIN) ---
+# Per-message verbs. Literal `messages` segment after `:queue` so these never
+# collide with the queue-level replay/purge above. `:message_id` is the AMQP
+# message id (SecureRandom.uuid from Onetime::Jobs::Publisher#publish). A miss
+# on a configured queue is 200 with outcome not_visible; 404 = unknown queue.
+GET    /queues/dlq/:queue/messages/:message_id          ColonelAPI::Logic::Colonel::GetDlqMessage response=json auth=sessionauth role=colonel scope=internal
+POST   /queues/dlq/:queue/messages/:message_id/replay   ColonelAPI::Logic::Colonel::ReplayDlqMessage response=json auth=sessionauth role=colonel scope=internal
+POST   /queues/dlq/:queue/messages/:message_id/discard  ColonelAPI::Logic::Colonel::DiscardDlqMessage response=json auth=sessionauth role=colonel network=admin_if_configured scope=internal
+# --- #4343 (END) ---
 
 # Email + Rate-limit Tools (ticket #44)
 GET    /email/templates                       ColonelAPI::Logic::Colonel::ListEmailTemplates response=json auth=sessionauth role=colonel scope=internal

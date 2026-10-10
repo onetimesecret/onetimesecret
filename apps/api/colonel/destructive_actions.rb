@@ -25,6 +25,7 @@ module ColonelAPI
       DeleteOrganization
       DeleteSession RevokeAllCustomerSessions RevokeCustomerSession
       PurgeDlq
+      DiscardDlqMessage
     ].freeze
 
     TIER2 = %w[
@@ -32,6 +33,7 @@ module ColonelAPI
       RepairDomain OverrideDomainVerification UpsertDomainConfig
       ManageEntitlementOverride AddMembership ManageMembershipEntitlementOverride
       ReplayDlq ResetRateLimit
+      ReplayDlqMessage
       ImpersonateUser
     ].freeze
 

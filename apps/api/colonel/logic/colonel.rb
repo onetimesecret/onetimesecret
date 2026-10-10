@@ -111,9 +111,15 @@ require_relative 'colonel/list_dlqs'
 require_relative 'colonel/get_dlq_messages'
 require_relative 'colonel/replay_dlq'
 require_relative 'colonel/purge_dlq'
+# #4343 per-message DLQ verbs (shared target handling first)
+require_relative 'colonel/dlq_message_target'
+require_relative 'colonel/get_dlq_message'
+require_relative 'colonel/replay_dlq_message'
+require_relative 'colonel/discard_dlq_message'
 
 # #4343 jobs operability (BEGIN)
-# Scheduler catalog; the per-message DLQ and chore classes join this block.
+# Scheduler catalog; the chore classes join this block. The per-message DLQ
+# classes sit with the other DLQ requires above.
 require_relative 'colonel/list_jobs'
 # #4343 (END)
 
