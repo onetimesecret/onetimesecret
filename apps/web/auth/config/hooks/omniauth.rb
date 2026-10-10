@@ -36,34 +36,8 @@ module Auth::Config::Hooks
         # email into a mailbox.
         return value unless value.is_a?(String)
 
-        Auth::Config::Hooks::OmniAuth.canonical_email(value)
+        OT::Utils.canonical_email(value)
       end
-    end
-
-    # Trimmed (Unicode whitespace, then String#strip's set, which adds NUL),
-    # NFC, lowercased. For a fold-stable address this equals
-    # OT::Utils.normalize_email, which normalize_login and Customer.create!
-    # use (#2843).
-    #
-    # @param value [String]
-    # @return [String]
-    def self.canonical_email(value)
-      value.gsub(/\A[[:space:]]+|[[:space:]]+\z/, '').strip.unicode_normalize(:nfc).downcase
-    end
-
-    # normalize_email case-FOLDS, which rewrites a few non-ASCII addresses
-    # into different ones (ß -> ss). Such a claim would be judged by the
-    # domain gates, matched to accounts, and keyed in the Customer index
-    # under an address the IdP did not assert, so SSO refuses it as
-    # invalid_email instead.
-    #
-    # @param email [String, Object] a canonical_email value; a non-String is
-    #   stable (the structural guards refuse it on their own)
-    # @return [Boolean]
-    def self.fold_stable_email?(email)
-      return true unless email.is_a?(String)
-
-      email.downcase(:fold) == email
     end
 
     # The only initiator of a platform Connect is the Connected Identities
@@ -188,7 +162,7 @@ module Auth::Config::Hooks
         # A claim case folding would rewrite must not locate an account by its
         # folded form (a different address). Skip the email branches;
         # before_omniauth_create_account refuses it as invalid_email.
-        next nil unless Auth::Config::Hooks::OmniAuth.fold_stable_email?(omniauth_email)
+        next nil unless OT::Utils.fold_stable_email?(omniauth_email)
 
         # Not authenticated (or logged-in without connect intent): email is the
         # only signal available, so the email-based branches below apply. Locate
@@ -769,9 +743,11 @@ module Auth::Config::Hooks
         # (rather than letting a claim the CHECK rejects fall through to account
         # creation, which 500s as Sequel::CheckConstraintViolation) keeps the
         # user on a localized error instead of a frozen screen (#3478, #3971).
-        # A fold-unstable claim is refused here too (see fold_stable_email?).
+        # A claim normalize_email's case folding would rewrite (ß -> ss) is
+        # refused here too: it would be judged, matched and indexed under an
+        # address the IdP did not assert (OT::Utils.fold_stable_email?).
         unless claim.is_a?(String) && Onetime::SignupValidation.structurally_valid_email?(email) &&
-               Auth::Config::Hooks::OmniAuth.fold_stable_email?(email)
+               OT::Utils.fold_stable_email?(email)
           Auth::Logging.log_auth_event(
             :omniauth_invalid_email,
             level: :warn,
