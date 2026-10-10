@@ -201,9 +201,9 @@ RSpec.describe Onetime::Jobs::JobRun do
           .to be(false)
 
         record = described_class.read('recorded')
-        expect(record).to include('last_status' => 'running', 'last_error' => nil, 'run_count' => 2)
-        expect(record['last_finished_at']).to be_nil
-        expect(record['error_count']).to be_nil
+        expect(record).to include('last_status' => 'running', 'run_count' => 2)
+        # A's finish wrote nothing, so these fields were never set.
+        expect(record).not_to include('last_error', 'last_finished_at', 'error_count')
         expect(raw('recorded')['run_token']).to eq(token_b)
       end
 
