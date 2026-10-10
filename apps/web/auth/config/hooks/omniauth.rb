@@ -146,17 +146,19 @@ module Auth::Config::Hooks
       # Resolve the SSO email (#3499 / #3478) — one override, every consumer.
       # ========================================================================
       #
-      # Some IdPs (notably Microsoft EntraID) omit the standard `email` claim
-      # for users without an Exchange mailbox, or when the app registration
-      # lacks the email optional claim (#3478). Fall back to the verified
-      # mailbox attribute `mail` (extra.raw_info["mail"]) when `info.email` is
-      # absent.
+      # Some nonstandard OIDC providers omit `info.email` but supply a `mail`
+      # field in extra.raw_info (#3965). Fall back to that field when
+      # `info.email` is absent. This is NOT an Entra remedy: Microsoft Entra ID
+      # can omit the `email` claim (#3478), and omniauth-entra-id builds
+      # raw_info from the token payloads without fetching a directory `mail`
+      # attribute, so a missing Entra email claim stays missing here. A
+      # missing claim does not establish that the user has no mailbox.
       #
-      # TRUST TIERS (see #3499): only TIER-1, IdP-verified mailbox claims are
-      # consulted:
-      #   - info.email             (standard OIDC, verified by the IdP)
-      #   - extra.raw_info["mail"] (Exchange mailbox attribute)
-      # Mutable TIER-2 identifiers (upn, preferred_username) are intentionally
+      # SOURCES (see #3499): only these two fields are consulted, and neither
+      # is proof of mailbox control:
+      #   - info.email             (standard OIDC claim as the strategy maps it)
+      #   - extra.raw_info["mail"] (nonstandard provider field)
+      # Mutable identifiers (upn, preferred_username) are intentionally
       # NOT used — Microsoft documents them as mutable and unsafe for identity
       # or authorization, so linking on them is an account-takeover vector. The
       # tripwire specs in spec/integration/full/omniauth_missing_email_spec.rb
@@ -175,7 +177,7 @@ module Auth::Config::Hooks
       # (features/omniauth.rb:152), which the per-hook approach missed.
       #
       # Returns the resolved claim with SURROUNDING WHITESPACE TRIMMED, or nil
-      # when the IdP supplied no tier-1 mailbox.
+      # when the IdP supplied neither field.
       #
       # WHY TRIM HERE AND NOT DOWNSTREAM: this accessor is the value Rodauth
       # INSERTS. omniauth_create_account -> omniauth_new_account ->
@@ -205,7 +207,7 @@ module Auth::Config::Hooks
       # '["user@contoso.com"]' — which satisfies both the structural guard below
       # AND the valid_email CHECK, so it would be INSERTED as the account's
       # login: a junk, unreachable account created silently on a 302. Only a
-      # String is a mailbox claim; anything else resolves to nil and takes the
+      # String is an email claim; anything else resolves to nil and takes the
       # same invalid_email redirect as an absent claim.
       #
       # TRIM IS UNICODE-AWARE, deliberately not String#strip: strip removes only

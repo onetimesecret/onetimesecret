@@ -17,7 +17,9 @@
 #
 # PRODUCTION SSO SETUP THAT TRIGGERS THIS (for reference):
 #   - Microsoft Entra ID via the v2.0 endpoint (omniauth-entra-id).
-#   - A user with NO `mail` attribute (no mailbox/license) -> no `email` claim.
+#   - The token carries no `email` claim (an app registration without the
+#     email optional claim, or no value in the directory). A missing claim
+#     does not establish that the user has no mailbox.
 #   - App registration with NO `email` and NO `upn` optional claims. v2.0 omits
 #     `upn` by default and emits `preferred_username`, which omniauth-entra-id
 #     does NOT use for `info.email`. Net result: OmniAuth `info.email` == nil.
@@ -97,9 +99,12 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
   #
   # `email:` is what the IdP surfaced as info.email. Pass nil/''/whitespace to
   # reproduce #3478. `raw_info:` lets a test add claims that ARE present on a
-  # v2.0 token. Two distinct roles there since the #3499 fix:
-  #   - `mail:` is a TIER-1 verified mailbox claim and IS used as a fallback.
-  #   - preferred_username / upn / oid are TIER-2 (mutable) and are NOT — the
+  # v2.0 token. Two distinct roles there since #3965:
+  #   - `mail:` is a nonstandard provider field and IS used as a fallback. The
+  #     native Entra strategy never produces it (raw_info is the decoded token;
+  #     there is no Graph lookup), so setting it here tests the fallback
+  #     plumbing, not Entra behaviour.
+  #   - preferred_username / upn / oid are mutable identifiers and are NOT — the
   #     tripwires below prove the hook still refuses them.
   def setup_entra_mock_auth(email:, provider: :oidc, uid: nil, raw_info: {})
     OmniAuth.config.test_mode = true
@@ -111,8 +116,8 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
       sub: oid,
       oid: oid,
       tid: 'fabrikam-tenant-id',
-      name: 'No Mailbox User',
-      preferred_username: 'no.mailbox@fabrikam.onmicrosoft.com',
+      name: 'No Email Claim User',
+      preferred_username: 'no.email.claim@fabrikam.onmicrosoft.com',
     }.merge(raw_info)
 
     OmniAuth.config.mock_auth[provider] = OmniAuth::AuthHash.new({
@@ -120,7 +125,7 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
       uid: oid,
       info: {
         email: email, # nil / '' / whitespace for the #3478 cases
-        name: 'No Mailbox User',
+        name: 'No Email Claim User',
       },
       credentials: {
         token: 'mock_access_token',
@@ -229,11 +234,11 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
 
   describe 'structurally malformed emails from the IdP' do
     [
-      ['missing @',        'nomailbox.fabrikam.onmicrosoft.com'],
+      ['missing @',        'noemail.fabrikam.onmicrosoft.com'],
       ['empty local part', '@fabrikam.onmicrosoft.com'],
-      ['empty domain',     'nomailbox@'],
+      ['empty domain',     'noemail@'],
       ['bare @',           '@'],
-      ['multiple @',       'no@mailbox@fabrikam.onmicrosoft.com'],
+      ['multiple @',       'no@email@fabrikam.onmicrosoft.com'],
     ].each do |label, value|
       it "redirects to invalid_email for #{label} (#{value.inspect})" do
         setup_entra_mock_auth(email: value)
@@ -255,7 +260,7 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
   describe 'email source contract' do
     it 'ignores a raw_info email claim (only the "mail" key is a fallback)' do
       # info.email is blank and extra.raw_info carries an "email" key — which is
-      # NOT the "mail" mailbox attribute omniauth_email falls back to. No other
+      # NOT the nonstandard "mail" field omniauth_email falls back to. No other
       # raw_info claim may be consulted, so this must STILL be invalid_email.
       setup_entra_mock_auth(email: nil, raw_info: { email: 'shadow@fabrikam.onmicrosoft.com' })
 
@@ -269,17 +274,19 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
   end
 
   # ==========================================================================
-  # Tier-1 fallback: extra.raw_info["mail"]  (#3499 Phase 1)
+  # Nonstandard-field fallback: extra.raw_info["mail"]  (#3965)
   # ==========================================================================
   #
-  # The #3478 fix. An Entra user with no Exchange mailbox — or an app
-  # registration missing the email optional claim — arrives with info.email
-  # absent but the verified mailbox attribute `mail` present. That user must
-  # now sign in instead of hitting invalid_email.
+  # Some nonstandard OIDC providers omit info.email but supply a `mail` field
+  # in raw_info; that user signs in instead of hitting invalid_email. This is
+  # NOT a fix for a native Entra token without an email claim (#3478):
+  # omniauth-entra-id builds raw_info from the token payloads and never
+  # fetches a directory `mail` attribute, so a missing Entra email claim stays
+  # missing here. Mocking `mail` exercises the fallback plumbing only.
 
-  describe 'verified-mailbox fallback' do
+  describe 'nonstandard mail field fallback' do
     it 'falls back to extra.raw_info["mail"] when info.email is absent' do
-      setup_entra_mock_auth(email: nil, raw_info: { mail: 'has.mailbox@fabrikam.onmicrosoft.com' })
+      setup_entra_mock_auth(email: nil, raw_info: { mail: 'has.mail.field@fabrikam.onmicrosoft.com' })
 
       begin
         post_sso_callback(:oidc)
@@ -302,7 +309,7 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
         post_sso_callback(:oidc)
         expect(last_response.status).to eq(302)
         expect(last_response.location.to_s).not_to include('auth_error=')
-        # info.email is the account that must exist; the mailbox attribute
+        # info.email is the account that must exist; the mail field
         # must not have shadowed it.
         expect(Onetime::Customer.email_exists?('primary@fabrikam.onmicrosoft.com')).to be(true)
         expect(Onetime::Customer.email_exists?('secondary@fabrikam.onmicrosoft.com')).to be(false)
@@ -324,19 +331,19 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
   end
 
   # ==========================================================================
-  # Behavioral tripwires: TIER-2 claims are still refused
+  # Behavioral tripwires: mutable identifier claims are still refused
   # ==========================================================================
   #
-  # The #3499 fallback is deliberately scoped to tier-1 verified mailbox
-  # claims. preferred_username / upn / oid are mutable per Microsoft's own
-  # guidance, so linking on them is an account-takeover vector. These pin the
-  # refusal — they must NOT be flipped alongside the `mail` fallback above.
+  # The #3965 fallback is deliberately scoped to info.email and
+  # raw_info["mail"]. preferred_username / upn / oid are mutable per Microsoft's
+  # own guidance, so linking on them is an account-takeover vector. These pin
+  # the refusal — they must NOT be flipped alongside the `mail` fallback above.
 
-  describe 'no fallback to mutable tier-2 identifiers' do
+  describe 'no fallback to mutable identifiers' do
     it 'does NOT fall back to preferred_username' do
       setup_entra_mock_auth(
         email: nil,
-        raw_info: { preferred_username: 'no.mailbox@fabrikam.onmicrosoft.com' },
+        raw_info: { preferred_username: 'no.email.claim@fabrikam.onmicrosoft.com' },
       )
 
       begin
@@ -350,7 +357,7 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
     it 'does NOT fall back to a upn claim' do
       setup_entra_mock_auth(
         email: nil,
-        raw_info: { upn: 'no.mailbox@fabrikam.onmicrosoft.com' },
+        raw_info: { upn: 'no.email.claim@fabrikam.onmicrosoft.com' },
       )
 
       begin
@@ -432,7 +439,7 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
     end
 
     it 'trims whitespace on the raw_info["mail"] fallback too' do
-      # Same insert path, reached via the #3499 tier-1 fallback rather than
+      # Same insert path, reached via the #3965 mail-field fallback rather than
       # info.email — the trim must apply to both claim sources.
       local   = "padded.mail.#{SecureRandom.hex(4)}"
       trimmed = "#{local}@contoso.com"
@@ -500,7 +507,7 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
   # the Entra provider isn't registered in the test boot.
 
   describe 'via the Entra provider route (when registered)' do
-    it 'redirects to invalid_email for a no-mailbox Entra user' do
+    it 'redirects to invalid_email for an Entra token without an email claim' do
       setup_entra_mock_auth(email: nil, provider: :entra)
 
       begin
