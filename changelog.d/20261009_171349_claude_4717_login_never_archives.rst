@@ -8,4 +8,4 @@ Changed
   It no longer archives the personal workspace it replaced as the default:
   that workspace stays listed and can be switched to. Joining an
   organization and choosing a default are decisions the sign-in makes;
-  retiring a workspace is left to the account owner or an operator (#4717).
+  retiring a workspace is left to an operator (#4717).
