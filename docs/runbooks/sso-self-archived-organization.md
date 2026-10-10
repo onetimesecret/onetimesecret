@@ -115,8 +115,12 @@ For each organization kept in the previous step:
 
    - the owner still holds an active `owner` membership
      (`bin/ots org doctor <ORG>` checks 1, 2 and 4);
-   - the owner's `default_org_id` names this organization (the dry run above
-     prints no `Owner default workspace:` line);
+   - the owner's `default_org_id` names this organization: read the
+     `default_org_id:` line of `bin/ots customers show <owner>` and compare it
+     with the org's `org_id` from the domain scan. A missing
+     `Owner default workspace:` line in the dry run is not proof of this; the
+     line is also absent when the pointer is empty or names an archived or
+     missing organization;
    - `planid`, `stripe_customer_id` and `stripe_subscription_id` are the values
      you expect for the tenant. The archive never touched them, so a mismatch
      here is a different problem; stop and investigate it first.

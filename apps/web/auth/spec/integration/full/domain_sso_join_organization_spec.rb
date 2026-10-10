@@ -745,7 +745,9 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
   # self-heal the domain org itself (the explicit pointer names it; the
   # owned-default lookup selects it), and nothing compares candidate to
   # destination, so the owner's live, billed tenant org was soft-archived on
-  # every login. Archival is load-bearing for routing: every loader and
+  # their login, and again on the first login after any restore (the
+  # self-heal skips an already-archived org). Archival is load-bearing for
+  # routing: every loader and
   # resolver rejects archived?, so the owner lands on an orphaned account.
   #
   describe 'owner signs into their own default organization (#4717)', :shared_db_state do
