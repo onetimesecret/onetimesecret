@@ -137,6 +137,51 @@ RSpec.describe 'DLQ per-message ops', :rabbitmq, type: :integration do
     expect(letters(remaining_ids(6))).to eq(%w[A B C D E F])
   end
 
+  describe 'when the original queue does not exist' do
+    def delete_origin
+      side = connection.create_channel
+      side.queue_delete(origin_name)
+      side.close
+    end
+
+    it 'keeps the message on a per-message replay (unroutable), the queue in order' do
+      delete_origin
+
+      result = Onetime::Operations::Dlq::Replay.new(
+        connection: connection, queue: dlq_name, actor: actor, message_id: ids[3],
+      ).call
+
+      expect(result).to have_attributes(status: :refused, outcome: 'unroutable', found: true, replayed: 0, failed: 0)
+      expect(letters(remaining_ids(5))).to eq(%w[A B C D E])
+    end
+
+    it 'keeps every message on a bulk replay, counting them as failed' do
+      delete_origin
+
+      result = Onetime::Operations::Dlq::Replay.new(connection: connection, queue: dlq_name, actor: actor).call
+
+      expect(result).to have_attributes(replayed: 0, failed: 5)
+      expect(letters(remaining_ids(5))).to eq(%w[A B C D E])
+    end
+
+    # The broker returns a mandatory publish while it applies the commit,
+    # before commit-ok, and the DLQ ack in that commit is applied too: the
+    # replay must notice the return and put the message back.
+    it 'puts back a copy whose queue was deleted after the check' do
+      op = Onetime::Operations::Dlq::Replay.new(
+        connection: connection, queue: dlq_name, actor: actor, message_id: ids[3],
+      )
+      # Runs after the existence check and before the publish.
+      allow(op).to receive(:release_processing_claim) { delete_origin }
+
+      result = op.call
+
+      expect(result).to have_attributes(outcome: 'unroutable', replayed: 0, failed: 0)
+      expect(result.errors.first[:error]).to include('put back at the end of the DLQ')
+      expect(letters(remaining_ids(5))).to eq(%w[A B C E D])
+    end
+  end
+
   it 'discards a message behind the head, the rest staying in order' do
     result = Onetime::Operations::Dlq::Discard.new(
       connection: connection, queue: dlq_name, actor: actor, message_id: ids[2],

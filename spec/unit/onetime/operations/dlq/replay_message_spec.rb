@@ -78,12 +78,15 @@ RSpec.describe Onetime::Operations::Dlq::Replay, 'one message by id' do
       tx_at = broker.events.index([:tx_select])
       expect(broker.events[tx_at..]).to eq([
         [:tx_select],
+        [:probe, 'billing.event.process'],
         [:published, 'C', 'billing.event.process'],
         [:ack, 'C'],
         [:tx_commit],
         [:audit, { message_id: 'C', replayed: 1, failed: 0 }],
         [:close],
+        [:close],
       ])
+      expect(broker.published.first[:opts]).to include(mandatory: true)
       expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         actor: actor, verb: 'queue.dlq.replay', target: dlq, result: :success,
         detail: { message_id: 'C', replayed: 1, failed: 0 }, fail_closed: true,
@@ -204,6 +207,86 @@ RSpec.describe Onetime::Operations::Dlq::Replay, 'one message by id' do
       expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         hash_including(result: :failure, detail: hash_including(dry_run: false, message_id: 'C')),
       )
+    end
+  end
+
+  # R1-4: a default-exchange publish to a missing queue is dropped by the
+  # broker, so the DLQ ack must not commit with it.
+  describe 'an original queue that does not exist' do
+    let(:broker) { DlqFakeBroker.broker(ids, name: dlq) }
+
+    it 'is unroutable: checked first, nothing published, the message kept in its place' do
+      broker.missing_queues << 'billing.event.process'
+
+      result = replay('C')
+
+      expect(result).to have_attributes(status: :refused, outcome: 'unroutable', found: true,
+        replayed: 0, failed: 0)
+      expect(result.errors).to match([{ message_id: 'C', error: a_string_including('no queue named billing.event.process') }])
+      expect(broker.events).not_to include(a_collection_including(:returned))
+      expect(broker.published).to be_empty
+      expect(broker.ready_ids).to eq(ids)
+    end
+
+    it 'records the attempt as a no-change attempt' do
+      broker.missing_queues << 'billing.event.process'
+
+      replay('C')
+
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+        actor: actor, verb: 'queue.dlq.replay', target: dlq, result: :success,
+        detail: { message_id: 'C', replayed: 0, failed: 0, refused: 'unroutable', outcome: 'no_change' },
+      )
+    end
+
+    describe 'deleted after the check, before the commit' do
+      before do
+        commits = 0
+        broker.before_commit = lambda do
+          commits += 1
+          broker.missing_queues << 'billing.event.process' if commits == 1
+        end
+      end
+
+      it 'puts the returned message back at the end of the DLQ instead of losing it' do
+        result = replay('C')
+
+        expect(broker.events).to include([:returned, 'C', 'billing.event.process'], [:enqueued, 'C'])
+        expect(broker.ready_ids).to eq(%w[A B D E C])
+        expect(result).to have_attributes(status: :refused, outcome: 'unroutable', replayed: 0, failed: 0)
+        expect(result.errors.first[:error]).to include('was deleted during the replay', 'put back at the end of the DLQ')
+      end
+
+      it 'keeps its x-death headers, so it can be replayed once the queue is back' do
+        replay('C')
+
+        broker.missing_queues.clear
+        expect(replay('C')).to have_attributes(status: :success, replayed: 1)
+      end
+
+      it 'records a fail-closed event, since the DLQ changed' do
+        replay('C')
+
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+          hash_including(detail: { message_id: 'C', replayed: 0, failed: 0, outcome: 'unroutable' }, fail_closed: true),
+        )
+      end
+
+      it 'says the message may be lost when putting it back fails' do
+        commits = 0
+        broker.before_commit = lambda do
+          commits += 1
+          broker.missing_queues << 'billing.event.process' if commits == 1
+          raise IOError, 'commit reply lost' if commits == 2
+        end
+
+        result = replay('C')
+
+        expect(result).to have_attributes(outcome: 'unroutable', replayed: 0, failed: 1)
+        expect(result.errors.first[:error]).to include('the message may be lost')
+        expect(Onetime::ColonelAuditEvent).to have_received(:record)
+          .with(hash_including(detail: hash_including(failed: 1, outcome: 'unroutable'), fail_closed: true))
+      end
     end
   end
 

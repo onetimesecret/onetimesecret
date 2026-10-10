@@ -33,6 +33,27 @@ module Onetime
       # outcome-unknown error and stops the replay: the broker may have
       # applied it.
       #
+      # ## A missing original queue
+      #
+      # A publish to the default exchange "succeeds" when no queue has the
+      # routing key's name: the broker drops the message. In the same commit
+      # as the DLQ ack, that would lose it. So before republishing, each
+      # message's original queue is checked with a passive declare on a
+      # separate probe channel (a failed passive declare closes its channel,
+      # and the replay channel must stay open). A missing queue is
+      # `unroutable`: the message is not republished and stays in the DLQ,
+      # counted as failed; the name is remembered for the rest of the run.
+      #
+      # The check cannot see a queue deleted between it and the commit, so
+      # the publish is also `mandatory`: the broker then returns the copy
+      # while it applies the commit, before confirming it, and the DLQ ack in
+      # that commit has been applied too. The returned message is put back at
+      # the end of the DLQ, with its x-death headers, in a commit of its own;
+      # if that fails the error says the message may be lost. A publish that
+      # is committed alone first (as DlqEmailConsumerJob does) would avoid
+      # the window but reopen the one this transaction closes: a copy
+      # republished whose DLQ ack then fails is replayed twice.
+      #
       # ## Idempotency claims
       #
       # Queue workers take a claim on each message id and skip a later message
@@ -128,21 +149,29 @@ module Onetime
         # dropped (see the class comment).
         NO_ORIGINAL_QUEUE = 'no_original_queue'
 
+        # Per-message outcome when the original queue does not exist (see
+        # "A missing original queue").
+        UNROUTABLE = 'unroutable'
+
         # Per-message steps after which nothing moved: the message is still
         # in the DLQ and the attempt is a no-change attempt (#4337), with the
         # step as its outcome.
-        NOT_REPLAYED_STEPS = [*REFUSED_STEPS, NO_ORIGINAL_QUEUE.to_sym].freeze
+        NOT_REPLAYED_STEPS = [*REFUSED_STEPS, NO_ORIGINAL_QUEUE.to_sym, UNROUTABLE.to_sym].freeze
+
+        # Per-message steps that moved the message without replaying it: a
+        # copy the broker returned as unroutable after the DLQ ack committed.
+        RETURNED_STEPS = [:unroutable_restored, :unroutable_lost].freeze
 
         # The email DLQ consumer whose reservation a per-message replay takes.
         EmailConsumer = Onetime::Jobs::Scheduled::DlqEmailConsumerJob
 
         # #replay_delivery results after which the channel's transaction
         # state is unknown: the bulk loop stops.
-        UNCONFIRMED_STEPS = [:drop_unconfirmed, :commit_unconfirmed].freeze
+        UNCONFIRMED_STEPS = [:drop_unconfirmed, :commit_unconfirmed, :unroutable_lost].freeze
 
         # #replay_delivery results after which the DLQ may have changed, so
         # the per-message event is fail-closed (#4333).
-        DLQ_CHANGED_STEPS = [:replayed, :dropped, *UNCONFIRMED_STEPS].freeze
+        DLQ_CHANGED_STEPS = [:replayed, :dropped, :unroutable_restored, *UNCONFIRMED_STEPS].freeze
 
         # The bulk path has NO refusal STATUS — `:empty`/`:noop`/`:dry_run` are
         # all honest outcomes, not refusals (the per-message `:refused` is the
@@ -223,6 +252,7 @@ module Onetime
 
         # @return [Result]
         def call
+          @missing_queues = Set.new
           return replay_one if @message_id
 
           channel = @connection.create_channel
@@ -288,6 +318,7 @@ module Onetime
           )
         ensure
           channel.close if channel&.open?
+          close_probe_channel
         end
 
         private
@@ -363,10 +394,16 @@ module Onetime
         #   cannot dead-letter-loop forever, and counted as failed.
         # - :drop_unconfirmed — that drop's commit failed; it may still be
         #   in the DLQ.
+        # - :unroutable — no queue has the original name: not republished,
+        #   left unacked, counted as failed.
         # - :not_published — the claim was not released, or the publish or
         #   ack failed and was rolled back. Left unacked.
         # - :commit_unconfirmed — the broker did not confirm the commit; the
         #   copy may be live.
+        # - :unroutable_restored / :unroutable_lost — the queue went away
+        #   after the check: the broker returned the copy after the DLQ ack
+        #   committed, and putting the message back in the DLQ succeeded /
+        #   failed. Counted as failed.
         def replay_delivery(channel, delivery_info, properties, payload, results)
           original = Store.original_queue(properties.headers)
           unless original
@@ -381,6 +418,12 @@ module Onetime
             end
             results[:errors] << { message_id: properties.message_id, error: 'No original queue found' }
             return :dropped
+          end
+
+          unless original_queue_exists?(original)
+            results[:failed] += 1
+            results[:errors] << { message_id: properties.message_id, error: unroutable_error(original) }
+            return :unroutable
           end
 
           # Release before publishing: a worker can consume the republished
@@ -398,10 +441,18 @@ module Onetime
             return :not_published
           end
 
+          # Set by the channel's reader thread, which handles a return before
+          # the commit-ok that tx_commit waits for.
+          returned = false
+          exchange = channel.default_exchange
+
+          exchange.on_return { |*| returned = true }
+
           begin
-            channel.default_exchange.publish(
+            exchange.publish(
               payload,
               routing_key: original,
+              mandatory: true,
               persistent: true,
               message_id: properties.message_id,
               content_type: properties.content_type,
@@ -426,8 +477,73 @@ module Onetime
             return :commit_unconfirmed
           end
 
+          return restore_returned(channel, properties, payload, original, results) if returned
+
           results[:replayed] += 1
           :replayed
+        end
+
+        # Passive declare on the probe channel. Only Bunny::NotFound means
+        # missing; any other error propagates (the replay cannot tell).
+        def original_queue_exists?(name)
+          return false if @missing_queues.include?(name)
+
+          probe_channel.queue_declare(name, passive: true)
+          true
+        rescue Bunny::NotFound
+          @missing_queues << name
+          false
+        end
+
+        # The broker closes a channel whose passive declare fails, so a
+        # closed probe channel is replaced.
+        def probe_channel
+          @probe_channel = @connection.create_channel unless @probe_channel&.open?
+          @probe_channel
+        end
+
+        def close_probe_channel
+          @probe_channel.close if @probe_channel&.open?
+        rescue StandardError => ex
+          Onetime.get_logger('Operations').warn 'DLQ replay probe channel close failed',
+            queue: @queue,
+            error_class: ex.class.name
+        end
+
+        # The original queue went away between the check and the commit: the
+        # copy came back, and the DLQ ack in the same commit is applied. Put
+        # the message back at the end of the DLQ, x-death headers and all, in
+        # a commit of its own.
+        def restore_returned(channel, properties, payload, original, results)
+          message_id = properties.message_id
+
+          @missing_queues << original
+          results[:failed] += 1
+
+          begin
+            channel.default_exchange.publish(
+              payload,
+              routing_key: @queue,
+              persistent: true,
+              message_id: message_id,
+              content_type: properties.content_type,
+              headers: properties.headers || {},
+            )
+            channel.tx_commit
+          rescue StandardError => ex
+            results[:errors] << {
+              message_id: message_id,
+              error: "#{unroutable_error(original, returned: true)} Putting it back in the DLQ failed " \
+                     "(#{ex.message}); the message may be lost.",
+            }
+            return :unroutable_lost
+          end
+
+          results[:errors] << {
+            message_id: message_id,
+            error: "#{unroutable_error(original, returned: true)} It was put back at the end of the DLQ.",
+          }
+          :unroutable_restored
         end
 
         # ---- One message by id (#4343) -----------------------------------
@@ -442,6 +558,7 @@ module Onetime
           record_replayed_message(scan)
         ensure
           channel.close if channel&.open?
+          close_probe_channel
         end
 
         # The matched delivery is replayed inside the scan's block, on the
@@ -608,6 +725,8 @@ module Onetime
             )
           end
 
+          return record_returned_message(scan, step, results) if RETURNED_STEPS.include?(step)
+
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
@@ -617,6 +736,22 @@ module Onetime
             fail_closed: DLQ_CHANGED_STEPS.include?(step),
           )
           message_result(:success, scan, results: results)
+        end
+
+        # The DLQ changed (acked, then put back at its end, or lost), so the
+        # event is fail-closed, carrying the unroutable outcome. Not replayed;
+        # failed only when the message may be lost.
+        def record_returned_message(scan, step, results)
+          counts = { replayed: 0, failed: step == :unroutable_lost ? 1 : 0 }
+          Onetime::ColonelAuditEvent.record(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: @queue,
+            result: :success,
+            detail: with_reason(message_id: @message_id, **counts, outcome: UNROUTABLE),
+            fail_closed: true,
+          )
+          message_result(:refused, scan, results: counts.merge(errors: results[:errors]), outcome: UNROUTABLE)
         end
 
         def message_result(status, scan, results: nil, would_replay: 0, outcome: nil)
@@ -639,6 +774,15 @@ module Onetime
         def already_replayed_error
           'Not republished: the email DLQ consumer already republished this message id within the ' \
             'last hour, so replaying it again would send the email twice. It stays in the DLQ.'
+        end
+
+        def unroutable_error(original, returned: false)
+          if returned
+            "Not replayed: the queue #{original} was deleted during the replay and the broker returned the copy."
+          else
+            "Not replayed: no queue named #{original} exists, so the republished copy would be dropped. " \
+              'It stays in the DLQ until the queue exists again.'
+          end
         end
 
         def no_original_queue_error

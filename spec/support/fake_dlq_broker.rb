@@ -19,6 +19,11 @@ require 'json'
 # - In transaction mode (tx_select) publishes, acks and nacks wait for
 #   tx_commit; tx_rollback discards them; closing the channel discards an
 #   uncommitted transaction and returns every unacked delivery.
+# - A publish routes at commit: to `name` (the DLQ itself) it is appended to
+#   the queue; to a queue in `missing_queues` it is dropped, or returned to
+#   the exchange's on_return handler when `mandatory`; anything else lands in
+#   `published`. A passive queue_declare of a missing queue raises
+#   Bunny::NotFound and closes that channel, as RabbitMQ does.
 #
 # Every broker-visible step is appended to `broker.events`, and the specs
 # can append their own (an audit write) to check ordering across the two.
@@ -35,8 +40,9 @@ module DlqFakeBroker
 
   # @param ids [Array<String, nil>]
   # @param original_queue [String, nil] nil for a message without x-death
-  def broker(ids, original_queue: 'billing.event.process', declared: true)
-    Broker.new(ids.map { |id| message(id, original_queue: original_queue) }, declared: declared)
+  # @param name [String, nil] the DLQ's own queue name, for publishes back to it
+  def broker(ids, original_queue: 'billing.event.process', declared: true, name: nil)
+    Broker.new(ids.map { |id| message(id, original_queue: original_queue) }, declared: declared, name: name)
   end
 
   def message(id, original_queue: 'billing.event.process', payload: nil)
@@ -45,16 +51,42 @@ module DlqFakeBroker
   end
 
   class Broker
-    attr_reader :events, :published, :channels
+    attr_reader :events, :published, :channels, :missing_queues, :name
 
-    def initialize(messages, declared: true)
+    # Runs at the start of every tx_commit, before the pending work applies:
+    # where an example deletes a queue after the op checked it.
+    attr_accessor :before_commit
+
+    def initialize(messages, declared: true, name: nil)
       @ready     = messages.each_with_index.map do |m, seq|
         Entry.new(seq, m[:id], m[:headers], m[:content_type], m[:payload])
       end
-      @declared  = declared
-      @events    = []
-      @published = []
-      @channels  = []
+      @next_seq       = @ready.size
+      @declared       = declared
+      @name           = name
+      @events         = []
+      @published      = []
+      @channels       = []
+      @missing_queues = Set.new
+    end
+
+    def queue_exists?(queue_name) = !missing_queues.include?(queue_name)
+
+    # A publish as the broker applies it (see the module comment).
+    def route(payload, opts, exchange)
+      routing_key = opts[:routing_key]
+      message_id  = opts[:message_id]
+
+      if name && routing_key == name
+        @ready << Entry.new(@next_seq += 1, message_id, opts[:headers], opts[:content_type], payload)
+        events << [:enqueued, message_id]
+      elsif !queue_exists?(routing_key)
+        events << [(opts[:mandatory] ? :returned : :dropped_unroutable), message_id, routing_key]
+        exchange.handle_return(payload, opts) if opts[:mandatory]
+      else
+        published << { payload: payload, opts: opts }
+        events << [:published, message_id, routing_key]
+      end
     end
 
     def declared? = @declared
@@ -98,10 +130,16 @@ module DlqFakeBroker
     end
 
     def publish(payload, **opts)
-      @channel.transactional do
-        @channel.broker.published << { payload: payload, opts: opts }
-        @channel.broker.events << [:published, opts[:message_id], opts[:routing_key]]
-      end
+      @channel.transactional { @channel.broker.route(payload, opts, self) }
+    end
+
+    def on_return(&block)
+      @on_return = block
+      self
+    end
+
+    def handle_return(payload, opts)
+      @on_return&.call(nil, opts, payload)
     end
   end
 
@@ -137,6 +175,18 @@ module DlqFakeBroker
       QueueHandle.new(self)
     end
 
+    # The passive-declare existence check the replay makes before it
+    # republishes. A missing queue closes the channel, as on RabbitMQ.
+    def queue_declare(queue_name, passive: false)
+      raise 'only passive declares are modelled' unless passive
+
+      broker.events << [:probe, queue_name]
+      return true if broker.queue_exists?(queue_name)
+
+      close
+      raise Bunny::NotFound.new("NOT_FOUND - no queue '#{queue_name}'", self, nil)
+    end
+
     def deliver
       entry = broker.take
       return [nil, nil, nil] unless entry
@@ -161,6 +211,7 @@ module DlqFakeBroker
     end
 
     def tx_commit
+      broker.before_commit&.call
       applied  = @pending || []
       @pending = []
       applied.each(&:call)
