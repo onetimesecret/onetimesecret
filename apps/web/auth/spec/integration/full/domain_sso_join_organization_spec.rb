@@ -555,8 +555,11 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
       expect(first_result[:joined]).to be(true)
       expect(first_result[:adoption]&.dig(:adopted)).to be(true)
 
-      # Second join: already_member, adoption retried but no-op because the
-      # pointer already names the domain org (the #4717 same-org guard).
+      # Second join: already_member, adoption retried but nil because the
+      # pointer now names the tenant org, which is not an is_default
+      # workspace, so resolve_personal_default_org finds no candidate. (The
+      # #4717 same-org guard is not reached here; it covers the case where the
+      # domain org IS the owner's default workspace.)
       second_result = Auth::Operations::JoinDomainOrganization.new(
         customer: legacy_customer,
         domain_id: tenant_custom_domain.identifier,

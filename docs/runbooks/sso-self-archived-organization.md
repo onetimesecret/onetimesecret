@@ -22,8 +22,8 @@ One or more of these conditions may appear:
   organization's **own** public id.
 
 The self-referential comment is the distinguishing signal. A comment that
-names a *different* organization describes a legitimate adoption (a personal
-workspace superseded by the tenant organization) and is not covered here.
+names a *different* organization describes a personal workspace archived by
+earlier versions of the sign-in and is not covered here.
 
 ## Cause
 
@@ -169,9 +169,9 @@ the unarchive.
 
 ## What this runbook does not cover
 
-- Personal workspaces archived by a legitimate adoption (comment names a
-  different organization). Restoring one of those is a product decision about
-  which workspace the customer should have.
-- Personal workspaces archived by the bulk install-level to domain-level SSO
-  migration (`bin/ots domains migrate-sso`), whose comment reads
-  `Bulk SSO migration to <domain>`.
+- Personal workspaces archived by earlier versions of the sign-in (comment
+  names a different organization). Restoring one of those is a product
+  decision about which workspace the customer should have.
+- Personal workspaces whose comment reads `Bulk SSO migration to <domain>`.
+  These are legacy data from a removed operator tool; the same product
+  decision applies.
