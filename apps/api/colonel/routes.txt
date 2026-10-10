@@ -14,7 +14,7 @@
 # AdminNetworkIsolation is absent from the stack. The strict network=admin
 # below (on /system/proxy-headers) has no such fall-through and would 404 a
 # stock self-hosted install; do not use it on a route the console calls.
-# The 14 reversible tier-2 routes are deliberately NOT annotated.
+# The 15 reversible tier-2 routes are deliberately NOT annotated.
 
 # Colonel API  endpoints
 GET    /info                              ColonelAPI::Logic::Colonel::GetColonelInfo response=json auth=sessionauth role=colonel scope=internal
@@ -197,5 +197,10 @@ GET    /trends                            ColonelAPI::Logic::Colonel::GetTrends 
 # Scheduler read-out (rufus jobs: last run / next due / last error, scheduler
 # liveness). Read-only and unaudited; error text is email-obscured at write.
 GET    /jobs                              ColonelAPI::Logic::Colonel::ListJobs response=json auth=sessionauth role=colonel scope=internal
-# Chore triggers (GET /chores, POST /chores/:chore/run) go here, after /jobs.
+# Chore allowlist (housekeeping.<model>.<chore> + entitlement_materialize) and
+# the on-demand run. The list is read-only and unaudited. RunChore is tier 2
+# (confirmation = the chore id) with a dry_run preview exempt from the gate; the
+# run is synchronous, bounded by a record limit and a wall-clock budget.
+GET    /chores                            ColonelAPI::Logic::Colonel::ListChores response=json auth=sessionauth role=colonel scope=internal
+POST   /chores/:chore/run                 ColonelAPI::Logic::Colonel::RunChore response=json auth=sessionauth role=colonel scope=internal
 # --- #4343 (END) ---

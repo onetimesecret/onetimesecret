@@ -118,9 +118,11 @@ require_relative 'colonel/replay_dlq_message'
 require_relative 'colonel/discard_dlq_message'
 
 # #4343 jobs operability (BEGIN)
-# Scheduler catalog; the chore classes join this block. The per-message DLQ
-# classes sit with the other DLQ requires above.
+# Scheduler catalog and chore triggers. The per-message DLQ classes sit with
+# the other DLQ requires above.
 require_relative 'colonel/list_jobs'
+require_relative 'colonel/list_chores'
+require_relative 'colonel/run_chore'
 # #4343 (END)
 
 # Domain toolbox (ticket #43)

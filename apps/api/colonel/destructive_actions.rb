@@ -33,7 +33,7 @@ module ColonelAPI
       RepairDomain OverrideDomainVerification UpsertDomainConfig
       ManageEntitlementOverride AddMembership ManageMembershipEntitlementOverride
       ReplayDlq ResetRateLimit
-      ReplayDlqMessage
+      ReplayDlqMessage RunChore
       ImpersonateUser
     ].freeze
 
