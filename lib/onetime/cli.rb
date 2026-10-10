@@ -171,6 +171,7 @@ require_relative 'cli/banner/clear_command'
 # Load worker and scheduler commands (top-level)
 require_relative 'cli/worker_command'
 require_relative 'cli/scheduler_command'
+require_relative 'cli/scheduler/status_command'
 
 # Load email CLI commands
 require_relative 'cli/email'
