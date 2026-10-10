@@ -162,6 +162,16 @@ module Onetime
         # copy the broker returned as unroutable after the DLQ ack committed.
         RETURNED_STEPS = [:unroutable_restored, :unroutable_lost].freeze
 
+        # Per-message outcome when a commit went unconfirmed (the replay's,
+        # or a drop's): the message may have been replayed or dropped, or may
+        # still be in the DLQ. Status :unconfirmed, as for Discard.
+        UNCONFIRMED = 'unconfirmed'
+
+        # Per-message outcome when the broker returned the copy and putting
+        # the message back in the DLQ failed: it may be lost. Status
+        # :unconfirmed.
+        UNROUTABLE_LOST = 'unroutable_lost'
+
         # The email DLQ consumer whose reservation a per-message replay takes.
         EmailConsumer = Onetime::Jobs::Scheduled::DlqEmailConsumerJob
 
@@ -194,12 +204,15 @@ module Onetime
 
         # @!attribute status [r] Symbol :success (processed ≥ 1) / :empty (queue was
         #   empty) / :noop (queue non-empty but nothing processed) / :dry_run;
-        #   per message also :not_visible and :refused
+        #   per message also :not_visible, :refused (kept, not replayed) and
+        #   :unconfirmed (outcome unknown, or the message may be lost)
         # @!attribute would_replay [r] Integer dry-run only: messages in scope
         # @!attribute message_id [r] String, nil the id asked for (per message)
         # @!attribute found [r] Boolean, nil the scan saw the id (per message)
-        # @!attribute outcome [r] String, nil {Store::NOT_VISIBLE},
-        #   {ALREADY_REPLAYED} or {REPLAY_IN_PROGRESS} (per message)
+        # @!attribute outcome [r] String, nil per message: {Store::NOT_VISIBLE},
+        #   {ALREADY_REPLAYED}, {REPLAY_IN_PROGRESS}, {NO_ORIGINAL_QUEUE},
+        #   {UNROUTABLE}, {UNROUTABLE_LOST} or {UNCONFIRMED}; nil when replayed
+        #   or when the replay failed and was rolled back
         # @!attribute scanned [r] Integer, nil deliveries the scan popped
         # @!attribute truncated [r] Boolean, nil the scan stopped at its bound
         #   with messages still behind it
@@ -731,31 +744,41 @@ module Onetime
 
           return record_returned_message(scan, step, results) if RETURNED_STEPS.include?(step)
 
+          # A commit the broker did not confirm leaves the outcome unknown,
+          # which must not read as a success.
+          outcome = UNCONFIRMED if UNCONFIRMED_STEPS.include?(step)
+          detail  = { message_id: @message_id, replayed: results[:replayed], failed: results[:failed] }
+          detail  = detail.merge(outcome: outcome) if outcome
+
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @queue,
             result: :success,
-            detail: with_reason(message_id: @message_id, replayed: results[:replayed], failed: results[:failed]),
+            detail: with_reason(detail),
             fail_closed: DLQ_CHANGED_STEPS.include?(step),
           )
-          message_result(:success, scan, results: results)
+          message_result(outcome ? :unconfirmed : :success, scan, results: results, outcome: outcome)
         end
 
         # The DLQ changed (acked, then put back at its end, or lost), so the
-        # event is fail-closed, carrying the unroutable outcome. Not replayed;
-        # failed only when the message may be lost.
+        # event is fail-closed. Put back: outcome unroutable, not replayed.
+        # Not put back: outcome unroutable_lost, failed, status :unconfirmed.
         def record_returned_message(scan, step, results)
-          counts = { replayed: 0, failed: step == :unroutable_lost ? 1 : 0 }
+          lost    = step == :unroutable_lost
+          counts  = { replayed: 0, failed: lost ? 1 : 0 }
+          outcome = lost ? UNROUTABLE_LOST : UNROUTABLE
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @queue,
             result: :success,
-            detail: with_reason(message_id: @message_id, **counts, outcome: UNROUTABLE),
+            detail: with_reason(message_id: @message_id, **counts, outcome: outcome),
             fail_closed: true,
           )
-          message_result(:refused, scan, results: counts.merge(errors: results[:errors]), outcome: UNROUTABLE)
+          message_result(
+            lost ? :unconfirmed : :refused, scan, results: counts.merge(errors: results[:errors]), outcome: outcome
+          )
         end
 
         def message_result(status, scan, results: nil, would_replay: 0, outcome: nil)

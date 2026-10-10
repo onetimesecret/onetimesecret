@@ -186,16 +186,37 @@ RSpec.describe Onetime::Operations::Dlq::Replay, 'one message by id' do
         .with(hash_including(detail: { message_id: 'C', replayed: 0, failed: 1 }, fail_closed: false))
     end
 
-    it 'reports an unconfirmed commit as outcome unknown, fail-closed' do
+    it 'reports an unconfirmed commit as outcome unconfirmed, never success, fail-closed' do
       conn = broker.connection do |ch|
         allow(ch).to receive(:tx_commit).and_raise(IOError, 'commit reply lost')
       end
 
       result = replay('C', conn: conn)
 
-      expect(result.failed).to eq(1)
+      expect(result).to have_attributes(status: :unconfirmed, outcome: 'unconfirmed', found: true,
+        replayed: 0, failed: 1)
       expect(result.errors.first[:error]).to start_with('Replay stopped, outcome unknown')
-      expect(Onetime::ColonelAuditEvent).to have_received(:record).with(hash_including(fail_closed: true))
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+        hash_including(detail: { message_id: 'C', replayed: 0, failed: 1, outcome: 'unconfirmed' }, fail_closed: true),
+      )
+    end
+
+    # Not reachable per message today (a message with no original queue is
+    # kept, never dropped), but the step must still map to unconfirmed.
+    it 'reports an unconfirmed drop as outcome unconfirmed too' do
+      op = described_class.new(connection: connection, queue: dlq, actor: actor, message_id: 'C')
+      allow(op).to receive(:replay_delivery) do |_channel, _delivery, properties, _payload, results|
+        results[:failed] += 1
+        results[:errors] << { message_id: properties.message_id, error: 'Replay stopped, outcome unknown: drop' }
+        :drop_unconfirmed
+      end
+
+      result = op.call
+
+      expect(result).to have_attributes(status: :unconfirmed, outcome: 'unconfirmed', failed: 1)
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+        hash_including(detail: hash_including(outcome: 'unconfirmed'), fail_closed: true),
+      )
     end
 
     it 'records a broker failure mid-scan as one failure event and re-raises' do
@@ -282,10 +303,10 @@ RSpec.describe Onetime::Operations::Dlq::Replay, 'one message by id' do
 
         result = replay('C')
 
-        expect(result).to have_attributes(outcome: 'unroutable', replayed: 0, failed: 1)
+        expect(result).to have_attributes(status: :unconfirmed, outcome: 'unroutable_lost', replayed: 0, failed: 1)
         expect(result.errors.first[:error]).to include('the message may be lost')
         expect(Onetime::ColonelAuditEvent).to have_received(:record)
-          .with(hash_including(detail: hash_including(failed: 1, outcome: 'unroutable'), fail_closed: true))
+          .with(hash_including(detail: hash_including(failed: 1, outcome: 'unroutable_lost'), fail_closed: true))
       end
     end
   end

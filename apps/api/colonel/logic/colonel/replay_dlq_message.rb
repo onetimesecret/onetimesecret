@@ -99,6 +99,7 @@ module ColonelAPI
           when :dry_run then '1 message would be replayed'
           when :not_visible then not_visible_text(result.scanned, result.truncated)
           when :refused then result.errors.first&.fetch(:error, nil) || "Not replayed (#{result.outcome})"
+          when :unconfirmed then result.errors.first&.fetch(:error, nil) || "Replay outcome unknown (#{result.outcome})"
           else result.replayed.positive? ? 'Replayed message' : 'Replay failed'
           end
         end

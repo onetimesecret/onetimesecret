@@ -159,6 +159,32 @@ RSpec.describe ColonelAPI::Logic::Colonel::ReplayDlqMessage do
       expect(data[:details][:message]).to eq(error)
     end
 
+    it 'carries an unknown outcome to the record, with the server text' do
+      error = 'Replay stopped, outcome unknown: the broker did not confirm the commit (x).'
+      allow(op).to receive(:call).and_return(
+        op_result(status: :unconfirmed, replayed: 0, failed: 1, outcome: 'unconfirmed',
+          errors: [{ message_id: message_id, error: error }]),
+      )
+
+      data = processed
+
+      expect(data[:record]).to include(found: true, outcome: 'unconfirmed', replayed: 0, failed: 1)
+      expect(data[:details]).to eq(message: error, errors: [{ message_id: message_id, error: error }])
+    end
+
+    it 'carries unroutable_lost to the record' do
+      error = 'Not replayed: the queue x was deleted during the replay. Putting it back failed; the message may be lost.'
+      allow(op).to receive(:call).and_return(
+        op_result(status: :unconfirmed, replayed: 0, failed: 1, outcome: 'unroutable_lost',
+          errors: [{ message_id: message_id, error: error }]),
+      )
+
+      data = processed
+
+      expect(data[:record]).to include(outcome: 'unroutable_lost', replayed: 0, failed: 1)
+      expect(data[:details][:message]).to eq(error)
+    end
+
     it 'reports a failed replay with its error' do
       allow(op).to receive(:call).and_return(
         op_result(replayed: 0, failed: 1, errors: [{ message_id: message_id, error: 'publish refused' }]),
