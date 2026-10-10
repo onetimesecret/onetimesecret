@@ -10,6 +10,7 @@ require 'onetime/audit_reason'
 require 'onetime/operations/audit_attempt'
 require 'onetime/jobs/publisher'
 require 'onetime/operations/sessions/revoke_all_for_customer'
+require 'onetime/signup_validation'
 require 'auth/account_statuses'
 require 'auth/operations/customers/set_verification'
 
@@ -137,10 +138,30 @@ module Auth
       # column, fatal to every exact `find_by_email` reader. By default that
       # request is `:no_change`. `allow_canonicalization: true` lets it through
       # as a change (same ordering, same audit event, same follow-up gates) and
-      # makes the SQL write compare-and-set on the bytes read at probe time.
-      # `Customers::NormalizeAccountEmails` is the adapter; it turns off the
-      # verification reset, session revocation and notices, because nothing a
-      # user would recognise as their address changes.
+      # makes the SQL write compare-and-set. `Customers::NormalizeAccountEmails`
+      # is the adapter; it turns off the verification reset, session revocation
+      # and notices, because nothing a user would recognise as their address
+      # changes, and it does NOT cancel a pending self-service change (the
+      # mailbox is the same, so a later redemption cannot revert the repair).
+      #
+      # The compare-and-set baseline is the bytes the CALLER read, passed as
+      # `expected_auth_email:` next to `account_id:` — not the bytes this op
+      # reads at probe time. The distinction is the whole guard: a probe-time
+      # baseline is re-read AFTER the caller decided, so a change that landed
+      # between the caller's scan and the probe would be read as the baseline,
+      # matched by the CAS and reverted. With the caller's bytes the row is
+      # compared BEFORE any write (missing row or different bytes => `:stale`,
+      # nothing touched) and the UPDATE's WHERE repeats the same bytes for the
+      # residual window. A canonicalizing call WITHOUT `account_id:` has no
+      # caller baseline and falls back to the probe-time bytes; that is the
+      # weaker guarantee and is why the adapter always names the row.
+      #
+      # A same-mailbox rewrite also relaxes the format gate: the address is one
+      # the system already holds (proven by the IdP at sign-in), so it is
+      # checked for structural shape (`SignupValidation.structurally_valid_email?`,
+      # the same check the SSO path applied) rather than the ASCII-only
+      # `EmailFormat.valid_format?`, which would make every internationalized
+      # legacy row unrepairable. A NEW address keeps the strict check.
       #
       # ## Deliberately NOT touched
       #
@@ -226,9 +247,13 @@ module Auth
         #     :partial       — SQL committed but the Redis side did not complete;
         #                      see `warnings` for which way the drift runs
         #     :stale         — `allow_canonicalization` only: the accounts row
-        #                      no longer held the bytes read at probe time, so
-        #                      the compare-and-set matched nothing. NOTHING was
-        #                      written to either store; re-probe and retry
+        #                      is gone or no longer holds the expected bytes
+        #                      (`expected_auth_email:`, else the probe-time
+        #                      read), so the compare-and-set was refused or
+        #                      matched nothing. NOTHING was written to either
+        #                      store; re-scan and retry. Wins over :no_change:
+        #                      a caller whose baseline is out of date is told
+        #                      so rather than reassured
         #     :verification_not_reset
         #                    — the swap LANDED but `require_verification: true`
         #                      could not be honoured: the account is still marked
@@ -278,26 +303,44 @@ module Auth
         #   the address under different bytes (a mixed-case legacy accounts
         #   row, or a Customer hash that migration 007 missed), so the stores
         #   are rewritten to the normalized bytes. The SQL write then becomes
-        #   compare-and-set on the bytes read at probe time, so a concurrent
-        #   change to a DIFFERENT address is never clobbered (it reports as
-        #   `auth_row_updated: false`). Every existing caller keeps the
-        #   default; `Customers::NormalizeAccountEmails` is the one adapter
-        #   that sets it.
+        #   compare-and-set: on `expected_auth_email:` when the caller named
+        #   the row, else on the bytes read at probe time. Only the former
+        #   guarantees a concurrent change to a DIFFERENT address is never
+        #   clobbered (it returns `:stale` with nothing written); the probe
+        #   baseline has a scan-to-probe window. Every existing caller keeps
+        #   the default; `Customers::NormalizeAccountEmails` is the one
+        #   adapter that sets it.
         # @param account_id [Integer, nil] with `allow_canonicalization` only:
         #   the accounts row to rewrite when it is NOT linked to the customer
         #   by external_id (a pre-#4726 SSO row with a blank external_id whose
         #   Customer resolves by address). Every other call resolves the row
         #   by `external_id = customer.extid`, and that stays the only way to
         #   pick a row for an ordinary change: raising here keeps a caller
-        #   from pointing the mutation at an arbitrary row.
+        #   from pointing the mutation at an arbitrary row. Requires
+        #   `expected_auth_email:`.
+        # @param expected_auth_email [String, nil] with `account_id:` only, and
+        #   required with it: the EXACT bytes `accounts.email` held when the
+        #   caller chose the row. Before any write the row is re-read and
+        #   must still hold these bytes (byte comparison, not citext); a
+        #   missing row or different bytes is `:stale` and nothing is
+        #   written. The UPDATE's WHERE then repeats these bytes. Naming a row
+        #   without saying what it held would let the op compare-and-set on
+        #   whatever it finds, which is no guard at all (review items 1/2/4).
         # @param db [Sequel::Database, nil] injectable; defaults to
         #   `Auth::Database.connection` at call time (nil in simple mode).
         def initialize(customer:, new_email:, actor:, dry_run: true,
                        require_verification: true, revoke_sessions: true, notify: true,
                        reason: nil, ticket: nil, allow_closed_account_reuse: false,
-                       allow_canonicalization: false, account_id: nil, db: nil)
+                       allow_canonicalization: false, account_id: nil, expected_auth_email: nil,
+                       db: nil)
           if account_id && !allow_canonicalization
             raise ArgumentError, 'account_id: is only accepted together with allow_canonicalization: true'
+          end
+          if account_id && expected_auth_email.nil?
+            raise ArgumentError, 'account_id: requires expected_auth_email: (the bytes the row held when chosen)'
+          end
+          if expected_auth_email && account_id.nil?
+            raise ArgumentError, 'expected_auth_email: is only accepted together with account_id:'
           end
 
           @customer                   = customer
@@ -309,6 +352,7 @@ module Auth
           @notify                     = notify
           @allow_canonicalization     = allow_canonicalization
           @account_id                 = account_id
+          @expected_auth_email        = expected_auth_email&.to_s
           # NORMALIZED, not stored raw (#4338). {Onetime::AuditReason::MAX_LENGTH}
           # is 255 precisely so a provenance string is never silently clipped by
           # the audit model's 256-char per-value bound: what the operator typed
@@ -328,7 +372,16 @@ module Auth
           return failure(:not_found) unless usable_customer?
 
           old_email = @customer.email.to_s
-          return failure(:invalid_email) unless Onetime::Utils::EmailFormat.valid_format?(@new_email)
+          return failure(:invalid_email) unless acceptable_format?(old_email)
+
+          # Gate order under `expected_auth_email:` (review items 1/2/4):
+          # the caller's baseline is checked FIRST, before :no_change, before
+          # the collision probe and before any write or index claim. A row
+          # that is gone or holds other bytes means the caller's scan is out
+          # of date; "nothing to do" would be a false reassurance there, and
+          # a compare-and-set on whatever the probe found would revert a
+          # concurrent change to the scanned target. :stale, nothing touched.
+          return terminal(:stale, old_email) if scan_stale?
 
           if OT::Utils.normalize_email(old_email) == @new_email && !canonicalization_pending?(old_email)
             record_no_change_event(old_email)
@@ -361,10 +414,13 @@ module Auth
           end
 
           # Canonicalization compare-and-set lost (#4726): the row existed at
-          # probe time and no longer holds those bytes, so the UPDATE matched
-          # nothing. Stop here. Carrying on would rekey the Customer to the
-          # canonical form of an address SQL no longer holds — exactly the
-          # cross-store drift the CAS exists to prevent — and report success.
+          # probe time (or the caller's baseline said so) and no longer holds
+          # those bytes, so the UPDATE matched nothing. Stop here. Carrying on
+          # would rekey the Customer to the canonical form of an address SQL
+          # no longer holds — exactly the cross-store drift the CAS exists to
+          # prevent — and report success. This is the residual window AFTER
+          # `scan_stale?` passed; it is kept because the pre-check and the
+          # UPDATE are not one statement.
           if @allow_canonicalization && !@auth_row_email.nil? && !auth_row_updated
             return terminal(:stale, old_email)
           end
@@ -381,7 +437,7 @@ module Auth
             customer_committed = rekey_customer!(old_email)
             @orgs_reindexed    = reindex_orgs(old_email)
             rewrite_default_org_contacts(old_email)
-            clear_pending_change
+            clear_pending_change unless same_mailbox_rewrite?(old_email)
           rescue StandardError => ex
             return partial(old_email, auth_row_updated, customer_committed, ex)
           end
@@ -428,11 +484,56 @@ module Auth
           !@customer.email.to_s.strip.empty?
         end
 
+        # #4726: a request that changes nothing a user would recognise — the
+        # normalized form of the address the Customer already holds — under
+        # the canonicalization opt-in. Everything that relaxes for the repair
+        # (format gate, pending-change clearing) keys on this one predicate,
+        # so a canonicalizing call that moves to a genuinely NEW address keeps
+        # every ordinary rule.
+        def same_mailbox_rewrite?(old_email)
+          @allow_canonicalization && OT::Utils.normalize_email(old_email) == @new_email
+        end
+
+        # Review item 3: `EmailFormat.valid_format?` is ASCII-only, which is
+        # right for an address an operator is INTRODUCING but makes every
+        # internationalized legacy row unrepairable (`JOSÉ@example.com` ->
+        # `josé@example.com` refused as :invalid_email on every run, with a
+        # refusal audit event each time). A same-mailbox rewrite is an
+        # address the system already holds, accepted by the IdP guard at
+        # sign-in; the structural check that guard used is enough.
+        def acceptable_format?(old_email)
+          if same_mailbox_rewrite?(old_email)
+            Onetime::SignupValidation.structurally_valid_email?(@new_email)
+          else
+            Onetime::Utils::EmailFormat.valid_format?(@new_email)
+          end
+        end
+
+        # Review items 1/2/4: the caller named a row AND the bytes it held.
+        # Re-read the row and refuse unless it still holds exactly those bytes
+        # (`String#b`: byte comparison — citext would call `Jane@X` and
+        # `jane@x` equal, and the whole point is that they are not). A
+        # missing row is stale too: there is nothing to compare-and-set, and
+        # writing Redis against a vanished row is what item 4 found.
+        # Without a connection the named row cannot be read at all, which is
+        # the same answer.
+        # @return [Boolean] true when the write must not proceed
+        def scan_stale?
+          return false if @expected_auth_email.nil?
+
+          db = connection
+          return true unless db
+
+          auth_account_id(db)
+          @auth_row_email.nil? || @auth_row_email.to_s.b != @expected_auth_email.b
+        end
+
         # #4726: with `allow_canonicalization` a same-when-normalized request
         # still has work to do while EITHER store holds the address under
         # other bytes. The Customer hash is compared directly; the accounts
-        # row is read once here (memoized with its id) so the SQL write can
-        # compare-and-set on exactly these bytes.
+        # row is read once here (memoized with its id). Without a caller
+        # baseline these probe bytes are what the SQL write compare-and-sets
+        # on; with one, `scan_stale?` has already proven they equal it.
         def canonicalization_pending?(old_email)
           return false unless @allow_canonicalization
           return true if old_email != @new_email
@@ -522,9 +623,12 @@ module Auth
         # exists, never a phantom success.
         #
         # Under `allow_canonicalization` the UPDATE is additionally keyed on
-        # the address bytes read by `auth_account_id`, so a row that moved to a
-        # different address since the probe is left alone (`false`), never
+        # the baseline address bytes — `expected_auth_email` when the caller
+        # gave one, else the bytes `auth_account_id` read — so a row that
+        # moved to a different address is left alone (`false`), never
         # rewritten to the canonical form of an address it no longer holds.
+        # (On PostgreSQL the column is citext, so this WHERE is case-blind;
+        # the byte-exact comparison is `scan_stale?`, before any write.)
         # Not applied by default: for an ordinary change the row's unique
         # index is the guard and a blind UPDATE is the documented behavior.
         # @return [Boolean]
@@ -535,8 +639,9 @@ module Auth
           account_id = auth_account_id(db)
           return false unless account_id
 
-          target = db[:accounts].where(id: account_id)
-          target = target.where(email: @auth_row_email) if @allow_canonicalization && @auth_row_email
+          target   = db[:accounts].where(id: account_id)
+          baseline = @expected_auth_email || @auth_row_email
+          target   = target.where(email: baseline) if @allow_canonicalization && baseline
 
           rows = db.transaction do
             target.update(email: @new_email, updated_at: Sequel::CURRENT_TIMESTAMP)
@@ -692,6 +797,14 @@ module Auth
         # A live self-service pending change points at a DIFFERENT new address; if
         # its token were redeemed later it would flip the account a SECOND time and
         # silently revert this change.
+        #
+        # SKIPPED for a same-mailbox canonicalization rewrite (review item 5):
+        # the mailbox does not change, so a later redemption moves the account
+        # to the address the user asked for, exactly as it would have without
+        # the repair — it cannot revert anything. Cancelling the user's own
+        # in-flight change from an operator repair they never see would be a
+        # regression, not a safeguard. A canonicalizing call to a genuinely
+        # NEW address still clears it.
         #
         # DELIBERATELY NOT RESCUED: failing to clear the marker leaves that live
         # token redeemable, which is a "the change did not fully land" condition,

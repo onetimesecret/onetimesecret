@@ -811,6 +811,177 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
     it 'refuses account_id: without the flag' do
       expect { op(account_id: 42) }.to raise_error(ArgumentError)
     end
+
+    # The caller-named row path (`account_id:` + `expected_auth_email:`), as
+    # NormalizeAccountEmails drives it. The baseline is the bytes the CALLER
+    # read, never what the op finds at probe time: a probe-time baseline is
+    # re-read after the caller decided, so a change that landed in between
+    # would be taken as the baseline, matched, and reverted.
+    context 'with account_id: and expected_auth_email: (caller-named row)' do
+      # `accounts.where(id: 42).first` is the probe for a caller-named row.
+      # The shared wiring answers it with the bare status row; the examples
+      # below each state what the row holds NOW.
+      def probe_returns(row)
+        allow(by_id).to receive(:first).and_return(row)
+      end
+
+      def named_op
+        op(allow_canonicalization: true, account_id: 42, expected_auth_email: stored)
+      end
+
+      it 'refuses account_id: without expected_auth_email:' do
+        expect { op(allow_canonicalization: true, account_id: 42) }
+          .to raise_error(ArgumentError, /expected_auth_email/)
+      end
+
+      it 'refuses expected_auth_email: without account_id:' do
+        expect { op(allow_canonicalization: true, expected_auth_email: stored) }
+          .to raise_error(ArgumentError, /account_id/)
+      end
+
+      it 'rewrites both stores when the row still holds the expected bytes, CAS-ing on those bytes' do
+        probe_returns({ id: 42, email: stored, status_id: 2 })
+
+        result = named_op.call
+
+        expect(result.status).to eq(:success)
+        expect(result.auth_row_updated).to be true
+        expect(by_id).to have_received(:where).with(email: stored)
+        expect(trace.first).to eq([:sql_cas_update, old_email])
+        expect(trace).to include([:customer_email_assigned, old_email], [:customer_save])
+      end
+
+      it 'returns :stale and writes nothing when the probe finds a DIFFERENT mailbox than expected' do
+        # A concurrent ChangeEmail committed between the caller's scan and
+        # this call. The old (probe-baseline) design would CAS on
+        # 'moved@example.com', match, and revert the user's change.
+        probe_returns({ id: 42, email: 'moved@example.com', status_id: 2 })
+
+        result = named_op.call
+
+        expect(result.status).to eq(:stale)
+        expect(result.auth_row_updated).to be false
+        expect(trace).to eq([])
+        expect(by_id).not_to have_received(:update)
+        expect(customer).not_to have_received(:save)
+        expect(customer).not_to have_received(:email=)
+        expect(email_index).not_to have_received(:hsetnx)
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+          hash_including(result: :failure, detail: hash_including(reason: 'stale'))
+        )
+      end
+
+      it 'returns :stale and writes nothing when the named row has vanished' do
+        # Previously: nil probe bytes skipped the :stale guard, so the
+        # Customer hash was rewritten anyway and the call reported :success
+        # with auth_row_updated: false (review item 4).
+        probe_returns(nil)
+
+        result = named_op.call
+
+        expect(result.status).to eq(:stale)
+        expect(result.auth_row_updated).to be false
+        expect(trace).to eq([])
+        expect(customer).not_to have_received(:save)
+        expect(email_index).not_to have_received(:hsetnx)
+      end
+
+      it 'reports :stale rather than :no_change when the row is already canonical but the scan said otherwise' do
+        # Someone else canonicalized the row after the caller's scan. The
+        # end state is fine, but the caller's baseline is out of date and
+        # must be told so instead of reassured.
+        probe_returns({ id: 42, email: old_email, status_id: 2 })
+
+        result = named_op.call
+
+        expect(result.status).to eq(:stale)
+        expect(trace).to eq([])
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record).with(
+          hash_including(detail: hash_including(outcome: 'no_change'))
+        )
+      end
+
+      it 'is :no_change when the row and the hash already hold the canonical bytes and the scan agrees' do
+        probe_returns({ id: 42, email: old_email, status_id: 2 })
+
+        result = op(allow_canonicalization: true, account_id: 42, expected_auth_email: old_email).call
+
+        expect(result.status).to eq(:no_change)
+        expect(trace).to eq([])
+      end
+    end
+
+    # Review item 5: the mailbox does not change under a same-mailbox
+    # rewrite, so a pending self-service change cannot revert it and must
+    # survive. A canonicalizing call to a NEW address keeps clearing it.
+    context 'pending self-service email change' do
+      let(:pending_change) { double('pending_email_change', value: 'tok_live', delete!: true) }
+
+      it 'survives a same-mailbox canonicalization rewrite, delivery status included' do
+        secret = double('Secret', destroy!: true)
+        allow(Onetime::Secret).to receive(:find_by_identifier).with('tok_live').and_return(secret)
+
+        result = op(allow_canonicalization: true).call
+
+        expect(result.status).to eq(:success)
+        expect(pending_change).not_to have_received(:delete!)
+        expect(pending_status).not_to have_received(:delete!)
+        expect(secret).not_to have_received(:destroy!)
+        expect(result.warnings).not_to include(:pending_self_service_change_cleared)
+      end
+
+      it 'is still cleared when a canonicalizing call moves to a genuinely new address' do
+        other = 'brand-new@example.com'
+        other_by_email = double('by_email(other)', all: [])
+        allow(other_by_email).to receive(:select).with(:id, :status_id).and_return(other_by_email)
+        allow(accounts).to receive(:where).with(email: other).and_return(other_by_email)
+        allow(by_id).to receive(:where).with(email: stored).and_return(by_id_cas)
+
+        result = op(new_email: other, allow_canonicalization: true).call
+
+        expect(result.status).to eq(:success)
+        expect(pending_change).to have_received(:delete!)
+        expect(pending_status).to have_received(:delete!)
+        expect(result.warnings).to include(:pending_self_service_change_cleared)
+      end
+    end
+
+    # Review item 3: `EmailFormat.valid_format?` is ASCII-only. A legacy
+    # internationalized row (`JOSÉ@example.com`) must be repairable; a NEW
+    # non-ASCII address an operator introduces keeps the strict gate.
+    context 'format gate for internationalized addresses' do
+      let(:old_email) { 'josé@example.com' }
+      let(:stored) { 'JOSÉ@Example.com' }
+
+      it 'lets a same-mailbox canonicalization through on the structural check' do
+        expect(Onetime::Utils::EmailFormat.valid_format?(new_email)).to be(false) # the old gate
+
+        result = op(allow_canonicalization: true).call
+
+        expect(result.status).to eq(:success)
+        expect(trace.first).to eq([:sql_cas_update, old_email])
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record).with(
+          hash_including(detail: hash_including(reason: 'invalid_email'))
+        )
+      end
+
+      it 'still refuses a structurally broken same-mailbox target' do
+        allow(customer).to receive(:email).and_return('josé@nodot')
+
+        result = op(new_email: 'josé@nodot', allow_canonicalization: true).call
+
+        expect(result.status).to eq(:invalid_email)
+        expect(trace).to eq([])
+      end
+
+      it 'still returns :invalid_email for a non-ASCII NEW address, flag or not' do
+        allow(customer).to receive(:email).and_return('old@example.com')
+
+        expect(op(new_email: 'zoë@example.com', allow_canonicalization: true).call.status).to eq(:invalid_email)
+        expect(op(new_email: 'zoë@example.com').call.status).to eq(:invalid_email)
+        expect(trace).to eq([])
+      end
+    end
   end
 
   # =========================================================================
