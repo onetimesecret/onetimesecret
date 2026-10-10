@@ -13,3 +13,8 @@ Fixed
   out, resetting verification or sending mail. Rows whose lowercase form
   would collide with another account, or whose address lowercasing cannot
   represent faithfully, are reported and left for the operator (#4726).
+- ``bin/ots customers doctor`` now reports an authentication-database email
+  that matches its customer record only case-insensitively as
+  ``auth_email_not_canonical``, pointing at ``customers normalize-emails``,
+  so the rows that command would rewrite are visible before the run and
+  confirmed gone after it (#4726).

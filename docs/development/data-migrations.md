@@ -432,10 +432,11 @@ row, live or closed, holds the lowercase address), `skipped_index_collision`
 them and a second run finds nothing to do. Sessions, verification and
 notifications are untouched. Collisions are never merged: decide which
 account keeps the address and use `bin/ots customers change-email` on the
-other. Addresses in the output and the log are obscured. Note that
-`customers doctor`'s `:auth_email_drift` check compares the two stores
-case-insensitively, so it neither reports these rows before the run nor
-confirms the repair after it; the dry run is the before/after check.
+other. Addresses in the output and the log are obscured. `customers doctor`
+reports each such row as `:auth_email_not_canonical` (report-only, pointing
+at this command) and is clean after the run; its `:auth_email_drift` check
+compares the two stores case-insensitively on purpose and never fires on
+them. The dry run is the row-by-row before/after check.
 
 ## Moving keys between Redis databases or instances
 
