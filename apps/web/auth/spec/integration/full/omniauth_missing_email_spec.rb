@@ -198,6 +198,29 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
     end
   end
 
+  # Lowercasing is case mapping, not normalize_email's case folding: folding
+  # would turn straße.example.com into strasse.example.com before the gates.
+  describe 'case folding' do
+    let(:email) { "user-#{SecureRandom.hex(6)}@straße.example.com" }
+    let(:uid) { "fold-#{SecureRandom.uuid}" }
+
+    it 'judges the signup domain the IdP asserted, not its folded form' do
+      configure_allowed_domains(['strasse.example.com'])
+      setup_entra_mock_auth(email: email, uid: uid)
+      expect { post_sso_callback }.not_to change { auth_db[:accounts].count }
+      expect_auth_error_redirect('domain_not_allowed')
+    end
+
+    it 'stores the asserted address unfolded and signs in through the stored link' do
+      setup_entra_mock_auth(email: email, uid: uid)
+      expect { post_sso_callback }.to change { auth_db[:accounts].count }.by(1)
+      account = expect_provisioned_account(email: email, uid: uid)
+      expect(account[:external_id]).not_to be_nil
+      expect(last_request.env['rack.session'].to_h)
+        .to include('authenticated' => true, 'account_id' => account[:id], 'external_id' => account[:external_id])
+    end
+  end
+
   describe 'Unicode surrounding whitespace' do
     it 'persists a trimmed email rather than a Unicode-padded mailbox' do
       email = unique_test_email('unicode-padded')

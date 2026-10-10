@@ -201,5 +201,31 @@ RSpec.describe 'SyncSession Idempotency', type: :integration do
 
       expect_synced_to_existing_customer(result)
     end
+
+    it 'cannot move a Customer that another account already links' do
+      # The email fallback may locate the Customer; the unique
+      # accounts.external_id constraint refuses the link before the session
+      # is populated.
+      other = create_verified_account(db: test_db, email: "other-#{SecureRandom.hex(8)}@example.com")
+      test_db[:accounts].where(id: other[:id]).update(external_id: customer.extid)
+      test_db[:accounts].where(id: account_id).update(external_id: nil)
+
+      expect {
+        Auth::Operations::SyncSession.call(
+          account: account.merge(external_id: nil),
+          account_id: account_id,
+          session: session,
+          request: request
+        )
+      }.to raise_error(Sequel::UniqueConstraintViolation)
+
+      expect(session['authenticated']).to be_nil
+      expect(test_db[:accounts].where(id: account_id).get(:external_id)).to be_nil
+    ensure
+      if other
+        test_db[:account_password_hashes].where(id: other[:id]).delete
+        test_db[:accounts].where(id: other[:id]).delete
+      end
+    end
   end
 end
