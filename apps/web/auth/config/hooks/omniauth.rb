@@ -23,14 +23,22 @@ require_relative 'omniauth_connect'
 module Auth::Config::Hooks
   module OmniAuth
     # Rodauth builds the account from omniauth_email BEFORE the creation guard
-    # validates it. Trim at the accessor so PostgreSQL receives the same value
-    # the guard checked, while preserving nil and the provider's casing.
+    # validates it, and rodauth-omniauth persists it without normalize_login.
+    # Normalize at the accessor with the same function normalize_login uses
+    # (config/base.rb), so an SSO-created accounts.email matches a password
+    # signup and the case-folded Customer email index (#2843). A provider's
+    # casing in SQL left the account's Customer unreachable by email (#4726).
+    # PostgreSQL also receives the same value the guard checked.
     module EmailNormalization
       def omniauth_email
         value = super
-        # Keep non-String claims intact so the guards reject them as invalid,
-        # rather than coercing an array containing an email into a mailbox.
-        value.is_a?(String) ? value.gsub(/\A[[:space:]]+|[[:space:]]+\z/, '').strip : value
+        # Keep nil and non-String claims intact so the guards reject them as
+        # missing or invalid, rather than coercing an array containing an
+        # email into a mailbox.
+        return value unless value.is_a?(String)
+
+        # normalize_email strips ASCII whitespace only; trim Unicode first.
+        OT::Utils.normalize_email(value.gsub(/\A[[:space:]]+|[[:space:]]+\z/, ''))
       end
     end
 

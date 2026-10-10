@@ -207,7 +207,7 @@ module Auth
           # primitive; index lag is sub-ms in practice, this is a safety net.
           retried_customer = nil
           3.times do
-            retried_customer = Onetime::Customer.find_by_email(@account[:email])
+            retried_customer = find_customer_by_email
             break if retried_customer
 
             sleep 0.05
@@ -221,9 +221,35 @@ module Auth
       # Finds existing customer by external_id or email
       # @return [Onetime::Customer, nil]
       def find_existing_customer
-        customer   = Onetime::Customer.find_by_extid(@account[:external_id]) if @account[:external_id]
-        customer ||= Onetime::Customer.find_by_email(@account[:email])
+        customer   = Onetime::Customer.find_by_extid(linked_external_id) if linked_external_id
+        customer ||= find_customer_by_email
         customer
+      end
+
+      # The durable account-to-Customer link. The account hash can predate it:
+      # on SSO JIT provisioning, after_omniauth_create_account writes
+      # accounts.external_id after Rodauth built the hash this login carries
+      # (#4726). Read SQL only when the hash has no link.
+      # @return [String, nil]
+      def linked_external_id
+        return @linked_external_id if defined?(@linked_external_id)
+
+        @linked_external_id = @account[:external_id] ||
+                              @db[:accounts].where(id: @account_id).get(:external_id)
+      end
+
+      # Customer.create! keys the email index by the normalized address, but an
+      # account row can carry other casing (an SSO row written before #4726, or
+      # a row #2843's migration skipped). Look up the normalized form first,
+      # then the stored form for a legacy index entry kept as entered.
+      # @return [Onetime::Customer, nil]
+      def find_customer_by_email
+        email = @account[:email].to_s
+        [OT::Utils.normalize_email(email), email].uniq.each do |candidate|
+          customer = Onetime::Customer.find_by_email(candidate)
+          return customer if customer
+        end
+        nil
       end
 
       # Creates a new customer from Rodauth account data
@@ -270,7 +296,7 @@ module Auth
       # Checks if customer is already linked to the Rodauth account
       # @return [Boolean]
       def customer_linked?(customer)
-        @account[:external_id] == customer.extid
+        linked_external_id == customer.extid
       end
 
       # Links the customer record to the Rodauth account via external_id

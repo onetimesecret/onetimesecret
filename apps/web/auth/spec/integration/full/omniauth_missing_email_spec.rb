@@ -44,7 +44,7 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
   end
 
   # Provisioning boundary only: an HTTP redirect and SQL persistence do not
-  # establish successful application-session synchronization (B4).
+  # establish successful application-session synchronization (#4726).
   def expect_provisioned_account(email:, uid:, provider: 'oidc')
     expect(last_response.status).to eq(302), last_response.body
     expect(last_response.location.to_s).not_to include('auth_error=')
@@ -57,10 +57,21 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
     account
   end
 
+  # Application-session boundary: the SQL account, its one Customer (reached
+  # by both the extid link and the case-folded email index), and the session
+  # SyncSession populates from that Customer.
   def expect_created_account(email:, uid:, provider: 'oidc')
-    account = expect_provisioned_account(email: email, uid: uid, provider: provider)
+    account  = expect_provisioned_account(email: email, uid: uid, provider: provider)
+    customer = Onetime::Customer.find_by_email(email)
+    expect(customer).not_to be_nil
+    expect(account[:external_id]).to eq(customer.extid)
     expect(last_request.env['rack.session'].to_h)
-      .to include('authenticated' => true, 'account_id' => account[:id], 'email' => email)
+      .to include(
+        'authenticated' => true,
+        'account_id' => account[:id],
+        'external_id' => customer.extid,
+        'email' => email,
+      )
     account
   end
 
@@ -130,22 +141,36 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
   end
 
   describe 'email-shaped values are accepted' do
-    it 'provisions the original uppercase #EXT# guest UPN without asserting session success (B4)' do
-      # Preserve the original input. B4 is a separate mixed-case Customer index
-      # lookup failure after provisioning; this is NOT a successful-login test.
-      email = 'alice_contoso.com#EXT#@fabrikam.onmicrosoft.com'
+    # #4726: a mixed-case claim was persisted with the provider's casing, so
+    # session sync missed the case-folded Customer and the callback redirected
+    # without a session. The account now stores the normalized address.
+    it 'creates an account and successful session for the original uppercase #EXT# guest UPN' do
+      claim = 'alice_contoso.com#EXT#@fabrikam.onmicrosoft.com'
       uid = "uppercase-guest-#{SecureRandom.uuid}"
-      setup_entra_mock_auth(email: email, uid: uid)
+      setup_entra_mock_auth(email: claim, uid: uid)
       expect { post_sso_callback }.to change { auth_db[:accounts].count }.by(1)
-      expect_provisioned_account(email: email, uid: uid)
+      expect_created_account(email: 'alice_contoso.com#ext#@fabrikam.onmicrosoft.com', uid: uid)
     end
 
-    it 'provisions an uppercase email without asserting session success (B4)' do
-      email = "ALICE-#{SecureRandom.hex(6)}@CONTOSO.COM"
+    it 'creates an account and successful session for an uppercase email' do
+      local = "alice-#{SecureRandom.hex(6)}"
       uid = "uppercase-#{SecureRandom.uuid}"
-      setup_entra_mock_auth(email: email, uid: uid)
+      setup_entra_mock_auth(email: "#{local.upcase}@CONTOSO.COM", uid: uid)
       expect { post_sso_callback }.to change { auth_db[:accounts].count }.by(1)
-      expect_provisioned_account(email: email, uid: uid)
+      expect_created_account(email: "#{local}@contoso.com", uid: uid)
+    end
+
+    it 'signs a mixed-case returning identity into the same account and Customer' do
+      local = "returning-#{SecureRandom.hex(6)}"
+      uid = "uppercase-returning-#{SecureRandom.uuid}"
+      setup_entra_mock_auth(email: "#{local.upcase}@Contoso.com", uid: uid)
+      post_sso_callback
+      account = expect_created_account(email: "#{local}@contoso.com", uid: uid)
+
+      clear_cookies
+      setup_entra_mock_auth(email: "#{local}@CONTOSO.COM", uid: uid)
+      expect { post_sso_callback }.not_to change { auth_db[:accounts].count }
+      expect(expect_created_account(email: "#{local}@contoso.com", uid: uid)[:id]).to eq(account[:id])
     end
 
     it 'creates an account and successful session for a one-letter TLD' do
@@ -157,7 +182,6 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
     end
 
     it 'creates an account and successful session for a normalized email-shaped Entra B2B guest UPN' do
-      # Isolate the email-shape boundary from mixed-case Customer index lookup.
       email = "alice_#{SecureRandom.hex(6)}" + '_contoso.com#ext#@fabrikam.onmicrosoft.com'
       uid = "guest-#{SecureRandom.uuid}"
       setup_entra_mock_auth(email: email, uid: uid)
