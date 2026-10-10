@@ -179,11 +179,21 @@ export const DLQ_REPLAY_OUTCOME_NO_ORIGINAL_QUEUE = 'no_original_queue';
 export const DLQ_REPLAY_OUTCOME_UNROUTABLE = 'unroutable';
 
 /**
- * Discard: the broker did not confirm the commit, so the message may or may
- * not be gone. `discarded` is false but must NOT be read as "still there";
- * `details.message` explains.
+ * Replay: the original queue rejected the copy AND putting it back into the
+ * DLQ failed, so the message may be lost. `details.errors` explains.
  */
-export const DLQ_DISCARD_OUTCOME_UNCONFIRMED = 'unconfirmed';
+export const DLQ_REPLAY_OUTCOME_UNROUTABLE_LOST = 'unroutable_lost';
+
+/**
+ * Either verb: the broker did not confirm a commit, so the outcome is unknown.
+ *
+ * - Discard: the message may or may not be gone. `discarded` is false but must
+ *   NOT be read as "still there"; `details.message` explains.
+ * - Replay: the replay's commit or the drop's commit went unconfirmed. The
+ *   message may have been replayed or dropped, or may still be in the DLQ;
+ *   `replayed` / `failed` are not reliable. `details.errors` explains.
+ */
+export const DLQ_MESSAGE_OUTCOME_UNCONFIRMED = 'unconfirmed';
 
 /** Scan facts shared by the three per-message records. */
 const dlqMessageScanShape = {
@@ -194,7 +204,8 @@ const dlqMessageScanShape = {
   /**
    * `'not_visible'` on a miss. On a hit: absent or null when the verb did what
    * it says, otherwise why not (`no_original_queue`, `unroutable`,
-   * `already_replayed`, `replay_in_progress`, `unconfirmed`, …). A plain string,
+   * `already_replayed`, `replay_in_progress`, `unroutable_lost`,
+   * `unconfirmed`, …). A plain string,
    * so a new value parses.
    */
   outcome: z.string().nullable().optional(),

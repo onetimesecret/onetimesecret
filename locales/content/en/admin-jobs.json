@@ -263,6 +263,10 @@
     "text": "Not replayed: its original queue does not exist. The message was kept in the dead-letter queue.",
     "content_hash": "fefb638a"
   },
+  "web.admin.jobs.dlq.replay.unroutableLost": {
+    "text": "Replay failed and the message may have been lost: its original queue rejected the copy, and putting it back into the dead-letter queue also failed.",
+    "content_hash": "daf589b8"
+  },
   "web.admin.jobs.dlq.discard.button": {
     "text": "Discard",
     "content_hash": "eb1a70e3"
@@ -283,10 +287,6 @@
     "text": "The message was found but not discarded.",
     "content_hash": "2d2f56b1"
   },
-  "web.admin.jobs.dlq.discard.unconfirmed": {
-    "text": "Outcome unknown — the broker did not confirm. Peek the queue to check before retrying.",
-    "content_hash": "413ba22e"
-  },
   "web.admin.jobs.dlq.result.title": {
     "text": "Last action",
     "content_hash": "455601d6"
@@ -298,6 +298,10 @@
   "web.admin.jobs.dlq.result.unverified": {
     "text": "The server accepted the request, but its response could not be read. Peek the queue again to check the result.",
     "content_hash": "63c2ef97"
+  },
+  "web.admin.jobs.dlq.result.unconfirmed": {
+    "text": "Outcome unknown — the broker did not confirm. Peek the queue to check before retrying.",
+    "content_hash": "413ba22e"
   },
   "web.admin.jobs.chores.title": {
     "text": "Chores",

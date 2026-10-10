@@ -21,9 +21,10 @@
     colonelDlqMessageDiscardResponseSchema,
     colonelDlqMessageReplayResponseSchema,
     colonelDlqMessagesResponseSchema,
-    DLQ_DISCARD_OUTCOME_UNCONFIRMED,
+    DLQ_MESSAGE_OUTCOME_UNCONFIRMED,
     DLQ_REPLAY_OUTCOME_NO_ORIGINAL_QUEUE,
     DLQ_REPLAY_OUTCOME_UNROUTABLE,
+    DLQ_REPLAY_OUTCOME_UNROUTABLE_LOST,
   } from '@/schemas/api/internal/responses/colonel-queue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useApi } from '@/shared/composables/useApi';
@@ -52,10 +53,13 @@
    * the scan looked (`truncated`). The console says which, plainly, and gives
    * the CLI command that can scan deeper.
    *
-   * KEPT AND UNCONFIRMED. A replay that found the message but had nowhere to
-   * send it (`no_original_queue`, `unroutable`) leaves it in the DLQ: a
-   * warning, never success. A discard the broker did not confirm (`unconfirmed`)
-   * reads "outcome unknown", never success and never "not discarded".
+   * KEPT, LOST AND UNCONFIRMED. A replay that found the message but had nowhere
+   * to send it (`no_original_queue`, `unroutable`) leaves it in the DLQ: a
+   * warning, never success. A replay whose copy was rejected AND could not be
+   * put back (`unroutable_lost`) may have lost it: an error that says so. A
+   * replay or discard the broker did not confirm (`unconfirmed`) reads "outcome
+   * unknown", never success and never "could not be replayed / not discarded".
+   * The outcome is always read before the counts.
    *
    * IN-PAGE STATE: the open queue, the inspected message and the last action
    * result live in refs here, never in the query string — a query change would
@@ -182,8 +186,12 @@
    * - `not_visible` the bounded scan did not see the message.
    * - `kept`        replay found the message but could not send it anywhere
    *                 (`no_original_queue` / `unroutable`); it is still in the DLQ.
-   * - `unconfirmed` discard: the broker did not confirm, so the message may or
-   *                 may not be gone. Never "done", never "still there".
+   * - `lost`        replay: the original queue rejected the copy and putting it
+   *                 back into the DLQ failed (`unroutable_lost`). May be lost.
+   * - `unconfirmed` the broker did not confirm a commit. Discard: the message
+   *                 may or may not be gone. Replay: it may have been replayed or
+   *                 dropped, or may still be in the DLQ; the counts are not
+   *                 reliable. Never "done", never "failed".
    * - `done`        replayed (replay) or dropped (discard).
    * - `failed`      found, not done, for any other reason.
    */
@@ -191,6 +199,7 @@
     | 'unverified'
     | 'not_visible'
     | 'kept'
+    | 'lost'
     | 'unconfirmed'
     | 'done'
     | 'failed';
@@ -203,8 +212,20 @@
     outcome: string | null;
     scanned: number;
     truncated: boolean;
-    /** Server explanations: replay `details.errors`, unconfirmed discard `details.message`. */
+    /** Server text: replay `details.errors`, unconfirmed discard `details.message`. */
     notes: string[];
+  }
+
+  /**
+   * Replay outcomes that override the counts. Read BEFORE `found` / `replayed`:
+   * for these the counts are either zero by design or not reliable.
+   */
+  function replayOutcomeState(outcome: string | null): MessageActionState | null {
+    if (outcome === null) return null;
+    if (outcome === DLQ_MESSAGE_OUTCOME_UNCONFIRMED) return 'unconfirmed';
+    if (outcome === DLQ_REPLAY_OUTCOME_UNROUTABLE_LOST) return 'lost';
+    if (KEPT_OUTCOME_KEYS.has(outcome)) return 'kept';
+    return null;
   }
 
   /** Replay outcomes where the message was found and deliberately left in the DLQ. */
@@ -242,11 +263,11 @@
     if (!parsed.ok) return unverifiedResult('replay', messageId);
     const record = parsed.data.record;
     const outcome = record.outcome ?? null;
-    // A kept outcome wins over the counts: it is never presented as replayed.
-    let state: MessageActionState;
-    if (outcome !== null && KEPT_OUTCOME_KEYS.has(outcome)) state = 'kept';
-    else if (!record.found) state = 'not_visible';
-    else state = record.replayed > 0 ? 'done' : 'failed';
+    let state = replayOutcomeState(outcome);
+    if (state === null) {
+      if (!record.found) state = 'not_visible';
+      else state = record.replayed > 0 ? 'done' : 'failed';
+    }
     return {
       verb: 'replay',
       messageId,
@@ -271,7 +292,7 @@
     if (!parsed.ok) return unverifiedResult('discard', messageId);
     const record = parsed.data.record;
     const outcome = record.outcome ?? null;
-    const unconfirmed = outcome === DLQ_DISCARD_OUTCOME_UNCONFIRMED;
+    const unconfirmed = outcome === DLQ_MESSAGE_OUTCOME_UNCONFIRMED;
     let state: MessageActionState;
     if (unconfirmed) state = 'unconfirmed';
     else if (!record.found) state = 'not_visible';
@@ -342,8 +363,11 @@
       case 'kept':
         notifications.show(t(keptKey(result)), 'warning');
         break;
+      case 'lost':
+        notifications.show(t('web.admin.jobs.dlq.replay.unroutableLost'), 'error');
+        break;
       case 'unconfirmed':
-        notifications.show(t('web.admin.jobs.dlq.discard.unconfirmed'), 'warning');
+        notifications.show(t('web.admin.jobs.dlq.result.unconfirmed'), 'warning');
         break;
       case 'done':
         notifications.show(t(`web.admin.jobs.dlq.${result.verb}.success`), 'success');
@@ -585,7 +609,27 @@
             {{ t('web.admin.jobs.dlq.discard.button') }}
           </button>
         </template>
-        <!-- Discard the broker did not confirm: neither done nor still there. -->
+        <!-- Replay copy rejected and not put back: the message may be gone. -->
+        <template v-else-if="lastAction.state === 'lost'">
+          <p
+            class="mt-1 flex items-start gap-1 font-medium text-amber-800 dark:text-amber-300"
+            data-testid="dlq-last-action-lost">
+            <OIcon
+              collection="heroicons"
+              name="exclamation-triangle"
+              size="4"
+              class="mt-0.5 shrink-0" />
+            {{ t('web.admin.jobs.dlq.replay.unroutableLost') }}
+          </p>
+          <p
+            v-for="(note, index) in lastAction.notes"
+            :key="index"
+            class="mt-1 font-mono text-xs break-all text-gray-700 dark:text-gray-300"
+            data-testid="dlq-last-action-note">
+            {{ note }}
+          </p>
+        </template>
+        <!-- The broker did not confirm (replay or discard): outcome unknown. -->
         <template v-else-if="lastAction.state === 'unconfirmed'">
           <p
             class="mt-1 flex items-start gap-1 text-amber-800 dark:text-amber-300"
@@ -595,7 +639,7 @@
               name="exclamation-triangle"
               size="4"
               class="mt-0.5 shrink-0" />
-            {{ t('web.admin.jobs.dlq.discard.unconfirmed') }}
+            {{ t('web.admin.jobs.dlq.result.unconfirmed') }}
           </p>
           <p
             v-for="(note, index) in lastAction.notes"

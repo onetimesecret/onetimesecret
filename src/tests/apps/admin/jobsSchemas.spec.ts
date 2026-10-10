@@ -11,9 +11,10 @@ import {
   colonelDlqMessageDetailResponseSchema,
   colonelDlqMessageDiscardResponseSchema,
   colonelDlqMessageReplayResponseSchema,
-  DLQ_DISCARD_OUTCOME_UNCONFIRMED,
+  DLQ_MESSAGE_OUTCOME_UNCONFIRMED,
   DLQ_REPLAY_OUTCOME_NO_ORIGINAL_QUEUE,
   DLQ_REPLAY_OUTCOME_UNROUTABLE,
+  DLQ_REPLAY_OUTCOME_UNROUTABLE_LOST,
 } from '@/schemas/api/internal/responses/colonel-queue';
 import { responseSchemas } from '@/schemas/api/internal/responses/registry';
 
@@ -457,9 +458,11 @@ describe('colonel Jobs schemas: refusal outcomes and run statuses (#4343)', () =
   it.each([
     DLQ_REPLAY_OUTCOME_NO_ORIGINAL_QUEUE,
     DLQ_REPLAY_OUTCOME_UNROUTABLE,
+    DLQ_REPLAY_OUTCOME_UNROUTABLE_LOST,
+    DLQ_MESSAGE_OUTCOME_UNCONFIRMED,
     'already_replayed',
     'replay_in_progress',
-  ])('accepts a found replay ack KEPT in the DLQ with outcome %s', (outcome) => {
+  ])('accepts a found replay ack with refusal/unknown outcome %s', (outcome) => {
     const parsed = colonelDlqMessageReplayResponseSchema.safeParse({
       shrimp: '',
       record: {
@@ -493,7 +496,7 @@ describe('colonel Jobs schemas: refusal outcomes and run statuses (#4343)', () =
         queue: 'dlq.billing.event',
         message_id: 'm1',
         found: true,
-        outcome: DLQ_DISCARD_OUTCOME_UNCONFIRMED,
+        outcome: DLQ_MESSAGE_OUTCOME_UNCONFIRMED,
         scanned: 1,
         truncated: false,
         discarded: false,
@@ -512,6 +515,7 @@ describe('colonel Jobs schemas: refusal outcomes and run statuses (#4343)', () =
   it('pins the wire strings of the outcome constants the console branches on', () => {
     expect(DLQ_REPLAY_OUTCOME_NO_ORIGINAL_QUEUE).toBe('no_original_queue');
     expect(DLQ_REPLAY_OUTCOME_UNROUTABLE).toBe('unroutable');
-    expect(DLQ_DISCARD_OUTCOME_UNCONFIRMED).toBe('unconfirmed');
+    expect(DLQ_REPLAY_OUTCOME_UNROUTABLE_LOST).toBe('unroutable_lost');
+    expect(DLQ_MESSAGE_OUTCOME_UNCONFIRMED).toBe('unconfirmed');
   });
 });

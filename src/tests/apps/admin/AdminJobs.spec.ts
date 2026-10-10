@@ -248,6 +248,33 @@ function replayAck(found: boolean) {
 }
 
 /**
+ * A replay whose outcome overrides its counts (`unconfirmed`, `unroutable_lost`).
+ * The counts are passed in so a spec can make them look like success or plain
+ * failure and prove the outcome still wins.
+ */
+function replayOutcomeAck(
+  outcome: 'unconfirmed' | 'unroutable_lost',
+  error: string,
+  counts: { replayed: number; failed: number }
+) {
+  return {
+    shrimp: '',
+    record: {
+      queue: 'dlq.billing.event',
+      message_id: 'm1',
+      found: true,
+      outcome,
+      scanned: 1,
+      truncated: false,
+      ...counts,
+      would_replay: 0,
+      dry_run: false,
+    },
+    details: { message: error, errors: [{ message_id: 'm1', error }] },
+  };
+}
+
+/**
  * A replay that FOUND the message but left it in the DLQ: no x-death header
  * (`no_original_queue`) or the original queue is gone (`unroutable`).
  */
@@ -751,9 +778,9 @@ describe('AdminJobs — dead-letter queues', () => {
       await confirmMessageAction(wrapper, 'discard');
 
       expect(showMock).toHaveBeenCalledTimes(1);
-      expect(showMock).toHaveBeenCalledWith('web.admin.jobs.dlq.discard.unconfirmed', 'warning');
+      expect(showMock).toHaveBeenCalledWith('web.admin.jobs.dlq.result.unconfirmed', 'warning');
       expect(byTestId(wrapper, 'dlq-last-action-unconfirmed').text()).toBe(
-        'web.admin.jobs.dlq.discard.unconfirmed'
+        'web.admin.jobs.dlq.result.unconfirmed'
       );
       expect(byTestId(wrapper, 'dlq-last-action-note').text()).toBe(UNCONFIRMED_TEXT);
       expect(byTestId(wrapper, 'dlq-last-action-failed').exists()).toBe(false);
@@ -761,6 +788,53 @@ describe('AdminJobs — dead-letter queues', () => {
       expect(byTestId(wrapper, 'dlq-last-action-not-visible').exists()).toBe(false);
     }
   );
+
+  it.each([
+    ['counts that look replayed', { replayed: 1, failed: 0 }],
+    ['counts that look failed', { replayed: 0, failed: 1 }],
+  ])(
+    'reports an unconfirmed replay (%s) as outcome unknown, never success or "could not be replayed"',
+    async (_label, counts) => {
+      const error = 'Replay stopped, outcome unknown: the broker did not confirm the commit';
+      routeGets();
+      mockApi.post.mockResolvedValue({ data: replayOutcomeAck('unconfirmed', error, counts) });
+      wrapper = await mountView();
+      await openPeek(wrapper);
+
+      await confirmMessageAction(wrapper, 'replay');
+
+      expect(showMock).toHaveBeenCalledTimes(1);
+      expect(showMock).toHaveBeenCalledWith('web.admin.jobs.dlq.result.unconfirmed', 'warning');
+      expect(byTestId(wrapper, 'dlq-last-action-unconfirmed').text()).toBe(
+        'web.admin.jobs.dlq.result.unconfirmed'
+      );
+      expect(byTestId(wrapper, 'dlq-last-action-note').text()).toBe(error);
+      expect(byTestId(wrapper, 'dlq-last-action-done').exists()).toBe(false);
+      expect(byTestId(wrapper, 'dlq-last-action-failed').exists()).toBe(false);
+    }
+  );
+
+  it('reports an unroutable_lost replay as an error that the message may be lost', async () => {
+    const error = 'Original queue rejected the copy and the return to the DLQ failed';
+    routeGets();
+    mockApi.post.mockResolvedValue({
+      data: replayOutcomeAck('unroutable_lost', error, { replayed: 0, failed: 1 }),
+    });
+    wrapper = await mountView();
+    await openPeek(wrapper);
+
+    await confirmMessageAction(wrapper, 'replay');
+
+    expect(showMock).toHaveBeenCalledTimes(1);
+    expect(showMock).toHaveBeenCalledWith('web.admin.jobs.dlq.replay.unroutableLost', 'error');
+    expect(byTestId(wrapper, 'dlq-last-action-lost').text()).toBe(
+      'web.admin.jobs.dlq.replay.unroutableLost'
+    );
+    expect(byTestId(wrapper, 'dlq-last-action-note').text()).toBe(error);
+    expect(byTestId(wrapper, 'dlq-last-action-failed').exists()).toBe(false);
+    expect(byTestId(wrapper, 'dlq-last-action-done').exists()).toBe(false);
+    expect(byTestId(wrapper, 'dlq-last-action-kept').exists()).toBe(false);
+  });
 
   it('still reports a confirmed found-but-not-discarded ack (no outcome) as failed', async () => {
     routeGets();
