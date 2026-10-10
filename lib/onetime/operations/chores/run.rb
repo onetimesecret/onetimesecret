@@ -70,11 +70,17 @@ module Onetime
       # gate as the nightly job. A live run writes a JobRun record under
       # `chore.<id>` (preview runs write none).
       #
+      # A live run where any record failed (housekeeping `errors`, entitlement
+      # `failed`) is `partial`, whether some or all failed: the other records
+      # were still written. Its JobRun record is `error`, "N of M records
+      # failed", so the console never shows a run with failures as a success.
+      #
       # ## Audit (exactly one event per call)
       #
-      # - Live run that changed records: `chore.run`, `result: :success`,
-      #   FAIL-CLOSED (#4333) — chores rewrite customer data, and the event is
-      #   the only record that this operator triggered it.
+      # - Live run that changed records, `partial` included: `chore.run`,
+      #   `result: :success`, FAIL-CLOSED (#4333) — chores rewrite customer
+      #   data, and the event is the only record that this operator triggered
+      #   it. The detail carries the status and the failure count.
       # - Live run that changed nothing (nothing modified, nothing failed; for
       #   the entitlement run, also no plans synced into the cache; or the
       #   entitlement run skipped for want of a Stripe key): a no-change
@@ -117,7 +123,8 @@ module Onetime
           target: -> { @chore },
           detail: -> { { dry_run: @dry_run, limit: @limit } }
 
-        # @!attribute status [r] Symbol :success / :dry_run / :skipped / :aborted
+        # @!attribute status [r] Symbol :success / :partial / :dry_run /
+        #   :skipped / :aborted
         # @!attribute capped [r] Boolean stopped at the record limit
         # @!attribute budget_exhausted [r] Boolean stopped at the time budget
         # @!attribute duration_ms [r] Integer wall-clock time of the call
@@ -236,7 +243,7 @@ module Onetime
             'modified' => counts[:modified],
             'errors' => counts[:errors],
           }
-          [:success, report]
+          [counts[:errors].positive? ? :partial : :success, report]
         end
 
         # The job pulls the catalog, gates on it, then materializes.
@@ -252,6 +259,8 @@ module Onetime
                                 :skipped
                               elsif job_report[:aborted]
                                 :aborted
+                              elsif job_report[:failed].to_i.positive?
+                                :partial
                               else
                                 :success
                               end
@@ -318,6 +327,7 @@ module Onetime
           run_status, error = case status
                               when :success then ['success', nil]
                               when :skipped then ['skipped', nil]
+                              when :partial then ['error', "#{failed_count(report)} of #{report['scanned'].to_i} records failed"]
                               else ['error', "#{ABORTED}: #{report[ABORTED]}"]
                               end
           ::Onetime::Jobs::JobRun.finished(
@@ -329,6 +339,11 @@ module Onetime
         end
 
         # ---- Shared -------------------------------------------------------
+
+        # Records that failed: chore errors, or orgs that failed to materialize.
+        def failed_count(report)
+          (@entry.housekeeping? ? report['errors'] : report['failed']).to_i
+        end
 
         # Counts and reason codes only: never record ids.
         def summary(report)

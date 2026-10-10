@@ -180,5 +180,14 @@ RSpec.describe ColonelAPI::Logic::Colonel::RunChore do
 
       expect(processed[:record]).to include(capped: true, budget_exhausted: true)
     end
+
+    it "answers status 'partial' when records failed" do
+      allow(op).to receive(:call).and_return(
+        op_result(status: :partial,
+          report: { 'model' => 'Onetime::Organization', 'scanned' => 12, 'modified' => 9, 'errors' => 3 }),
+      )
+
+      expect(processed[:record][:status]).to eq('partial')
+    end
   end
 end

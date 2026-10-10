@@ -35,13 +35,13 @@ RSpec.describe Onetime::Operations::Chores::Run do
 
   # An in-memory model with the surface HousekeepingJob.perform touches.
   # Each record's do_chore! logs its index, then returns `modifies` (or
-  # raises when `raises`).
+  # raises when `raises` is true, or lists its index).
   def fake_model(count, modifies: true, raises: false)
     touched   = []
     records   = Array.new(count) do |index|
       double("record#{index}", identifier: "rec#{index}").tap do |record|
         allow(record).to receive(:do_chore!) do |_key|
-          raise 'chore boom' if raises
+          raise 'chore boom' if raises == true || (raises.is_a?(Array) && raises.include?(index))
 
           touched << index
           modifies
@@ -268,15 +268,45 @@ RSpec.describe Onetime::Operations::Chores::Run do
       )
     end
 
-    it 'records per-record chore errors as an applied run (not a no-change)' do
-      fake_model(2, raises: true)
-      allow(OT).to receive(:le)
+    describe 'when records fail' do
+      before { allow(OT).to receive(:le) }
 
-      result = run
+      it 'is partial when some records fail: an applied run, an error run record' do
+        touched = fake_model(4, raises: [1, 3])
 
-      expect(result.report).to include('modified' => 0, 'errors' => 2)
-      expect(Onetime::ColonelAuditEvent).to have_received(:record)
-        .with(hash_including(result: :success, fail_closed: true, detail: hash_including(errors: 2)))
+        result = run
+
+        expect(touched).to eq([0, 2])
+        expect(result.status).to eq(:partial)
+        expect(result.report).to include('scanned' => 4, 'modified' => 2, 'errors' => 2)
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+          actor: actor,
+          verb: 'chore.run',
+          target: chore_id,
+          result: :success,
+          detail: {
+            dry_run: false, limit: 100, capped: false, budget_exhausted: false, status: 'partial',
+            scanned: 4, modified: 2, errors: 2,
+          },
+          fail_closed: true,
+        )
+        expect(Onetime::Jobs::JobRun).to have_received(:finished)
+          .with(run_id, status: 'error', duration_ms: 42, error: '2 of 4 records failed')
+      end
+
+      it 'is partial, not a no-change, when every record fails' do
+        fake_model(2, raises: true)
+
+        result = run
+
+        expect(result.status).to eq(:partial)
+        expect(result.report).to include('modified' => 0, 'errors' => 2)
+        expect(Onetime::ColonelAuditEvent).to have_received(:record)
+          .with(hash_including(result: :success, fail_closed: true,
+            detail: hash_including(status: 'partial', errors: 2)))
+        expect(Onetime::Jobs::JobRun).to have_received(:finished)
+          .with(run_id, status: 'error', duration_ms: 42, error: '2 of 2 records failed')
+      end
     end
 
     it 'records a raise as a failure, marks the run record error, and re-raises' do
@@ -372,7 +402,7 @@ RSpec.describe Onetime::Operations::Chores::Run do
 
         result = run
 
-        expect(result).to have_attributes(status: :success, capped: false, budget_exhausted: false)
+        expect(result).to have_attributes(status: :partial, capped: false, budget_exhausted: false)
         expect(result.report).to include(
           'plans_synced' => 3, 'scanned' => 40, 'succeeded' => 39, 'failed' => 1,
           'errors' => [{ 'org_extid' => 'org_x', 'reason' => 'boom' }],
@@ -393,11 +423,22 @@ RSpec.describe Onetime::Operations::Chores::Run do
           target: 'entitlement_materialize',
           result: :success,
           detail: {
-            dry_run: false, limit: 100, capped: false, budget_exhausted: false, status: 'success',
+            dry_run: false, limit: 100, capped: false, budget_exhausted: false, status: 'partial',
             plans_synced: 3, scanned: 40, succeeded: 39, failed: 1, skipped_no_plan: 0,
           },
           fail_closed: true,
         )
+        expect(Onetime::Jobs::JobRun).to have_received(:finished)
+          .with('chore.entitlement_materialize', status: 'error', duration_ms: 42, error: '1 of 40 records failed')
+      end
+
+      it 'is success with a clean run record when no org failed' do
+        allow(pull).to receive(:call).and_return(pull::Result.new(success: true, plans_synced: 3, catalog_verified: true))
+        allow(materialize).to receive(:call).and_return(materialize_result(scanned: 5, succeeded: 5))
+
+        expect(run.status).to eq(:success)
+        expect(Onetime::Jobs::JobRun).to have_received(:finished)
+          .with('chore.entitlement_materialize', status: 'success', duration_ms: 42, error: nil)
       end
 
       # The pull is uninterruptible and comes before the materialize. A pull
