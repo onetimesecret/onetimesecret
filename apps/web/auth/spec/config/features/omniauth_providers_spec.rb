@@ -710,6 +710,77 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
     end
 
     # ------------------------------------------------------------------
+    # GitLab — omniauth-gitlab from the fork pinned in the Gemfile. Its lazy
+    # require and camelization through a real boot are covered by
+    # integration/full/sso_route_registration_spec.rb.
+    # ------------------------------------------------------------------
+    describe 'GitLab' do
+      let(:gitlab_clear) { { GITLAB_CLIENT_ID: nil, GITLAB_CLIENT_SECRET: nil } }
+
+      it 'registers the :gitlab strategy with the read_user scope' do
+        expect(auth).to receive(:omniauth_provider).with(
+          :gitlab,
+          hash_including(
+            name: :gitlab,
+            client_id: 'gl-client-id',
+            client_secret: 'gl-client-secret',
+            scope: 'read_user',
+          )
+        )
+
+        ClimateControl.modify(
+          GITLAB_CLIENT_ID: 'gl-client-id',
+          GITLAB_CLIENT_SECRET: 'gl-client-secret',
+        ) do
+          configure(:gitlab)
+        end
+
+        expect(log_messages.last[1]).to include("GitLab provider 'gitlab' (GitLab)")
+      end
+
+      it 'uses a custom route name when GITLAB_ROUTE_NAME is set' do
+        expect(auth).to receive(:omniauth_provider).with(:gitlab, hash_including(name: :gl))
+
+        ClimateControl.modify(
+          GITLAB_CLIENT_ID: 'gl-client-id',
+          GITLAB_CLIENT_SECRET: 'gl-client-secret',
+          GITLAB_ROUTE_NAME: 'gl',
+        ) do
+          configure(:gitlab)
+        end
+      end
+
+      it 'skips registration when the credentials are missing' do
+        expect(auth).not_to receive(:omniauth_provider)
+
+        ClimateControl.modify(gitlab_clear) do
+          configure(:gitlab)
+        end
+
+        expect(log_messages.last).to eq(
+          [:error, '[OmniAuth] Missing GitLab configuration: GITLAB_CLIENT_ID, GITLAB_CLIENT_SECRET']
+        )
+      end
+
+      context 'with orgs_sso_enabled' do
+        let(:orgs_sso_enabled) { true }
+
+        it 'registers the placeholder route, like the other issuerless providers' do
+          expect(auth).to receive(:omniauth_provider).with(
+            :gitlab,
+            hash_including(name: :gitlab, client_id: 'placeholder', client_secret: 'placeholder')
+          )
+
+          ClimateControl.modify(gitlab_clear) do
+            configure(:gitlab)
+          end
+
+          expect(log_messages.last).to match([:info, /Registering GitLab route.*tenant SSO/])
+        end
+      end
+    end
+
+    # ------------------------------------------------------------------
     # SAML (#4450)
     # ------------------------------------------------------------------
     describe 'SAML' do

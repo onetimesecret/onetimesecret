@@ -78,7 +78,8 @@ module Onetime
     # verification instead of auto-repairing it (see
     # Auth::Operations::Customers::Doctor#check_sso_customer_unverified).
     VERIFICATION_HOLDS = {
-      'idp_unverified' => 'the IdP asserted email_verified: false at sign-in',
+      'idp_unverified' => 'the IdP reported the email as unverified at sign-in ' \
+                          '(email_verified: false, or no GitLab confirmed_at)',
       'claim_unreadable' => "the IdP's email_verified claim could not be read at sign-in",
     }.freeze
 

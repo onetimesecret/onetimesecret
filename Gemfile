@@ -65,6 +65,17 @@ gem 'rodauth-tools', '~> 0.4.0'
 gem 'omniauth-apple', '~> 1.4'
 gem 'omniauth-entra-id', '~> 3.1'
 gem 'omniauth-github', '~> 2.0'
+# omniauth-gitlab comes from the onetimesecret fork, pinned to a commit.
+# Upstream 4.1.0 (2022, the latest release) declares omniauth-oauth2 ~> 1.8.0,
+# which the omniauth-oauth2 floor below rejects. The fork relaxes it to ~> 1.8
+# (onetimesecret/omniauth-gitlab#1). It also defaults the scope to read_user
+# and adds the instance URL to the auth hash as extra.site (#2). Neither
+# affects this app: the :gitlab definition passes read_user itself, and
+# nothing reads extra.site. The fork's version is 4.1.0.1 (#3), so the lock
+# does not read as the released gem.
+gem 'omniauth-gitlab',
+  git: 'https://github.com/onetimesecret/omniauth-gitlab.git',
+  ref: 'f9c4d0b1f25027a7ab6906937a252e5cf9761945'
 gem 'omniauth-google-oauth2', '~> 1.2'
 gem 'omniauth_openid_connect', '~> 0.8'
 # jwt is transitive (oauth2, omniauth-entra-id, omniauth-google-oauth2,
@@ -73,6 +84,11 @@ gem 'omniauth_openid_connect', '~> 0.8'
 # 3.2 did, and moved the lock from 3.2.0 to 2.10.3) fails resolution instead
 # of silently downgrading a crypto library on the auth path.
 gem 'jwt', '~> 3.2'
+# omniauth-oauth2 is transitive (every OAuth2 strategy above), floored the same
+# way: 1.9.0 compares the callback `state` in constant time (#174), and that
+# check is what the OAuth connect-intent binding relies on. The released
+# omniauth-gitlab 4.1.0 caps it at ~> 1.8.0, hence the fork above.
+gem 'omniauth-oauth2', '~> 1.9'
 
 # SAML 2.0 SSO (#4450). ruby-saml is pinned EXACTLY, not pessimistically: it is
 # the XML-signature verifier the whole SAML trust decision rests on, and its

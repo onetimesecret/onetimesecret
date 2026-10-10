@@ -50,6 +50,7 @@
 # =============================================================================
 
 require_relative '../../spec_helper'
+require 'omniauth-gitlab'
 
 RSpec.describe 'OmniAuth JIT provisioning sets verified (#3973)', type: :integration do
   include Rack::Test::Methods
@@ -142,6 +143,22 @@ RSpec.describe 'OmniAuth JIT provisioning sets verified (#3973)', type: :integra
         expect(customer.verification_held?).to be(false),
           'Nothing was withheld, so no verification_hold may be recorded'
         expect(customer.verification_hold.to_s).to eq('')
+      ensure
+        teardown_mock_auth
+      end
+    end
+
+    # The GitLab confirmed_at check keys on the strategy class, so the hook
+    # must pass the callback's strategy through.
+    it 'passes the callback strategy to the hold check' do
+      setup_mock_auth(email: jit_email('jit-strategy'), uid: "sub-#{SecureRandom.hex(8)}")
+      allow(Auth::Config::Hooks::OmniAuth).to receive(:email_verification_hold).and_call_original
+      begin
+        post '/auth/sso/oidc/callback'
+        skip 'OmniAuth route not registered (OIDC discovery not available at boot)' if last_response.status == 404
+
+        expect(Auth::Config::Hooks::OmniAuth).to have_received(:email_verification_hold)
+          .with(hash_including(strategy: kind_of(OmniAuth::Strategy)))
       ensure
         teardown_mock_auth
       end
@@ -326,6 +343,51 @@ RSpec.describe 'OmniAuth JIT provisioning sets verified (#3973)', type: :integra
         expect(hold.call(info: saml_info, extra: saml_extra('email_verified' => ['true']))).to be_nil
         expect(hold.call(info: saml_info, extra: saml_extra('email_verified' => []))).to be_nil
         expect(hold.call(info: saml_info, extra: saml_extra('email_verified' => [nil]))).to be_nil
+      end
+    end
+
+    # GitLab has no email_verified claim. GET /api/v4/user carries
+    # confirmed_at, null until the account's email is confirmed, and for the
+    # GitLab strategy a null or missing one holds.
+    describe 'with the GitLab strategy' do
+      let(:gitlab) { OmniAuth::Strategies::GitLab.new(nil, 'gl-client-id', 'gl-client-secret') }
+      let(:gitlab_info) { OmniAuth::AuthHash::InfoHash.new(email: 'glab@example.com', name: 'Git Lab') }
+
+      def gitlab_extra(raw_info)
+        OmniAuth::AuthHash.new(extra: { 'raw_info' => raw_info }).extra
+      end
+
+      it 'does not hold when confirmed_at is set' do
+        extra = gitlab_extra('id' => 42, 'confirmed_at' => '2015-09-03T07:24:01.670Z')
+
+        expect(hold.call(info: gitlab_info, extra: extra, strategy: gitlab)).to be_nil
+      end
+
+      it 'holds as idp_unverified when confirmed_at is null or missing' do
+        expect(hold.call(info: gitlab_info, extra: gitlab_extra('id' => 42, 'confirmed_at' => nil), strategy: gitlab))
+          .to eq('idp_unverified')
+        expect(hold.call(info: gitlab_info, extra: gitlab_extra('id' => 42, 'confirmed_at' => ''), strategy: gitlab))
+          .to eq('idp_unverified')
+        expect(hold.call(info: gitlab_info, extra: gitlab_extra('id' => 42), strategy: gitlab)).to eq('idp_unverified')
+        expect(hold.call(info: gitlab_info, extra: nil, strategy: gitlab)).to eq('idp_unverified')
+      end
+
+      it 'holds as claim_unreadable when reading extra raises' do
+        raising_extra = Object.new
+        def raising_extra.[](*)
+          raise 'boom'
+        end
+
+        allow(Auth::Logging).to receive(:log_auth_event)
+
+        expect(hold.call(info: gitlab_info, extra: raising_extra, strategy: gitlab)).to eq('claim_unreadable')
+      end
+
+      it 'leaves other strategies on the email_verified claim' do
+        other = OmniAuth::Strategies::OAuth2.new(nil, 'client-id', 'client-secret')
+
+        expect(hold.call(info: gitlab_info, extra: gitlab_extra('id' => 42), strategy: other)).to be_nil
+        expect(hold.call(info: gitlab_info, extra: gitlab_extra('id' => 42), strategy: nil)).to be_nil
       end
     end
 

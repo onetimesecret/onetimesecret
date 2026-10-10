@@ -106,6 +106,7 @@ full:
     #   Entra ID: ENTRA_TENANT_ID, ENTRA_CLIENT_ID, ENTRA_CLIENT_SECRET
     #   Google: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
     #   GitHub: GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET
+    #   GitLab: GITLAB_CLIENT_ID, GITLAB_CLIENT_SECRET
     #   Apple: APPLE_CLIENT_ID, APPLE_TEAM_ID, APPLE_KEY_ID, APPLE_PRIVATE_KEY
     #   SAML: SAML_IDP_SSO_SERVICE_URL, SAML_IDP_ENTITY_ID, SAML_IDP_CERT
     sso: <%= ENV['AUTH_SSO_ENABLED'] == 'true' %>  # Since v0.24.5
@@ -175,7 +176,7 @@ full:
     # This global value applies to the platform (env-configured) provider path
     # only; it is ignored on the multi-tenant (tenant SsoConfig) surface by
     # construction. Per-provider overrides (OIDC_TRUST_EMAIL_FOR_LINKING,
-    # ENTRA_TRUST_EMAIL_FOR_LINKING, GOOGLE_*, GITHUB_*) take precedence.
+    # ENTRA_TRUST_EMAIL_FOR_LINKING, GOOGLE_*, GITHUB_*, GITLAB_*) take precedence.
     #
     # Default: false (refuse email-based auto-linking — require explicit,
     # authenticated linking from account settings)

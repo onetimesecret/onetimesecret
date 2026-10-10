@@ -230,10 +230,10 @@ RSpec.describe Auth::Operations::Customers::Doctor do
       end
     end
 
-    context 'when the IdP asserted email_verified: false' do
+    context 'when the IdP reported the email as unverified' do
       let(:verification_hold) { 'idp_unverified' }
 
-      it_behaves_like 'a held record', :idp_unverified, 'IdP asserted email_verified: false'
+      it_behaves_like 'a held record', :idp_unverified, 'IdP reported the email as unverified'
     end
 
     context 'when the email_verified claim could not be read' do

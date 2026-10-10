@@ -15,7 +15,7 @@ Two integration patterns are available:
 | Pattern | When to use | Env var prefix |
 |---------|------------|----------------|
 | **Generic OIDC** | Customer runs their own IdP (Zitadel, Keycloak, Auth0, Okta) | `OIDC_*` |
-| **Provider-specific** | Direct integration with a specific service | `ENTRA_*`, `GOOGLE_*`, `GITHUB_*`, `APPLE_*` |
+| **Provider-specific** | Direct integration with a specific service | `ENTRA_*`, `GOOGLE_*`, `GITHUB_*`, `GITLAB_*`, `APPLE_*` |
 | **SAML 2.0** | The IdP has no OIDC login flow | `SAML_ENABLED=true` plus `SAML_*` |
 
 Generic OIDC uses the `/.well-known/openid-configuration` discovery document. Provider-specific gems handle OAuth quirks (tenant models, non-standard scopes, token formats) so the operator doesn't have to. SAML has no client credential: trust is the IdP's signing certificate, pinned in configuration.
@@ -112,6 +112,18 @@ Providers load automatically when `AUTH_SSO_ENABLED=true` and their required env
 | `GITHUB_ROUTE_NAME` | No | URL segment (default: `github`) |
 | `GITHUB_DISPLAY_NAME` | No | Button label (default: `GitHub`) |
 
+### GitLab
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `GITLAB_CLIENT_ID` | Yes | gitlab.com OAuth application ID |
+| `GITLAB_CLIENT_SECRET` | Yes | gitlab.com OAuth application secret |
+| `GITLAB_ROUTE_NAME` | No | URL segment (default: `gitlab`) |
+| `GITLAB_DISPLAY_NAME` | No | Button label (default: `GitLab`) |
+| `GITLAB_TRUST_EMAIL_FOR_LINKING` | No | Opt in to email-based account linking for this provider (default: `false`). GitLab has no `email_verified` claim; a null or missing `confirmed_at` in its user response holds the link. See [The flag](#the-flag) |
+
+gitlab.com only. For a self-managed GitLab, use [Generic OIDC](#generic-oidc) with `OIDC_ISSUER` set to the instance URL. See [GitLab](#gitlab-1) under Provider Configuration.
+
 ### Apple
 
 | Variable | Required | Description |
@@ -153,7 +165,7 @@ Each configured provider registers two routes:
 | GET | `/auth/sso/{provider}/callback` | Receives IdP response |
 | GET | `/auth/sso/{provider}/metadata` | SAML only: SP metadata XML (404 while the route has no trust anchors) |
 
-Where `{provider}` is the route name (`oidc`, `entra`, `google`, `github`, `apple`, `saml`, or custom).
+Where `{provider}` is the route name (`oidc`, `entra`, `google`, `github`, `gitlab`, `apple`, `saml`, or custom).
 
 Apple and SAML are the exceptions to the GET callback: Apple uses
 `response_mode=form_post`, and SAML's HTTP-POST binding delivers the
@@ -479,6 +491,7 @@ Per-provider environment variables, plus a global fallback. Default is **false**
 | `ENTRA_TRUST_EMAIL_FOR_LINKING` | Microsoft Entra ID |
 | `GOOGLE_TRUST_EMAIL_FOR_LINKING` | Google |
 | `GITHUB_TRUST_EMAIL_FOR_LINKING` | GitHub |
+| `GITLAB_TRUST_EMAIL_FOR_LINKING` | GitLab |
 | `APPLE_TRUST_EMAIL_FOR_LINKING` | Apple |
 | `SAML_TRUST_EMAIL_FOR_LINKING` | SAML 2.0 |
 | `SSO_TRUST_EMAIL_FOR_LINKING` | Global fallback (deprecated single-OIDC default) |
@@ -489,7 +502,7 @@ Set the value to the string `true` to enable; anything else (or unset) is disabl
 
 **What it does when true:** for the matched provider, `account_from_omniauth` returns the account located by the (normalized, case-insensitive) email instead of refusing. `rodauth-omniauth` then persists the `(provider, uid)` row and signs the user in — the intended auto-link. The lookup surface is unchanged: it is the *same* normalized email H-3 already used, just no longer refused. Each such link emits an `omniauth_email_linked_trusted_provider` audit event at level `warn`, so linking-by-trust is always visible in the audit log.
 
-**Except when the IdP says the email is unverified.** If the callback carries an explicit `email_verified: false` (or the string `"false"`), or the claim cannot be read, the trusted link is skipped and the sign-in is handled as if the flag were off. This emits an `omniauth_trusted_link_held` audit event at level `warn` with the hold reason. A callback that omits `email_verified` is not affected and links as described above. Signing in with a new email still creates an account; it stays unverified. See #4688.
+**Except when the IdP says the email is unverified.** If the callback carries an explicit `email_verified: false` (or the string `"false"`), or the claim cannot be read, the trusted link is skipped and the sign-in is handled as if the flag were off. This emits an `omniauth_trusted_link_held` audit event at level `warn` with the hold reason. A callback that omits `email_verified` is not affected and links as described above. GitLab is the exception: it never sends `email_verified`, so for GitLab the check is `confirmed_at` from `GET /api/v4/user`, and a null or missing value holds the same way. Signing in with a new email still creates an account; it stays unverified. See #4688.
 
 ### Threat-model caveat
 
@@ -509,7 +522,7 @@ The `before_omniauth_create_account` hook — which enforces `ALLOWED_SIGNUP_DOM
 
 ### Gotcha: renaming a provider route orphans existing links
 
-The `provider` string stored in `account_identities` is derived from the provider's route name (`OIDC_ROUTE_NAME`, `ENTRA_ROUTE_NAME`, etc., defaulting to `oidc`/`entra`/`google`/`github`). Changing that route name — or moving a tenant from one strategy to another — changes the stored `provider` value for all **new** logins, which no longer matches the `provider` recorded on **existing** `account_identities` rows. The effect is that every previously linked user is treated as unlinked at once: each is refused (default) or forced through a fresh auto-link (trust flag on) on their next SSO sign-in. Treat any change to a route name as a mass re-link event and communicate it to your users, or migrate the stored `provider` values deliberately. Do not rename provider routes casually on a deployment with existing SSO users.
+The `provider` string stored in `account_identities` is derived from the provider's route name (`OIDC_ROUTE_NAME`, `ENTRA_ROUTE_NAME`, etc., defaulting to `oidc`/`entra`/`google`/`github`/`gitlab`). Changing that route name — or moving a tenant from one strategy to another — changes the stored `provider` value for all **new** logins, which no longer matches the `provider` recorded on **existing** `account_identities` rows. The effect is that every previously linked user is treated as unlinked at once: each is refused (default) or forced through a fresh auto-link (trust flag on) on their next SSO sign-in. Treat any change to a route name as a mass re-link event and communicate it to your users, or migrate the stored `provider` values deliberately. Do not rename provider routes casually on a deployment with existing SSO users.
 
 ## Provider Configuration
 
@@ -637,6 +650,36 @@ GITHUB_CLIENT_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
 Note: For GitHub Organizations, use GitHub Apps instead of OAuth Apps for finer-grained permissions.
+
+### GitLab
+
+Uses the `omniauth-gitlab` gem from the
+[onetimesecret fork](https://github.com/onetimesecret/omniauth-gitlab), pinned
+to a commit in the `Gemfile`. The released gem caps `omniauth-oauth2` at 1.8.x,
+which would downgrade it for every OAuth2 provider; the fork lifts that cap.
+
+GitLab is issuerless (plain OAuth2, like GitHub and Google), so it is available
+for platform SSO only; custom-domain (tenant) SSO refuses it. It signs in
+against gitlab.com only. A GitLab user id is unique within one instance, and an
+issuerless identity is keyed on the route name and that id alone, so the route
+cannot be pointed at a second instance. Configure a self-managed GitLab as
+[Generic OIDC](#generic-oidc) instead (`OIDC_ISSUER=https://gitlab.example.com`),
+which keys identities on the instance's issuer.
+
+#### GitLab Setup
+
+1. **GitLab** → avatar → Edit profile → Applications → Add new application
+   (or a group's Settings → Applications)
+2. **Redirect URI**: `https://{host}/auth/sso/gitlab/callback`. If `GITLAB_ROUTE_NAME`
+   is set, use its value in place of `gitlab`: the route name is the callback
+   path segment.
+3. **Confidential**: checked. **Scopes**: `read_user`
+4. Copy the **Application ID** and **Secret**
+
+```bash
+GITLAB_CLIENT_ID=xxxxxxxxxxxx
+GITLAB_CLIENT_SECRET=gloas-xxxxxxxxxxxx
+```
 
 ### Apple
 
@@ -1023,7 +1066,7 @@ First check [Email claim and domain errors](#email-claim-and-domain-errors). If 
 
 Customers provisioned via SSO before v0.26.5 were left unverified in Redis, and system roles require `verified?`. See [runbooks/sso-accounts-unverified.md](../runbooks/sso-accounts-unverified.md) for the `bin/ots customers doctor --all --repair` procedure. (#3973)
 
-A customer provisioned on a current version can also be unverified on purpose: if the IdP asserted `email_verified: false`, or that claim could not be read, the hook records the reason in `verification_hold` and the doctor will not auto-repair it. The same runbook covers what to check before verifying by hand.
+A customer provisioned on a current version can also be unverified on purpose: if the IdP asserted `email_verified: false` (for GitLab: reported no `confirmed_at`), or that claim could not be read, the hook records the reason in `verification_hold` and the doctor will not auto-repair it. The same runbook covers what to check before verifying by hand.
 
 ### SAML sign-in refused
 
@@ -1092,6 +1135,7 @@ If you see `encoded token is not a string`: the CSRF bypass for SSO routes is mi
   | Microsoft Entra ID | `https://login.microsoftonline.com` |
   | Google | `https://accounts.google.com` |
   | GitHub | `https://github.com` |
+  | GitLab | `https://gitlab.com` |
   | Generic OIDC | Origin of `OIDC_ISSUER` |
   | Apple | `https://appleid.apple.com` |
   | SAML 2.0 | Origin of `SAML_IDP_SSO_SERVICE_URL` (not the EntityID) |
@@ -1160,6 +1204,7 @@ SSO_FORM_ACTION_ORIGINS="https://authorize.example.gov"
 | `apps/web/auth/spec/unit/omniauth_domain_validation_spec.rb` | Domain restriction logic |
 | `apps/web/auth/spec/config/hooks/omniauth_spec.rb` | Email normalization, SAML issuer resolution through the wired hooks |
 | `spec/unit/onetime/sso_provider/request_bound_saml_spec.rb` | SAML gates against real signed responses (`spec/support/saml/test_idp.rb`) |
+| `spec/unit/onetime/sso_provider/gitlab_strategy_spec.rb` | omniauth-gitlab strategy round trip against stubbed gitlab.com endpoints |
 | `apps/web/auth/spec/integration/full/tenant_saml_sso_spec.rb` | Tenant SAML sign-in end to end through Rodauth |
 | `apps/web/auth/spec/integration/full_saml_platform/platform_saml_sso_spec.rb` | Platform SAML sign-in end to end, including rejection of verified-custom-domain fallback (env-configured IdP); own lane `full-saml-platform` |
 

@@ -345,6 +345,22 @@ RSpec.describe 'OmniAuth trusted-provider email linking (#3836 Phase 1)', type: 
       expect_not_linked(uid, hold: 'claim_unreadable')
     end
 
+    # The GitLab confirmed_at check keys on the strategy class, so the hook
+    # must pass the callback's strategy through.
+    it 'passes the callback strategy to the hold check' do
+      email = "claim-strategy-#{SecureRandom.hex(6)}@company.example.com"
+      uid   = "sub-#{SecureRandom.hex(8)}"
+      seed_existing_account(email)
+
+      allow(Auth::Config::Hooks::OmniAuth).to receive(:email_verification_hold).and_call_original
+
+      mock_auth_with_claim(email: email, uid: uid, claim: true)
+      post_callback_or_skip
+
+      expect(Auth::Config::Hooks::OmniAuth).to have_received(:email_verification_hold)
+        .with(hash_including(strategy: kind_of(OmniAuth::Strategy)))
+    end
+
     it 'still links when the IdP asserts email_verified: true' do
       email = "claim-true-#{SecureRandom.hex(6)}@company.example.com"
       uid   = "sub-#{SecureRandom.hex(8)}"

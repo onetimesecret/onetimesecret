@@ -28,7 +28,7 @@
 #   (provider, issuer, uid) identity key and are usable on both the platform
 #   and tenant surfaces.
 #
-#   ISSUERLESS (:issuer_capable false — plain OAuth2: GitHub, Google,
+#   ISSUERLESS (:issuer_capable false — plain OAuth2: GitHub, GitLab, Google,
 #   Facebook, Discord, ...) resolve to the '' sentinel issuer on every
 #   surface, so the tenant surface REFUSES them at callback time
 #   (refuse_issuerless_on_tenant? in features/omniauth.rb). They remain
@@ -131,6 +131,7 @@ require_relative 'google'
 require_relative 'github'
 require_relative 'apple'
 require_relative 'saml'
+require_relative 'gitlab'
 
 module Onetime
   module SsoProvider
@@ -150,6 +151,9 @@ module Onetime
         # request_bound_saml.rb — and the one issuer-capable definition that
         # must NOT declare an `issuer:` strategy option.
         Saml::DEFINITION,
+        # Appended for the same reason as Apple. Issuerless like GitHub, and
+        # gitlab.com only (see gitlab.rb).
+        Gitlab::DEFINITION,
       ].freeze
 
       # Definition lookup by :key that answers nil on a miss — the per-request

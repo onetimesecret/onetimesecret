@@ -10,7 +10,7 @@ Accepted
 
 ## Date
 
-2026-09-17
+2026-09-17. Amended 2026-10-10 to admit GitLab (#4727); see Consequences.
 
 ## Context
 
@@ -38,7 +38,8 @@ tenant SSO can resolve a different OIDC configuration for each domain. Under
 ADR-043, that difference does not create a requirement for platform parity.
 Deciding not to implement multiple platform OIDC instances is therefore
 consistent with the platform and domain scope boundary; it is not a reason to
-add provider-specific adapters instead.
+add provider-specific adapters instead. (Amended 2026-10-10: GitLab is the
+one exception admitted on this ground; see Consequences.)
 
 Some providers do have requirements that generic OIDC cannot faithfully cover.
 GitHub has no OIDC login flow. Apple is OIDC-shaped but requires a per-request
@@ -126,7 +127,8 @@ separate decision and migration plan.
 New requests for Google, Auth0, GitLab, Okta, Entra, or similar OIDC-capable
 IdPs begin with generic OIDC configuration, not a search for a matching
 OmniAuth gem. A bespoke integration for a popular OIDC-capable provider is a
-documented exception, not an implication of popularity.
+documented exception, not an implication of popularity. GitLab is one such
+exception (amended 2026-10-10, below).
 
 The singleton platform OIDC configuration remains an intentional scope choice
 under ADR-043. Requests for several platform-level OIDC connections must
@@ -159,6 +161,23 @@ deliberately unsupported (IdP-initiated sign-in, single logout). One
 departure from the proposal: missing or invalid platform configuration skips
 the provider rather than failing boot, because provider registration is
 designed never to take the other sign-in methods down with it.
+
+**GitLab (amended 2026-10-10)** is admitted under criterion 3 as an
+issuerless, platform-only strategy (#4727). gitlab.com supports OIDC, so this
+is an exception to the default above, and the reason is the single OIDC
+connection. Neither the platform nor a domain can configure more than one
+OIDC connection yet. Without a GitLab strategy, an install that wants GitLab
+sign-in has to spend its one platform OIDC connection on gitlab.com and give
+up any other OIDC IdP there. That is the benefit beyond a friendlier button:
+the GitLab route leaves the OIDC connection free. This departs from the
+Context statement that the single platform OIDC connection is not a reason to
+add a provider-specific adapter. The strategy produces no validated issuer, so
+tenant surfaces refuse it. The route is fixed to gitlab.com with no site
+override, because a GitLab user id is unique only within one instance and the
+identity key is `(provider, '', uid)`. A self-managed GitLab stays on generic
+OIDC, which remains documented. Revisit this admission once multiple OIDC
+connections exist: GitLab over OIDC (issuer `https://gitlab.com`) would give
+issuer-scoped identities.
 
 Implementation work remains governed by the provider-registration checklist,
 including issuer classification, strategy configuration, tests, and operator
