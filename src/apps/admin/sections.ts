@@ -131,6 +131,15 @@ export const CONSOLE_SECTIONS: ConsoleSection[] = [
     to: '/colonel/system',
   },
   {
+    // #4343: scheduler, dead-letter queues, chores.
+    key: 'jobs',
+    labelKey: 'web.admin.jobs.title',
+    icon: 'clock',
+    group: 'platform',
+    hide: false,
+    to: '/colonel/jobs',
+  },
+  {
     key: 'domains',
     labelKey: 'web.colonel.titles.domains',
     icon: 'globe-alt',
