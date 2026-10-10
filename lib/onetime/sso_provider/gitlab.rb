@@ -14,8 +14,9 @@
 # instead (OIDC_ISSUER set to the instance URL), which keys identities on
 # the instance's issuer.
 #
-# The strategy is in-repo (gitlab_strategy.rb) rather than the
-# omniauth-gitlab gem; that file's header says why.
+# The strategy is omniauth-gitlab from the onetimesecret fork, pinned by
+# commit in the Gemfile. The released gem caps omniauth-oauth2 below the
+# 1.9 floor; the Gemfile comment on that entry says why.
 
 module Onetime
   module SsoProvider
@@ -24,7 +25,7 @@ module Onetime
         key: :gitlab,
         label: 'GitLab',
         strategy: :gitlab,
-        gem_require: 'onetime/sso_provider/gitlab_strategy',
+        gem_require: 'omniauth-gitlab',
         issuer_capable: false,
         required_vars: %w[GITLAB_CLIENT_ID GITLAB_CLIENT_SECRET],
         route_var: 'GITLAB_ROUTE_NAME',

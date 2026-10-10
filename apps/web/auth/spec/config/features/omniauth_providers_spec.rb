@@ -710,8 +710,8 @@ RSpec.describe 'Auth::Config::Features::OmniAuth provider registration' do
     end
 
     # ------------------------------------------------------------------
-    # GitLab — in-repo strategy (gitlab_strategy.rb). Its lazy require and
-    # camelization through a real boot are covered by
+    # GitLab — omniauth-gitlab from the fork pinned in the Gemfile. Its lazy
+    # require and camelization through a real boot are covered by
     # integration/full/sso_route_registration_spec.rb.
     # ------------------------------------------------------------------
     describe 'GitLab' do

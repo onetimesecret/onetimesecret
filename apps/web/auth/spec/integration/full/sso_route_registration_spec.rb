@@ -87,9 +87,9 @@ RSpec.describe 'SSO route registration with tenant SSO enabled', type: :integrat
   sso_routes = {
     '/auth/sso/entra'  => { tenant_only: true },
     '/auth/sso/github' => { tenant_only: true },
-    # Like saml below, an in-repo strategy file (gitlab_strategy.rb): this is
-    # the boot-level proof that its lazy require and :gitlab camelization
-    # work through rodauth-omniauth.
+    # omniauth-gitlab registers its own :gitlab → GitLab camelization when
+    # the gem is required lazily; this route is the boot-level proof that it
+    # resolves through rodauth-omniauth.
     '/auth/sso/gitlab' => { tenant_only: true },
     '/auth/sso/google' => { tenant_only: true },
     '/auth/sso/oidc'   => { tenant_only: true },

@@ -1,3 +1,12 @@
+GIT
+  remote: https://github.com/onetimesecret/omniauth-gitlab.git
+  revision: dcbab36c4c2807c6b4dca5a7599187fda853d6c3
+  ref: dcbab36c4c2807c6b4dca5a7599187fda853d6c3
+  specs:
+    omniauth-gitlab (4.1.0)
+      omniauth (~> 2.0)
+      omniauth-oauth2 (~> 1.8)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -642,6 +651,7 @@ DEPENDENCIES
   omniauth-apple (~> 1.4)
   omniauth-entra-id (~> 3.1)
   omniauth-github (~> 2.0)
+  omniauth-gitlab!
   omniauth-google-oauth2 (~> 1.2)
   omniauth-oauth2 (~> 1.9)
   omniauth-saml (~> 2.2)

@@ -2,8 +2,10 @@
 #
 # frozen_string_literal: true
 
-# Unit coverage for OmniAuth::Strategies::GitLab — the in-repo port of
-# omniauth-gitlab (lib/onetime/sso_provider/gitlab_strategy.rb).
+# Unit coverage for OmniAuth::Strategies::GitLab — the strategy the :gitlab
+# definition registers, from the omniauth-gitlab fork the Gemfile pins by
+# commit. The gem is outside this repo, so this spec pins the behavior the
+# app relies on: moving the pinned commit to one that changes it fails here.
 #
 # The strategy is mounted in a bare Rack stack (no Rodauth, no app boot) and
 # driven through a full authorization-code round trip. gitlab.com's token and
@@ -18,7 +20,7 @@
 
 require 'spec_helper'
 require 'rack/mock'
-require 'onetime/sso_provider/gitlab_strategy'
+require 'omniauth-gitlab'
 
 RSpec.describe OmniAuth::Strategies::GitLab do
   let(:host) { 'https://ots.example.com' }

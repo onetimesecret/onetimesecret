@@ -65,6 +65,14 @@ gem 'rodauth-tools', '~> 0.4.0'
 gem 'omniauth-apple', '~> 1.4'
 gem 'omniauth-entra-id', '~> 3.1'
 gem 'omniauth-github', '~> 2.0'
+# omniauth-gitlab comes from the onetimesecret fork, pinned to a commit.
+# Upstream 4.1.0 (2022, the latest release) declares omniauth-oauth2 ~> 1.8.0,
+# which the omniauth-oauth2 floor below rejects. The fork is upstream master
+# with that constraint relaxed to ~> 1.8 (onetimesecret/omniauth-gitlab#1);
+# the strategy code is unchanged.
+gem 'omniauth-gitlab',
+  git: 'https://github.com/onetimesecret/omniauth-gitlab.git',
+  ref: 'dcbab36c4c2807c6b4dca5a7599187fda853d6c3'
 gem 'omniauth-google-oauth2', '~> 1.2'
 gem 'omniauth_openid_connect', '~> 0.8'
 # jwt is transitive (oauth2, omniauth-entra-id, omniauth-google-oauth2,
@@ -75,9 +83,8 @@ gem 'omniauth_openid_connect', '~> 0.8'
 gem 'jwt', '~> 3.2'
 # omniauth-oauth2 is transitive (every OAuth2 strategy above), floored the same
 # way: 1.9.0 compares the callback `state` in constant time (#174), and that
-# check is what the OAuth connect-intent binding relies on. omniauth-gitlab
-# 4.1.0 caps it at ~> 1.8.0, which is why GitLab's strategy is an in-repo port
-# (lib/onetime/sso_provider/gitlab_strategy.rb) rather than that gem.
+# check is what the OAuth connect-intent binding relies on. The released
+# omniauth-gitlab 4.1.0 caps it at ~> 1.8.0, hence the fork above.
 gem 'omniauth-oauth2', '~> 1.9'
 
 # SAML 2.0 SSO (#4450). ruby-saml is pinned EXACTLY, not pessimistically: it is
