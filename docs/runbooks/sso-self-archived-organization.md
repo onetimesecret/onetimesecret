@@ -179,5 +179,6 @@ the unarchive.
   names a different organization). Restoring one of those is a product
   decision about which workspace the customer should have.
 - Personal workspaces whose comment reads `Bulk SSO migration to <domain>`.
-  Those comments were written by `bin/ots domains migrate-sso`, not by the
-  sign-in path, and are out of scope for this repair.
+  Those comments were written by the bulk SSO migration tool
+  (`bin/ots domains migrate-sso`), which has since been removed, not by the
+  sign-in path; they are legacy data and out of scope for this repair.
