@@ -133,6 +133,17 @@ RSpec.describe Onetime::Jobs::JobRun do
       expect(error).to start_with('Delivery failed for ').and end_with(': timeout')
     end
 
+    it 'stores error text with URI credentials redacted' do
+      described_class.finished('recorded', status: 'error', duration_ms: 1,
+        error: 'Connection refused (redis://ots:s3cretpass@cache.internal:6379/0) for alice@example.com')
+
+      error = described_class.read('recorded')['last_error']
+      expect(error).not_to include('s3cretpass')
+      expect(error).not_to include('ots:')
+      expect(error).not_to include('alice@example.com')
+      expect(error).to start_with('Connection refused (redis://***@cache.internal:6379/0) for ')
+    end
+
     it 'clears the previous error on a later success but keeps the count' do
       described_class.finished('recorded', status: 'error', duration_ms: 1, error: 'boom')
       described_class.finished('recorded', status: 'skipped', duration_ms: 1)

@@ -257,14 +257,16 @@ module Onetime
         }
       end
 
-      # Error text from a job is free text and can carry a customer address
-      # (an exception message interpolating an email). It is stored with no
-      # TTL and served by an unaudited read, so it is obscured before it is
-      # written.
+      # Error text from a job is free text. It can carry a customer address
+      # (an exception message interpolating an email) or a credential
+      # (redis-client appends its server URL, userinfo included, to every
+      # ConnectionError). It is stored with no TTL and served by an unaudited
+      # read, so both are masked before it is written: URI userinfo first,
+      # so the email pass never sees `user:pass@host` as an address.
       def error_text(error)
         return '' if error.nil?
 
-        Onetime::Utils.obscure_email(error.to_s)[0, MAX_ERROR_LENGTH]
+        Onetime::Utils.obscure_email(Onetime::Utils.redact_uris_in_text(error.to_s))[0, MAX_ERROR_LENGTH]
       end
 
       def write_failed(operation, job_id, ex)
