@@ -41,6 +41,7 @@ module ColonelAPI
         end
 
         def raise_concerns
+          verify_one_of_roles!(colonel: true)
           verify_dlq_message_target!
 
           # PREVIEW EXEMPTION (#4326): a dry run finds, it does not republish.

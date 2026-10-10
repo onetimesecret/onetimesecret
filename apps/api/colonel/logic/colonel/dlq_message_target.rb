@@ -8,11 +8,13 @@ module ColonelAPI
   module Logic
     module Colonel
       # The target of the per-message DLQ endpoints (#4343): which queue,
-      # which message, and steps 1-2 of the guard-order contract
-      # (ColonelAPI::Logic::Base) that every one of them runs before its own
-      # tier gate. Shared so the three adapters (GetDlqMessage,
-      # ReplayDlqMessage, DiscardDlqMessage) cannot drift on the param
-      # handling or on what a miss looks like on the wire.
+      # which message, and step 2 of the guard-order contract
+      # (ColonelAPI::Logic::Base) that every one of them runs after its role
+      # check and before its own tier gate. Shared so the three adapters
+      # (GetDlqMessage, ReplayDlqMessage, DiscardDlqMessage) cannot drift on
+      # the param handling or on what a miss looks like on the wire. The role
+      # check (step 1) stays in each class's raise_concerns, where
+      # try/integration/api/colonel/bfla_colonel_authz_try.rb reads it.
       #
       # A miss on a configured queue is NOT a 404: the message may be held
       # unacked by a consumer, sit deeper than the scan bound, or the queue
@@ -36,11 +38,9 @@ module ColonelAPI
           @message_id = sanitize_identifier(params['message_id'].to_s)[0, MAX_MESSAGE_ID_LENGTH].to_s
         end
 
-        # Steps 1 and 2: role, then the target guards. Unknown queue is a
-        # 404 before anything touches the broker.
+        # Step 2, after the caller's role check: the target guards. Unknown
+        # queue is a 404 before anything touches the broker.
         def verify_dlq_message_target!
-          verify_one_of_roles!(colonel: true)
-
           raise_form_error('Queue is required', field: :queue) if @queue.empty?
           unless Onetime::Operations::Dlq::Store.valid?(dlq_name)
             raise_not_found('Unknown dead-letter queue')
