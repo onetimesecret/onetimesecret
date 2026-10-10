@@ -20,7 +20,12 @@ provider appears on the login and signup pages with zero frontend changes.
 ## Checklist
 
 1. **Pick the strategy gem** and add it to the `Gemfile`
-   (e.g. `gem 'omniauth-gitlab'`), then `bundle install`. If the gem's own
+   (e.g. `gem 'omniauth-github'`), then `bundle install`. A gem that caps
+   a shared dependency below the locked version would downgrade it for
+   every provider; the `Gemfile` floors `jwt` and `omniauth-oauth2` so such
+   a gem fails resolution instead. omniauth-gitlab is one (it caps
+   `omniauth-oauth2` at 1.8.x), which is why GitLab's strategy is an
+   in-repo port (`gitlab_strategy.rb`). If the gem's own
    defaults do not meet the gates this application needs, subclass the
    strategy under `lib/onetime/sso_provider/` and point the definition's
    `gem_require` at that file; the file requires the gem itself, so the gem
@@ -101,10 +106,11 @@ classified:
   ever returning `''` — see the SAML quirk below.
 
 - **Issuerless** (`issuer_capable: false`): plain OAuth2 providers (GitHub,
-  Google, Facebook, Discord, GitLab in OAuth2 mode). They resolve to the `''`
-  sentinel issuer on every surface, so the **tenant surface refuses them at
-  callback time** (`refuse_issuerless_on_tenant?` — this is deliberate,
-  fail-closed protection against cross-surface identity binds). They remain
+  Google, Facebook, Discord, GitLab in OAuth2 mode — the `gitlab`
+  definition). They resolve to the `''` sentinel issuer on every surface,
+  so the **tenant surface refuses them at callback time**
+  (`refuse_issuerless_on_tenant?` — this is deliberate, fail-closed
+  protection against cross-surface identity binds). They remain
   available for platform SSO only. Each new issuerless provider re-adds a
   `(provider, '', uid)` platform-collision surface, so add them sparingly.
 
@@ -135,7 +141,10 @@ Rules:
 
 When a provider supports both modes (GitLab, Okta), integrate it through OIDC
 (`omniauth_openid_connect` with the provider's issuer) rather than its bespoke
-OAuth2 strategy — it then inherits issuer scoping for free. Auth0 is
+OAuth2 strategy — it then inherits issuer scoping for free. The `gitlab`
+definition is the exception, an OAuth2 platform button for gitlab.com
+alongside the single `OIDC_*` slot; a self-managed GitLab still goes through
+OIDC (see the GitLab quirk below). Auth0 is
 configured this way: the bespoke `omniauth-auth0` strategy was tried and
 dropped before release because its claim validation never runs (see the note
 below) and its `jwt ~> 2` pin held the whole bundle off jwt 3.x. Apple is a
@@ -385,6 +394,16 @@ tenant's own IdP EntityID.
 - **Entra ID**: uid is `tid+oid` by default. If you ever set
   `ignore_tid: true`, cross-tenant safety rests entirely on issuer scoping —
   see the security note on the `:entra` registry entry.
+- **GitLab** (in-repo `OmniAuth::Strategies::GitLab`, ported from
+  omniauth-gitlab 4.1.0): issuerless, and pinned to gitlab.com. The gem is
+  not bundled because it declares `omniauth-oauth2 ~> 1.8.0`, while the lock
+  carries 1.9.0 (constant-time `state` comparison) and the `Gemfile` floors
+  it at `~> 1.9`. There is deliberately no site override for a self-managed
+  instance: the uid is the GitLab user id, unique only within one instance,
+  and an issuerless identity is keyed `(provider, '', uid)`, so repointing
+  the route at another instance would match that instance's users to the
+  first instance's identity rows. A self-managed GitLab is configured as
+  generic OIDC with its URL as `OIDC_ISSUER`.
 - **Google/GitHub**: issuerless (see above). Google's OAuth2 strategy does
   return an id_token, but the strategy does not surface a validated `iss`
   via `options[:issuer]`; it is treated as issuerless by design.
