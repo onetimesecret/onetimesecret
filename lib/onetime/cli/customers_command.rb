@@ -46,6 +46,8 @@ module Onetime
         puts '  bin/ots customers sync-auth-accounts       # Sync to auth DB'
         puts '  bin/ots customers normalize-emails         # Dry-run: mixed-case auth emails (#4726)'
         puts '  bin/ots customers normalize-emails --confirm  # Canonicalize them'
+        puts '  bin/ots customers backfill-logins          # Dry-run: accounts.login backfill (ADR-051)'
+        puts '  bin/ots customers backfill-logins --confirm  # Apply it'
         puts
         puts 'Remote source (pre-migration):'
         puts '  bin/ots customers dates --redis-url redis://host:6379/6'

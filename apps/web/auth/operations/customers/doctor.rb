@@ -100,6 +100,15 @@ module Auth
         # Counter fields to check
         COUNTER_FIELDS = [:secrets_created, :secrets_burned, :secrets_shared, :emails_sent].freeze
 
+        # The one accounts-row read every cross-store check shares (memoized
+        # `auth_account`). `login` and the `email_verified_*` columns arrive
+        # with migration 012 (ADR-051); the auth DB is migrated at boot, so a
+        # doctor that can reach it always sees them.
+        AUTH_ACCOUNT_COLUMNS = [
+          :id, :email, :status_id, :login,
+          :email_verified_at, :email_verified_by, :email_verification_hold
+        ].freeze
+
         # Per-customer result. `issues` is severity-sorted; `repaired` is the list
         # of repair-action hashes applied (empty unless repair: true).
         Report = Data.define(:issues, :repaired)
@@ -126,6 +135,7 @@ module Auth
           check_email_index_entry(issues, repaired)
           check_auth_email_drift(issues, repaired)
           check_auth_email_canonical(issues)
+          check_auth_login_link(issues)
           check_org_email_index(issues, repaired)
           check_org_contact_email(issues, repaired)
           check_org_membership_sync(issues, repaired)
@@ -169,6 +179,27 @@ module Auth
           mismatch_count = 0
 
           Onetime::Customer.email_index.hgetall.each do |email, objid|
+            # ADR-051: an absent contact email writes NO index entry. A key of
+            # '' means some writer indexed an empty address, and whichever
+            # Customer saves next with an empty email would silently take it
+            # over (Familia's index writers only skip nil). Never a legitimate
+            # entry, so it is removed rather than re-pointed.
+            if email.to_s.empty?
+              issues << {
+                check: :email_index_blank_key,
+                severity: :critical,
+                message: "email_index has an empty-string key -> #{objid} (shared key for absent emails)",
+                customer_objid: objid,
+                repairable: true,
+              }
+              if repair
+                Onetime::Customer.email_index.remove_field(email)
+                OT.info "[customers doctor] Removed empty-string email_index key -> #{objid}"
+                repaired << { action: :email_index_blank_key_removed, customer_objid: objid }
+              end
+              next
+            end
+
             customer = Onetime::Customer.load(objid)
 
             if customer.nil?
@@ -1051,7 +1082,7 @@ module Auth
           @auth_account = if db.nil? || extid.empty?
                             nil
                           else
-                            db[:accounts].where(external_id: extid).select(:id, :email, :status_id).first
+                            db[:accounts].where(external_id: extid).select(*AUTH_ACCOUNT_COLUMNS).first
                           end
         rescue StandardError
           @auth_account = nil
@@ -1092,6 +1123,73 @@ module Auth
         # auto-repaired, even under --repair; an operator who has confirmed
         # the address verifies it by hand (colonel admin, or
         # `bin/ots customers verify`).
+        # ADR-051 (SSO email-less accounts Phase 2): the accounts row's internal
+        # `login` IS the Customer objid, and `email_verified_at` is meant to
+        # agree with the Customer `verified` mirror. Report-only, three shapes:
+        #
+        #   :auth_login_missing   the row predates migration 012 and has not
+        #                         been backfilled (`bin/ots customers
+        #                         backfill-logins`); medium, expected during
+        #                         the cutover window and zero after it
+        #   :auth_login_mismatch  the row names a different Customer than its
+        #                         external_id does; critical, never auto-fixed
+        #                         (the backfill refuses exactly this, so it is
+        #                         a hand-made row or a re-linked external_id)
+        #   :auth_email_verification_drift
+        #                         one store says the mailbox is verified and
+        #                         the other does not; high. Until the N+1
+        #                         binary makes SQL the single writer, the
+        #                         Customer mirror is what every reader uses,
+        #                         so this is reported, not repaired.
+        def check_auth_login_link(issues)
+          account = auth_account
+          return if account.nil?
+          return unless account.key?(:login)
+
+          login = account[:login].to_s
+          if login.empty?
+            issues << {
+              check: :auth_login_missing,
+              severity: :medium,
+              message: 'auth account has no internal login yet (migration 012 added the column)',
+              repairable: false,
+              repair_action: 'Run `bin/ots customers backfill-logins` (dry run first)',
+            }
+            return
+          end
+
+          if login != @customer.objid.to_s
+            issues << {
+              check: :auth_login_mismatch,
+              severity: :critical,
+              message: 'auth account login names a different Customer than its external_id ' \
+                       '(cross-store split-brain)',
+              repairable: false,
+              repair_action: 'Decide which Customer owns the row; never merge. See ADR-051',
+            }
+            return
+          end
+
+          sql_verified      = !account[:email_verified_at].nil?
+          customer_verified = @customer.verified?
+          return if sql_verified == customer_verified
+
+          issues << {
+            check: :auth_email_verification_drift,
+            severity: :high,
+            message: "auth account email_verified_at #{sql_verified ? 'set' : 'NULL'} while Customer " \
+                     "verified=#{customer_verified} (cross-store verification drift)",
+            auth_email_verified_by: account[:email_verified_by],
+            auth_email_verification_hold: account[:email_verification_hold],
+            repairable: false,
+            repair_action: 'Verify or unverify through `bin/ots customers verify|unverify` once it ' \
+                           'writes both stores; the Customer mirror is authoritative until then',
+          }
+        rescue StandardError => ex
+          OT.le "[customers doctor] auth_login_link check failed for #{@customer.extid}: " \
+                "#{ex.class} #{ex.message}"
+        end
+
         def check_sso_customer_unverified(issues, repaired)
           return if @customer.verified?
           return unless @customer.provisioning_origin.to_s == 'sso_jit'
