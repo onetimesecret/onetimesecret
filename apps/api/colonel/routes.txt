@@ -183,3 +183,10 @@ GET    /billing/pending-federated-subscriptions ColonelAPI::Logic::Colonel::List
 GET    /audit/export                      ColonelAPI::Logic::Colonel::ExportColonelAuditEvents.render auth=sessionauth role=colonel scope=internal
 GET    /audit                             ColonelAPI::Logic::Colonel::ListColonelAuditEvents response=json auth=sessionauth role=colonel scope=internal
 GET    /trends                            ColonelAPI::Logic::Colonel::GetTrends response=json auth=sessionauth role=colonel scope=internal
+
+# --- #4343 jobs operability: scheduler catalog + chore triggers (BEGIN) ---
+# Scheduler read-out (rufus jobs: last run / next due / last error, scheduler
+# liveness). Read-only and unaudited; error text is email-obscured at write.
+GET    /jobs                              ColonelAPI::Logic::Colonel::ListJobs response=json auth=sessionauth role=colonel scope=internal
+# Chore triggers (GET /chores, POST /chores/:chore/run) go here, after /jobs.
+# --- #4343 (END) ---
