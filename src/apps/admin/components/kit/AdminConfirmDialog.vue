@@ -289,7 +289,7 @@
                   class="mt-4">
                   <label
                     for="admin-confirm-input"
-                    class="block text-sm text-gray-600 dark:text-gray-400">
+                    class="block text-sm break-words text-gray-600 dark:text-gray-400">
                     <slot
                       name="prompt"
                       :token="confirmToken">

@@ -112,8 +112,8 @@
     "content_hash": "5488d837"
   },
   "web.admin.jobs.scheduler.group.scheduled": {
-    "text": "Scheduled",
-    "content_hash": "4724f344"
+    "text": "Core",
+    "content_hash": "70ea1983"
   },
   "web.admin.jobs.scheduler.group.maintenance": {
     "text": "Maintenance",
@@ -130,6 +130,14 @@
   "web.admin.jobs.scheduler.state.unknown": {
     "text": "Unknown",
     "content_hash": "b764cdc0"
+  },
+  "web.admin.jobs.scheduler.stateHint.not_scheduled": {
+    "text": "The running scheduler did not register this job: it is disabled in the config, or the stored schedule is from an earlier scheduler process.",
+    "content_hash": "42acfa24"
+  },
+  "web.admin.jobs.scheduler.stateHint.unknown": {
+    "text": "No scheduler process has recorded a start yet, so registration cannot be checked.",
+    "content_hash": "c9f168f1"
   },
   "web.admin.jobs.scheduler.errorCount": {
     "text": "{count} failed",

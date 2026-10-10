@@ -74,6 +74,17 @@
 
   const age = (timestamp: number | null): string => relativeAge(timestamp, referenceNow.value);
 
+  /**
+   * Why a job is not `scheduled`, for the badge's title. The state compares
+   * the job's registration against the scheduler's last boot, so the two
+   * non-scheduled states have one cause each (see the server's `state_for`).
+   */
+  function stateHint(state: ColonelJob['state']): string | undefined {
+    if (state === 'not_scheduled') return t('web.admin.jobs.scheduler.stateHint.not_scheduled');
+    if (state === 'unknown') return t('web.admin.jobs.scheduler.stateHint.unknown');
+    return undefined;
+  }
+
   /** `every 1h` / `cron 0 3 * * *` — the schedule as registered, or nothing. */
   function scheduleLabel(job: ColonelJob): string {
     if (!job.schedule_expression) return '';
@@ -222,10 +233,13 @@
             </span>
           </template>
 
+          <!-- A job the running scheduler did not register, or no scheduler
+               record at all: the badge alone says what, the title says why. -->
           <template #cell-state="{ row }">
             <span
               class="inline-flex rounded px-2 py-0.5 text-xs font-medium"
               :class="jobStateBadgeClass(row.state)"
+              :title="stateHint(row.state)"
               :data-testid="`job-state-${row.job_id}`">
               {{ t(`web.admin.jobs.scheduler.state.${row.state}`) }}
             </span>

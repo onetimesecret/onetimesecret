@@ -524,7 +524,8 @@
       @cancel="onRunCancel">
       <template #description>
         <div class="space-y-3 text-sm text-gray-600 dark:text-gray-300">
-          <p>
+          <!-- Chore ids are long unbroken words: let them wrap inside the panel. -->
+          <p class="break-words">
             {{ t('web.admin.jobs.chores.run.confirmDescription', { chore: runTarget?.id ?? '' }) }}
           </p>
           <div>

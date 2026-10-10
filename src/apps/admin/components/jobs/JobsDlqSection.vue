@@ -905,26 +905,31 @@
           </li>
         </ul>
       </div>
-    </DetailDrawer>
+      <!-- Typed-confirmation gate: replay (default) / discard (danger). The
+           token is the short queue name — the same string as the URL segment.
 
-    <!-- Typed-confirmation gate: replay (default) / discard (danger). The token
-         is the short queue name — the same string as the URL segment. -->
-    <AdminConfirmDialog
-      v-model:open="actionDialogOpen"
-      :title="t(`web.admin.jobs.dlq.${actionVerb}.confirmTitle`)"
-      :description="
-        t(`web.admin.jobs.dlq.${actionVerb}.confirmDescription`, {
-          id: actionMessageId,
-          queue: actionQueueFull,
-        })
-      "
-      :confirm-token="actionQueue"
-      :variant="actionVerb === 'discard' ? 'danger' : 'default'"
-      :confirm-text="t(`web.admin.jobs.dlq.${actionVerb}.button`)"
-      request-reason
-      :loading="actionLoading"
-      :error="actionError"
-      @confirm="onActionConfirm"
-      @cancel="onActionCancel" />
+           NESTED IN THE DRAWER ON PURPOSE. headlessui only treats a dialog as
+           a child when it is rendered inside the parent dialog's subtree.
+           A sibling dialog is "outside" the drawer, so the drawer closes on the
+           first click into it: the queue is deselected, the re-peek goes to
+           an empty queue name and the LAST ACTION panel above is never seen. -->
+      <AdminConfirmDialog
+        v-model:open="actionDialogOpen"
+        :title="t(`web.admin.jobs.dlq.${actionVerb}.confirmTitle`)"
+        :description="
+          t(`web.admin.jobs.dlq.${actionVerb}.confirmDescription`, {
+            id: actionMessageId,
+            queue: actionQueueFull,
+          })
+        "
+        :confirm-token="actionQueue"
+        :variant="actionVerb === 'discard' ? 'danger' : 'default'"
+        :confirm-text="t(`web.admin.jobs.dlq.${actionVerb}.button`)"
+        request-reason
+        :loading="actionLoading"
+        :error="actionError"
+        @confirm="onActionConfirm"
+        @cancel="onActionCancel" />
+    </DetailDrawer>
   </section>
 </template>

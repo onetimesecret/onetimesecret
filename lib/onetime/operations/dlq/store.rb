@@ -161,7 +161,7 @@ module Onetime
             delivery_tags << delivery_info.delivery_tag
             death = extract_death_info(properties.headers)
             messages << {
-              delivery_tag: delivery_info.delivery_tag,
+              delivery_tag: delivery_info.delivery_tag.to_i,
               message_id: properties.message_id,
               timestamp: properties.timestamp&.to_i,
               age: format_age(properties.timestamp),
@@ -318,8 +318,9 @@ module Onetime
           raise
         end
 
-        # Full single-message detail projection. Byte-for-byte the historic CLI
-        # `build_message_detail`.
+        # Full single-message detail projection. The historic CLI
+        # `build_message_detail`, with the delivery tag as its integer and the
+        # times in UTC (both are also served over HTTP now).
         #
         # @return [Hash]
         def build_message_detail(delivery_info, properties, payload)
@@ -327,9 +328,9 @@ module Onetime
           death   = headers['x-death']&.first || {}
 
           {
-            delivery_tag: delivery_info.delivery_tag,
+            delivery_tag: delivery_info.delivery_tag.to_i,
             message_id: properties.message_id,
-            timestamp: properties.timestamp&.iso8601,
+            timestamp: utc_iso8601(properties.timestamp),
             content_type: properties.content_type,
             headers: headers,
             death_info: {
@@ -337,11 +338,24 @@ module Onetime
               original_exchange: death['exchange'],
               reason: death['reason'],
               count: death['count'],
-              time: death['time']&.iso8601,
+              time: utc_iso8601(death['time']),
               routing_keys: death['routing-keys'],
             },
             payload: safe_parse_payload(payload, properties.content_type),
           }
+        end
+
+        # Bunny decodes AMQP timestamps (the message `timestamp` property and
+        # `x-death[].time`) as `Time` in the process's local zone. Serialize
+        # them in UTC so the same message reads the same from any host.
+        # `getutc` returns a copy; `utc` would convert the header in place.
+        #
+        # @param value [Time, nil]
+        # @return [String, nil]
+        def utc_iso8601(value)
+          return nil unless value.respond_to?(:getutc)
+
+          value.getutc.iso8601
         end
 
         # Parse a JSON payload, falling back to the raw string on any parse error or
@@ -370,14 +384,17 @@ module Onetime
         end
 
         # Strip death-related headers before a replay so the republished message is
-        # clean. Byte-for-byte the historic CLI `clean_headers`.
+        # clean. The broker stamps `x-death`, `x-first-death-*` and
+        # `x-last-death-*` on every dead-lettering; a replayed copy carrying any
+        # of them reads as already dead. Mirrored by
+        # DlqEmailConsumerJob.clean_headers.
         #
         # @param headers [Hash, nil]
         # @return [Hash]
         def clean_headers(headers)
           return {} unless headers
 
-          headers.reject { |k, _| k.start_with?('x-death', 'x-first-death') }
+          headers.reject { |k, _| k.start_with?('x-death', 'x-first-death', 'x-last-death') }
         end
 
         # Compact death summary for a peeked message. Byte-for-byte the historic

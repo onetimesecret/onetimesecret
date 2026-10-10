@@ -82,8 +82,14 @@ RSpec.describe 'DLQ per-message ops', :rabbitmq, type: :integration do
     origin
     observer.confirm_select
     ids.each do |id|
+      # Every header the broker stamps on a dead-lettering, so a replay must
+      # strip them all.
       dlq.publish(JSON.generate(id: id), persistent: true, message_id: id, content_type: 'application/json',
-        headers: { 'x-death' => [{ 'queue' => origin_name, 'reason' => 'rejected', 'count' => 1 }] })
+        headers: {
+          'x-death' => [{ 'queue' => origin_name, 'reason' => 'rejected', 'count' => 1 }],
+          'x-first-death-queue' => origin_name, 'x-first-death-reason' => 'rejected', 'x-first-death-exchange' => '',
+          'x-last-death-queue' => origin_name, 'x-last-death-reason' => 'rejected', 'x-last-death-exchange' => '',
+        })
     end
     raise 'test publishes were not confirmed' unless observer.wait_for_confirms
 
@@ -118,7 +124,7 @@ RSpec.describe 'DLQ per-message ops', :rabbitmq, type: :integration do
     _, properties, body = origin.pop(manual_ack: true)
     expect(properties.message_id).to eq(ids[3])
     expect(JSON.parse(body)).to eq('id' => ids[3])
-    expect(properties.headers).not_to have_key('x-death')
+    expect(properties.headers.keys.grep(/\Ax-(first-|last-)?death/)).to be_empty
     expect(letters(remaining_ids(4))).to eq(%w[A B C E])
   end
 

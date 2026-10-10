@@ -651,10 +651,12 @@ module Onetime
             queue if queue.is_a?(String) && !queue.empty?
           end
 
+          # Mirrors Operations::Dlq::Store.clean_headers: every header the
+          # broker stamps on a dead-lettering, so the replayed copy is clean.
           def clean_headers(headers)
             return {} unless headers
 
-            headers.reject { |k, _| k.start_with?('x-death', 'x-first-death') }
+            headers.reject { |k, _| k.start_with?('x-death', 'x-first-death', 'x-last-death') }
           end
         end
       end
