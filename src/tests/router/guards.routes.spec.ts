@@ -420,8 +420,9 @@ describe('Router Guards', () => {
       beforeEach(() => {
         originalLocation = window.location;
         assignMock = vi.fn();
+        // Keep origin: hardNavigate resolves the target against it.
         Object.defineProperty(window, 'location', {
-          value: { assign: assignMock },
+          value: { ...originalLocation, assign: assignMock },
           writable: true,
           configurable: true,
         });
