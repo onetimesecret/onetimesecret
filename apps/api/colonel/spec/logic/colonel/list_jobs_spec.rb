@@ -4,6 +4,9 @@
 
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 require 'colonel/logic'
+# Referenced by name below before anything calls Registry.load_all!, so it must
+# not depend on an earlier spec having loaded it (order-dependent NameError).
+require 'onetime/jobs/scheduled/heartbeat_job'
 
 # GET /api/colonel/jobs (#4343): the scheduler catalog. These pin the adapter's
 # own job — the role gate, one row per registered job class, the state and
