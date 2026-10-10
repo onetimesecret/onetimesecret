@@ -33,6 +33,13 @@ module Billing
     # @!attribute memberships_failed [Integer] Total memberships that errored during cascade
     # @!attribute orgs_cascaded [Integer] Orgs where cascade was attempted
     # @!attribute errors [Array<Hash>] [{org_extid:, reason:}]
+    # @!attribute budget_exhausted [Boolean] The run stopped because its
+    #   wall-clock budget ran out (#4343); the counts cover the orgs reached.
+    #   Optional at construction, default false.
+    # @!attribute truncated [Boolean] The run stopped at `limit` with at least
+    #   one more org after the last one scanned (#4343). False when there was
+    #   no limit, or the population fit within it: `scanned == limit` alone
+    #   cannot tell those apart. Optional at construction, default false.
     MaterializePlansResult = Data.define(
       :scanned,
       :succeeded,
@@ -43,7 +50,13 @@ module Billing
       :memberships_failed,
       :orgs_cascaded,
       :errors,
-    )
+      :budget_exhausted,
+      :truncated,
+    ) do
+      def initialize(budget_exhausted: false, truncated: false, **)
+        super
+      end
+    end
 
     # MaterializePlans — batch-materialize org entitlements from plan definitions,
     # with optional cascade to active memberships.
@@ -91,11 +104,19 @@ module Billing
       #   to. Defaults to OrganizationMembership.active_for_org. Symmetric to
       #   +iterator:+ so cascade specs can inject memberships without stubbing
       #   active_for_org's internal batch primitive (see #run_cascade).
+      # @param limit [Integer, nil] Stop after this many orgs are scanned
+      #   (`scanned` counts every org reached, skipped ones included); nil
+      #   iterates all. The colonel console's bounded run (#4343). The result's
+      #   `truncated` says whether an org followed the last one scanned.
+      # @param budget [#exhausted?, nil] Wall-clock budget, checked before each
+      #   org; when it runs out the iteration stops between orgs and the result
+      #   reports `budget_exhausted: true`. See
+      #   Onetime::Operations::Chores::Budget.
       # @yieldparam event [MaterializePlansEvent] Per-org outcome
       # @return [MaterializePlansResult]
       def self.call(plan_filter: nil, include_memberships: false, dry_run: false,
                     batch_size: DEFAULT_BATCH_SIZE, iterator: nil,
-                    membership_loader: nil, &progress_block)
+                    membership_loader: nil, limit: nil, budget: nil, &progress_block)
         new(
           plan_filter: plan_filter,
           include_memberships: include_memberships,
@@ -104,11 +125,14 @@ module Billing
           iterator: iterator,
           membership_loader: membership_loader,
           progress_block: progress_block,
+          limit: limit,
+          budget: budget,
         ).call
       end
 
       def initialize(plan_filter:, include_memberships:, dry_run:,
-                     batch_size:, iterator:, membership_loader:, progress_block:)
+                     batch_size:, iterator:, membership_loader:, progress_block:,
+                     limit: nil, budget: nil)
         @plan_filter         = plan_filter
         @include_memberships = include_memberships
         @dry_run             = dry_run
@@ -117,6 +141,10 @@ module Billing
         @membership_loader   = membership_loader ||
                                ->(org) { Onetime::OrganizationMembership.active_for_org(org) }
         @progress_block      = progress_block
+        @limit               = limit
+        @budget              = budget
+        @budget_exhausted    = false
+        @truncated           = false
         @counts              = Hash.new(0)
         @errors              = []
       end
@@ -124,7 +152,24 @@ module Billing
       def call
         log_start
         plans_cache = preload_plans
-        @iterator.each_record(batch_size: @batch_size) { |org| process_org(org, plans_cache) }
+        @iterator.each_record(batch_size: @batch_size) do |org|
+          # Reached only when an org follows the limit-th one: that (limit+1)th
+          # yield is the look-ahead that tells a capped run from a population
+          # of exactly `limit`. It is neither counted nor processed, and
+          # each_record had already loaded its batch for the plain `break`
+          # this replaces, so it costs nothing new.
+          if @limit && @counts[:scanned] >= @limit
+            @truncated = true
+            break
+          end
+
+          if @budget&.exhausted?
+            @budget_exhausted = true
+            break
+          end
+
+          process_org(org, plans_cache)
+        end
         result      = build_result
         log_end(result)
         result
@@ -387,6 +432,8 @@ module Billing
           memberships_failed: @counts[:memberships_failed],
           orgs_cascaded: @counts[:orgs_cascaded],
           errors: @errors,
+          budget_exhausted: @budget_exhausted,
+          truncated: @truncated,
         )
       end
 
@@ -394,7 +441,8 @@ module Billing
         logger.info 'Materializing org entitlements from plan catalog',
           dry_run: @dry_run,
           plan_filter: @plan_filter,
-          include_memberships: @include_memberships
+          include_memberships: @include_memberships,
+          limit: @limit
       end
 
       def log_end(result)
@@ -407,7 +455,9 @@ module Billing
           skipped_plan_filter: result.skipped_plan_filter,
           orgs_cascaded: result.orgs_cascaded,
           memberships_succeeded: result.memberships_succeeded,
-          memberships_failed: result.memberships_failed
+          memberships_failed: result.memberships_failed,
+          budget_exhausted: result.budget_exhausted,
+          truncated: result.truncated
       end
     end
   end

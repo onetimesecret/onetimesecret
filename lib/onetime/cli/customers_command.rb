@@ -44,6 +44,8 @@ module Onetime
         puts '  bin/ots customers purge --older-than 3y --purge  # Execute bulk purge'
         puts '  bin/ots customers purge-one ID             # Purge ONE account (audited)'
         puts '  bin/ots customers sync-auth-accounts       # Sync to auth DB'
+        puts '  bin/ots customers normalize-emails         # Dry-run: mixed-case auth emails (#4726)'
+        puts '  bin/ots customers normalize-emails --confirm  # Canonicalize them'
         puts
         puts 'Remote source (pre-migration):'
         puts '  bin/ots customers dates --redis-url redis://host:6379/6'

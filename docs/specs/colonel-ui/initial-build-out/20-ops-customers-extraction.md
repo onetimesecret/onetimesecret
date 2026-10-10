@@ -20,7 +20,7 @@ Part of the Colonel Admin Rebuild epic. Phase-1 reference slice: prove the patte
 
 ## Grounding — files & pointers
 - Operations contract: `lib/onetime/operations/README.md` (single `#call`, stateless, no HTTP/session, returns symbols or immutable `Data` results).
-- Incumbent ops home: `apps/web/auth/operations/` — `set_customer_verification.rb`, `destroy_customer_record.rb`, `ensure_customer_for_account.rb`, `remove_authentication_data.rb`, `bulk_sso_migration.rb` (+ `apps/web/billing/operations/`).
+- Incumbent ops home: `apps/web/auth/operations/` — `set_customer_verification.rb`, `destroy_customer_record.rb`, `ensure_customer_for_account.rb`, `remove_authentication_data.rb` (+ `apps/web/billing/operations/`).
 - Already-shared op: `Auth::Operations::SetCustomerVerification` (`apps/web/auth/operations/set_customer_verification.rb:44`) — used by CLI `lib/onetime/cli/customers/{verify,unverify}_command.rb` + Rodauth hook `apps/web/auth/config/hooks/account.rb:298`; **no colonel endpoint calls it yet**.
 - Delete duplication: `Auth::Operations::DestroyCustomerRecord` (`apps/web/auth/operations/destroy_customer_record.rb`) vs CLI purge's own `delete_customer_keys` (`lib/onetime/cli/customers/purge_command.rb:265,555`).
 - Pagination debt: `ListUsers` (`apps/api/colonel/logic/colonel/list_users.rb:35-60`) loads ALL customers then slices in Ruby; CLI list `lib/onetime/cli/customers/list_command.rb:24-46` duplicates listing.

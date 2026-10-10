@@ -54,7 +54,9 @@ module AccountAPI::Logic
         raise_form_error 'Invalid confirmation link', error_type: 'invalid' if @owner.nil?
 
         # Verify the pending_email_change matches
-        unless Rack::Utils.secure_compare(@owner.pending_email_change.to_s, @secret.identifier)
+        # `.value`, not `.to_s`: an unset Familia::StringKey#to_s is its
+        # inspect string, never the empty string this compare expects.
+        unless Rack::Utils.secure_compare(@owner.pending_email_change.value.to_s, @secret.identifier)
           raise_form_error 'This confirmation link is no longer valid', error_type: 'invalid'
         end
       end

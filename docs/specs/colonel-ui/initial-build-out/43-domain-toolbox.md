@@ -24,7 +24,7 @@ Recipe (uniform for all Phase-3 items): **extract op → add colonel route (BOTH
 ## Grounding — files & pointers
 
 - CLI source of truth is split across two trees:
-  - `lib/onetime/cli/domains/` — `shared.rb`, `probe_command.rb`, `repair_command.rb`, `doctor_command.rb`, `create_command.rb`, `migrate_sso_command.rb` (requires are declared in `lib/onetime/cli.rb`; this tree is **not** auto-discovered)
+  - `lib/onetime/cli/domains/` — `shared.rb`, `probe_command.rb`, `repair_command.rb`, `doctor_command.rb`, `create_command.rb` (requires are declared in `lib/onetime/cli.rb`; this tree is **not** auto-discovered)
   - `apps/api/domains/cli/` — `orphaned_command.rb`, `transfer_command.rb`, `reconcile_sender_command.rb`, `verify_command.rb`, `helpers.rb` (auto-discovered by the glob in `lib/onetime/cli.rb`)
   - `bulk_repair_command.rb` is a **deprecation shim** — the verb is retired in favour of `domains doctor --all --repair`; it is no longer a live verb
 - Existing op reference (already extracted, bulk-capable): `VerifyDomain` (see issue 31)

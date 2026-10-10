@@ -16,6 +16,7 @@
 
 require 'rufus-scheduler'
 require_relative '../jobs/scheduled_job'
+require_relative '../jobs/registry'
 
 module Onetime
   module CLI
@@ -54,13 +55,21 @@ module Onetime
           # Create scheduler instance
           scheduler = Rufus::Scheduler.new
 
+          # Captured before registration so every job registered by this boot
+          # has registered_at >= started_at (the "scheduled" state, #4343).
+          started_at = Familia.now.to_i
+
           # Load and register scheduled jobs
           load_scheduled_jobs(scheduler)
+
+          job_count = scheduler.jobs.size
+          Onetime::Jobs::JobRun.scheduler_started!(job_count: job_count, started_at: started_at)
+          start_heartbeat(scheduler)
 
           # Set up signal handlers
           setup_signal_handlers(scheduler)
 
-          Onetime.app_logger.info("Scheduler started with #{scheduler.jobs.size} job(s)")
+          Onetime.app_logger.info("Scheduler started with #{job_count} job(s)")
           log_scheduled_jobs(scheduler)
 
           # Block and run the scheduler
@@ -83,27 +92,28 @@ module Onetime
         end
 
         def load_scheduled_jobs(scheduler)
-          # Auto-discover scheduled job classes
-          jobs_path = File.join(Onetime::HOME, 'lib', 'onetime', 'jobs', 'scheduled')
-          return unless Dir.exist?(jobs_path)
-
-          Dir.glob(File.join(jobs_path, '**', '*_job.rb')).each do |file|
-            require file
-          end
-
-          # Find all concrete scheduled job classes. Abstract intermediate
+          # One discovery (Onetime::Jobs::Registry), shared with the colonel
+          # jobs endpoint and `ots scheduler status`. Abstract intermediate
           # classes (e.g. MaintenanceJob) inherit the base .schedule() stub
-          # that raises NotImplementedError — filter them out via .owner check.
-          scheduled_classes = ObjectSpace.each_object(Class).select do |klass|
-            klass < Onetime::Jobs::ScheduledJob &&
-              klass.method(:schedule).owner != Onetime::Jobs::ScheduledJob.singleton_class
-          end
+          # that raises NotImplementedError; the registry filters them out.
+          Onetime::Jobs::Registry.load_all!
 
           # Register each job with the scheduler
-          scheduled_classes.each do |job_class|
+          Onetime::Jobs::Registry.concrete_classes.each do |job_class|
             job_class.schedule(scheduler)
             Onetime.app_logger.debug("Registered scheduled job: #{job_class.name}")
           end
+        end
+
+        # Liveness for the jobs catalog (#4343): a raw rufus job, not a
+        # ScheduledJob, so it never lists itself. Without it "is the scheduler
+        # alive?" has no answer when every job is disabled.
+        def start_heartbeat(scheduler)
+          scheduler.every(
+            "#{Onetime::Jobs::JobRun::HEARTBEAT_INTERVAL}s",
+            first_in: '1s',
+            overlap: false,
+          ) { Onetime::Jobs::JobRun.scheduler_heartbeat! }
         end
 
         def setup_signal_handlers(scheduler)

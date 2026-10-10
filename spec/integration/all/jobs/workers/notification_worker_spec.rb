@@ -186,8 +186,20 @@ RSpec.describe Onetime::Jobs::Workers::NotificationWorker, type: :integration do
       end
 
       context 'when the rejected message is replayed from the dead letter queue' do
+        # Serves as the replay channel and as its probe channel. The replay
+        # checks the original queue exists with a passive declare before it
+        # republishes (it does: notifications.alert.push is in QueueConfig),
+        # and publishes mandatory with an on_return handler.
         let(:dlq_channel) do
-          double('channel', default_exchange: double('exchange', publish: nil), ack: nil, tx_select: nil, tx_commit: nil, open?: false)
+          double(
+            'channel',
+            default_exchange: double('exchange', publish: nil, on_return: nil),
+            ack: nil,
+            tx_select: nil,
+            tx_commit: nil,
+            queue_declare: true,
+            open?: false,
+          )
         end
         let(:dlq_properties) do
           double(

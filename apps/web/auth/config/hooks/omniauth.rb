@@ -22,6 +22,24 @@ require_relative 'omniauth_connect'
 
 module Auth::Config::Hooks
   module OmniAuth
+    # Rodauth builds the account from omniauth_email BEFORE the creation guard
+    # validates it, and rodauth-omniauth persists it without normalize_login.
+    # Canonicalize at the accessor so the domain gates, the account lookup,
+    # accounts.email and the Customer email index all see one value. A
+    # provider's casing in SQL left the account's Customer unreachable by
+    # email (#4726).
+    module EmailNormalization
+      def omniauth_email
+        value = super
+        # Keep nil and non-String claims intact so the guards reject them as
+        # missing or invalid, rather than coercing an array containing an
+        # email into a mailbox.
+        return value unless value.is_a?(String)
+
+        OT::Utils.canonical_email(value)
+      end
+    end
+
     # The only initiator of a platform Connect is the Connected Identities
     # panel, so a refused initiation sends the user through the SPA's
     # re-authentication view and back to that panel (#4411). Both are SPA
@@ -123,7 +141,10 @@ module Auth::Config::Hooks
     # callback flow across methods and obscure the account_from_omniauth branch
     # order the security model depends on.
     def self.configure(auth)
-      auth.auth_class_eval { prepend Auth::Config::Hooks::OmniAuthConnect::Callback }
+      auth.auth_class_eval do
+        prepend Auth::Config::Hooks::OmniAuth::EmailNormalization
+        prepend Auth::Config::Hooks::OmniAuthConnect::Callback
+      end
 
       # Normalize email for case-insensitive account lookup.
       # Required because:
@@ -137,6 +158,11 @@ module Auth::Config::Hooks
 
         session_account = resolve_omniauth_connect_account
         next session_account if session_account
+
+        # A claim case folding would rewrite must not locate an account by its
+        # folded form (a different address). Skip the email branches;
+        # before_omniauth_create_account refuses it as invalid_email.
+        next nil unless OT::Utils.fold_stable_email?(omniauth_email)
 
         # Not authenticated (or logged-in without connect intent): email is the
         # only signal available, so the email-based branches below apply. Locate
@@ -696,10 +722,20 @@ module Auth::Config::Hooks
       # Global: Set via ALLOWED_SIGNUP_DOMAIN environment variable (comma-separated)
       #
       auth.before_omniauth_create_account do
-        email = omniauth_email.to_s.strip.downcase
+        claim = omniauth_email
+        email = claim.to_s.strip.downcase
 
-        # Reject unusable emails from IdP (distinct from policy rejection): a
-        # missing/empty claim, or any shape the accounts.valid_email CHECK
+        if email.match?(/\A[[:space:]]*\z/)
+          Auth::Logging.log_auth_event(
+            :omniauth_missing_email,
+            level: :warn,
+            provider: omniauth_provider,
+          )
+          redirect '/signin?auth_error=missing_email'
+        end
+
+        # Reject present but malformed emails, distinct from policy rejection:
+        # any shape the accounts.valid_email CHECK
         # constraint would reject (internal spaces, comma/semicolon in either
         # part, a dotless domain, etc. — see SignupValidation::VALID_EMAIL_PATTERN).
         # Redirect with a stable error code so Login.vue can show a localized
@@ -709,7 +745,11 @@ module Auth::Config::Hooks
         # (rather than letting a claim the CHECK rejects fall through to account
         # creation, which 500s as Sequel::CheckConstraintViolation) keeps the
         # user on a localized error instead of a frozen screen (#3478, #3971).
-        unless Onetime::SignupValidation.structurally_valid_email?(email)
+        # A claim normalize_email's case folding would rewrite (ß -> ss) is
+        # refused here too: it would be judged, matched and indexed under an
+        # address the IdP did not assert (OT::Utils.fold_stable_email?).
+        unless claim.is_a?(String) && Onetime::SignupValidation.structurally_valid_email?(email) &&
+               OT::Utils.fold_stable_email?(email)
           Auth::Logging.log_auth_event(
             :omniauth_invalid_email,
             level: :warn,

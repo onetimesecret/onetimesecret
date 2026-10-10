@@ -69,10 +69,10 @@
 #      host, both consume the intent and bind nothing; with trusted-email
 #      linking ON, every refused tenant gate still creates no identity,
 #      account, membership, or linking challenge.
-#   9. (#3849) a successful tenant Connect on an account still owning an
-#      unarchived personal default workspace adopts the tenant org as
-#      default_org_id and archives that workspace (JoinDomainOrganization's
-#      already_member path), leaving the membership untouched.
+#   9. (#3849, #4717) a successful tenant Connect on an account still owning
+#      a personal default workspace adopts the tenant org as default_org_id
+#      (JoinDomainOrganization's already_member path) and leaves BOTH the
+#      workspace (live, never archived) and the membership untouched.
 #  10. (#4433) a registered custom-domain callback using platform fallback has
 #      no validated tenant domain and is refused as a surface mismatch, with no
 #      bind or account switch and no replayable intent.
@@ -1791,11 +1791,12 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
         .with(:tenant_connect_membership_authorized, anything)
     end
 
-    it 'post-login: a successful Connect adopts the tenant org as default and archives the personal workspace' do
+    it 'post-login: a successful Connect adopts the tenant org as default and leaves the personal workspace live' do
       # The Post-login row's "asserted separately" evidence. The account still
-      # owns an unarchived personal default workspace (a legacy platform
-      # signup); JoinDomainOrganization's already_member path repoints
-      # default_org_id and archives it, without touching the membership.
+      # owns a live personal default workspace (a legacy platform signup);
+      # JoinDomainOrganization's already_member path repoints default_org_id
+      # and nothing else — login never archives (#4717 PR 2), and the
+      # membership is untouched.
       personal = Onetime::Organization.create!("Personal #{SecureRandom.hex(4)}", customer, customer.email)
       personal.is_default! true
       expect(personal.owner?(customer)).to be(true)
@@ -1812,7 +1813,53 @@ RSpec.describe 'OmniAuth authenticated identity connect (#3840 Phase 2)', type: 
       expect(persisted.objid).to eq(@membership.objid)
       expect(persisted.domain_scope_id).to eq(@membership.domain_scope_id)
       expect(Onetime::Customer.load(customer.objid).default_org_id).to eq(@tenant[:org].objid)
-      expect(Onetime::Organization.load(personal.objid).archived?).to be(true)
+      reloaded_personal = Onetime::Organization.load(personal.objid)
+      expect(reloaded_personal.archived?).to be(false), 'Connect must not archive the personal workspace'
+      expect(reloaded_personal.archived_at.to_s).to be_empty
+    end
+
+    # #4717 — the owner's own default organization. The tenant org IS the
+    # owner's is_default workspace (auto-created, later given the domain and
+    # SSO). The already_member self-heal resolved it as the personal workspace
+    # to archive — the destination was never compared to the candidate — so
+    # the owner's live, billed tenant org was archived by their own Connect.
+    it 'post-login: the owner connecting on their own default organization leaves it live (#4717)' do
+      owner = @oauth_test_fixtures.last[:owner]
+      org   = @tenant[:org]
+      @membership.destroy!
+      auth_db[:accounts].where(id: actor_id).update(external_id: owner.extid)
+
+      stripe_customer_id     = "cus_#{SecureRandom.hex(4)}"
+      org.planid             = 'team_plus_v1'
+      org.stripe_customer_id = stripe_customer_id
+      org.save
+      org.is_default! true
+      owner.default_org_id = org.objid
+      owner.save
+      expect(Onetime::Organization.load(org.objid).owner?(owner)).to be(true)
+      expect(Onetime::Organization.load(org.objid).archived?).to be(false)
+
+      tenant_connect_callback
+
+      expect(identities.where(tuple).all).to contain_exactly(hash_including(account_id: actor_id))
+      expect(Auth::Operations::JoinDomainOrganization).to have_received(:new)
+        .with(customer: an_object_having_attributes(objid: owner.objid), domain_id: @tenant[:domain].identifier)
+
+      reloaded = Onetime::Organization.load(org.objid)
+      expect(reloaded.archived?).to be(false), 'the owner\'s own default organization must not be archived by their Connect'
+      expect(reloaded.archived_at.to_s).to be_empty
+      expect(reloaded.archived_comment.to_s).to be_empty
+      expect(reloaded.planid).to eq('team_plus_v1')
+      expect(reloaded.stripe_customer_id).to eq(stripe_customer_id)
+
+      membership = Onetime::OrganizationMembership.find_by_org_customer(org.objid, owner.objid)
+      expect(membership).to be_owner
+      expect(membership.active?).to be(true)
+
+      domain = Onetime::CustomDomain.find_by_identifier(@tenant[:domain].identifier)
+      expect(domain.org_id).to eq(org.org_id)
+
+      expect(Onetime::Customer.load(owner.objid).default_org_id).to eq(org.objid)
     end
 
     it 'refuses a tenant session presented to the platform callback and consumes its intent' do

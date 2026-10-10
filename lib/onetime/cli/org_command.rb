@@ -36,6 +36,7 @@ module Onetime
         '  bin/ots org reconcile ORG --dry-run # Preview the reconcile mode',
         '  bin/ots org reconcile ORG --yes     # Re-apply billing + entitlements',
         '  bin/ots org transfer-ownership ORG NEW_OWNER  # Hand an org to another member',
+        '  bin/ots org unarchive ORG [--run]   # Restore an archived org',
       ].freeze
 
       # The `org doctor` invariants. Doctor-specific; not an append point for

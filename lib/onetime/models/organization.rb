@@ -109,8 +109,8 @@ module Onetime
     field :created_by     # Immutable audit field — objid of organization creator. Set once at create!. See ADR-012.
     field :contact_email  # Primary billing/contact email
     field :is_default     # Boolean: true for auto-created workspace (prevents deletion)
-    field :archived_at      # Epoch timestamp: set when workspace is soft-archived by bulk migration
-    field :archived_comment # Free-text reason for archival (e.g. "Bulk SSO migration to domain X")
+    field :archived_at      # Epoch timestamp: set when an org was soft-archived (legacy state; no production writer)
+    field :archived_comment # Free-text reason recorded with the archive
 
     hashkey :urls
     jsonkey :caboose  # Migration metadata and payment link info
@@ -361,13 +361,18 @@ module Onetime
 
     # Soft-archive this organization.
     #
-    # POLICY: deliberately permissive about domains. All callers are SSO
-    # login-path self-heals (JoinDomainOrganization, BulkSsoMigration) —
-    # raising here would turn data drift into login failures, and
-    # reassigning domains would be an implicit ownership transfer of a
-    # security-sensitive resource. Archived orgs may therefore still own
-    # live domains; `bin/ots domains doctor` check #9
-    # (check_archived_org_reference) is the operator surface for that state.
+    # POLICY: there is no production writer (#4717). The login path never
+    # archives and the bulk SSO migration tool is gone. Archived state is
+    # legacy, read-only data: loaders and resolvers keep rejecting it, and
+    # `unarchive!` (via `bin/ots org unarchive`) is the only path back. This
+    # method remains for specs and any future operator verb.
+    #
+    # Deliberately permissive about domains: raising here would turn data
+    # drift into failures for the caller, and reassigning domains would be an
+    # implicit ownership transfer of a security-sensitive resource. Archived
+    # orgs may therefore still own live domains; `bin/ots domains doctor`
+    # check #9 (check_archived_org_reference) is the operator surface for
+    # that state.
     def archive!(comment = nil)
       count = domain_count
       if count > 0
@@ -377,24 +382,33 @@ module Onetime
 
       self.archived_at      = Familia.now.to_f
       self.archived_comment = comment if comment
-      save
+      # Field-scoped write (Familia#save_fields: one HMSET of the named fields),
+      # never a whole-hash save from this instance -- see unarchive!. save_fields
+      # does not stamp `updated` the way save does (prepare_for_save), so it is
+      # set and written here.
+      self.updated          = Familia.now
+      comment ? save_fields(:archived_at, :archived_comment, :updated) : save_fields(:archived_at, :updated)
     end
 
-    # Reverse a soft-archive.
+    # Reverse a soft-archive. The one primitive that resets archived_at AND
+    # archived_comment together; its caller is Onetime::Operations::Org::Unarchive
+    # (`bin/ots org unarchive`), the #4717 repair verb.
     #
-    # NOTE: For personal workspaces (is_default: true) archived by the domain
-    # SSO self-heal (see JoinDomainOrganization#adopt_domain_default_org),
-    # unarchiving is durable only while the customer's default_org_id points at
-    # a different active org (e.g. the domain org). The self-heal runs on every
-    # SSO login, including the already_member path, so if this workspace would
-    # again resolve as the customer's default — i.e. default_org_id is empty or
-    # points back at this workspace — it will be re-archived on their next
-    # domain SSO login. To restore it permanently, also repoint default_org_id
-    # to the org the customer should default to.
+    # A restored organization stays live: the login path never archives
+    # (#4717), so nothing undoes this on the owner's next sign-in. Where the
+    # owner's default_org_id points is a separate question; Org::Unarchive
+    # reports it (`pointer_org_id`) for the operator and changes nothing.
     def unarchive!
       self.archived_at      = ''
       self.archived_comment = ''
-      save
+      # Field-scoped write: Familia#save_fields persists ONLY the named fields
+      # (one HMSET in a transaction). A whole-hash `save` would write back every
+      # field this instance loaded, so a billing webhook that moved planid or
+      # the subscription fields between the CLI's load and this call would be
+      # silently reverted (F4 on #4723). `updated` is stamped explicitly because
+      # save_fields skips the timestamp pass save performs.
+      self.updated          = Familia.now
+      save_fields(:archived_at, :archived_comment, :updated)
     end
 
     # Re-materialize entitlements for all active memberships.

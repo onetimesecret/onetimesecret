@@ -8,7 +8,7 @@
 
 ## Overview
 
-SSO enables authentication through external identity providers. Users authenticate at the IdP and are redirected back with verified identity claims.
+SSO enables authentication through external identity providers (IdPs). Users authenticate at the IdP and are redirected back with identity assertions. Authentication does not establish that every profile claim is correct or that the user controls the asserted mailbox; see the [Entra email caveat](#entra-email-claims-and-mailbox-verification).
 
 Two integration patterns are available:
 
@@ -26,6 +26,10 @@ Multiple providers can be active simultaneously. Each provider that has its requ
 - `AUTHENTICATION_MODE=full`
 - A runtime SQL database connection (`AUTH_DATABASE_URL`) with migrations applied
 - At least one provider's credentials configured
+- For first-time account creation, a nonblank, structurally valid string in OmniAuth `info.email`, permitted by the applicable signup-domain policy. Email-less account creation is **not implemented**; see the [proposed Phase 2 plan](../planning/2026-1009-sso-email-less-accounts.md).
+- Before rollout, test first-time and returning users from each intended IdP account type (including Entra guests). Confirm claim availability and the operator's trust assumptions; requesting an email scope is not proof of mailbox control.
+
+An already-linked identity can sign in on the platform without a callback email. Authenticated Connect can also link without email, subject to its [reauthentication, surface, account, and ownership gates](#connected-identities-authenticated-linking-from-account-settings). Tenant SSO with nonempty `SsoConfig.allowed_domains` still requires a usable, allowed callback email on **every** sign-in or Connect, including returning identities. These are separate paths, not support for creating email-less accounts.
 
 ## Quick Start
 
@@ -223,11 +227,11 @@ creation) is the same.
 
 **Account Matching:** By linked identity first — the `(provider, issuer, uid)` key in `account_identities`. The `issuer` is `''` for OAuth2-only identities; legacy rows start with that sentinel and a platform OAuth2/OIDC callback lazily upgrades them to its resolved issuer (a SAML callback never does: no SAML identity was ever stored under the sentinel, so a sentinel row under the SAML route belongs to whatever protocol that route name served before, and a NameID is not a `sub`). If that identity is already linked, the user is signed into its account. If the identity is *not* linked but the IdP email matches an existing account, the default is to **refuse email-only auto-linking** (email may locate an account, but only a demonstrated credential may bind an identity to it). On the platform surface, a password-holding account is offered a **sign-in interstitial** to prove its existing password (on by default — see [Sign-in interstitial](#sign-in-interstitial-password-challenge-linking)), and a **passwordless** account is offered **mailbox-proof linking** — a single-use link emailed to its on-file address (on by default — see [Mailbox-proof linking](#mailbox-proof-linking-passwordless-accounts)). An operator can also opt a trusted IdP into email auto-linking (see [Identity Linking and the Trusted-IdP Flag](#identity-linking-and-the-trusted-idp-flag)). A signed-in user can link an identity deliberately, without any email involvement, from [Connected Identities](#connected-identities-authenticated-linking-from-account-settings) in account settings.
 
-**Account Creation:** Automatic for unrecognized emails. Creates Customer record and default workspace.
+**Account Creation:** Automatic for unrecognized, usable emails that pass signup-domain validation. Creates Customer record and default workspace. Missing and malformed emails are refused before creation; see [Email claim and domain errors](#email-claim-and-domain-errors).
 
 **Multi-Provider:** One account can have multiple linked identities (e.g., OIDC + Entra). The `account_identities` table stores `(provider, issuer, uid)` keys per account.
 
-**Email Verification:** SSO accounts are auto-verified. The IdP handles verification. SAML carries no `email_verified` claim, so a SAML account is verified on IdP trust alone; an attribute the IdP names `email_verified` with the value `false` is still honoured as a hold.
+**Email Verification:** Current configuration opens SSO-created SQL accounts as verified (`omniauth_verify_account? true`). The Customer mirror is marked verified unless an explicit `email_verified: false` (including string `"false"`) or an unreadable claim creates a verification hold. An absent claim is not a hold. This is OTS's current IdP-trust behavior, **not proof of a verified mailbox**, particularly for [Entra](#entra-email-claims-and-mailbox-verification). SAML has no standard `email_verified` claim; an attribute named `email_verified` containing `false` is still honoured as a Customer hold. See the [callback implementation](../../apps/web/auth/config/hooks/omniauth.rb), [verification-hold runbook](../runbooks/sso-accounts-unverified.md), and the separate [trusted-linking default and exception](#the-flag).
 
 **MFA:** Not enforced for SSO logins. The IdP is responsible for MFA.
 
@@ -573,7 +577,7 @@ OIDC_CLIENT_SECRET=your-client-secret
 
 ### Microsoft Entra ID
 
-Uses the `omniauth-entra-id` gem. Handles Microsoft's tenant model and token format.
+Uses the `omniauth-entra-id` gem (3.1.1 in `Gemfile.lock`). The [OTS provider definition](../../lib/onetime/sso_provider/entra.rb) requests `openid profile email` and keeps the gem's default tenant ID + object ID (`tid` + `oid`) UID. Email is not that identity key.
 
 #### Azure Portal Setup
 
@@ -587,7 +591,7 @@ Get the values:
 - **Application (client) ID** → `ENTRA_CLIENT_ID`
 - **Directory (tenant) ID** → `ENTRA_TENANT_ID`
 - Certificates & secrets → New client secret → copy **Value** (not Secret ID) → `ENTRA_CLIENT_SECRET`
-- Ensure the application issues a usable `email` claim. SSO account lookup and just-in-time creation read the OmniAuth `info.email` value; configure Entra optional claims or user-attribute mapping when the token does not include `email`.
+- Test that intended first-time users actually receive a usable `email` claim, mapped to OmniAuth `info.email`. Review [Microsoft's optional claims reference](https://learn.microsoft.com/en-us/entra/identity-platform/optional-claims-reference#v10-and-v20-optional-claims-set) and the caveat below; optional-claim configuration is not a guaranteed fix.
 
 ```bash
 ENTRA_TENANT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
@@ -596,6 +600,21 @@ ENTRA_CLIENT_SECRET=client-secret-value
 ```
 
 Note: Entra client secrets expire. Set a calendar reminder for rotation.
+
+#### Entra email claims and mailbox verification
+
+Microsoft's [ID token claims reference](https://learn.microsoft.com/en-us/entra/identity-platform/id-token-claims-reference#payload-claims) states for `email`:
+
+> This value isn't guaranteed to be correct and is mutable over time. Never use it for authorization or to save data for a user.
+
+The same reference recommends requesting an addressable email from the user, using the claim only as a suggestion or prefill. Current OTS still requires the claim for first-time provisioning and uses its domain for configured tenant allowlists; this documents existing behavior, not a Microsoft mailbox-verification guarantee or a change to OTS policy.
+
+- The [`email` scope](https://learn.microsoft.com/en-us/entra/identity-platform/scopes-oidc#the-email-scope) requests a claim; it does not guarantee one. Microsoft says: "the app needs to be able to handle a case in which no `email` claim exists in the token." An absent claim does **not** prove the user has no mailbox or lacks an Exchange license.
+- [Optional claims](https://learn.microsoft.com/en-us/entra/identity-platform/optional-claims-reference#v10-and-v20-optional-claims-set) can request `email` for managed users, but cannot establish mailbox control. Microsoft defines `xms_edov` as a "Boolean value indicating whether the user's email domain owner has been verified." That is domain-owner verification, not proof that this user controls the mailbox.
+- Microsoft's [UserInfo endpoint](https://learn.microsoft.com/en-us/entra/identity-platform/userinfo#consider-using-an-id-token-instead) documentation says the ID token is a superset of UserInfo, and describes email as available only "when available and consented to." UserInfo is not a guaranteed missing-email remedy.
+- The [native strategy source for 3.1.1](https://github.com/pond/omniauth-entra-id/blob/7a45b1f4aadefd2d19781c80acc5fd17251e21db/lib/omniauth/strategies/entra_id.rb#L124-L204) maps `raw_info['email']` into `info.email` and builds `raw_info` from token payloads; it does not fetch a directory `mail` attribute. OTS adds no Microsoft Graph enrichment. The `raw_info.mail` fallback in [#3965](https://github.com/onetimesecret/onetimesecret/pull/3965) targets `develop`, is absent from this main-derived branch, and cannot produce `mail` absent from native tokens. Even where a provider supplies `mail`, its presence alone is not proof of mailbox control.
+
+Do not substitute `upn` or `preferred_username`, fabricate an email, enable trusted linking, or remove a tenant allowlist to work around a missing claim. For an existing account, the [conditional Connect workaround](#existing-account-with-a-missing-email-claim) may apply. Email-less first-time provisioning requires the [proposed Phase 2 work](../planning/2026-1009-sso-email-less-accounts.md), not an operator setting.
 
 ### Google
 
@@ -858,7 +877,7 @@ unchanged by the platform restriction. See
 
 ## Domain Restrictions
 
-Restrict which email domains can create accounts via SSO.
+`ALLOWED_SIGNUP_DOMAIN` restricts which email domains can **create new accounts** via SSO. It is distinct from tenant `CustomDomain::SsoConfig.allowed_domains`, which gates every tenant callback.
 
 ```bash
 # Single domain
@@ -881,7 +900,9 @@ ALLOWED_SIGNUP_DOMAIN=company.com,subsidiary.com,partner.org
 
 ### Existing user can't log in after domain restriction added
 
-Domain restrictions only affect **new account creation**. Existing accounts with linked SSO identities can still log in regardless of domain restrictions. To block existing users, remove their account or unlink their SSO identity from the `account_identities` table.
+The **signup** restrictions above only affect new account creation. They do not block an existing linked identity on the platform.
+
+Tenant `SsoConfig.allowed_domains` is different: a nonempty allowlist requires a structurally valid, allowed email on every callback, even when the identity is already linked. Missing email yields `missing_email`; malformed email yields `invalid_email`; a disallowed domain yields `domain_not_allowed`. The [tenant callback helper](../../apps/web/auth/config/hooks/omniauth_tenant.rb) also denies a missing `SsoConfig` or corrupt allowlist; these policy/configuration denials use `domain_not_allowed`. An explicitly empty, readable allowlist is the configured allow-all state, not a fallback for missing or corrupt configuration. Do not clear or bypass an allowlist for returning accounts; see [tenant callback validation](per-domain-sso.md#tenant-callback-validation).
 
 ## Self-Serve Configuration (Future)
 
@@ -1009,9 +1030,35 @@ curl -s https://your-issuer/.well-known/openid-configuration | jq -r .issuer
 
 **Unaffected:** other sign-in methods, other SSO providers, and per-domain (tenant) OIDC, which shares the `oidc` route but uses its own issuer. Tenant issuers are checked by Test Connection (see [per-domain-sso.md](per-domain-sso.md#common-issues)).
 
+### Email claim and domain errors
+
+These refusals redirect to `/signin?auth_error=...`. Identify whether the callback is a first-time signup, returning sign-in, or deliberate Connect, and whether it uses the platform or a custom tenant host.
+
+| Code | Meaning and operator check |
+|------|----------------------------|
+| `missing_email` | Email is absent, empty, or whitespace-only on first-time provisioning, or on a tenant callback with nonempty `allowed_domains`. Check actual claim presence and mapping for the affected account type; Entra scopes do not guarantee a claim. |
+| `invalid_email` | A present value is not a structurally valid email string (for example, an array, an internal space, multiple `@` signs, or a dotless domain). Correct the IdP's mapping; do not coerce a username or array into an email. |
+| `domain_not_allowed` | Signup-domain policy or tenant SSO allowlist denies the email domain. In the tenant helper this also covers missing configuration or a corrupt allowlist. Check policy/configuration health before assuming the user's domain is wrong. |
+
+The [creation guard](../../apps/web/auth/config/hooks/omniauth.rb) logs `omniauth_missing_email`, `omniauth_invalid_email`, or `omniauth_domain_rejected`. Tenant policy refusals log `omniauth_tenant_domain_rejected` with a reason such as `missing_email`, `invalid_email`, `no_sso_config`, `allowlist_unreadable`, or `domain_not_allowed`. Other setup failures can be refused earlier with the codes in [Error Handling](#error-handling).
+
+With the user's consent, record only sanitized claim presence/type, provider and gem versions, flow type, and error code. Do not post tokens, full/raw auth hashes, private claim values, or identifying screenshots in GitHub. A missing Entra email claim is not a mailbox inventory result.
+
+### Existing account with a missing email claim
+
+If the identity is already linked, platform sign-in can use `(provider, issuer, uid)` without email. If it is not linked, an account holder may:
+
+1. Sign in to the existing account using an available, permitted method on the intended surface.
+2. Complete the required recent local password or WebAuthn reauthentication, including required MFA. A magic-link or SSO login alone does not satisfy this gate.
+3. Open **Security settings → Connected identities** and deliberately choose **Connect** for the provider.
+
+This works only when the account is open, its Customer exists and is unsuspended, the surface and connect intent match, and the identity is not owned by another account. Tenant Connect also requires enablement, active membership authorizing that exact domain, a resolved issuer, and passage through the tenant callback policy. A nonempty tenant allowlist still denies a missing email **before linking**. An SSO-only user without a qualifying local credential cannot use this workaround. See [Connected Identities](#connected-identities-authenticated-linking-from-account-settings) for all gates; do not weaken them or enable trusted-email linking as a substitute.
+
+This attaches an identity to an **existing** account; it does not create an email-less account or relax tenant access restrictions.
+
 ### Account not created
 
-Check logs for errors in `after_omniauth_create_account`. Ensure Redis/Valkey is accessible for Customer creation.
+First check [Email claim and domain errors](#email-claim-and-domain-errors). If validation passed, check logs for errors in `after_omniauth_create_account`. Ensure Redis/Valkey is accessible for Customer creation.
 
 ### SSO user's colonel/admin role has no effect
 
@@ -1112,7 +1159,7 @@ SSO_FORM_ACTION_ORIGINS="https://authorize.example.gov"
 
 - PKCE enabled by default (generic OIDC)
 - OAuth state parameter provides CSRF protection for the redirect flow
-- The IdP email verifies the account for JIT signup, but by default is **not** treated as an identity join key: an SSO identity is not auto-linked to a pre-existing account found only by email (see [Identity Linking and the Trusted-IdP Flag](#identity-linking-and-the-trusted-idp-flag))
+- JIT account verification reflects the [current IdP-trust configuration](#behavior), not a universal guarantee of mailbox control. By default an SSO identity is not auto-linked to a pre-existing account found only by email; the [trusted-IdP flag](#the-flag) is a separate operator opt-in, not a missing-email remedy.
 - Sessions use same security settings as password auth
 - Domain restrictions validated before account creation
 - Client secrets should be rotated per provider's recommendations

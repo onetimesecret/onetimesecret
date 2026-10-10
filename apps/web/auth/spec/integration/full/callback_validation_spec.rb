@@ -552,8 +552,8 @@ RSpec.describe 'Cross-Tenant Callback Validation', type: :integration do
     # In production `redirect` throws to halt the callback; the double simply
     # records the call, which is sufficient because the redirect is the last
     # statement on the rejection path.
-    def expect_rejected
-      expect(rodauth).to have_received(:redirect).with('/signin?auth_error=domain_not_allowed')
+    def expect_rejected(error = 'domain_not_allowed')
+      expect(rodauth).to have_received(:redirect).with("/signin?auth_error=#{error}")
     end
 
     def expect_permitted
@@ -598,19 +598,34 @@ RSpec.describe 'Cross-Tenant Callback Validation', type: :integration do
 
         enforce('attacker@evil.com@example.com', sso_config)
 
-        expect_rejected
+        expect_rejected('invalid_email')
+      end
+
+      it 'rejects a non-String claim even when its string representation matches the allowlist' do
+        enforce(['user@example.com'], sso_config)
+
+        expect_rejected('invalid_email')
+      end
+
+      it 'rejects a claim case folding would rewrite even when its domain is listed' do
+        # 'straße' folds to 'strasse', a different address (#4726).
+        enforce('straße@example.com', sso_config)
+
+        expect_rejected('invalid_email')
       end
 
       it 'rejects a missing email claim' do
         enforce(nil, sso_config)
 
-        expect_rejected
+        expect_rejected('missing_email')
       end
 
-      it 'rejects a blank email claim' do
-        enforce('', sso_config)
+      ['', " \t\n", "\u00a0"].each do |email|
+        it "rejects a blank email claim #{email.inspect} as missing_email" do
+          enforce(email, sso_config)
 
-        expect_rejected
+          expect_rejected('missing_email')
+        end
       end
     end
 
@@ -622,6 +637,12 @@ RSpec.describe 'Cross-Tenant Callback Validation', type: :integration do
         # control access themselves (Entra ID via app assignment). Enforcement
         # must not turn an unconfigured allowlist into a lockout.
         enforce('anyone@anywhere.example', sso_config)
+
+        expect_permitted
+      end
+
+      it 'does not require email for an already linked identity' do
+        enforce(nil, sso_config)
 
         expect_permitted
       end
@@ -662,6 +683,21 @@ RSpec.describe 'Cross-Tenant Callback Validation', type: :integration do
     context 'when the tenant configuration cannot be evaluated' do
       it 'rejects when the SSO config has gone missing mid-flow' do
         enforce('user@example.com', nil)
+
+        expect_rejected
+      end
+
+      it 'keeps a missing config denial even when the email is also missing' do
+        enforce(nil, nil)
+
+        expect_rejected
+      end
+
+      it 'keeps a corrupt config denial even when the email is malformed' do
+        corrupt = build_domain_sso_config(:oidc)
+        corrupt.allowed_domains_json = 'not json'
+
+        enforce('not-an-email', corrupt)
 
         expect_rejected
       end

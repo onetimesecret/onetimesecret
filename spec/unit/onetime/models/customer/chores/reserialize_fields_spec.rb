@@ -4,16 +4,18 @@
 
 # Unit tests for the reserialize_fields housekeeping chore.
 #
-# Tests the legacy bare-string detection and resave logic without
-# requiring Redis or actual Customer instances. Uses a double that
-# mirrors the interface the chore expects (hgetall, extid, save).
+# Tests the legacy bare-string detection and resave logic with a double
+# that mirrors the interface the chore expects (hgetall, extid,
+# save_fields). A full `save` is not stubbed, so calling it fails the
+# example. The last group runs against the datastore to show the partial
+# write keeps a concurrent edit (#4343).
 #
 # Five branches:
 #   1. All values already JSON-encoded       -> silent no-op (nil)
-#   2. Any value is a bare string            -> resave (true)
+#   2. Any value is a bare string            -> rewrite the bare fields (true)
 #   3. Bare JSON literals (true/false/null)  -> treated as serialized (skip)
 #   4. Nil or empty values                   -> ignored (don't trigger resave)
-#   5. Mixed fields (some bare, some JSON)   -> resave (true)
+#   5. Mixed fields (some bare, some JSON)   -> rewrite the bare fields (true)
 #
 # Run: pnpm run test:rspec spec/unit/onetime/models/customer/chores/reserialize_fields_spec.rb
 
@@ -40,7 +42,8 @@ RSpec.describe 'Customer chore: reserialize_fields' do
       extid: 'cust_test456',
       hgetall: raw_hash,
     )
-    allow(obj).to receive(:save).and_return(true)
+    allow(obj).to receive(:save_fields).and_return(obj)
+    %i[email= role= planid= locale= custid=].each { |setter| allow(obj).to receive(setter) }
     obj
   end
 
@@ -75,7 +78,7 @@ RSpec.describe 'Customer chore: reserialize_fields' do
       end
 
       it 'does not save' do
-        expect(cust).not_to receive(:save)
+        expect(cust).not_to receive(:save_fields)
         chore.call(cust)
       end
 
@@ -112,7 +115,7 @@ RSpec.describe 'Customer chore: reserialize_fields' do
         end
 
         it 'does not save' do
-          expect(cust).not_to receive(:save)
+          expect(cust).not_to receive(:save_fields)
           chore.call(cust)
         end
       end
@@ -128,7 +131,7 @@ RSpec.describe 'Customer chore: reserialize_fields' do
       end
 
       it 'does not save' do
-        expect(cust).not_to receive(:save)
+        expect(cust).not_to receive(:save_fields)
         chore.call(cust)
       end
     end
@@ -159,8 +162,9 @@ RSpec.describe 'Customer chore: reserialize_fields' do
         }
       end
 
-      it 'saves the customer' do
-        expect(cust).to receive(:save)
+      it 'rewrites only the bare field, from the bytes just read' do
+        expect(cust).to receive(:email=).with('alice@example.com').ordered
+        expect(cust).to receive(:save_fields).with(:email).ordered
         chore.call(cust)
       end
 
@@ -183,8 +187,8 @@ RSpec.describe 'Customer chore: reserialize_fields' do
     context 'when role is a bare string' do
       let(:raw_hash) { { 'role' => 'customer' } }
 
-      it 'saves the customer' do
-        expect(cust).to receive(:save)
+      it 'rewrites the role field' do
+        expect(cust).to receive(:save_fields).with(:role)
         chore.call(cust)
       end
 
@@ -194,13 +198,26 @@ RSpec.describe 'Customer chore: reserialize_fields' do
     end
 
     context 'when a value is a bare number string (not JSON-quoted)' do
-      # '123' does not start with {, [, or " and is not in %w[true false null],
-      # so the heuristic flags it for resave.
+      # '1700000000' does not start with {, [, or " and is not in
+      # %w[true false null], so the heuristic flags the record. But a bare
+      # number is already v2's encoding: nothing to rewrite, and rewriting it
+      # from the loaded copy could undo a concurrent write.
+      let(:raw_hash) { { 'last_login' => '1700000000' } }
+
+      it 'reports the record but rewrites nothing' do
+        expect(cust).not_to receive(:save_fields)
+        expect(chore.call(cust)).to be true
+      end
+    end
+
+    context 'when the bare field is not a declared field' do
+      # `save` only ever wrote declared fields, so it left these alone too;
+      # the result (true) is unchanged.
       let(:raw_hash) { { 'some_count' => '123' } }
 
-      it 'triggers resave' do
-        expect(cust).to receive(:save)
-        chore.call(cust)
+      it 'writes nothing and still reports the record' do
+        expect(cust).not_to receive(:save_fields)
+        expect(chore.call(cust)).to be true
       end
     end
   end
@@ -216,8 +233,8 @@ RSpec.describe 'Customer chore: reserialize_fields' do
         }
       end
 
-      it 'saves the customer' do
-        expect(cust).to receive(:save)
+      it 'rewrites only the bare field, not the serialized ones' do
+        expect(cust).to receive(:save_fields).with(:planid)
         chore.call(cust)
       end
 
@@ -236,7 +253,7 @@ RSpec.describe 'Customer chore: reserialize_fields' do
       end
 
       it 'triggers resave due to the bare string' do
-        expect(cust).to receive(:save)
+        expect(cust).to receive(:save_fields).with(:locale)
         chore.call(cust)
       end
     end
@@ -261,7 +278,7 @@ RSpec.describe 'Customer chore: reserialize_fields' do
       end
 
       it 'never saves across multiple calls' do
-        expect(cust).not_to receive(:save)
+        expect(cust).not_to receive(:save_fields)
         chore.call(cust)
         chore.call(cust)
       end
@@ -296,6 +313,42 @@ RSpec.describe 'Customer chore: reserialize_fields' do
         expect(mock_logger).not_to receive(:info)
         chore.call(cust)
       end
+    end
+  end
+
+  # The point of the partial write (#4343): HousekeepingJob loads customers
+  # in batches, and an on-demand run can land while a customer is being
+  # edited. A whole-record save from the stale copy would undo that edit.
+  describe 'against the datastore', :datastore do
+    let(:suffix) { "#{Familia.now.to_i}_#{SecureRandom.hex(4)}" }
+
+    before do
+      # Real loggers here: create! and load log under other names.
+      allow(Onetime).to receive(:get_logger).and_call_original
+      @customer = Onetime::Customer.create!(email: "reserialize_#{suffix}@onetimesecret.com")
+      @customer.planid = 'basic'
+      @customer.save_fields(:planid)
+      # A legacy, pre-v2 bare value.
+      Familia.dbclient.hset(@customer.dbkey, 'locale', 'en')
+    end
+
+    after { @customer&.destroy! }
+
+    it 'keeps fields edited after the batch load and re-encodes the legacy one' do
+      stale = Onetime::Customer.load(@customer.identifier) # the batch load
+
+      concurrent         = Onetime::Customer.load(@customer.identifier)
+      concurrent.planid  = 'identity_plus_v1'
+      concurrent.updated = Familia.now.to_f + 100 # bare number, as v2 writes it
+      concurrent.save_fields(:planid, :updated)
+      @concurrent_updated = Familia.dbclient.hget(@customer.dbkey, 'updated')
+
+      expect(chore.call(stale)).to be true
+
+      raw = Familia.dbclient.hgetall(@customer.dbkey)
+      expect(raw['planid']).to eq('"identity_plus_v1"')
+      expect(raw['locale']).to eq('"en"')
+      expect(raw['updated']).to eq(@concurrent_updated)
     end
   end
 end

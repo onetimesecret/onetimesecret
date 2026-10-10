@@ -154,6 +154,19 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
+    // Jobs (#4343): scheduler read-out, per-message DLQ ops, chore triggers. No
+    // route params — the open queue, inspected message and action results are
+    // in-page state, so a query change can never remount and drop them.
+    path: '/colonel/jobs',
+    name: 'AdminJobs',
+    component: () => import('@/apps/admin/views/AdminJobs.vue'),
+    meta: {
+      ...adminDefaultMeta,
+      title: 'web.admin.jobs.title',
+      sentryScrubParams: false,
+    },
+  },
+  {
     // Usage export read-out (ticket #33).
     path: '/colonel/usage',
     name: 'AdminUsage',
