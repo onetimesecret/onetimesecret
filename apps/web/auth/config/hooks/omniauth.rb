@@ -33,7 +33,7 @@ module Auth::Config::Hooks
         value = super
         # Keep nil and non-String claims intact so the guards reject them as
         # missing or invalid, rather than coercing an array containing an
-        # email into a mailbox.
+        # email into an address.
         return value unless value.is_a?(String)
 
         OT::Utils.canonical_email(value)
