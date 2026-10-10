@@ -95,6 +95,28 @@ RSpec.describe ColonelAPI::Logic::Colonel::ListChores do
     expect(chore['last_error']).not_to include('alice@example.com')
   end
 
+  describe 'a run left running' do
+    let(:id) { 'housekeeping.organization.standardize_planid' }
+    let(:now) { Familia.now.to_i }
+
+    it "reports 'error' once it is older than any console run can be" do
+      allow(Familia).to receive(:now).and_return(now - described_class::STALE_RUNNING_SECONDS - 1)
+      Onetime::Jobs::JobRun.started("chore.#{id}")
+      allow(Familia).to receive(:now).and_return(now)
+
+      expect(row(run, id)).to include(
+        'last_status' => 'error', 'last_error' => 'interrupted: no finish recorded within 15 minutes',
+      )
+      expect(Familia.dbclient.hget(Onetime::Jobs::JobRun.key("chore.#{id}"), 'last_status')).to eq('running')
+    end
+
+    it "keeps 'running' for a run that may still be in flight" do
+      Onetime::Jobs::JobRun.started("chore.#{id}")
+
+      expect(row(run, id)).to include('last_status' => 'running', 'last_error' => nil)
+    end
+  end
+
   it 'lists the entitlement run, with a dry run, when billing is enabled' do
     allow(Onetime.billing_config).to receive(:enabled?).and_return(true)
 

@@ -258,6 +258,38 @@ RSpec.describe Onetime::Jobs::JobRun do
       expect(catalog['scheduler']).to include('alive' => true, 'job_count' => 1)
     end
 
+    describe 'a run the scheduler restart cut off' do
+      before do
+        described_class.started('alpha') # running, started at `now`
+        allow(Familia).to receive(:now).and_return(now + 30)
+      end
+
+      it "reports 'error' with the reason when the run started before the scheduler booted" do
+        described_class.scheduler_started!(job_count: 3, started_at: now + 30)
+
+        expect(row(described_class.catalog(entries), 'alpha')).to include(
+          'last_status' => 'error', 'last_error' => 'interrupted by scheduler restart', 'run_count' => 1,
+        )
+      end
+
+      it 'leaves the stored record alone (read-time only)' do
+        described_class.scheduler_started!(job_count: 3, started_at: now + 30)
+        described_class.catalog(entries)
+
+        expect(raw('alpha')['last_status']).to eq('running')
+      end
+
+      it "keeps 'running' for a run started during the current boot" do
+        described_class.scheduler_started!(job_count: 3, started_at: now - 30)
+
+        expect(row(described_class.catalog(entries), 'alpha')).to include('last_status' => 'running', 'last_error' => nil)
+      end
+
+      it "keeps 'running' when there is no scheduler record to compare against" do
+        expect(row(described_class.catalog(entries), 'alpha')['last_status']).to eq('running')
+      end
+    end
+
     it 'reads every job and the scheduler record in one round trip' do
       expect(pinned_client).to receive(:pipelined).once.and_call_original
       described_class.catalog(entries)

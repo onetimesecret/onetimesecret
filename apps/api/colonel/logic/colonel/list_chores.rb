@@ -29,6 +29,16 @@ module ColonelAPI
         DEFAULT_PER_PAGE = 50
         MAX_PER_PAGE     = 100
 
+        # A console run lives inside one web request and is bounded
+        # (Onetime::Operations::Chores::Run: a few seconds of records, plus at
+        # worst the entitlement run's Stripe pull with its timeouts and
+        # retries). A record still 'running' this long after it started was
+        # cut off — the web process restarted mid-run, e.g. a deploy — and
+        # nothing will ever finish it. There is no web-process boot record to
+        # compare against, as the scheduler rows have, so age is the signal.
+        STALE_RUNNING_SECONDS = 15 * 60
+        INTERRUPTED           = 'interrupted: no finish recorded within 15 minutes'
+
         attr_reader :chores, :pagination_meta
 
         def process_params
@@ -72,6 +82,11 @@ module ColonelAPI
         # Same last-run vocabulary as ListJobs: 'never' and nulls until the
         # first console run.
         def chore_row(entry, run)
+          last_status, last_error = if interrupted?(run)
+                                      ['error', INTERRUPTED]
+                                    else
+                                      [run['last_status'] || Onetime::Jobs::JobRun::NEVER, run['last_error']]
+                                    end
           {
             'id' => entry.id,
             'kind' => entry.kind,
@@ -79,13 +94,18 @@ module ColonelAPI
             'chores' => entry.chores,
             'supports_dry_run' => entry.supports_dry_run,
             'cli' => entry.cli,
-            'last_status' => run['last_status'] || Onetime::Jobs::JobRun::NEVER,
+            'last_status' => last_status,
             'last_started_at' => run['last_started_at'],
             'last_finished_at' => run['last_finished_at'],
             'last_duration_ms' => run['last_duration_ms'],
-            'last_error' => run['last_error'],
+            'last_error' => last_error,
             'run_count' => run['run_count'].to_i,
           }
+        end
+
+        # Read-time only; the stored record is left for the next run.
+        def interrupted?(run)
+          Onetime::Jobs::JobRun.interrupted?(run, since: Onetime::Jobs::JobRun.now - STALE_RUNNING_SECONDS)
         end
 
         def success_data

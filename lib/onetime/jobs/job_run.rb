@@ -34,6 +34,10 @@ module Onetime
       HEARTBEAT_INTERVAL = 60 # seconds; SchedulerCommand refreshes heartbeat_at at this cadence
       ALIVE_WINDOW       = 3 * HEARTBEAT_INTERVAL
 
+      # Reported (never stored) as last_error for a run a scheduler restart
+      # cut off; see #interrupted?.
+      INTERRUPTED_BY_RESTART = 'interrupted by scheduler restart'
+
       # Catalog sort: plain scheduled jobs first, then maintenance jobs.
       GROUP_ORDER = { 'scheduled' => 0, 'maintenance' => 1 }.freeze
 
@@ -210,9 +214,32 @@ module Onetime
         registered_at && registered_at >= started_at ? 'scheduled' : 'not_scheduled'
       end
 
+      # A run left 'running' by a process that died: it started before
+      # `since`, a point after which that process can no longer be running it
+      # (the scheduler's boot; for console chores, the longest a request-bound
+      # run can take). Derived at read time; the stored record is left alone
+      # and the next run overwrites it.
+      #
+      # @param run [Hash, nil] a parsed run record
+      # @param since [Integer, nil] epoch seconds; nil means "cannot tell"
+      def interrupted?(run, since:)
+        return false if run.nil? || since.nil?
+
+        started = run['last_started_at']
+        run['last_status'] == 'running' && !started.nil? && started < since
+      end
+
       def catalog_row(entry, run, sched)
         state = state_for(run, sched)
         run ||= {}
+
+        # A job the scheduler was running when it restarted never finishes;
+        # without this its row would read 'running' until the job next runs.
+        last_status, last_error = if interrupted?(run, since: sched && sched['started_at'])
+                                    ['error', INTERRUPTED_BY_RESTART]
+                                  else
+                                    [run['last_status'] || NEVER, run['last_error']]
+                                  end
 
         {
           'job_id' => entry['job_id'],
@@ -225,11 +252,11 @@ module Onetime
           # value belongs to an earlier boot.
           'next_time' => state == 'not_scheduled' ? nil : run['next_time'],
           'registered_at' => run['registered_at'],
-          'last_status' => run['last_status'] || NEVER,
+          'last_status' => last_status,
           'last_started_at' => run['last_started_at'],
           'last_finished_at' => run['last_finished_at'],
           'last_duration_ms' => run['last_duration_ms'],
-          'last_error' => run['last_error'],
+          'last_error' => last_error,
           'run_count' => run['run_count'].to_i,
           'error_count' => run['error_count'].to_i,
         }
