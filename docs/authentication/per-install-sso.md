@@ -670,7 +670,9 @@ which keys identities on the instance's issuer.
 
 1. **GitLab** → avatar → Edit profile → Applications → Add new application
    (or a group's Settings → Applications)
-2. **Redirect URI**: `https://{host}/auth/sso/gitlab/callback`
+2. **Redirect URI**: `https://{host}/auth/sso/gitlab/callback`. If `GITLAB_ROUTE_NAME`
+   is set, use its value in place of `gitlab`: the route name is the callback
+   path segment.
 3. **Confidential**: checked. **Scopes**: `read_user`
 4. Copy the **Application ID** and **Secret**
 
