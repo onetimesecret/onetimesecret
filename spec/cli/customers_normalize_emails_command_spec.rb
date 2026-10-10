@@ -12,8 +12,9 @@ require 'auth/operations/customers/normalize_account_emails'
 # CLI-layer coverage only (#4726). The per-row repair rules are covered by
 # apps/web/auth/spec/integration/full/normalize_account_emails_spec.rb; these
 # examples assert what the ADAPTER adds: dry run by default, --confirm threads
-# dry_run: false, --limit is forwarded, --json emits the documented document
-# and nothing else on stdout, and --help renders.
+# dry_run: false, --limit and --after-id are forwarded, the resume hint is
+# printed, --json emits the documented document and nothing else on stdout,
+# the exit code is 1 when any row errored, and --help renders.
 RSpec.describe 'customers normalize-emails', type: :cli do
   let(:op) { instance_double(Auth::Operations::Customers::NormalizeAccountEmails) }
 
@@ -37,8 +38,17 @@ RSpec.describe 'customers normalize-emails', type: :cli do
     ]
   end
 
-  def build_result(dry_run:)
-    double('Result', dry_run: dry_run, stats: stats, rows: rows)
+  def build_result(dry_run:, stats: self.stats, rows: self.rows, last_account_id: 9)
+    double('Result', dry_run: dry_run, stats: stats, rows: rows, last_account_id: last_account_id)
+  end
+
+  # One row ChangeEmail refused at write time (compare-and-set matched 0 rows).
+  let(:error_stats) { stats.merge(error: 1, scanned: 3) }
+  let(:error_rows) do
+    rows + [
+      { account_id: 11, outcome: :error, from: 'Er***@***.com', to: 'er***@***.com',
+        detail: 'accounts row 11 no longer held the scanned address at write time; nothing written; re-run' },
+    ]
   end
 
   before do
@@ -93,15 +103,90 @@ RSpec.describe 'customers normalize-emails', type: :cli do
       expect(Auth::Operations::Customers::NormalizeAccountEmails).to have_received(:new)
         .with(hash_including(limit: nil))
     end
+
+    it 'rejects a non-positive or non-integer value with exit 1 and never calls the op' do
+      output = run_cli_command_quietly('customers', 'normalize-emails', '--limit', 'ten')
+
+      expect(last_exit_code).to eq(1)
+      expect(output[:stderr]).to include('--limit must be a positive integer')
+      expect(op).not_to have_received(:call)
+    end
+
+    # A refused low-id row is re-selected by every limited run; the hint names
+    # the id to resume past so the operator is not stuck on it.
+    it 'prints the resume hint with the last processed id (no --confirm on a dry run)' do
+      output = run_cli_command_quietly('customers', 'normalize-emails', '--limit', '2')
+
+      expect(output[:stdout]).to include('Resume with:')
+      expect(output[:stdout]).to include('bin/ots customers normalize-emails --limit 2 --after-id 9')
+      expect(output[:stdout]).not_to include('--after-id 9 --confirm')
+    end
+
+    it 'keeps --confirm on the resume hint for a live run' do
+      allow(op).to receive(:call).and_return(build_result(dry_run: false))
+
+      output = run_cli_command_quietly('customers', 'normalize-emails', '--limit', '2', '--confirm')
+
+      expect(output[:stdout]).to include('bin/ots customers normalize-emails --limit 2 --after-id 9 --confirm')
+    end
+
+    it 'prints no resume hint when the scan found nothing' do
+      allow(op).to receive(:call).and_return(
+        build_result(dry_run: true, stats: stats.merge(scanned: 0, normalized: 0, skipped_sql_collision: 0),
+                     rows: [], last_account_id: nil),
+      )
+
+      output = run_cli_command_quietly('customers', 'normalize-emails', '--limit', '2')
+
+      expect(output[:stdout]).not_to include('Resume with:')
+    end
+
+    it 'prints no resume hint without --limit' do
+      output = run_cli_command_quietly('customers', 'normalize-emails')
+
+      expect(output[:stdout]).not_to include('Resume with:')
+    end
+  end
+
+  describe '--after-id' do
+    it 'forwards the lower bound to the op' do
+      run_cli_command_quietly('customers', 'normalize-emails', '--after-id', '900')
+
+      expect(Auth::Operations::Customers::NormalizeAccountEmails).to have_received(:new)
+        .with(hash_including(after_id: 900))
+    end
+
+    it 'passes after_id: nil when not given' do
+      run_cli_command_quietly('customers', 'normalize-emails')
+
+      expect(Auth::Operations::Customers::NormalizeAccountEmails).to have_received(:new)
+        .with(hash_including(after_id: nil))
+    end
+
+    it 'rejects a negative or non-integer value with exit 1 and never calls the op' do
+      output = run_cli_command_quietly('customers', 'normalize-emails', '--after-id', '-1')
+
+      expect(last_exit_code).to eq(1)
+      expect(output[:stderr]).to include('--after-id must be a non-negative integer')
+      expect(op).not_to have_received(:call)
+    end
+
+    it 'reports the operator error as JSON under --json' do
+      output = run_cli_command_quietly('customers', 'normalize-emails', '--after-id', 'abc', '--json')
+
+      expect(last_exit_code).to eq(1)
+      expect(JSON.parse(output[:stdout])).to include('error' => a_string_including('--after-id'))
+    end
   end
 
   describe '--json' do
-    it 'emits exactly one JSON document {dry_run, stats, rows} and nothing else on stdout' do
+    it 'emits exactly one JSON document {dry_run, stats, rows, last_account_id} and nothing else on stdout' do
       output  = run_cli_command_quietly('customers', 'normalize-emails', '--json')
       payload = JSON.parse(output[:stdout])
 
-      expect(payload.keys).to match_array(%w[dry_run stats rows])
+      expect(payload.keys).to match_array(%w[dry_run stats rows last_account_id])
       expect(payload['dry_run']).to be(true)
+      expect(payload['last_account_id']).to eq(9)
       expect(payload['stats']).to eq(stats.transform_keys(&:to_s))
       expect(payload['rows'].size).to eq(2)
       expect(payload['rows'].first).to include(
@@ -124,6 +209,65 @@ RSpec.describe 'customers normalize-emails', type: :cli do
       expect(Auth::Operations::Customers::NormalizeAccountEmails).to have_received(:new)
         .with(hash_including(dry_run: false))
     end
+
+    it 'emits last_account_id: null when the scan found nothing' do
+      allow(op).to receive(:call).and_return(build_result(dry_run: true, rows: [], last_account_id: nil))
+
+      payload = JSON.parse(run_cli_command_quietly('customers', 'normalize-emails', '--json')[:stdout])
+
+      expect(payload).to include('last_account_id' => nil)
+    end
+  end
+
+  # Sibling repair commands (purge, migrate, doctor, change-email) exit 1 on a
+  # per-record failure; this one did not. The whole report is still printed
+  # first so the exit code never hides the row that caused it.
+  describe 'exit code on error rows' do
+    before do
+      allow(op).to receive(:call).and_return(build_result(dry_run: false, stats: error_stats, rows: error_rows))
+    end
+
+    it 'exits 1 after printing the full human report' do
+      output = run_cli_command_quietly('customers', 'normalize-emails', '--confirm')
+
+      expect(last_exit_code).to eq(1)
+      expect(output[:stdout]).to include('Normalization Complete')
+      expect(output[:stdout]).to include('nothing written; re-run')
+      expect(output[:stdout]).to match(/Errors:\s+1/)
+    end
+
+    it 'exits 1 after emitting the full JSON document' do
+      output  = run_cli_command_quietly('customers', 'normalize-emails', '--confirm', '--json')
+      payload = JSON.parse(output[:stdout])
+
+      expect(last_exit_code).to eq(1)
+      expect(payload['stats']['error']).to eq(1)
+      expect(payload['rows'].size).to eq(3)
+    end
+
+    it 'exits 1 on a dry run too (the gate is the error count, not the mode)' do
+      allow(op).to receive(:call).and_return(build_result(dry_run: true, stats: error_stats, rows: error_rows))
+
+      run_cli_command_quietly('customers', 'normalize-emails')
+
+      expect(last_exit_code).to eq(1)
+    end
+
+    it 'tells :partial rows apart from untouched ones in the footer' do
+      output = run_cli_command_quietly('customers', 'normalize-emails', '--confirm')
+
+      expect(output[:stdout]).to include('nothing was written are untouched')
+      expect(output[:stdout]).to include(':partial')
+      expect(output[:stdout]).to include('bin/ots customers doctor <extid>')
+    end
+
+    it 'exits 0 when no row errored (refusals are not errors)' do
+      allow(op).to receive(:call).and_return(build_result(dry_run: false))
+
+      run_cli_command_quietly('customers', 'normalize-emails', '--confirm')
+
+      expect(last_exit_code).to eq(0)
+    end
   end
 
   describe 'human output' do
@@ -145,6 +289,7 @@ RSpec.describe 'customers normalize-emails', type: :cli do
       expect(output[:stdout]).to include('--confirm')
       expect(output[:stdout]).to include('--json')
       expect(output[:stdout]).to include('--limit')
+      expect(output[:stdout]).to include('--after-id')
       expect(op).not_to have_received(:call)
     end
   end

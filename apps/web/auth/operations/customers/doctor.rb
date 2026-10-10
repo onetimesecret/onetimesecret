@@ -43,9 +43,13 @@ module Auth
       # contacting a dead address). See each method for its scoping rules.
       #
       # `:auth_email_not_canonical` (#4726) is the case-only sibling of
-      # `:auth_email_drift`: an accounts row that matches the Customer only
-      # case-insensitively. It is report-only; `bin/ots customers
-      # normalize-emails` repairs it.
+      # `:auth_email_drift`: the two stores match case-insensitively but one of
+      # them holds the address in non-canonical bytes. It is report-only and
+      # names the store: a non-canonical accounts row is repaired by `bin/ots
+      # customers normalize-emails`; a non-canonical Customer record under a
+      # canonical row (what a `:partial` normalize-emails run leaves behind,
+      # which that command's scan never revisits) by `bin/ots customers
+      # change-email`.
       #
       # NOTE: `VALID_ROLES` here is intentionally the doctor's own narrower set
       # ([customer, anonymous, colonel]) — the historical data-shape checker — and
@@ -645,7 +649,7 @@ module Auth
                 "#{ex.class} #{ex.message}"
         end
 
-        # CHECK: the Rodauth accounts row stores the address in canonical form
+        # CHECK: both stores hold the address in canonical form
         #
         # THE THIRD CROSS-STORE CHECK, and the narrowest. check_auth_email_drift
         # compares the two stores case-insensitively on purpose (accounts.email
@@ -658,10 +662,22 @@ module Auth
         #
         # Reported, never repaired here, even under --repair. The repair is one
         # email mutation per row with collision rules of its own (another row
-        # may hold the lowercase address; a `ß` does not survive lowercasing),
-        # and `bin/ots customers normalize-emails` owns it. The predicate is
-        # the one that command scans with, so this check lists exactly the rows
-        # its dry run lists and is clean once the run is.
+        # may hold the lowercase address; a `ß` does not survive lowercasing).
+        # Which command owns it depends on WHICH store holds the non-canonical
+        # bytes, and the message names it:
+        #
+        #   accounts row non-canonical   `bin/ots customers normalize-emails`.
+        #                                Its scan uses this predicate, so it
+        #                                lists exactly these rows and is clean
+        #                                once the run is.
+        #   Customer record non-canonical `bin/ots customers change-email`.
+        #   under a canonical row        This is the residue of a
+        #                                normalize-emails row that ended
+        #                                `:partial` (SQL written, Customer
+        #                                hash not): that command selects by the
+        #                                SQL bytes alone and never revisits it,
+        #                                and the drift check ignores case, so
+        #                                without this branch it is invisible.
         #
         # Skipped when the two stores name different addresses: that is
         # check_auth_email_drift's finding, and its repair writes the
@@ -670,19 +686,39 @@ module Auth
           account = auth_account
           return if account.nil?
 
-          sql_email = account[:email].to_s
+          sql_email      = account[:email].to_s
+          customer_email = @customer.email.to_s
           return if sql_email.empty?
-          return unless sql_email.downcase == @customer.email.to_s.downcase
-          return if OT::Utils.canonical_email(sql_email) == sql_email
+          return unless sql_email.downcase == customer_email.downcase
+
+          sql_stale      = OT::Utils.canonical_email(sql_email) != sql_email
+          customer_stale = OT::Utils.canonical_email(customer_email) != customer_email
+          return unless sql_stale || customer_stale
+
+          stores = []
+          stores << 'the auth accounts row' if sql_stale
+          stores << 'the Customer record' if customer_stale
+
+          # normalize-emails selects by the SQL bytes, so it covers every case
+          # where the row itself is non-canonical (including both stores).
+          repair_action =
+            if sql_stale
+              'Run `bin/ots customers normalize-emails` (dry run), then with --confirm'
+            else
+              "Run `bin/ots customers change-email #{@customer.extid} <lowercase address>` " \
+                '(the accounts row is already canonical; normalize-emails will not select it)'
+            end
 
           issues << {
             check: :auth_email_not_canonical,
             severity: :high,
-            message: "auth account email #{OT::Utils.obscure_email(sql_email)} is not in canonical form " \
-                     '(exact-match readers miss this customer)',
+            message: "email #{OT::Utils.obscure_email(sql_email)} is not in canonical form in " \
+                     "#{stores.join(' and ')} (exact-match readers miss this customer)",
             auth_email: OT::Utils.obscure_email(sql_email),
+            customer_email: @customer.obscure_email,
+            non_canonical_in: stores,
             repairable: false,
-            repair_action: 'Run `bin/ots customers normalize-emails` (dry run), then with --confirm',
+            repair_action: repair_action,
           }
         rescue StandardError => ex
           OT.le "[customers doctor] auth_email_not_canonical check failed for #{@customer.extid}: " \

@@ -12,9 +12,13 @@ Fixed
   lowercase form every other sign-up path stores, without signing anyone
   out, resetting verification or sending mail. Rows whose lowercase form
   would collide with another account, or whose address lowercasing cannot
-  represent faithfully, are reported and left for the operator (#4726).
+  represent faithfully, are reported and left for the operator. Batched
+  runs (``--limit``) print an ``--after-id`` value to resume past rows that
+  were reported but not changed, and the command exits nonzero when any row
+  could not be repaired (#4726).
 - ``bin/ots customers doctor`` now reports an authentication-database email
   that matches its customer record only case-insensitively as
-  ``auth_email_not_canonical``, pointing at ``customers normalize-emails``,
-  so the rows that command would rewrite are visible before the run and
-  confirmed gone after it (#4726).
+  ``auth_email_not_canonical``, naming which of the two records holds the
+  non-lowercase address and the command that repairs it, so the rows
+  ``customers normalize-emails`` would rewrite are visible before the run
+  and confirmed gone after it (#4726).

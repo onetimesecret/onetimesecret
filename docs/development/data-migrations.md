@@ -420,8 +420,10 @@ each row instead.
 
 ```bash
 bin/ots customers normalize-emails              # dry run: one line per mixed-case row
-bin/ots customers normalize-emails --json       # {dry_run, stats, rows}
-bin/ots customers normalize-emails --confirm    # apply; --limit N to batch
+bin/ots customers normalize-emails --json       # {dry_run, stats, rows, last_account_id}
+bin/ots customers normalize-emails --confirm    # apply
+bin/ots customers normalize-emails --limit 100 --confirm                  # first batch
+bin/ots customers normalize-emails --limit 100 --after-id 4821 --confirm  # next batch
 ```
 
 Each row ends as `normalized`, `skipped_fold_unstable` (lowercasing would
@@ -429,14 +431,32 @@ rewrite the address, e.g. `ß`), `skipped_sql_collision` (another accounts
 row, live or closed, holds the lowercase address), `skipped_index_collision`
 (the Redis index maps it to a different customer, the duplicate 007 left),
 `skipped_no_customer`, or `error`; the run continues past every one of
-them and a second run finds nothing to do. Sessions, verification and
-notifications are untouched. Collisions are never merged: decide which
-account keeps the address and use `bin/ots customers change-email` on the
-other. Addresses in the output and the log are obscured. `customers doctor`
-reports each such row as `:auth_email_not_canonical` (report-only, pointing
-at this command) and is clean after the run; its `:auth_email_drift` check
-compares the two stores case-insensitively on purpose and never fires on
-them. The dry run is the row-by-row before/after check.
+them. Normalized rows are not selected again; refused and errored rows are
+reported on every run until an operator resolves them. A `--limit` run
+therefore keeps returning the same low-id refusals, so each limited run
+prints the `--after-id` (the last account id it processed) to resume past
+them; `--after-id N` processes only rows with id > N (the collision scan still covers every row). The exit code is 1 when
+any row ended as `error`, after the full report is printed. Sessions,
+verification and notifications are untouched. Collisions are never merged:
+decide which account keeps the address and use `bin/ots customers
+change-email` on the other. Addresses in the output and the log are
+obscured.
+
+An `error` row whose detail says nothing was written (the compare-and-set
+matched no row) is untouched and is selected again once its cause is fixed.
+An `error` row reporting `ChangeEmail returned :partial` is different: the
+accounts row may already be lowercase while the Customer record is not, and
+because this command selects by the SQL bytes it never revisits that row.
+Run `bin/ots customers doctor <extid>` on it before re-running.
+
+`customers doctor` reports both shapes as `:auth_email_not_canonical`
+(report-only, severity high), naming the store that holds the non-canonical
+bytes: a mixed-case accounts row points at this command and is clean after
+the run; a lowercase accounts row over a mixed-case Customer record (the
+`:partial` residue above) points at `bin/ots customers change-email`. Its
+`:auth_email_drift` check compares the two stores case-insensitively on
+purpose and never fires on either shape. The dry run is the row-by-row
+before/after check.
 
 ## Moving keys between Redis databases or instances
 

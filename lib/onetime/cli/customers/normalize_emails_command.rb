@@ -16,11 +16,13 @@
 #   bin/ots customers normalize-emails                # Dry run (default)
 #   bin/ots customers normalize-emails --confirm      # Execute
 #   bin/ots customers normalize-emails --limit 50     # First 50 mixed-case rows
+#   bin/ots customers normalize-emails --after-id 900 # Rows with account id > 900
 #   bin/ots customers normalize-emails --json         # Machine-readable
 #
 # The per-row mutation and its audit event are owned by
 # Auth::Operations::Customers::ChangeEmail (via NormalizeAccountEmails). This
-# command owns only CLI concerns: flags, rendering, exit codes.
+# command owns only CLI concerns: flags, rendering, exit codes. Exit code is
+# 1 when any row ended as `error`, after the full report is printed.
 #
 # @see https://github.com/onetimesecret/onetimesecret/issues/4726
 
@@ -45,10 +47,15 @@ module Onetime
         default: nil,
         desc: 'Process at most N mixed-case rows (lowest account id first)'
 
+      option :after_id,
+        type: :string,
+        default: nil,
+        desc: 'Only process accounts rows with id > N (resume a --limit run)'
+
       option :json,
         type: :boolean,
         default: false,
-        desc: 'JSON output: {dry_run, stats, rows} and nothing else'
+        desc: 'JSON output: {dry_run, stats, rows, last_account_id} and nothing else'
 
       option :help,
         type: :boolean,
@@ -56,22 +63,28 @@ module Onetime
         aliases: ['h'],
         desc: 'Show help message'
 
-      def call(confirm: false, limit: nil, json: false, help: false, **)
+      def call(confirm: false, limit: nil, after_id: nil, json: false, help: false, **)
         return show_usage_help if help
 
         boot_application!
 
-        dry_run = !confirm
-        op      = build_operation(dry_run, parse_limit(limit, json), json)
-        result  = op.call
+        dry_run  = !confirm
+        limit    = parse_limit(limit, json)
+        after_id = parse_after_id(after_id, json)
+        op       = build_operation(dry_run, limit, after_id, json)
+        result   = op.call
 
         if json
           output_json(result)
         else
-          print_header(dry_run, limit)
+          print_header(dry_run, limit, after_id)
           print_results(result)
-          print_next_steps(result)
+          print_next_steps(result, limit)
         end
+
+        # The report is complete either way; the exit code tells a script (or
+        # an operator skimming) that at least one row could not be repaired.
+        exit 1 if result.stats[:error].positive?
       end
 
       private
@@ -89,8 +102,25 @@ module Onetime
         fail_with("--limit must be a positive integer (got #{limit.inspect})", json)
       end
 
-      def build_operation(dry_run, limit, json)
-        Auth::Operations::Customers::NormalizeAccountEmails.new(dry_run: dry_run, limit: limit)
+      # `--after-id 0` is the same as no flag (every id is > 0); negatives and
+      # non-integers are operator errors.
+      def parse_after_id(after_id, json)
+        return nil if after_id.nil? || after_id.to_s.strip.empty?
+
+        value = Integer(after_id.to_s, 10)
+        raise ArgumentError, 'must not be negative' if value.negative?
+
+        value
+      rescue ArgumentError
+        fail_with("--after-id must be a non-negative integer (got #{after_id.inspect})", json)
+      end
+
+      def build_operation(dry_run, limit, after_id, json)
+        Auth::Operations::Customers::NormalizeAccountEmails.new(
+          dry_run: dry_run,
+          limit: limit,
+          after_id: after_id,
+        )
       rescue Onetime::Problem => ex
         fail_with("Cannot normalize: #{ex.message}", json)
       end
@@ -104,11 +134,12 @@ module Onetime
         exit 1
       end
 
-      def print_header(dry_run, limit)
+      def print_header(dry_run, limit, after_id)
         puts "\nAccount Email Normalization (#4726)"
         puts '=' * 60
-        puts "  Mode:   #{dry_run ? 'DRY RUN (re-run with --confirm to apply)' : 'LIVE'}"
-        puts "  Limit:  #{limit}" if limit
+        puts "  Mode:     #{dry_run ? 'DRY RUN (re-run with --confirm to apply)' : 'LIVE'}"
+        puts "  Limit:    #{limit}" if limit
+        puts "  After id: #{after_id}" if after_id
       end
 
       def print_results(result)
@@ -138,7 +169,7 @@ module Onetime
         puts format('  %-34s %d', 'Errors:', stats[:error])
       end
 
-      def print_next_steps(result)
+      def print_next_steps(result, limit)
         stats = result.stats
         lines = []
 
@@ -154,8 +185,17 @@ module Onetime
         end
 
         if stats[:error].positive?
-          lines << 'Rows marked error were left untouched; fix the cause named in the detail'
-          lines << 'line (`customers sync-auth-accounts`, `customers doctor`) and re-run.'
+          lines << 'Error rows whose detail says nothing was written are untouched and are'
+          lines << 'selected again on the next run once the cause is fixed. A row reporting'
+          lines << ':partial may have one store updated and is NOT re-selected: run'
+          lines << '`bin/ots customers doctor <extid>` on it before re-running.'
+        end
+
+        if limit && result.last_account_id
+          resume  = "bin/ots customers normalize-emails --limit #{limit} --after-id #{result.last_account_id}"
+          resume += ' --confirm' unless result.dry_run
+          lines << 'Resume with:'
+          lines << "  #{resume}"
         end
 
         return if lines.empty?
@@ -169,6 +209,7 @@ module Onetime
           dry_run: result.dry_run,
           stats: result.stats,
           rows: result.rows,
+          last_account_id: result.last_account_id,
         )
       end
 
@@ -202,12 +243,14 @@ module Onetime
                 the canonical address                    -> skipped_no_customer
               - the Redis email index already maps the canonical address to a
                 different Customer                       -> skipped_index_collision
-            Any other failure is reported per row as `error`; the run continues.
+            Any other failure is reported per row as `error`; the run continues
+            and the command exits 1 once the full report is printed.
 
           Options:
             --confirm               Execute changes (default is dry-run)
             --limit N               Process at most N mixed-case rows
-            --json                  JSON output: {dry_run, stats, rows}
+            --after-id N            Only process accounts rows with id > N
+            --json                  JSON output: {dry_run, stats, rows, last_account_id}
             --help, -h              Show this help message
 
           Examples:
@@ -217,14 +260,19 @@ module Onetime
             # Execute
             bin/ots customers normalize-emails --confirm
 
-            # Execute in batches
+            # Execute in batches: each run prints the --after-id for the next one
             bin/ots customers normalize-emails --limit 100 --confirm
+            bin/ots customers normalize-emails --limit 100 --after-id 4821 --confirm
 
           Safety:
             - Default mode is dry-run (writes nothing, not even an audit preview)
-            - Idempotent: a second run finds nothing to do
+            - Normalized rows are not selected again. Refused and errored rows
+              are reported on every run until fixed, so a --limit run without
+              --after-id keeps returning the same low-id rows.
             - The SQL write is compare-and-set on the scanned address, so a row
               that changed in between is reported and left alone
+            - A row reporting `:partial` may have one store updated and will not
+              be selected again; run `bin/ots customers doctor <extid>` on it
             - Collisions and drift are reported, never auto-resolved
 
         USAGE

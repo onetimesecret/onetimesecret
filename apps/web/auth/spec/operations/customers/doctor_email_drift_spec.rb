@@ -10,9 +10,11 @@
 #                             doctor. Without it a ChangeEmail run that returned
 #                             :partial is undetectable, because every other
 #                             check compares Redis against Redis.
-#   :auth_email_not_canonical — the accounts row matches the Customer only
-#                             case-insensitively; report-only, repaired by
-#                             `bin/ots customers normalize-emails`.
+#   :auth_email_not_canonical — the two stores match only case-insensitively;
+#                             report-only, naming the store that holds the
+#                             non-canonical bytes (accounts row -> `bin/ots
+#                             customers normalize-emails`; Customer record
+#                             under a canonical row -> `customers change-email`).
 #   :org_email_index_stale  — the org-scoped index Familia never auto-populates.
 #   :org_contact_email_stale — default workspaces contacting a dead address.
 #
@@ -157,8 +159,9 @@ RSpec.describe Auth::Operations::Customers::Doctor do
   # =========================================================================
   # The case-only sibling of :auth_email_drift (#4726). The drift check ignores
   # case on purpose, so a row the identity provider's casing left behind
-  # passes it; this check lists exactly the rows
-  # `bin/ots customers normalize-emails` would, and nothing it would not.
+  # passes it. The SQL-side examples list exactly the rows
+  # `bin/ots customers normalize-emails` would; the hash-side examples cover
+  # the residue that command cannot see (SQL canonical, Customer hash not).
   describe ':auth_email_not_canonical' do
     let(:by_external_id) { double('by_external_id') }
     let(:by_id)          { double('by_id', update: 1) }
@@ -222,6 +225,16 @@ RSpec.describe Auth::Operations::Customers::Doctor do
       expect(issues.first[:check]).to eq(:auth_email_not_canonical)
     end
 
+    it 'names the accounts row as the store holding the non-canonical bytes' do
+      allow(by_external_id).to receive(:first).and_return({ id: 42, email: 'LIVE@Example.com' })
+
+      run
+
+      expect(issues.first[:message]).to include('the auth accounts row')
+      expect(issues.first[:message]).not_to include('the Customer record')
+      expect(issues.first[:non_canonical_in]).to eq(['the auth accounts row'])
+    end
+
     it 'never writes to the accounts row, even on a repair run' do
       allow(by_external_id).to receive(:first).and_return({ id: 42, email: 'LIVE@Example.com' })
 
@@ -229,6 +242,71 @@ RSpec.describe Auth::Operations::Customers::Doctor do
 
       expect(by_id).not_to have_received(:update)
       expect(issues.first[:repairable]).to be false
+    end
+
+    # The residue of a normalize-emails row that ended :partial: the SQL write
+    # landed, the Customer hash did not. normalize-emails selects by the SQL
+    # bytes and never revisits it; the drift check ignores case; so this is
+    # the only check that can see it.
+    context 'when the accounts row is canonical but the Customer record is not' do
+      before do
+        allow(customer).to receive(:email).and_return('LIVE@Example.com')
+        allow(by_external_id).to receive(:first).and_return({ id: 42, email: email })
+      end
+
+      it 'reports the same high, non-repairable check naming the Customer record' do
+        run
+
+        expect(issues.size).to eq(1)
+        expect(issues.first).to include(
+          check: :auth_email_not_canonical,
+          severity: :high,
+          repairable: false,
+          non_canonical_in: ['the Customer record'],
+        )
+        expect(issues.first[:message]).to include('the Customer record')
+        expect(issues.first[:message]).not_to include('the auth accounts row')
+      end
+
+      it 'points at change-email, not normalize-emails, which would not select the row' do
+        run
+
+        expect(issues.first[:repair_action]).to include('bin/ots customers change-email ur_c')
+        expect(issues.first[:repair_action]).not_to start_with('Run `bin/ots customers normalize-emails')
+      end
+
+      it 'obscures the address in the message and the repair hint' do
+        run
+
+        expect(issues.first[:message]).not_to include('LIVE@Example.com')
+        expect(issues.first[:message]).not_to include(email)
+        expect(issues.first[:repair_action]).not_to include(email)
+      end
+
+      it 'never writes anything, even on a repair run' do
+        run(repair: true)
+
+        expect(by_id).not_to have_received(:update)
+        expect(repaired).to be_empty
+      end
+
+      it 'is invisible to :auth_email_drift, which compares case-insensitively' do
+        doctor.send(:check_auth_email_drift, issues, repaired)
+
+        expect(issues).to be_empty
+      end
+    end
+
+    it 'names both stores when neither holds canonical bytes, and still points at normalize-emails' do
+      allow(customer).to receive(:email).and_return('LIVE@Example.com')
+      allow(by_external_id).to receive(:first).and_return({ id: 42, email: 'LIVE@Example.com' })
+
+      run
+
+      expect(issues.size).to eq(1)
+      expect(issues.first[:non_canonical_in]).to eq(['the auth accounts row', 'the Customer record'])
+      expect(issues.first[:message]).to include('the auth accounts row and the Customer record')
+      expect(issues.first[:repair_action]).to include('normalize-emails')
     end
 
     # A different address is :auth_email_drift territory; reporting it twice
