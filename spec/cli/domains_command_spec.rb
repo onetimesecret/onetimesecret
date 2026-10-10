@@ -65,6 +65,19 @@ RSpec.describe 'Domains Command', type: :cli do
       output = run_cli_command_quietly('domains')
       expect(output[:stdout]).to include('custom domains')
     end
+
+    # The landing usage block is the operator's map of the surface, so it is
+    # pinned EXACTLY: a verb that is added or removed must show up here. #4717
+    # PR 3 removes `migrate-sso` (BulkSsoMigration): install-level to
+    # domain-level SSO migration is not a supported operator workflow, and the
+    # tool archived personal workspaces on the customer's behalf.
+    it 'prints exactly the registered domain verbs, with no migrate-sso' do
+      output = run_cli_command_quietly('domains')
+
+      usage_verbs = output[:stdout].scan(/^  bin\/ots domains (\S+)/).flatten
+      expect(usage_verbs).to eq(%w[list info create verify probe transfer remove orphaned repair doctor])
+      expect(output[:stdout]).not_to include('migrate-sso')
+    end
   end
 
   describe 'info subcommand' do
