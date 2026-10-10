@@ -23,11 +23,12 @@
 
 # Every op in the cohort is required here, not just the ones with behavioural
 # examples below: the membership assertions at the bottom walk the whole list,
-# and loading all 22 is itself the check that the shared envelope resolves from
+# and loading all 23 is itself the check that the shared envelope resolves from
 # `lib/` and from `apps/web/auth/` alike.
 require 'spec_helper'
 require 'onetime/models/colonel_audit_event'
 require 'onetime/operations/audit_attempt'
+require 'onetime/operations/dlq/discard'
 require 'onetime/operations/dlq/purge'
 require 'onetime/operations/dlq/replay'
 require 'onetime/operations/domains/ensure_domain_configs'
@@ -136,6 +137,27 @@ RSpec.describe 'preview and no-change auditing' do
           detail: { dry_run: true, would_replay: 4, available: 10 },
         )
         expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+      end
+    end
+
+    describe Onetime::Operations::Dlq::Discard do
+      it 'names the message it would drop on the observation trail, nothing on the operator trail' do
+        broker = DlqFakeBroker.broker(%w[m1 m2])
+
+        described_class.new(
+          connection: broker.connection, queue: 'dlq.webhooks.payload', message_id: 'm2',
+          actor: actor, dry_run: true,
+        ).call
+
+        expect(Onetime::ColonelAuditEvent).to have_received(:record_access).once.with(
+          actor: actor,
+          verb: described_class::AUDIT_VERB,
+          target: 'dlq.webhooks.payload',
+          result: 'preview',
+          detail: { dry_run: true, message_id: 'm2', found: true, original_queue: 'billing.event.process', scanned: 2 },
+        )
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+        expect(broker.ready_ids).to eq(%w[m1 m2])
       end
     end
 
@@ -775,6 +797,7 @@ RSpec.describe 'preview and no-change auditing' do
         Auth::Operations::Customers::SetRole,
         Auth::Operations::Customers::SetSuspension,
         Auth::Operations::Customers::SetVerification,
+        Onetime::Operations::Dlq::Discard,
         Onetime::Operations::Dlq::Purge,
         Onetime::Operations::Dlq::Replay,
         Onetime::Operations::Domains::EnsureDomainConfigs,
@@ -801,8 +824,8 @@ RSpec.describe 'preview and no-change auditing' do
     end
 
     # The module has no default target, so every op owes one. Checked
-    # structurally rather than by calling it, since building 22 ops here would
-    # duplicate 22 specs' worth of fixtures to learn nothing extra.
+    # structurally rather than by calling it, since building 23 ops here would
+    # duplicate 23 specs' worth of fixtures to learn nothing extra.
     it 'supplies the target hook in every op, since the module has no default' do
       missing = cohort.reject do |op|
         (op.private_instance_methods(false) + op.instance_methods(false)).include?(:audit_target)
@@ -822,7 +845,7 @@ RSpec.describe 'preview and no-change auditing' do
 
       expect(missing).to be_empty
 
-      # And the other nineteen must carry the constant the default hook reads.
+      # And the other twenty must carry the constant the default hook reads.
       constant_verb = (cohort - computed).reject { |op| op.const_defined?(:AUDIT_VERB, false) }
 
       expect(constant_verb).to be_empty
