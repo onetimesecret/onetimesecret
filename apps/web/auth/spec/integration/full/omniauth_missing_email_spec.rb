@@ -23,14 +23,14 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
     OmniAuth.config.mock_auth[provider] = OmniAuth::AuthHash.new(
       provider: provider.to_s,
       uid: oid,
-      info: { email: email, name: 'No Mailbox User' },
+      info: { email: email, name: 'No Email Claim User' },
       credentials: { token: 'mock_access_token', expires: false },
       extra: {
         raw_info: {
           sub: oid,
           oid: oid,
           tid: 'fabrikam-tenant-id',
-          preferred_username: 'no.mailbox@fabrikam.onmicrosoft.com',
+          preferred_username: 'no.email.claim@fabrikam.onmicrosoft.com',
         }.merge(raw_info),
       },
     )
@@ -101,22 +101,22 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
 
   describe 'structurally malformed emails from the IdP' do
     [
-      ['missing @', 'nomailbox.fabrikam.onmicrosoft.com'],
+      ['missing @', 'noemail.fabrikam.onmicrosoft.com'],
       ['empty local part', '@fabrikam.onmicrosoft.com'],
-      ['empty domain', 'nomailbox@'],
+      ['empty domain', 'noemail@'],
       ['bare @', '@'],
-      ['multiple @', 'no@mailbox@fabrikam.onmicrosoft.com'],
-      ['internal spaces', 'no mailbox@fabrikam.onmicrosoft.com'],
-      ['dotless domain', 'nomailbox@fabrikam'],
-      ['comma', 'no,mailbox@fabrikam.onmicrosoft.com'],
-      ['semicolon', 'nomailbox@fabrikam;onmicrosoft.com'],
-      ['comma in domain', 'nomailbox@fabrikam,onmicrosoft.com'],
-      ['semicolon in local part', 'no;mailbox@fabrikam.onmicrosoft.com'],
-      ['space in domain', 'nomailbox@fabrikam.onmicrosoft com'],
-      ['internal newline in local part', "no\nmailbox@fabrikam.onmicrosoft.com"],
-      ['internal carriage return in domain', "nomailbox@fabrikam\r.onmicrosoft.com"],
-      ['array claim', ['nomailbox@fabrikam.onmicrosoft.com']],
-      ['object claim', { email: 'nomailbox@fabrikam.onmicrosoft.com' }],
+      ['multiple @', 'no@email@fabrikam.onmicrosoft.com'],
+      ['internal spaces', 'no email@fabrikam.onmicrosoft.com'],
+      ['dotless domain', 'noemail@fabrikam'],
+      ['comma', 'no,email@fabrikam.onmicrosoft.com'],
+      ['semicolon', 'noemail@fabrikam;onmicrosoft.com'],
+      ['comma in domain', 'noemail@fabrikam,onmicrosoft.com'],
+      ['semicolon in local part', 'no;email@fabrikam.onmicrosoft.com'],
+      ['space in domain', 'noemail@fabrikam.onmicrosoft com'],
+      ['internal newline in local part', "no\nemail@fabrikam.onmicrosoft.com"],
+      ['internal carriage return in domain', "noemail@fabrikam\r.onmicrosoft.com"],
+      ['array claim', ['noemail@fabrikam.onmicrosoft.com']],
+      ['object claim', { email: 'noemail@fabrikam.onmicrosoft.com' }],
     ].each do |label, value|
       it "redirects to invalid_email for #{label}" do
         setup_entra_mock_auth(email: value)
@@ -129,8 +129,8 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
   describe 'email source contract' do
     [
       { email: 'shadow@fabrikam.onmicrosoft.com' },
-      { preferred_username: 'no.mailbox@fabrikam.onmicrosoft.com' },
-      { upn: 'no.mailbox@fabrikam.onmicrosoft.com' },
+      { preferred_username: 'no.email.claim@fabrikam.onmicrosoft.com' },
+      { upn: 'no.email.claim@fabrikam.onmicrosoft.com' },
     ].each do |claims|
       it "does not substitute raw_info #{claims.keys.first} for missing info.email" do
         setup_entra_mock_auth(email: nil, raw_info: claims)

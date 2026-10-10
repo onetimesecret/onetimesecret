@@ -160,10 +160,11 @@ test.describe('SSO missing-email error (issue #3478)', () => {
  *      `omniauth-entra-id` strategy uses). The v1.0 endpoint behaves
  *      differently around `upn`/`email` claims and will NOT reproduce reliably.
  *
- *   2. A test user with NO `mail` attribute - i.e. no mailbox / no license
- *      assigned - so the `email` claim is genuinely absent from the token.
- *      (A user who happens to have a mailbox WILL get an email claim and the
- *      bug will not reproduce.)
+ *   2. A test user whose ID token carries NO `email` claim. Confirm that with
+ *      the operator runbook (docs/runbooks/sso-entra-claim-smoke-test.md)
+ *      rather than inferring it from licensing or mailbox state: claim absence
+ *      does not establish mailbox absence, and mailbox or license state does
+ *      not predict whether the claim is present.
  *
  *   3. App registration token configuration with NO `email` and NO `upn`
  *      optional claims added. The v2.0 endpoint omits `upn` by default and
