@@ -33,6 +33,10 @@ module Onetime
       #   HousekeepingJob.perform('Onetime::Organization', :standardize_planid)
       #   HousekeepingJob.perform('Onetime::Organization', limit: 50)
       #
+      # The colonel console's chore trigger (#4343,
+      # Onetime::Operations::Chores::Run) calls `perform` with one chore, a
+      # record limit and a wall-clock `budget:`.
+      #
       class HousekeepingJob < Onetime::Jobs::MaintenanceJob
         JOB_KEY = 'housekeeping'
 
@@ -72,10 +76,15 @@ module Onetime
           #   the class directly)
           # @param chore_name [Symbol, String, nil] specific chore, or nil for all
           # @param limit [Integer, nil] cap on records scanned; nil iterates all
+          # @param budget [#exhausted?, nil] wall-clock budget, checked before
+          #   each record (Onetime::Operations::Chores::Budget, #4343). When it
+          #   runs out the scan stops between records and the stats hash gains
+          #   `budget_exhausted: true`. The key is present only when a budget
+          #   is given, so the nightly and CLI report shape is unchanged.
           # @return [Hash] stats hash (see above)
           # @raise [ArgumentError] if the model is unknown or has no chores
           # @raise [NameError] if the model class name cannot be resolved
-          def perform(model, chore_name = nil, limit: nil)
+          def perform(model, chore_name = nil, limit: nil, budget: nil)
             klass = model.is_a?(Class) ? model : resolve_model(model)
 
             unless klass.respond_to?(:chores)
@@ -85,16 +94,24 @@ module Onetime
             chore_keys = resolve_chore_keys(klass, chore_name)
             stats      = chore_keys.to_h { |key| [key, { modified: 0, errors: 0 }] }
             scanned    = 0
+            exhausted  = false
             batch_max  = housekeeping_batch_size
 
             klass.instances.each_record(batch_size: batch_max) do |record|
               break if limit && scanned >= limit
 
+              if budget&.exhausted?
+                exhausted = true
+                break
+              end
+
               scanned += 1
               run_chores_for(klass, record, chore_keys, stats)
             end
 
-            { model: klass.name, scanned: scanned, chores: stats }
+            report                    = { model: klass.name, scanned: scanned, chores: stats }
+            report[:budget_exhausted] = exhausted if budget
+            report
           end
 
           # Discover model classes with at least one registered chore.

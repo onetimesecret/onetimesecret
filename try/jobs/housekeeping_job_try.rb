@@ -234,6 +234,44 @@ report = @job.perform(@stub, :always_raises)
 report[:chores][:always_raises][:errors]
 #=> 1
 
+## perform stops between records when the budget runs out (#4343)
+@stub.reset!
+@stub.chore(:touch) { |_| true }
+4.times { |i| @stub.add(status: "b#{i}") }
+# Answers false for the first two checks, then true.
+budget = Class.new do
+  def initialize = @checks = 0
+  def exhausted? = (@checks += 1) > 2
+end.new
+report = @job.perform(@stub, :touch, budget: budget)
+[report[:scanned], report[:budget_exhausted], report[:chores][:touch][:modified]]
+#=> [2, true, 2]
+
+## perform reports budget_exhausted false when the budget lasts
+@stub.reset!
+@stub.chore(:touch) { |_| true }
+2.times { |i| @stub.add(status: "c#{i}") }
+roomy = Class.new { def exhausted? = false }.new
+report = @job.perform(@stub, :touch, budget: roomy)
+[report[:scanned], report[:budget_exhausted]]
+#=> [2, false]
+
+## perform checks the limit before the budget: a capped run is not budget_exhausted
+@stub.reset!
+@stub.chore(:touch) { |_| true }
+3.times { |i| @stub.add(status: "d#{i}") }
+roomy = Class.new { def exhausted? = false }.new
+report = @job.perform(@stub, :touch, limit: 1, budget: roomy)
+[report[:scanned], report[:budget_exhausted]]
+#=> [1, false]
+
+## perform without a budget leaves the stats shape unchanged (no budget key)
+@stub.reset!
+@stub.chore(:touch) { |_| true }
+@stub.add(status: 'e')
+@job.perform(@stub, :touch).keys
+#=> [:model, :scanned, :chores]
+
 # TEARDOWN
 
 @stub.reset!

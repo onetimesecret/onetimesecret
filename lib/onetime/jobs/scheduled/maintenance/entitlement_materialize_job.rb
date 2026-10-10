@@ -67,14 +67,26 @@ module Onetime
 
               cron(scheduler, cron_pattern) do
                 with_stats('EntitlementMaterializeJob') do |report|
-                  run_materialization(report)
+                  perform(report)
                 end
               end
             end
 
-            private
-
-            def run_materialization(report)
+            # One run: pull the catalog, then materialize from it, filling
+            # `report` with the outcome. The nightly cron body, and the live
+            # path of the colonel console's `entitlement_materialize` chore
+            # (#4343, Onetime::Operations::Chores::Run), so both go through the
+            # same fail-closed pull gate.
+            #
+            # @param report [Hash] filled in place (symbol keys); also returned.
+            #   `:skipped` / `:aborted` are set when nothing was materialized.
+            # @param limit [Integer, nil] stop after this many orgs are scanned
+            #   (the console's bounded run); nil materializes every org.
+            # @param budget [#exhausted?, nil] wall-clock budget checked between
+            #   orgs; when it runs out `report[:budget_exhausted]` is true. The
+            #   catalog pull itself is not interruptible.
+            # @return [Hash] report
+            def perform(report = {}, limit: nil, budget: nil)
               # Skip if no Stripe API key configured (standalone mode).
               # Standalone orgs are handled by materialize_standalone_entitlements
               # on the read path; there is no plan catalog to converge against.
@@ -82,13 +94,16 @@ module Onetime
               if stripe_key.to_s.strip.empty?
                 report[:skipped] = 'no_stripe_key'
                 scheduler_logger.debug '[EntitlementMaterializeJob] Skipping: No Stripe API key configured'
-                return
+                return report
               end
 
-              return unless refresh_plan_cache(report)
+              return report unless refresh_plan_cache(report)
 
-              materialize_plans(report)
+              materialize_plans(report, limit: limit, budget: budget)
+              report
             end
+
+            private
 
             # Refresh the Redis plan cache from Stripe. Returns true only when
             # the cache is confirmed fresh; any failure aborts the run so we
@@ -134,8 +149,13 @@ module Onetime
               false
             end
 
-            def materialize_plans(report)
-              result = Billing::Operations::MaterializePlans.call(include_memberships: true)
+            # limit/budget are passed only when given, so the nightly run calls
+            # MaterializePlans exactly as before.
+            def materialize_plans(report, limit: nil, budget: nil)
+              options          = { include_memberships: true }
+              options[:limit]  = limit if limit
+              options[:budget] = budget if budget
+              result           = Billing::Operations::MaterializePlans.call(**options)
 
               report[:scanned]               = result.scanned
               report[:succeeded]             = result.succeeded
@@ -144,6 +164,7 @@ module Onetime
               report[:orgs_cascaded]         = result.orgs_cascaded
               report[:memberships_succeeded] = result.memberships_succeeded
               report[:memberships_failed]    = result.memberships_failed
+              report[:budget_exhausted]      = result.budget_exhausted if budget
 
               return unless result.failed.positive?
 

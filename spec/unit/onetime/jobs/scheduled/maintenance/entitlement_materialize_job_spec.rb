@@ -178,7 +178,7 @@ RSpec.describe Onetime::Jobs::Scheduled::Maintenance::EntitlementMaterializeJob,
     end
   end
 
-  describe '.run_materialization (via send)' do
+  describe '.perform' do
     let(:report) { {} }
 
     describe 'skip behavior' do
@@ -192,7 +192,7 @@ RSpec.describe Onetime::Jobs::Scheduled::Maintenance::EntitlementMaterializeJob,
           expect(Billing::Operations::Catalog::Pull).not_to receive(:call)
           expect(Billing::Operations::MaterializePlans).not_to receive(:call)
 
-          described_class.send(:run_materialization, report)
+          described_class.perform(report)
 
           expect(report[:skipped]).to eq('no_stripe_key')
         end
@@ -207,7 +207,7 @@ RSpec.describe Onetime::Jobs::Scheduled::Maintenance::EntitlementMaterializeJob,
           expect(Billing::Operations::Catalog::Pull).not_to receive(:call)
           expect(Billing::Operations::MaterializePlans).not_to receive(:call)
 
-          described_class.send(:run_materialization, report)
+          described_class.perform(report)
 
           expect(report[:skipped]).to eq('no_stripe_key')
         end
@@ -227,7 +227,7 @@ RSpec.describe Onetime::Jobs::Scheduled::Maintenance::EntitlementMaterializeJob,
           expect(Billing::Operations::MaterializePlans).not_to receive(:call)
           expect(logger).to receive(:error).with(match(/refusing to materialize from a stale cache: API rate limit exceeded/))
 
-          described_class.send(:run_materialization, report)
+          described_class.perform(report)
 
           expect(report[:aborted]).to eq('catalog_pull_failed')
           expect(report[:pull_errors]).to eq(['API rate limit exceeded'])
@@ -248,7 +248,7 @@ RSpec.describe Onetime::Jobs::Scheduled::Maintenance::EntitlementMaterializeJob,
           expect(Billing::Operations::MaterializePlans).not_to receive(:call)
           expect(logger).to receive(:error).with(match(/verified no plans/))
 
-          described_class.send(:run_materialization, report)
+          described_class.perform(report)
 
           expect(report[:aborted]).to eq('catalog_pull_unverified')
           expect(report[:plans_synced]).to eq(0)
@@ -264,7 +264,7 @@ RSpec.describe Onetime::Jobs::Scheduled::Maintenance::EntitlementMaterializeJob,
             .with(include_memberships: true)
             .and_return(make_materialize_result(scanned: 2, succeeded: 2))
 
-          described_class.send(:run_materialization, report)
+          described_class.perform(report)
 
           expect(report).not_to have_key(:aborted)
           expect(report[:plans_synced]).to eq(2)
@@ -279,7 +279,7 @@ RSpec.describe Onetime::Jobs::Scheduled::Maintenance::EntitlementMaterializeJob,
           expect(Billing::Operations::MaterializePlans).not_to receive(:call)
           expect(logger).to receive(:error).with(match(/refusing to materialize from a stale cache: StandardError - Network unreachable/))
 
-          expect { described_class.send(:run_materialization, report) }.not_to raise_error
+          expect { described_class.perform(report) }.not_to raise_error
 
           expect(report[:aborted]).to eq('catalog_pull_raised')
           expect(report[:pull_errors]).to eq(['StandardError: Network unreachable'])
@@ -309,11 +309,11 @@ RSpec.describe Onetime::Jobs::Scheduled::Maintenance::EntitlementMaterializeJob,
             .with(include_memberships: true)
             .and_return(materialize_result)
 
-          described_class.send(:run_materialization, report)
+          described_class.perform(report)
         end
 
         it 'copies result counts into the report' do
-          described_class.send(:run_materialization, report)
+          described_class.perform(report)
 
           expect(report).to include(
             plans_synced: 5,
@@ -330,7 +330,7 @@ RSpec.describe Onetime::Jobs::Scheduled::Maintenance::EntitlementMaterializeJob,
         it 'does not record errors or log at ERROR when nothing failed' do
           expect(logger).not_to receive(:error)
 
-          described_class.send(:run_materialization, report)
+          described_class.perform(report)
 
           expect(report).not_to have_key(:errors)
         end
@@ -359,7 +359,7 @@ RSpec.describe Onetime::Jobs::Scheduled::Maintenance::EntitlementMaterializeJob,
         end
 
         it 'records error details in the report' do
-          described_class.send(:run_materialization, report)
+          described_class.perform(report)
 
           expect(report[:failed]).to eq(2)
           expect(report[:errors]).to eq(org_errors)
@@ -370,7 +370,49 @@ RSpec.describe Onetime::Jobs::Scheduled::Maintenance::EntitlementMaterializeJob,
             match(/2 org\(s\) failed to materialize \(1 membership cascade failures\): .*org_abc/)
           )
 
-          described_class.send(:run_materialization, report)
+          described_class.perform(report)
+        end
+      end
+
+      # The colonel console's bounded live run (#4343, Chores::Run) calls
+      # perform with a record limit and a wall-clock budget. The pull still
+      # comes first and still gates the materialize.
+      describe 'bounded run for the console' do
+        let(:budget) { double('Budget', exhausted?: false) }
+
+        before do
+          allow(Billing::Operations::Catalog::Pull).to receive(:call)
+            .and_return(make_pull_result(success: true, plans_synced: 4))
+        end
+
+        it 'pulls the catalog before materializing, then passes the bounds through' do
+          expect(Billing::Operations::Catalog::Pull).to receive(:call).ordered
+            .and_return(make_pull_result(success: true, plans_synced: 4))
+          expect(Billing::Operations::MaterializePlans).to receive(:call).ordered
+            .with(include_memberships: true, limit: 25, budget: budget)
+            .and_return(make_materialize_result(scanned: 25, succeeded: 25, budget_exhausted: true))
+
+          returned = described_class.perform(report, limit: 25, budget: budget)
+
+          expect(returned).to equal(report)
+          expect(report).to include(plans_synced: 4, scanned: 25, succeeded: 25, budget_exhausted: true)
+        end
+
+        it 'still refuses to materialize when the pull is unverified' do
+          allow(Billing::Operations::Catalog::Pull).to receive(:call)
+            .and_return(make_pull_result(success: true, plans_synced: 0, catalog_verified: false))
+          expect(Billing::Operations::MaterializePlans).not_to receive(:call)
+
+          described_class.perform(report, limit: 25, budget: budget)
+
+          expect(report[:aborted]).to eq('catalog_pull_unverified')
+        end
+
+        it 'leaves the nightly report without a budget key' do
+          allow(Billing::Operations::MaterializePlans).to receive(:call)
+            .and_return(make_materialize_result(scanned: 3, succeeded: 3))
+
+          expect(described_class.perform(report)).not_to have_key(:budget_exhausted)
         end
       end
     end
