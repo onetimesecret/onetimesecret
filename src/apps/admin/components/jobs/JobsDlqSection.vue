@@ -624,7 +624,9 @@
             <pre
               v-if="message.payload_preview"
               class="mt-2 max-h-24 overflow-auto rounded bg-gray-50 p-2 font-mono text-xs break-all whitespace-pre-wrap text-gray-700 dark:bg-gray-800 dark:text-gray-300"
-              :aria-label="t('web.admin.jobs.dlq.fields.payload')">{{ message.payload_preview }}</pre>
+              :aria-label="t('web.admin.jobs.dlq.fields.payload')"
+              >{{ message.payload_preview }}</pre
+            >
 
             <!-- Row actions: only a message with an id can be addressed. -->
             <div

@@ -37,7 +37,9 @@
   const referenceNow = ref(nowSeconds());
 
   const failed = computed(() => error.value !== null || validationError.value !== null);
-  const loaded = computed(() => !failed.value && (scheduler.value !== null || jobs.value.length > 0));
+  const loaded = computed(
+    () => !failed.value && (scheduler.value !== null || jobs.value.length > 0)
+  );
 
   async function fetchPage(targetPage = 1): Promise<void> {
     try {
