@@ -73,16 +73,22 @@ module DlqFakeBroker
       @ready.insert(index, entry)
     end
 
-    def connection = Connection.new(self)
+    # The optional block receives each channel as the op creates it, so an
+    # example can make one of its calls fail.
+    def connection(&on_channel) = Connection.new(self, &on_channel)
   end
 
   class Connection
-    def initialize(broker)
-      @broker = broker
+    def initialize(broker, &on_channel)
+      @broker     = broker
+      @on_channel = on_channel
     end
 
     def create_channel
-      Channel.new(@broker).tap { |ch| @broker.channels << ch }
+      Channel.new(@broker).tap do |ch|
+        @on_channel&.call(ch)
+        @broker.channels << ch
+      end
     end
   end
 

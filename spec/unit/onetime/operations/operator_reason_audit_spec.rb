@@ -34,6 +34,7 @@ require 'spec_helper'
 require 'onetime/audit_reason'
 require 'onetime/models/colonel_audit_event'
 require 'onetime/operations/dlq/purge'
+require 'onetime/operations/dlq/replay'
 require 'onetime/operations/memberships/remove'
 require 'onetime/operations/memberships/set_role'
 require 'onetime/operations/sessions/delete_session'
@@ -336,6 +337,44 @@ RSpec.describe 'operator-supplied reason on destructive verbs (#4338)' do
         result: :success,
         detail: { purged: 7, reason: 'clearing poison batch' },
         fail_closed: true,
+      )
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # Bulk DLQ replay: the op took no `reason:` before #4343 (decision 12)
+  # ---------------------------------------------------------------------------
+  describe Onetime::Operations::Dlq::Replay do
+    let(:broker) { DlqFakeBroker.broker(%w[A B]) }
+
+    def replay(**opts)
+      described_class.new(connection: broker.connection, queue: 'dlq.webhooks.payload', actor: actor, **opts).call
+    end
+
+    it 'carries the reason onto the applied replay' do
+      replay(reason: 'webhook endpoint fixed')
+
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+        actor: actor,
+        verb: 'queue.dlq.replay',
+        target: 'dlq.webhooks.payload',
+        result: :success,
+        detail: { replayed: 2, failed: 0, reason: 'webhook endpoint fixed' },
+      )
+    end
+
+    it 'leaves the applied detail byte-for-byte unchanged without one' do
+      replay(reason: '   ')
+
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once
+        .with(hash_including(detail: { replayed: 2, failed: 0 }))
+    end
+
+    it 'carries the reason onto the preview observation' do
+      replay(dry_run: true, reason: 'webhook endpoint fixed')
+
+      expect(Onetime::ColonelAuditEvent).to have_received(:record_access).once.with(
+        hash_including(detail: { would_replay: 2, available: 2, dry_run: true, reason: 'webhook endpoint fixed' }),
       )
     end
   end

@@ -629,6 +629,12 @@ module Onetime
             "dlq:replayed:#{message_id}"
           end
 
+          # The operator's per-message replay of this DLQ
+          # (Onetime::Operations::Dlq::Replay, #4343) takes the same
+          # reservation through the same scripts, so a run and an operator
+          # cannot republish one id at the same time.
+          public :replay_keys, :reservation_key, :replayed_marker_key
+
           # The datastore client. A seam for tests that interleave two runs.
           def dbclient = Familia.dbclient
 
