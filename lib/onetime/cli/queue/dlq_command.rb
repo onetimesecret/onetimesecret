@@ -10,11 +10,13 @@
 #   ots queue dlq show <queue> --id ID  Show specific message details
 #   ots queue dlq replay <queue>        Replay messages back to original queue
 #                                       (workers process them again)
+#   ots queue dlq replay <queue> --id ID   Replay one message
+#   ots queue dlq discard <queue> --id ID  Permanently drop one message
 #   ots queue dlq purge <queue>         Remove messages from DLQ
 #
 # The DLQ list / show / replay / purge capability now lives in central operations
 # (epic #42 / D3): the SINGLE implementation of each verb. These CLI commands are
-# thin adapters over Onetime::Operations::Dlq::{List, Peek, Show, Replay, Purge}
+# thin adapters over Onetime::Operations::Dlq::{List, Peek, Show, Replay, Discard, Purge}
 # and Onetime::Operations::Dlq::Store, preserving the historic output byte-for-byte
 # while the same ops now back the new colonel `/api/colonel/queues/dlq…` endpoints.
 # Loaded explicitly because CLI runs don't go through an app autoloader.
@@ -28,6 +30,7 @@ require 'onetime/operations/dlq/list'
 require 'onetime/operations/dlq/peek'
 require 'onetime/operations/dlq/show'
 require 'onetime/operations/dlq/replay'
+require 'onetime/operations/dlq/discard'
 require 'onetime/operations/dlq/purge'
 
 module Onetime
@@ -66,6 +69,13 @@ module Onetime
           yield conn
         ensure
           conn&.close
+        end
+
+        # A per-message lookup (#4343) that did not see the id. Not "not
+        # found": a consumer may hold it, or it sits deeper than the scan.
+        def not_visible_line(message_id, result)
+          limit = result.truncated ? ', stopped at the scan limit' : ''
+          "Message not visible: #{message_id} (scanned #{result.scanned.to_i} message(s)#{limit})"
         end
       end
 
@@ -302,25 +312,49 @@ module Onetime
           type: :integer,
           aliases: ['n'],
           desc: 'Number of messages to replay (default: all)'
+        option :id,
+          type: :string,
+          aliases: ['i'],
+          desc: 'Replay only this message id (exclusive with --count)'
+        # OPTIONAL operator-supplied why (#4338), recorded in the audit
+        # detail of the event the op writes.
+        option :reason,
+          type: :string,
+          default: nil,
+          desc: 'Operator-supplied reason (recorded in the admin audit trail)'
         option :format,
           type: :string,
           default: 'text',
           aliases: ['f'],
           desc: 'Output format: text or json'
 
-        def call(queue:, count: nil, format: 'text', **)
+        def call(queue:, count: nil, id: nil, reason: nil, format: 'text', **)
           boot_application!
 
+          if id && count
+            puts 'Error: --id and --count are exclusive'
+            exit 1
+          end
+
+          if id && id.strip.empty?
+            puts 'Error: --id must not be blank'
+            exit 1
+          end
+
           dlq_name = resolve_dlq_name(queue)
-          replay_messages(dlq_name, count, format)
+          if id
+            replay_message(dlq_name, id, format, reason)
+          else
+            replay_messages(dlq_name, count, format, reason)
+          end
         end
 
         private
 
-        def replay_messages(dlq_name, count, format)
+        def replay_messages(dlq_name, count, format, reason = nil)
           with_rabbitmq_connection do |conn|
             result = Onetime::Operations::Dlq::Replay.new(
-              connection: conn, queue: dlq_name, count: count, actor: CLI_ACTOR,
+              connection: conn, queue: dlq_name, count: count, actor: CLI_ACTOR, reason: reason,
             ).call
 
             # Only the truly-empty queue prints "No messages"; a non-empty queue
@@ -344,6 +378,37 @@ module Onetime
           exit 1
         end
 
+        # One message by id (#4343). A miss or an email DLQ refusal exits 1;
+        # a replay that ran prints the same results as a bulk replay.
+        def replay_message(dlq_name, message_id, format, reason)
+          with_rabbitmq_connection do |conn|
+            result = Onetime::Operations::Dlq::Replay.new(
+              connection: conn, queue: dlq_name, message_id: message_id, actor: CLI_ACTOR, reason: reason,
+            ).call
+
+            case result.status
+            when :not_visible
+              puts not_visible_line(message_id, result)
+              exit 1
+            when :refused
+              puts "Not replayed (#{result.outcome}): #{result.errors.first&.fetch(:error, nil)}"
+              exit 1
+            end
+
+            results = { replayed: result.replayed, failed: result.failed, errors: result.errors }
+
+            if format == 'json'
+              puts JSON.pretty_generate(results.merge(queue: dlq_name, message_id: message_id))
+            else
+              display_replay_results(dlq_name, results)
+            end
+            exit 1 if result.failed.positive?
+          end
+        rescue Bunny::NotFound
+          puts "Queue not found: #{dlq_name}"
+          exit 1
+        end
+
         def display_replay_results(dlq_name, results)
           puts '═' * 70
           puts "Replay Results: #{dlq_name}"
@@ -360,6 +425,137 @@ module Onetime
             end
           end
           puts
+        end
+      end
+
+      # Discard (permanently drop) one DLQ message by id (#4343). The
+      # single-message twin of `dlq purge`: a dry run finds the message and
+      # names its original queue for the y/N prompt, then the live op drops
+      # it and records one fail-closed audit event.
+      class DlqDiscardCommand < DlqBase
+        desc 'Discard (permanently drop) one message from a Dead Letter Queue'
+
+        argument :queue,
+          type: :string,
+          required: true,
+          desc: 'DLQ name (e.g., billing.event)'
+        option :id,
+          type: :string,
+          aliases: ['i'],
+          desc: 'Message ID to discard (required)'
+        option :dry_run,
+          type: :boolean,
+          default: false,
+          desc: 'Find the message and report it without dropping it'
+        option :force,
+          type: :boolean,
+          default: false,
+          aliases: ['f'],
+          desc: 'Skip confirmation prompt'
+        # OPTIONAL operator-supplied why (#4338), recorded in the audit
+        # detail of the event the op writes.
+        option :reason,
+          type: :string,
+          default: nil,
+          desc: 'Operator-supplied reason (recorded in the admin audit trail)'
+        option :format,
+          type: :string,
+          default: 'text',
+          desc: 'Output format: text or json'
+
+        def call(queue:, id: nil, dry_run: false, force: false, reason: nil, format: 'text', **)
+          boot_application!
+
+          if id.to_s.strip.empty?
+            puts 'Error: Must specify --id'
+            exit 1
+          end
+
+          dlq_name = resolve_dlq_name(queue)
+          discard_message(dlq_name, id, dry_run: dry_run, force: force, format: format, reason: reason)
+        end
+
+        private
+
+        def discard_message(dlq_name, message_id, dry_run:, force:, format:, reason:)
+          with_rabbitmq_connection do |conn|
+            # Find it first, for the prompt, WITHOUT dropping anything. Not
+            # silent: the dry run records one OBSERVATION (`result:
+            # 'preview'`) on the access trail (#4337).
+            preview = Onetime::Operations::Dlq::Discard.new(
+              connection: conn,
+              queue: dlq_name,
+              message_id: message_id,
+              actor: CLI_ACTOR,
+              dry_run: true,
+              reason: reason,
+            ).call
+
+            unless preview.found
+              puts not_visible_line(message_id, preview)
+              exit 1
+            end
+
+            original = preview.original_queue || 'unknown'
+
+            if dry_run
+              print_discard(
+                format,
+                dlq_name,
+                message_id,
+                original,
+                discarded: false,
+                text: "Would discard message #{message_id} from #{dlq_name} (original queue: #{original})",
+              )
+              return
+            end
+
+            unless force
+              puts "WARNING: This will permanently drop message #{message_id} from #{dlq_name} (original queue: #{original})"
+              print 'Continue? [y/N] '
+              response = $stdin.gets&.strip&.downcase
+              unless response == 'y'
+                puts 'Aborted.'
+                exit 0
+              end
+            end
+
+            result = Onetime::Operations::Dlq::Discard.new(
+              connection: conn, queue: dlq_name, message_id: message_id, actor: CLI_ACTOR, reason: reason,
+            ).call
+
+            case result.status
+            when :success
+              print_discard(
+                format,
+                dlq_name,
+                message_id,
+                original,
+                discarded: true,
+                text: "Discarded message #{message_id} from #{dlq_name}",
+              )
+            when :not_visible
+              # Taken by a consumer (or another operator) after the preview.
+              puts not_visible_line(message_id, result)
+              exit 1
+            else
+              puts result.error
+              exit 1
+            end
+          end
+        rescue Bunny::NotFound
+          puts "Queue not found: #{dlq_name}"
+          exit 1
+        end
+
+        def print_discard(format, dlq_name, message_id, original, discarded:, text:)
+          if format == 'json'
+            puts JSON.pretty_generate(
+              { queue: dlq_name, message_id: message_id, original_queue: original, discarded: discarded },
+            )
+          else
+            puts text
+          end
         end
       end
 
@@ -446,12 +642,14 @@ module Onetime
     register 'queue dlq list', Queue::DlqListCommand
     register 'queue dlq show', Queue::DlqShowCommand
     register 'queue dlq replay', Queue::DlqReplayCommand
+    register 'queue dlq discard', Queue::DlqDiscardCommand
     register 'queue dlq purge', Queue::DlqPurgeCommand
 
     # Aliases (queues → queue)
     register 'queues dlq list', Queue::DlqListCommand
     register 'queues dlq show', Queue::DlqShowCommand
     register 'queues dlq replay', Queue::DlqReplayCommand
+    register 'queues dlq discard', Queue::DlqDiscardCommand
     register 'queues dlq purge', Queue::DlqPurgeCommand
   end
 end
