@@ -349,7 +349,7 @@ module Auth::Config::Hooks
           level: :info,
           provider: omniauth_provider,
           uid: omniauth_uid,
-          email: OT::Utils.obscure_email(omniauth_email),
+          email: OT::Utils.obscure_email(omniauth_email.to_s),
           ip: request.ip,
         )
 
@@ -652,9 +652,9 @@ module Auth::Config::Hooks
     # An empty allowlist is NOT a rung — valid_email_domain? returns true and
     # the callback proceeds. That is the documented allow-all state.
     #
-    # Rejections reuse auth_error=domain_not_allowed, which Login.vue already
-    # renders from a localized key and which deliberately does not disclose the
-    # configured domains. The audit event is distinct
+    # Missing and malformed claims use missing_email and invalid_email;
+    # policy/configuration denials use domain_not_allowed without disclosing
+    # the configured domains. The audit event is distinct
     # (:omniauth_tenant_domain_rejected) so operators can still tell a tenant
     # allowlist denial apart from the signup-domain denial in hooks/omniauth.rb.
     # The asserted address is attacker-controlled, so it is obscured in logs.
@@ -688,8 +688,10 @@ module Auth::Config::Hooks
                  :allowlist_unreadable
                elsif sso_config.allowed_domains.empty?
                  nil # No allowlist configured — every authenticated identity is permitted.
-               elsif !Onetime::SignupValidation.structurally_valid_email?(candidate)
-                 :unusable_email
+               elsif candidate.match?(/\A[[:space:]]*\z/)
+                 :missing_email
+               elsif !email.is_a?(String) || !Onetime::SignupValidation.structurally_valid_email?(candidate)
+                 :invalid_email
                elsif !sso_config.valid_email_domain?(candidate)
                  :domain_not_allowed
                end
@@ -700,11 +702,12 @@ module Auth::Config::Hooks
         :omniauth_tenant_domain_rejected,
         level: :warn,
         domain_id: domain_id,
-        email: OT::Utils.obscure_email(email),
+        email: OT::Utils.obscure_email(email.to_s),
         reason: reason,
       )
 
-      rodauth.send(:redirect, '/signin?auth_error=domain_not_allowed')
+      error = [:missing_email, :invalid_email].include?(reason) ? reason : :domain_not_allowed
+      rodauth.send(:redirect, "/signin?auth_error=#{error}")
     end
 
     # Where a platform-path request lands when the install-wide OIDC issuer

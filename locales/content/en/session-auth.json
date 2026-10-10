@@ -143,15 +143,20 @@
     "context": "Shown on signin page when SSO is attempted on a custom domain whose ownership is not verified yet. SSO is refused until verification completes; the visitor cannot fix this, the domain's administrator can.",
     "content_hash": "bd981480"
   },
+  "web.login.errors.missing_email": {
+    "text": "Your identity provider did not supply an email address required for this sign-in. Please contact your administrator.",
+    "context": "Shown when a new SSO account has no email claim, or when a tenant email-domain allowlist cannot authorize a sign-in without one. Does not imply that the user has no mailbox or that an administrator can always configure the claim.",
+    "content_hash": "c08197a3"
+  },
   "web.login.errors.invalid_email": {
     "text": "The email address from your identity provider is invalid. Please contact your administrator.",
-    "context": "Shown on signin page when SSO callback returns a malformed email (missing @, empty domain, multiple @).",
+    "context": "Shown on signin page when SSO callback supplies a present but malformed email (missing @, empty domain, multiple @). Missing or blank claims use missing_email instead.",
     "content_hash": "10c12029"
   },
   "web.login.errors.domain_not_allowed": {
-    "text": "Your email domain is not authorized for SSO signup. Please contact your administrator.",
-    "context": "Shown on signin page when SSO signup is blocked by the email domain policy (per-domain SignupConfig or global allowed_signup_domains).",
-    "content_hash": "87603782"
+    "text": "Your email domain is not authorized for this SSO sign-in. Please contact your administrator.",
+    "context": "Shown when a usable email is rejected by a signup-domain policy or tenant SSO allowlist, including returning sign-ins. Also used when tenant allowlist configuration cannot be read safely; operator logs distinguish those denials. Missing and malformed claims use separate errors when tenant policy can be evaluated.",
+    "content_hash": "952bcbc1"
   },
   "web.login.errors.account_exists_link_required": {
     "text": "An account with this email address already exists but isn't linked to this sign-in method. Sign in with your existing method, then link this provider under Security settings → Connected identities.",
