@@ -22,6 +22,18 @@ require_relative 'omniauth_connect'
 
 module Auth::Config::Hooks
   module OmniAuth
+    # Rodauth builds the account from omniauth_email BEFORE the creation guard
+    # validates it. Trim at the accessor so PostgreSQL receives the same value
+    # the guard checked, while preserving nil and the provider's casing.
+    module EmailNormalization
+      def omniauth_email
+        value = super
+        # Keep non-String claims intact so the guards reject them as invalid,
+        # rather than coercing an array containing an email into a mailbox.
+        value.is_a?(String) ? value.gsub(/\A[[:space:]]+|[[:space:]]+\z/, '').strip : value
+      end
+    end
+
     # The only initiator of a platform Connect is the Connected Identities
     # panel, so a refused initiation sends the user through the SPA's
     # re-authentication view and back to that panel (#4411). Both are SPA
@@ -123,7 +135,10 @@ module Auth::Config::Hooks
     # callback flow across methods and obscure the account_from_omniauth branch
     # order the security model depends on.
     def self.configure(auth)
-      auth.auth_class_eval { prepend Auth::Config::Hooks::OmniAuthConnect::Callback }
+      auth.auth_class_eval do
+        prepend Auth::Config::Hooks::OmniAuth::EmailNormalization
+        prepend Auth::Config::Hooks::OmniAuthConnect::Callback
+      end
 
       # Normalize email for case-insensitive account lookup.
       # Required because:
@@ -694,10 +709,20 @@ module Auth::Config::Hooks
       # Global: Set via ALLOWED_SIGNUP_DOMAIN environment variable (comma-separated)
       #
       auth.before_omniauth_create_account do
-        email = omniauth_email.to_s.strip.downcase
+        claim = omniauth_email
+        email = claim.to_s.strip.downcase
 
-        # Reject unusable emails from IdP (distinct from policy rejection): a
-        # missing/empty claim, or any shape the accounts.valid_email CHECK
+        if email.match?(/\A[[:space:]]*\z/)
+          Auth::Logging.log_auth_event(
+            :omniauth_missing_email,
+            level: :warn,
+            provider: omniauth_provider,
+          )
+          redirect '/signin?auth_error=missing_email'
+        end
+
+        # Reject present but malformed emails, distinct from policy rejection:
+        # any shape the accounts.valid_email CHECK
         # constraint would reject (internal spaces, comma/semicolon in either
         # part, a dotless domain, etc. — see SignupValidation::VALID_EMAIL_PATTERN).
         # Redirect with a stable error code so Login.vue can show a localized
@@ -707,7 +732,7 @@ module Auth::Config::Hooks
         # (rather than letting a claim the CHECK rejects fall through to account
         # creation, which 500s as Sequel::CheckConstraintViolation) keeps the
         # user on a localized error instead of a frozen screen (#3478, #3971).
-        unless Onetime::SignupValidation.structurally_valid_email?(email)
+        unless claim.is_a?(String) && Onetime::SignupValidation.structurally_valid_email?(email)
           Auth::Logging.log_auth_event(
             :omniauth_invalid_email,
             level: :warn,
