@@ -6,10 +6,17 @@ allowBuilds:
 
 overrides:
   '@babel/core': '>=7.29.6 <8'
+  # GHSA-p498-v437-472g fixed in 0.16.8 (via eslint).
+  '@humanfs/node': '^0.16.8'
   '@types/estree': '1.0.9'
   # CVE-2026-45819 / GHSA-w5vr-8v7q-w6rv fixed in 2.11.0.
   baseline-browser-mapping: '^2.11.0'
   esbuild: '>=0.28.1'
+  # GHSA-5jgf-p345-68v8, GHSA-f65p-4m7j-42xc, GHSA-fph4-wmhf-6fwf,
+  # GHSA-jqff-g426-hqxp, GHSA-qw65-cvwx-89v3 fixed in 3.1.7 (v3 line, via ajv@8).
+  fast-uri: '^3.1.7'
+  # CVE-2026-45820 / GHSA-px8p-9vwx-vf98 fixed in 0.8.3 (via @vitest/ui).
+  fflate: '^0.8.3'
   # brace-expansion advisories are fixed on every maintenance line, not just v5.
   # A flat v5 pin is NOT possible: the tree needs three incompatible majors
   # (minimatch@3->^1, @9->^2, @10->^5), and v5 is ESM-first — its CJS build
@@ -30,12 +37,22 @@ overrides:
   # (pulled in transitively) does `require('js-yaml').safeLoad`, which breaks
   # under the ESM-only build.
   js-yaml: '>=4.3.2 <5'
-  markdown-it: '>=14.2.0'
+  # GHSA-253c-mchw-3w2r fixed in 14.3.1 (and 15.0.1). Every consumer asks for
+  # ^14.1.0; the cap keeps a re-resolve from jumping to v15.
+  markdown-it: '^14.3.1'
   # CVE-2026-67213 / GHSA-2v37-7h3g-55p8 fixed in 3.3.18 (v3 line, via postcss).
   # The v5 line is a direct dependency, pinned in package.json above 5.1.6.
   'nanoid@3': '^3.3.18'
   # CVE-2026-19534 / GHSA-rfgv-xxqx-mfg5, CVE-2026-18540 / GHSA-r53p-7pc4-xj5r,
   # CVE-2026-85024 / GHSA-3wwx-pv8p-q78v fixed in 6.28.1.
+  # CVE-2026-104844 / GHSA-rj75-hqrm-r3gf is fixed only in 7.1.6; there is no
+  # patched 6.x. @tailwindcss/typography@0.5.20 (latest) pins 6.0.10 exactly,
+  # so this lifts it to v7. v7's one breaking change makes insertions during
+  # each()/walk() iteration safe; typography only calls astSync(), remove() and
+  # prepend() outside container iteration, and the built CSS is unchanged.
+  postcss-selector-parser: '^7.1.6'
+  # CVE-2026-93749 / GHSA-68fv-2mgg-jv7q fixed in 1.2.2.
+  source-map-js: '^1.2.2'
   undici: '>=6.28.1 <7'
   ws: '>=8.21.0'
   yaml: '^2.8.3'
