@@ -328,6 +328,43 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
       end
     end
 
+    # #4735: the email-change confirmation secret is delivered to the PROPOSED
+    # address. A customer without mailbox proof must not be able to turn it into
+    # proof of their CURRENT address by feeding it to the reveal endpoint.
+    context 'when the secret is the pending email-change confirmation' do
+      it 'reveals the plaintext without stamping the owner' do
+        owner.verified    = true
+        owner.verified_by = 'stripe_payment'
+        owner.save
+        owner.pending_email_change = secret.identifier
+
+        as_owner = double('Customer', custid: owner.custid, anonymous?: false, objid: owner.objid,
+          extid: owner.extid)
+        logic    = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' }, customer: as_owner)
+        logic.process_params
+        logic.process
+
+        expect(logic.show_secret).to be true
+        expect(Onetime::Secret.load(secret.identifier)).to be_nil
+
+        reloaded = Onetime::Customer.load(owner.objid)
+        expect(reloaded.verified_by).to eq('stripe_payment')
+        expect(reloaded.mailbox_verified?).to be false
+      end
+
+      it 'does not stamp an unverified owner either' do
+        owner.pending_email_change = secret.identifier
+
+        logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+        logic.process_params
+        logic.process
+
+        expect(logic.show_secret).to be true
+        reloaded = Onetime::Customer.load(owner.objid)
+        expect(reloaded.verified?).to be false
+      end
+    end
+
     context 'when the secret has no owner' do
       let!(:pair) { Onetime::Receipt.spawn_pair(nil, 3600, 'a secret value') }
 

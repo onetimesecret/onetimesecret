@@ -80,9 +80,12 @@ module V1::Logic
             if owner.nil?
               raise_form_error "Unable to verify account"
             elsif cust.nil? || cust.anonymous? || (cust.custid == owner.custid && !owner.mailbox_verified?)
-              owner.verified    = true
-              owner.verified_by = 'email'
-              owner.save
+              # Not for the email-change confirmation secret (#4735).
+              if owner.mailbox_proof_secret?(secret)
+                owner.verified    = true
+                owner.verified_by = 'email'
+                owner.save
+              end
               # Skip for stateless auth (BasicAuth provides empty session)
               sess.clear unless sess.empty?
               @revealed = secret.revealed!(actor_context: lifecycle_actor_context(secret))

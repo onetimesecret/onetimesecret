@@ -171,21 +171,34 @@ module V2::Logic
               @secret_value = secret.reveal!(passphrase_input: @passphrase, actor_context: actor_context)
 
             elsif owner && (cust&.anonymous? || (cust&.custid == owner.custid && !owner.mailbox_verified?))
-              secret_logger.info 'Owner verification successful',
-                {
-                  secret_identifier: secret.shortid,
-                  owner_id: owner.objid,
-                  action: 'verification',
-                  result: :verified,
-                }
-              # Following the link delivered to the address IS mailbox proof, so
+              # Following a link delivered to the address IS mailbox proof, so
               # this also upgrades an owner whose stamp carried none (payment,
               # autoverify, legacy) — the gate above is mailbox_verified?, not
-              # verified? (#4735).
-              owner.verified    = true
-              owner.verified_by = 'email'  # Track email verification method
-              owner.save
-              owner.reset_secret.delete!
+              # verified? (#4735). EXCEPT the email-change confirmation secret,
+              # which was delivered to the PROPOSED address: revealing it here
+              # proves nothing about the current one, so it is shown without
+              # a stamp (Customer#mailbox_proof_secret?).
+              if owner.mailbox_proof_secret?(secret)
+                secret_logger.info 'Owner verification successful',
+                  {
+                    secret_identifier: secret.shortid,
+                    owner_id: owner.objid,
+                    action: 'verification',
+                    result: :verified,
+                  }
+                owner.verified    = true
+                owner.verified_by = 'email'  # Track email verification method
+                owner.save
+                owner.reset_secret.delete!
+              else
+                secret_logger.info 'Verification secret is not mailbox proof for the owner; revealing without stamping',
+                  {
+                    secret_identifier: secret.shortid,
+                    owner_id: owner.objid,
+                    action: 'verification',
+                    result: :not_mailbox_proof,
+                  }
+              end
               # Skip for stateless auth (BasicAuth provides empty session)
               sess.clear unless sess.empty?
               @secret_value     = secret.reveal!(passphrase_input: @passphrase, actor_context: actor_context)

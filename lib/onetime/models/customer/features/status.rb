@@ -89,6 +89,21 @@ module Onetime::Customer::Features
         verified? && Onetime::Customer::MAILBOX_VERIFIED_BY.include?(verified_by.to_s)
       end
 
+      # Does revealing this verification secret prove control of THIS
+      # customer's current mailbox? The account-verification and password-
+      # reset links are delivered to the customer's address, so yes. The
+      # email-change confirmation link is delivered to the PROPOSED address
+      # (RequestEmailChange records it on pending_email_change), so no: a
+      # customer without mailbox proof must not be able to mint it for their
+      # current address by confirming a change to one they do control.
+      #
+      # @param secret [Onetime::Secret] a secret flagged verification
+      # @return [Boolean]
+      def mailbox_proof_secret?(secret)
+        pending = pending_email_change.value.to_s
+        pending.empty? || pending != secret.identifier.to_s
+      end
+
       # Check if account was created via Stripe payment (not email verified)
       def payment_verified?
         verified? && verified_by.to_s == 'stripe_payment'
