@@ -37,7 +37,9 @@
 #     - SQL ok, Redis raises → Rodauth fresh, Customer stale.
 #       Auth state (the important one) is correct; display of
 #       Customer#verified? will be wrong until next save.
-#       Detectable and fixable via `bin/ots customers sync-auth-accounts`.
+#       Detectable and fixable via `bin/ots customers sync-auth-accounts`,
+#       and the next call through this op (any change, including a
+#       provenance-only one) reconciles the SQL row again.
 #
 
 require 'auth/account_statuses'
@@ -95,9 +97,14 @@ module Auth
         # A provenance-only change (verified stays true, verified_by moves from
         # 'sso' to 'cli_provision', say) is how an already-Verified account
         # acquires MAILBOX proof (#4735): Rodauth's verify_account never runs
-        # for a Verified row, so this is the only path. The SQL status is
-        # already right in that case; only the Redis mirror is written.
-        update_rodauth_account! if state_changes && full_auth_mode? && !@rodauth_already_synced
+        # for a Verified row, so this is the only path. The SQL row is still
+        # reconciled to the target state rather than assumed correct: an
+        # earlier call can have committed SQL and then failed the Redis save
+        # (failure modes above), leaving Redis reading verified while the
+        # accounts row is Unverified. Only `rodauth_already_synced:` — the
+        # caller's explicit guarantee — skips it. The UPDATE is idempotent on a
+        # row already in the target state.
+        update_rodauth_account! if full_auth_mode? && !@rodauth_already_synced
         update_customer!
 
         auth_logger.debug "[set-customer-verification] #{@customer.extid} " \

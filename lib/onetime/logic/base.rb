@@ -484,6 +484,7 @@ module Onetime
         _receipt, secret = Onetime::Receipt.spawn_pair(customer&.objid, 24.days, msg)
 
         secret.verification = true
+        secret.kind         = 'account_verification' # mailbox proof for the owner's current address (#4735)
         secret.custid       = customer.custid
         secret.save
 

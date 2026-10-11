@@ -462,6 +462,22 @@ module Auth
           return false
         end
 
+        # Ownership gate: a workspace that already holds its own Stripe
+        # subscription is a subscription OWNER, not a federation target. The
+        # claim below would overwrite its plan, status and period end with the
+        # cross-region record's and destroy that record, while the local Stripe
+        # subscription (and its webhooks) kept driving the org — two sources of
+        # truth for one workspace. Reachable through the deferred re-claim
+        # (SetCustomerVerification → .claim_pending_federation_for): an SSO
+        # customer can subscribe locally while the cross-region record waits on
+        # mailbox proof (#4735 review). The local subscription stands; the
+        # pending record is left intact.
+        if org.subscription_owner? || !org.stripe_subscription_id.to_s.empty?
+          auth_logger.info '[create-default-workspace] Federated subscription claim refused: workspace owns a local subscription',
+            { org: org.extid }
+          return false
+        end
+
         # Verification gate: on the standard signup path the email is not yet
         # verified at account-creation time, and on the SSO JIT path it is
         # IdP-asserted but never mailbox-proven. Defer the claim (leaving the

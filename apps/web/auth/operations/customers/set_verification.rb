@@ -117,20 +117,29 @@ module Auth
           refusal = unverify_refusal
           return build(refusal) if refusal
 
-          # Provenance to restore if the post-write re-validation below rolls this
-          # unverify back. Read BEFORE the write and ONLY on the unverify-of-a-colonel
-          # path #unverify_left_no_colonel? can trip: SetCustomerVerification#update_customer!
-          # assigns verified_by UNCONDITIONALLY, and the unverify arm passes nil
-          # (SetUserVerification#verified_by_tag returns nil when clearing), so the
-          # write blanks it in memory. The rollback must restore this ORIGINAL tag,
-          # not the nil this op was called with — otherwise a concurrent double-unverify
-          # re-verifies the surviving colonel with verified_by wiped, destroying the
-          # 'sso'/'colonel_admin'/'email' provenance (#4328). Guarded so other callers
-          # (verify arm, non-colonel targets, provenance resets) need not expose it.
-          original_verified_by =
-            if !@verified && @enforce_interlocks && @customer.role.to_s == 'colonel'
-              @customer.verified_by
-            end
+          # Was the target an ACTIVE colonel (colonel role + mailbox proof)
+          # going in? Read BEFORE the write and ONLY on the interlocked unverify
+          # path. Only that unverify can empty the roster, so only it may be
+          # rolled back below. A colonel-role account that was NOT active — an
+          # unverified record carrying a stale provenance (CLI creation with
+          # --no-verified used to stamp 'cli_provision' regardless) — reaches the
+          # inner op as a provenance-only clear: it removed no colonel, so an
+          # empty roster afterwards is not this op's doing, and "rolling back"
+          # would VERIFY it, handing the account the colonel eligibility it never
+          # had (#4735 review).
+          #
+          # The provenance to restore is read here too. SetCustomerVerification
+          # #update_customer! assigns verified_by UNCONDITIONALLY, and the unverify
+          # arm passes nil (SetUserVerification#verified_by_tag returns nil when
+          # clearing), so the write blanks it in memory. The rollback must restore
+          # this ORIGINAL tag, not the nil this op was called with — otherwise a
+          # concurrent double-unverify re-verifies the surviving colonel with
+          # verified_by wiped, destroying the 'colonel_admin'/'email' provenance
+          # (#4328). Guarded so other callers (verify arm, non-colonel targets,
+          # provenance resets) need not expose it.
+          rollback_candidate   = !@verified && @enforce_interlocks &&
+                                 @customer.role.to_s == 'colonel' && @customer.mailbox_verified?
+          original_verified_by = @customer.verified_by if rollback_candidate
 
           result = Auth::Operations::SetCustomerVerification.new(
             customer: @customer,
@@ -147,7 +156,9 @@ module Auth
           # unverify emptied it, roll the unverify back (re-verify) and refuse
           # through the SAME build exit, so the :last_colonel failure still audits.
           # Over-preserving on a concurrent double-rollback is the safe direction.
-          if result == :success && unverify_left_no_colonel?
+          # Only for a target that was an active colonel going in (see above):
+          # the rollback is a VERIFY, and must never grant proof the target lacked.
+          if rollback_candidate && result == :success && unverify_left_no_colonel?
             Auth::Operations::SetCustomerVerification.new(
               customer: @customer,
               verified: true,

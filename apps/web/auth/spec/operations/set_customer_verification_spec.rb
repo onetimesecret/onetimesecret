@@ -234,10 +234,28 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
       expect(customer).to have_received(:save)
     end
 
-    it 'skips the SQL update in full mode — the accounts row is already Verified' do
+    # The accounts row is EXPECTED to be Verified already, but it is reconciled
+    # rather than assumed: an earlier unverify can have committed SQL and then
+    # failed the Redis save, leaving Redis reading verified/'sso' while the row
+    # is Unverified. A provenance-only verify that skipped SQL would then report
+    # :success with Rodauth still refusing the login (#4735 review).
+    it 'reconciles the SQL row in full mode rather than assuming it is Verified' do
       allow(auth_config).to receive(:mode).and_return('full')
+      allow(db).to receive(:transaction).and_return(1)
 
       op = described_class.new(customer: customer, verified: true, verified_by: 'cli_provision', db: db)
+
+      expect(op.call).to eq(:success)
+      expect(db).to have_received(:transaction)
+      expect(customer).to have_received(:save)
+    end
+
+    it 'skips SQL only on the explicit rodauth_already_synced guarantee' do
+      allow(auth_config).to receive(:mode).and_return('full')
+
+      op = described_class.new(
+        customer: customer, verified: true, verified_by: 'cli_provision', rodauth_already_synced: true, db: db,
+      )
 
       expect(op.call).to eq(:success)
       expect(db).not_to have_received(:transaction)

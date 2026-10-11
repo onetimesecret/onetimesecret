@@ -292,6 +292,50 @@ RSpec.describe 'EnsureDefaultWorkspace: federated subscription claim gate', type
   end
 
   # ---------------------------------------------------------------------------
+  # A workspace that owns a local subscription is never a federation target
+  # ---------------------------------------------------------------------------
+  describe 'a default workspace that already owns a local subscription' do
+    # The deferred re-claim can arrive long after signup: an SSO customer
+    # subscribes locally while the cross-region record waits on mailbox proof.
+    # Applying the pending record would overwrite the local plan, status and
+    # period end, keep the local Stripe subscription id, and destroy the
+    # pending record — two sources of truth for one workspace (#4735 review).
+    it 'refuses the re-claim, keeps the local plan and leaves the pending record intact' do
+      email = unique_email('local-owner')
+      create_pending_for(email, status: 'active', planid: 'pro_monthly')
+      customer = create_customer(email: email, verified: true, verified_by: 'sso', provisioning_origin: 'sso_jit')
+
+      org = Auth::Operations::EnsureDefaultWorkspace.new(customer: customer, require_verification: true).call[:organization]
+      created_organizations << org
+      expect(pending_exists?(email)).to be(true)
+
+      # Local checkout completes before the operator verifies the address.
+      local_sub                   = "sub_local_#{SecureRandom.hex(6)}"
+      org.stripe_customer_id      = "cus_local_#{SecureRandom.hex(6)}"
+      org.stripe_subscription_id  = local_sub
+      org.planid                  = 'team_yearly'
+      org.subscription_status     = 'trialing'
+      org.subscription_period_end = '1999999999'
+      org.save
+
+      customer.verified_by = 'cli_provision'
+      customer.save
+      expect(customer.mailbox_verified?).to be(true)
+
+      applied = Auth::Operations::EnsureDefaultWorkspace.claim_pending_federation_for(customer)
+      expect(applied).to be(false)
+
+      org.refresh!
+      expect(org.planid.to_s).to eq('team_yearly')
+      expect(org.subscription_status.to_s).to eq('trialing')
+      expect(org.subscription_period_end.to_s).to eq('1999999999')
+      expect(org.stripe_subscription_id).to eq(local_sub)
+      expect(org.subscription_federated?).to be(false)
+      expect(pending_exists?(email)).to be(true)
+    end
+  end
+
+  # ---------------------------------------------------------------------------
   # Planless pending records must not be claimed (cross-region catalog miss)
   # ---------------------------------------------------------------------------
   describe 'pending record without a resolved planid' do

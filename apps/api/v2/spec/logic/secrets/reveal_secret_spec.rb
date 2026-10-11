@@ -383,6 +383,71 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
       end
     end
 
+    # #4735 review F1: a confirmation secret minted BEFORE Secret#kind was
+    # recorded has no kind, and two requests left two live secrets with only
+    # the second on pending_email_change. The first is still revealable; it
+    # was delivered to a proposed address and must not read as proof of the
+    # current one. Minted exactly as RequestEmailChange did: Secret.create!,
+    # no receipt, the proposed address as the ciphertext.
+    context 'when the secret is a legacy email-change confirmation no longer on the pointer' do
+      let(:secret) do
+        legacy              = Onetime::Secret.create!(owner_id: owner.objid)
+        legacy.custid       = owner.objid
+        legacy.ciphertext   = 'proposed@example.com'
+        legacy.save
+        legacy
+      end
+
+      it 'reveals the plaintext without stamping an SSO-only owner' do
+        owner.verified    = true
+        owner.verified_by = 'sso'
+        owner.save
+
+        owner.pending_email_change = "#{secret.identifier}-superseded-by-a-second-request"
+
+        as_owner = double('Customer', custid: owner.custid, anonymous?: false, objid: owner.objid,
+          extid: owner.extid)
+        logic    = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' }, customer: as_owner)
+        logic.process_params
+        logic.process
+
+        expect(logic.show_secret).to be true
+        expect(logic.secret_value).to eq('proposed@example.com')
+        expect(Onetime::Secret.load(secret.identifier)).to be_nil
+
+        reloaded = Onetime::Customer.load(owner.objid)
+        expect(reloaded.verified_by).to eq('sso')
+        expect(reloaded.mailbox_verified?).to be false
+      end
+
+      it 'does not stamp an unverified owner either' do
+        logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+        logic.process_params
+        logic.process
+
+        expect(logic.show_secret).to be true
+        expect(Onetime::Customer.load(owner.objid).verified?).to be false
+      end
+    end
+
+    # The receipt-backed verification secret predates the kind too, and its
+    # reset_secret pointer (24h) outlives the link (24 days) by nothing like
+    # enough: an older signup link must keep verifying after the pointer has
+    # moved on to a resend, because only send_verification_email mints one.
+    context 'when the secret is a legacy account-verification link whose pointer has moved on' do
+      it 'still verifies the owner' do
+        owner.reset_secret = 'a-newer-resend'
+
+        logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+        logic.process_params
+        logic.process
+
+        expect(logic.show_secret).to be true
+        reloaded = Onetime::Customer.load(owner.objid)
+        expect(reloaded.verified_by).to eq('email')
+      end
+    end
+
     context 'when the secret has no owner' do
       let!(:pair) { Onetime::Receipt.spawn_pair(nil, 3600, 'a secret value') }
 

@@ -265,5 +265,39 @@ RSpec.describe Auth::Operations::Customers::SetVerification do
         )
       end
     end
+
+    # The rollback is a VERIFY. It may only undo an unverify that removed an
+    # active colonel. A colonel-role account that was NOT active going in — an
+    # unverified record still carrying a provenance (CLI creation with
+    # --no-verified used to stamp 'cli_provision' regardless) — reaches the
+    # inner op as a provenance-only clear and removes nobody from the roster.
+    # Rolling that back on an empty roster would verify the account with a
+    # mailbox-proof provenance, minting the colonel eligibility it never had
+    # (#4735 review).
+    describe 'a colonel-role target that was not an active colonel going in' do
+      let(:stale) do
+        double('Customer', extid: 'ur_stale', objid: 'cust_stale', role: 'colonel', exists?: true,
+                           verified?: false, mailbox_verified?: false, verified_by: 'cli_provision')
+      end
+
+      before { stub_roster }
+
+      it 'passes the clear through and never rolls back (verifies) on an empty roster' do
+        expect(unverify(stale)).to eq(:success)
+
+        expect(Auth::Operations::SetCustomerVerification).to have_received(:new).once
+        expect(Auth::Operations::SetCustomerVerification).not_to have_received(:new).with(
+          hash_including(verified: true),
+        )
+      end
+
+      it 'audits the clear as a success, not a :last_colonel refusal' do
+        unverify(stale)
+
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+          hash_including(target: 'ur_stale', result: :success),
+        )
+      end
+    end
   end
 end

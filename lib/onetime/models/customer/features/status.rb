@@ -97,20 +97,31 @@ module Onetime::Customer::Features
       # for their current address by confirming a change to one they do
       # control.
       #
-      # The secret identifies itself (Secret#kind == 'email_change'); that is
-      # the decision. The pending_email_change pointer is consulted as well
-      # only for confirmation secrets minted before the kind was recorded —
-      # a pointer alone is racy (a second request overwrites it, a crash
-      # between the two writes leaves it stale), so it never widens the
-      # answer, it can only narrow it further.
+      # The secret identifies itself (Secret#kind): 'email_change' is never
+      # proof; Secret::MAILBOX_PROOF_KINDS always is. A secret minted before
+      # the kind was recorded is classified by how it was minted: only
+      # send_verification_email mints a receipt-backed verification secret
+      # (Receipt.spawn_pair), so a receipt marks the account-verification
+      # link; a receiptless one is a password-reset or an email-change secret
+      # and counts only while it is the link this account recorded as its
+      # own (reset_secret). A missing or mismatched pointer is never proof:
+      # the pointers can only narrow the answer. An unrecorded legacy
+      # email-change secret — a second request overwrote the pointer, or a
+      # crash landed between the two writes — stays live until it expires
+      # and must not read as proof of the current address.
       #
       # @param secret [Onetime::Secret] a secret flagged verification
       # @return [Boolean]
       def mailbox_proof_secret?(secret)
-        return false if secret.kind.to_s == 'email_change'
+        kind = secret.kind.to_s
+        return false if kind == 'email_change'
+        return false if verification_pointer_names?(pending_email_change, secret)
+        return true if Onetime::Secret::MAILBOX_PROOF_KINDS.include?(kind)
 
-        pending = pending_email_change.value.to_s
-        pending.empty? || pending != secret.identifier.to_s
+        # Blank kind: minted before the kind was recorded.
+        return true unless secret.receipt_identifier.to_s.empty?
+
+        verification_pointer_names?(reset_secret, secret)
       end
 
       # Check if account was created via Stripe payment (not email verified)
@@ -149,6 +160,19 @@ module Onetime::Customer::Features
         # and have a role of 'customer'. If any one of these conditions is changes
         # then the customer is no longer pending.
         !anonymous? && !verified? && role?('customer') # we modify the role when destroying
+      end
+
+      private
+
+      # Does this standalone pointer (reset_secret / pending_email_change)
+      # currently name the given secret? Blank pointer: no.
+      #
+      # @param pointer [Familia::StringKey]
+      # @param secret [Onetime::Secret]
+      # @return [Boolean]
+      def verification_pointer_names?(pointer, secret)
+        recorded = pointer.value.to_s
+        !recorded.empty? && recorded == secret.identifier.to_s
       end
     end
 

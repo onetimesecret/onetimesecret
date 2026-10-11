@@ -21,7 +21,15 @@ Security
   ``xms_edov: false`` claim now withholds the verified stamp
   (``domain_unverified``) and is refused by a tenant email-domain allowlist;
   ``xms_edov: true`` is domain-owner verification only, never mailbox proof.
-  (#4735)
+  Verification secrets now identify themselves (``account_verification``,
+  ``password_reset``, ``email_change``); an email-change confirmation link
+  minted before the upgrade is recognised by how it was minted and never
+  stamps the current address, even after a second request superseded it.
+  ``customers unverify`` no longer verifies an unverified colonel-role account
+  through the last-colonel rollback; ``customers create --no-verified`` writes
+  no provenance. An operator verification in full auth mode reconciles the
+  Rodauth row on every change, and a deferred federated subscription is never
+  applied to a workspace that already owns a local subscription. (#4735)
 
   **Upgrade note:** a colonel, admin or staff account whose ``verified_by`` is
   ``sso``, ``stripe_payment``, ``autoverify``, ``legacy`` or empty loses the

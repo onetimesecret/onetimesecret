@@ -186,6 +186,37 @@ RSpec.describe 'Customers Command', type: :cli do
     end
   end
 
+  # #4735 review F2: an unverified record must carry no provenance. A stale
+  # 'cli_provision' on an unverified colonel used to turn a later `unverify`
+  # into a provenance-only clear whose last-colonel rollback VERIFIED it.
+  describe 'create subcommand' do
+    let(:created) { double('Customer', extid: 'cust_ext_new', update_passphrase: nil, save: true) }
+
+    before do
+      allow(Onetime).to receive(:auth_config).and_return(double('AuthConfig', mode: 'simple'))
+      allow(Onetime::Customer).to receive_messages(email_exists?: false, create!: created)
+      allow(OT).to receive(:info)
+    end
+
+    it 'stamps cli_provision on a verified record' do
+      run_cli_command_quietly('customers', 'create', 'new@example.com')
+
+      expect(Onetime::Customer).to have_received(:create!).with(
+        hash_including(verified: 'true', verified_by: 'cli_provision'),
+      )
+      expect(last_exit_code).to eq(0)
+    end
+
+    it 'leaves verified_by empty on an unverified record' do
+      run_cli_command_quietly('customers', 'create', 'new@example.com', '--no-verified')
+
+      expect(Onetime::Customer).to have_received(:create!).with(
+        hash_including(verified: 'false', verified_by: nil),
+      )
+      expect(last_exit_code).to eq(0)
+    end
+  end
+
   describe 'unverify subcommand' do
     it 'calls the op with verified: false and verified_by: nil' do
       allow(Onetime::Customer).to receive(:load_by_extid_or_email)
