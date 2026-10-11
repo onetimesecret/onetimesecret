@@ -114,6 +114,15 @@ module Onetime
             # the request already resolved instead of reading the display
             # domain again. nil when nothing has been looked up yet.
             custom_domain_lookup: env[Onetime::CustomDomain::Lookup::ENV_KEY],
+            # The verdict-only CIDR matcher IPPrivacyMiddleware installs over
+            # the resolved PRE-MASK client IP (a Proc; it never exposes the
+            # address). Logic classes never see the env, so this is how a
+            # network-scoped policy — the per-domain homepage allowed/denied
+            # ranges — judges the caller at full /32–/128 precision instead
+            # of against the masked `ip` above. nil when the stack did not
+            # run IPPrivacyMiddleware; consumers fail closed on nil only when
+            # a policy is actually configured.
+            ip_match: env['otto.ip_match'],
           }.merge(additional)
         end
 

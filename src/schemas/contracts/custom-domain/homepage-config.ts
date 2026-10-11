@@ -110,6 +110,26 @@ export const homepageConfigCanonical = z.object({
    */
   disabled_homepage_variant: disabledHomepageVariantSchema.nullable().catch(null),
 
+  /**
+   * Networks that may use the interactive homepage, as normalized
+   * "address/prefix" CIDR strings (IPv4 or IPv6). Empty means every network
+   * not denied. Visitors outside every allowed range get the private landing
+   * page and a 403 from anonymous secret creation — the same fail-closed
+   * behavior as a disabled homepage, so the rule is not advertised.
+   *
+   * In the bootstrap payload `enabled` already carries the per-visitor
+   * verdict; these lists are for the workspace/admin editors. `.default([])`
+   * covers payloads from backends that pre-date the fields.
+   */
+  allowed_cidrs: z.array(z.string()).default([]),
+
+  /**
+   * Networks that may never use the interactive homepage. A denied range
+   * wins over the allowed list. Same shape and defaulting as
+   * `allowed_cidrs`.
+   */
+  denied_cidrs: z.array(z.string()).default([]),
+
   /** Configuration creation timestamp (Unix epoch seconds). Null if unconfigured. */
   created_at: z.number().nullable(),
 

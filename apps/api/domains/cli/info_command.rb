@@ -78,6 +78,11 @@ module Onetime
         puts 'Feature Toggles:'
         puts "  Allow Public Home:    #{domain.allow_public_homepage? || 'false'}"
         puts "  Allow Public API:     #{domain.allow_public_api? || 'false'}"
+        homepage_config = Onetime::CustomDomain::HomepageConfig.find_by_domain_id(domain.identifier)
+        if homepage_config&.network_restricted?
+          puts "  Homepage Allowed CIDRs: #{homepage_config.allowed_cidrs.join(', ').then { it.empty? ? '(any)' : it }}"
+          puts "  Homepage Denied CIDRs:  #{homepage_config.denied_cidrs.join(', ').then { it.empty? ? '(none)' : it }}"
+        end
         puts
 
         # Vhost (Approximated) details

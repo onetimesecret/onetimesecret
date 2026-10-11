@@ -112,6 +112,9 @@ export const colonelHomepageConfigSchema = z.object({
   enabled: z.boolean(),
   secrets_mode: z.string(),
   disabled_homepage_variant: z.string().nullable(),
+  /** Homepage network rules, normalized "address/prefix" entries (empty = open). */
+  allowed_cidrs: z.array(z.string()).default([]),
+  denied_cidrs: z.array(z.string()).default([]),
   ...configTimestamps,
 });
 

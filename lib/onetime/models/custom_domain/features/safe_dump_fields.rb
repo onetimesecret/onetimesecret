@@ -140,6 +140,10 @@ module Onetime::CustomDomain::Features
             secrets_mode: config.secrets_mode_value,
             signup_enabled: config.signup_enabled?,
             signin_enabled: config.signin_enabled?,
+            # Stored network rules, so the workspace editor renders the
+            # operator's current lists (empty = no restriction).
+            allowed_cidrs: config.allowed_cidrs,
+            denied_cidrs: config.denied_cidrs,
             created_at: config.created&.to_i,
             updated_at: config.updated&.to_i,
           }

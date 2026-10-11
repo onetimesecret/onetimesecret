@@ -1699,5 +1699,90 @@
     "text": "This domain's homepage currently presents the incoming secrets form. Disabling incoming secrets or removing all recipients will switch the homepage to a private landing page until incoming is ready again.",
     "context": "Warning on the Incoming Secrets config page when the homepage secrets_mode is incoming and a change could un-ready it",
     "content_hash": "cc0d4997"
+  },
+  "web.domains.homepage.network_title": {
+    "text": "Network access",
+    "context": "Heading of the homepage network rules editor (allowed / denied CIDR ranges) inside the domain detail Homepage section",
+    "content_hash": "0226fc91"
+  },
+  "web.domains.homepage.network_description": {
+    "text": "Limit the interactive homepage to specific networks. Visitors outside the allowed ranges, or inside a denied range, see the private landing page instead.",
+    "context": "Description under the Network access heading in the homepage network rules editor",
+    "content_hash": "acd22f65"
+  },
+  "web.domains.homepage.network_allowed_label": {
+    "text": "Allowed networks",
+    "context": "Label for the list of CIDR ranges that may use the interactive homepage",
+    "content_hash": "aa3e7495"
+  },
+  "web.domains.homepage.network_allowed_hint": {
+    "text": "IPv4 or IPv6 addresses and CIDR ranges, for example 203.0.113.0/24 or 2001:db8::/32. Leave empty to allow every network that is not denied.",
+    "context": "Hint under the allowed networks list in the homepage network rules editor",
+    "content_hash": "46eba008"
+  },
+  "web.domains.homepage.network_denied_label": {
+    "text": "Denied networks",
+    "context": "Label for the list of CIDR ranges that may never use the interactive homepage",
+    "content_hash": "a39cb700"
+  },
+  "web.domains.homepage.network_denied_hint": {
+    "text": "Ranges that can never use the homepage. A denied range wins over the allowed list.",
+    "context": "Hint under the denied networks list in the homepage network rules editor",
+    "content_hash": "b4a4b9be"
+  },
+  "web.domains.homepage.network_entry_placeholder": {
+    "text": "203.0.113.0/24",
+    "context": "Placeholder in the add-entry input of the homepage network rules editor (an example CIDR range; do not translate)",
+    "content_hash": "94c6699e"
+  },
+  "web.domains.homepage.network_invalid_entry": {
+    "text": "Enter an IP address or CIDR range",
+    "context": "Inline error when an added network entry does not look like an IP address or CIDR range",
+    "content_hash": "430dc407"
+  },
+  "web.domains.homepage.network_entry_exists": {
+    "text": "This range is already in the list",
+    "context": "Inline error when an added network entry duplicates one already staged in the same list",
+    "content_hash": "3e14cfb9"
+  },
+  "web.domains.homepage.network_remove_entry": {
+    "text": "Remove {cidr}",
+    "context": "Accessible label of the remove button on a network entry chip; {cidr} is the entry",
+    "content_hash": "5f9a6301"
+  },
+  "web.domains.homepage.network_save": {
+    "text": "Save network rules",
+    "context": "Button that writes the staged allowed / denied lists",
+    "content_hash": "870c57de"
+  },
+  "web.domains.homepage.network_saving": {
+    "text": "Saving…",
+    "context": "Save button label while the homepage network rules write is in flight",
+    "content_hash": "23e39291"
+  },
+  "web.domains.homepage.network_discard": {
+    "text": "Discard changes",
+    "context": "Button that resets the staged network lists to the stored values",
+    "content_hash": "f9bfa3dc"
+  },
+  "web.domains.homepage.network_update_success": {
+    "text": "Homepage network rules saved",
+    "context": "Notification after successfully saving the homepage allowed / denied networks",
+    "content_hash": "3c8f72ce"
+  },
+  "web.domains.homepage.network_management_note": {
+    "text": "Signed-in members and these settings are never restricted, so you can always change the lists.",
+    "context": "Footer note in the homepage network rules editor while any rule is configured",
+    "content_hash": "308164bf"
+  },
+  "web.domains.homepage.network_open_note": {
+    "text": "No network restriction: every visitor gets the selected experience.",
+    "context": "Footer note in the homepage network rules editor when both lists are empty",
+    "content_hash": "17c50e79"
+  },
+  "web.domains.homepage.status_network_restricted": {
+    "text": "Network restricted",
+    "context": "Badge on the domain detail Homepage row when allowed or denied networks are configured",
+    "content_hash": "02ce8253"
   }
 }

@@ -81,6 +81,19 @@ export const DOMAIN_CONFIG_EDIT_FIELDS: Record<
       allowUnset: true,
       defaultValue: null,
     },
+    // Network rules: entries are IP addresses / CIDR ranges, not domains.
+    {
+      name: 'allowed_cidrs',
+      type: 'domains',
+      hintKey: 'web.admin.domains.configs.edit.cidrsHint',
+      defaultValue: [],
+    },
+    {
+      name: 'denied_cidrs',
+      type: 'domains',
+      hintKey: 'web.admin.domains.configs.edit.cidrsHint',
+      defaultValue: [],
+    },
   ],
   api: [{ name: 'enabled', type: 'boolean', defaultValue: false }],
   // Recipients stay workspace-managed in v1 — `enabled` is the only writable field.

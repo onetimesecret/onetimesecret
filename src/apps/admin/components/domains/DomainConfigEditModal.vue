@@ -61,10 +61,11 @@
   );
 
   // Form state, keyed by field name. Selects hold '' for "unset" (→ null in
-  // the payload); the domains textarea holds one domain per line.
+  // the payload); each list textarea holds one entry per line (a kind may
+  // carry several list fields — homepage has allowed_cidrs AND denied_cidrs).
   const booleanValues = ref<Record<string, boolean>>({});
   const selectValues = ref<Record<string, string>>({});
-  const domainsText = ref('');
+  const listTexts = ref<Record<string, string>>({});
 
   /**
    * Seed all field state from the current config, or the model defaults.
@@ -75,7 +76,7 @@
   function resetFields(): void {
     const nextBooleans: Record<string, boolean> = {};
     const nextSelects: Record<string, string> = {};
-    let nextDomains = '';
+    const nextLists: Record<string, string> = {};
     for (const field of fields.value) {
       const current = props.config?.[field.name];
       if (field.type === 'boolean') {
@@ -87,12 +88,12 @@
             ? current
             : ((field.defaultValue as string | null) ?? '');
       } else {
-        nextDomains = Array.isArray(current) ? (current as string[]).join('\n') : '';
+        nextLists[field.name] = Array.isArray(current) ? (current as string[]).join('\n') : '';
       }
     }
     booleanValues.value = nextBooleans;
     selectValues.value = nextSelects;
-    domainsText.value = nextDomains;
+    listTexts.value = nextLists;
   }
 
   watch(
@@ -109,7 +110,7 @@
       const value = selectValues.value[field.name] ?? '';
       return value === '' ? null : value;
     }
-    return domainsText.value
+    return (listTexts.value[field.name] ?? '')
       .split(/\r?\n/)
       .map((line) => line.trim())
       .filter((line) => line.length > 0);
@@ -274,7 +275,7 @@
             </label>
             <textarea
               :id="`config-domains-${field.name}`"
-              v-model="domainsText"
+              v-model="listTexts[field.name]"
               rows="4"
               autocomplete="off"
               autocapitalize="off"

@@ -520,7 +520,10 @@ module V1::Logic
         # share a single HomepageConfig read instead of two (#3631). Not memoized
         # on the domain instance: an instance cache goes stale after an in-request
         # HomepageConfig write, which is why the model predicate stays read-through.
-        allow_public = domain_record.allow_public_secret_creation?
+        # ip_match (the request's env['otto.ip_match'] closure, via strategy
+        # metadata) lets a homepage with network rules judge the caller's
+        # network; domains without rules ignore it.
+        allow_public = domain_record.allow_public_secret_creation?(ip_match: ip_match)
 
         OT.ld <<~DEBUG
           [BaseSecretAction]
@@ -635,7 +638,7 @@ module V1::Logic
           # Reuse the caller-resolved gate when present; recompute only for
           # direct callers that pass just the record. Guard on nil since false
           # is a valid pre-resolved value.
-          allow_public = domain_record.allow_public_secret_creation? if allow_public.nil?
+          allow_public = domain_record.allow_public_secret_creation?(ip_match: ip_match) if allow_public.nil?
           return if allow_public
 
           raise_form_error "Public sharing disabled for domain: #{share_domain}"

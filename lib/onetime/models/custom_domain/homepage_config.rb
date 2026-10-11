@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../features/boolean_encoding'
+require_relative '../../utils/cidr_list'
 
 #
 # CustomDomain::HomepageConfig - Per-domain homepage secrets configuration
@@ -10,6 +11,16 @@ require_relative '../features/boolean_encoding'
 # This model stores homepage configuration bound to a specific CustomDomain.
 # When enabled, anonymous users can create secrets on the domain's public
 # homepage without authentication.
+#
+# Network rules (allowed_cidrs / denied_cidrs) narrow WHO gets the
+# interactive homepage once it is enabled: a visitor in a denied range, or
+# outside every allowed range when any are configured, gets the private
+# landing page and is refused anonymous secret creation on the domain —
+# the same fail-closed rendering and 403 as a disabled homepage, so the
+# rule's existence is not advertised. Both lists empty (the default, and
+# every record that pre-dates the fields) means no network restriction.
+# Membership is judged through the request's env['otto.ip_match'] closure
+# at full /32–/128 precision (see #network_allowed?).
 #
 # This is the single source of truth for homepage settings. The legacy
 # allow_public_homepage field on BrandSettings was retired in #3026 once
@@ -47,6 +58,48 @@ class Onetime::CustomDomain::HomepageConfig < Familia::Horreum
   VALID_SECRETS_MODES  = %w[create incoming].freeze
   DEFAULT_SECRETS_MODE = 'create'
 
+  # Cap on distinct ranges per network-rule list (allowed_cidrs and
+  # denied_cidrs each). Shared with the normalizer so the write-time check
+  # and the error message cannot disagree.
+  MAX_CIDRS = Onetime::Utils::CidrList::MAX_ENTRIES
+
+  # Refusal from {#allowed_cidrs=} / {#denied_cidrs=} for an entry that is
+  # not an IPv4/IPv6 address or CIDR range. Typed the way
+  # SignupConfig::InvalidAllowedSignupDomain is: it carries the refused
+  # entry, its field and a locale key so an API layer can show it against
+  # the field in the operator's language.
+  class InvalidCidr < Onetime::Problem
+    ERROR_KEY = 'api.domains.errors.homepage_cidr_invalid'
+
+    attr_reader :field, :cidr
+
+    def initialize(field, cidr, reason = nil)
+      @field = field.to_s
+      @cidr  = cidr.to_s
+      super(reason ? "Invalid CIDR: #{@cidr} (#{reason})" : "Invalid CIDR: #{@cidr}")
+    end
+
+    def error_key = ERROR_KEY
+    def args      = { cidr: cidr }
+  end
+
+  # Refusal from {#allowed_cidrs=} / {#denied_cidrs=} for a list with more
+  # than MAX_CIDRS distinct ranges.
+  class TooManyCidrs < Onetime::Problem
+    ERROR_KEY = 'api.domains.errors.homepage_cidrs_max_exceeded'
+
+    attr_reader :field, :max
+
+    def initialize(field, count, max = MAX_CIDRS)
+      @field = field.to_s
+      @max   = max
+      super("#{@field} accepts at most #{max} entries (got #{count})")
+    end
+
+    def error_key = ERROR_KEY
+    def args      = { max: max }
+  end
+
   prefix :custom_domain__homepage_config
 
   # domain_id is the CustomDomain's identifier (objid), used as our key.
@@ -83,6 +136,15 @@ class Onetime::CustomDomain::HomepageConfig < Familia::Horreum
   # via secrets_mode_value, preserving pre-existing behavior.
   field :secrets_mode
 
+  # Network rules, each a JSON array of canonical "address/prefix" strings
+  # (see Onetime::Utils::CidrList) or nil when the list is empty. Read
+  # through #allowed_cidrs / #denied_cidrs; write ONLY through the
+  # validating setters (#allowed_cidrs= / #denied_cidrs=), which is also
+  # what the registry's apply_field and this model's upsert/create! do.
+  # nil on every record that pre-dates the fields = no restriction.
+  field :allowed_cidrs_json
+  field :denied_cidrs_json
+
   # Timestamps (Unix epoch integers)
   field :created
   field :updated
@@ -101,10 +163,17 @@ class Onetime::CustomDomain::HomepageConfig < Familia::Horreum
   # secrets_mode (incoming_secrets entitlement + a ready IncomingConfig)
   # as admin-repair power; read paths still fail closed via
   # #effectively_enabled?.
+  #
+  # allowed_cidrs / denied_cidrs route through the model setters, which
+  # normalize and validate each entry (raising InvalidCidr / TooManyCidrs,
+  # both Onetime::Problem) — same contract as SignupConfig's
+  # allowed_signup_domains string_array.
   FIELD_SPECS = {
     'enabled' => { type: :boolean, storage: :string },
     'secrets_mode' => { type: :enum, values: VALID_SECRETS_MODES, nullable: false },
     'disabled_homepage_variant' => { type: :enum, values: VALID_DISABLED_HOMEPAGE_VARIANTS, nullable: true },
+    'allowed_cidrs' => { type: :string_array },
+    'denied_cidrs' => { type: :string_array },
   }.freeze
 
   # Tolerant predicates + normalizing setters for the boolean fields in
@@ -171,6 +240,112 @@ class Onetime::CustomDomain::HomepageConfig < Familia::Horreum
   def recognized_secrets_mode?
     v = secrets_mode.to_s.strip
     v.empty? || VALID_SECRETS_MODES.include?(v)
+  end
+
+  # Ranges that may use the interactive homepage. Empty = everyone not
+  # denied. Unreadable stored JSON reads as [] here (display), and as a
+  # fail-closed deny in #network_allowed? via #allowed_cidrs_corrupt?.
+  #
+  # @return [Array<String>] canonical "address/prefix" entries
+  def allowed_cidrs
+    read_cidr_list(allowed_cidrs_json)
+  end
+
+  # Replace the allowed ranges. Entries are normalized (canonical form,
+  # de-duplicated, host bits below the prefix dropped) and validated.
+  #
+  # @param entries [Array<String>, nil] nil or [] clears the list
+  # @raise [InvalidCidr, TooManyCidrs]
+  def allowed_cidrs=(entries)
+    self.allowed_cidrs_json = encode_cidr_list('allowed_cidrs', entries)
+  end
+
+  # Ranges that may never use the interactive homepage; checked before
+  # the allow list, so a deny match wins. Empty = no denials.
+  #
+  # @return [Array<String>]
+  def denied_cidrs
+    read_cidr_list(denied_cidrs_json)
+  end
+
+  # Replace the denied ranges. Same normalization and validation as
+  # {#allowed_cidrs=}.
+  #
+  # @param entries [Array<String>, nil] nil or [] clears the list
+  # @raise [InvalidCidr, TooManyCidrs]
+  def denied_cidrs=(entries)
+    self.denied_cidrs_json = encode_cidr_list('denied_cidrs', entries)
+  end
+
+  # Whether allowed_cidrs_json holds something we cannot read as a list.
+  # Absent/empty is NOT corrupt (the cleared state the setter writes).
+  # Mirrors SignupConfig#allowed_signup_domains_corrupt?.
+  def allowed_cidrs_corrupt?
+    cidr_list_corrupt?(allowed_cidrs_json)
+  end
+
+  # Whether denied_cidrs_json holds something we cannot read as a list.
+  def denied_cidrs_corrupt?
+    cidr_list_corrupt?(denied_cidrs_json)
+  end
+
+  # Whether this domain narrows the interactive homepage by network at all
+  # (either list non-empty, or a stored list unreadable — which
+  # #network_allowed? treats as a restriction that denies everyone).
+  def network_restricted?
+    allowed_cidrs_corrupt? || denied_cidrs_corrupt? ||
+      !(allowed_cidrs.empty? && denied_cidrs.empty?)
+  end
+
+  # Whether the requesting client's network may use the interactive
+  # homepage. Consumed by the bootstrap serializer (together with
+  # #effectively_enabled?) and by CustomDomain#allow_public_secret_creation?
+  # (the anonymous create-API gate), so the form a visitor sees and the API
+  # it posts to can never disagree.
+  #
+  # Decision (Onetime::Utils::CidrList.permitted?): no rules → true; a
+  # denied range matches → false; allowed ranges configured and none
+  # matches → false; otherwise true. Deny wins.
+  #
+  # Membership is judged ONLY through the env['otto.ip_match'] verdict
+  # closure IPPrivacyMiddleware installs over the resolved PRE-MASK client
+  # IP (handed in by the request layer as `ip_match`): env['otto.client_ip']
+  # and req.ip are privacy-masked (/24, /48) and would misjudge any finer
+  # range in both directions, and the unmasked address never reaches this
+  # code. Same pattern as AdminNetworkIsolation#network_allowed? and
+  # HomepageModeHelpers#homepage_cidrs_match?.
+  #
+  # Fail closed whenever rules exist but cannot be judged: no callable
+  # matcher in the request (a stack that never ran IPPrivacyMiddleware), no
+  # resolvable client IP, an unreadable stored list, a stored entry that no
+  # longer parses, or any error from the matcher. A domain with no rules is
+  # never affected by any of these.
+  #
+  # @param ip_match [#call, nil] env['otto.ip_match'] for the request
+  # @return [Boolean]
+  def network_allowed?(ip_match)
+    if allowed_cidrs_corrupt? || denied_cidrs_corrupt?
+      OT.le "[HomepageConfig] network rules unreadable for domain #{domain_id}; denying"
+      return false
+    end
+
+    allowed = allowed_cidrs
+    denied  = denied_cidrs
+    return true if allowed.empty? && denied.empty?
+
+    unless ip_match.respond_to?(:call)
+      OT.le "[HomepageConfig] network rules configured for domain #{domain_id} but the request " \
+            'carries no otto.ip_match closure; denying'
+      return false
+    end
+
+    permitted = Onetime::Utils::CidrList.permitted?(ip_match, allowed: allowed, denied: denied)
+    OT.ld "[HomepageConfig] network rules denied a visitor on domain #{domain_id}" unless permitted
+    permitted
+  rescue StandardError => ex
+    # Error class only: an address-parse message can contain the address.
+    OT.le "[HomepageConfig] network match failed for domain #{domain_id} (#{ex.class}); denying"
+    false
   end
 
   # Whether the homepage is EFFECTIVELY interactive for anonymous
@@ -267,6 +442,8 @@ class Onetime::CustomDomain::HomepageConfig < Familia::Horreum
     unless secrets_mode.to_s.empty? || VALID_SECRETS_MODES.include?(secrets_mode.to_s)
       errors << "invalid secrets_mode: #{secrets_mode}"
     end
+    errors << 'allowed_cidrs is unreadable' if allowed_cidrs_corrupt?
+    errors << 'denied_cidrs is unreadable' if denied_cidrs_corrupt?
     errors
   end
 
@@ -276,6 +453,43 @@ class Onetime::CustomDomain::HomepageConfig < Familia::Horreum
   def valid?
     validation_errors.empty?
   end
+
+  private
+
+  # Stored JSON list → Array<String>. Unreadable → [] (see *_corrupt?).
+  def read_cidr_list(raw)
+    return [] if raw.to_s.empty?
+
+    parsed = JSON.parse(raw)
+    parsed.is_a?(Array) ? parsed.map(&:to_s) : []
+  rescue JSON::ParserError
+    []
+  end
+
+  # Array<String> → stored JSON (nil when empty), normalizing and
+  # validating through CidrList and re-typing its refusals against the
+  # field so API layers can report them in place.
+  def encode_cidr_list(field, entries)
+    normalized = Onetime::Utils::CidrList.normalize(entries)
+    normalized.empty? ? nil : JSON.generate(normalized)
+  rescue Onetime::Utils::CidrList::InvalidEntry => ex
+    raise InvalidCidr.new(field, ex.entry, ex.message)
+  rescue Onetime::Utils::CidrList::TooManyEntries => ex
+    raise TooManyCidrs.new(field, ex.count, ex.max)
+  end
+
+  # Present but not a JSON array → corrupt. Absent/empty is the cleared
+  # state the setters write, never corrupt.
+  def cidr_list_corrupt?(raw)
+    str = raw.to_s
+    return false if str.empty?
+
+    !JSON.parse(str).is_a?(Array)
+  rescue JSON::ParserError
+    true
+  end
+
+  public
 
   class << self
     # Normalise a disabled-homepage variant to a recognised id, or nil
@@ -345,8 +559,15 @@ class Onetime::CustomDomain::HomepageConfig < Familia::Horreum
     # @param secrets_mode [String, nil] Merge semantics: nil leaves the stored
     #   value unchanged; "" (or any unrecognised value) resets to 'create';
     #   a recognised id ('create' | 'incoming') sets it.
+    # @param allowed_cidrs [Array<String>, nil] Merge semantics: nil leaves
+    #   the stored list unchanged; [] clears it; otherwise replaces it with
+    #   the normalized entries (see #allowed_cidrs=). Validation errors
+    #   (InvalidCidr / TooManyCidrs) raise BEFORE anything is written.
+    # @param denied_cidrs [Array<String>, nil] Same semantics as allowed_cidrs.
     # @return [CustomDomain::HomepageConfig] The config (created or updated)
-    def upsert(domain_id:, enabled:, signup_enabled: nil, signin_enabled: nil, disabled_homepage_variant: nil, secrets_mode: nil)
+    # @raise [InvalidCidr, TooManyCidrs] when a CIDR list is refused
+    def upsert(domain_id:, enabled:, signup_enabled: nil, signin_enabled: nil, disabled_homepage_variant: nil,
+               secrets_mode: nil, allowed_cidrs: nil, denied_cidrs: nil)
       raise Onetime::Problem, 'domain_id is required' if domain_id.to_s.empty?
 
       config = find_by_domain_id(domain_id)
@@ -372,6 +593,11 @@ class Onetime::CustomDomain::HomepageConfig < Familia::Horreum
           updated: now,
         )
       end
+
+      # Validating setters: a refused entry raises here, before save, so a
+      # bad list never partially lands alongside the other fields.
+      config.allowed_cidrs = allowed_cidrs unless allowed_cidrs.nil?
+      config.denied_cidrs  = denied_cidrs unless denied_cidrs.nil?
 
       config.save
       config
@@ -440,6 +666,9 @@ class Onetime::CustomDomain::HomepageConfig < Familia::Horreum
         config.disabled_homepage_variant = coerce_disabled_homepage_variant(attrs[:disabled_homepage_variant])
       end
       config.secrets_mode   = coerce_secrets_mode(attrs[:secrets_mode]) if attrs.key?(:secrets_mode)
+      # Validating setters (InvalidCidr / TooManyCidrs raise before save).
+      config.allowed_cidrs  = attrs[:allowed_cidrs] if attrs.key?(:allowed_cidrs)
+      config.denied_cidrs   = attrs[:denied_cidrs] if attrs.key?(:denied_cidrs)
 
       now            = Familia.now.to_i
       config.created = now

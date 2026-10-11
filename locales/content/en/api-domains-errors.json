@@ -59,6 +59,16 @@
     "context": "Returned by PUT /api/domains/:extid/homepage-config when secrets_mode=incoming but the domain's IncomingConfig is missing, disabled, or has no recipients",
     "content_hash": "556da6e2"
   },
+  "api.domains.errors.homepage_cidr_invalid": {
+    "text": "Not a valid IP address or CIDR range: %{cidr}. Enter an IPv4 or IPv6 address or range, for example 203.0.113.0/24",
+    "context": "Returned by PUT /api/domains/:extid/homepage-config and PUT /api/colonel/domains/:extid/configs/homepage (fields allowed_cidrs / denied_cidrs) when an entry does not parse as an IPv4/IPv6 address or CIDR range. %{cidr} is the refused entry as typed",
+    "content_hash": "20c2572d"
+  },
+  "api.domains.errors.homepage_cidrs_max_exceeded": {
+    "text": "Maximum %{max} network entries allowed per list",
+    "context": "Returned by PUT /api/domains/:extid/homepage-config and the colonel homepage config upsert when allowed_cidrs or denied_cidrs holds more than HomepageConfig::MAX_CIDRS distinct ranges",
+    "content_hash": "faac87f8"
+  },
   "api.domains.errors.related_origins_invalid": {
     "text": "Not a valid origin: %{origins}. Enter the scheme and host, for example https://vault.example.com",
     "context": "Returned by PUT /api/colonel/domains/:extid/configs/signin (field related_origins) when an entry is not an absolute http(s)://host[:port] origin. %{origins} is the refused entry as typed",

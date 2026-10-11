@@ -315,6 +315,13 @@ module Core
           'frontend_development' => frontend_development,
           'frontend_host' => frontend_host,
           'homepage_mode' => homepage_mode,
+          # The verdict-only CIDR matcher IPPrivacyMiddleware installed over
+          # the resolved PRE-MASK client IP (a Proc, never the address). The
+          # domain serializer hands it to HomepageConfig#network_allowed? so
+          # a homepage with allowed/denied ranges renders the private landing
+          # page to visitors outside them. Server-side only: no serializer
+          # emits this key.
+          'ip_match' => req.env.fetch('otto.ip_match', nil),
           'keywords' => keywords,
           'locale' => locale,
           'messages' => messages.empty? ? nil : messages,

@@ -86,10 +86,13 @@ module ColonelAPI
         rescue OT::FormError, Onetime::RecordNotFound
           raise
         rescue Onetime::CustomDomain::SigninConfig::RelatedOriginError,
-               Onetime::CustomDomain::SignupConfig::InvalidAllowedSignupDomain => ex
+               Onetime::CustomDomain::SignupConfig::InvalidAllowedSignupDomain,
+               Onetime::CustomDomain::HomepageConfig::InvalidCidr,
+               Onetime::CustomDomain::HomepageConfig::TooManyCidrs => ex
           # Typed setter refusals (related_origins: malformed entry, or #4421
           # another organization's domain; allowed_signup_domains: not a
-          # registrable domain) name the entries an operator must fix. Tagged
+          # registrable domain; allowed_cidrs / denied_cidrs: not an IP
+          # range, or too many) name the entries an operator must fix. Tagged
           # with their field and a locale key so the console shows them
           # against that field, in the operator's language.
           raise_form_error(ex.message, error_key: ex.error_key, args: ex.args, field: ex.field.to_sym)

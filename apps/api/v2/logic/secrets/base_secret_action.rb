@@ -567,7 +567,13 @@ module V2::Logic
         # stale after an in-request HomepageConfig write, which is why a prior
         # per-instance cache was reverted and the model predicate stays
         # read-through.
-        allow_public = domain_record.allow_public_secret_creation?
+        #
+        # ip_match is the request's env['otto.ip_match'] closure (via the
+        # strategy metadata): a homepage with network rules admits anonymous
+        # creation only from the ranges it allows, judged at full precision
+        # against the unmasked client IP without exposing it. Domains without
+        # rules ignore it.
+        allow_public = domain_record.allow_public_secret_creation?(ip_match: ip_match)
 
         secret_logger.debug 'Validating domain access',
           {
@@ -704,7 +710,7 @@ module V2::Logic
           # Reuse the gate resolved by validate_domain_access when present;
           # recompute only for direct callers that pass just the record. `false`
           # is a valid pre-resolved value, so guard on nil, not falsiness.
-          allow_public = domain_record.allow_public_secret_creation? if allow_public.nil?
+          allow_public = domain_record.allow_public_secret_creation?(ip_match: ip_match) if allow_public.nil?
           return if allow_public
 
           secret_logger.warn 'Public sharing disabled for domain',

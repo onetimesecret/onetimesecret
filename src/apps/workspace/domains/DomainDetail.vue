@@ -13,6 +13,9 @@ import { useConfirmDialog } from '@vueuse/core';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import ConfirmDialog from '@/shared/components/modals/ConfirmDialog.vue';
 import DomainHeader from '@/apps/workspace/components/dashboard/DomainHeader.vue';
+import DomainHomepageNetworkAccess, {
+  type HomepageNetworkRules,
+} from '@/apps/workspace/components/domains/DomainHomepageNetworkAccess.vue';
 import DomainHomepageSelector, {
   type HomepageChoice,
 } from '@/apps/workspace/components/domains/DomainHomepageSelector.vue';
@@ -160,6 +163,50 @@ const handleHomepageSelect = async (choice: HomepageChoice) => {
     }
   } finally {
     homepageSaving.value = false;
+  }
+};
+
+// ---------------------------------------------------------------------------
+// Homepage network rules (allowed / denied CIDR ranges)
+//
+// Stored on the same HomepageConfig record with merge semantics; the editor
+// stages entries and writes both lists explicitly. `enabled` is required by
+// the PUT, so the current stored choice is re-sent unchanged alongside.
+// ---------------------------------------------------------------------------
+
+const homepageAllowedCidrs = computed<string[]>(
+  () => customDomainRecord.value?.homepage_config?.allowed_cidrs ?? []
+);
+const homepageDeniedCidrs = computed<string[]>(
+  () => customDomainRecord.value?.homepage_config?.denied_cidrs ?? []
+);
+const homepageNetworkRestricted = computed(
+  () => homepageAllowedCidrs.value.length > 0 || homepageDeniedCidrs.value.length > 0
+);
+const homepageNetworkSaving = ref(false);
+
+const handleHomepageNetworkSave = async (rules: HomepageNetworkRules) => {
+  const domain = customDomainRecord.value;
+  if (!domain || homepageNetworkSaving.value || homepageSaving.value) return;
+
+  homepageNetworkSaving.value = true;
+  try {
+    const result = await updateHomepageConfig(
+      domain.extid,
+      { enabled: domain.homepage_config?.enabled ?? false, ...rules },
+      organization.value?.current_user_role,
+    );
+    if (result) {
+      // Same refetch gate as the experience selector: the editor re-seeds
+      // from the refreshed record (normalized entries), so only confirm
+      // once that record has landed.
+      const refreshed = await initializeDomain();
+      if (refreshed) {
+        notifications.show(t('web.domains.homepage.network_update_success'), 'success', 'top');
+      }
+    }
+  } finally {
+    homepageNetworkSaving.value = false;
   }
 };
 
@@ -321,6 +368,18 @@ onMounted(() => {
                   data-testid="homepage-status">
                   {{ t(homepageStatusKey) }}
                 </span>
+                <!-- Network rules narrow who gets that experience -->
+                <span
+                  v-if="homepageNetworkRestricted"
+                  class="hidden items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 sm:inline-flex dark:bg-amber-900/20 dark:text-amber-300"
+                  data-testid="homepage-network-badge">
+                  <OIcon
+                    collection="heroicons"
+                    name="globe-alt"
+                    class="size-3"
+                    aria-hidden="true" />
+                  {{ t('web.domains.homepage.status_network_restricted') }}
+                </span>
                 <OIcon
                   collection="heroicons"
                   name="chevron-down"
@@ -337,11 +396,20 @@ onMounted(() => {
               class="border-t border-gray-100 px-5 py-4 dark:border-gray-700/50">
               <DomainHomepageSelector
                 :model-value="homepageChoice"
-                :disabled="domainLoading || homepageSaving || !canAdmin"
+                :disabled="domainLoading || homepageSaving || homepageNetworkSaving || !canAdmin"
                 :incoming-available="homepageIncomingAvailable"
                 :incoming-ready="homepageIncomingReady"
                 :incoming-config-route="incomingConfigRoute"
                 @update:model-value="handleHomepageSelect" />
+
+              <!-- Network rules apply to whichever interactive experience is selected -->
+              <DomainHomepageNetworkAccess
+                class="mt-5 border-t border-gray-100 pt-4 dark:border-gray-700/50"
+                :allowed-cidrs="homepageAllowedCidrs"
+                :denied-cidrs="homepageDeniedCidrs"
+                :disabled="domainLoading || homepageSaving || !canAdmin"
+                :saving="homepageNetworkSaving"
+                @save="handleHomepageNetworkSave" />
             </div>
           </div>
 

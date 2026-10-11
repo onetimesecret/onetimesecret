@@ -21,11 +21,26 @@ auth strategy.
 | Anonymous | canonical (with share_domain) | n/a | 403 "You do not have permission" |
 
 **Toggle semantics:** "on" means `CustomDomain#allow_public_secret_creation?` —
-the homepage is enabled **and** its `secrets_mode` is `create`. A homepage in
+the homepage is enabled **and** its `secrets_mode` is `create` **and** the
+caller's network is admitted by the homepage's network rules. A homepage in
 `incoming` mode is public but presents the incoming-secrets form instead; it
 does **not** authorize anonymous secret creation (those visitors submit via
 `POST /api/incoming/secret`, which has its own gating), so anonymous creation
 on an incoming-mode domain returns 403 "Public sharing disabled".
+
+**Network rules:** `HomepageConfig#allowed_cidrs` / `#denied_cidrs` narrow the
+"on" cell per visitor. Both lists empty (the default) means no restriction. A
+caller in a denied range, or outside every allowed range when any are
+configured, reads as toggle "off": the bootstrap payload renders the private
+landing page and anonymous creation returns the same 403 "Public sharing
+disabled", so the rule's existence is not advertised. Membership is judged
+through the request's `env['otto.ip_match']` closure (threaded to the logic
+layer as `strategy_result.metadata[:ip_match]` and to the view layer as
+`view_vars['ip_match']`), never against the privacy-masked `otto.client_ip`.
+A domain with rules fails closed when the request carries no matcher. Owners
+and org members are unaffected (the member check runs first), and so is
+`POST /api/incoming/secret`, which is gated by `IncomingConfig` readiness
+rather than by `HomepageConfig`.
 
 ## `POST /api/v3/secret/conceal` (auth=sessionauth)
 

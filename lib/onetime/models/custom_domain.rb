@@ -673,7 +673,17 @@ module Onetime
     # specifically, so it excludes incoming mode outright (!incoming_mode?),
     # whereas effectively_enabled? additionally weighs incoming availability
     # (incoming_available?) for incoming-mode homepages.
-    def allow_public_secret_creation?
+    #
+    # The answer is per-visitor once the homepage carries network rules
+    # (HomepageConfig#allowed_cidrs / #denied_cidrs): pass the request's
+    # env['otto.ip_match'] closure as ip_match so the gate judges the caller's
+    # network the same way the bootstrap serializer decided whether to show
+    # them the form. A domain with no rules ignores ip_match entirely; a
+    # domain WITH rules fails closed when none is supplied (a caller that
+    # cannot say where the request came from cannot be admitted by network).
+    #
+    # @param ip_match [#call, nil] env['otto.ip_match'] for the request
+    def allow_public_secret_creation?(ip_match: nil)
       homepage_config = HomepageConfig.find_by_domain_id(identifier)
       unless homepage_config
         OT.le "[CustomDomain] HomepageConfig missing for domain #{identifier}; using safe default (false). Run migration 20260417_01_backfill_homepage_config to repair."
@@ -682,7 +692,8 @@ module Onetime
 
       homepage_config.enabled? &&
         homepage_config.recognized_secrets_mode? &&
-        !homepage_config.incoming_mode?
+        !homepage_config.incoming_mode? &&
+        homepage_config.network_allowed?(ip_match)
     end
 
     def allow_public_api?
