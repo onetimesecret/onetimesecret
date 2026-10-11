@@ -70,7 +70,7 @@ module Onetime
         end
       end
 
-      module_function
+      extend self
 
       # Canonical `address/prefix` form of one entry.
       #

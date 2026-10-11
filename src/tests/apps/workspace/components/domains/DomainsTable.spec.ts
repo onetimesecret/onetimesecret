@@ -100,6 +100,8 @@ const baseHomepageConfig: HomepageConfigCanonical = {
   signup_enabled: false,
   signin_enabled: false,
   disabled_homepage_variant: null,
+  allowed_cidrs: [],
+  denied_cidrs: [],
   created_at: null,
   updated_at: null,
 };

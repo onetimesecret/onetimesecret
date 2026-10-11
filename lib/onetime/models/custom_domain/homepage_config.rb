@@ -489,8 +489,6 @@ class Onetime::CustomDomain::HomepageConfig < Familia::Horreum
     true
   end
 
-  public
-
   class << self
     # Normalise a disabled-homepage variant to a recognised id, or nil
     # (= use the deployment-wide / frontend default). Blank and unknown

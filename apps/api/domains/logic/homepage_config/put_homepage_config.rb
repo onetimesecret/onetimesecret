@@ -161,7 +161,7 @@ module DomainsAPI
         def validate_cidr_list!(field, value)
           return nil if value.nil?
 
-          unless value.is_a?(Array) && value.all? { it.is_a?(String) }
+          unless value.is_a?(Array) && value.all?(String)
             raise_form_error("#{field} must be an array of strings", field: field, error_type: :invalid)
           end
 
