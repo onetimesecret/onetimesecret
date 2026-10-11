@@ -1170,10 +1170,11 @@ module Auth
         def check_system_role_mailbox_proof(issues)
           role = @customer.role.to_s
           return unless SYSTEM_ROLES.include?(role)
-          # A system role this doctor does not recognise as a valid stored value
-          # ('admin', 'staff' today) is already reported by :role_invalid; one
-          # issue per record is enough to send the operator to the right fix.
-          return unless VALID_ROLES.include?(role)
+          # 'admin' and 'staff' are outside this doctor's VALID_ROLES and so also
+          # draw :role_invalid. That issue says nothing about mailbox proof and
+          # names no remedy for it, while has_system_role? refuses these roles
+          # exactly as it refuses colonel, so the upgrade scan must list them
+          # here too — two issues on one record, each with its own fix.
           return if @customer.mailbox_verified?
 
           provenance = @customer.verified_by.to_s

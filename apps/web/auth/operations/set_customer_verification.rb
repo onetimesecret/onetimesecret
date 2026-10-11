@@ -82,7 +82,15 @@ module Auth
       def call
         state_changes      = @customer.verified? != @verified
         provenance_changes = @customer.verified_by.to_s != @verified_by.to_s
-        return :no_change unless state_changes || provenance_changes
+
+        unless state_changes || provenance_changes
+          # Nothing to write. A repeat verification of an account that already
+          # carries mailbox proof is still the operator's retry for a deferred
+          # federation claim that failed after the proof was saved (see
+          # #claim_pending_federation!); it is idempotent, so run it.
+          claim_pending_federation! if mailbox_proven?
+          return :no_change
+        end
 
         # A provenance-only change (verified stays true, verified_by moves from
         # 'sso' to 'cli_provision', say) is how an already-Verified account
@@ -90,7 +98,6 @@ module Auth
         # for a Verified row, so this is the only path. The SQL status is
         # already right in that case; only the Redis mirror is written.
         update_rodauth_account! if state_changes && full_auth_mode? && !@rodauth_already_synced
-        gains_mailbox_proof = @verified && !@customer.mailbox_verified?
         update_customer!
 
         auth_logger.debug "[set-customer-verification] #{@customer.extid} " \
@@ -98,11 +105,18 @@ module Auth
                           "auth_mode=#{Onetime.auth_config.mode} " \
                           "rodauth_already_synced=#{@rodauth_already_synced}"
 
-        claim_pending_federation! if gains_mailbox_proof && @customer.mailbox_verified?
+        claim_pending_federation! if mailbox_proven?
         :success
       end
 
       private
+
+      # Does this call leave the account verified with a mailbox-proof
+      # provenance? Read after #update_customer! on the write path, so it
+      # reflects the stamp just written.
+      def mailbox_proven?
+        @verified && @customer.mailbox_verified?
+      end
 
       def full_auth_mode?
         Onetime.auth_config.mode == 'full'
@@ -181,9 +195,15 @@ module Auth
       # account (until an operator verifies the address, #4735). Every path
       # that stamps a mailbox-proof provenance ends here — the Rodauth hook,
       # the colonel admin API, `bin/ots customers verify` — so this is the one
-      # re-claim trigger. Idempotent: a no-op when nothing is pending, when it
-      # was already claimed, or when the customer owns no default workspace.
-      # Never lets a claim failure undo the verification just written.
+      # re-claim trigger. It runs on EVERY verification that leaves the account
+      # mailbox-verified, not only the one that first records the proof: a
+      # claim failure (Redis, billing) is swallowed below so it can never undo
+      # the verification just written, which means the pending benefit would
+      # otherwise be stranded with nothing left to re-drive it (the Rodauth
+      # hook fires once; EnsureDefaultWorkspace#call skips an existing
+      # workspace). Repeating the verification — a :no_change call included —
+      # is the retry. Idempotent: a no-op when nothing is pending, when it was
+      # already claimed, or when the customer owns no default workspace.
       def claim_pending_federation!
         Onetime::ErrorHandler.safe_execute('claim_pending_federation', external_id: @customer.extid) do
           Auth::Operations::EnsureDefaultWorkspace.claim_pending_federation_for(@customer)

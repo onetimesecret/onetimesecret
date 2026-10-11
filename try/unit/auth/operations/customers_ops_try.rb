@@ -231,9 +231,11 @@ AE.events.clear
 Auth::Operations::Customers::Doctor.new(customer: @doc_healthy).call.issues
 #=> []
 
-## Doctor detects an invalid-role integrity issue (role outside its valid set)
-Auth::Operations::Customers::Doctor.new(customer: @doc_bad).call.issues.map { |i| i[:check] }
-#=> [:role_invalid]
+## Doctor detects an invalid-role integrity issue (role outside its valid set);
+## an unproven 'admin' is also a system-role holder without mailbox proof (#4735).
+## Issues are ordered by severity, so compare the sorted set.
+Auth::Operations::Customers::Doctor.new(customer: @doc_bad).call.issues.map { |i| i[:check] }.sort
+#=> [:role_invalid, :system_role_without_mailbox_proof]
 
 ## Doctor repair with an actor audits once per repaired customer
 AE.events.clear

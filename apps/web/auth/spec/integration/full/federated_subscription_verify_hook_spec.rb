@@ -41,10 +41,14 @@
 #     and it cannot be reconfigured in-process (see
 #     apps/web/auth/docs/auth-config-one-shot.md). Rather than poison the shared
 #     boot for every other spec by force-enabling the feature process-wide, the
-#     "after verification" example replays the exact two operations account.rb's
-#     after_verify_account performs, in order:
-#         SetCustomerVerification(verified: true, rodauth_already_synced: true)
-#         EnsureDefaultWorkspace.claim_pending_federation_for(verified_customer)
+#     "after verification" example replays the one operation account.rb's
+#     after_verify_account performs:
+#         SetCustomerVerification(verified: true, verified_by: 'email',
+#                                 rodauth_already_synced: true)
+#     which stamps mailbox proof and claims the deferred federation itself
+#     (#4735). The example then asserts that an explicit
+#     EnsureDefaultWorkspace.claim_pending_federation_for is a no-op: the first
+#     claim consumed the pending record.
 #     A guard example asserts the wiring contract: the after_verify_account hook
 #     is only registered when verify_account is enabled.
 #
@@ -186,7 +190,8 @@ RSpec.describe 'Federated subscription claim through the real signup/verify hook
       expect(auth_warnings).not_to include(a_string_matching(AUDIT_MESSAGE))
 
       # Now replay exactly what account.rb's after_verify_account hook does once
-      # the user proves email ownership: mark verified, then re-run the claim.
+      # the user proves email ownership: stamp the 'email' provenance. The op
+      # claims the deferred federation itself (#4735); the hook runs nothing else.
       Auth::Operations::SetCustomerVerification.new(
         customer: customer,
         verified: true,
@@ -194,15 +199,19 @@ RSpec.describe 'Federated subscription claim through the real signup/verify hook
         rodauth_already_synced: true,
       ).call
 
-      verified_customer = Onetime::Customer.find_by_extid(customer.extid)
-      applied = Auth::Operations::EnsureDefaultWorkspace.claim_pending_federation_for(verified_customer)
-      expect(applied).to be(true)
-
       org.refresh!
       expect(org.subscription_federated?).to be(true)
       expect(org.subscription_status.to_s).to eq('active')
       expect(org.planid.to_s).to eq('pro_monthly')
       expect(pending_exists?(@signup_email)).to be(false)
+
+      # The first claim consumed the pending record, so the explicit re-claim an
+      # operator verification would drive is a no-op, not a second grant.
+      verified_customer = Onetime::Customer.find_by_extid(customer.extid)
+      applied = Auth::Operations::EnsureDefaultWorkspace.claim_pending_federation_for(verified_customer)
+      expect(applied).to be(false)
+      org.refresh!
+      expect(org.planid.to_s).to eq('pro_monthly')
     end
   end
 

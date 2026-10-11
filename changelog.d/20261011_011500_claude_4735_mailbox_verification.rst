@@ -7,12 +7,17 @@ Security
   A new ``Customer#mailbox_verified?`` predicate (``verified_by`` one of
   ``email``, ``invite_token``, ``cli_provision``, ``colonel_admin``) now gates
   system roles, the last-colonel guard, impersonation, verification-secret
-  display, the duplicate-signup resend and federated subscription claims.
-  SSO JIT accounts defer the federated subscription claim until an operator
-  verifies the address; ``bin/ots customers verify`` and the colonel admin
-  can re-verify an already-verified account to record mailbox proof, which
-  applies the deferred subscription. ``bin/ots customers doctor`` reports
-  system-role holders without mailbox proof. Microsoft Entra's optional
+  display, the duplicate-signup resend and the deferred federated
+  subscription claim (a standard signup with email verification enabled, and
+  every SSO JIT account). A deployment that has disabled email verification
+  still claims at standard signup without mailbox proof, as before, with the
+  existing security-audit log line. SSO JIT accounts defer the claim until an
+  operator verifies the address; ``bin/ots customers verify`` and the colonel
+  admin can re-verify an already-verified account to record mailbox proof,
+  which applies the deferred subscription, and re-running either on an
+  already mailbox-verified account retries a claim that failed.
+  ``bin/ots customers doctor`` reports every system-role holder (colonel,
+  admin, staff) without mailbox proof. Microsoft Entra's optional
   ``xms_edov: false`` claim now withholds the verified stamp
   (``domain_unverified``) and is refused by a tenant email-domain allowlist;
   ``xms_edov: true`` is domain-owner verification only, never mailbox proof.

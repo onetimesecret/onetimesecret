@@ -108,16 +108,19 @@ RSpec.describe Auth::Operations::Customers::Doctor do
     end
   end
 
-  # has_system_role? knows these roles, but the doctor's VALID_ROLES does not
-  # (yet), so :role_invalid already reports such a record; this check stays
-  # quiet rather than stacking a second issue on it.
+  # has_system_role? refuses these roles to an unproven holder exactly as it
+  # refuses colonel. The doctor's VALID_ROLES does not list them, so
+  # :role_invalid fires too — but that issue carries no mailbox-proof remedy,
+  # and the upgrade scan must name every affected role holder.
   %w[admin staff].each do |system_role|
     context "when the role is '#{system_role}'" do
       let(:role) { system_role }
 
-      it 'is left to the :role_invalid check' do
+      it 'is reported with the mailbox-proof remedy, alongside :role_invalid' do
         run
-        expect(issue).to be_nil
+        expect(issue).not_to be_nil
+        expect(issue[:message]).to include("role '#{system_role}'")
+        expect(issue[:repair_action]).to include('bin/ots customers verify')
       end
     end
   end

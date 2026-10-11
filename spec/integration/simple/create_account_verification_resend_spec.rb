@@ -181,24 +181,56 @@ RSpec.describe 'Duplicate-signup verification resend in simple mode (audit dead-
       'resend must bind a fresh verification secret'
   end
 
-  it 'takes the silent-success branch for a verified account: 200, no email, secret untouched' do
+  it 'takes the silent-success branch for a mailbox-verified account: 200, no email, secret untouched' do
     email = unique_email('verified')
     @created_emails << email
 
     expect_signup_success(post_signup(email), 'Initial signup')
     cust = Onetime::Customer.find_by_email(email)
-    cust.verified = true
+    # The silent branch keys on MAILBOX proof (#4735), not the bare flag: the
+    # provenance a followed verification link records.
+    cust.verified    = true
+    cust.verified_by = 'email'
     cust.save
     expect(cust.verified).to eq('true')
+    expect(cust.mailbox_verified?).to be(true)
     secret_before   = cust.reset_secret.value
     delivery_before = @deliveries.size
 
     expect_signup_success(post_signup(email), 'Duplicate signup for the verified account')
 
     expect(@deliveries.size).to eq(delivery_before),
-      "verified account must NOT receive email on duplicate signup, deliveries: #{@deliveries.inspect}"
+      "mailbox-verified account must NOT receive email on duplicate signup, deliveries: #{@deliveries.inspect}"
     cust.refresh!
     expect(cust.reset_secret.value).to eq(secret_before)
+  end
+
+  # #4735: `verified: true` with a provenance that is not mailbox proof (a card,
+  # an IdP, autoverify, or none at all) is an open account whose address was
+  # never proven. A duplicate signup resends the verification link to that
+  # same address — the only path by which such an account gains mailbox
+  # proof in simple mode — under the same cooldown as the unverified case.
+  it 'resends for a verified account WITHOUT mailbox proof (verified_by: stripe_payment)' do
+    email = unique_email('cardverified')
+    @created_emails << email
+
+    expect_signup_success(post_signup(email), 'Initial signup')
+    cust = Onetime::Customer.find_by_email(email)
+    cust.verified    = true
+    cust.verified_by = 'stripe_payment'
+    cust.save
+    expect(cust.verified?).to be(true)
+    expect(cust.mailbox_verified?).to be(false)
+    secret_before   = cust.reset_secret.value
+    delivery_before = @deliveries.size
+
+    expect_signup_success(post_signup(email), 'Duplicate signup for the card-verified account')
+
+    expect(@deliveries.size).to eq(delivery_before + 1),
+      "an account without mailbox proof must get the resend, deliveries: #{@deliveries.inspect}"
+    expect(@deliveries.last).to eq({ template: :welcome, email: email })
+    cust.refresh!
+    expect(cust.reset_secret.value).not_to eq(secret_before)
   end
 
   # ---------------------------------------------------------------------------

@@ -43,7 +43,9 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
 
   # The deferred federation re-claim (#4735) reaches into EnsureDefaultWorkspace;
   # its own gate is covered in ensure_default_workspace_federation_spec.rb, so
-  # here it is a seam: was it invoked, and only when mailbox proof arrived?
+  # here it is a seam: was it invoked, and only when the resulting stamp
+  # carries mailbox proof? (Every such call, not just the first: a repeat
+  # verification is the operator's retry for a claim that failed.)
   let(:workspace_op) { class_double('Auth::Operations::EnsureDefaultWorkspace', claim_pending_federation_for: true) }
 
   let(:db) { double('db', transaction: nil) }
@@ -251,8 +253,8 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
 
   describe 'deferred federation re-claim' do
     it 'claims once the stamp gains mailbox proof (unverified -> email)' do
-      # mailbox_verified? is read before the write (false) and after (true).
-      allow(customer).to receive(:mailbox_verified?).and_return(false, true)
+      # mailbox_verified? is read after the write, so it answers for the new stamp.
+      allow(customer).to receive(:mailbox_verified?).and_return(true)
 
       described_class.new(customer: customer, verified: true, verified_by: 'email', db: db).call
 
@@ -261,7 +263,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
 
     it 'claims when an operator upgrades an IdP-asserted stamp (sso -> cli_provision)' do
       allow(customer).to receive_messages(verified?: true, verified_by: 'sso')
-      allow(customer).to receive(:mailbox_verified?).and_return(false, true)
+      allow(customer).to receive(:mailbox_verified?).and_return(true)
 
       described_class.new(customer: customer, verified: true, verified_by: 'cli_provision', db: db).call
 
@@ -269,18 +271,41 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
     end
 
     it 'does not claim when the new provenance carries no mailbox proof (sso)' do
-      allow(customer).to receive(:mailbox_verified?).and_return(false, false)
+      allow(customer).to receive(:mailbox_verified?).and_return(false)
 
       described_class.new(customer: customer, verified: true, verified_by: 'sso', db: db).call
 
       expect(workspace_op).not_to have_received(:claim_pending_federation_for)
     end
 
-    it 'does not claim again for a customer that already had mailbox proof' do
+    it 'retries the claim when one mailbox-proof stamp replaces another (colonel_admin -> cli_provision)' do
       allow(customer).to receive_messages(verified?: true, verified_by: 'colonel_admin', mailbox_verified?: true)
 
       described_class.new(customer: customer, verified: true, verified_by: 'cli_provision', db: db).call
 
+      expect(workspace_op).to have_received(:claim_pending_federation_for).with(customer)
+    end
+
+    it 'retries the claim on a :no_change verification that already carries mailbox proof' do
+      # The claim is swallowed on failure (never undoes the verification), so a
+      # transient Redis/billing error would otherwise strand the benefit: the
+      # Rodauth hook fires once and the workspace already exists. Repeating
+      # `customers verify` is the retry, and it writes nothing.
+      allow(customer).to receive_messages(verified?: true, verified_by: 'cli_provision', mailbox_verified?: true)
+
+      op = described_class.new(customer: customer, verified: true, verified_by: 'cli_provision', db: db)
+
+      expect(op.call).to eq(:no_change)
+      expect(customer).not_to have_received(:save)
+      expect(workspace_op).to have_received(:claim_pending_federation_for).with(customer)
+    end
+
+    it 'does not claim on a :no_change verification without mailbox proof (sso -> sso)' do
+      allow(customer).to receive_messages(verified?: true, verified_by: 'sso', mailbox_verified?: false)
+
+      op = described_class.new(customer: customer, verified: true, verified_by: 'sso', db: db)
+
+      expect(op.call).to eq(:no_change)
       expect(workspace_op).not_to have_received(:claim_pending_federation_for)
     end
 
@@ -293,7 +318,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
     end
 
     it 'never lets a claim failure undo the verification' do
-      allow(customer).to receive(:mailbox_verified?).and_return(false, true)
+      allow(customer).to receive(:mailbox_verified?).and_return(true)
       allow(workspace_op).to receive(:claim_pending_federation_for).and_raise(RuntimeError, 'boom')
       allow(Onetime::ErrorHandler).to receive(:safe_execute).and_call_original
 
