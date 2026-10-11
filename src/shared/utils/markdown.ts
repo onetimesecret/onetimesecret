@@ -7,35 +7,41 @@
 // parses, highlight.js colors fenced code, and a dedicated DOMPurify instance
 // decides what reaches the DOM. On top of DOMPurify's HTML profile:
 //
+// - Links are not clickable. A Markdown link renders as its text followed by
+//   the real destination, so `[Your bank](https://evil.example)` cannot pose
+//   as a bank link on this site; raw <a> elements are unwrapped to their
+//   text. A clickable link with a warning is a separate display type's job.
 // - Elements that load remote resources (img, video, iframe, ...) are
 //   stripped. A tracking pixel would tell the sender the recipient's IP
 //   address and the moment of reveal, which the product promises not to leak.
-// - Links keep only http(s)/mailto schemes (javascript:, data:, vbscript: are
-//   dropped), open in a new tab, and carry rel="noopener noreferrer nofollow".
 // - style and data-* attributes are dropped. The site CSP allows no inline
 //   styles anyway; dropping them here keeps the output CSP-clean.
 //
-// Loaded lazily by MarkdownRenderer.vue so plain-text secrets never pay for
-// the parser and highlighter.
+// MarkdownRenderer.vue imports this module dynamically, but the production
+// build is a single chunk (vite.config.ts, codeSplitting: false), so the
+// parser and highlighter ship in the main bundle either way.
 
 import DOMPurify, { type Config, type DOMPurify as Purifier } from 'dompurify';
 import hljs from 'highlight.js/lib/common';
-import { Marked } from 'marked';
+import { Marked, type Tokens } from 'marked';
 import { markedHighlight } from 'marked-highlight';
 
 /**
  * DOMPurify's default URI pattern with the scheme allowlist reduced to
  * https/http/mailto. Relative URLs carry no scheme and pass. Mirrors the
- * pattern GlobalBroadcast.vue uses for operator-controlled content.
+ * pattern GlobalBroadcast.vue uses for operator-controlled content. With
+ * anchors and media forbidden this only guards leftovers such as `cite`.
  */
 const ALLOWED_URI_REGEXP = /^(?:(?:https?|mailto):|[^a-z]|[a-z+.-]+(?:[^a-z+.:-]|$))/i;
 
 /**
- * Elements that fetch remote resources, accept input, or carry scripts and
- * styles. Removed on top of DOMPurify's HTML profile, which would otherwise
- * admit img, form controls and svg.
+ * Elements that link out, fetch remote resources, accept input, or carry
+ * scripts and styles. Removed on top of DOMPurify's HTML profile, which would
+ * otherwise admit a, img, form controls and svg. DOMPurify keeps the text
+ * content of a removed element, so a raw <a> collapses to its label.
  */
 const FORBID_TAGS = [
+  'a',
   'img',
   'picture',
   'source',
@@ -72,25 +78,36 @@ const SANITIZE_CONFIG: Config = {
 };
 
 /**
- * Every surviving anchor opens in a new tab without a window.opener and
- * without passing the secret page as a referrer. Runs after attribute
- * sanitization, so an href that failed ALLOWED_URI_REGEXP is already gone.
+ * A DOMPurify instance of our own: GlobalBroadcast adds and removes hooks on
+ * the shared default instance around its calls, and nothing it registers
+ * should ever apply here.
  */
-function hardenAnchor(node: Element): void {
-  if (node.tagName !== 'A') return;
-  node.setAttribute('target', '_blank');
-  node.setAttribute('rel', 'noopener noreferrer nofollow');
+function createPurifier(): Purifier {
+  return DOMPurify();
+}
+
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 /**
- * A DOMPurify instance of our own: hooks are per instance, so registering
- * hardenAnchor here cannot leak into other sanitize() callers (GlobalBroadcast
- * adds and removes its hook around every call for the same reason).
+ * A Markdown link as inert text: the rendered label followed by the
+ * destination, or the destination alone when the label already is the
+ * destination (bare URLs and emails that GFM autolinks). Either way the
+ * recipient sees where the link would have gone.
  */
-function createPurifier(): Purifier {
-  const purifier = DOMPurify();
-  purifier.addHook('afterSanitizeAttributes', hardenAnchor);
-  return purifier;
+function inertLink(label: string, token: Tokens.Link): string {
+  const { href, text } = token;
+  if (!href) return label;
+
+  const shown = href === `mailto:${text}` ? text : href;
+  const url = `<span class="md-link-url">${escapeHtml(shown)}</span>`;
+  return text === shown ? url : `${label} (${url})`;
 }
 
 /**
@@ -111,6 +128,13 @@ function createMarked(): Marked {
       langPrefix: 'hljs language-',
       highlight: highlightCode,
     }),
+    {
+      renderer: {
+        link(token) {
+          return inertLink(this.parser.parseInline(token.tokens), token);
+        },
+      },
+    },
     // GFM with line breaks: a single newline becomes <br>, which is what
     // people typing a message (rather than a document) expect to see.
     { gfm: true, breaks: true }

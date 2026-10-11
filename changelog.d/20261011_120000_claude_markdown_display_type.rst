@@ -10,5 +10,5 @@ Added
   ``markdown``), accepted by the conceal endpoints and returned in the secret
   record; unknown values are rejected at creation, and generated passwords are
   always plain text. Rendered output is sanitized in the recipient's browser:
-  images and other remote-loading elements are stripped, links are limited to
-  ``http(s)``/``mailto`` and open in a new tab without a referrer.
+  images and other remote-loading elements are stripped, and links are shown
+  as plain text with their destination rather than as clickable links.

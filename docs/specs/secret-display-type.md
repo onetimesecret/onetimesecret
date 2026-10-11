@@ -77,18 +77,26 @@ copy button always copies the raw value.
 
 ### 3.1 Rendering and sanitization
 
-`src/shared/utils/markdown.ts`, loaded lazily so plain-text secrets never pay
-for the parser and highlighter:
+`src/shared/utils/markdown.ts`. The renderer component imports it
+dynamically, but the production build is a single chunk, so the parser and
+highlighter ship in the main bundle either way:
 
 - `marked` (GFM, line breaks on) parses; `highlight.js/lib/common` colors fenced
   code with a declared language. No auto-detection: a wrong guess colors prose.
+- Links are not clickable. A Markdown link renders as its label followed by
+  the real destination in parentheses, or the destination alone when the label
+  already is it (GFM autolinks); raw `<a>` elements are unwrapped to their
+  text. Rendered on this domain, a clickable link whose label says one thing
+  and whose target is another would be a phishing aid. Following a link
+  deliberately, behind a warning, is the kind of thing a separate display
+  type should own (see `httplink` below).
 - A dedicated `DOMPurify` instance sanitizes the HTML. On top of the HTML
-  profile: elements that load remote resources (`img`, `video`, `iframe`,
-  `object`, …) are stripped, since a tracking pixel would tell the sender the
-  recipient's IP and the moment of reveal; form controls, `style`, `svg` and
-  `math` are stripped; `style` and `data-*` attributes are dropped; link
-  schemes are limited to `https`, `http` and `mailto`; every surviving anchor
-  gets `target="_blank"` and `rel="noopener noreferrer nofollow"`.
+  profile: `a` is forbidden; elements that load remote resources (`img`,
+  `video`, `iframe`, `object`, …) are stripped, since a tracking pixel would
+  tell the sender the recipient's IP and the moment of reveal; form controls,
+  `style`, `svg` and `math` are stripped; `style` and `data-*` attributes are
+  dropped; URI attributes that remain are limited to `https`, `http` and
+  `mailto`.
 - If rendering throws, the component shows the source as plain text. The
   recipient must never lose the value to a rendering bug.
 

@@ -7,10 +7,7 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useCharCounter } from '@/shared/composables/useCharCounter';
   import { useTextarea } from '@/shared/composables/useTextarea';
-  import {
-    DEFAULT_SECRET_DISPLAY_TYPE,
-    SecretDisplayType,
-  } from '@/schemas/contracts/secret';
+  import { SecretDisplayType } from '@/schemas/contracts/secret';
   import { computed, watch } from 'vue';
 
   const { t } = useI18n();
@@ -26,7 +23,9 @@
       /**
        * How the recipient will see the content. 'markdown' turns the plain
        * textarea into a hybrid editor: the raw Markdown stays editable and a
-       * sanitized live preview renders beneath it.
+       * sanitized live preview renders beneath it. Leave unbound to hide the
+       * Markdown toggle on forms whose endpoint takes no display_type
+       * (e.g. incoming secrets).
        */
       displayType?: SecretDisplayType;
     }>(),
@@ -37,7 +36,6 @@
       cornerClass: '',
       minHeight: 200,
       maxHeight: 400,
-      displayType: DEFAULT_SECRET_DISPLAY_TYPE,
     }
   );
 
@@ -71,6 +69,7 @@
 
   // Markdown mode: the toggle is the only control over display_type here; the
   // parent owns the form field and the remembered preference.
+  const supportsDisplayType = computed(() => props.displayType !== undefined);
   const isMarkdown = computed(() => props.displayType === SecretDisplayType.MARKDOWN);
   const hasPreviewContent = computed(() => content.value.trim().length > 0);
 
@@ -89,7 +88,9 @@
 <template>
   <div>
     <!-- Formatting controls. Right-aligned so the textarea keeps its full width. -->
-    <div class="mb-2 flex items-center justify-end gap-2">
+    <div
+      v-if="supportsDisplayType"
+      class="mb-2 flex items-center justify-end gap-2">
       <MarkdownModeToggle
         :model-value="isMarkdown"
         :disabled="disabled"
@@ -154,7 +155,7 @@
         <span
           :class="[statusColor, 'size-2.5 rounded-full shadow-sm']"
           aria-hidden="true"></span>
-        <span class="font-semibold text-gray-700 dark:text-gray-300 tabular-nums">
+        <span class="font-semibold text-gray-700 tabular-nums dark:text-gray-300">
           {{ formattedCharCount }} / {{ formattedMaxLength }}
         </span>
       </div>
@@ -170,7 +171,7 @@
       class="mt-3"
       data-testid="secret-markdown-preview">
       <div
-        class="mb-1 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+        class="mb-1 flex items-center gap-1.5 text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
         <OIcon
           collection="heroicons"
           name="eye"
@@ -189,7 +190,7 @@
           :debounce="150" />
         <p
           v-else
-          class="text-sm italic text-gray-400 dark:text-gray-500">
+          class="text-sm text-gray-400 italic dark:text-gray-500">
           {{ t('web.secrets.markdown_preview_empty') }}
         </p>
       </div>

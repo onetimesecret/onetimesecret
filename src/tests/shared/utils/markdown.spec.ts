@@ -58,18 +58,6 @@ describe('renderMarkdown', () => {
       expect(html).toContain('x');
     });
 
-    it('strips javascript: links but keeps the link text', () => {
-      const html = renderMarkdown('[click](javascript:alert(1))');
-      expect(html).not.toContain('javascript:');
-      expect(html).toContain('click');
-    });
-
-    it('strips data: links', () => {
-      const html = renderMarkdown('[x](data:text/html,<script>alert(1)</script>)');
-      expect(html).not.toContain('data:');
-      expect(html).not.toContain('<script');
-    });
-
     it('strips images so a reveal cannot ping the sender', () => {
       const html = renderMarkdown(
         '![pixel](https://evil.example/p.gif)\n\n<img src="https://evil.example/p.gif">'
@@ -113,23 +101,57 @@ describe('renderMarkdown', () => {
   });
 
   describe('links', () => {
-    it('keeps https links and opens them in a new tab without opener or referrer', () => {
+    // A secret page on this domain must not carry clickable links whose label
+    // can say one thing while the destination is another. Links render as
+    // inert text that shows where they would have gone.
+    const noAnchors = (html: string) => {
+      expect(html).not.toContain('<a');
+      expect(html).not.toContain('href=');
+    };
+
+    it('renders a link as its label followed by the destination', () => {
       const html = renderMarkdown('[docs](https://docs.example/page)');
-      expect(html).toContain('href="https://docs.example/page"');
-      expect(html).toContain('target="_blank"');
-      expect(html).toContain('rel="noopener noreferrer nofollow"');
+      noAnchors(html);
+      expect(html).toContain('docs (<span class="md-link-url">https://docs.example/page</span>)');
     });
 
-    it('keeps mailto links', () => {
-      expect(renderMarkdown('[mail](mailto:a@example.com)')).toContain(
-        'href="mailto:a@example.com"'
+    it('shows the real destination when the label looks like a different URL', () => {
+      const html = renderMarkdown('[https://bank.example](https://evil.example/login)');
+      noAnchors(html);
+      expect(html).toContain('https://bank.example');
+      expect(html).toContain('<span class="md-link-url">https://evil.example/login</span>');
+    });
+
+    it('shows an autolinked URL or email once', () => {
+      const html = renderMarkdown('see https://a.example/p or a@example.com');
+      noAnchors(html);
+      expect(html).toContain('see <span class="md-link-url">https://a.example/p</span> or');
+      expect(html).toContain('<span class="md-link-url">a@example.com</span>');
+      expect(html).not.toContain('mailto:');
+    });
+
+    it('keeps the label formatting and handles reference links', () => {
+      const html = renderMarkdown('[**bold**][1]\n\n[1]: https://r.example');
+      noAnchors(html);
+      expect(html).toContain(
+        '<strong>bold</strong> (<span class="md-link-url">https://r.example</span>)'
       );
     });
 
-    it('does not let a target other than _blank through', () => {
+    it('shows a javascript: or data: destination as escaped text', () => {
+      const html = renderMarkdown(
+        '[click](javascript:alert(1)) [x](data:text/html,<script>alert(1)</script>)'
+      );
+      noAnchors(html);
+      expect(html).not.toContain('<script');
+      expect(html).toContain('<span class="md-link-url">javascript:alert(1)</span>');
+    });
+
+    it('unwraps raw <a> elements to their text', () => {
       const html = renderMarkdown('<a href="https://a.example" target="_top">x</a>');
-      expect(html).toContain('target="_blank"');
-      expect(html).not.toContain('_top');
+      noAnchors(html);
+      expect(html).toContain('x');
+      expect(html).not.toContain('a.example');
     });
   });
 });

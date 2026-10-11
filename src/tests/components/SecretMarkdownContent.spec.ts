@@ -68,7 +68,8 @@ describe('SecretMarkdownContent', () => {
 
     const html = wrapper.find(RENDERED).html();
     expect(html).not.toContain('<script');
-    expect(html).not.toContain('javascript:');
+    expect(html).not.toContain('<a');
+    expect(html).not.toContain('href=');
     expect(html).not.toContain('<img');
     expect(html).toContain('hi');
   });

@@ -6,10 +6,10 @@
    *
    * Used for secrets with display_type 'markdown': the live preview on the
    * create forms and the recipient's reveal page. The parser, highlighter and
-   * sanitizer (src/shared/utils/markdown.ts) load on first use, so plain-text
-   * secrets never pay for highlight.js. If rendering fails for any reason the
-   * source is shown as plain text instead: a recipient must never lose the
-   * value to a rendering bug.
+   * sanitizer live in src/shared/utils/markdown.ts, imported on first render
+   * (the single-chunk production build bundles them regardless). If rendering
+   * fails for any reason the source is shown as plain text instead: a
+   * recipient must never lose the value to a rendering bug.
    */
   import { loggingService } from '@/services/logging.service';
   import { watchDebounced } from '@vueuse/core';
@@ -182,6 +182,18 @@
 
   .markdown-body .hljs-strong {
     font-weight: 700;
+  }
+
+  /*
+   * Where a Markdown link points (links render as inert text, see
+   * markdown.ts). Long URLs wrap anywhere rather than widening the card.
+   */
+  .markdown-body .md-link-url {
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 0.875em;
+    overflow-wrap: anywhere;
+    text-decoration: underline dotted;
+    text-underline-offset: 2px;
   }
 
   /* Wide tables scroll inside the card instead of breaking the layout. */
