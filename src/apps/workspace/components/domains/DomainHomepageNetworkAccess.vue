@@ -51,25 +51,34 @@
 
   const emit = defineEmits<{
     (e: 'save', rules: HomepageNetworkRules): void;
+    /** Staged edits exist (or no longer do); the parent guards navigation on it. */
+    (e: 'update:dirty', dirty: boolean): void;
   }>();
 
   const { t } = useI18n();
 
-  // Staged copies of the stored lists; re-seeded whenever the record
-  // refreshes (the parent refetches after a successful save).
+  const sameList = (a: string[], b: string[]) =>
+    a.length === b.length && a.every((item, i) => item === b[i]);
+
+  // Staged copies of the stored lists. A record refresh re-seeds a list
+  // only when it holds no staged edits, or when the refresh is this
+  // editor's own save landing (the parent keeps `saving` set until its
+  // post-save refetch is in, and the server returns normalized entries).
+  // An unrelated refresh, such as the experience selector's save, keeps
+  // the operator's staged edits.
   const allowed = ref<string[]>([...props.allowedCidrs]);
   const denied = ref<string[]>([...props.deniedCidrs]);
 
   watch(
     () => props.allowedCidrs,
-    (next) => {
-      allowed.value = [...next];
+    (next, prev) => {
+      if (props.saving || sameList(allowed.value, prev)) allowed.value = [...next];
     }
   );
   watch(
     () => props.deniedCidrs,
-    (next) => {
-      denied.value = [...next];
+    (next, prev) => {
+      if (props.saving || sameList(denied.value, prev)) denied.value = [...next];
     }
   );
 
@@ -120,12 +129,11 @@
     }
   );
 
-  const sameList = (a: string[], b: string[]) =>
-    a.length === b.length && a.every((item, i) => item === b[i]);
-
   const isDirty = computed(
     () => !sameList(allowed.value, props.allowedCidrs) || !sameList(denied.value, props.deniedCidrs)
   );
+
+  watch(isDirty, (dirty) => emit('update:dirty', dirty));
 
   const restricted = computed(() => allowed.value.length > 0 || denied.value.length > 0);
 

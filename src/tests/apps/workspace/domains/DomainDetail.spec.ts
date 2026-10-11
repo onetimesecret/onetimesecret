@@ -3,6 +3,7 @@
 import { flushPromises, mount } from '@vue/test-utils';
 import { beforeEach, describe, it, expect, vi } from 'vitest';
 import { ref } from 'vue';
+import { onBeforeRouteLeave } from 'vue-router';
 import DomainDetail from '@/apps/workspace/domains/DomainDetail.vue';
 
 vi.mock('vue-i18n', () => ({
@@ -12,6 +13,7 @@ vi.mock('vue-i18n', () => ({
 vi.mock('vue-router', () => ({
   useRoute: vi.fn(() => ({ path: '/', query: {}, params: {} })),
   useRouter: vi.fn(() => ({ push: vi.fn() })),
+  onBeforeRouteLeave: vi.fn(),
   RouterLink: {
     name: 'RouterLink',
     template: '<a><slot /></a>',
@@ -210,5 +212,59 @@ describe('DomainDetail - homepage save feedback', () => {
 
     expect(mockInitialize).not.toHaveBeenCalled();
     expect(mockNotifyShow).not.toHaveBeenCalled();
+  });
+});
+
+describe('DomainDetail - unsaved network rules', () => {
+  beforeEach(() => {
+    mockDomain.value = {
+      extid: 'dm-test-extid',
+      homepage_config: {
+        enabled: true,
+        secrets_mode: 'create',
+        allowed_cidrs: [],
+        denied_cidrs: [],
+      },
+      incoming_ready: false,
+    };
+  });
+
+  type LeaveGuard = (to: unknown, from: unknown, next: (arg?: boolean) => void) => void;
+
+  function lastLeaveGuard(): LeaveGuard {
+    const calls = vi.mocked(onBeforeRouteLeave).mock.calls;
+    return calls[calls.length - 1][0] as unknown as LeaveGuard;
+  }
+
+  it('confirms before leaving while the network editor holds staged edits', async () => {
+    const wrapper = mountDetail();
+    await flushPromises();
+    const guard = lastLeaveGuard();
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
+
+    await wrapper
+      .findComponent({ name: 'DomainHomepageNetworkAccess' })
+      .vm.$emit('update:dirty', true);
+    const next = vi.fn();
+    guard({}, {}, next);
+
+    expect(confirmSpy).toHaveBeenCalledWith('web.domains.unsaved_changes_confirmation');
+    expect(next).toHaveBeenCalledWith(false);
+    expect(wrapper.findComponent({ name: 'DomainHeader' }).props('hasUnsavedChanges')).toBe(true);
+    confirmSpy.mockRestore();
+  });
+
+  it('leaves without asking when nothing is staged', async () => {
+    mountDetail();
+    await flushPromises();
+    const guard = lastLeaveGuard();
+    const confirmSpy = vi.spyOn(window, 'confirm');
+
+    const next = vi.fn();
+    guard({}, {}, next);
+
+    expect(confirmSpy).not.toHaveBeenCalled();
+    expect(next).toHaveBeenCalledWith();
+    confirmSpy.mockRestore();
   });
 });

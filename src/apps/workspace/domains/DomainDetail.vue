@@ -32,7 +32,7 @@ import {
 } from '@/utils/features';
 import { storeToRefs } from 'pinia';
 import { computed, onMounted, ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { onBeforeRouteLeave, useRouter } from 'vue-router';
 
 const { t } = useI18n();
 const router = useRouter();
@@ -184,6 +184,20 @@ const homepageNetworkRestricted = computed(
   () => homepageAllowedCidrs.value.length > 0 || homepageDeniedCidrs.value.length > 0
 );
 const homepageNetworkSaving = ref(false);
+/** The network editor holds staged, unsaved list edits. */
+const homepageNetworkDirty = ref(false);
+
+// The network editor is the one explicit-save form on this hub; guard its
+// staged edits the way the dedicated domain config pages guard theirs.
+onBeforeRouteLeave((_to, _from, next) => {
+  if (homepageNetworkDirty.value) {
+    const answer = window.confirm(t('web.domains.unsaved_changes_confirmation'));
+    if (answer) next();
+    else next(false);
+  } else {
+    next();
+  }
+});
 
 const handleHomepageNetworkSave = async (rules: HomepageNetworkRules) => {
   const domain = customDomainRecord.value;
@@ -199,7 +213,9 @@ const handleHomepageNetworkSave = async (rules: HomepageNetworkRules) => {
     if (result) {
       // Same refetch gate as the experience selector: the editor re-seeds
       // from the refreshed record (normalized entries), so only confirm
-      // once that record has landed.
+      // once that record has landed. homepageNetworkSaving stays set until
+      // then; the editor relies on it to tell this refresh from an
+      // unrelated one that must keep its staged edits.
       const refreshed = await initializeDomain();
       if (refreshed) {
         notifications.show(t('web.domains.homepage.network_update_success'), 'success', 'top');
@@ -315,11 +331,12 @@ onMounted(() => {
 <template>
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
     <!-- Header Section. Back folded into the header row (opt-in affordance),
-         so there's no separate Back row above it. This hub has no save. -->
+         so there's no separate Back row above it. The only explicit save on
+         this hub is the homepage network editor. -->
     <div class="sticky top-0 z-30">
       <DomainHeader
         :domain="customDomainRecord"
-        :has-unsaved-changes="false"
+        :has-unsaved-changes="homepageNetworkDirty"
         :orgid="props.orgid"
         external-path="/"
         back-visible
@@ -391,8 +408,10 @@ onMounted(() => {
               </div>
             </button>
 
+            <!-- v-show, not v-if: collapsing must not discard the network
+                 editor's staged edits. -->
             <div
-              v-if="homepageExpanded"
+              v-show="homepageExpanded"
               class="border-t border-gray-100 px-5 py-4 dark:border-gray-700/50">
               <DomainHomepageSelector
                 :model-value="homepageChoice"
@@ -409,7 +428,8 @@ onMounted(() => {
                 :denied-cidrs="homepageDeniedCidrs"
                 :disabled="domainLoading || homepageSaving || !canAdmin"
                 :saving="homepageNetworkSaving"
-                @save="handleHomepageNetworkSave" />
+                @save="handleHomepageNetworkSave"
+                @update:dirty="homepageNetworkDirty = $event" />
             </div>
           </div>
 
