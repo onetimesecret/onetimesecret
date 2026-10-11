@@ -1008,8 +1008,8 @@
     "content_hash": "0295ad71"
   },
   "web.organizations.sso.allowed_domains_hint": {
-    "text": "Only users with email addresses from these domains can sign in. Leave empty to allow all domains.",
-    "content_hash": "1775e874"
+    "text": "Only users with email addresses from these domains can sign in. Leave empty to allow any domain. New accounts are created only for addresses in domains your organization has verified.",
+    "content_hash": "915a2917"
   },
   "web.organizations.sso.domain_placeholder": {
     "text": "e.g. acme.com",

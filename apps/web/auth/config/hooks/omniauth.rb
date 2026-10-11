@@ -140,7 +140,9 @@ module Auth::Config::Hooks
     # inline disable on Hooks::Account.configure). Splitting it would scatter the
     # callback flow across methods and obscure the account_from_omniauth branch
     # order the security model depends on.
-    def self.configure(auth)
+    # One Rodauth configuration block per hook file; the hooks it defines
+    # are what make the method long.
+    def self.configure(auth) # rubocop:disable Metrics/MethodLength
       auth.auth_class_eval do
         prepend Auth::Config::Hooks::OmniAuth::EmailNormalization
         prepend Auth::Config::Hooks::OmniAuthConnect::Callback
@@ -758,6 +760,23 @@ module Auth::Config::Hooks
           )
           redirect '/signin?auth_error=invalid_email'
         end
+
+        # TENANT SURFACE: the address must lie inside a domain the tenant
+        # organization has proven it owns (RISK-2026-10-10-01, #4734). The
+        # tenant allowlist has already passed in before_omniauth_callback_route,
+        # but it is the tenant's own choice (empty is allow-all) and judges an
+        # `email` claim the tenant's IdP asserts, so without this rung a
+        # tenant IdP could mint a verified canonical-pool account for any
+        # unregistered address, and the address owner's later password reset
+        # or magic link would share that account with the tenant identity.
+        # Runs here, on the create path only: an identity already bound to an
+        # account keeps signing in (hooks/login.rb logs the ones outside the
+        # proven set), and authenticated linking binds to the session's own
+        # account. session[:validated_omniauth_domain_id] is set only on
+        # tenant callbacks, so the platform surface is excluded by construction.
+        Auth::Config::Hooks::OmniAuthTenant.enforce_tenant_verified_email_domain!(
+          session[:validated_omniauth_domain_id], email, self, provider: omniauth_provider
+        )
 
         # Get display_domain from DomainStrategy middleware (already in env)
         display_domain = request.env['onetime.display_domain']

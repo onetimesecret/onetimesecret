@@ -175,6 +175,22 @@ module Auth::Config::Hooks
               ).call
             end
           end
+
+          # A returning tenant identity whose account address lies outside
+          # every domain the organization has proven is still signed in, and
+          # recorded (#4734): creation of such accounts is refused in
+          # before_omniauth_create_account, so a hit here is a binding that
+          # predates the rule or a proof that lapsed. Visibility only, so a
+          # datastore error is logged and never fails the sign-in.
+          Onetime::ErrorHandler.safe_execute(
+            'log_unverified_tenant_email_domain_login',
+            account_id: account_id,
+            domain_id: domain_id,
+          ) do
+            Auth::Config::Hooks::OmniAuthTenant.log_unverified_tenant_email_domain(
+              domain_id, account[:email], provider: via_omniauth ? omniauth_provider : nil
+            )
+          end
         end
 
         # MFA detection: run when ANY second-factor feature is loaded. The OTP

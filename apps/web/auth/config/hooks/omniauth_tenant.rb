@@ -27,6 +27,9 @@
 #     `allow_platform_fallback_for_tenants`; platform SAML stays on its pinned host
 #   - Tenant SSO waiting only on domain verification is refused on every
 #     phase (sso_domain_unverified), with no platform fallback (#4579)
+#   - Tenant SSO creates an account only for an address inside a custom
+#     domain the organization has proven by TXT ownership check; the tenant
+#     allowlist selects among those domains (#4734)
 #
 # See: docs/authentication/omniauth-sso.md (full configuration guide)
 # See: lib/onetime/models/custom_domain/sso_config.rb (per-domain SSO config)
@@ -655,7 +658,11 @@ module Auth::Config::Hooks
     #                       differed logs :omniauth_tenant_domain_idn_match.
     #
     # An empty allowlist is NOT a rung — valid_email_domain? returns true and
-    # the callback proceeds. That is the documented allow-all state.
+    # the callback proceeds. That is the documented allow-all state. Allow-all
+    # does not mean any address: account creation is further gated by
+    # enforce_tenant_verified_email_domain! (before_omniauth_create_account),
+    # which admits only addresses inside a domain the organization has
+    # proven it owns (#4734). The allowlist selects among those.
     #
     # Missing and malformed claims use missing_email and invalid_email;
     # policy/configuration denials use domain_not_allowed without disclosing
@@ -745,6 +752,118 @@ module Auth::Config::Hooks
         allowed_domain: listed,
         asserted_domain: asserted_domain,
       )
+    end
+
+    # Refuse to create an account for a tenant SSO address outside every
+    # domain the tenant organization has proven it owns
+    # (RISK-2026-10-10-01, #4734).
+    #
+    # Called from before_omniauth_create_account (hooks/omniauth.rb) on the
+    # tenant surface, after the structural email checks and before the
+    # install-wide signup-domain gate, so it runs exactly when an account is
+    # about to be minted. The allowlist above it (enforce_tenant_email_domain!)
+    # is the tenant's own choice and judges a claim the tenant's IdP asserts,
+    # so both sides of that comparison belong to one party; an empty list
+    # even reads as allow-all. This rung is the platform's: the address must
+    # fall inside a custom domain the organization has completed a TXT
+    # ownership check for (Organization#owns_email_domain?). The allowlist
+    # therefore selects among proven domains, and allow-all means "any proven
+    # domain".
+    #
+    # Only account creation is gated. An identity row already bound to an
+    # account keeps signing in (log_unverified_tenant_email_domain records
+    # it), and authenticated linking binds an identity to the session's own
+    # account, which the asserted address plays no part in choosing.
+    #
+    # Fails closed when the custom domain or its organization cannot be
+    # loaded mid-flow: there is no proven set to consult. The visitor sees
+    # the same domain_not_allowed as an allowlist refusal (the ladder's rule:
+    # configuration denials do not disclose the configured domains); the
+    # audit event names the real reason.
+    #
+    # @param domain_id [String, nil] validated CustomDomain identifier for this
+    #   flow; nil on the platform surface, where this rung does not apply
+    # @param email [String] IdP-asserted email address, already normalized
+    #   (stripped, downcased) and structurally valid
+    # @param rodauth [Rodauth] Rodauth instance (for redirect)
+    # @param provider [String, nil] omniauth provider, for the audit event
+    # @return [void] returns normally only when the address may be minted
+    def self.enforce_tenant_verified_email_domain!(domain_id, email, rodauth, provider: nil)
+      return if domain_id.to_s.empty?
+
+      asserted_domain = email.to_s.split('@').last.to_s
+      custom_domain   = Onetime::CustomDomain.find_by_identifier(domain_id)
+      organization    = custom_domain&.primary_organization
+
+      reason = if custom_domain.nil?
+                 :no_custom_domain
+               elsif organization.nil?
+                 :no_organization
+               elsif !tenant_owns_email_domain?(custom_domain, organization, asserted_domain)
+                 :email_domain_unverified
+               end
+      return unless reason
+
+      Auth::Logging.log_auth_event(
+        :omniauth_tenant_email_domain_unverified,
+        level: :warn,
+        outcome: :refused,
+        domain_id: domain_id,
+        org_id: organization&.objid,
+        email: OT::Utils.obscure_email(email.to_s),
+        asserted_domain: asserted_domain,
+        provider: provider,
+        reason: reason,
+      )
+
+      rodauth.send(:redirect, '/signin?auth_error=domain_not_allowed')
+    end
+
+    # Record a tenant SSO sign-in by an identity already bound to an account
+    # whose address lies outside every domain the organization has proven
+    # (#4734). The sign-in is not refused: the binding predates the rule, or
+    # the proof lapsed since. The line gives the operator the list of
+    # accounts to review. Best effort: a datastore error here is logged by
+    # the caller's safe_execute and never blocks the sign-in.
+    #
+    # @param domain_id [String] validated CustomDomain identifier for this flow
+    # @param email [String] the account's address
+    # @param provider [String, nil] omniauth provider, for the audit event
+    # @return [void]
+    def self.log_unverified_tenant_email_domain(domain_id, email, provider: nil)
+      asserted_domain = email.to_s.strip.downcase.split('@').last.to_s
+      custom_domain   = Onetime::CustomDomain.find_by_identifier(domain_id)
+      organization    = custom_domain&.primary_organization
+      return if custom_domain && organization && tenant_owns_email_domain?(custom_domain, organization, asserted_domain)
+
+      Auth::Logging.log_auth_event(
+        :omniauth_tenant_email_domain_unverified,
+        level: :warn,
+        outcome: :signed_in,
+        domain_id: domain_id,
+        org_id: organization&.objid,
+        email: OT::Utils.obscure_email(email.to_s),
+        asserted_domain: asserted_domain,
+        provider: provider,
+        reason: :email_domain_unverified,
+      )
+    end
+
+    # Whether `email_domain` lies inside a domain the tenant organization has
+    # proven. The custom domain the flow runs on is always consulted, so the
+    # answer does not depend on the organization's domain index being
+    # complete, but it counts only while its own ownership is accepted.
+    #
+    # @param custom_domain [Onetime::CustomDomain] the flow's domain
+    # @param organization [Onetime::Organization] its owner
+    # @param email_domain [String]
+    # @return [Boolean]
+    def self.tenant_owns_email_domain?(custom_domain, organization, email_domain)
+      proven = ([custom_domain] + organization.verified_domains)
+        .select(&:ownership_verified)
+        .uniq(&:identifier)
+
+      organization.owns_email_domain?(email_domain, domains: proven)
     end
 
     # Where a platform-path request lands when the install-wide OIDC issuer

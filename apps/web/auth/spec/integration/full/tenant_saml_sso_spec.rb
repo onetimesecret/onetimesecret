@@ -311,8 +311,10 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
 
   describe 'callback with a signed response from the tenant IdP' do
     let(:name_id) { "nameid-#{run_id}" }
-    let(:email_a) { "user-a-#{run_id}@saml-tenant.example.com" }
-    let(:email_b) { "user-b-#{run_id}@saml-tenant.example.com" }
+    # Each at its tenant's own verified domain: tenant SSO creates accounts
+    # only for addresses inside one (#4734).
+    let(:email_a) { "user-a-#{run_id}@#{tenant_a.host}" }
+    let(:email_b) { "user-b-#{run_id}@#{tenant_b.host}" }
 
     [nil, 'true'].each do |flag|
       it "handles a real native-tenant null-origin callback with operator flag #{flag.inspect}" do
@@ -423,7 +425,7 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
 
   describe 'a response signed by tenant A IdP, presented on tenant B' do
     let(:name_id) { "victim-#{run_id}" }
-    let(:email)   { "victim-#{run_id}@saml-tenant.example.com" }
+    let(:email)   { "victim-#{run_id}@#{tenant_a.host}" }
 
     def expect_refused
       expect(last_response.status).to eq(302)
@@ -464,7 +466,7 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
       impostor = SamlSpec::TestIdp.new(entity_id: tenant_a.idp.entity_id, key: tenant_b.idp.key, cert: tenant_b.idp.cert)
 
       clear_cookies
-      attacker_email = "attacker-#{run_id}@saml-tenant.example.com"
+      attacker_email = "attacker-#{run_id}@#{tenant_b.host}"
       sign_in(tenant_b, name_id: name_id, email: attacker_email, idp: impostor)
 
       expect(last_response.status).to eq(302)
@@ -570,7 +572,7 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
   # pending context, binding included, so the response has nothing to answer.
   describe 'a response answering a request the record was refused on' do
     let(:name_id) { "refused-#{run_id}" }
-    let(:email)   { "refused-#{run_id}@saml-tenant.example.com" }
+    let(:email)   { "refused-#{run_id}@#{tenant_a.host}" }
 
     it 'is refused after the record is repaired, and nothing is created, validated or signed in' do
       created_emails << email
@@ -620,7 +622,7 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
   # markers is a tenant flow whose config is gone: dropped and refused.
   describe 'a response to a tenant flow whose record was disabled mid-flow, with platform fallback allowed' do
     let(:name_id) { "gone-#{run_id}" }
-    let(:email)   { "gone-#{run_id}@saml-tenant.example.com" }
+    let(:email)   { "gone-#{run_id}@#{tenant_a.host}" }
 
     it 'drops the whole pending context and refuses as sso_not_configured' do
       allow(Onetime.auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
@@ -682,7 +684,7 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
   # (tenant_sso_proxy_host_spec).
   describe 'a tenant whose domain is awaiting verification' do
     let(:name_id) { "unverified-#{run_id}" }
-    let(:email)   { "unverified-#{run_id}@saml-tenant.example.com" }
+    let(:email)   { "unverified-#{run_id}@#{tenant_a.host}" }
 
     def await_verification(tenant)
       tenant.domain.verified = false
@@ -822,7 +824,7 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
   # no pending request.
   describe 'a response POSTed after domain verification lapsed' do
     let(:name_id) { "lapsed-#{run_id}" }
-    let(:email)   { "lapsed-#{run_id}@saml-tenant.example.com" }
+    let(:email)   { "lapsed-#{run_id}@#{tenant_a.host}" }
     let(:hook)    { Auth::Config::Hooks::OmniAuthTenant }
 
     def response_for(request)
@@ -1172,7 +1174,7 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
   # the tenant host.
   describe 'sign-in behind a Host-rewriting proxy' do
     let(:name_id) { "nameid-proxy-#{run_id}" }
-    let(:email) { "user-proxy-#{run_id}@saml-tenant.example.com" }
+    let(:email) { "user-proxy-#{run_id}@#{tenant_a.host}" }
 
     # The callback has to come from a peer DetectHost takes forwarded
     # headers from. With no trusted-proxy configuration that is a private
@@ -1272,7 +1274,7 @@ RSpec.describe 'Tenant SAML SSO', :shared_db_state, type: :integration do
           config.idp_entity_id = tenant_a.idp.entity_id
           config.commit_fields
           impostor = SamlSpec::TestIdp.new(entity_id: tenant_a.idp.entity_id, key: tenant_b.idp.key, cert: tenant_b.idp.cert)
-          attacker_email = "attacker-proxy-#{run_id}@saml-tenant.example.com"
+          attacker_email = "attacker-proxy-#{run_id}@#{tenant_b.host}"
           clear_cookies
           sign_in(tenant_b, name_id: name_id, email: attacker_email, idp: impostor)
 

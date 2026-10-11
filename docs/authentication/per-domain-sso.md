@@ -220,12 +220,57 @@ and public host in the session. At the start of the callback, the tenant hook:
 
 A mismatch returns `403 tenant_mismatch`. Missing or unreadable tenant
 configuration and malformed or disallowed asserted email addresses also fail
-closed. An empty SSO email-domain allowlist is the configured allow-all case.
+closed. An empty SSO email-domain allowlist is the configured allow-all case,
+which admits any address the IdP authenticates inside a
+[verified email domain](#verified-email-domains).
 
 This validation proves that the SSO transaction was initiated and completed for
 the same custom domain. It does **not** prove that an existing authenticated
 account session was established for, or is authorized to act on, that tenant
 surface.
+
+### Verified email domains
+
+Tenant SSO creates an account only for an address whose domain the
+organization has proven it owns (#4734, RISK-2026-10-10-01). The allowlist
+alone cannot carry that decision: the tenant sets it, the tenant's IdP asserts
+the `email` claim it is compared with, and no supported tenant provider
+vouches that the claim's domain belongs to the tenant. Microsoft's claims
+guidance says never to use `email` for authorization. Without this rule a
+tenant IdP could mint a verified account for any address that has no OTS
+account yet, and the address owner's later password reset or magic link on
+the canonical host would share that account with the tenant identity.
+
+The proven set is the organization's custom domains whose ownership axis is
+accepted ([ADR-016](../adr/adr-016-domain-validation-state-model.md): a passing
+TXT check, or a Colonel override). The TXT challenge is placed under the name
+as entered, so a verified `secrets.acme.example` proves that name and the
+names below it. It does not prove `acme.example`. An organization whose people
+have `@acme.example` addresses adds `acme.example` as a custom domain and
+completes its TXT check. The serving axis plays no part: the name never has to
+point at this service, and the domain can stay unused for links.
+
+The gate runs in `before_omniauth_create_account`, so it applies exactly when
+an account is about to be created. An identity already bound to an account
+keeps signing in; `hooks/login.rb` logs
+`omniauth_tenant_email_domain_unverified` with `outcome: signed_in` for one
+whose account address lies outside the proven set, so an operator can list
+the accounts to review. Authenticated linking is not gated: it binds an
+identity to the session's own account, which the asserted address plays no
+part in choosing.
+
+A refused creation redirects to `/signin?auth_error=domain_not_allowed`, the
+same code as an allowlist refusal (configuration denials do not disclose the
+configured domains), and logs `omniauth_tenant_email_domain_unverified` at
+warn level with `outcome: refused`, the custom domain and organization, the
+obscured address, the asserted domain and a `reason`:
+`email_domain_unverified`, or `no_custom_domain` / `no_organization` when
+the tenant record could not be loaded mid-flow.
+
+The allowlist therefore selects among proven domains. A listed domain the
+organization has not verified admits no one; an empty list admits every
+proven domain. Entra app assignment still decides who may authenticate at the
+IdP; it is not evidence about the domain of the `email` claim.
 
 ### Identity linking and surface isolation
 
@@ -846,7 +891,11 @@ Generic OIDC is not assumed to enforce Entra application assignments. Set
 `allowed_domains` to the email domains that may use the custom domain. The
 allowlist is enforced on every tenant SSO callback; an empty list allows every
 email domain that the IdP authenticates. This differs from `entra_id`, where
-app assignment is treated as the access-control boundary.
+app assignment is treated as the access-control boundary for who may sign in.
+On either provider type, an account is created only for an address inside a
+domain the organization has verified; see
+[Verified email domains](#verified-email-domains). App assignment says nothing
+about the domain of the `email` claim.
 
 An internationalised domain can be entered in either form. Entries are stored
 as typed and compared by A-label, so `bücher.de` matches an IdP that asserts
