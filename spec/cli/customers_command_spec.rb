@@ -93,6 +93,7 @@ RSpec.describe 'Customers Command', type: :cli do
   before do
     allow(OT::Utils).to receive(:normalize_email).and_call_original
     allow(OT::Utils).to receive(:obscure_email).and_return('t***@example.com')
+    allow(verification_op).to receive(:federation_claimed?).and_return(false)
   end
 
   describe 'verify subcommand' do
@@ -118,6 +119,24 @@ RSpec.describe 'Customers Command', type: :cli do
 
       output = run_cli_command_quietly('customers', 'verify', 'target@example.com')
       expect(output[:stdout]).to include('already verified')
+      expect(output[:stdout]).not_to include('federated subscription')
+      expect(last_exit_code).to eq(0)
+    end
+
+    # A :no_change verify is the retry for a stranded federated subscription
+    # claim (#4735). When the retry lands, "already verified" alone would tell
+    # the operator nothing happened.
+    it 'reports the federated subscription a :no_change verify applied' do
+      allow(Onetime::Customer).to receive(:load_by_extid_or_email)
+        .and_return(target_customer)
+      allow(Auth::Operations::SetCustomerVerification).to receive(:new)
+        .and_return(verification_op)
+      allow(verification_op).to receive(:call).and_return(:no_change)
+      allow(verification_op).to receive(:federation_claimed?).and_return(true)
+
+      output = run_cli_command_quietly('customers', 'verify', 'target@example.com')
+      expect(output[:stdout]).to include('already verified')
+      expect(output[:stdout]).to include('Applied the pending federated subscription')
       expect(last_exit_code).to eq(0)
     end
 

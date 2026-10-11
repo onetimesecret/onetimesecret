@@ -33,7 +33,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::UnverifyUser do
   end
 
   let(:op) do
-    instance_double(Auth::Operations::Customers::SetVerification, call: :success)
+    instance_double(Auth::Operations::Customers::SetVerification, call: :success, federation_claimed?: false)
   end
 
   # `confirm_token` is where the colonel session auth strategy puts the

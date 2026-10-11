@@ -34,6 +34,7 @@ RSpec.describe Auth::Operations::Customers::SetVerification do
     allow(OT).to receive(:le)
     allow(Onetime::ColonelAuditEvent).to receive(:record)
     allow(Auth::Operations::SetCustomerVerification).to receive(:new).and_return(inner)
+    allow(inner).to receive(:federation_claimed?).and_return(false)
   end
 
   it 'delegates to SetCustomerVerification and audits once on :success' do
@@ -76,6 +77,44 @@ RSpec.describe Auth::Operations::Customers::SetVerification do
       result: :success,
       detail: { outcome: 'no_change', verified: true },
     )
+  end
+
+  # A :no_change verification is the operator's retry for a stranded federated
+  # subscription claim (#4735). When it lands, the row must say so: a plan was
+  # granted, and `outcome: no_change` with nothing else would hide that.
+  it 'records federation_claimed on the no-change attempt when the inner op applied a stranded claim' do
+    allow(inner).to receive(:call).and_return(:no_change)
+    allow(inner).to receive(:federation_claimed?).and_return(true)
+
+    op     = described_class.new(customer: customer, verified: true, actor: 'x', verified_by: 'cli_provision')
+    result = op.call
+
+    expect(result).to eq(:no_change)
+    expect(op.federation_claimed?).to be(true)
+    expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+      actor: 'x',
+      verb: 'customer.set_verification',
+      target: 'ur_v',
+      result: :success,
+      detail: { outcome: 'no_change', verified: true, federation_claimed: true },
+    )
+  end
+
+  it 'records federation_claimed on the applied event too' do
+    allow(inner).to receive(:call).and_return(:success)
+    allow(inner).to receive(:federation_claimed?).and_return(true)
+
+    described_class.new(customer: customer, verified: true, actor: 'x', verified_by: 'cli_provision').call
+
+    expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+      hash_including(result: :success, detail: { verified: true, federation_claimed: true }),
+    )
+  end
+
+  it 'reports no claim before the call' do
+    op = described_class.new(customer: customer, verified: true, actor: 'x', verified_by: 'cli_provision')
+
+    expect(op.federation_claimed?).to be(false)
   end
 
   # Verification is reversible and destroys nothing, so neither path fails

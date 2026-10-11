@@ -318,6 +318,38 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
       expect(workspace_op).to have_received(:claim_pending_federation_for).with(customer)
     end
 
+    # The symbol says :no_change because the verification state did not move;
+    # the grant is the one effect such a call can have, so it is exposed
+    # separately for the adapters that print and audit the call.
+    it 'reports an applied claim on #federation_claimed? even when the verification was a :no_change' do
+      allow(customer).to receive_messages(verified?: true, verified_by: 'cli_provision', mailbox_verified?: true)
+
+      op = described_class.new(customer: customer, verified: true, verified_by: 'cli_provision', db: db)
+
+      expect(op.call).to eq(:no_change)
+      expect(op.federation_claimed?).to be(true)
+    end
+
+    it 'reports no claim when nothing was pending' do
+      allow(customer).to receive_messages(verified?: false, verified_by: nil, mailbox_verified?: true)
+      allow(workspace_op).to receive(:claim_pending_federation_for).and_return(false)
+
+      op = described_class.new(customer: customer, verified: true, verified_by: 'email', db: db)
+
+      expect(op.call).to eq(:success)
+      expect(op.federation_claimed?).to be(false)
+    end
+
+    it 'reports no claim before #call and when the claim was never attempted' do
+      allow(customer).to receive_messages(verified?: true, verified_by: 'sso', mailbox_verified?: false)
+
+      op = described_class.new(customer: customer, verified: true, verified_by: 'sso', db: db)
+
+      expect(op.federation_claimed?).to be(false)
+      op.call
+      expect(op.federation_claimed?).to be(false)
+    end
+
     it 'does not claim on a :no_change verification without mailbox proof (sso -> sso)' do
       allow(customer).to receive_messages(verified?: true, verified_by: 'sso', mailbox_verified?: false)
 
@@ -344,6 +376,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
 
       expect(op.call).to eq(:success)
       expect(customer).to have_received(:save)
+      expect(op.federation_claimed?).to be(false)
     end
   end
 end

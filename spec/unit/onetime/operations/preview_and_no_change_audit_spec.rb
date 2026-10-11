@@ -303,7 +303,7 @@ RSpec.describe 'preview and no-change auditing' do
 
       before do
         allow(Auth::Operations::SetCustomerVerification).to receive(:new)
-          .and_return(double('SetCustomerVerification', call: :no_change))
+          .and_return(double('SetCustomerVerification', call: :no_change, federation_claimed?: false))
       end
 
       it 'records the attempt even though one emitter serves both paths' do

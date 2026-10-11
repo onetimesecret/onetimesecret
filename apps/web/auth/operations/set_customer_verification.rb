@@ -71,6 +71,18 @@ module Auth
         @verified_by             = verified_by
         @rodauth_already_synced  = rodauth_already_synced
         @db                      = db
+        @federation_claimed      = false
+      end
+
+      # Did this call apply a deferred federated subscription to the customer's
+      # default workspace? Meaningful after #call. The claim is the one effect
+      # a `:no_change` return can carry (see #claim_pending_federation!), so
+      # callers that report or audit the call read this rather than inferring
+      # "nothing happened" from the symbol.
+      #
+      # @return [Boolean]
+      def federation_claimed?
+        @federation_claimed
       end
 
       # @return [Symbol] :success or :no_change
@@ -211,10 +223,16 @@ module Auth
       # workspace). Repeating the verification — a :no_change call included —
       # is the retry. Idempotent: a no-op when nothing is pending, when it was
       # already claimed, or when the customer owns no default workspace.
+      #
+      # The outcome is kept on #federation_claimed? because the return symbol
+      # cannot carry it: a verification that wrote nothing but applied a
+      # stranded subscription is still `:no_change` for the verification state,
+      # and the grant must not be reported as "already verified" alone.
       def claim_pending_federation!
-        Onetime::ErrorHandler.safe_execute('claim_pending_federation', external_id: @customer.extid) do
+        claimed             = Onetime::ErrorHandler.safe_execute('claim_pending_federation', external_id: @customer.extid) do
           Auth::Operations::EnsureDefaultWorkspace.claim_pending_federation_for(@customer)
         end
+        @federation_claimed = claimed == true
       end
     end
   end

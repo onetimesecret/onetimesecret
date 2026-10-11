@@ -21,7 +21,9 @@ module Auth
       # Redis+SQL writer) and adds exactly one ColonelAuditEvent on a successful
       # change (epic #20 CONTRACT 4 / #21) — and, since #4337, one per
       # no-change attempt too, under the same verb with
-      # `outcome: 'no_change'`.
+      # `outcome: 'no_change'`. When the call applied a deferred federated
+      # subscription (#4735), the event carries `federation_claimed: true` on
+      # either path, since that grant is a real effect the symbol alone hides.
       #
       # ## Why a wrapper instead of auditing inside SetCustomerVerification
       #
@@ -141,12 +143,13 @@ module Auth
                                  @customer.role.to_s == 'colonel' && @customer.mailbox_verified?
           original_verified_by = @customer.verified_by if rollback_candidate
 
-          result = Auth::Operations::SetCustomerVerification.new(
+          @inner_op = Auth::Operations::SetCustomerVerification.new(
             customer: @customer,
             verified: @verified,
             verified_by: @verified_by,
             db: @db,
-          ).call
+          )
+          result    = @inner_op.call
 
           # POST-WRITE re-validation (#4328), mirroring SetRole. unverify_refusal
           # above is a check-then-act and is NOT atomic: two concurrent unverifies
@@ -173,6 +176,17 @@ module Auth
           record_audit_event(result)
 
           build(result)
+        end
+
+        # Did the inner op apply a deferred federated subscription (#4735)? A
+        # `:no_change` verification can still do this — it is the operator's
+        # retry for a stranded claim — so adapters report the grant from here
+        # rather than reading "nothing happened" off the symbol. False before
+        # #call and on every refusal.
+        #
+        # @return [Boolean]
+        def federation_claimed?
+          @inner_op&.federation_claimed? || false
         end
 
         private
@@ -237,10 +251,16 @@ module Auth
         # the trail could show nothing while an operator repeatedly poked at an
         # account's verification state.
         #
+        # Either event carries `federation_claimed: true` when the call applied
+        # a deferred federated subscription (#4735). On the :no_change path
+        # that grant is the only thing the call did, and a row reading
+        # `outcome: no_change` with nothing else would hide a plan change.
+        #
         # NOT fail-closed on either path: verification is reversible and
         # destroys nothing.
         def record_audit_event(result)
-          detail = { verified: @verified }
+          detail                      = { verified: @verified }
+          detail[:federation_claimed] = true if federation_claimed?
           return record_no_change_attempt(detail) unless result == :success
 
           Onetime::ColonelAuditEvent.record(
