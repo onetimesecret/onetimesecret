@@ -386,6 +386,82 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
         expect(config.valid_email_domain?('user@anydomain.com')).to be true
       end
     end
+
+    # RISK-2026-10-10-03 (#4736): the forms used to be compared byte for byte,
+    # so an entry typed in one IDN form denied an IdP asserting the other.
+    describe 'with an internationalised domain' do
+      let(:config) { build_domain_sso_config(:oidc, allowed_domains: []) }
+
+      it 'matches the A-label of an entry typed in Unicode' do
+        config.allowed_domains = ['bücher.de']
+
+        expect(config.valid_email_domain?('user@xn--bcher-kva.de')).to be true
+        expect(config.valid_email_domain?('user@bücher.de')).to be true
+      end
+
+      it 'matches the Unicode form of an entry typed as an A-label' do
+        config.allowed_domains = ['xn--bcher-kva.de']
+
+        expect(config.valid_email_domain?('user@bücher.de')).to be true
+        expect(config.valid_email_domain?('user@BÜCHER.de')).to be true
+        expect(config.valid_email_domain?("user@bu\u0308cher.de")).to be true
+      end
+
+      it 'matches an entry stored in Unicode before entries were checked on write' do
+        config.allowed_domains_json = JSON.generate(['bücher.de'])
+
+        expect(config.valid_email_domain?('user@xn--bcher-kva.de')).to be true
+      end
+
+      it 'does not match a different name or a spelling IDNA mapping would rewrite' do
+        config.allowed_domains = ['bücher.de', 'example.com']
+
+        expect(config.valid_email_domain?('user@bucher.de')).to be false
+        # Decodes to a decomposed "bücher", but it is not the A-label of
+        # "bücher.de"; A-labels are compared, never decoded.
+        expect(config.valid_email_domain?('user@xn--bucher-xyd.de')).to be false
+        expect(config.valid_email_domain?("user@b\u00fc\u00adcher.de")).to be false
+        expect(config.valid_email_domain?('user@ｅｘａｍｐｌｅ.com')).to be false
+        expect(config.valid_email_domain?('user@example.com.')).to be false
+      end
+    end
+  end
+
+  describe '#matching_allowed_domain' do
+    let(:config) { build_domain_sso_config(:oidc, allowed_domains: []) }
+
+    it 'returns the entry as stored, which differs from the address only when the forms did' do
+      config.allowed_domains = ['bücher.de', 'example.com']
+
+      expect(config.matching_allowed_domain('user@xn--bcher-kva.de')).to eq('bücher.de')
+      expect(config.matching_allowed_domain('user@bücher.de')).to eq('bücher.de')
+      expect(config.matching_allowed_domain('user@EXAMPLE.com')).to eq('example.com')
+    end
+
+    it 'prefers an exact entry over one that matches only by A-label' do
+      config.allowed_domains_json = JSON.generate(['bücher.de', 'xn--bcher-kva.de'])
+
+      expect(config.matching_allowed_domain('user@xn--bcher-kva.de')).to eq('xn--bcher-kva.de')
+    end
+
+    it 'returns nil for an empty list rather than treating it as allow-all' do
+      expect(config.matching_allowed_domain('user@example.com')).to be_nil
+    end
+  end
+
+  describe '#allowed_domains=' do
+    let(:config) { build_domain_sso_config(:oidc, allowed_domains: []) }
+
+    it 'stores entries as typed and keeps the first of two forms of one name' do
+      config.allowed_domains = ['Bücher.de', 'xn--bcher-kva.de', 'example.com']
+
+      expect(config.allowed_domains).to eq(['bücher.de', 'example.com'])
+    end
+
+    it 'rejects a Unicode entry that has no exact A-label form' do
+      expect { config.allowed_domains = ['ｅｘａｍｐｌｅ.com'] }
+        .to raise_error(Onetime::Problem, /no exact IDNA A-label form/)
+    end
   end
 
   # ==========================================================================

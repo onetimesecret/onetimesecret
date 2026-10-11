@@ -31,6 +31,34 @@ RSpec.describe Onetime::DomainValidation::AsciiHostname do
     expect(described_class.call('münchen.de'.b)).to eq('xn--mnchen-3ya.de')
   end
 
+  describe '.comparison_key' do
+    it 'lower-cases an ASCII name and changes nothing else' do
+      expect(described_class.comparison_key('Example.COM')).to eq('example.com')
+      expect(described_class.comparison_key('example.com.')).to eq('example.com.')
+      expect(described_class.comparison_key('xn--bucher-xyd.de')).to eq('xn--bucher-xyd.de')
+    end
+
+    it 'gives a Unicode name, upper case or decomposed, its A-label' do
+      expect(described_class.comparison_key('bücher.de')).to eq('xn--bcher-kva.de')
+      expect(described_class.comparison_key('BÜCHER.de')).to eq('xn--bcher-kva.de')
+      expect(described_class.comparison_key("bu\u0308cher.de")).to eq('xn--bcher-kva.de')
+      expect(described_class.comparison_key('bücher.de'.b)).to eq('xn--bcher-kva.de')
+    end
+
+    {
+      'fullwidth letters' => 'ｅｘａｍｐｌｅ.com',
+      'an ideographic full stop as a separator' => "sub.example\u3002com",
+      'a soft hyphen' => "b\u00fc\u00adcher.de",
+      'a trailing dot' => 'bücher.de.',
+      'an empty label' => 'bücher..de',
+      'bytes that are not valid UTF-8' => "b\xFFcher.example",
+    }.each do |description, hostname|
+      it "returns nil for a name with #{description}" do
+        expect(described_class.comparison_key(hostname)).to be_nil
+      end
+    end
+  end
+
   {
     'a blank name' => ' ',
     'an empty label' => 'a..example.com',

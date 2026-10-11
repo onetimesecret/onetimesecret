@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../features/boolean_encoding'
+require_relative '../../domain_validation/ascii_hostname'
 # Configuration-only and gem-free (it never loads omniauth-saml/ruby-saml):
 # the shared SAML validators and the single hardened-options builder (#4450).
 require_relative '../../sso_provider/saml'
@@ -284,7 +285,12 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
   # Set the list of allowed email domains.
   #
   # Validates each domain using PublicSuffix to ensure it has a valid TLD.
-  # Supports internationalized domain names (IDN).
+  # Supports internationalized domain names (IDN): an entry is stored as
+  # typed (so the UI shows "bücher.de", not its A-label) and compared by its
+  # A-label (see matching_allowed_domain). Entries that name the same domain
+  # in different forms ("bücher.de", "xn--bcher-kva.de") collapse to the
+  # first one given. A Unicode entry with no exact A-label form is rejected
+  # (AsciiHostname.comparison_key), since it could never match an address.
   #
   # @param domains [Array<String>] Domain names to allow
   # @return [void]
@@ -293,11 +299,18 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
     normalized = Array(domains).map { it.to_s.strip.downcase }.uniq.reject(&:empty?)
 
     # Validate each domain using PublicSuffix (handles IDN, validates TLD)
-    normalized.each do |domain|
+    keys = normalized.to_h do |domain|
       Onetime::Utils::DomainParser.cached_parse(domain)
+      key = Onetime::DomainValidation::AsciiHostname.comparison_key(domain)
+      raise Onetime::Problem, "Invalid domain: #{domain} (no exact IDNA A-label form)" unless key
+
+      [domain, key]
     rescue PublicSuffix::Error => ex
       raise Onetime::Problem, "Invalid domain: #{domain} (#{ex.message})"
     end
+
+    # Two forms of one name keep the first given.
+    normalized = normalized.uniq { keys[it] }
 
     self.allowed_domains_json = normalized.empty? ? nil : JSON.generate(normalized)
   end
@@ -346,13 +359,33 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
   # @param email [String] Email address to validate
   # @return [Boolean] true if email domain is allowed
   def valid_email_domain?(email)
-    domains = allowed_domains
-    return true if domains.empty?
+    allowed_domains.empty? || !matching_allowed_domain(email).nil?
+  end
 
+  # The allowlist entry an address's domain matches, as stored, or nil.
+  #
+  # An exact match wins, so every address that matched byte for byte still
+  # does. Otherwise the two are compared by A-label
+  # (AsciiHostname.comparison_key): an entry typed as "bücher.de" matches an
+  # IdP asserting "xn--bcher-kva.de" and the reverse (RISK-2026-10-10-03,
+  # #4736). The result differs from the address's domain exactly when only
+  # the forms differed, which the tenant callback logs.
+  #
+  # Does not treat an empty list as allow-all; valid_email_domain? does.
+  #
+  # @param email [String] Email address to match
+  # @return [String, nil] the matching entry
+  def matching_allowed_domain(email)
     email_domain = email.to_s.split('@').last&.downcase
-    return false if email_domain.nil? || email_domain.empty?
+    return nil if email_domain.nil? || email_domain.empty?
 
-    domains.include?(email_domain)
+    domains = allowed_domains
+    return email_domain if domains.include?(email_domain)
+
+    key = Onetime::DomainValidation::AsciiHostname.comparison_key(email_domain)
+    return nil unless key
+
+    domains.find { Onetime::DomainValidation::AsciiHostname.comparison_key(it) == key }
   end
 
   # Generate OmniAuth strategy options for runtime injection.

@@ -43,6 +43,34 @@ module Onetime
           ascii
         end
 
+        # The key to compare a name by when deciding whether two spellings
+        # name the same domain (an email-domain allowlist entry against the
+        # domain of an asserted address), or nil when it has none.
+        #
+        # Stricter than call. SimpleIDN applies the UTS #46 mapping, so
+        # fullwidth letters ("ｅｘａｍｐｌｅ.com"), U+3002 as a label separator
+        # and a soft hyphen all encode to the A-label of a plainer name. A
+        # lookup can tolerate that; an allowlist would then admit an address
+        # spelled unlike any listed entry. A Unicode name therefore has a key
+        # only when its A-label decodes back to its own NFC, lower-case
+        # spelling. An ASCII name is only lower-cased: an A-label is never
+        # decoded (decoding is lossy, see CustomDomain.idn_forms), and
+        # surrounding space or a trailing dot is kept, so an ASCII name
+        # compares exactly as it did byte for byte.
+        #
+        # @param hostname [String]
+        # @return [String, nil] lower-case A-label form
+        def comparison_key(hostname)
+          host = utf8(hostname.to_s)
+          return host.downcase if host.ascii_only?
+
+          ascii = to_a_labels(host)
+          ensure_encodable!(ascii, host)
+          ascii if SimpleIDN.to_unicode(ascii) == host.unicode_normalize(:nfc).downcase
+        rescue ConversionError, SimpleIDN::ConversionError
+          nil
+        end
+
         private
 
         # Checked first: String#strip itself raises on invalid bytes.
