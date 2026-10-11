@@ -189,7 +189,10 @@ module V2::Logic
                 owner.verified    = true
                 owner.verified_by = 'email'  # Track email verification method
                 owner.save
-                owner.reset_secret.delete!
+                # The pointer is shared with password recovery, and a newer
+                # recovery link may have moved it on since this welcome link
+                # was minted. Clear it only while it still names this secret.
+                owner.reset_secret.delete! if owner.matches_reset_secret?(secret)
               else
                 secret_logger.info 'Verification secret is not mailbox proof for the owner; revealing without stamping',
                   {

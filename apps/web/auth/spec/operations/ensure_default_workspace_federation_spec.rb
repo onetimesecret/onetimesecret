@@ -91,14 +91,14 @@ RSpec.describe 'EnsureDefaultWorkspace: federated subscription claim gate', type
   end
 
   # Simulate a Stripe webhook that arrived before the account existed here.
-  def create_pending_for(email, status: 'active', planid: 'pro_monthly')
+  def create_pending_for(email, status: 'active', planid: 'pro_monthly', received_at: Time.now.to_i)
     hash = Onetime::Utils::EmailHash.compute(email)
     pending = Billing::PendingFederatedSubscription.new(hash)
     pending.subscription_status     = status
     pending.planid                  = planid
     pending.subscription_period_end = (Time.now + 30 * 24 * 60 * 60).to_i.to_s
     pending.region                  = 'US'
-    pending.received_at             = Time.now.to_i.to_s
+    pending.received_at             = received_at.to_s
     pending.save
     created_pending_records << pending
     pending
@@ -394,7 +394,9 @@ RSpec.describe 'EnsureDefaultWorkspace: federated subscription claim gate', type
     it 'does not double-apply when the subscription was already claimed' do
       email = unique_email('already-claimed')
       create_pending_for(email)
-      customer = create_customer(email: email, verified: true)
+      # 'email' provenance: the re-claim gate is mailbox_verified?, so a bare
+      # verified: true would skip at the gate and pass this example vacuously.
+      customer = create_customer(email: email, verified: true, verified_by: 'email')
 
       # First claim consumes the pending record.
       result = Auth::Operations::EnsureDefaultWorkspace.new(customer: customer).call
@@ -409,6 +411,54 @@ RSpec.describe 'EnsureDefaultWorkspace: federated subscription claim gate', type
 
       org.refresh!
       expect(org.subscription_federated?).to be(true)
+    end
+
+    # The first claim saved the org but failed to destroy the record; a
+    # cancellation webhook then reached the org directly. An operator's
+    # verification retry must not replay the surviving snapshot over the
+    # cancellation (#4735 review, F8).
+    it 'discards a surviving record the first claim already applied instead of replaying it' do
+      email = unique_email('replayed-snapshot')
+      pending = create_pending_for(email)
+      customer = create_customer(email: email, verified: true, verified_by: 'email')
+
+      org = Auth::Operations::EnsureDefaultWorkspace.new(customer: customer).call[:organization]
+      created_organizations << org
+      expect(org.subscription_federated?).to be(true)
+      expect(pending_exists?(email)).to be(false)
+
+      # The record as it would have survived a failed destroy!: same hash, same
+      # received_at (the claim ran in the same second it was stored).
+      create_pending_for(email, received_at: pending.received_at)
+
+      # Cancellation synced straight to the org by the webhook path.
+      org.subscription_status = 'canceled'
+      org.planid              = 'free_v1'
+      org.save
+
+      applied = Auth::Operations::EnsureDefaultWorkspace.claim_pending_federation_for(customer)
+      expect(applied).to be(false)
+
+      org.refresh!
+      expect(org.subscription_status).to eq('canceled')
+      expect(org.planid).to eq('free_v1')
+      expect(pending_exists?(email)).to be(false), 'the replayed snapshot must be consumed, not kept for the next retry'
+    end
+
+    it 'still applies a record received after the workspace was federated' do
+      email = unique_email('newer-record')
+      customer = create_customer(email: email, verified: true, verified_by: 'email')
+      org = Auth::Operations::EnsureDefaultWorkspace.new(customer: customer).call[:organization]
+      created_organizations << org
+      org.subscription_federated_at = Time.now.to_i - 3600
+      org.save
+
+      create_pending_for(email, planid: 'identity_monthly')
+
+      expect(Auth::Operations::EnsureDefaultWorkspace.claim_pending_federation_for(customer)).to be(true)
+      org.refresh!
+      expect(org.planid.to_s).to eq('identity_monthly')
+      expect(pending_exists?(email)).to be(false)
     end
 
     it 'is a no-op when the customer is not verified' do

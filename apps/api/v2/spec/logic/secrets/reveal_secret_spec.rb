@@ -446,6 +446,20 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
         reloaded = Onetime::Customer.load(owner.objid)
         expect(reloaded.verified_by).to eq('email')
       end
+
+      # The pointer is shared with password recovery: when it has moved on to a
+      # newer recovery token, consuming this older link must not delete it
+      # (#4735 review, F7).
+      it 'leaves the newer pointer in place' do
+        owner.reset_secret = 'a-newer-recovery-token'
+
+        logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+        logic.process_params
+        logic.process
+
+        expect(logic.show_secret).to be true
+        expect(Onetime::Customer.load(owner.objid).reset_secret.value).to eq('a-newer-recovery-token')
+      end
     end
 
     context 'when the secret has no owner' do

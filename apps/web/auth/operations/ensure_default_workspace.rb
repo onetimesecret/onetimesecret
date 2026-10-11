@@ -519,6 +519,26 @@ module Auth
         # Check for pending subscription
         pending = Billing::PendingFederatedSubscription.find_by_email_hash(org.email_hash)
         return false unless pending
+
+        # A record received at or before this workspace's federation stamp is
+        # a snapshot that was already applied: the first claim saved the org
+        # and then failed to destroy the record. Every subscription event
+        # since — a cancellation, a plan change — reached the org directly
+        # (the webhook finds it by email_hash), so replaying the snapshot
+        # would restore a canceled subscription and its entitlements. Consume
+        # the leftover record instead of applying it (#4735 review, F8).
+        if pending_superseded?(org, pending)
+          auth_logger.info '[create-default-workspace] Pending federated subscription predates the workspace federation; discarding the replayed snapshot',
+            {
+              org: org.extid,
+              hash_prefix: org.email_hash[0..7],
+              received_at: pending.received_at,
+              federated_at: org.subscription_federated_at,
+            }
+          pending.destroy!
+          return false
+        end
+
         return false unless pending.active?
 
         # A pending record without a resolved planid cannot deliver any
@@ -594,6 +614,25 @@ module Auth
         auth_logger.error '[create-default-workspace] Failed to apply pending federation',
           { error: ex.message, org: org.extid }
         false
+      end
+
+      # Was this pending record already delivered to the workspace?
+      #
+      # The federation stamp is written the first time a claim or a webhook
+      # federates the org, and from then on every subscription event for the
+      # hash lands on the org rather than on a pending record. A record
+      # received at or before the stamp therefore has nothing new to deliver.
+      # A legacy record without received_at reads as 0 and is superseded by
+      # any stamp; an unfederated org supersedes nothing.
+      #
+      # @param org [Onetime::Organization]
+      # @param pending [Billing::PendingFederatedSubscription]
+      # @return [Boolean]
+      def pending_superseded?(org, pending)
+        federated_at = org.subscription_federated_at.to_s
+        return false if federated_at.empty?
+
+        pending.received_at.to_i <= federated_at.to_i
       end
     end
   end

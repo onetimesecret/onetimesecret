@@ -124,6 +124,31 @@ module Onetime::Customer::Features
         verification_pointer_names?(reset_secret, secret)
       end
 
+      # Does reset_secret name a live password-recovery token?
+      #
+      # The pointer is shared: send_verification_email records the welcome
+      # link there too, and a duplicate signup or an unverified sign-in can
+      # resend verification while the account holder has a recovery link out.
+      # Overwriting the pointer then fails that link at redemption (#4735
+      # review, F6), so a resend asks here first. An empty or dangling pointer,
+      # or one naming an earlier verification link, is free to overwrite. A
+      # kind-less secret is classified as mailbox_proof_secret? does: receipt-
+      # backed is a verification link, receiptless is a recovery token.
+      #
+      # @return [Boolean]
+      def reset_secret_outstanding?
+        recorded = reset_secret.value.to_s
+        return false if recorded.empty?
+
+        current = Onetime::Secret.load(recorded)
+        return false if current.nil?
+
+        kind = current.kind.to_s
+        return kind != 'account_verification' unless kind.empty?
+
+        current.receipt_identifier.to_s.empty?
+      end
+
       # Check if account was created via Stripe payment (not email verified)
       def payment_verified?
         verified? && verified_by.to_s == 'stripe_payment'

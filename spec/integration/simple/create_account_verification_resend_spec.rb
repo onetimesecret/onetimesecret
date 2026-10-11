@@ -33,13 +33,8 @@
 # verified='true' and the resend branch would be legitimately unreachable.
 # The one 'with autoverify on' context at the end turns it on in-process.
 #
-# REQUIREMENTS:
-# - Valkey running on port 2163: pnpm run test:database:start
-# - AUTHENTICATION_MODE=simple (the default)
-#
-# RUN:
-#   RACK_ENV=test AUTHENTICATION_MODE=simple bundle exec rspec \
-#     spec/integration/simple/create_account_verification_resend_spec.rb
+# RUN (the lane runner scrubs the dev env and starts the test services):
+#   tests/lanes/run simple --only spec/integration/simple/create_account_verification_resend_spec.rb
 #
 # =============================================================================
 
@@ -231,6 +226,41 @@ RSpec.describe 'Duplicate-signup verification resend in simple mode (audit dead-
     expect(@deliveries.last).to eq({ template: :welcome, email: email })
     cust.refresh!
     expect(cust.reset_secret.value).not_to eq(secret_before)
+  end
+
+  # reset_secret is shared with password recovery. A verified account without
+  # mailbox proof now gets the resend, so a duplicate signup from anyone could
+  # otherwise overwrite the recovery pointer the holder is about to redeem
+  # (#4735 review, F6). The resend still goes out; the pointer stays put.
+  it 'preserves an outstanding password-recovery pointer when resending for a verified legacy account' do
+    email = unique_email('legacy-recovering')
+    @created_emails << email
+
+    expect_signup_success(post_signup(email), 'Initial signup')
+    cust = Onetime::Customer.find_by_email(email)
+    cust.verified    = true
+    cust.verified_by = 'legacy'
+    cust.save
+    expect(cust.mailbox_verified?).to be(false)
+
+    # What ResetPasswordRequest mints: receiptless, kind password_reset,
+    # recorded as the account's reset_secret.
+    recovery                    = Onetime::Secret.create!(owner_id: cust.objid)
+    recovery.default_expiration = 24 * 60 * 60
+    recovery.verification       = 'true'
+    recovery.kind               = 'password_reset'
+    recovery.save
+    cust.reset_secret = recovery.identifier
+    delivery_before = @deliveries.size
+
+    expect_signup_success(post_signup(email), 'Duplicate signup during an outstanding recovery')
+
+    expect(@deliveries.size).to eq(delivery_before + 1)
+    expect(@deliveries.last).to eq({ template: :welcome, email: email })
+    cust.refresh!
+    expect(cust.reset_secret.value).to eq(recovery.identifier),
+      'the resend must not overwrite a live recovery pointer'
+    expect(cust.valid_reset_secret!(recovery)).to be(true), 'the recovery link must still redeem'
   end
 
   # ---------------------------------------------------------------------------
