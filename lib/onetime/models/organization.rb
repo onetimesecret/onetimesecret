@@ -311,6 +311,33 @@ module Onetime
       end
     end
 
+    # #owns_email_domain? as a tenant SSO flow on `custom_domain` asks it: the
+    # flow's own domain is always consulted, so the answer does not depend on
+    # this organization's domain index being complete, but it counts only
+    # while its own ownership is accepted. Shared by the login-time gate
+    # (hooks/omniauth_tenant.rb) and the operator audit of identities bound
+    # before the gate existed (Auth::Operations::AuditTenantEmailDomains).
+    #
+    # @param custom_domain [Onetime::CustomDomain] the flow's domain
+    # @param email_domain [String] the part of an address after its `@`
+    # @return [Boolean]
+    def owns_email_domain_through?(custom_domain, email_domain)
+      owns_email_domain?(email_domain, domains: proven_email_domains_through(custom_domain))
+    end
+
+    # The proven set as a tenant SSO flow on `custom_domain` sees it: that
+    # domain plus #verified_domains, those whose ownership is accepted,
+    # deduplicated. The SSO settings API serves it so the allowlist can say
+    # which entries lie inside it.
+    #
+    # @param custom_domain [Onetime::CustomDomain] the flow's domain
+    # @return [Array<Onetime::CustomDomain>]
+    def proven_email_domains_through(custom_domain)
+      ([custom_domain] + verified_domains)
+        .select(&:ownership_verified)
+        .uniq(&:identifier)
+    end
+
     def domain?(domain_or_objid)
       return false unless domain_or_objid
 

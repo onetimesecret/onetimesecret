@@ -850,20 +850,15 @@ module Auth::Config::Hooks
     end
 
     # Whether `email_domain` lies inside a domain the tenant organization has
-    # proven. The custom domain the flow runs on is always consulted, so the
-    # answer does not depend on the organization's domain index being
-    # complete, but it counts only while its own ownership is accepted.
+    # proven (Organization#owns_email_domain_through?: the flow's own domain
+    # is always consulted, while its ownership is accepted).
     #
     # @param custom_domain [Onetime::CustomDomain] the flow's domain
     # @param organization [Onetime::Organization] its owner
     # @param email_domain [String]
     # @return [Boolean]
     def self.tenant_owns_email_domain?(custom_domain, organization, email_domain)
-      proven = ([custom_domain] + organization.verified_domains)
-        .select(&:ownership_verified)
-        .uniq(&:identifier)
-
-      organization.owns_email_domain?(email_domain, domains: proven)
+      organization.owns_email_domain_through?(custom_domain, email_domain)
     end
 
     # Where a platform-path request lands when the install-wide OIDC issuer
