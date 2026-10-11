@@ -352,6 +352,24 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
         expect(reloaded.mailbox_verified?).to be false
       end
 
+      it 'is recognised by the secret kind alone, without the pending pointer' do
+        owner.verified    = true
+        owner.verified_by = 'autoverify'
+        owner.save
+        secret.kind = 'email_change'
+        secret.save_fields(:kind)
+        # No pending_email_change: a later request overwrote it, or it expired.
+
+        logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+        logic.process_params
+        logic.process
+
+        expect(logic.show_secret).to be true
+        reloaded = Onetime::Customer.load(owner.objid)
+        expect(reloaded.verified_by).to eq('autoverify')
+        expect(reloaded.mailbox_verified?).to be false
+      end
+
       it 'does not stamp an unverified owner either' do
         owner.pending_email_change = secret.identifier
 

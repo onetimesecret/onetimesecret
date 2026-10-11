@@ -132,6 +132,7 @@ module AccountAPI::Logic
         secret                    = Onetime::Secret.create!(owner_id: cust.objid)
         secret.default_expiration = 24.hours
         secret.verification       = 'true'
+        secret.kind               = 'email_change' # never mailbox proof for the CURRENT address (#4735)
         secret.custid             = cust.objid
         secret.ciphertext         = @new_email
         secret.save

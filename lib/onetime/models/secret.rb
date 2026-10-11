@@ -40,6 +40,15 @@ module Onetime
     field :receipt_identifier
     field :receipt_shortid
     field :owner_id
+    # What this secret is FOR when it is not an ordinary shared secret, in the
+    # Receipt :kind convention. nil for shared secrets, account verification
+    # and password reset. 'email_change' marks the RequestEmailChange
+    # confirmation link, which is delivered to the PROPOSED address and so
+    # must never be read as proof of the owner's current mailbox
+    # (Customer#mailbox_proof_secret?, #4735). Carried on the record itself so
+    # the decision does not depend on a pointer that a later request or a
+    # crash between two writes could leave pointing elsewhere.
+    field :kind
 
     encrypted_field :ciphertext
     transient_field :ciphertext_passphrase

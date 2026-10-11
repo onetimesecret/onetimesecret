@@ -92,14 +92,23 @@ module Onetime::Customer::Features
       # Does revealing this verification secret prove control of THIS
       # customer's current mailbox? The account-verification and password-
       # reset links are delivered to the customer's address, so yes. The
-      # email-change confirmation link is delivered to the PROPOSED address
-      # (RequestEmailChange records it on pending_email_change), so no: a
-      # customer without mailbox proof must not be able to mint it for their
-      # current address by confirming a change to one they do control.
+      # email-change confirmation link is delivered to the PROPOSED address,
+      # so no: a customer without mailbox proof must not be able to mint it
+      # for their current address by confirming a change to one they do
+      # control.
+      #
+      # The secret identifies itself (Secret#kind == 'email_change'); that is
+      # the decision. The pending_email_change pointer is consulted as well
+      # only for confirmation secrets minted before the kind was recorded —
+      # a pointer alone is racy (a second request overwrites it, a crash
+      # between the two writes leaves it stale), so it never widens the
+      # answer, it can only narrow it further.
       #
       # @param secret [Onetime::Secret] a secret flagged verification
       # @return [Boolean]
       def mailbox_proof_secret?(secret)
+        return false if secret.kind.to_s == 'email_change'
+
         pending = pending_email_change.value.to_s
         pending.empty? || pending != secret.identifier.to_s
       end
