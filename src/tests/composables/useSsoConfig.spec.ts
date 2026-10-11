@@ -100,6 +100,8 @@ const mockSsoConfigData: CustomDomainSsoConfig = {
   sp_entity_id: null,
   acs_url: null,
   unreadable_fields: [],
+  verified_email_domains: [],
+  unverified_allowed_domains: [],
   allowed_domains: ['acme.com', 'acme.org'],
   requires_domain_filter: false,
   idp_controls_access: true,

@@ -19,4 +19,11 @@ Security
   ``@acme.example`` with the custom domain ``secrets.acme.example``) need to
   add that domain as a custom domain and complete its TXT check before new
   people can sign in; the domain does not have to point at Onetime Secret.
-  (#4734)
+  The allowed-domains list in the SSO settings is shown again and marks
+  entries outside a verified domain, since such an entry admits no one.
+  For Microsoft Entra ID tenants, a successful connection test now lists the
+  two app registration settings to confirm by hand,
+  ``removeUnverifiedEmailClaim`` and the ``xms_edov`` optional claim, and
+  the documentation explains both. Operators can list, and on request
+  unlink, tenant identities bound before this change to accounts outside
+  the verified domains with ``bin/ots sso audit-email-domains``. (#4734)

@@ -129,6 +129,103 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::Serializers do
     end
   end
 
+  # #4734 (RISK-2026-10-10-01): tenant SSO creates an account only for an
+  # address inside a domain the organization has proven, so the record names
+  # the proven set and the allowlist entries that admit no one. Judged by
+  # Organization#owns_email_domain? (real), over doubled domains.
+  describe '#serialize_sso_config email domain proof' do
+    let(:organization) { Onetime::Organization.allocate }
+
+    def domain_double(id, name, verified:)
+      instance_double(
+        Onetime::CustomDomain,
+        identifier: id, display_domain: name, ownership_verified: verified,
+        primary_organization: organization,
+      )
+    end
+
+    let(:own_domain)   { domain_double('dom-own', 'secrets.acme.com', verified: true) }
+    let(:apex_domain)  { domain_double('dom-apex', 'beispiel.org', verified: true) }
+    let(:idn_domain)   { domain_double('dom-idn', 'xn--bcher-kva.org', verified: true) }
+    let(:unproven)     { domain_double('dom-unproven', 'pending.org', verified: false) }
+    let(:org_domains)  { [own_domain, apex_domain, idn_domain, unproven] }
+    let(:allowed)      { [] }
+    let(:config)       { build_domain_sso_config(:oidc, allowed_domains: allowed) }
+    let(:payload)      { serializer.serialize_sso_config(config) }
+
+    before do
+      allow(config).to receive(:custom_domain).and_return(own_domain)
+      allow(organization).to receive(:verified_domains).and_return(org_domains.select(&:ownership_verified))
+    end
+
+    it 'lists the proven domains sorted, the config domain included once' do
+      expect(payload[:verified_email_domains]).to eq(
+        %w[beispiel.org secrets.acme.com xn--bcher-kva.org],
+      )
+    end
+
+    context 'with allowlist entries of every kind' do
+      let(:allowed) do
+        [
+          'secrets.acme.com',       # equals a verified domain
+          'team.secrets.acme.com',  # below a verified domain
+          'acme.com',                   # above: only the subdomain is proven
+          'pending.org',            # equals a custom domain whose ownership is not proven
+          'bücher.org',             # Unicode spelling of a verified A-label domain
+          'notacme.com',            # shares a suffix, not a label boundary
+        ]
+      end
+
+      it 'names only the entries outside every proven domain, as stored' do
+        expect(payload[:unverified_allowed_domains]).to eq(
+          %w[acme.com pending.org notacme.com],
+        )
+      end
+    end
+
+    context 'when the config domain itself is not proven and the index is empty' do
+      let(:own_domain)  { domain_double('dom-own', 'secrets.acme.com', verified: false) }
+      let(:org_domains) { [own_domain] }
+      let(:allowed)     { ['secrets.acme.com'] }
+
+      it 'reports no proven domain and the entry as unverified' do
+        expect(payload).to include(verified_email_domains: [], unverified_allowed_domains: ['secrets.acme.com'])
+      end
+    end
+
+    context 'when the domain has no organization' do
+      let(:allowed) { ['secrets.acme.com'] }
+
+      before do
+        allow(config).to receive(:custom_domain).and_return(
+          instance_double(Onetime::CustomDomain, primary_organization: nil),
+        )
+      end
+
+      it 'treats every entry as unverified' do
+        expect(payload).to include(verified_email_domains: [], unverified_allowed_domains: ['secrets.acme.com'])
+      end
+    end
+
+    context 'when the domain cannot be loaded' do
+      before { allow(config).to receive(:custom_domain).and_return(nil) }
+
+      it 'serves empty arrays rather than raising' do
+        expect(payload).to include(verified_email_domains: [], unverified_allowed_domains: [])
+      end
+    end
+
+    context 'when the lookup raises' do
+      before { allow(config).to receive(:custom_domain).and_raise(Redis::CannotConnectError, 'down') }
+
+      it 'serves empty arrays and keeps the rest of the record' do
+        allow(OT).to receive(:lw)
+        expect(payload).to include(verified_email_domains: [], unverified_allowed_domains: [])
+        expect(payload[:domain_id]).to eq(config.domain_id)
+      end
+    end
+  end
+
   describe '#serialize_sso_config certificate expiry' do
     context 'with an expired certificate' do
       let(:not_after) { Time.at(Time.now.to_i - 3600).utc }

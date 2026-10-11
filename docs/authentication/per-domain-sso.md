@@ -259,6 +259,19 @@ the accounts to review. Authenticated linking is not gated: it binds an
 identity to the session's own account, which the asserted address plays no
 part in choosing.
 
+Identities bound before this rule existed can be listed with
+`bin/ots sso audit-email-domains DOMAIN`, which reads every identity row
+under the domain's own provider route and issuer and reports each whose
+account address lies outside the proven set, including accounts that have
+not signed in since. With `--unlink --confirm` it deletes those identity rows
+and nothing else: the account, its credentials and its Customer record stay,
+the address owner can still claim the account through a canonical-host
+password reset, and the tenant identity can no longer sign in to it. A row is
+unlinked only when the account's `signup_domain_id` names this domain,
+because OIDC and Entra identity keys are shared by every configuration naming
+the same IdP; other rows are reported for manual review. See the
+[audit runbook](../runbooks/sso-tenant-email-domain-audit.md).
+
 A refused creation redirects to `/signin?auth_error=domain_not_allowed`, the
 same code as an allowlist refusal (configuration denials do not disclose the
 configured domains), and logs `omniauth_tenant_email_domain_unverified` at
@@ -270,7 +283,70 @@ the tenant record could not be loaded mid-flow.
 The allowlist therefore selects among proven domains. A listed domain the
 organization has not verified admits no one; an empty list admits every
 proven domain. Entra app assignment still decides who may authenticate at the
-IdP; it is not evidence about the domain of the `email` claim.
+IdP; it is not evidence about the domain of the `email` claim. Entra tenants
+also confirm the two
+[app registration settings](#entra-app-registration-settings) that keep an
+unverified address out of the claim.
+
+### Entra app registration settings
+
+Two settings on the tenant's Entra app registration keep an address nobody
+vouches for out of the `email` claim before it reaches the allowlist and the
+verified-domain gate (RISK-2026-10-10-01, remediation R2). Neither is visible
+in the discovery document and Test Connection holds no Graph permission on
+the app registration, so a successful Entra test lists them under "Confirm in
+the Entra app registration" instead of claiming to have checked them. The
+tenant's Entra administrator confirms both.
+
+**`removeUnverifiedEmailClaim`.** Microsoft Graph's
+[authenticationBehaviors](https://learn.microsoft.com/en-us/graph/api/resources/authenticationbehaviors)
+resource describes it as: "If `true`, removes the `email` claim from tokens
+sent to an application when the email address's domain can't be verified."
+Microsoft's [guide to the setting](https://learn.microsoft.com/en-us/graph/applications-authenticationbehaviors#prevent-the-issuance-of-email-claims-with-unverified-domain-owners)
+says: "Today, the default behavior is to remove email addresses with
+unverified domain owners in claims, except for single-tenant apps and for
+multitenant apps with previous sign-in activity with unverified emails." A
+single-tenant registration, the usual shape for a per-domain tenant, is
+therefore not covered by the default and must opt in:
+
+```http
+PATCH https://graph.microsoft.com/v1.0/applications/{object-id}/authenticationBehaviors
+Content-Type: application/json
+
+{
+    "removeUnverifiedEmailClaim": true
+}
+```
+
+Read it back with `GET /v1.0/applications/{object-id}/authenticationBehaviors`.
+With the setting on, a token for an address in a domain Microsoft has not
+verified for the tenant carries no `email` claim, and the sign-in ends at
+`/signin?auth_error=missing_email` (the
+[Entra claim smoke test](../runbooks/sso-entra-claim-smoke-test.md) covers
+that path). Without it, such a token reaches the allowlist with an address
+only the tenant's directory vouches for; the verified-domain gate still
+refuses account creation outside the proven set, but existing identities
+sign in and the IdP-side signal is lost.
+
+**`xms_edov` optional claim.** Microsoft's
+[optional claims reference](https://learn.microsoft.com/en-us/entra/identity-platform/optional-claims-reference#v10-and-v20-optional-claims-set)
+describes it as a "Boolean value indicating whether the user's email domain
+owner has been verified", with the notes: "An email is considered to be
+domain verified if it belongs to the tenant where the user account resides
+and the tenant admin has done verification of the domain. Also, the email
+must be from a Microsoft account (MSA), a Google account, or used for
+authentication using the one-time passcode (OTP) flow. Facebook and SAML/WS-Fed
+accounts **do not** have verified domains. For this claim to be returned in
+the token, the presence of the `email` claim is required." Add it to the ID
+token under Token configuration (or `optionalClaims.idToken` in the
+manifest) so the claim is present. Reading an explicit `xms_edov: false` as
+a verification hold is tracked separately (RISK-2026-10-10-02, #4735); until
+that lands the claim is requested but not consulted.
+
+Both settings concern the `email` claim's provenance at Microsoft. Neither
+replaces the verified-domain gate above, which is what proves the address's
+domain belongs to this organization, and neither is evidence of mailbox
+control.
 
 ### Identity linking and surface isolation
 

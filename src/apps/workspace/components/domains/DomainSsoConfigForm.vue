@@ -23,6 +23,10 @@ import {
 } from '@/schemas/shapes/domains/sso-config';
 import type { SsoConfigFormState } from '@/shared/composables/useSsoConfig';
 import type { TestSsoConnectionResponse } from '@/services/sso.service';
+import {
+  allowlistEntryState,
+  type AllowlistEntryState,
+} from '@/apps/workspace/components/domains/allowlistVerification';
 
 // ---------------------------------------------------------------------------
 // Props
@@ -303,7 +307,51 @@ const showDomainUnverifiedNotice = computed(
   () => !props.domainVerified && showsRegistrationValues.value
 );
 
-const showDomainFilter = computed(() => false);
+/**
+ * Allowlist section (#4734). Shown for every provider: tenant SSO creates an
+ * account only for an address inside a domain the organization has proven,
+ * and the chips below say which entries lie inside that set. Optional for
+ * Entra, where app assignment controls who may authenticate at the IdP.
+ */
+const showDomainFilter = computed(() => true);
+
+/**
+ * The organization's proven email namespaces and the saved entries outside
+ * them, as the API serves them on the record (#4734).
+ */
+const verifiedEmailDomains = computed(() => props.ssoConfig?.verified_email_domains ?? []);
+const verifiedEmailDomainsText = computed(() => verifiedEmailDomains.value.join(', '));
+
+const allowlistContext = computed(() => ({
+  savedAllowedDomains: props.ssoConfig?.allowed_domains ?? [],
+  unverifiedAllowedDomains: props.ssoConfig?.unverified_allowed_domains ?? [],
+  verifiedEmailDomains: verifiedEmailDomains.value,
+}));
+
+const entryState = (domain: string): AllowlistEntryState =>
+  allowlistEntryState(domain, allowlistContext.value);
+
+const ENTRY_STATE_LABELS: Record<AllowlistEntryState, string> = {
+  verified: 'web.organizations.sso.allowed_domain_verified',
+  unverified: 'web.organizations.sso.allowed_domain_unverified',
+  unknown: 'web.organizations.sso.allowed_domain_unknown',
+};
+
+/**
+ * Entra app registration settings the connection test cannot read (#4734):
+ * the API names them by id and the admin confirms them by hand.
+ */
+const MANUAL_CHECK_LABELS: Record<string, string> = {
+  remove_unverified_email_claim: 'web.organizations.sso.manual_check_remove_unverified_email_claim',
+  xms_edov_optional_claim: 'web.organizations.sso.manual_check_xms_edov_optional_claim',
+};
+
+const manualChecks = computed(() => props.testResult?.details?.manual_checks ?? []);
+
+const manualCheckLabel = (id: string): string => {
+  const key = MANUAL_CHECK_LABELS[id];
+  return key ? t(key) : id;
+};
 
 /**
  * "Grant org-wide access" is withheld from the UI pending further testing
@@ -1005,6 +1053,22 @@ aria-hidden="true">*</span>
                   class="mt-1 text-sm text-green-700 dark:text-green-300">
                   {{ testResult.details.note }}
                 </p>
+                <!-- #4734: Entra app registration settings the test cannot
+                     read; the admin confirms them by hand. -->
+                <div
+                  v-if="manualChecks.length > 0"
+                  data-testid="sso-test-manual-checks"
+                  class="mt-2 text-sm text-green-700 dark:text-green-300">
+                  <p class="font-medium">{{ t('web.organizations.sso.manual_checks_title') }}</p>
+                  <ul class="mt-1 list-disc space-y-1 pl-5">
+                    <li
+                      v-for="id in manualChecks"
+                      :key="id"
+                      :data-check-id="id">
+                      {{ manualCheckLabel(id) }}
+                    </li>
+                  </ul>
+                </div>
                 <!-- SAML (#4450): the test is local, so it reports what it
                      parsed — the certificate's subject and expiry. -->
                 <dl
@@ -1249,6 +1313,19 @@ aria-hidden="true">*</span>
           class="mt-1 text-sm text-gray-500 dark:text-gray-400">
           {{ t('web.organizations.sso.allowed_domains_hint') }}
         </p>
+        <!-- #4734: the proven set the chips are judged against. -->
+        <p
+          v-if="verifiedEmailDomains.length > 0"
+          data-testid="sso-verified-email-domains"
+          class="mt-1 text-sm text-gray-600 dark:text-gray-300">
+          {{ t('web.organizations.sso.verified_email_domains', { domains: verifiedEmailDomainsText }) }}
+        </p>
+        <p
+          v-else-if="ssoConfig"
+          data-testid="sso-verified-email-domains-none"
+          class="mt-1 text-sm text-amber-700 dark:text-amber-300">
+          {{ t('web.organizations.sso.verified_email_domains_none') }}
+        </p>
 
         <!-- Domain chips -->
         <div
@@ -1260,8 +1337,38 @@ aria-hidden="true">*</span>
             v-for="domain in formState.allowed_domains"
             :key="domain"
             role="listitem"
+            :data-testid="`sso-allowed-domain-${entryState(domain)}`"
+            :data-domain="domain"
             class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700 dark:bg-gray-600 dark:text-gray-200">
             {{ domain }}
+            <!-- #4734: an entry outside every proven domain admits no one. -->
+            <span
+              v-if="entryState(domain) === 'unverified'"
+              class="inline-flex items-center gap-0.5 rounded-full bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-200"
+              :aria-label="t('web.organizations.sso.allowed_domain_unverified_label', { domain })"
+              :title="t('web.organizations.sso.allowed_domain_unverified_label', { domain })">
+              <OIcon
+                collection="heroicons"
+                name="exclamation-triangle"
+                class="size-3"
+                aria-hidden="true" />
+              {{ t(ENTRY_STATE_LABELS.unverified) }}
+            </span>
+            <span
+              v-else-if="entryState(domain) === 'verified'"
+              class="inline-flex items-center gap-0.5 text-xs text-green-700 dark:text-green-300">
+              <OIcon
+                collection="heroicons"
+                name="check-circle"
+                class="size-3"
+                aria-hidden="true" />
+              {{ t(ENTRY_STATE_LABELS.verified) }}
+            </span>
+            <span
+              v-else
+              class="text-xs text-gray-500 dark:text-gray-400">
+              {{ t(ENTRY_STATE_LABELS.unknown) }}
+            </span>
             <button
               type="button"
               @click="removeDomain(domain)"
