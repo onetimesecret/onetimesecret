@@ -6,7 +6,6 @@
 // by the browser.
 
 import { resolveCspNonce, useDnsWidget } from '@/shared/composables/useDnsWidget';
-import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { getGlobalAxiosMock } from '@/tests/setup-stores';
 import { createTestI18n } from '@tests/setup';
 import { mount } from '@vue/test-utils';
@@ -56,13 +55,31 @@ describe('useDnsWidget CSP nonce (S5)', () => {
     vi.restoreAllMocks();
   });
 
+  /** Render the shell's nonced entry script, the way the server shell does. */
+  function appendNoncedScript(nonce: string) {
+    const nonced = document.createElement('script');
+    nonced.setAttribute('nonce', nonce);
+    document.head.appendChild(nonced);
+    return nonced;
+  }
+
   describe('resolveCspNonce', () => {
-    it('returns the nonce from the bootstrap store', () => {
-      useBootstrapStore().$patch({ nonce: TEST_NONCE });
-      expect(resolveCspNonce()).toBe(TEST_NONCE);
+    // RISK-2026-08-14-M08: the bootstrap payload no longer carries the nonce,
+    // and the resolver must not go looking for it there either. A payload
+    // that still has one (older backend) is stripped by the schema; a value
+    // smuggled onto the window is ignored.
+    it('never reads the nonce from the bootstrap payload', () => {
+      (window as unknown as { __BOOTSTRAP_ME__?: unknown }).__BOOTSTRAP_ME__ = {
+        nonce: TEST_NONCE,
+      };
+      try {
+        expect(resolveCspNonce()).toBeUndefined();
+      } finally {
+        delete (window as unknown as { __BOOTSTRAP_ME__?: unknown }).__BOOTSTRAP_ME__;
+      }
     });
 
-    it('falls back to a csp-nonce meta tag when the store has none', () => {
+    it('reads a csp-nonce meta tag', () => {
       const meta = document.createElement('meta');
       meta.setAttribute('name', 'csp-nonce');
       meta.setAttribute('content', 'meta-nonce');
@@ -72,9 +89,7 @@ describe('useDnsWidget CSP nonce (S5)', () => {
     });
 
     it('falls back to the nonce of an existing nonced script element', () => {
-      const nonced = document.createElement('script');
-      nonced.setAttribute('nonce', 'script-nonce');
-      document.head.appendChild(nonced);
+      appendNoncedScript('script-nonce');
 
       expect(resolveCspNonce()).toBe('script-nonce');
     });
@@ -96,8 +111,8 @@ describe('useDnsWidget CSP nonce (S5)', () => {
         });
     });
 
-    it('stamps the injected widget script with the resolved nonce', async () => {
-      useBootstrapStore().$patch({ nonce: TEST_NONCE });
+    it('stamps the injected widget script with the nonce of the shell script', async () => {
+      appendNoncedScript(TEST_NONCE);
       const injected = spyOnInjectedScript();
       const wrapper = mountWidgetHost();
 

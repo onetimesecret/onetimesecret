@@ -8,7 +8,6 @@
 // Widget asset imports - Vite will handle bundling/hashing
 import dnsWidgetCss from '@/assets/approximated/dnswidget.v1.css?url';
 import dnsWidgetJs from '@/assets/approximated/dnswidget.v1.js?url';
-import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import type { AxiosInstance } from 'axios';
 import { inject, onUnmounted, ref, toValue, type MaybeRefOrGetter, type Ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -78,25 +77,25 @@ export interface UseDnsWidgetOptions {
  * production with no 'strict-dynamic' and no 'self', so an un-nonced injected
  * script is blocked).
  *
+ * The nonce is read from the DOM, never from the bootstrap payload
+ * (RISK-2026-08-14-M08): the SystemSerializer no longer publishes it in
+ * window.__BOOTSTRAP_ME__, because a JSON copy of the nonce could be
+ * exfiltrated by an HTML-injection primitive and would defeat the nonce-only
+ * policy. Browsers hide the `nonce` content attribute from CSS/markup-level
+ * reads, but expose it to same-document script through the IDL property,
+ * which is exactly the capability this composable already has.
+ *
  * Resolution order:
- * 1. Bootstrap payload — the SystemSerializer includes `nonce` in
- *    window.__BOOTSTRAP_ME__, hydrated into the bootstrap store.
- * 2. `<meta name="csp-nonce">` — conventional fallback if a template adds it.
- * 3. The nonce IDL property of any already-nonced script element (the
+ * 1. `<meta name="csp-nonce">` — conventional fallback if a template adds it.
+ * 2. The nonce IDL property of any already-nonced script element (the
  *    property survives browser nonce-hiding even when the content attribute
- *    is emptied).
+ *    is emptied). The shell always renders the Vite entry scripts with the
+ *    per-request nonce, so this is the path production takes.
  *
  * Returns undefined when no nonce is discoverable (e.g. CSP disabled), in
  * which case injection proceeds exactly as before.
  */
 export function resolveCspNonce(): string | undefined {
-  try {
-    const storeNonce = useBootstrapStore().nonce;
-    if (storeNonce) return storeNonce;
-  } catch {
-    // Pinia not active (e.g. called outside app context) — fall through.
-  }
-
   const meta = document.querySelector<HTMLMetaElement>('meta[name="csp-nonce"]');
   if (meta?.content) return meta.content;
 
