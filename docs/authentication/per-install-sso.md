@@ -592,6 +592,7 @@ Get the values:
 - **Directory (tenant) ID** → `ENTRA_TENANT_ID`
 - Certificates & secrets → New client secret → copy **Value** (not Secret ID) → `ENTRA_CLIENT_SECRET`
 - Test that intended first-time users actually receive a usable `email` claim, mapped to OmniAuth `info.email`. Review [Microsoft's optional claims reference](https://learn.microsoft.com/en-us/entra/identity-platform/optional-claims-reference#v10-and-v20-optional-claims-set) and the caveat below; optional-claim configuration is not a guaranteed fix.
+- Set `removeUnverifiedEmailClaim` to `true` on the app registration and add the `xms_edov` optional claim to the ID token. Microsoft applies the first by default to multitenant registrations only, so a single-tenant registration must opt in; with it on, a token for an address in a domain Microsoft has not verified for the tenant carries no `email` claim and the sign-in ends at `missing_email`. Details and the Graph request: [Entra app registration settings](per-domain-sso.md#entra-app-registration-settings).
 
 ```bash
 ENTRA_TENANT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
