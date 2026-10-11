@@ -458,6 +458,14 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
       expect(config.allowed_domains).to eq(['bücher.de', 'example.com'])
     end
 
+    it 'accepts an entry that mixes the forms and matches its fully encoded form' do
+      config.allowed_domains = ['xn--bcher-kva.bücher.de']
+
+      expect(config.allowed_domains).to eq(['xn--bcher-kva.bücher.de'])
+      expect(config.matching_allowed_domain('user@xn--bcher-kva.xn--bcher-kva.de')).to eq('xn--bcher-kva.bücher.de')
+      expect(config.matching_allowed_domain('user@bücher.bücher.de')).to eq('xn--bcher-kva.bücher.de')
+    end
+
     it 'rejects a Unicode entry that has no exact A-label form' do
       expect { config.allowed_domains = ['ｅｘａｍｐｌｅ.com'] }
         .to raise_error(Onetime::Problem, /no exact IDNA A-label form/)

@@ -359,7 +359,8 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
   # @param email [String] Email address to validate
   # @return [Boolean] true if email domain is allowed
   def valid_email_domain?(email)
-    allowed_domains.empty? || !matching_allowed_domain(email).nil?
+    domains = allowed_domains
+    domains.empty? || !matching_allowed_domain(email, domains: domains).nil?
   end
 
   # The allowlist entry an address's domain matches, as stored, or nil.
@@ -374,12 +375,13 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
   # Does not treat an empty list as allow-all; valid_email_domain? does.
   #
   # @param email [String] Email address to match
+  # @param domains [Array<String>] the list, when the caller has already
+  #   read it (saves a second parse of allowed_domains_json)
   # @return [String, nil] the matching entry
-  def matching_allowed_domain(email)
+  def matching_allowed_domain(email, domains: allowed_domains)
     email_domain = email.to_s.split('@').last&.downcase
     return nil if email_domain.nil? || email_domain.empty?
 
-    domains = allowed_domains
     return email_domain if domains.include?(email_domain)
 
     key = Onetime::DomainValidation::AsciiHostname.comparison_key(email_domain)

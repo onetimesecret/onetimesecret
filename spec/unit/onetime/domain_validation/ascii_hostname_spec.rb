@@ -45,6 +45,12 @@ RSpec.describe Onetime::DomainValidation::AsciiHostname do
       expect(described_class.comparison_key('bücher.de'.b)).to eq('xn--bcher-kva.de')
     end
 
+    it 'judges each label on its own, so a name mixing the forms keys as its encoded form' do
+      expect(described_class.comparison_key('xn--bcher-kva.bücher.de')).to eq('xn--bcher-kva.xn--bcher-kva.de')
+      expect(described_class.comparison_key('bücher.xn--bcher-kva.de')).to eq('xn--bcher-kva.xn--bcher-kva.de')
+      expect(described_class.comparison_key('mail.bücher.de')).to eq('mail.xn--bcher-kva.de')
+    end
+
     {
       'fullwidth letters' => 'ｅｘａｍｐｌｅ.com',
       'an ideographic full stop as a separator' => "sub.example\u3002com",

@@ -51,9 +51,11 @@ module Onetime
         # fullwidth letters ("ｅｘａｍｐｌｅ.com"), U+3002 as a label separator
         # and a soft hyphen all encode to the A-label of a plainer name. A
         # lookup can tolerate that; an allowlist would then admit an address
-        # spelled unlike any listed entry. A Unicode name therefore has a key
+        # spelled unlike any listed entry. A Unicode label therefore has a key
         # only when its A-label decodes back to its own NFC, lower-case
-        # spelling. An ASCII name is only lower-cased: an A-label is never
+        # spelling. Labels are judged one at a time, so a name that mixes the
+        # forms ("xn--bcher-kva.bücher.de") keys the same as its fully encoded
+        # form. An ASCII label is only lower-cased: an A-label is never
         # decoded (decoding is lossy, see CustomDomain.idn_forms), and
         # surrounding space or a trailing dot is kept, so an ASCII name
         # compares exactly as it did byte for byte.
@@ -64,10 +66,15 @@ module Onetime
           host = utf8(hostname.to_s)
           return host.downcase if host.ascii_only?
 
-          ascii = to_a_labels(host)
+          labels = host.unicode_normalize(:nfc).downcase.split('.', -1).map do |label|
+            label.ascii_only? ? label : exact_a_label(label)
+          end
+          return nil if labels.any?(&:nil?)
+
+          ascii = labels.join('.')
           ensure_encodable!(ascii, host)
-          ascii if SimpleIDN.to_unicode(ascii) == host.unicode_normalize(:nfc).downcase
-        rescue ConversionError, SimpleIDN::ConversionError
+          ascii
+        rescue ConversionError
           nil
         end
 
@@ -85,6 +92,16 @@ module Onetime
           SimpleIDN.to_ascii(host.unicode_normalize(:nfc).downcase)
         rescue StandardError => ex
           raise ConversionError, "#{host.inspect} has no A-label form (#{ex.class}: #{ex.message})"
+        end
+
+        # The A-label of one NFC, lower-case Unicode label, or nil when the
+        # UTS #46 mapping changed it on the way (it does not decode back to
+        # the label as given).
+        def exact_a_label(label)
+          ascii = SimpleIDN.to_ascii(label)
+          ascii if SimpleIDN.to_unicode(ascii) == label
+        rescue StandardError
+          nil
         end
 
         def ensure_encodable!(ascii, host)
