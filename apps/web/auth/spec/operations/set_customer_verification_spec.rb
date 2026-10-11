@@ -33,11 +33,18 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
       extid: 'ur_test_123',
       email: 'user@example.com',
       verified?: false,
+      verified_by: nil,
+      mailbox_verified?: false,
       :verified= => nil,
       :verified_by= => nil,
       save: true,
     )
   end
+
+  # The deferred federation re-claim (#4735) reaches into EnsureDefaultWorkspace;
+  # its own gate is covered in ensure_default_workspace_federation_spec.rb, so
+  # here it is a seam: was it invoked, and only when mailbox proof arrived?
+  let(:workspace_op) { class_double('Auth::Operations::EnsureDefaultWorkspace', claim_pending_federation_for: true) }
 
   let(:db) { double('db', transaction: nil) }
 
@@ -45,11 +52,12 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
 
   before do
     allow(Onetime).to receive(:auth_config).and_return(auth_config)
+    stub_const('Auth::Operations::EnsureDefaultWorkspace', workspace_op)
   end
 
   describe 'idempotency' do
     it 'returns :no_change and writes nothing when already verified' do
-      allow(customer).to receive(:verified?).and_return(true)
+      allow(customer).to receive_messages(verified?: true, verified_by: 'cli_provision')
 
       op = described_class.new(
         customer: customer,
@@ -76,7 +84,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
 
     it 'does not touch the SQL database when no-op even in full mode' do
       allow(auth_config).to receive(:mode).and_return('full')
-      allow(customer).to receive(:verified?).and_return(true)
+      allow(customer).to receive_messages(verified?: true, verified_by: 'cli_provision')
 
       op = described_class.new(
         customer: customer,
@@ -193,7 +201,7 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
     end
 
     it 'still respects idempotency' do
-      allow(customer).to receive(:verified?).and_return(true)
+      allow(customer).to receive_messages(verified?: true, verified_by: 'email')
 
       op = described_class.new(
         customer: customer,
@@ -204,6 +212,95 @@ RSpec.describe Auth::Operations::SetCustomerVerification do
 
       expect(op.call).to eq(:no_change)
       expect(customer).not_to have_received(:save)
+    end
+  end
+
+  # #4735: an account verified on an IdP's say-so (verified_by: 'sso') is
+  # Verified in Rodauth, so verify_account never runs for it. Rewriting the
+  # provenance through this op is the ONLY way it acquires mailbox proof, which
+  # is what has_system_role? and the federation claim gate on.
+  describe 'provenance-only change (verified stays true)' do
+    before do
+      allow(customer).to receive_messages(verified?: true, verified_by: 'sso', mailbox_verified?: false)
+    end
+
+    it 'is not a no-op: rewrites verified_by and saves' do
+      op = described_class.new(customer: customer, verified: true, verified_by: 'cli_provision', db: db)
+
+      expect(op.call).to eq(:success)
+      expect(customer).to have_received(:verified_by=).with('cli_provision')
+      expect(customer).to have_received(:save)
+    end
+
+    it 'skips the SQL update in full mode — the accounts row is already Verified' do
+      allow(auth_config).to receive(:mode).and_return('full')
+
+      op = described_class.new(customer: customer, verified: true, verified_by: 'cli_provision', db: db)
+
+      expect(op.call).to eq(:success)
+      expect(db).not_to have_received(:transaction)
+    end
+
+    it 'treats the same provenance as a no-op' do
+      op = described_class.new(customer: customer, verified: true, verified_by: 'sso', db: db)
+
+      expect(op.call).to eq(:no_change)
+      expect(customer).not_to have_received(:save)
+    end
+  end
+
+  describe 'deferred federation re-claim' do
+    it 'claims once the stamp gains mailbox proof (unverified -> email)' do
+      # mailbox_verified? is read before the write (false) and after (true).
+      allow(customer).to receive(:mailbox_verified?).and_return(false, true)
+
+      described_class.new(customer: customer, verified: true, verified_by: 'email', db: db).call
+
+      expect(workspace_op).to have_received(:claim_pending_federation_for).with(customer)
+    end
+
+    it 'claims when an operator upgrades an IdP-asserted stamp (sso -> cli_provision)' do
+      allow(customer).to receive_messages(verified?: true, verified_by: 'sso')
+      allow(customer).to receive(:mailbox_verified?).and_return(false, true)
+
+      described_class.new(customer: customer, verified: true, verified_by: 'cli_provision', db: db).call
+
+      expect(workspace_op).to have_received(:claim_pending_federation_for).with(customer)
+    end
+
+    it 'does not claim when the new provenance carries no mailbox proof (sso)' do
+      allow(customer).to receive(:mailbox_verified?).and_return(false, false)
+
+      described_class.new(customer: customer, verified: true, verified_by: 'sso', db: db).call
+
+      expect(workspace_op).not_to have_received(:claim_pending_federation_for)
+    end
+
+    it 'does not claim again for a customer that already had mailbox proof' do
+      allow(customer).to receive_messages(verified?: true, verified_by: 'colonel_admin', mailbox_verified?: true)
+
+      described_class.new(customer: customer, verified: true, verified_by: 'cli_provision', db: db).call
+
+      expect(workspace_op).not_to have_received(:claim_pending_federation_for)
+    end
+
+    it 'does not claim on unverify' do
+      allow(customer).to receive_messages(verified?: true, verified_by: 'email', mailbox_verified?: true)
+
+      described_class.new(customer: customer, verified: false, verified_by: nil, db: db).call
+
+      expect(workspace_op).not_to have_received(:claim_pending_federation_for)
+    end
+
+    it 'never lets a claim failure undo the verification' do
+      allow(customer).to receive(:mailbox_verified?).and_return(false, true)
+      allow(workspace_op).to receive(:claim_pending_federation_for).and_raise(RuntimeError, 'boom')
+      allow(Onetime::ErrorHandler).to receive(:safe_execute).and_call_original
+
+      op = described_class.new(customer: customer, verified: true, verified_by: 'email', db: db)
+
+      expect(op.call).to eq(:success)
+      expect(customer).to have_received(:save)
     end
   end
 end

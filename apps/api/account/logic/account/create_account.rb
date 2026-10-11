@@ -97,9 +97,11 @@ module AccountAPI::Logic
           # Account already exists - handle silently without revealing this fact
           @cust = existing_customer
 
-          # If the account is not verified, resend the verification email
-          # If verified, we do nothing but still return success
-          if @cust.verified?
+          # If the account carries no mailbox proof, resend the verification
+          # email; if it does, do nothing but still return success. An
+          # IdP-asserted, payment or autoverify stamp is not mailbox proof
+          # (#4735), so such a record gets the chance to acquire it here.
+          if @cust.mailbox_verified?
             OT.info "[account-exists-verified] Silent success for #{@cust.obscure_email}"
           elsif claim_verification_resend_slot?(@cust)
             # Cooldown claimed: this is the first duplicate signup in the

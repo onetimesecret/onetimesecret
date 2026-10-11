@@ -50,7 +50,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
       extid: 'ur_c',
       obscure_email: 'ss***@e***.com',
       organization_instances: [],
-      verified?: verified,
+      verified?: verified, mailbox_verified?: verified,
       verified_by: verified_by,
       verification_hold: verification_hold,
       provisioning_origin: provisioning_origin,

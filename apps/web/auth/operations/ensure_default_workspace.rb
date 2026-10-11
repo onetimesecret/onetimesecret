@@ -63,9 +63,16 @@ module Auth
       #   email in another region and, at account-creation time, claim and
       #   destroy the victim's PendingFederatedSubscription. Callers on the
       #   standard signup path pass `require_verification: true` so the claim is
-      #   deferred to `after_verify_account`. Pre-verified/trusted callers (SSO
-      #   IdP-verified, invite-token, post-payment billing, authenticated lazy
-      #   creation) leave it at the default (false) and claim immediately.
+      #   deferred to `after_verify_account`. The SSO JIT caller passes it too
+      #   (#4735): the IdP asserted the address but nobody proved mailbox
+      #   control, so the claim waits for an operator verification
+      #   (SetCustomerVerification re-invokes it). Mailbox-proven callers
+      #   (invite-token, post-payment billing, authenticated lazy creation of a
+      #   verified password account) leave it at the default (false) and claim
+      #   immediately — EXCEPT that an SSO-provisioned record without mailbox
+      #   proof is deferred on every path regardless of the flag
+      #   ({#claim_deferred?}), so a lazy or billing-driven creation cannot
+      #   claim what the JIT path deferred.
       #
       #   RESIDUAL (verify_account disabled): the standard-signup caller derives
       #   this flag from `Onetime.auth_config.verify_account_enabled?`, so when a
@@ -159,11 +166,13 @@ module Auth
       def claim_pending_federation
         return false unless @customer
 
-        # Only claim once the email is verified. This is the whole point of the
-        # deferral: the after_verify_account hook has just marked the customer
-        # verified before calling here.
-        unless @customer.verified?
-          auth_logger.debug '[create-default-workspace] claim_pending_federation: customer not verified, skipping'
+        # Only claim once MAILBOX control is proven. This is the whole point of
+        # the deferral: the caller (after_verify_account, or
+        # SetCustomerVerification on an operator verification) has just stamped
+        # a mailbox-proof provenance before calling here. An IdP-asserted
+        # 'sso' stamp does not qualify (#4735).
+        unless @customer.mailbox_verified?
+          auth_logger.debug '[create-default-workspace] claim_pending_federation: customer not mailbox-verified, skipping'
           return false
         end
 
@@ -368,11 +377,43 @@ module Auth
       #
       # @return [Boolean]
       def unverified_immediate_claim?
-        return false if @customer&.verified?
+        return false if @customer&.mailbox_verified?
 
         !Onetime.auth_config.verify_account_enabled?
       rescue StandardError
         false
+      end
+
+      # Should the federation claim wait for mailbox proof?
+      #
+      # Never for a mailbox-verified customer. Otherwise when the caller asked
+      # for it (`require_verification: true`), and ALWAYS for an SSO-provisioned
+      # record (#4735): the IdP asserted the address, no verify_account step
+      # will ever prove it, and the record may reach this operation again
+      # through callers that pass the default flag — OrganizationContext's lazy
+      # creation on the first authenticated request, the billing surfaces, the
+      # customers doctor. Keying on the record rather than the caller means
+      # none of those can deliver the benefit the JIT path deferred. The
+      # re-claim runs from SetCustomerVerification once an operator stamps a
+      # mailbox-proof provenance.
+      #
+      # @return [Boolean]
+      def claim_deferred?
+        return false if @customer&.mailbox_verified?
+
+        @require_verification || sso_provisioned?
+      end
+
+      # An account the IdP vouched for and nobody else did: JIT-provisioned
+      # (provisioning_origin, never rewritten, so a held record counts too) or
+      # carrying the 'sso' stamp (the doctor's :sso_customer_unverified repair
+      # writes it onto records that predate provisioning_origin).
+      #
+      # @return [Boolean]
+      def sso_provisioned?
+        return false unless @customer
+
+        @customer.provisioning_origin.to_s == 'sso_jit' || @customer.verified_by.to_s == 'sso'
       end
 
       # Check for and apply pending federated subscription
@@ -389,8 +430,11 @@ module Auth
       # verification when the caller sets `require_verification: true` (see
       # #initialize). Callers on that path receive the benefit once the user
       # verifies, via `after_verify_account` → {.claim_pending_federation_for}.
-      # Pre-verified callers (SSO, invite, post-payment billing, authenticated
-      # lazy creation) run this immediately with the gate disabled.
+      # Mailbox-proven callers (invite, post-payment billing, authenticated
+      # lazy creation) run this immediately with the gate disabled. An
+      # SSO-provisioned record without mailbox proof is deferred on every path
+      # ({#claim_deferred?}) and re-claimed from SetCustomerVerification once an
+      # operator verifies the address (#4735).
       #
       # RESIDUAL (verify_account disabled): when the deployment has no email
       # verification step, the standard-signup caller passes
@@ -419,11 +463,13 @@ module Auth
         end
 
         # Verification gate: on the standard signup path the email is not yet
-        # verified at account-creation time. Defer the claim (leaving the
-        # PendingFederatedSubscription intact) until the user verifies; the
-        # after_verify_account hook re-invokes the claim once verified.
-        if @require_verification && !@customer&.verified?
-          auth_logger.info '[create-default-workspace] Deferring federated subscription claim until email is verified',
+        # verified at account-creation time, and on the SSO JIT path it is
+        # IdP-asserted but never mailbox-proven. Defer the claim (leaving the
+        # PendingFederatedSubscription intact) until mailbox control is proven;
+        # after_verify_account and SetCustomerVerification re-invoke the claim
+        # once a qualifying provenance is stamped (#4735).
+        if claim_deferred?
+          auth_logger.info '[create-default-workspace] Deferring federated subscription claim until the mailbox is verified',
             { org: org.extid }
           return false
         end

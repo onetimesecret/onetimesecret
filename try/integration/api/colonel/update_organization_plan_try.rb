@@ -49,10 +49,12 @@ def last_response; @test.last_response; end
 @colonel = Onetime::Customer.create!(email: "colonel_uop_#{@timestamp}@example.com")
 @colonel.role     = 'colonel'
 @colonel.verified = 'true'
+@colonel.verified_by = 'email'
 @colonel.save
 
 @owner = Onetime::Customer.create!(email: "owner_uop_#{@timestamp}@example.com")
 @owner.verified = 'true'
+@owner.verified_by = 'email'
 @owner.save
 
 @org = Onetime::Organization.create!(

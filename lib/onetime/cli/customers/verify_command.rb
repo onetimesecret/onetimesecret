@@ -9,6 +9,14 @@
 # out-of-band identity check). For new customers, use `customers create`
 # with `--verified` instead.
 #
+# Also the MAILBOX-proof path for an account that is already verified on an
+# IdP's say-so (SSO JIT, verified_by: 'sso', #4735): system roles and
+# federated-subscription claims require mailbox proof, which 'sso' is not.
+# Re-running verify on such an account rewrites the provenance to
+# 'cli_provision' (one of Onetime::Customer::MAILBOX_VERIFIED_BY) and claims
+# any deferred federated subscription. Confirm the address with its owner
+# first — this command is the operator vouching for it.
+#
 # Usage:
 #   bin/ots customers verify user@example.com      # Lookup by email
 #   bin/ots customers verify ur1234567890abcdef    # Lookup by extid

@@ -27,7 +27,7 @@ RSpec.describe Auth::Operations::Customers::Diagnose do
       extid: 'ur_target',
       email: email,
       role: 'customer',
-      verified?: true,
+      verified?: true, mailbox_verified?: true,
       suspended?: false,
       suspended_at: nil,
       suspended_reason: nil,

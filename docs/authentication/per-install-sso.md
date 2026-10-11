@@ -592,6 +592,7 @@ Get the values:
 - **Directory (tenant) ID** → `ENTRA_TENANT_ID`
 - Certificates & secrets → New client secret → copy **Value** (not Secret ID) → `ENTRA_CLIENT_SECRET`
 - Test that intended first-time users actually receive a usable `email` claim, mapped to OmniAuth `info.email`. Review [Microsoft's optional claims reference](https://learn.microsoft.com/en-us/entra/identity-platform/optional-claims-reference#v10-and-v20-optional-claims-set) and the caveat below; optional-claim configuration is not a guaranteed fix.
+- Recommended: Token configuration → Add optional claim → ID → `xms_edov`. Onetime Secret reads it from the ID token (see [below](#entra-email-claims-and-mailbox-verification)); the claim cannot be requested by scope, only configured on the app registration.
 
 ```bash
 ENTRA_TENANT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
@@ -611,10 +612,20 @@ The same reference recommends requesting an addressable email from the user, usi
 
 - The [`email` scope](https://learn.microsoft.com/en-us/entra/identity-platform/scopes-oidc#the-email-scope) requests a claim; it does not guarantee one. Microsoft says: "the app needs to be able to handle a case in which no `email` claim exists in the token." An absent claim does **not** prove the user has no mailbox or lacks an Exchange license.
 - [Optional claims](https://learn.microsoft.com/en-us/entra/identity-platform/optional-claims-reference#v10-and-v20-optional-claims-set) can request `email` for managed users, but cannot establish mailbox control. Microsoft defines `xms_edov` as a "Boolean value indicating whether the user's email domain owner has been verified." That is domain-owner verification, not proof that this user controls the mailbox.
+- How Onetime Secret uses `xms_edov` (#4735): an explicit `false` in the ID token withholds the verified stamp at JIT provisioning (`verification_hold: domain_unverified`, reported by `bin/ots customers doctor`) and, on a tenant surface with an email-domain allowlist, refuses the sign-in as `domain_not_allowed`. `true` changes nothing: the account is provisioned and stamped `verified_by: 'sso'` as before. An absent claim is not a hold.
 - Microsoft's [UserInfo endpoint](https://learn.microsoft.com/en-us/entra/identity-platform/userinfo#consider-using-an-id-token-instead) documentation says the ID token is a superset of UserInfo, and describes email as available only "when available and consented to." UserInfo is not a guaranteed missing-email remedy.
 - The [native strategy source for 3.1.1](https://github.com/pond/omniauth-entra-id/blob/7a45b1f4aadefd2d19781c80acc5fd17251e21db/lib/omniauth/strategies/entra_id.rb#L124-L204) maps `raw_info['email']` into `info.email` and builds `raw_info` from token payloads; it does not fetch a directory `mail` attribute. OTS adds no Microsoft Graph enrichment. The `raw_info.mail` fallback in [#3965](https://github.com/onetimesecret/onetimesecret/pull/3965) targets `develop`, is absent from this main-derived branch, and cannot produce `mail` absent from native tokens. Even where a provider supplies `mail`, its presence alone is not proof of mailbox control.
 
 Do not substitute `upn` or `preferred_username`, fabricate an email, enable trusted linking, or remove a tenant allowlist to work around a missing claim. For an existing account, the [conditional Connect workaround](#existing-account-with-a-missing-email-claim) may apply. Email-less first-time provisioning requires the [proposed Phase 2 work](../planning/2026-1009-sso-email-less-accounts.md), not an operator setting.
+
+#### SSO verification is not mailbox proof
+
+Every SSO JIT account is stamped `verified: true, verified_by: 'sso'` (unless a hold applies). That records that the IdP asserted the address; it does not record that anyone proved control of the mailbox. Onetime Secret keeps the two apart (#4735):
+
+- `verified?` means the account is open. It gates sign-in and ordinary use.
+- `mailbox_verified?` means the address was proven: `verified_by` is one of `email` (a link delivered to the address was followed), `invite_token`, `cli_provision` or `colonel_admin` (an operator vouched for it). `sso`, `stripe_payment`, `autoverify`, `legacy` and a blank provenance do not qualify.
+
+System roles (colonel, admin, staff), the last-colonel guard, impersonation, and claiming a pending federated subscription require `mailbox_verified?`. An SSO-only account that is granted a system role therefore holds a role that does nothing until an operator confirms the address and runs `bin/ots customers verify EMAIL` (or verifies it in the colonel admin). That rewrites the provenance to `cli_provision`/`colonel_admin` without touching the Rodauth row, and applies any federated subscription that was deferred at JIT time. `bin/ots customers doctor` reports system-role holders without mailbox proof as `system_role_without_mailbox_proof`; `bin/ots customers show` prints `verified_by` and `mailbox_verified`.
 
 ### Google
 

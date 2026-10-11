@@ -108,7 +108,7 @@ RSpec.describe V1::Controllers::Index, 'anonymous access paths' do
           email: custid,
           anonymous?: false,
           active?: true,
-          verified?: true,
+          verified?: true, mailbox_verified?: true,
           role: 'customer',
           locale: 'en',
           obscure_email: 'u***@example.com',

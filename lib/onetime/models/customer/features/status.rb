@@ -81,6 +81,14 @@ module Onetime::Customer::Features
         verified? && verified_by.to_s == 'email'
       end
 
+      # Does the record carry proof that this person controls the mailbox?
+      # True only for the provenances in Onetime::Customer::MAILBOX_VERIFIED_BY.
+      # An IdP-asserted ('sso'), payment, autoverify or legacy stamp satisfies
+      # verified? but not this (#4735). Fail-closed on a blank provenance.
+      def mailbox_verified?
+        verified? && Onetime::Customer::MAILBOX_VERIFIED_BY.include?(verified_by.to_s)
+      end
+
       # Check if account was created via Stripe payment (not email verified)
       def payment_verified?
         verified? && verified_by.to_s == 'stripe_payment'

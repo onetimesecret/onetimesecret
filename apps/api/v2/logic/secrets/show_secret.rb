@@ -172,7 +172,10 @@ module V2::Logic
       end
 
       def verify_owner(owner)
-        if anonymous_user? || (cust.custid == owner.custid && !owner.verified?)
+        # Gated on mailbox_verified?, not verified?: following the emailed link
+        # is mailbox proof, so an owner stamped by payment/autoverify/legacy
+        # provenance acquires it here (#4735).
+        if anonymous_user? || (cust.custid == owner.custid && !owner.mailbox_verified?)
           owner.verified    = true
           owner.verified_by = 'email'
           owner.save

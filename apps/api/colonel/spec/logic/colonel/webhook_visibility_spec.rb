@@ -9,12 +9,12 @@ RSpec.describe 'Colonel webhook visibility adapters' do
   let(:colonel) do
     instance_double(Onetime::Customer,
       objid: 'cust_colonel', extid: 'ur_colonel', role: 'colonel',
-      verified?: true, anonymous?: false)
+      verified?: true, mailbox_verified?: true, anonymous?: false)
   end
   let(:customer) do
     instance_double(Onetime::Customer,
       objid: 'cust_customer', extid: 'ur_customer', role: 'customer',
-      verified?: true, anonymous?: false)
+      verified?: true, mailbox_verified?: true, anonymous?: false)
   end
   let(:strategy_result) do
     double('StrategyResult', session: {}, user: colonel,

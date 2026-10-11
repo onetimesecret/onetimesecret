@@ -48,6 +48,7 @@ def last_response; @test.last_response; end
 @colonel = Onetime::Customer.create!(email: "colonel_ext_#{@ts}@example.com")
 @colonel.role     = 'colonel'
 @colonel.verified = 'true'
+@colonel.verified_by = 'email'
 @colonel.save
 
 # Targets — captured by their PUBLIC id (extid), never objid.

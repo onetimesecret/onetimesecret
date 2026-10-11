@@ -39,21 +39,25 @@ OT.info "Cleaned Redis for fresh test run"
 @regular = Onetime::Customer.create!(email: @regular_email)
 @regular.role = 'customer'
 @regular.verified = 'true'
+@regular.verified_by = 'email'
 @regular.save
 
 @colonel = Onetime::Customer.create!(email: @colonel_email)
 @colonel.role = 'colonel'
 @colonel.verified = 'true'
+@colonel.verified_by = 'email'
 @colonel.save
 
 @admin = Onetime::Customer.create!(email: @admin_email)
 @admin.role = 'admin'
 @admin.verified = 'true'
+@admin.verified_by = 'email'
 @admin.save
 
 @staff = Onetime::Customer.create!(email: @staff_email)
 @staff.role = 'staff'
 @staff.verified = 'true'
+@staff.verified_by = 'email'
 @staff.save
 
 # Valid roles constant from the command

@@ -80,15 +80,25 @@ module Auth
       #   is Closed; verification only moves between Unverified and Verified
       #   (not raised when rodauth_already_synced: true)
       def call
-        return :no_change if @customer.verified? == @verified
+        state_changes      = @customer.verified? != @verified
+        provenance_changes = @customer.verified_by.to_s != @verified_by.to_s
+        return :no_change unless state_changes || provenance_changes
 
-        update_rodauth_account! if full_auth_mode? && !@rodauth_already_synced
+        # A provenance-only change (verified stays true, verified_by moves from
+        # 'sso' to 'cli_provision', say) is how an already-Verified account
+        # acquires MAILBOX proof (#4735): Rodauth's verify_account never runs
+        # for a Verified row, so this is the only path. The SQL status is
+        # already right in that case; only the Redis mirror is written.
+        update_rodauth_account! if state_changes && full_auth_mode? && !@rodauth_already_synced
+        gains_mailbox_proof = @verified && !@customer.mailbox_verified?
         update_customer!
 
         auth_logger.debug "[set-customer-verification] #{@customer.extid} " \
                           "verified=#{@verified} verified_by=#{@verified_by.inspect} " \
                           "auth_mode=#{Onetime.auth_config.mode} " \
                           "rodauth_already_synced=#{@rodauth_already_synced}"
+
+        claim_pending_federation! if gains_mailbox_proof && @customer.mailbox_verified?
         :success
       end
 
@@ -162,6 +172,22 @@ module Auth
         @customer.verified    = @verified
         @customer.verified_by = @verified_by
         @customer.save
+      end
+
+      # Deliver the federated benefit that was deferred until mailbox proof.
+      #
+      # EnsureDefaultWorkspace defers the PendingFederatedSubscription claim for
+      # a standard signup (until after_verify_account) and for an SSO JIT
+      # account (until an operator verifies the address, #4735). Every path
+      # that stamps a mailbox-proof provenance ends here — the Rodauth hook,
+      # the colonel admin API, `bin/ots customers verify` — so this is the one
+      # re-claim trigger. Idempotent: a no-op when nothing is pending, when it
+      # was already claimed, or when the customer owns no default workspace.
+      # Never lets a claim failure undo the verification just written.
+      def claim_pending_federation!
+        Onetime::ErrorHandler.safe_execute('claim_pending_federation', external_id: @customer.extid) do
+          Auth::Operations::EnsureDefaultWorkspace.claim_pending_federation_for(@customer)
+        end
       end
     end
   end

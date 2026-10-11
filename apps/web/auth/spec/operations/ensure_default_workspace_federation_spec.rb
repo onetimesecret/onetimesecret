@@ -23,10 +23,18 @@
 # subscription at account-creation time.
 #
 # The fix defers the claim on that path until the email is verified
-# (require_verification: true), and re-invokes it from after_verify_account via
-# EnsureDefaultWorkspace.claim_pending_federation_for. Pre-verified/trusted
-# callers (SSO, invite, post-payment billing, authenticated lazy creation) use
-# the default (require_verification: false) and claim immediately.
+# (require_verification: true), and re-invokes it through
+# EnsureDefaultWorkspace.claim_pending_federation_for once SetCustomerVerification
+# stamps a mailbox-proof provenance (after_verify_account, colonel admin, CLI).
+# Mailbox-proven callers (invite, post-payment billing, authenticated lazy
+# creation) use the default (require_verification: false) and claim immediately.
+#
+# #4735: the SSO JIT caller is NOT pre-verified in the sense that matters. The
+# IdP asserted the address (verified_by: 'sso'); nobody proved mailbox control.
+# That caller now passes require_verification: true, and the operation defers
+# for an sso_jit record on EVERY path, so a later lazy creation cannot deliver
+# the benefit the JIT path withheld. Only Customer#mailbox_verified? (an
+# 'email'/'invite_token'/'cli_provision'/'colonel_admin' stamp) lets it through.
 #
 # REQUIREMENTS:
 # - Valkey running on port 2163: pnpm run test:database:start
@@ -73,8 +81,11 @@ RSpec.describe 'EnsureDefaultWorkspace: federated subscription claim gate', type
     "#{prefix}-#{SecureRandom.hex(8)}@federation-test.example.com"
   end
 
-  def create_customer(email:, verified:)
-    cust = Onetime::Customer.create!(email: email, role: 'customer', verified: verified)
+  def create_customer(email:, verified:, verified_by: nil, provisioning_origin: nil)
+    cust = Onetime::Customer.create!(
+      email: email, role: 'customer', verified: verified,
+      verified_by: verified ? verified_by : nil, provisioning_origin: provisioning_origin,
+    )
     created_customers << cust
     cust
   end
@@ -147,9 +158,10 @@ RSpec.describe 'EnsureDefaultWorkspace: federated subscription claim gate', type
       expect(org.subscription_federated?).to be(false)
       expect(pending_exists?(email)).to be(true)
 
-      # Verification happens (mirrors after_verify_account marking the customer
-      # verified before re-invoking the claim).
-      customer.verified = true
+      # Verification happens (mirrors after_verify_account stamping the
+      # mailbox-proof 'email' provenance before re-invoking the claim).
+      customer.verified    = true
+      customer.verified_by = 'email'
       customer.save
 
       applied = Auth::Operations::EnsureDefaultWorkspace.claim_pending_federation_for(customer)
@@ -172,7 +184,7 @@ RSpec.describe 'EnsureDefaultWorkspace: federated subscription claim gate', type
     it 'claims at creation for an already-verified customer (invite path)' do
       email = unique_email('verified-immediate')
       create_pending_for(email)
-      customer = create_customer(email: email, verified: true)
+      customer = create_customer(email: email, verified: true, verified_by: 'invite_token')
 
       result = Auth::Operations::EnsureDefaultWorkspace.new(customer: customer).call
       org = result[:organization]
@@ -182,26 +194,100 @@ RSpec.describe 'EnsureDefaultWorkspace: federated subscription claim gate', type
       expect(org.subscription_status.to_s).to eq('active')
       expect(pending_exists?(email)).to be(false)
     end
+  end
 
-    it 'claims at creation on the default (require_verification: false) path even ' \
-       'when the Redis customer.verified flag is not yet set (SSO/omniauth caller)' do
-      # The SSO caller (after_omniauth_create_account) invokes EnsureDefaultWorkspace
-      # with the default require_verification: false, while EnsureCustomerForAccount leaves the
-      # Redis customer.verified flag false (the Rodauth account is IdP-verified). This
-      # asserts SSO still claims immediately and is not blocked by the new gate.
-      email = unique_email('sso-immediate')
+  # ---------------------------------------------------------------------------
+  # SSO JIT (#4735): an IdP-asserted address is not mailbox proof
+  # ---------------------------------------------------------------------------
+  describe 'an SSO JIT-provisioned customer (verified_by: sso)' do
+    def sso_customer(email)
+      create_customer(email: email, verified: true, verified_by: 'sso', provisioning_origin: 'sso_jit')
+    end
+
+    it 'does not claim at creation when the JIT caller passes require_verification: true' do
+      email = unique_email('sso-jit')
       create_pending_for(email)
-      customer = create_customer(email: email, verified: false)
+      customer = sso_customer(email)
+      expect(customer.verified?).to be(true)
+      expect(customer.mailbox_verified?).to be(false)
 
       result = Auth::Operations::EnsureDefaultWorkspace.new(
         customer: customer,
-        require_verification: false,
+        require_verification: true,
       ).call
       org = result[:organization]
       created_organizations << org
 
+      expect(org.is_default).to be true
+      expect(org.subscription_federated?).to be(false)
+      expect(pending_exists?(email)).to be(true)
+    end
+
+    it 'does not claim on the default path either (lazy creation cannot deliver what JIT deferred)' do
+      email = unique_email('sso-lazy')
+      create_pending_for(email)
+      customer = sso_customer(email)
+
+      result = Auth::Operations::EnsureDefaultWorkspace.new(customer: customer).call
+      org = result[:organization]
+      created_organizations << org
+
+      expect(org.subscription_federated?).to be(false)
+      expect(pending_exists?(email)).to be(true)
+    end
+
+    it 'does not claim for a held sso_jit record (idp_unverified) on the default path' do
+      email = unique_email('sso-held')
+      create_pending_for(email)
+      customer = create_customer(email: email, verified: false, provisioning_origin: 'sso_jit')
+      customer.verification_hold = 'idp_unverified'
+      customer.save
+
+      result = Auth::Operations::EnsureDefaultWorkspace.new(customer: customer).call
+      created_organizations << result[:organization]
+
+      expect(result[:organization].subscription_federated?).to be(false)
+      expect(pending_exists?(email)).to be(true)
+    end
+
+    it 'claims once an operator stamps a mailbox-proof provenance (the re-claim trigger)' do
+      email = unique_email('sso-operator-verify')
+      create_pending_for(email, status: 'active', planid: 'pro_monthly')
+      customer = sso_customer(email)
+
+      result = Auth::Operations::EnsureDefaultWorkspace.new(customer: customer, require_verification: true).call
+      org = result[:organization]
+      created_organizations << org
+      expect(pending_exists?(email)).to be(true)
+
+      # `bin/ots customers verify` / colonel admin: verified stays true, only
+      # the provenance moves to a mailbox-proof value. Rodauth is already
+      # Verified for an SSO account, so this is a Redis-only write.
+      outcome = Auth::Operations::SetCustomerVerification.new(
+        customer: customer,
+        verified: true,
+        verified_by: 'cli_provision',
+        rodauth_already_synced: true,
+      ).call
+      expect(outcome).to eq(:success)
+      expect(customer.mailbox_verified?).to be(true)
+
+      org.refresh!
       expect(org.subscription_federated?).to be(true)
+      expect(org.planid.to_s).to eq('pro_monthly')
       expect(pending_exists?(email)).to be(false)
+    end
+
+    it 'does not claim when the re-verification keeps an IdP-asserted provenance' do
+      email = unique_email('sso-still-sso')
+      create_pending_for(email)
+      customer = sso_customer(email)
+      created_organizations << Auth::Operations::EnsureDefaultWorkspace.new(customer: customer).call[:organization]
+
+      applied = Auth::Operations::EnsureDefaultWorkspace.claim_pending_federation_for(customer)
+
+      expect(applied).to be(false)
+      expect(pending_exists?(email)).to be(true)
     end
   end
 

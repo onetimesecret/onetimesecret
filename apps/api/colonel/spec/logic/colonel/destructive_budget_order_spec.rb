@@ -43,7 +43,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::PurgeUser do
   let(:colonel) do
     instance_double(Onetime::Customer,
       objid: 'cust_colonel', extid: 'ur_colonel', email: 'colonel@example.com',
-      role: 'colonel', verified?: true, anonymous?: false)
+      role: 'colonel', verified?: true, mailbox_verified?: true, anonymous?: false)
   end
 
   let(:target) do
@@ -127,7 +127,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::PurgeUser do
 
     it 'does not charge when the caller is not a colonel at all' do
       not_a_colonel = instance_double(Onetime::Customer,
-        objid: 'cust_plain', extid: 'ur_plain', role: 'customer', verified?: true, anonymous?: false)
+        objid: 'cust_plain', extid: 'ur_plain', role: 'customer', verified?: true, mailbox_verified?: true, anonymous?: false)
       logic = described_class.new(
         double('StrategyResult', session: live_session, user: not_a_colonel,
           auth_method: 'sessionauth',

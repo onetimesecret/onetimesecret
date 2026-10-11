@@ -25,7 +25,7 @@ RSpec.describe DomainsAPI::Logic::Domains::GetDomainImage do
       objid: 'owner123',
       extid: 'ext-owner123',
       anonymous?: false,
-      verified?: true,
+      verified?: true, mailbox_verified?: true,
     )
   end
 
@@ -36,7 +36,7 @@ RSpec.describe DomainsAPI::Logic::Domains::GetDomainImage do
       objid: 'member123',
       extid: 'ext-member123',
       anonymous?: false,
-      verified?: true,
+      verified?: true, mailbox_verified?: true,
     )
   end
 
@@ -210,7 +210,7 @@ RSpec.describe DomainsAPI::Logic::Domains::GetDomainImage do
             objid: 'outsider123',
             extid: 'ext-outsider123',
             anonymous?: false,
-            verified?: true,
+            verified?: true, mailbox_verified?: true,
           )
         end
 

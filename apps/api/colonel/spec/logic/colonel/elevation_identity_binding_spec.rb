@@ -34,7 +34,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::Elevation do
   def colonel_named(extid)
     instance_double(Onetime::Customer,
       objid: "cust_#{extid}", extid: extid, email: "#{extid}@example.com",
-      role: 'colonel', verified?: true, anonymous?: false, has_passphrase?: true)
+      role: 'colonel', verified?: true, mailbox_verified?: true, anonymous?: false, has_passphrase?: true)
   end
 
   let(:alice) { colonel_named('ur_alice') }

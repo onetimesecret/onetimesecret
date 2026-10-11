@@ -49,14 +49,17 @@ def last_response; @test.last_response; end
 @colonel = Onetime::Customer.create!(email: "colonel_cd_#{@timestamp}@example.com")
 @colonel.role = 'colonel'
 @colonel.verified = 'true'
+@colonel.verified_by = 'email'
 @colonel.save
 
 @regular = Onetime::Customer.create!(email: "regular_cd_#{@timestamp}@example.com")
 @regular.verified = 'true'
+@regular.verified_by = 'email'
 @regular.save
 
 @org_owner = Onetime::Customer.create!(email: "org_owner_cd_#{@timestamp}@example.com")
 @org_owner.verified = 'true'
+@org_owner.verified_by = 'email'
 @org_owner.save
 
 # Colonel is NOT a member of this org — the whole point of the endpoint.

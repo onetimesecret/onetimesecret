@@ -295,6 +295,54 @@ RSpec.describe 'Entra ID native claim shapes through the mounted strategy', :sha
       end
     end
   end
+
+  # #4735 (RISK-2026-10-10-02 R2b): Microsoft's optional `xms_edov` claim is
+  # "whether the user's email domain owner has been verified". It arrives in
+  # the id_token, so it reaches OTS as extra.raw_info through the real strategy.
+  describe 'the xms_edov optional claim' do
+    it 'refuses an explicit false at the tenant allowlist, as domain_not_allowed, and creates nothing' do
+      flow = complete_flow(email: member_email, xms_edov: false)
+      expect_code_exchange(flow)
+
+      expect(auth_hash['extra']['raw_info']['xms_edov']).to be(false)
+      expect(last_response.status).to eq(302), last_response.body
+      expect(last_response.location).to eq('/signin?auth_error=domain_not_allowed')
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:omniauth_tenant_domain_rejected, hash_including(reason: :domain_unverified))
+      expect_no_account
+    end
+
+    it 'treats true as domain-owner verification only: the account is provisioned, stamped sso, not mailbox-verified' do
+      complete_flow(email: member_email, xms_edov: true)
+
+      expect(last_response.status).to eq(302), last_response.body
+      expect(last_response.location).not_to include('auth_error=')
+      expect(auth_db[:accounts].where(email: member_email).count).to eq(1)
+
+      customer = Onetime::Customer.find_by_email(member_email)
+      expect(customer).not_to be_nil
+      expect(customer.verified?).to be(true)
+      expect(customer.verified_by).to eq('sso')
+      expect(customer.mailbox_verified?).to be(false)
+      expect(customer.verification_held?).to be(false)
+    end
+
+    context 'when the tenant has no email-domain allowlist' do
+      let(:allowed_domains) { [] }
+
+      it 'still provisions on an explicit false, but holds the verified stamp as domain_unverified' do
+        complete_flow(email: member_email, xms_edov: false)
+
+        expect(last_response.status).to eq(302), last_response.body
+        expect(last_response.location).not_to include('auth_error=')
+
+        customer = Onetime::Customer.find_by_email(member_email)
+        expect(customer).not_to be_nil
+        expect(customer.verified?).to be(false)
+        expect(customer.verification_hold).to eq('domain_unverified')
+      end
+    end
+  end
 end
 # rubocop:enable RSpec/DescribeClass, RSpec/BeforeAfterAll, RSpec/MultipleMemoizedHelpers
 # rubocop:enable RSpec/ExampleLength, RSpec/MultipleExpectations

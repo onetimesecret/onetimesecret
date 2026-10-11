@@ -80,8 +80,30 @@ module Onetime
     VERIFICATION_HOLDS = {
       'idp_unverified' => 'the IdP reported the email as unverified at sign-in ' \
                           '(email_verified: false, or no GitLab confirmed_at)',
+      'domain_unverified' => "the IdP reported the email's domain owner as unverified at sign-in " \
+                             '(Entra xms_edov: false)',
       'claim_unreadable' => "the IdP's email_verified claim could not be read at sign-in",
     }.freeze
+
+    # verified_by values that record proof of MAILBOX control: someone followed
+    # a link delivered to the address, or an operator confirmed it by hand.
+    # Every other provenance records a weaker fact about the account:
+    #
+    #   sso            - the IdP asserted the address. Entra and SAML never
+    #                    assert mailbox control (#4735); OIDC email_verified
+    #                    only says the IdP believes it, and an explicit false
+    #                    withholds the stamp altogether (VERIFICATION_HOLDS).
+    #   stripe_payment - a card was charged; the billing address was typed.
+    #   autoverify     - the deployment skips verification entirely.
+    #   legacy         - verified before provenance was recorded; unknown how.
+    #
+    # Consumers that mean "this person controls the mailbox" (system roles,
+    # verification-secret display, pending-federation claims, signup resend
+    # suppression) call Customer#mailbox_verified?, which reads this list.
+    # Consumers that only mean "the account is open" keep calling verified?.
+    # Auth::Operations::Customers::Doctor::VALID_VERIFIED_BY enumerates every
+    # provenance writer; keep the two lists in step when adding one.
+    MAILBOX_VERIFIED_BY = %w[email invite_token colonel_admin cli_provision].freeze
 
     require_relative 'customer/features'
 

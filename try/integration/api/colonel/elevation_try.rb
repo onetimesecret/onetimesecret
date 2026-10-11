@@ -71,15 +71,18 @@ set_elevation('enabled' => true, 'window' => 600, 'reauth_grace' => 0)
 @colonel = Onetime::Customer.create!(email: "colonel_elev_#{@timestamp}@example.com")
 @colonel.role = 'colonel'
 @colonel.verified = 'true'
+@colonel.verified_by = 'email'
 @colonel.save
 @colonel.update_passphrase!(@password)
 
 @target = Onetime::Customer.create!(email: "target_elev_#{@timestamp}@example.com")
 @target.verified = 'true'
+@target.verified_by = 'email'
 @target.save
 
 @regular = Onetime::Customer.create!(email: "regular_elev_#{@timestamp}@example.com")
 @regular.verified = 'true'
+@regular.verified_by = 'email'
 @regular.save
 
 # Seeds the authenticated colonel identity into each request. The session

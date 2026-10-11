@@ -138,8 +138,12 @@ RSpec.describe 'OmniAuth JIT provisioning sets verified (#3973)', type: :integra
 
         # THE HEADLINE ASSERTION.
         expect(customer.verified?).to be(true),
-          'SSO JIT-provisioned customer must be verified — has_system_role? gates on it'
+          'SSO JIT-provisioned customer must be verified (the accounts row is Verified)'
         expect(customer.verified_by.to_s).to eq('sso')
+        # #4735: the IdP asserted the address; nobody proved mailbox control.
+        # has_system_role? and the federation claim gate on mailbox_verified?.
+        expect(customer.mailbox_verified?).to be(false),
+          "verified_by: 'sso' is IdP-asserted, not mailbox proof"
         expect(customer.verification_held?).to be(false),
           'Nothing was withheld, so no verification_hold may be recorded'
         expect(customer.verification_hold.to_s).to eq('')
@@ -255,6 +259,41 @@ RSpec.describe 'OmniAuth JIT provisioning sets verified (#3973)', type: :integra
         expect(customer.verification_hold).to eq('idp_unverified'),
           'The reason must be persisted so `customers doctor --repair` does not undo the veto'
         expect(customer.verification_held?).to be(true)
+      ensure
+        teardown_mock_auth
+      end
+    end
+  end
+
+  describe 'an IdP asserting xms_edov: false (Entra: domain owner not verified)' do
+    before { enable_platform_fallback }
+
+    it 'provisions the customer unverified with verification_hold=domain_unverified' do
+      email = jit_email('jit-domain-unverified')
+      uid   = "sub-#{SecureRandom.hex(8)}"
+
+      OmniAuth.config.test_mode = true
+      OmniAuth.config.allowed_request_methods = %i[get post]
+      OmniAuth.config.mock_auth[:oidc] = OmniAuth::AuthHash.new({
+        provider: 'oidc',
+        uid: uid,
+        info: { email: email, name: 'Unverified Domain' },
+        extra: { raw_info: { sub: uid, email: email, xms_edov: false } },
+      })
+
+      begin
+        post '/auth/sso/oidc/callback'
+
+        if last_response.status == 404
+          skip 'OmniAuth route not registered (OIDC discovery not available at boot)'
+        end
+
+        customer = customer_for(email)
+        skip 'Callback did not JIT-provision a customer' if customer.nil?
+
+        expect(customer.verified?).to be(false)
+        expect(customer.verified_by.to_s).to eq('')
+        expect(customer.verification_hold).to eq('domain_unverified')
       ensure
         teardown_mock_auth
       end
@@ -392,7 +431,56 @@ RSpec.describe 'OmniAuth JIT provisioning sets verified (#3973)', type: :integra
     end
 
     it 'only ever returns a registered hold reason' do
-      expect(Onetime::Customer::VERIFICATION_HOLDS).to include('idp_unverified', 'claim_unreadable')
+      expect(Onetime::Customer::VERIFICATION_HOLDS).to include('idp_unverified', 'domain_unverified', 'claim_unreadable')
+    end
+
+    # Entra ID's xms_edov (#4735, R2b): "whether the user's email domain owner
+    # has been verified". Only an explicit false holds; true is domain-OWNER
+    # verification and changes nothing about the stamp (still 'sso', still
+    # not mailbox proof); absence is the ordinary opt-in-claim-not-configured
+    # case and never a hold.
+    describe 'with the Entra xms_edov claim' do
+      it 'holds as domain_unverified on an explicit false in extra.raw_info' do
+        expect(hold.call(info: {}, extra: { 'raw_info' => { 'xms_edov' => false } })).to eq('domain_unverified')
+        expect(hold.call(info: {}, extra: { raw_info: { xms_edov: 'false' } })).to eq('domain_unverified')
+      end
+
+      it 'does not hold on true or when the claim is absent' do
+        expect(hold.call(info: {}, extra: { 'raw_info' => { 'xms_edov' => true } })).to be_nil
+        expect(hold.call(info: {}, extra: { 'raw_info' => { 'xms_edov' => 'true' } })).to be_nil
+        expect(hold.call(info: {}, extra: { 'raw_info' => { 'email' => 'x@example.com' } })).to be_nil
+      end
+
+      it 'reports the user-level reason when email_verified is also false' do
+        extra = { 'raw_info' => { 'email_verified' => false, 'xms_edov' => false } }
+        expect(hold.call(info: {}, extra: extra)).to eq('idp_unverified')
+      end
+
+      it 'holds even when email_verified is true' do
+        extra = { 'raw_info' => { 'email_verified' => true, 'xms_edov' => false } }
+        expect(hold.call(info: { 'email_verified' => true }, extra: extra)).to eq('domain_unverified')
+      end
+    end
+
+    describe '.explicit_false?' do
+      subject(:explicit_false) { Auth::Config::Hooks::OmniAuth.method(:explicit_false?) }
+
+      it 'is true for false, "false", " FALSE " and a SAML-style ["false"]' do
+        expect(explicit_false.call(false)).to be(true)
+        expect(explicit_false.call('false')).to be(true)
+        expect(explicit_false.call(' FALSE ')).to be(true)
+        expect(explicit_false.call(['false'])).to be(true)
+        expect(explicit_false.call(['true', 'false'])).to be(true)
+      end
+
+      it 'is false for nil, true, "true", 0, garbage and an empty array' do
+        expect(explicit_false.call(nil)).to be(false)
+        expect(explicit_false.call(true)).to be(false)
+        expect(explicit_false.call('true')).to be(false)
+        expect(explicit_false.call(0)).to be(false)
+        expect(explicit_false.call('nope')).to be(false)
+        expect(explicit_false.call([])).to be(false)
+      end
     end
 
     # FAIL CLOSED. A source whose `[]` raises may be hiding an explicit

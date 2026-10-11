@@ -24,6 +24,7 @@ RSpec.describe 'Colonel backup status', type: :integration do
       customer          = Onetime::Customer.create!(email: "colonel-#{SecureRandom.hex(4)}@example.com")
       customer.role     = 'colonel'
       customer.verified = 'true'
+      customer.verified_by = 'email'
       customer.save
       customer
     end

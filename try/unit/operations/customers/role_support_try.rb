@@ -43,6 +43,7 @@ def make_customer(label, role:, verified:)
   cust = Onetime::Customer.create!(email: "rolesupport_#{label}_#{@nonce}@example.com")
   cust.role     = role
   cust.verified = verified ? 'true' : 'false'
+  cust.verified_by = verified ? 'email' : nil
   cust.save
   cust
 end

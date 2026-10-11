@@ -34,7 +34,7 @@ RSpec.describe Auth::Operations::EnsureDefaultWorkspace do
       extid: 'ur_target',
       anonymous?: false,
       default_org_id: '',
-      verified?: true,
+      verified?: true, mailbox_verified?: true,
       organization_instances: organizations,
       clear_provisioning_failure!: false,
     )

@@ -187,7 +187,7 @@ module Auth
         def demotion_left_no_colonel?
           return false unless @from == 'colonel'
           return false if @role == 'colonel'
-          return false unless @customer.verified?
+          return false unless @customer.mailbox_verified?
 
           active_colonels.empty?
         end

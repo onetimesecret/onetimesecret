@@ -88,6 +88,7 @@ RSpec.describe 'Entitlement preview through the rack stack (ADR-020)', type: :in
     customer = Onetime::Customer.create!(email: "#{run_id}_colonel@test.com")
     customer.role     = 'colonel'
     customer.verified = 'true'
+    customer.verified_by = 'email'
     customer.save
     customer
   end

@@ -283,10 +283,10 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
       end
     end
 
-    context 'when the owner is already verified' do
+    context 'when the owner is already mailbox-verified' do
       it 'still reveals the plaintext and leaves the owner untouched' do
         owner.verified    = true
-        owner.verified_by = 'stripe_payment' # non-email provenance so a rewrite would be visible
+        owner.verified_by = 'colonel_admin' # mailbox proof, but not 'email', so a rewrite would be visible
         owner.save
         logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
         logic.process_params
@@ -299,7 +299,32 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
 
         reloaded = Onetime::Customer.load(owner.objid)
         expect(reloaded.verified?).to be true
-        expect(reloaded.verified_by).to eq('stripe_payment') # NOT overwritten to 'email'
+        expect(reloaded.verified_by).to eq('colonel_admin') # NOT overwritten to 'email'
+      end
+    end
+
+    # #4735: a verified stamp without mailbox proof (payment, autoverify, IdP)
+    # is not "already verified" for this branch. Following the link delivered
+    # to the address IS mailbox proof, so the owner acquires it here.
+    context 'when the owner is verified without mailbox proof' do
+      it 'reveals the plaintext and upgrades the provenance to email' do
+        owner.verified    = true
+        owner.verified_by = 'stripe_payment'
+        owner.save
+        expect(owner.mailbox_verified?).to be false
+
+        logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+        logic.process_params
+        logic.process
+
+        expect(logic.show_secret).to be true
+        expect(logic.secret_value).to eq('a secret value')
+        expect(Onetime::Secret.load(secret.identifier)).to be_nil
+
+        reloaded = Onetime::Customer.load(owner.objid)
+        expect(reloaded.verified?).to be true
+        expect(reloaded.verified_by).to eq('email')
+        expect(reloaded.mailbox_verified?).to be true
       end
     end
 

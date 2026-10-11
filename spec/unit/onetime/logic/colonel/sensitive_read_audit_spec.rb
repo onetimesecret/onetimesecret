@@ -30,7 +30,7 @@ RSpec.describe 'colonel sensitive-read auditing' do
     double(
       'Customer',
       extid: 'ur_colonel_public', role: 'colonel', objid: 'cust-obj-1',
-      anonymous?: false, verified?: true,
+      anonymous?: false, verified?: true, mailbox_verified?: true,
     )
   end
 
@@ -59,7 +59,7 @@ RSpec.describe 'colonel sensitive-read auditing' do
 
   # -- Secret receipt: discloses the OWNER'S FULL EMAIL ------------------------
   describe ColonelAPI::Logic::Colonel::GetSecretReceipt do
-    let(:owner) { double('Customer', extid: 'ur_owner_public', objid: 'own-1', email: 'owner@example.com', role: 'customer', verified?: true) }
+    let(:owner) { double('Customer', extid: 'ur_owner_public', objid: 'own-1', email: 'owner@example.com', role: 'customer', verified?: true, mailbox_verified?: true) }
     let(:receipt) { double('Receipt', exists?: true, objid: 'rec-1', shortid: 'rc_short', state: 'received', secret_ttl: 60, recipients: [], has_passphrase?: false, share_domain: nil, created: 1, secret_expired?: false) }
     let(:secret) do
       double(

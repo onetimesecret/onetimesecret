@@ -83,7 +83,7 @@ RSpec.describe 'Customers Command', type: :cli do
       objid: 'cust_target',
       extid: 'cust_ext_target',
       role: 'customer',
-      verified?: true,
+      verified?: true, mailbox_verified?: true,
       anonymous?: false,
     )
   end

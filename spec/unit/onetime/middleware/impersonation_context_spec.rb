@@ -439,7 +439,7 @@ RSpec.describe Onetime::Middleware::ImpersonationContext do
       env = env_for('GET', '', '/dashboard')
       middleware.call(env)
 
-      principal = instance_double(Onetime::Customer, extid: 'ur_colonel', verified?: true)
+      principal = instance_double(Onetime::Customer, extid: 'ur_colonel', verified?: true, mailbox_verified?: true)
       allow(principal).to receive(:role?).with('colonel').and_return(true)
       allow(target).to receive(:suspended?).and_return(false)
       allow(target).to receive(:role?).with('colonel').and_return(false)

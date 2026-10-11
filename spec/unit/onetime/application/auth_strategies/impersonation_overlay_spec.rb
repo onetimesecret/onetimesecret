@@ -24,14 +24,14 @@ RSpec.describe 'impersonation overlay at the identity call sites' do
   let(:colonel) do
     instance_double(Onetime::Customer,
       objid: 'cust_colonel', custid: 'ops@example.com', extid: 'ur_colonel',
-      email: 'ops@example.com', role: 'colonel', verified?: true,
+      email: 'ops@example.com', role: 'colonel', verified?: true, mailbox_verified?: true,
       suspended?: false, anonymous?: false, last_password_update: 0)
   end
 
   let(:target) do
     instance_double(Onetime::Customer,
       objid: 'cust_target', custid: 'alice@example.com', extid: 'ur_target',
-      email: 'alice@example.com', role: 'customer', verified?: true,
+      email: 'alice@example.com', role: 'customer', verified?: true, mailbox_verified?: true,
       suspended?: false, anonymous?: false, last_password_update: 0)
   end
 

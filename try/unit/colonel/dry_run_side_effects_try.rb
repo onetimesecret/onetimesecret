@@ -49,10 +49,12 @@ OT.boot! :test
 @colonel = Onetime::Customer.create!(email: "colonel_dryrun_#{@timestamp}@example.com")
 @colonel.role     = 'colonel'
 @colonel.verified = 'true'
+@colonel.verified_by = 'email'
 @colonel.save
 
 @target = Onetime::Customer.create!(email: "target_dryrun_#{@timestamp}@example.com")
 @target.verified = 'true'
+@target.verified_by = 'email'
 @target.save
 
 @org = Onetime::Organization.create!("DryRun Org #{@timestamp}", @colonel,

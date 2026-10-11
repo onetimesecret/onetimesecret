@@ -14,7 +14,7 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       extid: 'ext-cust-owner',
       email: 'owner@example.com',
       anonymous?: false,
-      verified?: true,
+      verified?: true, mailbox_verified?: true,
       role: 'customer',
       'role?': false
     )
@@ -29,7 +29,7 @@ RSpec.describe OrganizationAPI::Logic::Members::UpdateMemberRole do
       email: 'member@example.com',
       locale: 'en',
       anonymous?: false,
-      verified?: true
+      verified?: true, mailbox_verified?: true
     )
   end
 

@@ -75,8 +75,14 @@ module Auth
         # Valid customer roles (historical data-shape check — see NOTE above)
         VALID_ROLES = %w[customer anonymous colonel].freeze
 
+        # Roles has_system_role? recognises (authorization_policies.rb); each
+        # is refused to a holder without mailbox proof.
+        SYSTEM_ROLES = %w[colonel admin staff].freeze
+
         # Every verified_by provenance tag the codebase writes, with the
-        # writer for each:
+        # writer for each. Which of these count as MAILBOX proof is decided by
+        # Onetime::Customer::MAILBOX_VERIFIED_BY (email, invite_token,
+        # cli_provision, colonel_admin); the rest record a weaker fact.
         #   email          - secret reveal by owner (apps/api/v2/logic/secrets/
         #                    {show,reveal}_secret.rb) and Rodauth verify_account
         #                    (apps/web/auth/config/hooks/account.rb)
@@ -132,6 +138,7 @@ module Auth
           check_role_validity(issues)
           check_verified_consistency(issues, repaired)
           check_sso_customer_unverified(issues, repaired)
+          check_system_role_mailbox_proof(issues)
           check_counter_sanity(issues, repaired)
           check_field_serialization(issues, repaired)
 
@@ -1122,7 +1129,7 @@ module Auth
             check: :sso_customer_unverified,
             severity: :high,
             message: 'SSO-provisioned customer is unverified while its auth account is Verified ' \
-                     '(system roles are gated on verified?)',
+                     "(the mirrored 'sso' stamp is IdP-asserted, not mailbox proof)",
             repairable: true,
             repair_action: "Mirror the auth account's verified state onto the Customer " \
                            "(verified_by: '#{provenance}')",
@@ -1149,6 +1156,44 @@ module Auth
           # one unreachable DB or one bad record.
           OT.le "[customers doctor] sso_customer_unverified check failed for #{@customer.extid}: " \
                 "#{ex.class} #{ex.message}"
+        end
+
+        # CHECK: a system role whose holder has no MAILBOX proof (#4735).
+        #
+        # has_system_role? refuses colonel/admin/staff to an account that is not
+        # mailbox_verified?, so a role holder stamped by an IdP ('sso'), a card
+        # ('stripe_payment'), autoverify or a pre-provenance backfill ('legacy')
+        # — or with no provenance at all — holds a role that does nothing. Never
+        # auto-repaired: nobody but the operator can say the address is theirs.
+        # The remedy is the same operator verification that unlocks the role
+        # (and re-claims any deferred federation).
+        def check_system_role_mailbox_proof(issues)
+          role = @customer.role.to_s
+          return unless SYSTEM_ROLES.include?(role)
+          # A system role this doctor does not recognise as a valid stored value
+          # ('admin', 'staff' today) is already reported by :role_invalid; one
+          # issue per record is enough to send the operator to the right fix.
+          return unless VALID_ROLES.include?(role)
+          return if @customer.mailbox_verified?
+
+          provenance = @customer.verified_by.to_s
+          state      = if !@customer.verified?
+                         'unverified'
+                       elsif provenance.empty?
+                         'verified with no provenance'
+                       else
+                         "verified_by: '#{provenance}'"
+                       end
+
+          issues << {
+            check: :system_role_without_mailbox_proof,
+            severity: :high,
+            message: "role '#{role}' holder has no mailbox proof (#{state}); " \
+                     'has_system_role? refuses the role until the address is verified',
+            repairable: false,
+            repair_action: 'Manual decision required: confirm the address with its owner, then verify ' \
+                           'via colonel admin or `bin/ots customers verify EMAIL`',
+          }
         end
 
         # Auth database handle, or nil in simple mode / when unreachable.
