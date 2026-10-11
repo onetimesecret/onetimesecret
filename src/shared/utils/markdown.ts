@@ -13,15 +13,21 @@
 //   text. A clickable link with a warning is a separate display type's job.
 // - Elements that load remote resources (img, video, iframe, ...) are
 //   stripped. A tracking pixel would tell the sender the recipient's IP
-//   address and the moment of reveal, which the product promises not to leak.
-// - style and data-* attributes are dropped. The site CSP allows no inline
-//   styles anyway; dropping them here keeps the output CSP-clean.
+//   address and the moment of reveal.
+// - style, data-*, id and background attributes are dropped, and class keeps
+//   only the renderer's own tokens. Otherwise sender HTML could borrow the
+//   app's utility classes to overlay the reveal page, claim one of its ids,
+//   or fetch a remote background image when CSP is disabled.
 //
 // MarkdownRenderer.vue imports this module dynamically, but the production
 // build is a single chunk (vite.config.ts, codeSplitting: false), so the
 // parser and highlighter ship in the main bundle either way.
 
-import DOMPurify, { type Config, type DOMPurify as Purifier } from 'dompurify';
+import DOMPurify, {
+  type Config,
+  type DOMPurify as Purifier,
+  type UponSanitizeAttributeHookEvent,
+} from 'dompurify';
 import hljs from 'highlight.js/lib/common';
 import { Marked, type Tokens } from 'marked';
 import { markedHighlight } from 'marked-highlight';
@@ -67,7 +73,14 @@ const FORBID_TAGS = [
   'slot',
 ];
 
-const FORBID_ATTR = ['style', 'srcset', 'ping', 'action', 'formaction'];
+const FORBID_ATTR = ['style', 'srcset', 'ping', 'action', 'formaction', 'background', 'id'];
+
+/**
+ * Class tokens the renderer itself emits: highlight.js scopes (`hljs-title`
+ * and suffixes such as `class_`), marked's `language-*` code class, and the
+ * inert link URL. Every other token is dropped.
+ */
+const RENDERER_CLASS = /^(?:hljs(?:-[\w-]+)?|[a-z]+_+|language-\S+|md-link-url)$/;
 
 const SANITIZE_CONFIG: Config = {
   USE_PROFILES: { html: true },
@@ -77,13 +90,22 @@ const SANITIZE_CONFIG: Config = {
   ALLOW_DATA_ATTR: false,
 };
 
+function keepRendererClasses(_node: Element, data: UponSanitizeAttributeHookEvent): void {
+  if (data.attrName !== 'class') return;
+  const kept = data.attrValue.split(/\s+/).filter((token) => RENDERER_CLASS.test(token));
+  if (kept.length) data.attrValue = kept.join(' ');
+  else data.keepAttr = false;
+}
+
 /**
  * A DOMPurify instance of our own: GlobalBroadcast adds and removes hooks on
  * the shared default instance around its calls, and nothing it registers
- * should ever apply here.
+ * should ever apply here, nor ours there.
  */
 function createPurifier(): Purifier {
-  return DOMPurify();
+  const instance = DOMPurify();
+  instance.addHook('uponSanitizeAttribute', keepRendererClasses);
+  return instance;
 }
 
 function escapeHtml(text: string): string {

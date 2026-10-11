@@ -11,9 +11,9 @@ import { describe, expect, it, vi } from 'vitest';
 const RENDERED = '[data-testid="secret-content-markdown"]';
 const SOURCE = '[data-testid="secret-content"]';
 
-function mountContent(content: string): VueWrapper {
+function mountContent(content: string, props: Record<string, unknown> = {}): VueWrapper {
   return mount(SecretMarkdownContent, {
-    props: { content, contentId: 'secret-content-abc123', rows: 3 },
+    props: { content, contentId: 'secret-content-abc123', rows: 3, ...props },
     global: {
       plugins: [createTestI18n()],
       stubs: { OIcon: true },
@@ -72,5 +72,21 @@ describe('SecretMarkdownContent', () => {
     expect(html).not.toContain('href=');
     expect(html).not.toContain('<img');
     expect(html).toContain('hi');
+  });
+
+  it('points both views at the description the caller names', async () => {
+    const wrapper = mountContent('# Hello', { describedBy: 'copy-instructions' });
+    expect(wrapper.find(RENDERED).attributes('aria-describedby')).toBe('copy-instructions');
+
+    await wrapper.find('[data-testid="secret-markdown-view-source"]').trigger('click');
+    expect(wrapper.find(SOURCE).attributes('aria-describedby')).toBe('copy-instructions');
+  });
+
+  it('sets no aria-describedby when the caller names no description', async () => {
+    const wrapper = mountContent('# Hello');
+    expect(wrapper.find(RENDERED).attributes('aria-describedby')).toBeUndefined();
+
+    await wrapper.find('[data-testid="secret-markdown-view-source"]').trigger('click');
+    expect(wrapper.find(SOURCE).attributes('aria-describedby')).toBeUndefined();
   });
 });

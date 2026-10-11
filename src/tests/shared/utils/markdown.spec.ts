@@ -98,6 +98,37 @@ describe('renderMarkdown', () => {
     it('strips data-* attributes', () => {
       expect(renderMarkdown('<p data-track="1">x</p>')).not.toContain('data-track');
     });
+
+    it('strips the background attribute so a table cannot ping the sender', () => {
+      const html = renderMarkdown(
+        '<table background="https://evil.example/p.gif">' +
+          '<tr><td background="https://evil.example/p.gif">x</td></tr></table>'
+      );
+      expect(html).toContain('<td>x</td>');
+      expect(html).not.toContain('background');
+      expect(html).not.toContain('evil.example');
+    });
+
+    it('drops classes the renderer does not own', () => {
+      // The app's utility classes would let sender HTML overlay the reveal
+      // page, e.g. a full-screen fake notice.
+      const html = renderMarkdown(
+        '<div class="fixed inset-0 z-50 bg-white">fake</div>' +
+          '<span class="hljs-keyword sr-only md-link-url">x</span>'
+      );
+      expect(html).toContain('<div>fake</div>');
+      expect(html).toContain('<span class="hljs-keyword md-link-url">x</span>');
+    });
+
+    it('keeps highlight.js scope classes', () => {
+      expect(renderMarkdown('```js\nclass Foo {}\n```')).toContain(
+        '<span class="hljs-title class_">Foo</span>'
+      );
+    });
+
+    it('strips id attributes so content cannot take over page ids', () => {
+      expect(renderMarkdown('<p id="copy-instructions">x</p>')).toBe('<p>x</p>');
+    });
   });
 
   describe('links', () => {

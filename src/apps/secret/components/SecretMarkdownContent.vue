@@ -22,12 +22,15 @@
       content: string;
       /** id for the source textarea, so a caller's label can point at it */
       contentId: string;
+      /** id of an element describing the content (e.g. copy instructions) */
+      describedBy?: string;
       /** Rows for the source textarea (details.display_lines) */
       rows?: number;
       /** Brand corner class for the content box */
       cornerClass?: string;
     }>(),
     {
+      describedBy: undefined,
       rows: 4,
       cornerClass: 'rounded-md',
     }
@@ -93,6 +96,7 @@
       role="region"
       tabindex="0"
       :aria-label="t('web.secrets.secret_content')"
+      :aria-describedby="describedBy"
       data-testid="secret-content-markdown">
       <MarkdownRenderer :source="content" />
     </div>
@@ -113,6 +117,7 @@
         :rows="rows"
         :value="content"
         :aria-label="t('web.secrets.secret_content')"
+        :aria-describedby="describedBy"
         data-testid="secret-content"></textarea>
     </template>
   </div>

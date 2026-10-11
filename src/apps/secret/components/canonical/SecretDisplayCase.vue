@@ -150,6 +150,7 @@
           v-if="record?.secret_value && isMarkdown"
           :content="record.secret_value"
           :content-id="secretContentId"
+          described-by="copy-instructions"
           :rows="details?.display_lines ?? 4" />
         <template v-else-if="record?.secret_value">
           <label

@@ -94,9 +94,11 @@ highlighter ship in the main bundle either way:
   profile: `a` is forbidden; elements that load remote resources (`img`,
   `video`, `iframe`, `object`, …) are stripped, since a tracking pixel would
   tell the sender the recipient's IP and the moment of reveal; form controls,
-  `style`, `svg` and `math` are stripped; `style` and `data-*` attributes are
-  dropped; URI attributes that remain are limited to `https`, `http` and
-  `mailto`.
+  `style`, `svg` and `math` are stripped; `style`, `data-*`, `id` and
+  `background` attributes are dropped; `class` keeps only the renderer's own
+  tokens (`hljs*`, `language-*`, `md-link-url`), so sender HTML cannot use the
+  app's utility classes to overlay the reveal page; URI attributes that remain
+  are limited to `https`, `http` and `mailto`.
 - If rendering throws, the component shows the source as plain text. The
   recipient must never lose the value to a rendering bug.
 
