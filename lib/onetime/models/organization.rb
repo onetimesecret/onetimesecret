@@ -272,6 +272,72 @@ module Onetime
       domains.size
     end
 
+    # The custom domains this organization has proven it owns: those whose
+    # ownership axis (ADR-016) is accepted, by a passing TXT check or by a
+    # Colonel override. The serving axis (DNS pointed at us, certificate)
+    # plays no part, so a domain added only to prove an email namespace
+    # counts once its TXT record resolves.
+    #
+    # @return [Array<Onetime::CustomDomain>]
+    def verified_domains
+      list_domains.select(&:ownership_verified)
+    end
+
+    # Whether an email domain lies inside a namespace this organization has
+    # proven it owns: it equals, or is below, one of `domains`
+    # (verified_domains by default).
+    #
+    # The TXT challenge for a custom domain is placed under the name as
+    # entered (`_onetime-challenge-<id>.<trd>` beneath the registrable
+    # domain), so a passing check proves control of `secrets.acme.example`
+    # and the names below it, not of `acme.example`. An organization whose
+    # people have `@acme.example` addresses proves that namespace by adding
+    # `acme.example` as a custom domain and completing its TXT check; it
+    # never has to point the name at this service. Spellings are compared
+    # by A-label (AsciiHostname.within?).
+    #
+    # Used by tenant SSO, which creates an account only for an address in a
+    # proven namespace (RISK-2026-10-10-01, #4734).
+    #
+    # @param email_domain [String] the part of an address after its `@`
+    # @param domains [Array<Onetime::CustomDomain>] the proven set, when the
+    #   caller has already loaded it
+    # @return [Boolean]
+    def owns_email_domain?(email_domain, domains: verified_domains)
+      return false if email_domain.to_s.strip.empty?
+
+      domains.any? do |domain|
+        Onetime::DomainValidation::AsciiHostname.within?(email_domain.to_s, domain.display_domain.to_s)
+      end
+    end
+
+    # #owns_email_domain? as a tenant SSO flow on `custom_domain` asks it: the
+    # flow's own domain is always consulted, so the answer does not depend on
+    # this organization's domain index being complete, but it counts only
+    # while its own ownership is accepted. Shared by the login-time gate
+    # (hooks/omniauth_tenant.rb) and the operator audit of identities bound
+    # before the gate existed (Auth::Operations::AuditTenantEmailDomains).
+    #
+    # @param custom_domain [Onetime::CustomDomain] the flow's domain
+    # @param email_domain [String] the part of an address after its `@`
+    # @return [Boolean]
+    def owns_email_domain_through?(custom_domain, email_domain)
+      owns_email_domain?(email_domain, domains: proven_email_domains_through(custom_domain))
+    end
+
+    # The proven set as a tenant SSO flow on `custom_domain` sees it: that
+    # domain plus #verified_domains, those whose ownership is accepted,
+    # deduplicated. The SSO settings API serves it so the allowlist can say
+    # which entries lie inside it.
+    #
+    # @param custom_domain [Onetime::CustomDomain] the flow's domain
+    # @return [Array<Onetime::CustomDomain>]
+    def proven_email_domains_through(custom_domain)
+      ([custom_domain] + verified_domains)
+        .select(&:ownership_verified)
+        .uniq(&:identifier)
+    end
+
     def domain?(domain_or_objid)
       return false unless domain_or_objid
 

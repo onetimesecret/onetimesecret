@@ -44,7 +44,9 @@ RSpec.describe 'Tenant OAuth callbacks behind a Host-rewriting proxy', :shared_d
       issuer: "https://idp-#{label}-#{run_id}.example.com",
       client_id: "client-#{label}-#{run_id}",
       client_secret: "secret-#{label}-#{run_id}",
-      email: "user-#{label}-#{run_id}@tenant-example.com",
+      # At the tenant's own verified domain: tenant SSO creates accounts only
+      # for addresses inside one (#4734).
+      email: "user-#{label}-#{run_id}@#{host}",
     }
     tenants << tenant
     Onetime::CustomDomain::SsoConfig.create!(
@@ -54,7 +56,7 @@ RSpec.describe 'Tenant OAuth callbacks behind a Host-rewriting proxy', :shared_d
       client_id: tenant[:client_id],
       client_secret: tenant[:client_secret],
       enabled: true,
-      allowed_domains: ['tenant-example.com'],
+      allowed_domains: [host],
     )
     tenant
   end

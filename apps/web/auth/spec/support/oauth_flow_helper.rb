@@ -124,6 +124,10 @@ module OAuthFlowHelper
   #
   # @param display_domain [String] The domain hostname
   # @return [Hash] Created fixtures
+  #
+  # Tenant SSO creates accounts only for addresses at or below a custom
+  # domain the organization has verified (#4734), so a spec that signs a
+  # new user in through this tenant gives them an address at display_domain.
   def setup_oauth_test_domain(display_domain)
     # Generate unique IDs for this test - use timestamp + random to ensure uniqueness
     test_id = "#{Time.now.to_i}#{SecureRandom.hex(4)}"

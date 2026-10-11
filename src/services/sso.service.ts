@@ -72,6 +72,12 @@ export interface TestSsoConnectionResponse {
     userinfo_endpoint?: string;
     scopes_supported?: string[];
     note?: string;
+    /**
+     * Entra ID (#4734): app registration settings this test cannot read and
+     * the admin confirms by hand. Ids: `remove_unverified_email_claim`,
+     * `xms_edov_optional_claim`.
+     */
+    manual_checks?: string[];
     // Success details (SAML, #4450). The test is LOCAL — the IdP is not
     // contacted — so what it reports is what it parsed: the trio as
     // submitted and the certificate's subject / expiry.

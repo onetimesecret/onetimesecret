@@ -43,8 +43,12 @@ RSpec.describe 'Entra ID native claim shapes through the mounted strategy', :sha
   let(:issuer) { "https://login.microsoftonline.com/#{tenant_id}/v2.0" }
   let(:token_url) { "https://login.microsoftonline.com/#{tenant_id}/oauth2/v2.0/token" }
   let(:oid) { SecureRandom.uuid }
-  let(:allowed_domains) { ['contoso.example.com'] }
-  let(:member_email) { "member-#{run_id}@contoso.example.com" }
+  # The members' address domain, a second custom domain the organization has
+  # verified (tenant SSO creates accounts only inside one, #4734). Unique per
+  # example: a display_domain belongs to one record install-wide.
+  let(:member_domain) { "contoso-#{run_id}.example.com" }
+  let(:allowed_domains) { [member_domain] }
+  let(:member_email) { "member-#{run_id}@#{member_domain}" }
   let(:token_requests) { [] }
 
   let!(:tenant) do
@@ -55,6 +59,12 @@ RSpec.describe 'Entra ID native claim shapes through the mounted strategy', :sha
     domain.verified = true
     domain.save
     Onetime::CustomDomain.display_domain_index.put(tenant_host, domain.domainid)
+    # The organization has proven the member address domain: tenant SSO
+    # creates accounts only inside a verified custom domain (#4734).
+    email_domain                    = Onetime::CustomDomain.parse(member_domain, org.objid)
+    email_domain.ownership_verified = true
+    email_domain.save
+    org.add_domain(email_domain)
     Onetime::CustomDomain::SsoConfig.create!(
       domain_id: domain.identifier,
       provider_type: 'entra_id',
@@ -64,7 +74,7 @@ RSpec.describe 'Entra ID native claim shapes through the mounted strategy', :sha
       enabled: true,
       allowed_domains: allowed_domains,
     )
-    { owner: owner, org: org, domain: domain }
+    { owner: owner, org: org, domain: domain, email_domain: email_domain }
   end
 
   def app
@@ -101,6 +111,7 @@ RSpec.describe 'Entra ID native claim shapes through the mounted strategy', :sha
     Onetime::CustomDomain::SsoConfig.delete_for_domain!(tenant[:domain].identifier)
     Onetime::CustomDomain.display_domain_index.remove(tenant_host)
     tenant[:domain].destroy!
+    tenant[:email_domain].destroy!
     tenant[:org].destroy!
     tenant[:owner].destroy!
     clear_auth_database

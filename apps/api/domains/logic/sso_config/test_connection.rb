@@ -87,6 +87,17 @@ module DomainsAPI
 
         VALID_PROVIDER_TYPES = Onetime::CustomDomain::SsoConfig::PROVIDER_TYPES.freeze
 
+        # Entra app registration settings the operator confirms by hand
+        # (#4734 R2): authenticationBehaviors.removeUnverifiedEmailClaim and
+        # the xms_edov optional claim. Neither is in the discovery document
+        # and this test holds no Graph permission, so an Entra success names
+        # them in details.manual_checks (ids are a UI contract; docs:
+        # per-domain-sso.md "Entra app registration settings").
+        ENTRA_MANUAL_CHECKS = {
+          manual_checks: %w[remove_unverified_email_claim xms_edov_optional_claim].freeze,
+          note: 'The test read the discovery document only. Confirm the app registration settings listed below in Entra.',
+        }.freeze
+
         # details.error_code for a SAML field that fails local validation. An
         # expired certificate reports 'certificate_expired' instead.
         SAML_ERROR_CODES = {
@@ -484,19 +495,17 @@ module DomainsAPI
           end
 
           # Success - return key endpoints
-          {
-            success: true,
-            provider_type: @provider_type,
-            message: "#{provider_name} connection successful",
-            details: {
-              issuer: discovery['issuer'],
-              authorization_endpoint: discovery['authorization_endpoint'],
-              token_endpoint: discovery['token_endpoint'],
-              jwks_uri: discovery['jwks_uri'],
-              userinfo_endpoint: discovery['userinfo_endpoint'],
-              scopes_supported: discovery['scopes_supported']&.first(5), # Limit to first 5
-            },
+          details = {
+            issuer: discovery['issuer'],
+            authorization_endpoint: discovery['authorization_endpoint'],
+            token_endpoint: discovery['token_endpoint'],
+            jwks_uri: discovery['jwks_uri'],
+            userinfo_endpoint: discovery['userinfo_endpoint'],
+            scopes_supported: discovery['scopes_supported']&.first(5), # Limit to first 5
           }
+          details = details.merge(ENTRA_MANUAL_CHECKS) if @provider_type == 'entra_id'
+
+          { success: true, provider_type: @provider_type, message: "#{provider_name} connection successful", details: details }
         rescue JSON::ParserError
           {
             success: false,

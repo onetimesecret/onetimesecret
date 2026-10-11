@@ -1008,8 +1008,44 @@
     "content_hash": "0295ad71"
   },
   "web.organizations.sso.allowed_domains_hint": {
-    "text": "Only users with email addresses from these domains can sign in. Leave empty to allow all domains.",
-    "content_hash": "1775e874"
+    "text": "Only users with email addresses from these domains can sign in. Leave empty to allow any domain. New accounts are created only for addresses in domains your organization has verified.",
+    "content_hash": "915a2917"
+  },
+  "web.organizations.sso.allowed_domain_verified": {
+    "text": "Verified",
+    "content_hash": "4f783840"
+  },
+  "web.organizations.sso.allowed_domain_unverified": {
+    "text": "Not verified",
+    "content_hash": "15133907"
+  },
+  "web.organizations.sso.allowed_domain_unverified_label": {
+    "text": "{domain} is outside your verified domains. It admits no one until your organization verifies that domain.",
+    "content_hash": "6abaa390"
+  },
+  "web.organizations.sso.allowed_domain_unknown": {
+    "text": "Checked on save",
+    "content_hash": "fdc1409c"
+  },
+  "web.organizations.sso.verified_email_domains": {
+    "text": "Verified domains: {domains}",
+    "content_hash": "186c5815"
+  },
+  "web.organizations.sso.verified_email_domains_none": {
+    "text": "No domain is verified yet, so signing in through this connection creates no accounts. Verify ownership of a domain under Domains first.",
+    "content_hash": "14868c67"
+  },
+  "web.organizations.sso.manual_checks_title": {
+    "text": "Confirm in the Entra app registration (this test cannot read these settings):",
+    "content_hash": "df0619c9"
+  },
+  "web.organizations.sso.manual_check_remove_unverified_email_claim": {
+    "text": "removeUnverifiedEmailClaim is true on the app registration, so a token for an address in an unverified domain carries no email claim",
+    "content_hash": "64f39c1a"
+  },
+  "web.organizations.sso.manual_check_xms_edov_optional_claim": {
+    "text": "The xms_edov optional claim is added to the ID token",
+    "content_hash": "20cd7567"
   },
   "web.organizations.sso.domain_placeholder": {
     "text": "e.g. acme.com",

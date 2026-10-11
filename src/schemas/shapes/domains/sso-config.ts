@@ -101,6 +101,9 @@ export const customDomainSsoConfigSchema = customDomainSsoConfigCanonical
 
     // Array normalization: null → empty array
     allowed_domains: z.array(z.string()).nullish().transform((v) => v ?? []),
+    // #4734: absent from an API that predates the fields (rolling deploy)
+    verified_email_domains: z.array(z.string()).nullish().transform((v) => v ?? []),
+    unverified_allowed_domains: z.array(z.string()).nullish().transform((v) => v ?? []),
 
     // Boolean with default for resilience during rolling deploys
     enforce_sso_only: z.boolean().default(false),

@@ -220,12 +220,133 @@ and public host in the session. At the start of the callback, the tenant hook:
 
 A mismatch returns `403 tenant_mismatch`. Missing or unreadable tenant
 configuration and malformed or disallowed asserted email addresses also fail
-closed. An empty SSO email-domain allowlist is the configured allow-all case.
+closed. An empty SSO email-domain allowlist is the configured allow-all case,
+which admits any address the IdP authenticates inside a
+[verified email domain](#verified-email-domains).
 
 This validation proves that the SSO transaction was initiated and completed for
 the same custom domain. It does **not** prove that an existing authenticated
 account session was established for, or is authorized to act on, that tenant
 surface.
+
+### Verified email domains
+
+Tenant SSO creates an account only for an address whose domain the
+organization has proven it owns (#4734, RISK-2026-10-10-01). The allowlist
+alone cannot carry that decision: the tenant sets it, the tenant's IdP asserts
+the `email` claim it is compared with, and no supported tenant provider
+vouches that the claim's domain belongs to the tenant. Microsoft's claims
+guidance says never to use `email` for authorization. Without this rule a
+tenant IdP could mint a verified account for any address that has no OTS
+account yet, and the address owner's later password reset or magic link on
+the canonical host would share that account with the tenant identity.
+
+The proven set is the organization's custom domains whose ownership axis is
+accepted ([ADR-016](../adr/adr-016-domain-validation-state-model.md): a passing
+TXT check, or a Colonel override). The TXT challenge is placed under the name
+as entered, so a verified `secrets.acme.example` proves that name and the
+names below it. It does not prove `acme.example`. An organization whose people
+have `@acme.example` addresses adds `acme.example` as a custom domain and
+completes its TXT check. The serving axis plays no part: the name never has to
+point at this service, and the domain can stay unused for links.
+
+The gate runs in `before_omniauth_create_account`, so it applies exactly when
+an account is about to be created. An identity already bound to an account
+keeps signing in; `hooks/login.rb` logs
+`omniauth_tenant_email_domain_unverified` with `outcome: signed_in` for one
+whose account address lies outside the proven set, so an operator can list
+the accounts to review. Authenticated linking is not gated: it binds an
+identity to the session's own account, which the asserted address plays no
+part in choosing.
+
+Identities bound before this rule existed can be listed with
+`bin/ots sso audit-email-domains DOMAIN`, which reads every identity row
+under the domain's own provider route and issuer and reports each whose
+account address lies outside the proven set, including accounts that have
+not signed in since. With `--unlink --confirm` it deletes those identity rows
+and nothing else: the account, its credentials and its Customer record stay,
+the address owner can still claim the account through a canonical-host
+password reset, and the tenant identity can no longer sign in to it. A row is
+unlinked only when the account's `signup_domain_id` names this domain,
+because OIDC and Entra identity keys are shared by every configuration naming
+the same IdP; other rows are reported for manual review. See the
+[audit runbook](../runbooks/sso-tenant-email-domain-audit.md).
+
+A refused creation redirects to `/signin?auth_error=domain_not_allowed`, the
+same code as an allowlist refusal (configuration denials do not disclose the
+configured domains), and logs `omniauth_tenant_email_domain_unverified` at
+warn level with `outcome: refused`, the custom domain and organization, the
+obscured address, the asserted domain and a `reason`:
+`email_domain_unverified`, or `no_custom_domain` / `no_organization` when
+the tenant record could not be loaded mid-flow.
+
+The allowlist therefore selects among proven domains. A listed domain the
+organization has not verified admits no one; an empty list admits every
+proven domain. Entra app assignment still decides who may authenticate at the
+IdP; it is not evidence about the domain of the `email` claim. Entra tenants
+also confirm the two
+[app registration settings](#entra-app-registration-settings) that keep an
+unverified address out of the claim.
+
+### Entra app registration settings
+
+Two settings on the tenant's Entra app registration keep an address nobody
+vouches for out of the `email` claim before it reaches the allowlist and the
+verified-domain gate (RISK-2026-10-10-01, remediation R2). Neither is visible
+in the discovery document and Test Connection holds no Graph permission on
+the app registration, so a successful Entra test lists them under "Confirm in
+the Entra app registration" instead of claiming to have checked them. The
+tenant's Entra administrator confirms both.
+
+**`removeUnverifiedEmailClaim`.** Microsoft Graph's
+[authenticationBehaviors](https://learn.microsoft.com/en-us/graph/api/resources/authenticationbehaviors)
+resource describes it as: "If `true`, removes the `email` claim from tokens
+sent to an application when the email address's domain can't be verified."
+Microsoft's [guide to the setting](https://learn.microsoft.com/en-us/graph/applications-authenticationbehaviors#prevent-the-issuance-of-email-claims-with-unverified-domain-owners)
+says: "Today, the default behavior is to remove email addresses with
+unverified domain owners in claims, except for single-tenant apps and for
+multitenant apps with previous sign-in activity with unverified emails." A
+single-tenant registration, the usual shape for a per-domain tenant, is
+therefore not covered by the default and must opt in:
+
+```http
+PATCH https://graph.microsoft.com/v1.0/applications/{object-id}/authenticationBehaviors
+Content-Type: application/json
+
+{
+    "removeUnverifiedEmailClaim": true
+}
+```
+
+Read it back with `GET /v1.0/applications/{object-id}/authenticationBehaviors`.
+With the setting on, a token for an address in a domain Microsoft has not
+verified for the tenant carries no `email` claim, and the sign-in ends at
+`/signin?auth_error=missing_email` (the
+[Entra claim smoke test](../runbooks/sso-entra-claim-smoke-test.md) covers
+that path). Without it, such a token reaches the allowlist with an address
+only the tenant's directory vouches for; the verified-domain gate still
+refuses account creation outside the proven set, but existing identities
+sign in and the IdP-side signal is lost.
+
+**`xms_edov` optional claim.** Microsoft's
+[optional claims reference](https://learn.microsoft.com/en-us/entra/identity-platform/optional-claims-reference#v10-and-v20-optional-claims-set)
+describes it as a "Boolean value indicating whether the user's email domain
+owner has been verified", with the notes: "An email is considered to be
+domain verified if it belongs to the tenant where the user account resides
+and the tenant admin has done verification of the domain. Also, the email
+must be from a Microsoft account (MSA), a Google account, or used for
+authentication using the one-time passcode (OTP) flow. Facebook and SAML/WS-Fed
+accounts **do not** have verified domains. For this claim to be returned in
+the token, the presence of the `email` claim is required." Add it to the ID
+token under Token configuration (or `optionalClaims.idToken` in the
+manifest) so the claim is present. Reading an explicit `xms_edov: false` as
+a verification hold is tracked separately (RISK-2026-10-10-02, #4735); until
+that lands the claim is requested but not consulted.
+
+Both settings concern the `email` claim's provenance at Microsoft. Neither
+replaces the verified-domain gate above, which is what proves the address's
+domain belongs to this organization, and neither is evidence of mailbox
+control.
 
 ### Identity linking and surface isolation
 
@@ -846,7 +967,11 @@ Generic OIDC is not assumed to enforce Entra application assignments. Set
 `allowed_domains` to the email domains that may use the custom domain. The
 allowlist is enforced on every tenant SSO callback; an empty list allows every
 email domain that the IdP authenticates. This differs from `entra_id`, where
-app assignment is treated as the access-control boundary.
+app assignment is treated as the access-control boundary for who may sign in.
+On either provider type, an account is created only for an address inside a
+domain the organization has verified; see
+[Verified email domains](#verified-email-domains). App assignment says nothing
+about the domain of the `email` claim.
 
 An internationalised domain can be entered in either form. Entries are stored
 as typed and compared by A-label, so `bücher.de` matches an IdP that asserts
