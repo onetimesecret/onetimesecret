@@ -87,6 +87,7 @@ const mockSignupConfigData: CustomDomainSignupConfig = {
   domain_id: 'domain-123',
   validation_strategy: 'domain_allowlist',
   allowed_signup_domains: ['acme.com', 'partner.com'],
+  allow_base_domain: false,
   enabled: true,
   signup_enabled: true,
   autoverify: false,
@@ -155,6 +156,7 @@ describe('useSignupConfig', () => {
       expect(composable.formState.value).toEqual({
         validation_strategy: 'domain_allowlist',
         allowed_signup_domains: ['acme.com', 'partner.com'],
+        allow_base_domain: false,
         enabled: true,
         signup_enabled: true,
         autoverify: false,
@@ -207,6 +209,7 @@ describe('useSignupConfig', () => {
       composable.formState.value = {
         validation_strategy: 'domain_allowlist',
         allowed_signup_domains: ['acme.com'],
+        allow_base_domain: false,
         enabled: true,
         signup_enabled: true,
         autoverify: true,
@@ -217,14 +220,37 @@ describe('useSignupConfig', () => {
       expect(mockPutConfigForDomain).toHaveBeenCalledWith('dm-ext-123', {
         validation_strategy: 'domain_allowlist',
         allowed_signup_domains: ['acme.com'],
+        allow_base_domain: false,
         enabled: true,
         signup_enabled: true,
         autoverify: true,
       });
     });
 
-    it('omits allowed_signup_domains when strategy does not use it (PUT semantics clear it server-side)', async () => {
-      mockGetConfigForDomain.mockResolvedValue({ record: mockSignupConfigData });
+    it('sends allow_base_domain: true with an empty allowlist (the base domain stands in for the list)', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: null, details: mockUnconfiguredDetails });
+      const composable = useSignupConfig('dm-ext-123');
+      await composable.initialize();
+
+      composable.formState.value = {
+        ...composable.formState.value,
+        validation_strategy: 'domain_allowlist',
+        allowed_signup_domains: [],
+        allow_base_domain: true,
+      };
+
+      await composable.saveConfig();
+
+      expect(mockPutConfigForDomain).toHaveBeenCalledWith(
+        'dm-ext-123',
+        expect.objectContaining({ allowed_signup_domains: [], allow_base_domain: true })
+      );
+    });
+
+    it('omits allowed_signup_domains and allow_base_domain when strategy does not use them (PUT semantics clear both server-side)', async () => {
+      mockGetConfigForDomain.mockResolvedValue({
+        record: { ...mockSignupConfigData, allow_base_domain: true },
+      });
       const composable = useSignupConfig('dm-ext-123');
       await composable.initialize();
 
@@ -238,6 +264,10 @@ describe('useSignupConfig', () => {
       expect(mockPutConfigForDomain).toHaveBeenCalledWith(
         'dm-ext-123',
         expect.not.objectContaining({ allowed_signup_domains: expect.anything() })
+      );
+      expect(mockPutConfigForDomain).toHaveBeenCalledWith(
+        'dm-ext-123',
+        expect.not.objectContaining({ allow_base_domain: expect.anything() })
       );
     });
 
@@ -344,6 +374,7 @@ describe('useSignupConfig', () => {
       expect(composable.formState.value).toEqual({
         validation_strategy: 'passthrough',
         allowed_signup_domains: [],
+        allow_base_domain: false,
         enabled: false,
         signup_enabled: false,
         autoverify: false,
@@ -428,6 +459,20 @@ describe('useSignupConfig', () => {
       expect(composable.hasUnsavedChanges.value).toBe(true);
     });
 
+    it('returns true when allow_base_domain is toggled', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: mockSignupConfigData });
+      const composable = useSignupConfig('dm-ext-123');
+      await composable.initialize();
+      expect(composable.formState.value.allow_base_domain).toBe(false);
+
+      composable.formState.value = {
+        ...composable.formState.value,
+        allow_base_domain: true,
+      };
+
+      expect(composable.hasUnsavedChanges.value).toBe(true);
+    });
+
     it('returns false before initialization (no savedFormState)', () => {
       const composable = useSignupConfig('dm-ext-123');
       expect(composable.hasUnsavedChanges.value).toBe(false);
@@ -448,6 +493,7 @@ describe('useSignupConfig', () => {
       composable.formState.value = {
         validation_strategy: 'mx',
         allowed_signup_domains: [],
+        allow_base_domain: false,
         enabled: false,
         signup_enabled: false,
         autoverify: true,
@@ -468,6 +514,7 @@ describe('useSignupConfig', () => {
       expect(composable.formState.value).toEqual({
         validation_strategy: 'passthrough',
         allowed_signup_domains: [],
+        allow_base_domain: false,
         enabled: false,
         signup_enabled: false,
         autoverify: false,

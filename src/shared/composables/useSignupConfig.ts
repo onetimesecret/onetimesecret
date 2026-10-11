@@ -44,6 +44,8 @@ import { asExplicitOverride, createAuthOverrideState } from './useAuthOverrideSt
 export interface SignupConfigFormState {
   validation_strategy: SignupValidationStrategy;
   allowed_signup_domains: string[];
+  /** Also allow the domain's own registrable domain (domain_allowlist only). */
+  allow_base_domain: boolean;
   enabled: boolean;
   signup_enabled: boolean;
   autoverify: boolean;
@@ -58,6 +60,7 @@ function createSeededFormState(details: SignupConfigDetails | null): SignupConfi
   return {
     validation_strategy: 'passthrough',
     allowed_signup_domains: [],
+    allow_base_domain: false,
     enabled: false,
     signup_enabled: details?.effective_enabled ?? false,
     autoverify: false,
@@ -81,6 +84,7 @@ function configToFormState(config: CustomDomainSignupConfig): SignupConfigFormSt
   return {
     validation_strategy: config.validation_strategy,
     allowed_signup_domains: config.allowed_signup_domains ?? [],
+    allow_base_domain: config.allow_base_domain ?? false,
     enabled: config.enabled,
     signup_enabled: config.signup_enabled ?? false,
     autoverify: config.autoverify ?? false,
@@ -161,6 +165,7 @@ export function useSignupConfig(domainExtId: string) {
     const saved = savedFormState.value;
     return (
       current.validation_strategy !== saved.validation_strategy ||
+      current.allow_base_domain !== saved.allow_base_domain ||
       current.enabled !== saved.enabled ||
       current.signup_enabled !== saved.signup_enabled ||
       current.autoverify !== saved.autoverify ||
@@ -232,11 +237,13 @@ export function useSignupConfig(domainExtId: string) {
           autoverify: formState.value.autoverify,
         });
 
-        // Only include allowed_signup_domains when the strategy actually
-        // uses it. Backend treats the omitted field as an empty list under
-        // PUT semantics, so switching away from domain_allowlist clears it.
+        // Only include the allowlist inputs when the strategy actually uses
+        // them. Backend treats the omitted list as empty and the omitted flag
+        // as false under PUT semantics, so switching away from
+        // domain_allowlist clears both.
         if (formState.value.validation_strategy === 'domain_allowlist') {
           payload.allowed_signup_domains = formState.value.allowed_signup_domains;
+          payload.allow_base_domain = formState.value.allow_base_domain;
         }
 
         return await SignupConfigService.putConfigForDomain(domainExtId, payload);

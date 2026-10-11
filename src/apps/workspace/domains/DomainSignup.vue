@@ -226,6 +226,7 @@ watch(canCustomSignup, async (entitled) => {
 
           <DomainSignupConfigForm
             :domain-ext-id="props.extid"
+            :base-domain="customDomainRecord?.base_domain ?? null"
             v-model:form-state="formState"
             :signup-config="signupConfig"
             :is-loading="signupLoading"

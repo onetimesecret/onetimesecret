@@ -10,6 +10,7 @@
 #   - Strategy metadata (requires_allowlist, network_validation)
 #   - valid_signup_email? dispatch for each strategy
 #   - valid_email_domain? against allowed_signup_domains
+#   - allow_base_domain: the domain's own base_domain joins the allowlist
 #   - find_by_domain_id, exists_for_domain?, delete_for_domain!
 #   - enable!/disable! state management
 #
@@ -315,6 +316,112 @@ end
 
 ## valid_email_domain? alone still reads an empty list as unrestricted (display helper)
 @empty_allowlist.valid_email_domain?('anyone@anywhere.com')
+#=> true
+
+# --- allow_base_domain: the domain's own registrable domain joins the allowlist ---
+#
+# secrets.corp.com → base_domain corp.com (PublicSuffix). With the flag set,
+# @corp.com addresses sign up without corp.com being listed; the list stays
+# for partners. The base domain is read from the CustomDomain record at
+# validation time. Only the domain_allowlist gate consults it, and a missing
+# base_domain adds nothing (fail closed) rather than falling back to allow-all.
+
+## FIELD_SPECS declares allow_base_domain as a native boolean (colonel-writable)
+Onetime::CustomDomain::SignupConfig::FIELD_SPECS['allow_base_domain']
+#=> { type: :boolean, storage: :native }
+
+## A new config defaults allow_base_domain to false (not nil)
+@fresh_abd = Onetime::CustomDomain::SignupConfig.new(domain_id: 'abd_init')
+[@fresh_abd.allow_base_domain, @fresh_abd.allow_base_domain?]
+#=> [false, false]
+
+## Setup: a tenant domain whose base_domain is example.com
+@ts_abd     = Familia.now.to_i
+@domain_abd = Onetime::CustomDomain.create!("sc-own-#{@ts_abd}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+@domain_abd.base_domain
+#=> 'example.com'
+
+## create! with allow_base_domain and NO explicit list persists the flag
+@abd_config = Onetime::CustomDomain::SignupConfig.create!(
+  domain_id: @domain_abd.identifier,
+  validation_strategy: 'domain_allowlist',
+  allow_base_domain: true,
+  enabled: true,
+)
+[@abd_config.allow_base_domain?, @abd_config.allowed_signup_domains]
+#=> [true, []]
+
+## The flag satisfies the domain_allowlist requirement (no validation error)
+@abd_config.validation_errors
+#=> []
+
+## base_domain reads the owning domain's registrable domain
+@abd_config.base_domain
+#=> 'example.com'
+
+## effective_allowed_signup_domains is the base domain alone when nothing is listed
+@abd_config.effective_allowed_signup_domains
+#=> ['example.com']
+
+## The gate admits an address at the base domain
+@abd_config.valid_signup_email?('user@example.com')
+#=> true
+
+## ...case-insensitively
+@abd_config.valid_signup_email?('USER@Example.COM')
+#=> true
+
+## The gate refuses other domains
+@abd_config.valid_signup_email?('user@other.com')
+#=> false
+
+## A subdomain of the base domain is not admitted by the flag (exact match, like a listed entry)
+@abd_config.valid_signup_email?("user@#{@domain_abd.display_domain}")
+#=> false
+
+## Listed partners combine with the base domain, de-duplicated
+@abd_config.allowed_signup_domains = ['partner.com', 'example.com']
+@abd_config.effective_allowed_signup_domains.sort
+#=> ['example.com', 'partner.com']
+
+## Both the listed partner and the base domain are admitted
+[@abd_config.valid_signup_email?('a@partner.com'), @abd_config.valid_signup_email?('b@example.com')]
+#=> [true, true]
+
+## With the flag off, only the list counts
+@abd_config.allowed_signup_domains = ['partner.com']
+@abd_config.allow_base_domain      = false
+[@abd_config.effective_allowed_signup_domains, @abd_config.valid_signup_email?('b@example.com')]
+#=> [['partner.com'], false]
+
+## Flag off with an empty list is still the invalid configuration it always was
+@abd_config.allowed_signup_domains = []
+@abd_config.validation_errors.any? { |e| e.include?('allowed_signup_domains') }
+#=> true
+
+## The flag round-trips through save/load as a real boolean
+@abd_config.allow_base_domain = true
+@abd_config.save
+Onetime::CustomDomain::SignupConfig.find_by_domain_id(@domain_abd.identifier).allow_base_domain?
+#=> true
+
+## A corrupt list still denies everyone, flag or not (nothing stored is trusted)
+@abd_config.allowed_signup_domains_json = '{invalid json['
+@abd_config.valid_signup_email?('user@example.com')
+#=> false
+
+## Without a domain record there is no base domain: the flag adds nothing and the gate denies
+@abd_orphan = Onetime::CustomDomain::SignupConfig.new(
+  domain_id: 'abd_no_such_domain',
+  validation_strategy: 'domain_allowlist',
+  allow_base_domain: true,
+)
+[@abd_orphan.base_domain, @abd_orphan.effective_allowed_signup_domains, @abd_orphan.valid_signup_email?('user@example.com')]
+#=> [nil, [], false]
+
+## passthrough ignores the flag (format-only, as before)
+@abd_orphan.validation_strategy = 'passthrough'
+@abd_orphan.valid_signup_email?('anyone@anywhere.com')
 #=> true
 
 # --- Network Validation Strategy Tests (mx / smtp) ---

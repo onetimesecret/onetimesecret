@@ -285,6 +285,14 @@ put "/api/colonel/domains/#{@extid}/configs/signup",
 [last_response.status, @resp['details']['config']['validation_strategy'], @resp['details']['config']['allowed_signup_domains']]
 #=> [200, 'domain_allowlist', ['corp.example.com']]
 
+## PUT signup allow_base_domain: a yes-token coerces to a real boolean, stored and serialized as one
+put "/api/colonel/domains/#{@extid}/configs/signup",
+  { 'allow_base_domain' => 'true' }, confirming_config(@domain, 'signup')
+@resp = JSON.parse(last_response.body)
+[last_response.status, @resp['details']['config']['allow_base_domain'],
+ Onetime::CustomDomain::SignupConfig.find_by_domain_id(@domain.identifier).allow_base_domain]
+#=> [200, true, true]
+
 # ----------------------------------------------------------------
 # PUT signin related_origins — organization ownership (#4421)
 #

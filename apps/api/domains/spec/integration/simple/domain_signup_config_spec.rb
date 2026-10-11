@@ -220,6 +220,26 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
           expect(record['validation_strategy']).to eq('domain_allowlist')
           expect(record['allowed_signup_domains']).to contain_exactly('acme-corp.example.com', 'partner.example.com')
           expect(record['requires_allowlist']).to be true
+          expect(record['allow_base_domain']).to be false
+        end
+
+        # The domain's own registrable domain (acme-corp.example.com here →
+        # example.com) joins the allowlist without being listed, so the list
+        # itself may be empty.
+        it 'creates domain_allowlist config from allow_base_domain alone (no explicit list)' do
+          csrf_put api_path(test_custom_domain.extid), {
+            validation_strategy: 'domain_allowlist',
+            allow_base_domain: true,
+            enabled: true,
+          }
+
+          expect(last_response.status).to eq(200)
+
+          record = json_body['record']
+          expect(record['validation_strategy']).to eq('domain_allowlist')
+          expect(record['allow_base_domain']).to be true
+          expect(record['allowed_signup_domains']).to be_empty
+          expect(record['requires_allowlist']).to be true
         end
 
         it 'creates mx validation config' do
@@ -362,6 +382,18 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
           body = json_body
           expect(body['error']).to include('allowed_signup_domains')
         end
+
+        it 'returns 422 for domain_allowlist with allow_base_domain explicitly false and no domains' do
+          csrf_put api_path(test_custom_domain.extid), {
+            validation_strategy: 'domain_allowlist',
+            allow_base_domain: false,
+            allowed_signup_domains: [],
+            enabled: true,
+          }
+
+          expect(last_response.status).to eq(422)
+          expect(json_body['error']).to include('allowed_signup_domains')
+        end
       end
     end
 
@@ -477,6 +509,37 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
           expect(record['allowed_signup_domains']).to contain_exactly('new-domain.com')
           # Strategy preserved
           expect(record['validation_strategy']).to eq('domain_allowlist')
+        end
+
+        it 'sets allow_base_domain without touching the allowlist' do
+          csrf_patch api_path(test_custom_domain.extid), {
+            allow_base_domain: true,
+          }
+
+          expect(last_response.status).to eq(200)
+          record = json_body['record']
+          expect(record['allow_base_domain']).to be true
+          expect(record['allowed_signup_domains']).to contain_exactly('original.com', 'partner.com')
+        end
+
+        it 'preserves allow_base_domain when not provided' do
+          csrf_patch api_path(test_custom_domain.extid), { allow_base_domain: true }
+          csrf_patch api_path(test_custom_domain.extid), { enabled: true }
+
+          expect(last_response.status).to eq(200)
+          expect(json_body['record']['allow_base_domain']).to be true
+        end
+
+        it 'lets allow_base_domain stand in for a cleared allowlist' do
+          csrf_patch api_path(test_custom_domain.extid), {
+            allow_base_domain: true,
+            allowed_signup_domains: [],
+          }
+
+          expect(last_response.status).to eq(200)
+          record = json_body['record']
+          expect(record['allowed_signup_domains']).to be_empty
+          expect(record['allow_base_domain']).to be true
         end
 
         it 'updates strategy and preserves enabled state when not provided' do
@@ -669,6 +732,17 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
         expect(record['enabled']).to be true
         expect(record['requires_allowlist']).to be true
         expect(record['network_validation']).to be false
+        expect(record['allow_base_domain']).to be false
+      end
+
+      it 'serializes allow_base_domain as a boolean once set' do
+        existing_config.allow_base_domain = true
+        existing_config.save
+
+        json_get api_path(test_custom_domain.extid)
+
+        expect(last_response.status).to eq(200)
+        expect(json_body['record']['allow_base_domain']).to be true
       end
 
       it 'returns timestamps as integers' do

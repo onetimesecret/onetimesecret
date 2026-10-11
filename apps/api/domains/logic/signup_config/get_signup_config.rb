@@ -15,8 +15,9 @@ module DomainsAPI
       #   custom_signup_validation entitlement.
       #
       # Response includes:
-      # - record: validation_strategy, allowed_signup_domains, the raw flag
-      #   pair + autoverify, or null when the domain is unconfigured.
+      # - record: validation_strategy, allowed_signup_domains,
+      #   allow_base_domain, the raw flag pair + autoverify, or null when the
+      #   domain is unconfigured.
       #   Unconfigured is a first-class state (200, not 404) so the settings
       #   UI can render the inherited global state (ADR-024).
       # - details: global_enabled / effective_enabled — the resolver's output,
@@ -64,6 +65,7 @@ module DomainsAPI
             domain_id: @custom_domain.extid,
             validation_strategy: config.validation_strategy,
             allowed_signup_domains: config.allowed_signup_domains,
+            allow_base_domain: config.allow_base_domain?,
             enabled: config.enabled?,
             signup_enabled: config.signup_enabled?,
             autoverify: config.autoverify?,

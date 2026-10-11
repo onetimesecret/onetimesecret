@@ -23,7 +23,10 @@
  *
  * 3. Allowlist Semantics: The allowed_signup_domains list is only consulted
  *    when validation_strategy is 'domain_allowlist'. Other strategies ignore
- *    the list entirely.
+ *    the list entirely. allow_base_domain extends that list with the custom
+ *    domain's own registrable domain (secrets.acme.com -> acme.com), derived
+ *    server-side at validation time, so an operator need not list their own
+ *    domain. It is likewise ignored by the other strategies.
  *
  * 4. No Sensitive Fields: Unlike SsoConfig, SignupConfig contains no
  *    secrets — all fields are safe to log and display directly.
@@ -119,6 +122,16 @@ export const customDomainSignupConfigCanonical = z.object({
    */
   allowed_signup_domains: z.array(z.string()),
 
+  /**
+   * Whether the custom domain's own registrable domain (the domain record's
+   * base_domain) is allowed automatically under 'domain_allowlist', without
+   * appearing in allowed_signup_domains. Defaults to false.
+   *
+   * Tolerates absence (older API during a deploy) so the settings page keeps
+   * rendering; the server always serializes a real boolean.
+   */
+  allow_base_domain: z.boolean().default(false),
+
   /** Whether this per-domain signup config is active. */
   enabled: z.boolean(),
 
@@ -177,9 +190,16 @@ export const putSignupConfigPayloadSchema = z.object({
 
   /**
    * Email domain allowlist (required when validation_strategy is
-   * 'domain_allowlist', ignored otherwise).
+   * 'domain_allowlist' and allow_base_domain is not set, ignored by the
+   * other strategies).
    */
   allowed_signup_domains: z.array(z.string()).optional(),
+
+  /**
+   * Also allow the custom domain's own registrable domain under
+   * 'domain_allowlist'. Defaults to false.
+   */
+  allow_base_domain: z.boolean().optional(),
 
   /** Whether the per-domain config is active. Defaults to false. */
   enabled: z.boolean().optional(),
@@ -195,16 +215,18 @@ export const putSignupConfigPayloadSchema = z.object({
  * PUT signup config payload with strategy-specific validation.
  *
  * domain_allowlist strategy requires at least one entry in
- * allowed_signup_domains.
+ * allowed_signup_domains, unless allow_base_domain supplies the custom
+ * domain's own domain.
  */
 export const putSignupConfigPayloadStrictSchema = putSignupConfigPayloadSchema.superRefine(
   (data, ctx) => {
     if (data.validation_strategy === 'domain_allowlist') {
       const list = data.allowed_signup_domains ?? [];
-      if (list.length === 0) {
+      if (list.length === 0 && !data.allow_base_domain) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'allowed_signup_domains is required when validation_strategy is domain_allowlist',
+          message:
+            'allowed_signup_domains is required when validation_strategy is domain_allowlist and allow_base_domain is not set',
           path: ['allowed_signup_domains'],
         });
       }

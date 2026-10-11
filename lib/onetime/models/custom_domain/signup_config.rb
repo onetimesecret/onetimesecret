@@ -13,11 +13,17 @@ require_relative '../features/boolean_encoding'
 # Use Cases:
 #   - Open signup: secrets.acme.com allows any email (passthrough)
 #   - Corporate restriction: secrets.corp.com restricts to @corp.com emails
+#     (domain_allowlist with allow_base_domain, or corp.com listed explicitly)
+#   - Partner access: secrets.corp.com admits @corp.com plus listed partners
 #   - Strict validation: secrets.secure.com requires MX/SMTP verification
 #
 # Strategy Types:
 #   - passthrough:      Format check only (BASIC_FORMAT regex)
-#   - domain_allowlist: Email domain must be in allowed list
+#   - domain_allowlist: Email domain must be in the effective allowlist —
+#                       allowed_signup_domains plus, when allow_base_domain
+#                       is set, the custom domain's own registrable domain
+#                       (CustomDomain#base_domain: secrets.corp.com → corp.com),
+#                       derived at validation time so it follows the domain
 #   - mx:               Truemail MX lookup validation
 #   - smtp:             Truemail SMTP validation (strictest)
 #
@@ -92,6 +98,12 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
   # Domain allowlist (JSON array string) - used when strategy is 'domain_allowlist'
   field :allowed_signup_domains_json
 
+  # Whether the custom domain's own registrable domain (CustomDomain#base_domain)
+  # is part of the effective allowlist without being listed. Real boolean,
+  # conservative default false. Only consulted under 'domain_allowlist', like
+  # the list itself.
+  field :allow_base_domain
+
   # Non-nullable boolean overrides with conservative defaults.
   # signup_enabled: false (off until explicitly enabled), autoverify: false (require verification).
   field :signup_enabled  # Override for AUTH_SIGNUP
@@ -117,6 +129,7 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
     'enabled' => { type: :boolean, storage: :string },
     'signup_enabled' => { type: :boolean, storage: :native },
     'autoverify' => { type: :boolean, storage: :native },
+    'allow_base_domain' => { type: :boolean, storage: :native },
     'validation_strategy' => { type: :enum, values: STRATEGY_TYPES, nullable: false },
     'allowed_signup_domains' => { type: :string_array },
   }.freeze
@@ -131,6 +144,7 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
     self.validation_strategy ||= 'passthrough'
     self.signup_enabled        = false if signup_enabled.nil?
     self.autoverify            = false if autoverify.nil?
+    self.allow_base_domain     = false if allow_base_domain.nil?
   end
 
   # Returns metadata for the current validation strategy.
@@ -221,16 +235,47 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
     true
   end
 
-  # Validate an email address against the allowed domains list.
+  # The registrable domain of the custom domain this config belongs to
+  # (CustomDomain#base_domain, parsed by PublicSuffix at domain creation:
+  # secrets.acme.com → acme.com, acme.co.uk → acme.co.uk), lower-cased.
+  #
+  # Read from the domain record on each call rather than copied into this
+  # record, so a renamed domain is followed automatically. nil when the
+  # domain record is missing or carries no base_domain — allow_base_domain
+  # then adds nothing (fail closed), it never falls back to allow-all.
+  #
+  # @return [String, nil]
+  def base_domain
+    value = custom_domain&.base_domain.to_s.strip.downcase
+    value.empty? ? nil : value
+  end
+
+  # The allowlist the sign-up gate consults under domain_allowlist: the
+  # explicit allowed_signup_domains plus, when allow_base_domain is set, the
+  # custom domain's own registrable domain. Matching is exact (lower-cased),
+  # the same as for a listed entry: a subdomain of the base domain
+  # (mail.acme.com) is not admitted by the flag.
+  #
+  # @return [Array<String>] Lowercase domain names, de-duplicated
+  def effective_allowed_signup_domains
+    domains = allowed_signup_domains
+    return domains unless allow_base_domain?
+
+    own = base_domain
+    own ? (domains | [own]) : domains
+  end
+
+  # Validate an email address against the effective allowed domains list.
   #
   # NOTE: returns true when the list is empty. That reading suits display
   # surfaces; the sign-up gate (validate_domain_allowlist) refuses an empty
   # or corrupt list instead of falling through to this.
   #
   # @param email [String] Email address to validate
+  # @param domains [Array<String>] the list, when the caller has already
+  #   built it (saves a second domain-record read and JSON parse)
   # @return [Boolean] true if email domain is allowed
-  def valid_email_domain?(email)
-    domains = allowed_signup_domains
+  def valid_email_domain?(email, domains: effective_allowed_signup_domains)
     return true if domains.empty?
 
     email_domain = email.to_s.split('@').last&.downcase
@@ -286,9 +331,10 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
     errors << 'validation_strategy is required' if validation_strategy.to_s.empty?
     errors << "validation_strategy must be one of: #{STRATEGY_TYPES.join(', ')}" unless STRATEGY_TYPES.include?(validation_strategy)
 
-    # domain_allowlist strategy requires at least one domain
-    if validation_strategy == 'domain_allowlist' && allowed_signup_domains.empty?
-      errors << 'allowed_signup_domains is required for domain_allowlist strategy'
+    # domain_allowlist strategy requires at least one domain, listed or
+    # supplied by allow_base_domain (the custom domain's own base domain)
+    if validation_strategy == 'domain_allowlist' && allowed_signup_domains.empty? && !allow_base_domain?
+      errors << 'allowed_signup_domains is required for domain_allowlist strategy unless allow_base_domain is set'
     end
 
     errors
@@ -484,8 +530,9 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
       config.allowed_signup_domains = attrs[:allowed_signup_domains] if attrs.key?(:allowed_signup_domains)
 
       # Non-nullable boolean fields with conservative defaults
-      config.signup_enabled = attrs.key?(:signup_enabled) ? attrs[:signup_enabled] : false
-      config.autoverify     = attrs.key?(:autoverify) ? attrs[:autoverify] : false
+      config.signup_enabled    = attrs.key?(:signup_enabled) ? attrs[:signup_enabled] : false
+      config.autoverify        = attrs.key?(:autoverify) ? attrs[:autoverify] : false
+      config.allow_base_domain = attrs.key?(:allow_base_domain) ? attrs[:allow_base_domain] : false
 
       # Initialize timestamps
       now            = Familia.now.to_i
@@ -540,19 +587,25 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
   # Domain allowlist validation.
   #
   # Fails closed. The operator chose domain_allowlist, so a list we cannot
-  # read (corrupt JSON) or an empty list cannot admit anyone: the empty list
-  # is already an invalid configuration (see validation_errors), and the
-  # colonel upsert path can persist it without running those checks.
-  # valid_email_domain? keeps its "empty list → allow all" reading for
-  # display surfaces; only this sign-up gate is strict. Same reasoning as
-  # SsoConfig#allowed_domains_corrupt? on the SSO sign-in path.
+  # read (corrupt JSON) or an empty effective list cannot admit anyone: the
+  # empty list is already an invalid configuration (see validation_errors),
+  # and the colonel upsert path can persist it without running those checks.
+  # A corrupt list denies even when allow_base_domain is set — the stored
+  # restriction cannot be read, so nothing about it is trusted. The
+  # effective list is empty with the flag set only when the domain record
+  # is missing or has no base_domain. valid_email_domain? keeps its
+  # "empty list → allow all" reading for display surfaces; only this
+  # sign-up gate is strict. Same reasoning as SsoConfig#allowed_domains_corrupt?
+  # on the SSO sign-in path.
   def validate_domain_allowlist(email)
     # Must also pass format check
     return false unless Onetime::Utils::EmailFormat.valid_format?(email)
     return false if allowed_signup_domains_corrupt?
-    return false if allowed_signup_domains.empty?
 
-    valid_email_domain?(email)
+    domains = effective_allowed_signup_domains
+    return false if domains.empty?
+
+    valid_email_domain?(email, domains: domains)
   end
 
   # Truemail validation with per-call configuration.

@@ -93,20 +93,35 @@ module DomainsAPI
           )
         end
 
-        # Validate that domain_allowlist strategy has at least one domain.
+        # Validate that domain_allowlist strategy has at least one domain,
+        # listed explicitly or supplied by allow_base_domain (the custom
+        # domain's own registrable domain). The flag only counts when the
+        # domain record actually carries a base_domain to derive; otherwise
+        # the effective list would be empty and the gate would deny everyone.
         #
         # @param strategy [String] The validation strategy
         # @param domains [Array<String>] The allowed domains
+        # @param allow_base_domain [Boolean] effective allow_base_domain value
         # @raise [Onetime::FormError] if domain_allowlist but no domains
-        def validate_allowlist_has_domains(strategy, domains)
+        def validate_allowlist_has_domains(strategy, domains, allow_base_domain: false)
           return unless strategy == 'domain_allowlist'
           return if domains && !domains.empty?
+          return if allow_base_domain && base_domain_available?
 
           raise_form_error(
-            'allowed_signup_domains is required when validation_strategy is domain_allowlist',
+            'allowed_signup_domains is required when validation_strategy is domain_allowlist and allow_base_domain is not set',
             field: :allowed_signup_domains,
             error_type: :missing,
           )
+        end
+
+        # Whether the authorized custom domain has a registrable base domain
+        # for allow_base_domain to resolve against. Call after
+        # authorize_domain_signup_config! has loaded @custom_domain.
+        #
+        # @return [Boolean]
+        def base_domain_available?
+          !@custom_domain&.base_domain.to_s.strip.empty?
         end
 
         # Validate domain formats using PublicSuffix before model setter.

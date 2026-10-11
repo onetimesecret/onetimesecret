@@ -1607,6 +1607,22 @@
     "text": "Override whether new accounts are automatically verified on this domain",
     "content_hash": "63866ecd"
   },
+  "web.domains.signup.allow_base_domain_label": {
+    "text": "Automatically allow {'@'}{domain}",
+    "content_hash": "9473555c"
+  },
+  "web.domains.signup.allow_base_domain_hint": {
+    "text": "People with an {'@'}{domain} email address can sign up here without you listing that domain. Any domains listed below are allowed as well.",
+    "content_hash": "a2e3a3d6"
+  },
+  "web.domains.signup.base_domain_automatic": {
+    "text": "automatic",
+    "content_hash": "53e0ff34"
+  },
+  "web.domains.signup.base_domain_automatic_label": {
+    "text": "{domain} is allowed automatically",
+    "content_hash": "ae9011f2"
+  },
   "web.domains.entitlement_required_owner": {
     "text": "This feature requires a plan upgrade.",
     "content_hash": "6de1f752"

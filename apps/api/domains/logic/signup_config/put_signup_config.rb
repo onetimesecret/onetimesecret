@@ -18,7 +18,10 @@ module DomainsAPI
       #
       # Request body:
       # - validation_strategy: Required. One of: passthrough, domain_allowlist, mx, smtp
-      # - allowed_signup_domains: Required for domain_allowlist. Array or comma-separated string
+      # - allowed_signup_domains: Required for domain_allowlist unless allow_base_domain
+      #   is true. Array or comma-separated string
+      # - allow_base_domain: Optional. Boolean; under domain_allowlist also admits
+      #   the custom domain's own registrable domain (default: false)
       # - enabled: Optional. Boolean to enable/disable (default: false)
       #
       class PutSignupConfig < Base
@@ -32,6 +35,7 @@ module DomainsAPI
           @domain_id              = sanitize_identifier(params['extid'])
           @validation_strategy    = sanitize_plain_text(params['validation_strategy'])
           @allowed_signup_domains = parse_allowed_domains(params['allowed_signup_domains'])
+          @allow_base_domain      = params.key?('allow_base_domain') ? parse_boolean(params['allow_base_domain']) : false
           @enabled                = parse_boolean(params['enabled'])
           @signup_enabled         = params.key?('signup_enabled') ? parse_boolean(params['signup_enabled']) : false
           @autoverify             = params.key?('autoverify') ? parse_boolean(params['autoverify']) : false
@@ -61,8 +65,9 @@ module DomainsAPI
 
           validate_strategy_type(@validation_strategy)
 
-          # Validate domain_allowlist has at least one domain
-          validate_allowlist_has_domains(@validation_strategy, @allowed_signup_domains)
+          # Validate domain_allowlist has at least one domain (listed, or the
+          # domain's own base domain via allow_base_domain)
+          validate_allowlist_has_domains(@validation_strategy, @allowed_signup_domains, allow_base_domain: @allow_base_domain)
 
           # Validate domain formats before the model setter (which raises Problem -> 500)
           validate_domain_formats(@allowed_signup_domains)
@@ -111,6 +116,7 @@ module DomainsAPI
             domain_id: @domain_id,
             validation_strategy: @validation_strategy,
             allowed_signup_domains: @allowed_signup_domains,
+            allow_base_domain: @allow_base_domain,
             enabled: @enabled,
           }
         end
@@ -122,6 +128,7 @@ module DomainsAPI
             domain_id: @custom_domain.identifier,
             validation_strategy: @validation_strategy,
             allowed_signup_domains: @allowed_signup_domains,
+            allow_base_domain: @allow_base_domain,
             enabled: @enabled,
             signup_enabled: @signup_enabled,
             autoverify: @autoverify,
@@ -134,6 +141,7 @@ module DomainsAPI
 
           @signup_config.validation_strategy    = @validation_strategy
           @signup_config.allowed_signup_domains = @allowed_signup_domains
+          @signup_config.allow_base_domain      = @allow_base_domain
           @signup_config.enabled                = @enabled.to_s
           @signup_config.signup_enabled         = @signup_enabled
           @signup_config.autoverify             = @autoverify
@@ -147,6 +155,7 @@ module DomainsAPI
             domain_id: @custom_domain.extid,
             validation_strategy: config.validation_strategy,
             allowed_signup_domains: config.allowed_signup_domains,
+            allow_base_domain: config.allow_base_domain?,
             enabled: config.enabled?,
             signup_enabled: config.signup_enabled?,
             autoverify: config.autoverify?,

@@ -579,6 +579,7 @@ describe('DomainConfigsSection', () => {
           autoverify: false,
           validation_strategy: 'passthrough',
           allowed_signup_domains: [],
+          allow_base_domain: false,
         },
         confirmHeadersFor('signup')
       );

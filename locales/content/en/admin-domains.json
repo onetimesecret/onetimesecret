@@ -783,6 +783,10 @@
     "text": "Allowed signup domains",
     "content_hash": "9b5bb5b1"
   },
+  "web.admin.domains.configs.fields.allow_base_domain": {
+    "text": "Allow own domain automatically",
+    "content_hash": "98939419"
+  },
   "web.admin.domains.configs.fields.related_origins": {
     "text": "Related passkey origins",
     "content_hash": "e6160714"

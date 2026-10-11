@@ -21,6 +21,8 @@ module DomainsAPI
       # - validation_strategy: Required for create, optional for update (preserves existing if omitted)
       # - allowed_signup_domains: Optional. Array or comma-separated string.
       #   When omitted: preserves existing. When provided as []: clears all.
+      # - allow_base_domain: Optional. Boolean; under domain_allowlist also admits
+      #   the custom domain's own registrable domain (preserves existing if omitted)
       # - enabled: Optional. Boolean to enable/disable (preserves existing if omitted)
       #
       class PatchSignupConfig < Base
@@ -36,6 +38,8 @@ module DomainsAPI
           # Track whether allowed_signup_domains was explicitly provided (for PATCH semantics)
           @allowed_signup_domains_provided = params.key?('allowed_signup_domains')
           @allowed_signup_domains          = parse_allowed_domains(params['allowed_signup_domains'])
+          @allow_base_domain_provided      = params.key?('allow_base_domain')
+          @allow_base_domain               = parse_boolean(params['allow_base_domain'])
           # Track whether enabled was explicitly provided (for PATCH semantics)
           @enabled_provided                = !params['enabled'].nil?
           @enabled                         = parse_boolean(params['enabled'])
@@ -64,7 +68,12 @@ module DomainsAPI
 
           # Validate domain_allowlist has at least one domain (using effective values)
           effective_domains = @allowed_signup_domains_provided ? @allowed_signup_domains : (@existing_config&.allowed_signup_domains || [])
-          validate_allowlist_has_domains(@effective_strategy, effective_domains)
+          effective_allow_base_domain = if @allow_base_domain_provided
+                                          @allow_base_domain
+                                        else
+                                          @existing_config&.allow_base_domain? || false
+                                        end
+          validate_allowlist_has_domains(@effective_strategy, effective_domains, allow_base_domain: effective_allow_base_domain)
 
           # Validate domain formats only when explicitly provided
           validate_domain_formats(@allowed_signup_domains) if @allowed_signup_domains_provided
@@ -117,6 +126,7 @@ module DomainsAPI
             domain_id: @domain_id,
             validation_strategy: @effective_strategy,
             allowed_signup_domains: @allowed_signup_domains,
+            allow_base_domain: @allow_base_domain,
             enabled: @enabled,
           }
         end
@@ -135,6 +145,7 @@ module DomainsAPI
           payload                           = {}
           payload['validation_strategy']    = @effective_strategy unless @validation_strategy.to_s.empty?
           payload['allowed_signup_domains'] = @allowed_signup_domains if @allowed_signup_domains_provided
+          payload['allow_base_domain']      = @allow_base_domain if @allow_base_domain_provided
           payload['enabled']                = @enabled if @enabled_provided
           payload
         end
@@ -165,8 +176,9 @@ module DomainsAPI
             allowed_signup_domains: @allowed_signup_domains,
             enabled: @enabled,
           }
-          attrs[:signup_enabled] = @signup_enabled if @signup_enabled_provided
-          attrs[:autoverify]     = @autoverify if @autoverify_provided
+          attrs[:signup_enabled]    = @signup_enabled if @signup_enabled_provided
+          attrs[:autoverify]        = @autoverify if @autoverify_provided
+          attrs[:allow_base_domain] = @allow_base_domain if @allow_base_domain_provided
 
           @signup_config = Onetime::CustomDomain::SignupConfig.create!(**attrs)
         end
@@ -180,10 +192,14 @@ module DomainsAPI
         # - Provided as []: explicitly clears all existing domains
         # - Provided with values: replaces with new values
         #
+        # allow_base_domain, like the other booleans, is applied only when
+        # provided.
+        #
         def update_existing_config
           @signup_config                        = @existing_config
           @signup_config.validation_strategy    = @effective_strategy
           @signup_config.allowed_signup_domains = @allowed_signup_domains if @allowed_signup_domains_provided
+          @signup_config.allow_base_domain      = @allow_base_domain if @allow_base_domain_provided
           @signup_config.enabled                = @enabled.to_s if @enabled_provided
           @signup_config.signup_enabled         = @signup_enabled if @signup_enabled_provided
           @signup_config.autoverify             = @autoverify if @autoverify_provided
@@ -197,6 +213,7 @@ module DomainsAPI
             domain_id: @custom_domain.extid,
             validation_strategy: config.validation_strategy,
             allowed_signup_domains: config.allowed_signup_domains,
+            allow_base_domain: config.allow_base_domain?,
             enabled: config.enabled?,
             signup_enabled: config.signup_enabled?,
             autoverify: config.autoverify?,
