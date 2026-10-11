@@ -129,6 +129,7 @@ module V1
     def apply_domain_context(logic)
       logic.domain_strategy = req.env['onetime.domain_strategy']
       logic.display_domain  = req.env['onetime.display_domain']
+      logic.ip_match        = req.env['otto.ip_match']
       logic
     end
 
