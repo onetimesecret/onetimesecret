@@ -116,6 +116,18 @@ module AccountAPI::Logic
         # the happy-path write path) means failed validations don't burn the quota.
         increment_request_count
 
+        # Supersede any earlier pending confirmation. Only the secret recorded
+        # on pending_email_change is recognised as the email-change link; a
+        # second request would otherwise leave the first secret live but
+        # unrecorded, and revealing THAT one would read as proof of the
+        # current mailbox (Customer#mailbox_proof_secret?, #4735). One pending
+        # email-change secret per customer, always the recorded one.
+        previous_identifier = cust.pending_email_change.value.to_s
+        unless previous_identifier.empty?
+          superseded = Onetime::Secret.find_by_identifier(previous_identifier)
+          superseded.destroy! if superseded&.exists?
+        end
+
         # Create a verification secret with 24h TTL following ResetPasswordRequest pattern
         secret                    = Onetime::Secret.create!(owner_id: cust.objid)
         secret.default_expiration = 24.hours
