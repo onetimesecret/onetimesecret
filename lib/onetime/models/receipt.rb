@@ -269,7 +269,12 @@ module Onetime
       #
       # See: apps/api/v2/logic/secrets/base_secret_action.rb for validation.
       #
-      def spawn_pair(owner_id, lifespan, content, passphrase: nil, domain: nil, kind: nil)
+      # - display_type: A presentation hint for the recipient's client, one of
+      #   Secret::DISPLAY_TYPES. Callers validate (validate_display_type in the
+      #   API logic); nil leaves the field unset, which reads as 'text'. It is
+      #   not an encryption input and does not change what is stored.
+      #
+      def spawn_pair(owner_id, lifespan, content, passphrase: nil, domain: nil, kind: nil, display_type: nil)
         # Coerce at the single creation choke point so lifespan is always stored
         # as an Integer (#3299). Familia v2 storage is type-preserving, so a
         # String here ("604800" from unconverted ERB/params) would hydrate back
@@ -291,6 +296,7 @@ module Onetime
         secret.ciphertext_domain  = domain
         secret.share_domain       = domain
         secret.ciphertext         = content
+        secret.display_type       = display_type.to_s unless display_type.to_s.empty?
 
         unless passphrase.to_s.empty?
           secret.update_passphrase passphrase

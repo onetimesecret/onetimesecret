@@ -67,6 +67,9 @@ export function useSecretConcealer(options?: SecretConcealerOptions) {
    * Creates API payload based on submission type.
    * Only includes passphrase field if user provided one - omitting the field
    * entirely signals "no passphrase protection" to the backend.
+   *
+   * display_type rides along on conceal only: it describes content the
+   * creator wrote, and the generate endpoint ignores it anyway.
    */
   const createPayload = (
     type: SubmitType
@@ -95,7 +98,7 @@ export function useSecretConcealer(options?: SecretConcealerOptions) {
       } as GeneratePayload;
     }
 
-    return basePayload as ConcealPayload;
+    return { ...basePayload, display_type: form.display_type } as ConcealPayload;
   };
 
   /**

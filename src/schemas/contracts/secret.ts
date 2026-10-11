@@ -113,6 +113,58 @@ export function isValidSecretState(state: string): state is SecretState {
 }
 
 /**
+ * Display types: how the recipient's client presents the revealed value.
+ *
+ * A presentation hint chosen by the creator at conceal time and stored on
+ * the secret (`Onetime::Secret::DISPLAY_TYPES` on the backend). It says how
+ * to show the value, not what the value is, so it travels in the metadata
+ * payload before reveal. Extend here together with the backend constant;
+ * `httplink` (an "you are about to open an external link" interstitial) is
+ * the kind of type this is meant to grow into.
+ *
+ * @category Contracts
+ */
+export const secretDisplayTypeValues = ['text', 'markdown'] as const;
+
+export type SecretDisplayType = (typeof secretDisplayTypeValues)[number];
+
+/**
+ * Secret display type enum object for runtime checks.
+ *
+ * @category Contracts
+ * @example
+ * ```typescript
+ * if (secret.display_type === SecretDisplayType.MARKDOWN) {
+ *   // render instead of showing the raw text
+ * }
+ * ```
+ */
+export const SecretDisplayType = {
+  TEXT: 'text',
+  MARKDOWN: 'markdown',
+} as const;
+
+/** The display type every secret has unless the creator chose another. */
+export const DEFAULT_SECRET_DISPLAY_TYPE: SecretDisplayType = SecretDisplayType.TEXT;
+
+/**
+ * Zod schema for a known display type. Strict: use it where an unknown
+ * value should be an error (form state, request payloads).
+ *
+ * @category Contracts
+ */
+export const secretDisplayTypeSchema = z.enum(secretDisplayTypeValues);
+
+/**
+ * Type guard for runtime display type validation.
+ *
+ * @category Contracts
+ */
+export function isValidSecretDisplayType(value: string): value is SecretDisplayType {
+  return secretDisplayTypeValues.includes(value as SecretDisplayType);
+}
+
+/**
  * Canonical secret base record contract.
  *
  * Defines field names and output types (post-parse).
@@ -141,6 +193,13 @@ export const secretBaseCanonical = z.object({
   has_passphrase: z.boolean(),
   verification: z.boolean(),
   secret_value: z.string().optional(),
+
+  // Lenient on read: a backend that predates the field omits it, and a newer
+  // backend may send a type this client does not know. Either way the value
+  // is still deliverable as plain text, so fall back instead of failing the
+  // whole record (which would show the recipient "no longer available" for
+  // a secret nobody consumed — the #3424 failure shape).
+  display_type: secretDisplayTypeSchema.catch(DEFAULT_SECRET_DISPLAY_TYPE),
 
   // State boolean fields (canonical only)
   is_previewed: z.boolean(),

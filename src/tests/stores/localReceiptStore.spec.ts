@@ -406,6 +406,61 @@ describe('localReceiptStore', () => {
     });
   });
 
+  describe('preferred display type (Markdown toggle)', () => {
+    it('defaults to null when unset', () => {
+      expect(store.preferredDisplayType).toBeNull();
+    });
+
+    it('setPreferredDisplayType updates the preference', () => {
+      store.setPreferredDisplayType('markdown');
+      expect(store.preferredDisplayType).toBe('markdown');
+    });
+
+    it('persists the preferred display type to localStorage', async () => {
+      store.setPreferredDisplayType('markdown');
+      await nextTick();
+
+      expect(localStorage.setItem).toHaveBeenCalledWith('onetimePreferredDisplayType', 'markdown');
+    });
+
+    it('removes the preferred display type from localStorage on $reset', async () => {
+      store.setPreferredDisplayType('markdown');
+      await nextTick();
+
+      store.$reset();
+      await nextTick();
+
+      expect(store.preferredDisplayType).toBeNull();
+      expect(localStorage.removeItem).toHaveBeenCalledWith('onetimePreferredDisplayType');
+    });
+
+    it('restores a stored display type on load', () => {
+      vi.stubGlobal('localStorage', {
+        getItem: vi.fn((key: string) => (key === 'onetimePreferredDisplayType' ? 'markdown' : null)),
+        setItem: vi.fn(),
+        removeItem: vi.fn(),
+      });
+      const app = createApp({});
+      app.use(createTestingPinia({ stubActions: false }));
+      const fresh = useLocalReceiptStore();
+
+      expect(fresh.preferredDisplayType).toBe('markdown');
+    });
+
+    it('ignores a stored value this build does not know', () => {
+      vi.stubGlobal('localStorage', {
+        getItem: vi.fn((key: string) => (key === 'onetimePreferredDisplayType' ? 'httplink' : null)),
+        setItem: vi.fn(),
+        removeItem: vi.fn(),
+      });
+      const app = createApp({});
+      app.use(createTestingPinia({ stubActions: false }));
+      const fresh = useLocalReceiptStore();
+
+      expect(fresh.preferredDisplayType).toBeNull();
+    });
+  });
+
   describe('LocalReceipt minimal data structure', () => {
     it('only stores essential fields as defined in the interface', async () => {
       const message = createMockMessage({

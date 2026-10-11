@@ -12,10 +12,16 @@
    * - Larger textarea for content
    * - Privacy inputs controlled externally via props
    * - Respects workspace mode toggle (stays on page or navigates to receipt)
+   *
+   * The Markdown toggle (display_type) lives with the textarea, not in the
+   * privacy bar: it is a formatting choice about the content, and it is
+   * remembered across visits like the TTL.
    */
   import { useI18n } from 'vue-i18n';
   import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
+  import MarkdownModeToggle from '@/shared/components/ui/MarkdownModeToggle.vue';
+  import MarkdownRenderer from '@/shared/components/ui/MarkdownRenderer.vue';
   import SplitButton from '@/shared/components/ui/SplitButton.vue';
   import { useDomainContext } from '@/shared/composables/useDomainContext';
   import { usePrivacyOptions } from '@/shared/composables/usePrivacyOptions';
@@ -30,6 +36,10 @@
     DEFAULT_BUTTON_TEXT_LIGHT,
   } from '@/shared/stores/identityStore';
   import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
+  import {
+    DEFAULT_SECRET_DISPLAY_TYPE,
+    SecretDisplayType,
+  } from '@/schemas/contracts/secret';
   import { type LocalReceipt } from '@/types/ui/local-receipt';
   import { nanoid } from 'nanoid';
   import { computed, ref, watch } from 'vue';
@@ -143,6 +153,8 @@
 
         // Restore TTL to previous value (sticky across submissions)
         operations.updateField('ttl', preservedTtl as number);
+        // Same for the Markdown toggle
+        restorePreferredDisplayType();
 
         loggingService.debug('[WorkspaceSecretForm] receipt created', {
           timestamp,
@@ -176,6 +188,19 @@
   const isValidPreferredTtl =
     preferredTtl != null && lifetimeOptions.value.some((opt) => opt.value === preferredTtl);
   operations.updateField('ttl', isValidPreferredTtl ? preferredTtl : defaultTtl.value);
+
+  // Initialize the Markdown toggle the same way: last-used value from
+  // localReceiptStore (localStorage), plain text when nothing is stored.
+  const restorePreferredDisplayType = () => {
+    operations.updateField(
+      'display_type',
+      localReceiptStore.preferredDisplayType ?? DEFAULT_SECRET_DISPLAY_TYPE
+    );
+  };
+  restorePreferredDisplayType();
+
+  const isMarkdown = computed(() => form.display_type === SecretDisplayType.MARKDOWN);
+  const hasPreviewContent = computed(() => content.value.trim().length > 0);
 
   // Sync content with form
   watch(content, (newContent) => {
@@ -243,11 +268,25 @@
     operations.updateField('passphrase', value);
   };
 
+  const currentDisplayType = computed(() => form.display_type);
+
+  const updateDisplayType = (value: SecretDisplayType) => {
+    operations.updateField('display_type', value);
+    // Remember the choice so it is restored on the next page load
+    localReceiptStore.setPreferredDisplayType(value);
+  };
+
+  const setMarkdown = (enabled: boolean) => {
+    updateDisplayType(enabled ? SecretDisplayType.MARKDOWN : SecretDisplayType.TEXT);
+  };
+
   defineExpose({
     currentTtl,
     currentPassphrase,
+    currentDisplayType,
     updateTtl,
     updatePassphrase,
+    updateDisplayType,
     isSubmitting,
   });
 </script>
@@ -281,6 +320,15 @@
               class="sr-only">
               {{ t('web.secrets.secret_content') || 'Secret Content' }}
             </label>
+
+            <!-- Formatting controls -->
+            <div class="mb-2 flex items-center justify-end gap-2">
+              <MarkdownModeToggle
+                :model-value="isMarkdown"
+                :disabled="isSubmitting"
+                :corner-class="cornerClass"
+                @update:model-value="setMarkdown" />
+            </div>
 
             <div class="relative">
               <textarea
@@ -329,6 +377,41 @@
                   class="font-semibold text-gray-700 dark:text-gray-300 tabular-nums">
                   {{ formattedCharCount }} / {{ formattedMaxLength }}
                 </span>
+              </div>
+            </div>
+
+            <!--
+              Live Markdown preview: what the recipient will see, rendered and
+              sanitized by the same code as the reveal page. The textarea above
+              stays the single place the text is edited.
+            -->
+            <div
+              v-if="isMarkdown"
+              class="mt-3"
+              data-testid="secret-markdown-preview">
+              <div
+                class="mb-1 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide
+                  text-gray-500 dark:text-gray-400">
+                <OIcon
+                  collection="heroicons"
+                  name="eye"
+                  class="size-3.5"
+                  aria-hidden="true" />
+                {{ t('web.secrets.markdown_preview') }}
+              </div>
+              <div
+                :class="[cornerClass]"
+                class="max-h-[500px] overflow-auto rounded-lg border border-dashed border-gray-300/80
+                  bg-white/60 p-4 dark:border-gray-600/80 dark:bg-slate-800/50">
+                <MarkdownRenderer
+                  v-if="hasPreviewContent"
+                  :source="content"
+                  :debounce="150" />
+                <p
+                  v-else
+                  class="text-sm italic text-gray-400 dark:text-gray-500">
+                  {{ t('web.secrets.markdown_preview_empty') }}
+                </p>
               </div>
             </div>
           </div>

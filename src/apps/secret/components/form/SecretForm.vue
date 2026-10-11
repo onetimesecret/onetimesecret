@@ -16,6 +16,10 @@
     DEFAULT_CORNER_CLASS,
   } from '@/shared/stores/identityStore';
   import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
+  import {
+    DEFAULT_SECRET_DISPLAY_TYPE,
+    type SecretDisplayType,
+  } from '@/schemas/contracts/secret';
   import { type LocalReceipt } from '@/types/ui/local-receipt';
   import { nanoid } from 'nanoid';
   import { storeToRefs } from 'pinia';
@@ -110,6 +114,7 @@
       // Add the message to the store
       localReceiptStore.addReceipt(newMessage);
       operations.reset();
+      restorePreferredDisplayType(); // reset() returns to plain text; the toggle is sticky
       secretContentInput.value?.clearTextarea(); // Clear textarea
 
       // Emit event for parent components
@@ -130,6 +135,22 @@
     updateRecipient,
     togglePassphraseVisibility,
   } = usePrivacyOptions(operations);
+
+  // Markdown toggle (display_type). Remembered across visits the way the
+  // workspace form remembers the TTL: a minor preference in localStorage via
+  // localReceiptStore, restored on load and after each successful submission.
+  const restorePreferredDisplayType = () => {
+    operations.updateField(
+      'display_type',
+      localReceiptStore.preferredDisplayType ?? DEFAULT_SECRET_DISPLAY_TYPE
+    );
+  };
+  restorePreferredDisplayType();
+
+  const updateDisplayType = (value: SecretDisplayType) => {
+    operations.updateField('display_type', value);
+    localReceiptStore.setPreferredDisplayType(value);
+  };
 
   const { currentContext, isContextActive, hasMultipleContexts } = useDomainContext();
 
@@ -243,7 +264,9 @@
               :disabled="isSubmitting"
               :max-height="400"
               :corner-class="cornerClass"
-              @update:content="(content) => operations.updateField('secret', content)" />
+              :display-type="form.display_type"
+              @update:content="(content) => operations.updateField('secret', content)"
+              @update:display-type="updateDisplayType" />
           </span>
 
           <!-- Generate Password Text -->

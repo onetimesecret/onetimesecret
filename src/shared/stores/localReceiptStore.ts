@@ -1,6 +1,10 @@
 // src/shared/stores/localReceiptStore.ts
 
 import {
+  secretDisplayTypeSchema,
+  type SecretDisplayType,
+} from '@/schemas/contracts/secret';
+import {
   guestReceiptsResponseSchema,
   localReceiptsArraySchema,
   type LocalReceipt,
@@ -20,6 +24,7 @@ export type LocalReceiptStore = {
   localReceipts: LocalReceipt[];
   workspaceMode: boolean;
   preferredTtl: number | null;
+  preferredDisplayType: SecretDisplayType | null;
 
   // Getters
   isInitialized: boolean;
@@ -37,6 +42,7 @@ export type LocalReceiptStore = {
   setWorkspaceMode: (enabled: boolean) => void;
   toggleWorkspaceMode: () => void;
   setPreferredTtl: (ttl: number) => void;
+  setPreferredDisplayType: (displayType: SecretDisplayType) => void;
   $reset: () => void;
 } & PiniaCustomProperties;
 
@@ -46,6 +52,7 @@ export type LocalReceiptStore = {
 const STORAGE_KEY = 'onetimeReceiptCache';
 const WORKSPACE_MODE_KEY = 'onetimeWorkspaceMode';
 const PREFERRED_TTL_KEY = 'onetimePreferredTtl';
+const PREFERRED_DISPLAY_TYPE_KEY = 'onetimePreferredDisplayType';
 const MAX_STORED_RECEIPTS = 25;
 
 /**
@@ -110,6 +117,24 @@ function loadPreferredTtl(): number | null {
 }
 
 /**
+ * Loads the last-used display type (the Markdown toggle) from localStorage.
+ * Same persistence as the TTL preference: localStorage so it survives the
+ * session, null when unset or not a type this build knows so callers fall
+ * back to plain text.
+ */
+function loadPreferredDisplayType(): SecretDisplayType | null {
+  try {
+    const stored = localStorage.getItem(PREFERRED_DISPLAY_TYPE_KEY);
+    if (stored === null) return null;
+    const result = secretDisplayTypeSchema.safeParse(stored);
+    return result.success ? result.data : null;
+  } catch (error) {
+    loggingService.error(new Error(`Failed to load preferred display type: ${error}`));
+  }
+  return null;
+}
+
+/**
  * Store for managing local receipt records during a user session.
  * This store persists links created during the current session so they
  * remain available when navigating between pages and browser refreshes.
@@ -123,6 +148,7 @@ export const useLocalReceiptStore = defineStore('localReceipt', () => {
   const localReceipts = ref<LocalReceipt[]>(loadFromStorage());
   const workspaceMode = ref(loadWorkspaceModePreference());
   const preferredTtl = ref<number | null>(loadPreferredTtl());
+  const preferredDisplayType = ref<SecretDisplayType | null>(loadPreferredDisplayType());
 
   // Getters
   const isInitialized = computed(() => _initialized.value);
@@ -160,6 +186,19 @@ export const useLocalReceiptStore = defineStore('localReceipt', () => {
       }
     } catch (error) {
       loggingService.error(new Error(`Failed to save preferred TTL: ${error}`));
+    }
+  });
+
+  // Watch for changes to preferredDisplayType and save to localStorage
+  watch(preferredDisplayType, (displayType) => {
+    try {
+      if (displayType === null) {
+        localStorage.removeItem(PREFERRED_DISPLAY_TYPE_KEY);
+      } else {
+        localStorage.setItem(PREFERRED_DISPLAY_TYPE_KEY, displayType);
+      }
+    } catch (error) {
+      loggingService.error(new Error(`Failed to save preferred display type: ${error}`));
     }
   });
 
@@ -362,6 +401,16 @@ export const useLocalReceiptStore = defineStore('localReceipt', () => {
   }
 
   /**
+   * Sets the last-used display type (Markdown toggle) so the secret forms
+   * restore it on the next page load, the way the TTL is restored.
+   *
+   * @param displayType One of the known secret display types
+   */
+  function setPreferredDisplayType(displayType: SecretDisplayType) {
+    preferredDisplayType.value = displayType;
+  }
+
+  /**
    * Reset store state to initial values.
    * Implementation of $reset() for setup stores since it's not automatically available.
    * Also clears sessionStorage.
@@ -370,6 +419,7 @@ export const useLocalReceiptStore = defineStore('localReceipt', () => {
     clearReceipts();
     workspaceMode.value = false;
     preferredTtl.value = null;
+    preferredDisplayType.value = null;
     _initialized.value = false;
   }
 
@@ -379,6 +429,7 @@ export const useLocalReceiptStore = defineStore('localReceipt', () => {
     localReceipts,
     workspaceMode,
     preferredTtl,
+    preferredDisplayType,
 
     // Getters
     isInitialized,
@@ -396,6 +447,7 @@ export const useLocalReceiptStore = defineStore('localReceipt', () => {
     setWorkspaceMode,
     toggleWorkspaceMode,
     setPreferredTtl,
+    setPreferredDisplayType,
     $reset,
   };
 });

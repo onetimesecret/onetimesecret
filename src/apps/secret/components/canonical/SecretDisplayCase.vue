@@ -4,6 +4,8 @@
   import { useI18n } from 'vue-i18n';
   import NeedHelpModal from '@/shared/components/modals/NeedHelpModal.vue';
   import SecretDisplayHelpContent from '@/apps/secret/components/SecretDisplayHelpContent.vue';
+  import SecretMarkdownContent from '@/apps/secret/components/SecretMarkdownContent.vue';
+  import { SecretDisplayType } from '@/schemas/contracts/secret';
   import { useClipboard } from '@/shared/composables/useClipboard';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import type { Secret, SecretDetails } from '@/schemas/shapes/v3/secret';
@@ -33,6 +35,10 @@
   // Generate unique IDs for ARIA attributes based on record identifier
   const secretContentId = computed(() => `secret-content-${props.record?.identifier || 'unknown'}`);
   const statusMessageId = computed(() => `status-message-${props.record?.identifier || 'unknown'}`);
+
+  // display_type is the creator's presentation hint (plain text unless they
+  // chose otherwise). The copy button copies the raw value in every mode.
+  const isMarkdown = computed(() => props.record?.display_type === SecretDisplayType.MARKDOWN);
 
   const alertClasses = computed(() => ({
     'mb-4 p-4 rounded-md': true,
@@ -140,25 +146,31 @@
 
     <template #content>
       <div class="relative">
-        <label
-          :for="secretContentId"
-          class="sr-only">
-          {{ t('web.secrets.secret_content') }}
-        </label>
-        <!-- prettier-ignore-attribute class -->
-        <textarea
-          v-if="record?.secret_value"
-          :id="secretContentId"
-          class="w-full resize-none rounded-md
-            border border-gray-300 bg-gray-100 px-3 py-2 font-mono text-base leading-[1.2] tracking-wider
-            focus:outline-none focus:ring-2 focus:ring-brand-500
-            dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-          readonly
-          :rows="details?.display_lines ?? 4"
-          :value="record?.secret_value"
-          aria-describedby="copy-instructions"
-          :aria-label="t('web.secrets.secret_content')"
-          data-testid="secret-content"></textarea>
+        <SecretMarkdownContent
+          v-if="record?.secret_value && isMarkdown"
+          :content="record.secret_value"
+          :content-id="secretContentId"
+          :rows="details?.display_lines ?? 4" />
+        <template v-else-if="record?.secret_value">
+          <label
+            :for="secretContentId"
+            class="sr-only">
+            {{ t('web.secrets.secret_content') }}
+          </label>
+          <!-- prettier-ignore-attribute class -->
+          <textarea
+            :id="secretContentId"
+            class="w-full resize-none rounded-md
+              border border-gray-300 bg-gray-100 px-3 py-2 font-mono text-base leading-[1.2] tracking-wider
+              focus:outline-none focus:ring-2 focus:ring-brand-500
+              dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+            readonly
+            :rows="details?.display_lines ?? 4"
+            :value="record?.secret_value"
+            aria-describedby="copy-instructions"
+            :aria-label="t('web.secrets.secret_content')"
+            data-testid="secret-content"></textarea>
+        </template>
         <div
           v-else
           class="text-red-500 dark:text-red-400"

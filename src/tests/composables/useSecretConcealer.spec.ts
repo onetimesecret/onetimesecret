@@ -148,6 +148,61 @@ describe('useSecretConcealer', () => {
       expect(vi.mocked(useSecretStore)).toHaveBeenCalled();
     });
 
+    it('sends the form display_type with a conceal payload', async () => {
+      const store: Partial<ReturnType<typeof useSecretStore>> = {
+        conceal: vi.fn().mockResolvedValue({ record: { receipt: { key: 'test' } } }),
+        generate: vi.fn(),
+        setApiMode: vi.fn(),
+      };
+      vi.mocked(useSecretStore).mockReturnValue(store as ReturnType<typeof useSecretStore>);
+
+      const { operations, submit } = useSecretConcealer();
+      operations.updateField('secret', '# hello');
+      operations.updateField('display_type', 'markdown');
+
+      await submit('conceal');
+
+      expect(store.conceal).toHaveBeenCalledWith(
+        expect.objectContaining({ kind: 'conceal', secret: '# hello', display_type: 'markdown' })
+      );
+    });
+
+    it('defaults display_type to text on conceal', async () => {
+      const store: Partial<ReturnType<typeof useSecretStore>> = {
+        conceal: vi.fn().mockResolvedValue({ record: { receipt: { key: 'test' } } }),
+        generate: vi.fn(),
+        setApiMode: vi.fn(),
+      };
+      vi.mocked(useSecretStore).mockReturnValue(store as ReturnType<typeof useSecretStore>);
+
+      const { form, operations, submit } = useSecretConcealer();
+      expect(form.display_type).toBe('text');
+      operations.updateField('secret', 'hello');
+
+      await submit('conceal');
+
+      expect(store.conceal).toHaveBeenCalledWith(expect.objectContaining({ display_type: 'text' }));
+    });
+
+    it('does not send display_type with a generate payload', async () => {
+      const store: Partial<ReturnType<typeof useSecretStore>> = {
+        conceal: vi.fn(),
+        generate: vi.fn().mockResolvedValue({ record: { receipt: { key: 'test' } } }),
+        setApiMode: vi.fn(),
+      };
+      vi.mocked(useSecretStore).mockReturnValue(store as ReturnType<typeof useSecretStore>);
+
+      const { operations, submit } = useSecretConcealer();
+      operations.updateField('display_type', 'markdown');
+
+      await submit('generate');
+
+      expect(store.generate).toHaveBeenCalledTimes(1);
+      const payload = vi.mocked(store.generate!).mock.calls[0][0] as Record<string, unknown>;
+      expect(payload.kind).toBe('generate');
+      expect('display_type' in payload).toBe(false);
+    });
+
     it('rejects generate submission with a malformed recipient email', async () => {
       const store: Partial<ReturnType<typeof useSecretStore>> = {
         conceal: vi.fn(),
