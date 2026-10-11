@@ -774,9 +774,11 @@ module Auth::Config::Hooks
         # proven set), and authenticated linking binds to the session's own
         # account. session[:validated_omniauth_domain_id] is set only on
         # tenant callbacks, so the platform surface is excluded by construction.
-        Auth::Config::Hooks::OmniAuthTenant.enforce_tenant_verified_email_domain!(
-          session[:validated_omniauth_domain_id], email, self, provider: omniauth_provider
-        )
+        if (tenant_domain_id = session[:validated_omniauth_domain_id])
+          Auth::Config::Hooks::OmniAuthTenant.enforce_tenant_verified_email_domain!(
+            tenant_domain_id, email, self, provider: omniauth_provider
+          )
+        end
 
         # Get display_domain from DomainStrategy middleware (already in env)
         display_domain = request.env['onetime.display_domain']

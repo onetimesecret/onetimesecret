@@ -236,7 +236,9 @@ RSpec.describe 'signup validation request lookup wiring (F1)' do
     }
   end
   let(:ctx) do
-    double('Rodauth context', request: Struct.new(:env).new(env),
+    # session: a platform callback never stamps validated_omniauth_domain_id,
+    # so the tenant verified-email-domain rung (#4734) is a no-op here.
+    double('Rodauth context', request: Struct.new(:env).new(env), session: {},
       login_param: 'email', omniauth_email: email, omniauth_provider: 'oidc',
       create_account_error_flash: 'Unable to create account')
   end
