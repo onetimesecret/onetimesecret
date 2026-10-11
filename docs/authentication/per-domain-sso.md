@@ -848,6 +848,13 @@ allowlist is enforced on every tenant SSO callback; an empty list allows every
 email domain that the IdP authenticates. This differs from `entra_id`, where
 app assignment is treated as the access-control boundary.
 
+An internationalised domain can be entered in either form. Entries are stored
+as typed and compared by A-label, so `bücher.de` matches an IdP that asserts
+`xn--bcher-kva.de`, and the reverse. A sign-in that matched only because the
+forms differed logs `omniauth_tenant_domain_idn_match` with the stored entry
+and the asserted domain. A Unicode entry with no exact A-label form (fullwidth
+letters, an ideographic full stop, a soft hyphen) is rejected when saved.
+
 ### Switching an existing Entra configuration
 
 Changing a tenant from `entra_id` to `oidc` changes its identity key. Under

@@ -629,6 +629,40 @@ RSpec.describe 'Cross-Tenant Callback Validation', type: :integration do
       end
     end
 
+    # RISK-2026-10-10-03 (#4736).
+    context 'with an internationalised allowlist entry' do
+      let(:sso_config) { build_domain_sso_config(:oidc, allowed_domains: ['bücher.de']) }
+
+      it 'permits the A-label form and logs that only the forms differed' do
+        enforce('user@xn--bcher-kva.de', sso_config)
+
+        expect_permitted
+        expect(Auth::Logging).to have_received(:log_auth_event).with(
+          :omniauth_tenant_domain_idn_match,
+          hash_including(
+            level: :info,
+            domain_id: domain_id,
+            reason: :idn_form_differed,
+            allowed_domain: 'bücher.de',
+            asserted_domain: 'xn--bcher-kva.de',
+          ),
+        )
+      end
+
+      it 'logs nothing for a byte-for-byte match' do
+        enforce('user@bücher.de', sso_config)
+
+        expect_permitted
+        expect(Auth::Logging).not_to have_received(:log_auth_event)
+      end
+
+      it 'rejects a different name that IDNA mapping would encode alike' do
+        enforce("user@b\u00fc\u00adcher.de", sso_config)
+
+        expect_rejected
+      end
+    end
+
     context 'without an allowlist configured' do
       let(:sso_config) { build_domain_sso_config(:oidc, allowed_domains: []) }
 

@@ -647,7 +647,12 @@ module Auth::Config::Hooks
     #                       proves nothing here — it resolves to evil.com and the
     #                       allowlist rejects it unaided. Any regression test for
     #                       this rung must use the FORMER ordering.
-    #   domain not listed - the ordinary rejection.
+    #   domain not listed - the ordinary rejection. Listed and asserted
+    #                       domains are compared by A-label as well as byte
+    #                       for byte (SsoConfig#matching_allowed_domain), so
+    #                       "bücher.de" and "xn--bcher-kva.de" match each
+    #                       other. A sign-in permitted only because the forms
+    #                       differed logs :omniauth_tenant_domain_idn_match.
     #
     # An empty allowlist is NOT a rung — valid_email_domain? returns true and
     # the callback proceeds. That is the documented allow-all state.
@@ -681,6 +686,7 @@ module Auth::Config::Hooks
       # an IdP that pads the claim would fail the structural check below and be
       # denied for the wrong reason.
       candidate = email.to_s.strip.downcase
+      listed    = nil
 
       reason = if sso_config.nil?
                  :no_sso_config
@@ -694,11 +700,14 @@ module Auth::Config::Hooks
                      !Onetime::SignupValidation.structurally_valid_email?(candidate) ||
                      !OT::Utils.fold_stable_email?(candidate)
                  :invalid_email
-               elsif !sso_config.valid_email_domain?(candidate)
+               elsif (listed = sso_config.matching_allowed_domain(candidate)).nil?
                  :domain_not_allowed
                end
 
-      return unless reason
+      unless reason
+        log_tenant_domain_idn_match(domain_id, email, candidate, listed) if listed
+        return
+      end
 
       Auth::Logging.log_auth_event(
         :omniauth_tenant_domain_rejected,
@@ -710,6 +719,32 @@ module Auth::Config::Hooks
 
       error = [:missing_email, :invalid_email].include?(reason) ? reason : :domain_not_allowed
       rodauth.send(:redirect, "/signin?auth_error=#{error}")
+    end
+
+    # Log a tenant allowlist match that only the IDN comparison made: the
+    # entry and the asserted domain are the same name in different forms
+    # (Unicode vs A-label, or composed vs decomposed). These sign-ins were
+    # denied before #4736, so the line lets an operator see them, and see
+    # which form their IdP sends. Silent for a byte-for-byte match.
+    #
+    # @param domain_id [String] validated CustomDomain identifier for this flow
+    # @param email [String] IdP-asserted email address
+    # @param candidate [String] the address as the allowlist judged it
+    # @param listed [String] the allowlist entry it matched, as stored
+    # @return [void]
+    def self.log_tenant_domain_idn_match(domain_id, email, candidate, listed)
+      asserted_domain = candidate.split('@').last
+      return if listed == asserted_domain
+
+      Auth::Logging.log_auth_event(
+        :omniauth_tenant_domain_idn_match,
+        level: :info,
+        domain_id: domain_id,
+        email: OT::Utils.obscure_email(email.to_s),
+        reason: :idn_form_differed,
+        allowed_domain: listed,
+        asserted_domain: asserted_domain,
+      )
     end
 
     # Where a platform-path request lands when the install-wide OIDC issuer
