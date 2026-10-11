@@ -66,6 +66,8 @@ module DomainsAPI
           # Resolve effective strategy (PATCH semantics: preserves existing if not provided)
           resolve_strategy
 
+          validate_stored_allowlist_readable
+
           # Validate domain_allowlist has at least one domain (using effective values)
           effective_domains = @allowed_signup_domains_provided ? @allowed_signup_domains : (@existing_config&.allowed_signup_domains || [])
           effective_allow_base_domain = if @allow_base_domain_provided
@@ -167,6 +169,22 @@ module DomainsAPI
             validate_strategy_type(@validation_strategy)
             @effective_strategy = @validation_strategy
           end
+        end
+
+        # A stored list that cannot be read counts as [] in raise_concerns,
+        # but the sign-up gate denies everyone while it is unreadable, flag or
+        # not. Refuse a PATCH that keeps it under a strategy that consults
+        # it; sending allowed_signup_domains replaces it.
+        def validate_stored_allowlist_readable
+          return if @allowed_signup_domains_provided
+          return unless @existing_config&.allowed_signup_domains_corrupt?
+          return unless Onetime::CustomDomain::SignupConfig.metadata_for(@effective_strategy)[:requires_allowlist]
+
+          raise_form_error(
+            Onetime::CustomDomain::SignupConfig::ALLOWLIST_UNREADABLE_ERROR,
+            field: :allowed_signup_domains,
+            error_type: :invalid,
+          )
         end
 
         def create_new_config

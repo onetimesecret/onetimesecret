@@ -542,6 +542,33 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
           expect(record['allow_base_domain']).to be true
         end
 
+        context 'when the stored allowlist cannot be read' do
+          before do
+            existing = Onetime::CustomDomain::SignupConfig.find_by_domain_id(test_custom_domain.identifier)
+            existing.allowed_signup_domains_json = '{invalid json['
+            existing.save
+          end
+
+          it 'returns 422 rather than let allow_base_domain keep it' do
+            csrf_patch api_path(test_custom_domain.extid), { allow_base_domain: true }
+
+            expect(last_response.status).to eq(422)
+            expect(json_body['error']).to include('cannot be read')
+          end
+
+          it 'replaces it when allowed_signup_domains is sent' do
+            csrf_patch api_path(test_custom_domain.extid), {
+              allow_base_domain: true,
+              allowed_signup_domains: [],
+            }
+
+            expect(last_response.status).to eq(200)
+            record = json_body['record']
+            expect(record['allowed_signup_domains']).to be_empty
+            expect(record['allow_base_domain']).to be true
+          end
+        end
+
         it 'updates strategy and preserves enabled state when not provided' do
           # Start enabled
           existing = Onetime::CustomDomain::SignupConfig.find_by_domain_id(test_custom_domain.identifier)

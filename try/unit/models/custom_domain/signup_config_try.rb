@@ -410,6 +410,22 @@ Onetime::CustomDomain::SignupConfig.find_by_domain_id(@domain_abd.identifier).al
 @abd_config.valid_signup_email?('user@example.com')
 #=> false
 
+## ...and validation_errors agrees: the flag cannot satisfy an unreadable list
+errors = @abd_config.validation_errors
+[
+  @abd_config.allow_base_domain?,
+  errors.include?(Onetime::CustomDomain::SignupConfig::ALLOWLIST_UNREADABLE_ERROR),
+  errors.include?(Onetime::CustomDomain::SignupConfig::ALLOWLIST_REQUIRED_ERROR),
+]
+#=> [true, true, false]
+
+## An unreadable list is not an error under a strategy that ignores the list
+@abd_config.validation_strategy = 'mx'
+result = @abd_config.validation_errors
+@abd_config.validation_strategy = 'domain_allowlist'
+result
+#=> []
+
 ## Without a domain record there is no base domain: the flag adds nothing and the gate denies
 @abd_orphan = Onetime::CustomDomain::SignupConfig.new(
   domain_id: 'abd_no_such_domain',

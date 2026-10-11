@@ -65,6 +65,11 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
   ALLOWLIST_REQUIRED_ERROR = 'allowed_signup_domains is required when validation_strategy ' \
                              'is domain_allowlist and allow_base_domain is not set'
 
+  # Reported by #validation_errors, and raised by the workspace PATCH, when a
+  # strategy that consults the allowlist would keep a stored list that
+  # cannot be read (allowed_signup_domains_corrupt?).
+  ALLOWLIST_UNREADABLE_ERROR = 'allowed_signup_domains cannot be read and must be replaced'
+
   # Strategy metadata for UI/documentation
   STRATEGY_METADATA = {
     'passthrough' => {
@@ -338,13 +343,20 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
     errors << 'validation_strategy is required' if validation_strategy.to_s.empty?
     errors << "validation_strategy must be one of: #{STRATEGY_TYPES.join(', ')}" unless STRATEGY_TYPES.include?(validation_strategy)
 
-    allowlist_met = self.class.allowlist_requirement_met?(
-      strategy: validation_strategy,
-      domains: allowed_signup_domains,
-      allow_base_domain: allow_base_domain?,
-      base_domain: (base_domain if allow_base_domain?), # skip the domain lookup when unused
-    )
-    errors << ALLOWLIST_REQUIRED_ERROR unless allowlist_met
+    if requires_allowlist? && allowed_signup_domains_corrupt?
+      # The list reads as [] here, so the rule below would let
+      # allow_base_domain satisfy it, but the gate denies everyone while the
+      # stored list is unreadable, flag or not.
+      errors << ALLOWLIST_UNREADABLE_ERROR
+    else
+      allowlist_met = self.class.allowlist_requirement_met?(
+        strategy: validation_strategy,
+        domains: allowed_signup_domains,
+        allow_base_domain: allow_base_domain?,
+        base_domain: (base_domain if allow_base_domain?), # skip the domain lookup when unused
+      )
+      errors << ALLOWLIST_REQUIRED_ERROR unless allowlist_met
+    end
 
     errors
   end
@@ -379,7 +391,9 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
     # counts only when the custom domain has a base_domain to derive;
     # otherwise the effective list is empty and validate_domain_allowlist
     # denies everyone. Mirrored client-side by allowlistRequirementMet in
-    # src/schemas/contracts/custom-domain/signup-config.ts.
+    # src/schemas/contracts/custom-domain/signup-config.ts. A stored list
+    # that cannot be read is the callers' check (ALLOWLIST_UNREADABLE_ERROR):
+    # this rule sees only the parsed list, which reads as [] when corrupt.
     #
     # @param strategy [String] validation strategy
     # @param domains [Array<String>, nil] explicitly listed domains
