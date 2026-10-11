@@ -390,6 +390,22 @@ describe('AdminCustomers — drawer operator actions', () => {
       expect(useAdminCustomers().customers).toHaveLength(1);
     });
   });
+
+  // ---- Dialog placement (#4732) ---------------------------------------------
+  // headlessui only treats a dialog as nested when it is rendered inside the
+  // parent dialog's component subtree. A sibling confirm dialog counts as an
+  // outside click: the drawer closes on the first click into it and the
+  // selection is reset before the action is confirmed.
+  describe('confirm dialog placement (#4732)', () => {
+    it('renders the confirm dialog INSIDE the drawer panel', async () => {
+      await openDrawer();
+      await wrapper.find('[data-testid="drawer-purge-button"]').trigger('click');
+      await flushPromises();
+
+      expect(wrapper.findAll('[data-testid="admin-confirm-dialog"]')).toHaveLength(1);
+      expect(drawer(wrapper).find('[data-testid="admin-confirm-dialog"]').exists()).toBe(true);
+    });
+  });
 });
 
 describe('useAdminCustomers — operator mutations', () => {

@@ -357,6 +357,25 @@
     );
   });
 
+  /**
+   * Shared props for the revoke gate. The dialog is rendered twice (inside the
+   * drawer and as a page-level sibling, see the template) so the one binding
+   * lives here.
+   */
+  const revokeDialogProps = computed(() => ({
+    title: t('web.admin.sessions.revoke.confirmTitle'),
+    description: t('web.admin.sessions.revoke.confirmDescription', {
+      id: revokeTarget.value.slice(0, 12),
+      token: revokeToken.value,
+    }),
+    confirmToken: revokeToken.value,
+    variant: 'danger' as const,
+    confirmText: t('web.admin.sessions.revoke.button'),
+    requestReason: true,
+    loading: revokeLoading.value,
+    error: revokeError.value,
+  }));
+
   function requestRevoke(row: ColonelSession): void {
     // Fail closed: the disabled button is the UI affordance, this is the guard.
     // The server refuses a self-revoke regardless (#4328).
@@ -725,24 +744,25 @@
           {{ t('web.admin.sessions.revoke.button') }}
         </button>
       </template>
+
+      <!-- Typed-confirmation revoke gate (danger), NESTED IN THE DRAWER ON
+           PURPOSE (#4732). headlessui only treats a dialog as a child when it
+           is rendered inside the parent dialog's component subtree; a sibling
+           is "outside" the drawer, so the drawer would close (and deselect the
+           session) on the first click into it. -->
+      <AdminConfirmDialog
+        v-model:open="revokeDialogOpen"
+        v-bind="revokeDialogProps"
+        @confirm="onRevokeConfirm"
+        @cancel="onRevokeCancel" />
     </DetailDrawer>
 
-    <!-- Typed-confirmation revoke gate (danger). -->
+    <!-- The same revoke gate for the table-row button while no drawer is open.
+         Exactly one of the two instances exists at a time. -->
     <AdminConfirmDialog
+      v-if="!drawerOpen"
       v-model:open="revokeDialogOpen"
-      :title="t('web.admin.sessions.revoke.confirmTitle')"
-      :description="
-        t('web.admin.sessions.revoke.confirmDescription', {
-          id: revokeTarget.slice(0, 12),
-          token: revokeToken,
-        })
-      "
-      :confirm-token="revokeToken"
-      variant="danger"
-      :confirm-text="t('web.admin.sessions.revoke.button')"
-      request-reason
-      :loading="revokeLoading"
-      :error="revokeError"
+      v-bind="revokeDialogProps"
       @confirm="onRevokeConfirm"
       @cancel="onRevokeCancel" />
   </div>

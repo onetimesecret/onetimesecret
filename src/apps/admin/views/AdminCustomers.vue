@@ -753,6 +753,31 @@
         </section>
       </div>
 
+      <!-- Single guarded-action dialog (typed-confirm on the email for purge).
+           NESTED IN THE DRAWER ON PURPOSE (#4732). headlessui only treats a
+           dialog as a child when it is rendered inside the parent dialog's
+           component subtree. A sibling dialog is "outside" the drawer, so the
+           drawer closes on the first click into it and the selection is reset
+           before the action is confirmed. -->
+      <AdminConfirmDialog
+        v-model:open="dialogOpen"
+        :title="dialogConfig.title"
+        :description="dialogConfig.description"
+        :confirm-token="dialogConfig.confirmToken"
+        :variant="dialogConfig.variant"
+        :confirm-text="dialogConfig.confirmText"
+        :request-reason="dialogConfig.requestReason"
+        :loading="mutationLoading"
+        :error="mutationError"
+        @confirm="onConfirm"
+        @cancel="onCancel">
+        <!-- Only purge is in typed mode here, so the prompt can name the email
+             outright — the operator must see exactly what to type, and why. -->
+        <template #prompt="{ token }">
+          {{ t('web.admin.customers.actions.purge.typePrompt', { token: token ?? '' }) }}
+        </template>
+      </AdminConfirmDialog>
+
       <!-- Operator actions. Same guarded flow as the full page, so a support
            agent never has to leave the list they are scanning. -->
       <template #footer>
@@ -810,25 +835,5 @@
         </div>
       </template>
     </DetailDrawer>
-
-    <!-- Single guarded-action dialog (typed-confirm on the email for purge). -->
-    <AdminConfirmDialog
-      v-model:open="dialogOpen"
-      :title="dialogConfig.title"
-      :description="dialogConfig.description"
-      :confirm-token="dialogConfig.confirmToken"
-      :variant="dialogConfig.variant"
-      :confirm-text="dialogConfig.confirmText"
-      :request-reason="dialogConfig.requestReason"
-      :loading="mutationLoading"
-      :error="mutationError"
-      @confirm="onConfirm"
-      @cancel="onCancel">
-      <!-- Only purge is in typed mode here, so the prompt can name the email
-           outright — the operator must see exactly what to type, and why. -->
-      <template #prompt="{ token }">
-        {{ t('web.admin.customers.actions.purge.typePrompt', { token: token ?? '' }) }}
-      </template>
-    </AdminConfirmDialog>
   </div>
 </template>
