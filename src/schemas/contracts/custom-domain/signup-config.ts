@@ -212,24 +212,43 @@ export const putSignupConfigPayloadSchema = z.object({
 });
 
 /**
+ * The allowlist requirement: a strategy that requires an allowlist must have
+ * at least one domain to admit, listed explicitly or supplied by
+ * allow_base_domain. The flag counts only when the custom domain has a base
+ * domain to derive. Mirrors SignupConfig.allowlist_requirement_met? in
+ * lib/onetime/models/custom_domain/signup_config.rb, which is authoritative.
+ *
+ * @param hasBaseDomain - whether the custom domain has a base domain
+ */
+export function allowlistRequirementMet(
+  config: {
+    validation_strategy: SignupValidationStrategy;
+    allowed_signup_domains?: readonly string[];
+    allow_base_domain?: boolean;
+  },
+  hasBaseDomain: boolean
+): boolean {
+  if (!SIGNUP_STRATEGY_METADATA[config.validation_strategy]?.requiresAllowlist) return true;
+  if ((config.allowed_signup_domains ?? []).length > 0) return true;
+  return Boolean(config.allow_base_domain) && hasBaseDomain;
+}
+
+/**
  * PUT signup config payload with strategy-specific validation.
  *
- * domain_allowlist strategy requires at least one entry in
- * allowed_signup_domains, unless allow_base_domain supplies the custom
- * domain's own domain.
+ * Applies allowlistRequirementMet. The payload alone cannot tell whether
+ * the custom domain has a base domain, so the flag is taken at its word
+ * here; the server applies the full rule.
  */
 export const putSignupConfigPayloadStrictSchema = putSignupConfigPayloadSchema.superRefine(
   (data, ctx) => {
-    if (data.validation_strategy === 'domain_allowlist') {
-      const list = data.allowed_signup_domains ?? [];
-      if (list.length === 0 && !data.allow_base_domain) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message:
-            'allowed_signup_domains is required when validation_strategy is domain_allowlist and allow_base_domain is not set',
-          path: ['allowed_signup_domains'],
-        });
-      }
+    if (!allowlistRequirementMet(data, true)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'allowed_signup_domains is required when validation_strategy is domain_allowlist and allow_base_domain is not set',
+        path: ['allowed_signup_domains'],
+      });
     }
   }
 );

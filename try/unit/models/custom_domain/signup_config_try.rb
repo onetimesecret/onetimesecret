@@ -419,6 +419,44 @@ Onetime::CustomDomain::SignupConfig.find_by_domain_id(@domain_abd.identifier).al
 [@abd_orphan.base_domain, @abd_orphan.effective_allowed_signup_domains, @abd_orphan.valid_signup_email?('user@example.com')]
 #=> [nil, [], false]
 
+## ...and validation_errors agrees with the gate: the flag cannot satisfy the list requirement
+@abd_orphan.validation_errors.include?(Onetime::CustomDomain::SignupConfig::ALLOWLIST_REQUIRED_ERROR)
+#=> true
+
+## allowlist_requirement_met?: a listed domain satisfies domain_allowlist
+Onetime::CustomDomain::SignupConfig.allowlist_requirement_met?(
+  strategy: 'domain_allowlist', domains: ['partner.com'], allow_base_domain: false, base_domain: nil,
+)
+#=> true
+
+## allowlist_requirement_met?: the flag counts only with a base domain to derive
+[
+  Onetime::CustomDomain::SignupConfig.allowlist_requirement_met?(
+    strategy: 'domain_allowlist', domains: [], allow_base_domain: true, base_domain: 'example.com',
+  ),
+  Onetime::CustomDomain::SignupConfig.allowlist_requirement_met?(
+    strategy: 'domain_allowlist', domains: [], allow_base_domain: true, base_domain: nil,
+  ),
+  Onetime::CustomDomain::SignupConfig.allowlist_requirement_met?(
+    strategy: 'domain_allowlist', domains: nil, allow_base_domain: true, base_domain: '  ',
+  ),
+]
+#=> [true, false, false]
+
+## allowlist_requirement_met?: an empty list without the flag fails
+Onetime::CustomDomain::SignupConfig.allowlist_requirement_met?(
+  strategy: 'domain_allowlist', domains: [], allow_base_domain: false, base_domain: 'example.com',
+)
+#=> false
+
+## allowlist_requirement_met?: strategies without an allowlist always pass
+%w[passthrough mx smtp].map do |strategy|
+  Onetime::CustomDomain::SignupConfig.allowlist_requirement_met?(
+    strategy: strategy, domains: [], allow_base_domain: false, base_domain: nil,
+  )
+end
+#=> [true, true, true]
+
 ## passthrough ignores the flag (format-only, as before)
 @abd_orphan.validation_strategy = 'passthrough'
 @abd_orphan.valid_signup_email?('anyone@anywhere.com')

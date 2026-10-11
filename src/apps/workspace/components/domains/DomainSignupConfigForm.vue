@@ -23,6 +23,7 @@
  * its own.
  */
 import {
+  allowlistRequirementMet,
   SIGNUP_STRATEGY_METADATA,
   type CustomDomainSignupConfig,
   type SignupValidationStrategy,
@@ -133,24 +134,16 @@ const performsNetworkValidation = computed(
 );
 
 // The base domain counts as an allowlist entry only when there is one to
-// derive — the same condition the server applies before accepting an
-// otherwise-empty list.
+// derive (see allowlistRequirementMet).
 const allowsBaseDomain = computed(
   () => props.formState.allow_base_domain && Boolean(props.baseDomain)
 );
 
 const showsBaseDomainChip = computed(() => requiresAllowlist.value && allowsBaseDomain.value);
 
-const isFormValid = computed(() => {
-  if (
-    requiresAllowlist.value &&
-    props.formState.allowed_signup_domains.length === 0 &&
-    !allowsBaseDomain.value
-  ) {
-    return false;
-  }
-  return true;
-});
+const isFormValid = computed(() =>
+  allowlistRequirementMet(props.formState, Boolean(props.baseDomain))
+);
 
 // ---------------------------------------------------------------------------
 // Handlers

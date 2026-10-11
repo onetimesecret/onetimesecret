@@ -60,6 +60,11 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
   # Supported validation strategy types
   STRATEGY_TYPES = %w[passthrough domain_allowlist mx smtp].freeze
 
+  # Raised by the workspace API and reported by #validation_errors when
+  # allowlist_requirement_met? fails.
+  ALLOWLIST_REQUIRED_ERROR = 'allowed_signup_domains is required when validation_strategy ' \
+                             'is domain_allowlist and allow_base_domain is not set'
+
   # Strategy metadata for UI/documentation
   STRATEGY_METADATA = {
     'passthrough' => {
@@ -246,6 +251,8 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
   #
   # @return [String, nil]
   def base_domain
+    return nil if domain_id.to_s.empty?
+
     value = custom_domain&.base_domain.to_s.strip.downcase
     value.empty? ? nil : value
   end
@@ -331,11 +338,13 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
     errors << 'validation_strategy is required' if validation_strategy.to_s.empty?
     errors << "validation_strategy must be one of: #{STRATEGY_TYPES.join(', ')}" unless STRATEGY_TYPES.include?(validation_strategy)
 
-    # domain_allowlist strategy requires at least one domain, listed or
-    # supplied by allow_base_domain (the custom domain's own base domain)
-    if validation_strategy == 'domain_allowlist' && allowed_signup_domains.empty? && !allow_base_domain?
-      errors << 'allowed_signup_domains is required for domain_allowlist strategy unless allow_base_domain is set'
-    end
+    allowlist_met = self.class.allowlist_requirement_met?(
+      strategy: validation_strategy,
+      domains: allowed_signup_domains,
+      allow_base_domain: allow_base_domain?,
+      base_domain: (base_domain if allow_base_domain?), # skip the domain lookup when unused
+    )
+    errors << ALLOWLIST_REQUIRED_ERROR unless allowlist_met
 
     errors
   end
@@ -361,6 +370,28 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
     # @return [Hash] Strategy metadata or empty hash
     def metadata_for(strategy_type)
       STRATEGY_METADATA.fetch(strategy_type.to_s, {})
+    end
+
+    # The allowlist requirement, shared by #validation_errors and the
+    # workspace API (SignupConfig::Base#validate_allowlist_has_domains). A
+    # strategy that requires an allowlist must have at least one domain to
+    # admit: listed explicitly, or supplied by allow_base_domain. The flag
+    # counts only when the custom domain has a base_domain to derive;
+    # otherwise the effective list is empty and validate_domain_allowlist
+    # denies everyone. Mirrored client-side by allowlistRequirementMet in
+    # src/schemas/contracts/custom-domain/signup-config.ts.
+    #
+    # @param strategy [String] validation strategy
+    # @param domains [Array<String>, nil] explicitly listed domains
+    # @param allow_base_domain [Boolean] effective allow_base_domain value
+    # @param base_domain [String, nil] the custom domain's registrable domain
+    # @return [Boolean]
+    def allowlist_requirement_met?(strategy:, domains:, allow_base_domain:, base_domain:)
+      return true unless metadata_for(strategy)[:requires_allowlist]
+      return true unless Array(domains).empty?
+      return false unless allow_base_domain
+
+      !base_domain.to_s.strip.empty?
     end
 
     # Find signup config by domain ID.
