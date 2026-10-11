@@ -702,6 +702,13 @@ module Auth::Config::Hooks
                  :invalid_email
                elsif (listed = sso_config.matching_allowed_domain(candidate)).nil?
                  :domain_not_allowed
+               elsif domain_owner_unverified?(rodauth)
+                 # The allowlist matched, but the IdP itself says the tenant does
+                 # not own the email's domain (Entra `xms_edov: false`, #4735).
+                 # An allowlist entry is the org's statement about which domains
+                 # its IdP vouches for; a domain the IdP disowns is not vouched
+                 # for, whatever the list says.
+                 :domain_unverified
                end
 
       unless reason
@@ -719,6 +726,28 @@ module Auth::Config::Hooks
 
       error = [:missing_email, :invalid_email].include?(reason) ? reason : :domain_not_allowed
       rodauth.send(:redirect, "/signin?auth_error=#{error}")
+    end
+
+    # Did the IdP explicitly assert that the email's domain owner is NOT
+    # verified? Only Entra ID emits such a claim (`xms_edov`, in the decoded
+    # id_token that omniauth-entra-id exposes as extra.raw_info); every other
+    # provider yields nil here. Absence is not a refusal — the claim is opt-in
+    # per app registration — and an unreadable auth hash is not one either:
+    # this rung narrows an allowlist match, it does not replace the ladder's
+    # fail-closed rungs above it.
+    #
+    # @param rodauth [Rodauth] the callback's Rodauth instance
+    # @return [Boolean]
+    def self.domain_owner_unverified?(rodauth)
+      return false unless rodauth.respond_to?(:omniauth_extra, true)
+
+      extra    = rodauth.send(:omniauth_extra)
+      raw_info = Auth::Config::Hooks::OmniAuth.fetch_claim(extra, 'raw_info')
+      Auth::Config::Hooks::OmniAuth.explicit_false?(
+        Auth::Config::Hooks::OmniAuth.fetch_claim(raw_info, 'xms_edov'),
+      )
+    rescue StandardError
+      false
     end
 
     # Log a tenant allowlist match that only the IDN comparison made: the

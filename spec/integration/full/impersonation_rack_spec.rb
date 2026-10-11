@@ -52,6 +52,7 @@ RSpec.describe 'Colonel impersonation through the rack stack', type: :integratio
     customer          = Onetime::Customer.create!(email: "#{run_id}_colonel@test.com")
     customer.role     = 'colonel'
     customer.verified = 'true'
+    customer.verified_by = 'email'
     customer.save
     customer
   end
@@ -59,6 +60,7 @@ RSpec.describe 'Colonel impersonation through the rack stack', type: :integratio
   let!(:target) do
     customer          = Onetime::Customer.create!(email: "#{run_id}_target@test.com")
     customer.verified = 'true'
+    customer.verified_by = 'email'
     customer.save
     customer
   end

@@ -13,7 +13,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::ManageEntitlementOverride do
   let(:colonel) do
     instance_double(Onetime::Customer,
       objid: 'cust_colonel', extid: 'ur_colonel', role: 'colonel',
-      verified?: true, anonymous?: false)
+      verified?: true, mailbox_verified?: true, anonymous?: false)
   end
 
   let(:org) do

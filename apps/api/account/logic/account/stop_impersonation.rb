@@ -101,7 +101,7 @@ module AccountAPI
           @principal = Onetime::Customer.load_by_extid_or_email(external_id)
           return false unless principal
 
-          principal.role?('colonel') && principal.verified?
+          principal.role?('colonel') && principal.mailbox_verified?
         end
       end
     end

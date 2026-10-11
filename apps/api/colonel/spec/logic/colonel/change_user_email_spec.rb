@@ -18,7 +18,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::ChangeUserEmail do
   let(:colonel) do
     instance_double(Onetime::Customer,
       objid: 'cust_colonel', extid: 'ur_colonel',
-      role: 'colonel', verified?: true, anonymous?: false)
+      role: 'colonel', verified?: true, mailbox_verified?: true, anonymous?: false)
   end
 
   let(:target) do
@@ -218,7 +218,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::ChangeUserEmail do
     let(:colonel_target) do
       instance_double(Onetime::Customer,
         objid: 'cust_last', extid: 'ur_last', email: 'boss@example.com',
-        role: 'colonel', verified?: true, exists?: true, anonymous?: false)
+        role: 'colonel', verified?: true, mailbox_verified?: true, exists?: true, anonymous?: false)
     end
 
     def change_email_logic(params = {})
@@ -247,7 +247,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::ChangeUserEmail do
 
     it 'allows it when a second verified colonel exists (roster stays populated)' do
       second = instance_double(Onetime::Customer,
-        objid: 'cust_second', role: 'colonel', verified?: true, exists?: true)
+        objid: 'cust_second', role: 'colonel', verified?: true, mailbox_verified?: true, exists?: true)
       allow(Onetime::Customer).to receive(:find_all_by_role).with('colonel')
         .and_return([colonel_target, second])
 

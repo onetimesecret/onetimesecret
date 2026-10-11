@@ -21,7 +21,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::GetAccountDiagnostics do
       objid: 'cust_colonel',
       extid: 'ur_colonel',
       role: 'colonel',
-      verified?: true,
+      verified?: true, mailbox_verified?: true,
       anonymous?: false,
     )
   end
@@ -159,7 +159,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::GetAccountDiagnostics do
         extid: 'ur_target',
         email: 'user@example.com',
         role: 'customer',
-        verified?: true,
+        verified?: true, mailbox_verified?: true,
         suspended?: true,
         suspended_at: 1_700_000_000.0,
         # Reaches `findings` too: the :suspended message interpolates it. The

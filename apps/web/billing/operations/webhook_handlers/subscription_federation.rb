@@ -136,10 +136,34 @@ module Billing
 
           org.save
 
+          # The org now carries this event's state directly, so a pending
+          # record for the same hash is a stale snapshot (left when a claim
+          # saved the org but failed to destroy it). Retire it here rather
+          # than let a later re-claim replay it over this update (#4735).
+          discard_superseded_pending(org)
+
           # Record federation event on Stripe Customer for visibility
           record_federation_note(subscription, org, first_federation)
 
           first_federation
+        end
+
+        # Best-effort: the org update is the record of truth and has already
+        # been saved; a failure here is logged, never raised.
+        #
+        # @param org [Onetime::Organization] Federated organization just synced
+        def discard_superseded_pending(org)
+          pending = Billing::PendingFederatedSubscription.find_by_email_hash(org.email_hash)
+          return unless pending
+
+          pending.destroy!
+          billing_logger.info '[SubscriptionFederation] Retired pending record superseded by direct sync',
+            org: org.extid,
+            email_hash: org.email_hash
+        rescue StandardError => ex
+          billing_logger.warn '[SubscriptionFederation] Failed to retire superseded pending record',
+            org: org.extid,
+            error: ex.message
         end
 
         # Record federation event on Stripe Customer via metadata

@@ -283,10 +283,10 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
       end
     end
 
-    context 'when the owner is already verified' do
+    context 'when the owner is already mailbox-verified' do
       it 'still reveals the plaintext and leaves the owner untouched' do
         owner.verified    = true
-        owner.verified_by = 'stripe_payment' # non-email provenance so a rewrite would be visible
+        owner.verified_by = 'colonel_admin' # mailbox proof, but not 'email', so a rewrite would be visible
         owner.save
         logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
         logic.process_params
@@ -299,7 +299,166 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
 
         reloaded = Onetime::Customer.load(owner.objid)
         expect(reloaded.verified?).to be true
-        expect(reloaded.verified_by).to eq('stripe_payment') # NOT overwritten to 'email'
+        expect(reloaded.verified_by).to eq('colonel_admin') # NOT overwritten to 'email'
+      end
+    end
+
+    # #4735: a verified stamp without mailbox proof (payment, autoverify, IdP)
+    # is not "already verified" for this branch. Following the link delivered
+    # to the address IS mailbox proof, so the owner acquires it here.
+    context 'when the owner is verified without mailbox proof' do
+      it 'reveals the plaintext and upgrades the provenance to email' do
+        owner.verified    = true
+        owner.verified_by = 'stripe_payment'
+        owner.save
+        expect(owner.mailbox_verified?).to be false
+
+        logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+        logic.process_params
+        logic.process
+
+        expect(logic.show_secret).to be true
+        expect(logic.secret_value).to eq('a secret value')
+        expect(Onetime::Secret.load(secret.identifier)).to be_nil
+
+        reloaded = Onetime::Customer.load(owner.objid)
+        expect(reloaded.verified?).to be true
+        expect(reloaded.verified_by).to eq('email')
+        expect(reloaded.mailbox_verified?).to be true
+      end
+    end
+
+    # #4735: the email-change confirmation secret is delivered to the PROPOSED
+    # address. A customer without mailbox proof must not be able to turn it into
+    # proof of their CURRENT address by feeding it to the reveal endpoint.
+    context 'when the secret is the pending email-change confirmation' do
+      it 'reveals the plaintext without stamping the owner' do
+        owner.verified    = true
+        owner.verified_by = 'stripe_payment'
+        owner.save
+        owner.pending_email_change = secret.identifier
+
+        as_owner = double('Customer', custid: owner.custid, anonymous?: false, objid: owner.objid,
+          extid: owner.extid)
+        logic    = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' }, customer: as_owner)
+        logic.process_params
+        logic.process
+
+        expect(logic.show_secret).to be true
+        expect(Onetime::Secret.load(secret.identifier)).to be_nil
+
+        reloaded = Onetime::Customer.load(owner.objid)
+        expect(reloaded.verified_by).to eq('stripe_payment')
+        expect(reloaded.mailbox_verified?).to be false
+      end
+
+      it 'is recognised by the secret kind alone, without the pending pointer' do
+        owner.verified    = true
+        owner.verified_by = 'autoverify'
+        owner.save
+        secret.kind = 'email_change'
+        secret.save_fields(:kind)
+        # No pending_email_change: a later request overwrote it, or it expired.
+
+        logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+        logic.process_params
+        logic.process
+
+        expect(logic.show_secret).to be true
+        reloaded = Onetime::Customer.load(owner.objid)
+        expect(reloaded.verified_by).to eq('autoverify')
+        expect(reloaded.mailbox_verified?).to be false
+      end
+
+      it 'does not stamp an unverified owner either' do
+        owner.pending_email_change = secret.identifier
+
+        logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+        logic.process_params
+        logic.process
+
+        expect(logic.show_secret).to be true
+        reloaded = Onetime::Customer.load(owner.objid)
+        expect(reloaded.verified?).to be false
+      end
+    end
+
+    # #4735 review F1: a confirmation secret minted BEFORE Secret#kind was
+    # recorded has no kind, and two requests left two live secrets with only
+    # the second on pending_email_change. The first is still revealable; it
+    # was delivered to a proposed address and must not read as proof of the
+    # current one. Minted exactly as RequestEmailChange did: Secret.create!,
+    # no receipt, the proposed address as the ciphertext.
+    context 'when the secret is a legacy email-change confirmation no longer on the pointer' do
+      let(:secret) do
+        legacy              = Onetime::Secret.create!(owner_id: owner.objid)
+        legacy.custid       = owner.objid
+        legacy.ciphertext   = 'proposed@example.com'
+        legacy.save
+        legacy
+      end
+
+      it 'reveals the plaintext without stamping an SSO-only owner' do
+        owner.verified    = true
+        owner.verified_by = 'sso'
+        owner.save
+
+        owner.pending_email_change = "#{secret.identifier}-superseded-by-a-second-request"
+
+        as_owner = double('Customer', custid: owner.custid, anonymous?: false, objid: owner.objid,
+          extid: owner.extid)
+        logic    = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' }, customer: as_owner)
+        logic.process_params
+        logic.process
+
+        expect(logic.show_secret).to be true
+        expect(logic.secret_value).to eq('proposed@example.com')
+        expect(Onetime::Secret.load(secret.identifier)).to be_nil
+
+        reloaded = Onetime::Customer.load(owner.objid)
+        expect(reloaded.verified_by).to eq('sso')
+        expect(reloaded.mailbox_verified?).to be false
+      end
+
+      it 'does not stamp an unverified owner either' do
+        logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+        logic.process_params
+        logic.process
+
+        expect(logic.show_secret).to be true
+        expect(Onetime::Customer.load(owner.objid).verified?).to be false
+      end
+    end
+
+    # The receipt-backed verification secret predates the kind too, and its
+    # reset_secret pointer (24h) outlives the link (24 days) by nothing like
+    # enough: an older signup link must keep verifying after the pointer has
+    # moved on to a resend, because only send_verification_email mints one.
+    context 'when the secret is a legacy account-verification link whose pointer has moved on' do
+      it 'still verifies the owner' do
+        owner.reset_secret = 'a-newer-resend'
+
+        logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+        logic.process_params
+        logic.process
+
+        expect(logic.show_secret).to be true
+        reloaded = Onetime::Customer.load(owner.objid)
+        expect(reloaded.verified_by).to eq('email')
+      end
+
+      # The pointer is shared with password recovery: when it has moved on to a
+      # newer recovery token, consuming this older link must not delete it
+      # (#4735 review, F7).
+      it 'leaves the newer pointer in place' do
+        owner.reset_secret = 'a-newer-recovery-token'
+
+        logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })
+        logic.process_params
+        logic.process
+
+        expect(logic.show_secret).to be true
+        expect(Onetime::Customer.load(owner.objid).reset_secret.value).to eq('a-newer-recovery-token')
       end
     end
 

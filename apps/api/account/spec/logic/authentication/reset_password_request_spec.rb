@@ -76,6 +76,7 @@ RSpec.describe AccountAPI::Logic::Authentication::ResetPasswordRequest do
     allow(Onetime::Secret).to receive(:create!).and_return(secret)
     allow(secret).to receive(:default_expiration=)
     allow(secret).to receive(:verification=)
+    allow(secret).to receive(:kind=) # 'password_reset': mailbox proof for the current address (#4735)
     allow(secret).to receive(:save)
 
     # Quiet the auth logger. any_instance, NOT `allow(logic)`: touching `logic`

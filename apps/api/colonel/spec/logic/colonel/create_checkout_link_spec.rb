@@ -17,7 +17,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::CreateCheckoutLink do
       objid: 'cust_colonel',
       extid: 'ur_colonel',
       role: 'colonel',
-      verified?: true,
+      verified?: true, mailbox_verified?: true,
       anonymous?: false,
     )
   end

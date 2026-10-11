@@ -174,6 +174,7 @@ post '/api/domains/add',
 @colonel_user = Onetime::Customer.create!(email: "role_gate_colonel_#{@ts}_#{@entropy}@test.com")
 @colonel_user.role = 'colonel'
 @colonel_user.verified = 'true'
+@colonel_user.verified_by = 'email'
 @colonel_user.save
 @colonel_session = {
   'authenticated' => true,

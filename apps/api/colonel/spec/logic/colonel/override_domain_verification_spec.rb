@@ -9,7 +9,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::OverrideDomainVerification do
   let(:colonel) do
     instance_double(Onetime::Customer,
       objid: 'cust_colonel', extid: 'ur_colonel', role: 'colonel',
-      verified?: true, anonymous?: false)
+      verified?: true, mailbox_verified?: true, anonymous?: false)
   end
 
   # This verb bypasses DNS proof of ownership, so it requires the domain name in

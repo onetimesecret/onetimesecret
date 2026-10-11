@@ -153,7 +153,7 @@ module V2::Logic
               # even get here? It means a verification secret for authentication_mode=basic
               # has a nil or invalid object identifier for the owner.
               raise_form_error I18n.t('web.COMMON.verification_not_valid', locale: @locale, default: 'Verification not valid')
-            elsif owner.verified?
+            elsif owner.mailbox_verified?
               secret_logger.error 'Invalid verification attempt - owner already verified',
                 {
                   secret_identifier: secret.shortid,
@@ -170,18 +170,38 @@ module V2::Logic
               # plaintext only if this caller won the one-shot claim.
               @secret_value = secret.reveal!(passphrase_input: @passphrase, actor_context: actor_context)
 
-            elsif owner && (cust&.anonymous? || (cust&.custid == owner.custid && !owner.verified?))
-              secret_logger.info 'Owner verification successful',
-                {
-                  secret_identifier: secret.shortid,
-                  owner_id: owner.objid,
-                  action: 'verification',
-                  result: :verified,
-                }
-              owner.verified    = true
-              owner.verified_by = 'email'  # Track email verification method
-              owner.save
-              owner.reset_secret.delete!
+            elsif owner && (cust&.anonymous? || (cust&.custid == owner.custid && !owner.mailbox_verified?))
+              # Following a link delivered to the address IS mailbox proof, so
+              # this also upgrades an owner whose stamp carried none (payment,
+              # autoverify, legacy) — the gate above is mailbox_verified?, not
+              # verified? (#4735). EXCEPT the email-change confirmation secret,
+              # which was delivered to the PROPOSED address: revealing it here
+              # proves nothing about the current one, so it is shown without
+              # a stamp (Customer#mailbox_proof_secret?).
+              if owner.mailbox_proof_secret?(secret)
+                secret_logger.info 'Owner verification successful',
+                  {
+                    secret_identifier: secret.shortid,
+                    owner_id: owner.objid,
+                    action: 'verification',
+                    result: :verified,
+                  }
+                owner.verified    = true
+                owner.verified_by = 'email'  # Track email verification method
+                owner.save
+                # The pointer is shared with password recovery, and a newer
+                # recovery link may have moved it on since this welcome link
+                # was minted. Clear it only while it still names this secret.
+                owner.reset_secret.delete! if owner.matches_reset_secret?(secret)
+              else
+                secret_logger.info 'Verification secret is not mailbox proof for the owner; revealing without stamping',
+                  {
+                    secret_identifier: secret.shortid,
+                    owner_id: owner.objid,
+                    action: 'verification',
+                    result: :not_mailbox_proof,
+                  }
+              end
               # Skip for stateless auth (BasicAuth provides empty session)
               sess.clear unless sess.empty?
               @secret_value     = secret.reveal!(passphrase_input: @passphrase, actor_context: actor_context)

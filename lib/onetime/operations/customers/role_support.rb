@@ -40,7 +40,7 @@ module Onetime
         # @return [Array<Onetime::Customer>]
         def active_colonels
           Onetime::Customer.find_all_by_role('colonel').select do |candidate|
-            candidate && candidate.exists? && candidate.role.to_s == 'colonel' && candidate.verified?
+            candidate && candidate.exists? && candidate.role.to_s == 'colonel' && candidate.mailbox_verified?
           end
         end
 
@@ -63,7 +63,7 @@ module Onetime
         def last_colonel?(customer, to_role)
           return false if to_role.to_s == 'colonel'
           return false unless customer.role.to_s == 'colonel'
-          return false unless customer.verified?
+          return false unless customer.mailbox_verified?
 
           sole_active_colonel?(customer)
         end
@@ -78,7 +78,7 @@ module Onetime
         # @return [Boolean]
         def last_colonel_by_verification?(customer)
           return false unless customer.role.to_s == 'colonel'
-          return false unless customer.verified?
+          return false unless customer.mailbox_verified?
 
           sole_active_colonel?(customer)
         end

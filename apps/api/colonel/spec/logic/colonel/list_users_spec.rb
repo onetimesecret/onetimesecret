@@ -21,7 +21,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::ListUsers do
       objid: 'cust_colonel',
       extid: 'ur_colonel',
       role: 'colonel',
-      verified?: true,
+      verified?: true, mailbox_verified?: true,
       anonymous?: false,
     )
   end
@@ -44,7 +44,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::ListUsers do
       extid: 'ur_bob',
       email: 'bob@example.com',
       role: 'customer',
-      verified?: true,
+      verified?: true, mailbox_verified?: true,
       suspended?: false,
       created: 1_700_000_000,
       last_login: nil,
@@ -143,7 +143,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::ListUsers do
         extid: 'ur_bob',
         email: 'bob@example.com',
         role: 'customer',
-        verified?: true,
+        verified?: true, mailbox_verified?: true,
         suspended?: false,
         created: 1_700_000_000,
         last_login: nil,

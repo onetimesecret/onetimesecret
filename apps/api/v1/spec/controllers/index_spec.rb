@@ -33,7 +33,7 @@ RSpec.describe V1::Controllers::Index, type: :request do
       custid: customer_id,
       anonymous?: false,
       active?: true,
-      verified?: true,
+      verified?: true, mailbox_verified?: true,
       role: 'customer',
       increment_field: nil,
       email: 'test@example.com')

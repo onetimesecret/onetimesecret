@@ -1115,6 +1115,7 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
     let(:secret) do
       double('Secret', identifier: 'sec_abc123').tap do |s|
         allow(s).to receive(:verification=)
+        allow(s).to receive(:kind=) # 'account_verification' (#4735)
         allow(s).to receive(:custid=)
         allow(s).to receive(:save)
       end

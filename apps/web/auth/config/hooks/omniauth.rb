@@ -936,12 +936,21 @@ module Auth::Config::Hooks
               redirect '/signin?auth_error=org_join_failed'
             end
           else
-            # Canonical domain SSO → create default workspace
+            # Canonical domain SSO → create default workspace.
+            #
+            # require_verification: true (#4735): the IdP asserted this address
+            # but nobody proved mailbox control, so a matching pending federated
+            # subscription is NOT claimed here — the pending record stays intact
+            # until an operator verifies the address (colonel admin or
+            # `bin/ots customers verify`), when SetCustomerVerification
+            # re-invokes the claim. EnsureDefaultWorkspace also defers for an
+            # sso_jit record on every other path (lazy creation, billing), so
+            # this flag states the intent rather than carrying it alone.
             Onetime::ErrorHandler.safe_execute(
               'ensure_default_workspace_omniauth',
               external_id: customer.extid,
             ) do
-              Auth::Operations::EnsureDefaultWorkspace.new(customer: customer).call
+              Auth::Operations::EnsureDefaultWorkspace.new(customer: customer, require_verification: true).call
             # Only the collision is rescued. Onetime::AccountProvisioningUnavailable
             # deliberately is NOT (same reasoning as hooks/account.rb): it
             # persists nothing, and at JIT-create time no other request can hold
@@ -1075,24 +1084,25 @@ module Auth::Config::Hooks
         return confirmed_at.to_s.strip.empty? ? 'idp_unverified' : nil
       end
 
-      claim = fetch_claim(info, 'email_verified')
-      claim = fetch_claim(fetch_claim(extra, 'raw_info'), 'email_verified') if claim.nil?
-      return nil if claim.nil?
+      raw_info = fetch_claim(extra, 'raw_info')
 
-      # Some providers stringify the claim ("false"); false and "false" are the
-      # same assertion. Anything else (true, "true", 1, garbage) is not a hold.
-      #
-      # SAML (#4450): RequestBoundSAML hands raw_info over as a plain Hash of
-      # attribute name => Array<String>, so an IdP attribute named
-      # `email_verified` arrives as ["false"] — whose #to_s is '["false"]', not
-      # 'false'. Without the unwrap an explicit IdP veto would be silently
-      # ignored on exactly one protocol. ANY false among the values holds:
-      # this method only ever narrows the verified stamp. (SAML defines no
-      # such claim; with the attribute absent, a SAML JIT account is verified
-      # on IdP trust alone — never held as 'claim_unreadable', since a plain
-      # Hash read cannot raise.)
-      values = claim.is_a?(Array) ? claim : [claim]
-      values.any? { |value| value.to_s.strip.downcase == 'false' } ? 'idp_unverified' : nil
+      claim = fetch_claim(info, 'email_verified')
+      claim = fetch_claim(raw_info, 'email_verified') if claim.nil?
+      return 'idp_unverified' if explicit_false?(claim)
+
+      # Entra ID's optional `xms_edov` claim (#4735, RISK-2026-10-10-02 R2b):
+      # "Boolean value indicating whether the user's email domain owner has
+      # been verified." An explicit false means Microsoft has NOT verified
+      # that the tenant owns the email's domain, so the address is not even
+      # domain-anchored and the stamp is withheld. true is domain-OWNER
+      # verification, not mailbox control: it never upgrades the stamp beyond
+      # 'sso' and is not mailbox proof (Customer::MAILBOX_VERIFIED_BY).
+      # Absence is not a hold (the claim is opt-in per app registration; see
+      # docs/authentication/per-install-sso.md). Read AFTER email_verified so
+      # an IdP asserting both reports the stronger, user-level reason.
+      return 'domain_unverified' if explicit_false?(fetch_claim(raw_info, 'xms_edov'))
+
+      nil
     rescue StandardError => ex
       Auth::Logging.log_auth_event(
         :omniauth_email_verified_claim_unreadable,
@@ -1103,6 +1113,31 @@ module Auth::Config::Hooks
         extra_class: extra.class.name,
       )
       'claim_unreadable'
+    end
+
+    # Is a boolean-ish IdP claim an EXPLICIT false?
+    #
+    # nil (claim absent) is never false. Some providers stringify the claim
+    # ("false"); false and "false" are the same assertion. Anything else (true,
+    # "true", 1, garbage) is not.
+    #
+    # SAML (#4450): RequestBoundSAML hands raw_info over as a plain Hash of
+    # attribute name => Array<String>, so an IdP attribute named
+    # `email_verified` arrives as ["false"] — whose #to_s is '["false"]', not
+    # 'false'. Without the unwrap an explicit IdP veto would be silently
+    # ignored on exactly one protocol. ANY false among the values counts: the
+    # callers only ever narrow the verified stamp. (SAML defines no such
+    # claim; with the attribute absent, a SAML JIT account is verified on IdP
+    # trust alone — never held as 'claim_unreadable', since a plain Hash read
+    # cannot raise.)
+    #
+    # @param claim [Object, Array, nil] the raw claim value
+    # @return [Boolean]
+    def self.explicit_false?(claim)
+      return false if claim.nil?
+
+      values = claim.is_a?(Array) ? claim : [claim]
+      values.any? { |value| value.to_s.strip.downcase == 'false' }
     end
 
     # Key-shape-tolerant single-key read. Returns nil for a missing key or an

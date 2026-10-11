@@ -96,6 +96,7 @@ end
 # BFLA subject — even a fully-verified ordinary account must be denied.
 @regular = Onetime::Customer.create!(email: "bfla_regular_#{@ts}@example.com")
 @regular.verified = 'true'
+@regular.verified_by = 'email'
 @regular.save
 
 @regular_session = {

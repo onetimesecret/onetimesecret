@@ -22,7 +22,7 @@ module ColonelAPI
       class SetUserVerificationBase < ColonelAPI::Logic::Base
         include AccountIdentifier
 
-        attr_reader :user_id, :user, :change_result
+        attr_reader :user_id, :user, :change_result, :federation_claimed
 
         # @return [Boolean] target verification state (subclass overrides)
         def verified_target
@@ -72,13 +72,15 @@ module ColonelAPI
         end
 
         def process
-          @change_result = Auth::Operations::Customers::SetVerification.new(
+          op                  = Auth::Operations::Customers::SetVerification.new(
             customer: user,
             verified: verified_target,
             actor: cust.extid,       # acting colonel's PUBLIC id (never an objid)
             actor_objid: cust.objid, # INTERNAL id, for the self-unverify check only
             verified_by: verified_by_tag,
-          ).call
+          )
+          @change_result      = op.call
+          @federation_claimed = op.federation_claimed?
 
           handle_change_result
 
@@ -102,6 +104,9 @@ module ColonelAPI
             },
             details: {
               changed: change_result == :success,
+              # A deferred federated subscription applied by this call (#4735).
+              # Can be true while `changed` is false: that is the retry case.
+              federation_claimed: federation_claimed == true,
               message: verified_target ? 'User verified' : 'User unverified',
             },
           }

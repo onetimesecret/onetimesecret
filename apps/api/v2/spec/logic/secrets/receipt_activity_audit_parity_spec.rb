@@ -37,7 +37,7 @@ RSpec.describe 'ListReceipts(scope: :org) / ListSecretActivity audit-gate parity
       extid: 'ext-cust-parity-123',
       email: 'admin@example.com',
       anonymous?: false,
-      verified?: true,
+      verified?: true, mailbox_verified?: true,
       role: 'customer',
       role?: false,
       planid: 'identity_plus_v1',

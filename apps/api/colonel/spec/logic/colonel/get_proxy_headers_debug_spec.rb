@@ -7,7 +7,7 @@ require 'colonel/logic'
 
 RSpec.describe ColonelAPI::Logic::Colonel::GetProxyHeadersDebug do
   let(:colonel) do
-    instance_double(Onetime::Customer, role: 'colonel', verified?: true, anonymous?: false)
+    instance_double(Onetime::Customer, role: 'colonel', verified?: true, mailbox_verified?: true, anonymous?: false)
   end
   let(:payload) do
     {

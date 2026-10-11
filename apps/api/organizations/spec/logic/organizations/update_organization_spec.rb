@@ -18,7 +18,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::UpdateOrganization do
       extid: 'ext-cust-123',
       email: 'owner@example.com',
       anonymous?: false,
-      verified?: true,
+      verified?: true, mailbox_verified?: true,
       role: 'customer',
       default_org_id: '',
       organization_instances: [organization]

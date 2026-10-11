@@ -147,11 +147,11 @@ RSpec.describe Auth::Operations::Customers::SetRole do
   describe 'interlocks' do
     let(:colonel_target) do
       double('Customer', role: 'colonel', extid: 'ur_col', objid: 'cust_col',
-        verified?: true, exists?: true, :role= => nil, save: true)
+        verified?: true, mailbox_verified?: true, exists?: true, :role= => nil, save: true)
     end
 
     let(:second_colonel) do
-      double('Customer', role: 'colonel', objid: 'cust_other', verified?: true, exists?: true)
+      double('Customer', role: 'colonel', objid: 'cust_other', verified?: true, mailbox_verified?: true, exists?: true)
     end
 
     def stub_roster(*colonels)
@@ -204,9 +204,9 @@ RSpec.describe Auth::Operations::Customers::SetRole do
     it 'ignores drifted index members when counting the remaining colonels' do
       stub_roster(
         colonel_target,
-        double('Customer', objid: 'cust_gone', exists?: false, role: 'colonel', verified?: true),
-        double('Customer', objid: 'cust_demoted', exists?: true, role: 'admin', verified?: true),
-        double('Customer', objid: 'cust_unver', exists?: true, role: 'colonel', verified?: false),
+        double('Customer', objid: 'cust_gone', exists?: false, role: 'colonel', verified?: true, mailbox_verified?: true),
+        double('Customer', objid: 'cust_demoted', exists?: true, role: 'admin', verified?: true, mailbox_verified?: true),
+        double('Customer', objid: 'cust_unver', exists?: true, role: 'colonel', verified?: false, mailbox_verified?: false),
       )
 
       expect(demote(colonel_target).status).to eq(:last_colonel)
@@ -220,7 +220,7 @@ RSpec.describe Auth::Operations::Customers::SetRole do
     # be removed by any surface.
     it 'allows demoting an unverified colonel even when no colonel is verified' do
       unverified_colonel = double('Customer', role: 'colonel', extid: 'ur_unver',
-        objid: 'cust_unver', verified?: false, exists?: true, :role= => nil, save: true)
+        objid: 'cust_unver', verified?: false, mailbox_verified?: false, exists?: true, :role= => nil, save: true)
       # Roster holds only an unverified colonel-role account → active_colonels is empty.
       stub_roster(unverified_colonel)
 

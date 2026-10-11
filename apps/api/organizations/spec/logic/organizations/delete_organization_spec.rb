@@ -34,7 +34,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::DeleteOrganization do
       extid: 'ext-cust-123',
       email: 'owner@example.com',
       anonymous?: false,
-      verified?: true,
+      verified?: true, mailbox_verified?: true,
       role: 'customer',
     )
   end

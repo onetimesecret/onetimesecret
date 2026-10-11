@@ -19,13 +19,13 @@ RSpec.describe ColonelAPI::Logic::Colonel::DiscardDlqMessage do
   let(:colonel) do
     instance_double(Onetime::Customer,
       objid: 'cust_colonel', extid: 'ur_colonel',
-      role: 'colonel', verified?: true, anonymous?: false)
+      role: 'colonel', verified?: true, mailbox_verified?: true, anonymous?: false)
   end
 
   let(:customer) do
     instance_double(Onetime::Customer,
       objid: 'cust_plain', extid: 'ur_plain',
-      role: 'customer', verified?: true, anonymous?: false)
+      role: 'customer', verified?: true, mailbox_verified?: true, anonymous?: false)
   end
 
   def op_result(status: :success, found: true, outcome: nil, scanned: 2, truncated: false, error: nil)

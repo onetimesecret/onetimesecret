@@ -291,14 +291,15 @@ module Onetime
       nil
     end
 
-    # The overlay is only ever granted to a still-verified colonel. Re-checked
-    # on EVERY request, so a demotion or an unverify takes the overlay away on
-    # the next click rather than at the 30-minute mark.
+    # The overlay is only ever granted to a still mailbox-verified colonel (the
+    # same predicate has_system_role? applies). Re-checked on EVERY request, so
+    # a demotion or an unverify takes the overlay away on the next click rather
+    # than at the 30-minute mark.
     def operator?(principal)
       return false unless principal
       return false unless principal.role?('colonel')
 
-      principal.respond_to?(:verified?) ? principal.verified? : true
+      principal.respond_to?(:mailbox_verified?) ? principal.mailbox_verified? : true
     end
 
     # Resolved fresh per REQUEST rather than cached in the marker: suspension

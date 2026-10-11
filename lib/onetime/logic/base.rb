@@ -484,12 +484,20 @@ module Onetime
         _receipt, secret = Onetime::Receipt.spawn_pair(customer&.objid, 24.days, msg)
 
         secret.verification = true
+        secret.kind         = 'account_verification' # mailbox proof for the owner's current address (#4735)
         secret.custid       = customer.custid
         secret.save
 
         # The reset_secret field is a related standalone dbkey, writes
         # immediately. e.g. customer:abcd1234:reset_secret
-        customer.reset_secret = secret.identifier
+        #
+        # The pointer is shared with password recovery. A duplicate signup or
+        # an unverified sign-in can resend verification while the holder has a
+        # live recovery link out; overwriting the pointer here would fail that
+        # link at redemption (ResetPassword checks the pointer). Leave an
+        # outstanding recovery pointer alone: the new link is mailbox proof by
+        # its kind and needs no pointer (Customer#mailbox_proof_secret?).
+        customer.reset_secret = secret.identifier unless customer.reset_secret_outstanding?
 
         # @locale can arrive blank ("") from params (see #initialize) — an empty
         # string is truthy, so it slips past a bare `||` into an invalid I18n

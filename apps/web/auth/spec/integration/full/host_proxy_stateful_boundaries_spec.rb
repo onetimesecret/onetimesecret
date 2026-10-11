@@ -166,6 +166,7 @@ RSpec.describe 'Host proxy stateful boundaries', :shared_db_state, type: :integr
       customer = account_customer
       customer.role = 'colonel'
       customer.verified = true
+      customer.verified_by = 'email'
       customer.save
     end
     proxy_get(host, '/auth')

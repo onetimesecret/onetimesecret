@@ -9,6 +9,14 @@
 # out-of-band identity check). For new customers, use `customers create`
 # with `--verified` instead.
 #
+# Also the MAILBOX-proof path for an account that is already verified on an
+# IdP's say-so (SSO JIT, verified_by: 'sso', #4735): system roles and
+# federated-subscription claims require mailbox proof, which 'sso' is not.
+# Re-running verify on such an account rewrites the provenance to
+# 'cli_provision' (one of Onetime::Customer::MAILBOX_VERIFIED_BY) and claims
+# any deferred federated subscription. Confirm the address with its owner
+# first — this command is the operator vouching for it.
+#
 # Usage:
 #   bin/ots customers verify user@example.com      # Lookup by email
 #   bin/ots customers verify ur1234567890abcdef    # Lookup by extid
@@ -67,12 +75,13 @@ module Onetime
 
         obscured = OT::Utils.obscure_email(customer.email)
 
-        result = Auth::Operations::Customers::SetVerification.new(
+        op     = Auth::Operations::Customers::SetVerification.new(
           customer: customer,
           verified: true,
           actor: Customers::Shared::CLI_ACTOR,
           verified_by: 'cli_provision',
-        ).call
+        )
+        result = op.call
 
         case result
         when :no_change
@@ -80,6 +89,14 @@ module Onetime
         when :success
           puts "Verified: #{obscured}"
         end
+
+        # A verification that leaves the account mailbox-proven is also the
+        # retry for a stranded federated subscription claim (#4735), so a
+        # :no_change run can still deliver a plan. Report it rather than leaving
+        # "already verified" as the whole story.
+        return unless op.federation_claimed?
+
+        puts "Applied the pending federated subscription to #{obscured}'s default workspace"
       rescue Auth::Operations::SetCustomerVerification::NoAuthDatabase => ex
         puts "Error: #{ex.message}. Check AUTH_DATABASE_URL."
         exit 1

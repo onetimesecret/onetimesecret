@@ -72,6 +72,8 @@ RSpec.describe Auth::Operations::SetCustomerVerification, 'with a real (migrated
       extid: extid,
       email: email,
       verified?: verified,
+      verified_by: nil,
+      mailbox_verified?: verified,
       :verified= => nil,
       :verified_by= => nil,
       save: true,

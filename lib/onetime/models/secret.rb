@@ -40,6 +40,22 @@ module Onetime
     field :receipt_identifier
     field :receipt_shortid
     field :owner_id
+    # What this secret is FOR when it is not an ordinary shared secret, in the
+    # Receipt :kind convention. nil for shared secrets. A verification secret
+    # identifies itself (#4735): 'account_verification' (send_verification_email)
+    # and 'password_reset' (ResetPasswordRequest) are delivered to the owner's
+    # CURRENT address, so revealing one proves control of that mailbox;
+    # 'email_change' (RequestEmailChange) is delivered to the PROPOSED address
+    # and never does. Carried on the record itself so the decision does not
+    # depend on a pointer that a later request or a crash between two writes
+    # could leave pointing elsewhere (Customer#mailbox_proof_secret?). A
+    # verification secret minted before the kind was written is blank; the
+    # predicate classifies those by how they were minted.
+    field :kind
+
+    # Verification-secret kinds whose reveal proves control of the owner's
+    # current mailbox. Read by Customer#mailbox_proof_secret?.
+    MAILBOX_PROOF_KINDS = %w[account_verification password_reset].freeze
 
     encrypted_field :ciphertext
     transient_field :ciphertext_passphrase

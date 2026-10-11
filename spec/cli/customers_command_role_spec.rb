@@ -28,7 +28,7 @@ RSpec.describe 'Customers Role Command interlocks', type: :cli do
   let(:customer) do
     double('Customer',
       email: 'colonel@example.com', objid: 'cust_col', extid: 'ur_col',
-      role: 'colonel', verified?: true, anonymous?: false)
+      role: 'colonel', verified?: true, mailbox_verified?: true, anonymous?: false)
   end
 
   before do

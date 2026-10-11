@@ -44,10 +44,12 @@ def last_response; @test.last_response; end
 @colonel = Onetime::Customer.create!(email: "colonel_users_#{@timestamp}@example.com")
 @colonel.role     = 'colonel'
 @colonel.verified = 'true'
+@colonel.verified_by = 'email'
 @colonel.save
 
 @regular = Onetime::Customer.create!(email: "regular_users_#{@timestamp}@example.com")
 @regular.verified = 'true'
+@regular.verified_by = 'email'
 @regular.save
 
 # Give the colonel a known number of live secrets via the creation chokepoint.
