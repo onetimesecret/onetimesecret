@@ -39,7 +39,7 @@ authorization=Basic Y2lkOnNlYytyZXR+eA==   # decodes to "cid:sec+ret~x"
 - Microsoft supports this. The [auth code flow reference](https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-auth-code-flow#request-an-access-token-with-a-client_secret) says: "The Basic auth pattern of instead providing credentials in the Authorization header, per RFC 6749 is also supported."
 - This hasn't changed between v0.26.14 and v0.26.16 (same gems, no override), so it isn't the regression.
 
-**There is a latent encoding gap.** [RFC 6749 §2.3.1](https://datatracker.ietf.org/doc/html/rfc6749#section-2.3.1) says the client ID and secret are form-urlencoded before they go into the Basic header. oauth2 2.0.25 skips that step and sends the raw `id:secret`. Microsoft also says the secret "must be URL-encoded before being sent." If Entra form-decodes Basic credentials, a secret containing `+` (decoded as a space) or `%` would arrive changed, and Entra would answer with AADSTS7000215. A secret without those characters is unaffected.
+**There is a latent encoding gap.** [RFC 6749 §2.3.1](https://datatracker.ietf.org/doc/html/rfc6749#section-2.3.1) says the client ID and secret are form-urlencoded before they go into the Basic header. oauth2 2.0.25 skips that step and sends the raw `id:secret`. Microsoft also says the secret "must be URL-encoded before being sent." If Entra form-decodes Basic credentials, a secret containing `+` (decoded as a space) or `%` would arrive changed, and Entra would answer with AADSTS7000215. Absence of `+` and `%` rules out those particular transformations, not every credential-encoding problem. The client ID must be checked too. The local decoding check below models this hypothesis; it does not establish how Entra decodes Basic credentials.
 
 **Our tests don't check how the secret is sent.** `apps/web/auth/spec/integration/full/entra_native_claims_spec.rb` captures the real token request but only checks `grant_type`, `code` and `redirect_uri`.
 
@@ -188,6 +188,135 @@ secret nor returned token is deliberately printed.
 
 This tests storage → decryption → curl request encoding without replacing the
 stored value. It does not test the strategy's HTTP client or browser code flow.
+
+## Operator diagnostic: stored credential character and decoding checks
+
+After the persisted-credential A/B diagnostic, use the same `stored` record in
+`bin/console`. This check reads through `to_omniauth_options`, makes no network
+requests or writes, and reports only character-presence and comparison results.
+It checks both the client ID and secret without displaying either value.
+
+Run the entire block, not its intermediate expressions:
+
+```ruby
+begin
+  require 'uri'
+
+  options = stored.to_omniauth_options
+
+  [:client_id, :client_secret].each do |field|
+    value = options.fetch(field)
+    raise 'Stored credentials are incomplete' unless value.is_a?(String) && !value.empty?
+
+    decoded_unchanged = begin
+      URI.decode_www_form_component(value).b == value.b
+    rescue ArgumentError
+      'invalid_form_encoding'
+    end
+
+    encoded = URI.encode_www_form_component(value)
+    round_trip_unchanged =
+      URI.decode_www_form_component(encoded).b == value.b
+
+    puts "#{field}: #{{
+      contains_plus: value.include?('+'),
+      contains_percent: value.include?('%'),
+      raw_form_decode_unchanged: decoded_unchanged,
+      encoded_round_trip_unchanged: round_trip_unchanged
+    }}"
+  end
+rescue StandardError => error
+  puts "Credential inspection stopped: #{error.class.name}"
+ensure
+  options = value = encoded = decoded_unchanged = round_trip_unchanged = error = nil
+end; nil
+```
+
+| Result | Meaning |
+|---|---|
+| `contains_plus: true` | A form-decoder would turn a raw `+` into a space. |
+| `contains_percent: true` | Inspect the decoding result: valid `%HH` sequences are decoded; malformed escapes may be rejected. Presence of `%` alone does not establish alteration. |
+| `raw_form_decode_unchanged: false` | Applying Ruby's form-decoder directly to the stored value changes its bytes. |
+| `raw_form_decode_unchanged: "invalid_form_encoding"` | Ruby's form-decoder rejects the raw value. This does not establish how Entra handles it. |
+| `encoded_round_trip_unchanged: true` | Encoding before decoding preserves the value, as expected. |
+
+This **models the suspected transformation**. It does not prove Entra performs
+that transformation or that these were the bytes sent by the failing worker.
+A local exception is not evidence of a Microsoft credential rejection.
+
+The output reveals limited credential characteristics: keep it in restricted
+diagnostic records. Disable console recording and avoid inspecting intermediate
+objects. Dropping references is not secure memory erasure; exit the console when
+finished.
+
+## Developer check: capture the actual outgoing credential transport
+
+For an offline regression check, extend the existing
+[mounted Entra integration spec](../../apps/web/auth/spec/integration/full/entra_native_claims_spec.rb),
+which captures the real strategy's token request at a mocked endpoint. This is
+proposed test coverage, not an additional test implemented by this runbook.
+Use **synthetic credentials only**, including cases such as `plain-secret`,
+`secret+suffix`, `secret%2Bsuffix`, and `secret%invalid`. Exercise special characters
+in the client ID as well as the secret.
+
+For each captured Basic-auth request, Base64-decode its payload and compare it
+with both candidate representations. In the test fixture only:
+
+```ruby
+raw_pair = "#{client_id}:#{client_secret}"
+
+encoded_pair = [
+  URI.encode_www_form_component(client_id),
+  URI.encode_www_form_component(client_secret)
+].join(':')
+```
+
+Do not paste these expressions into a production console: they return credentials.
+For special-character fixtures, a payload equal to `raw_pair` but not
+`encoded_pair` demonstrates the missing form-encoding step in that installed
+client. It does not demonstrate Microsoft's decoding behavior.
+
+Assert the intended transport contract when implementing a fix:
+
+- **RFC-compliant Basic:** the decoded Basic payload equals `encoded_pair`;
+  form-decoding each component recovers the original fixture bytes.
+- **Request-body authentication:** no Basic header is sent, and the decoded form
+  contains the original client ID and secret.
+
+Capture the final request, not just `strategy.options`: options alone do not prove
+what the HTTP client sent. Plain credentials cannot distinguish raw Basic from
+encoded Basic. Keep the special-character cases as regression coverage, and check
+that the authorization-code grant and redirect URI remain unchanged.
+
+## Optional Entra comparison: raw Basic versus encoded Basic
+
+To test whether Basic encoding changes Microsoft's response, extend a diagnostic
+copy of the persisted-credential A/B procedure with a third transport variant.
+Keep the stored values, endpoint, scope, and grant identical across variants:
+
+| Variant | Credential transport |
+|---|---|
+| A | Form-encoded request body, as in the existing snippet. |
+| B | Basic containing raw `id:secret`, as in the existing snippet. |
+| B2 | Form-encode the ID and secret **individually** with `URI.encode_www_form_component`, join them with a literal `:`, then Base64-encode the pair with `Base64.strict_encode64`. Send it in the Basic header. |
+
+B2 uses the same `common` form as B, without body credentials. Do not form-encode
+the joined pair (that would encode the delimiter), or encode either component
+twice. Send the generated header through curl's stdin configuration, as the
+existing snippet does—not through argv or console output. Retain its bounded
+timeout, marker-only output, and cleanup. This extension is not included in the
+original A/B snippet, which remains unchanged.
+
+**A and B2 succeed while B returns 7000215** is strong evidence that Basic
+credential encoding determines the result for that grant. If all succeed, the
+suspected transformation does not explain a rejection in that probe; it still
+does not explain the UI failure. Other errors need separate interpretation.
+
+This comparison still uses `client_credentials`. For UI-level confirmation, each
+authorization-code transport variant needs its **own fresh authorization flow and
+code**. Never reuse a redeemed code. Changing transport for such a comparison is
+an explicit experimental variation, not an unmodified reproduction of the current
+sign-in implementation. Preserve the stored credentials throughout.
 
 ## Operator diagnostic: real Entra strategy and authorization-code exchange
 
