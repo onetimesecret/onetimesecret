@@ -34,6 +34,7 @@ import type { Organization } from '@/types/organization';
 import { formatDisplayDate } from '@/utils/format';
 import { isAllowedCheckoutUrl } from '@/utils/redirect';
 import { captureMessage, isDiagnosticsEnabled } from '@/services/diagnostics.service';
+import { loggingService } from '@/services/logging.service';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
@@ -496,7 +497,7 @@ const loadSubscriptionStatus = async (extid: string) => {
     subscriptionStatus.value = await BillingService.getSubscriptionStatus(extid);
   } catch (_err) {
     // Non-fatal: user may not have a subscription yet
-    console.log('[PlanSelector] No active subscription found');
+    loggingService.info('[PlanSelector] No active subscription found');
   }
 };
 

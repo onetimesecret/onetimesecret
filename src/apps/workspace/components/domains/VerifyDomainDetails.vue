@@ -3,6 +3,7 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
 import OIcon from '@/shared/components/icons/OIcon.vue';
+import { loggingService } from '@/services/logging.service';
 import { useDomainDnsRecord } from '@/shared/composables/useDomainDnsRecord';
 import { useDomainsManager } from '@/shared/composables/useDomainsManager';
 import { domainVerifyNotice, type DomainVerifyNotice } from '@/shared/utils/domainVerifyNotice';
@@ -62,7 +63,7 @@ const isButtonDisabled = computed(() => isLoading.value || buttonDisabledDelay.v
 const buttonText = computed(() => isLoading.value ? t('web.COMMON.processing') : t('web.domains.verify_domain'));
 
 const verify = async () => {
-  console.info('Refreshing DNS verification details...');
+  loggingService.info('Refreshing DNS verification details...');
 
   try {
     const result = await verifyDomain(props.domain.extid);

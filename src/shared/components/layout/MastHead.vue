@@ -1,6 +1,7 @@
 <!-- src/shared/components/layout/MastHead.vue -->
 
 <script setup lang="ts">
+  import { loggingService } from '@/services/logging.service';
   import { useI18n } from 'vue-i18n';
   import BrandMark from '@/shared/components/logos/BrandMark.vue';
   import DefaultLogo from '@/shared/components/logos/DefaultLogo.vue';
@@ -237,7 +238,7 @@
       const defaultComponent = DEFAULT_LOGO.replace('.vue', '');
       const module = await import(`@/shared/components/logos/${defaultComponent}.vue`);
       logoComponent.value = module.default;
-      console.info(`Loaded fallback logo: ${defaultComponent}`);
+      loggingService.info(`Loaded fallback logo: ${defaultComponent}`);
     } catch (fallbackError) {
       console.error(`Failed to load fallback logo: ${DEFAULT_LOGO}`, fallbackError);
       logoComponent.value = null;

@@ -1,6 +1,7 @@
 <!-- src/shared/components/forms/FeedbackModalForm.vue -->
 
 <script setup lang="ts">
+  import { loggingService } from '@/services/logging.service';
   import { useI18n } from 'vue-i18n';
 import { useFormSubmission } from '@/shared/composables/useFormSubmission';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
@@ -52,7 +53,7 @@ import { storeToRefs } from 'pinia';
     url: '/api/v3/feedback',
     successMessage: t('web.LABELS.feedback_received'),
     onSuccess: (data: unknown) => {
-      console.debug('Feedback sent:', data);
+      loggingService.debug('Feedback sent', { data });
       emit('feedback-sent');
       resetForm();
     },
@@ -83,7 +84,7 @@ import { storeToRefs } from 'pinia';
   const isDesktop = useMediaQuery('(min-width: 1024px)');
 
   const submitWithCheck = async (event?: Event) => {
-    console.debug('Submitting feedback form');
+    loggingService.debug('Submitting feedback form');
 
     await submitForm(event);
   };
