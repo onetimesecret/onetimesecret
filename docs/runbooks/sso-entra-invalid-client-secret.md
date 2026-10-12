@@ -41,7 +41,7 @@ authorization=Basic Y2lkOnNlYytyZXR+eA==   # decodes to "cid:sec+ret~x"
 
 **There is a latent encoding gap.** [RFC 6749 §2.3.1](https://datatracker.ietf.org/doc/html/rfc6749#section-2.3.1) says the client ID and secret are form-urlencoded before they go into the Basic header. oauth2 2.0.25 skips that step and sends the raw `id:secret`. Microsoft also says the secret "must be URL-encoded before being sent." If Entra form-decodes Basic credentials, a secret containing `+` (decoded as a space) or `%` would arrive changed, and Entra would answer with AADSTS7000215. Absence of `+` and `%` rules out those particular transformations, not every credential-encoding problem. The client ID must be checked too. The local decoding check below models this hypothesis; it does not establish how Entra decodes Basic credentials.
 
-**Our tests don't check how the secret is sent.** `apps/web/auth/spec/integration/full/entra_native_claims_spec.rb` captures the real token request but only checks `grant_type`, `code` and `redirect_uri`.
+**Diagnostic tests check the outgoing transport, not Microsoft's decoding.** The [diagnostic regression coverage](./sso-entra-token-exchange-diagnostics.md#regression-coverage) compares credential representations at a mocked endpoint, including the mounted browser callback. It does not establish how Entra interprets those credentials.
 
 ## Error codes
 
@@ -188,6 +188,12 @@ secret nor returned token is deliberately printed.
 
 This tests storage → decryption → curl request encoding without replacing the
 stored value. It does not test the strategy's HTTP client or browser code flow.
+
+For the next comparison, use the [registered-client probe](./sso-entra-token-exchange-diagnostics.md#operator-diagnostic-registered-strategys-http-client).
+It clones the application-registered strategy and injects the persisted tenant
+credentials while keeping the `client_credentials` grant. If stored curl B
+succeeds but that probe fails, investigate strategy options, tenant injection,
+the Ruby HTTP client, or process/network differences before changing the record.
 
 ## Operator diagnostic: stored credential character and decoding checks
 
@@ -474,17 +480,21 @@ a session; use an authorized test account and the normal login route, not Connec
    with the console flow, and match Entra's error code, trace/correlation IDs and
    timestamp. Keep full callback URLs, cookies, state, codes and token responses
    out of tickets and diagnostic output.
-4. If C succeeds but the UI still fails, the next required evidence is from the
-   live worker **at `build_access_token`**, not another curl run. In an approved
-   debugger/instrumented deployment, compare the active strategy's credential and
-   its constructed OAuth client's credential with a fresh `to_omniauth_options`
-   read for the resolved domain. Report equality booleans only—not values, hashes,
-   prefixes, lengths, or serialized options. Also compare the effective token
-   endpoint, authentication scheme, grant type and redirect URI. Do not call
-   `build_access_token` a second time: observe the normal exchange once.
+4. If C succeeds but the UI still fails, collect evidence from the live worker
+   **at `build_access_token`**, not another curl run. Follow the
+   [live-worker observer deployment and cleanup procedure](./sso-entra-token-exchange-diagnostics.md#install-the-observer-in-the-serving-web-workers)
+   with operator approval. It compares the normal callback's outgoing credentials
+   with a fresh persisted read as raw Basic, form-encoded Basic, and body
+   credentials, and reports endpoint/redirect matches, grant type, code/PKCE
+   presence, HTTP status, and AADSTS code. Correlate the request and response by
+   worker PID and diagnostic identifier. Do not call `build_access_token` a
+   second time: observe the normal exchange once, without copying or replaying codes.
 
-Step 4 requires live-worker instrumentation; the console block does not install
-it. A `bin/console` session cannot inspect another worker's in-memory strategy.
+Step 4 requires deployment in the serving workers; loading the helper in
+`bin/console` cannot inspect another worker's in-memory strategy. A matching raw
+Basic header plus 7000215 establishes the outgoing representation and rejection,
+not Microsoft's internal decoding. Use the A/B/B2 comparison above to investigate
+that hypothesis.
 Until that request-level evidence exists, record **“stored A/B and isolated
 strategy succeed; UI failure not yet isolated”**, rather than claiming the secret
 is wrong or that the implementation is ruled out. Preserve the record while
