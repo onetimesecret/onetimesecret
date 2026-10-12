@@ -233,9 +233,19 @@ module Onetime
       # recovery flow: everyone behind one masked /24 (an office NAT) requests
       # one per sign-in, and a reset-sized cap there would lock that network
       # out of signing in. Still bounds one origin to this many link emails per
-      # window across all the addresses it names. The per-email backstop keeps
-      # DEFAULT_MAX_PER_EMAIL, for the targeted-DoS reason given for it.
+      # window across all the addresses it names.
       EMAIL_LOGIN_REQUEST_DEFAULT_MAX_PER_IP = 30
+
+      # Default per-login backstop for the :email_login_request scope: three
+      # times its per-IP cap. The per-email tier must stay the LOOSER one (see
+      # the RL-3 note in the module header): requests a locked IP sends are
+      # denied before the email tier counts them, so one source adds at most
+      # max_per_ip to a victim's bucket per window, and with max_per_email at
+      # or below that a single IP could lock the victim out of magic-link
+      # sign-in from every IP, renewably (SEC-B02). Rodauth's resend window
+      # (email_auth_skip_resend_email_within) already caps the mail an account
+      # receives, so this tier only bounds distributed probing of one target.
+      EMAIL_LOGIN_REQUEST_DEFAULT_MAX_PER_EMAIL = 90
 
       # Everything that differs between the routes this limiter guards. See
       # SCOPES in the module header.
@@ -278,7 +288,7 @@ module Onetime
           log_tag: 'ResetRequestRateLimiter:email_login_request',
           max_per_ip_env: 'EMAIL_LOGIN_REQUEST_RATE_LIMIT_MAX_PER_IP',
           default_max_per_ip: EMAIL_LOGIN_REQUEST_DEFAULT_MAX_PER_IP,
-          default_max_per_email: DEFAULT_MAX_PER_EMAIL,
+          default_max_per_email: EMAIL_LOGIN_REQUEST_DEFAULT_MAX_PER_EMAIL,
         ),
       }.freeze
 

@@ -195,7 +195,7 @@ set_limit_block('email_login_request_rate_limit', nil)
  @tester.send(:reset_request_max_per_email, :email_login_request),
  @tester.send(:reset_request_window, :email_login_request),
  @tester.send(:reset_request_lockout, :email_login_request)]
-#=> [true, 30, 30, 3600, 3600]
+#=> [true, 30, 90, 3600, 3600]
 
 ## Garbage caps fall back to the scope defaults rather than inverting enforcement
 set_limit_block(
@@ -208,7 +208,33 @@ set_limit_block(
 )
 [@tester.send(:reset_request_max_per_ip, :email_login_request),
  @tester.send(:reset_request_max_per_email, :email_login_request)]
-#=> [30, 30]
+#=> [30, 90]
+
+## -- One source cannot lock a victim (SEC-B02) ------------------------------
+
+## The shipped caps keep the per-email tier looser than the per-IP tier
+@scopes[:email_login_request].default_max_per_email > @scopes[:email_login_request].default_max_per_ip
+#=> true
+
+## Under the defaults, one IP that spends its whole budget on one victim locks
+## only itself: its own later requests are denied before the email tier counts
+## them, so the victim's bucket stops at the per-IP cap
+set_limit_block('email_login_request_rate_limit', nil)
+@victim    = "victim_#{@tag}@example.com"
+@attacker  = '203.0.113.66'
+@bystander = '198.51.100.67'
+cleanup(@redis, ip: @attacker, email: @victim)
+cleanup(@redis, ip: @bystander)
+denied     = (1..35).count { @raises.call(@attacker, @victim) }
+[denied,
+ @redis.exists?("email_login_request:locked:ip:#{@attacker}"),
+ @redis.exists?("email_login_request:locked:email:#{@victim}"),
+ @redis.get("email_login_request:attempts:email:#{@victim}").to_i]
+#=> [5, true, false, 30]
+
+## ...and the victim can still request a link from any other IP
+@raises.call(@bystander, @victim)
+#=> false
 
 ## The reset scope's defaults are unchanged
 set_limit_block('reset_request_rate_limit', nil)
@@ -246,4 +272,6 @@ cleanup(@redis, ip: @ip, email: @email)
 cleanup(@redis, ip: @ip_b, email: @email_b)
 cleanup(@redis, ip: @off_ip, email: @email_b)
 cleanup(@redis, email: "other_#{@tag}@example.com")
+cleanup(@redis, ip: @attacker, email: @victim)
+cleanup(@redis, ip: @bystander)
 OT.send(:conf=, @saved_conf)

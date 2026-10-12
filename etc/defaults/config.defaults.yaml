@@ -414,8 +414,11 @@ site:
       # than the reset-request cap: a magic link is a sign-in method, and a
       # whole /24 (an office NAT) shares this bucket.
       max_per_ip: <%= ENV['EMAIL_LOGIN_REQUEST_RATE_LIMIT_MAX_PER_IP'] || 30 %>  # Since unreleased
-      # Backstop cap per submitted login (catches IP rotation).
-      max_per_email: <%= ENV['EMAIL_LOGIN_REQUEST_RATE_LIMIT_MAX_PER_EMAIL'] || 30 %>  # Since unreleased
+      # Backstop cap per submitted login (catches IP rotation). Keep it ABOVE
+      # max_per_ip: a locked IP stops adding to a login's count, so one source
+      # can then never lock a victim out of magic-link sign-in from every IP.
+      # Rodauth's resend window already caps the mail an account receives.
+      max_per_email: <%= ENV['EMAIL_LOGIN_REQUEST_RATE_LIMIT_MAX_PER_EMAIL'] || 90 %>  # Since unreleased
       # Counting window in seconds (1 hour).
       window: <%= ENV['EMAIL_LOGIN_REQUEST_RATE_LIMIT_WINDOW'] || 3600 %>  # Since unreleased
       # Lockout duration in seconds once a tier's cap is hit (1 hour).
