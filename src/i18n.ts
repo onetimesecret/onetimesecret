@@ -19,9 +19,10 @@ import { createI18n, type Composer } from 'vue-i18n';
  * these files during development and build.
  */
 // Using type assertion for Vite's import.meta.glob (types from vite/client reference)
-// Note: Since vite.config.ts sets root: './src', paths starting with / are relative to src/
-// We use /../generated to go up one level to the project root where generated/ lives
-const localeModules = (import.meta as any).glob('/../generated/locales/*.json', {
+// Note: The pattern is relative to this file, not to the project root. A leading /
+// resolves against the root, which is ./src under vite.config.ts but the repo root
+// under vitest.config.ts, so a root-anchored pattern matched nothing in tests.
+const localeModules = (import.meta as any).glob('../generated/locales/*.json', {
   eager: true,
 }) as Record<string, { default: Record<string, any> }>;
 
@@ -29,7 +30,7 @@ const messages: Record<string, any> = {};
 
 // Simple extraction - files are already merged by the Python sync script
 for (const path in localeModules) {
-  // Extract locale code from path: /generated/locales/en.json -> en
+  // Extract locale code from path: ../generated/locales/en.json -> en
   const match = path.match(/\/locales\/([^/]+)\.json$/);
   if (match) {
     const locale = match[1];
