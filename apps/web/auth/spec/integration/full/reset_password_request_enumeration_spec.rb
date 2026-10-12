@@ -91,8 +91,9 @@ RSpec.describe 'Reset-password-request enumeration safety (issue #3857)', type: 
   # app's name for the CSRF authenticity token (the Rack authenticity_param is
   # literally 'shrimp'; see lib/onetime/middleware/security.rb).
   #
+  # @param extra [Hash] more JSON body params (e.g. locale:)
   # @return [Rack::MockResponse] the last response
-  def request_password_reset(login)
+  def request_password_reset(login, **extra)
     clear_cookies
 
     header 'Content-Type', nil
@@ -104,13 +105,13 @@ RSpec.describe 'Reset-password-request enumeration safety (issue #3857)', type: 
     header 'Content-Type', 'application/json'
     header 'Accept', 'application/json'
     header 'X-CSRF-Token', token if token
-    post '/auth/reset-password-request', JSON.generate(login: login, shrimp: token)
+    post '/auth/reset-password-request', JSON.generate(extra.merge(login: login, shrimp: token))
     last_response
   end
 
   # Capture (status, parsed-body) for a probe so two probes can be compared.
-  def probe(login)
-    response = request_password_reset(login)
+  def probe(login, **extra)
+    response = request_password_reset(login, **extra)
     [response.status, JSON.parse(response.body)]
   end
 
@@ -206,6 +207,26 @@ RSpec.describe 'Reset-password-request enumeration safety (issue #3857)', type: 
       expect(throttled_body).not_to have_key('field-error')
       # ...and the throttle held: no additional reset email was dispatched.
       expect(Onetime::Jobs::Publisher).not_to have_received(:enqueue_email_raw)
+    end
+  end
+
+  # SEC-B01: the reset email's template translates with the requested locale,
+  # and I18n raises I18n::InvalidLocale for one the app has not loaded. Only an
+  # existing account builds that email, so an unsupported `locale` answered 500
+  # for an account and 200 for a missing login. The email helper now falls back
+  # to an available locale (config/email/helpers.rb).
+  describe 'unsupported locale param' do
+    it 'answers an existing and a non-existent login identically', :aggregate_failures do
+      existing = unique_test_email('locale-exists')
+      create_account(email: existing)
+
+      existing_status, existing_body = probe(existing, locale: 'zz')
+      missing_status,  missing_body  = probe(unique_test_email('locale-missing'), locale: 'zz')
+
+      expect(existing_status).to eq(200)
+      expect([existing_status, existing_body]).to eq([missing_status, missing_body])
+      expect(Onetime::Jobs::Publisher).to have_received(:enqueue_email_raw)
+        .with(hash_including(to: contain_exactly(existing)), any_args).once
     end
   end
 end

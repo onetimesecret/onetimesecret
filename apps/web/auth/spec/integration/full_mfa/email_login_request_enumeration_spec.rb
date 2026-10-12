@@ -62,9 +62,9 @@ RSpec.describe 'Email-login-request enumeration safety (RISK-2026-08-14-M03)',
   end
 
   # A fresh session per probe, so no cookie state differs between probes.
-  def probe(login)
+  def probe(login, **extra)
     clear_cookies
-    csrf_json_post('/auth/email-login-request', login: login)
+    csrf_json_post('/auth/email-login-request', extra.merge(login: login))
     [last_response.status, json_body]
   end
 
@@ -122,7 +122,16 @@ RSpec.describe 'Email-login-request enumeration safety (RISK-2026-08-14-M03)',
       email = unique_test_email('closed')
       seed_account(email, status_id: AuthTestConstants::STATUS_CLOSED)
 
-      expect(probe(email)).to eq(probe(unique_test_email('missing-closed')))
+      closed = probe(email)
+
+      # Absolute anchor: stock Rodauth answers BOTH probes 401
+      # no_matching_login (a closed account is never found), so equality
+      # alone would pass with the override removed.
+      expect(closed.first).to eq(200)
+      expect(closed.last['success']).to be_a(String)
+      expect(closed).to eq(probe(unique_test_email('missing-closed')))
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:email_auth_request_no_account, hash_including(level: :info)).twice
       expect_not_mailed
     end
   end
@@ -148,6 +157,26 @@ RSpec.describe 'Email-login-request enumeration safety (RISK-2026-08-14-M03)',
       expect(throttled.first).to eq(200)
       expect(throttled.last).not_to have_key('error')
       expect_not_mailed
+    end
+  end
+
+  # SEC-B01: the magic-link template translates with the requested locale,
+  # and I18n raises I18n::InvalidLocale for one the app has not loaded. Only
+  # an open account builds that email, so an unsupported `locale` answered 500
+  # for an account and 200 for a missing login. The email helper now falls
+  # back to an available locale (config/email/helpers.rb).
+  describe 'unsupported locale param' do
+    it 'answers an open account and an unknown login identically, still mailing the account' do
+      email = unique_test_email('locale-open')
+      seed_account(email)
+
+      open    = probe(email, locale: 'zz')
+      missing = probe(unique_test_email('locale-missing'), locale: 'zz')
+
+      expect(open.first).to eq(200)
+      expect(open).to eq(missing)
+      expect(Onetime::Jobs::Publisher).to have_received(:enqueue_email_raw)
+        .with(hash_including(to: contain_exactly(email)), any_args).once
     end
   end
 end

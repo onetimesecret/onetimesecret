@@ -127,6 +127,24 @@ RSpec.describe Auth::PublicHost, :aggregate_failures, :full_auth_mode, :shared_d
       expect(delivered).to be_empty
     end
 
+    # QA-B02: the account-INDEPENDENT preflight in hooks/email_login_request.rb
+    # (Auth::PublicHost.required_base_url!), mirroring "gives the same refusal
+    # for existing and missing accounts" in public_host_fallback_spec.rb. An
+    # unverified tenant host with no site.host has no allowlisted origin at
+    # all, so every login is refused before the account lookup, alike.
+    it 'refuses existing and missing logins identically when the host has no allowlisted origin' do
+      test_custom_domain.verified = false
+      test_custom_domain.save
+      header 'X-Request-Id', 'qa-b02-email-login-preflight'
+
+      existing = request_from_tenant(path, account_email)
+
+      expect(existing.first).to eq(500)
+      expect(existing).to eq(request_from_tenant(path, unique_test_email('missing-preflight')))
+      expect(auth_db[:account_email_auth_keys].where(id: account_id).count).to eq(0)
+      expect(delivered).to be_empty
+    end
+
     it 'still raises for direct key creation' do
       auth = direct_rodauth(account_id)
       auth.instance_variable_set(:@email_auth_key_value, 'proposed-email-auth-key')

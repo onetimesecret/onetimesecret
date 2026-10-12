@@ -90,8 +90,12 @@ RSpec.describe Auth::Config::Overrides::LoginRequestEnumeration, :aggregate_fail
     }.each do |label, status_id|
       it "answers #{label} like an unknown login and mails nothing" do
         seed('state@example.com', status_id)
+        answer = probe(path, 'state@example.com')
 
-        expect(probe(path, 'state@example.com')).to eq(unknown(path))
+        # Absolute anchor: stock Rodauth answers several of these states and
+        # an unknown login with the SAME 401, so equality alone is not enough.
+        expect(answer.first).to eq(200)
+        expect(answer).to eq(unknown(path))
         expect(mails).to be_empty
       end
     end
@@ -126,8 +130,12 @@ RSpec.describe Auth::Config::Overrides::LoginRequestEnumeration, :aggregate_fail
     }.each do |label, status_id|
       it "answers #{label} like an unknown login and mails nothing" do
         seed('state@example.com', status_id)
+        answer = probe(path, 'state@example.com')
 
-        expect(probe(path, 'state@example.com')).to eq(unknown(path))
+        # Absolute anchor: stock Rodauth answers several of these states and
+        # an unknown login with the SAME 401, so equality alone is not enough.
+        expect(answer.first).to eq(200)
+        expect(answer).to eq(unknown(path))
         expect(mails).to be_empty
       end
     end
