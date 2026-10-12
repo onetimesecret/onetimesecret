@@ -2,14 +2,16 @@
 
 import {
   guestReceiptsResponseSchema,
-  localReceiptsArraySchema,
+  storedLocalReceiptSchema,
+  storedLocalReceiptsArraySchema,
   type LocalReceipt,
+  type StoredLocalReceipt,
 } from '@/schemas/ui/local-receipt';
 import { loggingService } from '@/services/logging.service';
 import { useApi } from '@/shared/composables/useApi';
+import { useAuthStore } from '@/shared/stores/authStore';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { computed, ref, watch } from 'vue';
-
 
 /**
  * Type definition for LocalReceiptStore.
@@ -48,16 +50,53 @@ const WORKSPACE_MODE_KEY = 'onetimeWorkspaceMode';
 const PREFERRED_TTL_KEY = 'onetimePreferredTtl';
 const MAX_STORED_RECEIPTS = 25;
 
+/** Whether the receipt's secret is still within its TTL. */
+function isUnexpired(receipt: StoredLocalReceipt, now: number): boolean {
+  return receipt.createdAt + receipt.ttl * 1000 > now;
+}
+
+/**
+ * The sessionStorage form of the in-memory list (RISK-2026-08-14-M10):
+ * unexpired entries only, reduced to the stored schema. Parsing strips the
+ * secret identifier, which stays on the in-memory record for the page that
+ * created it, and any other field outside the schema.
+ */
+function toStoredReceipts(receipts: LocalReceipt[]): StoredLocalReceipt[] {
+  const now = Date.now();
+  return receipts.flatMap((receipt) => {
+    const result = storedLocalReceiptSchema.safeParse(receipt);
+    return result.success && isUnexpired(result.data, now) ? [result.data] : [];
+  });
+}
+
+/**
+ * Rewrite storage when loading changed it: parsing dropped a field (an older
+ * version's secret identifier) or an entry expired (RISK-2026-08-14-M10).
+ * Best effort: a failed rewrite keeps the loaded list; the next change retries.
+ */
+function rewriteIfChanged(receipts: StoredLocalReceipt[], stored: string): void {
+  const normalized = JSON.stringify(receipts);
+  if (normalized === stored) return;
+  try {
+    sessionStorage.setItem(STORAGE_KEY, normalized);
+  } catch (error) {
+    loggingService.error(new Error(`Failed to rewrite local receipts: ${error}`));
+  }
+}
+
 /**
  * Loads local receipts from sessionStorage with schema validation.
  * Gracefully handles corrupted, tampered, or version-mismatched data.
+ * Entries written by older versions carry a secret identifier; parsing drops
+ * it, and storage is rewritten at once so it does not linger until the next
+ * change.
  */
 function loadFromStorage(): LocalReceipt[] {
   try {
     const stored = sessionStorage.getItem(STORAGE_KEY);
     if (stored) {
       const parsed = JSON.parse(stored);
-      const result = localReceiptsArraySchema.safeParse(parsed);
+      const result = storedLocalReceiptsArraySchema.safeParse(parsed);
 
       if (!result.success) {
         // Data is malformed - clear it and start fresh
@@ -70,7 +109,10 @@ function loadFromStorage(): LocalReceipt[] {
 
       // Filter out expired entries (createdAt + ttl has passed)
       const now = Date.now();
-      return result.data.filter((r) => r.createdAt + r.ttl * 1000 > now);
+      const receipts = result.data.filter((r) => isUnexpired(r, now));
+
+      rewriteIfChanged(receipts, stored);
+      return receipts;
     }
   } catch (error) {
     loggingService.error(new Error(`Failed to load local receipts from storage: ${error}`));
@@ -110,9 +152,11 @@ function loadPreferredTtl(): number | null {
 }
 
 /**
- * Store for managing local receipt records during a user session.
- * This store persists links created during the current session so they
- * remain available when navigating between pages and browser refreshes.
+ * Store for managing local receipt records during a guest session.
+ * Receipts created during the session stay listed across navigation and
+ * browser refreshes. Only the receipt side is persisted: the share link's
+ * secret identifier is kept in memory, so after a refresh the list links to
+ * each receipt page (which shows the share link) instead (RISK-2026-08-14-M10).
  */
 // eslint-disable-next-line max-lines-per-function
 export const useLocalReceiptStore = defineStore('localReceipt', () => {
@@ -133,7 +177,7 @@ export const useLocalReceiptStore = defineStore('localReceipt', () => {
     localReceipts,
     (receipts) => {
       try {
-        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(receipts));
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(toStoredReceipts(receipts)));
       } catch (error) {
         loggingService.error(new Error(`Failed to save local receipts to storage: ${error}`));
       }
@@ -183,9 +227,14 @@ export const useLocalReceiptStore = defineStore('localReceipt', () => {
    * New receipts are added to the beginning of the list.
    * Enforces maximum storage limit.
    *
+   * A no-op for a signed-in user: their recent secrets come from the API
+   * (useRecentSecrets), so a local copy would only park capability
+   * identifiers in sessionStorage (RISK-2026-08-14-M10).
+   *
    * @param receipt The local receipt to add
    */
   function addReceipt(receipt: LocalReceipt) {
+    if (useAuthStore().isFullyAuthenticated) return;
     // Remove any existing receipt with same ID
     const filtered = localReceipts.value.filter((r) => r.id !== receipt.id);
     // Add new receipt at beginning, enforce max limit
@@ -231,6 +280,8 @@ export const useLocalReceiptStore = defineStore('localReceipt', () => {
   /**
    * Marks a secret as revealed (content decrypted/consumed).
    * Called when the secret content is actually revealed to the recipient.
+   * Entries restored from sessionStorage have no secretExtid and never match
+   * here; refreshReceiptStatuses picks up their state from the server.
    *
    * @param secretExtid The secret external ID to mark as revealed
    */

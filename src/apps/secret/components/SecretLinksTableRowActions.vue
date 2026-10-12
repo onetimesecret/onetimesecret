@@ -49,7 +49,10 @@
               {{ t('web.receipt.view_receipt') }}
             </router-link>
           </MenuItem>
-          <MenuItem v-slot="{ active }">
+          <!-- The secret identifier is in memory only; absent after a reload (M10) -->
+          <MenuItem
+            v-if="concealedMessage.secretExtid"
+            v-slot="{ active }">
             <router-link
               :to="`/secret/${concealedMessage.secretExtid}`"
               target="_blank"

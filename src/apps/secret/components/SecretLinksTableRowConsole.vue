@@ -27,7 +27,7 @@
   import { useI18n } from 'vue-i18n';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import OIcon from '@/shared/components/icons/OIcon.vue';
-  import type { RecentSecretRecord } from '@/shared/composables/useRecentSecrets';
+  import { shareLinkFor, type RecentSecretRecord } from '@/shared/composables/useRecentSecrets';
   import { formatTTL } from '@/utils/formatters';
   import { formatDistanceToNow } from 'date-fns';
   import { storeToRefs } from 'pinia';
@@ -115,14 +115,13 @@
   const bootstrapStore = useBootstrapStore();
   const { site_host } = storeToRefs(bootstrapStore);
 
-  // Create shareable link with proper domain
-  const shareLink = computed(() => {
-    const shareDomain = props.record.shareDomain ?? site_host.value;
-    return `https://${shareDomain}/secret/${props.record.secretExtid}`;
-  });
+  // Create shareable link with proper domain. Null for a guest record restored
+  // from sessionStorage, which keeps no secret identifier (M10); the receipt
+  // page shows the link then.
+  const shareLink = computed(() => shareLinkFor(props.record, site_host.value));
 
   const handleCopy = async () => {
-    if (!isActive.value) return;
+    if (!isActive.value || !shareLink.value) return;
     try {
       await navigator.clipboard.writeText(shareLink.value);
       isCopied.value = true;
@@ -394,50 +393,71 @@
           v-if="isActive"
           class="flex flex-shrink-0 items-center gap-1 sm:gap-2"
           @click.stop>
-          <!-- Copy button: icon-only on mobile, text on sm+ -->
-          <button
-            type="button"
-            @click="handleCopy"
-            :class="[
-              'rounded border transition-colors',
-              'p-1.5 sm:px-2 sm:py-0.5',
-              isCopied
-                ? 'border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-                : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700',
-            ]"
-            :title="t('web.LABELS.copy_to_clipboard')">
+          <!-- No share link in memory (restored after a reload): the receipt page has it -->
+          <router-link
+            v-if="!shareLink"
+            :to="receiptRoute"
+            data-test-id="receipt-fallback"
+            class="rounded border border-gray-300 bg-white p-1.5 text-gray-700 no-underline
+              transition-colors hover:bg-gray-50 sm:px-2 sm:py-0.5 dark:border-gray-600
+              dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+            :title="t('web.receipt.view_receipt')">
             <!-- Mobile: icon only -->
             <OIcon
-              v-if="isCopied"
               collection="heroicons"
-              name="check"
-              class="size-4 sm:hidden" />
-            <OIcon
-              v-else
-              collection="heroicons"
-              name="clipboard"
+              name="document-text"
               class="size-4 sm:hidden" />
             <!-- Desktop: text label -->
-            <span class="hidden text-xs font-medium sm:inline">
-              {{ isCopied ? '[ COPIED ]' : '[ COPY ]' }}
-            </span>
-          </button>
+            <span class="hidden text-xs font-medium sm:inline">[ RECEIPT ]</span>
+            <span class="sr-only">{{ t('web.receipt.view_receipt') }}</span>
+          </router-link>
 
-          <!-- Open link button: icon-only on mobile, text on sm+ -->
-          <a
-            :href="shareLink"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="rounded border border-gray-300 bg-white p-1.5 text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 sm:px-2 sm:py-0.5"
-            :title="t('web.COMMON.view_secret')">
-            <!-- Mobile: icon only -->
-            <OIcon
-              collection="heroicons"
-              name="arrow-top-right-on-square"
-              class="size-4 sm:hidden" />
-            <!-- Desktop: text label -->
-            <span class="hidden text-xs font-medium sm:inline">[ OPEN &#8599; ]</span>
-          </a>
+          <template v-else>
+            <!-- Copy button: icon-only on mobile, text on sm+ -->
+            <button
+              type="button"
+              @click="handleCopy"
+              :class="[
+                'rounded border transition-colors',
+                'p-1.5 sm:px-2 sm:py-0.5',
+                isCopied
+                  ? 'border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                  : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700',
+              ]"
+              :title="t('web.LABELS.copy_to_clipboard')">
+              <!-- Mobile: icon only -->
+              <OIcon
+                v-if="isCopied"
+                collection="heroicons"
+                name="check"
+                class="size-4 sm:hidden" />
+              <OIcon
+                v-else
+                collection="heroicons"
+                name="clipboard"
+                class="size-4 sm:hidden" />
+              <!-- Desktop: text label -->
+              <span class="hidden text-xs font-medium sm:inline">
+                {{ isCopied ? '[ COPIED ]' : '[ COPY ]' }}
+              </span>
+            </button>
+
+            <!-- Open link button: icon-only on mobile, text on sm+ -->
+            <a
+              :href="shareLink"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="rounded border border-gray-300 bg-white p-1.5 text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 sm:px-2 sm:py-0.5"
+              :title="t('web.COMMON.view_secret')">
+              <!-- Mobile: icon only -->
+              <OIcon
+                collection="heroicons"
+                name="arrow-top-right-on-square"
+                class="size-4 sm:hidden" />
+              <!-- Desktop: text label -->
+              <span class="hidden text-xs font-medium sm:inline">[ OPEN &#8599; ]</span>
+            </a>
+          </template>
         </div>
       </div>
 
