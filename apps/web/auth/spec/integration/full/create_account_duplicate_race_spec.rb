@@ -171,24 +171,26 @@ RSpec.describe 'A sign-up that loses a race answers like an ordinary duplicate',
     end
   end
 
+  # Refused means no account is written; the answer is still the ordinary
+  # one a fresh sign-up gets (M-2).
   [1, 2].each do |status_id|
-    it "still refuses a live sibling with status #{status_id} beside closed history" do
+    it "still refuses a live sibling with status #{status_id} beside closed history", :aggregate_failures do
       db[:accounts].insert(email: login, status_id: 3)
       db[:accounts].insert(email: login, status_id: status_id)
 
       [login, "\t#{login.upcase}\n"].each do |submitted|
-        expect(sign_up(submitted)).to eq(status: 400, body: { 'error' => 'Unable to create account' })
+        expect(sign_up(submitted)).to eq(fresh_sign_up)
       end
       expect(db[:accounts].where(email: login).count).to eq(2)
       expect(Onetime::Customer.find_by_email(login)).to be_nil
     end
   end
 
-  it 'refuses reuse when a closed SQL account still has a Redis customer' do
+  it 'refuses reuse when a closed SQL account still has a Redis customer', :aggregate_failures do
     db[:accounts].insert(email: login, status_id: 3)
     customer = Onetime::Customer.create!(email: login)
 
-    expect(sign_up(login)).to eq(status: 400, body: { 'error' => 'Unable to create account' })
+    expect(sign_up(login)).to eq(fresh_sign_up)
     expect(db[:accounts].where(email: login).count).to eq(1)
     expect(Onetime::Customer.find_by_email(login).objid).to eq(customer.objid)
   end
