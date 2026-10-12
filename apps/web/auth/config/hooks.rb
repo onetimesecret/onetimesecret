@@ -82,7 +82,9 @@
 #                       EVERY route, so it is the one hook that must stay cheap
 #                       and must never be redefined elsewhere; see
 #                       ADR-034#restrict-to-is-an-access-control-not-a-display-preference
-#                       / #reject-as-not-found-not-forbidden),
+#                       / #reject-as-not-found-not-forbidden; then, after every
+#                       gate, the invalid-encoding param refusal,
+#                       Auth::ParamEncoding, SEC-B01/SEC-B11),
 #                       before_email_auth_request (the multi-phase-login magic
 #                       link, which is not its own route)
 #   create_account.rb   before_create_account_route (rate limiting per client

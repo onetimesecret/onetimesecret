@@ -48,7 +48,15 @@
 #     invariant.
 # Collapsing any into another is the #4139 shape — see the header of
 # apps/web/auth/signin_enabled.rb.
+#
+# AND ONE REFUSAL AFTER THEM. The same block ends by refusing a request whose
+# params hold a String that is not valid in its encoding (Auth::ParamEncoding,
+# SEC-B01/SEC-B08): one 400 whatever the account, still before every route
+# hook and account lookup. It runs LAST so that on a host that gates a route
+# away the gate's 404 stands whatever the params hold, as an undefined path's
+# does (ADR-034#reject-as-not-found-not-forbidden, SEC-B11).
 
+require_relative '../../param_encoding'
 require_relative '../../restrict_to'
 require_relative '../../signin_enabled'
 require_relative '../../signin_gate'
@@ -84,6 +92,12 @@ module Auth::Config::Hooks
         # restrict_to runs first so the narrower method-level verdict is the one
         # that stands where both apply.
         Auth::SigninGate.enforce_route!(self)
+        # LAST, after every gate: a request whose params hold an
+        # invalid-encoding String gets one 400 before any route hook or
+        # account lookup (SEC-B01/SEC-B08). Ahead of the gates it would turn a
+        # gated route's 404 into a 400 that an undefined path never gives
+        # (SEC-B11).
+        Auth::ParamEncoding.refuse_invalid!(self)
       end
     end
 
