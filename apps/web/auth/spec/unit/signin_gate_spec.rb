@@ -533,7 +533,9 @@ RSpec.describe Auth::SigninGate do
     it 'carries the router shared body, so a gated route reads as an undefined one' do
       _status, headers, body = gate(:login)
 
-      expect(headers).to eq('content-type' => 'application/json')
+      # The router's default_headers (cache-control) are restated, since a
+      # halted rack array bypasses them; without it the two 404s differ.
+      expect(headers).to eq('content-type' => 'application/json', 'cache-control' => 'private, no-store')
       expect(JSON.parse(body.first)).to eq(JSON.parse(JSON.generate(Auth::ErrorTranslator::NOT_FOUND_BODY)))
     end
 
