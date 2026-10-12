@@ -404,11 +404,11 @@ module Auth
       # rather than reusing the router's status_handler because request.halt
       # bypasses Roda's status handlers. Byte-identical to
       # Auth::RestrictTo.not_found_response, so the reject cannot reveal which
-      # gate fired.
+      # gate fired; that includes the router default header it restates.
       def not_found_response
         [
           404,
-          { 'content-type' => 'application/json' },
+          { 'content-type' => 'application/json', 'cache-control' => 'private, no-store' },
           [JSON.generate(Auth::ErrorTranslator::NOT_FOUND_BODY)],
         ]
       end

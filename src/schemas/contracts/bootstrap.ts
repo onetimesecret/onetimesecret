@@ -1043,7 +1043,10 @@ export const bootstrapSchema = z.object({
   ot_version_long: z.string().default(''),
   ruby_version: z.string().default(''),
   shrimp: z.string().default(''),
-  nonce: z.string().nullable().default(null),
+  // No `nonce` field: the CSP nonce is server-side only (RISK-2026-08-14-M08).
+  // A backend that still emits it is tolerated (unknown keys are stripped),
+  // but nothing in the client may read it from here; see
+  // useDnsWidget.resolveCspNonce for the DOM-based lookup.
 
   // Snapshot ordering (ADR-046). Present only on a complete snapshot of an
   // ORDERED session (authenticated or MFA-pending). ABSENT — never null —

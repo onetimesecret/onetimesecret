@@ -30,10 +30,13 @@ export {
   guestReceiptsResponseSchema,
   localReceiptSchema,
   localReceiptsArraySchema,
+  storedLocalReceiptSchema,
+  storedLocalReceiptsArraySchema,
   type GuestReceiptRecord,
   type GuestReceiptsResponse,
   type LocalReceipt,
   type LocalReceiptsArray,
+  type StoredLocalReceipt,
 } from './local-receipt';
 
 // Notification types

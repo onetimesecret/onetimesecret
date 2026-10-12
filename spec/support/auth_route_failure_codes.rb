@@ -184,15 +184,15 @@ module AuthRouteFailureCodes
     login: { requirement: :anonymous, credential: true, also: %i[account_locked account_unverified] },
     webauthn_login: { requirement: :anonymous, credential: true },
     webauthn_autofill_js: { requirement: :anonymous, credential: false },
-    # A login that matches no account is a rejected credential (401,
-    # `no_matching_login`); a rejected link key is not (uncoded).
-    email_auth_request: { requirement: :anonymous, credential: true },
+    # The enumeration override (config/overrides/login_request_enumeration.rb)
+    # answers every outcome of the three login-request routes alike
+    # (RISK-2026-08-14-M03 for the email-auth request and the resend), so
+    # none refuses a login. A rejected link key is not a credential (uncoded).
+    email_auth_request: { requirement: :anonymous, credential: false },
     email_auth: { requirement: :anonymous, credential: false },
     create_account: { requirement: :anonymous, credential: false },
     verify_account: { requirement: :anonymous, credential: false },
-    verify_account_resend: { requirement: :anonymous, credential: true },
-    # The enumeration override (config/overrides/reset_password_enumeration.rb)
-    # answers every request-phase outcome alike, so nothing is refused.
+    verify_account_resend: { requirement: :anonymous, credential: false },
     reset_password_request: { requirement: :anonymous, credential: false },
     reset_password: { requirement: :anonymous, credential: false },
     unlock_account_request: { requirement: :anonymous, credential: true },

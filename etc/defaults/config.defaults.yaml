@@ -396,6 +396,38 @@ site:
       window: <%= ENV['RESET_REQUEST_RATE_LIMIT_WINDOW'] || 3600 %>  # Since v0.26.3
       # Lockout duration in seconds once a tier's cap is hit (1 hour).
       lockout: <%= ENV['RESET_REQUEST_RATE_LIMIT_LOCKOUT'] || 3600 %>  # Since v0.26.3
+    # Rate limiting for magic-link requests, POST /auth/email-login-request
+    # (RISK-2026-08-14-M04). Full mode only: the route exists only with
+    # AUTH_EMAIL_AUTH_ENABLED=true. Same two tiers as reset_request_rate_limit
+    # above — per client IP, plus a per-submitted-login backstop — under their
+    # own keys, enforced in the Rodauth before_email_auth_request_route hook
+    # BEFORE any account lookup, so a 429 says nothing about whether the login
+    # has an account. Bounds mailbox bombing and enumeration sampling; Rodauth's
+    # own resend window caps emails per account, not requests per source.
+    # Enabled by default (protective); set
+    # EMAIL_LOGIN_REQUEST_RATE_LIMIT_ENABLED=false to opt out.
+    # See lib/onetime/security/reset_request_rate_limiter.rb (scope
+    # :email_login_request).
+    email_login_request_rate_limit:
+      enabled: <%= ENV['EMAIL_LOGIN_REQUEST_RATE_LIMIT_ENABLED'] != 'false' %>  # Since unreleased
+      # Requests permitted per window from a single masked client IP. Looser
+      # than the reset-request cap: a magic link is a sign-in method, and a
+      # whole /24 (an office NAT) shares this bucket.
+      max_per_ip: <%= ENV['EMAIL_LOGIN_REQUEST_RATE_LIMIT_MAX_PER_IP'] || 30 %>  # Since unreleased
+      # Backstop cap per submitted login (catches IP rotation). Keep
+      # max_per_email >= 2 * max_per_ip AND lockout >= window: a single IP
+      # timing its requests around its own window boundary lands up to
+      # 2 * max_per_ip - 2 requests in one login's window, and with a shorter
+      # lockout it is free again inside that window, so one source could lock
+      # a victim out of magic-link sign-in from every IP. The defaults
+      # (30/90, 3600/3600) satisfy both. Rodauth's resend window already caps
+      # the mail an account receives.
+      max_per_email: <%= ENV['EMAIL_LOGIN_REQUEST_RATE_LIMIT_MAX_PER_EMAIL'] || 90 %>  # Since unreleased
+      # Counting window in seconds (1 hour).
+      window: <%= ENV['EMAIL_LOGIN_REQUEST_RATE_LIMIT_WINDOW'] || 3600 %>  # Since unreleased
+      # Lockout duration in seconds once a tier's cap is hit (1 hour). Keep it
+      # >= window (see max_per_email).
+      lockout: <%= ENV['EMAIL_LOGIN_REQUEST_RATE_LIMIT_LOCKOUT'] || 3600 %>  # Since unreleased
     # Rate limiting for unauthenticated account creation (#3948, audit
     # 2026-07-30 finding #4). POST /auth/create-account previously had no
     # limiter in EITHER auth mode, leaving unthrottled account creation: one
@@ -1280,6 +1312,23 @@ redis:
           'redis://host.docker.internal:6379' :
           'redis://CHANGEME@127.0.0.1:6379')
       %>
+  # Require TLS to the datastore (RISK-2026-08-14-L07). When true, boot
+  # refuses to start unless the URI above uses rediss:// or valkeys:// (with
+  # no `ssl` query parameter, which would override the scheme), whatever the
+  # host. When false (the default, so existing deployments keep booting), a
+  # plaintext URI is reported once at boot, graded by where the host is:
+  #   - a dotted hostname or public IP: a WARNING — the datastore password,
+  #     session data and secrets would cross the network unencrypted;
+  #   - a single-label name (a compose service such as `maindb`) or a private,
+  #     CGNAT or link-local IP (RFC 1918, 100.64/10, 169.254/16, fc00::/7,
+  #     fe80::/10): an INFO line, so the default compose stack does not warn
+  #     on every boot;
+  #   - loopback or a unix socket: nothing.
+  # The host graded is the one the client connects to, including a `host` or
+  # `path` query parameter. Hostnames are never resolved. Set
+  # VALKEY_REQUIRE_TLS=true or REDIS_REQUIRE_TLS=true (either one enables it).
+  # See lib/onetime/initializers/configure_familia.rb.
+  require_tls: <%= ENV['VALKEY_REQUIRE_TLS'] == 'true' || ENV['REDIS_REQUIRE_TLS'] == 'true' %>  # Since unreleased
   # Database Mapping Configuration
   # By default, all data types use database 0 for simplified connection pooling
   # and compatibility with Redis-as-a-Service providers. For advanced setups,
