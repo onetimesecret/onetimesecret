@@ -75,7 +75,8 @@ authorized to get tokens for another application. Thus, app-only tokens can be
 issued without a `roles` claim."
 
 Keep that isolation test's A/B comparison as an on-demand diagnostic. Routine
-checks test the configured way of sending the secret, not alternatives.
+checks test the configured way of sending the secret, not alternatives. For
+Entra that is the token request body (#4764).
 
 ## Procedures with the current tools
 
@@ -99,13 +100,17 @@ checks test the configured way of sending the secret, not alternatives.
 
 ## Proposed (not built)
 
-Nothing in this section exists in the codebase.
+Nothing in this section exists in the codebase, except where an item says so.
 
 1. **Test the saved configuration.** After a save, reload the record and test
    through the same decryption and token-request code that sign-in uses
    (`SsoConfig#to_omniauth_options` → `inject_tenant_credentials` → strategy →
    `OAuth2::Client`, same `auth_scheme`). A probe with its own HTTP client would have missed the
-   Basic-header encoding gap in the Entra runbook.
+   Basic-header encoding gap in the Entra runbook. Done for the Entra transport
+   itself: both Entra builders now send the secret in the token request body
+   (`client_options: { auth_scheme: :request_body }`, #4764), so that gap no
+   longer affects Entra sign-in. Still proposed: the probe, and the matching
+   `token_endpoint_auth_method` option for generic OIDC (#4764, Part 2).
 2. **Report each layer separately:** local integrity, provider reachability,
    credential acceptance, completed sign-in.
 3. **Background checks** for integrity, discovery, and SAML expiry. Token probes
