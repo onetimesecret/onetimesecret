@@ -3,8 +3,7 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   import MarkdownModeToggle from '@/shared/components/ui/MarkdownModeToggle.vue';
-  import MarkdownRenderer from '@/shared/components/ui/MarkdownRenderer.vue';
-  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import MarkdownPreview from '@/shared/components/ui/MarkdownPreview.vue';
   import { useCharCounter } from '@/shared/composables/useCharCounter';
   import { useTextarea } from '@/shared/composables/useTextarea';
   import { SecretDisplayType } from '@/schemas/contracts/secret';
@@ -71,7 +70,6 @@
   // parent owns the form field and the remembered preference.
   const supportsDisplayType = computed(() => props.displayType !== undefined);
   const isMarkdown = computed(() => props.displayType === SecretDisplayType.MARKDOWN);
-  const hasPreviewContent = computed(() => content.value.trim().length > 0);
 
   const setMarkdown = (enabled: boolean) => {
     emit('update:displayType', enabled ? SecretDisplayType.MARKDOWN : SecretDisplayType.TEXT);
@@ -161,39 +159,9 @@
       </div>
     </div>
 
-    <!--
-      Live Markdown preview: the hybrid half of the editor. Renders what the
-      recipient will see (same renderer and sanitizer as the reveal page) while
-      the textarea above stays the single place the text is edited.
-    -->
-    <div
+    <MarkdownPreview
       v-if="isMarkdown"
-      class="mt-3"
-      data-testid="secret-markdown-preview">
-      <div
-        class="mb-1 flex items-center gap-1.5 text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
-        <OIcon
-          collection="heroicons"
-          name="eye"
-          class="size-3.5"
-          aria-hidden="true" />
-        {{ t('web.secrets.markdown_preview') }}
-      </div>
-      <!-- prettier-ignore-attribute class -->
-      <div
-        :class="[cornerClass]"
-        class="max-h-[400px] overflow-auto rounded-lg border border-dashed border-gray-300/80
-          bg-white/60 p-5 dark:border-gray-600/80 dark:bg-slate-800/50">
-        <MarkdownRenderer
-          v-if="hasPreviewContent"
-          :source="content"
-          :debounce="150" />
-        <p
-          v-else
-          class="text-sm text-gray-400 italic dark:text-gray-500">
-          {{ t('web.secrets.markdown_preview_empty') }}
-        </p>
-      </div>
-    </div>
+      :source="content"
+      :corner-class="cornerClass" />
   </div>
 </template>

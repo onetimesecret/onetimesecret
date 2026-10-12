@@ -116,11 +116,12 @@ export function isValidSecretState(state: string): state is SecretState {
  * Display types: how the recipient's client presents the revealed value.
  *
  * A presentation hint chosen by the creator at conceal time and stored on
- * the secret (`Onetime::Secret::DISPLAY_TYPES` on the backend). It says how
- * to show the value, not what the value is, so it travels in the metadata
- * payload before reveal. Extend here together with the backend constant;
- * `httplink` (an "you are about to open an external link" interstitial) is
- * the kind of type this is meant to grow into.
+ * the secret (the display_type feature on the backend,
+ * lib/onetime/models/secret/features/display_type.rb). It says how to show
+ * the value, not what the value is, so it travels in the metadata payload
+ * before reveal. Extend here together with the feature's TYPES; `httplink`
+ * (a "you are about to open an external link" interstitial) is the kind of
+ * type this is meant to grow into.
  *
  * @category Contracts
  */

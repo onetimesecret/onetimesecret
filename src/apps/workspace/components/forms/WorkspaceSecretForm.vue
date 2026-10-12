@@ -21,7 +21,7 @@
   import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import MarkdownModeToggle from '@/shared/components/ui/MarkdownModeToggle.vue';
-  import MarkdownRenderer from '@/shared/components/ui/MarkdownRenderer.vue';
+  import MarkdownPreview from '@/shared/components/ui/MarkdownPreview.vue';
   import SplitButton from '@/shared/components/ui/SplitButton.vue';
   import { useDomainContext } from '@/shared/composables/useDomainContext';
   import { usePrivacyOptions } from '@/shared/composables/usePrivacyOptions';
@@ -200,7 +200,6 @@
   restorePreferredDisplayType();
 
   const isMarkdown = computed(() => form.display_type === SecretDisplayType.MARKDOWN);
-  const hasPreviewContent = computed(() => content.value.trim().length > 0);
 
   // Sync content with form
   watch(content, (newContent) => {
@@ -380,40 +379,11 @@
               </div>
             </div>
 
-            <!--
-              Live Markdown preview: what the recipient will see, rendered and
-              sanitized by the same code as the reveal page. The textarea above
-              stays the single place the text is edited.
-            -->
-            <div
+            <MarkdownPreview
               v-if="isMarkdown"
-              class="mt-3"
-              data-testid="secret-markdown-preview">
-              <div
-                class="mb-1 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide
-                  text-gray-500 dark:text-gray-400">
-                <OIcon
-                  collection="heroicons"
-                  name="eye"
-                  class="size-3.5"
-                  aria-hidden="true" />
-                {{ t('web.secrets.markdown_preview') }}
-              </div>
-              <div
-                :class="[cornerClass]"
-                class="max-h-[500px] overflow-auto rounded-lg border border-dashed border-gray-300/80
-                  bg-white/60 p-4 dark:border-gray-600/80 dark:bg-slate-800/50">
-                <MarkdownRenderer
-                  v-if="hasPreviewContent"
-                  :source="content"
-                  :debounce="150" />
-                <p
-                  v-else
-                  class="text-sm italic text-gray-400 dark:text-gray-500">
-                  {{ t('web.secrets.markdown_preview_empty') }}
-                </p>
-              </div>
-            </div>
+              :source="content"
+              :corner-class="cornerClass"
+              box-class="max-h-[500px] p-4" />
           </div>
 
           <!-- Generate Password display for Generate mode -->
