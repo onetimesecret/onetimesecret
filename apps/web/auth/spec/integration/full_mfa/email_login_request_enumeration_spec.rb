@@ -68,6 +68,21 @@ RSpec.describe 'Email-login-request enumeration safety (RISK-2026-08-14-M03)',
     [last_response.status, json_body]
   end
 
+  # SEC-B01/SEC-B08: a JSON body sent raw, so it can carry a byte that is not
+  # valid UTF-8, declared ISO-8859-1 so Rack::UTF8Sanitizer leaves it alone.
+  # Auth::ParamEncoding answers it with one 400 before any account lookup.
+  def invalid_encoding_probe(path, login, field)
+    clear_cookies
+    csrf = fetch_csrf_token
+    clear_body_headers
+    header 'Content-Type', 'application/json; charset=iso-8859-1'
+    header 'Accept', 'application/json'
+    header 'X-CSRF-Token', csrf if csrf
+    body = %({"login":#{JSON.generate(login)},"shrimp":#{JSON.generate(csrf.to_s)},"#{field}":"\xFF"})
+    post path, body.b
+    [last_response.status, last_response.body]
+  end
+
   def expect_not_mailed
     expect(Onetime::Jobs::Publisher).not_to have_received(:enqueue_email_raw)
   end
@@ -177,6 +192,19 @@ RSpec.describe 'Email-login-request enumeration safety (RISK-2026-08-14-M03)',
       expect(open).to eq(missing)
       expect(Onetime::Jobs::Publisher).to have_received(:enqueue_email_raw)
         .with(hash_including(to: contain_exactly(email)), any_args).once
+    end
+  end
+
+  describe 'invalid-encoding param (SEC-B01)' do
+    it 'answers an open account and an unknown login with the same 400' do
+      email = unique_test_email('encoding-open')
+      seed_account(email)
+
+      answer = invalid_encoding_probe('/auth/email-login-request', email, 'locale')
+
+      expect(answer.first).to eq(400)
+      expect(answer).to eq(invalid_encoding_probe('/auth/email-login-request', unique_test_email('encoding-missing'), 'locale'))
+      expect_not_mailed
     end
   end
 end

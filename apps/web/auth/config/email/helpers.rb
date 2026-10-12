@@ -21,13 +21,17 @@ module Auth::Config::Email
     # symbols both match, e.g. 'fr_FR' and :fr_FR); a form the app does not
     # ship, such as 'fr-FR' or 'zz', is skipped rather than guessed at.
     # Surrounding whitespace is ignored; a non-String candidate (a nested
-    # request param) never matches.
+    # request param) never matches, and neither does a String with invalid
+    # encoding, which `strip` would raise on (SEC-B01). Auth::ParamEncoding
+    # refuses such a request before it gets here; this keeps the helper safe
+    # for any other caller.
     #
     # @param candidates [Array<Object>] in priority order
     # @return [String]
     def self.available_locale(*candidates)
       candidates.each do |candidate|
         next unless candidate.is_a?(String) || candidate.is_a?(Symbol)
+        next unless candidate.to_s.valid_encoding?
 
         name = candidate.to_s.strip
         return name if !name.empty? && I18n.locale_available?(name)

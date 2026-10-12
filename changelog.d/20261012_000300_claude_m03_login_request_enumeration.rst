@@ -15,8 +15,11 @@ Security
   instead of a 500. An unsupported ``locale`` request parameter used to make
   the email for an existing account fail with a 500 on these routes and on
   ``POST /auth/reset-password-request``; auth emails now ignore a locale the
-  app does not ship and use the next candidate or the default.
-  (RISK-2026-08-14-M03)
+  app does not ship and use the next candidate or the default. Any
+  ``/auth`` request whose parameters contain text that is not valid in its
+  encoding (for example a JSON body declared as ``charset=iso-8859-1``) now
+  gets one 400 before any account lookup, instead of a 500 that only an
+  existing account could trigger. (RISK-2026-08-14-M03)
 
   **Upgrade note for API clients**: these two routes no longer return
   ``no_matching_login`` or the "recently sent" error. A client that showed

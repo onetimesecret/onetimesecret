@@ -9,8 +9,13 @@
 # config/overrides/ rather than config/hooks/.
 #
 # The around_rodauth handler is called for every route, which we use as
-# a global error handler.
+# a global error handler. It is also the one place that sees every Rodauth
+# request before before_rodauth and the route block run, so it refuses a
+# request whose params hold an invalid-encoding String there
+# (Auth::ParamEncoding, SEC-B01/SEC-B08) before any account lookup.
 #
+
+require_relative '../../param_encoding'
 
 module Auth::Config::Overrides
   module ErrorHandling
@@ -26,6 +31,9 @@ module Auth::Config::Overrides
           )
         end
         begin
+          # Before before_rodauth and the route: one 400 for any request whose
+          # params hold an invalid-encoding String, whatever the account.
+          Auth::ParamEncoding.refuse_invalid!(self)
           super(&blk)
         rescue Onetime::LimitExceeded
           # Expected control flow, not an unhandled exception: rate limiters

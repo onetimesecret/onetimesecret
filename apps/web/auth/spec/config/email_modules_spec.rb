@@ -163,18 +163,21 @@ RSpec.describe 'Auth::Config::Email modules' do
 
     let(:available) { [:en, :de, :fr, :es, :ja, :zh, :fr_FR] }
 
-    # I18n config is process-global: restore the explicit list (nil when it
-    # was backend-derived) and then the default, which must be available.
+    # I18n config is process-global. `default_locale=` raises unless the
+    # locale is available, so the saved default joins the temporary list and
+    # is restored FIRST, while that list is still in place; the saved list
+    # (nil when it was backend-derived, as in an unbooted process) goes back
+    # last (QA-B08).
     around do |example|
       saved_available = I18n.available_locales_initialized? ? I18n.available_locales : nil
       saved_default   = I18n.default_locale
       begin
-        I18n.available_locales = available
+        I18n.available_locales = (available + [saved_default.to_sym]).uniq
         I18n.default_locale    = :en
         example.run
       ensure
-        I18n.available_locales = saved_available
         I18n.default_locale    = saved_default
+        I18n.available_locales = saved_available
       end
     end
 
@@ -315,6 +318,22 @@ RSpec.describe 'Auth::Config::Email modules' do
 
           expect { I18n.t(:anything, locale: locale.to_sym) }.not_to raise_error
         end
+      end
+    end
+
+    context 'when a locale candidate is not valid in its encoding (SEC-B01)' do
+      let(:invalid) { (+"\xFF").force_encoding(Encoding::UTF_8) }
+
+      # `strip` raises ArgumentError on such a String; the request guard
+      # (Auth::ParamEncoding) refuses it first, and the helper skips it too.
+      it 'skips it without raising and falls through to the next candidate' do
+        expect(determine_locale(account: {}, session: {}, request_params: { 'locale' => invalid })).to eq('en')
+        expect(determine_locale(account: { locale: invalid }, session: { locale: 'de' }, request_params: {}))
+          .to eq('de')
+      end
+
+      it 'is skipped by the module function itself' do
+        expect(Auth::Config::Email::Helpers.available_locale(invalid, 'ja')).to eq('ja')
       end
     end
   end

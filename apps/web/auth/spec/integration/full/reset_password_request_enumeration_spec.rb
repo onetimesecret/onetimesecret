@@ -109,6 +109,21 @@ RSpec.describe 'Reset-password-request enumeration safety (issue #3857)', type: 
     last_response
   end
 
+  # SEC-B01/SEC-B08: a JSON body sent raw, so it can carry a byte that is not
+  # valid UTF-8, declared ISO-8859-1 so Rack::UTF8Sanitizer leaves it alone.
+  # Auth::ParamEncoding answers it with one 400 before any account lookup.
+  def invalid_encoding_probe(path, login, field)
+    clear_cookies
+    csrf = fetch_csrf_token
+    clear_body_headers
+    header 'Content-Type', 'application/json; charset=iso-8859-1'
+    header 'Accept', 'application/json'
+    header 'X-CSRF-Token', csrf if csrf
+    body = %({"login":#{JSON.generate(login)},"shrimp":#{JSON.generate(csrf.to_s)},"#{field}":"\xFF"})
+    post path, body.b
+    [last_response.status, last_response.body]
+  end
+
   # Capture (status, parsed-body) for a probe so two probes can be compared.
   def probe(login, **extra)
     response = request_password_reset(login, **extra)
@@ -227,6 +242,19 @@ RSpec.describe 'Reset-password-request enumeration safety (issue #3857)', type: 
       expect([existing_status, existing_body]).to eq([missing_status, missing_body])
       expect(Onetime::Jobs::Publisher).to have_received(:enqueue_email_raw)
         .with(hash_including(to: contain_exactly(existing)), any_args).once
+    end
+  end
+
+  describe 'invalid-encoding param (SEC-B01)' do
+    it 'answers an existing and a non-existent login with the same 400', :aggregate_failures do
+      existing = unique_test_email('encoding-exists')
+      create_account(email: existing)
+
+      answer = invalid_encoding_probe('/auth/reset-password-request', existing, 'locale')
+
+      expect(answer.first).to eq(400)
+      expect(answer).to eq(invalid_encoding_probe('/auth/reset-password-request', unique_test_email('encoding-missing'), 'locale'))
+      expect(Onetime::Jobs::Publisher).not_to have_received(:enqueue_email_raw)
     end
   end
 end
