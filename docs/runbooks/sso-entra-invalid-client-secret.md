@@ -522,6 +522,6 @@ Checking the platform settings costs the customer nothing, but those settings ar
 
 ## Recommendation
 
-**My recommendation:** switch Entra to sending the secret in the request body (`auth_scheme: :request_body`) whatever result B gives. That's the form Microsoft documents first, it works with any character in a secret, and it's a small change plus a spec pinning how the secret is sent.
+**My recommendation:** switch Entra to sending the secret in the request body (`auth_scheme: :request_body`) whatever result B gives. That's the form Microsoft documents first, it works with any character in a secret, and it's a small change plus a spec pinning how the secret is sent. Tracked in [#4764](https://github.com/onetimesecret/onetimesecret/issues/4764), which also covers an optional `token_endpoint_auth_method` for generic OIDC.
 
 Test Connection doesn't check the client secret, so they can only confirm the fix with a real sign-in. A possible follow-up, not urgent: have Test Connection verify the saved Entra secret by requesting a token with it, which needs no user sign-in. [sso-credential-health.md](./sso-credential-health.md) covers what such a probe does and does not prove, and the other checks that keep SSO credentials healthy.
