@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'ipaddr'
+require 'uri'
 require_relative '../key_derivation'
 
 module Onetime
@@ -76,6 +78,134 @@ module Onetime
         :"r#{Onetime::KeyDerivation.derive_hex(secret, :key_verifier)[0, 8]}"
       end
 
+      # URI schemes whose connections use TLS. URI::Valkey (uri-valkey, which
+      # familia loads) sets `ssl:` in #conf from exactly these, and both the
+      # connection pool (setup_connection_pool.rb) and Familia's own clients
+      # build their Redis config from #conf.
+      REDIS_TLS_SCHEMES = %w[rediss valkeys].freeze
+
+      # RFC 6598 shared address space (carrier-grade NAT), private in practice
+      # but outside IPAddr#private? (RFC 1918, fc00::/7) and #link_local?
+      # (169.254.0.0/16, fe80::/10).
+      CGNAT_RANGE = IPAddr.new('100.64.0.0/10').freeze
+
+      # Classify how a Redis/Valkey URI reaches the datastore
+      # (RISK-2026-08-14-L07). Pure so the boot check is unit-testable without
+      # booting; reads only the scheme, host and query, never the userinfo.
+      #
+      #   :tls                rediss:// or valkeys://, no `ssl` query parameter
+      #   :local_plaintext    anything else to a loopback host (127.0.0.0/8,
+      #                       ::1, localhost) or a unix:// socket
+      #   :private_plaintext  anything else to a host on a private network: a
+      #                       single-label name (a compose/k8s service such as
+      #                       `maindb`) or a private, CGNAT or link-local IP
+      #                       literal (RFC 1918, 100.64/10, 169.254/16, fc00::/7,
+      #                       fe80::/10)
+      #   :remote_plaintext   anything else: a dotted hostname, a public IP
+      #                       literal, or a URI that does not parse
+      #
+      # An `ssl` query parameter is merged OVER the scheme in URI::Valkey#conf
+      # (a bare `?ssl` turns TLS off even on rediss://), so a URI carrying one
+      # is never :tls: the scheme alone is what this asserts. A hostname is
+      # never resolved, so a dotted name that happens to resolve privately is
+      # still :remote_plaintext; the boot check only grades how loudly to say so.
+      #
+      # @param uri [String, nil]
+      # @return [Symbol] :tls, :local_plaintext, :private_plaintext or
+      #   :remote_plaintext
+      def self.redis_transport(uri)
+        parsed = URI.parse(uri.to_s.strip)
+        scheme = parsed.scheme.to_s.downcase
+        return :local_plaintext if scheme == 'unix'
+
+        ssl_param = parsed.query.to_s.split(/[&;] */).any? { |pair| pair.split('=', 2).first == 'ssl' }
+        return :tls if REDIS_TLS_SCHEMES.include?(scheme) && !ssl_param
+
+        host = parsed.hostname
+        return :local_plaintext if loopback_host?(host)
+
+        private_host?(host) ? :private_plaintext : :remote_plaintext
+      rescue URI::Error
+        :remote_plaintext
+      end
+
+      # @param host [String, nil] a URI hostname (IPv6 without brackets)
+      # @return [Boolean]
+      def self.loopback_host?(host)
+        name = host.to_s.downcase
+        return false if name.empty?
+        return true if name == 'localhost'
+
+        IPAddr.new(name).loopback?
+      rescue IPAddr::Error
+        false
+      end
+
+      # A single-label hostname, or a private, CGNAT or link-local IP literal
+      # (an IPv4-mapped IPv6 literal is judged as its IPv4 address).
+      #
+      # @param host [String, nil] a URI hostname (IPv6 without brackets)
+      # @return [Boolean]
+      def self.private_host?(host)
+        name = host.to_s.downcase
+        return false if name.empty?
+
+        address = IPAddr.new(name).native
+        address.private? || address.link_local? || CGNAT_RANGE.include?(address)
+      rescue IPAddr::Error
+        # Not an IP literal: a hostname, private only when single-label.
+        !name.include?('.')
+      end
+
+      # redis.require_tls as a boolean. The shipped default renders a real
+      # boolean; a hand-written 'true' string also counts, since reading it as
+      # false would silently skip the requirement.
+      def self.redis_require_tls?(value)
+        value == true || value.to_s.strip.casecmp?('true')
+      end
+
+      # Enforce redis.require_tls, or report plaintext to a non-loopback host.
+      #
+      #   require_tls, URI not :tls     -> raise Onetime::Problem
+      #   :remote_plaintext otherwise   -> one warning, boot continues
+      #   :private_plaintext otherwise  -> one info line (the default compose
+      #                                    stack's `maindb` lands here; a
+      #                                    warning on every default boot would
+      #                                    teach operators to ignore it)
+      #   anything else                 -> silent
+      #
+      # Both messages carry the URI through redact_uri_userinfo, which masks
+      # the userinfo (password) and the query (which can carry one too).
+      #
+      # @param uri [String]
+      # @param require_tls [Boolean]
+      # @param logger [#warn, #info]
+      # @return [Symbol] the transport classification
+      # @raise [Onetime::Problem] when TLS is required and the URI lacks it
+      def self.check_redis_transport!(uri, require_tls:, logger: OT.boot_logger)
+        transport = redis_transport(uri)
+
+        if require_tls && transport != :tls
+          raise Onetime::Problem,
+            'redis.require_tls is enabled but the Redis/Valkey URI does not use TLS ' \
+            "(#{OT::Utils.redact_uri_userinfo(uri)}). Use a rediss:// or valkeys:// URI " \
+            'without an `ssl` query parameter, or unset VALKEY_REQUIRE_TLS / REDIS_REQUIRE_TLS.'
+        end
+
+        case transport
+        when :remote_plaintext
+          logger.warn '[configure_familia] Redis/Valkey URI does not use TLS and its host is not loopback ' \
+                      "(#{OT::Utils.redact_uri_userinfo(uri)}): the datastore password and data cross the " \
+                      'network unencrypted. Use rediss:// and set VALKEY_REQUIRE_TLS=true to enforce it.'
+        when :private_plaintext
+          logger.info '[configure_familia] Redis/Valkey URI does not use TLS; its host is on a private network ' \
+                      "(#{OT::Utils.redact_uri_userinfo(uri)}). Use rediss:// and set VALKEY_REQUIRE_TLS=true " \
+                      'to require TLS.'
+        end
+
+        transport
+      end
+
       def execute(_context)
         secret_key = OT.conf.dig('site', 'secret')
         raise 'site.secret not set or empty' if secret_key.to_s.empty?
@@ -101,6 +231,14 @@ module Onetime
         if ENV['RACK_ENV'] == 'test' && !uri.match?(%r{:2163(?:[/?]|\z)})
           raise Onetime::Problem, "Test environment MUST use Redis port 2163, got: #{OT::Utils.redact_uri_userinfo(uri)}. Set VALKEY_URL='valkey://127.0.0.1:2163/0'"
         end
+
+        # Transport check (RISK-2026-08-14-L07): refuse a non-TLS URI when
+        # redis.require_tls is set, else warn about plaintext to a remote
+        # host. Before Familia.uri is assigned, so a refused boot leaves no
+        # datastore configured.
+        self.class.check_redis_transport!(
+          uri, require_tls: self.class.redis_require_tls?(OT.conf.dig('redis', 'require_tls'))
+        )
 
         # Set Familia's URI so it's available for isolated connections
         # during legacy data detection and other pre-connection operations
