@@ -246,6 +246,63 @@ describe('vendored DNS widget (M09)', () => {
       root.querySelector<HTMLElement>('div')!.click();
       expect(writeText).not.toHaveBeenCalled();
     });
+
+    /** Re-render the widget with one instruction step. */
+    function renderStep(html: string) {
+      apx.renderProviderInstructions({
+        domain_results: { 'example.com': { steps: [{ html }] } },
+        verify_section: { html: '<div id="apxdnswidget-verify-section"></div>' },
+      });
+    }
+
+    // SEC-F7: the vendor copied this.previousElementSibling; a hidden first
+    // input in the same container must not be what lands on the clipboard.
+    it('copies the input just before the button, not the first in its container', () => {
+      renderStep(`
+        <div class="apxdns-input-copy-container">
+          <input class="apxdns-hide" value="attacker.example">
+          <input value="target.example.net">
+          <button class="apxdns-copy-button"
+            onclick="window.apxDns.copyInputText(this.previousElementSibling)">Copy</button>
+        </div>`);
+
+      widgetRoot().querySelector<HTMLElement>('[data-apxdns-action="copyInputText"]')!.click();
+
+      expect(writeText).toHaveBeenCalledTimes(1);
+      expect(writeText).toHaveBeenCalledWith('target.example.net');
+    });
+
+    it("falls back to the container's input when the button does not follow one", () => {
+      renderStep(`
+        <div class="apxdns-input-copy-container">
+          <input value="target.example.net">
+          <span>record value</span>
+          <button class="apxdns-copy-button"
+            onclick="window.apxDns.copyInputText(this.previousElementSibling)">Copy</button>
+        </div>`);
+
+      widgetRoot().querySelector<HTMLElement>('[data-apxdns-action="copyInputText"]')!.click();
+
+      expect(writeText).toHaveBeenCalledWith('target.example.net');
+    });
+
+    // SEC-F1: a remote <label for> must not click an app control by id.
+    it('does not let remote markup click an app control outside the widget', () => {
+      const appControl = document.createElement('button');
+      appControl.id = 'app-danger';
+      document.body.prepend(appControl);
+      const appClicks = vi.fn();
+      appControl.addEventListener('click', appClicks);
+
+      renderStep(
+        '<label for="app-danger" class="apxdns-show-manual-instructions-btn">Show</label>'
+      );
+      const label = widgetRoot().querySelector<HTMLLabelElement>('label')!;
+      expect(label.hasAttribute('for')).toBe(false);
+      label.click();
+
+      expect(appClicks).not.toHaveBeenCalled();
+    });
   });
 
   describe('without a sanitizer (fail closed)', () => {

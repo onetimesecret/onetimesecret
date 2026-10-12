@@ -162,7 +162,62 @@ describe('sanitizeDnsWidgetHtml', () => {
     });
   });
 
+  // SEC-F1: these attributes let a click inside the widget act on an app
+  // element by id (e.g. <label for="app-danger"> clicks an app button).
+  describe('attributes that reach elements outside the widget', () => {
+    it.each([
+      ['<label for="app-danger" class="apxdns-x">Show</label>', 'for'],
+      ['<button popovertarget="app-popover" popovertargetaction="show">x</button>', 'popovertarget'],
+      ['<button popovertarget="app-popover" popovertargetaction="show">x</button>', 'popovertargetaction'],
+      ['<button command="show-modal" commandfor="app-dialog">x</button>', 'command'],
+      ['<button command="show-modal" commandfor="app-dialog">x</button>', 'commandfor'],
+    ])('drops %s -> %s', (html, attribute) => {
+      expect(attributeNames(render(html))).not.toContain(attribute);
+    });
+  });
+
+  // SEC-F6: a relative source is fetched from this origin on render.
+  describe('resource URLs', () => {
+    it.each([
+      ['<img src="/logout">'],
+      ['<img src="logout">'],
+      ['<img src="//evil.example/x.png">'],
+      ['<img src="http://cdn.example/x.png">'],
+      ['<img src="data:image/svg+xml,<svg></svg>">'],
+      ['<input type="image" src="/account/delete">'],
+    ])('drops a src that is not absolute https: %s', (html) => {
+      expect(attributeNames(render(html))).not.toContain('src');
+    });
+
+    it('keeps an absolute https src', () => {
+      const out = render('<img src="https://cdn.example/logo.png">');
+      expect(out.querySelector('img')!.getAttribute('src')).toBe('https://cdn.example/logo.png');
+    });
+
+    it('drops srcset and background', () => {
+      const out = render(
+        '<img src="https://cdn.example/a.png" srcset="/logout 1x, https://cdn.example/b.png 2x">' +
+          '<table><tbody><tr><td background="/logout">x</td></tr></tbody></table>'
+      );
+      expect(attributeNames(out)).not.toContain('srcset');
+      expect(attributeNames(out)).not.toContain('background');
+    });
+  });
+
   describe('anchors', () => {
+    // SEC-F2: an SVG anchor's tagName is lower-case 'a'.
+    it.each([['_blank'], ['_top']])(
+      'removes target=%s from SVG anchors and forces rel',
+      (target) => {
+        const out = render(
+          `<svg><a href="https://dns.example/" target="${target}"><rect width="10" height="10"/></a></svg>`
+        );
+        const link = out.querySelector('svg a')!;
+        expect(link.hasAttribute('target')).toBe(false);
+        expect(link.getAttribute('rel')).toBe('noopener noreferrer');
+      }
+    );
+
     it('keeps target=_blank and forces rel="noopener noreferrer"', () => {
       const out = render('<a href="https://dns.example/apply" target="_blank" rel="opener">Apply</a>');
       const link = out.querySelector('a')!;
@@ -192,6 +247,31 @@ describe('sanitizeDnsWidgetHtml', () => {
       const ids = Array.from(out.querySelectorAll('div')).map((el) => el.id);
       expect(ids).toEqual(['apxdnswidget-verify-section', '']);
     });
+  });
+
+  // SEC-F5: DOMPurify returns its input unchanged where it is unsupported.
+  it('returns escaped text when DOMPurify is unsupported', async () => {
+    vi.resetModules();
+    vi.doMock('dompurify', () => ({
+      default: () => ({
+        isSupported: false,
+        addHook: vi.fn(),
+        sanitize: (dirty: string) => dirty,
+      }),
+    }));
+    try {
+      const { sanitizeDnsWidgetHtml: unsupported } = await import('@/shared/utils/dnsWidgetHtml');
+      const hostile = '<img src=x onerror="alert(1)"><b>bold</b>';
+
+      const container = document.createElement('div');
+      container.innerHTML = unsupported(hostile);
+
+      expect(container.children).toHaveLength(0);
+      expect(container.textContent).toBe(hostile);
+    } finally {
+      vi.doUnmock('dompurify');
+      vi.resetModules();
+    }
   });
 
   it('does not change the shared DOMPurify instance', () => {

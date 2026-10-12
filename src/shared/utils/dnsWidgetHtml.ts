@@ -27,13 +27,22 @@ import DOMPurify, { type Config, type DOMPurify as Purifier } from 'dompurify';
  *   media, or embedding elements);
  * - drops `style`, `form` and `formaction`, so markup cannot restyle the page
  *   or submit one of the app's own forms;
+ * - drops `for`, `popovertarget(action)`, `command` and `commandfor`, which
+ *   let a click inside the widget act on an app element by id;
  * - restricts URL schemes to https and mailto (relative URLs carry no scheme
- *   and pass), so javascript:, data: (except image sources), vbscript: etc.
- *   are removed;
+ *   and pass), so javascript:, data:, vbscript: etc. are removed;
+ * - keeps `src` only as an absolute https URL and drops `srcset` and
+ *   `background`, so rendering cannot fire a request at an app route
+ *   (e.g. `<img src="/logout">`);
  * - keeps only the widget's own `apxdns*` class and id names, so remote markup
  *   cannot borrow the app's utility classes to overlay the page or claim ids
  *   the app looks up;
- * - allows `target` only as `_blank` and forces rel="noopener noreferrer".
+ * - on HTML anchors allows `target` only as `_blank`; SVG anchors lose
+ *   `target`. Every anchor gets rel="noopener noreferrer".
+ *
+ * If DOMPurify reports the environment unsupported, it would return its input
+ * unchanged; this function then returns the input escaped, which renders as
+ * the same plain text the widget inserts when no sanitizer is installed.
  */
 
 /** Widget functions remote markup may invoke, keyed by name. */
@@ -84,9 +93,27 @@ const SANITIZE_CONFIG: Config = {
     'svg', 'circle', 'ellipse', 'g', 'line', 'path', 'polygon', 'polyline', 'rect',
   ],
   ADD_ATTR: ['target'],
-  FORBID_ATTR: ['style', 'form', 'formaction'],
+  FORBID_ATTR: [
+    'style',
+    'form',
+    'formaction',
+    // Act on an element elsewhere in the document by id.
+    'for',
+    'popovertarget',
+    'popovertargetaction',
+    'command',
+    'commandfor',
+    // Fetched on render; not covered by the absolute-https `src` rule.
+    'srcset',
+    'background',
+  ],
   ALLOWED_URI_REGEXP,
 };
+
+// An absolute https URL. A relative `src` would be fetched from this origin.
+const ABSOLUTE_HTTPS = /^https:\/\/[^/\\\s]/i;
+
+const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
 
 function isActionName(name: string): name is DnsWidgetActionName {
   return (DNS_WIDGET_ACTIONS as readonly string[]).includes(name);
@@ -166,12 +193,17 @@ function translateInlineHandlers(node: Element): void {
   }
 }
 
-/** uponSanitizeAttribute: keep only the widget's own class and id names. */
-function restrictWidgetNames(
+/**
+ * uponSanitizeAttribute: keep only the widget's own class and id names, and
+ * only absolute https sources.
+ */
+function restrictWidgetAttributes(
   _node: Element,
   event: { attrName: string; attrValue: string; keepAttr: boolean }
 ): void {
-  if (event.attrName === 'class') {
+  if (event.attrName === 'src') {
+    if (!ABSOLUTE_HTTPS.test(event.attrValue)) event.keepAttr = false;
+  } else if (event.attrName === 'class') {
     const kept = event.attrValue
       .split(/\s+/)
       .filter((token) => WIDGET_NAME.test(token) || EXTRA_CLASSES.has(token));
@@ -184,10 +216,15 @@ function restrictWidgetNames(
 
 /** afterSanitizeAttributes: anchor hardening and keyboard access for actions. */
 function hardenElement(node: Element): void {
-  if (node.tagName !== 'A') return;
+  // localName, not tagName: an SVG anchor's tagName is lower-case 'a'.
+  if (node.localName !== 'a') return;
 
+  // SVG anchors cannot be relied on to honour rel, so they never open a new
+  // browsing context.
   const target = node.getAttribute('target');
-  if (target !== null && target !== '_blank') node.removeAttribute('target');
+  if (target !== null && (target !== '_blank' || node.namespaceURI === SVG_NAMESPACE)) {
+    node.removeAttribute('target');
+  }
   node.setAttribute('rel', 'noopener noreferrer');
 
   // A `javascript:void(0)` href was removed above; give the action back a
@@ -208,17 +245,33 @@ function getPurifier(): Purifier {
   if (!purifier) {
     purifier = DOMPurify(window);
     purifier.addHook('beforeSanitizeAttributes', translateInlineHandlers);
-    purifier.addHook('uponSanitizeAttribute', restrictWidgetNames);
+    purifier.addHook('uponSanitizeAttribute', restrictWidgetAttributes);
     purifier.addHook('afterSanitizeAttributes', hardenElement);
   }
   return purifier;
+}
+
+/** Escape a string so inserting it as HTML yields the same text node. */
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 /**
  * Sanitize an HTML string from the DNS widget's remote API for insertion into
  * the widget root. Returns markup with no script, no inline handlers and no
  * script-capable URLs; widget actions survive as `data-apxdns-action`.
+ *
+ * Where DOMPurify is unsupported (it would pass the input through), returns
+ * the input escaped: plain text, as when no sanitizer is installed.
  */
 export function sanitizeDnsWidgetHtml(html: string): string {
-  return getPurifier().sanitize(String(html), SANITIZE_CONFIG);
+  const source = String(html);
+  const instance = getPurifier();
+  if (!instance.isSupported) return escapeHtml(source);
+  return instance.sanitize(source, SANITIZE_CONFIG);
 }

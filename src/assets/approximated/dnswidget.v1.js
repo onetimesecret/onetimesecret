@@ -387,16 +387,16 @@ window.apxDns = {
         event.preventDefault();
         window.apxDns.submitDomain(form);
     },
-    // OTS: the field a copy button copies: the input in its copy container,
-    // else the input just before it.
+    // OTS: the field a copy button copies: the input just before it, as the
+    // vendor's copyInputText(this.previousElementSibling) did; else the input
+    // in its copy container.
     "findCopyField": function(el){
-        var container = el.closest(".apxdns-input-copy-container");
-        var field = container ? container.querySelector("input, textarea") : null;
         var previous = el.previousElementSibling;
-        if(!field && previous && previous.matches("input, textarea")){
-            field = previous;
+        if(previous && previous.matches("input, textarea")){
+            return previous;
         }
-        return field;
+        var container = el.closest(".apxdns-input-copy-container");
+        return container ? container.querySelector("input, textarea") : null;
     },
     "deepClone": function(obj, hash = new WeakMap()) {
         // Handle primitives and functions
