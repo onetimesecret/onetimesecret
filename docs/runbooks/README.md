@@ -35,6 +35,10 @@ happens, and the steps to resolve or verify.
   with operator approval, which claims an Entra tenant's ID tokens carry per
   account type; what the synthetic-token spec already proves; recording
   sanitized claim presence and type, never tokens or values.
+- [sso-entra-invalid-client-secret.md](./sso-entra-invalid-client-secret.md) —
+  Diagnosing a tenant Entra sign-in that fails at token exchange with
+  AADSTS7000215; how Onetime Secret sends the client secret, the error codes
+  that rule causes in or out, and a two-request isolation test for the customer.
 - [sso-accounts-unverified.md](./sso-accounts-unverified.md) — Repairing
   SSO-provisioned customers left unverified before v0.26.5, so their colonel /
   admin / staff role takes effect (`bin/ots customers doctor --all --repair`);
