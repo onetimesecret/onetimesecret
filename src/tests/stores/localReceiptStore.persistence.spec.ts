@@ -1,8 +1,9 @@
 // src/tests/stores/localReceiptStore.persistence.spec.ts
 //
 // RISK-2026-08-14-M10 (QA): sessionStorage round trips for the guest receipt
-// cache, run against jsdom's real sessionStorage and the real auth/bootstrap
-// stores (localReceiptStore.spec.ts mocks both).
+// cache, run against the real sessionStorage global (jsdom's on Node 22,
+// Node's own on Node 25+; see sessionStoragePrototype) and the real
+// auth/bootstrap stores (localReceiptStore.spec.ts mocks both).
 //
 // Covers what that spec does not:
 // - a cache written by the previous release (secretExtid, an unknown field,
@@ -57,6 +58,35 @@ function storedRaw(): string | null {
 
 function storedEntries(): Record<string, unknown>[] {
   return JSON.parse(storedRaw() ?? '[]');
+}
+
+/**
+ * The prototype that really serves `sessionStorage.setItem`.
+ *
+ * Not `Storage.prototype`: on Node 25+ (CI runs .node-version, 26) Node
+ * defines its own `sessionStorage` global, and vitest's jsdom environment only
+ * replaces globals Node already has when they are on its KEYS list, which has
+ * `Storage` but not `sessionStorage`. `Storage` is then jsdom's class while
+ * `sessionStorage` is Node's object, so a spy on `Storage.prototype` sees no
+ * call at all (on Node 22 the two agree, which is why it passed locally).
+ */
+function sessionStoragePrototype(): Storage {
+  return Object.getPrototypeOf(sessionStorage) as Storage;
+}
+
+/** Spy on sessionStorage writes, wherever its setItem lives. */
+function spyOnSessionSetItem() {
+  return vi.spyOn(sessionStoragePrototype(), 'setItem');
+}
+
+/**
+ * Prove a setItem spy intercepts sessionStorage writes, so a "not called"
+ * assertion cannot pass only because the spy is on the wrong object.
+ */
+function expectInterceptsSessionWrites(setItem: ReturnType<typeof spyOnSessionSetItem>) {
+  sessionStorage.setItem('qa-spy-probe', '1');
+  expect(setItem).toHaveBeenCalledWith('qa-spy-probe', '1');
+  sessionStorage.removeItem('qa-spy-probe');
 }
 
 describe('localReceiptStore sessionStorage persistence (M10)', () => {
@@ -125,12 +155,13 @@ describe('localReceiptStore sessionStorage persistence (M10)', () => {
     const normalized = storedRaw();
     expect(normalized).not.toBeNull();
 
-    const setItem = vi.spyOn(Storage.prototype, 'setItem');
+    const setItem = spyOnSessionSetItem();
     const { store } = await loadPage();
 
     expect(store.localReceipts.map((r) => r.id)).toEqual(['one']);
     expect(setItem.mock.calls.filter(([key]) => key === STORAGE_KEY)).toEqual([]);
     expect(storedRaw()).toBe(normalized);
+    expectInterceptsSessionWrites(setItem);
   });
 
   it('keeps the loaded list when the rewrite fails, and scrubs on the next write', async () => {
@@ -139,17 +170,19 @@ describe('localReceiptStore sessionStorage persistence (M10)', () => {
     // Fail only the receipt cache's first write: setupTestPinia mounts an app
     // and waits a tick, and any other storage write in that window would
     // otherwise take a one-shot throw meant for the rewrite.
-    const realSetItem = Storage.prototype.setItem;
+    const realSetItem = sessionStoragePrototype().setItem;
     let failed = false;
-    const setItem = vi
-      .spyOn(Storage.prototype, 'setItem')
-      .mockImplementation(function (this: Storage, key: string, value: string) {
-        if (key === STORAGE_KEY && !failed) {
-          failed = true;
-          throw new DOMException('quota', 'QuotaExceededError');
-        }
-        realSetItem.call(this, key, value);
-      });
+    const setItem = spyOnSessionSetItem().mockImplementation(function (
+      this: Storage,
+      key: string,
+      value: string
+    ) {
+      if (key === STORAGE_KEY && !failed) {
+        failed = true;
+        throw new DOMException('quota', 'QuotaExceededError');
+      }
+      realSetItem.call(this, key, value);
+    });
 
     const { store } = await loadPage();
 
@@ -241,7 +274,7 @@ describe('localReceiptStore sessionStorage persistence (M10)', () => {
   describe('addReceipt and the real auth status', () => {
     it('records nothing when fully authenticated and leaves storage alone', async () => {
       const { store } = await loadPage('authenticated');
-      const setItem = vi.spyOn(Storage.prototype, 'setItem');
+      const setItem = spyOnSessionSetItem();
 
       store.addReceipt(receipt('signed-in'));
       await nextTick();
@@ -249,6 +282,7 @@ describe('localReceiptStore sessionStorage persistence (M10)', () => {
       expect(store.localReceipts).toEqual([]);
       expect(setItem).not.toHaveBeenCalled();
       expect(storedRaw()).toBeNull();
+      expectInterceptsSessionWrites(setItem);
     });
 
     it.each<AuthStatus>(['anonymous', 'mfa_pending'])(
