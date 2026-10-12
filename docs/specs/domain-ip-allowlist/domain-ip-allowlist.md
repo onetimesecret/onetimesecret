@@ -536,6 +536,39 @@ recoverable).
   into "clients on the wrong network" hides exactly the failure mode this
   design exists to make visible. Alert on it.
 
+### Sibling policy: homepage network rules
+
+`HomepageConfig#allowed_cidrs` / `#denied_cidrs` (#4757) restrict a
+narrower surface on the same custom domain: the anonymous homepage create
+form and the anonymous create API. They serve the common hybrid setup in
+which staff create secrets from a known network and recipients open links
+from anywhere. AccessConfig cannot express that, because it gates reveal
+links too. The two are complementary, not redundant:
+
+| | Homepage network rules | AccessConfig |
+|---|---|---|
+| Question it answers | Who can create from the homepage | Who can reach the domain |
+| Surfaces | Homepage `/` and the anonymous create API | Every request on the host, minus the exemptions above |
+| Who is judged | Anonymous visitors (members are exempt) | Everyone on the host |
+| Lists | Allow and deny; deny wins | Allow only (v1) |
+| Plan | Identity Plus (`homepage_network_rules`) | Team Plus |
+
+Keep them consistent where they meet:
+
+- Both judge membership only through `env['otto.ip_match']`; neither reads
+  `otto.client_ip`.
+- Both normalize and match through `Onetime::Utils::CidrList`. AccessConfig
+  extends it for labeled entries rather than adding a second parser, so
+  the two lists cannot disagree about what an entry means.
+- Order: `DomainAccessControl` runs as middleware before routing; the
+  homepage rules run in the bootstrap serializer and the create logic.
+  Where both apply, AccessConfig decides first and the homepage rules can
+  only narrow what it admits.
+- Downgrade: both freeze rather than drop. Stored lists stay enforced, and
+  changing them needs the entitlement again.
+- UI: show both on the domain page, each labeled by the question it
+  answers.
+
 ### Explicit non-goals (v1)
 
 Deny lists, named reusable zones shared across domains, geo/ASN dynamic
@@ -569,7 +602,10 @@ complete. The remaining work is 1–8.
    custom domains (upstream Caddy vs in-app) before enabling enforcement
    anywhere.
 2. **Entitlement key**: new `ip_allowlist` vs existing security-tier
-   entitlement; plan mapping in `apps/web/billing/metadata.rb`.
+   entitlement; plan mapping in `apps/web/billing/metadata.rb`. The plan
+   tier is decided: Team Plus (2026-10-12). The catalog already defines an
+   owner-level `ip_access_rules` entitlement ("IP-based access
+   restrictions") that no code checks yet, which makes it the natural key.
 3. **Downgrade behavior**: freeze-but-enforce (v1 default) vs
    denormalized disable-on-downgrade.
 

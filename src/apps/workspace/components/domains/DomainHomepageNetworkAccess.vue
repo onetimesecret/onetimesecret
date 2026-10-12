@@ -21,6 +21,11 @@
    *
    * Signed-in members and the management pages are never gated by these
    * rules, so an operator cannot lock themselves out of fixing a list.
+   *
+   * The rules are a plan feature (homepage_network_rules). Without it the
+   * editor is `locked`: stored rules, which stay enforced after a
+   * downgrade, render read-only, and the parent supplies the upgrade link
+   * through the `upgrade` slot.
    */
   import { computed, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
@@ -42,11 +47,14 @@
     disabled?: boolean;
     /** A save of these rules is in flight. */
     saving?: boolean;
+    /** The organization's plan does not include network rules. */
+    locked?: boolean;
   }
 
   const props = withDefaults(defineProps<Props>(), {
     disabled: false,
     saving: false,
+    locked: false,
   });
 
   const emit = defineEmits<{
@@ -138,7 +146,7 @@
   const restricted = computed(() => allowed.value.length > 0 || denied.value.length > 0);
 
   const save = () => {
-    if (!isDirty.value || props.disabled || props.saving) return;
+    if (!isDirty.value || props.disabled || props.saving || props.locked) return;
     emit('save', { allowed_cidrs: allowed.value, denied_cidrs: denied.value });
   };
 
@@ -190,87 +198,108 @@
       </div>
     </div>
 
-    <div class="mt-4 space-y-5">
-      <div
+    <div
+      v-if="!locked || restricted"
+      class="mt-4 space-y-5">
+      <template
         v-for="list in lists"
-        :key="list.key"
-        :data-testid="list.testId">
-        <label
-          :for="`homepage-network-${list.key}-input`"
-          class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          {{ t(list.labelKey) }}
-        </label>
-        <p
-          :id="`homepage-network-${list.key}-hint`"
-          class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-          {{ t(list.hintKey) }}
-        </p>
-
-        <!-- Entry chips -->
+        :key="list.key">
         <div
-          v-if="listRef(list.key).value.length > 0"
-          class="mt-2 flex flex-wrap gap-2"
-          role="list"
-          :aria-label="t(list.labelKey)">
-          <span
-            v-for="entry in listRef(list.key).value"
-            :key="entry"
-            role="listitem"
-            class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 font-mono text-xs text-gray-700 dark:bg-gray-600 dark:text-gray-200">
-            {{ entry }}
-            <button
-              type="button"
-              :disabled="disabled || saving"
-              class="ml-1 rounded-full p-0.5 text-gray-400 hover:bg-gray-200 hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-gray-500 dark:hover:text-gray-100"
-              :aria-label="t('web.domains.homepage.network_remove_entry', { cidr: entry })"
-              @click="removeEntry(list.key, entry)">
-              <OIcon
-                collection="heroicons"
-                name="x-mark"
-                class="size-3.5"
-                aria-hidden="true" />
-            </button>
-          </span>
-        </div>
+          v-if="!locked || listRef(list.key).value.length > 0"
+          :data-testid="list.testId">
+          <label
+            :for="locked ? undefined : `homepage-network-${list.key}-input`"
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            {{ t(list.labelKey) }}
+          </label>
+          <p
+            :id="`homepage-network-${list.key}-hint`"
+            class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            {{ t(list.hintKey) }}
+          </p>
 
-        <!-- Add entry -->
-        <div class="mt-2 flex gap-2">
-          <div class="flex-1">
-            <input
-              :id="`homepage-network-${list.key}-input`"
-              v-model="drafts[list.key]"
-              type="text"
-              inputmode="text"
-              autocomplete="off"
-              autocapitalize="off"
-              autocorrect="off"
-              spellcheck="false"
-              :disabled="disabled || saving"
-              :placeholder="t('web.domains.homepage.network_entry_placeholder')"
-              :aria-describedby="`homepage-network-${list.key}-hint homepage-network-${list.key}-error`"
-              :aria-invalid="!!errors[list.key]"
-              class="block w-full rounded-md border-gray-300 font-mono shadow-sm focus:border-brand-500 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400"
-              @keydown.enter.prevent="addEntry(list.key)" />
+          <!-- Entry chips -->
+          <div
+            v-if="listRef(list.key).value.length > 0"
+            class="mt-2 flex flex-wrap gap-2"
+            role="list"
+            :aria-label="t(list.labelKey)">
+            <span
+              v-for="entry in listRef(list.key).value"
+              :key="entry"
+              role="listitem"
+              class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 font-mono text-xs text-gray-700 dark:bg-gray-600 dark:text-gray-200">
+              {{ entry }}
+              <button
+                v-if="!locked"
+                type="button"
+                :disabled="disabled || saving"
+                class="ml-1 rounded-full p-0.5 text-gray-400 hover:bg-gray-200 hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-gray-500 dark:hover:text-gray-100"
+                :aria-label="t('web.domains.homepage.network_remove_entry', { cidr: entry })"
+                @click="removeEntry(list.key, entry)">
+                <OIcon
+                  collection="heroicons"
+                  name="x-mark"
+                  class="size-3.5"
+                  aria-hidden="true" />
+              </button>
+            </span>
           </div>
-          <button
-            type="button"
-            :disabled="disabled || saving"
-            class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600"
-            @click="addEntry(list.key)">
-            {{ t('web.COMMON.add') }}
-          </button>
+
+          <!-- Add entry -->
+          <template v-if="!locked">
+            <div class="mt-2 flex gap-2">
+              <div class="flex-1">
+                <input
+                  :id="`homepage-network-${list.key}-input`"
+                  v-model="drafts[list.key]"
+                  type="text"
+                  inputmode="text"
+                  autocomplete="off"
+                  autocapitalize="off"
+                  autocorrect="off"
+                  spellcheck="false"
+                  :disabled="disabled || saving"
+                  :placeholder="t('web.domains.homepage.network_entry_placeholder')"
+                  :aria-describedby="`homepage-network-${list.key}-hint homepage-network-${list.key}-error`"
+                  :aria-invalid="!!errors[list.key]"
+                  class="block w-full rounded-md border-gray-300 font-mono shadow-sm focus:border-brand-500 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400"
+                  @keydown.enter.prevent="addEntry(list.key)" />
+              </div>
+              <button
+                type="button"
+                :disabled="disabled || saving"
+                class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600"
+                @click="addEntry(list.key)">
+                {{ t('web.COMMON.add') }}
+              </button>
+            </div>
+            <p
+              :id="`homepage-network-${list.key}-error`"
+              class="mt-1 min-h-4 text-xs text-red-600 dark:text-red-400"
+              role="alert">
+              {{ errors[list.key] }}
+            </p>
+          </template>
         </div>
-        <p
-          :id="`homepage-network-${list.key}-error`"
-          class="mt-1 min-h-4 text-xs text-red-600 dark:text-red-400"
-          role="alert">
-          {{ errors[list.key] }}
-        </p>
-      </div>
+      </template>
     </div>
 
     <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
-      <p class="text-xs text-gray-500 dark:text-gray-400">
+      <p
+        v-if="locked"
+        class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500 dark:text-gray-400"
+        data-testid="homepage-network-locked">
+        {{
+          restricted
+            ? t('web.domains.homepage.network_locked_enforced_note')
+            : t('web.domains.homepage.network_locked_note')
+        }}
+        <slot name="upgrade"></slot>
+      </p>
+      <p
+        v-else
+        class="text-xs text-gray-500 dark:text-gray-400">
         <template v-if="restricted">
           {{ t('web.domains.homepage.network_management_note') }}
         </template>

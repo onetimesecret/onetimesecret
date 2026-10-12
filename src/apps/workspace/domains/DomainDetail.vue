@@ -72,6 +72,7 @@ const canBrand = computed(() => can(ENTITLEMENTS.CUSTOM_BRANDING));
 const canEmailConfig = computed(() => can(ENTITLEMENTS.CUSTOM_MAIL_SENDER));
 const canIncomingSecrets = computed(() => can(ENTITLEMENTS.INCOMING_SECRETS));
 const canCustomSignin = computed(() => can(ENTITLEMENTS.CUSTOM_SIGNIN_CONFIG));
+const canHomepageNetwork = computed(() => can(ENTITLEMENTS.HOMEPAGE_NETWORK_RULES));
 const canCustomSignup = computed(() => can(ENTITLEMENTS.CUSTOM_SIGNUP_VALIDATION));
 
 /** Current user is owner or admin — can modify domain settings */
@@ -428,8 +429,22 @@ onMounted(() => {
                 :denied-cidrs="homepageDeniedCidrs"
                 :disabled="domainLoading || homepageSaving || !canAdmin"
                 :saving="homepageNetworkSaving"
+                :locked="!canHomepageNetwork"
                 @save="handleHomepageNetworkSave"
-                @update:dirty="homepageNetworkDirty = $event" />
+                @update:dirty="homepageNetworkDirty = $event">
+                <template #upgrade>
+                  <RouterLink
+                    :to="`/billing/${props.orgid}/plans`"
+                    class="inline-flex items-center gap-1 font-medium text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300">
+                    {{ t('web.billing.overview.view_plans_action') }}
+                    <OIcon
+                      collection="heroicons"
+                      name="arrow-right"
+                      class="size-3"
+                      aria-hidden="true" />
+                  </RouterLink>
+                </template>
+              </DomainHomepageNetworkAccess>
             </div>
           </div>
 

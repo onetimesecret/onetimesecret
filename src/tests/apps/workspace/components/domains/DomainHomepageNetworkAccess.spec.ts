@@ -25,6 +25,7 @@ function mountEditor(props: Record<string, unknown> = {}) {
       deniedCidrs: [],
       ...props,
     },
+    slots: { upgrade: '<a data-testid="upgrade-link">plans</a>' },
   });
 }
 
@@ -112,6 +113,31 @@ describe('DomainHomepageNetworkAccess', () => {
 
     expect(allowedChips(wrapper)).toEqual(['10.0.0.0/8']);
     expect(wrapper.emitted('update:dirty')).toEqual([[true], [false]]);
+  });
+
+  it('offers only the upgrade link when locked without rules', () => {
+    const wrapper = mountEditor({ locked: true });
+
+    expect(wrapper.find('input').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="homepage-network-allowed"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="homepage-network-locked"]').text()).toContain(
+      'web.domains.homepage.network_locked_note'
+    );
+    expect(wrapper.find('[data-testid="upgrade-link"]').exists()).toBe(true);
+  });
+
+  it('shows enforced rules read-only when locked', () => {
+    // A downgrade freezes the lists rather than dropping them: they stay
+    // enforced, so the operator must still see them, but cannot edit them.
+    const wrapper = mountEditor({ locked: true, allowedCidrs: ['10.0.0.0/8'] });
+
+    expect(allowedChips(wrapper)).toEqual(['10.0.0.0/8']);
+    expect(wrapper.find('[data-testid="homepage-network-allowed"] button').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="homepage-network-denied"]').exists()).toBe(false);
+    expect(wrapper.find('input').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="homepage-network-locked"]').text()).toContain(
+      'web.domains.homepage.network_locked_enforced_note'
+    );
   });
 
   it('refuses an entry that is not address-shaped', async () => {

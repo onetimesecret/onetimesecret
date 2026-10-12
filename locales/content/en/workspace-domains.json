@@ -1706,9 +1706,9 @@
     "content_hash": "0226fc91"
   },
   "web.domains.homepage.network_description": {
-    "text": "Limit the interactive homepage to specific networks. Visitors outside the allowed ranges, or inside a denied range, see the private landing page instead.",
+    "text": "Limit the interactive homepage to specific networks. Visitors outside the allowed ranges, or inside a denied range, see the private landing page instead. Secret links still open from any network.",
     "context": "Description under the Network access heading in the homepage network rules editor",
-    "content_hash": "acd22f65"
+    "content_hash": "c9b552ff"
   },
   "web.domains.homepage.network_allowed_label": {
     "text": "Allowed networks",
@@ -1779,6 +1779,16 @@
     "text": "No network restriction: every visitor gets the selected experience.",
     "context": "Footer note in the homepage network rules editor when both lists are empty",
     "content_hash": "17c50e79"
+  },
+  "web.domains.homepage.network_locked_note": {
+    "text": "Upgrade your plan to limit the homepage by network.",
+    "context": "Shown in place of the homepage network rules editor when the organization's plan does not include network rules",
+    "content_hash": "5c122b73"
+  },
+  "web.domains.homepage.network_locked_enforced_note": {
+    "text": "These rules are still enforced. Upgrade your plan to change them.",
+    "context": "Shown under read-only homepage network rules when rules exist but the organization's plan no longer includes them",
+    "content_hash": "ea40c784"
   },
   "web.domains.homepage.status_network_restricted": {
     "text": "Network restricted",

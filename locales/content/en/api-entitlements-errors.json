@@ -113,5 +113,10 @@
     "text": "Custom sign-in configuration requires a plan upgrade",
     "context": "Returned when EntitlementRequired is raised for custom_signin_config",
     "content_hash": "acb1be52"
+  },
+  "api.entitlements.errors.homepage_network_rules_required": {
+    "text": "Homepage network rules require a plan upgrade",
+    "context": "Returned when EntitlementRequired is raised for homepage_network_rules",
+    "content_hash": "454ccda0"
   }
 }

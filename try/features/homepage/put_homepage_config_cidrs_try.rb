@@ -12,6 +12,7 @@
 # evaluates — not the entries as typed.
 
 require_relative '../../support/test_helpers'
+require_relative '../../../apps/web/billing/lib/test_support/billing_helpers'
 
 OT.boot! :test, false
 
@@ -157,6 +158,66 @@ end
 exactly = (0...HomepageConfig::MAX_CIDRS).map { |i| "10.#{i / 256}.#{i % 256}.0/24" }
 run_put(@test_cust, @test_domain, { 'enabled' => true, 'allowed_cidrs' => exactly })[:record][:allowed_cidrs].length
 #=> HomepageConfig::MAX_CIDRS
+
+# --- PUT: plan gating (homepage_network_rules) ---
+#
+# Billing is disabled in tests, where STANDALONE_ENTITLEMENTS grants every
+# entitlement. To reach the refusal, enable billing with a plan shaped like
+# the free tier (homepage_secrets and manage_org, no homepage_network_rules)
+# and re-materialize the owner's entitlements from it. Same setup as
+# try/integration/api/domains/signin_config_authorization_try.rb.
+
+## Fixture: a free-shaped plan has homepage_secrets but not homepage_network_rules
+@gating = BillingTestHelpers.with_billing_enabled(plans: [
+  {
+    plan_id: 'hpcidr_free_test_month',
+    name: 'Free-shaped Test',
+    tier: 'free',
+    interval: 'month',
+    region: 'default',
+    entitlements: %w[create_secrets view_receipt api_access custom_domains homepage_secrets manage_org],
+    limits: { 'secrets_per_day' => '100' },
+  },
+]) do
+  @test_org.planid = 'hpcidr_free_test_month'
+  @test_org.save
+  @test_org.materialized_entitlements.clear
+  @test_org.materialized_entitlements_at = ''
+  @test_org.commit_fields
+
+  membership = Onetime::OrganizationMembership.find_by_org_customer(@test_org.objid, @test_cust.objid)
+  if membership
+    membership.materialized_entitlements.clear
+    membership.materialized_entitlements_at = ''
+    membership.commit_fields
+    membership.apply_entitlements
+  end
+  org = Onetime::Organization.load(@test_org.objid)
+
+  refused = begin
+    run_put(@test_cust, @test_domain, { 'enabled' => true, 'denied_cidrs' => [] })
+    :no_raise
+  rescue Onetime::FormError => ex
+    [ex.field.to_s, ex.error_key, ex.error_type]
+  end
+  selector = run_put(@test_cust, @test_domain, { 'enabled' => true, 'secrets_mode' => 'create' })[:record]
+
+  {
+    preconditions: [org.can?('homepage_secrets'), org.can?('homepage_network_rules')],
+    refused: refused,
+    selector_lists: [selector[:allowed_cidrs].length, selector[:denied_cidrs]],
+  }
+end
+@gating[:preconditions]
+#=> [true, false]
+
+## Sending a list without the entitlement is a forbidden error on that field, clearing included
+@gating[:refused]
+#=> ['denied_cidrs', 'api.entitlements.errors.homepage_network_rules_required', :forbidden]
+
+## The experience selector's write still works, and the stored rules stay in force (frozen, not dropped)
+@gating[:selector_lists]
+#=> [HomepageConfig::MAX_CIDRS, ['192.168.0.0/16']]
 
 # --- teardown ---
 HomepageConfig.delete_for_domain!(@test_domain.identifier)

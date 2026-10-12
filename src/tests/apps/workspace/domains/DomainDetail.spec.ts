@@ -1,7 +1,7 @@
 // src/tests/apps/workspace/domains/DomainDetail.spec.ts
 
 import { flushPromises, mount } from '@vue/test-utils';
-import { beforeEach, describe, it, expect, vi } from 'vitest';
+import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
 import { ref } from 'vue';
 import { onBeforeRouteLeave } from 'vue-router';
 import DomainDetail from '@/apps/workspace/domains/DomainDetail.vue';
@@ -55,8 +55,10 @@ vi.mock('@/shared/composables/useDomainsManager', () => ({
   }),
 }));
 
+const mockCan = vi.fn((_entitlement: string) => true);
+
 vi.mock('@/shared/composables/useEntitlements', () => ({
-  useEntitlements: () => ({ can: () => true }),
+  useEntitlements: () => ({ can: (entitlement: string) => mockCan(entitlement) }),
 }));
 
 vi.mock('@/shared/stores/notificationsStore', () => ({
@@ -266,5 +268,43 @@ describe('DomainDetail - unsaved network rules', () => {
     expect(confirmSpy).not.toHaveBeenCalled();
     expect(next).toHaveBeenCalledWith();
     confirmSpy.mockRestore();
+  });
+});
+
+describe('DomainDetail - network rules entitlement', () => {
+  beforeEach(() => {
+    mockDomain.value = {
+      extid: 'dm-test-extid',
+      homepage_config: {
+        enabled: true,
+        secrets_mode: 'create',
+        allowed_cidrs: ['10.0.0.0/8'],
+        denied_cidrs: [],
+      },
+      incoming_ready: false,
+    };
+  });
+
+  afterEach(() => {
+    mockCan.mockImplementation(() => true);
+  });
+
+  it('locks the editor when the plan lacks homepage_network_rules', async () => {
+    mockCan.mockImplementation((entitlement) => entitlement !== 'homepage_network_rules');
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    const editor = wrapper.findComponent({ name: 'DomainHomepageNetworkAccess' });
+    expect(editor.props('locked')).toBe(true);
+    // Stored rules stay enforced after a downgrade, so the badge stays too.
+    expect(wrapper.find('[data-testid="homepage-network-badge"]').exists()).toBe(true);
+  });
+
+  it('unlocks the editor when the plan includes homepage_network_rules', async () => {
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    const editor = wrapper.findComponent({ name: 'DomainHomepageNetworkAccess' });
+    expect(editor.props('locked')).toBe(false);
   });
 });

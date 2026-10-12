@@ -47,6 +47,9 @@ module DomainsAPI
       #   from anonymous secret creation, exactly like a disabled homepage.
       #   Signed-in members and the management pages are never affected, so
       #   an operator cannot lock themselves out of fixing a list.
+      #   Sending either list requires the homepage_network_rules entitlement
+      #   (Identity Plus) on top of homepage_secrets; see
+      #   #verify_network_rules_entitlement!.
       #
       class PutHomepageConfig < Base
         include Onetime::LoggerMethods
@@ -84,6 +87,7 @@ module DomainsAPI
           raise_form_error('enabled is required', field: :enabled, error_type: :missing) if params['enabled'].nil?
 
           validate_secrets_mode!
+          verify_network_rules_entitlement!
           @allowed_cidrs = validate_cidr_list!(:allowed_cidrs, @allowed_cidrs)
           @denied_cidrs  = validate_cidr_list!(:denied_cidrs, @denied_cidrs)
         end
@@ -144,6 +148,31 @@ module DomainsAPI
         end
 
         private
+
+        # Require the homepage_network_rules entitlement when a list is sent.
+        #
+        # Network rules are a paid tier (homepage_network_rules, Identity
+        # Plus) layered on homepage_secrets, which the free plan carries. Only
+        # a request that sends a list needs it: the experience selector's
+        # writes omit both lists and stay available on every plan.
+        #
+        # Freeze, don't drop, on downgrade: stored rules keep being enforced
+        # (no per-request entitlement check on the anonymous paths, and
+        # dropping them would widen access), while changing them, clearing
+        # included, needs the entitlement back. The draft AccessConfig spec
+        # (docs/specs/domain-ip-allowlist) takes the same position for its
+        # allowlist.
+        def verify_network_rules_entitlement!
+          sent = { allowed_cidrs: @allowed_cidrs, denied_cidrs: @denied_cidrs }.compact
+          return if sent.empty? || @organization.can?('homepage_network_rules')
+
+          raise_form_error(
+            'Homepage network rules require the homepage_network_rules entitlement. Please upgrade your plan.',
+            error_key: 'api.entitlements.errors.homepage_network_rules_required',
+            field: sent.keys.first,
+            error_type: :forbidden,
+          )
+        end
 
         # Validate one optional CIDR-list param.
         #

@@ -89,6 +89,7 @@ module Onetime
 
     OWNER_ENTITLEMENTS = Set[
       'ip_access_rules',
+      'homepage_network_rules',
       'workspace_branding',
       'custom_mail_sender',
       'flexible_from_domain',

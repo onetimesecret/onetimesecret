@@ -135,6 +135,7 @@ export const KNOWN_ENTITLEMENTS = [
   'custom_signup_validation',
   'extended_default_expiration',
   'flexible_from_domain',
+  'homepage_network_rules',
   'homepage_secrets',
   'incoming_secrets',
   'ip_access_rules',
