@@ -23,6 +23,7 @@ module Onetime
     feature :state_cas
     feature :secret_state_management
     feature :passphrase_hashing
+    feature :display_type
     feature :deprecated_fields
     feature :housekeeping
 
@@ -41,51 +42,12 @@ module Onetime
     field :receipt_shortid
     field :owner_id
 
-    # Presentation hint for the reveal page: how the recipient's client should
-    # display the decrypted value. Stamped once at creation
-    # (Receipt.spawn_pair, from the conceal request) and never inferred from
-    # the content. One of DISPLAY_TYPES; nil/empty (every record created before
-    # the field existed) reads as DEFAULT_DISPLAY_TYPE via
-    # #display_type_or_default. Not a security control: the client must
-    # sanitize whatever a type renders. See docs/specs/secret-display-type.md.
-    field :display_type
-
     encrypted_field :ciphertext
     transient_field :ciphertext_passphrase
     transient_field :ciphertext_domain
 
-    # Closed value space for :display_type. Kept as strings to match the
-    # :state / :kind convention. Extend here (e.g. 'httplink' for a "you are
-    # about to open an external link" interstitial) without a schema change;
-    # a client that does not know a value falls back to plain text.
-    DISPLAY_TYPES        = %w[text markdown].freeze
-    DEFAULT_DISPLAY_TYPE = 'text'
-
     def init
       self.state ||= 'new'
-    end
-
-    # Whether the given value names a known display type.
-    #
-    # @param value [String, Symbol, nil]
-    # @return [Boolean]
-    def self.valid_display_type?(value)
-      DISPLAY_TYPES.include?(value.to_s)
-    end
-
-    # The stored display type, or the plain-text default when the field is
-    # unset (pre-field records) or holds a value this build does not know
-    # (a downgrade after a newer type shipped). Falls back to text rather
-    # than raising: display is a hint, and the value is still deliverable.
-    #
-    # @return [String] one of DISPLAY_TYPES
-    def display_type_or_default
-      value = display_type.to_s
-      self.class.valid_display_type?(value) ? value : DEFAULT_DISPLAY_TYPE
-    end
-
-    def markdown?
-      display_type_or_default == 'markdown'
     end
 
     # Destroy the record and keep the owner's live-secret counter in step.

@@ -14,26 +14,38 @@ payload before reveal and is never a security control.
 
 ## 1. The field
 
+The Secret enables a Familia feature that owns everything about the field:
+
 ```ruby
 # lib/onetime/models/secret.rb
-field :display_type        # one of DISPLAY_TYPES; nil reads as DEFAULT_DISPLAY_TYPE
+feature :display_type
 
-DISPLAY_TYPES        = %w[text markdown].freeze
-DEFAULT_DISPLAY_TYPE = 'text'
+# lib/onetime/models/secret/features/display_type.rb
+TYPES   = %w[text markdown].freeze
+DEFAULT = 'text'
+base.field :display_type, fast_method: false
 ```
 
 - Stored on the **Secret** (the thing that is displayed), not the Receipt.
 - Stamped once in `Receipt.spawn_pair(..., display_type:)` from the conceal
-  request. Never inferred from the content.
+  request. Never inferred from the content. The field has no fast writer
+  (`display_type!`), so nothing rewrites it in place after creation.
+- Class methods: `display_types`, `default_display_type`,
+  `valid_display_type?`, and `normalize_display_type` (stripped, downcased,
+  blank means `text`). Callers use these, not the feature's constants.
 - Read through `Secret#display_type_or_default`: an unset field (every record
   created before the field existed) and a value this build does not know (a
-  downgrade after a newer type shipped) both read as `text`. `safe_dump` emits
-  the normalized value, so the client never sees nil.
+  downgrade after a newer type shipped) both read as `text`, and the stored
+  value is left alone. `safe_dump` emits the normalized value, so the client
+  never sees nil. `display_type?(:markdown)` is the predicate.
 
-Why a flat field and not a nested `config` key: there is one setting. A plain
-field on the existing hash costs no extra Redis key, no separate TTL, and no
-extra round trip. A grouping key can be introduced when a second setting
-arrives; the field name and value space would not change.
+Why a field on the Secret and not a related key: there is one immutable value
+whose lifetime is exactly the secret's. On the Secret's own hash it costs no
+extra Redis key or round trip, and it expires and is destroyed with the
+record. A separate model (the `CustomDomain::SignupConfig` shape) would need
+its own TTL kept in step with each secret and its own delete on reveal, burn
+and colonel delete; TTL expiry runs no application code, so any drift would
+leave orphaned keys.
 
 ## 2. The request
 
@@ -44,14 +56,16 @@ arrives; the field name and value space would not change.
 { "secret": { "secret": "# Hello", "display_type": "markdown" } }
 ```
 
-`V2::Logic::Secrets::BaseSecretAction` (V3 inherits it):
+`V2::Logic::Secrets::DisplayTypeParam`, included by `BaseSecretAction` (V3
+inherits it), is the request-side counterpart of the feature:
 
-- `process_display_type`: absent or blank → `text`; otherwise stripped and
-  downcased. A non-scalar shape (`secret[display_type][]=`) is a payload error,
-  like `ttl`.
-- `validate_display_type`: a value outside `DISPLAY_TYPES` is a `FormError`
-  (`field: display_type`, `error_type: invalid`). Fail at creation, where the
-  creator can correct it, rather than fall back silently at reveal.
+- `process_display_type`: `Secret.normalize_display_type` (absent or blank →
+  `text`; otherwise stripped and downcased). A non-scalar shape
+  (`secret[display_type][]=`) is a payload error, like `ttl`.
+- `validate_display_type`: a value outside `Secret.display_types` is a
+  `FormError` (`field: display_type`, `error_type: invalid`). Fail at
+  creation, where the creator can correct it, rather than fall back silently
+  at reveal.
 - `GenerateSecret` overrides `process_display_type` to `text`: a generated
   password is always plain text (Markdown would mangle `*`, `_`, `` ` ``).
 - The V1 API is unchanged and always creates `text` secrets.
@@ -104,12 +118,20 @@ highlighter ship in the main bundle either way:
 
 ## 4. Extending the value space
 
-Add the value to `Secret::DISPLAY_TYPES` and to `secretDisplayTypeValues`, then
-teach the reveal components what the type means. Clients that predate the value
-fall back to `text` on read; servers that predate it reject it at creation.
+The feature file's header lists the steps. In short:
 
-Example of the kind of type this is meant to grow into — `httplink`: the value
-is a URL, and instead of rendering it the reveal page shows a "you are about to
-open an external link" interstitial naming the host before the recipient
-proceeds. Nothing about storage, the request, or the receipt would change; only
-the reveal components learn a new case.
+1. Append the value to `TYPES` in
+   `lib/onetime/models/secret/features/display_type.rb`. Servers that predate
+   it reject it at creation; when one reads a stored value it does not know,
+   it shows `text` and leaves the value as stored.
+2. Put any rule about the content beside `validate_display_type` in the
+   conceal logic, where the plaintext is still available.
+3. Add the value to `secretDisplayTypeValues` and teach the reveal components
+   what it means. Clients that predate it fall back to `text` on read.
+
+The type this is meant to grow into is `httplink`: the value is a URL, and
+instead of rendering it the reveal page shows a "you are about to open an
+external link" interstitial naming the host before the recipient proceeds.
+Storage, the receipt and the request shape stay as they are; the conceal logic
+gains one content rule (the value must be a URL) and the reveal components
+gain one case.

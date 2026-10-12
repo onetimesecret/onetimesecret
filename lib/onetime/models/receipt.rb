@@ -270,9 +270,10 @@ module Onetime
       # See: apps/api/v2/logic/secrets/base_secret_action.rb for validation.
       #
       # - display_type: A presentation hint for the recipient's client, one of
-      #   Secret::DISPLAY_TYPES. Callers validate (validate_display_type in the
-      #   API logic); nil leaves the field unset, which reads as 'text'. It is
-      #   not an encryption input and does not change what is stored.
+      #   Secret.display_types (the display_type feature). Callers validate
+      #   (validate_display_type in the API logic); nil leaves the field
+      #   unset, which reads as 'text'. It is not an encryption input and does
+      #   not change what is stored.
       #
       def spawn_pair(owner_id, lifespan, content, passphrase: nil, domain: nil, kind: nil, display_type: nil)
         # Coerce at the single creation choke point so lifespan is always stored

@@ -4,6 +4,7 @@
 
 require 'onetime/secret_lifetime_policy'
 require 'onetime/security/conceal_secret_rate_limiter'
+require_relative 'display_type_param'
 
 module V2::Logic
   module Secrets
@@ -12,6 +13,7 @@ module V2::Logic
     class BaseSecretAction < V2::Logic::Base
       include Onetime::LoggerMethods
       include Onetime::Security::ConcealSecretRateLimiter
+      include DisplayTypeParam
 
       attr_reader :passphrase,
         :secret_value,
@@ -24,7 +26,6 @@ module V2::Logic
         :secret,
         :share_domain,
         :custom_domain,
-        :display_type,
         :payload
       attr_accessor :token
 
@@ -205,25 +206,6 @@ module V2::Logic
 
       def process_secret
         raise NotImplementedError, 'You must implement process_secret'
-      end
-
-      # Our display_type contract: absent or blank means plain text.
-      #
-      # The value is a presentation hint for the recipient's client
-      # (Onetime::Secret::DISPLAY_TYPES), stored verbatim on the Secret and
-      # echoed in its safe_dump. It is normalized here (string, stripped,
-      # downcased) and checked against the allowlist in validate_display_type,
-      # so an unknown type is a 422 at creation rather than a surprise at
-      # reveal. GenerateSecret overrides this: a generated value is always text.
-      def process_display_type
-        raw = payload.fetch('display_type', nil)
-        # `secret[display_type][]=x` arrives as an Array; `.to_s` would store
-        # its inspect form and the allowlist check below would reject it with
-        # a misleading message. Reject the shape up front like ttl does.
-        raise_form_error 'Incorrect payload format', field: :display_type unless scalar_param?(raw)
-
-        value         = raw.to_s.strip.downcase
-        @display_type = value.empty? ? Onetime::Secret::DEFAULT_DISPLAY_TYPE : value
       end
 
       # Our passphrase contract: presence determines intent.
@@ -430,17 +412,6 @@ module V2::Logic
         end
       end
 
-      # Reject display types this build does not know. Fail at creation: the
-      # creator can correct the request, whereas the recipient could only see
-      # a silent fallback to plain text.
-      def validate_display_type
-        return if Onetime::Secret.valid_display_type?(display_type)
-
-        raise_form_error "Unknown display type: #{display_type}",
-          field: :display_type,
-          error_type: :invalid
-      end
-
       def validate_passphrase_complexity
         errors = []
 
@@ -478,13 +449,7 @@ module V2::Logic
 
       def create_secret_pair
         @receipt, @secret = Onetime::Receipt.spawn_pair(
-          cust&.objid,
-          ttl,
-          secret_value,
-          passphrase: passphrase,
-          domain: share_domain,
-          kind: kind,
-          display_type: display_type,
+          cust&.objid, ttl, secret_value, passphrase:, domain: share_domain, kind:, display_type:
         )
 
         @greenlighted = receipt.valid? && secret.valid?

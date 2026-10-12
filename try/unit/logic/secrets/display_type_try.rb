@@ -2,7 +2,8 @@
 #
 # frozen_string_literal: true
 
-# V2 BaseSecretAction display_type handling (V3 inherits it):
+# V2 display_type request handling (DisplayTypeParam, included by
+# BaseSecretAction; V3 inherits it):
 # - absent or blank -> 'text'; otherwise normalized (strip, downcase)
 # - an unknown value is a FormError at creation (validate_display_type),
 #   not a silent fallback the recipient would see
