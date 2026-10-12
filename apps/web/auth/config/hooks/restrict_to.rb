@@ -163,6 +163,10 @@ module Auth::Config::Hooks
         Auth::SigninEnabled.enforce!(self, :email_auth_request)
         Auth::RestrictTo.enforce_method!(self, 'email_auth', :email_auth_request)
         Auth::SigninGate.enforce_email_auth!(self)
+        # Then the per-source magic-link budget (RISK-2026-08-14-M04), which the
+        # login route's dispatch would otherwise skip; email_login_request.rb
+        # configures the limiter alongside this hook (config.rb).
+        Auth::Config::Hooks::EmailLoginRequest.charge_login_dispatch!(self)
       end
     end
   end

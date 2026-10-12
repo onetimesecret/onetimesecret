@@ -15,8 +15,11 @@ Security
   shorter than the window, as the defaults do; otherwise one source can lock
   another person out of magic-link sign-in. ``bin/ots ratelimit`` and the
   colonel rate-limit reset accept the kinds ``email_login_request_ip`` and
-  ``email_login_request_email``. ``POST /auth/verify-account-resend`` still
-  has no per-source limit. (RISK-2026-08-14-M04)
+  ``email_login_request_email``. The sign-in link that ``POST /auth/login``
+  sends when it gets an address and no password for an account without a
+  password counts against the same limits.
+  ``POST /auth/verify-account-resend`` still has no per-source limit.
+  (RISK-2026-08-14-M04)
 
   **Upgrade note for installs behind a reverse proxy with magic links
   enabled**: the per-IP tier counts the resolved client IP. With

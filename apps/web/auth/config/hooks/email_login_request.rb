@@ -58,6 +58,12 @@ require_relative '../../lib/public_host'
 # POST-only: Rodauth's route wrapper fires this hook for GET (form render) and
 # POST alike; only the POST performs the account lookup + email dispatch.
 #
+# THE LOGIN ROUTE mails links too: with :email_auth loaded, POST /auth/login
+# with a login and no password sends one to a passwordless account (Rodauth
+# login.rb, after_login_entered_during_multi_phase_login) without entering
+# this route, so the hook above never sees it. charge_login_dispatch! charges
+# that dispatch to the same budget; see its comment.
+#
 module Auth::Config::Hooks
   module EmailLoginRequest
     def self.configure(auth)
@@ -76,14 +82,37 @@ module Auth::Config::Hooks
         next if respond_to?(:internal_request?, true) && internal_request?
 
         if request.post?
-          client_ip = request.env['otto.client_ip']
-          client_ip = request.ip if client_ip.to_s.empty?
-
-          enforce_email_login_request_rate_limit!(client_ip, param_or_nil(login_param))
+          Auth::Config::Hooks::EmailLoginRequest.charge!(self)
           # Account-independent host preflight (see header).
           Auth::PublicHost.required_base_url!(request.env)
         end
       end
+    end
+
+    # Charges the magic link the LOGIN route sends (see header) to the
+    # :email_login_request budget. restrict_to.rb owns before_email_auth_request,
+    # the one hook every dispatch passes, and calls this after its host gates.
+    #
+    # Unlike the route hook this runs after the account lookup, since only a
+    # passwordless account gets here. That adds no oracle: the login route
+    # already answers a missing login differently. An account mailed within
+    # Rodauth's resend window is answered before this hook, so the budget
+    # counts mails about to be sent.
+    def self.charge_login_dispatch!(rodauth)
+      # The dedicated route's own hook already charged this request.
+      return if rodauth.current_route == :email_auth_request
+      return if rodauth.send(:internal_request?)
+
+      charge!(rodauth)
+    end
+
+    # One charge per client IP, then per submitted login (header: CLIENT IP).
+    def self.charge!(rodauth)
+      request   = rodauth.request
+      client_ip = request.env['otto.client_ip']
+      client_ip = request.ip if client_ip.to_s.empty?
+
+      rodauth.enforce_email_login_request_rate_limit!(client_ip, rodauth.param_or_nil(rodauth.login_param))
     end
   end
 end

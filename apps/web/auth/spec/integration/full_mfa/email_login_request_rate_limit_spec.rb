@@ -19,7 +19,9 @@
 # over-cap source gets the ADR-013 429 whichever login it probes, the
 # per-login backstop holds case-insensitively, the 429 is identical for an
 # existing and a non-existent login, and the reset-request buckets are not
-# charged. Sibling: integration/full/reset_password_request_rate_limit_spec.rb.
+# charged. The magic link POST /auth/login sends a passwordless account draws
+# on the same budget, and a dedicated-route request is charged once.
+# Sibling: integration/full/reset_password_request_rate_limit_spec.rb.
 #
 # The suite config ships the limiter DISABLED (spec/config.test.yaml); each
 # example enables it in-process with small caps and restores the config after.
@@ -165,6 +167,64 @@ RSpec.describe 'Email-login-request rate limiting (RISK-2026-08-14-M04)',
       # Only the first (allowed) request for the existing account mailed.
       expect(Onetime::Jobs::Publisher).to have_received(:enqueue_email_raw)
         .with(hash_including(to: contain_exactly(existing)), any_args).once
+    end
+  end
+
+  # POST /auth/login with a login and no password mails a link to a
+  # passwordless account (Rodauth login.rb,
+  # after_login_entered_during_multi_phase_login) without entering the
+  # email-login-request route. seed_existing_account seeds no password.
+  describe 'login route magic link' do
+    def request_link_via_login(login)
+      clear_cookies
+      csrf_json_post('/auth/login', login: login)
+    end
+
+    def expect_mailed(email, times: 1)
+      expect(Onetime::Jobs::Publisher).to have_received(:enqueue_email_raw)
+        .with(hash_including(to: contain_exactly(email)), any_args).exactly(times).times
+    end
+
+    it 'charges the per-IP budget, so a source cannot mail account after account' do
+      enable_limiter(max_per_ip: 2, max_per_email: 100)
+      targets = Array.new(3) { |i| unique_test_email("login-route-#{i}") }
+      targets.each { |email| seed_existing_account(email) }
+
+      targets.first(2).each do |email|
+        response = request_link_via_login(email)
+        expect(response.status).not_to eq(429), "Under-cap dispatch was throttled: #{response.body}"
+        expect_mailed(email)
+      end
+
+      response = request_link_via_login(targets.last)
+      expect(response.status).to eq(429),
+        "Over-cap dispatch must be throttled, got #{response.status}: #{response.body}"
+      expect(JSON.parse(response.body)['error_type']).to eq('LimitExceeded')
+      expect_mailed(targets.last, times: 0)
+    end
+
+    it 'shares one budget with the dedicated route' do
+      enable_limiter(max_per_ip: 2, max_per_email: 100)
+      passwordless = unique_test_email('shared')
+      seed_existing_account(passwordless)
+
+      expect(request_login_link(unique_test_email('shared-route')).status).to eq(200)
+      expect(request_link_via_login(passwordless).status).not_to eq(429)
+      expect_mailed(passwordless)
+
+      expect(request_login_link(unique_test_email('shared-after')).status).to eq(429)
+    end
+  end
+
+  describe 'one charge per dedicated-route request' do
+    it 'counts an existing account once, though its dispatch also passes before_email_auth_request' do
+      enable_limiter(max_per_ip: 2, max_per_email: 100)
+      existing = unique_test_email('once')
+      seed_existing_account(existing)
+
+      expect(request_login_link(existing).status).to eq(200)
+      # Charged twice, the first request would have locked the IP tier.
+      expect(request_login_link(unique_test_email('once-missing')).status).to eq(200)
     end
   end
 

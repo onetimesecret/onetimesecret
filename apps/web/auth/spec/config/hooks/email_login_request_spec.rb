@@ -104,6 +104,57 @@ RSpec.describe Auth::Config::Hooks::EmailLoginRequest, :aggregate_failures do
     end
   end
 
+  # The magic link POST /auth/login sends a passwordless account never enters
+  # the route above; restrict_to.rb's before_email_auth_request calls this.
+  describe '.charge_login_dispatch!' do
+    before do
+      allow(auth).to receive_messages(
+        request: request,
+        login_param: 'login',
+        param_or_nil: 'target@example.org',
+        current_route: :login,
+      )
+      allow(auth).to receive(:enforce_email_login_request_rate_limit!).and_return(nil)
+    end
+
+    it 'charges the login route dispatch to the same budget' do
+      described_class.charge_login_dispatch!(auth)
+
+      expect(auth).to have_received(:enforce_email_login_request_rate_limit!)
+        .with('203.0.113.0', 'target@example.org')
+    end
+
+    it 'falls back to request.ip when otto.client_ip is absent' do
+      allow(request).to receive_messages(env: {}, ip: '198.51.100.0')
+
+      described_class.charge_login_dispatch!(auth)
+
+      expect(auth).to have_received(:enforce_email_login_request_rate_limit!).with('198.51.100.0', 'target@example.org')
+    end
+
+    it 'propagates the refusal, so no key is created and no mail is sent' do
+      allow(auth).to receive(:enforce_email_login_request_rate_limit!).and_raise(Onetime::LimitExceeded.new('throttled'))
+
+      expect { described_class.charge_login_dispatch!(auth) }.to raise_error(Onetime::LimitExceeded)
+    end
+
+    it 'does not charge the dedicated route a second time' do
+      allow(auth).to receive(:current_route).and_return(:email_auth_request)
+
+      described_class.charge_login_dispatch!(auth)
+
+      expect(auth).not_to have_received(:enforce_email_login_request_rate_limit!)
+    end
+
+    it 'skips internal requests, which are server-initiated' do
+      allow(auth).to receive(:internal_request?).and_return(true)
+
+      described_class.charge_login_dispatch!(auth)
+
+      expect(auth).not_to have_received(:enforce_email_login_request_rate_limit!)
+    end
+  end
+
   context 'without the email_auth feature' do
     let(:features) { [] }
 

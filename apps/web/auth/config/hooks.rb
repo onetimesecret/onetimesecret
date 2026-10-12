@@ -86,7 +86,8 @@
 #                       gate, the invalid-encoding param refusal,
 #                       Auth::ParamEncoding, SEC-B01/SEC-B11),
 #                       before_email_auth_request (the multi-phase-login magic
-#                       link, which is not its own route)
+#                       link, which is not its own route; after the gates it
+#                       charges email_login_request.rb's limiter)
 #   create_account.rb   before_create_account_route (rate limiting per client
 #                       IP, #3948; NOT before_create_account, which account.rb
 #                       owns and which fires later in the submission)
