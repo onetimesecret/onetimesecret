@@ -41,6 +41,10 @@ vi.mock('@/shared/composables/useDomainContext', () => ({
   }),
 }));
 
+// Form state the WorkspaceSecretForm stub exposes, mutable per test
+const mockFormState = { displayType: 'text' };
+const mockUpdateDisplayType = vi.fn();
+
 // Stub child components
 const WorkspaceSecretFormStub = {
   name: 'WorkspaceSecretForm',
@@ -51,8 +55,10 @@ const WorkspaceSecretFormStub = {
       currentTtl: computed(() => 604800),
       currentPassphrase: computed(() => ''),
       isSubmitting: computed(() => false),
+      currentDisplayType: computed(() => mockFormState.displayType),
       updateTtl: vi.fn(),
       updatePassphrase: vi.fn(),
+      updateDisplayType: mockUpdateDisplayType,
     };
   },
 };
@@ -65,7 +71,7 @@ const RecentSecretsTableStub = {
 const PrivacyOptionsBarStub = {
   name: 'PrivacyOptionsBar',
   template:
-    '<div class="privacy-options-bar-stub" data-testid="privacy-bar">Privacy Options Bar</div>',
+    '<div class="privacy-options-bar-stub" data-testid="privacy-bar">Privacy Options Bar<slot name="trailing" /></div>',
   props: ['currentTtl', 'currentPassphrase', 'isSubmitting'],
   emits: ['update:ttl', 'update:passphrase'],
 };
@@ -91,6 +97,7 @@ describe('DashboardIndex', () => {
       isCanonical: false,
     };
     mockDomainContextState.isContextActive = true;
+    mockFormState.displayType = 'text';
   });
 
   afterEach(() => {
@@ -194,6 +201,39 @@ describe('DashboardIndex', () => {
 
       const privacyBar = wrapper.findComponent(PrivacyOptionsBarStub);
       expect(privacyBar.props('currentPassphrase')).toBe('');
+    });
+  });
+
+  describe('Markdown toggle', () => {
+    const TOGGLE = '[data-testid="secret-markdown-toggle"]';
+
+    it('renders in the privacy bar row, not inside the form', async () => {
+      const DashboardIndex = await getComponent();
+      const wrapper = mount(DashboardIndex, createMountOptions());
+
+      await flushPromises();
+
+      expect(wrapper.find(`[data-testid="privacy-bar"] ${TOGGLE}`).exists()).toBe(true);
+    });
+
+    it("reflects the form's display type", async () => {
+      mockFormState.displayType = 'markdown';
+      const DashboardIndex = await getComponent();
+      const wrapper = mount(DashboardIndex, createMountOptions());
+
+      await flushPromises();
+
+      expect(wrapper.find(TOGGLE).attributes('aria-checked')).toBe('true');
+    });
+
+    it('updates the form when toggled', async () => {
+      const DashboardIndex = await getComponent();
+      const wrapper = mount(DashboardIndex, createMountOptions());
+
+      await flushPromises();
+      await wrapper.find(TOGGLE).trigger('click');
+
+      expect(mockUpdateDisplayType).toHaveBeenCalledWith('markdown');
     });
   });
 

@@ -2,7 +2,7 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-  import MarkdownModeToggle from '@/shared/components/ui/MarkdownModeToggle.vue';
+  import MarkdownModeSwitch from './MarkdownModeSwitch.vue';
   import MarkdownPreview from '@/shared/components/ui/MarkdownPreview.vue';
   import { useCharCounter } from '@/shared/composables/useCharCounter';
   import { useTextarea } from '@/shared/composables/useTextarea';
@@ -23,7 +23,7 @@
        * How the recipient will see the content. 'markdown' turns the plain
        * textarea into a hybrid editor: the raw Markdown stays editable and a
        * sanitized live preview renders beneath it. Leave unbound to hide the
-       * Markdown toggle on forms whose endpoint takes no display_type
+       * Markdown switch on forms whose endpoint takes no display_type
        * (e.g. incoming secrets).
        */
       displayType?: SecretDisplayType;
@@ -66,8 +66,8 @@
     return 'bg-red-400 dark:bg-red-500';
   });
 
-  // Markdown mode: the toggle is the only control over display_type here; the
-  // parent owns the form field and the remembered preference.
+  // Markdown mode: the switch is the only control over display_type here; the
+  // parent owns the form field.
   const supportsDisplayType = computed(() => props.displayType !== undefined);
   const isMarkdown = computed(() => props.displayType === SecretDisplayType.MARKDOWN);
 
@@ -85,17 +85,6 @@
 
 <template>
   <div>
-    <!-- Formatting controls. Right-aligned so the textarea keeps its full width. -->
-    <div
-      v-if="supportsDisplayType"
-      class="mb-2 flex items-center justify-end gap-2">
-      <MarkdownModeToggle
-        :model-value="isMarkdown"
-        :disabled="disabled"
-        :corner-class="cornerClass || 'rounded-md'"
-        @update:model-value="setMarkdown" />
-    </div>
-
     <div class="relative">
       <!-- <div
         id="textarea-focus-announcement"
@@ -158,6 +147,18 @@
         </span>
       </div>
     </div>
+
+    <!--
+      Below the textarea, not above it: the visitor pastes first, then decides
+      how it is shown. A labeled switch with a visible hint, like the
+      passphrase field, rather than a chip with a tooltip.
+    -->
+    <MarkdownModeSwitch
+      v-if="supportsDisplayType"
+      class="mt-3"
+      :model-value="isMarkdown"
+      :disabled="disabled"
+      @update:model-value="setMarkdown" />
 
     <MarkdownPreview
       v-if="isMarkdown"

@@ -7,6 +7,10 @@
    * A chip-styled switch that turns Markdown formatting on or off for the
    * secret being written. The position is a form setting (display_type on
    * the request), remembered across visits by the caller like the TTL.
+   *
+   * This is the workspace dashboard's presentation, a chip in its options
+   * bar next to the TTL and passphrase chips. The homepage form uses a
+   * labeled switch with a visible hint instead (MarkdownModeSwitch).
    */
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useI18n } from 'vue-i18n';

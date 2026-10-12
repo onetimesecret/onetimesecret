@@ -79,11 +79,23 @@ fail the whole record, which would show the recipient "no longer available" for
 a secret nobody consumed (the #3424 failure shape). Strict on the request
 payload (`secretDisplayTypeSchema.optional()`).
 
-**Create forms** (`SecretForm`, `WorkspaceSecretForm`): a Markdown toggle above
-the textarea. When on, the textarea stays the single place the text is edited
-and a sanitized live preview renders beneath it. The toggle position is
-remembered in `localStorage` via `localReceiptStore.preferredDisplayType`, the
-same mechanism and lifetime as the remembered TTL.
+**Create forms**: the same `display_type` field, presented in each form's own
+idiom. In both, the textarea stays the single place the text is edited and a
+sanitized live preview (`MarkdownPreview`) shows what the recipient will see.
+
+- Homepage (`SecretForm` via `SecretContentInputArea`): a labeled switch
+  (`MarkdownModeSwitch`) below the textarea with a visible one-line hint,
+  matching the passphrase field's label and hint. The preview stacks below.
+  Not remembered: the form starts from plain text on every load, as it does
+  for the TTL, so a shared browser does not pass Markdown mode to the next
+  visitor.
+- Workspace dashboard (`WorkspaceSecretForm`): a chip (`MarkdownModeToggle`) in
+  the `PrivacyOptionsBar` row, in its own right-aligned group (the bar's
+  `trailing` slot), wired by `DashboardIndex` like the TTL. At `lg` and up the
+  preview sits beside the textarea so the form keeps its height; below that it
+  stacks. Remembered in `localStorage` via
+  `localReceiptStore.preferredDisplayType`, the same mechanism and lifetime as
+  the remembered TTL.
 
 **Reveal** (`SecretMarkdownContent`, used by both `SecretDisplayCase`
 variants): rendered Markdown by default with a Rendered / Source switch. The

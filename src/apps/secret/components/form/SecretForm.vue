@@ -16,10 +16,7 @@
     DEFAULT_CORNER_CLASS,
   } from '@/shared/stores/identityStore';
   import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
-  import {
-    DEFAULT_SECRET_DISPLAY_TYPE,
-    type SecretDisplayType,
-  } from '@/schemas/contracts/secret';
+  import { type SecretDisplayType } from '@/schemas/contracts/secret';
   import { type LocalReceipt } from '@/types/ui/local-receipt';
   import { nanoid } from 'nanoid';
   import { storeToRefs } from 'pinia';
@@ -113,8 +110,7 @@
       };
       // Add the message to the store
       localReceiptStore.addReceipt(newMessage);
-      operations.reset();
-      restorePreferredDisplayType(); // reset() returns to plain text; the toggle is sticky
+      operations.reset(); // Back to defaults, plain text included, like the TTL
       secretContentInput.value?.clearTextarea(); // Clear textarea
 
       // Emit event for parent components
@@ -136,20 +132,12 @@
     togglePassphraseVisibility,
   } = usePrivacyOptions(operations);
 
-  // Markdown toggle (display_type). Remembered across visits the way the
-  // workspace form remembers the TTL: a minor preference in localStorage via
-  // localReceiptStore, restored on load and after each successful submission.
-  const restorePreferredDisplayType = () => {
-    operations.updateField(
-      'display_type',
-      localReceiptStore.preferredDisplayType ?? DEFAULT_SECRET_DISPLAY_TYPE
-    );
-  };
-  restorePreferredDisplayType();
-
+  // Markdown switch (display_type). Not remembered across visits: this form
+  // starts from plain text on every load, as it does for the TTL, so a shared
+  // browser never hands the next visitor Markdown mode. The workspace form,
+  // used by signed-in repeat users, remembers it.
   const updateDisplayType = (value: SecretDisplayType) => {
     operations.updateField('display_type', value);
-    localReceiptStore.setPreferredDisplayType(value);
   };
 
   const { currentContext, isContextActive, hasMultipleContexts } = useDomainContext();
