@@ -51,6 +51,20 @@ RSpec.describe Onetime::Initializers::ConfigureFamilia, :aggregate_failures do
       'redis://[2606:4700::1]:6379/0' => :remote_plaintext,
       'redis://0.0.0.0:6379/0' => :remote_plaintext,
       'redis://localhost.attacker.example:6379' => :remote_plaintext,
+      # SEC-B04: numeric host forms the resolver reads as IPv4 (134744072 and
+      # 0x8080808 are 8.8.8.8) are never single-label names.
+      'redis://134744072:6379/0' => :remote_plaintext,
+      'redis://0x8080808:6379/0' => :remote_plaintext,
+      'redis://valkey_1:6379/0' => :private_plaintext,
+      # SEC-B04: URI::Valkey#conf merges query parameters over the URI's host,
+      # and redis-client takes `path` (a unix socket) over `host`. The graded
+      # host is the one the client connects to.
+      'redis://127.0.0.1/0?host=db.example.com' => :remote_plaintext,
+      'redis://127.0.0.1/0?timeout=5&host=maindb' => :private_plaintext,
+      'redis://db.example.com/0?host=127.0.0.1' => :local_plaintext,
+      'redis://db.example.com/0?path=/var/run/valkey.sock' => :local_plaintext,
+      'redis://127.0.0.1/0?host=a.example&host=b.example' => :remote_plaintext,
+      'rediss://127.0.0.1:6380/0?host=db.example.com' => :tls,
     }.each do |uri, expected|
       it "classifies #{uri} as #{expected}" do
         expect(described_class.redis_transport(uri)).to eq(expected)
@@ -96,7 +110,13 @@ RSpec.describe Onetime::Initializers::ConfigureFamilia, :aggregate_failures do
       end
 
       it 'raises for plaintext to a loopback or private host too' do
-        %w[redis://127.0.0.1:6379/0 redis://maindb:6379/0 redis://10.0.0.5:6379/0].each do |uri|
+        %w[
+          redis://127.0.0.1:6379/0
+          redis://maindb:6379/0
+          redis://10.0.0.5:6379/0
+          redis://db.example.com/0?host=127.0.0.1
+          redis://db.example.com/0?path=/var/run/valkey.sock
+        ].each do |uri|
           expect { described_class.check_redis_transport!(uri, require_tls: true, logger: logger) }
             .to raise_error(Onetime::Problem)
         end

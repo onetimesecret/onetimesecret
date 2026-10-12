@@ -89,26 +89,45 @@ module Onetime
       # (169.254.0.0/16, fe80::/10).
       CGNAT_RANGE = IPAddr.new('100.64.0.0/10').freeze
 
+      # Query keys that change WHERE the client connects. URI::Valkey#conf
+      # merges every query parameter over the URI's own host, port and ssl
+      # (uri-valkey 1.4.0), and redis-client 0.30's Config takes `path` over
+      # `host` (a unix socket) and a `url`'s host only when `host` is absent.
+      REDIS_TARGET_PARAMS = %w[host path url].freeze
+
+      # A single-label hostname that can only be a name (a compose or k8s
+      # service such as `maindb`): it starts with a letter. An all-digit or
+      # 0x-prefixed label is not one: the resolver reads `134744072` and
+      # `0x8080808` as IPv4 addresses (8.8.8.8).
+      SINGLE_LABEL_HOSTNAME = /\A[a-z][a-z0-9_-]*\z/
+
       # Classify how a Redis/Valkey URI reaches the datastore
       # (RISK-2026-08-14-L07). Pure so the boot check is unit-testable without
       # booting; reads only the scheme, host and query, never the userinfo.
       #
       #   :tls                rediss:// or valkeys://, no `ssl` query parameter
       #   :local_plaintext    anything else to a loopback host (127.0.0.0/8,
-      #                       ::1, localhost) or a unix:// socket
+      #                       ::1, localhost) or a unix socket (unix://, or a
+      #                       `path` query parameter)
       #   :private_plaintext  anything else to a host on a private network: a
       #                       single-label name (a compose/k8s service such as
       #                       `maindb`) or a private, CGNAT or link-local IP
       #                       literal (RFC 1918, 100.64/10, 169.254/16, fc00::/7,
       #                       fe80::/10)
-      #   :remote_plaintext   anything else: a dotted hostname, a public IP
-      #                       literal, or a URI that does not parse
+      #   :remote_plaintext   anything else: a dotted hostname, a public or
+      #                       numeric-form IP, a target the client would take
+      #                       from a `url` parameter, a repeated target
+      #                       parameter, or a URI that does not parse
       #
-      # An `ssl` query parameter is merged OVER the scheme in URI::Valkey#conf
-      # (a bare `?ssl` turns TLS off even on rediss://), so a URI carrying one
-      # is never :tls: the scheme alone is what this asserts. A hostname is
-      # never resolved, so a dotted name that happens to resolve privately is
-      # still :remote_plaintext; the boot check only grades how loudly to say so.
+      # The host graded is the one the client connects to, not the URI's
+      # authority: a `host` query parameter replaces it and a `path` one turns
+      # the connection into a unix socket (SEC-B04: `redis://127.0.0.1/0?host=
+      # db.example.com` connects to db.example.com). An `ssl` query parameter
+      # is merged OVER the scheme the same way (a bare `?ssl` turns TLS off
+      # even on rediss://), so a URI carrying one is never :tls: the scheme
+      # alone is what this asserts. A hostname is never resolved, so a dotted
+      # name that happens to resolve privately is still :remote_plaintext; the
+      # boot check only grades how loudly to say so.
       #
       # @param uri [String, nil]
       # @return [Symbol] :tls, :local_plaintext, :private_plaintext or
@@ -118,15 +137,43 @@ module Onetime
         scheme = parsed.scheme.to_s.downcase
         return :local_plaintext if scheme == 'unix'
 
-        ssl_param = parsed.query.to_s.split(/[&;] */).any? { |pair| pair.split('=', 2).first == 'ssl' }
-        return :tls if REDIS_TLS_SCHEMES.include?(scheme) && !ssl_param
+        params = redis_query_params(parsed.query)
+        return :tls if REDIS_TLS_SCHEMES.include?(scheme) && !params.key?('ssl')
 
-        host = parsed.hostname
+        redis_target_transport(parsed.hostname, params)
+      rescue URI::Error
+        :remote_plaintext
+      end
+
+      # Query parameters split the way URI::Valkey#conf splits them (on & or
+      # ;, `key=value`, a bare `key` has a nil value). A key given twice maps
+      # to :repeated: conf would pass the client an Array.
+      #
+      # @param query [String, nil]
+      # @return [Hash{String => String, nil, Symbol}]
+      def self.redis_query_params(query)
+        query.to_s.split(/[&;] */).each_with_object({}) do |pair, params|
+          key, value  = pair.split('=', 2)
+          params[key] = params.key?(key) ? :repeated : value
+        end
+      end
+
+      # Grade the connection target redis-client will use for a non-TLS URI.
+      #
+      # @param uri_host [String, nil] the URI's own hostname
+      # @param params [Hash] from .redis_query_params
+      # @return [Symbol]
+      def self.redis_target_transport(uri_host, params)
+        return :remote_plaintext if REDIS_TARGET_PARAMS.any? { |key| params[key] == :repeated }
+        return :local_plaintext if params['path'] # a unix socket wins over any host
+
+        host = params.key?('host') ? params['host'] : uri_host
+        # No host: the client would take one from a `url` parameter, which
+        # this does not interpret, or connect to whatever an empty host means.
+        return :remote_plaintext if host.to_s.empty?
         return :local_plaintext if loopback_host?(host)
 
         private_host?(host) ? :private_plaintext : :remote_plaintext
-      rescue URI::Error
-        :remote_plaintext
       end
 
       # @param host [String, nil] a URI hostname (IPv6 without brackets)
@@ -153,8 +200,10 @@ module Onetime
         address = IPAddr.new(name).native
         address.private? || address.link_local? || CGNAT_RANGE.include?(address)
       rescue IPAddr::Error
-        # Not an IP literal: a hostname, private only when single-label.
-        !name.include?('.')
+        # Not a standard IP literal: private only as a single-label NAME. A
+        # dotted name, or a numeric form IPAddr rejects but the resolver
+        # accepts (`134744072`, `0x8080808`), is not.
+        name.match?(SINGLE_LABEL_HOSTNAME)
       end
 
       # redis.require_tls as a boolean. The shipped default renders a real

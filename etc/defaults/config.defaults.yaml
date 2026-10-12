@@ -1319,8 +1319,9 @@ redis:
   #     fe80::/10): an INFO line, so the default compose stack does not warn
   #     on every boot;
   #   - loopback or a unix socket: nothing.
-  # Hostnames are never resolved. Set VALKEY_REQUIRE_TLS=true or
-  # REDIS_REQUIRE_TLS=true (either one enables it).
+  # The host graded is the one the client connects to, including a `host` or
+  # `path` query parameter. Hostnames are never resolved. Set
+  # VALKEY_REQUIRE_TLS=true or REDIS_REQUIRE_TLS=true (either one enables it).
   # See lib/onetime/initializers/configure_familia.rb.
   require_tls: <%= ENV['VALKEY_REQUIRE_TLS'] == 'true' || ENV['REDIS_REQUIRE_TLS'] == 'true' %>  # Since unreleased
   # Database Mapping Configuration
