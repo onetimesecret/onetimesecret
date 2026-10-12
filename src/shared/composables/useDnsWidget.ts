@@ -248,81 +248,109 @@ export function useDnsWidget(options: UseDnsWidgetOptions) {
     );
   };
 
+  // Bumped by every initWidget call and by stopWidget (SEC-F11). An init that
+  // resumes after an await under a newer generation was superseded: by a
+  // later init (DnsWidget.vue's domain watch), a stop, or the host
+  // unmounting. It must not touch the shared widget: the root id is fixed, so
+  // a stale init would find the next host's root, add listeners nothing
+  // removes, and render its own domain there.
+  let generation = 0;
+
   /**
-   * Initialize the DNS widget
+   * Load the assets and a token for an init run. Null when a step failed
+   * (error set) or the run was superseded while waiting (nothing set).
+   */
+  const prepareInit = async (
+    superseded: () => boolean
+  ): Promise<DnsWidgetTokenResponse | null> => {
+    const assetsLoaded = await loadAssets();
+    if (superseded()) return null;
+    if (!assetsLoaded) {
+      error.value = t('web.domains.dns_widget_load_failed');
+      return null;
+    }
+
+    const tokenData = await fetchToken();
+    if (superseded()) return null;
+    if (!tokenData?.token) {
+      error.value = t('web.domains.dns_widget_not_available');
+      return null;
+    }
+
+    // Ensure widget element exists
+    if (!document.getElementById(widgetId)) {
+      error.value = `Widget element #${widgetId} not found`;
+      return null;
+    }
+    return tokenData;
+  };
+
+  /** Register listeners and hand the widget its config. Synchronous. */
+  const startWidget = (tokenData: DnsWidgetTokenResponse) => {
+    registerEventListeners();
+
+    const config: DnsWidgetConfig = {
+      token: tokenData.token,
+      api_url: tokenData.api_url,
+      widget_id: widgetId,
+      dnsRecords: toValue(options.dnsRecords),
+      verifyAutoScroll: options.verifyAutoScroll ?? true,
+    };
+
+    if (options.domain) {
+      config.domain = options.domain;
+    } else if (options.prefillDomain) {
+      config.prefillDomain = options.prefillDomain;
+    }
+
+    // [M09] The patched widget renders its remote API's HTML only through
+    // this sanitizer, and inserts plain text when none is installed
+    // (RISK-2026-08-14-M09). Install it on every init: the widget script
+    // replaces window.apxDns wholesale if it is ever evaluated again.
+    if (window.apxDns) {
+      window.apxDns.sanitizeHtml = sanitizeDnsWidgetHtml;
+    }
+    window.apxDns?.init(config);
+    isInitialized.value = true;
+  };
+
+  /**
+   * Initialize the DNS widget. Resolves false, without touching the widget,
+   * if a later init, a stop or an unmount superseded this call while it waited.
    */
   const initWidget = async (): Promise<boolean> => {
     if (isInitialized.value) {
       return true;
     }
 
+    const run = ++generation;
+    const superseded = () => run !== generation;
     isLoading.value = true;
     error.value = null;
 
     try {
-      // Load assets
-      const assetsLoaded = await loadAssets();
-      if (!assetsLoaded) {
-        error.value = t('web.domains.dns_widget_load_failed');
-        return false;
-      }
-
-      // Fetch token
-      const tokenData = await fetchToken();
-      if (!tokenData?.token) {
-        error.value = t('web.domains.dns_widget_not_available');
-        return false;
-      }
-
-      // Ensure widget element exists
-      const widgetEl = document.getElementById(widgetId);
-      if (!widgetEl) {
-        error.value = `Widget element #${widgetId} not found`;
-        return false;
-      }
-
-      // Register event listeners
-      registerEventListeners();
-
-      // Initialize widget
-      const config: DnsWidgetConfig = {
-        token: tokenData.token,
-        api_url: tokenData.api_url,
-        widget_id: widgetId,
-        dnsRecords: toValue(options.dnsRecords),
-        verifyAutoScroll: options.verifyAutoScroll ?? true,
-      };
-
-      if (options.domain) {
-        config.domain = options.domain;
-      } else if (options.prefillDomain) {
-        config.prefillDomain = options.prefillDomain;
-      }
-
-      // [M09] The patched widget renders its remote API's HTML only through
-      // this sanitizer, and inserts plain text when none is installed
-      // (RISK-2026-08-14-M09). Install it on every init: the widget script
-      // replaces window.apxDns wholesale if it is ever evaluated again.
-      if (window.apxDns) {
-        window.apxDns.sanitizeHtml = sanitizeDnsWidgetHtml;
-      }
-      window.apxDns?.init(config);
-      isInitialized.value = true;
+      const tokenData = await prepareInit(superseded);
+      if (!tokenData) return false;
+      startWidget(tokenData);
       return true;
     } catch (err) {
+      if (superseded()) return false;
       console.error('[useDnsWidget] Initialization error:', err);
       error.value = t('web.domains.dns_widget_init_failed');
       return false;
     } finally {
-      isLoading.value = false;
+      // A superseding init owns the loading state now.
+      if (!superseded()) isLoading.value = false;
     }
   };
 
   /**
    * Stop and clear the widget. The composable's own cleanup runs even if the
    * vendored stop() throws, so its document listeners never outlive the host.
+   * Any init still waiting is abandoned.
    */
   const stopWidget = () => {
+    generation++;
     try {
       window.apxDns?.stop();
     } catch (err) {
@@ -330,6 +358,7 @@ export function useDnsWidget(options: UseDnsWidgetOptions) {
     } finally {
       removeEventListeners();
       isInitialized.value = false;
+      isLoading.value = false;
     }
   };
 

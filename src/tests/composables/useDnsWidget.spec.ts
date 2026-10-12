@@ -5,7 +5,11 @@
 // 'strict-dynamic', no 'self'), so an un-nonced injected script is blocked
 // by the browser.
 
-import { resolveCspNonce, useDnsWidget } from '@/shared/composables/useDnsWidget';
+import {
+  resolveCspNonce,
+  useDnsWidget,
+  type UseDnsWidgetOptions,
+} from '@/shared/composables/useDnsWidget';
 import { sanitizeDnsWidgetHtml } from '@/shared/utils/dnsWidgetHtml';
 import { getGlobalAxiosMock } from '@/tests/setup-stores';
 import { createTestI18n } from '@tests/setup';
@@ -20,10 +24,10 @@ const TEST_NONCE = 'dGVzdC1ub25jZQ==';
  * (setup-stores.ts) mocks inject('api') to the shared axios-mock-adapter
  * instance, so token responses are configured via getGlobalAxiosMock().
  */
-function mountWidgetHost() {
+function mountWidgetHost(options: Partial<UseDnsWidgetOptions> = {}) {
   const Host = defineComponent({
     setup(_, { expose }) {
-      const widget = useDnsWidget({ dnsRecords: [] });
+      const widget = useDnsWidget({ dnsRecords: [], ...options });
       expose({ widget });
       return () => h('div', { id: 'apxdnswidget' });
     },
@@ -202,5 +206,170 @@ describe('useDnsWidget CSP nonce (S5)', () => {
 
       wrapper.unmount();
     });
+  });
+});
+
+// SEC-F11: the widget root id is fixed and window.apxDns is shared, so an
+// init that resumes after its host unmounted, or after a later init on the
+// same host, must abandon itself instead of taking over the live widget.
+describe('superseded init (SEC-F11)', () => {
+  type TokenReply = [number, Record<string, unknown>];
+  let inits: Array<{ domain?: string; token: string }>;
+
+  function tokenReply(token: string): TokenReply {
+    return [200, { success: true, token, api_url: 'https://apx.example', expires_in: 300 }];
+  }
+
+  /** Queue one token response per call; each resolves when its test says so. */
+  function deferTokens(count: number) {
+    const resolvers: Array<(reply: TokenReply) => void> = [];
+    const mock = getGlobalAxiosMock();
+    for (let i = 0; i < count; i++) {
+      const pending = new Promise<TokenReply>((resolve) => resolvers.push(resolve));
+      mock.onGet('/api/domains/dns-widget/token').replyOnce(() => pending);
+    }
+    return resolvers;
+  }
+
+  async function settle() {
+    for (let i = 0; i < 20; i++) await Promise.resolve();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  }
+
+  function mountHost(options: Partial<UseDnsWidgetOptions> = {}) {
+    const wrapper = mountWidgetHost(options);
+    const { widget } = wrapper.vm as unknown as { widget: ReturnType<typeof useDnsWidget> };
+    return { wrapper, widget };
+  }
+
+  function verifyEvent() {
+    document.dispatchEvent(
+      new CustomEvent('apx-dnswidget-records-completely-verified', { detail: [] })
+    );
+  }
+
+  beforeEach(() => {
+    getGlobalAxiosMock().reset();
+    inits = [];
+    // An already-loaded widget: loadAssets returns early.
+    window.apxDns = {
+      init: vi.fn((config) => {
+        inits.push({ domain: config.domain, token: config.token });
+      }),
+      stop: vi.fn(),
+      restart: vi.fn(),
+    };
+  });
+
+  afterEach(() => {
+    getGlobalAxiosMock().reset();
+    delete window.apxDns;
+    document.body.innerHTML = '';
+    vi.restoreAllMocks();
+  });
+
+  it('an unmounted host whose token arrives late does not take over the next host', async () => {
+    const [resolveA, resolveB] = deferTokens(2);
+    const verifiedA = vi.fn();
+    const verifiedB = vi.fn();
+
+    const hostA = mountHost({ domain: 'a.example', onRecordsVerified: verifiedA });
+    const initA = hostA.widget.initWidget();
+    await settle();
+    hostA.wrapper.unmount(); // navigated away while A's token was pending
+
+    const hostB = mountHost({ domain: 'b.example', onRecordsVerified: verifiedB });
+    const initB = hostB.widget.initWidget();
+    await settle();
+    resolveB(tokenReply('token-b'));
+    await expect(initB).resolves.toBe(true);
+
+    resolveA(tokenReply('token-a'));
+    await expect(initA).resolves.toBe(false);
+
+    expect(inits).toEqual([{ domain: 'b.example', token: 'token-b' }]);
+    expect(hostA.widget.isInitialized.value).toBe(false);
+    expect(hostA.widget.error.value).toBeNull();
+
+    verifyEvent();
+    expect(verifiedA).not.toHaveBeenCalled();
+    expect(verifiedB).toHaveBeenCalledTimes(1);
+
+    hostB.wrapper.unmount();
+  });
+
+  it.each([
+    ['the later token first', [1, 0]],
+    ['the earlier token first', [0, 1]],
+  ])('back-to-back inits on one host: the later wins (%s)', async (_label, order) => {
+    const resolvers = deferTokens(2);
+    const verified = vi.fn();
+    const { wrapper, widget } = mountHost({ domain: 'example.com', onRecordsVerified: verified });
+
+    // The first init's token request is in flight when the second starts.
+    const first = widget.initWidget();
+    await settle();
+    const second = widget.initWidget();
+    await settle();
+    expect(widget.isLoading.value).toBe(true);
+
+    for (const [step, index] of order.entries()) {
+      resolvers[index](tokenReply(`token-${index}`));
+      await settle();
+      if (step === 0 && index === 0) {
+        // The superseded init finished first: nothing started, still loading.
+        expect(inits).toEqual([]);
+        expect(widget.isLoading.value).toBe(true);
+      }
+    }
+
+    await expect(first).resolves.toBe(false);
+    await expect(second).resolves.toBe(true);
+    expect(inits).toEqual([{ domain: 'example.com', token: 'token-1' }]);
+    expect(widget.isLoading.value).toBe(false);
+    expect(widget.isInitialized.value).toBe(true);
+
+    verifyEvent();
+    expect(verified).toHaveBeenCalledTimes(1); // listeners registered once
+
+    wrapper.unmount();
+  });
+
+  it("abandons a pending init on stop, as DnsWidget.vue's domain watch does", async () => {
+    const [resolveOld, resolveNew] = deferTokens(2);
+    const { wrapper, widget } = mountHost({ domain: 'example.com' });
+
+    const pending = widget.initWidget();
+    await settle();
+    widget.stopWidget();
+    const restarted = widget.initWidget();
+    await settle();
+
+    resolveOld(tokenReply('token-old'));
+    resolveNew(tokenReply('token-new'));
+
+    await expect(pending).resolves.toBe(false);
+    await expect(restarted).resolves.toBe(true);
+    expect(inits).toEqual([{ domain: 'example.com', token: 'token-new' }]);
+
+    wrapper.unmount();
+  });
+
+  it('clears the loading state when a pending init is stopped', async () => {
+    const [resolveToken] = deferTokens(1);
+    const { wrapper, widget } = mountHost({ domain: 'example.com' });
+
+    const pending = widget.initWidget();
+    await settle();
+    expect(widget.isLoading.value).toBe(true);
+    widget.stopWidget();
+    expect(widget.isLoading.value).toBe(false);
+
+    resolveToken(tokenReply('token-late'));
+    await expect(pending).resolves.toBe(false);
+    expect(inits).toEqual([]);
+    expect(widget.isLoading.value).toBe(false);
+
+    wrapper.unmount();
   });
 });
