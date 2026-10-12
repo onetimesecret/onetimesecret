@@ -167,6 +167,11 @@ module Auth
       if Onetime.auth_config.email_auth_enabled?
         Features::EmailAuth.configure(self)
         Hooks::EmailAuth.configure(self)
+        # Rate limiting for POST /auth/email-login-request
+        # (RISK-2026-08-14-M04): per client IP and per submitted login,
+        # before account lookup. before_email_auth_request_route only exists
+        # once :email_auth is enabled.
+        Hooks::EmailLoginRequest.configure(self)
         # before_email_auth_request only exists once :email_auth is enabled;
         # closes the multi-phase-login magic-link path on the /login route.
         Hooks::RestrictTo.configure_email_auth(self)
