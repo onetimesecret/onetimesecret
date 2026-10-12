@@ -136,9 +136,20 @@ describe('localReceiptStore sessionStorage persistence (M10)', () => {
   it('keeps the loaded list when the rewrite fails, and scrubs on the next write', async () => {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify([receipt('legacy')]));
     const logError = vi.spyOn(loggingService, 'error').mockImplementation(() => {});
-    const setItem = vi.spyOn(Storage.prototype, 'setItem').mockImplementationOnce(() => {
-      throw new DOMException('quota', 'QuotaExceededError');
-    });
+    // Fail only the receipt cache's first write: setupTestPinia mounts an app
+    // and waits a tick, and any other storage write in that window would
+    // otherwise take a one-shot throw meant for the rewrite.
+    const realSetItem = Storage.prototype.setItem;
+    let failed = false;
+    const setItem = vi
+      .spyOn(Storage.prototype, 'setItem')
+      .mockImplementation(function (this: Storage, key: string, value: string) {
+        if (key === STORAGE_KEY && !failed) {
+          failed = true;
+          throw new DOMException('quota', 'QuotaExceededError');
+        }
+        realSetItem.call(this, key, value);
+      });
 
     const { store } = await loadPage();
 
