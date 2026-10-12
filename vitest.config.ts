@@ -83,7 +83,7 @@ const commonTestOptions = {
 
 // Fails a test that writes to console.warn/console.error it did not expect.
 // First, so its beforeEach starts recording before the other setup files'
-// hooks run (sequence.hooks is 'list'). Exemptions: console-guard.exempt.ts.
+// hooks run. Exemptions: console-guard.exempt.ts.
 const CONSOLE_GUARD = 'src/tests/setup-console-guard.ts';
 
 export default defineConfig({

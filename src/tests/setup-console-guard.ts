@@ -10,12 +10,14 @@
 // console.warn/error works the same way: while one is installed, this guard
 // records nothing on that channel; the spy belongs to the test.
 //
-// Output from module load, from beforeAll/afterAll, or after a test has
-// finished is not attributed to any test and is not checked.
+// The check runs once the test's teardown is done: afterEach hooks,
+// beforeEach cleanups and onTestFinished callbacks (the guard's own runs
+// last, being registered first). Output from module load, beforeAll or
+// afterAll is not attributed to any test and is not checked.
 //
 // Spec files listed in console-guard.exempt.ts still print but do not fail.
 
-import { afterEach, beforeEach, expect, vi } from 'vitest';
+import { beforeEach, onTestFinished, vi } from 'vitest';
 import { CONSOLE_GUARD_EXEMPT } from './console-guard.exempt';
 
 type Channel = 'warn' | 'error';
@@ -33,15 +35,17 @@ for (const channel of ['warn', 'error'] as const satisfies readonly Channel[]) {
 }
 
 beforeEach(() => {
-  unexpected = [];
+  const lines: string[] = [];
+  unexpected = lines;
+  onTestFinished(({ task }) => {
+    unexpected = null;
+    if (lines.length === 0 || isExempt(task.file.filepath)) return;
+    throw unexpectedOutput(lines);
+  });
 });
 
-afterEach(() => {
-  const lines = unexpected ?? [];
-  unexpected = null;
-  if (lines.length === 0 || isExempt(expect.getState().testPath)) return;
-
-  throw new Error(
+function unexpectedOutput(lines: string[]): Error {
+  return new Error(
     [
       `Unexpected console output (${lines.length}):`,
       ...lines.slice(0, 5).map((line) => `  ${line}`),
@@ -50,10 +54,9 @@ afterEach(() => {
       'captureAppLogs() or captureConsole() from src/tests/utils/appLogs.ts.',
     ].join('\n')
   );
-});
+}
 
-function isExempt(testPath: string | undefined): boolean {
-  if (!testPath) return false;
+function isExempt(testPath: string): boolean {
   const at = testPath.lastIndexOf('/src/tests/');
   return at >= 0 && CONSOLE_GUARD_EXEMPT.has(testPath.slice(at + 1));
 }
