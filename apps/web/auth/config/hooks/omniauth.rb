@@ -26,17 +26,23 @@ module Auth::Config::Hooks
     # String#strip is ASCII-only; [[:space:]] covers NBSP and friends.
     SURROUNDING_SPACE = /\A[[:space:]]+|[[:space:]]+\z/
 
-    # Normalize one raw IdP claim into a trimmed String.
-    #
-    # Non-String input yields '' (fail closed) — see the omniauth_email doc for
-    # why a Hashie::Array claim must not be coerced with to_s.
+    # Trim one raw IdP claim. Non-String input is returned unchanged (never
+    # coerced with to_s) so before_omniauth_create_account refuses it as
+    # invalid_email — see the omniauth_email doc for why a Hashie::Array claim
+    # must not become a String.
     #
     # @param value [Object] the raw claim as the IdP supplied it
-    # @return [String] trimmed claim, or '' when unusable
+    # @return [String, Object] trimmed String claim, or value as given
     def self.trimmed_claim(value)
-      return '' unless value.is_a?(String)
+      return value unless value.is_a?(String)
 
       value.gsub(SURROUNDING_SPACE, '')
+    end
+
+    # True when the IdP supplied no usable value for a claim: absent, or a
+    # String that is empty once trimmed. A non-String claim is NOT blank.
+    def self.blank_claim?(value)
+      value.nil? || (value.is_a?(String) && trimmed_claim(value).empty?)
     end
 
     # Rodauth builds the account from omniauth_email BEFORE the creation guard
@@ -197,8 +203,8 @@ module Auth::Config::Hooks
       # account lookup, account creation, and `omniauth_verify_account?`
       # (features/omniauth.rb:152), which the per-hook approach missed.
       #
-      # Returns the resolved claim with SURROUNDING WHITESPACE TRIMMED, or nil
-      # when the IdP supplied neither field.
+      # Returns the resolved claim with SURROUNDING WHITESPACE TRIMMED, nil
+      # when the IdP supplied neither field, or a non-String claim unchanged.
       #
       # WHY TRIM HERE AND NOT DOWNSTREAM: this accessor is the value Rodauth
       # INSERTS. omniauth_create_account -> omniauth_new_account ->
@@ -228,8 +234,10 @@ module Auth::Config::Hooks
       # '["user@contoso.com"]' — which satisfies both the structural guard below
       # AND the valid_email CHECK, so it would be INSERTED as the account's
       # login: a junk, unreachable account created silently on a 302. Only a
-      # String is an email claim; anything else resolves to nil and takes the
-      # same invalid_email redirect as an absent claim.
+      # String is an email claim; anything else is returned unchanged (and
+      # does not trigger the mail fallback), so the claim.is_a?(String) check
+      # in before_omniauth_create_account refuses it as invalid_email rather
+      # than the missing_email an absent claim gets.
       #
       # TRIM IS UNICODE-AWARE, deliberately not String#strip: strip removes only
       # ASCII whitespace and NUL, so an NBSP-padded claim (" a@b.com") is
@@ -252,12 +260,14 @@ module Auth::Config::Hooks
       auth.auth_class_eval do
         def omniauth_email
           info  = omniauth_info || {}
-          email = Auth::Config::Hooks::OmniAuth.trimmed_claim(info['email'])
-          if email.empty?
+          claim = info['email']
+          if Auth::Config::Hooks::OmniAuth.blank_claim?(claim)
             raw   = (omniauth_extra && omniauth_extra['raw_info']) || {}
-            email = Auth::Config::Hooks::OmniAuth.trimmed_claim(raw['mail'])
+            claim = raw['mail']
           end
-          email.empty? ? nil : email
+          return nil if Auth::Config::Hooks::OmniAuth.blank_claim?(claim)
+
+          Auth::Config::Hooks::OmniAuth.trimmed_claim(claim)
         end
       end
       # rubocop:enable Lint/NestedMethodDefinition

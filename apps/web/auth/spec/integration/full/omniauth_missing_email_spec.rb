@@ -186,6 +186,21 @@ RSpec.describe 'OmniAuth Missing Email (issue #3478)', type: :integration do
       expect { post_sso_callback }.not_to change { auth_db[:accounts].count }
       expect_auth_error_redirect('missing_email')
     end
+
+    it 'does not fall back to mail when info.email is a non-String claim' do
+      setup_entra_mock_auth(
+        email: ['noemail@fabrikam.onmicrosoft.com'],
+        raw_info: { mail: "mail-#{SecureRandom.hex(6)}@fabrikam.onmicrosoft.com" },
+      )
+      expect { post_sso_callback }.not_to change { auth_db[:accounts].count }
+      expect_auth_error_redirect('invalid_email')
+    end
+
+    it 'redirects to invalid_email for a non-String mail claim' do
+      setup_entra_mock_auth(email: nil, raw_info: { mail: ['noemail@fabrikam.onmicrosoft.com'] })
+      expect { post_sso_callback }.not_to change { auth_db[:accounts].count }
+      expect_auth_error_redirect('invalid_email')
+    end
   end
 
   describe 'email-shaped values are accepted' do
