@@ -125,4 +125,4 @@ Checking the platform settings costs the customer nothing, but those settings ar
 
 **My recommendation:** switch Entra to sending the secret in the request body (`auth_scheme: :request_body`) whatever result B gives. That's the form Microsoft documents first, it works with any character in a secret, and it's a small change plus a spec pinning how the secret is sent.
 
-Test Connection doesn't check the client secret, so they can only confirm the fix with a real sign-in. A possible follow-up, not urgent: have Test Connection verify the Entra secret by requesting a token with it, which needs no user sign-in.
+Test Connection doesn't check the client secret, so they can only confirm the fix with a real sign-in. A possible follow-up, not urgent: have Test Connection verify the saved Entra secret by requesting a token with it, which needs no user sign-in. [sso-credential-health.md](./sso-credential-health.md) covers what such a probe does and does not prove, and the other checks that keep SSO credentials healthy.
