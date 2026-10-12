@@ -7,6 +7,8 @@ and live UI procedure referenced below. Use an initialized `bin/console` with
 
 ## Operator diagnostic: registered strategy's HTTP client
 
+**Runs on:** production `bin/console` in the affected deployment. Contacts Microsoft with the stored secret. Read-only.
+
 The [opt-in token exchange diagnostic](../../scripts/diagnostics/entra_token_exchange.rb)
 adds a comparison using the **registered** Entra middleware's options rather than
 constructing a new strategy. In the same initialized `bin/console`, run:
@@ -34,6 +36,8 @@ the returned token or raw exception message. Keep HTTP debug logging disabled.
   or observe a normal UI callback.
 
 ## Install the observer in the serving web workers
+
+**Runs on:** the production web workers, as a temporary diagnostic deployment with operator approval. Not a console procedure. The regression coverage at the end of this document is the only part that runs in a development checkout.
 
 The [diagnostic helper](../../scripts/diagnostics/entra_token_exchange.rb) supplies
 step 4's instrumentation in the [live UI procedure](./sso-entra-invalid-client-secret.md#close-the-remaining-gap-reproduce-on-the-live-ui-request).

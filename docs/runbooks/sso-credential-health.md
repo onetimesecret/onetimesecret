@@ -79,6 +79,8 @@ checks test the configured way of sending the secret, not alternatives.
 
 ## Procedures with the current tools
 
+**Runs on:** production, by an operator, using the log store and the customer's SSO settings page. No console commands.
+
 1. **A customer rotates a secret (Entra, OIDC).** Ask them to add the new secret
    in their tenant before removing the old one, save the new Value in the
    domain's SSO settings, and sign in once on the custom domain. Then remove the

@@ -8,6 +8,22 @@ Entra ID SSO, after v0.26.16 fixed the v0.26.15 proxy-trust incident:
 > type: None", which suggests the client secret is not being sent or not
 > being read correctly after the update.
 
+## Where each procedure runs
+
+Every procedure below states where it runs. Nothing here is meant to be pasted into a production console unless its section says so.
+
+| Section | Runs on | Contacts Microsoft | Reads the stored record |
+|---|---|---|---|
+| Isolation test | The customer's own machine | Yes, with the secret they type in | No |
+| Operator diagnostic: persisted credentials through curl | Production `bin/console` in the affected deployment | Yes | Yes, read-only |
+| Operator diagnostic: stored credential character and decoding checks | Production `bin/console` | No | Yes, read-only |
+| Developer check: capture the actual outgoing credential transport | A development checkout, in the spec suite with synthetic credentials | No, mocked endpoint | No |
+| Optional Entra comparison: raw Basic versus encoded Basic | Production `bin/console`, as a variant of the persisted-credential procedure | Yes | Yes, read-only |
+| Operator diagnostic: real Entra strategy and authorization-code exchange | Production `bin/console` plus a browser | Yes, a real sign-in at the IdP | Yes, read-only |
+| Close the remaining gap: reproduce on the live UI request | The production web workers, with a diagnostic deployment | Yes, a normal sign-in | Yes, read-only |
+
+"Production" means the deployment the customer's domain is served from. A console on a staging host or a developer machine reads a different record and a different gem bundle, and proves nothing about the failing worker.
+
 ## Release-history evidence
 
 The source comparison below does not prove what a particular running worker sent.
@@ -68,30 +84,37 @@ An expired secret that's still listed on the app returns 7000222, not 7000215, s
 
 Run it twice, once with the secret in the body and once with raw Basic authentication. These tests use the **client-credentials grant**, not the authorization-code grant used by sign-in. They isolate credential transport for that grant; they do not reproduce the UI or conclusively identify the cause.
 
-**For the customer** (macOS, Linux, or Git Bash on Windows):
+**Runs on:** the customer's own machine (macOS, Linux, or Git Bash on Windows). Not on an Onetime Secret host, and not in `bin/console`. It contacts Microsoft with the secret the customer types in.
 
 ```bash
-export ENTRA_TENANT_ID='<Directory (tenant) ID>'
-export ENTRA_CLIENT_ID='<Application (client) ID>'
+ENTRA_TENANT_ID='<Directory (tenant) ID>'
+ENTRA_CLIENT_ID='<Application (client) ID>'
 printf 'Client secret value: '; read -rs ENTRA_CLIENT_SECRET; echo
 TOKEN_URL="https://login.microsoftonline.com/$ENTRA_TENANT_ID/oauth2/v2.0/token"
+esc() { printf '%s' "$1" | sed 's/[\\"]/\\&/g'; }
 
 echo "A (secret in request body):"
-curl -s "$TOKEN_URL" \
-  --data-urlencode "client_id=$ENTRA_CLIENT_ID" \
-  --data-urlencode "client_secret=$ENTRA_CLIENT_SECRET" \
-  --data-urlencode "scope=https://graph.microsoft.com/.default" \
-  -d grant_type=client_credentials | grep -oE '"access_token"|AADSTS[0-9]+' | head -1
+curl -s --config - <<EOF | grep -oE '"access_token"|AADSTS[0-9]+' | head -1
+url = "$TOKEN_URL"
+data-urlencode = "client_id=$(esc "$ENTRA_CLIENT_ID")"
+data-urlencode = "client_secret=$(esc "$ENTRA_CLIENT_SECRET")"
+data-urlencode = "scope=https://graph.microsoft.com/.default"
+data = "grant_type=client_credentials"
+EOF
 
 echo "B (secret in Authorization header, as Onetime Secret sends it):"
-curl -s "$TOKEN_URL" -u "$ENTRA_CLIENT_ID:$ENTRA_CLIENT_SECRET" \
-  --data-urlencode "scope=https://graph.microsoft.com/.default" \
-  -d grant_type=client_credentials | grep -oE '"access_token"|AADSTS[0-9]+' | head -1
+curl -s --config - <<EOF | grep -oE '"access_token"|AADSTS[0-9]+' | head -1
+url = "$TOKEN_URL"
+user = "$(esc "$ENTRA_CLIENT_ID"):$(esc "$ENTRA_CLIENT_SECRET")"
+data-urlencode = "scope=https://graph.microsoft.com/.default"
+data = "grant_type=client_credentials"
+EOF
 
 unset ENTRA_CLIENT_SECRET
 ```
 
 - The secret is typed in without being shown on screen and stays out of shell history.
+- The secret reaches curl through a config file on stdin, never as a command-line argument, so it does not appear in `ps` output or process monitors. `esc` escapes the two characters (`"` and `\`) that curl's config format treats specially.
 - Each test prints only `"access_token"` or the error code, so the output is safe to send back to us. The token itself is never printed.
 - Neither test touches Onetime Secret.
 
@@ -104,9 +127,11 @@ unset ENTRA_CLIENT_SECRET
 | `AADSTS7000215` | `AADSTS7000215` | The value isn't a current secret of this app: a Secret ID, a deleted secret, or a typo (lead 2). |
 | any other code | | Ask them to send us the code. |
 
-I checked both commands locally, using a fake secret that contains `+` and `%`. Test A sends it encoded (`ab%2Bc%252Fd~e`). Test B sends it raw (`cid-456:ab+c%2Fd~e`), which matches what our app sends, as the probe in "How Onetime Secret sends the secret" showed. I didn't send anything to Microsoft.
+I checked both commands locally against a capture server, using a fake secret that contains `+`, `%`, `"` and `\`. Test A sends it form-encoded in the body (`client_secret=ab%2Bc%252Fd~e%22q%5Cz`), and the server decodes it back to the original bytes. Test B sends a Basic header that decodes to the raw pair (`cid-456:ab+c%2Fd~e"q\z`), which matches what our app sends, as the probe in "How Onetime Secret sends the secret" showed. Neither command had the secret in its arguments. I didn't send anything to Microsoft.
 
 ## Operator diagnostic: persisted credentials through curl
+
+**Runs on:** production `bin/console` in the affected deployment. Contacts Microsoft with the stored secret. Read-only.
 
 Use `bin/console` in the affected deployment, with the customer's `domain`
 already loaded. Do not change the SSO record, prompt for a replacement secret,
@@ -197,6 +222,8 @@ the Ruby HTTP client, or process/network differences before changing the record.
 
 ## Operator diagnostic: stored credential character and decoding checks
 
+**Runs on:** production `bin/console`, after the previous section. No network requests. Read-only.
+
 After the persisted-credential A/B diagnostic, use the same `stored` record in
 `bin/console`. This check reads through `to_omniauth_options`, makes no network
 requests or writes, and reports only character-presence and comparison results.
@@ -257,6 +284,8 @@ finished.
 
 ## Developer check: capture the actual outgoing credential transport
 
+**Runs on:** a development checkout, as spec code with synthetic credentials and a mocked token endpoint. Never in production, and never with a real secret.
+
 For an offline regression check, extend the existing
 [mounted Entra integration spec](../../apps/web/auth/spec/integration/full/entra_native_claims_spec.rb),
 which captures the real strategy's token request at a mocked endpoint. This is
@@ -296,6 +325,8 @@ that the authorization-code grant and redirect URI remain unchanged.
 
 ## Optional Entra comparison: raw Basic versus encoded Basic
 
+**Runs on:** production `bin/console`, as a variant of the persisted-credential procedure. Contacts Microsoft. Read-only.
+
 To test whether Basic encoding changes Microsoft's response, extend a diagnostic
 copy of the persisted-credential A/B procedure with a third transport variant.
 Keep the stored values, endpoint, scope, and grant identical across variants:
@@ -325,6 +356,8 @@ an explicit experimental variation, not an unmodified reproduction of the curren
 sign-in implementation. Preserve the stored credentials throughout.
 
 ## Operator diagnostic: real Entra strategy and authorization-code exchange
+
+**Runs on:** production `bin/console` in the affected deployment, plus a browser for the authorization step. Contacts Microsoft with a real sign-in at the IdP. Read-only on our side.
 
 To remove the grant and HTTP-client differences, use a **fresh browser authorization
 code** with the application's tenant injection helper and the installed Entra
@@ -461,6 +494,8 @@ Microsoft exchange has not been validated as part of this documentation change.
 
 ## Close the remaining gap: reproduce on the live UI request
 
+**Runs on:** the production web workers that serve the customer's domain. Step 4 is a diagnostic deployment to those workers, not a console procedure.
+
 No isolated console probe can guarantee the UI's result. To eliminate the remaining
 context differences, make a fresh sign-in through the affected public hostname,
 with the callback block removed, and correlate **that request's** application logs
@@ -471,11 +506,17 @@ a session; use an authorized test account and the normal login route, not Connec
    instance/release. Confirm which worker handled both initiation and callback;
    compare its deployed gem versions and configuration with the console. A console
    on a different replica is not proof of what this worker loaded.
-2. Confirm `omniauth_tenant_credentials_injecting` for the expected domain on the
-   callback, followed by the failure for the same request. The injection event is
-   emitted **before** injection; by itself it does not prove the final HTTP client
-   received those credentials. Do not equate two adjacent log lines from different
-   requests, or a matching tenant/app ID, with proof of identical secret bytes.
+2. Find `omniauth_tenant_credentials_injecting` for the expected domain on the
+   callback, then the `omniauth_failure` that followed on the **same worker PID and
+   thread** (the `[pid:thread]` prefix of each log line) with no other callback
+   start on that thread in between. The two events share no field: the injection
+   line carries `domain_id`, the failure line does not, and both log
+   `correlation_id: none`. Timestamp proximity alone is not enough under
+   concurrent sign-ins. The injection event is also emitted **before** injection;
+   by itself it does not prove the final HTTP client received those credentials.
+   Do not equate two adjacent log lines from different requests, or a matching
+   tenant/app ID, with proof of identical secret bytes. The step 4 observer ties
+   request and response together with its own `probe_id`.
 3. Compare the live authorize request's tenant, client ID, scope and redirect URI
    with the console flow, and match Entra's error code, trace/correlation IDs and
    timestamp. Keep full callback URLs, cookies, state, codes and token responses
@@ -517,7 +558,9 @@ Checking the platform settings costs the customer nothing, but those settings ar
 
 ## To confirm in production logs
 
-- On the callback request, an `omniauth_tenant_credentials_injecting` line with their `domain_id` confirms the tenant path ran. It should be followed by `omniauth_failure` with `error_type=invalid_credentials`, and its `error_message` should contain the AADSTS7000215 text and app ID.
+**Runs on:** the production log store. Read-only.
+
+- An `omniauth_tenant_credentials_injecting` line with their `domain_id` confirms the tenant path ran on some callback. An `omniauth_failure` line with `error_type=invalid_credentials` and an `error_message` containing the AADSTS7000215 text and app ID confirms a rejected exchange. The two lines cannot be joined by their fields: the failure line has no `domain_id`, and both log `correlation_id: none`. Match them by worker PID and thread (the `[pid:thread]` log prefix) with no intervening callback on that thread, and treat the match as a lead, not proof. Under concurrent sign-ins a nearby 7000215 can belong to another tenant. Adding `domain_id` to tenant `omniauth_failure` events is proposal 4 in [sso-credential-health.md](./sso-credential-health.md#proposed-not-built).
 - `domain_sso_config_updated` events with `client_secret changed: true` show whether anyone re-saved the secret recently.
 
 ## Recommendation
