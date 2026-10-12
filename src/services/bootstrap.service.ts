@@ -1,6 +1,7 @@
 // src/services/bootstrap.service.ts
 
 import type { BootstrapPayload } from '@/schemas/contracts/bootstrap';
+import { loggingService } from '@/services/logging.service';
 import { debugLog } from '@/utils/debug';
 
 /**
@@ -39,12 +40,12 @@ let consumed = false;
  */
 export function consumeBootstrapData(): Partial<BootstrapPayload> | null {
   if (consumed) {
-    console.debug('[BootstrapService] Data already consumed');
+    loggingService.debug('[BootstrapService] Data already consumed');
     return bootstrapSnapshot;
   }
 
   if (typeof window === 'undefined') {
-    console.debug('[BootstrapService] Window not defined (SSR?)');
+    loggingService.debug('[BootstrapService] Window not defined (SSR?)');
     consumed = true;
     return null;
   }
@@ -53,7 +54,7 @@ export function consumeBootstrapData(): Partial<BootstrapPayload> | null {
   const state = windowWithState[BOOTSTRAP_KEY];
 
   if (!state) {
-    console.debug('[BootstrapService] No bootstrap state found on window');
+    loggingService.debug('[BootstrapService] No bootstrap state found on window');
     consumed = true;
     return null;
   }
@@ -65,7 +66,7 @@ export function consumeBootstrapData(): Partial<BootstrapPayload> | null {
   (window as unknown as Record<string, unknown>)[BOOTSTRAP_KEY] = true;
   consumed = true;
 
-  console.debug('[BootstrapService] Consumed bootstrap data:', {
+  loggingService.debug('[BootstrapService] Consumed bootstrap data', {
     authenticated: snapshot.authenticated,
     locale: snapshot.locale,
     keysCount: Object.keys(snapshot).length,
