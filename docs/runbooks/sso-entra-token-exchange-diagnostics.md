@@ -7,7 +7,7 @@ and live UI procedure referenced below. Use an initialized `bin/console` with
 
 ## Operator diagnostic: registered strategy's HTTP client
 
-**Runs on:** production `bin/console` in the affected deployment. Contacts Microsoft with the stored secret. Read-only.
+**Runs on:** production `bin/console` in the affected deployment. Contacts Microsoft with the stored secret. Read-only. Neither the probe nor the observer writes to the operator security audit trail; record who ran it, for which domain, and when in the support ticket, as the [Entra runbook](./sso-entra-invalid-client-secret.md#where-each-procedure-runs) asks.
 
 The [opt-in token exchange diagnostic](../../scripts/diagnostics/entra_token_exchange.rb)
 adds a comparison using the **registered** Entra middleware's options rather than

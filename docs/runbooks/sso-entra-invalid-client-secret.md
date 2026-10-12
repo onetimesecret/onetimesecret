@@ -24,6 +24,8 @@ Every procedure below states where it runs. Nothing here is meant to be pasted i
 
 "Production" means the deployment the customer's domain is served from. A console on a staging host or a developer machine reads a different record and a different gem bundle, and proves nothing about the failing worker.
 
+**Leave a trail.** Every production procedure in this runbook reads a tenant's decrypted credentials, and most send them to Microsoft. None of them writes to the operator security audit trail today (`Onetime::ColonelAuditEvent.record_security`, the trail the colonel audit export reads). Ideally each one would, with the operator, the procedure name, the domain ID, the UTC time and the marker result, and never the credential bytes. Until that exists, record the same facts in the support ticket before you start, and note in the ticket that the console session was not recorded. The proposal is item 7 in [sso-credential-health.md](./sso-credential-health.md#proposed-not-built).
+
 ## Release-history evidence
 
 The source comparison below does not prove what a particular running worker sent.

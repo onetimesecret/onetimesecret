@@ -132,6 +132,18 @@ Nothing in this section exists in the codebase.
    (set on PUT and PATCH) is a candidate, but it has one-second resolution, so
    two saves in the same second share a value.
 
+7. **Audit every production diagnostic.** The console procedures in the
+   [Entra runbook](./sso-entra-invalid-client-secret.md#where-each-procedure-runs)
+   and the [token exchange diagnostic](./sso-entra-token-exchange-diagnostics.md)
+   decrypt a tenant's credentials and send them to the IdP, and leave no record
+   in the operator security audit trail. Wrap them as named operations that
+   write one `Onetime::ColonelAuditEvent.record_security` entry each: actor,
+   verb (the procedure name), target (the domain ID), result (the marker:
+   token, AADSTS code, or local failure class), and a detail hash with the
+   UTC time and the probe identifier. Never the credential, the token, or the
+   raw error. Any future Test Connection probe or background check that uses
+   the stored secret (items 1 and 3) should write the same entry.
+
 Safeguards for any background probe:
 
 - Enqueue the domain ID, never the secret.
