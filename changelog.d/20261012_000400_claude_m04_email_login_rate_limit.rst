@@ -10,8 +10,9 @@ Security
   on by default. The settings live under
   ``site.authentication.email_login_request_rate_limit``
   (``EMAIL_LOGIN_REQUEST_RATE_LIMIT_ENABLED``, ``_MAX_PER_IP`` (30),
-  ``_MAX_PER_EMAIL`` (90), ``_WINDOW`` (3600), ``_LOCKOUT`` (3600)). The
-  per-address cap is kept above the per-IP cap so that one source cannot lock
+  ``_MAX_PER_EMAIL`` (90), ``_WINDOW`` (3600), ``_LOCKOUT`` (3600)). Keep
+  the per-address cap at least twice the per-IP cap and the lockout no
+  shorter than the window, as the defaults do; otherwise one source can lock
   another person out of magic-link sign-in. ``bin/ots ratelimit`` and the
   colonel rate-limit reset accept the kinds ``email_login_request_ip`` and
   ``email_login_request_email``. ``POST /auth/verify-account-resend`` still

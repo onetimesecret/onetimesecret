@@ -238,13 +238,18 @@ module Onetime
 
       # Default per-login backstop for the :email_login_request scope: three
       # times its per-IP cap. The per-email tier must stay the LOOSER one (see
-      # the RL-3 note in the module header): requests a locked IP sends are
-      # denied before the email tier counts them, so one source adds at most
-      # max_per_ip to a victim's bucket per window, and with max_per_email at
-      # or below that a single IP could lock the victim out of magic-link
-      # sign-in from every IP, renewably (SEC-B02). Rodauth's resend window
-      # (email_auth_skip_resend_email_within) already caps the mail an account
-      # receives, so this tier only bounds distributed probing of one target.
+      # the RL-3 note in the module header), or a single IP could lock a
+      # victim out of magic-link sign-in from every IP, renewably (SEC-B02).
+      # How much looser (SEC-B09): requests a locked IP sends are denied
+      # before the email tier counts them, but an IP that fills its window to
+      # one under the cap just before that window expires, then spends a fresh
+      # window, lands up to 2 * max_per_ip - 2 requests in ONE email window;
+      # and when lockout < window the IP is free again inside the same email
+      # window, so there is no bound at all. Hence the rule this default keeps:
+      # max_per_email >= 2 * max_per_ip, and lockout >= window. Rodauth's
+      # resend window (email_auth_skip_resend_email_within) already caps the
+      # mail an account receives, so this tier only bounds distributed probing
+      # of one target.
       EMAIL_LOGIN_REQUEST_DEFAULT_MAX_PER_EMAIL = 90
 
       # Everything that differs between the routes this limiter guards. See
