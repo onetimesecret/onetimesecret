@@ -211,18 +211,39 @@ function cursorOver(tokens: Token[]) {
   };
 }
 
+// DOM navigation steps a copyInputText argument may take from `this`.
+const NAVIGATION_PROPERTIES = new Set([
+  'previousElementSibling',
+  'nextElementSibling',
+  'parentElement',
+  'parentNode',
+  'firstElementChild',
+  'lastElementChild',
+]);
+// Navigation methods, each taking exactly one string (a selector).
+const NAVIGATION_METHODS = new Set(['querySelector', 'closest']);
+
+/** One `.step` of an element reference: a navigation property or method call. */
+function acceptNavigationStep(c: Cursor): boolean {
+  const step = c.take('name');
+  if (step === null) return false;
+  if (NAVIGATION_PROPERTIES.has(step)) return !c.peek('(');
+  return NAVIGATION_METHODS.has(step) && c.accept('(') && c.take('string') !== null && c.accept(')');
+}
+
 /**
  * copyInputText's argument names the field to copy, e.g.
- * `this.previousElementSibling` or `this.parentElement.querySelector('input')`.
- * Accept such a reference (or none) without evaluating it: the widget's
- * delegated handler finds the field from the clicked button instead.
+ * `this.previousElementSibling` or `this.parentElement.querySelector('input')`:
+ * `this` followed by DOM navigation steps only, or nothing. It is never
+ * evaluated (the widget's delegated handler finds the field from the clicked
+ * button instead); the narrow grammar keeps anything that reads like code,
+ * such as `this.ownerDocument.defaultView.eval(...)`, out of the accepted set.
  */
 function acceptElementReference(c: Cursor): boolean {
   if (c.peek(')')) return true;
-  if (!c.accept('this') && !c.accept('document')) return false;
+  if (!c.accept('this')) return false;
   while (c.accept('.')) {
-    if (c.take('name') === null) return false;
-    if (c.accept('(') && (c.take('string') === null || !c.accept(')'))) return false;
+    if (!acceptNavigationStep(c)) return false;
   }
   return true;
 }

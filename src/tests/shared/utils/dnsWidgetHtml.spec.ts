@@ -425,7 +425,9 @@ describe('parseInlineAction', () => {
       ['  window.apxDns.verifyRecords();  ', 'verifyRecords'],
       ['window.apxDns.copyInputText()', 'copyInputText'],
       ["window.apxDns.copyInputText(this.parentElement.querySelector('input'))", 'copyInputText'],
-      ["window.apxDns.copyInputText(document.getElementById('record-1'))", 'copyInputText'],
+      ['window.apxDns.copyInputText(this.nextElementSibling)', 'copyInputText'],
+      ["window.apxDns.copyInputText(this.closest('div').firstElementChild)", 'copyInputText'],
+      ['window.apxDns.copyInputText(this.parentNode.lastElementChild)', 'copyInputText'],
     ])('%s', (handler, name) => {
       expect(parseInlineAction(handler)).toMatchObject({ name });
     });
@@ -448,6 +450,20 @@ describe('parseInlineAction', () => {
       ['a non-string argument', 'window.apxDns.showManualInstructions(manualId)'],
       ['code as a copy argument', "window.apxDns.copyInputText((()=>{fetch('//evil')})())"],
       ['a function call as a copy argument', 'window.apxDns.copyInputText(alert(1))'],
+      // The copy argument is `this` plus DOM navigation steps only.
+      [
+        'eval reached through the copy argument',
+        "window.apxDns.copyInputText(this.ownerDocument.defaultView.eval('alert(1)'))",
+      ],
+      [
+        'a location change in the copy argument',
+        "window.apxDns.copyInputText(document.location.assign('https://evil.example'))",
+      ],
+      ['a document lookup as the copy argument', "window.apxDns.copyInputText(document.getElementById('x'))"],
+      ['an unlisted property in the copy argument', 'window.apxDns.copyInputText(this.ownerDocument)'],
+      ['a property called as a method', "window.apxDns.copyInputText(this.parentElement('x'))"],
+      ['a method used as a property', 'window.apxDns.copyInputText(this.querySelector)'],
+      ['a navigation method without a string', 'window.apxDns.copyInputText(this.closest())'],
       ['a different object', 'evil.apxDns.verifyRecords()'],
       ['an unknown action', 'window.apxDns.stop()'],
       ['a non-boolean return', 'window.apxDns.restart(); return document.cookie'],
