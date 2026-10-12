@@ -299,6 +299,7 @@ module DomainSsoTestFixtures
         client_secret: anything,
         tenant_id: 'contoso-tenant-uuid-1234',
         scope: 'openid profile email',
+        client_options: { auth_scheme: :request_body },
       }
     when :saml
       # The hardened half comes from the single shared builder — asserting

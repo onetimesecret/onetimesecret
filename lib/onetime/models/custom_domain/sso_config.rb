@@ -868,6 +868,11 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
     }
   end
 
+  # Same transport as the platform registration (Onetime::SsoProvider::Entra,
+  # #4764): the secret goes in the token request body, never in a Basic
+  # header that oauth2 encodes without form-escaping. The tenant hook
+  # merges client_options key by key (OmniAuthTenant.merge_strategy_options),
+  # so this key reaches the strategy alongside the Entra URLs it sets itself.
   def build_entra_id_options
     {
       strategy: :entra_id,
@@ -876,6 +881,7 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
       client_secret: client_secret&.reveal { it },
       tenant_id: tenant_id,
       scope: 'openid profile email',
+      client_options: { auth_scheme: :request_body },
     }
   end
 

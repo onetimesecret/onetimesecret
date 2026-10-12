@@ -245,6 +245,12 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
       it 'includes tenant_id' do
         expect(config.to_omniauth_options[:tenant_id]).to eq('contoso-tenant-uuid-1234')
       end
+
+      # #4764: the secret travels in the token request body, not a Basic
+      # header, on the tenant surface exactly as on the platform one.
+      it 'sends the client credentials in the token request body' do
+        expect(config.to_omniauth_options[:client_options]).to eq(auth_scheme: :request_body)
+      end
     end
 
     # #4450. The tenant arm is the platform definition's builder plus the
