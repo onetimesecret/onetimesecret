@@ -87,6 +87,7 @@ const authErrorMessages: Record<string, string> = {
   token_missing: 'web.login.errors.token_missing',
   token_expired: 'web.login.errors.token_expired',
   token_invalid: 'web.login.errors.token_invalid',
+  missing_email: 'web.login.errors.missing_email',
   invalid_email: 'web.login.errors.invalid_email',
   domain_not_allowed: 'web.login.errors.domain_not_allowed',
   account_exists_link_required: 'web.login.errors.account_exists_link_required',

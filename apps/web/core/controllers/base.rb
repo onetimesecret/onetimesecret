@@ -342,6 +342,13 @@ module Core
         req.env['onetime.domain_strategy']
       end
 
+      # The request's shared CustomDomain lookup (#4220): what DomainStrategy
+      # published, or the one read this request makes on first use. The
+      # sign-in half (#custom_domain_id) reads the same object.
+      def signup_config_custom_domain_lookup
+        Onetime::CustomDomain::Lookup.for(req.env)
+      end
+
       def signup_config_auth_setting(key)
         auth_settings[key]
       end

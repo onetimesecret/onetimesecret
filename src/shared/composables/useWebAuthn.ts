@@ -196,6 +196,11 @@ export function useWebAuthn() {
         return false;
       }
 
+      // A first second factor moves the session to a new id (#4466,
+      // after_webauthn_setup), and the snapshot epoch with it (ADR-046). An
+      // auth-mutation refresh adopts the new epoch in place; the next
+      // ordinary refresh would read it as a replaced session and reload.
+      await authStore.refresh({ kind: 'auth-mutation', reason: 'mfa-setup' });
       return true;
     } catch (err: unknown) {
       handleWebAuthnError(err, 'web.auth.webauthn.setupFailed');

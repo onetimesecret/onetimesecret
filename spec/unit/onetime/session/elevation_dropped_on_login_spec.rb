@@ -11,16 +11,14 @@ require 'auth/operations/sync_session'
 # browser that already held account A's ELEVATED colonel session, and B must not
 # inherit A's live step-up window.
 #
-# It is a real risk in this codebase because one `onetime.session` cookie can
-# outlive an identity change on BOTH paths:
+# Two login paths change the identity on a session the browser already holds:
 #
-#   - simple mode — Core::Controllers::Authentication#perform_authentication
-#     assigns the new identity into the session and calls neither `session.clear`
-#     nor `request.session_options[:renew] = true`. (Compare
-#     lib/onetime/helpers/session_helpers.rb, the OTHER authenticate path, which
-#     does both; the controller does not use it. Fixing that omission is out of
-#     this epic's charter — see the epic's non-goals — so #4327 only ensures
-#     elevation cannot survive it.)
+#   - simple mode — Core::Controllers::Authentication#perform_authentication.
+#     Since #4466 the logic it calls (AuthenticateSession#start_new_session!)
+#     clears the session and moves it to a new id before any identity is
+#     written, so a previous occupant's window is already gone when the
+#     controller block runs. The block deletes the field anyway, and these
+#     examples stub the logic out to check that block on its own.
 #   - full mode — Rodauth's :renew after a password change carries the session
 #     hash to a new sid, where it is re-externalized.
 #

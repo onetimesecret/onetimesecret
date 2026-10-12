@@ -355,6 +355,18 @@ describe('AdminOrganizationDetail (org detail + entitlements + reconcile)', () =
       name: 'AdminCustomerDetail',
       params: { id: 'mem_1' },
     });
+
+    // Each domain links through to its colonel domain record by the domain's
+    // PUBLIC id — never the internal domain_id.
+    const domainLink = wrapper
+      .findAllComponents(RouterLinkStub)
+      .find((link) => link.attributes('data-testid') === 'domain-detail-dom_1');
+    expect(domainLink).toBeDefined();
+    expect(domainLink!.text()).toContain('secrets.acme.test');
+    expect(domainLink!.props('to')).toEqual({
+      name: 'AdminDomainDetail',
+      params: { id: 'dom_1' },
+    });
   });
 
   it('renders an organization whose subscription period end is a number', async () => {

@@ -9,21 +9,21 @@ targets V2/V3.
 V1 responses use legacy field names. Both old and new names may coexist,
 but old names are always present.
 
-| v0.24 internal       | V1 response name       | Notes                          |
-|----------------------|------------------------|--------------------------------|
-| `identifier`         | `metadata_key`         |                                |
-| `secret_identifier`  | `secret_key`           | Omitted when state=received    |
-| `has_passphrase`     | `passphrase_required`  |                                |
-| `recipients`         | `recipient`            | Array (singular key name)      |
-| `receipt_ttl`        | `metadata_ttl`         | Actual seconds remaining (TTL) |
-| `secret_value`       | `value`                |                                |
-| `share_domain` nil   | `share_domain` `""`    | Empty string, never null       |
-| `owner_id`           | `custid`               | Email address, not UUID        |
+| v0.24 internal      | V1 response name      | Notes                          |
+| ------------------- | --------------------- | ------------------------------ |
+| `identifier`        | `metadata_key`        |                                |
+| `secret_identifier` | `secret_key`          | Omitted when state=received    |
+| `has_passphrase`    | `passphrase_required` |                                |
+| `recipients`        | `recipient`           | Array (singular key name)      |
+| `receipt_ttl`       | `metadata_ttl`        | Actual seconds remaining (TTL) |
+| `secret_value`      | `value`               |                                |
+| `share_domain` nil  | `share_domain` `""`   | Empty string, never null       |
+| `owner_id`          | `custid`              | Email address, not UUID        |
 
 ## State Values
 
 | v0.24 internal | V1 response |
-|----------------|-------------|
+| -------------- | ----------- |
 | `shared`       | `new`       |
 | `previewed`    | `viewed`    |
 | `revealed`     | `received`  |
@@ -57,10 +57,10 @@ Anonymous secrets set `custid` to `"anon"`.
 
 The server-wide `AUTHENTICATION_MODE` setting controls V1 behavior:
 
-| Mode       | Effect                                                     |
-|------------|------------------------------------------------------------|
-| `disabled` | All V1 endpoints return 404                                |
-| `simple`   | Basic Auth works; anonymous allowed where configured       |
+| Mode       | Effect                                                    |
+| ---------- | --------------------------------------------------------- |
+| `disabled` | All V1 endpoints return 404                               |
+| `simple`   | Basic Auth works; anonymous allowed where configured      |
 | `full`     | Same as `simple` for V1 (V1 does not require PG/RabbitMQ) |
 
 ## Known Differences from v0.23.x
@@ -100,28 +100,6 @@ the application, which no longer uses the term "metadata" (too vague).
 - **`GET/POST /receipt/:key`**: Alias for `/private/:key` and `/metadata/:key`.
 - **`GET /receipt/recent`**: Alias for `/private/recent` and `/metadata/recent`.
 - **`POST /receipt/:key/burn`**: Alias for `/private/:key/burn`.
-
-## Validation Tooling
-
-Capture baseline responses from a running instance, then diff against a
-candidate build:
-
-```bash
-# Capture from v0.23.x baseline
-scripts/api-validation/bin/v1-capture.sh http://localhost:3000 ./captures/v0.23.6 user@example.com TOKEN --form
-
-# Capture from v0.24.x candidate
-scripts/api-validation/bin/v1-capture.sh http://localhost:3000 ./captures/v0.24.0 user@example.com TOKEN
-
-# Diff the two runs
-scripts/api-validation/bin/v1-diff.sh ./captures/v0.23.6/RUN_ID ./captures/v0.24.0/RUN_ID ./diffs/report.json
-```
-
-The `--form` flag sends POST data as `application/x-www-form-urlencoded`
-(required for v0.23.x, which lacks `Rack::JSONBodyParser`).
-
-The diff report flags: status code changes, field additions/removals, type
-changes, header changes, and value changes in key fields.
 
 ## Related Commits
 

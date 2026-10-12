@@ -131,7 +131,7 @@ The probe needs a running app, so it does not run in CI. Two things do:
   `topologies.psv`, sends every row through the mounted stack and asserts the
   expected strategy and the spoof predicate. An expectation in the matrix that
   the application does not meet fails that spec.
-- `tests/topology-test.sh` runs with `scripts/tests/run.sh`.
+- `tests/topology-test.sh` runs with `bin/testsuite run`.
 
 ## Running it
 

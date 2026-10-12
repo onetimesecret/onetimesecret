@@ -100,7 +100,7 @@ RSpec.describe 'ListReceipts(scope: :org) / ListSecretActivity audit-gate parity
   def receipts_verdict(entitlement_granted:)
     verdict do
       logic      = V2::Logic::Secrets::ListReceipts.new(strategy_result, { 'scope' => 'org' })
-      membership = double('OrganizationMembership', active?: true, status: 'active')
+      membership = double('OrganizationMembership', active?: true, status: 'active', org_scoped?: true)
       allow(membership).to receive(:can?) do |entitlement|
         entitlement.to_s == 'api_access' || (entitlement.to_s == 'audit_logs' && entitlement_granted)
       end
@@ -117,7 +117,7 @@ RSpec.describe 'ListReceipts(scope: :org) / ListSecretActivity audit-gate parity
       logic      = OrganizationAPI::Logic::Organizations::ListSecretActivity.new(
         strategy_result, { 'extid' => organization.extid }
       )
-      membership = instance_double(Onetime::OrganizationMembership, active?: true, can?: entitlement_granted)
+      membership = instance_double(Onetime::OrganizationMembership, active?: true, can?: entitlement_granted, org_scoped?: true)
       allow(Onetime::Organization).to receive(:find_by_extid).with(organization.extid).and_return(organization)
       allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer)
         .with(organization.objid, customer.objid).and_return(membership)

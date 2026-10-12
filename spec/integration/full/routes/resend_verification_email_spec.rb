@@ -366,8 +366,12 @@ RSpec.describe 'POST /api/account/resend-verification-email', type: :integration
     it 'produces DIFFERENT server-side events for unverified vs verified while bodies stay identical' do
       skip 'verify_account feature not loaded at boot (RACK_ENV=test): both states share the noop branch' unless verify_account_loaded?
 
-      create_unverified_account(db: test_db, email: 'audit-unverified@example.com')
+      unverified = create_unverified_account(db: test_db, email: 'audit-unverified@example.com')
       create_verified_account(db: test_db, email: 'audit-verified@example.com')
+      # A fresh key was just "sent", so Rodauth's resend throttle would block
+      # the unverified request too. Backdate it out of the window, as the
+      # email_last_sent example above does.
+      test_db[:account_verification_keys].where(id: unverified[:id]).update(email_last_sent: Time.now - 3600)
 
       captured_events.clear
       post_json ENDPOINT, { login: 'audit-unverified@example.com', locale: 'en' }

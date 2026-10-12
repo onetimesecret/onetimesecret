@@ -10,9 +10,9 @@
 # in ci.yml includes the flag.
 #
 # billing_nightly is not a path output at all. It is the nightly-only
-# selection — the scheduled run, or a manual dispatch with run_all — and
-# nothing else turns it on: not a path, not [ci-all], not a workflow-file
-# change, not a push to main or a merge-queue check. [ci-skip] still turns
+# selection — the scheduled run, a release-tag push, or a manual dispatch
+# with run_all — and nothing else turns it on: not a path, not [ci-all],
+# not a workflow-file change, not a push to main or a merge-queue check. [ci-skip] still turns
 # it off, so a skipped nightly stays a skipped nightly.
 #
 # Environment variables (inputs):
@@ -25,7 +25,7 @@
 #   FILTER_OCI       - true if Docker/OCI files changed
 #   FILTER_HARNESS   - true if a path the lane runner's own specs exercise changed
 #   FILTER_AUTH      - shared auth selector result (paths, label, or event)
-#   NIGHTLY          - true on the schedule event or a dispatch with run_all
+#   NIGHTLY          - true on the schedule event, a release-tag push or a dispatch with run_all
 #
 # Outputs (to GITHUB_OUTPUT):
 #   ruby, typescript, frontend, oci, harness, auth, billing_nightly, ga_workflow_files

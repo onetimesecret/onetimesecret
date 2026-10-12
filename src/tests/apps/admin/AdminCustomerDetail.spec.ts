@@ -222,6 +222,138 @@ describe('AdminCustomerDetail (ticket #22)', () => {
       await flushPromises();
 
       expect(wrapper.find('[data-testid="detail-error"]').exists()).toBe(true);
+      // The panel names the failing fields so the operator can see the cause.
+      expect(wrapper.find('[data-testid="schema-issues"]').text()).toContain('record.extid');
+    });
+
+    // The badge marks THIS customer's default (is_customer_default). is_default
+    // marks the org owner's auto-created workspace, so a customer invited
+    // into someone else's default workspace sees it set there too.
+    describe('organizations "Default" badge', () => {
+      type OrgEntry = {
+        organization_id: string;
+        extid: string;
+        display_name: string;
+        is_default: boolean;
+        is_customer_default?: boolean;
+      };
+      const withOrganizations = (organizations: OrgEntry[]) => {
+        const payload = detailPayload();
+        return { ...payload, details: { ...payload.details, organizations } };
+      };
+      const badgeIn = (w: VueWrapper, extid: string) =>
+        w
+          .findAll('[data-testid="organizations-list"] li')
+          .find((li) => li.text().includes(extid))
+          ?.find('[data-testid="organization-default-badge"]')
+          .exists();
+
+      it("follows is_customer_default, not the owner's is_default", async () => {
+        mockApi.get.mockResolvedValue({
+          data: withOrganizations([
+            {
+              organization_id: 'o1',
+              extid: 'og_company',
+              display_name: 'Company',
+              is_default: true,
+              is_customer_default: false,
+            },
+            {
+              organization_id: 'o2',
+              extid: 'og_own',
+              display_name: 'Own',
+              is_default: false,
+              is_customer_default: true,
+            },
+          ]),
+        });
+        wrapper = mountView();
+        await flushPromises();
+
+        expect(badgeIn(wrapper, 'og_company')).toBe(false);
+        expect(badgeIn(wrapper, 'og_own')).toBe(true);
+      });
+
+      it('renders the list without a badge when the field is absent (deploy skew)', async () => {
+        mockApi.get.mockResolvedValue({
+          data: withOrganizations([
+            { organization_id: 'o1', extid: 'og_acme', display_name: 'Acme', is_default: true },
+          ]),
+        });
+        wrapper = mountView();
+        await flushPromises();
+
+        expect(wrapper.find('[data-testid="section-invalid-organizations"]').exists()).toBe(false);
+        expect(badgeIn(wrapper, 'og_acme')).toBe(false);
+      });
+    });
+
+    describe('contract mismatch confined to one details section', () => {
+      const SECRET_MARKER = 'do-not-render-this-value';
+
+      function payloadWithBadOrganization() {
+        const payload = detailPayload();
+        // A null boolean, as sent for an org whose is_default was never set,
+        // plus a string where a boolean belongs to prove values stay hidden.
+        payload.details.organizations = [
+          { organization_id: 'o1', extid: 'og_acme', display_name: 'Acme', is_default: true },
+          {
+            organization_id: 'o2',
+            extid: 'og_personal',
+            display_name: 'Personal',
+            is_default: SECRET_MARKER as unknown as boolean,
+          },
+        ];
+        return payload;
+      }
+
+      it('renders the rest of the page and hides only that section', async () => {
+        mockApi.get.mockResolvedValue({ data: payloadWithBadOrganization() });
+        wrapper = mountView();
+        await flushPromises();
+
+        expect(wrapper.find('[data-testid="detail-error"]').exists()).toBe(false);
+        expect(wrapper.find('[data-testid="detail-content"]').exists()).toBe(true);
+        expect(wrapper.find('[data-testid="profile-publicId"]').text()).toContain(PUBLIC_ID);
+        expect(wrapper.find('[data-testid="secrets-table"]').text()).toContain('sh1');
+        expect(wrapper.find('[data-testid="receipts-table"]').text()).toContain('rh1');
+        expect(wrapper.find('[data-testid="organizations-list"]').exists()).toBe(false);
+        expect(wrapper.find('[data-testid="section-invalid-organizations"]').exists()).toBe(true);
+      });
+
+      it('names the failing field without rendering its value', async () => {
+        mockApi.get.mockResolvedValue({ data: payloadWithBadOrganization() });
+        wrapper = mountView();
+        await flushPromises();
+
+        const notice = wrapper.find('[data-testid="detail-contract-mismatch"]');
+        expect(notice.exists()).toBe(true);
+        expect(notice.text()).toContain('details.organizations.1.is_default');
+        expect(wrapper.html()).not.toContain(SECRET_MARKER);
+      });
+
+      it('shows a placeholder for stat tiles whose section failed', async () => {
+        const payload = detailPayload();
+        (payload.details.stats as Record<string, unknown>).emails_sent = null;
+        mockApi.get.mockResolvedValue({ data: payload });
+        wrapper = mountView();
+        await flushPromises();
+
+        expect(wrapper.find('[data-testid="detail-content"]').exists()).toBe(true);
+        expect(wrapper.find('[data-testid="stat-secrets"]').text()).toContain('1');
+        expect(wrapper.text()).toContain('—');
+        expect(wrapper.find('[data-testid="detail-contract-mismatch"]').text()).toContain(
+          'details.stats.emails_sent'
+        );
+      });
+
+      it('shows no mismatch notice for a valid payload', async () => {
+        mockApi.get.mockResolvedValue({ data: detailPayload() });
+        wrapper = mountView();
+        await flushPromises();
+
+        expect(wrapper.find('[data-testid="detail-contract-mismatch"]').exists()).toBe(false);
+      });
     });
 
     it('renders an "Open" link for each organization that navigates to AdminOrganizationDetail', async () => {

@@ -185,6 +185,20 @@ the main finding here.
 
 ### Real gaps, with evidence
 
+> **Note (2026-10-08):** the remember-me finding below, and item 1 of §6,
+> describe the code when this document was written (2026-07-27). Since then
+> Rodauth's `remember` feature is no longer enabled
+> (`apps/web/auth/config/features/remember_me.rb`), and the checkbox extends
+> the signed-in session itself (`Onetime::RememberMe`,
+> `lib/onetime/session/remember_me.rb`). No remember cookie or key row is
+> issued, so there is no second credential for a revocation to miss. The
+> current behaviour is recorded in
+> `docs/authentication/customer-session-failure-matrix.md` ("v0.27
+> scenarios"), and the `remember-me continuation revocation (#4467)` example
+> in `spec/integration/full/customer_session_continuation_baseline_spec.rb`
+> covers it. `spec-session-gap-analysis.md` (2.5 detail) carries the matching
+> note. The text below is kept as written.
+
 **Remember-me cascade is broken.** This is the most important gap and it is
 exactly the failure mode the expectations doc names ("Partial revocation is the
 most common real-world bug"). The `remember_me` Rodauth feature exists
@@ -299,7 +313,9 @@ before claiming any of the IP fields mean anything at all.
 ## 6. Suggested order
 
 1. **Remember-me revocation cascade.** A correctness bug in the security
-   feature, independent of everything else, small.
+   feature, independent of everything else, small. (Note 2026-10-08: no
+   longer applies; Rodauth's `remember` feature is not enabled. See the note
+   at the start of "Real gaps, with evidence" in §4.)
 2. **Global identity index** — one ZADD beside `track_metadata.rb:83`, plus the
    read path with email/role hydration, threshold prune, page-scoped `EXISTS`
    probe, and dual-read cutover. Fixes the console and the count together.

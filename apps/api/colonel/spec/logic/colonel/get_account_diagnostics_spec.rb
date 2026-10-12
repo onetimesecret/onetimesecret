@@ -89,6 +89,17 @@ RSpec.describe ColonelAPI::Logic::Colonel::GetAccountDiagnostics do
     expect(data[:details][:sections]).to have_key(:auth_account)
   end
 
+  # The login limiter's per-IP SCAN walks the whole keyspace; unbounded, it
+  # outlasted the proxy timeout and the console panel never loaded.
+  it 'bounds the rate-limit key scan so the request fits inside the proxy timeout' do
+    logic = logic_for
+    logic.raise_concerns
+    logic.process
+
+    expect(Auth::Operations::Customers::Diagnose).to have_received(:new)
+      .with(hash_including(rate_limit_scan_deadline: described_class::RATE_LIMIT_SCAN_DEADLINE_SEC))
+  end
+
   # The case this endpoint exists to name: an accounts row with no customer
   # record, addressed by its extid. Diagnose resolves it straight from the
   # authdb; a 404 here would withhold the diagnosis and diverge from

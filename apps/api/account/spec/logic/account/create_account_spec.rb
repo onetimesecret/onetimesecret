@@ -5,7 +5,7 @@
 # Unit tests for CreateAccount logic, focused on per-domain signup validation.
 #
 # Run with:
-#   source .env.test && bundle exec rspec apps/api/account/spec/logic/account/create_account_spec.rb
+#   tests/lanes/run --only apps/api/account/spec/logic/account/create_account_spec.rb
 
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 require 'account/logic'
@@ -63,7 +63,7 @@ RSpec.describe AccountAPI::Logic::Account::CreateAccount do
 
       it 'delegates to SignupValidation with nil display_domain' do
         expect(Onetime::SignupValidation).to receive(:valid_signup_email?)
-          .with(email, display_domain: nil)
+          .with(email, display_domain: nil, custom_domain_lookup: nil, domain_strategy: nil)
           .and_return(true)
 
         # Trigger the validation through raise_concerns
@@ -77,7 +77,7 @@ RSpec.describe AccountAPI::Logic::Account::CreateAccount do
 
       it 'delegates to SignupValidation with the display_domain' do
         expect(Onetime::SignupValidation).to receive(:valid_signup_email?)
-          .with(email, display_domain: custom_domain_name)
+          .with(email, display_domain: custom_domain_name, custom_domain_lookup: nil, domain_strategy: nil)
           .and_return(true)
 
         allow(Onetime::Customer).to receive(:find_by_email).and_return(nil)
@@ -86,7 +86,7 @@ RSpec.describe AccountAPI::Logic::Account::CreateAccount do
 
       it 'raises FormError when domain validation fails' do
         expect(Onetime::SignupValidation).to receive(:valid_signup_email?)
-          .with(email, display_domain: custom_domain_name)
+          .with(email, display_domain: custom_domain_name, custom_domain_lookup: nil, domain_strategy: nil)
           .and_return(false)
 
         expect { logic.raise_concerns }.to raise_error(
@@ -102,11 +102,58 @@ RSpec.describe AccountAPI::Logic::Account::CreateAccount do
       it 'passes validation when email matches domain allowlist' do
         # SignupValidation handles the full resolution chain
         expect(Onetime::SignupValidation).to receive(:valid_signup_email?)
-          .with(email, display_domain: custom_domain_name)
+          .with(email, display_domain: custom_domain_name, custom_domain_lookup: nil, domain_strategy: nil)
           .and_return(true)
 
         allow(Onetime::Customer).to receive(:find_by_email).and_return(nil)
         expect { logic.raise_concerns }.not_to raise_error
+      end
+    end
+
+    context 'when the request already resolved the tenant domain' do
+      let(:custom_domain) { instance_double(Onetime::CustomDomain, identifier: 'domain-acme') }
+      let(:signup_config) do
+        instance_double(Onetime::CustomDomain::SignupConfig,
+          enabled?: true, autoverify?: false, valid_signup_email?: false)
+      end
+      let(:metadata) do
+        {
+          display_domain: custom_domain_name,
+          domain_strategy: :custom,
+          custom_domain_lookup: Onetime::CustomDomain::Lookup.found(custom_domain_name, custom_domain),
+        }
+      end
+
+      before do
+        allow(Onetime::CustomDomain::SignupConfig).to receive(:find_by_domain_id)
+          .with('domain-acme').and_return(signup_config)
+      end
+
+      it 'rejects an email outside the tenant allowlist when a second domain read fails (F1)' do
+        logic # Autoverify resolves successfully against the request's domain.
+        allow(Onetime::CustomDomain).to receive(:display_domain_id_for)
+          .and_raise(Redis::CannotConnectError, 'domain index unavailable')
+
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError, /Is that a valid email address?/)
+        expect(signup_config).to have_received(:valid_signup_email?).with(email)
+        expect(Onetime::CustomDomain).not_to have_received(:display_domain_id_for)
+      end
+
+      it 'passes the shared lookup and host classification to validation' do
+        expect(Onetime::SignupValidation).to receive(:valid_signup_email?)
+          .with(email, display_domain: custom_domain_name,
+            custom_domain_lookup: metadata[:custom_domain_lookup], domain_strategy: :custom)
+          .and_return(true)
+
+        expect { logic.raise_concerns }.not_to raise_error
+      end
+
+      it 'fails closed if the tenant config becomes unreadable after autoverify resolution' do
+        logic
+        allow(Onetime::CustomDomain::SignupConfig).to receive(:find_by_domain_id)
+          .and_raise(Redis::CannotConnectError, 'config unavailable')
+
+        expect { logic.raise_concerns }.to raise_error(Onetime::SignupPolicyUnavailable)
       end
     end
 
@@ -128,11 +175,11 @@ RSpec.describe AccountAPI::Logic::Account::CreateAccount do
       it 'uses global config when SignupConfig is not found' do
         # The validation should fall through to global config
         expect(Onetime::SignupValidation).to receive(:valid_signup_email?)
-          .with(email, display_domain: 'unknown-domain.com')
+          .with(email, display_domain: 'unknown-domain.com', custom_domain_lookup: nil, domain_strategy: nil)
           .and_call_original
 
         # Global config only allows globally-allowed.com
-        allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(nil)
+        allow(Onetime::CustomDomain).to receive(:from_display_domain).and_return(nil)
 
         expect { logic.raise_concerns }.to raise_error(Onetime::FormError)
       end
@@ -299,7 +346,7 @@ RSpec.describe AccountAPI::Logic::Account::CreateAccount do
       logic = described_class.new(strategy_result, params)
 
       expect(Onetime::SignupValidation).to receive(:valid_signup_email?)
-        .with(email, display_domain: 'test.example.com')
+        .with(email, display_domain: 'test.example.com', custom_domain_lookup: nil, domain_strategy: nil)
         .and_return(true)
 
       allow(Onetime::Customer).to receive(:find_by_email).and_return(nil)
@@ -311,7 +358,7 @@ RSpec.describe AccountAPI::Logic::Account::CreateAccount do
       logic = described_class.new(strategy_result, params)
 
       expect(Onetime::SignupValidation).to receive(:valid_signup_email?)
-        .with(email, display_domain: nil)
+        .with(email, display_domain: nil, custom_domain_lookup: nil, domain_strategy: nil)
         .and_return(true)
 
       allow(Onetime::Customer).to receive(:find_by_email).and_return(nil)

@@ -21,13 +21,15 @@ module ColonelAPI
       #
       #     { 'extid' => <acting colonel's public id>, 'exp' => <unix seconds> }
       #
-      # One onetime.session cookie can outlive an identity change — simple-mode
-      # login (apps/web/core/controllers/authentication.rb) neither clears nor
-      # renews the session, and full-mode :renew carries the session hash to a
-      # new sid — so a bare epoch would let the account signing in second
-      # inherit the first account's live elevation. {#elevation_record} ignores
-      # a record naming any other extid; both login paths also delete the field
-      # outright, so the binding is a backstop rather than the only defence.
+      # Session data can cross an identity change — full-mode :renew carries
+      # the session hash to a new sid — so a bare epoch would let the account
+      # signing in second inherit the first account's live elevation.
+      # (Simple-mode login used to be the other such path; since #4466 it
+      # clears the session and moves it to a new id before writing the
+      # identity, see Core::Logic::Authentication::AuthenticateSession.)
+      # {#elevation_record} ignores a record naming any other extid; both
+      # login paths also delete the field outright, so the binding is a
+      # backstop rather than the only defence.
       #
       # STRING key on purpose: the auth side uses string keys throughout and
       # base_session_auth_strategy.rb records the bug a symbol key caused.

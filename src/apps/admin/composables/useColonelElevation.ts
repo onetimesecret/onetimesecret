@@ -9,6 +9,7 @@ import {
 } from '@/schemas/api/internal/responses/colonel-elevation';
 import { classifyError } from '@/schemas/errors';
 import { useApi } from '@/shared/composables/useApi';
+import { useAuthStore } from '@/shared/stores/authStore';
 import { gracefulParse } from '@/utils/schemaValidation';
 
 import {
@@ -44,6 +45,17 @@ const ELEVATION_URL = '/api/colonel/elevation';
  * There is no other timer anywhere under `src/apps/admin/`, so an idle admin tab
  * genuinely makes no requests. That is a load-bearing property of a shipped
  * security control, not a style preference. Do not add one.
+ *
+ * ## A granted window comes with a new session id
+ *
+ * The server moves the session to a new id when it grants the window (#4466,
+ * `ColonelAPI::Logic::Colonel::ElevateSession`), and the response sets the new
+ * cookie. The CSRF token is carried across, so nothing changes for the next
+ * API call. The bootstrap snapshot epoch is derived from the id (ADR-046), so
+ * {@link elevate} asks the auth store for one snapshot as an authentication
+ * mutation, which adopts the new epoch in place. Left to the next ordinary
+ * refresh, the new epoch would read as a session replaced elsewhere and force
+ * a page load. That is one request per granted window, not a timer.
  */
 
 // ─── Module-level singleton state ────────────────────────────────────────────
@@ -180,6 +192,7 @@ async function elevate(factor: string, password?: string): Promise<boolean> {
       if (parsed.data.record) applyRecord(parsed.data.record);
       activeFactor.value = parsed.data.details?.factor ?? factor;
     }
+    await adoptRenewedSession();
     return true;
   } catch (err) {
     error.value = classifyError(err).message;
@@ -189,6 +202,20 @@ async function elevate(factor: string, password?: string): Promise<boolean> {
     // A 2xx already told us the truth, but schema drift must not leave a stale
     // window on screen. No refresh on the failure path: nothing changed.
     if (!error.value) await refresh();
+  }
+}
+
+/**
+ * Adopt the session id the server moved this session to on a granted window
+ * (see the module doc). `refresh()` reports its own failures through its
+ * outcome; a throw here (no active Pinia) must not turn a granted window into
+ * an error in the prompt.
+ */
+async function adoptRenewedSession(): Promise<void> {
+  try {
+    await useAuthStore().refresh({ kind: 'auth-mutation', reason: 'elevation' });
+  } catch {
+    // The next ordinary refresh still reconciles, by a page load.
   }
 }
 

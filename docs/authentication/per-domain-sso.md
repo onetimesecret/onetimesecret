@@ -543,10 +543,11 @@ creating anything. It is not a substitute for the gate and must not be cited
 as a reason to remove it: the gate runs before the bind, the join runs after
 the login, and only the former authorizes the credential. Note that the
 `already_member` path still runs `adopt_domain_default_org`, which repoints
-`default_org_id` to the domain organization and archives a personal workspace,
-so a tenant connect on a pre-existing platform account may carry that side
-effect when the account still owns an unarchived personal default workspace
-and its `default_org_id` is either empty or points at that workspace.
+`default_org_id` to the domain organization and nothing else, so a tenant
+connect on a pre-existing platform account may carry that side effect when the
+account still owns a personal default workspace and its `default_org_id` is
+either empty or points at that workspace. The personal workspace is not
+archived; it stays listed and switchable (#4717).
 
 #### Tenant Connect regression matrix
 
@@ -846,6 +847,13 @@ Generic OIDC is not assumed to enforce Entra application assignments. Set
 allowlist is enforced on every tenant SSO callback; an empty list allows every
 email domain that the IdP authenticates. This differs from `entra_id`, where
 app assignment is treated as the access-control boundary.
+
+An internationalised domain can be entered in either form. Entries are stored
+as typed and compared by A-label, so `bücher.de` matches an IdP that asserts
+`xn--bcher-kva.de`, and the reverse. A sign-in that matched only because the
+forms differed logs `omniauth_tenant_domain_idn_match` with the stored entry
+and the asserted domain. A Unicode entry with no exact A-label form (fullwidth
+letters, an ideographic full stop, a soft hyphen) is rejected when saved.
 
 ### Switching an existing Entra configuration
 

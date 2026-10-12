@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require_relative '../../support/lane_probe'
 require 'open3'
 
 # Guard rails for tests/lanes/run-all, the fan-out wrapper over
@@ -17,25 +18,12 @@ require 'open3'
 # marker, liveness token, codegen phase) each have their own spec next to
 # this one.
 module LaneRunAllProbe
-  module_function
+  extend LaneProbe
 
-  def repo_root
-    File.expand_path('../../..', __dir__)
-  end
+  module_function
 
   def wrapper
     File.join(repo_root, 'tests', 'lanes', 'run-all')
-  end
-
-  def bash_floor
-    @bash_floor ||= Integer(File.read(File.join(repo_root, '.bash-version')).strip)
-  end
-
-  def path_bash_major
-    return @path_bash_major if defined?(@path_bash_major)
-
-    out, status = Open3.capture2e('bash', '-c', 'echo "${BASH_VERSINFO[0]}"')
-    @path_bash_major = status.success? ? Integer(out.strip, exception: false) : nil
   end
 
   # CI is scrubbed to nil by default: the wrapper reads it for the
@@ -65,11 +53,7 @@ end
 RSpec.describe 'tests/lanes/run-all' do
   let(:probe) { LaneRunAllProbe }
 
-  before do
-    major = probe.path_bash_major
-    floor = probe.bash_floor
-    skip "bash #{floor}+ is not on PATH (macOS: brew install bash)" if major.nil? || major < floor
-  end
+  include_context 'with the lane runner bash'
 
   it 'prints usage for --help' do
     output, status = probe.run('--help')
@@ -77,6 +61,7 @@ RSpec.describe 'tests/lanes/run-all' do
     expect(status).to be_success
     expect(output).to include('usage: tests/lanes/run-all')
     expect(output).to include('--skip-codegen')
+    expect(output).to include('--workers 1 under --parallel')
   end
 
   it 'rejects an unknown lane before starting anything' do
@@ -136,6 +121,31 @@ RSpec.describe 'tests/lanes/run-all' do
         expect(output).to include("tests/lanes/run #{lane} --skip-codegen")
       end
       expect(output).not_to include('tests/lanes/run smoke')
+    end
+
+    # The lanes are the parallelism under --parallel: each child runs its
+    # tasks with one worker instead of its LANES_WORKERS default, or N lanes
+    # would fork N*4 rspec processes and claim as many valkey indexes. A
+    # serial run-all starts one lane at a time and leaves it its default.
+    it 'plans every child with --workers 1 under --parallel, exactly as it will run' do
+      output, status = probe.run('--parallel', '--dry-run', 'unit', 'simple')
+
+      expect(status).to be_success, output
+      expect(output).to include('[run-all] mode:    parallel')
+      %w[unit simple].each do |lane|
+        expect(output).to include("tests/lanes/run #{lane} --skip-codegen --workers 1 ->")
+      end
+      # And the command the wrapper runs is the one it printed.
+      expect(File.read(probe.wrapper)).to include('"${RUNNER}" "${lane}" "${CHILD_ARGS[@]}"')
+    end
+
+    it 'leaves each lane its own worker default in serial mode' do
+      output, status = probe.run('--dry-run', 'unit', 'simple')
+
+      expect(status).to be_success, output
+      expect(output).to include('[run-all] mode:    serial')
+      expect(output).to include('tests/lanes/run unit --skip-codegen ->')
+      expect(output).not_to include('--workers')
     end
 
     it 'does not read lane declarations from the calling environment' do

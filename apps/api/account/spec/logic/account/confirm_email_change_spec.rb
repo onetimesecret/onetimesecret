@@ -33,7 +33,7 @@ RSpec.describe AccountAPI::Logic::Account::ConfirmEmailChange do
       objid: 'cust_owner',
       extid: 'ur_owner',
       email: 'old@example.com',
-      pending_email_change: token)
+      pending_email_change: double('pending_email_change', value: token))
   end
 
   let(:secret) do

@@ -20,6 +20,11 @@ module Onetime
       #   domain_strategy:  How the domain was determined (e.g., 'custom', 'default')
       #   user_id:          Submitter identifier (extid / 'anon:NNNN'); rendered
       #                     in the body alongside the obscured email
+      #   customer_extid:   Submitter's PUBLIC id, authenticated submitters only.
+      #                     Rendered as a link to their colonel customer page.
+      #   organization_extids: PUBLIC ids of the submitter's organizations
+      #                     (authenticated submitters only), each rendered as
+      #                     a link to its colonel organization page.
       #   tz:               Submitter timezone string
       #   version:          Client version string
       #   baseuri:          Override site base URI
@@ -100,7 +105,37 @@ module Onetime
           fetch_optional(:version)
         end
 
+        # The submitter's PUBLIC id, or nil for anonymous feedback (and for
+        # jobs queued before this field existed).
+        def customer_extid
+          value = data[:customer_extid] || data['customer_extid']
+          value.to_s.empty? ? nil : value.to_s
+        end
+
+        # Colonel customer page for the submitter, or nil when anonymous.
+        def colonel_customer_url
+          customer_extid && colonel_url('customers', customer_extid)
+        end
+
+        # The submitter's organizations as `{ extid:, url: }` pairs, url being
+        # the colonel organization page. Empty for anonymous feedback.
+        def organizations
+          extids = data[:organization_extids] || data['organization_extids']
+          Array(extids).map(&:to_s).reject(&:empty?).map do |extid|
+            { extid: extid, url: colonel_url('organizations', extid) }
+          end
+        end
+
         private
+
+        # Links into the colonel console go to the canonical site host: the
+        # console's host gate admits the canonical anchors by default, and a
+        # tenant custom domain (the feedback's display_domain) never serves it.
+        # Only PUBLIC ids go into these URLs; they end up in mail archives and
+        # browser history.
+        def colonel_url(section, extid)
+          "#{site_baseuri}/colonel/#{section}/#{ERB::Util.url_encode(extid)}"
+        end
 
         # Optional metadata may arrive as symbol keys (in-process callers) or
         # string keys (deserialized from the email job queue). Either is fine;
@@ -120,6 +155,8 @@ module Onetime
             user_id: user_id,
             tz: tz,
             version: version,
+            colonel_customer_url: colonel_customer_url,
+            organizations: organizations,
           )
           TemplateContext.new(computed_data, locale).get_binding
         end

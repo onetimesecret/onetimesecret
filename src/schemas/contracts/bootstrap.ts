@@ -499,7 +499,10 @@ export const organizationSchema = z
     objid: z.string(),
     extid: z.string(),
     display_name: z.string(),
+    /** The org's OWNER's auto-created workspace; not per viewer. */
     is_default: z.boolean(),
+    /** This user's default organization (see the organization shape). */
+    is_current_user_default: z.boolean().nullish(),
     planid: CanonicalPlanIdSchema.nullish(),
     current_user_role: z.enum(['owner', 'admin', 'member']).nullish(),
     entitlements: z.array(z.string()).nullish(),

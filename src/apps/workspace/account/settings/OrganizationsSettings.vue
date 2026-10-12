@@ -12,9 +12,11 @@
   import ListSkeleton from '@/shared/components/closet/ListSkeleton.vue';
   import { useEntitlements } from '@/shared/composables/useEntitlements';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { useNotificationsStore } from '@/shared/stores/notificationsStore';
   import { useOrganizationStore } from '@/shared/stores/organizationStore';
   import type { Organization } from '@/types/organization';
   import { getPlanLabel, isLegacyPlan } from '@/types/billing';
+  import axios from 'axios';
   import { computed, onMounted, ref } from 'vue';
   import { useRouter } from 'vue-router';
 
@@ -22,11 +24,14 @@
   const router = useRouter();
   const organizationStore = useOrganizationStore();
   const bootstrapStore = useBootstrapStore();
+  const notifications = useNotificationsStore();
 
   // Best practice: Initialize loading states to `true` to prevent uninitialized
   // content or empty states from briefly flashing on mount.
   const isLoading = ref(true);
   const showCreateModal = ref(false);
+  // objid of the org whose "Make default" request is in flight
+  const pendingDefaultObjid = ref<string | null>(null);
 
   /**
    * Check if billing is enabled
@@ -99,6 +104,34 @@
   const handleManageOrganization = (org: Organization) => {
     // IMPORTANT: Always use extid (not id) for URL paths
     router.push(`/org/${org.extid}`);
+  };
+
+  /**
+   * Make `org` this user's default. The server also selects it for the
+   * session; the store moves the badge and makes it current in this tab.
+   */
+  const handleMakeDefault = async (org: Organization) => {
+    if (pendingDefaultObjid.value) return;
+    pendingDefaultObjid.value = org.objid;
+    try {
+      await organizationStore.setDefaultOrganization(org);
+      notifications.show(
+        t('web.organizations.make_default_success', { name: org.display_name }),
+        'success',
+        'top'
+      );
+    } catch (error) {
+      // Signed out while the change waited its turn; nothing to report.
+      if (axios.isCancel(error)) return;
+      console.error('[OrganizationsSettings] Error setting default organization:', error);
+      notifications.show(
+        t('web.organizations.make_default_error', { name: org.display_name }),
+        'error',
+        'top'
+      );
+    } finally {
+      pendingDefaultObjid.value = null;
+    }
   };
 </script>
 
@@ -198,12 +231,30 @@
                     class="inline-flex items-center rounded bg-brand-100 px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-brand-700 dark:bg-brand-900/50 dark:text-brand-300">
                     {{ t('web.organizations.paid_badge') }}
                   </span>
-                  <!-- Default badge -->
+                  <!--
+                    This user's default (is_current_user_default), not the
+                    owner's auto-created workspace (is_default), which reads
+                    true on someone else's default workspace too.
+                  -->
                   <span
-                    v-if="org.is_default"
+                    v-if="org.is_current_user_default"
+                    :data-testid="`org-default-badge-${org.extid}`"
                     class="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
                     {{ t('web.organizations.default') }}
                   </span>
+                  <button
+                    v-else
+                    type="button"
+                    :disabled="pendingDefaultObjid !== null"
+                    :aria-busy="pendingDefaultObjid === org.objid"
+                    :aria-label="
+                      t('web.organizations.make_default_label', { name: org.display_name })
+                    "
+                    :data-testid="`org-make-default-${org.extid}`"
+                    class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-gray-300 ring-inset hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-gray-700"
+                    @click="handleMakeDefault(org)">
+                    {{ t('web.organizations.make_default') }}
+                  </button>
                 </div>
               </div>
 

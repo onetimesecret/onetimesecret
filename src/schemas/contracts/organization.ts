@@ -6,6 +6,7 @@
 // Architecture: contract → shape → API
 
 import { wireEmailSchema } from '@/schemas/utils/email';
+import { schemaDiagnosticsEnabled } from '@/schemas/validationContext';
 import { captureMessage } from '@/services/diagnostics.service';
 
 /**
@@ -156,7 +157,7 @@ const warnedEntitlements = new Set<string>();
  * Logs a warning for unknown values (once per value) to surface config drift.
  */
 export const entitlementSchema = z.string().transform((val) => {
-  if (!knownEntitlementSet.has(val) && !warnedEntitlements.has(val)) {
+  if (schemaDiagnosticsEnabled() && !knownEntitlementSet.has(val) && !warnedEntitlements.has(val)) {
     warnedEntitlements.add(val);
     const message = `Unfamiliar entitlement: "${val}"`;
     console.warn(`[entitlements] ${message}`);

@@ -9,7 +9,6 @@ RSpec.describe 'Authentication Security Attack Vectors', type: :integration do
     double('Session').tap do |s|
       allow(s).to receive(:short_identifier).and_return('sec123')
       allow(s).to receive(:id).and_return('sess123')
-      allow(s).to receive(:replace!)
       allow(s).to receive(:save)
       allow(s).to receive(:clear)
       allow(s).to receive(:[]=)
@@ -179,18 +178,50 @@ RSpec.describe 'Authentication Security Attack Vectors', type: :integration do
     end
   end
 
+  # #4466. The logic hands the strategy result's session (env['rack.session']
+  # in production) to Onetime::SessionRotation after clearing it. The rotation
+  # itself, against the real store and the real route, is covered in
+  # spec/integration/simple/login_session_rotation_spec.rb.
   describe 'session fixation attack protection' do
-    it 'replaces session ID on successful authentication' do
+    let(:rotation) do
+      Onetime::SessionRotation::Result.new(old_sid: 'sess123', new_sid: 'sess456', complete: true)
+    end
+
+    before do
       allow(Onetime::Customer).to receive(:find_by_email).and_return(customer)
       allow(customer).to receive(:passphrase?).and_return(true)
+    end
+
+    def authenticate
+      params = { login: 'security@example.com', password: 'correct_password' }
+      Core::Logic::Authentication::AuthenticateSession.new(strategy_result, params).process
+    end
+
+    it 'clears and rotates the session id on successful authentication' do
       allow(customer).to receive(:pending?).and_return(false)
 
-      params = { login: 'security@example.com', password: 'correct_password' }
-      logic = Core::Logic::Authentication::AuthenticateSession.new(strategy_result, params)
+      expect(session).to receive(:clear).ordered
+      expect(Onetime::SessionRotation).to receive(:rotate!).with(session).ordered.and_return(rotation)
+      authenticate
+    end
 
-      expect(session).to receive(:clear)
-      expect(session).to receive(:replace!)
-      logic.process
+    it 'clears and rotates the session id for a pending account too' do
+      allow(customer).to receive(:pending?).and_return(true)
+      allow_any_instance_of(Core::Logic::Authentication::AuthenticateSession).to receive(:send_verification_email)
+
+      expect(session).to receive(:clear).ordered
+      expect(Onetime::SessionRotation).to receive(:rotate!).with(session).ordered.and_return(rotation)
+      authenticate
+    end
+
+    it 'does not authenticate on a session whose old id could not be ended' do
+      allow(customer).to receive(:pending?).and_return(false)
+      allow(Onetime::SessionRotation).to receive(:rotate!).and_return(
+        Onetime::SessionRotation::Result.new(old_sid: 'sess123', new_sid: 'sess123', complete: false, reason: :marker_not_written),
+      )
+
+      expect(session).not_to receive(:[]=).with('authenticated', true)
+      expect { authenticate }.to raise_error(Onetime::SessionRotation::Incomplete)
     end
   end
 

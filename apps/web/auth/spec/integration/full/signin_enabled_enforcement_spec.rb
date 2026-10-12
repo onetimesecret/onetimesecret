@@ -228,12 +228,12 @@ RSpec.describe 'per-domain signin_enabled enforcement — full mode (ADR-024 cus
       end
     end
 
-    it '404s POST /auth/email-auth-request (email_auth is the other half of the opt-in)' do
-      skip 'email_auth feature not enabled in this lane' unless route_mounted?('/email-auth-request')
+    it '404s POST /auth/email-login-request (email_auth is the other half of the opt-in)' do
+      skip 'email_auth feature not enabled in this lane' unless route_mounted?('/email-login-request')
 
       expect_not_found(
-        post_as(host, '/auth/email-auth-request', login: "nobody-#{run_id}@example.com"),
-        '/auth/email-auth-request',
+        post_as(host, '/auth/email-login-request', login: "nobody-#{run_id}@example.com"),
+        '/auth/email-login-request',
       )
     end
   end

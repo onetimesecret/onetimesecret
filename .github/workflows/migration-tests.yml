@@ -32,6 +32,15 @@ name: Migration Tests
 # - Concurrent boot: < 3 minutes
 
 on:
+  # Nightly, after main CI's 04:03 run, so the migration lanes and the
+  # concurrent-boot check run against main every day whether or not a PR
+  # touched a path below. The pull_request trigger is path-filtered, so
+  # this workflow is not a required check and a PR outside those paths
+  # gets no run at all (ci.yml explains why a required check cannot be
+  # trigger-filtered); the schedule bounds how long a regression from such
+  # a PR stays unseen.
+  schedule:
+    - cron: '13 4 * * *'
   pull_request:
     branches:
       - main

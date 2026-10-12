@@ -19,7 +19,9 @@ RSpec.describe OrganizationAPI::Logic::Organizations::UpdateOrganization do
       email: 'owner@example.com',
       anonymous?: false,
       verified?: true,
-      role: 'customer'
+      role: 'customer',
+      default_org_id: '',
+      organization_instances: [organization]
     )
   end
 
@@ -34,6 +36,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::UpdateOrganization do
       contact_email: 'billing@example.com',
       stripe_customer_id: nil,
       is_default: true,
+      archived?: false,
       created: Time.now.to_i,
       updated: Time.now.to_i,
       member_count: 1,
@@ -341,6 +344,11 @@ RSpec.describe OrganizationAPI::Logic::Organizations::UpdateOrganization do
         result = run_logic
         expect(result).to have_key(:user_id)
         expect(result).to have_key(:record)
+      end
+
+      # The org is the user's own default workspace (owned, is_default).
+      it "marks the record as the current user's default" do
+        expect(run_logic[:record][:is_current_user_default]).to be(true)
       end
     end
 

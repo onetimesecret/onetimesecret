@@ -14,6 +14,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
       extid: 'ext-cust-123',
       email: 'owner@example.com',
       anonymous?: false,
+      default_org_id: '',
       organization_instances: organization_instances
     )
   end
@@ -194,6 +195,61 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
     before do
       allow(Onetime::Organization).to receive(:contact_email_exists?).and_return(false)
       allow(primary_org).to receive(:respond_to?).with(:at_limit?).and_return(true)
+      allow(primary_org).to receive(:owner?).with(customer).and_return(true)
+    end
+
+    # The billing context is the customer's OWN billing organization and the
+    # usage is the organizations they OWN. Shared lookup fixture: another
+    # owner's default (with entitlements) listed first, the customer's
+    # archived default second, their live owned default third.
+    context 'with the shared lookup fixture', billing: true do
+      include_context 'default workspace lookup fixture'
+
+      let(:organization_instances) { double('SortedSet', to_a: lookup_fixture_orgs, size: 3, first: foreign_default) }
+      let(:foreign_entitlements) { double('SortedSet', any?: true) }
+
+      before do
+        stub_workspace_ownership(customer)
+        [foreign_default, owned_default].each do |org|
+          allow(org).to receive(:respond_to?).with(:at_limit?).and_return(true)
+        end
+        allow(foreign_default).to receive(:entitlements).and_return(foreign_entitlements)
+        allow(foreign_default).to receive(:at_limit?).and_return(true)
+        allow(owned_default).to receive(:entitlements).and_return(entitlements)
+      end
+
+      context 'when the owned default is at its limit' do
+        let(:has_entitlements) { true }
+
+        it 'checks the owned default against the count of owned organizations only' do
+          allow(owned_default).to receive(:at_limit?).with('organizations', 1).and_return(true)
+
+          expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+            expect(error.error_key).to eq('api.organizations.errors.organization_limit_reached')
+          end
+          expect(foreign_default).not_to have_received(:at_limit?)
+        end
+      end
+
+      context 'when the owned default is under its limit' do
+        let(:has_entitlements) { true }
+
+        it 'allows creation although the joined organization is at its limit' do
+          allow(owned_default).to receive(:at_limit?).with('organizations', 1).and_return(false)
+
+          expect { logic.raise_concerns }.not_to raise_error
+          expect(foreign_default).not_to have_received(:at_limit?)
+        end
+      end
+
+      context 'when the customer owns no live organization' do
+        let(:organization_instances) { double('SortedSet', to_a: [foreign_default, archived_default], size: 2, first: foreign_default) }
+
+        it 'skips the quota check instead of drawing it from the joined organization' do
+          expect { logic.raise_concerns }.not_to raise_error
+          expect(foreign_default).not_to have_received(:at_limit?)
+        end
+      end
     end
 
     context 'when no primary organization exists (first org creation)' do

@@ -159,3 +159,62 @@ RSpec.describe Onetime::Operations::Dlq::Store do
     end
   end
 end
+
+# ----------------------------------------------------------------------------
+# Projections served over HTTP (#4343): the delivery tag is an integer, never
+# a Bunny object's inspect string, and times are UTC whatever the host's zone.
+# ----------------------------------------------------------------------------
+RSpec.describe Onetime::Operations::Dlq::Store, '.build_message_detail' do
+  require 'bunny'
+
+  subject(:detail) { described_class.build_message_detail(delivery_info, properties, '{"data":"one"}') }
+
+  let(:death_time) { Time.new(2026, 10, 9, 20, 30, 0, '-07:00') }
+  let(:delivery_info) { double('delivery_info', delivery_tag: Bunny::VersionedDeliveryTag.new(7, 1)) }
+  let(:properties) do
+    double(
+      'properties',
+      headers: { 'x-death' => [{ 'queue' => 'billing.event', 'reason' => 'rejected', 'count' => 1, 'time' => death_time }] },
+      message_id: 'msg-1',
+      timestamp: death_time,
+      content_type: 'application/json',
+    )
+  end
+
+  it 'serializes the delivery tag as its integer' do
+    expect(detail[:delivery_tag]).to eq(7)
+  end
+
+  it 'serializes the message timestamp and death time in UTC' do
+    expect(detail[:timestamp]).to eq('2026-10-10T03:30:00Z')
+    expect(detail[:death_info][:time]).to eq('2026-10-10T03:30:00Z')
+  end
+
+  it 'does not convert the x-death header time in place' do
+    detail
+    expect(death_time.utc_offset).to eq(-7 * 3600)
+  end
+
+  it 'leaves a missing time nil' do
+    allow(properties).to receive_messages(timestamp: nil, headers: { 'x-death' => [{ 'queue' => 'billing.event' }] })
+
+    expect(detail[:timestamp]).to be_nil
+    expect(detail[:death_info][:time]).to be_nil
+  end
+end
+
+RSpec.describe Onetime::Operations::Dlq::Store, '.clean_headers' do
+  it 'strips every header the broker stamps on a dead-lettering' do
+    headers = { 'x-death' => [{ 'queue' => 'billing.event' }], 'x-schema-version' => 1 }
+    %w[queue reason exchange].each do |field|
+      headers["x-first-death-#{field}"] = 'stamped'
+      headers["x-last-death-#{field}"]  = 'stamped'
+    end
+
+    expect(described_class.clean_headers(headers)).to eq('x-schema-version' => 1)
+  end
+
+  it 'returns an empty hash for nil headers' do
+    expect(described_class.clean_headers(nil)).to eq({})
+  end
+end

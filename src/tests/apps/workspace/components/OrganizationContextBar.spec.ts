@@ -217,6 +217,22 @@ describe('OrganizationContextBar', () => {
 
       expect(wrapper.find('[data-testid="org-context-static"]').exists()).toBe(true);
     });
+
+    // The chip's default icon marks this user's default, not the owner's
+    // auto-created workspace a member was invited into. Avatar text is the
+    // org initial, or empty where the icon renders instead.
+    it.each([
+      ["someone else's default workspace", { is_default: true }, 'T'],
+      ["this user's default", { is_current_user_default: true }, ''],
+    ])('renders the avatar for %s', async (_case, flags, avatarText) => {
+      mockShowOrgSwitcher.value = false;
+      const org = { ...mockOrganization, ...flags };
+      wrapper = mountComponent({ organizations: [org], currentOrganization: org });
+      await flushPromises();
+
+      const avatar = wrapper.find('[data-testid="org-context-static"] > span');
+      expect(avatar.text()).toBe(avatarText);
+    });
   });
 
   // The bootstrap payload normally seeds currentOrganization. When it named
@@ -229,12 +245,33 @@ describe('OrganizationContextBar', () => {
       extid: 'org_default',
       display_name: 'Personal',
       is_default: true,
+      is_current_user_default: true,
     };
     const second = { ...mockOrganization, objid: 'obj_456', extid: 'org_456' };
 
-    it('falls back to the default organization', async () => {
+    it("falls back to this user's default organization", async () => {
       wrapper = mountComponent({
         organizations: [mockOrganization, personal],
+        currentOrganization: null,
+      });
+      await flushPromises();
+
+      expect(useOrganizationStore().currentOrganization?.objid).toBe('obj_default');
+    });
+
+    // is_default marks the OWNER's auto-created workspace: a member of the
+    // company's default workspace sees it flagged too. It must not be taken
+    // for this user's default.
+    it("does not fall back to someone else's default workspace", async () => {
+      const companyDefault = {
+        ...mockOrganization,
+        objid: 'obj_company',
+        extid: 'org_company',
+        is_default: true,
+        is_current_user_default: false,
+      };
+      wrapper = mountComponent({
+        organizations: [companyDefault, personal],
         currentOrganization: null,
       });
       await flushPromises();

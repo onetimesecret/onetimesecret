@@ -76,8 +76,8 @@ module Onetime
         error_exit("Customer not found: #{identifier}", json: json) unless customer
         error_exit('Cannot purge anonymous customer', json: json) if customer.anonymous?
 
-        obscured = customer.obscure_email
-        extid    = customer.extid
+        extid          = customer.extid
+        email_address  = customer.email
 
         unless yes
           # Never auto-confirm in --json mode: a machine-driven caller must be
@@ -90,7 +90,7 @@ module Onetime
           puts 'A failure after mutation starts is reported as partial; it does not imply rollback.'
           puts
           note     = reason.to_s.strip.empty? ? '' : " (reason: #{reason})"
-          print "Purge #{obscured} (#{extid})#{note}? [y/N] "
+          print "Purge #{email_address} (#{extid})#{note}? [y/N] "
           response = $stdin.gets&.strip&.downcase
           unless response == 'y'
             puts 'Aborted.'
@@ -107,7 +107,7 @@ module Onetime
 
         OT.info "[cli-customers-purge-one] extid=#{extid} status=#{result.status}"
 
-        output_result(result, email: obscured, json: json)
+        output_result(result, email: email_address, json: json)
 
         exit_for_result(result)
       end

@@ -52,7 +52,7 @@ module Onetime
 
         org = ::Billing::Operations::CreateCheckoutLink.default_org_for(customer)
         unless org
-          error_exit("Customer has no organization: #{identifier}", json: json)
+          error_exit("Customer owns no live organization: #{identifier}", json: json)
         end
 
         result = ::Billing::Operations::CreateCheckoutLink.call(

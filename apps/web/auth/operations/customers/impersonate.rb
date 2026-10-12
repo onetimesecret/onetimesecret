@@ -129,6 +129,14 @@ module Auth
           # letting two overlays stack.
           Onetime::EntitlementPreview.clear_session!(@session)
 
+          # No session-id rotation here, by the #4466 rule (rotate when the
+          # id gains capability; lib/onetime/session/rotation.rb). Whoever
+          # holds this colonel session id can already start an impersonation
+          # at will: the colonel endpoint asks for a typed confirmation and no
+          # step-up window (ImpersonateUser, tier :sensitive). And the overlay
+          # narrows what the id can do (read-only, /auth and /api/colonel
+          # refused by Middleware::ImpersonationContext). A new id would defend
+          # nothing and would start a new snapshot epoch (ADR-046).
           marker = Onetime::SessionImpersonation.start!(
             @session,
             target: @customer,

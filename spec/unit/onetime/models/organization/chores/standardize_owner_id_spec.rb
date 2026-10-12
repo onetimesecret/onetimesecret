@@ -4,9 +4,10 @@
 
 # Unit tests for the standardize_owner_id housekeeping chore.
 #
-# Tests the created_by backfill logic without requiring Redis or actual
-# Organization instances. Uses a mock object that mirrors the interface
-# the chore expects.
+# Tests the created_by backfill logic with a mock object that mirrors the
+# interface the chore expects. A full `save` is not stubbed, so calling it
+# fails the example. The last group runs against the datastore to show the
+# partial write keeps a concurrent edit (#4343).
 #
 # Run: pnpm run test:rspec spec/unit/onetime/models/organization/chores/standardize_owner_id_spec.rb
 
@@ -34,7 +35,7 @@ RSpec.describe 'Organization chore: standardize_owner_id' do
       created_by: current_created_by
     )
     allow(obj).to receive(:created_by=)
-    allow(obj).to receive(:save).and_return(true)
+    allow(obj).to receive(:save_fields).and_return(obj)
     obj
   end
 
@@ -70,7 +71,7 @@ RSpec.describe 'Organization chore: standardize_owner_id' do
       end
 
       it 'does not save' do
-        expect(org).not_to receive(:save)
+        expect(org).not_to receive(:save_fields)
         chore.call(org)
       end
 
@@ -91,8 +92,8 @@ RSpec.describe 'Organization chore: standardize_owner_id' do
       chore.call(org)
     end
 
-    it 'saves the org' do
-      expect(org).to receive(:save)
+    it 'writes created_by alone' do
+      expect(org).to receive(:save_fields).with(:created_by)
       chore.call(org)
     end
 
@@ -136,7 +137,7 @@ RSpec.describe 'Organization chore: standardize_owner_id' do
     end
 
     it 'does not save' do
-      expect(org).not_to receive(:save)
+      expect(org).not_to receive(:save_fields)
       chore.call(org)
     end
 
@@ -176,7 +177,7 @@ RSpec.describe 'Organization chore: standardize_owner_id' do
     end
 
     it 'does not save' do
-      expect(org).not_to receive(:save)
+      expect(org).not_to receive(:save_fields)
       chore.call(org)
     end
 
@@ -208,7 +209,7 @@ RSpec.describe 'Organization chore: standardize_owner_id' do
     end
 
     it 'does not save' do
-      expect(org).not_to receive(:save)
+      expect(org).not_to receive(:save_fields)
       chore.call(org)
     end
 
@@ -232,7 +233,7 @@ RSpec.describe 'Organization chore: standardize_owner_id' do
 
       it 'treats stripped values as equal (no-op)' do
         expect(org).not_to receive(:created_by=)
-        expect(org).not_to receive(:save)
+        expect(org).not_to receive(:save_fields)
         expect(mock_logger).not_to receive(:info)
         expect(mock_logger).not_to receive(:warn)
         chore.call(org)
@@ -247,6 +248,40 @@ RSpec.describe 'Organization chore: standardize_owner_id' do
         expect(org).to receive(:created_by=).with('cust_abc')
         chore.call(org)
       end
+    end
+  end
+
+  # The point of the partial write (#4343): HousekeepingJob loads orgs in
+  # batches, and an on-demand run can land while an org is being edited. A
+  # whole-record save from the stale copy would undo that edit.
+  describe 'against the datastore', :datastore do
+    let(:suffix) { "#{Familia.now.to_i}_#{SecureRandom.hex(4)}" }
+
+    before do
+      # Real loggers here: create! and load log under other names.
+      allow(Onetime).to receive(:get_logger).and_call_original
+      @owner = Onetime::Customer.create!(email: "owner_id_chore_#{suffix}@onetimesecret.com")
+      @org   = Onetime::Organization.create!("Owner Chore #{suffix}", @owner)
+      Familia.dbclient.hdel(@org.dbkey, 'created_by') # a pre-ADR-012 org
+    end
+
+    after do
+      @org&.destroy!
+      @owner&.destroy!
+    end
+
+    it 'keeps a field edited after the batch load and backfills created_by' do
+      stale = Onetime::Organization.load(@org.identifier) # the batch load
+
+      concurrent              = Onetime::Organization.load(@org.identifier)
+      concurrent.display_name = "Renamed #{suffix}"
+      concurrent.save_fields(:display_name)
+
+      expect(chore.call(stale)).to be true
+
+      reloaded = Onetime::Organization.load(@org.identifier)
+      expect(reloaded.display_name).to eq("Renamed #{suffix}")
+      expect(reloaded.created_by).to eq(@org.owner_id)
     end
   end
 end

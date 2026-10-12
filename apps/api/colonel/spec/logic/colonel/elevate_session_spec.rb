@@ -20,7 +20,13 @@ require 'colonel/logic'
 #   - the shape of what lands in the session: an identity-bound {extid, exp}
 #     object, never a bare epoch;
 #   - the throttle running BEFORE verification, because the Rodauth internal
-#     request behind the password check does not increment Rodauth's lockout.
+#     request behind the password check does not increment Rodauth's lockout;
+#   - the session id rotation (#4466): after the factor verifies and before
+#     the window is written, and no window when it does not complete. The
+#     session here is a bare Hash, which Onetime::SessionRotation.rotate!
+#     answers with nil (no server-side id); the rotation examples stub it.
+#     The real-route twins are spec/integration/full/ and
+#     spec/integration/simple/colonel_elevation_session_rotation_spec.rb.
 #
 # It deliberately does NOT test the window arithmetic (elevation_spec covers the
 # mixin) or the tier-1 gate (the shared example covers every TIER 1 class).
@@ -81,6 +87,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::ElevateSession do
     allow(OT).to receive(:info)
     allow(OT).to receive(:ld)
     allow(OT).to receive(:li)
+    allow(OT).to receive(:lw)
     allow(OT).to receive(:le)
     allow(Onetime::ColonelAuditEvent).to receive(:record)
     allow(Onetime::ColonelAuditEvent).to receive(:record_security)
@@ -234,6 +241,108 @@ RSpec.describe ColonelAPI::Logic::Colonel::ElevateSession do
         expect(Onetime::ColonelAuditEvent).to have_received(:record_security) { |args| detail = args[:detail] }
         expect(detail.to_s).not_to include('s3cr3t-value')
       end
+    end
+  end
+
+  describe 'session id rotation (#4466)' do
+    let(:old_sid) { 'a' * 64 }
+    let(:new_sid) { 'b' * 64 }
+
+    def rotation_result(complete: true, reason: nil)
+      Onetime::SessionRotation::Result.new(
+        old_sid: old_sid, new_sid: complete ? new_sid : old_sid, complete: complete, reason: reason,
+      )
+    end
+
+    def elevate_with(password)
+      logic_for({ 'password' => password }).tap(&:raise_concerns).process
+    end
+
+    before do
+      allow(Onetime.auth_config).to receive(:full_enabled?).and_return(false)
+      allow(colonel).to receive(:passphrase?).with('hunter2').and_return(true)
+      allow(colonel).to receive(:passphrase?).with('nope').and_return(false)
+    end
+
+    it 'rotates the session after the factor verifies and before the window is written' do
+      window_at_rotation = :not_called
+      allow(Onetime::SessionRotation).to receive(:rotate!) do |sess|
+        window_at_rotation = sess['elevated_until']
+        rotation_result
+      end
+
+      elevate_with('hunter2')
+
+      expect(Onetime::SessionRotation).to have_received(:rotate!).with(session).once
+      expect(window_at_rotation).to be_nil
+      expect(session['elevated_until']).to include('extid' => 'ur_colonel')
+    end
+
+    it 'does not rotate when the factor fails' do
+      allow(Onetime::SessionRotation).to receive(:rotate!)
+
+      expect { elevate_with('nope') }.to raise_error(Onetime::ElevationFailed)
+      expect(Onetime::SessionRotation).not_to have_received(:rotate!)
+    end
+
+    it 'grants the window on a session with no server-side id (rotate! answers nil)' do
+      allow(Onetime::SessionRotation).to receive(:rotate!).and_return(nil)
+
+      elevate_with('hunter2')
+
+      expect(session['elevated_until']).to include('extid' => 'ur_colonel')
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once
+    end
+
+    shared_examples 'a step-up refused for an unrotated session' do
+      it 'grants no window and answers ElevationFailed', :aggregate_failures do
+        error = begin
+          elevate_with('hunter2')
+        rescue Onetime::ElevationFailed => ex
+          ex
+        end
+
+        expect(error).to be_a(Onetime::ElevationFailed)
+        expect(error.to_h).to include(error_code: 'elevation_failed', factor: 'password')
+        expect(error.message).to eq(described_class::ROTATION_FAILED_MESSAGE)
+        expect(session).not_to have_key('elevated_until')
+      end
+
+      it 'records a security failure with the reason, and no success event' do
+        expect { elevate_with('hunter2') }.to raise_error(Onetime::ElevationFailed)
+
+        expect(Onetime::ColonelAuditEvent).to have_received(:record_security).once.with(
+          hash_including(
+            actor: 'ur_colonel', verb: 'colonel.elevate', result: :failure,
+            detail: { factor: 'password', reason: 'session_not_rotated' },
+          ),
+        )
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+      end
+
+      it 'leaves the rest of the session in place' do
+        session['external_id'] = 'ur_colonel'
+
+        expect { elevate_with('hunter2') }.to raise_error(Onetime::ElevationFailed)
+        expect(session['external_id']).to eq('ur_colonel')
+      end
+    end
+
+    context 'when the rotation reports itself incomplete' do
+      before do
+        allow(Onetime::SessionRotation).to receive(:rotate!)
+          .and_return(rotation_result(complete: false, reason: :marker_not_written))
+      end
+
+      include_examples 'a step-up refused for an unrotated session'
+    end
+
+    context 'when the rotation raises' do
+      before do
+        allow(Onetime::SessionRotation).to receive(:rotate!).and_raise(Redis::CannotConnectError, 'down')
+      end
+
+      include_examples 'a step-up refused for an unrotated session'
     end
   end
 

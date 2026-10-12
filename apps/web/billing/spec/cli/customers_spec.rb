@@ -43,10 +43,15 @@ RSpec.describe 'Billing Customers CLI Commands', :billing_cli, :integration, :vc
         expect(output).to include('Fetching customers from Stripe')
       end
 
-      it 'handles empty results gracefully', :code_smell do
-        # stripe-mock returns static fixtures, so we can't actually test empty state
-        # This would need integration test with VCR
-        skip 'stripe-mock limitation - always returns fixtures'
+      it 'handles empty results gracefully' do
+        allow(Stripe::Customer).to receive(:list).and_return(
+          Stripe::ListObject.construct_from(object: 'list', data: [], has_more: false),
+        )
+
+        output = capture_stdout { command.call(limit: 10) }
+
+        expect(output).to include('No customers found')
+        expect(output).not_to include('Total:')
       end
 
       it 'formats customer rows with proper alignment' do

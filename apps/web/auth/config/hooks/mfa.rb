@@ -170,6 +170,19 @@ module Auth::Config::Hooks
       end
 
       # ========================================================================
+      # HOOK: Before OTP Setup
+      # ========================================================================
+      #
+      # Fires inside the setup transaction, after the password and code have
+      # verified. Records whether the session is two-factor authenticated
+      # yet, which decides whether after_otp_setup renews the session id
+      # (hooks/two_factor.rb, #4466).
+      #
+      auth.before_otp_setup do
+        note_two_factor_state_before_setup
+      end
+
+      # ========================================================================
       # HOOK: After OTP Setup
       # ========================================================================
       #
@@ -181,8 +194,13 @@ module Auth::Config::Hooks
       # - Password has been verified
       # - OTP code has been confirmed
       # - Recovery codes have been generated (if auto_add_recovery_codes? true)
+      # - Rodauth has marked the session two-factor authenticated, unless it
+      #   already was; then the session id is renewed first
       #
       auth.after_otp_setup do
+        # First, so a refused setup sends nothing (hooks/two_factor.rb, #4466).
+        renew_session_id_after_factor_setup('totp')
+
         recovery_codes_count = respond_to?(:recovery_codes) ? recovery_codes.length : 0
 
         Auth::Logging.log_auth_event(

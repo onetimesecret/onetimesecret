@@ -20,9 +20,12 @@ import type { MfaStatus } from '@/types/auth';
 // success. Factories dereference lazily (at call time), so plain consts work.
 const mockRoute = { path: '/mfa-verify', query: {} as Record<string, unknown> };
 const routerPushMock = vi.fn();
+// "This router owns the path" unless a test says otherwise; what the real
+// customer router resolves /colonel to is pinned in utils/navigation.spec.ts.
+const routerResolveMock = vi.fn((_to: string) => ({ name: 'Matched' }));
 vi.mock('vue-router', () => ({
   useRoute: () => mockRoute,
-  useRouter: () => ({ push: routerPushMock, replace: vi.fn() }),
+  useRouter: () => ({ push: routerPushMock, replace: vi.fn(), resolve: routerResolveMock }),
   isNavigationFailure: () => false,
 }));
 
@@ -593,6 +596,43 @@ describe('MfaChallenge', () => {
       const authStore = useAuthStore();
       expect(authStore.setAuthenticated).toHaveBeenCalledWith(true);
       expect(routerPushMock).toHaveBeenCalledWith('/');
+    });
+
+    describe('?redirect=/colonel (expired admin session sign-in)', () => {
+      // The customer router has no /colonel route. A push rewrote the address
+      // bar and rendered its NotFound until a refresh reached the server-served
+      // admin bundle; the redirect must be a document load instead.
+      const assign = vi.fn();
+      let original: Location;
+
+      beforeEach(() => {
+        original = window.location;
+        Object.defineProperty(window, 'location', {
+          configurable: true,
+          writable: true,
+          value: { ...original, assign },
+        });
+      });
+
+      afterEach(() => {
+        Object.defineProperty(window, 'location', {
+          configurable: true,
+          writable: true,
+          value: original,
+        });
+      });
+
+      it('hard-navigates to /colonel after a successful OTP verify', async () => {
+        mockRoute.query = { redirect: '/colonel' };
+        routerResolveMock.mockReturnValueOnce({ name: 'NotFound' });
+        wrapper = await mountChallenge();
+
+        await wrapper.findComponent({ name: 'OtpCodeInput' }).vm.$emit('complete', '123456');
+        await flushPromises();
+
+        expect(assign).toHaveBeenCalledWith('/colonel');
+        expect(routerPushMock).not.toHaveBeenCalled();
+      });
     });
 
     it('cancel logs out to /signin', async () => {

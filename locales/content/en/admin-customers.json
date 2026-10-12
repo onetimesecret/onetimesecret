@@ -107,6 +107,14 @@
     "text": "Plan",
     "content_hash": "fa8ed0bd"
   },
+  "web.admin.customers.plan_source.organization": {
+    "text": "Plan of the organization this customer owns and is billed for",
+    "content_hash": "5b3db49e"
+  },
+  "web.admin.customers.plan_source.customer": {
+    "text": "Legacy account plan (owns no organization)",
+    "content_hash": "79d99c2f"
+  },
   "web.admin.customers.columns.secrets": {
     "text": "Secrets",
     "content_hash": "d8707d41"
@@ -146,6 +154,18 @@
   "web.admin.customers.detail.retry": {
     "text": "Retry",
     "content_hash": "942087cc"
+  },
+  "web.admin.customers.detail.contractMismatch.title": {
+    "text": "Part of this customer's data did not match the expected format.",
+    "content_hash": "8c35eb7a"
+  },
+  "web.admin.customers.detail.contractMismatch.body": {
+    "text": "Sections that failed are not shown. Everything else on this page passed validation. Fields that failed:",
+    "content_hash": "58c401c5"
+  },
+  "web.admin.customers.detail.sectionInvalid": {
+    "text": "Not shown: this section did not match the expected format.",
+    "content_hash": "205919b9"
   },
   "web.admin.customers.detail.yes": {
     "text": "Yes",
@@ -782,6 +802,10 @@
   "web.admin.customers.detail.diagnostics.facts.rateLimiterClear": {
     "text": "Clear",
     "content_hash": "83b12c22"
+  },
+  "web.admin.customers.detail.diagnostics.facts.rateLimiterPartial": {
+    "text": "No lockout found (per-IP check incomplete)",
+    "content_hash": "5300880b"
   },
   "web.admin.customers.detail.diagnostics.facts.verification": {
     "text": "Verification email",

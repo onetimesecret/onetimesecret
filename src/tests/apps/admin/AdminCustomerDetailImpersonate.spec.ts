@@ -1,7 +1,7 @@
 // src/tests/apps/admin/AdminCustomerDetailImpersonate.spec.ts
 
-import { AxiosError } from 'axios';
 import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
+import { AxiosError } from 'axios';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 /**
@@ -173,11 +173,11 @@ describe('AdminCustomerDetail — impersonate', () => {
   }
 
   /** Fill the reason, open the confirm, and retype the confirmation token. */
-  async function confirmImpersonate(reason = REASON): Promise<void> {
+  async function confirmImpersonate(reason = REASON, token = EMAIL): Promise<void> {
     await reasonInput(wrapper).setValue(reason);
     await impersonateButton(wrapper).trigger('click');
     await flushPromises();
-    await dialogInput(wrapper).setValue(EMAIL);
+    await dialogInput(wrapper).setValue(token);
     await wrapper.find('form').trigger('submit');
     await flushPromises();
   }
@@ -243,7 +243,7 @@ describe('AdminCustomerDetail — impersonate', () => {
   });
 
   describe('typed confirmation', () => {
-    it('gates confirm behind the public id and never POSTs before it matches', async () => {
+    it('gates confirm behind the email and never POSTs before it matches', async () => {
       await mountLoaded();
       await reasonInput(wrapper).setValue(REASON);
 
@@ -263,15 +263,17 @@ describe('AdminCustomerDetail — impersonate', () => {
   });
 
   describe('on confirm', () => {
-    it('POSTs the trimmed reason, toasts, and HARD-navigates to the ack redirect', async () => {
+    it('POSTs the trimmed reason and confirmation header, toasts, and HARD-navigates to the ack redirect', async () => {
       await mountLoaded();
       mockApi.post.mockResolvedValue({ data: impersonateAck('/') });
 
       await confirmImpersonate(`  ${REASON}  `);
 
-      expect(mockApi.post).toHaveBeenCalledWith(`/api/colonel/users/${PUBLIC_ID}/impersonate`, {
-        reason: REASON,
-      });
+      expect(mockApi.post).toHaveBeenCalledWith(
+        `/api/colonel/users/${PUBLIC_ID}/impersonate`,
+        { reason: REASON },
+        { headers: { 'X-OTS-Confirm': encodeURIComponent(EMAIL) } }
+      );
       expect(showMock).toHaveBeenCalledWith(
         'web.admin.customers.actions.impersonate.success',
         'success'
@@ -280,6 +282,20 @@ describe('AdminCustomerDetail — impersonate', () => {
       // is live and the identity in the document is now the target's.
       expect(hardNavigateMock).toHaveBeenCalledWith('/', '/');
       expect(pushMock).not.toHaveBeenCalled();
+    });
+
+    it('percent-encodes the confirmation header so a plus-address survives server decoding', async () => {
+      const email = 'alice+support@example.com';
+      await mountLoaded({ email });
+      mockApi.post.mockResolvedValue({ data: impersonateAck('/') });
+
+      await confirmImpersonate(REASON, email);
+
+      expect(mockApi.post).toHaveBeenCalledWith(
+        `/api/colonel/users/${PUBLIC_ID}/impersonate`,
+        { reason: REASON },
+        { headers: { 'X-OTS-Confirm': 'alice%2Bsupport%40example.com' } }
+      );
     });
 
     it('falls back to the app root when the ack is unreadable (2xx still started it)', async () => {
@@ -322,9 +338,13 @@ describe('AdminCustomerDetail — impersonate', () => {
     await wrapper.find('form').trigger('submit');
     await flushPromises();
 
-    expect(mockApi.post).toHaveBeenCalledWith(`/api/colonel/users/${PUBLIC_ID}/suspend`, {}, {
-      headers: { 'X-OTS-Confirm': encodeURIComponent(EMAIL) },
-    });
+    expect(mockApi.post).toHaveBeenCalledWith(
+      `/api/colonel/users/${PUBLIC_ID}/suspend`,
+      {},
+      {
+        headers: { 'X-OTS-Confirm': encodeURIComponent(EMAIL) },
+      }
+    );
     expect(hardNavigateMock).not.toHaveBeenCalled();
   });
 });

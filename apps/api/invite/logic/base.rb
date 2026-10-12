@@ -33,11 +33,11 @@ module InviteAPI
 
       protected
 
-      # The two Rack env keys Auth::RestrictTo reads, rebuilt from the logic
+      # The Rack env context Auth::RestrictTo reads, rebuilt from the logic
       # layer's domain context (Otto hands logic the StrategyResult, not the
-      # env; Logic::Base#extract_domain_context copies both values verbatim
-      # from 'onetime.domain_strategy' / 'onetime.display_domain', symbol
-      # classification included). Plumbing only — no resolution happens here
+      # env). Carry the middleware's lookup and keep this env request-local so
+      # Lookup.for can share a fallback read when no lookup was published.
+      # Plumbing only — no resolution happens here
       # (ADR-034#resolution-is-model-owned: resolution is model-owned and re-derived nowhere).
       #
       # SHARED ON PURPOSE, and this is the point of it living here. ShowInvite
@@ -51,10 +51,12 @@ module InviteAPI
       #
       # @return [Hash] the minimal env Auth::RestrictTo.resolution_for reads
       def restrict_to_env
-        {
+        @restrict_to_env ||= {
           'onetime.domain_strategy' => domain_strategy,
           'onetime.display_domain' => display_domain,
-        }
+        }.tap do |env|
+          env[Onetime::CustomDomain::Lookup::ENV_KEY] = custom_domain_lookup if custom_domain_lookup
+        end
       end
 
       # Load invitation by token with validation

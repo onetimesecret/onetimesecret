@@ -233,24 +233,25 @@ RSpec.describe 'Plans API Response', type: :integration do
         JSON.parse(last_response.body)['plans']
       end
 
-      it 'single_team tier should have base entitlements' do
-        # Find any single_team record (may be multiple for different intervals)
-        single_team = response_plans.find { |p| p['tier'] == 'single_team' }
-        skip 'No single_team plan in response' if single_team.nil?
+      # The test catalog (spec/billing.test.yaml) names its paid tier
+      # single_account. These examples looked for single_team and multi_team,
+      # which the catalog no longer has, and skipped on the miss; a missing
+      # tier now fails, so catalog drift is visible.
+      it 'single_account tier should have base entitlements' do
+        # Find any single_account record (may be multiple for different intervals)
+        single_account = response_plans.find { |p| p['tier'] == 'single_account' }
+        expect(single_account).not_to be_nil, "no single_account plan in #{response_plans.map { |p| p['tier'] }.uniq}"
 
-        entitlements = single_team['entitlements']
+        entitlements = single_account['entitlements']
         expect(entitlements).to include('create_secrets')
       end
 
-      it 'multi_team tier should have more entitlements than single_team' do
-        # Find any record of each tier (same plan data regardless of interval)
-        single_team = response_plans.find { |p| p['tier'] == 'single_team' }
-        multi_team = response_plans.find { |p| p['tier'] == 'multi_team' }
+      it 'a paid tier should carry every entitlement of the free tier' do
+        free = response_plans.find { |p| p['tier'] == 'free' }
+        paid = response_plans.find { |p| p['tier'] == 'single_account' }
+        expect([free, paid]).to all(be_a(Hash)), "need free and single_account plans in #{response_plans.map { |p| p['tier'] }.uniq}"
 
-        skip 'Need both single_team and multi_team plans' if single_team.nil? || multi_team.nil?
-
-        # Multi-team should have >= entitlements as single-team
-        expect(multi_team['entitlements'].size).to be >= single_team['entitlements'].size
+        expect(paid['entitlements']).to include(*free['entitlements'])
       end
     end
 
@@ -290,11 +291,11 @@ RSpec.describe 'Plans API Response', type: :integration do
       end
 
       it 'includes teams.max limit' do
-        # Find any single_team record
-        single_team = response_plans.find { |p| p['tier'] == 'single_team' }
-        skip 'No single_team plan' if single_team.nil?
+        # Find any single_account record (see the tier note above)
+        single_account = response_plans.find { |p| p['tier'] == 'single_account' }
+        expect(single_account).not_to be_nil, "no single_account plan in #{response_plans.map { |p| p['tier'] }.uniq}"
 
-        limits = single_team['limits']
+        limits = single_account['limits']
         # Look for teams limit (may be 'teams.max' or 'teams')
         teams_limit = limits['teams.max'] || limits['teams']
         expect(teams_limit).not_to be_nil

@@ -151,4 +151,104 @@ RSpec.describe 'SyncSession Idempotency', type: :integration do
       end
     end
   end
+
+  # #4726: the account row keeps the provider's casing while Customer.create!
+  # keys the email index by the case-folded address. A raw-case lookup missed
+  # the Customer, create! collided with it, and the sync raised.
+  describe 'account row with mixed-case email (#4726)' do
+    let(:test_email) { "Mixed-Case-#{SecureRandom.hex(8)}@Example.COM" }
+    let!(:customer) { Onetime::Customer.create!(email: test_email, role: 'customer') }
+
+    after { customer.destroy! if customer&.exists? }
+
+    def expect_synced_to_existing_customer(result)
+      expect(result.extid).to eq(customer.extid)
+      expect(session).to include(
+        'authenticated' => true,
+        'account_id' => account_id,
+        'external_id' => customer.extid,
+        'email' => customer.email,
+      )
+      expect(test_db[:accounts].where(id: account_id).get(:external_id)).to eq(customer.extid)
+    end
+
+    it 'resolves the Customer from the stored link when the account hash predates it' do
+      # The SSO JIT shape: after_omniauth_create_account linked the row, but
+      # the hash this login carries was built before that write.
+      test_db[:accounts].where(id: account_id).update(external_id: customer.extid)
+      allow(Onetime::Customer).to receive(:find_by_email).and_call_original
+
+      result = Auth::Operations::SyncSession.call(
+        account: account.merge(external_id: nil),
+        account_id: account_id,
+        session: session,
+        request: request
+      )
+
+      expect_synced_to_existing_customer(result)
+      expect(Onetime::Customer).not_to have_received(:find_by_email)
+    end
+
+    it 'links an unlinked account to the case-folded Customer instead of creating another' do
+      test_db[:accounts].where(id: account_id).update(external_id: nil)
+
+      result = Auth::Operations::SyncSession.call(
+        account: account.merge(external_id: nil),
+        account_id: account_id,
+        session: session,
+        request: request
+      )
+
+      expect_synced_to_existing_customer(result)
+    end
+
+    it 'prefers the index entry kept as entered over the case-folded one' do
+      # Migration 007 leaves a mixed-case index key in place when the lowercase
+      # key already belongs to another Customer. The entry under the row's own
+      # casing is this account's Customer; the folded one is somebody else's.
+      legacy = Onetime::Customer.create!(email: "legacy-#{SecureRandom.hex(8)}@example.com", role: 'customer')
+      Onetime::Customer.email_index[test_email] = legacy.objid
+      test_db[:accounts].where(id: account_id).update(external_id: nil)
+
+      result = Auth::Operations::SyncSession.call(
+        account: account.merge(external_id: nil),
+        account_id: account_id,
+        session: session,
+        request: request
+      )
+
+      expect(result.extid).to eq(legacy.extid)
+      expect(session).to include('authenticated' => true, 'external_id' => legacy.extid)
+      expect(test_db[:accounts].where(id: account_id).get(:external_id)).to eq(legacy.extid)
+    ensure
+      Onetime::Customer.email_index.remove_field(test_email)
+      legacy&.destroy!
+    end
+
+    it 'cannot move a Customer that another account already links' do
+      # The email fallback may locate the Customer; the unique
+      # accounts.external_id constraint refuses the link before the session
+      # is populated.
+      other = create_verified_account(db: test_db, email: "other-#{SecureRandom.hex(8)}@example.com")
+      test_db[:accounts].where(id: other[:id]).update(external_id: customer.extid)
+      test_db[:accounts].where(id: account_id).update(external_id: nil)
+
+      expect {
+        Auth::Operations::SyncSession.call(
+          account: account.merge(external_id: nil),
+          account_id: account_id,
+          session: session,
+          request: request
+        )
+      }.to raise_error(Sequel::UniqueConstraintViolation)
+
+      expect(session['authenticated']).to be_nil
+      expect(test_db[:accounts].where(id: account_id).get(:external_id)).to be_nil
+    ensure
+      if other
+        test_db[:account_password_hashes].where(id: other[:id]).delete
+        test_db[:accounts].where(id: other[:id]).delete
+      end
+    end
+  end
 end

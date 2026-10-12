@@ -32,14 +32,24 @@ module Auth
       # ## Email-drift checks (#3731 PR-C1)
       #
       # Three checks exist specifically to make a half-completed email change
-      # visible: `:auth_email_drift` (one of the two Redis-vs-SQL comparisons
+      # visible: `:auth_email_drift` (one of the three Redis-vs-SQL comparisons
       # here — a `ChangeEmail` op returning `:partial` is invisible without it;
-      # the other is `:sso_customer_unverified`, and both share one memoized
+      # the others are `:auth_email_not_canonical` and
+      # `:sso_customer_unverified`, and all three share one memoized
       # `auth_account` read so the sweep still costs one SQL round trip per
       # customer),
       # `:org_email_index_stale` (the org-scoped index, which Familia never
       # auto-populates) and `:org_contact_email_stale` (default workspaces still
       # contacting a dead address). See each method for its scoping rules.
+      #
+      # `:auth_email_not_canonical` (#4726) is the case-only sibling of
+      # `:auth_email_drift`: the two stores match case-insensitively but one of
+      # them holds the address in non-canonical bytes. It is report-only and
+      # names the store: a non-canonical accounts row is repaired by `bin/ots
+      # customers normalize-emails`; a non-canonical Customer record under a
+      # canonical row (what a `:partial` normalize-emails run leaves behind,
+      # which that command's scan never revisits) by `bin/ots customers
+      # change-email`.
       #
       # NOTE: `VALID_ROLES` here is intentionally the doctor's own narrower set
       # ([customer, anonymous, colonel]) — the historical data-shape checker — and
@@ -115,6 +125,7 @@ module Auth
           check_orphan_default_org(issues, repaired)
           check_email_index_entry(issues, repaired)
           check_auth_email_drift(issues, repaired)
+          check_auth_email_canonical(issues)
           check_org_email_index(issues, repaired)
           check_org_contact_email(issues, repaired)
           check_org_membership_sync(issues, repaired)
@@ -575,9 +586,9 @@ module Auth
 
         # CHECK: the Rodauth accounts row agrees with the Customer record
         #
-        # ONE OF THE TWO CROSS-STORE CHECKS IN THIS DOCTOR (the other is
-        # check_sso_customer_unverified, which reads the SAME memoized row).
-        # Every other check compares Redis
+        # ONE OF THE THREE CROSS-STORE CHECKS IN THIS DOCTOR (the others are
+        # check_auth_email_canonical and check_sso_customer_unverified, which
+        # read the SAME memoized row). Every other check compares Redis
         # against Redis, which means a half-completed cross-store email
         # change (Auth::Operations::Customers::ChangeEmail returning `:partial`)
         # was previously UNDETECTABLE: Redis is internally consistent on one
@@ -635,6 +646,82 @@ module Auth
         rescue StandardError => ex
           # A doctor check must never abort the sweep over one unreachable DB.
           OT.le "[customers doctor] auth_email_drift check failed for #{@customer.extid}: " \
+                "#{ex.class} #{ex.message}"
+        end
+
+        # CHECK: both stores hold the address in canonical form
+        #
+        # THE THIRD CROSS-STORE CHECK, and the narrowest. check_auth_email_drift
+        # compares the two stores case-insensitively on purpose (accounts.email
+        # is citext on PostgreSQL), so a row that differs from the Customer only
+        # by case passes it. Such a row is still broken for every reader that
+        # does an exact `Customer.find_by_email(account[:email])` with the SQL
+        # bytes (new-login alerts, MFA, active sessions, teardown, re-auth
+        # offers): the Redis email index is keyed by the normalized address,
+        # while rodauth-omniauth stored the identity provider's casing (#4726).
+        #
+        # Reported, never repaired here, even under --repair. The repair is one
+        # email mutation per row with collision rules of its own (another row
+        # may hold the lowercase address; a `ß` does not survive lowercasing).
+        # Which command owns it depends on WHICH store holds the non-canonical
+        # bytes, and the message names it:
+        #
+        #   accounts row non-canonical   `bin/ots customers normalize-emails`.
+        #                                Its scan uses this predicate, so it
+        #                                lists exactly these rows and is clean
+        #                                once the run is.
+        #   Customer record non-canonical `bin/ots customers change-email`.
+        #   under a canonical row        This is the residue of a
+        #                                normalize-emails row that ended
+        #                                `:partial` (SQL written, Customer
+        #                                hash not): that command selects by the
+        #                                SQL bytes alone and never revisits it,
+        #                                and the drift check ignores case, so
+        #                                without this branch it is invisible.
+        #
+        # Skipped when the two stores name different addresses: that is
+        # check_auth_email_drift's finding, and its repair writes the
+        # (normalized) Customer address into the row, which settles both.
+        def check_auth_email_canonical(issues)
+          account = auth_account
+          return if account.nil?
+
+          sql_email      = account[:email].to_s
+          customer_email = @customer.email.to_s
+          return if sql_email.empty?
+          return unless sql_email.downcase == customer_email.downcase
+
+          sql_stale      = OT::Utils.canonical_email(sql_email) != sql_email
+          customer_stale = OT::Utils.canonical_email(customer_email) != customer_email
+          return unless sql_stale || customer_stale
+
+          stores = []
+          stores << 'the auth accounts row' if sql_stale
+          stores << 'the Customer record' if customer_stale
+
+          # normalize-emails selects by the SQL bytes, so it covers every case
+          # where the row itself is non-canonical (including both stores).
+          repair_action =
+            if sql_stale
+              'Run `bin/ots customers normalize-emails` (dry run), then with --confirm'
+            else
+              "Run `bin/ots customers change-email #{@customer.extid} <lowercase address>` " \
+                '(the accounts row is already canonical; normalize-emails will not select it)'
+            end
+
+          issues << {
+            check: :auth_email_not_canonical,
+            severity: :high,
+            message: "email #{OT::Utils.obscure_email(sql_email)} is not in canonical form in " \
+                     "#{stores.join(' and ')} (exact-match readers miss this customer)",
+            auth_email: OT::Utils.obscure_email(sql_email),
+            customer_email: @customer.obscure_email,
+            non_canonical_in: stores,
+            repairable: false,
+            repair_action: repair_action,
+          }
+        rescue StandardError => ex
+          OT.le "[customers doctor] auth_email_not_canonical check failed for #{@customer.extid}: " \
                 "#{ex.class} #{ex.message}"
         end
 
@@ -943,14 +1030,18 @@ module Auth
         end
 
         # The customer's Rodauth accounts row, or nil (simple mode, unreachable
-        # DB, no extid, no row). Memoized because TWO cross-store checks read
-        # it — :auth_email_drift and :sso_customer_unverified — and the class
-        # docs call the one SQL round trip per customer the dominant cost of an
-        # `--all` sweep. One shared read keeps that cost unchanged.
+        # DB, no extid, no row). Memoized because THREE cross-store checks read
+        # it — :auth_email_drift, :auth_email_not_canonical and
+        # :sso_customer_unverified — and the class docs call the one SQL round
+        # trip per customer the dominant cost of an `--all` sweep. One shared
+        # read keeps that cost unchanged.
         #
         # A repair inside check_auth_email_drift rewrites the row's email; the
-        # memo is deliberately not invalidated because the only later reader
-        # wants :status_id, which no repair here touches.
+        # memo is deliberately not invalidated. check_auth_email_canonical
+        # skips a memoized address that differs from the Customer's beyond
+        # case, which is exactly the row that repair rewrote, and
+        # check_sso_customer_unverified wants :status_id, which no repair
+        # here touches.
         def auth_account
           return @auth_account if defined?(@auth_account)
 

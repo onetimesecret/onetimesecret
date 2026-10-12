@@ -67,16 +67,17 @@ RSpec.describe Onetime::AuthConfig do
       ENTRA_TENANT_ID ENTRA_CLIENT_ID ENTRA_CLIENT_SECRET
       GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET
       GITHUB_CLIENT_ID GITHUB_CLIENT_SECRET
+      GITLAB_CLIENT_ID GITLAB_CLIENT_SECRET
       APPLE_CLIENT_ID APPLE_TEAM_ID APPLE_KEY_ID APPLE_PRIVATE_KEY
       SAML_ENABLED SAML_IDP_SSO_SERVICE_URL SAML_IDP_ENTITY_ID SAML_IDP_CERT
       SAML_SP_ENTITY_ID SAML_UID_ATTRIBUTE
       SSO_PROVIDER_ORDER
       OIDC_ROUTE_NAME ENTRA_ROUTE_NAME GOOGLE_ROUTE_NAME GITHUB_ROUTE_NAME
-      APPLE_ROUTE_NAME SAML_ROUTE_NAME
+      GITLAB_ROUTE_NAME APPLE_ROUTE_NAME SAML_ROUTE_NAME
       SSO_TRUST_EMAIL_FOR_LINKING
       OIDC_TRUST_EMAIL_FOR_LINKING ENTRA_TRUST_EMAIL_FOR_LINKING
       GOOGLE_TRUST_EMAIL_FOR_LINKING GITHUB_TRUST_EMAIL_FOR_LINKING
-      APPLE_TRUST_EMAIL_FOR_LINKING
+      GITLAB_TRUST_EMAIL_FOR_LINKING APPLE_TRUST_EMAIL_FOR_LINKING
       SAML_TRUST_EMAIL_FOR_LINKING
     ]
   end
@@ -541,6 +542,7 @@ RSpec.describe Onetime::AuthConfig do
       'entra' => 'ENTRA_TRUST_EMAIL_FOR_LINKING',
       'google' => 'GOOGLE_TRUST_EMAIL_FOR_LINKING',
       'github' => 'GITHUB_TRUST_EMAIL_FOR_LINKING',
+      'gitlab' => 'GITLAB_TRUST_EMAIL_FOR_LINKING',
       'apple' => 'APPLE_TRUST_EMAIL_FOR_LINKING',
       'saml' => 'SAML_TRUST_EMAIL_FOR_LINKING',
     }.each do |route_name, trust_var|
@@ -561,7 +563,7 @@ RSpec.describe Onetime::AuthConfig do
         end
 
         it "is unaffected by another provider's trust var" do
-          prefixes = %w[OIDC ENTRA GOOGLE GITHUB APPLE SAML]
+          prefixes = %w[OIDC ENTRA GOOGLE GITHUB GITLAB APPLE SAML]
           other    = (prefixes - [trust_var.delete_suffix('_TRUST_EMAIL_FOR_LINKING')]).first
           config   = fresh_config("#{other}_TRUST_EMAIL_FOR_LINKING" => 'true')
           expect(config.trust_email_for_linking?(route_name)).to be false
@@ -730,6 +732,11 @@ RSpec.describe Onetime::AuthConfig do
       )
       expect(config.sso_providers.map { |p| p['route_name'] })
         .to eq(%w[entra google github apple])
+    end
+
+    it 'lists a configured GitLab provider with its default display name' do
+      config = config_with_three_providers(GITLAB_CLIENT_ID: 'lid', GITLAB_CLIENT_SECRET: 'ls')
+      expect(config.sso_providers.last).to include('route_name' => 'gitlab', 'display_name' => 'GitLab')
     end
 
     # required_vars is a presence check. A definition may also carry a

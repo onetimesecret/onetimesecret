@@ -4,6 +4,7 @@
 
 require_relative '../utils/canonical_hosts'
 require_relative '../middleware/domain_strategy'
+require_relative '../membership_snapshot'
 
 #
 # Organization context loading for authenticated requests.
@@ -15,8 +16,15 @@ require_relative '../middleware/domain_strategy'
 # 0. Explicit header override via O-Organization-ID (SPA org switches)
 # 1. Explicit selection via session['organization_id']
 # 2. Domain-based selection (custom domain routing)
-# 3. Customer's default_org_id (per-customer preference set by support)
-# 4. Organization with is_default flag (typically personal workspace)
+# 3. Customer's default_org_id (per-customer preference: set by the customer
+#    via POST /api/account/update-default-organization, or by support)
+# 4. Organization with is_default flag that the customer OWNS (their personal
+#    workspace; another member's default workspace carries the flag too)
+# Steps 3-4 are #default_organization, which the API payloads use too.
+# Operations that act on the workspace the customer OWNS (SSO self-heal,
+# federation claim, pro-bono grant, organization quota) use
+# #owned_default_organization instead; it never follows a preference or a
+# flag to another member's workspace.
 # 5. First available organization
 # 6. Return nil (lazy creation happens later in auth_org)
 #
@@ -43,12 +51,20 @@ require_relative '../middleware/domain_strategy'
 # refuse a selection sent again after a page load once the session holds a
 # different one made since.
 #
-# No caching:
-# Every call resolves from the datastore. There is no session cache of the
-# result: membership, archived state and domain scope are read each time,
-# including on the second load a request makes (Sessions::TrackMetadata at
-# session commit). An 'org_context:<customer objid>' key in an older
-# session blob is a leftover from the removed cache and is not read.
+# No cache across requests:
+# Every request resolves from the datastore. There is no session cache of
+# the result; an 'org_context:<customer objid>' key in an older session blob
+# is a leftover from the removed cache and is not read. Within one request
+# the customer's memberships are read once, into the request's
+# Onetime::MembershipSnapshot: the membership list, each organization's
+# ownership and membership record, and the user's default organization
+# (#default_organization with no `orgs`). The second load a request makes
+# (Sessions::TrackMetadata at session commit) and the bootstrap serializer
+# read from the same snapshot. A membership or preference change made in
+# the request drops it (see MembershipSnapshot), so the next read starts
+# from the datastore again. The selection filtered by the request's domain
+# scope is computed from the snapshot's list each time and is never the
+# memoized user default.
 #
 # Usage:
 #   class MyAuthStrategy < Otto::Security::AuthStrategy
@@ -159,7 +175,110 @@ module Onetime
         org
       end
 
+      # This customer's default organization: the one the loader falls back
+      # to (steps 3 and 4) when no header, session selection or custom domain
+      # chooses another. Organization#is_default marks the organization its
+      # OWNER's auto-created workspace, so another member's default workspace
+      # carries the flag too; only one the customer owns counts here.
+      #
+      # 1. The non-archived organization in `orgs` named by
+      #    customer.default_org_id.
+      # 2. Else the first non-archived organization in `orgs` with is_default
+      #    that the customer owns.
+      #
+      # With no `orgs`, this is the user's default over all of their
+      # memberships (the global preference), resolved once per request and
+      # kept in the request's MembershipSnapshot. With `orgs`, it is the
+      # default within that list (the loader passes the memberships the
+      # domain scope permits) and is computed each time.
+      #
+      # @param customer [Onetime::Customer]
+      # @param orgs [Array<Onetime::Organization>, nil] the organizations to
+      #   choose among. The customer's memberships when nil; the loader passes
+      #   them already filtered by the request's domain scope.
+      # @return [Onetime::Organization, nil]
+      def default_organization(customer, orgs = nil)
+        return if customer.nil? || customer.anonymous?
+
+        snapshot = Onetime::MembershipSnapshot.for(customer)
+        return user_default(customer, snapshot) if orgs.nil?
+
+        choose_default(customer, snapshot, orgs)
+      end
+
+      # The default workspace this customer OWNS. #default_organization
+      # answers "where does this user land": its explicit step honours a
+      # default_org_id that names an organization the user merely belongs to.
+      # Operations that write to, bill, or draw entitlements from "the
+      # customer's workspace" need the one the customer owns instead: the
+      # SSO self-heal repoints away from it, the deferred federation claim and
+      # the pro-bono grant change its plan, checkout binds its Stripe customer,
+      # and organization creation is funded by it. Another member's default
+      # workspace carries the is_default flag too and is never eligible here,
+      # whatever order the memberships are listed in.
+      #
+      # 1. The non-archived organization in `orgs` named by
+      #    customer.default_org_id, when the customer owns it. The preference
+      #    is honoured only within the customer's own workspaces; one that
+      #    names a joined organization is ignored rather than followed.
+      # 2. Else the first non-archived organization in `orgs` with is_default
+      #    that the customer owns.
+      #
+      # @param customer [Onetime::Customer]
+      # @param orgs [Array<Onetime::Organization>, nil] see #default_organization
+      # @return [Onetime::Organization, nil]
+      def owned_default_organization(customer, orgs = nil)
+        return if customer.nil? || customer.anonymous?
+
+        snapshot = Onetime::MembershipSnapshot.for(customer)
+        live     = (orgs || snapshot.organizations).reject(&:archived?)
+        return if live.empty?
+
+        default_org_id = customer.default_org_id.to_s
+        unless default_org_id.empty?
+          chosen = live.find { |o| o.objid == default_org_id }
+          return chosen if chosen && snapshot.owner?(chosen)
+        end
+
+        live.find { |o| o.is_default && snapshot.owner?(o) }
+      end
+
+      # The non-archived organizations the customer owns, in membership
+      # order. One membership read per live organization, once per request.
+      #
+      # @param customer [Onetime::Customer]
+      # @param orgs [Array<Onetime::Organization>, nil] see #default_organization
+      # @return [Array<Onetime::Organization>]
+      def owned_organizations(customer, orgs = nil)
+        return [] if customer.nil? || customer.anonymous?
+
+        snapshot = Onetime::MembershipSnapshot.for(customer)
+        (orgs || snapshot.organizations).reject(&:archived?).select { |o| snapshot.owner?(o) }
+      end
+
       private
+
+      # The user's default over all of their memberships, resolved once per
+      # snapshot (see #default_organization).
+      def user_default(customer, snapshot)
+        snapshot.memo(:user_default) { choose_default(customer, snapshot, snapshot.organizations) }
+      end
+
+      # The default among `orgs` (see #default_organization): the live one
+      # customer.default_org_id names, else the first live is_default
+      # workspace the customer owns.
+      def choose_default(customer, snapshot, orgs)
+        return if orgs.empty?
+
+        default_org_id = customer.default_org_id.to_s
+        unless default_org_id.empty?
+          chosen = orgs.find { |o| o.objid == default_org_id && !o.archived? }
+          return chosen if chosen
+        end
+
+        # owner? reads the membership, so it is checked last.
+        orgs.find { |o| o.is_default && !o.archived? && snapshot.owner?(o) }
+      end
 
       # Determine which organization should be active for this request
       #
@@ -216,39 +335,43 @@ module Onetime
           end
         end
 
-        # 3. Customer's explicitly set default organization
-        # This takes precedence over the org's is_default flag, allowing
-        # customer support to set a specific org as default per-customer.
+        # 3-4. The customer's default organization (#default_organization):
+        # customer.default_org_id (set by the customer, support, or the SSO
+        # self-heal), else the is_default workspace the customer owns.
+        # Archived organizations are skipped. Archived is legacy or operator
+        # state (login never archives, #4717); the loader never returns one.
         #
         # Steps 3-5 choose only among organizations the membership's domain
         # scope permits for this request, so an organization refused above
         # cannot come back through a different selection path. With no
         # custom domain on the request nothing is filtered and no membership
-        # is read.
-        orgs = customer.organization_instances.to_a
-        orgs = orgs.select { |o| scope_permits?(o, customer, domains) } unless domains.empty?
+        # is read: the default is then the user's default over all of their
+        # memberships, which the request's snapshot keeps for the serializer
+        # and the session commit. A domain-filtered selection is computed
+        # from the same list but never stands in for that default.
+        snapshot = Onetime::MembershipSnapshot.for(customer)
+        orgs     = snapshot.organizations
+        orgs     = orgs.select { |o| scope_permits?(o, customer, domains) } unless domains.empty?
 
-        if customer.default_org_id.to_s.length.positive?
-          customer_default = orgs.find { |o| o.objid == customer.default_org_id && !o.archived? }
-          if customer_default
-            OT.ld "[OrganizationLoader] Using customer's default_org_id: #{customer_default.objid}"
-            return customer_default
-          else
-            # Customer's default_org_id references an org they're not a member of,
-            # or the org is archived. Fall through to other selection methods.
-            OT.ld "[OrganizationLoader] Customer default_org_id archived/invalid/not member: #{customer.default_org_id}"
-          end
+        default_org    = domains.empty? ? user_default(customer, snapshot) : choose_default(customer, snapshot, orgs)
+        default_org_id = customer.default_org_id.to_s
+
+        if !default_org_id.empty? && default_org&.objid != default_org_id
+          # Customer's default_org_id references an org they're not a member of,
+          # or the org is archived. Fall through to other selection methods.
+          OT.ld "[OrganizationLoader] Customer default_org_id archived/invalid/not member: #{default_org_id}"
         end
 
-        # 4. Organization with is_default flag (typically personal workspace)
-        #    Skip archived default workspaces — they've been superseded by a domain org.
-        default_org = orgs.find { |o| o.is_default && !o.archived? }
         if default_org
-          OT.ld "[OrganizationLoader] Using organization is_default flag: #{default_org.objid}"
+          if default_org.objid == default_org_id
+            OT.ld "[OrganizationLoader] Using customer's default_org_id: #{default_org.objid}"
+          else
+            OT.ld "[OrganizationLoader] Using organization is_default flag: #{default_org.objid}"
+          end
           return default_org
         end
 
-        # 5. First available organization (skip archived — they've been superseded)
+        # 5. First available organization (skip archived — legacy/operator state)
         first_org = orgs.find { |o| !o.archived? }
         if first_org
           OT.ld "[OrganizationLoader] Using first organization: #{first_org.objid}"
@@ -309,7 +432,7 @@ module Onetime
       def scope_permits?(org, customer, domains)
         return true if domains.empty?
 
-        membership = Onetime::OrganizationMembership.find_by_org_customer(org.objid, customer.objid)
+        membership = Onetime::MembershipSnapshot.for(customer).membership(org)
         return false unless membership
 
         domains.all? { |domain| membership.can_access_domain?(domain) }
@@ -330,7 +453,7 @@ module Onetime
         return false if domains.empty?
         return true if domains.equal?(UNREGISTERED_HOST)
 
-        customer.organization_instances.to_a.any? { |o| !scope_permits?(o, customer, domains) }
+        Onetime::MembershipSnapshot.for(customer).organizations.any? { |o| !scope_permits?(o, customer, domains) }
       end
 
       # The custom domains this request is for, from both places one can be
@@ -378,7 +501,23 @@ module Onetime
           return UNREGISTERED_HOST
         end
 
-        if env['onetime.domain_strategy'].to_s == 'custom'
+        # Nothing published for an :invalid request: detection rejected the
+        # host (an IP literal, `localhost`, a malformed or missing Host), so
+        # no display domain was read. Decided on #4678 and recorded in
+        # ADR-050, "Organization scope on a host that detection rejects":
+        # when Host names no custom domain either, the request is scoped as
+        # one for the canonical host. The Host read above does not depend on
+        # detection. A trusted X-Forwarded-Host with userinfo in it stops
+        # detection without trying Host (Rack::DetectHost, "Userinfo in an
+        # authority"), and a Host that names a custom domain then carries
+        # that record's scope, as it does with the domains feature off.
+        strategy = env['onetime.domain_strategy'].to_s
+        if strategy == 'invalid' && !published.is_a?(Onetime::CustomDomain::Lookup) && domains.empty?
+          OT.ld "[OrganizationLoader] No custom domain for #{env['onetime.display_domain']} or Host: " \
+                'no scope withheld (#4678)'
+        end
+
+        if strategy == 'custom'
           resolved = env['onetime.custom_domain']
           domains << resolved if resolved && domains.none? { |d| d.objid == resolved.objid }
         end

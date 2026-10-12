@@ -379,6 +379,11 @@
     "renderer": "erb",
     "content_hash": "93d6b3e9"
   },
+  "email.feedback_email.organizations_label": {
+    "text": "Organizations:",
+    "renderer": "erb",
+    "content_hash": "7a61a589"
+  },
   "email.feedback_email.domain_label": {
     "text": "Domain:",
     "renderer": "erb",

@@ -5,7 +5,9 @@
 # Tests for OrganizationLoader respecting Customer.default_org_id
 #
 # Verifies that when a customer has default_org_id set, OrganizationLoader
-# prioritizes that org over the org's is_default flag.
+# prioritizes that org over the org's is_default flag, and that the
+# is_default fallback only counts a workspace the customer owns
+# (OrganizationLoader.default_organization).
 
 require_relative '../../support/test_helpers'
 
@@ -86,9 +88,50 @@ end
 @context4[:organization].nil?
 #=> true
 
+## A member of another customer's default workspace: it carries is_default, but not as theirs
+@admin = Onetime::Customer.create!(email: "loader-admin-#{SecureRandom.hex(4)}@example.com")
+@member = Onetime::Customer.create!(email: "loader-member-#{SecureRandom.hex(4)}@example.com")
+@admin_default = Onetime::Organization.create!('Admin Default', @admin, nil, is_default: true)
+@admin_default.add_members_instance(@member, through_attrs: { role: 'member' })
+[@admin_default.is_default, @admin_default.member?(@member), @admin_default.owner?(@member)]
+#=> [true, true, false]
+
+## default_organization does not return someone else's default workspace
+Onetime::Application::OrganizationLoader.default_organization(@member)
+#=> nil
+
+## The loader skips it at step 4 and still reaches it as the first organization (step 5)
+@loader.load_organization_context(@member, {}, {})[:organization].objid == @admin_default.objid
+#=> true
+
+## With a default workspace of their own, that one is the default, whatever the membership order
+@member_default = Onetime::Organization.create!('Member Default', @member, nil, is_default: true)
+[
+  Onetime::Application::OrganizationLoader.default_organization(@member)&.objid == @member_default.objid,
+  @loader.load_organization_context(@member, {}, {})[:organization].objid == @member_default.objid,
+]
+#=> [true, true]
+
+## default_org_id names the default, including another owner's workspace
+@member.default_org_id = @admin_default.objid
+@member.save
+[
+  Onetime::Application::OrganizationLoader.default_organization(@member)&.objid == @admin_default.objid,
+  @loader.load_organization_context(@member, {}, {})[:organization].objid == @admin_default.objid,
+]
+#=> [true, true]
+
+## default_organization chooses only among the organizations it is given
+Onetime::Application::OrganizationLoader.default_organization(@member, [@member_default])&.objid == @member_default.objid
+#=> true
+
 ## CLEANUP
 @cust&.destroy!
 @personal_workspace&.destroy!
 @company_org&.destroy!
+@admin_default&.destroy!
+@member_default&.destroy!
+@admin&.destroy!
+@member&.destroy!
 true
 #=> true

@@ -288,19 +288,67 @@ describe('AdminDomainDetail', () => {
   });
 
   describe('owning organization', () => {
-    it('links to the organization when the list row is cached', async () => {
+    function organizationLink(w: VueWrapper) {
+      return w
+        .findAllComponents(RouterLinkStub)
+        .find((link) => link.attributes('data-testid') === 'organization-link');
+    }
+
+    it('links to the organization by its public id when the list row is cached', async () => {
       const store = useAdminDomains();
-      // The detail endpoint omits org_id/org_name; the store's row cache carries
-      // it over from the list the operator navigated from.
-      store.rowIndex[EXTID] = { extid: EXTID, org_id: 'org1', org_name: 'Acme' } as never;
+      // The store's row cache carries the owner over from the list the
+      // operator navigated from.
+      store.rowIndex[EXTID] = {
+        extid: EXTID,
+        org_id: 'org_internal_1',
+        org_extid: 'on_acme',
+        org_name: 'Acme',
+      } as never;
 
       wrapper = mountView();
       await flushPromises();
 
-      const link = wrapper.find('[data-testid="organization-link"]');
-      expect(link.exists()).toBe(true);
-      expect(wrapper.find('[data-testid="organization-section"]').text()).toContain('Acme');
+      const link = organizationLink(wrapper);
+      expect(link).toBeDefined();
+      expect(link!.props('to')).toEqual({
+        name: 'AdminOrganizationDetail',
+        params: { id: 'on_acme' },
+      });
+      const section = wrapper.find('[data-testid="organization-section"]').text();
+      expect(section).toContain('Acme');
+      expect(section).toContain('on_acme');
+      // The internal org id is neither linked nor shown.
+      expect(section).not.toContain('org_internal_1');
       expect(wrapper.find('[data-testid="organization-unknown"]').exists()).toBe(false);
+    });
+
+    it('links to the organization on a cold deep link from the detail record', async () => {
+      mockApi.get.mockResolvedValue({
+        data: detailPayload({
+          org_id: 'org_internal_2',
+          org_extid: 'on_globex',
+          org_name: 'Globex',
+        }),
+      });
+
+      wrapper = mountView();
+      await flushPromises();
+
+      expect(organizationLink(wrapper)!.props('to')).toEqual({
+        name: 'AdminOrganizationDetail',
+        params: { id: 'on_globex' },
+      });
+    });
+
+    it('does not link by the internal org id when no public id is known', async () => {
+      const store = useAdminDomains();
+      store.rowIndex[EXTID] = { extid: EXTID, org_id: 'org_internal_3', org_name: 'Acme' } as never;
+
+      wrapper = mountView();
+      await flushPromises();
+
+      expect(organizationLink(wrapper)).toBeUndefined();
+      expect(wrapper.find('[data-testid="organization-unknown"]').exists()).toBe(true);
     });
 
     it('says so honestly when the owner is unknown', async () => {

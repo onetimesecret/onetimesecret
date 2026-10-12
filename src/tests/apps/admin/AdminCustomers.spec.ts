@@ -91,7 +91,9 @@ function usersPayload(
       ...(overrides.orphaned_accounts ? { orphaned_accounts: overrides.orphaned_accounts } : {}),
       users: [
         {
-          user_id: 'ur_alice',
+          // Internal objid, distinct from the extid so a URL built from the
+          // wrong field fails the link assertions below.
+          user_id: 'cust_internal_alice',
           extid: 'ur_alice',
           email: 'alice@example.com',
           role: 'customer',

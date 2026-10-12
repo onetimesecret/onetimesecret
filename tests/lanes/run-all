@@ -100,7 +100,10 @@ usage() {
   echo "Default lanes: ${DEFAULT_LANES[*]}"
   echo
   echo "Every lane is started as: tests/lanes/run <lane> --skip-codegen"
-  echo "(this script generates the declared prerequisites once, up front)."
+  echo "(this script generates the declared prerequisites once, up front),"
+  echo "plus --workers 1 under --parallel: the lanes are already running side"
+  echo "by side, so each one runs its own tasks serially. A serial run-all"
+  echo "leaves each lane its LANES_WORKERS default."
   echo "Per-lane output goes to tmp/lanes/<stamp>/<lane>.log, and each lane"
   echo "runs with its own RSPEC_OUTPUT_FILE=tmp/lanes/<stamp>/<lane>.json."
   echo
@@ -396,6 +399,16 @@ done
 RESULT_REL="tmp/lanes/$(date +%Y%m%d-%H%M%S)-$$"
 RESULT_DIR="${REPO_ROOT}/${RESULT_REL}"
 
+# The flags every child gets, in the order the plan prints them. Under
+# --parallel the lanes themselves are the parallelism, so each child runs
+# its tasks with one worker: N lanes times their LANES_WORKERS defaults would
+# claim N*4 valkey indexes and fork that many rspec processes on a laptop.
+# Serial run-all starts one lane at a time and leaves it its own default.
+CHILD_ARGS=(--skip-codegen)
+if [[ ${PARALLEL} -eq 1 ]]; then
+  CHILD_ARGS+=(--workers 1)
+fi
+
 if [[ ${DRY_RUN} -eq 1 ]]; then
   echo "[run-all] mode:    $([[ ${PARALLEL} -eq 1 ]] && echo parallel || echo serial)"
   echo "[run-all] lanes:   ${LANES[*]}"
@@ -403,7 +416,7 @@ if [[ ${DRY_RUN} -eq 1 ]]; then
   echo "[run-all] ports:   ${PORTS[*]:-none}"
   echo "[run-all] results: ${RESULT_REL}/"
   for lane in "${LANES[@]}"; do
-    echo "[run-all]   tests/lanes/run ${lane} --skip-codegen" \
+    echo "[run-all]   tests/lanes/run ${lane} ${CHILD_ARGS[*]}" \
          "-> ${RESULT_REL}/${lane}.log, ${RESULT_REL}/${lane}.json"
   done
   exit 0
@@ -566,7 +579,7 @@ run_lane() {  # <lane> — streams prefixed output, records status+duration
   start=$(date +%s)
   if RSPEC_OUTPUT_FILE="${RESULT_REL}/${lane}.json" \
      LANES_NO_AUTOSTART="${CHILD_NO_AUTOSTART}" \
-     "${RUNNER}" "${lane}" --skip-codegen 2>&1 \
+     "${RUNNER}" "${lane}" "${CHILD_ARGS[@]}" 2>&1 \
        | prefix_stream "${lane}" \
        | tee "${RESULT_DIR}/${lane}.log"; then
     status=0

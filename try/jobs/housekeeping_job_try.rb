@@ -234,6 +234,105 @@ report = @job.perform(@stub, :always_raises)
 report[:chores][:always_raises][:errors]
 #=> 1
 
+## perform stops between records when the budget runs out (#4343)
+@stub.reset!
+@stub.chore(:touch) { |_| true }
+4.times { |i| @stub.add(status: "b#{i}") }
+# Answers false for the first two checks, then true.
+budget = Class.new do
+  def initialize = @checks = 0
+  def exhausted? = (@checks += 1) > 2
+end.new
+report = @job.perform(@stub, :touch, budget: budget)
+[report[:scanned], report[:budget_exhausted], report[:chores][:touch][:modified]]
+#=> [2, true, 2]
+
+## perform reports budget_exhausted false when the budget lasts
+@stub.reset!
+@stub.chore(:touch) { |_| true }
+2.times { |i| @stub.add(status: "c#{i}") }
+roomy = Class.new { def exhausted? = false }.new
+report = @job.perform(@stub, :touch, budget: roomy)
+[report[:scanned], report[:budget_exhausted]]
+#=> [2, false]
+
+## perform checks the limit before the budget: a capped run is not budget_exhausted
+@stub.reset!
+@stub.chore(:touch) { |_| true }
+3.times { |i| @stub.add(status: "d#{i}") }
+roomy = Class.new { def exhausted? = false }.new
+report = @job.perform(@stub, :touch, limit: 1, budget: roomy)
+[report[:scanned], report[:budget_exhausted]]
+#=> [1, false]
+
+## perform without a budget leaves the stats shape unchanged (no budget key)
+@stub.reset!
+@stub.chore(:touch) { |_| true }
+@stub.add(status: 'e')
+@job.perform(@stub, :touch).keys
+#=> [:model, :scanned, :chores]
+
+## perform reports truncated when a record follows the limit-th one (#4343)
+@stub.reset!
+@stub.chore(:touch) { |_| true }
+4.times { |i| @stub.add(status: "f#{i}") }
+report = @job.perform(@stub, :touch, limit: 3)
+[report[:scanned], report[:truncated], report[:chores][:touch][:modified]]
+#=> [3, true, 3]
+
+## perform reports truncated false when the population is exactly the limit
+@stub.reset!
+@stub.chore(:touch) { |_| true }
+3.times { |i| @stub.add(status: "g#{i}") }
+report = @job.perform(@stub, :touch, limit: 3)
+[report[:scanned], report[:truncated]]
+#=> [3, false]
+
+## perform with a limit but no budget adds only the truncated key
+@stub.reset!
+@stub.chore(:touch) { |_| true }
+@stub.add(status: 'h')
+@job.perform(@stub, :touch, limit: 5).keys
+#=> [:model, :scanned, :chores, :truncated]
+
+## run_outcome maps a nightly report with chore errors to 'partial' (#4343)
+# The nightly report nests one perform stats hash per model under :models;
+# errors are summed across models and chores, naming the first failing chore.
+report = {
+  models: {
+    'Onetime::Organization' => {
+      model: 'Onetime::Organization', scanned: 10,
+      chores: { standardize_planid: { modified: 7, errors: 2 }, other: { modified: 0, errors: 1 } },
+    },
+    'Onetime::Customer' => { model: 'Onetime::Customer', scanned: 4, chores: { tidy: { modified: 4, errors: 0 } } },
+  },
+}
+@job.send(:run_outcome, report)
+#=> ['partial', '3 record(s) failed (first chore: standardize_planid)']
+
+## run_outcome counts a model whose whole scan raised as a failure too
+report = {
+  models: {
+    'Onetime::Organization' => { model: 'Onetime::Organization', scanned: 2, chores: { tidy: { modified: 2, errors: 0 } } },
+    'Onetime::Customer' => { error: 'boom' },
+  },
+}
+@job.send(:run_outcome, report)
+#=> ['partial', '1 model(s) failed: Onetime::Customer: boom']
+
+## run_outcome is success when no chore and no model failed
+report = {
+  models: {
+    'Onetime::Organization' => { model: 'Onetime::Organization', scanned: 2, chores: { tidy: { modified: 2, errors: 0 } } },
+  },
+}
+@job.send(:run_outcome, report)
+#=> ['success', nil]
+
+## run_outcome is success for a nightly run with no models to scan
+@job.send(:run_outcome, { models: {} })
+#=> ['success', nil]
+
 # TEARDOWN
 
 @stub.reset!

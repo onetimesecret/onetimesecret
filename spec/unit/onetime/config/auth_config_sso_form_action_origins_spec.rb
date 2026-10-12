@@ -49,6 +49,7 @@ RSpec.describe Onetime::AuthConfig do
       ENTRA_TENANT_ID ENTRA_CLIENT_ID ENTRA_CLIENT_SECRET
       GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET
       GITHUB_CLIENT_ID GITHUB_CLIENT_SECRET
+      GITLAB_CLIENT_ID GITLAB_CLIENT_SECRET
       APPLE_CLIENT_ID APPLE_TEAM_ID APPLE_KEY_ID APPLE_PRIVATE_KEY
       SAML_ENABLED SAML_IDP_SSO_SERVICE_URL SAML_IDP_ENTITY_ID SAML_IDP_CERT SAML_SP_ENTITY_ID
       SSO_FORM_ACTION_ORIGINS
@@ -165,6 +166,11 @@ RSpec.describe Onetime::AuthConfig do
     it 'includes the GitHub origin when GitHub is active' do
       config = fresh_config('GITHUB_CLIENT_ID' => 'id', 'GITHUB_CLIENT_SECRET' => 'secret')
       expect(config.sso_form_action_origins).to contain_exactly('https://github.com')
+    end
+
+    it 'includes the GitLab origin when GitLab is active' do
+      config = fresh_config('GITLAB_CLIENT_ID' => 'id', 'GITLAB_CLIENT_SECRET' => 'secret')
+      expect(config.sso_form_action_origins).to contain_exactly('https://gitlab.com')
     end
 
     it 'includes the Apple origin when Apple is active' do

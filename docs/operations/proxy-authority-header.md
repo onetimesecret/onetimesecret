@@ -100,6 +100,15 @@ proxy_set_header X-Original-Host   "";
 proxy_set_header Forwarded         "";
 ```
 
+Keep the `X-Forwarded-Port ""` line. nginx's `$host` drops the port, so
+`proxy_set_header Host $host` with `X-Forwarded-Port` left to pass through
+sends a bare `Host` and the public port beside it. That request is not
+rewritten (its `Host` already names the public host), so `Rack::Request#port`
+reads the forwarded port while `#base_url` and `#url` carry none; the auth
+origin and emailed links get the port, readers of Rack's base URL do not
+(#4681). With the header removed, or with `Host $host:$server_port`, both
+agree.
+
 ## The admin host gate
 
 `/colonel` and `/api/colonel` answer only on the hosts in
@@ -139,6 +148,18 @@ Every other request is left as received. That includes an unregistered host, a
 custom domain whose record could not be read, a request the application could
 not detect a host for (`localhost`, an IP literal), and any request while the
 custom-domains feature is off unless it resolved to `site.host` itself.
+
+A request the application could not detect a host for keeps the organization
+context a request for the canonical host gets: no custom domain can be read for
+an IP literal, `localhost` or a malformed `Host`, so the organization loader
+applies no domain scope to it (#4678, decided in
+[ADR-050](../adr/adr-050-request-host-authority.md#organization-scope-on-a-host-that-detection-rejects)).
+The loader reads `Host` on its own. When `Host` names a registered custom
+domain and the forwarded host could not be used, which is the case for a
+trusted `X-Forwarded-Host` with userinfo in it since detection refuses it
+without falling through to `Host`, that record's scope applies, as it does
+with the custom-domains feature off. Whether the origin can be reached that
+way at all is the operator's network control, not the application's.
 
 Details:
 

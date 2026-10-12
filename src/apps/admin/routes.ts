@@ -77,6 +77,16 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
+    path: '/colonel/schemas',
+    name: 'AdminSchemas',
+    component: () => import('@/apps/admin/views/AdminSchemas.vue'),
+    meta: {
+      ...adminDefaultMeta,
+      title: 'web.admin.schemas.title',
+      sentryScrubParams: false,
+    },
+  },
+  {
     // Domains list (ticket #31): card grid + per-domain verify. No params.
     path: '/colonel/domains',
     name: 'AdminDomains',
@@ -140,6 +150,19 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       ...adminDefaultMeta,
       title: 'web.admin.system.title',
+      sentryScrubParams: false,
+    },
+  },
+  {
+    // Jobs (#4343): scheduler read-out, per-message DLQ ops, chore triggers. No
+    // route params — the open queue, inspected message and action results are
+    // in-page state, so a query change can never remount and drop them.
+    path: '/colonel/jobs',
+    name: 'AdminJobs',
+    component: () => import('@/apps/admin/views/AdminJobs.vue'),
+    meta: {
+      ...adminDefaultMeta,
+      title: 'web.admin.jobs.title',
       sentryScrubParams: false,
     },
   },

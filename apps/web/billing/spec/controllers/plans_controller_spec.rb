@@ -673,9 +673,9 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
 
     # This and the archived-orgs example below are deliberately NOT
     # :stripe_sandbox_api. Every Stripe call they make is stubbed by
-    # `with_stubbed_checkout`, so they need no API key and no cassette — and
-    # the group-level tag would otherwise make CI skip them (see
-    # BILLING_VCR_SKIP_IN_CI in spec/support/vcr_setup.rb). They are the only
+    # `with_stubbed_checkout`, so they need no API key and no cassette, and
+    # the tag's billing-enabled setup (spec/support/billing_isolation.rb) is
+    # not theirs. They are the only
     # CI coverage of /billing/welcome actually applying a subscription to an
     # organization; the sibling 'processes checkout session' example passes a
     # session with no subscription, so it returns before that code runs.

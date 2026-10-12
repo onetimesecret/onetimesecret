@@ -4,6 +4,7 @@
   import InviteSignInForm from '@/apps/session/components/InviteSignInForm.vue';
   import InviteSignUpForm from '@/apps/session/components/InviteSignUpForm.vue';
   import SsoButton from '@/apps/session/components/SsoButton.vue';
+  import { acceptInviteResponseSchema } from '@/schemas/api/invite/responses/accept-invite';
   import {
     showInviteResponseSchema,
     type AuthMethod,
@@ -22,6 +23,7 @@
   import { useCsrfStore } from '@/shared/stores/csrfStore';
   import { useOrganizationStore } from '@/shared/stores/organizationStore';
   import { formatDisplayDate } from '@/utils/format';
+  import { hardNavigate } from '@/utils/navigation';
   import { onMounted, ref, computed } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useRoute, useRouter } from 'vue-router';
@@ -341,6 +343,45 @@
       : t('web.organizations.invitations.go_to_dashboard')
   );
 
+  /**
+   * Bring this tab into the organization just joined. Accepting selects it in
+   * the server session; without this the tab keeps its old current org (or,
+   * after a reset, falls back to the default), and the request interceptor
+   * sends that as O-Organization-ID, which the server ranks above the session.
+   *
+   * The joined org is named by the response (extid, then objid). Tab-local
+   * (setCurrentOrganization): the server already made the selection, so it
+   * is not written back.
+   *
+   * Returns false when the tab could not be brought into line: the server did
+   * not select the org, the list failed to load, or the org is not in it. The
+   * caller then loads the next page in full, so the server's choice is what
+   * the tab shows instead of a fallback to the default org.
+   */
+  async function enterJoinedOrganization(data: unknown): Promise<boolean> {
+    // Drop the previous account-scoped org state (list, pending selection)
+    organizationStore.$reset();
+
+    const parsed = acceptInviteResponseSchema.safeParse(data);
+    if (!parsed.success || parsed.data.organization_selected !== true) return false;
+    const joined = parsed.data.organization;
+
+    try {
+      await organizationStore.fetchOrganizations();
+    } catch (err) {
+      console.warn('[AcceptInvite] Failed to load organizations after accepting:', err);
+      return false;
+    }
+
+    const org =
+      organizationStore.getOrganizationByExtid(joined.id) ??
+      (joined.objid ? organizationStore.getOrganizationById(joined.objid) : undefined);
+    if (!org) return false;
+
+    organizationStore.setCurrentOrganization(org);
+    return true;
+  }
+
   const handleAccept = async () => {
     if (!authStore.isAuthenticated) {
       router.push({
@@ -367,17 +408,17 @@
     success.value = '';
 
     try {
-      await $api.post(`/api/invite/${invitationToken.value}/accept`, {
+      const response = await $api.post(`/api/invite/${invitationToken.value}/accept`, {
         shrimp: csrfStore.shrimp,
       });
 
-      // Reset organization store to force refetch on next mount
-      organizationStore.$reset();
-
       actionResult.value = 'accepted';
+      const entered = await enterJoinedOrganization(response.data);
+      const destination = joinedDestination.value;
 
       setTimeout(() => {
-        router.push(joinedDestination.value);
+        if (entered) router.push(destination);
+        else hardNavigate(destination, '/dashboard');
       }, DIRECT_ACTION_REDIRECT_DELAY_MS);
     } catch (err) {
       const classified = classifyError(err);

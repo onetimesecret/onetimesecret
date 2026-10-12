@@ -12,7 +12,7 @@
 # - ListTemplates: enumerates the canonical templates with their formats (read)
 # - PreviewTemplate: renders sample text/html with NO side effects (read, no audit)
 # - PreviewTemplate: unknown template raises, missing sample raises MissingSampleError
-# - SendTest.build: byte-identical brand-aware diagnostic (CLI golden-master)
+# - SendTest.build: brand-aware, recipient-facing copy; provider/host stay off the message
 # - SendTest dry-run: sends nothing, records NO audit
 # - SendTest live: delivers via the logger backend, records EXACTLY ONE audit event
 # - RateLimit::Registry: CLI-golden key derivation is byte-identical
@@ -92,16 +92,26 @@ rescue Onetime::Operations::Email::PreviewTemplate::MissingSampleError
 end
 #=> :missing_sample
 
-# ---- Email::SendTest.build (CLI golden-master parity) -----------------
+# ---- Email::SendTest.build (recipient-facing copy) -------------------
 
-## build produces a brand-aware subject + body with the provider/host probe
-@diag = Onetime::Operations::Email::SendTest.build(to: 'ops@example.com')
-[@diag.to, @diag.subject.start_with?('['), @diag.text_body.include?('Provider:'), @diag.provider]
-#=> ["ops@example.com", true, true, "logger"]
+## build returns the provider/host probe for the operator alongside the message
+@diag         = Onetime::Operations::Email::SendTest.build(to: 'ops@example.com')
+@product_name = @diag.subject.delete_prefix('Test email from ')
+[@diag.to, @diag.subject.start_with?('Test email from '), @product_name.empty?, @diag.provider, @diag.host.empty?]
+#=> ["ops@example.com", true, false, "logger", false]
 
-## the body is byte-identical to the pre-extraction CLI literal
-@expected_body = "This is a test email from the #{@diag.subject[/\[(.*?)\]/, 1]} CLI.\n\nProvider: #{@diag.provider}\nTimestamp: #{@diag.timestamp}\nHost: #{@diag.host}"
-@diag.text_body == @expected_body
+## the body names the product and the sending address, for the recipient
+[@diag.text_body.include?("test message from #{@product_name}"), @diag.text_body.include?(@diag.from)]
+#=> [true, true]
+
+## neither the subject nor the body carries delivery internals
+@leaks = ['Provider:', 'Host:', 'CLI', @diag.provider, @diag.host]
+@leaks.select { |term| @diag.subject.include?(term) || @diag.text_body.include?(term) }
+#=> []
+
+## the body's send time is the same instant as the ISO timestamp
+@sent_at = Time.parse(@diag.timestamp).utc
+@diag.text_body.include?("Sent #{@sent_at.strftime('%-d %B %Y at %H:%M UTC')}.")
 #=> true
 
 # ---- Email::SendTest dry-run (no send, no audit) ----------------------

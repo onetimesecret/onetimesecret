@@ -231,6 +231,7 @@ const PROVIDER_LABELS: Record<string, string> = {
   oidc: 'OpenID Connect',
   entra: 'Microsoft Entra',
   github: 'GitHub',
+  gitlab: 'GitLab',
   google: 'Google',
   apple: 'Apple',
   // Without an entry the capitalized-route fallback would render 'Saml'.

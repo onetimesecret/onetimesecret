@@ -524,6 +524,14 @@ describe('SsoButton', () => {
       expect(wrapper.find('[data-icon="solid-building-office"]').exists()).toBe(false);
     });
 
+    it('renders the mdi gitlab icon for the gitlab route', () => {
+      wrapper = mountReal('gitlab');
+
+      const icon = wrapper.find('[data-icon="gitlab"]');
+      expect(icon.exists()).toBe(true);
+      expect(icon.attributes('data-collection')).toBe('mdi');
+    });
+
     it('falls back to the building-office icon for an unmapped route', () => {
       wrapper = mountReal('some-custom-idp');
 

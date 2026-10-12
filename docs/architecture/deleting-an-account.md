@@ -72,13 +72,37 @@ operation may plan only these automatic actions:
 1. remove a consistent, non-owner membership through the canonical membership
    removal operation; or
 2. delete a sole-owned personal default workspace through the canonical
-   organization deletion operation when it is empty and non-billing.
+   organization deletion operation when its relationships, migration state,
+   and billing state pass the checks below.
 
 Preflight refuses before account teardown when an owned workspace has domains,
-billing state, other members, an unfinished v1 to v2 migration, or
-ownership/membership/index drift. It also refuses when a scan fails and the
-evidence is incomplete. Operators must transfer ownership, remove retained
-resources, or repair drift and then run preflight again.
+other members, or ownership/membership/index drift. It also refuses when a scan
+fails and the evidence is incomplete. Operators must resolve the reported
+condition before retrying; purge does not repair records as a side effect.
+
+Billing checks distinguish history from unresolved state:
+
+- Live subscription statuses (`active`, `trialing`, `past_due`, `unpaid`) block,
+  including federated subscriptions without local Stripe identifiers.
+- Known non-live statuses (`canceled`, `incomplete`, `incomplete_expired`,
+  `paused`) permit historical billing fields. A retained Stripe customer ID,
+  billing email, federation timestamp, complimentary marker, or stale plan
+  alone does not block.
+- Unknown nonblank subscription statuses, a subscription ID without a status,
+  and any pending currency-migration intent still block.
+
+These checks use locally stored billing state, not a Stripe API request. They
+retain the canonical organization deletion operation's liveness limitations;
+for example, an incomplete payment can subsequently become active. Purge does
+not cancel subscriptions or delete Stripe records. Billing fields remain intact
+until canonical organization destruction removes their local index claims.
+
+Migration checks apply to the customer and each owned workspace. A blank status
+or `completed` permits provenance fields such as source identifiers, timestamps,
+and comments. Blank status is not proof of completion: it also occurs on native
+records and the `create_from_v1_customer!` path. Any other explicit migration
+status, including `pending`, `migrating`, `failed`, `skipped`, or an unknown
+value, blocks. Completing a migration does not require erasing its provenance.
 
 What does **not** refuse: content of the sole-owner default workspace that goes
 with it — the workspace description, outstanding invitations the departing
@@ -92,9 +116,15 @@ receipt index and deleting the customer drops theirs; the records themselves
 are TTL-bound (a receipt lives twice its secret's TTL) and expire on that
 schedule. Refusing over receipts would make erasure unavailable to any account
 that used the product in the last two weeks.
-`owner_id` and `created_by` are compared tolerantly against both the customer's
-objid and custid, because rows predating the objid standardization chore still
-carry the custid and a legacy encoding is not drift.
+`owner_id` must match the customer's current objid or custid, with active owner
+membership and the other relationship checks still required. Creator attribution
+also accepts the customer's preserved `v1_custid`; it does not use the current
+email address alone as an identity alias. If the migration generator omitted
+`created_by`, preflight requires a completed organization migration whose
+`v1_identifier` equals the target customer's object key and whose
+`v1_source_custid` matches that customer's current or preserved identifier.
+Missing or contradictory evidence still refuses. Purge never rewrites creator
+attribution to make these checks pass.
 
 A customer email matching an organization contact email is discovery evidence,
 not authorization to attach that organization to another account.
@@ -106,7 +136,7 @@ The ordering is deliberate:
 1. **Complete read-only preflight.** Discover every relevant relationship and
    produce blockers plus a cleanup plan.
 2. **Revalidate before each cleanup mutation.** If the plan changed, stop.
-3. **Organization cleanup.** Delete an approved empty personal workspace and/or
+3. **Organization cleanup.** Delete an approved personal workspace and/or
    remove approved non-owner memberships through canonical operations.
 4. **Post-cleanup revalidation.** Require an executable plan with no remaining
    actions or blockers.
@@ -145,19 +175,24 @@ success.
 
 A successful purge removes or resolves the organization references that would
 reserve the purged customer's normalized email or leave ownership/member
-references to that customer. Recreating and verifying an account with the same
-email can therefore provision a new default workspace and establish a usable
-organization context for entitlement-gated requests.
+references to that customer. Local customer, contact-email, and billing index
+claims can then be reused for a new customer and workspace.
 
-This is a recreation guarantee, not data restoration. The new account does not
-inherit the old account's organizations or retained workspace data. No recovery
-path may adopt a workspace based only on email equality.
+In full-auth mode, the duplicate-signup hook normalizes the submitted email and
+excludes closed SQL account rows from its conflict check. A retained closed row
+alone does not prevent signup with the same address. A non-closed SQL account or
+an existing Redis customer still blocks reuse, and normal signup validation
+continues to apply.
+
+Local index release is not data restoration. A new account does not inherit the
+old account's organizations or retained workspace data. No recovery path may
+adopt a workspace based only on email equality.
 
 In full authentication mode, account teardown retains a closed,
-credential-stripped SQL account row and its authentication audit history. That
-retained tombstone is intentional and does not reserve the email against a new
-live account. Consequently, purge confirmation must not claim that every datum
-in every store is deleted.
+credential-stripped SQL account row and its authentication audit history. The
+SQL uniqueness constraint permits a new live row with the same address. Signup
+creates a new identity rather than reopening the closed account. Purge
+confirmation must not claim that every datum in every store is deleted.
 
 ## Self-service deletion
 

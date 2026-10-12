@@ -3,6 +3,15 @@
 
 <%= t('email.feedback_email.from_label') %> <%= email_address %>
 <%= t('email.feedback_email.user_id_label') %> <%= user_id %>
+<% if colonel_customer_url -%>
+  <%= colonel_customer_url %>
+<% end -%>
+<% unless organizations.empty? -%>
+<%= t('email.feedback_email.organizations_label') %>
+<% organizations.each do |org| -%>
+  <%= org[:extid] %>  <%= org[:url] %>
+<% end -%>
+<% end -%>
 <%= t('email.feedback_email.domain_label') %> <%= display_domain %> (<%= domain_strategy %>)
 <%= t('email.feedback_email.timezone_label') %> <%= tz %>
 <%= t('email.feedback_email.version_label') %> <%= version %>
