@@ -88,6 +88,14 @@ export default defineConfig({
     // Stays at the root: one locales:sync for the whole run, not one per
     // project. Two projects racing on generated/locales/ is a write race.
     globalSetup: ['src/tests/globalSetup.ts'],
+    // In CI, print a test's console output only when that test fails. The
+    // passing tests' Vue warnings and --printConsoleTrace frames made the
+    // job log ~16 MB, more than GitHub's log viewer will show. Root only:
+    // the reporter reads this from the root config, never a project's (the
+    // same goes for onConsoleLog in commonTestOptions). Locally every log
+    // still prints, except under a coding agent, where vitest's agent
+    // reporter already behaves this way.
+    silent: process.env.CI ? 'passed-only' : false,
     coverage: {
       provider: 'v8',
       // `text` prints a summary; cobertura writes coverage/cobertura-coverage.xml
