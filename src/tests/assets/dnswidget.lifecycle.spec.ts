@@ -15,7 +15,7 @@
 // - copy finds its field in the copy container wherever the button sits.
 
 import widgetSource from '@/assets/approximated/dnswidget.v1.js?raw';
-import { useDnsWidget } from '@/shared/composables/useDnsWidget';
+import { useDnsWidget, type UseDnsWidgetOptions } from '@/shared/composables/useDnsWidget';
 import { sanitizeDnsWidgetHtml } from '@/shared/utils/dnsWidgetHtml';
 import { getGlobalAxiosMock } from '@/tests/setup-stores';
 import { createTestI18n } from '@tests/setup';
@@ -32,9 +32,11 @@ interface ApxDnsUnderTest {
   submitDomain: (form: HTMLFormElement) => boolean;
   insertHtml: (el: Element, html: string) => void;
   showManualInstructions: (id: string) => void;
+  renderProviderInstructions: (data: unknown) => void;
   sanitizeHtml?: (html: string) => string;
   actionRoot?: Element | null;
   config?: unknown;
+  renewTimer?: unknown;
 }
 
 type TestWindow = Window & { apxDns?: ApxDnsUnderTest };
@@ -137,6 +139,76 @@ describe('vendored DNS widget lifecycle and dispatch (M09, QA)', () => {
       expect(restart).toHaveBeenCalledTimes(1);
     });
 
+    // QA-F3: stop() must tolerate a root that is already gone, and a second call.
+    it('stops cleanly when the root was removed first, and twice', () => {
+      const apx = loadWidget();
+      apx.sanitizeHtml = sanitizeDnsWidgetHtml;
+      const root = setRoot();
+      apx.init(baseConfig());
+      root.remove();
+
+      expect(() => apx.stop()).not.toThrow();
+      expect(() => apx.stop()).not.toThrow();
+      expect(apx.actionRoot).toBeNull();
+      expect(apx.config).toBeNull();
+    });
+
+    it('drops a verify response that arrives after stop', async () => {
+      const pending: Array<(value: unknown) => void> = [];
+      vi.stubGlobal('fetch', vi.fn(() => new Promise((resolve) => pending.push(resolve))));
+      const apx = loadWidget();
+      apx.sanitizeHtml = sanitizeDnsWidgetHtml;
+      const root = setRoot();
+      apx.init(baseConfig({ domain: 'example.com' }));
+      renderRemote(
+        apx,
+        root,
+        '<div id="apxdnswidget-verify-section"></div>' +
+          '<button class="apxdns-verify-btn">Verify</button>' +
+          '<div class="apxdns-verify-loader apxdns-hide"></div>'
+      );
+      const verified = vi.fn();
+      document.addEventListener('apx-dnswidget-records-failed-verification', verified);
+      apx.verifyRecords();
+      apx.stop();
+
+      // pending[0] is the instructions request from init, pending[1] the verify.
+      for (const resolve of pending) {
+        resolve({ json: () => Promise.resolve({ records: [{ match: false }] }) });
+      }
+      await settle();
+      document.removeEventListener('apx-dnswidget-records-failed-verification', verified);
+
+      expect(verified).not.toHaveBeenCalled();
+      expect(root.innerHTML).toBe('');
+    });
+
+    it('does not render a stale response into the root of a later init', async () => {
+      const pending: Array<(value: unknown) => void> = [];
+      vi.stubGlobal('fetch', vi.fn(() => new Promise((resolve) => pending.push(resolve))));
+      const apx = loadWidget();
+      apx.sanitizeHtml = sanitizeDnsWidgetHtml;
+      const root = setRoot();
+      apx.init(baseConfig({ domain: 'old.example' }));
+      apx.stop();
+      apx.init(baseConfig({ domain: 'new.example' }));
+
+      const instructions = (text: string) => ({
+        json: () =>
+          Promise.resolve({
+            domain_results: { d: { steps: [{ html: `<p class="apxdns-inst-body">${text}</p>` }] } },
+            verify_section: { html: '' },
+          }),
+      });
+      pending[0](instructions('stale'));
+      await settle();
+      expect(root.textContent).not.toContain('stale');
+
+      pending[1](instructions('current'));
+      await settle();
+      expect(root.textContent).toContain('current');
+    });
+
     it('does not stack listeners when init runs twice on the same root', () => {
       const apx = loadWidget();
       apx.sanitizeHtml = sanitizeDnsWidgetHtml;
@@ -159,10 +231,10 @@ describe('vendored DNS widget lifecycle and dispatch (M09, QA)', () => {
         .reply(200, { success: true, token: 'tok', api_url: 'https://apx.example', expires_in: 300 });
     });
 
-    function mountHost() {
+    function mountHost(options: Partial<UseDnsWidgetOptions> = {}) {
       const Host = defineComponent({
         setup(_, { expose }) {
-          const widget = useDnsWidget({ dnsRecords: [], domain: 'example.com' });
+          const widget = useDnsWidget({ dnsRecords: [], domain: 'example.com', ...options });
           expose({ widget });
           return () => h('div', { id: WIDGET_ID, class: 'apxdnswidget' });
         },
@@ -172,8 +244,8 @@ describe('vendored DNS widget lifecycle and dispatch (M09, QA)', () => {
         attachTo: document.body,
         global: {
           plugins: [createTestI18n()],
-          // The vendored stop() reads its root, which is already detached when
-          // onUnmounted runs; collect that error instead of failing the test.
+          // Collect errors raised during unmount (the vendored stop() used to
+          // throw on its detached root) so a test can assert there are none.
           config: { errorHandler: (err: unknown) => void errors.push(err) },
         },
       });
@@ -209,11 +281,68 @@ describe('vendored DNS widget lifecycle and dispatch (M09, QA)', () => {
       expect(restart).not.toHaveBeenCalled();
     });
 
-    // QA-F3 (needs owner fix, pre-existing): on unmount the vendored stop()
-    // throws on the detached root, so useDnsWidget's stopWidget never removes
-    // its document listeners or resets isInitialized, and token renewal keeps
-    // running.
-    it.todo('removes its document listeners and stops token renewal on unmount');
+    // QA-F3: onUnmounted runs after the root is detached. The vendored stop()
+    // used to throw there, so stopWidget skipped its own cleanup.
+    it('removes its document listeners and stops token renewal on unmount', async () => {
+      const apx = loadWidget();
+      const onRecordsVerified = vi.fn();
+      const { wrapper, widget, errors } = mountHost({ onRecordsVerified });
+      await widget.initWidget();
+      await settle();
+      expect(widget.isInitialized.value).toBe(true);
+
+      wrapper.unmount();
+
+      expect(errors).toEqual([]);
+      expect(widget.isInitialized.value).toBe(false);
+      expect(apx.config).toBeNull();
+      expect(apx.renewTimer).toBeNull();
+
+      document.dispatchEvent(
+        new CustomEvent('apx-dnswidget-records-completely-verified', { detail: [] })
+      );
+      expect(onRecordsVerified).not.toHaveBeenCalled();
+
+      const fetchMock = vi.mocked(fetch);
+      fetchMock.mockClear();
+      vi.advanceTimersByTime(300_000);
+      await settle();
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('ignores a provider-instructions response that arrives after unmount', async () => {
+      let resolveInstructions!: (value: unknown) => void;
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(() => new Promise((resolve) => (resolveInstructions = resolve)))
+      );
+      const apx = loadWidget();
+      const render = vi.spyOn(apx, 'renderProviderInstructions');
+      const { wrapper, widget, errors } = mountHost();
+      await widget.initWidget();
+      await settle();
+      expect(fetch).toHaveBeenCalledWith(
+        'https://apx.example/get-provider-instructions',
+        expect.anything()
+      );
+
+      wrapper.unmount();
+      resolveInstructions({
+        json: () =>
+          Promise.resolve({
+            domain_results: { 'example.com': { steps: [{ html: '<p>late</p>' }] } },
+            verify_section: { html: '' },
+          }),
+      });
+      await settle();
+
+      expect(errors).toEqual([]);
+      expect(render).not.toHaveBeenCalled();
+      // A direct call after stop is a no-op too.
+      expect(() =>
+        apx.renderProviderInstructions({ domain_results: {}, verify_section: { html: '' } })
+      ).not.toThrow();
+    });
   });
 
   describe('insertHtml', () => {

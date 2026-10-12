@@ -17,13 +17,19 @@
 //     the nonce-only script-src anyway.
 //  4. showManualInstructions looks up data-apxid by value inside the widget
 //     root instead of building a selector from a remote string.
+//  5. Lifecycle: stop() tolerates a root that is already gone and a second
+//     call, and cancels the token-renewal timer. Async callbacks (provider
+//     instructions, verify results, token renewal) do nothing once the
+//     config they were started with has been stopped or replaced.
 window.apxDns = {
     "init": function(config){
         if(!('api_url' in config)){
             config.api_url = "";
         }
 
-        setTimeout(function(){ window.apxDns.renewToken(); }, 300000)
+        // OTS: keep the timer handle so stop() and a re-init can cancel it.
+        clearTimeout(window.apxDns.renewTimer);
+        window.apxDns.renewTimer = setTimeout(function(){ window.apxDns.renewToken(); }, 300000)
         window.apxDns.keepRenewingToken = true;
 
         if(!('widget_id' in config)){
@@ -44,7 +50,15 @@ window.apxDns = {
     "stop": function(){
         // OTS: remove the delegated listeners bound in init.
         window.apxDns.unbindActions();
-        document.getElementById(window.apxDns.config.widget_id).innerHTML = "";
+        // OTS: the host may already have removed the root (Vue's onUnmounted
+        // runs after the DOM is gone), and stop() may run twice.
+        var config = window.apxDns.config;
+        var widget = config ? document.getElementById(config.widget_id) : null;
+        if(widget){
+            widget.innerHTML = "";
+        }
+        clearTimeout(window.apxDns.renewTimer);
+        window.apxDns.renewTimer = null;
         window.apxDns.keepRenewingToken = false;
         window.apxDns.domain = null;
         window.apxDns.can_restart = false;
@@ -56,6 +70,8 @@ window.apxDns = {
     },
     "renewToken": function(){
         if(window.apxDns.keepRenewingToken === true){
+            // OTS: ignore the response if the widget was stopped or re-inited meanwhile.
+            var config = window.apxDns.config;
             fetch(window.apxDns.config.api_url + "/token/renew", {
                 method: "POST",
                 cache: "no-cache",
@@ -65,8 +81,10 @@ window.apxDns = {
                 body: JSON.stringify({"token": window.apxDns.config.token}),
             }).then(function(resp){
                 resp.json().then(function(data){
+                    if(!window.apxDns.isCurrent(config)){ return; } // OTS
                     window.apxDns.config.token = data.token
-                    setTimeout(function(){ window.apxDns.renewToken(); }, 300000)
+                    // OTS: keep the timer handle (see init).
+                    window.apxDns.renewTimer = setTimeout(function(){ window.apxDns.renewToken(); }, 300000)
                 })
             });
         }
@@ -130,6 +148,8 @@ window.apxDns = {
             return temp;
         })
 
+        // OTS: ignore the response if the widget was stopped or re-inited meanwhile.
+        var config = window.apxDns.config;
         fetch(window.apxDns.config.api_url + "/get-provider-instructions", {
             method: "POST",
             cache: "no-cache",
@@ -139,6 +159,7 @@ window.apxDns = {
             body: JSON.stringify({"records": window.apxDns.temp_records, "token": window.apxDns.config.token}),
           }).then(function(resp){
             resp.json().then(function(data){
+                if(!window.apxDns.isCurrent(config)){ return; } // OTS
                 window.apxDns.renderProviderInstructions(data);
             })
           });
@@ -151,7 +172,11 @@ window.apxDns = {
         this.showEnterDomain();
     },
     "renderProviderInstructions": function(data){
-        var widget = document.getElementById(window.apxDns.config.widget_id);
+        // OTS: nothing to render into once stopped or unmounted.
+        var widget = window.apxDns.config ? document.getElementById(window.apxDns.config.widget_id) : null;
+        if(!widget){
+            return;
+        }
 
         widget.innerHTML = '';
 
@@ -213,6 +238,8 @@ window.apxDns = {
             };
         })
 
+        // OTS: ignore the response if the widget was stopped or re-inited meanwhile.
+        var config = window.apxDns.config;
         fetch(window.apxDns.config.api_url + "/token/check-records-match-exactly", {
             method: "POST",
             cache: "no-cache",
@@ -222,6 +249,7 @@ window.apxDns = {
             body: JSON.stringify({"records": match_array, "token": window.apxDns.config.token})
         }).then(function(resp){
             resp.json().then(function(data){
+                if(!window.apxDns.isCurrent(config)){ return; } // OTS
 
                 let partially_verified = data.records.some(function(item){ return item.match === true });
                 let completely_verified = data.records.every(function(item){ return item.match === true });
@@ -309,6 +337,11 @@ window.apxDns = {
         input_el.select();
         input_el.setSelectionRange(0, 99999); // For mobile devices
         navigator.clipboard.writeText(input_el.value);
+    },
+    // OTS: whether an async callback started under `config` may still touch
+    // the widget: not after stop() (config is null) or a re-init (new config).
+    "isCurrent": function(config){
+        return config !== null && config !== undefined && window.apxDns.config === config;
     },
     // OTS: escape a value for interpolation into a template (text or quoted attribute).
     "escapeHtml": function(value){

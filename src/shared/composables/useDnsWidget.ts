@@ -319,14 +319,18 @@ export function useDnsWidget(options: UseDnsWidgetOptions) {
   };
 
   /**
-   * Stop and clear the widget
+   * Stop and clear the widget. The composable's own cleanup runs even if the
+   * vendored stop() throws, so its document listeners never outlive the host.
    */
   const stopWidget = () => {
-    if (window.apxDns) {
-      window.apxDns.stop();
+    try {
+      window.apxDns?.stop();
+    } catch (err) {
+      console.error('[useDnsWidget] Failed to stop widget:', err);
+    } finally {
+      removeEventListeners();
+      isInitialized.value = false;
     }
-    removeEventListeners();
-    isInitialized.value = false;
   };
 
   /**
