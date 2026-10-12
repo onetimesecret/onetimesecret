@@ -92,11 +92,13 @@
     <!--
       `html` comes from renderMarkdown(), which sanitizes with DOMPurify
       (src/shared/utils/markdown.ts). Nothing else may be bound here.
+      contain-inline-size: a long code line or table must scroll inside its
+      own box, not widen the card and the page on a narrow screen.
     -->
     <!-- prettier-ignore-attribute class -->
     <div
       v-else
-      class="markdown-body prose prose-sm max-w-none wrap-break-word
+      class="markdown-body prose prose-sm max-w-none wrap-break-word contain-inline-size
         sm:prose-base dark:prose-invert"
       data-testid="markdown-rendered"
       v-html="html"></div>
@@ -194,6 +196,19 @@
     overflow-wrap: anywhere;
     text-decoration: underline dotted;
     text-underline-offset: 2px;
+  }
+
+  /*
+   * The typography plugin wraps inline code in backticks and blockquotes in
+   * quote marks via ::before/::after. In a secret that inline code is often a
+   * password the recipient retypes, so show only the characters the sender
+   * wrote.
+   */
+  .markdown-body code::before,
+  .markdown-body code::after,
+  .markdown-body blockquote p::before,
+  .markdown-body blockquote p::after {
+    content: none;
   }
 
   /* Wide tables scroll inside the card instead of breaking the layout. */
