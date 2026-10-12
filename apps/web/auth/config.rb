@@ -114,17 +114,19 @@ module Auth
       # Absolute URLs (every *_email_link, the WebAuthn origin) follow the
       # request's public host rather than the proxy-rewritten authority
       # (#4221). Also defines public_display_domain, which the email template
-      # blocks above read at request time.
+      # blocks above read at request time. Its per-route recipient-origin
+      # guards are prepended at the END of this block
+      # (configure_recipient_origins, below).
       Overrides::PublicBaseUrl.configure(self)
       Overrides::PasswordMigration.configure(self)
       Overrides::ErrorHandling.configure(self)
       # Stable `code` / `code_scope` on Rodauth's refusals (#4469): the
       # set_error_reason seam, policy in Auth::CredentialFailureCode.
       Overrides::FailureCode.configure(self)
-      # Enumeration safety for the reset-password-request path (issue #3857).
-      # Runs after AccountManagement enables :reset_password above, so the
-      # overridden methods exist.
-      Overrides::ResetPasswordEnumeration.configure(self)
+      # NOT HERE: enumeration safety for the login-request routes
+      # (Overrides::LoginRequestEnumeration) is configured at the END of this
+      # block, after every feature it covers can have been enabled.
+
       # One answer for a sign-up whose login already has an account, however
       # late it is detected (a unique violation from a concurrent sign-up).
       Overrides::DuplicateSignup.configure(self)
@@ -205,6 +207,20 @@ module Auth
       if Onetime.billing_config.enabled?
         Hooks::Billing.configure(self)
       end
+
+      # Enumeration safety for the login-request routes (issue #3857,
+      # RISK-2026-08-14-M03): reset-password-request, email-login-request and
+      # verify-account-resend answer every account state alike. LAST on
+      # purpose: it reads the class's enabled features to decide which
+      # overrides to install, and :email_auth (above) and :verify_account
+      # (AccountManagement, or transitively via webauthn_verify_account) are
+      # enabled conditionally. Configured earlier, an override for a feature
+      # enabled later would be silently skipped.
+      Overrides::LoginRequestEnumeration.configure(self)
+      # The recipient-origin half of the same guarantee: a recipient with no
+      # credential origin answers like a missing account on those routes,
+      # before any key write. Last for the same reason.
+      Overrides::PublicBaseUrl.configure_recipient_origins(self)
 
       # Mark configuration complete
       Auth::Config.configured = true

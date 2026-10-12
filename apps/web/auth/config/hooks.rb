@@ -103,7 +103,8 @@
 #
 # Method overrides (a different mechanism — they replace Rodauth methods, not
 # register hooks) live in config/overrides/: error_handling.rb defines the
-# around_rodauth wrapper, password_migration.rb overrides password_match?.
+# around_rodauth wrapper, password_migration.rb overrides password_match?,
+# login_request_enumeration.rb owns account_from_login.
 # See config/overrides.rb.
 #
 # Log levels:

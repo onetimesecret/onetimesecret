@@ -10,7 +10,7 @@
 # POST /auth/reset-password-request. Stock Rodauth distinguishes "account
 # exists" from "no account" on that path (no_matching_login / unverified /
 # recently-sent), which is an account-existence oracle (CWE-204). The override
-# in config/overrides/reset_password_enumeration.rb collapses all three branches
+# in config/overrides/login_request_enumeration.rb collapses all three branches
 # to the same generic "email sent" response.
 #
 # These tests assert the exposed request path is enumeration-safe: an existing
@@ -36,7 +36,7 @@ RSpec.describe 'Reset-password-request enumeration safety (issue #3857)', type: 
 
   before(:all) do
     # Boot the full app so the REAL Auth::Config (with the enumeration override
-    # wired in via config/overrides/reset_password_enumeration.rb) is loaded and
+    # wired in via config/overrides/login_request_enumeration.rb) is loaded and
     # mounted at /auth. See pending_plan_intent_flow_spec.rb for why we must not
     # reopen Auth::Config as a plain module here.
     boot_onetime_app
