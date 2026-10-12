@@ -84,27 +84,23 @@ export interface UseDnsWidgetOptions {
  * (RISK-2026-08-14-M08): the SystemSerializer no longer publishes it in
  * window.__BOOTSTRAP_ME__, because a JSON copy of the nonce could be
  * exfiltrated by an HTML-injection primitive and would defeat the nonce-only
- * policy. Browsers hide the `nonce` content attribute from CSS/markup-level
- * reads, but expose it to same-document script through the IDL property,
- * which is exactly the capability this composable already has.
+ * policy.
  *
- * Resolution order:
- * 1. `<meta name="csp-nonce">` — conventional fallback if a template adds it.
- * 2. The nonce IDL property of any already-nonced script element (the
- *    property survives browser nonce-hiding even when the content attribute
- *    is emptied). The shell always renders the Vite entry scripts with the
- *    per-request nonce, so this is the path production takes.
+ * Only the `nonce` IDL property of an already-nonced script is read. The shell
+ * renders the Vite entry scripts with the per-request nonce; browsers then
+ * empty the content attribute (nonce hiding) but keep the IDL property, which
+ * only same-document script can read. A `<meta name="csp-nonce">` is not
+ * consulted: no template emits one, and its content is readable by injected
+ * markup (e.g. through CSS attribute selectors), so honouring one would hand
+ * the nonce to the attacker the policy is meant to stop. The content
+ * attribute is not read: after nonce hiding it is empty.
  *
  * Returns undefined when no nonce is discoverable (e.g. CSP disabled), in
  * which case injection proceeds exactly as before.
  */
 export function resolveCspNonce(): string | undefined {
-  const meta = document.querySelector<HTMLMetaElement>('meta[name="csp-nonce"]');
-  if (meta?.content) return meta.content;
-
   const noncedScript = document.querySelector<HTMLScriptElement>('script[nonce]');
-  const inherited = noncedScript?.nonce || noncedScript?.getAttribute('nonce');
-  return inherited || undefined;
+  return noncedScript?.nonce || undefined;
 }
 
 /**

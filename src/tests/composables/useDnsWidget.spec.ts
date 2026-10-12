@@ -56,10 +56,15 @@ describe('useDnsWidget CSP nonce (S5)', () => {
     vi.restoreAllMocks();
   });
 
-  /** Render the shell's nonced entry script, the way the server shell does. */
+  /**
+   * Render the shell's nonced entry script as a browser exposes it after
+   * nonce hiding: the content attribute is emptied, the IDL property keeps
+   * the value. jsdom implements neither, so both are set by hand.
+   */
   function appendNoncedScript(nonce: string) {
     const nonced = document.createElement('script');
-    nonced.setAttribute('nonce', nonce);
+    nonced.setAttribute('nonce', '');
+    Object.defineProperty(nonced, 'nonce', { value: nonce, configurable: true });
     document.head.appendChild(nonced);
     return nonced;
   }
@@ -80,18 +85,24 @@ describe('useDnsWidget CSP nonce (S5)', () => {
       }
     });
 
-    it('reads a csp-nonce meta tag', () => {
+    // SEC-F8b: a meta's content is readable by injected markup, and no
+    // template emits one, so it is never a nonce source.
+    it('ignores a csp-nonce meta tag', () => {
       const meta = document.createElement('meta');
       meta.setAttribute('name', 'csp-nonce');
       meta.setAttribute('content', 'meta-nonce');
       document.head.appendChild(meta);
 
-      expect(resolveCspNonce()).toBe('meta-nonce');
+      expect(resolveCspNonce()).toBeUndefined();
+
+      appendNoncedScript('script-nonce');
+      expect(resolveCspNonce()).toBe('script-nonce');
     });
 
-    it('falls back to the nonce of an existing nonced script element', () => {
+    it('reads the nonce IDL property when the content attribute is hidden', () => {
       appendNoncedScript('script-nonce');
 
+      expect(document.querySelector('script[nonce]')!.getAttribute('nonce')).toBe('');
       expect(resolveCspNonce()).toBe('script-nonce');
     });
 
