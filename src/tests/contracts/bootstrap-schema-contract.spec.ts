@@ -49,9 +49,6 @@ const INTENTIONAL_EXCLUSIONS: Record<string, string> = {
   frontend_development:
     'Deprecated field; use development.enabled instead. Still serialized for backward compatibility.',
 
-  // nonce is used only for CSP headers, not passed to Vue app
-  nonce: 'Security nonce for CSP; used in template script tags, not in Vue app state.',
-
   // domains config is only present when domains_enabled is true
   // and contains internal config that duplicates domains_enabled
   domains: 'Internal config; domains_enabled boolean is sufficient for frontend.',
@@ -184,7 +181,6 @@ describe('Bootstrap schema contract (serializer fields)', () => {
         ...ALL_SERIALIZER_FIELDS,
         'domain_locale', // From domain serializer but not in output_template array
         'frontend_development', // From config serializer
-        'nonce', // From system serializer
         'domains', // From config serializer
       ] as const;
 
@@ -202,6 +198,19 @@ describe('Bootstrap schema contract (serializer fields)', () => {
       );
 
       expect(frontendOnlyInPayload).toEqual([]);
+    });
+
+    // RISK-2026-08-14-M08: the CSP nonce is server-side only. The
+    // SystemSerializer no longer emits it, the payload does not declare it,
+    // and a body that still carries one (an older server) has it stripped.
+    it('does not carry the CSP nonce in any layer', () => {
+      expect(ALL_SERIALIZER_FIELDS as readonly string[]).not.toContain('nonce');
+      expect(BOOTSTRAP_PAYLOAD_KEYS as readonly string[]).not.toContain('nonce');
+      expect(INTENTIONAL_EXCLUSIONS).not.toHaveProperty('nonce');
+
+      const parsed = bootstrapSchema.safeParse({ nonce: 'from-an-older-server' });
+      expect(parsed.success).toBe(true);
+      expect(parsed.data).not.toHaveProperty('nonce');
     });
 
     it('no unaccounted backend fields are missing from BootstrapPayload', () => {

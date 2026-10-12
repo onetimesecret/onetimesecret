@@ -9,7 +9,10 @@
 # config/overrides/ rather than config/hooks/.
 #
 # The around_rodauth handler is called for every route, which we use as
-# a global error handler.
+# a global error handler. It answers nothing itself before the route runs:
+# the invalid-encoding param refusal (Auth::ParamEncoding) is the last step of
+# before_rodauth instead (config/hooks/restrict_to.rb), after the host gates,
+# so a gated route keeps its 404 (SEC-B11).
 #
 
 module Auth::Config::Overrides

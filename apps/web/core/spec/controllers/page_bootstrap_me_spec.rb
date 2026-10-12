@@ -335,11 +335,13 @@ RSpec.describe 'GET /bootstrap/me', type: :integration do
       end
     end
 
-    it 'returns nonce for CSP' do
+    # RISK-2026-08-14-M08: the CSP nonce is a server-side value for the shell's
+    # script and link tags; publishing it in the JSON payload weakened the
+    # nonce-only policy against HTML injection. It must not come back.
+    it 'does not emit the CSP nonce' do
       get '/bootstrap/me'
       data = JSON.parse(last_response.body)
-      # nonce may be nil if CSP middleware not active, but key should exist
-      expect(data).to have_key('nonce')
+      expect(data).not_to have_key('nonce')
     end
   end
 
@@ -425,7 +427,7 @@ RSpec.describe 'GET /bootstrap/me', type: :integration do
     end
 
     let(:system_keys) do
-      %w[ot_version ot_version_long ruby_version shrimp nonce]
+      %w[ot_version ot_version_long ruby_version shrimp]
     end
 
     it 'includes all authentication serializer keys' do

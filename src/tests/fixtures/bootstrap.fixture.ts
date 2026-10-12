@@ -143,7 +143,6 @@ export const baseBootstrap: BootstrapPayload = {
   snapshot_generated_at: undefined,
   entitlement_preview_planid: undefined,
   entitlement_preview_plan_name: undefined,
-  nonce: null,
   homepage_mode: null,
   global_banner: null,
   domain_context: null,

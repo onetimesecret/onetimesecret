@@ -1,0 +1,9 @@
+.. A new scriv changelog fragment.
+
+Security
+--------
+
+- The container image now pins ``yq`` to v4.52.4 and checks its SHA-256
+  digest per architecture before installing it. A tampered or swapped
+  download fails the build instead of landing in the image.
+  (RISK-2026-08-14-M12)

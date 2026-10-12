@@ -93,6 +93,12 @@ site:
     # reset_request_rate_limiter.rb.
     reset_request_rate_limit:
       enabled: false
+    # Disabled under test for the same reason: the full-mfa lane requests
+    # magic links from one process and one masked IP; the
+    # RISK-2026-08-14-M04 limiter tests enable it in-process. See the
+    # :email_login_request scope in reset_request_rate_limiter.rb.
+    email_login_request_rate_limit:
+      enabled: false
     # Disabled under test so the many specs that sign accounts up are not
     # throttled (the cap is per masked IP, and the whole suite shares one);
     # the finding-#4 limiter tests enable it in-process. See

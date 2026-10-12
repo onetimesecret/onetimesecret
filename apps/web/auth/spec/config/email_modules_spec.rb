@@ -153,19 +153,52 @@ RSpec.describe 'Auth::Config::Email modules' do
   # Helpers Module Behavior Tests
   # ==========================================================================
 
-  describe 'determine_account_locale behavior' do
-    # These tests document the expected locale priority chain:
-    # account[:locale] > session[:locale] > request.params['locale'] > I18n.default_locale
+  describe 'determine_account_locale behavior', :aggregate_failures do
+    # The locale priority chain, exercised through the REAL method:
+    #   account[:locale] > session[:locale] > request.params['locale'] > I18n.default_locale
+    # A candidate counts only when I18n has that locale loaded (SEC-B01): an
+    # unsupported value would make the email template's I18n.t raise
+    # I18n::InvalidLocale, and only an existing account builds an email, so
+    # the 500 told an account apart from a missing login.
 
-    let(:default_locale) { 'en' }
+    let(:available) { [:en, :de, :fr, :es, :ja, :zh, :fr_FR] }
 
-    # Mirrors Auth::Config::Email::Helpers#determine_account_locale.
+    # I18n config is process-global. `default_locale=` raises unless the
+    # locale is available, so the saved default joins the temporary list and
+    # is restored FIRST, while that list is still in place; the saved list
+    # (nil when it was backend-derived, as in an unbooted process) goes back
+    # last (QA-B08).
+    around do |example|
+      saved_available = I18n.available_locales_initialized? ? I18n.available_locales : nil
+      saved_default   = I18n.default_locale
+      begin
+        I18n.available_locales = (available + [saved_default.to_sym]).uniq
+        I18n.default_locale    = :en
+        example.run
+      ensure
+        I18n.default_locale    = saved_default
+        I18n.available_locales = saved_available
+      end
+    end
+
+    before { require_relative '../../config/email/helpers' }
+
+    # A Rodauth instance with the production helper installed, its inputs
+    # stubbed (the pattern of spec/config/hooks/*_spec.rb).
     def determine_locale(account:, session:, request_params:)
-      [
-        account[:locale],
-        session[:locale],
-        request_params['locale'],
-      ].find { !it.to_s.strip.empty? } || default_locale
+      auth_class = Class.new(Rodauth::Auth) do
+        configure do
+          enable :login
+          Auth::Config::Email::Helpers.configure(self)
+        end
+      end
+      auth       = auth_class.allocate
+      allow(auth).to receive_messages(
+        account: account,
+        session: session,
+        request: instance_double(Rack::Request, params: request_params),
+      )
+      auth.determine_account_locale
     end
 
     context 'when account has locale set' do
@@ -173,7 +206,7 @@ RSpec.describe 'Auth::Config::Email modules' do
         result = determine_locale(
           account: { locale: 'de' },
           session: { locale: 'fr' },
-          request_params: { 'locale' => 'es' }
+          request_params: { 'locale' => 'es' },
         )
         expect(result).to eq('de')
       end
@@ -184,7 +217,7 @@ RSpec.describe 'Auth::Config::Email modules' do
         result = determine_locale(
           account: {},
           session: { locale: 'fr' },
-          request_params: { 'locale' => 'es' }
+          request_params: { 'locale' => 'es' },
         )
         expect(result).to eq('fr')
       end
@@ -195,7 +228,7 @@ RSpec.describe 'Auth::Config::Email modules' do
         result = determine_locale(
           account: {},
           session: {},
-          request_params: { 'locale' => 'es' }
+          request_params: { 'locale' => 'es' },
         )
         expect(result).to eq('es')
       end
@@ -206,9 +239,9 @@ RSpec.describe 'Auth::Config::Email modules' do
         result = determine_locale(
           account: {},
           session: {},
-          request_params: {}
+          request_params: {},
         )
-        expect(result).to eq(default_locale)
+        expect(result).to eq('en')
       end
     end
 
@@ -217,7 +250,7 @@ RSpec.describe 'Auth::Config::Email modules' do
         result = determine_locale(
           account: { locale: nil },
           session: { locale: 'ja' },
-          request_params: {}
+          request_params: {},
         )
         expect(result).to eq('ja')
       end
@@ -228,7 +261,7 @@ RSpec.describe 'Auth::Config::Email modules' do
         result = determine_locale(
           account: {},
           session: { locale: '' },
-          request_params: { 'locale' => 'zh' }
+          request_params: { 'locale' => 'zh' },
         )
 
         expect(result).to eq('zh')
@@ -238,10 +271,69 @@ RSpec.describe 'Auth::Config::Email modules' do
         result = determine_locale(
           account: { locale: ' ' },
           session: { locale: "\t" },
-          request_params: { 'locale' => "\n" }
+          request_params: { 'locale' => "\n" },
         )
 
-        expect(result).to eq(default_locale)
+        expect(result).to eq('en')
+      end
+    end
+
+    context 'when a locale candidate is not available (SEC-B01)' do
+      it 'skips an unsupported request locale and falls back to the default' do
+        result = determine_locale(account: {}, session: {}, request_params: { 'locale' => 'zz' })
+
+        expect(result).to eq('en')
+      end
+
+      it 'skips an unsupported account locale in favor of the next available one' do
+        result = determine_locale(
+          account: { locale: 'zz' },
+          session: { locale: 'xx' },
+          request_params: { 'locale' => 'fr_FR' },
+        )
+
+        expect(result).to eq('fr_FR')
+      end
+
+      it 'does not guess at a region form the app does not ship' do
+        result = determine_locale(account: {}, session: {}, request_params: { 'locale' => 'fr-FR' })
+
+        expect(result).to eq('en')
+      end
+
+      it 'ignores a non-string request locale (a nested JSON param)' do
+        result = determine_locale(account: {}, session: {}, request_params: { 'locale' => { 'x' => '1' } })
+
+        expect(result).to eq('en')
+      end
+
+      it 'accepts a symbol and strips surrounding whitespace' do
+        expect(determine_locale(account: { locale: :de }, session: {}, request_params: {})).to eq('de')
+        expect(determine_locale(account: {}, session: {}, request_params: { 'locale' => ' ja ' })).to eq('ja')
+      end
+
+      it 'never returns a locale that makes I18n.t raise' do
+        %w[zz fr-FR en_ZZ].each do |param|
+          locale = determine_locale(account: {}, session: {}, request_params: { 'locale' => param })
+
+          expect { I18n.t(:anything, locale: locale.to_sym) }.not_to raise_error
+        end
+      end
+    end
+
+    context 'when a locale candidate is not valid in its encoding (SEC-B01)' do
+      let(:invalid) { (+"\xFF").force_encoding(Encoding::UTF_8) }
+
+      # `strip` raises ArgumentError on such a String; the request guard
+      # (Auth::ParamEncoding) refuses it first, and the helper skips it too.
+      it 'skips it without raising and falls through to the next candidate' do
+        expect(determine_locale(account: {}, session: {}, request_params: { 'locale' => invalid })).to eq('en')
+        expect(determine_locale(account: { locale: invalid }, session: { locale: 'de' }, request_params: {}))
+          .to eq('de')
+      end
+
+      it 'is skipped by the module function itself' do
+        expect(Auth::Config::Email::Helpers.available_locale(invalid, 'ja')).to eq('ja')
       end
     end
   end
