@@ -8,7 +8,7 @@ import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import { useReceiptListStore, type FetchListOptions } from '@/shared/stores/receiptListStore';
 import type { LocalReceipt } from '@/types/ui/local-receipt';
 import { storeToRefs } from 'pinia';
-import { computed, ref, watch, type ComputedRef, type Ref } from 'vue';
+import { computed, ref, type ComputedRef, type Ref } from 'vue';
 
 import { AsyncHandlerOptions, useAsyncHandler } from './useAsyncHandler';
 
@@ -367,17 +367,10 @@ export function useRecentSecrets(): UseRecentSecretsReturn {
   const local = useLocalRecentSecrets();
   const api = useApiRecentSecrets(wrap, wrapSilent);
 
-  // Clear local storage on auth state changes to prevent:
-  // - Stale guest data mixing with authenticated API data on login
-  // - Old secrets lingering after logout (unsettling UX)
-  // flush: 'sync' ensures clearing happens immediately, not deferred
-  watch(
-    isAuthenticated,
-    () => {
-      local.clear();
-    },
-    { flush: 'sync' }
-  );
+  // Guest receipts are cleared by localReceiptStore when the user becomes
+  // fully authenticated, whether or not this composable is mounted
+  // (RISK-2026-08-14-M10). Nothing is recorded locally while signed in, so
+  // sign-out has nothing to clear.
 
   // Unified interface that switches based on auth state
   const records = computed<RecentSecretRecord[]>(() =>

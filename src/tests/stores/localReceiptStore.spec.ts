@@ -6,8 +6,12 @@ import { createTestingPinia } from '@pinia/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createApp, nextTick } from 'vue';
 
-// Signed-in state is the only thing this store reads from authStore.
-const authState = vi.hoisted(() => ({ isFullyAuthenticated: false }));
+// Signed-in state is the only thing this store reads from authStore. Reactive,
+// so the store's sign-in watch sees changes.
+const authState = await vi.hoisted(async () => {
+  const { reactive } = await import('vue');
+  return reactive({ isFullyAuthenticated: false });
+});
 vi.mock('@/shared/stores/authStore', () => ({ useAuthStore: () => authState }));
 
 /**
@@ -207,6 +211,23 @@ describe('localReceiptStore', () => {
 
       // Should fallback to empty array
       expect(freshStore.localReceipts).toEqual([]);
+    });
+
+    // SEC-F4: an unreadable cache may be a previous release's entries,
+    // secret identifiers included; it is removed rather than left in place.
+    it('removes a cache that is not valid JSON', () => {
+      const truncated = JSON.stringify([
+        createMockMessage({ id: 'old', secretExtid: 'pre-upgrade-bearer' }),
+      ]).slice(0, -1);
+      mockSessionStorage['onetimeReceiptCache'] = truncated;
+
+      const app = createApp({});
+      app.use(createTestingPinia({ stubActions: false }));
+      const freshStore = useLocalReceiptStore();
+
+      expect(freshStore.localReceipts).toEqual([]);
+      expect(sessionStorage.removeItem).toHaveBeenCalledWith('onetimeReceiptCache');
+      expect(mockSessionStorage['onetimeReceiptCache']).toBeUndefined();
     });
   });
 
@@ -708,6 +729,72 @@ describe('localReceiptStore', () => {
       await nextTick();
 
       expect(store.localReceipts).toEqual([]);
+      expect(mockSessionStorage['onetimeReceiptCache']).toBeUndefined();
+    });
+
+    // SEC-F3: sign-in is an in-app navigation. The store clears guest
+    // receipts itself, with no recent-secrets list mounted.
+    it('clears guest receipts and their in-memory secret identifiers on sign-in', async () => {
+      store.addReceipt(createMockMessage({ id: 'guest', secretExtid: 'guest-bearer' }));
+      await nextTick();
+      expect(store.localReceipts[0].secretExtid).toBe('guest-bearer');
+      expect(mockSessionStorage['onetimeReceiptCache']).toContain('guest');
+
+      authState.isFullyAuthenticated = true;
+
+      expect(store.localReceipts).toEqual([]);
+      expect(mockSessionStorage['onetimeReceiptCache']).toBeUndefined();
+      await nextTick();
+      // The persistence watcher does not write an empty cache back.
+      expect(mockSessionStorage['onetimeReceiptCache']).toBeUndefined();
+    });
+
+    it('clears stored guest receipts when a page loads signed in', () => {
+      mockSessionStorage['onetimeReceiptCache'] = JSON.stringify([
+        createMockMessage({ id: 'left-by-guest' }),
+      ]);
+      authState.isFullyAuthenticated = true;
+
+      const signedIn = freshStore();
+
+      expect(signedIn.localReceipts).toEqual([]);
+      expect(mockSessionStorage['onetimeReceiptCache']).toBeUndefined();
+    });
+
+    it('keeps receipts while signed out, and sign-out has nothing to clear', async () => {
+      store.addReceipt(createMockMessage({ id: 'kept' }));
+      await nextTick();
+
+      authState.isFullyAuthenticated = false;
+
+      expect(store.localReceipts.map((r) => r.id)).toEqual(['kept']);
+    });
+  });
+
+  // SEC-F3 against the real auth and bootstrap stores: MFA-pending is still
+  // a guest list (as in useRecentSecrets); full authentication clears it.
+  describe('sign-in through the real auth store', () => {
+    it('keeps receipts while MFA is pending and clears them once fully authenticated', async () => {
+      vi.resetModules();
+      vi.doUnmock('@/shared/stores/authStore');
+      const { setupTestPinia } = await import('@tests/setup');
+      const { useBootstrapStore } = await import('@/shared/stores/bootstrapStore');
+      const { useLocalReceiptStore: useRealLocalReceiptStore } = await import(
+        '@/shared/stores/localReceiptStore'
+      );
+      await setupTestPinia({ autoInit: false });
+      const bootstrap = useBootstrapStore();
+      bootstrap.authStatus = 'mfa_pending';
+
+      const real = useRealLocalReceiptStore();
+      real.addReceipt(createMockMessage({ id: 'during-mfa', secretExtid: 'mfa-bearer' }));
+      await nextTick();
+      expect(real.localReceipts.map((r) => r.id)).toEqual(['during-mfa']);
+
+      bootstrap.authStatus = 'authenticated';
+      await nextTick();
+
+      expect(real.localReceipts).toEqual([]);
       expect(mockSessionStorage['onetimeReceiptCache']).toBeUndefined();
     });
   });

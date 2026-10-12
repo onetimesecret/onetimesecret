@@ -69,55 +69,87 @@ function toStoredReceipts(receipts: LocalReceipt[]): StoredLocalReceipt[] {
   });
 }
 
+/** Write the stored form. No receipts means no key, not an empty array. */
+function writeStoredReceipts(receipts: StoredLocalReceipt[]): void {
+  if (receipts.length === 0) {
+    sessionStorage.removeItem(STORAGE_KEY);
+  } else {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(receipts));
+  }
+}
+
 /**
  * Rewrite storage when loading changed it: parsing dropped a field (an older
  * version's secret identifier) or an entry expired (RISK-2026-08-14-M10).
  * Best effort: a failed rewrite keeps the loaded list; the next change retries.
  */
 function rewriteIfChanged(receipts: StoredLocalReceipt[], stored: string): void {
-  const normalized = JSON.stringify(receipts);
-  if (normalized === stored) return;
+  if (JSON.stringify(receipts) === stored) return;
   try {
-    sessionStorage.setItem(STORAGE_KEY, normalized);
+    writeStoredReceipts(receipts);
   } catch (error) {
     loggingService.error(new Error(`Failed to rewrite local receipts: ${error}`));
   }
 }
 
 /**
+ * Remove a cache that cannot be loaded. Its raw text may be a previous
+ * release's entries, secret identifiers included (RISK-2026-08-14-M10).
+ */
+function discardStoredReceipts(): void {
+  try {
+    sessionStorage.removeItem(STORAGE_KEY);
+  } catch (error) {
+    loggingService.error(new Error(`Failed to clear local receipts from storage: ${error}`));
+  }
+}
+
+/** Parse a stored cache; null when it is not JSON or not in the stored form. */
+function parseStoredReceipts(raw: string): StoredLocalReceipt[] | null {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (error) {
+    loggingService.warn(`Unreadable local receipts in storage, clearing: ${error}`);
+    return null;
+  }
+  const result = storedLocalReceiptsArraySchema.safeParse(parsed);
+  if (!result.success) {
+    loggingService.warn(`Invalid local receipts in storage, clearing: ${result.error.message}`);
+    return null;
+  }
+  return result.data;
+}
+
+/**
  * Loads local receipts from sessionStorage with schema validation.
- * Gracefully handles corrupted, tampered, or version-mismatched data.
+ * Gracefully handles corrupted, tampered, or version-mismatched data: a cache
+ * that does not parse is removed, not left in place.
  * Entries written by older versions carry a secret identifier; parsing drops
  * it, and storage is rewritten at once so it does not linger until the next
  * change.
  */
 function loadFromStorage(): LocalReceipt[] {
+  let stored: string | null;
   try {
-    const stored = sessionStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      const result = storedLocalReceiptsArraySchema.safeParse(parsed);
-
-      if (!result.success) {
-        // Data is malformed - clear it and start fresh
-        loggingService.warn(
-          `Invalid local receipts in storage, clearing: ${result.error.message}`
-        );
-        sessionStorage.removeItem(STORAGE_KEY);
-        return [];
-      }
-
-      // Filter out expired entries (createdAt + ttl has passed)
-      const now = Date.now();
-      const receipts = result.data.filter((r) => isUnexpired(r, now));
-
-      rewriteIfChanged(receipts, stored);
-      return receipts;
-    }
+    stored = sessionStorage.getItem(STORAGE_KEY);
   } catch (error) {
     loggingService.error(new Error(`Failed to load local receipts from storage: ${error}`));
+    return [];
   }
-  return [];
+  if (!stored) return [];
+
+  const entries = parseStoredReceipts(stored);
+  if (!entries) {
+    discardStoredReceipts();
+    return [];
+  }
+
+  // Filter out expired entries (createdAt + ttl has passed)
+  const now = Date.now();
+  const receipts = entries.filter((r) => isUnexpired(r, now));
+  rewriteIfChanged(receipts, stored);
+  return receipts;
 }
 
 /**
@@ -161,6 +193,7 @@ function loadPreferredTtl(): number | null {
 // eslint-disable-next-line max-lines-per-function
 export const useLocalReceiptStore = defineStore('localReceipt', () => {
   const $api = useApi();
+  const authStore = useAuthStore();
 
   // State
   const _initialized = ref(false);
@@ -177,7 +210,7 @@ export const useLocalReceiptStore = defineStore('localReceipt', () => {
     localReceipts,
     (receipts) => {
       try {
-        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(toStoredReceipts(receipts)));
+        writeStoredReceipts(toStoredReceipts(receipts));
       } catch (error) {
         loggingService.error(new Error(`Failed to save local receipts to storage: ${error}`));
       }
@@ -207,6 +240,20 @@ export const useLocalReceiptStore = defineStore('localReceipt', () => {
     }
   });
 
+  // Guest receipts, and the secret identifiers held in memory for them, do
+  // not outlive sign-in (RISK-2026-08-14-M10). Sign-in is an in-app
+  // navigation, so this runs whether or not a list is mounted, and
+  // immediately for a page that loads signed in. isFullyAuthenticated is the
+  // test useRecentSecrets lists by: while MFA is pending the list is still
+  // local, so the receipts stay until the second factor completes.
+  watch(
+    () => authStore.isFullyAuthenticated,
+    (signedIn) => {
+      if (signedIn) clearReceipts();
+    },
+    { immediate: true, flush: 'sync' }
+  );
+
   /**
    * Initializes the local receipt store.
    * Idempotent - subsequent calls have no effect if already initialized.
@@ -234,7 +281,7 @@ export const useLocalReceiptStore = defineStore('localReceipt', () => {
    * @param receipt The local receipt to add
    */
   function addReceipt(receipt: LocalReceipt) {
-    if (useAuthStore().isFullyAuthenticated) return;
+    if (authStore.isFullyAuthenticated) return;
     // Remove any existing receipt with same ID
     const filtered = localReceipts.value.filter((r) => r.id !== receipt.id);
     // Add new receipt at beginning, enforce max limit
