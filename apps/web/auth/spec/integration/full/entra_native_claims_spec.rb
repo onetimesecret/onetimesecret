@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative '../../spec_helper'
+require_relative '../../support/external_https_browser'
 require 'jwt'
 
 # These stateful integration examples span several layers, not one class.
@@ -30,6 +31,9 @@ require 'jwt'
 # Run: tests/lanes/run full-sqlite --only apps/web/auth/spec/integration/full/entra_native_claims_spec.rb
 RSpec.describe 'Entra ID native claim shapes through the mounted strategy', :shared_db_state, type: :integration do
   include_context 'domains enabled'
+  # The browser is on https; the proxy says so with X-Forwarded-Proto, so the
+  # session cookie is Secure and must come back on the callback.
+  include_context 'external HTTPS browser'
 
   before(:all) { boot_onetime_app }
 
