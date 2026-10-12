@@ -79,9 +79,12 @@ const commonTestOptions = {
   },
   // Reduce concurrency to prevent test runner crashes
   pool: 'forks' as const,
-  // Handle unhandled promise rejections
-  onConsoleLog: () => false, // Suppress console logs that crash the reporter
 };
+
+// Fails a test that writes to console.warn/console.error it did not expect.
+// First, so its beforeEach starts recording before the other setup files'
+// hooks run (sequence.hooks is 'list'). Exemptions: console-guard.exempt.ts.
+const CONSOLE_GUARD = 'src/tests/setup-console-guard.ts';
 
 export default defineConfig({
   test: {
@@ -91,10 +94,9 @@ export default defineConfig({
     // In CI, print a test's console output only when that test fails. The
     // passing tests' Vue warnings and --printConsoleTrace frames made the
     // job log ~16 MB, more than GitHub's log viewer will show. Root only:
-    // the reporter reads this from the root config, never a project's (the
-    // same goes for onConsoleLog in commonTestOptions). Locally every log
-    // still prints, except under a coding agent, where vitest's agent
-    // reporter already behaves this way.
+    // the reporter reads this (and onConsoleLog) from the root config, never
+    // a project's. Locally every log still prints, except under a coding
+    // agent, where vitest's agent reporter already behaves this way.
     silent: process.env.CI ? 'passed-only' : false,
     coverage: {
       provider: 'v8',
@@ -138,6 +140,7 @@ export default defineConfig({
           // projects.
           exclude: [...BASE_EXCLUDE, ...NODE_GLOBS],
           setupFiles: [
+            CONSOLE_GUARD,
             'src/tests/setup-env.ts',
             'src/tests/setup-stores.ts',
             'src/tests/setup-components.ts',
@@ -155,10 +158,11 @@ export default defineConfig({
           environment: 'node',
           include: NODE_GLOBS,
           exclude: BASE_EXCLUDE,
-          // All five setup files are window-dependent. Dropping them also
-          // drops setup-env.ts's process-level unhandledRejection handler;
-          // vitest's default handling applies here instead.
-          setupFiles: [],
+          // The dom project's other five setup files are window-dependent.
+          // Dropping them also drops setup-env.ts's process-level
+          // unhandledRejection handler; vitest's default handling applies
+          // here instead.
+          setupFiles: [CONSOLE_GUARD],
         },
       },
     ],
