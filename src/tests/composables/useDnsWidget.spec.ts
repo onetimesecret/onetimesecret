@@ -6,6 +6,7 @@
 // by the browser.
 
 import { resolveCspNonce, useDnsWidget } from '@/shared/composables/useDnsWidget';
+import { sanitizeDnsWidgetHtml } from '@/shared/utils/dnsWidgetHtml';
 import { getGlobalAxiosMock } from '@/tests/setup-stores';
 import { createTestI18n } from '@tests/setup';
 import { mount } from '@vue/test-utils';
@@ -148,6 +149,45 @@ describe('useDnsWidget CSP nonce (S5)', () => {
 
       script!.onload?.(new Event('load'));
       await expect(initPromise).resolves.toBe(true);
+
+      wrapper.unmount();
+    });
+  });
+
+  // RISK-2026-08-14-M09: the patched widget renders remote HTML only through
+  // window.apxDns.sanitizeHtml and falls back to text without it, so the
+  // composable must install it before init renders anything.
+  describe('HTML sanitizer installation (M09)', () => {
+    beforeEach(() => {
+      getGlobalAxiosMock()
+        .onGet('/api/domains/dns-widget/token')
+        .reply(200, {
+          success: true,
+          token: 'tok',
+          api_url: 'https://apx.example',
+          expires_in: 300,
+        });
+    });
+
+    it('installs the sanitizer on window.apxDns before calling init', async () => {
+      let sanitizerAtInit: unknown;
+      // An already-loaded widget: loadAssets returns early.
+      window.apxDns = {
+        init: vi.fn(() => {
+          sanitizerAtInit = window.apxDns?.sanitizeHtml;
+        }),
+        stop: vi.fn(),
+        restart: vi.fn(),
+      };
+      const wrapper = mountWidgetHost();
+      const { widget } = wrapper.vm as unknown as {
+        widget: ReturnType<typeof useDnsWidget>;
+      };
+
+      await expect(widget.initWidget()).resolves.toBe(true);
+
+      expect(window.apxDns.init).toHaveBeenCalledTimes(1);
+      expect(sanitizerAtInit).toBe(sanitizeDnsWidgetHtml);
 
       wrapper.unmount();
     });

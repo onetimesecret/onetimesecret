@@ -8,6 +8,7 @@
 // Widget asset imports - Vite will handle bundling/hashing
 import dnsWidgetCss from '@/assets/approximated/dnswidget.v1.css?url';
 import dnsWidgetJs from '@/assets/approximated/dnswidget.v1.js?url';
+import { sanitizeDnsWidgetHtml } from '@/shared/utils/dnsWidgetHtml';
 import type { AxiosInstance } from 'axios';
 import { inject, onUnmounted, ref, toValue, type MaybeRefOrGetter, type Ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -20,6 +21,8 @@ declare global {
       stop: () => void;
       restart: () => void;
       config?: DnsWidgetConfig;
+      /** HTML sanitizer the patched widget routes remote markup through (M09). */
+      sanitizeHtml?: (html: string) => string;
     };
   }
 }
@@ -300,6 +303,13 @@ export function useDnsWidget(options: UseDnsWidgetOptions) {
         config.prefillDomain = options.prefillDomain;
       }
 
+      // [M09] The patched widget renders its remote API's HTML only through
+      // this sanitizer, and inserts plain text when none is installed
+      // (RISK-2026-08-14-M09). Install it on every init: the widget script
+      // replaces window.apxDns wholesale if it is ever evaluated again.
+      if (window.apxDns) {
+        window.apxDns.sanitizeHtml = sanitizeDnsWidgetHtml;
+      }
       window.apxDns?.init(config);
       isInitialized.value = true;
       return true;
