@@ -452,19 +452,54 @@ module DomainsAPI
         end
 
         # Input for compute_sso_changes. The change detector reads a request
-        # hash, but token_endpoint_auth_method is persisted normalized
-        # (stripped; see persisted_token_endpoint_auth_method), so auditing
-        # the raw value would log a whitespace-padded resend of the stored
-        # method as a change to the padded string. The field is swapped for
-        # what will actually be written. Key presence is preserved: an
-        # absent key stays absent (no change), a blank one stays present as
-        # '' (cleared). Other fields are audited from the request as before.
+        # hash and only diffs the keys it finds there, but update_existing_config
+        # writes two kinds of value the request never spelled out:
+        #
+        # - token_endpoint_auth_method is persisted normalized (stripped; see
+        #   persisted_token_endpoint_auth_method), so auditing the raw value
+        #   would log a whitespace-padded resend of the stored method as a
+        #   change to the padded string.
+        # - A provider switch blanks the outgoing provider's fields without
+        #   the request naming them (issuer on a move off oidc, tenant_id on
+        #   a move off entra_id, token_endpoint_auth_method on any move off
+        #   oidc). Diffing the request alone omits those clears from the
+        #   delta, so the log would show the provider changing while the
+        #   fields it orphaned silently vanished.
+        #
+        # Both are swapped in as the value that will actually be written.
+        # Key presence is otherwise preserved: an absent key stays absent
+        # (no change), a blank one stays present as '' (cleared). Other
+        # fields are audited from the request as before.
         #
         # @return [Hash]
         def audit_change_params
-          return params unless @token_endpoint_auth_method_provided
+          params.merge(implicit_write_values)
+        end
 
-          params.merge('token_endpoint_auth_method' => persisted_token_endpoint_auth_method)
+        # The SAFE_FIELDS values update_existing_config will write that the
+        # request did not name, keyed as the change detector expects. Mirrors
+        # the write path exactly: the conditions here are the ones used by
+        # apply_token_endpoint_auth_method, the provider-switch block, and
+        # apply_saml_exclusivity (which blanks every OAuth field for saml).
+        #
+        # @return [Hash{String => String}]
+        def implicit_write_values
+          values = {}
+
+          if @token_endpoint_auth_method_provided || @provider_type != 'oidc'
+            values['token_endpoint_auth_method'] = persisted_token_endpoint_auth_method
+          end
+
+          # saml blanks both OAuth fields on every write, request or not.
+          if @provider_type == 'saml'
+            return values.merge('issuer' => '', 'tenant_id' => '')
+          end
+
+          return values unless @existing_config && @provider_type != @existing_config.provider_type
+
+          values['issuer']    = '' if @provider_type == 'entra_id' && @issuer.to_s.empty?
+          values['tenant_id'] = '' if @provider_type == 'oidc' && @tenant_id.to_s.empty?
+          values
         end
 
         # See the PATCH-semantics note on update_existing_config. Runs last so

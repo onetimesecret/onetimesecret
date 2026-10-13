@@ -2845,6 +2845,54 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
             'token_endpoint_auth_method' => { 'from' => 'client_secret_post', 'to' => 'client_secret_basic' },
           )
         end
+
+        # A provider switch blanks the outgoing provider's fields without the
+        # request naming them. The delta must show those clears next to the
+        # provider_type change, not just the fields the request carried.
+        it 'records the method and issuer clears on a switch to entra_id that omits them' do
+          csrf_patch api_path(test_custom_domain.extid), {
+            provider_type: 'entra_id',
+            client_secret: 'entra-secret',
+            tenant_id: '12345678-1234-1234-1234-123456789abc',
+          }
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(stored_method).to eq('')
+          expect(audit_payloads.size).to eq(1)
+          expect(audit_payloads.first['changes']).to include(
+            'provider_type'              => { 'from' => 'oidc', 'to' => 'entra_id' },
+            'token_endpoint_auth_method' => { 'from' => 'client_secret_post', 'to' => '' },
+            'issuer'                     => { 'from' => 'https://auth.example.com', 'to' => '' },
+          )
+        end
+
+        it 'records the tenant_id clear on a switch from entra_id to oidc that omits it' do
+          Onetime::CustomDomain::SsoConfig.delete_for_domain!(test_custom_domain.identifier)
+          Onetime::CustomDomain::SsoConfig.create!(
+            domain_id: test_custom_domain.identifier,
+            provider_type: 'entra_id',
+            client_id: 'entra-client-id',
+            client_secret: 'entra-client-secret',
+            tenant_id: '12345678-1234-1234-1234-123456789abc',
+            enabled: false,
+          )
+
+          csrf_patch api_path(test_custom_domain.extid), {
+            provider_type: 'oidc',
+            issuer: 'https://auth.example.com',
+          }
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(audit_payloads.size).to eq(1)
+          changes = audit_payloads.first['changes']
+          expect(changes).to include(
+            'provider_type' => { 'from' => 'entra_id', 'to' => 'oidc' },
+            'tenant_id'     => { 'from' => '12345678-1234-1234-1234-123456789abc', 'to' => '' },
+          )
+          # The method was never set on the entra record, so a no-op "clear"
+          # of an already-blank field must not show up as a change.
+          expect(changes).not_to have_key('token_endpoint_auth_method')
+        end
       end
     end
 
