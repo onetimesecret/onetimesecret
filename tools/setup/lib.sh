@@ -228,6 +228,84 @@ install_node() {
     info "Installing Node dependencies (pnpm install)..."
     pnpm install
   fi
+  check_native_bindings
+}
+
+# --- Native bindings ----------------------------------------------------
+#
+# The frontend build loads platform-specific native bindings: vite loads
+# rolldown's, @tailwindcss/vite loads oxide's, and both reach a lightningcss.
+# Each binding is an optional dependency, and pnpm treats a failed download
+# of one as non-fatal: the install reports success, and `pnpm run build`
+# fails minutes later with "Cannot find native binding". Loading them right
+# after the install fails setup instead, while the download warnings are
+# still on screen.
+#
+# Each entry is a chain: "a>b" resolves b from a's install location, which
+# is how the build reaches a transitive dependency under pnpm's strict
+# layout. A chain whose first package is not installed at all (a production
+# install skips devDependencies) is skipped: nothing gets built there.
+NATIVE_BINDING_PROBES="vite @tailwindcss/vite vite>lightningcss @tailwindcss/vite>@tailwindcss/node>lightningcss"
+
+# Prints "problem<TAB>chains" once per distinct problem (empty = all load):
+# @tailwindcss/vite imports vite, so a missing rolldown binding fails both.
+# The problem names the missing platform package when the error's cause
+# chain carries one, and is the error's first line otherwise. Exits non-zero
+# only when the probe itself cannot run.
+native_binding_failures() {
+  # shellcheck disable=SC2086  # deliberate word-split of the probe list
+  node --no-warnings --input-type=module -e '
+    import { createRequire } from "node:module";
+    import { pathToFileURL } from "node:url";
+    const platform = process.platform + "-" + process.arch;
+    const failures = new Map();
+    for (const chain of process.argv.slice(1)) {
+      const names = chain.split(">");
+      let url;
+      try {
+        url = import.meta.resolve(names[0]);
+      } catch (error) {
+        if (error.code === "ERR_MODULE_NOT_FOUND") continue;
+        throw error;
+      }
+      try {
+        for (const name of names.slice(1)) url = pathToFileURL(createRequire(url).resolve(name)).href;
+        await import(url);
+      } catch (error) {
+        const missing = [];
+        for (let e = error; e; e = e.cause) {
+          const m = /Cannot find module \x27([^\x27.][^\x27]*)\x27/.exec(String(e.message));
+          if (m && m[1].includes(platform)) missing.push(m[1]);
+        }
+        const problem = missing.length ? missing.join(", ") : String(error.message).split("\n")[0];
+        failures.set(problem, (failures.get(problem) || []).concat(names.join(" > ")));
+      }
+    }
+    for (const [problem, chains] of failures) console.log(problem + "\t" + chains.join(", "));
+  ' $NATIVE_BINDING_PROBES
+}
+
+check_native_bindings() {
+  if ! has node; then
+    warn "node not found — native bindings for the frontend build not checked"
+    return 0
+  fi
+
+  local failures problem chains
+  failures=$(native_binding_failures) ||
+    die "The native binding check could not run (node $(node -v)); see the error above."
+  if [[ -z "$failures" ]]; then
+    echo "OK:   Native bindings for the frontend build load"
+    return 0
+  fi
+
+  err "pnpm install succeeded, but a native binding the frontend build needs does not load:"
+  while IFS=$'\t' read -r problem chains; do
+    err "  ${problem}   (loading ${chains})"
+  done <<< "$failures"
+  err "pnpm treats a failed download of an optional dependency as non-fatal, so look"
+  err "for \"GET ... error\" warnings in the pnpm install output above."
+  die "Fix: rm -rf node_modules, then re-run bin/setup (in CI, re-run the job). A plain 'pnpm install' reports \"Already up to date\" and leaves the binding missing."
 }
 
 # --- Playwright browsers (test lane only) --------------------------------
