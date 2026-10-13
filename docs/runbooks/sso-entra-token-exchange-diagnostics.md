@@ -78,17 +78,25 @@ console probe and observer report these fields:
 | `mode`, `pid`, `probe_id` | Distinguish console versus browser exchange and correlate request/response lines within a worker. |
 | `tenant_config_in_request` | Browser: the tenant setup hook left a config for the expected domain in this request. Console: the explicit injection helper ran. |
 | `token_endpoint_matches_stored` | The final token URL matches the persisted tenant's standard Entra v2 token endpoint. |
-| `authorization_scheme` | `basic`, `none`, or `other`; no header value is emitted. |
-| `raw_basic_matches_stored` | The outgoing Basic header matches the exact stored client ID/secret pair, without form-encoding. |
-| `form_encoded_basic_matches_stored` | The header matches that pair with each component form-encoded before Base64. Both comparisons can be true when encoding changes neither component. |
-| `body_client_id_present`, `body_secret_present` | Whether the encoded request body contains those fields. |
-| `body_client_id_matches_stored`, `body_secret_matches_stored` | Whether those decoded body fields equal the persisted credentials. |
+| `authorization_scheme` | `basic`, `none`, or `other`; no header value is emitted. Expected `none` on a build with #4764, which sends the credentials in the body. `basic` means the worker runs a release up to v0.26.16. |
+| `raw_basic_matches_stored` | The outgoing Basic header matches the exact stored client ID/secret pair, without form-encoding. Expected `false` on a build with #4764; `true` identifies an older build that still sends the header. |
+| `form_encoded_basic_matches_stored` | The header matches that pair with each component form-encoded before Base64. Both comparisons can be true when encoding changes neither component. Expected `false` on a build with #4764. |
+| `body_client_id_present`, `body_secret_present` | Whether the encoded request body contains those fields. Expected `true` on a build with #4764. |
+| `body_client_id_matches_stored`, `body_secret_matches_stored` | Whether those decoded body fields equal the persisted credentials. Expected `true` on a build with #4764: the stored pair reaches the wire byte for byte. |
 | `authorization_code_grant`, `client_credentials_grant`, `code_present`, `code_verifier_present` | Request shape only; code and verifier values are never emitted. |
 | `redirect_uri_matches_expected` | Whether the body uses the configured domain's HTTPS callback and provider route. Expected false for a client-credentials probe, which has no redirect URI. |
 | `http_status`, `access_token_present`, `aadsts_code` | Microsoft's response status, token presence, and AADSTS code; no token or error description is emitted. |
 
 Interpret the browser result against stored A/B and the registered-client probe:
 
+- **UI reports 7000215 with `authorization_scheme: "none"` and both body matches
+  true:** the worker sent the stored pair in the body, byte for byte, as a build
+  with #4764 does. The Basic-header encoding gap is not the cause. Investigate
+  leads 1 and 2 in the Entra runbook (a deleted or replaced secret, or the
+  Secret ID saved instead of the Value).
+- **UI reports 7000215 with `authorization_scheme: "basic"`:** that worker runs a
+  release up to v0.26.16, which sends the Basic header. Compare its deployed
+  release with the one expected before reading further.
 - **UI reports 7000215 and no credential representation matches:** the outgoing
   credentials differ from the persisted pair, or another authentication method is
   in use. Investigate the active strategy/options and worker configuration.
@@ -120,4 +128,4 @@ separately verified fix.
 
 ## Regression coverage
 
-The [mounted Entra integration spec](../../apps/web/auth/spec/integration/full/entra_native_claims_spec.rb) now includes diagnostic examples for the registered-client probe and a browser callback returning a mocked 7000215. The [diagnostic unit spec](../../spec/unit/auth/entra_token_exchange_diagnostic_spec.rb) checks credential comparisons, output redaction, and preservation of the token request and OAuth error. These tests use a mocked endpoint; they do not prove Microsoft accepts a production credential.
+The [mounted Entra integration spec](../../apps/web/auth/spec/integration/full/entra_native_claims_spec.rb) includes diagnostic examples for the registered-client probe and a browser callback returning a mocked 7000215. Since #4764 both expect `authorization_scheme: "none"`, `raw_basic_matches_stored: false`, and `body_client_id_matches_stored` and `body_secret_matches_stored` true, and every code exchange in the spec asserts that `client_id` and `client_secret` travel in the form body, byte for byte equal to a stored secret that contains `+` and `%`, with no `Authorization` header. The [diagnostic unit spec](../../spec/unit/auth/entra_token_exchange_diagnostic_spec.rb) checks credential comparisons, output redaction, and preservation of the token request and OAuth error. These tests use a mocked endpoint; they do not prove Microsoft accepts a production credential.

@@ -43,21 +43,25 @@ and deployment context under investigation using the diagnostics below.
 
 Nothing in our codebase describes Entra's "Client credential type" field. I searched tracked files on main, the history of every branch, the worktrees, and the sibling repos including docs.onetimesecret.com. The only matches are about WebAuthn and Stripe credential types.
 
-What the codebase does answer is how we send the secret, and that probably explains the customer's reading.
+What the codebase does answer is how we send the secret.
 
-**We send the secret in the `Authorization: Basic` header, not in the request body.** No code in the repo sets `auth_scheme`, so the oauth2 gem's default (`:basic_auth`) applies. I ran the real omniauth-entra-id 3.1.1 strategy with oauth2 2.0.25 locally:
+**We send the client ID and secret in the token request body, not in an `Authorization` header.** Both Entra builders set `client_options: { auth_scheme: :request_body }`: the platform registration in [`lib/onetime/sso_provider/entra.rb`](../../lib/onetime/sso_provider/entra.rb) (`placeholder_options` and `strategy_options`) and the custom-domain builder `SsoConfig#build_entra_id_options` in [`lib/onetime/models/custom_domain/sso_config.rb`](../../lib/onetime/models/custom_domain/sso_config.rb). The tenant hook merges `client_options` key by key (`OmniAuthTenant.merge_strategy_options`), so the key reaches the strategy next to the Entra URLs the strategy sets itself. This landed in [#4764](https://github.com/onetimesecret/onetimesecret/issues/4764). No operator configuration change is needed. Generic OIDC and SAML are unchanged.
+
+With that option, oauth2 2.0.25 form-encodes `client_id` and `client_secret` into the body of the token request and sends no `Authorization` header. The [mounted Entra integration spec](../../apps/web/auth/spec/integration/full/entra_native_claims_spec.rb) pins that shape at a mocked endpoint, with a stored secret that contains `+` and `%`: the decoded body equals the stored pair, the secret is percent-encoded on the wire (`+` as `%2B`, `%` as `%25`), and the request carries no `Authorization` header. The [token exchange diagnostic](./sso-entra-token-exchange-diagnostics.md) reports a healthy exchange as:
 
 ```
-auth_scheme=:basic_auth
-body_keys=["grant_type", "code"]
-authorization=Basic Y2lkOnNlYytyZXR+eA==   # decodes to "cid:sec+ret~x"
+authorization_scheme: "none"
+raw_basic_matches_stored: false
+body_client_id_matches_stored: true
+body_secret_matches_stored: true
 ```
 
-- The token request body has no `client_secret` and no `client_id`. Anyone looking for a `client_secret` field in the request will find none and read that as "not sent." Whether Entra logs a header-borne secret as "None" is my guess; I have no source for it.
-- Microsoft supports this. The [auth code flow reference](https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-auth-code-flow#request-an-access-token-with-a-client_secret) says: "The Basic auth pattern of instead providing credentials in the Authorization header, per RFC 6749 is also supported."
-- This hasn't changed between v0.26.14 and v0.26.16 (same gems, no override), so it isn't the regression.
+- Microsoft documents the body form in its [auth code flow reference](https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-auth-code-flow#request-an-access-token-with-a-client_secret). Microsoft also says the secret "must be URL-encoded before being sent."; form-encoding the body is that step. The auth code flow reference adds: "The Basic auth pattern of instead providing credentials in the Authorization header, per RFC 6749 is also supported."
+- Anyone looking for a `client_secret` field in the token request will now find one. Whether Entra logs a header-borne secret as "None" remains a guess; I have no source for it.
 
-**There is a latent encoding gap.** [RFC 6749 §2.3.1](https://datatracker.ietf.org/doc/html/rfc6749#section-2.3.1) says the client ID and secret are form-urlencoded before they go into the Basic header. oauth2 2.0.25 skips that step and sends the raw `id:secret`. Microsoft also says the secret "must be URL-encoded before being sent." If Entra form-decodes Basic credentials, a secret containing `+` (decoded as a space) or `%` would arrive changed, and Entra would answer with AADSTS7000215. Absence of `+` and `%` rules out those particular transformations, not every credential-encoding problem. The client ID must be checked too. The local decoding check below models this hypothesis; it does not establish how Entra decodes Basic credentials.
+**The Basic-header encoding gap no longer applies to Entra sign-in.** [RFC 6749 §2.3.1](https://datatracker.ietf.org/doc/html/rfc6749#section-2.3.1) says the client ID and secret are form-urlencoded before they go into the Basic header. oauth2 2.0.25 skips that step for `:basic_auth` and sends the raw `id:secret`. If Entra form-decodes Basic credentials, a secret containing `+` (decoded as a space) or `%` would arrive changed, and Entra would answer with AADSTS7000215. With the body transport the client form-encodes the secret and the server decodes it, so `+` and `%` arrive unchanged. The gap only matters on a build that still sends the header; the local decoding check below models that transformation for such builds. It does not establish how Entra decodes Basic credentials.
+
+**Releases up to v0.26.16 sent the secret in the `Authorization: Basic` header.** Those builds set no `auth_scheme`, so the oauth2 gem's default (`:basic_auth`) applied. Running the real omniauth-entra-id 3.1.1 strategy with oauth2 2.0.25 on such a build gave `auth_scheme=:basic_auth`, `body_keys=["grant_type", "code"]`, and an `Authorization: Basic` header that decodes to the raw `id:secret` pair. The body had no `client_secret` and no `client_id`, which is how a reader of the request could conclude the secret was "not sent." That transport did not change between v0.26.14 and v0.26.16 (same gems, no override), so it was not the regression the customer saw. On such a build the diagnostic reports `authorization_scheme: "basic"` and `raw_basic_matches_stored: true`. Customers on an affected release get the body transport by upgrading.
 
 **Diagnostic tests check the outgoing transport, not Microsoft's decoding.** The [diagnostic regression coverage](./sso-entra-token-exchange-diagnostics.md#regression-coverage) compares credential representations at a mocked endpoint, including the mounted browser callback. It does not establish how Entra interprets those credentials.
 
@@ -78,13 +82,13 @@ An expired secret that's still listed on the app returns 7000222, not 7000215, s
 
 1. A secret was deleted or replaced in Entra and the domain's SSO settings in Onetime Secret were never updated.
 2. The Secret ID was saved instead of the Value. Entra's full error message names this case and the app ID.
-3. The secret contains `+` or `%` and is altered by the Basic-header encoding gap described above.
+3. On a release up to v0.26.16, the secret contains `+` or `%` and is altered by the Basic-header encoding gap described above. A build with #4764 sends the secret in the body, so this lead does not apply there.
 
 **Preserve the evidence first:** check the secrets currently listed under Certificates & secrets, but do not re-enter or rotate the stored Value before running the operator diagnostics below. Re-saving a known-good value replaces the evidence. Never ask the customer to send the Value.
 
 ## Isolation test
 
-Run it twice, once with the secret in the body and once with raw Basic authentication. These tests use the **client-credentials grant**, not the authorization-code grant used by sign-in. They isolate credential transport for that grant; they do not reproduce the UI or conclusively identify the cause.
+Run it twice, once with the secret in the body and once with raw Basic authentication. Test A is the transport a build with #4764 uses for sign-in; test B is what releases up to v0.26.16 sent. These tests use the **client-credentials grant**, not the authorization-code grant used by sign-in. They isolate credential transport for that grant; they do not reproduce the UI or conclusively identify the cause.
 
 **Runs on:** the customer's own machine (macOS, Linux, or Git Bash on Windows). Not on an Onetime Secret host, and not in `bin/console`. It contacts Microsoft with the secret the customer types in.
 
@@ -104,7 +108,7 @@ data-urlencode = "scope=https://graph.microsoft.com/.default"
 data = "grant_type=client_credentials"
 EOF
 
-echo "B (secret in Authorization header, as Onetime Secret sends it):"
+echo "B (secret in Authorization header, as releases up to v0.26.16 sent it):"
 curl -s --config - <<EOF | grep -oE '"access_token"|AADSTS[0-9]+' | head -1
 url = "$TOKEN_URL"
 user = "$(esc "$ENTRA_CLIENT_ID"):$(esc "$ENTRA_CLIENT_SECRET")"
@@ -125,11 +129,11 @@ unset ENTRA_CLIENT_SECRET
 | A | B | Meaning |
 |---|---|---|
 | `"access_token"` | `"access_token"` | The supplied secret works both ways for this grant. This does not prove that the stored value differs or that browser sign-in works. Continue with the persisted-credential and strategy diagnostics below. |
-| `"access_token"` | `AADSTS7000215` | Client-authentication transport changes the outcome for this grant. Investigate lead 3 through the real strategy before attributing the UI failure to it. |
+| `"access_token"` | `AADSTS7000215` | Client-authentication transport changes the outcome for this grant. On a release up to v0.26.16, investigate lead 3 through the real strategy before attributing the UI failure to it. On a build with #4764, sign-in already uses transport A, so B's failure does not explain a UI failure there. |
 | `AADSTS7000215` | `AADSTS7000215` | The value isn't a current secret of this app: a Secret ID, a deleted secret, or a typo (lead 2). |
 | any other code | | Ask them to send us the code. |
 
-I checked both commands locally against a capture server, using a fake secret that contains `+`, `%`, `"` and `\`. Test A sends it form-encoded in the body (`client_secret=ab%2Bc%252Fd~e%22q%5Cz`), and the server decodes it back to the original bytes. Test B sends a Basic header that decodes to the raw pair (`cid-456:ab+c%2Fd~e"q\z`), which matches what our app sends, as the probe in "How Onetime Secret sends the secret" showed. Neither command had the secret in its arguments. I didn't send anything to Microsoft.
+I checked both commands locally against a capture server, using a fake secret that contains `+`, `%`, `"` and `\`. Test A sends it form-encoded in the body (`client_secret=ab%2Bc%252Fd~e%22q%5Cz`), and the server decodes it back to the original bytes. Test B sends a Basic header that decodes to the raw pair (`cid-456:ab+c%2Fd~e"q\z`), which matches what releases up to v0.26.16 sent, as described in "How Onetime Secret sends the secret". Neither command had the secret in its arguments. I didn't send anything to Microsoft.
 
 ## Operator diagnostic: persisted credentials through curl
 
@@ -206,7 +210,8 @@ Credentials go to curl through stdin, not command-line arguments. Neither the
 secret nor returned token is deliberately printed.
 
 - **A succeeds, B fails:** the stored/reloaded credential is usable; the difference
-  is the client-authentication method.
+  is the client-authentication method. A is the method a build with #4764 uses
+  for sign-in; B is what releases up to v0.26.16 used.
 - **Both succeed:** the stored credentials work with both methods for this grant.
 - **Both fail:** storage/encoding remains a possibility, alongside incorrect
   credentials, tenant, permissions, or grant restrictions.
@@ -288,16 +293,17 @@ finished.
 
 **Runs on:** a development checkout, as spec code with synthetic credentials and a mocked token endpoint. Never in production, and never with a real secret.
 
-For an offline regression check, extend the existing
-[mounted Entra integration spec](../../apps/web/auth/spec/integration/full/entra_native_claims_spec.rb),
-which captures the real strategy's token request at a mocked endpoint. This is
-proposed test coverage, not an additional test implemented by this runbook.
-Use **synthetic credentials only**, including cases such as `plain-secret`,
-`secret+suffix`, `secret%2Bsuffix`, and `secret%invalid`. Exercise special characters
-in the client ID as well as the secret.
+The [mounted Entra integration spec](../../apps/web/auth/spec/integration/full/entra_native_claims_spec.rb)
+captures the real strategy's token request at a mocked endpoint. Since #4764 it
+asserts the request-body transport on every code exchange and on the console
+probe, with a stored secret that contains `+` and `%`: the decoded body equals
+the stored pair, the secret is percent-encoded on the wire, and the request has
+no `Authorization` header. Extend it with further **synthetic credentials only**,
+such as `plain-secret`, `secret+suffix`, `secret%2Bsuffix`, and `secret%invalid`,
+and exercise special characters in the client ID as well as the secret.
 
-For each captured Basic-auth request, Base64-decode its payload and compare it
-with both candidate representations. In the test fixture only:
+On a build that still sends a Basic header, Base64-decode each captured header's
+payload and compare it with both candidate representations. In the test fixture only:
 
 ```ruby
 raw_pair = "#{client_id}:#{client_secret}"
@@ -313,12 +319,12 @@ For special-character fixtures, a payload equal to `raw_pair` but not
 `encoded_pair` demonstrates the missing form-encoding step in that installed
 client. It does not demonstrate Microsoft's decoding behavior.
 
-Assert the intended transport contract when implementing a fix:
-
-- **RFC-compliant Basic:** the decoded Basic payload equals `encoded_pair`;
-  form-decoding each component recovers the original fixture bytes.
-- **Request-body authentication:** no Basic header is sent, and the decoded form
-  contains the original client ID and secret.
+The transport contract #4764 chose, and the spec asserts, is
+**request-body authentication**: no `Authorization` header is sent, and the
+decoded form contains the original client ID and secret. The alternative,
+**RFC-compliant Basic** (the decoded Basic payload equals `encoded_pair`, and
+form-decoding each component recovers the original fixture bytes), was not
+adopted for Entra.
 
 Capture the final request, not just `strategy.options`: options alone do not prove
 what the HTTP client sent. Plain credentials cannot distinguish raw Basic from
@@ -331,6 +337,8 @@ that the authorization-code grant and redirect URI remain unchanged.
 
 To test whether Basic encoding changes Microsoft's response, extend a diagnostic
 copy of the persisted-credential A/B procedure with a third transport variant.
+This investigates the header hypothesis for releases up to v0.26.16; a build
+with #4764 sends no Basic header during sign-in.
 Keep the stored values, endpoint, scope, and grant identical across variants:
 
 | Variant | Credential transport |
@@ -534,10 +542,13 @@ a session; use an authorized test account and the normal login route, not Connec
    second time: observe the normal exchange once, without copying or replaying codes.
 
 Step 4 requires deployment in the serving workers; loading the helper in
-`bin/console` cannot inspect another worker's in-memory strategy. A matching raw
-Basic header plus 7000215 establishes the outgoing representation and rejection,
-not Microsoft's internal decoding. Use the A/B/B2 comparison above to investigate
-that hypothesis.
+`bin/console` cannot inspect another worker's in-memory strategy. On a build with
+#4764 the observer should report `authorization_scheme: "none"` with
+`body_client_id_matches_stored` and `body_secret_matches_stored` both true; a
+Basic header on the live request means that worker runs a release up to
+v0.26.16. A matching raw Basic header plus 7000215 establishes the outgoing
+representation and rejection, not Microsoft's internal decoding. Use the A/B/B2
+comparison above to investigate that hypothesis.
 Until that request-level evidence exists, record **“stored A/B and isolated
 strategy succeed; UI failure not yet isolated”**, rather than claiming the secret
 is wrong or that the implementation is ruled out. Preserve the record while
@@ -567,6 +578,9 @@ Checking the platform settings costs the customer nothing, but those settings ar
 
 ## Recommendation
 
-**My recommendation:** switch Entra to sending the secret in the request body (`auth_scheme: :request_body`) whatever result B gives. That's the form Microsoft documents first, it works with any character in a secret, and it's a small change plus a spec pinning how the secret is sent. Tracked in [#4764](https://github.com/onetimesecret/onetimesecret/issues/4764), which also covers an optional `token_endpoint_auth_method` for generic OIDC.
+**Done:** Entra sends the secret in the request body (`client_options: { auth_scheme: :request_body }`) for both the platform registration and custom-domain tenants, whatever result B gives. That's the form Microsoft documents first, it works with any character in a secret, and the mounted Entra spec pins how the secret is sent. Landed in [#4764](https://github.com/onetimesecret/onetimesecret/issues/4764). A customer on an affected release gets the fix by upgrading; no configuration change is needed. See "How Onetime Secret sends the secret".
 
-Test Connection doesn't check the client secret, so they can only confirm the fix with a real sign-in. A possible follow-up, not urgent: have Test Connection verify the saved Entra secret by requesting a token with it, which needs no user sign-in. [sso-credential-health.md](./sso-credential-health.md) covers what such a probe does and does not prove, and the other checks that keep SSO credentials healthy.
+**Still open:**
+
+- The optional `token_endpoint_auth_method` option for generic OIDC is Part 2 of #4764 and has not landed. Generic OIDC is unchanged.
+- Test Connection doesn't check the client secret, so a customer can only confirm the fix with a real sign-in. A separate follow-up, not urgent: have Test Connection verify the saved Entra secret by requesting a token with it, which needs no user sign-in. [sso-credential-health.md](./sso-credential-health.md) covers what such a probe does and does not prove, and the other checks that keep SSO credentials healthy.
