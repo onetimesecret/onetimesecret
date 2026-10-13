@@ -66,7 +66,7 @@ module Onetime
         puts 'DNS Configuration:'
         puts "  TXT Validation Host:  #{domain.txt_validation_host || 'N/A'}"
         puts "  TXT Validation Value: #{domain.txt_validation_value || 'N/A'}"
-        puts "  Validation Record:    #{domain.validation_record || 'N/A'}"
+        puts "  Validation Record:    #{validation_record_line(domain)}"
         puts
 
         # Domain attributes
@@ -105,6 +105,15 @@ module Onetime
         puts "  Domain ID:            #{domain.domainid}"
         puts "  DB Key:               #{domain.dbkey}"
         puts
+      end
+
+      private
+
+      # The full TXT record name in A-label form, the name to create in DNS.
+      def validation_record_line(domain)
+        domain.validation_record || 'N/A'
+      rescue Onetime::DomainValidation::AsciiHostname::ConversionError => ex
+        "(no A-label form: #{ex.message})"
       end
     end
   end

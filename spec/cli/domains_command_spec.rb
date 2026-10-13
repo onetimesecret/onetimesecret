@@ -94,6 +94,16 @@ RSpec.describe 'Domains Command', type: :cli do
       expect(output[:stdout]).to include('example.com')
     end
 
+    it 'shows a TXT record name that has no A-label form without failing' do
+      allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(domain)
+      allow(domain).to receive(:validation_record)
+        .and_raise(Onetime::DomainValidation::AsciiHostname::ConversionError, 'does not fit the DNS name limits')
+
+      output = run_cli_command_quietly('domains', 'info', 'example.com')
+
+      expect(output[:stdout]).to include('Validation Record:    (no A-label form: does not fit the DNS name limits)')
+    end
+
     it 'handles non-existent domain' do
       allow(Onetime::CustomDomain).to receive(:load_by_display_domain).with('notfound.com').and_return(nil)
       allow(Onetime::CustomDomain).to receive(:find_by_extid).with('notfound.com').and_return(nil)
@@ -315,6 +325,32 @@ RSpec.describe 'Domains Command', type: :cli do
       expect(output[:stdout]).to include('SSL Ready:        unknown')
       expect(output[:stdout]).to include('Is Resolving:     unknown')
       expect(output[:stdout].scan('Status: UNKNOWN').size).to eq(2)
+      expect(last_exit_code).to eq(0)
+    end
+
+    it 'prints the A-label TXT record name for the dig command' do
+      allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(domain)
+      allow(domain).to receive(:validation_record).and_return('_onetime-challenge-abc1234.xn--bcher-kva.example.com')
+      allow(Onetime::Operations::AdminVerifyDomain).to receive(:new).and_return(double('AdminVerify', call: verify_result))
+
+      output = run_cli_command_quietly('domains', 'verify', 'example.com')
+
+      expect(output[:stdout]).to include(
+        'Expected: TXT record at _onetime-challenge-abc1234.xn--bcher-kva.example.com',
+        'dig TXT _onetime-challenge-abc1234.xn--bcher-kva.example.com +short',
+      )
+    end
+
+    it 'reports a TXT record name that has no A-label form instead of a dig command' do
+      allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(domain)
+      allow(domain).to receive(:validation_record)
+        .and_raise(Onetime::DomainValidation::AsciiHostname::ConversionError, 'does not fit the DNS name limits')
+      allow(Onetime::Operations::AdminVerifyDomain).to receive(:new).and_return(double('AdminVerify', call: verify_result))
+
+      output = run_cli_command_quietly('domains', 'verify', 'example.com')
+
+      expect(output[:stdout]).to include('TXT record name has no A-label form (does not fit the DNS name limits)')
+      expect(output[:stdout]).not_to include('dig TXT')
       expect(last_exit_code).to eq(0)
     end
 

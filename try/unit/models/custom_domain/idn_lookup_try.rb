@@ -28,9 +28,6 @@ require_relative '../../../../apps/internal/acme/application'
 @org    = Onetime::Organization.create!('IdnLookup Corp', @owner, "idn_lookup_#{@suffix}@corp.com")
 @org.define_singleton_method(:billing_enabled?) { false }
 
-# The Unicode label has to be in the registrable domain: a Unicode subdomain
-# label is refused at creation (it would end up in the TXT record host, which
-# validate_txt_record! keeps ASCII).
 @unicode_name = "bücher-#{@suffix}.com"
 @ascii_name   = SimpleIDN.to_ascii(@unicode_name)
 

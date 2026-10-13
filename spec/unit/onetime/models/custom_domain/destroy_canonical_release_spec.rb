@@ -33,8 +33,6 @@ RSpec.describe Onetime::CustomDomain, '#destroy! canonical release', :datastore 
   let(:releases) { [] }
   let(:records) { [] }
   let(:suffix) { SecureRandom.hex(4) }
-  # The Unicode label has to be in the registrable domain: a Unicode subdomain
-  # label is refused at creation (it would end up in the TXT record host).
   let(:unicode_name) { "bücher-#{suffix}.com" }
 
   before do

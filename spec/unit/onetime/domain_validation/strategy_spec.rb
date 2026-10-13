@@ -569,6 +569,58 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
 
       it_behaves_like 'an unavailable upstream checker settled natively', /Network error/
     end
+
+    # A real record, so the name comes from challenge generation rather than
+    # a stub. The checker and the native lookup both get the A-label name.
+    context 'with a Unicode subdomain' do
+      let(:custom_domain) do
+        Onetime::CustomDomain.parse('bücher.example.com', 'org-strategy-spec').tap(&:generate_txt_validation_record)
+      end
+      let(:shortid) { custom_domain.identifier.to_s[0..6] }
+      let(:a_label_name) { "_onetime-challenge-#{shortid}.xn--bcher-kva.example.com" }
+      let(:checker_answer) { { 'records' => [{ 'match' => true }] } }
+
+      before do
+        allow(Onetime::DomainValidation::ApproximatedClient).to receive(:check_records_match_exactly)
+          .and_return(double('Response', code: 200, parsed_response: checker_answer))
+      end
+
+      it 'sends the A-label record name to the checker' do
+        strategy.validate_ownership(custom_domain)
+
+        expect(Onetime::DomainValidation::ApproximatedClient).to have_received(:check_records_match_exactly)
+          .with('test_api_key', [{ type: 'TXT', address: a_label_name, match_against: custom_domain.txt_validation_value }])
+      end
+
+      it 'keeps the display spelling of the domain' do
+        strategy.validate_ownership(custom_domain)
+
+        expect([custom_domain.display_domain, custom_domain.trd]).to eq(['bücher.example.com', 'bücher'])
+      end
+
+      context 'when the record host was stored with the Unicode subdomain label' do
+        before { custom_domain.txt_validation_host = "_onetime-challenge-#{shortid}.bücher" }
+
+        it 'sends the A-label record name to the checker' do
+          strategy.validate_ownership(custom_domain)
+
+          expect(Onetime::DomainValidation::ApproximatedClient).to have_received(:check_records_match_exactly)
+            .with('test_api_key', [hash_including(address: a_label_name)])
+        end
+      end
+
+      context 'when the checker has no answer and the native lookup decides' do
+        let(:checker_answer) { {} }
+
+        it 'reports the A-label record name in the native result' do
+          allow(OT).to receive(:lw)
+
+          result = strategy.validate_ownership(custom_domain)
+
+          expect(result[:data]).to contain_exactly(hash_including('address' => a_label_name, 'rcode' => 'NXDOMAIN'))
+        end
+      end
+    end
   end
 
   describe '#request_certificate' do

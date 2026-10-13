@@ -631,27 +631,24 @@ module Onetime
     # The record consists of:
     # - A prefix (_onetime-challenge-)
     # - First 7 chars of the domain identifier
-    # - Subdomain parts if present (e.g. .www or .status.www)
+    # - Subdomain parts if present, as A-labels (e.g. .www, .status.www, or
+    #   .xn--bcher-kva for bücher.example.com)
     # - A 32-char random hex value
     #
+    # The host is relative to base_domain; validation_record is the full
+    # name. display_domain, trd and base_domain keep the spelling the
+    # customer typed.
+    #
     # @return [Array<String, String>] The TXT record host and value
-    # @raise [Onetime::Problem] If the generated record is invalid
+    # @raise [Onetime::Problem] If the full record name does not fit the DNS
+    #   name limits, or the generated record is invalid
     #
     # Examples:
     #   _onetime-challenge-domainid -> 7709715a6411631ce1d447428d8a70
     #   _onetime-challenge-domainid.status -> cd94fec5a98fd33a0d70d069acaae9
     #
     def generate_txt_validation_record
-      # Include a short identifier that is unique to this domain. This
-      # allows for multiple customers to use the same domain without
-      # conflicting with each other.
-      shortid     = identifier.to_s[0..6]
-      record_host = "#{self.class.txt_validation_prefix}-#{shortid}"
-
-      # Append the TRD if it exists. This allows for multiple subdomains
-      # to be used for the same domain.
-      # e.g. The `status` in status.example.com.
-      record_host = "#{record_host}.#{trd}" unless trd.to_s.empty?
+      record_host = txt_challenge_host
 
       # The value needs to be sufficiently unique and non-guessable to
       # function as a challenge response. IOW, if we check the DNS for
@@ -671,16 +668,56 @@ module Onetime
       [record_host, record_value]
     end
 
-    # The fully qualified domain name for the TXT record.
+    # The TXT challenge host for this domain, relative to base_domain:
+    # "<prefix>-<short id>[.<trd>]", with the trd in A-label form because it
+    # is part of a DNS name.
+    #
+    # Also checks that the full record name fits the DNS name limits. That
+    # name is 27 bytes longer than the display domain, so a domain can fit
+    # while its challenge does not. parse calls this so such a domain is
+    # refused before create! claims it.
+    #
+    # @return [String]
+    # @raise [Onetime::Problem] if the full record name does not fit
+    def txt_challenge_host
+      # Include a short identifier that is unique to this domain. This
+      # allows for multiple customers to use the same domain without
+      # conflicting with each other.
+      host = "#{self.class.txt_validation_prefix}-#{identifier.to_s[0..6]}"
+
+      # Append the TRD if it exists. This allows for multiple subdomains
+      # to be used for the same domain.
+      # e.g. The `status` in status.example.com.
+      host = "#{host}.#{Onetime::DomainValidation::AsciiHostname.call(trd)}" unless trd.to_s.empty?
+
+      Onetime::DomainValidation::AsciiHostname.call("#{host}.#{base_domain}")
+      host
+    rescue Onetime::DomainValidation::AsciiHostname::ConversionError => ex
+      # A parsed display domain already converts, so the length is what fails.
+      OT.ld "[CustomDomain] No TXT challenge name for #{display_domain.inspect}: #{ex.message}"
+      raise Onetime::Problem, 'Domain too long for its TXT validation record'
+    end
+
+    # The fully qualified name of the TXT record, in A-label form.
     #
     # Used to validate the domain ownership by the customer: through the
     # Approximated check_records API, or our own TXT lookup
-    # (DomainValidation::TxtVerifier) depending on the strategy.
+    # (DomainValidation::TxtVerifier) depending on the strategy. Both need
+    # the name as it goes on the wire, while base_domain is stored as typed.
+    # Converting here, rather than trusting the stored host, also covers a
+    # host stored with a Unicode subdomain label by earlier versions.
     #
-    # e.g. `_onetime-challenge-domainid.froogle.com`
+    # e.g. `_onetime-challenge-domainid.froogle.com`, or
+    # `_onetime-challenge-domainid.xn--bcher-kva.example.com` for
+    # bücher.example.com
     #
+    # @return [String, nil] nil until a challenge has been generated
+    # @raise [Onetime::DomainValidation::AsciiHostname::ConversionError] if
+    #   the stored name has no A-label form within the DNS name limits
     def validation_record
-      [txt_validation_host, base_domain].join('.')
+      return nil if txt_validation_host.to_s.empty?
+
+      Onetime::DomainValidation::AsciiHostname.call("#{txt_validation_host}.#{base_domain}")
     end
 
     # Derived lifecycle label, not an additional ownership check.
@@ -1116,7 +1153,8 @@ module Onetime
       # @raise [PublicSuffix::DomainInvalid] If domain is invalid
       # @raise [PublicSuffix::DomainNotAllowed] If domain is not allowed
       # @raise [PublicSuffix::Error] For other PublicSuffix errors
-      # @raise [Onetime::Problem] If domain exceeds MAX_SUBDOMAIN_DEPTH or MAX_TOTAL_LENGTH
+      # @raise [Onetime::Problem] If domain exceeds MAX_SUBDOMAIN_DEPTH or MAX_TOTAL_LENGTH,
+      #   or its TXT challenge record name would not fit the DNS name limits
       #
       # @note BREAKING CHANGE: Second parameter changed from custid to org_id.
       #   See {create!} for migration details.
@@ -1141,6 +1179,9 @@ module Onetime
         OT.ld "[CustomDomain.parse] Creating with display_domain=#{display_domain.inspect}, org_id=#{org_id.inspect}"
         obj                 = new(display_domain: display_domain, org_id: org_id)
         obj._original_value = input
+        # The TXT challenge name is longer than the domain: refuse a domain
+        # whose challenge cannot fit before anything is claimed.
+        obj.txt_challenge_host
 
         # Debug the created object
         OT.ld "[CustomDomain.parse] display_domain=#{obj.display_domain.inspect}, org_id=#{obj.org_id.inspect}, identifier=#{obj.identifier.inspect}"
