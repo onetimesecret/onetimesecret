@@ -48,6 +48,17 @@ module Onetime
         end
       end
 
+      # The platform variable. An unknown value is logged and treated as
+      # blank rather than raised: strategy_options runs at boot, and a typo
+      # in an optional variable must not take the provider (or the boot)
+      # down — the install keeps the gem default (:basic).
+      def self.env_client_auth_method
+        client_auth_method_for(ENV.fetch('OIDC_CLIENT_AUTH_METHOD', ''))
+      rescue ArgumentError => ex
+        OT.lw "[OmniAuth] Ignoring OIDC_CLIENT_AUTH_METHOD: #{ex.message}"
+        nil
+      end
+
       DEFINITION = {
         key: :oidc,
         label: 'OIDC',
@@ -92,6 +103,8 @@ module Onetime
             client_options: client_opts,
             discovery: true,
             pkce: true,
+            # nil = gem default (:basic). See CLIENT_AUTH_METHODS.
+            client_auth_method: env_client_auth_method,
           }
         },
       }.freeze
