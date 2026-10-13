@@ -342,6 +342,9 @@ protects "a v* tag publishes images only after ci-verdict succeeded for that com
 assert_contains "publish-oci needs ci-verdict" "    needs: [ci-verdict]" "$publish_job"
 assert_contains "publish-oci calls the OCI workflow" \
   "    uses: ./.github/workflows/build-and-publish-oci-images.yml" "$publish_job"
+
+protects "a called workflow gets no repository secrets unless the caller passes them: without them the registry logins and Sentry steps run with empty credentials"
+assert_contains "publish-oci passes secrets: inherit" "    secrets: inherit" "$publish_job"
 assert_contains "publish-oci requires a successful verdict" "needs.ci-verdict.result == 'success'" "$publish_if"
 assert_contains "publish-oci runs on push events only" "github.event_name == 'push'" "$publish_if"
 assert_contains "publish-oci runs on v* tags only" "startsWith(github.ref, 'refs/tags/v')" "$publish_if"
@@ -376,6 +379,13 @@ oci_triggers="$(awk '/^on:$/{f=1;next} f&&/^[^ #]/{exit} f&&/^  [a-z_]+:/{sub(/:
   | sort | tr '\n' ' ')"
 assert_eq "OCI workflow triggers are workflow_call, schedule and workflow_dispatch" \
   "schedule workflow_call workflow_dispatch " "$oci_triggers"
+
+protects "a newer run on a v* tag must wait, not cancel the run in progress: cancelling publish-oci part-way through a multi-image push leaves some registry tags moved and others not"
+ci_concurrency="$(awk '/^concurrency:$/{f=1;next} f&&/^[^ ]/{exit} f' "$WORKFLOW")"
+assert_contains "ci.yml cancel-in-progress is off for v* tags" \
+  "  cancel-in-progress: \${{ !startsWith(github.ref, 'refs/tags/v') }}" "$ci_concurrency"
+assert_contains "ci.yml concurrency group is keyed on the ref" \
+  "  group: ci-\${{ github.workflow }}-\${{ github.ref }}" "$ci_concurrency"
 
 protects "ci.yml must still run on a v* tag push, or no release image is published at all"
 ci_push="$(awk '/^on:$/{f=1;next} f&&/^[^ #]/{exit} f&&/^  push:$/{p=1;next} p&&/^  [a-z_]+:/{exit} p' "$WORKFLOW")"

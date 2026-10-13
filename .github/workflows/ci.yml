@@ -112,9 +112,15 @@ on:
 permissions:
   contents: read
 
+# A newer run on the same ref cancels the one in progress, except on a v* tag:
+# a tag run may be inside publish-oci, and cancelling a multi-image push
+# part-way can leave some registry tags moved and others not. A tag run
+# (a re-pushed tag, or a dispatch on the tag ref) waits instead. Only one run
+# waits per group: a newer one replaces it, so the latest push still
+# publishes last.
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/v') }}
 
 jobs:
   # ============================================================================
@@ -1256,10 +1262,9 @@ jobs:
   # fails on a skipped job further up the chain (actions/runner#2205).
   # hygiene is skipped on every push, so the implicit form would skip this
   # job on every tag. ci-verdict already judges those skips, so its result is
-  # the gate. !cancelled() rather than always(): a run cancelled after the
-  # verdict (a re-pushed tag supersedes it through the concurrency group
-  # above) must not start a publish; the new run publishes after its own
-  # verdict.
+  # the gate. !cancelled() rather than always(): a run cancelled by hand after
+  # the verdict must not start a publish. A newer run on the same tag does not
+  # cancel this one; it waits (see `concurrency` at the top of this file).
   #
   # permissions: a called workflow can only narrow the token this job grants,
   # so this must cover every scope the called workflow requests. GitHub checks

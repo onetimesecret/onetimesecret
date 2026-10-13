@@ -226,7 +226,11 @@ def triggers():
     concurrency = block(workflow, "concurrency", 0)
     check(scalar(concurrency, "group", 2) == "ci-" + expression("github.workflow")
           + "-" + expression("github.ref"), "one concurrency group per ref")
-    check(scalar(concurrency, "cancel-in-progress", 2) == "true", "a new push supersedes the run before it")
+    # Off for v* tags only: a tag run may be inside publish-oci, and a newer
+    # run on that tag waits for it (ci-verdict-test.sh pins the reason).
+    check(scalar(concurrency, "cancel-in-progress", 2)
+          == expression("!startsWith(github.ref, 'refs/tags/v')"),
+          "a new push supersedes the run before it, except on a v* tag")
 
 
 def shared_wiring():
