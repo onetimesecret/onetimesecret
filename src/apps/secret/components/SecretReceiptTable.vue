@@ -121,7 +121,7 @@ defineProps<Props>();
           <div class="flex flex-col items-center justify-center">
             <OIcon
               collection="heroicons"
-              name="inbox"
+              name="inbox-arrow-down"
               class="mb-3 size-10 text-gray-400 dark:text-gray-500"
               aria-hidden="true" />
             <p class="text-gray-600 dark:text-gray-400">
