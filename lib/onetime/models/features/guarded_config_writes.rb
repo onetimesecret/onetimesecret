@@ -18,8 +18,11 @@ module Onetime
       # the read and the write then run again (ATTEMPTS in all).
       #
       # WATCH, the read and MULTI/EXEC must share one connection, so they run
-      # inside Onetime.with_pinned_dbclient. A partial boot has no pool; the
-      # model's own client serves all three there.
+      # inside Onetime.with_pinned_dbclient. These methods end with UNWATCH,
+      # so they must not be called while the caller holds its own WATCH on
+      # the pinned connection. Without a pool (partial boots only) Familia
+      # may resolve each command to a new client, and the guard does not
+      # hold; the write then behaves like a plain commit_fields.
       #
       # Enable with +feature :guarded_config_writes+. The model's identifier
       # must be its domain_id.
