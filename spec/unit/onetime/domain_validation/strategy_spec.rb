@@ -570,6 +570,26 @@ RSpec.describe Onetime::DomainValidation::ApproximatedStrategy do
       it_behaves_like 'an unavailable upstream checker settled natively', /Network error/
     end
 
+    # Nothing to check: neither the checker nor the native lookup is asked,
+    # and the result does not demote.
+    context 'when the domain has no TXT challenge' do
+      [
+        ['no record name', { validation_record: nil }],
+        ['no challenge value', { txt_validation_value: nil }],
+      ].each do |label, overrides|
+        it "is indeterminate without asking either checker (#{label})" do
+          overrides.each { |name, value| allow(custom_domain).to receive(name).and_return(value) }
+          allow(Onetime::DomainValidation::ApproximatedClient).to receive(:check_records_match_exactly)
+
+          result = strategy.validate_ownership(custom_domain)
+
+          expect(result).to include(validated: nil, indeterminate: true, message: /not configured/)
+          expect(Onetime::DomainValidation::ApproximatedClient).not_to have_received(:check_records_match_exactly)
+          expect(resolver).not_to have_received(:lookup)
+        end
+      end
+    end
+
     # A real record, so the name comes from challenge generation rather than
     # a stub. The checker and the native lookup both get the A-label name.
     context 'with a Unicode subdomain' do
