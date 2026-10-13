@@ -969,9 +969,7 @@ module Onetime
         # console, CLI tooling, and future endpoints. Enforce the
         # invariant at the write gate so no caller can register the
         # canonical domain or a subdomain of it (#3841).
-        if overlaps_canonical_domain?(normalized_domain)
-          raise Onetime::Problem, 'This domain overlaps with the default site domain'
-        end
+        refuse_canonical_overlap!(normalized_domain)
 
         # Check for existing domain BEFORE attempting creation
         existing = load_by_display_domain(normalized_domain)
@@ -1350,6 +1348,19 @@ module Onetime
       #
       # Placed before entitlement checks in AddDomain so it is absolute
       # (no colonel bypass) — this is a system-integrity invariant.
+      # The write-gate form of overlaps_canonical_domain?, shared by create!
+      # and IdentityGuard (a new record saved without create!) so the two
+      # cannot drift. Raises before anything is claimed or written.
+      #
+      # @param domain_name [String] display domain of the record to register
+      # @raise [Onetime::Problem] when the name overlaps a canonical host
+      # @return [void]
+      def refuse_canonical_overlap!(domain_name)
+        return unless overlaps_canonical_domain?(domain_name)
+
+        raise Onetime::Problem, 'This domain overlaps with the default site domain'
+      end
+
       def overlaps_canonical_domain?(input)
         hosts = canonical_hosts
         return false if hosts.empty?

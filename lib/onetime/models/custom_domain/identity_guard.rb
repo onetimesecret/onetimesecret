@@ -12,11 +12,12 @@ module Onetime
     # every other write:
     #
     # - A full write (save, commit_fields, save_if_not_exists!) of a record
-    #   that is not stored yet claims the canonical name first, and refuses
-    #   when the name belongs to another record or has no A-label form. A
-    #   claim this write created is released again if the write does not
-    #   land. create! has already claimed the name, so here the claim is
-    #   :owned and stays create!'s to release.
+    #   that is not stored yet gets create!'s canonical-host check
+    #   (refuse_canonical_overlap!), then claims the canonical name, and
+    #   refuses when the name belongs to another record or has no A-label
+    #   form. A claim this write created is released again if the write
+    #   does not land. create! has already claimed the name, so here the
+    #   claim is :owned and stays create!'s to release.
     # - A full write of a stored record passes through unchanged when its
     #   identity fields match what is stored, without reading the canonical
     #   index. Records registered before the index existed have no entry and
@@ -109,6 +110,8 @@ module Onetime
         # Not stored yet. A blank name has nothing to claim (save refuses it).
         return yield if display_domain.to_s.empty?
 
+        # The same canonical-host check create! applies, before the claim.
+        self.class.refuse_canonical_overlap!(display_domain.to_s.downcase)
         canonical, created = claim_canonical_for_new_record!
         begin
           result = yield

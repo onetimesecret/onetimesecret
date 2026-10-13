@@ -129,6 +129,54 @@ RSpec.describe Onetime::CustomDomain, 'canonical claim guard', :datastore do
 
       expect(index.get(ascii_name)).to eq(rec.identifier)
     end
+
+    # The same canonical-host check create! applies: no record may be
+    # registered under a host the deployment serves, or a subdomain of its
+    # anchor host's base domain. The canonical host set is stubbed at its
+    # single derivation point, so the example does not depend on the lane's
+    # site.host.
+    context 'when the name overlaps the canonical site host' do
+      let(:site_host) { "app.guard-#{suffix}.net" }
+      let(:overlap_message) { 'This domain overlaps with the default site domain' }
+
+      before do
+        allow(Onetime::Utils::CanonicalHosts).to receive_messages(
+          normalized_hosts: [site_host], normalized_anchor_hosts: [site_host],
+        )
+      end
+
+      after { [site_host, "secrets.guard-#{suffix}.net"].each { |name| index.remove_field(name) } }
+
+      {
+        'save' => ->(rec) { rec.save },
+        'commit_fields' => ->(rec) { rec.commit_fields },
+        'save_if_not_exists!' => ->(rec) { rec.save_if_not_exists! },
+      }.each do |writer, write|
+        {
+          'the site host itself' => ->(suffix) { "app.guard-#{suffix}.net" },
+          'a subdomain under the site host\'s base domain' => ->(suffix) { "secrets.guard-#{suffix}.net" },
+        }.each do |label, name_for|
+          it "refuses #{label} on #{writer}, and writes and claims nothing" do
+            name = name_for.call(suffix)
+            rec  = build(name)
+
+            expect { write.call(rec) }.to raise_error(Onetime::Problem, overlap_message)
+            expect([rec.exists?, index.get(name), described_class.display_domain_index.get(name)])
+              .to eq([false, nil, nil])
+          end
+        end
+      end
+    end
+
+    it 'does not apply the canonical-host check to a record that is already stored' do
+      rec = create
+      allow(Onetime::Utils::CanonicalHosts).to receive_messages(
+        normalized_hosts: [unicode_name], normalized_anchor_hosts: [unicode_name],
+      )
+      rec.status = 'reviewed'
+
+      expect([rec.save, reload(rec).status]).to eq([true, 'reviewed'])
+    end
   end
 
   describe 'a stored record' do
