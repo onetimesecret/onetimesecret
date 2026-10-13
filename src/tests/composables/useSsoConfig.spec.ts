@@ -1610,6 +1610,176 @@ describe('useSsoConfig', () => {
   });
 
   // ---------------------------------------------------------------------------
+  // testResult is bound to the fields it was run against (#4764 review)
+  // ---------------------------------------------------------------------------
+
+  describe('testResult staleness', () => {
+    const oidcSuccess: TestSsoConnectionResponse = {
+      ...mockTestSuccessResponse,
+      provider_type: 'oidc',
+      details: {
+        ...mockTestSuccessResponse.details,
+        token_endpoint_auth_methods_supported: ['client_secret_basic'],
+        token_endpoint_auth_method_supported: false,
+      },
+    };
+
+    const testedOidc = async () => {
+      mockGetConfigForDomain.mockResolvedValue({
+        record: { ...mockOidcConfigData, token_endpoint_auth_method: 'client_secret_post' },
+      });
+      mockTestConnectionForDomain.mockResolvedValue(oidcSuccess);
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+      await composable.testConnection();
+      expect(composable.testResult.value).toEqual(oidcSuccess);
+      return composable;
+    };
+
+    it('clears the result when token_endpoint_auth_method changes', async () => {
+      const composable = await testedOidc();
+
+      composable.formState.value = {
+        ...composable.formState.value,
+        token_endpoint_auth_method: 'client_secret_basic',
+      };
+
+      expect(composable.testResult.value).toBeNull();
+      expect(composable.testError.value).toBe('');
+    });
+
+    it('clears the result when issuer changes', async () => {
+      const composable = await testedOidc();
+
+      composable.formState.value = {
+        ...composable.formState.value,
+        issuer: 'https://other.example.com',
+      };
+
+      expect(composable.testResult.value).toBeNull();
+    });
+
+    it.each(['client_id', 'provider_type'] as const)(
+      'clears the result when %s changes',
+      async (field) => {
+        const composable = await testedOidc();
+
+        composable.formState.value = {
+          ...composable.formState.value,
+          [field]: field === 'provider_type' ? 'entra_id' : 'other-client',
+        };
+
+        expect(composable.testResult.value).toBeNull();
+      }
+    );
+
+    it('clears a failure result (and testError) on an edit too', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
+      mockTestConnectionForDomain.mockResolvedValue(mockTestFailureResponse);
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+      await composable.testConnection();
+      expect(composable.testError.value).toBe(mockTestFailureResponse.message);
+
+      composable.formState.value = { ...composable.formState.value, tenant_id: 'other-tenant' };
+
+      expect(composable.testResult.value).toBeNull();
+      expect(composable.testError.value).toBe('');
+    });
+
+    it('keeps the result when a field the test does not send changes', async () => {
+      const composable = await testedOidc();
+
+      composable.formState.value = {
+        ...composable.formState.value,
+        display_name: 'Renamed',
+        client_secret: 'rotated-secret',
+        allowed_domains: ['new.example.com'],
+        enabled: true,
+        enforce_sso_only: true,
+        grant_org_scope: true,
+      };
+
+      expect(composable.testResult.value).toEqual(oidcSuccess);
+    });
+
+    it('keeps the result when a change is a no-op for the test payload (whitespace)', async () => {
+      const composable = await testedOidc();
+
+      composable.formState.value = {
+        ...composable.formState.value,
+        issuer: '  https://idp.example.com  ',
+      };
+
+      expect(composable.testResult.value).toEqual(oidcSuccess);
+    });
+
+    it('keeps the result when saveConfig hydrates the form from the saved record', async () => {
+      const composable = await testedOidc();
+      // Server-normalised record: same config, a different representation.
+      mockSaveConfigForDomain.mockResolvedValue({
+        record: {
+          ...mockOidcConfigData,
+          token_endpoint_auth_method: 'client_secret_post',
+          issuer: 'https://idp.example.com/',
+          display_name: 'Saved',
+        },
+      });
+
+      await composable.saveConfig();
+
+      expect(composable.formState.value.issuer).toBe('https://idp.example.com/');
+      expect(composable.testResult.value).toEqual(oidcSuccess);
+
+      // The hydrated values are the new anchor: an edit from them still clears.
+      composable.formState.value = { ...composable.formState.value, issuer: 'https://x.example' };
+      expect(composable.testResult.value).toBeNull();
+    });
+
+    it('keeps the result when initialize hydrates the form again', async () => {
+      const composable = await testedOidc();
+      mockGetConfigForDomain.mockResolvedValue({
+        record: { ...mockOidcConfigData, token_endpoint_auth_method: 'client_secret_basic' },
+      });
+
+      await composable.initialize();
+
+      expect(composable.formState.value.token_endpoint_auth_method).toBe('client_secret_basic');
+      expect(composable.testResult.value).toEqual(oidcSuccess);
+    });
+
+    it('discards a result for values edited away while the test was in flight', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: mockOidcConfigData });
+      let resolveTest: (value: TestSsoConnectionResponse) => void = () => {};
+      mockTestConnectionForDomain.mockReturnValue(
+        new Promise<TestSsoConnectionResponse>((resolve) => {
+          resolveTest = resolve;
+        })
+      );
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      const pending = composable.testConnection();
+      composable.formState.value = {
+        ...composable.formState.value,
+        issuer: 'https://changed.example.com',
+      };
+      resolveTest(oidcSuccess);
+      await pending;
+
+      expect(composable.testResult.value).toBeNull();
+    });
+
+    it('clears the result on deleteConfig', async () => {
+      const composable = await testedOidc();
+
+      await composable.deleteConfig();
+
+      expect(composable.testResult.value).toBeNull();
+    });
+  });
+
+  // ---------------------------------------------------------------------------
   // Initial state
   // ---------------------------------------------------------------------------
 
