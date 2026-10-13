@@ -19,7 +19,7 @@ require_relative '../features/boolean_encoding'
 #
 # Strategy Types:
 #   - passthrough:      Format check only (BASIC_FORMAT regex)
-#   - domain_allowlist: Email domain must be in the effective allowlist —
+#   - domain_allowlist: Email domain must be in the effective allowlist:
 #                       allowed_signup_domains plus, when allow_base_domain
 #                       is set, the custom domain's own registrable domain
 #                       (CustomDomain#base_domain: secrets.corp.com → corp.com),
@@ -251,8 +251,8 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
   #
   # Read from the domain record on each call rather than copied into this
   # record, so a renamed domain is followed automatically. nil when the
-  # domain record is missing or carries no base_domain — allow_base_domain
-  # then adds nothing (fail closed), it never falls back to allow-all.
+  # domain record is missing or carries no base_domain; allow_base_domain
+  # then adds nothing (fail closed) and never falls back to allow-all.
   #
   # @return [String, nil]
   def base_domain
@@ -635,7 +635,7 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
   # read (corrupt JSON) or an empty effective list cannot admit anyone: the
   # empty list is already an invalid configuration (see validation_errors),
   # and the colonel upsert path can persist it without running those checks.
-  # A corrupt list denies even when allow_base_domain is set — the stored
+  # A corrupt list denies even when allow_base_domain is set: the stored
   # restriction cannot be read, so nothing about it is trusted. The
   # effective list is empty with the flag set only when the domain record
   # is missing or has no base_domain. valid_email_domain? keeps its
