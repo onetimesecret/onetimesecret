@@ -2032,6 +2032,40 @@ RSpec.describe Core::Views::ConfigSerializer do
         end
       end
 
+      # Markdown secrets: DEFAULT-OFF (opt-in), like geo_country_enabled. Only
+      # an explicit true shows the create forms' Markdown control.
+      describe 'markdown (default-OFF opt-in contract)' do
+        def view_vars_with_markdown(markdown)
+          base_view_vars.merge(
+            'features' => base_view_vars['features'].merge('markdown' => markdown),
+          )
+        end
+
+        it 'is false when the key is absent (older config file)' do
+          result = described_class.build_feature_flags(base_view_vars)
+
+          expect(result['markdown']).to be false
+        end
+
+        it 'is true only when explicitly true' do
+          result = described_class.build_feature_flags(view_vars_with_markdown('enabled' => true))
+
+          expect(result['markdown']).to be true
+        end
+
+        it "enables on the string 'true' (ERB-stringified config)" do
+          result = described_class.build_feature_flags(view_vars_with_markdown('enabled' => 'true'))
+
+          expect(result['markdown']).to be true
+        end
+
+        it 'stays false for explicit false' do
+          result = described_class.build_feature_flags(view_vars_with_markdown('enabled' => false))
+
+          expect(result['markdown']).to be false
+        end
+      end
+
       # secret_activity is the data-existence axis (#3990): whether events are
       # recorded at all (SECRET_ACTIVITY_COLLECT) and how many are retained
       # (SECRET_ACTIVITY_MAX_EVENTS). Same default-true / opt-out contract as

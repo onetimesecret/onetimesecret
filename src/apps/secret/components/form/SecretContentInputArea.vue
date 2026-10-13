@@ -2,11 +2,13 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
+  import MarkdownPreview from '@/shared/components/ui/MarkdownPreview.vue';
   import { useCharCounter } from '@/shared/composables/useCharCounter';
   import { useTextarea } from '@/shared/composables/useTextarea';
+  import { SecretDisplayType } from '@/schemas/contracts/secret';
   import { computed, watch } from 'vue';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
   const props = withDefaults(
     defineProps<{
@@ -16,6 +18,14 @@ const { t } = useI18n();
       disabled?: boolean;
       minHeight?: number;
       maxHeight?: number;
+      /**
+       * How the recipient will see the content. 'markdown' turns the plain
+       * textarea into a hybrid editor: the raw Markdown stays editable and a
+       * sanitized live preview renders beneath it. The parent owns the field
+       * and its control (SecretForm puts the switch under Advanced Options);
+       * forms whose endpoint takes no display_type leave it unbound.
+       */
+      displayType?: SecretDisplayType;
     }>(),
     {
       maxLength: 10000,
@@ -27,7 +37,9 @@ const { t } = useI18n();
     }
   );
 
-  const emit = defineEmits(['update:content']);
+  const emit = defineEmits<{
+    (e: 'update:content', content: string): void;
+  }>();
 
   const { content, charCount, textareaRef, checkContentLength, clearTextarea } = useTextarea({
     maxLength: props.maxLength || 10000,
@@ -52,6 +64,8 @@ const { t } = useI18n();
     return 'bg-red-400 dark:bg-red-500';
   });
 
+  const isMarkdown = computed(() => props.displayType === SecretDisplayType.MARKDOWN);
+
   // Watch for changes to emit updates
   watch(content, (newContent) => {
     emit('update:content', newContent);
@@ -61,66 +75,73 @@ const { t } = useI18n();
 </script>
 
 <template>
-  <div class="relative">
-    <!-- <div
-      id="textarea-focus-announcement"
-      aria-live="polite"
-      class="sr-only">
-      {{ t('web.COMMON.focus_is_now_in_the_main_text_area') }}
-    </div> -->
-    <!-- prettier-ignore-attribute class -->
-    <textarea
-      ref="textareaRef"
-      v-model="content"
-      :disabled="disabled"
-      @input="checkContentLength"
-      :maxlength="maxLength"
-      :class="[cornerClass]"
-      :style="{ minHeight: minHeight + 'px', maxHeight: maxHeight + 'px' }"
-      class="
-        block w-full resize-none
-        rounded-lg border border-gray-200/60 p-5
-        font-mono text-base leading-relaxed
-        text-gray-900 transition-all
-        duration-300 placeholder:text-gray-400
-        bg-white/80 backdrop-blur-sm
-        hover:border-gray-300/80 hover:bg-white/90
-        focus:border-blue-500/80 focus:bg-white
-        focus:ring-4 focus:ring-blue-500/20
-        disabled:bg-gray-50/80 disabled:text-gray-500
-        dark:border-gray-700/60 dark:bg-slate-800/80
-        dark:text-white dark:placeholder:text-gray-500
-        dark:hover:border-gray-600/80 dark:hover:bg-slate-800/90
-        dark:focus:border-blue-400/80 dark:focus:bg-slate-800
-        dark:focus:ring-blue-400/20
-        dark:disabled:bg-slate-900/50
-      "
-      :placeholder="t('web.COMMON.secret_placeholder')"
-      :aria-label="t('web.secrets.enter_the_secret_content_here')"
-      data-testid="secret-content-input">
-    </textarea>
+  <div>
+    <div class="relative">
+      <!-- <div
+        id="textarea-focus-announcement"
+        aria-live="polite"
+        class="sr-only">
+        {{ t('web.COMMON.focus_is_now_in_the_main_text_area') }}
+      </div> -->
+      <!-- prettier-ignore-attribute class -->
+      <textarea
+        ref="textareaRef"
+        v-model="content"
+        :disabled="disabled"
+        @input="checkContentLength"
+        :maxlength="maxLength"
+        :class="[cornerClass]"
+        :style="{ minHeight: minHeight + 'px', maxHeight: maxHeight + 'px' }"
+        class="
+          block w-full resize-none
+          rounded-lg border border-gray-200/60 p-5
+          font-mono text-base leading-relaxed
+          text-gray-900 transition-all
+          duration-300 placeholder:text-gray-400
+          bg-white/80 backdrop-blur-sm
+          hover:border-gray-300/80 hover:bg-white/90
+          focus:border-blue-500/80 focus:bg-white
+          focus:ring-4 focus:ring-blue-500/20
+          disabled:bg-gray-50/80 disabled:text-gray-500
+          dark:border-gray-700/60 dark:bg-slate-800/80
+          dark:text-white dark:placeholder:text-gray-500
+          dark:hover:border-gray-600/80 dark:hover:bg-slate-800/90
+          dark:focus:border-blue-400/80 dark:focus:bg-slate-800
+          dark:focus:ring-blue-400/20
+          dark:disabled:bg-slate-900/50
+        "
+        :placeholder="t('web.COMMON.secret_placeholder')"
+        :aria-label="t('web.secrets.enter_the_secret_content_here')"
+        data-testid="secret-content-input">
+      </textarea>
 
-    <!--
-      Generally speaking, v-if has higher toggle costs while v-show has higher
-      initial render costs. So prefer v-show if you need to toggle something
-      very often, and prefer v-if if the condition is unlikely to change at
-      runtime. -- https://vuejs.org/guide/essentials/conditional.html#v-if-vs-v-show
-    -->
-    <!-- prettier-ignore-attribute class -->
-    <div
-      v-if="showCounter"
-      class="pointer-events-none absolute bottom-4 right-4 flex select-none items-center gap-2
-        rounded-full bg-white/95 px-3.5 py-1.5 text-sm
-        shadow-[0_4px_12px_rgba(0,0,0,0.1),0_1px_3px_rgba(0,0,0,0.08)]
-        backdrop-blur-md transition-all duration-300 border border-gray-200/40
-        dark:bg-gray-800/95 dark:border-gray-700/40
-        dark:shadow-[0_4px_12px_rgba(0,0,0,0.3),0_1px_3px_rgba(0,0,0,0.2)]">
-      <span
-        :class="[statusColor, 'size-2.5 rounded-full shadow-sm']"
-        aria-hidden="true"></span>
-      <span class="font-semibold text-gray-700 dark:text-gray-300 tabular-nums">
-        {{ formattedCharCount }} / {{ formattedMaxLength }}
-      </span>
+      <!--
+        Generally speaking, v-if has higher toggle costs while v-show has higher
+        initial render costs. So prefer v-show if you need to toggle something
+        very often, and prefer v-if if the condition is unlikely to change at
+        runtime. -- https://vuejs.org/guide/essentials/conditional.html#v-if-vs-v-show
+      -->
+      <!-- prettier-ignore-attribute class -->
+      <div
+        v-if="showCounter"
+        class="pointer-events-none absolute bottom-4 right-4 flex select-none items-center gap-2
+          rounded-full bg-white/95 px-3.5 py-1.5 text-sm
+          shadow-[0_4px_12px_rgba(0,0,0,0.1),0_1px_3px_rgba(0,0,0,0.08)]
+          backdrop-blur-md transition-all duration-300 border border-gray-200/40
+          dark:bg-gray-800/95 dark:border-gray-700/40
+          dark:shadow-[0_4px_12px_rgba(0,0,0,0.3),0_1px_3px_rgba(0,0,0,0.2)]">
+        <span
+          :class="[statusColor, 'size-2.5 rounded-full shadow-sm']"
+          aria-hidden="true"></span>
+        <span class="font-semibold text-gray-700 tabular-nums dark:text-gray-300">
+          {{ formattedCharCount }} / {{ formattedMaxLength }}
+        </span>
+      </div>
     </div>
+
+    <MarkdownPreview
+      v-if="isMarkdown"
+      :source="content"
+      :corner-class="cornerClass" />
   </div>
 </template>

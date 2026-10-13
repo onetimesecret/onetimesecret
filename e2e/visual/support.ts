@@ -37,6 +37,9 @@ export interface SeedManifest {
   canonicalHost: string;
   fixtures: Record<FixtureKey, { host: string; custom: boolean }>;
   unknownSecretId: string;
+  /** Canonical-only display_type 'markdown' secrets, one per viewport
+   * (the reveal destroys each), seeded from MARKDOWN_SAMPLE_PATH. */
+  markdownReveal: { desktop: SecretCell; mobile: SecretCell };
   cells: Record<
     FixtureKey,
     {
@@ -52,11 +55,19 @@ export interface SeedManifest {
   >;
 }
 
-const MANIFEST_PATH = path.join(
-  path.dirname(fileURLToPath(import.meta.url)),
-  '.artifacts',
-  'seed-manifest.json'
-);
+const VISUAL_DIR = path.dirname(fileURLToPath(import.meta.url));
+
+const MANIFEST_PATH = path.join(VISUAL_DIR, '.artifacts', 'seed-manifest.json');
+
+/** Markdown source shared by the seed (the revealed Markdown secret) and the
+ * create-form cell (typed into the editor), so both screenshots show the
+ * same content. */
+const MARKDOWN_SAMPLE_PATH = path.join(VISUAL_DIR, 'fixtures', 'markdown-secret.md');
+
+/** Reads the shared Markdown sample. */
+export function loadMarkdownSample(): string {
+  return readFileSync(MARKDOWN_SAMPLE_PATH, 'utf-8');
+}
 
 let cachedManifest: SeedManifest | undefined;
 
