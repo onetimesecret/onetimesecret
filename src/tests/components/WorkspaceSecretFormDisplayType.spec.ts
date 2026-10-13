@@ -5,11 +5,14 @@
 // a remembered 'markdown' would be refused by the API and there is no chip
 // to turn it off, so the form starts from plain text and the stored
 // preference is left for when Markdown is back on.
+//
+// It also tells its parent whether display_type applies (offersDisplayType):
+// not in generate-password mode, which sends none.
 
 import { mount } from '@vue/test-utils';
 import { createTestingPinia } from '@pinia/testing';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ref } from 'vue';
+import { nextTick, ref } from 'vue';
 import WorkspaceSecretForm from '@/apps/workspace/components/forms/WorkspaceSecretForm.vue';
 import { useLocalReceiptStore } from '@/shared/stores/localReceiptStore';
 
@@ -105,5 +108,21 @@ describe('WorkspaceSecretForm - remembered display type', () => {
   it('starts from text when nothing is remembered', () => {
     mountForm(true, null);
     expect(displayTypeUpdates()).toEqual(['text']);
+  });
+});
+
+describe('WorkspaceSecretForm - offersDisplayType', () => {
+  it('is true in create-link mode and false in generate-password mode', async () => {
+    const wrapper = mountForm(true, null);
+    const exposed = wrapper.vm as unknown as { offersDisplayType: boolean };
+    expect(exposed.offersDisplayType).toBe(true);
+
+    wrapper.findComponent({ name: 'SplitButton' }).vm.$emit('update:action', 'generate-password');
+    await nextTick();
+    expect(exposed.offersDisplayType).toBe(false);
+
+    wrapper.findComponent({ name: 'SplitButton' }).vm.$emit('update:action', 'create-link');
+    await nextTick();
+    expect(exposed.offersDisplayType).toBe(true);
   });
 });

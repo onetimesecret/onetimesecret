@@ -42,7 +42,7 @@ vi.mock('@/shared/composables/useDomainContext', () => ({
 }));
 
 // Form state the WorkspaceSecretForm stub exposes, mutable per test
-const mockFormState = { displayType: 'text' };
+const mockFormState = { displayType: 'text', offersDisplayType: true };
 const mockUpdateDisplayType = vi.fn();
 
 // Stub child components
@@ -56,6 +56,7 @@ const WorkspaceSecretFormStub = {
       currentPassphrase: computed(() => ''),
       isSubmitting: computed(() => false),
       currentDisplayType: computed(() => mockFormState.displayType),
+      offersDisplayType: computed(() => mockFormState.offersDisplayType),
       updateTtl: vi.fn(),
       updatePassphrase: vi.fn(),
       updateDisplayType: mockUpdateDisplayType,
@@ -98,6 +99,7 @@ describe('DashboardIndex', () => {
     };
     mockDomainContextState.isContextActive = true;
     mockFormState.displayType = 'text';
+    mockFormState.offersDisplayType = true;
   });
 
   afterEach(() => {
@@ -240,6 +242,16 @@ describe('DashboardIndex', () => {
     it('is absent, with no trailing group, when the platform has Markdown off', async () => {
       const DashboardIndex = await getComponent();
       const wrapper = mount(DashboardIndex, createMountOptions({ markdown: false }));
+
+      await flushPromises();
+
+      expect(wrapper.find(TOGGLE).exists()).toBe(false);
+    });
+
+    it('is absent while the form is in generate-password mode', async () => {
+      mockFormState.offersDisplayType = false;
+      const DashboardIndex = await getComponent();
+      const wrapper = mount(DashboardIndex, createMountOptions());
 
       await flushPromises();
 

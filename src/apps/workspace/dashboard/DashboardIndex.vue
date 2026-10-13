@@ -36,9 +36,13 @@
   );
 
   // Markdown secrets are opt-in per platform (features.markdown); when off,
-  // the chip is not offered and the bar has no trailing group.
+  // the chip is not offered and the bar has no trailing group. Nor in the
+  // form's generate mode, which sends no display_type.
   const { features } = storeToRefs(useBootstrapStore());
-  const markdownEnabled = computed(() => features.value?.markdown === true);
+  const showMarkdownToggle = computed(
+    () =>
+      features.value?.markdown === true && (secretFormRef.value?.offersDisplayType ?? true)
+  );
 
   // Handlers for privacy options updates
   const handleTtlUpdate = (value: number) => {
@@ -87,7 +91,7 @@
       @update:ttl="handleTtlUpdate"
       @update:passphrase="handlePassphraseUpdate">
       <template
-        v-if="markdownEnabled"
+        v-if="showMarkdownToggle"
         #trailing>
         <MarkdownModeToggle
           :model-value="isMarkdown"

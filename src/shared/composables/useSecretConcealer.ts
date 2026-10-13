@@ -7,13 +7,14 @@ import {
 } from '@/shared/composables/useAsyncHandler';
 import { type ConcealDataResponse } from '@/schemas/api/v3/responses';
 import { ConcealPayload, GeneratePayload } from '@/schemas/api/v3/requests/content';
+import { DEFAULT_SECRET_DISPLAY_TYPE, SecretDisplayType } from '@/schemas/contracts/secret';
 import { loggingService } from '@/services/logging.service';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import { useSecretStore } from '@/shared/stores/secretStore';
 import { storeToRefs } from 'pinia';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 
 import { useSecretForm } from './useSecretForm';
 
@@ -46,7 +47,7 @@ export function useSecretConcealer(options?: SecretConcealerOptions) {
   const bootstrapStore = useBootstrapStore();
   const secretStore = useSecretStore();
   const notifications = useNotificationsStore();
-  const { secret_options } = storeToRefs(bootstrapStore);
+  const { secret_options, features } = storeToRefs(bootstrapStore);
 
   // Determine API mode: explicit option takes precedence, otherwise based on auth state
   const usePublicApi = options?.usePublicApi ?? !authStore.isAuthenticated;
@@ -55,6 +56,18 @@ export function useSecretConcealer(options?: SecretConcealerOptions) {
   const isSubmitting = ref(false);
 
   const { form, validation, operations } = useSecretForm();
+
+  // A bootstrap refresh can turn Markdown off while a form holds it. The
+  // control goes away with the flag, so put the field back to text here;
+  // otherwise every conceal would get the API's 422 with no way to clear it.
+  watch(
+    () => features.value?.markdown === true,
+    (enabled) => {
+      if (!enabled && form.display_type === SecretDisplayType.MARKDOWN) {
+        operations.updateField('display_type', DEFAULT_SECRET_DISPLAY_TYPE);
+      }
+    }
+  );
 
   const asyncHandlerOptions: AsyncHandlerOptions = {
     notify: (message, severity) => notifications.show(message, severity, 'top'),

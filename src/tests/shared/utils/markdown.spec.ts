@@ -129,6 +129,18 @@ describe('renderMarkdown', () => {
     it('strips id attributes so content cannot take over page ids', () => {
       expect(renderMarkdown('<p id="copy-instructions">x</p>')).toBe('<p>x</p>');
     });
+
+    it('strips dialog, keeping its text, so an open one cannot cover the page', () => {
+      expect(renderMarkdown('<dialog open>Session expired</dialog>')).toBe('Session expired');
+    });
+
+    it('strips aria-* and role so text on screen is not hidden from screen readers', () => {
+      const html = renderMarkdown(
+        '<span aria-hidden="true">pw1</span> <span role="img">pw2</span> ' +
+          '<span aria-label="nothing here">pw3</span>'
+      );
+      expect(html.trim()).toBe('<p><span>pw1</span> <span>pw2</span> <span>pw3</span></p>');
+    });
   });
 
   describe('links', () => {

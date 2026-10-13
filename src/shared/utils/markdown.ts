@@ -41,10 +41,12 @@ import { markedHighlight } from 'marked-highlight';
 const ALLOWED_URI_REGEXP = /^(?:(?:https?|mailto):|[^a-z]|[a-z+.-]+(?:[^a-z+.:-]|$))/i;
 
 /**
- * Elements that link out, fetch remote resources, accept input, or carry
- * scripts and styles. Removed on top of DOMPurify's HTML profile, which would
- * otherwise admit a, img, form controls and svg. DOMPurify keeps the text
- * content of a removed element, so a raw <a> collapses to its label.
+ * Elements that link out, fetch remote resources, accept input, carry
+ * scripts and styles, or (dialog) draw outside the rendered flow, where an
+ * open one could cover the reveal page. Removed on top of DOMPurify's HTML
+ * profile, which would otherwise admit a, img, form controls, svg and
+ * dialog. DOMPurify keeps the text content of a removed element, so a raw
+ * <a> collapses to its label.
  */
 const FORBID_TAGS = [
   'a',
@@ -71,9 +73,25 @@ const FORBID_TAGS = [
   'math',
   'template',
   'slot',
+  'dialog',
 ];
 
-const FORBID_ATTR = ['style', 'srcset', 'ping', 'action', 'formaction', 'background', 'id'];
+/**
+ * `role` goes with the aria-* attributes (ALLOW_ARIA_ATTR below): sender
+ * markup must not change what a screen reader hears, e.g. aria-hidden or
+ * role="img" silencing text that stays on screen. The reveal page supplies
+ * the region's semantics.
+ */
+const FORBID_ATTR = [
+  'style',
+  'srcset',
+  'ping',
+  'action',
+  'formaction',
+  'background',
+  'id',
+  'role',
+];
 
 /**
  * Class tokens the renderer itself emits: highlight.js scopes (`hljs-title`
@@ -88,6 +106,7 @@ const SANITIZE_CONFIG: Config = {
   FORBID_ATTR,
   ALLOWED_URI_REGEXP,
   ALLOW_DATA_ATTR: false,
+  ALLOW_ARIA_ATTR: false,
 };
 
 function keepRendererClasses(_node: Element, data: UponSanitizeAttributeHookEvent): void {

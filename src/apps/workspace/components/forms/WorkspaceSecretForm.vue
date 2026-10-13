@@ -279,6 +279,9 @@
   };
 
   const currentDisplayType = computed(() => form.display_type);
+  // Generate mode sends no display_type (a generated value is always text),
+  // so the parent hides its Markdown chip there, as the homepage does.
+  const offersDisplayType = computed(() => selectedAction.value === 'create-link');
 
   const updateDisplayType = (value: SecretDisplayType) => {
     operations.updateField('display_type', value);
@@ -290,6 +293,7 @@
     currentTtl,
     currentPassphrase,
     currentDisplayType,
+    offersDisplayType,
     updateTtl,
     updatePassphrase,
     updateDisplayType,
