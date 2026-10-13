@@ -191,6 +191,8 @@ describe('DomainVerify', () => {
 
   const mountComponent = async () => {
     const wrapper = mount(DomainVerify, {
+      // Both are required props; the route supplies them in the app.
+      props: { extid: 'dm-test-extid', orgid: 'on-test-orgid' },
       global: {
         plugins: [i18n, createPinia()],
         stubs: {

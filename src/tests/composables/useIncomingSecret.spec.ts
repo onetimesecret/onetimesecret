@@ -6,6 +6,7 @@ import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import { Router, useRouter } from 'vue-router';
 import { createPinia, setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { captureAppLogs } from '@/tests/utils/appLogs';
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
@@ -499,11 +500,13 @@ describe('useIncomingSecret', () => {
       const { form, isSubmitting, submit } = useIncomingSecret();
       form.value.secret = 'the secret';
       form.value.recipientId = 'hash123';
+      const logs = captureAppLogs();
 
       await submit();
 
       // useAsyncHandler's finally block always resets loading state
       expect(isSubmitting.value).toBe(false);
+      expect(logs.error).toHaveBeenCalledWith(expect.objectContaining({ message: 'API error' }));
     });
 
     it('trims whitespace from memo in the payload', async () => {
@@ -548,21 +551,27 @@ describe('useIncomingSecret', () => {
       mockIncomingStore.loadConfig = vi.fn().mockRejectedValue(new Error('Network error'));
       vi.mocked(useIncomingStore).mockReturnValue(mockIncomingStore as any);
 
+      const logs = captureAppLogs();
       const { loadConfig } = useIncomingSecret();
       await loadConfig();
 
       // configHandlerOptions.onError sets incomingStore.configError = err.message
       expect(mockIncomingStore.configError).toBe('Network error');
+      expect(logs.error).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'Network error' })
+      );
     });
 
     it('does not throw when loadConfig fails (error is handled internally)', async () => {
       mockIncomingStore.loadConfig = vi.fn().mockRejectedValue(new Error('timeout'));
       vi.mocked(useIncomingStore).mockReturnValue(mockIncomingStore as any);
 
+      const logs = captureAppLogs();
       const { loadConfig } = useIncomingSecret();
 
       // Should not throw — useAsyncHandler catches and handles it
       await expect(loadConfig()).resolves.not.toThrow();
+      expect(logs.error).toHaveBeenCalledWith(expect.objectContaining({ message: 'timeout' }));
     });
   });
 });

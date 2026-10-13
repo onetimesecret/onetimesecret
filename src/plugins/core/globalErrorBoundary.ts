@@ -71,15 +71,15 @@ function reportToSentry({
   info,
 }: ReportToSentryArgs): void {
   if (!isDiagnosticsEnabled()) {
-    console.debug('[GlobalErrorBoundary] Sentry not initialized');
+    loggingService.debug('[GlobalErrorBoundary] Sentry not initialized');
     return;
   }
   if (errorGuards.isOfHumanInterest(classifiedError)) {
-    console.debug('[GlobalErrorBoundary] Skipping Sentry capture for human-facing error');
+    loggingService.debug('[GlobalErrorBoundary] Skipping Sentry capture for human-facing error');
     return;
   }
 
-  console.debug('[GlobalErrorBoundary] Sending to Sentry');
+  loggingService.debug('[GlobalErrorBoundary] Sending to Sentry');
 
   // Note: useBootstrapStore() is safe here because Pinia is installed before this plugin
   const context: Record<string, unknown> = {

@@ -1,6 +1,7 @@
 <!-- src/apps/secret/reveal/ShowSecret.vue -->
 
 <script setup lang="ts">
+import { loggingService } from '@/services/logging.service';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
@@ -23,7 +24,10 @@ const {
 } = storeToRefs(bootstrapStore);
 
 const currentComponent = computed(() => {
-  console.debug('[ShowSecretContainer] meta=', props.secretIdentifier, domainStrategy.value)
+  loggingService.debug('[ShowSecretContainer] meta', {
+    secretIdentifier: props.secretIdentifier,
+    domainStrategy: domainStrategy.value,
+  })
   return domainStrategy.value === 'canonical' ? ShowSecretCanonical : ShowSecretBranded;
 });
 </script>
