@@ -112,6 +112,7 @@ module DomainsAPI
           previous_name_id_format = stored_name_id_format(@existing_config)
 
           if @existing_config
+            changes = compute_sso_changes(@existing_config, replacement_change_params)
             replace_existing_config
             log_name_id_format_change_if_rekeyed(previous_name_id_format, was_enabled)
             log_sso_change_event(
@@ -120,6 +121,7 @@ module DomainsAPI
               org: @organization,
               actor: cust,
               provider_type: @provider_type,
+              changes: changes,
             )
           else
             create_new_config
@@ -225,6 +227,21 @@ module DomainsAPI
         # issuer and tenant_id are stored as sent, as before.
         def replacement_attributes
           provider_attributes
+        end
+
+        # PUT writes every safe field, including omitted defaults and provider
+        # clears. Diff the persisted shape, not the raw request; the model's
+        # allowed_domains setter performs additional normalization.
+        def replacement_change_params
+          values = replacement_attributes.merge(
+            provider_type: @provider_type,
+            display_name: @display_name,
+            allowed_domains: Onetime::CustomDomain::SsoConfig.normalize_allowed_domains(@allowed_domains),
+            enabled: @enabled,
+            enforce_sso_only: @enforce_sso_only,
+            grant_org_scope: @grant_org_scope,
+          )
+          SAFE_FIELDS.to_h { |field| [field, values.fetch(field.to_sym)] }
         end
 
         def create_new_config

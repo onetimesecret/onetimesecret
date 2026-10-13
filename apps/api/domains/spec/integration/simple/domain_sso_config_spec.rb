@@ -339,6 +339,203 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
         end
       end
 
+      describe 'replacement audit log (#4778)' do
+        let(:audit_payloads) { [] }
+        let(:initial_params) do
+          valid_oidc_params.merge(enabled: false, token_endpoint_auth_method: 'client_secret_post')
+        end
+
+        before do
+          allow(OT).to receive(:info) do |msg, json|
+            audit_payloads << JSON.parse(json) if msg.start_with?('[DOMAIN_SSO_CHANGE] ')
+          end
+        end
+
+        def seed_audited_config(params)
+          csrf_put api_path(test_custom_domain.extid), params
+          expect(last_response.status).to eq(200), last_response.body
+          audit_payloads.clear
+        end
+
+        def replacement_changes
+          replacements = audit_payloads.select { |payload| payload['event'] == 'domain_sso_config_replaced' }
+          expect(replacements.size).to eq(1)
+          replacements.first.fetch('changes', {})
+        end
+
+        it 'records normalized safe-field values before replacement and retains the enabled event' do
+          seed_audited_config(initial_params)
+
+          csrf_put api_path(test_custom_domain.extid), initial_params.merge(
+            display_name: '  Acme  <b>Corp</b>  SSO ',
+            issuer: 'https://new-issuer.example.com',
+            token_endpoint_auth_method: ' client_secret_basic ',
+            allowed_domains: [' Example.COM ', 'Foo.com', '', 'example.com'],
+            enabled: 'true', enforce_sso_only: 'true', grant_org_scope: 'true',
+          )
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(replacement_changes).to eq(
+            'display_name' => { 'from' => initial_params[:display_name], 'to' => 'Acme Corp SSO' },
+            'issuer' => { 'from' => initial_params[:issuer], 'to' => 'https://new-issuer.example.com' },
+            'token_endpoint_auth_method' => { 'from' => 'client_secret_post', 'to' => 'client_secret_basic' },
+            'allowed_domains' => { 'from' => ['example.com'], 'to' => %w[example.com foo.com] },
+            'enabled' => { 'from' => false, 'to' => true },
+            'enforce_sso_only' => { 'from' => false, 'to' => true },
+            'grant_org_scope' => { 'from' => false, 'to' => true },
+          )
+          expect(audit_payloads.map { |payload| payload['event'] }).to contain_exactly(
+            'domain_sso_config_replaced', 'domain_sso_config_enabled',
+          )
+          json_get api_path(test_custom_domain.extid)
+          expect(json_body['record']).to include(
+            'display_name' => 'Acme Corp SSO', 'issuer' => 'https://new-issuer.example.com',
+            'token_endpoint_auth_method' => 'client_secret_basic',
+            'allowed_domains' => %w[example.com foo.com],
+            'enabled' => true, 'enforce_sso_only' => true, 'grant_org_scope' => true,
+          )
+        end
+
+        [
+          [' FOO.com ', 'Example.COM', '', 'example.com'],
+          ' FOO.com, Example.COM, example.com ',
+        ].each do |domains|
+          it "records no false deltas for a sanitized resend with #{domains.class} domains" do
+            original = initial_params.merge(display_name: 'Acme Corp SSO', allowed_domains: %w[example.com foo.com])
+            seed_audited_config(original)
+
+            csrf_put api_path(test_custom_domain.extid), original.merge(
+              provider_type: ' oidc ', display_name: '  Acme <b>Corp</b> SSO ',
+              issuer: ' https://auth.example.com ', token_endpoint_auth_method: ' client_secret_post ',
+              allowed_domains: domains, enabled: 'false', enforce_sso_only: 'false', grant_org_scope: 'false',
+            )
+
+            expect(last_response.status).to eq(200), last_response.body
+            expect(replacement_changes).to eq({})
+            expect(audit_payloads.map { |payload| payload['event'] }).to eq(['domain_sso_config_replaced'])
+            json_get api_path(test_custom_domain.extid)
+            expect(json_body['record']).to include(
+              'display_name' => 'Acme Corp SSO', 'issuer' => original[:issuer],
+              'token_endpoint_auth_method' => 'client_secret_post', 'enabled' => false,
+            )
+            expect(json_body['record']['allowed_domains']).to contain_exactly('example.com', 'foo.com')
+          end
+        end
+
+        it 'records omitted optional fields as resets and retains the disabled event' do
+          seed_audited_config(initial_params.merge(enabled: true, enforce_sso_only: true, grant_org_scope: true))
+
+          csrf_put api_path(test_custom_domain.extid), {
+            provider_type: 'oidc', client_id: initial_params[:client_id], issuer: initial_params[:issuer],
+          }
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(replacement_changes).to eq(
+            'display_name' => { 'from' => initial_params[:display_name], 'to' => '' },
+            'token_endpoint_auth_method' => { 'from' => 'client_secret_post', 'to' => '' },
+            'allowed_domains' => { 'from' => ['example.com'], 'to' => [] },
+            'enabled' => { 'from' => true, 'to' => false },
+            'enforce_sso_only' => { 'from' => true, 'to' => false },
+            'grant_org_scope' => { 'from' => true, 'to' => false },
+          )
+          expect(audit_payloads.map { |payload| payload['event'] }).to contain_exactly(
+            'domain_sso_config_replaced', 'domain_sso_config_disabled',
+          )
+          json_get api_path(test_custom_domain.extid)
+          expect(json_body['record']).to include(
+            'token_endpoint_auth_method' => nil, 'allowed_domains' => [],
+            'enabled' => false, 'enforce_sso_only' => false, 'grant_org_scope' => false,
+            'client_secret_masked' => nil,
+          )
+        end
+
+        it 'records an OIDC to Entra switch with an omitted issuer and an ignored submitted auth method' do
+          seed_audited_config(initial_params)
+
+          csrf_put api_path(test_custom_domain.extid), initial_params.reject { |key, _| key == :issuer }.merge(
+            provider_type: 'entra_id', tenant_id: valid_entra_params[:tenant_id],
+            token_endpoint_auth_method: 'client_secret_basic',
+          )
+
+          expect(last_response.status).to eq(200), last_response.body
+          changes = replacement_changes
+          expect(changes).to include(
+            'provider_type' => { 'from' => 'oidc', 'to' => 'entra_id' },
+            'issuer' => { 'from' => initial_params[:issuer], 'to' => '' },
+            'token_endpoint_auth_method' => { 'from' => 'client_secret_post', 'to' => '' },
+          )
+          expect(changes.keys).to contain_exactly('provider_type', 'issuer', 'tenant_id', 'token_endpoint_auth_method')
+          expect(changes.fetch('tenant_id')['from'].to_s).to eq('')
+          expect(changes.fetch('tenant_id')['to']).to eq(valid_entra_params[:tenant_id])
+          json_get api_path(test_custom_domain.extid)
+          expect(json_body['record']['issuer'].to_s).to eq('')
+          expect(json_body['record']['token_endpoint_auth_method']).to be_nil
+        end
+
+        it 'records an Entra to OIDC switch with an omitted tenant_id' do
+          original = valid_entra_params.merge(enabled: false)
+          seed_audited_config(original)
+
+          csrf_put api_path(test_custom_domain.extid), original.reject { |key, _| key == :tenant_id }.merge(
+            provider_type: 'oidc', issuer: valid_oidc_params[:issuer],
+          )
+
+          expect(last_response.status).to eq(200), last_response.body
+          changes = replacement_changes
+          expect(changes.keys).to contain_exactly('provider_type', 'tenant_id', 'issuer')
+          expect(changes).to include(
+            'provider_type' => { 'from' => 'entra_id', 'to' => 'oidc' },
+            'tenant_id' => { 'from' => original[:tenant_id], 'to' => '' },
+          )
+          expect(changes.fetch('issuer')['from'].to_s).to eq('')
+          expect(changes.fetch('issuer')['to']).to eq(valid_oidc_params[:issuer])
+          json_get api_path(test_custom_domain.extid)
+          expect(json_body['record']['tenant_id'].to_s).to eq('')
+        end
+
+        it 'never includes old or new credential values in audit payloads when credentials rotate' do
+          seed_audited_config(initial_params)
+          credentials = { client_id: 'replacement-private-client-id', client_secret: 'replacement-private-client-secret' }
+
+          csrf_put api_path(test_custom_domain.extid), initial_params.merge(credentials)
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(replacement_changes).to eq({})
+          serialized = JSON.generate(audit_payloads)
+          [initial_params[:client_id], initial_params[:client_secret], *credentials.values].each do |value|
+            expect(serialized).not_to include(value)
+          end
+          stored = Onetime::CustomDomain::SsoConfig.find_by_domain_id(test_custom_domain.identifier)
+          expect(stored.client_id.reveal).to eq(credentials[:client_id])
+          expect(stored.client_secret.reveal).to eq(credentials[:client_secret])
+        end
+
+        it 'emits creation and enabled events, but no replacement event for a new config' do
+          csrf_put api_path(test_custom_domain.extid), valid_oidc_params
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(audit_payloads.map { |payload| payload['event'] }).to contain_exactly(
+            'domain_sso_config_created', 'domain_sso_config_enabled',
+          )
+        end
+
+        it 'does not emit a replacement event or change stored state after failed validation' do
+          seed_audited_config(initial_params)
+          json_get api_path(test_custom_domain.extid)
+          original = json_body['record']
+
+          csrf_put api_path(test_custom_domain.extid), initial_params.merge(
+            display_name: 'Must not be saved', enabled: true, token_endpoint_auth_method: 'invalid-method',
+          )
+
+          expect(last_response.status).to eq(422), last_response.body
+          expect(json_body['field']).to eq('token_endpoint_auth_method')
+          expect(audit_payloads).to be_empty
+          json_get api_path(test_custom_domain.extid)
+          expect(json_body['record']).to eq(original)
+        end
+      end
+
       context 'validation errors' do
         it 'returns 422 for missing provider_type' do
           params = valid_entra_params.dup
@@ -1476,6 +1673,90 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
     # saved, so nothing else here would be reachable.
     around do |example|
       ClimateControl.modify(SAML_ENABLED: 'true') { example.run }
+    end
+
+    describe 'PUT provider-switch audit log (#4778)' do
+      let(:audit_payloads) { [] }
+
+      before do
+        allow(OT).to receive(:info) do |msg, json|
+          audit_payloads << JSON.parse(json) if msg.start_with?('[DOMAIN_SSO_CHANGE] ')
+        end
+      end
+
+      def saml_replacement_changes
+        replacements = audit_payloads.select { |payload| payload['event'] == 'domain_sso_config_replaced' }
+        expect(replacements.size).to eq(1)
+        replacements.first.fetch('changes', {})
+      end
+
+      %w[oidc entra_id].each do |provider|
+        it "audits actual #{provider} to SAML clears rather than ignored submitted OAuth values" do
+          original = (provider == 'oidc' ? valid_oidc_params : valid_entra_params).merge(
+            display_name: valid_saml_params[:display_name], allowed_domains: ['example.com'],
+          )
+          original[:token_endpoint_auth_method] = 'client_secret_post' if provider == 'oidc'
+          csrf_put api_path(test_custom_domain.extid), original
+          expect(last_response.status).to eq(200), last_response.body
+          audit_payloads.clear
+
+          ignored = {
+            client_id: 'ignored-oauth-client-id', client_secret: 'ignored-oauth-client-secret',
+            issuer: 'https://ignored-issuer.example.com', tenant_id: 'ignored-tenant-id',
+            token_endpoint_auth_method: 'client_secret_basic',
+          }
+          csrf_put api_path(test_custom_domain.extid), valid_saml_params.merge(ignored)
+
+          expect(last_response.status).to eq(200), last_response.body
+          expected = { 'provider_type' => { 'from' => provider, 'to' => 'saml' } }
+          if provider == 'oidc'
+            expected['issuer'] = { 'from' => original[:issuer], 'to' => '' }
+            expected['token_endpoint_auth_method'] = { 'from' => 'client_secret_post', 'to' => '' }
+          else
+            expected['tenant_id'] = { 'from' => original[:tenant_id], 'to' => '' }
+          end
+          expect(saml_replacement_changes).to eq(expected)
+          expect(audit_payloads.map { |payload| payload['event'] }).to eq(['domain_sso_config_replaced'])
+          serialized = JSON.generate(audit_payloads)
+          [original[:client_id], original[:client_secret], *ignored.values, saml_cert].each do |value|
+            expect(serialized).not_to include(JSON.generate(value.strip))
+          end
+          expect(stored_config.issuer.to_s).to eq('')
+          expect(stored_config.tenant_id.to_s).to eq('')
+          expect(stored_config.token_endpoint_auth_method.to_s).to eq('')
+          expect(stored_config.client_id).to be_nil
+          expect(stored_config.client_secret).to be_nil
+        end
+
+        it "audits a SAML to #{provider} switch without logging cleared or ignored SAML values" do
+          csrf_put api_path(test_custom_domain.extid), valid_saml_params
+          expect(last_response.status).to eq(200), last_response.body
+          audit_payloads.clear
+          replacement = (provider == 'oidc' ? valid_oidc_params : valid_entra_params).merge(
+            display_name: valid_saml_params[:display_name], allowed_domains: ['example.com'],
+            idp_sso_service_url: 'https://ignored-idp.example.com/sso',
+            idp_entity_id: 'ignored-saml-entity', idp_cert: 'ignored-saml-certificate',
+          )
+
+          csrf_put api_path(test_custom_domain.extid), replacement
+
+          expect(last_response.status).to eq(200), last_response.body
+          changes = saml_replacement_changes
+          field = provider == 'oidc' ? 'issuer' : 'tenant_id'
+          expect(changes.keys).to contain_exactly('provider_type', field)
+          expect(changes['provider_type']).to eq('from' => 'saml', 'to' => provider)
+          expect(changes.fetch(field)['from'].to_s).to eq('')
+          expect(changes.fetch(field)['to']).to eq(replacement[field.to_sym])
+          serialized = JSON.generate(audit_payloads)
+          %i[client_id client_secret idp_sso_service_url idp_entity_id idp_cert].each do |key|
+            expect(serialized).not_to include(replacement.fetch(key))
+          end
+          %i[idp_sso_service_url idp_entity_id idp_cert].each do |key|
+            expect(serialized).not_to include(JSON.generate(valid_saml_params.fetch(key).strip))
+            expect(stored_config.public_send(key)).to be_nil
+          end
+        end
+      end
     end
 
     # SAML_ENABLED off (#4604): the API refuses to introduce or edit a saml
