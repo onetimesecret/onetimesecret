@@ -2,9 +2,10 @@ Added
 -----
 
 - Secrets can be written in Markdown. On the homepage, a **Format with
-  Markdown** switch below the textarea adds a live preview beneath it; on the
-  workspace dashboard, a **Markdown** chip next to the privacy options does the
-  same, with the preview beside the textarea on wide screens. The recipient
+  Markdown** switch under **Advanced Options** adds a live preview beneath
+  the textarea; on the workspace dashboard, a **Markdown** chip next to the
+  privacy options does the same, with the preview beside the textarea on wide
+  screens. The recipient
   sees the secret rendered, with syntax highlighting for fenced code blocks,
   and can switch to the raw source. The dashboard remembers the choice in the
   browser like the expiration time; the homepage starts from plain text. The

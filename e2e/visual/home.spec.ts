@@ -3,8 +3,9 @@
 // Visual baselines for the homepage (/) across canonical and branded hosts.
 // Canonical renders the marketing homepage; custom domains render
 // BrandedHomepage (hero + form/trust card).
-//  - markdown: canonical only, the create form in Markdown mode with the
-//    shared sample typed in, so the live preview renders under the editor
+//  - markdown: canonical only, the create form in Markdown mode (switched on
+//    under Advanced Options, left open) with the shared sample typed in, so
+//    the live preview renders under the editor
 
 import { test, expect } from '@playwright/test';
 import {
@@ -48,6 +49,10 @@ test.describe('Visual - Homepage', () => {
 
     const response = await gotoAndReady(page, visualUrl(manifest.canonicalHost, '/'));
     await assertBrandRendered(page, 'canonical', response);
+
+    const advanced = page.getByTestId('secret-advanced-options-toggle');
+    await advanced.click();
+    await expect(advanced).toHaveAttribute('aria-expanded', 'true');
 
     const toggle = page.getByTestId('secret-markdown-toggle');
     await toggle.click();

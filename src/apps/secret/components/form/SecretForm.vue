@@ -16,7 +16,7 @@
     DEFAULT_CORNER_CLASS,
   } from '@/shared/stores/identityStore';
   import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
-  import { type SecretDisplayType } from '@/schemas/contracts/secret';
+  import { SecretDisplayType } from '@/schemas/contracts/secret';
   import { type LocalReceipt } from '@/types/ui/local-receipt';
   import { nanoid } from 'nanoid';
   import { storeToRefs } from 'pinia';
@@ -27,6 +27,7 @@
   const { t } = useI18n();
 
   import { FIELD_ERROR, FIELD_SHELL } from './fieldStyles';
+  import MarkdownModeSwitch from './MarkdownModeSwitch.vue';
   import SecretContentInputArea from './SecretContentInputArea.vue';
 
   export interface Props {
@@ -93,6 +94,7 @@
   const lifetimeErrorId = computed(() => `lifetime-error-${uniqueId.value}`);
   const recipientId = computed(() => `recipient-${uniqueId.value}`);
   const recipientErrorId = computed(() => `recipient-error-${uniqueId.value}`);
+  const advancedOptionsId = computed(() => `advanced-options-${uniqueId.value}`);
 
   const { form, validation, operations, isSubmitting, submit } = useSecretConcealer({
     onSuccess: async (response) => {
@@ -132,12 +134,20 @@
     togglePassphraseVisibility,
   } = usePrivacyOptions(operations);
 
-  // Markdown switch (display_type). Not remembered across visits: this form
-  // starts from plain text on every load, as it does for the TTL, so a shared
-  // browser never hands the next visitor Markdown mode. The workspace form,
-  // used by signed-in repeat users, remembers it.
-  const updateDisplayType = (value: SecretDisplayType) => {
-    operations.updateField('display_type', value);
+  // Advanced Options: collapsed on every load, so the familiar fields stay
+  // the whole form for a first-time visitor.
+  const showAdvanced = ref(false);
+
+  // Markdown switch (display_type), under Advanced Options. Not remembered
+  // across visits: this form starts from plain text on every load, as it does
+  // for the TTL, so a shared browser never hands the next visitor Markdown
+  // mode. The workspace form, used by signed-in repeat users, remembers it.
+  const isMarkdown = computed(() => form.display_type === SecretDisplayType.MARKDOWN);
+  const setMarkdown = (enabled: boolean) => {
+    operations.updateField(
+      'display_type',
+      enabled ? SecretDisplayType.MARKDOWN : SecretDisplayType.TEXT
+    );
   };
 
   const { currentContext, isContextActive, hasMultipleContexts } = useDomainContext();
@@ -253,8 +263,7 @@
               :max-height="400"
               :corner-class="cornerClass"
               :display-type="form.display_type"
-              @update:content="(content) => operations.updateField('secret', content)"
-              @update:display-type="updateDisplayType" />
+              @update:content="(content) => operations.updateField('secret', content)" />
           </span>
 
           <!-- Generate Password Text -->
@@ -456,6 +465,56 @@
                 class="py-2.5 pl-10 pr-4 text-gray-900 placeholder:text-gray-400 dark:placeholder:text-gray-500"
                 @input="(e) => updateRecipient((e.target as HTMLInputElement).value)"
                 data-testid="secret-recipient-input" />
+            </div>
+          </div>
+
+          <!--
+            Advanced Options: progressive disclosure for settings most visitors
+            never need, below the familiar fields and at a lower visual weight.
+            While collapsed, a setting that is on shows as a chip beside the
+            toggle so it is never hidden. Create-link only: its one option
+            (Markdown) describes content, which the generate action does not
+            send.
+          -->
+          <div
+            v-if="selectedAction === 'create-link'"
+            class="mt-6">
+            <!-- prettier-ignore-attribute class -->
+            <button
+              type="button"
+              :aria-expanded="showAdvanced"
+              :aria-controls="advancedOptionsId"
+              class="-mx-1 inline-flex items-center gap-1 rounded-sm p-1 font-brand text-sm
+                text-gray-500 hover:text-gray-700
+                focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500
+                dark:text-gray-400 dark:hover:text-gray-200"
+              data-testid="secret-advanced-options-toggle"
+              @click="showAdvanced = !showAdvanced">
+              {{ t('web.secrets.advanced_options') }}
+              <OIcon
+                collection="heroicons"
+                name="chevron-right"
+                :class="showAdvanced ? 'rotate-90' : ''"
+                class="size-4 transition-transform duration-200"
+                aria-hidden="true" />
+              <!-- prettier-ignore-attribute class -->
+              <span
+                v-if="!showAdvanced && isMarkdown"
+                class="ml-1 rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium
+                  text-brand-700 dark:bg-brand-900/30 dark:text-brand-300"
+                data-testid="secret-advanced-options-summary">
+                {{ t('web.secrets.markdown_mode') }}
+              </span>
+            </button>
+            <div
+              v-show="showAdvanced"
+              :id="advancedOptionsId"
+              class="mt-4"
+              data-testid="secret-advanced-options">
+              <MarkdownModeSwitch
+                :model-value="isMarkdown"
+                :disabled="isSubmitting"
+                @update:model-value="setMarkdown" />
             </div>
           </div>
         </div>

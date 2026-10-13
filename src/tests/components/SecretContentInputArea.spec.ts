@@ -1,9 +1,9 @@
 // src/tests/components/SecretContentInputArea.spec.ts
 //
-// The Markdown switch is opt-in: it shows only when the parent binds
-// displayType, so forms whose endpoint takes no display_type (incoming
-// secrets) never render a control that does nothing. On the homepage it sits
-// below the textarea with a visible hint, like the passphrase field.
+// The input area renders the Markdown preview but no control: the parent
+// owns display_type and its switch (SecretForm keeps it under Advanced
+// Options). Forms whose endpoint takes no display_type (incoming secrets)
+// leave it unbound and get a plain textarea.
 
 import SecretContentInputArea from '@/apps/secret/components/form/SecretContentInputArea.vue';
 import { SecretDisplayType } from '@/schemas/contracts/secret';
@@ -24,52 +24,27 @@ function mountInput(props: Record<string, unknown> = {}) {
   });
 }
 
-describe('SecretContentInputArea Markdown toggle', () => {
-  it('is hidden when displayType is not bound', () => {
+describe('SecretContentInputArea Markdown preview', () => {
+  it('renders no preview when displayType is not bound', () => {
     const wrapper = mountInput();
-    expect(wrapper.find(TOGGLE).exists()).toBe(false);
     expect(wrapper.find(PREVIEW).exists()).toBe(false);
   });
 
-  it('is shown when displayType is bound', () => {
+  it('renders no preview in text mode', () => {
     const wrapper = mountInput({ displayType: SecretDisplayType.TEXT });
-    expect(wrapper.find(TOGGLE).exists()).toBe(true);
-    expect(wrapper.find(TOGGLE).attributes('aria-checked')).toBe('false');
     expect(wrapper.find(PREVIEW).exists()).toBe(false);
   });
 
-  it('shows the preview in markdown mode', () => {
-    const wrapper = mountInput({ displayType: SecretDisplayType.MARKDOWN });
-    expect(wrapper.find(TOGGLE).attributes('aria-checked')).toBe('true');
-    expect(wrapper.find(PREVIEW).exists()).toBe(true);
-  });
-
-  it('emits the new display type when toggled', async () => {
-    const wrapper = mountInput({ displayType: SecretDisplayType.TEXT });
-    await wrapper.find(TOGGLE).trigger('click');
-    expect(wrapper.emitted('update:displayType')).toEqual([[SecretDisplayType.MARKDOWN]]);
-  });
-
-  it('sits below the textarea, before the preview', () => {
+  it('shows the preview below the textarea in markdown mode', () => {
     const wrapper = mountInput({ displayType: SecretDisplayType.MARKDOWN });
     const order = wrapper
-      .findAll('textarea, [data-testid="secret-markdown-toggle"], [data-testid="secret-markdown-preview"]')
+      .findAll(`textarea, ${PREVIEW}`)
       .map((el) => el.attributes('data-testid'));
-    expect(order).toEqual([
-      'secret-content-input',
-      'secret-markdown-toggle',
-      'secret-markdown-preview',
-    ]);
+    expect(order).toEqual(['secret-content-input', 'secret-markdown-preview']);
   });
 
-  it('is labelled and described by visible text, not a tooltip', () => {
-    const wrapper = mountInput({ displayType: SecretDisplayType.TEXT });
-    const toggle = wrapper.find(TOGGLE);
-    const label = wrapper.find(`label[for="${toggle.attributes('id')}"]`);
-    const hint = wrapper.find(`#${toggle.attributes('aria-describedby')}`);
-    // The test i18n has no messages loaded, so text renders as its key
-    expect(label.text()).toBe('web.secrets.markdown_mode_label');
-    expect(hint.text()).toBe('web.secrets.markdown_mode_hint');
-    expect(toggle.attributes('title')).toBeUndefined();
+  it('renders no Markdown control of its own', () => {
+    const wrapper = mountInput({ displayType: SecretDisplayType.MARKDOWN });
+    expect(wrapper.find(TOGGLE).exists()).toBe(false);
   });
 });

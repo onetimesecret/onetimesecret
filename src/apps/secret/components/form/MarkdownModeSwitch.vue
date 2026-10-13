@@ -4,11 +4,11 @@
   /**
    * Markdown Mode Switch (homepage form)
    *
-   * The homepage form's presentation of display_type: a labeled switch with a
-   * visible one-line hint, styled like the passphrase field's label and hint,
-   * so a first-time visitor reads what it does without a tooltip. The
-   * workspace dashboard shows the same field as a chip (MarkdownModeToggle)
-   * in its options bar.
+   * The homepage form's presentation of display_type, under its Advanced
+   * Options disclosure: a labeled switch with a visible one-line hint, styled
+   * like the passphrase field's label and hint, so a first-time visitor reads
+   * what it does without a tooltip. The workspace dashboard shows the same
+   * field as a chip (MarkdownModeToggle) in its options bar.
    */
   import { useId } from 'vue';
   import { useI18n } from 'vue-i18n';

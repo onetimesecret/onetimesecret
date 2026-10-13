@@ -83,12 +83,16 @@ payload (`secretDisplayTypeSchema.optional()`).
 idiom. In both, the textarea stays the single place the text is edited and a
 sanitized live preview (`MarkdownPreview`) shows what the recipient will see.
 
-- Homepage (`SecretForm` via `SecretContentInputArea`): a labeled switch
-  (`MarkdownModeSwitch`) below the textarea with a visible one-line hint,
-  matching the passphrase field's label and hint. The preview stacks below.
-  Not remembered: the form starts from plain text on every load, as it does
-  for the TTL, so a shared browser does not pass Markdown mode to the next
-  visitor.
+- Homepage (`SecretForm`): a labeled switch (`MarkdownModeSwitch`) with a
+  visible one-line hint, under a collapsed **Advanced Options** disclosure
+  below the passphrase and expiration fields. The disclosure keeps the
+  familiar fields the whole form for a first-time visitor and leaves room for
+  later options; while it is collapsed, Markdown mode shows as a chip beside
+  the toggle. Hidden in generate-password mode, which sends no
+  `display_type`. The preview (`SecretContentInputArea`) stacks below the
+  textarea. Not remembered: the form starts from plain text on every load, as
+  it does for the TTL, so a shared browser does not pass Markdown mode to the
+  next visitor.
 - Workspace dashboard (`WorkspaceSecretForm`): a chip (`MarkdownModeToggle`) in
   the `PrivacyOptionsBar` row, in its own right-aligned group (the bar's
   `trailing` slot), wired by `DashboardIndex` like the TTL. At `lg` and up the
