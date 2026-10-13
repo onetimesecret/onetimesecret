@@ -342,6 +342,7 @@ module Onetime::CustomDomain::ConfigRegistry
         provider_type: config.provider_type,
         display_name: config.display_name,
         issuer: presence(config.issuer),
+        token_endpoint_auth_method: presence(config.token_endpoint_auth_method),
         tenant_id: presence(config.tenant_id),
         has_client_id: encrypted_present?(config.client_id),
         has_client_secret: encrypted_present?(config.client_secret),

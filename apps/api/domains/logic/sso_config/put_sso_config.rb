@@ -62,6 +62,9 @@ module DomainsAPI
           @enabled          = parse_boolean(params['enabled'])
           @enforce_sso_only = parse_boolean(params['enforce_sso_only'])
           @grant_org_scope  = parse_boolean(params['grant_org_scope'])
+
+          # oidc only (#4764); '' = gem default. Stored for oidc, cleared otherwise.
+          @token_endpoint_auth_method = normalize_token_endpoint_auth_method(params['token_endpoint_auth_method'])
         end
 
         def raise_concerns
@@ -149,6 +152,7 @@ module DomainsAPI
             display_name: @display_name,
             tenant_id: @tenant_id,
             issuer: @issuer,
+            token_endpoint_auth_method: @token_endpoint_auth_method,
             idp_sso_service_url: @idp_sso_service_url,
             idp_entity_id: @idp_entity_id,
             allowed_domains: @allowed_domains,
@@ -199,6 +203,8 @@ module DomainsAPI
                 error_type: :invalid,
               )
             end
+
+            validate_token_endpoint_auth_method!(@token_endpoint_auth_method)
           when 'entra_id'
             if @tenant_id.to_s.empty?
               raise_form_error('Tenant ID is required for Entra ID provider', field: :tenant_id, error_type: :missing)
