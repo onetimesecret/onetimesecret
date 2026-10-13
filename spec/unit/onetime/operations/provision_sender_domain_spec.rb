@@ -19,7 +19,6 @@ RSpec.describe Onetime::Operations::ProvisionSenderDomain do
       'provider_dns_data=' => nil,
       'dns_records=' => nil,
       'updated=' => nil,
-      save_fields: true,
     )
   end
 
@@ -346,11 +345,12 @@ RSpec.describe Onetime::Operations::ProvisionSenderDomain do
     end
 
     context 'when persistence succeeds' do
-      it 'saves provider_dns_data to mailer_config' do
+      it 'saves provider_dns_data to the stored record' do
+        allow(Onetime::CustomDomain::MailerConfig).to receive(:record_job_result!)
+          .with('cd:test123', 'sender@example.com') { |*_args, &block| [mailer_config, block.call(mailer_config)] }
         expect(mailer_config).to receive(:provider_dns_data=)
         expect(mailer_config).to receive(:dns_records=)
         expect(mailer_config).to receive(:updated=)
-        expect(mailer_config).to receive(:save_fields).with(:updated)
 
         described_class.new(
           mailer_config: mailer_config,
@@ -362,7 +362,7 @@ RSpec.describe Onetime::Operations::ProvisionSenderDomain do
 
     context 'when persist: false' do
       it 'does not write the config' do
-        expect(mailer_config).not_to receive(:save_fields)
+        expect(Onetime::CustomDomain::MailerConfig).not_to receive(:record_job_result!)
 
         described_class.new(
           mailer_config: mailer_config,
@@ -374,10 +374,8 @@ RSpec.describe Onetime::Operations::ProvisionSenderDomain do
 
     context 'when persistence raises (Item 5 fix)' do
       before do
-        allow(mailer_config).to receive(:provider_dns_data=)
-        allow(mailer_config).to receive(:dns_records=)
-        allow(mailer_config).to receive(:updated=)
-        allow(mailer_config).to receive(:save_fields).and_raise(StandardError, 'Redis connection refused')
+        allow(Onetime::CustomDomain::MailerConfig).to receive(:record_job_result!)
+          .and_raise(StandardError, 'Redis connection refused')
       end
 
       it 'propagates error into Result (no longer silently swallowed)' do
@@ -402,6 +400,23 @@ RSpec.describe Onetime::Operations::ProvisionSenderDomain do
         # The fix ensures the StandardError propagates to the rescue block
         # in #call and is wrapped in a failure Result.
         expect(result.success).to be false
+      end
+    end
+
+    # A DELETE (or an address change) during the provider calls: the data
+    # belongs to no stored record, so nothing is written and the run fails.
+    context 'when the record was deleted or changed its address meanwhile' do
+      before do
+        allow(Onetime::CustomDomain::MailerConfig).to receive(:record_job_result!).and_return(nil)
+      end
+
+      it 'writes nothing and returns a failure' do
+        expect(mailer_config).not_to receive(:provider_dns_data=)
+
+        result = described_class.new(mailer_config: mailer_config, strategy: mock_strategy, persist: true).call
+
+        expect(result.success?).to be false
+        expect(result.error).to include('deleted or changed its address during provisioning')
       end
     end
   end
