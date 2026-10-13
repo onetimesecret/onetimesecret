@@ -248,15 +248,57 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::TestConnection do
       end
     end
 
-    context 'when nothing is selected' do
-      it 'reports the list, supported: nil and no note' do
-        result = run_with_discovery(token_endpoint_auth_methods_supported: %w[client_secret_basic])
+    [nil, '', '   '].each do |automatic_value|
+      context "when Automatic is selected (#{automatic_value.inspect})" do
+        let(:token_endpoint_auth_method) { automatic_value }
 
-        expect(result[:details]).to include(
-          token_endpoint_auth_methods_supported: %w[client_secret_basic],
-          token_endpoint_auth_method_supported: nil,
-        )
-        expect(result[:details]).not_to have_key(:note)
+        it 'reports the effective Basic method as supported and explains Automatic' do
+          result = run_with_discovery(token_endpoint_auth_methods_supported: %w[client_secret_basic client_secret_post])
+
+          expect(result[:success]).to be true
+          expect(result[:details]).to include(
+            token_endpoint_auth_methods_supported: %w[client_secret_basic client_secret_post],
+            token_endpoint_auth_method_supported: true,
+          )
+          expect(result[:details][:note]).to include('Automatic uses client_secret_basic', 'does not negotiate')
+          expect(result[:details][:note]).not_to include('does not advertise')
+        end
+
+        it 'warns when only POST is advertised without failing the connection test' do
+          result = run_with_discovery(token_endpoint_auth_methods_supported: %w[client_secret_post])
+
+          expect(result[:success]).to be true
+          expect(result[:details]).to include(
+            token_endpoint_auth_methods_supported: %w[client_secret_post],
+            token_endpoint_auth_method_supported: false,
+          )
+          expect(result[:details][:note]).to include(
+            'Automatic uses client_secret_basic',
+            'does not advertise client_secret_basic',
+            'advertised: client_secret_post',
+          )
+        end
+
+        it 'uses the Discovery default when the document omits the field' do
+          result = run_with_discovery({})
+
+          expect(result[:details]).to include(
+            token_endpoint_auth_methods_supported: nil,
+            token_endpoint_auth_method_supported: true,
+          )
+          expect(result[:details][:note]).to include('Automatic uses client_secret_basic')
+          expect(result[:details][:note]).not_to include('does not advertise')
+        end
+
+        it 'does not treat an explicitly empty advertised list as the Discovery default' do
+          result = run_with_discovery(token_endpoint_auth_methods_supported: [])
+
+          expect(result[:details]).to include(
+            token_endpoint_auth_methods_supported: [],
+            token_endpoint_auth_method_supported: false,
+          )
+          expect(result[:details][:note]).to include('Automatic uses client_secret_basic', 'advertised: an empty list')
+        end
       end
     end
 

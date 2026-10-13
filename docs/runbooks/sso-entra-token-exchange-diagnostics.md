@@ -27,7 +27,8 @@ the returned token or raw exception message. Keep HTTP debug logging disabled.
 
 - `access_token_present: true` in the response means the registered client's
   credential transport works for the client-credentials grant in this process.
-- A failure here when stored curl B succeeds isolates a difference introduced by
+- Compare against stored curl A: both send credentials in the request body.
+  A failure here when stored curl A succeeds isolates a difference introduced by
   strategy options, tenant injection, the gem's HTTP client, or process/network
   configuration. Check the request metadata before changing the stored record.
 - This still does **not** run browser authorization, OAuth state validation,

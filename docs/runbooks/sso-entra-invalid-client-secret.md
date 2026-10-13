@@ -223,7 +223,8 @@ stored value. It does not test the strategy's HTTP client or browser code flow.
 
 For the next comparison, use the [registered-client probe](./sso-entra-token-exchange-diagnostics.md#operator-diagnostic-registered-strategys-http-client).
 It clones the application-registered strategy and injects the persisted tenant
-credentials while keeping the `client_credentials` grant. If stored curl B
+credentials while keeping the `client_credentials` grant. Compare against stored
+curl A, which also sends the credentials in the request body. If stored curl A
 succeeds but that probe fails, investigate strategy options, tenant injection,
 the Ruby HTTP client, or process/network differences before changing the record.
 

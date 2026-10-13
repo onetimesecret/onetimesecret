@@ -16,16 +16,16 @@ module DomainsAPI
 
         private
 
-        # Whether the IdP advertises the selected token_endpoint_auth_method
+        # Whether the IdP advertises the effective OIDC token_endpoint_auth_method
         # (#4764). Advisory, never a failure: an IdP may accept a method it
-        # does not list, and the gem default is the IdP's own default.
+        # does not list. Automatic uses rack-oauth2's Basic default, not a
+        # method negotiated from discovery.
         #
         #   token_endpoint_auth_methods_supported — the document's list, or
         #     nil when it omits the field
         #   token_endpoint_auth_method_supported  — true/false against that
-        #     list (defaulted per OIDC Discovery 1.0 section 3), nil when
-        #     nothing is selected
-        #   note — only when selected and not advertised
+        #     list (defaulted per OIDC Discovery 1.0 section 3), nil for non-OIDC
+        #   note — explains Automatic's effective method and any mismatch
         #
         # @param discovery [Hash] parsed discovery document
         # @return [Hash]
@@ -33,13 +33,17 @@ module DomainsAPI
           advertised = discovery['token_endpoint_auth_methods_supported']
           advertised = nil unless advertised.is_a?(Array)
           advertised = advertised&.map(&:to_s)
-          selected   = @provider_type == 'oidc' ? @token_endpoint_auth_method.to_s : ''
           details    = { token_endpoint_auth_methods_supported: advertised }
 
-          if selected.empty?
+          unless @provider_type == 'oidc'
             return details.merge(token_endpoint_auth_method_supported: nil)
           end
 
+          selected  = @token_endpoint_auth_method.to_s.strip
+          if selected.empty?
+            selected       = 'client_secret_basic'
+            details[:note] = 'Automatic uses client_secret_basic (the gem default); it does not negotiate a method from discovery.'
+          end
           supported = (advertised || DEFAULT_TOKEN_ENDPOINT_AUTH_METHODS).include?(selected)
 
           details[:token_endpoint_auth_method_supported] = supported
@@ -53,9 +57,10 @@ module DomainsAPI
                               advertised.join(', ')
                             end
 
-          details[:note] = "The IdP does not advertise #{selected} in token_endpoint_auth_methods_supported " \
+          mismatch_note  = "The IdP does not advertise #{selected} in token_endpoint_auth_methods_supported " \
                            "(advertised: #{advertised_text}). Sign-in may still work; if the token exchange " \
                            'fails, choose an advertised method.'
+          details[:note] = [details[:note], mismatch_note].compact.join(' ')
           details
         end
       end
