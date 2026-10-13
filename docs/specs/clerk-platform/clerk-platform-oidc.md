@@ -41,9 +41,9 @@ This flow is an investigation target, not a verified Clerk integration. The auth
 
 The following references describe the inspected implementation or external provider documentation. They do not establish end-to-end compatibility.
 
-- The [generic OIDC definition](../../lib/onetime/sso_provider/oidc.rb) configures discovery, authorization code, PKCE and `openid email profile` scopes. Its route and display name are configurable through `OIDC_ROUTE_NAME` and `OIDC_DISPLAY_NAME`.
-- The [auth application](../../apps/web/auth/application.rb) is selected for full mode. [Account provisioning](../../apps/web/auth/operations/ensure_customer_for_account.rb) connects SQL accounts to OTS Customers.
-- The [Customer session evaluator](../../lib/onetime/session/customer_session_evaluator.rb) and [frontend auth store](../../src/shared/stores/authStore.ts) are the application session and bootstrap boundaries; a Clerk frontend sign-in alone does not establish that application identity.
+- The [generic OIDC definition](../../../lib/onetime/sso_provider/oidc.rb) configures discovery, authorization code, PKCE and `openid email profile` scopes. Its route and display name are configurable through `OIDC_ROUTE_NAME` and `OIDC_DISPLAY_NAME`.
+- The [auth application](../../../apps/web/auth/application.rb) is selected for full mode. [Account provisioning](../../../apps/web/auth/operations/ensure_customer_for_account.rb) connects SQL accounts to OTS Customers.
+- The [Customer session evaluator](../../../lib/onetime/session/customer_session_evaluator.rb) and [frontend auth store](../../../src/shared/stores/authStore.ts) are the application session and bootstrap boundaries; a Clerk frontend sign-in alone does not establish that application identity.
 - Clerk's [OAuth and OIDC documentation](https://clerk.com/docs/guides/configure/auth-strategies/oauth/single-sign-on) explicitly states: “For OpenID Connect (OIDC) sign-in, Clerk acts as the identity provider (IdP).” It documents OAuth applications, discovery information and the `openid` scope for issuance of an ID token.
 
 ### Alternatives retained for later evaluation
