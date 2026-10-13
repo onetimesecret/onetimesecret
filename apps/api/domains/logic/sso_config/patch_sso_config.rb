@@ -139,7 +139,7 @@ module DomainsAPI
 
           if @existing_config
             # Compute changes before updating
-            changes = compute_sso_changes(@existing_config, audit_change_params)
+            changes = compute_sso_changes(@existing_config, normalized_change_params)
             update_existing_config
             log_name_id_format_change_if_rekeyed(previous_name_id_format, was_enabled)
             log_sso_change_event(
@@ -451,29 +451,56 @@ module DomainsAPI
           @provider_type == 'oidc' ? @token_endpoint_auth_method : ''
         end
 
-        # Input for compute_sso_changes. The change detector reads a request
-        # hash and only diffs the keys it finds there, but update_existing_config
-        # writes two kinds of value the request never spelled out:
+        # Input for compute_sso_changes: the SAFE_FIELDS values
+        # update_existing_config will actually write, keyed as the change
+        # detector expects. The detector diffs only the keys it finds, so
+        # this hash mirrors the write path's own conditions rather than
+        # echoing the request:
         #
-        # - token_endpoint_auth_method is persisted normalized (stripped; see
-        #   persisted_token_endpoint_auth_method), so auditing the raw value
-        #   would log a whitespace-padded resend of the stored method as a
-        #   change to the padded string.
-        # - A provider switch blanks the outgoing provider's fields without
-        #   the request naming them (issuer on a move off oidc, tenant_id on
-        #   a move off entra_id, token_endpoint_auth_method on any move off
-        #   oidc). Diffing the request alone omits those clears from the
-        #   delta, so the log would show the provider changing while the
-        #   fields it orphaned silently vanished.
+        # - provider_type is always written (resolved to the stored type when
+        #   the request omits it, so that case diffs as unchanged).
+        # - display_name, tenant_id and issuer are written when non-blank
+        #   AFTER sanitizing. Auditing the raw value would log the padding
+        #   and markup sanitize_plain_text strips, and an issuer that
+        #   sanitize_url refuses (non-https) as a change the record never
+        #   took.
+        # - The three flags and allowed_domains are written on key presence,
+        #   as the parsed boolean / normalized list.
+        # - token_endpoint_auth_method and the provider-switch clears come
+        #   from implicit_write_values.
         #
-        # Both are swapped in as the value that will actually be written.
-        # Key presence is otherwise preserved: an absent key stays absent
-        # (no change), a blank one stays present as '' (cleared). Other
-        # fields are audited from the request as before.
+        # SENSITIVE_FIELDS are logged as `changed: true` with no value, which
+        # means "the request named this field", so those come through as the
+        # request sent them. A disable-only PATCH writes just the two flags.
         #
-        # @return [Hash]
-        def audit_change_params
-          params.merge(implicit_write_values)
+        # @return [Hash{String => Object}]
+        def normalized_change_params
+          return disable_only_change_params if @disable_only
+
+          values = SENSITIVE_FIELDS.each_with_object({}) do |field, hash|
+            hash[field] = params[field] if params.key?(field)
+          end
+
+          values['provider_type']    = @provider_type
+          values['display_name']     = @display_name unless @display_name.to_s.empty?
+          values['tenant_id']        = @tenant_id unless @tenant_id.to_s.empty?
+          values['issuer']           = @issuer unless @issuer.to_s.empty?
+          values['enabled']          = @enabled if @enabled_provided
+          values['enforce_sso_only'] = @enforce_sso_only if @enforce_sso_only_provided
+          values['grant_org_scope']  = @grant_org_scope if @grant_org_scope_provided
+          values['allowed_domains']  = @allowed_domains if @allowed_domains_provided
+
+          values.merge(implicit_write_values)
+        end
+
+        # The disable-only branch of update_existing_config writes enabled
+        # and, when the request carried it, enforce_sso_only, both false.
+        #
+        # @return [Hash{String => false}]
+        def disable_only_change_params
+          values                     = { 'enabled' => false }
+          values['enforce_sso_only'] = false if @enforce_sso_only_provided
+          values
         end
 
         # The SAFE_FIELDS values update_existing_config will write that the
@@ -481,6 +508,15 @@ module DomainsAPI
         # the write path exactly: the conditions here are the ones used by
         # apply_token_endpoint_auth_method, the provider-switch block, and
         # apply_saml_exclusivity (which blanks every OAuth field for saml).
+        #
+        # token_endpoint_auth_method is persisted normalized (stripped; see
+        # persisted_token_endpoint_auth_method), so a whitespace-padded
+        # resend of the stored method diffs as unchanged. A provider switch
+        # blanks the outgoing provider's fields without the request naming
+        # them (issuer on a move off oidc, tenant_id on a move off entra_id,
+        # token_endpoint_auth_method on any move off oidc); without these the
+        # log would show the provider changing while the fields it orphaned
+        # silently vanished.
         #
         # @return [Hash{String => String}]
         def implicit_write_values

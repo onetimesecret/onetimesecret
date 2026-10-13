@@ -2893,6 +2893,53 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
           # of an already-blank field must not show up as a change.
           expect(changes).not_to have_key('token_endpoint_auth_method')
         end
+
+        # The other SAFE_FIELDS are audited from what the write path persists,
+        # not from the raw request, for the same reason as the method above.
+        it 'records display_name as sanitized, not as the request spelled it' do
+          csrf_patch api_path(test_custom_domain.extid), { display_name: '  Acme  <b>Corp</b>  SSO ' }
+
+          expect(last_response.status).to eq(200), last_response.body
+          stored = Onetime::CustomDomain::SsoConfig.find_by_domain_id(test_custom_domain.identifier)
+          expect(stored.display_name).to eq('Acme Corp SSO')
+          expect(audit_payloads.size).to eq(1)
+          change = audit_payloads.first.fetch('changes').fetch('display_name')
+          expect(change['from'].to_s).to eq('')
+          expect(change['to']).to eq('Acme Corp SSO')
+        end
+
+        it 'records no issuer change for a non-https issuer the write path ignores' do
+          csrf_patch api_path(test_custom_domain.extid), { issuer: 'http://auth.example.com' }
+
+          expect(last_response.status).to eq(200), last_response.body
+          stored = Onetime::CustomDomain::SsoConfig.find_by_domain_id(test_custom_domain.identifier)
+          expect(stored.issuer).to eq('https://auth.example.com')
+          expect(audit_payloads.size).to eq(1)
+          expect(audit_payloads.first.fetch('changes', {})).not_to have_key('issuer')
+        end
+
+        it 'records allowed_domains as the normalized list, not the raw string' do
+          csrf_patch api_path(test_custom_domain.extid), { allowed_domains: ' Example.COM, foo.com ' }
+
+          expect(last_response.status).to eq(200), last_response.body
+          stored = Onetime::CustomDomain::SsoConfig.find_by_domain_id(test_custom_domain.identifier)
+          expect(stored.allowed_domains.to_a).to eq(%w[example.com foo.com])
+          expect(audit_payloads.size).to eq(1)
+          change = audit_payloads.first.fetch('changes').fetch('allowed_domains')
+          expect(change['to']).to eq(%w[example.com foo.com])
+        end
+
+        it 'records a disable-only PATCH as the flag change alone' do
+          stored = Onetime::CustomDomain::SsoConfig.find_by_domain_id(test_custom_domain.identifier)
+          stored.enabled = 'true'
+          stored.save
+
+          csrf_patch api_path(test_custom_domain.extid), { enabled: false }
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(audit_payloads.size).to eq(1)
+          expect(audit_payloads.first.fetch('changes')).to eq('enabled' => { 'from' => true, 'to' => false })
+        end
       end
     end
 
