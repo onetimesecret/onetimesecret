@@ -5,12 +5,18 @@
 # Secret display_type feature: a presentation hint for the recipient's
 # client, stamped at creation (Receipt.spawn_pair) and normalized at the read
 # boundary (display_type_or_default / safe_dump). Records created before
-# the field existed, and values this build does not know, read as 'text'.
+# the field existed, values this build does not know, and types the platform
+# has turned off (features.markdown.enabled, default off) read as 'text'.
 # See docs/specs/secret-display-type.md.
 
 require_relative '../../../support/test_models'
 
 OT.boot! :test, true
+
+# Markdown is opt-in per platform; turn it on for the cases that store and
+# read it, and off again in the cases that check the gate. Restored at the end.
+@original_markdown              = OT.conf['features']['markdown']
+OT.conf['features']['markdown'] = { 'enabled' => true }
 
 ## The display_type feature is enabled on Secret
 Onetime::Secret.features_enabled.include?(:display_type)
@@ -66,19 +72,58 @@ secret = Onetime::Secret.new display_type: 'httplink'
 
 ## spawn_pair stores the display type on the secret and safe_dump exposes it
 _receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, '# hello', display_type: 'markdown'
-reloaded = Onetime::Secret.load secret.identifier
+reloaded         = Onetime::Secret.load secret.identifier
 [reloaded.display_type, reloaded.safe_dump[:display_type]]
 #=> ['markdown', 'markdown']
 
 ## spawn_pair without a display type leaves the field unset; safe_dump still says text
 _receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'plain'
-reloaded = Onetime::Secret.load secret.identifier
+reloaded         = Onetime::Secret.load secret.identifier
 [reloaded.display_type, reloaded.safe_dump[:display_type]]
 #=> [nil, 'text']
 
 ## safe_dump carries display_type before reveal: it describes how to show the
 ## value, not what the value is, so no plaintext travels with it
 _receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, '# hello', display_type: 'markdown'
-dump = secret.safe_dump
+dump             = secret.safe_dump
 [dump[:display_type], dump.key?(:secret_value), dump.key?(:ciphertext)]
 #=> ['markdown', false, false]
+
+## display_type_enabled? offers text always and markdown only when the platform turns it on
+enabled_on                      = [Onetime::Secret.display_type_enabled?('text'), Onetime::Secret.display_type_enabled?(:markdown)]
+OT.conf['features']['markdown'] = { 'enabled' => false }
+enabled_off                     = [Onetime::Secret.display_type_enabled?('text'), Onetime::Secret.display_type_enabled?(:markdown)]
+OT.conf['features'].delete('markdown')
+enabled_absent                  = Onetime::Secret.display_type_enabled?('markdown')
+OT.conf['features']['markdown'] = { 'enabled' => 'true' }
+enabled_string                  = Onetime::Secret.display_type_enabled?('markdown')
+OT.conf['features']['markdown'] = { 'enabled' => true }
+[enabled_on, enabled_off, enabled_absent, enabled_string]
+#=> [[true, true], [true, false], false, true]
+
+## display_type_enabled? is false for unknown and blank values whatever the flags say
+OT.conf['features']['httplink'] = { 'enabled' => true }
+result                          = [Onetime::Secret.display_type_enabled?('httplink'), Onetime::Secret.display_type_enabled?('')]
+OT.conf['features'].delete('httplink')
+result
+#=> [false, false]
+
+## With markdown off, a stored markdown secret reads and dumps as text, and the stored value stays
+_receipt, secret                = Onetime::Receipt.spawn_pair 'anon', 3600, '# hello', display_type: 'markdown'
+OT.conf['features']['markdown'] = { 'enabled' => false }
+reloaded                        = Onetime::Secret.load secret.identifier
+result                          = [reloaded.display_type, reloaded.display_type_or_default, reloaded.safe_dump[:display_type]]
+OT.conf['features']['markdown'] = { 'enabled' => true }
+result
+#=> ['markdown', 'text', 'text']
+
+## Turning markdown back on shows the same secret as markdown again
+_receipt, secret                = Onetime::Receipt.spawn_pair 'anon', 3600, '# hello', display_type: 'markdown'
+OT.conf['features']['markdown'] = { 'enabled' => false }
+off                             = Onetime::Secret.load(secret.identifier).safe_dump[:display_type]
+OT.conf['features']['markdown'] = { 'enabled' => true }
+on                              = Onetime::Secret.load(secret.identifier).safe_dump[:display_type]
+[off, on]
+#=> ['text', 'markdown']
+
+OT.conf['features']['markdown'] = @original_markdown

@@ -112,7 +112,7 @@ describe('DashboardIndex', () => {
     return module.default;
   }
 
-  function createMountOptions() {
+  function createMountOptions({ markdown = true }: { markdown?: boolean } = {}) {
     return {
       global: {
         plugins: [
@@ -122,6 +122,7 @@ describe('DashboardIndex', () => {
             initialState: {
               bootstrap: {
                 cust: { feature_flags: { beta: false } },
+                features: { markdown },
                 secret_options: {
                   default_ttl: 604800,
                   ttl_options: [3600, 86400, 604800],
@@ -234,6 +235,15 @@ describe('DashboardIndex', () => {
       await wrapper.find(TOGGLE).trigger('click');
 
       expect(mockUpdateDisplayType).toHaveBeenCalledWith('markdown');
+    });
+
+    it('is absent, with no trailing group, when the platform has Markdown off', async () => {
+      const DashboardIndex = await getComponent();
+      const wrapper = mount(DashboardIndex, createMountOptions({ markdown: false }));
+
+      await flushPromises();
+
+      expect(wrapper.find(TOGGLE).exists()).toBe(false);
     });
   });
 

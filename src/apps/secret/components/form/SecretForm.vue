@@ -138,6 +138,11 @@
   // the whole form for a first-time visitor.
   const showAdvanced = ref(false);
 
+  // Markdown secrets are opt-in per platform (features.markdown). The switch
+  // is the only advanced option, so when it is off there is no disclosure.
+  const { features } = storeToRefs(bootstrapStore);
+  const markdownEnabled = computed(() => features.value?.markdown === true);
+
   // Markdown switch (display_type), under Advanced Options. Not remembered
   // across visits: this form starts from plain text on every load, as it does
   // for the TTL, so a shared browser never hands the next visitor Markdown
@@ -474,10 +479,10 @@
             While collapsed, a setting that is on shows as a chip beside the
             toggle so it is never hidden. Create-link only: its one option
             (Markdown) describes content, which the generate action does not
-            send.
+            send. Absent when the platform has Markdown off.
           -->
           <div
-            v-if="selectedAction === 'create-link'"
+            v-if="markdownEnabled && selectedAction === 'create-link'"
             class="mt-6">
             <!-- prettier-ignore-attribute class -->
             <button

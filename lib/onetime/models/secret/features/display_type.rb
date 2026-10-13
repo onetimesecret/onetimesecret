@@ -15,15 +15,22 @@ module Onetime::Secret::Features
   # immutable value whose lifetime is exactly the secret's, so it expires and
   # is destroyed with the record for free.
   #
+  # Every type but DEFAULT is opt-in per platform: features.<type>.enabled
+  # (features.markdown.enabled, MARKDOWN_ENABLED, default off). A type that
+  # is off is refused at creation and reads as DEFAULT, like an unknown one,
+  # without rewriting what is stored.
+  #
   # Adding a type (e.g. 'httplink', a "you are about to open an external
   # link" interstitial):
   #
   #   1. Append it to TYPES. Older builds read it as DEFAULT; older clients
   #      fall back to plain text.
-  #   2. Put any creation rule for the content (an httplink value must be a
+  #   2. Add its features.<type>.enabled flag, default off, to
+  #      etc/defaults/config.defaults.yaml and the bootstrap feature flags.
+  #   3. Put any creation rule for the content (an httplink value must be a
   #      URL) in the conceal logic beside validate_display_type, where the
   #      plaintext is still available.
-  #   3. Add it to secretDisplayTypeValues (src/schemas/contracts/secret.ts)
+  #   4. Add it to secretDisplayTypeValues (src/schemas/contracts/secret.ts)
   #      and teach the reveal components what it means.
   #
   module DisplayType
@@ -59,6 +66,21 @@ module Onetime::Secret::Features
         TYPES.include?(value.to_s)
       end
 
+      # Whether this platform offers the given display type: DEFAULT always,
+      # any other known type only when features.<type>.enabled is true. Only
+      # an explicit true enables, so a config file without the key reads as
+      # off.
+      #
+      # @param value [String, Symbol, nil]
+      # @return [Boolean]
+      def display_type_enabled?(value)
+        type = value.to_s
+        return false unless valid_display_type?(type)
+        return true if type == DEFAULT
+
+        OT.conf&.dig('features', type, 'enabled').to_s == 'true'
+      end
+
       # Canonical form of a requested display type: stripped and downcased,
       # with absent or blank meaning DEFAULT. Does not validate; pair with
       # valid_display_type? so an unknown type is refused, not stored.
@@ -73,15 +95,16 @@ module Onetime::Secret::Features
 
     module InstanceMethods
       # The stored display type, or DEFAULT when the field is unset (records
-      # created before it existed) or holds a value this build does not know
-      # (a downgrade after a newer type shipped). Reading falls back rather
-      # than raising, and leaves the stored value alone, so a roll-forward
-      # shows the newer type again.
+      # created before it existed), holds a value this build does not know (a
+      # downgrade after a newer type shipped), or names a type this platform
+      # has turned off. Reading falls back rather than raising, and leaves
+      # the stored value alone, so a roll-forward or re-enabling the type
+      # shows it again.
       #
       # @return [String] one of TYPES
       def display_type_or_default
         value = display_type.to_s
-        self.class.valid_display_type?(value) ? value : DEFAULT
+        self.class.display_type_enabled?(value) ? value : DEFAULT
       end
 
       # @param guess [String, Symbol]

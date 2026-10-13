@@ -85,6 +85,10 @@ VISUAL_ENV=(
   "HOST=$CANONICAL_HOST:$PORT"
   INCOMING_ENABLED=true
   "INCOMING_RECIPIENT_1=qa-visual-recipient@example.com,QA Recipient"
+  # Markdown secrets are opt-in (config default: off). The markdown cells
+  # (home--markdown, secret--markdown) need the switch and the rendered
+  # reveal; with it off, the homepage also loses its Advanced Options row.
+  MARKDOWN_ENABLED=true
   # Every config surface that RENDERS must be pinned, or ambient dev env
   # leaks into baselines no other machine (or CI) can reproduce. Values are
   # the config defaults: regions off (no footer region pill), billing off,

@@ -3,7 +3,8 @@
 // The homepage form keeps the Markdown switch under a collapsed Advanced
 // Options disclosure below the passphrase and expiration fields. While
 // collapsed, Markdown mode shows as a chip beside the toggle so a non-default
-// setting is never hidden.
+// setting is never hidden. Markdown is opt-in per platform
+// (features.markdown); when it is off there is no disclosure.
 
 import { mount } from '@vue/test-utils';
 import { createTestingPinia } from '@pinia/testing';
@@ -75,7 +76,7 @@ const ADVANCED_PANEL = '[data-testid="secret-advanced-options"]';
 const ADVANCED_SUMMARY = '[data-testid="secret-advanced-options-summary"]';
 const MARKDOWN_SWITCH = '[data-testid="secret-markdown-toggle"]';
 
-const mountForm = () =>
+const mountForm = ({ markdown = true }: { markdown?: boolean } = {}) =>
   mount(SecretForm, {
     props: { enabled: true },
     global: {
@@ -84,6 +85,7 @@ const mountForm = () =>
           createSpy: vi.fn,
           initialState: {
             bootstrap: {
+              features: { markdown },
               secret_options: {
                 passphrase: { required: false, minimum_length: 8, enforce_complexity: false },
               },
@@ -156,6 +158,12 @@ describe('SecretForm Advanced Options', () => {
 
     await wrapper.find(ADVANCED_TOGGLE).trigger('click');
     expect(wrapper.find(ADVANCED_SUMMARY).text()).toBe('web.secrets.markdown_mode');
+  });
+
+  it('is absent when the platform has Markdown off', () => {
+    const wrapper = mountForm({ markdown: false });
+    expect(wrapper.find(ADVANCED_TOGGLE).exists()).toBe(false);
+    expect(wrapper.find(MARKDOWN_SWITCH).exists()).toBe(false);
   });
 
   it('is hidden in generate-password mode, which sends no display_type', async () => {

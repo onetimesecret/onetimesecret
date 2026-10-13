@@ -12,8 +12,9 @@ module V2::Logic
     #
     # Contract: absent or blank means plain text. The value is a
     # presentation hint for the recipient's client, stored verbatim on the
-    # Secret and echoed in its safe_dump. An unknown type is a 422 at
-    # creation rather than a surprise at reveal. A type with a rule about the
+    # Secret and echoed in its safe_dump. An unknown type, or a known one
+    # this platform has not turned on (features.markdown.enabled), is a 422
+    # at creation rather than a surprise at reveal. A type with a rule about the
     # content (an httplink value must be a URL) checks it here, beside
     # validate_display_type, while the plaintext is in hand.
     #
@@ -38,9 +39,14 @@ module V2::Logic
       # Fail at creation: the creator can correct the request, whereas the
       # recipient could only see a silent fallback to plain text.
       def validate_display_type
-        return if Onetime::Secret.valid_display_type?(display_type)
+        unless Onetime::Secret.valid_display_type?(display_type)
+          raise_form_error "Unknown display type: #{display_type}",
+            field: :display_type,
+            error_type: :invalid
+        end
+        return if Onetime::Secret.display_type_enabled?(display_type)
 
-        raise_form_error "Unknown display type: #{display_type}",
+        raise_form_error "Display type not enabled: #{display_type}",
           field: :display_type,
           error_type: :invalid
       end

@@ -15,7 +15,8 @@
    *
    * The Markdown toggle (display_type) is a chip in the parent's options
    * row, in its own group beside the privacy chips: it is a formatting
-   * choice, not a privacy one. It is remembered across visits like the TTL.
+   * choice, not a privacy one. It is remembered across visits like the TTL,
+   * and offered only when the platform enables Markdown (features.markdown).
    * In Markdown mode the preview sits beside the textarea on large screens,
    * so the form keeps its height, and stacks below it on smaller ones.
    */
@@ -192,12 +193,15 @@
   operations.updateField('ttl', isValidPreferredTtl ? preferredTtl : defaultTtl.value);
 
   // Initialize the Markdown toggle the same way: last-used value from
-  // localReceiptStore (localStorage), plain text when nothing is stored.
+  // localReceiptStore (localStorage), plain text when nothing is stored. A
+  // remembered 'markdown' is ignored while the platform has Markdown off
+  // (features.markdown): the API would refuse it, and there is no chip to
+  // turn it off. The stored preference is kept for when it is back on.
+  const { features } = storeToRefs(bootstrapStore);
+  const markdownEnabled = computed(() => features.value?.markdown === true);
   const restorePreferredDisplayType = () => {
-    operations.updateField(
-      'display_type',
-      localReceiptStore.preferredDisplayType ?? DEFAULT_SECRET_DISPLAY_TYPE
-    );
+    const preferred = markdownEnabled.value ? localReceiptStore.preferredDisplayType : null;
+    operations.updateField('display_type', preferred ?? DEFAULT_SECRET_DISPLAY_TYPE);
   };
   restorePreferredDisplayType();
 

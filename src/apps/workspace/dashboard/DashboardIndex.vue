@@ -8,6 +8,7 @@
   import { SecretDisplayType } from '@/schemas/contracts/secret';
   import { loggingService } from '@/services/logging.service';
   import MarkdownModeToggle from '@/shared/components/ui/MarkdownModeToggle.vue';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useProductIdentity } from '@/shared/stores/identityStore';
   import { storeToRefs } from 'pinia';
   import { computed, ref } from 'vue';
@@ -33,6 +34,11 @@
   const isMarkdown = computed(
     () => secretFormRef.value?.currentDisplayType === SecretDisplayType.MARKDOWN
   );
+
+  // Markdown secrets are opt-in per platform (features.markdown); when off,
+  // the chip is not offered and the bar has no trailing group.
+  const { features } = storeToRefs(useBootstrapStore());
+  const markdownEnabled = computed(() => features.value?.markdown === true);
 
   // Handlers for privacy options updates
   const handleTtlUpdate = (value: number) => {
@@ -70,7 +76,8 @@
 
     <!--
       Options bar: privacy chips (TTL, passphrase) on the left, the Markdown
-      toggle in its own group on the right. One row of chips for the form.
+      toggle in its own group on the right (when the platform enables it).
+      One row of chips for the form.
     -->
     <PrivacyOptionsBar
       :current-ttl="currentTtl"
@@ -79,7 +86,9 @@
       class="mb-4"
       @update:ttl="handleTtlUpdate"
       @update:passphrase="handlePassphraseUpdate">
-      <template #trailing>
+      <template
+        v-if="markdownEnabled"
+        #trailing>
         <MarkdownModeToggle
           :model-value="isMarkdown"
           :disabled="isSubmitting"

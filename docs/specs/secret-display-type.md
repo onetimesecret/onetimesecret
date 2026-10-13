@@ -39,6 +39,20 @@ base.field :display_type, fast_method: false
   value is left alone. `safe_dump` emits the normalized value, so the client
   never sees nil. `display_type?(:markdown)` is the predicate.
 
+**Platform flag.** Every type but `text` is opt-in per install:
+`features.<type>.enabled` in `etc/defaults/config.defaults.yaml`, so Markdown is
+`features.markdown.enabled` (`MARKDOWN_ENABLED`), default off. Only an explicit
+true enables it, so a config file without the key reads as off.
+`Secret.display_type_enabled?` is the one rule, and when a type is off:
+
+- The conceal endpoints refuse it at creation (section 2).
+- `display_type_or_default` reads a stored value of that type as `text`, the
+  same fallback as for an unknown value, so `safe_dump` emits `text` and the
+  recipient sees the plain source. The stored value is left alone, so turning
+  the flag back on shows those secrets as Markdown again.
+- The bootstrap carries `features.markdown` (a boolean), and the create forms
+  offer no Markdown control (section 3).
+
 Why a field on the Secret and not a related key: there is one immutable value
 whose lifetime is exactly the secret's. On the Secret's own hash it costs no
 extra Redis key or round trip, and it expires and is destroyed with the
@@ -63,9 +77,10 @@ inherits it), is the request-side counterpart of the feature:
   `text`; otherwise stripped and downcased). A non-scalar shape
   (`secret[display_type][]=`) is a payload error, like `ttl`.
 - `validate_display_type`: a value outside `Secret.display_types` is a
-  `FormError` (`field: display_type`, `error_type: invalid`). Fail at
-  creation, where the creator can correct it, rather than fall back silently
-  at reveal.
+  `FormError` (`Unknown display type: …`), and so is a known type the
+  platform has not turned on (`Display type not enabled: markdown`), both with
+  `field: display_type`, `error_type: invalid`. Fail at creation, where the
+  creator can correct it, rather than fall back silently at reveal.
 - `GenerateSecret` overrides `process_display_type` to `text`: a generated
   password is always plain text (Markdown would mangle `*`, `_`, `` ` ``).
 - The V1 API is unchanged and always creates `text` secrets.
@@ -80,7 +95,7 @@ a secret nobody consumed (the #3424 failure shape). Strict on the request
 payload (`secretDisplayTypeSchema.optional()`).
 
 **Create forms**: the same `display_type` field, presented in each form's own
-idiom. In both, the textarea stays the single place the text is edited and a
+idiom, and only when the bootstrap's `features.markdown` is true. In both, the textarea stays the single place the text is edited and a
 sanitized live preview (`MarkdownPreview`) shows what the recipient will see.
 
 - Homepage (`SecretForm`): a labeled switch (`MarkdownModeSwitch`) with a
@@ -99,7 +114,9 @@ sanitized live preview (`MarkdownPreview`) shows what the recipient will see.
   preview sits beside the textarea so the form keeps its height; below that it
   stacks. Remembered in `localStorage` via
   `localReceiptStore.preferredDisplayType`, the same mechanism and lifetime as
-  the remembered TTL.
+  the remembered TTL. A remembered `markdown` is not restored while the
+  platform has Markdown off, since the API would refuse it; the preference
+  itself is kept.
 
 **Reveal** (`SecretMarkdownContent`, used by both `SecretDisplayCase`
 variants): rendered Markdown by default with a Rendered / Source switch. The
@@ -140,9 +157,12 @@ The feature file's header lists the steps. In short:
    `lib/onetime/models/secret/features/display_type.rb`. Servers that predate
    it reject it at creation; when one reads a stored value it does not know,
    it shows `text` and leaves the value as stored.
-2. Put any rule about the content beside `validate_display_type` in the
+2. Add its `features.<type>.enabled` flag, default off, to
+   `etc/defaults/config.defaults.yaml`, `.env.reference` and the bootstrap
+   feature flags (`ConfigSerializer.build_feature_flags`, `featuresSchema`).
+3. Put any rule about the content beside `validate_display_type` in the
    conceal logic, where the plaintext is still available.
-3. Add the value to `secretDisplayTypeValues` and teach the reveal components
+4. Add the value to `secretDisplayTypeValues` and teach the reveal components
    what it means. Clients that predate it fall back to `text` on read.
 
 The type this is meant to grow into is `httplink`: the value is a URL, and
