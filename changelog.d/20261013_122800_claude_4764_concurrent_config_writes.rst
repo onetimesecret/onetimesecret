@@ -20,3 +20,12 @@ Fixed
   request has just disabled. A sign-in configuration update can no longer
   keep the ``webauthn`` restriction after another request has removed it.
   (#4764)
+- Background checks for an email sender domain now record their results
+  only while the configuration still sends from the address they checked.
+  A DNS or provider check that finishes after the sender address changed,
+  or after the configuration was deleted, is discarded instead of being
+  recorded against the new address or bringing the deleted configuration
+  back. Sender domain provisioning that finishes in the same situation
+  fails and stores nothing. When Verify Now cannot queue its checks, it no
+  longer restores values from before its own reset or recreates a deleted
+  configuration. (#4764)
