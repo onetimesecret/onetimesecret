@@ -177,14 +177,23 @@ Nothing in this section exists in the codebase, except where an item says so.
    proposed: a credential check for generic OIDC (none is safe without a
    known scope) and for SAML (needs a real assertion flow).
 2. **Report each layer separately:** local integrity, provider reachability,
-   credential acceptance, completed sign-in. Built for the first three as
-   the per-check response of Check saved configuration. Still proposed:
-   completed sign-in (item 4).
+   credential acceptance, completed sign-in. Built: the first three as the
+   per-check response of Check saved configuration, the fourth as
+   `last_sign_in` on the record (item 4).
 3. **Background checks** for integrity, discovery, and SAML expiry. Token probes
    only where the provider supports a suitable, authorized request (Entra client
    credentials, as above).
-4. **Per-domain sign-in outcomes.** Needs `domain_id` on `omniauth_failure` for
-   tenant callbacks.
+4. **Per-domain sign-in outcomes.** Built as `last_sign_in` on the domain
+   SSO record (`CustomDomain::SsoSigninOutcome`,
+   `lib/onetime/models/custom_domain/sso_signin_outcome.rb`), shown in the
+   Check saved configuration section. The tenant hooks record each sign-in
+   as `succeeded` or `failed` with the stage it stopped at (`setup`,
+   `provider`, `callback`, `account`) and a bounded code: the `auth_error`
+   the visitor saw, or at the provider stage OmniAuth's error type (the
+   same `error_type` the `omniauth_failure` log line carries). The last
+   success is kept alongside a later failure. Outcomes only, no identity;
+   90-day TTL renewed per write; deleted with the SSO record. The log line
+   itself still has no `domain_id`; the record is the per-domain view.
 5. **Customer-entered secret expiry date** for Entra and OIDC, used only for
    reminders. It's the only way we learn the date without a Graph permission.
 6. **Store observations, not a flag:**

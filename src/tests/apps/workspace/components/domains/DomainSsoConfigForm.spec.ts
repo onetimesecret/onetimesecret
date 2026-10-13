@@ -114,6 +114,7 @@ const mockExistingConfig: CustomDomainSsoConfig = {
   allowed_domains: ['example.com'],
   requires_domain_filter: false,
   idp_controls_access: true,
+  last_sign_in: null,
   created_at: new Date(),
   updated_at: new Date(),
 };
@@ -168,6 +169,7 @@ const mockSamlConfig: CustomDomainSsoConfig = {
   acs_url: 'https://secrets.example.com/auth/sso/corp-saml/callback',
   requires_domain_filter: true,
   idp_controls_access: false,
+  last_sign_in: null,
 };
 
 interface MountOptions {
@@ -991,6 +993,77 @@ describe('DomainSsoConfigForm', () => {
   // ─────────────────────────────────────────────────────────────────────────────
   // Token endpoint auth method (#4764)
   // ─────────────────────────────────────────────────────────────────────────────
+
+  describe('Last sign-in outcome (record.last_sign_in)', () => {
+    const LINE = '[data-testid="sso-last-sign-in"]';
+
+    it('says none is recorded when the saved record carries null', async () => {
+      wrapper = await mountComponent({
+        formState: mockExistingFormState,
+        ssoConfig: { ...mockExistingConfig, last_sign_in: null },
+        isConfigured: true,
+      });
+
+      const line = wrapper.find(LINE);
+      expect(line.exists()).toBe(true);
+      expect(line.attributes('data-result')).toBe('none');
+      expect(line.text()).toContain('web.organizations.sso.last_sign_in_none');
+    });
+
+    it('reports a completed sign-in', async () => {
+      wrapper = await mountComponent({
+        formState: mockExistingFormState,
+        ssoConfig: {
+          ...mockExistingConfig,
+          last_sign_in: {
+            result: 'succeeded',
+            at: 1760000000,
+            succeeded_at: 1760000000,
+            failed_at: null,
+            failure_stage: null,
+            failure_code: null,
+            provider_type: 'entra_id',
+          },
+        },
+        isConfigured: true,
+      });
+
+      const line = wrapper.find(LINE);
+      expect(line.attributes('data-result')).toBe('succeeded');
+      expect(line.text()).toContain('web.organizations.sso.last_sign_in_succeeded');
+      expect(line.text()).not.toContain('last_sign_in_failed');
+    });
+
+    it('reports a failed sign-in with its stage and code, plus the last success', async () => {
+      wrapper = await mountComponent({
+        formState: mockExistingFormState,
+        ssoConfig: {
+          ...mockExistingConfig,
+          last_sign_in: {
+            result: 'failed',
+            at: 1760003600,
+            succeeded_at: 1760000000,
+            failed_at: 1760003600,
+            failure_stage: 'provider',
+            failure_code: 'invalid_credentials',
+            provider_type: 'entra_id',
+          },
+        },
+        isConfigured: true,
+      });
+
+      const line = wrapper.find(LINE);
+      expect(line.attributes('data-result')).toBe('failed');
+      expect(line.text()).toContain('web.organizations.sso.last_sign_in_failed');
+      expect(line.text()).toContain('web.organizations.sso.last_sign_in_last_success');
+    });
+
+    it('is not shown before a configuration is saved', async () => {
+      wrapper = await mountComponent({ formState: createDefaultFormState(), isConfigured: false });
+
+      expect(wrapper.find(LINE).exists()).toBe(false);
+    });
+  });
 
   describe('Token endpoint auth method (#4764)', () => {
     const SELECT = '#domain-sso-token-endpoint-auth-method';

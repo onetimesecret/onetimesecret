@@ -1156,6 +1156,38 @@
     "text": "Checks what is stored for this domain — for Microsoft Entra ID including the saved client secret — and reports each layer separately. It does not test a full sign-in.",
     "content_hash": "42505faa"
   },
+  "web.organizations.sso.last_sign_in_none": {
+    "text": "No sign-in through this domain has been recorded yet.",
+    "content_hash": "7f9d0f23"
+  },
+  "web.organizations.sso.last_sign_in_succeeded": {
+    "text": "The last sign-in through this domain completed on {when}.",
+    "content_hash": "9a125080"
+  },
+  "web.organizations.sso.last_sign_in_failed": {
+    "text": "The last sign-in through this domain failed on {when}, {stage} ({code}).",
+    "content_hash": "be81f392"
+  },
+  "web.organizations.sso.last_sign_in_last_success": {
+    "text": "The last completed sign-in was on {when}.",
+    "content_hash": "34e63e57"
+  },
+  "web.organizations.sso.last_sign_in_stage_setup": {
+    "text": "before the identity provider was contacted",
+    "content_hash": "5a1b6839"
+  },
+  "web.organizations.sso.last_sign_in_stage_provider": {
+    "text": "at the identity provider",
+    "content_hash": "40394567"
+  },
+  "web.organizations.sso.last_sign_in_stage_callback": {
+    "text": "when the identity provider returned the user",
+    "content_hash": "2ab78fc4"
+  },
+  "web.organizations.sso.last_sign_in_stage_account": {
+    "text": "when matching the user to an account",
+    "content_hash": "1ebbb776"
+  },
   "web.organizations.sso.diagnostics_save_first": {
     "text": "Save first: this checks the saved configuration, not unsaved changes.",
     "content_hash": "46a51d59"
