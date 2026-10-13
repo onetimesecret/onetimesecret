@@ -987,4 +987,122 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
       expect(body['record']['enabled']).to be false
     end
   end
+
+  # ==========================================================================
+  # A concurrent writer of the same record (GuardedConfigWrites): writes
+  # apply to, and audits describe, the record re-read under WATCH rather
+  # than the one raise_concerns loaded.
+  # ==========================================================================
+
+  describe 'with a concurrent writer' do
+    include ConcurrentConfigWriterHelpers
+
+    let(:model) { Onetime::CustomDomain::SignupConfig }
+    let(:audit_events) { [] }
+
+    before do
+      model.create!(domain_id: test_custom_domain.identifier, validation_strategy: 'passthrough', enabled: false)
+      login_as(test_owner)
+      allow(OT).to receive(:info).and_wrap_original do |original, *args, **kwargs|
+        prefix = args.first.to_s
+        if prefix.start_with?('[DOMAIN_SIGNUP_CHANGE] ')
+          audit_events << { event: prefix.delete_prefix('[DOMAIN_SIGNUP_CHANGE] '), payload: JSON.parse(args[1]) }
+        end
+        original.call(*args, **kwargs)
+      end
+    end
+
+    def write_concurrently(**fields)
+      write_config_concurrently(model, test_custom_domain.identifier, **fields)
+    end
+
+    def stored = model.find_by_domain_id(test_custom_domain.identifier)
+
+    def event_names = audit_events.map { |e| e[:event] }
+
+    it 'PATCH keeps a field written after the config was loaded' do
+      after_config_load(model) { write_concurrently(autoverify: true) }
+
+      csrf_patch api_path(test_custom_domain.extid), { validation_strategy: 'mx' }
+
+      expect(last_response.status).to eq(200), last_response.body
+      expect([stored.validation_strategy, stored.autoverify?]).to eq(['mx', true])
+    end
+
+    it 'PATCH audits the changes from the record it replaced' do
+      after_config_load(model) { write_concurrently(validation_strategy: 'smtp', enabled: 'true') }
+
+      csrf_patch api_path(test_custom_domain.extid), { validation_strategy: 'mx', enabled: true }
+
+      expect(last_response.status).to eq(200), last_response.body
+      update = audit_events.find { |e| e[:event] == 'domain_signup_config_updated' }
+      expect(update[:payload]['changes']).to eq('validation_strategy' => { 'from' => 'smtp', 'to' => 'mx' })
+      # enabled was already true: no enabled event
+      expect(event_names).to eq(['domain_signup_config_updated'])
+    end
+
+    it 'PATCH reads again when a write lands before the commit' do
+      after_watched_read(model, times: 1) { write_concurrently(autoverify: true) }
+
+      csrf_patch api_path(test_custom_domain.extid), { validation_strategy: 'mx' }
+
+      expect(last_response.status).to eq(200), last_response.body
+      expect([stored.validation_strategy, stored.autoverify?]).to eq(['mx', true])
+    end
+
+    it 'PATCH refuses with a conflict and logs nothing when every attempt is overtaken' do
+      after_watched_read(model, times: 3) { |n| write_concurrently(autoverify: n.odd?) }
+
+      csrf_patch api_path(test_custom_domain.extid), { validation_strategy: 'mx' }
+
+      expect(last_response.status).to eq(422), last_response.body
+      expect(json_body['error_type']).to eq('conflict')
+      expect(stored.validation_strategy).to eq('passthrough')
+      expect(audit_events).to be_empty
+    end
+
+    it 'PUT compares the enabled event with the record it replaced' do
+      after_config_load(model) { write_concurrently(enabled: 'true') }
+
+      csrf_put api_path(test_custom_domain.extid), valid_mx_params
+
+      expect(last_response.status).to eq(200), last_response.body
+      expect(event_names).to eq(['domain_signup_config_replaced'])
+    end
+
+    it 'DELETE audits the strategy of the record it deleted' do
+      fired = false
+      allow(model).to receive(:exists_for_domain?).and_wrap_original do |original, *args|
+        original.call(*args).tap do
+          next if fired
+
+          fired = true
+          write_concurrently(validation_strategy: 'smtp')
+        end
+      end
+
+      csrf_delete api_path(test_custom_domain.extid)
+
+      expect(last_response.status).to eq(200), last_response.body
+      deleted = audit_events.find { |e| e[:event] == 'domain_signup_config_deleted' }
+      expect(deleted[:payload]['validation_strategy']).to eq('smtp')
+    end
+
+    it 'DELETE logs nothing when a concurrent delete got the record' do
+      fired = false
+      allow(model).to receive(:exists_for_domain?).and_wrap_original do |original, *args|
+        original.call(*args).tap do
+          next if fired
+
+          fired = true
+          as_concurrent_writer { model.delete_for_domain!(test_custom_domain.identifier) }
+        end
+      end
+
+      csrf_delete api_path(test_custom_domain.extid)
+
+      expect(last_response.status).to eq(200), last_response.body
+      expect(audit_events).to be_empty
+    end
+  end
 end

@@ -38,20 +38,22 @@ module DomainsAPI
           authorize_domain_signup_config!(@domain_id)
 
           # Verify config exists and capture strategy for audit
-          existing_config = Onetime::CustomDomain::SignupConfig.find_by_domain_id(@custom_domain.identifier)
-          unless existing_config
-            raise_not_found("Signup configuration not found for domain: #{@domain_id}")
-          end
+          return if Onetime::CustomDomain::SignupConfig.exists_for_domain?(@custom_domain.identifier)
 
-          @deleted_strategy = existing_config.validation_strategy
+          raise_not_found("Signup configuration not found for domain: #{@domain_id}")
         end
 
         def process
           OT.ld "[DeleteSignupConfig] Deleting signup config for domain #{@domain_id} by user #{cust.extid}"
 
-          deleted = Onetime::CustomDomain::SignupConfig.delete_for_domain!(@custom_domain.identifier)
+          # The audit describes the record as deleted; of concurrent deletes
+          # only one gets it (GuardedConfigWrites#remove_for_domain!).
+          deleted = guarded_config_write do
+            Onetime::CustomDomain::SignupConfig.remove_for_domain!(@custom_domain.identifier)
+          end
 
           if deleted
+            @deleted_strategy = deleted.validation_strategy
             log_signup_change_event(
               event: :domain_signup_config_deleted,
               domain: @custom_domain,

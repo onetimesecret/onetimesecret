@@ -103,29 +103,29 @@ module DomainsAPI
         def process
           OT.ld "[PutIncomingConfig] Setting incoming config for domain #{@domain_id} by user #{cust.extid}"
 
-          # Find or create config
-          @incoming_config = Onetime::CustomDomain::IncomingConfig.find_by_domain_id(@custom_domain.identifier)
-
-          if @incoming_config
-            # Update existing
-            @incoming_config.enabled = @enabled.to_s
-            # Only update recipients if explicitly provided in the request.
-            # This allows toggling enabled state without wiping recipients.
-            # The admin frontend always sends the full recipients list, so the
-            # provided branch is the standard path; the omitted branch supports
-            # toggle-only callers (e.g. future PATCH).
-            if @recipients_provided
-              @incoming_config.recipients = @recipients
+          model            = Onetime::CustomDomain::IncomingConfig
+          @incoming_config = guarded_config_write do
+            if model.exists_for_domain?(@custom_domain.identifier)
+              # Update existing, re-read under WATCH (GuardedConfigWrites) so
+              # omitted recipients keep a concurrent writer's list.
+              model.update_for_domain!(@custom_domain.identifier) do |config|
+                config.enabled    = @enabled.to_s
+                # Only update recipients if explicitly provided in the request.
+                # This allows toggling enabled state without wiping recipients.
+                # The admin frontend always sends the full recipients list, so the
+                # provided branch is the standard path; the omitted branch supports
+                # toggle-only callers (e.g. future PATCH).
+                config.recipients = @recipients if @recipients_provided
+                config.updated    = Familia.now.to_i
+              end.first
+            else
+              # Create new
+              model.create!(
+                domain_id: @custom_domain.identifier,
+                enabled: @enabled,
+                recipients: @recipients,
+              )
             end
-            @incoming_config.updated = Familia.now.to_i
-            @incoming_config.save
-          else
-            # Create new
-            @incoming_config = Onetime::CustomDomain::IncomingConfig.create!(
-              domain_id: @custom_domain.identifier,
-              enabled: @enabled,
-              recipients: @recipients,
-            )
           end
 
           log_homepage_drift unless @incoming_config.ready?

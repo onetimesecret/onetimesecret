@@ -48,6 +48,22 @@ module DomainsAPI
 
       private
 
+      # Runs a write through the per-domain config models' guarded methods
+      # (Onetime::Models::Features::GuardedConfigWrites) and reports a
+      # concurrent writer that got there first as a conflict: the record was
+      # deleted, created, or still changing after the retries. Nothing was
+      # written and nothing should be logged as written.
+      def guarded_config_write
+        yield
+      rescue Familia::KeyNotFoundError, Familia::OptimisticLockError,
+             Onetime::Models::Features::GuardedConfigWrites::ConfigExistsError
+        raise_form_error(
+          'The configuration was changed or removed while this update was being saved. Reload it and try again.',
+          field: :domain_id,
+          error_type: :conflict,
+        )
+      end
+
       # Validates that an external ID contains only lowercase alphanumeric characters.
       #
       # @param extid [String] The external ID to validate

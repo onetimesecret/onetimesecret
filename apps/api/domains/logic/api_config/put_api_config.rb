@@ -35,10 +35,12 @@ module DomainsAPI
         def process
           OT.ld "[PutApiConfig] domain=#{@custom_domain.identifier} extid=#{@domain_id} enabled=#{@enabled} org=#{@organization.identifier} user=#{cust.extid}"
 
-          @api_config = Onetime::CustomDomain::ApiConfig.upsert(
-            domain_id: @custom_domain.identifier,
-            enabled: @enabled,
-          )
+          @api_config = guarded_config_write do
+            Onetime::CustomDomain::ApiConfig.upsert(
+              domain_id: @custom_domain.identifier,
+              enabled: @enabled,
+            )
+          end
 
           OT.ld "[PutApiConfig] saved domain=#{@custom_domain.identifier} enabled=#{@api_config.enabled?} updated=#{@api_config.updated}"
 

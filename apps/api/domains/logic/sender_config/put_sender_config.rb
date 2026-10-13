@@ -72,11 +72,10 @@ module DomainsAPI
         def process
           OT.ld "[PutSenderConfig] Replacing sender config for domain #{@domain_id} by user #{cust.extid}"
 
-          # Track enabled state change for audit
-          was_enabled = @existing_config&.enabled?
-
           if @existing_config
-            replace_existing_config
+            # From the record this write replaced, not the one raise_concerns
+            # loaded (see replace_existing_config)
+            was_enabled = replace_existing_config
             log_sender_config_event(
               event: :domain_sender_config_replaced,
               domain: @custom_domain,
@@ -84,7 +83,8 @@ module DomainsAPI
               actor: cust,
             )
           else
-            create_new_config
+            was_enabled = nil
+            guarded_config_write { create_new_config }
             log_sender_config_event(
               event: :domain_sender_config_created,
               domain: @custom_domain,
@@ -146,34 +146,39 @@ module DomainsAPI
 
         # Replaces existing sender config with PUT semantics.
         #
-        # Uses transaction with commit_fields to prevent race condition where
-        # config could be deleted between existence check and update.
-        #
         # Custom mail sender model: sender identity only, no provider/api_key.
         #
+        # Runs on the record update_for_domain! re-reads under WATCH
+        # (GuardedConfigWrites): the fields this PUT does not set (verification
+        # and provisioning state, which background jobs write) keep their
+        # current values, and the verification reset and the enabled event
+        # compare against the state this write replaced.
+        #
+        # @return [Boolean] whether the replaced record was enabled
         def replace_existing_config
-          @mailer_config = @existing_config
+          @mailer_config, was_enabled = guarded_config_write do
+            Onetime::CustomDomain::MailerConfig.update_for_domain!(@custom_domain.identifier) do |config|
+              previously_enabled    = config.enabled?
+              original_from_address = config.from_address
 
-          # Capture original from_address BEFORE mutation (for verification reset check)
-          original_from_address = @existing_config.from_address
+              # PUT semantics: full replacement - set ALL sender identity fields
+              config.from_name    = @from_name        # Empty string clears the field
+              config.from_address = @from_address
+              config.reply_to     = @reply_to         # Empty string clears the field
+              config.enabled      = @enabled.to_s
 
-          # PUT semantics: full replacement - set ALL sender identity fields
-          @mailer_config.from_name    = @from_name        # Empty string clears the field
-          @mailer_config.from_address = @from_address
-          @mailer_config.reply_to     = @reply_to         # Empty string clears the field
-          @mailer_config.enabled      = @enabled.to_s
+              # Reset verification if from_address changed
+              if @from_address != original_from_address
+                config.verified_at         = nil
+                config.verification_status = VERIFICATION_STATUS_PENDING
+              end
 
-          # Reset verification if from_address changed
-          if @from_address != original_from_address
-            @mailer_config.verified_at         = nil
-            @mailer_config.verification_status = VERIFICATION_STATUS_PENDING
+              # Update timestamp for replacement
+              config.updated = Familia.now.to_i
+              previously_enabled
+            end
           end
-
-          # Update timestamp for replacement
-          @mailer_config.updated = Familia.now.to_i
-
-          # commit_fields uses its own internal transaction for atomicity
-          @mailer_config.commit_fields
+          was_enabled
         end
 
         # Log enabled/disabled state change if it occurred.
