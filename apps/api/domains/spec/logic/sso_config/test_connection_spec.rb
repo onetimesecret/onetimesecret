@@ -30,12 +30,14 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::TestConnection do
       instance.instance_variable_set(:@provider_type, provider_type)
       instance.instance_variable_set(:@issuer, issuer)
       instance.instance_variable_set(:@tenant_id, tenant_id)
+      instance.instance_variable_set(:@token_endpoint_auth_method, token_endpoint_auth_method)
     end
   end
 
   let(:provider_type) { 'oidc' }
   let(:issuer) { 'https://idp.example.com' }
   let(:tenant_id) { nil }
+  let(:token_endpoint_auth_method) { '' }
 
   let(:http_instance) { instance_double(Net::HTTP) }
 
@@ -168,6 +170,146 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::TestConnection do
         expect(result[:success]).to be true
         expect(http_instance).to have_received(:ipaddr=).with('203.0.113.10').ordered
         expect(http_instance).to have_received(:ipaddr=).with('203.0.113.11').ordered
+      end
+    end
+  end
+
+  # #4764
+  describe 'token endpoint auth method reporting' do
+    before { stub_issuer_resolution(['203.0.113.10']) }
+
+    def run_with_discovery(extra)
+      body = {
+        issuer: issuer,
+        authorization_endpoint: "#{issuer}/authorize",
+        token_endpoint: "#{issuer}/token",
+        jwks_uri: "#{issuer}/jwks",
+      }.merge(extra).to_json
+      respond_with(success_response(body))
+      logic.send(:test_oidc_connection)
+    end
+
+    context 'when the document advertises the selected method' do
+      let(:token_endpoint_auth_method) { 'client_secret_post' }
+
+      it 'reports the list, supported: true and no note' do
+        result = run_with_discovery(token_endpoint_auth_methods_supported: %w[client_secret_basic client_secret_post])
+
+        expect(result[:success]).to be true
+        expect(result[:details]).to include(
+          token_endpoint_auth_methods_supported: %w[client_secret_basic client_secret_post],
+          token_endpoint_auth_method_supported: true,
+        )
+        expect(result[:details]).not_to have_key(:note)
+      end
+    end
+
+    context 'when the document does not advertise the selected method' do
+      let(:token_endpoint_auth_method) { 'client_secret_post' }
+
+      it 'stays successful, reports supported: false and explains in a note' do
+        result = run_with_discovery(token_endpoint_auth_methods_supported: %w[client_secret_basic])
+
+        expect(result[:success]).to be true
+        expect(result[:details]).to include(
+          token_endpoint_auth_methods_supported: %w[client_secret_basic],
+          token_endpoint_auth_method_supported: false,
+        )
+        expect(result[:details][:note]).to include('does not advertise client_secret_post')
+        expect(result[:details][:note]).to include('advertised: client_secret_basic')
+      end
+    end
+
+    context 'when the document omits the field and client_secret_basic is selected' do
+      let(:token_endpoint_auth_method) { 'client_secret_basic' }
+
+      it 'applies the OIDC Discovery default and reports supported: true' do
+        result = run_with_discovery({})
+
+        expect(result[:details]).to include(
+          token_endpoint_auth_methods_supported: nil,
+          token_endpoint_auth_method_supported: true,
+        )
+        expect(result[:details]).not_to have_key(:note)
+      end
+    end
+
+    context 'when the document omits the field and client_secret_post is selected' do
+      let(:token_endpoint_auth_method) { 'client_secret_post' }
+
+      it 'reports supported: false against the default and names the default in the note' do
+        result = run_with_discovery({})
+
+        expect(result[:details]).to include(
+          token_endpoint_auth_methods_supported: nil,
+          token_endpoint_auth_method_supported: false,
+        )
+        expect(result[:details][:note]).to include('the OIDC Discovery default is client_secret_basic')
+      end
+    end
+
+    context 'when nothing is selected' do
+      it 'reports the list, supported: nil and no note' do
+        result = run_with_discovery(token_endpoint_auth_methods_supported: %w[client_secret_basic])
+
+        expect(result[:details]).to include(
+          token_endpoint_auth_methods_supported: %w[client_secret_basic],
+          token_endpoint_auth_method_supported: nil,
+        )
+        expect(result[:details]).not_to have_key(:note)
+      end
+    end
+
+    context 'when the document carries a malformed value' do
+      let(:token_endpoint_auth_method) { 'client_secret_basic' }
+
+      it 'treats it as absent' do
+        result = run_with_discovery(token_endpoint_auth_methods_supported: 'client_secret_basic')
+
+        expect(result[:details]).to include(
+          token_endpoint_auth_methods_supported: nil,
+          token_endpoint_auth_method_supported: true,
+        )
+      end
+    end
+
+    context 'with a selection outside the accepted list' do
+      let(:token_endpoint_auth_method) { 'private_key_jwt' }
+
+      it 'is a form error naming the field, raised before any connection' do
+        expect { logic.send(:validate_oidc_fields) }.to raise_error(Onetime::FormError) do |error|
+          expect(error.message).to eq('token_endpoint_auth_method must be one of: client_secret_basic, client_secret_post')
+          expect(error.field).to eq(:token_endpoint_auth_method)
+          expect(error.error_type).to eq(:invalid)
+        end
+        expect(Net::HTTP).not_to have_received(:new)
+      end
+    end
+
+    context 'with an Entra ID test' do
+      let(:provider_type) { 'entra_id' }
+      let(:tenant_id) { '12345678-1234-1234-1234-123456789abc' }
+      let(:token_endpoint_auth_method) { 'client_secret_post' }
+
+      it 'reports the advertised list but never a selection (the field is oidc only)' do
+        stub_issuer_resolution(['203.0.113.20'])
+        body = {
+          issuer: 'https://login.microsoftonline.com/x/v2.0',
+          authorization_endpoint: 'https://login.microsoftonline.com/x/authorize',
+          token_endpoint: 'https://login.microsoftonline.com/x/token',
+          jwks_uri: 'https://login.microsoftonline.com/x/jwks',
+          token_endpoint_auth_methods_supported: %w[client_secret_post private_key_jwt client_secret_basic],
+        }.to_json
+        respond_with(success_response(body))
+
+        result = logic.send(:test_entra_id_connection)
+
+        expect(result[:success]).to be true
+        expect(result[:details]).to include(
+          token_endpoint_auth_methods_supported: %w[client_secret_post private_key_jwt client_secret_basic],
+          token_endpoint_auth_method_supported: nil,
+        )
+        expect(result[:details]).not_to have_key(:note)
       end
     end
   end

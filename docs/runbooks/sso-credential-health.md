@@ -22,7 +22,7 @@ used in applications for freshness of use and their expiration."
 | Check | What it establishes | When | What Onetime Secret has today |
 |---|---|---|---|
 | **Stored configuration** | The saved record loads, decrypts, and has the required fields. | After every save, deploy, or encryption-key rotation; periodically. | `SsoConfig#validation_errors`. A value that fails to decrypt is reported as missing (`client_secret is required`). Nothing runs it across domains, from the CLI or on a schedule. |
-| **Discovery** | The IdP is reachable and its discovery document is usable. Says nothing about the secret. | Periodically, cached. | Test Connection fetches discovery for `oidc` and `entra_id` and compares the OIDC issuer exactly. Runs only when an admin clicks it. |
+| **Discovery** | The IdP is reachable and its discovery document is usable. Says nothing about the secret. | Periodically, cached. | Test Connection fetches discovery for `oidc` and `entra_id` and compares the OIDC issuer exactly. It also reports the document's `token_endpoint_auth_methods_supported`, and for `oidc` warns when the selected token endpoint auth method is not advertised (#4764). Runs only when an admin clicks it. |
 | **Credential expiry** | A secret or certificate needs rotating soon. | Daily is a reasonable start. | SAML: the record reports `cert_expires_at` / `cert_expired`, the form shows an "expiring soon" notice inside 30 days, and Test Connection reports days left. No one is notified unless they open the form. Entra and OIDC client secrets: the expiry date lives in the customer's tenant, and we never see it. |
 | **Admin-triggered test** | Whatever that test actually exercises. | Setup, rotation, troubleshooting. | Test Connection. See the next section for what it does not cover. |
 | **Real sign-ins** | Code exchanges and SSO sign-ins succeed or fail. | Continuously. | Auth log events: `omniauth_tenant_credentials_injecting` (has `domain_id`) and `omniauth_failure` (has `error_type` and `error_message`, no `domain_id`). There is no per-domain count of successes or failures. |
@@ -41,7 +41,9 @@ From `apps/api/domains/logic/sso_config/test_connection.rb`:
   the request body so admins can test before saving. A passing test therefore
   says nothing about what was stored or whether it decrypts.
 - **It never uses the client secret.** The request's `client_secret` isn't read.
-  A wrong, expired, or mis-encoded secret passes.
+  A wrong, expired, or mis-encoded secret passes. The token endpoint auth
+  method check (#4764) compares the selection with the discovery document; it
+  sends nothing to the token endpoint.
 - **SAML is checked locally.** The IdP isn't contacted.
 
 After a customer saves or rotates a secret, only a real sign-in confirms it.
@@ -76,7 +78,8 @@ issued without a `roles` claim."
 
 Keep that isolation test's A/B comparison as an on-demand diagnostic. Routine
 checks test the configured way of sending the secret, not alternatives. For
-Entra that is the token request body (#4764).
+Entra that is the token request body; for generic OIDC it is the selected
+token endpoint auth method, or the default when none is selected (#4764).
 
 ## Procedures with the current tools
 
@@ -109,8 +112,10 @@ Nothing in this section exists in the codebase, except where an item says so.
    Basic-header encoding gap in the Entra runbook. Done for the Entra transport
    itself: both Entra builders now send the secret in the token request body
    (`client_options: { auth_scheme: :request_body }`, #4764), so that gap no
-   longer affects Entra sign-in. Still proposed: the probe, and the matching
-   `token_endpoint_auth_method` option for generic OIDC (#4764, Part 2).
+   longer affects Entra sign-in. Also done: the matching
+   `token_endpoint_auth_method` option for generic OIDC, per domain under
+   Advanced in the SSO form and as `OIDC_CLIENT_AUTH_METHOD` for the platform
+   provider (#4764). Still proposed: the probe.
 2. **Report each layer separately:** local integrity, provider reachability,
    credential acceptance, completed sign-in.
 3. **Background checks** for integrity, discovery, and SAML expiry. Token probes

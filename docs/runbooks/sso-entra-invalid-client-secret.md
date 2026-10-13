@@ -580,7 +580,8 @@ Checking the platform settings costs the customer nothing, but those settings ar
 
 **Done:** Entra sends the secret in the request body (`client_options: { auth_scheme: :request_body }`) for both the platform registration and custom-domain tenants, whatever result B gives. That's the form Microsoft documents first, it works with any character in a secret, and the mounted Entra spec pins how the secret is sent. Landed in [#4764](https://github.com/onetimesecret/onetimesecret/issues/4764). A customer on an affected release gets the fix by upgrading; no configuration change is needed. See "How Onetime Secret sends the secret".
 
+**Also done:** the optional `token_endpoint_auth_method` setting for generic OIDC, Part 2 of #4764: per domain under Advanced in the SSO form, and `OIDC_CLIENT_AUTH_METHOD` for the platform provider. The default for generic OIDC is unchanged. Test Connection reports the methods the IdP advertises. See [per-domain-sso.md](../authentication/per-domain-sso.md#token-endpoint-authentication).
+
 **Still open:**
 
-- The optional `token_endpoint_auth_method` option for generic OIDC is Part 2 of #4764 and has not landed. Generic OIDC is unchanged.
 - Test Connection doesn't check the client secret, so a customer can only confirm the fix with a real sign-in. A separate follow-up, not urgent: have Test Connection verify the saved Entra secret by requesting a token with it, which needs no user sign-in. [sso-credential-health.md](./sso-credential-health.md) covers what such a probe does and does not prove, and the other checks that keep SSO credentials healthy.

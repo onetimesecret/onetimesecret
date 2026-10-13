@@ -158,6 +158,40 @@ export const SSO_SAML_FIELDS = ['idp_sso_service_url', 'idp_entity_id', 'idp_cer
 
 export type SsoSamlField = (typeof SSO_SAML_FIELDS)[number];
 
+/**
+ * OIDC token endpoint client authentication methods (#4764): how the client
+ * secret reaches the IdP's token endpoint. `client_secret_basic` sends it in
+ * an HTTP Basic Authorization header, `client_secret_post` in the request
+ * body. Unset (null on the record, '' in a request) means the gem default.
+ * oidc only; the API clears it for every other provider type.
+ *
+ * Mirrors the keys of Onetime::SsoProvider::Oidc::CLIENT_AUTH_METHODS
+ * (lib/onetime/sso_provider/oidc.rb), which the model exposes as
+ * TOKEN_ENDPOINT_AUTH_METHODS (pinned by the contract spec).
+ */
+export const SSO_TOKEN_ENDPOINT_AUTH_METHODS = [
+  'client_secret_basic',
+  'client_secret_post',
+] as const;
+
+export const tokenEndpointAuthMethodSchema = z.enum(SSO_TOKEN_ENDPOINT_AUTH_METHODS);
+
+export type SsoTokenEndpointAuthMethod = z.infer<typeof tokenEndpointAuthMethodSchema>;
+
+/**
+ * Request-side value: a method, or '' for the default. On PATCH a PRESENT
+ * blank clears the stored method (unlike issuer, where blank keeps it) and
+ * an absent key keeps it, so the form always sends the key for oidc.
+ */
+export const tokenEndpointAuthMethodRequestSchema = z.union([
+  tokenEndpointAuthMethodSchema,
+  z.literal(''),
+]);
+
+export type SsoTokenEndpointAuthMethodRequest = z.infer<
+  typeof tokenEndpointAuthMethodRequestSchema
+>;
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Canonical schema
 // ─────────────────────────────────────────────────────────────────────────────
@@ -225,6 +259,14 @@ export const customDomainSsoConfigCanonical = z.object({
    * for full provider-specific field requirements matrix.
    */
   issuer: z.string().nullable(),
+
+  /**
+   * OIDC token endpoint client authentication method (#4764). Null when
+   * unset (the gem default) and for every non-oidc record; never ''.
+   * Nullish so a record served by an API that predates the key still
+   * parses (rolling deploy).
+   */
+  token_endpoint_auth_method: tokenEndpointAuthMethodSchema.nullish(),
 
   /**
    * SAML IdP SSO service URL (https), where the browser is redirected with
@@ -449,6 +491,12 @@ export const patchSsoConfigPayloadSchema = z.object({
   issuer: z.string().url('Issuer must be a valid URL').optional(),
 
   /**
+   * OIDC token endpoint auth method (#4764). Key presence is the signal:
+   * '' clears the stored method, absent keeps it.
+   */
+  token_endpoint_auth_method: tokenEndpointAuthMethodRequestSchema.optional(),
+
+  /**
    * SAML trio (#4450). On an existing saml record each omitted/blank field
    * preserves the stored value; switching TO saml needs all three.
    */
@@ -513,6 +561,9 @@ export const putSsoConfigPayloadSchema = z.object({
    * customDomainSsoConfigCanonical for provider-specific requirements.
    */
   issuer: z.string().url('Issuer must be a valid URL').optional(),
+
+  /** OIDC token endpoint auth method (#4764); '' or absent = gem default. */
+  token_endpoint_auth_method: tokenEndpointAuthMethodRequestSchema.optional(),
 
   /** SAML trio (#4450). Required for saml — enforced by the strict schema. */
   ...samlPayloadFields,

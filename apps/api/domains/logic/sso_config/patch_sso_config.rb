@@ -60,6 +60,12 @@ module DomainsAPI
           @tenant_id                = sanitize_plain_text(params['tenant_id'])
           @issuer                   = sanitize_url(params['issuer'])
           process_saml_params
+
+          # Key presence, not value: a blank clears the method back to the gem
+          # default, unlike issuer where blank means "keep stored" (#4764).
+          @token_endpoint_auth_method_provided = params.key?('token_endpoint_auth_method')
+          @token_endpoint_auth_method          = normalize_token_endpoint_auth_method(params['token_endpoint_auth_method'])
+
           # Track whether allowed_domains was explicitly provided (for PATCH semantics)
           @allowed_domains_provided = params.key?('allowed_domains')
           @allowed_domains          = parse_allowed_domains(params['allowed_domains'])
@@ -133,7 +139,7 @@ module DomainsAPI
 
           if @existing_config
             # Compute changes before updating
-            changes = compute_sso_changes(@existing_config, params)
+            changes = compute_sso_changes(@existing_config, normalized_change_params)
             update_existing_config
             log_name_id_format_change_if_rekeyed(previous_name_id_format, was_enabled)
             log_sso_change_event(
@@ -177,6 +183,7 @@ module DomainsAPI
             display_name: @display_name,
             tenant_id: @tenant_id,
             issuer: @issuer,
+            token_endpoint_auth_method: @token_endpoint_auth_method,
             idp_sso_service_url: @idp_sso_service_url,
             idp_entity_id: @idp_entity_id,
             allowed_domains: @allowed_domains,
@@ -313,6 +320,8 @@ module DomainsAPI
                 error_type: :invalid,
               )
             end
+
+            validate_token_endpoint_auth_method!(@token_endpoint_auth_method) if @token_endpoint_auth_method_provided
           when 'entra_id'
             # For PATCH: require tenant_id if creating new config or if existing config has no tenant_id
             missing_tenant = @tenant_id.to_s.empty? &&
@@ -400,6 +409,8 @@ module DomainsAPI
             @sso_config.tenant_id = '' if @provider_type == 'oidc' && @tenant_id.to_s.empty?
           end
 
+          apply_token_endpoint_auth_method
+
           # Only update client_secret if provided (preserves existing otherwise)
           @sso_config.client_secret = @client_secret unless @client_secret.to_s.empty?
 
@@ -419,6 +430,117 @@ module DomainsAPI
 
           # commit_fields runs its own transaction internally for atomicity
           @sso_config.commit_fields
+        end
+
+        # token_endpoint_auth_method (#4764): key sent (even blank) sets it,
+        # key absent keeps the stored value. Only oidc reads it, so any other
+        # type clears it, whatever the request carried.
+        def apply_token_endpoint_auth_method
+          return unless @token_endpoint_auth_method_provided || @provider_type != 'oidc'
+
+          @sso_config.token_endpoint_auth_method = persisted_token_endpoint_auth_method
+        end
+
+        # The token_endpoint_auth_method value the record ends up with when
+        # it is written: the normalized request value for oidc, '' for every
+        # other provider type. Single source for the writer and the audit
+        # input, so the two cannot drift.
+        #
+        # @return [String]
+        def persisted_token_endpoint_auth_method
+          @provider_type == 'oidc' ? @token_endpoint_auth_method : ''
+        end
+
+        # Input for compute_sso_changes: the SAFE_FIELDS values
+        # update_existing_config will actually write, keyed as the change
+        # detector expects. The detector diffs only the keys it finds, so
+        # this hash mirrors the write path's own conditions rather than
+        # echoing the request:
+        #
+        # - provider_type is always written (resolved to the stored type when
+        #   the request omits it, so that case diffs as unchanged).
+        # - display_name, tenant_id and issuer are written when non-blank
+        #   AFTER sanitizing. Auditing the raw value would log the padding
+        #   and markup sanitize_plain_text strips, and an issuer that
+        #   sanitize_url refuses (non-https) as a change the record never
+        #   took.
+        # - The three flags are written on key presence as the parsed boolean.
+        # - allowed_domains is written on key presence, and the model setter
+        #   normalizes what it stores (case, padding, blanks, duplicates, two
+        #   forms of one IDN), so the audit value is the setter's own answer
+        #   for the parsed list rather than the list as sent.
+        # - token_endpoint_auth_method and the provider-switch clears come
+        #   from implicit_write_values.
+        #
+        # SENSITIVE_FIELDS are logged as `changed: true` with no value, which
+        # means "the request named this field", so those come through as the
+        # request sent them. A disable-only PATCH writes just the two flags.
+        #
+        # @return [Hash{String => Object}]
+        def normalized_change_params
+          return disable_only_change_params if @disable_only
+
+          values = SENSITIVE_FIELDS.each_with_object({}) do |field, hash|
+            hash[field] = params[field] if params.key?(field)
+          end
+
+          values['provider_type']    = @provider_type
+          values['display_name']     = @display_name unless @display_name.to_s.empty?
+          values['tenant_id']        = @tenant_id unless @tenant_id.to_s.empty?
+          values['issuer']           = @issuer unless @issuer.to_s.empty?
+          values['enabled']          = @enabled if @enabled_provided
+          values['enforce_sso_only'] = @enforce_sso_only if @enforce_sso_only_provided
+          values['grant_org_scope']  = @grant_org_scope if @grant_org_scope_provided
+          if @allowed_domains_provided
+            values['allowed_domains'] = Onetime::CustomDomain::SsoConfig.normalize_allowed_domains(@allowed_domains)
+          end
+
+          values.merge(implicit_write_values)
+        end
+
+        # The disable-only branch of update_existing_config writes enabled
+        # and, when the request carried it, enforce_sso_only, both false.
+        #
+        # @return [Hash{String => false}]
+        def disable_only_change_params
+          values                     = { 'enabled' => false }
+          values['enforce_sso_only'] = false if @enforce_sso_only_provided
+          values
+        end
+
+        # The SAFE_FIELDS values update_existing_config will write that the
+        # request did not name, keyed as the change detector expects. Mirrors
+        # the write path exactly: the conditions here are the ones used by
+        # apply_token_endpoint_auth_method, the provider-switch block, and
+        # apply_saml_exclusivity (which blanks every OAuth field for saml).
+        #
+        # token_endpoint_auth_method is persisted normalized (stripped; see
+        # persisted_token_endpoint_auth_method), so a whitespace-padded
+        # resend of the stored method diffs as unchanged. A provider switch
+        # blanks the outgoing provider's fields without the request naming
+        # them (issuer on a move off oidc, tenant_id on a move off entra_id,
+        # token_endpoint_auth_method on any move off oidc); without these the
+        # log would show the provider changing while the fields it orphaned
+        # silently vanished.
+        #
+        # @return [Hash{String => String}]
+        def implicit_write_values
+          values = {}
+
+          if @token_endpoint_auth_method_provided || @provider_type != 'oidc'
+            values['token_endpoint_auth_method'] = persisted_token_endpoint_auth_method
+          end
+
+          # saml blanks both OAuth fields on every write, request or not.
+          if @provider_type == 'saml'
+            return values.merge('issuer' => '', 'tenant_id' => '')
+          end
+
+          return values unless @existing_config && @provider_type != @existing_config.provider_type
+
+          values['issuer']    = '' if @provider_type == 'entra_id' && @issuer.to_s.empty?
+          values['tenant_id'] = '' if @provider_type == 'oidc' && @tenant_id.to_s.empty?
+          values
         end
 
         # See the PATCH-semantics note on update_existing_config. Runs last so
