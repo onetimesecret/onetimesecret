@@ -7,6 +7,7 @@
 // iconLibraryComponents loader. Bound values (:name="...") are not checked.
 
 import { mount } from '@vue/test-utils';
+import ts from 'typescript';
 import { describe, expect, it } from 'vitest';
 import StatCard from '@/apps/admin/components/kit/StatCard.vue';
 import { CONSOLE_SECTIONS } from '@/apps/admin/sections';
@@ -23,14 +24,47 @@ const tsSources = import.meta.glob<string>(
   { query: '?raw', import: 'default', eager: true }
 );
 
+const stringValue = (node: ts.Expression | undefined): string | undefined =>
+  node && (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node))
+    ? node.text
+    : undefined;
+
 /**
- * Sprite ids for `{ collection: '...', name: '...' }` object literals, the
- * shape icon maps use (settings-navigation.ts, jurisdictions.ts). Typed
- * fields such as `collection: string` have no quoted value and are skipped.
+ * Sprite ids for object literals with string `collection` and `name`
+ * properties, the shape icon maps use (settings-navigation.ts,
+ * ssoProviderIcons.ts). Parsed rather than pattern-matched so property order
+ * and other properties in between don't hide an entry. Non-literal values,
+ * such as zod schemas or shorthand properties, are skipped.
  */
-const objectLiteralIconIds = (source: string): string[] =>
-  [...source.matchAll(/\bcollection:\s*(['"])(.*?)\1\s*,\s*name:\s*(['"])(.*?)\3/g)].map(
-    ([, , collection, , name]) => [collection, name].filter(Boolean).join('-')
+const objectLiteralIconIds = (code: string): string[] => {
+  const found: string[] = [];
+  const visit = (node: ts.Node): void => {
+    if (ts.isObjectLiteralExpression(node)) {
+      const props = new Map<string, ts.Expression>();
+      for (const prop of node.properties) {
+        if (
+          ts.isPropertyAssignment(prop) &&
+          (ts.isIdentifier(prop.name) || ts.isStringLiteral(prop.name))
+        ) {
+          props.set(prop.name.text, prop.initializer);
+        }
+      }
+      const collection = stringValue(props.get('collection'));
+      const name = stringValue(props.get('name'));
+      if (collection !== undefined && name !== undefined) {
+        found.push([collection, name].filter(Boolean).join('-'));
+      }
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(ts.createSourceFile('source.ts', code, ts.ScriptTarget.Latest));
+  return found;
+};
+
+/** Icon literals in an SFC's <script> blocks, where icon maps also live. */
+const sfcScriptIconIds = (source: string): string[] =>
+  [...source.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)].flatMap(([, code]) =>
+    objectLiteralIconIds(code)
   );
 
 const unresolved = (
@@ -68,10 +102,12 @@ describe('static icon references', () => {
     // assertion below pass vacuously.
     const oiconRefs = Object.values(vueSources).flatMap(staticOIconIds);
     const literalRefs = Object.values(tsSources).flatMap(objectLiteralIconIds);
+    const scriptRefs = Object.values(vueSources).flatMap(sfcScriptIconIds);
     const statCardRefs = Object.values(vueSources).flatMap(statCardIconIds('heroicons'));
     expect(Object.keys(vueSources).length).toBeGreaterThan(100);
     expect(oiconRefs.length).toBeGreaterThan(100);
     expect(literalRefs.length).toBeGreaterThan(10);
+    expect(scriptRefs.length).toBeGreaterThan(10);
     expect(statCardRefs.length).toBeGreaterThan(10);
   });
 
@@ -80,9 +116,24 @@ describe('static icon references', () => {
     expect(unresolved(vueSources, staticOIconIds, ids)).toEqual([]);
   });
 
+  it('finds icon literals in any property order and skips non-literal values', () => {
+    const code = `
+      const a = { name: 'reordered', label: 'between', collection: 'heroicons' };
+      const b = { collection: 'mdi', name: 'adjacent' };
+      const schema = { collection: z.string(), name: z.string() };
+      const shorthand = { collection, name };
+    `;
+    expect(objectLiteralIconIds(code)).toEqual(['heroicons-reordered', 'mdi-adjacent']);
+  });
+
   it('every { collection, name } icon literal in a .ts file resolves to a sprite symbol', async () => {
     const ids = await loadSpriteSymbolIds();
     expect(unresolved(tsSources, objectLiteralIconIds, ids)).toEqual([]);
+  });
+
+  it('every { collection, name } icon literal in an SFC script resolves to a sprite symbol', async () => {
+    const ids = await loadSpriteSymbolIds();
+    expect(unresolved(vueSources, sfcScriptIconIds, ids)).toEqual([]);
   });
 
   it('every static <StatCard icon> resolves to a sprite symbol', async () => {
