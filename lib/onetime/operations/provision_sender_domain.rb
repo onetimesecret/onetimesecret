@@ -363,10 +363,14 @@ module Onetime
       # @param identity_id [String, nil] Provider's identity identifier
       # @raise [StandardError] if persistence fails
       def persist_provider_data(provider_data, dns_records, identity_id)
+        # The two jsonkeys write their own keys on assignment. Of the hash,
+        # write only `updated`: this record was loaded before the provider
+        # calls, and a full save would revert fields a request or job wrote
+        # to it since.
         @mailer_config.provider_dns_data = provider_data
         @mailer_config.dns_records       = dns_records
         @mailer_config.updated           = Familia.now.to_i
-        @mailer_config.save
+        @mailer_config.save_fields(:updated)
 
         logger.debug 'Persisted provider DNS data',
           domain_id: @mailer_config.domain_id,

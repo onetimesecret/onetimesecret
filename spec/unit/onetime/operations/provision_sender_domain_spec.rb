@@ -19,7 +19,7 @@ RSpec.describe Onetime::Operations::ProvisionSenderDomain do
       'provider_dns_data=' => nil,
       'dns_records=' => nil,
       'updated=' => nil,
-      save: true,
+      save_fields: true,
     )
   end
 
@@ -350,7 +350,7 @@ RSpec.describe Onetime::Operations::ProvisionSenderDomain do
         expect(mailer_config).to receive(:provider_dns_data=)
         expect(mailer_config).to receive(:dns_records=)
         expect(mailer_config).to receive(:updated=)
-        expect(mailer_config).to receive(:save)
+        expect(mailer_config).to receive(:save_fields).with(:updated)
 
         described_class.new(
           mailer_config: mailer_config,
@@ -361,8 +361,8 @@ RSpec.describe Onetime::Operations::ProvisionSenderDomain do
     end
 
     context 'when persist: false' do
-      it 'does not call save' do
-        expect(mailer_config).not_to receive(:save)
+      it 'does not write the config' do
+        expect(mailer_config).not_to receive(:save_fields)
 
         described_class.new(
           mailer_config: mailer_config,
@@ -377,7 +377,7 @@ RSpec.describe Onetime::Operations::ProvisionSenderDomain do
         allow(mailer_config).to receive(:provider_dns_data=)
         allow(mailer_config).to receive(:dns_records=)
         allow(mailer_config).to receive(:updated=)
-        allow(mailer_config).to receive(:save).and_raise(StandardError, 'Redis connection refused')
+        allow(mailer_config).to receive(:save_fields).and_raise(StandardError, 'Redis connection refused')
       end
 
       it 'propagates error into Result (no longer silently swallowed)' do
