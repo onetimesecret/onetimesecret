@@ -25,6 +25,14 @@
 module Onetime
   module SsoProvider
     module Entra
+      # The shape of an Entra tenant ID (directory ID). Every tenanted Entra
+      # URL this application builds (discovery in TestConnection, the token
+      # request in EntraCredentialProbe) interpolates the tenant ID into a
+      # path under login.microsoftonline.com, so it is matched against this
+      # before any URL exists. Named tenants ('common', 'organizations') are
+      # not accepted for custom-domain SSO.
+      TENANT_ID_FORMAT = /\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/i
+
       DEFINITION = {
         key: :entra,
         label: 'Entra ID',

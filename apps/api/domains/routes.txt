@@ -30,6 +30,7 @@ PUT    /:extid/sso                        DomainsAPI::Logic::SsoConfig::PutSsoCo
 PATCH  /:extid/sso                        DomainsAPI::Logic::SsoConfig::PatchSsoConfig response=json auth=sessionauth
 DELETE /:extid/sso                        DomainsAPI::Logic::SsoConfig::DeleteSsoConfig response=json auth=sessionauth
 POST   /:extid/sso/test                   DomainsAPI::Logic::SsoConfig::TestConnection response=json auth=sessionauth
+POST   /:extid/sso/diagnostics            DomainsAPI::Logic::SsoConfig::RunDiagnostics response=json auth=sessionauth
 
 # Domain Sender Configuration (Email)
 GET    /:extid/email-config              DomainsAPI::Logic::SenderConfig::GetSenderConfig response=json auth=sessionauth
