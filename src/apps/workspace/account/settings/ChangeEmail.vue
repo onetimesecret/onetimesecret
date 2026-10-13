@@ -409,7 +409,7 @@
                 <OIcon
                   v-if="isLoading"
                   collection="heroicons"
-                  name="arrow-path-solid"
+                  name="arrow-path"
                   class="size-4 animate-spin motion-reduce:animate-none"
                   aria-hidden="true" />
                 {{
