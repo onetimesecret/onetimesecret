@@ -110,14 +110,27 @@ module Onetime
         return yield if display_domain.to_s.empty?
 
         canonical, created = claim_canonical_for_new_record!
-        landed             = false
         begin
           result = yield
-          landed = write_landed?(result)
-          result
-        ensure
-          self.class.canonical_display_domain_index.release_field(canonical, identifier) if created && !landed
+        rescue StandardError
+          release_claim_unless_stored(canonical) if created
+          raise
         end
+        release_claim_unless_stored(canonical) if created && !write_landed?(result)
+        result
+      end
+
+      # Releases a claim this write took, unless the record was stored after
+      # all: a save can raise after its EXEC landed (the objid/extid lookup
+      # writes run after it), and a failed MultiResult may still have
+      # written the hash. When existence cannot be read the claim is kept,
+      # so the name stays taken rather than open to a second record.
+      def release_claim_unless_stored(canonical)
+        return if exists?
+
+        self.class.canonical_display_domain_index.release_field(canonical, identifier)
+      rescue StandardError => ex
+        OT.le "[CustomDomain] Kept the canonical claim for #{extid}: #{ex.class}: #{ex.message}"
       end
 
       # @return [Hash{Symbol => String, nil}, nil] raw stored identity values,

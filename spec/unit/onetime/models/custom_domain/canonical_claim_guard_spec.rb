@@ -113,6 +113,17 @@ RSpec.describe Onetime::CustomDomain, 'canonical claim guard', :datastore do
       expect([rec.exists?, real.get(ascii_name), released]).to eq([false, nil, [[ascii_name, rec.identifier]]])
     end
 
+    it 'keeps the claim when the record was stored but a later step of the save raised' do
+      failing = Class.new(SimpleDelegator) do
+        define_method(:[]=) { |*| raise Redis::CannotConnectError, 'lookup write failed' }
+      end
+      allow(described_class).to receive(:objid_lookup).and_return(failing.new(described_class.objid_lookup))
+      rec = build
+
+      expect { rec.save }.to raise_error(Redis::CannotConnectError)
+      expect([rec.exists?, index.get(ascii_name)]).to eq([true, rec.identifier])
+    end
+
     it 'leaves the claim create! took in place' do
       rec = create
 
