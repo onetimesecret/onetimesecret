@@ -9,6 +9,7 @@
 import { mount } from '@vue/test-utils';
 import ts from 'typescript';
 import { describe, expect, it } from 'vitest';
+import { parse as parseSfc } from 'vue/compiler-sfc';
 import StatCard from '@/apps/admin/components/kit/StatCard.vue';
 import { CONSOLE_SECTIONS } from '@/apps/admin/sections';
 import { loadSpriteSymbolIds, staticOIconIds } from '@tests/support/spriteSymbols';
@@ -61,11 +62,17 @@ const objectLiteralIconIds = (code: string): string[] => {
   return found;
 };
 
-/** Icon literals in an SFC's <script> blocks, where icon maps also live. */
-const sfcScriptIconIds = (source: string): string[] =>
-  [...source.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)].flatMap(([, code]) =>
-    objectLiteralIconIds(code)
+/**
+ * Icon literals in an SFC's <script> and <script setup> blocks, where icon
+ * maps also live. Vue's own SFC parser picks out the blocks, so the spec sees
+ * the same script content the compiler does.
+ */
+const sfcScriptIconIds = (source: string): string[] => {
+  const { descriptor } = parseSfc(source);
+  return [descriptor.script, descriptor.scriptSetup].flatMap((block) =>
+    block ? objectLiteralIconIds(block.content) : []
   );
+};
 
 const unresolved = (
   sources: Record<string, string>,
