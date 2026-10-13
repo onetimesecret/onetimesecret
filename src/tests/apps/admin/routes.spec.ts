@@ -2,7 +2,7 @@
 
 import { createAdminRouter } from '@/apps/admin/router';
 import adminRoutes, { adminDefaultMeta } from '@/apps/admin/routes';
-import { CONSOLE_SECTIONS } from '@/apps/admin/sections';
+import { CONSOLE_GROUPS, CONSOLE_SECTIONS } from '@/apps/admin/sections';
 import { createPinia, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { RouteRecordRaw } from 'vue-router';
@@ -117,6 +117,33 @@ describe('Admin Routes Configuration', () => {
     });
   });
 
+  describe('Data tools', () => {
+    it('registers Schemas as an authenticated, colonel-only page', async () => {
+      const route = adminRoutes.find((r) => r.path === '/colonel/schemas');
+      expect(route?.name).toBe('AdminSchemas');
+      expect(route?.meta).toMatchObject({
+        title: 'web.admin.schemas.title',
+        requiresAuth: true,
+        requiresColonel: true,
+      });
+      const component = await (route?.component as () => Promise<unknown>)();
+      expect(component).toBeDefined();
+    });
+
+    it('groups Secret Receipts and Schemas under Data Tools', () => {
+      expect(CONSOLE_GROUPS.find((g) => g.key === 'data')?.labelKey).toBe(
+        'web.colonel.nav.groups.data'
+      );
+      expect(CONSOLE_SECTIONS.filter((s) => s.group === 'data').map((s) => s.to)).toEqual([
+        '/colonel/secrets',
+        '/colonel/schemas',
+      ]);
+      expect(
+        CONSOLE_SECTIONS.filter((s) => s.group === 'platform').map((s) => s.key)
+      ).not.toContain('secrets');
+    });
+  });
+
   describe('Console map', () => {
     it('overview is the live section and points at /colonel', () => {
       const overview = CONSOLE_SECTIONS.find((s) => s.key === 'overview');
@@ -221,6 +248,31 @@ describe('Admin Routes Configuration', () => {
       it(`${sectionKey} is a live section pointing at ${path}`, () => {
         expect(CONSOLE_SECTIONS.find((s) => s.key === sectionKey)?.to).toBe(path);
       });
+    });
+  });
+
+  describe('Jobs route (#4343)', () => {
+    it('registers the AdminJobs route at /colonel/jobs with no params', () => {
+      const route = adminRoutes.find((r: RouteRecordRaw) => r.path === '/colonel/jobs');
+      expect(route).toBeDefined();
+      expect(route?.name).toBe('AdminJobs');
+      expect(route?.meta?.title).toBe('web.admin.jobs.title');
+      // Queue / message / chore selection is in-page state, never a route param.
+      expect(route?.path).not.toContain(':');
+    });
+
+    it('jobs is a live platform section pointing at /colonel/jobs', () => {
+      const section = CONSOLE_SECTIONS.find((s) => s.key === 'jobs');
+      expect(section?.to).toBe('/colonel/jobs');
+      expect(section?.group).toBe('platform');
+      expect(section?.icon).toBe('clock');
+    });
+
+    it('navigates to the jobs screen', async () => {
+      setActivePinia(createPinia());
+      const router = createAdminRouter();
+      await router.push('/colonel/jobs');
+      expect(router.currentRoute.value.name).toBe('AdminJobs');
     });
   });
 

@@ -463,6 +463,10 @@
     "text": "No domains.",
     "content_hash": "1b840c7e"
   },
+  "web.admin.organizations.detail.domains.openDomain": {
+    "text": "Open domain record",
+    "content_hash": "416b0d48"
+  },
   "web.admin.organizations.detail.reconcile.button": {
     "text": "Reconcile",
     "content_hash": "b59be565"

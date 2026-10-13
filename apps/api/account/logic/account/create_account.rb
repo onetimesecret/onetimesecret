@@ -214,7 +214,12 @@ module AccountAPI::Logic
       #   - Does not reveal which domains are allowed in error messages
       #   - Uses case-insensitive domain matching
       def allowed_signup_domain?(email)
-        Onetime::SignupValidation.valid_signup_email?(email, display_domain: display_domain)
+        Onetime::SignupValidation.valid_signup_email?(
+          email,
+          display_domain: display_domain,
+          custom_domain_lookup: custom_domain_lookup,
+          domain_strategy: domain_strategy,
+        )
       end
 
       def signup_config_display_domain
@@ -229,6 +234,13 @@ module AccountAPI::Logic
       # canonical sign-ups on any Redis blip during process_params.
       def signup_config_domain_strategy
         domain_strategy
+      end
+
+      # The request's shared CustomDomain lookup (#4220), lifted off the
+      # strategy metadata by Logic::Base. nil when the request made no
+      # lookup, in which case the mixin reads the display domain itself.
+      def signup_config_custom_domain_lookup
+        custom_domain_lookup
       end
 
       def signup_config_auth_setting(key)

@@ -6,12 +6,13 @@
 # Narrow on purpose. List the code that implements sign-in, sessions, SSO,
 # MFA, invitations and tenant identity, and the tests and configuration that
 # only those jobs run. Do not list shared code: every Ruby change already runs
-# the unit, simple, disabled, API and full-mode SQLite lanes, and nightly,
-# main and release-tag runs execute everything. A change outside this list
-# that wants the coverage on its PR gets the ci:auth label.
+# the unit, simple, disabled, API and full-mode SQLite lanes; main and
+# merge-queue runs execute everything but the billing jobs; the nightly and a
+# release tag execute everything. A change outside this list that wants the
+# coverage on its PR gets the ci:auth label.
 #
 # Positive globs only. Braces and one-character classes are the only syntax
-# beyond * and **; scripts/tests/auth-selection-test.sh matches the same
+# beyond * and **; tools/testsuite/auth-selection-test.sh matches the same
 # subset and rejects anything else. paths-filter matches dotfiles too.
 auth:
   # Applications that are auth from top to bottom, and the sign-in pages.
@@ -34,6 +35,20 @@ auth:
   - 'src/apps/workspace/components/account/**'
   - 'src/**/*[Bb]ootstrap*'
 
+  # The request-host seam: the middleware that decides which host a request
+  # is for, and so which tenant the sign-in, SSO, WebAuthn and session code
+  # above sees; the shared custom-domain read it publishes; and the loader
+  # that applies the tenant's organization scope. The live WebAuthn ceremony
+  # rows (full_mfa) and the platform SAML rows (full_saml_platform) assert on
+  # these, and nothing in their names selects them (#4223).
+  - 'lib/middleware/detect_host.rb'
+  - 'lib/onetime/middleware/domain_strategy.rb'
+  - 'lib/onetime/middleware/strip_forwarded_host.rb'
+  - 'lib/onetime/middleware/public_host_rewrite.rb'
+  - 'lib/onetime/middleware/http_origin_options.rb'
+  - 'lib/onetime/models/custom_domain/lookup.rb'
+  - 'lib/onetime/application/organization_loader.rb'
+
   # English sign-in copy: the E2E journeys assert on some of it. Translations
   # are left out so a locale sync does not select auth.
   - 'locales/content/en/session-auth*'
@@ -47,8 +62,8 @@ auth:
   # different suite, so the directories are spelled out instead of full*.
   # The lanes are spelled out too: full-sqlite and full-pg run on every Ruby
   # change, so their definitions select nothing here. The billing overlay is
-  # not here either: the rows that use it are selected by the billing filter
-  # in ci.yml.
+  # not here either: no path selects the rows that use it (they are nightly
+  # and release-tag only, see docs/development/auth-ci.md).
   - '**/spec/integration/full/**'
   - '**/spec/integration/full_mfa/**'
   - '**/spec/integration/full_saml_platform/**'

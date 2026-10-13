@@ -16,11 +16,14 @@ suite:
   priority: high
   e2e_spec: e2e/auth/sso-missing-email.spec.ts
   notes: |
-    Root cause: Microsoft Entra ID on the v2.0 endpoint only emits the `email`
-    claim when the user has a `mail` attribute. omniauth-entra-id falls back to
-    `upn`, but v2.0 tokens omit `upn` by default (they carry preferred_username,
-    which is not used for info.email). So a user with no mailbox yields a blank
-    info.email -> backend redirect to /signin?auth_error=invalid_email
+    Trigger: the Entra v2.0 ID token carries no `email` claim. Microsoft documents
+    that the claim is optional and that an app "needs to be able to handle a case
+    in which no `email` claim exists in the token"; which directory state leaves it
+    out is not established here, and its absence does not show the user has no
+    mailbox. omniauth-entra-id 3.1.1 maps raw_info["email"] into info.email and
+    nothing else (preferred_username and upn are never substituted). A token
+    without the claim yields a blank info.email -> backend redirect to
+    /signin?auth_error=invalid_email
     (apps/web/auth/config/hooks/omniauth.rb:133-150).
 
     The reported "frozen loading screen" is what users see when that error is
@@ -31,7 +34,9 @@ suite:
 
     SSO SETUP REQUIRED FOR THE FULL-FLOW CASES TO REPRODUCE THE FAILURE:
       - Microsoft Entra ID, v2.0 endpoint (as omniauth-entra-id uses).
-      - A test user with NO `mail` attribute (no mailbox/license) -> no email claim.
+      - A test user whose ID token carries NO `email` claim (confirm with the
+        operator runbook docs/runbooks/sso-entra-claim-smoke-test.md; do not infer
+        it from licensing or mailbox state).
       - App registration token configuration with NO `email` and NO `upn` optional
         claims (v2.0 omits `upn` by default and emits preferred_username, which OTS
         does not use for email).

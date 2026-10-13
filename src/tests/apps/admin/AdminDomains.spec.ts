@@ -541,4 +541,40 @@ describe('AdminDomains — attach domain to organization', () => {
     expect(mockApi.post).toHaveBeenCalledWith('/api/colonel/domains/cd_exist/verify');
     expect(showMock).toHaveBeenCalled();
   });
+
+  // ---- Dialog placement (#4732) ---------------------------------------------
+  // headlessui only treats a dialog as nested when it is rendered inside the
+  // parent dialog's component subtree. The verify gate is opened from BOTH the
+  // table row and the drawer, so it renders in the drawer while the drawer is
+  // open and at page level otherwise — never both at once.
+  describe('confirm dialog placement (#4732)', () => {
+    const drawer = (w: VueWrapper) => w.find('[data-testid="domains-drawer"]');
+    const dialogs = (w: VueWrapper) => w.findAll('[data-testid="admin-confirm-dialog"]');
+
+    it('renders the verify gate INSIDE the drawer when opened from the drawer', async () => {
+      mockApi.get.mockResolvedValue({ data: domainsPayload() });
+      wrapper = mountView();
+      await flushPromises();
+      await wrapper.find('[data-testid="domains-table"] tbody tr').trigger('click');
+      await flushPromises();
+
+      await wrapper.find('[data-testid="domain-drawer-verify"]').trigger('click');
+      await flushPromises();
+
+      expect(dialogs(wrapper)).toHaveLength(1);
+      expect(drawer(wrapper).find('[data-testid="admin-confirm-dialog"]').exists()).toBe(true);
+    });
+
+    it('renders exactly one verify gate at page level when opened from a row', async () => {
+      mockApi.get.mockResolvedValue({ data: domainsPayload() });
+      wrapper = mountView();
+      await flushPromises();
+
+      await wrapper.find('[data-testid="domain-verify-cd_abc123"]').trigger('click');
+      await flushPromises();
+
+      expect(drawer(wrapper).exists()).toBe(false);
+      expect(dialogs(wrapper)).toHaveLength(1);
+    });
+  });
 });

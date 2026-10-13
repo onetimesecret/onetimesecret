@@ -108,6 +108,12 @@ module Onetime
             # logic layer needs it to rebuild the surface descriptor when it
             # mints a session itself (invite signup autologin, #4409).
             custom_domain_id: env['onetime.custom_domain_id'],
+            # The request's shared CustomDomain lookup (#4220), as DomainStrategy
+            # published it or as the first request-path reader stored it. Logic
+            # classes never see the env, so this is how they read the record
+            # the request already resolved instead of reading the display
+            # domain again. nil when nothing has been looked up yet.
+            custom_domain_lookup: env[Onetime::CustomDomain::Lookup::ENV_KEY],
           }.merge(additional)
         end
 

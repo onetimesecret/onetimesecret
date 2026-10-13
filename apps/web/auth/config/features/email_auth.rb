@@ -15,9 +15,38 @@ module Auth::Config::Features
       auth.enable :email_auth
 
       # Magic links are only valid for a short period so we also keep
-      # the resend interval short to avoid user frustration.
-      auth.email_auth_deadline_interval 15.minutes
+      # the resend interval short to avoid user frustration. The interval
+      # is a Sequel date_add hash, the form Rodauth's own default takes.
+      auth.email_auth_deadline_interval({ minutes: 15 })
       auth.email_auth_skip_resend_email_within 30.seconds
+
+      # Write the deadline when the key row is created (#4689,
+      # RISK-2026-08-14-M02). Rodauth only writes it when
+      # set_deadline_values? is true, which by default is MySQL only, so on
+      # PostgreSQL and SQLite the 24-hour column default applied instead.
+      # set_deadline_values? is Rodauth-wide (it also covers the
+      # reset_password and lockout keys), so it stays off and only this
+      # table gets an explicit deadline.
+      #
+      # A resend inside the deadline reuses the existing row: Rodauth's
+      # create_email_auth_key only touches email_last_sent and emails the same
+      # key, so the deadline written here is never extended. A request after
+      # the deadline deletes the expired row and inserts a fresh one.
+      #
+      # Same expression as the column default (DB clock), so it compares
+      # cleanly with Rodauth's `CURRENT_TIMESTAMP > deadline` check.
+      # use_date_arithmetic? loads Sequel's date_arithmetic extension, which
+      # Sequel.date_add needs; active_sessions loads it too when enabled.
+      auth.use_date_arithmetic? true
+      auth.email_auth_key_insert_hash do
+        # Explicit `super()`: Rodauth config blocks become define_method bodies,
+        # where implicit-argument super is not allowed.
+        hash = super()
+        hash[email_auth_deadline_column] = Sequel.date_add(
+          Sequel::CURRENT_TIMESTAMP, email_auth_deadline_interval
+        )
+        hash
+      end
 
       # Email template configuration (must be after enable :email_auth)
       Auth::Config::Email::EmailAuth.configure(auth)

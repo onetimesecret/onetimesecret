@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require_relative '../../support/lane_probe'
 require 'open3'
 require 'tmpdir'
 
@@ -61,36 +62,24 @@ module LaneHermeticProbe
   ODD_NAMES = ['FOO-BAR', 'ORGS.SSO'].freeze
   # Names the runner assigns itself: the log floor of a bare --quiet and the
   # log capture profile (--capture-logs, --log-console, --quiet), each only
-  # under its flag, and rspec's option string, only on a terminal and only
-  # for color. A caller who exports one must not thereby select a log file,
-  # silence the console, change a level or replace rspec's formatters.
+  # under its flag, rspec's option string, only on a terminal and only for
+  # color, and the worker count (--workers, or the lane's default), only
+  # above 1. A caller who exports one must not thereby select a log file,
+  # silence the console, change a level, replace rspec's formatters or fan
+  # a lane out.
   RUNNER_ASSIGNED = %w[
     LOG_LEVEL DEBUG_LOGGERS SPEC_OPTS
     LANES_APP_LOG_FILE LANES_MAIL_LOG_FILE LANES_APP_LOG_CONSOLE LANES_RSPEC_CONSOLE
+    LANES_WORKERS
   ].freeze
+  # Assigned per worker by tests/lanes/support/worker-env (LANES_WORKER) and
+  # by parallel_tests (TEST_ENV_NUMBER), below the runner. A caller's value
+  # would make a serial run look like worker N of something.
+  WORKER_ASSIGNED = %w[LANES_WORKER TEST_ENV_NUMBER].freeze
+
+  extend LaneProbe
 
   module_function
-
-  def repo_root
-    File.expand_path('../../..', __dir__)
-  end
-
-  # The floor the runner enforces, read from the same pin file it reads —
-  # a literal here would be a third copy of the number (runner, doctor,
-  # spec) and the first one to go stale silently skips this whole file.
-  def bash_floor
-    @bash_floor ||= Integer(File.read(File.join(repo_root, '.bash-version')).strip)
-  end
-
-  # The runner's shebang is `#!/usr/bin/env bash`, so the bash that matters
-  # is the first one on PATH — not the shell that launched RSpec, and on
-  # macOS not /bin/bash either.
-  def path_bash_major
-    return @path_bash_major if defined?(@path_bash_major)
-
-    out, status = Open3.capture2e('bash', '-c', 'echo "${BASH_VERSINFO[0]}"')
-    @path_bash_major = status.success? ? Integer(out.strip, exception: false) : nil
-  end
 
   # Every name here is either a variable that must not survive, or one
   # whose lane-supplied value must win over the caller's.
@@ -157,6 +146,7 @@ module LaneHermeticProbe
       'Coverage' => CANARY,
     }.merge(ODD_NAMES.to_h { |name| [name, CANARY] })
       .merge(RUNNER_ASSIGNED.to_h { |name| [name, CANARY] })
+      .merge(WORKER_ASSIGNED.to_h { |name| [name, CANARY] })
   end
 
   # Sourced by the runner's own shell at startup. Two exported functions
@@ -252,11 +242,7 @@ RSpec.describe 'tests/lanes/run hermetic boundary' do
   let(:result) { probe.result }
   let(:env)    { result[:env] }
 
-  before do
-    major = probe.path_bash_major
-    floor = probe.bash_floor
-    skip "bash #{floor}+ is not on PATH (macOS: brew install bash)" if major.nil? || major < floor
-  end
+  include_context 'with the lane runner bash'
 
   it 'runs the selftest lane without services' do
     expect(result[:status]).to be_success, "tests/lanes/run selftest failed:\n#{result[:output]}"
@@ -496,6 +482,29 @@ RSpec.describe 'tests/lanes/run hermetic boundary' do
           expect(env).not_to have_key(name)
         end
       end
+    end
+
+    # The worker count is exported only above 1 (a serial run's environment
+    # is what it was), and the per-worker names are the shim's to assign
+    # below the runner — the caller exported all three.
+    context 'with --workers 2' do
+      let(:flagged) { probe.result('--workers', '2') }
+      let(:env)     { flagged[:env] }
+
+      it 'delivers the count and nothing the caller exported for the workers' do
+        expect(flagged[:status]).to be_success, flagged[:output]
+        expect(env['LANES_WORKERS']).to eq('2')
+        LaneHermeticProbe::WORKER_ASSIGNED.each do |name|
+          expect(env).not_to have_key(name), "#{name} reached the task process: #{env[name].inspect}"
+        end
+        expect(flagged[:output]).not_to include(LaneHermeticProbe::CANARY)
+      end
+    end
+  end
+
+  it 'delivers none of the per-worker names on a serial run' do
+    (LaneHermeticProbe::WORKER_ASSIGNED + ['LANES_WORKERS']).each do |name|
+      expect(env).not_to have_key(name), "#{name} reached the task process: #{env[name].inspect}"
     end
   end
 

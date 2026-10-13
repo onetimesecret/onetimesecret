@@ -161,6 +161,12 @@ export const diagnosisRateLimitEntrySchema = z.object({
 
 export const diagnosisRateLimitsSectionSchema = z.object({
   ...sectionAvailability,
+  /**
+   * `false` when the per-IP key SCAN stopped at the endpoint's time budget, so
+   * a per-IP lockout may exist that `entries` does not show. Absent from older
+   * servers, which always walked to the end.
+   */
+  scan_complete: z.boolean().optional(),
   entries: z.array(diagnosisRateLimitEntrySchema).optional(),
 });
 

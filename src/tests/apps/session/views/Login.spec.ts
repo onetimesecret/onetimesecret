@@ -12,7 +12,9 @@
  * - token_missing -> web.login.errors.token_missing
  * - token_expired -> web.login.errors.token_expired
  * - token_invalid -> web.login.errors.token_invalid
+ * - missing_email -> web.login.errors.missing_email
  * - invalid_email -> web.login.errors.invalid_email
+ * - domain_not_allowed -> web.login.errors.domain_not_allowed
  * - account_exists_link_required -> web.login.errors.account_exists_link_required
  * - org_join_failed -> web.login.errors.org_join_failed
  *
@@ -20,41 +22,54 @@
  * never renders blank (issue #3478 — the "frozen loading screen").
  */
 
-import { mount, VueWrapper, flushPromises } from '@vue/test-utils';
-import { describe, it, expect, vi, afterEach } from 'vitest';
-import { createTestingPinia } from '@pinia/testing';
-import { createRouter, createMemoryHistory, Router } from 'vue-router';
-import { nextTick, defineComponent } from 'vue';
 import Login from '@/apps/session/views/Login.vue';
 import { SIGNIN_VERIFIED_STATE_KEY } from '@/shared/constants/signin';
+import { createTestingPinia } from '@pinia/testing';
 import { createTestI18n } from '@tests/setup';
+import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { nextTick } from 'vue';
+import { createMemoryHistory, createRouter, Router } from 'vue-router';
 
 // Mock child components to isolate Login view testing
-vi.mock('@/apps/session/components/AuthMethodSelector.vue', () => ({
-  default: defineComponent({
-    name: 'AuthMethodSelector',
-    // Expose initialMode so tests can assert the password-tab default is passed.
-    props: ['locale', 'initialMode'],
-    // Declared so a test can drive the mode-takeover signal the real component
-    // emits when a magic link is issued.
-    emits: ['mode-change', 'link-sent'],
-    template:
-      '<div data-testid="auth-method-selector" :data-initial-mode="initialMode">AuthMethodSelector</div>',
-  }),
-}));
+vi.mock('@/apps/session/components/AuthMethodSelector.vue', async () => {
+  const { defineComponent } = await import('vue');
+  return {
+    default: defineComponent({
+      name: 'AuthMethodSelector',
+      // Expose initialMode so tests can assert the password-tab default is passed.
+      props: ['locale', 'initialMode'],
+      // Declared so a test can drive the mode-takeover signal the real component
+      // emits when a magic link is issued.
+      emits: ['mode-change', 'link-sent'],
+      template:
+        '<div data-testid="auth-method-selector" :data-initial-mode="initialMode">AuthMethodSelector</div>',
+    }),
+  };
+});
 
-vi.mock('@/apps/session/components/AuthView.vue', () => ({
-  default: defineComponent({
-    name: 'AuthView',
-    // Render named slots to allow testing slot content
-    template: `<div data-testid="auth-view">
+vi.mock('@/apps/session/components/AuthView.vue', async () => {
+  const { defineComponent } = await import('vue');
+  return {
+    default: defineComponent({
+      name: 'AuthView',
+      // Render named slots to allow testing slot content
+      template: `<div data-testid="auth-view">
       <slot name="form" />
       <slot name="footer" />
       <slot />
     </div>`,
-    props: ['heading', 'headingId', 'withSubheading', 'hideIcon', 'hideBackgroundIcon', 'showReturnHome'],
-  }),
-}));
+      props: [
+        'heading',
+        'headingId',
+        'withSubheading',
+        'hideIcon',
+        'hideBackgroundIcon',
+        'showReturnHome',
+      ],
+    }),
+  };
+});
 
 // Mock feature detection. isPasswordSignInOffered is a spy so cases can put the
 // page on a restrict_to domain where the password form is withheld.
@@ -195,6 +210,29 @@ describe('Login.vue auth_error handling', () => {
       const alert = wrapper.find('[role="alert"]');
       expect(alert.exists()).toBe(true);
       expect(alert.text()).toContain('web.login.errors.token_invalid');
+    });
+
+    it('displays missing_email separately from malformed email and domain policy errors', async () => {
+      wrapper = await createWrapper({ auth_error: 'missing_email' });
+      await flushPromises();
+
+      const alert = wrapper.find('[role="alert"]');
+      expect(alert.exists()).toBe(true);
+      expect(alert.text()).toContain('web.login.errors.missing_email');
+      expect(alert.text()).not.toContain('web.login.errors.invalid_email');
+      expect(alert.text()).not.toContain('web.login.errors.domain_not_allowed');
+      expect(alert.text()).not.toContain('web.login.errors.sso_failed');
+    });
+
+    it('displays domain_not_allowed for an SSO domain policy rejection', async () => {
+      wrapper = await createWrapper({ auth_error: 'domain_not_allowed' });
+      await flushPromises();
+
+      const alert = wrapper.find('[role="alert"]');
+      expect(alert.exists()).toBe(true);
+      expect(alert.text()).toContain('web.login.errors.domain_not_allowed');
+      expect(alert.text()).not.toContain('web.login.errors.missing_email');
+      expect(alert.text()).not.toContain('web.login.errors.invalid_email');
     });
 
     it('displays invalid_email error from SSO (issue #3478)', async () => {

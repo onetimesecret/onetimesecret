@@ -58,6 +58,7 @@ import {
   type MfaStatusResponse,
 } from '@/schemas/api/auth/responses/auth';
 import type { ApplicationError } from '@/schemas/errors';
+import { useAuthStore } from '@/shared/stores/authStore';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import type { OtpSetupData, MfaStatus } from '@/types/auth';
 import { ref } from 'vue';
@@ -76,6 +77,7 @@ import {
 export function useMfa() {
   const { t } = useI18n();
   const $api = useApi();
+  const authStore = useAuthStore();
   const notificationsStore = useNotificationsStore();
 
   const isLoading = ref(false);
@@ -268,6 +270,12 @@ export function useMfa() {
       }
 
       notificationsStore.show(t('web.auth.mfa.success_enabled'), 'success', 'top');
+
+      // The first second factor moves the session to a new id (#4466,
+      // after_otp_setup), and the snapshot epoch with it (ADR-046). An
+      // auth-mutation refresh adopts the new epoch in place; the next
+      // ordinary refresh would read it as a replaced session and reload.
+      await authStore.refresh({ kind: 'auth-mutation', reason: 'mfa-setup' });
       return true;
     });
 

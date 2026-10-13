@@ -66,7 +66,7 @@ Caddy's documented [filter encoder](https://caddyserver.com/docs/caddyfile/direc
 
 ## Validation coverage
 
-`python3 scripts/tests/test_caddy_log_redaction.py` validates the **complete Caddy example** with `caddy adapt --validate`, then runs a bounded loopback Caddy/backend harness using its actual logging snippets. It checks normal and renamed callbacks, encoded/duplicate parameter names, malformed and unrelated queries, POST bodies, 303 Location delivery, verbose reverse-proxy debug logs, and 502 proxy-error logs. Marker values must reach the upstream/client unchanged and be absent from all captured logs. This passed with locally installed Caddy **2.11.4** including transform-encoder; no Docker build or deployed ingress is involved. The test requires that Caddy build and Python 3, but no Ruby lane or datastore.
+`bin/testsuite caddy` validates the **complete Caddy example** with `caddy adapt --validate`, then runs a bounded loopback Caddy/backend harness using its actual logging snippets. It checks normal and renamed callbacks, encoded/duplicate parameter names, malformed and unrelated queries, POST bodies, 303 Location delivery, verbose reverse-proxy debug logs, and 502 proxy-error logs. Marker values must reach the upstream/client unchanged and be absent from all captured logs. This passed with locally installed Caddy **2.11.4** including transform-encoder; no Docker build or deployed ingress is involved. The command requires that Caddy build, uv, and Python 3.11+ (managed through `tools/testsuite/uv.lock`), but no Ruby lane or datastore.
 
 Run from the repository root with `.test-mode` already present, dependencies installed and lane services available:
 

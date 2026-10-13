@@ -103,7 +103,7 @@ module Onetime
           found  = []
           cursor = '0'
           loop do
-            cursor, batch = db.scan(cursor, match: pattern, count: 100)
+            cursor, batch = db.scan(cursor, match: pattern, count: Registry::SCAN_COUNT)
             found.concat(batch)
             break if cursor == '0'
           end

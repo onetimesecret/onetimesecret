@@ -67,14 +67,28 @@ module Onetime
 
               cron(scheduler, cron_pattern) do
                 with_stats('EntitlementMaterializeJob') do |report|
-                  run_materialization(report)
+                  perform(report)
                 end
               end
             end
 
-            private
-
-            def run_materialization(report)
+            # One run: pull the catalog, then materialize from it, filling
+            # `report` with the outcome. The nightly cron body, and the live
+            # path of the colonel console's `entitlement_materialize` chore
+            # (#4343, Onetime::Operations::Chores::Run), so both go through the
+            # same fail-closed pull gate.
+            #
+            # @param report [Hash] filled in place (symbol keys); also returned.
+            #   `:skipped` / `:aborted` are set when nothing was materialized.
+            # @param limit [Integer, nil] stop after this many orgs are scanned
+            #   (the console's bounded run); nil materializes every org. When
+            #   given, `report[:truncated]` says whether an org followed the
+            #   limit-th one (MaterializePlansResult#truncated).
+            # @param budget [#exhausted?, nil] wall-clock budget checked between
+            #   orgs; when it runs out `report[:budget_exhausted]` is true. The
+            #   catalog pull itself is not interruptible.
+            # @return [Hash] report
+            def perform(report = {}, limit: nil, budget: nil)
               # Skip if no Stripe API key configured (standalone mode).
               # Standalone orgs are handled by materialize_standalone_entitlements
               # on the read path; there is no plan catalog to converge against.
@@ -82,12 +96,33 @@ module Onetime
               if stripe_key.to_s.strip.empty?
                 report[:skipped] = 'no_stripe_key'
                 scheduler_logger.debug '[EntitlementMaterializeJob] Skipping: No Stripe API key configured'
-                return
+                return report
               end
 
-              return unless refresh_plan_cache(report)
+              return report unless refresh_plan_cache(report)
 
-              materialize_plans(report)
+              materialize_plans(report, limit: limit, budget: budget)
+              report
+            end
+
+            private
+
+            # Orgs that failed to materialize, for ScheduledJob's 'partial'
+            # status (#4343): the run completed, the other orgs were written.
+            # `report[:errors]` holds `{ org_extid:, reason: }` rows; only the
+            # first reason goes into the run record (JobRun.error_text masks
+            # addresses and credentials in it, and the record carries no ids).
+            #
+            # @return [String, nil] e.g. "2 org(s) failed to materialize: Plan
+            #   'x' not found in catalog or config"
+            def partial_failure(report)
+              failed = report[:failed].to_i
+              return nil unless failed.positive?
+
+              first  = Array(report[:errors]).first
+              reason = first.is_a?(Hash) ? first[:reason] : first
+              text   = "#{failed} org(s) failed to materialize"
+              reason ? "#{text}: #{reason}" : text
             end
 
             # Refresh the Redis plan cache from Stripe. Returns true only when
@@ -134,8 +169,13 @@ module Onetime
               false
             end
 
-            def materialize_plans(report)
-              result = Billing::Operations::MaterializePlans.call(include_memberships: true)
+            # limit/budget are passed only when given, so the nightly run calls
+            # MaterializePlans exactly as before.
+            def materialize_plans(report, limit: nil, budget: nil)
+              options          = { include_memberships: true }
+              options[:limit]  = limit if limit
+              options[:budget] = budget if budget
+              result           = Billing::Operations::MaterializePlans.call(**options)
 
               report[:scanned]               = result.scanned
               report[:succeeded]             = result.succeeded
@@ -144,6 +184,8 @@ module Onetime
               report[:orgs_cascaded]         = result.orgs_cascaded
               report[:memberships_succeeded] = result.memberships_succeeded
               report[:memberships_failed]    = result.memberships_failed
+              report[:truncated]             = result.truncated if limit
+              report[:budget_exhausted]      = result.budget_exhausted if budget
 
               return unless result.failed.positive?
 

@@ -42,7 +42,7 @@ module Core
 
         OT.ld "[DomainSerializer] domain_strategy=#{view_vars['domain_strategy'].inspect}, display_domain=#{view_vars['display_domain'].inspect}"
 
-        apply_custom_domain(output) if output['domain_strategy'] == :custom
+        apply_custom_domain(output, view_vars) if output['domain_strategy'] == :custom
         apply_custom_domains_list(output, view_vars)
         apply_session_context(output, view_vars)
 
@@ -75,8 +75,12 @@ module Core
         end
 
         # Populates fields specific to the custom domain strategy.
-        def apply_custom_domain(output)
-          custom_domain             = Onetime::CustomDomain.from_display_domain(output['display_domain'])
+        #
+        # The record is the one DomainStrategy resolved for the request
+        # (view_vars['custom_domain'], from env['onetime.custom_domain'];
+        # #4220). It is not looked up by display domain again here.
+        def apply_custom_domain(output, view_vars)
+          custom_domain             = view_vars['custom_domain']
           output['domain_id']       = custom_domain&.domainid
           output['domain_branding'] = build_branding_hash(custom_domain)
 

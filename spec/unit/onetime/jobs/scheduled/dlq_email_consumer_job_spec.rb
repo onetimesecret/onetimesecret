@@ -21,8 +21,12 @@ RSpec.describe Onetime::Jobs::Scheduled::DlqEmailConsumerJob do
     let(:logger) { double('logger', info: nil, debug: nil, warn: nil, error: nil) }
     let(:payload) { JSON.generate('raw' => true, 'email' => { 'to' => 'test@example.com' }) }
     let(:properties) do
+      # The replay below expects only x-schema-version back: every death
+      # header the broker stamps must be stripped.
       double('properties', message_id: 'dlq-message-1', content_type: 'application/json',
-        headers: { 'x-death' => [{ 'queue' => 'email.message.send' }], 'x-schema-version' => 1 })
+        headers: { 'x-death' => [{ 'queue' => 'email.message.send' }],
+                   'x-first-death-queue' => 'email.message.send', 'x-last-death-queue' => 'email.message.send',
+                   'x-schema-version' => 1 })
     end
     # The second message is dead-lettered from another queue, so a run that
     # found the first queue missing still publishes it.

@@ -49,6 +49,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::ListUsers do
       created: 1_700_000_000,
       last_login: nil,
       planid: 'basic',
+      default_org_id: '',
       organization_instances: [],
       secrets_active: 2,
       secrets_created: 5,
@@ -113,6 +114,76 @@ RSpec.describe ColonelAPI::Logic::Colonel::ListUsers do
     expect(data[:details][:pagination]).to include(total_count: 1, total_pages: 1, capped: false)
     expect(data[:details]).to have_key(:orphaned_accounts)
     expect(data[:details][:orphaned_accounts]).to eq([])
+  end
+
+  it 'labels a plan read from the legacy customer field when the customer owns no organization' do
+    allow(op).to receive(:call).and_return(op_result)
+
+    logic = logic_for
+    logic.raise_concerns
+    data = logic.process
+
+    expect(data[:details][:users].first).to include(
+      planid: 'basic', plan_source: 'customer', billing_organization: nil,
+    )
+  end
+
+  # Shared lookup fixture: another owner's default (with a Stripe customer
+  # and a paid plan) listed first, the customer's archived default second,
+  # their live owned default third. The row shows the OWNED organization's
+  # plan — not the joined one the old Stripe-first scan found — and names it.
+  context 'with the shared lookup fixture' do
+    include_context 'default workspace lookup fixture'
+
+    let(:row) do
+      instance_double(
+        Onetime::Customer,
+        anonymous?: false,
+        user_id: 'uid1',
+        extid: 'ur_bob',
+        email: 'bob@example.com',
+        role: 'customer',
+        verified?: true,
+        suspended?: false,
+        created: 1_700_000_000,
+        last_login: nil,
+        planid: 'identity',
+        default_org_id: '',
+        organization_instances: lookup_fixture_orgs,
+        secrets_active: 2,
+        secrets_created: 5,
+        secrets_shared: 1,
+      )
+    end
+
+    before do
+      stub_workspace_ownership(row)
+      allow(op).to receive(:call).and_return(op_result)
+    end
+
+    it 'shows the owned default workspace and its plan, not the joined paid organization' do
+      logic = logic_for
+      logic.raise_concerns
+      data = logic.process
+
+      expect(data[:details][:users].first).to include(
+        planid: 'free_v1',
+        plan_source: 'organization',
+        billing_organization: { extid: owned_default.extid, display_name: owned_default.display_name },
+      )
+    end
+
+    it 'falls back to the legacy field when the customer owns no live organization' do
+      allow(row).to receive(:organization_instances).and_return([foreign_default, archived_default])
+
+      logic = logic_for
+      logic.raise_concerns
+      data = logic.process
+
+      expect(data[:details][:users].first).to include(
+        planid: 'identity', plan_source: 'customer', billing_organization: nil,
+      )
+    end
   end
 
   it 'passes the op orphaned_accounts through unchanged, outside the user count' do

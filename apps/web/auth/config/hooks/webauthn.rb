@@ -83,6 +83,20 @@ module Auth::Config::Hooks
       # Customize via webauthn_auth_js if autofill behavior needs adjustment.
 
       # ========================================================================
+      # HOOK: Before WebAuthn Registration
+      # ========================================================================
+      #
+      # Fires inside the setup transaction, after the credential has
+      # verified and before it is stored. Records whether the session is
+      # two-factor authenticated yet, which decides whether
+      # after_webauthn_setup renews the session id (hooks/two_factor.rb,
+      # #4466).
+      #
+      auth.before_webauthn_setup do
+        note_two_factor_state_before_setup
+      end
+
+      # ========================================================================
       # HOOK: After WebAuthn Registration (Credential Stored)
       # ========================================================================
       #
@@ -116,6 +130,9 @@ module Auth::Config::Hooks
       # - Can immediately use for login
       #
       auth.after_webauthn_setup do
+        # First, so a refused setup stamps nothing (hooks/two_factor.rb, #4466).
+        renew_session_id_after_factor_setup('webauthn')
+
         # Rodauth exposes no accessor for the credential it just stored, and
         # `webauthn_setup_webauthn_id_param` never existed in the gem (the
         # NameError rolled back the whole setup transaction — every passkey

@@ -136,7 +136,7 @@ RSpec.describe 'Email enqueue locale normalization (#3812)' do
     # blank request locale ("") is the failure mode rather than a record load.
     def enqueued_feedback_locale(request_locale)
       captured = capture_enqueued_payloads
-      customer = double('Customer', anonymous?: false, email: 'user@example.com', extid: 'ur_user_extid')
+      customer = double('Customer', anonymous?: false, email: 'user@example.com', extid: 'ur_user_extid', organization_instances: [])
 
       logic = V3::Logic::ReceiveFeedback.allocate
       logic.instance_variable_set(:@cust, customer)

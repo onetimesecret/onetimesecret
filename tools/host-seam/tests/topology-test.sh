@@ -10,8 +10,8 @@ set -uo pipefail
 
 TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${TEST_DIR}/../../.." && pwd)"
-# shellcheck source=scripts/tests/lib/assert.sh
-source "${REPO_ROOT}/scripts/tests/lib/assert.sh"
+# shellcheck source=tools/testsuite/lib/assert.sh
+source "${REPO_ROOT}/tools/testsuite/lib/assert.sh"
 # shellcheck source=tools/host-seam/topology-lib.sh
 source "${REPO_ROOT}/tools/host-seam/topology-lib.sh"
 

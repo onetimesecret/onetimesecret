@@ -78,6 +78,9 @@ RSpec.describe 'Tenant Connect re-authentication with MFA (#4411/#3849)',
         otp_code: ROTP::TOTP.new(secret).now,
       )
       expect(last_response.status).to eq(200)
+      # The proof is recorded under a new session id (#4466).
+      expect(current_sid).not_to eq(sid)
+      sid = current_sid
       expect(Onetime::SessionSidecar.read(sid, Onetime::RecentReauth::KEY)).to include(
         'account_id' => account_id,
         'surface' => { 'kind' => 'custom', 'id' => tenant[:domain].identifier },

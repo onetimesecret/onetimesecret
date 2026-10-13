@@ -83,6 +83,12 @@ module V2::Logic
         # shared activity.
         require_entitlement!('audit_logs') if scope == :org
 
+        # The org-wide stream spans every custom domain of the organization,
+        # so a membership scoped to one domain does not reach it: it would
+        # read the sibling domains' receipt metadata (RISK-2026-08-14-M06).
+        # auth_membership is the membership require_entitlement! consulted.
+        deny_org_scope if scope == :org && !org_scoped_caller?
+
         # Validate domain access if domain scope requested
         return unless (scope == :domain) && !domain_extid
 
@@ -227,6 +233,11 @@ module V2::Logic
         # Same operator precondition as the scope=org gate — see raise_concerns.
         require_entitlement_in!(domain_org, 'audit_logs')
 
+        # accessible_by? admits any member of the owning organization. A
+        # membership scoped to a sibling domain is such a member and must not
+        # read this domain's receipts (RISK-2026-08-14-M06).
+        deny_domain_access unless membership_scope_reaches?(domain_org, domain)
+
         @scope_label = domain.display_domain
         domain.receipts.rangebyscore(since, @now)
       end
@@ -236,6 +247,19 @@ module V2::Logic
       # domains carry broken ownership metadata, so both go through here rather
       # than raising their own error — including the message, which must stay a
       # single I18n lookup so the two cannot diverge under a non-English locale.
+      # Colonels pass as they do through require_entitlement!; a caller with
+      # no membership object (which require_entitlement! already refused) is
+      # not org-scoped.
+      def org_scoped_caller?
+        return true if has_system_role?('colonel')
+
+        auth_membership&.org_scoped? == true
+      end
+
+      def deny_org_scope
+        raise_form_error('Access denied to organization-wide receipts', error_type: :forbidden)
+      end
+
       def deny_domain_access
         raise_form_error(
           I18n.t(

@@ -185,6 +185,8 @@ RSpec.describe Onetime::SsoProvider::Registry do
         GOOGLE_CLIENT_SECRET: 'cs',
         GITHUB_CLIENT_ID: 'cid',
         GITHUB_CLIENT_SECRET: 'cs',
+        GITLAB_CLIENT_ID: 'cid',
+        GITLAB_CLIENT_SECRET: 'cs',
         APPLE_CLIENT_ID: 'com.example.web',
         APPLE_TEAM_ID: 'TEAM123456',
         APPLE_KEY_ID: 'KEY1234567',

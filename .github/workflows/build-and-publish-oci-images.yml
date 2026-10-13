@@ -46,7 +46,7 @@ name: Build and Publish OCI Images
 #   identical, and they live in two different places:
 #     * SENTRY_DIST on the preflight and upload steps below   — CI's half
 #     * the `dist` passed to Sentry.init in the frontend       — the event's half
-#   Kept as literals because scripts/ci/sentry-sourcemap-preflight.sh checks
+#   Kept as literals because .github/scripts/sentry-sourcemap-preflight.sh checks
 #   SENTRY_DIST against the `dist:"..."` inlined in the BUILT chunks — the same
 #   ground truth the release check reads __SENTRY_RELEASE__ from, and the only
 #   evidence of what an event will actually carry, since a dist arriving through
@@ -76,7 +76,7 @@ name: Build and Publish OCI Images
 # Sentry observability contract:
 #   continue-on-error makes each step's exit code meaningless as a signal — a
 #   green check says nothing about whether telemetry actually shipped. Every
-#   Sentry step therefore reports through scripts/ci/sentry-status.sh, which
+#   Sentry step therefore reports through .github/scripts/sentry-status.sh, which
 #   emits a GitHub annotation AND a row rendered into the job summary by the
 #   final "Sentry delivery summary" step. The states are deliberately split:
 #
@@ -86,7 +86,7 @@ name: Build and Publish OCI Images
 #              shipped (::warning::).
 #     FAILED   credentials ARE configured and the command errored (::error::).
 #
-#   scripts/ci/sentry-sourcemap-preflight.sh runs the pre-upload assertions
+#   .github/scripts/sentry-sourcemap-preflight.sh runs the pre-upload assertions
 #   (dist tree present, .map files present, admin bundle present, upload project
 #   among SENTRY_PROJECTS, and both join keys — release and dist — found inlined
 #   in the chunks about to be shipped) so an upload of zero artifacts can no
@@ -94,7 +94,7 @@ name: Build and Publish OCI Images
 #   reported as unverified, never as matching: "could not determine" rendered as
 #   "verified" is how the dist broke unnoticed in the first place.
 #
-#   scripts/ci/sentry-verify-artifacts.sh then asks the SERVER. Input checks and
+#   .github/scripts/sentry-verify-artifacts.sh then asks the SERVER. Input checks and
 #   exit codes were both satisfiable while the frontend project held zero
 #   artifact bundles — which is what it held for every release ever built here.
 #   Only a post-upload query of the artifact listings can tell a real delivery
@@ -438,7 +438,7 @@ jobs:
           cat > "$BAKE_METADATA_FILE" <<'BAKE_METADATA_EOF'
           ${{ steps.bake.outputs.metadata }}
           BAKE_METADATA_EOF
-          bash scripts/ci/extract-frontend-dist.sh
+          bash .github/scripts/extract-frontend-dist.sh
 
       - name: Create Sentry release and associate commits
         if: github.event_name != 'pull_request'
@@ -455,12 +455,12 @@ jobs:
           # check. sentry-status.sh keeps them apart and makes the second one
           # durable. See the "Sentry observability contract" note at the top.
           if [ -z "$SENTRY_AUTH_TOKEN" ]; then
-            bash scripts/ci/sentry-status.sh record release skipped \
+            bash .github/scripts/sentry-status.sh record release skipped \
               "SENTRY_AUTH_TOKEN not configured; no release created"
             exit 0
           fi
           if [ -z "$SENTRY_PROJECTS" ]; then
-            bash scripts/ci/sentry-status.sh record release blocked \
+            bash .github/scripts/sentry-status.sh record release blocked \
               "SENTRY_AUTH_TOKEN is set but SENTRY_PROJECTS is empty — no release was created, so any sourcemap bundles uploaded below have nothing to attach to."
             exit 0
           fi
@@ -506,12 +506,12 @@ jobs:
             rc=$?
             log_cli_output "$out"
             if [ "$rc" -ne 0 ]; then
-              bash scripts/ci/sentry-status.sh record release failed \
+              bash .github/scripts/sentry-status.sh record release failed \
                 "releases ${phase} exited ${rc} for release ${SENTRY_RELEASE} across ${PROJECT_COUNT} configured project(s); sentry-cli output is in this step's log"
               exit 0
             fi
           done
-          bash scripts/ci/sentry-status.sh record release ok \
+          bash .github/scripts/sentry-status.sh record release ok \
             "release ${SENTRY_RELEASE} created, commits associated and finalized across ${PROJECT_COUNT} configured project(s)"
 
       # Pre-upload assertions. `sentry-cli sourcemaps upload` happily "succeeds"
@@ -532,7 +532,7 @@ jobs:
           SENTRY_PROJECT: ${{ secrets.SENTRY_FRONTEND_PROJECT || 'frontend' }}
           SENTRY_DIST_DIR: ./public/web/dist
           SENTRY_RELEASE: ${{ steps.commit.outputs.short_sha }}
-        run: bash scripts/ci/sentry-sourcemap-preflight.sh
+        run: bash .github/scripts/sentry-sourcemap-preflight.sh
 
       - name: Upload frontend sourcemaps to Sentry
         id: sentry_upload
@@ -576,7 +576,7 @@ jobs:
           log_cli_output "$out"
 
           if [ "$rc" -ne 0 ]; then
-            bash scripts/ci/sentry-status.sh record sourcemaps failed \
+            bash .github/scripts/sentry-status.sh record sourcemaps failed \
               "sentry-cli exited ${rc} uploading ${SENTRY_DIST_DIR} for release ${SENTRY_RELEASE}; sentry-cli output is in this step's log"
             exit 0
           fi
@@ -591,7 +591,7 @@ jobs:
           # every healthy run whose count happens to end in a zero and warns on
           # a delivery that worked.
           if printf '%s' "$out" | grep -qiE 'nothing to upload|no files|(^|[^0-9])0 files'; then
-            bash scripts/ci/sentry-status.sh record sourcemaps warn \
+            bash .github/scripts/sentry-status.sh record sourcemaps warn \
               "sentry-cli exited 0 but reported no uploaded files for release ${SENTRY_RELEASE} — bundles present on disk were not accepted; see this step's log"
             exit 0
           fi
@@ -601,7 +601,7 @@ jobs:
           # errors), so this number is what was handed over, not what landed.
           # The server-side count is the sourcemaps-verify row two steps down.
           MAP_COUNT=$(find "$SENTRY_DIST_DIR" -type f -name '*.map' | wc -l | tr -d ' ')
-          bash scripts/ci/sentry-status.sh record sourcemaps ok \
+          bash .github/scripts/sentry-status.sh record sourcemaps ok \
             "sentry-cli exited 0 for release ${SENTRY_RELEASE}; ${MAP_COUNT} sourcemap(s) on disk submitted${SENTRY_DIST:+ (dist=${SENTRY_DIST})} — see sourcemaps-verify for what the server holds"
 
       # The check that would have caught the original bug. Everything before
@@ -622,7 +622,7 @@ jobs:
           SENTRY_URL: ${{ secrets.SENTRY_URL }}
           SENTRY_PROJECT: ${{ secrets.SENTRY_FRONTEND_PROJECT || 'frontend' }}
           SENTRY_RELEASE: ${{ steps.commit.outputs.short_sha }}
-        run: bash scripts/ci/sentry-verify-artifacts.sh
+        run: bash .github/scripts/sentry-verify-artifacts.sh
 
       - name: Create Sentry deploy notification
         if: github.event_name != 'pull_request' && startsWith(github.ref, 'refs/tags/v')
@@ -634,7 +634,7 @@ jobs:
           SENTRY_RELEASE: ${{ steps.commit.outputs.short_sha }}
         run: |
           if [ -z "$SENTRY_AUTH_TOKEN" ]; then
-            bash scripts/ci/sentry-status.sh record deploy skipped \
+            bash .github/scripts/sentry-status.sh record deploy skipped \
               "SENTRY_AUTH_TOKEN not configured; no deploy notification sent"
             exit 0
           fi
@@ -651,11 +651,11 @@ jobs:
           rc=$?
           log_cli_output "$out"
           if [ "$rc" -ne 0 ]; then
-            bash scripts/ci/sentry-status.sh record deploy failed \
+            bash .github/scripts/sentry-status.sh record deploy failed \
               "deploy notification for release ${SENTRY_RELEASE} exited ${rc}; sentry-cli output is in this step's log"
             exit 0
           fi
-          bash scripts/ci/sentry-status.sh record deploy ok \
+          bash .github/scripts/sentry-status.sh record deploy ok \
             "production deploy recorded for release ${SENTRY_RELEASE}"
 
       - name: Audit — verify image version
@@ -760,4 +760,4 @@ jobs:
         run: |
           # Unquoted on purpose: the expected components are one argument each.
           # shellcheck disable=SC2086
-          bash scripts/ci/sentry-status.sh render $SENTRY_EXPECTED_COMPONENTS
+          bash .github/scripts/sentry-status.sh render $SENTRY_EXPECTED_COMPONENTS

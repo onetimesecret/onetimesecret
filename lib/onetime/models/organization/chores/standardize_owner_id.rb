@@ -89,7 +89,12 @@ Onetime::Organization.chore :standardize_owner_id do |org|
     org_extid: org.extid,
     owner_id: owner_id
 
+  # Write created_by alone. HousekeepingJob loads orgs in batches, so `org`
+  # can be minutes old by now; a full `save` would write that stale copy of
+  # every other field back over edits made since (an on-demand console run,
+  # #4343, can land mid-business-day). A partial write also leaves `updated`
+  # alone: a backfill is not an edit.
   org.created_by = owner_id
-  org.save
+  org.save_fields(:created_by)
   true
 end

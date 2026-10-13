@@ -6,6 +6,10 @@
 # lane's; the lane just defines the run.
 AUTHENTICATION_MODE=simple
 
+# Four rspec workers for spec:api (parallel_rspec in lib/tasks/spec.rake),
+# one valkey index each (#4551). --workers 1 is the serial run.
+LANES_WORKERS=4
+
 # Generated prerequisites, produced by tests/lanes/run before the tasks
 # below (see the codegen phase there). spec/spec_helper.rb refuses to boot
 # with an empty generated/locales, so every lane that runs Ruby specs

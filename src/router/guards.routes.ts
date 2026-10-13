@@ -14,6 +14,7 @@ import {
 } from '@/shared/stores/authStore';
 import { useLanguageStore } from '@/shared/stores/languageStore';
 import { isSsoOnlyMode } from '@/utils/features';
+import { hardNavigate, routerOwnsPath } from '@/utils/navigation';
 import { isValidInternalPath } from '@/utils/redirect';
 import { RouteLocationNormalized, RouteLocationRaw, Router } from 'vue-router';
 
@@ -104,8 +105,8 @@ export async function setupRouterGuards(router: Router): Promise<void> {
     // Redirect fully authenticated users away from auth routes (respect redirect param)
     // MFA pending users should still access auth routes like /mfa-verify
     if (isAuthRoute(to) && authStore.isFullyAuthenticated) {
-      const redirect = handleAuthRouteRedirect(to);
-      if (redirect) return redirect;
+      const redirect = handleAuthRouteRedirect(to, router);
+      if (redirect !== null) return redirect;
     }
 
     // Validate authentication for protected routes
@@ -455,9 +456,13 @@ export function handleColonelRequirement(to: RouteLocationNormalized): false | n
 
 /**
  * Handle redirects for authenticated users accessing auth routes.
- * Returns a redirect target or null if no redirect needed.
+ * Returns a redirect target, false when it hard-navigated out of the bundle
+ * (aborting the SPA nav), or null if no redirect needed.
  */
-function handleAuthRouteRedirect(to: RouteLocationNormalized) {
+function handleAuthRouteRedirect(
+  to: RouteLocationNormalized,
+  router: Router
+): RouteLocationRaw | false | null {
   // Allow reset-password with token regardless of auth state - the token is the authorization
   if (to.path === '/reset-password' && to.query.key) {
     return null;
@@ -477,7 +482,15 @@ function handleAuthRouteRedirect(to: RouteLocationNormalized) {
   // as a full location, so both survive.
   const redirectParam = to.query.redirect;
   const redirectPath = typeof redirectParam === 'string' ? redirectParam : undefined;
-  return isValidInternalPath(redirectPath) ? redirectPath : { name: 'Dashboard' };
+  if (!isValidInternalPath(redirectPath)) return { name: 'Dashboard' };
+  // A path this router has no route for (e.g. /colonel from the customer
+  // bundle) needs a document load; returning it would render NotFound under
+  // the new URL. Same posture as handleColonelRequirement.
+  if (!routerOwnsPath(router, redirectPath)) {
+    hardNavigate(redirectPath, '/');
+    return false;
+  }
+  return redirectPath;
 }
 
 function redirectToSignIn(from: RouteLocationNormalized) {

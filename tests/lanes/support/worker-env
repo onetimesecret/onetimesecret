@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+# tests/lanes/support/worker-env — one worker's environment, then exec (#4551)
+#
+#   tests/lanes/support/worker-env <k|auto> <command> [args...]
+#
+# Run inside a lane (tests/lanes/run exports LANES_DATASTORE_DB and, above
+# one worker, LANES_WORKERS). Worker k, 1-based, gets:
+#   LANES_DATASTORE_DB   1 + ((base - 1 + (k - 1)) % 65535), i.e. worker 1 is
+#                        the lane's own index and the rest follow it, wrapping
+#                        inside 1..65535; with base 0 (CI) it is k - 1.
+#   REDIS_URL/VALKEY_URL the same index on the test valkey (re-applicable).
+#   LANES_RSPEC_STATUS_FILE   rspec-status.w<k>.txt beside the lane's file;
+#                        tests/lanes/support/merge_rspec_status.rb folds
+#                        the per-worker files back into it after the run.
+#   --out <path>         any rspec results path in argv becomes
+#                        <path without .json>_w<k>.json (also --out=<path>),
+#                        so N workers write N files CI's tmp/<stem>*.json glob
+#                        already collects.
+#   LANES_WORKER         k.
+# `auto` reads TEST_ENV_NUMBER, which parallel_tests sets to "1".."N" under
+# --first-is-1 (empty or unset is worker 1), so the same file serves as its
+# PARALLEL_TESTS_EXECUTABLE. With LANES_WORKERS unset or 1 the lane is a
+# serial run: k must be 1 and nothing but LANES_WORKER is touched.
+# tests/lanes/run computes the same list to claim the indexes (owner marker,
+# liveness token); spec/unit/lanes/worker_env_spec.rb keeps the two aligned.
+set -euo pipefail
+
+usage() { echo "usage: tests/lanes/support/worker-env <k|auto> <command> [args...]" >&2; exit 64; }
+[[ $# -ge 2 ]] || usage
+k="$1"; shift
+if [[ "${k}" == auto ]]; then k="${TEST_ENV_NUMBER:-1}"; fi
+[[ -n "${k}" ]] || k=1
+case "${k}" in
+  ''|*[!0-9]*) echo "error: worker-env: worker index '${k}' is not a decimal number" >&2; exit 64 ;;
+esac
+k=$(( 10#${k} ))
+workers=$(( 10#${LANES_WORKERS:-1} ))
+if (( k < 1 || k > workers )); then
+  echo "error: worker-env: worker ${k} is outside this run's 1..${workers} (LANES_WORKERS)" >&2
+  exit 64
+fi
+export LANES_WORKER="${k}"
+
+# Serial run: the lane's own index, status file and results path, untouched.
+if (( workers == 1 )); then
+  exec "$@"
+fi
+
+if [[ -z "${LANES_DATASTORE_DB:-}" ]]; then
+  echo "error: worker-env: LANES_DATASTORE_DB is unset; run inside tests/lanes/run" >&2
+  exit 64
+fi
+base=$(( 10#${LANES_DATASTORE_DB} ))
+if (( base == 0 )); then
+  idx=$(( k - 1 ))
+else
+  idx=$(( 1 + (base - 1 + k - 1) % 65535 ))
+fi
+export LANES_DATASTORE_DB="${idx}"
+
+# Same anchor as the runner's rewrite: the test port with an optional index.
+for name in REDIS_URL VALKEY_URL; do
+  if [[ -n "${!name:-}" && "${!name}" =~ ^(.*:2163)(/[0-9]+)?/?$ ]]; then
+    printf -v "${name}" '%s/%s' "${BASH_REMATCH[1]}" "${idx}"
+    export "${name?}"
+  fi
+done
+
+if [[ -n "${LANES_RSPEC_STATUS_FILE:-}" ]]; then
+  export LANES_RSPEC_STATUS_FILE="${LANES_RSPEC_STATUS_FILE%/*}/rspec-status.w${k}.txt"
+fi
+
+# `--out <path>` and `--out=<path>` in the command's own arguments.
+args=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --out)
+      [[ $# -ge 2 ]] || { echo "error: worker-env: --out without a path" >&2; exit 64; }
+      args+=("$1" "${2%.json}_w${k}.json"); shift 2 ;;
+    --out=*)
+      path="${1#--out=}"; args+=("--out=${path%.json}_w${k}.json"); shift ;;
+    *)
+      args+=("$1"); shift ;;
+  esac
+done
+exec "${args[@]}"

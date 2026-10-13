@@ -17,8 +17,10 @@ on:
       - 'docs/development/**'
       - 'install*.sh'
       - 'bin/**'
+      - 'bin/testsuite-installer'
+      - 'tools/testsuite-installer/testsuite-installer.sh'
       - 'package.json'
-      - 'scripts/install-tests/check-docs-commands.sh'
+      - 'tools/testsuite-installer/check-docs-commands.sh'
       - '.github/workflows/docs-command-drift.yml'
   workflow_dispatch:
 
@@ -33,4 +35,4 @@ jobs:
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
       - name: Check documented commands resolve to real targets
-        run: ./scripts/install-tests/check-docs-commands.sh
+        run: bin/testsuite-installer check-docs-commands

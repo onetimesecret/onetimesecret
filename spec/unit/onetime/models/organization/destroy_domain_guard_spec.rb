@@ -10,8 +10,10 @@
 # live domain to the org even though the sorted set has lost it (index
 # drift). Without the second check, drift lets the guard pass and the org is
 # destroyed while domain records still reference it (dangling org_id).
-# archive! stays deliberately permissive (SSO login-path self-heal callers);
-# it only warns.
+# archive! stays deliberately permissive about domains: it has no production
+# writer (#4717), reassigning domains would be an implicit ownership transfer,
+# and `bin/ots domains doctor` check #9 is the operator surface for an
+# archived org that still owns domains. It only warns.
 #
 # Real datastore (Valkey on 2163, see spec/config.test.yaml): the guard is
 # about index state, so it is exercised against real keys. Every object and
@@ -174,6 +176,32 @@ RSpec.describe 'Onetime::Organization destroy!/archive! domain guard', :datastor
 
       expect(@org.archived?).to be(true)
       expect(OT).not_to have_received(:lw)
+    end
+
+    # archive! writes through Familia#save_fields, which does not stamp
+    # `updated` the way save does (prepare_for_save); the method sets it
+    # explicitly. Pin that on the persisted record, for both arities.
+    it 'advances `updated` on the persisted record through the field-scoped write' do
+      @org.updated = Familia.now - 60
+      @org.save_fields(:updated) # save would re-stamp it
+      updated_before = Onetime::Organization.load(@org.objid).updated.to_f
+
+      @org.archive!('spec: updated stamp')
+
+      reloaded = Onetime::Organization.load(@org.objid)
+      expect(reloaded.archived?).to be(true)
+      expect(reloaded.archived_comment).to eq('spec: updated stamp')
+      expect(reloaded.updated.to_f).to be > updated_before
+    end
+
+    it 'advances `updated` without a comment too' do
+      @org.updated = Familia.now - 60
+      @org.save_fields(:updated) # save would re-stamp it
+      updated_before = Onetime::Organization.load(@org.objid).updated.to_f
+
+      @org.archive!
+
+      expect(Onetime::Organization.load(@org.objid).updated.to_f).to be > updated_before
     end
   end
 end

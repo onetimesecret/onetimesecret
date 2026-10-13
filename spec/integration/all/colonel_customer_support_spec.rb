@@ -264,6 +264,98 @@ RSpec.describe 'Colonel customer support features', type: :integration do
   end
 
   # ---------------------------------------------------------------------------
+  # 2a. Organization list (GetUserDetails details.organizations)
+  #
+  # Only default workspaces set Organization#is_default; an org created with
+  # Organization.create! leaves it nil. The frontend schema requires a boolean,
+  # so a nil here fails the whole customer page.
+  # ---------------------------------------------------------------------------
+  describe 'GetUserDetails organizations' do
+    def user_details(target)
+      logic = ColonelAPI::Logic::Colonel::GetUserDetails.new(
+        strategy_result_for(colonel), { 'user_id' => target.extid },
+      )
+      logic.raise_concerns
+      logic.process
+    end
+
+    let(:member) { create_customer(email: "orgs-#{SecureRandom.hex(4)}@example.com") }
+
+    it 'reports is_default as false for an org that never set the field' do
+      org = Onetime::Organization.create!("Team #{SecureRandom.hex(4)}", member)
+      expect(org.is_default).to be_nil
+
+      entry = user_details(member)[:details][:organizations].find { |o| o[:extid] == org.extid }
+
+      expect(entry[:is_default]).to be(false)
+    end
+
+    it 'reports is_default as true for a default workspace' do
+      org = Onetime::Organization.create!("Default #{SecureRandom.hex(4)}", member, nil, is_default: true)
+
+      entry = user_details(member)[:details][:organizations].find { |o| o[:extid] == org.extid }
+
+      expect(entry[:is_default]).to be(true)
+    end
+
+    # is_default marks the org OWNER's default workspace; is_customer_default
+    # is this customer's own default (OrganizationLoader.default_organization).
+    it "reports is_customer_default only on the customer's own default" do
+      own = Onetime::Organization.create!("Own #{SecureRandom.hex(4)}", member, nil, is_default: true)
+      admin   = create_customer(email: "admin-#{SecureRandom.hex(4)}@example.com")
+      company = Onetime::Organization.create!("Company #{SecureRandom.hex(4)}", admin, nil, is_default: true)
+      company.add_members_instance(member, through_attrs: { role: 'member' })
+
+      entries = user_details(member)[:details][:organizations].to_h { |o| [o[:extid], o] }
+
+      expect(entries[own.extid]).to include(is_default: true, is_customer_default: true)
+      expect(entries[company.extid]).to include(is_default: true, is_customer_default: false)
+    end
+
+    it 'reports is_customer_default on the organization default_org_id names' do
+      admin   = create_customer(email: "admin-#{SecureRandom.hex(4)}@example.com")
+      company = Onetime::Organization.create!("Company #{SecureRandom.hex(4)}", admin)
+      company.add_members_instance(member, through_attrs: { role: 'member' })
+      member.default_org_id!(company.objid)
+
+      entry = user_details(member)[:details][:organizations].find { |o| o[:extid] == company.extid }
+
+      expect(entry[:is_customer_default]).to be(true)
+    end
+
+    # details.billing reads out the organization the customer OWNS and is
+    # billed for. A joined organization carrying a Stripe customer, listed
+    # with its owner's is_default flag, is not this customer's billing.
+    it "reads billing from the customer's own workspace, not a joined paid organization" do
+      own     = Onetime::Organization.create!("Own #{SecureRandom.hex(4)}", member, nil, is_default: true)
+      admin   = create_customer(email: "admin-#{SecureRandom.hex(4)}@example.com")
+      company = Onetime::Organization.create!("Company #{SecureRandom.hex(4)}", admin, nil, is_default: true)
+      company.stripe_customer_id = "cus_#{SecureRandom.hex(6)}"
+      company.planid             = 'team_plus_v1'
+      company.save
+      company.add_members_instance(member, through_attrs: { role: 'member' })
+
+      billing = user_details(member)[:details][:billing]
+
+      expect(billing[:plan_source]).to eq('organization')
+      expect(billing[:organization][:extid]).to eq(own.extid)
+      expect(billing[:organization][:planid]).not_to eq('team_plus_v1')
+    end
+
+    it 'labels the legacy customer plan when the customer owns no organization' do
+      admin   = create_customer(email: "admin-#{SecureRandom.hex(4)}@example.com")
+      company = Onetime::Organization.create!("Company #{SecureRandom.hex(4)}", admin, nil, is_default: true)
+      company.add_members_instance(member, through_attrs: { role: 'member' })
+      member.planid = 'identity'
+      member.save
+
+      billing = user_details(member)[:details][:billing]
+
+      expect(billing).to include(plan_source: 'customer', plan_id: 'identity', organization: nil)
+    end
+  end
+
+  # ---------------------------------------------------------------------------
   # 2b. Activity read-out (GetUserDetails details.secrets / details.receipts)
   #
   # These sections used to walk the entire `secret:*:object` and

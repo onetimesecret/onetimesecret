@@ -284,7 +284,7 @@ RSpec.describe 'OmniAuth Domain Restriction', type: :integration do
     end
 
     context 'empty or nil email' do
-      it 'redirects with invalid_email for empty email' do
+      it 'redirects with missing_email for empty email' do
         setup_mock_auth(email: '')
 
         begin
@@ -294,7 +294,7 @@ RSpec.describe 'OmniAuth Domain Restriction', type: :integration do
             skip 'OmniAuth route not registered (OIDC discovery not available at boot)'
           end
 
-          expect_auth_error_redirect('invalid_email')
+          expect_auth_error_redirect('missing_email')
         ensure
           teardown_mock_auth
         end

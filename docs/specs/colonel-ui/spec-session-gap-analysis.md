@@ -127,7 +127,7 @@ Still open here: the raw sid inside `RevokeForCustomer`'s audit **detail** (its
 | 2.2  | Revoke all for a user                              | `RevokeAllForCustomer` — two-tier: exact uncapped kill over `active_sessions`, then a best-effort untracked sweep, then Rodauth `account_active_session_keys`                                                                                                                                                          | None                                                                                                                                                                                                                                                                                                                                                                                  | ✓        |
 | 2.3  | Revoke all for a tenant                            | No op, no route. `org_id` is on the sidecar                                                                                                                                                                                                                                                                            | Compose over the existing field                                                                                                                                                                                                                                                                                                                                                       | P2 KNOWN |
 | 2.4  | Global break-glass revoke                          | Primitives exist; nothing composes them                                                                                                                                                                                                                                                                                | Compose                                                                                                                                                                                                                                                                                                                                                                               | P2 KNOWN |
-| 2.5  | **Cascade: remember-me**                           | `remember` feature enabled (`features/remember_me.rb:13`), `account_remember_keys` table exists (`migrations/001_initial.rb:108`), and **no revoke path references it**                                                                                                                                                | **See 2.5 detail**                                                                                                                                                                                                                                                                                                                                                                    | P1 KNOWN |
+| 2.5  | **Cascade: remember-me**                           | At `5d952a6fc`: `remember` feature enabled (`features/remember_me.rb:13`), `account_remember_keys` table exists (`migrations/001_initial.rb:108`), and **no revoke path references it**. Since then Rodauth's `remember` feature is no longer enabled and the checkbox extends the signed-in session itself (`lib/onetime/session/remember_me.rb`) | No longer a gap: see the 2026-09-28 note under 2.5 detail                                                                                                                                                                                                                                                                                                                             | ✓ (was P1 KNOWN) |
 | 2.6  | Cascade: refresh tokens                            | None exist                                                                                                                                                                                                                                                                                                             | N/A                                                                                                                                                                                                                                                                                                                                                                                   | N/A      |
 | 2.7  | Cascade: OAuth/PAT grants issued under the session | No PAT or session-derived-grant concept                                                                                                                                                                                                                                                                                | N/A                                                                                                                                                                                                                                                                                                                                                                                   | N/A      |
 | 2.8  | Cascade: WebSocket/SSE                             | None                                                                                                                                                                                                                                                                                                                   | N/A                                                                                                                                                                                                                                                                                                                                                                                   | N/A      |
@@ -231,6 +231,21 @@ window a stolen cookie is exactly as capable as before — the window bounds and
 audits the capability rather than binding it to the credential. Binding it to a
 value the cookie does not carry (an elevation nonce echoed as a request header,
 or a sid rotation at grant time) is the follow-up.
+
+> **Note (2026-10-08, unreleased, #4466):** the step-up now starts a new
+> session id at grant time. `ColonelAPI::Logic::Colonel::ElevateSession`
+> (`apps/api/colonel/logic/colonel/elevate_session.rb`) calls
+> `Onetime::SessionRotation.rotate!` after the factor verifies and before the
+> window is written, and grants no window when the rotation does not
+> complete. The specs show the window written under a new id, the old id
+> ended, and the old cookie signed out
+> (`spec/integration/full/colonel_elevation_session_rotation_spec.rb:69`,
+> `:91`; `spec/integration/simple/colonel_elevation_session_rotation_spec.rb:67`).
+> So a copy of the id taken before the step-up does not gain the window. A
+> copy of the new id taken during the window still carries it; the
+> elevation nonce is not implemented (`apps/api/colonel/logic/colonel/elevation.rb`,
+> "Residual risk"). This change is not in v0.26.15 or earlier. The paragraph
+> above is kept as written.
 
 **Bounded for the admin API surface (#4331): 3.1, 3.2, 3.13.** `/api/colonel*`
 now additionally requires a colonel session to satisfy a **1h idle** and a **12h
@@ -410,7 +425,8 @@ architectural — and its four named gaps all hold. Five amendments:
 4. **§4's remember-me finding gains one fact**: `load_memory` is never called, so
    the gap is latent and remember-me is non-functional today. That changes the
    fix from "add a cascade" to "add the cascade and the wiring together, or
-   disable the feature". See 2.5.
+   disable the feature". See 2.5. (2026-10-08: the feature was disabled; the
+   note under the 2.5 detail has the current state.)
 5. **§5's IP-masking premise holds** — verified: `IPPrivacyMiddleware` is mounted
    universally and rewrites `env['REMOTE_ADDR']` to the masked client IP before
    any downstream consumer, so `@session['ip_address'] = @request.ip`
@@ -464,7 +480,7 @@ ranking:
 | 1.6 — session ID in the console is the cookie value     | All of §4. Impersonation controls constrain nobody while the same operator can copy a live credential out of a read-only view |
 | 3.1 + 3.2 — idle and absolute lifetime on the blob path | All of §7, and 1.8's `expires_at`                                                                                             |
 | 5.3 — an external audit sink                            | 5.2, 5.4, 5.5, 5.6, 5.11. Tamper-evidence and retention are both cheaper downstream of a sink than in Redis                   |
-| 2.5 — remember-me cascade                               | Any future work on the remember feature; wiring `load_memory` without it ships a revocation bypass                            |
+| 2.5 — remember-me cascade                               | Any future work on the remember feature; wiring `load_memory` without it ships a revocation bypass (2026-10-08: the feature is disabled; see the 2.5 detail) |
 | 8.1 — trusted proxy default                             | Every IP-bearing field in §1 and §5. Until it is on, those fields record the ingress hop                                      |
 
 Twenty-two of the 67 were already itemized in `spec-session-path.md` §4/§5 and

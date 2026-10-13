@@ -73,10 +73,33 @@ module OrganizationAPI
         end
         record.delete(:owner_id) # Remove internal ID from response
 
-        # Add context-dependent field
-        record[:current_user_role] = determine_user_role(organization, current_user)
+        # Add context-dependent fields
+        record[:current_user_role]       = determine_user_role(organization, current_user)
+        # Per-viewer: the raw is_default marks the OWNER's default workspace,
+        # so a member sees it on someone else's organization too.
+        record[:is_current_user_default] = current_user_default?(organization, current_user)
 
         record
+      end
+
+      # Whether `organization` is the user's default organization
+      # (OrganizationLoader.default_organization). Resolved once per user per
+      # logic instance: a list serializes many organizations.
+      #
+      # @param organization [Onetime::Organization]
+      # @param user [Onetime::Customer, nil]
+      # @return [Boolean]
+      def current_user_default?(organization, user)
+        return false if user.nil? || user.anonymous?
+
+        @default_organization_ids ||= {}
+        unless @default_organization_ids.key?(user.objid)
+          @default_organization_ids[user.objid] =
+            Onetime::Application::OrganizationLoader.default_organization(user)&.objid
+        end
+
+        default_id = @default_organization_ids[user.objid]
+        !default_id.nil? && default_id == organization.objid
       end
 
       # Determine user's role in organization

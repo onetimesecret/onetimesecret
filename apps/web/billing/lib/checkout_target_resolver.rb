@@ -89,9 +89,7 @@ module Billing
     # @param customer [Onetime::Customer]
     # @return [Array<Onetime::Organization>]
     def owned_live_orgs(customer)
-      customer.organization_instances.to_a
-        .reject(&:archived?)
-        .select { |org| org.owner?(customer) }
+      Onetime::Application::OrganizationLoader.owned_organizations(customer)
     end
 
     # Create the organization a checkout's subscription will land on.

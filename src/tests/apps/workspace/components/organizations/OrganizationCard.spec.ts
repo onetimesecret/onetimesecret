@@ -44,6 +44,7 @@ describe('OrganizationCard', () => {
     owner_id: 'cust_456',
     contact_email: null,
     is_default: false,
+    is_current_user_default: false,
     planid: 'free',
     active_subscription: false,
     created: new Date(),

@@ -175,6 +175,7 @@ export type ReauthWebauthnChallenge = z.infer<typeof reauthWebauthnChallengeSche
 export const reauthErrorSchema = z.object({
   error: z.string(),
   error_code: z.string().optional(),
+  session_rotated: z.boolean().optional(),
 });
 
 export const reauthResponseSchema = z.union([

@@ -88,7 +88,7 @@ RUN xcaddy build ${CADDY_VERSION} \
     --with github.com/caddy-dns/${DNS_MODULE}
 
 # Runtime stage: minimal image with custom Caddy binary
-FROM debian:bookworm-slim
+FROM debian:bookworm-slim@sha256:7c7b2c966bc9ee8cedfeef67e0e279108992c77681fa595db4a9d65c06ccc587
 
 ARG PUBLIC_DIR
 ARG CADDY_VERSION

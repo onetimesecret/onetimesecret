@@ -7,7 +7,16 @@
 <!-- Metadata -->
 <div style="font-family: Helvetica, Arial, sans-serif; font-size: 12px; color: #666666; margin-bottom: 24px; padding: 12px; background-color: #f5f5f5; border-radius: 4px;">
   <p style="margin: 0 0 4px 0;"><strong><%= t('email.feedback_email.from_label') %></strong> <%= h(email_address) %></p>
+  <% if colonel_customer_url %>
+  <p style="margin: 0 0 4px 0;"><strong><%= t('email.feedback_email.user_id_label') %></strong> <a href="<%= h(colonel_customer_url) %>" style="color: <%= brand_color %>;"><%= h(user_id) %></a></p>
+  <% else %>
   <p style="margin: 0 0 4px 0;"><strong><%= t('email.feedback_email.user_id_label') %></strong> <%= h(user_id) %></p>
+  <% end %>
+  <% unless organizations.empty? %>
+  <p style="margin: 0 0 4px 0;"><strong><%= t('email.feedback_email.organizations_label') %></strong>
+    <% organizations.each_with_index do |org, idx| %><%= ', ' if idx.positive? %><a href="<%= h(org[:url]) %>" style="color: <%= brand_color %>;"><%= h(org[:extid]) %></a><% end %>
+  </p>
+  <% end %>
   <p style="margin: 0 0 4px 0;"><strong><%= t('email.feedback_email.domain_label') %></strong> <%= h(display_domain) %> (<%= h(domain_strategy) %>)</p>
   <p style="margin: 0 0 4px 0;"><strong><%= t('email.feedback_email.timezone_label') %></strong> <%= h(tz) %></p>
   <p style="margin: 0;"><strong><%= t('email.feedback_email.version_label') %></strong> <%= h(version) %></p>

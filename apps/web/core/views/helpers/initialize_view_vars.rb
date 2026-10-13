@@ -306,6 +306,11 @@ module Core
           'diagnostics' => diagnostics,
           'display_domain' => display_domain,
           'domain_strategy' => domain_strategy,
+          # The CustomDomain record DomainStrategy resolved for a :custom
+          # request (#4220); nil on every other classification. The domain
+          # serializer reads it rather than looking the display domain up
+          # again.
+          'custom_domain' => req.env.fetch('onetime.custom_domain', nil),
           'features' => safe_features,
           'frontend_development' => frontend_development,
           'frontend_host' => frontend_host,

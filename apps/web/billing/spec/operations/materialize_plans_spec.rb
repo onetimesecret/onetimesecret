@@ -429,5 +429,105 @@ RSpec.describe Billing::Operations::MaterializePlans, :billing_cli do
         )
       end
     end
+
+    # The colonel console's bounded run (#4343): a record limit and a
+    # wall-clock budget, both checked between orgs.
+    context 'bounded runs' do
+      let(:orgs) do
+        Array.new(4) do |i|
+          instance_double(Onetime::Organization, extid: "org_#{i}", planid: 'test_plan_v1').tap do |o|
+            allow(o).to receive(:materialize_entitlements_from_plan)
+          end
+        end
+      end
+
+      # Yields every org, and honours `break` the way each_record does.
+      let(:org_iterator) do
+        Class.new do
+          def initialize(orgs) = @orgs = orgs
+          def each_record(batch_size:, &) = @orgs.each(&)
+        end.new(orgs)
+      end
+
+      # Exhausted from the (n+1)th check on.
+      def budget_lasting(checks)
+        calls = 0
+        double('Budget').tap do |budget|
+          allow(budget).to receive(:exhausted?) { (calls += 1) > checks }
+        end
+      end
+
+      it 'stops after `limit` orgs are scanned, reporting the orgs left as truncated' do
+        result = described_class.call(iterator: org_iterator, limit: 2)
+
+        expect(result.scanned).to eq(2)
+        expect(result.succeeded).to eq(2)
+        expect(result.budget_exhausted).to be false
+        expect(result.truncated).to be true
+        orgs[0..1].each { |o| expect(o).to have_received(:materialize_entitlements_from_plan) }
+        orgs[2..].each { |o| expect(o).not_to have_received(:materialize_entitlements_from_plan) }
+      end
+
+      # Both scan exactly `limit` orgs; the look-ahead at the (limit+1)th
+      # yield is what tells them apart, and it processes nothing.
+      it 'is truncated when one org follows the limit-th' do
+        result = described_class.call(iterator: org_iterator, limit: 3)
+
+        expect(result.scanned).to eq(3)
+        expect(result.truncated).to be true
+        expect(orgs[3]).not_to have_received(:materialize_entitlements_from_plan)
+      end
+
+      it 'is not truncated when the population is exactly the limit' do
+        result = described_class.call(iterator: org_iterator, limit: 4)
+
+        expect(result.scanned).to eq(4)
+        expect(result.truncated).to be false
+      end
+
+      it 'counts a skipped org toward the limit (scanned is every org reached)' do
+        allow(orgs[0]).to receive(:planid).and_return('')
+
+        result = described_class.call(iterator: org_iterator, limit: 2)
+
+        expect(result.scanned).to eq(2)
+        expect(result.skipped_no_plan).to eq(1)
+        expect(result.succeeded).to eq(1)
+      end
+
+      it 'stops between orgs when the budget runs out and says so' do
+        result = described_class.call(iterator: org_iterator, budget: budget_lasting(3))
+
+        expect(result.scanned).to eq(3)
+        expect(result.budget_exhausted).to be true
+        expect(orgs[3]).not_to have_received(:materialize_entitlements_from_plan)
+      end
+
+      it 'bounds a dry run the same way, writing nothing' do
+        result = described_class.call(dry_run: true, iterator: org_iterator, limit: 3, budget: budget_lasting(1))
+
+        expect(result.scanned).to eq(1)
+        expect(result.budget_exhausted).to be true
+        orgs.each { |o| expect(o).not_to have_received(:materialize_entitlements_from_plan) }
+      end
+
+      it 'runs every org with no bounds given, as before' do
+        result = described_class.call(iterator: org_iterator)
+
+        expect(result.scanned).to eq(4)
+        expect(result.budget_exhausted).to be false
+        expect(result.truncated).to be false
+      end
+
+      it 'keeps budget_exhausted and truncated optional when the result is built elsewhere' do
+        result = Billing::Operations::MaterializePlansResult.new(
+          scanned: 0, succeeded: 0, failed: 0, skipped_no_plan: 0, skipped_plan_filter: 0,
+          memberships_succeeded: 0, memberships_failed: 0, orgs_cascaded: 0, errors: []
+        )
+
+        expect(result.budget_exhausted).to be false
+        expect(result.truncated).to be false
+      end
+    end
   end
 end

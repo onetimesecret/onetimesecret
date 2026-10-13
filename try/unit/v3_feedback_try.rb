@@ -9,6 +9,7 @@
 # 2. format_feedback_message correctly formats messages for authenticated users
 # 3. send_feedback handles nil sender without crashing
 # 4. send_feedback handles anonymous sender correctly
+# 5. feedback_organization_extids lists the submitter's orgs by PUBLIC id
 #
 # These tests verify the nil sender handling added in #2733.
 
@@ -272,3 +273,23 @@ end
 logic.send(:clear_feedback_rate_limit!, @rate_limited_ip)
 result
 #=> [:limit_exceeded, 10]
+
+## feedback_organization_extids lists the submitter's organizations by PUBLIC id
+@org_owner      = Onetime::Customer.create!(email: generate_unique_test_email('feedback_org_owner'))
+@org            = Onetime::Organization.create!('Feedback Org', @org_owner, generate_unique_test_email('feedback_org_contact'))
+strategy_result = MockStrategyResult.authenticated(@org_owner, session: MockSession.new)
+logic           = V3::Logic::ReceiveFeedback.new(strategy_result, @params, 'en')
+logic.send(:feedback_organization_extids, @org_owner)
+#=> [@org.extid]
+
+## feedback_organization_extids degrades to [] when the lookup raises
+@broken_sender  = Object.new.tap do |sender|
+  sender.define_singleton_method(:organization_instances) { raise StandardError, 'datastore down' }
+end
+strategy_result = MockStrategyResult.authenticated(@org_owner, session: MockSession.new)
+logic           = V3::Logic::ReceiveFeedback.new(strategy_result, @params, 'en')
+logic.send(:feedback_organization_extids, @broken_sender)
+#=> []
+
+@org.destroy!
+@org_owner.destroy!

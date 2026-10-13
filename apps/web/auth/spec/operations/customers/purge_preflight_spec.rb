@@ -14,6 +14,9 @@ RSpec.describe Auth::Operations::Customers::PurgePreflight do
       custid: 'target@example.com',
       email: 'target@example.com',
       default_org_id: nil,
+      dbkey: 'customer:cust-target:object',
+      v1_custid: nil,
+      migration_status: nil,
     )
   end
   let(:instances) { double('Organization.instances') }
@@ -62,8 +65,11 @@ RSpec.describe Auth::Operations::Customers::PurgePreflight do
       pending_invitation_count: 0,
       receipt_count: 0,
       billing_live?: false,
+      subscription_status: nil,
       planid: 'free_v1',
       migration_status: nil,
+      v1_identifier: nil,
+      v1_source_custid: nil,
       members: collection(['cust-target']),
       pending_invitations: collection([]),
       domains: collection([]),
@@ -288,6 +294,7 @@ RSpec.describe Auth::Operations::Customers::PurgePreflight do
       pending_invitations: collection(['pending-1']),
       receipt_count: 2,
       stripe_customer_id: 'cus_retained',
+      billing_live?: true,
       description: 'retained description',
     )
     owner_membership = membership(
@@ -394,6 +401,213 @@ RSpec.describe Auth::Operations::Customers::PurgePreflight do
 
     expect(codes).not_to include(:owner_id_mismatch, :creator_mismatch)
     expect(plan.actions.map(&:type)).to eq([:delete_organization])
+  end
+
+  describe 'historical data on an otherwise eligible personal workspace' do
+    let(:org) { organization }
+    let(:owner_membership) do
+      membership(org_objid: org.objid, customer_objid: customer.objid, role: 'owner')
+    end
+
+    before do
+      allow(customer).to receive(:custid).and_return(customer.objid)
+      allow(customer).to receive(:participations)
+        .and_return(collection(["organization:#{org.objid}:members"]))
+      allow(customer).to receive(:organization_instances).and_return(collection([org]))
+      stub_organization_scan(org)
+      stub_membership_scan(owner_membership)
+      stub_membership_lookup(org, customer.objid => owner_membership)
+      allow(Onetime::Customer).to receive(:load).with(customer.objid).and_return(customer)
+      allow(contact_index).to receive(:get).with(customer.email).and_return(org.objid)
+    end
+
+    def plan
+      described_class.new(customer: customer).call
+    end
+
+    it 'accepts completed migration provenance without changing the source fields' do
+      allow(org).to receive_messages(
+        migration_status: 'completed', migrated_at: '1700000000',
+        v1_identifier: customer.dbkey, v1_source_custid: customer.email,
+        migration_comment: 'created_synthesized',
+      )
+      expect(org).not_to receive(:save)
+      expect(customer).not_to receive(:save)
+
+      expect(plan).to be_executable
+    end
+
+    it 'accepts provenance-only organizations created by create_from_v1_customer!' do
+      allow(org).to receive(:v1_source_custid).and_return(customer.email)
+
+      expect(plan).to be_executable
+    end
+
+    %w[pending migrating in_progress failed skipped unknown].each do |status|
+      it "refuses explicit organization migration status #{status}" do
+        allow(org).to receive(:migration_status).and_return(status)
+
+        expect(plan.blockers).to include(hash_including(code: :migration_in_flight, org_id: org.extid))
+        expect(plan.actions).to be_empty
+      end
+
+      it "refuses customer migration status #{status} even when the organization is completed" do
+        allow(customer).to receive(:migration_status).and_return(status)
+        allow(org).to receive(:migration_status).and_return('completed')
+
+        expect(plan).not_to be_executable
+        expect(plan.blockers).to include(hash_including(code: :migration_in_flight))
+      end
+    end
+
+    it 'accepts a creator matching the preserved v1 identity after the customer changes email' do
+      allow(customer).to receive(:v1_custid).and_return('old@example.com')
+      allow(org).to receive(:created_by).and_return('old@example.com')
+
+      expect(plan).to be_executable
+    end
+
+    it 'does not accept a creator solely because it matches the current email' do
+      allow(org).to receive(:created_by).and_return(customer.email)
+
+      expect(plan.blockers).to include(hash_including(code: :creator_mismatch))
+    end
+
+    it 'does not accept legacy creator evidence from the organization alone' do
+      allow(org).to receive_messages(created_by: 'old@example.com', v1_source_custid: 'old@example.com')
+
+      expect(plan.blockers).to include(hash_including(code: :creator_mismatch))
+    end
+
+    it 'does not broaden owner identity matching to historical email aliases' do
+      allow(customer).to receive(:v1_custid).and_return('old@example.com')
+      allow(org).to receive_messages(owner_id: 'old@example.com', created_by: 'old@example.com')
+
+      expect(plan.blockers).to include(hash_including(code: :owner_id_mismatch))
+    end
+
+    context 'when the migration generator omitted created_by' do
+      before do
+        allow(customer).to receive(:v1_custid).and_return('old@example.com')
+        allow(org).to receive_messages(
+          created_by: nil, migration_status: 'completed',
+          v1_identifier: customer.dbkey, v1_source_custid: 'old@example.com',
+        )
+      end
+
+      it 'accepts completed provenance bound to the target customer key and legacy identity' do
+        expect(plan).to be_executable
+      end
+
+      {
+        v1_identifier: 'customer:another-customer:object',
+        v1_source_custid: 'another@example.com',
+        migration_status: nil,
+        created_by: 'another-customer',
+      }.each do |field, value|
+        it "refuses contradictory or missing #{field}" do
+          allow(org).to receive(field).and_return(value)
+
+          expect(plan.blockers).to include(hash_including(code: :creator_mismatch))
+          expect(plan.actions).to be_empty
+        end
+      end
+    end
+
+    {
+      stripe_customer_id: 'cus_history',
+      stripe_checkout_email: 'billing@example.com',
+      billing_email: 'billing@example.com',
+      email_hash: 'historical-hash',
+      email_hash_synced_at: '2025-01-01@00:00Z',
+      subscription_period_end: 1700000000,
+      subscription_federated_at: 1700000000,
+      federation_notification_dismissed_at: 1700000000,
+      complimentary: 'true',
+      planid: 'legacy_paid_plan',
+    }.each do |field, value|
+      it "does not refuse solely for historical #{field}" do
+        allow(org).to receive(field).and_return(value)
+
+        expect(plan).to be_executable
+      end
+    end
+
+    %w[canceled incomplete incomplete_expired paused].each do |status|
+      it "accepts non-live #{status} billing with retained Stripe identifiers" do
+        allow(org).to receive_messages(
+          subscription_status: status, stripe_customer_id: 'cus_history',
+          stripe_subscription_id: 'sub_history',
+        )
+
+        expect(plan).to be_executable
+      end
+    end
+
+    %w[active trialing past_due unpaid].each do |status|
+      it "refuses #{status} billing even without local Stripe identifiers" do
+        allow(org).to receive_messages(subscription_status: status, billing_live?: true)
+
+        expect(plan.blockers).to include(hash_including(code: :billing_state))
+        expect(plan.actions).to be_empty
+      end
+    end
+
+    it 'refuses an unknown subscription status' do
+      allow(org).to receive(:subscription_status).and_return('unknown')
+
+      expect(plan.blockers).to include(hash_including(code: :billing_state))
+    end
+
+    it 'refuses a subscription identifier with no known status' do
+      allow(org).to receive(:stripe_subscription_id).and_return('sub_unknown')
+
+      expect(plan.blockers).to include(hash_including(code: :billing_state))
+    end
+
+    {
+      pending_currency_migration: 'true',
+      migration_target_price_id: 'price_next',
+      migration_effective_after: 1700000000,
+    }.each do |field, value|
+      it "still refuses #{field} on a canceled subscription" do
+        allow(org).to receive_messages(subscription_status: 'canceled', field => value)
+
+        expect(plan.blockers).to include(hash_including(code: :billing_state))
+        expect(plan.actions).to be_empty
+      end
+    end
+
+    [false, 'false', nil, ''].each do |value|
+      it "accepts an inactive currency migration flag #{value.inspect}" do
+        allow(org).to receive(:pending_currency_migration).and_return(value)
+
+        expect(plan).to be_executable
+      end
+    end
+
+    it 'refuses when the billing read fails rather than treating it as historical' do
+      allow(org).to receive(:billing_live?).and_raise(Familia::Problem, 'unavailable')
+
+      expect(plan.blockers).to include(hash_including(code: :organization_evidence_incomplete))
+      expect(plan.actions).to be_empty
+    end
+
+    it 'invalidates an issued deletion capability when canceled billing becomes live' do
+      allow(org).to receive_messages(subscription_status: 'canceled', stripe_subscription_id: 'sub_history')
+      capability = plan.actions.fetch(0).account_purge_context
+      allow(org).to receive_messages(subscription_status: 'active', billing_live?: true)
+
+      expect(capability.authorized_for?(org)).to be(false)
+    end
+
+    it 'invalidates an issued deletion capability when migration starts' do
+      allow(org).to receive(:migration_status).and_return('completed')
+      capability = plan.actions.fetch(0).account_purge_context
+      allow(org).to receive(:migration_status).and_return('migrating')
+
+      expect(capability.authorized_for?(org)).to be(false)
+    end
   end
 
   it 'does not read the global registries on the shallow request path' do

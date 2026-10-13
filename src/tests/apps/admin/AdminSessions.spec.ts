@@ -613,4 +613,41 @@ describe('AdminSessions (list + search + inspect + guarded revoke — ticket #40
       ).toBeUndefined();
     });
   });
+
+  // ---- Dialog placement (#4732) ---------------------------------------------
+  // headlessui only treats a dialog as nested when it is rendered inside the
+  // parent dialog's component subtree. The revoke gate is opened from BOTH the
+  // table row and the drawer footer, so it renders in the drawer while the
+  // drawer is open and at page level otherwise — never both at once.
+  describe('confirm dialog placement (#4732)', () => {
+    const drawer = (w: VueWrapper) => w.find('[data-testid="session-drawer"]');
+    const dialogs = (w: VueWrapper) => w.findAll('[data-testid="admin-confirm-dialog"]');
+
+    it('renders the revoke gate INSIDE the drawer when opened from the drawer footer', async () => {
+      mockApi.get.mockResolvedValueOnce({ data: sessionsPayload() });
+      wrapper = mountView(pinia);
+      await flushPromises();
+      mockApi.get.mockResolvedValueOnce({ data: detailPayload() });
+      await wrapper.find('[data-testid="sessions-table"] tbody tr').trigger('click');
+      await flushPromises();
+
+      await wrapper.find('[data-testid="session-revoke-button"]').trigger('click');
+      await flushPromises();
+
+      expect(dialogs(wrapper)).toHaveLength(1);
+      expect(drawer(wrapper).find('[data-testid="admin-confirm-dialog"]').exists()).toBe(true);
+    });
+
+    it('renders exactly one revoke gate at page level when opened from a table row', async () => {
+      mockApi.get.mockResolvedValue({ data: sessionsPayload() });
+      wrapper = mountView(pinia);
+      await flushPromises();
+
+      await wrapper.find(`[data-testid="revoke-${HANDLE}"]`).trigger('click');
+      await flushPromises();
+
+      expect(drawer(wrapper).exists()).toBe(false);
+      expect(dialogs(wrapper)).toHaveLength(1);
+    });
+  });
 });

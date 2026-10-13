@@ -98,12 +98,15 @@ module ColonelAPI
               # Authoritative plan lives on the customer's Organization, not the
               # deprecated Customer#planid field (which drifts — a legacy value
               # like "identity" survives on the customer hash even after the org
-              # moved to team_plus_v1). Resolve the billing org's planid per row,
-              # mirroring GetUserDetails#billing_organization; fall back to the
-              # legacy field only when the customer participates in no org. This
-              # is a bounded per-row org load (<= per_page rows, ~1 org each),
-              # consistent with the per-row secrets_count read above.
-              planid: resolve_planid(cust),
+              # moved to team_plus_v1). The three keys below say WHOSE plan this
+              # is: the plan of the organization the customer owns and is
+              # billed for (plan_source 'organization', billing_organization
+              # names it), or the legacy customer field when they own none
+              # (plan_source 'customer', billing_organization nil). A joined
+              # organization's plan is never shown as this customer's — see
+              # #resolve_plan. Bounded per-row org loads (<= per_page rows, a
+              # few orgs each), consistent with the per-row counter reads below.
+              **resolve_plan(cust),
               # secrets_count is now read from the maintained per-customer
               # secrets_active counter (#60), resolving the TODO(#60) that #20
               # left in place. This replaces the former per-request SCAN over
@@ -125,33 +128,55 @@ module ColonelAPI
 
         private
 
-        # Resolve a customer's effective plan id from their Organization.
+        # The plan a customer row shows, labelled with where it comes from.
         #
-        # Selection mirrors GetUserDetails#billing_organization: the first org
-        # with a Stripe customer id (the one actually billed), else the default
-        # workspace, else the first org. Returns that org's planid. Falls back
-        # to the legacy Customer#planid only when the customer has no org (e.g.
-        # legacy Redis-only seed accounts). Any load failure degrades to the
-        # legacy field rather than 500-ing the list.
+        # Among the live organizations the customer OWNS: the first with a
+        # Stripe customer id (the one actually billed), else their owned
+        # default workspace (OrganizationLoader.owned_default_organization),
+        # else their first owned org. That org's planid is the row's plan,
+        # plan_source is 'organization' and billing_organization names it.
+        #
+        # Owned only, at every step. The old row-level scan ran the same
+        # three-step selection over every membership, so a member of a paid
+        # organization was listed on its plan — the Stripe-first step found
+        # the joined org's Stripe customer, and the default-flag step found
+        # its owner's default workspace. Neither is this customer's plan.
+        #
+        # A customer who owns no live organization shows the legacy
+        # Customer#planid with plan_source 'customer' and no organization
+        # (legacy Redis-only seed accounts; invited members who own nothing).
+        # Any load failure degrades to that too rather than 500-ing the list.
         #
         # @param cust [Onetime::Customer]
-        # @return [String, nil]
-        def resolve_planid(cust)
-          return cust.planid unless cust.respond_to?(:organization_instances)
+        # @return [Hash] planid, plan_source, billing_organization
+        def resolve_plan(cust)
+          return legacy_plan(cust) unless cust.respond_to?(:organization_instances)
 
           # organization_instances is the Familia participation reverse accessor
           # (config_name "organization" + "_instances"); it returns already-loaded,
           # existence-checked Organization objects (load_multi.compact). There is
           # no bare `organizations` method — see organization_loader.rb.
-          orgs = cust.organization_instances.to_a.reject(&:archived?)
-          return cust.planid if orgs.empty?
+          loader = Onetime::Application::OrganizationLoader
+          owned  = loader.owned_organizations(cust)
+          return legacy_plan(cust) if owned.empty?
 
-          billing_org = orgs.find { |org| !org.stripe_customer_id.to_s.empty? } ||
-                        orgs.find(&:is_default) ||
-                        orgs.first
-          billing_org.planid
+          billing_org = owned.find { |org| !org.stripe_customer_id.to_s.empty? } ||
+                        loader.owned_default_organization(cust, owned) ||
+                        owned.first
+          {
+            planid: billing_org.planid,
+            plan_source: 'organization',
+            billing_organization: {
+              extid: billing_org.extid,
+              display_name: billing_org.display_name,
+            },
+          }
         rescue StandardError
-          cust.planid
+          legacy_plan(cust)
+        end
+
+        def legacy_plan(cust)
+          { planid: cust.planid, plan_source: 'customer', billing_organization: nil }
         end
 
         def success_data

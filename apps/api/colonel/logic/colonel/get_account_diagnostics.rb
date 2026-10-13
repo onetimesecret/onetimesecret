@@ -40,6 +40,13 @@ module ColonelAPI
 
         AUDIT_VERB = 'customer.diagnostics_view'
 
+        # Seconds the login limiter's per-IP key SCAN may run inside this
+        # request. The SCAN is O(keyspace) and every model shares db 0 by
+        # default, so on a large install an unbounded walk outlasted the
+        # proxy's upstream timeout and the console panel never loaded. Past
+        # the budget the rate_limits section reports `scan_complete: false`.
+        RATE_LIMIT_SCAN_DEADLINE_SEC = 5.0
+
         attr_reader :user_id, :user, :result
 
         def process_params
@@ -69,6 +76,7 @@ module ColonelAPI
             identifier: user_id,
             customer: user,
             audit_log_limit: audit_log_limit,
+            rate_limit_scan_deadline: RATE_LIMIT_SCAN_DEADLINE_SEC,
           ).call
 
           record_access_event

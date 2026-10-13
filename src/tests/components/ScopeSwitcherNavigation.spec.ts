@@ -241,6 +241,7 @@ describe('ScopeSwitcher Navigation', () => {
         owner_id: 'cust-1',
         contact_email: null,
         is_default: false,
+        is_current_user_default: false,
         planid: 'free',
         active_subscription: false,
         created: new Date('2024-01-01'),

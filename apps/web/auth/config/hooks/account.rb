@@ -7,6 +7,7 @@
 # explicitly (mirroring the colonel logic classes) so the constant is loaded when
 # these hooks fire, rather than relying on ambient load order.
 require 'onetime/operations/sessions/revoke_all_for_customer_except_current'
+require 'auth/account_statuses'
 require 'auth/operations/customers/purge'
 require 'auth/operations/customers/purge_preflight'
 
@@ -52,17 +53,22 @@ module Auth::Config::Hooks
 
         # Check if email already exists in either database
         # SECURITY: Two-database consistency check prevents orphaned accounts
-        email = param(login_param)
+        email = normalize_login(param(login_param))
 
         # Per-domain signup validation (allowlist, MX, SMTP).
-        # Resolves the CustomDomain by display_domain and enforces its
+        # Reuses the request's CustomDomain lookup and enforces its
         # SignupConfig if one is configured and enabled. Falls back to the
         # global allowed_signup_domains policy when no per-domain config
         # applies. Identical user-visible error message to the existing
         # email-conflict paths prevents enumeration of which domains, MX
         # records, or mailboxes are accepted.
         display_domain = request.env['onetime.display_domain']
-        unless Onetime::SignupValidation.valid_signup_email?(email, display_domain: display_domain)
+        unless Onetime::SignupValidation.valid_signup_email?(
+          email,
+          display_domain: display_domain,
+          custom_domain_lookup: request.env[Onetime::CustomDomain::Lookup::ENV_KEY],
+          domain_strategy: request.env['onetime.domain_strategy'],
+        )
           Auth::Logging.log_auth_event(
             :registration_blocked_signup_validation,
             level: :info,
@@ -75,7 +81,9 @@ module Auth::Config::Hooks
           throw_rodauth_error
         end
 
-        # Check SQL (auth database) for an existing account.
+        # Check SQL (auth database) for an existing account. Closed rows
+        # retain audit history but no longer reserve the address. The Redis
+        # check below still refuses reuse if customer cleanup is incomplete.
         #
         # SECURITY (audit 2026-08-02 M-2): a duplicate email must NOT be
         # distinguishable from a fresh signup in the HTTP response — the old
@@ -90,7 +98,8 @@ module Auth::Config::Hooks
         # Rodauth::InternalRequestError exactly as the old error-throw here
         # did, so internal callers can never mistake a duplicate for a fresh
         # signup (see the SECURITY note on the helper).
-        existing_account = db[:accounts].where(email: email).first
+        existing_account = db[:accounts].where(email: email)
+          .exclude(status_id: Auth::AccountStatuses::CLOSED).first
 
         if existing_account
           # The SQL row alone decides the answer; Redis only picks the log

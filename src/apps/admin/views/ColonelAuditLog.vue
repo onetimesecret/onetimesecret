@@ -105,6 +105,7 @@
     'entitlement_preview',
     'banner',
     'queue',
+    'chore',
     'email',
     'ratelimit',
     'ip',

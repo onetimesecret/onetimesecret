@@ -666,11 +666,46 @@ RSpec.describe Auth::Operations::Customers::Diagnose do
         ),
       )
       allow(Onetime::Operations::RateLimit::Inspect).to receive(:new)
-        .with(kind: 'login', subject: email).and_return(inspect_op)
+        .with(kind: 'login', subject: email, scan_deadline: nil).and_return(inspect_op)
 
       result = diagnose(customer: customer)
 
       expect(codes(result)).to include(:rate_limited)
+    end
+
+    it 'passes the per-IP scan deadline through to the limiter inspect' do
+      insert_account
+
+      described_class.new(customer: customer, rate_limit_scan_deadline: 2.5).call
+
+      expect(Onetime::Operations::RateLimit::Inspect).to have_received(:new)
+        .with(kind: 'login', subject: email, scan_deadline: 2.5)
+    end
+
+    it 'says the per-IP check is incomplete when the scan stopped at its deadline' do
+      insert_account
+      inspect_op = instance_double(Onetime::Operations::RateLimit::Inspect)
+      allow(inspect_op).to receive(:call).and_return(
+        Onetime::Operations::RateLimit::Inspect::Result.new(
+          kind: 'login', subject: email, entries: [], scan_complete: false,
+        ),
+      )
+      allow(Onetime::Operations::RateLimit::Inspect).to receive(:new).and_return(inspect_op)
+
+      result = diagnose(customer: customer)
+
+      expect(result.sections[:rate_limits]).to include(available: true, scan_complete: false)
+      expect(finding(result, :rate_limit_scan_incomplete)).to include(severity: :info)
+      expect(codes(result)).not_to include(:rate_limited)
+    end
+
+    it 'adds no incomplete-scan finding when the scan finished' do
+      insert_account
+
+      result = diagnose(customer: customer)
+
+      expect(result.sections[:rate_limits]).to include(scan_complete: true)
+      expect(codes(result)).not_to include(:rate_limit_scan_incomplete)
     end
   end
 

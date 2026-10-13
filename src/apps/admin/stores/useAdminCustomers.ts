@@ -27,9 +27,13 @@ interface CustomersPageResult extends PageResult<ColonelUser> {
   orphanedAccounts: ColonelOrphanedAccount[];
 }
 
-/** Single-customer colonel URL, keyed by the row's public id (extid, 'ur…'). */
-function userUrl(userId: string): string {
-  return `/api/colonel/users/${encodeURIComponent(userId)}`;
+/**
+ * Single-customer colonel URL, keyed by the row's PUBLIC id (`row.extid`,
+ * 'ur…'). Never `row.user_id`: that is the internal objid, and a URL path ends
+ * up in server logs and browser history.
+ */
+function userUrl(extid: string): string {
+  return `/api/colonel/users/${encodeURIComponent(extid)}`;
 }
 
 /**
@@ -49,10 +53,10 @@ function parseMutationAck(data: unknown): void {
  */
 function replaceRow(
   rows: ColonelUser[],
-  userId: string,
+  extid: string,
   patch: Partial<ColonelUser>
 ): { rows: ColonelUser[]; updated: ColonelUser | null } {
-  const index = rows.findIndex((row) => row.user_id === userId);
+  const index = rows.findIndex((row) => row.extid === extid);
   if (index === -1) return { rows, updated: null };
   const updated: ColonelUser = { ...rows[index], ...patch };
   return { rows: [...rows.slice(0, index), updated, ...rows.slice(index + 1)], updated };
@@ -87,13 +91,13 @@ function replaceRow(
  */
 async function requestVerification(
   $api: AxiosInstance,
-  userId: string,
+  extid: string,
   verified: boolean,
   confirm?: string
 ): Promise<void> {
   const verb = verified ? 'verify' : 'unverify';
   const config = verified || !confirm ? undefined : { headers: confirmHeaders(confirm) };
-  const response = await $api.post(`${userUrl(userId)}/${verb}`, {}, config);
+  const response = await $api.post(`${userUrl(extid)}/${verb}`, {}, config);
   parseMutationAck(response.data);
 }
 
@@ -105,12 +109,12 @@ async function requestVerification(
  */
 async function requestPurge(
   $api: AxiosInstance,
-  userId: string,
+  extid: string,
   confirm: string,
   reason?: string
 ): Promise<void> {
   const [reasonConfig] = reasonQueryArgs(reason);
-  const response = await $api.delete(userUrl(userId), {
+  const response = await $api.delete(userUrl(extid), {
     headers: confirmHeaders(confirm),
     ...reasonConfig,
   });
@@ -187,7 +191,7 @@ export const useAdminCustomers = defineStore('adminCustomers', () => {
    * no page reload. The ack is schema-checked as a live tripwire but never fails
    * the action (a 2xx means it happened server-side).
    *
-   * @param userId the customer's public id (extid, 'ur…' — `row.user_id`).
+   * @param extid the customer's public id (`row.extid`, 'ur…').
    * @param verified the target state.
    * @param confirm the account identifier for X-OTS-Confirm; required by the
    *   server on the UNVERIFY arm only (#4326).
@@ -195,12 +199,12 @@ export const useAdminCustomers = defineStore('adminCustomers', () => {
    * @throws the network/HTTP error, for `useAdminMutation` to classify.
    */
   async function setVerification(
-    userId: string,
+    extid: string,
     verified: boolean,
     confirm?: string
   ): Promise<ColonelUser | null> {
-    await requestVerification($api, userId, verified, confirm);
-    const patched = replaceRow(customers.value, userId, { verified });
+    await requestVerification($api, extid, verified, confirm);
+    const patched = replaceRow(customers.value, extid, { verified });
     customers.value = patched.rows;
     return patched.updated;
   }
@@ -213,16 +217,16 @@ export const useAdminCustomers = defineStore('adminCustomers', () => {
    * DELETE, so a failure throws before it and the row stays. Callers still
    * refetch the page afterwards (totals/pagination move server-side).
    *
-   * @param userId the customer's public id (extid, 'ur…').
+   * @param extid the customer's public id (`row.extid`, 'ur…').
    * @param confirm the account identifier (email, extid when it has none) the
    *   server requires in X-OTS-Confirm (#4326).
    * @param reason OPTIONAL operator-supplied why (#4338) — query string, since
    *   this is a DELETE. Omitted entirely when blank.
    * @throws the network/HTTP error, for `useAdminMutation` to classify.
    */
-  async function purge(userId: string, confirm: string, reason?: string): Promise<void> {
-    await requestPurge($api, userId, confirm, reason);
-    customers.value = customers.value.filter((row) => row.user_id !== userId);
+  async function purge(extid: string, confirm: string, reason?: string): Promise<void> {
+    await requestPurge($api, extid, confirm, reason);
+    customers.value = customers.value.filter((row) => row.extid !== extid);
   }
 
   /** Explicit manual reset — setup stores have no built-in $reset. */

@@ -36,8 +36,6 @@ module Onetime
         puts '  bin/ots domains orphaned                   # Domains with no organization'
         puts '  bin/ots domains repair DOMAIN --org-id X   # Fix org relationship issues'
         puts '  bin/ots domains doctor --all               # Check all domains'
-        puts '  bin/ots domains migrate-sso FQDN           # Bulk-migrate SSO users (dry run)'
-        puts '  bin/ots domains migrate-sso FQDN --run     # Bulk-migrate SSO users (execute)'
         puts
         puts 'Run bin/ots domains -h for available subcommands'
       end

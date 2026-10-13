@@ -26,17 +26,41 @@ module Auth::Config::Hooks
     # String#strip is ASCII-only; [[:space:]] covers NBSP and friends.
     SURROUNDING_SPACE = /\A[[:space:]]+|[[:space:]]+\z/
 
-    # Normalize one raw IdP claim into a trimmed String.
-    #
-    # Non-String input yields '' (fail closed) — see the omniauth_email doc for
-    # why a Hashie::Array claim must not be coerced with to_s.
+    # Trim one raw IdP claim. Non-String input is returned unchanged (never
+    # coerced with to_s) so before_omniauth_create_account refuses it as
+    # invalid_email — see the omniauth_email doc for why a Hashie::Array claim
+    # must not become a String.
     #
     # @param value [Object] the raw claim as the IdP supplied it
-    # @return [String] trimmed claim, or '' when unusable
+    # @return [String, Object] trimmed String claim, or value as given
     def self.trimmed_claim(value)
-      return '' unless value.is_a?(String)
+      return value unless value.is_a?(String)
 
       value.gsub(SURROUNDING_SPACE, '')
+    end
+
+    # True when the IdP supplied no usable value for a claim: absent, or a
+    # String that is empty once trimmed. A non-String claim is NOT blank.
+    def self.blank_claim?(value)
+      value.nil? || (value.is_a?(String) && trimmed_claim(value).empty?)
+    end
+
+    # Rodauth builds the account from omniauth_email BEFORE the creation guard
+    # validates it, and rodauth-omniauth persists it without normalize_login.
+    # Canonicalize at the accessor so the domain gates, the account lookup,
+    # accounts.email and the Customer email index all see one value. A
+    # provider's casing in SQL left the account's Customer unreachable by
+    # email (#4726).
+    module EmailNormalization
+      def omniauth_email
+        value = super
+        # Keep nil and non-String claims intact so the guards reject them as
+        # missing or invalid, rather than coercing an array containing an
+        # email into an address.
+        return value unless value.is_a?(String)
+
+        OT::Utils.canonical_email(value)
+      end
     end
 
     # The only initiator of a platform Connect is the Connected Identities
@@ -140,7 +164,10 @@ module Auth::Config::Hooks
     # callback flow across methods and obscure the account_from_omniauth branch
     # order the security model depends on.
     def self.configure(auth)
-      auth.auth_class_eval { prepend Auth::Config::Hooks::OmniAuthConnect::Callback }
+      auth.auth_class_eval do
+        prepend Auth::Config::Hooks::OmniAuth::EmailNormalization
+        prepend Auth::Config::Hooks::OmniAuthConnect::Callback
+      end
 
       # ========================================================================
       # Resolve the SSO email (#3499 / #3478) — one override, every consumer.
@@ -176,8 +203,8 @@ module Auth::Config::Hooks
       # account lookup, account creation, and `omniauth_verify_account?`
       # (features/omniauth.rb:152), which the per-hook approach missed.
       #
-      # Returns the resolved claim with SURROUNDING WHITESPACE TRIMMED, or nil
-      # when the IdP supplied neither field.
+      # Returns the resolved claim with SURROUNDING WHITESPACE TRIMMED, nil
+      # when the IdP supplied neither field, or a non-String claim unchanged.
       #
       # WHY TRIM HERE AND NOT DOWNSTREAM: this accessor is the value Rodauth
       # INSERTS. omniauth_create_account -> omniauth_new_account ->
@@ -196,19 +223,21 @@ module Auth::Config::Hooks
       # stored account[login_column] against this value and would otherwise
       # never match for a padded claim.
       #
-      # ONLY whitespace is removed. Case folding and NFC normalization stay
-      # downstream in account_from_omniauth (accounts.email is citext, so the
-      # row deliberately preserves the IdP's casing), and structural validation
-      # stays in before_omniauth_create_account, so the nil path keeps the
-      # existing #3478 error behaviour unchanged.
+      # ONLY whitespace is removed here. EmailNormalization (prepended above,
+      # so its omniauth_email wraps this one through super) then lowercases
+      # and NFC-normalizes a String result (#4726) and passes nil through.
+      # Structural validation stays in before_omniauth_create_account, so the
+      # nil path keeps the existing #3478 error behaviour unchanged.
       #
       # NON-STRING CLAIMS FAIL CLOSED (no to_s). A multi-valued IdP attribute
       # arrives as a Hashie::Array, and `.to_s` on it yields the *inspect* form
       # '["user@contoso.com"]' — which satisfies both the structural guard below
       # AND the valid_email CHECK, so it would be INSERTED as the account's
       # login: a junk, unreachable account created silently on a 302. Only a
-      # String is an email claim; anything else resolves to nil and takes the
-      # same invalid_email redirect as an absent claim.
+      # String is an email claim; anything else is returned unchanged (and
+      # does not trigger the mail fallback), so the claim.is_a?(String) check
+      # in before_omniauth_create_account refuses it as invalid_email rather
+      # than the missing_email an absent claim gets.
       #
       # TRIM IS UNICODE-AWARE, deliberately not String#strip: strip removes only
       # ASCII whitespace and NUL, so an NBSP-padded claim (" a@b.com") is
@@ -231,12 +260,14 @@ module Auth::Config::Hooks
       auth.auth_class_eval do
         def omniauth_email
           info  = omniauth_info || {}
-          email = Auth::Config::Hooks::OmniAuth.trimmed_claim(info['email'])
-          if email.empty?
+          claim = info['email']
+          if Auth::Config::Hooks::OmniAuth.blank_claim?(claim)
             raw   = (omniauth_extra && omniauth_extra['raw_info']) || {}
-            email = Auth::Config::Hooks::OmniAuth.trimmed_claim(raw['mail'])
+            claim = raw['mail']
           end
-          email.empty? ? nil : email
+          return nil if Auth::Config::Hooks::OmniAuth.blank_claim?(claim)
+
+          Auth::Config::Hooks::OmniAuth.trimmed_claim(claim)
         end
       end
       # rubocop:enable Lint/NestedMethodDefinition
@@ -253,6 +284,11 @@ module Auth::Config::Hooks
 
         session_account = resolve_omniauth_connect_account
         next session_account if session_account
+
+        # A claim case folding would rewrite must not locate an account by its
+        # folded form (a different address). Skip the email branches;
+        # before_omniauth_create_account refuses it as invalid_email.
+        next nil unless OT::Utils.fold_stable_email?(omniauth_email)
 
         # Not authenticated (or logged-in without connect intent): email is the
         # only signal available, so the email-based branches below apply. Locate
@@ -282,16 +318,44 @@ module Auth::Config::Hooks
         # account and persist the (provider, uid) row via its own upsert — the
         # intended auto-link. The account was located by the SAME normalized
         # email used by H-3, so no widening of the lookup surface occurs.
+        #
+        # #4688 (RISK-2026-08-14-M01): the operator's trust declaration covers
+        # the IdP as a boundary, not a callback in which that IdP says it did
+        # NOT verify the address. Consult the same email_verification_hold the
+        # JIT path uses: an explicit email_verified: false or, for GitLab, no
+        # confirmed_at ('idp_unverified'), or a claim we could not read
+        # ('claim_unreadable') skips the auto-link and falls through to the
+        # existing-account branch below, exactly as if trust were off. Absence
+        # of the claim is not a hold, so providers that never emit it keep
+        # linking as before. JIT creation is unaffected: a
+        # new account is still created, and after_omniauth_create_account keeps
+        # its Customer unverified on the same hold.
         if existing &&
            session[:validated_omniauth_domain_id].nil? &&
            Onetime.auth_config.trust_email_for_linking?(provider)
+          link_hold = Auth::Config::Hooks::OmniAuth.email_verification_hold(
+            info: omniauth_info,
+            extra: omniauth_extra,
+            strategy: omniauth_strategy,
+          )
+
+          if link_hold.nil?
+            Auth::Logging.log_auth_event(
+              :omniauth_email_linked_trusted_provider,
+              level: :warn,
+              email: OT::Utils.obscure_email(normalized_email),
+              provider: provider,
+            )
+            next existing
+          end
+
           Auth::Logging.log_auth_event(
-            :omniauth_email_linked_trusted_provider,
+            :omniauth_trusted_link_held,
             level: :warn,
             email: OT::Utils.obscure_email(normalized_email),
             provider: provider,
+            hold: link_hold,
           )
-          next existing
         end
 
         if existing
@@ -769,10 +833,20 @@ module Auth::Config::Hooks
       # Global: Set via ALLOWED_SIGNUP_DOMAIN environment variable (comma-separated)
       #
       auth.before_omniauth_create_account do
-        email = omniauth_email.to_s.strip.downcase
+        claim = omniauth_email
+        email = claim.to_s.strip.downcase
 
-        # Reject unusable emails from IdP (distinct from policy rejection): a
-        # missing/empty claim, or any shape the accounts.valid_email CHECK
+        if email.match?(/\A[[:space:]]*\z/)
+          Auth::Logging.log_auth_event(
+            :omniauth_missing_email,
+            level: :warn,
+            provider: omniauth_provider,
+          )
+          redirect '/signin?auth_error=missing_email'
+        end
+
+        # Reject present but malformed emails, distinct from policy rejection:
+        # any shape the accounts.valid_email CHECK
         # constraint would reject (internal spaces, comma/semicolon in either
         # part, a dotless domain, etc. — see SignupValidation::VALID_EMAIL_PATTERN).
         # Redirect with a stable error code so Login.vue can show a localized
@@ -782,7 +856,11 @@ module Auth::Config::Hooks
         # (rather than letting a claim the CHECK rejects fall through to account
         # creation, which 500s as Sequel::CheckConstraintViolation) keeps the
         # user on a localized error instead of a frozen screen (#3478, #3971).
-        unless Onetime::SignupValidation.structurally_valid_email?(email)
+        # A claim normalize_email's case folding would rewrite (ß -> ss) is
+        # refused here too: it would be judged, matched and indexed under an
+        # address the IdP did not assert (OT::Utils.fold_stable_email?).
+        unless claim.is_a?(String) && Onetime::SignupValidation.structurally_valid_email?(email) &&
+               OT::Utils.fold_stable_email?(email)
           Auth::Logging.log_auth_event(
             :omniauth_invalid_email,
             level: :warn,
@@ -796,7 +874,12 @@ module Auth::Config::Hooks
         display_domain = request.env['onetime.display_domain']
 
         # Use shared validation module for per-domain + global fallback
-        unless Onetime::SignupValidation.valid_signup_email?(email, display_domain: display_domain)
+        unless Onetime::SignupValidation.valid_signup_email?(
+          email,
+          display_domain: display_domain,
+          custom_domain_lookup: request.env[Onetime::CustomDomain::Lookup::ENV_KEY],
+          domain_strategy: request.env['onetime.domain_strategy'],
+        )
           Auth::Logging.log_auth_event(
             :omniauth_domain_rejected,
             level: :warn,
@@ -871,8 +954,9 @@ module Auth::Config::Hooks
         #      deployment opens SSO accounts unverified (or skip_status_checks?
         #      is on) the read is not VERIFIED and the Customer stays
         #      unverified — exactly the pre-fix behaviour.
-        #   3. The IdP did not EXPLICITLY assert email_verified: false, and the
-        #      claim could be read at all (email_verification_hold is nil).
+        #   3. The IdP did not EXPLICITLY assert email_verified: false (for
+        #      GitLab: did report a confirmed_at), and the claim could be read
+        #      at all (email_verification_hold is nil).
         #
         # This only mirrors an auth-store fact onto the Customer record; it
         # grants nothing the accounts row does not already grant. It also
@@ -891,6 +975,7 @@ module Auth::Config::Hooks
         verification_hold = Auth::Config::Hooks::OmniAuth.email_verification_hold(
           info: omniauth_info,
           extra: omniauth_extra,
+          strategy: omniauth_strategy,
         )
         sso_verified      = account_status == Auth::AccountStatuses::VERIFIED && verification_hold.nil?
 
@@ -1061,7 +1146,8 @@ module Auth::Config::Hooks
     # Two distinct reasons, kept apart because they call for different
     # operator follow-up (see Onetime::Customer::VERIFICATION_HOLDS):
     #
-    #   'idp_unverified'   — the IdP EXPLICITLY asserted email_verified: false.
+    #   'idp_unverified'   — the IdP EXPLICITLY asserted email_verified: false,
+    #                        or, for GitLab, reported no confirmed_at.
     #   'claim_unreadable' — a source raised while the claim was being read.
     #                        FAIL CLOSED: that is not "no claim", it is a claim
     #                        we could not inspect, and an explicit false may be
@@ -1076,6 +1162,13 @@ module Auth::Config::Hooks
     # treating it as a positive signal would be us inventing an assertion the
     # IdP never made. So this narrows the verified stamp and can never widen it.
     #
+    # GITLAB is the exception. It has no email_verified claim, but GET
+    # /api/v4/user (the strategy's raw_info) always carries confirmed_at, null
+    # until the account's email is confirmed. For the GitLab strategy that
+    # field replaces the claim, and a null or missing confirmed_at holds. The
+    # strategy is identified by class, `defined?` because omniauth-gitlab is
+    # only required when the GitLab provider registers.
+    #
     # Looks in `info` first, then `extra.raw_info` (OIDC UserInfo / the decoded
     # id_token). Both may be a plain Hash or an OmniAuth::AuthHash, and may be
     # string- or symbol-keyed, so every read goes through fetch_claim. Only the
@@ -1084,9 +1177,15 @@ module Auth::Config::Hooks
     #
     # @param info [Hash, OmniAuth::AuthHash, nil] omniauth_info
     # @param extra [Hash, OmniAuth::AuthHash, nil] omniauth_extra
+    # @param strategy [OmniAuth::Strategy, nil] omniauth_strategy
     # @return [String, nil] one of Onetime::Customer::VERIFICATION_HOLDS, or
     #   nil when nothing withholds the stamp (claim absent, nil, or truthy)
-    def self.email_verification_hold(info:, extra:)
+    def self.email_verification_hold(info:, extra:, strategy: nil)
+      if defined?(::OmniAuth::Strategies::GitLab) && strategy.is_a?(::OmniAuth::Strategies::GitLab)
+        confirmed_at = fetch_claim(fetch_claim(extra, 'raw_info'), 'confirmed_at')
+        return confirmed_at.to_s.strip.empty? ? 'idp_unverified' : nil
+      end
+
       claim = fetch_claim(info, 'email_verified')
       claim = fetch_claim(fetch_claim(extra, 'raw_info'), 'email_verified') if claim.nil?
       return nil if claim.nil?

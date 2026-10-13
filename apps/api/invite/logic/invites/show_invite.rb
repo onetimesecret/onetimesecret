@@ -99,7 +99,7 @@ module InviteAPI::Logic
         result[:record][:effective_restrict_to] = resolution.to_wire
 
         if custom_domain?
-          domain = Onetime::CustomDomain.from_display_domain(display_domain)
+          domain = Onetime::CustomDomain::Lookup.for(restrict_to_env).record!
           auth_logger.debug 'Found custom domain',
             domain: domain&.display_domain
           if domain

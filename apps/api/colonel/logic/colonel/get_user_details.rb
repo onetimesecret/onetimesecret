@@ -78,8 +78,18 @@ module ColonelAPI
                 organization_id: org.objid,
                 extid: org.extid,
                 display_name: org.display_name,
-                is_default: org.is_default,
+                # Only default workspaces set this field; team orgs leave it nil.
+                # It marks the org OWNER's default workspace, whoever this user is.
+                is_default: org.is_default.to_s == 'true',
               }
+            end
+
+            # This user's own default (OrganizationLoader.default_organization),
+            # which is_default alone cannot answer for a member of someone
+            # else's default workspace.
+            customer_default = Onetime::Application::OrganizationLoader.default_organization(user, @org_records)
+            @organizations.each do |entry|
+              entry[:is_customer_default] = entry[:organization_id] == customer_default&.objid
             end
           end
 
@@ -322,11 +332,12 @@ module ColonelAPI
         #
         # `plan_id` comes from the billing org (authoritative — Customer#planid
         # is deprecated and drifts), falling back to the legacy Customer field
-        # only when the customer participates in no org, so the card renders
-        # even when every Stripe path degrades. The organization block is the
-        # customer's billing org (Stripe identifiers live on Organization — see
-        # WithOrganizationBilling): the first org with a stripe_customer_id,
-        # falling back to the default/first org for its local plan fields.
+        # only when the customer owns no live org, so the card renders even
+        # when every Stripe path degrades. `plan_source` says which: the
+        # organization block names the org the customer OWNS and is billed for
+        # (Stripe identifiers live on Organization — see
+        # WithOrganizationBilling); see #billing_organization for why a joined
+        # organization is never shown as this customer's billing.
         def build_billing_details
           enabled = Onetime.billing_config.enabled?
           org     = billing_organization
@@ -334,6 +345,7 @@ module ColonelAPI
           {
             enabled: enabled,
             plan_id: org&.planid || user.planid,
+            plan_source: org ? 'organization' : 'customer',
             organization: org && {
               extid: org.extid,
               display_name: org.display_name,
@@ -345,12 +357,27 @@ module ColonelAPI
           }
         end
 
+        # The organization this customer is billed for, chosen among the live
+        # organizations they OWN (same rule as ListUsers#resolve_plan): the
+        # first with a Stripe customer id, else their owned default workspace
+        # (OrganizationLoader.owned_default_organization), else their first
+        # owned org. Nil when they own none.
+        #
+        # Owned only, at every step. The old scan ran over every membership,
+        # so a member of a paid organization was read out on its Stripe
+        # subscription and invoices — the Stripe-first step found the joined
+        # org's customer id, and the default-flag step found its owner's
+        # default workspace. Neither is this customer's billing.
         def billing_organization
           return nil if @org_records.nil? || @org_records.empty?
 
-          @org_records.find { |org| !org.stripe_customer_id.to_s.empty? } ||
-            @org_records.find(&:is_default) ||
-            @org_records.first
+          loader = Onetime::Application::OrganizationLoader
+          owned  = loader.owned_organizations(user, @org_records)
+          return nil if owned.empty?
+
+          owned.find { |org| !org.stripe_customer_id.to_s.empty? } ||
+            loader.owned_default_organization(user, owned) ||
+            owned.first
         end
 
         # Live Stripe state: current subscription + latest invoice + a deep

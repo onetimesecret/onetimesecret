@@ -6,7 +6,7 @@ require_relative '../../../application'
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 require_relative File.join(Onetime::HOME, 'spec', 'support', 'model_test_helper.rb')
 
-RSpec.xdescribe V1::Logic::Secrets::BaseSecretAction do
+RSpec.describe V1::Logic::Secrets::BaseSecretAction do
   using Familia::Refinements::TimeLiterals
 
   # Create test implementation class
@@ -54,23 +54,27 @@ RSpec.xdescribe V1::Logic::Secrets::BaseSecretAction do
     )
   end
 
+  # V1 takes its default from site.secret_options.default_ttl (12 hours in
+  # spec/config.test.yaml) and clamps to its own bounds, V1_MIN_TTL and
+  # V1_MAX_TTL, rather than the config's ttl_options (#2621).
   describe '#process_ttl' do
     it 'sets default TTL when none provided' do
       subject.instance_variable_set(:@payload, {})
       subject.send(:process_ttl)
-      expect(subject.default_expiration).to eq(7.days) # was 12.hours
+      expect(subject.default_expiration).to eq(OT.conf.dig('site', 'secret_options', 'default_ttl'))
+      expect(subject.default_expiration).to eq(12.hours)
     end
 
     it 'enforces minimum TTL' do
-      subject.instance_variable_set(:@payload, { ttl: '5' }) # 5 seconds
+      subject.instance_variable_set(:@payload, { 'ttl' => '5' }) # 5 seconds
       subject.send(:process_ttl)
-      expect(subject.default_expiration).to eq(30.minutes) # Set in config.test.yaml
+      expect(subject.default_expiration).to eq(V1::Logic::Secrets::BaseSecretAction::V1_MIN_TTL)
     end
 
-    it 'sets default TTL when provided as a string' do
-      subject.instance_variable_set(:@payload, { 'ttl' => '30' }) # 30 seconds
+    it 'converts a string TTL to an integer before clamping it' do
+      subject.instance_variable_set(:@payload, { 'ttl' => '3600' }) # 1 hour
       subject.send(:process_ttl)
-      expect(subject.default_expiration).to eq(7.days) # 7.days
+      expect(subject.default_expiration).to eq(3600)
     end
   end
 
@@ -108,9 +112,9 @@ RSpec.xdescribe V1::Logic::Secrets::BaseSecretAction do
         .with('test@example.com')
         .and_raise(StandardError.new('Validation failed'))
 
-      # Ensure we can capture the logging
-      expect(OT).to receive(:le).with('Email validation error: Validation failed')
-      expect(OT).to receive(:le).with(kind_of(Array)) # for backtrace
+      # The rescue logs through the semantic logger, exception attached.
+      expect(subject.send(:logger)).to receive(:error)
+        .with('Email validation error', exception: an_instance_of(StandardError))
 
       expect(subject.valid_email?('test@example.com')).to be false
     end

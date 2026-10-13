@@ -301,6 +301,16 @@ module Billing
         # Load default organization for customer
         org = find_or_create_default_organization(cust)
 
+        # No billing target: the caller owns no default workspace, named no
+        # explicit default, and already has organizations (so no self-heal
+        # create). Nothing to open a portal for; never pick a joined one.
+        unless org
+          billing_logger.warn 'Customer portal denied: caller has no owned billing organization',
+            { customer_extid: cust.extid }
+          res.redirect '/account?billing_error=not_authorized'
+          return
+        end
+
         # AUTHORIZATION: the Stripe Customer Portal is the organization's
         # billing root — it exposes the full invoice history and payment
         # instruments, and it can change the payment method and CANCEL the
@@ -449,39 +459,43 @@ module Billing
         'EU'
       end
 
-      # Find the customer's default organization WITHOUT creating one.
+      # The organization a checkout or portal visit is billed against,
+      # WITHOUT creating one: OrganizationLoader.default_organization.
       #
-      # Mirrors the customer-reuse lookup in checkout_redirect: prefer the
-      # explicit default_org_id, then any (non-archived) org flagged is_default.
-      # Returns nil when the customer has no default org, so callers (e.g. the
+      # 1. The explicit billing target — the live organization named by
+      #    customer.default_org_id, whoever owns it. The ownership gates in
+      #    checkout_guard_redirect and customer_portal_redirect then decide:
+      #    a target the caller does not own is DENIED, not swapped for a
+      #    workspace they do own. Silently billing a different organization
+      #    than the one the caller pointed at is the failure this avoids.
+      # 2. Else the legacy implicit selection: the is_default workspace the
+      #    caller OWNS. Another member's default workspace carries the flag
+      #    too and may be listed first; it is never selected here.
+      #
+      # Returns nil when neither exists, so callers (e.g. the
       # duplicate-subscription guard) can distinguish "no org" from "has org".
       #
       # @param customer [Onetime::Customer, nil] Customer instance
       # @return [Onetime::Organization, nil]
       def default_organization_for(customer)
-        return nil if customer.nil? || customer.anonymous?
-
-        orgs        = customer.organization_instances.to_a.reject(&:archived?)
-        default_org = if customer.default_org_id.to_s.length.positive?
-          orgs.find { |o| o.objid == customer.default_org_id }
-        end
-        default_org || orgs.find { |o| o.is_default }
+        Onetime::Application::OrganizationLoader.default_organization(customer)
       end
 
       # Find or create default organization for customer
       #
+      # The self-healing create is for a customer with no live organization at
+      # all. A customer who has organizations but no billing target of their
+      # own (see #default_organization_for) gets nil: minting them a workspace
+      # here would hand a portal to a member the product deliberately gave no
+      # personal workspace (invite signups skip EnsureDefaultWorkspace).
+      #
       # @param customer [Onetime::Customer] Customer instance
-      # @return [Onetime::Organization] Default organization
+      # @return [Onetime::Organization, nil] Default organization
       def find_or_create_default_organization(customer)
-        orgs = customer.organization_instances.to_a.reject(&:archived?)
-
-        if customer.default_org_id.to_s.length.positive?
-          explicit = orgs.find { |o| o.objid == customer.default_org_id }
-          return explicit if explicit
-        end
-
-        default_org = orgs.find { |org| org.is_default }
+        default_org = default_organization_for(customer)
         return default_org if default_org
+
+        return nil if customer.organization_instances.to_a.any? { |o| !o.archived? }
 
         # Create default organization (self-healing fallback)
         # See: apps/web/auth/operations/ensure_default_workspace.rb

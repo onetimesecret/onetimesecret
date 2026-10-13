@@ -22,7 +22,7 @@ RSpec.describe 'Auth::Config::Features::EmailAuth' do
         features: [:base, :login, :logout, :email_auth],
       ) do
         # Configuration values from email_auth.rb
-        email_auth_deadline_interval(15 * 60)        # 15 minutes
+        email_auth_deadline_interval({ minutes: 15 })
         email_auth_skip_resend_email_within 30       # 30 seconds
         email_auth_route 'email-login'
         email_auth_request_route 'email-login-request'
@@ -79,8 +79,8 @@ RSpec.describe 'Auth::Config::Features::EmailAuth' do
         expect(rodauth_instance.email_auth_request_route).to eq('email-login-request')
       end
 
-      it 'sets email_auth_deadline_interval to 15 minutes (900 seconds)' do
-        expect(rodauth_instance.email_auth_deadline_interval).to eq(900)
+      it 'sets email_auth_deadline_interval to 15 minutes' do
+        expect(rodauth_instance.email_auth_deadline_interval).to eq({ minutes: 15 })
       end
 
       it 'sets email_auth_session_key to email_auth_key' do

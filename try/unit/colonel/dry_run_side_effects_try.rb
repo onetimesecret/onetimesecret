@@ -146,6 +146,16 @@ preview(
 )
 #=> [[], false, 0, 0]
 
+## RunChore previews a housekeeping chore with no confirmation and runs nothing:
+## housekeeping chores have no dry-run mode, so the preview only counts the
+## records a run would scan (#4343) — one observation, no keys, @org untouched
+preview(
+  ColonelAPI::Logic::Colonel::RunChore,
+  { 'chore' => 'housekeeping.organization.standardize_planid', 'dry_run' => 'true', 'limit' => '10' },
+  @org.dbkey,
+)
+#=> [[], false, 0, 1]
+
 ## An APPLY, by contrast, IS gated — the exemption is the preview, not the verb
 begin
   logic = ColonelAPI::Logic::Colonel::RemoveCustomDomain.new(

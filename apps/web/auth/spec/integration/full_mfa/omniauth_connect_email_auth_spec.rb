@@ -173,7 +173,9 @@ RSpec.describe 'Tenant Connect after a magic-link login (#3849)',
       # --- the same session, re-authenticated with the local credential ----
       csrf_json_post('/auth/reauth', method: 'password', password: AuthTestConstants::TEST_PASSWORD)
       expect(last_response.status).to eq(200), "reauth: #{last_response.status} #{last_response.body}"
-      expect(current_sid).to eq(sid)
+      # The same session, under a new id: the proof is recorded there (#4466).
+      expect(current_sid).not_to eq(sid)
+      sid = current_sid
       expect(Onetime::SessionSidecar.read(sid, Onetime::RecentReauth::KEY)).to include(
         'account_id' => account_id, 'surface' => surface, 'methods' => %w[password],
       )

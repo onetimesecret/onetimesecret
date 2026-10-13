@@ -48,9 +48,21 @@ describe('AdminLayout (console shell)', () => {
     mount(AdminLayout, {
       global: {
         plugins: [i18n],
+        renderStubDefaultSlot: true,
         stubs: { 'router-link': { template: '<a><slot /></a>' } },
       },
     });
+
+  it('renders the Data Tools band with Secret Receipts and Schemas', () => {
+    wrapper = mountLayout();
+    const nav = wrapper.find('aside nav');
+    const heading = nav.findAll('p').find((p) => p.text() === 'web.colonel.nav.groups.data');
+    expect(heading).toBeDefined();
+    const band = heading!.element.nextElementSibling;
+    expect(band?.textContent).toContain('web.admin.secrets.title');
+    expect(band?.textContent).toContain('web.admin.schemas.title');
+    expect(band?.textContent).not.toContain('web.colonel.titles.system');
+  });
 
   it('pins the running app version in the rail foot, linked to its release notes', () => {
     const bootstrap = useBootstrapStore();

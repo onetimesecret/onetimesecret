@@ -3,3 +3,7 @@ email_address: "user@example.com"
 message: "This is sample feedback for preview purposes."
 display_domain: "example.com"
 domain_strategy: "default"
+user_id: "ursample0001"
+customer_extid: "ursample0001"
+organization_extids:
+  - "onsample0001"

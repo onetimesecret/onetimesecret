@@ -130,7 +130,7 @@ generate_stripe_signature(payload: json_body, secret: 'whsec_xxx')
 |-----|--------|
 | `billing: true` | Enables billing, skips Redis flush |
 | `billing_cli: true` | For CLI command tests, enables billing |
-| `stripe_sandbox_api: true` | For tests hitting real Stripe sandbox |
+| `stripe_sandbox_api: true` | For tests hitting real Stripe sandbox. Replays committed cassettes; in CI a missing cassette fails the example |
 | `type: :billing` | Full billing test setup + VCR |
 | `type: :integration` | Standard integration setup + VCR (in billing specs) |
 

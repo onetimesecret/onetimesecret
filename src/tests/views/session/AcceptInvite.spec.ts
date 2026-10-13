@@ -2,8 +2,10 @@
 
 import InviteSignUpForm from '@/apps/session/components/InviteSignUpForm.vue';
 import AcceptInvite from '@/apps/session/views/AcceptInvite.vue';
+import { organizationSchema } from '@/schemas/shapes/organizations/organization';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import {
   anonymousBootstrap,
   applyBootstrap,
@@ -44,6 +46,14 @@ vi.mock('@/apps/session/components/SsoButton.vue', () => ({
     template: '<button type="button" data-testid="sso-button"></button>',
     props: ['routeName', 'displayName', 'redirect'],
   },
+}));
+
+// The full page load the view falls back to when the tab cannot be brought
+// into line with the server's organization selection.
+const hardNavigateMock = vi.fn();
+vi.mock('@/utils/navigation', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/utils/navigation')>()),
+  hardNavigate: (...args: unknown[]) => hardNavigateMock(...args),
 }));
 
 const i18n = createTestI18n();
@@ -612,12 +622,45 @@ describe('AcceptInvite', () => {
       });
     });
 
+    /** An organizations-list wire record */
+    const orgRecord = (objid: string, extid: string, over: Record<string, unknown> = {}) => ({
+      objid,
+      extid,
+      display_name: objid,
+      description: null,
+      owner_id: 'cust-owner',
+      contact_email: null,
+      planid: 'free_v1',
+      is_default: false,
+      created: 1700000000,
+      updated: 1700000000,
+      ...over,
+    });
+    // The invitee's own default workspace, and the org they are joining
+    const ownDefault = orgRecord('org-own', 'on%ownorg', {
+      is_default: true,
+      is_current_user_default: true,
+    });
+    const joined = orgRecord('org-acme', mockInvitation.organization_id, { is_default: true });
+    const acceptBody = {
+      user_id: 'ur-invitee',
+      organization: {
+        id: mockInvitation.organization_id,
+        objid: 'org-acme',
+        display_name: 'Acme Corp',
+      },
+      role: 'member',
+      joined_at: 1700000000.5,
+      organization_selected: true,
+    };
+
     it('accepts invitation successfully', async () => {
       const axiosMock = getGlobalAxiosMock();
       axiosMock.onGet('/api/invite/test-token-123').reply(200, {
         record: mockInvitation,
       });
-      axiosMock.onPost('/api/invite/test-token-123/accept').reply(200, {});
+      axiosMock.onPost('/api/invite/test-token-123/accept').reply(200, acceptBody);
+      axiosMock.onGet('/api/organizations').reply(200, { records: [ownDefault, joined], count: 2 });
 
       const wrapper = await mountComponent();
       const acceptButton = wrapper
@@ -644,7 +687,8 @@ describe('AcceptInvite', () => {
     const acceptAndAdvance = async (invitation: Record<string, unknown>) => {
       const axiosMock = getGlobalAxiosMock();
       axiosMock.onGet('/api/invite/test-token-123').reply(200, { record: invitation });
-      axiosMock.onPost('/api/invite/test-token-123/accept').reply(200, {});
+      axiosMock.onPost('/api/invite/test-token-123/accept').reply(200, acceptBody);
+      axiosMock.onGet('/api/organizations').reply(200, { records: [ownDefault, joined], count: 2 });
 
       const wrapper = await mountComponent();
       const push = vi.spyOn(router, 'push');
@@ -669,6 +713,71 @@ describe('AcceptInvite', () => {
       const push = await acceptAndAdvance({ ...mockInvitation, role: 'admin' });
       expect(push).toHaveBeenCalledTimes(1);
       expect(push).toHaveBeenCalledWith(`/org/${mockInvitation.organization_id}`);
+    });
+
+    /**
+     * Accepting selects the joined org in the server session. The tab has to
+     * agree before it navigates: otherwise it falls back to the user's own
+     * default and the request interceptor sends that as O-Organization-ID,
+     * which the server ranks above the session.
+     */
+    describe('the joined organization', () => {
+      const acceptWith = async (body: unknown, listStatus = 200) => {
+        const axiosMock = getGlobalAxiosMock();
+        axiosMock.onGet('/api/invite/test-token-123').reply(200, { record: mockInvitation });
+        axiosMock.onPost('/api/invite/test-token-123/accept').reply(200, body);
+        axiosMock
+          .onGet('/api/organizations')
+          .reply(listStatus, { records: [ownDefault, joined], count: 2 });
+
+        const wrapper = await mountComponent();
+        const push = vi.spyOn(router, 'push');
+        vi.useFakeTimers({ toFake: ['setTimeout'] });
+        await wrapper.find('[data-testid="accept-invitation-btn"]').trigger('click');
+        await flushPromises();
+        vi.advanceTimersByTime(2000);
+        return { axiosMock, push };
+      };
+
+      it('becomes current in this tab before the redirect, without a selection write', async () => {
+        // Seeded from the page's bootstrap: the user's own default
+        const store = useOrganizationStore();
+        store.setCurrentOrganization(organizationSchema.parse(ownDefault));
+
+        const { axiosMock, push } = await acceptWith(acceptBody);
+
+        expect(store.currentOrganization?.objid).toBe('org-acme');
+        expect(push).toHaveBeenCalledWith('/dashboard');
+        const selectionWrites = axiosMock.history.post.filter(
+          (r) => r.url === '/api/account/update-organization-context'
+        );
+        expect(selectionWrites).toHaveLength(0);
+      });
+
+      // In the cases below the tab cannot match the server's selection. A
+      // client-side push would let the header fall back to the user's own
+      // default and override the session, so the next page loads in full.
+      it('loads the next page in full when the server did not select the org', async () => {
+        hardNavigateMock.mockClear();
+
+        const { push } = await acceptWith({ ...acceptBody, organization_selected: false });
+
+        expect(useOrganizationStore().currentOrganization).toBeNull();
+        expect(push).not.toHaveBeenCalled();
+        expect(hardNavigateMock).toHaveBeenCalledWith('/dashboard', '/dashboard');
+      });
+
+      it('loads the next page in full when the list fails to load', async () => {
+        hardNavigateMock.mockClear();
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+        const { push } = await acceptWith(acceptBody, 500);
+
+        expect(warn).toHaveBeenCalled();
+        expect(useOrganizationStore().currentOrganization).toBeNull();
+        expect(push).not.toHaveBeenCalled();
+        expect(hardNavigateMock).toHaveBeenCalledWith('/dashboard', '/dashboard');
+      });
     });
 
     it('shows error when accept fails', async () => {

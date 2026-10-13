@@ -57,13 +57,12 @@ if %w[all record].include?(ENV['VCR_MODE'])
   end
 end
 
-# Skip billing specs that require VCR in CI if cassettes may be invalid
+# Whether a real Stripe test key is present, which recording needs.
 # Re-record cassettes locally with: STRIPE_API_KEY=sk_test_xxx VCR_MODE=all bundle exec rspec
 #
 # Note: billing_spec_helper.rb sets STRIPE_API_KEY='sk_test_mock' as a fallback,
 # so we need to check for the mock value specifically, not just presence.
 REAL_STRIPE_KEY_SET = ENV['STRIPE_API_KEY'] && !ENV['STRIPE_API_KEY'].start_with?('sk_test_mock')
-BILLING_VCR_SKIP_IN_CI = ENV['CI'] && !REAL_STRIPE_KEY_SET
 
 VCR.configure do |config|
   # Store cassettes in spec/fixtures/vcr_cassettes/

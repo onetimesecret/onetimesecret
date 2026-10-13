@@ -413,19 +413,21 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
   end
 
   # ==========================================================================
-  # Self-heal: repoint default_org and archive personal workspace (#3336)
+  # Self-heal: repoint default_org to the domain org (#3336, #4717 PR 2)
   # ==========================================================================
   #
-  # When a legacy user (who has a personal default workspace) signs in via
+  # When a legacy customer with a personal default workspace signs in via
   # domain SSO for the first time, JoinDomainOrganization should:
   #   1. Add them to the domain org (existing behavior)
   #   2. Repoint customer.default_org_id to the domain org
-  #   3. Soft-archive the personal workspace
   #
-  # This ensures the customer operates in the domain context immediately,
-  # not in their stale personal workspace.
+  # And nothing else. Login never archives (#4717 PR 2): the personal
+  # workspace stays live, and routing does not need it gone — the loader
+  # takes the domain org on the tenant host and follows the explicit pointer
+  # on the canonical host, so the live workspace never shadows the domain org.
+  # Retiring a workspace is an operator decision (Onetime::Operations::Org).
   #
-  describe 'self-heal: repoint default_org and archive personal workspace (#3336)', :shared_db_state do
+  describe 'self-heal: repoint default_org to the domain org, never archive (#3336, #4717)', :shared_db_state do
     # Legacy customer who already has a personal default workspace
     let!(:legacy_customer) do
       customer = Onetime::Customer.new(email: "legacy-#{test_run_id}@tenant.example.com")
@@ -446,7 +448,7 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
       legacy_customer&.destroy! rescue nil
     end
 
-    it 'repoints default_org_id and archives personal workspace on first domain join' do
+    it 'repoints default_org_id to the domain org on first domain join and leaves the workspace live' do
       # Precondition: customer has a personal workspace with is_default flag
       expect(personal_workspace.is_default).to be_truthy,
         'Personal workspace should have is_default flag'
@@ -467,25 +469,25 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
 
       expect(result[:joined]).to be(true), "Expected join to succeed, got: #{result.inspect}"
 
-      # Adoption should have occurred
+      # Adoption is a pointer-only repoint.
       expect(result[:adoption]).not_to be_nil, 'Expected adoption result'
-      expect(result[:adoption][:adopted]).to be(true)
-      expect(result[:adoption][:archived_org_id]).to eq(personal_workspace.objid)
+      expect(result[:adoption]).to include(adopted: true, previous_default_org_id: personal_workspace.objid)
+      expect(result[:adoption]).not_to have_key(:archived_org_id)
 
       # Reload customer to verify default_org_id was repointed
       reloaded_customer = Onetime::Customer.load(legacy_customer.objid)
       expect(reloaded_customer.default_org_id).to eq(tenant_organization.objid),
         'default_org_id should now point to the domain org'
 
-      # Personal workspace should be archived
+      # The personal workspace stays live (#4717 PR 2: login never archives).
       reloaded_workspace = Onetime::Organization.load(personal_workspace.objid)
-      expect(reloaded_workspace.archived?).to be(true),
-        'Personal workspace should be soft-archived'
-      expect(reloaded_workspace.archived_at.to_s).not_to be_empty,
-        'archived_at should be set'
+      expect(reloaded_workspace.archived?).to be(false),
+        'login must not archive the personal workspace'
+      expect(reloaded_workspace.archived_at.to_s).to be_empty
+      expect(reloaded_workspace.archived_comment.to_s).to be_empty
     end
 
-    it 'adopts domain org even when default_org_id is not explicitly set' do
+    it 'adopts the domain org even when default_org_id is not explicitly set, leaving the workspace live' do
       # Customer has a personal workspace but default_org_id is not set.
       # OrganizationLoader would fall through to step 4 (is_default flag).
       expect(legacy_customer.default_org_id.to_s).to be_empty,
@@ -499,15 +501,16 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
 
       expect(result[:joined]).to be(true)
       expect(result[:adoption]).not_to be_nil, 'Expected adoption even without explicit default_org_id'
-      expect(result[:adoption][:adopted]).to be(true)
+      expect(result[:adoption]).to include(adopted: true, previous_default_org_id: personal_workspace.objid)
+      expect(result[:adoption]).not_to have_key(:archived_org_id)
 
       # default_org_id should now be set to domain org
       reloaded_customer = Onetime::Customer.load(legacy_customer.objid)
       expect(reloaded_customer.default_org_id).to eq(tenant_organization.objid)
 
-      # Personal workspace archived
-      reloaded_workspace = Onetime::Organization.load(personal_workspace.objid)
-      expect(reloaded_workspace.archived?).to be(true)
+      # Personal workspace stays live
+      expect(Onetime::Organization.load(personal_workspace.objid).archived?).to be(false),
+        'login must not archive the personal workspace'
     end
 
     it 'does not adopt when customer does not own the personal workspace' do
@@ -552,8 +555,11 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
       expect(first_result[:joined]).to be(true)
       expect(first_result[:adoption]&.dig(:adopted)).to be(true)
 
-      # Second join: already_member, adoption retried but no-op because
-      # personal workspace is already archived (guard in resolve_personal_default_org)
+      # Second join: already_member, adoption retried but nil because the
+      # pointer now names the tenant org, which is not an is_default
+      # workspace, so resolve_personal_default_org finds no candidate. (The
+      # #4717 same-org guard is not reached here; it covers the case where the
+      # domain org IS the owner's default workspace.)
       second_result = Auth::Operations::JoinDomainOrganization.new(
         customer: legacy_customer,
         domain_id: tenant_custom_domain.identifier,
@@ -561,45 +567,42 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
       expect(second_result[:joined]).to be(false)
       expect(second_result[:reason]).to eq('already_member')
       expect(second_result[:adoption]).to be_nil,
-        'Adoption should be nil when personal workspace is already archived'
+        'Adoption should be nil when the pointer already names the domain org'
+      expect(Onetime::Organization.load(personal_workspace.objid).archived?).to be(false),
+        'the personal workspace stays live across both logins'
     end
 
-    it 'retries adoption on already_member when previous adoption failed' do
-      # First join without adoption setup (no personal workspace as default)
-      legacy_customer.default_org_id = nil
+    # The already_member retry (decision D1, #4717): a member whose pointer
+    # has drifted back to their own default workspace is repointed on the next
+    # login. Pointer only — the workspace is left live.
+    it 'retries the repoint on already_member when the pointer names the personal workspace again' do
+      legacy_customer.default_org_id = personal_workspace.objid
       legacy_customer.save
-
-      # Temporarily un-default the personal workspace so first join skips adoption
-      personal_workspace.is_default = false
-      personal_workspace.save
 
       first_result = Auth::Operations::JoinDomainOrganization.new(
         customer: legacy_customer,
         domain_id: tenant_custom_domain.identifier,
       ).call
       expect(first_result[:joined]).to be(true)
-      expect(first_result[:adoption]).to be_nil
+      expect(first_result[:adoption]).to include(adopted: true)
+      expect(Onetime::Customer.load(legacy_customer.objid).default_org_id).to eq(tenant_organization.objid)
 
-      # Now simulate partial failure recovery: restore personal workspace default
-      # and point customer back to it (as if adoption never ran)
-      personal_workspace.is_default = true
-      personal_workspace.save
+      # The pointer drifts back (support, the account page, a stale client).
       legacy_customer.default_org_id = personal_workspace.objid
       legacy_customer.save
 
-      # Second join: already_member, but adoption should now succeed
       second_result = Auth::Operations::JoinDomainOrganization.new(
         customer: legacy_customer,
         domain_id: tenant_custom_domain.identifier,
       ).call
       expect(second_result[:joined]).to be(false)
       expect(second_result[:reason]).to eq('already_member')
-      expect(second_result[:adoption]).not_to be_nil,
-        'Adoption should retry on already_member when default_org still points to personal workspace'
-      expect(second_result[:adoption][:adopted]).to be(true)
+      expect(second_result[:adoption]).to include(adopted: true, previous_default_org_id: personal_workspace.objid)
+      expect(second_result[:adoption]).not_to have_key(:archived_org_id)
 
-      reloaded_customer = Onetime::Customer.load(legacy_customer.objid)
-      expect(reloaded_customer.default_org_id).to eq(tenant_organization.objid)
+      expect(Onetime::Customer.load(legacy_customer.objid).default_org_id).to eq(tenant_organization.objid)
+      expect(Onetime::Organization.load(personal_workspace.objid).archived?).to be(false),
+        'the retry repoints only; the workspace stays live'
     end
 
     it 'does not adopt when default_org_id points to a non-default org' do
@@ -631,30 +634,220 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
       second_org.destroy! rescue nil
     end
 
-    it 'does not re-archive an already archived personal workspace' do
-      # Archive first, then try to join
-      personal_workspace.archive!('test_pre_archived')
-      # Capture the persisted value (read back from Redis) rather than the
-      # higher-precision in-memory float — archived_at is an epoch float that
-      # loses trailing precision through string serialization, so comparing the
-      # in-memory value against a reloaded one yields a spurious mismatch.
-      original_archived_at = Onetime::Organization.load(personal_workspace.objid).archived_at
+    # ------------------------------------------------------------------------
+    # The routing claim that makes archival redundant (#4717 PR 2, item 7).
+    # ------------------------------------------------------------------------
+    #
+    # OrganizationLoader.load_organization_context(customer, session, env) is
+    # the auth-phase entry point (determine_organization is private behind
+    # it). It reads the request's custom domains from env: the raw Host
+    # header's record (step 2, domain-based selection) and the record
+    # DomainStrategy published for the display domain. A canonical-host
+    # request has no custom domain, so steps 3-4 follow customer.default_org_id.
+    # Env is built the way spec/unit/organization_loader_cache_scope_spec.rb
+    # builds it; no O-Organization-ID header and an empty session, so the
+    # header override and the explicit selection (step 1) stay out of the way.
+    describe 'routing after adoption' do
+      let(:tenant_env) do
+        {
+          'HTTP_HOST'                 => tenant_domain,
+          'onetime.display_domain'    => tenant_domain,
+          'onetime.domain_strategy'   => :custom,
+          'onetime.custom_domain'     => tenant_custom_domain,
+          Onetime::CustomDomain::Lookup::ENV_KEY =>
+            Onetime::CustomDomain::Lookup.found(tenant_domain, tenant_custom_domain),
+        }
+      end
 
-      legacy_customer.default_org_id = personal_workspace.objid
-      legacy_customer.save
+      let(:canonical_env) do
+        {
+          'HTTP_HOST'               => canonical_host,
+          'onetime.display_domain'  => canonical_host,
+          'onetime.domain_strategy' => :canonical,
+        }
+      end
 
-      result = Auth::Operations::JoinDomainOrganization.new(
-        customer: legacy_customer,
+      before do
+        legacy_customer.default_org_id = personal_workspace.objid
+        legacy_customer.save
+
+        result = Auth::Operations::JoinDomainOrganization.new(
+          customer: legacy_customer,
+          domain_id: tenant_custom_domain.identifier,
+        ).call
+        expect(result[:joined]).to be(true)
+        expect(result[:adoption]).to include(adopted: true)
+      end
+
+      it 'the live personal workspace does not shadow the domain org on either host' do
+        expect(Onetime::Organization.load(personal_workspace.objid).archived?).to be(false),
+          'precondition for the claim: the personal workspace is live after adoption'
+        customer = Onetime::Customer.load(legacy_customer.objid)
+        expect(customer.default_org_id).to eq(tenant_organization.objid)
+
+        on_tenant = Onetime::Application::OrganizationLoader.load_organization_context(customer, {}, tenant_env)
+        expect(on_tenant[:organization]&.objid).to eq(tenant_organization.objid),
+          "tenant host must route to the domain org, got #{on_tenant.inspect}"
+        expect(on_tenant[:domain_scope_refused]).to be_nil
+
+        on_canonical = Onetime::Application::OrganizationLoader.load_organization_context(customer, {}, canonical_env)
+        expect(on_canonical[:organization]&.objid).to eq(tenant_organization.objid),
+          "canonical host must follow the explicit pointer to the domain org, got #{on_canonical.inspect}"
+        expect(on_canonical[:scope_domains]).to eq([])
+      end
+    end
+
+    # ------------------------------------------------------------------------
+    # The UX consequence, pinned deliberately (#4717 PR 2, item 8): the
+    # customer's organization list shows BOTH the domain org and their live
+    # personal workspace. ListOrganizations reads the membership snapshot and
+    # drops only archived? organizations.
+    # ------------------------------------------------------------------------
+    describe 'organization listing after adoption' do
+      before(:all) { require 'organizations/logic' }
+
+      let(:strategy_result) do
+        double(
+          'StrategyResult',
+          session: { 'csrf' => 'spec' },
+          user: Onetime::Customer.load(legacy_customer.objid),
+          authenticated?: true,
+          auth_method: :session,
+          metadata: {},
+        )
+      end
+
+      it 'lists both the domain org and the live personal workspace' do
+        legacy_customer.default_org_id = personal_workspace.objid
+        legacy_customer.save
+        result = Auth::Operations::JoinDomainOrganization.new(
+          customer: legacy_customer,
+          domain_id: tenant_custom_domain.identifier,
+        ).call
+        expect(result[:joined]).to be(true)
+
+        logic = OrganizationAPI::Logic::Organizations::ListOrganizations.new(strategy_result, {})
+        logic.raise_concerns
+        logic.process
+
+        expect(logic.organizations.map(&:objid))
+          .to contain_exactly(tenant_organization.objid, personal_workspace.objid)
+        expect(logic.success_data[:count]).to eq(2)
+      end
+    end
+  end
+
+  # ==========================================================================
+  # #4717: the owner's own default organization must survive their login
+  # ==========================================================================
+  #
+  # The tenant org here IS the owner's default workspace (is_default: true):
+  # the auto-created workspace that was later given a custom domain and SSO.
+  # On the owner's tenant SSO login, JoinDomainOrganization takes the
+  # already_member path and retries adoption. Both resolution paths hand the
+  # self-heal the domain org itself (the explicit pointer names it; the
+  # owned-default lookup selects it), and nothing compares candidate to
+  # destination, so the owner's live, billed tenant org was soft-archived on
+  # their login, and again on the first login after any restore (the
+  # self-heal skips an already-archived org). Archival is load-bearing for
+  # routing: every loader and
+  # resolver rejects archived?, so the owner lands on an orphaned account.
+  #
+  describe 'owner signs into their own default organization (#4717)', :shared_db_state do
+    let(:tenant_planid) { 'team_plus_v1' }
+    let(:tenant_stripe_customer_id) { "cus_#{test_run_id}" }
+
+    before do
+      tenant_organization.planid             = tenant_planid
+      tenant_organization.stripe_customer_id = tenant_stripe_customer_id
+      tenant_organization.save
+      tenant_organization.is_default! true
+
+      reloaded = Onetime::Organization.load(tenant_organization.objid)
+      expect(reloaded.is_default).to be_truthy, 'precondition: the tenant org is the owner default workspace'
+      expect(reloaded.owner?(tenant_org_owner)).to be(true), 'precondition: the signing-in customer owns the tenant org'
+      expect(reloaded.archived?).to be(false), 'precondition: the tenant org starts live'
+    end
+
+    after do
+      @personal_workspace&.destroy! rescue nil
+    end
+
+    def join_as_owner
+      Auth::Operations::JoinDomainOrganization.new(
+        customer: tenant_org_owner,
         domain_id: tenant_custom_domain.identifier,
       ).call
+    end
 
-      expect(result[:joined]).to be(true)
-      expect(result[:adoption]).to be_nil,
-        'Should not adopt an already-archived personal workspace'
+    # Everything the owner's login must leave exactly as it found it.
+    def expect_tenant_org_untouched(default_org_id:)
+      reloaded = Onetime::Organization.load(tenant_organization.objid)
+      expect(reloaded.archived?).to be(false), 'the owner\'s own default organization must not be archived by their login'
+      expect(reloaded.archived_at.to_s).to be_empty
+      expect(reloaded.archived_comment.to_s).to be_empty
+      expect(reloaded.planid).to eq(tenant_planid)
+      expect(reloaded.stripe_customer_id).to eq(tenant_stripe_customer_id)
 
-      # archived_at should not have been updated (no re-archive)
-      reloaded_workspace = Onetime::Organization.load(personal_workspace.objid)
-      expect(reloaded_workspace.archived_at).to eq(original_archived_at)
+      membership = Onetime::OrganizationMembership.find_by_org_customer(tenant_organization.objid, tenant_org_owner.objid)
+      expect(membership).not_to be_nil
+      expect(membership.role).to eq('owner')
+      expect(membership.active?).to be(true)
+
+      domain = Onetime::CustomDomain.find_by_identifier(tenant_custom_domain.identifier)
+      expect(domain.org_id).to eq(tenant_organization.org_id)
+
+      expect(Onetime::Customer.load(tenant_org_owner.objid).default_org_id.to_s).to eq(default_org_id.to_s)
+    end
+
+    it 'with the pointer naming the org: already_member, no adoption, org and pointer unchanged' do
+      tenant_org_owner.default_org_id = tenant_organization.objid
+      tenant_org_owner.save
+
+      result = join_as_owner
+
+      expect(result[:joined]).to be(false)
+      expect(result[:reason]).to eq('already_member')
+      expect_tenant_org_untouched(default_org_id: tenant_organization.objid)
+      expect(result).not_to have_key(:adoption), "no adoption may be reported, got: #{result[:adoption].inspect}"
+    end
+
+    it 'with the pointer empty (implicit path): already_member, no adoption, org and pointer unchanged' do
+      expect(tenant_org_owner.default_org_id.to_s).to be_empty, 'precondition: no explicit default pointer'
+
+      result = join_as_owner
+
+      expect(result[:joined]).to be(false)
+      expect(result[:reason]).to eq('already_member')
+      expect_tenant_org_untouched(default_org_id: '')
+      expect(result).not_to have_key(:adoption), "no adoption may be reported, got: #{result[:adoption].inspect}"
+    end
+
+    # A legitimate adoption (personal workspace A -> tenant org B) is followed
+    # by the next login, where B is now the owned default the pointer names.
+    # The retry must recognise B as the destination, not as a second candidate.
+    it 'after a legitimate adoption, the next login leaves the adopted org live with no second adoption' do
+      @personal_workspace = Onetime::Organization.create!(
+        "Personal #{test_run_id}",
+        tenant_org_owner,
+        "personal-#{test_run_id}@tenant.example.com",
+      )
+      @personal_workspace.is_default! true
+      tenant_org_owner.default_org_id = @personal_workspace.objid
+      tenant_org_owner.save
+
+      first = join_as_owner
+      expect(first[:reason]).to eq('already_member')
+      expect(first[:adoption]).to include(adopted: true, previous_default_org_id: @personal_workspace.objid),
+        "first login should adopt the tenant org, got: #{first.inspect}"
+      expect(Onetime::Customer.load(tenant_org_owner.objid).default_org_id).to eq(tenant_organization.objid)
+      expect(Onetime::Organization.load(tenant_organization.objid).archived?).to be(false),
+        'the adoption destination must stay live'
+
+      second = join_as_owner
+      expect(second[:reason]).to eq('already_member')
+      expect_tenant_org_untouched(default_org_id: tenant_organization.objid)
+      expect(second).not_to have_key(:adoption), "no second adoption may be reported, got: #{second[:adoption].inspect}"
     end
   end
 

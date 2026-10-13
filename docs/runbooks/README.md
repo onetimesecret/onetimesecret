@@ -27,6 +27,14 @@ happens, and the steps to resolve or verify.
   root SECRET; diagnosing and recovering from a SECRET mismatch.
 - [sentry-retention-policy.md](./sentry-retention-policy.md) — Sentry data
   retention policy and its operational implications.
+- [sso-self-archived-organization.md](./sso-self-archived-organization.md) —
+  Finding and restoring tenant organizations that the SSO sign-in self-heal
+  archived in place of the owner's personal workspace (#4717), with
+  `bin/ots domains doctor --all` and `bin/ots org unarchive`.
+- [sso-entra-claim-smoke-test.md](./sso-entra-claim-smoke-test.md) — Checking,
+  with operator approval, which claims an Entra tenant's ID tokens carry per
+  account type; what the synthetic-token spec already proves; recording
+  sanitized claim presence and type, never tokens or values.
 - [sso-accounts-unverified.md](./sso-accounts-unverified.md) — Repairing
   SSO-provisioned customers left unverified before v0.26.5, so their colonel /
   admin / staff role takes effect (`bin/ots customers doctor --all --repair`);

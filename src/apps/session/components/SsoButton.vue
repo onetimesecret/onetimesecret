@@ -52,6 +52,7 @@ const isLoading = ref(false);
 const PROVIDER_ICONS: Record<string, { collection: string; name: string }> = {
   google: { collection: 'mdi', name: 'google' },
   github: { collection: 'mdi', name: 'github' },
+  gitlab: { collection: 'mdi', name: 'gitlab' },
   entra: { collection: 'mdi', name: 'microsoft' },
   microsoft: { collection: 'mdi', name: 'microsoft' },
   apple: { collection: 'mdi', name: 'apple' },

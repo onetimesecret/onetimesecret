@@ -1,7 +1,7 @@
 # ==============================================================================
 # Installer matrix (install-onboarding testing-strategy §2b)
 # ==============================================================================
-# Runs the Tier-1 clean-room harness (scripts/install-tests/run.sh) in CI — the
+# Runs the Tier-1 clean-room harness (bin/testsuite-installer run) in CI — the
 # SAME artifact a maintainer runs locally, so local and CI cannot diverge. Each
 # lane installs a documented path from zero inside a pinned base image:
 #
@@ -35,7 +35,9 @@ on:
       - '.ruby-version'
       - '.node-version'
       - 'etc/defaults/**'
-      - 'scripts/install-tests/run.sh'
+      - 'bin/testsuite-installer'
+      - 'tools/testsuite-installer/testsuite-installer.sh'
+      - 'tools/testsuite-installer/run.sh'
       - '.github/workflows/installer.yml'
   schedule:
     - cron: '53 6 * * 1'
@@ -62,7 +64,7 @@ jobs:
       - name: Run clean-room lane
         env:
           LANE: ${{ matrix.lane }}
-        run: ./scripts/install-tests/run.sh --lane "$LANE"
+        run: bin/testsuite-installer run --lane "$LANE"
 
   macos:
     name: 'bin/setup on macOS (bash 3.2 + BSD userland)'
@@ -169,11 +171,13 @@ jobs:
             set -e
             for f in bin/setup bin/install bin/doctor tools/setup/setup.sh \
                      tools/setup/lib.sh tools/setup/new-worktree.sh \
-                     scripts/install-tests/run.sh \
-                     scripts/install-tests/proof-of-life.sh \
-                     scripts/install-tests/secret-rotation.sh \
-                     scripts/install-tests/baremetal-boot.sh \
-                     scripts/install-tests/check-docs-commands.sh; do
+                     bin/testsuite-installer \
+                     tools/testsuite-installer/testsuite-installer.sh \
+                     tools/testsuite-installer/run.sh \
+                     tools/testsuite-installer/proof-of-life.sh \
+                     tools/testsuite-installer/secret-rotation.sh \
+                     tools/testsuite-installer/baremetal-boot.sh \
+                     tools/testsuite-installer/check-docs-commands.sh; do
               echo "bash -n $f"
               bash -n "$f"
             done

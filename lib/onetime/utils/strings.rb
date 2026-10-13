@@ -179,6 +179,32 @@ module Onetime
         email.to_s.strip.unicode_normalize(:nfc).downcase(:fold)
       end
 
+      # Canonical form of an address as asserted by a third party (an SSO
+      # claim, a legacy accounts row): trimmed of Unicode whitespace and then
+      # of String#strip's set (which adds NUL), NFC, lowercased by case
+      # MAPPING. For a fold-stable address this equals normalize_email, which
+      # normalize_login and Customer.create! use (#2843, #4726).
+      #
+      # @param value [String]
+      # @return [String]
+      def canonical_email(value)
+        value.to_s.gsub(/\A[[:space:]]+|[[:space:]]+\z/, '').strip.unicode_normalize(:nfc).downcase
+      end
+
+      # normalize_email case-FOLDS, which rewrites a few non-ASCII addresses
+      # into different ones (ß -> ss). A canonical_email value that folding
+      # would rewrite cannot be judged, matched or indexed under its folded
+      # form without becoming an address nobody asserted; callers refuse it.
+      #
+      # @param email [String, Object] a canonical_email value; a non-String is
+      #   stable (structural guards refuse it on their own)
+      # @return [Boolean]
+      def fold_stable_email?(email)
+        return true unless email.is_a?(String)
+
+        email.downcase(:fold) == email
+      end
+
       # Build a Redis glob (SCAN/HSCAN/SSCAN MATCH) that matches `term` as a
       # literal substring regardless of ASCII letter case.
       #

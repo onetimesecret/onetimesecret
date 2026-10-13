@@ -260,7 +260,7 @@
       // they typed beside it (#4338) rides the query string.
       const token = purgeTokenFor(target);
       if (!token) throw new Error(purgeBlockedReason.value);
-      await store.purge(target.user_id, token, reason);
+      await store.purge(target.extid, token, reason);
       return;
     }
     // The store patches the row in place on a 2xx; re-point the drawer at the
@@ -268,13 +268,13 @@
     // is gated server-side and carries the same account identifier; verify is
     // the restorative arm and carries nothing.
     const updated = await store.setVerification(
-      target.user_id,
+      target.extid,
       action === 'verify',
       confirmTokenFor(target)
     );
     if (!updated) return;
     actionTarget.value = updated;
-    if (selectedCustomer.value?.user_id === updated.user_id) {
+    if (selectedCustomer.value?.extid === updated.extid) {
       selectedCustomer.value = updated;
     }
   });
@@ -504,7 +504,7 @@
       <DataTable
         :columns="columns"
         :rows="customers"
-        row-key="user_id"
+        row-key="extid"
         :loading="loading"
         :empty-text="
           activeSearch
@@ -563,7 +563,18 @@
         </template>
 
         <template #cell-plan="{ row }">
-          {{ row.planid || t('web.admin.customers.detail.none') }}
+          <span>{{ row.planid || t('web.admin.customers.detail.none') }}</span>
+          <span
+            v-if="row.billing_organization"
+            class="block truncate text-xs text-gray-500 dark:text-gray-400"
+            :title="t('web.admin.customers.plan_source.organization')"
+            >{{ row.billing_organization.display_name }}</span
+          >
+          <span
+            v-else-if="row.plan_source === 'customer' && row.planid"
+            class="block text-xs text-gray-500 dark:text-gray-400"
+            >{{ t('web.admin.customers.plan_source.customer') }}</span
+          >
         </template>
 
         <template #cell-secrets="{ row }">
@@ -591,8 +602,8 @@
         <template #cell-actions="{ row }">
           <div class="flex items-center justify-end">
             <router-link
-              :to="{ name: 'AdminCustomerDetail', params: { id: row.user_id } }"
-              :data-testid="`customer-detail-${row.user_id}`"
+              :to="{ name: 'AdminCustomerDetail', params: { id: row.extid } }"
+              :data-testid="`customer-detail-${row.extid}`"
               :aria-label="t('web.admin.customers.detail.openFullPage')"
               :title="t('web.admin.customers.detail.openFullPage')"
               class="rounded p-1.5 text-gray-400 hover:text-brand-600 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:hover:text-brand-400"
@@ -622,7 +633,7 @@
       v-model:open="drawerOpen"
       width-class="max-w-2xl"
       :title="selectedCustomer?.email"
-      :subtitle="selectedCustomer?.user_id"
+      :subtitle="selectedCustomer?.extid"
       testid="customers-drawer">
       <div
         v-if="selectedCustomer"
@@ -715,7 +726,7 @@
              plan, suspend and the full read-out live on the detail page. -->
         <section class="border-t border-gray-200 pt-6 dark:border-gray-800">
           <router-link
-            :to="{ name: 'AdminCustomerDetail', params: { id: selectedCustomer.user_id } }"
+            :to="{ name: 'AdminCustomerDetail', params: { id: selectedCustomer.extid } }"
             class="inline-flex items-center gap-1.5 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 focus:outline-none dark:bg-brand-500 dark:hover:bg-brand-600"
             data-testid="customer-open-full-page">
             {{ t('web.admin.customers.detail.openFullPage') }}
@@ -741,6 +752,31 @@
           </a>
         </section>
       </div>
+
+      <!-- Single guarded-action dialog (typed-confirm on the email for purge).
+           NESTED IN THE DRAWER ON PURPOSE (#4732). headlessui only treats a
+           dialog as a child when it is rendered inside the parent dialog's
+           component subtree. A sibling dialog is "outside" the drawer, so the
+           drawer closes on the first click into it and the selection is reset
+           before the action is confirmed. -->
+      <AdminConfirmDialog
+        v-model:open="dialogOpen"
+        :title="dialogConfig.title"
+        :description="dialogConfig.description"
+        :confirm-token="dialogConfig.confirmToken"
+        :variant="dialogConfig.variant"
+        :confirm-text="dialogConfig.confirmText"
+        :request-reason="dialogConfig.requestReason"
+        :loading="mutationLoading"
+        :error="mutationError"
+        @confirm="onConfirm"
+        @cancel="onCancel">
+        <!-- Only purge is in typed mode here, so the prompt can name the email
+             outright — the operator must see exactly what to type, and why. -->
+        <template #prompt="{ token }">
+          {{ t('web.admin.customers.actions.purge.typePrompt', { token: token ?? '' }) }}
+        </template>
+      </AdminConfirmDialog>
 
       <!-- Operator actions. Same guarded flow as the full page, so a support
            agent never has to leave the list they are scanning. -->
@@ -799,25 +835,5 @@
         </div>
       </template>
     </DetailDrawer>
-
-    <!-- Single guarded-action dialog (typed-confirm on the email for purge). -->
-    <AdminConfirmDialog
-      v-model:open="dialogOpen"
-      :title="dialogConfig.title"
-      :description="dialogConfig.description"
-      :confirm-token="dialogConfig.confirmToken"
-      :variant="dialogConfig.variant"
-      :confirm-text="dialogConfig.confirmText"
-      :request-reason="dialogConfig.requestReason"
-      :loading="mutationLoading"
-      :error="mutationError"
-      @confirm="onConfirm"
-      @cancel="onCancel">
-      <!-- Only purge is in typed mode here, so the prompt can name the email
-           outright — the operator must see exactly what to type, and why. -->
-      <template #prompt="{ token }">
-        {{ t('web.admin.customers.actions.purge.typePrompt', { token: token ?? '' }) }}
-      </template>
-    </AdminConfirmDialog>
   </div>
 </template>

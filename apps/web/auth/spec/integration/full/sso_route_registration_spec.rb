@@ -25,7 +25,7 @@
 # covered at the unit level:
 #   apps/web/auth/spec/config/features/omniauth_providers_spec.rb
 #
-# OIDC, Entra, GitHub, Google and SAML (#4450) register via
+# OIDC, Entra, GitHub, GitLab, Google and SAML (#4450) register via
 # placeholder credentials when ORGS_SSO_ENABLED=true. No platform
 # env vars are injected by spec_helper.
 #
@@ -87,6 +87,10 @@ RSpec.describe 'SSO route registration with tenant SSO enabled', type: :integrat
   sso_routes = {
     '/auth/sso/entra'  => { tenant_only: true },
     '/auth/sso/github' => { tenant_only: true },
+    # omniauth-gitlab registers its own :gitlab → GitLab camelization when
+    # the gem is required lazily; this route is the boot-level proof that it
+    # resolves through rodauth-omniauth.
+    '/auth/sso/gitlab' => { tenant_only: true },
     '/auth/sso/google' => { tenant_only: true },
     '/auth/sso/oidc'   => { tenant_only: true },
     # #4450. Also the only boot-level proof that the lazy gem_require of the

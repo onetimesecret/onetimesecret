@@ -240,6 +240,18 @@ get "/api/colonel/domains/#{@domain_a1.domainid}", {}, colonel_headers
 [last_response.status, JSON.parse(last_response.body)['record']['extid']]
 #=> [200, @domain_a1.extid]
 
+## The detail record names the owning org by PUBLIC id, so the console links
+## to it without putting the internal org_id in a URL
+get "/api/colonel/domains/#{@domain_a1.extid}", {}, colonel_headers
+@detail_record = JSON.parse(last_response.body)['record']
+@detail_record.values_at('org_extid', 'org_name', 'org_id')
+#=> [@org_a.extid, @org_a.display_name, @org_a.objid]
+
+## List rows carry the owning org's PUBLIC id beside the internal one
+@row = list('search' => @fqdn_a1)['domains'].first
+@row.values_at('org_extid', 'org_id')
+#=> [@org_a.extid, @org_a.objid]
+
 ## An unknown identifier still 404s
 get "/api/colonel/domains/cd_does_not_exist_#{@timestamp}", {}, colonel_headers
 last_response.status

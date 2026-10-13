@@ -157,6 +157,44 @@ RSpec.describe 'A sign-up that loses a race answers like an ordinary duplicate',
     expect(sign_up(login)[:status]).to eq(200)
   end
 
+  [false, true].each do |padded|
+    it "creates a new identity beside closed history (padded login: #{padded})" do
+      closed_id = db[:accounts].insert(email: login, status_id: 3, external_id: 'ur_closed_signup')
+      closed = db[:accounts].where(id: closed_id).first
+
+      expect(sign_up(padded ? "\t#{login.upcase}\n" : login)[:status]).to eq(200)
+      expect(db[:accounts].where(id: closed_id).first).to eq(closed)
+      customer = Onetime::Customer.find_by_email(login)
+      expect(customer).not_to be_nil
+      expect(customer.extid).not_to eq(closed[:external_id])
+      expect(db[:accounts].where(email: login, status_id: [1, 2]).first[:external_id]).to eq(customer.extid)
+    end
+  end
+
+  # Refused means no account is written; the answer is still the ordinary
+  # one a fresh sign-up gets (M-2).
+  [1, 2].each do |status_id|
+    it "still refuses a live sibling with status #{status_id} beside closed history", :aggregate_failures do
+      db[:accounts].insert(email: login, status_id: 3)
+      db[:accounts].insert(email: login, status_id: status_id)
+
+      [login, "\t#{login.upcase}\n"].each do |submitted|
+        expect(sign_up(submitted)).to eq(fresh_sign_up)
+      end
+      expect(db[:accounts].where(email: login).count).to eq(2)
+      expect(Onetime::Customer.find_by_email(login)).to be_nil
+    end
+  end
+
+  it 'refuses reuse when a closed SQL account still has a Redis customer', :aggregate_failures do
+    db[:accounts].insert(email: login, status_id: 3)
+    customer = Onetime::Customer.create!(email: login)
+
+    expect(sign_up(login)).to eq(fresh_sign_up)
+    expect(db[:accounts].where(email: login).count).to eq(1)
+    expect(Onetime::Customer.find_by_email(login).objid).to eq(customer.objid)
+  end
+
   it 'logs an ordinary duplicate at info and keeps the error for an account with no customer record', :aggregate_failures do
     events = []
     allow(Auth::Logging).to receive(:log_auth_event).and_wrap_original do |original, event, **fields|

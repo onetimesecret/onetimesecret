@@ -79,9 +79,11 @@ const currentOrganization = computed<Organization | null>(() => {
 const shouldShow = computed(() => organizationStore.hasOrganizations);
 
 /**
- * Check if an organization is the default (personal) organization
+ * Check if an organization is this user's default. Not `is_default`: that
+ * marks the OWNER's auto-created workspace, so it is also true on someone
+ * else's default workspace the user was invited into.
  */
-const isDefaultOrg = (org: Organization | null): boolean => org?.is_default ?? false;
+const isDefaultOrg = (org: Organization | null): boolean => org?.is_current_user_default ?? false;
 
 /**
  * Check if current organization is the default
@@ -211,6 +213,15 @@ const onOpenSettings = (id: string): void => {
 };
 
 /**
+ * Whether /orgs will let this user in, so the footer link is not a dead end.
+ * Mirrors the route's guard, anyOrgMeetsRole(store, 'owner') in
+ * src/router/guards.routes.ts: met when the user owns any org in the list.
+ */
+const canOpenOrganizationsList = computed(() =>
+  visibleOrganizations.value.some((org) => org.current_user_role === 'owner')
+);
+
+/**
  * Navigate to manage organizations page
  */
 const navigateToManageOrganizations = (close?: () => void): void => {
@@ -225,7 +236,7 @@ const navigateToManageOrganizations = (close?: () => void): void => {
     :items="organizationItems"
     :header="t('web.organizations.my_organizations')"
     :locked="props.locked"
-    :can-manage="true"
+    :can-manage="canOpenOrganizationsList"
     :trigger-aria-label="t('web.organizations.select_organization')"
     :trigger-title="currentOrganization ? getOrganizationDisplayName(currentOrganization) : undefined"
     :locked-title="t('web.organizations.switcher_locked')"
