@@ -12,6 +12,7 @@ export const CUSTOM_DOMAIN_SAFE_DUMP_FIELDS = [
   'extid',
   'domainid',
   'display_domain',
+  'display_domain_ascii',
   'custid',
   'base_domain',
   'subdomain',

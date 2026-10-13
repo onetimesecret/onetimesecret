@@ -193,6 +193,14 @@ export const customDomainCanonical = z.object({
   /** Full domain as displayed (e.g., secrets.example.com). */
   display_domain: z.string(),
 
+  /**
+   * `display_domain` in A-label form, converted by the server (e.g.,
+   * xn--bcher-kva.example.com for bücher.example.com): the name the address
+   * record is created under. Equals `display_domain` for an ASCII name. Null
+   * when the name has no A-label form.
+   */
+  display_domain_ascii: z.string().nullable().optional(),
+
   /** Base domain without subdomain (e.g., example.com). */
   base_domain: z.string(),
 

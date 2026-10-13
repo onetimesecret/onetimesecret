@@ -37,6 +37,8 @@ export const customDomainSchema = z.object({
 
   // Domain parts
   display_domain: z.string(),
+  // display_domain in A-label form; null when it has no A-label form.
+  display_domain_ascii: z.string().nullable().optional(),
   base_domain: z.string(),
   subdomain: z.string().nullable(),
   trd: z.string().nullable(),
