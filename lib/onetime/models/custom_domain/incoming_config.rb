@@ -5,6 +5,7 @@
 require 'digest/sha2'
 require_relative '../../security/input_sanitizers'
 require_relative '../features/boolean_encoding'
+require_relative '../features/guarded_config_writes'
 
 #
 # CustomDomain::IncomingConfig - Per-domain incoming secrets recipient storage
@@ -73,6 +74,7 @@ class Onetime::CustomDomain::IncomingConfig < Familia::Horreum
   # above (#3951). Must come after both the field declaration and the
   # constant.
   feature :boolean_encoding
+  feature :guarded_config_writes
 
   def init
     self.enabled         ||= 'false'
@@ -323,7 +325,9 @@ class Onetime::CustomDomain::IncomingConfig < Familia::Horreum
     # @raise [Onetime::Problem] if config already exists
     def create!(domain_id:, **attrs)
       raise Onetime::Problem, 'domain_id is required' if domain_id.to_s.empty?
-      raise Onetime::Problem, 'Incoming config already exists for this domain' if exists_for_domain?(domain_id)
+
+      exists_message = 'Incoming config already exists for this domain'
+      refuse_existing_config!(domain_id, exists_message)
 
       config = new(domain_id: domain_id)
 
@@ -334,22 +338,8 @@ class Onetime::CustomDomain::IncomingConfig < Familia::Horreum
       config.created = now
       config.updated = now
 
-      config.save
+      save_new_config!(config, exists_message)
       config
-    end
-
-    # Delete incoming config for a domain.
-    #
-    # @param domain_id [String] CustomDomain identifier
-    # @return [Boolean] true if deleted, false if not found
-    def delete_for_domain!(domain_id)
-      return false if domain_id.to_s.empty?
-
-      config = find_by_domain_id(domain_id)
-      return false unless config
-
-      config.destroy!
-      true
     end
 
     # List all domain incoming configs.

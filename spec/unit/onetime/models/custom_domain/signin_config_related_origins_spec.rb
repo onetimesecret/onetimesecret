@@ -212,20 +212,20 @@ RSpec.describe Onetime::CustomDomain::SigninConfig do
         .and_return(instance_double(Onetime::CustomDomain, identifier: 'rival-domain-id', org_id: 'org-b'))
       allow(described_class).to receive(:exists_for_domain?).with('tenant-a').and_return(false)
       allow(described_class).to receive(:new).with(domain_id: 'tenant-a').and_return(built)
-      allow(built).to receive(:save).and_return(true)
+      allow(described_class).to receive(:save_new_config!) { |config, _message| config }
     end
 
     it 'stores the origins on a first write instead of dropping them' do
       created = described_class.create!(domain_id: 'tenant-a', related_origins: ['HTTPS://Vault.Acme.COM'])
 
       expect(created.related_origins).to eq(['https://vault.acme.com'])
-      expect(built).to have_received(:save)
+      expect(described_class).to have_received(:save_new_config!).with(built, anything)
     end
 
     it 'refuses a cross-organization origin and saves nothing' do
       expect { described_class.create!(domain_id: 'tenant-a', related_origins: ['https://vault.rival.example']) }
         .to raise_error(Onetime::Problem, /another organization/)
-      expect(built).not_to have_received(:save)
+      expect(described_class).not_to have_received(:save_new_config!)
     end
 
     it 'leaves the field unset when the attribute is not given' do

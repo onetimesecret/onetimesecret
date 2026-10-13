@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../features/boolean_encoding'
+require_relative '../features/guarded_config_writes'
 
 #
 # CustomDomain::HomepageConfig - Per-domain homepage secrets configuration
@@ -113,6 +114,7 @@ class Onetime::CustomDomain::HomepageConfig < Familia::Horreum
   # deliberately does NOT cover the deprecated signup_enabled /
   # signin_enabled read-echo fields (not in the specs).
   feature :boolean_encoding
+  feature :guarded_config_writes
 
   def init
     self.enabled      ||= 'false'
@@ -319,11 +321,10 @@ class Onetime::CustomDomain::HomepageConfig < Familia::Horreum
 
     # Create or update homepage config for a domain.
     #
-    # Prefer this over create! for PUT endpoints: reduces the chance of a
-    # duplicate-create error under concurrent requests. Last write wins for
-    # the same domain_id key; created timestamp may reflect the second writer
-    # on a first-write race. Not fully atomic — use a Lua script if strict
-    # once-only create semantics are needed.
+    # Prefer this over create! for PUT endpoints. An update re-reads the
+    # record under WATCH (GuardedConfigWrites), so a field this call leaves
+    # alone keeps a concurrent writer's value, and a create lost to a
+    # concurrent create updates the record that won.
     #
     # @param domain_id [String] CustomDomain identifier
     # @param enabled [Boolean, String] Whether to enable homepage secrets.
@@ -349,19 +350,9 @@ class Onetime::CustomDomain::HomepageConfig < Familia::Horreum
     def upsert(domain_id:, enabled:, signup_enabled: nil, signin_enabled: nil, disabled_homepage_variant: nil, secrets_mode: nil)
       raise Onetime::Problem, 'domain_id is required' if domain_id.to_s.empty?
 
-      config = find_by_domain_id(domain_id)
-      now    = Familia.now.to_i
-
-      if config
-        config.created                 ||= now  # repair missing created from legacy records
-        config.enabled                   = enabled
-        config.signup_enabled            = signup_enabled unless signup_enabled.nil?
-        config.signin_enabled            = signin_enabled unless signin_enabled.nil?
-        config.disabled_homepage_variant = coerce_disabled_homepage_variant(disabled_homepage_variant) unless disabled_homepage_variant.nil?
-        config.secrets_mode              = coerce_secrets_mode(secrets_mode) unless secrets_mode.nil?
-        config.updated                   = now
-      else
-        config = new(
+      now   = Familia.now.to_i
+      build = -> do
+        new(
           domain_id: domain_id,
           enabled: enabled.to_s,
           signup_enabled: signup_enabled.nil? ? false : signup_enabled,
@@ -373,8 +364,15 @@ class Onetime::CustomDomain::HomepageConfig < Familia::Horreum
         )
       end
 
-      config.save
-      config
+      upsert_for_domain!(domain_id, 'Homepage config already exists for this domain', build: build) do |config|
+        config.created                 ||= now  # repair missing created from legacy records
+        config.enabled                   = enabled
+        config.signup_enabled            = signup_enabled unless signup_enabled.nil?
+        config.signin_enabled            = signin_enabled unless signin_enabled.nil?
+        config.disabled_homepage_variant = coerce_disabled_homepage_variant(disabled_homepage_variant) unless disabled_homepage_variant.nil?
+        config.secrets_mode              = coerce_secrets_mode(secrets_mode) unless secrets_mode.nil?
+        config.updated                   = now
+      end
     end
 
     # Atomically return an existing HomepageConfig or create one if absent.
@@ -429,7 +427,9 @@ class Onetime::CustomDomain::HomepageConfig < Familia::Horreum
     # @raise [Onetime::Problem] if config already exists
     def create!(domain_id:, **attrs)
       raise Onetime::Problem, 'domain_id is required' if domain_id.to_s.empty?
-      raise Onetime::Problem, 'Homepage config already exists for this domain' if exists_for_domain?(domain_id)
+
+      exists_message = 'Homepage config already exists for this domain'
+      refuse_existing_config!(domain_id, exists_message)
 
       config = new(domain_id: domain_id)
 
@@ -445,22 +445,8 @@ class Onetime::CustomDomain::HomepageConfig < Familia::Horreum
       config.created = now
       config.updated = now
 
-      config.save
+      save_new_config!(config, exists_message)
       config
-    end
-
-    # Delete homepage config for a domain.
-    #
-    # @param domain_id [String] CustomDomain identifier
-    # @return [Boolean] true if deleted, false if not found
-    def delete_for_domain!(domain_id)
-      return false if domain_id.to_s.empty?
-
-      config = find_by_domain_id(domain_id)
-      return false unless config
-
-      config.destroy!
-      true
     end
   end
 end

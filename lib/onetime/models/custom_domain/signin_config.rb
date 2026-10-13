@@ -6,6 +6,7 @@ require 'json'
 require 'uri'
 
 require_relative '../features/boolean_encoding'
+require_relative '../features/guarded_config_writes'
 
 #
 # CustomDomain::SigninConfig - Per-domain sign-in method configuration
@@ -287,6 +288,7 @@ class Onetime::CustomDomain::SigninConfig < Familia::Horreum
   # FIELD_SPECS above (#3951). Must come after both the field
   # declarations and the constant.
   feature :boolean_encoding
+  feature :guarded_config_writes
 
   def init
     self.enabled            = false if enabled.nil?
@@ -1261,7 +1263,9 @@ class Onetime::CustomDomain::SigninConfig < Familia::Horreum
     #   related_origins is refused by {#related_origins=}
     def create!(domain_id:, **attrs)
       raise Onetime::Problem, 'domain_id is required' if domain_id.to_s.empty?
-      raise Onetime::Problem, 'Signin config already exists for this domain' if exists_for_domain?(domain_id)
+
+      exists_message = 'Signin config already exists for this domain'
+      refuse_existing_config!(domain_id, exists_message)
 
       config = new(domain_id: domain_id)
 
@@ -1285,24 +1289,9 @@ class Onetime::CustomDomain::SigninConfig < Familia::Horreum
       config.created = now
       config.updated = now
 
-      config.save
+      save_new_config!(config, exists_message)
 
       config
-    end
-
-    # Delete signin config for a domain.
-    #
-    # @param domain_id [String] CustomDomain identifier
-    # @return [Boolean] true if deleted, false if not found
-    def delete_for_domain!(domain_id)
-      return false if domain_id.to_s.empty?
-
-      config = find_by_domain_id(domain_id)
-      return false unless config
-
-      config.destroy!
-
-      true
     end
 
     # List all domain signin configs.

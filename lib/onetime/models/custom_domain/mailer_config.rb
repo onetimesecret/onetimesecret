@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../features/boolean_encoding'
+require_relative '../features/guarded_config_writes'
 require_relative '../../mail/provider_registry'
 
 #
@@ -137,6 +138,7 @@ class Onetime::CustomDomain::MailerConfig < Familia::Horreum
   # above (#3951). Must come after both the field declaration and the
   # constant.
   feature :boolean_encoding
+  feature :guarded_config_writes
 
   def init
     self.enabled             ||= 'false'
@@ -512,7 +514,9 @@ class Onetime::CustomDomain::MailerConfig < Familia::Horreum
     # @raise [Onetime::Problem] if config already exists or validation fails
     def create!(domain_id:, **attrs)
       raise Onetime::Problem, 'domain_id is required' if domain_id.to_s.empty?
-      raise Onetime::Problem, 'Mailer config already exists for this domain' if exists_for_domain?(domain_id)
+
+      exists_message = 'Mailer config already exists for this domain'
+      refuse_existing_config!(domain_id, exists_message)
 
       config = new(domain_id: domain_id)
 
@@ -536,7 +540,7 @@ class Onetime::CustomDomain::MailerConfig < Familia::Horreum
         raise Onetime::Problem, config.validation_errors.join('; ')
       end
 
-      config.save
+      save_new_config!(config, exists_message)
 
       # Set encrypted fields AFTER save so the AAD context includes
       # aad_fields values (Familia's build_aad uses record.exists? to
@@ -549,21 +553,6 @@ class Onetime::CustomDomain::MailerConfig < Familia::Horreum
       end
 
       config
-    end
-
-    # Delete mailer config for a domain.
-    #
-    # @param domain_id [String] CustomDomain identifier
-    # @return [Boolean] true if deleted, false if not found
-    def delete_for_domain!(domain_id)
-      return false if domain_id.to_s.empty?
-
-      config = find_by_domain_id(domain_id)
-      return false unless config
-
-      config.destroy!
-
-      true
     end
 
     # List all domain mailer configs.

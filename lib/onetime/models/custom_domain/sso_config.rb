@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../features/boolean_encoding'
+require_relative '../features/guarded_config_writes'
 require_relative '../../domain_validation/ascii_hostname'
 # Configuration-only and gem-free (it never loads omniauth-saml/ruby-saml):
 # the shared SAML validators and the single hardened-options builder (#4450).
@@ -224,6 +225,7 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
   # FIELD_SPECS above (#3951). Must come after both the field
   # declarations and the constant.
   feature :boolean_encoding
+  feature :guarded_config_writes
 
   def init
     self.enabled          ||= 'false'
@@ -803,7 +805,9 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
     # @raise [Onetime::Problem] if config already exists or validation fails
     def create!(domain_id:, **attrs)
       raise Onetime::Problem, 'domain_id is required' if domain_id.to_s.empty?
-      raise Onetime::Problem, 'SSO config already exists for this domain' if exists_for_domain?(domain_id)
+
+      exists_message = 'SSO config already exists for this domain'
+      refuse_existing_config!(domain_id, exists_message)
 
       config = new(domain_id: domain_id)
 
@@ -851,25 +855,9 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
       end
 
       # Save using Horreum's built-in method
-      config.save
+      save_new_config!(config, exists_message)
 
       config
-    end
-
-    # Delete SSO config for a domain.
-    #
-    # @param domain_id [String] CustomDomain identifier
-    # @return [Boolean] true if deleted, false if not found
-    def delete_for_domain!(domain_id)
-      return false if domain_id.to_s.empty?
-
-      config = find_by_domain_id(domain_id)
-      return false unless config
-
-      # Use Horreum's destroy! which handles main key + instances zset
-      config.destroy!
-
-      true
     end
 
     # List all domain SSO configs.

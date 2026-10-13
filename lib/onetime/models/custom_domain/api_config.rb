@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../features/boolean_encoding'
+require_relative '../features/guarded_config_writes'
 
 #
 # CustomDomain::ApiConfig - Per-domain API access configuration
@@ -52,6 +53,7 @@ class Onetime::CustomDomain::ApiConfig < Familia::Horreum
   # above (#3951). Must come after both the field declaration and the
   # constant.
   feature :boolean_encoding
+  feature :guarded_config_writes
 
   def init
     self.enabled ||= 'false'
@@ -129,11 +131,8 @@ class Onetime::CustomDomain::ApiConfig < Familia::Horreum
 
     # Create or update API config for a domain.
     #
-    # Prefer this over create! for PUT endpoints: reduces the chance of a
-    # duplicate-create error under concurrent requests. Last write wins for
-    # the same domain_id key; created timestamp may reflect the second writer
-    # on a first-write race. Not fully atomic — use a Lua script if strict
-    # once-only create semantics are needed.
+    # Prefer this over create! for PUT endpoints. A create lost to a
+    # concurrent create updates the record that won (GuardedConfigWrites).
     #
     # @param domain_id [String] CustomDomain identifier
     # @param enabled [Boolean, String] Whether to enable API access
@@ -141,19 +140,14 @@ class Onetime::CustomDomain::ApiConfig < Familia::Horreum
     def upsert(domain_id:, enabled:)
       raise Onetime::Problem, 'domain_id is required' if domain_id.to_s.empty?
 
-      config = find_by_domain_id(domain_id)
-      now    = Familia.now.to_i
+      now   = Familia.now.to_i
+      build = -> { new(domain_id: domain_id, enabled: enabled.to_s, created: now, updated: now) }
 
-      if config
+      upsert_for_domain!(domain_id, 'API config already exists for this domain', build: build) do |config|
         config.created ||= now  # repair missing created from legacy records
         config.enabled   = enabled
         config.updated   = now
-      else
-        config = new(domain_id: domain_id, enabled: enabled.to_s, created: now, updated: now)
       end
-
-      config.save
-      config
     end
 
     # Atomically return an existing ApiConfig or create one if absent.
@@ -200,7 +194,9 @@ class Onetime::CustomDomain::ApiConfig < Familia::Horreum
     # @raise [Onetime::Problem] if config already exists
     def create!(domain_id:, **attrs)
       raise Onetime::Problem, 'domain_id is required' if domain_id.to_s.empty?
-      raise Onetime::Problem, 'API config already exists for this domain' if exists_for_domain?(domain_id)
+
+      exists_message = 'API config already exists for this domain'
+      refuse_existing_config!(domain_id, exists_message)
 
       config = new(domain_id: domain_id)
 
@@ -210,22 +206,8 @@ class Onetime::CustomDomain::ApiConfig < Familia::Horreum
       config.created = now
       config.updated = now
 
-      config.save
+      save_new_config!(config, exists_message)
       config
-    end
-
-    # Delete API config for a domain.
-    #
-    # @param domain_id [String] CustomDomain identifier
-    # @return [Boolean] true if deleted, false if not found
-    def delete_for_domain!(domain_id)
-      return false if domain_id.to_s.empty?
-
-      config = find_by_domain_id(domain_id)
-      return false unless config
-
-      config.destroy!
-      true
     end
   end
 end
