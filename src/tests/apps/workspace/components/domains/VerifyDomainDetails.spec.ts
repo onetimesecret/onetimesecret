@@ -381,3 +381,101 @@ describe('VerifyDomainDetails', () => {
     });
   });
 });
+
+// Step 1 shows txt_validation_record, the A-label name the server queries,
+// as a host relative to the zone; the copy button copies the host.
+describe('VerifyDomainDetails TXT record name (step 1)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockIsLoading.value = false;
+    mockError.value = null;
+    setDomainValidationStrategy('caddy_on_demand');
+  });
+
+  const idnDomain = (overrides = {}) =>
+    createDomain({
+      display_domain: 'bücher.example.com',
+      trd: 'bücher',
+      txt_validation_host: '_onetime-challenge-abc1234.xn--bcher-kva',
+      txt_validation_record: '_onetime-challenge-abc1234.xn--bcher-kva.example.com',
+      txt_validation_record_display: '_onetime-challenge-abc1234.bücher.example.com',
+      ...overrides,
+    });
+  const hostField = (wrapper: ReturnType<typeof mountComponent>) => fieldsOf(wrapper)[1];
+  const hostCopyText = (wrapper: ReturnType<typeof mountComponent>) =>
+    wrapper.findAllComponents({ name: 'CopyButton' })[1].props('text');
+  const hint = '[data-testid="txt-record-display-name"]';
+
+  it('Unicode subdomain: the A-label host, copied as shown, with the display spelling as a hint', () => {
+    const wrapper = mountComponent({ domain: idnDomain() });
+
+    expect(hostField(wrapper)).toEqual({
+      label: 'web.COMMON.host',
+      value: '_onetime-challenge-abc1234.xn--bcher-kva',
+      appendix: '.example.com',
+    });
+    expect(hostCopyText(wrapper)).toBe('_onetime-challenge-abc1234.xn--bcher-kva');
+    expect(wrapper.find(hint).text()).toContain('web.domains.dns.txt_display_name_hint');
+    expect(wrapper.find(`${hint} span`).text()).toBe(
+      '_onetime-challenge-abc1234.bücher.example.com'
+    );
+  });
+
+  it('a host stored as typed by an earlier version: still the A-label host', () => {
+    const wrapper = mountComponent({
+      domain: idnDomain({ txt_validation_host: '_onetime-challenge-abc1234.bücher' }),
+    });
+
+    expect(hostField(wrapper).value).toBe('_onetime-challenge-abc1234.xn--bcher-kva');
+    expect(hostCopyText(wrapper)).toBe('_onetime-challenge-abc1234.xn--bcher-kva');
+  });
+
+  it('Unicode registrable domain: the zone in A-label form', () => {
+    const wrapper = mountComponent({
+      domain: idnDomain({
+        display_domain: 'bücher.de',
+        base_domain: 'bücher.de',
+        trd: '',
+        is_apex: true,
+        txt_validation_host: '_onetime-challenge-abc1234',
+        txt_validation_record: '_onetime-challenge-abc1234.xn--bcher-kva.de',
+        txt_validation_record_display: '_onetime-challenge-abc1234.bücher.de',
+      }),
+    });
+
+    expect(hostField(wrapper)).toMatchObject({
+      value: '_onetime-challenge-abc1234',
+      appendix: '.xn--bcher-kva.de',
+    });
+  });
+
+  it('ASCII name: no hint', () => {
+    const wrapper = mountComponent({
+      domain: createDomain({
+        txt_validation_record: '_onetime-challenge-abc123.test.example.com',
+        txt_validation_record_display: '_onetime-challenge-abc123.test.example.com',
+      }),
+    });
+
+    expect(hostField(wrapper)).toMatchObject({
+      value: '_onetime-challenge-abc123.test',
+      appendix: '.example.com',
+    });
+    expect(wrapper.find(hint).exists()).toBe(false);
+  });
+
+  it('no txt_validation_record: the stored host and base domain, no hint', () => {
+    const wrapper = mountComponent({
+      domain: idnDomain({
+        txt_validation_host: '_onetime-challenge-abc1234.bücher',
+        txt_validation_record: null,
+      }),
+    });
+
+    expect(hostField(wrapper)).toMatchObject({
+      value: '_onetime-challenge-abc1234.bücher',
+      appendix: '.example.com',
+    });
+    expect(wrapper.find(hint).exists()).toBe(false);
+  });
+});

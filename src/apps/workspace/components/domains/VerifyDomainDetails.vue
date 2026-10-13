@@ -13,6 +13,7 @@ import { computed, ref } from 'vue';
 
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import DetailField from '@/shared/components/ui/DetailField.vue';
+import { txtRecordName } from '@/shared/utils/txtRecordName';
 
 interface Props {
   domain: CustomDomain;
@@ -41,6 +42,10 @@ const { kind, recordType, recordHost, recordHostAppendix, recordTarget } = useDo
   () => props.domain,
   () => props.cluster
 );
+
+// Step 1: the TXT record name in A-label form, the name the server queries,
+// as a host relative to the zone. See txtRecordName.
+const txtRecord = computed(() => txtRecordName(props.domain));
 
 const addressRecordHeading = computed(() => {
   if (kind.value === 'a') return t('web.domains.2_create_the_a_record');
@@ -155,12 +160,24 @@ const verify = async () => {
             value="TXT" />
           <DetailField
             :label="t('web.COMMON.host')"
-            :value="domain.txt_validation_host"
-            :appendix="`.${domain.base_domain}`" />
+            :value="txtRecord.host"
+            :appendix="txtRecord.zone" />
           <DetailField
             :label="t('web.COMMON.value')"
             :value="domain.txt_validation_value" />
         </div>
+        <!-- An internationalised name: the spelling some DNS providers list it under. -->
+        <p
+          v-if="txtRecord.displayName"
+          data-testid="txt-record-display-name"
+          class="mt-2 text-sm text-gray-600 dark:text-gray-300">
+          {{ t('web.domains.dns.txt_display_name_hint') }}
+          <span
+            class="block font-mono break-all text-gray-800 dark:text-gray-100"
+            translate="no">
+            {{ txtRecord.displayName }}
+          </span>
+        </p>
       </li>
       <li
         data-testid="verify-address-record"

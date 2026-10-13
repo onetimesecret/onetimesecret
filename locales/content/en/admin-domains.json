@@ -139,6 +139,10 @@
     "text": "1. Add a TXT record to prove ownership.",
     "content_hash": "fdcfcfb0"
   },
+  "web.admin.domains.dns.txtDisplayNameHint": {
+    "text": "Some DNS providers display this name as:",
+    "content_hash": "b2bcf8d5"
+  },
   "web.admin.domains.dns.aStep": {
     "text": "2. Add an A record pointing the apex at the proxy.",
     "content_hash": "aedbf197"
