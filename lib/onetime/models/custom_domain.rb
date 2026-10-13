@@ -1313,6 +1313,19 @@ module Onetime
         false
       end
 
+      # The write-gate form of overlaps_canonical_domain?, shared by create!
+      # and IdentityGuard (a new record saved without create!) so the two
+      # cannot drift. Raises before anything is claimed or written.
+      #
+      # @param domain_name [String] display domain of the record to register
+      # @raise [Onetime::Problem] when the name overlaps a canonical host
+      # @return [void]
+      def refuse_canonical_overlap!(domain_name)
+        return unless overlaps_canonical_domain?(domain_name)
+
+        raise Onetime::Problem, 'This domain overlaps with the default site domain'
+      end
+
       # Whether the input domain overlaps with a canonical site domain.
       # Two arms with deliberately different reach (#4063):
       #
@@ -1348,19 +1361,6 @@ module Onetime
       #
       # Placed before entitlement checks in AddDomain so it is absolute
       # (no colonel bypass) — this is a system-integrity invariant.
-      # The write-gate form of overlaps_canonical_domain?, shared by create!
-      # and IdentityGuard (a new record saved without create!) so the two
-      # cannot drift. Raises before anything is claimed or written.
-      #
-      # @param domain_name [String] display domain of the record to register
-      # @raise [Onetime::Problem] when the name overlaps a canonical host
-      # @return [void]
-      def refuse_canonical_overlap!(domain_name)
-        return unless overlaps_canonical_domain?(domain_name)
-
-        raise Onetime::Problem, 'This domain overlaps with the default site domain'
-      end
-
       def overlaps_canonical_domain?(input)
         hosts = canonical_hosts
         return false if hosts.empty?
