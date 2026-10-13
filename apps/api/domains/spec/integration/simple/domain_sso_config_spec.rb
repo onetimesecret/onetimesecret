@@ -2798,6 +2798,54 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
         expect(last_response.status).to eq(200)
         expect(json_body['record']).to include('enabled' => false, 'token_endpoint_auth_method' => 'client_secret_post')
       end
+
+      # The audit diff is computed from the value the writer persists, not
+      # the raw request: normalize_token_endpoint_auth_method strips, so a
+      # whitespace-padded resend of the stored value is no change, while a
+      # blank (cleared) and a different method are.
+      describe 'audit log (domain_sso_config_updated)' do
+        let(:updated) { '[DOMAIN_SSO_CHANGE] domain_sso_config_updated' }
+        let(:audit_payloads) { [] }
+
+        before do
+          allow(OT).to receive(:info) do |msg, json|
+            audit_payloads << JSON.parse(json) if msg == updated
+          end
+        end
+
+        def stored_method
+          Onetime::CustomDomain::SsoConfig.find_by_domain_id(test_custom_domain.identifier).token_endpoint_auth_method.to_s
+        end
+
+        it 'records no change for a whitespace-padded resend of the stored value' do
+          csrf_patch api_path(test_custom_domain.extid), { token_endpoint_auth_method: ' client_secret_post ' }
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(stored_method).to eq('client_secret_post')
+          expect(audit_payloads.size).to eq(1)
+          expect(audit_payloads.first.fetch('changes', {})).not_to have_key('token_endpoint_auth_method')
+        end
+
+        it 'records a change to blank when the field is cleared' do
+          csrf_patch api_path(test_custom_domain.extid), { token_endpoint_auth_method: '' }
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(stored_method).to eq('')
+          expect(audit_payloads.size).to eq(1)
+          expect(audit_payloads.first['changes']).to include('token_endpoint_auth_method' => { 'from' => 'client_secret_post', 'to' => '' })
+        end
+
+        it 'records the old and new method when it is replaced' do
+          csrf_patch api_path(test_custom_domain.extid), { token_endpoint_auth_method: 'client_secret_basic' }
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(stored_method).to eq('client_secret_basic')
+          expect(audit_payloads.size).to eq(1)
+          expect(audit_payloads.first['changes']).to include(
+            'token_endpoint_auth_method' => { 'from' => 'client_secret_post', 'to' => 'client_secret_basic' },
+          )
+        end
+      end
     end
 
     describe 'GET /api/domains/:extid/sso' do

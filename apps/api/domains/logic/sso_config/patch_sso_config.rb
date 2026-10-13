@@ -139,7 +139,7 @@ module DomainsAPI
 
           if @existing_config
             # Compute changes before updating
-            changes = compute_sso_changes(@existing_config, params)
+            changes = compute_sso_changes(@existing_config, audit_change_params)
             update_existing_config
             log_name_id_format_change_if_rekeyed(previous_name_id_format, was_enabled)
             log_sso_change_event(
@@ -436,11 +436,35 @@ module DomainsAPI
         # key absent keeps the stored value. Only oidc reads it, so any other
         # type clears it, whatever the request carried.
         def apply_token_endpoint_auth_method
-          if @provider_type != 'oidc'
-            @sso_config.token_endpoint_auth_method = ''
-          elsif @token_endpoint_auth_method_provided
-            @sso_config.token_endpoint_auth_method = @token_endpoint_auth_method
-          end
+          return unless @token_endpoint_auth_method_provided || @provider_type != 'oidc'
+
+          @sso_config.token_endpoint_auth_method = persisted_token_endpoint_auth_method
+        end
+
+        # The token_endpoint_auth_method value the record ends up with when
+        # it is written: the normalized request value for oidc, '' for every
+        # other provider type. Single source for the writer and the audit
+        # input, so the two cannot drift.
+        #
+        # @return [String]
+        def persisted_token_endpoint_auth_method
+          @provider_type == 'oidc' ? @token_endpoint_auth_method : ''
+        end
+
+        # Input for compute_sso_changes. The change detector reads a request
+        # hash, but token_endpoint_auth_method is persisted normalized
+        # (stripped; see persisted_token_endpoint_auth_method), so auditing
+        # the raw value would log a whitespace-padded resend of the stored
+        # method as a change to the padded string. The field is swapped for
+        # what will actually be written. Key presence is preserved: an
+        # absent key stays absent (no change), a blank one stays present as
+        # '' (cleared). Other fields are audited from the request as before.
+        #
+        # @return [Hash]
+        def audit_change_params
+          return params unless @token_endpoint_auth_method_provided
+
+          params.merge('token_endpoint_auth_method' => persisted_token_endpoint_auth_method)
         end
 
         # See the PATCH-semantics note on update_existing_config. Runs last so
