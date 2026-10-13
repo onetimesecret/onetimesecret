@@ -1556,10 +1556,14 @@ aria-hidden="true">*</span>
             </div>
           </div>
 
-          <!-- Error (exception): the request itself failed, so there is no verdict. -->
+          <!-- Error (exception): the request itself failed, so there is no
+               verdict. Inserted after the click, so announced like the failed
+               verdict above (role="alert"). -->
           <div
             v-else-if="diagnosticsError"
             data-testid="sso-diagnostics-error"
+            role="alert"
+            aria-live="assertive"
             class="rounded-md bg-red-50 p-4 dark:bg-red-900/20">
             <div class="flex">
               <OIcon

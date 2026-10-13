@@ -976,6 +976,14 @@ describe('DomainSsoConfigForm', () => {
       expect(alert.text()).toBe('Failed to check the saved configuration');
     });
 
+    it('announces the transport error like the failed verdict (role=alert, assertive)', async () => {
+      wrapper = await savedMount({ diagnosticsError: 'Failed to check the saved configuration' });
+
+      const alert = wrapper.find('[data-testid="sso-diagnostics-error"]');
+      expect(alert.attributes('role')).toBe('alert');
+      expect(alert.attributes('aria-live')).toBe('assertive');
+    });
+
     it('does not render a result block until a run happened', async () => {
       wrapper = await savedMount();
 

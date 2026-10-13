@@ -1891,6 +1891,101 @@ describe('useSsoConfig', () => {
       expect(composable.diagnosticsError.value).toBe('');
     });
 
+    // Save and delete are not blocked while a run is in flight (Copilot,
+    // PR #4773): a late response must not repopulate a result for a record
+    // that was replaced or removed while the probe ran.
+    describe('a response that lands after the saved record changed', () => {
+      const deferredRun = () => {
+        let settle!: { resolve: (value: unknown) => void; reject: (reason: unknown) => void };
+        mockRunDiagnosticsForDomain.mockImplementation(
+          () =>
+            new Promise((resolve, reject) => {
+              settle = { resolve, reject };
+            })
+        );
+        return () => settle;
+      };
+
+      it('is dropped when the record was saved while the run was in flight', async () => {
+        mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
+        const settle = deferredRun();
+        const composable = useSsoConfig('dm-ext-123');
+        await composable.initialize();
+
+        const pending = composable.runDiagnostics();
+        await composable.saveConfig();
+        mockNotificationsShow.mockClear();
+        settle().resolve(mockDiagnosticsPassed);
+        await pending;
+
+        expect(composable.diagnosticsResult.value).toBeNull();
+        expect(composable.diagnosticsError.value).toBe('');
+        expect(composable.isDiagnosing.value).toBe(false);
+        expect(mockNotificationsShow).not.toHaveBeenCalled();
+      });
+
+      it('is dropped when the record was deleted while the run was in flight', async () => {
+        mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
+        const settle = deferredRun();
+        const composable = useSsoConfig('dm-ext-123');
+        await composable.initialize();
+
+        const pending = composable.runDiagnostics();
+        await composable.deleteConfig();
+        settle().resolve(mockDiagnosticsFailed);
+        await pending;
+
+        expect(composable.diagnosticsResult.value).toBeNull();
+        expect(composable.isConfigured.value).toBe(false);
+        expect(composable.isDiagnosing.value).toBe(false);
+      });
+
+      it('drops a late transport failure too, so no error is shown for the old record', async () => {
+        mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
+        const settle = deferredRun();
+        const composable = useSsoConfig('dm-ext-123');
+        await composable.initialize();
+
+        const pending = composable.runDiagnostics();
+        await composable.saveConfig();
+        settle().reject(new Error('Network error'));
+        await pending;
+
+        expect(composable.diagnosticsError.value).toBe('');
+        expect(composable.diagnosticsResult.value).toBeNull();
+        expect(composable.isDiagnosing.value).toBe(false);
+      });
+
+      it('keeps a response when nothing changed the record while the run was in flight', async () => {
+        mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
+        const settle = deferredRun();
+        const composable = useSsoConfig('dm-ext-123');
+        await composable.initialize();
+
+        const pending = composable.runDiagnostics();
+        composable.formState.value = { ...composable.formState.value, tenant_id: 'edited' };
+        settle().resolve(mockDiagnosticsPassed);
+        await pending;
+
+        expect(composable.diagnosticsResult.value).toEqual(mockDiagnosticsPassed);
+      });
+
+      it('refuses a second run while one is in flight', async () => {
+        mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
+        const settle = deferredRun();
+        const composable = useSsoConfig('dm-ext-123');
+        await composable.initialize();
+
+        const pending = composable.runDiagnostics();
+        await composable.runDiagnostics();
+        settle().resolve(mockDiagnosticsPassed);
+        await pending;
+
+        expect(mockRunDiagnosticsForDomain).toHaveBeenCalledTimes(1);
+        expect(composable.diagnosticsResult.value).toEqual(mockDiagnosticsPassed);
+      });
+    });
+
     it('disableConfig refuses while diagnostics are in flight', async () => {
       mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
       mockRunDiagnosticsForDomain.mockImplementation(() => new Promise(() => {}));
