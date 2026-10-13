@@ -6,6 +6,7 @@ import { useAuthStore } from '@/shared/stores/authStore';
 import { setupTestPinia } from '../setup';
 import QRCode from 'qrcode';
 import type AxiosMockAdapter from 'axios-mock-adapter';
+import { captureAppLogs, captureConsole } from '@/tests/utils/appLogs';
 
 // Mock QR code generation
 vi.mock('qrcode', () => ({
@@ -27,6 +28,9 @@ describe('useMfa', () => {
   beforeEach(async () => {
     const setup = await setupTestPinia();
     axiosMock = setup.axiosMock!;
+    // The error-path tests fail on purpose; useAsyncHandler logs each failure
+    // (useAsyncHandler.spec covers that).
+    captureAppLogs();
   });
 
   afterEach(() => {
@@ -163,12 +167,16 @@ describe('useMfa', () => {
         otp_setup: 'hmac_secret',
         otp_raw_secret: 'JBSWY3DPEHPK3PXP',
       });
+      const consoleError = captureConsole('error');
 
       const { setupMfa, error } = useMfa();
       const result = await setupMfa();
 
       expect(result).toBeNull();
       expect(error.value).toBe('web.auth.security.internal_error');
+      expect(consoleError).toHaveBeenCalledWith(
+        '[mfaHelpers] otp-setup response is missing provisioning_uri; cannot render QR code'
+      );
     });
 
     it('surfaces an error when a 200 setup response omits provisioning_uri', async () => {
@@ -181,6 +189,7 @@ describe('useMfa', () => {
         otp_raw_secret: 'JBSWY3DPEHPK3PXP',
       });
 
+      const consoleError = captureConsole('error');
       const { setupMfa, setupData, error } = useMfa();
       const result = await setupMfa();
 
@@ -188,6 +197,9 @@ describe('useMfa', () => {
       expect(setupData.value).toBeNull();
       expect(error.value).toBe('web.auth.security.internal_error');
       expect(QRCode.toDataURL).not.toHaveBeenCalled();
+      expect(consoleError).toHaveBeenCalledWith(
+        '[mfaHelpers] otp-setup response is missing provisioning_uri; cannot render QR code'
+      );
     });
 
     it('renders the QR on a 200 setup response that includes provisioning_uri', async () => {

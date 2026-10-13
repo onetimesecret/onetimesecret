@@ -60,5 +60,3 @@ Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
   writable: true,
 });
-
-console.log('Window state initialized in setup-env.js');
