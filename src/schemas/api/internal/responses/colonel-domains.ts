@@ -115,6 +115,10 @@ export const colonelDomainDetailRecordSchema = z.object({
   // DNS ownership-validation record the operator must publish.
   txt_validation_host: z.string().nullable().optional(),
   txt_validation_value: z.string().nullable().optional(),
+  // Full TXT record name in A-label form (what the server queries), and the
+  // same name spelled like display_domain. Null before a challenge exists.
+  txt_validation_record: z.string().nullable().optional(),
+  txt_validation_record_display: z.string().nullable().optional(),
   // Owning organization identity (present on the colonel dump). The console
   // links by org_extid; org_id is the internal id and never goes in a URL.
   org_id: z.string().nullable().optional(),

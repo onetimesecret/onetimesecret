@@ -21,6 +21,8 @@ export const CUSTOM_DOMAIN_SAFE_DUMP_FIELDS = [
   'is_apex',
   'txt_validation_host',
   'txt_validation_value',
+  'txt_validation_record',
+  'txt_validation_record_display',
   'brand',
   'icon',
   'status',
