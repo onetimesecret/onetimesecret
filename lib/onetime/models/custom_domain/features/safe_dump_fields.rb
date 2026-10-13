@@ -21,6 +21,16 @@ module Onetime::CustomDomain::Features
       obj.instance_variable_get(:@_incoming_config_cache)
     end
 
+    # The full TXT record name to create, in A-label form: the name the
+    # validation strategies query (CustomDomain#validation_record). nil
+    # until a challenge is generated, or when the stored name has no
+    # A-label form, so a dump never raises over it.
+    def self.txt_validation_record(obj)
+      obj.validation_record
+    rescue Onetime::DomainValidation::AsciiHostname::ConversionError
+      nil
+    end
+
     def self.included(base)
       base.feature :safe_dump
 
@@ -37,6 +47,11 @@ module Onetime::CustomDomain::Features
       base.safe_dump_field :is_apex, ->(obj) { obj.apex? }
       base.safe_dump_field :txt_validation_host
       base.safe_dump_field :txt_validation_value
+      base.safe_dump_field :txt_validation_record,
+        ->(obj) { Onetime::CustomDomain::Features::SafeDump.txt_validation_record(obj) }
+      # The same name spelled like display_domain, to show beside
+      # txt_validation_record when they differ (an internationalised name).
+      base.safe_dump_field :txt_validation_record_display, ->(obj) { obj.validation_record_display }
       base.safe_dump_field :brand, ->(obj) { obj.brand_settings.to_h } # until we can call obj.brand.to_h
       # NOTE: We don't include brand images here b/c they create huge payloads
       # that we want to avoid unless we are actually going to use it.

@@ -123,6 +123,50 @@ RSpec.describe Onetime::CustomDomain, 'TXT validation record' do
     end
   end
 
+  describe '#validation_record_display' do
+    it 'spells the record name like the display domain' do
+      domain = described_class.parse('bücher.example.com', org_id)
+      domain.generate_txt_validation_record
+
+      expect(domain.validation_record_display).to eq("_onetime-challenge-#{shortid(domain)}.bücher.example.com")
+    end
+
+    it 'is nil before a challenge is generated' do
+      expect(described_class.new(display_domain: 'bücher.example.com', org_id: org_id).validation_record_display).to be_nil
+    end
+  end
+
+  # The fields the UI shows for the TXT record. txt_validation_host stays
+  # relative to base_domain, which keeps its typed spelling, so the full
+  # name comes from the backend in both spellings.
+  describe 'safe_dump TXT record fields' do
+    let(:txt_fields) { %i[txt_validation_host txt_validation_record txt_validation_record_display] }
+
+    it 'carries the A-label record name and its display spelling' do
+      domain = described_class.parse('bücher.example.com', org_id)
+      domain.generate_txt_validation_record
+
+      expect(domain.safe_dump.slice(*txt_fields)).to eq(
+        txt_validation_host: "_onetime-challenge-#{shortid(domain)}.xn--bcher-kva",
+        txt_validation_record: "_onetime-challenge-#{shortid(domain)}.xn--bcher-kva.example.com",
+        txt_validation_record_display: "_onetime-challenge-#{shortid(domain)}.bücher.example.com",
+      )
+    end
+
+    it 'is nil for the record name when the stored name has no A-label form' do
+      domain                     = described_class.new(display_domain: 'bücher.example.com', org_id: org_id)
+      domain.txt_validation_host = "_onetime-challenge-abc1234.#{'ü' * 70}"
+
+      expect(domain.safe_dump[:txt_validation_record]).to be_nil
+    end
+
+    it 'is nil for both names before a challenge is generated' do
+      domain = described_class.new(display_domain: 'example.com', org_id: org_id)
+
+      expect(domain.safe_dump.slice(*txt_fields).values).to eq([nil, nil, nil])
+    end
+  end
+
   describe '.create! with a Unicode subdomain', :datastore do
     let(:suffix) { SecureRandom.hex(4) }
     let(:name) { "bücher.txt-record-#{suffix}.com" }
