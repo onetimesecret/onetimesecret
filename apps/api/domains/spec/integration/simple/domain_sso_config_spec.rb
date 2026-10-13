@@ -506,8 +506,8 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
             expect(serialized).not_to include(value)
           end
           stored = Onetime::CustomDomain::SsoConfig.find_by_domain_id(test_custom_domain.identifier)
-          expect(stored.client_id.reveal).to eq(credentials[:client_id])
-          expect(stored.client_secret.reveal).to eq(credentials[:client_secret])
+          expect(stored.client_id.reveal { it }).to eq(credentials[:client_id])
+          expect(stored.client_secret.reveal { it }).to eq(credentials[:client_secret])
         end
 
         it 'emits creation and enabled events, but no replacement event for a new config' do
