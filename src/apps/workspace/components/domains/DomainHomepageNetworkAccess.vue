@@ -22,10 +22,12 @@
    * Signed-in members and the management pages are never gated by these
    * rules, so an operator cannot lock themselves out of fixing a list.
    *
-   * The rules are a plan feature (homepage_network_rules). Without it the
-   * editor is `locked`: stored rules, which stay enforced after a
-   * downgrade, render read-only, and the parent supplies the upgrade link
-   * through the `upgrade` slot.
+   * Editing needs the install-wide flag (ORGS_HOMEPAGE_NETWORK_RULES_ENABLED)
+   * and the plan feature (homepage_network_rules). Without either the parent
+   * sets `lockReason`: stored rules, which stay enforced after a downgrade
+   * or with the flag off, render read-only. For a 'plan' lock the parent
+   * supplies the upgrade link through the `upgrade` slot; an 'instance'
+   * lock has nothing to upgrade.
    */
   import { computed, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
@@ -47,14 +49,17 @@
     disabled?: boolean;
     /** A save of these rules is in flight. */
     saving?: boolean;
-    /** The organization's plan does not include network rules. */
-    locked?: boolean;
+    /**
+     * Why the rules are read-only: 'plan' (the organization's plan lacks
+     * network rules) or 'instance' (the install-wide flag is off).
+     */
+    lockReason?: 'plan' | 'instance' | null;
   }
 
   const props = withDefaults(defineProps<Props>(), {
     disabled: false,
     saving: false,
-    locked: false,
+    lockReason: null,
   });
 
   const emit = defineEmits<{
@@ -145,8 +150,17 @@
 
   const restricted = computed(() => allowed.value.length > 0 || denied.value.length > 0);
 
+  const locked = computed(() => props.lockReason !== null);
+
+  const lockedNote = computed(() => {
+    if (props.lockReason === 'instance') return t('web.domains.homepage.network_instance_locked_note');
+    return restricted.value
+      ? t('web.domains.homepage.network_locked_enforced_note')
+      : t('web.domains.homepage.network_locked_note');
+  });
+
   const save = () => {
-    if (!isDirty.value || props.disabled || props.saving || props.locked) return;
+    if (!isDirty.value || props.disabled || props.saving || locked.value) return;
     emit('save', { allowed_cidrs: allowed.value, denied_cidrs: denied.value });
   };
 
@@ -290,12 +304,10 @@
         v-if="locked"
         class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500 dark:text-gray-400"
         data-testid="homepage-network-locked">
-        {{
-          restricted
-            ? t('web.domains.homepage.network_locked_enforced_note')
-            : t('web.domains.homepage.network_locked_note')
-        }}
-        <slot name="upgrade"></slot>
+        {{ lockedNote }}
+        <slot
+          v-if="lockReason === 'plan'"
+          name="upgrade"></slot>
       </p>
       <p
         v-else

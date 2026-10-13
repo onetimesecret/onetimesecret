@@ -69,6 +69,11 @@
     "context": "Returned by PUT /api/domains/:extid/homepage-config and the colonel homepage config upsert when allowed_cidrs or denied_cidrs holds more than HomepageConfig::MAX_CIDRS distinct ranges",
     "content_hash": "faac87f8"
   },
+  "api.domains.errors.homepage_network_rules_disabled": {
+    "text": "Homepage network rules are not enabled on this installation",
+    "context": "Returned by PUT /api/domains/:extid/homepage-config (field allowed_cidrs / denied_cidrs) when either list is sent while features.organizations.homepage_network_rules_enabled (ORGS_HOMEPAGE_NETWORK_RULES_ENABLED) is off",
+    "content_hash": "b5a26c48"
+  },
   "api.domains.errors.related_origins_invalid": {
     "text": "Not a valid origin: %{origins}. Enter the scheme and host, for example https://vault.example.com",
     "context": "Returned by PUT /api/colonel/domains/:extid/configs/signin (field related_origins) when an entry is not an absolute http(s)://host[:port] origin. %{origins} is the refused entry as typed",

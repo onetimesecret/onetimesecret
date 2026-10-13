@@ -71,9 +71,12 @@ vi.mock('@/shared/stores/organizationStore', () => ({
   }),
 }));
 
+const mockNetworkRulesEnabled = vi.fn(() => true);
+
 vi.mock('@/utils/features', () => ({
   isDomainOwnershipChecked: () => false,
   isOrgsCustomMailEnabled: () => false,
+  isOrgsHomepageNetworkRulesEnabled: () => mockNetworkRulesEnabled(),
   isOrgsIncomingSecretsEnabled: () => true,
 }));
 
@@ -271,7 +274,7 @@ describe('DomainDetail - unsaved network rules', () => {
   });
 });
 
-describe('DomainDetail - network rules entitlement', () => {
+describe('DomainDetail - network rules flag and entitlement', () => {
   beforeEach(() => {
     mockDomain.value = {
       extid: 'dm-test-extid',
@@ -287,6 +290,7 @@ describe('DomainDetail - network rules entitlement', () => {
 
   afterEach(() => {
     mockCan.mockImplementation(() => true);
+    mockNetworkRulesEnabled.mockImplementation(() => true);
   });
 
   it('locks the editor when the plan lacks homepage_network_rules', async () => {
@@ -295,7 +299,7 @@ describe('DomainDetail - network rules entitlement', () => {
     await flushPromises();
 
     const editor = wrapper.findComponent({ name: 'DomainHomepageNetworkAccess' });
-    expect(editor.props('locked')).toBe(true);
+    expect(editor.props('lockReason')).toBe('plan');
     // Stored rules stay enforced after a downgrade, so the badge stays too.
     expect(wrapper.find('[data-testid="homepage-network-badge"]').exists()).toBe(true);
   });
@@ -305,6 +309,30 @@ describe('DomainDetail - network rules entitlement', () => {
     await flushPromises();
 
     const editor = wrapper.findComponent({ name: 'DomainHomepageNetworkAccess' });
-    expect(editor.props('locked')).toBe(false);
+    expect(editor.props('lockReason')).toBeNull();
+  });
+
+  it('locks stored rules by instance when the platform flag is off, whatever the plan', async () => {
+    mockNetworkRulesEnabled.mockImplementation(() => false);
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    const editor = wrapper.findComponent({ name: 'DomainHomepageNetworkAccess' });
+    expect(editor.props('lockReason')).toBe('instance');
+    // The flag stops edits only; the stored rules are still enforced.
+    expect(wrapper.find('[data-testid="homepage-network-badge"]').exists()).toBe(true);
+  });
+
+  it('hides the editor when the platform flag is off and no rules are stored', async () => {
+    mockNetworkRulesEnabled.mockImplementation(() => false);
+    mockDomain.value = {
+      extid: 'dm-test-extid',
+      homepage_config: { enabled: true, secrets_mode: 'create', allowed_cidrs: [], denied_cidrs: [] },
+      incoming_ready: false,
+    };
+    const wrapper = mountDetail();
+    await flushPromises();
+
+    expect(wrapper.findComponent({ name: 'DomainHomepageNetworkAccess' }).exists()).toBe(false);
   });
 });

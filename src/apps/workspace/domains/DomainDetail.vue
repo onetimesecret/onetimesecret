@@ -28,6 +28,7 @@ import { ENTITLEMENTS } from '@/types/organization';
 import {
   isDomainOwnershipChecked,
   isOrgsCustomMailEnabled,
+  isOrgsHomepageNetworkRulesEnabled,
   isOrgsIncomingSecretsEnabled,
 } from '@/utils/features';
 import { storeToRefs } from 'pinia';
@@ -183,6 +184,19 @@ const homepageDeniedCidrs = computed<string[]>(
 );
 const homepageNetworkRestricted = computed(
   () => homepageAllowedCidrs.value.length > 0 || homepageDeniedCidrs.value.length > 0
+);
+/**
+ * Why the network editor is read-only, if it is. The install-wide flag
+ * comes first: with it off there is no plan to upgrade to. Either way,
+ * stored rules stay enforced and are shown.
+ */
+const homepageNetworkLockReason = computed<'plan' | 'instance' | null>(() => {
+  if (!isOrgsHomepageNetworkRulesEnabled()) return 'instance';
+  return canHomepageNetwork.value ? null : 'plan';
+});
+/** With the flag off, the editor only appears to show rules still enforced. */
+const showHomepageNetwork = computed(
+  () => homepageNetworkLockReason.value !== 'instance' || homepageNetworkRestricted.value
 );
 const homepageNetworkSaving = ref(false);
 /** The network editor holds staged, unsaved list edits. */
@@ -424,12 +438,13 @@ onMounted(() => {
 
               <!-- Network rules apply to whichever interactive experience is selected -->
               <DomainHomepageNetworkAccess
+                v-if="showHomepageNetwork"
                 class="mt-5 border-t border-gray-100 pt-4 dark:border-gray-700/50"
                 :allowed-cidrs="homepageAllowedCidrs"
                 :denied-cidrs="homepageDeniedCidrs"
                 :disabled="domainLoading || homepageSaving || !canAdmin"
                 :saving="homepageNetworkSaving"
-                :locked="!canHomepageNetwork"
+                :lock-reason="homepageNetworkLockReason"
                 @save="handleHomepageNetworkSave"
                 @update:dirty="homepageNetworkDirty = $event">
                 <template #upgrade>

@@ -1230,6 +1230,12 @@ features:
     sso_enabled: <%= ENV['ORGS_SSO_ENABLED'] == 'true' %>  # Since v0.25.0
     custom_mail_enabled: <%= ENV['ORGS_CUSTOM_MAIL_ENABLED'] == 'true' %>  # Since v0.25.0
     incoming_secrets_enabled: <%= ENV['ORGS_INCOMING_SECRETS_ENABLED'] == 'true' %>  # Since v0.25.0
+    # Lets organizations with the homepage_network_rules entitlement edit
+    # their custom domains' homepage network rules (allowed/denied CIDRs).
+    # Default OFF. Turning it off stops edits only: rules already stored
+    # stay enforced, the same as after a plan downgrade, so the switch never
+    # opens a homepage a tenant restricted.
+    homepage_network_rules_enabled: <%= ENV['ORGS_HOMEPAGE_NETWORK_RULES_ENABLED'] == 'true' %>  # Since v0.26.15
     # Gates exposure (UI + list API) of the organization secret-activity
     # trail; pairs with the `audit_logs` entitlement. Defaults ON, unlike
     # the sibling flags above, because the trail ships working out of the

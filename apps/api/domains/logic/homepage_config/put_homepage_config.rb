@@ -47,9 +47,10 @@ module DomainsAPI
       #   from anonymous secret creation, exactly like a disabled homepage.
       #   Signed-in members and the management pages are never affected, so
       #   an operator cannot lock themselves out of fixing a list.
-      #   Sending either list requires the homepage_network_rules entitlement
-      #   (Identity Plus) on top of homepage_secrets; see
-      #   #verify_network_rules_entitlement!.
+      #   Sending either list requires the platform flag
+      #   features.organizations.homepage_network_rules_enabled and the
+      #   homepage_network_rules entitlement (Identity Plus) on top of
+      #   homepage_secrets; see #verify_network_rules_allowed!.
       #
       class PutHomepageConfig < Base
         include Onetime::LoggerMethods
@@ -87,7 +88,7 @@ module DomainsAPI
           raise_form_error('enabled is required', field: :enabled, error_type: :missing) if params['enabled'].nil?
 
           validate_secrets_mode!
-          verify_network_rules_entitlement!
+          verify_network_rules_allowed!
           @allowed_cidrs = validate_cidr_list!(:allowed_cidrs, @allowed_cidrs)
           @denied_cidrs  = validate_cidr_list!(:denied_cidrs, @denied_cidrs)
         end
@@ -149,22 +150,35 @@ module DomainsAPI
 
         private
 
-        # Require the homepage_network_rules entitlement when a list is sent.
+        # Require the platform flag and the homepage_network_rules
+        # entitlement when a list is sent.
         #
-        # Network rules are a paid tier (homepage_network_rules, Identity
+        # The flag (ORGS_HOMEPAGE_NETWORK_RULES_ENABLED, default off) is the
+        # install-wide switch, checked first so an install without it never
+        # suggests an upgrade. Network rules are also a paid tier (homepage_network_rules, Identity
         # Plus) layered on homepage_secrets, which the free plan carries. Only
         # a request that sends a list needs it: the experience selector's
         # writes omit both lists and stay available on every plan.
         #
-        # Freeze, don't drop, on downgrade: stored rules keep being enforced
-        # (no per-request entitlement check on the anonymous paths, and
+        # Freeze, don't drop, on downgrade or with the flag off: stored rules
+        # keep being enforced (neither check runs on the anonymous paths, and
         # dropping them would widen access), while changing them, clearing
-        # included, needs the entitlement back. The draft AccessConfig spec
+        # included, needs both back. The draft AccessConfig spec
         # (docs/specs/domain-ip-allowlist) takes the same position for its
         # allowlist.
-        def verify_network_rules_entitlement!
+        def verify_network_rules_allowed!
           sent = { allowed_cidrs: @allowed_cidrs, denied_cidrs: @denied_cidrs }.compact
-          return if sent.empty? || @organization.can?('homepage_network_rules')
+          return if sent.empty?
+
+          unless OT.conf.dig('features', 'organizations', 'homepage_network_rules_enabled')
+            raise_form_error(
+              'Homepage network rules are not enabled on this installation',
+              error_key: 'api.domains.errors.homepage_network_rules_disabled',
+              field: sent.keys.first,
+              error_type: :forbidden,
+            )
+          end
+          return if @organization.can?('homepage_network_rules')
 
           raise_form_error(
             'Homepage network rules require the homepage_network_rules entitlement. Please upgrade your plan.',

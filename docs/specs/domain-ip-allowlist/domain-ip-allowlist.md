@@ -566,6 +566,11 @@ Keep them consistent where they meet:
   only narrow what it admits.
 - Downgrade: both freeze rather than drop. Stored lists stay enforced, and
   changing them needs the entitlement again.
+- Platform switch: the homepage rules have one,
+  `features.organizations.homepage_network_rules_enabled`
+  (`ORGS_HOMEPAGE_NETWORK_RULES_ENABLED`, default off), with the same freeze:
+  off stops edits, never enforcement. If AccessConfig gets a switch, it
+  should behave the same way.
 - UI: show both on the domain page, each labeled by the question it
   answers.
 

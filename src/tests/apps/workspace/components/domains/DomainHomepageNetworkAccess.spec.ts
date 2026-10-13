@@ -115,8 +115,8 @@ describe('DomainHomepageNetworkAccess', () => {
     expect(wrapper.emitted('update:dirty')).toEqual([[true], [false]]);
   });
 
-  it('offers only the upgrade link when locked without rules', () => {
-    const wrapper = mountEditor({ locked: true });
+  it('offers only the upgrade link when locked by plan without rules', () => {
+    const wrapper = mountEditor({ lockReason: 'plan' });
 
     expect(wrapper.find('input').exists()).toBe(false);
     expect(wrapper.find('[data-testid="homepage-network-allowed"]').exists()).toBe(false);
@@ -126,10 +126,10 @@ describe('DomainHomepageNetworkAccess', () => {
     expect(wrapper.find('[data-testid="upgrade-link"]').exists()).toBe(true);
   });
 
-  it('shows enforced rules read-only when locked', () => {
+  it('shows enforced rules read-only when locked by plan', () => {
     // A downgrade freezes the lists rather than dropping them: they stay
     // enforced, so the operator must still see them, but cannot edit them.
-    const wrapper = mountEditor({ locked: true, allowedCidrs: ['10.0.0.0/8'] });
+    const wrapper = mountEditor({ lockReason: 'plan', allowedCidrs: ['10.0.0.0/8'] });
 
     expect(allowedChips(wrapper)).toEqual(['10.0.0.0/8']);
     expect(wrapper.find('[data-testid="homepage-network-allowed"] button').exists()).toBe(false);
@@ -138,6 +138,22 @@ describe('DomainHomepageNetworkAccess', () => {
     expect(wrapper.find('[data-testid="homepage-network-locked"]').text()).toContain(
       'web.domains.homepage.network_locked_enforced_note'
     );
+  });
+
+  it('shows enforced rules read-only, with no upgrade link, when the instance flag is off', () => {
+    // The flag freezes stored lists the same way a downgrade does, but a plan
+    // change would not unlock them, so the upgrade slot is not rendered.
+    const wrapper = mountEditor({ lockReason: 'instance', deniedCidrs: ['192.0.2.0/24'] });
+
+    expect(wrapper.find('[data-testid="homepage-network-denied"]').text()).toContain(
+      '192.0.2.0/24'
+    );
+    expect(wrapper.find('[data-testid="homepage-network-denied"] button').exists()).toBe(false);
+    expect(wrapper.find('input').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="homepage-network-locked"]').text()).toContain(
+      'web.domains.homepage.network_instance_locked_note'
+    );
+    expect(wrapper.find('[data-testid="upgrade-link"]').exists()).toBe(false);
   });
 
   it('refuses an entry that is not address-shaped', async () => {

@@ -52,12 +52,34 @@ def create_strategy_with_domain(customer, domain_fqdn, domain_strategy: :custom)
   )
 end
 
-def run_put(customer, domain, params)
+# The platform flag (ORGS_HOMEPAGE_NETWORK_RULES_ENABLED) ships off, as it
+# is in the test config. Writes here run with it on unless a case says not.
+def with_network_rules_flag(enabled)
+  original_conf = OT.conf
+  test_conf = Onetime::Config.deep_clone(original_conf)
+  test_conf['features'] ||= {}
+  test_conf['features']['organizations'] ||= {}
+  test_conf['features']['organizations']['homepage_network_rules_enabled'] = enabled
+  OT.instance_variable_set(:@conf, test_conf)
+  yield
+ensure
+  OT.instance_variable_set(:@conf, original_conf)
+end
+
+def run_put(customer, domain, params, network_rules_enabled: true)
   strategy = create_strategy_with_domain(customer, domain.display_domain)
   logic = PutHomepageConfig.new(strategy, params.merge('extid' => domain.extid))
-  logic.process_params
-  logic.raise_concerns
-  logic.process
+  with_network_rules_flag(network_rules_enabled) do
+    logic.process_params
+    logic.raise_concerns
+    logic.process
+  end
+end
+
+# Stand-in for env['otto.ip_match']: membership of ONE client IP.
+def matcher_for(ip)
+  addr = IPAddr.new(ip)
+  ->(ranges) { ranges.any? { |range| range.family == addr.family && range.include?(addr) } }
 end
 
 def run_get(customer, domain)
@@ -158,6 +180,33 @@ end
 exactly = (0...HomepageConfig::MAX_CIDRS).map { |i| "10.#{i / 256}.#{i % 256}.0/24" }
 run_put(@test_cust, @test_domain, { 'enabled' => true, 'allowed_cidrs' => exactly })[:record][:allowed_cidrs].length
 #=> HomepageConfig::MAX_CIDRS
+
+# --- PUT: platform flag (features.organizations.homepage_network_rules_enabled) ---
+
+## The test config leaves the flag off, the shipped default
+OT.conf.dig('features', 'organizations', 'homepage_network_rules_enabled')
+#=> false
+
+## With the flag off, sending a list is a forbidden error on that field, clearing included
+begin
+  run_put(@test_cust, @test_domain, { 'enabled' => true, 'denied_cidrs' => [] }, network_rules_enabled: false)
+  :no_raise
+rescue Onetime::FormError => ex
+  [ex.field.to_s, ex.error_key, ex.error_type]
+end
+#=> ['denied_cidrs', 'api.domains.errors.homepage_network_rules_disabled', :forbidden]
+
+## With the flag off, the experience selector's write still works and the lists are untouched
+record = run_put(@test_cust, @test_domain, { 'enabled' => true, 'secrets_mode' => 'create' }, network_rules_enabled: false)[:record]
+[record[:allowed_cidrs].length, record[:denied_cidrs]]
+#=> [HomepageConfig::MAX_CIDRS, ['192.168.0.0/16']]
+
+## With the flag off, the stored rules still decide who may use the homepage (edits stop, enforcement does not)
+cfg = HomepageConfig.find_by_domain_id(@test_domain.identifier)
+with_network_rules_flag(false) do
+  [cfg.network_allowed?(matcher_for('10.0.0.9')), cfg.network_allowed?(matcher_for('192.168.1.1')), cfg.network_allowed?(matcher_for('198.51.100.1'))]
+end
+#=> [true, false, false]
 
 # --- PUT: plan gating (homepage_network_rules) ---
 #

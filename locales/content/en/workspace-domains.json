@@ -1790,6 +1790,11 @@
     "context": "Shown under read-only homepage network rules when rules exist but the organization's plan no longer includes them",
     "content_hash": "ea40c784"
   },
+  "web.domains.homepage.network_instance_locked_note": {
+    "text": "These rules are still enforced but can't be changed on this installation.",
+    "context": "Shown under read-only homepage network rules when rules exist but the installation has network rules turned off (ORGS_HOMEPAGE_NETWORK_RULES_ENABLED=false). There is no upgrade link: a plan change would not help",
+    "content_hash": "ed50e3ba"
+  },
   "web.domains.homepage.status_network_restricted": {
     "text": "Network restricted",
     "context": "Badge on the domain detail Homepage row when allowed or denied networks are configured",

@@ -24,6 +24,7 @@ import {
   isOrganizationSwitcherEnabled,
   isOrgsAuditLogsEnabled,
   isOrgsCustomMailEnabled,
+  isOrgsHomepageNetworkRulesEnabled,
   isOrgsIncomingSecretsEnabled,
   isOrgsSsoEnabled,
   isSamlEnabled,
@@ -1157,6 +1158,45 @@ describe('features utility', () => {
       const result = isOrgsCustomMailEnabled();
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe('isOrgsHomepageNetworkRulesEnabled', () => {
+    it('returns true when organizations.homepage_network_rules_enabled is true', () => {
+      getBootstrapValueMock.mockReturnValue({
+        organizations: { homepage_network_rules_enabled: true },
+      });
+
+      expect(isOrgsHomepageNetworkRulesEnabled()).toBe(true);
+      expect(getBootstrapValueMock).toHaveBeenCalledWith('features');
+    });
+
+    it('returns false when organizations.homepage_network_rules_enabled is false', () => {
+      getBootstrapValueMock.mockReturnValue({
+        organizations: { homepage_network_rules_enabled: false },
+      });
+
+      expect(isOrgsHomepageNetworkRulesEnabled()).toBe(false);
+    });
+
+    it('returns false when the key is absent (older backends)', () => {
+      getBootstrapValueMock.mockReturnValue({ organizations: {} });
+
+      expect(isOrgsHomepageNetworkRulesEnabled()).toBe(false);
+    });
+
+    it('returns false when features object is undefined', () => {
+      getBootstrapValueMock.mockReturnValue(undefined);
+
+      expect(isOrgsHomepageNetworkRulesEnabled()).toBe(false);
+    });
+
+    it('returns false when the flag is truthy but not exactly true', () => {
+      getBootstrapValueMock.mockReturnValue({
+        organizations: { homepage_network_rules_enabled: 'yes' },
+      });
+
+      expect(isOrgsHomepageNetworkRulesEnabled()).toBe(false);
     });
   });
 
