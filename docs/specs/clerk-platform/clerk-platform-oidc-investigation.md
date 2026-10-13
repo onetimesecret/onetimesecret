@@ -4,7 +4,7 @@ Related scope: [Clerk platform OIDC compatibility spike](clerk-platform-oidc.md)
 
 ## Status
 
-**Live checks complete for a Clerk development instance (2026-10-12).** Outcome, as this investigation's interpretation: configuration-only compatibility, with one setting beyond the generic OIDC variables (CLERK-07); see [Assessment](#assessment). No production-support claim is established. No application code or installed dependencies were changed. The local configuration added for the live run is listed under [Live sign-in results](#live-sign-in-results-2026-10-12).
+**Live checks complete for a Clerk development instance (2026-10-12).** Outcome, as this investigation's interpretation: configuration-only compatibility, with one setting beyond the generic OIDC variables (CLERK-07); see [Assessment](#assessment). No production-support claim is established. The live run changed no application code or installed dependencies. `OIDC_CLIENT_AUTH_METHOD`, which reached `main` after the run, is covered from source only; see [Later change: token-endpoint authentication method](#later-change-token-endpoint-authentication-method). The local configuration added for the live run is listed under [Live sign-in results](#live-sign-in-results-2026-10-12).
 
 Source inspection baseline: `fba1dd2623c299a5f0bd4c02952269b6f1991a8c`, 2026-10-12.
 
@@ -22,7 +22,7 @@ The findings began as source and documentation observations. Dispositions that s
 | --- | --- | --- |
 | CLERK-01 | OTS and its OIDC strategy request `/.well-known/openid-configuration`. Clerk documents `/.well-known/oauth-authorization-server`; its sample also omits `userinfo_endpoint`, which the strategy needs for UserInfo. | **Resolved by live discovery (see below):** the instance serves `/.well-known/openid-configuration` (HTTP 200, no redirect) including `userinfo_endpoint`. The installed gem's discovery and the OTS discovery fetcher both accept it. No fallback needed. |
 | CLERK-02 | Configured issuer, discovery issuer and token issuer are checked for exact agreement. | **Discovery-level match observed:** the advertised issuer has no trailing slash; configured exactly, it matches in both the gem and `DiscoveryIssuer`, and the trailing-slash form is rejected by both. In the ID-token probe, the token's `iss` passed the strategy's exact-issuer `verify!`. |
-| CLERK-03 | The strategy defaults to HTTP Basic client authentication; omitting a client secret does not select authentication method `none`. Clerk's metadata example advertises `client_secret_basic` and `none`. | **Spike scope:** use a confidential OAuth application with client ID and secret. The instance advertises `client_secret_basic`, `client_secret_post` and `none`, so the strategy default is advertised. Token exchange with `client_secret_basic` was observed live. Public-client compatibility was not attempted. |
+| CLERK-03 | The strategy defaults to HTTP Basic client authentication; omitting a client secret does not select authentication method `none`. Clerk's metadata example advertises `client_secret_basic` and `none`. | **Spike scope:** use a confidential OAuth application with client ID and secret. The instance advertises `client_secret_basic`, `client_secret_post` and `none`, so the strategy default is advertised. Token exchange with `client_secret_basic` was observed live. Public-client compatibility was not attempted. **Later change, not exercised live:** `OIDC_CLIENT_AUTH_METHOD` can now select `client_secret_post`, which Clerk also advertises. It has no `none` value; see [Later change: token-endpoint authentication method](#later-change-token-endpoint-authentication-method). |
 | CLERK-04 | The installed strategy generates S256 PKCE and a nonce. It also permits callback parameters to take precedence over stored nonce/verifier values, and skips ID-token verification if the response omits an ID token. State checking still applies. | **Partly resolved live:** a separate probe showed Clerk returns an ID token for `openid`, echoes the nonce, and passes the strategy's signature/`iss`/`aud`/`nonce` verification. Live negative checks also passed: `access_denied`, a cookie-less replay, and a foreign `state` on an authenticated session were all rejected without a new session. The strategy-level caveats (callback parameters take precedence over stored nonce/verifier; verification is skipped when no ID token is returned) are unchanged and were not exercised. No dependency patch made. |
 | CLERK-05 | The strategy merges UserInfo and ID-token claims, with ID-token claims taking precedence. Explicit false email verification differs from absent verification in OTS provisioning/linking logic. | **Claims consistent for one identity:** for a GitHub-sourced Clerk user, the ID token and UserInfo agree on `sub` and `email`, and both carry `email_verified: true` as a boolean. **Collision observed:** a Clerk-asserted email that matches a verified OTS account with a password is held at the password link interstitial, not auto-linked (see [Existing-email collision](#existing-email-collision)). Email auto-link trust stays disabled. Conflicting Clerk claims have not been observed. |
 | CLERK-07 | Live, Chrome: "Sign in with Clerk" stalls on "Redirecting to identity provider…". The page recorded an enforced `form-action` violation for the POST to `/auth/sso/oidc`. OTS adds only the issuer origin (`https://unified-parrot-698.clerk.accounts.dev`) to `form-action`. For a signed-out browser, Clerk's `/oauth/authorize` answers 302 to its hosted sign-in page at `https://unified-parrot-698.accounts.dev/sign-in`, a different origin. Chrome masks the cross-origin hop in the violation report, so naming it as the blocked hop is an inference from the observed redirect chain. | **Configuration constraint:** add the Account Portal origin with the existing `SSO_FORM_ACTION_ORIGINS` override (process-wide, read at boot). [per-install-sso.md](../../authentication/per-install-sso.md) scopes the override to "split-endpoint OIDC or a tenant discovery-availability fallback". Clerk's case differs: its authorization endpoint shares the issuer origin, and the following redirect leaves it. Applying the override here is an interpretation of its purpose. **Verified live:** after adding the override and restarting, the same click reached Clerk's sign-in page and the flow completed. |
@@ -233,16 +233,29 @@ The Clerk Frontend API/issuer URL and the OTS canonical browser origin are recor
 - Redirect URI matching the OTS canonical origin followed by `/auth/sso/oidc/callback` when retaining the default route name.
 - Client ID and secret supplied to the server through the operator's local secret/configuration mechanism, not committed or pasted into the investigation record.
 
-Relevant existing OTS settings are `AUTHENTICATION_MODE=full`, `AUTH_SSO_ENABLED=true`, `OIDC_ISSUER`, `OIDC_CLIENT_ID` and `OIDC_CLIENT_SECRET`. `OIDC_DISPLAY_NAME=Clerk` can label the provider without changing its route identity. `OIDC_TRUST_EMAIL_FOR_LINKING=false` preserves the conservative initial linking setup. `SSO_FORM_ACTION_ORIGINS` must include the Clerk Account Portal origin (`https://unified-parrot-698.accounts.dev` for this instance), or sign-in stalls for a signed-out browser (CLERK-07). These settings were applied to the operator's local, uncommitted environment for the live run; no committed configuration was changed.
+Relevant existing OTS settings are `AUTHENTICATION_MODE=full`, `AUTH_SSO_ENABLED=true`, `OIDC_ISSUER`, `OIDC_CLIENT_ID` and `OIDC_CLIENT_SECRET`. `OIDC_DISPLAY_NAME=Clerk` can label the provider without changing its route identity. `OIDC_TRUST_EMAIL_FOR_LINKING=false` preserves the conservative initial linking setup. `SSO_FORM_ACTION_ORIGINS` must include the Clerk Account Portal origin (`https://unified-parrot-698.accounts.dev` for this instance), or sign-in stalls for a signed-out browser (CLERK-07). These settings were applied to the operator's local, uncommitted environment for the live run; no committed configuration was changed. `OIDC_CLIENT_AUTH_METHOD`, added after the run, can stay unset for Clerk: unset keeps `client_secret_basic`, the method observed live.
 
 The default generic OIDC slot must be free in the test installation or explicitly allocated to this experiment. Existing generic OIDC configuration must not be silently overwritten. No organization/domain SSO switch is required merely to evaluate platform sign-in.
+
+## Later change: token-endpoint authentication method
+
+[#4770](https://github.com/onetimesecret/onetimesecret/pull/4770) merged into `main` @ `dfd1863285` after the live run. It adds `OIDC_CLIENT_AUTH_METHOD` to the platform OIDC slot. The live results above predate it and used the strategy default.
+
+From the source at that revision ([oidc.rb](../../../lib/onetime/sso_provider/oidc.rb): `CLIENT_AUTH_METHODS`, `env_client_auth_method`):
+
+- The accepted values are `client_secret_basic` (`Authorization: Basic` header) and `client_secret_post` (request body). Unset or blank keeps the strategy default, HTTP Basic, which is what the live run used.
+- An unknown value is logged at boot and treated as unset.
+- There is no `none` value, so a public Clerk client with no secret still cannot be configured through the platform slot. CLERK-03's confidential-client scope is unchanged.
+- The variable applies only to the platform provider. Custom-domain OIDC has its own per-domain setting and does not inherit it ([per-install-sso.md](../../authentication/per-install-sso.md)).
+
+For Clerk: the instance advertises `client_secret_basic`, `client_secret_post` and `none`. Leaving `OIDC_CLIENT_AUTH_METHOD` unset matches the observed configuration. Setting `client_secret_post` selects another advertised method, but no token exchange with it was run against Clerk. The option is not needed for Clerk and does not change the classification.
 
 ## Remaining acceptance evidence
 
 | Area | Status |
 | --- | --- |
 | Actual discovery endpoint, metadata and issuer | Observed live; compatible at discovery level |
-| Confidential-client token exchange and callback matching | Observed: `client_secret_basic` accepted; callback on the registered URI succeeded |
+| Confidential-client token exchange and callback matching | Observed: `client_secret_basic` accepted; callback on the registered URI succeeded. `client_secret_post`, selectable since #4770, not exercised |
 | ID-token signature/issuer/audience/nonce, UserInfo and subject agreement | Observed in a separate probe; not visible in OTS logs |
 | First login and workspace provisioning | Observed: account, identity, Customer and workspace created; session established |
 | Repeat login without duplicate identity | Observed: same account and identity; no new rows |
@@ -263,7 +276,7 @@ Acceptance criteria against the evidence:
 | Criterion | Result |
 | --- | --- |
 | 1. Instance, revision, dependencies, configuration, callback | Recorded: development instance, `main` @ `3c45bb6dd5`, the three gem versions, non-secret settings, registered redirect URI |
-| 2. Discovery, issuer, PKCE, client authentication, claims | Observed compatible. OTS sends S256 PKCE; whether Clerk rejects a missing or wrong verifier was not tested |
+| 2. Discovery, issuer, PKCE, client authentication, claims | Observed compatible. Client authentication observed with `client_secret_basic` only. OTS sends S256 PKCE; whether Clerk rejects a missing or wrong verifier was not tested |
 | 3. First and repeat login | Observed; no duplicate provisioning |
 | 4. Collision and explicit linking | Observed: collision held for a password link; explicit link via connect; trust for email linking disabled throughout |
 | 5. Cancellation, failed callbacks, state/nonce | Observed: `access_denied`, cookie-less replay and foreign `state` all end without a new session. A nonce mismatch through OTS was not exercised |
@@ -276,6 +289,7 @@ Limits of this result:
 - The first login used the operator's real GitHub-linked identity (see the deviation note).
 - Clerk grants `offline_access` and issues a refresh token although OTS requests neither; OTS does not use it. Removing `offline_access` from the application's scopes would avoid issuing unused refresh tokens.
 - After OTS logout, the Clerk session lets anyone at that browser sign back in with one consent click. OTS has no endpoint through which to end the Clerk session. Signing out of the Clerk dashboard does not sign out of the instance.
+- Client authentication: only `client_secret_basic` was exercised. `client_secret_post`, selectable since #4770, was not tested against Clerk, and a public client (`none`) still cannot be configured for the platform slot.
 - Not exercised: Clerk-side PKCE enforcement, a callback without an ID token, nonce mismatch, wrong password or **Cancel** at the link interstitial, the passwordless mailbox-proof link, `OIDC_TRUST_EMAIL_FOR_LINKING=true`, unlinking, and email change or user deletion at Clerk.
 
 OTS-side observations from the run, none specific to Clerk and none blocking: the shared state slot is not single-use under concurrent callbacks; generic OIDC screens name the provider "OpenID Connect" rather than the configured display name; and the generic OIDC button had no icon (fixed alongside this document).
