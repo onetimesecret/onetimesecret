@@ -109,6 +109,7 @@ module DomainsAPI
               # Update existing, re-read under WATCH (GuardedConfigWrites) so
               # omitted recipients keep a concurrent writer's list.
               model.update_for_domain!(@custom_domain.identifier) do |config|
+                config.created  ||= Familia.now.to_i # repair missing created from legacy records
                 config.enabled    = @enabled.to_s
                 # Only update recipients if explicitly provided in the request.
                 # This allows toggling enabled state without wiping recipients.
