@@ -612,8 +612,8 @@ onMounted(async () => {
         <div class="flex items-start gap-4">
           <div class="flex size-10 shrink-0 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-800">
             <OIcon
-              collection="heroicons"
-              name="star"
+              collection="mdi"
+              name="star-outline"
               class="size-6 text-amber-600 dark:text-amber-300"
               aria-hidden="true" />
           </div>

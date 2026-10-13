@@ -25,7 +25,7 @@
         title="Actions">
         <OIcon
           collection="heroicons"
-          name="ellipsis-vertical-20-solid"
+          name="solid-ellipsis-vertical"
           class="size-5" />
       </button>
     </template>
@@ -64,7 +64,7 @@
               ]">
               <OIcon
                 collection="heroicons"
-                name="link-20-solid"
+                name="link-solid"
                 class="mr-2 size-4 text-emerald-500 dark:text-emerald-400"
                 aria-hidden="true" />
               {{ t('web.receipt.open_link') }}

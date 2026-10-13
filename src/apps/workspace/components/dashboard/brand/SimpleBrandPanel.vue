@@ -202,8 +202,8 @@
           text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
         role="alert">
         <OIcon
-          collection="mdi"
-          name="alert"
+          collection="material-symbols"
+          name="warning"
           class="size-4 shrink-0" />
         <span class="whitespace-nowrap">
           {{ t('web.branding.low_contrast_warning') }}
