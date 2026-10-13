@@ -290,6 +290,9 @@ module DomainSsoTestFixtures
           identifier: anything,
           secret: anything,
         },
+        # Always present: nil is the gem default, and an omitted key would
+        # inherit the platform OIDC_CLIENT_AUTH_METHOD (#4764).
+        client_auth_method: nil,
       }
     when :entra_id
       {

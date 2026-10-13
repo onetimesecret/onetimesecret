@@ -8,6 +8,46 @@
 module Onetime
   module SsoProvider
     module Oidc
+      # How the client secret reaches the token endpoint (#4764). Keys are
+      # the values the tenant record (CustomDomain::SsoConfig
+      # #token_endpoint_auth_method) and the platform OIDC_CLIENT_AUTH_METHOD
+      # variable accept — the RFC 7591 / OIDC Discovery names, so they can
+      # be compared with the IdP's token_endpoint_auth_methods_supported.
+      # Values are what omniauth_openid_connect's top-level
+      # client_auth_method option receives and forwards to
+      # Rack::OAuth2::Client#authenticated_context_from:
+      #
+      #   :basic               — Authorization: Basic header; rack-oauth2
+      #                          form-urlencodes id and secret (RFC 6749 2.3.1).
+      #   :client_secret_post  — no branch of its own in rack-oauth2 2.3.0:
+      #                          every unlisted symbol falls to the `else`
+      #                          arm, which puts client_id / client_secret in
+      #                          the request body. Pinned in
+      #                          spec/unit/auth/oidc_client_auth_method_spec.rb.
+      #
+      # Blank (no selection) maps to nil, which rack-oauth2 treats as :basic.
+      # The tenant builder ALWAYS emits the key (nil included) because tenant
+      # options are merged over the platform strategy's key by key — an
+      # omitted key would let OIDC_CLIENT_AUTH_METHOD leak into a tenant that
+      # chose the default.
+      CLIENT_AUTH_METHODS = {
+        'client_secret_basic' => :basic,
+        'client_secret_post' => :client_secret_post,
+      }.freeze
+
+      # @param value [String, nil] a CLIENT_AUTH_METHODS key, or blank
+      # @return [Symbol, nil] the strategy's client_auth_method option
+      # @raise [ArgumentError] on a non-blank value that is not a known method
+      def self.client_auth_method_for(value)
+        key = value.to_s.strip
+        return nil if key.empty?
+
+        CLIENT_AUTH_METHODS.fetch(key) do
+          raise ArgumentError,
+            "token endpoint auth method must be one of: #{CLIENT_AUTH_METHODS.keys.join(', ')} (got #{key.inspect})"
+        end
+      end
+
       DEFINITION = {
         key: :oidc,
         label: 'OIDC',
