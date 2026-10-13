@@ -1235,7 +1235,7 @@ features:
     # (secrets.acme.com admits @acme.com). Also checked when a sign-up is
     # validated, so turning it off stops a saved setting from admitting
     # anyone.
-    base_domain_signup_enabled: <%= ENV['ORGS_BASE_DOMAIN_SIGNUP_ENABLED'] == 'true' %>  # Since v0.26.15
+    base_domain_signup_enabled: <%= ENV['ORGS_BASE_DOMAIN_SIGNUP_ENABLED'] == 'true' %>  # Since unreleased
     # Gates exposure (UI + list API) of the organization secret-activity
     # trail; pairs with the `audit_logs` entitlement. Defaults ON, unlike
     # the sibling flags above, because the trail ships working out of the
