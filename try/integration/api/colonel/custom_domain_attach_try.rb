@@ -110,6 +110,17 @@ post '/api/colonel/domains', { 'org_id' => @org.extid, 'domain' => 'not-a-valid-
 last_response.status < 500
 #=> true
 
+## Create: a domain nested too deep is a 422 form error with the reason
+post '/api/colonel/domains', { 'org_id' => @org.extid, 'domain' => "#{(['a'] * 10).join('.')}.deep-#{@timestamp}.example.com" }, colonel_headers
+[last_response.status, JSON.parse(last_response.body)['error']]
+#=> [422, 'Domain too deep (max: 10)']
+
+## Create: a domain whose TXT challenge record name would not fit is a 422 form error with the reason
+@long_name = "#{(['a' * 63] * 3).join('.')}.#{'b' * (31 - @timestamp.to_s.size)}#{@timestamp}.com"
+post '/api/colonel/domains', { 'org_id' => @org.extid, 'domain' => @long_name }, colonel_headers
+[@long_name.bytesize, last_response.status, JSON.parse(last_response.body)['error']]
+#=> [227, 422, 'Domain too long for its TXT validation record']
+
 ## Create: 200 with { record, details } envelope
 @before_count = Onetime::ColonelAuditEvent.count
 post '/api/colonel/domains', { 'org_id' => @org.extid, 'domain' => @domain }, colonel_headers
