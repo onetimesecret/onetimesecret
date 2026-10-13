@@ -2626,6 +2626,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
         client_secret_masked
         tenant_id
         issuer
+        token_endpoint_auth_method
         idp_sso_service_url
         idp_entity_id
         idp_cert
@@ -2661,6 +2662,322 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
       json_get api_path(test_custom_domain.extid)
 
       expect(last_response.content_type).to include('application/json')
+    end
+  end
+
+  # ==========================================================================
+  # token_endpoint_auth_method (#4764)
+  # ==========================================================================
+  #
+  # oidc only. PUT stores what was sent ('' = gem default) and clears it for
+  # every other provider type. PATCH goes by KEY PRESENCE: a blank clears it
+  # back to the default (unlike issuer, where blank keeps the stored value),
+  # an absent key keeps it. Serialized as nil when unset, never ''.
+
+  describe 'token_endpoint_auth_method' do
+    let(:invalid_message) do
+      'token_endpoint_auth_method must be one of: client_secret_basic, client_secret_post'
+    end
+
+    before do
+      enable_sso_feature_flag
+      login_as(test_owner)
+    end
+
+    describe 'PUT /api/domains/:extid/sso' do
+      it 'stores client_secret_post and serializes it back' do
+        csrf_put api_path(test_custom_domain.extid), valid_oidc_params.merge(token_endpoint_auth_method: 'client_secret_post')
+
+        expect(last_response.status).to eq(200)
+        expect(json_body['record']['token_endpoint_auth_method']).to eq('client_secret_post')
+      end
+
+      it 'stores client_secret_basic' do
+        csrf_put api_path(test_custom_domain.extid), valid_oidc_params.merge(token_endpoint_auth_method: 'client_secret_basic')
+
+        expect(last_response.status).to eq(200)
+        expect(json_body['record']['token_endpoint_auth_method']).to eq('client_secret_basic')
+      end
+
+      it 'serializes nil when the key is omitted' do
+        csrf_put api_path(test_custom_domain.extid), valid_oidc_params
+
+        expect(last_response.status).to eq(200)
+        expect(json_body['record']).to include('token_endpoint_auth_method' => nil)
+      end
+
+      it 'serializes nil for a blank value' do
+        csrf_put api_path(test_custom_domain.extid), valid_oidc_params.merge(token_endpoint_auth_method: '')
+
+        expect(last_response.status).to eq(200)
+        expect(json_body['record']).to include('token_endpoint_auth_method' => nil)
+      end
+
+      it 'returns 422 naming the field for a value outside the list' do
+        csrf_put api_path(test_custom_domain.extid), valid_oidc_params.merge(token_endpoint_auth_method: 'private_key_jwt')
+
+        expect(last_response.status).to eq(422)
+        expect(json_body).to include('error' => invalid_message, 'field' => 'token_endpoint_auth_method', 'error_type' => 'invalid')
+        expect(Onetime::CustomDomain::SsoConfig.find_by_domain_id(test_custom_domain.identifier)).to be_nil
+      end
+
+      it 'clears the field for a non-oidc provider instead of storing it' do
+        csrf_put api_path(test_custom_domain.extid), valid_entra_params.merge(token_endpoint_auth_method: 'client_secret_post')
+
+        expect(last_response.status).to eq(200)
+        expect(json_body['record']).to include('provider_type' => 'entra_id', 'token_endpoint_auth_method' => nil)
+      end
+
+      it 'replaces a stored value with the gem default when the key is omitted (PUT is full replacement)' do
+        csrf_put api_path(test_custom_domain.extid), valid_oidc_params.merge(token_endpoint_auth_method: 'client_secret_post')
+        csrf_put api_path(test_custom_domain.extid), valid_oidc_params
+
+        expect(last_response.status).to eq(200)
+        expect(json_body['record']).to include('token_endpoint_auth_method' => nil)
+      end
+    end
+
+    describe 'PATCH /api/domains/:extid/sso' do
+      before do
+        Onetime::CustomDomain::SsoConfig.create!(
+          domain_id: test_custom_domain.identifier,
+          provider_type: 'oidc',
+          client_id: 'oidc-client-id',
+          client_secret: 'oidc-client-secret',
+          issuer: 'https://auth.example.com',
+          token_endpoint_auth_method: 'client_secret_post',
+          enabled: false,
+        )
+      end
+
+      it 'keeps the stored value when the key is absent' do
+        csrf_patch api_path(test_custom_domain.extid), { display_name: 'Renamed' }
+
+        expect(last_response.status).to eq(200)
+        expect(json_body['record']).to include('display_name' => 'Renamed', 'token_endpoint_auth_method' => 'client_secret_post')
+      end
+
+      it 'clears the stored value back to the gem default when sent blank' do
+        csrf_patch api_path(test_custom_domain.extid), { token_endpoint_auth_method: '' }
+
+        expect(last_response.status).to eq(200)
+        expect(json_body['record']).to include('token_endpoint_auth_method' => nil)
+        expect(Onetime::CustomDomain::SsoConfig.find_by_domain_id(test_custom_domain.identifier).token_endpoint_auth_method.to_s).to eq('')
+      end
+
+      it 'replaces the stored value' do
+        csrf_patch api_path(test_custom_domain.extid), { token_endpoint_auth_method: 'client_secret_basic' }
+
+        expect(last_response.status).to eq(200)
+        expect(json_body['record']).to include('token_endpoint_auth_method' => 'client_secret_basic')
+      end
+
+      it 'returns 422 naming the field for a value outside the list and keeps the stored value' do
+        csrf_patch api_path(test_custom_domain.extid), { token_endpoint_auth_method: 'basic' }
+
+        expect(last_response.status).to eq(422)
+        expect(json_body).to include('error' => invalid_message, 'field' => 'token_endpoint_auth_method', 'error_type' => 'invalid')
+        expect(Onetime::CustomDomain::SsoConfig.find_by_domain_id(test_custom_domain.identifier).token_endpoint_auth_method)
+          .to eq('client_secret_post')
+      end
+
+      it 'clears the field on a switch to entra_id' do
+        csrf_patch api_path(test_custom_domain.extid), {
+          provider_type: 'entra_id',
+          client_secret: 'entra-secret',
+          tenant_id: '12345678-1234-1234-1234-123456789abc',
+        }
+
+        expect(last_response.status).to eq(200)
+        expect(json_body['record']).to include('provider_type' => 'entra_id', 'token_endpoint_auth_method' => nil)
+      end
+
+      it 'is left alone by a disable-only PATCH' do
+        csrf_patch api_path(test_custom_domain.extid), { enabled: false }
+
+        expect(last_response.status).to eq(200)
+        expect(json_body['record']).to include('enabled' => false, 'token_endpoint_auth_method' => 'client_secret_post')
+      end
+
+      # The audit diff is computed from the value the writer persists, not
+      # the raw request: normalize_token_endpoint_auth_method strips, so a
+      # whitespace-padded resend of the stored value is no change, while a
+      # blank (cleared) and a different method are.
+      describe 'audit log (domain_sso_config_updated)' do
+        let(:updated) { '[DOMAIN_SSO_CHANGE] domain_sso_config_updated' }
+        let(:audit_payloads) { [] }
+
+        before do
+          allow(OT).to receive(:info) do |msg, json|
+            audit_payloads << JSON.parse(json) if msg == updated
+          end
+        end
+
+        def stored_method
+          Onetime::CustomDomain::SsoConfig.find_by_domain_id(test_custom_domain.identifier).token_endpoint_auth_method.to_s
+        end
+
+        it 'records no change for a whitespace-padded resend of the stored value' do
+          csrf_patch api_path(test_custom_domain.extid), { token_endpoint_auth_method: ' client_secret_post ' }
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(stored_method).to eq('client_secret_post')
+          expect(audit_payloads.size).to eq(1)
+          expect(audit_payloads.first.fetch('changes', {})).not_to have_key('token_endpoint_auth_method')
+        end
+
+        it 'records a change to blank when the field is cleared' do
+          csrf_patch api_path(test_custom_domain.extid), { token_endpoint_auth_method: '' }
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(stored_method).to eq('')
+          expect(audit_payloads.size).to eq(1)
+          expect(audit_payloads.first['changes']).to include('token_endpoint_auth_method' => { 'from' => 'client_secret_post', 'to' => '' })
+        end
+
+        it 'records the old and new method when it is replaced' do
+          csrf_patch api_path(test_custom_domain.extid), { token_endpoint_auth_method: 'client_secret_basic' }
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(stored_method).to eq('client_secret_basic')
+          expect(audit_payloads.size).to eq(1)
+          expect(audit_payloads.first['changes']).to include(
+            'token_endpoint_auth_method' => { 'from' => 'client_secret_post', 'to' => 'client_secret_basic' },
+          )
+        end
+
+        # A provider switch blanks the outgoing provider's fields without the
+        # request naming them. The delta must show those clears next to the
+        # provider_type change, not just the fields the request carried.
+        it 'records the method and issuer clears on a switch to entra_id that omits them' do
+          csrf_patch api_path(test_custom_domain.extid), {
+            provider_type: 'entra_id',
+            client_secret: 'entra-secret',
+            tenant_id: '12345678-1234-1234-1234-123456789abc',
+          }
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(stored_method).to eq('')
+          expect(audit_payloads.size).to eq(1)
+          expect(audit_payloads.first['changes']).to include(
+            'provider_type'              => { 'from' => 'oidc', 'to' => 'entra_id' },
+            'token_endpoint_auth_method' => { 'from' => 'client_secret_post', 'to' => '' },
+            'issuer'                     => { 'from' => 'https://auth.example.com', 'to' => '' },
+          )
+        end
+
+        it 'records the tenant_id clear on a switch from entra_id to oidc that omits it' do
+          Onetime::CustomDomain::SsoConfig.delete_for_domain!(test_custom_domain.identifier)
+          Onetime::CustomDomain::SsoConfig.create!(
+            domain_id: test_custom_domain.identifier,
+            provider_type: 'entra_id',
+            client_id: 'entra-client-id',
+            client_secret: 'entra-client-secret',
+            tenant_id: '12345678-1234-1234-1234-123456789abc',
+            enabled: false,
+          )
+
+          csrf_patch api_path(test_custom_domain.extid), {
+            provider_type: 'oidc',
+            issuer: 'https://auth.example.com',
+          }
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(audit_payloads.size).to eq(1)
+          changes = audit_payloads.first['changes']
+          expect(changes).to include(
+            'provider_type' => { 'from' => 'entra_id', 'to' => 'oidc' },
+            'tenant_id'     => { 'from' => '12345678-1234-1234-1234-123456789abc', 'to' => '' },
+          )
+          # The method was never set on the entra record, so a no-op "clear"
+          # of an already-blank field must not show up as a change.
+          expect(changes).not_to have_key('token_endpoint_auth_method')
+        end
+
+        # The other SAFE_FIELDS are audited from what the write path persists,
+        # not from the raw request, for the same reason as the method above.
+        it 'records display_name as sanitized, not as the request spelled it' do
+          csrf_patch api_path(test_custom_domain.extid), { display_name: '  Acme  <b>Corp</b>  SSO ' }
+
+          expect(last_response.status).to eq(200), last_response.body
+          stored = Onetime::CustomDomain::SsoConfig.find_by_domain_id(test_custom_domain.identifier)
+          expect(stored.display_name).to eq('Acme Corp SSO')
+          expect(audit_payloads.size).to eq(1)
+          change = audit_payloads.first.fetch('changes').fetch('display_name')
+          expect(change['from'].to_s).to eq('')
+          expect(change['to']).to eq('Acme Corp SSO')
+        end
+
+        it 'records no issuer change for a non-https issuer the write path ignores' do
+          csrf_patch api_path(test_custom_domain.extid), { issuer: 'http://auth.example.com' }
+
+          expect(last_response.status).to eq(200), last_response.body
+          stored = Onetime::CustomDomain::SsoConfig.find_by_domain_id(test_custom_domain.identifier)
+          expect(stored.issuer).to eq('https://auth.example.com')
+          expect(audit_payloads.size).to eq(1)
+          expect(audit_payloads.first.fetch('changes', {})).not_to have_key('issuer')
+        end
+
+        it 'records allowed_domains as the normalized list, not the raw string' do
+          csrf_patch api_path(test_custom_domain.extid), { allowed_domains: ' Example.COM, foo.com ' }
+
+          expect(last_response.status).to eq(200), last_response.body
+          stored = Onetime::CustomDomain::SsoConfig.find_by_domain_id(test_custom_domain.identifier)
+          expect(stored.allowed_domains.to_a).to eq(%w[example.com foo.com])
+          expect(audit_payloads.size).to eq(1)
+          change = audit_payloads.first.fetch('changes').fetch('allowed_domains')
+          expect(change['to']).to eq(%w[example.com foo.com])
+        end
+
+        # The form sends a JSON array, which parse_allowed_domains passes
+        # through untouched; the model setter is what normalizes it.
+        it 'records allowed_domains as the setter stores an array, and no change for a resend in another form' do
+          csrf_patch api_path(test_custom_domain.extid), { allowed_domains: [' Example.COM ', 'Foo.com', '', 'example.com'] }
+
+          expect(last_response.status).to eq(200), last_response.body
+          stored = Onetime::CustomDomain::SsoConfig.find_by_domain_id(test_custom_domain.identifier)
+          expect(stored.allowed_domains.to_a).to eq(%w[example.com foo.com])
+          expect(audit_payloads.size).to eq(1)
+          expect(audit_payloads.first.fetch('changes').fetch('allowed_domains')['to']).to eq(%w[example.com foo.com])
+
+          csrf_patch api_path(test_custom_domain.extid), { allowed_domains: ['EXAMPLE.com', ' foo.com', 'example.com'] }
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(audit_payloads.size).to eq(2)
+          expect(audit_payloads.last.fetch('changes', {})).not_to have_key('allowed_domains')
+        end
+
+        it 'records a disable-only PATCH as the flag change alone' do
+          stored = Onetime::CustomDomain::SsoConfig.find_by_domain_id(test_custom_domain.identifier)
+          stored.enabled = 'true'
+          stored.save
+
+          csrf_patch api_path(test_custom_domain.extid), { enabled: false }
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(audit_payloads.size).to eq(1)
+          expect(audit_payloads.first.fetch('changes')).to eq('enabled' => { 'from' => true, 'to' => false })
+        end
+      end
+    end
+
+    describe 'GET /api/domains/:extid/sso' do
+      it 'returns the stored value' do
+        Onetime::CustomDomain::SsoConfig.create!(
+          domain_id: test_custom_domain.identifier,
+          provider_type: 'oidc',
+          client_id: 'oidc-client-id',
+          client_secret: 'oidc-client-secret',
+          issuer: 'https://auth.example.com',
+          token_endpoint_auth_method: 'client_secret_basic',
+          enabled: true,
+        )
+
+        json_get api_path(test_custom_domain.extid)
+
+        expect(last_response.status).to eq(200)
+        expect(json_body['record']).to include('token_endpoint_auth_method' => 'client_secret_basic')
+      end
     end
   end
 

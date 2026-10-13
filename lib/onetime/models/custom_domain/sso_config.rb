@@ -7,6 +7,9 @@ require_relative '../../domain_validation/ascii_hostname'
 # Configuration-only and gem-free (it never loads omniauth-saml/ruby-saml):
 # the shared SAML validators and the single hardened-options builder (#4450).
 require_relative '../../sso_provider/saml'
+# The token endpoint client-authentication mapping shared with the platform
+# OIDC definition (#4764).
+require_relative '../../sso_provider/oidc'
 
 #
 # CustomDomain::SsoConfig - Per-domain SSO credential storage
@@ -60,6 +63,12 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
   # The SAML IdP trio. All three are encrypted_fields (below) and all
   # three are required for provider_type 'saml'.
   SAML_FIELDS = [:idp_sso_service_url, :idp_entity_id, :idp_cert].freeze
+
+  # Accepted values of token_endpoint_auth_method (oidc only, #4764). Blank
+  # means "gem default". The symbol each one maps to lives with the
+  # platform definition, which reads the same names from
+  # OIDC_CLIENT_AUTH_METHOD.
+  TOKEN_ENDPOINT_AUTH_METHODS = Onetime::SsoProvider::Oidc::CLIENT_AUTH_METHODS.keys.freeze
 
   # Provider metadata for UI filtering logic
   #
@@ -140,6 +149,10 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
   #
   field :tenant_id       # Entra ID: Azure AD tenant ID (required for entra_id only)
   field :issuer          # OIDC: Issuer URL for discovery (required for oidc only)
+  # OIDC: how the client secret reaches the token endpoint — one of
+  # TOKEN_ENDPOINT_AUTH_METHODS, or blank for the gem default (#4764).
+  # Optional, oidc only; the API clears it for the other provider types.
+  field :token_endpoint_auth_method
 
   # Encrypted credential storage with domain-bound AAD
   encrypted_field :client_id, aad_fields: [:domain_id]
@@ -296,6 +309,20 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
   # @return [void]
   # @raise [Onetime::Problem] if any domain is invalid
   def allowed_domains=(domains)
+    normalized                = self.class.normalize_allowed_domains(domains)
+    self.allowed_domains_json = normalized.empty? ? nil : JSON.generate(normalized)
+  end
+
+  # The list allowed_domains= stores for the given input: stripped,
+  # downcased, blanks dropped, duplicates (including two forms of one IDN)
+  # collapsed to the first given. Exposed so a caller that needs to know
+  # what a write will persist (the PATCH audit log) reads the same answer
+  # as the setter.
+  #
+  # @param domains [Array<String>, nil]
+  # @return [Array<String>]
+  # @raise [Onetime::Problem] if any domain is invalid
+  def self.normalize_allowed_domains(domains)
     normalized = Array(domains).map { it.to_s.strip.downcase }.uniq.reject(&:empty?)
 
     # Validate each domain using PublicSuffix (handles IDN, validates TLD)
@@ -310,9 +337,7 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
     end
 
     # Two forms of one name keep the first given.
-    normalized = normalized.uniq { keys[it] }
-
-    self.allowed_domains_json = normalized.empty? ? nil : JSON.generate(normalized)
+    normalized.uniq { keys[it] }
   end
 
   # Whether allowed_domains_json holds something we cannot read as a
@@ -472,13 +497,29 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
     case provider_type
     when 'oidc'
       errors << 'issuer is required for OIDC provider' if issuer.to_s.empty?
+      errors.concat(token_endpoint_auth_method_errors)
     when 'entra_id'
       errors << 'tenant_id is required for Entra ID provider' if tenant_id.to_s.empty?
     when 'saml'
       errors.concat(saml_validation_errors)
     end
 
+    # Only oidc reads token_endpoint_auth_method (build_oidc_options); on any
+    # other type a stored value is a defect the API's clearing should have
+    # prevented, not a setting waiting for a provider switch.
+    if provider_type != 'oidc' && !token_endpoint_auth_method.to_s.strip.empty?
+      errors << 'token_endpoint_auth_method is only supported for OIDC provider'
+    end
+
     errors
+  end
+
+  # @return [Array<String>] empty when blank or one of TOKEN_ENDPOINT_AUTH_METHODS
+  def token_endpoint_auth_method_errors
+    value = token_endpoint_auth_method.to_s.strip
+    return [] if value.empty? || TOKEN_ENDPOINT_AUTH_METHODS.include?(value)
+
+    ["token_endpoint_auth_method must be one of: #{TOKEN_ENDPOINT_AUTH_METHODS.join(', ')}"]
   end
 
   # Plaintext of one SAML trio field ('' when unset).
@@ -771,6 +812,9 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
       config.display_name     = attrs[:display_name] if attrs.key?(:display_name)
       config.tenant_id        = attrs[:tenant_id] if attrs.key?(:tenant_id)
       config.issuer           = attrs[:issuer] if attrs.key?(:issuer)
+      if attrs.key?(:token_endpoint_auth_method)
+        config.token_endpoint_auth_method = attrs[:token_endpoint_auth_method]
+      end
       config.enabled          = attrs[:enabled].to_s if attrs.key?(:enabled)
       config.enforce_sso_only = attrs[:enforce_sso_only].to_s if attrs.key?(:enforce_sso_only)
       config.grant_org_scope  = attrs[:grant_org_scope].to_s if attrs.key?(:grant_org_scope)
@@ -852,6 +896,13 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
     domain.extid
   end
 
+  # client_auth_method is ALWAYS present, nil included (same reason as
+  # uid_attribute in build_saml_options): tenant options are merged over
+  # the platform-registered strategy key by key
+  # (OmniAuthTenant.merge_strategy_options), so an omitted key would let a
+  # platform OIDC_CLIENT_AUTH_METHOD decide how THIS tenant's secret is
+  # sent. nil is the gem default (:basic). Pinned in
+  # omniauth_tenant_helpers_spec.
   def build_oidc_options
     {
       strategy: :openid_connect,
@@ -865,9 +916,27 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
         identifier: client_id&.reveal { it },
         secret: client_secret&.reveal { it },
       },
+      client_auth_method: oidc_client_auth_method,
     }
   end
 
+  # The strategy option for the stored token_endpoint_auth_method (nil when
+  # blank or whitespace). Raises on a value outside
+  # TOKEN_ENDPOINT_AUTH_METHODS — validation_errors refuses those at save
+  # time, so this only fires for a record written around the model.
+  #
+  # @return [Symbol, nil]
+  def oidc_client_auth_method
+    Onetime::SsoProvider::Oidc.client_auth_method_for(token_endpoint_auth_method)
+  rescue ArgumentError => ex
+    raise Onetime::Problem, "SSO config for domain #{domain_id}: #{ex.message}"
+  end
+
+  # Same transport as the platform registration (Onetime::SsoProvider::Entra,
+  # #4764): the secret goes in the token request body, never in a Basic
+  # header that oauth2 encodes without form-escaping. The tenant hook
+  # merges client_options key by key (OmniAuthTenant.merge_strategy_options),
+  # so this key reaches the strategy alongside the Entra URLs it sets itself.
   def build_entra_id_options
     {
       strategy: :entra_id,
@@ -876,6 +945,7 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
       client_secret: client_secret&.reveal { it },
       tenant_id: tenant_id,
       scope: 'openid profile email',
+      client_options: { auth_scheme: :request_body },
     }
   end
 

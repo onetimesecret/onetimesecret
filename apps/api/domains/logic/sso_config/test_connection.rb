@@ -9,6 +9,7 @@ require_relative '../../../../../lib/onetime/sso_provider/discovery_fetcher'
 require_relative '../../../../../lib/onetime/sso_provider/discovery_issuer'
 require_relative 'ssrf_protection'
 require_relative 'saml_fields'
+require_relative 'token_endpoint_auth_method_report'
 
 module DomainsAPI
   module Logic
@@ -68,6 +69,7 @@ module DomainsAPI
       class TestConnection < Base
         include SsrfProtection
         include SamlFields
+        include TokenEndpointAuthMethodReport
 
         # Connection timeout in seconds
         CONNECTION_TIMEOUT = 10
@@ -102,6 +104,9 @@ module DomainsAPI
           @tenant_id     = sanitize_plain_text(params['tenant_id'])
           @issuer        = sanitize_url(params['issuer'])
           process_saml_params
+
+          # The request's selection is what gets tested, not the stored one (#4764).
+          @token_endpoint_auth_method = normalize_token_endpoint_auth_method(params['token_endpoint_auth_method'])
         end
 
         def raise_concerns
@@ -167,6 +172,7 @@ module DomainsAPI
             client_id: @client_id,
             tenant_id: @tenant_id,
             issuer: @issuer,
+            token_endpoint_auth_method: @token_endpoint_auth_method,
             idp_sso_service_url: @idp_sso_service_url,
             idp_entity_id: @idp_entity_id,
           }
@@ -216,13 +222,9 @@ module DomainsAPI
         end
 
         def validate_oidc_fields
-          if @issuer.to_s.empty?
-            raise_form_error('Issuer URL is required for OIDC provider', field: :issuer, error_type: :missing)
-          end
-
-          unless @issuer.start_with?('https://')
-            raise_form_error('Issuer URL must use HTTPS', field: :issuer, error_type: :invalid)
-          end
+          raise_form_error('Issuer URL is required for OIDC provider', field: :issuer, error_type: :missing) if @issuer.to_s.empty?
+          raise_form_error('Issuer URL must use HTTPS', field: :issuer, error_type: :invalid) unless @issuer.start_with?('https://')
+          validate_token_endpoint_auth_method!(@token_endpoint_auth_method)
         end
 
         def validate_entra_id_fields
@@ -495,6 +497,7 @@ module DomainsAPI
               jwks_uri: discovery['jwks_uri'],
               userinfo_endpoint: discovery['userinfo_endpoint'],
               scopes_supported: discovery['scopes_supported']&.first(5), # Limit to first 5
+              **token_endpoint_auth_method_details(discovery),
             },
           }
         rescue JSON::ParserError

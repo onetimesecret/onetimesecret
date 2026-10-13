@@ -19,6 +19,7 @@
 <script setup lang="ts">
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import DomainContextSwitcher from '@/apps/workspace/components/navigation/DomainContextSwitcher.vue';
+import { loggingService } from '@/services/logging.service';
 import OrganizationScopeSwitcher from '@/apps/workspace/components/navigation/OrganizationScopeSwitcher.vue';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { useScopeSwitcherVisibility } from '@/shared/composables/useScopeSwitcherVisibility';
@@ -84,7 +85,7 @@ onMounted(async () => {
     } catch (error) {
       if (axios.isCancel(error)) {
         // Expected when another component triggers a fetch - visible with DevTools "Verbose" level
-        console.debug('[OrganizationContextBar] Fetch canceled (expected):', error);
+        loggingService.debug('[OrganizationContextBar] Fetch canceled (expected)', { error });
       } else {
         console.error('[OrganizationContextBar] Failed to fetch organizations:', error);
       }

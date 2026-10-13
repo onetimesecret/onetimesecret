@@ -5,6 +5,7 @@ import {
   BACKGROUND_REFRESH_THROTTLE_MS,
   useBackgroundRefresh,
 } from '@/shared/composables/useBackgroundRefresh';
+import { loggingService } from '@/services/logging.service';
 import { mount } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { defineComponent, h } from 'vue';
@@ -90,7 +91,7 @@ describe('useBackgroundRefresh', () => {
   });
 
   it('swallows a failed refresh and keeps going', async () => {
-    const debug = vi.spyOn(console, 'debug').mockImplementation(() => {});
+    const debug = vi.spyOn(loggingService, 'debug').mockImplementation(() => {});
     refresh.mockRejectedValueOnce(new Error('network'));
     const wrapper = mountHost();
 

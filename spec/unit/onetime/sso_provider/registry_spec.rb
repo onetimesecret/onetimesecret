@@ -249,6 +249,50 @@ RSpec.describe Onetime::SsoProvider::Registry do
       end
     end
 
+    # #4764: OIDC_CLIENT_AUTH_METHOD selects how the secret reaches the
+    # token endpoint. The option is top-level (not client_options) because
+    # that is where omniauth_openid_connect declares it.
+    describe 'OIDC_CLIENT_AUTH_METHOD' do
+      def oidc_options(value)
+        ClimateControl.modify(OIDC_CLIENT_ID: 'cid', OIDC_CLIENT_AUTH_METHOD: value) do
+          described_class.fetch(:oidc)[:strategy_options].call
+        end
+      end
+
+      before { allow(OT).to receive(:lw) }
+
+      it 'is nil (gem default) when the variable is unset' do
+        opts = oidc_options(nil)
+
+        expect(opts).to have_key(:client_auth_method)
+        expect(opts[:client_auth_method]).to be_nil
+        expect(opts[:client_options]).not_to have_key(:client_auth_method)
+      end
+
+      it 'is nil when the variable is blank' do
+        expect(oidc_options('  ')[:client_auth_method]).to be_nil
+      end
+
+      it 'maps client_secret_basic to :basic' do
+        expect(oidc_options('client_secret_basic')[:client_auth_method]).to eq(:basic)
+      end
+
+      it 'maps client_secret_post to :client_secret_post' do
+        expect(oidc_options('client_secret_post')[:client_auth_method]).to eq(:client_secret_post)
+      end
+
+      it 'tolerates surrounding whitespace' do
+        expect(oidc_options(' client_secret_post ')[:client_auth_method]).to eq(:client_secret_post)
+      end
+
+      # A typo in an optional variable must not take the provider down at
+      # boot: warn, keep the gem default.
+      it 'warns and falls back to the gem default on an unknown value' do
+        expect(oidc_options('private_key_jwt')[:client_auth_method]).to be_nil
+        expect(OT).to have_received(:lw).with(a_string_matching(/OIDC_CLIENT_AUTH_METHOD.*private_key_jwt/))
+      end
+    end
+
     # ========================================================================
     # SAML (#4450)
     # ========================================================================

@@ -12,10 +12,18 @@
    * - Larger textarea for content
    * - Privacy inputs controlled externally via props
    * - Respects workspace mode toggle (stays on page or navigates to receipt)
+   *
+   * The Markdown toggle (display_type) is a chip in the parent's options
+   * row, in its own group beside the privacy chips: it is a formatting
+   * choice, not a privacy one. It is remembered across visits like the TTL,
+   * and offered only when the platform enables Markdown (features.markdown).
+   * In Markdown mode the preview sits beside the textarea on large screens,
+   * so the form keeps its height, and stacks below it on smaller ones.
    */
   import { useI18n } from 'vue-i18n';
   import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
+  import MarkdownPreview from '@/shared/components/ui/MarkdownPreview.vue';
   import SplitButton from '@/shared/components/ui/SplitButton.vue';
   import { useDomainContext } from '@/shared/composables/useDomainContext';
   import { usePrivacyOptions } from '@/shared/composables/usePrivacyOptions';
@@ -30,9 +38,13 @@
     DEFAULT_BUTTON_TEXT_LIGHT,
   } from '@/shared/stores/identityStore';
   import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
+  import {
+    DEFAULT_SECRET_DISPLAY_TYPE,
+    SecretDisplayType,
+  } from '@/schemas/contracts/secret';
   import { type LocalReceipt } from '@/types/ui/local-receipt';
   import { nanoid } from 'nanoid';
-  import { computed, ref, watch } from 'vue';
+  import { computed, nextTick, ref, watch } from 'vue';
   import { useRouter } from 'vue-router';
   import { useMediaQuery } from '@vueuse/core';
   import { useCharCounter } from '@/shared/composables/useCharCounter';
@@ -79,6 +91,7 @@
     textareaRef,
     checkContentLength,
     clearTextarea,
+    adjustHeight,
   } = useTextarea({
     maxLength,
     initialContent: '',
@@ -143,6 +156,8 @@
 
         // Restore TTL to previous value (sticky across submissions)
         operations.updateField('ttl', preservedTtl as number);
+        // Same for the Markdown toggle
+        restorePreferredDisplayType();
 
         loggingService.debug('[WorkspaceSecretForm] receipt created', {
           timestamp,
@@ -176,6 +191,26 @@
   const isValidPreferredTtl =
     preferredTtl != null && lifetimeOptions.value.some((opt) => opt.value === preferredTtl);
   operations.updateField('ttl', isValidPreferredTtl ? preferredTtl : defaultTtl.value);
+
+  // Initialize the Markdown toggle the same way: last-used value from
+  // localReceiptStore (localStorage), plain text when nothing is stored. A
+  // remembered 'markdown' is ignored while the platform has Markdown off
+  // (features.markdown): the API would refuse it, and there is no chip to
+  // turn it off. The stored preference is kept for when it is back on.
+  const { features } = storeToRefs(bootstrapStore);
+  const markdownEnabled = computed(() => features.value?.markdown === true);
+  const restorePreferredDisplayType = () => {
+    const preferred = markdownEnabled.value ? localReceiptStore.preferredDisplayType : null;
+    operations.updateField('display_type', preferred ?? DEFAULT_SECRET_DISPLAY_TYPE);
+  };
+  restorePreferredDisplayType();
+
+  const isMarkdown = computed(() => form.display_type === SecretDisplayType.MARKDOWN);
+
+  // The textarea narrows to half width when the preview moves beside it, so
+  // its auto-height (sized from scrollHeight) is recomputed after the layout
+  // changes, not only on the next keystroke.
+  watch(isMarkdown, () => nextTick(adjustHeight));
 
   // Sync content with form
   watch(content, (newContent) => {
@@ -243,11 +278,25 @@
     operations.updateField('passphrase', value);
   };
 
+  const currentDisplayType = computed(() => form.display_type);
+  // Generate mode sends no display_type (a generated value is always text),
+  // so the parent hides its Markdown chip there, as the homepage does.
+  const offersDisplayType = computed(() => selectedAction.value === 'create-link');
+
+  const updateDisplayType = (value: SecretDisplayType) => {
+    operations.updateField('display_type', value);
+    // Remember the choice so it is restored on the next page load
+    localReceiptStore.setPreferredDisplayType(value);
+  };
+
   defineExpose({
     currentTtl,
     currentPassphrase,
+    currentDisplayType,
+    offersDisplayType,
     updateTtl,
     updatePassphrase,
+    updateDisplayType,
     isSubmitting,
   });
 </script>
@@ -282,54 +331,86 @@
               {{ t('web.secrets.secret_content') || 'Secret Content' }}
             </label>
 
-            <div class="relative">
-              <textarea
-                ref="textareaRef"
-                v-model="content"
-                :disabled="isSubmitting"
-                @input="checkContentLength"
-                :maxlength="maxLength"
-                :class="[cornerClass]"
-                style="min-height: 280px; max-height: 500px"
-                class="block w-full resize-none
-                  rounded-lg border border-gray-200/60 p-4
-                  font-mono text-base leading-relaxed
-                  text-gray-900 transition-all
-                  duration-300 placeholder:text-gray-400
-                  bg-white/80 backdrop-blur-sm
-                  hover:border-gray-300/80 hover:bg-white/90
-                  focus:border-blue-500/80 focus:bg-white
-                  focus:ring-4 focus:ring-blue-500/20
-                  disabled:bg-gray-50/80 disabled:text-gray-500
-                  dark:border-gray-700/60 dark:bg-slate-800/80
-                  dark:text-white dark:placeholder:text-gray-500
-                  dark:hover:border-gray-600/80 dark:hover:bg-slate-800/90
-                  dark:focus:border-blue-400/80 dark:focus:bg-slate-800
-                  dark:focus:ring-blue-400/20
-                  dark:disabled:bg-slate-900/50"
-                :placeholder="t('web.COMMON.secret_placeholder')"
-                aria-labelledby="workspaceSecretLabel">
-              </textarea>
+            <!--
+              Markdown mode on large screens: source and preview side by side.
+              The textarea column sets the row height; the preview box fills
+              it and scrolls (h-0 with a 0px flex basis keeps its content from
+              growing the row). Below lg, and in plain-text mode, the preview
+              stacks.
+            -->
+            <div
+              :class="isMarkdown ? 'lg:grid lg:grid-cols-2 lg:gap-x-4' : ''">
+              <div>
+                <!-- prettier-ignore-attribute class -->
+                <div
+                  v-if="isMarkdown"
+                  aria-hidden="true"
+                  class="mb-1 hidden items-center gap-1.5 text-xs font-medium tracking-wide
+                    text-gray-500 uppercase lg:flex dark:text-gray-400">
+                  <OIcon
+                    collection="mdi"
+                    name="language-markdown"
+                    class="size-3.5"
+                    aria-hidden="true" />
+                  {{ t('web.secrets.markdown_source') }}
+                </div>
+                <div class="relative">
+                  <textarea
+                    ref="textareaRef"
+                    v-model="content"
+                    :disabled="isSubmitting"
+                    @input="checkContentLength"
+                    :maxlength="maxLength"
+                    :class="[cornerClass]"
+                    style="min-height: 280px; max-height: 500px"
+                    class="block w-full resize-none
+                      rounded-lg border border-gray-200/60 p-4
+                      font-mono text-base leading-relaxed
+                      text-gray-900 transition-all
+                      duration-300 placeholder:text-gray-400
+                      bg-white/80 backdrop-blur-sm
+                      hover:border-gray-300/80 hover:bg-white/90
+                      focus:border-blue-500/80 focus:bg-white
+                      focus:ring-4 focus:ring-blue-500/20
+                      disabled:bg-gray-50/80 disabled:text-gray-500
+                      dark:border-gray-700/60 dark:bg-slate-800/80
+                      dark:text-white dark:placeholder:text-gray-500
+                      dark:hover:border-gray-600/80 dark:hover:bg-slate-800/90
+                      dark:focus:border-blue-400/80 dark:focus:bg-slate-800
+                      dark:focus:ring-blue-400/20
+                      dark:disabled:bg-slate-900/50"
+                    :placeholder="t('web.COMMON.secret_placeholder')"
+                    aria-labelledby="workspaceSecretLabel">
+                  </textarea>
 
-              <!-- Character Counter -->
-              <div
-                v-if="showCounter"
-                class="pointer-events-none absolute bottom-4 right-4 flex
-                  select-none items-center gap-2
-                  rounded-full bg-white/95 px-3.5 py-1.5 text-sm
-                  shadow-[0_4px_12px_rgba(0,0,0,0.1),0_1px_3px_rgba(0,0,0,0.08)]
-                  backdrop-blur-md transition-all duration-300
-                  border border-gray-200/40
-                  dark:bg-gray-800/95 dark:border-gray-700/40
-                  dark:shadow-[0_4px_12px_rgba(0,0,0,0.3),0_1px_3px_rgba(0,0,0,0.2)]">
-                <span
-                  :class="[statusColor, 'size-2.5 rounded-full shadow-sm']"
-                  aria-hidden="true" ></span>
-                <span
-                  class="font-semibold text-gray-700 dark:text-gray-300 tabular-nums">
-                  {{ formattedCharCount }} / {{ formattedMaxLength }}
-                </span>
+                  <!-- Character Counter -->
+                  <div
+                    v-if="showCounter"
+                    class="pointer-events-none absolute bottom-4 right-4 flex
+                      select-none items-center gap-2
+                      rounded-full bg-white/95 px-3.5 py-1.5 text-sm
+                      shadow-[0_4px_12px_rgba(0,0,0,0.1),0_1px_3px_rgba(0,0,0,0.08)]
+                      backdrop-blur-md transition-all duration-300
+                      border border-gray-200/40
+                      dark:bg-gray-800/95 dark:border-gray-700/40
+                      dark:shadow-[0_4px_12px_rgba(0,0,0,0.3),0_1px_3px_rgba(0,0,0,0.2)]">
+                    <span
+                      :class="[statusColor, 'size-2.5 rounded-full shadow-sm']"
+                      aria-hidden="true" ></span>
+                    <span
+                      class="font-semibold text-gray-700 dark:text-gray-300 tabular-nums">
+                      {{ formattedCharCount }} / {{ formattedMaxLength }}
+                    </span>
+                  </div>
+                </div>
               </div>
+
+              <MarkdownPreview
+                v-if="isMarkdown"
+                class="lg:mt-0 lg:flex lg:flex-col"
+                :source="content"
+                :corner-class="cornerClass"
+                box-class="max-h-[500px] p-4 lg:h-0 lg:max-h-none lg:grow lg:basis-0" />
             </div>
           </div>
 

@@ -12,7 +12,7 @@ import { SESSION_TRANSITION_KEY } from '@/utils/sessionTransition';
 import { createTestingPinia } from '@pinia/testing';
 import { mount } from '@vue/test-utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { defineComponent, h, nextTick, reactive } from 'vue';
+import { defineComponent, h, markRaw, nextTick, reactive } from 'vue';
 
 const route = reactive<{ meta: Record<string, unknown>; name: string; fullPath: string }>({
   meta: {},
@@ -38,11 +38,15 @@ const ProtectedPage = defineComponent({
 });
 const Layout = defineComponent({ render() { return h('main', this.$slots.default?.()); } });
 const RouterViewStub = defineComponent({
+  // App.vue puts a class on <router-view>; the slot renders a fragment.
+  inheritAttrs: false,
   render() { return this.$slots.default?.({ Component: ProtectedPage }); },
 });
 
 function mountApp(status: 'authenticated' | 'unavailable' | 'checking' | 'anonymous', requiresAuth: boolean) {
-  route.meta = { requiresAuth, layout: Layout };
+  // markRaw: a real route's meta is not deeply reactive, so its layout
+  // component is not made reactive either.
+  route.meta = { requiresAuth, layout: markRaw(Layout) };
   const pinia = createTestingPinia({ createSpy: vi.fn, stubActions: true });
   useBootstrapStore().authStatus = status;
   const wrapper = mount(App, {
@@ -52,7 +56,10 @@ function mountApp(status: 'authenticated' | 'unavailable' | 'checking' | 'anonym
       stubs: {
         // Stands in for the router: hands the slot the matched component.
         RouterView: RouterViewStub,
-        RouteErrorBoundary: defineComponent({ render() { return this.$slots.default?.(); } }),
+        RouteErrorBoundary: defineComponent({
+          props: { resetKey: { type: String, default: undefined } },
+          render() { return this.$slots.default?.(); },
+        }),
         ImpersonationBanner: true,
         NotificationHost: true,
         CriticalSprites: true,
