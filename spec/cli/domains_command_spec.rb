@@ -114,6 +114,43 @@ RSpec.describe 'Domains Command', type: :cli do
     end
   end
 
+  # CustomDomain.parse and create! refuse some names, and report datastore
+  # failures, with an Onetime::Problem. The command shows its message and
+  # exits 1 like any other refusal instead of letting it escape.
+  describe 'create subcommand' do
+    let(:create_op) { double('DomainsCreate') }
+    let(:ok_check) do
+      Onetime::Operations::Domains::Create::Check.new(
+        status: :ok, display_domain: 'shop.example.com', message: nil, claims_orphan: false,
+      )
+    end
+
+    before do
+      allow(Onetime::Organization).to receive(:find_by_extid).and_return(organization)
+      allow(Onetime::Operations::Domains::Create).to receive(:new).and_return(create_op)
+    end
+
+    it 'shows a refusal raised while validating and exits 1' do
+      allow(create_op).to receive(:validate).and_raise(Onetime::Problem, 'Domain too deep (max: 10)')
+
+      output = run_cli_command_quietly('domains', 'create', 'a.b.c.d.e.f.g.h.i.j.example.com', '--org', 'on_org', '--yes')
+
+      expect([output[:stdout], last_exit_code]).to match([include('Error: Domain too deep (max: 10)'), 1])
+    end
+
+    it 'shows a datastore failure raised while creating and exits 1' do
+      allow(create_op).to receive(:validate).and_return(ok_check)
+      allow(create_op).to receive(:call).and_raise(
+        Onetime::TemporarilyUnavailable.new('The domain could not be added right now. Please try again shortly.', reason: :datastore),
+      )
+
+      output = run_cli_command_quietly('domains', 'create', 'shop.example.com', '--org', 'on_org', '--yes', '--json')
+
+      expect([JSON.parse(output[:stdout].lines.last), last_exit_code])
+        .to eq([{ 'error' => 'The domain could not be added right now. Please try again shortly.' }, 1])
+    end
+  end
+
   describe 'transfer subcommand' do
     # The transfer verb now delegates to Onetime::Operations::Domains::Transfer
     # (the single toolbox impl the colonel endpoint also calls). The CLI owns

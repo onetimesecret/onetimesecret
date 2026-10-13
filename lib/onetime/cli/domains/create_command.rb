@@ -74,7 +74,7 @@ module Onetime
 
         # Validate BEFORE prompting so an obviously bad input fails fast, and so
         # the operator sees the normalised FQDN they are about to register.
-        check = operation.validate
+        check = refuse_on_problem(json) { operation.validate }
         error_exit(check.message, json: json) unless check.status == :ok
 
         unless yes
@@ -93,7 +93,7 @@ module Onetime
           end
         end
 
-        result = operation.call
+        result = refuse_on_problem(json) { operation.call }
         error_exit(result.message, json: json) unless result.status == :created
 
         OT.info "[cli-domains-create] domain=#{result.display_domain} org=#{organization.extid} extid=#{result.extid}"
@@ -129,6 +129,17 @@ module Onetime
       def error_exit(message, json:)
         puts(json ? JSON.generate({ error: message }) : "Error: #{message}")
         exit 1
+      end
+
+      # CustomDomain.parse and create! refuse some names (too deep, TXT
+      # challenge name too long, already registered) and report datastore
+      # failures with an Onetime::Problem whose message is written for the
+      # person adding the domain. Shown like any other refusal, not as a
+      # stack trace. The op has already audited a raise from #call.
+      def refuse_on_problem(json)
+        yield
+      rescue Onetime::Problem => ex
+        error_exit(ex.message, json: json)
       end
     end
 
