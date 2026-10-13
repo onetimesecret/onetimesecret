@@ -311,6 +311,37 @@ module Onetime
     end
   end
 
+  # A write that could not complete this request for a reason the caller
+  # did not cause and that a retry can clear: the datastore could not be
+  # reached, or a concurrent write won an optimistic lock. Not bad input,
+  # so not a 422, and not a server fault to page on, so not a 500: a 503
+  # with Retry-After. Registered in lib/onetime/application/otto_hooks.rb
+  # (Problem itself has no handler); the body's retry_after becomes the
+  # Retry-After header (Middleware::RetryAfterHeader).
+  #
+  # `reason` is a bounded code for logs and alerting (:datastore,
+  # :concurrent_write).
+  class TemporarilyUnavailable < Problem
+    DEFAULT_MESSAGE = 'This could not be completed right now. Please try again shortly.'
+    RETRY_AFTER     = 5
+
+    attr_reader :reason
+
+    def initialize(message = DEFAULT_MESSAGE, reason:)
+      super(message)
+      @reason = reason.to_sym
+    end
+
+    def to_h
+      {
+        error: message,
+        error_type: 'TemporarilyUnavailable',
+        reason: reason,
+        retry_after: RETRY_AFTER,
+      }
+    end
+  end
+
   class RecordNotFound < Problem
     # i18n shape: error_key + args are resolved at the HTTP edge so logic
     # classes never touch I18n. error_key is the full dotted i18n key (e.g.

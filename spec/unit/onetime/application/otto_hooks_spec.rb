@@ -147,6 +147,25 @@ RSpec.describe Onetime::Application::OttoHooks do
       end
     end
 
+    describe 'Onetime::TemporarilyUnavailable (a write a retry can clear)' do
+      let(:entry) { registered[Onetime::TemporarilyUnavailable] }
+
+      it 'maps to 503 at log_level :warn' do
+        expect([entry&.fetch(:status), entry&.fetch(:log_level)]).to eq([503, :warn])
+      end
+
+      it 'returns the error shape with retry_after so the middleware can set Retry-After' do
+        error = Onetime::TemporarilyUnavailable.new('Try again shortly.', reason: :datastore)
+
+        expect(entry[:handler].call(error, nil)).to include(
+          error: 'Try again shortly.',
+          error_type: 'TemporarilyUnavailable',
+          reason: :datastore,
+          retry_after: Onetime::TemporarilyUnavailable::RETRY_AFTER,
+        )
+      end
+    end
+
     describe 'Billing::CircuitOpenError (Stripe breaker open)' do
       let(:entry) { registered['Billing::CircuitOpenError'] }
 

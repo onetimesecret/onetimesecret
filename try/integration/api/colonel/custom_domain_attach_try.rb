@@ -121,6 +121,21 @@ post '/api/colonel/domains', { 'org_id' => @org.extid, 'domain' => @long_name },
 [@long_name.bytesize, last_response.status, JSON.parse(last_response.body)['error']]
 #=> [227, 422, 'Domain too long for its TXT validation record']
 
+## Create: a datastore error during create! is a 503 with Retry-After, not a form error
+# The class-level instances set is moved aside and replaced by a string, so the
+# write to it inside create! gets a real WRONGTYPE error from the datastore.
+# Request handling before create! does not read that key. Restored before the
+# expectation is evaluated.
+@inst_key   = Onetime::CustomDomain.instances.dbkey
+@inst_aside = "#{@inst_key}:aside-#{@timestamp}"
+@inst_moved = Familia.dbclient.exists?(@inst_key) && Familia.dbclient.rename(@inst_key, @inst_aside)
+Familia.dbclient.set(@inst_key, 'not-a-sorted-set')
+post '/api/colonel/domains', { 'org_id' => @org.extid, 'domain' => "outage-#{@timestamp}.example.com" }, colonel_headers
+Familia.dbclient.del(@inst_key)
+Familia.dbclient.rename(@inst_aside, @inst_key) if @inst_moved
+[last_response.status, last_response.headers['Retry-After'], Onetime::CustomDomain.load_by_display_domain("outage-#{@timestamp}.example.com")]
+#=> [503, '5', nil]
+
 ## Create: 200 with { record, details } envelope
 @before_count = Onetime::ColonelAuditEvent.count
 post '/api/colonel/domains', { 'org_id' => @org.extid, 'domain' => @domain }, colonel_headers

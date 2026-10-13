@@ -10,9 +10,13 @@
 # would not fit the DNS name limits, a name that is already registered. These
 # reach the customer as a 422 form error carrying that message.
 #
+# A datastore failure during create! is not bad input: it is a 503 with
+# Retry-After, so the client retries instead of showing a form error.
+#
 # Runs through the full Rack::URLMap with a real session (simple auth mode).
 
 require_relative File.join(Onetime::HOME, 'spec', 'integration', 'integration_spec_helper')
+require 'delegate'
 
 RSpec.describe 'POST /api/domains/add refusals', type: :integration do
   include Rack::Test::Methods
@@ -86,5 +90,19 @@ RSpec.describe 'POST /api/domains/add refusals', type: :integration do
       .and_raise(Onetime::Problem, 'Domain is registered to another organization')
 
     expect(add_domain("taken-#{test_run_id}.example.com")).to eq([422, 'Domain is registered to another organization'])
+  end
+
+  it 'answers a datastore failure during create! with a 503 and Retry-After, not a form error' do
+    failing = Class.new(SimpleDelegator) do
+      define_method(:claim_field) { |*| raise Redis::CannotConnectError, 'datastore unreachable' }
+    end
+    index = Onetime::CustomDomain.canonical_display_domain_index
+    allow(Onetime::CustomDomain).to receive(:canonical_display_domain_index).and_return(failing.new(index))
+    name = "outage-#{test_run_id}.example.com"
+
+    status, = add_domain(name)
+
+    expect([status, last_response.headers['Retry-After'], Onetime::CustomDomain.load_by_display_domain(name)])
+      .to eq([503, '5', nil])
   end
 end

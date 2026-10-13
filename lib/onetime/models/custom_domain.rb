@@ -936,6 +936,10 @@ module Onetime
       # @param org_id [String] The organization ID to associate with this domain
       # @return [Onetime::CustomDomain] The created custom domain
       # @raise [Onetime::Problem] If domain is invalid or already exists
+      # @raise [Onetime::TemporarilyUnavailable] If the datastore failed, or
+      #   claiming an orphaned record lost to a concurrent write
+      # @raise [Onetime::RecordNotFound] If claiming an orphaned record and the
+      #   organization no longer exists
       #
       # @note BREAKING CHANGE: This method signature changed from (input, custid) to (input, org_id).
       #   Domains are now owned by organizations, not individual customers. To migrate existing code:
@@ -1073,8 +1077,11 @@ module Onetime
         OT.le "[CustomDomain.create!] Duplicate domain: #{ex.message}"
         raise Onetime::Problem, 'Duplicate domain for organization'
       rescue Redis::BaseError => ex
+        # Not the caller's input: a retry can succeed (503, not 422).
         OT.le "[CustomDomain.create!] Redis error: #{ex.message}"
-        raise Onetime::Problem, 'Unable to create custom domain'
+        raise Onetime::TemporarilyUnavailable.new(
+          'The domain could not be added right now. Please try again shortly.', reason: :datastore
+        )
       end
 
       # Create default-disabled HomepageConfig and ApiConfig records for a
@@ -1096,6 +1103,9 @@ module Onetime
       # @param org_id [String] The organization ID claiming the domain
       # @return [CustomDomain, nil] The claimed domain, or nil if claim failed
       # @raise [Onetime::Problem] If domain was claimed by another org during race
+      # @raise [Onetime::RecordNotFound] If the organization no longer exists
+      # @raise [Onetime::TemporarilyUnavailable] If a concurrent write to the
+      #   record discarded the claim (WATCH)
       def claim_orphaned_domain(existing, org_id)
         OT.info "[CustomDomain.create!] Claiming orphaned domain: #{existing.display_domain} for org_id=#{org_id}"
 
@@ -1135,7 +1145,10 @@ module Onetime
             org = Onetime::Organization.load(org_id)
             unless org
               conn.unwatch
-              raise Onetime::Problem, "Organization #{org_id} not found"
+              # The caller resolved the organization; it is gone now. Not
+              # bad input, and its internal id stays out of the reply.
+              OT.le "[CustomDomain.claim_orphaned_domain] Organization not found while claiming #{existing.display_domain}"
+              raise Onetime::RecordNotFound, 'Organization not found'
             end
 
             existing.atomic_write do
@@ -1153,8 +1166,11 @@ module Onetime
         # concurrent modification). nil is defensive against unexpected
         # returns from the enclosing watch block.
         if result == false || result.nil?
+          # Another write landed on the record first; a retry sees its result.
           OT.le "[CustomDomain.claim_orphaned_domain] WATCH conflict for #{existing.display_domain}"
-          raise Onetime::Problem, 'Domain claim failed due to concurrent modification'
+          raise Onetime::TemporarilyUnavailable.new(
+            'The domain could not be added right now. Please try again shortly.', reason: :concurrent_write
+          )
         end
 
         existing
