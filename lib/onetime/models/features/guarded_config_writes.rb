@@ -36,6 +36,33 @@ module Onetime
         def self.included(base)
           OT.ld "[features] #{base}: #{name}"
           base.extend ClassMethods
+          base.include InstanceMethods
+        end
+
+        module InstanceMethods
+          # Writes +values+ to the stored record, re-read under WATCH, and
+          # leaves its other fields as stored. This copy takes the same values.
+          #
+          # @return [self]
+          # @raise [Familia::KeyNotFoundError] no stored record
+          def update_stored!(**values)
+            self.class.update_for_domain!(identifier) do |stored|
+              values.each { |name, value| stored.public_send(:"#{name}=", value) }
+            end
+            adopt_stored_values!(values)
+          end
+
+          private
+
+          # Takes +values+ on this copy without marking them unsaved.
+          #
+          # @param values [Hash{Symbol => Object}]
+          # @return [self]
+          def adopt_stored_values!(values)
+            values.each { |name, value| public_send(:"#{name}=", value) }
+            clear_dirty!(*values.keys)
+            self
+          end
         end
 
         module ClassMethods
@@ -52,6 +79,25 @@ module Onetime
           def update_for_domain!(domain_id)
             guarded_attempts(domain_id) do |config|
               raise Familia::KeyNotFoundError, dbkey(domain_id) unless config
+
+              value = yield config
+              [config.commit_fields, [config, value]]
+            end
+          end
+
+          # update_for_domain! that writes only while +condition+ holds for
+          # the stored record, for a writer whose input was computed from a
+          # state the record may since have left (a background job).
+          #
+          # @param condition [Proc] called with the stored record
+          # @yield [config] as for update_for_domain!
+          # @return [Array(Familia::Horreum, Object), nil] as update_for_domain!,
+          #   or nil (nothing written) when the record is gone or the
+          #   condition is false
+          # @raise [Familia::OptimisticLockError] still changing after ATTEMPTS
+          def update_for_domain_if(domain_id, condition)
+            guarded_attempts(domain_id) do |config|
+              next [nil, nil] unless config && condition.call(config)
 
               value = yield config
               [config.commit_fields, [config, value]]
