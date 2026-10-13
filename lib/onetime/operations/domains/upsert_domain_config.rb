@@ -28,7 +28,9 @@ module Onetime
       #
       # Create path: model defaults + provided fields (`Model.create!`). A
       # duplicate-create race falls back to the update path. Update path:
-      # only the provided fields are applied; `updated` is bumped.
+      # only the provided fields are applied, on the record re-read under
+      # WATCH (GuardedConfigWrites#update_for_domain!), so fields this call
+      # does not name keep a concurrent writer's values; `updated` is bumped.
       class UpsertDomainConfig
         include Onetime::AuditedFailure
 
@@ -47,16 +49,6 @@ module Onetime
           verb: AUDIT_VERB,
           target: -> { @domain&.extid },
           detail: -> { { config: @kind, changed: @attrs.keys } }
-
-        # The config models' create! signals a lost duplicate-create race by
-        # raising Onetime::Problem from its exists-guard — the FIRST check,
-        # before any attribute validation — with this message shape
-        # ('<Kind> config already exists for this domain'). No distinct error
-        # class exists, and model VALIDATION failures raise the same class
-        # (e.g. allowed_signup_domains PublicSuffix rejection), so the race
-        # rescue matches the guard message: a validation failure must never
-        # be re-applied to a raced record it did not come from.
-        ALREADY_EXISTS_MESSAGE = /already exists for this domain\z/
 
         # @!attribute status [r] Symbol — :created | :updated
         # @!attribute config [r] the persisted config record
@@ -82,28 +74,22 @@ module Onetime
           model     = registry.model_for(@kind)
           domain_id = @domain.identifier
 
-          existing = model.find_by_domain_id(domain_id)
-          if existing
+          if model.exists_for_domain?(domain_id)
             status = :updated
-            config = apply_update(existing)
+            config = apply_update(model, domain_id)
           else
             begin
               status = :created
               config = model.create!(domain_id: domain_id, **@attrs.transform_keys(&:to_sym))
-            rescue Onetime::Problem => ex
+            rescue Onetime::Models::Features::GuardedConfigWrites::ConfigExistsError
               # Duplicate-create race ONLY: a concurrent writer created the
-              # record between our read and create!'s exists-guard. Any other
-              # Onetime::Problem is a real validation failure and propagates
-              # unchanged (422 form error at the logic layer) — taking the
-              # race path for it would re-apply invalid input to a concurrent
-              # writer's valid record.
-              raise unless ex.message.match?(ALREADY_EXISTS_MESSAGE)
-
-              raced = model.find_by_domain_id(domain_id)
-              raise unless raced
-
+              # record between our check and create!. A model VALIDATION
+              # failure raises the parent class, Onetime::Problem, and
+              # propagates unchanged (422 form error at the logic layer):
+              # taking the race path for it would re-apply invalid input to
+              # a concurrent writer's valid record.
               status = :updated
-              config = apply_update(raced)
+              config = apply_update(model, domain_id)
             end
           end
 
@@ -127,12 +113,16 @@ module Onetime
 
         # Partial update: only provided fields are applied (storage-encoded by
         # the registry), then `updated` is bumped. Setter failures raise BEFORE
-        # save, so no partial state persists.
-        def apply_update(config)
-          @attrs.each { |field, value| registry.apply_field(config, @kind, field, value) }
-          config.created ||= Familia.now.to_i # repair missing created from legacy records
-          config.updated   = Familia.now.to_i
-          config.save
+        # the commit, so no partial state persists.
+        #
+        # @raise [Familia::KeyNotFoundError] deleted concurrently
+        # @raise [Familia::OptimisticLockError] still changing after the retries
+        def apply_update(model, domain_id)
+          config, = model.update_for_domain!(domain_id) do |stored|
+            @attrs.each { |field, value| registry.apply_field(stored, @kind, field, value) }
+            stored.created ||= Familia.now.to_i # repair missing created from legacy records
+            stored.updated   = Familia.now.to_i
+          end
           config
         end
       end

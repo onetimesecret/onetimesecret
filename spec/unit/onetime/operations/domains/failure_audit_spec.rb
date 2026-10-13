@@ -162,7 +162,8 @@ RSpec.describe 'domain operations failure auditing' do
     # before the success-path record call.
     it 'records ONE result: :failure event when a model setter raises, and re-raises' do
       allow(registry).to receive(:model_for).with('signup').and_return(model)
-      allow(model).to receive(:find_by_domain_id).with('dom-obj-1').and_return(existing)
+      allow(model).to receive(:exists_for_domain?).with('dom-obj-1').and_return(true)
+      allow(model).to receive(:update_for_domain!).with('dom-obj-1') { |_id, &block| [existing, block.call(existing)] }
       allow(registry).to receive(:apply_field).and_raise(Onetime::Problem, 'not a public domain')
 
       expect do
