@@ -9,6 +9,7 @@ require_relative 'discovery_check'
 require_relative '../../../../../lib/onetime/sso_provider/entra'
 require_relative '../../../../../lib/onetime/sso_provider/entra_credential_probe'
 require 'onetime/security/sso_diagnostics_rate_limiter'
+require 'onetime/models/colonel_audit_event'
 
 module DomainsAPI
   module Logic
@@ -59,11 +60,28 @@ module DomainsAPI
       # request costs nothing. Over the cap the API answers 429 with
       # retry_after and a Retry-After header, and no check runs.
       #
+      # Every completed run writes one `sso.diagnostics_run` event to the
+      # OPERATOR audit trail (Onetime::ColonelAuditEvent.record): the acting
+      # customer, the domain, the overall verdict as the result, and the
+      # per-check statuses, bare error codes and configuration revision in
+      # the detail. A run is an authenticated owner's action that sends the
+      # stored secret to the identity provider — an effect outside this
+      # system — so it is recorded like `domain_sender.test_email_sent` and
+      # `organization.investigate`, not as security telemetry; the
+      # per-customer cap bounds the write rate. The event never carries a
+      # message, the secret, a token or Entra's error_description. The
+      # write is best-effort: ColonelAuditEvent.record swallows its own
+      # failures, so a broken audit write never fails the run.
+      #
       class RunDiagnostics < Base
         include DiscoveryCheck
         include Onetime::Security::SsoDiagnosticsRateLimiter
 
         STATUSES = %w[passed failed inconclusive unsupported skipped].freeze
+
+        # Audit verb for one completed run. Namespaced `<resource>.<action>`
+        # like the limiter's `sso.diagnostics_throttled`.
+        AUDIT_VERB = 'sso.diagnostics_run'
 
         SKIPPED_MESSAGE = 'Fix the stored configuration first'
 
@@ -136,6 +154,8 @@ module DomainsAPI
               checks: @checks.to_h { |check| [check[:check], check[:status]] },
             }
 
+          record_audit_event
+
           success_data
         end
 
@@ -155,6 +175,43 @@ module DomainsAPI
         end
 
         private
+
+        # ──────────────────────────────────────────────────────────────────────────
+        # Audit
+        # ──────────────────────────────────────────────────────────────────────────
+
+        # One operator-trail event per completed run. Statuses and bare codes
+        # only: the check messages are not copied (the discovery ones are
+        # built from the fetch), and nothing here can hold the secret, a
+        # token or Entra's error_description because no check stores them.
+        # `credential_shape` is the Secret-ID-shaped-secret flag; it is not
+        # named after the secret because the trail's redaction pass blanks
+        # any key matching /secret/.
+        def record_audit_event
+          credential = @checks.find { it[:check] == 'credential' }&.dig(:details) || {}
+          codes      = @checks.filter_map do |check|
+            code = check.dig(:details, :error_code)
+            [check[:check], code] if code
+          end.to_h
+
+          Onetime::ColonelAuditEvent.record(
+            actor: cust,
+            verb: AUDIT_VERB,
+            target: @custom_domain.identifier,
+            result: @overall == 'failed' ? :failure : :success,
+            detail: {
+              display_domain: @custom_domain.display_domain,
+              provider_type: @provider_type,
+              overall: @overall,
+              checked_at: @checked_at.iso8601,
+              configuration_revision: @sso_config.updated.to_s,
+              checks: @checks.to_h { |check| [check[:check], check[:status]] },
+              error_codes: (codes unless codes.empty?),
+              aadsts_code: credential[:aadsts_code],
+              credential_shape: credential[:secret_shape],
+            }.compact,
+          )
+        end
 
         # ──────────────────────────────────────────────────────────────────────────
         # Orchestration

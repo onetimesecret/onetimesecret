@@ -68,10 +68,15 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
   # Everything OT logs during a run, for the "never leaks" assertions.
   let(:logged) { [] }
 
+  # Every audit event a run records (kwargs), for the audit-trail and
+  # "never leaks" assertions. Stubbed, so no run writes the lane's trail.
+  let(:audited) { [] }
+
   before do
     %i[info ld le li].each do |level|
       allow(OT).to receive(level) { |*args| logged << args.inspect }
     end
+    allow(Onetime::ColonelAuditEvent).to receive(:record) { |**kwargs| audited << kwargs }
 
     allow(logic).to receive(:authorize_domain_sso!) do
       logic.instance_variable_set(:@custom_domain, custom_domain)
@@ -137,7 +142,7 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
   end
 
   def expect_no_leak(result)
-    everything = [result.inspect, *logged].join("\n")
+    everything = [result.inspect, *logged, *audited.map(&:inspect)].join("\n")
     expect(everything).not_to include(secret)
     expect(everything).not_to include('private-access-token')
     expect(everything).not_to include('private description')
@@ -270,6 +275,89 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
       expect(line).to include(':overall => "passed"').or include('overall: "passed"')
       expect(line).to include('"credential" => "passed"').or include('"credential"=>"passed"')
       expect_no_leak(run)
+    end
+  end
+
+  describe 'audit trail (sso.diagnostics_run)' do
+    it 'records one operator-trail event per completed run with the verdict and per-check statuses' do
+      stub_discovery_ok
+      accept_credentials
+
+      result = run
+
+      expect(audited.size).to eq(1)
+      expect(audited.first).to include(
+        actor: owner,
+        verb: 'sso.diagnostics_run',
+        target: 'domain123',
+        result: :success,
+      )
+      expect(audited.first[:detail]).to include(
+        display_domain: 'example.com',
+        provider_type: 'entra_id',
+        overall: 'passed',
+        configuration_revision: '1760000000',
+        checks: { 'stored_configuration' => 'passed', 'discovery' => 'passed', 'credential' => 'passed' },
+      )
+      expect(audited.first[:detail][:checked_at]).to eq(result[:checked_at])
+      expect(audited.first[:detail]).not_to include(:error_codes, :aadsts_code, :credential_shape)
+    end
+
+    it 'records a failed verdict as result: :failure with the bare error codes and AADSTS code' do
+      stub_discovery_ok
+      refuse_credentials('AADSTS7000215')
+
+      result = run
+
+      expect(result[:overall]).to eq('failed')
+      expect(audited.first).to include(verb: 'sso.diagnostics_run', result: :failure)
+      expect(audited.first[:detail]).to include(
+        overall: 'failed',
+        error_codes: { 'credential' => 'invalid_client_secret' },
+        aadsts_code: 'AADSTS7000215',
+      )
+      expect_no_leak(result)
+    end
+
+    it 'records an inconclusive verdict as result: :success with overall in the detail' do
+      stub_discovery_ok
+      stub_request(:post, token_url).to_timeout
+
+      result = run
+
+      expect(result[:overall]).to eq('inconclusive')
+      expect(audited.first).to include(result: :success)
+      expect(audited.first[:detail]).to include(overall: 'inconclusive', error_codes: { 'credential' => 'timeout' })
+    end
+
+    context 'when the stored secret has the shape of an Entra Secret ID' do
+      let(:secret) { 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee' }
+
+      it 'flags it under a key the trail redaction pass keeps (no /secret/ key)' do
+        stub_discovery_ok
+        refuse_credentials('AADSTS7000215')
+
+        run
+
+        expect(audited.first[:detail]).to include(credential_shape: 'uuid')
+        expect(audited.first[:detail].keys.map(&:to_s)).not_to include(match(/secret/))
+      end
+    end
+
+    it 'never copies a check message into the event' do
+      stub_discovery_ok
+      refuse_credentials('AADSTS7000215')
+
+      run
+
+      expect(audited.first.inspect).not_to include('rejected the saved client secret')
+    end
+
+    it 'does not record when the run is refused before any check' do
+      allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id).with('domain123').and_return(nil)
+
+      expect { logic.raise_concerns }.to raise_error(Onetime::FormError)
+      expect(audited).to be_empty
     end
   end
 
