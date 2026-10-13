@@ -135,9 +135,12 @@ module Onetime::Customer::Features
       # kind-less secret is classified as mailbox_proof_secret? does: receipt-
       # backed is a verification link, receiptless is a recovery token.
       #
+      # @param recorded [String] the pointer value to classify; defaults to a
+      #   fresh read. A caller that goes on to write passes the value it read
+      #   so the write can be conditioned on it (record_verification_pointer!).
       # @return [Boolean]
-      def reset_secret_outstanding?
-        recorded = reset_secret.value.to_s
+      def reset_secret_outstanding?(recorded = reset_secret.value.to_s)
+        recorded = recorded.to_s
         return false if recorded.empty?
 
         current = Onetime::Secret.load(recorded)
@@ -147,6 +150,25 @@ module Onetime::Customer::Features
         return kind != 'account_verification' unless kind.empty?
 
         current.receipt_identifier.to_s.empty?
+      end
+
+      # Record a freshly minted verification link as reset_secret, unless the
+      # pointer names a live recovery token.
+      #
+      # The outstanding check and the write are two round trips, so a recovery
+      # request can land between them and its token would be lost to the
+      # welcome link (#4735 review, F6 concurrent). The write is a compare-
+      # and-set against the value the check classified: if the pointer moved
+      # in between, whatever moved it keeps it and the welcome link goes out
+      # unrecorded — it is mailbox proof by its kind either way.
+      #
+      # @param secret [Onetime::Secret] the account-verification secret
+      # @return [Boolean] true when the pointer now names the secret
+      def record_verification_pointer!(secret)
+        recorded = reset_secret.value.to_s
+        return false if reset_secret_outstanding?(recorded)
+
+        claim_reset_pointer(secret.identifier, expected: recorded)
       end
 
       # Check if account was created via Stripe payment (not email verified)

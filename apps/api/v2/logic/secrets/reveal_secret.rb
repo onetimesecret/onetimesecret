@@ -191,8 +191,10 @@ module V2::Logic
                 owner.save
                 # The pointer is shared with password recovery, and a newer
                 # recovery link may have moved it on since this welcome link
-                # was minted. Clear it only while it still names this secret.
-                owner.reset_secret.delete! if owner.matches_reset_secret?(secret)
+                # was minted — or may move it between a comparison and the
+                # delete. Clear it only while it still names this secret, in
+                # one server-side step.
+                owner.release_reset_pointer(secret)
               else
                 secret_logger.info 'Verification secret is not mailbox proof for the owner; revealing without stamping',
                   {

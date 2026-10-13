@@ -445,12 +445,12 @@ RSpec.describe 'EnsureDefaultWorkspace: federated subscription claim gate', type
       expect(pending_exists?(email)).to be(false), 'the replayed snapshot must be consumed, not kept for the next retry'
     end
 
-    it 'still applies a record received after the workspace was federated' do
+    it 'still applies a record received after the workspace was last synced' do
       email = unique_email('newer-record')
       customer = create_customer(email: email, verified: true, verified_by: 'email')
       org = Auth::Operations::EnsureDefaultWorkspace.new(customer: customer).call[:organization]
       created_organizations << org
-      org.subscription_federated_at = Time.now.to_i - 3600
+      org.subscription_synced_at = Time.now.to_i - 3600
       org.save
 
       create_pending_for(email, planid: 'identity_monthly')

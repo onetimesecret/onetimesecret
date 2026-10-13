@@ -495,9 +495,10 @@ module Onetime
         # an unverified sign-in can resend verification while the holder has a
         # live recovery link out; overwriting the pointer here would fail that
         # link at redemption (ResetPassword checks the pointer). Leave an
-        # outstanding recovery pointer alone: the new link is mailbox proof by
-        # its kind and needs no pointer (Customer#mailbox_proof_secret?).
-        customer.reset_secret = secret.identifier unless customer.reset_secret_outstanding?
+        # outstanding recovery pointer alone, and write only while the pointer
+        # still holds what was checked: the new link is mailbox proof by its
+        # kind and needs no pointer (Customer#mailbox_proof_secret?).
+        customer.record_verification_pointer!(secret)
 
         # @locale can arrive blank ("") from params (see #initialize) — an empty
         # string is truthy, so it slips past a bare `||` into an invalid I18n

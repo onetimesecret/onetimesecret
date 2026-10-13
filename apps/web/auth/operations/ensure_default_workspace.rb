@@ -520,20 +520,22 @@ module Auth
         pending = Billing::PendingFederatedSubscription.find_by_email_hash(org.email_hash)
         return false unless pending
 
-        # A record received at or before this workspace's federation stamp is
-        # a snapshot that was already applied: the first claim saved the org
-        # and then failed to destroy the record. Every subscription event
-        # since — a cancellation, a plan change — reached the org directly
-        # (the webhook finds it by email_hash), so replaying the snapshot
-        # would restore a canceled subscription and its entitlements. Consume
-        # the leftover record instead of applying it (#4735 review, F8).
+        # A record received at or before the last state fully applied to this
+        # workspace is a snapshot the org already carries: a claim saved the
+        # org and then failed to destroy the record, or a webhook that found
+        # no org wrote the record after provisioning had claimed an earlier
+        # one. Every subscription event since — a cancellation, a plan change
+        # — reached the org directly (the webhook finds it by email_hash), so
+        # replaying the snapshot would restore a canceled subscription and its
+        # entitlements. Consume the leftover record instead of applying it
+        # (#4735 review, F8).
         if pending_superseded?(org, pending)
-          auth_logger.info '[create-default-workspace] Pending federated subscription predates the workspace federation; discarding the replayed snapshot',
+          auth_logger.info '[create-default-workspace] Pending federated subscription predates the last applied state; discarding the replayed snapshot',
             {
               org: org.extid,
               hash_prefix: org.email_hash[0..7],
               received_at: pending.received_at,
-              federated_at: org.subscription_federated_at,
+              synced_at: org.subscription_synced_at,
             }
           pending.destroy!
           return false
@@ -588,6 +590,13 @@ module Auth
         # Materialize entitlements from the claimed plan (Phase 2)
         # PendingFederatedSubscription stores planid but not entitlements,
         # so we materialize now that the org has its planid set.
+        #
+        # Materialization saves the scalar fields set above — plan, status,
+        # federation stamp — before it writes the entitlement collections. A
+        # failure in between leaves a paid plan with no entitlements, so the
+        # sync marker that pending_superseded? reads is set only once this
+        # returns: the retry then re-applies the record instead of discarding
+        # it as delivered (#4735 review, F9).
         begin
           require_relative '../../billing/operations/apply_subscription_to_org'
           Billing::Operations::ApplySubscriptionToOrg.materialize_entitlements_for_org(org)
@@ -595,6 +604,7 @@ module Auth
           auth_logger.debug '[create-default-workspace] Billing operations not available for materialization'
         end
 
+        org.mark_subscription_synced!
         org.save
 
         auth_logger.info '[create-default-workspace] Applied pending federated subscription',
@@ -618,21 +628,24 @@ module Auth
 
       # Was this pending record already delivered to the workspace?
       #
-      # The federation stamp is written the first time a claim or a webhook
-      # federates the org, and from then on every subscription event for the
-      # hash lands on the org rather than on a pending record. A record
-      # received at or before the stamp therefore has nothing new to deliver.
-      # A legacy record without received_at reads as 0 and is superseded by
-      # any stamp; an unfederated org supersedes nothing.
+      # subscription_synced_at is written each time a claim completes or a
+      # webhook syncs the org directly, after the entitlements are
+      # materialized. A record received at or before it carries nothing the
+      # org does not already have. A legacy record without received_at reads
+      # as 0 and is superseded by any marker; an org never fully synced —
+      # including one whose claim failed between the scalar save and the
+      # entitlement writes — supersedes nothing, so the retry re-applies.
+      # The first-federation stamp is not consulted: it is saved ahead of the
+      # entitlements and does not move on later syncs (#4735 review, F8/F9).
       #
       # @param org [Onetime::Organization]
       # @param pending [Billing::PendingFederatedSubscription]
       # @return [Boolean]
       def pending_superseded?(org, pending)
-        federated_at = org.subscription_federated_at.to_s
-        return false if federated_at.empty?
+        synced_at = org.subscription_synced_at.to_s
+        return false if synced_at.empty?
 
-        pending.received_at.to_i <= federated_at.to_i
+        pending.received_at.to_i <= synced_at.to_i
       end
     end
   end

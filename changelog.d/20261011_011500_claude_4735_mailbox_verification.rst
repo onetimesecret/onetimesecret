@@ -29,7 +29,15 @@ Security
   through the last-colonel rollback; ``customers create --no-verified`` writes
   no provenance. An operator verification in full auth mode reconciles the
   Rodauth row on every change, and a deferred federated subscription is never
-  applied to a workspace that already owns a local subscription. (#4735)
+  applied to a workspace that already owns a local subscription. The shared
+  password-recovery pointer is now replaced and cleared with a server-side
+  compare-and-set, so a recovery link requested while a verification resend
+  or a welcome-link reveal is in flight still redeems. A federated workspace
+  records when its subscription state was last applied in full
+  (``subscription_synced_at``); a verification retry discards a pending
+  federated record older than that marker instead of replaying it over a
+  later cancellation, and re-applies a record whose first claim failed before
+  the entitlements were written. (#4735)
 
   **Upgrade note:** a colonel, admin or staff account whose ``verified_by`` is
   ``sso``, ``stripe_payment``, ``autoverify``, ``legacy`` or empty loses the

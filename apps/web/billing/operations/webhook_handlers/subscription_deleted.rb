@@ -76,10 +76,19 @@ module Billing
         # Similar to clear_billing_fields but for federated orgs.
         # Federated orgs don't have stripe_customer_id or stripe_subscription_id to clear.
         #
+        # The cancellation is a direct sync like any other federated update:
+        # it records the sync marker once the free-tier entitlements are
+        # materialized and retires a stale pending record for the hash, so a
+        # later verification retry cannot replay a paid snapshot over it
+        # (#4735 review, F8).
+        #
         # @param org [Onetime::Organization] Organization to update
         # @param subscription [Stripe::Subscription] Stripe subscription (for logging)
         def clear_federated_org(org, _subscription)
-          Billing::Operations::ApplySubscriptionToOrg.apply_free_tier(org, owner: false)
+          Billing::Operations::ApplySubscriptionToOrg.apply_free_tier(org, owner: false, save: false)
+          org.mark_subscription_synced!
+          org.save
+          discard_superseded_pending(org)
         end
       end
     end

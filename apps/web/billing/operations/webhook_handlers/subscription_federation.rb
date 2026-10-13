@@ -134,11 +134,18 @@ module Billing
           # Mark as federated if first time
           org.mark_subscription_federated! if first_federation
 
+          # This event's state is now applied in full (the call above
+          # materialized the entitlements). The marker lets a later re-claim
+          # recognise a pending record received before this sync as stale
+          # even when retiring it below fails (#4735 review, F8).
+          org.mark_subscription_synced!
+
           org.save
 
           # The org now carries this event's state directly, so a pending
           # record for the same hash is a stale snapshot (left when a claim
-          # saved the org but failed to destroy it). Retire it here rather
+          # saved the org but failed to destroy it, or written by a webhook
+          # that looked the org up before it existed). Retire it here rather
           # than let a later re-claim replay it over this update (#4735).
           discard_superseded_pending(org)
 

@@ -78,6 +78,17 @@ module Onetime
           # Unix timestamp, nil if owner or no subscription
           base.field :subscription_federated_at
 
+          # Unix timestamp of the last subscription state this org received
+          # through federation: a completed pending claim or a direct webhook
+          # sync. A pending record received at or before it carries nothing
+          # the org does not already have (EnsureDefaultWorkspace#pending_superseded?).
+          # Written after entitlements are materialized, never beforehand, so
+          # it is also the proof that a claim completed — which
+          # subscription_federated_at, saved with the scalar fields ahead of
+          # the entitlement collections, cannot be (#4735 review, F8/F9).
+          # Never cleared: it only ever moves forward.
+          base.field :subscription_synced_at
+
           # Track when user dismissed the federation notification - for UX
           # Unix timestamp, nil if never dismissed
           base.field :federation_notification_dismissed_at
@@ -328,6 +339,18 @@ module Onetime
 
             self.subscription_federated_at = Familia.now.to_i
             subscription_federated_at.to_i
+          end
+
+          # Record that the subscription state now on this org is applied in
+          # full (fields saved, entitlements materialized). Call it after the
+          # materialization step, immediately before the save that persists
+          # it; see the field comment.
+          #
+          # @return [Integer] The timestamp set
+          #
+          def mark_subscription_synced!
+            self.subscription_synced_at = Familia.now.to_i
+            subscription_synced_at.to_i
           end
 
           # Clear the federated status (e.g., when org becomes a direct subscriber)
