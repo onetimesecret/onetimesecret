@@ -191,7 +191,7 @@ module Onetime
                 end
                 if result.is_a?(Familia::MultiResult)
                   next if result.aborted?
-                  raise Onetime::Problem, "#{name} write for #{domain_id} failed" unless result.successful?
+                  raise Familia::PersistenceError, "#{name} write for #{domain_id} failed" unless result.successful?
                 end
 
                 return value
