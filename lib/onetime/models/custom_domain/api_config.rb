@@ -62,17 +62,13 @@ class Onetime::CustomDomain::ApiConfig < Familia::Horreum
   # Enable public API access for this domain.
   # @return [void]
   def enable!
-    self.enabled = 'true'
-    self.updated = Familia.now.to_i
-    save
+    update_stored!(enabled: 'true', updated: Familia.now.to_i)
   end
 
   # Disable public API access for this domain.
   # @return [void]
   def disable!
-    self.enabled = 'false'
-    self.updated = Familia.now.to_i
-    save
+    update_stored!(enabled: 'false', updated: Familia.now.to_i)
   end
 
   # Load the associated CustomDomain record.

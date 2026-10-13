@@ -275,15 +275,13 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
   # Enable SSO for this domain.
   # @return [void]
   def enable!
-    self.enabled = 'true'
-    save
+    update_stored!(enabled: 'true')
   end
 
   # Disable SSO for this domain.
   # @return [void]
   def disable!
-    self.enabled = 'false'
-    save
+    update_stored!(enabled: 'false')
   end
 
   # Get the list of allowed email domains.

@@ -159,15 +159,13 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
   # Enable this signup config.
   # @return [void]
   def enable!
-    self.enabled = 'true'
-    save
+    update_stored!(enabled: 'true')
   end
 
   # Disable this signup config.
   # @return [void]
   def disable!
-    self.enabled = 'false'
-    save
+    update_stored!(enabled: 'false')
   end
 
   # Get the list of allowed signup email domains.

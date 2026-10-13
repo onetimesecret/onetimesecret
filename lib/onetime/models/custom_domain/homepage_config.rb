@@ -226,17 +226,13 @@ class Onetime::CustomDomain::HomepageConfig < Familia::Horreum
   # Enable homepage secrets for this domain.
   # @return [void]
   def enable!
-    self.enabled = 'true'
-    self.updated = Familia.now.to_i
-    save
+    update_stored!(enabled: 'true', updated: Familia.now.to_i)
   end
 
   # Disable homepage secrets for this domain.
   # @return [void]
   def disable!
-    self.enabled = 'false'
-    self.updated = Familia.now.to_i
-    save
+    update_stored!(enabled: 'false', updated: Familia.now.to_i)
   end
 
   # Load the associated CustomDomain record.

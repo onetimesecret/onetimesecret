@@ -95,17 +95,13 @@ class Onetime::CustomDomain::IncomingConfig < Familia::Horreum
   # Enable incoming secrets for this domain.
   # @return [void]
   def enable!
-    self.enabled = 'true'
-    self.updated = Familia.now.to_i
-    save
+    update_stored!(enabled: 'true', updated: Familia.now.to_i)
   end
 
   # Disable incoming secrets for this domain.
   # @return [void]
   def disable!
-    self.enabled = 'false'
-    self.updated = Familia.now.to_i
-    save
+    update_stored!(enabled: 'false', updated: Familia.now.to_i)
   end
 
   # Get the list of recipients (raw, with emails).

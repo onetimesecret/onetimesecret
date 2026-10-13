@@ -258,11 +258,7 @@ class Onetime::CustomDomain::MailerConfig < Familia::Horreum
   # @param new_address [String] The new sender email address
   # @return [void]
   def update_from_address(new_address)
-    self.from_address        = new_address
-    self.verified_at         = nil
-    self.verification_status = 'pending'
-    self.updated             = Familia.now.to_i
-    save
+    update_stored!(from_address: new_address, verified_at: nil, verification_status: 'pending', updated: Familia.now.to_i)
   end
 
   # Load the associated CustomDomain record.
