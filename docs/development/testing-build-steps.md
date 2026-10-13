@@ -109,6 +109,10 @@ gh workflow run build-and-publish-oci-images.yml \
 - Replace `<branch>` with the branch to build.
 - Dispatch is not gated on CI. Release tags publish through `ci.yml`
   instead (see "Inspecting CI runs" below).
+- If the tagged commit's message contains `[ci-skip]`, `ci-verdict` fails
+  and nothing publishes for that tag automatically. Publish it by
+  dispatching on the tag with `--ref v1.0.0 --field registry_target=public`
+  (dispatch defaults to `custom`); that build also moves the `dev` tag.
 - `registry_target=custom` avoids publishing to public registries
 - The pre-build audit step prints the resolved bake config
 - The post-build audit step pulls the image via podman and checks the version
