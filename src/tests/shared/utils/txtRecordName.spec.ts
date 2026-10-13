@@ -118,7 +118,7 @@ describe('txtRecordName', () => {
     it('label counts differ: the full A-label name as the host, no zone', () => {
       expect(
         txtRecordName({
-          base_domain: 'example。com',
+          base_domain: 'example\u3002com',
           txt_validation_host: CHALLENGE,
           txt_validation_record: `${CHALLENGE}.example.com`,
         })

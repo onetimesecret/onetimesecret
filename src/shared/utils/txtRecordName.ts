@@ -1,5 +1,7 @@
 // src/shared/utils/txtRecordName.ts
 
+import { spellingDiffers, splitALabelName } from '@/shared/utils/aLabelName';
+
 /**
  * The TXT ownership record name, as the DNS record panels show it
  * (VerifyDomainDetails, and AdminDomainDnsDetails in the Colonel).
@@ -54,34 +56,6 @@ export function txtChallengeLabel(host: string | null | undefined): string {
 }
 
 /**
- * Split the A-label record name into the host relative to `base_domain` and
- * the zone. A-label conversion maps a name label by label, so the host has as
- * many labels as `txt_validation_host` and the zone as many as `base_domain`.
- * When the counts do not add up, or the challenge labels differ, the split
- * cannot be trusted and the full name is returned as the host.
- */
-function splitRecordName(
-  record: string,
-  host: string,
-  baseDomain: string
-): Pick<TxtRecordName, 'host' | 'zone'> {
-  const labels = record.split('.');
-  const hostLabelCount = host.split('.').length;
-  const fits =
-    host !== '' &&
-    baseDomain !== '' &&
-    labels.length === hostLabelCount + baseDomain.split('.').length &&
-    labels[0].toLowerCase() === txtChallengeLabel(host).toLowerCase();
-
-  if (!fits) return { host: record, zone: undefined };
-
-  return {
-    host: labels.slice(0, hostLabelCount).join('.'),
-    zone: `.${labels.slice(hostLabelCount).join('.')}`,
-  };
-}
-
-/**
  * The TXT record name to show for a domain. Uses `txt_validation_record`
  * when the server sent one; otherwise falls back to the stored host and
  * `base_domain`, as shown before the server sent the full name.
@@ -95,9 +69,13 @@ export function txtRecordName(source: TxtRecordNameSource | null | undefined): T
     return { host, zone: baseDomain ? `.${baseDomain}` : undefined, displayName: null };
   }
 
-  // A-label conversion lowercases; a name that differs only in case is the same name.
   const display = source?.txt_validation_record_display;
-  const displayName = display && display.toLowerCase() !== record.toLowerCase() ? display : null;
+  const displayName = display && spellingDiffers(display, record) ? display : null;
 
-  return { ...splitRecordName(record, host, baseDomain), displayName };
+  // Split against the stored host and base_domain; when they do not line up,
+  // the full A-label name is the host.
+  const split = splitALabelName(record, host, baseDomain);
+  if (!split?.host) return { host: record, zone: undefined, displayName };
+
+  return { host: split.host, zone: `.${split.zone}`, displayName };
 }
