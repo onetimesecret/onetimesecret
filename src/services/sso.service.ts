@@ -130,6 +130,104 @@ export interface TestSsoConnectionResponse {
   };
 }
 
+/**
+ * Outcome of one diagnostic check (POST /api/domains/:extid/sso/diagnostics).
+ *
+ * - passed / failed: the check ran and is evidence about the saved record.
+ * - inconclusive: the check ran but what it saw is not evidence about the
+ *   configuration (the IdP could not be reached, an unmapped provider error).
+ * - unsupported: no safe check exists for this provider (a generic OIDC
+ *   credential probe).
+ * - skipped: an earlier check failed, so this one did not run.
+ */
+export type SsoDiagnosticStatus = 'passed' | 'failed' | 'inconclusive' | 'unsupported' | 'skipped';
+
+/**
+ * The roll-up: failed if any check failed; else inconclusive if any check
+ * is inconclusive; else passed. unsupported / skipped do not count.
+ */
+export type SsoDiagnosticOverall = 'passed' | 'failed' | 'inconclusive';
+
+/**
+ * Check names the API emits today, in the order they run. `check` on the
+ * wire is a string so a new check renders under its raw name until a label
+ * is added, rather than breaking the response.
+ */
+export const SSO_DIAGNOSTIC_CHECK_NAMES = [
+  'stored_configuration',
+  'discovery',
+  'certificate',
+  'credential',
+] as const;
+
+export type SsoDiagnosticCheckName = (typeof SSO_DIAGNOSTIC_CHECK_NAMES)[number];
+
+/**
+ * One layer of the saved configuration, reported separately. Which checks
+ * appear depends on provider_type: stored_configuration for every provider;
+ * discovery and credential for oidc / entra_id; certificate for saml.
+ */
+export interface SsoDiagnosticCheck {
+  check: SsoDiagnosticCheckName | (string & {});
+  status: SsoDiagnosticStatus;
+  /** One human sentence. Never carries the secret, a token or the raw IdP error. */
+  message: string;
+  details: {
+    // stored_configuration (failed): SsoConfig#validation_errors, no secret values.
+    errors?: string[];
+    // discovery: the same vocabulary as TestSsoConnectionResponse.details.
+    issuer?: string;
+    token_endpoint?: string;
+    token_endpoint_auth_methods_supported?: string[] | null;
+    token_endpoint_auth_method_supported?: boolean | null;
+    // certificate (saml): local parse of the stored idp_cert.
+    certificate_subject?: string;
+    certificate_not_after?: string;
+    certificate_expires_in_days?: number;
+    // credential (entra_id): a client-credentials token request with the
+    // STORED secret. error_code is one of invalid_client_secret |
+    // client_secret_expired | app_not_found_in_tenant | provider_error |
+    // timeout | connection_failed | invalid_response.
+    error_code?: string;
+    http_status?: number;
+    /**
+     * provider_error only: the AADSTS code alone (e.g. "AADSTS50034"). The
+     * API never echoes error_description, which carries correlation ids
+     * and the app id.
+     */
+    aadsts_code?: string;
+    /**
+     * entra_id, independent of the probe outcome: "uuid" when the stored
+     * secret has the shape of an Entra Secret ID rather than its Value.
+     */
+    secret_shape?: string;
+    /** Caveats about what the check does and does not prove. */
+    note?: string;
+  };
+}
+
+/**
+ * Response from the saved-configuration diagnostics
+ *
+ * Unlike Test Connection, which tests the FORM fields and never uses the
+ * client secret, this runs against the SAVED record — including the stored
+ * client secret for Entra — and reports each layer separately.
+ */
+export interface SsoDiagnosticsResponse {
+  user_id: string;
+  provider_type: SsoProviderType;
+  /** ISO 8601 UTC. */
+  checked_at: string;
+  /**
+   * SsoConfig#updated as stored (string, may be empty): ties the result to
+   * the record it describes, so a result that outlives a save is visibly
+   * about the previous revision.
+   */
+  configuration_revision: string;
+  overall: SsoDiagnosticOverall;
+  checks: SsoDiagnosticCheck[];
+}
+
 export const SsoService = {
   /**
    * Get SSO configuration for a specific domain
@@ -250,6 +348,22 @@ export const SsoService = {
     payload: TestSsoConnectionRequest
   ): Promise<TestSsoConnectionResponse> {
     const response = await $api.post(`/api/domains/${domainExtId}/sso/test`, payload);
+    return response.data;
+  },
+
+  /**
+   * Run diagnostics against the SAVED SSO configuration of a domain
+   *
+   * No body: the API reloads the stored record and checks each layer
+   * (stored configuration, discovery, certificate or credential). For
+   * entra_id the credential check sends the stored client secret to
+   * Microsoft, so the API rate-limits this per customer.
+   *
+   * @param domainExtId - Domain external ID
+   * @returns Per-check statuses and the overall roll-up
+   */
+  async runDiagnosticsForDomain(domainExtId: string): Promise<SsoDiagnosticsResponse> {
+    const response = await $api.post(`/api/domains/${domainExtId}/sso/diagnostics`);
     return response.data;
   },
 };

@@ -587,6 +587,22 @@
     "text": "Connection test failed",
     "content_hash": "a45a37dd"
   },
+  "web.domains.sso.diagnostics_passed": {
+    "text": "Saved configuration check passed",
+    "content_hash": "91fc2d97"
+  },
+  "web.domains.sso.diagnostics_failed": {
+    "text": "Saved configuration check found a problem",
+    "content_hash": "18ca7a0e"
+  },
+  "web.domains.sso.diagnostics_inconclusive": {
+    "text": "Saved configuration check could not reach a verdict",
+    "content_hash": "2be86c66"
+  },
+  "web.domains.sso.diagnostics_error": {
+    "text": "Failed to check the saved configuration",
+    "content_hash": "e1fe6a59"
+  },
   "web.domains.sso.configure_sso": {
     "text": "Configure SSO",
     "content_hash": "80d3a144"

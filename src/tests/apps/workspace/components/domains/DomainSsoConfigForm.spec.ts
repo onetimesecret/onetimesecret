@@ -15,7 +15,11 @@ import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import DomainSsoConfigForm from '../../../../../apps/workspace/components/domains/DomainSsoConfigForm.vue';
 import type { CustomDomainSsoConfig } from '../../../../../schemas/shapes/domains/sso-config';
-import type { TestSsoConnectionResponse } from '../../../../../services/sso.service';
+import type {
+  SsoDiagnosticCheck,
+  SsoDiagnosticsResponse,
+  TestSsoConnectionResponse,
+} from '../../../../../services/sso.service';
 import type { SsoConfigFormState } from '../../../../../shared/composables/useSsoConfig';
 import { createTestI18n } from '../../../../setup';
 
@@ -177,11 +181,14 @@ interface MountOptions {
   isSaving?: boolean;
   isDeleting?: boolean;
   isTesting?: boolean;
+  isDiagnosing?: boolean;
   hasUnsavedChanges?: boolean;
   isConfigured?: boolean;
   clientSecretMasked?: string | null;
   testResult?: TestSsoConnectionResponse | null;
   testError?: string;
+  diagnosticsResult?: SsoDiagnosticsResponse | null;
+  diagnosticsError?: string;
   samlEnabled?: boolean;
 }
 
@@ -218,11 +225,14 @@ describe('DomainSsoConfigForm', () => {
     isSaving: false,
     isDeleting: false,
     isTesting: false,
+    isDiagnosing: false,
     hasUnsavedChanges: false,
     isConfigured: false,
     clientSecretMasked: null,
     testResult: null,
     testError: '',
+    diagnosticsResult: null,
+    diagnosticsError: '',
     // The install-wide SAML switch (SAML_ENABLED, #4604): on for the suite,
     // off only in the examples about the switch itself.
     samlEnabled: true,
@@ -657,6 +667,267 @@ describe('DomainSsoConfigForm', () => {
 
       const buttonText = wrapper.text();
       expect(buttonText).toMatch(/testing/i);
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Check saved configuration (diagnostics)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  describe('Check saved configuration (diagnostics)', () => {
+    const savedMount = (options: MountOptions = {}) =>
+      mountComponent({
+        formState: mockExistingFormState,
+        ssoConfig: mockExistingConfig,
+        isConfigured: true,
+        ...options,
+      });
+
+    const check = (
+      name: string,
+      status: SsoDiagnosticCheck['status'],
+      details: SsoDiagnosticCheck['details'] = {}
+    ): SsoDiagnosticCheck => ({
+      check: name,
+      status,
+      message: `${name} ${status}`,
+      details,
+    });
+
+    const diagnostics = (
+      overall: SsoDiagnosticsResponse['overall'],
+      checks: SsoDiagnosticCheck[]
+    ): SsoDiagnosticsResponse => ({
+      user_id: 'cust_456',
+      provider_type: 'entra_id',
+      checked_at: '2026-10-12T10:00:00Z',
+      configuration_revision: '1760263200',
+      overall,
+      checks,
+    });
+
+    it('is hidden until a configuration is saved', async () => {
+      wrapper = await mountComponent({ isConfigured: false });
+
+      expect(wrapper.find('[data-testid="sso-diagnostics"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="sso-diagnostics-run"]').exists()).toBe(false);
+    });
+
+    it('shows the section with its hint once a configuration is saved', async () => {
+      wrapper = await savedMount();
+
+      const section = wrapper.find('[data-testid="sso-diagnostics"]');
+      expect(section.exists()).toBe(true);
+      expect(section.text()).toContain('web.organizations.sso.diagnostics_title');
+      expect(section.text()).toContain('web.organizations.sso.diagnostics_hint');
+      expect(wrapper.find('[data-testid="sso-diagnostics-save-first"]').exists()).toBe(false);
+    });
+
+    it('emits diagnostics when the button is clicked', async () => {
+      wrapper = await savedMount();
+
+      await wrapper.find('[data-testid="sso-diagnostics-run"]').trigger('click');
+      await flushPromises();
+
+      expect(wrapper.emitted('diagnostics')).toHaveLength(1);
+      // Only the dedicated event: never the Test Connection one.
+      expect(wrapper.emitted('test')).toBeUndefined();
+    });
+
+    it('disables the button and says "save first" while the form has unsaved changes', async () => {
+      wrapper = await savedMount({ hasUnsavedChanges: true });
+
+      const button = wrapper.find('[data-testid="sso-diagnostics-run"]');
+      expect(button.attributes('disabled')).toBeDefined();
+      expect(wrapper.find('[data-testid="sso-diagnostics-save-first"]').text()).toBe(
+        'web.organizations.sso.diagnostics_save_first'
+      );
+
+      await button.trigger('click');
+      expect(wrapper.emitted('diagnostics')).toBeUndefined();
+    });
+
+    it('disables the button while running and shows the running label', async () => {
+      wrapper = await savedMount({ isDiagnosing: true });
+
+      const button = wrapper.find('[data-testid="sso-diagnostics-run"]');
+      expect(button.attributes('disabled')).toBeDefined();
+      expect(button.text()).toContain('web.organizations.sso.diagnostics_running');
+    });
+
+    it('disables the button while saving', async () => {
+      wrapper = await savedMount({ isSaving: true });
+
+      expect(
+        wrapper.find('[data-testid="sso-diagnostics-run"]').attributes('disabled')
+      ).toBeDefined();
+    });
+
+    it('renders the checked_at line and one row per check with its chip', async () => {
+      wrapper = await savedMount({
+        diagnosticsResult: diagnostics('inconclusive', [
+          check('stored_configuration', 'passed'),
+          check('discovery', 'inconclusive', { error_code: 'timeout' }),
+          check('credential', 'skipped'),
+        ]),
+      });
+
+      const result = wrapper.find('[data-testid="sso-diagnostics-result"]');
+      expect(result.exists()).toBe(true);
+      expect(result.attributes('data-overall')).toBe('inconclusive');
+      expect(result.attributes('role')).toBe('status');
+      expect(wrapper.find('[data-testid="sso-diagnostics-checked-at"]').text()).toContain(
+        'web.organizations.sso.diagnostics_checked_at'
+      );
+
+      const stored = wrapper.find('[data-testid="sso-diagnostics-check-stored_configuration"]');
+      expect(stored.attributes('data-status')).toBe('passed');
+      expect(stored.text()).toContain(
+        'web.organizations.sso.diagnostics_check_stored_configuration'
+      );
+      expect(stored.text()).toContain('web.organizations.sso.diagnostics_status_passed');
+      expect(stored.text()).toContain('stored_configuration passed');
+
+      const discovery = wrapper.find('[data-testid="sso-diagnostics-check-discovery"]');
+      expect(discovery.attributes('data-status')).toBe('inconclusive');
+      expect(discovery.text()).toContain('web.organizations.sso.diagnostics_check_discovery');
+
+      const credential = wrapper.find('[data-testid="sso-diagnostics-check-credential"]');
+      expect(credential.attributes('data-status')).toBe('skipped');
+      expect(credential.text()).toContain('web.organizations.sso.diagnostics_status_skipped');
+    });
+
+    it.each([
+      ['passed', 'bg-green-100', 'diagnostics_status_passed'],
+      ['failed', 'bg-red-100', 'diagnostics_status_failed'],
+      ['inconclusive', 'bg-amber-100', 'diagnostics_status_inconclusive'],
+      ['unsupported', 'bg-gray-100', 'diagnostics_status_unsupported'],
+      ['skipped', 'bg-gray-100', 'diagnostics_status_skipped'],
+    ] as const)('renders the %s chip', async (status, chipClass, labelKey) => {
+      wrapper = await savedMount({
+        diagnosticsResult: diagnostics('passed', [check('credential', status)]),
+      });
+
+      const chip = wrapper.find(
+        '[data-testid="sso-diagnostics-check-credential"] [data-testid="sso-diagnostics-status"]'
+      );
+      expect(chip.classes()).toContain(chipClass);
+      expect(chip.text()).toBe(`web.organizations.sso.${labelKey}`);
+    });
+
+    it('uses the alert role and red box for a failed overall', async () => {
+      wrapper = await savedMount({
+        diagnosticsResult: diagnostics('failed', [
+          check('credential', 'failed', { error_code: 'invalid_client_secret' }),
+        ]),
+      });
+
+      const result = wrapper.find('[data-testid="sso-diagnostics-result"]');
+      expect(result.attributes('role')).toBe('alert');
+      expect(result.classes()).toContain('bg-red-50');
+    });
+
+    it('uses the status role and green box for a passed overall', async () => {
+      wrapper = await savedMount({
+        diagnosticsResult: diagnostics('passed', [check('credential', 'passed')]),
+      });
+
+      const result = wrapper.find('[data-testid="sso-diagnostics-result"]');
+      expect(result.attributes('role')).toBe('status');
+      expect(result.classes()).toContain('bg-green-50');
+    });
+
+    it('falls back to the raw name for an unknown check', async () => {
+      wrapper = await savedMount({
+        diagnosticsResult: diagnostics('passed', [check('future_check', 'passed')]),
+      });
+
+      const row = wrapper.find('[data-testid="sso-diagnostics-check-future_check"]');
+      expect(row.exists()).toBe(true);
+      expect(row.text()).toContain('future_check');
+      expect(row.text()).not.toContain('diagnostics_check_future_check');
+    });
+
+    it('shows every present details key', async () => {
+      wrapper = await savedMount({
+        diagnosticsResult: diagnostics('failed', [
+          check('stored_configuration', 'failed', {
+            errors: ['client_id is required', 'tenant_id is required'],
+          }),
+          check('discovery', 'passed', {
+            token_endpoint_auth_methods_supported: ['client_secret_post', 'client_secret_basic'],
+          }),
+          check('certificate', 'passed', {
+            certificate_not_after: '2027-01-01T00:00:00Z',
+            certificate_expires_in_days: 81,
+          }),
+          check('credential', 'inconclusive', {
+            error_code: 'provider_error',
+            aadsts_code: 'AADSTS50034',
+            http_status: 400,
+            note: 'Sign in once on the custom domain to confirm.',
+          }),
+        ]),
+      });
+
+      const stored = wrapper.find('[data-testid="sso-diagnostics-check-stored_configuration"]');
+      expect(stored.text()).toContain('web.organizations.sso.diagnostics_errors');
+      expect(stored.text()).toContain('client_id is required; tenant_id is required');
+
+      const discovery = wrapper.find('[data-testid="sso-diagnostics-check-discovery"]');
+      expect(discovery.text()).toContain(
+        'web.organizations.sso.token_endpoint_auth_methods_supported'
+      );
+      expect(discovery.text()).toContain('client_secret_post, client_secret_basic');
+
+      const certificate = wrapper.find('[data-testid="sso-diagnostics-check-certificate"]');
+      expect(certificate.text()).toContain('web.organizations.sso.certificate_expires');
+      expect(certificate.text()).toContain('web.organizations.sso.certificate_expires_in_days');
+
+      const credential = wrapper.find('[data-testid="sso-diagnostics-check-credential"]');
+      expect(credential.text()).toContain('web.COMMON.error_code');
+      expect(credential.text()).toContain('provider_error');
+      expect(credential.text()).toContain('web.organizations.sso.diagnostics_aadsts_code');
+      expect(credential.text()).toContain('AADSTS50034');
+      expect(credential.text()).toContain('web.COMMON.http_status');
+      expect(credential.text()).toContain('400');
+      expect(credential.find('[data-testid="sso-diagnostics-note"]').text()).toBe(
+        'Sign in once on the custom domain to confirm.'
+      );
+    });
+
+    it('omits details rows whose keys are absent', async () => {
+      wrapper = await savedMount({
+        diagnosticsResult: diagnostics('passed', [check('credential', 'passed')]),
+      });
+
+      const row = wrapper.find('[data-testid="sso-diagnostics-check-credential"]');
+      expect(row.text()).not.toContain('web.COMMON.error_code');
+      expect(row.text()).not.toContain('web.COMMON.http_status');
+      expect(row.text()).not.toContain('web.organizations.sso.diagnostics_aadsts_code');
+      expect(row.text()).not.toContain('web.organizations.sso.diagnostics_errors');
+      expect(row.text()).not.toContain('web.organizations.sso.certificate_expires');
+      expect(row.text()).not.toContain(
+        'web.organizations.sso.token_endpoint_auth_methods_supported'
+      );
+      expect(row.find('[data-testid="sso-diagnostics-note"]').exists()).toBe(false);
+    });
+
+    it('shows the transport error alert when the run itself failed', async () => {
+      wrapper = await savedMount({ diagnosticsError: 'Failed to check the saved configuration' });
+
+      expect(wrapper.find('[data-testid="sso-diagnostics-result"]').exists()).toBe(false);
+      const alert = wrapper.find('[data-testid="sso-diagnostics-error"]');
+      expect(alert.exists()).toBe(true);
+      expect(alert.classes()).toContain('bg-red-50');
+      expect(alert.text()).toBe('Failed to check the saved configuration');
+    });
+
+    it('does not render a result block until a run happened', async () => {
+      wrapper = await savedMount();
+
+      expect(wrapper.find('[data-testid="sso-diagnostics-result"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="sso-diagnostics-error"]').exists()).toBe(false);
     });
   });
 

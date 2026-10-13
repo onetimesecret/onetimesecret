@@ -461,6 +461,90 @@ describe('SsoService domain methods', () => {
   });
 
   // ==========================================================================
+  // runDiagnosticsForDomain Tests
+  // ==========================================================================
+
+  describe('runDiagnosticsForDomain', () => {
+    const passedResponse = {
+      user_id: 'user_123',
+      provider_type: 'entra_id',
+      checked_at: '2026-10-12T10:00:00Z',
+      configuration_revision: '1760263200',
+      overall: 'passed',
+      checks: [
+        {
+          check: 'stored_configuration',
+          status: 'passed',
+          message: 'The stored configuration is complete.',
+          details: {},
+        },
+        {
+          check: 'discovery',
+          status: 'passed',
+          message: 'Discovery document fetched.',
+          details: {
+            issuer: 'https://login.microsoftonline.com/test-tenant-id/v2.0',
+            token_endpoint: 'https://login.microsoftonline.com/test-tenant-id/oauth2/v2.0/token',
+          },
+        },
+        {
+          check: 'credential',
+          status: 'passed',
+          message: 'The identity provider accepted the saved client secret.',
+          details: { note: 'This does not test a full sign-in.' },
+        },
+      ],
+    };
+
+    it('POSTs to /sso/diagnostics with no body and returns the response', async () => {
+      mockPost.mockResolvedValueOnce({ data: passedResponse });
+
+      const result = await SsoService.runDiagnosticsForDomain(domainExtId);
+
+      expect(mockPost).toHaveBeenCalledWith(`${baseUrl}/diagnostics`);
+      expect(result.overall).toBe('passed');
+      expect(result.checks.map((check) => check.check)).toEqual([
+        'stored_configuration',
+        'discovery',
+        'credential',
+      ]);
+    });
+
+    it('returns a failed overall with the credential error_code', async () => {
+      mockPost.mockResolvedValueOnce({
+        data: {
+          ...passedResponse,
+          overall: 'failed',
+          checks: [
+            passedResponse.checks[0],
+            passedResponse.checks[1],
+            {
+              check: 'credential',
+              status: 'failed',
+              message: 'The identity provider rejected the saved client secret.',
+              details: { error_code: 'invalid_client_secret', http_status: 401 },
+            },
+          ],
+        },
+      });
+
+      const result = await SsoService.runDiagnosticsForDomain(domainExtId);
+
+      expect(result.overall).toBe('failed');
+      expect(result.checks[2].status).toBe('failed');
+      expect(result.checks[2].details.error_code).toBe('invalid_client_secret');
+    });
+
+    it('propagates API errors', async () => {
+      mockPost.mockRejectedValueOnce(new Error('Too many requests'));
+
+      await expect(SsoService.runDiagnosticsForDomain(domainExtId)).rejects.toThrow(
+        'Too many requests'
+      );
+    });
+  });
+
+  // ==========================================================================
   // URL Construction Tests
   // ==========================================================================
 

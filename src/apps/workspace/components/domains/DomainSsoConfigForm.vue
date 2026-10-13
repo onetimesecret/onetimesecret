@@ -26,7 +26,13 @@ import {
   type SsoTokenEndpointAuthMethodRequest,
 } from '@/schemas/shapes/domains/sso-config';
 import type { SsoConfigFormState } from '@/shared/composables/useSsoConfig';
-import type { TestSsoConnectionResponse } from '@/services/sso.service';
+import type {
+  SsoDiagnosticCheck,
+  SsoDiagnosticOverall,
+  SsoDiagnosticStatus,
+  SsoDiagnosticsResponse,
+  TestSsoConnectionResponse,
+} from '@/services/sso.service';
 
 // ---------------------------------------------------------------------------
 // Props
@@ -43,11 +49,17 @@ const props = defineProps<{
   isSaving: boolean;
   isDeleting: boolean;
   isTesting: boolean;
+  /** Whether a saved-configuration diagnostics request is in flight. */
+  isDiagnosing: boolean;
   hasUnsavedChanges: boolean;
   isConfigured: boolean;
   clientSecretMasked: string | null;
   testResult: TestSsoConnectionResponse | null;
   testError: string;
+  /** Result of the last "Check saved configuration" run; null until one ran. */
+  diagnosticsResult: SsoDiagnosticsResponse | null;
+  /** Transport failure of the last run (no verdict), '' otherwise. */
+  diagnosticsError: string;
   /**
    * The install-wide SAML switch (SAML_ENABLED, #4604; features.isSamlEnabled
    * on the bootstrap payload). While false the API refuses to save or edit
@@ -65,6 +77,7 @@ const emit = defineEmits<{
   (e: 'disable'): void;
   (e: 'delete'): void;
   (e: 'test'): void;
+  (e: 'diagnostics'): void;
   (e: 'discard'): void;
   (e: 'update:formState', value: SsoConfigFormState): void;
 }>();
@@ -151,7 +164,12 @@ const tokenEndpointAuthMethodOptions: {
 const showDeleteConfirm = ref(false);
 const showDisableConfirm = ref(false);
 const actionPending = computed(
-  () => props.isLoading || props.isSaving || props.isDeleting || props.isTesting
+  () =>
+    props.isLoading ||
+    props.isSaving ||
+    props.isDeleting ||
+    props.isTesting ||
+    props.isDiagnosing
 );
 watch(
   () => props.domainExtId,
@@ -548,6 +566,130 @@ watch(
 const handleTestConnection = () => {
   if (!canTestConnection.value || props.isTesting) return;
   emit('test');
+};
+
+// ---------------------------------------------------------------------------
+// Check saved configuration (diagnostics)
+// ---------------------------------------------------------------------------
+
+/**
+ * Unlike Test Connection, diagnostics run against the SAVED record (for Entra
+ * including the stored client secret), so the section only exists once a
+ * record is saved and the button waits for unsaved edits to be saved first:
+ * a result about the stored record would otherwise be read as a verdict on
+ * what the form shows.
+ */
+const canRunDiagnostics = computed(
+  () => props.isConfigured && !props.hasUnsavedChanges && !props.isDiagnosing && !props.isSaving
+);
+
+const handleRunDiagnostics = () => {
+  if (!canRunDiagnostics.value) return;
+  emit('diagnostics');
+};
+
+/** Label key per check name the API emits; an unknown name renders raw. */
+const DIAGNOSTIC_CHECK_LABELS: Record<string, string> = {
+  stored_configuration: 'web.organizations.sso.diagnostics_check_stored_configuration',
+  discovery: 'web.organizations.sso.diagnostics_check_discovery',
+  certificate: 'web.organizations.sso.diagnostics_check_certificate',
+  credential: 'web.organizations.sso.diagnostics_check_credential',
+};
+
+const diagnosticCheckLabel = (check: SsoDiagnosticCheck): string => {
+  const key = DIAGNOSTIC_CHECK_LABELS[check.check];
+  return key ? t(key) : check.check;
+};
+
+/**
+ * Status chip per check. The colour alone never carries the meaning (WCAG
+ * 1.4.1): the status word is printed in the chip. Keyed per contract status
+ * so a new status fails type-check here until it has a chip.
+ */
+const DIAGNOSTIC_STATUS_CHIPS: Record<
+  SsoDiagnosticStatus,
+  { labelKey: string; classes: string }
+> = {
+  passed: {
+    labelKey: 'web.organizations.sso.diagnostics_status_passed',
+    classes: 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200',
+  },
+  failed: {
+    labelKey: 'web.organizations.sso.diagnostics_status_failed',
+    classes: 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200',
+  },
+  inconclusive: {
+    labelKey: 'web.organizations.sso.diagnostics_status_inconclusive',
+    classes: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200',
+  },
+  unsupported: {
+    labelKey: 'web.organizations.sso.diagnostics_status_unsupported',
+    classes: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200',
+  },
+  skipped: {
+    labelKey: 'web.organizations.sso.diagnostics_status_skipped',
+    classes: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200',
+  },
+};
+
+/**
+ * The result container borrows the Test Connection result's look: green
+ * status box for a pass, red alert for a failure, amber status box when the
+ * run could not reach a verdict.
+ */
+const DIAGNOSTIC_OVERALL_STYLES: Record<
+  SsoDiagnosticOverall,
+  {
+    role: 'status' | 'alert';
+    live: 'polite' | 'assertive';
+    box: string;
+    icon: string;
+    iconClass: string;
+    text: string;
+  }
+> = {
+  passed: {
+    role: 'status',
+    live: 'polite',
+    box: 'rounded-md bg-green-50 p-4 dark:bg-green-900/20',
+    icon: 'check-circle-solid',
+    iconClass: 'size-5 text-green-400',
+    text: 'text-green-800 dark:text-green-200',
+  },
+  failed: {
+    role: 'alert',
+    live: 'assertive',
+    box: 'rounded-md bg-red-50 p-4 dark:bg-red-900/20',
+    icon: 'x-circle-solid',
+    iconClass: 'size-5 text-red-400',
+    text: 'text-red-800 dark:text-red-200',
+  },
+  inconclusive: {
+    role: 'status',
+    live: 'polite',
+    box: 'rounded-md bg-amber-50 p-4 dark:bg-amber-900/20',
+    icon: 'exclamation-triangle-solid',
+    iconClass: 'size-5 text-amber-500',
+    text: 'text-amber-800 dark:text-amber-200',
+  },
+};
+
+const diagnosticsOverallStyle = computed(() =>
+  props.diagnosticsResult ? DIAGNOSTIC_OVERALL_STYLES[props.diagnosticsResult.overall] : null
+);
+
+/** checked_at is ISO 8601 UTC from the API; shown in the admin's locale. */
+const diagnosticsCheckedAt = computed(() => {
+  const raw = props.diagnosticsResult?.checked_at;
+  if (!raw) return null;
+  const date = new Date(raw);
+  return Number.isNaN(date.getTime()) ? raw : date.toLocaleString();
+});
+
+/** The same date handling as the Test Connection certificate rows. */
+const formatDiagnosticDate = (raw: string): string => {
+  const date = new Date(raw);
+  return Number.isNaN(date.getTime()) ? raw : date.toLocaleDateString();
 };
 
 const addDomain = () => {
@@ -1255,6 +1397,162 @@ aria-hidden="true">*</span>
               <div class="ml-3">
                 <p class="text-sm font-medium text-red-800 dark:text-red-200">
                   {{ testError }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Check saved configuration: runs against the STORED record (for
+           Entra including the saved client secret), so it only exists once a
+           record is saved. Sibling of Test Connection: same box, button and
+           result markup. -->
+      <div
+        v-if="isConfigured"
+        data-testid="sso-diagnostics"
+        class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
+        <div class="flex items-start justify-between">
+          <div class="flex-1">
+            <h4 class="text-sm font-medium text-gray-900 dark:text-white">
+              {{ t('web.organizations.sso.diagnostics_title') }}
+            </h4>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              {{ t('web.organizations.sso.diagnostics_hint') }}
+            </p>
+            <p
+              v-if="hasUnsavedChanges"
+              data-testid="sso-diagnostics-save-first"
+              class="mt-1 text-sm text-amber-700 dark:text-amber-300">
+              {{ t('web.organizations.sso.diagnostics_save_first') }}
+            </p>
+          </div>
+          <button
+            type="button"
+            data-testid="sso-diagnostics-run"
+            @click="handleRunDiagnostics"
+            :disabled="!canRunDiagnostics"
+            class="ml-4 inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-600 dark:text-gray-100 dark:ring-gray-500 dark:hover:bg-gray-500">
+            <OIcon
+              v-if="isDiagnosing"
+              collection="heroicons"
+              name="arrow-path"
+              size="4"
+              class="animate-spin motion-reduce:animate-none"
+              aria-hidden="true" />
+            <OIcon
+              v-else
+              collection="heroicons"
+              name="clipboard-document-check"
+              size="4"
+              aria-hidden="true" />
+            {{ isDiagnosing ? t('web.organizations.sso.diagnostics_running') : t('web.organizations.sso.diagnostics_button') }}
+          </button>
+        </div>
+
+        <!-- Diagnostics Result -->
+        <div
+          v-if="diagnosticsResult || diagnosticsError"
+          class="mt-4">
+          <div
+            v-if="diagnosticsResult && diagnosticsOverallStyle"
+            data-testid="sso-diagnostics-result"
+            :data-overall="diagnosticsResult.overall"
+            :role="diagnosticsOverallStyle.role"
+            :aria-live="diagnosticsOverallStyle.live"
+            :class="diagnosticsOverallStyle.box">
+            <div class="flex">
+              <OIcon
+                collection="heroicons"
+                :name="diagnosticsOverallStyle.icon"
+                :class="diagnosticsOverallStyle.iconClass"
+                aria-hidden="true" />
+              <div class="ml-3 min-w-0 flex-1">
+                <p
+                  data-testid="sso-diagnostics-checked-at"
+                  class="text-sm font-medium"
+                  :class="diagnosticsOverallStyle.text">
+                  {{ t('web.organizations.sso.diagnostics_checked_at') }}: {{ diagnosticsCheckedAt }}
+                </p>
+                <ul class="mt-3 space-y-3">
+                  <li
+                    v-for="check in diagnosticsResult.checks"
+                    :key="check.check"
+                    :data-testid="`sso-diagnostics-check-${check.check}`"
+                    :data-status="check.status"
+                    class="text-sm text-gray-800 dark:text-gray-100">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <span
+                        data-testid="sso-diagnostics-status"
+                        class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
+                        :class="DIAGNOSTIC_STATUS_CHIPS[check.status].classes">
+                        {{ t(DIAGNOSTIC_STATUS_CHIPS[check.status].labelKey) }}
+                      </span>
+                      <span class="font-medium">{{ diagnosticCheckLabel(check) }}</span>
+                    </div>
+                    <p class="mt-1 text-gray-700 dark:text-gray-300">{{ check.message }}</p>
+                    <dl
+                      v-if="check.details"
+                      data-testid="sso-diagnostics-details"
+                      class="mt-1 space-y-1 text-gray-700 dark:text-gray-300">
+                      <div v-if="check.details.error_code" class="flex gap-2">
+                        <dt class="shrink-0 font-medium">{{ t('web.COMMON.error_code') }}:</dt>
+                        <dd class="font-mono break-all">{{ check.details.error_code }}</dd>
+                      </div>
+                      <div v-if="check.details.aadsts_code" class="flex gap-2">
+                        <dt class="shrink-0 font-medium">{{ t('web.organizations.sso.diagnostics_aadsts_code') }}:</dt>
+                        <dd class="font-mono break-all">{{ check.details.aadsts_code }}</dd>
+                      </div>
+                      <div v-if="check.details.http_status" class="flex gap-2">
+                        <dt class="shrink-0 font-medium">{{ t('web.COMMON.http_status') }}:</dt>
+                        <dd>{{ check.details.http_status }}</dd>
+                      </div>
+                      <div v-if="check.details.errors?.length" class="flex gap-2">
+                        <dt class="shrink-0 font-medium">{{ t('web.organizations.sso.diagnostics_errors') }}:</dt>
+                        <dd class="break-words">{{ check.details.errors.join('; ') }}</dd>
+                      </div>
+                      <div v-if="check.details.certificate_not_after" class="flex gap-2">
+                        <dt class="shrink-0 font-medium">{{ t('web.organizations.sso.certificate_expires') }}:</dt>
+                        <dd>
+                          {{ formatDiagnosticDate(check.details.certificate_not_after) }}
+                          <span v-if="check.details.certificate_expires_in_days !== undefined">
+                            ({{ t('web.organizations.sso.certificate_expires_in_days', check.details.certificate_expires_in_days) }})
+                          </span>
+                        </dd>
+                      </div>
+                      <div v-if="check.details.token_endpoint_auth_methods_supported?.length" class="flex gap-2">
+                        <dt class="shrink-0 font-medium">
+                          {{ t('web.organizations.sso.token_endpoint_auth_methods_supported') }}:
+                        </dt>
+                        <dd class="font-mono break-all">
+                          {{ check.details.token_endpoint_auth_methods_supported.join(', ') }}
+                        </dd>
+                      </div>
+                      <div v-if="check.details.note" class="flex gap-2">
+                        <dt class="sr-only">{{ t('web.COMMON.details') }}:</dt>
+                        <dd data-testid="sso-diagnostics-note">{{ check.details.note }}</dd>
+                      </div>
+                    </dl>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Error (exception): the request itself failed, so there is no verdict. -->
+          <div
+            v-else-if="diagnosticsError"
+            data-testid="sso-diagnostics-error"
+            class="rounded-md bg-red-50 p-4 dark:bg-red-900/20">
+            <div class="flex">
+              <OIcon
+                collection="heroicons"
+                name="exclamation-triangle-solid"
+                class="size-5 text-red-400"
+                aria-hidden="true" />
+              <div class="ml-3">
+                <p class="text-sm font-medium text-red-800 dark:text-red-200">
+                  {{ diagnosticsError }}
                 </p>
               </div>
             </div>
