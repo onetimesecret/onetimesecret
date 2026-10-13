@@ -197,6 +197,26 @@ result_cfg = @raises.call(@cfg_customer)
 [result_cfg, @redis.exists?("sso_diagnostics:locked:#{@cfg_customer}")]
 #=> [false, false]
 
+## YAML booleans and floats (`max_per_customer: false`, an env override YAML
+## parses as `true`, `12.5`) fall back to the defaults instead of raising:
+## false.to_i is a NoMethodError, which would 500 every run
+set_sso_diagnostics_rate_limit(
+  'enabled' => true, 'max_per_customer' => false, 'window' => true, 'lockout' => 12.5,
+)
+[@tester.send(:sso_diagnostics_max_per_customer),
+ @tester.send(:sso_diagnostics_window),
+ @tester.send(:sso_diagnostics_lockout)]
+#=> [Onetime::Security::SsoDiagnosticsRateLimiter::DEFAULT_MAX_PER_CUSTOMER, Onetime::Security::SsoDiagnosticsRateLimiter::DEFAULT_WINDOW, Onetime::Security::SsoDiagnosticsRateLimiter::DEFAULT_LOCKOUT]
+
+## Numeric strings (an env-var override) still coerce, and in base 10
+set_sso_diagnostics_rate_limit(
+  'enabled' => true, 'max_per_customer' => '7', 'window' => ' 600 ', 'lockout' => '010',
+)
+[@tester.send(:sso_diagnostics_max_per_customer),
+ @tester.send(:sso_diagnostics_window),
+ @tester.send(:sso_diagnostics_lockout)]
+#=> [7, 600, 10]
+
 ## A PARTIAL config block — present, but with every numeric key absent — falls
 ## back to the defaults rather than raising
 set_sso_diagnostics_rate_limit('enabled' => true)

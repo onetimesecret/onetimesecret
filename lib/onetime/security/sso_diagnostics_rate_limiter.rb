@@ -228,9 +228,14 @@ module Onetime
       # POSITIVE integer. A zero or garbage value would otherwise invert
       # enforcement: a zero cap locks on the first run, and a non-positive
       # lockout makes the Lua SETEX fail, turning every run into a 500.
+      #
+      # Coerced through a string: YAML parses `false`, `true` and `12.5`
+      # as FalseClass, TrueClass and Float, none of which responds to to_i
+      # the way an env-var string does (false.to_i raises), and a raise here
+      # would 500 every run. Base 10 so "010" is ten, not octal.
       def positive_sso_diagnostics_setting(key, default)
-        value = sso_diagnostics_rate_limit_config[key].to_i
-        value.positive? ? value : default
+        value = Integer(sso_diagnostics_rate_limit_config[key].to_s, 10, exception: false)
+        value&.positive? ? value : default
       end
     end
   end
