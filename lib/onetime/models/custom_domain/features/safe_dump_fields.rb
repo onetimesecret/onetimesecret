@@ -31,6 +31,16 @@ module Onetime::CustomDomain::Features
       nil
     end
 
+    # display_domain in A-label form (CustomDomain.canonical_display_domain):
+    # the name the address record (CNAME, A or ALIAS) is created under in
+    # DNS. display_domain keeps the spelling the customer typed. nil when
+    # the name has no A-label form, so a dump never raises over it.
+    def self.display_domain_ascii(obj)
+      Onetime::CustomDomain.canonical_display_domain(obj.display_domain)
+    rescue Onetime::DomainValidation::AsciiHostname::ConversionError
+      nil
+    end
+
     def self.included(base)
       base.feature :safe_dump
 
@@ -38,6 +48,8 @@ module Onetime::CustomDomain::Features
       base.safe_dump_field :extid
       base.safe_dump_field :domainid
       base.safe_dump_field :display_domain
+      base.safe_dump_field :display_domain_ascii,
+        ->(obj) { Onetime::CustomDomain::Features::SafeDump.display_domain_ascii(obj) }
       base.safe_dump_field :custid
       base.safe_dump_field :base_domain
       base.safe_dump_field :subdomain

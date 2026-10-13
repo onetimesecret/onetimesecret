@@ -9,7 +9,8 @@
 # display_domain, trd and base_domain are stored as the customer typed them,
 # so an internationalised name keeps its Unicode spelling. The challenge
 # record name goes into the customer's DNS and to Approximated's
-# check_records API, so it is built from A-labels.
+# check_records API, so it is built from A-labels. The dump also carries
+# display_domain in A-label form for the address record the UI shows.
 
 require 'spec_helper'
 require 'securerandom'
@@ -164,6 +165,29 @@ RSpec.describe Onetime::CustomDomain, 'TXT validation record' do
       domain = described_class.new(display_domain: 'example.com', org_id: org_id)
 
       expect(domain.safe_dump.slice(*txt_fields).values).to eq([nil, nil, nil])
+    end
+  end
+
+  # The address record (CNAME, A or ALIAS) is created under the A-label
+  # form of the domain; the UI shows it with the typed spelling as a hint.
+  describe 'safe_dump display_domain_ascii' do
+    it 'carries the A-label form of a Unicode subdomain and leaves display_domain as typed' do
+      dump = described_class.parse('bücher.example.com', org_id).safe_dump
+
+      expect(dump.slice(:display_domain, :display_domain_ascii))
+        .to eq(display_domain: 'bücher.example.com', display_domain_ascii: 'xn--bcher-kva.example.com')
+    end
+
+    it 'equals display_domain for an ASCII name' do
+      expect(described_class.parse('secrets.example.com', org_id).safe_dump[:display_domain_ascii])
+        .to eq('secrets.example.com')
+    end
+
+    it 'is nil when the name has no A-label form, or no name is set' do
+      unconvertible = described_class.new(display_domain: "#{'ü' * 70}.com", org_id: org_id)
+      blank         = described_class.new(org_id: org_id)
+
+      expect([unconvertible, blank].map { |domain| domain.safe_dump[:display_domain_ascii] }).to eq([nil, nil])
     end
   end
 
