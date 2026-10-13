@@ -469,13 +469,13 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::TestConnection do
       expect(result[:details][:description]).not_to include('203.0.113.10')
     end
 
-    it 'maps exhausted connection attempts to unexpected_error' do
-      respond_with(Errno::ECONNREFUSED)
+    it 'maps exhausted connection attempts to connection_failed with a sanitized description' do
+      allow(http_instance).to receive(:request).and_raise(Errno::ECONNREFUSED, 'connect(2) for 203.0.113.10:443')
 
       result = logic.send(:test_oidc_connection)
 
-      expect(result[:details][:error_code]).to eq('unexpected_error')
-      expect(OT).to have_received(:le).with(/Errno::ECONNREFUSED/)
+      expect(result[:details][:error_code]).to eq('connection_failed')
+      expect(result[:details][:description]).not_to include('203.0.113.10')
     end
 
     it 'maps invalid JSON to invalid_json' do
