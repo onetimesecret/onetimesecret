@@ -664,6 +664,166 @@ describe('DomainSsoConfigForm', () => {
   // Delete functionality
   // ─────────────────────────────────────────────────────────────────────────────
 
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Token endpoint auth method (#4764)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  describe('Token endpoint auth method (#4764)', () => {
+    const SELECT = '#domain-sso-token-endpoint-auth-method';
+    const DISCLOSURE = '[data-testid="sso-advanced-oidc"]';
+
+    const oidcState = (): SsoConfigFormState => ({
+      ...createDefaultFormState(),
+      provider_type: 'oidc',
+      client_id: 'client-123',
+      issuer: 'https://idp.example.com',
+    });
+
+    it('offers the select, collapsed, for oidc with Automatic selected by default', async () => {
+      wrapper = await mountComponent({ formState: oidcState() });
+
+      const disclosure = wrapper.find(DISCLOSURE);
+      expect(disclosure.exists()).toBe(true);
+      expect((disclosure.element as HTMLDetailsElement).open).toBe(false);
+      expect(disclosure.text()).toContain('web.organizations.sso.advanced_section');
+
+      const select = wrapper.find(SELECT);
+      expect(select.exists()).toBe(true);
+      expect((select.element as HTMLSelectElement).value).toBe('');
+      expect(select.findAll('option').map((o) => o.attributes('value'))).toEqual([
+        '',
+        'client_secret_basic',
+        'client_secret_post',
+      ]);
+      expect(wrapper.text()).toContain('web.organizations.sso.token_endpoint_auth_method_hint');
+    });
+
+    it.each(['entra_id', 'saml'] as const)('is absent for %s', async (providerType) => {
+      wrapper = await mountComponent({
+        formState: { ...createDefaultFormState(), provider_type: providerType },
+      });
+
+      expect(wrapper.find(DISCLOSURE).exists()).toBe(false);
+      expect(wrapper.find(SELECT).exists()).toBe(false);
+    });
+
+    it('emits update:formState with the chosen method, and Automatic as empty string', async () => {
+      wrapper = await mountComponent({ formState: oidcState() });
+
+      await wrapper.find(SELECT).setValue('client_secret_post');
+      await flushPromises();
+      let emitted = wrapper.emitted('update:formState');
+      expect(emitted![emitted!.length - 1][0]).toMatchObject({
+        token_endpoint_auth_method: 'client_secret_post',
+      });
+
+      await wrapper.setProps({
+        formState: { ...oidcState(), token_endpoint_auth_method: 'client_secret_post' },
+      });
+      await wrapper.find(SELECT).setValue('');
+      await flushPromises();
+      emitted = wrapper.emitted('update:formState');
+      expect(emitted![emitted!.length - 1][0]).toMatchObject({ token_endpoint_auth_method: '' });
+    });
+
+    it('reflects the stored method and opens the disclosure for a saved record', async () => {
+      wrapper = await mountComponent({
+        formState: { ...oidcState(), token_endpoint_auth_method: 'client_secret_post' },
+        ssoConfig: {
+          ...mockExistingConfig,
+          provider_type: 'oidc',
+          tenant_id: null,
+          issuer: 'https://idp.example.com',
+          token_endpoint_auth_method: 'client_secret_post',
+        },
+        isConfigured: true,
+      });
+
+      expect((wrapper.find(DISCLOSURE).element as HTMLDetailsElement).open).toBe(true);
+      expect((wrapper.find(SELECT).element as HTMLSelectElement).value).toBe('client_secret_post');
+    });
+
+    describe('Test Connection details', () => {
+      const successResult = (
+        details: TestSsoConnectionResponse['details']
+      ): TestSsoConnectionResponse => ({
+        user_id: 'cust_456',
+        success: true,
+        message: 'Connection successful',
+        provider_type: 'oidc',
+        details: { issuer: 'https://idp.example.com', ...details },
+      });
+
+      it('lists the advertised methods', async () => {
+        wrapper = await mountComponent({
+          formState: oidcState(),
+          testResult: successResult({
+            token_endpoint_auth_methods_supported: ['client_secret_basic', 'client_secret_post'],
+            token_endpoint_auth_method_supported: null,
+          }),
+        });
+
+        const list = wrapper.find('[data-testid="sso-test-token-endpoint-auth-methods"]');
+        expect(list.exists()).toBe(true);
+        expect(list.text()).toContain(
+          'web.organizations.sso.token_endpoint_auth_methods_supported'
+        );
+        expect(list.text()).toContain('client_secret_basic, client_secret_post');
+        expect(wrapper.find('[data-testid="sso-test-note"]').exists()).toBe(false);
+      });
+
+      it('omits the list when the document does not advertise any', async () => {
+        wrapper = await mountComponent({
+          formState: oidcState(),
+          testResult: successResult({
+            token_endpoint_auth_methods_supported: null,
+            token_endpoint_auth_method_supported: true,
+          }),
+        });
+
+        expect(wrapper.find('[data-testid="sso-test-token-endpoint-auth-methods"]').exists()).toBe(
+          false
+        );
+        expect(wrapper.find('[role="status"]').exists()).toBe(true);
+      });
+
+      it('renders the note as a warning when the selected method is not advertised (test still succeeds)', async () => {
+        wrapper = await mountComponent({
+          formState: { ...oidcState(), token_endpoint_auth_method: 'client_secret_post' },
+          testResult: successResult({
+            token_endpoint_auth_methods_supported: ['client_secret_basic'],
+            token_endpoint_auth_method_supported: false,
+            note: 'client_secret_post is not among the advertised methods',
+          }),
+        });
+
+        expect(wrapper.find('[role="status"]').exists()).toBe(true);
+        expect(wrapper.find('[role="alert"]').exists()).toBe(false);
+        const note = wrapper.find('[data-testid="sso-test-note"]');
+        expect(note.text()).toContain('client_secret_post is not among the advertised methods');
+        expect(note.classes()).toContain('text-amber-700');
+        expect(note.find('.o-icon').exists()).toBe(true);
+      });
+
+      it('keeps the plain note style when the selection is advertised or absent', async () => {
+        for (const supported of [true, null, undefined]) {
+          wrapper = await mountComponent({
+            formState: oidcState(),
+            testResult: successResult({
+              token_endpoint_auth_method_supported: supported,
+              note: 'Some other note',
+            }),
+          });
+          const note = wrapper.find('[data-testid="sso-test-note"]');
+          expect(note.text()).toContain('Some other note');
+          expect(note.classes()).toContain('text-green-700');
+          expect(note.find('.o-icon').exists()).toBe(false);
+          wrapper.unmount();
+        }
+      });
+    });
+  });
+
   describe('Disable SSO recovery', () => {
     it.each(['client_secret', 'idp_cert'])(
       'can disable with unreadable %s while ordinary saves remain blocked',
