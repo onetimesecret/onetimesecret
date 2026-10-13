@@ -888,6 +888,10 @@
     "text": "Leave blank to keep the existing secret",
     "content_hash": "98bc3b40"
   },
+  "web.organizations.sso.client_secret_looks_like_secret_id": {
+    "text": "This looks like the Secret ID. Entra needs the secret Value, shown once when the secret is created.",
+    "content_hash": "168681cf"
+  },
   "web.organizations.sso.tenant_id": {
     "text": "Tenant ID",
     "content_hash": "de1f5fff"

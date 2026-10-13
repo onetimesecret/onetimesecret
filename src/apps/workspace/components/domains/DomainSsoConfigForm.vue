@@ -461,6 +461,16 @@ const clientSecretPlaceholder = computed(() => {
   return t('web.organizations.sso.client_secret_placeholder');
 });
 
+// Entra shows a Secret ID (a UUID) next to the secret Value and the ID is
+// never the credential; a Value is never UUID-shaped. Warn before the save,
+// the way the saved-configuration check flags a stored one (secret_shape).
+const UUID_SHAPE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const clientSecretLooksLikeSecretId = computed(
+  () =>
+    props.formState.provider_type === 'entra_id' &&
+    UUID_SHAPE.test(props.formState.client_secret?.trim() ?? '')
+);
+
 const discoveryUrl = computed(() => {
   const issuer = props.formState.issuer?.trim();
   if (!issuer) return null;
@@ -971,6 +981,13 @@ aria-hidden="true">*</span>
               aria-hidden="true" />
           </button>
         </div>
+        <p
+          v-if="clientSecretLooksLikeSecretId"
+          data-testid="sso-client-secret-shape-hint"
+          role="status"
+          class="mt-1 text-sm text-amber-700 dark:text-amber-300">
+          {{ t('web.organizations.sso.client_secret_looks_like_secret_id') }}
+        </p>
       </div>
 
       <!-- Tenant ID (Entra ID only) -->

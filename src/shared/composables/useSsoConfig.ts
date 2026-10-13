@@ -543,6 +543,9 @@ export function useSsoConfig(domainExtId: string) {
   const runDiagnostics = async () => {
     isDiagnosing.value = true;
     clearDiagnosticsResult();
+    // The handler records the failure here; a stale one must not be read
+    // as this run's.
+    error.value = null;
 
     try {
       const result = await wrapAction(() => SsoService.runDiagnosticsForDomain(domainExtId));
@@ -557,11 +560,28 @@ export function useSsoConfig(domainExtId: string) {
           notifications.show(t('web.domains.sso.diagnostics_inconclusive'), 'warning', 'top');
         }
       } else {
-        diagnosticsError.value = t('web.domains.sso.diagnostics_error');
+        diagnosticsError.value = diagnosticsFailureMessage(error.value);
       }
     } finally {
       isDiagnosing.value = false;
     }
+  };
+
+  /**
+   * The inline message for a run that produced no verdict. A 429 is the
+   * per-customer run limit (the API's LimitExceeded body carries
+   * retry_after in seconds); everything else is a generic transport failure.
+   */
+  const diagnosticsFailureMessage = (failure: ApplicationError | null): string => {
+    if (failure?.code !== 429) return t('web.domains.sso.diagnostics_error');
+
+    const retryAfter = Number(failure.details?.retry_after);
+    if (!Number.isFinite(retryAfter) || retryAfter <= 0) {
+      return t('web.domains.sso.diagnostics_rate_limited');
+    }
+    return t('web.domains.sso.diagnostics_rate_limited_retry', {
+      minutes: Math.max(1, Math.ceil(retryAfter / 60)),
+    });
   };
 
   /**

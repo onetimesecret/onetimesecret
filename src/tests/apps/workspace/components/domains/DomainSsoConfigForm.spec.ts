@@ -477,6 +477,59 @@ describe('DomainSsoConfigForm', () => {
       expect((tenantIdInput.element as HTMLInputElement).value).toBe('tenant-uuid-123');
     });
 
+    describe('client secret shape hint (Entra Secret ID vs Value)', () => {
+      const HINT = '[data-testid="sso-client-secret-shape-hint"]';
+      const SECRET_ID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
+
+      it('warns when an Entra secret is UUID-shaped, before any save', async () => {
+        wrapper = await mountComponent({
+          formState: { ...createDefaultFormState(), client_secret: SECRET_ID },
+        });
+
+        expect(wrapper.find(HINT).exists()).toBe(true);
+        expect(wrapper.find(HINT).text()).toContain(
+          'web.organizations.sso.client_secret_looks_like_secret_id'
+        );
+      });
+
+      it('does not warn for a secret that is not UUID-shaped', async () => {
+        wrapper = await mountComponent({
+          formState: { ...createDefaultFormState(), client_secret: 'Ab1~cDe2.fGh3_iJk4-lMn5' },
+        });
+
+        expect(wrapper.find(HINT).exists()).toBe(false);
+      });
+
+      it('does not warn for a UUID-shaped secret on a generic OIDC provider', async () => {
+        wrapper = await mountComponent({
+          formState: {
+            ...createDefaultFormState(),
+            provider_type: 'oidc',
+            issuer: 'https://idp.example.com',
+            client_secret: SECRET_ID,
+          },
+        });
+
+        expect(wrapper.find(HINT).exists()).toBe(false);
+      });
+
+      it('does not block the save', async () => {
+        wrapper = await mountComponent({
+          formState: {
+            ...createDefaultFormState(),
+            display_name: 'Acme',
+            client_id: 'client-id',
+            tenant_id: '12345678-1234-1234-1234-123456789abc',
+            client_secret: SECRET_ID,
+          },
+        });
+
+        const submit = wrapper.find('button[type="submit"]');
+        expect(submit.exists()).toBe(true);
+        expect((submit.element as HTMLButtonElement).disabled).toBe(false);
+      });
+    });
+
     it('shows hint text about keeping existing secret when editing', async () => {
       wrapper = await mountComponent({
         formState: mockExistingFormState,

@@ -72,13 +72,20 @@ vi.mock('vue-i18n', () => ({
   }),
 }));
 
+// Swallows like the real handler and hands the rejection to onError as-is:
+// tests that need a classified error reject with an ApplicationError-shaped
+// object (see "429" below).
 vi.mock('@/shared/composables/useAsyncHandler', () => ({
-  useAsyncHandler: (options: { setLoading?: (loading: boolean) => void }) => ({
+  useAsyncHandler: (options: {
+    setLoading?: (loading: boolean) => void;
+    onError?: (error: unknown) => void;
+  }) => ({
     wrap: vi.fn(async (fn: () => Promise<unknown>) => {
       options.setLoading?.(true);
       try {
         return await fn();
-      } catch {
+      } catch (error) {
+        options.onError?.(error);
         return undefined;
       } finally {
         options.setLoading?.(false);
@@ -1736,7 +1743,7 @@ describe('useSsoConfig', () => {
 
     it('sets diagnosticsError and no result when the request fails', async () => {
       mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
-      mockRunDiagnosticsForDomain.mockRejectedValue(new Error('Too many requests'));
+      mockRunDiagnosticsForDomain.mockRejectedValue(new Error('Network error'));
       const composable = useSsoConfig('dm-ext-123');
       await composable.initialize();
 
@@ -1745,6 +1752,60 @@ describe('useSsoConfig', () => {
       expect(composable.diagnosticsResult.value).toBeNull();
       expect(composable.diagnosticsError.value).toBe('Failed to check the saved configuration');
       expect(composable.isDiagnosing.value).toBe(false);
+    });
+
+    // The API caps runs per customer (SsoDiagnosticsRateLimiter) and answers
+    // 429 with a LimitExceeded body; the classifier turns that into an
+    // ApplicationError with code 429 and the body as details.
+    const rateLimited = (retry_after?: number) => ({
+      name: 'ApplicationError',
+      message: 'Too many saved-configuration checks. Please try again later.',
+      type: 'human',
+      severity: 'error',
+      code: 429,
+      details: { error: 'Too many saved-configuration checks.', error_type: 'LimitExceeded', retry_after },
+    });
+
+    it('reports a 429 as the run limit, with the wait rounded up to minutes', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
+      mockRunDiagnosticsForDomain.mockRejectedValue(rateLimited(1234));
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      await composable.runDiagnostics();
+
+      expect(composable.diagnosticsResult.value).toBeNull();
+      expect(composable.diagnosticsError.value).toBe(
+        'web.domains.sso.diagnostics_rate_limited_retry'
+      );
+      expect(mockRunDiagnosticsForDomain).toHaveBeenCalledTimes(1);
+    });
+
+    it('reports a 429 without retry_after as the run limit with no wait', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
+      mockRunDiagnosticsForDomain.mockRejectedValue(rateLimited());
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      await composable.runDiagnostics();
+
+      expect(composable.diagnosticsError.value).toBe('web.domains.sso.diagnostics_rate_limited');
+    });
+
+    it('does not read an earlier failure as this run\'s', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
+      mockRunDiagnosticsForDomain.mockRejectedValueOnce(rateLimited(60));
+      mockRunDiagnosticsForDomain.mockRejectedValueOnce(new Error('Network error'));
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      await composable.runDiagnostics();
+      expect(composable.diagnosticsError.value).toBe(
+        'web.domains.sso.diagnostics_rate_limited_retry'
+      );
+
+      await composable.runDiagnostics();
+      expect(composable.diagnosticsError.value).toBe('Failed to check the saved configuration');
     });
 
     it('sets isDiagnosing during the request and resets it after', async () => {
