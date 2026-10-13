@@ -52,6 +52,12 @@ module DomainsAPI
 
         attr_reader :mailer_config
 
+        # What a revalidation resets, and its rollback restores.
+        VERIFICATION_RESET_FIELDS = [
+          :verification_status, :dns_check_status, :provider_check_status, :dns_verified,
+          :provider_verified, :dns_check_completed_at, :provider_check_completed_at
+        ].freeze
+
         def process_params
           @domain_id = sanitize_identifier(params['extid'])
         end
@@ -86,43 +92,41 @@ module DomainsAPI
           lock_token = lock.acquire(ttl: 60)
           raise_form_error('Validation already in progress. Please try again.', field: :domain_id, error_type: :conflict) unless lock_token
 
+          model    = Onetime::CustomDomain::MailerConfig
+          previous = nil
+
           begin
             lifecycle = Onetime::Jobs::Workers::JobLifecycle
 
-            # Capture previous values for rollback
-            previous_status                      = @mailer_config.verification_status
-            previous_dns_check_status            = @mailer_config.dns_check_status
-            previous_provider_check_status       = @mailer_config.provider_check_status
-            previous_dns_verified                = @mailer_config.dns_verified
-            previous_provider_verified           = @mailer_config.provider_verified
-            previous_dns_check_completed_at      = @mailer_config.dns_check_completed_at
-            previous_provider_check_completed_at = @mailer_config.provider_check_completed_at
-            previous_dns_check_results           = @mailer_config.dns_check_results&.value
-
+            # Reset the record as stored now (GuardedConfigWrites), keeping
+            # the values it replaces for the rollback. A stale copy would
+            # write back, and later restore, whatever a job recorded since
+            # raise_concerns loaded it.
+            #
             # Set job lifecycle status to QUEUED (jobs are about to be enqueued)
             # Clear outcome fields (nil = unknown/pending)
             # Clear completion timestamps so the UI reflects immediately
-            # Also clear dns_check_results so stale booleans (dns_exists, value_matches) don't
-            # show as verified during pending state.
-            @mailer_config.verification_status         = VERIFICATION_STATUS_PENDING
-            @mailer_config.dns_check_status            = lifecycle::QUEUED
-            @mailer_config.provider_check_status       = lifecycle::QUEUED
-            @mailer_config.dns_verified                = nil
-            @mailer_config.provider_verified           = nil
-            @mailer_config.dns_check_completed_at      = ''
-            @mailer_config.provider_check_completed_at = ''
-            @mailer_config.dns_check_results.value     = nil
-            @mailer_config.updated                     = Familia.now.to_i
-            @mailer_config.save_fields(
-              :verification_status,
-              :dns_check_status,
-              :provider_check_status,
-              :dns_verified,
-              :provider_verified,
-              :dns_check_completed_at,
-              :provider_check_completed_at,
-              :updated,
-            )
+            @mailer_config, previous = guarded_config_write do
+              model.update_for_domain!(@custom_domain.identifier) do |stored|
+                replaced = VERIFICATION_RESET_FIELDS.to_h { |name| [name, stored.public_send(name)] }
+
+                stored.verification_status         = VERIFICATION_STATUS_PENDING
+                stored.dns_check_status            = lifecycle::QUEUED
+                stored.provider_check_status       = lifecycle::QUEUED
+                stored.dns_verified                = nil
+                stored.provider_verified           = nil
+                stored.dns_check_completed_at      = ''
+                stored.provider_check_completed_at = ''
+                stored.updated                     = Familia.now.to_i
+                replaced
+              end
+            end
+
+            # Also clear dns_check_results so stale booleans (dns_exists,
+            # value_matches) don't show as verified during pending state. A
+            # jsonkey (its own Redis key) writes on assignment.
+            previous_dns_check_results             = @mailer_config.dns_check_results&.value
+            @mailer_config.dns_check_results.value = nil
 
             # Enqueue both background validation jobs
             # (user explicitly requested fresh verification via "Verify Now")
@@ -133,26 +137,15 @@ module DomainsAPI
             )
           rescue StandardError
             # Rollback: restore previous status, lifecycle fields, outcomes, timestamps,
-            # and dns_check_results so nothing stays stuck in 'pending'
-            @mailer_config.verification_status         = previous_status
-            @mailer_config.dns_check_status            = previous_dns_check_status
-            @mailer_config.provider_check_status       = previous_provider_check_status
-            @mailer_config.dns_verified                = previous_dns_verified
-            @mailer_config.provider_verified           = previous_provider_verified
-            @mailer_config.dns_check_completed_at      = previous_dns_check_completed_at
-            @mailer_config.provider_check_completed_at = previous_provider_check_completed_at
-            @mailer_config.dns_check_results.value     = previous_dns_check_results
-            @mailer_config.updated                     = Familia.now.to_i
-            @mailer_config.save_fields(
-              :verification_status,
-              :dns_check_status,
-              :provider_check_status,
-              :dns_verified,
-              :provider_verified,
-              :dns_check_completed_at,
-              :provider_check_completed_at,
-              :updated,
-            )
+            # and dns_check_results so nothing stays stuck in 'pending'. Nothing
+            # to restore when the reset itself did not happen.
+            if previous
+              model.update_for_domain_if(@custom_domain.identifier, ->(_stored) { true }) do |stored|
+                previous.each { |name, value| stored.public_send(:"#{name}=", value) }
+                stored.updated = Familia.now.to_i
+              end
+              @mailer_config.dns_check_results.value = previous_dns_check_results
+            end
             raise
           ensure
             lock&.release(lock_token) if lock_token
