@@ -12,10 +12,13 @@
 #     check the first sign is `pnpm run build` failing minutes later.
 #   - The message names the missing platform package, not the wasm32-wasi
 #     fallback that napi-rs loaders put first in the error's cause chain.
-#   - A healthy install, and a package that is not installed at all (a
+#   - A healthy install, and a declared package that is not installed (a
 #     production install skips devDependencies), pass without a message.
 #   - "a>b" resolves b from a's install location, as pnpm's strict layout
 #     requires for a transitive dependency.
+#   - A probe entry the dependency graph no longer matches is reported as a
+#     stale NATIVE_BINDING_PROBES entry, not as a failed download whose
+#     remedy (rm -rf node_modules) would not help.
 #
 # Runs against stub packages in a temp dir, so it needs node but no
 # node_modules from the checkout. The stubs fail with real `require`
@@ -46,8 +49,22 @@ stub() {
   cat >"$1/index.js"
 }
 
+# The probes' first packages are the checkout's own dependencies.
+# not-installed is declared but absent, like a devDependency after a
+# production install.
 mkdir -p "$PROJ"
-printf '{ "name": "stub-checkout", "private": true }\n' >"${PROJ}/package.json"
+cat >"${PROJ}/package.json" <<'JSON'
+{
+  "name": "stub-checkout",
+  "private": true,
+  "dependencies": { "loads": "1.0.0", "parent": "1.0.0" },
+  "devDependencies": {
+    "napi-missing": "1.0.0",
+    "imports-napi-missing": "1.0.0",
+    "not-installed": "1.0.0"
+  }
+}
+JSON
 
 echo 'module.exports = {};' | stub "${NM}/loads"
 
@@ -106,11 +123,27 @@ assert_contains "gives a fix that restores the binding" "rm -rf node_modules" "$
 protects "one missing binding reached through two packages is reported once"
 check "napi-missing imports-napi-missing" native_binding_failures
 assert_eq "one line naming both" \
-  "@stub/binding-${PLATFORM}-gnu	napi-missing, imports-napi-missing" "$out"
+  "binding	@stub/binding-${PLATFORM}-gnu	napi-missing, imports-napi-missing" "$out"
 
 protects "a loader that drops the package name still fails, with its own error"
 check "parent>css-missing" native_binding_failures
 assert_eq "the loader's own error when no package name survives" \
-  "Cannot find module '../stub-css.${PLATFORM}.node'	parent > css-missing" "$out"
+  "binding	Cannot find module '../stub-css.${PLATFORM}.node'	parent > css-missing" "$out"
+
+protects "a stale probe entry is diagnosed as one, not as a failed download"
+check "removed parent>gone" native_binding_failures
+assert_eq "both kinds of stale entry" \
+  "stale	removed is not a dependency in package.json	removed
+stale	gone does not resolve from parent	parent > gone" "$out"
+check "removed parent>gone" check_native_bindings
+assert_eq "stale entry: exit status" "1" "$rc"
+assert_contains "names the list to update" "NATIVE_BINDING_PROBES in tools/setup/lib.sh" "$out"
+assert_not_contains "does not blame a download" "rm -rf node_modules" "$out"
+
+protects "a missing binding and a stale entry are both reported"
+check "napi-missing parent>gone" check_native_bindings
+assert_eq "both: exit status" "1" "$rc"
+assert_contains "both: the binding fix" "rm -rf node_modules" "$out"
+assert_contains "both: the stale entry" "gone does not resolve from parent" "$out"
 
 finish
