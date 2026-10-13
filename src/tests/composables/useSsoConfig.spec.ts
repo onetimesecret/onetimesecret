@@ -94,6 +94,7 @@ const mockSsoConfigData: CustomDomainSsoConfig = {
   client_secret_masked: '****5678',
   tenant_id: 'tenant-id-abcdef',
   issuer: null,
+  token_endpoint_auth_method: null,
   idp_sso_service_url: null,
   idp_entity_id: null,
   idp_cert: null,
@@ -216,6 +217,7 @@ describe('useSsoConfig', () => {
         client_secret: '', // NEVER populated from API response
         tenant_id: 'tenant-id-abcdef',
         issuer: '',
+        token_endpoint_auth_method: '',
         idp_sso_service_url: '',
         idp_entity_id: '',
         idp_cert: '',
@@ -258,6 +260,7 @@ describe('useSsoConfig', () => {
         client_secret: '',
         tenant_id: '',
         issuer: '',
+        token_endpoint_auth_method: '',
         idp_sso_service_url: '',
         idp_entity_id: '',
         idp_cert: '',
@@ -373,6 +376,7 @@ describe('useSsoConfig', () => {
         client_secret: 'new-secret-value',
         tenant_id: 'new-tenant-id',
         issuer: '',
+        token_endpoint_auth_method: '',
         idp_sso_service_url: '',
         idp_entity_id: '',
         idp_cert: '',
@@ -410,6 +414,7 @@ describe('useSsoConfig', () => {
         client_secret: 'secret-value',
         tenant_id: 'tenant-id-abcdef',
         issuer: '',
+        token_endpoint_auth_method: '',
         idp_sso_service_url: '',
         idp_entity_id: '',
         idp_cert: '',
@@ -438,6 +443,7 @@ describe('useSsoConfig', () => {
         client_secret: 'test-secret',
         tenant_id: 'test-tenant',
         issuer: '',
+        token_endpoint_auth_method: '',
         idp_sso_service_url: '',
         idp_entity_id: '',
         idp_cert: '',
@@ -466,6 +472,7 @@ describe('useSsoConfig', () => {
         client_secret: '  secret-value  ',
         tenant_id: '  tenant-id  ',
         issuer: '',
+        token_endpoint_auth_method: '',
         idp_sso_service_url: '',
         idp_entity_id: '',
         idp_cert: '',
@@ -502,6 +509,7 @@ describe('useSsoConfig', () => {
         client_secret: 'test-secret',
         tenant_id: 'test-tenant',
         issuer: '',
+        token_endpoint_auth_method: '',
         idp_sso_service_url: '',
         idp_entity_id: '',
         idp_cert: '',
@@ -537,6 +545,7 @@ describe('useSsoConfig', () => {
         client_secret: 'test-secret',
         tenant_id: 'test-tenant',
         issuer: '',
+        token_endpoint_auth_method: '',
         idp_sso_service_url: '',
         idp_entity_id: '',
         idp_cert: '',
@@ -567,6 +576,7 @@ describe('useSsoConfig', () => {
         client_secret: 'test-secret',
         tenant_id: 'test-tenant',
         issuer: '',
+        token_endpoint_auth_method: '',
         idp_sso_service_url: '',
         idp_entity_id: '',
         idp_cert: '',
@@ -597,6 +607,7 @@ describe('useSsoConfig', () => {
         client_secret: 'test-secret',
         tenant_id: 'test-tenant',
         issuer: '',
+        token_endpoint_auth_method: '',
         idp_sso_service_url: '',
         idp_entity_id: '',
         idp_cert: '',
@@ -880,6 +891,133 @@ describe('useSsoConfig', () => {
   // deleteConfig
   // ---------------------------------------------------------------------------
 
+  // ---------------------------------------------------------------------------
+  // token_endpoint_auth_method (#4764)
+  // ---------------------------------------------------------------------------
+
+  describe('token_endpoint_auth_method (#4764)', () => {
+    const savedPayload = (): Record<string, unknown> => {
+      expect(mockSaveConfigForDomain).toHaveBeenCalledTimes(1);
+      const [, payload] = mockSaveConfigForDomain.mock.calls[0] as [
+        string,
+        Record<string, unknown>,
+      ];
+      return payload;
+    };
+
+    it("defaults to '' (Automatic) on a fresh form", async () => {
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      expect(composable.formState.value.token_endpoint_auth_method).toBe('');
+    });
+
+    it("seeds the stored method from the record and maps null to ''", async () => {
+      mockGetConfigForDomain.mockResolvedValue({
+        record: { ...mockOidcConfigData, token_endpoint_auth_method: 'client_secret_post' },
+      });
+      const stored = useSsoConfig('dm-ext-123');
+      await stored.initialize();
+      expect(stored.formState.value.token_endpoint_auth_method).toBe('client_secret_post');
+      expect(stored.hasUnsavedChanges.value).toBe(false);
+
+      mockGetConfigForDomain.mockResolvedValue({ record: mockOidcConfigData });
+      const unset = useSsoConfig('dm-ext-456');
+      await unset.initialize();
+      expect(unset.formState.value.token_endpoint_auth_method).toBe('');
+    });
+
+    it("sends the key with '' for Automatic on an oidc save (a present blank CLEARS on PATCH)", async () => {
+      mockGetConfigForDomain.mockResolvedValue({
+        record: { ...mockOidcConfigData, token_endpoint_auth_method: 'client_secret_post' },
+      });
+      mockSaveConfigForDomain.mockResolvedValue({ record: mockOidcConfigData });
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      composable.formState.value = {
+        ...composable.formState.value,
+        token_endpoint_auth_method: '',
+      };
+      expect(composable.hasUnsavedChanges.value).toBe(true);
+
+      await composable.saveConfig();
+
+      const payload = savedPayload();
+      expect(payload).toHaveProperty('token_endpoint_auth_method', '');
+    });
+
+    it('sends the selected method on an oidc save', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: mockOidcConfigData });
+      mockSaveConfigForDomain.mockResolvedValue({
+        record: { ...mockOidcConfigData, token_endpoint_auth_method: 'client_secret_post' },
+      });
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      composable.formState.value = {
+        ...composable.formState.value,
+        token_endpoint_auth_method: 'client_secret_post',
+      };
+
+      await composable.saveConfig();
+
+      expect(savedPayload()).toMatchObject({ token_endpoint_auth_method: 'client_secret_post' });
+      expect(composable.formState.value.token_endpoint_auth_method).toBe('client_secret_post');
+      expect(composable.hasUnsavedChanges.value).toBe(false);
+    });
+
+    it.each(['entra_id', 'saml'] as const)(
+      'does not send the key for %s, even with a stale value on the form',
+      async (providerType) => {
+        mockGetConfigForDomain.mockResolvedValue({ record: null });
+        const composable = useSsoConfig('dm-ext-123');
+        await composable.initialize();
+
+        composable.formState.value = {
+          ...composable.formState.value,
+          provider_type: providerType,
+          display_name: 'Stale',
+          client_id: 'client-123',
+          client_secret: 'secret-456',
+          tenant_id: 'tenant-789',
+          idp_sso_service_url: 'https://idp.example.com/sso',
+          idp_entity_id: 'https://idp.example.com/entity',
+          idp_cert: SAML_CERT,
+          // A value left over from an oidc selection before the switch.
+          token_endpoint_auth_method: 'client_secret_post',
+        };
+
+        await composable.saveConfig();
+        expect(savedPayload()).not.toHaveProperty('token_endpoint_auth_method');
+
+        await composable.testConnection();
+        const [, testPayload] = mockTestConnectionForDomain.mock.calls[0] as [
+          string,
+          Record<string, unknown>,
+        ];
+        expect(testPayload).not.toHaveProperty('token_endpoint_auth_method');
+      }
+    );
+
+    it('sends the selected method with the oidc test payload', async () => {
+      mockGetConfigForDomain.mockResolvedValue({
+        record: { ...mockOidcConfigData, token_endpoint_auth_method: 'client_secret_post' },
+      });
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      await composable.testConnection();
+
+      expect(mockTestConnectionForDomain).toHaveBeenCalledWith('dm-ext-123', {
+        provider_type: 'oidc',
+        client_id: 'client-id-12345',
+        issuer: 'https://idp.example.com',
+        token_endpoint_auth_method: 'client_secret_post',
+      });
+    });
+  });
+
   describe('disableConfig recovery', () => {
     it('PATCHes only the two flags despite unreadable credentials and unsaved edits', async () => {
       const record = { ...mockEnforceSsoOnlyConfig, unreadable_fields: ['client_secret'] };
@@ -984,6 +1122,7 @@ describe('useSsoConfig', () => {
         client_secret: '',
         tenant_id: '',
         issuer: '',
+        token_endpoint_auth_method: '',
         idp_sso_service_url: '',
         idp_entity_id: '',
         idp_cert: '',
@@ -1271,6 +1410,7 @@ describe('useSsoConfig', () => {
         client_secret: 'new-secret',
         tenant_id: '',
         issuer: 'https://changed.example.com',
+        token_endpoint_auth_method: '',
         idp_sso_service_url: '',
         idp_entity_id: '',
         idp_cert: '',
@@ -1302,6 +1442,7 @@ describe('useSsoConfig', () => {
         client_secret: '',
         tenant_id: '',
         issuer: '',
+        token_endpoint_auth_method: '',
         idp_sso_service_url: '',
         idp_entity_id: '',
         idp_cert: '',
@@ -1361,6 +1502,7 @@ describe('useSsoConfig', () => {
         provider_type: 'oidc',
         client_id: 'client-id-12345',
         issuer: 'https://idp.example.com',
+        token_endpoint_auth_method: '',
       });
     });
 

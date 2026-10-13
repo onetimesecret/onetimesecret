@@ -23,6 +23,7 @@ import {
   ssoProviderUsesClientCredentials,
   type CustomDomainSsoConfig,
   type SsoProviderType,
+  type SsoTokenEndpointAuthMethodRequest,
 } from '@/schemas/shapes/domains/sso-config';
 import {
   SsoService,
@@ -46,6 +47,9 @@ import { useAsyncHandler, type AsyncHandlerOptions } from './useAsyncHandler';
  * the stored values and re-sends them. A field the API names in
  * `unreadable_fields` is seeded EMPTY so the admin has to re-enter it — the
  * error state lives on ssoConfig.unreadable_fields, not here.
+ *
+ * token_endpoint_auth_method (#4764, oidc only) is '' for "Automatic" (the
+ * record's null); the select only ever writes a contract value.
  */
 export interface SsoConfigFormState {
   provider_type: SsoProviderType;
@@ -54,6 +58,7 @@ export interface SsoConfigFormState {
   client_secret: string;
   tenant_id: string;
   issuer: string;
+  token_endpoint_auth_method: SsoTokenEndpointAuthMethodRequest;
   idp_sso_service_url: string;
   idp_entity_id: string;
   idp_cert: string;
@@ -74,6 +79,7 @@ const SCALAR_FORM_FIELDS = [
   'client_secret',
   'tenant_id',
   'issuer',
+  'token_endpoint_auth_method',
   'idp_sso_service_url',
   'idp_entity_id',
   'idp_cert',
@@ -90,6 +96,7 @@ function createDefaultFormState(): SsoConfigFormState {
     client_secret: '',
     tenant_id: '',
     issuer: '',
+    token_endpoint_auth_method: '',
     idp_sso_service_url: '',
     idp_entity_id: '',
     idp_cert: '',
@@ -132,6 +139,7 @@ function configToFormState(config: CustomDomainSsoConfig): SsoConfigFormState {
     client_secret: '', // Never populate from API
     tenant_id: config.tenant_id ?? '',
     issuer: config.issuer ?? '',
+    token_endpoint_auth_method: config.token_endpoint_auth_method ?? '',
     idp_sso_service_url: config.idp_sso_service_url ?? '',
     idp_entity_id: config.idp_entity_id ?? '',
     idp_cert: config.idp_cert ?? '',
@@ -158,11 +166,17 @@ function usesClientCredentials(state: SsoConfigFormState): boolean {
  * sent as '' so that on an existing saml record PATCH preserves the stored
  * value (a listed unreadable field is blank here and the API then refuses
  * with a `missing` error naming it — the intended re-entry loop).
+ *
+ * token_endpoint_auth_method (#4764) is the one blank that is NOT dropped:
+ * on PATCH a present '' clears the stored method back to the default while
+ * an absent key keeps it, so "Automatic" has to travel as ''. oidc only —
+ * the API clears it for the other types and the select is not shown.
  */
 function providerFields(state: SsoConfigFormState): {
   client_id?: string;
   tenant_id?: string;
   issuer?: string;
+  token_endpoint_auth_method?: SsoTokenEndpointAuthMethodRequest;
   idp_sso_service_url?: string;
   idp_entity_id?: string;
   idp_cert?: string;
@@ -179,6 +193,9 @@ function providerFields(state: SsoConfigFormState): {
     client_id: state.client_id.trim(),
     tenant_id: state.tenant_id.trim() || undefined,
     issuer: state.issuer.trim() || undefined,
+    ...(state.provider_type === 'oidc'
+      ? { token_endpoint_auth_method: state.token_endpoint_auth_method }
+      : {}),
   };
 }
 

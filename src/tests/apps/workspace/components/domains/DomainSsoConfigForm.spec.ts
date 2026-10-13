@@ -78,6 +78,7 @@ function createDefaultFormState(): SsoConfigFormState {
     client_secret: '',
     tenant_id: '',
     issuer: '',
+    token_endpoint_auth_method: '',
     idp_sso_service_url: '',
     idp_entity_id: '',
     idp_cert: '',
@@ -99,6 +100,7 @@ const mockExistingConfig: CustomDomainSsoConfig = {
   client_secret_masked: '****5678',
   tenant_id: 'tenant-uuid-123',
   issuer: null,
+  token_endpoint_auth_method: null,
   idp_sso_service_url: null,
   idp_entity_id: null,
   idp_cert: null,
@@ -119,6 +121,7 @@ const mockExistingFormState: SsoConfigFormState = {
   client_secret: '', // Never populated from API
   tenant_id: 'tenant-uuid-123',
   issuer: '',
+  token_endpoint_auth_method: '',
   idp_sso_service_url: '',
   idp_entity_id: '',
   idp_cert: '',
