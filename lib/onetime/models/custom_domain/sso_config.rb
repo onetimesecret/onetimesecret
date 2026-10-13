@@ -309,6 +309,20 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
   # @return [void]
   # @raise [Onetime::Problem] if any domain is invalid
   def allowed_domains=(domains)
+    normalized                = self.class.normalize_allowed_domains(domains)
+    self.allowed_domains_json = normalized.empty? ? nil : JSON.generate(normalized)
+  end
+
+  # The list allowed_domains= stores for the given input: stripped,
+  # downcased, blanks dropped, duplicates (including two forms of one IDN)
+  # collapsed to the first given. Exposed so a caller that needs to know
+  # what a write will persist (the PATCH audit log) reads the same answer
+  # as the setter.
+  #
+  # @param domains [Array<String>, nil]
+  # @return [Array<String>]
+  # @raise [Onetime::Problem] if any domain is invalid
+  def self.normalize_allowed_domains(domains)
     normalized = Array(domains).map { it.to_s.strip.downcase }.uniq.reject(&:empty?)
 
     # Validate each domain using PublicSuffix (handles IDN, validates TLD)
@@ -323,9 +337,7 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
     end
 
     # Two forms of one name keep the first given.
-    normalized = normalized.uniq { keys[it] }
-
-    self.allowed_domains_json = normalized.empty? ? nil : JSON.generate(normalized)
+    normalized.uniq { keys[it] }
   end
 
   # Whether allowed_domains_json holds something we cannot read as a

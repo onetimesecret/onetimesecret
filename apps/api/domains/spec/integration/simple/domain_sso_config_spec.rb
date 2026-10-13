@@ -2929,6 +2929,24 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
           expect(change['to']).to eq(%w[example.com foo.com])
         end
 
+        # The form sends a JSON array, which parse_allowed_domains passes
+        # through untouched; the model setter is what normalizes it.
+        it 'records allowed_domains as the setter stores an array, and no change for a resend in another form' do
+          csrf_patch api_path(test_custom_domain.extid), { allowed_domains: [' Example.COM ', 'Foo.com', '', 'example.com'] }
+
+          expect(last_response.status).to eq(200), last_response.body
+          stored = Onetime::CustomDomain::SsoConfig.find_by_domain_id(test_custom_domain.identifier)
+          expect(stored.allowed_domains.to_a).to eq(%w[example.com foo.com])
+          expect(audit_payloads.size).to eq(1)
+          expect(audit_payloads.first.fetch('changes').fetch('allowed_domains')['to']).to eq(%w[example.com foo.com])
+
+          csrf_patch api_path(test_custom_domain.extid), { allowed_domains: ['EXAMPLE.com', ' foo.com', 'example.com'] }
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(audit_payloads.size).to eq(2)
+          expect(audit_payloads.last.fetch('changes', {})).not_to have_key('allowed_domains')
+        end
+
         it 'records a disable-only PATCH as the flag change alone' do
           stored = Onetime::CustomDomain::SsoConfig.find_by_domain_id(test_custom_domain.identifier)
           stored.enabled = 'true'

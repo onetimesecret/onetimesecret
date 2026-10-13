@@ -1714,29 +1714,55 @@ describe('useSsoConfig', () => {
       expect(composable.testResult.value).toEqual(oidcSuccess);
     });
 
-    it('keeps the result when saveConfig hydrates the form from the saved record', async () => {
+    it('keeps the result when saveConfig hydrates the form with the tested fields', async () => {
       const composable = await testedOidc();
-      // Server-normalised record: same config, a different representation.
+      // The saved record carries what was tested; only an untested field differs.
       mockSaveConfigForDomain.mockResolvedValue({
         record: {
           ...mockOidcConfigData,
           token_endpoint_auth_method: 'client_secret_post',
-          issuer: 'https://idp.example.com/',
           display_name: 'Saved',
         },
       });
 
       await composable.saveConfig();
 
-      expect(composable.formState.value.issuer).toBe('https://idp.example.com/');
+      expect(composable.formState.value.display_name).toBe('Saved');
       expect(composable.testResult.value).toEqual(oidcSuccess);
 
-      // The hydrated values are the new anchor: an edit from them still clears.
+      // An edit from the hydrated values still clears.
       composable.formState.value = { ...composable.formState.value, issuer: 'https://x.example' };
       expect(composable.testResult.value).toBeNull();
     });
 
-    it('keeps the result when initialize hydrates the form again', async () => {
+    it('clears the result when the saved record differs in a tested field', async () => {
+      const composable = await testedOidc();
+      // The server stored something other than what was tested (a value it
+      // rewrote, or a concurrent save): the result no longer describes the form.
+      mockSaveConfigForDomain.mockResolvedValue({
+        record: {
+          ...mockOidcConfigData,
+          token_endpoint_auth_method: 'client_secret_post',
+          issuer: 'https://idp.example.com/',
+        },
+      });
+
+      await composable.saveConfig();
+
+      expect(composable.formState.value.issuer).toBe('https://idp.example.com/');
+      expect(composable.testResult.value).toBeNull();
+    });
+
+    it('keeps the result when initialize hydrates the same record again', async () => {
+      const composable = await testedOidc();
+
+      await composable.initialize();
+
+      expect(composable.formState.value.token_endpoint_auth_method).toBe('client_secret_post');
+      expect(composable.testResult.value).toEqual(oidcSuccess);
+    });
+
+    it('clears the result when initialize hydrates a record whose tested fields changed', async () => {
       const composable = await testedOidc();
       mockGetConfigForDomain.mockResolvedValue({
         record: { ...mockOidcConfigData, token_endpoint_auth_method: 'client_secret_basic' },
@@ -1745,7 +1771,7 @@ describe('useSsoConfig', () => {
       await composable.initialize();
 
       expect(composable.formState.value.token_endpoint_auth_method).toBe('client_secret_basic');
-      expect(composable.testResult.value).toEqual(oidcSuccess);
+      expect(composable.testResult.value).toBeNull();
     });
 
     it('discards a result for values edited away while the test was in flight', async () => {

@@ -265,16 +265,15 @@ export function useSsoConfig(domainExtId: string) {
   };
 
   /**
-   * Replace the form with a record from the API (load, save). Not an edit:
-   * if a result is in view it stays, re-anchored to the hydrated values so a
-   * server-normalised field (trimmed issuer, null method) does not read as
-   * a change.
+   * Replace the form with a record from the API (load, save). A result in
+   * view survives only when the record carries the fields it was tested
+   * against (a save of what was just tested, a reload of the same record).
+   * The watcher below judges the hydrated values exactly as it judges an
+   * edit, so a record that differs in a tested field (a method or issuer
+   * saved elsewhere, a value the server rewrote) clears the result rather
+   * than letting it describe settings the form no longer shows.
    */
   const hydrateFormState = (next: SsoConfigFormState) => {
-    // Re-anchor first: the watcher below is sync and runs on the assignment.
-    if (testedFingerprint.value !== null) {
-      testedFingerprint.value = testFingerprint(next);
-    }
     formState.value = next;
   };
 

@@ -464,8 +464,11 @@ module DomainsAPI
         #   and markup sanitize_plain_text strips, and an issuer that
         #   sanitize_url refuses (non-https) as a change the record never
         #   took.
-        # - The three flags and allowed_domains are written on key presence,
-        #   as the parsed boolean / normalized list.
+        # - The three flags are written on key presence as the parsed boolean.
+        # - allowed_domains is written on key presence, and the model setter
+        #   normalizes what it stores (case, padding, blanks, duplicates, two
+        #   forms of one IDN), so the audit value is the setter's own answer
+        #   for the parsed list rather than the list as sent.
         # - token_endpoint_auth_method and the provider-switch clears come
         #   from implicit_write_values.
         #
@@ -488,7 +491,9 @@ module DomainsAPI
           values['enabled']          = @enabled if @enabled_provided
           values['enforce_sso_only'] = @enforce_sso_only if @enforce_sso_only_provided
           values['grant_org_scope']  = @grant_org_scope if @grant_org_scope_provided
-          values['allowed_domains']  = @allowed_domains if @allowed_domains_provided
+          if @allowed_domains_provided
+            values['allowed_domains'] = Onetime::CustomDomain::SsoConfig.normalize_allowed_domains(@allowed_domains)
+          end
 
           values.merge(implicit_write_values)
         end
