@@ -105,25 +105,22 @@ module DomainsAPI
         def process
           OT.ld "[PutSsoConfig] Replacing SSO config for domain #{@domain_id} by user #{cust.extid}"
 
-          # Track enabled state change for audit
-          was_enabled             = @existing_config&.enabled?
-          # Read BEFORE the replacement; a PUT that omits name_id_format
-          # restores persistent, which re-keys a record that had another.
-          previous_name_id_format = stored_name_id_format(@existing_config)
-
           if @existing_config
-            changes = compute_sso_changes(@existing_config, replacement_change_params)
-            replace_existing_config
-            log_name_id_format_change_if_rekeyed(previous_name_id_format, was_enabled)
+            # Audit from the state this write replaced, not from the config
+            # raise_concerns loaded (see replace_existing_config)
+            replaced    = replace_existing_config
+            was_enabled = replaced[:was_enabled]
+            log_name_id_format_change_if_rekeyed(replaced[:name_id_format], was_enabled)
             log_sso_change_event(
               event: :domain_sso_config_replaced,
               domain: @custom_domain,
               org: @organization,
               actor: cust,
               provider_type: @provider_type,
-              changes: changes,
+              changes: replaced[:changes],
             )
           else
+            was_enabled = nil
             create_new_config
             log_sso_change_event(
               event: :domain_sso_config_created,
@@ -257,14 +254,61 @@ module DomainsAPI
           )
         end
 
-        # Replaces existing SSO config with PUT semantics.
+        # Replaces existing SSO config with PUT semantics and returns the
+        # state it replaced, for the audit events in #process.
         #
-        # Uses transaction with commit_fields to prevent race condition where
-        # config could be deleted between existence check and update.
+        # raise_concerns loaded @existing_config, and a concurrent PUT or
+        # PATCH may have committed since. The replaced state is therefore
+        # re-read after WATCH on the record's key, and the write commits only
+        # if that key is unchanged at EXEC. On a conflict Familia re-runs the
+        # read and the write (3 attempts), so each event describes the state
+        # its own write replaced. The pin keeps WATCH, the re-read and
+        # MULTI/EXEC on one connection (see Onetime.with_pinned_dbclient).
         #
+        # @return [Hash] :changes, :was_enabled and :name_id_format of the
+        #   replaced record
         def replace_existing_config
           @sso_config = @existing_config
+          replaced    = nil
 
+          written = Onetime.with_pinned_dbclient do
+            @sso_config.atomic_write(
+              watch_keys: [@sso_config.dbkey],
+              pre_check: -> { replaced = read_replaced_state },
+            ) { assign_replacement_fields }
+          end
+          raise Onetime::Problem, "SSO config replacement was not written for domain #{@domain_id}" unless written
+
+          replaced
+        rescue Familia::KeyNotFoundError, Familia::OptimisticLockError
+          # Deleted since raise_concerns, or still changing after 3 attempts
+          raise_form_error(
+            'The SSO configuration changed while this update was being saved. Reload it and try again.',
+            field: :domain_id,
+            error_type: :conflict,
+          )
+        end
+
+        # Runs between WATCH and MULTI, where reads return stored values while
+        # the key is guarded.
+        def read_replaced_state
+          # Checked here because refresh! (Familia 2.12) tests the raw EXISTS
+          # reply, and 0 is truthy: a deleted record would refresh to nothing
+          # and leave the stale fields in place.
+          raise Familia::KeyNotFoundError, @sso_config.dbkey unless @sso_config.exists?
+
+          @sso_config.refresh!
+          {
+            changes: compute_sso_changes(@sso_config, replacement_change_params),
+            was_enabled: @sso_config.enabled?,
+            # A PUT that omits name_id_format restores persistent, which
+            # re-keys a record that had another.
+            name_id_format: stored_name_id_format(@sso_config),
+          }
+        end
+
+        # Runs inside the MULTI; atomic_write persists the fields after it.
+        def assign_replacement_fields
           # PUT semantics: full replacement - set ALL fields from request
           @sso_config.provider_type    = @provider_type
           @sso_config.display_name     = @display_name    # Empty string clears the field
@@ -285,9 +329,6 @@ module DomainsAPI
           # and nothing invalid may be committed.
           errors = @sso_config.validation_errors
           raise_form_error(errors.join('; '), error_type: :invalid) if errors.any?
-
-          # commit_fields runs its own transaction internally for atomicity
-          @sso_config.commit_fields
         end
 
         # Log enabled/disabled state change if it occurred.
