@@ -1,6 +1,7 @@
 // src/router/public.routes.ts
 
 import HomepageContainer from '@/apps/secret/conceal/Homepage.vue';
+import { loggingService } from '@/services/logging.service';
 import TransactionalFooter from '@/shared/components/layout/TransactionalFooter.vue';
 import TransactionalHeader from '@/shared/components/layout/TransactionalHeader.vue';
 import TransactionalLayout from '@/shared/layouts/TransactionalLayout.vue';
@@ -47,7 +48,7 @@ function determineComponentMode(): string {
     !hasSession &&
     (bootstrapStore.authentication?.required || bootstrapStore.homepage_mode === 'external')
   ) {
-    console.debug('Homepage Mode disabled-homepage ' + bootstrapStore.homepage_mode);
+    loggingService.debug('Homepage Mode disabled-homepage ' + bootstrapStore.homepage_mode);
     return 'disabled-homepage';
   }
 

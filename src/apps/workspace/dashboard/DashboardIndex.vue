@@ -5,7 +5,10 @@
   import PrivacyOptionsBar from '@/apps/workspace/components/forms/PrivacyOptionsBar.vue';
   import WorkspaceSecretForm from '@/apps/workspace/components/forms/WorkspaceSecretForm.vue';
   import UpgradeBanner from '@/apps/workspace/dashboard/components/UpgradeBanner.vue';
+  import { SecretDisplayType } from '@/schemas/contracts/secret';
   import { loggingService } from '@/services/logging.service';
+  import MarkdownModeToggle from '@/shared/components/ui/MarkdownModeToggle.vue';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useProductIdentity } from '@/shared/stores/identityStore';
   import { storeToRefs } from 'pinia';
   import { computed, ref } from 'vue';
@@ -28,6 +31,18 @@
   const currentTtl = computed(() => secretFormRef.value?.currentTtl ?? 604800);
   const currentPassphrase = computed(() => secretFormRef.value?.currentPassphrase ?? '');
   const isSubmitting = computed(() => secretFormRef.value?.isSubmitting ?? false);
+  const isMarkdown = computed(
+    () => secretFormRef.value?.currentDisplayType === SecretDisplayType.MARKDOWN
+  );
+
+  // Markdown secrets are opt-in per platform (features.markdown); when off,
+  // the chip is not offered and the bar has no trailing group. Nor in the
+  // form's generate mode, which sends no display_type.
+  const { features } = storeToRefs(useBootstrapStore());
+  const showMarkdownToggle = computed(
+    () =>
+      features.value?.markdown === true && (secretFormRef.value?.offersDisplayType ?? true)
+  );
 
   // Handlers for privacy options updates
   const handleTtlUpdate = (value: number) => {
@@ -36,6 +51,12 @@
 
   const handlePassphraseUpdate = (value: string) => {
     secretFormRef.value?.updatePassphrase(value);
+  };
+
+  const handleMarkdownUpdate = (enabled: boolean) => {
+    secretFormRef.value?.updateDisplayType(
+      enabled ? SecretDisplayType.MARKDOWN : SecretDisplayType.TEXT
+    );
   };
 
   // Refresh recent secrets table after a secret is created
@@ -57,14 +78,27 @@
     <!-- Upgrade Banner (shown for free plan users when billing is enabled) -->
     <UpgradeBanner />
 
-    <!-- Privacy Options Bar (interactive chips for TTL and passphrase) -->
+    <!--
+      Options bar: privacy chips (TTL, passphrase) on the left, the Markdown
+      toggle in its own group on the right (when the platform enables it).
+      One row of chips for the form.
+    -->
     <PrivacyOptionsBar
       :current-ttl="currentTtl"
       :current-passphrase="currentPassphrase"
       :is-submitting="isSubmitting"
       class="mb-4"
       @update:ttl="handleTtlUpdate"
-      @update:passphrase="handlePassphraseUpdate" />
+      @update:passphrase="handlePassphraseUpdate">
+      <template
+        v-if="showMarkdownToggle"
+        #trailing>
+        <MarkdownModeToggle
+          :model-value="isMarkdown"
+          :disabled="isSubmitting"
+          @update:model-value="handleMarkdownUpdate" />
+      </template>
+    </PrivacyOptionsBar>
 
     <WorkspaceSecretForm
       ref="secretFormRef"

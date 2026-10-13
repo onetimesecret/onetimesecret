@@ -28,6 +28,7 @@ import {
   unavailableBootstrap,
 } from '@/tests/fixtures/bootstrap.fixture';
 import { toWire } from '@/tests/fixtures/bootstrap-wire';
+import { captureAppLogs } from '@/tests/utils/appLogs';
 import { attemptForcedPageLoad } from '@/utils/forcedPageLoad';
 import { addBreadcrumb } from '@sentry/vue';
 import type AxiosMockAdapter from 'axios-mock-adapter';
@@ -120,6 +121,9 @@ describe('authStore PR #4497 transition contracts', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0.5);
     vi.mocked(attemptForcedPageLoad).mockClear();
     vi.mocked(addBreadcrumb).mockClear();
+    // Failed verifications and ordering anomalies are part of what these
+    // tests drive; the store logs both.
+    captureAppLogs();
   });
 
   afterEach(() => {

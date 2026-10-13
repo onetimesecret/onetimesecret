@@ -4,6 +4,7 @@
 
 require 'onetime/secret_lifetime_policy'
 require 'onetime/security/conceal_secret_rate_limiter'
+require_relative 'display_type_param'
 
 module V2::Logic
   module Secrets
@@ -12,6 +13,7 @@ module V2::Logic
     class BaseSecretAction < V2::Logic::Base
       include Onetime::LoggerMethods
       include Onetime::Security::ConcealSecretRateLimiter
+      include DisplayTypeParam
 
       attr_reader :passphrase,
         :secret_value,
@@ -45,6 +47,7 @@ module V2::Logic
 
         process_ttl
         process_secret
+        process_display_type
         process_passphrase
         process_recipient
         process_share_domain
@@ -75,6 +78,7 @@ module V2::Logic
         validate_recipient
         validate_share_domain
         validate_passphrase
+        validate_display_type
       end
 
       def process
@@ -106,6 +110,7 @@ module V2::Logic
           recipient: recipient,
           ttl: ttl,
           kind: kind,
+          display_type: display_type,
         }
       end
 
@@ -444,7 +449,7 @@ module V2::Logic
 
       def create_secret_pair
         @receipt, @secret = Onetime::Receipt.spawn_pair(
-          cust&.objid, ttl, secret_value, passphrase: passphrase, domain: share_domain, kind: kind
+          cust&.objid, ttl, secret_value, passphrase:, domain: share_domain, kind:, display_type:
         )
 
         @greenlighted = receipt.valid? && secret.valid?

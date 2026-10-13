@@ -6,6 +6,7 @@
   import DomainHeader from '@/apps/workspace/components/dashboard/DomainHeader.vue';
   import DomainVerificationInfo from '@/apps/workspace/components/domains/DomainVerificationInfo.vue';
   import MoreInfoText from '@/shared/components/ui/MoreInfoText.vue';
+  import { loggingService } from '@/services/logging.service';
   import VerifyDomainDetails from '@/apps/workspace/components/domains/VerifyDomainDetails.vue';
   import { useDomainsManager } from '@/shared/composables/useDomainsManager';
   import { useDomain } from '@/shared/composables/useDomain';
@@ -61,7 +62,7 @@
   };
 
   const handleDomainVerify = async (data: CustomDomainResponse) => {
-    console.debug('Domain verified: refreshing domain info', data);
+    loggingService.debug('Domain verified: refreshing domain info', { data });
     await fetchDomain();
   };
 
@@ -142,7 +143,7 @@
   };
 
   const handleDnsRecordsVerified = async () => {
-    console.debug('DNS records verified via widget, triggering backend verification');
+    loggingService.debug('DNS records verified via widget, triggering backend verification');
     await triggerVerification();
   };
 

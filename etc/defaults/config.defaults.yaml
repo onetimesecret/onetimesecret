@@ -1286,6 +1286,15 @@ features:
     # (opt-in) — the inverse polarity of the sibling flags — because this is
     # the not-yet-reviewed surface, not an already-approved one.
     geo_country_enabled: <%= ENV['SECRET_ACTIVITY_GEO_COUNTRY_ENABLED'] == 'true' %>  # Since v0.26.5
+  # Markdown secrets
+  # Lets senders mark a secret as Markdown (display_type), which the
+  # recipient sees rendered and sanitized. Defaults OFF (opt-in). When off,
+  # the create forms show no Markdown control, the conceal endpoints refuse
+  # display_type=markdown with a 422, and secrets already stored as Markdown
+  # read back, and are shown, as plain text. Turning it back on shows those
+  # as Markdown again; the stored value is never rewritten.
+  markdown:
+    enabled: <%= ENV['MARKDOWN_ENABLED'] == 'true' %>  # Since unreleased
 
 # Main Database Configuration
 redis:

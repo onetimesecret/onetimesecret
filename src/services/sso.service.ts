@@ -19,7 +19,11 @@ import {
   deleteSsoConfigResponseSchema,
   type DeleteSsoConfigResponse,
 } from '@/schemas/api/domains/responses/sso-config';
-import type { CustomDomainSsoConfig, SsoProviderType } from '@/schemas/shapes/domains/sso-config';
+import type {
+  CustomDomainSsoConfig,
+  SsoProviderType,
+  SsoTokenEndpointAuthMethodRequest,
+} from '@/schemas/shapes/domains/sso-config';
 import { gracefulParse, strictParse } from '@/utils/schemaValidation';
 import axios from 'axios';
 
@@ -49,6 +53,11 @@ export interface TestSsoConnectionRequest {
   client_id?: string;
   tenant_id?: string;
   issuer?: string;
+  /**
+   * OIDC only (#4764): the selected token endpoint auth method, '' when
+   * none. The test reports whether the discovery document advertises it.
+   */
+  token_endpoint_auth_method?: SsoTokenEndpointAuthMethodRequest;
   /** SAML trio (#4450) — all three required for provider_type 'saml'. */
   idp_sso_service_url?: string;
   idp_entity_id?: string;
@@ -71,6 +80,19 @@ export interface TestSsoConnectionResponse {
     jwks_uri?: string;
     userinfo_endpoint?: string;
     scopes_supported?: string[];
+    /**
+     * OIDC / Entra (#4764): the discovery document's
+     * token_endpoint_auth_methods_supported list, null when it omits the
+     * field (OIDC Discovery then implies client_secret_basic).
+     */
+    token_endpoint_auth_methods_supported?: string[] | null;
+    /**
+     * Whether the selected token_endpoint_auth_method is advertised by the
+     * document; null when nothing was selected. Advisory: false does NOT
+     * fail the test (an IdP may accept a method it does not list) — it
+     * comes with a `note` explaining the gap.
+     */
+    token_endpoint_auth_method_supported?: boolean | null;
     note?: string;
     // Success details (SAML, #4450). The test is LOCAL — the IdP is not
     // contacted — so what it reports is what it parsed: the trio as

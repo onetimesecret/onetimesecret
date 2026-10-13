@@ -2,6 +2,8 @@
 
 require_relative '../../spec_helper'
 require 'jwt'
+require 'stringio'
+require_relative '../../../../../../scripts/diagnostics/entra_token_exchange'
 
 # These stateful integration examples span several layers, not one class.
 # Boot is shared; records and mutable configuration are isolated per example.
@@ -37,7 +39,10 @@ RSpec.describe 'Entra ID native claim shapes through the mounted strategy', :sha
   let(:tenant_host) { "entra-#{run_id}.tenant-example.com" }
   let(:tenant_id) { "tenant-#{run_id}" }
   let(:client_id) { "client-#{run_id}" }
-  let(:client_secret) { "secret-#{run_id}" }
+  # Contains `+` and `%` on purpose (#4764): a Basic header built from the
+  # raw `id:secret` string would carry these bytes altered, the form body
+  # carries them percent-encoded and Entra decodes them back.
+  let(:client_secret) { "se+cret%#{run_id}" }
   # The strategy verifies `iss` against its configured tenant and `aud`
   # against its client id (omniauth-entra-id 3.1.1, raw_info).
   let(:issuer) { "https://login.microsoftonline.com/#{tenant_id}/v2.0" }
@@ -192,11 +197,22 @@ RSpec.describe 'Entra ID native claim shapes through the mounted strategy', :sha
       'code' => "code-#{run_id}",
       'redirect_uri' => flow.fetch('redirect_uri'),
     )
+    expect_body_client_authentication(request)
     expect(a_request(:post, token_url)).to have_been_made.once
     # The only egress is the token endpoint: no Microsoft Graph or UserInfo
     # enrichment supplies claims the token did not carry.
     expect(a_request(:any, %r{\Ahttps://graph\.microsoft\.com/})).not_to have_been_made
     expect(a_request(:get, %r{\Ahttps://login\.microsoftonline\.com/})).not_to have_been_made
+  end
+
+  # #4764: the client authenticates in the form body, never in a Basic
+  # header. The stored secret must arrive byte for byte: decoded it equals
+  # the record, on the wire it is percent-encoded (+ -> %2B, % -> %25).
+  def expect_body_client_authentication(request)
+    params = URI.decode_www_form(request.body).to_h
+    expect(params).to include('client_id' => client_id, 'client_secret' => client_secret)
+    expect(request.body).to include("client_secret=#{URI.encode_www_form_component(client_secret)}")
+    expect(request.headers.keys.map(&:downcase)).not_to include('authorization')
   end
 
   def auth_hash
@@ -211,6 +227,49 @@ RSpec.describe 'Entra ID native claim shapes through the mounted strategy', :sha
     expect(session['account_id']).to be_nil
     expect(auth_db[:account_identities].where(provider: 'entra', uid: "#{tenant_id}#{oid}").count).to eq(0)
     expect(auth_db[:accounts].where(Sequel.like(:email, "%#{run_id}%")).count).to eq(0)
+  end
+
+  describe 'opt-in token exchange diagnostics' do
+    after { EntraTokenExchangeDiagnostic.stop! }
+
+    it 'uses persisted credentials and real tenant injection for the console probe' do
+      output = StringIO.new
+      stub_token_endpoint(synthetic_id_token(email: member_email))
+
+      expect(EntraTokenExchangeDiagnostic.probe(domain: tenant[:domain], output: output)).to be_nil
+      records = output.string.lines.map { |line| JSON.parse(line) }
+      expect(records.first).to include('mode' => 'console_client_credentials',
+        'authorization_scheme' => 'none', 'raw_basic_matches_stored' => false,
+        'body_client_id_matches_stored' => true, 'body_secret_matches_stored' => true,
+        'token_endpoint_matches_stored' => true, 'client_credentials_grant' => true)
+      expect(records.last).to include('http_status' => 200, 'access_token_present' => true)
+      expect(token_requests.length).to eq(1)
+      expect_body_client_authentication(token_requests.first)
+      expect(auth_db[:accounts].where(Sequel.like(:email, "%#{run_id}%")).count).to eq(0)
+      expect(output.string).not_to include(client_secret, client_id, tenant_id, "opaque-access-#{run_id}")
+    end
+
+    it 'observes the same failed token response as the mounted browser callback' do
+      output = StringIO.new
+      EntraTokenExchangeDiagnostic.observe!(domain_id: tenant[:domain].identifier, host: tenant_host, output: output)
+      flow = start_login
+      stub_request(:post, token_url).to_return(status: 400,
+        headers: { 'Content-Type' => 'application/json' },
+        body: JSON.generate(error: 'invalid_client', error_description: 'AADSTS7000215: Invalid client secret provided'))
+
+      callback(flow)
+
+      records = output.string.lines.map { |line| JSON.parse(line) }
+      expect(records.first).to include('mode' => 'browser_authorization_code',
+        'tenant_config_in_request' => true, 'authorization_code_grant' => true,
+        'authorization_scheme' => 'none', 'raw_basic_matches_stored' => false,
+        'body_client_id_matches_stored' => true, 'body_secret_matches_stored' => true,
+        'token_endpoint_matches_stored' => true, 'redirect_uri_matches_expected' => true)
+      expect(records.last).to include('http_status' => 400, 'aadsts_code' => 'AADSTS7000215')
+      expect(a_request(:post, token_url)).to have_been_made.once
+      expect_no_account
+      expect(output.string).not_to include(client_secret, client_id, tenant_id, "code-#{run_id}")
+    end
   end
 
   describe 'a managed member whose token carries the email claim' do

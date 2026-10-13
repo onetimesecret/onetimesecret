@@ -353,6 +353,9 @@ export const effectiveRestrictToSchema = z.object({
 });
 
 export const featuresSchema = z.object({
+  // Markdown secrets (features.markdown.enabled, MARKDOWN_ENABLED). Opt-in:
+  // when false the create forms show no Markdown control. The API and the
+  // secret record enforce the same flag; this only gates the display.
   markdown: z.boolean().default(false),
   // Sign-in availability for the current domain context (AND of global
   // AUTH_SIGNIN and the domain SigninConfig). Only an explicit false

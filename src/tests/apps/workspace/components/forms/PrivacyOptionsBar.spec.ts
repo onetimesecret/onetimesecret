@@ -52,7 +52,7 @@ describe('PrivacyOptionsBar', () => {
     vi.clearAllMocks();
   });
 
-  async function mountComponent(props = {}) {
+  async function mountComponent(props = {}, slots: Record<string, string> = {}) {
     const { default: PrivacyOptionsBar } =
       await import('@/apps/workspace/components/forms/PrivacyOptionsBar.vue');
 
@@ -62,6 +62,7 @@ describe('PrivacyOptionsBar', () => {
         currentPassphrase: '',
         ...props,
       },
+      slots,
       global: {
         plugins: [
           createTestingPinia({
@@ -187,6 +188,27 @@ describe('PrivacyOptionsBar', () => {
       // Find the visibility toggle button (it has eye icon)
       const toggleButton = wrapper.find('[aria-label="web.COMMON.show_password"]');
       expect(toggleButton.exists()).toBe(true);
+    });
+  });
+
+  describe('trailing slot', () => {
+    it('renders slot content in its own right-aligned group', async () => {
+      const wrapper = await mountComponent(
+        {},
+        { trailing: '<button data-testid="extra-chip">Extra</button>' }
+      );
+      await flushPromises();
+
+      const chip = wrapper.find('[data-testid="extra-chip"]');
+      expect(chip.exists()).toBe(true);
+      expect(chip.element.parentElement?.classList.contains('ml-auto')).toBe(true);
+    });
+
+    it('renders no empty group without slot content', async () => {
+      const wrapper = await mountComponent();
+      await flushPromises();
+
+      expect(wrapper.find('.ml-auto').exists()).toBe(false);
     });
   });
 });

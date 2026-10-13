@@ -1,5 +1,9 @@
 // src/shared/composables/useSecretForm.ts
 
+import {
+  DEFAULT_SECRET_DISPLAY_TYPE,
+  secretDisplayTypeSchema,
+} from '@/schemas/contracts/secret';
 import { transforms } from '@/schemas/transforms';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { storeToRefs } from 'pinia';
@@ -29,6 +33,7 @@ const formSchema = z.object({
   recipient: transforms.fromString.optionalEmail,
   share_domain: z.string(),
   team_id: z.string().optional(),
+  display_type: secretDisplayTypeSchema,
 });
 
 /**
@@ -65,6 +70,7 @@ export function useSecretForm() {
       passphrase: '',
       recipient: '',
       share_domain: '',
+      display_type: DEFAULT_SECRET_DISPLAY_TYPE,
     };
   }
 
