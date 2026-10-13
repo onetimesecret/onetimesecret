@@ -1,6 +1,6 @@
 # Clerk platform OIDC compatibility spike
 
-**Status:** Agreed investigation scope; integration compatibility unverified.
+**Status:** Agreed investigation scope. Live checks against a Clerk development instance are recorded in [Clerk platform OIDC investigation results](clerk-platform-oidc-investigation.md); the investigation classifies the outcome as configuration-only compatibility with one required setting. No production-support claim is established.
 
 ## Summary
 
