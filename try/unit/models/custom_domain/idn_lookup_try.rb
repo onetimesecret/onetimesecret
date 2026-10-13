@@ -224,25 +224,7 @@ Onetime::CustomDomain.load_by_display_domain(@plain_name.upcase)&.identifier
  idn_try_acme_allowed?(@decomposed_ascii)]
 #=> [true, true, true, true]
 
-## The crafted record cannot be renamed onto the real name in either spelling
-[@unicode_name, @ascii_name].map do |name|
-  @decomposed_domain.update_display_domain(name)
-  :renamed
-rescue Onetime::Problem => ex
-  ex.message
-end
-#=> ['Domain already registered', 'Domain already registered']
-
-## Nor can the real record be renamed onto the crafted spelling
-begin
-  @unicode_domain.update_display_domain(@decomposed_ascii)
-  :renamed
-rescue Onetime::Problem => ex
-  ex.message
-end
-#=> 'Domain already registered'
-
-## After the refused renames both records keep their names and canonical claims
+## Both records keep their names and canonical claims
 [Onetime::CustomDomain.find_by_identifier(@unicode_domain.identifier).display_domain,
  Onetime::CustomDomain.find_by_identifier(@decomposed_domain.identifier).display_domain,
  Onetime::CustomDomain.canonical_display_domain_index.get(@ascii_name),

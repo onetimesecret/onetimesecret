@@ -292,8 +292,8 @@ module Onetime
     # Familia participation collection that can drift independently of the
     # authoritative `CustomDomain#org_id` field. The `owners` class hashkey
     # (domain identifier => org_id) is an independently-maintained second
-    # index: written at CustomDomain.add (creation-time index write, called
-    # from create!) and at orphan claim, removed at CustomDomain#destroy!.
+    # index: written through CustomDomain.record_owner (create!, orphan
+    # claim, transfer, repair), removed at CustomDomain#destroy!.
     # There is NO read-path self-heal — but because the two indexes drift
     # independently, bypassing the destroy! guard requires BOTH `org.domains`
     # and `owners` to have drifted for the same domain. That residual

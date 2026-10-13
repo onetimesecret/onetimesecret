@@ -250,92 +250,6 @@ module Onetime
       super
     end
 
-    # Update the display_domain field while maintaining the FQDN index.
-    #
-    # Familia's unique_index :display_domain auto-updates on save(), but a
-    # rename needs explicit old-entry removal before the field value changes.
-    #
-    # @param new_domain [String] The new display domain FQDN
-    # @return [void]
-    # @raise [Onetime::Problem] if new_domain is already taken
-    def update_display_domain(new_domain)
-      new_domain = self.class.display_domain(new_domain.to_s.downcase)
-      old_domain = display_domain.to_s.downcase
-
-      return if new_domain == old_domain
-
-      # Same system-integrity invariant as create!: a rename must not be
-      # able to move an existing record onto the canonical domain (#3841).
-      if self.class.overlaps_canonical_domain?(new_domain)
-        raise Onetime::Problem, 'This domain overlaps with the default site domain'
-      end
-
-      # Verify the new domain is not already taken under either form of an
-      # internationalised name, while preserving exact-key precedence for legacy
-      # Unicode/A-label duplicate records. A record may still rename between its
-      # own two forms.
-      existing = self.class.display_domain_id_for(new_domain)
-      if existing && existing != identifier
-        raise Onetime::Problem, 'Domain already registered'
-      end
-
-      old_canonical_domain                  = begin
-        self.class.canonical_display_domain(old_domain)
-      rescue Onetime::DomainValidation::AsciiHostname::ConversionError
-        nil
-      end
-      new_canonical_domain, canonical_claim = self.class.claim_canonical_display_domain(new_domain, identifier)
-      unless [:created, :owned].include?(canonical_claim)
-        raise Onetime::Problem, 'Domain already registered'
-      end
-
-      begin
-        # Remove old entries from both indexes while field still has old value
-        self.class.display_domain_index.remove(old_domain)
-        remove_from_class_display_domain_index
-
-        # Update field and re-parse derived domain parts (base_domain, trd,
-        # sld, tld) so that generate_txt_validation_record produces correct
-        # values for the new domain.
-        self.display_domain = new_domain
-        self.updated        = OT.now.to_i
-
-        # Re-parse derived fields from the normalized display_domain
-        ps_domain    = PublicSuffix.parse(new_domain, default_rule: nil)
-        @base_domain = ps_domain.domain.to_s
-        @subdomain   = ps_domain.subdomain.to_s
-        @trd         = ps_domain.trd.to_s
-        @tld         = ps_domain.tld.to_s
-        @sld         = ps_domain.sld.to_s
-
-        save
-        self.class.display_domain_index.put(new_domain, identifier)
-        if old_canonical_domain && old_canonical_domain != new_canonical_domain
-          self.class.canonical_display_domain_index.release_field(old_canonical_domain, identifier)
-        end
-      rescue StandardError => ex
-        # Rollback: restore field, derived parts, and re-add old entries
-        self.display_domain = old_domain
-        old_ps              = PublicSuffix.parse(old_domain, default_rule: nil)
-        @base_domain        = old_ps.domain.to_s
-        @subdomain          = old_ps.subdomain.to_s
-        @trd                = old_ps.trd.to_s
-        @tld                = old_ps.tld.to_s
-        @sld                = old_ps.sld.to_s
-        self.class.display_domain_index.put(old_domain, identifier)
-        # Best-effort save to restore old auto-index entry
-        begin
-          save
-        rescue StandardError => rollback_ex
-          OT.le "[CustomDomain.update_display_domain] Rollback save failed: #{rollback_ex.message}"
-        end
-        if canonical_claim == :created
-          self.class.canonical_display_domain_index.release_field(new_canonical_domain, identifier)
-        end
-        raise ex
-      end
-    end
-
     # Generate a unique identifier for this customer's custom domain.
     #
     # From a customer's perspective, the display_domain is what they see
@@ -1447,34 +1361,6 @@ module Onetime
       rescue Onetime::Problem => ex
         OT.le "[CustomDomain.exists?] #{ex.message}"
         false
-      end
-
-      def add(fobj)
-        # Safety checks to prevent serialization errors
-        if fobj.display_domain.nil?
-          OT.le "[CustomDomain.add] display_domain is nil for #{fobj.class}:#{fobj.identifier}"
-          raise Onetime::Problem, 'Cannot add custom domain with nil display_domain'
-        end
-
-        if fobj.identifier.nil?
-          OT.le "[CustomDomain.add] identifier is nil for #{fobj.class}:#{fobj.display_domain}"
-          raise Onetime::Problem, 'Cannot add custom domain with nil identifier'
-        end
-
-        if fobj.org_id.nil?
-          OT.le "[CustomDomain.add] org_id is nil for #{fobj.class}:#{fobj.display_domain}:#{fobj.identifier}"
-          debug_info = begin
-            { to_h: fobj.to_h, methods: fobj.methods.grep(/org/) }
-          rescue StandardError => ex
-            { error: ex.message }
-          end
-          OT.le "[CustomDomain.add] fobj debug: #{debug_info.inspect}"
-          raise Onetime::Problem, "Cannot add custom domain with nil org_id. display_domain=#{fobj.display_domain.inspect}, identifier=#{fobj.identifier.inspect}"
-        end
-
-        instances.add fobj.to_s # created time, identifier
-        display_domain_index.put fobj.display_domain, fobj.identifier
-        record_owner(fobj, fobj.org_id) # domainid => organization id
       end
 
       # SINGLE WRITER for the `owners` class hashkey (domainid => org_id).
