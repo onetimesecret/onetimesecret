@@ -21,7 +21,9 @@ module DomainsAPI
       # - allowed_signup_domains: Required for domain_allowlist unless allow_base_domain
       #   is true. Array or comma-separated string
       # - allow_base_domain: Optional. Boolean; under domain_allowlist also admits
-      #   the custom domain's own registrable domain (default: false)
+      #   the custom domain's own registrable domain (default: false). Turning
+      #   it on needs features.organizations.base_domain_signup_enabled and the
+      #   base_domain_signup entitlement
       # - enabled: Optional. Boolean to enable/disable (default: false)
       #
       class PutSignupConfig < Base
@@ -64,6 +66,11 @@ module DomainsAPI
           end
 
           validate_strategy_type(@validation_strategy)
+
+          verify_allow_base_domain_permitted!(
+            requested: @allow_base_domain,
+            stored: @existing_config&.allow_base_domain? || false,
+          )
 
           # Validate domain_allowlist has at least one domain (listed, or the
           # domain's own base domain via allow_base_domain)

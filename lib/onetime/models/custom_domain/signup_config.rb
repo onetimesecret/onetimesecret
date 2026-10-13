@@ -21,7 +21,8 @@ require_relative '../features/boolean_encoding'
 #   - passthrough:      Format check only (BASIC_FORMAT regex)
 #   - domain_allowlist: Email domain must be in the effective allowlist:
 #                       allowed_signup_domains plus, when allow_base_domain
-#                       is set, the custom domain's own registrable domain
+#                       is set and available (allow_base_domain_effective?),
+#                       the custom domain's own registrable domain
 #                       (CustomDomain#base_domain: secrets.corp.com → corp.com),
 #                       derived at validation time so it follows the domain
 #   - mx:               Truemail MX lookup validation
@@ -70,6 +71,13 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
   # cannot be read (allowed_signup_domains_corrupt?).
   ALLOWLIST_UNREADABLE_ERROR = 'allowed_signup_domains cannot be read and must be replaced'
 
+  # allow_base_domain takes effect only while the install enables it
+  # (features.organizations.base_domain_signup_enabled, set by
+  # ORGS_BASE_DOMAIN_SIGNUP_ENABLED) and the owning organization holds this
+  # entitlement. Both are off by default.
+  BASE_DOMAIN_SIGNUP_FEATURE_FLAG = 'base_domain_signup_enabled'
+  BASE_DOMAIN_SIGNUP_ENTITLEMENT  = 'base_domain_signup'
+
   # Strategy metadata for UI/documentation
   STRATEGY_METADATA = {
     'passthrough' => {
@@ -111,7 +119,7 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
   # Whether the custom domain's own registrable domain (CustomDomain#base_domain)
   # is part of the effective allowlist without being listed. Real boolean,
   # conservative default false. Only consulted under 'domain_allowlist', like
-  # the list itself.
+  # the list itself, and only while allow_base_domain_effective? holds.
   field :allow_base_domain
 
   # Non-nullable boolean overrides with conservative defaults.
@@ -254,26 +262,48 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
   # domain record is missing or carries no base_domain; allow_base_domain
   # then adds nothing (fail closed) and never falls back to allow-all.
   #
+  # @param domain [CustomDomain, nil] the domain record, when the caller
+  #   already loaded it
   # @return [String, nil]
-  def base_domain
+  def base_domain(domain: nil)
     return nil if domain_id.to_s.empty?
 
-    value = custom_domain&.base_domain.to_s.strip.downcase
+    value = (domain || custom_domain)&.base_domain.to_s.strip.downcase
     value.empty? ? nil : value
   end
 
+  # allow_base_domain as the sign-up gate applies it: stored true, the
+  # install enables the feature, and the owning organization holds
+  # BASE_DOMAIN_SIGNUP_ENTITLEMENT. Evaluated on every call, so turning the
+  # install flag off or losing the entitlement stops the flag admitting
+  # anyone without rewriting the stored value. Cheapest checks first.
+  #
+  # @param domain [CustomDomain, nil] the domain record, when the caller
+  #   already loaded it
+  # @return [Boolean]
+  def allow_base_domain_effective?(domain: nil)
+    return false unless allow_base_domain?
+    return false unless self.class.base_domain_signup_enabled?
+    return false if domain_id.to_s.empty?
+
+    (domain || custom_domain)&.primary_organization&.can?(BASE_DOMAIN_SIGNUP_ENTITLEMENT) || false
+  end
+
   # The allowlist the sign-up gate consults under domain_allowlist: the
-  # explicit allowed_signup_domains plus, when allow_base_domain is set, the
-  # custom domain's own registrable domain. Matching is exact (lower-cased),
-  # the same as for a listed entry: a subdomain of the base domain
-  # (mail.acme.com) is not admitted by the flag.
+  # explicit allowed_signup_domains plus, when allow_base_domain_effective?,
+  # the custom domain's own registrable domain. Matching is exact
+  # (lower-cased), the same as for a listed entry: a subdomain of the base
+  # domain (mail.acme.com) is not admitted by the flag.
   #
   # @return [Array<String>] Lowercase domain names, de-duplicated
   def effective_allowed_signup_domains
     domains = allowed_signup_domains
     return domains unless allow_base_domain?
 
-    own = base_domain
+    domain = custom_domain
+    return domains unless allow_base_domain_effective?(domain: domain)
+
+    own = base_domain(domain: domain)
     own ? (domains | [own]) : domains
   end
 
@@ -349,11 +379,13 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
       # stored list is unreadable, flag or not.
       errors << ALLOWLIST_UNREADABLE_ERROR
     else
-      allowlist_met = self.class.allowlist_requirement_met?(
+      domain             = (custom_domain if allow_base_domain?) # skip the lookups when unused
+      base_domain_counts = allow_base_domain_effective?(domain: domain)
+      allowlist_met      = self.class.allowlist_requirement_met?(
         strategy: validation_strategy,
         domains: allowed_signup_domains,
-        allow_base_domain: allow_base_domain?,
-        base_domain: (base_domain if allow_base_domain?), # skip the domain lookup when unused
+        allow_base_domain: base_domain_counts,
+        base_domain: (base_domain(domain: domain) if base_domain_counts),
       )
       errors << ALLOWLIST_REQUIRED_ERROR unless allowlist_met
     end
@@ -384,11 +416,21 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
       STRATEGY_METADATA.fetch(strategy_type.to_s, {})
     end
 
+    # Whether this install offers allow_base_domain at all
+    # (BASE_DOMAIN_SIGNUP_FEATURE_FLAG under features.organizations).
+    #
+    # @return [Boolean]
+    def base_domain_signup_enabled?
+      OT.conf.dig('features', 'organizations', BASE_DOMAIN_SIGNUP_FEATURE_FLAG) == true
+    end
+
     # The allowlist requirement, shared by #validation_errors and the
     # workspace API (SignupConfig::Base#validate_allowlist_has_domains). A
     # strategy that requires an allowlist must have at least one domain to
     # admit: listed explicitly, or supplied by allow_base_domain. The flag
-    # counts only when the custom domain has a base_domain to derive;
+    # counts only when it is effective (callers pass
+    # allow_base_domain_effective?, not the stored value) and the custom
+    # domain has a base_domain to derive;
     # otherwise the effective list is empty and validate_domain_allowlist
     # denies everyone. Mirrored client-side by allowlistRequirementMet in
     # src/schemas/contracts/custom-domain/signup-config.ts. A stored list
@@ -637,8 +679,9 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
   # and the colonel upsert path can persist it without running those checks.
   # A corrupt list denies even when allow_base_domain is set: the stored
   # restriction cannot be read, so nothing about it is trusted. The
-  # effective list is empty with the flag set only when the domain record
-  # is missing or has no base_domain. valid_email_domain? keeps its
+  # effective list is empty with the flag set when the domain record is
+  # missing or has no base_domain, or when allow_base_domain_effective? is
+  # false (install flag off, entitlement missing). valid_email_domain? keeps its
   # "empty list → allow all" reading for display surfaces; only this
   # sign-up gate is strict. Same reasoning as SsoConfig#allowed_domains_corrupt?
   # on the SSO sign-in path.

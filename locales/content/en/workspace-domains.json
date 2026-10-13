@@ -1615,6 +1615,11 @@
     "text": "People with an {'@'}{domain} email address can sign up here without you listing that domain. Any domains listed below are allowed as well.",
     "content_hash": "a2e3a3d6"
   },
+  "web.domains.signup.allow_base_domain_locked": {
+    "text": "Not included in your plan. Upgrade to allow sign-ups from your base domain automatically.",
+    "context": "Hint under the disabled allow_base_domain checkbox when the organization lacks the base_domain_signup entitlement",
+    "content_hash": "d0b7a98f"
+  },
   "web.domains.signup.base_domain_automatic": {
     "text": "automatic",
     "content_hash": "53e0ff34"

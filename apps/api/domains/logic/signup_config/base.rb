@@ -17,6 +17,11 @@ module DomainsAPI
       #   3. Verify user is organization owner
       #   4. Verify organization has custom_signup_validation entitlement
       #
+      # allow_base_domain is gated separately, per request
+      # (verify_allow_base_domain_permitted!), by the install flag
+      # features.organizations.base_domain_signup_enabled and the
+      # base_domain_signup entitlement.
+      #
       class Base < DomainsAPI::Logic::Base
         include DomainsAPI::Policies::DomainConfigAuthorization
 
@@ -93,6 +98,43 @@ module DomainsAPI
           )
         end
 
+        # Whether allow_base_domain can take effect for this domain: the
+        # install enables it and the organization holds the entitlement.
+        # The same checks as SignupConfig#allow_base_domain_effective?, made
+        # against the organization authorize_domain_signup_config! loaded.
+        #
+        # @return [Boolean]
+        def base_domain_signup_available?
+          return @base_domain_signup_available if defined?(@base_domain_signup_available)
+
+          @base_domain_signup_available =
+            Onetime::CustomDomain::SignupConfig.base_domain_signup_enabled? &&
+            @organization.can?(Onetime::CustomDomain::SignupConfig::BASE_DOMAIN_SIGNUP_ENTITLEMENT)
+        end
+
+        # Refuse a request that turns allow_base_domain on while
+        # base_domain_signup_available? is false. Re-sending a stored true is
+        # not refused: the value stays saved but has no effect until the
+        # feature is available again (SignupConfig#allow_base_domain_effective?),
+        # so a save after a downgrade does not get stuck on it. Turning it
+        # off is always allowed.
+        #
+        # @param requested [Boolean] allow_base_domain from the request
+        # @param stored [Boolean] the stored value, false for a new config
+        # @raise [Onetime::FormError] when the request would turn it on
+        def verify_allow_base_domain_permitted!(requested:, stored:)
+          return unless requested && !stored
+          return if base_domain_signup_available?
+
+          message = if Onetime::CustomDomain::SignupConfig.base_domain_signup_enabled?
+                      'Allowing the base domain automatically requires the base_domain_signup entitlement. ' \
+                      'Please upgrade your plan.'
+                    else
+                      'Allowing the base domain automatically is not enabled on this instance'
+                    end
+          raise_form_error(message, field: :allow_base_domain, error_type: :forbidden)
+        end
+
         # Validate that domain_allowlist strategy has at least one domain,
         # listed explicitly or supplied by allow_base_domain. The rule lives
         # in SignupConfig.allowlist_requirement_met? so the model reports the
@@ -101,13 +143,15 @@ module DomainsAPI
         #
         # @param strategy [String] The validation strategy
         # @param domains [Array<String>] The allowed domains
-        # @param allow_base_domain [Boolean] effective allow_base_domain value
+        # @param allow_base_domain [Boolean] allow_base_domain as it will be
+        #   saved; it counts only while base_domain_signup_available?
         # @raise [Onetime::FormError] if domain_allowlist but no domains
         def validate_allowlist_has_domains(strategy, domains, allow_base_domain: false)
-          met = Onetime::CustomDomain::SignupConfig.allowlist_requirement_met?(
+          base_domain_counts = allow_base_domain && base_domain_signup_available?
+          met                = Onetime::CustomDomain::SignupConfig.allowlist_requirement_met?(
             strategy: strategy,
             domains: domains,
-            allow_base_domain: allow_base_domain,
+            allow_base_domain: base_domain_counts,
             base_domain: @custom_domain&.base_domain,
           )
           return if met

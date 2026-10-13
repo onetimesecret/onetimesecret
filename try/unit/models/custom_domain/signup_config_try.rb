@@ -325,6 +325,9 @@ end
 # for partners. The base domain is read from the CustomDomain record at
 # validation time. Only the domain_allowlist gate consults it, and a missing
 # base_domain adds nothing (fail closed) rather than falling back to allow-all.
+# It takes effect only while the install flag
+# features.organizations.base_domain_signup_enabled is on and the owning
+# organization holds base_domain_signup (standalone mode grants it here).
 
 ## FIELD_SPECS declares allow_base_domain as a native boolean (colonel-writable)
 Onetime::CustomDomain::SignupConfig::FIELD_SPECS['allow_base_domain']
@@ -334,6 +337,20 @@ Onetime::CustomDomain::SignupConfig::FIELD_SPECS['allow_base_domain']
 @fresh_abd = Onetime::CustomDomain::SignupConfig.new(domain_id: 'abd_init')
 [@fresh_abd.allow_base_domain, @fresh_abd.allow_base_domain?]
 #=> [false, false]
+
+## Setup: the install offers allow_base_domain (restored at the end of this section)
+@orgs_conf = (OT.conf['features'] ||= {})['organizations'] ||= {}
+@saved_base_domain_signup = @orgs_conf['base_domain_signup_enabled']
+@orgs_conf['base_domain_signup_enabled'] = true
+Onetime::CustomDomain::SignupConfig.base_domain_signup_enabled?
+#=> true
+
+## The install flag must be a real true: a stray string does not turn it on
+@orgs_conf['base_domain_signup_enabled'] = 'true'
+result = Onetime::CustomDomain::SignupConfig.base_domain_signup_enabled?
+@orgs_conf['base_domain_signup_enabled'] = true
+result
+#=> false
 
 ## Setup: a tenant domain whose base_domain is example.com
 @ts_abd     = Familia.now.to_i
@@ -404,6 +421,40 @@ Onetime::CustomDomain::SignupConfig::FIELD_SPECS['allow_base_domain']
 @abd_config.save
 Onetime::CustomDomain::SignupConfig.find_by_domain_id(@domain_abd.identifier).allow_base_domain?
 #=> true
+
+## With the install flag off, a stored true is inert: the base domain is not admitted
+@orgs_conf['base_domain_signup_enabled'] = false
+result = [
+  @abd_config.allow_base_domain?,
+  @abd_config.allow_base_domain_effective?,
+  @abd_config.effective_allowed_signup_domains,
+  @abd_config.valid_signup_email?('user@example.com'),
+]
+@orgs_conf['base_domain_signup_enabled'] = true
+result
+#=> [true, false, [], false]
+
+## ...and validation_errors agrees: the empty list is required again
+@orgs_conf['base_domain_signup_enabled'] = false
+result = @abd_config.validation_errors
+@orgs_conf['base_domain_signup_enabled'] = true
+result.include?(Onetime::CustomDomain::SignupConfig::ALLOWLIST_REQUIRED_ERROR)
+#=> true
+
+## Without the base_domain_signup entitlement the stored true is inert as well
+unentitled = Object.new
+unentitled.define_singleton_method(:can?) { |_name| false }
+stub = Struct.new(:base_domain, :primary_organization).new('example.com', unentitled)
+@abd_config.allow_base_domain_effective?(domain: stub)
+#=> false
+
+## With it the flag takes effect, asked for by name on the owning organization
+asked    = []
+entitled = Object.new
+entitled.define_singleton_method(:can?) { |name| asked << name; true }
+stub = Struct.new(:base_domain, :primary_organization).new('example.com', entitled)
+[@abd_config.allow_base_domain_effective?(domain: stub), asked]
+#=> [true, ['base_domain_signup']]
 
 ## A corrupt list still denies everyone, flag or not (nothing stored is trusted)
 @abd_config.allowed_signup_domains_json = '{invalid json['
@@ -476,6 +527,11 @@ end
 ## passthrough ignores the flag (format-only, as before)
 @abd_orphan.validation_strategy = 'passthrough'
 @abd_orphan.valid_signup_email?('anyone@anywhere.com')
+#=> true
+
+## Restore the install flag for the rest of the file
+@orgs_conf['base_domain_signup_enabled'] = @saved_base_domain_signup
+Onetime::CustomDomain::SignupConfig.base_domain_signup_enabled? == (@saved_base_domain_signup == true)
 #=> true
 
 # --- Network Validation Strategy Tests (mx / smtp) ---

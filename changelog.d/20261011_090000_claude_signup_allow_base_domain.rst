@@ -12,3 +12,12 @@ Added
   setting is on. Available on the workspace Signup Validation page, the
   domain signup-config API (``allow_base_domain``) and the colonel domain
   config editor.
+- The setting is off by default on two levels. Operators enable it for the
+  install with ``ORGS_BASE_DOMAIN_SIGNUP_ENABLED=true``
+  (``features.organizations.base_domain_signup_enabled``), and each
+  organization needs the new ``base_domain_signup`` entitlement, which no
+  plan grants by default (standalone installs grant every entitlement, so
+  there the install flag decides). Both are checked when a sign-up is
+  validated, so turning the flag off or losing the entitlement stops a saved
+  setting from admitting anyone; the saved value stays and takes effect
+  again once both are back.

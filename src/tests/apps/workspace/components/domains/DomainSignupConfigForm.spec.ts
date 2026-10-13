@@ -59,6 +59,7 @@ const BASE_DOMAIN = 'acme.com';
 const COPY = {
   allowBaseDomainLabel: tp('web.domains.signup.allow_base_domain_label', { domain: BASE_DOMAIN }),
   allowBaseDomainHint: tp('web.domains.signup.allow_base_domain_hint', { domain: BASE_DOMAIN }),
+  allowBaseDomainLocked: t('web.domains.signup.allow_base_domain_locked'),
   automatic: t('web.domains.signup.base_domain_automatic'),
   domainExists: t('web.domains.signup.domain_exists'),
 } as const;
@@ -79,6 +80,10 @@ const allowlistFormState: SignupConfigFormState = {
 interface MountOptions {
   formState?: Partial<SignupConfigFormState>;
   baseDomain?: string | null;
+  /** Install flag ORGS_BASE_DOMAIN_SIGNUP_ENABLED; on unless a test says otherwise. */
+  baseDomainSignupEnabled?: boolean;
+  /** base_domain_signup entitlement; held unless a test says otherwise. */
+  canBaseDomainSignup?: boolean;
 }
 
 function mountForm(opts: MountOptions = {}): VueWrapper {
@@ -86,6 +91,8 @@ function mountForm(opts: MountOptions = {}): VueWrapper {
     props: {
       domainExtId: 'dm-ext-test',
       baseDomain: opts.baseDomain === undefined ? BASE_DOMAIN : opts.baseDomain,
+      baseDomainSignupEnabled: opts.baseDomainSignupEnabled ?? true,
+      canBaseDomainSignup: opts.canBaseDomainSignup ?? true,
       formState: { ...allowlistFormState, ...opts.formState },
       signupConfig: null,
       isLoading: false,
@@ -233,6 +240,48 @@ describe('DomainSignupConfigForm — allow_base_domain', () => {
 
       expect(wrapper.emitted('update:formState')?.[0]?.[0]).toMatchObject({
         allowed_signup_domains: [BASE_DOMAIN],
+      });
+    });
+  });
+
+  describe('availability (install flag and entitlement)', () => {
+    it('hides the option entirely while the install flag is off, even with a saved true', () => {
+      const wrapper = mountForm({
+        formState: { allow_base_domain: true },
+        baseDomainSignupEnabled: false,
+      });
+
+      expect(checkbox(wrapper).exists()).toBe(false);
+      expect(chip(wrapper).exists()).toBe(false);
+      // The saved flag no longer counts, so the list is required again.
+      expect(requiredMarker(wrapper).exists()).toBe(true);
+      expect(lastCanSave(wrapper)).toBe(false);
+    });
+
+    it('shows the option locked, with the upgrade hint, without the entitlement', () => {
+      const wrapper = mountForm({ canBaseDomainSignup: false });
+
+      expect(checkbox(wrapper).exists()).toBe(true);
+      expect((checkbox(wrapper).element as HTMLInputElement).disabled).toBe(true);
+      expect(wrapper.text()).toContain(COPY.allowBaseDomainLocked);
+      expect(wrapper.text()).not.toContain(COPY.allowBaseDomainHint);
+    });
+
+    it('does not count a saved true without the entitlement, but lets it be cleared', async () => {
+      const wrapper = mountForm({
+        formState: { allow_base_domain: true },
+        canBaseDomainSignup: false,
+      });
+
+      expect(chip(wrapper).exists()).toBe(false);
+      expect(requiredMarker(wrapper).exists()).toBe(true);
+      expect(lastCanSave(wrapper)).toBe(false);
+      expect((checkbox(wrapper).element as HTMLInputElement).disabled).toBe(false);
+
+      await checkbox(wrapper).setValue(false);
+
+      expect(wrapper.emitted('update:formState')?.[0]?.[0]).toMatchObject({
+        allow_base_domain: false,
       });
     });
   });

@@ -22,7 +22,9 @@ module DomainsAPI
       # - allowed_signup_domains: Optional. Array or comma-separated string.
       #   When omitted: preserves existing. When provided as []: clears all.
       # - allow_base_domain: Optional. Boolean; under domain_allowlist also admits
-      #   the custom domain's own registrable domain (preserves existing if omitted)
+      #   the custom domain's own registrable domain (preserves existing if omitted).
+      #   Turning it on needs features.organizations.base_domain_signup_enabled
+      #   and the base_domain_signup entitlement
       # - enabled: Optional. Boolean to enable/disable (preserves existing if omitted)
       #
       class PatchSignupConfig < Base
@@ -67,6 +69,13 @@ module DomainsAPI
           resolve_strategy
 
           validate_stored_allowlist_readable
+
+          if @allow_base_domain_provided
+            verify_allow_base_domain_permitted!(
+              requested: @allow_base_domain,
+              stored: @existing_config&.allow_base_domain? || false,
+            )
+          end
 
           # Validate domain_allowlist has at least one domain (using effective values)
           effective_domains = @allowed_signup_domains_provided ? @allowed_signup_domains : (@existing_config&.allowed_signup_domains || [])

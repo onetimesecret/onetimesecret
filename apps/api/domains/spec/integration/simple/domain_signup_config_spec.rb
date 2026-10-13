@@ -183,6 +183,20 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
     patch path, JSON.generate(params.merge(shrimp: csrf_token))
   end
 
+  # allow_base_domain needs the install flag
+  # features.organizations.base_domain_signup_enabled (off in the test
+  # config) as well as the base_domain_signup entitlement, which standalone
+  # mode grants.
+  def stub_base_domain_signup_flag(enabled)
+    real_conf             = OT.conf.dup
+    real_conf['features'] = (real_conf['features'] || {}).merge(
+      'organizations' => (real_conf.dig('features', 'organizations') || {}).merge(
+        'base_domain_signup_enabled' => enabled,
+      ),
+    )
+    allow(OT).to receive(:conf).and_return(real_conf)
+  end
+
   # ==========================================================================
   # PUT /api/domains/:extid/signup-config - Create/Replace Signup Config
   # ==========================================================================
@@ -190,7 +204,73 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
   describe 'PUT /api/domains/:extid/signup-config' do
     context 'when authenticated as organization owner with entitlement' do
       before do
+        stub_base_domain_signup_flag(true)
         login_as(test_owner)
+      end
+
+      context 'when allow_base_domain is not available' do
+        let(:base_domain_params) do
+          {
+            validation_strategy: 'domain_allowlist',
+            allowed_signup_domains: ['partner.example.com'],
+            allow_base_domain: true,
+          }
+        end
+
+        it 'refuses to turn it on while the install flag is off' do
+          stub_base_domain_signup_flag(false)
+
+          csrf_put api_path(test_custom_domain.extid), base_domain_params
+
+          expect(last_response.status).to eq(422)
+          expect(json_body['error']).to include('not enabled on this instance')
+          expect(Onetime::CustomDomain::SignupConfig.find_by_domain_id(test_custom_domain.identifier)).to be_nil
+        end
+
+        it 'refuses to turn it on without the base_domain_signup entitlement' do
+          # Standalone mode grants every entitlement it knows; point the gate
+          # at one it does not.
+          stub_const('Onetime::CustomDomain::SignupConfig::BASE_DOMAIN_SIGNUP_ENTITLEMENT', 'not_granted_in_tests')
+
+          csrf_put api_path(test_custom_domain.extid), base_domain_params
+
+          expect(last_response.status).to eq(422)
+          expect(json_body['error']).to include('base_domain_signup entitlement')
+        end
+
+        context 'with allow_base_domain already saved' do
+          before do
+            Onetime::CustomDomain::SignupConfig.create!(
+              domain_id: test_custom_domain.identifier,
+              validation_strategy: 'domain_allowlist',
+              allowed_signup_domains: ['partner.example.com'],
+              allow_base_domain: true,
+              enabled: true,
+            )
+            stub_base_domain_signup_flag(false)
+          end
+
+          it 'accepts re-sending it, so a save after the flag goes off does not get stuck' do
+            csrf_put api_path(test_custom_domain.extid), base_domain_params
+
+            expect(last_response.status).to eq(200)
+            expect(json_body['record']['allow_base_domain']).to be true
+          end
+
+          it 'requires a listed domain again, since the saved flag no longer counts' do
+            csrf_put api_path(test_custom_domain.extid), base_domain_params.merge(allowed_signup_domains: [])
+
+            expect(last_response.status).to eq(422)
+            expect(json_body['error']).to include('allowed_signup_domains is required')
+          end
+
+          it 'allows turning it off' do
+            csrf_put api_path(test_custom_domain.extid), base_domain_params.merge(allow_base_domain: false)
+
+            expect(last_response.status).to eq(200)
+            expect(json_body['record']['allow_base_domain']).to be false
+          end
+        end
       end
 
       context 'creating new signup config' do
@@ -464,7 +544,28 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
 
       context 'when authenticated as organization owner' do
         before do
+          stub_base_domain_signup_flag(true)
           login_as(test_owner)
+        end
+
+        it 'refuses to turn allow_base_domain on while the install flag is off' do
+          stub_base_domain_signup_flag(false)
+
+          csrf_patch api_path(test_custom_domain.extid), { allow_base_domain: true }
+
+          expect(last_response.status).to eq(422)
+          expect(json_body['error']).to include('not enabled on this instance')
+        end
+
+        it 'stops counting a saved allow_base_domain once the install flag is off' do
+          csrf_patch api_path(test_custom_domain.extid), { allow_base_domain: true, allowed_signup_domains: [] }
+          expect(last_response.status).to eq(200)
+
+          stub_base_domain_signup_flag(false)
+          csrf_patch api_path(test_custom_domain.extid), { enabled: true }
+
+          expect(last_response.status).to eq(422)
+          expect(json_body['error']).to include('allowed_signup_domains is required')
         end
 
         it 'updates only provided fields (PATCH semantics)' do
