@@ -815,6 +815,10 @@
     "text": "Issuer",
     "content_hash": "39e02c46"
   },
+  "web.admin.domains.configs.fields.token_endpoint_auth_method": {
+    "text": "Token endpoint auth method",
+    "content_hash": "605938fd"
+  },
   "web.admin.domains.configs.fields.tenant_id": {
     "text": "Tenant ID",
     "content_hash": "de1f5fff"
