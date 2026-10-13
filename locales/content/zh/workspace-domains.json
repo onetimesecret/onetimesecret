@@ -1658,5 +1658,29 @@
   "web.domains.verify_outcome.record_not_found": {
     "text": "我们未找到预期的 TXT 记录。请确认该记录存在且其值完全匹配。新的 DNS 记录可能需要几分钟才会生效。",
     "source_hash": "6c847d46"
+  },
+  "web.domains.sso.diagnostics_passed": {
+    "text": "已保存配置检查通过",
+    "source_hash": "91fc2d97"
+  },
+  "web.domains.sso.diagnostics_failed": {
+    "text": "已保存配置检查发现问题",
+    "source_hash": "18ca7a0e"
+  },
+  "web.domains.sso.diagnostics_inconclusive": {
+    "text": "已保存配置检查无法得出结论",
+    "source_hash": "2be86c66"
+  },
+  "web.domains.sso.diagnostics_error": {
+    "text": "无法检查已保存的配置",
+    "source_hash": "e1fe6a59"
+  },
+  "web.domains.sso.diagnostics_rate_limited": {
+    "text": "此配置近期检查次数过多。请稍后重试。",
+    "source_hash": "4b8d53b8"
+  },
+  "web.domains.sso.diagnostics_rate_limited_retry": {
+    "text": "此配置近期检查次数过多。请在约 {minutes} 分钟后重试。",
+    "source_hash": "fdbdeaf6"
   }
 }

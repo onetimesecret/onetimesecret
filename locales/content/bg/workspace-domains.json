@@ -1658,5 +1658,29 @@
   "web.domains.verify_outcome.record_not_found": {
     "text": "Не открихме очаквания TXT запис. Проверете дали съществува и дали стойността му съвпада точно. Новите DNS записи може да се появят след няколко минути.",
     "source_hash": "6c847d46"
+  },
+  "web.domains.sso.diagnostics_passed": {
+    "text": "Проверката на запазената конфигурация е успешна",
+    "source_hash": "91fc2d97"
+  },
+  "web.domains.sso.diagnostics_failed": {
+    "text": "Проверката на запазената конфигурация откри проблем",
+    "source_hash": "18ca7a0e"
+  },
+  "web.domains.sso.diagnostics_inconclusive": {
+    "text": "Проверката на запазената конфигурация не можа да даде еднозначен резултат",
+    "source_hash": "2be86c66"
+  },
+  "web.domains.sso.diagnostics_error": {
+    "text": "Неуспешна проверка на запазената конфигурация",
+    "source_hash": "e1fe6a59"
+  },
+  "web.domains.sso.diagnostics_rate_limited": {
+    "text": "Тази конфигурация беше проверявана твърде много пъти напоследък. Опитайте отново по-късно.",
+    "source_hash": "4b8d53b8"
+  },
+  "web.domains.sso.diagnostics_rate_limited_retry": {
+    "text": "Тази конфигурация беше проверявана твърде много пъти напоследък. Опитайте отново след около {minutes} мин.",
+    "source_hash": "fdbdeaf6"
   }
 }

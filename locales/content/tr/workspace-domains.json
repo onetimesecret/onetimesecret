@@ -1658,5 +1658,29 @@
   "web.domains.verify_outcome.record_not_found": {
     "text": "Beklenen TXT kaydını bulamadık. Kaydın mevcut olduğunu ve değerinin tam olarak eşleştiğini kontrol edin. Yeni DNS kayıtlarının görünmesi birkaç dakika sürebilir.",
     "source_hash": "6c847d46"
+  },
+  "web.domains.sso.diagnostics_passed": {
+    "text": "Kayıtlı yapılandırma kontrolü başarılı",
+    "source_hash": "91fc2d97"
+  },
+  "web.domains.sso.diagnostics_failed": {
+    "text": "Kayıtlı yapılandırma kontrolü bir sorun buldu",
+    "source_hash": "18ca7a0e"
+  },
+  "web.domains.sso.diagnostics_inconclusive": {
+    "text": "Kayıtlı yapılandırma kontrolü kesin bir sonuca ulaşamadı",
+    "source_hash": "2be86c66"
+  },
+  "web.domains.sso.diagnostics_error": {
+    "text": "Kayıtlı yapılandırma kontrol edilemedi",
+    "source_hash": "e1fe6a59"
+  },
+  "web.domains.sso.diagnostics_rate_limited": {
+    "text": "Bu yapılandırma son zamanlarda çok fazla kez kontrol edildi. Daha sonra tekrar deneyin.",
+    "source_hash": "4b8d53b8"
+  },
+  "web.domains.sso.diagnostics_rate_limited_retry": {
+    "text": "Bu yapılandırma son zamanlarda çok fazla kez kontrol edildi. Yaklaşık {minutes} dakika sonra tekrar deneyin.",
+    "source_hash": "fdbdeaf6"
   }
 }

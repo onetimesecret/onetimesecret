@@ -1658,5 +1658,29 @@
   "web.domains.verify_outcome.record_not_found": {
     "text": "We hebben het verwachte TXT-record niet gevonden. Controleer of het bestaat en of de waarde exact overeenkomt. Het kan een paar minuten duren voordat nieuwe DNS-records zichtbaar zijn.",
     "source_hash": "6c847d46"
+  },
+  "web.domains.sso.diagnostics_passed": {
+    "text": "Controle van de opgeslagen configuratie geslaagd",
+    "source_hash": "91fc2d97"
+  },
+  "web.domains.sso.diagnostics_failed": {
+    "text": "Controle van de opgeslagen configuratie heeft een probleem gevonden",
+    "source_hash": "18ca7a0e"
+  },
+  "web.domains.sso.diagnostics_inconclusive": {
+    "text": "Controle van de opgeslagen configuratie kon geen uitsluitsel geven",
+    "source_hash": "2be86c66"
+  },
+  "web.domains.sso.diagnostics_error": {
+    "text": "Controleren van de opgeslagen configuratie mislukt",
+    "source_hash": "e1fe6a59"
+  },
+  "web.domains.sso.diagnostics_rate_limited": {
+    "text": "Deze configuratie is onlangs te vaak gecontroleerd. Probeer het later opnieuw.",
+    "source_hash": "4b8d53b8"
+  },
+  "web.domains.sso.diagnostics_rate_limited_retry": {
+    "text": "Deze configuratie is onlangs te vaak gecontroleerd. Probeer het over ongeveer {minutes} minuten opnieuw.",
+    "source_hash": "fdbdeaf6"
   }
 }

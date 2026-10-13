@@ -1658,5 +1658,29 @@
   "web.domains.verify_outcome.record_not_found": {
     "text": "Nem találtuk a várt TXT-rekordot. Ellenőrizze, hogy létezik-e, és hogy az értéke pontosan egyezik-e. Az új DNS-rekordok megjelenése néhány percig tarthat.",
     "source_hash": "6c847d46"
+  },
+  "web.domains.sso.diagnostics_passed": {
+    "text": "A mentett konfiguráció ellenőrzése sikeres",
+    "source_hash": "91fc2d97"
+  },
+  "web.domains.sso.diagnostics_failed": {
+    "text": "A mentett konfiguráció ellenőrzése problémát talált",
+    "source_hash": "18ca7a0e"
+  },
+  "web.domains.sso.diagnostics_inconclusive": {
+    "text": "A mentett konfiguráció ellenőrzése nem adott egyértelmű eredményt",
+    "source_hash": "2be86c66"
+  },
+  "web.domains.sso.diagnostics_error": {
+    "text": "Nem sikerült ellenőrizni a mentett konfigurációt",
+    "source_hash": "e1fe6a59"
+  },
+  "web.domains.sso.diagnostics_rate_limited": {
+    "text": "Ezt a konfigurációt az utóbbi időben túl sokszor ellenőrizték. Próbálja újra később.",
+    "source_hash": "4b8d53b8"
+  },
+  "web.domains.sso.diagnostics_rate_limited_retry": {
+    "text": "Ezt a konfigurációt az utóbbi időben túl sokszor ellenőrizték. Próbálja újra körülbelül {minutes} perc múlva.",
+    "source_hash": "fdbdeaf6"
   }
 }

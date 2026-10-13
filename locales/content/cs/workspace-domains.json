@@ -1658,5 +1658,29 @@
   "web.domains.verify_outcome.record_not_found": {
     "text": "Očekávaný TXT záznam jsme nenašli. Zkontroluj, že existuje a že jeho hodnota přesně odpovídá. Zobrazení nových DNS záznamů může trvat několik minut.",
     "source_hash": "6c847d46"
+  },
+  "web.domains.sso.diagnostics_passed": {
+    "text": "Kontrola uložené konfigurace proběhla úspěšně",
+    "source_hash": "91fc2d97"
+  },
+  "web.domains.sso.diagnostics_failed": {
+    "text": "Kontrola uložené konfigurace zjistila problém",
+    "source_hash": "18ca7a0e"
+  },
+  "web.domains.sso.diagnostics_inconclusive": {
+    "text": "Kontrola uložené konfigurace nedospěla k jednoznačnému výsledku",
+    "source_hash": "2be86c66"
+  },
+  "web.domains.sso.diagnostics_error": {
+    "text": "Uloženou konfiguraci se nepodařilo zkontrolovat",
+    "source_hash": "e1fe6a59"
+  },
+  "web.domains.sso.diagnostics_rate_limited": {
+    "text": "Tato konfigurace byla v poslední době kontrolována příliš často. Zkus to znovu později.",
+    "source_hash": "4b8d53b8"
+  },
+  "web.domains.sso.diagnostics_rate_limited_retry": {
+    "text": "Tato konfigurace byla v poslední době kontrolována příliš často. Zkus to znovu přibližně za {minutes} min.",
+    "source_hash": "fdbdeaf6"
   }
 }

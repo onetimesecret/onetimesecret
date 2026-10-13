@@ -1658,5 +1658,29 @@
   "web.domains.verify_outcome.record_not_found": {
     "text": "Δεν βρήκαμε την αναμενόμενη εγγραφή TXT. Ελέγξτε ότι υπάρχει και ότι η τιμή της ταιριάζει ακριβώς. Οι νέες εγγραφές DNS μπορεί να χρειαστούν λίγα λεπτά για να εμφανιστούν.",
     "source_hash": "6c847d46"
+  },
+  "web.domains.sso.diagnostics_passed": {
+    "text": "Ο έλεγχος της αποθηκευμένης διαμόρφωσης ήταν επιτυχής",
+    "source_hash": "91fc2d97"
+  },
+  "web.domains.sso.diagnostics_failed": {
+    "text": "Ο έλεγχος της αποθηκευμένης διαμόρφωσης εντόπισε πρόβλημα",
+    "source_hash": "18ca7a0e"
+  },
+  "web.domains.sso.diagnostics_inconclusive": {
+    "text": "Ο έλεγχος της αποθηκευμένης διαμόρφωσης δεν κατέληξε σε σαφές αποτέλεσμα",
+    "source_hash": "2be86c66"
+  },
+  "web.domains.sso.diagnostics_error": {
+    "text": "Αποτυχία ελέγχου της αποθηκευμένης διαμόρφωσης",
+    "source_hash": "e1fe6a59"
+  },
+  "web.domains.sso.diagnostics_rate_limited": {
+    "text": "Αυτή η διαμόρφωση ελέγχθηκε πάρα πολλές φορές πρόσφατα. Δοκιμάστε ξανά αργότερα.",
+    "source_hash": "4b8d53b8"
+  },
+  "web.domains.sso.diagnostics_rate_limited_retry": {
+    "text": "Αυτή η διαμόρφωση ελέγχθηκε πάρα πολλές φορές πρόσφατα. Δοκιμάστε ξανά σε περίπου {minutes} λεπτά.",
+    "source_hash": "fdbdeaf6"
   }
 }

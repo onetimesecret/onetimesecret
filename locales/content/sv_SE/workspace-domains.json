@@ -1658,5 +1658,29 @@
   "web.domains.verify_outcome.record_not_found": {
     "text": "Vi hittade inte den förväntade TXT-posten. Kontrollera att den finns och att dess värde stämmer exakt. Det kan ta några minuter innan nya DNS-poster syns.",
     "source_hash": "6c847d46"
+  },
+  "web.domains.sso.diagnostics_passed": {
+    "text": "Kontrollen av den sparade konfigurationen godkändes",
+    "source_hash": "91fc2d97"
+  },
+  "web.domains.sso.diagnostics_failed": {
+    "text": "Kontrollen av den sparade konfigurationen hittade ett problem",
+    "source_hash": "18ca7a0e"
+  },
+  "web.domains.sso.diagnostics_inconclusive": {
+    "text": "Kontrollen av den sparade konfigurationen kunde inte ge något besked",
+    "source_hash": "2be86c66"
+  },
+  "web.domains.sso.diagnostics_error": {
+    "text": "Det gick inte att kontrollera den sparade konfigurationen",
+    "source_hash": "e1fe6a59"
+  },
+  "web.domains.sso.diagnostics_rate_limited": {
+    "text": "Den här konfigurationen har kontrollerats för många gånger nyligen. Försök igen senare.",
+    "source_hash": "4b8d53b8"
+  },
+  "web.domains.sso.diagnostics_rate_limited_retry": {
+    "text": "Den här konfigurationen har kontrollerats för många gånger nyligen. Försök igen om cirka {minutes} minuter.",
+    "source_hash": "fdbdeaf6"
   }
 }

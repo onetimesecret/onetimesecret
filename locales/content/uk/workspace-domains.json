@@ -1658,5 +1658,29 @@
   "web.domains.verify_outcome.record_not_found": {
     "text": "Ми не знайшли очікуваний запис TXT. Переконайтеся, що він існує і його значення точно збігається. Нові записи DNS можуть з'являтися протягом кількох хвилин.",
     "source_hash": "6c847d46"
+  },
+  "web.domains.sso.diagnostics_passed": {
+    "text": "Перевірку збереженої конфігурації пройдено",
+    "source_hash": "91fc2d97"
+  },
+  "web.domains.sso.diagnostics_failed": {
+    "text": "Перевірка збереженої конфігурації виявила проблему",
+    "source_hash": "18ca7a0e"
+  },
+  "web.domains.sso.diagnostics_inconclusive": {
+    "text": "Перевірка збереженої конфігурації не дала однозначного результату",
+    "source_hash": "2be86c66"
+  },
+  "web.domains.sso.diagnostics_error": {
+    "text": "Не вдалося перевірити збережену конфігурацію",
+    "source_hash": "e1fe6a59"
+  },
+  "web.domains.sso.diagnostics_rate_limited": {
+    "text": "Цю конфігурацію нещодавно перевіряли занадто багато разів. Спробуйте ще раз пізніше.",
+    "source_hash": "4b8d53b8"
+  },
+  "web.domains.sso.diagnostics_rate_limited_retry": {
+    "text": "Цю конфігурацію нещодавно перевіряли занадто багато разів. Спробуйте ще раз приблизно через {minutes} хв.",
+    "source_hash": "fdbdeaf6"
   }
 }

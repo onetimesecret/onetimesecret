@@ -1658,5 +1658,29 @@
   "web.domains.verify_outcome.record_not_found": {
     "text": "Nie znaleziono oczekiwanego rekordu TXT. Sprawdź, czy istnieje i czy jego wartość jest dokładnie zgodna. Pojawienie się nowych rekordów DNS może potrwać kilka minut.",
     "source_hash": "6c847d46"
+  },
+  "web.domains.sso.diagnostics_passed": {
+    "text": "Sprawdzenie zapisanej konfiguracji zakończone pomyślnie",
+    "source_hash": "91fc2d97"
+  },
+  "web.domains.sso.diagnostics_failed": {
+    "text": "Sprawdzenie zapisanej konfiguracji wykryło problem",
+    "source_hash": "18ca7a0e"
+  },
+  "web.domains.sso.diagnostics_inconclusive": {
+    "text": "Sprawdzenie zapisanej konfiguracji nie dało jednoznacznego wyniku",
+    "source_hash": "2be86c66"
+  },
+  "web.domains.sso.diagnostics_error": {
+    "text": "Nie udało się sprawdzić zapisanej konfiguracji",
+    "source_hash": "e1fe6a59"
+  },
+  "web.domains.sso.diagnostics_rate_limited": {
+    "text": "Ta konfiguracja była ostatnio sprawdzana zbyt wiele razy. Spróbuj ponownie później.",
+    "source_hash": "4b8d53b8"
+  },
+  "web.domains.sso.diagnostics_rate_limited_retry": {
+    "text": "Ta konfiguracja była ostatnio sprawdzana zbyt wiele razy. Spróbuj ponownie za około {minutes} min.",
+    "source_hash": "fdbdeaf6"
   }
 }
