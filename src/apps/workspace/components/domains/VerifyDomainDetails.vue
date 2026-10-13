@@ -38,10 +38,11 @@ const { t } = useI18n();
 // Step 2: the address record. The TXT record in step 1 is the same under every
 // strategy that checks ownership; where the domain points is not (Approximated's
 // proxy, or this install's own host). See useDomainDnsRecord.
-const { kind, recordType, recordHost, recordHostAppendix, recordTarget } = useDomainDnsRecord(
-  () => props.domain,
-  () => props.cluster
-);
+const { kind, recordType, recordHost, recordHostAppendix, recordDisplayName, recordTarget } =
+  useDomainDnsRecord(
+    () => props.domain,
+    () => props.cluster
+  );
 
 // Step 1: the TXT record name in A-label form, the name the server queries,
 // as a host relative to the zone. See txtRecordName.
@@ -171,7 +172,7 @@ const verify = async () => {
           v-if="txtRecord.displayName"
           data-testid="txt-record-display-name"
           class="mt-2 text-sm text-gray-600 dark:text-gray-300">
-          {{ t('web.domains.dns.txt_display_name_hint') }}
+          {{ t('web.domains.dns.display_name_hint') }}
           <span
             class="block font-mono break-all text-gray-800 dark:text-gray-100"
             translate="no">
@@ -198,6 +199,18 @@ const verify = async () => {
             :label="t('web.COMMON.value')"
             :value="recordTarget" />
         </div>
+        <!-- An internationalised name: the spelling some DNS providers list it under. -->
+        <p
+          v-if="recordDisplayName"
+          data-testid="address-record-display-name"
+          class="mt-2 text-sm text-gray-600 dark:text-gray-300">
+          {{ t('web.domains.dns.display_name_hint') }}
+          <span
+            class="block font-mono break-all text-gray-800 dark:text-gray-100"
+            translate="no">
+            {{ recordDisplayName }}
+          </span>
+        </p>
 
         <!-- Apex domains cannot use a CNAME at the zone root. -->
         <p

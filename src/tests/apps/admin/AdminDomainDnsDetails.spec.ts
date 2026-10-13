@@ -140,7 +140,7 @@ describe('AdminDomainDnsDetails', () => {
         host: '_onetime-challenge-abc1234.xn--bcher-kva',
         zone: '.customer.example',
       });
-      expect(wrapper.find(hint).text()).toContain('web.admin.domains.dns.txtDisplayNameHint');
+      expect(wrapper.find(hint).text()).toContain('web.admin.domains.dns.displayNameHint');
       expect(wrapper.find(`${hint} span`).text()).toBe(
         '_onetime-challenge-abc1234.bücher.customer.example'
       );
@@ -271,5 +271,71 @@ describe('AdminDomainDnsDetails', () => {
 
   it('keeps validation_strategy through the cluster schema', () => {
     expect(cluster('caddy_on_demand')?.validation_strategy).toBe('caddy_on_demand');
+  });
+});
+
+// The address record name in A-label form (display_domain_ascii), as on the
+// customer page; the typed spelling is a hint below it.
+describe('AdminDomainDnsDetails address record name', () => {
+  beforeEach(() => {
+    mockCanonicalDomain.value = 'secrets.example.com';
+    mockSiteHost.value = 'host.example.com';
+    setDomainValidationStrategy('approximated');
+  });
+
+  const hint = '[data-testid="dns-address-display-name"]';
+
+  it('Unicode subdomain: the A-label host, with the typed spelling as a hint', () => {
+    const panel = mountPanel(
+      record({
+        display_domain: 'bücher.customer.example',
+        display_domain_ascii: 'xn--bcher-kva.customer.example',
+        trd: 'bücher',
+      }),
+      cluster('approximated')
+    );
+
+    expect(panel.host).toBe('xn--bcher-kva');
+    expect(panel.appendix).toBe('.customer.example');
+    expect(panel.wrapper.find(hint).text()).toContain('web.admin.domains.dns.displayNameHint');
+    expect(panel.wrapper.find(`${hint} span`).text()).toBe('bücher.customer.example');
+  });
+
+  it("Unicode apex: '@' and the A-label zone", () => {
+    const panel = mountPanel(
+      record({
+        display_domain: 'bücher.de',
+        display_domain_ascii: 'xn--bcher-kva.de',
+        base_domain: 'bücher.de',
+        trd: '',
+        is_apex: true,
+      }),
+      cluster('caddy_on_demand')
+    );
+
+    expect(panel.host).toBe('@');
+    expect(panel.appendix).toBe('xn--bcher-kva.de');
+    expect(panel.wrapper.find(`${hint} span`).text()).toBe('bücher.de');
+  });
+
+  it('ASCII name: no hint', () => {
+    const panel = mountPanel(
+      record({ display_domain_ascii: 'secrets.customer.example' }),
+      cluster('approximated')
+    );
+
+    expect(panel.host).toBe('secrets');
+    expect(panel.wrapper.find(hint).exists()).toBe(false);
+  });
+
+  it('no display_domain_ascii: the typed trd and base domain, no hint', () => {
+    const panel = mountPanel(
+      record({ display_domain: 'bücher.customer.example', trd: 'bücher' }),
+      cluster('approximated')
+    );
+
+    expect(panel.host).toBe('bücher');
+    expect(panel.appendix).toBe('.customer.example');
+    expect(panel.wrapper.find(hint).exists()).toBe(false);
   });
 });

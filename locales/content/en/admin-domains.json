@@ -139,7 +139,7 @@
     "text": "1. Add a TXT record to prove ownership.",
     "content_hash": "fdcfcfb0"
   },
-  "web.admin.domains.dns.txtDisplayNameHint": {
+  "web.admin.domains.dns.displayNameHint": {
     "text": "Some DNS providers display this name as:",
     "content_hash": "b2bcf8d5"
   },

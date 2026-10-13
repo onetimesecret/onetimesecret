@@ -415,7 +415,7 @@ describe('VerifyDomainDetails TXT record name (step 1)', () => {
       appendix: '.example.com',
     });
     expect(hostCopyText(wrapper)).toBe('_onetime-challenge-abc1234.xn--bcher-kva');
-    expect(wrapper.find(hint).text()).toContain('web.domains.dns.txt_display_name_hint');
+    expect(wrapper.find(hint).text()).toContain('web.domains.dns.display_name_hint');
     expect(wrapper.find(`${hint} span`).text()).toBe(
       '_onetime-challenge-abc1234.bücher.example.com'
     );
@@ -476,6 +476,81 @@ describe('VerifyDomainDetails TXT record name (step 1)', () => {
       value: '_onetime-challenge-abc1234.bücher',
       appendix: '.example.com',
     });
+    expect(wrapper.find(hint).exists()).toBe(false);
+  });
+});
+
+// Step 2 shows the address record name in A-label form (display_domain_ascii)
+// as a host relative to the zone; the copy button copies the host.
+describe('VerifyDomainDetails address record name (step 2)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockIsLoading.value = false;
+    mockError.value = null;
+    setDomainValidationStrategy('caddy_on_demand');
+  });
+
+  const addressRow = (wrapper: ReturnType<typeof mountComponent>) =>
+    wrapper.find('[data-testid="verify-address-record"]');
+  const hostField = (wrapper: ReturnType<typeof mountComponent>) =>
+    fieldsOf(addressRow(wrapper))[1];
+  const hostCopyText = (wrapper: ReturnType<typeof mountComponent>) =>
+    addressRow(wrapper).findAllComponents({ name: 'CopyButton' })[1].props('text');
+  const hint = '[data-testid="address-record-display-name"]';
+
+  it('Unicode subdomain: the A-label host, copied as shown, with the typed spelling as a hint', () => {
+    const wrapper = mountComponent({
+      domain: createDomain({
+        display_domain: 'bücher.example.com',
+        display_domain_ascii: 'xn--bcher-kva.example.com',
+        trd: 'bücher',
+      }),
+    });
+
+    expect(hostField(wrapper)).toEqual({
+      label: 'web.COMMON.host',
+      value: 'xn--bcher-kva',
+      appendix: '.example.com',
+    });
+    expect(hostCopyText(wrapper)).toBe('xn--bcher-kva');
+    expect(addressRow(wrapper).find(hint).text()).toContain('web.domains.dns.display_name_hint');
+    expect(addressRow(wrapper).find(`${hint} span`).text()).toBe('bücher.example.com');
+  });
+
+  it("Unicode apex: '@' and the A-label zone", () => {
+    const wrapper = mountComponent({
+      domain: createDomain({
+        display_domain: 'bücher.de',
+        display_domain_ascii: 'xn--bcher-kva.de',
+        base_domain: 'bücher.de',
+        trd: '',
+        is_apex: true,
+      }),
+    });
+
+    expect(hostField(wrapper)).toMatchObject({ value: '@', appendix: 'xn--bcher-kva.de' });
+    expect(addressRow(wrapper).find(`${hint} span`).text()).toBe('bücher.de');
+  });
+
+  it('ASCII name: no hint', () => {
+    const wrapper = mountComponent({
+      domain: createDomain({ display_domain_ascii: 'test.example.com' }),
+    });
+
+    expect(hostField(wrapper)).toMatchObject({ value: 'test', appendix: '.example.com' });
+    expect(wrapper.find(hint).exists()).toBe(false);
+  });
+
+  it('no display_domain_ascii: the typed trd and base domain, no hint', () => {
+    const wrapper = mountComponent({
+      domain: createDomain({
+        display_domain: 'bücher.example.com',
+        display_domain_ascii: null,
+        trd: 'bücher',
+      }),
+    });
+
+    expect(hostField(wrapper)).toMatchObject({ value: 'bücher', appendix: '.example.com' });
     expect(wrapper.find(hint).exists()).toBe(false);
   });
 });

@@ -1304,7 +1304,7 @@
     "text": "Apex (root) domains can't use a CNAME record. Use your DNS provider's ALIAS or ANAME record, or point an A record at your server's IP address, instead.",
     "content_hash": "2d1c3298"
   },
-  "web.domains.dns.txt_display_name_hint": {
+  "web.domains.dns.display_name_hint": {
     "text": "Some DNS providers display this name as:",
     "content_hash": "b2bcf8d5"
   },
