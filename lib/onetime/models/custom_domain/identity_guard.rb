@@ -32,6 +32,9 @@ module Onetime
     # values. Dirty tracking cannot be used: new and the loaders set fields
     # and then clear the dirty flags.
     #
+    # Raw hash commands (hset, hmset, remove_field) are not guarded: they are
+    # the plumbing the writers above use inside their own transactions.
+    #
     # Prepended so the fast writers Familia generates for each field can be
     # wrapped, and so the guard runs before CustomDomain#save's own checks.
     module IdentityGuard
@@ -127,7 +130,7 @@ module Onetime
       end
 
       def refuse_identity_change!(stored)
-        changed = IDENTITY_FIELDS.reject { |name| stored_value_matches?(stored[name], send(name)) }
+        changed = IDENTITY_FIELDS.reject { |name| stored_value_matches?(stored[name], send(name), name) }
         return if changed.empty?
 
         OT.le "[CustomDomain] Refused identity change on #{extid}: #{changed.join(', ')}"
@@ -143,11 +146,17 @@ module Onetime
       end
 
       # A stored value (raw HGET string) matches the in-memory value when it is
-      # its serialised form, or the plain string a pre-JSON record stored.
-      def stored_value_matches?(raw, value)
+      # its serialised form, the plain string a pre-JSON record stored, or
+      # what loading that raw value produces. The last covers a pre-JSON
+      # plain string that reads as a JSON number: "1e100" loads as 1.0e+100
+      # and "1.50" as 1.5, so neither of the first two forms matches. It is
+      # checked last because decoding a plain string that is not JSON logs.
+      def stored_value_matches?(raw, value, name)
         return value.nil? if raw.nil?
 
-        raw == serialize_value(value) || raw == value.to_s
+        raw == serialize_value(value) ||
+          raw == value.to_s ||
+          deserialize_value(raw, field_name: name) == value
       end
 
       # @return [Array(String, Boolean)] canonical name, and whether this call

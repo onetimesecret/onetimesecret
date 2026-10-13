@@ -160,6 +160,41 @@ RSpec.describe Onetime::CustomDomain, 'canonical claim guard', :datastore do
       expect(reload(rec).display_domain).to eq(unicode_name)
     end
 
+    # Records written before field values were JSON-encoded hold plain
+    # strings. A plain string that reads as a JSON number loads as a number
+    # ("1e100" as 1.0e+100, "1.50" as 1.5), and the record must still save.
+    context 'with identity fields stored as plain strings' do
+      identity_fields = Onetime::CustomDomain::IdentityGuard::IDENTITY_FIELDS
+
+      def store_identity_as_plain_strings(rec, fields)
+        Familia.dbclient.hset(rec.dbkey, fields.to_h { |name| [name.to_s, rec.public_send(name).to_s] })
+        reload(rec)
+      end
+
+      {
+        'an ordinary name' => ->(suffix) { "plain-#{suffix}.example.com" },
+        'a second-level label that reads as a number' => ->(suffix) { "x#{suffix}.1e100.net" },
+        'a subdomain that reads as a number' => ->(suffix) { "1.50.n#{suffix}.com" },
+      }.each do |label, name_for|
+        it "saves #{label} and leaves the identity values as they were" do
+          legacy = store_identity_as_plain_strings(create(name_for.call(suffix)), identity_fields)
+          before = identity_fields.map { |name| legacy.public_send(name) }
+          legacy.status = 'reviewed'
+
+          expect(legacy.save).to be(true)
+          stored = reload(legacy)
+          expect([identity_fields.map { |name| stored.public_send(name) }, stored.status]).to eq([before, 'reviewed'])
+        end
+      end
+
+      it 'passes atomic_write on a name with a label that reads as a number' do
+        legacy = store_identity_as_plain_strings(create("x#{suffix}.1e100.net"), identity_fields)
+
+        expect(legacy.atomic_write { legacy.status = 'atomic' }).to be(true)
+        expect(reload(legacy).status).to eq('atomic')
+      end
+    end
+
     context 'with no canonical entry (registered before the index existed)' do
       it 'saves a change to other fields and adds no entry' do
         rec        = without_canonical_entry(create)
