@@ -8,6 +8,7 @@ require_relative 'base'
 require_relative 'discovery_check'
 require_relative '../../../../../lib/onetime/sso_provider/entra'
 require_relative '../../../../../lib/onetime/sso_provider/entra_credential_probe'
+require 'onetime/security/sso_diagnostics_rate_limiter'
 
 module DomainsAPI
   module Logic
@@ -51,19 +52,16 @@ module DomainsAPI
       # error_description (correlation ids, app id). The credential check
       # reports the bare AADSTS code only.
       #
-      # Rate limiting: none at this layer, deliberately. There is no reusable
-      # per-customer limiter to apply: each lib/onetime/security/*_rate_limiter.rb
-      # module is bound to one subject type and one key prefix (IP, email,
-      # secret id, domain id, or a colonel extid under the colonel config and
-      # audit trail), and Onetime::Operations::RateLimit::Registry::LIMITERS
-      # lists only those. DnsRateLimiter is per domain at 100/hour on a bucket
-      # shared with DNS verification, so it is not a fit either. The gap is
-      # recorded in docs/runbooks/sso-credential-health.md ("Check saved
-      # configuration"); a dedicated limiter is a follow-up, not something to
-      # improvise here.
+      # Rate limited per CUSTOMER (Onetime::Security::SsoDiagnosticsRateLimiter,
+      # kind `sso_diagnostics`, 10 runs per hour by default), charged on the
+      # last line of raise_concerns: after the session, ownership and
+      # entitlement guards and after the stored record is found, so a refused
+      # request costs nothing. Over the cap the API answers 429 with
+      # retry_after and a Retry-After header, and no check runs.
       #
       class RunDiagnostics < Base
         include DiscoveryCheck
+        include Onetime::Security::SsoDiagnosticsRateLimiter
 
         STATUSES = %w[passed failed inconclusive unsupported skipped].freeze
 
@@ -118,6 +116,9 @@ module DomainsAPI
           @issuer                     = @sso_config.issuer.to_s
           @tenant_id                  = @sso_config.tenant_id.to_s
           @token_endpoint_auth_method = @sso_config.token_endpoint_auth_method.to_s.strip
+
+          # Last, so only a run that will actually happen is charged.
+          enforce_sso_diagnostics_rate_limit!(cust.extid)
         end
 
         def process

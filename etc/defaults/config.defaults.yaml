@@ -1268,6 +1268,24 @@ features:
     # box — this is an opt-out exclusion (ORGS_AUDIT_LOGS_ENABLED=false),
     # not an opt-in feature. Does not stop event collection.
     audit_logs_enabled: <%= ENV['ORGS_AUDIT_LOGS_ENABLED'] != 'false' %>  # Since v0.26.4
+    # Per-customer cap on "Check saved configuration" runs for a custom
+    # domain's SSO record (POST /api/domains/:extid/sso/diagnostics). Every
+    # run contacts the identity provider, and for Entra ID sends the stored
+    # client secret in a token request, so the volume is bounded per acting
+    # customer (keyed on the customer's public id, kind `sso_diagnostics`).
+    # Enabled by default (protective); set SSO_DIAGNOSTICS_RATE_LIMIT_ENABLED=false
+    # to opt out. See lib/onetime/security/sso_diagnostics_rate_limiter.rb.
+    sso_diagnostics_rate_limit:
+      enabled: <%= ENV['SSO_DIAGNOSTICS_RATE_LIMIT_ENABLED'] != 'false' %>  # Since unreleased
+      # Runs permitted per window for one customer, across all their domains.
+      # A run is deterministic (the same stored record gets the same verdict
+      # until the record or the IdP changes), so ten covers several full
+      # edit-save-check cycles.
+      max_per_customer: <%= ENV['SSO_DIAGNOSTICS_RATE_LIMIT_MAX_PER_CUSTOMER'] || 10 %>  # Since unreleased
+      # Counting window in seconds (1 hour).
+      window: <%= ENV['SSO_DIAGNOSTICS_RATE_LIMIT_WINDOW'] || 3600 %>  # Since unreleased
+      # Lockout duration in seconds once the cap is hit (1 hour).
+      lockout: <%= ENV['SSO_DIAGNOSTICS_RATE_LIMIT_LOCKOUT'] || 3600 %>  # Since unreleased
   # Secret Activity Trail (collection)
   # The data-existence axis of the org secret-activity trail: whether events
   # are recorded at all (GDPR data minimization). UI + list API exposure is

@@ -163,6 +163,86 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
         expect(error.error_type).to eq(:missing)
       end
     end
+
+    describe 'per-customer rate limit (SsoDiagnosticsRateLimiter)' do
+      it 'charges the acting customer by public id, last, after the record is found' do
+        order = []
+        allow(logic).to receive(:authorize_domain_sso!) do
+          order << :authorize
+          logic.instance_variable_set(:@custom_domain, custom_domain)
+        end
+        allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id).with('domain123') do
+          order << :find_record
+          sso_config
+        end
+        allow(logic).to receive(:enforce_sso_diagnostics_rate_limit!) { |extid| order << [:charge, extid] }
+
+        logic.raise_concerns
+
+        expect(order).to eq([:authorize, :find_record, [:charge, 'ext-owner123']])
+      end
+
+      it 'does not charge a request that has no saved configuration' do
+        allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id).with('domain123').and_return(nil)
+        allow(logic).to receive(:enforce_sso_diagnostics_rate_limit!)
+
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError)
+        expect(logic).not_to have_received(:enforce_sso_diagnostics_rate_limit!)
+      end
+
+      it 'does not charge an anonymous request' do
+        allow(owner).to receive(:anonymous?).and_return(true)
+        allow(logic).to receive(:enforce_sso_diagnostics_rate_limit!)
+
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError)
+        expect(logic).not_to have_received(:enforce_sso_diagnostics_rate_limit!)
+      end
+
+      it 'raises LimitExceeded out of raise_concerns and contacts nobody when the customer is locked' do
+        allow(logic).to receive(:enforce_sso_diagnostics_rate_limit!).and_raise(
+          Onetime::LimitExceeded.new('Too many saved-configuration checks. Please try again later.',
+                                     retry_after: 1234, max_attempts: 10),
+        )
+        stub_discovery_ok
+        accept_credentials
+
+        expect { logic.raise_concerns }.to raise_error(Onetime::LimitExceeded) do |error|
+          expect(error.retry_after).to eq(1234)
+          expect(error.max_attempts).to eq(10)
+        end
+        expect(discovery_fetcher).not_to have_received(:fetch)
+        expect(a_request(:post, token_url)).not_to have_been_made
+      end
+
+      # The real limiter, against the lane's Valkey: the test config ships it
+      # disabled, so it is enabled here in-process with a cap of one, which
+      # makes the second run the locked one.
+      it 'enforces through the real module when enabled: the run over the cap is refused' do
+        saved_conf = YAML.load(YAML.dump(OT.conf))
+        new_conf   = YAML.load(YAML.dump(OT.conf))
+        ((new_conf['features'] ||= {})['organizations'] ||= {})['sso_diagnostics_rate_limit'] =
+          { 'enabled' => true, 'max_per_customer' => 1, 'window' => 60, 'lockout' => 60 }
+        OT.send(:conf=, new_conf)
+        redis = Onetime::Customer.dbclient
+        redis.del('sso_diagnostics:attempts:ext-owner123', 'sso_diagnostics:locked:ext-owner123')
+        stub_discovery_ok
+        accept_credentials
+
+        begin
+          expect(run[:overall]).to eq('passed')
+
+          second = described_class.new(strategy_result, { 'extid' => 'ext-domain123' })
+          allow(second).to receive(:authorize_domain_sso!) do
+            second.instance_variable_set(:@custom_domain, custom_domain)
+          end
+          expect { second.raise_concerns }.to raise_error(Onetime::LimitExceeded)
+          expect(a_request(:post, token_url)).to have_been_made.once
+        ensure
+          redis.del('sso_diagnostics:attempts:ext-owner123', 'sso_diagnostics:locked:ext-owner123')
+          OT.send(:conf=, saved_conf)
+        end
+      end
+    end
   end
 
   describe 'response envelope' do

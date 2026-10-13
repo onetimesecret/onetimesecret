@@ -87,17 +87,23 @@ The response never carries the secret, a token, or Entra's
 records the domain, provider, overall and per-check statuses. No audit
 event is written (see item 7 below).
 
-The endpoint is not rate limited beyond the session. That is a known gap,
-not an oversight: every run sends the stored Entra secret to Microsoft, and
-a loop of runs with a wrong secret can trip Entra's own throttling for the
-customer's app registration. No reusable per-customer limiter exists to
-apply. Each `lib/onetime/security/*_rate_limiter.rb` module is bound to one
-subject type and key prefix (IP, email, secret ID, domain ID, or a colonel
-extid under the colonel config and audit trail), and
-`Onetime::Operations::RateLimit::Registry::LIMITERS` lists only those;
-`DnsRateLimiter` is per domain at 100 per hour on a bucket shared with DNS
-verification. A dedicated per-customer limiter (about 10 runs per hour)
-registered in that registry is the follow-up.
+Runs are capped per acting customer (`Onetime::Security::
+SsoDiagnosticsRateLimiter`, `lib/onetime/security/sso_diagnostics_rate_limiter.rb`;
+limiter kind `sso_diagnostics`, keyed on the customer's public id, Customer
+shard). Default 10 runs per hour, then a one-hour lockout; configured under
+`features.organizations.sso_diagnostics_rate_limit` (`SSO_DIAGNOSTICS_RATE_LIMIT_*`
+in `.env.reference`). The charge is the last line of `raise_concerns`, after
+the session, ownership and entitlement guards and after the stored record is
+found, so a refused request costs nothing. Over the cap the API answers 429
+with `retry_after` and a `Retry-After` header and no check runs; the form
+shows the wait in minutes. The cap-reaching run writes one
+`sso.diagnostics_throttled` event to the security audit trail. Every run
+still sends the stored Entra secret to Microsoft, which is why the cap is
+low: a run is deterministic, and a loop of runs with a wrong secret would
+otherwise trip Entra's own throttling for the customer's app registration.
+To clear a stuck lockout: `bin/ots ratelimit keys sso_diagnostics <extid>`
+piped to valkey-cli, or `POST /api/colonel/ratelimit/reset` with
+`kind=sso_diagnostics`.
 
 ## A client-credentials request is not an SSO test
 
