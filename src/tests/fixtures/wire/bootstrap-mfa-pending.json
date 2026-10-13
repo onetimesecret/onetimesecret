@@ -37,6 +37,13 @@
       "window": 3600,
       "lockout": 3600
     },
+    "email_login_request_rate_limit": {
+      "enabled": true,
+      "max_per_ip": 30,
+      "max_per_email": 90,
+      "window": 3600,
+      "lockout": 3600
+    },
     "create_account_rate_limit": {
       "enabled": false,
       "max_per_ip": 10,
@@ -58,8 +65,7 @@
   "brand_favicon_url": null,
   "d9s_enabled": true,
   "development": {
-    "enabled": false,
-    "domain_context_enabled": false
+    "enabled": false
   },
   "diagnostics": {
     "sentry": {
@@ -69,7 +75,7 @@
       "maxBreadcrumbs": 5,
       "logErrors": true,
       "environment": "production",
-      "release": "4ea626b"
+      "release": "c241298"
     }
   },
   "docs_host": "https://docs.onetimesecret.com/",
@@ -466,8 +472,7 @@
   "ot_version_long": "",
   "ruby_version": "",
   "shrimp": "recorded-csrf-token-removed",
-  "nonce": "cmVjb3JkZWQtbm9uY2U=",
-  "snapshot_epoch": "c3a5b942028a25667d9d242a48fe4356",
-  "snapshot_version": "1790654754222415",
-  "snapshot_generated_at": "2026-09-29T04:05:54.222606Z"
+  "snapshot_epoch": "c3f35db796eabd573d3882947c447aa4",
+  "snapshot_version": "1791781573290580",
+  "snapshot_generated_at": "2026-10-12T05:06:13.290703Z"
 }
