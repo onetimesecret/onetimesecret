@@ -93,26 +93,36 @@ module Auth::Config::Hooks
           from_session || carried
         end
 
+        # The CustomDomain identifier a tenant flow belongs to, or nil on a
+        # platform flow. Reads the VALIDATED id first (the callback hook has
+        # run) and the PENDING id otherwise (the IdP or the strategy failed
+        # the callback before that hook consumed it). Never consumes either,
+        # so the consumers above are unaffected. Read by the failure hook for
+        # its log line and by record_tenant_sso_failure below.
+        #
+        # @return [String, nil]
+        def tenant_sso_domain_id
+          domain_id = session[:validated_omniauth_domain_id] || session['validated_omniauth_domain_id'] ||
+                      @validated_omniauth_domain_id ||
+                      session[:omniauth_tenant_domain_id] || session['omniauth_tenant_domain_id']
+          domain_id.to_s.empty? ? nil : domain_id.to_s
+        end
+
         # Record a tenant sign-in that stopped at `stage` with `code` against
         # the domain the flow belongs to (CustomDomain::SsoSigninOutcome, read
-        # by the domain's SSO settings as `last_sign_in`). Reads the VALIDATED
-        # id first (the callback hook has run) and the PENDING id otherwise
-        # (the IdP or the strategy failed the callback before that hook
-        # consumed it). Never consumes either, so the consumers above are
-        # unaffected; a platform flow, which sets neither, records nothing.
-        # Best-effort by construction: the model rescues its own writes.
+        # by the domain's SSO settings as `last_sign_in`). A platform flow,
+        # which has no tenant domain id, records nothing. Best-effort by
+        # construction: the model rescues its own writes.
         #
         # @param stage [String] one of SsoSigninOutcome::STAGES
         # @param code [String, Symbol, nil] sanitized by the model
         # @return [void]
         def record_tenant_sso_failure(stage, code)
-          domain_id = session[:validated_omniauth_domain_id] || session['validated_omniauth_domain_id'] ||
-                      @validated_omniauth_domain_id ||
-                      session[:omniauth_tenant_domain_id] || session['omniauth_tenant_domain_id']
-          return if domain_id.to_s.empty?
+          domain_id = tenant_sso_domain_id
+          return if domain_id.nil?
 
           Onetime::CustomDomain::SsoSigninOutcome.record_failure!(
-            domain_id.to_s,
+            domain_id,
             stage: stage,
             code: code,
             provider_type: request.env['onetime.tenant_sso_config']&.provider_type,

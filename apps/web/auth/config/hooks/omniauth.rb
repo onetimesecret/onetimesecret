@@ -1009,13 +1009,23 @@ module Auth::Config::Hooks
         # Debug: write to stderr so it shows in overmind/terminal
         warn "[OmniAuth FAILURE] type=#{error_type} class=#{error_class} msg=#{error_msg} path=#{request.path}"
 
+        # A TENANT flow's failure carries the domain it belongs to (validated
+        # or pending id; absent on a platform flow), so the line can be tied
+        # to the domain whose owner will ask about it. The method is defined
+        # by OmniAuthTenant.configure, so it is guarded like every optional
+        # Rodauth method.
+        domain_id = tenant_sso_domain_id if respond_to?(:tenant_sso_domain_id)
+
         Auth::Logging.log_auth_event(
           :omniauth_failure,
           level: :warn,
-          error_type: error_type,
-          error_message: error_msg,
-          path: request.path,
-          ip: request.ip,
+          **{
+            error_type: error_type,
+            error_message: error_msg,
+            domain_id: domain_id,
+            path: request.path,
+            ip: request.ip,
+          }.compact,
         )
 
         # A TENANT flow's failure is recorded against its domain for the
