@@ -90,9 +90,10 @@ module Onetime
     feature :custom_domain_migration_fields
 
     class_hashkey :owners
-    # Creation-only uniqueness gate keyed by the DNS wire form. Kept separate
-    # from display_domain_index so legacy Unicode/A-label duplicates retain
-    # exact-key-first lookup semantics.
+    # Uniqueness gate keyed by the DNS wire form, claimed when a record is
+    # first written: by create!, or by IdentityGuard for any other writer.
+    # Kept separate from display_domain_index so legacy Unicode/A-label
+    # duplicates retain exact-key-first lookup semantics.
     class_hashkey :canonical_display_domain_index, class: self, reference: true
 
     identifier_field :domainid
@@ -249,6 +250,11 @@ module Onetime
 
       super
     end
+
+    # Canonical-claim and identity checks on every write path. Prepended
+    # after the fields so it can wrap their generated fast writers.
+    require_relative 'custom_domain/identity_guard'
+    prepend IdentityGuard
 
     # Generate a unique identifier for this customer's custom domain.
     #

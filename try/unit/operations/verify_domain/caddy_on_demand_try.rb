@@ -317,7 +317,21 @@ caddy_try_verify(@domain)
  @stored.vhost_fetch_failed_at.to_s.empty?]
 #=> [true, [nil, 'PENDING_SSL', 'tls_probe', true], true]
 
+## A domain with no canonical-name entry (registered before that index existed) is checked and saved, and gains no entry
+@precanon     = Onetime::CustomDomain.create!("caddy-precanon-#{@suffix}.example.com", @org.objid)
+@precanon_key = Onetime::CustomDomain.canonical_display_domain(@precanon.display_domain)
+Onetime::CustomDomain.canonical_display_domain_index.remove_field(@precanon_key)
+@resolver.error  = nil
+@resolver.rcode  = Resolv::DNS::RCode::NoError
+@resolver.values = [@precanon.txt_validation_value]
+@precanon_result = caddy_try_verify(@precanon)
+[@precanon_result.persisted,
+ caddy_try_reload(@precanon).verified,
+ Onetime::CustomDomain.canonical_display_domain_index.get(@precanon_key)]
+#=> [true, true, nil]
+
 # Teardown
+@precanon.destroy! if @precanon&.exists?
 @domain.destroy! if @domain&.exists?
 @legacy.destroy! if @legacy&.exists?
 @cutover.destroy! if @cutover&.exists?

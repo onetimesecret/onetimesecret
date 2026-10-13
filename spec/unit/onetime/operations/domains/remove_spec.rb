@@ -245,17 +245,23 @@ RSpec.describe Onetime::Operations::Domains::Remove do
     # Fabricate a drift SHADOW hash for an fqdn already owned by `survivor`.
     #
     # Familia 2.11's save now guards unique indexes (RecordExistsError if the
-    # index already points at another record), so the raw "parse + save" bypass
-    # the op's docstring describes no longer works directly. We reproduce the
-    # SAME end state deterministically: drop the index entry so the guard passes,
-    # save the shadow (which repoints the index at itself), then FORCE the index
-    # back to the survivor. Result: two live hashes for one fqdn, index -> survivor.
+    # index already points at another record), and CustomDomain's save claims
+    # the canonical name (CustomDomain::IdentityGuard), so the raw "parse +
+    # save" bypass the op's docstring describes no longer works directly. We
+    # reproduce the SAME end state deterministically: drop both index entries
+    # so the guards pass, save the shadow (which points both at itself), then
+    # FORCE both back to the survivor. Result: two live hashes for one fqdn,
+    # both indexes -> survivor.
     def create_shadow(fqdn, org_id, survivor)
+      canonical_index = Onetime::CustomDomain.canonical_display_domain_index
+      canonical       = Onetime::CustomDomain.canonical_display_domain(fqdn)
       index.remove(fqdn)
+      canonical_index.remove_field(canonical)
       shadow = Onetime::CustomDomain.parse(fqdn, org_id)
       shadow.save
       @records << shadow
       index.put(fqdn, survivor.objid)
+      canonical_index.put(canonical, survivor.objid)
       shadow
     end
 
