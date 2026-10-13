@@ -52,11 +52,15 @@ module DomainsAPI
 
         attr_reader :mailer_config
 
-        # What a revalidation resets, and its rollback restores.
-        VERIFICATION_RESET_FIELDS = [
-          :verification_status, :dns_check_status, :provider_check_status, :dns_verified,
-          :provider_verified, :dns_check_completed_at, :provider_check_completed_at
-        ].freeze
+        # What a revalidation resets, grouped by the job that owns the fields.
+        # The rollback restores a job's group only while its status field
+        # still reads QUEUED, i.e. the job never started (see process).
+        JOB_RESET_FIELDS = {
+          dns_check_status: [:dns_check_status, :dns_verified, :dns_check_completed_at],
+          provider_check_status: [:provider_check_status, :provider_verified, :provider_check_completed_at],
+        }.freeze
+
+        VERIFICATION_RESET_FIELDS = ([:verification_status] + JOB_RESET_FIELDS.values.flatten).freeze
 
         def process_params
           @domain_id = sanitize_identifier(params['extid'])
@@ -136,16 +140,21 @@ module DomainsAPI
               bypass_cache: true,
             )
           rescue StandardError
-            # Rollback: restore previous status, lifecycle fields, outcomes, timestamps,
-            # and dns_check_results so nothing stays stuck in 'pending'. Nothing
-            # to restore when the reset itself did not happen.
-            if previous
-              model.update_for_domain_if(@custom_domain.identifier, ->(_stored) { true }) do |stored|
-                previous.each { |name, value| stored.public_send(:"#{name}=", value) }
-                stored.updated = Familia.now.to_i
-              end
-              @mailer_config.dns_check_results.value = previous_dns_check_results
-            end
+            # Rollback so nothing stays stuck in 'pending'. Nothing to restore
+            # when the reset itself did not happen.
+            #
+            # The enqueues run in order, so the DNS job can be live (or, with
+            # jobs disabled, already complete: the publisher runs it inline)
+            # when the second enqueue fails. A job's fields are restored only
+            # while its status still reads QUEUED, which means it never
+            # started; a job that moved on owns its fields. Restoring the
+            # never-enqueued job's prior terminal state is what lets the
+            # record settle: derive_verification_status runs here for the
+            # case where the other job already completed and found this one
+            # QUEUED. verification_status goes back only when neither job
+            # started; otherwise the live job, or that derivation, owns it.
+            # A record deleted meanwhile is left deleted (update_for_domain_if).
+            rollback_reset(model, previous, previous_dns_check_results) if previous
             raise
           ensure
             lock&.release(lock_token) if lock_token
@@ -172,6 +181,39 @@ module DomainsAPI
 
         def form_fields
           { domain_id: @domain_id }
+        end
+
+        private
+
+        # Restores, per job, the fields the reset replaced (see process).
+        #
+        # @param model [Class] MailerConfig
+        # @param previous [Hash{Symbol => Object}] the replaced values
+        # @param previous_dns_check_results [Object, nil] the replaced jsonkey value
+        # @return [void]
+        def rollback_reset(model, previous, previous_dns_check_results)
+          queued      = Onetime::Jobs::Workers::JobLifecycle::QUEUED
+          not_started = ->(stored, status_field) { stored.public_send(status_field) == queued }
+          any_queued  = ->(stored) { JOB_RESET_FIELDS.keys.any? { |status_field| not_started.call(stored, status_field) } }
+
+          stored, untouched = model.update_for_domain_if(@custom_domain.identifier, any_queued) do |stored|
+            untouched = JOB_RESET_FIELDS.keys.select { |status_field| not_started.call(stored, status_field) }
+            untouched.each do |status_field|
+              JOB_RESET_FIELDS[status_field].each { |name| stored.public_send(:"#{name}=", previous[name]) }
+            end
+
+            if untouched.size == JOB_RESET_FIELDS.size
+              stored.verification_status = previous[:verification_status]
+            else
+              stored.derive_verification_status
+            end
+            stored.updated = Familia.now.to_i
+            untouched
+          end
+          return unless stored
+
+          # The jsonkey (its own Redis key) belongs to the DNS job's group.
+          @mailer_config.dns_check_results.value = previous_dns_check_results if untouched.include?(:dns_check_status)
         end
       end
     end
