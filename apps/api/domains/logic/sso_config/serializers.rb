@@ -73,9 +73,23 @@ module DomainsAPI
             allowed_domains: config.allowed_domains,
             requires_domain_filter: config.requires_domain_filter?,
             idp_controls_access: config.idp_controls_access?,
+            last_sign_in: serialize_last_sign_in(config.domain_id),
             created_at: config.created.to_i,
             updated_at: config.updated.to_i,
           }
+        end
+
+        # The last tenant sign-in outcome recorded for the domain
+        # (CustomDomain::SsoSigninOutcome#to_api_h): result, when, and for a
+        # failure the stage and bounded code. nil when none is recorded or
+        # the record cannot be read. Runtime state the hooks write, never part
+        # of the configuration, so a save never changes it and a read never
+        # writes it.
+        def serialize_last_sign_in(domain_id)
+          Onetime::CustomDomain::SsoSigninOutcome.find_by_domain_id(domain_id)&.to_api_h
+        rescue StandardError => ex
+          OT.le "[SsoConfig::Serializers] last_sign_in unreadable for domain #{domain_id.to_s[0, 12]}: #{ex.class.name}"
+          nil
         end
 
         # nil when unset or blank: the frontend contract is "nil = gem

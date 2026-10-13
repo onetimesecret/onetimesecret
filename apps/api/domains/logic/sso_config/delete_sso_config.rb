@@ -53,6 +53,15 @@ module DomainsAPI
           # Delete the config atomically
           deleted = Onetime::CustomDomain::SsoConfig.delete_for_domain!(@custom_domain.identifier)
 
+          # The recorded sign-in outcome describes the configuration that just
+          # went away; a replacement starts with none. Best-effort: a stale
+          # outcome is not worth failing the delete over.
+          begin
+            Onetime::CustomDomain::SsoSigninOutcome.delete_for_domain!(@custom_domain.identifier)
+          rescue StandardError => ex
+            OT.le "[DeleteSsoConfig] sign-in outcome cleanup failed for domain #{@domain_id}: #{ex.class.name}"
+          end
+
           if deleted
             log_sso_change_event(
               event: :domain_sso_config_deleted,

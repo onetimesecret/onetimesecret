@@ -18,6 +18,7 @@
 require 'cgi'
 
 require 'auth/account_statuses'
+require 'onetime/models/custom_domain/sso_signin_outcome'
 require_relative 'omniauth_connect'
 
 module Auth::Config::Hooks
@@ -535,6 +536,7 @@ module Auth::Config::Hooks
           end
 
           # Mirrors web.login.errors.tenant_sso_link_unavailable.
+          record_tenant_sso_failure('account', 'tenant_sso_link_unavailable') if respond_to?(:record_tenant_sso_failure)
           set_redirect_error_flash 'This identity is not connected to an account on this domain. ' \
                                    'If you can sign in on this domain with an account that belongs to ' \
                                    'this organization, connect it from Connected identities. Otherwise, ' \
@@ -731,6 +733,7 @@ module Auth::Config::Hooks
             level: :warn,
             provider: omniauth_provider,
           )
+          record_tenant_sso_failure('account', 'missing_email') if respond_to?(:record_tenant_sso_failure)
           redirect '/signin?auth_error=missing_email'
         end
 
@@ -756,6 +759,7 @@ module Auth::Config::Hooks
             email: OT::Utils.obscure_email(email),
             provider: omniauth_provider,
           )
+          record_tenant_sso_failure('account', 'invalid_email') if respond_to?(:record_tenant_sso_failure)
           redirect '/signin?auth_error=invalid_email'
         end
 
@@ -778,6 +782,7 @@ module Auth::Config::Hooks
             provider: omniauth_provider,
           )
           # Generic error code — don't reveal which domains are allowed.
+          record_tenant_sso_failure('account', 'domain_not_allowed') if respond_to?(:record_tenant_sso_failure)
           redirect '/signin?auth_error=domain_not_allowed'
         end
 
@@ -933,6 +938,12 @@ module Auth::Config::Hooks
             if customer.organization_instances.to_a.empty?
               OT.le '[omniauth] CRITICAL: Tenant SSO join produced no org membership ' \
                     "for #{customer.external_identifier} (domain_id=#{domain_id}). Orphaned account — admin must investigate."
+              Onetime::CustomDomain::SsoSigninOutcome.record_failure!(
+                domain_id,
+                stage: 'account',
+                code: 'org_join_failed',
+                provider_type: request.env['onetime.tenant_sso_config']&.provider_type,
+              )
               redirect '/signin?auth_error=org_join_failed'
             end
           else
@@ -1006,6 +1017,13 @@ module Auth::Config::Hooks
           path: request.path,
           ip: request.ip,
         )
+
+        # A TENANT flow's failure is recorded against its domain for the
+        # owner's settings page; the code is the error TYPE only (bounded and
+        # sanitized by the model), never the message. The method is defined
+        # by OmniAuthTenant.configure, so it is guarded like every optional
+        # Rodauth method.
+        record_tenant_sso_failure('provider', error_type) if respond_to?(:record_tenant_sso_failure)
 
         redirect omniauth_failure_redirect
       end

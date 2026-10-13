@@ -541,6 +541,7 @@ module Onetime
         Onetime::CustomDomain::SigninConfig,
         Onetime::CustomDomain::SignupConfig,
         Onetime::CustomDomain::SsoConfig,
+        Onetime::CustomDomain::SsoSigninOutcome,
         Onetime::CustomDomain::MailerConfig,
         Onetime::CustomDomain::IncomingConfig,
       ]

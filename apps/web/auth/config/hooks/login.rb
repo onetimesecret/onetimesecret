@@ -7,6 +7,7 @@
 # (mirroring account.rb) so the constant is loaded when the hook fires rather
 # than relying on ambient load order.
 require 'onetime/colonel_signin_failure'
+require 'onetime/models/custom_domain/sso_signin_outcome'
 
 module Auth::Config::Hooks
   module Login
@@ -175,6 +176,23 @@ module Auth::Config::Hooks
               ).call
             end
           end
+        end
+
+        # A completed TENANT SSO sign-in is recorded for the domain's settings
+        # page (CustomDomain::SsoSigninOutcome, `last_sign_in`). Keyed on the
+        # callback request's injected record, not the consumable domain id
+        # above: omniauth_setup set it by host, and before_omniauth_callback_
+        # route refused (403) every flow whose pending domain did not match
+        # that host, so a login that reaches here with it set is a validated
+        # tenant sign-in whether the account was just created or existed.
+        # Platform flows, including platform fallback on a tenant host, never
+        # set it. Best-effort: the model rescues its own writes.
+        tenant_sso_config = via_omniauth ? request.env['onetime.tenant_sso_config'] : nil
+        if tenant_sso_config
+          Onetime::CustomDomain::SsoSigninOutcome.record_success!(
+            tenant_sso_config.domain_id,
+            provider_type: tenant_sso_config.provider_type,
+          )
         end
 
         # MFA detection: run when ANY second-factor feature is loaded. The OTP
