@@ -48,12 +48,17 @@ base.dockerfile          Dockerfile                    lite.dockerfile
 ### Path 1: GitHub Actions (Docker Bake)
 
 ```
-.github/workflows/build-and-publish-oci-images.yml
-  → docker/bake-action@v7
-    → reads docker/bake.hcl
-      → resolves target DAG (base → main/s6, main → lite)
-      → pushes to GHCR + DockerHub (or custom registry)
+v* tag push → .github/workflows/ci.yml
+  → test jobs → ci-verdict
+    → publish-oci (only when ci-verdict succeeded)
+      → .github/workflows/build-and-publish-oci-images.yml (workflow_call)
+        → docker/bake-action@v7
+          → reads docker/bake.hcl
+            → resolves target DAG (base → main/s6, main → lite)
+            → pushes to GHCR + DockerHub (or custom registry)
 ```
+
+The image workflow has no tag trigger of its own. A `v*` tag reaches it only through `publish-oci` in `ci.yml`, which runs after `ci-verdict` succeeds for the tagged commit, so a tag whose CI fails publishes no image. The nightly schedule and manual dispatch start the image workflow directly and are not gated on CI.
 
 Single job replaced three parallel jobs. The old composite action (`.github/actions/build-and-publish-oci-image/`) was deleted — fully absorbed by bake.hcl.
 

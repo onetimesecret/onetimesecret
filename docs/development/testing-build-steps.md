@@ -107,6 +107,8 @@ gh workflow run build-and-publish-oci-images.yml \
 ```
 
 - Replace `<branch>` with the branch to build.
+- Dispatch is not gated on CI. Release tags publish through `ci.yml`
+  instead (see "Inspecting CI runs" below).
 - `registry_target=custom` avoids publishing to public registries
 - The pre-build audit step prints the resolved bake config
 - The post-build audit step pulls the image via podman and checks the version
@@ -136,8 +138,18 @@ Builds the image, starts it with a Valkey service container, runs health checks,
 
 ### View recent build runs
 
+Nightly and dispatched builds are runs of the image workflow:
+
 ```bash
 gh run list --workflow=build-and-publish-oci-images.yml --limit 5
+```
+
+A release tag's build is a job inside that tag's CI run: `ci.yml`'s
+`publish-oci` calls the image workflow after `ci-verdict` succeeds, and
+is skipped when it does not. Find the run by tag name:
+
+```bash
+gh run list --workflow=ci.yml --event=push --branch v1.0.0 --limit 5
 ```
 
 ### Check workflow dispatch inputs
@@ -170,12 +182,18 @@ gh run watch "$RUN_ID"
 gh run rerun "$RUN_ID" --failed
 ```
 
+On a tag's CI run this also re-runs the jobs that depend on the failed
+ones, `ci-verdict` and `publish-oci` among them, so the image still
+waits for a passing verdict.
+
 ---
 
 ## Version pipeline flow
 
 ```
 git tag v1.0.0
+    ↓
+ci.yml: test jobs → ci-verdict → publish-oci (skipped unless ci-verdict succeeded)
     ↓
 workflow: update-version.sh (patches package.json on runner)
     ↓
@@ -200,8 +218,9 @@ final stage: COPY --from=build package.json (patched version)
 | `.github/scripts/update-version.sh` | Host-side version injection (jq) |
 | `Dockerfile` (build stage) | In-container VERSION fallback + gate |
 | `docker/bake.hcl` | Build orchestration, `_common` target passes VERSION arg |
-| `.github/workflows/build-and-publish-oci-images.yml` | Release build + audit steps |
+| `.github/workflows/build-and-publish-oci-images.yml` | Image build + audit steps (tags via `ci.yml`, nightly, dispatch) |
 | `.github/workflows/ci.yml` (`check-oci-image`) | PR container validation |
+| `.github/workflows/ci.yml` (`publish-oci`) | Calls the image build for a `v*` tag after `ci-verdict` succeeds |
 | `.github/workflows/debug-oci.yml` | Interactive debugging |
 | `.github/actions/test-docker-container/` | Reusable container test harness |
 | `.github/actions/generate-test-secrets/` | Ephemeral secret generation |
