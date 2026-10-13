@@ -311,7 +311,7 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
       let(:tenant_id) { 'contoso.onmicrosoft.com' }
 
       it 'fails with a tenant_id error and skips discovery and credential without touching the network' do
-        probe_stub = stub_request(:post, /login\.microsoftonline\.com/)
+        probe_stub = stub_request(:post, %r{\Ahttps://login\.microsoftonline\.com/})
         allow(logic).to receive(:discovery_fetcher).and_return(discovery_fetcher)
         allow(discovery_fetcher).to receive(:fetch)
 
@@ -520,7 +520,7 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
     end
 
     it 'runs discovery from the stored issuer and reports the credential check as unsupported' do
-      token_stub = stub_request(:post, /login\.microsoftonline\.com/)
+      token_stub = stub_request(:post, %r{\Ahttps://login\.microsoftonline\.com/})
 
       result = run
 

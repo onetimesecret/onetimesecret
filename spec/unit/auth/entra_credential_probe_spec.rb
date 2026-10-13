@@ -173,7 +173,7 @@ RSpec.describe Onetime::SsoProvider::EntraCredentialProbe do
 
   describe 'tenant_id guard' do
     it 'fails with invalid_tenant_id and never builds a request for a tenant_id outside the UUID shape' do
-      stub = stub_request(:post, /login\.microsoftonline\.com/)
+      stub = stub_request(:post, %r{\Ahttps://login\.microsoftonline\.com/})
 
       result = probe(tenant_id: 'common/../evil')
 
