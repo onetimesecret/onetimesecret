@@ -11,10 +11,12 @@
 # to pass a job skipped for a path the PR does not touch and to fail one
 # skipped because a prerequisite failed or the run was cancelled. Each case
 # below pins one side of that line, plus the two premises the line rests on:
-# change detection succeeded, and [ci-skip] was not used. The last case
+# change detection succeeded, and [ci-skip] was not used. A later case
 # checks that every test job in ci.yml has a row in the script, so a job
 # added to the workflow without a verdict row fails here instead of merging
-# unchecked.
+# unchecked. The last cases pin the release gate built on the verdict: a v*
+# tag reaches build-and-publish-oci-images.yml only through ci.yml's
+# publish-oci job, which runs only after ci-verdict succeeded.
 set -uo pipefail
 
 TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -24,6 +26,7 @@ source "${TEST_DIR}/lib/assert.sh"
 
 SCRIPT="${REPO_ROOT}/.github/scripts/ci-verdict.sh"
 WORKFLOW="${REPO_ROOT}/.github/workflows/ci.yml"
+OCI_WORKFLOW="${REPO_ROOT}/.github/workflows/build-and-publish-oci-images.yml"
 
 printf '%s\n' "$ASSERT_SUITE"
 
@@ -309,10 +312,11 @@ assert_contains "CV-AUTH-06: unset auth diagnostic" \
 # --- every test job in ci.yml has a row ---------------------------------------
 printf '\nci.yml and the script agree on the job list\n'
 protects "a test job added to ci.yml without a verdict row would merge unchecked"
-# Job ids are the two-space-indented keys under jobs:. The verdict itself and
-# the two reporting jobs are the only ones a verdict row must not exist for.
+# Job ids are the two-space-indented keys under jobs:. The verdict itself,
+# the two reporting jobs and publish-oci (it runs after the verdict and tests
+# nothing) are the only ones a verdict row must not exist for.
 workflow_jobs="$(awk '/^jobs:$/{f=1;next} f&&/^  [a-z0-9-]+:$/{print}' "$WORKFLOW" | tr -d ' :' \
-  | grep -vxE 'changes|ci-verdict|aggregate-test-results|ci-metrics' | sort)"
+  | grep -vxE 'changes|ci-verdict|aggregate-test-results|ci-metrics|publish-oci' | sort)"
 script_jobs="$(grep -E '^expect [a-z0-9-]+ ' "$SCRIPT" | awk '{print $2}' | sort)"
 needs_jobs="$(awk '/^  ci-verdict:$/{f=1} f&&/^    needs:$/{n=1;next} n&&/^      - /{print $2;next} n{exit}' "$WORKFLOW" \
   | grep -vx changes | sort)"
@@ -324,5 +328,57 @@ protects "every row's result reaches the script: a RESULT_ env entry per needed 
 env_jobs="$(awk '/^  ci-verdict:$/{f=1;next} f&&/^  [a-z0-9-]+:$/{exit} f&&/RESULT_[A-Z0-9_]+:/{match($0,/RESULT_[A-Z0-9_]+/); print tolower(substr($0,RSTART+7,RLENGTH-7))}' "$WORKFLOW" \
   | tr '_' '-' | sort)"
 assert_eq "RESULT_ env entries match ci.yml jobs" "$workflow_jobs" "$env_jobs"
+
+# --- image publication for a v* tag waits for the verdict ---------------------
+printf '\nimage publication for a v* tag is gated on ci-verdict\n'
+# The publish-oci job: the lines between its key and the next job key.
+publish_job="$(awk '/^  publish-oci:$/{f=1;next} f&&/^  [a-z0-9-]+:$/{exit} f' "$WORKFLOW")"
+# Its `if:` folded onto one line: the key's line and its continuation lines.
+publish_if="$(printf '%s\n' "$publish_job" \
+  | awk '/^    if:/{f=1;print;next} f&&/^    [a-z-]+:/{exit} f' | tr -s ' \n' '  ')"
+assert_at_least "publish-oci job extracted" 5 "$(printf '%s\n' "$publish_job" | grep -c .)" "lines in the publish-oci job"
+
+protects "a v* tag publishes images only after ci-verdict succeeded for that commit"
+assert_contains "publish-oci needs ci-verdict" "    needs: [ci-verdict]" "$publish_job"
+assert_contains "publish-oci calls the OCI workflow" \
+  "    uses: ./.github/workflows/build-and-publish-oci-images.yml" "$publish_job"
+assert_contains "publish-oci requires a successful verdict" "needs.ci-verdict.result == 'success'" "$publish_if"
+assert_contains "publish-oci runs on push events only" "github.event_name == 'push'" "$publish_if"
+assert_contains "publish-oci runs on v* tags only" "startsWith(github.ref, 'refs/tags/v')" "$publish_if"
+
+protects "without a status function the if is success() && ..., which skips the job when any job upstream of the verdict was skipped (hygiene, on every push); always() would start a publish in a cancelled run"
+assert_contains "publish-oci if carries !cancelled()" '!cancelled()' "$publish_if"
+assert_not_contains "publish-oci if does not use always()" 'always()' "$publish_if"
+
+protects "a called workflow can only narrow the caller's token: a permission the OCI workflow requests and publish-oci does not grant fails every ci.yml run at startup"
+# Every `<scope>: <level>` under any permissions: key in the OCI workflow, top
+# level or job level.
+oci_perms="$(awk '
+  match($0, /^ *permissions:$/) { f = 1; indent = RLENGTH - 12; next }
+  f { match($0, /^ */); if (RLENGTH <= indent || $0 !~ /^ +[a-z-]+: [a-z]+ *$/) f = 0 }
+  f { sub(/^ +/, ""); sub(/ +$/, ""); print }
+' "$OCI_WORKFLOW" | sort -u)"
+publish_perms="$(printf '%s\n' "$publish_job" \
+  | awk '/^    permissions:$/{f=1;next} f&&!/^      [a-z-]+: /{exit} f{sub(/^ +/,""); print}')"
+assert_at_least "OCI workflow permissions extracted" 1 "$(printf '%s\n' "$oci_perms" | grep -c .)" "permission scopes"
+while IFS= read -r perm; do
+  [ -n "$perm" ] || continue
+  scope="${perm%%:*}"
+  if [[ "$perm" == *": read" ]] && [[ $'\n'"$publish_perms"$'\n' == *$'\n'"${scope}: write"$'\n'* ]]; then
+    assert_contains "publish-oci grants $perm (as write)" "${scope}: write" "$publish_perms"
+  else
+    assert_contains "publish-oci grants $perm" "$perm" "$publish_perms"
+  fi
+done <<< "$oci_perms"
+
+protects "the OCI workflow takes a v* tag only through publish-oci: a push, release or create trigger there would publish with no verdict"
+oci_triggers="$(awk '/^on:$/{f=1;next} f&&/^[^ #]/{exit} f&&/^  [a-z_]+:/{sub(/:.*/,""); sub(/^ +/,""); print}' "$OCI_WORKFLOW" \
+  | sort | tr '\n' ' ')"
+assert_eq "OCI workflow triggers are workflow_call, schedule and workflow_dispatch" \
+  "schedule workflow_call workflow_dispatch " "$oci_triggers"
+
+protects "ci.yml must still run on a v* tag push, or no release image is published at all"
+ci_push="$(awk '/^on:$/{f=1;next} f&&/^[^ #]/{exit} f&&/^  push:$/{p=1;next} p&&/^  [a-z_]+:/{exit} p' "$WORKFLOW")"
+assert_contains "ci.yml push trigger includes v* tags" "- 'v*'" "$ci_push"
 
 finish
