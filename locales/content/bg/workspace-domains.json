@@ -735,6 +735,14 @@
     "text": "Изпращането на тестовия имейл беше неуспешно",
     "source_hash": "95ce63bc"
   },
+  "web.domains.email.test_email_rate_limited": {
+    "text": "Напоследък бяха изпратени твърде много тестови имейли. Опитайте отново по-късно.",
+    "source_hash": "90b8ca17"
+  },
+  "web.domains.email.test_email_rate_limited_retry": {
+    "text": "Напоследък бяха изпратени твърде много тестови имейли. Опитайте отново след около {minutes} мин.",
+    "source_hash": "218146cc"
+  },
   "web.domains.email.test_email_sent_to": {
     "text": "Изпратено до {email}",
     "source_hash": "8ceb9588"

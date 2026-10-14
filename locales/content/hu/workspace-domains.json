@@ -735,6 +735,14 @@
     "text": "Nem sikerült elküldeni a teszt e-mailt",
     "source_hash": "95ce63bc"
   },
+  "web.domains.email.test_email_rate_limited": {
+    "text": "Az utóbbi időben túl sok teszt e-mailt küldtek. Próbálja újra később.",
+    "source_hash": "90b8ca17"
+  },
+  "web.domains.email.test_email_rate_limited_retry": {
+    "text": "Az utóbbi időben túl sok teszt e-mailt küldtek. Próbálja újra körülbelül {minutes} perc múlva.",
+    "source_hash": "218146cc"
+  },
   "web.domains.email.test_email_sent_to": {
     "text": "Elküldve a következő címre: {email}",
     "source_hash": "8ceb9588"

@@ -999,6 +999,14 @@
     "text": "Test-e-mail verzenden mislukt",
     "source_hash": "95ce63bc"
   },
+  "web.domains.email.test_email_rate_limited": {
+    "text": "Er zijn onlangs te veel test-e-mails verzonden. Probeer het later opnieuw.",
+    "source_hash": "90b8ca17"
+  },
+  "web.domains.email.test_email_rate_limited_retry": {
+    "text": "Er zijn onlangs te veel test-e-mails verzonden. Probeer het over ongeveer {minutes} minuten opnieuw.",
+    "source_hash": "218146cc"
+  },
   "web.domains.email.test_email_sent_to": {
     "text": "Verzonden naar {email}",
     "source_hash": "8ceb9588"

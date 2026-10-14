@@ -735,6 +735,14 @@
     "text": "Preizkusnega e-poštnega sporočila ni bilo mogoče poslati",
     "source_hash": "95ce63bc"
   },
+  "web.domains.email.test_email_rate_limited": {
+    "text": "V zadnjem času je bilo poslanih preveč preizkusnih e-poštnih sporočil. Poskusite znova pozneje.",
+    "source_hash": "90b8ca17"
+  },
+  "web.domains.email.test_email_rate_limited_retry": {
+    "text": "V zadnjem času je bilo poslanih preveč preizkusnih e-poštnih sporočil. Poskusite znova čez približno {minutes} min.",
+    "source_hash": "218146cc"
+  },
   "web.domains.email.test_email_sent_to": {
     "text": "Poslano na {email}",
     "source_hash": "8ceb9588"

@@ -735,6 +735,14 @@
     "text": "שליחת הודעת הבדיקה נכשלה",
     "source_hash": "95ce63bc"
   },
+  "web.domains.email.test_email_rate_limited": {
+    "text": "נשלחו יותר מדי הודעות בדיקה לאחרונה. נסה שוב מאוחר יותר.",
+    "source_hash": "90b8ca17"
+  },
+  "web.domains.email.test_email_rate_limited_retry": {
+    "text": "נשלחו יותר מדי הודעות בדיקה לאחרונה. נסה שוב בעוד כ-{minutes} דקות.",
+    "source_hash": "218146cc"
+  },
   "web.domains.email.test_email_sent_to": {
     "text": "נשלח אל {email}",
     "source_hash": "8ceb9588"

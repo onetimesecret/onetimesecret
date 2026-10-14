@@ -999,6 +999,14 @@
     "text": "Не удалось отправить тестовое письмо",
     "source_hash": "95ce63bc"
   },
+  "web.domains.email.test_email_rate_limited": {
+    "text": "За последнее время было отправлено слишком много тестовых писем. Повторите попытку позже.",
+    "source_hash": "90b8ca17"
+  },
+  "web.domains.email.test_email_rate_limited_retry": {
+    "text": "За последнее время было отправлено слишком много тестовых писем. Повторите попытку примерно через {minutes} мин.",
+    "source_hash": "218146cc"
+  },
   "web.domains.email.test_email_sent_to": {
     "text": "Отправлено на {email}",
     "source_hash": "8ceb9588"

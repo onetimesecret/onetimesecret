@@ -735,6 +735,14 @@
     "text": "No s'ha pogut enviar el correu de prova",
     "source_hash": "95ce63bc"
   },
+  "web.domains.email.test_email_rate_limited": {
+    "text": "S'han enviat massa correus de prova recentment. Torna-ho a provar més tard.",
+    "source_hash": "90b8ca17"
+  },
+  "web.domains.email.test_email_rate_limited_retry": {
+    "text": "S'han enviat massa correus de prova recentment. Torna-ho a provar d'aquí a uns {minutes} minuts.",
+    "source_hash": "218146cc"
+  },
   "web.domains.email.test_email_sent_to": {
     "text": "Enviat a {email}",
     "source_hash": "8ceb9588"

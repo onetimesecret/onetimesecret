@@ -735,6 +735,14 @@
     "text": "Det gick inte att skicka test-e-postmeddelandet",
     "source_hash": "95ce63bc"
   },
+  "web.domains.email.test_email_rate_limited": {
+    "text": "För många test-e-postmeddelanden har skickats nyligen. Försök igen senare.",
+    "source_hash": "90b8ca17"
+  },
+  "web.domains.email.test_email_rate_limited_retry": {
+    "text": "För många test-e-postmeddelanden har skickats nyligen. Försök igen om cirka {minutes} minuter.",
+    "source_hash": "218146cc"
+  },
   "web.domains.email.test_email_sent_to": {
     "text": "Skickat till {email}",
     "source_hash": "8ceb9588"

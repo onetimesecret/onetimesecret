@@ -735,6 +735,14 @@
     "text": "Nie udało się wysłać testowego e-maila",
     "source_hash": "95ce63bc"
   },
+  "web.domains.email.test_email_rate_limited": {
+    "text": "Ostatnio wysłano zbyt wiele testowych e-maili. Spróbuj ponownie później.",
+    "source_hash": "90b8ca17"
+  },
+  "web.domains.email.test_email_rate_limited_retry": {
+    "text": "Ostatnio wysłano zbyt wiele testowych e-maili. Spróbuj ponownie za około {minutes} min.",
+    "source_hash": "218146cc"
+  },
   "web.domains.email.test_email_sent_to": {
     "text": "Wysłano do {email}",
     "source_hash": "8ceb9588"

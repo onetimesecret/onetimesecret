@@ -735,6 +735,14 @@
     "text": "Kunne ikke sende test-e-mail",
     "source_hash": "95ce63bc"
   },
+  "web.domains.email.test_email_rate_limited": {
+    "text": "Der er sendt for mange test-e-mails for nylig. Prøv igen senere.",
+    "source_hash": "90b8ca17"
+  },
+  "web.domains.email.test_email_rate_limited_retry": {
+    "text": "Der er sendt for mange test-e-mails for nylig. Prøv igen om cirka {minutes} minutter.",
+    "source_hash": "218146cc"
+  },
   "web.domains.email.test_email_sent_to": {
     "text": "Sendt til {email}",
     "source_hash": "8ceb9588"

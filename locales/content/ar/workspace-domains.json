@@ -735,6 +735,14 @@
     "text": "فشل إرسال رسالة الاختبار",
     "source_hash": "95ce63bc"
   },
+  "web.domains.email.test_email_rate_limited": {
+    "text": "تم إرسال عدد كبير جداً من رسائل الاختبار مؤخراً. حاول مرة أخرى لاحقاً.",
+    "source_hash": "90b8ca17"
+  },
+  "web.domains.email.test_email_rate_limited_retry": {
+    "text": "تم إرسال عدد كبير جداً من رسائل الاختبار مؤخراً. حاول مرة أخرى بعد نحو {minutes} من الدقائق.",
+    "source_hash": "218146cc"
+  },
   "web.domains.email.test_email_sent_to": {
     "text": "تم الإرسال إلى {email}",
     "source_hash": "8ceb9588"

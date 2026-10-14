@@ -999,6 +999,14 @@
     "text": "테스트 이메일 전송에 실패했습니다",
     "source_hash": "95ce63bc"
   },
+  "web.domains.email.test_email_rate_limited": {
+    "text": "최근에 테스트 이메일이 너무 많이 전송되었습니다. 나중에 다시 시도하세요.",
+    "source_hash": "90b8ca17"
+  },
+  "web.domains.email.test_email_rate_limited_retry": {
+    "text": "최근에 테스트 이메일이 너무 많이 전송되었습니다. 약 {minutes}분 후에 다시 시도하세요.",
+    "source_hash": "218146cc"
+  },
   "web.domains.email.test_email_sent_to": {
     "text": "{email}(으)로 전송됨",
     "source_hash": "8ceb9588"

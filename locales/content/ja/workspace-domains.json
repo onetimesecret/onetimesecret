@@ -999,6 +999,14 @@
     "text": "テストメールの送信に失敗しました",
     "source_hash": "95ce63bc"
   },
+  "web.domains.email.test_email_rate_limited": {
+    "text": "最近送信されたテストメールが多すぎます。しばらくしてからもう一度お試しください。",
+    "source_hash": "90b8ca17"
+  },
+  "web.domains.email.test_email_rate_limited_retry": {
+    "text": "最近送信されたテストメールが多すぎます。約{minutes}分後にもう一度お試しください。",
+    "source_hash": "218146cc"
+  },
   "web.domains.email.test_email_sent_to": {
     "text": "{email}に送信しました",
     "source_hash": "8ceb9588"

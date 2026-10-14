@@ -735,6 +735,14 @@
     "text": "Odeslání testovacího e-mailu se nezdařilo",
     "source_hash": "95ce63bc"
   },
+  "web.domains.email.test_email_rate_limited": {
+    "text": "V poslední době bylo odesláno příliš mnoho testovacích e-mailů. Zkus to znovu později.",
+    "source_hash": "90b8ca17"
+  },
+  "web.domains.email.test_email_rate_limited_retry": {
+    "text": "V poslední době bylo odesláno příliš mnoho testovacích e-mailů. Zkus to znovu přibližně za {minutes} min.",
+    "source_hash": "218146cc"
+  },
   "web.domains.email.test_email_sent_to": {
     "text": "Odesláno na {email}",
     "source_hash": "8ceb9588"

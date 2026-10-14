@@ -999,6 +999,14 @@
     "text": "No se pudo enviar el correo de prueba",
     "source_hash": "95ce63bc"
   },
+  "web.domains.email.test_email_rate_limited": {
+    "text": "Se han enviado demasiados correos de prueba recientemente. Inténtalo de nuevo más tarde.",
+    "source_hash": "90b8ca17"
+  },
+  "web.domains.email.test_email_rate_limited_retry": {
+    "text": "Se han enviado demasiados correos de prueba recientemente. Inténtalo de nuevo en unos {minutes} minutos.",
+    "source_hash": "218146cc"
+  },
   "web.domains.email.test_email_sent_to": {
     "text": "Enviado a {email}",
     "source_hash": "8ceb9588"

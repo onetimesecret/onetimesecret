@@ -735,6 +735,14 @@
     "text": "Falha ao enviar o e-mail de teste",
     "source_hash": "95ce63bc"
   },
+  "web.domains.email.test_email_rate_limited": {
+    "text": "Foram enviados demasiados e-mails de teste recentemente. Tenta novamente mais tarde.",
+    "source_hash": "90b8ca17"
+  },
+  "web.domains.email.test_email_rate_limited_retry": {
+    "text": "Foram enviados demasiados e-mails de teste recentemente. Tenta novamente dentro de cerca de {minutes} minutos.",
+    "source_hash": "218146cc"
+  },
   "web.domains.email.test_email_sent_to": {
     "text": "Enviado para {email}",
     "source_hash": "8ceb9588"

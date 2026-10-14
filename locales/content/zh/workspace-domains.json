@@ -999,6 +999,14 @@
     "text": "测试邮件发送失败",
     "source_hash": "95ce63bc"
   },
+  "web.domains.email.test_email_rate_limited": {
+    "text": "近期发送的测试邮件过多。请稍后重试。",
+    "source_hash": "90b8ca17"
+  },
+  "web.domains.email.test_email_rate_limited_retry": {
+    "text": "近期发送的测试邮件过多。请在约 {minutes} 分钟后重试。",
+    "source_hash": "218146cc"
+  },
   "web.domains.email.test_email_sent_to": {
     "text": "已发送至 {email}",
     "source_hash": "8ceb9588"

@@ -735,6 +735,14 @@
     "text": "Test e-postası gönderilemedi",
     "source_hash": "95ce63bc"
   },
+  "web.domains.email.test_email_rate_limited": {
+    "text": "Son zamanlarda çok fazla test e-postası gönderildi. Daha sonra tekrar deneyin.",
+    "source_hash": "90b8ca17"
+  },
+  "web.domains.email.test_email_rate_limited_retry": {
+    "text": "Son zamanlarda çok fazla test e-postası gönderildi. Yaklaşık {minutes} dakika sonra tekrar deneyin.",
+    "source_hash": "218146cc"
+  },
   "web.domains.email.test_email_sent_to": {
     "text": "{email} adresine gönderildi",
     "source_hash": "8ceb9588"

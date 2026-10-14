@@ -735,6 +735,14 @@
     "text": "Не вдалося надіслати тестовий лист",
     "source_hash": "95ce63bc"
   },
+  "web.domains.email.test_email_rate_limited": {
+    "text": "Останнім часом надіслано занадто багато тестових листів. Спробуйте ще раз пізніше.",
+    "source_hash": "90b8ca17"
+  },
+  "web.domains.email.test_email_rate_limited_retry": {
+    "text": "Останнім часом надіслано занадто багато тестових листів. Спробуйте ще раз приблизно через {minutes} хв.",
+    "source_hash": "218146cc"
+  },
   "web.domains.email.test_email_sent_to": {
     "text": "Надіслано на {email}",
     "source_hash": "8ceb9588"

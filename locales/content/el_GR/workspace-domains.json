@@ -735,6 +735,14 @@
     "text": "Αποτυχία αποστολής δοκιμαστικού email",
     "source_hash": "95ce63bc"
   },
+  "web.domains.email.test_email_rate_limited": {
+    "text": "Στάλθηκαν πάρα πολλά δοκιμαστικά email πρόσφατα. Δοκιμάστε ξανά αργότερα.",
+    "source_hash": "90b8ca17"
+  },
+  "web.domains.email.test_email_rate_limited_retry": {
+    "text": "Στάλθηκαν πάρα πολλά δοκιμαστικά email πρόσφατα. Δοκιμάστε ξανά σε περίπου {minutes} λεπτά.",
+    "source_hash": "218146cc"
+  },
   "web.domains.email.test_email_sent_to": {
     "text": "Στάλθηκε σε {email}",
     "source_hash": "8ceb9588"

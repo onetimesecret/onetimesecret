@@ -735,6 +735,14 @@
     "text": "I rahua te tuku i te īmēra whakamātautau",
     "source_hash": "95ce63bc"
   },
+  "web.domains.email.test_email_rate_limited": {
+    "text": "He maha rawa ngā īmēra whakamātautau kua tukuna i nā tata nei. Ngana anō ā muri ake.",
+    "source_hash": "90b8ca17"
+  },
+  "web.domains.email.test_email_rate_limited_retry": {
+    "text": "He maha rawa ngā īmēra whakamātautau kua tukuna i nā tata nei. Ngana anō ā te {minutes} meneti pea.",
+    "source_hash": "218146cc"
+  },
   "web.domains.email.test_email_sent_to": {
     "text": "Kua tukuna ki a {email}",
     "source_hash": "8ceb9588"

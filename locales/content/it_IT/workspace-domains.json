@@ -735,6 +735,14 @@
     "text": "Invio dell'email di prova non riuscito",
     "source_hash": "95ce63bc"
   },
+  "web.domains.email.test_email_rate_limited": {
+    "text": "Sono state inviate troppe email di prova di recente. Riprova più tardi.",
+    "source_hash": "90b8ca17"
+  },
+  "web.domains.email.test_email_rate_limited_retry": {
+    "text": "Sono state inviate troppe email di prova di recente. Riprova tra circa {minutes} minuti.",
+    "source_hash": "218146cc"
+  },
   "web.domains.email.test_email_sent_to": {
     "text": "Inviata a {email}",
     "source_hash": "8ceb9588"

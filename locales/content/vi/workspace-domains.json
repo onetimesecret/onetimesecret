@@ -735,6 +735,14 @@
     "text": "Không thể gửi email kiểm tra",
     "source_hash": "95ce63bc"
   },
+  "web.domains.email.test_email_rate_limited": {
+    "text": "Đã gửi quá nhiều email kiểm tra trong thời gian gần đây. Hãy thử lại sau.",
+    "source_hash": "90b8ca17"
+  },
+  "web.domains.email.test_email_rate_limited_retry": {
+    "text": "Đã gửi quá nhiều email kiểm tra trong thời gian gần đây. Hãy thử lại sau khoảng {minutes} phút.",
+    "source_hash": "218146cc"
+  },
   "web.domains.email.test_email_sent_to": {
     "text": "Đã gửi đến {email}",
     "source_hash": "8ceb9588"
