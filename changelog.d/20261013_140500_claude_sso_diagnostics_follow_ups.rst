@@ -4,7 +4,7 @@ Added
 -----
 
 - Every run of "Check saved configuration" on a domain's SSO settings is
-  recorded in the operator audit trail (``sso.diagnostics_run``): who ran
+  recorded in the security audit trail (``sso.diagnostics_run``): who ran
   it, on which domain, the verdict, and each check's status and error
   code. The entry never includes the client secret, a token or the
   identity provider's message.

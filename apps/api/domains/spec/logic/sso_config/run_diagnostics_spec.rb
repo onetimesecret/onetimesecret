@@ -68,15 +68,22 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
   # Everything OT logs during a run, for the "never leaks" assertions.
   let(:logged) { [] }
 
-  # Every audit event a run records (kwargs), for the audit-trail and
-  # "never leaks" assertions. Stubbed, so no run writes the lane's trail.
+  # Every audit event a run records: the kwargs handed to record_security,
+  # and the event the real build_event makes of them (redaction applied),
+  # which is what the trail stores. Stubbed at the write, so no run writes
+  # the lane's trail.
   let(:audited) { [] }
+  let(:stored) { [] }
 
   before do
     %i[info ld le li].each do |level|
       allow(OT).to receive(level) { |*args| logged << args.inspect }
     end
-    allow(Onetime::ColonelAuditEvent).to receive(:record) { |**kwargs| audited << kwargs }
+    allow(Onetime::ColonelAuditEvent).to receive(:record)
+    allow(Onetime::ColonelAuditEvent).to receive(:record_security) do |**kwargs|
+      audited << kwargs
+      stored << Onetime::ColonelAuditEvent.send(:build_event, **kwargs)
+    end
 
     allow(logic).to receive(:authorize_domain_sso!) do
       logic.instance_variable_set(:@custom_domain, custom_domain)
@@ -142,7 +149,7 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
   end
 
   def expect_no_leak(result)
-    everything = [result.inspect, *logged, *audited.map(&:inspect)].join("\n")
+    everything = [result.inspect, *logged, *audited.map(&:inspect), *stored.map(&:to_json)].join("\n")
     expect(everything).not_to include(secret)
     expect(everything).not_to include('private-access-token')
     expect(everything).not_to include('private description')
@@ -279,68 +286,84 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
   end
 
   describe 'audit trail (sso.diagnostics_run)' do
-    it 'records one operator-trail event per completed run with the verdict and per-check statuses' do
+    # The stored detail, as the trail keeps it: string keys, redacted.
+    def stored_detail
+      stored.first['detail']
+    end
+
+    def stored_check(name)
+      stored_detail['checks'].find { it['check'] == name }
+    end
+
+    it 'records one security-trail event per completed run, never the operator trail' do
       stub_discovery_ok
       accept_credentials
 
       result = run
 
       expect(audited.size).to eq(1)
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
       expect(audited.first).to include(
         actor: owner,
         verb: 'sso.diagnostics_run',
         target: 'domain123',
         result: :success,
       )
-      expect(audited.first[:detail]).to include(
-        display_domain: 'example.com',
-        provider_type: 'entra_id',
-        overall: 'passed',
-        configuration_revision: '1760000000',
-        checks: { 'stored_configuration' => 'passed', 'discovery' => 'passed', 'credential' => 'passed' },
+      expect(stored.first).to include('actor' => 'ext-owner123', 'target' => 'domain123', 'result' => 'success')
+      expect(stored_detail).to include(
+        'display_domain' => 'example.com',
+        'provider_type' => 'entra_id',
+        'overall' => 'passed',
+        'checked_at' => result[:checked_at],
+        'configuration_revision' => '1760000000',
+        'checks' => [
+          { 'check' => 'stored_configuration', 'status' => 'passed' },
+          { 'check' => 'discovery', 'status' => 'passed' },
+          { 'check' => 'credential', 'status' => 'passed' },
+        ],
       )
-      expect(audited.first[:detail][:checked_at]).to eq(result[:checked_at])
-      expect(audited.first[:detail]).not_to include(:error_codes, :aadsts_code, :credential_shape)
     end
 
-    it 'records a failed verdict as result: :failure with the bare error codes and AADSTS code' do
+    it 'stores a failed verdict as result failure with the bare error and AADSTS codes, none redacted' do
       stub_discovery_ok
       refuse_credentials('AADSTS7000215')
 
       result = run
 
       expect(result[:overall]).to eq('failed')
-      expect(audited.first).to include(verb: 'sso.diagnostics_run', result: :failure)
-      expect(audited.first[:detail]).to include(
-        overall: 'failed',
-        error_codes: { 'credential' => 'invalid_client_secret' },
-        aadsts_code: 'AADSTS7000215',
+      expect(stored.first).to include('verb' => 'sso.diagnostics_run', 'result' => 'failure')
+      expect(stored_detail['overall']).to eq('failed')
+      expect(stored_check('credential')).to eq(
+        'check' => 'credential', 'status' => 'failed',
+        'error_code' => 'invalid_client_secret', 'aadsts_code' => 'AADSTS7000215'
       )
+      expect(stored.first.to_json).not_to include(Onetime::ColonelAuditEvent::REDACTED)
       expect_no_leak(result)
     end
 
-    it 'records an inconclusive verdict as result: :success with overall in the detail' do
+    it 'stores an inconclusive verdict as result success with overall in the detail' do
       stub_discovery_ok
       stub_request(:post, token_url).to_timeout
 
       result = run
 
       expect(result[:overall]).to eq('inconclusive')
-      expect(audited.first).to include(result: :success)
-      expect(audited.first[:detail]).to include(overall: 'inconclusive', error_codes: { 'credential' => 'timeout' })
+      expect(stored.first['result']).to eq('success')
+      expect(stored_detail['overall']).to eq('inconclusive')
+      expect(stored_check('credential')).to include('status' => 'inconclusive', 'error_code' => 'timeout')
     end
 
     context 'when the stored secret has the shape of an Entra Secret ID' do
       let(:secret) { 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee' }
 
-      it 'flags it under a key the trail redaction pass keeps (no /secret/ key)' do
+      it 'keeps the shape flag through the trail redaction pass' do
         stub_discovery_ok
         refuse_credentials('AADSTS7000215')
 
         run
 
-        expect(audited.first[:detail]).to include(credential_shape: 'uuid')
-        expect(audited.first[:detail].keys.map(&:to_s)).not_to include(match(/secret/))
+        expect(stored_check('credential')).to include('shape' => 'uuid')
+        expect(stored.first.to_json).not_to include(Onetime::ColonelAuditEvent::REDACTED)
       end
     end
 
@@ -350,7 +373,8 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
 
       run
 
-      expect(audited.first.inspect).not_to include('rejected the saved client secret')
+      expect(stored.size).to eq(1)
+      expect(stored.first.to_json).not_to include('rejected the saved client secret')
     end
 
     it 'does not record when the run is refused before any check' do

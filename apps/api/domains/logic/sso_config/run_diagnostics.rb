@@ -61,17 +61,18 @@ module DomainsAPI
       # retry_after and a Retry-After header, and no check runs.
       #
       # Every completed run writes one `sso.diagnostics_run` event to the
-      # OPERATOR audit trail (Onetime::ColonelAuditEvent.record): the acting
-      # customer, the domain, the overall verdict as the result, and the
-      # per-check statuses, bare error codes and configuration revision in
-      # the detail. A run is an authenticated owner's action that sends the
-      # stored secret to the identity provider — an effect outside this
-      # system — so it is recorded like `domain_sender.test_email_sent` and
-      # `organization.investigate`, not as security telemetry; the
-      # per-customer cap bounds the write rate. The event never carries a
-      # message, the secret, a token or Entra's error_description. The
-      # write is best-effort: ColonelAuditEvent.record swallows its own
-      # failures, so a broken audit write never fails the run.
+      # SECURITY audit trail (Onetime::ColonelAuditEvent.record_security):
+      # the acting customer, the domain, the overall verdict as the result,
+      # and the configuration revision and each check's status and bare
+      # codes in the detail. A run is a customer's self-service action, so
+      # it stays out of the operator trail (`events`), whose count cap with
+      # no TTL is reserved for operator activity; a per-writer rate limit
+      # does not protect that budget (ColonelAuditEvent's write-frequency
+      # invariant). Self-service account purge records the same way. The
+      # event never carries a message, the secret, a token or Entra's
+      # error_description. The write is best-effort: record_security
+      # swallows its own failures, so a broken audit write never fails the
+      # run.
       #
       class RunDiagnostics < Base
         include DiscoveryCheck
@@ -180,21 +181,19 @@ module DomainsAPI
         # Audit
         # ──────────────────────────────────────────────────────────────────────────
 
-        # One operator-trail event per completed run. Statuses and bare codes
-        # only: the check messages are not copied (the discovery ones are
-        # built from the fetch), and nothing here can hold the secret, a
-        # token or Entra's error_description because no check stores them.
-        # `credential_shape` is the Secret-ID-shaped-secret flag; it is not
-        # named after the secret because the trail's redaction pass blanks
-        # any key matching /secret/.
+        # One security-trail event per completed run (see the class note for
+        # why not the operator trail). Statuses and bare codes only: the
+        # check messages are not copied (the discovery ones are built from
+        # the fetch), and nothing here can hold the secret, a token or
+        # Entra's error_description because no check stores them.
+        #
+        # The trail's redaction pass blanks every hash KEY matching
+        # ColonelAuditEvent::SENSITIVE_KEY_PATTERN at any depth, and both
+        # `credential` and `secret` match. So each check is an entry with the
+        # check name as a VALUE, and the Secret-ID-shaped flag is `shape`,
+        # not `secret_shape`.
         def record_audit_event
-          credential = @checks.find { it[:check] == 'credential' }&.dig(:details) || {}
-          codes      = @checks.filter_map do |check|
-            code = check.dig(:details, :error_code)
-            [check[:check], code] if code
-          end.to_h
-
-          Onetime::ColonelAuditEvent.record(
+          Onetime::ColonelAuditEvent.record_security(
             actor: cust,
             verb: AUDIT_VERB,
             target: @custom_domain.identifier,
@@ -205,12 +204,22 @@ module DomainsAPI
               overall: @overall,
               checked_at: @checked_at.iso8601,
               configuration_revision: @sso_config.updated.to_s,
-              checks: @checks.to_h { |check| [check[:check], check[:status]] },
-              error_codes: (codes unless codes.empty?),
-              aadsts_code: credential[:aadsts_code],
-              credential_shape: credential[:secret_shape],
+              checks: @checks.map { audit_check_entry(it) },
             }.compact,
           )
+        end
+
+        # @return [Hash] { check:, status: } plus error_code, aadsts_code
+        #   and shape when the check reported them.
+        def audit_check_entry(check)
+          details = check[:details] || {}
+          {
+            check: check[:check],
+            status: check[:status],
+            error_code: details[:error_code],
+            aadsts_code: details[:aadsts_code],
+            shape: details[:secret_shape],
+          }.compact
         end
 
         # ──────────────────────────────────────────────────────────────────────────

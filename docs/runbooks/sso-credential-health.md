@@ -85,10 +85,14 @@ else `passed`; `unsupported` and `skipped` do not count).
 The response never carries the secret, a token, or Entra's
 `error_description` (it holds correlation IDs and the app ID). One log line
 records the domain, provider, overall and per-check statuses, and one
-`sso.diagnostics_run` event goes to the operator audit trail: the acting
-customer, the domain, the overall verdict as the result, and the per-check
-statuses, bare error codes, AADSTS code and configuration revision in the
-detail. Neither carries the secret, a token or a provider message.
+`sso.diagnostics_run` event goes to the security audit trail
+(`record_security`, newest 1,000 for 7 days), not the operator trail: a run
+is a customer's self-service action, and the operator trail's budget is kept
+for operator activity. The event holds the acting customer, the domain, the
+overall verdict as the result, the configuration revision, and one entry per
+check in `checks` with its status and any bare `error_code`, `aadsts_code`
+and `shape` (`uuid` for a Secret-ID-shaped secret). Neither the log line nor
+the event carries the secret, a token or a provider message.
 
 Runs are capped per acting customer (`Onetime::Security::
 SsoDiagnosticsRateLimiter`, `lib/onetime/security/sso_diagnostics_rate_limiter.rb`;
@@ -226,9 +230,8 @@ Nothing in this section exists in the codebase, except where an item says so.
    token, AADSTS code, or local failure class), and a detail hash with the
    UTC time and the probe identifier. Never the credential, the token, or the
    raw error. Check saved configuration (item 1) writes `sso.diagnostics_run`
-   to the operator trail (an authenticated owner's action with an effect
-   outside this system, recorded like a test email); any background check
-   (item 3) should write the same shape.
+   to the security trail (a customer's self-service action); any background
+   check (item 3) should write the same shape.
 
 Safeguards for any background probe:
 

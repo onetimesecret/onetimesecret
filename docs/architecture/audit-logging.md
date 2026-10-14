@@ -288,7 +288,7 @@ into one chronological feed tagged with a `trail` field.
 | Sub-stream | Written by | Holds | Retention |
 |---|---|---|---|
 | `events` | `record` | operator MUTATIONS | newest 10,000, no TTL |
-| `security_events` | `record_security` | events an **unauthenticated** caller can cause — rate-limiter cap-hits, failed colonel sign-ins (#4339) | newest 1,000, 7 days |
+| `security_events` | `record_security` | events an **unauthenticated** caller can cause — rate-limiter cap-hits, failed colonel sign-ins (#4339) — and customer **self-service** actions (self-service `customer.purge`, `sso.diagnostics_run`) | newest 1,000, 7 days |
 | `access_events` | `record_access` | authenticated **observations** — curated sensitive reads and dry-run previews | newest 5,000, 30 days |
 
 One invariant explains all three (the **write-frequency invariant** on the
@@ -495,7 +495,10 @@ signatures parallel to their applied-event siblings.
 `security_events` started as the home for rate-limiter cap-hits — the three
 throttles that an unauthenticated caller can drive
 (`auth.reset_request_throttled` and its `create_account` / `conceal_secret`
-peers). It now also holds **failed colonel sign-ins**.
+peers). It now also holds **failed colonel sign-ins**, and a customer's
+**self-service actions** (self-service `customer.purge`,
+`sso.diagnostics_run`), which stay out of the operator trail for the same
+reason: any customer can drive them.
 
 | Verb | Emitted by | Trail |
 |---|---|---|
