@@ -1342,5 +1342,109 @@
   "web.organizations.sso.certificate_valid_from": {
     "text": "Potrdilo veljavno od",
     "source_hash": "b13d3f30"
+  },
+  "web.organizations.sso.client_secret_looks_like_secret_id": {
+    "text": "To je videti kot ID skrivnega ključa („Secret ID“). Entra potrebuje vrednost skrivnega ključa („Value“), ki se prikaže samo enkrat ob njegovem ustvarjanju.",
+    "source_hash": "168681cf"
+  },
+  "web.organizations.sso.diagnostics_title": {
+    "text": "Preveri shranjeno konfiguracijo",
+    "source_hash": "5c68357a"
+  },
+  "web.organizations.sso.diagnostics_hint": {
+    "text": "Preveri, kaj je shranjeno za to domeno — pri Microsoft Entra ID vključno s shranjenim skrivnim ključem odjemalca — in o vsaki plasti poroča ločeno. Ne preizkuša celotne prijave.",
+    "source_hash": "42505faa"
+  },
+  "web.organizations.sso.last_sign_in_none": {
+    "text": "Prek te domene še ni bila zabeležena nobena prijava.",
+    "source_hash": "7f9d0f23"
+  },
+  "web.organizations.sso.last_sign_in_succeeded": {
+    "text": "Zadnja prijava prek te domene je bila uspešno zaključena {when}.",
+    "source_hash": "9a125080"
+  },
+  "web.organizations.sso.last_sign_in_failed": {
+    "text": "Zadnja prijava prek te domene ni uspela {when}, {stage} ({code}).",
+    "source_hash": "be81f392"
+  },
+  "web.organizations.sso.last_sign_in_last_success": {
+    "text": "Zadnja uspešno zaključena prijava je bila {when}.",
+    "source_hash": "34e63e57"
+  },
+  "web.organizations.sso.last_sign_in_stage_setup": {
+    "text": "še pred vzpostavitvijo stika s ponudnikom identitete",
+    "source_hash": "5a1b6839"
+  },
+  "web.organizations.sso.last_sign_in_stage_provider": {
+    "text": "pri ponudniku identitete",
+    "source_hash": "40394567"
+  },
+  "web.organizations.sso.last_sign_in_stage_callback": {
+    "text": "ko je ponudnik identitete vrnil uporabnika",
+    "source_hash": "2ab78fc4"
+  },
+  "web.organizations.sso.last_sign_in_stage_account": {
+    "text": "pri ujemanju uporabnika z računom",
+    "source_hash": "1ebbb776"
+  },
+  "web.organizations.sso.diagnostics_save_first": {
+    "text": "Najprej shranite: preveri se shranjena konfiguracija, ne neshranjene spremembe.",
+    "source_hash": "46a51d59"
+  },
+  "web.organizations.sso.diagnostics_button": {
+    "text": "Preveri shranjeno konfiguracijo",
+    "source_hash": "5c68357a"
+  },
+  "web.organizations.sso.diagnostics_running": {
+    "text": "Preverjanje ...",
+    "source_hash": "2e5f79bb"
+  },
+  "web.organizations.sso.diagnostics_checked_at": {
+    "text": "Preverjeno",
+    "source_hash": "0efd92a3"
+  },
+  "web.organizations.sso.diagnostics_check_stored_configuration": {
+    "text": "Shranjena konfiguracija",
+    "source_hash": "a988b06a"
+  },
+  "web.organizations.sso.diagnostics_check_discovery": {
+    "text": "Odkrivanje ponudnika identitete",
+    "source_hash": "b5f90082"
+  },
+  "web.organizations.sso.diagnostics_check_certificate": {
+    "text": "Podpisno potrdilo",
+    "source_hash": "cc00e050"
+  },
+  "web.organizations.sso.diagnostics_check_credential": {
+    "text": "Skrivni ključ odjemalca",
+    "source_hash": "4aded5fa"
+  },
+  "web.organizations.sso.diagnostics_status_passed": {
+    "text": "Uspešno",
+    "source_hash": "436fe71b"
+  },
+  "web.organizations.sso.diagnostics_status_failed": {
+    "text": "Neuspešno",
+    "source_hash": "031a8f0f"
+  },
+  "web.organizations.sso.diagnostics_status_inconclusive": {
+    "text": "Nejasno",
+    "source_hash": "9141583b"
+  },
+  "web.organizations.sso.diagnostics_status_unsupported": {
+    "text": "Ni na voljo",
+    "source_hash": "67a926f7"
+  },
+  "web.organizations.sso.diagnostics_status_skipped": {
+    "text": "Preskočeno",
+    "source_hash": "12698ce1"
+  },
+  "web.organizations.sso.diagnostics_aadsts_code": {
+    "text": "Koda napake Microsoft",
+    "source_hash": "dc8f7060"
+  },
+  "web.organizations.sso.diagnostics_errors": {
+    "text": "Težave",
+    "source_hash": "a7b182f8"
   }
 }

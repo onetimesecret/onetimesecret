@@ -1286,6 +1286,22 @@ features:
       window: <%= ENV['SSO_DIAGNOSTICS_RATE_LIMIT_WINDOW'] || 3600 %>  # Since unreleased
       # Lockout duration in seconds once the cap is hit (1 hour).
       lockout: <%= ENV['SSO_DIAGNOSTICS_RATE_LIMIT_LOCKOUT'] || 3600 %>  # Since unreleased
+    # Per-customer cap on "Send test" for a custom domain's email sender
+    # (POST /api/domains/:extid/email-config/test). Every send is a real
+    # email through the delivery provider and one security audit trail row,
+    # so the volume is bounded per acting customer (keyed on the customer's
+    # public id, kind `sender_test_email`). Enabled by default (protective);
+    # set SENDER_TEST_EMAIL_RATE_LIMIT_ENABLED=false to opt out. See
+    # lib/onetime/security/sender_test_email_rate_limiter.rb.
+    sender_test_email_rate_limit:
+      enabled: <%= ENV['SENDER_TEST_EMAIL_RATE_LIMIT_ENABLED'] != 'false' %>  # Since unreleased
+      # Test sends permitted per window for one customer, across all their
+      # domains.
+      max_per_customer: <%= ENV['SENDER_TEST_EMAIL_RATE_LIMIT_MAX_PER_CUSTOMER'] || 10 %>  # Since unreleased
+      # Counting window in seconds (1 hour).
+      window: <%= ENV['SENDER_TEST_EMAIL_RATE_LIMIT_WINDOW'] || 3600 %>  # Since unreleased
+      # Lockout duration in seconds once the cap is hit (1 hour).
+      lockout: <%= ENV['SENDER_TEST_EMAIL_RATE_LIMIT_LOCKOUT'] || 3600 %>  # Since unreleased
   # Secret Activity Trail (collection)
   # The data-existence axis of the org secret-activity trail: whether events
   # are recorded at all (GDPR data minimization). UI + list API exposure is

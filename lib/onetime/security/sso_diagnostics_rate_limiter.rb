@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require 'onetime/models/colonel_audit_event'
+require 'onetime/security/per_customer_rate_limit'
 
 module Onetime
   module Security
@@ -24,30 +24,18 @@ module Onetime
     #   - a leaked owner session could otherwise use the endpoint as an
     #     unbounded oracle for whether the stored secret is still accepted.
     #
-    # KEYED ON cust.extid, the acting customer's PUBLIC id — the same value
-    # every logic class returns as user_id and the audit trail records as
-    # actor. Per CUSTOMER rather than per domain: the thing being bounded is
-    # one actor's run volume, and a per-domain bucket would hand an owner
-    # with several domains a fresh budget per domain while a second owner of
-    # the same domain would share one. Per customer, one actor has one
-    # budget whatever they point it at. The cap is small (10 per hour) because
-    # a run is deterministic: the second run with the same stored record
-    # says what the first did unless the record or the IdP changed.
+    # Per CUSTOMER, keyed on the public extid: one actor has one budget
+    # whatever domain they point it at. The cap is small (10 per hour)
+    # because a run is deterministic: the second run with the same stored
+    # record says what the first did unless the record or the IdP changed.
     #
-    # Same contract as {CreateAccountRateLimiter}: one atomic Lua round trip
-    # checks the lockout and records the request; the request that reaches
-    # the cap is itself ALLOWED and sets the lockout; later requests are
-    # denied before incrementing. Charged from the END of
-    # RunDiagnostics#raise_concerns — after the session, ownership and
-    # entitlement guards and after the stored record is found — so a refused
-    # request costs nothing and the budget counts runs that will actually
-    # contact the IdP.
-    #
-    # NEVER interpolate a session id — Rack aliases SessionId#to_s to the live
-    # bearer cookie (#4330). The extid is a public identifier.
-    #
-    # Fail-closed on Redis errors, like every sibling limiter: an outage 500s
-    # a diagnostics run rather than admitting an unthrottled one.
+    # The mechanics (atomic Lua check-and-record, cap-reaching request
+    # allowed, fail-closed on Redis errors, one security-trail event per
+    # cap-hit) are {PerCustomerRateLimit}'s; this module declares the policy.
+    # Charged from the END of RunDiagnostics#raise_concerns — after the
+    # session, ownership and entitlement guards and after the stored record
+    # is found — so a refused request costs nothing and the budget counts
+    # runs that will actually contact the IdP.
     #
     # CLEARING A STUCK LOCKOUT — the same two paths as every other limiter,
     # over kind `sso_diagnostics`:
@@ -86,152 +74,45 @@ module Onetime
       # `<resource>.<action>` like every other verb in the trail.
       AUDIT_VERB = 'sso.diagnostics_throttled'
 
-      # Lua script that checks the lockout AND records the request in one
-      # atomic round trip — byte-identical in contract to
-      # {CreateAccountRateLimiter::CHECK_AND_RECORD_SCRIPT}: the increment
-      # that reaches max_attempts sets the lockout flag and clears the
-      # counter, and every later execution sees the flag and is denied before
-      # incrementing, so concurrent bursts cannot overshoot the cap.
-      # Returns {1, current_count} when allowed, {0, lockout_ttl} when denied.
-      CHECK_AND_RECORD_SCRIPT = <<~LUA
-        local attempts_key = KEYS[1]
-        local lockout_key = KEYS[2]
-        local attempt_window = tonumber(ARGV[1])
-        local max_attempts = tonumber(ARGV[2])
-        local lockout_duration = tonumber(ARGV[3])
+      # Keep `kind` byte-identical with the 'sso_diagnostics' row of
+      # Onetime::Operations::RateLimit::Registry::LIMITERS.
+      POLICY = PerCustomerRateLimit::Policy.new(
+        kind: 'sso_diagnostics',
+        config_key: 'sso_diagnostics_rate_limit',
+        default_max_per_customer: DEFAULT_MAX_PER_CUSTOMER,
+        default_window: DEFAULT_WINDOW,
+        default_lockout: DEFAULT_LOCKOUT,
+        audit_verb: AUDIT_VERB,
+        message: 'Too many saved-configuration checks. Please try again later.',
+        log_tag: 'SsoDiagnosticsRateLimiter',
+        action_noun: 'runs',
+      )
 
-        if redis.call('EXISTS', lockout_key) == 1 then
-          return {0, redis.call('TTL', lockout_key)}
-        end
-
-        local current = redis.call('INCR', attempts_key)
-
-        if current == 1 then
-          redis.call('EXPIRE', attempts_key, attempt_window)
-        end
-
-        if current >= max_attempts then
-          redis.call('SETEX', lockout_key, lockout_duration, '1')
-          redis.call('DEL', attempts_key)
-        end
-
-        return {1, current}
-      LUA
-
-      # Enforce the per-customer run limit and record this run. Raises
-      # LimitExceeded when the customer is locked; a locked bucket is never
-      # incremented (the Lua script denies before INCR). No-op when the
-      # limiter is disabled by config. A blank subject is refused rather than
-      # skipped: the call site has already required an authenticated customer,
-      # so a missing extid is a programming error, and a shared blank-key
-      # bucket would lock every such caller out together.
+      # Enforce the per-customer run limit and record this run. See
+      # {PerCustomerRateLimit.enforce!}.
       #
       # @param customer_extid [String] The acting customer's public id.
       # @raise [ArgumentError] If the subject is blank.
       # @raise [Onetime::LimitExceeded] If the limit is exceeded.
       # @return [void]
       def enforce_sso_diagnostics_rate_limit!(customer_extid)
-        return unless sso_diagnostics_rate_limit_enabled?
-
-        subject = customer_extid.to_s
-        raise ArgumentError, 'SsoDiagnosticsRateLimiter needs a customer extid' if subject.empty?
-
-        keys            = sso_diagnostics_keys(subject)
-        allowed, detail = sso_diagnostics_redis.eval(
-          CHECK_AND_RECORD_SCRIPT,
-          keys: [keys[:attempts], keys[:lockout]],
-          argv: [sso_diagnostics_window, sso_diagnostics_max_per_customer, sso_diagnostics_lockout],
-        )
-
-        if allowed.to_i != 1
-          raise Onetime::LimitExceeded.new(
-            'Too many saved-configuration checks. Please try again later.',
-            retry_after: detail.to_i.positive? ? detail.to_i : sso_diagnostics_lockout,
-            max_attempts: sso_diagnostics_max_per_customer,
-          )
-        end
-
-        count = detail.to_i
-        if count >= sso_diagnostics_max_per_customer
-          # This cap-reaching run was itself ALLOWED (the Lua script locks after
-          # incrementing); the lockout applies to the next one.
-          OT.le "[SsoDiagnosticsRateLimiter] customer #{subject} hit cap " \
-                "(#{count}/#{sso_diagnostics_max_per_customer}); locked for #{sso_diagnostics_lockout}s"
-          record_sso_diagnostics_throttle_audit(subject, count)
-        elsif count >= sso_diagnostics_max_per_customer - 2
-          OT.li "[SsoDiagnosticsRateLimiter] customer #{subject} at #{count}/#{sso_diagnostics_max_per_customer} runs"
-        end
+        PerCustomerRateLimit.enforce!(POLICY, customer_extid)
       end
 
       private
 
-      # Cap-reaching run only — one event per customer per lockout window —
-      # in the SECURITY trail (count-capped with an age bound), never the
-      # operator trail. Best-effort, matching every other audit call site: a
-      # throttle must never fail because its event could not be assembled.
-      def record_sso_diagnostics_throttle_audit(subject, count)
-        Onetime::ColonelAuditEvent.record_security(
-          actor: subject,
-          verb: AUDIT_VERB,
-          target: subject,
-          result: :failure,
-          detail: {
-            count: count,
-            max_attempts: sso_diagnostics_max_per_customer,
-            window: sso_diagnostics_window,
-            lockout: sso_diagnostics_lockout,
-          },
-        )
-      rescue StandardError => ex
-        OT.le('[SsoDiagnosticsRateLimiter] audit record failed', exception: ex)
-      end
+      # Read-only views of the policy's settings, for callers and tryouts.
+      # enforce! reads PerCustomerRateLimit directly, so stubbing one of these
+      # on an including object does not change enforcement.
+      def sso_diagnostics_redis = PerCustomerRateLimit.redis
 
-      # Keep byte-identical with the 'sso_diagnostics' row of
-      # Onetime::Operations::RateLimit::Registry::LIMITERS, or the CLI,
-      # Inspect and Reset cannot see the keys.
-      def sso_diagnostics_keys(subject)
-        {
-          attempts: "sso_diagnostics:attempts:#{subject}",
-          lockout: "sso_diagnostics:locked:#{subject}",
-        }
-      end
+      def sso_diagnostics_rate_limit_enabled? = PerCustomerRateLimit.enabled?(POLICY)
 
-      # Co-located with the Customer shard because the subject is a Customer
-      # extid (matches login / reset / create_account / colonel).
-      def sso_diagnostics_redis
-        Onetime::Customer.dbclient
-      end
+      def sso_diagnostics_max_per_customer = PerCustomerRateLimit.max_per_customer(POLICY)
 
-      def sso_diagnostics_rate_limit_config
-        OT.conf.dig('features', 'organizations', 'sso_diagnostics_rate_limit') || {}
-      end
+      def sso_diagnostics_window = PerCustomerRateLimit.window(POLICY)
 
-      # Enabled unless config explicitly sets enabled:false. Absent config
-      # keeps the protective default on.
-      def sso_diagnostics_rate_limit_enabled?
-        sso_diagnostics_rate_limit_config.fetch('enabled', true) != false
-      end
-
-      def sso_diagnostics_max_per_customer
-        positive_sso_diagnostics_setting('max_per_customer', DEFAULT_MAX_PER_CUSTOMER)
-      end
-
-      def sso_diagnostics_window
-        positive_sso_diagnostics_setting('window', DEFAULT_WINDOW)
-      end
-
-      def sso_diagnostics_lockout
-        positive_sso_diagnostics_setting('lockout', DEFAULT_LOCKOUT)
-      end
-
-      # Fall back to the default unless the configured value coerces to a
-      # POSITIVE integer. A zero or garbage value would otherwise invert
-      # enforcement: a zero cap locks on the first run, and a non-positive
-      # lockout makes the Lua SETEX fail, turning every run into a 500.
-      def positive_sso_diagnostics_setting(key, default)
-        value = sso_diagnostics_rate_limit_config[key].to_i
-        value.positive? ? value : default
-      end
+      def sso_diagnostics_lockout = PerCustomerRateLimit.lockout(POLICY)
     end
   end
 end

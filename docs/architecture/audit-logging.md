@@ -288,7 +288,7 @@ into one chronological feed tagged with a `trail` field.
 | Sub-stream | Written by | Holds | Retention |
 |---|---|---|---|
 | `events` | `record` | operator MUTATIONS | newest 10,000, no TTL |
-| `security_events` | `record_security` | events an **unauthenticated** caller can cause — rate-limiter cap-hits, failed colonel sign-ins (#4339) | newest 1,000, 7 days |
+| `security_events` | `record_security` | events an **unauthenticated** caller can cause — rate-limiter cap-hits, failed colonel sign-ins (#4339) — and customer **self-service** actions (listed below) | newest 1,000, 7 days |
 | `access_events` | `record_access` | authenticated **observations** — curated sensitive reads and dry-run previews | newest 5,000, 30 days |
 
 One invariant explains all three (the **write-frequency invariant** on the
@@ -495,7 +495,11 @@ signatures parallel to their applied-event siblings.
 `security_events` started as the home for rate-limiter cap-hits — the three
 throttles that an unauthenticated caller can drive
 (`auth.reset_request_throttled` and its `create_account` / `conceal_secret`
-peers). It now also holds **failed colonel sign-ins**.
+peers). It now also holds the cap-hits of the per-customer limits on actions
+that reach outside this system (`sso.diagnostics_throttled`,
+`domain_sender.test_email_throttled`; `Onetime::Security::PerCustomerRateLimit`),
+**failed colonel sign-ins**, and customer **self-service actions** (next
+section).
 
 | Verb | Emitted by | Trail |
 |---|---|---|
@@ -550,6 +554,33 @@ Out of scope: the Rodauth SQL audit log
 (`account_authentication_audit_logs`) is a separate stream with its own writer
 and is untouched.
 
+### Customer self-service actions
+
+A customer acting on their own account, workspace or domain writes the
+security trail, never the operator trail, for the reason the security trail
+exists: any customer can repeat the action at will, and on the count-capped,
+no-TTL operator trail each repeat would evict an operator record.
+
+| Verb | Self-service path | How it is routed |
+|---|---|---|
+| `customer.purge`, and the `organization.delete` / `session.revoke_all` / `membership.remove` it composes | closing one's own account | `Customers::Purge` with `self_service: true` |
+| `customer.change_email` (applied, refused, no-change) and the `session.revoke_all` it composes | redeeming one's own email-change link (`POST /api/account/confirm-email-change`, unauthenticated; a refused link stays live) | `Customers::ChangeEmail` with `self_service: true` |
+| `organization.delete` | deleting one's own workspace (`DELETE /api/organizations/:extid`) | `Org::Delete` with `self_service: true` unless the caller is a colonel |
+| `domain_sender.test_email_sent` | a domain's sender settings, "Send test" | `SendTestEmail` calls `record_security` unless the caller is a colonel |
+| `sso.diagnostics_run` | a domain's SSO settings, "Check saved configuration" | `RunDiagnostics` calls `record_security` unless the caller is a colonel |
+
+The same verbs from an operator surface (colonel API, `bin/ots`) still write
+the operator trail. So does a colonel on the last three customer endpoints:
+`require_entitlement_in!` lets a colonel through on any org or domain, and
+that call is operator activity.
+
+Self-service writes are fail-open, as every `record_security` write is: the
+organization delete and session revoke-all that fail closed on an operator
+path do not here, because a caller-drivable abort-on-write-failure is an
+abort primitive (see `record_security`). An op's failure wrapper (`audit_failures`) is off for
+a self-service call, so a raise there leaves no audit row on either trail;
+the exception still propagates.
+
 ### Write-failure posture (#4333)
 
 `ColonelAuditEvent.record` is best-effort by default: a failed audit write is
@@ -559,7 +590,9 @@ DESTRUCTIVE verbs opt out with `fail_closed: true` and raise
 customer/membership role change, session delete/revoke/revoke-all, account
 suspend/unsuspend, secret delete, DLQ purge, custom-domain remove, membership
 remove. What they share: the action destroys or revokes the very records that
-would otherwise evidence it.
+would otherwise evidence it. A self-service organization delete or session
+revoke-all writes the security trail fail-open instead (see "Customer
+self-service actions").
 
 Be precise about the guarantee. Almost every call site records *after* its
 mutation, so failing closed does **not** roll anything back and does not

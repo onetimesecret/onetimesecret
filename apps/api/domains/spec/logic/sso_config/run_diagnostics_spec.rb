@@ -68,9 +68,23 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
   # Everything OT logs during a run, for the "never leaks" assertions.
   let(:logged) { [] }
 
+  # Every audit event a run records: the kwargs handed to record_security,
+  # and the event the real build_event makes of them (redaction applied),
+  # which is what the trail stores. Stubbed at the write, so no run writes
+  # the lane's trail.
+  let(:audited) { [] }
+  let(:stored) { [] }
+
   before do
     %i[info ld le li].each do |level|
       allow(OT).to receive(level) { |*args| logged << args.inspect }
+    end
+    # An owner, not a colonel: the audit write goes to the security trail.
+    allow(logic).to receive(:has_system_role?).with('colonel').and_return(false)
+    allow(Onetime::ColonelAuditEvent).to receive(:record)
+    allow(Onetime::ColonelAuditEvent).to receive(:record_security) do |**kwargs|
+      audited << kwargs
+      stored << Onetime::ColonelAuditEvent.send(:build_event, **kwargs)
     end
 
     allow(logic).to receive(:authorize_domain_sso!) do
@@ -137,7 +151,7 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
   end
 
   def expect_no_leak(result)
-    everything = [result.inspect, *logged].join("\n")
+    everything = [result.inspect, *logged, *audited.map(&:inspect), *stored.map(&:to_json)].join("\n")
     expect(everything).not_to include(secret)
     expect(everything).not_to include('private-access-token')
     expect(everything).not_to include('private description')
@@ -270,6 +284,216 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
       expect(line).to include(':overall => "passed"').or include('overall: "passed"')
       expect(line).to include('"credential" => "passed"').or include('"credential"=>"passed"')
       expect_no_leak(run)
+    end
+  end
+
+  describe 'audit trail (sso.diagnostics_run)' do
+    # The stored detail, as the trail keeps it: string keys, redacted.
+    def stored_detail
+      stored.first['detail']
+    end
+
+    def stored_check(name)
+      stored_detail['checks'].find { it['check'] == name }
+    end
+
+    it 'records one security-trail event per completed run, never the operator trail' do
+      stub_discovery_ok
+      accept_credentials
+
+      result = run
+
+      expect(audited.size).to eq(1)
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+      expect(audited.first).to include(
+        actor: owner,
+        verb: 'sso.diagnostics_run',
+        target: 'domain123',
+        result: :success,
+      )
+      expect(stored.first).to include('actor' => 'ext-owner123', 'target' => 'domain123', 'result' => 'success')
+      expect(stored_detail).to include(
+        'display_domain' => 'example.com',
+        'provider_type' => 'entra_id',
+        'overall' => 'passed',
+        'checked_at' => result[:checked_at],
+        'configuration_revision' => '1760000000',
+        'checks' => [
+          { 'check' => 'stored_configuration', 'status' => 'passed' },
+          { 'check' => 'discovery', 'status' => 'passed' },
+          { 'check' => 'credential', 'status' => 'passed' },
+        ],
+      )
+    end
+
+    it 'stores a failed verdict as result failure with the bare error and AADSTS codes, none redacted' do
+      stub_discovery_ok
+      refuse_credentials('AADSTS7000215')
+
+      result = run
+
+      expect(result[:overall]).to eq('failed')
+      expect(stored.first).to include('verb' => 'sso.diagnostics_run', 'result' => 'failure')
+      expect(stored_detail['overall']).to eq('failed')
+      expect(stored_check('credential')).to eq(
+        'check' => 'credential', 'status' => 'failed',
+        'error_code' => 'invalid_client_secret', 'aadsts_code' => 'AADSTS7000215'
+      )
+      expect(stored.first.to_json).not_to include(Onetime::ColonelAuditEvent::REDACTED)
+      expect_no_leak(result)
+    end
+
+    it 'stores an inconclusive verdict as result success with overall in the detail' do
+      stub_discovery_ok
+      stub_request(:post, token_url).to_timeout
+
+      result = run
+
+      expect(result[:overall]).to eq('inconclusive')
+      expect(stored.first['result']).to eq('success')
+      expect(stored_detail['overall']).to eq('inconclusive')
+      expect(stored_check('credential')).to include('status' => 'inconclusive', 'error_code' => 'timeout')
+    end
+
+    context 'when the stored secret has the shape of an Entra Secret ID' do
+      let(:secret) { 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee' }
+
+      it 'keeps the shape flag through the trail redaction pass' do
+        stub_discovery_ok
+        refuse_credentials('AADSTS7000215')
+
+        run
+
+        expect(stored_check('credential')).to include('shape' => 'uuid')
+        expect(stored.first.to_json).not_to include(Onetime::ColonelAuditEvent::REDACTED)
+      end
+    end
+
+    context 'when the stored configuration fails' do
+      let(:validation_errors) { ['client_secret is required', 'tenant_id is required for Entra ID provider'] }
+
+      it 'stores the later checks as skipped and never the validation messages' do
+        run
+
+        expect(stored.first['result']).to eq('failure')
+        expect(stored_detail['checks']).to eq(
+          [
+            { 'check' => 'stored_configuration', 'status' => 'failed' },
+            { 'check' => 'discovery', 'status' => 'skipped' },
+            { 'check' => 'credential', 'status' => 'skipped' },
+          ],
+        )
+        expect(stored.first.to_json).not_to include('is required')
+        expect(stored.first.to_json).not_to include(Onetime::ColonelAuditEvent::REDACTED)
+      end
+    end
+
+    context 'for an oidc record' do
+      let(:provider_type) { 'oidc' }
+      let(:issuer) { 'https://idp.example.com' }
+      let(:tenant_id) { '' }
+
+      before do
+        allow(Resolv).to receive(:getaddresses).and_return(['203.0.113.10'])
+        stub_discovery_ok(issuer)
+      end
+
+      it 'stores discovery and the unsupported credential check, none redacted' do
+        run
+
+        expect(stored.first['result']).to eq('success')
+        expect(stored_detail).to include('provider_type' => 'oidc', 'overall' => 'passed')
+        expect(stored_detail['checks']).to eq(
+          [
+            { 'check' => 'stored_configuration', 'status' => 'passed' },
+            { 'check' => 'discovery', 'status' => 'passed' },
+            { 'check' => 'credential', 'status' => 'unsupported' },
+          ],
+        )
+        expect(stored.first.to_json).not_to include(Onetime::ColonelAuditEvent::REDACTED)
+      end
+
+      it 'stores an issuer mismatch as the bare code, without either issuer' do
+        stub_discovery_ok('https://idp.example.com/')
+
+        run
+
+        expect(stored.first['result']).to eq('failure')
+        expect(stored_check('discovery')).to eq(
+          'check' => 'discovery', 'status' => 'failed', 'error_code' => 'issuer_mismatch',
+        )
+        expect(stored.first.to_json).not_to include('idp.example.com')
+      end
+    end
+
+    context 'for a saml record' do
+      let(:provider_type) { 'saml' }
+      let(:tenant_id) { '' }
+      let(:cert_pem) { DomainSsoTestFixtures.saml_cert_pem }
+
+      before do
+        allow(sso_config).to receive(:reveal_saml_field).with(:idp_cert).and_return(cert_pem)
+      end
+
+      it 'stores the certificate check without the certificate subject or expiry' do
+        result = run
+
+        expect(stored.first['result']).to eq('success')
+        expect(stored_detail).to include('provider_type' => 'saml', 'overall' => 'passed')
+        expect(stored_detail['checks']).to eq(
+          [
+            { 'check' => 'stored_configuration', 'status' => 'passed' },
+            { 'check' => 'certificate', 'status' => 'passed' },
+          ],
+        )
+        expect(stored.first.to_json).not_to include(check(result, 'certificate')[:details][:certificate_subject])
+        expect(stored.first.to_json).not_to include(Onetime::ColonelAuditEvent::REDACTED)
+      end
+
+      context 'with an expired certificate' do
+        let(:cert_pem) { expired_saml_cert_pem }
+
+        it 'stores result failure with the bare certificate_expired code' do
+          run
+
+          expect(stored.first['result']).to eq('failure')
+          expect(stored_check('certificate')).to eq(
+            'check' => 'certificate', 'status' => 'failed', 'error_code' => 'certificate_expired',
+          )
+        end
+      end
+    end
+
+    it 'never copies a check message into the event' do
+      stub_discovery_ok
+      refuse_credentials('AADSTS7000215')
+
+      run
+
+      expect(stored.size).to eq(1)
+      expect(stored.first.to_json).not_to include('rejected the saved client secret')
+    end
+
+    # A colonel passes the entitlement check on any domain, and that run is
+    # operator activity.
+    it 'records a colonel run on the operator trail' do
+      allow(logic).to receive(:has_system_role?).with('colonel').and_return(true)
+      allow(Onetime::ColonelAuditEvent).to receive(:record) { |**kwargs| audited << kwargs }
+      stub_discovery_ok
+      accept_credentials
+
+      run
+
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record_security)
+      expect(audited.size).to eq(1)
+      expect(audited.first).to include(verb: 'sso.diagnostics_run', result: :success)
+    end
+
+    it 'does not record when the run is refused before any check' do
+      allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id).with('domain123').and_return(nil)
+
+      expect { logic.raise_concerns }.to raise_error(Onetime::FormError)
+      expect(audited).to be_empty
     end
   end
 

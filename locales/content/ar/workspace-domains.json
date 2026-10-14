@@ -735,6 +735,14 @@
     "text": "فشل إرسال رسالة الاختبار",
     "source_hash": "95ce63bc"
   },
+  "web.domains.email.test_email_rate_limited": {
+    "text": "تم إرسال عدد كبير جداً من رسائل الاختبار مؤخراً. حاول مرة أخرى لاحقاً.",
+    "source_hash": "90b8ca17"
+  },
+  "web.domains.email.test_email_rate_limited_retry": {
+    "text": "تم إرسال عدد كبير جداً من رسائل الاختبار مؤخراً. حاول مرة أخرى بعد نحو {minutes} من الدقائق.",
+    "source_hash": "218146cc"
+  },
   "web.domains.email.test_email_sent_to": {
     "text": "تم الإرسال إلى {email}",
     "source_hash": "8ceb9588"
@@ -1658,5 +1666,29 @@
   "web.domains.verify_outcome.record_not_found": {
     "text": "لم نعثر على سجل TXT المتوقع. تحقّق من وجوده ومن تطابق قيمته تماماً. قد يستغرق ظهور سجلات DNS الجديدة بضع دقائق.",
     "source_hash": "6c847d46"
+  },
+  "web.domains.sso.diagnostics_passed": {
+    "text": "نجح فحص الإعداد المحفوظ",
+    "source_hash": "91fc2d97"
+  },
+  "web.domains.sso.diagnostics_failed": {
+    "text": "عثر فحص الإعداد المحفوظ على مشكلة",
+    "source_hash": "18ca7a0e"
+  },
+  "web.domains.sso.diagnostics_inconclusive": {
+    "text": "لم يتمكن فحص الإعداد المحفوظ من الوصول إلى نتيجة حاسمة",
+    "source_hash": "2be86c66"
+  },
+  "web.domains.sso.diagnostics_error": {
+    "text": "فشل فحص الإعداد المحفوظ",
+    "source_hash": "e1fe6a59"
+  },
+  "web.domains.sso.diagnostics_rate_limited": {
+    "text": "تم فحص هذا الإعداد مرات كثيرة جداً مؤخراً. حاول مرة أخرى لاحقاً.",
+    "source_hash": "4b8d53b8"
+  },
+  "web.domains.sso.diagnostics_rate_limited_retry": {
+    "text": "تم فحص هذا الإعداد مرات كثيرة جداً مؤخراً. حاول مرة أخرى بعد نحو {minutes} من الدقائق.",
+    "source_hash": "fdbdeaf6"
   }
 }

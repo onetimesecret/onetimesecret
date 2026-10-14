@@ -98,6 +98,7 @@ RSpec.describe 'Tenant SSO sign-in outcome (last_sign_in)', type: :integration, 
   end
 
   it 'records a strategy failure as failed at the provider stage with the error type' do
+    allow(Auth::Logging).to receive(:log_auth_event).and_call_original
     OmniAuth.config.mock_auth[:oidc] = :invalid_credentials
     initiate(domain_host)
     callback(domain_host)
@@ -109,6 +110,12 @@ RSpec.describe 'Tenant SSO sign-in outcome (last_sign_in)', type: :integration, 
       failure_stage: 'provider',
       failure_code: 'invalid_credentials',
       succeeded_at: nil,
+    )
+
+    # The omniauth_failure log line names the domain the flow belongs to.
+    expect(Auth::Logging).to have_received(:log_auth_event).with(
+      :omniauth_failure,
+      hash_including(error_type: :invalid_credentials, domain_id: @fixtures[:domain].identifier),
     )
   end
 

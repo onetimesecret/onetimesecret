@@ -9,6 +9,7 @@ require_relative 'discovery_check'
 require_relative '../../../../../lib/onetime/sso_provider/entra'
 require_relative '../../../../../lib/onetime/sso_provider/entra_credential_probe'
 require 'onetime/security/sso_diagnostics_rate_limiter'
+require 'onetime/models/colonel_audit_event'
 
 module DomainsAPI
   module Logic
@@ -59,11 +60,30 @@ module DomainsAPI
       # request costs nothing. Over the cap the API answers 429 with
       # retry_after and a Retry-After header, and no check runs.
       #
+      # Every completed run writes one `sso.diagnostics_run` event: the
+      # acting customer, the domain, the overall verdict as the result, and
+      # the configuration revision and each check's status and bare codes
+      # in the detail. An owner's run is a self-service action and goes to
+      # the SECURITY audit trail (Onetime::ColonelAuditEvent.record_security),
+      # out of the operator trail (`events`), whose count cap with no TTL is
+      # reserved for operator activity; a per-writer rate limit does not
+      # protect that budget (ColonelAuditEvent's write-frequency invariant).
+      # Self-service account purge records the same way. A colonel passes
+      # the entitlement check on any domain (require_entitlement_in!), and
+      # that run is operator activity, so it goes to the operator trail.
+      # The event never carries a message, the secret, a token or Entra's
+      # error_description. The write is best-effort on both trails: neither
+      # writer raises, so a broken audit write never fails the run.
+      #
       class RunDiagnostics < Base
         include DiscoveryCheck
         include Onetime::Security::SsoDiagnosticsRateLimiter
 
         STATUSES = %w[passed failed inconclusive unsupported skipped].freeze
+
+        # Audit verb for one completed run. Namespaced `<resource>.<action>`
+        # like the limiter's `sso.diagnostics_throttled`.
+        AUDIT_VERB = 'sso.diagnostics_run'
 
         SKIPPED_MESSAGE = 'Fix the stored configuration first'
 
@@ -136,6 +156,8 @@ module DomainsAPI
               checks: @checks.to_h { |check| [check[:check], check[:status]] },
             }
 
+          record_audit_event
+
           success_data
         end
 
@@ -155,6 +177,62 @@ module DomainsAPI
         end
 
         private
+
+        # ──────────────────────────────────────────────────────────────────────────
+        # Audit
+        # ──────────────────────────────────────────────────────────────────────────
+
+        # One event per completed run, on the trail the class note gives
+        # (security for an owner, operator for a colonel). Statuses and bare
+        # codes only: the
+        # check messages are not copied (the discovery ones are built from
+        # the fetch), and nothing here can hold the secret, a token or
+        # Entra's error_description because no check stores them.
+        #
+        # The trail's redaction pass blanks every hash KEY matching
+        # ColonelAuditEvent::SENSITIVE_KEY_PATTERN at any depth, and both
+        # `credential` and `secret` match. So each check is an entry with the
+        # check name as a VALUE, and the Secret-ID-shaped flag is `shape`,
+        # not `secret_shape`.
+        def record_audit_event
+          record_on_actor_trail(
+            actor: cust,
+            verb: AUDIT_VERB,
+            target: @custom_domain.identifier,
+            result: @overall == 'failed' ? :failure : :success,
+            detail: {
+              display_domain: @custom_domain.display_domain,
+              provider_type: @provider_type,
+              overall: @overall,
+              checked_at: @checked_at.iso8601,
+              configuration_revision: @sso_config.updated.to_s,
+              checks: @checks.map { audit_check_entry(it) },
+            }.compact,
+          )
+        end
+
+        # Security trail for an owner, operator trail for a colonel (see the
+        # class note).
+        def record_on_actor_trail(**event)
+          if has_system_role?('colonel')
+            Onetime::ColonelAuditEvent.record(**event)
+          else
+            Onetime::ColonelAuditEvent.record_security(**event)
+          end
+        end
+
+        # @return [Hash] { check:, status: } plus error_code, aadsts_code
+        #   and shape when the check reported them.
+        def audit_check_entry(check)
+          details = check[:details] || {}
+          {
+            check: check[:check],
+            status: check[:status],
+            error_code: details[:error_code],
+            aadsts_code: details[:aadsts_code],
+            shape: details[:secret_shape],
+          }.compact
+        end
 
         # ──────────────────────────────────────────────────────────────────────────
         # Orchestration

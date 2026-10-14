@@ -1342,5 +1342,109 @@
   "web.organizations.sso.certificate_valid_from": {
     "text": "Atestilo valida ekde",
     "source_hash": "b13d3f30"
+  },
+  "web.organizations.sso.client_secret_looks_like_secret_id": {
+    "text": "Ĉi tio aspektas kiel la \"Secret ID\". Entra bezonas la sekretan \"Value\", montratan nur unufoje, kiam la sekreto estas kreita.",
+    "source_hash": "168681cf"
+  },
+  "web.organizations.sso.diagnostics_title": {
+    "text": "Kontroli Konservitan Agordon",
+    "source_hash": "5c68357a"
+  },
+  "web.organizations.sso.diagnostics_hint": {
+    "text": "Kontrolas, kio estas konservita por ĉi tiu domajno — ĉe Microsoft Entra ID inkluzive de la konservita klienta sekreto — kaj raportas pri ĉiu tavolo aparte. Ĝi ne testas plenan ensaluton.",
+    "source_hash": "42505faa"
+  },
+  "web.organizations.sso.last_sign_in_none": {
+    "text": "Ankoraŭ neniu ensaluto per ĉi tiu domajno estis registrita.",
+    "source_hash": "7f9d0f23"
+  },
+  "web.organizations.sso.last_sign_in_succeeded": {
+    "text": "La lasta ensaluto per ĉi tiu domajno kompletiĝis je {when}.",
+    "source_hash": "9a125080"
+  },
+  "web.organizations.sso.last_sign_in_failed": {
+    "text": "La lasta ensaluto per ĉi tiu domajno malsukcesis je {when}, {stage} ({code}).",
+    "source_hash": "be81f392"
+  },
+  "web.organizations.sso.last_sign_in_last_success": {
+    "text": "La lasta kompleta ensaluto okazis je {when}.",
+    "source_hash": "34e63e57"
+  },
+  "web.organizations.sso.last_sign_in_stage_setup": {
+    "text": "antaŭ ol la identeca provizanto estis kontaktita",
+    "source_hash": "5a1b6839"
+  },
+  "web.organizations.sso.last_sign_in_stage_provider": {
+    "text": "ĉe la identeca provizanto",
+    "source_hash": "40394567"
+  },
+  "web.organizations.sso.last_sign_in_stage_callback": {
+    "text": "kiam la identeca provizanto resendis la uzanton",
+    "source_hash": "2ab78fc4"
+  },
+  "web.organizations.sso.last_sign_in_stage_account": {
+    "text": "dum kongruigo de la uzanto kun konto",
+    "source_hash": "1ebbb776"
+  },
+  "web.organizations.sso.diagnostics_save_first": {
+    "text": "Unue konservu: ĉi tio kontrolas la konservitan agordon, ne nekonservitajn ŝanĝojn.",
+    "source_hash": "46a51d59"
+  },
+  "web.organizations.sso.diagnostics_button": {
+    "text": "Kontroli Konservitan Agordon",
+    "source_hash": "5c68357a"
+  },
+  "web.organizations.sso.diagnostics_running": {
+    "text": "Kontrolante...",
+    "source_hash": "2e5f79bb"
+  },
+  "web.organizations.sso.diagnostics_checked_at": {
+    "text": "Kontrolita",
+    "source_hash": "0efd92a3"
+  },
+  "web.organizations.sso.diagnostics_check_stored_configuration": {
+    "text": "Konservita agordo",
+    "source_hash": "a988b06a"
+  },
+  "web.organizations.sso.diagnostics_check_discovery": {
+    "text": "Malkovro de identeca provizanto",
+    "source_hash": "b5f90082"
+  },
+  "web.organizations.sso.diagnostics_check_certificate": {
+    "text": "Subskriba atestilo",
+    "source_hash": "cc00e050"
+  },
+  "web.organizations.sso.diagnostics_check_credential": {
+    "text": "Klienta sekreto",
+    "source_hash": "4aded5fa"
+  },
+  "web.organizations.sso.diagnostics_status_passed": {
+    "text": "Sukcesis",
+    "source_hash": "436fe71b"
+  },
+  "web.organizations.sso.diagnostics_status_failed": {
+    "text": "Malsukcesis",
+    "source_hash": "031a8f0f"
+  },
+  "web.organizations.sso.diagnostics_status_inconclusive": {
+    "text": "Nekonkluda",
+    "source_hash": "9141583b"
+  },
+  "web.organizations.sso.diagnostics_status_unsupported": {
+    "text": "Ne disponebla",
+    "source_hash": "67a926f7"
+  },
+  "web.organizations.sso.diagnostics_status_skipped": {
+    "text": "Preterlasita",
+    "source_hash": "12698ce1"
+  },
+  "web.organizations.sso.diagnostics_aadsts_code": {
+    "text": "Microsoft-erarkodo",
+    "source_hash": "dc8f7060"
+  },
+  "web.organizations.sso.diagnostics_errors": {
+    "text": "Problemoj",
+    "source_hash": "a7b182f8"
   }
 }
