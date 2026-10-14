@@ -115,6 +115,82 @@ describe('AdminDomainDnsDetails', () => {
     expect(values).toContain('challenge-value');
   });
 
+  // The record name is txt_validation_record, the A-label name the server
+  // queries, as a host relative to the zone (the value is what gets copied).
+  describe('TXT record name', () => {
+    const idnRecord = (overrides: Partial<ColonelDomainDetailRecord> = {}) =>
+      record({
+        display_domain: 'bücher.customer.example',
+        trd: 'bücher',
+        txt_validation_host: '_onetime-challenge-abc1234.xn--bcher-kva',
+        txt_validation_record: '_onetime-challenge-abc1234.xn--bcher-kva.customer.example',
+        txt_validation_record_display: '_onetime-challenge-abc1234.bücher.customer.example',
+        ...overrides,
+      });
+    const txtHost = (wrapper: ReturnType<typeof mountPanel>['wrapper']) => {
+      const field = wrapper.findAll('[data-label="web.COMMON.host"]')[0];
+      return { host: field.attributes('data-value'), zone: field.attributes('data-appendix') };
+    };
+    const hint = '[data-testid="dns-txt-display-name"]';
+
+    it('Unicode subdomain: the A-label host, with the display spelling as a hint', () => {
+      const { wrapper } = mountPanel(idnRecord(), cluster('caddy_on_demand'));
+
+      expect(txtHost(wrapper)).toEqual({
+        host: '_onetime-challenge-abc1234.xn--bcher-kva',
+        zone: '.customer.example',
+      });
+      expect(wrapper.find(hint).text()).toContain('web.admin.domains.dns.displayNameHint');
+      expect(wrapper.find(`${hint} span`).text()).toBe(
+        '_onetime-challenge-abc1234.bücher.customer.example'
+      );
+    });
+
+    it('a host stored as typed by an earlier version: still the A-label host', () => {
+      const { wrapper } = mountPanel(
+        idnRecord({ txt_validation_host: '_onetime-challenge-abc1234.bücher' }),
+        cluster('approximated')
+      );
+
+      expect(txtHost(wrapper).host).toBe('_onetime-challenge-abc1234.xn--bcher-kva');
+    });
+
+    it('ASCII name: no hint', () => {
+      const { wrapper } = mountPanel(
+        record({
+          txt_validation_record: '_onetime-challenge-abc.secrets.customer.example',
+          txt_validation_record_display: '_onetime-challenge-abc.secrets.customer.example',
+        }),
+        cluster('approximated')
+      );
+
+      expect(txtHost(wrapper)).toEqual({
+        host: '_onetime-challenge-abc.secrets',
+        zone: '.customer.example',
+      });
+      expect(wrapper.find(hint).exists()).toBe(false);
+    });
+
+    it('no txt_validation_record: the stored host and base domain, no hint', () => {
+      const { wrapper } = mountPanel(
+        idnRecord({ txt_validation_record: null }),
+        cluster('approximated')
+      );
+
+      expect(txtHost(wrapper)).toEqual({
+        host: '_onetime-challenge-abc1234.xn--bcher-kva',
+        zone: '.customer.example',
+      });
+      expect(wrapper.find(hint).exists()).toBe(false);
+    });
+
+    it('no base domain and no record name: no zone', () => {
+      const { wrapper } = mountPanel(record({ base_domain: null }), cluster('approximated'));
+
+      expect(txtHost(wrapper)).toEqual({ host: '_onetime-challenge-abc.secrets', zone: undefined });
+    });
+  });
+
   describe('approximated', () => {
     it('points a subdomain at the proxy host with a CNAME', () => {
       const panel = mountPanel(record(), cluster('approximated'));
@@ -195,5 +271,71 @@ describe('AdminDomainDnsDetails', () => {
 
   it('keeps validation_strategy through the cluster schema', () => {
     expect(cluster('caddy_on_demand')?.validation_strategy).toBe('caddy_on_demand');
+  });
+});
+
+// The address record name in A-label form (display_domain_ascii), as on the
+// customer page; the typed spelling is a hint below it.
+describe('AdminDomainDnsDetails address record name', () => {
+  beforeEach(() => {
+    mockCanonicalDomain.value = 'secrets.example.com';
+    mockSiteHost.value = 'host.example.com';
+    setDomainValidationStrategy('approximated');
+  });
+
+  const hint = '[data-testid="dns-address-display-name"]';
+
+  it('Unicode subdomain: the A-label host, with the typed spelling as a hint', () => {
+    const panel = mountPanel(
+      record({
+        display_domain: 'bücher.customer.example',
+        display_domain_ascii: 'xn--bcher-kva.customer.example',
+        trd: 'bücher',
+      }),
+      cluster('approximated')
+    );
+
+    expect(panel.host).toBe('xn--bcher-kva');
+    expect(panel.appendix).toBe('.customer.example');
+    expect(panel.wrapper.find(hint).text()).toContain('web.admin.domains.dns.displayNameHint');
+    expect(panel.wrapper.find(`${hint} span`).text()).toBe('bücher.customer.example');
+  });
+
+  it("Unicode apex: '@' and the A-label zone", () => {
+    const panel = mountPanel(
+      record({
+        display_domain: 'bücher.de',
+        display_domain_ascii: 'xn--bcher-kva.de',
+        base_domain: 'bücher.de',
+        trd: '',
+        is_apex: true,
+      }),
+      cluster('caddy_on_demand')
+    );
+
+    expect(panel.host).toBe('@');
+    expect(panel.appendix).toBe('xn--bcher-kva.de');
+    expect(panel.wrapper.find(`${hint} span`).text()).toBe('bücher.de');
+  });
+
+  it('ASCII name: no hint', () => {
+    const panel = mountPanel(
+      record({ display_domain_ascii: 'secrets.customer.example' }),
+      cluster('approximated')
+    );
+
+    expect(panel.host).toBe('secrets');
+    expect(panel.wrapper.find(hint).exists()).toBe(false);
+  });
+
+  it('no display_domain_ascii: the typed trd and base domain, no hint', () => {
+    const panel = mountPanel(
+      record({ display_domain: 'bücher.customer.example', trd: 'bücher' }),
+      cluster('approximated')
+    );
+
+    expect(panel.host).toBe('bücher');
+    expect(panel.appendix).toBe('.customer.example');
+    expect(panel.wrapper.find(hint).exists()).toBe(false);
   });
 });

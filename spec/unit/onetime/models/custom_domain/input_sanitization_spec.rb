@@ -36,6 +36,22 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
       end
     end
 
+    # The TXT challenge record name is "_onetime-challenge-<7 chars>." plus the
+    # display domain, 27 bytes longer than the domain itself.
+    it 'rejects a name whose TXT challenge record name would exceed 253 bytes, before creation' do
+      name = "#{(['a' * 63] * 3).join('.')}.#{'b' * 31}.com" # 227 bytes, challenge 254
+
+      expect(described_class).not_to receive(:claim_canonical_display_domain)
+      expect { described_class.create!(name, 'org-test') }
+        .to raise_error(Onetime::Problem, 'Domain too long for its TXT validation record')
+    end
+
+    it 'accepts a name whose TXT challenge record name is exactly 253 bytes' do
+      name = "#{(['a' * 63] * 3).join('.')}.#{'b' * 30}.com" # 226 bytes, challenge 253
+
+      expect(described_class.parse(name, 'org-test').display_domain).to eq(name)
+    end
+
     it 'accepts a Unicode label that fits exactly in 63 wire bytes' do
       expect(described_class.valid?("#{'ü' * 57}.com")).to be true
     end
@@ -502,11 +518,10 @@ RSpec.describe Onetime::CustomDomain, 'input sanitization' do
       )
 
       # Spy on the Redis-touching collaborators so we can prove the
-      # guard raises before any of them run (mirrors the index spies in
-      # update_display_domain_spec).
+      # guard raises before any of them run.
       # rubocop:disable RSpec/VerifiedDoubleReference -- Familia::UniqueIndex
-      # is not a real constant in familia 2.12; the string form (matching
-      # update_display_domain_spec) intentionally skips verification.
+      # is not a real constant in familia 2.12; the string form
+      # intentionally skips verification.
       index_double = instance_double('Familia::UniqueIndex', hsetnx: 1)
       # rubocop:enable RSpec/VerifiedDoubleReference
       allow(described_class).to receive(:display_domain_index).and_return(index_double)

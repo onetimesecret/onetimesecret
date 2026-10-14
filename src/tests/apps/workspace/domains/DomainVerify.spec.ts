@@ -34,7 +34,7 @@ vi.mock('@/apps/workspace/components/domains/DnsWidget.vue', () => ({
   default: {
     name: 'DnsWidget',
     template: '<div class="dns-widget" data-testid="dns-widget"><slot /></div>',
-    props: ['domain', 'targetAddress', 'isApex', 'txtValidationHost', 'txtValidationValue', 'trd'],
+    props: ['domain', 'targetAddress', 'isApex', 'txtValidationHost', 'txtValidationValue'],
     emits: ['records-verified'],
   },
 }));

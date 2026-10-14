@@ -87,7 +87,7 @@ RSpec.describe 'restrict_to enforcement — full mode (ADR-034#restrict-to-is-an
     @original_domains_config       = OT.conf.dig('features', 'domains') || {}
     OT.conf['features']['domains'] = @original_domains_config.merge(
       'enabled' => true,
-      'default' => CANONICAL_HOST,
+      'default' => operator_host,
     )
     Onetime::Middleware::DomainStrategy.initialize_from_config(OT.conf['features']['domains'])
   end
@@ -101,7 +101,17 @@ RSpec.describe 'restrict_to enforcement — full mode (ADR-034#restrict-to-is-an
   end
 
   # An operator host the classifier can actually parse. See before(:all).
-  CANONICAL_HOST = 'operator-restrict-to.example.com'
+  #
+  # On example.org, while the tenant fixture hosts below are on example.com.
+  # The two base domains must differ: saving a new CustomDomain whose base
+  # domain matches an anchor host raises (CustomDomain.refuse_canonical_overlap!,
+  # the check create! applies).
+  # A method, not a constant: a constant assigned inside a describe block is
+  # defined on Object, so two files that use the same name overwrite each
+  # other in one process.
+  def operator_host
+    'operator-restrict-to.example.org'
+  end
 
   let(:run_id) { SecureRandom.hex(6) }
 

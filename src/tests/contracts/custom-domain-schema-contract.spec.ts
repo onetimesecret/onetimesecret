@@ -3,6 +3,7 @@
 // Contract snapshot tests that verify the frontend Zod schema declares
 // all fields the backend sends. Prevents silent field stripping (issue #2685).
 
+import { colonelDomainDetailRecordSchema } from '@/schemas/api/internal/responses/colonel-domains';
 import { domainIconMetaCanonical, vhostCanonical } from '@/schemas/contracts/custom-domain';
 import { vhostSchema as v2VhostSchema } from '@/schemas/shapes/v2/custom-domain/vhost';
 import {
@@ -260,5 +261,78 @@ describe('CustomDomain schema contract (safe_dump_fields)', () => {
         });
       expect(strict.success).toBe(true);
     });
+  });
+});
+
+// The A-label forms of the domain name and of the TXT record name, and the
+// TXT record name in the display_domain spelling. The UI shows and copies the
+// A-label forms; without the schema declaring them, Zod would strip them and
+// the UI would fall back to the typed spellings, which can be Unicode.
+describe('CustomDomain A-label name fields', () => {
+  const idnDomain: Record<string, unknown> = {
+    extid: 'cd1a2b3c4d',
+    domainid: 'abc1234f-89ab-cdef-0123-456789abcdef',
+    display_domain: 'bücher.example.com',
+    display_domain_ascii: 'xn--bcher-kva.example.com',
+    custid: null,
+    base_domain: 'example.com',
+    subdomain: 'bücher.example.com',
+    trd: 'bücher',
+    tld: 'com',
+    sld: 'example',
+    is_apex: false,
+    txt_validation_host: '_onetime-challenge-abc1234.xn--bcher-kva',
+    txt_validation_value: 'abc123def456ghi789',
+    txt_validation_record: '_onetime-challenge-abc1234.xn--bcher-kva.example.com',
+    txt_validation_record_display: '_onetime-challenge-abc1234.bücher.example.com',
+    verified: false,
+    created: 1609372800,
+    updated: 1609459200,
+  };
+
+  const NAME_FIELDS = [
+    'display_domain_ascii',
+    'txt_validation_record',
+    'txt_validation_record_display',
+  ] as const;
+
+  const expectNames = (parsed: Partial<Record<(typeof NAME_FIELDS)[number], unknown>>) => {
+    expect(parsed.display_domain_ascii).toBe('xn--bcher-kva.example.com');
+    expect(parsed.txt_validation_record).toBe(
+      '_onetime-challenge-abc1234.xn--bcher-kva.example.com'
+    );
+    expect(parsed.txt_validation_record_display).toBe(
+      '_onetime-challenge-abc1234.bücher.example.com'
+    );
+  };
+
+  it('carries the names through the v3 schema', () => {
+    expectNames(customDomainSchema.parse(idnDomain));
+  });
+
+  it('carries the names through the colonel detail record schema', () => {
+    expectNames(
+      colonelDomainDetailRecordSchema.parse({
+        ...idnDomain,
+        domain_id: idnDomain.domainid,
+        verification_state: 'pending',
+        resolving: false,
+        ready: false,
+      })
+    );
+  });
+
+  it('accepts null (no A-label form, no challenge yet) and an absent key (older payloads)', () => {
+    const nulls = Object.fromEntries(NAME_FIELDS.map((f) => [f, null]));
+    const withNull = customDomainSchema.parse({ ...idnDomain, ...nulls });
+    for (const field of NAME_FIELDS) {
+      expect(withNull[field]).toBeNull();
+    }
+
+    const absent = { ...idnDomain };
+    for (const field of NAME_FIELDS) {
+      delete absent[field];
+    }
+    expect(customDomainSchema.safeParse(absent).success).toBe(true);
   });
 });

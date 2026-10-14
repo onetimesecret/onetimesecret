@@ -280,9 +280,42 @@ Onetime::Operations::Domains::Transfer.new(
 Onetime::Organization.load(@org3.objid).nil?
 #=> true
 
+# ---- Records with no canonical-name entry -----------------------------
+#
+# Domains registered before canonical_display_domain_index existed have no
+# entry in it. Saving them with their name unchanged must keep working and
+# must not add one: the entries are created by a separate backfill, not by
+# whichever save comes first.
+
+## a transfer saves a domain that has no canonical entry, and adds none
+@pc_tdom = Onetime::CustomDomain.create!("dt-pc-transfer-#{@test_id}.example.com", @org1.objid)
+@org1.add_domain(@pc_tdom)
+@pc_tkey = Onetime::CustomDomain.canonical_display_domain(@pc_tdom.display_domain)
+Onetime::CustomDomain.canonical_display_domain_index.remove_field(@pc_tkey)
+@pc_t = Onetime::Operations::Domains::Transfer.new(
+  domain: @pc_tdom, to_org: @org2, actor: @actor, dry_run: false,
+).call
+[@pc_t.status,
+ Onetime::CustomDomain.find_by_identifier(@pc_tdom.identifier).org_id == @org2.org_id,
+ Onetime::CustomDomain.canonical_display_domain_index.get(@pc_tkey)]
+#=> [:transferred, true, nil]
+
+## a repair that adopts an orphan saves a domain that has no canonical entry, and adds none
+@pc_rseed = Onetime::CustomDomain.create!("dt-pc-repair-#{@test_id}.example.com", @org1.objid)
+@pc_rkey  = Onetime::CustomDomain.canonical_display_domain(@pc_rseed.display_domain)
+Onetime::CustomDomain.canonical_display_domain_index.remove_field(@pc_rkey)
+@pc_rseed.remove_from_organization_domains(@org1)
+Familia.dbclient.hset(@pc_rseed.dbkey, 'org_id', '')
+@pc_rdom = Onetime::CustomDomain.find_by_identifier(@pc_rseed.domainid)
+@pc_r = Onetime::Operations::Domains::Repair.new(domain: @pc_rdom, actor: @actor, org: @org2, dry_run: false).call
+[@pc_r.status,
+ Onetime::CustomDomain.find_by_identifier(@pc_rdom.identifier).org_id == @org2.org_id,
+ Onetime::CustomDomain.canonical_display_domain_index.get(@pc_rkey)]
+#=> [:repaired, true, nil]
+
 # ---- Cleanup ----------------------------------------------------------
 
-[@orphan, @dom, @tdom, @rtdom].compact.each { |d| d.destroy! rescue nil }
+[@orphan, @dom, @tdom, @rtdom, @pc_tdom, @pc_rdom].compact.each { |d| d.destroy! rescue nil }
 [@org1, @org2, @org3].compact.each { |o| o.destroy! rescue nil }
 [@cust1, @cust2, @cust3].compact.each { |c| c.destroy! rescue nil }
 AE.events.clear

@@ -193,6 +193,14 @@ export const customDomainCanonical = z.object({
   /** Full domain as displayed (e.g., secrets.example.com). */
   display_domain: z.string(),
 
+  /**
+   * `display_domain` in A-label form, converted by the server (e.g.,
+   * xn--bcher-kva.example.com for bücher.example.com): the name the address
+   * record is created under. Equals `display_domain` for an ASCII name. Null
+   * when the name has no A-label form.
+   */
+  display_domain_ascii: z.string().nullable().optional(),
+
   /** Base domain without subdomain (e.g., example.com). */
   base_domain: z.string(),
 
@@ -215,11 +223,30 @@ export const customDomainCanonical = z.object({
   // DNS validation
   // ─────────────────────────────────────────────────────────────────────────
 
-  /** TXT record hostname for domain verification. */
+  /**
+   * TXT record host for domain verification, relative to `base_domain`
+   * (e.g., _onetime-challenge-abc1234.secrets). Records from earlier
+   * versions may hold a Unicode subdomain label here.
+   */
   txt_validation_host: z.string(),
 
   /** Expected TXT record value for verification. */
   txt_validation_value: z.string(),
+
+  /**
+   * Full TXT record name to create, in A-label form: the name the server
+   * queries (e.g., _onetime-challenge-abc1234.xn--bcher-kva.example.com for
+   * bücher.example.com). Null before a challenge exists, or when the stored
+   * name has no A-label form.
+   */
+  txt_validation_record: z.string().nullable().optional(),
+
+  /**
+   * The same record name spelled like `display_domain` (e.g.,
+   * _onetime-challenge-abc1234.bücher.example.com). For display beside
+   * `txt_validation_record` when the two differ. Null before a challenge exists.
+   */
+  txt_validation_record_display: z.string().nullable().optional(),
 
   // ─────────────────────────────────────────────────────────────────────────
   // Status fields
