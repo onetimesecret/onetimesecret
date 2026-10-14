@@ -179,10 +179,10 @@ Onetime::CustomDomain::SignupConfig.exists_for_domain?(@domain.identifier)
 
 # --- valid_email_domain? ---
 
-## valid_email_domain? returns true when allowlist is empty
+## valid_email_domain? admits no one when the allowlist is empty
 @allowlist_config.allowed_signup_domains = []
 @allowlist_config.valid_email_domain?('anyone@anywhere.com')
-#=> true
+#=> false
 
 ## valid_email_domain? checks against allowlist
 @allowlist_config.allowed_signup_domains = ['acme.com']
@@ -237,14 +237,14 @@ rescue Onetime::Problem
 end
 #=> :raised_problem
 
-# --- Corrupted JSON: display helpers fail open, the sign-up gate fails closed ---
+# --- Corrupted JSON: config surfaces keep rendering, nothing admits anyone ---
 #
 # When allowed_signup_domains_json contains invalid JSON, allowed_signup_domains
-# returns [] so config surfaces keep rendering, and valid_email_domain? reads
-# that as "no allowlist". The sign-up gate must not inherit that reading: the
-# operator chose domain_allowlist, so an unreadable or empty list denies every
-# sign-up (allowed_signup_domains_corrupt?, validate_domain_allowlist) rather
-# than silently admitting everyone. Same stance as SsoConfig on the SSO path.
+# returns [] so config surfaces keep rendering, and valid_email_domain? admits
+# no one against that []. The operator chose domain_allowlist, so an
+# unreadable or empty list denies every sign-up (allowed_signup_domains_corrupt?,
+# validate_domain_allowlist) rather than silently admitting everyone. Same
+# stance as SsoConfig on the SSO path.
 
 ## Create config with valid allowlist to corrupt
 @ts3 = Familia.now.to_i
@@ -268,13 +268,13 @@ end
 @corrupt_config.allowed_signup_domains
 #=> []
 
-## valid_email_domain? returns true for ANY email when allowlist is corrupted (fail-open)
+## valid_email_domain? admits no one when the allowlist is corrupted
 @corrupt_config.valid_email_domain?('anyone@anywhere.com')
-#=> true
+#=> false
 
-## valid_email_domain? returns true for previously-restricted domain
-@corrupt_config.valid_email_domain?('attacker@evil.com')
-#=> true
+## valid_email_domain? does not admit the previously allowed domain either
+@corrupt_config.valid_email_domain?('user@valid.com')
+#=> false
 
 ## valid_signup_email? with domain_allowlist strategy still validates format
 @corrupt_config.valid_signup_email?('not-an-email')
@@ -314,9 +314,9 @@ end
 @empty_allowlist.valid_signup_email?('anyone@anywhere.com')
 #=> false
 
-## valid_email_domain? alone still reads an empty list as unrestricted (display helper)
+## valid_email_domain? alone also admits no one against an empty list
 @empty_allowlist.valid_email_domain?('anyone@anywhere.com')
-#=> true
+#=> false
 
 # --- allow_base_domain: the domain's own registrable domain joins the allowlist ---
 #
@@ -455,6 +455,16 @@ entitled.define_singleton_method(:can?) { |name| asked << name; true }
 stub = Struct.new(:base_domain, :primary_organization).new('example.com', entitled)
 [@abd_config.allow_base_domain_effective?(domain: stub), asked]
 #=> [true, ['base_domain_signup']]
+
+## base_domain_signup_available_for? is the one statement of that rule (the API asks it too)
+entitled = Object.new
+entitled.define_singleton_method(:can?) { |_name| true }
+klass    = Onetime::CustomDomain::SignupConfig
+@orgs_conf['base_domain_signup_enabled'] = false
+flag_off = klass.base_domain_signup_available_for?(entitled)
+@orgs_conf['base_domain_signup_enabled'] = true
+[klass.base_domain_signup_available_for?(entitled), flag_off, klass.base_domain_signup_available_for?(nil)]
+#=> [true, false, false]
 
 ## A corrupt list still denies everyone, flag or not (nothing stored is trusted)
 @abd_config.allowed_signup_domains_json = '{invalid json['

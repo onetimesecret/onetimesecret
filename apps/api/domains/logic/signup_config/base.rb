@@ -98,18 +98,17 @@ module DomainsAPI
           )
         end
 
-        # Whether allow_base_domain can take effect for this domain: the
-        # install enables it and the organization holds the entitlement.
-        # The same checks as SignupConfig#allow_base_domain_effective?, made
-        # against the organization authorize_domain_signup_config! loaded.
+        # Whether allow_base_domain can take effect for this domain, asked of
+        # the organization authorize_domain_signup_config! loaded. The rule is
+        # SignupConfig.base_domain_signup_available_for?, the same one the
+        # sign-up gate applies.
         #
         # @return [Boolean]
         def base_domain_signup_available?
           return @base_domain_signup_available if defined?(@base_domain_signup_available)
 
           @base_domain_signup_available =
-            Onetime::CustomDomain::SignupConfig.base_domain_signup_enabled? &&
-            @organization.can?(Onetime::CustomDomain::SignupConfig::BASE_DOMAIN_SIGNUP_ENTITLEMENT)
+            Onetime::CustomDomain::SignupConfig.base_domain_signup_available_for?(@organization)
         end
 
         # Refuse a request that turns allow_base_domain on while
@@ -128,7 +127,7 @@ module DomainsAPI
 
           message = if Onetime::CustomDomain::SignupConfig.base_domain_signup_enabled?
                       'Allowing the base domain automatically requires the base_domain_signup entitlement. ' \
-                      'Please upgrade your plan.'
+                        'Please upgrade your plan.'
                     else
                       'Allowing the base domain automatically is not enabled on this instance'
                     end

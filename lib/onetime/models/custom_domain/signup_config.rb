@@ -235,10 +235,10 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
   # domain list.
   #
   # allowed_signup_domains (above) swallows JSON::ParserError and returns
-  # [], which valid_email_domain? reads as "no allowlist → allow all". That
-  # is fine for display, but on the sign-up gate it would silently disable
-  # the restriction the value encodes, so validate_domain_allowlist denies
-  # when this is true. An absent/empty value is NOT corrupt (that is the
+  # [] so config surfaces keep rendering. On the sign-up gate that [] would
+  # let allow_base_domain stand in for the restriction the value encodes,
+  # so validate_domain_allowlist denies when this is true. An absent/empty
+  # value is NOT corrupt (that is the
   # legitimate cleared state written by allowed_signup_domains=); a
   # well-formed empty array is not corrupt either. Mirrors
   # SsoConfig#allowed_domains_corrupt?.
@@ -283,10 +283,10 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
   # @return [Boolean]
   def allow_base_domain_effective?(domain: nil)
     return false unless allow_base_domain?
-    return false unless self.class.base_domain_signup_enabled?
+    return false unless self.class.base_domain_signup_enabled? # skips the record lookups below
     return false if domain_id.to_s.empty?
 
-    (domain || custom_domain)&.primary_organization&.can?(BASE_DOMAIN_SIGNUP_ENTITLEMENT) || false
+    self.class.base_domain_signup_available_for?((domain || custom_domain)&.primary_organization)
   end
 
   # The allowlist the sign-up gate consults under domain_allowlist: the
@@ -308,18 +308,13 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
   end
 
   # Validate an email address against the effective allowed domains list.
-  #
-  # NOTE: returns true when the list is empty. That reading suits display
-  # surfaces; the sign-up gate (validate_domain_allowlist) refuses an empty
-  # or corrupt list instead of falling through to this.
+  # Matching is exact and lower-cased. An empty list admits no one.
   #
   # @param email [String] Email address to validate
   # @param domains [Array<String>] the list, when the caller has already
   #   built it (saves a second domain-record read and JSON parse)
   # @return [Boolean] true if email domain is allowed
   def valid_email_domain?(email, domains: effective_allowed_signup_domains)
-    return true if domains.empty?
-
     email_domain = email.to_s.split('@').last&.downcase
     return false if email_domain.nil? || email_domain.empty?
 
@@ -422,6 +417,20 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
     # @return [Boolean]
     def base_domain_signup_enabled?
       OT.conf.dig('features', 'organizations', BASE_DOMAIN_SIGNUP_FEATURE_FLAG) == true
+    end
+
+    # Whether allow_base_domain can take effect for domains this
+    # organization owns: the install offers it and the organization holds
+    # BASE_DOMAIN_SIGNUP_ENTITLEMENT. The one statement of that rule, used
+    # by #allow_base_domain_effective? at sign-up and by the workspace API
+    # on save (SignupConfig::Base#base_domain_signup_available?).
+    #
+    # @param organization [Onetime::Organization, nil] the owning organization
+    # @return [Boolean]
+    def base_domain_signup_available_for?(organization)
+      return false unless base_domain_signup_enabled?
+
+      organization&.can?(BASE_DOMAIN_SIGNUP_ENTITLEMENT) || false
     end
 
     # The allowlist requirement, shared by #validation_errors and the
@@ -681,19 +690,15 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
   # restriction cannot be read, so nothing about it is trusted. The
   # effective list is empty with the flag set when the domain record is
   # missing or has no base_domain, or when allow_base_domain_effective? is
-  # false (install flag off, entitlement missing). valid_email_domain? keeps its
-  # "empty list → allow all" reading for display surfaces; only this
-  # sign-up gate is strict. Same reasoning as SsoConfig#allowed_domains_corrupt?
-  # on the SSO sign-in path.
+  # false (install flag off, entitlement missing); valid_email_domain? then
+  # admits no one. Same reasoning as SsoConfig#allowed_domains_corrupt? on
+  # the SSO sign-in path.
   def validate_domain_allowlist(email)
     # Must also pass format check
     return false unless Onetime::Utils::EmailFormat.valid_format?(email)
     return false if allowed_signup_domains_corrupt?
 
-    domains = effective_allowed_signup_domains
-    return false if domains.empty?
-
-    valid_email_domain?(email, domains: domains)
+    valid_email_domain?(email)
   end
 
   # Truemail validation with per-call configuration.
