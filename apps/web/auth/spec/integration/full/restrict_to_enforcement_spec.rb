@@ -101,7 +101,12 @@ RSpec.describe 'restrict_to enforcement — full mode (ADR-034#restrict-to-is-an
   end
 
   # An operator host the classifier can actually parse. See before(:all).
-  CANONICAL_HOST = 'operator-restrict-to.example.com'
+  #
+  # On example.org, while the tenant fixture hosts below are on example.com.
+  # The two base domains must differ: saving a new CustomDomain whose base
+  # domain matches an anchor host raises (CustomDomain.refuse_canonical_overlap!,
+  # the check create! applies).
+  CANONICAL_HOST = 'operator-restrict-to.example.org'
 
   let(:run_id) { SecureRandom.hex(6) }
 

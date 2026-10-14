@@ -75,7 +75,11 @@ RSpec.describe 'per-domain signup_enabled enforcement — full mode (ADR-024 cus
     end
   end
 
-  CANONICAL_HOST = 'operator-signup-gate.example.com'
+  # On example.org, while the tenant fixture hosts below are on example.com.
+  # The two base domains must differ: saving a new CustomDomain whose base
+  # domain matches an anchor host raises (CustomDomain.refuse_canonical_overlap!,
+  # the check create! applies).
+  CANONICAL_HOST = 'operator-signup-gate.example.org'
 
   let(:run_id)   { SecureRandom.hex(6) }
   let(:password) { 'TestPassword123!' }
