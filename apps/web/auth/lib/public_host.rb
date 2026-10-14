@@ -155,9 +155,11 @@ module Auth
     # Positive-evidence host allowlist test (finding G-01).
     #
     # True only when +host+ is non-empty, is NOT one of the canonical hosts,
-    # and names a CustomDomain whose ownership is TXT-VERIFIED (`verified`).
-    # Registration alone doesn't prove control of the host, and an auth link
-    # must never point at a host whose ownership is unproven. Uses the raising
+    # and names a CustomDomain that is authorized to be served
+    # (`serving_authorized?`, which refuses a record with no organization)
+    # and whose ownership is TXT-VERIFIED (`verified`). Registration alone
+    # doesn't prove control of the host, and an auth link must never point
+    # at a host whose ownership is unproven. Uses the raising
     # loader so a datastore failure fails CLOSED here (rescue -> false) rather
     # than reading as an absent tenant — a link then builds on the canonical
     # host, never on an unverifiable one.
@@ -177,7 +179,7 @@ module Auth
       return false if Onetime::Middleware::DomainStrategy.canonical_host?(host)
 
       record = Onetime::CustomDomain::Lookup.for_host(env, host).record!
-      !record.nil? && !!record.verified # boolean_field native
+      !record.nil? && record.serving_authorized? && !!record.verified # boolean_field native
     rescue StandardError
       # Datastore blip (or any unexpected error): fail closed. The auth link
       # falls back to the canonical host rather than an unverifiable one.
