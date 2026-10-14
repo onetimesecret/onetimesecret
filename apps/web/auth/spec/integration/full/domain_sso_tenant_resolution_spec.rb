@@ -114,6 +114,36 @@ RSpec.describe 'Domain SSO Tenant Resolution', type: :integration do
       end
     end
 
+    # An orphaned record (no org_id) adopted by an operator keeps its
+    # SsoConfig, but the adoption resets its ownership verification, so the
+    # SsoConfig is not used until the new organization verifies the domain.
+    context 'when an orphaned domain that has a CustomDomain::SsoConfig is adopted' do
+      include_context 'tenant fixtures'
+
+      let(:adopter) { Onetime::Organization.new(display_name: "Adopter #{test_run_id}").tap(&:save) }
+      let(:auth) { { 'enabled' => true } }
+
+      after do
+        Onetime::CustomDomain.find_by_identifier(test_custom_domain.identifier)&.destroy!
+        adopter.destroy! if adopter.exists?
+      end
+
+      it 'refuses tenant SSO on the domain as unverified' do
+        domain_id = test_custom_domain.identifier
+        reason    = ->(id) { Onetime::CustomDomain::SsoConfig.tenant_sso_unavailable_reason(id, auth: auth) }
+        before    = reason.call(domain_id)
+
+        test_organization.remove_domain(test_custom_domain)
+        Familia.dbclient.hdel(test_custom_domain.dbkey, 'org_id')
+        Onetime::CustomDomain.owners.remove(test_custom_domain.to_s)
+        Onetime::CustomDomain.claim_orphaned_domain(Onetime::CustomDomain.find_by_identifier(domain_id), adopter.objid)
+
+        expect([before == :domain_unverified, reason.call(domain_id),
+                Onetime::CustomDomain::SsoConfig.exists_for_domain?(domain_id)])
+          .to eq([false, :domain_unverified, true])
+      end
+    end
+
     context 'when domain has no CustomDomain::SsoConfig' do
       it 'falls back to platform env vars if allowed' do
         # Domain without CustomDomain::SsoConfig should use platform credentials
