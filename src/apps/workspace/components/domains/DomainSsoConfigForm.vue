@@ -1497,20 +1497,6 @@ aria-hidden="true">*</span>
               class="mt-1 text-sm text-amber-700 dark:text-amber-300">
               {{ t('web.organizations.sso.diagnostics_save_first') }}
             </p>
-            <!-- The one thing no check can tell: whether a real sign-in
-                 through this domain's IdP completed. Read from the saved
-                 record on load; no run needed. -->
-            <p
-              data-testid="sso-last-sign-in"
-              :data-result="lastSignIn?.result ?? 'none'"
-              :class="[
-                'mt-2 text-sm',
-                lastSignIn?.result === 'failed'
-                  ? 'text-red-700 dark:text-red-300'
-                  : 'text-gray-700 dark:text-gray-300',
-              ]">
-              {{ lastSignInText }}
-            </p>
           </div>
           <button
             type="button"
@@ -1886,6 +1872,35 @@ aria-hidden="true">*</span>
           </p>
         </div>
       </div>
+
+      <section
+        data-testid="sso-confirm-sign-in"
+        aria-labelledby="sso-confirm-sign-in-title"
+        class="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+        <h4
+          id="sso-confirm-sign-in-title"
+          class="text-sm font-medium text-gray-900 dark:text-white">
+          {{ t('web.organizations.sso.confirm_sign_in') }}
+        </h4>
+        <p class="mt-2 text-sm text-gray-700 dark:text-gray-300">
+          {{ t('web.organizations.sso.confirm_sign_in_hint', { domain: domainHost }) }}
+        </p>
+        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+          {{ t('web.organizations.sso.confirm_sign_in_limits') }}
+        </p>
+        <p
+          v-if="isConfigured"
+          data-testid="sso-last-sign-in"
+          :data-result="lastSignIn?.result ?? 'none'"
+          :class="[
+            'mt-2 text-sm',
+            lastSignIn?.result === 'failed'
+              ? 'text-red-700 dark:text-red-300'
+              : 'text-gray-700 dark:text-gray-300',
+          ]">
+          {{ lastSignInText }}
+        </p>
+      </section>
 
       <!-- Grant Org Scope Toggle (withheld pending testing unless already
            granted, so an existing grant stays revocable — see showGrantOrgScope) -->

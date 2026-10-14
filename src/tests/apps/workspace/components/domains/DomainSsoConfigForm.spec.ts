@@ -1069,6 +1069,17 @@ describe('DomainSsoConfigForm', () => {
       expect(line.exists()).toBe(true);
       expect(line.attributes('data-result')).toBe('none');
       expect(line.text()).toContain('web.organizations.sso.last_sign_in_none');
+      const card = wrapper.get('[data-testid="sso-confirm-sign-in"]');
+      expect(card.get(LINE).element).toBe(line.element);
+      expect(wrapper.get('[data-testid="sso-diagnostics"]').find(LINE).exists()).toBe(false);
+      for (const key of ['confirm_sign_in', 'confirm_sign_in_hint', 'confirm_sign_in_limits']) {
+        expect(card.text()).toContain(`web.organizations.sso.${key}`);
+      }
+      expect(
+        wrapper
+          .get('[data-testid="sso-diagnostics"]')
+          .element.compareDocumentPosition(card.element) & Node.DOCUMENT_POSITION_FOLLOWING
+      ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     });
 
     it('reports a completed sign-in', async () => {

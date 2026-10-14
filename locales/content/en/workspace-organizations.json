@@ -1156,6 +1156,18 @@
     "text": "Technical details",
     "content_hash": "890ab358"
   },
+  "web.organizations.sso.confirm_sign_in": {
+    "text": "Confirm sign-in",
+    "content_hash": "f2e77970"
+  },
+  "web.organizations.sso.confirm_sign_in_hint": {
+    "text": "After saving and checking the configuration, turn on Connection active and save. Enable SSO in the domain’s Sign-In Configuration, then open {domain} in a private window and sign in with SSO. Keep this setup window open.",
+    "content_hash": "5ad4d7ed"
+  },
+  "web.organizations.sso.confirm_sign_in_limits": {
+    "text": "Only a real sign-in confirms the redirect or callback, user assignment, access policies and claims work together. Reopen these settings afterward to see the last recorded sign-in.",
+    "content_hash": "8612705c"
+  },
   "web.organizations.sso.diagnostics_title": {
     "text": "Check saved configuration",
     "content_hash": "5c68357a"
