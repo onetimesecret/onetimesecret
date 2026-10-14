@@ -907,10 +907,6 @@
     "text": "На новите членове, които се присъединяват чрез SSO на този домейн, ще бъде предоставен достъп до всички домейни на организацията. Съществуващите членове не са засегнати. Когато е деактивирано (по подразбиране), новите членове могат да достъпват само този домейн.",
     "source_hash": "2ac9f345"
   },
-  "web.organizations.sso.save_config": {
-    "text": "Запазване на SSO конфигурацията",
-    "source_hash": "70853769"
-  },
   "web.organizations.sso.delete_config": {
     "text": "Изтриване на конфигурацията",
     "source_hash": "9ac1ac7b"
@@ -1207,33 +1203,9 @@
     "text": "Настройките за влизане на този сайт са в конфликт с ограничението за целия сайт ({method}), затова нито едно от двете не се прилага и в момента няма начин за влизане.",
     "source_hash": "54cdfd61"
   },
-  "web.organizations.sso.connection_enabled": {
-    "text": "Връзката е активна",
-    "source_hash": "b6334b2b"
-  },
-  "web.organizations.sso.connection_enabled_hint": {
-    "text": "Когато е активна, членовете могат да влизат с този SSO доставчик. SSO трябва да е активирано и като метод за влизане в „Конфигурация на влизането“ на домейна.",
-    "source_hash": "871db2f1"
-  },
-  "web.organizations.sso.enable_untested_warning": {
-    "text": "Тази връзка все още не е преминала тест тук. Изпълнете „Тест на връзката“, преди да я включите, за да не достигне неработеща конфигурация до вашата страница за влизане.",
-    "source_hash": "c1fbdeca"
-  },
   "web.organizations.delete_organization_cancel_subscription_first": {
     "text": "Анулирайте абонамента на тази организация, преди да я изтриете.",
     "source_hash": "f0c54eca"
-  },
-  "web.organizations.sso.disable_action": {
-    "text": "Деактивиране на SSO",
-    "source_hash": "2f072272"
-  },
-  "web.organizations.sso.disable_confirm": {
-    "text": "Да се деактивира ли тази SSO връзка? Незапазените промени във формуляра няма да бъдат запазени. Съхранените идентификационни данни ще бъдат запазени.",
-    "source_hash": "608b142a"
-  },
-  "web.organizations.sso.disable_enforcement_warning": {
-    "text": "Налагането само на SSO също ще бъде изключено, което ще позволи другите конфигурирани методи за влизане.",
-    "source_hash": "58abd552"
   },
   "web.organizations.sso.idp_sso_service_url": {
     "text": "URL адрес на SSO услугата на IdP",
@@ -1386,10 +1358,6 @@
   "web.organizations.sso.last_sign_in_stage_account": {
     "text": "при съпоставянето на потребителя с акаунт",
     "source_hash": "1ebbb776"
-  },
-  "web.organizations.sso.diagnostics_save_first": {
-    "text": "Първо запазете: проверява се запазената конфигурация, а не незапазените промени.",
-    "source_hash": "46a51d59"
   },
   "web.organizations.sso.diagnostics_button": {
     "text": "Проверка на запазената конфигурация",

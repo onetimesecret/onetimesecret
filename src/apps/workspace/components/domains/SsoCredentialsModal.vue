@@ -1,7 +1,14 @@
 <!-- src/apps/workspace/components/domains/SsoCredentialsModal.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
+  import DomainSsoConfigForm from '@/apps/workspace/components/domains/DomainSsoConfigForm.vue';
+  import type { TenantSsoVerdict } from '@/schemas/api/domains/responses/signin-config';
+  import type { CustomDomainSsoConfig } from '@/schemas/shapes/domains/sso-config';
+  import type { SsoDiagnosticsResponse, TestSsoConnectionResponse } from '@/services/sso.service';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import { BACKGROUND_REFRESH_THROTTLE_MS } from '@/shared/composables/useBackgroundRefresh';
+  import type { SsoConfigFormState } from '@/shared/composables/useSsoConfig';
+  import { isSamlEnabled } from '@/utils/features';
   import {
     Dialog,
     DialogPanel,
@@ -9,16 +16,12 @@
     TransitionChild,
     TransitionRoot,
   } from '@headlessui/vue';
-  import OIcon from '@/shared/components/icons/OIcon.vue';
-  import DomainSsoConfigForm from '@/apps/workspace/components/domains/DomainSsoConfigForm.vue';
-  import { isSamlEnabled } from '@/utils/features';
-  import type { SsoConfigFormState } from '@/shared/composables/useSsoConfig';
-  import type { CustomDomainSsoConfig } from '@/schemas/shapes/domains/sso-config';
-  import type { SsoDiagnosticsResponse, TestSsoConnectionResponse } from '@/services/sso.service';
+  import { useEventListener } from '@vueuse/core';
+  import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
 
-  defineProps<{
+  const props = defineProps<{
     isOpen: boolean;
     domainExtId: string;
     domainHost: string;
@@ -38,23 +41,48 @@
     testError: string;
     diagnosticsResult: SsoDiagnosticsResponse | null;
     savedCredentialsChecked: boolean;
+    savedCredentialsUnchecked: boolean;
     diagnosticsError: string;
+    isRefreshingLastSignIn: boolean;
+    /** The page's tenant-SSO verdict (#4111); absent until it has loaded. */
+    tenantSso?: TenantSsoVerdict | null;
   }>();
 
   const emit = defineEmits<{
     (e: 'close'): void;
     (e: 'save'): void;
-    (e: 'disable'): void;
     (e: 'delete'): void;
     (e: 'test'): void;
     (e: 'diagnostics'): void;
     (e: 'discard'): void;
+    /** passive: no person asked (the window regained focus or visibility). */
+    (e: 'refresh-last-sign-in', passive: boolean): void;
     (e: 'update:formState', value: SsoConfigFormState): void;
   }>();
 
   const handleClose = () => {
     emit('close');
   };
+
+  /**
+   * Confirm sign-in happens in another window (a private window on the
+   * custom domain). When the admin comes back to this one, ask for the last
+   * sign-in outcome again so it shows without a reload. Throttled because
+   * focus and visibility fire together and repeatedly on window switches;
+   * the parent also shares an in-flight refresh.
+   */
+  let lastFocusRefresh = 0;
+  const refreshOnReturn = () => {
+    if (!props.isOpen || !props.isConfigured) return;
+    if (document.visibilityState !== 'visible') return;
+    const now = Date.now();
+    if (now - lastFocusRefresh < BACKGROUND_REFRESH_THROTTLE_MS) return;
+    lastFocusRefresh = now;
+    emit('refresh-last-sign-in', true);
+  };
+
+  useEventListener(window, 'focus', refreshOnReturn);
+  useEventListener(document, 'visibilitychange', refreshOnReturn);
 </script>
 
 <template>
@@ -139,13 +167,16 @@
                 :test-error="testError"
                 :diagnostics-result="diagnosticsResult"
                 :saved-credentials-checked="savedCredentialsChecked"
+                :saved-credentials-unchecked="savedCredentialsUnchecked"
                 :diagnostics-error="diagnosticsError"
+                :is-refreshing-last-sign-in="isRefreshingLastSignIn"
+                :tenant-sso="tenantSso"
                 :saml-enabled="isSamlEnabled()"
                 @save="emit('save')"
-                @disable="emit('disable')"
                 @delete="emit('delete')"
                 @test="emit('test')"
                 @diagnostics="emit('diagnostics')"
+                @refresh-last-sign-in="emit('refresh-last-sign-in', false)"
                 @discard="emit('discard')" />
             </DialogPanel>
           </TransitionChild>

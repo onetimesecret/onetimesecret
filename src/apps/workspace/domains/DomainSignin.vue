@@ -113,6 +113,7 @@ const {
   effectiveRestrictTo,
   tenantSso,
   initialize: initializeSigninConfig,
+  refreshDetails: refreshSigninDetails,
   autoSaveFields,
   deleteConfig,
 } = useSigninConfig(props.extid);
@@ -135,20 +136,52 @@ const {
   testError,
   diagnosticsResult,
   savedCredentialsChecked,
+  savedCredentialsUnchecked,
   diagnosticsError,
+  isRefreshingLastSignIn,
   isConfigured: ssoIsConfigured,
+  isEnabled: ssoIsEnabled,
   hasUnsavedChanges: ssoHasUnsavedChanges,
   clientSecretMasked,
   initialize: initializeSsoConfig,
   saveConfig: saveSsoConfig,
-  disableConfig: disableSsoConfig,
   deleteConfig: deleteSsoConfig,
   testConnection,
-  runDiagnostics,
+  saveAndRunDiagnostics,
+  refreshLastSignIn,
   discardChanges: discardSsoChanges,
 } = useSsoConfig(props.extid);
 
 const showSsoModal = ref(false);
+
+/**
+ * The tenant-SSO verdict (`details.tenant_sso`) reads the SSO record: it
+ * exists, it is on, its provider type can run. A dialog action that may have
+ * changed the record is followed by a re-read of the sign-in details, so the
+ * SSO row and the dialog's Confirm sign-in step never act on the verdict
+ * from before it. Skipped without the sign-in entitlement (never fetched).
+ */
+const refreshAfterSsoChange = async () => {
+  if (canCustomSignin.value) await refreshSigninDetails();
+};
+
+const handleSsoSave = async () => {
+  await saveSsoConfig();
+  await refreshAfterSsoChange();
+};
+
+/** Save (when needed), check, and turn on a passing record that is off. */
+const handleSsoDiagnostics = async () => {
+  await saveAndRunDiagnostics();
+  await refreshAfterSsoChange();
+};
+
+const handleSsoDelete = async () => {
+  await deleteSsoConfig();
+  await refreshAfterSsoChange();
+};
+
+const handleRefreshLastSignIn = (passive: boolean) => refreshLastSignIn({ passive });
 
 // Deep link support: `?modal=sso` opens the SSO credentials modal on load,
 // e.g. from the org SSO tab's Configure link.
@@ -321,6 +354,7 @@ watch(canFetchSsoConfig, async (allowed) => {
             :is-configured="isConfigured"
             :workspace-default="isWorkspaceDefault"
             :sso-configured="ssoIsConfigured"
+            :sso-setup-pending="ssoIsConfigured && !ssoIsEnabled"
             :tenant-sso="tenantSso"
             :effective-restrict-to="effectiveRestrictTo"
             :can-manage-sso="canManageSso"
@@ -353,13 +387,16 @@ watch(canFetchSsoConfig, async (allowed) => {
         :test-error="testError"
         :diagnostics-result="diagnosticsResult"
         :saved-credentials-checked="savedCredentialsChecked"
+        :saved-credentials-unchecked="savedCredentialsUnchecked"
         :diagnostics-error="diagnosticsError"
+        :is-refreshing-last-sign-in="isRefreshingLastSignIn"
+        :tenant-sso="tenantSso"
         @close="handleCloseSsoModal"
-        @save="saveSsoConfig"
-        @disable="disableSsoConfig"
-        @delete="deleteSsoConfig"
+        @save="handleSsoSave"
+        @delete="handleSsoDelete"
         @test="testConnection"
-        @diagnostics="runDiagnostics"
+        @diagnostics="handleSsoDiagnostics"
+        @refresh-last-sign-in="handleRefreshLastSignIn"
         @discard="discardSsoChanges" />
     </div>
   </div>

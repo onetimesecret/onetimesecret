@@ -15,6 +15,7 @@ import ToggleWithIcon from '@/shared/components/common/ToggleWithIcon.vue';
 import CopyToClipboardButton from '@/shared/components/ui/CopyToClipboardButton.vue';
 import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
 import { useClipboard } from '@/shared/composables/useClipboard';
+import type { TenantSsoVerdict } from '@/schemas/api/domains/responses/signin-config';
 import {
   SSO_PROVIDER_ROUTE_NAMES,
   SSO_TOKEN_ENDPOINT_AUTH_METHODS,
@@ -27,6 +28,7 @@ import {
 } from '@/schemas/shapes/domains/sso-config';
 import type { SsoConfigFormState } from '@/shared/composables/useSsoConfig';
 import type {
+  SsoDiagnosticActivation,
   SsoDiagnosticCheck,
   SsoDiagnosticOverall,
   SsoDiagnosticStatus,
@@ -60,8 +62,22 @@ const props = defineProps<{
   diagnosticsResult: SsoDiagnosticsResponse | null;
   /** Passing saved-credential checks, retained across activation-only saves. */
   savedCredentialsChecked: boolean;
+  /**
+   * A save in this session changed the stored credentials and no passing
+   * run has covered them since (useSsoConfig). After that save the form
+   * matches the record, so this is the only trace of the change.
+   */
+  savedCredentialsUnchecked: boolean;
   /** Transport failure of the last run (no verdict), '' otherwise. */
   diagnosticsError: string;
+  /** Whether a last-sign-in refresh is in flight. */
+  isRefreshingLastSignIn: boolean;
+  /**
+   * The page's tenant-SSO verdict (#4111, `details.tenant_sso`), rendered
+   * verbatim. Absent or null until the sign-in details have loaded; nothing
+   * is claimed without it.
+   */
+  tenantSso?: TenantSsoVerdict | null;
   /**
    * The install-wide SAML switch (SAML_ENABLED, #4604; features.isSamlEnabled
    * on the bootstrap payload). While false the API refuses to save or edit
@@ -75,12 +91,18 @@ const props = defineProps<{
 // ---------------------------------------------------------------------------
 
 const emit = defineEmits<{
+  /** Save only: the footer button, for a record that already exists. */
   (e: 'save'): void;
-  (e: 'disable'): void;
   (e: 'delete'): void;
   (e: 'test'): void;
+  /**
+   * The primary action: run the saved-configuration check, saving a new
+   * record or unsaved edits first. A record that is off is turned on when
+   * the check passes (useSsoConfig.saveAndRunDiagnostics).
+   */
   (e: 'diagnostics'): void;
   (e: 'discard'): void;
+  (e: 'refresh-last-sign-in'): void;
   (e: 'update:formState', value: SsoConfigFormState): void;
 }>();
 
@@ -117,7 +139,7 @@ const providerOptions: { value: SsoProviderType; label: string; description: str
  * install-wide switch is off (#4604): the API would refuse the save on
  * provider_type. `providerOptions` stays complete so a saved saml record
  * (provider type locked while editing) still resolves its label through
- * `currentProviderOption`; disabling or deleting such a record stays possible.
+ * `currentProviderOption`; deleting such a record stays possible.
  */
 const selectableProviderOptions = computed(() =>
   providerOptions.filter((option) => option.value !== 'saml' || props.samlEnabled)
@@ -164,21 +186,6 @@ const tokenEndpointAuthMethodOptions: {
 // ---------------------------------------------------------------------------
 
 const showDeleteConfirm = ref(false);
-const showDisableConfirm = ref(false);
-const actionPending = computed(
-  () =>
-    props.isLoading ||
-    props.isSaving ||
-    props.isDeleting ||
-    props.isTesting ||
-    props.isDiagnosing
-);
-watch(
-  () => props.domainExtId,
-  () => {
-    showDisableConfirm.value = false;
-  }
-);
 const showClientSecret = ref(false);
 const newDomain = ref('');
 const domainInputError = ref('');
@@ -526,13 +533,6 @@ const handleSave = () => {
   emit('save');
 };
 
-const handleDisable = () => {
-  // Saved state controls recovery; repair-form validity and drafts do not.
-  if (!props.ssoConfig?.enabled || actionPending.value) return;
-  emit('disable');
-  showDisableConfirm.value = false;
-};
-
 const handleDelete = () => {
   if (props.isDeleting) return;
   emit('delete');
@@ -540,13 +540,12 @@ const handleDelete = () => {
 };
 
 /**
- * Advisory only: recovery saves must remain possible. Discovery alone cannot
- * clear this warning because it does not exercise the saved credentials.
- * Compare credential fields with the saved record so switching activation on
- * does not invalidate a passing diagnostic, but entering a new secret does.
+ * Discovery alone cannot vouch for credentials because it does not exercise
+ * the saved ones, so only a passing saved-configuration check counts.
+ * Compare credential fields with the saved record so a passing result
+ * survives edits to other fields, but a new secret or a different client ID,
+ * tenant, issuer, auth method or SAML IdP field does not.
  */
-const connectionEnabledTouchedOn = ref(false);
-
 const savedCredentialsMatchForm = computed(() => {
   const record = props.ssoConfig;
   const form = props.formState;
@@ -572,20 +571,22 @@ const savedChecksPassed = computed(
     savedCredentialsMatchForm.value
 );
 
-const showEnableUntestedWarning = computed(
-  () => connectionEnabledTouchedOn.value && props.formState.enabled && !savedChecksPassed.value
-);
+/** The stored record is on: sign-in through it is live (subject to the ladder). */
+const connectionOn = computed(() => props.ssoConfig?.enabled === true);
 
-const handleConnectionEnabledChange = (value: boolean) => {
-  connectionEnabledTouchedOn.value = value;
-  updateField('enabled', value);
-};
-
-watch(
-  () => props.domainExtId,
-  () => {
-    connectionEnabledTouchedOn.value = false;
-  }
+/**
+ * Advisory, never a gate (saving an active connection stays possible: it is
+ * how a broken one is repaired). Shown on a connection that is on while
+ * its credentials differ from what a passing check covered: edited in the
+ * form, or saved in this session and not checked since. Opening an active
+ * connection with nothing changed shows nothing, although no check has run
+ * in this session.
+ */
+const showUncheckedCredentialsWarning = computed(
+  () =>
+    connectionOn.value &&
+    !savedChecksPassed.value &&
+    (!savedCredentialsMatchForm.value || props.savedCredentialsUnchecked)
 );
 
 const handleTestConnection = () => {
@@ -598,20 +599,120 @@ const handleTestConnection = () => {
 // ---------------------------------------------------------------------------
 
 /**
- * Unlike Test Connection, diagnostics run against the SAVED record (for Entra
- * including the stored client secret), so the run button waits for a saved
- * record and for unsaved edits to be saved first:
- * a result about the stored record would otherwise be read as a verdict on
- * what the form shows.
+ * Diagnostics run against the SAVED record (for Entra including the stored
+ * client secret), so a new record or unsaved edits are saved first: a
+ * result about the stored record would otherwise be read as a verdict on
+ * what the form shows. One button carries both steps, so setup has one
+ * save path and one primary action.
  */
-const canRunDiagnostics = computed(
-  () => props.isConfigured && !props.hasUnsavedChanges && !props.isDiagnosing && !props.isSaving
-);
+const checkNeedsSave = computed(() => !props.isConfigured || props.hasUnsavedChanges);
 
-const handleRunDiagnostics = () => {
-  if (!canRunDiagnostics.value) return;
+const canRunCheck = computed(() => {
+  if (props.isSaving || props.isDeleting || props.isDiagnosing) return false;
+  return checkNeedsSave.value ? isFormValid.value : true;
+});
+
+/**
+ * Save and check (unsaved) → Check and turn on (saved, off) → Check saved
+ * configuration (saved, on; nothing to turn on).
+ */
+const checkButtonLabel = computed(() => {
+  if (props.isSaving) return t('web.COMMON.saving');
+  if (props.isDiagnosing) return t('web.organizations.sso.diagnostics_running');
+  if (checkNeedsSave.value) return t('web.organizations.sso.diagnostics_save_and_check');
+  if (!connectionOn.value) return t('web.organizations.sso.diagnostics_check_and_activate');
+  return t('web.organizations.sso.diagnostics_button');
+});
+
+const handleRunCheck = () => {
+  if (!canRunCheck.value) return;
   emit('diagnostics');
 };
+
+/**
+ * Form submission. An existing record has the footer Save as its submit
+ * button. A new record has none, so browsers do not submit on Enter (the
+ * form has several text fields); a submit that arrives anyway runs the
+ * primary action, so the first save never skips the check.
+ */
+const handleSubmit = () => {
+  if (props.isConfigured) handleSave();
+  else handleRunCheck();
+};
+
+/**
+ * The provider name in the not_permitted message. A legacy record can carry
+ * a type the selector no longer offers (google, github): its raw name is
+ * shown rather than nothing.
+ */
+const providerLabel = (type: string): string =>
+  providerOptions.find((option) => option.value === type)?.label ?? type;
+
+/**
+ * What the last run did to the connection, one message per outcome the API
+ * reports (keyed per contract value, so a new outcome fails type-check here
+ * until it has one). null = nothing to add: the record was already on, or
+ * activation was not requested.
+ */
+const ACTIVATION_NOTICES: Record<
+  SsoDiagnosticActivation,
+  { key: string; tone: 'ok' | 'warn' } | null
+> = {
+  activated: { key: 'web.organizations.sso.diagnostics_activation_activated', tone: 'ok' },
+  not_passed: { key: 'web.organizations.sso.diagnostics_activation_stays_off', tone: 'warn' },
+  not_permitted: {
+    key: 'web.organizations.sso.diagnostics_activation_not_permitted',
+    tone: 'warn',
+  },
+  configuration_changed: {
+    key: 'web.organizations.sso.diagnostics_activation_configuration_changed',
+    tone: 'warn',
+  },
+  already_enabled: null,
+  not_requested: null,
+};
+
+const activationNotice = computed(() => {
+  const result = props.diagnosticsResult;
+  if (!result) return null;
+  const notice = ACTIVATION_NOTICES[result.activation] ?? null;
+  if (!notice) return null;
+  return {
+    activation: result.activation,
+    tone: notice.tone,
+    text: t(notice.key, { provider: providerLabel(result.provider_type) }),
+  };
+});
+
+/**
+ * "Next: confirm sign-in" follows a pass only when the connection is on
+ * afterwards. A pass that did not turn it on (not_permitted,
+ * configuration_changed) has its own message instead.
+ */
+const showDiagnosticsNext = computed(
+  () => props.diagnosticsResult?.overall === 'passed' && props.diagnosticsResult.enabled === true
+);
+
+/**
+ * The setup guide stays until the connection is on, and through the result
+ * of the run that turned it on, so the page does not shift under the admin
+ * reading that result.
+ */
+const showSetupGuide = computed(
+  () => !connectionOn.value || props.diagnosticsResult?.activation === 'activated'
+);
+
+/**
+ * The connection is on but the domain's sign-in settings withhold SSO, so
+ * the sign-in page does not offer it and Confirm sign-in cannot work. The
+ * server's verdict reports this rung only for a record that is on (it
+ * checks sso_config_disabled first), so it appears once the page has
+ * re-read the verdict after activation. Rendered from the verdict
+ * verbatim; never derived from raw flags (ADR-024).
+ */
+const signInNotPermitted = computed(
+  () => connectionOn.value && props.tenantSso?.unavailable_reason === 'sso_not_permitted'
+);
 
 /** Label key per check name the API emits; an unknown name renders raw. */
 const DIAGNOSTIC_CHECK_LABELS: Record<string, string> = {
@@ -816,10 +917,10 @@ watch(newDomain, () => {
     <!-- Form -->
     <form
       v-else
-      @submit.prevent="handleSave"
+      @submit.prevent="handleSubmit"
       class="space-y-6">
       <section
-        v-if="!isConfigured"
+        v-if="showSetupGuide"
         data-testid="sso-setup-guide"
         aria-labelledby="sso-setup-title"
         class="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
@@ -1632,7 +1733,10 @@ aria-hidden="true">*</span>
         </div>
       </div>
 
-      <!-- Visible before saving so setup does not end at provider discovery. -->
+      <!-- The primary action: save (when needed), check the saved
+           configuration, and turn a record that is off on when the check
+           passes. Visible from the start so setup does not end at provider
+           discovery. -->
       <div
         data-testid="sso-diagnostics"
         class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
@@ -1653,50 +1757,53 @@ aria-hidden="true">*</span>
               }}
             </p>
             <p
-              v-if="!isConfigured || hasUnsavedChanges"
-              data-testid="sso-diagnostics-save-first"
-              class="mt-1 text-sm text-amber-700 dark:text-amber-300">
-              {{ t('web.organizations.sso.diagnostics_save_first') }}
+              v-if="!connectionOn"
+              data-testid="sso-diagnostics-activation-hint"
+              class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              {{ t('web.organizations.sso.diagnostics_activation_hint') }}
             </p>
           </div>
-          <div class="flex shrink-0 flex-wrap gap-2">
-            <button
-              v-if="!isConfigured || hasUnsavedChanges"
-              type="button"
-              data-testid="sso-diagnostics-save"
-              :disabled="!isFormValid || isSaving || isDeleting"
-              @click="handleSave"
-              class="inline-flex items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-500 disabled:cursor-not-allowed disabled:opacity-50">
-              {{
-                isSaving ? t('web.COMMON.saving') : t('web.organizations.sso.save_configuration')
-              }}
-            </button>
-            <button
-              type="button"
-              data-testid="sso-diagnostics-run"
-              @click="handleRunDiagnostics"
-              :disabled="!canRunDiagnostics"
-              class="ml-4 inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-600 dark:text-gray-100 dark:ring-gray-500 dark:hover:bg-gray-500">
-              <OIcon
-                v-if="isDiagnosing"
-                collection="heroicons"
-                name="arrow-path"
-                size="4"
-                class="animate-spin motion-reduce:animate-none"
-                aria-hidden="true" />
-              <OIcon
-                v-else
-                collection="heroicons"
-                name="clipboard-document-check"
-                size="4"
-                aria-hidden="true" />
-              {{
-                isDiagnosing
-                  ? t('web.organizations.sso.diagnostics_running')
-                  : t('web.organizations.sso.diagnostics_button')
-              }}
-            </button>
-          </div>
+          <button
+            type="button"
+            data-testid="sso-diagnostics-run"
+            :data-action="checkNeedsSave ? 'save-and-check' : connectionOn ? 'check' : 'check-and-activate'"
+            @click="handleRunCheck"
+            :disabled="!canRunCheck"
+            class="inline-flex shrink-0 items-center gap-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400">
+            <OIcon
+              v-if="isDiagnosing || isSaving"
+              collection="heroicons"
+              name="arrow-path"
+              size="4"
+              class="animate-spin motion-reduce:animate-none"
+              aria-hidden="true" />
+            <OIcon
+              v-else
+              collection="heroicons"
+              name="clipboard-document-check"
+              size="4"
+              aria-hidden="true" />
+            {{ checkButtonLabel }}
+          </button>
+        </div>
+
+        <!-- Changed credentials on a connection that is on (advisory, never
+             a gate: saving stays possible). role="alert" so it is announced
+             when it appears; amber is the fixed warning hue (#4132) and the
+             text carries the meaning on its own (WCAG 1.4.1). -->
+        <div
+          v-if="showUncheckedCredentialsWarning"
+          data-testid="sso-credentials-unchecked-warning"
+          role="alert"
+          class="mt-3 flex items-start gap-2 rounded-md bg-amber-50 px-3 py-2 dark:bg-amber-900/20">
+          <OIcon
+            collection="heroicons"
+            name="exclamation-triangle"
+            class="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400"
+            aria-hidden="true" />
+          <p class="text-sm text-amber-700 dark:text-amber-300">
+            {{ t('web.organizations.sso.credentials_unchecked_warning') }}
+          </p>
         </div>
 
         <!-- Diagnostics Result -->
@@ -1723,8 +1830,21 @@ aria-hidden="true">*</span>
                   :class="diagnosticsOverallStyle.text">
                   {{ t(`web.organizations.sso.diagnostics_${diagnosticsResult.overall}`) }}
                 </p>
+                <!-- What the run did to the connection (activation). -->
                 <p
-                  v-if="diagnosticsResult.overall === 'passed'"
+                  v-if="activationNotice"
+                  data-testid="sso-activation-notice"
+                  :data-activation="activationNotice.activation"
+                  :class="[
+                    'mt-2 text-sm font-medium',
+                    activationNotice.tone === 'ok'
+                      ? 'text-green-800 dark:text-green-200'
+                      : 'text-amber-800 dark:text-amber-200',
+                  ]">
+                  {{ activationNotice.text }}
+                </p>
+                <p
+                  v-if="diagnosticsResult.overall === 'passed' && (hasUnsavedChanges || showDiagnosticsNext)"
                   data-testid="sso-diagnostics-next"
                   class="mt-2 text-sm text-gray-800 dark:text-gray-100">
                   {{
@@ -1895,6 +2015,12 @@ aria-hidden="true">*</span>
                 <p class="text-sm font-medium text-red-800 dark:text-red-200">
                   {{ diagnosticsError }}
                 </p>
+                <p
+                  v-if="isConfigured && !connectionOn"
+                  data-testid="sso-diagnostics-error-stays-off"
+                  class="mt-1 text-sm text-red-700 dark:text-red-300">
+                  {{ t('web.organizations.sso.diagnostics_activation_stays_off') }}
+                </p>
               </div>
             </div>
           </div>
@@ -1969,52 +2095,6 @@ aria-hidden="true">*</span>
         </p>
       </div>
 
-      <!-- Connection Enabled Toggle (#4107) — writes SsoConfig.enabled, the
-           credential record's own operational flag. Deliberately independent of
-           the SigninConfig sso_enabled policy toggle on Sign-in Settings: the
-           availability ladder requires BOTH before the sign-in page offers SSO.
-           This was the field's only UI writer; dropping it (7326689cdc) left
-           every saved config stuck at enabled=false. -->
-      <div
-        class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-gray-900 dark:text-white">
-              {{ t('web.organizations.sso.connection_enabled') }}
-            </p>
-            <p
-              id="domain-connection-enabled-hint"
-              class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              {{ t('web.organizations.sso.connection_enabled_hint') }}
-            </p>
-          </div>
-          <ToggleWithIcon
-            data-testid="sso-connection-enabled-toggle"
-            :enabled="formState.enabled"
-            :disabled="isSaving"
-            @update:enabled="handleConnectionEnabledChange" />
-        </div>
-
-        <!-- Weak test-before-enable warning (#4111): advisory only, never a
-             gate. role="alert" so it is announced when it appears; amber is
-             the fixed warning hue (#4132) and the text carries the meaning on
-             its own (WCAG 1.4.1). -->
-        <div
-          v-if="showEnableUntestedWarning"
-          data-testid="sso-enable-untested-warning"
-          role="alert"
-          class="mt-3 flex items-start gap-2 rounded-md bg-amber-50 px-3 py-2 dark:bg-amber-900/20">
-          <OIcon
-            collection="heroicons"
-            name="exclamation-triangle"
-            class="mt-0.5 size-4 flex-shrink-0 text-amber-600 dark:text-amber-400"
-            aria-hidden="true" />
-          <p class="text-sm text-amber-700 dark:text-amber-300">
-            {{ t('web.organizations.sso.enable_untested_warning') }}
-          </p>
-        </div>
-      </div>
-
       <section
         data-testid="sso-confirm-sign-in"
         aria-labelledby="sso-confirm-sign-in-title"
@@ -2030,18 +2110,55 @@ aria-hidden="true">*</span>
         <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
           {{ t('web.organizations.sso.confirm_sign_in_limits') }}
         </p>
-        <p
+        <!-- The domain's sign-in settings withhold SSO (verdict
+             sso_not_permitted), so this step cannot work yet. role="status";
+             amber is the fixed warning hue (#4132) and the text carries the
+             meaning on its own (WCAG 1.4.1). -->
+        <div
+          v-if="signInNotPermitted"
+          data-testid="sso-confirm-sign-in-not-permitted"
+          role="status"
+          class="mt-3 flex items-start gap-2 rounded-md bg-amber-50 px-3 py-2 dark:bg-amber-900/20">
+          <OIcon
+            collection="heroicons"
+            name="exclamation-triangle"
+            class="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400"
+            aria-hidden="true" />
+          <p class="text-sm text-amber-700 dark:text-amber-300">
+            {{ t('web.organizations.sso.confirm_sign_in_not_permitted') }}
+          </p>
+        </div>
+        <div
           v-if="isConfigured"
-          data-testid="sso-last-sign-in"
-          :data-result="lastSignIn?.result ?? 'none'"
-          :class="[
-            'mt-2 text-sm',
-            lastSignIn?.result === 'failed'
-              ? 'text-red-700 dark:text-red-300'
-              : 'text-gray-700 dark:text-gray-300',
-          ]">
-          {{ lastSignInText }}
-        </p>
+          class="mt-2 flex flex-wrap items-start justify-between gap-2">
+          <p
+            data-testid="sso-last-sign-in"
+            :data-result="lastSignIn?.result ?? 'none'"
+            aria-live="polite"
+            :class="[
+              'min-w-0 flex-1 text-sm',
+              lastSignIn?.result === 'failed'
+                ? 'text-red-700 dark:text-red-300'
+                : 'text-gray-700 dark:text-gray-300',
+            ]">
+            {{ lastSignInText }}
+          </p>
+          <button
+            type="button"
+            data-testid="sso-last-sign-in-refresh"
+            :disabled="isRefreshingLastSignIn"
+            :aria-busy="isRefreshingLastSignIn"
+            @click="emit('refresh-last-sign-in')"
+            class="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-white px-2.5 py-1.5 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
+            <OIcon
+              collection="heroicons"
+              name="arrow-path"
+              size="4"
+              :class="isRefreshingLastSignIn ? 'animate-spin motion-reduce:animate-none' : ''"
+              aria-hidden="true" />
+            {{ t('web.organizations.sso.last_sign_in_refresh') }}
+          </button>
+        </div>
       </section>
 
       <!-- Grant Org Scope Toggle (withheld pending testing unless already
@@ -2064,48 +2181,6 @@ aria-hidden="true">*</span>
           :enabled="formState.grant_org_scope"
           :disabled="isSaving"
           @update:enabled="updateField('grant_org_scope', $event)" />
-      </div>
-
-      <!-- Action Buttons -->
-      <div
-        v-if="ssoConfig?.enabled"
-        class="space-y-3 border-t border-gray-200 pt-6 dark:border-gray-700">
-        <button
-          v-if="!showDisableConfirm"
-          type="button"
-          data-testid="disable-sso"
-          :disabled="actionPending"
-          class="rounded-md px-3 py-2 text-sm font-semibold text-red-600 ring-1 ring-red-300 disabled:opacity-50 dark:text-red-400"
-          @click="showDisableConfirm = true">
-          {{ t('web.organizations.sso.disable_action') }}
-        </button>
-        <div
-          v-else
-          class="space-y-3">
-          <p
-            class="text-sm text-gray-600 dark:text-gray-400"
-            data-testid="disable-sso-confirmation">
-            {{ t('web.organizations.sso.disable_confirm') }}
-            <span v-if="ssoConfig.enforce_sso_only">{{
-              t('web.organizations.sso.disable_enforcement_warning')
-            }}</span>
-          </p>
-          <button
-            type="button"
-            data-testid="confirm-disable-sso"
-            :disabled="actionPending"
-            class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white disabled:opacity-50"
-            @click="handleDisable">
-            {{ t('web.organizations.sso.disable_action') }}
-          </button>
-          <button
-            type="button"
-            :disabled="actionPending"
-            class="px-3 py-2 text-sm text-gray-700 dark:text-gray-200"
-            @click="showDisableConfirm = false">
-            {{ t('web.COMMON.word_cancel') }}
-          </button>
-        </div>
       </div>
 
       <div class="flex items-center justify-between border-t border-gray-200 pt-6 dark:border-gray-700">
@@ -2159,9 +2234,13 @@ aria-hidden="true">*</span>
           </button>
         </div>
 
-        <!-- Right: Save button -->
+        <!-- Right: Save button. Only for a record that exists: a new one is
+             saved by the check above, so setup has one save path. Saving
+             keeps the connection as it is. -->
         <button
+          v-if="isEditing"
           type="submit"
+          data-testid="sso-save"
           :disabled="!isFormValid || isSaving || isDeleting"
           class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-4 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400">
           <OIcon
@@ -2171,7 +2250,7 @@ aria-hidden="true">*</span>
             class="size-4 animate-spin motion-reduce:animate-none"
             aria-hidden="true" />
           <span v-if="isSaving">{{ t('web.COMMON.saving') }}</span>
-          <span v-else>{{ isEditing ? t('web.COMMON.save_changes') : t('web.organizations.sso.save_config') }}</span>
+          <span v-else>{{ t('web.COMMON.save_changes') }}</span>
         </button>
       </div>
     </form>

@@ -5,14 +5,19 @@
  *
  * Follows the useEmailConfig lifecycle pattern:
  * - initialize: fetch current config (404 = unconfigured, not error)
- * - saveConfig: auto-selects PUT (new) vs PATCH (update) via SsoService
+ * - saveConfig: auto-selects PUT (new) vs PATCH (update) via SsoService;
+ *   never sends the form's `enabled` (PATCH omits it, PUT carries the stored value)
  * - deleteConfig: removes config
  * - testConnection: validates IdP connectivity before saving; the result is
  *   bound to the fields it was run against and cleared when any of them change
  * - runDiagnostics: checks the SAVED record (stored fields, discovery,
  *   certificate or stored client secret); the result describes the record as
- *   last saved and is cleared whenever that record changes (save, disable,
- *   delete), never by an unsaved edit
+ *   last saved and is cleared whenever that record changes (save, delete),
+ *   never by an unsaved edit. A record that is off asks for activation: a
+ *   passing run turns it on, and nothing else does.
+ * - saveAndRunDiagnostics: saves unsaved edits (or a new record) first, then
+ *   runs the check
+ * - refreshLastSignIn: re-reads only the record's last sign-in outcome
  * - discardChanges: resets form state to last-saved snapshot
  * - hasUnsavedChanges: computed diff between form and saved state
  *
@@ -56,6 +61,10 @@ import { useAsyncHandler, type AsyncHandlerOptions } from './useAsyncHandler';
  *
  * token_endpoint_auth_method (#4764, oidc only) is '' for "Automatic" (the
  * record's null); the select only ever writes a contract value.
+ *
+ * `enabled` mirrors the stored record and has no control: the record is
+ * created off and only a passing saved-configuration check turns it on. It
+ * stays here so the snapshot comparison and hydration keep one shape.
  */
 export interface SsoConfigFormState {
   provider_type: SsoProviderType;
@@ -217,6 +226,36 @@ function providerFields(state: SsoConfigFormState): {
   };
 }
 
+/**
+ * The PUT/PATCH body for a save. `enabled` is passed in: it is the stored
+ * record's value, never the form's (see saveConfig).
+ *
+ * client_secret is included only when entered (non-empty), and never for
+ * saml, which has no client credential: the API discards it anyway, and its
+ * presence is what routes the save to PUT (see SsoService).
+ */
+function savePayload(
+  state: SsoConfigFormState,
+  enabled: boolean
+): PutSsoConfigRequest | PatchSsoConfigRequest {
+  const payload: PutSsoConfigRequest | PatchSsoConfigRequest = {
+    provider_type: state.provider_type,
+    display_name: state.display_name.trim(),
+    ...providerFields(state),
+    allowed_domains: state.allowed_domains,
+    enforce_sso_only: state.enforce_sso_only,
+    grant_org_scope: state.grant_org_scope,
+  };
+  if (usesClientCredentials(state) && state.client_secret.trim()) {
+    (payload as PutSsoConfigRequest).client_secret = state.client_secret.trim();
+    // PUT replaces the record and defaults an absent `enabled` to false, so
+    // it carries the stored value. PATCH omits it and the server keeps what
+    // it holds, which a copy older than an activation elsewhere cannot undo.
+    payload.enabled = enabled;
+  }
+  return payload;
+}
+
 /* eslint max-lines-per-function: off */
 export function useSsoConfig(domainExtId: string) {
   const notifications = useNotificationsStore();
@@ -277,17 +316,30 @@ export function useSsoConfig(domainExtId: string) {
   /** Passing checks survive flag-only saves, independently of the displayed verdict. */
   const checkedCredentialsFingerprint = ref<string | null>(null);
 
+  /**
+   * A save in this session changed the stored credentials (a new secret, or
+   * a different credential field on the returned record) and no passing run
+   * has covered them since. Drives the advisory "not checked" warning on a
+   * connection that is already on: after such a save the form matches the
+   * record again, so the form alone cannot tell. Cleared by a passing run,
+   * a reload and a delete.
+   */
+  const savedCredentialsUnchecked = ref(false);
+
   /** Error message from the last diagnostics run that produced no result. */
   const diagnosticsError = ref<string>('');
 
+  /** Whether a last-sign-in refresh is in flight. */
+  const isRefreshingLastSignIn = ref(false);
+
   /**
    * A diagnostics result is about the saved record, so it is cleared when
-   * that record changes (save, disable, delete) — not by a form edit, which
-   * the test-result fingerprint watcher handles for Test Connection.
+   * that record changes (save, delete) — not by a form edit, which the
+   * test-result fingerprint watcher handles for Test Connection.
    */
   /**
    * Runs are numbered. Every clear (a new run, or the saved record changing
-   * under save / disable / delete) advances the number, and a response from
+   * under save / delete) advances the number, and a response from
    * an earlier run is dropped when it lands: it describes a record that is
    * no longer the saved one. Save and delete are not blocked while a run is
    * in flight, so this is what keeps a late response from repopulating the
@@ -300,6 +352,13 @@ export function useSsoConfig(domainExtId: string) {
     diagnosticsResult.value = null;
     diagnosticsError.value = '';
   };
+
+  /**
+   * Advanced when the record may have been replaced wholesale (a reload, a
+   * delete), so a last-sign-in refresh that was in flight is not merged into
+   * a different record.
+   */
+  let recordGeneration = 0;
 
   /**
    * Replace the form with a record from the API (load, save). A result in
@@ -344,6 +403,13 @@ export function useSsoConfig(domainExtId: string) {
   const { wrap: wrapAction } = useAsyncHandler({
     ...defaultAsyncHandlerOptions,
     setLoading: undefined,
+  });
+
+  // A third for the last-sign-in refresh: it often runs without anyone
+  // asking (focus, visibility), so a failure keeps what is shown — no toast,
+  // no page error, no NotFound redirect.
+  const { wrap: wrapRefresh } = useAsyncHandler({
+    notify: false,
   });
 
   // ---------------------------------------------------------------------------
@@ -395,9 +461,11 @@ export function useSsoConfig(domainExtId: string) {
   const initialize = () =>
     wrap(async () => {
       const response = await SsoService.getConfigForDomain(domainExtId);
+      recordGeneration += 1;
       ssoConfig.value = response.record;
       // A reload may include a secret changed elsewhere; its value is never returned.
       checkedCredentialsFingerprint.value = null;
+      savedCredentialsUnchecked.value = false;
       clearDiagnosticsResult();
 
       hydrateFormState(
@@ -415,91 +483,69 @@ export function useSsoConfig(domainExtId: string) {
    * Uses SsoService.saveConfigForDomain which auto-selects PUT vs PATCH
    * based on whether client_secret is provided (so a saml save is always a
    * PATCH; PATCH creates when no record exists).
+   *
+   * A save keeps the connection as it is and never sends the form's
+   * `enabled`. PATCH omits the field, so the server keeps what it holds.
+   * PUT, the path a new secret takes, defaults an absent `enabled` to false,
+   * so it carries the stored record's value (false for a new record).
+   *
+   * @returns true when the API returned the saved record
    */
-  const saveConfig = async () => {
-    if (isSaving.value || isDeleting.value) return;
+  const saveConfig = async (): Promise<boolean> => {
+    if (isSaving.value || isDeleting.value) return false;
     isSaving.value = true;
     error.value = null;
+    const sendsSecret =
+      usesClientCredentials(formState.value) && formState.value.client_secret.trim() !== '';
     const preservesCredentialCheck =
       savedCredentialsChecked.value &&
       testFingerprint(formState.value) === checkedCredentialsFingerprint.value &&
-      !(usesClientCredentials(formState.value) && formState.value.client_secret.trim());
+      !sendsSecret;
+    const previousCredentials = ssoConfig.value
+      ? testFingerprint(configToFormState(ssoConfig.value))
+      : null;
 
     try {
-      const result = await wrapAction(async () => {
-        const payload: PutSsoConfigRequest | PatchSsoConfigRequest = {
-          provider_type: formState.value.provider_type,
-          display_name: formState.value.display_name.trim(),
-          ...providerFields(formState.value),
-          allowed_domains: formState.value.allowed_domains,
-          enabled: formState.value.enabled,
-          enforce_sso_only: formState.value.enforce_sso_only,
-          grant_org_scope: formState.value.grant_org_scope,
-        };
+      const result = await wrapAction(() =>
+        SsoService.saveConfigForDomain(
+          domainExtId,
+          savePayload(formState.value, ssoConfig.value?.enabled ?? false)
+        )
+      );
+      if (!result?.record) return false;
 
-        // Only include client_secret if provided (non-empty). Never for saml,
-        // which has no client credential: the API discards it anyway, and
-        // its presence is what routes the save to PUT (see SsoService).
-        if (usesClientCredentials(formState.value) && formState.value.client_secret.trim()) {
-          (payload as PutSsoConfigRequest).client_secret = formState.value.client_secret.trim();
-        }
-
-        return await SsoService.saveConfigForDomain(domainExtId, payload);
+      applySavedRecord(result.record, {
+        keepsCredentialCheck: preservesCredentialCheck,
+        credentialsChanged:
+          sendsSecret || testFingerprint(configToFormState(result.record)) !== previousCredentials,
       });
-
-      if (result?.record) {
-        ssoConfig.value = result.record;
-        if (!preservesCredentialCheck || !savedCredentialsChecked.value) {
-          checkedCredentialsFingerprint.value = null;
-        }
-        hydrateFormState(configToFormState(result.record));
-        savedFormState.value = {
-          ...formState.value,
-          allowed_domains: [...formState.value.allowed_domains],
-        };
-        clearDiagnosticsResult();
-        notifications.show(t('web.domains.sso.update_success'), 'success', 'top');
-      }
+      notifications.show(t('web.domains.sso.update_success'), 'success', 'top');
+      return true;
     } finally {
       isSaving.value = false;
     }
   };
 
-  const disableConfig = async () => {
-    if (
-      !ssoConfig.value?.enabled ||
-      isLoading.value ||
-      isSaving.value ||
-      isDeleting.value ||
-      isTesting.value ||
-      isDiagnosing.value
-    )
-      return;
-    isSaving.value = true;
-    error.value = null;
-    try {
-      // Recovery contract: existing record, exactly these two flags; never form edits.
-      const result = await wrapAction(() =>
-        SsoService.patchConfigForDomain(domainExtId, {
-          enabled: false,
-          enforce_sso_only: false,
-        })
-      );
-      if (result?.record) {
-        ssoConfig.value = result.record;
-        savedFormState.value = configToFormState(result.record);
-        formState.value = {
-          ...formState.value,
-          enabled: result.record.enabled,
-          enforce_sso_only: result.record.enforce_sso_only,
-        };
-        clearTestResult();
-        clearDiagnosticsResult();
-        notifications.show(t('web.domains.sso.update_success'), 'success', 'top');
-      }
-    } finally {
-      isSaving.value = false;
+  /**
+   * Adopt the record a save returned. A passing check survives only a save
+   * that kept the credentials it covered; a save that changed them leaves
+   * them unchecked until the next passing run.
+   */
+  const applySavedRecord = (
+    record: CustomDomainSsoConfig,
+    outcome: { keepsCredentialCheck: boolean; credentialsChanged: boolean }
+  ) => {
+    ssoConfig.value = record;
+    if (!outcome.keepsCredentialCheck || !savedCredentialsChecked.value) {
+      checkedCredentialsFingerprint.value = null;
     }
+    if (outcome.credentialsChanged) savedCredentialsUnchecked.value = true;
+    hydrateFormState(configToFormState(record));
+    savedFormState.value = {
+      ...formState.value,
+      allowed_domains: [...formState.value.allowed_domains],
+    };
+    clearDiagnosticsResult();
   };
 
   /**
@@ -512,11 +558,13 @@ export function useSsoConfig(domainExtId: string) {
     try {
       await wrapAction(async () => {
         await SsoService.deleteConfigForDomain(domainExtId);
+        recordGeneration += 1;
         ssoConfig.value = null;
         formState.value = createDefaultFormState();
         clearTestResult();
         clearDiagnosticsResult();
         checkedCredentialsFingerprint.value = null;
+        savedCredentialsUnchecked.value = false;
         savedFormState.value = {
           ...formState.value,
           allowed_domains: [...formState.value.allowed_domains],
@@ -572,6 +620,12 @@ export function useSsoConfig(domainExtId: string) {
    * A transport failure (the request itself failed, so there is no verdict)
    * is reported through diagnosticsError; a result whose overall is "failed"
    * is a verdict and lives in diagnosticsResult.
+   *
+   * A record that is off asks for activation (`activate: true`): the API
+   * turns it on when the run passes and the stored credentials are still the
+   * ones checked. A record that is on does not ask; no run turns one off.
+   * The response's `enabled` is copied onto the record and both form
+   * snapshots, so the next save re-sends the state the server now holds.
    */
   const runDiagnostics = async () => {
     if (isDiagnosing.value) return;
@@ -581,13 +635,18 @@ export function useSsoConfig(domainExtId: string) {
     const fingerprint = ssoConfig.value
       ? testFingerprint(configToFormState(ssoConfig.value))
       : null;
+    const activate = ssoConfig.value !== null && !ssoConfig.value.enabled;
     const run = diagnosticsRun;
     // The handler records the failure here; a stale one must not be read
     // as this run's.
     error.value = null;
 
     try {
-      const result = await wrapAction(() => SsoService.runDiagnosticsForDomain(domainExtId));
+      const result = await wrapAction(() =>
+        activate
+          ? SsoService.runDiagnosticsForDomain(domainExtId, { activate: true })
+          : SsoService.runDiagnosticsForDomain(domainExtId)
+      );
 
       // The saved record changed while this run was in flight (see
       // clearDiagnosticsResult): the response is about the old record.
@@ -595,7 +654,11 @@ export function useSsoConfig(domainExtId: string) {
 
       if (result) {
         diagnosticsResult.value = result;
-        if (result.overall === 'passed') checkedCredentialsFingerprint.value = fingerprint;
+        if (result.overall === 'passed') {
+          checkedCredentialsFingerprint.value = fingerprint;
+          savedCredentialsUnchecked.value = false;
+        }
+        applyEnabledFromRun(result.enabled);
         notifyDiagnosticsOutcome(result.overall);
       } else {
         diagnosticsError.value = diagnosticsFailureMessage(error.value);
@@ -603,6 +666,73 @@ export function useSsoConfig(domainExtId: string) {
     } finally {
       isDiagnosing.value = false;
     }
+  };
+
+  /**
+   * Mirror the stored `enabled` a run reported. Only that field changes:
+   * unsaved edits in the form stay as they are, and the saved snapshot moves
+   * with it so the change does not read as an unsaved edit.
+   */
+  const applyEnabledFromRun = (enabled: boolean | undefined) => {
+    if (typeof enabled !== 'boolean' || !ssoConfig.value) return;
+    if (ssoConfig.value.enabled === enabled) return;
+    ssoConfig.value = { ...ssoConfig.value, enabled };
+    formState.value = { ...formState.value, enabled };
+    if (savedFormState.value) {
+      savedFormState.value = { ...savedFormState.value, enabled };
+    }
+  };
+
+  /**
+   * The dialog's one primary action: save a new record or unsaved edits
+   * first, then run the saved-configuration check (which turns a record that
+   * is off on when it passes). A save that fails or is refused stops here,
+   * so the check never runs against a record the admin did not mean to keep.
+   */
+  const saveAndRunDiagnostics = async () => {
+    if (isDiagnosing.value) return;
+    if (ssoConfig.value === null || hasUnsavedChanges.value) {
+      const saved = await saveConfig();
+      if (!saved) return;
+    }
+    await runDiagnostics();
+  };
+
+  /**
+   * Re-read the record's last sign-in outcome while the dialog is open, so
+   * an admin who just signed in through the custom domain sees the result
+   * without reloading. Only `last_sign_in` is taken from the response:
+   * form edits, the saved snapshot and every other field stay as they are.
+   *
+   * `passive` marks a refresh no person asked for (the window regaining
+   * focus or visibility) so it does not count as session activity (see
+   * src/types/declarations/axios.d.ts). A refresh already in flight is
+   * shared rather than repeated: focus and visibility often fire together.
+   */
+  let lastSignInRefresh: Promise<void> | null = null;
+
+  const refreshLastSignIn = (options: { passive?: boolean } = {}): Promise<void> => {
+    if (lastSignInRefresh) return lastSignInRefresh;
+    if (!ssoConfig.value) return Promise.resolve();
+    const generation = recordGeneration;
+    isRefreshingLastSignIn.value = true;
+    lastSignInRefresh = (async () => {
+      try {
+        const response = await wrapRefresh(() =>
+          options.passive
+            ? SsoService.getConfigForDomain(domainExtId, { passive: true })
+            : SsoService.getConfigForDomain(domainExtId)
+        );
+        const record = response?.record;
+        // A reload or delete landed meanwhile; that path set the record.
+        if (!record || !ssoConfig.value || generation !== recordGeneration) return;
+        ssoConfig.value = { ...ssoConfig.value, last_sign_in: record.last_sign_in };
+      } finally {
+        isRefreshingLastSignIn.value = false;
+        lastSignInRefresh = null;
+      }
+    })();
+    return lastSignInRefresh;
   };
 
   const notifyDiagnosticsOutcome = (overall: SsoDiagnosticsResponse['overall']) => {
@@ -659,6 +789,8 @@ export function useSsoConfig(domainExtId: string) {
     testError,
     diagnosticsResult,
     diagnosticsError,
+    savedCredentialsUnchecked,
+    isRefreshingLastSignIn,
 
     // Computed
     isConfigured,
@@ -671,10 +803,11 @@ export function useSsoConfig(domainExtId: string) {
     // Actions
     initialize,
     saveConfig,
-    disableConfig,
     deleteConfig,
     testConnection,
     runDiagnostics,
+    saveAndRunDiagnostics,
+    refreshLastSignIn,
     discardChanges,
   };
 }

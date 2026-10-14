@@ -907,10 +907,6 @@
     "text": "Novým členům, kteří se připojí prostřednictvím SSO této domény, bude udělen přístup ke všem doménám organizace. Stávajících členů se to netýká. Pokud je zakázáno (výchozí), noví členové mají přístup pouze k této doméně.",
     "source_hash": "2ac9f345"
   },
-  "web.organizations.sso.save_config": {
-    "text": "Uložit konfiguraci SSO",
-    "source_hash": "70853769"
-  },
   "web.organizations.sso.delete_config": {
     "text": "Smazat konfiguraci",
     "source_hash": "9ac1ac7b"
@@ -1207,33 +1203,9 @@
     "text": "Nastavení přihlášení tohoto webu je v rozporu s omezením platným pro celý web ({method}), takže se neuplatní ani jedno a teď se není jak přihlásit.",
     "source_hash": "54cdfd61"
   },
-  "web.organizations.sso.connection_enabled": {
-    "text": "Připojení aktivní",
-    "source_hash": "b6334b2b"
-  },
-  "web.organizations.sso.connection_enabled_hint": {
-    "text": "Když je připojení aktivní, členové se mohou přihlásit tímto poskytovatelem SSO. SSO musí být zároveň povoleno jako metoda přihlášení v Konfiguraci přihlášení dané domény.",
-    "source_hash": "871db2f1"
-  },
-  "web.organizations.sso.enable_untested_warning": {
-    "text": "Toto připojení zde zatím neprošlo testem. Než ho zapneš, spusť Otestovat připojení, aby se rozbitá konfigurace nikdy nedostala na tvou přihlašovací stránku.",
-    "source_hash": "c1fbdeca"
-  },
   "web.organizations.delete_organization_cancel_subscription_first": {
     "text": "Před smazáním této organizace zruš její předplatné.",
     "source_hash": "f0c54eca"
-  },
-  "web.organizations.sso.disable_action": {
-    "text": "Vypnout SSO",
-    "source_hash": "2f072272"
-  },
-  "web.organizations.sso.disable_confirm": {
-    "text": "Vypnout toto připojení SSO? Neuložené úpravy formuláře se neuloží. Uložené přihlašovací údaje zůstanou zachovány.",
-    "source_hash": "608b142a"
-  },
-  "web.organizations.sso.disable_enforcement_warning": {
-    "text": "Vypne se také vynucení pouze SSO, takže budou povoleny další nakonfigurované metody přihlášení.",
-    "source_hash": "58abd552"
   },
   "web.organizations.sso.idp_sso_service_url": {
     "text": "URL služby SSO u IdP",
@@ -1386,10 +1358,6 @@
   "web.organizations.sso.last_sign_in_stage_account": {
     "text": "při přiřazování uživatele k účtu",
     "source_hash": "1ebbb776"
-  },
-  "web.organizations.sso.diagnostics_save_first": {
-    "text": "Nejdřív ulož: kontroluje se uložená konfigurace, ne neuložené změny.",
-    "source_hash": "46a51d59"
   },
   "web.organizations.sso.diagnostics_button": {
     "text": "Zkontrolovat uloženou konfiguraci",

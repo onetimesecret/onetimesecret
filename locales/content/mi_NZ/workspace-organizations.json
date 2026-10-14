@@ -907,10 +907,6 @@
     "text": "Ko ngā mema hou ka hono mā te SSO o tēnei rohe, ka tukuna te urunga ki ngā rohe katoa o te whakahaere. Kāore ngā mema o nāianei e pā. Ina monokia (taunoa), ka taea e ngā mema hou te urunga ki tēnei rohe anake.",
     "source_hash": "2ac9f345"
   },
-  "web.organizations.sso.save_config": {
-    "text": "Tiaki Whirihoranga SSO",
-    "source_hash": "70853769"
-  },
   "web.organizations.sso.delete_config": {
     "text": "Mukua te Whirihoranga",
     "source_hash": "9ac1ac7b"
@@ -1207,33 +1203,9 @@
     "text": "Ka tautetete ngā tautuhinga takiuru o tēnei pae ki te whakawhāitinga puta noa i te pae ({method}), nā reira kāore tētahi o ngā mea e rua e whai mana, ā, kāore he huarahi ki te takiuru i tēnei wā.",
     "source_hash": "54cdfd61"
   },
-  "web.organizations.sso.connection_enabled": {
-    "text": "Kei te hohe te hononga",
-    "source_hash": "b6334b2b"
-  },
-  "web.organizations.sso.connection_enabled_hint": {
-    "text": "Ina hohe, ka taea e ngā mema te takiuru mā tēnei kaiwhakarato SSO. Me whakahohe hoki te SSO hei tikanga takiuru i te Whirihoranga Takiuru o te rohe.",
-    "source_hash": "871db2f1"
-  },
-  "web.organizations.sso.enable_untested_warning": {
-    "text": "Kāore anō tēnei hononga kia angitu i tētahi whakamātautau ki konei. Whakahaerehia te Whakamātau Hononga i mua i te whakahohe, kei tae tētahi whakaritenga pakaru ki tō whārangi takiuru.",
-    "source_hash": "c1fbdeca"
-  },
   "web.organizations.delete_organization_cancel_subscription_first": {
     "text": "Whakakorea te ohaurunga o tēnei whakahaere i mua i te muku.",
     "source_hash": "f0c54eca"
-  },
-  "web.organizations.sso.disable_action": {
-    "text": "Monokia te SSO",
-    "source_hash": "2f072272"
-  },
-  "web.organizations.sso.disable_confirm": {
-    "text": "Monokia tēnei hononga SSO? Kāore e tiakina ngā whakatika puka kāore anō kia tiakina. Ka puritia ngā pūnga whaimana kua tiakina.",
-    "source_hash": "608b142a"
-  },
-  "web.organizations.sso.disable_enforcement_warning": {
-    "text": "Ka whakawetohia hoki te whakaū SSO-anake, ka whakaaetia ētahi atu tikanga takiuru kua whirihorahia.",
-    "source_hash": "58abd552"
   },
   "web.organizations.sso.idp_sso_service_url": {
     "text": "URL ratonga SSO a te IdP",
@@ -1386,10 +1358,6 @@
   "web.organizations.sso.last_sign_in_stage_account": {
     "text": "i te whakataurite i te kaiwhakamahi ki tētahi pūkete",
     "source_hash": "1ebbb776"
-  },
-  "web.organizations.sso.diagnostics_save_first": {
-    "text": "Tiakina i te tuatahi: ka tirotiro tēnei i te whirihoranga kua tiakina, kaua ko ngā huringa kāore anō kia tiakina.",
-    "source_hash": "46a51d59"
   },
   "web.organizations.sso.diagnostics_button": {
     "text": "Tirohia te Whirihoranga Kua Tiakina",

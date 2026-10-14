@@ -627,17 +627,22 @@
     "text": "Configure",
     "content_hash": "6defafa2"
   },
+  "web.domains.sso.finish_setup_button": {
+    "text": "Finish setup",
+    "context": "Button on the SSO row of domain Sign-In Configuration when SSO credentials are saved but the connection has not been turned on by a passing check.",
+    "content_hash": "bc01ae77"
+  },
   "web.domains.sso.upgrade_required": {
     "text": "Upgrade to configure",
     "content_hash": "571cfa98"
   },
   "web.domains.sso.connection_disabled_badge": {
-    "text": "Connection disabled",
-    "content_hash": "99d6092c"
+    "text": "Not turned on yet",
+    "content_hash": "43b96022"
   },
   "web.domains.sso.connection_disabled_hint": {
-    "text": "SSO credentials are saved but the connection is turned off. Enable it under Edit credentials.",
-    "content_hash": "90180d6c"
+    "text": "SSO credentials are saved, but the connection is not on yet. Open Finish setup and run the check; SSO turns on when it passes.",
+    "content_hash": "a080309e"
   },
   "web.domains.sso.status_active_badge": {
     "text": "Active",

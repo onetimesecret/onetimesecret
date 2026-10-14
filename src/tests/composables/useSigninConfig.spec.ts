@@ -12,7 +12,7 @@
 import { useSigninConfig } from '@/shared/composables/useSigninConfig';
 import { createPinia, setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 
 import type { EffectiveRestrictTo } from '@/schemas/api/domains/responses/signin-config';
 import type {
@@ -79,13 +79,19 @@ vi.mock('vue-i18n', () => ({
 // the composable uses to set error.value), returns undefined. Without the
 // onError forwarding, the fail-loud initialize contract would be untestable.
 vi.mock('@/shared/composables/useAsyncHandler', () => ({
-  useAsyncHandler: (options?: { onError?: (err: unknown) => void }) => ({
+  useAsyncHandler: (options?: {
+    onError?: (err: unknown) => void;
+    setLoading?: (loading: boolean) => void;
+  }) => ({
     wrap: vi.fn(async (fn: () => Promise<unknown>) => {
+      options?.setLoading?.(true);
       try {
         return await fn();
       } catch (err) {
         options?.onError?.(err);
         return undefined;
+      } finally {
+        options?.setLoading?.(false);
       }
     }),
   }),
@@ -931,6 +937,114 @@ describe('useSigninConfig', () => {
   // ---------------------------------------------------------------------------
   // hasUnsavedChanges
   // ---------------------------------------------------------------------------
+
+  // ---------------------------------------------------------------------------
+  // refreshDetails: re-read the verdict after the SSO dialog changed the record
+  // ---------------------------------------------------------------------------
+
+  describe('refreshDetails', () => {
+    const withVerdict = (reason: string | null) => ({
+      ...mockUnconfiguredDetails,
+      tenant_sso: { available: reason === null, unavailable_reason: reason },
+    });
+
+    it('replaces the details without the page loading state or the record', async () => {
+      mockGetConfigForDomain.mockResolvedValueOnce({
+        record: mockSigninConfigData,
+        details: withVerdict('sso_config_disabled'),
+      });
+      const composable = useSigninConfig('dm-ext-123');
+      await composable.initialize();
+      const formBefore = { ...composable.formState.value };
+      mockGetConfigForDomain.mockResolvedValueOnce({
+        record: { ...mockSigninConfigData, email_auth_enabled: false },
+        details: withVerdict('sso_not_permitted'),
+      });
+
+      // The page swaps the form for its skeleton on any isLoading write.
+      const loadingWrites: boolean[] = [];
+      const stop = watch(composable.isLoading, (value) => loadingWrites.push(value), {
+        flush: 'sync',
+      });
+      await composable.refreshDetails();
+      stop();
+      expect(loadingWrites).toEqual([]);
+
+      expect(composable.tenantSso.value).toEqual({
+        available: false,
+        unavailable_reason: 'sso_not_permitted',
+      });
+      expect(composable.formState.value).toEqual(formBefore);
+      expect(composable.signinConfig.value).toEqual(mockSigninConfigData);
+    });
+
+    it('does nothing before the first load', async () => {
+      const composable = useSigninConfig('dm-ext-123');
+
+      await composable.refreshDetails();
+
+      expect(mockGetConfigForDomain).not.toHaveBeenCalled();
+    });
+
+    it('drops a response requested before a save wrote newer details', async () => {
+      mockGetConfigForDomain.mockResolvedValueOnce({
+        record: mockSigninConfigData,
+        details: withVerdict('sso_config_disabled'),
+      });
+      const composable = useSigninConfig('dm-ext-123');
+      await composable.initialize();
+      let settle!: (value: unknown) => void;
+      mockGetConfigForDomain.mockReturnValueOnce(
+        new Promise((resolve) => {
+          settle = resolve;
+        })
+      );
+      mockPutConfigForDomain.mockResolvedValueOnce({
+        record: { ...mockSigninConfigData, sso_enabled: true },
+        details: withVerdict(null),
+      });
+
+      const pending = composable.refreshDetails();
+      await composable.autoSaveField('sso_enabled', true);
+      settle({ record: mockSigninConfigData, details: withVerdict('sso_config_disabled') });
+      await pending;
+
+      expect(composable.tenantSso.value).toEqual({ available: true, unavailable_reason: null });
+    });
+
+    it('keeps the details shown when the request fails, with no page error or toast', async () => {
+      mockGetConfigForDomain.mockResolvedValueOnce({
+        record: mockSigninConfigData,
+        details: withVerdict('sso_config_disabled'),
+      });
+      const composable = useSigninConfig('dm-ext-123');
+      await composable.initialize();
+      mockNotificationsShow.mockClear();
+      mockGetConfigForDomain.mockRejectedValueOnce({ code: 404, message: 'Not found' });
+
+      await composable.refreshDetails();
+
+      expect(composable.tenantSso.value?.unavailable_reason).toBe('sso_config_disabled');
+      expect(composable.error.value).toBeNull();
+      expect(mockRouterPush).not.toHaveBeenCalled();
+      expect(mockNotificationsShow).not.toHaveBeenCalled();
+    });
+
+    it('re-seeds an unconfigured domain from the refreshed inherited state', async () => {
+      const composable = useSigninConfig('dm-ext-123');
+      await composable.initialize();
+      expect(composable.formState.value.restrict_to).toBeNull();
+      mockGetConfigForDomain.mockResolvedValueOnce({
+        record: null,
+        details: { ...mockUnconfiguredDetails, effective_restrict_to: restricted('sso') },
+      });
+
+      await composable.refreshDetails();
+
+      expect(composable.formState.value.restrict_to).toBe('sso');
+      expect(composable.hasUnsavedChanges.value).toBe(false);
+    });
+  });
 
   describe('hasUnsavedChanges', () => {
     it('returns false immediately after initialization', async () => {

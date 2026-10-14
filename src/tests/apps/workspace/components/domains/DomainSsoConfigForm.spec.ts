@@ -4,12 +4,17 @@
 // 1. Provider type selector rendering (OIDC / Entra / SAML — #3902, #4450)
 // 2. Provider-specific field visibility (Entra ID, OIDC, SAML)
 // 3. Form validation for required fields
-// 4. Event emissions (save, delete, test, discard)
+// 4. Event emissions (save, delete, test, diagnostics, discard,
+//    refresh-last-sign-in)
 // 5. Form state updates via v-model
+// 6. The one primary action (save and check / check and turn on / check),
+//    the activation outcome of a run, and the Confirm sign-in step
 //
 // Note: This is a presentational component. It receives state via props
 // and emits events for actions. Parent manages state via useSsoConfig.
 
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
 import { createTestingPinia } from '@pinia/testing';
 import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -21,7 +26,8 @@ import type {
   TestSsoConnectionResponse,
 } from '../../../../../services/sso.service';
 import type { SsoConfigFormState } from '../../../../../shared/composables/useSsoConfig';
-import { createTestI18n } from '../../../../setup';
+import type { TenantSsoVerdict } from '../../../../../schemas/api/domains/responses/signin-config';
+import { createRealI18n, createTestI18n } from '../../../../setup';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Mocks
@@ -186,7 +192,10 @@ interface MountOptions {
   testError?: string;
   diagnosticsResult?: SsoDiagnosticsResponse | null;
   savedCredentialsChecked?: boolean;
+  savedCredentialsUnchecked?: boolean;
   diagnosticsError?: string;
+  isRefreshingLastSignIn?: boolean;
+  tenantSso?: TenantSsoVerdict | null;
   samlEnabled?: boolean;
 }
 
@@ -231,7 +240,11 @@ describe('DomainSsoConfigForm', () => {
     testError: '',
     diagnosticsResult: null,
     savedCredentialsChecked: false,
+    savedCredentialsUnchecked: false,
     diagnosticsError: '',
+    isRefreshingLastSignIn: false,
+    // No verdict loaded: the form makes no claim from it.
+    tenantSso: null,
     // The install-wide SAML switch (SAML_ENABLED, #4604): on for the suite,
     // off only in the examples about the switch itself.
     samlEnabled: true,
@@ -257,9 +270,12 @@ describe('DomainSsoConfigForm', () => {
     return component;
   };
 
+  // Defaults describe a run on a connection that was already on, without
+  // asking for activation; activation examples pass their own outcome.
   const diagnostics = (
     overall: SsoDiagnosticsResponse['overall'],
-    checks: SsoDiagnosticCheck[]
+    checks: SsoDiagnosticCheck[],
+    extra: Partial<SsoDiagnosticsResponse> = {}
   ): SsoDiagnosticsResponse => ({
     user_id: 'cust_456',
     provider_type: 'entra_id',
@@ -267,6 +283,9 @@ describe('DomainSsoConfigForm', () => {
     configuration_revision: '1760263200',
     overall,
     checks,
+    enabled: true,
+    activation: 'not_requested',
+    ...extra,
   });
 
   describe('First-time setup sequence', () => {
@@ -294,7 +313,7 @@ describe('DomainSsoConfigForm', () => {
       }
     );
 
-    it('hides the introductory guide after a configuration is saved', async () => {
+    it('hides the introductory guide once the saved connection is on', async () => {
       wrapper = await mountComponent({
         formState: mockExistingFormState,
         ssoConfig: mockExistingConfig,
@@ -302,6 +321,16 @@ describe('DomainSsoConfigForm', () => {
       });
 
       expect(wrapper.find('[data-testid="sso-setup-guide"]').exists()).toBe(false);
+    });
+
+    it('keeps the guide for a saved record that is still off (Finish setup)', async () => {
+      wrapper = await mountComponent({
+        formState: mockExistingFormState,
+        ssoConfig: { ...mockExistingConfig, enabled: false },
+        isConfigured: true,
+      });
+
+      expect(wrapper.find('[data-testid="sso-setup-guide"]').exists()).toBe(true);
     });
 
     it.each([
@@ -649,9 +678,10 @@ describe('DomainSsoConfigForm', () => {
           },
         });
 
-        const submit = wrapper.find('button[type="submit"]');
-        expect(submit.exists()).toBe(true);
-        expect((submit.element as HTMLButtonElement).disabled).toBe(false);
+        // A new record is saved by the primary Save and check action.
+        const saveAndCheck = wrapper.get('[data-testid="sso-diagnostics-run"]');
+        expect(saveAndCheck.attributes('data-action')).toBe('save-and-check');
+        expect((saveAndCheck.element as HTMLButtonElement).disabled).toBe(false);
       });
     });
 
@@ -886,19 +916,82 @@ describe('DomainSsoConfigForm', () => {
       details,
     });
 
-    it('shows diagnostics and a disabled run button with save-first guidance before saving', async () => {
+    const RUN = '[data-testid="sso-diagnostics-run"]';
+    const validNewForm: SsoConfigFormState = {
+      ...mockExistingFormState,
+      client_secret: 'new-secret',
+    };
+    const offConfig: CustomDomainSsoConfig = { ...mockExistingConfig, enabled: false };
+
+    it('shows the section with Save and check, disabled until a new form is valid', async () => {
       wrapper = await mountComponent({ isConfigured: false });
 
       expect(wrapper.get('[data-testid="sso-diagnostics"]').isVisible()).toBe(true);
-      const button = wrapper.get('[data-testid="sso-diagnostics-run"]');
+      const button = wrapper.get(RUN);
+      expect(button.attributes('data-action')).toBe('save-and-check');
+      expect(button.text()).toBe('web.organizations.sso.diagnostics_save_and_check');
       expect(button.attributes('disabled')).toBeDefined();
-      expect(wrapper.get('[data-testid="sso-diagnostics-save-first"]').text()).toBe(
-        'web.organizations.sso.diagnostics_save_first'
-      );
-      expect(wrapper.get('[data-testid="sso-diagnostics-save"]').isVisible()).toBe(true);
 
       await button.trigger('click');
       expect(wrapper.emitted('diagnostics')).toBeUndefined();
+      expect(wrapper.emitted('save')).toBeUndefined();
+    });
+
+    it.each([
+      ['a new record', { formState: validNewForm }],
+      ['a record that is off', { ssoConfig: offConfig, isConfigured: true }],
+      [
+        'a record with unsaved edits',
+        { ssoConfig: mockExistingConfig, isConfigured: true, hasUnsavedChanges: true },
+      ],
+    ] as const)(
+      'has one save path for %s: no inline save button and no save-first notice',
+      async (_state, options) => {
+        wrapper = await mountComponent({ formState: mockExistingFormState, ...options });
+
+        expect(wrapper.find('[data-testid="sso-diagnostics-save"]').exists()).toBe(false);
+        expect(wrapper.find('[data-testid="sso-diagnostics-save-first"]').exists()).toBe(false);
+      }
+    );
+
+    it.each([
+      ['a new record', { formState: validNewForm }, 'save-and-check', 'diagnostics_save_and_check'],
+      [
+        'a saved record with unsaved edits',
+        {
+          formState: mockExistingFormState,
+          ssoConfig: mockExistingConfig,
+          isConfigured: true,
+          hasUnsavedChanges: true,
+        },
+        'save-and-check',
+        'diagnostics_save_and_check',
+      ],
+      [
+        'a saved record that is off',
+        { formState: mockExistingFormState, ssoConfig: offConfig, isConfigured: true },
+        'check-and-activate',
+        'diagnostics_check_and_activate',
+      ],
+      [
+        'a saved record that is on',
+        { formState: mockExistingFormState, ssoConfig: mockExistingConfig, isConfigured: true },
+        'check',
+        'diagnostics_button',
+      ],
+    ] as const)('labels the primary action for %s', async (_state, options, action, key) => {
+      wrapper = await mountComponent(options);
+
+      const button = wrapper.get(RUN);
+      expect(button.attributes('data-action')).toBe(action);
+      expect(button.text()).toBe(`web.organizations.sso.${key}`);
+      expect(button.attributes('disabled')).toBeUndefined();
+
+      await button.trigger('click');
+      // One event in every state: the parent saves first when it must.
+      expect(wrapper.emitted('diagnostics')).toHaveLength(1);
+      expect(wrapper.emitted('save')).toBeUndefined();
+      expect(wrapper.emitted('test')).toBeUndefined();
     });
 
     it('shows the section with its hint once a configuration is saved', async () => {
@@ -910,11 +1003,7 @@ describe('DomainSsoConfigForm', () => {
       expect(section.findAll('p').map((paragraph) => paragraph.text())).toContain(
         'web.organizations.sso.diagnostics_hint_entra'
       );
-      expect(wrapper.find('[data-testid="sso-diagnostics-save-first"]').exists()).toBe(false);
-      expect(wrapper.find('[data-testid="sso-diagnostics-save"]').exists()).toBe(false);
-      expect(
-        wrapper.get('[data-testid="sso-diagnostics-run"]').attributes('disabled')
-      ).toBeUndefined();
+      expect(wrapper.get(RUN).attributes('disabled')).toBeUndefined();
     });
 
     it.each([
@@ -935,51 +1024,91 @@ describe('DomainSsoConfigForm', () => {
       }
     });
 
-    it.each([false, true])(
-      'offers a save action when isConfigured=%s and edits need saving',
-      async (isConfigured) => {
-        wrapper = await mountComponent({
-          formState: { ...mockExistingFormState, client_secret: isConfigured ? '' : 'new-secret' },
-          ssoConfig: isConfigured ? mockExistingConfig : null,
-          isConfigured,
-          hasUnsavedChanges: isConfigured,
-        });
+    it.each([
+      ['no record', { formState: validNewForm }, true],
+      ['a record that is off', { ssoConfig: offConfig, isConfigured: true }, true],
+      ['a record that is on', { ssoConfig: mockExistingConfig, isConfigured: true }, false],
+    ] as const)(
+      'says a passing check turns the connection on only while it is off (%s)',
+      async (_state, options, shown) => {
+        wrapper = await mountComponent({ formState: mockExistingFormState, ...options });
 
-        const button = wrapper.get('[data-testid="sso-diagnostics-save"]');
-        expect(button.attributes('type')).toBe('button');
-        expect(button.attributes('disabled')).toBeUndefined();
-        await button.trigger('click');
-
-        expect(wrapper.emitted('save')).toHaveLength(1);
-        expect(wrapper.emitted('diagnostics')).toBeUndefined();
-        expect(wrapper.emitted('test')).toBeUndefined();
+        const hint = wrapper.find('[data-testid="sso-diagnostics-activation-hint"]');
+        expect(hint.exists()).toBe(shown);
+        if (shown) expect(hint.text()).toBe('web.organizations.sso.diagnostics_activation_hint');
       }
     );
 
     it.each([
-      ['new invalid form', false, false, createDefaultFormState()],
-      ['new form saving', false, true, { ...mockExistingFormState, client_secret: 'new-secret' }],
-      ['saved invalid form', true, false, { ...mockExistingFormState, client_id: '' }],
-      ['saved form saving', true, true, mockExistingFormState],
-    ] as const)(
-      'disables the diagnostics save action for a %s',
-      async (_state, isConfigured, isSaving, formState) => {
-        wrapper = await mountComponent({
-          formState,
-          ssoConfig: isConfigured ? mockExistingConfig : null,
-          isConfigured,
-          isSaving,
-          hasUnsavedChanges: isConfigured,
-        });
+      [
+        'new invalid form',
+        { formState: createDefaultFormState(), ssoConfig: null, isConfigured: false },
+      ],
+      [
+        'new form saving',
+        { formState: validNewForm, ssoConfig: null, isConfigured: false, isSaving: true },
+      ],
+      [
+        'saved invalid form with edits',
+        {
+          formState: { ...mockExistingFormState, client_id: '' },
+          ssoConfig: mockExistingConfig,
+          isConfigured: true,
+          hasUnsavedChanges: true,
+        },
+      ],
+      ['saved form saving', { isSaving: true }],
+      ['saved form deleting', { isDeleting: true }],
+      ['saved form running', { isDiagnosing: true }],
+    ] as const)('disables the primary action for a %s', async (_state, options) => {
+      wrapper = await savedMount(options);
 
-        const button = wrapper.get('[data-testid="sso-diagnostics-save"]');
-        expect(button.attributes('disabled')).toBeDefined();
-        await button.trigger('click');
-        expect(wrapper.emitted('save')).toBeUndefined();
-      }
-    );
+      const button = wrapper.get(RUN);
+      expect(button.attributes('disabled')).toBeDefined();
+      await button.trigger('click');
+      expect(wrapper.emitted('diagnostics')).toBeUndefined();
+      expect(wrapper.emitted('save')).toBeUndefined();
+    });
 
-    it('blocks both save actions and form submission while a dirty SAML configuration is deleting', async () => {
+    it.each([
+      ['isSaving', 'web.COMMON.saving'],
+      ['isDiagnosing', 'web.organizations.sso.diagnostics_running'],
+    ] as const)('shows the in-flight label while %s', async (flag, label) => {
+      wrapper = await savedMount(flag === 'isSaving' ? { isSaving: true } : { isDiagnosing: true });
+
+      expect(wrapper.get(RUN).text()).toBe(label);
+    });
+
+    it('submits a new record through Save and check, never a bare save', async () => {
+      wrapper = await mountComponent({ formState: validNewForm });
+
+      expect(wrapper.find('button[type="submit"]').exists()).toBe(false);
+      await wrapper.get('form').trigger('submit');
+
+      expect(wrapper.emitted('diagnostics')).toHaveLength(1);
+      expect(wrapper.emitted('save')).toBeUndefined();
+    });
+
+    it('submits an existing record as a save that keeps the connection as it is', async () => {
+      wrapper = await mountComponent({
+        formState: mockExistingFormState,
+        ssoConfig: offConfig,
+        isConfigured: true,
+        hasUnsavedChanges: true,
+      });
+
+      const save = wrapper.get('[data-testid="sso-save"]');
+      expect(save.attributes('type')).toBe('submit');
+      expect(save.text()).toBe('web.COMMON.save_changes');
+      await wrapper.get('form').trigger('submit');
+
+      expect(wrapper.emitted('save')).toHaveLength(1);
+      expect(wrapper.emitted('diagnostics')).toBeUndefined();
+      // No control writes the connection state.
+      expect(wrapper.emitted('update:formState')).toBeUndefined();
+    });
+
+    it('blocks every save action and form submission while a dirty SAML configuration is deleting', async () => {
       wrapper = await mountComponent({
         formState: { ...mockSamlFormState, display_name: 'Edited SAML' },
         ssoConfig: mockSamlConfig,
@@ -988,77 +1117,32 @@ describe('DomainSsoConfigForm', () => {
       });
       await wrapper.setProps({ isDeleting: true });
 
-      const button = wrapper.get('[data-testid="sso-diagnostics-save"]');
+      const button = wrapper.get(RUN);
       expect(button.attributes('disabled')).toBeDefined();
       expect(wrapper.get('button[type="submit"]').attributes('disabled')).toBeDefined();
       await button.trigger('click');
       await wrapper.get('form').trigger('submit');
       expect(wrapper.emitted('save')).toBeUndefined();
-    });
-
-    it('updates save-first controls after saving and when the saved form becomes dirty', async () => {
-      wrapper = await mountComponent({
-        formState: { ...mockExistingFormState, client_secret: 'new-secret' },
-      });
-
-      await wrapper.setProps({
-        formState: mockExistingFormState,
-        ssoConfig: mockExistingConfig,
-        isConfigured: true,
-        hasUnsavedChanges: false,
-      });
-      expect(wrapper.find('[data-testid="sso-diagnostics-save"]').exists()).toBe(false);
-      expect(wrapper.find('[data-testid="sso-diagnostics-save-first"]').exists()).toBe(false);
-      expect(
-        wrapper.get('[data-testid="sso-diagnostics-run"]').attributes('disabled')
-      ).toBeUndefined();
-
-      await wrapper.setProps({ hasUnsavedChanges: true });
-      expect(wrapper.get('[data-testid="sso-diagnostics-save"]').isVisible()).toBe(true);
-      expect(wrapper.get('[data-testid="sso-diagnostics-save-first"]').isVisible()).toBe(true);
-      expect(
-        wrapper.get('[data-testid="sso-diagnostics-run"]').attributes('disabled')
-      ).toBeDefined();
-    });
-
-    it('emits diagnostics when the button is clicked', async () => {
-      wrapper = await savedMount();
-
-      await wrapper.find('[data-testid="sso-diagnostics-run"]').trigger('click');
-      await flushPromises();
-
-      expect(wrapper.emitted('diagnostics')).toHaveLength(1);
-      // Only the dedicated event: never the Test Connection one.
-      expect(wrapper.emitted('test')).toBeUndefined();
-    });
-
-    it('disables the button and says "save first" while the form has unsaved changes', async () => {
-      wrapper = await savedMount({ hasUnsavedChanges: true });
-
-      const button = wrapper.find('[data-testid="sso-diagnostics-run"]');
-      expect(button.attributes('disabled')).toBeDefined();
-      expect(wrapper.find('[data-testid="sso-diagnostics-save-first"]').text()).toBe(
-        'web.organizations.sso.diagnostics_save_first'
-      );
-
-      await button.trigger('click');
       expect(wrapper.emitted('diagnostics')).toBeUndefined();
     });
 
-    it('disables the button while running and shows the running label', async () => {
-      wrapper = await savedMount({ isDiagnosing: true });
+    it('relabels the primary action as the record is saved and edited again', async () => {
+      wrapper = await mountComponent({ formState: validNewForm });
+      expect(wrapper.get(RUN).attributes('data-action')).toBe('save-and-check');
 
-      const button = wrapper.find('[data-testid="sso-diagnostics-run"]');
-      expect(button.attributes('disabled')).toBeDefined();
-      expect(button.text()).toContain('web.organizations.sso.diagnostics_running');
-    });
+      await wrapper.setProps({
+        formState: mockExistingFormState,
+        ssoConfig: offConfig,
+        isConfigured: true,
+        hasUnsavedChanges: false,
+      });
+      expect(wrapper.get(RUN).attributes('data-action')).toBe('check-and-activate');
 
-    it('disables the button while saving', async () => {
-      wrapper = await savedMount({ isSaving: true });
+      await wrapper.setProps({ ssoConfig: mockExistingConfig });
+      expect(wrapper.get(RUN).attributes('data-action')).toBe('check');
 
-      expect(
-        wrapper.find('[data-testid="sso-diagnostics-run"]').attributes('disabled')
-      ).toBeDefined();
+      await wrapper.setProps({ hasUnsavedChanges: true });
+      expect(wrapper.get(RUN).attributes('data-action')).toBe('save-and-check');
     });
 
     it.each(['passed', 'failed', 'inconclusive'] as const)(
@@ -1451,6 +1535,263 @@ describe('DomainSsoConfigForm', () => {
       expect(wrapper.find('[data-testid="sso-diagnostics-result"]').exists()).toBe(false);
       expect(wrapper.find('[data-testid="sso-diagnostics-error"]').exists()).toBe(false);
     });
+
+    // A run that produced no verdict (transport failure, or the 429 run
+    // limit whose retry time the composable already put in the message)
+    // never turned anything on.
+    it.each([
+      ['off', false, true],
+      ['on', true, false],
+    ] as const)(
+      'says SSO stays off after a run with no verdict only while the connection is %s',
+      async (_state, enabled, shown) => {
+        const message =
+          'This configuration has been checked too many times recently. Try again in about 5 minutes.';
+        wrapper = await savedMount({
+          ssoConfig: { ...mockExistingConfig, enabled },
+          diagnosticsError: message,
+        });
+
+        const alert = wrapper.get('[data-testid="sso-diagnostics-error"]');
+        expect(alert.text()).toContain(message);
+        const staysOff = alert.find('[data-testid="sso-diagnostics-error-stays-off"]');
+        expect(staysOff.exists()).toBe(shown);
+        if (shown) {
+          expect(staysOff.text()).toBe('web.organizations.sso.diagnostics_activation_stays_off');
+        }
+      }
+    );
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Activation outcome: what a run did to SsoConfig.enabled
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  describe('Activation outcome', () => {
+    const NOTICE = '[data-testid="sso-activation-notice"]';
+    const passedCheck: SsoDiagnosticCheck = {
+      check: 'credential',
+      status: 'passed',
+      message: 'credential passed',
+      details: {},
+    };
+    const failedCheck: SsoDiagnosticCheck = { ...passedCheck, status: 'failed' };
+    const offConfig: CustomDomainSsoConfig = { ...mockExistingConfig, enabled: false };
+
+    it.each([
+      ['activated', 'passed', true, 'diagnostics_activation_activated', 'ok'],
+      ['not_passed', 'failed', false, 'diagnostics_activation_stays_off', 'warn'],
+      ['not_passed', 'inconclusive', false, 'diagnostics_activation_stays_off', 'warn'],
+      [
+        'configuration_changed',
+        'passed',
+        false,
+        'diagnostics_activation_configuration_changed',
+        'warn',
+      ],
+      ['not_permitted', 'passed', false, 'diagnostics_activation_not_permitted', 'warn'],
+    ] as const)(
+      'reports %s (overall %s) with its own message',
+      async (activation, overall, enabled, key, tone) => {
+        wrapper = await mountComponent({
+          formState: mockExistingFormState,
+          ssoConfig: { ...mockExistingConfig, enabled },
+          isConfigured: true,
+          diagnosticsResult: diagnostics(
+            overall,
+            [overall === 'passed' ? passedCheck : { ...passedCheck, status: overall }],
+            { activation, enabled }
+          ),
+        });
+
+        const notice = wrapper.get(NOTICE);
+        expect(notice.attributes('data-activation')).toBe(activation);
+        expect(notice.text()).toBe(`web.organizations.sso.${key}`);
+        expect(notice.classes().join(' ')).toContain(
+          tone === 'ok' ? 'text-green-800' : 'text-amber-800'
+        );
+        // Inside the announced result block, after the verdict summary.
+        const result = wrapper.get('[data-testid="sso-diagnostics-result"]');
+        expect(result.find(NOTICE).exists()).toBe(true);
+      }
+    );
+
+    it.each(['already_enabled', 'not_requested'] as const)(
+      'adds nothing for %s',
+      async (activation) => {
+        wrapper = await mountComponent({
+          formState: mockExistingFormState,
+          ssoConfig: mockExistingConfig,
+          isConfigured: true,
+          diagnosticsResult: diagnostics('passed', [passedCheck], { activation }),
+        });
+
+        expect(wrapper.find(NOTICE).exists()).toBe(false);
+        expect(wrapper.get('[data-testid="sso-diagnostics-next"]').text()).toBe(
+          'web.organizations.sso.diagnostics_next'
+        );
+      }
+    );
+
+    it('names the provider in the not_permitted message', async () => {
+      // The pass-through test i18n drops interpolation; the real bundle shows
+      // the {provider} placeholder is filled with the provider's label.
+      const realI18n = createRealI18n({
+        en: JSON.parse(readFileSync(resolve(process.cwd(), 'generated/locales/en.json'), 'utf-8')),
+      });
+      wrapper = mount(DomainSsoConfigForm, {
+        props: {
+          ...defaultMountOptions,
+          formState: mockSamlFormState,
+          ssoConfig: { ...mockSamlConfig, enabled: false },
+          isConfigured: true,
+          diagnosticsResult: diagnostics('passed', [passedCheck], {
+            provider_type: 'saml',
+            activation: 'not_permitted',
+            enabled: false,
+          }),
+        },
+        global: { plugins: [realI18n, pinia], stubs: { Teleport: true } },
+      });
+      await flushPromises();
+
+      const text = wrapper.get(NOTICE).text();
+      expect(text).toContain('SAML 2.0');
+      expect(text).not.toContain('{provider}');
+      expect(text).not.toContain('web.organizations.sso');
+    });
+
+    it('falls back to the raw provider type for a legacy record', async () => {
+      const realI18n = createRealI18n({
+        en: JSON.parse(readFileSync(resolve(process.cwd(), 'generated/locales/en.json'), 'utf-8')),
+      });
+      wrapper = mount(DomainSsoConfigForm, {
+        props: {
+          ...defaultMountOptions,
+          formState: mockExistingFormState,
+          ssoConfig: offConfig,
+          isConfigured: true,
+          diagnosticsResult: diagnostics('passed', [passedCheck], {
+            provider_type: 'github',
+            activation: 'not_permitted',
+            enabled: false,
+          }),
+        },
+        global: { plugins: [realI18n, pinia], stubs: { Teleport: true } },
+      });
+      await flushPromises();
+
+      expect(wrapper.get(NOTICE).text()).toContain('github');
+    });
+
+    it.each(['not_permitted', 'configuration_changed'] as const)(
+      'offers no "next: confirm sign-in" after a pass that left the connection off (%s)',
+      async (activation) => {
+        wrapper = await mountComponent({
+          formState: mockExistingFormState,
+          ssoConfig: offConfig,
+          isConfigured: true,
+          diagnosticsResult: diagnostics('passed', [passedCheck], { activation, enabled: false }),
+        });
+
+        expect(wrapper.find('[data-testid="sso-diagnostics-next"]').exists()).toBe(false);
+      }
+    );
+
+    it('points to Confirm sign-in after the run that turned the connection on', async () => {
+      wrapper = await mountComponent({
+        formState: mockExistingFormState,
+        ssoConfig: mockExistingConfig,
+        isConfigured: true,
+        diagnosticsResult: diagnostics('passed', [passedCheck], {
+          activation: 'activated',
+          enabled: true,
+        }),
+      });
+
+      expect(wrapper.get('[data-testid="sso-diagnostics-next"]').text()).toBe(
+        'web.organizations.sso.diagnostics_next'
+      );
+      // The guide stays through this result instead of vanishing under it.
+      expect(wrapper.find('[data-testid="sso-setup-guide"]').exists()).toBe(true);
+    });
+
+    it('keeps a failed run on a connection that is off clear of any "next" line', async () => {
+      wrapper = await mountComponent({
+        formState: mockExistingFormState,
+        ssoConfig: offConfig,
+        isConfigured: true,
+        diagnosticsResult: diagnostics('failed', [failedCheck], {
+          activation: 'not_passed',
+          enabled: false,
+        }),
+      });
+
+      expect(wrapper.find('[data-testid="sso-diagnostics-next"]').exists()).toBe(false);
+      expect(wrapper.get(NOTICE).attributes('data-activation')).toBe('not_passed');
+    });
+
+    describe('sign-in settings that withhold SSO (verdict sso_not_permitted)', () => {
+      const BLOCKED = '[data-testid="sso-confirm-sign-in-not-permitted"]';
+      const verdict = (reason: string | null): TenantSsoVerdict => ({
+        available: reason === null,
+        unavailable_reason: reason,
+      });
+
+      it('appears once the page re-reads the verdict after activation', async () => {
+        // Before the run the ladder stops at sso_config_disabled; it can only
+        // report sso_not_permitted for a record that is on.
+        wrapper = await mountComponent({
+          formState: mockExistingFormState,
+          ssoConfig: offConfig,
+          isConfigured: true,
+          tenantSso: verdict('sso_config_disabled'),
+        });
+        expect(wrapper.find(BLOCKED).exists()).toBe(false);
+
+        await wrapper.setProps({
+          ssoConfig: mockExistingConfig,
+          diagnosticsResult: diagnostics('passed', [passedCheck], {
+            activation: 'activated',
+            enabled: true,
+          }),
+        });
+        expect(wrapper.find(BLOCKED).exists()).toBe(false);
+
+        await wrapper.setProps({ tenantSso: verdict('sso_not_permitted') });
+        const blocked = wrapper.get(BLOCKED);
+        expect(blocked.text()).toBe('web.organizations.sso.confirm_sign_in_not_permitted');
+        expect(blocked.attributes('role')).toBe('status');
+        expect(wrapper.get('[data-testid="sso-confirm-sign-in"]').find(BLOCKED).exists()).toBe(
+          true
+        );
+      });
+
+      it.each([
+        ['available', null, true],
+        ['domain_unverified', 'domain_unverified', true],
+        ['a connection that is off', 'sso_not_permitted', false],
+      ] as const)('stays hidden for %s', async (_case, reason, enabled) => {
+        wrapper = await mountComponent({
+          formState: mockExistingFormState,
+          ssoConfig: { ...mockExistingConfig, enabled },
+          isConfigured: true,
+          tenantSso: verdict(reason),
+        });
+
+        expect(wrapper.find(BLOCKED).exists()).toBe(false);
+      });
+
+      it('makes no claim without a verdict', async () => {
+        wrapper = await mountComponent({
+          formState: mockExistingFormState,
+          ssoConfig: mockExistingConfig,
+          isConfigured: true,
+        });
+
+        expect(wrapper.find(BLOCKED).exists()).toBe(false);
+      });
+    });
   });
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -1540,6 +1881,70 @@ describe('DomainSsoConfigForm', () => {
       wrapper = await mountComponent({ formState: createDefaultFormState(), isConfigured: false });
 
       expect(wrapper.find(LINE).exists()).toBe(false);
+      expect(wrapper.find('[data-testid="sso-last-sign-in-refresh"]').exists()).toBe(false);
+    });
+
+    it('offers a Refresh control next to the line that asks the parent to re-read it', async () => {
+      wrapper = await mountComponent({
+        formState: { ...mockExistingFormState, display_name: 'Unsaved edit' },
+        ssoConfig: mockExistingConfig,
+        isConfigured: true,
+        hasUnsavedChanges: true,
+      });
+
+      const refresh = wrapper.get('[data-testid="sso-last-sign-in-refresh"]');
+      expect(refresh.text()).toContain('web.organizations.sso.last_sign_in_refresh');
+      await refresh.trigger('click');
+
+      expect(wrapper.emitted('refresh-last-sign-in')).toEqual([[]]);
+      // Nothing about the form is touched by asking.
+      expect(wrapper.emitted('update:formState')).toBeUndefined();
+      expect(wrapper.emitted('save')).toBeUndefined();
+    });
+
+    it('disables Refresh while a refresh is in flight', async () => {
+      wrapper = await mountComponent({
+        formState: mockExistingFormState,
+        ssoConfig: mockExistingConfig,
+        isConfigured: true,
+        isRefreshingLastSignIn: true,
+      });
+
+      const refresh = wrapper.get('[data-testid="sso-last-sign-in-refresh"]');
+      expect(refresh.attributes('disabled')).toBeDefined();
+      expect(refresh.attributes('aria-busy')).toBe('true');
+    });
+
+    it('re-renders the line from a refreshed record without touching unsaved edits', async () => {
+      const dirty = { ...mockExistingFormState, display_name: 'Unsaved edit' };
+      wrapper = await mountComponent({
+        formState: dirty,
+        ssoConfig: { ...mockExistingConfig, last_sign_in: null },
+        isConfigured: true,
+        hasUnsavedChanges: true,
+      });
+      expect(wrapper.get(LINE).attributes('data-result')).toBe('none');
+
+      await wrapper.setProps({
+        ssoConfig: {
+          ...mockExistingConfig,
+          last_sign_in: {
+            result: 'succeeded',
+            at: 1760000000,
+            succeeded_at: 1760000000,
+            failed_at: null,
+            failure_stage: null,
+            failure_code: null,
+            provider_type: 'entra_id',
+          },
+        },
+      });
+
+      expect(wrapper.get(LINE).attributes('data-result')).toBe('succeeded');
+      expect((wrapper.get('#domain-sso-display-name').element as HTMLInputElement).value).toBe(
+        'Unsaved edit'
+      );
+      expect(wrapper.emitted('update:formState')).toBeUndefined();
     });
   });
 
@@ -1730,73 +2135,28 @@ describe('DomainSsoConfigForm', () => {
     });
   });
 
-  describe('Disable SSO recovery', () => {
-    it.each(['client_secret', 'idp_cert'])(
-      'can disable with unreadable %s while ordinary saves remain blocked',
-      async (field) => {
-        const saml = field === 'idp_cert';
-        const config = saml ? mockSamlConfig : mockExistingConfig;
-        const form = saml ? mockSamlFormState : mockExistingFormState;
-        wrapper = await mountComponent({
-          formState: { ...form, [field]: '', display_name: 'Unsaved edit', enabled: false },
-          ssoConfig: {
-            ...config,
-            enabled: true,
-            enforce_sso_only: true,
-            unreadable_fields: [field],
-          },
-          isConfigured: true,
-        });
-        expect(wrapper.get('button[type="submit"]').attributes('disabled')).toBeDefined();
-        await wrapper.get('form').trigger('submit');
-        expect(wrapper.emitted('save')).toBeUndefined();
-        await wrapper.get('[data-testid="disable-sso"]').trigger('click');
-        expect(wrapper.get('[data-testid="disable-sso-confirmation"]').text()).toContain(
-          'disable_enforcement_warning'
-        );
-        expect(wrapper.emitted('disable')).toBeUndefined();
-        await wrapper.get('[data-testid="confirm-disable-sso"]').trigger('click');
-        expect(wrapper.emitted('disable')).toEqual([[]]);
-        expect(wrapper.emitted('update:formState')).toBeUndefined();
-
-        await wrapper.setProps({
-          ssoConfig: { ...config, enabled: false, unreadable_fields: [field] },
-          formState: { ...form, [field]: '', enabled: true },
-        });
-        expect(wrapper.find('[data-testid="disable-sso"]').exists()).toBe(false);
-        expect(wrapper.get('button[type="submit"]').attributes('disabled')).toBeDefined();
-        await wrapper.get('form').trigger('submit');
-        expect(wrapper.emitted('save')).toBeUndefined();
-      }
-    );
-
-    it.each(['isSaving', 'isDeleting', 'isTesting'] as const)(
-      'disables recovery and confirmation while %s',
-      async (flag) => {
-        wrapper = await mountComponent({ ssoConfig: mockExistingConfig, isConfigured: true });
-        await wrapper.setProps({ [flag]: true });
-        expect(wrapper.get('[data-testid="disable-sso"]').attributes('disabled')).toBeDefined();
-        await wrapper.setProps({ [flag]: false });
-        await wrapper.get('[data-testid="disable-sso"]').trigger('click');
-        await wrapper.setProps({ [flag]: true });
-        expect(
-          wrapper.get('[data-testid="confirm-disable-sso"]').attributes('disabled')
-        ).toBeDefined();
-        await wrapper.get('[data-testid="confirm-disable-sso"]').trigger('click');
-        expect(wrapper.emitted('disable')).toBeUndefined();
-      }
-    );
-
-    it('does not offer recovery for an unsaved enable or carry confirmation to another domain', async () => {
-      wrapper = await mountComponent({ ssoConfig: mockExistingConfig, isConfigured: true });
-      await wrapper.get('[data-testid="disable-sso"]').trigger('click');
-      await wrapper.setProps({ domainExtId: 'dm_other' });
-      expect(wrapper.find('[data-testid="confirm-disable-sso"]').exists()).toBe(false);
-      await wrapper.setProps({
-        ssoConfig: { ...mockExistingConfig, enabled: false },
-        formState: { ...mockExistingFormState, enabled: true },
+  // The dialog has no control for SsoConfig.enabled: the record is created
+  // off and only a passing saved-configuration check turns it on (the
+  // primary action above); nothing in the dialog turns it off. The sign-in
+  // method on the domain's Sign-In Configuration page is the one control.
+  describe('No connection switch (Connection active / Disable SSO removed)', () => {
+    it.each([
+      ['a new record', {}],
+      ['a record that is off', { ssoConfig: { ...mockExistingConfig, enabled: false } }],
+      ['a record that is on', { ssoConfig: { ...mockExistingConfig, enforce_sso_only: true } }],
+    ] as const)('renders neither control for %s', async (_state, options) => {
+      wrapper = await mountComponent({
+        formState: mockExistingFormState,
+        isConfigured: 'ssoConfig' in options,
+        ...options,
       });
+
+      expect(wrapper.find('[data-testid="sso-connection-enabled-toggle"]').exists()).toBe(false);
       expect(wrapper.find('[data-testid="disable-sso"]').exists()).toBe(false);
+      expect(wrapper.text()).not.toContain('web.organizations.sso.connection_enabled');
+      expect(wrapper.text()).not.toContain('web.organizations.sso.disable_action');
+      // The one remaining switch is the withheld org-scope grant, absent here.
+      expect(wrapper.findAll('[role="switch"]')).toHaveLength(0);
     });
   });
 
@@ -1912,10 +2272,9 @@ describe('DomainSsoConfigForm', () => {
         isConfigured: true,
       });
 
-      // The connection-enabled toggle (#4107) is always present, so target by
-      // testid rather than asserting on the form's only role="switch".
+      // The connection-enabled toggle is gone too, so the form has no switch.
       expect(wrapper.find('[data-testid="grant-org-scope-toggle"]').exists()).toBe(false);
-      expect(wrapper.find('[data-testid="sso-connection-enabled-toggle"]').exists()).toBe(true);
+      expect(wrapper.findAll('[role="switch"]')).toHaveLength(0);
     });
 
     it('does not emit update:formState for grant_org_scope on mount (no control to flip)', async () => {
@@ -2004,71 +2363,16 @@ describe('DomainSsoConfigForm', () => {
   });
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // Connection enabled toggle (#4107) — restores the only UI writer of
-  // SsoConfig.enabled (dropped in 7326689cdc, which orphaned the field).
-  // ─────────────────────────────────────────────────────────────────────────────
-
-  describe('Connection enabled toggle (#4107)', () => {
-    const TOGGLE = '[data-testid="sso-connection-enabled-toggle"]';
-
-    // A sibling toggle in this exact template region (grant_org_scope) was
-    // silently lost once in a main→develop merge — no test pinned its
-    // existence, so the deletion shipped without a red (restored in
-    // 61dc7b9cdc). Presence-in-DEFAULT-render is asserted on its own, with no
-    // other setup, so this control can never vanish quietly the same way.
-    it('connection toggle must exist — regression guard for #4107 / silent merge loss', async () => {
-      wrapper = await mountComponent(); // default mount: unconfigured, fresh form
-      expect(wrapper.find(TOGGLE).exists()).toBe(true);
-    });
-
-    it('reflects formState.enabled in aria-checked (props-controlled, both states)', async () => {
-      wrapper = await mountComponent({
-        formState: { ...mockExistingFormState, enabled: true },
-        isConfigured: true,
-      });
-      expect(wrapper.find(TOGGLE).attributes('aria-checked')).toBe('true');
-
-      // Prop-controlled: the parent owns the state, the toggle just renders it.
-      await wrapper.setProps({
-        formState: { ...mockExistingFormState, enabled: false },
-      });
-      expect(wrapper.find(TOGGLE).attributes('aria-checked')).toBe('false');
-    });
-
-    it('emits update:formState with enabled flipped when toggled', async () => {
-      wrapper = await mountComponent({
-        formState: { ...mockExistingFormState, enabled: false },
-        isConfigured: true,
-      });
-
-      const toggle = wrapper.find('[data-testid="sso-connection-enabled-toggle"]');
-      expect(toggle.exists()).toBe(true);
-      expect(toggle.attributes('aria-checked')).toBe('false');
-
-      await toggle.trigger('click');
-
-      const emitted = wrapper.emitted('update:formState');
-      expect(emitted).toBeTruthy();
-      const lastEmit = emitted![emitted!.length - 1][0] as SsoConfigFormState;
-      expect(lastEmit.enabled).toBe(true);
-    });
-  });
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Diagnostics-before-enable warning (#4111)
+  // Unchecked credentials on a connection that is on (#4111, retargeted)
   //
-  // Advisory only — never a gate. Passing provider checks do not clear it:
-  // saved diagnostics must pass and the form's provider credentials must
-  // still match that record. Unrelated edits, including enabling alone, do
-  // not invalidate that evidence. Merely loading an enabled config is silent.
-  //
-  // The toggle is prop-controlled, so each test flips it and then applies the
-  // parent's formState update, exactly as SsoCredentialsModal does.
+  // Advisory only — never a gate: saving an active connection is how a broken
+  // one is repaired. Passing provider checks do not clear it: saved
+  // diagnostics must pass and the form's provider credentials must still
+  // match that record. Merely opening an active connection is silent.
   // ─────────────────────────────────────────────────────────────────────────────
 
-  describe('diagnostics-before-enable warning (#4111)', () => {
-    const TOGGLE = '[data-testid="sso-connection-enabled-toggle"]';
-    const WARNING = '[data-testid="sso-enable-untested-warning"]';
+  describe('unchecked-credentials warning on an active connection', () => {
+    const WARNING = '[data-testid="sso-credentials-unchecked-warning"]';
     const passingTest: TestSsoConnectionResponse = {
       user_id: 'cust_456',
       provider_type: 'entra_id',
@@ -2084,193 +2388,112 @@ describe('DomainSsoConfigForm', () => {
         details: {},
       },
     ]);
-    const mountDisabled = (options: MountOptions = {}) =>
+    const mountActive = (options: MountOptions = {}) =>
       mountComponent({
-        formState: { ...mockExistingFormState, enabled: false },
-        ssoConfig: { ...mockExistingConfig, enabled: false },
-        isConfigured: true,
-        savedCredentialsChecked: options.diagnosticsResult?.overall === 'passed',
-        ...options,
-      });
-
-    const turnOn = async (w: VueWrapper<InstanceType<typeof DomainSsoConfigForm>>) => {
-      await w.find(TOGGLE).trigger('click');
-      await w.setProps({
-        formState: { ...w.props('formState'), enabled: true },
-        hasUnsavedChanges: true,
-      });
-    };
-
-    it('is silent on a fresh form', async () => {
-      wrapper = await mountComponent();
-      expect(wrapper.find(WARNING).exists()).toBe(false);
-    });
-
-    it('is silent for a config that merely loads enabled', async () => {
-      wrapper = await mountComponent({
         formState: mockExistingFormState,
         ssoConfig: mockExistingConfig,
         isConfigured: true,
+        ...options,
+      });
+
+    it('is silent on a fresh form', async () => {
+      wrapper = await mountComponent({
+        formState: { ...mockExistingFormState, client_secret: 'new-secret' },
       });
       expect(wrapper.find(WARNING).exists()).toBe(false);
     });
 
-    it('warns when the connection is switched on without passing saved diagnostics', async () => {
-      wrapper = await mountDisabled();
-
-      await turnOn(wrapper);
-
-      const warning = wrapper.find(WARNING);
-      expect(warning.exists()).toBe(true);
-      // Announced, not conveyed by colour alone.
-      expect(warning.attributes('role')).toBe('alert');
-      expect(warning.text()).toContain('web.organizations.sso.enable_untested_warning');
+    it('is silent for an active connection that merely loads, although no check ran yet', async () => {
+      wrapper = await mountActive();
+      expect(wrapper.find(WARNING).exists()).toBe(false);
     });
 
-    it('does not gate either save action or the save event', async () => {
-      wrapper = await mountDisabled();
-      await turnOn(wrapper);
+    it('warns, inside the check area, when a credential is edited', async () => {
+      wrapper = await mountActive();
+
+      await wrapper.setProps({
+        formState: { ...mockExistingFormState, client_secret: 'rotated-secret' },
+        hasUnsavedChanges: true,
+      });
+
+      const warning = wrapper.get(WARNING);
+      // Announced, not conveyed by colour alone.
+      expect(warning.attributes('role')).toBe('alert');
+      expect(warning.text()).toBe('web.organizations.sso.credentials_unchecked_warning');
+      expect(wrapper.get('[data-testid="sso-diagnostics"]').find(WARNING).exists()).toBe(true);
+    });
+
+    it('keeps warning after the save, while the saved credentials are unchecked', async () => {
+      wrapper = await mountActive({
+        formState: { ...mockExistingFormState, client_secret: 'rotated-secret' },
+        hasUnsavedChanges: true,
+      });
+      expect(wrapper.find(WARNING).exists()).toBe(true);
+
+      // After the save the form matches the record again.
+      await wrapper.setProps({
+        formState: mockExistingFormState,
+        hasUnsavedChanges: false,
+        savedCredentialsUnchecked: true,
+      });
+      expect(wrapper.find(WARNING).exists()).toBe(true);
+
+      await wrapper.setProps({
+        diagnosticsResult: passingDiagnostics,
+        savedCredentialsChecked: true,
+        savedCredentialsUnchecked: false,
+      });
+      expect(wrapper.find(WARNING).exists()).toBe(false);
+    });
+
+    it('does not gate saving or checking', async () => {
+      wrapper = await mountActive({
+        formState: { ...mockExistingFormState, client_secret: 'rotated-secret' },
+        hasUnsavedChanges: true,
+      });
 
       expect(wrapper.find(WARNING).exists()).toBe(true);
       expect(wrapper.get('button[type="submit"]').attributes('disabled')).toBeUndefined();
-      const diagnosticsSave = wrapper.get('[data-testid="sso-diagnostics-save"]');
-      expect(diagnosticsSave.attributes('disabled')).toBeUndefined();
-      await diagnosticsSave.trigger('click');
-      expect(wrapper.emitted('save')).toHaveLength(1);
       await wrapper.get('form').trigger('submit');
-      expect(wrapper.emitted('save')).toHaveLength(2);
+      expect(wrapper.emitted('save')).toHaveLength(1);
+      const run = wrapper.get('[data-testid="sso-diagnostics-run"]');
+      expect(run.attributes('disabled')).toBeUndefined();
+      await run.trigger('click');
+      expect(wrapper.emitted('diagnostics')).toHaveLength(1);
     });
 
-    it('still warns when a provider check passed before activation', async () => {
-      wrapper = await mountDisabled({ testResult: passingTest });
-
-      await turnOn(wrapper);
-
-      expect(wrapper.find(WARNING).exists()).toBe(true);
-    });
-
-    it('does not clear when a provider check passes after activation', async () => {
-      wrapper = await mountDisabled();
-      await turnOn(wrapper);
+    it('is not cleared by a passing provider check (it never uses the saved secret)', async () => {
+      wrapper = await mountActive({ savedCredentialsUnchecked: true });
       expect(wrapper.find(WARNING).exists()).toBe(true);
 
       await wrapper.setProps({ testResult: passingTest });
       expect(wrapper.find(WARNING).exists()).toBe(true);
     });
 
-    it('accepts matching saved diagnostics despite enabled-only unsaved changes and an empty new secret', async () => {
-      wrapper = await mountDisabled({ diagnosticsResult: passingDiagnostics });
-
-      await turnOn(wrapper);
-
-      expect(wrapper.props('hasUnsavedChanges')).toBe(true);
-      expect(wrapper.props('formState').client_secret).toBe('');
-      expect(wrapper.find(WARNING).exists()).toBe(false);
-      expect(
-        wrapper.get('[data-testid="sso-diagnostics-run"]').attributes('disabled')
-      ).toBeDefined();
-    });
-
-    it('keeps the warning hidden through check, activate and save when the displayed verdict is cleared', async () => {
-      wrapper = await mountDisabled();
-      await wrapper.get('[data-testid="sso-diagnostics-run"]').trigger('click');
-      expect(wrapper.emitted('diagnostics')).toHaveLength(1);
-      await wrapper.setProps({
-        diagnosticsResult: passingDiagnostics,
-        savedCredentialsChecked: true,
-      });
-
-      await turnOn(wrapper);
-      expect(wrapper.find(WARNING).exists()).toBe(false);
-      await wrapper.get('[data-testid="sso-diagnostics-save"]').trigger('click');
-      expect(wrapper.emitted('save')).toHaveLength(1);
-      await wrapper.setProps({
-        isSaving: true,
-      });
-      await wrapper.setProps({
-        isSaving: false,
-        ssoConfig: { ...mockExistingConfig, enabled: true },
-        hasUnsavedChanges: false,
-        diagnosticsResult: null,
-      });
-
-      expect(wrapper.find(WARNING).exists()).toBe(false);
-      expect(wrapper.find('[data-testid="sso-diagnostics-save"]').exists()).toBe(false);
-    });
-
-    it('accepts matching saved OIDC credentials with an explicitly selected auth method', async () => {
-      wrapper = await mountDisabled({
-        formState: {
-          ...mockExistingFormState,
-          provider_type: 'oidc',
-          tenant_id: '',
-          issuer: 'https://idp.example.com',
-          token_endpoint_auth_method: 'client_secret_post',
-          enabled: false,
-        },
-        ssoConfig: {
-          ...mockExistingConfig,
-          provider_type: 'oidc',
-          tenant_id: null,
-          issuer: 'https://idp.example.com',
-          token_endpoint_auth_method: 'client_secret_post',
-          enabled: false,
-        },
-        diagnosticsResult: { ...passingDiagnostics, provider_type: 'oidc' },
-      });
-
-      await turnOn(wrapper);
-
-      expect(wrapper.find(WARNING).exists()).toBe(false);
-    });
-
     it.each(['failed', 'inconclusive'] as const)(
-      'still warns for %s diagnostics even with a passing provider check',
+      'still warns after a %s saved check',
       async (overall) => {
-        wrapper = await mountDisabled({
-          testResult: passingTest,
+        wrapper = await mountActive({
+          savedCredentialsUnchecked: true,
           diagnosticsResult: { ...passingDiagnostics, overall },
         });
-
-        await turnOn(wrapper);
 
         expect(wrapper.find(WARNING).exists()).toBe(true);
       }
     );
 
-    it('does not accept passing diagnostics before the configuration is saved', async () => {
-      wrapper = await mountDisabled({
-        isConfigured: false,
-        diagnosticsResult: passingDiagnostics,
+    it('never shows on a connection that is off (the check turns it on instead)', async () => {
+      wrapper = await mountActive({
+        ssoConfig: { ...mockExistingConfig, enabled: false },
+        formState: { ...mockExistingFormState, client_secret: 'rotated-secret' },
+        hasUnsavedChanges: true,
+        savedCredentialsUnchecked: true,
       });
 
-      await turnOn(wrapper);
-
-      expect(wrapper.find(WARNING).exists()).toBe(true);
-    });
-
-    it('does not accept passing diagnostics without a saved record to compare', async () => {
-      wrapper = await mountDisabled({ ssoConfig: null, diagnosticsResult: passingDiagnostics });
-
-      await turnOn(wrapper);
-
-      expect(wrapper.find(WARNING).exists()).toBe(true);
-    });
-
-    it('clears once saved diagnostics pass for matching credentials after activation', async () => {
-      wrapper = await mountDisabled();
-      await turnOn(wrapper);
-      expect(wrapper.find(WARNING).exists()).toBe(true);
-
-      await wrapper.setProps({
-        diagnosticsResult: passingDiagnostics,
-        savedCredentialsChecked: true,
-      });
       expect(wrapper.find(WARNING).exists()).toBe(false);
     });
 
     it.each([
-      ['provider_type', 'oidc'],
       ['client_id', 'different-client'],
       ['tenant_id', 'different-tenant'],
       ['issuer', 'https://different-idp.example.com'],
@@ -2296,19 +2519,19 @@ describe('DomainSsoConfigForm', () => {
               issuer: 'https://idp.example.com',
             }
           : mockExistingConfig;
-        wrapper = await mountDisabled({
-          formState: { ...formState, enabled: false },
-          ssoConfig: { ...ssoConfig, enabled: false },
+        wrapper = await mountActive({
+          formState,
+          ssoConfig,
           diagnosticsResult: { ...passingDiagnostics, provider_type: formState.provider_type },
+          savedCredentialsChecked: true,
           testResult: passingTest,
         });
-        await turnOn(wrapper);
         expect(wrapper.find(WARNING).exists()).toBe(false);
 
-        await wrapper.setProps({ formState: { ...formState, enabled: true, [field]: value } });
+        await wrapper.setProps({ formState: { ...formState, [field]: value } });
         expect(wrapper.find(WARNING).exists()).toBe(true);
 
-        await wrapper.setProps({ formState: { ...formState, enabled: true } });
+        await wrapper.setProps({ formState });
         expect(wrapper.find(WARNING).exists()).toBe(false);
       }
     );
@@ -2320,30 +2543,17 @@ describe('DomainSsoConfigForm', () => {
     ] as const)(
       'warns again when SAML %s changes after passing saved diagnostics',
       async (field, value) => {
-        wrapper = await mountDisabled({
+        wrapper = await mountActive({
           formState: mockSamlFormState,
-          ssoConfig: { ...mockSamlConfig, enabled: false },
-          diagnosticsResult: {
-            ...diagnostics('passed', [
-              {
-                check: 'certificate',
-                status: 'passed',
-                message: 'Certificate passed',
-                details: {},
-              },
-            ]),
-            provider_type: 'saml',
-          },
+          ssoConfig: mockSamlConfig,
+          savedCredentialsChecked: true,
         });
-        await turnOn(wrapper);
         expect(wrapper.find(WARNING).exists()).toBe(false);
 
-        await wrapper.setProps({
-          formState: { ...mockSamlFormState, enabled: true, [field]: value },
-        });
+        await wrapper.setProps({ formState: { ...mockSamlFormState, [field]: value } });
         expect(wrapper.find(WARNING).exists()).toBe(true);
 
-        await wrapper.setProps({ formState: { ...mockSamlFormState, enabled: true } });
+        await wrapper.setProps({ formState: mockSamlFormState });
         expect(wrapper.find(WARNING).exists()).toBe(false);
       }
     );
@@ -2352,38 +2562,24 @@ describe('DomainSsoConfigForm', () => {
       ['display_name', 'Renamed connection'],
       ['enforce_sso_only', true],
       ['grant_org_scope', true],
-    ] as const)(
-      'keeps matching diagnostics accepted when only %s changes',
-      async (field, value) => {
-        wrapper = await mountDisabled({ diagnosticsResult: passingDiagnostics });
-        await turnOn(wrapper);
+    ] as const)('stays silent when only %s changes', async (field, value) => {
+      wrapper = await mountActive();
 
-        await wrapper.setProps({
-          formState: { ...mockExistingFormState, enabled: true, [field]: value },
-          hasUnsavedChanges: true,
-        });
-
-        expect(wrapper.find(WARNING).exists()).toBe(false);
-      }
-    );
-
-    it('clears when the connection is switched back off', async () => {
-      wrapper = await mountDisabled();
-      await turnOn(wrapper);
-      await wrapper.find(TOGGLE).trigger('click');
-      await wrapper.setProps({ formState: { ...mockExistingFormState, enabled: false } });
+      await wrapper.setProps({
+        formState: { ...mockExistingFormState, [field]: value },
+        hasUnsavedChanges: true,
+      });
 
       expect(wrapper.find(WARNING).exists()).toBe(false);
     });
 
-    it('clears when a different domain is loaded into the reused instance', async () => {
-      wrapper = await mountDisabled();
-      await turnOn(wrapper);
+    it('follows the props of a different domain loaded into the reused instance', async () => {
+      wrapper = await mountActive({ savedCredentialsUnchecked: true });
       expect(wrapper.find(WARNING).exists()).toBe(true);
 
-      // SsoCredentialsModal reuses this component across domains (no :key),
-      // so a stale session flag would follow the operator to the next domain.
-      await wrapper.setProps({ domainExtId: 'dm_456' });
+      // SsoCredentialsModal reuses this component across domains (no :key);
+      // the warning holds no session state of its own to carry over.
+      await wrapper.setProps({ domainExtId: 'dm_456', savedCredentialsUnchecked: false });
       expect(wrapper.find(WARNING).exists()).toBe(false);
     });
   });
@@ -2395,7 +2591,12 @@ describe('DomainSsoConfigForm', () => {
   describe('SAML provider (#4450)', () => {
     const findTestButton = (w: VueWrapper) =>
       w.findAll('button[type="button"]').find((b) => b.text().includes('test_button'));
-    const submitButton = (w: VueWrapper) => w.find('button[type="submit"]');
+    // The save path: the footer submit for a saved record, the primary
+    // "Save and check" action for a new one (there is no footer Save yet).
+    const submitButton = (w: VueWrapper) =>
+      w.find('button[type="submit"]').exists()
+        ? w.find('button[type="submit"]')
+        : w.find('[data-testid="sso-diagnostics-run"]');
 
     describe('field visibility', () => {
       it('shows the IdP trio and hides the client credential inputs', async () => {
@@ -2504,13 +2705,14 @@ describe('DomainSsoConfigForm', () => {
         expect(submitButton(wrapper).attributes('disabled')).toBeDefined();
       });
 
-      it('emits save on submit for a complete saml form', async () => {
+      it('submits a complete new saml form through Save and check', async () => {
         wrapper = await mountComponent({ formState: mockSamlFormState });
 
         await wrapper.find('form').trigger('submit.prevent');
         await flushPromises();
 
-        expect(wrapper.emitted('save')).toBeTruthy();
+        expect(wrapper.emitted('diagnostics')).toHaveLength(1);
+        expect(wrapper.emitted('save')).toBeUndefined();
       });
     });
 
