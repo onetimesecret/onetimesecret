@@ -7,14 +7,13 @@
 // - SIGNUP_STRATEGY_METADATA: drift guard against enum
 // - customDomainSignupConfigCanonical: allow_base_domain defaults false when
 //   absent (older API during a deploy), boolean when present
-// - allowlistRequirementMet: the shared rule; the flag counts only with a
-//   base domain to derive
+// - allowlistRequirementMet: covered by the shared case table in
+//   signup-allowlist-requirement.spec.ts
 // - putSignupConfigPayloadStrictSchema: domain_allowlist needs a listed
 //   domain OR allow_base_domain; other strategies need neither
 
 import { describe, it, expect } from 'vitest';
 import {
-  allowlistRequirementMet,
   signupValidationStrategySchema,
   SIGNUP_STRATEGY_METADATA,
   customDomainSignupConfigCanonical,
@@ -149,39 +148,3 @@ describe('putSignupConfigPayloadStrictSchema', () => {
   );
 });
 
-// -----------------------------------------------------------------------------
-// allowlistRequirementMet
-// -----------------------------------------------------------------------------
-
-describe('allowlistRequirementMet', () => {
-  it('passes domain_allowlist with a listed domain, base domain or not', () => {
-    const config = {
-      validation_strategy: 'domain_allowlist' as const,
-      allowed_signup_domains: ['partner.com'],
-      allow_base_domain: false,
-    };
-    expect(allowlistRequirementMet(config, false)).toBe(true);
-    expect(allowlistRequirementMet(config, true)).toBe(true);
-  });
-
-  it('counts the flag only when there is a base domain to derive', () => {
-    const config = {
-      validation_strategy: 'domain_allowlist' as const,
-      allowed_signup_domains: [],
-      allow_base_domain: true,
-    };
-    expect(allowlistRequirementMet(config, true)).toBe(true);
-    expect(allowlistRequirementMet(config, false)).toBe(false);
-  });
-
-  it('fails domain_allowlist with an empty list and no flag', () => {
-    expect(allowlistRequirementMet({ validation_strategy: 'domain_allowlist' }, true)).toBe(false);
-  });
-
-  it.each<SignupValidationStrategy>(['passthrough', 'mx', 'smtp'])(
-    'always passes %s, which has no allowlist',
-    (strategy) => {
-      expect(allowlistRequirementMet({ validation_strategy: strategy }, false)).toBe(true);
-    }
-  );
-});

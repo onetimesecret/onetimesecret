@@ -500,30 +500,15 @@ result
 @abd_orphan.validation_errors.include?(Onetime::CustomDomain::SignupConfig::ALLOWLIST_REQUIRED_ERROR)
 #=> true
 
-## allowlist_requirement_error: a listed domain satisfies domain_allowlist
+# The readable-list cases of allowlist_requirement_error live in the shared
+# table tests/fixtures/signup_allowlist_requirement_cases.json (read by
+# spec/unit/onetime/models/custom_domain/signup_allowlist_requirement_spec.rb
+# and its TypeScript twin). Only the server-only cases stay here.
+
+## allowlist_requirement_error: a blank base domain gives the flag nothing to add
 @sc_klass = Onetime::CustomDomain::SignupConfig
 @sc_klass.allowlist_requirement_error(
-  strategy: 'domain_allowlist', domains: ['partner.com'], corrupt: false, allow_base_domain: false, base_domain: nil,
-)
-#=> nil
-
-## allowlist_requirement_error: the flag counts only with a base domain to derive
-[
-  @sc_klass.allowlist_requirement_error(
-    strategy: 'domain_allowlist', domains: [], corrupt: false, allow_base_domain: true, base_domain: 'example.com',
-  ),
-  @sc_klass.allowlist_requirement_error(
-    strategy: 'domain_allowlist', domains: [], corrupt: false, allow_base_domain: true, base_domain: nil,
-  ),
-  @sc_klass.allowlist_requirement_error(
-    strategy: 'domain_allowlist', domains: nil, corrupt: false, allow_base_domain: true, base_domain: '  ',
-  ),
-]
-#=> [nil, @sc_klass::ALLOWLIST_REQUIRED_ERROR, @sc_klass::ALLOWLIST_REQUIRED_ERROR]
-
-## allowlist_requirement_error: an empty list without the flag is required
-@sc_klass.allowlist_requirement_error(
-  strategy: 'domain_allowlist', domains: [], corrupt: false, allow_base_domain: false, base_domain: 'example.com',
+  strategy: 'domain_allowlist', domains: [], corrupt: false, allow_base_domain: true, base_domain: '  ',
 )
 #=> @sc_klass::ALLOWLIST_REQUIRED_ERROR
 

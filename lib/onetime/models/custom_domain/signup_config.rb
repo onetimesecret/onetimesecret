@@ -443,7 +443,8 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
     #
     # Mirrored client-side by allowlistRequirementMet in
     # src/schemas/contracts/custom-domain/signup-config.ts, which never sees
-    # a corrupt list (the wire format cannot carry one).
+    # a corrupt list (the wire format cannot carry one). Both are held to
+    # the shared table tests/fixtures/signup_allowlist_requirement_cases.json.
     #
     # @param strategy [String] validation strategy
     # @param domains [Array<String>, nil] explicitly listed domains

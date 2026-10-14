@@ -220,7 +220,8 @@ export const putSignupConfigPayloadSchema = z.object({
  * entitled). Mirrors SignupConfig.allowlist_requirement_error in
  * lib/onetime/models/custom_domain/signup_config.rb, which is authoritative.
  * That one also refuses an unreadable stored list, which the wire format
- * cannot carry, so there is nothing to mirror for it here.
+ * cannot carry, so there is nothing to mirror for it here. Both are held to
+ * the shared table tests/fixtures/signup_allowlist_requirement_cases.json.
  *
  * @param hasBaseDomain - whether the custom domain has a base domain and
  *   allow_base_domain is available to it
