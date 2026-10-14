@@ -224,18 +224,42 @@ module Onetime
 
         return unless repair
 
+        removed = 0
         stale_members.each do |customer_objid|
-          organization.members.remove(customer_objid)
+          if remove_org_member_entry(organization, customer_objid)
+            removed += 1
+            OT.info "[memberships doctor] Removed stale member #{customer_objid} from #{organization.extid}"
+          else
+            OT.info "[memberships doctor] org.members entry #{customer_objid} was already gone from #{organization.extid}"
+          end
           # Also clean up any orphan membership record
           cleanup_orphan_membership(organization.objid, customer_objid)
-          OT.info "[memberships doctor] Removed stale member #{customer_objid} from #{organization.extid}"
         end
+
+        return if removed.zero?
 
         report[:repaired] << {
           org: organization.extid,
           action: :stale_members_removed,
-          count: stale_members.size,
+          count: removed,
         }
+      end
+
+      # Remove one entry from org.members whose customer record is gone.
+      #
+      # org.members is a participation collection that stores raw identifiers,
+      # and Familia JSON-quotes a String argument, so a bare objid never matches.
+      # An identifier-only Customer (the stand-in Organization#member? uses)
+      # serializes to the raw identifier. The customer's reverse index drops the
+      # collection key as well, as remove_from_organization_members would.
+      #
+      # @return [Boolean] true when ZREM removed the entry
+      def remove_org_member_entry(organization, customer_objid)
+        member  = Onetime::Customer.new(objid: customer_objid)
+        removed = organization.members.remove(member)
+        member.untrack_participation_in(organization.members.dbkey)
+        # redis-rb answers a single-member ZREM with a Boolean; accept a count too.
+        removed == true || (removed.is_a?(Integer) && removed.positive?)
       end
 
       # CHECK: pending_invitations count matches actual pending records
