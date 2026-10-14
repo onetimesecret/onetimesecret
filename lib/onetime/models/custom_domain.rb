@@ -769,6 +769,11 @@ module Onetime
       verification_state == :verified
     end
 
+    # serving_authorized? / served_as_tenant?: whether this domain is served
+    # as a tenant domain at all. See ServingPolicy.
+    require_relative 'custom_domain/serving_policy'
+    include ServingPolicy
+
     # Clears the ownership evidence and provider status an earlier owner left
     # on this record, and gives the TXT challenge a new value. Used when an
     # orphaned record is adopted by an organization

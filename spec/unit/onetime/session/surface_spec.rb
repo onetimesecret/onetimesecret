@@ -5,7 +5,8 @@
 # Unit tests for Onetime::SessionSurface — the pure classifier and comparator
 # behind surface-bound sessions (#4409). Terms (surface, marker) are defined in
 # the module doc. The strategy symbols (:canonical, :subdomain, :custom,
-# :invalid) mirror what DomainStrategy stashes in env.
+# :invalid) mirror what DomainStrategy stashes in env; :unverified is what
+# its classifier answers for a registered host it does not serve.
 
 require 'spec_helper'
 require 'onetime/session/surface'
@@ -51,6 +52,13 @@ RSpec.describe Onetime::SessionSurface do
       expect(described_class.for_env(env_for(strategy: :invalid))).to be_nil
     end
 
+    # A registered host that is not served. DomainStrategy answers it itself,
+    # so this only matters off the middleware path; it must not bind a session.
+    it 'returns nil for :unverified, even with a display domain and an id' do
+      env = env_for(strategy: :unverified, display_domain: 'pending.acme.com', custom_domain_id: 'domain-pending')
+      expect(described_class.for_env(env)).to be_nil
+    end
+
     it 'returns nil when the strategy is missing entirely' do
       expect(described_class.for_env({})).to be_nil
     end
@@ -88,8 +96,8 @@ RSpec.describe Onetime::SessionSurface do
     end
 
     context 'when the lookup answers this time (a blip)' do
-      it 'gives a registered custom domain its custom descriptor' do
-        domain = instance_double(Onetime::CustomDomain, identifier: 'domain-abc')
+      it 'gives a served custom domain its custom descriptor' do
+        domain = instance_double(Onetime::CustomDomain, identifier: 'domain-abc', served_as_tenant?: true)
         allow(Onetime::CustomDomain).to receive(:from_display_domain).with('secrets.acme.com').and_return(domain)
 
         expect(described_class.for_env(invalid_env('secrets.acme.com')))
@@ -97,13 +105,15 @@ RSpec.describe Onetime::SessionSurface do
       end
 
       # The same answer as a healthy request: DomainStrategy classifies a
-      # registered host :custom whether or not it is verified.
-      it 'does not require the custom domain to be verified' do
-        domain = instance_double(Onetime::CustomDomain, identifier: 'domain-pending', verified: false)
+      # registered host that is not served :unverified, and answers it with a
+      # 404 before any session is read.
+      it 'gives a registered custom domain that is not served no descriptor' do
+        domain = instance_double(Onetime::CustomDomain, identifier: 'domain-pending', served_as_tenant?: false)
         allow(Onetime::CustomDomain).to receive(:from_display_domain).with('pending.acme.com').and_return(domain)
 
-        expect(described_class.for_env(invalid_env('pending.acme.com')))
-          .to eq({ 'kind' => 'custom', 'id' => 'domain-pending' })
+        expect(described_class.for_env(invalid_env('pending.acme.com'))).to be_nil
+        session = { described_class::KEY => { 'kind' => 'custom', 'id' => 'domain-pending' } }
+        expect(described_class.match_status(session, invalid_env('pending.acme.com'))).to eq(:mismatch)
       end
 
       it 'gives a platform subdomain its subdomain descriptor' do
@@ -116,7 +126,7 @@ RSpec.describe Onetime::SessionSurface do
       end
 
       it 'matches a session recorded on the same custom domain' do
-        domain = instance_double(Onetime::CustomDomain, identifier: 'domain-abc')
+        domain = instance_double(Onetime::CustomDomain, identifier: 'domain-abc', served_as_tenant?: true)
         allow(Onetime::CustomDomain).to receive(:from_display_domain).with('secrets.acme.com').and_return(domain)
         session = { described_class::KEY => { 'kind' => 'custom', 'id' => 'domain-abc' } }
 

@@ -18,10 +18,28 @@ module Onetime
     #   example.com        #=> :canonical (configured primary domain)
     #   www.example.com    #=> :canonical (www variant of primary)
     #   api.example.com    #=> :subdomain (subdomain of primary)
-    #   partner.com        #=> :custom (partner domain from database)
+    #   partner.com        #=> :custom (registered and served, see below)
+    #   pending.com        #=> :unverified (registered, not served: 404)
     #   invalid.tld        #=> :invalid (malformed or unrecognized)
     #
-    # @note Adds to Rack environment:
+    # ## :unverified — a registration that is not served
+    #
+    # A host with a CustomDomain record classifies :custom only when
+    # Onetime::CustomDomain#served_as_tenant? is true: the record has an
+    # organization and, under a validation strategy that proves ownership
+    # (approximated, caddy_on_demand), its ownership is verified or held by a
+    # colonel override. Under passthrough, registration is the basis
+    # (ADR-049). features.domains.serve_unverified=true serves every
+    # registered record. Any other found record classifies :unverified.
+    #
+    # `call` answers :unverified itself: 404, a fixed plain-text body and
+    # `cache-control: no-store`, without calling the application below and
+    # without writing any onetime.* env key or O-* response header. Nothing
+    # downstream ever reads :unverified on a served request, and the response
+    # does not name the classification. Off the middleware path (classify!
+    # from Onetime::SessionSurface) it maps to no surface.
+    #
+    # @note Adds to Rack environment (not on an :unverified answer):
     #   - env['onetime.display_domain']  : Normalized domain for display
     #   - env['onetime.domain_strategy'] : Classification symbol (:canonical, :subdomain, :custom, :invalid)
     #   - env['onetime.custom_domain']   : Resolved CustomDomain instance (:custom only)
@@ -81,6 +99,11 @@ module Onetime
     # read added to `choose_strategy` ahead of the exact canonical arm would
     # break it silently and take canonical sign-in dark with everything else.
     #
+    # :unverified adds no read. It is decided from the record the custom-domain
+    # read already returned (fields loaded with it, plus configuration), so a
+    # failed read still classifies nil (→ :invalid) and never :unverified, and
+    # a found record never falls through to the sweeps below it.
+    #
     # ## How downstream reads this
     #
     # Consumers split into two groups, and the split IS the policy
@@ -104,7 +127,12 @@ module Onetime
     #
     # This table is pinned by
     # spec/unit/domain_strategy_classification_contract_spec.rb — a new
-    # consumer that disagrees with it fails there, not in review.
+    # consumer that disagrees with it fails there, not in review. The same
+    # spec drives :unverified through every row. No consumer below sees it
+    # on a served request (the middleware answers it), and each answers it
+    # like nil: false for the positive operator test, false for `== :custom`,
+    # no session surface (SessionSurface.descriptor maps it to nil), no
+    # organization scope from the classification.
     #
     #   Consumer                                         :invalid resolves to
     #   ------------------------------------------------ --------------------
@@ -273,6 +301,18 @@ module Onetime
 
         resolved_domain_strategy = domain_strategy || :invalid # make sure never nil
 
+        # A registered host that is not served: answered here, before any env
+        # key is written and without calling the application. See
+        # "## :unverified" above.
+        if resolved_domain_strategy == :unverified
+          http_logger.debug '[DomainStrategy] determined',
+            {
+              host: display_domain,
+              strategy: resolved_domain_strategy,
+            }
+          return unverified_domain_response
+        end
+
         # Sanitize display_domain for use in response headers (defense in depth).
         # The DetectHost result should already be a valid hostname, but we
         # guard here to prevent header injection.
@@ -319,6 +359,25 @@ module Onetime
         [status, headers, body]
       end
 
+      # The answer for a registered custom domain that is not served
+      # (:unverified). The same fixed body for every such host and path, so it
+      # carries nothing from the record. no-store, so the host starts working
+      # as soon as it is served.
+      #
+      # @return [Array] Rack response
+      def unverified_domain_response
+        body = 'This domain is not configured'
+        [
+          404,
+          {
+            'content-type' => 'text/plain; charset=utf-8',
+            'content-length' => body.bytesize.to_s,
+            'cache-control' => 'no-store',
+          },
+          [body],
+        ]
+      end
+
       # True when host matches one of the configured canonical hosts
       # (features.domains.default, site.host, or a features.domains.link_domains
       # member), normalized comparison.
@@ -355,8 +414,9 @@ module Onetime
       end
 
       module Chooserator
-        # strategy      - :canonical, :subdomain, :custom, or nil
+        # strategy      - :canonical, :subdomain, :custom, :unverified, or nil
         # custom_domain - the record loaded while deciding :custom, else nil
+        #                 (nil for :unverified too)
         # lookup        - Onetime::CustomDomain::Lookup for the read made, or
         #                 nil when classification did not need to read
         Classification = Data.define(:strategy, :custom_domain, :lookup) do
@@ -416,7 +476,8 @@ module Onetime
           #   configured canonical host(s), pool members included
           # @param anchor_domains [PublicSuffix::Domain, String, Array, nil]
           #   The anchor subset to sweep; nil means "same as canonical_domains"
-          # @return [Symbol, nil] Domain strategy (:canonical, :subdomain, :custom) or nil if invalid
+          # @return [Symbol, nil] Domain strategy (:canonical, :subdomain, :custom,
+          #   :unverified) or nil if invalid
           def choose_strategy(request_domain, canonical_domains, anchor_domains: nil)
             classify(request_domain, canonical_domains, anchor_domains: anchor_domains).strategy
           end
@@ -499,18 +560,25 @@ module Onetime
             end
 
             # A failed read stops here, as the raise it replaces did: the
-            # sweeps below never run, so the host classifies nil.
+            # sweeps below never run, so the host classifies nil. A found
+            # record never reaches the sweeps either: it is :custom when it is
+            # served and :unverified otherwise (CustomDomain#served_as_tenant?,
+            # which also reads features.domains.serve_unverified, so every
+            # caller of this method agrees).
             strategy = if lookup.read_failed?
                          nil
                        elsif lookup.found?
-                         :custom
+                         lookup.record.served_as_tenant? ? :custom : :unverified
                        elsif sweep_domains.any? { |host| canonical?(request_domain, host) }
                          :canonical
                        elsif sweep_domains.any? { |host| subdomain_of?(request_domain, host) }
                          :subdomain
                        end
 
-            Classification.new(strategy: strategy, custom_domain: lookup.record, lookup: lookup)
+            # The record is handed on only for :custom; an :unverified host
+            # carries none.
+            custom_domain = strategy == :custom ? lookup.record : nil
+            Classification.new(strategy: strategy, custom_domain: custom_domain, lookup: lookup)
           rescue PublicSuffix::DomainInvalid => ex
             Onetime.http_logger.debug 'Invalid domain in strategy selection',
               {
