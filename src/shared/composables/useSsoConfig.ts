@@ -673,11 +673,13 @@ export function useSsoConfig(domainExtId: string) {
         diagnosticsResult.value = result;
         // A pass for a record saved elsewhere is not evidence for the loaded
         // one: the credentials-unchecked state stays until a reload and recheck.
-        if (result.overall === 'passed' && record && diagnosticsDescribeRecord(result, record)) {
+        const aboutLoadedRecord = record !== null && diagnosticsDescribeRecord(result, record);
+        if (result.overall === 'passed' && aboutLoadedRecord) {
           checkedCredentialsFingerprint.value = fingerprint;
           savedCredentialsUnchecked.value = false;
         }
         applyEnabledFromRun(result.enabled);
+        if (aboutLoadedRecord) followActivationWrite(result);
         notifyDiagnosticsOutcome(result.overall);
       } else {
         diagnosticsError.value = diagnosticsFailureMessage(error.value);
@@ -700,6 +702,21 @@ export function useSsoConfig(domainExtId: string) {
     if (savedFormState.value) {
       savedFormState.value = { ...savedFormState.value, enabled };
     }
+  };
+
+  /**
+   * An activation writes SsoConfig#updated, so the loaded record's
+   * updated_at no longer matches the stored revision. Take the written one,
+   * so the next run is not mistaken for one about a record saved elsewhere.
+   * Only for a run about the loaded record (the caller checks): a page whose
+   * record was already stale would otherwise match fields it has never seen.
+   */
+  const followActivationWrite = (result: SsoDiagnosticsResponse) => {
+    if (result.activation !== 'activated' || !result.activated_revision || !ssoConfig.value) return;
+    ssoConfig.value = {
+      ...ssoConfig.value,
+      updated_at: new Date(Number(result.activated_revision) * 1000),
+    };
   };
 
   /**

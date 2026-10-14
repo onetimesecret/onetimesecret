@@ -59,7 +59,8 @@ module DomainsAPI
       #
       # Response:
       # - user_id, provider_type, checked_at (ISO 8601 UTC)
-      # - configuration_revision: SsoConfig#updated as stored (may be empty)
+      # - configuration_revision: SsoConfig#updated of the record checked, as
+      #   loaded before any activation write (may be empty)
       # - overall: passed | failed | inconclusive — failed if any check
       #   failed; else inconclusive if any check inconclusive; else passed.
       #   unsupported and skipped checks do not affect it.
@@ -75,6 +76,10 @@ module DomainsAPI
       #                          while SAML is off on the install
       #   configuration_changed  the credential fields changed, or the
       #                          record was deleted, while the checks ran
+      # - activated_revision: only when activation is `activated`: the
+      #   SsoConfig#updated the activation wrote. A client whose loaded
+      #   record matched configuration_revision adopts it, so its next run
+      #   is not mistaken for one about a record saved elsewhere.
       #
       # Never returns, logs or raises the client secret, a token, or Entra's
       # error_description (correlation ids, app id). The credential check
@@ -201,7 +206,7 @@ module DomainsAPI
         end
 
         def success_data
-          {
+          data                      = {
             user_id: cust.extid,
             provider_type: @provider_type,
             checked_at: @checked_at.iso8601,
@@ -211,6 +216,8 @@ module DomainsAPI
             enabled: @enabled_after,
             activation: @activation,
           }
+          data[:activated_revision] = @activated_revision if @activated_revision
+          data
         end
 
         def form_fields
@@ -345,9 +352,13 @@ module DomainsAPI
                              end
             refusal.nil?
           }
+          # A write aborted by a concurrent change runs the block again, so
+          # the value kept is the one from the attempt that committed.
+          written_at     = nil
           committed      = Onetime::CustomDomain::SsoConfig.update_for_domain_if(@custom_domain.identifier, condition) do |stored|
+            written_at     = Familia.now.to_i
             stored.enabled = true
-            stored.updated = Familia.now.to_i
+            stored.updated = written_at
           end
 
           # nil: the condition refused, or the record is gone. A refusal
@@ -360,7 +371,8 @@ module DomainsAPI
             return refusal || 'configuration_changed'
           end
 
-          @enabled_after = true
+          @enabled_after      = true
+          @activated_revision = written_at.to_s
           log_sso_change_event(
             event: :domain_sso_config_enabled,
             domain: @custom_domain,

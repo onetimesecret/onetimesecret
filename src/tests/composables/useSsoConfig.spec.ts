@@ -1838,6 +1838,70 @@ describe('useSsoConfig', () => {
         expect(composable.hasUnsavedChanges.value).toBe(false);
       });
 
+      // The activation wrote SsoConfig#updated; the next run reports that
+      // revision, and must still read as being about the loaded record.
+      const loadedRevision = String(mockDisabledConfig.updated_at.getTime() / 1000);
+      const activatedRevision = String(Number(loadedRevision) + 90);
+
+      it('follows its own activation write, so the next pass still counts', async () => {
+        mockGetConfigForDomain.mockResolvedValue({ record: mockDisabledConfig });
+        mockRunDiagnosticsForDomain
+          .mockResolvedValueOnce({
+            ...mockDiagnosticsPassed,
+            configuration_revision: loadedRevision,
+            activation: 'activated',
+            enabled: true,
+            activated_revision: activatedRevision,
+          })
+          .mockResolvedValueOnce({
+            ...mockDiagnosticsPassed,
+            configuration_revision: activatedRevision,
+            activation: 'not_requested',
+            enabled: true,
+          });
+        const composable = useSsoConfig('dm-ext-123');
+        await composable.initialize();
+
+        await composable.runDiagnostics();
+        expect(composable.ssoConfig.value?.updated_at.getTime()).toBe(
+          Number(activatedRevision) * 1000
+        );
+
+        await composable.runDiagnostics();
+
+        expect(mockRunDiagnosticsForDomain).toHaveBeenLastCalledWith('dm-ext-123');
+        expect(composable.savedCredentialsChecked.value).toBe(true);
+      });
+
+      it('does not follow an activation of a record saved elsewhere', async () => {
+        mockGetConfigForDomain.mockResolvedValue({ record: mockDisabledConfig });
+        mockRunDiagnosticsForDomain
+          .mockResolvedValueOnce({
+            ...mockDiagnosticsPassed,
+            configuration_revision: String(Number(loadedRevision) + 30),
+            activation: 'activated',
+            enabled: true,
+            activated_revision: activatedRevision,
+          })
+          .mockResolvedValueOnce({
+            ...mockDiagnosticsPassed,
+            configuration_revision: activatedRevision,
+            activation: 'not_requested',
+            enabled: true,
+          });
+        const composable = useSsoConfig('dm-ext-123');
+        await composable.initialize();
+
+        await composable.runDiagnostics();
+        // The stored state is mirrored; the revision is not adopted.
+        expect(composable.ssoConfig.value?.enabled).toBe(true);
+        expect(composable.ssoConfig.value?.updated_at).toEqual(mockDisabledConfig.updated_at);
+
+        await composable.runDiagnostics();
+
+        expect(composable.savedCredentialsChecked.value).toBe(false);
+      });
+
       it('keeps an activated connection on through the next save', async () => {
         mockGetConfigForDomain.mockResolvedValue({ record: mockDisabledConfig });
         mockRunDiagnosticsForDomain.mockResolvedValue({

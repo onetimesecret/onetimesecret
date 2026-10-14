@@ -263,6 +263,11 @@ export interface SsoDiagnosticsResponse {
   /** The stored record's `enabled` after the run. */
   enabled: boolean;
   activation: SsoDiagnosticActivation;
+  /**
+   * Only when activation is `activated`: the SsoConfig#updated the
+   * activation wrote. configuration_revision stays the checked record's.
+   */
+  activated_revision?: string;
 }
 
 /** Request body for POST /api/domains/:extid/sso/diagnostics. */

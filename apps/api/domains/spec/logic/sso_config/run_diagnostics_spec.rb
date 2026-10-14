@@ -331,6 +331,16 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
         expect(writes.assoc(:updated)).not_to be_nil
       end
 
+      # configuration_revision ties the result to the record the client
+      # loaded; activated_revision lets that client follow the write.
+      it 'reports the checked revision and the one the activation wrote' do
+        result = run
+
+        expect(result[:configuration_revision]).to eq('1760000000')
+        expect(result[:activated_revision]).to eq(writes.assoc(:updated).last.to_s)
+        expect(result[:activated_revision]).not_to eq('1760000000')
+      end
+
       it 'emits the same domain_sso_config_enabled change event as PUT/PATCH' do
         run
 
@@ -357,6 +367,7 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
           result = run
 
           expect(result).to include(overall: 'passed', activation: 'configuration_changed', enabled: false)
+          expect(result).not_to have_key(:activated_revision)
           expect(writes).to be_empty
           expect(logic).not_to have_received(:log_sso_change_event)
         end
@@ -377,6 +388,7 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
           result = run
 
           expect(result).to include(activation: 'already_enabled', enabled: true)
+          expect(result).not_to have_key(:activated_revision)
           expect(writes).to be_empty
           expect(logic).not_to have_received(:log_sso_change_event)
         end
@@ -402,6 +414,7 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
         result = run
 
         expect(result).to include(overall: 'passed', activation: 'not_permitted', enabled: false)
+        expect(result).not_to have_key(:activated_revision)
         expect(Onetime::CustomDomain::SsoConfig).not_to have_received(:update_for_domain_if)
       end
     end
@@ -419,6 +432,7 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
         result = run
 
         expect(result).to include(overall: 'passed', activation: 'not_permitted', enabled: false)
+        expect(result).not_to have_key(:activated_revision)
         expect(Onetime::CustomDomain::SsoConfig).not_to have_received(:update_for_domain_if)
       end
 
@@ -436,6 +450,7 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
         result = run
 
         expect(result).to include(overall: 'failed', activation: 'not_passed', enabled: false)
+        expect(result).not_to have_key(:activated_revision)
         expect(Onetime::CustomDomain::SsoConfig).not_to have_received(:update_for_domain_if)
       end
     end
@@ -463,6 +478,7 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
         result = run
 
         expect(result).to include(overall: 'passed', activation: 'not_requested', enabled: false)
+        expect(result).not_to have_key(:activated_revision)
         expect(Onetime::CustomDomain::SsoConfig).not_to have_received(:update_for_domain_if)
         expect(sso_config).not_to have_received(:credential_fingerprint)
       end
