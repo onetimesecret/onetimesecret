@@ -338,12 +338,12 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
       expect(last_exit_code).to eq(0)
     end
 
-    it 'counts nothing as repaired when the entry no longer names that identifier' do
+    it 'records no repair when the entry no longer names that identifier' do
       allow(stale_index).to receive(:release_field).and_return(0)
 
       report = json_report('domains', 'doctor', '--all', '--repair', '--json')
 
-      expect(report['repaired'].first['count']).to eq(0)
+      expect([report['repaired'], last_exit_code]).to eq([[], 1])
     end
 
     it 'flags an FQDN mismatch once, not once per pass' do

@@ -375,6 +375,7 @@ module Onetime
           end
           removed
         end
+        return unless released.positive?
 
         report[:repaired] << {
           action: :display_domain_index_cleaned,
