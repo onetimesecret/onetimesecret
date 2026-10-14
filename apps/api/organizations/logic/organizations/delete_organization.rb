@@ -99,10 +99,13 @@ module OrganizationAPI::Logic
           # Former members have always seen the acting customer's address in the
           # organization_deleted mail; keep that wording unchanged.
           deleted_by: cust.email,
-          # Audit to the security trail, never the operator trail: an owner can
-          # create and delete workspaces in a loop, and each applied delete
-          # would otherwise evict one operator record.
-          self_service: true,
+          # An owner's delete audits to the security trail, never the operator
+          # trail: an owner can create and delete workspaces in a loop, and
+          # each applied delete would otherwise evict one operator record. A
+          # colonel passes the manage_org check on any org
+          # (require_entitlement_in!), and that delete is operator activity,
+          # so it keeps the operator trail and its fail-closed write.
+          self_service: !has_system_role?('colonel'),
         ).call
 
         refuse_unless_applied

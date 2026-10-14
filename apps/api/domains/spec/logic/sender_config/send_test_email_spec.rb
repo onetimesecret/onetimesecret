@@ -90,6 +90,9 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::SendTestEmail do
       .with('domain123')
       .and_return(mailer_config)
 
+    # An owner, not a colonel: the audit write goes to the security trail.
+    allow(logic).to receive(:has_system_role?).with('colonel').and_return(false)
+
     # Stub the audit event recording
     allow(Onetime::ColonelAuditEvent).to receive(:record)
     allow(Onetime::ColonelAuditEvent).to receive(:record_security)
@@ -128,6 +131,20 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::SendTestEmail do
 
         expect(Onetime::ColonelAuditEvent).to have_received(:record_security).once.with(
           hash_excluding(detail: hash_including(:error_code)),
+        )
+      end
+
+      # A colonel passes the entitlement check on any domain, and that send
+      # is operator activity.
+      it 'records a colonel send on the operator trail' do
+        allow(logic).to receive(:has_system_role?).with('colonel').and_return(true)
+
+        logic.raise_concerns
+        logic.process
+
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record_security)
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+          hash_including(verb: 'domain_sender.test_email_sent', result: :success),
         )
       end
 

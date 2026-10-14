@@ -79,6 +79,8 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
     %i[info ld le li].each do |level|
       allow(OT).to receive(level) { |*args| logged << args.inspect }
     end
+    # An owner, not a colonel: the audit write goes to the security trail.
+    allow(logic).to receive(:has_system_role?).with('colonel').and_return(false)
     allow(Onetime::ColonelAuditEvent).to receive(:record)
     allow(Onetime::ColonelAuditEvent).to receive(:record_security) do |**kwargs|
       audited << kwargs
@@ -470,6 +472,21 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
 
       expect(stored.size).to eq(1)
       expect(stored.first.to_json).not_to include('rejected the saved client secret')
+    end
+
+    # A colonel passes the entitlement check on any domain, and that run is
+    # operator activity.
+    it 'records a colonel run on the operator trail' do
+      allow(logic).to receive(:has_system_role?).with('colonel').and_return(true)
+      allow(Onetime::ColonelAuditEvent).to receive(:record) { |**kwargs| audited << kwargs }
+      stub_discovery_ok
+      accept_credentials
+
+      run
+
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record_security)
+      expect(audited.size).to eq(1)
+      expect(audited.first).to include(verb: 'sso.diagnostics_run', result: :success)
     end
 
     it 'does not record when the run is refused before any check' do

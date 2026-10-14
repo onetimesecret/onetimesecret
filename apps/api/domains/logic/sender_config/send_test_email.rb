@@ -338,13 +338,10 @@ module DomainsAPI
             }.compact,
           )
 
-          # Persist to the audit trail for admin visibility. The SECURITY
-          # trail, not the operator trail: a test send is a customer's
-          # self-service action, and ColonelAuditEvent's write-frequency
-          # invariant keeps the operator trail's count-capped, no-TTL budget
-          # for operator activity. The recipient is always the actor, whom
-          # the extid already identifies, so the address is stored obscured.
-          Onetime::ColonelAuditEvent.record_security(
+          # Persist to the audit trail for admin visibility. The recipient is
+          # always the actor, whom the extid already identifies, so the
+          # address is stored obscured.
+          record_test_email_audit(
             actor: cust,
             verb: 'domain_sender.test_email_sent',
             target: @custom_domain.identifier,
@@ -356,6 +353,20 @@ module DomainsAPI
               error_code: result.dig(:details, :error_code),
             }.compact,
           )
+        end
+
+        # A domain owner's test send is a self-service action and goes to the
+        # SECURITY trail: owners can send at will, and ColonelAuditEvent's
+        # write-frequency invariant keeps the operator trail's count-capped,
+        # no-TTL budget for operator activity. A colonel passes the
+        # entitlement check on any domain (require_entitlement_in!), and that
+        # send is operator activity, so it stays on the operator trail.
+        def record_test_email_audit(**event)
+          if has_system_role?('colonel')
+            Onetime::ColonelAuditEvent.record(**event)
+          else
+            Onetime::ColonelAuditEvent.record_security(**event)
+          end
         end
       end
     end
