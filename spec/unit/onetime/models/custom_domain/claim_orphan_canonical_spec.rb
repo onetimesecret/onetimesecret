@@ -160,6 +160,36 @@ RSpec.describe Onetime::CustomDomain, '.claim_orphaned_domain canonical claim', 
     expect([reload(id).org_id, index.get(canonical)]).to eq([org_a.objid, id])
   end
 
+  describe 'an orphan still listed in an organization' do
+    it 'refuses the adoption while another organization lists it, and leaves it an orphan' do
+      id = legacy_orphan
+      reload(id).add_to_organization_domains(org_a)
+
+      expect { register(orphan_name, org_b) }
+        .to raise_error(Onetime::Problem, /still listed in the domains of organization #{org_a.extid}.*remove_domain/)
+      expect([reload(id).org_id.to_s, index.get(canonical), org_b.domains.member?(reload(id))]).to eq(['', nil, false])
+    end
+
+    it 'adopts it once that listing is removed' do
+      id = legacy_orphan
+      reload(id).add_to_organization_domains(org_a)
+      org_a.remove_domain(reload(id))
+
+      register(orphan_name, org_b)
+
+      expect([reload(id).org_id, org_a.domains.member?(reload(id))]).to eq([org_b.objid, false])
+    end
+
+    it 'adopts it when the listing is in the adopting organization' do
+      id = legacy_orphan
+      reload(id).add_to_organization_domains(org_b)
+
+      register(orphan_name, org_b)
+
+      expect([reload(id).org_id, org_b.domains.member?(reload(id))]).to eq([org_b.objid, true])
+    end
+  end
+
   it 'leaves an entry it did not create when the orphan claim fails' do
     id       = legacy_orphan
     index.put(canonical, id)

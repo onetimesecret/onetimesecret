@@ -1165,6 +1165,10 @@ module Onetime
       # are kept; the operator tools list them
       # (Onetime::Operations::Domains::AdoptionReport).
       #
+      # An orphan that another organization's domains collection still lists
+      # is refused before anything is written (see
+      # refuse_orphan_listed_elsewhere!).
+      #
       # Callers: the operator tools only. Operations::Domains::Create through
       # create!(..., adopt_orphan: true), and Operations::Domains::Repair and
       # Transfer directly. Not reachable from the customer API.
@@ -1173,14 +1177,15 @@ module Onetime
       # @param org_id [String] The organization ID claiming the domain
       # @return [CustomDomain, nil] The claimed domain, or nil if claim failed
       # @raise [Onetime::Problem] If domain was claimed by another org during
-      #   race, another record holds its canonical name, or the name has no
-      #   A-label form
+      #   race, another organization still lists it, another record holds its
+      #   canonical name, or the name has no A-label form
       # @raise [Onetime::RecordNotFound] If the organization no longer exists
       # @raise [Onetime::TemporarilyUnavailable] If a concurrent write to the
       #   record discarded the claim (WATCH)
       def claim_orphaned_domain(existing, org_id)
         OT.info "[CustomDomain.create!] Claiming orphaned domain: #{existing.display_domain} for org_id=#{org_id}"
 
+        refuse_orphan_listed_elsewhere!(existing, org_id)
         canonical, created_claim = claim_canonical_for_orphan!(existing, org_id)
 
         begin
@@ -1265,6 +1270,36 @@ module Onetime
         end
       end
 
+      # Refuses to adopt an orphan that another organization's domains
+      # collection still lists. Organization#add_domain refuses a record that
+      # belongs to another organization; an orphan has no org_id, so a listing
+      # left behind by drift would otherwise leave the record listed in two
+      # organizations. The candidates come from the record's participation
+      # index (organization_instances), and each is confirmed against the
+      # collection itself, so a listing that was already removed does not
+      # count. A listing in the adopting organization is not refused. A record
+      # whose stored org_id is set is left to the WATCH section, which answers
+      # for it.
+      #
+      # @raise [Onetime::Problem] naming the organization and how to remove
+      #   the listing
+      def refuse_orphan_listed_elsewhere!(existing, org_id)
+        return unless existing.hget(:org_id).to_s.empty?
+
+        listing = existing.organization_instances.find do |org|
+          org.objid != org_id.to_s && existing.in_organization_domains?(org)
+        end
+        return unless listing
+
+        OT.le "[CustomDomain.claim_orphaned_domain] #{existing.extid} has no org_id but is listed " \
+              "in the domains of #{listing.extid}"
+        raise Onetime::Problem,
+          "Domain #{existing.display_domain} has no organization but is still listed in the domains of " \
+          "organization #{listing.extid}. Remove that listing first, from bin/ots console: " \
+          "Onetime::Organization.find_by_extid('#{listing.extid}')" \
+          ".remove_domain(Onetime::CustomDomain.find_by_extid('#{existing.extid}')). Then adopt the domain again."
+      end
+
       # Claims the orphan's canonical name for the record.
       #
       # @return [Array(String, Boolean)] canonical name, and whether this call
@@ -1301,7 +1336,10 @@ module Onetime
         OT.le "[CustomDomain.claim_orphaned_domain] Kept the canonical claim for #{existing.extid}: #{ex.class}: #{ex.message}"
       end
 
-      private :watch_and_assign_orphan, :claim_canonical_for_orphan!, :release_orphan_canonical_claim
+      private :watch_and_assign_orphan,
+        :refuse_orphan_listed_elsewhere!,
+        :claim_canonical_for_orphan!,
+        :release_orphan_canonical_claim
 
       # Returns a new Onetime::CustomDomain object (without saving it).
       #
