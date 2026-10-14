@@ -216,8 +216,10 @@ export const putSignupConfigPayloadSchema = z.object({
  * at least one domain to admit, listed explicitly or supplied by
  * allow_base_domain. The flag counts only when the custom domain has a base
  * domain to derive and the feature is available (install flag on, org
- * entitled). Mirrors SignupConfig.allowlist_requirement_met? in
+ * entitled). Mirrors SignupConfig.allowlist_requirement_error in
  * lib/onetime/models/custom_domain/signup_config.rb, which is authoritative.
+ * That one also refuses an unreadable stored list, which the wire format
+ * cannot carry, so there is nothing to mirror for it here.
  *
  * @param hasBaseDomain - whether the custom domain has a base domain and
  *   allow_base_domain is available to it

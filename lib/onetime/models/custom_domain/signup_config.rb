@@ -61,14 +61,12 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
   # Supported validation strategy types
   STRATEGY_TYPES = %w[passthrough domain_allowlist mx smtp].freeze
 
-  # Raised by the workspace API and reported by #validation_errors when
-  # allowlist_requirement_met? fails.
-  ALLOWLIST_REQUIRED_ERROR = 'allowed_signup_domains is required when validation_strategy ' \
-                             'is domain_allowlist and allow_base_domain is not set'
-
-  # Reported by #validation_errors, and raised by the workspace PATCH, when a
-  # strategy that consults the allowlist would keep a stored list that
-  # cannot be read (allowed_signup_domains_corrupt?).
+  # The two answers allowlist_requirement_error can give, reported by
+  # #validation_errors and raised by the workspace API. REQUIRED: a strategy
+  # that consults the allowlist has no domain to admit. UNREADABLE: it would
+  # keep a stored list that cannot be read (allowed_signup_domains_corrupt?).
+  ALLOWLIST_REQUIRED_ERROR   = 'allowed_signup_domains is required when validation_strategy ' \
+                               'is domain_allowlist and allow_base_domain is not set'
   ALLOWLIST_UNREADABLE_ERROR = 'allowed_signup_domains cannot be read and must be replaced'
 
   # allow_base_domain takes effect only while the install enables it
@@ -368,22 +366,16 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
     errors << 'validation_strategy is required' if validation_strategy.to_s.empty?
     errors << "validation_strategy must be one of: #{STRATEGY_TYPES.join(', ')}" unless STRATEGY_TYPES.include?(validation_strategy)
 
-    if requires_allowlist? && allowed_signup_domains_corrupt?
-      # The list reads as [] here, so the rule below would let
-      # allow_base_domain satisfy it, but the gate denies everyone while the
-      # stored list is unreadable, flag or not.
-      errors << ALLOWLIST_UNREADABLE_ERROR
-    else
-      domain             = (custom_domain if allow_base_domain?) # skip the lookups when unused
-      base_domain_counts = allow_base_domain_effective?(domain: domain)
-      allowlist_met      = self.class.allowlist_requirement_met?(
-        strategy: validation_strategy,
-        domains: allowed_signup_domains,
-        allow_base_domain: base_domain_counts,
-        base_domain: (base_domain(domain: domain) if base_domain_counts),
-      )
-      errors << ALLOWLIST_REQUIRED_ERROR unless allowlist_met
-    end
+    domain             = (custom_domain if allow_base_domain?) # skip the lookups when unused
+    base_domain_counts = allow_base_domain_effective?(domain: domain)
+    allowlist_error    = self.class.allowlist_requirement_error(
+      strategy: validation_strategy,
+      domains: allowed_signup_domains,
+      corrupt: allowed_signup_domains_corrupt?,
+      allow_base_domain: base_domain_counts,
+      base_domain: (base_domain(domain: domain) if base_domain_counts),
+    )
+    errors << allowlist_error if allowlist_error
 
     errors
   end
@@ -434,29 +426,38 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
     end
 
     # The allowlist requirement, shared by #validation_errors and the
-    # workspace API (SignupConfig::Base#validate_allowlist_has_domains). A
-    # strategy that requires an allowlist must have at least one domain to
-    # admit: listed explicitly, or supplied by allow_base_domain. The flag
-    # counts only when it is effective (callers pass
-    # allow_base_domain_effective?, not the stored value) and the custom
-    # domain has a base_domain to derive;
-    # otherwise the effective list is empty and validate_domain_allowlist
-    # denies everyone. Mirrored client-side by allowlistRequirementMet in
-    # src/schemas/contracts/custom-domain/signup-config.ts. A stored list
-    # that cannot be read is the callers' check (ALLOWLIST_UNREADABLE_ERROR):
-    # this rule sees only the parsed list, which reads as [] when corrupt.
+    # workspace API (SignupConfig::Base#validate_allowlist_requirement). A
+    # strategy that requires an allowlist must keep a list it can read and
+    # have at least one domain to admit: listed explicitly, or supplied by
+    # allow_base_domain. The flag counts only when it is effective (callers
+    # pass allow_base_domain_effective?, not the stored value) and the
+    # custom domain has a base_domain to derive; otherwise the effective
+    # list is empty and validate_domain_allowlist denies everyone.
+    #
+    # An unreadable stored list parses as [], which the flag could
+    # otherwise satisfy, but the gate denies everyone while it is
+    # unreadable. corrupt: is required so every caller decides it; a
+    # request that replaces the list passes false.
+    #
+    # Mirrored client-side by allowlistRequirementMet in
+    # src/schemas/contracts/custom-domain/signup-config.ts, which never sees
+    # a corrupt list (the wire format cannot carry one).
     #
     # @param strategy [String] validation strategy
     # @param domains [Array<String>, nil] explicitly listed domains
+    # @param corrupt [Boolean] whether domains stands in for a stored list
+    #   that cannot be read (allowed_signup_domains_corrupt?)
     # @param allow_base_domain [Boolean] effective allow_base_domain value
     # @param base_domain [String, nil] the custom domain's registrable domain
-    # @return [Boolean]
-    def allowlist_requirement_met?(strategy:, domains:, allow_base_domain:, base_domain:)
-      return true unless metadata_for(strategy)[:requires_allowlist]
-      return true unless Array(domains).empty?
-      return false unless allow_base_domain
+    # @return [String, nil] ALLOWLIST_UNREADABLE_ERROR, ALLOWLIST_REQUIRED_ERROR,
+    #   or nil when the requirement is met
+    def allowlist_requirement_error(strategy:, domains:, corrupt:, allow_base_domain:, base_domain:)
+      return nil unless metadata_for(strategy)[:requires_allowlist]
+      return ALLOWLIST_UNREADABLE_ERROR if corrupt
+      return nil unless Array(domains).empty?
+      return nil if allow_base_domain && !base_domain.to_s.strip.empty?
 
-      !base_domain.to_s.strip.empty?
+      ALLOWLIST_REQUIRED_ERROR
     end
 
     # Find signup config by domain ID.

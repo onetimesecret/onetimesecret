@@ -73,8 +73,14 @@ module DomainsAPI
           )
 
           # Validate domain_allowlist has at least one domain (listed, or the
-          # domain's own base domain via allow_base_domain)
-          validate_allowlist_has_domains(@validation_strategy, @allowed_signup_domains, allow_base_domain: @allow_base_domain)
+          # domain's own base domain via allow_base_domain). PUT replaces the
+          # stored list, so an unreadable one is never kept.
+          validate_allowlist_requirement(
+            @validation_strategy,
+            @allowed_signup_domains,
+            corrupt: false,
+            allow_base_domain: @allow_base_domain,
+          )
 
           # Validate domain formats before the model setter (which raises Problem -> 500)
           validate_domain_formats(@allowed_signup_domains)

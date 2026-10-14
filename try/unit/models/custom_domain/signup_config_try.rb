@@ -500,39 +500,57 @@ result
 @abd_orphan.validation_errors.include?(Onetime::CustomDomain::SignupConfig::ALLOWLIST_REQUIRED_ERROR)
 #=> true
 
-## allowlist_requirement_met?: a listed domain satisfies domain_allowlist
-Onetime::CustomDomain::SignupConfig.allowlist_requirement_met?(
-  strategy: 'domain_allowlist', domains: ['partner.com'], allow_base_domain: false, base_domain: nil,
+## allowlist_requirement_error: a listed domain satisfies domain_allowlist
+@sc_klass = Onetime::CustomDomain::SignupConfig
+@sc_klass.allowlist_requirement_error(
+  strategy: 'domain_allowlist', domains: ['partner.com'], corrupt: false, allow_base_domain: false, base_domain: nil,
 )
-#=> true
+#=> nil
 
-## allowlist_requirement_met?: the flag counts only with a base domain to derive
+## allowlist_requirement_error: the flag counts only with a base domain to derive
 [
-  Onetime::CustomDomain::SignupConfig.allowlist_requirement_met?(
-    strategy: 'domain_allowlist', domains: [], allow_base_domain: true, base_domain: 'example.com',
+  @sc_klass.allowlist_requirement_error(
+    strategy: 'domain_allowlist', domains: [], corrupt: false, allow_base_domain: true, base_domain: 'example.com',
   ),
-  Onetime::CustomDomain::SignupConfig.allowlist_requirement_met?(
-    strategy: 'domain_allowlist', domains: [], allow_base_domain: true, base_domain: nil,
+  @sc_klass.allowlist_requirement_error(
+    strategy: 'domain_allowlist', domains: [], corrupt: false, allow_base_domain: true, base_domain: nil,
   ),
-  Onetime::CustomDomain::SignupConfig.allowlist_requirement_met?(
-    strategy: 'domain_allowlist', domains: nil, allow_base_domain: true, base_domain: '  ',
+  @sc_klass.allowlist_requirement_error(
+    strategy: 'domain_allowlist', domains: nil, corrupt: false, allow_base_domain: true, base_domain: '  ',
   ),
 ]
-#=> [true, false, false]
+#=> [nil, @sc_klass::ALLOWLIST_REQUIRED_ERROR, @sc_klass::ALLOWLIST_REQUIRED_ERROR]
 
-## allowlist_requirement_met?: an empty list without the flag fails
-Onetime::CustomDomain::SignupConfig.allowlist_requirement_met?(
-  strategy: 'domain_allowlist', domains: [], allow_base_domain: false, base_domain: 'example.com',
+## allowlist_requirement_error: an empty list without the flag is required
+@sc_klass.allowlist_requirement_error(
+  strategy: 'domain_allowlist', domains: [], corrupt: false, allow_base_domain: false, base_domain: 'example.com',
 )
-#=> false
+#=> @sc_klass::ALLOWLIST_REQUIRED_ERROR
 
-## allowlist_requirement_met?: strategies without an allowlist always pass
+## allowlist_requirement_error: an unreadable list is refused even when the flag would satisfy the rule
+@sc_klass.allowlist_requirement_error(
+  strategy: 'domain_allowlist', domains: [], corrupt: true, allow_base_domain: true, base_domain: 'example.com',
+)
+#=> @sc_klass::ALLOWLIST_UNREADABLE_ERROR
+
+## allowlist_requirement_error: strategies without an allowlist always pass, even with an unreadable list
 %w[passthrough mx smtp].map do |strategy|
-  Onetime::CustomDomain::SignupConfig.allowlist_requirement_met?(
-    strategy: strategy, domains: [], allow_base_domain: false, base_domain: nil,
+  @sc_klass.allowlist_requirement_error(
+    strategy: strategy, domains: [], corrupt: true, allow_base_domain: false, base_domain: nil,
   )
 end
-#=> [true, true, true]
+#=> [nil, nil, nil]
+
+## allowlist_requirement_error: the corrupt answer cannot be skipped by leaving it out
+begin
+  @sc_klass.allowlist_requirement_error(
+    strategy: 'domain_allowlist', domains: ['partner.com'], allow_base_domain: false, base_domain: nil,
+  )
+  :no_error
+rescue ArgumentError => ex
+  ex.message.include?('corrupt')
+end
+#=> true
 
 ## passthrough ignores the flag (format-only, as before)
 @abd_orphan.validation_strategy = 'passthrough'
