@@ -21,3 +21,14 @@ Added
   validated, so turning the flag off or losing the entitlement stops a saved
   setting from admitting anyone; the saved value stays and takes effect
   again once both are back.
+
+Changed
+-------
+
+- The domain signup-config API reports ``uses_allowlist`` in place of
+  ``requires_allowlist``: with ``allow_base_domain`` the allowlist strategy
+  can run on an empty list, so the old name overstated it.
+- The colonel domain config editor refuses a change that would leave a
+  config invalid, such as switching sign-up validation to the allowlist
+  strategy with nothing to admit, instead of saving it. A config that is
+  already invalid can still be disabled or repaired.

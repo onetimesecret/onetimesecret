@@ -85,10 +85,11 @@ end
 # Validation failure -> propagates, never takes the race path
 # ----------------------------------------------------------------
 
-## A model validation failure in create! (PublicSuffix-invalid
+## A model validation failure on the create path (PublicSuffix-invalid
 ## allowed_signup_domains) re-raises UNCHANGED: find_by_domain_id is called
-## exactly ONCE (the initial read) — the rescue never re-reads, so invalid
-## input can never be applied to a record a concurrent writer created
+## exactly ONCE (the initial read). The unsaved-instance check refuses it
+## before create!, and the race rescue would not re-read for it either, so
+## invalid input can never be applied to a record a concurrent writer created
 @before_audit = Onetime::ColonelAuditEvent.count
 find_calls = []
 @klass.singleton_class.alias_method(:__race_real_find, :find_by_domain_id)
