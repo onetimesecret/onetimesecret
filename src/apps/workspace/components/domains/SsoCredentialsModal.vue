@@ -14,7 +14,7 @@
   import { isSamlEnabled } from '@/utils/features';
   import type { SsoConfigFormState } from '@/shared/composables/useSsoConfig';
   import type { CustomDomainSsoConfig } from '@/schemas/shapes/domains/sso-config';
-  import type { TestSsoConnectionResponse } from '@/services/sso.service';
+  import type { SsoDiagnosticsResponse, TestSsoConnectionResponse } from '@/services/sso.service';
 
   const { t } = useI18n();
 
@@ -30,11 +30,14 @@
     isSaving: boolean;
     isDeleting: boolean;
     isTesting: boolean;
+    isDiagnosing: boolean;
     hasUnsavedChanges: boolean;
     isConfigured: boolean;
     clientSecretMasked: string | null;
     testResult: TestSsoConnectionResponse | null;
     testError: string;
+    diagnosticsResult: SsoDiagnosticsResponse | null;
+    diagnosticsError: string;
   }>();
 
   const emit = defineEmits<{
@@ -43,6 +46,7 @@
     (e: 'disable'): void;
     (e: 'delete'): void;
     (e: 'test'): void;
+    (e: 'diagnostics'): void;
     (e: 'discard'): void;
     (e: 'update:formState', value: SsoConfigFormState): void;
   }>();
@@ -126,16 +130,20 @@
                 :is-saving="isSaving"
                 :is-deleting="isDeleting"
                 :is-testing="isTesting"
+                :is-diagnosing="isDiagnosing"
                 :has-unsaved-changes="hasUnsavedChanges"
                 :is-configured="isConfigured"
                 :client-secret-masked="clientSecretMasked"
                 :test-result="testResult"
                 :test-error="testError"
+                :diagnostics-result="diagnosticsResult"
+                :diagnostics-error="diagnosticsError"
                 :saml-enabled="isSamlEnabled()"
                 @save="emit('save')"
                 @disable="emit('disable')"
                 @delete="emit('delete')"
                 @test="emit('test')"
+                @diagnostics="emit('diagnostics')"
                 @discard="emit('discard')" />
             </DialogPanel>
           </TransitionChild>

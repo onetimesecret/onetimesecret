@@ -9,6 +9,10 @@
  * - deleteConfig: removes config
  * - testConnection: validates IdP connectivity before saving; the result is
  *   bound to the fields it was run against and cleared when any of them change
+ * - runDiagnostics: checks the SAVED record (stored fields, discovery,
+ *   certificate or stored client secret); the result describes the record as
+ *   last saved and is cleared whenever that record changes (save, disable,
+ *   delete), never by an unsaved edit
  * - discardChanges: resets form state to last-saved snapshot
  * - hasUnsavedChanges: computed diff between form and saved state
  *
@@ -28,6 +32,7 @@ import {
 } from '@/schemas/shapes/domains/sso-config';
 import {
   SsoService,
+  type SsoDiagnosticsResponse,
   type TestSsoConnectionRequest,
   type TestSsoConnectionResponse,
 } from '@/services/sso.service';
@@ -232,6 +237,8 @@ export function useSsoConfig(domainExtId: string) {
   const isDeleting = ref(false);
   /** Whether a test connection request is in flight. */
   const isTesting = ref(false);
+  /** Whether a saved-configuration diagnostics request is in flight. */
+  const isDiagnosing = ref(false);
   /** The most recent API error, or null. */
   const error = ref<ApplicationError | null>(null);
 
@@ -262,6 +269,33 @@ export function useSsoConfig(domainExtId: string) {
     testResult.value = null;
     testError.value = '';
     testedFingerprint.value = null;
+  };
+
+  /** Result from the last saved-configuration diagnostics run. */
+  const diagnosticsResult = ref<SsoDiagnosticsResponse | null>(null);
+
+  /** Error message from the last diagnostics run that produced no result. */
+  const diagnosticsError = ref<string>('');
+
+  /**
+   * A diagnostics result is about the saved record, so it is cleared when
+   * that record changes (save, disable, delete) — not by a form edit, which
+   * the test-result fingerprint watcher handles for Test Connection.
+   */
+  /**
+   * Runs are numbered. Every clear (a new run, or the saved record changing
+   * under save / disable / delete) advances the number, and a response from
+   * an earlier run is dropped when it lands: it describes a record that is
+   * no longer the saved one. Save and delete are not blocked while a run is
+   * in flight, so this is what keeps a late response from repopulating the
+   * result after the record it checked was replaced or removed.
+   */
+  let diagnosticsRun = 0;
+
+  const clearDiagnosticsResult = () => {
+    diagnosticsRun += 1;
+    diagnosticsResult.value = null;
+    diagnosticsError.value = '';
   };
 
   /**
@@ -402,6 +436,7 @@ export function useSsoConfig(domainExtId: string) {
           ...formState.value,
           allowed_domains: [...formState.value.allowed_domains],
         };
+        clearDiagnosticsResult();
         notifications.show(t('web.domains.sso.update_success'), 'success', 'top');
       }
     } finally {
@@ -415,7 +450,8 @@ export function useSsoConfig(domainExtId: string) {
       isLoading.value ||
       isSaving.value ||
       isDeleting.value ||
-      isTesting.value
+      isTesting.value ||
+      isDiagnosing.value
     )
       return;
     isSaving.value = true;
@@ -437,6 +473,7 @@ export function useSsoConfig(domainExtId: string) {
           enforce_sso_only: result.record.enforce_sso_only,
         };
         clearTestResult();
+        clearDiagnosticsResult();
         notifications.show(t('web.domains.sso.update_success'), 'success', 'top');
       }
     } finally {
@@ -457,6 +494,7 @@ export function useSsoConfig(domainExtId: string) {
         ssoConfig.value = null;
         formState.value = createDefaultFormState();
         clearTestResult();
+        clearDiagnosticsResult();
         savedFormState.value = {
           ...formState.value,
           allowed_domains: [...formState.value.allowed_domains],
@@ -505,6 +543,69 @@ export function useSsoConfig(domainExtId: string) {
   };
 
   /**
+   * Check the SAVED configuration: the API reloads the stored record and
+   * reports each layer (stored fields, discovery, certificate, or the stored
+   * client secret for Entra) separately. Nothing from the form is sent.
+   *
+   * A transport failure (the request itself failed, so there is no verdict)
+   * is reported through diagnosticsError; a result whose overall is "failed"
+   * is a verdict and lives in diagnosticsResult.
+   */
+  const runDiagnostics = async () => {
+    if (isDiagnosing.value) return;
+    isDiagnosing.value = true;
+    clearDiagnosticsResult();
+    const run = diagnosticsRun;
+    // The handler records the failure here; a stale one must not be read
+    // as this run's.
+    error.value = null;
+
+    try {
+      const result = await wrapAction(() => SsoService.runDiagnosticsForDomain(domainExtId));
+
+      // The saved record changed while this run was in flight (see
+      // clearDiagnosticsResult): the response is about the old record.
+      if (run !== diagnosticsRun) return;
+
+      if (result) {
+        diagnosticsResult.value = result;
+        notifyDiagnosticsOutcome(result.overall);
+      } else {
+        diagnosticsError.value = diagnosticsFailureMessage(error.value);
+      }
+    } finally {
+      isDiagnosing.value = false;
+    }
+  };
+
+  const notifyDiagnosticsOutcome = (overall: SsoDiagnosticsResponse['overall']) => {
+    if (overall === 'passed') {
+      notifications.show(t('web.domains.sso.diagnostics_passed'), 'success', 'top');
+    } else if (overall === 'failed') {
+      notifications.show(t('web.domains.sso.diagnostics_failed'), 'error', 'top');
+    } else {
+      notifications.show(t('web.domains.sso.diagnostics_inconclusive'), 'warning', 'top');
+    }
+  };
+
+  /**
+   * The inline message for a run that produced no verdict. A 429 is the
+   * per-customer run limit (the API's LimitExceeded body carries
+   * retry_after in seconds); everything else is a generic transport failure.
+   */
+  const diagnosticsFailureMessage = (failure: ApplicationError | null): string => {
+    if (failure?.code !== 429) return t('web.domains.sso.diagnostics_error');
+
+    const retryAfter = Number(failure.details?.retry_after);
+    if (!Number.isFinite(retryAfter) || retryAfter <= 0) {
+      return t('web.domains.sso.diagnostics_rate_limited');
+    }
+    return t('web.domains.sso.diagnostics_rate_limited_retry', {
+      minutes: Math.max(1, Math.ceil(retryAfter / 60)),
+    });
+  };
+
+  /**
    * Reset form to last-saved state.
    */
   const discardChanges = () => {
@@ -523,11 +624,14 @@ export function useSsoConfig(domainExtId: string) {
     isSaving,
     isDeleting,
     isTesting,
+    isDiagnosing,
     error,
     ssoConfig,
     formState,
     testResult,
     testError,
+    diagnosticsResult,
+    diagnosticsError,
 
     // Computed
     isConfigured,
@@ -542,6 +646,7 @@ export function useSsoConfig(domainExtId: string) {
     disableConfig,
     deleteConfig,
     testConnection,
+    runDiagnostics,
     discardChanges,
   };
 }

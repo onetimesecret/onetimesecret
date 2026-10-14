@@ -255,13 +255,22 @@ RSpec.describe Onetime::SsoProvider::DiscoveryFetcher do
       expect(fetcher.fetch(url).status).to eq(:connection_failed)
     end
 
-    it 'falls back across validated addresses, then reports :error when all refuse' do
+    it 'maps a SystemCallError raised by the dial (EHOSTUNREACH) to :connection_failed, not :error' do
+      allow(http_instance).to receive(:request).and_raise(Errno::EHOSTUNREACH)
+
+      result = fetcher.fetch(url)
+
+      expect(result.status).to eq(:connection_failed)
+      expect(result.error).to be_a(Errno::EHOSTUNREACH)
+    end
+
+    it 'falls back across validated addresses, then reports :connection_failed when all refuse' do
       stub_resolution(['203.0.113.10', '203.0.113.11'])
       allow(http_instance).to receive(:request).and_raise(Errno::ECONNREFUSED)
 
       result = fetcher.fetch(url)
 
-      expect(result.status).to eq(:error)
+      expect(result.status).to eq(:connection_failed)
       expect(result.error).to be_a(Errno::ECONNREFUSED)
       expect(http_instance).to have_received(:ipaddr=).with('203.0.113.10').ordered
       expect(http_instance).to have_received(:ipaddr=).with('203.0.113.11').ordered

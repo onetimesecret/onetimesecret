@@ -1559,6 +1559,7 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
         omniauth_tenant_domain_id: 'domain-id',
         omniauth_tenant_host: 'secrets.tenant.example',
         omniauth_tenant_started_at: now - 30,
+        'omniauth_tenant_outcome_generation' => 'captured-generation',
         'omniauth.state' => 'pending-state',
         'saml_authn_request_id' => '_pending-request',
         account_id: 42,

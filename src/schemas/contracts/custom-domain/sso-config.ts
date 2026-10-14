@@ -209,6 +209,30 @@ export type SsoTokenEndpointAuthMethodRequest = z.infer<
  * @see lib/onetime/models/custom_domain/sso_config.rb - Backend model
  * @category Contracts
  */
+/** Where a failed tenant sign-in stopped (CustomDomain::SsoSigninOutcome::STAGES). */
+export const ssoSignInFailureStageSchema = z.enum(['setup', 'provider', 'callback', 'account']);
+export type SsoSignInFailureStage = z.infer<typeof ssoSignInFailureStageSchema>;
+
+/**
+ * The last tenant SSO sign-in outcome recorded for a domain
+ * (CustomDomain::SsoSigninOutcome#to_api_h). Timestamps are Unix epoch
+ * seconds. `failure_code` is a bounded, sanitized code: the `auth_error`
+ * the visitor saw (domain_not_allowed, missing_email, sso_config_unusable,
+ * ...) or, at the provider stage, OmniAuth's error type
+ * (invalid_credentials, access_denied, ...).
+ */
+export const ssoLastSignInSchema = z.object({
+  result: z.enum(['succeeded', 'failed']),
+  at: z.number(),
+  succeeded_at: z.number().nullable(),
+  failed_at: z.number().nullable(),
+  /** A known stage, or whatever a newer API reports; null on success. */
+  failure_stage: z.string().nullable(),
+  failure_code: z.string().nullable(),
+  provider_type: z.string().nullable(),
+});
+export type SsoLastSignIn = z.infer<typeof ssoLastSignInSchema>;
+
 export const customDomainSsoConfigCanonical = z.object({
   /** Domain ID (references CustomDomain.identifier). */
   domain_id: z.string(),
@@ -366,6 +390,14 @@ export const customDomainSsoConfigCanonical = z.object({
    * to this domain only.
    */
   grant_org_scope: z.boolean(),
+
+  /**
+   * The last tenant SSO sign-in outcome recorded for this domain, or null
+   * when none has been recorded (or it has aged out). Runtime state the
+   * sign-in hooks write; never part of the configuration, so saving the
+   * form does not change it. Outcomes only: no identity, no IdP text.
+   */
+  last_sign_in: ssoLastSignInSchema.nullable().optional(),
 
   /** Configuration creation timestamp (Unix epoch seconds). */
   created_at: z.number(),

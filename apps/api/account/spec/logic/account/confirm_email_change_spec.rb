@@ -111,6 +111,19 @@ RSpec.describe AccountAPI::Logic::Account::ConfirmEmailChange do
     [session, error]
   end
 
+  describe 'delegation' do
+    # This route is unauthenticated and a refused redemption leaves the link
+    # live, so the op must audit to the security trail, never the operator
+    # trail (see ChangeEmail#initialize).
+    it 'runs the op as a self-service redemption by the account holder' do
+      confirm(status: :success)
+
+      expect(Auth::Operations::Customers::ChangeEmail).to have_received(:new).with(
+        hash_including(actor: owner.extid, require_verification: false, self_service: true),
+      )
+    end
+  end
+
   describe "the swap landed — this request's session must go" do
     it 'clears the session on :success' do
       session, error = confirm(status: :success)
