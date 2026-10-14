@@ -1102,6 +1102,31 @@ watch(newDomain, () => {
           class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
       </div>
 
+      <!-- Tenant ID (Entra ID only) -->
+      <div v-if="requiresTenantId">
+        <label
+          for="domain-sso-tenant-id"
+          class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          {{ t('web.organizations.sso.tenant_id') }}
+          <span class="text-red-500" aria-hidden="true">*</span>
+        </label>
+        <p
+          id="domain-tenant-id-hint"
+          class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          {{ t('web.organizations.sso.tenant_id_hint') }}
+        </p>
+        <input
+          id="domain-sso-tenant-id"
+          :value="formState.tenant_id"
+          @input="updateField('tenant_id', ($event.target as HTMLInputElement).value)"
+          type="text"
+          required
+          autocomplete="off"
+          :placeholder="t('web.organizations.sso.tenant_id_placeholder')"
+          aria-describedby="domain-tenant-id-hint"
+          class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
+      </div>
+
       <!-- Client ID (OAuth-family providers; SAML has no client credential) -->
       <div v-if="requiresClientCredentials">
         <label
@@ -1182,31 +1207,6 @@ aria-hidden="true">*</span>
           class="mt-1 text-sm text-amber-700 dark:text-amber-300">
           {{ t('web.organizations.sso.client_secret_looks_like_secret_id') }}
         </p>
-      </div>
-
-      <!-- Tenant ID (Entra ID only) -->
-      <div v-if="requiresTenantId">
-        <label
-          for="domain-sso-tenant-id"
-          class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          {{ t('web.organizations.sso.tenant_id') }}
-          <span class="text-red-500" aria-hidden="true">*</span>
-        </label>
-        <p
-          id="domain-tenant-id-hint"
-          class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          {{ t('web.organizations.sso.tenant_id_hint') }}
-        </p>
-        <input
-          id="domain-sso-tenant-id"
-          :value="formState.tenant_id"
-          @input="updateField('tenant_id', ($event.target as HTMLInputElement).value)"
-          type="text"
-          required
-          autocomplete="off"
-          :placeholder="t('web.organizations.sso.tenant_id_placeholder')"
-          aria-describedby="domain-tenant-id-hint"
-          class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
       </div>
 
       <!-- Issuer URL (OIDC only) -->

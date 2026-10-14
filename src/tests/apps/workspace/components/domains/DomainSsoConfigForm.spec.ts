@@ -343,6 +343,32 @@ describe('DomainSsoConfigForm', () => {
       }
     );
 
+    it.each([false, true])(
+      'orders Entra fields from directory to application credentials when isConfigured=%s',
+      async (isConfigured) => {
+        wrapper = await mountComponent({
+          formState: mockExistingFormState,
+          ssoConfig: isConfigured ? mockExistingConfig : null,
+          isConfigured,
+        });
+
+        const sequence = [
+          wrapper.get('fieldset').element,
+          wrapper.get('[data-testid="sso-callback-url"]').element,
+          wrapper.get('#domain-sso-display-name').element,
+          wrapper.get('#domain-sso-tenant-id').element,
+          wrapper.get('#domain-sso-client-id').element,
+          wrapper.get('#domain-sso-client-secret').element,
+        ];
+        for (let index = 1; index < sequence.length; index++) {
+          expect(
+            sequence[index - 1].compareDocumentPosition(sequence[index]) &
+              Node.DOCUMENT_POSITION_FOLLOWING
+          ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+        }
+      }
+    );
+
     it('keeps final sign-in guidance visible before anything is saved or checked', async () => {
       wrapper = await mountComponent();
 
