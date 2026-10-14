@@ -951,6 +951,44 @@ describe('DomainSsoConfigForm', () => {
       );
     });
 
+    it('shows both issuers on an issuer mismatch, exactly as returned', async () => {
+      wrapper = await savedMount({
+        diagnosticsResult: diagnostics('failed', [
+          check('stored_configuration', 'passed'),
+          check('discovery', 'failed', {
+            error_code: 'issuer_mismatch',
+            configured_issuer: 'https://tenant.auth0.com',
+            discovery_issuer: 'https://tenant.auth0.com/',
+          }),
+        ]),
+      });
+
+      const discovery = wrapper.find('[data-testid="sso-diagnostics-check-discovery"]');
+      expect(discovery.text()).toContain('web.organizations.sso.configured_issuer');
+      expect(discovery.text()).toContain('web.organizations.sso.discovery_issuer');
+      expect(discovery.find('[data-testid="sso-diagnostics-configured-issuer"]').text()).toBe(
+        'https://tenant.auth0.com'
+      );
+      expect(discovery.find('[data-testid="sso-diagnostics-discovery-issuer"]').text()).toBe(
+        'https://tenant.auth0.com/'
+      );
+    });
+
+    it('shows a dash for a discovery issuer that is not a string', async () => {
+      wrapper = await savedMount({
+        diagnosticsResult: diagnostics('failed', [
+          check('discovery', 'failed', {
+            error_code: 'issuer_mismatch',
+            configured_issuer: 'https://idp.example.com',
+            discovery_issuer: null,
+          }),
+        ]),
+      });
+
+      const discovery = wrapper.find('[data-testid="sso-diagnostics-check-discovery"]');
+      expect(discovery.find('[data-testid="sso-diagnostics-discovery-issuer"]').text()).toBe('—');
+    });
+
     it('omits details rows whose keys are absent', async () => {
       wrapper = await savedMount({
         diagnosticsResult: diagnostics('passed', [check('credential', 'passed')]),
@@ -965,6 +1003,7 @@ describe('DomainSsoConfigForm', () => {
       expect(row.text()).not.toContain(
         'web.organizations.sso.token_endpoint_auth_methods_supported'
       );
+      expect(row.find('[data-testid="sso-diagnostics-configured-issuer"]').exists()).toBe(false);
       expect(row.find('[data-testid="sso-diagnostics-note"]').exists()).toBe(false);
     });
 

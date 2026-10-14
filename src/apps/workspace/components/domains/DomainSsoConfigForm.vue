@@ -1577,6 +1577,28 @@ aria-hidden="true">*</span>
                         <dt class="shrink-0 font-medium">{{ t('web.COMMON.http_status') }}:</dt>
                         <dd>{{ check.details.http_status }}</dd>
                       </div>
+                      <template v-if="check.details.error_code === 'issuer_mismatch'">
+                        <div class="flex gap-2">
+                          <dt class="shrink-0 font-medium">{{ t('web.organizations.sso.configured_issuer') }}:</dt>
+                          <dd>
+                            <code
+                              class="font-mono break-all"
+                              data-testid="sso-diagnostics-configured-issuer">{{
+                                check.details.configured_issuer
+                              }}</code>
+                          </dd>
+                        </div>
+                        <div class="flex gap-2">
+                          <dt class="shrink-0 font-medium">{{ t('web.organizations.sso.discovery_issuer') }}:</dt>
+                          <dd>
+                            <code
+                              class="font-mono break-all"
+                              data-testid="sso-diagnostics-discovery-issuer">{{
+                                check.details.discovery_issuer ?? '—'
+                              }}</code>
+                          </dd>
+                        </div>
+                      </template>
                       <div v-if="check.details.errors?.length" class="flex gap-2">
                         <dt class="shrink-0 font-medium">{{ t('web.organizations.sso.diagnostics_errors') }}:</dt>
                         <dd class="break-words">{{ check.details.errors.join('; ') }}</dd>

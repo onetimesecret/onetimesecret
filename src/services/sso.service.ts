@@ -181,6 +181,11 @@ export interface SsoDiagnosticCheck {
     token_endpoint?: string;
     token_endpoint_auth_methods_supported?: string[] | null;
     token_endpoint_auth_method_supported?: boolean | null;
+    // discovery issuer_mismatch (generic OIDC only): exact values, never
+    // normalized; discovery_issuer is null when the document's issuer is
+    // not a string.
+    configured_issuer?: string;
+    discovery_issuer?: string | null;
     // certificate (saml): local parse of the stored idp_cert.
     certificate_subject?: string;
     certificate_not_after?: string;
