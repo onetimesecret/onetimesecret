@@ -146,8 +146,8 @@ module Onetime
         severity: :high,
         message: 'custom domain records exist but could not be loaded; ' \
                  'backfill-canonical-index --apply writes nothing while they remain',
-        repair_action: 'Inspect them with bin/ots domains doctor --all --familia-audit, ' \
-                       'then repair or remove them',
+        repair_action: 'Inspect each with Onetime::CustomDomain.storage_inspect(<domain_id>) from ' \
+                       'bin/ots console and correct it',
       }.freeze
 
       # Valid 32-char hex pattern for txt_validation_value

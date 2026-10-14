@@ -152,17 +152,30 @@ override, and creation date. For each group:
    a recent `dns-confirmed` date passed the TXT check. `ownership_verified`
    alone can be an operator override. To check now, run
    `bin/ots domains verify <extid> --dry-run` for each record in the group.
+   `--dry-run` saves nothing to the record. It still records an audit event,
+   and on the Approximated strategy it creates the vhost for the name when
+   none exists.
 2. Keep that record. Remove each other record in the group by its extid:
 
    ```console
    bin/ots domains remove <extid>
    ```
 
-   Use the extid, not the domain name: the name resolves to one record of the
-   group, not necessarily the one to remove.
-3. On deployments using the Approximated strategy, check the kept record
-   afterwards (`bin/ots domains probe <name>`, `bin/ots domains verify
-   <extid>`): its vhost may share the removed record's name.
+   The command shows what it will remove and asks for confirmation
+   (`--dry-run` only shows; `--apply` skips the prompt). Use the extid, not
+   the domain name: the name resolves to one record of the group, not
+   necessarily the one to remove. If the extid is not found, pass the
+   record's objid instead (`domain_id` in the `--json` report).
+
+   It works with the application stopped: it writes to Valkey/Redis from the
+   shell. It also calls external services over the network. On the
+   Approximated strategy it deletes the vhost registered for the removed
+   record's name, and when the record has a mail sender configured it deletes
+   that sender identity at the mail provider.
+3. On deployments using the Approximated strategy, the deleted vhost can be
+   the one the kept record uses. Run `bin/ots domains verify <extid>` for the
+   kept record (it creates the vhost again when it is missing), then
+   `bin/ots domains probe <name>`.
 
 If no record in the group can show DNS ownership, leave the group in place
 and contact the organizations. The backfill leaves the group untouched and
@@ -186,8 +199,15 @@ remove the record if it is junk.
 
 **Unreadable.** A record exists but could not be loaded. `--apply` writes
 nothing while any remain, because such a record may have a name that a claim
-would give to another record. Inspect it with
-`bin/ots domains doctor --all --familia-audit` before deciding anything.
+would give to another record. Inspect it from `bin/ots console`; this shows
+each stored field raw and decoded:
+
+```ruby
+Onetime::CustomDomain.storage_inspect('<domain_id>')
+```
+
+The `domains` commands load the record too, so correct the stored field that
+does not decode before using them on it.
 
 ### 7. Run the backfill again
 

@@ -234,8 +234,8 @@ module Onetime
         if audit.errors.any?
           lead = result.refusal ? 'Nothing was written. ' : ''
           puts "#{lead}#{audit.errors.size} records could not be loaded; --apply writes nothing while"
-          puts 'they remain. Inspect them with `bin/ots domains doctor --all --familia-audit`,'
-          puts 'repair or remove them, then run this command again.'
+          puts 'they remain. Inspect each with Onetime::CustomDomain.storage_inspect(<domain_id>)'
+          puts 'from `bin/ots console`, correct it, then run this command again.'
         end
         if result.recheck_error
           puts 'The writes ran, but the audit after them failed. Run this command without'
