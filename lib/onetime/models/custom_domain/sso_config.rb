@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require 'digest'
 require_relative '../features/boolean_encoding'
 require_relative '../features/guarded_config_writes'
 require_relative '../../domain_validation/ascii_hostname'
@@ -293,6 +294,28 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
   # @return [void]
   def disable!
     update_stored!(enabled: 'false')
+  end
+
+  # Fields that decide whether a sign-in through this record can work.
+  # display_name, allowed domains, the enforcement flags and timestamps
+  # are left out: editing them does not change what a check proved.
+  CREDENTIAL_PLAIN_FIELDS     = [:provider_type, :tenant_id, :issuer, :token_endpoint_auth_method].freeze
+  CREDENTIAL_ENCRYPTED_FIELDS = [:client_id, :client_secret, *SAML_FIELDS, :name_id_format, :callback_origins_json].freeze
+
+  # Digest of the stored credential fields, to tell whether a record is
+  # still the one a check ran against.
+  #
+  # Encrypted fields contribute their stored ciphertext, never a revealed
+  # value. Each write encrypts with a fresh nonce, so re-saving the same
+  # secret changes the digest: a false "changed", never a false "same".
+  # `updated` cannot serve here; it has one-second resolution, and a save
+  # and a check can fall in the same second.
+  #
+  # @return [String] hex SHA-256
+  def credential_fingerprint
+    values  = CREDENTIAL_PLAIN_FIELDS.map { public_send(it).to_s }
+    values += CREDENTIAL_ENCRYPTED_FIELDS.map { public_send(it)&.encrypted_value.to_s }
+    Digest::SHA256.hexdigest(JSON.generate(values))
   end
 
   # Get the list of allowed email domains.

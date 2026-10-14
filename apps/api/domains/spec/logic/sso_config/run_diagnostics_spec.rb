@@ -60,6 +60,8 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
       client_id: concealed(client_id),
       client_secret: concealed(secret),
       updated: '1760000000',
+      enabled?: false,
+      credential_fingerprint: 'fingerprint-checked',
     )
   end
 
@@ -284,6 +286,142 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
       expect(line).to include(':overall => "passed"').or include('overall: "passed"')
       expect(line).to include('"credential" => "passed"').or include('"credential"=>"passed"')
       expect_no_leak(run)
+    end
+  end
+
+  describe 'activation (activate: true)' do
+    let(:logic) { described_class.new(strategy_result, { 'extid' => 'ext-domain123', 'activate' => 'true' }) }
+
+    # The record update_for_domain_if re-reads under WATCH.
+    let(:stored_fingerprint) { 'fingerprint-checked' }
+    let(:stored_enabled) { false }
+    let(:stored_record) do
+      instance_double(
+        Onetime::CustomDomain::SsoConfig,
+        credential_fingerprint: stored_fingerprint,
+        enabled?: stored_enabled,
+      )
+    end
+    let(:writes) { [] }
+
+    before do
+      allow(stored_record).to receive(:enabled=) { |value| writes << [:enabled, value] }
+      allow(stored_record).to receive(:updated=) { |value| writes << [:updated, value] }
+      # The feature's contract: nil without calling the block when the
+      # condition refuses; otherwise the block assigns and the write commits.
+      allow(Onetime::CustomDomain::SsoConfig).to receive(:update_for_domain_if)
+        .with('domain123', anything) do |_id, condition, &block|
+          next nil unless condition.call(stored_record)
+
+          block.call(stored_record)
+          [stored_record, nil]
+        end
+      allow(logic).to receive(:log_sso_change_event)
+      stub_discovery_ok
+    end
+
+    context 'when every check passes' do
+      before { accept_credentials }
+
+      it 'turns the record on and reports it' do
+        result = run
+
+        expect(result).to include(overall: 'passed', activation: 'activated', enabled: true)
+        expect(writes.assoc(:enabled)).to eq([:enabled, true])
+        expect(writes.assoc(:updated)).not_to be_nil
+      end
+
+      it 'emits the same domain_sso_config_enabled change event as PUT/PATCH' do
+        run
+
+        expect(logic).to have_received(:log_sso_change_event)
+          .with(hash_including(event: :domain_sso_config_enabled, actor: owner, provider_type: 'entra_id'))
+      end
+
+      it 'records the activation outcome on the audit event' do
+        run
+
+        expect(stored.first['detail']['activation']).to eq('activated')
+      end
+
+      it 'fingerprints the record the checks ran against' do
+        run
+
+        expect(sso_config).to have_received(:credential_fingerprint).once
+      end
+
+      context 'when the credentials changed while the checks ran' do
+        let(:stored_fingerprint) { 'fingerprint-after-edit' }
+
+        it 'leaves the record off' do
+          result = run
+
+          expect(result).to include(overall: 'passed', activation: 'configuration_changed', enabled: false)
+          expect(writes).to be_empty
+          expect(logic).not_to have_received(:log_sso_change_event)
+        end
+      end
+
+      context 'when the record is already on' do
+        let(:stored_enabled) { true }
+
+        it 'writes nothing and logs no enable event' do
+          result = run
+
+          expect(result).to include(activation: 'already_enabled', enabled: true)
+          expect(writes).to be_empty
+          expect(logic).not_to have_received(:log_sso_change_event)
+        end
+      end
+
+      context 'when the record was deleted while the checks ran' do
+        before do
+          allow(Onetime::CustomDomain::SsoConfig).to receive(:update_for_domain_if).and_return(nil)
+        end
+
+        it 'reports configuration_changed' do
+          expect(run).to include(activation: 'configuration_changed', enabled: false)
+        end
+      end
+    end
+
+    context 'when a check fails' do
+      before { refuse_credentials('AADSTS7000215') }
+
+      it 'does not activate' do
+        result = run
+
+        expect(result).to include(overall: 'failed', activation: 'not_passed', enabled: false)
+        expect(Onetime::CustomDomain::SsoConfig).not_to have_received(:update_for_domain_if)
+      end
+    end
+
+    context 'when a check is inconclusive' do
+      before do
+        stub_discovery(discovery_result(:timeout, error: StandardError.new('unreachable')))
+        accept_credentials
+      end
+
+      it 'does not activate' do
+        result = run
+
+        expect(result).to include(overall: 'inconclusive', activation: 'not_passed', enabled: false)
+        expect(Onetime::CustomDomain::SsoConfig).not_to have_received(:update_for_domain_if)
+      end
+    end
+
+    context 'when activate is not sent' do
+      let(:logic) { described_class.new(strategy_result, { 'extid' => 'ext-domain123' }) }
+
+      before { accept_credentials }
+
+      it 'reports not_requested, writes nothing and does not fingerprint' do
+        result = run
+
+        expect(result).to include(overall: 'passed', activation: 'not_requested', enabled: false)
+        expect(Onetime::CustomDomain::SsoConfig).not_to have_received(:update_for_domain_if)
+        expect(sso_config).not_to have_received(:credential_fingerprint)
+      end
     end
   end
 
