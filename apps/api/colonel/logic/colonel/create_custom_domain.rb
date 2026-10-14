@@ -60,7 +60,7 @@ module ColonelAPI
           @display_domain = check.display_domain
           return unless check.claims_orphan
 
-          OT.info "[CreateCustomDomain] Found orphaned domain, will claim: #{@display_domain}"
+          OT.info "[CreateCustomDomain] Found orphaned domain, will adopt: #{@display_domain}"
         end
 
         def process
@@ -132,8 +132,14 @@ module ColonelAPI
           )
         end
 
+        # `adoption` is present only when an orphaned record was adopted: its
+        # verification was reset and it lists the per-domain state the record
+        # kept (Onetime::Operations::Domains::AdoptionReport#to_payload).
         def domain_details
-          { cluster: Onetime::DomainValidation::Features.safe_dump }
+          details = { cluster: Onetime::DomainValidation::Features.safe_dump }
+          return details unless result&.adoption
+
+          details.merge(adoption: result.adoption.to_payload)
         end
       end
     end

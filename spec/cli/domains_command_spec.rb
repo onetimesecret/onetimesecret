@@ -138,6 +138,54 @@ RSpec.describe 'Domains Command', type: :cli do
       expect([output[:stdout], last_exit_code]).to match([include('Error: Domain too deep (max: 10)'), 1])
     end
 
+    context 'when the name belongs to an orphaned record' do
+      let(:report) do
+        Onetime::Operations::Domains::AdoptionReport.new(
+          extid: 'cdorphan', txt_record: '_onetime-challenge-abc1234.shop.example.com',
+          txt_value: 'f' * 32, configs: %w[homepage sso], brand_keys: 3, logo: false, icon: true, receipts: 12,
+        )
+      end
+      let(:adopted) do
+        Onetime::Operations::Domains::Create::Result.new(
+          status: :created, domain: nil, domain_id: 'obj-orphan', extid: 'cdorphan',
+          display_domain: 'shop.example.com', message: nil, claims_orphan: true, cert_status: nil,
+          adoption: report,
+        )
+      end
+
+      before do
+        allow(organization).to receive(:extid).and_return('on_org')
+        allow(create_op).to receive_messages(validate: ok_check.with(claims_orphan: true), call: adopted)
+      end
+
+      it 'reports the adoption, the reset and the state the record kept' do
+        output = run_cli_command_quietly('domains', 'create', 'shop.example.com', '--org', 'on_org', '--yes', '--no-cert')
+
+        expect([output[:stdout], last_exit_code]).to match([
+          include('Adopted a previously orphaned record')
+            .and(include("Ownership verification reset; new TXT value _onetime-challenge-abc1234.shop.example.com = #{'f' * 32}"))
+            .and(include('Kept from the earlier owner: configs: homepage, sso; brand (3 fields); icon; 12 receipts')),
+          0,
+        ])
+      end
+
+      it 'says before the prompt that the adoption resets verification' do
+        allow($stdin).to receive(:gets).and_return("n\n")
+
+        output = run_cli_command_quietly('domains', 'create', 'shop.example.com', '--org', 'on_org')
+
+        expect(output[:stdout]).to include('adopts an existing ORPHANED record; its ownership verification is reset')
+      end
+
+      it 'puts the report in the --json output' do
+        output = run_cli_command_quietly('domains', 'create', 'shop.example.com', '--org', 'on_org', '--yes', '--json')
+
+        expect(JSON.parse(output[:stdout])['adoption'])
+          .to include('verification_reset' => true, 'txt_validation_value' => 'f' * 32,
+            'kept' => include('configs' => %w[homepage sso], 'receipts' => 12))
+      end
+    end
+
     it 'shows a datastore failure raised while creating and exits 1' do
       allow(create_op).to receive(:validate).and_return(ok_check)
       allow(create_op).to receive(:call).and_raise(

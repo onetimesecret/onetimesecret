@@ -1162,7 +1162,8 @@ module Onetime
       # and the provider status are cleared, and the TXT challenge gets a new
       # value (reset_verification_for_adoption). The new organization has to
       # verify the domain again. Per-domain configs, brand data and receipts
-      # are kept.
+      # are kept; the operator tools list them
+      # (Onetime::Operations::Domains::AdoptionReport).
       #
       # Callers: create!(..., adopt_orphan: true), from the operator tool
       # Operations::Domains::Create. Not reachable from the customer API.

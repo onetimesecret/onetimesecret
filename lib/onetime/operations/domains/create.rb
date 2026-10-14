@@ -9,6 +9,7 @@
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require 'onetime/domain_validation/strategy'
+require 'onetime/operations/domains/adoption_report'
 
 module Onetime
   module Operations
@@ -110,6 +111,9 @@ module Onetime
         # @!attribute domain [r] Onetime::CustomDomain, nil
         # @!attribute cert_status [r] String, nil — strategy result, 'error', or
         #   nil when no certificate request was attempted.
+        # @!attribute adoption [r] AdoptionReport, nil — set when an orphaned
+        #   record was adopted: its verification was reset, and it lists the
+        #   per-domain state the record kept.
         Result = Data.define(
           :status,
           :domain,
@@ -119,6 +123,7 @@ module Onetime
           :message,
           :claims_orphan,
           :cert_status,
+          :adoption,
         )
 
         # @param domain [String] raw operator input (adapter pre-sanitises HTML).
@@ -167,19 +172,22 @@ module Onetime
 
           # Adopt only the orphan validate found (and showed the operator).
           # A name that turned into an orphan after validate is refused.
-          domain = Onetime::CustomDomain.create!(check.display_domain, @org.objid, adopt_orphan: check.claims_orphan)
-          cert   = @request_certificate ? provision_certificate(domain) : nil
+          domain   = Onetime::CustomDomain.create!(check.display_domain, @org.objid, adopt_orphan: check.claims_orphan)
+          adoption = adoption_report(domain) if check.claims_orphan
+          cert     = @request_certificate ? provision_certificate(domain) : nil
 
           # Exactly one audit event per successful create. Public ids only.
+          detail = { org_id: @org.extid, display_domain: domain.display_domain }
+          if adoption
+            detail[:adopted_orphan]     = true
+            detail[:verification_reset] = true
+          end
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: domain.extid,
             result: :success,
-            detail: {
-              org_id: @org.extid,
-              display_domain: domain.display_domain,
-            },
+            detail: detail,
           )
 
           OT.info "[Domains::Create] #{domain.display_domain} -> org=#{@org.extid} extid=#{domain.extid}"
@@ -193,6 +201,7 @@ module Onetime
             message: nil,
             claims_orphan: check.claims_orphan,
             cert_status: cert,
+            adoption: adoption,
           )
         end
 
@@ -224,6 +233,14 @@ module Onetime
           )
         rescue StandardError => ex
           OT.le "[Domains::Create] refusal audit failed: #{ex.class}: #{ex.message}"
+        end
+
+        # The adopted orphan's verification was reset by the claim; report
+        # what it kept from the earlier owner (configs, brand, receipts).
+        #
+        # @return [AdoptionReport]
+        def adoption_report(domain)
+          AdoptionReport.for(domain).tap { |report| report.log('Domains::Create') }
         end
 
         # Certificate provisioning is best-effort: the domain record already
@@ -273,6 +290,7 @@ module Onetime
             message: check.message,
             claims_orphan: false,
             cert_status: nil,
+            adoption: nil,
           )
         end
       end
