@@ -611,6 +611,19 @@ const diagnosticCheckLabel = (check: SsoDiagnosticCheck): string => {
   return key ? t(key) : check.check;
 };
 
+const hasDiagnosticTechnicalDetails = (check: SsoDiagnosticCheck): boolean => {
+  const details = check.details;
+  if (!details) return false;
+  return !!(
+    details.error_code ||
+    details.aadsts_code ||
+    details.http_status ||
+    details.errors?.length ||
+    details.certificate_not_after ||
+    details.token_endpoint_auth_methods_supported?.length
+  );
+};
+
 /**
  * Status chip per check. The colour alone never carries the meaning (WCAG
  * 1.4.1): the status word is printed in the chip. Keyed per contract status
@@ -1561,10 +1574,22 @@ aria-hidden="true">*</span>
                 aria-hidden="true" />
               <div class="ml-3 min-w-0 flex-1">
                 <p
-                  data-testid="sso-diagnostics-checked-at"
+                  data-testid="sso-diagnostics-summary"
                   class="text-sm font-medium"
                   :class="diagnosticsOverallStyle.text">
-                  {{ t('web.organizations.sso.diagnostics_checked_at') }}: {{ diagnosticsCheckedAt }}
+                  {{ t(`web.organizations.sso.diagnostics_${diagnosticsResult.overall}`) }}
+                </p>
+                <p
+                  v-if="diagnosticsResult.overall === 'passed'"
+                  data-testid="sso-diagnostics-next"
+                  class="mt-2 text-sm text-gray-800 dark:text-gray-100">
+                  {{
+                    t(
+                      hasUnsavedChanges
+                        ? 'web.organizations.sso.diagnostics_saved_result'
+                        : 'web.organizations.sso.diagnostics_next'
+                    )
+                  }}
                 </p>
                 <ul class="mt-3 space-y-3">
                   <li
@@ -1583,72 +1608,126 @@ aria-hidden="true">*</span>
                       <span class="font-medium">{{ diagnosticCheckLabel(check) }}</span>
                     </div>
                     <p class="mt-1 text-gray-700 dark:text-gray-300">{{ check.message }}</p>
-                    <dl
-                      v-if="check.details"
-                      data-testid="sso-diagnostics-details"
-                      class="mt-1 space-y-1 text-gray-700 dark:text-gray-300">
-                      <div v-if="check.details.error_code" class="flex gap-2">
-                        <dt class="shrink-0 font-medium">{{ t('web.COMMON.error_code') }}:</dt>
-                        <dd class="font-mono break-all">{{ check.details.error_code }}</dd>
-                      </div>
-                      <div v-if="check.details.aadsts_code" class="flex gap-2">
-                        <dt class="shrink-0 font-medium">{{ t('web.organizations.sso.diagnostics_aadsts_code') }}:</dt>
-                        <dd class="font-mono break-all">{{ check.details.aadsts_code }}</dd>
-                      </div>
-                      <div v-if="check.details.http_status" class="flex gap-2">
-                        <dt class="shrink-0 font-medium">{{ t('web.COMMON.http_status') }}:</dt>
-                        <dd>{{ check.details.http_status }}</dd>
-                      </div>
-                      <template v-if="check.details.error_code === 'issuer_mismatch'">
-                        <div class="flex gap-2">
-                          <dt class="shrink-0 font-medium">{{ t('web.organizations.sso.configured_issuer') }}:</dt>
+                    <p
+                      v-if="check.details?.note"
+                      data-testid="sso-diagnostics-note"
+                      class="mt-1 text-gray-700 dark:text-gray-300">
+                      {{ check.details.note }}
+                    </p>
+                    <details
+                      v-if="hasDiagnosticTechnicalDetails(check)"
+                      data-testid="sso-diagnostics-technical-details"
+                      :open="
+                        check.status !== 'passed' ||
+                        check.details.token_endpoint_auth_method_supported === false
+                      "
+                      class="mt-2">
+                      <summary class="cursor-pointer font-medium">
+                        {{ t('web.organizations.sso.technical_details') }}
+                      </summary>
+                      <dl
+                        data-testid="sso-diagnostics-details"
+                        class="mt-1 space-y-1 text-gray-700 dark:text-gray-300">
+                        <div
+                          v-if="check.details.error_code"
+                          class="flex gap-2">
+                          <dt class="shrink-0 font-medium">{{ t('web.COMMON.error_code') }}:</dt>
+                          <dd class="font-mono break-all">{{ check.details.error_code }}</dd>
+                        </div>
+                        <div
+                          v-if="check.details.aadsts_code"
+                          class="flex gap-2">
+                          <dt class="shrink-0 font-medium">
+                            {{ t('web.organizations.sso.diagnostics_aadsts_code') }}:
+                          </dt>
+                          <dd class="font-mono break-all">{{ check.details.aadsts_code }}</dd>
+                        </div>
+                        <div
+                          v-if="check.details.http_status"
+                          class="flex gap-2">
+                          <dt class="shrink-0 font-medium">{{ t('web.COMMON.http_status') }}:</dt>
+                          <dd>{{ check.details.http_status }}</dd>
+                        </div>
+                        <template v-if="check.details.error_code === 'issuer_mismatch'">
+                          <div class="flex gap-2">
+                            <dt class="shrink-0 font-medium">
+                              {{ t('web.organizations.sso.configured_issuer') }}:
+                            </dt>
+                            <dd>
+                              <code
+                                class="font-mono break-all"
+                                data-testid="sso-diagnostics-configured-issuer"
+                                >{{ check.details.configured_issuer }}</code
+                              >
+                            </dd>
+                          </div>
+                          <div class="flex gap-2">
+                            <dt class="shrink-0 font-medium">
+                              {{ t('web.organizations.sso.discovery_issuer') }}:
+                            </dt>
+                            <dd>
+                              <code
+                                class="font-mono break-all"
+                                data-testid="sso-diagnostics-discovery-issuer"
+                                >{{ check.details.discovery_issuer ?? '—' }}</code
+                              >
+                            </dd>
+                          </div>
+                        </template>
+                        <div
+                          v-if="check.details.errors?.length"
+                          class="flex gap-2">
+                          <dt class="shrink-0 font-medium">
+                            {{ t('web.organizations.sso.diagnostics_errors') }}:
+                          </dt>
+                          <dd class="break-words">{{ check.details.errors.join('; ') }}</dd>
+                        </div>
+                        <div
+                          v-if="check.details.certificate_not_after"
+                          class="flex gap-2">
+                          <dt class="shrink-0 font-medium">
+                            {{ t('web.organizations.sso.certificate_expires') }}:
+                          </dt>
                           <dd>
-                            <code
-                              class="font-mono break-all"
-                              data-testid="sso-diagnostics-configured-issuer">{{
-                                check.details.configured_issuer
-                              }}</code>
+                            {{ formatDiagnosticDate(check.details.certificate_not_after) }}
+                            <span v-if="check.details.certificate_expires_in_days !== undefined">
+                              ({{
+                                t(
+                                  'web.organizations.sso.certificate_expires_in_days',
+                                  check.details.certificate_expires_in_days
+                                )
+                              }})
+                            </span>
                           </dd>
                         </div>
-                        <div class="flex gap-2">
-                          <dt class="shrink-0 font-medium">{{ t('web.organizations.sso.discovery_issuer') }}:</dt>
-                          <dd>
-                            <code
-                              class="font-mono break-all"
-                              data-testid="sso-diagnostics-discovery-issuer">{{
-                                check.details.discovery_issuer ?? '—'
-                              }}</code>
+                        <div
+                          v-if="check.details.token_endpoint_auth_methods_supported?.length"
+                          class="flex gap-2">
+                          <dt class="shrink-0 font-medium">
+                            {{ t('web.organizations.sso.token_endpoint_auth_methods_supported') }}:
+                          </dt>
+                          <dd class="font-mono break-all">
+                            {{ check.details.token_endpoint_auth_methods_supported.join(', ') }}
                           </dd>
                         </div>
-                      </template>
-                      <div v-if="check.details.errors?.length" class="flex gap-2">
-                        <dt class="shrink-0 font-medium">{{ t('web.organizations.sso.diagnostics_errors') }}:</dt>
-                        <dd class="break-words">{{ check.details.errors.join('; ') }}</dd>
-                      </div>
-                      <div v-if="check.details.certificate_not_after" class="flex gap-2">
-                        <dt class="shrink-0 font-medium">{{ t('web.organizations.sso.certificate_expires') }}:</dt>
-                        <dd>
-                          {{ formatDiagnosticDate(check.details.certificate_not_after) }}
-                          <span v-if="check.details.certificate_expires_in_days !== undefined">
-                            ({{ t('web.organizations.sso.certificate_expires_in_days', check.details.certificate_expires_in_days) }})
-                          </span>
-                        </dd>
-                      </div>
-                      <div v-if="check.details.token_endpoint_auth_methods_supported?.length" class="flex gap-2">
-                        <dt class="shrink-0 font-medium">
-                          {{ t('web.organizations.sso.token_endpoint_auth_methods_supported') }}:
-                        </dt>
-                        <dd class="font-mono break-all">
-                          {{ check.details.token_endpoint_auth_methods_supported.join(', ') }}
-                        </dd>
-                      </div>
-                      <div v-if="check.details.note" class="flex gap-2">
-                        <dt class="sr-only">{{ t('web.COMMON.details') }}:</dt>
-                        <dd data-testid="sso-diagnostics-note">{{ check.details.note }}</dd>
-                      </div>
-                    </dl>
+                      </dl>
+                    </details>
                   </li>
                 </ul>
+                <details
+                  data-testid="sso-diagnostics-run-details"
+                  :open="diagnosticsResult.overall !== 'passed'"
+                  class="mt-3 text-sm text-gray-700 dark:text-gray-300">
+                  <summary class="cursor-pointer font-medium">
+                    {{ t('web.organizations.sso.check_details') }}
+                  </summary>
+                  <p
+                    data-testid="sso-diagnostics-checked-at"
+                    class="mt-1">
+                    {{ t('web.organizations.sso.diagnostics_checked_at') }}:
+                    {{ diagnosticsCheckedAt }}
+                  </p>
+                </details>
               </div>
             </div>
           </div>

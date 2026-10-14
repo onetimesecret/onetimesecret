@@ -933,6 +933,106 @@ describe('DomainSsoConfigForm', () => {
       ).toBeDefined();
     });
 
+    it.each(['passed', 'failed', 'inconclusive'] as const)(
+      'shows the %s summary and keeps run metadata in a native disclosure',
+      async (overall) => {
+        wrapper = await savedMount({
+          diagnosticsResult: diagnostics(overall, [check('credential', overall)]),
+        });
+
+        const summary = wrapper.get('[data-testid="sso-diagnostics-summary"]');
+        expect(summary.text()).toContain(`web.organizations.sso.diagnostics_${overall}`);
+        expect(summary.element.closest('details')).toBeNull();
+        const disclosure = wrapper.get('[data-testid="sso-diagnostics-run-details"]');
+        expect(disclosure.element.tagName).toBe('DETAILS');
+        expect(disclosure.find('summary').exists()).toBe(true);
+        expect((disclosure.element as HTMLDetailsElement).open).toBe(overall !== 'passed');
+        expect(disclosure.get('[data-testid="sso-diagnostics-checked-at"]').text()).toContain(
+          'web.organizations.sso.diagnostics_checked_at'
+        );
+      }
+    );
+
+    it.each([
+      ['passed', false, 'diagnostics_next'],
+      ['passed', true, 'diagnostics_saved_result'],
+      ['failed', false, null],
+      ['failed', true, null],
+      ['inconclusive', false, null],
+      ['inconclusive', true, null],
+    ] as const)(
+      'shows next-step guidance for overall=%s, dirty=%s',
+      async (overall, hasUnsavedChanges, key) => {
+        wrapper = await savedMount({
+          hasUnsavedChanges,
+          diagnosticsResult: diagnostics(overall, [check('credential', overall)]),
+        });
+
+        const row = wrapper.get('[data-testid="sso-diagnostics-check-credential"]');
+        expect(row.text()).toContain(`credential ${overall}`);
+        expect(row.get('[data-testid="sso-diagnostics-status"]').text()).toBe(
+          `web.organizations.sso.diagnostics_status_${overall}`
+        );
+        expect(row.element.closest('details')).toBeNull();
+        const next = wrapper.find('[data-testid="sso-diagnostics-next"]');
+        if (key) {
+          expect(next.text()).toContain(`web.organizations.sso.${key}`);
+          expect(next.element.closest('details')).toBeNull();
+          expect(next.text()).not.toContain(
+            `web.organizations.sso.${hasUnsavedChanges ? 'diagnostics_next' : 'diagnostics_saved_result'}`
+          );
+        } else {
+          expect(next.exists()).toBe(false);
+        }
+        expect(wrapper.get('[data-testid="sso-confirm-sign-in"]').text()).toContain(
+          'web.organizations.sso.confirm_sign_in_limits'
+        );
+      }
+    );
+
+    it.each([
+      ['passed', true, false],
+      ['passed', null, false],
+      ['passed', undefined, false],
+      ['passed', false, true],
+      ['failed', true, true],
+      ['inconclusive', true, true],
+      ['unsupported', true, true],
+      ['skipped', true, true],
+    ] as const)(
+      'keeps row status=%s, method-supported=%s visible and technical details open=%s',
+      async (status, supported, open) => {
+        wrapper = await savedMount({
+          diagnosticsResult: diagnostics('passed', [
+            check('discovery', status, {
+              token_endpoint_auth_methods_supported: ['client_secret_basic'],
+              token_endpoint_auth_method_supported: supported,
+              note: 'This check does not confirm a complete sign-in.',
+            }),
+          ]),
+        });
+
+        const row = wrapper.get('[data-testid="sso-diagnostics-check-discovery"]');
+        const disclosure = row.get('[data-testid="sso-diagnostics-technical-details"]');
+        expect(disclosure.element.tagName).toBe('DETAILS');
+        expect(disclosure.find('summary').exists()).toBe(true);
+        expect((disclosure.element as HTMLDetailsElement).open).toBe(open);
+        expect(disclosure.get('dl').text()).toContain('client_secret_basic');
+        const chip = row.get('[data-testid="sso-diagnostics-status"]');
+        expect(chip.text()).toBe(`web.organizations.sso.diagnostics_status_${status}`);
+        expect(chip.element.closest('details')).toBeNull();
+        expect(row.text()).toContain('web.organizations.sso.diagnostics_check_discovery');
+        const message = row
+          .findAll('*')
+          .find((element) => element.text() === `discovery ${status}`);
+        expect(message).toBeDefined();
+        expect(message!.element.closest('details')).toBeNull();
+        const note = row.get('[data-testid="sso-diagnostics-note"]');
+        expect(note.text()).toBe('This check does not confirm a complete sign-in.');
+        expect(note.element.closest('details')).toBeNull();
+      }
+    );
+
     it('renders the checked_at line and one row per check with its chip', async () => {
       wrapper = await savedMount({
         diagnosticsResult: diagnostics('inconclusive', [
@@ -1018,7 +1118,74 @@ describe('DomainSsoConfigForm', () => {
       expect(row.text()).not.toContain('diagnostics_check_future_check');
     });
 
-    it('shows every present details key', async () => {
+    it.each(['passed', 'failed', 'inconclusive', 'unsupported', 'skipped'] as const)(
+      'omits empty and note-only disclosures while keeping %s messages and notes visible',
+      async (status) => {
+        wrapper = await savedMount({
+          diagnosticsResult: diagnostics('passed', [
+            check('stored_configuration', status),
+            check('credential', status, { note: 'Confirm with a real sign-in.' }),
+          ]),
+        });
+
+        for (const name of ['stored_configuration', 'credential']) {
+          const row = wrapper.get(`[data-testid="sso-diagnostics-check-${name}"]`);
+          expect(row.find('[data-testid="sso-diagnostics-technical-details"]').exists()).toBe(
+            false
+          );
+          expect(row.find('[data-testid="sso-diagnostics-details"]').exists()).toBe(false);
+          const message = row
+            .findAll('p')
+            .find((paragraph) => paragraph.text() === `${name} ${status}`);
+          expect(message).toBeDefined();
+          expect(message!.isVisible()).toBe(true);
+          expect(message!.element.closest('details')).toBeNull();
+        }
+        const note = wrapper.get('[data-testid="sso-diagnostics-note"]');
+        expect(note.text()).toBe('Confirm with a real sign-in.');
+        expect(note.isVisible()).toBe(true);
+        expect(note.element.closest('details')).toBeNull();
+      }
+    );
+
+    it('never offers an empty discovery disclosure when advertised methods are omitted (SSO-UX-001)', async () => {
+      wrapper = await savedMount({
+        formState: {
+          ...mockExistingFormState,
+          provider_type: 'oidc',
+          issuer: 'https://idp.example.com',
+          token_endpoint_auth_method: 'client_secret_post',
+        },
+        ssoConfig: {
+          ...mockExistingConfig,
+          provider_type: 'oidc',
+          issuer: 'https://idp.example.com',
+          token_endpoint_auth_method: 'client_secret_post',
+        },
+        diagnosticsResult: {
+          ...diagnostics('passed', [
+            check('discovery', 'passed', {
+              issuer: 'https://idp.example.com',
+              token_endpoint: 'https://idp.example.com/token',
+              token_endpoint_auth_methods_supported: null,
+              token_endpoint_auth_method_supported: false,
+              note: 'The selected method is not advertised; confirm with a real sign-in.',
+            }),
+          ]),
+          provider_type: 'oidc',
+        },
+      });
+
+      const row = wrapper.get('[data-testid="sso-diagnostics-check-discovery"]');
+      const disclosure = row.find('[data-testid="sso-diagnostics-technical-details"]');
+      if (disclosure.exists()) {
+        expect(disclosure.get('dl').findAll('dt').length).toBeGreaterThan(0);
+      }
+      expect(row.get('[data-testid="sso-diagnostics-note"]').isVisible()).toBe(true);
+      expect(row.text()).toContain('discovery passed');
+    });
+
+    it('shows every present rendered details key', async () => {
       wrapper = await savedMount({
         diagnosticsResult: diagnostics('failed', [
           check('stored_configuration', 'failed', {
@@ -1055,6 +1222,16 @@ describe('DomainSsoConfigForm', () => {
       expect(certificate.text()).toContain('web.organizations.sso.certificate_expires_in_days');
 
       const credential = wrapper.find('[data-testid="sso-diagnostics-check-credential"]');
+      for (const row of [stored, discovery, certificate, credential]) {
+        const disclosure = row.get('[data-testid="sso-diagnostics-technical-details"]');
+        expect(disclosure.element.tagName).toBe('DETAILS');
+        expect(disclosure.get('[data-testid="sso-diagnostics-details"]').element.tagName).toBe(
+          'DL'
+        );
+        expect((disclosure.element as HTMLDetailsElement).open).toBe(
+          row.attributes('data-status') !== 'passed'
+        );
+      }
       expect(credential.text()).toContain('web.COMMON.error_code');
       expect(credential.text()).toContain('provider_error');
       expect(credential.text()).toContain('web.organizations.sso.diagnostics_aadsts_code');

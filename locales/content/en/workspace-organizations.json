@@ -1160,6 +1160,10 @@
     "text": "Technical details",
     "content_hash": "890ab358"
   },
+  "web.organizations.sso.check_details": {
+    "text": "Check time",
+    "content_hash": "b01627ad"
+  },
   "web.organizations.sso.diagnostics_hint_entra": {
     "text": "Checks saved fields, provider discovery and whether Microsoft Entra ID accepts the saved client secret. This does not test a full sign-in.",
     "content_hash": "5d58ca04"
@@ -1167,6 +1171,26 @@
   "web.organizations.sso.diagnostics_hint_saml": {
     "text": "Checks the saved fields and signing certificate locally. Does not contact the identity provider or test a full sign-in.",
     "content_hash": "297b2678"
+  },
+  "web.organizations.sso.diagnostics_passed": {
+    "text": "Available saved configuration checks passed",
+    "content_hash": "9c81efc4"
+  },
+  "web.organizations.sso.diagnostics_failed": {
+    "text": "Saved configuration needs attention. Fix the reported problems, save, then check again.",
+    "content_hash": "2c37a79a"
+  },
+  "web.organizations.sso.diagnostics_inconclusive": {
+    "text": "Some checks could not be completed. Review the results below before retrying.",
+    "content_hash": "b405a101"
+  },
+  "web.organizations.sso.diagnostics_next": {
+    "text": "Next: activate the connection and enable SSO in the domain’s sign-in settings, then confirm sign-in through your custom domain.",
+    "content_hash": "d3190b9b"
+  },
+  "web.organizations.sso.diagnostics_saved_result": {
+    "text": "These results describe the saved settings, not your unsaved changes. Save and check again before confirming sign-in.",
+    "content_hash": "48c013ea"
   },
   "web.organizations.sso.confirm_sign_in": {
     "text": "Confirm sign-in",
