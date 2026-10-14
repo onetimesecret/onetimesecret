@@ -38,6 +38,7 @@ RSpec.describe Onetime::Operations::ProvisionSenderDomain do
     allow(Onetime::Mail::Mailer).to receive(:provider_credentials).and_return(mock_credentials)
     allow(Onetime::Mail::SenderStrategies).to receive(:supports_provisioning?).with('ses').and_return(true)
     allow(Onetime::Mail::SenderStrategies).to receive(:for_provider).with('ses').and_return(mock_strategy)
+    allow(Onetime::CustomDomain::MailerConfig).to receive(:exists_for_domain?).and_return(true)
   end
 
   # ==========================================================================
@@ -302,6 +303,25 @@ RSpec.describe Onetime::Operations::ProvisionSenderDomain do
         expect(result.success?).to be false
         expect(result.error).to include('already in progress')
         expect(Onetime::Mail::Mailer).not_to have_received(:provider_credentials)
+      end
+    end
+
+    # A sender config delete or a domain removal that finished between the
+    # record's load and the lock has torn the identity down and deleted the
+    # record; registering the identity now would leave nothing pointing to it.
+    context 'when the record was deleted before the lock was taken' do
+      before do
+        allow(Onetime::CustomDomain::MailerConfig).to receive(:exists_for_domain?)
+          .with('cd:test123').and_return(false)
+      end
+
+      it 'fails without calling the provider and releases the lock' do
+        result = described_class.new(mailer_config: mailer_config, strategy: mock_strategy, persist: false).call
+
+        expect(result.success?).to be false
+        expect(result.error).to include('was deleted before provisioning')
+        expect(Onetime::Mail::Mailer).not_to have_received(:provider_credentials)
+        expect(mock_lock).to have_received(:release).with('mock-token')
       end
     end
 

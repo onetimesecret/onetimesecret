@@ -78,8 +78,9 @@ module Onetime
         validation_error = validate_config
         return failure_result(validation_error) if validation_error
 
-        # The domain's sender identity lock, shared with DeleteSenderConfig's
-        # provider teardown (MailerConfig.sender_identity_lock).
+        # The domain's sender identity lock, shared with the provider
+        # teardowns in DeleteSenderConfig and domain removal
+        # (MailerConfig.sender_identity_lock).
         lock       = @mailer_config.sender_identity_lock
         lock_token = lock.acquire(ttl: 60)
         unless lock_token
@@ -87,6 +88,15 @@ module Onetime
         end
 
         begin
+          # The record was loaded before the lock was taken. A sender config
+          # delete or a domain removal tears the identity down and deletes
+          # the record while holding this lock, so one that finished in the
+          # meantime has left nothing to provision for: registering the
+          # identity now would leave it at the provider with no record of it.
+          unless Onetime::CustomDomain::MailerConfig.exists_for_domain?(@mailer_config.domain_id)
+            return failure_result("Sender config for #{@mailer_config.domain_id} was deleted before provisioning")
+          end
+
           provider = effective_provider
 
           # Step 2: Verify provider supports provisioning
