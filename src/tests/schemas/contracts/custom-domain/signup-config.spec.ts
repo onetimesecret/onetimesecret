@@ -43,9 +43,9 @@ describe('signupValidationStrategySchema', () => {
     );
   });
 
-  it('only domain_allowlist requires the allowlist', () => {
+  it('only domain_allowlist uses the allowlist', () => {
     const requiring = Object.entries(SIGNUP_STRATEGY_METADATA)
-      .filter(([, meta]) => meta.requiresAllowlist)
+      .filter(([, meta]) => meta.usesAllowlist)
       .map(([key]) => key);
     expect(requiring).toEqual(['domain_allowlist']);
   });
@@ -63,7 +63,7 @@ describe('customDomainSignupConfigCanonical', () => {
     enabled: true,
     signup_enabled: true,
     autoverify: false,
-    requires_allowlist: true,
+    uses_allowlist: true,
     network_validation: false,
     created_at: 1700000000,
     updated_at: 1700000001,

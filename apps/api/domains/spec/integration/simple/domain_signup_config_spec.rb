@@ -285,7 +285,7 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
 
           expect(record['validation_strategy']).to eq('passthrough')
           expect(record['enabled']).to be true
-          expect(record['requires_allowlist']).to be false
+          expect(record['uses_allowlist']).to be false
           expect(record['network_validation']).to be false
         end
 
@@ -299,7 +299,7 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
 
           expect(record['validation_strategy']).to eq('domain_allowlist')
           expect(record['allowed_signup_domains']).to contain_exactly('acme-corp.example.com', 'partner.example.com')
-          expect(record['requires_allowlist']).to be true
+          expect(record['uses_allowlist']).to be true
           expect(record['allow_base_domain']).to be false
         end
 
@@ -319,7 +319,7 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
           expect(record['validation_strategy']).to eq('domain_allowlist')
           expect(record['allow_base_domain']).to be true
           expect(record['allowed_signup_domains']).to be_empty
-          expect(record['requires_allowlist']).to be true
+          expect(record['uses_allowlist']).to be true
         end
 
         it 'creates mx validation config' do
@@ -858,7 +858,7 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
         expect(record['validation_strategy']).to eq('domain_allowlist')
         expect(record['allowed_signup_domains']).to contain_exactly('acme.com', 'partner.com')
         expect(record['enabled']).to be true
-        expect(record['requires_allowlist']).to be true
+        expect(record['uses_allowlist']).to be true
         expect(record['network_validation']).to be false
         expect(record['allow_base_domain']).to be false
       end
@@ -1067,7 +1067,7 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
 
         expect(last_response.status).to eq(200)
         body = json_body
-        expect(body['record']['requires_allowlist']).to be false
+        expect(body['record']['uses_allowlist']).to be false
       end
 
       it 'ignores provided allowed_signup_domains' do

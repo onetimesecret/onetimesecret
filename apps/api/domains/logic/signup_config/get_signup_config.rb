@@ -69,7 +69,7 @@ module DomainsAPI
             enabled: config.enabled?,
             signup_enabled: config.signup_enabled?,
             autoverify: config.autoverify?,
-            requires_allowlist: config.requires_allowlist?,
+            uses_allowlist: config.uses_allowlist?,
             network_validation: config.network_validation?,
             created_at: config.created.to_i,
             updated_at: config.updated.to_i,

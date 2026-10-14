@@ -139,8 +139,8 @@ function updateField<K extends keyof SignupConfigFormState>(
 
 const isEditing = computed(() => props.isConfigured);
 
-const requiresAllowlist = computed(
-  () => SIGNUP_STRATEGY_METADATA[props.formState.validation_strategy]?.requiresAllowlist ?? false
+const usesAllowlist = computed(
+  () => SIGNUP_STRATEGY_METADATA[props.formState.validation_strategy]?.usesAllowlist ?? false
 );
 
 const performsNetworkValidation = computed(
@@ -163,7 +163,7 @@ const baseDomainCheckboxDisabled = computed(
   () => !props.canBaseDomainSignup && !props.formState.allow_base_domain
 );
 
-const showsBaseDomainChip = computed(() => requiresAllowlist.value && allowsBaseDomain.value);
+const showsBaseDomainChip = computed(() => usesAllowlist.value && allowsBaseDomain.value);
 
 const isFormValid = computed(() =>
   allowlistRequirementMet(props.formState, baseDomainCounts.value)
@@ -320,7 +320,7 @@ watch(newDomain, () => {
       </div>
 
       <!-- Allowed Domains (only when strategy requires it) -->
-      <div v-if="requiresAllowlist">
+      <div v-if="usesAllowlist">
         <label
           for="signup-domain-input"
           class="block text-sm font-medium text-gray-700 dark:text-gray-300">

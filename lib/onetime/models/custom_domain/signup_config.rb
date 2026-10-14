@@ -80,22 +80,22 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
   STRATEGY_METADATA = {
     'passthrough' => {
       description: 'Format check only - accepts any valid email format',
-      requires_allowlist: false,
+      uses_allowlist: false,
       network_validation: false,
     },
     'domain_allowlist' => {
       description: 'Email domain must be in the configured allowed list',
-      requires_allowlist: true,
+      uses_allowlist: true,
       network_validation: false,
     },
     'mx' => {
       description: 'Validates email domain has MX records (DNS lookup)',
-      requires_allowlist: false,
+      uses_allowlist: false,
       network_validation: true,
     },
     'smtp' => {
       description: 'Full SMTP validation - strictest, may be slow',
-      requires_allowlist: false,
+      uses_allowlist: false,
       network_validation: true,
     },
   }.freeze
@@ -170,11 +170,13 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
     STRATEGY_METADATA.fetch(validation_strategy, {})
   end
 
-  # Whether this strategy requires an allowlist to be configured.
+  # Whether this strategy consults the allowlist. It does not mean a domain
+  # must be listed: allow_base_domain can supply the only one (see
+  # allowlist_requirement_error).
   #
   # @return [Boolean]
-  def requires_allowlist?
-    strategy_metadata.fetch(:requires_allowlist, false)
+  def uses_allowlist?
+    strategy_metadata.fetch(:uses_allowlist, false)
   end
 
   # Whether this strategy performs network validation (slower).
@@ -427,7 +429,7 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
 
     # The allowlist requirement, shared by #validation_errors and the
     # workspace API (SignupConfig::Base#validate_allowlist_requirement). A
-    # strategy that requires an allowlist must keep a list it can read and
+    # strategy that uses the allowlist must keep a list it can read and
     # have at least one domain to admit: listed explicitly, or supplied by
     # allow_base_domain. The flag counts only when it is effective (callers
     # pass allow_base_domain_effective?, not the stored value) and the
@@ -452,7 +454,7 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
     # @return [String, nil] ALLOWLIST_UNREADABLE_ERROR, ALLOWLIST_REQUIRED_ERROR,
     #   or nil when the requirement is met
     def allowlist_requirement_error(strategy:, domains:, corrupt:, allow_base_domain:, base_domain:)
-      return nil unless metadata_for(strategy)[:requires_allowlist]
+      return nil unless metadata_for(strategy)[:uses_allowlist]
       return ALLOWLIST_UNREADABLE_ERROR if corrupt
       return nil unless Array(domains).empty?
       return nil if allow_base_domain && !base_domain.to_s.strip.empty?

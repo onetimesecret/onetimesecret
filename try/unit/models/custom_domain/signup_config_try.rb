@@ -7,7 +7,7 @@
 # Covers:
 #   - SignupConfig creation with valid attributes
 #   - Validation (missing domain_id, missing strategy, invalid strategy)
-#   - Strategy metadata (requires_allowlist, network_validation)
+#   - Strategy metadata (uses_allowlist, network_validation)
 #   - valid_signup_email? dispatch for each strategy
 #   - valid_email_domain? against allowed_signup_domains
 #   - allow_base_domain: the domain's own base_domain joins the allowlist
@@ -86,17 +86,17 @@ Onetime::CustomDomain::SignupConfig.exists_for_domain?(@domain.identifier)
 
 # --- Strategy Metadata ---
 
-## passthrough does not require allowlist
-@config.requires_allowlist?
+## passthrough does not use the allowlist
+@config.uses_allowlist?
 #=> false
 
 ## passthrough is not network validation
 @config.network_validation?
 #=> false
 
-## domain_allowlist strategy requires allowlist
+## domain_allowlist strategy uses the allowlist
 @cfg_allowlist = Onetime::CustomDomain::SignupConfig.new(domain_id: 'test_dummy', validation_strategy: 'domain_allowlist')
-@cfg_allowlist.requires_allowlist?
+@cfg_allowlist.uses_allowlist?
 #=> true
 
 ## mx strategy is network validation

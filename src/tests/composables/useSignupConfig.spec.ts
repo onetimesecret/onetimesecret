@@ -91,7 +91,7 @@ const mockSignupConfigData: CustomDomainSignupConfig = {
   enabled: true,
   signup_enabled: true,
   autoverify: false,
-  requires_allowlist: true,
+  uses_allowlist: true,
   network_validation: false,
   created_at: new Date('2025-01-01T00:00:00Z'),
   updated_at: new Date('2025-01-15T10:00:00Z'),
@@ -101,7 +101,7 @@ const mockPassthroughConfig: CustomDomainSignupConfig = {
   ...mockSignupConfigData,
   validation_strategy: 'passthrough',
   allowed_signup_domains: [],
-  requires_allowlist: false,
+  uses_allowlist: false,
 };
 
 // Resolution details for an unconfigured domain under an enabled global:

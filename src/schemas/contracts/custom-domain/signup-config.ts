@@ -69,27 +69,27 @@ export type SignupValidationStrategy = z.infer<typeof signupValidationStrategySc
  * and to surface network-validation warnings.
  */
 export const SIGNUP_STRATEGY_METADATA: Record<SignupValidationStrategy, {
-  requiresAllowlist: boolean;
+  usesAllowlist: boolean;
   networkValidation: boolean;
   description: string;
 }> = {
   passthrough: {
-    requiresAllowlist: false,
+    usesAllowlist: false,
     networkValidation: false,
     description: 'Format check only — accepts any valid email format',
   },
   domain_allowlist: {
-    requiresAllowlist: true,
+    usesAllowlist: true,
     networkValidation: false,
     description: 'Email domain must be in the configured allowed list',
   },
   mx: {
-    requiresAllowlist: false,
+    usesAllowlist: false,
     networkValidation: true,
     description: 'Validates email domain has MX records (DNS lookup)',
   },
   smtp: {
-    requiresAllowlist: false,
+    usesAllowlist: false,
     networkValidation: true,
     description: 'Full SMTP validation — strictest, may be slow',
   },
@@ -148,10 +148,11 @@ export const customDomainSignupConfigCanonical = z.object({
   autoverify: z.boolean(),
 
   /**
-   * Whether the current strategy requires an allowlist.
+   * Whether the current strategy consults the allowlist. A listed domain is
+   * not necessarily required: allow_base_domain can supply the only one.
    * Read-only, computed from validation_strategy.
    */
-  requires_allowlist: z.boolean(),
+  uses_allowlist: z.boolean(),
 
   /**
    * Whether the current strategy performs network calls (DNS or SMTP).
@@ -212,7 +213,7 @@ export const putSignupConfigPayloadSchema = z.object({
 });
 
 /**
- * The allowlist requirement: a strategy that requires an allowlist must have
+ * The allowlist requirement: a strategy that uses the allowlist must have
  * at least one domain to admit, listed explicitly or supplied by
  * allow_base_domain. The flag counts only when the custom domain has a base
  * domain to derive and the feature is available (install flag on, org
@@ -232,7 +233,7 @@ export function allowlistRequirementMet(
   },
   hasBaseDomain: boolean
 ): boolean {
-  if (!SIGNUP_STRATEGY_METADATA[config.validation_strategy]?.requiresAllowlist) return true;
+  if (!SIGNUP_STRATEGY_METADATA[config.validation_strategy]?.usesAllowlist) return true;
   if ((config.allowed_signup_domains ?? []).length > 0) return true;
   return Boolean(config.allow_base_domain) && hasBaseDomain;
 }
