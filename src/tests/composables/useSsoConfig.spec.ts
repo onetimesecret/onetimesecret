@@ -1766,7 +1766,11 @@ describe('useSsoConfig', () => {
       type: 'human',
       severity: 'error',
       code: 429,
-      details: { error: 'Too many saved-configuration checks.', error_type: 'LimitExceeded', retry_after },
+      details: {
+        error: 'Too many saved-configuration checks.',
+        error_type: 'LimitExceeded',
+        retry_after,
+      },
     });
 
     it('reports a 429 as the run limit, with the wait rounded up to minutes', async () => {
@@ -1795,7 +1799,7 @@ describe('useSsoConfig', () => {
       expect(composable.diagnosticsError.value).toBe('web.domains.sso.diagnostics_rate_limited');
     });
 
-    it('does not read an earlier failure as this run\'s', async () => {
+    it("does not read an earlier failure as this run's", async () => {
       mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
       mockRunDiagnosticsForDomain.mockRejectedValueOnce(rateLimited(60));
       mockRunDiagnosticsForDomain.mockRejectedValueOnce(new Error('Network error'));
