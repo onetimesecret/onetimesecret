@@ -109,7 +109,8 @@ RSpec.describe Onetime::Operations::Domains::CanonicalIndexBackfill, :datastore 
     legacy!(:a_label, canonical("alabel-ö-#{sfx}.com"))
     legacy!(:crafted, crafted_a_label)
     legacy!(:orphan, "orphan-é-#{sfx}.com", org: nil)
-    # Two records for one DNS name, in two spellings.
+    # Two records for one DNS name in two organizations: one stored as NFC
+    # Unicode, one as the A-label.
     legacy!(:pair_unicode, "pair-ü-#{sfx}.com")
     legacy!(:pair_a_label, canonical("pair-ü-#{sfx}.com"), org: org_b)
     # The entry for its own name names a record that no longer exists.
@@ -170,6 +171,14 @@ RSpec.describe Onetime::Operations::Domains::CanonicalIndexBackfill, :datastore 
       group = audit.collision_groups.fetch(canonical("pair-ü-#{sfx}.com"))
 
       expect(group.map(&:domain_id)).to contain_exactly(id_of(:pair_unicode), id_of(:pair_a_label))
+    end
+
+    # The runbook removes collision records with `bin/ots domains remove <extid>`.
+    it 'names each collision record by an extid that resolves to it' do
+      group = audit.collision_groups.fetch(canonical("pair-ü-#{sfx}.com"))
+
+      expect(group.to_h { |row| [row.domain_id, model.find_by_extid(row.extid)&.identifier] })
+        .to eq(group.to_h { |row| [row.domain_id, row.domain_id] })
     end
 
     it 'keys the crafted A-label under itself, apart from the name it decodes to' do
@@ -370,6 +379,32 @@ RSpec.describe Onetime::Operations::Domains::CanonicalIndexBackfill, :datastore 
 
       expect([result.refusal, outcome_for(result, id_of(:readable)), unreadable.include?(id_of(:unreadable))])
         .to eq([nil, :planned, true])
+    end
+  end
+
+  # A Familia 2.9.x index entry: the identifier stored JSON-quoted.
+  describe 'an entry holding a JSON-quoted identifier' do
+    let(:name) { "quoted-ü-#{sfx}.com" }
+
+    def put_quoted_entry(key, holder)
+      model.dbclient.hset(index.dbkey, key, Familia::JsonSerializer.dump(holder))
+      entries_written << [key, holder]
+    end
+
+    it 'counts an entry naming the record itself as ok' do
+      put_quoted_entry(canonical(name), legacy!(:quoted_own, name))
+
+      expect(categories(audit, [id_of(:quoted_own)])).to eq(id_of(:quoted_own) => :ok)
+    end
+
+    it 're-claims an entry naming a deleted record and stores the identifier unquoted' do
+      legacy!(:quoted_stale, name)
+      put_quoted_entry(canonical(name), "gone-quoted-#{sfx}")
+
+      result = described_class.new(dry_run: false).call
+
+      expect([outcome_for(result, id_of(:quoted_stale)), model.dbclient.hget(index.dbkey, canonical(name))])
+        .to eq([:claimed, id_of(:quoted_stale)])
     end
   end
 end
