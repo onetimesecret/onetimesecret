@@ -775,11 +775,19 @@ describe('DomainSsoConfigForm', () => {
       checks,
     });
 
-    it('is hidden until a configuration is saved', async () => {
+    it('shows diagnostics and a disabled run button with save-first guidance before saving', async () => {
       wrapper = await mountComponent({ isConfigured: false });
 
-      expect(wrapper.find('[data-testid="sso-diagnostics"]').exists()).toBe(false);
-      expect(wrapper.find('[data-testid="sso-diagnostics-run"]').exists()).toBe(false);
+      expect(wrapper.get('[data-testid="sso-diagnostics"]').isVisible()).toBe(true);
+      const button = wrapper.get('[data-testid="sso-diagnostics-run"]');
+      expect(button.attributes('disabled')).toBeDefined();
+      expect(wrapper.get('[data-testid="sso-diagnostics-save-first"]').text()).toBe(
+        'web.organizations.sso.diagnostics_save_first'
+      );
+      expect(wrapper.get('[data-testid="sso-diagnostics-save"]').isVisible()).toBe(true);
+
+      await button.trigger('click');
+      expect(wrapper.emitted('diagnostics')).toBeUndefined();
     });
 
     it('shows the section with its hint once a configuration is saved', async () => {
@@ -788,8 +796,101 @@ describe('DomainSsoConfigForm', () => {
       const section = wrapper.find('[data-testid="sso-diagnostics"]');
       expect(section.exists()).toBe(true);
       expect(section.text()).toContain('web.organizations.sso.diagnostics_title');
-      expect(section.text()).toContain('web.organizations.sso.diagnostics_hint');
+      expect(section.findAll('p').map((paragraph) => paragraph.text())).toContain(
+        'web.organizations.sso.diagnostics_hint_entra'
+      );
       expect(wrapper.find('[data-testid="sso-diagnostics-save-first"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="sso-diagnostics-save"]').exists()).toBe(false);
+      expect(
+        wrapper.get('[data-testid="sso-diagnostics-run"]').attributes('disabled')
+      ).toBeUndefined();
+    });
+
+    it.each([
+      ['entra_id', 'diagnostics_hint_entra'],
+      ['oidc', 'diagnostics_hint'],
+      ['saml', 'diagnostics_hint_saml'],
+    ] as const)('shows %s diagnostics guidance before saving', async (provider_type, hintKey) => {
+      wrapper = await mountComponent({
+        formState: { ...createDefaultFormState(), provider_type },
+      });
+
+      const paragraphs = wrapper
+        .get('[data-testid="sso-diagnostics"]')
+        .findAll('p')
+        .map((paragraph) => paragraph.text());
+      for (const key of ['diagnostics_hint_entra', 'diagnostics_hint', 'diagnostics_hint_saml']) {
+        expect(paragraphs.includes(`web.organizations.sso.${key}`)).toBe(key === hintKey);
+      }
+    });
+
+    it.each([false, true])(
+      'offers a save action when isConfigured=%s and edits need saving',
+      async (isConfigured) => {
+        wrapper = await mountComponent({
+          formState: { ...mockExistingFormState, client_secret: isConfigured ? '' : 'new-secret' },
+          ssoConfig: isConfigured ? mockExistingConfig : null,
+          isConfigured,
+          hasUnsavedChanges: isConfigured,
+        });
+
+        const button = wrapper.get('[data-testid="sso-diagnostics-save"]');
+        expect(button.attributes('type')).toBe('button');
+        expect(button.attributes('disabled')).toBeUndefined();
+        await button.trigger('click');
+
+        expect(wrapper.emitted('save')).toHaveLength(1);
+        expect(wrapper.emitted('diagnostics')).toBeUndefined();
+        expect(wrapper.emitted('test')).toBeUndefined();
+      }
+    );
+
+    it.each([
+      ['new invalid form', false, false, createDefaultFormState()],
+      ['new form saving', false, true, { ...mockExistingFormState, client_secret: 'new-secret' }],
+      ['saved invalid form', true, false, { ...mockExistingFormState, client_id: '' }],
+      ['saved form saving', true, true, mockExistingFormState],
+    ] as const)(
+      'disables the diagnostics save action for a %s',
+      async (_state, isConfigured, isSaving, formState) => {
+        wrapper = await mountComponent({
+          formState,
+          ssoConfig: isConfigured ? mockExistingConfig : null,
+          isConfigured,
+          isSaving,
+          hasUnsavedChanges: isConfigured,
+        });
+
+        const button = wrapper.get('[data-testid="sso-diagnostics-save"]');
+        expect(button.attributes('disabled')).toBeDefined();
+        await button.trigger('click');
+        expect(wrapper.emitted('save')).toBeUndefined();
+      }
+    );
+
+    it('updates save-first controls after saving and when the saved form becomes dirty', async () => {
+      wrapper = await mountComponent({
+        formState: { ...mockExistingFormState, client_secret: 'new-secret' },
+      });
+
+      await wrapper.setProps({
+        formState: mockExistingFormState,
+        ssoConfig: mockExistingConfig,
+        isConfigured: true,
+        hasUnsavedChanges: false,
+      });
+      expect(wrapper.find('[data-testid="sso-diagnostics-save"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="sso-diagnostics-save-first"]').exists()).toBe(false);
+      expect(
+        wrapper.get('[data-testid="sso-diagnostics-run"]').attributes('disabled')
+      ).toBeUndefined();
+
+      await wrapper.setProps({ hasUnsavedChanges: true });
+      expect(wrapper.get('[data-testid="sso-diagnostics-save"]').isVisible()).toBe(true);
+      expect(wrapper.get('[data-testid="sso-diagnostics-save-first"]').isVisible()).toBe(true);
+      expect(
+        wrapper.get('[data-testid="sso-diagnostics-run"]').attributes('disabled')
+      ).toBeDefined();
     });
 
     it('emits diagnostics when the button is clicked', async () => {

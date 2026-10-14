@@ -584,8 +584,8 @@ const handleTestConnection = () => {
 
 /**
  * Unlike Test Connection, diagnostics run against the SAVED record (for Entra
- * including the stored client secret), so the section only exists once a
- * record is saved and the button waits for unsaved edits to be saved first:
+ * including the stored client secret), so the run button waits for a saved
+ * record and for unsaved edits to be saved first:
  * a result about the stored record would otherwise be read as a verdict on
  * what the form shows.
  */
@@ -1475,50 +1475,71 @@ aria-hidden="true">*</span>
         </div>
       </div>
 
-      <!-- Check saved configuration: runs against the STORED record (for
-           Entra including the saved client secret), so it only exists once a
-           record is saved. Sibling of Test Connection: same box, button and
-           result markup. -->
+      <!-- Visible before saving so setup does not end at provider discovery. -->
       <div
-        v-if="isConfigured"
         data-testid="sso-diagnostics"
         class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
-        <div class="flex items-start justify-between">
-          <div class="flex-1">
+        <div class="flex flex-col items-start gap-3 sm:flex-row sm:justify-between">
+          <div class="min-w-0 flex-1">
             <h4 class="text-sm font-medium text-gray-900 dark:text-white">
               {{ t('web.organizations.sso.diagnostics_title') }}
             </h4>
             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              {{ t('web.organizations.sso.diagnostics_hint') }}
+              {{
+                t(
+                  isSaml
+                    ? 'web.organizations.sso.diagnostics_hint_saml'
+                    : requiresTenantId
+                      ? 'web.organizations.sso.diagnostics_hint_entra'
+                      : 'web.organizations.sso.diagnostics_hint'
+                )
+              }}
             </p>
             <p
-              v-if="hasUnsavedChanges"
+              v-if="!isConfigured || hasUnsavedChanges"
               data-testid="sso-diagnostics-save-first"
               class="mt-1 text-sm text-amber-700 dark:text-amber-300">
               {{ t('web.organizations.sso.diagnostics_save_first') }}
             </p>
           </div>
-          <button
-            type="button"
-            data-testid="sso-diagnostics-run"
-            @click="handleRunDiagnostics"
-            :disabled="!canRunDiagnostics"
-            class="ml-4 inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-600 dark:text-gray-100 dark:ring-gray-500 dark:hover:bg-gray-500">
-            <OIcon
-              v-if="isDiagnosing"
-              collection="heroicons"
-              name="arrow-path"
-              size="4"
-              class="animate-spin motion-reduce:animate-none"
-              aria-hidden="true" />
-            <OIcon
-              v-else
-              collection="heroicons"
-              name="clipboard-document-check"
-              size="4"
-              aria-hidden="true" />
-            {{ isDiagnosing ? t('web.organizations.sso.diagnostics_running') : t('web.organizations.sso.diagnostics_button') }}
-          </button>
+          <div class="flex shrink-0 flex-wrap gap-2">
+            <button
+              v-if="!isConfigured || hasUnsavedChanges"
+              type="button"
+              data-testid="sso-diagnostics-save"
+              :disabled="!isFormValid || isSaving"
+              @click="handleSave"
+              class="inline-flex items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-500 disabled:cursor-not-allowed disabled:opacity-50">
+              {{
+                isSaving ? t('web.COMMON.saving') : t('web.organizations.sso.save_configuration')
+              }}
+            </button>
+            <button
+              type="button"
+              data-testid="sso-diagnostics-run"
+              @click="handleRunDiagnostics"
+              :disabled="!canRunDiagnostics"
+              class="ml-4 inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-600 dark:text-gray-100 dark:ring-gray-500 dark:hover:bg-gray-500">
+              <OIcon
+                v-if="isDiagnosing"
+                collection="heroicons"
+                name="arrow-path"
+                size="4"
+                class="animate-spin motion-reduce:animate-none"
+                aria-hidden="true" />
+              <OIcon
+                v-else
+                collection="heroicons"
+                name="clipboard-document-check"
+                size="4"
+                aria-hidden="true" />
+              {{
+                isDiagnosing
+                  ? t('web.organizations.sso.diagnostics_running')
+                  : t('web.organizations.sso.diagnostics_button')
+              }}
+            </button>
+          </div>
         </div>
 
         <!-- Diagnostics Result -->

@@ -1148,6 +1148,10 @@
     "text": "Could not check provider settings",
     "content_hash": "3d7a4ea6"
   },
+  "web.organizations.sso.save_configuration": {
+    "text": "Save configuration",
+    "content_hash": "b2b158f2"
+  },
   "web.organizations.sso.provider_check_next": {
     "text": "This is not a sign-in test. After saving your settings, run Check saved configuration below.",
     "content_hash": "93108052"
@@ -1155,6 +1159,14 @@
   "web.organizations.sso.technical_details": {
     "text": "Technical details",
     "content_hash": "890ab358"
+  },
+  "web.organizations.sso.diagnostics_hint_entra": {
+    "text": "Checks saved fields, provider discovery and whether Microsoft Entra ID accepts the saved client secret. This does not test a full sign-in.",
+    "content_hash": "5d58ca04"
+  },
+  "web.organizations.sso.diagnostics_hint_saml": {
+    "text": "Checks the saved fields and signing certificate locally. Does not contact the identity provider or test a full sign-in.",
+    "content_hash": "297b2678"
   },
   "web.organizations.sso.confirm_sign_in": {
     "text": "Confirm sign-in",
@@ -1173,8 +1185,8 @@
     "content_hash": "5c68357a"
   },
   "web.organizations.sso.diagnostics_hint": {
-    "text": "Checks what is stored for this domain — for Microsoft Entra ID including the saved client secret — and reports each layer separately. It does not test a full sign-in.",
-    "content_hash": "42505faa"
+    "text": "Checks saved fields and provider discovery for this domain. A client secret check is not available for generic OIDC. This does not test a full sign-in.",
+    "content_hash": "8de1dd70"
   },
   "web.organizations.sso.last_sign_in_none": {
     "text": "No sign-in through this domain has been recorded yet.",
@@ -1209,8 +1221,8 @@
     "content_hash": "1ebbb776"
   },
   "web.organizations.sso.diagnostics_save_first": {
-    "text": "Save first: this checks the saved configuration, not unsaved changes.",
-    "content_hash": "46a51d59"
+    "text": "Save first to check the stored settings. This check does not use unsaved changes.",
+    "content_hash": "df9a367c"
   },
   "web.organizations.sso.diagnostics_button": {
     "text": "Check saved configuration",
