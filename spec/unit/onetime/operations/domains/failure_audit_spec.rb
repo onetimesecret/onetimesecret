@@ -154,7 +154,7 @@ RSpec.describe 'domain operations failure auditing' do
   describe Onetime::Operations::Domains::UpsertDomainConfig do
     let(:domain)   { double('CustomDomain', identifier: 'dom-obj-1', extid: 'cd_dom_ext') }
     let(:model)    { double('SignupConfig') }
-    let(:existing) { double('SignupConfig record') }
+    let(:existing) { double('SignupConfig record', validation_errors: []) }
     let(:registry) { Onetime::CustomDomain::ConfigRegistry }
 
     # The AuditedFailure mechanism. apply_update runs the model setters, which
@@ -182,6 +182,26 @@ RSpec.describe 'domain operations failure auditing' do
           # semi-sensitive, same rule as the success event.
           detail: hash_including(config: 'signup', changed: ['allowed_signup_domains']),
         ),
+      )
+    end
+
+    it 'refuses a write that adds a validation error: saves nothing, records ONE failure' do
+      allow(registry).to receive(:model_for).with('signup').and_return(model)
+      allow(model).to receive(:find_by_domain_id).with('dom-obj-1').and_return(existing)
+      allow(registry).to receive(:apply_field)
+      allow(existing).to receive(:validation_errors).and_return(['already broken'], ['already broken', 'newly broken'])
+      allow(existing).to receive(:save)
+
+      expect do
+        described_class.new(
+          domain: domain, kind: 'signup',
+          attrs: { 'validation_strategy' => 'domain_allowlist' }, actor: actor,
+        ).call
+      end.to raise_error(described_class::InvalidConfig) { |ex| expect(ex.added_errors).to eq(['newly broken']) }
+
+      expect(existing).not_to have_received(:save)
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+        hash_including(result: :failure, detail: hash_including(config: 'signup', changed: ['validation_strategy'])),
       )
     end
   end

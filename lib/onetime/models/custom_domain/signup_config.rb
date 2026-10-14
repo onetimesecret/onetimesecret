@@ -689,7 +689,9 @@ class Onetime::CustomDomain::SignupConfig < Familia::Horreum
   # Fails closed. The operator chose domain_allowlist, so a list we cannot
   # read (corrupt JSON) or an empty effective list cannot admit anyone: the
   # empty list is already an invalid configuration (see validation_errors),
-  # and the colonel upsert path can persist it without running those checks.
+  # but a saved record can still end up there without a write: the install
+  # flag turned off, or the entitlement lost, while allow_base_domain was
+  # the whole list.
   # A corrupt list denies even when allow_base_domain is set: the stored
   # restriction cannot be read, so nothing about it is trusted. The
   # effective list is empty with the flag set when the domain record is
