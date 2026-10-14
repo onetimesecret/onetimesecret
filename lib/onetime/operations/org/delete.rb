@@ -110,7 +110,9 @@ module Onetime
       #
       # One {Onetime::ColonelAuditEvent} (`organization.delete`) per applied
       # delete, emitted HERE. Adapters MUST NOT audit; a self-auditing adapter
-      # double-records.
+      # double-records. Operator adapters write the operator trail; the
+      # customer-facing adapter and Customers::Purge pass `self_service: true`
+      # and write the security trail (see #initialize).
       #
       # REFUSALS ARE DELIBERATELY NOT AUDITED — a documented divergence from
       # {Onetime::Operations::Org::TransferOwnership}, which records one
@@ -121,10 +123,11 @@ module Onetime
       # therefore hand every customer a log-eviction primitive: repeat
       # `DELETE /api/organizations/:extid` against your own default workspace and
       # each refusal evicts one real destructive-action record. Refusals are
-      # logged (OT.info) instead. A raise mid-teardown still records one
-      # `result: :failure` via {Onetime::AuditedFailure} — that path is not
-      # customer-drivable, since every precondition a customer can trip returns a
-      # status instead of raising.
+      # logged (OT.info) instead. On an operator path a raise mid-teardown
+      # still records one `result: :failure` via {Onetime::AuditedFailure}.
+      # With `self_service: true` the wrapper is off, so such a raise leaves no
+      # audit row on either trail (the exception still propagates). Every
+      # precondition a customer can trip returns a status instead of raising.
       #
       # ## Constant-lookup discipline
       #
@@ -262,9 +265,12 @@ module Onetime
         #   for the former members. Blank is treated as absent and both details
         #   keep their pre-#4338 shape; see {Onetime::AuditReason} for the bound
         #   and the optional-now / required-later rollout.
-        # @param self_service [Boolean] the account that owns this org asked
-        #   for the delete on its own close-account path (via
-        #   Customers::Purge). Routes the audit write to the security trail via
+        # @param self_service [Boolean] the org's owner asked for the delete:
+        #   on its own close-account path (via Customers::Purge) or through
+        #   the customer-facing DELETE /api/organizations/:extid adapter, when
+        #   the caller is not a colonel (a colonel passes that adapter's
+        #   manage_org check on any org, and stays on the operator trail).
+        #   Routes the audit write to the security trail via
         #   {Onetime::ColonelAuditEvent.record_security} (fail-open) instead of
         #   the count-capped operator trail: a user who can retry a deletion at
         #   will must not be able to evict operator history from it.
@@ -439,10 +445,11 @@ module Onetime
           # The teardown is NOT rolled back (see the model's fail-closed note);
           # the refusal statuses above still return normally and audit nothing.
           #
-          # Self-service (Customers::Purge on user-triggered close-account)
-          # routes to the security trail instead — the operator-trail is capped
-          # and trimmed oldest-first, so a user who can retry deletion must not
-          # be able to write to it.
+          # Self-service (Customers::Purge on user-triggered close-account, or
+          # an owner's DELETE /api/organizations/:extid) routes to the security
+          # trail instead, fail-open — the operator trail is capped and trimmed
+          # oldest-first, so a user who can retry deletion must not be able to
+          # write to it.
           return unless audit_enabled?
 
           record_success_event
@@ -625,8 +632,8 @@ module Onetime
         def audit_target = @extid
 
         # Route the applied success write to the operator trail (fail-closed)
-        # or the security trail (fail-open) based on whether the call came from
-        # a user's own close-account path. See #initialize for the rationale.
+        # or the security trail (fail-open) based on whether the call is
+        # self-service. See #initialize for the rationale.
         def record_success_event
           detail = with_reason(
             display_name: @display_name.to_s,

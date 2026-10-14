@@ -123,11 +123,15 @@ describe('SsoCredentialsModal', () => {
         isSaving: false,
         isDeleting: false,
         isTesting: false,
+        isDiagnosing: false,
         hasUnsavedChanges: false,
         isConfigured: false,
         clientSecretMasked: null,
         testResult: null,
         testError: '',
+        diagnosticsResult: null,
+        savedCredentialsChecked: false,
+        diagnosticsError: '',
       },
       global: {
         plugins: [i18n, createTestingPinia({ createSpy: vi.fn })],
@@ -144,6 +148,16 @@ describe('SsoCredentialsModal', () => {
 
   afterEach(() => {
     wrapper?.unmount();
+  });
+
+  it('forwards retained credential-check evidence independently of the displayed verdict', async () => {
+    isSamlEnabledMock.mockReturnValue(true);
+    wrapper = await mountModal();
+    await wrapper.setProps({ savedCredentialsChecked: true });
+
+    const form = wrapper.getComponent({ name: 'DomainSsoConfigForm' });
+    expect(form.props('savedCredentialsChecked')).toBe(true);
+    expect(form.props('diagnosticsResult')).toBeNull();
   });
 
   it('offers SAML for a new config when the install-wide switch is on', async () => {

@@ -416,6 +416,7 @@ describe('customDomainSsoConfigCanonical schema', () => {
       allowed_domains: [],
       requires_domain_filter: false,
       idp_controls_access: true,
+      last_sign_in: null,
       enforce_sso_only: false,
       grant_org_scope: false,
       created_at: 1700000000,
@@ -439,6 +440,7 @@ describe('customDomainSsoConfigCanonical schema', () => {
         issuer: 'https://idp.example.com',
         requires_domain_filter: true,
         idp_controls_access: false,
+        last_sign_in: null,
       };
       const result = customDomainSsoConfigCanonical.safeParse(oidcPayload);
       expect(result.success).toBe(true);

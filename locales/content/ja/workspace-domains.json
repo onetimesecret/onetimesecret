@@ -999,6 +999,14 @@
     "text": "テストメールの送信に失敗しました",
     "source_hash": "95ce63bc"
   },
+  "web.domains.email.test_email_rate_limited": {
+    "text": "最近送信されたテストメールが多すぎます。しばらくしてからもう一度お試しください。",
+    "source_hash": "90b8ca17"
+  },
+  "web.domains.email.test_email_rate_limited_retry": {
+    "text": "最近送信されたテストメールが多すぎます。約{minutes}分後にもう一度お試しください。",
+    "source_hash": "218146cc"
+  },
   "web.domains.email.test_email_sent_to": {
     "text": "{email}に送信しました",
     "source_hash": "8ceb9588"
@@ -1658,5 +1666,29 @@
   "web.domains.verify_outcome.record_not_found": {
     "text": "想定されるTXTレコードが見つかりませんでした。レコードが存在し、値が完全に一致していることを確認してください。新しいDNSレコードが反映されるまでに数分かかる場合があります。",
     "source_hash": "6c847d46"
+  },
+  "web.domains.sso.diagnostics_passed": {
+    "text": "保存済み設定の確認に合格しました",
+    "source_hash": "91fc2d97"
+  },
+  "web.domains.sso.diagnostics_failed": {
+    "text": "保存済み設定の確認で問題が見つかりました",
+    "source_hash": "18ca7a0e"
+  },
+  "web.domains.sso.diagnostics_inconclusive": {
+    "text": "保存済み設定の確認では判定できませんでした",
+    "source_hash": "2be86c66"
+  },
+  "web.domains.sso.diagnostics_error": {
+    "text": "保存済み設定を確認できませんでした",
+    "source_hash": "e1fe6a59"
+  },
+  "web.domains.sso.diagnostics_rate_limited": {
+    "text": "この設定は最近確認された回数が多すぎます。しばらくしてからもう一度お試しください。",
+    "source_hash": "4b8d53b8"
+  },
+  "web.domains.sso.diagnostics_rate_limited_retry": {
+    "text": "この設定は最近確認された回数が多すぎます。約{minutes}分後にもう一度お試しください。",
+    "source_hash": "fdbdeaf6"
   }
 }
