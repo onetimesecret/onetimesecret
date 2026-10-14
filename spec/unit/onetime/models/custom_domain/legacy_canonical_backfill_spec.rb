@@ -27,6 +27,8 @@ require 'securerandom'
 
 # rubocop:disable RSpec/SpecFilePathFormat
 RSpec.describe Onetime::CustomDomain, 'legacy records and the canonical index backfill', :datastore do
+  include LegacyCustomDomainRecords
+
   let(:suffix) { SecureRandom.hex(4) }
   let(:nfc_name) { "bücher-#{suffix}.com" }
   let(:a_label) { described_class.canonical_display_domain(nfc_name) }
@@ -43,7 +45,7 @@ RSpec.describe Onetime::CustomDomain, 'legacy records and the canonical index ba
     rescue StandardError => ex
       warn "[legacy_canonical_backfill_spec cleanup] #{ex.class}: #{ex.message}"
     end
-    legacy_ids.each { |id, name| remove_legacy_record(id, name) }
+    legacy_ids.each { |id, name| remove_legacy_custom_domain(id, name) }
     claimed_names.each { |name| index.remove_field(name) }
     [holder_org, other_org].each do |org|
       org.destroy! if org.exists?
@@ -52,34 +54,11 @@ RSpec.describe Onetime::CustomDomain, 'legacy records and the canonical index ba
     end
   end
 
-  def client
-    described_class.dbclient
-  end
-
   # A record as written before the canonical index existed.
   def write_legacy_record(display_domain, org_id:)
-    id     = SecureRandom.uuid_v7
-    now    = Familia.now.to_i
-    fields = {
-      'objid' => id,
-      'display_domain' => display_domain,
-      'org_id' => org_id,
-      'created' => now,
-      'updated' => now,
-    }.transform_values { |value| Familia::JsonSerializer.dump(value) }
-
-    client.hset(described_class.dbkey(id), fields)
-    client.hset(described_class.display_domain_index.dbkey, display_domain, id)
-    client.zadd(described_class.instances.dbkey, now, id)
+    id = write_legacy_custom_domain(display_domain, org_id: org_id)
     legacy_ids << [id, display_domain]
-    claimed_names << described_class.canonical_display_domain(display_domain)
     id
-  end
-
-  def remove_legacy_record(id, display_domain)
-    client.del(described_class.dbkey(id))
-    described_class.display_domain_index.release_field(display_domain, id)
-    client.zrem(described_class.instances.dbkey, id)
   end
 
   def run_backfill
@@ -94,7 +73,7 @@ RSpec.describe Onetime::CustomDomain, 'legacy records and the canonical index ba
   # The same DNS name as nfc_name, in spellings the pre-check does not derive.
   def spellings
     {
-      'decomposed (NFD)' => "bücher-#{suffix}.com",
+      'decomposed (NFD)' => "bu\u0308cher-#{suffix}.com",
       'fullwidth' => "ｂüｃｈｅｒ-#{suffix}.com",
     }
   end
