@@ -97,18 +97,37 @@ one-off container.
 ### 4. Snapshot
 
 Take a full snapshot (a managed-service snapshot, or `BGSAVE` and a copy of
-the RDB file once `LASTSAVE` changes). Then keep a copy of the index itself
-for a quick rollback:
+the RDB file once `LASTSAVE` changes). Then check for an existing index backup:
+
+```console
+valkey-cli -u "$VALKEY_URL" EXISTS custom_domain:canonical_display_domain_index:before-backfill
+```
+
+If it exists, reuse it only after confirming that it was taken during this
+same uninterrupted maintenance window and that no custom-domain writer has
+restarted since. If the application restarted, or the backup's origin is
+uncertain, preserve it under a distinct archival key with `RENAMENX` (choose
+an unused name and confirm the command returns 1), then take a fresh backup.
+Do not overwrite or delete the older backup to make room.
+
+Before the first apply in this window, record whether the index exists:
+
+```console
+valkey-cli -u "$VALKEY_URL" EXISTS custom_domain:canonical_display_domain_index
+```
+
+If it returns 1 and no backup is being reused, copy the index for rollback:
 
 ```console
 valkey-cli -u "$VALKEY_URL" COPY custom_domain:canonical_display_domain_index \
   custom_domain:canonical_display_domain_index:before-backfill
 ```
 
-`COPY` returns 1 when it copied. It returns 0 when the index does not exist
-yet (the rollback is then a `DEL`), or when the backup key is left from an
-earlier attempt: keep that older copy, it holds the state before the first
-apply.
+Confirm `COPY` returns 1. A return of 0 is not a successful backup: check the
+source and destination before proceeding. If the index was absent before
+the first apply, record that fact instead; rollback for this window is a
+`DEL`. Keep this backup or absence record across retries while writers remain
+stopped, and never reuse it for a later maintenance window.
 
 ### 5. Review and apply
 
@@ -122,14 +141,19 @@ bin/ots domains backfill-canonical-index --apply
 The command asks whether the application is stopped; answer `y`. In scripts,
 use `--apply --yes` (and `--apply --yes --json` for machine-readable output).
 
-The report lists each write with its outcome:
+If any record cannot be loaded, the audit is incomplete and `--apply` writes
+nothing. All planned actions are reported as `skipped`; resolve the unreadable
+records and rerun before applying. The readable records alone may hide a
+collision.
+
+The report lists each action with its outcome:
 
 | Outcome        | Meaning |
 | :------------- | :------ |
 | `claimed`      | The entry now names the record |
 | `already_held` | The entry already named the record |
 | `released`     | A stale entry was removed |
-| `skipped`      | The data changed since the audit; nothing was written |
+| `skipped`      | The audit was incomplete or the data changed since the audit; nothing was written |
 | `refused`      | Another record holds the name; nothing was written |
 | `unverified`   | The claim reported success but read back differently; the claim was released |
 
@@ -179,8 +203,10 @@ Onetime::CustomDomain.canonical_display_domain_index
 indexed, and a name like it cannot be registered again. No action is needed;
 remove the record if it is junk.
 
-**Unreadable.** A record exists but could not be loaded. Inspect it with
-`bin/ots domains doctor --all --familia-audit` before deciding anything.
+**Unreadable.** A record exists but could not be loaded. The backfill blocks
+all apply writes until every record can be read. Inspect the identifiers and
+load errors reported by `bin/ots domains doctor --all --familia-audit`, resolve
+them, then rerun the audit before applying.
 
 ### 7. Run the backfill again
 
@@ -207,14 +233,16 @@ valkey-cli -u "$VALKEY_URL" DEL custom_domain:canonical_display_domain_index:bef
 ## Rollback
 
 The backfill changes only the canonical index. To undo it, with the
-application still stopped, put the saved copy back:
+application still stopped, put back the saved copy from this uninterrupted
+maintenance window, not an archived backup from an earlier window:
 
 ```console
 valkey-cli -u "$VALKEY_URL" COPY custom_domain:canonical_display_domain_index:before-backfill \
   custom_domain:canonical_display_domain_index REPLACE
 ```
 
-If there was no index before the first apply, delete the index instead:
+If the absence record for this window confirms there was no index before
+the first apply, delete the index instead:
 
 ```console
 valkey-cli -u "$VALKEY_URL" DEL custom_domain:canonical_display_domain_index
