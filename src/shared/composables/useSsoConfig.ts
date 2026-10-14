@@ -282,7 +282,18 @@ export function useSsoConfig(domainExtId: string) {
    * that record changes (save, disable, delete) — not by a form edit, which
    * the test-result fingerprint watcher handles for Test Connection.
    */
+  /**
+   * Runs are numbered. Every clear (a new run, or the saved record changing
+   * under save / disable / delete) advances the number, and a response from
+   * an earlier run is dropped when it lands: it describes a record that is
+   * no longer the saved one. Save and delete are not blocked while a run is
+   * in flight, so this is what keeps a late response from repopulating the
+   * result after the record it checked was replaced or removed.
+   */
+  let diagnosticsRun = 0;
+
   const clearDiagnosticsResult = () => {
+    diagnosticsRun += 1;
     diagnosticsResult.value = null;
     diagnosticsError.value = '';
   };
@@ -541,8 +552,10 @@ export function useSsoConfig(domainExtId: string) {
    * is a verdict and lives in diagnosticsResult.
    */
   const runDiagnostics = async () => {
+    if (isDiagnosing.value) return;
     isDiagnosing.value = true;
     clearDiagnosticsResult();
+    const run = diagnosticsRun;
     // The handler records the failure here; a stale one must not be read
     // as this run's.
     error.value = null;
@@ -550,20 +563,28 @@ export function useSsoConfig(domainExtId: string) {
     try {
       const result = await wrapAction(() => SsoService.runDiagnosticsForDomain(domainExtId));
 
+      // The saved record changed while this run was in flight (see
+      // clearDiagnosticsResult): the response is about the old record.
+      if (run !== diagnosticsRun) return;
+
       if (result) {
         diagnosticsResult.value = result;
-        if (result.overall === 'passed') {
-          notifications.show(t('web.domains.sso.diagnostics_passed'), 'success', 'top');
-        } else if (result.overall === 'failed') {
-          notifications.show(t('web.domains.sso.diagnostics_failed'), 'error', 'top');
-        } else {
-          notifications.show(t('web.domains.sso.diagnostics_inconclusive'), 'warning', 'top');
-        }
+        notifyDiagnosticsOutcome(result.overall);
       } else {
         diagnosticsError.value = diagnosticsFailureMessage(error.value);
       }
     } finally {
       isDiagnosing.value = false;
+    }
+  };
+
+  const notifyDiagnosticsOutcome = (overall: SsoDiagnosticsResponse['overall']) => {
+    if (overall === 'passed') {
+      notifications.show(t('web.domains.sso.diagnostics_passed'), 'success', 'top');
+    } else if (overall === 'failed') {
+      notifications.show(t('web.domains.sso.diagnostics_failed'), 'error', 'top');
+    } else {
+      notifications.show(t('web.domains.sso.diagnostics_inconclusive'), 'warning', 'top');
     }
   };
 

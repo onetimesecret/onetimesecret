@@ -264,7 +264,7 @@ function handleToggleEnabled(): void {
         class="rounded-lg border border-gray-200 bg-gray-50 py-10 text-center dark:border-gray-700 dark:bg-gray-800/40">
         <OIcon
           collection="heroicons"
-          name="inbox"
+          name="inbox-arrow-down"
           class="mx-auto size-8 text-gray-300 dark:text-gray-600"
           aria-hidden="true" />
         <p class="mt-2 text-sm text-gray-400 dark:text-gray-500">

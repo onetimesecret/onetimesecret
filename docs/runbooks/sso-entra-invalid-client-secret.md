@@ -582,6 +582,11 @@ Checking the platform settings costs the customer nothing, but those settings ar
 
 **Also done:** the optional `token_endpoint_auth_method` setting for generic OIDC, Part 2 of #4764: per domain under Advanced in the SSO form, and `OIDC_CLIENT_AUTH_METHOD` for the platform provider. The default for generic OIDC is unchanged. Test Connection reports the methods the IdP advertises. See [per-domain-sso.md](../authentication/per-domain-sso.md#token-endpoint-authentication).
 
-**Still open:**
-
-- Test Connection doesn't check the client secret, so a customer can only confirm the fix with a real sign-in. A separate follow-up, not urgent: have Test Connection verify the saved Entra secret by requesting a token with it, which needs no user sign-in. [sso-credential-health.md](./sso-credential-health.md) covers what such a probe does and does not prove, and the other checks that keep SSO credentials healthy.
+**Also done:** Check saved configuration is separate from Test Connection and
+checks the saved record. For Entra, it requests a token with the stored client ID
+and secret using the client-credentials grant and request-body authentication,
+without a user sign-in. Test Connection still tests the form and does not check
+the secret. A passing credential check means Entra accepted the saved secret for
+that request; only a real sign-in confirms that sign-in works. See
+[sso-credential-health.md](./sso-credential-health.md#what-check-saved-configuration-covers)
+for the checks and their limits.

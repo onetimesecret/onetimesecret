@@ -27,7 +27,7 @@ export function useColonelNavigation() {
     {
       name: t('web.colonel.system'),
       href: '/colonel/system',
-      icon: { collection: 'material-symbols', name: 'monitoring' },
+      icon: { collection: 'material-symbols', name: 'browse-activity-rounded' },
     },
     {
       name: t('web.colonel.settings'),
