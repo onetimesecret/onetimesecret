@@ -20,8 +20,9 @@ module DomainsAPI
       #   form, which is TestConnection's job) and reports each layer
       #   separately, per docs/runbooks/sso-credential-health.md:
       #
-      #   stored_configuration  all providers; the record reloaded and
-      #                         SsoConfig#validation_errors. When it fails,
+      #   stored_configuration  all providers; the record reloaded,
+      #                         SsoConfig#validation_errors, and every stored
+      #                         client credential decrypts. When it fails,
       #                         every later check is "skipped".
       #   discovery             oidc, entra_id; the same discovery fetch Test
       #                         Connection does, from the STORED issuer /
@@ -284,8 +285,12 @@ module DomainsAPI
         # stored_configuration
         # ──────────────────────────────────────────────────────────────────────────
 
-        # validation_errors reports an undecryptable credential as missing
-        # ("client_secret is required") and never includes a value.
+        # validation_errors reports an undecryptable client credential as
+        # missing ("client_secret is required"), and for oidc, whose secret
+        # is optional, not at all, although build_oidc_options reveals it and
+        # raises at sign-in. So a credential that is stored but will not
+        # decrypt is reported here as unreadable instead. No error carries a
+        # value.
         #
         # SsoConfig#validation_errors only requires tenant_id to be non-empty
         # for entra_id; the UUID shape is enforced on the write path
@@ -295,7 +300,9 @@ module DomainsAPI
         # value fails this check and skips the rest rather than sending an
         # unvalidated path segment to discovery while the probe refuses it.
         def stored_configuration_check
-          errors = @sso_config.validation_errors.map(&:to_s)
+          unreadable = unreadable_client_credentials
+          errors     = @sso_config.validation_errors.map(&:to_s) - unreadable.map { "#{it} is required" }
+          errors.concat(unreadable.map { "#{it} cannot be read (re-enter the value)" })
           errors << TENANT_ID_FORMAT_ERROR if @provider_type == 'entra_id' && !tenant_id_uuid?
           if errors.empty?
             check('stored_configuration', 'passed', 'The saved configuration loads and has every required field.')
@@ -310,6 +317,23 @@ module DomainsAPI
             'The saved configuration could not be read.',
             errors: ["configuration cannot be read (#{ex.class.name})"],
           )
+        end
+
+        # Client credentials that are stored but fail to reveal, in the
+        # wording SsoConfig#saml_validation_errors uses for the SAML trio.
+        # An unset credential is not unreadable: an oidc public client has
+        # no secret.
+        #
+        # @return [Array<String>] subset of client_id, client_secret
+        def unreadable_client_credentials
+          return [] unless Onetime::CustomDomain::SsoConfig.client_credentials?(@provider_type)
+
+          %w[client_id client_secret].select do |name|
+            @sso_config.public_send(name)&.reveal { nil }
+            false
+          rescue StandardError
+            true
+          end
         end
 
         # ──────────────────────────────────────────────────────────────────────────
@@ -450,8 +474,9 @@ module DomainsAPI
         end
 
         # @return [Array(String, String)] or [nil, nil] when either cannot be
-        #   revealed (validation_errors has already reported that as missing;
-        #   this is a guard for a reveal that fails between the two reads).
+        #   revealed (stored_configuration has already reported that as
+        #   unreadable; this is a guard for a reveal that fails between the
+        #   two reads).
         def reveal_client_credentials
           [@sso_config.client_id&.reveal { it }.to_s, @sso_config.client_secret&.reveal { it }.to_s]
         rescue StandardError => ex

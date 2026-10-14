@@ -566,6 +566,74 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
         expect(check(run, 'stored_configuration')[:status]).to eq('passed')
       end
     end
+
+    # validation_errors exempts an oidc secret (public clients) and so says
+    # nothing when a stored one will not decrypt; build_oidc_options reveals
+    # it and raises at sign-in.
+    context 'when a stored oidc client_secret cannot be revealed' do
+      let(:provider_type) { 'oidc' }
+      let(:issuer) { 'https://idp.example.com' }
+      let(:tenant_id) { '' }
+
+      before do
+        allow(sso_config).to receive(:client_secret).and_return(
+          double('ConcealedString').tap { |c| allow(c).to receive(:reveal).and_raise(StandardError, "key #{secret}") },
+        )
+      end
+
+      it 'fails as unreadable and skips discovery, without the exception message' do
+        allow(logic).to receive(:discovery_fetcher).and_return(discovery_fetcher)
+        allow(discovery_fetcher).to receive(:fetch)
+
+        result = run
+
+        expect(check(result, 'stored_configuration')).to include(
+          status: 'failed',
+          details: { errors: ['client_secret cannot be read (re-enter the value)'] },
+        )
+        expect(check(result, 'discovery')[:status]).to eq('skipped')
+        expect(result[:overall]).to eq('failed')
+        expect(discovery_fetcher).not_to have_received(:fetch)
+        expect_no_leak(result)
+      end
+    end
+
+    context 'when an oidc public client has no stored client_secret' do
+      let(:provider_type) { 'oidc' }
+      let(:issuer) { 'https://idp.example.com' }
+      let(:tenant_id) { '' }
+
+      it 'passes' do
+        allow(sso_config).to receive(:client_secret).and_return(nil)
+        allow(Resolv).to receive(:getaddresses).and_return(['203.0.113.10'])
+        stub_discovery_ok(issuer)
+
+        expect(check(run, 'stored_configuration')[:status]).to eq('passed')
+      end
+    end
+
+    context 'when a stored entra_id client_secret cannot be revealed' do
+      # What validation_errors says of it: missing, not unreadable.
+      let(:validation_errors) { ['client_secret is required'] }
+
+      before do
+        allow(sso_config).to receive(:client_secret).and_return(
+          double('ConcealedString').tap { |c| allow(c).to receive(:reveal).and_raise(StandardError, "key #{secret}") },
+        )
+      end
+
+      it 'reports it as unreadable instead of missing' do
+        probe_stub = stub_request(:post, token_url)
+
+        result = run
+
+        expect(check(result, 'stored_configuration')[:details]).to eq(
+          errors: ['client_secret cannot be read (re-enter the value)'],
+        )
+        expect(probe_stub).not_to have_been_requested
+        expect_no_leak(result)
+      end
+    end
   end
 
   describe 'discovery (entra_id, from the stored tenant_id)' do
@@ -712,10 +780,19 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
       end
     end
 
-    context 'when a stored credential cannot be revealed' do
+    # stored_configuration reveals it first; this is a reveal that starts
+    # failing between that read and the probe's.
+    context 'when a stored credential stops revealing after stored_configuration' do
       before do
+        reveals = 0
         allow(sso_config).to receive(:client_secret).and_return(
-          double('ConcealedString').tap { |c| allow(c).to receive(:reveal).and_raise(StandardError, "key #{secret}") },
+          double('ConcealedString').tap do |c|
+            allow(c).to receive(:reveal) do |&blk|
+              raise StandardError, "key #{secret}" if (reveals += 1) > 1
+
+              blk.call(secret)
+            end
+          end,
         )
       end
 
