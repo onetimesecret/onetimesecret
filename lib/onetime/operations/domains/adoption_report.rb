@@ -89,12 +89,17 @@ module Onetime
 
           parts = []
           parts << "configs: #{configs.join(', ')}" unless configs.empty?
-          parts << "brand (#{brand_keys} fields)" if brand_keys.positive?
+          parts << "brand (#{count(brand_keys, 'field')})" if brand_keys.positive?
           parts << 'logo' if logo
           parts << 'icon' if icon
-          parts << "#{receipts} receipts" if receipts.positive?
+          parts << count(receipts, 'receipt') if receipts.positive?
           parts.empty? ? 'nothing' : parts.join('; ')
         end
+
+        def count(number, noun)
+          "#{number} #{noun}#{'s' unless number == 1}"
+        end
+        private :count
 
         # Lines for operator output (CLI text, Repair's repairs_applied).
         #

@@ -1165,8 +1165,9 @@ module Onetime
       # are kept; the operator tools list them
       # (Onetime::Operations::Domains::AdoptionReport).
       #
-      # Callers: create!(..., adopt_orphan: true), from the operator tool
-      # Operations::Domains::Create. Not reachable from the customer API.
+      # Callers: the operator tools only. Operations::Domains::Create through
+      # create!(..., adopt_orphan: true), and Operations::Domains::Repair and
+      # Transfer directly. Not reachable from the customer API.
       #
       # @param existing [CustomDomain] The orphaned domain to claim
       # @param org_id [String] The organization ID claiming the domain
