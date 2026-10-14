@@ -30,7 +30,8 @@ module Onetime
     # (approximated, caddy_on_demand), its ownership is verified or held by a
     # colonel override. Under passthrough, registration is the basis
     # (ADR-049). features.domains.serve_unverified=true serves every
-    # registered record. Any other found record classifies :unverified.
+    # registered record that has an organization. Any other found record
+    # classifies :unverified.
     #
     # `call` answers :unverified itself: 404, a fixed plain-text body and
     # `cache-control: no-store`, without calling the application below and

@@ -10,8 +10,8 @@ Changed
   domain. Under ``passthrough``, registration by the owning organization is
   enough, as before. A domain record with no organization is not served.
 - ``features.domains.serve_unverified`` (``DOMAINS_SERVE_UNVERIFIED``),
-  default ``false``, keeps the previous behaviour when set to ``true`` and
-  logs a warning.
+  default ``false``, keeps the previous behaviour for domains that have an
+  organization when set to ``true``, and logs a warning.
 - Before upgrading, run ``bin/ots domains verify --all`` so that domains
   whose TXT record is in place are recorded as verified, and check the
   remaining unverified domains that are still in use. An operator can mark a

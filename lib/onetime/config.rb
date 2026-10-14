@@ -156,8 +156,8 @@ module Onetime
             # domain to be served (see serve_unverified). Canonical domains
             # are unaffected.
             'require_verified' => false,
-            # When true, every registered custom domain is served whatever
-            # its ownership state, and a warning is logged once per process.
+            # When true, every registered custom domain that has an
+            # organization is served whatever its ownership state, and a warning is logged once per process.
             # When false (default), a domain is served only once its
             # ownership is verified under a strategy that checks ownership
             # (CustomDomain#served_as_tenant?). Read as a strict boolean.

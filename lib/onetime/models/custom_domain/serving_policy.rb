@@ -46,11 +46,14 @@ module Onetime
         ownership_verified == true
       end
 
-      # #serving_authorized?, or any registered record while the operator has
-      # set features.domains.serve_unverified to true.
+      # #serving_authorized?, or any record with an organization while the
+      # operator has set features.domains.serve_unverified to true. A record
+      # with no organization is never served, whatever the setting.
       #
       # @return [Boolean]
       def served_as_tenant?
+        return false if org_id.to_s.empty?
+
         serving_authorized? || self.class.serve_unverified?
       end
 
@@ -83,8 +86,8 @@ module Onetime
         end
 
         # features.domains.serve_unverified, read as a strict boolean. When
-        # true, a registered record is served whatever its ownership state
-        # (#served_as_tenant?). The first true read in a process logs one
+        # true, a record with an organization is served whatever its
+        # ownership state (#served_as_tenant?). The first true read in a process logs one
         # warning.
         #
         # @return [Boolean]

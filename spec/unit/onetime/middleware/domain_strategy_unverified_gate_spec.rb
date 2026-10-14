@@ -277,11 +277,26 @@ RSpec.describe Onetime::Middleware::DomainStrategy, 'unverified custom domains' 
         .once
     end
 
-    it 'serves an orphan too, as before the gate existed' do
+    it 'still does not serve an orphan (no organization), verified or not' do
       configure_domains(validation_strategy: 'approximated', serve_unverified: true)
+
+      [nil, ''].each do |org_id|
+        [nil, true].each do |ownership_verified|
+          record = domain_record(org_id: org_id, ownership_verified: ownership_verified)
+          serve(record)
+
+          expect([record.served_as_tenant?, classify.strategy]).to eq([false, :unverified]),
+            "org_id=#{org_id.inspect} ownership_verified=#{ownership_verified.inspect}"
+        end
+      end
+      expect(request.first).to eq(404)
+    end
+
+    it 'still does not serve an orphan under passthrough' do
+      configure_domains(validation_strategy: 'passthrough', serve_unverified: true)
       serve(domain_record(org_id: nil))
 
-      expect(classify.strategy).to eq(:custom)
+      expect(classify.strategy).to eq(:unverified)
     end
 
     it 'does not warn while every found record is served anyway' do
