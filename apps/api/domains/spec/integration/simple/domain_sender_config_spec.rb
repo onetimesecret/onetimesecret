@@ -1166,4 +1166,78 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
       expect(body_text).not_to include('full-secret-value-here')
     end
   end
+
+  # ==========================================================================
+  # A concurrent writer of the same record (GuardedConfigWrites). Background
+  # jobs write verification state to the record while a request edits the
+  # sender identity; the request must not write back the state it loaded.
+  # ==========================================================================
+
+  describe 'with a concurrent writer' do
+    include ConcurrentConfigWriterHelpers
+
+    let(:model) { Onetime::CustomDomain::MailerConfig }
+    let(:audit_events) { [] }
+
+    before do
+      enable_sender_feature_flag
+      model.create!(
+        domain_id: test_custom_domain.identifier,
+        provider: 'ses',
+        from_name: 'Original Sender',
+        from_address: 'original@acme-corp.example.com',
+        enabled: false,
+      )
+      login_as(test_owner)
+      allow(OT).to receive(:info).and_wrap_original do |original, *args, **kwargs|
+        prefix = args.first.to_s
+        audit_events << prefix.delete_prefix('[DOMAIN_SENDER_CONFIG] ') if prefix.start_with?('[DOMAIN_SENDER_CONFIG] ')
+        original.call(*args, **kwargs)
+      end
+    end
+
+    def mark_verified_concurrently
+      write_config_concurrently(model, test_custom_domain.identifier, verification_status: 'verified')
+    end
+
+    def stored = model.find_by_domain_id(test_custom_domain.identifier)
+
+    it 'PATCH keeps verification state written after the config was loaded' do
+      after_config_load(model) { mark_verified_concurrently }
+
+      csrf_patch api_path(test_custom_domain.extid), { from_name: 'Updated Sender' }
+
+      expect(last_response.status).to eq(200), last_response.body
+      expect([stored.from_name, stored.verification_status]).to eq(['Updated Sender', 'verified'])
+    end
+
+    it 'PATCH reads again when verification state lands before the commit' do
+      after_watched_read(model, times: 1) { mark_verified_concurrently }
+
+      csrf_patch api_path(test_custom_domain.extid), { from_name: 'Updated Sender' }
+
+      expect(last_response.status).to eq(200), last_response.body
+      expect([stored.from_name, stored.verification_status]).to eq(['Updated Sender', 'verified'])
+    end
+
+    it 'PUT keeps verification state written after the config was loaded' do
+      after_config_load(model) { mark_verified_concurrently }
+
+      csrf_put api_path(test_custom_domain.extid), valid_ses_params.merge(
+        from_name: 'Replacement Sender', from_address: 'original@acme-corp.example.com',
+      )
+
+      expect(last_response.status).to eq(200), last_response.body
+      expect([stored.from_name, stored.verification_status]).to eq(['Replacement Sender', 'verified'])
+    end
+
+    it 'PUT compares the enabled event with the record it replaced' do
+      after_config_load(model) { write_config_concurrently(model, test_custom_domain.identifier, enabled: 'true') }
+
+      csrf_put api_path(test_custom_domain.extid), valid_ses_params.merge(from_address: 'original@acme-corp.example.com')
+
+      expect(last_response.status).to eq(200), last_response.body
+      expect(audit_events).to eq(['domain_sender_config_replaced'])
+    end
+  end
 end
