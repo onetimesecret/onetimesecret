@@ -136,11 +136,6 @@ const mockExistingFormState: SsoConfigFormState = {
   grant_org_scope: false,
 };
 
-const mockEnforceSsoOnlyFormState: SsoConfigFormState = {
-  ...mockExistingFormState,
-  enforce_sso_only: true,
-};
-
 // SAML (#4450): no client credential; the IdP trio is plaintext on the wire.
 const SAML_CERT = '-----BEGIN CERTIFICATE-----\nMIIB\n-----END CERTIFICATE-----';
 
