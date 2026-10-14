@@ -102,27 +102,23 @@ module DomainsAPI
         def process
           OT.ld "[PatchSsoConfig] Patching SSO config for domain #{@domain_id} by user #{cust.extid}"
 
-          # Track enabled state change for audit
-          was_enabled             = @existing_config&.enabled?
-          # Read BEFORE the update: update_existing_config mutates the same
-          # object (@sso_config = @existing_config).
-          previous_name_id_format = stored_name_id_format(@existing_config)
-
           if @existing_config
-            # Compute changes before updating
-            changes = compute_sso_changes(@existing_config, normalized_change_params)
-            update_existing_config
-            log_name_id_format_change_if_rekeyed(previous_name_id_format, was_enabled)
+            # Audit from the state this write replaced, not from the config
+            # raise_concerns loaded (see update_existing_config)
+            previous    = update_existing_config
+            was_enabled = previous[:was_enabled]
+            log_name_id_format_change_if_rekeyed(previous[:name_id_format], was_enabled)
             log_sso_change_event(
               event: :domain_sso_config_updated,
               domain: @custom_domain,
               org: @organization,
               actor: cust,
               provider_type: @provider_type,
-              changes: changes,
+              changes: previous[:changes],
             )
           else
-            create_new_config
+            was_enabled = nil
+            guarded_config_write { create_new_config }
             log_sso_change_event(
               event: :domain_sso_config_created,
               domain: @custom_domain,
@@ -166,6 +162,9 @@ module DomainsAPI
 
         private
 
+        # The checks that read the stored record. update_existing_config runs
+        # them again on the record it re-reads under WATCH, which is the one
+        # the write applies to.
         def validate_against_stored_config
           # Validate provider_type
           validate_provider_type
@@ -186,7 +185,7 @@ module DomainsAPI
 
           # The flags the persisted result will carry (PATCH semantics: the
           # parsed request value when the key is present and non-null, else
-          # the stored one). update_existing_config writes exactly these.
+          # the stored one). apply_patch writes exactly these.
           @effective_enabled = @enabled_provided ? @enabled : @existing_config&.enabled?
           effective_enforce  = @enforce_sso_only_provided ? @enforce_sso_only : @existing_config&.enforce_sso_only?
 
@@ -250,7 +249,7 @@ module DomainsAPI
         # For new configs: client_id and client_secret are required
         # For updates: falls back to existing values when not provided
         def validate_client_credentials
-          # SAML has no client credential (#4450); update_existing_config
+          # SAML has no client credential (#4450); apply_patch
           # clears any stored one on a switch to saml.
           return unless Onetime::CustomDomain::SsoConfig.client_credentials?(@provider_type)
 
@@ -378,13 +377,33 @@ module DomainsAPI
         # - When provided as []: explicitly clears all existing domains
         # - When provided with values: replaces with new values
         #
-        # Uses transaction with commit_fields to prevent race condition where
-        # config could be deleted between existence check and update.
+        # The record raise_concerns loaded can be stale by now, and writing it
+        # back would revert fields a concurrent writer committed since.
+        # update_for_domain! re-reads it under WATCH and retries when it
+        # changes before the commit (GuardedConfigWrites). The request is
+        # resolved and validated again against that record, and the audit
+        # values come from it.
         #
+        # @return [Hash] :changes, :was_enabled and :name_id_format of the
+        #   record before this write
         def update_existing_config
-          @sso_config = @existing_config
-          apply_patch(@sso_config)
-          @sso_config.commit_fields
+          @sso_config, previous = guarded_config_write do
+            Onetime::CustomDomain::SsoConfig.update_for_domain!(@custom_domain.identifier) do |stored|
+              # raise_concerns filled some request values from the record it
+              # loaded; start again from the request.
+              process_params
+              @existing_config = stored
+              validate_against_stored_config
+              state            = {
+                changes: compute_sso_changes(stored, normalized_change_params),
+                was_enabled: stored.enabled?,
+                name_id_format: stored_name_id_format(stored),
+              }
+              apply_patch(stored)
+              state
+            end
+          end
+          previous
         end
 
         # @param config [Onetime::CustomDomain::SsoConfig] the stored record
@@ -458,7 +477,7 @@ module DomainsAPI
         end
 
         # Input for compute_sso_changes: the SAFE_FIELDS values
-        # update_existing_config will actually write, keyed as the change
+        # apply_patch will actually write, keyed as the change
         # detector expects. The detector diffs only the keys it finds, so
         # this hash mirrors the write path's own conditions rather than
         # echoing the request:
@@ -504,7 +523,7 @@ module DomainsAPI
           values.merge(implicit_write_values)
         end
 
-        # The disable-only branch of update_existing_config writes enabled
+        # The disable-only branch of apply_patch writes enabled
         # and, when the request carried it, enforce_sso_only, both false.
         #
         # @return [Hash{String => false}]
@@ -514,7 +533,7 @@ module DomainsAPI
           values
         end
 
-        # The SAFE_FIELDS values update_existing_config will write that the
+        # The SAFE_FIELDS values apply_patch will write that the
         # request did not name, keyed as the change detector expects. Mirrors
         # the write path exactly: the conditions here are the ones used by
         # apply_token_endpoint_auth_method, the provider-switch block, and

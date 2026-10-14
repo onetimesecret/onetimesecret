@@ -536,51 +536,18 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
         end
 
         context 'with a concurrent writer' do
+          include ConcurrentConfigWriterHelpers
+
+          let(:model) { Onetime::CustomDomain::SsoConfig }
           let(:replacement_params) { initial_params.merge(display_name: 'Replacement SSO', enabled: true) }
 
-          # Writes the stored record the way a second request would: from a
-          # fiber with empty storage, so it takes its own pool connection
-          # rather than the one the PUT pinned for WATCH.
           def write_concurrently(**fields)
-            Fiber.new(storage: {}) do
-              other = Onetime::CustomDomain::SsoConfig.load(test_custom_domain.identifier)
-              fields.each { |name, value| other.public_send(:"#{name}=", value) }
-              other.commit_fields
-            end.resume
-          end
-
-          def delete_concurrently
-            Fiber.new(storage: {}) do
-              Onetime::CustomDomain::SsoConfig.delete_for_domain!(test_custom_domain.identifier)
-            end.resume
-          end
-
-          # Runs the block once, right after the PUT's raise_concerns loads the config.
-          def after_config_load
-            fired = false
-            allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id).and_wrap_original do |original, *args|
-              original.call(*args).tap do |config|
-                next if fired
-
-                fired = true
-                yield config
-              end
-            end
-          end
-
-          # Runs the block after each of the first `times` re-reads under WATCH.
-          def after_watched_reread(times:)
-            after_config_load do |config|
-              rereads = 0
-              allow(config).to receive(:refresh!).and_wrap_original do |refresh|
-                refresh.call.tap { yield rereads if (rereads += 1) <= times }
-              end
-            end
+            write_config_concurrently(model, test_custom_domain.identifier, **fields)
           end
 
           it 'records the delta from a write committed after the config was loaded' do
             seed_audited_config(initial_params)
-            after_config_load { write_concurrently(display_name: 'Concurrent SSO', enabled: 'true') }
+            after_config_load(model) { write_concurrently(display_name: 'Concurrent SSO', enabled: 'true') }
 
             csrf_put api_path(test_custom_domain.extid), replacement_params
 
@@ -590,9 +557,20 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
             expect(audit_payloads.map { |payload| payload['event'] }).to eq(['domain_sso_config_replaced'])
           end
 
+          it 'records a field the concurrent write cleared as restored' do
+            seed_audited_config(initial_params)
+            # [] stores nil, which deletes the field from the hash
+            after_config_load(model) { write_concurrently(allowed_domains: []) }
+
+            csrf_put api_path(test_custom_domain.extid), initial_params
+
+            expect(last_response.status).to eq(200), last_response.body
+            expect(replacement_changes).to eq('allowed_domains' => { 'from' => [], 'to' => ['example.com'] })
+          end
+
           it 're-reads and records the newer state when a write lands before the commit' do
             seed_audited_config(initial_params)
-            after_watched_reread(times: 1) { write_concurrently(display_name: 'Concurrent SSO', enabled: 'true') }
+            after_watched_read(model, times: 1) { write_concurrently(display_name: 'Concurrent SSO', enabled: 'true') }
 
             csrf_put api_path(test_custom_domain.extid), replacement_params
 
@@ -605,7 +583,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
 
           it 'refuses with a conflict and logs nothing when every attempt is overtaken' do
             seed_audited_config(initial_params)
-            after_watched_reread(times: 3) { |n| write_concurrently(display_name: "Concurrent SSO #{n}") }
+            after_watched_read(model, times: 3) { |n| write_concurrently(display_name: "Concurrent SSO #{n}") }
 
             csrf_put api_path(test_custom_domain.extid), replacement_params
 
@@ -618,14 +596,29 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
 
           it 'refuses with a conflict and does not recreate a config deleted after it was loaded' do
             seed_audited_config(initial_params)
-            after_config_load { delete_concurrently }
+            after_config_load(model) { as_concurrent_writer { model.delete_for_domain!(test_custom_domain.identifier) } }
 
             csrf_put api_path(test_custom_domain.extid), replacement_params
 
             expect(last_response.status).to eq(422), last_response.body
             expect(json_body['error_type']).to eq('conflict')
             expect(audit_payloads).to be_empty
-            expect(Onetime::CustomDomain::SsoConfig.exists_for_domain?(test_custom_domain.identifier)).to be(false)
+            expect(model.exists_for_domain?(test_custom_domain.identifier)).to be(false)
+          end
+
+          it 'refuses with a conflict and keeps the winner when a create races it' do
+            after_config_load(model) do
+              as_concurrent_writer do
+                model.create!(domain_id: test_custom_domain.identifier, **initial_params.merge(display_name: 'Concurrent SSO'))
+              end
+            end
+
+            csrf_put api_path(test_custom_domain.extid), replacement_params
+
+            expect(last_response.status).to eq(422), last_response.body
+            expect(json_body['error_type']).to eq('conflict')
+            expect(audit_payloads).to be_empty
+            expect(model.find_by_domain_id(test_custom_domain.identifier).display_name).to eq('Concurrent SSO')
           end
         end
       end
@@ -1357,6 +1350,83 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
         expect(last_response.status).to eq(422)
         body = json_body
         expect(body['error']).to include('required')
+      end
+    end
+
+    # PATCH re-reads the record under WATCH (GuardedConfigWrites) and resolves,
+    # validates, writes and audits against it, not the one raise_concerns loaded.
+    context 'with a concurrent writer' do
+      include ConcurrentConfigWriterHelpers
+
+      let(:model) { Onetime::CustomDomain::SsoConfig }
+      let(:audit_payloads) { [] }
+
+      before do
+        login_as(test_owner)
+        allow(OT).to receive(:info) do |msg, json|
+          audit_payloads << JSON.parse(json) if msg.start_with?('[DOMAIN_SSO_CHANGE] ')
+        end
+      end
+
+      def write_concurrently(**fields)
+        write_config_concurrently(model, test_custom_domain.identifier, **fields)
+      end
+
+      def stored = model.find_by_domain_id(test_custom_domain.identifier)
+
+      def events = audit_payloads.map { |payload| payload['event'] }
+
+      it 'keeps a field written after the config was loaded' do
+        after_config_load(model) { write_concurrently(grant_org_scope: 'true') }
+
+        csrf_patch api_path(test_custom_domain.extid), { display_name: 'Updated Name' }
+
+        expect(last_response.status).to eq(200), last_response.body
+        expect([stored.display_name, stored.grant_org_scope?]).to eq(['Updated Name', true])
+      end
+
+      it 'audits the changes from the record it replaced' do
+        after_config_load(model) { write_concurrently(display_name: 'Concurrent Name', enabled: 'true') }
+
+        csrf_patch api_path(test_custom_domain.extid), { display_name: 'Updated Name', enabled: true }
+
+        expect(last_response.status).to eq(200), last_response.body
+        update = audit_payloads.find { |payload| payload['event'] == 'domain_sso_config_updated' }
+        expect(update['changes']).to eq('display_name' => { 'from' => 'Concurrent Name', 'to' => 'Updated Name' })
+        # enabled was already true: no enabled event
+        expect(events).to eq(['domain_sso_config_updated'])
+      end
+
+      it 'validates against the record it replaced and keeps a concurrent disable' do
+        write_concurrently(enabled: 'true')
+        after_config_load(model) { write_concurrently(enabled: 'false') }
+
+        csrf_patch api_path(test_custom_domain.extid), { enforce_sso_only: true }
+
+        expect(last_response.status).to eq(422), last_response.body
+        expect(json_body['field']).to eq('enforce_sso_only')
+        expect([stored.enabled?, stored.enforce_sso_only?]).to eq([false, false])
+        expect(audit_payloads).to be_empty
+      end
+
+      it 'reads again when a write lands before the commit' do
+        after_watched_read(model, times: 1) { write_concurrently(grant_org_scope: 'true') }
+
+        csrf_patch api_path(test_custom_domain.extid), { display_name: 'Updated Name' }
+
+        expect(last_response.status).to eq(200), last_response.body
+        expect([stored.display_name, stored.grant_org_scope?]).to eq(['Updated Name', true])
+      end
+
+      it 'refuses with a conflict and logs nothing when every attempt is overtaken' do
+        after_watched_read(model, times: 3) { |n| write_concurrently(display_name: "Concurrent Name #{n}") }
+
+        csrf_patch api_path(test_custom_domain.extid), { display_name: 'Updated Name' }
+
+        expect(last_response.status).to eq(422), last_response.body
+        expect(json_body['error_type']).to eq('conflict')
+        expect(stored.display_name).to eq('Concurrent Name 3')
+        expect(audit_payloads).to be_empty
       end
     end
   end

@@ -121,7 +121,7 @@ module DomainsAPI
             )
           else
             was_enabled = nil
-            create_new_config
+            guarded_config_write { create_new_config }
             log_sso_change_event(
               event: :domain_sso_config_created,
               domain: @custom_domain,
@@ -254,80 +254,55 @@ module DomainsAPI
           )
         end
 
-        # Replaces existing SSO config with PUT semantics and returns the
-        # state it replaced, for the audit events in #process.
+        # Replaces the stored config with PUT semantics and returns the state it
+        # replaced, for the audit events in #process.
         #
-        # raise_concerns loaded @existing_config, and a concurrent PUT or
-        # PATCH may have committed since. The replaced state is therefore
-        # re-read after WATCH on the record's key, and the write commits only
-        # if that key is unchanged at EXEC. On a conflict Familia re-runs the
-        # read and the write (3 attempts), so each event describes the state
-        # its own write replaced. The pin keeps WATCH, the re-read and
-        # MULTI/EXEC on one connection (see Onetime.with_pinned_dbclient).
+        # The record raise_concerns loaded can be stale by now: a concurrent PUT
+        # or PATCH may have committed since. update_for_domain! re-reads it under
+        # WATCH and retries when it changes before the commit
+        # (GuardedConfigWrites), so each event describes the state its own write
+        # replaced.
         #
         # @return [Hash] :changes, :was_enabled and :name_id_format of the
         #   replaced record
         def replace_existing_config
-          @sso_config = @existing_config
-          replaced    = nil
-
-          written = Onetime.with_pinned_dbclient do
-            @sso_config.atomic_write(
-              watch_keys: [@sso_config.dbkey],
-              pre_check: -> { replaced = read_replaced_state },
-            ) { assign_replacement_fields }
+          @sso_config, replaced = guarded_config_write do
+            Onetime::CustomDomain::SsoConfig.update_for_domain!(@custom_domain.identifier) do |stored|
+              state = {
+                changes: compute_sso_changes(stored, replacement_change_params),
+                was_enabled: stored.enabled?,
+                # A PUT that omits name_id_format restores persistent, which
+                # re-keys a record that had another.
+                name_id_format: stored_name_id_format(stored),
+              }
+              assign_replacement_fields(stored)
+              state
+            end
           end
-          raise Onetime::Problem, "SSO config replacement was not written for domain #{@domain_id}" unless written
-
           replaced
-        rescue Familia::KeyNotFoundError, Familia::OptimisticLockError
-          # Deleted since raise_concerns, or still changing after 3 attempts
-          raise_form_error(
-            'The SSO configuration changed while this update was being saved. Reload it and try again.',
-            field: :domain_id,
-            error_type: :conflict,
-          )
         end
 
-        # Runs between WATCH and MULTI, where reads return stored values while
-        # the key is guarded.
-        def read_replaced_state
-          # Checked here because refresh! (Familia 2.12) tests the raw EXISTS
-          # reply, and 0 is truthy: a deleted record would refresh to nothing
-          # and leave the stale fields in place.
-          raise Familia::KeyNotFoundError, @sso_config.dbkey unless @sso_config.exists?
-
-          @sso_config.refresh!
-          {
-            changes: compute_sso_changes(@sso_config, replacement_change_params),
-            was_enabled: @sso_config.enabled?,
-            # A PUT that omits name_id_format restores persistent, which
-            # re-keys a record that had another.
-            name_id_format: stored_name_id_format(@sso_config),
-          }
-        end
-
-        # Runs inside the MULTI; atomic_write persists the fields after it.
-        def assign_replacement_fields
+        # @param config [Onetime::CustomDomain::SsoConfig] the stored record
+        def assign_replacement_fields(config)
           # PUT semantics: full replacement - set ALL fields from request
-          @sso_config.provider_type    = @provider_type
-          @sso_config.display_name     = @display_name    # Empty string clears the field
+          config.provider_type    = @provider_type
+          config.display_name     = @display_name    # Empty string clears the field
           # Provider-scoped fields: '' clears. client_secret is empty only for
           # OIDC public clients and SAML (validate_client_credentials requires
           # it otherwise).
-          replacement_attributes.each { |name, value| @sso_config.public_send(:"#{name}=", value) }
-          @sso_config.allowed_domains  = @allowed_domains # Empty array clears the field
-          @sso_config.enabled          = @enabled.to_s
-          @sso_config.enforce_sso_only = @enforce_sso_only.to_s
-          @sso_config.grant_org_scope  = @grant_org_scope.to_s
+          replacement_attributes.each { |name, value| config.public_send(:"#{name}=", value) }
+          config.allowed_domains  = @allowed_domains # Empty array clears the field
+          config.enabled          = @enabled.to_s
+          config.enforce_sso_only = @enforce_sso_only.to_s
+          config.grant_org_scope  = @grant_org_scope.to_s
 
           # Update timestamp for replacement
-          @sso_config.updated = Familia.now.to_i
+          config.updated = Familia.now.to_i
 
           # Fail closed if the request validators above missed a field
           # combination: the model owns the invariants (SsoConfig#validation_errors)
           # and nothing invalid may be committed.
-          errors = @sso_config.validation_errors
+          errors = config.validation_errors
           raise_form_error(errors.join('; '), error_type: :invalid) if errors.any?
         end
 
