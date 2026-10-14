@@ -396,7 +396,9 @@ positive = [
     'lib/onetime/middleware/strip_forwarded_host.rb',
     'lib/onetime/middleware/public_host_rewrite.rb',
     'lib/onetime/middleware/http_origin_options.rb',
+    'lib/onetime/models/custom_domain.rb',
     'lib/onetime/models/custom_domain/lookup.rb',
+    'lib/onetime/models/custom_domain/serving_policy.rb',
     'lib/onetime/application/organization_loader.rb',
     # Boot configuration and gems.
     'etc/defaults/config.defaults.yaml', 'Gemfile', 'Gemfile.lock',
@@ -432,7 +434,7 @@ negative = [
     'lib/onetime/models/organization.rb', 'lib/onetime/middleware/security.rb',
     'lib/onetime/application/middleware_stack.rb',
     'lib/onetime/middleware/cookie_tossing.rb', 'lib/onetime/middleware/registry.rb',
-    'lib/onetime/models/custom_domain.rb', 'lib/onetime/utils/canonical_hosts.rb',
+    'lib/onetime/utils/canonical_hosts.rb',
     'lib/onetime/mail/templates/secret_link.html.erb',
     'lib/onetime/jobs/workers/email_worker.rb', 'lib/tasks/spec.rake',
     'etc/defaults/logging.defaults.yaml', 'etc/examples/puma.example.rb',
