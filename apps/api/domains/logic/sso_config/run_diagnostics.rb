@@ -50,7 +50,12 @@ module DomainsAPI
       #   checks ran against (SsoConfig#credential_fingerprint, compared
       #   under WATCH), so an edit that lands during the provider calls
       #   leaves the record off. Activation emits the same
-      #   domain_sso_config_enabled change event as PUT/PATCH.
+      #   domain_sso_config_enabled change event as PUT/PATCH, and refuses
+      #   the records PUT/PATCH would refuse to switch on: a provider type
+      #   outside PROVIDER_TYPES (validate_provider_type) and a saml record
+      #   while SAML is off on the install (reject_saml_disabled!). The
+      #   sign-in ladder refuses both anyway; this keeps the stored flag
+      #   from claiming a state no write path allows.
       #
       # Response:
       # - user_id, provider_type, checked_at (ISO 8601 UTC)
@@ -66,6 +71,8 @@ module DomainsAPI
       #   activated              this run turned the record on
       #   already_enabled        the record was on before this run wrote
       #   not_passed             overall was failed or inconclusive
+      #   not_permitted          the provider type is unsupported, or saml
+      #                          while SAML is off on the install
       #   configuration_changed  the credential fields changed, or the
       #                          record was deleted, while the checks ran
       #
@@ -102,7 +109,9 @@ module DomainsAPI
 
         STATUSES = %w[passed failed inconclusive unsupported skipped].freeze
 
-        ACTIVATION_OUTCOMES = %w[not_requested activated already_enabled not_passed configuration_changed].freeze
+        ACTIVATION_OUTCOMES = %w[
+          not_requested activated already_enabled not_passed not_permitted configuration_changed
+        ].freeze
 
         # Audit verb for one completed run. Namespaced `<resource>.<action>`
         # like the limiter's `sso.diagnostics_throttled`.
@@ -321,6 +330,9 @@ module DomainsAPI
           @enabled_after = @sso_config.enabled?
           return 'not_requested' unless @activate
           return 'not_passed' unless @overall == 'passed'
+          # provider_type is part of the fingerprint, so the guarded write
+          # below refuses a record whose type changed after this check.
+          return 'not_permitted' unless activation_permitted?
 
           refusal   = nil
           condition = ->(stored) {
@@ -352,6 +364,17 @@ module DomainsAPI
             provider_type: @provider_type,
           )
           'activated'
+        end
+
+        # PUT/PATCH's refusals for switching a record on that no check
+        # above repeats (see the class note).
+        #
+        # @return [Boolean]
+        def activation_permitted?
+          return false unless Onetime::CustomDomain::SsoConfig::PROVIDER_TYPES.include?(@provider_type)
+          return false if @provider_type == 'saml' && !Onetime::SsoProvider::Saml.enabled?
+
+          true
         end
 
         def check(name, status, message, details = {})

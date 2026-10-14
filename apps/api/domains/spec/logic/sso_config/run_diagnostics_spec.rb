@@ -385,6 +385,42 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
       end
     end
 
+    # PUT/PATCH refuse to switch these records on (validate_provider_type,
+    # reject_saml_disabled!); a passing check must not either.
+    context 'when the stored provider type is no longer supported' do
+      let(:provider_type) { 'github' }
+
+      it 'refuses to activate a passing run' do
+        result = run
+
+        expect(result).to include(overall: 'passed', activation: 'not_permitted', enabled: false)
+        expect(Onetime::CustomDomain::SsoConfig).not_to have_received(:update_for_domain_if)
+      end
+    end
+
+    context 'when a saml record passes while SAML is off on the install' do
+      let(:provider_type) { 'saml' }
+      let(:tenant_id) { '' }
+
+      before do
+        allow(sso_config).to receive(:reveal_saml_field).with(:idp_cert).and_return(DomainSsoTestFixtures.saml_cert_pem)
+        allow(Onetime::SsoProvider::Saml).to receive(:enabled?).and_return(false)
+      end
+
+      it 'refuses to activate' do
+        result = run
+
+        expect(result).to include(overall: 'passed', activation: 'not_permitted', enabled: false)
+        expect(Onetime::CustomDomain::SsoConfig).not_to have_received(:update_for_domain_if)
+      end
+
+      it 'activates once SAML is on' do
+        allow(Onetime::SsoProvider::Saml).to receive(:enabled?).and_return(true)
+
+        expect(run).to include(overall: 'passed', activation: 'activated', enabled: true)
+      end
+    end
+
     context 'when a check fails' do
       before { refuse_credentials('AADSTS7000215') }
 
