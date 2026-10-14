@@ -520,7 +520,7 @@ const certificateExpiry = computed(() => {
 // ---------------------------------------------------------------------------
 
 const handleSave = () => {
-  if (!isFormValid.value || props.isSaving) return;
+  if (!isFormValid.value || props.isSaving || props.isDeleting) return;
   emit('save');
 };
 
@@ -1662,7 +1662,7 @@ aria-hidden="true">*</span>
               v-if="!isConfigured || hasUnsavedChanges"
               type="button"
               data-testid="sso-diagnostics-save"
-              :disabled="!isFormValid || isSaving"
+              :disabled="!isFormValid || isSaving || isDeleting"
               @click="handleSave"
               class="inline-flex items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-500 disabled:cursor-not-allowed disabled:opacity-50">
               {{

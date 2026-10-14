@@ -412,6 +412,29 @@ describe('useSsoConfig', () => {
   // ---------------------------------------------------------------------------
 
   describe('saveConfig', () => {
+    it('does not save a dirty SAML configuration while deletion is pending', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: mockSamlConfigData });
+      let resolveDelete!: (value: unknown) => void;
+      mockDeleteConfigForDomain.mockReturnValue(
+        new Promise((resolve) => {
+          resolveDelete = resolve;
+        })
+      );
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+      composable.formState.value.display_name = 'Edited SAML';
+
+      const pendingDelete = composable.deleteConfig();
+      expect(composable.isDeleting.value).toBe(true);
+      await composable.saveConfig();
+      expect(mockSaveConfigForDomain).not.toHaveBeenCalled();
+      expect(composable.isSaving.value).toBe(false);
+
+      resolveDelete({ success: true });
+      await pendingDelete;
+      expect(composable.ssoConfig.value).toBeNull();
+    });
+
     it('builds correct payload without client_secret if not entered', async () => {
       mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
       const composable = useSsoConfig('dm-ext-123');

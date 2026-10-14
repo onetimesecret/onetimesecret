@@ -977,6 +977,23 @@ describe('DomainSsoConfigForm', () => {
       }
     );
 
+    it('blocks both save actions and form submission while a dirty SAML configuration is deleting', async () => {
+      wrapper = await mountComponent({
+        formState: { ...mockSamlFormState, display_name: 'Edited SAML' },
+        ssoConfig: mockSamlConfig,
+        isConfigured: true,
+        hasUnsavedChanges: true,
+      });
+      await wrapper.setProps({ isDeleting: true });
+
+      const button = wrapper.get('[data-testid="sso-diagnostics-save"]');
+      expect(button.attributes('disabled')).toBeDefined();
+      expect(wrapper.get('button[type="submit"]').attributes('disabled')).toBeDefined();
+      await button.trigger('click');
+      await wrapper.get('form').trigger('submit');
+      expect(wrapper.emitted('save')).toBeUndefined();
+    });
+
     it('updates save-first controls after saving and when the saved form becomes dirty', async () => {
       wrapper = await mountComponent({
         formState: { ...mockExistingFormState, client_secret: 'new-secret' },

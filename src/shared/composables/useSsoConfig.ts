@@ -404,6 +404,7 @@ export function useSsoConfig(domainExtId: string) {
    * PATCH; PATCH creates when no record exists).
    */
   const saveConfig = async () => {
+    if (isSaving.value || isDeleting.value) return;
     isSaving.value = true;
     error.value = null;
 
