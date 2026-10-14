@@ -260,6 +260,94 @@ describe('DomainSsoConfigForm', () => {
     return component;
   };
 
+  describe('First-time setup sequence', () => {
+    it.each([
+      ['entra_id', 'setup_register'],
+      ['oidc', 'setup_register'],
+      ['saml', 'setup_register_saml'],
+    ] as const)(
+      'introduces three ordered stages with %s registration guidance',
+      async (provider_type, registrationKey) => {
+        wrapper = await mountComponent({
+          formState: { ...createDefaultFormState(), provider_type },
+        });
+
+        const guide = wrapper.get('[data-testid="sso-setup-guide"]');
+        expect(guide.findAll('ol > li').map((stage) => stage.text())).toEqual(
+          [registrationKey, 'setup_save_check', 'setup_confirm'].map(
+            (key) => `web.organizations.sso.${key}`
+          )
+        );
+        expect(
+          guide.element.compareDocumentPosition(wrapper.get('fieldset').element) &
+            Node.DOCUMENT_POSITION_FOLLOWING
+        ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+      }
+    );
+
+    it('hides the introductory guide after a configuration is saved', async () => {
+      wrapper = await mountComponent({
+        formState: mockExistingFormState,
+        ssoConfig: mockExistingConfig,
+        isConfigured: true,
+      });
+
+      expect(wrapper.find('[data-testid="sso-setup-guide"]').exists()).toBe(false);
+    });
+
+    it.each([
+      ['entra_id', mockExistingFormState, 'sso-callback-url', '#domain-sso-client-id'],
+      [
+        'oidc',
+        { ...mockExistingFormState, provider_type: 'oidc', issuer: 'https://idp.example.com' },
+        'sso-callback-url',
+        '#domain-sso-client-id',
+      ],
+      ['saml', mockSamlFormState, 'sso-saml-sp-details', '#domain-sso-idp-sso-service-url'],
+    ] as const)(
+      'orders %s registration identifiers before credentials, checks and sign-in confirmation',
+      async (_provider, formState, identifiersTestId, credentialSelector) => {
+        wrapper = await mountComponent({ formState });
+
+        const providerCheck = wrapper
+          .findAll('button[type="button"]')
+          .find((button) => button.text().includes('web.organizations.sso.test_button'));
+        expect(providerCheck).toBeDefined();
+        const sequence = [
+          wrapper.get('fieldset').element,
+          wrapper.get(`[data-testid="${identifiersTestId}"]`).element,
+          wrapper.get(credentialSelector).element,
+          providerCheck!.element,
+          wrapper.get('[data-testid="sso-diagnostics"]').element,
+          wrapper.get('[data-testid="sso-confirm-sign-in"]').element,
+        ];
+        for (let index = 1; index < sequence.length; index++) {
+          expect(
+            sequence[index - 1].compareDocumentPosition(sequence[index]) &
+              Node.DOCUMENT_POSITION_FOLLOWING
+          ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+        }
+        expect(wrapper.findAll('[data-testid="sso-callback-url"]')).toHaveLength(
+          formState.provider_type === 'saml' ? 0 : 1
+        );
+        expect(wrapper.findAll('[data-testid="sso-saml-sp-details"]')).toHaveLength(
+          formState.provider_type === 'saml' ? 1 : 0
+        );
+      }
+    );
+
+    it('keeps final sign-in guidance visible before anything is saved or checked', async () => {
+      wrapper = await mountComponent();
+
+      const card = wrapper.get('[data-testid="sso-confirm-sign-in"]');
+      expect(card.isVisible()).toBe(true);
+      for (const key of ['confirm_sign_in', 'confirm_sign_in_hint', 'confirm_sign_in_limits']) {
+        expect(card.text()).toContain(`web.organizations.sso.${key}`);
+      }
+      expect(card.find('[data-testid="sso-last-sign-in"]').exists()).toBe(false);
+    });
+  });
+
   // ─────────────────────────────────────────────────────────────────────────────
   // Provider type selector
   // ─────────────────────────────────────────────────────────────────────────────

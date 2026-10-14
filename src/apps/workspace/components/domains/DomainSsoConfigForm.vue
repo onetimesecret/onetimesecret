@@ -799,9 +799,35 @@ watch(newDomain, () => {
       :heading="false" />
 
     <!-- Form -->
-    <form v-else
-@submit.prevent="handleSave"
-class="space-y-6">
+    <form
+      v-else
+      @submit.prevent="handleSave"
+      class="space-y-6">
+      <section
+        v-if="!isConfigured"
+        data-testid="sso-setup-guide"
+        aria-labelledby="sso-setup-title"
+        class="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+        <h4
+          id="sso-setup-title"
+          class="text-sm font-medium text-gray-900 dark:text-white">
+          {{ t('web.organizations.sso.setup_title') }}
+        </h4>
+        <ol class="mt-2 list-decimal space-y-1 pl-5 text-sm text-gray-600 dark:text-gray-300">
+          <li>
+            {{
+              t(
+                isSaml
+                  ? 'web.organizations.sso.setup_register_saml'
+                  : 'web.organizations.sso.setup_register'
+              )
+            }}
+          </li>
+          <li>{{ t('web.organizations.sso.setup_save_check') }}</li>
+          <li>{{ t('web.organizations.sso.setup_confirm') }}</li>
+        </ol>
+      </section>
+
       <!-- Reveal failure (#4450): a stored encrypted value that will not
            decrypt is served as null AND named in unreadable_fields. It is an
            error state, not "unset" — the inputs below are blank, marked
@@ -934,6 +960,109 @@ class="space-y-6">
           </label>
         </div>
       </fieldset>
+
+      <!-- Unverified domain (#4579): tenant SSO is refused on this host until
+           ownership verification completes; verification does not change the
+           values below. Directly above the callback / SP block so an admin
+           copying them reads it first. role="status"
+           like the certificate advisory; amber is the fixed warning hue
+           (#4132) and the text carries the meaning on its own (WCAG 1.4.1). -->
+      <div
+        v-if="showDomainUnverifiedNotice"
+        data-testid="sso-domain-unverified-notice"
+        role="status"
+        class="flex items-start gap-2 rounded-md bg-amber-50 px-3 py-2 dark:bg-amber-900/20">
+        <OIcon
+          collection="heroicons"
+          name="information-circle"
+          class="mt-0.5 size-4 flex-shrink-0 text-amber-600 dark:text-amber-400"
+          aria-hidden="true" />
+        <p class="text-sm text-amber-700 dark:text-amber-300">
+          {{ t('web.organizations.sso.domain_unverified_notice') }}
+        </p>
+      </div>
+
+      <!-- Callback URL (OAuth-family providers) -->
+      <div
+        v-if="callbackUrl && !isSaml"
+        data-testid="sso-callback-url"
+        class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
+        <label class="block text-sm font-medium text-gray-900 dark:text-white">
+          {{ t('web.organizations.sso.callback_url') }}
+        </label>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          {{ t('web.organizations.sso.callback_url_hint') }}
+        </p>
+        <div class="mt-2 flex items-center gap-2">
+          <code
+            class="block flex-1 overflow-x-auto rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-800 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+            {{ callbackUrl }}
+          </code>
+          <CopyToClipboardButton
+            :is-copied="isCallbackCopied"
+            @click="copyToClipboard(callbackUrl ?? '')" />
+        </div>
+      </div>
+
+      <!-- SAML service-provider identifiers (#4450), read-only: what the admin
+           registers at the IdP. SP Entity ID doubles as the SP metadata URL.
+           Host-derived values are labelled a preview (spDetailsArePreview)
+           because the static default route may not be the deployed one (#3932). -->
+      <div
+        v-if="isSaml && (spEntityId || callbackUrl)"
+        data-testid="sso-saml-sp-details"
+        class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
+        <p class="text-sm font-medium text-gray-900 dark:text-white">
+          {{ t('web.organizations.sso.sp_details') }}
+        </p>
+        <p
+          data-testid="sso-saml-sp-details-hint"
+          class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          {{
+            spDetailsArePreview
+              ? t('web.organizations.sso.sp_details_preview_hint')
+              : t('web.organizations.sso.sp_details_hint')
+          }}
+        </p>
+        <dl class="mt-3 space-y-3">
+          <div v-if="spEntityId">
+            <dt
+              id="domain-sso-sp-entity-id-label"
+              class="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
+              {{ t('web.organizations.sso.sp_entity_id') }}
+            </dt>
+            <dd class="mt-1 flex items-center gap-2">
+              <code
+                data-testid="sso-saml-sp-entity-id"
+                aria-labelledby="domain-sso-sp-entity-id-label"
+                class="block flex-1 overflow-x-auto rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-800 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                {{ spEntityId }}
+              </code>
+              <CopyToClipboardButton
+                :is-copied="isSpEntityIdCopied"
+                @click="copySpEntityId(spEntityId ?? '')" />
+            </dd>
+          </div>
+          <div v-if="callbackUrl">
+            <dt
+              id="domain-sso-acs-url-label"
+              class="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
+              {{ t('web.organizations.sso.acs_url') }}
+            </dt>
+            <dd class="mt-1 flex items-center gap-2">
+              <code
+                data-testid="sso-saml-acs-url"
+                aria-labelledby="domain-sso-acs-url-label"
+                class="block flex-1 overflow-x-auto rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-800 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                {{ callbackUrl }}
+              </code>
+              <CopyToClipboardButton
+                :is-copied="isCallbackCopied"
+                @click="copyToClipboard(callbackUrl ?? '')" />
+            </dd>
+          </div>
+        </dl>
+      </div>
 
       <!-- Display Name -->
       <div>
@@ -1755,108 +1884,6 @@ aria-hidden="true">*</span>
             </div>
           </div>
         </div>
-      </div>
-
-      <!-- Unverified domain (#4579): tenant SSO is refused on this host until
-           ownership verification completes; verification does not change the
-           values below. Directly above the callback / SP block so an admin
-           copying them reads it first. role="status"
-           like the certificate advisory; amber is the fixed warning hue
-           (#4132) and the text carries the meaning on its own (WCAG 1.4.1). -->
-      <div
-        v-if="showDomainUnverifiedNotice"
-        data-testid="sso-domain-unverified-notice"
-        role="status"
-        class="flex items-start gap-2 rounded-md bg-amber-50 px-3 py-2 dark:bg-amber-900/20">
-        <OIcon
-          collection="heroicons"
-          name="information-circle"
-          class="mt-0.5 size-4 flex-shrink-0 text-amber-600 dark:text-amber-400"
-          aria-hidden="true" />
-        <p class="text-sm text-amber-700 dark:text-amber-300">
-          {{ t('web.organizations.sso.domain_unverified_notice') }}
-        </p>
-      </div>
-
-      <!-- Callback URL (OAuth-family providers) -->
-      <div
-        v-if="callbackUrl && !isSaml"
-        class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
-        <label class="block text-sm font-medium text-gray-900 dark:text-white">
-          {{ t('web.organizations.sso.callback_url') }}
-        </label>
-        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          {{ t('web.organizations.sso.callback_url_hint') }}
-        </p>
-        <div class="mt-2 flex items-center gap-2">
-          <code
-            class="block flex-1 overflow-x-auto rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-800 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
-            {{ callbackUrl }}
-          </code>
-          <CopyToClipboardButton
-            :is-copied="isCallbackCopied"
-            @click="copyToClipboard(callbackUrl ?? '')" />
-        </div>
-      </div>
-
-      <!-- SAML service-provider identifiers (#4450), read-only: what the admin
-           registers at the IdP. SP Entity ID doubles as the SP metadata URL.
-           Host-derived values are labelled a preview (spDetailsArePreview)
-           because the static default route may not be the deployed one (#3932). -->
-      <div
-        v-if="isSaml && (spEntityId || callbackUrl)"
-        data-testid="sso-saml-sp-details"
-        class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
-        <p class="text-sm font-medium text-gray-900 dark:text-white">
-          {{ t('web.organizations.sso.sp_details') }}
-        </p>
-        <p
-          data-testid="sso-saml-sp-details-hint"
-          class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          {{
-            spDetailsArePreview
-              ? t('web.organizations.sso.sp_details_preview_hint')
-              : t('web.organizations.sso.sp_details_hint')
-          }}
-        </p>
-        <dl class="mt-3 space-y-3">
-          <div v-if="spEntityId">
-            <dt
-              id="domain-sso-sp-entity-id-label"
-              class="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
-              {{ t('web.organizations.sso.sp_entity_id') }}
-            </dt>
-            <dd class="mt-1 flex items-center gap-2">
-              <code
-                data-testid="sso-saml-sp-entity-id"
-                aria-labelledby="domain-sso-sp-entity-id-label"
-                class="block flex-1 overflow-x-auto rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-800 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
-                {{ spEntityId }}
-              </code>
-              <CopyToClipboardButton
-                :is-copied="isSpEntityIdCopied"
-                @click="copySpEntityId(spEntityId ?? '')" />
-            </dd>
-          </div>
-          <div v-if="callbackUrl">
-            <dt
-              id="domain-sso-acs-url-label"
-              class="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
-              {{ t('web.organizations.sso.acs_url') }}
-            </dt>
-            <dd class="mt-1 flex items-center gap-2">
-              <code
-                data-testid="sso-saml-acs-url"
-                aria-labelledby="domain-sso-acs-url-label"
-                class="block flex-1 overflow-x-auto rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-800 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
-                {{ callbackUrl }}
-              </code>
-              <CopyToClipboardButton
-                :is-copied="isCallbackCopied"
-                @click="copyToClipboard(callbackUrl ?? '')" />
-            </dd>
-          </div>
-        </dl>
       </div>
 
       <!-- Domain Allowlist (only for providers without IdP-side access control) -->

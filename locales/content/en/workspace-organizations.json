@@ -1148,6 +1148,26 @@
     "text": "Could not check provider settings",
     "content_hash": "3d7a4ea6"
   },
+  "web.organizations.sso.setup_title": {
+    "text": "Set up SSO for this domain",
+    "content_hash": "117a38e3"
+  },
+  "web.organizations.sso.setup_register": {
+    "text": "Register the callback or service-provider details with your identity provider, then enter its credentials below.",
+    "content_hash": "019586c6"
+  },
+  "web.organizations.sso.setup_register_saml": {
+    "text": "Review the service-provider details and their preview guidance below, then enter your identity provider’s URL, Entity ID and certificate.",
+    "content_hash": "ea6d3f49"
+  },
+  "web.organizations.sso.setup_save_check": {
+    "text": "Save the configuration, then check the saved settings. The optional provider check uses the form values only.",
+    "content_hash": "f63d4f1e"
+  },
+  "web.organizations.sso.setup_confirm": {
+    "text": "Activate the connection, enable SSO in the domain’s sign-in settings, then confirm with a real sign-in.",
+    "content_hash": "e03e0ee9"
+  },
   "web.organizations.sso.save_configuration": {
     "text": "Save configuration",
     "content_hash": "b2b158f2"
