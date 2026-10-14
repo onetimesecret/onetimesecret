@@ -769,6 +769,35 @@ module Onetime
       verification_state == :verified
     end
 
+    # Clears the ownership evidence and provider status an earlier owner left
+    # on this record, and gives the TXT challenge a new value. Used when an
+    # orphaned record is adopted by an organization
+    # (CustomDomain.claim_orphaned_domain), which keeps the record's
+    # identifier.
+    #
+    # Sets values in memory only; the caller persists them. The claim does
+    # that in its atomic_write, together with the new org_id.
+    #
+    # ownership_verified is set to false, not nil: nil reads through to a
+    # legacy `verified` value still stored on the record. The TXT host is
+    # derived from the identifier, so it stays the same and only the value
+    # changes. The record is :pending afterwards.
+    #
+    # @return [void]
+    # @raise [Onetime::Problem] if the TXT challenge name does not fit the
+    #   DNS name limits (see txt_challenge_host)
+    def reset_verification_for_adoption
+      self.ownership_verified         = false
+      self.verified_by_override       = false
+      self.resolving                  = false
+      self.verified_confirmed_at      = nil
+      self.verified_unconfirmed_since = nil
+      self.vhost                      = nil
+      self.vhost_fetch_failed_at      = nil
+      generate_txt_validation_record
+      nil
+    end
+
     module ClassMethods
       attr_reader :db, :values, :owners, :txt_validation_prefix
 
@@ -1126,7 +1155,17 @@ module Onetime
       # a later record already holds its entry. When another record holds the
       # name, the claim is refused. A claim taken here is released again if
       # the orphan claim then fails (see release_orphan_canonical_claim).
-      # Verification fields are not changed.
+      #
+      # The record keeps its identifier, so the transaction that writes the
+      # new org_id also resets what an earlier owner left on it: ownership
+      # verification, resolving, the override, the confirmation timestamps
+      # and the provider status are cleared, and the TXT challenge gets a new
+      # value (reset_verification_for_adoption). The new organization has to
+      # verify the domain again. Per-domain configs, brand data and receipts
+      # are kept.
+      #
+      # Callers: create!(..., adopt_orphan: true), from the operator tool
+      # Operations::Domains::Create. Not reachable from the customer API.
       #
       # @param existing [CustomDomain] The orphaned domain to claim
       # @param org_id [String] The organization ID claiming the domain
@@ -1214,6 +1253,7 @@ module Onetime
             existing.atomic_write do
               existing.org_id  = org_id
               existing.updated = OT.now.to_i
+              existing.reset_verification_for_adoption
               existing.add_to_organization_domains(org) if org
 
               # Update owners hash (Location E) to reflect new org ownership
