@@ -39,9 +39,11 @@ RSpec.describe Onetime::CustomDomain, '.claim_orphaned_domain canonical claim', 
 
   # The unit lane boots without the connection pool claim_orphaned_domain
   # pins its WATCH to; hand it a plain client instead (as create_failures_spec
-  # does).
+  # does). A block, not and_yield: and_yield refuses callers whose block takes
+  # no argument (GuardedConfigWrites, reached from destroy! in the cleanup
+  # when an earlier example left a pool installed).
   before do
-    allow(Onetime).to receive(:with_pinned_dbclient).and_yield(Familia.dbclient)
+    allow(Onetime).to receive(:with_pinned_dbclient) { |&block| block.call(Familia.dbclient) }
   end
 
   after do
