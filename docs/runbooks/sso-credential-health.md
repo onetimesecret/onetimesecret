@@ -21,10 +21,10 @@ used in applications for freshness of use and their expiration."
 
 | Check | What it establishes | When | What Onetime Secret has today |
 |---|---|---|---|
-| **Stored configuration** | The saved record loads, decrypts, and has the required fields. | After every save, deploy, or encryption-key rotation; periodically. | `SsoConfig#validation_errors`. A value that fails to decrypt is reported as missing (`client_secret is required`). Nothing runs it across domains, from the CLI or on a schedule. |
-| **Discovery** | The IdP is reachable and its discovery document is usable. Says nothing about the secret. | Periodically, cached. | Test Connection fetches discovery for `oidc` and `entra_id` and compares the OIDC issuer exactly. It also reports the document's `token_endpoint_auth_methods_supported`, and for `oidc` warns when the selected token endpoint auth method is not advertised (#4764). Runs only when an admin clicks it. |
-| **Credential expiry** | A secret or certificate needs rotating soon. | Daily is a reasonable start. | SAML: the record reports `cert_expires_at` / `cert_expired`, the form shows an "expiring soon" notice inside 30 days, and Test Connection reports days left. No one is notified unless they open the form. Entra and OIDC client secrets: the expiry date lives in the customer's tenant, and we never see it. |
-| **Admin-triggered test** | Whatever that test actually exercises. | Setup, rotation, troubleshooting. | Test Connection. See the next section for what it does not cover. |
+| **Stored configuration** | The saved record loads, decrypts, and has the required fields. | After every save, deploy, or encryption-key rotation; periodically. | `SsoConfig#validation_errors`. A value that fails to decrypt is reported as missing (`client_secret is required`). Check saved configuration (below) reloads the record and runs it as the `stored_configuration` check when an admin clicks it. Nothing runs it across domains, from the CLI or on a schedule. |
+| **Discovery** | The IdP is reachable and its discovery document is usable. Says nothing about the secret. | Periodically, cached. | Test Connection fetches discovery for `oidc` and `entra_id` from the form values and compares the OIDC issuer exactly. It also reports the document's `token_endpoint_auth_methods_supported`, and for `oidc` warns when the selected token endpoint auth method is not advertised (#4764). Check saved configuration runs the same fetch (`DiscoveryCheck`) from the stored issuer or tenant ID as its `discovery` check, and reports an unreachable IdP as `inconclusive` rather than failed. Both run only when an admin clicks them. |
+| **Credential expiry** | A secret or certificate needs rotating soon. | Daily is a reasonable start. | SAML: the record reports `cert_expires_at` / `cert_expired`, the form shows an "expiring soon" notice inside 30 days, and Test Connection and Check saved configuration (`certificate` check) report days left. No one is notified unless they open the form. Entra and OIDC client secrets: the expiry date lives in the customer's tenant, and we never see it. An Entra secret that has already expired is reported by Check saved configuration as `client_secret_expired` (AADSTS7000222). |
+| **Admin-triggered test** | Whatever that test actually exercises. | Setup, rotation, troubleshooting. | Test Connection (form values) and Check saved configuration (stored record, with an Entra credential check). See the next two sections for what each covers. |
 | **Real sign-ins** | Code exchanges and SSO sign-ins succeed or fail. | Continuously. | Auth log events: `omniauth_tenant_credentials_injecting` (has `domain_id`) and `omniauth_failure` (has `error_type` and `error_message`, no `domain_id`). There is no per-domain count of successes or failures. |
 
 An optional **synthetic browser sign-in** exercises the whole path: redirects,
@@ -46,7 +46,71 @@ From `apps/api/domains/logic/sso_config/test_connection.rb`:
   sends nothing to the token endpoint.
 - **SAML is checked locally.** The IdP isn't contacted.
 
-After a customer saves or rotates a secret, only a real sign-in confirms it.
+After a customer saves or rotates a secret, Check saved configuration can
+tell whether Entra accepts it; only a real sign-in confirms sign-in works.
+
+## What Check saved configuration covers
+
+`POST /api/domains/:extid/sso/diagnostics`
+(`DomainsAPI::Logic::SsoConfig::RunDiagnostics`,
+`apps/api/domains/logic/sso_config/run_diagnostics.rb`) reloads the saved
+record and reports one check per layer, each `passed`, `failed`,
+`inconclusive`, `unsupported` or `skipped`, plus an `overall` verdict
+(`failed` if any check failed, else `inconclusive` if any is inconclusive,
+else `passed`; `unsupported` and `skipped` do not count).
+
+- `stored_configuration` (all providers): the record reloaded and
+  `SsoConfig#validation_errors`. When it fails, the later checks are
+  `skipped`.
+- `discovery` (`oidc`, `entra_id`): the same fetch Test Connection does,
+  from the stored issuer or tenant ID. An IdP that cannot be reached
+  (timeout, connection failure, TLS error) is `inconclusive`, not evidence
+  about the configuration.
+- `certificate` (`saml`): the stored IdP certificate's validity window,
+  checked locally.
+- `credential` (`entra_id`): one client-credentials token request with the
+  stored client ID and secret (`Onetime::SsoProvider::EntraCredentialProbe`,
+  `lib/onetime/sso_provider/entra_credential_probe.rb`). It sends the secret
+  the way sign-in does (token request body, `auth_scheme: :request_body`;
+  a spec pins the probe's scheme to `SsoConfig#build_entra_id_options`).
+  `passed` means Entra accepted the saved secret for that request and
+  nothing more; see the next section. AADSTS7000215 is reported as
+  `invalid_client_secret`, AADSTS7000222 as `client_secret_expired`,
+  AADSTS700016 as `app_not_found_in_tenant`; any other AADSTS code is
+  `inconclusive` with the bare code. A stored secret shaped like a UUID is
+  flagged (`secret_shape: uuid`): that is the Secret ID, not the Value.
+  For `oidc` this check is `unsupported`: OIDC does not guarantee the
+  client-credentials grant, and we cannot know a scope to ask for.
+
+The response never carries the secret, a token, or Entra's
+`error_description` (it holds correlation IDs and the app ID). One log line
+records the domain, provider, overall and per-check statuses, and one
+`sso.diagnostics_run` event goes to the security audit trail
+(`record_security`, newest 1,000 for 7 days), not the operator trail: a run
+is a customer's self-service action, and the operator trail's budget is kept
+for operator activity. The event holds the acting customer, the domain, the
+overall verdict as the result, the configuration revision, and one entry per
+check in `checks` with its status and any bare `error_code`, `aadsts_code`
+and `shape` (`uuid` for a Secret-ID-shaped secret). Neither the log line nor
+the event carries the secret, a token or a provider message.
+
+Runs are capped per acting customer (`Onetime::Security::
+SsoDiagnosticsRateLimiter`, `lib/onetime/security/sso_diagnostics_rate_limiter.rb`;
+limiter kind `sso_diagnostics`, keyed on the customer's public id, Customer
+shard). Default 10 runs per hour, then a one-hour lockout; configured under
+`features.organizations.sso_diagnostics_rate_limit` (`SSO_DIAGNOSTICS_RATE_LIMIT_*`
+in `.env.reference`). The charge is the last line of `raise_concerns`, after
+the session, ownership and entitlement guards and after the stored record is
+found, so a refused request costs nothing. Over the cap the API answers 429
+with `retry_after` and a `Retry-After` header and no check runs; the form
+shows the wait in minutes. The cap-reaching run writes one
+`sso.diagnostics_throttled` event to the security audit trail. Every run
+still sends the stored Entra secret to Microsoft, which is why the cap is
+low: a run is deterministic, and a loop of runs with a wrong secret would
+otherwise trip Entra's own throttling for the customer's app registration.
+To clear a stuck lockout: `bin/ots ratelimit keys sso_diagnostics <extid>`
+piped to valkey-cli, or `POST /api/colonel/ratelimit/reset` with
+`kind=sso_diagnostics`.
 
 ## A client-credentials request is not an SSO test
 
@@ -105,24 +169,38 @@ token endpoint auth method, or the default when none is selected (#4764).
 
 Nothing in this section exists in the codebase, except where an item says so.
 
-1. **Test the saved configuration.** After a save, reload the record and test
-   through the same decryption and token-request code that sign-in uses
-   (`SsoConfig#to_omniauth_options` → `inject_tenant_credentials` → strategy →
-   `OAuth2::Client`, same `auth_scheme`). A probe with its own HTTP client would have missed the
-   Basic-header encoding gap in the Entra runbook. Done for the Entra transport
-   itself: both Entra builders now send the secret in the token request body
-   (`client_options: { auth_scheme: :request_body }`, #4764), so that gap no
-   longer affects Entra sign-in. Also done: the matching
-   `token_endpoint_auth_method` option for generic OIDC, per domain under
-   Advanced in the SSO form and as `OIDC_CLIENT_AUTH_METHOD` for the platform
-   provider (#4764). Still proposed: the probe.
+1. **Test the saved configuration.** Built for Entra as Check saved
+   configuration (above). The probe reloads the record through the same
+   decryption sign-in uses and sends the secret with the same
+   `auth_scheme` (`:request_body`, #4764), pinned in spec against
+   `SsoConfig#build_entra_id_options`. It does not run through
+   `inject_tenant_credentials` and the OmniAuth strategy (those need a Rack
+   request); it builds the `OAuth2::Client` the way the strategy does. A
+   probe with a different transport would have missed the Basic-header
+   encoding gap in the Entra runbook, which is why the scheme is pinned.
+   Also done: the matching `token_endpoint_auth_method` option for generic
+   OIDC, per domain under Advanced in the SSO form and as
+   `OIDC_CLIENT_AUTH_METHOD` for the platform provider (#4764). Still
+   proposed: a credential check for generic OIDC (none is safe without a
+   known scope) and for SAML (needs a real assertion flow).
 2. **Report each layer separately:** local integrity, provider reachability,
-   credential acceptance, completed sign-in.
+   credential acceptance, completed sign-in. Built: the first three as the
+   per-check response of Check saved configuration, the fourth as
+   `last_sign_in` on the record (item 4).
 3. **Background checks** for integrity, discovery, and SAML expiry. Token probes
    only where the provider supports a suitable, authorized request (Entra client
    credentials, as above).
-4. **Per-domain sign-in outcomes.** Needs `domain_id` on `omniauth_failure` for
-   tenant callbacks.
+4. **Per-domain sign-in outcomes.** Built as `last_sign_in` on the domain
+   SSO record (`CustomDomain::SsoSigninOutcome`,
+   `lib/onetime/models/custom_domain/sso_signin_outcome.rb`), shown in the
+   Check saved configuration section. The tenant hooks record each sign-in
+   as `succeeded` or `failed` with the stage it stopped at (`setup`,
+   `provider`, `callback`, `account`) and a bounded code: the `auth_error`
+   the visitor saw, or at the provider stage OmniAuth's error type (the
+   same `error_type` the `omniauth_failure` log line carries). The last
+   success is kept alongside a later failure. Outcomes only, no identity;
+   90-day TTL renewed per write; deleted with the SSO record. The log line
+   itself still has no `domain_id`; the record is the per-domain view.
 5. **Customer-entered secret expiry date** for Entra and OIDC, used only for
    reminders. It's the only way we learn the date without a Graph permission.
 6. **Store observations, not a flag:**
@@ -151,8 +229,9 @@ Nothing in this section exists in the codebase, except where an item says so.
    verb (the procedure name), target (the domain ID), result (the marker:
    token, AADSTS code, or local failure class), and a detail hash with the
    UTC time and the probe identifier. Never the credential, the token, or the
-   raw error. Any future Test Connection probe or background check that uses
-   the stored secret (items 1 and 3) should write the same entry.
+   raw error. Check saved configuration (item 1) writes `sso.diagnostics_run`
+   to the security trail (a customer's self-service action); any background
+   check (item 3) should write the same shape.
 
 Safeguards for any background probe:
 

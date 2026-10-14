@@ -14,7 +14,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useSsoConfig } from '../../shared/composables/useSsoConfig';
 
 import type { CustomDomainSsoConfig } from '../../schemas/shapes/domains/sso-config';
-import type { TestSsoConnectionResponse } from '../../services/sso.service';
+import type { SsoDiagnosticsResponse, TestSsoConnectionResponse } from '../../services/sso.service';
 
 // -----------------------------------------------------------------------------
 // Mock Setup
@@ -25,6 +25,7 @@ const mockSaveConfigForDomain = vi.fn();
 const mockPatchConfigForDomain = vi.fn();
 const mockDeleteConfigForDomain = vi.fn();
 const mockTestConnectionForDomain = vi.fn();
+const mockRunDiagnosticsForDomain = vi.fn();
 const mockNotificationsShow = vi.fn();
 const mockRouterPush = vi.fn();
 
@@ -35,6 +36,7 @@ vi.mock('@/services/sso.service', () => ({
     patchConfigForDomain: (...args: unknown[]) => mockPatchConfigForDomain(...args),
     deleteConfigForDomain: (...args: unknown[]) => mockDeleteConfigForDomain(...args),
     testConnectionForDomain: (...args: unknown[]) => mockTestConnectionForDomain(...args),
+    runDiagnosticsForDomain: (...args: unknown[]) => mockRunDiagnosticsForDomain(...args),
   },
 }));
 
@@ -58,6 +60,11 @@ vi.mock('vue-i18n', () => ({
         'web.domains.sso.delete_success': 'SSO configuration removed',
         'web.domains.sso.test_success': 'Connection test successful',
         'web.domains.sso.test_failed': 'Connection test failed',
+        'web.domains.sso.diagnostics_passed': 'Saved configuration check passed',
+        'web.domains.sso.diagnostics_failed': 'Saved configuration check found a problem',
+        'web.domains.sso.diagnostics_inconclusive':
+          'Saved configuration check could not reach a verdict',
+        'web.domains.sso.diagnostics_error': 'Failed to check the saved configuration',
         'web.COMMON.unexpected_error': 'An unexpected error occurred',
       };
       return translations[key] ?? key;
@@ -65,13 +72,20 @@ vi.mock('vue-i18n', () => ({
   }),
 }));
 
+// Swallows like the real handler and hands the rejection to onError as-is:
+// tests that need a classified error reject with an ApplicationError-shaped
+// object (see "429" below).
 vi.mock('@/shared/composables/useAsyncHandler', () => ({
-  useAsyncHandler: (options: { setLoading?: (loading: boolean) => void }) => ({
+  useAsyncHandler: (options: {
+    setLoading?: (loading: boolean) => void;
+    onError?: (error: unknown) => void;
+  }) => ({
     wrap: vi.fn(async (fn: () => Promise<unknown>) => {
       options.setLoading?.(true);
       try {
         return await fn();
-      } catch {
+      } catch (error) {
+        options.onError?.(error);
         return undefined;
       } finally {
         options.setLoading?.(false);
@@ -104,6 +118,7 @@ const mockSsoConfigData: CustomDomainSsoConfig = {
   allowed_domains: ['acme.com', 'acme.org'],
   requires_domain_filter: false,
   idp_controls_access: true,
+  last_sign_in: null,
   enforce_sso_only: false,
   grant_org_scope: false,
   created_at: new Date('2025-01-01T00:00:00Z'),
@@ -126,6 +141,7 @@ const mockSamlConfigData: CustomDomainSsoConfig = {
   acs_url: 'https://secrets.example.com/auth/sso/saml/callback',
   requires_domain_filter: true,
   idp_controls_access: false,
+  last_sign_in: null,
 };
 
 const mockOidcConfigData: CustomDomainSsoConfig = {
@@ -135,6 +151,7 @@ const mockOidcConfigData: CustomDomainSsoConfig = {
   issuer: 'https://idp.example.com',
   requires_domain_filter: true,
   idp_controls_access: false,
+  last_sign_in: null,
   enforce_sso_only: false,
 };
 
@@ -171,6 +188,56 @@ const mockTestFailureResponse: TestSsoConnectionResponse = {
   },
 };
 
+const mockDiagnosticsPassed: SsoDiagnosticsResponse = {
+  user_id: 'user-123',
+  provider_type: 'entra_id',
+  checked_at: '2026-10-12T10:00:00Z',
+  configuration_revision: '1760263200',
+  overall: 'passed',
+  checks: [
+    {
+      check: 'stored_configuration',
+      status: 'passed',
+      message: 'The stored configuration is complete.',
+      details: {},
+    },
+    {
+      check: 'credential',
+      status: 'passed',
+      message: 'The identity provider accepted the saved client secret.',
+      details: { note: 'This does not test a full sign-in.' },
+    },
+  ],
+};
+
+const mockDiagnosticsFailed: SsoDiagnosticsResponse = {
+  ...mockDiagnosticsPassed,
+  overall: 'failed',
+  checks: [
+    mockDiagnosticsPassed.checks[0],
+    {
+      check: 'credential',
+      status: 'failed',
+      message: 'The identity provider rejected the saved client secret.',
+      details: { error_code: 'invalid_client_secret', http_status: 401 },
+    },
+  ],
+};
+
+const mockDiagnosticsInconclusive: SsoDiagnosticsResponse = {
+  ...mockDiagnosticsPassed,
+  overall: 'inconclusive',
+  checks: [
+    mockDiagnosticsPassed.checks[0],
+    {
+      check: 'credential',
+      status: 'inconclusive',
+      message: 'The identity provider could not be reached.',
+      details: { error_code: 'timeout' },
+    },
+  ],
+};
+
 // -----------------------------------------------------------------------------
 // Tests
 // -----------------------------------------------------------------------------
@@ -185,6 +252,7 @@ describe('useSsoConfig', () => {
     mockSaveConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
     mockDeleteConfigForDomain.mockResolvedValue({ success: true });
     mockTestConnectionForDomain.mockResolvedValue(mockTestSuccessResponse);
+    mockRunDiagnosticsForDomain.mockResolvedValue(mockDiagnosticsPassed);
   });
 
   // ---------------------------------------------------------------------------
@@ -1606,6 +1674,331 @@ describe('useSsoConfig', () => {
           tenant_id: 'new-unsaved-tenant-id',
         })
       );
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // runDiagnostics: checks the SAVED record, never the form
+  // ---------------------------------------------------------------------------
+
+  describe('runDiagnostics', () => {
+    it('calls SsoService.runDiagnosticsForDomain with the domain id and no payload', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
+      const composable = useSsoConfig('dm-ext-789');
+      await composable.initialize();
+
+      // Unsaved edits must not leak into the request: nothing from the form is sent.
+      composable.formState.value = { ...composable.formState.value, client_id: 'unsaved' };
+      await composable.runDiagnostics();
+
+      expect(mockRunDiagnosticsForDomain).toHaveBeenCalledTimes(1);
+      expect(mockRunDiagnosticsForDomain).toHaveBeenCalledWith('dm-ext-789');
+    });
+
+    it('stores a passed result and notifies success', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      await composable.runDiagnostics();
+
+      expect(composable.diagnosticsResult.value).toEqual(mockDiagnosticsPassed);
+      expect(composable.diagnosticsError.value).toBe('');
+      expect(mockNotificationsShow).toHaveBeenCalledWith(
+        'Saved configuration check passed',
+        'success',
+        'top'
+      );
+    });
+
+    it('stores a failed result (a verdict, not an error) and notifies error', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
+      mockRunDiagnosticsForDomain.mockResolvedValue(mockDiagnosticsFailed);
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      await composable.runDiagnostics();
+
+      expect(composable.diagnosticsResult.value).toEqual(mockDiagnosticsFailed);
+      expect(composable.diagnosticsError.value).toBe('');
+      expect(mockNotificationsShow).toHaveBeenCalledWith(
+        'Saved configuration check found a problem',
+        'error',
+        'top'
+      );
+    });
+
+    it('stores an inconclusive result and notifies warning', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
+      mockRunDiagnosticsForDomain.mockResolvedValue(mockDiagnosticsInconclusive);
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      await composable.runDiagnostics();
+
+      expect(composable.diagnosticsResult.value?.overall).toBe('inconclusive');
+      expect(mockNotificationsShow).toHaveBeenCalledWith(
+        'Saved configuration check could not reach a verdict',
+        'warning',
+        'top'
+      );
+    });
+
+    it('sets diagnosticsError and no result when the request fails', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
+      mockRunDiagnosticsForDomain.mockRejectedValue(new Error('Network error'));
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      await composable.runDiagnostics();
+
+      expect(composable.diagnosticsResult.value).toBeNull();
+      expect(composable.diagnosticsError.value).toBe('Failed to check the saved configuration');
+      expect(composable.isDiagnosing.value).toBe(false);
+    });
+
+    // The API caps runs per customer (SsoDiagnosticsRateLimiter) and answers
+    // 429 with a LimitExceeded body; the classifier turns that into an
+    // ApplicationError with code 429 and the body as details.
+    const rateLimited = (retry_after?: number) => ({
+      name: 'ApplicationError',
+      message: 'Too many saved-configuration checks. Please try again later.',
+      type: 'human',
+      severity: 'error',
+      code: 429,
+      details: { error: 'Too many saved-configuration checks.', error_type: 'LimitExceeded', retry_after },
+    });
+
+    it('reports a 429 as the run limit, with the wait rounded up to minutes', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
+      mockRunDiagnosticsForDomain.mockRejectedValue(rateLimited(1234));
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      await composable.runDiagnostics();
+
+      expect(composable.diagnosticsResult.value).toBeNull();
+      expect(composable.diagnosticsError.value).toBe(
+        'web.domains.sso.diagnostics_rate_limited_retry'
+      );
+      expect(mockRunDiagnosticsForDomain).toHaveBeenCalledTimes(1);
+    });
+
+    it('reports a 429 without retry_after as the run limit with no wait', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
+      mockRunDiagnosticsForDomain.mockRejectedValue(rateLimited());
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      await composable.runDiagnostics();
+
+      expect(composable.diagnosticsError.value).toBe('web.domains.sso.diagnostics_rate_limited');
+    });
+
+    it('does not read an earlier failure as this run\'s', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
+      mockRunDiagnosticsForDomain.mockRejectedValueOnce(rateLimited(60));
+      mockRunDiagnosticsForDomain.mockRejectedValueOnce(new Error('Network error'));
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      await composable.runDiagnostics();
+      expect(composable.diagnosticsError.value).toBe(
+        'web.domains.sso.diagnostics_rate_limited_retry'
+      );
+
+      await composable.runDiagnostics();
+      expect(composable.diagnosticsError.value).toBe('Failed to check the saved configuration');
+    });
+
+    it('sets isDiagnosing during the request and resets it after', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
+      let resolveRun: (value: unknown) => void;
+      mockRunDiagnosticsForDomain.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveRun = resolve;
+          })
+      );
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      const pending = composable.runDiagnostics();
+      expect(composable.isDiagnosing.value).toBe(true);
+
+      resolveRun!(mockDiagnosticsPassed);
+      await pending;
+
+      expect(composable.isDiagnosing.value).toBe(false);
+    });
+
+    it('clears the previous result and error when a new run starts', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
+      mockRunDiagnosticsForDomain.mockRejectedValueOnce(new Error('boom'));
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      await composable.runDiagnostics();
+      expect(composable.diagnosticsError.value).not.toBe('');
+
+      await composable.runDiagnostics();
+      expect(composable.diagnosticsError.value).toBe('');
+      expect(composable.diagnosticsResult.value).toEqual(mockDiagnosticsPassed);
+    });
+
+    it('survives an unsaved form edit (the result is about the saved record)', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+      await composable.runDiagnostics();
+
+      composable.formState.value = { ...composable.formState.value, tenant_id: 'edited' };
+
+      expect(composable.diagnosticsResult.value).toEqual(mockDiagnosticsPassed);
+    });
+
+    it('is cleared by a save (the saved record changed)', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+      await composable.runDiagnostics();
+      expect(composable.diagnosticsResult.value).not.toBeNull();
+
+      await composable.saveConfig();
+
+      expect(composable.diagnosticsResult.value).toBeNull();
+      expect(composable.diagnosticsError.value).toBe('');
+    });
+
+    it('is cleared by disableConfig', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
+      mockPatchConfigForDomain.mockResolvedValue({ record: mockDisabledConfig });
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+      await composable.runDiagnostics();
+
+      await composable.disableConfig();
+
+      expect(composable.diagnosticsResult.value).toBeNull();
+    });
+
+    it('is cleared by deleteConfig', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+      await composable.runDiagnostics();
+
+      await composable.deleteConfig();
+
+      expect(composable.diagnosticsResult.value).toBeNull();
+      expect(composable.diagnosticsError.value).toBe('');
+    });
+
+    // Save and delete are not blocked while a run is in flight (Copilot,
+    // PR #4773): a late response must not repopulate a result for a record
+    // that was replaced or removed while the probe ran.
+    describe('a response that lands after the saved record changed', () => {
+      const deferredRun = () => {
+        let settle!: { resolve: (value: unknown) => void; reject: (reason: unknown) => void };
+        mockRunDiagnosticsForDomain.mockImplementation(
+          () =>
+            new Promise((resolve, reject) => {
+              settle = { resolve, reject };
+            })
+        );
+        return () => settle;
+      };
+
+      it('is dropped when the record was saved while the run was in flight', async () => {
+        mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
+        const settle = deferredRun();
+        const composable = useSsoConfig('dm-ext-123');
+        await composable.initialize();
+
+        const pending = composable.runDiagnostics();
+        await composable.saveConfig();
+        mockNotificationsShow.mockClear();
+        settle().resolve(mockDiagnosticsPassed);
+        await pending;
+
+        expect(composable.diagnosticsResult.value).toBeNull();
+        expect(composable.diagnosticsError.value).toBe('');
+        expect(composable.isDiagnosing.value).toBe(false);
+        expect(mockNotificationsShow).not.toHaveBeenCalled();
+      });
+
+      it('is dropped when the record was deleted while the run was in flight', async () => {
+        mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
+        const settle = deferredRun();
+        const composable = useSsoConfig('dm-ext-123');
+        await composable.initialize();
+
+        const pending = composable.runDiagnostics();
+        await composable.deleteConfig();
+        settle().resolve(mockDiagnosticsFailed);
+        await pending;
+
+        expect(composable.diagnosticsResult.value).toBeNull();
+        expect(composable.isConfigured.value).toBe(false);
+        expect(composable.isDiagnosing.value).toBe(false);
+      });
+
+      it('drops a late transport failure too, so no error is shown for the old record', async () => {
+        mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
+        const settle = deferredRun();
+        const composable = useSsoConfig('dm-ext-123');
+        await composable.initialize();
+
+        const pending = composable.runDiagnostics();
+        await composable.saveConfig();
+        settle().reject(new Error('Network error'));
+        await pending;
+
+        expect(composable.diagnosticsError.value).toBe('');
+        expect(composable.diagnosticsResult.value).toBeNull();
+        expect(composable.isDiagnosing.value).toBe(false);
+      });
+
+      it('keeps a response when nothing changed the record while the run was in flight', async () => {
+        mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
+        const settle = deferredRun();
+        const composable = useSsoConfig('dm-ext-123');
+        await composable.initialize();
+
+        const pending = composable.runDiagnostics();
+        composable.formState.value = { ...composable.formState.value, tenant_id: 'edited' };
+        settle().resolve(mockDiagnosticsPassed);
+        await pending;
+
+        expect(composable.diagnosticsResult.value).toEqual(mockDiagnosticsPassed);
+      });
+
+      it('refuses a second run while one is in flight', async () => {
+        mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
+        const settle = deferredRun();
+        const composable = useSsoConfig('dm-ext-123');
+        await composable.initialize();
+
+        const pending = composable.runDiagnostics();
+        await composable.runDiagnostics();
+        settle().resolve(mockDiagnosticsPassed);
+        await pending;
+
+        expect(mockRunDiagnosticsForDomain).toHaveBeenCalledTimes(1);
+        expect(composable.diagnosticsResult.value).toEqual(mockDiagnosticsPassed);
+      });
+    });
+
+    it('disableConfig refuses while diagnostics are in flight', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
+      mockRunDiagnosticsForDomain.mockImplementation(() => new Promise(() => {}));
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      void composable.runDiagnostics();
+      await composable.disableConfig();
+
+      expect(mockPatchConfigForDomain).not.toHaveBeenCalled();
     });
   });
 

@@ -1453,7 +1453,56 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
         login_as(test_owner)
       end
 
+      it 'F2: a replacement starts without history even when outcome cleanup raises' do
+        domain_id = test_custom_domain.identifier
+        old = Onetime::CustomDomain::SsoConfig.find_by_domain_id(domain_id)
+        outcome_class = Onetime::CustomDomain::SsoSigninOutcome
+        recorded = outcome_class.record_success!(domain_id, config: old)
+        expect(recorded).not_to be_nil
+        allow(outcome_class).to receive(:delete_for_domain!).and_raise(Redis::BaseConnectionError)
+
+        csrf_delete api_path(test_custom_domain.extid)
+        expect(last_response.status).to eq(200)
+        expect(outcome_class.load(domain_id)).not_to be_nil
+        replacement = Onetime::CustomDomain::SsoConfig.create!(
+          domain_id: domain_id, client_id: 'replacement', issuer: 'https://idp.example.com',
+        )
+        expect(outcome_class.record_success!(domain_id, config: old)).to be_nil
+        json_get api_path(test_custom_domain.extid)
+        expect(last_response.status).to eq(200)
+        expect(json_body['record']['last_sign_in']).to be_nil
+
+        outcome_class.record_failure!(domain_id, config: replacement, stage: 'provider', code: 'timeout')
+        json_get api_path(test_custom_domain.extid)
+        expect(json_body['record']['last_sign_in']).to include('result' => 'failed', 'succeeded_at' => nil)
+      ensure
+        recorded&.destroy!
+      end
+
+      it 'F2: delayed cleanup cannot erase a replacement outcome' do
+        domain_id = test_custom_domain.identifier
+        outcome_class = Onetime::CustomDomain::SsoSigninOutcome
+        recorded = nil
+        allow(outcome_class).to receive(:delete_for_domain!).and_wrap_original do |original, id, **kwargs|
+          replacement = Onetime::CustomDomain::SsoConfig.create!(
+            domain_id: id, client_id: 'replacement', issuer: 'https://idp.example.com',
+          )
+          recorded = outcome_class.record_success!(id, config: replacement)
+          original.call(id, **kwargs)
+        end
+
+        csrf_delete api_path(test_custom_domain.extid)
+        expect(last_response.status).to eq(200)
+        expect(recorded).not_to be_nil
+        expect(outcome_class.find_by_domain_id(domain_id).succeeded?).to be true
+      ensure
+        recorded&.destroy!
+      end
+
       it 'deletes the SSO config and returns confirmation' do
+        domain_id = test_custom_domain.identifier
+        config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(domain_id)
+        Onetime::CustomDomain::SsoSigninOutcome.record_success!(domain_id, config: config)
         csrf_delete api_path(test_custom_domain.extid)
 
         expect(last_response.status).to eq(200)
@@ -1465,6 +1514,7 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
         # Verify deletion
         config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(test_custom_domain.identifier)
         expect(config).to be_nil
+        expect(Onetime::CustomDomain::SsoSigninOutcome.load(domain_id)).to be_nil
       end
     end
 

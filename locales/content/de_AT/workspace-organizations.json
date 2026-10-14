@@ -1342,5 +1342,109 @@
   "web.organizations.sso.certificate_valid_from": {
     "text": "Zertifikat gültig ab",
     "source_hash": "b13d3f30"
+  },
+  "web.organizations.sso.client_secret_looks_like_secret_id": {
+    "text": "Das sieht nach der „Secret ID“ aus. Entra benötigt den Wert des Client Secrets („Value“), der beim Erstellen des Client Secrets nur einmal angezeigt wird.",
+    "source_hash": "168681cf"
+  },
+  "web.organizations.sso.diagnostics_title": {
+    "text": "Gespeicherte Konfiguration prüfen",
+    "source_hash": "5c68357a"
+  },
+  "web.organizations.sso.diagnostics_hint": {
+    "text": "Prüft, was für diesen Bereich gespeichert ist — bei Microsoft Entra ID einschließlich des gespeicherten Client Secrets — und meldet jede Ebene einzeln. Eine vollständige Anmeldung wird dabei nicht getestet.",
+    "source_hash": "42505faa"
+  },
+  "web.organizations.sso.last_sign_in_none": {
+    "text": "Über diesen Bereich wurde noch keine Anmeldung aufgezeichnet.",
+    "source_hash": "7f9d0f23"
+  },
+  "web.organizations.sso.last_sign_in_succeeded": {
+    "text": "Die letzte Anmeldung über diesen Bereich wurde am {when} abgeschlossen.",
+    "source_hash": "9a125080"
+  },
+  "web.organizations.sso.last_sign_in_failed": {
+    "text": "Die letzte Anmeldung über diesen Bereich ist am {when} fehlgeschlagen – {stage} ({code}).",
+    "source_hash": "be81f392"
+  },
+  "web.organizations.sso.last_sign_in_last_success": {
+    "text": "Die letzte abgeschlossene Anmeldung war am {when}.",
+    "source_hash": "34e63e57"
+  },
+  "web.organizations.sso.last_sign_in_stage_setup": {
+    "text": "bevor der Identitätsanbieter kontaktiert wurde",
+    "source_hash": "5a1b6839"
+  },
+  "web.organizations.sso.last_sign_in_stage_provider": {
+    "text": "beim Identitätsanbieter",
+    "source_hash": "40394567"
+  },
+  "web.organizations.sso.last_sign_in_stage_callback": {
+    "text": "bei der Rückleitung vom Identitätsanbieter",
+    "source_hash": "2ab78fc4"
+  },
+  "web.organizations.sso.last_sign_in_stage_account": {
+    "text": "bei der Zuordnung des Benutzers zu einem Konto",
+    "source_hash": "1ebbb776"
+  },
+  "web.organizations.sso.diagnostics_save_first": {
+    "text": "Zuerst speichern: Geprüft wird die gespeicherte Konfiguration, nicht ungespeicherte Änderungen.",
+    "source_hash": "46a51d59"
+  },
+  "web.organizations.sso.diagnostics_button": {
+    "text": "Gespeicherte Konfiguration prüfen",
+    "source_hash": "5c68357a"
+  },
+  "web.organizations.sso.diagnostics_running": {
+    "text": "Wird geprüft...",
+    "source_hash": "2e5f79bb"
+  },
+  "web.organizations.sso.diagnostics_checked_at": {
+    "text": "Geprüft",
+    "source_hash": "0efd92a3"
+  },
+  "web.organizations.sso.diagnostics_check_stored_configuration": {
+    "text": "Gespeicherte Konfiguration",
+    "source_hash": "a988b06a"
+  },
+  "web.organizations.sso.diagnostics_check_discovery": {
+    "text": "Discovery des Identitätsanbieters",
+    "source_hash": "b5f90082"
+  },
+  "web.organizations.sso.diagnostics_check_certificate": {
+    "text": "Signaturzertifikat",
+    "source_hash": "cc00e050"
+  },
+  "web.organizations.sso.diagnostics_check_credential": {
+    "text": "Client Secret",
+    "source_hash": "4aded5fa"
+  },
+  "web.organizations.sso.diagnostics_status_passed": {
+    "text": "Bestanden",
+    "source_hash": "436fe71b"
+  },
+  "web.organizations.sso.diagnostics_status_failed": {
+    "text": "Fehlgeschlagen",
+    "source_hash": "031a8f0f"
+  },
+  "web.organizations.sso.diagnostics_status_inconclusive": {
+    "text": "Nicht eindeutig",
+    "source_hash": "9141583b"
+  },
+  "web.organizations.sso.diagnostics_status_unsupported": {
+    "text": "Nicht verfügbar",
+    "source_hash": "67a926f7"
+  },
+  "web.organizations.sso.diagnostics_status_skipped": {
+    "text": "Übersprungen",
+    "source_hash": "12698ce1"
+  },
+  "web.organizations.sso.diagnostics_aadsts_code": {
+    "text": "Microsoft-Fehlercode",
+    "source_hash": "dc8f7060"
+  },
+  "web.organizations.sso.diagnostics_errors": {
+    "text": "Probleme",
+    "source_hash": "a7b182f8"
   }
 }

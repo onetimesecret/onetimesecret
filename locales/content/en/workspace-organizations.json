@@ -888,6 +888,10 @@
     "text": "Leave blank to keep the existing secret",
     "content_hash": "98bc3b40"
   },
+  "web.organizations.sso.client_secret_looks_like_secret_id": {
+    "text": "This looks like the Secret ID. Entra needs the secret Value, shown once when the secret is created.",
+    "content_hash": "168681cf"
+  },
   "web.organizations.sso.tenant_id": {
     "text": "Tenant ID",
     "content_hash": "de1f5fff"
@@ -1143,6 +1147,106 @@
   "web.organizations.sso.test_error": {
     "text": "Failed to test connection",
     "content_hash": "c1d1f310"
+  },
+  "web.organizations.sso.diagnostics_title": {
+    "text": "Check saved configuration",
+    "content_hash": "5c68357a"
+  },
+  "web.organizations.sso.diagnostics_hint": {
+    "text": "Checks what is stored for this domain — for Microsoft Entra ID including the saved client secret — and reports each layer separately. It does not test a full sign-in.",
+    "content_hash": "42505faa"
+  },
+  "web.organizations.sso.last_sign_in_none": {
+    "text": "No sign-in through this domain has been recorded yet.",
+    "content_hash": "7f9d0f23"
+  },
+  "web.organizations.sso.last_sign_in_succeeded": {
+    "text": "The last sign-in through this domain completed on {when}.",
+    "content_hash": "9a125080"
+  },
+  "web.organizations.sso.last_sign_in_failed": {
+    "text": "The last sign-in through this domain failed on {when}, {stage} ({code}).",
+    "content_hash": "be81f392"
+  },
+  "web.organizations.sso.last_sign_in_last_success": {
+    "text": "The last completed sign-in was on {when}.",
+    "content_hash": "34e63e57"
+  },
+  "web.organizations.sso.last_sign_in_stage_setup": {
+    "text": "before the identity provider was contacted",
+    "content_hash": "5a1b6839"
+  },
+  "web.organizations.sso.last_sign_in_stage_provider": {
+    "text": "at the identity provider",
+    "content_hash": "40394567"
+  },
+  "web.organizations.sso.last_sign_in_stage_callback": {
+    "text": "when the identity provider returned the user",
+    "content_hash": "2ab78fc4"
+  },
+  "web.organizations.sso.last_sign_in_stage_account": {
+    "text": "when matching the user to an account",
+    "content_hash": "1ebbb776"
+  },
+  "web.organizations.sso.diagnostics_save_first": {
+    "text": "Save first: this checks the saved configuration, not unsaved changes.",
+    "content_hash": "46a51d59"
+  },
+  "web.organizations.sso.diagnostics_button": {
+    "text": "Check saved configuration",
+    "content_hash": "5c68357a"
+  },
+  "web.organizations.sso.diagnostics_running": {
+    "text": "Checking...",
+    "content_hash": "2e5f79bb"
+  },
+  "web.organizations.sso.diagnostics_checked_at": {
+    "text": "Checked",
+    "content_hash": "0efd92a3"
+  },
+  "web.organizations.sso.diagnostics_check_stored_configuration": {
+    "text": "Stored configuration",
+    "content_hash": "a988b06a"
+  },
+  "web.organizations.sso.diagnostics_check_discovery": {
+    "text": "Identity provider discovery",
+    "content_hash": "b5f90082"
+  },
+  "web.organizations.sso.diagnostics_check_certificate": {
+    "text": "Signing certificate",
+    "content_hash": "cc00e050"
+  },
+  "web.organizations.sso.diagnostics_check_credential": {
+    "text": "Client secret",
+    "content_hash": "4aded5fa"
+  },
+  "web.organizations.sso.diagnostics_status_passed": {
+    "text": "Passed",
+    "content_hash": "436fe71b"
+  },
+  "web.organizations.sso.diagnostics_status_failed": {
+    "text": "Failed",
+    "content_hash": "031a8f0f"
+  },
+  "web.organizations.sso.diagnostics_status_inconclusive": {
+    "text": "Inconclusive",
+    "content_hash": "9141583b"
+  },
+  "web.organizations.sso.diagnostics_status_unsupported": {
+    "text": "Not available",
+    "content_hash": "67a926f7"
+  },
+  "web.organizations.sso.diagnostics_status_skipped": {
+    "text": "Skipped",
+    "content_hash": "12698ce1"
+  },
+  "web.organizations.sso.diagnostics_aadsts_code": {
+    "text": "Microsoft error code",
+    "content_hash": "dc8f7060"
+  },
+  "web.organizations.sso.diagnostics_errors": {
+    "text": "Problems",
+    "content_hash": "a7b182f8"
   },
   "web.organizations.sso.auth_endpoint": {
     "text": "Authorization Endpoint",

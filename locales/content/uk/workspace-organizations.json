@@ -1342,5 +1342,109 @@
   "web.organizations.sso.certificate_valid_from": {
     "text": "Сертифікат дійсний з",
     "source_hash": "b13d3f30"
+  },
+  "web.organizations.sso.client_secret_looks_like_secret_id": {
+    "text": "Схоже, це «Secret ID». Entra потрібне значення секрету («Value»), яке показується лише один раз під час створення секрету.",
+    "source_hash": "168681cf"
+  },
+  "web.organizations.sso.diagnostics_title": {
+    "text": "Перевірити збережену конфігурацію",
+    "source_hash": "5c68357a"
+  },
+  "web.organizations.sso.diagnostics_hint": {
+    "text": "Перевіряє те, що збережено для цього домену — для Microsoft Entra ID включно зі збереженим Client Secret — і повідомляє результат окремо для кожного рівня. Повний вхід при цьому не перевіряється.",
+    "source_hash": "42505faa"
+  },
+  "web.organizations.sso.last_sign_in_none": {
+    "text": "Вхід через цей домен ще не зафіксовано.",
+    "source_hash": "7f9d0f23"
+  },
+  "web.organizations.sso.last_sign_in_succeeded": {
+    "text": "Останній вхід через цей домен успішно завершено {when}.",
+    "source_hash": "9a125080"
+  },
+  "web.organizations.sso.last_sign_in_failed": {
+    "text": "Останній вхід через цей домен не вдався {when} — {stage} ({code}).",
+    "source_hash": "be81f392"
+  },
+  "web.organizations.sso.last_sign_in_last_success": {
+    "text": "Останній успішний вхід був {when}.",
+    "source_hash": "34e63e57"
+  },
+  "web.organizations.sso.last_sign_in_stage_setup": {
+    "text": "до звернення до провайдера ідентифікації",
+    "source_hash": "5a1b6839"
+  },
+  "web.organizations.sso.last_sign_in_stage_provider": {
+    "text": "на боці провайдера ідентифікації",
+    "source_hash": "40394567"
+  },
+  "web.organizations.sso.last_sign_in_stage_callback": {
+    "text": "під час повернення користувача від провайдера ідентифікації",
+    "source_hash": "2ab78fc4"
+  },
+  "web.organizations.sso.last_sign_in_stage_account": {
+    "text": "під час зіставлення користувача з обліковим записом",
+    "source_hash": "1ebbb776"
+  },
+  "web.organizations.sso.diagnostics_save_first": {
+    "text": "Спочатку збережіть: перевіряється збережена конфігурація, а не незбережені зміни.",
+    "source_hash": "46a51d59"
+  },
+  "web.organizations.sso.diagnostics_button": {
+    "text": "Перевірити збережену конфігурацію",
+    "source_hash": "5c68357a"
+  },
+  "web.organizations.sso.diagnostics_running": {
+    "text": "Перевірка...",
+    "source_hash": "2e5f79bb"
+  },
+  "web.organizations.sso.diagnostics_checked_at": {
+    "text": "Перевірено",
+    "source_hash": "0efd92a3"
+  },
+  "web.organizations.sso.diagnostics_check_stored_configuration": {
+    "text": "Збережена конфігурація",
+    "source_hash": "a988b06a"
+  },
+  "web.organizations.sso.diagnostics_check_discovery": {
+    "text": "Виявлення провайдера ідентифікації",
+    "source_hash": "b5f90082"
+  },
+  "web.organizations.sso.diagnostics_check_certificate": {
+    "text": "Сертифікат підпису",
+    "source_hash": "cc00e050"
+  },
+  "web.organizations.sso.diagnostics_check_credential": {
+    "text": "Client Secret",
+    "source_hash": "4aded5fa"
+  },
+  "web.organizations.sso.diagnostics_status_passed": {
+    "text": "Пройдено",
+    "source_hash": "436fe71b"
+  },
+  "web.organizations.sso.diagnostics_status_failed": {
+    "text": "Не пройдено",
+    "source_hash": "031a8f0f"
+  },
+  "web.organizations.sso.diagnostics_status_inconclusive": {
+    "text": "Неоднозначно",
+    "source_hash": "9141583b"
+  },
+  "web.organizations.sso.diagnostics_status_unsupported": {
+    "text": "Недоступно",
+    "source_hash": "67a926f7"
+  },
+  "web.organizations.sso.diagnostics_status_skipped": {
+    "text": "Пропущено",
+    "source_hash": "12698ce1"
+  },
+  "web.organizations.sso.diagnostics_aadsts_code": {
+    "text": "Код помилки Microsoft",
+    "source_hash": "dc8f7060"
+  },
+  "web.organizations.sso.diagnostics_errors": {
+    "text": "Проблеми",
+    "source_hash": "a7b182f8"
   }
 }

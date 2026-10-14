@@ -411,6 +411,9 @@ export function useEmailConfig(domainExtId: string) {
     isTesting.value = true;
     testResult.value = null;
     testError.value = '';
+    // The handler records the failure here; a stale one must not be read
+    // as this send's.
+    error.value = null;
 
     try {
       const result = await wrapAction(async () => await domainsStore.testEmailConfig(domainExtId));
@@ -423,10 +426,29 @@ export function useEmailConfig(domainExtId: string) {
           testError.value = result.message || t('web.domains.email.test_email_failed');
           notifications.show(testError.value, 'error', 'top');
         }
+      } else {
+        testError.value = testFailureMessage(error.value);
       }
     } finally {
       isTesting.value = false;
     }
+  };
+
+  /**
+   * The inline message for a send that got no answer. A 429 is the
+   * per-customer send limit (the API's LimitExceeded body carries
+   * retry_after in seconds); everything else is a generic failure.
+   */
+  const testFailureMessage = (failure: ApplicationError | null): string => {
+    if (failure?.code !== 429) return t('web.domains.email.test_email_failed');
+
+    const retryAfter = Number(failure.details?.retry_after);
+    if (!Number.isFinite(retryAfter) || retryAfter <= 0) {
+      return t('web.domains.email.test_email_rate_limited');
+    }
+    return t('web.domains.email.test_email_rate_limited_retry', {
+      minutes: Math.max(1, Math.ceil(retryAfter / 60)),
+    });
   };
 
   /**
