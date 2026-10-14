@@ -16,8 +16,9 @@
 #   9. org_id points to an ARCHIVED organization (HIGH, report-only)
 #  10. CustomDomain.owners agrees with the domain's org_id (MEDIUM)
 #  11. canonical_display_domain_index agrees with the records (report-only):
-#      missing entries and collisions (HIGH), conflicts (HIGH), stale
-#      entries (MEDIUM). From Operations::Domains::CanonicalIndexAudit.
+#      missing entries and collisions (HIGH), conflicts (HIGH), records the
+#      audit could not load (HIGH), stale entries (MEDIUM). From
+#      Operations::Domains::CanonicalIndexAudit.
 #
 # Additional checks (opt-in):
 #   --familia-audit   Run Familia's generic CustomDomain.health_check, which
@@ -137,6 +138,16 @@ module Onetime
           message: 'canonical_display_domain_index entries name a record that no longer exists',
           repair_action: 'Stop the application, then run bin/ots domains backfill-canonical-index --apply',
         },
+      }.freeze
+
+      # Records that exist but that the audit could not load. The backfill
+      # does not apply while any remain.
+      CANONICAL_INDEX_UNREADABLE = {
+        severity: :high,
+        message: 'custom domain records exist but could not be loaded; ' \
+                 'backfill-canonical-index --apply writes nothing while they remain',
+        repair_action: 'Inspect them with bin/ots domains doctor --all --familia-audit, ' \
+                       'then repair or remove them',
       }.freeze
 
       # Valid 32-char hex pattern for txt_validation_value
@@ -409,12 +420,28 @@ module Onetime
             repair_action: "#{finding[:repair_action]} (see #{CANONICAL_INDEX_RUNBOOK})",
           }
         end
+        report_canonical_unreadable(issues, audit.errors)
       rescue StandardError => ex
         issues << {
           check: :canonical_index_audit_unavailable,
           severity: :warning,
           message: "canonical index audit unavailable: #{ex.class}: #{ex.message}",
           repairable: false,
+        }
+      end
+
+      def report_canonical_unreadable(issues, errors)
+        return if errors.empty?
+
+        finding = CANONICAL_INDEX_UNREADABLE
+        issues << {
+          check: :canonical_index_unreadable,
+          severity: finding[:severity],
+          message: "#{errors.size} #{finding[:message]}",
+          examples: errors.first(10).map(&:to_h),
+          total: errors.size,
+          repairable: false,
+          repair_action: "#{finding[:repair_action]} (see #{CANONICAL_INDEX_RUNBOOK})",
         }
       end
 

@@ -437,6 +437,25 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
       expect(last_exit_code).to eq(2)
     end
 
+    it 'reports records the audit could not load' do
+      unreadable = audit_class::Unreadable.new(domain_id: 'u1', message: 'Familia::SerializerError: bad')
+      allow(audit_class).to receive(:new)
+        .and_return(double('CanonicalIndexAudit', call: audit_class::Result.new(rows: [], entries: [], errors: [unreadable])))
+
+      issues = canonical_issues(json_report('domains', 'doctor', '--all', '--json'))
+
+      expect(issues.map { |i| i.slice('check', 'severity', 'total', 'repairable', 'examples') }).to eq(
+        [{
+          'check' => 'canonical_index_unreadable',
+          'severity' => 'high',
+          'total' => 1,
+          'repairable' => false,
+          'examples' => [{ 'domain_id' => 'u1', 'message' => 'Familia::SerializerError: bad' }],
+        }],
+      )
+      expect(last_exit_code).to eq(1)
+    end
+
     it 'reports a warning when the audit cannot run' do
       allow(audit_class).to receive(:new).and_raise(Redis::CannotConnectError, 'down')
 
