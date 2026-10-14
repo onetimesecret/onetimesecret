@@ -12,8 +12,9 @@
 # - an orphan registered before the index existed gains an entry;
 # - an orphan that already holds its entry keeps it;
 # - an orphan whose name another record holds is refused, and stays an orphan;
-# - a claim taken here is released when the orphan claim fails, unless an
-#   organization holds the record by then.
+# - a claim taken here stays when adoption fails but the record still exists,
+#   even if still orphaned; it is released only if the record is gone and the
+#   entry still names it, checked atomically against deletion/recreation.
 #
 # Verification fields are not part of this and are not asserted on.
 #
@@ -120,14 +121,14 @@ RSpec.describe Onetime::CustomDomain, '.claim_orphaned_domain canonical claim', 
     index.release_field(canonical, holder.identifier) if holder
   end
 
-  it 'releases the claim it took when the organization is gone by the time it assigns it' do
+  it 'keeps the claim for the live orphan when the organization is gone by the time it assigns it' do
     id       = legacy_orphan
     existing = reload(id)
     allow(Onetime::Organization).to receive(:load).and_call_original
     allow(Onetime::Organization).to receive(:load).with(org_b.objid).and_return(nil)
 
     expect { described_class.claim_orphaned_domain(existing, org_b.objid) }.to raise_error(Onetime::RecordNotFound)
-    expect([reload(id).org_id.to_s, index.get(canonical)]).to eq(['', nil])
+    expect([reload(id).org_id.to_s, index.get(canonical)]).to eq(['', id])
   end
 
   it 'releases the claim it took when the record is deleted before its transaction lands' do
@@ -155,6 +156,72 @@ RSpec.describe Onetime::CustomDomain, '.claim_orphaned_domain canonical claim', 
     expect { described_class.claim_orphaned_domain(existing, org_b.objid) }
       .to raise_error(Onetime::TemporarilyUnavailable)
     expect([reload(id).org_id, index.get(canonical)]).to eq([org_a.objid, id])
+  end
+
+  [
+    ['decomposed Unicode', "orphan-u\u0308"],
+    ['fullwidth Unicode', 'ｏｒｐｈａｎ'],
+  ].each do |spelling, prefix|
+    context "with a legacy #{spelling} name" do
+      let(:orphan_name) { "#{prefix}-#{suffix}.com" }
+
+      it 'keeps the canonical claim after successful adoption despite a stale cleanup org_id read' do
+        id       = legacy_orphan
+        existing = reload(id)
+        allow(existing).to receive(:atomic_write).and_return(false)
+        allow(described_class).to receive(:release_orphan_canonical_claim).and_wrap_original do |cleanup, record, key|
+          # Deterministically model the baseline's split check/release: its
+          # org_id read is empty, then a real adoption commits with the same ID.
+          # Only the losing request's cleanup sees that stale org_id snapshot.
+          stale_org_id = record.hget(:org_id)
+          winner = register(orphan_name, org_a)
+          expect(winner.identifier).to eq(id)
+          allow(record).to receive(:hget).with(:org_id).and_return(stale_org_id)
+          cleanup.call(record, key)
+        end
+
+        expect { described_class.claim_orphaned_domain(existing, org_b.objid) }
+          .to raise_error(Onetime::TemporarilyUnavailable)
+        expect([reload(id).org_id, index.get(canonical)]).to eq([org_a.objid, id])
+        expect { register(canonical, org_b) }
+          .to raise_error(Onetime::Problem, 'Domain is registered to another organization')
+      end
+    end
+  end
+
+  it 'keeps the claim for a record recreated with the same ID after a stale absence observation' do
+    id       = legacy_orphan
+    existing = reload(id)
+    index.put(canonical, id)
+    client = described_class.dbclient
+    fields = client.hgetall(existing.dbkey)
+    client.del(existing.dbkey)
+    absent = existing.exists?
+    expect(absent).to be(false)
+
+    # Recreate before cleanup; a separate EXISTS followed by release_field
+    # would trust the stale absence and remove this live record's claim.
+    client.hset(existing.dbkey, fields)
+    allow(existing).to receive(:exists?).and_return(absent)
+    described_class.send(:release_orphan_canonical_claim, existing, canonical)
+
+    expect([reload(id).identifier, index.get(canonical)]).to eq([id, id])
+  end
+
+  it 'keeps the replacement claim when deletion and registration precede failed adoption cleanup' do
+    id          = legacy_orphan
+    existing    = reload(id)
+    replacement = nil
+    allow(existing).to receive(:atomic_write) do
+      existing.destroy!
+      replacement = register(canonical, org_a)
+      false # EXEC discarded: the WATCHed record was deleted
+    end
+
+    expect { described_class.claim_orphaned_domain(existing, org_b.objid) }
+      .to raise_error(Onetime::TemporarilyUnavailable)
+    expect(replacement.identifier).not_to eq(id)
+    expect([reload(id), index.get(canonical)]).to eq([nil, replacement.identifier])
   end
 
   it 'leaves an entry it did not create when the orphan claim fails' do

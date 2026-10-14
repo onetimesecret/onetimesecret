@@ -1103,8 +1103,9 @@ module Onetime
       # new record (claim_field cannot run inside a transaction). A record
       # registered before that index existed has no entry and gains one here;
       # a later record already holds its entry. When another record holds the
-      # name, the claim is refused. A claim taken here is released again if
-      # the orphan claim then fails (see release_orphan_canonical_claim).
+      # name, the claim is refused. If the orphan claim then fails, the entry
+      # stays while the record exists, even if still orphaned; only a deleted
+      # record's claim is released (see release_orphan_canonical_claim).
       # Verification fields are not changed.
       #
       # @param existing [CustomDomain] The orphaned domain to claim
@@ -1205,7 +1206,7 @@ module Onetime
       # Claims the orphan's canonical name for the record.
       #
       # @return [Array(String, Boolean)] canonical name, and whether this call
-      #   created the claim (and so releases it if the orphan claim fails)
+      #   created the claim (eligible for cleanup if the record is deleted)
       # @raise [Onetime::Problem] when another record holds the name, or the
       #   name has no A-label form
       def claim_canonical_for_orphan!(existing, org_id)
@@ -1224,16 +1225,24 @@ module Onetime
         raise Onetime::Problem, ex.message
       end
 
-      # Releases a canonical claim that claim_orphaned_domain created, after
-      # the orphan claim failed. The claim stays when an organization holds
-      # the record by now: the entry names the record, and its new owner keeps
-      # it (a concurrent claim by another organization discards this one's
-      # WATCH and lands). It also stays when the record cannot be read, so the
-      # name stays taken rather than open to a second record.
+      # Releases a claim created by a failed orphan adoption only if the
+      # record is gone. A live orphan keeps its entry: another adopter uses
+      # the same identifier, so an org_id check followed by release_field can
+      # remove that adopter's claim. Check absence and index ownership in one
+      # script so deletion/recreation cannot land between check and release.
+      # Datastore errors leave the claim in place rather than opening the name.
       def release_orphan_canonical_claim(existing, canonical)
-        return if existing.exists? && !existing.hget(:org_id).to_s.empty?
-
-        canonical_display_domain_index.release_field(canonical, existing.identifier)
+        script = <<~LUA
+          if redis.call('EXISTS', KEYS[1]) == 1 then return 0 end
+          if redis.call('HGET', KEYS[2], ARGV[1]) ~= ARGV[2] then return 0 end
+          return redis.call('HDEL', KEYS[2], ARGV[1])
+        LUA
+        index  = canonical_display_domain_index
+        index.dbclient.eval(
+          script,
+          keys: [existing.dbkey, index.dbkey],
+          argv: [canonical, existing.identifier],
+        )
       rescue StandardError => ex
         OT.le "[CustomDomain.claim_orphaned_domain] Kept the canonical claim for #{existing.extid}: #{ex.class}: #{ex.message}"
       end
