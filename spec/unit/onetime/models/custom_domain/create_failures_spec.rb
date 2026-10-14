@@ -11,6 +11,10 @@
 # - an orphan claim discarded by a concurrent write (WATCH) is
 #   Onetime::TemporarilyUnavailable.
 #
+# It also covers the refusal of an orphaned record to a caller that did not
+# ask to adopt it (adopt_orphan: false, the default): the caller gets the
+# answer for a record of another organization and the record is unchanged.
+#
 # Real datastore; the failures are injected through a delegator on the class
 # accessor or a stub on one record, both scoped to the example.
 
@@ -55,6 +59,35 @@ RSpec.describe Onetime::CustomDomain, '.create! failures', :datastore do
     expect(described_class.display_domain_index.get(name)).to be_nil
   end
 
+  context 'when the caller does not adopt orphans' do
+    let(:app_log) { instance_spy(SemanticLogger::Logger) }
+
+    before do
+      allow(Onetime).to receive(:get_logger).and_call_original
+      allow(Onetime).to receive(:get_logger).with('App').and_return(app_log)
+      # As below: a claim, were one attempted, would need the pool.
+      allow(Onetime).to receive(:with_pinned_dbclient) { |&block| block.call(Familia.dbclient) }
+    end
+
+    it 'refuses the orphan like a record of another organization, logs it, and changes nothing' do
+      orphaned  = orphan
+      canonical = described_class.canonical_display_domain(name)
+      described_class.canonical_display_domain_index.remove_field(canonical)
+      stored    = Familia.dbclient.hgetall(orphaned.dbkey)
+
+      expect { described_class.create!(name, org.objid) }
+        .to raise_error(Onetime::Problem, 'Domain is registered to another organization')
+      expect(app_log).to have_received(:warn)
+        .with('custom_domain.orphan_claim_refused', hash_including(extid: orphaned.extid))
+      expect([
+        Familia.dbclient.hgetall(orphaned.dbkey) == stored,
+        described_class.canonical_display_domain_index.get(canonical),
+        described_class.owners.get(orphaned.to_s),
+        org.domains.member?(orphaned.identifier),
+      ]).to eq([true, nil, nil, false])
+    end
+  end
+
   context 'when claiming an orphaned record' do
     # The unit lane boots without the connection pool claim_orphaned_domain
     # pins its WATCH to; hand it a plain client for this example instead.
@@ -66,7 +99,7 @@ RSpec.describe Onetime::CustomDomain, '.create! failures', :datastore do
       orphaned   = orphan
       missing_id = "missing-#{suffix}"
 
-      expect { described_class.create!(name, missing_id) }.to raise_error(Onetime::RecordNotFound) { |ex|
+      expect { described_class.create!(name, missing_id, adopt_orphan: true) }.to raise_error(Onetime::RecordNotFound) { |ex|
         expect([ex.message, ex.message.include?(missing_id)]).to eq(['Organization not found', false])
       }
       expect(described_class.find_by_identifier(orphaned.identifier).org_id.to_s).to eq('')

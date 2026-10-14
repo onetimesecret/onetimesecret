@@ -4,8 +4,9 @@
 
 # CustomDomain.claim_orphaned_domain and canonical_display_domain_index.
 #
-# create! hands an existing record with no organization (an orphan) to the
-# registering organization through claim_orphaned_domain. Before its
+# create!(adopt_orphan: true) hands an existing record with no organization
+# (an orphan) to the registering organization through claim_orphaned_domain.
+# Before its
 # WATCH/MULTI, that claim enters the record's name into the canonical index
 # for the record, the way create! claims a new record's name:
 #
@@ -77,7 +78,7 @@ RSpec.describe Onetime::CustomDomain, '.claim_orphaned_domain canonical claim', 
   end
 
   def register(input, org)
-    described_class.create!(input, org.objid).tap do |rec|
+    described_class.create!(input, org.objid, adopt_orphan: true).tap do |rec|
       created << rec unless legacy.any? { |id, _| id == rec.identifier }
     end
   end

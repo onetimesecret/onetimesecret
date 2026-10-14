@@ -152,7 +152,7 @@ module Onetime
           return reject(:duplicate_in_org, display_domain) if existing.org_id.to_s == @org.objid.to_s
           return reject(:duplicate_other_org, display_domain) unless existing.org_id.to_s.empty?
 
-          # Orphaned record (no org_id): create! claims it atomically.
+          # Orphaned record (no org_id): #call has create! adopt it.
           Check.new(status: :ok, display_domain: display_domain, message: nil, claims_orphan: true)
         end
 
@@ -165,7 +165,9 @@ module Onetime
           @display_domain = check.display_domain
           return rejected_result(check) unless check.status == :ok
 
-          domain = Onetime::CustomDomain.create!(check.display_domain, @org.objid)
+          # Adopt only the orphan validate found (and showed the operator).
+          # A name that turned into an orphan after validate is refused.
+          domain = Onetime::CustomDomain.create!(check.display_domain, @org.objid, adopt_orphan: check.claims_orphan)
           cert   = @request_certificate ? provision_certificate(domain) : nil
 
           # Exactly one audit event per successful create. Public ids only.

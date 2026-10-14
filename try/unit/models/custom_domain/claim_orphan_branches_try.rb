@@ -84,8 +84,8 @@ orphan!(@atomic_domain, @org_a)
 Onetime::CustomDomain.orphaned?(@atomic_domain_name)
 #=> true
 
-## Claim-for-org_b via create!
-@claimed_atomic = Onetime::CustomDomain.create!(@atomic_domain_name, @org_b.objid)
+## Claim-for-org_b via create!(adopt_orphan: true)
+@claimed_atomic = Onetime::CustomDomain.create!(@atomic_domain_name, @org_b.objid, adopt_orphan: true)
 @claimed_atomic.display_domain
 #=> @atomic_domain_name
 

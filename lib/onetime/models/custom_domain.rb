@@ -934,6 +934,11 @@ module Onetime
       #
       # @param input [String] The domain name to create
       # @param org_id [String] The organization ID to associate with this domain
+      # @param adopt_orphan [Boolean] When the name belongs to a record with
+      #   no organization (an orphan), assign that record to org_id through
+      #   claim_orphaned_domain. Only operator tools pass true. With false
+      #   (the default) an orphan is refused like a record of another
+      #   organization; see refuse_orphan_claim!.
       # @return [Onetime::CustomDomain] The created custom domain
       # @raise [Onetime::Problem] If domain is invalid or already exists
       # @raise [Onetime::TemporarilyUnavailable] If the datastore failed, or
@@ -959,7 +964,7 @@ module Onetime
       # unqualified term "domain" on its own since there's so much
       # room for confusion.
       #
-      def create!(input, org_id)
+      def create!(input, org_id, adopt_orphan: false)
         # Parse the domain to get normalized display_domain
         obj               = parse(input, org_id)
         normalized_domain = obj.display_domain.to_s.downcase
@@ -987,8 +992,10 @@ module Onetime
             raise Onetime::Problem, 'Domain is registered to another organization'
           end
 
-          # Scenario 3: Orphaned domain (no org_id) - claim it atomically
-          # Use a simple lock pattern: try to set a claim marker, then update
+          # Scenario 3: Orphaned domain (no org_id). Only an operator adopts
+          # an orphan; anyone else gets the Scenario 2 answer.
+          refuse_orphan_claim!(existing, org_id) unless adopt_orphan
+
           claim_result = claim_orphaned_domain(existing, org_id)
           return claim_result if claim_result
         end
@@ -1080,6 +1087,21 @@ module Onetime
         raise Onetime::TemporarilyUnavailable.new(
           'The domain could not be added right now. Please try again shortly.', reason: :datastore
         )
+      end
+
+      # Refuses an orphaned record (no org_id) to a caller that may not adopt
+      # it. The answer is the one for a record of another organization, so it
+      # does not show that the name is registered without an owner. The
+      # refusal is logged with the record's extid, for support.
+      #
+      # @param existing [CustomDomain] the orphaned record
+      # @param org_id [String] the organization that asked for the name
+      # @raise [Onetime::Problem] always
+      def refuse_orphan_claim!(existing, org_id)
+        Onetime.get_logger('App').warn 'custom_domain.orphan_claim_refused',
+          extid: existing.extid,
+          org_id: org_id.to_s
+        raise Onetime::Problem, 'Domain is registered to another organization'
       end
 
       # Create default-disabled HomepageConfig and ApiConfig records for a
