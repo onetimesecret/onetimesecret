@@ -444,4 +444,51 @@ RSpec.describe 'Domain Signin Config API', type: :integration do
       )
     end
   end
+
+  # ===========================================================================
+  # A concurrent writer of the same record (GuardedConfigWrites): PUT
+  # decides and audits against the record it replaces, not the one
+  # raise_concerns loaded.
+  # ===========================================================================
+  describe 'with a concurrent writer' do
+    include ConcurrentConfigWriterHelpers
+
+    let(:model) { Onetime::CustomDomain::SigninConfig }
+    let(:audit_events) { [] }
+
+    before do
+      login_as(test_owner)
+      allow(OT).to receive(:info).and_wrap_original do |original, *args, **kwargs|
+        prefix = args.first.to_s
+        audit_events << prefix.delete_prefix('[DOMAIN_SIGNIN_CHANGE] ') if prefix.start_with?('[DOMAIN_SIGNIN_CHANGE] ')
+        original.call(*args, **kwargs)
+      end
+    end
+
+    def stored = model.find_by_domain_id(test_custom_domain.identifier)
+
+    it 'refuses webauthn when the stored value it would carry over was changed after the load' do
+      model.create!(domain_id: test_custom_domain.identifier, enabled: true, signin_enabled: true, restrict_to: 'webauthn')
+      after_config_load(model) do
+        write_config_concurrently(model, test_custom_domain.identifier, restrict_to: 'password')
+      end
+
+      csrf_put api_path(test_custom_domain.extid), { enabled: true, signin_enabled: true, restrict_to: 'webauthn' }
+
+      expect(last_response.status).to eq(422), last_response.body
+      expect(json_body['field']).to eq('restrict_to')
+      expect(stored.restrict_to).to eq('password')
+      expect(audit_events).to be_empty
+    end
+
+    it 'compares the enabled event with the record it replaced' do
+      model.create!(domain_id: test_custom_domain.identifier, enabled: false, signin_enabled: true)
+      after_config_load(model) { write_config_concurrently(model, test_custom_domain.identifier, enabled: true) }
+
+      csrf_put api_path(test_custom_domain.extid), { enabled: true, signin_enabled: true }
+
+      expect(last_response.status).to eq(200), last_response.body
+      expect(audit_events).to eq(['domain_signin_config_replaced'])
+    end
+  end
 end

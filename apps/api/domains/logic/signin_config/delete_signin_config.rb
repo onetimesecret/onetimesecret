@@ -40,7 +40,11 @@ module DomainsAPI
         def process
           OT.ld "[DeleteSigninConfig] Deleting signin config for domain #{@domain_id} by user #{cust.extid}"
 
-          deleted = Onetime::CustomDomain::SigninConfig.delete_for_domain!(@custom_domain.identifier)
+          # Of concurrent deletes only one gets the record and logs the event
+          # (GuardedConfigWrites#remove_for_domain!).
+          deleted = guarded_config_write do
+            Onetime::CustomDomain::SigninConfig.remove_for_domain!(@custom_domain.identifier)
+          end
 
           if deleted
             log_signin_change_event(

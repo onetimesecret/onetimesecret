@@ -225,7 +225,7 @@ Not exercised: unlinking ("Remove"), and linking when the reauth window has laps
 
 ## Live experiment prerequisites
 
-The Clerk Frontend API/issuer URL and the OTS canonical browser origin are recorded above. A live authorization-code exchange additionally needs the Clerk OAuth application configured as follows (the existing application matches):
+The authenticated CLI resolved the development instance from the supplied application ID; manual issuer input was not necessary. The Clerk Frontend API/issuer URL and the OTS canonical browser origin are recorded above. A live authorization-code exchange additionally needs the Clerk OAuth application configured as follows (the existing application matches):
 
 - Confidential client, not a public SPA client.
 - Granted scopes: `openid`, `email`, `profile`.
@@ -247,6 +247,27 @@ The default generic OIDC slot must be free in the test installation or explicitl
 - The variable applies only to the platform provider. Custom-domain OIDC has its own per-domain setting and does not inherit it ([per-install-sso.md](../../authentication/per-install-sso.md)).
 
 For Clerk: the instance advertises `client_secret_basic`, `client_secret_post` and `none`. The live run used the default, so `client_secret_basic` is the observed method. No token exchange with `client_secret_post` was run. The variable is not needed for Clerk and does not change the classification.
+
+## Initial CLI and HTTP evidence (2026-10-12)
+
+This initial setup record precedes the completed live sign-in checks above. The HTTP 502 and unavailable browser connector blocked this attempt, not the later live run. Its statements about unchanged local configuration apply only to this attempt.
+
+Application: `app_3Kby3t5UfTev48Cuh5AzNfSmkYk`, development instance only. The global pnpm install failed on directory permissions; the documented `npx clerk` alternative authenticated successfully without adding a project dependency or running `clerk init`.
+
+```sh
+npx --yes clerk@latest api --fapi /.well-known/openid-configuration \
+  --app app_3Kby3t5UfTev48Cuh5AzNfSmkYk --instance dev
+```
+
+Observed issuer: `https://unified-parrot-698.clerk.accounts.dev`. Metadata includes authorization, token, UserInfo and JWKS URLs; `code`, `RS256`, `S256`, and HTTP Basic client authentication. Frontchannel and backchannel logout are advertised as unsupported. These are metadata observations, not tested session-lifecycle guarantees.
+
+The initial OAuth application list was empty. Created `oa_3Kc7mStHuQ9RjfseTK1QpXsWNmt`, named **OTS platform OIDC development spike**, with confidential-client authentication, consent enabled and redirect URI `https://dev.onetime.dev/auth/sso/oidc/callback`. The CLI setup record described PKCE as required, but Clerk-side enforcement was not tested; the later dashboard inspection found no separate switch for a confidential client. The requested scopes were `openid email profile`; Clerk returned a scope ceiling of `email offline_access openid profile`. OTS still requests only its existing three scopes.
+
+At this stage, the creation response, including the generated client secret, was saved only in git-ignored `tmp/clerk-oidc/oauth-client.json`, created with mode `0600` inside a `0700` directory. No secret was printed or added to tracked files. Existing environment files were not read or modified during this attempt. The later live run regenerated the secret and added it to the operator's local environment file, as recorded above.
+
+A direct authorization request made with curl, the registered client/callback, S256, state and nonce returned **HTTP 302** to the instance's hosted `/sign-in` page. This is not an OTS-initiated request or a completed login. An earlier Python urllib request returned HTTP 403; its cause was not established.
+
+The repository-documented OTS browser origin, `https://dev.onetime.dev/signin`, returned **HTTP 502**. The browser connector was also unavailable. No dev server was restarted and no existing provider was displaced.
 
 ## Remaining acceptance evidence
 
