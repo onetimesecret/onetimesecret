@@ -37,8 +37,9 @@ auth:
 
   # The request-host seam: the middleware that decides which host a request
   # is for, and so which tenant the sign-in, SSO, WebAuthn and session code
-  # above sees; the shared custom-domain read it publishes; and the loader
-  # that applies the tenant's organization scope. The live WebAuthn ceremony
+  # above sees; the shared custom-domain read it publishes; the policy that
+  # decides whether a registered domain is served; and the loader that
+  # applies the tenant's organization scope. The live WebAuthn ceremony
   # rows (full_mfa) and the platform SAML rows (full_saml_platform) assert on
   # these, and nothing in their names selects them (#4223).
   - 'lib/middleware/detect_host.rb'
@@ -47,6 +48,7 @@ auth:
   - 'lib/onetime/middleware/public_host_rewrite.rb'
   - 'lib/onetime/middleware/http_origin_options.rb'
   - 'lib/onetime/models/custom_domain/lookup.rb'
+  - 'lib/onetime/models/custom_domain/serving_policy.rb'
   - 'lib/onetime/application/organization_loader.rb'
 
   # English sign-in copy: the E2E journeys assert on some of it. Translations
