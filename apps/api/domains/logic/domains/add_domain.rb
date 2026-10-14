@@ -90,9 +90,10 @@ module DomainsAPI::Logic
           raise_form_error 'Domain is registered to another organization'
         end
 
-        # Scenario 3: Orphaned domain (no org_id) - will be claimed in process
-        OT.info "[AddDomain] Found orphaned domain, will claim: #{@display_domain}"
-        # Don't raise an error - let the process method claim it
+        # Scenario 3: Orphaned domain (no org_id). Only an operator adopts
+        # an orphan; this answers like Scenario 2 and logs the refusal, before
+        # anything is written or a certificate is requested.
+        refuse_on_problem { Onetime::CustomDomain.refuse_orphan_claim!(existing, target_organization.objid) }
       end
 
       def process
