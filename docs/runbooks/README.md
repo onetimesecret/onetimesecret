@@ -9,6 +9,10 @@ happens, and the steps to resolve or verify.
 - [brand-pack-region-divergence.md](./brand-pack-region-divergence.md) —
   Diagnosing branding that renders wrong in one region but correct in others,
   using `bin/ots config brand` / Colonel Brand Diagnostics.
+- [custom-domain-canonical-index-backfill.md](./custom-domain-canonical-index-backfill.md) —
+  Auditing custom domain records against the canonical name index and adding
+  the missing entries with `bin/ots domains backfill-canonical-index`, with the
+  application stopped; resolving names held by more than one record.
 - [dns-validation-failures.md](./dns-validation-failures.md) — Diagnosing custom
   domain DNS validation failures.
 - [favicon-fetch-worker.md](./favicon-fetch-worker.md) — Manually triggering the
