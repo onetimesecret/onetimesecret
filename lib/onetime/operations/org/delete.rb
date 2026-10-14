@@ -110,7 +110,9 @@ module Onetime
       #
       # One {Onetime::ColonelAuditEvent} (`organization.delete`) per applied
       # delete, emitted HERE. Adapters MUST NOT audit; a self-auditing adapter
-      # double-records.
+      # double-records. Operator adapters write the operator trail; the
+      # customer-facing adapter and Customers::Purge pass `self_service: true`
+      # and write the security trail (see #initialize).
       #
       # REFUSALS ARE DELIBERATELY NOT AUDITED — a documented divergence from
       # {Onetime::Operations::Org::TransferOwnership}, which records one
@@ -121,10 +123,11 @@ module Onetime
       # therefore hand every customer a log-eviction primitive: repeat
       # `DELETE /api/organizations/:extid` against your own default workspace and
       # each refusal evicts one real destructive-action record. Refusals are
-      # logged (OT.info) instead. A raise mid-teardown still records one
-      # `result: :failure` via {Onetime::AuditedFailure} — that path is not
-      # customer-drivable, since every precondition a customer can trip returns a
-      # status instead of raising.
+      # logged (OT.info) instead. On an operator path a raise mid-teardown
+      # still records one `result: :failure` via {Onetime::AuditedFailure}; the
+      # wrapper is off for `self_service: true`, like the success write's
+      # routing. Every precondition a customer can trip returns a status
+      # instead of raising.
       #
       # ## Constant-lookup discipline
       #
@@ -262,9 +265,10 @@ module Onetime
         #   for the former members. Blank is treated as absent and both details
         #   keep their pre-#4338 shape; see {Onetime::AuditReason} for the bound
         #   and the optional-now / required-later rollout.
-        # @param self_service [Boolean] the account that owns this org asked
-        #   for the delete on its own close-account path (via
-        #   Customers::Purge). Routes the audit write to the security trail via
+        # @param self_service [Boolean] the org's owner asked for the delete:
+        #   on its own close-account path (via Customers::Purge) or through
+        #   the customer-facing DELETE /api/organizations/:extid adapter.
+        #   Routes the audit write to the security trail via
         #   {Onetime::ColonelAuditEvent.record_security} (fail-open) instead of
         #   the count-capped operator trail: a user who can retry a deletion at
         #   will must not be able to evict operator history from it.

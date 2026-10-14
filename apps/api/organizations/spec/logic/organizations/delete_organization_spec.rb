@@ -173,6 +173,14 @@ RSpec.describe OrganizationAPI::Logic::Organizations::DeleteOrganization do
       expect(op_args.last[:force_subscription]).to be_nil
     end
 
+    # An owner can create and delete workspaces in a loop, so the op's audit
+    # write must go to the security trail, never the operator trail.
+    it 'runs the op as a self-service delete' do
+      run_logic
+
+      expect(op_args.last).to include(self_service: true)
+    end
+
     it 'never audits from the adapter (the op owns the single event)' do
       run_logic
 
