@@ -1227,24 +1227,12 @@ module Onetime
         # so races go undetected.
         Onetime.with_pinned_dbclient do |conn|
           conn.watch(existing.dbkey) do
-            # Re-check org_id inside the watch - if changed, transaction will fail.
-            # hget returns raw stored bytes; Familia v2 JSON-encodes scalar
-            # fields, so a set org_id comes back as a JSON-quoted string.
-            raw_org_id = existing.hget(:org_id)
+            # Re-check org_id inside the watch - if changed, transaction will
+            # fail. Read from the datastore, decoded (stored_org_id).
+            current_org_id = stored_org_id(existing)
 
-            unless raw_org_id.to_s.empty?
+            unless current_org_id.empty?
               conn.unwatch
-              # Pre-Familia-v2 records stored org_id as a bare UUID rather than
-              # a JSON-quoted string. Fall back to the raw value so legacy rows
-              # don't turn "already claimed" into an unexpected exception.
-              current_org_id = begin
-                JSON.parse(raw_org_id).to_s
-              rescue JSON::ParserError
-                # Surface the fallback so ops can detect unmigrated rows in
-                # production and decide whether a backfill is warranted.
-                OT.le "[CustomDomain.claim_orphaned_domain] legacy org_id encoding on #{existing.display_domain}: raw=#{raw_org_id.inspect}"
-                raw_org_id.to_s
-              end
               # We already own it (concurrent request from same org succeeded)
               return existing if current_org_id == org_id.to_s
 
@@ -1275,6 +1263,26 @@ module Onetime
         end
       end
 
+      # The record's org_id as stored now, read from the datastore rather
+      # than the loaded copy, and decoded. Familia v2 JSON-encodes scalar
+      # fields, so hget returns a set org_id as a JSON-quoted string; a
+      # record written before that holds a bare value, which is returned as
+      # stored. An absent field, an empty value, JSON null and a JSON empty
+      # string all read as "" (no organization).
+      #
+      # @return [String]
+      def stored_org_id(existing)
+        raw = existing.hget(:org_id).to_s
+        return '' if raw.empty?
+
+        JSON.parse(raw).to_s
+      rescue JSON::ParserError
+        # Surface the fallback so ops can detect unmigrated rows in
+        # production and decide whether a backfill is warranted.
+        OT.le "[CustomDomain.claim_orphaned_domain] legacy org_id encoding on #{existing.display_domain}: raw=#{raw.inspect}"
+        raw
+      end
+
       # Refuses to adopt an orphan that another organization's domains
       # collection still lists. Organization#add_domain refuses a record that
       # belongs to another organization; an orphan has no org_id, so a listing
@@ -1289,7 +1297,7 @@ module Onetime
       # @raise [Onetime::Problem] naming the organization and how to remove
       #   the listing
       def refuse_orphan_listed_elsewhere!(existing, org_id)
-        return unless existing.hget(:org_id).to_s.empty?
+        return unless stored_org_id(existing).empty?
 
         listing = existing.organization_instances.find do |org|
           org.objid != org_id.to_s && existing.in_organization_domains?(org)
@@ -1334,7 +1342,7 @@ module Onetime
       # WATCH and lands). It also stays when the record cannot be read, so the
       # name stays taken rather than open to a second record.
       def release_orphan_canonical_claim(existing, canonical)
-        return if existing.exists? && !existing.hget(:org_id).to_s.empty?
+        return if existing.exists? && !stored_org_id(existing).empty?
 
         canonical_display_domain_index.release_field(canonical, existing.identifier)
       rescue StandardError => ex

@@ -190,6 +190,49 @@ RSpec.describe Onetime::CustomDomain, '.claim_orphaned_domain canonical claim', 
     end
   end
 
+  # The claim reads the stored org_id raw (hget) inside its WATCH, and before
+  # it in refuse_orphan_listed_elsewhere! and release_orphan_canonical_claim.
+  # A JSON null or a JSON empty string is no organization, the same as an
+  # absent field.
+  describe 'an orphan whose stored org_id is an empty JSON value' do
+    { 'JSON null' => 'null', 'a JSON empty string' => '""' }.each do |label, raw|
+      context "when org_id is stored as #{label}" do
+        def raw_orphan(raw)
+          id = legacy_orphan
+          described_class.dbclient.hset(described_class.dbkey(id), 'org_id', raw)
+          id
+        end
+
+        it 'adopts it' do
+          id = raw_orphan(raw)
+
+          register(orphan_name, org_b)
+
+          expect([reload(id).org_id, index.get(canonical)]).to eq([org_b.objid, id])
+        end
+
+        it 'refuses the adoption while another organization lists it' do
+          id = raw_orphan(raw)
+          reload(id).add_to_organization_domains(org_a)
+
+          expect { register(orphan_name, org_b) }
+            .to raise_error(Onetime::Problem, /still listed in the domains of organization #{org_a.extid}/)
+          expect(described_class.dbclient.hget(described_class.dbkey(id), 'org_id')).to eq(raw)
+        end
+
+        it 'releases the claim it took when the organization is gone by the time it assigns it' do
+          id       = raw_orphan(raw)
+          existing = reload(id)
+          allow(Onetime::Organization).to receive(:load).and_call_original
+          allow(Onetime::Organization).to receive(:load).with(org_b.objid).and_return(nil)
+
+          expect { described_class.claim_orphaned_domain(existing, org_b.objid) }.to raise_error(Onetime::RecordNotFound)
+          expect(index.get(canonical)).to be_nil
+        end
+      end
+    end
+  end
+
   it 'leaves an entry it did not create when the orphan claim fails' do
     id       = legacy_orphan
     index.put(canonical, id)
