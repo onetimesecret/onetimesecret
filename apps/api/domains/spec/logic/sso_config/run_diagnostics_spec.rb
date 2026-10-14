@@ -367,6 +367,101 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
       end
     end
 
+    context 'when the stored configuration fails' do
+      let(:validation_errors) { ['client_secret is required', 'tenant_id is required for Entra ID provider'] }
+
+      it 'stores the later checks as skipped and never the validation messages' do
+        run
+
+        expect(stored.first['result']).to eq('failure')
+        expect(stored_detail['checks']).to eq(
+          [
+            { 'check' => 'stored_configuration', 'status' => 'failed' },
+            { 'check' => 'discovery', 'status' => 'skipped' },
+            { 'check' => 'credential', 'status' => 'skipped' },
+          ],
+        )
+        expect(stored.first.to_json).not_to include('is required')
+        expect(stored.first.to_json).not_to include(Onetime::ColonelAuditEvent::REDACTED)
+      end
+    end
+
+    context 'for an oidc record' do
+      let(:provider_type) { 'oidc' }
+      let(:issuer) { 'https://idp.example.com' }
+      let(:tenant_id) { '' }
+
+      before do
+        allow(Resolv).to receive(:getaddresses).and_return(['203.0.113.10'])
+        stub_discovery_ok(issuer)
+      end
+
+      it 'stores discovery and the unsupported credential check, none redacted' do
+        run
+
+        expect(stored.first['result']).to eq('success')
+        expect(stored_detail).to include('provider_type' => 'oidc', 'overall' => 'passed')
+        expect(stored_detail['checks']).to eq(
+          [
+            { 'check' => 'stored_configuration', 'status' => 'passed' },
+            { 'check' => 'discovery', 'status' => 'passed' },
+            { 'check' => 'credential', 'status' => 'unsupported' },
+          ],
+        )
+        expect(stored.first.to_json).not_to include(Onetime::ColonelAuditEvent::REDACTED)
+      end
+
+      it 'stores an issuer mismatch as the bare code, without either issuer' do
+        stub_discovery_ok('https://idp.example.com/')
+
+        run
+
+        expect(stored.first['result']).to eq('failure')
+        expect(stored_check('discovery')).to eq(
+          'check' => 'discovery', 'status' => 'failed', 'error_code' => 'issuer_mismatch',
+        )
+        expect(stored.first.to_json).not_to include('idp.example.com')
+      end
+    end
+
+    context 'for a saml record' do
+      let(:provider_type) { 'saml' }
+      let(:tenant_id) { '' }
+      let(:cert_pem) { DomainSsoTestFixtures.saml_cert_pem }
+
+      before do
+        allow(sso_config).to receive(:reveal_saml_field).with(:idp_cert).and_return(cert_pem)
+      end
+
+      it 'stores the certificate check without the certificate subject or expiry' do
+        result = run
+
+        expect(stored.first['result']).to eq('success')
+        expect(stored_detail).to include('provider_type' => 'saml', 'overall' => 'passed')
+        expect(stored_detail['checks']).to eq(
+          [
+            { 'check' => 'stored_configuration', 'status' => 'passed' },
+            { 'check' => 'certificate', 'status' => 'passed' },
+          ],
+        )
+        expect(stored.first.to_json).not_to include(check(result, 'certificate')[:details][:certificate_subject])
+        expect(stored.first.to_json).not_to include(Onetime::ColonelAuditEvent::REDACTED)
+      end
+
+      context 'with an expired certificate' do
+        let(:cert_pem) { expired_saml_cert_pem }
+
+        it 'stores result failure with the bare certificate_expired code' do
+          run
+
+          expect(stored.first['result']).to eq('failure')
+          expect(stored_check('certificate')).to eq(
+            'check' => 'certificate', 'status' => 'failed', 'error_code' => 'certificate_expired',
+          )
+        end
+      end
+    end
+
     it 'never copies a check message into the event' do
       stub_discovery_ok
       refuse_credentials('AADSTS7000215')
