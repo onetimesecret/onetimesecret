@@ -195,7 +195,8 @@ const mockDiagnosticsPassed: SsoDiagnosticsResponse = {
   user_id: 'user-123',
   provider_type: 'entra_id',
   checked_at: '2026-10-12T10:00:00Z',
-  configuration_revision: '1760263200',
+  // The loaded record's updated_at in whole seconds: the run is about it.
+  configuration_revision: String(mockSsoConfigData.updated_at.getTime() / 1000),
   overall: 'passed',
   enabled: true,
   activation: 'not_requested',
@@ -1691,6 +1692,10 @@ describe('useSsoConfig', () => {
       [mockSamlConfigData, 'idp_cert', 'replacement-certificate'],
     ] as const)('invalidates passing checks when %s %s is saved', async (record, field, value) => {
       mockGetConfigForDomain.mockResolvedValue({ record });
+      mockRunDiagnosticsForDomain.mockResolvedValue({
+        ...mockDiagnosticsPassed,
+        provider_type: record.provider_type,
+      });
       // A secret rotation can leave the displayed mask unchanged.
       mockSaveConfigForDomain.mockResolvedValue({
         record: { ...record, ...(field === 'client_secret' ? {} : { [field]: value }) },
@@ -1698,6 +1703,7 @@ describe('useSsoConfig', () => {
       const composable = useSsoConfig('dm-ext-123');
       await composable.initialize();
       await composable.runDiagnostics();
+      expect(composable.savedCredentialsChecked.value).toBe(true);
       composable.formState.value = { ...composable.formState.value, [field]: value };
 
       await composable.saveConfig();
@@ -1715,6 +1721,31 @@ describe('useSsoConfig', () => {
       await composable.runDiagnostics();
       composable.formState.value.display_name = 'Renamed';
 
+      await composable.saveConfig();
+
+      expect(composable.savedCredentialsChecked.value).toBe(false);
+    });
+
+    // Another tab saved the record after this page loaded it: the API checked
+    // that newer record, so the pass says nothing about the loaded fields.
+    it.each([
+      ['a later revision', { configuration_revision: '1736935201' }],
+      ['an empty revision', { configuration_revision: '' }],
+      ['another provider', { provider_type: 'oidc' as const }],
+    ])('takes no passing evidence from a run about %s', async (_label, mismatch) => {
+      mockGetConfigForDomain.mockResolvedValue({ record: mockDisabledConfig });
+      mockRunDiagnosticsForDomain.mockResolvedValue({ ...mockDiagnosticsPassed, ...mismatch });
+      mockSaveConfigForDomain.mockResolvedValue({ record: { ...mockDisabledConfig, enabled: true } });
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      await composable.runDiagnostics();
+
+      expect(composable.diagnosticsResult.value?.overall).toBe('passed');
+      expect(composable.savedCredentialsChecked.value).toBe(false);
+
+      // An activation save from the stale page does not turn it into evidence.
+      composable.formState.value.enabled = true;
       await composable.saveConfig();
 
       expect(composable.savedCredentialsChecked.value).toBe(false);
@@ -2003,6 +2034,23 @@ describe('useSsoConfig', () => {
 
         await composable.runDiagnostics();
         expect(composable.savedCredentialsUnchecked.value).toBe(false);
+      });
+
+      it('survives a passing run about a record saved elsewhere', async () => {
+        mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
+        const composable = useSsoConfig('dm-ext-123');
+        await composable.initialize();
+        composable.formState.value = { ...composable.formState.value, client_secret: 'new' };
+        await composable.saveConfig();
+        mockRunDiagnosticsForDomain.mockResolvedValueOnce({
+          ...mockDiagnosticsPassed,
+          configuration_revision: '1736935201',
+        });
+
+        await composable.runDiagnostics();
+
+        expect(composable.diagnosticsResult.value?.overall).toBe('passed');
+        expect(composable.savedCredentialsUnchecked.value).toBe(true);
       });
 
       it.each(['initialize', 'deleteConfig'] as const)('clears on %s', async (action) => {

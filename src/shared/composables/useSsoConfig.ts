@@ -182,6 +182,24 @@ function testFingerprint(state: SsoConfigFormState): string {
 }
 
 /**
+ * Whether a diagnostics result is about `record`. The API checks whatever is
+ * stored when the request lands, so a save from another tab after this page
+ * loaded makes the result about credentials the page has never seen.
+ * configuration_revision is SsoConfig#updated in whole seconds, the value the
+ * record carries as updated_at; a save within the same second as the loaded
+ * one is not told apart.
+ */
+function diagnosticsDescribeRecord(
+  result: SsoDiagnosticsResponse,
+  record: CustomDomainSsoConfig
+): boolean {
+  return (
+    result.provider_type === record.provider_type &&
+    result.configuration_revision === String(Math.floor(record.updated_at.getTime() / 1000))
+  );
+}
+
+/**
  * The provider-scoped request fields for the current provider type, trimmed,
  * with blanks omitted. Shared by save and test so the two cannot disagree.
  *
@@ -632,10 +650,9 @@ export function useSsoConfig(domainExtId: string) {
     isDiagnosing.value = true;
     clearDiagnosticsResult();
     checkedCredentialsFingerprint.value = null;
-    const fingerprint = ssoConfig.value
-      ? testFingerprint(configToFormState(ssoConfig.value))
-      : null;
-    const activate = ssoConfig.value !== null && !ssoConfig.value.enabled;
+    const record = ssoConfig.value;
+    const fingerprint = record ? testFingerprint(configToFormState(record)) : null;
+    const activate = record !== null && !record.enabled;
     const run = diagnosticsRun;
     // The handler records the failure here; a stale one must not be read
     // as this run's.
@@ -654,7 +671,9 @@ export function useSsoConfig(domainExtId: string) {
 
       if (result) {
         diagnosticsResult.value = result;
-        if (result.overall === 'passed') {
+        // A pass for a record saved elsewhere is not evidence for the loaded
+        // one: the credentials-unchecked state stays until a reload and recheck.
+        if (result.overall === 'passed' && record && diagnosticsDescribeRecord(result, record)) {
           checkedCredentialsFingerprint.value = fingerprint;
           savedCredentialsUnchecked.value = false;
         }
