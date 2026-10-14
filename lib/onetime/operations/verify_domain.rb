@@ -45,9 +45,12 @@ module Onetime
         :is_resolving,    # Boolean or nil: DNS resolving to correct target; nil means unknown
         :persisted,       # Boolean: changes were saved
         :error,           # String or nil: error message if failed
+        # Boolean: not checked, because the record has no organization
+        # (see VerifyDomain#verify_single); nothing was written
+        :skipped,
       ) do
         def initialize(dns_indeterminate: false, dns_message: nil, override_held: false,
-                       confirmation_expired: false, **)
+                       confirmation_expired: false, skipped: false, **)
           super
         end
 
@@ -56,9 +59,10 @@ module Onetime
         end
 
         # One label for the TXT outcome, for operator-facing output.
-        # @return [Symbol] :validated, :confirmation_expired, :indeterminate,
-        #   :override_held, :failed
+        # @return [Symbol] :skipped, :validated, :confirmation_expired,
+        #   :indeterminate, :override_held, :failed
         def dns_outcome
+          return :skipped if skipped
           return :validated if dns_validated
           # Still an indeterminate check (dns_indeterminate stays true), but
           # unlike plain :indeterminate it did not leave verified unchanged.
@@ -93,6 +97,7 @@ module Onetime
             is_resolving: is_resolving,
             persisted: persisted,
             error: error,
+            skipped: skipped,
           }
         end
       end
@@ -102,7 +107,7 @@ module Onetime
         :total,           # Integer: total domains processed
         :verified_count,  # Integer: domains with dns_validated=true
         :failed_count,    # Integer: domains with errors
-        :skipped_count,   # Integer: domains skipped (already verified, etc.)
+        :skipped_count,   # Integer: domains skipped (no organization, see Result#skipped)
         :indeterminate_count, # Integer: domains whose TXT check produced no answer
         :demoted_count,   # Integer: domains that lost :verified on this run
         :confirmation_expired_count, # Integer: of those, indeterminate past the confirmation window
@@ -182,9 +187,17 @@ module Onetime
 
       # Verify a single domain
       #
+      # A record with no organization is skipped (skipped_result): it is
+      # never served (CustomDomain#served_as_tenant?), so its ownership has
+      # nothing to decide. It also keeps a copy loaded before an operator
+      # adopted the record (CustomDomain.claim_orphaned_domain) from writing
+      # its result over the verification the adoption reset.
+      #
       # @param domain [Onetime::CustomDomain] Domain to verify
       # @return [Result] Verification result
       def verify_single(domain)
+        return skipped_result(domain) if domain.org_id.to_s.empty?
+
         previous_state = domain.verification_state
 
         # Perform DNS ownership validation
@@ -249,6 +262,28 @@ module Onetime
         )
       end
 
+      # The result for a record with no organization: nothing checked,
+      # nothing written.
+      #
+      # @param domain [Onetime::CustomDomain]
+      # @return [Result]
+      def skipped_result(domain)
+        state = domain.verification_state
+        logger.info 'Domain verification skipped: no organization', domain: domain.display_domain
+
+        Result.new(
+          domain: domain,
+          previous_state: state,
+          current_state: state,
+          dns_validated: false,
+          ssl_ready: nil,
+          is_resolving: nil,
+          persisted: false,
+          error: nil,
+          skipped: true,
+        )
+      end
+
       # Verify multiple domains, paced by the strategy (or the caller's
       # explicit rate_limit)
       #
@@ -271,7 +306,7 @@ module Onetime
           total: results.size,
           verified_count: results.count { |r| r.dns_validated },
           failed_count: results.count { |r| !r.success? },
-          skipped_count: 0, # Could be extended for skip logic
+          skipped_count: results.count(&:skipped),
           indeterminate_count: results.count { |r| r.dns_indeterminate },
           demoted_count: results.count { |r| r.demoted? },
           confirmation_expired_count: results.count { |r| r.confirmation_expired },
