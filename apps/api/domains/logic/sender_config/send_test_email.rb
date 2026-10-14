@@ -338,14 +338,19 @@ module DomainsAPI
             }.compact,
           )
 
-          # Persist to audit trail for admin visibility
-          Onetime::ColonelAuditEvent.record(
+          # Persist to the audit trail for admin visibility. The SECURITY
+          # trail, not the operator trail: a test send is a customer's
+          # self-service action, and ColonelAuditEvent's write-frequency
+          # invariant keeps the operator trail's count-capped, no-TTL budget
+          # for operator activity. The recipient is always the actor, whom
+          # the extid already identifies, so the address is stored obscured.
+          Onetime::ColonelAuditEvent.record_security(
             actor: cust,
             verb: 'domain_sender.test_email_sent',
             target: @custom_domain.identifier,
             result: result[:success] ? :success : :failure,
             detail: {
-              recipient: cust.email,
+              recipient: OT::Utils.obscure_email(cust.email),
               from_address: @mailer_config.from_address,
               provider: @mailer_config.effective_provider,
               error_code: result.dig(:details, :error_code),

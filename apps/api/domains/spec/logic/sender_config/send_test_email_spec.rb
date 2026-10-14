@@ -2,12 +2,15 @@
 #
 # frozen_string_literal: true
 
-# Unit tests for SenderConfig::SendTestEmail ColonelAuditEvent.record coverage.
+# Unit tests for SenderConfig::SendTestEmail audit coverage.
 #
-# The send_test_email flow calls ColonelAuditEvent.record to persist test email
-# events to the audit trail. These specs verify:
+# The send_test_email flow calls ColonelAuditEvent.record_security to persist
+# test email events to the security audit trail. A test send is a customer's
+# self-service action, so it must never write the operator trail
+# (ColonelAuditEvent.record). These specs verify:
 #   - On success: verb 'domain_sender.test_email_sent', result :success
 #   - On failure: result :failure, error_code in detail
+#   - The recipient is stored obscured, never the raw address
 #
 # RUN (lane runner only — a raw rspec/rake invocation inherits the dev
 # shell's env and can reach dev data; see AGENTS.md "Running tests"):
@@ -89,7 +92,10 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::SendTestEmail do
 
     # Stub the audit event recording
     allow(Onetime::ColonelAuditEvent).to receive(:record)
+    allow(Onetime::ColonelAuditEvent).to receive(:record_security)
   end
+
+  let(:obscured_recipient) { OT::Utils.obscure_email('user@example.com') }
 
   describe '#process (audit trail)' do
     context 'when test email succeeds' do
@@ -98,17 +104,18 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::SendTestEmail do
         allow(mock_backend).to receive(:deliver).and_return(true)
       end
 
-      it 'calls ColonelAuditEvent.record with result: :success' do
+      it 'calls ColonelAuditEvent.record_security with result: :success, never the operator trail' do
         logic.raise_concerns
         logic.process
 
-        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+        expect(Onetime::ColonelAuditEvent).to have_received(:record_security).once.with(
           actor: customer,
           verb: 'domain_sender.test_email_sent',
           target: 'domain123',
           result: :success,
           detail: hash_including(
-            recipient: 'user@example.com',
+            recipient: obscured_recipient,
             from_address: 'noreply@example.com',
             provider: 'smtp2go',
           ),
@@ -119,8 +126,18 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::SendTestEmail do
         logic.raise_concerns
         logic.process
 
-        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+        expect(Onetime::ColonelAuditEvent).to have_received(:record_security).once.with(
           hash_excluding(detail: hash_including(:error_code)),
+        )
+      end
+
+      it 'never stores the raw recipient address' do
+        logic.raise_concerns
+        logic.process
+
+        expect(obscured_recipient).not_to eq('user@example.com')
+        expect(Onetime::ColonelAuditEvent).to have_received(:record_security).once.with(
+          hash_including(detail: hash_including(recipient: obscured_recipient)),
         )
       end
     end
@@ -138,17 +155,18 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::SendTestEmail do
         allow(mock_backend).to receive(:deliver).and_raise(delivery_error)
       end
 
-      it 'calls ColonelAuditEvent.record with result: :failure' do
+      it 'calls ColonelAuditEvent.record_security with result: :failure' do
         logic.raise_concerns
         logic.process
 
-        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+        expect(Onetime::ColonelAuditEvent).to have_received(:record_security).once.with(
           actor: customer,
           verb: 'domain_sender.test_email_sent',
           target: 'domain123',
           result: :failure,
           detail: hash_including(
-            recipient: 'user@example.com',
+            recipient: obscured_recipient,
             from_address: 'noreply@example.com',
             provider: 'smtp2go',
             error_code: 'delivery_failed',
@@ -174,7 +192,7 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::SendTestEmail do
         logic.raise_concerns
         logic.process
 
-        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+        expect(Onetime::ColonelAuditEvent).to have_received(:record_security).once.with(
           hash_including(
             result: :failure,
             detail: hash_including(error_code: 'transient_error'),
@@ -193,7 +211,7 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::SendTestEmail do
         logic.raise_concerns
         logic.process
 
-        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+        expect(Onetime::ColonelAuditEvent).to have_received(:record_security).once.with(
           hash_including(
             result: :failure,
             detail: hash_including(error_code: 'unexpected_error'),
@@ -225,7 +243,7 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::SendTestEmail do
         logic.raise_concerns
         logic.process
 
-        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+        expect(Onetime::ColonelAuditEvent).to have_received(:record_security).once.with(
           hash_including(
             result: :failure,
             detail: hash_including(error_code: 'domain_not_provisioned'),
