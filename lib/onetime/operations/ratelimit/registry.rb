@@ -153,6 +153,24 @@ module Onetime
             keys: ['create_secret:attempts:ip:%s', 'create_secret:locked:ip:%s'],
             dbclient: -> { Onetime::Secret.dbclient },
           },
+          # "Check saved configuration" runs on a custom domain's SSO record
+          # (POST /api/domains/:extid/sso/diagnostics), keyed on the acting
+          # customer's PUBLIC external id. Customer shard, matching
+          # SsoDiagnosticsRateLimiter#sso_diagnostics_redis.
+          'sso_diagnostics' => {
+            subject: 'customer external id (extid)',
+            keys: ['sso_diagnostics:attempts:%s', 'sso_diagnostics:locked:%s'],
+            dbclient: -> { Onetime::Customer.dbclient },
+          },
+          # "Send test" on a custom domain's email sender
+          # (POST /api/domains/:extid/email-config/test), keyed on the acting
+          # customer's PUBLIC external id. Customer shard, matching
+          # PerCustomerRateLimit.redis.
+          'sender_test_email' => {
+            subject: 'customer external id (extid)',
+            keys: ['sender_test_email:attempts:%s', 'sender_test_email:locked:%s'],
+            dbclient: -> { Onetime::Customer.dbclient },
+          },
         }.freeze
 
         # Redis glob metacharacters escaped when a subject is interpolated into a

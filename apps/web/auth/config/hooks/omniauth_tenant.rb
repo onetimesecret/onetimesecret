@@ -34,6 +34,7 @@
 #
 
 require 'onetime/models/custom_domain/signin_config'
+require 'onetime/models/custom_domain/sso_signin_outcome'
 require 'onetime/sso_provider/flow_session_keys'
 
 require_relative '../../restrict_to'
@@ -90,6 +91,54 @@ module Auth::Config::Hooks
           carried                       = @validated_omniauth_domain_id
           @validated_omniauth_domain_id = nil
           from_session || carried
+        end
+
+        # The CustomDomain identifier a tenant flow belongs to, or nil on a
+        # platform flow. Reads the VALIDATED id first (the callback hook has
+        # run) and the PENDING id otherwise (the IdP or the strategy failed
+        # the callback before that hook consumed it). Never consumes either,
+        # so the consumers above are unaffected. Read by the failure hook for
+        # its log line and by record_tenant_sso_failure below.
+        #
+        # @return [String, nil]
+        def tenant_sso_domain_id
+          domain_id = session[:validated_omniauth_domain_id] || session['validated_omniauth_domain_id'] ||
+                      @validated_omniauth_domain_id ||
+                      session[:omniauth_tenant_domain_id] || session['omniauth_tenant_domain_id']
+          domain_id.to_s.empty? ? nil : domain_id.to_s
+        end
+
+        # Record a tenant sign-in that stopped at `stage` with `code` against
+        # the domain the flow belongs to (CustomDomain::SsoSigninOutcome, read
+        # by the domain's SSO settings as `last_sign_in`). A platform flow,
+        # which has no tenant domain id, records nothing. Best-effort by
+        # construction: the model rescues its own writes.
+        #
+        # @param stage [String] one of SsoSigninOutcome::STAGES
+        # @param code [String, Symbol, nil] sanitized by the model
+        # @return [void]
+        def record_tenant_sso_failure(stage, code)
+          domain_id = tenant_sso_domain_id
+          return if domain_id.nil?
+
+          config        = request.env['onetime.tenant_sso_config']
+          provider_type = config.provider_type if config&.domain_id == domain_id.to_s
+          # A provider failure can land on another host or precede injection.
+          # Use only the initiating incarnation, never fetch today's config.
+          unless config&.domain_id == domain_id.to_s
+            config = Onetime::CustomDomain::SsoConfig.new(
+              domain_id: domain_id.to_s,
+              outcome_generation: session['omniauth_tenant_outcome_generation'],
+            )
+          end
+          Onetime::CustomDomain::SsoSigninOutcome.record_failure!(
+            domain_id,
+            config: config,
+            stage: stage,
+            code: code,
+            provider_type: provider_type,
+          )
+          nil
         end
       end
       # rubocop:enable Lint/NestedMethodDefinition
@@ -310,9 +359,10 @@ module Auth::Config::Hooks
         # for the new start time to keep usable.
         if is_request_phase && !is_callback_phase
           HELPERS.clear_pending_tenant_context(session)
-          session[:omniauth_tenant_domain_id]  = custom_domain.identifier
-          session[:omniauth_tenant_host]       = host
-          session[:omniauth_tenant_started_at] = Time.now.to_i
+          session[:omniauth_tenant_domain_id]           = custom_domain.identifier
+          session[:omniauth_tenant_host]                = host
+          session[:omniauth_tenant_started_at]          = Time.now.to_i
+          session['omniauth_tenant_outcome_generation'] = sso_config.signin_outcome_generation
         end
       end
 
@@ -353,8 +403,9 @@ module Auth::Config::Hooks
           ip: request.ip,
         )
 
-        expected_domain_id = session.delete(:omniauth_tenant_domain_id)
-        expected_host      = session.delete(:omniauth_tenant_host)
+        expected_domain_id  = session.delete(:omniauth_tenant_domain_id)
+        expected_host       = session.delete(:omniauth_tenant_host)
+        expected_generation = session.delete('omniauth_tenant_outcome_generation')
         session.delete(:omniauth_tenant_started_at)
 
         # Tenant options were injected by HOST on this very callback
@@ -384,6 +435,13 @@ module Auth::Config::Hooks
             domain_id: injected_config.domain_id,
             ip: request.ip,
             session_id_hash: Digest::SHA256.hexdigest(session.id.to_s)[0, 16],
+          )
+          Onetime::CustomDomain::SsoSigninOutcome.record_failure!(
+            injected_config.domain_id,
+            config: injected_config,
+            stage: 'callback',
+            code: 'tenant_context_missing',
+            provider_type: injected_config.provider_type,
           )
 
           response.status          = 403
@@ -425,6 +483,16 @@ module Auth::Config::Hooks
             actual_domain_id: current_domain&.identifier,
             ip: request.ip,
             session_id_hash: Digest::SHA256.hexdigest(session.id.to_s)[0, 16],
+          )
+          # Against the domain that STARTED the flow: that is the tenant whose
+          # sign-in did not complete, whatever host the callback landed on.
+          Onetime::CustomDomain::SsoSigninOutcome.record_failure!(
+            expected_domain_id,
+            stage: 'callback',
+            code: 'tenant_mismatch',
+            config: Onetime::CustomDomain::SsoConfig.new(
+              domain_id: expected_domain_id, outcome_generation: expected_generation,
+            ),
           )
 
           # Return 403 directly rather than throw_error_status, which throws
@@ -718,6 +786,9 @@ module Auth::Config::Hooks
       )
 
       error = [:missing_email, :invalid_email].include?(reason) ? reason : :domain_not_allowed
+      Onetime::CustomDomain::SsoSigninOutcome.record_failure!(
+        domain_id, stage: 'callback', code: error, config: sso_config, provider_type: sso_config&.provider_type
+      )
       rodauth.send(:redirect, "/signin?auth_error=#{error}")
     end
 
@@ -1017,6 +1088,7 @@ module Auth::Config::Hooks
       session.delete(:omniauth_tenant_domain_id)
       session.delete(:omniauth_tenant_host)
       session.delete(:omniauth_tenant_started_at)
+      session.delete('omniauth_tenant_outcome_generation')
       Onetime::SsoProvider::FlowSessionKeys::ALL.each { |key| session.delete(key) }
     end
 
@@ -1224,6 +1296,13 @@ module Auth::Config::Hooks
       )
 
       clear_pending_tenant_context(rodauth.session)
+      Onetime::CustomDomain::SsoSigninOutcome.record_failure!(
+        sso_config.domain_id,
+        stage: 'setup',
+        code: 'sso_config_unusable',
+        config: sso_config,
+        provider_type: sso_config.provider_type,
+      )
 
       rodauth.send(:redirect, '/signin?auth_error=sso_config_unusable')
     end

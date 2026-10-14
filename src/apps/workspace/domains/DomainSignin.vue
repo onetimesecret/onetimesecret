@@ -127,11 +127,15 @@ const {
   isSaving: ssoSaving,
   isDeleting: ssoDeleting,
   isTesting,
+  isDiagnosing,
   error: _ssoConfigError,
   ssoConfig,
   formState: ssoFormState,
   testResult,
   testError,
+  diagnosticsResult,
+  savedCredentialsChecked,
+  diagnosticsError,
   isConfigured: ssoIsConfigured,
   hasUnsavedChanges: ssoHasUnsavedChanges,
   clientSecretMasked,
@@ -140,6 +144,7 @@ const {
   disableConfig: disableSsoConfig,
   deleteConfig: deleteSsoConfig,
   testConnection,
+  runDiagnostics,
   discardChanges: discardSsoChanges,
 } = useSsoConfig(props.extid);
 
@@ -340,16 +345,21 @@ watch(canFetchSsoConfig, async (allowed) => {
         :is-saving="ssoSaving"
         :is-deleting="ssoDeleting"
         :is-testing="isTesting"
+        :is-diagnosing="isDiagnosing"
         :has-unsaved-changes="ssoHasUnsavedChanges"
         :is-configured="ssoIsConfigured"
         :client-secret-masked="clientSecretMasked"
         :test-result="testResult"
         :test-error="testError"
+        :diagnostics-result="diagnosticsResult"
+        :saved-credentials-checked="savedCredentialsChecked"
+        :diagnostics-error="diagnosticsError"
         @close="handleCloseSsoModal"
         @save="saveSsoConfig"
         @disable="disableSsoConfig"
         @delete="deleteSsoConfig"
         @test="testConnection"
+        @diagnostics="runDiagnostics"
         @discard="discardSsoChanges" />
     </div>
   </div>

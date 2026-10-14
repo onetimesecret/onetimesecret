@@ -999,6 +999,14 @@
     "text": "Malsukcesis sendi testan retmesaĝon",
     "source_hash": "95ce63bc"
   },
+  "web.domains.email.test_email_rate_limited": {
+    "text": "Tro multaj testaj retmesaĝoj estis senditaj lastatempe. Reprovu poste.",
+    "source_hash": "90b8ca17"
+  },
+  "web.domains.email.test_email_rate_limited_retry": {
+    "text": "Tro multaj testaj retmesaĝoj estis senditaj lastatempe. Reprovu post ĉirkaŭ {minutes} minutoj.",
+    "source_hash": "218146cc"
+  },
   "web.domains.email.test_email_sent_to": {
     "text": "Sendita al {email}",
     "source_hash": "8ceb9588"
@@ -1658,5 +1666,29 @@
   "web.domains.verify_outcome.record_not_found": {
     "text": "Ni ne trovis la atendatan TXT-registraĵon. Kontrolu, ke ĝi ekzistas kaj ke ĝia valoro kongruas precize. Novaj DNS-registraĵoj povas bezoni kelkajn minutojn por aperi.",
     "source_hash": "6c847d46"
+  },
+  "web.domains.sso.diagnostics_passed": {
+    "text": "Kontrolo de la konservita agordo sukcesis",
+    "source_hash": "91fc2d97"
+  },
+  "web.domains.sso.diagnostics_failed": {
+    "text": "Kontrolo de la konservita agordo trovis problemon",
+    "source_hash": "18ca7a0e"
+  },
+  "web.domains.sso.diagnostics_inconclusive": {
+    "text": "Kontrolo de la konservita agordo ne povis atingi verdikton",
+    "source_hash": "2be86c66"
+  },
+  "web.domains.sso.diagnostics_error": {
+    "text": "Malsukcesis kontroli la konservitan agordon",
+    "source_hash": "e1fe6a59"
+  },
+  "web.domains.sso.diagnostics_rate_limited": {
+    "text": "Ĉi tiu agordo estis kontrolita tro multfoje lastatempe. Reprovu poste.",
+    "source_hash": "4b8d53b8"
+  },
+  "web.domains.sso.diagnostics_rate_limited_retry": {
+    "text": "Ĉi tiu agordo estis kontrolita tro multfoje lastatempe. Reprovu post ĉirkaŭ {minutes} minutoj.",
+    "source_hash": "fdbdeaf6"
   }
 }

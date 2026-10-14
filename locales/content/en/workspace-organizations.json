@@ -888,6 +888,10 @@
     "text": "Leave blank to keep the existing secret",
     "content_hash": "98bc3b40"
   },
+  "web.organizations.sso.client_secret_looks_like_secret_id": {
+    "text": "This looks like the Secret ID. Entra needs the secret Value, shown once when the secret is created.",
+    "content_hash": "168681cf"
+  },
   "web.organizations.sso.tenant_id": {
     "text": "Tenant ID",
     "content_hash": "de1f5fff"
@@ -925,8 +929,8 @@
     "content_hash": "3403bdbb"
   },
   "web.organizations.sso.token_endpoint_auth_method_hint": {
-    "text": "How the client secret is sent to your provider's token endpoint. Leave on Automatic unless your provider requires one method; Test Connection reports the methods it advertises.",
-    "content_hash": "31299b88"
+    "text": "How the client secret is sent to your provider's token endpoint. Leave on Automatic unless your provider requires one method; Check provider settings reports the methods it advertises.",
+    "content_hash": "860af5a1"
   },
   "web.organizations.sso.token_endpoint_auth_method_automatic": {
     "text": "Automatic",
@@ -1064,9 +1068,9 @@
     "content_hash": "871db2f1"
   },
   "web.organizations.sso.enable_untested_warning": {
-    "text": "This connection has not passed a test here yet. Run Test connection before turning it on, so a broken setup never reaches your sign-in page.",
-    "context": "Advisory warning beside the Connection active toggle when it is switched on without a successful connection test in the current editing session. Not a hard block.",
-    "content_hash": "c1fbdeca"
+    "text": "The saved configuration has not passed its checks for these credentials here yet. Save your changes, then check the saved configuration. Checking provider settings alone does not confirm sign-in works.",
+    "context": "Advisory warning when Connection active is switched on without passing saved-configuration checks matching the current credentials. Does not block saving or activation.",
+    "content_hash": "9f1ac369"
   },
   "web.organizations.sso.enforce_sso_only": {
     "text": "Enforce SSO only",
@@ -1121,28 +1125,204 @@
     "content_hash": "4a960fe4"
   },
   "web.organizations.sso.test_connection": {
-    "text": "Test Connection",
-    "content_hash": "c02977b0"
+    "text": "Check provider settings (optional)",
+    "content_hash": "447b1969"
   },
   "web.organizations.sso.test_connection_hint": {
-    "text": "Verify the identity provider is reachable (does not validate credentials)",
-    "content_hash": "22a23b68"
+    "text": "Checks provider discovery using the values above. Does not check the client secret or complete a sign-in.",
+    "content_hash": "02cbb081"
   },
   "web.organizations.sso.test_connection_hint_saml": {
-    "text": "Checks the SSO URL, Entity ID and certificate locally; the identity provider is not contacted",
-    "content_hash": "1dad3945"
+    "text": "Checks the URL, Entity ID and certificate above locally. Does not contact the identity provider or complete a sign-in.",
+    "content_hash": "9d2e8cb0"
   },
   "web.organizations.sso.test_button": {
-    "text": "Test Connection",
-    "content_hash": "c02977b0"
+    "text": "Check provider settings",
+    "content_hash": "f4474adf"
   },
   "web.organizations.sso.testing": {
-    "text": "Testing...",
-    "content_hash": "6c02a284"
+    "text": "Checking...",
+    "content_hash": "2e5f79bb"
   },
   "web.organizations.sso.test_error": {
-    "text": "Failed to test connection",
-    "content_hash": "c1d1f310"
+    "text": "Could not check provider settings",
+    "content_hash": "3d7a4ea6"
+  },
+  "web.organizations.sso.setup_title": {
+    "text": "Set up SSO for this domain",
+    "content_hash": "117a38e3"
+  },
+  "web.organizations.sso.setup_register": {
+    "text": "Register the callback or service-provider details with your identity provider, then enter its credentials below.",
+    "content_hash": "019586c6"
+  },
+  "web.organizations.sso.setup_register_saml": {
+    "text": "Review the service-provider details and their preview guidance below, then enter your identity provider’s URL, Entity ID and certificate.",
+    "content_hash": "ea6d3f49"
+  },
+  "web.organizations.sso.setup_save_check": {
+    "text": "Save the configuration, then check the saved settings. The optional provider check uses the form values only.",
+    "content_hash": "f63d4f1e"
+  },
+  "web.organizations.sso.setup_confirm": {
+    "text": "Activate the connection, enable SSO in the domain’s sign-in settings, then confirm with a real sign-in.",
+    "content_hash": "e03e0ee9"
+  },
+  "web.organizations.sso.save_configuration": {
+    "text": "Save configuration",
+    "content_hash": "b2b158f2"
+  },
+  "web.organizations.sso.provider_check_next": {
+    "text": "This is not a sign-in test. After saving your settings, run Check saved configuration below.",
+    "content_hash": "93108052"
+  },
+  "web.organizations.sso.technical_details": {
+    "text": "Technical details",
+    "content_hash": "890ab358"
+  },
+  "web.organizations.sso.check_details": {
+    "text": "Check time",
+    "content_hash": "b01627ad"
+  },
+  "web.organizations.sso.diagnostics_hint_entra": {
+    "text": "Checks saved fields, provider discovery and whether Microsoft Entra ID accepts the saved client secret. This does not test a full sign-in.",
+    "content_hash": "5d58ca04"
+  },
+  "web.organizations.sso.diagnostics_hint_saml": {
+    "text": "Checks the saved fields and signing certificate locally. Does not contact the identity provider or test a full sign-in.",
+    "content_hash": "297b2678"
+  },
+  "web.organizations.sso.diagnostics_passed": {
+    "text": "Available saved configuration checks passed",
+    "content_hash": "9c81efc4"
+  },
+  "web.organizations.sso.diagnostics_failed": {
+    "text": "Saved configuration needs attention. Fix the reported problems, save, then check again.",
+    "content_hash": "2c37a79a"
+  },
+  "web.organizations.sso.diagnostics_inconclusive": {
+    "text": "Some checks could not be completed. Review the results below before retrying.",
+    "content_hash": "b405a101"
+  },
+  "web.organizations.sso.diagnostics_next": {
+    "text": "Next: activate the connection and enable SSO in the domain’s sign-in settings, then confirm sign-in through your custom domain.",
+    "content_hash": "d3190b9b"
+  },
+  "web.organizations.sso.diagnostics_saved_result": {
+    "text": "These results describe the saved settings, not your unsaved changes. Save and check again before confirming sign-in.",
+    "content_hash": "48c013ea"
+  },
+  "web.organizations.sso.confirm_sign_in": {
+    "text": "Confirm sign-in",
+    "content_hash": "f2e77970"
+  },
+  "web.organizations.sso.confirm_sign_in_hint": {
+    "text": "After saving and checking the configuration, turn on Connection active and save. Enable SSO in the domain’s Sign-In Configuration, then open {domain} in a private window and sign in with SSO. Keep this setup window open.",
+    "content_hash": "5ad4d7ed"
+  },
+  "web.organizations.sso.confirm_sign_in_limits": {
+    "text": "Only a real sign-in confirms the redirect or callback, user assignment, access policies and claims work together. After signing in, save any setup changes, reload this page, then reopen these settings to see the last recorded sign-in.",
+    "content_hash": "97d820cd"
+  },
+  "web.organizations.sso.diagnostics_title": {
+    "text": "Check saved configuration",
+    "content_hash": "5c68357a"
+  },
+  "web.organizations.sso.diagnostics_hint": {
+    "text": "Checks saved fields and provider discovery for this domain. A client secret check is not available for generic OIDC. This does not test a full sign-in.",
+    "content_hash": "8de1dd70"
+  },
+  "web.organizations.sso.last_sign_in_none": {
+    "text": "No sign-in through this domain has been recorded yet.",
+    "content_hash": "7f9d0f23"
+  },
+  "web.organizations.sso.last_sign_in_succeeded": {
+    "text": "The last sign-in through this domain completed on {when}.",
+    "content_hash": "9a125080"
+  },
+  "web.organizations.sso.last_sign_in_failed": {
+    "text": "The last sign-in through this domain failed on {when}, {stage} ({code}).",
+    "content_hash": "be81f392"
+  },
+  "web.organizations.sso.last_sign_in_last_success": {
+    "text": "The last completed sign-in was on {when}.",
+    "content_hash": "34e63e57"
+  },
+  "web.organizations.sso.last_sign_in_stage_setup": {
+    "text": "before the identity provider was contacted",
+    "content_hash": "5a1b6839"
+  },
+  "web.organizations.sso.last_sign_in_stage_provider": {
+    "text": "at the identity provider",
+    "content_hash": "40394567"
+  },
+  "web.organizations.sso.last_sign_in_stage_callback": {
+    "text": "when the identity provider returned the user",
+    "content_hash": "2ab78fc4"
+  },
+  "web.organizations.sso.last_sign_in_stage_account": {
+    "text": "when matching the user to an account",
+    "content_hash": "1ebbb776"
+  },
+  "web.organizations.sso.diagnostics_save_first": {
+    "text": "Save first to check the stored settings. This check does not use unsaved changes.",
+    "content_hash": "df9a367c"
+  },
+  "web.organizations.sso.diagnostics_button": {
+    "text": "Check saved configuration",
+    "content_hash": "5c68357a"
+  },
+  "web.organizations.sso.diagnostics_running": {
+    "text": "Checking...",
+    "content_hash": "2e5f79bb"
+  },
+  "web.organizations.sso.diagnostics_checked_at": {
+    "text": "Checked",
+    "content_hash": "0efd92a3"
+  },
+  "web.organizations.sso.diagnostics_check_stored_configuration": {
+    "text": "Stored configuration",
+    "content_hash": "a988b06a"
+  },
+  "web.organizations.sso.diagnostics_check_discovery": {
+    "text": "Identity provider discovery",
+    "content_hash": "b5f90082"
+  },
+  "web.organizations.sso.diagnostics_check_certificate": {
+    "text": "Signing certificate",
+    "content_hash": "cc00e050"
+  },
+  "web.organizations.sso.diagnostics_check_credential": {
+    "text": "Client secret",
+    "content_hash": "4aded5fa"
+  },
+  "web.organizations.sso.diagnostics_status_passed": {
+    "text": "Passed",
+    "content_hash": "436fe71b"
+  },
+  "web.organizations.sso.diagnostics_status_failed": {
+    "text": "Failed",
+    "content_hash": "031a8f0f"
+  },
+  "web.organizations.sso.diagnostics_status_inconclusive": {
+    "text": "Inconclusive",
+    "content_hash": "9141583b"
+  },
+  "web.organizations.sso.diagnostics_status_unsupported": {
+    "text": "Not available",
+    "content_hash": "67a926f7"
+  },
+  "web.organizations.sso.diagnostics_status_skipped": {
+    "text": "Skipped",
+    "content_hash": "12698ce1"
+  },
+  "web.organizations.sso.diagnostics_aadsts_code": {
+    "text": "Microsoft error code",
+    "content_hash": "dc8f7060"
+  },
+  "web.organizations.sso.diagnostics_errors": {
+    "text": "Problems",
+    "content_hash": "a7b182f8"
   },
   "web.organizations.sso.auth_endpoint": {
     "text": "Authorization Endpoint",
