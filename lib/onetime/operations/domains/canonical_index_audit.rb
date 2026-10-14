@@ -14,9 +14,8 @@ module Onetime
       # entry per DNS name (its lower-case A-label form) and that create! and
       # CustomDomain::IdentityGuard claim for new records.
       #
-      # The index arrived after records already existed, and nothing entered
-      # those records into it. This audit reports where the index and the
-      # records disagree. {CanonicalIndexBackfill} acts on the result, and
+      # This audit reports where the index and the records disagree.
+      # {CanonicalIndexBackfill} acts on the result, and
       # `bin/ots domains doctor` reports it.
       #
       # READ-ONLY: no writes and no {Onetime::ColonelAuditEvent}.

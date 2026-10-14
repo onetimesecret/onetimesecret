@@ -1150,11 +1150,11 @@ module Onetime
       #
       # Before the WATCH/MULTI, the record's name is claimed in
       # canonical_display_domain_index for the record, as create! does for a
-      # new record (claim_field cannot run inside a transaction). A record
-      # registered before that index existed has no entry and gains one here;
-      # a later record already holds its entry. When another record holds the
-      # name, the claim is refused. A claim taken here is released again if
-      # the orphan claim then fails (see release_orphan_canonical_claim).
+      # new record (claim_field cannot run inside a transaction). The claim
+      # succeeds when the entry is absent or already names the record, and is
+      # refused when another record holds the name. A claim taken here is
+      # released again if the orphan claim then fails (see
+      # release_orphan_canonical_claim).
       #
       # The record keeps its identifier, so the transaction that writes the
       # new org_id also resets what an earlier owner left on it: ownership

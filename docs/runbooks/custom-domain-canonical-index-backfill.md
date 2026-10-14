@@ -10,9 +10,8 @@ domains registered before v0.26.14. Use it again whenever
 `custom_domain:canonical_display_domain_index` holds one entry per DNS name.
 The key is the name's lower-case A-label (`xn--bcher-kva.example.com` for
 `bücher.example.com`) and the value is the identifier of the record registered
-for it. Registration uses it to recognise a name in any of its spellings.
-Domains registered since v0.26.14 claim their entry when they are created.
-Domains registered earlier have no entry until this backfill adds one.
+for it. Domains registered since v0.26.14 claim their entry when they are
+created; this backfill adds the entries for domains registered earlier.
 
 The command compares every custom domain record with the index and puts each
 record in one category:
@@ -42,9 +41,7 @@ audit found. A second `--apply` over the same data changes nothing.
   lock shared with domain registration and removal, so it is only safe while
   nothing else writes custom domains.
 - Keep `jobs.maintenance.index_rebuild.auto_repair` set to `false` (the
-  default). With it enabled, the index-rebuild job can rewrite
-  `display_domain_index` entries in a form that lookups do not match. A fix
-  for that job is tracked separately.
+  default) during the backfill. The index-rebuild job is fixed in PR #4787.
 - Snapshot the datastore before `--apply`.
 - Remove a duplicate record with `bin/ots domains remove <extid>`, never by
   deleting keys or index fields directly.
