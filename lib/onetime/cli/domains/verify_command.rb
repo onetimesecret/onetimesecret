@@ -308,18 +308,21 @@ module Onetime
         puts 'Manual Verification Commands:'
         puts '-' * 70
 
-        txt_host  = domain.txt_validation_host
-        txt_value = domain.txt_validation_value
-        if txt_host && txt_value
-          full_txt_host = "#{txt_host}.#{domain.base_domain}"
+        txt_value           = domain.txt_validation_value
+        txt_name, txt_error = txt_record_name(domain)
+        if txt_error
+          puts
+          puts "1. DNS Ownership: TXT record name has no A-label form (#{txt_error})"
+          puts
+        elsif txt_name && txt_value
           puts
           puts '1. DNS Ownership (TXT record):'
           puts "   Status: #{result.dns_outcome.to_s.upcase}" # VALIDATED / FAILED / INDETERMINATE / OVERRIDE_HELD / CONFIRMATION_EXPIRED
-          puts "   Expected: TXT record at #{full_txt_host}"
+          puts "   Expected: TXT record at #{txt_name}"
           puts "   Value:    #{txt_value}"
           puts
           puts '   # Check TXT record:'
-          puts "   dig TXT #{full_txt_host} +short"
+          puts "   dig TXT #{txt_name} +short"
           puts
         else
           puts
@@ -344,6 +347,17 @@ module Onetime
         puts '   # Check SSL certificate:'
         puts "   echo | openssl s_client -connect #{domain.display_domain}:443 -servername #{domain.display_domain} 2>/dev/null | openssl x509 -noout -dates"
         puts
+      end
+
+      # The TXT record name in A-label form (CustomDomain#validation_record),
+      # the name the strategies query and dig has to ask for.
+      #
+      # @return [Array(String, nil)] name (nil without a challenge), no error
+      # @return [Array(nil, String)] no name, the conversion error message
+      def txt_record_name(domain)
+        [domain.validation_record, nil]
+      rescue Onetime::DomainValidation::AsciiHostname::ConversionError => ex
+        [nil, ex.message]
       end
 
       def output_human_bulk(result, dry_run:)

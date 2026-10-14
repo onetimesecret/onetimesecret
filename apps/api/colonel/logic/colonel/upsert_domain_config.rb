@@ -85,6 +85,14 @@ module ColonelAPI
           success_data
         rescue OT::FormError, Onetime::RecordNotFound
           raise
+        rescue Familia::KeyNotFoundError, Familia::OptimisticLockError
+          # A concurrent writer deleted the record or kept changing it
+          # (GuardedConfigWrites); nothing was written.
+          raise_form_error(
+            'The configuration was changed or removed while this update was being saved. Reload it and try again.',
+            field: :kind,
+            error_type: :conflict,
+          )
         rescue Onetime::CustomDomain::SigninConfig::RelatedOriginError,
                Onetime::CustomDomain::SignupConfig::InvalidAllowedSignupDomain => ex
           # Typed setter refusals (related_origins: malformed entry, or #4421

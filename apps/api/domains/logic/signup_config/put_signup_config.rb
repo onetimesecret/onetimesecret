@@ -71,10 +71,10 @@ module DomainsAPI
         def process
           OT.ld "[PutSignupConfig] Replacing signup config for domain #{@domain_id} by user #{cust.extid}"
 
-          was_enabled = @existing_config&.enabled?
-
           if @existing_config
-            replace_existing_config
+            # From the record this write replaced, not the one raise_concerns
+            # loaded (see replace_existing_config)
+            was_enabled = replace_existing_config
             log_signup_change_event(
               event: :domain_signup_config_replaced,
               domain: @custom_domain,
@@ -83,7 +83,8 @@ module DomainsAPI
               validation_strategy: @validation_strategy,
             )
           else
-            create_new_config
+            was_enabled = nil
+            guarded_config_write { create_new_config }
             log_signup_change_event(
               event: :domain_signup_config_created,
               domain: @custom_domain,
@@ -128,18 +129,26 @@ module DomainsAPI
           )
         end
 
-        # Replaces existing config with PUT semantics (full replacement).
+        # Replaces existing config with PUT semantics (full replacement), on
+        # the record update_for_domain! re-reads under WATCH
+        # (GuardedConfigWrites), so the enabled event compares against the
+        # state this write replaced.
+        #
+        # @return [Boolean] whether the replaced record was enabled
         def replace_existing_config
-          @signup_config = @existing_config
-
-          @signup_config.validation_strategy    = @validation_strategy
-          @signup_config.allowed_signup_domains = @allowed_signup_domains
-          @signup_config.enabled                = @enabled.to_s
-          @signup_config.signup_enabled         = @signup_enabled
-          @signup_config.autoverify             = @autoverify
-          @signup_config.updated                = Familia.now.to_i
-
-          @signup_config.commit_fields
+          @signup_config, was_enabled = guarded_config_write do
+            Onetime::CustomDomain::SignupConfig.update_for_domain!(@custom_domain.identifier) do |config|
+              previously_enabled            = config.enabled?
+              config.validation_strategy    = @validation_strategy
+              config.allowed_signup_domains = @allowed_signup_domains
+              config.enabled                = @enabled.to_s
+              config.signup_enabled         = @signup_enabled
+              config.autoverify             = @autoverify
+              config.updated                = Familia.now.to_i
+              previously_enabled
+            end
+          end
+          was_enabled
         end
 
         def serialize_signup_config(config)

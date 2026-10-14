@@ -65,8 +65,10 @@ module DomainsAPI::Logic
         # Custom domains are now available to all plans (free included)
         # Entitlement check removed - this feature is universally available
 
-        # Only store a valid, parsed input value to @domain
-        @parsed_domain  = Onetime::CustomDomain.parse(@domain_input, target_organization.objid)
+        # Only store a valid, parsed input value to @domain. parse refuses
+        # some names valid? accepts (too deep, TXT challenge name too long)
+        # with a message meant for the customer.
+        @parsed_domain  = refuse_on_problem { Onetime::CustomDomain.parse(@domain_input, target_organization.objid) }
         @display_domain = @parsed_domain.display_domain
 
         logger.debug '[AddDomain] Domain parsed', display_domain: @display_domain, identifier: @parsed_domain.identifier
@@ -97,7 +99,7 @@ module DomainsAPI::Logic
         @greenlighted  = true
         logger.debug '[AddDomain] Processing domain', display_domain: @display_domain, org_id: target_organization.objid
 
-        @custom_domain = Onetime::CustomDomain.create!(@display_domain, target_organization.objid)
+        @custom_domain = refuse_on_problem { Onetime::CustomDomain.create!(@display_domain, target_organization.objid) }
 
         # After creating the domain, make it the active context in the session.
         # Route is sessionauth-only, so sess is always a real Rack session here.
@@ -127,6 +129,18 @@ module DomainsAPI::Logic
         end
 
         success_data
+      end
+
+      # The model refuses a domain with a bare Onetime::Problem whose message
+      # is written for the customer. No handler is registered for the bare
+      # class, so it would surface as a 500; it becomes a form error (422)
+      # instead. Subclasses keep their own handlers.
+      def refuse_on_problem
+        yield
+      rescue Onetime::Problem => ex
+        raise unless ex.instance_of?(Onetime::Problem)
+
+        raise_form_error ex.message
       end
 
       def request_certificate

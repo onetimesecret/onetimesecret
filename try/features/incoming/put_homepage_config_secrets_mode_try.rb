@@ -116,6 +116,9 @@ end
 ## Rejected when recipients exist but incoming is disabled
 @incoming = IncomingConfig.find_by_domain_id(@test_domain.identifier)
 @incoming.add_recipient(email: "sec_#{@entropy}@example.com", name: 'Security')
+# add_recipient only changes the in-memory copy; disable! writes just
+# enabled/updated, so persist the recipient list explicitly.
+@incoming.update_stored!(recipients_json: @incoming.recipients_json)
 @incoming.disable!
 begin
   run_put(@test_cust, @test_domain, { 'enabled' => true, 'secrets_mode' => 'incoming' })
