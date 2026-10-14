@@ -363,10 +363,23 @@ module Onetime
       # @param identity_id [String, nil] Provider's identity identifier
       # @raise [StandardError] if persistence fails
       def persist_provider_data(provider_data, dns_records, identity_id)
-        @mailer_config.provider_dns_data = provider_data
-        @mailer_config.dns_records       = dns_records
-        @mailer_config.updated           = Familia.now.to_i
-        @mailer_config.save
+        # This record was loaded before the provider calls. Bump `updated` on
+        # the record as stored now (MailerConfig.record_job_result!), which
+        # also confirms it still exists and still sends from the address
+        # provisioned; then write the two jsonkeys, which write their own
+        # keys on assignment.
+        stored, = Onetime::CustomDomain::MailerConfig.record_job_result!(
+          @mailer_config.domain_id, @mailer_config.from_address
+        ) do |config|
+          config.updated = Familia.now.to_i
+        end
+        unless stored
+          raise Onetime::Problem,
+            "Sender config for #{@mailer_config.domain_id} was deleted or changed its address during provisioning"
+        end
+
+        stored.provider_dns_data = provider_data
+        stored.dns_records       = dns_records
 
         logger.debug 'Persisted provider DNS data',
           domain_id: @mailer_config.domain_id,

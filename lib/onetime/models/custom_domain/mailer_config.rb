@@ -211,18 +211,31 @@ class Onetime::CustomDomain::MailerConfig < Familia::Horreum
     lifecycle.active?(dns_check_status) || lifecycle.active?(provider_check_status)
   end
 
-  # Update verification_status from outcome fields and persist.
+  # Sets verification_status from the two outcome fields once both jobs
+  # are terminal. Assignment only: the job's guarded write
+  # (MailerConfig.record_job_result!) persists it with the job's own
+  # fields, so the job that finishes second always sees the other's result.
   #
-  # Called by workers after both jobs complete. Derives the final status
-  # from dns_verified and provider_verified, then stores it.
+  # @return [String, nil] the derived status, nil while a job is active
+  def derive_verification_status
+    return nil unless jobs_completed?
+
+    self.verification_status = computed_verification_status
+  end
+
+  # Update verification_status from the stored outcome fields and persist
+  # it (through record_job_result!, so from the record as stored now).
   #
-  # @return [String] the new verification_status value
+  # @return [String, nil] the new verification_status value; nil when the
+  #   record is gone or sends from another address
   def update_verification_status!
-    new_status               = computed_verification_status
-    self.verification_status = new_status
-    self.updated             = Familia.now.to_i
-    save_fields(:verification_status, :updated)
-    new_status
+    _, status = self.class.record_job_result!(domain_id, from_address) do |stored|
+      stored.verification_status = stored.computed_verification_status
+      stored.updated             = Familia.now.to_i
+      stored.verification_status
+    end
+    adopt_stored_values!(verification_status: status) if status
+    status
   end
 
   # Parse a boolean field that may be stored as string, boolean, or nil.
@@ -303,20 +316,26 @@ class Onetime::CustomDomain::MailerConfig < Familia::Horreum
   # Updates tracking fields for caching decisions and operational metrics.
   # Called by ValidateSenderDomain after each verification attempt.
   #
-  # Uses save_fields for field-specific persistence to avoid race
-  # conditions where a full save could overwrite concurrent updates
-  # to other fields.
+  # Written through record_job_result!: other fields keep their stored
+  # values, check_count counts from the stored value, and nothing is
+  # written once the record is gone or sends from another address.
   #
   # @param duration_ms [Integer] How long the check took in milliseconds
   # @param error [String, nil] Error message if the check failed
   # @return [void]
   def record_check_attempt(duration_ms, error = nil)
-    self.last_check_at     = Familia.now.to_i
-    self.check_duration_ms = duration_ms.to_i
-    self.check_count       = (check_count.to_i + 1).to_s
-    self.last_error        = error
-    self.updated           = Familia.now.to_i
-    save_fields(:last_check_at, :check_duration_ms, :check_count, :last_error, :updated)
+    stored, = self.class.record_job_result!(domain_id, from_address) do |config|
+      config.last_check_at     = Familia.now.to_i
+      config.check_duration_ms = duration_ms.to_i
+      config.check_count       = (config.check_count.to_i + 1).to_s
+      config.last_error        = error
+      config.updated           = Familia.now.to_i
+    end
+    return unless stored
+
+    adopt_stored_values!(
+      %i[last_check_at check_duration_ms check_count last_error updated].to_h { |name| [name, stored.public_send(name)] },
+    )
   end
 
   # Check if a recent verification check was performed.
@@ -462,6 +481,24 @@ class Onetime::CustomDomain::MailerConfig < Familia::Horreum
   end
 
   class << self
+    # Writes a verification job's outcome to the stored record, and only
+    # while that record still sends from +from_address+, the address the job
+    # checked. A job runs for seconds after it loaded the record: meanwhile
+    # the sender address can change (resetting verification) or the record
+    # can be deleted, and the job's findings then describe neither. The
+    # write goes through update_for_domain_if (GuardedConfigWrites), so the
+    # job's fields land on the record as stored now and the rest keep their
+    # values; a deleted record is never recreated.
+    #
+    # @param domain_id [String]
+    # @param from_address [String] the address the job checked
+    # @yield [stored] the stored record; assign the job's fields
+    # @return [Array(MailerConfig, Object), nil] the record as written and
+    #   the block's value, or nil when nothing was written
+    def record_job_result!(domain_id, from_address, &)
+      update_for_domain_if(domain_id, ->(stored) { stored.from_address.to_s == from_address.to_s }, &)
+    end
+
     # Find mailer config by domain ID.
     #
     # @param domain_id [String] CustomDomain identifier (objid)
