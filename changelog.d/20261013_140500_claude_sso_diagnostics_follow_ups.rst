@@ -32,3 +32,9 @@ Security
   taken by an operator, including a colonel using the customer-facing
   pages, still go to the operator trail. Test-email entries now store the
   recipient address obscured.
+- "Send test" on a domain's email sender settings is now limited per
+  account: 10 test emails per hour by default, then a one-hour wait
+  (``SENDER_TEST_EMAIL_RATE_LIMIT_*``; kind ``sender_test_email`` for
+  ``bin/ots ratelimit`` and the admin reset). The form says how long to
+  wait. Each send is a real email through the delivery provider and one
+  audit entry, so an unlimited loop could fill the security audit trail.

@@ -495,8 +495,11 @@ signatures parallel to their applied-event siblings.
 `security_events` started as the home for rate-limiter cap-hits — the three
 throttles that an unauthenticated caller can drive
 (`auth.reset_request_throttled` and its `create_account` / `conceal_secret`
-peers). It now also holds **failed colonel sign-ins**, and customer
-**self-service actions** (next section).
+peers). It now also holds the cap-hits of the per-customer limits on actions
+that reach outside this system (`sso.diagnostics_throttled`,
+`domain_sender.test_email_throttled`; `Onetime::Security::PerCustomerRateLimit`),
+**failed colonel sign-ins**, and customer **self-service actions** (next
+section).
 
 | Verb | Emitted by | Trail |
 |---|---|---|

@@ -11,6 +11,8 @@
 #   - On success: verb 'domain_sender.test_email_sent', result :success
 #   - On failure: result :failure, error_code in detail
 #   - The recipient is stored obscured, never the raw address
+#   - The per-customer limit (SenderTestEmailRateLimiter) is charged last in
+#     raise_concerns, and a locked customer sends nothing
 #
 # RUN (lane runner only — a raw rspec/rake invocation inherits the dev
 # shell's env and can reach dev data; see AGENTS.md "Running tests"):
@@ -266,6 +268,84 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::SendTestEmail do
             detail: hash_including(error_code: 'domain_not_provisioned'),
           ),
         )
+      end
+    end
+  end
+
+  describe 'per-customer rate limit (SenderTestEmailRateLimiter)' do
+    it 'charges the acting customer by public id, last, after the sender config is found' do
+      order = []
+      allow(logic).to receive(:authorize_sender_config!) do
+        order << :authorize
+        logic.instance_variable_set(:@custom_domain, custom_domain)
+        logic.instance_variable_set(:@organization, organization)
+      end
+      allow(Onetime::CustomDomain::MailerConfig).to receive(:find_by_domain_id).with('domain123') do
+        order << :find_config
+        mailer_config
+      end
+      allow(logic).to receive(:enforce_sender_test_email_rate_limit!) { |extid| order << [:charge, extid] }
+
+      logic.raise_concerns
+
+      expect(order).to eq([:authorize, :find_config, [:charge, 'ext-cust123']])
+    end
+
+    it 'does not charge a request that has no sender configuration' do
+      allow(Onetime::CustomDomain::MailerConfig).to receive(:find_by_domain_id).with('domain123').and_return(nil)
+      allow(logic).to receive(:enforce_sender_test_email_rate_limit!)
+
+      expect { logic.raise_concerns }.to raise_error(Onetime::FormError)
+      expect(logic).not_to have_received(:enforce_sender_test_email_rate_limit!)
+    end
+
+    it 'does not charge a request whose sender has no from_address' do
+      allow(mailer_config).to receive(:from_address).and_return('')
+      allow(logic).to receive(:enforce_sender_test_email_rate_limit!)
+
+      expect { logic.raise_concerns }.to raise_error(Onetime::FormError)
+      expect(logic).not_to have_received(:enforce_sender_test_email_rate_limit!)
+    end
+
+    it 'does not charge an anonymous request' do
+      allow(customer).to receive(:anonymous?).and_return(true)
+      allow(logic).to receive(:enforce_sender_test_email_rate_limit!)
+
+      expect { logic.raise_concerns }.to raise_error(Onetime::FormError)
+      expect(logic).not_to have_received(:enforce_sender_test_email_rate_limit!)
+    end
+
+    # The real limiter, against the lane's Valkey: the test config ships it
+    # disabled, so it is enabled here in-process with a cap of one, which
+    # makes the second send the locked one.
+    it 'enforces through the real module when enabled: the send over the cap is refused' do
+      saved_conf = YAML.load(YAML.dump(OT.conf))
+      new_conf   = YAML.load(YAML.dump(OT.conf))
+      ((new_conf['features'] ||= {})['organizations'] ||= {})['sender_test_email_rate_limit'] =
+        { 'enabled' => true, 'max_per_customer' => 1, 'window' => 60, 'lockout' => 60 }
+      OT.send(:conf=, new_conf)
+      redis = Onetime::Customer.dbclient
+      redis.del('sender_test_email:attempts:ext-cust123', 'sender_test_email:locked:ext-cust123')
+      allow(logic).to receive(:build_test_backend).and_return(mock_backend)
+      allow(mock_backend).to receive(:deliver).and_return(true)
+
+      begin
+        logic.raise_concerns
+        logic.process
+
+        second = described_class.new(strategy_result, params)
+        allow(second).to receive(:authorize_sender_config!) do
+          second.instance_variable_set(:@custom_domain, custom_domain)
+          second.instance_variable_set(:@organization, organization)
+        end
+        expect { second.raise_concerns }.to raise_error(Onetime::LimitExceeded) do |error|
+          expect(error.max_attempts).to eq(1)
+          expect(error.retry_after).to be_positive
+        end
+        expect(mock_backend).to have_received(:deliver).once
+      ensure
+        redis.del('sender_test_email:attempts:ext-cust123', 'sender_test_email:locked:ext-cust123')
+        OT.send(:conf=, saved_conf)
       end
     end
   end

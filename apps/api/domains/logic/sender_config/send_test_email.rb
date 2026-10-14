@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/models/custom_domain/mailer_config'
+require 'onetime/security/sender_test_email_rate_limiter'
 require_relative 'base'
 require_relative 'change_logger'
 
@@ -25,12 +26,18 @@ module DomainsAPI
       #     deliver_raw without a sender_config. The global backend handles
       #     delivery; we just override the sender identity in the email hash.
       #   - Full authorization (domain ownership + entitlement) is enforced.
+      #   - Rate limited per CUSTOMER (Onetime::Security::
+      #     SenderTestEmailRateLimiter, kind `sender_test_email`, 10 sends
+      #     per hour by default), charged on the last line of raise_concerns
+      #     so a refused request costs nothing. Over the cap the API answers
+      #     429 with retry_after and a Retry-After header, and nothing is sent.
       #
       # Response mirrors the SSO TestConnection pattern:
       #   { success: true/false, message: "...", details: { ... } }
       #
       class SendTestEmail < Base
         include ChangeLogger
+        include Onetime::Security::SenderTestEmailRateLimiter
 
         attr_reader :mailer_config
 
@@ -50,6 +57,9 @@ module DomainsAPI
           if @mailer_config.from_address.to_s.empty?
             raise_form_error('Sender configuration must have a from_address before sending a test email', field: :from_address, error_type: :missing)
           end
+
+          # Last, so only a send that will actually happen is charged.
+          enforce_sender_test_email_rate_limit!(cust.extid)
         end
 
         def process
