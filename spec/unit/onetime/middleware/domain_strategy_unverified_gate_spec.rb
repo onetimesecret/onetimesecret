@@ -177,6 +177,53 @@ RSpec.describe Onetime::Middleware::DomainStrategy, 'unverified custom domains' 
     end
   end
 
+  # The 404 is answered before the request logger, so DomainStrategy logs
+  # the answer itself: one info line with the host and why it is not served,
+  # and nothing from the record.
+  describe 'logging an :unverified answer' do
+    let(:http_logger) { instance_double(SemanticLogger::Logger).as_null_object }
+    let(:message) { '[DomainStrategy] custom domain not served' }
+
+    before do
+      configure_domains(validation_strategy: 'approximated')
+      allow(Onetime).to receive(:get_logger).with('HTTP').and_return(http_logger)
+    end
+
+    it 'logs one info line with the host and the reason unverified' do
+      serve(domain_record)
+
+      request
+
+      expect(http_logger).to have_received(:info).with(message, { host: host, reason: :unverified }).once
+    end
+
+    it 'gives the reason orphan for a record with no organization' do
+      serve(domain_record(org_id: nil, ownership_verified: true))
+
+      request
+
+      expect(http_logger).to have_received(:info).with(message, { host: host, reason: :orphan }).once
+    end
+
+    it 'logs no such line for a served host' do
+      serve(domain_record(ownership_verified: true))
+
+      request
+
+      expect(http_logger).not_to have_received(:info).with(message, anything)
+    end
+  end
+
+  describe Onetime::CustomDomain, '#unserved_reason' do
+    it 'answers nil for a served record, :orphan without an organization, :unverified otherwise' do
+      configure_domains(validation_strategy: 'approximated')
+
+      expect(domain_record(ownership_verified: true).unserved_reason).to be_nil
+      expect(domain_record(org_id: '', ownership_verified: true).unserved_reason).to eq(:orphan)
+      expect(domain_record.unserved_reason).to eq(:unverified)
+    end
+  end
+
   context 'under caddy_on_demand' do
     before { configure_domains(validation_strategy: 'caddy_on_demand') }
 

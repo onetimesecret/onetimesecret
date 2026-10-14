@@ -57,6 +57,16 @@ module Onetime
         serving_authorized? || self.class.serve_unverified?
       end
 
+      # Why this record is not served, for logs: :orphan (no organization),
+      # :unverified (ownership not verified), or nil when it is served.
+      #
+      # @return [Symbol, nil]
+      def unserved_reason
+        return nil if served_as_tenant?
+
+        org_id.to_s.empty? ? :orphan : :unverified
+      end
+
       module ClassMethods
         SERVE_UNVERIFIED_WARNING = Mutex.new
         private_constant :SERVE_UNVERIFIED_WARNING

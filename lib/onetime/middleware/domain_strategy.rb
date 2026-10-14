@@ -37,8 +37,11 @@ module Onetime
     # `cache-control: no-store`, without calling the application below and
     # without writing any onetime.* env key or O-* response header. Nothing
     # downstream ever reads :unverified on a served request, and the response
-    # does not name the classification. Off the middleware path (classify!
-    # from Onetime::SessionSurface) it maps to no surface.
+    # does not name the classification. It logs one info line in the HTTP
+    # category with the host and the reason (CustomDomain#unserved_reason:
+    # unverified or orphan), since the request logger below never sees the
+    # request. Off the middleware path (classify! from
+    # Onetime::SessionSurface) it maps to no surface.
     #
     # @note Adds to Rack environment (not on an :unverified answer):
     #   - env['onetime.display_domain']  : Normalized domain for display
@@ -304,12 +307,14 @@ module Onetime
 
         # A registered host that is not served: answered here, before any env
         # key is written and without calling the application. See
-        # "## :unverified" above.
+        # "## :unverified" above. The request logger sits below this
+        # middleware and never sees the request, so the answer is logged
+        # here: the host and the reason only, nothing from the record.
         if resolved_domain_strategy == :unverified
-          http_logger.debug '[DomainStrategy] determined',
+          http_logger.info '[DomainStrategy] custom domain not served',
             {
               host: display_domain,
-              strategy: resolved_domain_strategy,
+              reason: lookup&.record&.unserved_reason || :unverified,
             }
           return unverified_domain_response
         end
