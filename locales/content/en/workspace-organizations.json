@@ -1221,8 +1221,8 @@
     "content_hash": "5ad4d7ed"
   },
   "web.organizations.sso.confirm_sign_in_limits": {
-    "text": "Only a real sign-in confirms the redirect or callback, user assignment, access policies and claims work together. Reopen these settings afterward to see the last recorded sign-in.",
-    "content_hash": "8612705c"
+    "text": "Only a real sign-in confirms the redirect or callback, user assignment, access policies and claims work together. After signing in, save any setup changes, reload this page, then reopen these settings to see the last recorded sign-in.",
+    "content_hash": "97d820cd"
   },
   "web.organizations.sso.diagnostics_title": {
     "text": "Check saved configuration",
