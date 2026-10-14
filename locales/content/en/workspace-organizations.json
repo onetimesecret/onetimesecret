@@ -929,8 +929,8 @@
     "content_hash": "3403bdbb"
   },
   "web.organizations.sso.token_endpoint_auth_method_hint": {
-    "text": "How the client secret is sent to your provider's token endpoint. Leave on Automatic unless your provider requires one method; Test Connection reports the methods it advertises.",
-    "content_hash": "31299b88"
+    "text": "How the client secret is sent to your provider's token endpoint. Leave on Automatic unless your provider requires one method; Check provider settings reports the methods it advertises.",
+    "content_hash": "860af5a1"
   },
   "web.organizations.sso.token_endpoint_auth_method_automatic": {
     "text": "Automatic",
@@ -1125,28 +1125,36 @@
     "content_hash": "4a960fe4"
   },
   "web.organizations.sso.test_connection": {
-    "text": "Test Connection",
-    "content_hash": "c02977b0"
+    "text": "Check provider settings (optional)",
+    "content_hash": "447b1969"
   },
   "web.organizations.sso.test_connection_hint": {
-    "text": "Verify the identity provider is reachable (does not validate credentials)",
-    "content_hash": "22a23b68"
+    "text": "Checks provider discovery using the values above. Does not check the client secret or complete a sign-in.",
+    "content_hash": "02cbb081"
   },
   "web.organizations.sso.test_connection_hint_saml": {
-    "text": "Checks the SSO URL, Entity ID and certificate locally; the identity provider is not contacted",
-    "content_hash": "1dad3945"
+    "text": "Checks the URL, Entity ID and certificate above locally. Does not contact the identity provider or complete a sign-in.",
+    "content_hash": "9d2e8cb0"
   },
   "web.organizations.sso.test_button": {
-    "text": "Test Connection",
-    "content_hash": "c02977b0"
+    "text": "Check provider settings",
+    "content_hash": "f4474adf"
   },
   "web.organizations.sso.testing": {
-    "text": "Testing...",
-    "content_hash": "6c02a284"
+    "text": "Checking...",
+    "content_hash": "2e5f79bb"
   },
   "web.organizations.sso.test_error": {
-    "text": "Failed to test connection",
-    "content_hash": "c1d1f310"
+    "text": "Could not check provider settings",
+    "content_hash": "3d7a4ea6"
+  },
+  "web.organizations.sso.provider_check_next": {
+    "text": "This is not a sign-in test. After saving your settings, run Check saved configuration below.",
+    "content_hash": "93108052"
+  },
+  "web.organizations.sso.technical_details": {
+    "text": "Technical details",
+    "content_hash": "890ab358"
   },
   "web.organizations.sso.diagnostics_title": {
     "text": "Check saved configuration",

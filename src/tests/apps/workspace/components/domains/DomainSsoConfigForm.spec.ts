@@ -597,6 +597,13 @@ describe('DomainSsoConfigForm', () => {
       return buttons.find((b) => b.text().includes('test_button'));
     };
 
+    it('retains the provider-check heading and button translation keys', async () => {
+      wrapper = await mountComponent();
+
+      expect(wrapper.text()).toContain('web.organizations.sso.test_connection');
+      expect(findTestButton(wrapper)!.text()).toContain('web.organizations.sso.test_button');
+    });
+
     it('emits test event when test button clicked', async () => {
       wrapper = await mountComponent({
         formState: {
@@ -626,9 +633,16 @@ describe('DomainSsoConfigForm', () => {
         },
       });
 
-      // Check for success indicator
-      const successResult = wrapper.find('.bg-green-50, [role="status"]');
-      expect(successResult.exists()).toBe(true);
+      const providerCheck = wrapper.get('[data-testid="sso-provider-check"]');
+      expect(providerCheck.find('[role="status"]').exists()).toBe(true);
+      const message = providerCheck.get('h5');
+      expect(message.text()).toBe('Connection successful');
+      expect(message.isVisible()).toBe(true);
+      expect(message.element.closest('details')).toBeNull();
+      const next = providerCheck.get('[data-testid="sso-provider-check-next"]');
+      expect(next.text()).toBe('web.organizations.sso.provider_check_next');
+      expect(next.isVisible()).toBe(true);
+      expect(next.element.closest('details')).toBeNull();
     });
 
     it('shows error result when testResult.success is false', async () => {
@@ -1213,23 +1227,42 @@ describe('DomainSsoConfigForm', () => {
           'web.organizations.sso.token_endpoint_auth_methods_supported'
         );
         expect(list.text()).toContain('client_secret_basic, client_secret_post');
+        const disclosure = wrapper.get('[data-testid="sso-test-technical-details"]');
+        expect(disclosure.element.tagName).toBe('DETAILS');
+        expect(disclosure.find('summary').exists()).toBe(true);
+        expect((disclosure.element as HTMLDetailsElement).open).toBe(false);
+        expect(disclosure.get('[data-testid="sso-test-token-endpoint-auth-methods"]').element).toBe(
+          list.element
+        );
+        const message = wrapper.get('[data-testid="sso-provider-check"] h5');
+        expect(message.text()).toBe('Connection successful');
+        expect(message.isVisible()).toBe(true);
+        expect(message.element.closest('details')).toBeNull();
         expect(wrapper.find('[data-testid="sso-test-note"]').exists()).toBe(false);
       });
 
-      it('omits the list when the document does not advertise any', async () => {
-        wrapper = await mountComponent({
-          formState: oidcState(),
-          testResult: successResult({
-            token_endpoint_auth_methods_supported: null,
-            token_endpoint_auth_method_supported: true,
-          }),
-        });
+      it.each([{ methods: null }, { methods: [] }, { methods: undefined }])(
+        'omits the advertised-methods list and disclosure for $methods',
+        async ({ methods }) => {
+          wrapper = await mountComponent({
+            formState: oidcState(),
+            testResult: successResult({
+              token_endpoint_auth_methods_supported: methods,
+              token_endpoint_auth_method_supported: true,
+            }),
+          });
 
-        expect(wrapper.find('[data-testid="sso-test-token-endpoint-auth-methods"]').exists()).toBe(
-          false
-        );
-        expect(wrapper.find('[role="status"]').exists()).toBe(true);
-      });
+          expect(
+            wrapper.find('[data-testid="sso-test-token-endpoint-auth-methods"]').exists()
+          ).toBe(false);
+          expect(wrapper.find('[data-testid="sso-test-technical-details"]').exists()).toBe(false);
+          const message = wrapper.get('[data-testid="sso-provider-check"] h5');
+          expect(message.text()).toBe('Connection successful');
+          expect(message.isVisible()).toBe(true);
+          expect(message.element.closest('details')).toBeNull();
+          expect(wrapper.find('[role="status"]').exists()).toBe(true);
+        }
+      );
 
       it('renders the note as a warning when the selected method is not advertised (test still succeeds)', async () => {
         wrapper = await mountComponent({
@@ -1247,6 +1280,13 @@ describe('DomainSsoConfigForm', () => {
         expect(note.text()).toContain('client_secret_post is not among the advertised methods');
         expect(note.classes()).toContain('text-amber-700');
         expect(note.find('.o-icon').exists()).toBe(true);
+        expect(note.element.closest('details')).toBeNull();
+        const disclosure = wrapper.get('[data-testid="sso-test-technical-details"]');
+        expect(disclosure.element.tagName).toBe('DETAILS');
+        expect((disclosure.element as HTMLDetailsElement).open).toBe(true);
+        expect(
+          disclosure.get('[data-testid="sso-test-token-endpoint-auth-methods"]').text()
+        ).toContain('client_secret_basic');
       });
 
       it('keeps the plain note style when the selection is advertised or absent', async () => {
@@ -1254,6 +1294,7 @@ describe('DomainSsoConfigForm', () => {
           wrapper = await mountComponent({
             formState: oidcState(),
             testResult: successResult({
+              token_endpoint_auth_methods_supported: ['client_secret_basic'],
               token_endpoint_auth_method_supported: supported,
               note: 'Some other note',
             }),
@@ -1262,6 +1303,10 @@ describe('DomainSsoConfigForm', () => {
           expect(note.text()).toContain('Some other note');
           expect(note.classes()).toContain('text-green-700');
           expect(note.find('.o-icon').exists()).toBe(false);
+          expect(note.element.closest('details')).toBeNull();
+          const disclosure = wrapper.get('[data-testid="sso-test-technical-details"]');
+          expect(disclosure.element.tagName).toBe('DETAILS');
+          expect((disclosure.element as HTMLDetailsElement).open).toBe(false);
           wrapper.unmount();
         }
       });
@@ -2243,6 +2288,8 @@ describe('DomainSsoConfigForm', () => {
         expect(details.exists()).toBe(true);
         expect(details.text()).toContain('CN=idp.example.com');
         expect(details.text()).toContain('web.organizations.sso.certificate_expires_in_days');
+        expect(details.isVisible()).toBe(true);
+        expect(details.element.closest('details')).toBeNull();
         expect(wrapper.find('[role="status"]').exists()).toBe(true);
       });
 

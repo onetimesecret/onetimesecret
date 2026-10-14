@@ -1244,10 +1244,12 @@ aria-hidden="true">*</span>
         </div>
       </template>
 
-      <!-- Test Connection -->
-      <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
-        <div class="flex items-start justify-between">
-          <div class="flex-1">
+      <!-- Optional check of the current form values, before saving. -->
+      <div
+        data-testid="sso-provider-check"
+        class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
+        <div class="flex flex-col items-start gap-3 sm:flex-row sm:justify-between">
+          <div class="min-w-0 flex-1">
             <h4 class="text-sm font-medium text-gray-900 dark:text-white">
               {{ t('web.organizations.sso.test_connection') }}
             </h4>
@@ -1316,20 +1318,33 @@ aria-hidden="true">*</span>
                     aria-hidden="true" />
                   <span>{{ testResult.details.note }}</span>
                 </p>
-                <!-- OIDC / Entra (#4764): what the discovery document advertises. -->
-                <dl
+                <p
+                  class="mt-2 text-sm text-green-800 dark:text-green-200"
+                  data-testid="sso-provider-check-next">
+                  {{ t('web.organizations.sso.provider_check_next') }}
+                </p>
+                <details
                   v-if="advertisedTokenEndpointAuthMethods?.length"
-                  data-testid="sso-test-token-endpoint-auth-methods"
-                  class="mt-2 space-y-1 text-sm text-green-700 dark:text-green-300">
-                  <div class="flex gap-2">
-                    <dt class="shrink-0 font-medium">
-                      {{ t('web.organizations.sso.token_endpoint_auth_methods_supported') }}:
-                    </dt>
-                    <dd class="font-mono break-all">
-                      {{ advertisedTokenEndpointAuthMethods.join(', ') }}
-                    </dd>
-                  </div>
-                </dl>
+                  data-testid="sso-test-technical-details"
+                  :open="tokenEndpointAuthMethodUnadvertised"
+                  class="mt-2 text-sm text-green-700 dark:text-green-300">
+                  <summary class="cursor-pointer font-medium">
+                    {{ t('web.organizations.sso.technical_details') }}
+                  </summary>
+                  <dl
+                    v-if="advertisedTokenEndpointAuthMethods?.length"
+                    data-testid="sso-test-token-endpoint-auth-methods"
+                    class="mt-2 space-y-1 text-sm text-green-700 dark:text-green-300">
+                    <div class="flex gap-2">
+                      <dt class="shrink-0 font-medium">
+                        {{ t('web.organizations.sso.token_endpoint_auth_methods_supported') }}:
+                      </dt>
+                      <dd class="font-mono break-all">
+                        {{ advertisedTokenEndpointAuthMethods.join(', ') }}
+                      </dd>
+                    </div>
+                  </dl>
+                </details>
                 <!-- SAML (#4450): the test is local, so it reports what it
                      parsed — the certificate's subject and expiry. -->
                 <dl
