@@ -97,9 +97,6 @@ class Onetime::CustomDomain::MailerConfig < Familia::Horreum
   # Encrypted credential storage with domain-bound AAD
   encrypted_field :api_key, aad_fields: [:domain_id]
 
-  # Distributed lock for concurrent provisioning protection
-  lock :provisioning
-
   # General state
   field :enabled          # Boolean string ('true'/'false')
 
@@ -480,7 +477,27 @@ class Onetime::CustomDomain::MailerConfig < Familia::Horreum
     Onetime::Mail::Mailer.determine_sender_provider.to_s.strip.downcase
   end
 
+  # @return [Familia::Lock] this domain's sender_identity_lock
+  def sender_identity_lock
+    self.class.sender_identity_lock(domain_id)
+  end
+
   class << self
+    # Serializes changes to a domain's sender identity at the mail provider:
+    # provisioning (ProvisionSenderDomain) and teardown (DeleteSenderConfig).
+    # Providers key the identity by the from domain, and provisioning reuses
+    # one that already exists. A provision that overlapped a teardown would
+    # save DNS records for an identity the teardown then deletes.
+    #
+    # The key is not one of the record's related fields. destroy! deletes
+    # those, and a teardown destroys the record while it holds this lock.
+    #
+    # @param domain_id [String] CustomDomain identifier (objid)
+    # @return [Familia::Lock]
+    def sender_identity_lock(domain_id)
+      Familia::Lock.new("domain:#{domain_id}:sender_identity")
+    end
+
     # Writes a verification job's outcome to the stored record, and only
     # while that record still sends from +from_address+, the address the job
     # checked. A job runs for seconds after it loaded the record: meanwhile

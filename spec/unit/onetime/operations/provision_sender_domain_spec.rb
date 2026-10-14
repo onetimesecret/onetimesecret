@@ -15,7 +15,7 @@ RSpec.describe Onetime::Operations::ProvisionSenderDomain do
       provider: 'ses',
       effective_provider: 'ses',
       from_address: 'sender@example.com',
-      provisioning: mock_lock,
+      sender_identity_lock: mock_lock,
       'provider_dns_data=' => nil,
       'dns_records=' => nil,
       'updated=' => nil,
@@ -293,6 +293,18 @@ RSpec.describe Onetime::Operations::ProvisionSenderDomain do
       end
     end
 
+    context 'when the sender identity lock is held' do
+      let(:mock_lock) { double('Lock', acquire: false) }
+
+      it 'fails without calling the provider' do
+        result = described_class.new(mailer_config: mailer_config, strategy: mock_strategy, persist: false).call
+
+        expect(result.success?).to be false
+        expect(result.error).to include('already in progress')
+        expect(Onetime::Mail::Mailer).not_to have_received(:provider_credentials)
+      end
+    end
+
     context 'when provider does not support provisioning' do
       before do
         allow(Onetime::Mail::SenderStrategies).to receive(:supports_provisioning?)
@@ -300,7 +312,7 @@ RSpec.describe Onetime::Operations::ProvisionSenderDomain do
       end
 
       it 'returns failure for SMTP' do
-        config = double('MailerConfig', domain_id: 'cd:test', provider: 'smtp', effective_provider: 'smtp', from_address: 'a@b.com', provisioning: mock_lock)
+        config = double('MailerConfig', domain_id: 'cd:test', provider: 'smtp', effective_provider: 'smtp', from_address: 'a@b.com', sender_identity_lock: mock_lock)
 
         result = described_class.new(mailer_config: config, persist: false).call
 

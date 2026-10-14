@@ -48,25 +48,41 @@ module DomainsAPI
         def process
           OT.ld "[DeleteSenderConfig] Deleting sender config for domain #{@domain_id} by user #{cust.extid}"
 
-          # Remove the record first and tear down the provider identity it
-          # held: of concurrent deletes only one gets the record
-          # (GuardedConfigWrites#remove_for_domain!), so the provider call and
-          # the audit event happen once and describe what was deleted.
-          # DeleteSenderDomain never raises and reads only the record passed in.
-          deleted = guarded_config_write do
-            Onetime::CustomDomain::MailerConfig.remove_for_domain!(@custom_domain.identifier)
+          # Hold the domain's sender identity lock from the record removal
+          # through the provider teardown, and refuse while provisioning
+          # holds it. Provisioning reuses an existing identity, so a config
+          # saved and provisioned during the teardown would keep DNS records
+          # for the identity the teardown then deletes. With the lock, its
+          # provisioning fails instead and the config is saved unprovisioned.
+          lock       = Onetime::CustomDomain::MailerConfig.sender_identity_lock(@custom_domain.identifier)
+          lock_token = lock.acquire(ttl: 60)
+          unless lock_token
+            raise_form_error('Another change to this sender configuration is in progress. Please try again.', field: :domain_id, error_type: :conflict)
           end
 
-          if deleted
-            @deleted_provider = deleted.provider
-            delete_sender_domain(deleted)
-            log_sender_config_event(
-              event: :domain_sender_config_deleted,
-              domain: @custom_domain,
-              org: @organization,
-              actor: cust,
-              provider: @deleted_provider,
-            )
+          begin
+            # Remove the record first and tear down the provider identity it
+            # held: of concurrent deletes only one gets the record
+            # (GuardedConfigWrites#remove_for_domain!), so the provider call
+            # and the audit event happen once and describe what was deleted.
+            # DeleteSenderDomain never raises and reads only the record passed in.
+            deleted = guarded_config_write do
+              Onetime::CustomDomain::MailerConfig.remove_for_domain!(@custom_domain.identifier)
+            end
+
+            if deleted
+              @deleted_provider = deleted.provider
+              delete_sender_domain(deleted)
+              log_sender_config_event(
+                event: :domain_sender_config_deleted,
+                domain: @custom_domain,
+                org: @organization,
+                actor: cust,
+                provider: @deleted_provider,
+              )
+            end
+          ensure
+            lock.release(lock_token)
           end
 
           success_data

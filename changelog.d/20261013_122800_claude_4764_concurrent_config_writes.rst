@@ -29,3 +29,10 @@ Fixed
   fails and stores nothing. When Verify Now cannot queue its checks, it no
   longer restores values from before its own reset or recreates a deleted
   configuration. (#4764)
+- Deleting a domain's email sender configuration and provisioning its
+  sender domain no longer run at the same time. A delete during
+  provisioning returns a ``conflict`` error. Provisioning while a delete is
+  removing the sender domain at the mail provider fails, so a configuration
+  saved in that window has no DNS records until it is provisioned again.
+  Before, a provisioning that overlapped a delete could leave the sender
+  domain registered at the provider with no configuration. (#4764)

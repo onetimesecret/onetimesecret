@@ -78,10 +78,12 @@ module Onetime
         validation_error = validate_config
         return failure_result(validation_error) if validation_error
 
-        # Acquire distributed lock to prevent concurrent provisioning
-        lock_token = @mailer_config.provisioning.acquire(ttl: 60)
+        # The domain's sender identity lock, shared with DeleteSenderConfig's
+        # provider teardown (MailerConfig.sender_identity_lock).
+        lock       = @mailer_config.sender_identity_lock
+        lock_token = lock.acquire(ttl: 60)
         unless lock_token
-          return failure_result("Domain provisioning already in progress for #{@mailer_config.domain_id}")
+          return failure_result("Sender identity provisioning or deletion already in progress for #{@mailer_config.domain_id}")
         end
 
         begin
@@ -152,7 +154,7 @@ module Onetime
             error: nil,
           )
         ensure
-          @mailer_config.provisioning.release(lock_token)
+          lock.release(lock_token)
         end
       rescue ArgumentError => ex
         # Strategy selection or validation errors

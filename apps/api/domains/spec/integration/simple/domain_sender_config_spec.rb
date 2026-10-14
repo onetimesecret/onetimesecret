@@ -842,6 +842,68 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
         config = Onetime::CustomDomain::MailerConfig.find_by_domain_id(test_custom_domain.identifier)
         expect(config).to be_nil
       end
+
+      # Provisioning and the provider teardown share this lock: a provider
+      # reuses an existing identity, so a provision that overlapped the
+      # teardown would save DNS records for an identity the teardown deletes.
+      context 'with the sender identity lock' do
+        let(:model) { Onetime::CustomDomain::MailerConfig }
+        let(:lock) { model.sender_identity_lock(test_custom_domain.identifier) }
+
+        def stub_teardown
+          allow_any_instance_of(Onetime::Operations::DeleteSenderDomain).to receive(:call) do
+            yield
+            Onetime::Operations::DeleteSenderDomain::Result.new(success: true, message: 'stubbed', error: nil)
+          end
+        end
+
+        it 'refuses with a conflict and keeps the record while another holder has the lock' do
+          token = lock.acquire(ttl: 60)
+
+          csrf_delete api_path(test_custom_domain.extid)
+
+          expect(last_response.status).to eq(422)
+          expect(json_body['error']).to include('in progress')
+          expect(model.exists_for_domain?(test_custom_domain.identifier)).to be true
+        ensure
+          lock.release(token)
+        end
+
+        it 'holds the lock through the provider teardown, after the record is gone' do
+          seen = nil
+          stub_teardown do
+            seen = [lock.locked?, model.exists_for_domain?(test_custom_domain.identifier)]
+          end
+
+          csrf_delete api_path(test_custom_domain.extid)
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(seen).to eq([true, false])
+          expect(lock.locked?).to be false
+        end
+
+        it 'does not provision a config saved during the teardown' do
+          strategy    = spy('sender strategy')
+          provisioned = nil
+          stub_teardown do
+            replacement = model.create!(
+              domain_id: test_custom_domain.identifier,
+              provider: 'ses',
+              from_address: 'delete-test@example.com',
+            )
+            provisioned = Onetime::Operations::ProvisionSenderDomain.new(
+              mailer_config: replacement, strategy: strategy,
+            ).call
+          end
+
+          csrf_delete api_path(test_custom_domain.extid)
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(provisioned.error).to include('already in progress')
+          expect(strategy).not_to have_received(:provision_dns_records)
+          expect(model.find_by_domain_id(test_custom_domain.identifier)&.provisioned?).to be false
+        end
+      end
     end
 
     context 'when sender config does not exist' do
