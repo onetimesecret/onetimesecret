@@ -14,6 +14,8 @@ Custom domain SSL and DNS validation strategies.
 
 Under `approximated` and `caddy_on_demand`, a registered domain is served (classified `:custom` by `DomainStrategy`) only while its ownership is verified, by a passing TXT check or a Colonel override (`CustomDomain#served_as_tenant?`). Until then, and after a demotion, its host answers 404 for every path, the domain-context picker does not offer it (`GET /api/account/permissions` lists it with `served: false`), adding it does not make it the session's domain context, and secret creation refuses it as a `share_domain`. A certificate Caddy or Approximated already holds for the name does not change this: TLS completes, and the application answers 404. Under `passthrough`, registration by the owning organization is the basis. A record with no organization is never served. `features.domains.serve_unverified: true` serves every registered domain that has an organization and logs a warning at boot.
 
+Serving follows each domain's stored ownership state, and only a check updates it. After switching `validation_strategy`, run `bin/ots domains verify --all` before the deployment takes traffic. Under `approximated` and `caddy_on_demand`, a domain whose TXT record a later check no longer finds loses its verified state (unless a Colonel override holds it) and stops being served; the verification page tells the customer to keep the record in place. `bin/ots domains orphaned` lists the records with no organization, which are not served.
+
 ## Ownership check
 
 `validate_ownership` has three outcomes (see `base_strategy.rb`):
