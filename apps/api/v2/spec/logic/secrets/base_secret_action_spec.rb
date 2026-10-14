@@ -457,6 +457,7 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
         accessible_by?: false,
         allow_public_secret_creation?: allow_public,
         verified: 'true',
+        served_as_tenant?: true,
       )
     end
 
@@ -1113,6 +1114,7 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
         accessible_by?: owner,
         allow_public_secret_creation?: true,
         verified: 'true',
+        served_as_tenant?: true,
       )
     end
 
@@ -1197,6 +1199,7 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
           accessible_by?: false,
           allow_public_secret_creation?: false,
           verified: 'true',
+          served_as_tenant?: true,
         )
       end
 
@@ -1257,6 +1260,7 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
           accessible_by?: false,
           allow_public_secret_creation?: true,
           verified: 'true',
+          served_as_tenant?: true,
         )
       end
 
@@ -1318,6 +1322,7 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
           accessible_by?: false,
           allow_public_secret_creation?: true,
           verified: 'true',
+          served_as_tenant?: true,
         )
       end
 
@@ -1440,6 +1445,7 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
             accessible_by?: false,
             allow_public_secret_creation?: true,
             verified: 'true',
+            served_as_tenant?: true,
           )
         end
 
@@ -1571,7 +1577,7 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
     end
 
     let(:host_record) do
-      double('CustomDomain', accessible_by?: false, allow_public_secret_creation?: true, verified: 'true')
+      double('CustomDomain', accessible_by?: false, allow_public_secret_creation?: true, verified: 'true', served_as_tenant?: true)
     end
 
     # Real nested payload, exactly as a guest POST would arrive.

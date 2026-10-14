@@ -127,6 +127,56 @@ RSpec.describe Core::Views::DomainSerializer do
       end
     end
 
+    # The domain-context picker list. Only domains served as tenant domains
+    # (CustomDomain#served_as_tenant?) are offered: a link on any other one
+    # opens to a 404, and secret creation refuses it as a share_domain.
+    context 'custom_domains (the domain-context picker)' do
+      def picker_domain(host, served:, ready: served)
+        instance_double(
+          Onetime::CustomDomain,
+          display_domain: host,
+          served_as_tenant?: served,
+          ready?: ready,
+          verified: ready,
+          resolving: ready,
+        )
+      end
+
+      let(:customer) do
+        instance_double(
+          Onetime::Customer,
+          custom_domains_list: [
+            picker_domain('zeta.example.com', served: true),
+            picker_domain('pending.example.com', served: false),
+            picker_domain('alpha.example.com', served: true, ready: false),
+          ],
+        )
+      end
+
+      let(:view_vars) do
+        {
+          'authenticated' => true,
+          'cust' => customer,
+          'sess' => session,
+          'features' => { 'domains' => { 'enabled' => true } },
+          'domain_strategy' => :canonical,
+          'display_domain' => canonical_domain,
+        }
+      end
+
+      it 'lists the served domains, sorted, and leaves the others out' do
+        result = described_class.serialize(view_vars)
+        expect(result['custom_domains']).to eq(%w[alpha.example.com zeta.example.com])
+      end
+
+      it 'lists nothing when none of the domains is served' do
+        allow(customer).to receive(:custom_domains_list)
+          .and_return([picker_domain('pending.example.com', served: false)])
+
+        expect(described_class.serialize(view_vars)['custom_domains']).to eq([])
+      end
+    end
+
     context 'when session is missing' do
       let(:view_vars) do
         {
