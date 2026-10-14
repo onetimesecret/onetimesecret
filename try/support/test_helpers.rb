@@ -190,7 +190,13 @@ module TryoutsCanonicalSessionSurface
   end
 end
 
-Rack::Test::Session.prepend(TryoutsCanonicalSessionSurface) if defined?(Rack::Test::Session)
+# Require rack/test here rather than relying on the caller's load order. This
+# file is loaded once per process, and in a multi-file run the first file to
+# load it may not use rack/test at all. A `defined?` guard would then skip the
+# prepend for every later file, and their hand-seeded sessions would get 401
+# surface_mismatch.
+require 'rack/test'
+Rack::Test::Session.prepend(TryoutsCanonicalSessionSurface)
 
 def generate_random_email
   # Generate a random username
