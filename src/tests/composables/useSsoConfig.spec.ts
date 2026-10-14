@@ -1726,6 +1726,30 @@ describe('useSsoConfig', () => {
       expect(composable.savedCredentialsChecked.value).toBe(false);
     });
 
+    // Another tab replaced only the secret: client ID and tenant are as
+    // checked, and the new secret shows only through its mask.
+    it.each([
+      ['a different secret mask', '••••••••9999', false],
+      ['the same secret mask', mockSsoConfigData.client_secret_masked, true],
+    ] as const)(
+      'after a flag-only save returning %s (%s), evidence kept: %s',
+      async (_label, mask, kept) => {
+        mockGetConfigForDomain.mockResolvedValue({ record: mockDisabledConfig });
+        mockSaveConfigForDomain.mockResolvedValue({
+          record: { ...mockDisabledConfig, enabled: true, client_secret_masked: mask },
+        });
+        const composable = useSsoConfig('dm-ext-123');
+        await composable.initialize();
+        await composable.runDiagnostics();
+        expect(composable.savedCredentialsChecked.value).toBe(true);
+
+        composable.formState.value.enabled = true;
+        await composable.saveConfig();
+
+        expect(composable.savedCredentialsChecked.value).toBe(kept);
+      }
+    );
+
     // Another tab saved the record after this page loaded it: the API checked
     // that newer record, so the pass says nothing about the loaded fields.
     it.each([
@@ -2071,6 +2095,24 @@ describe('useSsoConfig', () => {
         composable.formState.value = { ...composable.formState.value, ...edit };
         await composable.saveConfig();
 
+        expect(composable.savedCredentialsUnchecked.value).toBe(true);
+      });
+
+      // Another tab replaced only the secret; this page saved a rename.
+      it('is set by a save that comes back with a different secret mask', async () => {
+        mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
+        mockSaveConfigForDomain.mockResolvedValue({
+          record: { ...mockSsoConfigData, display_name: 'Renamed', client_secret_masked: '••••••••9999' },
+        });
+        const composable = useSsoConfig('dm-ext-123');
+        await composable.initialize();
+        await composable.runDiagnostics();
+        expect(composable.savedCredentialsChecked.value).toBe(true);
+
+        composable.formState.value = { ...composable.formState.value, display_name: 'Renamed' };
+        await composable.saveConfig();
+
+        expect(composable.savedCredentialsChecked.value).toBe(false);
         expect(composable.savedCredentialsUnchecked.value).toBe(true);
       });
 
