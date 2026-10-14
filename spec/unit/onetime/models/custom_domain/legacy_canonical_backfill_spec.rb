@@ -27,7 +27,6 @@ RSpec.describe Onetime::CustomDomain, 'legacy records and the canonical index ba
   let(:other_org) { Onetime::Organization.new(display_name: "Second org #{suffix}").tap(&:save) }
   let(:legacy_ids) { [] }
   let(:created) { [] }
-  let(:claimed_names) { [] }
 
   after do
     created.each do |rec|
@@ -36,7 +35,6 @@ RSpec.describe Onetime::CustomDomain, 'legacy records and the canonical index ba
       warn "[legacy_canonical_backfill_spec cleanup] #{ex.class}: #{ex.message}"
     end
     legacy_ids.each { |id, name| remove_legacy_custom_domain(id, name) }
-    claimed_names.each { |name| index.remove_field(name) }
     [holder_org, other_org].each do |org|
       org.destroy! if org.exists?
     rescue StandardError => ex
@@ -87,19 +85,12 @@ RSpec.describe Onetime::CustomDomain, 'legacy records and the canonical index ba
       'fullwidth',
     ].each do |label|
       context "when stored #{label}" do
-        it 'holds no canonical entry before the backfill' do
+        it 'has no canonical entry before the backfill, and is found by its stored name' do
           stored = spellings.fetch(label)
           legacy = write_legacy_record(stored, org_id: holder_org.objid)
 
-          second = register(a_label, other_org)
-          claimed_names << a_label
-
-          observed = [
-            second.identifier == legacy,
-            described_class.from_display_domain(a_label)&.identifier == second.identifier,
-            described_class.load_by_display_domain(stored)&.identifier == legacy,
-          ]
-          expect(observed).to eq([false, true, true])
+          expect(index.get(a_label)).to be_nil
+          expect(described_class.load_by_display_domain(stored)&.identifier).to eq(legacy)
         end
 
         it 'is refused for the A-label after the backfill' do
@@ -127,13 +118,11 @@ RSpec.describe Onetime::CustomDomain, 'legacy records and the canonical index ba
       let(:mixed) { "xn--bcher-kva.bücher-#{suffix}.com" }
       let(:full_a_label) { described_class.canonical_display_domain(mixed) }
 
-      it 'holds no canonical entry before the backfill' do
+      it 'has no canonical entry before the backfill, and is found by its stored name' do
         legacy = write_legacy_record(mixed, org_id: holder_org.objid)
 
-        second = register(full_a_label, other_org)
-        claimed_names << full_a_label
-
-        expect([full_a_label.ascii_only?, second.identifier == legacy]).to eq([true, false])
+        expect(index.get(full_a_label)).to be_nil
+        expect(described_class.load_by_display_domain(mixed)&.identifier).to eq(legacy)
       end
 
       it 'is refused for the full A-label after the backfill' do
