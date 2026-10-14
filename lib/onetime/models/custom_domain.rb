@@ -1097,22 +1097,62 @@ module Onetime
       # Atomically claim an orphaned domain for an organization.
       # Uses optimistic locking via WATCH to prevent race conditions.
       #
+      # Before the WATCH/MULTI, the record's name is claimed in
+      # canonical_display_domain_index for the record, as create! does for a
+      # new record (claim_field cannot run inside a transaction). A record
+      # registered before that index existed has no entry and gains one here;
+      # a later record already holds its entry. When another record holds the
+      # name, the claim is refused. A claim taken here is released again if
+      # the orphan claim then fails (see release_orphan_canonical_claim).
+      # Verification fields are not changed.
+      #
       # @param existing [CustomDomain] The orphaned domain to claim
       # @param org_id [String] The organization ID claiming the domain
       # @return [CustomDomain, nil] The claimed domain, or nil if claim failed
-      # @raise [Onetime::Problem] If domain was claimed by another org during race
+      # @raise [Onetime::Problem] If domain was claimed by another org during
+      #   race, another record holds its canonical name, or the name has no
+      #   A-label form
       # @raise [Onetime::RecordNotFound] If the organization no longer exists
       # @raise [Onetime::TemporarilyUnavailable] If a concurrent write to the
       #   record discarded the claim (WATCH)
       def claim_orphaned_domain(existing, org_id)
         OT.info "[CustomDomain.create!] Claiming orphaned domain: #{existing.display_domain} for org_id=#{org_id}"
 
+        canonical, created_claim = claim_canonical_for_orphan!(existing, org_id)
+
+        begin
+          result = watch_and_assign_orphan(existing, org_id)
+        rescue StandardError
+          release_orphan_canonical_claim(existing, canonical) if created_claim
+          raise
+        end
+
+        # atomic_write returns false when EXEC is discarded (WATCH saw a
+        # concurrent modification). nil is defensive against unexpected
+        # returns from the enclosing watch block.
+        if result == false || result.nil?
+          release_orphan_canonical_claim(existing, canonical) if created_claim
+          # Another write landed on the record first; a retry sees its result.
+          OT.le "[CustomDomain.claim_orphaned_domain] WATCH conflict for #{existing.display_domain}"
+          raise Onetime::TemporarilyUnavailable.new(
+            'The domain could not be added right now. Please try again shortly.', reason: :concurrent_write
+          )
+        end
+
+        existing
+      end
+
+      # The WATCH/MULTI half of claim_orphaned_domain.
+      #
+      # @return [CustomDomain, Boolean, nil] the record when its stored org_id
+      #   already is org_id, else atomic_write's result (false when discarded)
+      def watch_and_assign_orphan(existing, org_id)
         # Pin a single pool connection for the entire WATCH+MULTI critical
         # section. Without the pin, each Familia.dbclient call (including
         # the nested atomic_write's MULTI) may resolve to a different pool
         # connection — WATCH on conn A and MULTI on conn C never pair up,
         # so races go undetected.
-        result = Onetime.with_pinned_dbclient do |conn|
+        Onetime.with_pinned_dbclient do |conn|
           conn.watch(existing.dbkey) do
             # Re-check org_id inside the watch - if changed, transaction will fail.
             # hget returns raw stored bytes; Familia v2 JSON-encodes scalar
@@ -1159,20 +1199,45 @@ module Onetime
             end
           end
         end
-
-        # atomic_write returns false when EXEC is discarded (WATCH saw a
-        # concurrent modification). nil is defensive against unexpected
-        # returns from the enclosing watch block.
-        if result == false || result.nil?
-          # Another write landed on the record first; a retry sees its result.
-          OT.le "[CustomDomain.claim_orphaned_domain] WATCH conflict for #{existing.display_domain}"
-          raise Onetime::TemporarilyUnavailable.new(
-            'The domain could not be added right now. Please try again shortly.', reason: :concurrent_write
-          )
-        end
-
-        existing
       end
+
+      # Claims the orphan's canonical name for the record.
+      #
+      # @return [Array(String, Boolean)] canonical name, and whether this call
+      #   created the claim (and so releases it if the orphan claim fails)
+      # @raise [Onetime::Problem] when another record holds the name, or the
+      #   name has no A-label form
+      def claim_canonical_for_orphan!(existing, org_id)
+        canonical, claim = claim_canonical_display_domain(existing.display_domain, existing.identifier)
+        if claim == :created
+          OT.info "[CustomDomain.claim_orphaned_domain] Entered #{canonical} into the canonical index for #{existing.extid}"
+        end
+        return [canonical, claim == :created] if [:created, :owned].include?(claim)
+
+        OT.le "[CustomDomain.claim_orphaned_domain] #{canonical} is held by #{claim}, not #{existing.extid}"
+        holder = find_by_identifier(claim)
+        raise Onetime::Problem, 'Domain already registered in your organization' if holder&.org_id.to_s == org_id.to_s
+
+        raise Onetime::Problem, 'Domain is registered to another organization'
+      rescue Onetime::DomainValidation::AsciiHostname::ConversionError => ex
+        raise Onetime::Problem, ex.message
+      end
+
+      # Releases a canonical claim that claim_orphaned_domain created, after
+      # the orphan claim failed. The claim stays when an organization holds
+      # the record by now: the entry names the record, and its new owner keeps
+      # it (a concurrent claim by another organization discards this one's
+      # WATCH and lands). It also stays when the record cannot be read, so the
+      # name stays taken rather than open to a second record.
+      def release_orphan_canonical_claim(existing, canonical)
+        return if existing.exists? && !existing.hget(:org_id).to_s.empty?
+
+        canonical_display_domain_index.release_field(canonical, existing.identifier)
+      rescue StandardError => ex
+        OT.le "[CustomDomain.claim_orphaned_domain] Kept the canonical claim for #{existing.extid}: #{ex.class}: #{ex.message}"
+      end
+
+      private :watch_and_assign_orphan, :claim_canonical_for_orphan!, :release_orphan_canonical_claim
 
       # Returns a new Onetime::CustomDomain object (without saving it).
       #

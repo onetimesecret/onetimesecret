@@ -91,7 +91,7 @@ Onetime::CustomDomain.display_domain_index.get(@domain_name).nil?
 @lookup.org_id == @claiming_org.objid
 #=> true
 
-## An orphan with no canonical-name entry (registered before that index existed) is claimed, and gains no entry
+## An orphan with no canonical-name entry (registered before that index existed) is claimed, and gains an entry naming it
 @pc_name = "orphan-pc-#{@timestamp}.example.com"
 @pc_seed = Onetime::CustomDomain.create!(@pc_name, @dummy_org.objid)
 @pc_key  = Onetime::CustomDomain.canonical_display_domain(@pc_name)
@@ -102,8 +102,8 @@ Onetime::CustomDomain.owners.remove(@pc_seed.to_s)
 @pc_claimed = Onetime::CustomDomain.create!(@pc_name, @claiming_org.objid)
 [@pc_claimed.identifier == @pc_seed.identifier,
  Onetime::CustomDomain.find_by_identifier(@pc_seed.identifier).org_id == @claiming_org.objid,
- Onetime::CustomDomain.canonical_display_domain_index.get(@pc_key)]
-#=> [true, true, nil]
+ Onetime::CustomDomain.canonical_display_domain_index.get(@pc_key) == @pc_seed.identifier]
+#=> [true, true, true]
 
 # Teardown
 @pc_claimed.destroy! if @pc_claimed&.exists?
