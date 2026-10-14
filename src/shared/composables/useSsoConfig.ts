@@ -173,6 +173,20 @@ function testFingerprint(state: SsoConfigFormState): string {
 }
 
 /**
+ * What a passing saved-configuration check is evidence for: the record's
+ * provider fields plus its masked secret. The secret never reaches the
+ * browser, so one replaced from another tab shows only through the mask (its
+ * last four characters); a replacement that keeps them is not told apart. An
+ * unreadable secret masks to null, which also drops the evidence.
+ */
+function credentialEvidenceKey(record: CustomDomainSsoConfig): string {
+  return JSON.stringify([
+    testFingerprint(configToFormState(record)),
+    record.client_secret_masked ?? null,
+  ]);
+}
+
+/**
  * Whether a diagnostics result is about `record`. The API checks whatever is
  * stored when the request lands, so a save from another tab after this page
  * loaded makes the result about credentials the page has never seen.
@@ -292,7 +306,10 @@ export function useSsoConfig(domainExtId: string) {
   /** Result from the last saved-configuration diagnostics run. */
   const diagnosticsResult = ref<SsoDiagnosticsResponse | null>(null);
 
-  /** Passing checks survive flag-only saves, independently of the displayed verdict. */
+  /**
+   * credentialEvidenceKey of the record a check passed for. Passing checks
+   * survive flag-only saves, independently of the displayed verdict.
+   */
   const checkedCredentialsFingerprint = ref<string | null>(null);
 
   /** Error message from the last diagnostics run that produced no result. */
@@ -388,7 +405,7 @@ export function useSsoConfig(domainExtId: string) {
     () =>
       ssoConfig.value !== null &&
       checkedCredentialsFingerprint.value !== null &&
-      testFingerprint(configToFormState(ssoConfig.value)) === checkedCredentialsFingerprint.value
+      credentialEvidenceKey(ssoConfig.value) === checkedCredentialsFingerprint.value
   );
 
   /** Whether the form has been modified since last save/load. */
@@ -438,9 +455,12 @@ export function useSsoConfig(domainExtId: string) {
     if (isSaving.value || isDeleting.value) return;
     isSaving.value = true;
     error.value = null;
+    // The form must still hold the checked record's credentials. Whether the
+    // record that comes back still matches the evidence is re-read below.
     const preservesCredentialCheck =
       savedCredentialsChecked.value &&
-      testFingerprint(formState.value) === checkedCredentialsFingerprint.value &&
+      ssoConfig.value !== null &&
+      testFingerprint(formState.value) === testFingerprint(configToFormState(ssoConfig.value)) &&
       !(usesClientCredentials(formState.value) && formState.value.client_secret.trim());
 
     try {
@@ -597,7 +617,7 @@ export function useSsoConfig(domainExtId: string) {
     clearDiagnosticsResult();
     checkedCredentialsFingerprint.value = null;
     const record = ssoConfig.value;
-    const fingerprint = record ? testFingerprint(configToFormState(record)) : null;
+    const fingerprint = record ? credentialEvidenceKey(record) : null;
     const run = diagnosticsRun;
     // The handler records the failure here; a stale one must not be read
     // as this run's.
