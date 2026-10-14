@@ -245,8 +245,8 @@ module Onetime
             holder_id: holder,
             org_id: record.org_id.to_s.empty? ? nil : record.org_id,
             verification_state: record.verification_state,
-            ownership_verified: record.ownership_verified ? true : false,
-            verified_by_override: record.verified_by_override ? true : false,
+            ownership_verified: record.ownership_verified ? true : false, # boolean_field native
+            verified_by_override: record.verified_by_override ? true : false, # boolean_field native
             verified_confirmed_at: record.verified_confirmed_at,
             created: record.created,
             detail: detail,

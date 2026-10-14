@@ -201,7 +201,8 @@ module Onetime
 
       def describe_row(row)
         verified = row.verified_confirmed_at ? "dns-confirmed #{format_time(row.verified_confirmed_at)}" : 'no dns confirmation'
-        override = row.verified_by_override ? ' override' : ''
+        # Row fields are plain booleans, not model reads.
+        override = row.verified_by_override ? ' override' : '' # boolean_field native
         [
           row.extid || row.domain_id,
           spelled(row.display_domain),
