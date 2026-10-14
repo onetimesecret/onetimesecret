@@ -191,6 +191,7 @@ module Auth::Config::Hooks
         if tenant_sso_config
           Onetime::CustomDomain::SsoSigninOutcome.record_success!(
             tenant_sso_config.domain_id,
+            config: tenant_sso_config,
             provider_type: tenant_sso_config.provider_type,
           )
         end

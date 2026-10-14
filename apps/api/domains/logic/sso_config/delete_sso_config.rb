@@ -45,6 +45,7 @@ module DomainsAPI
           end
 
           @deleted_provider_type = existing_config.provider_type
+          @deleted_config        = existing_config
         end
 
         def process
@@ -53,11 +54,11 @@ module DomainsAPI
           # Delete the config atomically
           deleted = Onetime::CustomDomain::SsoConfig.delete_for_domain!(@custom_domain.identifier)
 
-          # The recorded sign-in outcome describes the configuration that just
-          # went away; a replacement starts with none. Best-effort: a stale
-          # outcome is not worth failing the delete over.
+          # Generation-guarded cleanup cannot remove a replacement's outcome.
+          # Failed cleanup is harmless to reads: they require a matching config
+          # incarnation, and the leftover runtime key has its own TTL.
           begin
-            Onetime::CustomDomain::SsoSigninOutcome.delete_for_domain!(@custom_domain.identifier)
+            Onetime::CustomDomain::SsoSigninOutcome.delete_for_domain!(@custom_domain.identifier, config: @deleted_config)
           rescue StandardError => ex
             OT.le "[DeleteSsoConfig] sign-in outcome cleanup failed for domain #{@domain_id}: #{ex.class.name}"
           end

@@ -149,6 +149,77 @@ RSpec.describe 'Tenant SSO sign-in outcome (last_sign_in)', type: :integration, 
     expect(outcome.to_api_h).to include(result: 'failed', succeeded_at: succeeded_at, failure_code: 'invalid_credentials')
   end
 
+  # Replace only AFTER callback setup has injected/captured the old config.
+  # A fresh lookup by the outcome writer would incorrectly attribute this
+  # callback to the replacement, so these drive the real hooks end to end.
+  def replace_config_after_callback_injection
+    helpers = Auth::Config::Hooks::OmniAuthTenant
+    allow(helpers).to receive(:inject_tenant_credentials).and_wrap_original do |original, config, request, rodauth|
+      original.call(config, request, rodauth)
+      next unless request.env['omniauth.strategy'].on_callback_path?
+
+      Onetime::CustomDomain::SsoConfig.delete_for_domain!(config.domain_id)
+      Onetime::CustomDomain::SsoSigninOutcome.delete_for_domain!(config.domain_id, config: config)
+      @replacement = Onetime::CustomDomain::SsoConfig.create!(
+        domain_id: config.domain_id, provider_type: 'oidc',
+        issuer: OmniAuthTestHelper::MOCK_ISSUER,
+        client_id: 'replacement-client', client_secret: 'replacement-secret', enabled: true,
+      )
+    end
+  end
+
+  it 'F2: does not attribute a successful in-flight callback to a replacement config' do
+    mock_identity(email: user_email)
+    initiate(domain_host)
+    replace_config_after_callback_injection
+    callback(domain_host)
+
+    expect(@replacement).not_to be_nil
+    expect(last_response.status).to eq(302)
+    expect(last_response.location.to_s).not_to include('auth_error=')
+    expect(outcome).to be_nil
+    expect(Onetime::CustomDomain::SsoSigninOutcome.load(@fixtures[:domain].identifier)).to be_nil
+  end
+
+  it 'F2: does not attribute an in-flight provider failure to a replacement config' do
+    OmniAuth.config.mock_auth[:oidc] = :invalid_credentials
+    initiate(domain_host)
+    replace_config_after_callback_injection
+    callback(domain_host)
+
+    expect(@replacement).not_to be_nil
+    expect(last_response.location.to_s).to include('auth_error=sso_failed')
+    expect(outcome).to be_nil
+  end
+
+  it 'F2: does not attribute an in-flight account refusal to a replacement config' do
+    mock_identity(email: '')
+    initiate(domain_host)
+    replace_config_after_callback_injection
+    callback(domain_host)
+
+    expect(@replacement).not_to be_nil
+    expect(last_response.location.to_s).to include('auth_error=missing_email')
+    expect(outcome).to be_nil
+  end
+
+  it 'F2: does not attribute a cross-tenant callback to a replacement of the starting config' do
+    other_host = "secrets-#{run_id}.other.example.com"
+    setup_oauth_test_domain(other_host)
+    mock_identity(email: user_email)
+    initiate(domain_host)
+    old = @fixtures[:sso_config]
+    Onetime::CustomDomain::SsoConfig.delete_for_domain!(old.domain_id)
+    Onetime::CustomDomain::SsoConfig.create!(
+      domain_id: old.domain_id, issuer: OmniAuthTestHelper::MOCK_ISSUER,
+      client_id: 'replacement-client', enabled: true,
+    )
+    callback(other_host)
+
+    expect(last_response.status).to eq(403)
+    expect(outcome).to be_nil
+  end
+
   it 'does not record a platform sign-in on the canonical host' do
     mock_identity(email: user_email)
     clear_body_headers
