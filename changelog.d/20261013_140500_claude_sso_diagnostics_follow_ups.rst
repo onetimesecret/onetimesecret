@@ -17,3 +17,17 @@ Changed
 - The ``omniauth_failure`` log line for a sign-in through a custom domain
   now carries the domain's id, so a failed tenant sign-in can be tied to
   the domain whose owner asks about it.
+
+Security
+--------
+
+- Actions a customer takes on their own account, workspace or domain are
+  now recorded in the security audit trail instead of the operator audit
+  trail: confirming an email change (including a refused or repeated
+  confirmation), deleting a workspace, and sending a domain test email.
+  Each can be repeated at will, and the operator trail keeps a fixed number
+  of entries, so a long run of them could push out older operator entries.
+  The admin console keeps these entries for 7 days (newest 1,000); the
+  ``ColonelAudit`` log stream still carries every one. The same actions
+  taken by an operator still go to the operator trail. Test-email entries
+  now store the recipient address obscured.

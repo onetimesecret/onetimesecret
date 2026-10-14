@@ -262,9 +262,10 @@ module Onetime
     #
     #   1. `events` (this cap) accepts AUTHENTICATED operator activity only, via
     #      {.record}. Every caller is an admin Operation.
-    #   2. Anything an unauthenticated caller can trigger, and a customer's
-    #      self-service action (self-service `customer.purge`,
-    #      `sso.diagnostics_run`), goes to `security_events` via
+    #   2. Anything an unauthenticated caller can trigger, and every
+    #      customer's self-service action (an op called with `self_service:
+    #      true`, or a customer-facing logic class; the list is in
+    #      docs/architecture/audit-logging.md), goes to `security_events` via
     #      {.record_security}, under MAX_SECURITY_EVENTS +
     #      SECURITY_EVENT_RETENTION. Flooding it evicts only other events in
     #      that trail, never an operator record.
