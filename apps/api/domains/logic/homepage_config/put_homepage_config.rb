@@ -80,12 +80,14 @@ module DomainsAPI
                         'links are governed by the SigninConfig/SignupConfig settings, not this endpoint (#3672)'
           end
 
-          @homepage_config = Onetime::CustomDomain::HomepageConfig.upsert(
-            domain_id: @custom_domain.identifier,
-            enabled: @enabled,
-            disabled_homepage_variant: @disabled_homepage_variant,
-            secrets_mode: @secrets_mode,
-          )
+          @homepage_config = guarded_config_write do
+            Onetime::CustomDomain::HomepageConfig.upsert(
+              domain_id: @custom_domain.identifier,
+              enabled: @enabled,
+              disabled_homepage_variant: @disabled_homepage_variant,
+              secrets_mode: @secrets_mode,
+            )
+          end
 
           logger.debug "[PutHomepageConfig] saved domain=#{@custom_domain.identifier} " \
                        "enabled=#{@homepage_config.enabled?} signup=#{@homepage_config.signup_enabled?} " \
