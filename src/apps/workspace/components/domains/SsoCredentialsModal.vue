@@ -37,6 +37,7 @@
     testResult: TestSsoConnectionResponse | null;
     testError: string;
     diagnosticsResult: SsoDiagnosticsResponse | null;
+    savedCredentialsChecked: boolean;
     diagnosticsError: string;
   }>();
 
@@ -137,6 +138,7 @@
                 :test-result="testResult"
                 :test-error="testError"
                 :diagnostics-result="diagnosticsResult"
+                :saved-credentials-checked="savedCredentialsChecked"
                 :diagnostics-error="diagnosticsError"
                 :saml-enabled="isSamlEnabled()"
                 @save="emit('save')"
