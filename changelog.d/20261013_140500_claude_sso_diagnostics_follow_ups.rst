@@ -29,5 +29,6 @@ Security
   of entries, so a long run of them could push out older operator entries.
   The admin console keeps these entries for 7 days (newest 1,000); the
   ``ColonelAudit`` log stream still carries every one. The same actions
-  taken by an operator still go to the operator trail. Test-email entries
-  now store the recipient address obscured.
+  taken by an operator, including a colonel using the customer-facing
+  pages, still go to the operator trail. Test-email entries now store the
+  recipient address obscured.

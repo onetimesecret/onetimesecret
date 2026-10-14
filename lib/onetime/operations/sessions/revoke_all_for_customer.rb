@@ -207,10 +207,11 @@ module Onetime
           # of an offboarding/takeover action. An unwritable event raises
           # Onetime::AuditWriteFailure instead of returning a clean Result.
           #
-          # Self-service (Customers::Purge on user-triggered close-account)
-          # routes to the security trail (fail-open) instead — the operator
-          # trail is capped and trimmed oldest-first, so a user who can retry
-          # deletion must not be able to write to it.
+          # Self-service (Customers::Purge on user-triggered close-account, or
+          # Customers::ChangeEmail on a redeemed email-change link) routes to
+          # the security trail (fail-open) instead — the operator trail is
+          # capped and trimmed oldest-first, so a user who can repeat the
+          # action must not be able to write to it.
           if audit_enabled?
             counts = audit_counts(
               blobs_deleted: blobs_deleted,

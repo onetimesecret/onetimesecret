@@ -562,13 +562,21 @@ no-TTL operator trail each repeat would evict an operator record.
 |---|---|---|
 | `customer.purge`, and the `organization.delete` / `session.revoke_all` / `membership.remove` it composes | closing one's own account | `Customers::Purge` with `self_service: true` |
 | `customer.change_email` (applied, refused, no-change) and the `session.revoke_all` it composes | redeeming one's own email-change link (`POST /api/account/confirm-email-change`, unauthenticated; a refused link stays live) | `Customers::ChangeEmail` with `self_service: true` |
-| `organization.delete` | deleting one's own workspace (`DELETE /api/organizations/:extid`) | `Org::Delete` with `self_service: true` |
-| `domain_sender.test_email_sent` | a domain's sender settings, "Send test email" | `SendTestEmail` calls `record_security` |
-| `sso.diagnostics_run` | a domain's SSO settings, "Check saved configuration" | `RunDiagnostics` calls `record_security` |
+| `organization.delete` | deleting one's own workspace (`DELETE /api/organizations/:extid`) | `Org::Delete` with `self_service: true` unless the caller is a colonel |
+| `domain_sender.test_email_sent` | a domain's sender settings, "Send test" | `SendTestEmail` calls `record_security` unless the caller is a colonel |
+| `sso.diagnostics_run` | a domain's SSO settings, "Check saved configuration" | `RunDiagnostics` calls `record_security` unless the caller is a colonel |
 
 The same verbs from an operator surface (colonel API, `bin/ots`) still write
-the operator trail. An op's failure wrapper (`audit_failures`) is off for a
-self-service call.
+the operator trail. So does a colonel on the last three customer endpoints:
+`require_entitlement_in!` lets a colonel through on any org or domain, and
+that call is operator activity.
+
+Self-service writes are fail-open, as every `record_security` write is: the
+organization delete and session revoke-all that fail closed on an operator
+path do not here, because a caller-drivable abort-on-write-failure is an
+abort primitive (see `record_security`). An op's failure wrapper (`audit_failures`) is off for
+a self-service call, so a raise there leaves no audit row on either trail;
+the exception still propagates.
 
 ### Write-failure posture (#4333)
 
@@ -579,7 +587,9 @@ DESTRUCTIVE verbs opt out with `fail_closed: true` and raise
 customer/membership role change, session delete/revoke/revoke-all, account
 suspend/unsuspend, secret delete, DLQ purge, custom-domain remove, membership
 remove. What they share: the action destroys or revokes the very records that
-would otherwise evidence it.
+would otherwise evidence it. A self-service organization delete or session
+revoke-all writes the security trail fail-open instead (see "Customer
+self-service actions").
 
 Be precise about the guarantee. Almost every call site records *after* its
 mutation, so failing closed does **not** roll anything back and does not
