@@ -1515,6 +1515,13 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
       )
     end
 
+    # The composed SetVerification writes the operator trail, so a
+    # self-service call that asked for it would leak there.
+    it 'refuses self_service together with require_verification' do
+      expect { op(self_service: true, require_verification: true) }
+        .to raise_error(ArgumentError, /require_verification/)
+    end
+
     it 'records nothing on the operator trail when the swap raises (failure wrapper off)' do
       allow(by_id).to receive(:update).and_raise(StandardError, 'connection reset')
 

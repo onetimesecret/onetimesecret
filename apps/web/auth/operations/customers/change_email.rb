@@ -341,8 +341,9 @@ module Auth
         #   route is unauthenticated and a refused redemption leaves the
         #   pending change in place, so the same link can be replayed at will:
         #   on the operator trail every replay would evict an operator record.
-        #   Self-service passes `require_verification: false`, so the composed
-        #   SetVerification (an operator-trail writer) never runs on that path.
+        #   Self-service requires `require_verification: false` (ArgumentError
+        #   otherwise): the composed SetVerification writes the operator trail,
+        #   and the token already proves the new address.
         def initialize(customer:, new_email:, actor:, dry_run: true,
                        require_verification: true, revoke_sessions: true, notify: true,
                        reason: nil, ticket: nil, allow_closed_account_reuse: false,
@@ -356,6 +357,9 @@ module Auth
           end
           if expected_auth_email && account_id.nil?
             raise ArgumentError, 'expected_auth_email: is only accepted together with account_id:'
+          end
+          if self_service && require_verification
+            raise ArgumentError, 'self_service: requires require_verification: false'
           end
 
           @customer                   = customer
