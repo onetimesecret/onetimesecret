@@ -185,6 +185,7 @@ interface MountOptions {
   testResult?: TestSsoConnectionResponse | null;
   testError?: string;
   diagnosticsResult?: SsoDiagnosticsResponse | null;
+  savedCredentialsChecked?: boolean;
   diagnosticsError?: string;
   samlEnabled?: boolean;
 }
@@ -229,6 +230,7 @@ describe('DomainSsoConfigForm', () => {
     testResult: null,
     testError: '',
     diagnosticsResult: null,
+    savedCredentialsChecked: false,
     diagnosticsError: '',
     // The install-wide SAML switch (SAML_ENABLED, #4604): on for the suite,
     // off only in the examples about the switch itself.
@@ -2087,6 +2089,7 @@ describe('DomainSsoConfigForm', () => {
         formState: { ...mockExistingFormState, enabled: false },
         ssoConfig: { ...mockExistingConfig, enabled: false },
         isConfigured: true,
+        savedCredentialsChecked: options.diagnosticsResult?.overall === 'passed',
         ...options,
       });
 
@@ -2168,6 +2171,33 @@ describe('DomainSsoConfigForm', () => {
       ).toBeDefined();
     });
 
+    it('keeps the warning hidden through check, activate and save when the displayed verdict is cleared', async () => {
+      wrapper = await mountDisabled();
+      await wrapper.get('[data-testid="sso-diagnostics-run"]').trigger('click');
+      expect(wrapper.emitted('diagnostics')).toHaveLength(1);
+      await wrapper.setProps({
+        diagnosticsResult: passingDiagnostics,
+        savedCredentialsChecked: true,
+      });
+
+      await turnOn(wrapper);
+      expect(wrapper.find(WARNING).exists()).toBe(false);
+      await wrapper.get('[data-testid="sso-diagnostics-save"]').trigger('click');
+      expect(wrapper.emitted('save')).toHaveLength(1);
+      await wrapper.setProps({
+        isSaving: true,
+      });
+      await wrapper.setProps({
+        isSaving: false,
+        ssoConfig: { ...mockExistingConfig, enabled: true },
+        hasUnsavedChanges: false,
+        diagnosticsResult: null,
+      });
+
+      expect(wrapper.find(WARNING).exists()).toBe(false);
+      expect(wrapper.find('[data-testid="sso-diagnostics-save"]').exists()).toBe(false);
+    });
+
     it('accepts matching saved OIDC credentials with an explicitly selected auth method', async () => {
       wrapper = await mountDisabled({
         formState: {
@@ -2232,7 +2262,10 @@ describe('DomainSsoConfigForm', () => {
       await turnOn(wrapper);
       expect(wrapper.find(WARNING).exists()).toBe(true);
 
-      await wrapper.setProps({ diagnosticsResult: passingDiagnostics });
+      await wrapper.setProps({
+        diagnosticsResult: passingDiagnostics,
+        savedCredentialsChecked: true,
+      });
       expect(wrapper.find(WARNING).exists()).toBe(false);
     });
 

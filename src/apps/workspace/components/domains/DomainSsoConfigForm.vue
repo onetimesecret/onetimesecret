@@ -58,6 +58,8 @@ const props = defineProps<{
   testError: string;
   /** Result of the last "Check saved configuration" run; null until one ran. */
   diagnosticsResult: SsoDiagnosticsResponse | null;
+  /** Passing saved-credential checks, retained across activation-only saves. */
+  savedCredentialsChecked: boolean;
   /** Transport failure of the last run (no verdict), '' otherwise. */
   diagnosticsError: string;
   /**
@@ -566,7 +568,7 @@ const savedCredentialsMatchForm = computed(() => {
 const savedChecksPassed = computed(
   () =>
     props.isConfigured &&
-    props.diagnosticsResult?.overall === 'passed' &&
+    props.savedCredentialsChecked &&
     savedCredentialsMatchForm.value
 );
 

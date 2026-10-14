@@ -130,6 +130,7 @@ describe('SsoCredentialsModal', () => {
         testResult: null,
         testError: '',
         diagnosticsResult: null,
+        savedCredentialsChecked: false,
         diagnosticsError: '',
       },
       global: {
@@ -147,6 +148,15 @@ describe('SsoCredentialsModal', () => {
 
   afterEach(() => {
     wrapper?.unmount();
+  });
+
+  it('forwards retained credential-check evidence independently of the displayed verdict', async () => {
+    wrapper = await mountModal();
+    await wrapper.setProps({ savedCredentialsChecked: true });
+
+    const form = wrapper.getComponent({ name: 'DomainSsoConfigForm' });
+    expect(form.props('savedCredentialsChecked')).toBe(true);
+    expect(form.props('diagnosticsResult')).toBeNull();
   });
 
   it('offers SAML for a new config when the install-wide switch is on', async () => {

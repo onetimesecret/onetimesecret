@@ -134,6 +134,7 @@ const {
   testResult,
   testError,
   diagnosticsResult,
+  savedCredentialsChecked,
   diagnosticsError,
   isConfigured: ssoIsConfigured,
   hasUnsavedChanges: ssoHasUnsavedChanges,
@@ -351,6 +352,7 @@ watch(canFetchSsoConfig, async (allowed) => {
         :test-result="testResult"
         :test-error="testError"
         :diagnostics-result="diagnosticsResult"
+        :saved-credentials-checked="savedCredentialsChecked"
         :diagnostics-error="diagnosticsError"
         @close="handleCloseSsoModal"
         @save="saveSsoConfig"

@@ -274,6 +274,9 @@ export function useSsoConfig(domainExtId: string) {
   /** Result from the last saved-configuration diagnostics run. */
   const diagnosticsResult = ref<SsoDiagnosticsResponse | null>(null);
 
+  /** Passing checks survive flag-only saves, independently of the displayed verdict. */
+  const checkedCredentialsFingerprint = ref<string | null>(null);
+
   /** Error message from the last diagnostics run that produced no result. */
   const diagnosticsError = ref<string>('');
 
@@ -363,6 +366,13 @@ export function useSsoConfig(domainExtId: string) {
    */
   const unreadableFields = computed(() => ssoConfig.value?.unreadable_fields ?? []);
 
+  const savedCredentialsChecked = computed(
+    () =>
+      ssoConfig.value !== null &&
+      checkedCredentialsFingerprint.value !== null &&
+      testFingerprint(configToFormState(ssoConfig.value)) === checkedCredentialsFingerprint.value
+  );
+
   /** Whether the form has been modified since last save/load. */
   const hasUnsavedChanges = computed(() => {
     if (!savedFormState.value) return false;
@@ -386,6 +396,9 @@ export function useSsoConfig(domainExtId: string) {
     wrap(async () => {
       const response = await SsoService.getConfigForDomain(domainExtId);
       ssoConfig.value = response.record;
+      // A reload may include a secret changed elsewhere; its value is never returned.
+      checkedCredentialsFingerprint.value = null;
+      clearDiagnosticsResult();
 
       hydrateFormState(
         response.record ? configToFormState(response.record) : createDefaultFormState()
@@ -407,6 +420,10 @@ export function useSsoConfig(domainExtId: string) {
     if (isSaving.value || isDeleting.value) return;
     isSaving.value = true;
     error.value = null;
+    const preservesCredentialCheck =
+      savedCredentialsChecked.value &&
+      testFingerprint(formState.value) === checkedCredentialsFingerprint.value &&
+      !(usesClientCredentials(formState.value) && formState.value.client_secret.trim());
 
     try {
       const result = await wrapAction(async () => {
@@ -432,6 +449,9 @@ export function useSsoConfig(domainExtId: string) {
 
       if (result?.record) {
         ssoConfig.value = result.record;
+        if (!preservesCredentialCheck || !savedCredentialsChecked.value) {
+          checkedCredentialsFingerprint.value = null;
+        }
         hydrateFormState(configToFormState(result.record));
         savedFormState.value = {
           ...formState.value,
@@ -496,6 +516,7 @@ export function useSsoConfig(domainExtId: string) {
         formState.value = createDefaultFormState();
         clearTestResult();
         clearDiagnosticsResult();
+        checkedCredentialsFingerprint.value = null;
         savedFormState.value = {
           ...formState.value,
           allowed_domains: [...formState.value.allowed_domains],
@@ -556,6 +577,10 @@ export function useSsoConfig(domainExtId: string) {
     if (isDiagnosing.value) return;
     isDiagnosing.value = true;
     clearDiagnosticsResult();
+    checkedCredentialsFingerprint.value = null;
+    const fingerprint = ssoConfig.value
+      ? testFingerprint(configToFormState(ssoConfig.value))
+      : null;
     const run = diagnosticsRun;
     // The handler records the failure here; a stale one must not be read
     // as this run's.
@@ -570,6 +595,7 @@ export function useSsoConfig(domainExtId: string) {
 
       if (result) {
         diagnosticsResult.value = result;
+        if (result.overall === 'passed') checkedCredentialsFingerprint.value = fingerprint;
         notifyDiagnosticsOutcome(result.overall);
       } else {
         diagnosticsError.value = diagnosticsFailureMessage(error.value);
@@ -639,6 +665,7 @@ export function useSsoConfig(domainExtId: string) {
     isEnabled,
     clientSecretMasked,
     unreadableFields,
+    savedCredentialsChecked,
     hasUnsavedChanges,
 
     // Actions
