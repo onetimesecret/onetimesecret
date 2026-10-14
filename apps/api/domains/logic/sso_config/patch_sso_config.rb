@@ -96,36 +96,7 @@ module DomainsAPI
           # Check if config already exists
           @existing_config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(@custom_domain.identifier)
 
-          # Validate provider_type
-          validate_provider_type
-
-          # Decided before the saml switch check below, which exempts exactly
-          # this request shape.
-          @disable_only = disable_only_request?
-
-          # A saml config cannot be introduced or edited while the
-          # install-wide switch is off (#4604; see SamlFields). The
-          # effective provider_type covers both a switch to saml and an edit
-          # of a stored saml record; a disable-only PATCH on that record is
-          # the tenant's own way of switching it off and stays accepted.
-          reject_saml_disabled! if @provider_type == 'saml' && !@disable_only
-
-          # Never accepted, whatever the provider type (see SamlFields)
-          reject_forbidden_saml_params!
-
-          # The flags the persisted result will carry (PATCH semantics: the
-          # parsed request value when the key is present and non-null, else
-          # the stored one). update_existing_config writes exactly these.
-          @effective_enabled = @enabled_provided ? @enabled : @existing_config&.enabled?
-          effective_enforce  = @enforce_sso_only_provided ? @enforce_sso_only : @existing_config&.enforce_sso_only?
-
-          unless @disable_only
-            validate_client_credentials
-            validate_provider_specific_fields
-          end
-
-          # Validate enforce_sso_only requires enabled (using effective values for PATCH semantics)
-          validate_enforce_sso_requires_enabled(@effective_enabled, effective_enforce)
+          validate_against_stored_config
         end
 
         def process
@@ -194,6 +165,39 @@ module DomainsAPI
         end
 
         private
+
+        def validate_against_stored_config
+          # Validate provider_type
+          validate_provider_type
+
+          # Decided before the saml switch check below, which exempts exactly
+          # this request shape.
+          @disable_only = disable_only_request?
+
+          # A saml config cannot be introduced or edited while the
+          # install-wide switch is off (#4604; see SamlFields). The
+          # effective provider_type covers both a switch to saml and an edit
+          # of a stored saml record; a disable-only PATCH on that record is
+          # the tenant's own way of switching it off and stays accepted.
+          reject_saml_disabled! if @provider_type == 'saml' && !@disable_only
+
+          # Never accepted, whatever the provider type (see SamlFields)
+          reject_forbidden_saml_params!
+
+          # The flags the persisted result will carry (PATCH semantics: the
+          # parsed request value when the key is present and non-null, else
+          # the stored one). update_existing_config writes exactly these.
+          @effective_enabled = @enabled_provided ? @enabled : @existing_config&.enabled?
+          effective_enforce  = @enforce_sso_only_provided ? @enforce_sso_only : @existing_config&.enforce_sso_only?
+
+          unless @disable_only
+            validate_client_credentials
+            validate_provider_specific_fields
+          end
+
+          # Validate enforce_sso_only requires enabled (using effective values for PATCH semantics)
+          validate_enforce_sso_requires_enabled(@effective_enabled, effective_enforce)
+        end
 
         # Recovery is existing-record, literal-false, flag-only; metadata is not an edit.
         # Enforcement must be explicitly cleared if set. Never rewrite encrypted fields.
@@ -379,66 +383,68 @@ module DomainsAPI
         #
         def update_existing_config
           @sso_config = @existing_config
+          apply_patch(@sso_config)
+          @sso_config.commit_fields
+        end
+
+        # @param config [Onetime::CustomDomain::SsoConfig] the stored record
+        def apply_patch(config)
           if @disable_only
-            @sso_config.enabled          = 'false'
-            @sso_config.enforce_sso_only = 'false' if @enforce_sso_only_provided
-            @sso_config.updated          = Familia.now.to_i
-            # Credential validation cannot gate recovery; retain atomic persistence.
-            @sso_config.commit_fields
+            config.enabled          = 'false'
+            config.enforce_sso_only = 'false' if @enforce_sso_only_provided
+            config.updated          = Familia.now.to_i
+            # Credential validation cannot gate recovery.
             return
           end
 
           provider_switched = @provider_type != @existing_config.provider_type
 
           # PATCH semantics: only update fields that are provided (non-empty)
-          @sso_config.provider_type    = @provider_type
-          @sso_config.display_name     = @display_name unless @display_name.to_s.empty?
-          @sso_config.client_id        = @client_id unless @provider_type == 'saml'
-          @sso_config.tenant_id        = @tenant_id unless @tenant_id.to_s.empty?
-          @sso_config.issuer           = @issuer unless @issuer.to_s.empty?
-          @sso_config.enabled          = @enabled.to_s if @enabled_provided
-          @sso_config.enforce_sso_only = @enforce_sso_only.to_s if @enforce_sso_only_provided
-          @sso_config.grant_org_scope  = @grant_org_scope.to_s if @grant_org_scope_provided
+          config.provider_type    = @provider_type
+          config.display_name     = @display_name unless @display_name.to_s.empty?
+          config.client_id        = @client_id unless @provider_type == 'saml'
+          config.tenant_id        = @tenant_id unless @tenant_id.to_s.empty?
+          config.issuer           = @issuer unless @issuer.to_s.empty?
+          config.enabled          = @enabled.to_s if @enabled_provided
+          config.enforce_sso_only = @enforce_sso_only.to_s if @enforce_sso_only_provided
+          config.grant_org_scope  = @grant_org_scope.to_s if @grant_org_scope_provided
 
           # A provider switch clears the outgoing provider's field so the
           # record matches what a full PUT would produce — an entra_id record
           # must not carry a stale oidc issuer, nor an oidc record a stale
           # tenant_id. Request-supplied values are never discarded.
           if provider_switched
-            @sso_config.issuer    = '' if @provider_type == 'entra_id' && @issuer.to_s.empty?
-            @sso_config.tenant_id = '' if @provider_type == 'oidc' && @tenant_id.to_s.empty?
+            config.issuer    = '' if @provider_type == 'entra_id' && @issuer.to_s.empty?
+            config.tenant_id = '' if @provider_type == 'oidc' && @tenant_id.to_s.empty?
           end
 
-          apply_token_endpoint_auth_method
+          apply_token_endpoint_auth_method(config)
 
           # Only update client_secret if provided (preserves existing otherwise)
-          @sso_config.client_secret = @client_secret unless @client_secret.to_s.empty?
+          config.client_secret = @client_secret unless @client_secret.to_s.empty?
 
-          apply_saml_exclusivity(partial: !(provider_switched && @provider_type == 'saml'))
+          apply_saml_exclusivity(config, partial: !(provider_switched && @provider_type == 'saml'))
 
           # Only update allowed_domains if explicitly provided in the request.
-          @sso_config.allowed_domains = @allowed_domains if @allowed_domains_provided
+          config.allowed_domains = @allowed_domains if @allowed_domains_provided
 
           # Update timestamp for partial update
-          @sso_config.updated = Familia.now.to_i
+          config.updated = Familia.now.to_i
 
           # Fail closed if the request validators above missed a field
           # combination: the model owns the invariants (SsoConfig#validation_errors)
           # and nothing invalid may be committed.
-          errors = @sso_config.validation_errors
+          errors = config.validation_errors
           raise_form_error(errors.join('; '), error_type: :invalid) if errors.any?
-
-          # commit_fields runs its own transaction internally for atomicity
-          @sso_config.commit_fields
         end
 
         # token_endpoint_auth_method (#4764): key sent (even blank) sets it,
         # key absent keeps the stored value. Only oidc reads it, so any other
         # type clears it, whatever the request carried.
-        def apply_token_endpoint_auth_method
+        def apply_token_endpoint_auth_method(config)
           return unless @token_endpoint_auth_method_provided || @provider_type != 'oidc'
 
-          @sso_config.token_endpoint_auth_method = persisted_token_endpoint_auth_method
+          config.token_endpoint_auth_method = persisted_token_endpoint_auth_method
         end
 
         # The token_endpoint_auth_method value the record ends up with when
@@ -545,9 +551,9 @@ module DomainsAPI
 
         # See the PATCH-semantics note on update_existing_config. Runs last so
         # it wins over the field-by-field assignments above.
-        def apply_saml_exclusivity(partial: true)
+        def apply_saml_exclusivity(config, partial: true)
           provider_attributes(partial: partial).each do |name, value|
-            @sso_config.public_send(:"#{name}=", value)
+            config.public_send(:"#{name}=", value)
           end
         end
 

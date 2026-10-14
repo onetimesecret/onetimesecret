@@ -59,12 +59,7 @@ module DomainsAPI
           # Check if config already exists
           @existing_config = Onetime::CustomDomain::SignupConfig.find_by_domain_id(@custom_domain.identifier)
 
-          # Resolve effective strategy (PATCH semantics: preserves existing if not provided)
-          resolve_strategy
-
-          # Validate domain_allowlist has at least one domain (using effective values)
-          effective_domains = @allowed_signup_domains_provided ? @allowed_signup_domains : (@existing_config&.allowed_signup_domains || [])
-          validate_allowlist_has_domains(@effective_strategy, effective_domains)
+          resolve_against_stored_config
 
           # Validate domain formats only when explicitly provided
           validate_domain_formats(@allowed_signup_domains) if @allowed_signup_domains_provided
@@ -137,6 +132,15 @@ module DomainsAPI
           payload['allowed_signup_domains'] = @allowed_signup_domains if @allowed_signup_domains_provided
           payload['enabled']                = @enabled if @enabled_provided
           payload
+        end
+
+        def resolve_against_stored_config
+          # Resolve effective strategy (PATCH semantics: preserves existing if not provided)
+          resolve_strategy
+
+          # Validate domain_allowlist has at least one domain (using effective values)
+          effective_domains = @allowed_signup_domains_provided ? @allowed_signup_domains : (@existing_config&.allowed_signup_domains || [])
+          validate_allowlist_has_domains(@effective_strategy, effective_domains)
         end
 
         # PATCH semantics: strategy preserves existing if not provided.
