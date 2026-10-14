@@ -151,6 +151,7 @@ describe('SsoCredentialsModal', () => {
   });
 
   it('forwards retained credential-check evidence independently of the displayed verdict', async () => {
+    isSamlEnabledMock.mockReturnValue(true);
     wrapper = await mountModal();
     await wrapper.setProps({ savedCredentialsChecked: true });
 
