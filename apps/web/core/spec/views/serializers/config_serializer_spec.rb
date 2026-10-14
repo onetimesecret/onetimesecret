@@ -1771,7 +1771,7 @@ RSpec.describe Core::Views::ConfigSerializer do
           expect(orgs['saml_enabled']).to be false
           expect(orgs['custom_mail_enabled']).to be false
           expect(orgs['incoming_secrets_enabled']).to be false
-          expect(orgs['homepage_network_rules_enabled']).to be false
+          expect(orgs['homepage_network_rules_ui_enabled']).to be false
         end
       end
 
@@ -1804,7 +1804,7 @@ RSpec.describe Core::Views::ConfigSerializer do
 
           expect(orgs['custom_mail_enabled']).to be false
           expect(orgs['incoming_secrets_enabled']).to be false
-          expect(orgs['homepage_network_rules_enabled']).to be false
+          expect(orgs['homepage_network_rules_ui_enabled']).to be false
         end
       end
 
@@ -1886,7 +1886,7 @@ RSpec.describe Core::Views::ConfigSerializer do
                 'sso_enabled' => true,
                 'custom_mail_enabled' => true,
                 'incoming_secrets_enabled' => true,
-                'homepage_network_rules_enabled' => true,
+                'homepage_network_rules_ui_enabled' => true,
               }
             )
           )
@@ -1900,7 +1900,7 @@ RSpec.describe Core::Views::ConfigSerializer do
           expect(orgs['sso_enabled']).to be true
           expect(orgs['custom_mail_enabled']).to be true
           expect(orgs['incoming_secrets_enabled']).to be true
-          expect(orgs['homepage_network_rules_enabled']).to be true
+          expect(orgs['homepage_network_rules_ui_enabled']).to be true
         end
       end
 

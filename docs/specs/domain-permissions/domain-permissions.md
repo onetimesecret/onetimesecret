@@ -41,7 +41,7 @@ A domain with rules fails closed when the request carries no matcher. Owners
 and org members are unaffected (the member check runs first), and so is
 `POST /api/incoming/secret`, which is gated by `IncomingConfig` readiness
 rather than by `HomepageConfig`. Editing the lists needs the platform flag
-`features.organizations.homepage_network_rules_enabled` (default off) and the
+`features.organizations.homepage_network_rules_ui_enabled` (default off) and the
 `homepage_network_rules` entitlement. Neither is read when a visitor is
 judged, so stored lists stay enforced with the flag off or after a downgrade.
 

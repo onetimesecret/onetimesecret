@@ -28,7 +28,7 @@ import { ENTITLEMENTS } from '@/types/organization';
 import {
   isDomainOwnershipChecked,
   isOrgsCustomMailEnabled,
-  isOrgsHomepageNetworkRulesEnabled,
+  isOrgsHomepageNetworkRulesUiEnabled,
   isOrgsIncomingSecretsEnabled,
 } from '@/utils/features';
 import { storeToRefs } from 'pinia';
@@ -191,7 +191,7 @@ const homepageNetworkRestricted = computed(
  * stored rules stay enforced and are shown.
  */
 const homepageNetworkLockReason = computed<'plan' | 'instance' | null>(() => {
-  if (!isOrgsHomepageNetworkRulesEnabled()) return 'instance';
+  if (!isOrgsHomepageNetworkRulesUiEnabled()) return 'instance';
   return canHomepageNetwork.value ? null : 'plan';
 });
 /** With the flag off, the editor only appears to show rules still enforced. */

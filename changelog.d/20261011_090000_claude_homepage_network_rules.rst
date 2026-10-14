@@ -25,8 +25,8 @@ Added
   to the relevant plans in ``etc/billing.yaml`` and push the catalog;
   installs with billing disabled get it automatically.
 
-- New platform flag ``ORGS_HOMEPAGE_NETWORK_RULES_ENABLED``
-  (``features.organizations.homepage_network_rules_enabled``), off by
+- New platform flag ``ORGS_HOMEPAGE_NETWORK_RULES_UI_ENABLED``
+  (``features.organizations.homepage_network_rules_ui_enabled``), off by
   default. Editing network rules needs it on, in addition to the
   entitlement, on every install. With it off the workspace editor is hidden
   and ``PUT /api/domains/:extid/homepage-config`` refuses either list (a

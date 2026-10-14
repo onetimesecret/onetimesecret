@@ -1235,7 +1235,7 @@ features:
     # Default OFF. Turning it off stops edits only: rules already stored
     # stay enforced, the same as after a plan downgrade, so the switch never
     # opens a homepage a tenant restricted.
-    homepage_network_rules_enabled: <%= ENV['ORGS_HOMEPAGE_NETWORK_RULES_ENABLED'] == 'true' %>  # Since v0.26.15
+    homepage_network_rules_ui_enabled: <%= ENV['ORGS_HOMEPAGE_NETWORK_RULES_UI_ENABLED'] == 'true' %>  # Since v0.26.15
     # Gates exposure (UI + list API) of the organization secret-activity
     # trail; pairs with the `audit_logs` entitlement. Defaults ON, unlike
     # the sibling flags above, because the trail ships working out of the

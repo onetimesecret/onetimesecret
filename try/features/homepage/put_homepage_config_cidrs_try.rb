@@ -52,14 +52,14 @@ def create_strategy_with_domain(customer, domain_fqdn, domain_strategy: :custom)
   )
 end
 
-# The platform flag (ORGS_HOMEPAGE_NETWORK_RULES_ENABLED) ships off, as it
+# The platform flag (ORGS_HOMEPAGE_NETWORK_RULES_UI_ENABLED) ships off, as it
 # is in the test config. Writes here run with it on unless a case says not.
 def with_network_rules_flag(enabled)
   original_conf = OT.conf
   test_conf = Onetime::Config.deep_clone(original_conf)
   test_conf['features'] ||= {}
   test_conf['features']['organizations'] ||= {}
-  test_conf['features']['organizations']['homepage_network_rules_enabled'] = enabled
+  test_conf['features']['organizations']['homepage_network_rules_ui_enabled'] = enabled
   OT.instance_variable_set(:@conf, test_conf)
   yield
 ensure
@@ -181,10 +181,10 @@ exactly = (0...HomepageConfig::MAX_CIDRS).map { |i| "10.#{i / 256}.#{i % 256}.0/
 run_put(@test_cust, @test_domain, { 'enabled' => true, 'allowed_cidrs' => exactly })[:record][:allowed_cidrs].length
 #=> HomepageConfig::MAX_CIDRS
 
-# --- PUT: platform flag (features.organizations.homepage_network_rules_enabled) ---
+# --- PUT: platform flag (features.organizations.homepage_network_rules_ui_enabled) ---
 
 ## The test config leaves the flag off, the shipped default
-OT.conf.dig('features', 'organizations', 'homepage_network_rules_enabled')
+OT.conf.dig('features', 'organizations', 'homepage_network_rules_ui_enabled')
 #=> false
 
 ## With the flag off, sending a list is a forbidden error on that field, clearing included

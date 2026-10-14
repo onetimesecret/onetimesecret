@@ -48,7 +48,7 @@ module DomainsAPI
       #   Signed-in members and the management pages are never affected, so
       #   an operator cannot lock themselves out of fixing a list.
       #   Sending either list requires the platform flag
-      #   features.organizations.homepage_network_rules_enabled and the
+      #   features.organizations.homepage_network_rules_ui_enabled and the
       #   homepage_network_rules entitlement (Identity Plus) on top of
       #   homepage_secrets; see #verify_network_rules_allowed!.
       #
@@ -153,7 +153,7 @@ module DomainsAPI
         # Require the platform flag and the homepage_network_rules
         # entitlement when a list is sent.
         #
-        # The flag (ORGS_HOMEPAGE_NETWORK_RULES_ENABLED, default off) is the
+        # The flag (ORGS_HOMEPAGE_NETWORK_RULES_UI_ENABLED, default off) is the
         # install-wide switch, checked first so an install without it never
         # suggests an upgrade. Network rules are also a paid tier (homepage_network_rules, Identity
         # Plus) layered on homepage_secrets, which the free plan carries. Only
@@ -170,7 +170,7 @@ module DomainsAPI
           sent = { allowed_cidrs: @allowed_cidrs, denied_cidrs: @denied_cidrs }.compact
           return if sent.empty?
 
-          unless OT.conf.dig('features', 'organizations', 'homepage_network_rules_enabled')
+          unless OT.conf.dig('features', 'organizations', 'homepage_network_rules_ui_enabled')
             raise_form_error(
               'Homepage network rules are not enabled on this installation',
               error_key: 'api.domains.errors.homepage_network_rules_disabled',

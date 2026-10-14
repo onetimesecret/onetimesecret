@@ -71,12 +71,12 @@ vi.mock('@/shared/stores/organizationStore', () => ({
   }),
 }));
 
-const mockNetworkRulesEnabled = vi.fn(() => true);
+const mockNetworkRulesUiEnabled = vi.fn(() => true);
 
 vi.mock('@/utils/features', () => ({
   isDomainOwnershipChecked: () => false,
   isOrgsCustomMailEnabled: () => false,
-  isOrgsHomepageNetworkRulesEnabled: () => mockNetworkRulesEnabled(),
+  isOrgsHomepageNetworkRulesUiEnabled: () => mockNetworkRulesUiEnabled(),
   isOrgsIncomingSecretsEnabled: () => true,
 }));
 
@@ -290,7 +290,7 @@ describe('DomainDetail - network rules flag and entitlement', () => {
 
   afterEach(() => {
     mockCan.mockImplementation(() => true);
-    mockNetworkRulesEnabled.mockImplementation(() => true);
+    mockNetworkRulesUiEnabled.mockImplementation(() => true);
   });
 
   it('locks the editor when the plan lacks homepage_network_rules', async () => {
@@ -313,7 +313,7 @@ describe('DomainDetail - network rules flag and entitlement', () => {
   });
 
   it('locks stored rules by instance when the platform flag is off, whatever the plan', async () => {
-    mockNetworkRulesEnabled.mockImplementation(() => false);
+    mockNetworkRulesUiEnabled.mockImplementation(() => false);
     const wrapper = mountDetail();
     await flushPromises();
 
@@ -324,7 +324,7 @@ describe('DomainDetail - network rules flag and entitlement', () => {
   });
 
   it('hides the editor when the platform flag is off and no rules are stored', async () => {
-    mockNetworkRulesEnabled.mockImplementation(() => false);
+    mockNetworkRulesUiEnabled.mockImplementation(() => false);
     mockDomain.value = {
       extid: 'dm-test-extid',
       homepage_config: { enabled: true, secrets_mode: 'create', allowed_cidrs: [], denied_cidrs: [] },

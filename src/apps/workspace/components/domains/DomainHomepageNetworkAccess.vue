@@ -22,7 +22,7 @@
    * Signed-in members and the management pages are never gated by these
    * rules, so an operator cannot lock themselves out of fixing a list.
    *
-   * Editing needs the install-wide flag (ORGS_HOMEPAGE_NETWORK_RULES_ENABLED)
+   * Editing needs the install-wide flag (ORGS_HOMEPAGE_NETWORK_RULES_UI_ENABLED)
    * and the plan feature (homepage_network_rules). Without either the parent
    * sets `lockReason`: stored rules, which stay enforced after a downgrade
    * or with the flag off, render read-only. For a 'plan' lock the parent

@@ -71,7 +71,7 @@
   },
   "api.domains.errors.homepage_network_rules_disabled": {
     "text": "Homepage network rules are not enabled on this installation",
-    "context": "Returned by PUT /api/domains/:extid/homepage-config (field allowed_cidrs / denied_cidrs) when either list is sent while features.organizations.homepage_network_rules_enabled (ORGS_HOMEPAGE_NETWORK_RULES_ENABLED) is off",
+    "context": "Returned by PUT /api/domains/:extid/homepage-config (field allowed_cidrs / denied_cidrs) when either list is sent while features.organizations.homepage_network_rules_ui_enabled (ORGS_HOMEPAGE_NETWORK_RULES_UI_ENABLED) is off",
     "content_hash": "b5a26c48"
   },
   "api.domains.errors.related_origins_invalid": {

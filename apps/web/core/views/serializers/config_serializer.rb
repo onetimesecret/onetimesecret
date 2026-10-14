@@ -252,7 +252,7 @@ module Core
               'incoming_secrets_enabled' => features.dig('organizations', 'incoming_secrets_enabled') || false,
               # Whether domain owners can edit homepage network rules. Off
               # stops edits only; stored rules stay enforced either way.
-              'homepage_network_rules_enabled' => features.dig('organizations', 'homepage_network_rules_enabled') || false,
+              'homepage_network_rules_ui_enabled' => features.dig('organizations', 'homepage_network_rules_ui_enabled') || false,
               # Default-true contract: only an explicit false disables — a
               # missing key (older config file) must still read as enabled.
               # Compare on the string form so a hand-edited config that yields
