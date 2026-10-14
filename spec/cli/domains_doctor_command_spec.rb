@@ -90,10 +90,14 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
     index
   end
 
+  let(:canonical_audit_result) do
+    Onetime::Operations::Domains::CanonicalIndexAudit::Result.new(rows: [], entries: [], errors: [])
+  end
+
   # Run the command and parse its --json report (the machine-readable shape the
   # rest of this file asserts on).
-  def json_report(*args)
-    JSON.parse(run_cli_command_quietly(*args)[:stdout])
+  def json_report(*)
+    JSON.parse(run_cli_command_quietly(*)[:stdout])
   end
 
   # Index-level checks and the all-orgs sweep are out of scope here; stub them
@@ -111,6 +115,10 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
     # record_owner is the model's single writer for the index.
     allow(Onetime::CustomDomain).to receive(:owners).and_return(default_owners_index)
     allow(Onetime::CustomDomain).to receive(:record_owner)
+    # Check #11 reads the whole keyspace; a clean audit keeps it silent unless
+    # an example says otherwise.
+    allow(Onetime::Operations::Domains::CanonicalIndexAudit).to receive(:new)
+      .and_return(double('CanonicalIndexAudit', call: canonical_audit_result))
   end
 
   describe 'membership repair delegation' do
@@ -285,6 +293,7 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
         hgetall: { 'stale.example.com' => 'gone999' },
         remove: true,
         remove_field: true,
+        release_field: 1,
       )
     end
 
@@ -321,12 +330,20 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
       expect(report['repaired'].first['action']).to eq('display_domain_index_cleaned')
       expect(report['repaired'].first['count']).to eq(1)
 
-      # Canonical delete: lib/onetime/models/custom_domain.rb uses .remove on
-      # display_domain_index. (.remove_field is an alias of the same HashKey
-      # method, so this pins the form, not the behaviour.)
-      expect(stale_index).to have_received(:remove).with('stale.example.com').once
+      # Ownership-checked: released only while it still names the identifier
+      # the scan read, never by a blind HDEL of the field.
+      expect(stale_index).to have_received(:release_field).with('stale.example.com', 'gone999').once
+      expect(stale_index).not_to have_received(:remove)
       expect(stale_index).not_to have_received(:remove_field)
       expect(last_exit_code).to eq(0)
+    end
+
+    it 'counts nothing as repaired when the entry no longer names that identifier' do
+      allow(stale_index).to receive(:release_field).and_return(0)
+
+      report = json_report('domains', 'doctor', '--all', '--repair', '--json')
+
+      expect(report['repaired'].first['count']).to eq(0)
     end
 
     it 'flags an FQDN mismatch once, not once per pass' do
@@ -342,6 +359,94 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
     end
   end
 
+  # Check #11: canonical_display_domain_index findings from
+  # Operations::Domains::CanonicalIndexAudit. Report-only: the writes belong
+  # to `bin/ots domains backfill-canonical-index --apply`, run with the
+  # application stopped.
+  describe 'canonical index integrity' do
+    let(:audit_class) { Onetime::Operations::Domains::CanonicalIndexAudit }
+    let(:canonical_audit_result) do
+      audit_class::Result.new(
+        rows: [
+          canonical_row(:missing, 'm1'),
+          canonical_row(:missing, 'm2'),
+          canonical_row(:collision, 'c1'),
+          canonical_row(:collision, 'c2'),
+          canonical_row(:conflict, 'x1', holder: 'other'),
+          canonical_row(:stale, 's1', holder: 'gone'),
+          canonical_row(:ok, 'ok1', holder: 'ok1'),
+        ],
+        entries: [audit_class::Entry.new(category: :stale, canonical: 'orphan.example', holder_id: 'gone2', detail: 'x')],
+        errors: [],
+      )
+    end
+
+    def canonical_row(category, id, holder: nil)
+      audit_class::Row.new(
+        category: category,
+        domain_id: id,
+        extid: "cd#{id}",
+        display_domain: "#{id}.example",
+        canonical: "#{id}.example",
+        holder_id: holder,
+        org_id: 'org123',
+        verification_state: :pending,
+        ownership_verified: false,
+        verified_by_override: false,
+        verified_confirmed_at: nil,
+        created: 1_700_000_000,
+        detail: nil,
+      )
+    end
+
+    before do
+      allow(Onetime::CustomDomain).to receive(:instances).and_return([])
+    end
+
+    def canonical_issues(report)
+      report['issues'].find { |group| group['type'] == 'indexes' }['issues']
+        .select { |issue| issue['check'].start_with?('canonical_index_') }
+    end
+
+    it 'reports missing, collision, conflict and stale findings with their totals and severities' do
+      issues = canonical_issues(json_report('domains', 'doctor', '--all', '--json'))
+
+      expect(issues.to_h { |i| [i['check'], [i['severity'], i['total'], i['repairable']]] }).to eq(
+        'canonical_index_missing' => ['high', 2, false],
+        'canonical_index_collision' => ['high', 2, false],
+        'canonical_index_conflict' => ['high', 1, false],
+        'canonical_index_stale' => ['medium', 2, false],
+      )
+      expect(last_exit_code).to eq(1)
+    end
+
+    it 'points at the backfill command and the runbook' do
+      issues  = canonical_issues(json_report('domains', 'doctor', '--all', '--json'))
+      missing = issues.find { |i| i['check'] == 'canonical_index_missing' }
+
+      expect(missing['repair_action']).to include('backfill-canonical-index --apply', 'custom-domain-canonical-index-backfill.md')
+    end
+
+    it 'writes nothing to the canonical index with --repair' do
+      index = double('CanonicalIndex')
+      allow(Onetime::CustomDomain).to receive(:canonical_display_domain_index).and_return(index)
+
+      output = run_cli_command_quietly('domains', 'doctor', '--all', '--repair')
+
+      expect(output[:stdout]).to include('no issues are auto-repairable')
+      expect(last_exit_code).to eq(2)
+    end
+
+    it 'reports a warning when the audit cannot run' do
+      allow(audit_class).to receive(:new).and_raise(Redis::CannotConnectError, 'down')
+
+      issues = json_report('domains', 'doctor', '--all', '--json')['issues']
+        .find { |group| group['type'] == 'indexes' }['issues']
+
+      expect(issues.map { |i| [i['check'], i['severity']] }).to eq([%w[canonical_index_audit_unavailable warning]])
+    end
+  end
+
   describe 'orphan with a stale owners entry' do
     before do
       allow(Onetime::CustomDomain).to receive(:instances).and_return([orphan.objid])
@@ -354,7 +459,7 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
       output = json_report('domains', 'doctor', '--all', '--json')
 
       issue = output['issues'].flat_map { |group| group['issues'] }
-                              .find { |i| i['check'] == 'owners_index_drift' }
+        .find { |i| i['check'] == 'owners_index_drift' }
       expect(issue['message']).to include('orphaned (no org_id)')
       expect(issue['repair_action']).to include('bin/ots domains repair orphan.com --org-id <ORG>')
     end
@@ -434,7 +539,7 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
       output = json_report('domains', 'doctor', '--all', '--json')
 
       issue = output['issues'].flat_map { |group| group['issues'] }
-                              .find { |i| i['check'] == 'owners_index_drift' }
+        .find { |i| i['check'] == 'owners_index_drift' }
       expect(issue['message']).to include('missing from CustomDomain.owners')
     end
 
@@ -466,7 +571,7 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
         output = json_report('domains', 'doctor', '--org', 'onext123', '--json')
 
         issue = output['issues'].find { |group| group['type'] == 'indexes' }['issues']
-                                .find { |i| i['check'] == 'owners_index_stale' }
+          .find { |i| i['check'] == 'owners_index_stale' }
         expect(issue['severity']).to eq('medium')
         expect(issue['total_stale']).to eq(1)
         expect(issue['stale_entries'].first['domain_id']).to eq('obj777')

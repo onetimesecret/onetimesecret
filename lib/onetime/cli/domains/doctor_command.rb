@@ -15,6 +15,9 @@
 #   8. domain has no org_id at all — ORPHANED (HIGH, report-only)
 #   9. org_id points to an ARCHIVED organization (HIGH, report-only)
 #  10. CustomDomain.owners agrees with the domain's org_id (MEDIUM)
+#  11. canonical_display_domain_index agrees with the records (report-only):
+#      missing entries and collisions (HIGH), conflicts (HIGH), stale
+#      entries (MEDIUM). From Operations::Domains::CanonicalIndexAudit.
 #
 # Additional checks (opt-in):
 #   --familia-audit   Run Familia's generic CustomDomain.health_check, which
@@ -30,6 +33,11 @@
 #
 #   bin/ots domains doctor [--all|--org] [--repair]
 #     Broad multi-check scanner including index integrity. Never assigns an org.
+#
+# Check #11 never repairs. Its writes belong to
+# `bin/ots domains backfill-canonical-index --apply`, which runs with the
+# application stopped (docs/runbooks/custom-domain-canonical-index-backfill.md);
+# doctor --repair runs against a live deployment.
 #
 # Check #10 is the org-deletion unblocker: Organization#unlisted_owned_domains
 # reads the `owners` class hashkey as a second source of truth, so an entry left
@@ -62,6 +70,7 @@
 
 require 'json'
 require 'onetime/operations/domains/repair'
+require 'onetime/operations/domains/canonical_index_audit'
 
 require_relative '../customers/shared'
 
@@ -102,6 +111,33 @@ module Onetime
         desc: 'Additionally run CustomDomain.health_check (Familia generic audit)'
 
       SEVERITY_ORDER = { critical: 0, high: 1, medium: 2, warning: 3, low: 4 }.freeze
+
+      # Check #11 (see check_canonical_index_integrity).
+      CANONICAL_INDEX_RUNBOOK = 'docs/runbooks/custom-domain-canonical-index-backfill.md'
+
+      CANONICAL_INDEX_FINDINGS = {
+        missing: {
+          severity: :high,
+          message: 'records missing from canonical_display_domain_index',
+          repair_action: 'Stop the application, then run bin/ots domains backfill-canonical-index --apply',
+        },
+        collision: {
+          severity: :high,
+          message: 'records share an A-label with another record (collision)',
+          repair_action: 'Keep the record whose organization has proven DNS ownership, remove the others ' \
+                         'with bin/ots domains remove <extid>, then run the backfill',
+        },
+        conflict: {
+          severity: :high,
+          message: 'records or canonical_display_domain_index entries name a different live record',
+          repair_action: 'Manual decision required: compare the records the entry and the name point at',
+        },
+        stale: {
+          severity: :medium,
+          message: 'canonical_display_domain_index entries name a record that no longer exists',
+          repair_action: 'Stop the application, then run bin/ots domains backfill-canonical-index --apply',
+        },
+      }.freeze
 
       # Valid 32-char hex pattern for txt_validation_value
       TXT_VALIDATION_PATTERN = /\A[a-f0-9]{32}\z/i
@@ -172,6 +208,8 @@ module Onetime
             8. domain has no org_id - ORPHANED (HIGH, report-only)
             9. org_id points to an ARCHIVED organization (HIGH, report-only)
            10. CustomDomain.owners matches the domain's org_id (MEDIUM)
+           11. canonical name index agrees with the records (report-only;
+               fixed by bin/ots domains backfill-canonical-index)
             +. Familia.health_check (opt-in via --familia-audit)
 
           Doctor never assigns an organization. To adopt an orphaned domain:
@@ -267,6 +305,7 @@ module Onetime
 
         check_display_domain_index_integrity(issues, report, repair: repair)
         check_owners_index_integrity(issues, report, repair: repair, scope_org: scope_org)
+        check_canonical_index_integrity(issues)
 
         if scope_org
           check_stale_org_domains(scope_org, report, repair: repair)
@@ -294,11 +333,9 @@ module Onetime
       # real problems surfaced as 2N issues and 2N repairs.
       #
       # display_domain_index is declared `unique_index :display_domain,
-      # :display_domain_index` — a single Familia HashKey. Deleting a field uses
-      # `.remove`, matching the canonical deletes in
-      # lib/onetime/models/custom_domain.rb (rename, and the create rollback).
-      # `.remove_field` is only an alias of the same method on HashKey, so the
-      # old pair was never doing two different things.
+      # :display_domain_index` — a single Familia HashKey. The repair releases
+      # each entry with `release_field(fqdn, identifier)`, the ownership-checked
+      # delete Familia's own index release uses.
       def check_display_domain_index_integrity(issues, report, repair:)
         stale_entries = []
 
@@ -325,15 +362,71 @@ module Onetime
 
         return unless repair
 
-        stale_entries.each do |entry|
-          Onetime::CustomDomain.display_domain_index.remove(entry[:fqdn])
-          OT.info "[domains doctor] Removed stale display_domain_index[#{entry[:fqdn]}]"
+        # Ownership-checked: the entry is removed only while it still names the
+        # identifier read above, so an entry that changed since the scan (a new
+        # registration of the name) is left alone.
+        released = stale_entries.count do |entry|
+          index   = Onetime::CustomDomain.display_domain_index
+          removed = index.release_field(entry[:fqdn], entry[:identifier]).to_i == 1
+          if removed
+            OT.info "[domains doctor] Removed stale display_domain_index[#{entry[:fqdn]}] (was #{entry[:identifier]})"
+          else
+            OT.info "[domains doctor] Left display_domain_index[#{entry[:fqdn]}]: it no longer names #{entry[:identifier]}"
+          end
+          removed
         end
 
         report[:repaired] << {
           action: :display_domain_index_cleaned,
-          count: stale_entries.size,
+          count: released,
         }
+      end
+
+      # CHECK #11: canonical_display_domain_index agrees with the records
+      #
+      # The index holds one entry per DNS name (its A-label) and is claimed for
+      # new records by create! and IdentityGuard. Records registered before it
+      # existed have no entry until the backfill enters them. REPORT-ONLY: the
+      # writes belong to `bin/ots domains backfill-canonical-index --apply`,
+      # which runs with the application stopped, and collisions and conflicts
+      # need an operator's decision. Global, like check #3, in --org mode too.
+      def check_canonical_index_integrity(issues)
+        audit = Onetime::Operations::Domains::CanonicalIndexAudit.new.call
+
+        CANONICAL_INDEX_FINDINGS.each do |category, finding|
+          examples = audit.rows_in(category).map { |row| canonical_row_example(row) } +
+                     audit.entries_in(category).map { |entry| entry.to_h.slice(:canonical, :holder_id, :detail) }
+          next if examples.empty?
+
+          issues << {
+            check: :"canonical_index_#{category}",
+            severity: finding[:severity],
+            message: "#{examples.size} #{finding[:message]}",
+            examples: examples.first(10),
+            total: examples.size,
+            repairable: false,
+            repair_action: "#{finding[:repair_action]} (see #{CANONICAL_INDEX_RUNBOOK})",
+          }
+        end
+      rescue StandardError => ex
+        issues << {
+          check: :canonical_index_audit_unavailable,
+          severity: :warning,
+          message: "canonical index audit unavailable: #{ex.class}: #{ex.message}",
+          repairable: false,
+        }
+      end
+
+      def canonical_row_example(row)
+        {
+          canonical: row.canonical,
+          domain_extid: row.extid,
+          domain_objid: row.domain_id,
+          display_domain: row.display_domain,
+          org_id: row.org_id,
+          holder_id: row.holder_id,
+          detail: row.detail,
+        }.compact
       end
 
       # CHECK: org.domains sorted set entries have valid domain objects
