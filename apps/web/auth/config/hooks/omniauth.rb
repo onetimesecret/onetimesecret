@@ -942,6 +942,7 @@ module Auth::Config::Hooks
                 domain_id,
                 stage: 'account',
                 code: 'org_join_failed',
+                config: request.env['onetime.tenant_sso_config'],
                 provider_type: request.env['onetime.tenant_sso_config']&.provider_type,
               )
               redirect '/signin?auth_error=org_join_failed'

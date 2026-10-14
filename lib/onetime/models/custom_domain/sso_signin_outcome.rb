@@ -25,9 +25,11 @@
 # audited (ChangeLogger), and its `updated` stamp is the configuration
 # revision the settings UI reasons about; an unauthenticated sign-in must
 # never touch that record. This one is runtime state with its own TTL
-# (OUTCOME_TTL): it expires on its own if the domain goes quiet, is deleted
-# with the SsoConfig (DeleteSsoConfig), and is never part of a backup
-# anyone restores a configuration from.
+# (OUTCOME_TTL): it expires on its own if the domain goes quiet, is cleaned
+# up with the SsoConfig (DeleteSsoConfig), and is never part of a backup
+# anyone restores a configuration from. Reads require the same configuration
+# incarnation, so failed cleanup cannot expose old history on a replacement.
+# Unbound outcomes written before incarnation tracking are ignored.
 #
 # BEST-EFFORT, NEVER A GATE. Every writer rescues and logs: a Redis error
 # while recording an outcome must not fail or alter the sign-in it
@@ -70,6 +72,10 @@ class Onetime::CustomDomain::SsoSigninOutcome < Familia::Horreum
 
   identifier_field :domain_id
   field :domain_id
+  field :config_generation
+  field :last_order
+  field :last_succeeded_order
+  field :last_failed_order
 
   field :last_result          # one of RESULTS
   field :last_at              # Unix epoch seconds of the last outcome
@@ -79,29 +85,72 @@ class Onetime::CustomDomain::SsoSigninOutcome < Familia::Horreum
   field :last_failure_stage   # one of STAGES, for the last failure
   field :last_failure_code    # sanitized code, for the last failure
 
+  # Like StateCas, operands use Familia's scalar serialization. All checks,
+  # partial updates and TTL renewal execute in one Redis operation. Event time
+  # orders each result independently; equal times use Redis execution order.
+  WRITE_SCRIPT = <<~LUA
+    local generation = redis.call('HGET', KEYS[2], 'outcome_generation')
+    if not generation or generation == 'null' then
+      local created = redis.call('HGET', KEYS[2], 'created')
+      if not created or created == 'null' then return 0 end
+      generation = cjson.encode('legacy:' .. tostring(cjson.decode(created)))
+    end
+    if generation ~= ARGV[1] then return 0 end
+
+    if redis.call('HGET', KEYS[1], 'config_generation') ~= ARGV[1] then
+      redis.call('DEL', KEYS[1])
+    end
+    redis.call('HSET', KEYS[1], 'config_generation', ARGV[1], 'domain_id', ARGV[2])
+    local order = tonumber(ARGV[3])
+    local previous = tonumber(redis.call('HGET', KEYS[1], 'last_order'))
+    if not previous or order >= previous then
+      redis.call('HSET', KEYS[1], 'last_order', ARGV[3], 'last_at', ARGV[4], 'last_result', ARGV[5])
+      if ARGV[6] ~= '' then redis.call('HSET', KEYS[1], 'last_provider_type', ARGV[6]) end
+    end
+    local result = ARGV[7]
+    local result_order = 'last_' .. result .. '_order'
+    local previous_result = tonumber(redis.call('HGET', KEYS[1], result_order))
+    if not previous_result or order >= previous_result then
+      redis.call('HSET', KEYS[1], result_order, ARGV[3], 'last_' .. result .. '_at', ARGV[4])
+      if result == 'failed' then
+        redis.call('HSET', KEYS[1], 'last_failure_stage', ARGV[8], 'last_failure_code', ARGV[9])
+      end
+    end
+    redis.call('EXPIRE', KEYS[1], ARGV[10])
+    return 1
+  LUA
+
+  DELETE_SCRIPT = <<~LUA
+    if redis.call('HGET', KEYS[1], 'config_generation') == ARGV[1] then
+      return redis.call('DEL', KEYS[1])
+    end
+    return 0
+  LUA
+
   class << self
     # @param domain_id [String] CustomDomain identifier
     # @return [SsoSigninOutcome, nil]
-    def find_by_domain_id(domain_id)
+    def find_by_domain_id(domain_id, config: nil)
       return nil if domain_id.to_s.empty?
 
-      load(domain_id)
+      config ||= Onetime::CustomDomain::SsoConfig.find_by_domain_id(domain_id)
+      return nil unless config&.domain_id == domain_id && config.signin_outcome_generation
+
+      outcome = load(domain_id)
+      outcome if outcome&.config_generation == config.signin_outcome_generation
     end
 
     # Record a completed tenant SSO sign-in. Best-effort (see class comment).
     #
     # @param domain_id [String] the VALIDATED CustomDomain identifier
+    # @param config [SsoConfig, nil] captured config used by this flow; nil skips
     # @param provider_type [String, nil] SsoConfig#provider_type when known
     # @param now [Time]
     # @return [SsoSigninOutcome, nil] nil when nothing was recorded
-    def record_success!(domain_id, provider_type: nil, now: Time.now)
+    def record_success!(domain_id, config: nil, provider_type: nil, now: Time.now)
       return nil if domain_id.to_s.empty?
 
-      write(domain_id, provider_type, now) do |outcome, at|
-        outcome.last_result       = 'succeeded'
-        outcome.last_at           = at
-        outcome.last_succeeded_at = at
-      end
+      write(domain_id, config, provider_type, now, 'succeeded')
     rescue StandardError => ex
       log_write_failure('record_success!', domain_id, ex)
       nil
@@ -112,36 +161,37 @@ class Onetime::CustomDomain::SsoSigninOutcome < Familia::Horreum
     # @param domain_id [String] the CustomDomain identifier the flow belongs
     #   to (validated where the stage has one; the flow's starting domain at
     #   the provider stage)
+    # @param config [SsoConfig, nil] captured config used by this flow; nil skips
     # @param stage [String, Symbol] one of STAGES
     # @param code [String, Symbol, nil] sanitized before storage
     # @param provider_type [String, nil]
     # @param now [Time]
     # @return [SsoSigninOutcome, nil] nil when nothing was recorded
-    def record_failure!(domain_id, stage:, code:, provider_type: nil, now: Time.now)
+    def record_failure!(domain_id, stage:, code:, config: nil, provider_type: nil, now: Time.now)
       return nil if domain_id.to_s.empty?
 
       stage = stage.to_s
       raise ArgumentError, "unknown stage #{stage.inspect}" unless STAGES.include?(stage)
 
-      write(domain_id, provider_type, now) do |outcome, at|
-        outcome.last_result        = 'failed'
-        outcome.last_at            = at
-        outcome.last_failed_at     = at
-        outcome.last_failure_stage = stage
-        outcome.last_failure_code  = sanitize_code(code)
-      end
+      write(domain_id, config, provider_type, now, 'failed', stage, sanitize_code(code))
     rescue StandardError => ex
       log_write_failure('record_failure!', domain_id, ex)
       nil
     end
 
-    # @return [Boolean] whether a record existed and was removed
-    def delete_for_domain!(domain_id)
-      outcome = find_by_domain_id(domain_id)
-      return false unless outcome
+    # Pass the captured config when cleanup runs after deleting it. The guard
+    # also prevents delayed cleanup from erasing a replacement's history.
+    # @return [Boolean] whether a matching record existed and was removed
+    def delete_for_domain!(domain_id, config: nil)
+      config ||= Onetime::CustomDomain::SsoConfig.find_by_domain_id(domain_id)
+      return false unless config&.domain_id == domain_id && config.signin_outcome_generation
 
-      outcome.destroy!
-      true
+      outcome = new(domain_id: domain_id)
+      outcome.dbclient.eval(
+        DELETE_SCRIPT,
+        keys: [outcome.dbkey],
+        argv: [outcome.serialize_value(config.signin_outcome_generation)],
+      ).to_i == 1
     end
 
     # Lowercase; anything outside [a-z0-9_.-] becomes '_'; at most CODE_MAX
@@ -158,14 +208,21 @@ class Onetime::CustomDomain::SsoSigninOutcome < Familia::Horreum
 
     private
 
-    # Load-or-new, apply the writer, keep the last known provider type, save
-    # (which also renews the TTL).
-    def write(domain_id, provider_type, now)
-      outcome                    = find_by_domain_id(domain_id) || new(domain_id: domain_id.to_s)
-      yield(outcome, now.to_i)
-      outcome.last_provider_type = provider_type.to_s unless provider_type.to_s.empty?
-      outcome.save
-      outcome
+    # Never re-fetch a writer's config: it must be the snapshot actually used
+    # by the flow. A missing/deleted/replaced config cannot create an outcome.
+    def write(domain_id, config, provider_type, now, result, stage = nil, code = nil)
+      return nil unless config&.domain_id == domain_id && config.signin_outcome_generation
+
+      outcome = new(domain_id: domain_id.to_s)
+      encode  = outcome.method(:serialize_value)
+      argv    = [
+        encode.call(config.signin_outcome_generation), encode.call(domain_id.to_s),
+        encode.call(now.to_f), encode.call(now.to_i), encode.call(result),
+        provider_type.to_s.empty? ? '' : encode.call(provider_type.to_s), result,
+        encode.call(stage), encode.call(code), OUTCOME_TTL.to_i
+      ]
+      written = outcome.dbclient.eval(WRITE_SCRIPT, keys: [outcome.dbkey, config.dbkey], argv: argv)
+      find_by_domain_id(domain_id, config: config) if written.to_i == 1
     end
 
     def log_write_failure(method, domain_id, ex)
