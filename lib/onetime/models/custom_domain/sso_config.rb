@@ -206,6 +206,17 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
   field :created
   field :updated
 
+  # Stable across edits, fresh on delete/recreate (including within one second).
+  field :outcome_generation
+
+  def signin_outcome_generation
+    return outcome_generation unless outcome_generation.to_s.empty?
+
+    # Pre-existing configs have no generation. Their creation stamp is stable;
+    # every replacement created by this version gets a random generation.
+    "legacy:#{created}" unless created.to_s.empty?
+  end
+
   # Enforcement settings
   field :enforce_sso_only  # Boolean string ('true'/'false')
   field :grant_org_scope   # Boolean string ('true'/'false')
@@ -805,7 +816,7 @@ class Onetime::CustomDomain::SsoConfig < Familia::Horreum
       raise Onetime::Problem, 'domain_id is required' if domain_id.to_s.empty?
       raise Onetime::Problem, 'SSO config already exists for this domain' if exists_for_domain?(domain_id)
 
-      config = new(domain_id: domain_id)
+      config = new(domain_id: domain_id, outcome_generation: SecureRandom.uuid)
 
       # Set simple fields
       config.provider_type    = attrs[:provider_type] if attrs.key?(:provider_type)

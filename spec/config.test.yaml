@@ -191,6 +191,11 @@ features:
     # lib/onetime/security/sso_diagnostics_rate_limiter.rb.
     sso_diagnostics_rate_limit:
       enabled: false
+    # Disabled under test for the same reason (the sender specs run many
+    # sends as one owner); the limiter tryout enables it in-process. See
+    # lib/onetime/security/sender_test_email_rate_limiter.rb.
+    sender_test_email_rate_limit:
+      enabled: false
 
 redis:
   # Host and port are hardcoded on purpose (#2128): a test boot can only ever

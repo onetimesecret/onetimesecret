@@ -118,6 +118,7 @@ const mockSsoConfigData: CustomDomainSsoConfig = {
   allowed_domains: ['acme.com', 'acme.org'],
   requires_domain_filter: false,
   idp_controls_access: true,
+  last_sign_in: null,
   enforce_sso_only: false,
   grant_org_scope: false,
   created_at: new Date('2025-01-01T00:00:00Z'),
@@ -140,6 +141,7 @@ const mockSamlConfigData: CustomDomainSsoConfig = {
   acs_url: 'https://secrets.example.com/auth/sso/saml/callback',
   requires_domain_filter: true,
   idp_controls_access: false,
+  last_sign_in: null,
 };
 
 const mockOidcConfigData: CustomDomainSsoConfig = {
@@ -149,6 +151,7 @@ const mockOidcConfigData: CustomDomainSsoConfig = {
   issuer: 'https://idp.example.com',
   requires_domain_filter: true,
   idp_controls_access: false,
+  last_sign_in: null,
   enforce_sso_only: false,
 };
 

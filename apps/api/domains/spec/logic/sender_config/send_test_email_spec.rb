@@ -2,12 +2,17 @@
 #
 # frozen_string_literal: true
 
-# Unit tests for SenderConfig::SendTestEmail ColonelAuditEvent.record coverage.
+# Unit tests for SenderConfig::SendTestEmail audit coverage.
 #
-# The send_test_email flow calls ColonelAuditEvent.record to persist test email
-# events to the audit trail. These specs verify:
+# The send_test_email flow calls ColonelAuditEvent.record_security to persist
+# test email events to the security audit trail. A test send is a customer's
+# self-service action, so it must never write the operator trail
+# (ColonelAuditEvent.record). These specs verify:
 #   - On success: verb 'domain_sender.test_email_sent', result :success
 #   - On failure: result :failure, error_code in detail
+#   - The recipient is stored obscured, never the raw address
+#   - The per-customer limit (SenderTestEmailRateLimiter) is charged last in
+#     raise_concerns, and a locked customer sends nothing
 #
 # RUN (lane runner only — a raw rspec/rake invocation inherits the dev
 # shell's env and can reach dev data; see AGENTS.md "Running tests"):
@@ -87,9 +92,15 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::SendTestEmail do
       .with('domain123')
       .and_return(mailer_config)
 
+    # An owner, not a colonel: the audit write goes to the security trail.
+    allow(logic).to receive(:has_system_role?).with('colonel').and_return(false)
+
     # Stub the audit event recording
     allow(Onetime::ColonelAuditEvent).to receive(:record)
+    allow(Onetime::ColonelAuditEvent).to receive(:record_security)
   end
+
+  let(:obscured_recipient) { OT::Utils.obscure_email('user@example.com') }
 
   describe '#process (audit trail)' do
     context 'when test email succeeds' do
@@ -98,17 +109,18 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::SendTestEmail do
         allow(mock_backend).to receive(:deliver).and_return(true)
       end
 
-      it 'calls ColonelAuditEvent.record with result: :success' do
+      it 'calls ColonelAuditEvent.record_security with result: :success, never the operator trail' do
         logic.raise_concerns
         logic.process
 
-        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+        expect(Onetime::ColonelAuditEvent).to have_received(:record_security).once.with(
           actor: customer,
           verb: 'domain_sender.test_email_sent',
           target: 'domain123',
           result: :success,
           detail: hash_including(
-            recipient: 'user@example.com',
+            recipient: obscured_recipient,
             from_address: 'noreply@example.com',
             provider: 'smtp2go',
           ),
@@ -119,8 +131,32 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::SendTestEmail do
         logic.raise_concerns
         logic.process
 
-        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+        expect(Onetime::ColonelAuditEvent).to have_received(:record_security).once.with(
           hash_excluding(detail: hash_including(:error_code)),
+        )
+      end
+
+      # A colonel passes the entitlement check on any domain, and that send
+      # is operator activity.
+      it 'records a colonel send on the operator trail' do
+        allow(logic).to receive(:has_system_role?).with('colonel').and_return(true)
+
+        logic.raise_concerns
+        logic.process
+
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record_security)
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+          hash_including(verb: 'domain_sender.test_email_sent', result: :success),
+        )
+      end
+
+      it 'never stores the raw recipient address' do
+        logic.raise_concerns
+        logic.process
+
+        expect(obscured_recipient).not_to eq('user@example.com')
+        expect(Onetime::ColonelAuditEvent).to have_received(:record_security).once.with(
+          hash_including(detail: hash_including(recipient: obscured_recipient)),
         )
       end
     end
@@ -138,17 +174,18 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::SendTestEmail do
         allow(mock_backend).to receive(:deliver).and_raise(delivery_error)
       end
 
-      it 'calls ColonelAuditEvent.record with result: :failure' do
+      it 'calls ColonelAuditEvent.record_security with result: :failure' do
         logic.raise_concerns
         logic.process
 
-        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+        expect(Onetime::ColonelAuditEvent).to have_received(:record_security).once.with(
           actor: customer,
           verb: 'domain_sender.test_email_sent',
           target: 'domain123',
           result: :failure,
           detail: hash_including(
-            recipient: 'user@example.com',
+            recipient: obscured_recipient,
             from_address: 'noreply@example.com',
             provider: 'smtp2go',
             error_code: 'delivery_failed',
@@ -174,7 +211,7 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::SendTestEmail do
         logic.raise_concerns
         logic.process
 
-        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+        expect(Onetime::ColonelAuditEvent).to have_received(:record_security).once.with(
           hash_including(
             result: :failure,
             detail: hash_including(error_code: 'transient_error'),
@@ -193,7 +230,7 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::SendTestEmail do
         logic.raise_concerns
         logic.process
 
-        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+        expect(Onetime::ColonelAuditEvent).to have_received(:record_security).once.with(
           hash_including(
             result: :failure,
             detail: hash_including(error_code: 'unexpected_error'),
@@ -225,12 +262,90 @@ RSpec.describe DomainsAPI::Logic::SenderConfig::SendTestEmail do
         logic.raise_concerns
         logic.process
 
-        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+        expect(Onetime::ColonelAuditEvent).to have_received(:record_security).once.with(
           hash_including(
             result: :failure,
             detail: hash_including(error_code: 'domain_not_provisioned'),
           ),
         )
+      end
+    end
+  end
+
+  describe 'per-customer rate limit (SenderTestEmailRateLimiter)' do
+    it 'charges the acting customer by public id, last, after the sender config is found' do
+      order = []
+      allow(logic).to receive(:authorize_sender_config!) do
+        order << :authorize
+        logic.instance_variable_set(:@custom_domain, custom_domain)
+        logic.instance_variable_set(:@organization, organization)
+      end
+      allow(Onetime::CustomDomain::MailerConfig).to receive(:find_by_domain_id).with('domain123') do
+        order << :find_config
+        mailer_config
+      end
+      allow(logic).to receive(:enforce_sender_test_email_rate_limit!) { |extid| order << [:charge, extid] }
+
+      logic.raise_concerns
+
+      expect(order).to eq([:authorize, :find_config, [:charge, 'ext-cust123']])
+    end
+
+    it 'does not charge a request that has no sender configuration' do
+      allow(Onetime::CustomDomain::MailerConfig).to receive(:find_by_domain_id).with('domain123').and_return(nil)
+      allow(logic).to receive(:enforce_sender_test_email_rate_limit!)
+
+      expect { logic.raise_concerns }.to raise_error(Onetime::FormError)
+      expect(logic).not_to have_received(:enforce_sender_test_email_rate_limit!)
+    end
+
+    it 'does not charge a request whose sender has no from_address' do
+      allow(mailer_config).to receive(:from_address).and_return('')
+      allow(logic).to receive(:enforce_sender_test_email_rate_limit!)
+
+      expect { logic.raise_concerns }.to raise_error(Onetime::FormError)
+      expect(logic).not_to have_received(:enforce_sender_test_email_rate_limit!)
+    end
+
+    it 'does not charge an anonymous request' do
+      allow(customer).to receive(:anonymous?).and_return(true)
+      allow(logic).to receive(:enforce_sender_test_email_rate_limit!)
+
+      expect { logic.raise_concerns }.to raise_error(Onetime::FormError)
+      expect(logic).not_to have_received(:enforce_sender_test_email_rate_limit!)
+    end
+
+    # The real limiter, against the lane's Valkey: the test config ships it
+    # disabled, so it is enabled here in-process with a cap of one, which
+    # makes the second send the locked one.
+    it 'enforces through the real module when enabled: the send over the cap is refused' do
+      saved_conf = YAML.load(YAML.dump(OT.conf))
+      new_conf   = YAML.load(YAML.dump(OT.conf))
+      ((new_conf['features'] ||= {})['organizations'] ||= {})['sender_test_email_rate_limit'] =
+        { 'enabled' => true, 'max_per_customer' => 1, 'window' => 60, 'lockout' => 60 }
+      OT.send(:conf=, new_conf)
+      redis = Onetime::Customer.dbclient
+      redis.del('sender_test_email:attempts:ext-cust123', 'sender_test_email:locked:ext-cust123')
+      allow(logic).to receive(:build_test_backend).and_return(mock_backend)
+      allow(mock_backend).to receive(:deliver).and_return(true)
+
+      begin
+        logic.raise_concerns
+        logic.process
+
+        second = described_class.new(strategy_result, params)
+        allow(second).to receive(:authorize_sender_config!) do
+          second.instance_variable_set(:@custom_domain, custom_domain)
+          second.instance_variable_set(:@organization, organization)
+        end
+        expect { second.raise_concerns }.to raise_error(Onetime::LimitExceeded) do |error|
+          expect(error.max_attempts).to eq(1)
+          expect(error.retry_after).to be_positive
+        end
+        expect(mock_backend).to have_received(:deliver).once
+      ensure
+        redis.del('sender_test_email:attempts:ext-cust123', 'sender_test_email:locked:ext-cust123')
+        OT.send(:conf=, saved_conf)
       end
     end
   end

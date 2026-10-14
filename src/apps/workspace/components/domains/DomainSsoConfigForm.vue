@@ -688,6 +688,45 @@ const diagnosticsOverallStyle = computed(() =>
   props.diagnosticsResult ? DIAGNOSTIC_OVERALL_STYLES[props.diagnosticsResult.overall] : null
 );
 
+/**
+ * The last tenant sign-in outcome on the saved record (null = none
+ * recorded). Timestamps are Unix epoch seconds; shown in the admin's locale.
+ */
+const lastSignIn = computed(() => props.ssoConfig?.last_sign_in ?? null);
+
+const LAST_SIGN_IN_STAGE_KEYS: Record<string, string> = {
+  setup: 'web.organizations.sso.last_sign_in_stage_setup',
+  provider: 'web.organizations.sso.last_sign_in_stage_provider',
+  callback: 'web.organizations.sso.last_sign_in_stage_callback',
+  account: 'web.organizations.sso.last_sign_in_stage_account',
+};
+
+const epochToLocale = (epoch: number) => new Date(epoch * 1000).toLocaleString();
+
+const lastSignInText = computed(() => {
+  const outcome = lastSignIn.value;
+  if (!outcome) return t('web.organizations.sso.last_sign_in_none');
+  if (outcome.result === 'succeeded') {
+    return t('web.organizations.sso.last_sign_in_succeeded', { when: epochToLocale(outcome.at) });
+  }
+  const stageKey = LAST_SIGN_IN_STAGE_KEYS[outcome.failure_stage ?? ''];
+  const parts = [
+    t('web.organizations.sso.last_sign_in_failed', {
+      when: epochToLocale(outcome.at),
+      stage: stageKey ? t(stageKey) : (outcome.failure_stage ?? ''),
+      code: outcome.failure_code ?? '',
+    }),
+  ];
+  if (outcome.succeeded_at !== null) {
+    parts.push(
+      t('web.organizations.sso.last_sign_in_last_success', {
+        when: epochToLocale(outcome.succeeded_at),
+      })
+    );
+  }
+  return parts.join(' ');
+});
+
 /** checked_at is ISO 8601 UTC from the API; shown in the admin's locale. */
 const diagnosticsCheckedAt = computed(() => {
   const raw = props.diagnosticsResult?.checked_at;
@@ -1442,6 +1481,20 @@ aria-hidden="true">*</span>
               data-testid="sso-diagnostics-save-first"
               class="mt-1 text-sm text-amber-700 dark:text-amber-300">
               {{ t('web.organizations.sso.diagnostics_save_first') }}
+            </p>
+            <!-- The one thing no check can tell: whether a real sign-in
+                 through this domain's IdP completed. Read from the saved
+                 record on load; no run needed. -->
+            <p
+              data-testid="sso-last-sign-in"
+              :data-result="lastSignIn?.result ?? 'none'"
+              :class="[
+                'mt-2 text-sm',
+                lastSignIn?.result === 'failed'
+                  ? 'text-red-700 dark:text-red-300'
+                  : 'text-gray-700 dark:text-gray-300',
+              ]">
+              {{ lastSignInText }}
             </p>
           </div>
           <button

@@ -84,8 +84,15 @@ else `passed`; `unsupported` and `skipped` do not count).
 
 The response never carries the secret, a token, or Entra's
 `error_description` (it holds correlation IDs and the app ID). One log line
-records the domain, provider, overall and per-check statuses. No audit
-event is written (see item 7 below).
+records the domain, provider, overall and per-check statuses, and one
+`sso.diagnostics_run` event goes to the security audit trail
+(`record_security`, newest 1,000 for 7 days), not the operator trail: a run
+is a customer's self-service action, and the operator trail's budget is kept
+for operator activity. The event holds the acting customer, the domain, the
+overall verdict as the result, the configuration revision, and one entry per
+check in `checks` with its status and any bare `error_code`, `aadsts_code`
+and `shape` (`uuid` for a Secret-ID-shaped secret). Neither the log line nor
+the event carries the secret, a token or a provider message.
 
 Runs are capped per acting customer (`Onetime::Security::
 SsoDiagnosticsRateLimiter`, `lib/onetime/security/sso_diagnostics_rate_limiter.rb`;
@@ -177,14 +184,23 @@ Nothing in this section exists in the codebase, except where an item says so.
    proposed: a credential check for generic OIDC (none is safe without a
    known scope) and for SAML (needs a real assertion flow).
 2. **Report each layer separately:** local integrity, provider reachability,
-   credential acceptance, completed sign-in. Built for the first three as
-   the per-check response of Check saved configuration. Still proposed:
-   completed sign-in (item 4).
+   credential acceptance, completed sign-in. Built: the first three as the
+   per-check response of Check saved configuration, the fourth as
+   `last_sign_in` on the record (item 4).
 3. **Background checks** for integrity, discovery, and SAML expiry. Token probes
    only where the provider supports a suitable, authorized request (Entra client
    credentials, as above).
-4. **Per-domain sign-in outcomes.** Needs `domain_id` on `omniauth_failure` for
-   tenant callbacks.
+4. **Per-domain sign-in outcomes.** Built as `last_sign_in` on the domain
+   SSO record (`CustomDomain::SsoSigninOutcome`,
+   `lib/onetime/models/custom_domain/sso_signin_outcome.rb`), shown in the
+   Check saved configuration section. The tenant hooks record each sign-in
+   as `succeeded` or `failed` with the stage it stopped at (`setup`,
+   `provider`, `callback`, `account`) and a bounded code: the `auth_error`
+   the visitor saw, or at the provider stage OmniAuth's error type (the
+   same `error_type` the `omniauth_failure` log line carries). The last
+   success is kept alongside a later failure. Outcomes only, no identity;
+   90-day TTL renewed per write; deleted with the SSO record. The log line
+   itself still has no `domain_id`; the record is the per-domain view.
 5. **Customer-entered secret expiry date** for Entra and OIDC, used only for
    reminders. It's the only way we learn the date without a Graph permission.
 6. **Store observations, not a flag:**
@@ -213,9 +229,9 @@ Nothing in this section exists in the codebase, except where an item says so.
    verb (the procedure name), target (the domain ID), result (the marker:
    token, AADSTS code, or local failure class), and a detail hash with the
    UTC time and the probe identifier. Never the credential, the token, or the
-   raw error. Check saved configuration (item 1) uses the stored secret and
-   writes no such entry yet; it and any background check (item 3) should
-   write the same entry.
+   raw error. Check saved configuration (item 1) writes `sso.diagnostics_run`
+   to the security trail (a customer's self-service action); any background
+   check (item 3) should write the same shape.
 
 Safeguards for any background probe:
 

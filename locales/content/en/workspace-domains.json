@@ -1040,6 +1040,14 @@
     "text": "Failed to send test email",
     "content_hash": "95ce63bc"
   },
+  "web.domains.email.test_email_rate_limited": {
+    "text": "Too many test emails have been sent recently. Try again later.",
+    "content_hash": "90b8ca17"
+  },
+  "web.domains.email.test_email_rate_limited_retry": {
+    "text": "Too many test emails have been sent recently. Try again in about {minutes} minutes.",
+    "content_hash": "218146cc"
+  },
   "web.domains.email.test_email_sent_to": {
     "text": "Sent to {email}",
     "content_hash": "8ceb9588"
