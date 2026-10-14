@@ -16,8 +16,8 @@
 #   9. org_id points to an ARCHIVED organization (HIGH, report-only)
 #  10. CustomDomain.owners agrees with the domain's org_id (MEDIUM)
 #  11. canonical_display_domain_index agrees with the records (report-only):
-#      missing entries and collisions (HIGH), conflicts (HIGH), stale
-#      entries (MEDIUM). From Operations::Domains::CanonicalIndexAudit.
+#      missing entries, collisions, conflicts and unreadable records (HIGH),
+#      stale entries (MEDIUM). From Operations::Domains::CanonicalIndexAudit.
 #
 # Additional checks (opt-in):
 #   --familia-audit   Run Familia's generic CustomDomain.health_check, which
@@ -406,6 +406,22 @@ module Onetime
             total: examples.size,
             repairable: false,
             repair_action: "#{finding[:repair_action]} (see #{CANONICAL_INDEX_RUNBOOK})",
+          }
+        end
+
+        unless audit.errors.empty?
+          examples = audit.errors.first(10).map do |error|
+            { domain_objid: error.domain_id, message: error.message }
+          end
+          issues << {
+            check: :canonical_index_unreadable,
+            severity: :high,
+            message: "#{audit.errors.size} domain records could not be loaded by the canonical index audit: " \
+                     "#{examples.map { |example| "#{example[:domain_objid]}: #{example[:message]}" }.join('; ')}",
+            examples: examples,
+            total: audit.errors.size,
+            repairable: false,
+            repair_action: 'Manually investigate and restore unreadable domain records, then rerun domains doctor --all',
           }
         end
       rescue StandardError => ex
@@ -1071,6 +1087,9 @@ module Onetime
         has_repairable = all_issues.any? { |i| i[:repairable] }
 
         if repair
+          # An unrelated successful repair cannot make an incomplete audit healthy.
+          exit 2 if all_issues.any? { |i| i[:check] == :canonical_index_unreadable }
+
           if report[:repaired].empty?
             if has_repairable
               exit 1

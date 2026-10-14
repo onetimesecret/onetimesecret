@@ -437,6 +437,101 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
       expect(last_exit_code).to eq(2)
     end
 
+    context 'when only unreadable records are found outside instances and the indexes' do
+      let(:canonical_audit_result) do
+        audit_class::Result.new(
+          rows: [],
+          entries: [],
+          errors: [
+            audit_class::Unreadable.new(domain_id: 'broken1', message: 'JSON::ParserError: invalid record'),
+            audit_class::Unreadable.new(domain_id: 'broken2', message: 'TypeError: invalid field'),
+          ],
+        )
+      end
+
+      it 'reports identifiers and load errors at high severity as nonrepairable findings' do
+        report = json_report('domains', 'doctor', '--all', '--json')
+
+        expect(report.slice('checked', 'healthy', 'repaired', 'failed_repairs')).to eq(
+          'checked' => 0, 'healthy' => 0, 'repaired' => [], 'failed_repairs' => [],
+        )
+        expect(report['issues'].map { |group| group['type'] }).to eq(['indexes'])
+        expect(canonical_issues(report)).to contain_exactly(
+          include(
+            'check' => 'canonical_index_unreadable',
+            'severity' => 'high',
+            'total' => 2,
+            'repairable' => false,
+            'examples' => [
+              { 'domain_objid' => 'broken1', 'message' => 'JSON::ParserError: invalid record' },
+              { 'domain_objid' => 'broken2', 'message' => 'TypeError: invalid field' },
+            ],
+            'message' => include('2 domain records could not be loaded', 'broken1: JSON::ParserError: invalid record',
+              'broken2: TypeError: invalid field'),
+            'repair_action' => include('Manually investigate'),
+          ),
+        )
+        expect(last_exit_code).to eq(1)
+      end
+
+      it 'includes identifiers and load messages in the text report' do
+        output = run_cli_command_quietly('domains', 'doctor', '--all')
+
+        expect(output[:stdout]).to include('[HIGH]', 'broken1: JSON::ParserError: invalid record',
+          'broken2: TypeError: invalid field', '[manual fix required]')
+        expect(last_exit_code).to eq(1)
+      end
+
+      it 'limits examples to ten without losing the total count' do
+        errors = (1..12).map do |id|
+          audit_class::Unreadable.new(domain_id: "broken#{id}", message: 'TypeError: invalid field')
+        end
+        result = audit_class::Result.new(rows: [], entries: [], errors: errors)
+        allow(audit_class).to receive(:new).and_return(double('CanonicalIndexAudit', call: result))
+
+        issue = canonical_issues(json_report('domains', 'doctor', '--all', '--json')).first
+
+        expect(issue['total']).to eq(12)
+        expect(issue['examples'].map { |example| example['domain_objid'] }).to eq((1..10).map { |id| "broken#{id}" })
+        expect(last_exit_code).to eq(1)
+      end
+
+      it 'exits with manual intervention status and writes nothing with --repair' do
+        canonical_index = double('CanonicalIndex')
+        display_index = double('DisplayDomainIndex', hgetall: {})
+        owners_index = double('OwnersIndex', hgetall: {})
+        allow(Onetime::CustomDomain).to receive(:canonical_display_domain_index).and_return(canonical_index)
+        allow(Onetime::CustomDomain).to receive(:display_domain_index).and_return(display_index)
+        allow(Onetime::CustomDomain).to receive(:owners).and_return(owners_index)
+        expect(Onetime::CustomDomain).not_to receive(:record_owner)
+        expect(Onetime::CustomDomain).not_to receive(:load)
+        expect(Onetime::Operations::Domains::Repair).not_to receive(:new)
+        expect(domain).not_to receive(:save)
+        expect(org_domains).not_to receive(:add)
+        expect(org_domains).not_to receive(:remove)
+
+        report = json_report('domains', 'doctor', '--all', '--repair', '--json')
+
+        expect(canonical_issues(report).first['repairable']).to be(false)
+        expect(report['repaired']).to be_empty
+        expect(report['failed_repairs']).to be_empty
+        expect(last_exit_code).to eq(2)
+      end
+
+      it 'does not return success when an unrelated index repair succeeds' do
+        display_index = double('DisplayDomainIndex', hgetall: { 'stale.example.com' => 'gone999' }, release_field: 1)
+        allow(Onetime::CustomDomain).to receive(:display_domain_index).and_return(display_index)
+        allow(Onetime::CustomDomain).to receive(:load).with('gone999').and_return(nil)
+
+        report = json_report('domains', 'doctor', '--all', '--repair', '--json')
+
+        expect(report['repaired']).to eq([{ 'action' => 'display_domain_index_cleaned', 'count' => 1 }])
+        expect(display_index).to have_received(:release_field).with('stale.example.com', 'gone999').once
+        expect(canonical_issues(report).first['check']).to eq('canonical_index_unreadable')
+        expect(last_exit_code).to eq(2)
+      end
+    end
+
     it 'reports a warning when the audit cannot run' do
       allow(audit_class).to receive(:new).and_raise(Redis::CannotConnectError, 'down')
 
