@@ -26,6 +26,7 @@
 require 'spec_helper'
 require 'onetime/models/colonel_audit_event'
 require 'onetime/operations/domains/remove'
+require 'onetime/operations/provision_sender_domain'
 
 RSpec.describe Onetime::Operations::Domains::Remove do
   # ------------------------------------------------------------------ #
@@ -40,6 +41,7 @@ RSpec.describe Onetime::Operations::Domains::Remove do
       instance_double(
         Onetime::CustomDomain,
         objid: 'cd-obj-1',
+        identifier: 'cd-obj-1',
         domainid: 'cd-obj-1',
         extid: 'cd_ext1',
         display_domain: 'secrets.example.com',
@@ -59,8 +61,11 @@ RSpec.describe Onetime::Operations::Domains::Remove do
 
     let(:sender_op) { double('DeleteSenderDomain', call: nil) }
 
+    let(:lock) { double('Familia::Lock', acquire: 'lock-token', release: true) }
+
     before do
       allow(Onetime::ColonelAuditEvent).to receive(:record)
+      allow(Onetime::CustomDomain::MailerConfig).to receive(:sender_identity_lock).and_return(lock)
       allow(Onetime::Organization).to receive(:load).with('org-1').and_return(org)
       allow(Onetime::CustomDomain).to receive(:display_domain_index).and_return(index)
       allow(Onetime::DomainValidation::Strategy).to receive(:for_config).and_return(strategy)
@@ -83,6 +88,7 @@ RSpec.describe Onetime::Operations::Domains::Remove do
 
         expect(domain).not_to have_received(:destroy!)
         expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+        expect(lock).not_to have_received(:acquire)
       end
     end
 
@@ -118,6 +124,60 @@ RSpec.describe Onetime::Operations::Domains::Remove do
 
         expect(org).not_to have_received(:remove_domain)
       end
+
+      it "holds the domain's sender identity lock from the teardown through destroy!" do
+        calls = []
+        allow(lock).to receive(:acquire) do
+          calls << :acquire
+          'lock-token'
+        end
+        allow(strategy).to receive(:delete_vhost) do
+          calls << :delete_vhost
+          { message: 'noop' }
+        end
+        allow(sender_op).to receive(:call) { calls << :delete_sender_domain }
+        allow(domain).to receive(:destroy!) { calls << :destroy! }
+        allow(lock).to receive(:release) { calls << :release }
+
+        described_class.new(domain: domain, actor: actor, dry_run: false).call
+
+        expect(Onetime::CustomDomain::MailerConfig).to have_received(:sender_identity_lock).with('cd-obj-1')
+        expect(lock).to have_received(:acquire).with(ttl: 60)
+        expect(lock).to have_received(:release).with('lock-token')
+        expect(calls).to eq([:acquire, :delete_vhost, :delete_sender_domain, :destroy!, :release])
+      end
+    end
+
+    # Provisioning, a sender config delete, or another removal holds the lock:
+    # refuse before any teardown, and record the refused attempt.
+    describe 'while another holder has the sender identity lock' do
+      before { allow(lock).to receive(:acquire).and_return(false) }
+
+      it 'raises SenderIdentityBusy and tears nothing down' do
+        expect do
+          described_class.new(domain: domain, actor: actor, dry_run: false).call
+        end.to raise_error(described_class::SenderIdentityBusy, /secrets\.example\.com/)
+
+        expect(strategy).not_to have_received(:delete_vhost)
+        expect(Onetime::Operations::DeleteSenderDomain).not_to have_received(:new)
+        expect(domain).not_to have_received(:destroy!)
+        expect(lock).not_to have_received(:release)
+      end
+
+      it 'records one domain.remove failure' do
+        expect do
+          described_class.new(domain: domain, actor: actor, dry_run: false).call
+        end.to raise_error(described_class::SenderIdentityBusy)
+
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+          hash_including(
+            verb: 'domain.remove',
+            target: 'cd_ext1',
+            result: :failure,
+            detail: hash_including(error: described_class::SenderIdentityBusy.name, dry_run: false),
+          ),
+        )
+      end
     end
 
     # 3. orphaned domain (org_id blank) — org loads nil, still destroys + audits.
@@ -126,6 +186,7 @@ RSpec.describe Onetime::Operations::Domains::Remove do
         instance_double(
           Onetime::CustomDomain,
           objid: 'cd-orphan',
+          identifier: 'cd-orphan',
           domainid: 'cd-orphan',
           extid: 'cd_orphan',
           display_domain: 'orphan.example.com',
@@ -182,6 +243,13 @@ RSpec.describe Onetime::Operations::Domains::Remove do
         )
       end
 
+      it 'releases the sender identity lock' do
+        expect do
+          described_class.new(domain: domain, actor: actor, dry_run: false).call
+        end.to raise_error(Familia::Problem)
+
+        expect(lock).to have_received(:release).with('lock-token')
+      end
     end
 
     # dry_run defaults to TRUE and the success event is applied-path-only (a
@@ -334,6 +402,77 @@ RSpec.describe Onetime::Operations::Domains::Remove do
       expect(index.get(fqdn)).to be_nil
       expect(domain.exists?).to be false
       expect(Onetime::ColonelAuditEvent).to have_received(:record).once
+    end
+
+    # Provisioning and the removal's provider teardown share this lock. A
+    # provision between the teardown and destroy! would register the identity
+    # again, and destroy! would then delete the only record of it.
+    context 'with the sender identity lock' do
+      let(:model) { Onetime::CustomDomain::MailerConfig }
+      let(:domain) { create_domain(unique_fqdn('lock'), "org-#{SecureRandom.hex(3)}") }
+      let(:lock) { model.sender_identity_lock(domain.identifier) }
+
+      before do
+        model.create!(
+          domain_id: domain.identifier,
+          provider: 'ses',
+          from_address: 'remove-lock@example.com',
+        )
+      end
+
+      def stub_teardown
+        allow_any_instance_of(Onetime::Operations::DeleteSenderDomain).to receive(:call) do
+          yield
+          Onetime::Operations::DeleteSenderDomain::Result.new(success: true, message: 'stubbed', error: nil)
+        end
+      end
+
+      def provision(config, strategy)
+        Onetime::Operations::ProvisionSenderDomain.new(mailer_config: config, strategy: strategy).call
+      end
+
+      it 'refuses and keeps the domain and its sender config while another holder has the lock' do
+        token = lock.acquire(ttl: 60)
+
+        expect do
+          described_class.new(domain: domain, actor: 'cli', dry_run: false).call
+        end.to raise_error(described_class::SenderIdentityBusy)
+
+        expect(domain.exists?).to be true
+        expect(model.exists_for_domain?(domain.identifier)).to be true
+      ensure
+        lock.release(token)
+      end
+
+      it 'holds the lock from the provider teardown through destroy!' do
+        seen = {}
+        stub_teardown { seen[:teardown] = [lock.locked?, model.exists_for_domain?(domain.identifier)] }
+        allow(domain).to receive(:destroy!).and_wrap_original do |original|
+          seen[:destroy] = lock.locked?
+          original.call
+        end
+
+        result = described_class.new(domain: domain, actor: 'cli', dry_run: false).call
+
+        expect(result.status).to eq(:removed)
+        expect(seen).to eq(teardown: [true, true], destroy: true)
+        expect(lock.locked?).to be false
+        expect(model.exists_for_domain?(domain.identifier)).to be false
+      end
+
+      it 'does not provision during the removal, nor afterwards from a config loaded before it' do
+        stale       = model.find_by_domain_id(domain.identifier)
+        strategy    = spy('sender strategy')
+        provisioned = nil
+        stub_teardown { provisioned = provision(stale, strategy) }
+
+        described_class.new(domain: domain, actor: 'cli', dry_run: false).call
+        after_removal = provision(stale, strategy)
+
+        expect(provisioned.error).to include('already in progress')
+        expect(after_removal.error).to include('was deleted')
+        expect(strategy).not_to have_received(:provision_dns_records)
+      end
     end
   end
 end

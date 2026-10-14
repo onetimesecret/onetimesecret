@@ -193,6 +193,15 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
     JSON.parse(last_response.body)
   end
 
+  # Replaces the provider teardown with the block, which runs at the moment
+  # the teardown would.
+  def stub_teardown
+    allow_any_instance_of(Onetime::Operations::DeleteSenderDomain).to receive(:call) do
+      yield
+      Onetime::Operations::DeleteSenderDomain::Result.new(success: true, message: 'stubbed', error: nil)
+    end
+  end
+
   def csrf_patch(path, params = {})
     csrf_token = ensure_csrf_token
 
@@ -850,13 +859,6 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
         let(:model) { Onetime::CustomDomain::MailerConfig }
         let(:lock) { model.sender_identity_lock(test_custom_domain.identifier) }
 
-        def stub_teardown
-          allow_any_instance_of(Onetime::Operations::DeleteSenderDomain).to receive(:call) do
-            yield
-            Onetime::Operations::DeleteSenderDomain::Result.new(success: true, message: 'stubbed', error: nil)
-          end
-        end
-
         it 'refuses with a conflict and keeps the record while another holder has the lock' do
           token = lock.acquire(ttl: 60)
 
@@ -936,6 +938,88 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
         csrf_delete api_path(test_custom_domain.extid)
 
         expect(last_response.status).to eq(403)
+      end
+    end
+  end
+
+  # ==========================================================================
+  # POST /api/domains/:extid/remove - Remove Domain (sender identity teardown)
+  # ==========================================================================
+
+  # Removing a domain tears down its sender identity at the provider, then
+  # destroy! deletes the sender config with the domain's other configs. A
+  # provision between the two would register the identity again, and
+  # destroy! would then delete the only record of it, so the removal holds
+  # the sender identity lock across both.
+  describe 'POST /api/domains/:extid/remove' do
+    let(:model) { Onetime::CustomDomain::MailerConfig }
+    let(:lock) { model.sender_identity_lock(test_custom_domain.identifier) }
+
+    def remove_path(domain_extid)
+      "/api/domains/#{domain_extid}/remove"
+    end
+
+    before do
+      model.create!(
+        domain_id: test_custom_domain.identifier,
+        provider: 'ses',
+        from_address: 'remove-test@example.com',
+      )
+      login_as(test_owner)
+    end
+
+    context 'with the sender identity lock' do
+      it 'refuses with a conflict and keeps the domain while another holder has the lock' do
+        token = lock.acquire(ttl: 60)
+
+        csrf_post remove_path(test_custom_domain.extid)
+
+        expect(last_response.status).to eq(422)
+        expect(json_body['error']).to include('in progress')
+        expect(test_custom_domain.exists?).to be true
+        expect(model.exists_for_domain?(test_custom_domain.identifier)).to be true
+      ensure
+        lock.release(token)
+      end
+
+      it 'holds the lock from the provider teardown through destroy!' do
+        seen = {}
+        stub_teardown do
+          seen[:teardown] = [lock.locked?, model.exists_for_domain?(test_custom_domain.identifier)]
+        end
+        allow_any_instance_of(Onetime::CustomDomain).to receive(:destroy!).and_wrap_original do |original|
+          seen[:destroy] = lock.locked?
+          original.call
+        end
+
+        csrf_post remove_path(test_custom_domain.extid)
+
+        expect(last_response.status).to eq(200), last_response.body
+        expect(seen).to eq(teardown: [true, true], destroy: true)
+        expect(lock.locked?).to be false
+        expect(test_custom_domain.exists?).to be false
+        expect(model.exists_for_domain?(test_custom_domain.identifier)).to be false
+      end
+
+      it 'does not provision during the removal, nor afterwards from a config loaded before it' do
+        stale       = model.find_by_domain_id(test_custom_domain.identifier)
+        strategy    = spy('sender strategy')
+        provisioned = nil
+        stub_teardown do
+          provisioned = Onetime::Operations::ProvisionSenderDomain.new(
+            mailer_config: stale, strategy: strategy,
+          ).call
+        end
+
+        csrf_post remove_path(test_custom_domain.extid)
+        after_removal = Onetime::Operations::ProvisionSenderDomain.new(
+          mailer_config: stale, strategy: strategy,
+        ).call
+
+        expect(last_response.status).to eq(200), last_response.body
+        expect(provisioned.error).to include('already in progress')
+        expect(after_removal.error).to include('was deleted')
+        expect(strategy).not_to have_received(:provision_dns_records)
       end
     end
   end

@@ -56,17 +56,33 @@ module DomainsAPI::Logic
         @greenlighted   = true
         @display_domain = @custom_domain.display_domain
 
-        # Delete from external SSL provider via strategy
-        delete_vhost
+        # Hold the domain's sender identity lock from the provider teardown
+        # through destroy!, and refuse while provisioning holds it. A
+        # provision that ran in between would register the identity again
+        # after the teardown, and destroy! would then delete the only record
+        # of it. Taken before the first teardown step, so a refusal leaves
+        # the domain as it was.
+        lock       = Onetime::CustomDomain::MailerConfig.sender_identity_lock(@custom_domain.identifier)
+        lock_token = lock.acquire(ttl: 60)
+        unless lock_token
+          raise_form_error("Another change to this domain's sender configuration is in progress. Please try again.", field: :extid, error_type: :conflict)
+        end
 
-        # Delete from external mail provider before destroy! wipes mailer_config
-        delete_sender_domain
+        begin
+          # Delete from external SSL provider via strategy
+          delete_vhost
 
-        # Destroy method operates inside a multi block that deletes the domain
-        # record, removes it from customer's domain list, and global list so
-        # it's all or nothing. It does not delete the external approximated
-        # vhost record.
-        @custom_domain.destroy!
+          # Delete from external mail provider before destroy! wipes mailer_config
+          delete_sender_domain
+
+          # Destroy method operates inside a multi block that deletes the domain
+          # record, removes it from customer's domain list, and global list so
+          # it's all or nothing. It does not delete the external approximated
+          # vhost record.
+          @custom_domain.destroy!
+        ensure
+          lock.release(lock_token)
+        end
 
         # Clear the session's domain context if it matches the removed domain.
         # Route is sessionauth-only, so sess is always a real Rack session.

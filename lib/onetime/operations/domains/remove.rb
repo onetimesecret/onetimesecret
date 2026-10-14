@@ -24,7 +24,8 @@ module Onetime
       #
       # The apply path mirrors DomainsAPI::Logic::Domains::RemoveDomain#process
       # VERBATIM: delete the external vhost (strategy), delete the external sender
-      # identity BEFORE destroy! wipes mailer_config, then destroy!. It does NOT
+      # identity BEFORE destroy! wipes mailer_config, then destroy!, all under the
+      # domain's sender identity lock (see SenderIdentityBusy). It does NOT
       # call org.remove_domain — CustomDomain#destroy! already removes org
       # participation internally (custom_domain.rb:457-460); adding it would be a
       # redundant second removal against the same collection.
@@ -48,6 +49,15 @@ module Onetime
         include Onetime::Operations::AuditAttempt
 
         AUDIT_VERB = 'domain.remove'
+
+        # Raised by an apply, before any teardown, while another holder has
+        # the domain's sender identity lock (MailerConfig.sender_identity_lock):
+        # provisioning, a sender config delete, or another removal. The apply
+        # holds that lock from the teardown through destroy!. A provision
+        # that ran in between would register the identity again after the
+        # teardown, and destroy! would then delete the only record of it.
+        # audit_failures records the refused attempt like any other raise.
+        class SenderIdentityBusy < StandardError; end
 
         # A destructive verb: a removal that blows up partway leaves the fleet in
         # an unknown state, so the attempt must be in the trail even though the
@@ -125,9 +135,22 @@ module Onetime
           end
 
           # --- APPLY: teardown mirrors RemoveDomain#process (NO org.remove_domain) ---
-          delete_vhost(@domain)
-          Onetime::Operations::DeleteSenderDomain.new(mailer_config: @domain.mailer_config).call
-          @domain.destroy! # Familia 'super' HDELs display_domain_index[fqdn] here
+          # Under the domain's sender identity lock from the first teardown
+          # step through destroy!; see SenderIdentityBusy.
+          lock       = Onetime::CustomDomain::MailerConfig.sender_identity_lock(@domain.identifier)
+          lock_token = lock.acquire(ttl: 60)
+          unless lock_token
+            raise SenderIdentityBusy,
+              "Another change to the sender configuration of #{plan.display_domain} is in progress. Try again."
+          end
+
+          begin
+            delete_vhost(@domain)
+            Onetime::Operations::DeleteSenderDomain.new(mailer_config: @domain.mailer_config).call
+            @domain.destroy! # Familia 'super' HDELs display_domain_index[fqdn] here
+          ensure
+            lock.release(lock_token)
+          end
 
           # --- CONDITIONAL INDEX RE-ASSERTION ---
           # Best-effort: destroy! has already committed, so a failure here must
