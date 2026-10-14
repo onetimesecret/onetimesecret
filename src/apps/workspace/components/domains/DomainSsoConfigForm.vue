@@ -538,27 +538,40 @@ const handleDelete = () => {
 };
 
 /**
- * Weak test-before-enable warning (#4111 part 4).
- *
- * Deliberately NOT a gate: the availability ladder still guards runtime, and
- * blocking the save would strand the #4107 cohort (configs saved with live
- * intent, flag-stuck since June) with no way to turn their connection back on.
- * Industry practice (Okta/Auth0/WorkOS) sequences activation after a test, so
- * we advise the same order and let the operator proceed.
- *
- * Scope is this editing session: the record carries no "has ever passed a
- * test" field, so the only honest claim is about the test run here. Warning on
- * every already-enabled config would be noise on every open, so it fires only
- * when the operator flips the toggle ON without a passing test in view; it
- * clears when they flip it back off, when a test passes, or when a different
- * domain's config is loaded into this reused instance.
+ * Advisory only: recovery saves must remain possible. Discovery alone cannot
+ * clear this warning because it does not exercise the saved credentials.
+ * Compare credential fields with the saved record so switching activation on
+ * does not invalidate a passing diagnostic, but entering a new secret does.
  */
 const connectionEnabledTouchedOn = ref(false);
 
-const testPassedThisSession = computed(() => props.testResult?.success === true);
+const savedCredentialsMatchForm = computed(() => {
+  const record = props.ssoConfig;
+  const form = props.formState;
+  if (!record || form.provider_type !== record.provider_type) return false;
+  if (isSaml.value) {
+    return (['idp_sso_service_url', 'idp_entity_id', 'idp_cert'] as const).every(
+      (field) => form[field].trim() === (record[field] ?? '').trim()
+    );
+  }
+  if (form.client_secret.trim() || form.client_id.trim() !== (record.client_id ?? '').trim()) {
+    return false;
+  }
+  return requiresTenantId.value
+    ? form.tenant_id.trim() === (record.tenant_id ?? '').trim()
+    : form.issuer.trim() === (record.issuer ?? '').trim() &&
+        form.token_endpoint_auth_method === (record.token_endpoint_auth_method ?? '');
+});
+
+const savedChecksPassed = computed(
+  () =>
+    props.isConfigured &&
+    props.diagnosticsResult?.overall === 'passed' &&
+    savedCredentialsMatchForm.value
+);
 
 const showEnableUntestedWarning = computed(
-  () => connectionEnabledTouchedOn.value && props.formState.enabled && !testPassedThisSession.value
+  () => connectionEnabledTouchedOn.value && props.formState.enabled && !savedChecksPassed.value
 );
 
 const handleConnectionEnabledChange = (value: boolean) => {

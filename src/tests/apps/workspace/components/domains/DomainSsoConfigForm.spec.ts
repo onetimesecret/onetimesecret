@@ -199,7 +199,7 @@ interface MountOptions {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('DomainSsoConfigForm', () => {
-  let wrapper: VueWrapper;
+  let wrapper: VueWrapper<InstanceType<typeof DomainSsoConfigForm>>;
   let pinia: ReturnType<typeof createTestingPinia>;
 
   beforeEach(() => {
@@ -259,6 +259,18 @@ describe('DomainSsoConfigForm', () => {
     await flushPromises();
     return component;
   };
+
+  const diagnostics = (
+    overall: SsoDiagnosticsResponse['overall'],
+    checks: SsoDiagnosticCheck[]
+  ): SsoDiagnosticsResponse => ({
+    user_id: 'cust_456',
+    provider_type: 'entra_id',
+    checked_at: '2026-10-12T10:00:00Z',
+    configuration_revision: '1760263200',
+    overall,
+    checks,
+  });
 
   describe('First-time setup sequence', () => {
     it.each([
@@ -849,18 +861,6 @@ describe('DomainSsoConfigForm', () => {
       status,
       message: `${name} ${status}`,
       details,
-    });
-
-    const diagnostics = (
-      overall: SsoDiagnosticsResponse['overall'],
-      checks: SsoDiagnosticCheck[]
-    ): SsoDiagnosticsResponse => ({
-      user_id: 'cust_456',
-      provider_type: 'entra_id',
-      checked_at: '2026-10-12T10:00:00Z',
-      configuration_revision: '1760263200',
-      overall,
-      checks,
     });
 
     it('shows diagnostics and a disabled run button with save-first guidance before saving', async () => {
@@ -2015,29 +2015,49 @@ describe('DomainSsoConfigForm', () => {
   });
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // Weak test-before-enable warning (#4111)
+  // Diagnostics-before-enable warning (#4111)
   //
-  // Advisory only — never a gate. The record carries no "has ever passed a
-  // test" field, so the warning speaks about THIS editing session: it fires
-  // when the operator turns the connection on without a passing test in view,
-  // and stays silent for configs that merely load enabled (that would be noise
-  // on every open, and would punish the #4107 flag-stuck cohort).
+  // Advisory only — never a gate. Passing provider checks do not clear it:
+  // saved diagnostics must pass and the form's provider credentials must
+  // still match that record. Unrelated edits, including enabling alone, do
+  // not invalidate that evidence. Merely loading an enabled config is silent.
   //
   // The toggle is prop-controlled, so each test flips it and then applies the
   // parent's formState update, exactly as SsoCredentialsModal does.
   // ─────────────────────────────────────────────────────────────────────────────
 
-  describe('test-before-enable warning (#4111)', () => {
+  describe('diagnostics-before-enable warning (#4111)', () => {
     const TOGGLE = '[data-testid="sso-connection-enabled-toggle"]';
     const WARNING = '[data-testid="sso-enable-untested-warning"]';
     const passingTest: TestSsoConnectionResponse = {
+      user_id: 'cust_456',
+      provider_type: 'entra_id',
       success: true,
       message: 'ok',
-    } as TestSsoConnectionResponse;
+      details: {},
+    };
+    const passingDiagnostics = diagnostics('passed', [
+      {
+        check: 'credential',
+        status: 'passed',
+        message: 'Stored credentials passed',
+        details: {},
+      },
+    ]);
+    const mountDisabled = (options: MountOptions = {}) =>
+      mountComponent({
+        formState: { ...mockExistingFormState, enabled: false },
+        ssoConfig: { ...mockExistingConfig, enabled: false },
+        isConfigured: true,
+        ...options,
+      });
 
-    const turnOn = async (w: VueWrapper) => {
+    const turnOn = async (w: VueWrapper<InstanceType<typeof DomainSsoConfigForm>>) => {
       await w.find(TOGGLE).trigger('click');
-      await w.setProps({ formState: { ...mockExistingFormState, enabled: true } });
+      await w.setProps({
+        formState: { ...w.props('formState'), enabled: true },
+        hasUnsavedChanges: true,
+      });
     };
 
     it('is silent on a fresh form', async () => {
@@ -2047,17 +2067,15 @@ describe('DomainSsoConfigForm', () => {
 
     it('is silent for a config that merely loads enabled', async () => {
       wrapper = await mountComponent({
-        formState: { ...mockExistingFormState, enabled: true },
+        formState: mockExistingFormState,
+        ssoConfig: mockExistingConfig,
         isConfigured: true,
       });
       expect(wrapper.find(WARNING).exists()).toBe(false);
     });
 
-    it('warns when the connection is switched on with no passing test in this session', async () => {
-      wrapper = await mountComponent({
-        formState: { ...mockExistingFormState, enabled: false },
-        isConfigured: true,
-      });
+    it('warns when the connection is switched on without passing saved diagnostics', async () => {
+      wrapper = await mountDisabled();
 
       await turnOn(wrapper);
 
@@ -2068,50 +2086,218 @@ describe('DomainSsoConfigForm', () => {
       expect(warning.text()).toContain('web.organizations.sso.enable_untested_warning');
     });
 
-    it('does not gate the save — the form stays submittable', async () => {
-      wrapper = await mountComponent({
-        formState: { ...mockExistingFormState, enabled: false },
-        isConfigured: true,
-      });
+    it('does not gate either save action or the save event', async () => {
+      wrapper = await mountDisabled();
+      await turnOn(wrapper);
+
+      expect(wrapper.find(WARNING).exists()).toBe(true);
+      expect(wrapper.get('button[type="submit"]').attributes('disabled')).toBeUndefined();
+      const diagnosticsSave = wrapper.get('[data-testid="sso-diagnostics-save"]');
+      expect(diagnosticsSave.attributes('disabled')).toBeUndefined();
+      await diagnosticsSave.trigger('click');
+      expect(wrapper.emitted('save')).toHaveLength(1);
+      await wrapper.get('form').trigger('submit');
+      expect(wrapper.emitted('save')).toHaveLength(2);
+    });
+
+    it('still warns when a provider check passed before activation', async () => {
+      wrapper = await mountDisabled({ testResult: passingTest });
 
       await turnOn(wrapper);
 
       expect(wrapper.find(WARNING).exists()).toBe(true);
-      const submit = wrapper.find('button[type="submit"]');
-      expect(submit.attributes('disabled')).toBeUndefined();
     });
 
-    it('stays silent when a connection test passed in this session', async () => {
-      wrapper = await mountComponent({
-        formState: { ...mockExistingFormState, enabled: false },
-        isConfigured: true,
-        testResult: passingTest,
-      });
-
-      await turnOn(wrapper);
-
-      expect(wrapper.find(WARNING).exists()).toBe(false);
-    });
-
-    it('clears once a test passes after the toggle was switched on', async () => {
-      wrapper = await mountComponent({
-        formState: { ...mockExistingFormState, enabled: false },
-        isConfigured: true,
-      });
-
+    it('does not clear when a provider check passes after activation', async () => {
+      wrapper = await mountDisabled();
       await turnOn(wrapper);
       expect(wrapper.find(WARNING).exists()).toBe(true);
 
       await wrapper.setProps({ testResult: passingTest });
+      expect(wrapper.find(WARNING).exists()).toBe(true);
+    });
+
+    it('accepts matching saved diagnostics despite enabled-only unsaved changes and an empty new secret', async () => {
+      wrapper = await mountDisabled({ diagnosticsResult: passingDiagnostics });
+
+      await turnOn(wrapper);
+
+      expect(wrapper.props('hasUnsavedChanges')).toBe(true);
+      expect(wrapper.props('formState').client_secret).toBe('');
+      expect(wrapper.find(WARNING).exists()).toBe(false);
+      expect(
+        wrapper.get('[data-testid="sso-diagnostics-run"]').attributes('disabled')
+      ).toBeDefined();
+    });
+
+    it('accepts matching saved OIDC credentials with an explicitly selected auth method', async () => {
+      wrapper = await mountDisabled({
+        formState: {
+          ...mockExistingFormState,
+          provider_type: 'oidc',
+          tenant_id: '',
+          issuer: 'https://idp.example.com',
+          token_endpoint_auth_method: 'client_secret_post',
+          enabled: false,
+        },
+        ssoConfig: {
+          ...mockExistingConfig,
+          provider_type: 'oidc',
+          tenant_id: null,
+          issuer: 'https://idp.example.com',
+          token_endpoint_auth_method: 'client_secret_post',
+          enabled: false,
+        },
+        diagnosticsResult: { ...passingDiagnostics, provider_type: 'oidc' },
+      });
+
+      await turnOn(wrapper);
+
       expect(wrapper.find(WARNING).exists()).toBe(false);
     });
 
-    it('clears when the connection is switched back off', async () => {
-      wrapper = await mountComponent({
-        formState: { ...mockExistingFormState, enabled: false },
-        isConfigured: true,
+    it.each(['failed', 'inconclusive'] as const)(
+      'still warns for %s diagnostics even with a passing provider check',
+      async (overall) => {
+        wrapper = await mountDisabled({
+          testResult: passingTest,
+          diagnosticsResult: { ...passingDiagnostics, overall },
+        });
+
+        await turnOn(wrapper);
+
+        expect(wrapper.find(WARNING).exists()).toBe(true);
+      }
+    );
+
+    it('does not accept passing diagnostics before the configuration is saved', async () => {
+      wrapper = await mountDisabled({
+        isConfigured: false,
+        diagnosticsResult: passingDiagnostics,
       });
 
+      await turnOn(wrapper);
+
+      expect(wrapper.find(WARNING).exists()).toBe(true);
+    });
+
+    it('does not accept passing diagnostics without a saved record to compare', async () => {
+      wrapper = await mountDisabled({ ssoConfig: null, diagnosticsResult: passingDiagnostics });
+
+      await turnOn(wrapper);
+
+      expect(wrapper.find(WARNING).exists()).toBe(true);
+    });
+
+    it('clears once saved diagnostics pass for matching credentials after activation', async () => {
+      wrapper = await mountDisabled();
+      await turnOn(wrapper);
+      expect(wrapper.find(WARNING).exists()).toBe(true);
+
+      await wrapper.setProps({ diagnosticsResult: passingDiagnostics });
+      expect(wrapper.find(WARNING).exists()).toBe(false);
+    });
+
+    it.each([
+      ['provider_type', 'oidc'],
+      ['client_id', 'different-client'],
+      ['tenant_id', 'different-tenant'],
+      ['issuer', 'https://different-idp.example.com'],
+      ['token_endpoint_auth_method', 'client_secret_post'],
+      ['client_secret', 'replacement-secret'],
+    ] as const)(
+      'warns again when %s changes after passing saved diagnostics',
+      async (field, value) => {
+        const oidc = field === 'issuer' || field === 'token_endpoint_auth_method';
+        const formState: SsoConfigFormState = oidc
+          ? {
+              ...mockExistingFormState,
+              provider_type: 'oidc',
+              tenant_id: '',
+              issuer: 'https://idp.example.com',
+            }
+          : mockExistingFormState;
+        const ssoConfig: CustomDomainSsoConfig = oidc
+          ? {
+              ...mockExistingConfig,
+              provider_type: 'oidc',
+              tenant_id: null,
+              issuer: 'https://idp.example.com',
+            }
+          : mockExistingConfig;
+        wrapper = await mountDisabled({
+          formState: { ...formState, enabled: false },
+          ssoConfig: { ...ssoConfig, enabled: false },
+          diagnosticsResult: { ...passingDiagnostics, provider_type: formState.provider_type },
+          testResult: passingTest,
+        });
+        await turnOn(wrapper);
+        expect(wrapper.find(WARNING).exists()).toBe(false);
+
+        await wrapper.setProps({ formState: { ...formState, enabled: true, [field]: value } });
+        expect(wrapper.find(WARNING).exists()).toBe(true);
+
+        await wrapper.setProps({ formState: { ...formState, enabled: true } });
+        expect(wrapper.find(WARNING).exists()).toBe(false);
+      }
+    );
+
+    it.each([
+      ['idp_sso_service_url', 'https://different-idp.example.com/sso'],
+      ['idp_entity_id', 'https://different-idp.example.com/entity'],
+      ['idp_cert', '-----BEGIN CERTIFICATE-----\nREPLACEMENT\n-----END CERTIFICATE-----'],
+    ] as const)(
+      'warns again when SAML %s changes after passing saved diagnostics',
+      async (field, value) => {
+        wrapper = await mountDisabled({
+          formState: mockSamlFormState,
+          ssoConfig: { ...mockSamlConfig, enabled: false },
+          diagnosticsResult: {
+            ...diagnostics('passed', [
+              {
+                check: 'certificate',
+                status: 'passed',
+                message: 'Certificate passed',
+                details: {},
+              },
+            ]),
+            provider_type: 'saml',
+          },
+        });
+        await turnOn(wrapper);
+        expect(wrapper.find(WARNING).exists()).toBe(false);
+
+        await wrapper.setProps({
+          formState: { ...mockSamlFormState, enabled: true, [field]: value },
+        });
+        expect(wrapper.find(WARNING).exists()).toBe(true);
+
+        await wrapper.setProps({ formState: { ...mockSamlFormState, enabled: true } });
+        expect(wrapper.find(WARNING).exists()).toBe(false);
+      }
+    );
+
+    it.each([
+      ['display_name', 'Renamed connection'],
+      ['enforce_sso_only', true],
+      ['grant_org_scope', true],
+    ] as const)(
+      'keeps matching diagnostics accepted when only %s changes',
+      async (field, value) => {
+        wrapper = await mountDisabled({ diagnosticsResult: passingDiagnostics });
+        await turnOn(wrapper);
+
+        await wrapper.setProps({
+          formState: { ...mockExistingFormState, enabled: true, [field]: value },
+          hasUnsavedChanges: true,
+        });
+
+        expect(wrapper.find(WARNING).exists()).toBe(false);
+      }
+    );
+
+    it('clears when the connection is switched back off', async () => {
+      wrapper = await mountDisabled();
       await turnOn(wrapper);
       await wrapper.find(TOGGLE).trigger('click');
       await wrapper.setProps({ formState: { ...mockExistingFormState, enabled: false } });
@@ -2120,11 +2306,7 @@ describe('DomainSsoConfigForm', () => {
     });
 
     it('clears when a different domain is loaded into the reused instance', async () => {
-      wrapper = await mountComponent({
-        formState: { ...mockExistingFormState, enabled: false },
-        isConfigured: true,
-      });
-
+      wrapper = await mountDisabled();
       await turnOn(wrapper);
       expect(wrapper.find(WARNING).exists()).toBe(true);
 

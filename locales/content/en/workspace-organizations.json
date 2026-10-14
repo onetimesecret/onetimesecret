@@ -1068,9 +1068,9 @@
     "content_hash": "871db2f1"
   },
   "web.organizations.sso.enable_untested_warning": {
-    "text": "This connection has not passed a test here yet. Run Test connection before turning it on, so a broken setup never reaches your sign-in page.",
-    "context": "Advisory warning beside the Connection active toggle when it is switched on without a successful connection test in the current editing session. Not a hard block.",
-    "content_hash": "c1fbdeca"
+    "text": "The saved configuration has not passed its checks for these credentials here yet. Save your changes, then check the saved configuration. Checking provider settings alone does not confirm sign-in works.",
+    "context": "Advisory warning when Connection active is switched on without passing saved-configuration checks matching the current credentials. Does not block saving or activation.",
+    "content_hash": "9f1ac369"
   },
   "web.organizations.sso.enforce_sso_only": {
     "text": "Enforce SSO only",
