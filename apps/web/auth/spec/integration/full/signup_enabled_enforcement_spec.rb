@@ -62,7 +62,7 @@ RSpec.describe 'per-domain signup_enabled enforcement — full mode (ADR-024 cus
     @original_domains_config       = OT.conf.dig('features', 'domains') || {}
     OT.conf['features']['domains'] = @original_domains_config.merge(
       'enabled' => true,
-      'default' => CANONICAL_HOST,
+      'default' => operator_host,
     )
     Onetime::Middleware::DomainStrategy.initialize_from_config(OT.conf['features']['domains'])
   end
@@ -79,7 +79,12 @@ RSpec.describe 'per-domain signup_enabled enforcement — full mode (ADR-024 cus
   # The two base domains must differ: saving a new CustomDomain whose base
   # domain matches an anchor host raises (CustomDomain.refuse_canonical_overlap!,
   # the check create! applies).
-  CANONICAL_HOST = 'operator-signup-gate.example.org'
+  # A method, not a constant: a constant assigned inside a describe block is
+  # defined on Object, so two files that use the same name overwrite each
+  # other in one process.
+  def operator_host
+    'operator-signup-gate.example.org'
+  end
 
   let(:run_id)   { SecureRandom.hex(6) }
   let(:password) { 'TestPassword123!' }
@@ -250,12 +255,12 @@ RSpec.describe 'per-domain signup_enabled enforcement — full mode (ADR-024 cus
         orig.call(env)
       end
 
-      post_as(CANONICAL_HOST, '/auth/create-account', signup_params("probe-#{run_id}@example.com"))
+      post_as(operator_host, '/auth/create-account', signup_params("probe-#{run_id}@example.com"))
       expect(seen).to eq(:canonical)
     end
 
     it 'creates accounts per the operator default — untouched by the per-domain gate' do
-      response = post_as(CANONICAL_HOST, '/auth/create-account', signup_params("canon-#{run_id}@example.com"))
+      response = post_as(operator_host, '/auth/create-account', signup_params("canon-#{run_id}@example.com"))
 
       expect(response.status).to eq(200),
         "the canonical host must follow the operator default (got #{response.status}: #{response.body[0, 300]})"
