@@ -79,6 +79,20 @@ RSpec.describe Onetime::Operations::Domains::CanonicalIndexBackfill, :datastore 
     result.entries.select { |entry| keys.include?(entry.canonical) }.to_h { |entry| [entry.canonical, entry.category] }
   end
 
+  # Stands in for the canonical index, overriding the given methods; the
+  # rest reach the real index.
+  def with_index(overrides)
+    real    = index
+    wrapper = Class.new(SimpleDelegator) do
+      overrides.each { |method, body| define_method(method) { |*args| body.call(__getobj__, *args) } }
+    end.new(real)
+    allow(model).to receive(:canonical_display_domain_index).and_return(wrapper)
+  end
+
+  def outcome_for(result, id)
+    result.actions.find { |a| a.domain_id == id }&.outcome
+  end
+
   # A crafted A-label whose decoded Unicode NFC-normalises to the same name as
   # bücher-#{sfx}: punycode of the decomposed spelling. It is a different DNS
   # name and must stay keyed under itself.
@@ -237,6 +251,12 @@ RSpec.describe Onetime::Operations::Domains::CanonicalIndexBackfill, :datastore 
       expect(model.find_by_identifier(id_of(:nfd)).display_domain).to eq("bu\u0308cher-#{sfx}.com")
     end
 
+    it 'reports the state after the writes' do
+      after = expected_categories.transform_values { |category| [:missing, :stale].include?(category) ? :ok : category }
+
+      expect(categories(result.final_audit, fixture_ids)).to eq(after)
+    end
+
     it 'reports the writes it made and still asks for an operator' do
       mine = result.changes.select { |a| fixture_ids.include?(a.domain_id) || unmatched_keys.include?(a.canonical) }
 
@@ -263,18 +283,6 @@ RSpec.describe Onetime::Operations::Domains::CanonicalIndexBackfill, :datastore 
 
     before { legacy!(:race, race_name) }
 
-    def with_index(overrides)
-      real    = index
-      wrapper = Class.new(SimpleDelegator) do
-        overrides.each { |method, body| define_method(method) { |*args| body.call(__getobj__, *args) } }
-      end.new(real)
-      allow(model).to receive(:canonical_display_domain_index).and_return(wrapper)
-    end
-
-    def outcome_for(result, id)
-      result.actions.find { |a| a.domain_id == id }&.outcome
-    end
-
     it 'reports :refused when another record holds the name by the time it claims' do
       with_index(claim_field: ->(_real, _field, _val) { "someone-#{sfx}" })
 
@@ -289,6 +297,79 @@ RSpec.describe Onetime::Operations::Domains::CanonicalIndexBackfill, :datastore 
       result = described_class.new(dry_run: false).call
 
       expect([outcome_for(result, id_of(:race)), index.get(canonical(race_name))]).to eq([:unverified, nil])
+    end
+
+    # The audit after the writes decides, whatever the action reported.
+    it 'asks for an operator when a skipped claim leaves the record missing' do
+      op = described_class.new(dry_run: false)
+      allow(op).to receive(:record_exists?).and_wrap_original { |original, id| id == id_of(:race) ? false : original.call(id) }
+
+      result = op.call
+      row    = result.final_audit.rows.find { |r| r.domain_id == id_of(:race) }
+
+      expect([outcome_for(result, id_of(:race)), row.category, result.attention?]).to eq([:skipped, :missing, true])
+    end
+  end
+
+  describe 'an apply where a write raises' do
+    let(:failing_name) { "raise-ü-#{sfx}.com" }
+    let(:other_name) { "after-ü-#{sfx}.com" }
+
+    before do
+      legacy!(:failing, failing_name)
+      legacy!(:other, other_name)
+    end
+
+    it 'records the error as that action outcome and applies the other actions' do
+      failing = canonical(failing_name)
+      with_index(
+        claim_field: lambda { |real, field, val|
+          raise Redis::TimeoutError, 'timed out' if field == failing
+
+          real.claim_field(field, val)
+        },
+      )
+
+      result = described_class.new(dry_run: false).call
+      error  = result.actions.find { |a| a.domain_id == id_of(:failing) }
+
+      expect([error.outcome, error.detail, outcome_for(result, id_of(:other)), index.get(canonical(other_name)), result.attention?])
+        .to eq([:error, 'Redis::TimeoutError: timed out', :claimed, id_of(:other), true])
+    end
+  end
+
+  describe 'an apply while a record cannot be loaded' do
+    let(:name) { "readable-ü-#{sfx}.com" }
+
+    before do
+      legacy!(:readable, name)
+      legacy!(:unreadable, "unreadable-ü-#{sfx}.com")
+      bad = id_of(:unreadable)
+      allow(model).to receive(:load_multi).and_wrap_original do |original, ids, *rest|
+        raise Familia::SerializerError, 'cannot decode' if ids.include?(bad)
+
+        original.call(ids, *rest)
+      end
+      allow(model).to receive(:find_by_identifier).and_wrap_original do |original, id, **opts|
+        raise Familia::SerializerError, 'cannot decode' if id == bad
+
+        original.call(id, **opts)
+      end
+    end
+
+    it 'writes nothing and reports the refusal' do
+      result = described_class.new(dry_run: false).call
+
+      expect([result.refusal, outcome_for(result, id_of(:readable)), index.get(canonical(name)), result.attention?])
+        .to eq([:unreadable_records, :planned, nil, true])
+    end
+
+    it 'still reports a dry run' do
+      result     = described_class.new.call
+      unreadable = result.audit.errors.map(&:domain_id)
+
+      expect([result.refusal, outcome_for(result, id_of(:readable)), unreadable.include?(id_of(:unreadable))])
+        .to eq([nil, :planned, true])
     end
   end
 end

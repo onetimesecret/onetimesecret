@@ -79,7 +79,8 @@ names. Names that are not plain ASCII are printed twice, as stored and
 escaped, so that two spellings that look identical can be told apart.
 
 The command exits 1 while collisions, conflicts or unreadable records exist,
-and 0 otherwise.
+and 0 otherwise. `--apply` writes nothing while any record cannot be loaded;
+resolve those first (see **Unreadable** in step 6).
 
 ### 3. Stop the application
 
@@ -119,7 +120,9 @@ bin/ots domains backfill-canonical-index --apply
 The command asks whether the application is stopped; answer `y`. In scripts,
 use `--apply --yes` (and `--apply --yes --json` for machine-readable output).
 
-The report lists each write with its outcome:
+After the writes the command audits the index again. The counts and lists in
+the report describe the index as the apply left it, and the report lists every
+write with its outcome:
 
 | Outcome        | Meaning |
 | :------------- | :------ |
@@ -129,9 +132,14 @@ The report lists each write with its outcome:
 | `skipped`      | The data changed since the audit; nothing was written |
 | `refused`      | Another record holds the name; nothing was written |
 | `unverified`   | The claim reported success but read back differently; the claim was released |
+| `error`        | The write raised (the detail names the error); the remaining writes still ran |
 
+The command exits 1 when a write did not land (`refused`, `unverified` or
+`error`) or when entries are still `missing` or `stale` after the writes.
 `refused` and `unverified` should not happen with the application stopped.
-If they do, something else is writing: stop it and run the command again.
+If they do, something else is writing: stop it and run the command again. An
+`error` usually means the datastore connection failed; run the command again
+once it is back.
 
 ### 6. Resolve collisions and conflicts
 
@@ -176,7 +184,9 @@ Onetime::CustomDomain.canonical_display_domain_index
 indexed, and a name like it cannot be registered again. No action is needed;
 remove the record if it is junk.
 
-**Unreadable.** A record exists but could not be loaded. Inspect it with
+**Unreadable.** A record exists but could not be loaded. `--apply` writes
+nothing while any remain, because such a record may have a name that a claim
+would give to another record. Inspect it with
 `bin/ots domains doctor --all --familia-audit` before deciding anything.
 
 ### 7. Run the backfill again

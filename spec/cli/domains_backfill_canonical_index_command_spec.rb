@@ -13,6 +13,7 @@ require_relative 'cli_spec_helper'
 
 RSpec.describe 'Domains backfill-canonical-index command', type: :cli do
   let(:op_class) { Onetime::Operations::Domains::CanonicalIndexBackfill }
+  let(:cli_class) { Onetime::CLI::DomainsBackfillCanonicalIndexCommand }
   let(:audit_class) { Onetime::Operations::Domains::CanonicalIndexAudit }
   let(:missing_only) do
     result(rows: [row(:missing, 'id1', "bu\u0308cher.example")], actions: [action(:claim, :planned, name: "bu\u0308cher.example")])
@@ -56,11 +57,17 @@ RSpec.describe 'Domains backfill-canonical-index command', type: :cli do
     )
   end
 
-  def result(rows:, actions: [], dry_run: true, entries: [], errors: [])
+  # final_rows: the audit after an apply (defaults to the audit before it).
+  def result(rows:, actions: [], dry_run: true, entries: [], errors: [], final_rows: nil, refusal: nil)
+    audit = audit_class::Result.new(rows: rows, entries: entries, errors: errors)
+    final = final_rows ? audit_class::Result.new(rows: final_rows, entries: [], errors: []) : audit
     op_class::Result.new(
       dry_run: dry_run,
-      audit: audit_class::Result.new(rows: rows, entries: entries, errors: errors),
+      audit: audit,
       actions: actions,
+      final_audit: final,
+      recheck_error: nil,
+      refusal: refusal,
     )
   end
 
@@ -109,6 +116,68 @@ RSpec.describe 'Domains backfill-canonical-index command', type: :cli do
     run_cli_command_quietly('domains', 'backfill-canonical-index', '--apply', '--yes')
 
     expect(last_exit_code).to eq(1)
+  end
+
+  describe 'after --apply' do
+    it 'reports the counts from the audit after the writes' do
+      stub_op(
+        result(
+          rows: [row(:missing, 'id1', 'm.example')],
+          actions: [action(:claim, :claimed)],
+          dry_run: false,
+          final_rows: [row(:ok, 'id1', 'm.example', holder: 'id1')],
+        ),
+      )
+
+      report = JSON.parse(run_cli_command_quietly('domains', 'backfill-canonical-index', '--apply', '--yes', '--json')[:stdout])
+
+      expect([report['counts'].slice('ok', 'missing'), report['counts_before'].slice('ok', 'missing'), last_exit_code])
+        .to eq([{ 'ok' => 1, 'missing' => 0 }, { 'ok' => 0, 'missing' => 1 }, 0])
+    end
+
+    it 'exits 1 when a skipped claim leaves a record missing' do
+      stub_op(
+        result(
+          rows: [row(:missing, 'id1', 'm.example')],
+          actions: [action(:claim, :skipped)],
+          dry_run: false,
+          final_rows: [row(:missing, 'id1', 'm.example')],
+        ),
+      )
+
+      output = run_cli_command_quietly('domains', 'backfill-canonical-index', '--apply', '--yes')
+
+      expect([output[:stdout], last_exit_code]).to match([a_string_including('still missing'), 1])
+    end
+
+    it 'prints the outcome of every action, past the text limit, and exits 1 on an error' do
+      count   = cli_class::TEXT_ACTION_LIMIT + 5
+      actions = Array.new(count) { |i| action(:claim, i.zero? ? :error : :claimed, id: "id#{i}", canonical: "xn--id#{i}.com") }
+      stub_op(result(rows: [], actions: actions, dry_run: false))
+
+      output = run_cli_command_quietly('domains', 'backfill-canonical-index', '--apply', '--yes')
+
+      expect([output[:stdout].scan(/^  claim +(?:claimed|error) /).size, output[:stdout]]).to match([count, a_string_including('error')])
+      expect(last_exit_code).to eq(1)
+    end
+
+    it 'says that nothing was written when records cannot be loaded, and exits 1' do
+      unreadable = audit_class::Unreadable.new(domain_id: 'bad1', message: 'Familia::SerializerError: x')
+      stub_op(
+        result(
+          rows: [row(:missing, 'id1', 'm.example')],
+          actions: [action(:claim, :planned)],
+          dry_run: false,
+          errors: [unreadable],
+          refusal: :unreadable_records,
+        ),
+      )
+
+      output = run_cli_command_quietly('domains', 'backfill-canonical-index', '--apply', '--yes')
+
+      expect(output[:stdout]).to include('APPLY REFUSED', 'could not be loaded', 'bad1', 'Nothing was written')
+      expect(last_exit_code).to eq(1)
+    end
   end
 
   describe '--apply' do

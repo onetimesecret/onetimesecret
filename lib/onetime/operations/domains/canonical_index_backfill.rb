@@ -33,6 +33,17 @@ module Onetime
       # Every write is checked against the state the audit read, so a second
       # run over the same data changes nothing.
       #
+      # ## What an apply reports
+      #
+      # A write that raises is recorded as that action's :error outcome and
+      # the remaining actions still run. After the writes the audit runs
+      # again; Result#report_audit is that audit, so the counts and
+      # Result#attention? describe the index as the apply left it.
+      #
+      # An apply writes nothing while the audit finds records it could not
+      # load (Result#refusal is :unreadable_records): such a record may have a
+      # name that a claim would then give to another record.
+      #
       # ## Run it with the application stopped
       #
       # The writes take no lock shared with create!, destroy! or
@@ -58,12 +69,25 @@ module Onetime
         # :skipped       the state changed since the audit; nothing was written
         # :refused       another record holds the name; nothing was written
         # :unverified    the claim reported success but the entry read back differently
-        OUTCOMES = [:planned, :claimed, :already_held, :released, :skipped, :refused, :unverified].freeze
+        # :error         the write raised (detail names the exception); the
+        #                actions after it still ran
+        OUTCOMES = [:planned, :claimed, :already_held, :released, :skipped, :refused, :unverified, :error].freeze
 
         CHANGED_OUTCOMES = [:claimed, :released].freeze
-        FAILED_OUTCOMES  = [:refused, :unverified].freeze
+        FAILED_OUTCOMES  = [:refused, :unverified, :error].freeze
 
-        Result = Data.define(:dry_run, :audit, :actions) do
+        # Why an apply wrote nothing.
+        #   :unreadable_records  the audit found records it could not load
+        REFUSALS = [:unreadable_records].freeze
+
+        # @!attribute audit [r] CanonicalIndexAudit::Result the actions were
+        #   planned from, read before any write
+        # @!attribute final_audit [r] CanonicalIndexAudit::Result read after the
+        #   writes; the same as audit when nothing was applied, nil when that
+        #   audit raised
+        # @!attribute recheck_error [r] String, nil — why final_audit is nil
+        # @!attribute refusal [r] Symbol, nil — see REFUSALS
+        Result = Data.define(:dry_run, :audit, :actions, :final_audit, :recheck_error, :refusal) do
           # Actions that wrote (or, in a dry run, would write).
           def changes
             actions.select { |action| (dry_run ? [:planned] : CHANGED_OUTCOMES).include?(action.outcome) }
@@ -73,10 +97,24 @@ module Onetime
             actions.select { |action| FAILED_OUTCOMES.include?(action.outcome) }
           end
 
+          # Whether the planned writes ran.
+          def applied?
+            !dry_run && refusal.nil?
+          end
+
+          # The audit a report describes: the one after the writes when they
+          # ran and it could be read, otherwise the one they were planned from.
+          def report_audit
+            final_audit || audit
+          end
+
           # Whether an operator has to act: collisions, conflicts, unreadable
-          # records, or a write that did not land.
+          # records, a refused apply, a write that did not land, or, after an
+          # apply, entries that are still missing or stale.
           def attention?
-            audit.attention? || failures.any?
+            return true if refusal || recheck_error || failures.any? || report_audit.attention?
+
+            applied? && !report_audit.clean?
           end
         end
 
@@ -89,9 +127,20 @@ module Onetime
         def call
           audit   = CanonicalIndexAudit.new.call
           planned = plan(audit)
-          actions = @dry_run ? planned : planned.map { |action| apply(action) }
+          return unapplied(audit, planned, nil) if @dry_run
+          return unapplied(audit, planned, :unreadable_records) if refuse_unreadable?(audit)
 
-          Result.new(dry_run: @dry_run, audit: audit, actions: actions)
+          actions                    = planned.map { |action| apply_recording_errors(action) }
+          final_audit, recheck_error = recheck
+
+          Result.new(
+            dry_run: false,
+            audit: audit,
+            actions: actions,
+            final_audit: final_audit,
+            recheck_error: recheck_error,
+            refusal: nil,
+          )
         end
 
         private
@@ -128,6 +177,44 @@ module Onetime
             outcome: :planned,
             detail: nil,
           )
+        end
+
+        def unapplied(audit, actions, refusal)
+          Result.new(
+            dry_run: @dry_run,
+            audit: audit,
+            actions: actions,
+            final_audit: audit,
+            recheck_error: nil,
+            refusal: refusal,
+          )
+        end
+
+        def refuse_unreadable?(audit)
+          return false if audit.errors.empty?
+
+          OT.le "[Domains::CanonicalIndexBackfill] Not applying: #{audit.errors.size} custom domain " \
+                'records could not be loaded; nothing was written'
+          true
+        end
+
+        # The audit after the writes.
+        #
+        # @return [Array(CanonicalIndexAudit::Result, nil), Array(nil, String)]
+        def recheck
+          [CanonicalIndexAudit.new.call, nil]
+        rescue StandardError => ex
+          OT.le "[Domains::CanonicalIndexBackfill] Audit after the writes failed: #{ex.class}: #{ex.message}"
+          [nil, "#{ex.class}: #{ex.message}"]
+        end
+
+        # An exception becomes this action's :error outcome, so the actions
+        # after it still run and the result lists what each one did.
+        def apply_recording_errors(action)
+          apply(action)
+        rescue StandardError => ex
+          OT.le "[Domains::CanonicalIndexBackfill] #{action.kind} of #{action.canonical} raised #{ex.class}: #{ex.message}"
+          action.with(outcome: :error, detail: "#{ex.class}: #{ex.message}")
         end
 
         def apply(action)
