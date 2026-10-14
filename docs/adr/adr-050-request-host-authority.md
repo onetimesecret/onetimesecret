@@ -78,7 +78,8 @@ or set by an operator override. Under `passthrough`, registration by the owning
 organization is the basis. Any other registered host classifies `:unverified`,
 which `DomainStrategy` answers with a 404 without calling the application, so it
 is never rewritten. `features.domains.serve_unverified` serves every registered
-domain that has an organization; it is an operator setting that widens serving, and it logs a warning.
+domain that has an organization; it is an operator setting that widens serving,
+and it logs a warning at boot.
 
 A `:custom` domain can still be rewritten while auth-link resolution declines
 its tenant destination: under `passthrough`, a domain no verify call has marked

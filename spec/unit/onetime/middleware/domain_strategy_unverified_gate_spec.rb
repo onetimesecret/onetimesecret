@@ -261,7 +261,9 @@ RSpec.describe Onetime::Middleware::DomainStrategy, 'unverified custom domains' 
   end
 
   describe 'features.domains.serve_unverified' do
-    it 'serves an unverified record as :custom when true, warning once per process' do
+    # The setting's warning is logged at boot (ConfigureDomains), not when a
+    # request is served.
+    it 'serves an unverified record as :custom when true, without logging a warning' do
       configure_domains(validation_strategy: 'approximated', serve_unverified: true)
       record = domain_record
       serve(record)
@@ -272,9 +274,7 @@ RSpec.describe Onetime::Middleware::DomainStrategy, 'unverified custom domains' 
       expect(status).to eq(200)
       expect(env['onetime.custom_domain']).to be(record)
 
-      expect(app_logger).to have_received(:warn)
-        .with('custom_domain.serve_unverified_enabled', hash_including(setting: 'features.domains.serve_unverified'))
-        .once
+      expect(app_logger).not_to have_received(:warn).with('custom_domain.serve_unverified_enabled', anything)
     end
 
     it 'still does not serve an orphan (no organization), verified or not' do
@@ -297,14 +297,6 @@ RSpec.describe Onetime::Middleware::DomainStrategy, 'unverified custom domains' 
       serve(domain_record(org_id: nil))
 
       expect(classify.strategy).to eq(:unverified)
-    end
-
-    it 'does not warn while every found record is served anyway' do
-      configure_domains(validation_strategy: 'approximated', serve_unverified: true)
-      serve(domain_record(ownership_verified: true))
-
-      expect(classify.strategy).to eq(:custom)
-      expect(app_logger).not_to have_received(:warn).with('custom_domain.serve_unverified_enabled', anything)
     end
 
     # Strict boolean: the ERB in config.defaults.yaml yields true or false,

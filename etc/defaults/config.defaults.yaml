@@ -1189,8 +1189,8 @@ features:
     # served.
     #
     # When true, every registered custom domain that has an organization
-    # is served whatever its ownership state, and a warning is logged once per process. Only the
-    # value true enables it.
+    # is served whatever its ownership state, and a warning is logged at
+    # boot. Only the value true enables it.
     serve_unverified: <%= ENV['DOMAINS_SERVE_UNVERIFIED'] == 'true' || false %>  # Since unreleased
     # The default domain used for link URLs. When not set or empty,
     # site.host is used.

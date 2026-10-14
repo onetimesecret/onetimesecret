@@ -87,14 +87,32 @@ module Onetime
 
         # features.domains.serve_unverified, read as a strict boolean. When
         # true, a record with an organization is served whatever its
-        # ownership state (#served_as_tenant?). The first true read in a process logs one
-        # warning.
+        # ownership state (#served_as_tenant?).
         #
         # @return [Boolean]
         def serve_unverified?
-          return false unless configured_domains_section['serve_unverified'] == true
+          configured_domains_section['serve_unverified'] == true
+        end
 
-          warn_serve_unverified_once
+        # Logs one warning per process while features.domains.serve_unverified
+        # is true. Called at boot by Onetime::Initializers::ConfigureDomains;
+        # serving a request logs nothing.
+        #
+        # @return [Boolean] whether this call logged the warning
+        def warn_if_serve_unverified
+          return false unless serve_unverified?
+
+          SERVE_UNVERIFIED_WARNING.synchronize do
+            return false if @serve_unverified_warned
+
+            @serve_unverified_warned = true
+          end
+
+          Onetime.get_logger('App').warn 'custom_domain.serve_unverified_enabled',
+            {
+              setting: 'features.domains.serve_unverified',
+              effect: 'custom domains that have an organization are served whatever their ownership state',
+            }
           true
         end
 
@@ -125,20 +143,6 @@ module Onetime
           OT.le "[CustomDomain.ownership_proof_required?] #{ex.class}: #{ex.message}; " \
                 'treating ownership proof as required'
           true
-        end
-
-        def warn_serve_unverified_once
-          SERVE_UNVERIFIED_WARNING.synchronize do
-            return if @serve_unverified_warned
-
-            @serve_unverified_warned = true
-          end
-
-          Onetime.get_logger('App').warn 'custom_domain.serve_unverified_enabled',
-            {
-              setting: 'features.domains.serve_unverified',
-              effect: 'custom domains are served whatever their ownership state',
-            }
         end
       end
     end
