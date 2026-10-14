@@ -203,6 +203,78 @@ RSpec.describe Onetime::Operations::Domains::CanonicalIndexBackfill, :datastore 
     end
   end
 
+  describe 'an incomplete audit' do
+    let(:unreadable_id) { id_of(:pair_a_label) }
+
+    before do
+      build_world
+      allow(model).to receive(:load_multi).and_wrap_original do |original, identifiers|
+        raise StandardError, 'simulated unreadable legacy record' if identifiers.include?(unreadable_id)
+
+        original.call(identifiers)
+      end
+      allow(model).to receive(:find_by_identifier).and_call_original
+      allow(model).to receive(:find_by_identifier).with(unreadable_id)
+        .and_raise(StandardError, 'simulated unreadable legacy record')
+    end
+
+    it 'skips every claim, reclaim and release without applying any action' do
+      before_index = index.hgetall
+      operation    = described_class.new(dry_run: false)
+      expect(operation).not_to receive(:apply)
+
+      result = operation.call
+
+      # The unreadable duplicate is absent from grouping, so the readable
+      # member looks missing rather than colliding. It must not win the name.
+      expect(categories(result.audit, [id_of(:pair_unicode)])).to eq(id_of(:pair_unicode) => :missing)
+      expect(result.audit.errors.map(&:to_h)).to include(
+        domain_id: unreadable_id, message: 'StandardError: simulated unreadable legacy record',
+      )
+      expect(result.actions.map(&:kind).uniq).to contain_exactly(:claim, :reclaim, :release)
+      expect(result.actions).to all(have_attributes(
+        outcome: :skipped, detail: 'incomplete audit: unreadable records block all apply writes',
+      ))
+      expect([result.changes, result.failures, result.attention?]).to eq([[], [], true])
+      expect(index.hgetall).to eq(before_index)
+      expect(index.get(canonical("pair-ü-#{sfx}.com"))).to be_nil
+      expect(index.get(canonical("stale-ü-#{sfx}.com"))).to eq("gone-#{sfx}")
+      expect(index.get("nobody-gone-#{sfx}.com")).to eq("gone2-#{sfx}")
+    end
+
+    it 'keeps a dry run read-only and retains its provisional plan and errors' do
+      before_index = index.hgetall
+      operation    = described_class.new
+      expect(operation).not_to receive(:apply)
+
+      result = operation.call
+
+      expect(result.actions.map(&:kind).uniq).to contain_exactly(:claim, :reclaim, :release)
+      expect(result.actions).to all(have_attributes(outcome: :planned))
+      expect(result.changes).to eq(result.actions)
+      expect(result.audit.errors.map(&:domain_id)).to include(unreadable_id)
+      expect(result.attention?).to be(true)
+      expect(index.hgetall).to eq(before_index)
+    end
+
+    it 'allows claims, reclaims and releases once the full inventory can be read' do
+      allow(model).to receive(:load_multi).and_call_original
+      allow(model).to receive(:find_by_identifier).with(unreadable_id).and_call_original
+
+      result = described_class.new(dry_run: false).call
+
+      expect(result.audit.errors).to be_empty
+      expect(categories(result.audit, [id_of(:pair_unicode), unreadable_id])).to eq(
+        id_of(:pair_unicode) => :collision, unreadable_id => :collision,
+      )
+      expect(result.changes.map(&:kind).uniq).to contain_exactly(:claim, :reclaim, :release)
+      expect(index.get(canonical("pair-ü-#{sfx}.com"))).to be_nil
+      expect(index.get(canonical("bu\u0308cher-#{sfx}.com"))).to eq(id_of(:nfd))
+      expect(index.get(canonical("stale-ü-#{sfx}.com"))).to eq(id_of(:stale))
+      expect(index.get("nobody-gone-#{sfx}.com")).to be_nil
+    end
+  end
+
   describe 'an apply' do
     before { build_world }
 

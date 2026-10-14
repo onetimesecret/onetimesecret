@@ -47,7 +47,7 @@ module Onetime
       option :apply,
         type: :boolean,
         default: false,
-        desc: 'Write the planned changes (default: dry run). Run only while the application is stopped'
+        desc: 'Write only after a complete audit (default: dry run). Run only while the application is stopped'
       option :yes,
         type: :boolean,
         default: false,
@@ -109,6 +109,10 @@ module Onetime
         puts 'Custom domain canonical index'
         puts '=' * 40
         puts "Mode: #{result.dry_run ? 'DRY RUN (nothing written)' : 'APPLY'}"
+        if audit.errors.any?
+          puts 'Audit incomplete: unreadable records block all apply writes.'
+          puts 'Nothing was written.' unless result.dry_run
+        end
         puts "Records scanned: #{audit.rows.size}"
         puts
         print_counts(audit)
@@ -134,7 +138,7 @@ module Onetime
         actions = result.actions
         return if actions.empty?
 
-        puts result.dry_run ? 'Planned writes:' : 'Writes:'
+        puts result.dry_run ? 'Planned writes:' : 'Apply outcomes:'
         actions.first(TEXT_ACTION_LIMIT).each do |action|
           target = action.domain_id ? "#{action.domain_id} #{spelled(action.display_domain)}" : "(was #{action.stale_id})"
           detail = action.detail ? " - #{action.detail}" : ''
@@ -186,7 +190,10 @@ module Onetime
       end
 
       def print_next_steps(result)
-        if result.attention?
+        if result.audit.errors.any?
+          puts 'Resolve the unreadable records and rerun this command before applying.'
+          puts "See #{RUNBOOK}."
+        elsif result.attention?
           puts 'Operator action needed. For each collision group keep the record whose'
           puts 'organization has proven DNS ownership, remove the others by extid with'
           puts '`bin/ots domains remove <extid>`, then run this command again.'
@@ -258,7 +265,10 @@ module Onetime
             With --apply it claims the missing entries, re-claims entries that name
             deleted records, and releases entries that no record accounts for.
             Collisions (two or more records for one DNS name) and conflicts are
-            reported and never written. A second --apply changes nothing.
+            reported and never written. If any record cannot be loaded, all apply
+            writes are blocked and planned actions are reported as skipped. Resolve
+            unreadable records and rerun before applying. Dry runs never write.
+            A second --apply changes nothing.
 
           STOP THE APPLICATION BEFORE --apply. The writes take no lock shared with
           the web, worker and scheduler processes. Snapshot the datastore first.

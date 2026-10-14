@@ -30,6 +30,9 @@ module Onetime
       # A collision group is reported for an operator to resolve: keep one
       # record, remove the others, and run the backfill again.
       #
+      # An incomplete audit (any unreadable record) blocks all apply writes:
+      # an unreadable record could hide a collision with a readable record.
+      #
       # Every write is checked against the state the audit read, so a second
       # run over the same data changes nothing.
       #
@@ -55,7 +58,7 @@ module Onetime
         # :claimed       the entry now names the record (after a release, for :reclaim)
         # :already_held  the entry already named the record when the claim ran
         # :released      the stale entry was removed
-        # :skipped       the state changed since the audit; nothing was written
+        # :skipped       the audit was incomplete or the state changed; nothing was written
         # :refused       another record holds the name; nothing was written
         # :unverified    the claim reported success but the entry read back differently
         OUTCOMES = [:planned, :claimed, :already_held, :released, :skipped, :refused, :unverified].freeze
@@ -89,7 +92,15 @@ module Onetime
         def call
           audit   = CanonicalIndexAudit.new.call
           planned = plan(audit)
-          actions = @dry_run ? planned : planned.map { |action| apply(action) }
+          actions = if @dry_run
+                      planned
+                    elsif audit.errors.any?
+                      planned.map do |action|
+                        action.with(outcome: :skipped, detail: 'incomplete audit: unreadable records block all apply writes')
+                      end
+                    else
+                      planned.map { |action| apply(action) }
+                    end
 
           Result.new(dry_run: @dry_run, audit: audit, actions: actions)
         end
