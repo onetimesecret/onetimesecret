@@ -143,19 +143,23 @@ export function useDomainsManager() {
     return undefined; // Signal to re-throw
   };
 
-  /** Update domain context after adding a domain */
+  /**
+   * Follow the domain context the server set after adding a domain.
+   *
+   * The server sets one only when the new domain is served
+   * (CustomDomain#served_as_tenant?). Under a strategy that checks ownership
+   * a new domain is not served until verified, the server sets none, and the
+   * context stays where it was: it is the share_domain of the next secret,
+   * and secret creation refuses an unserved domain.
+   */
   const updateDomainContextAfterAdd = (
-    record: CustomDomain,
     details: { domain_context?: string | null } | undefined
   ) => {
-    const { setContext } = useDomainContext();
     const contextFromServer = details?.domain_context;
-    // Skip backend sync when server already set the context
-    if (contextFromServer) {
-      setContext(contextFromServer, true);
-    } else {
-      setContext(record.display_domain);
-    }
+    if (!contextFromServer) return;
+    const { setContext } = useDomainContext();
+    // Skip backend sync: the server already set the context
+    setContext(contextFromServer, true);
   };
 
   /**
@@ -193,7 +197,7 @@ export function useDomainsManager() {
         const message = isReclaimed ? 'web.domains.domain_claimed_successfully' : 'web.domains.domain_added_successfully';
         notifications.show(t(message), 'success', 'top');
 
-        updateDomainContextAfterAdd(record, details);
+        updateDomainContextAfterAdd(details);
         navigateAfterAdd(record);
         return record;
       } catch (err: unknown) {

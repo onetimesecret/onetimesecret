@@ -47,8 +47,10 @@ let watcherInitialized = false;
 // Bootstrap store reference - initialized on first composable use
 let bootstrapStoreInstance: ReturnType<typeof useBootstrapStore> | null = null;
 
-// Domain data extracted from permissions API (replaces domainsStore for dropdown context)
-const permissionsDomains = ref<Array<{ display_domain: string; extid: string }>>([]);
+// Domain data extracted from permissions API (replaces domainsStore for dropdown context).
+// Every registered domain of the current org, served or not; see buildAvailableDomains.
+type PermissionsDomain = { display_domain: string; extid: string; served: boolean };
+const permissionsDomains = ref<PermissionsDomain[]>([]);
 let permissionsInstance: ReturnType<typeof useResourcePermissions> | null = null;
 
 /** Get bootstrap store instance (lazy singleton) */
@@ -155,14 +157,20 @@ function getDomainDisplayName(domain: string): string {
 }
 
 /** Build available domains list from store */
-function buildAvailableDomains(storeDomains: Array<{ display_domain: string }>): string[] {
-  // Ordering contract: the org's custom domains first (permissions order),
-  // then every OFFERABLE link-pool entry not already listed (pool order).
-  // Every entry currentContext/resetContext/getPreferredDomain can produce
-  // must appear here, because setContext silently rejects anything that does
-  // not -- and nothing may appear here that the server would then ignore, see
-  // getOfferableLinkDomains.
-  const domainNames = storeDomains.map((d) => normalizeDomainHost(d.display_domain));
+function buildAvailableDomains(
+  storeDomains: Array<{ display_domain: string; served: boolean }>
+): string[] {
+  // Ordering contract: the org's served custom domains first (permissions
+  // order), then every OFFERABLE link-pool entry not already listed (pool
+  // order). Every entry currentContext/resetContext/getPreferredDomain can
+  // produce must appear here, because setContext silently rejects anything
+  // that does not -- and nothing may appear here that the server would then
+  // ignore or refuse, see getOfferableLinkDomains. A registered domain that is
+  // not served yet (pending ownership verification) is left out: its links
+  // would open to a 404, and secret creation refuses it as a share_domain.
+  const domainNames = storeDomains
+    .filter((d) => d.served === true)
+    .map((d) => normalizeDomainHost(d.display_domain));
   getOfferableLinkDomains().forEach((domain) => {
     if (domain && !domainNames.includes(domain)) {
       domainNames.push(domain);
@@ -490,14 +498,22 @@ export function useDomainContext() {
   const getDomainByExtid = (extid: string): string | undefined =>
     findDomainByExtid(permissionsDomains.value, extid);
 
-  /** Set domain context by extid (route param). Skips backend sync by default. */
+  /**
+   * Set domain context by extid (route param). Skips backend sync by default.
+   * A registered domain that is not offered (not served yet) leaves the
+   * context where it is: its settings page names it, but links cannot use it.
+   */
   const setContextByExtid = async (extid: string, skipBackendSync = true): Promise<void> => {
     const domain = getDomainByExtid(extid);
-    if (domain) await setContext(domain, skipBackendSync);
-    else loggingService.debug(
-      '[useDomainContext] No domain found for extid',
-      { extid }
-    );
+    if (!domain) {
+      loggingService.debug('[useDomainContext] No domain found for extid', { extid });
+      return;
+    }
+    if (!availableDomains.value.includes(domain)) {
+      loggingService.debug('[useDomainContext] Domain for extid is not offered for links', { extid });
+      return;
+    }
+    await setContext(domain, skipBackendSync);
   };
 
   return {
@@ -505,6 +521,8 @@ export function useDomainContext() {
     isContextActive: computed<boolean>(() => getConfig().domainsEnabled),
     hasMultipleContexts: computed<boolean>(() => availableDomains.value.length > 1),
     availableDomains,
+    /** The current org's registered custom domains, including those not offered. */
+    registeredDomainCount: computed<number>(() => permissionsDomains.value.length),
     isLoadingDomains: computed(() => isLoadingDomains.value),
     setContext,
     resetContext: () => resetDomainContext($api),

@@ -6,8 +6,8 @@ Changed
 - A custom domain is served only once its ownership is verified, when the
   domain validation strategy checks ownership (``approximated``,
   ``caddy_on_demand``). Until then its host answers 404, the domain is not
-  offered for links, and secret creation does not accept it as a share
-  domain. Under ``passthrough``, registration by the owning organization is
+  offered for links, adding it does not select it for new links, and secret
+  creation does not accept it as a share domain. Under ``passthrough``, registration by the owning organization is
   enough, as before. A domain record with no organization is not served.
 - ``features.domains.serve_unverified`` (``DOMAINS_SERVE_UNVERIFIED``),
   default ``false``, keeps the previous behaviour for domains that have an

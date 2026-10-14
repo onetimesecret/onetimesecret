@@ -16,7 +16,7 @@
 
 import { mount, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { reactive, ref } from 'vue';
+import { computed, reactive, ref } from 'vue';
 import DomainContextSwitcher from '@/apps/workspace/components/navigation/DomainContextSwitcher.vue';
 
 // Shared spy for HeadlessUI's Menu `close` slot function so tests can assert the
@@ -119,10 +119,22 @@ const mockCurrentContext = ref({
 });
 const mockIsContextActive = ref(true);
 const mockSetContext = vi.fn();
+/**
+ * The org's registered custom domains, served or not. null derives it from
+ * the offered list (every offered domain with an extid), as when every
+ * registered domain is served.
+ */
+const mockRegisteredCount = ref<number | null>(null);
+const mockRegisteredDomainCount = computed(
+  () =>
+    mockRegisteredCount.value ??
+    mockAvailableDomains.value.filter((domain) => mockExtids[domain]).length
+);
 vi.mock('@/shared/composables/useDomainContext', () => ({
   useDomainContext: () => ({
     currentContext: mockCurrentContext,
     availableDomains: mockAvailableDomains,
+    registeredDomainCount: mockRegisteredDomainCount,
     isContextActive: mockIsContextActive,
     setContext: mockSetContext,
     getDomainDisplayName: (domain: string) => domain,
@@ -144,6 +156,7 @@ function resetSwitcherMocks() {
   mockSiteHost.value = 'canonical.example.com';
   mockExtids = { ...DEFAULT_EXTIDS };
   mockAvailableDomains.value = ['canonical.example.com'];
+  mockRegisteredCount.value = null;
   mockIsContextActive.value = true;
   mockCurrentContext.value = {
     domain: 'canonical.example.com',
@@ -185,6 +198,20 @@ describe('DomainContextSwitcher add/manage call-to-action', () => {
 
     expect(addIcon(wrapper).exists()).toBe(true);
     expect(manageLink(wrapper).exists()).toBe(true);
+    expect(addLink(wrapper).exists()).toBe(false);
+  });
+
+  // A domain pending verification is not offered in the list, but the org
+  // has it: "Manage Domains" stays, rather than an "Add Domain" link that
+  // would send the owner to add it again.
+  it('keeps the Manage link when the org has a custom domain that is not offered', () => {
+    mockAvailableDomains.value = ['canonical.example.com'];
+    mockRegisteredCount.value = 1;
+
+    wrapper = mount(DomainContextSwitcher);
+
+    expect(manageLink(wrapper).exists()).toBe(true);
+    expect(addIcon(wrapper).exists()).toBe(true);
     expect(addLink(wrapper).exists()).toBe(false);
   });
 

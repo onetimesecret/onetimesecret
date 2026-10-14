@@ -281,19 +281,21 @@ describe('useDomainsManager', () => {
         expect(mockDomainContext.setContext).toHaveBeenCalledTimes(1);
       });
 
-      it('falls back to display_domain when domain_context not in response', async () => {
-        // Store's addDomain returns { record, details } without domain_context
-        mockDependencies.domainsStore.addDomain.mockResolvedValueOnce({
-          record: newDomainData,
-          details: {},
-        });
+      // The server sets no context for a new domain that is not served yet
+      // (pending ownership verification): it would become the share_domain
+      // of the next secret, which secret creation refuses.
+      it('leaves the domain context alone when the server set none', async () => {
+        for (const details of [{}, { domain_context: null }]) {
+          mockDependencies.domainsStore.addDomain.mockResolvedValueOnce({
+            record: newDomainData,
+            details,
+          });
 
-        const { handleAddDomain } = mountComposable(() => useDomainsManager());
-        await handleAddDomain(newDomainData.domainid);
+          const { handleAddDomain } = mountComposable(() => useDomainsManager());
+          await handleAddDomain(newDomainData.domainid);
+        }
 
-        // Verify setContext was called with display_domain and without skipBackendSync
-        expect(mockDomainContext.setContext).toHaveBeenCalledWith(newDomainData.display_domain);
-        expect(mockDomainContext.setContext).toHaveBeenCalledTimes(1);
+        expect(mockDomainContext.setContext).not.toHaveBeenCalled();
       });
 
       it('does not switch domain context when domain addition fails', async () => {

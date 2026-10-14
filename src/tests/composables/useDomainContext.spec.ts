@@ -34,7 +34,7 @@ vi.mock('@/shared/stores/organizationStore', () => ({
 function buildPermissionsResponse(
   orgExtid: string,
   domains: string[],
-  opts?: { role?: string; entitlements?: string[] }
+  opts?: { role?: string; entitlements?: string[]; unserved?: string[] }
 ): BulkPermissionsResponse {
   return {
     organizations: [
@@ -59,6 +59,7 @@ function buildPermissionsResponse(
         domains: domains.map((d) => ({
           display_domain: d,
           extid: `cd_${d.replace(/\./g, '_')}`,
+          served: !(opts?.unserved ?? []).includes(d),
           permissions: {
             can_view: true,
             can_edit: true,
@@ -100,6 +101,7 @@ function buildMultiOrgPermissionsResponse(
       domains: org.domains.map((d) => ({
         display_domain: d,
         extid: `cd_${d.replace(/\./g, '_')}`,
+        served: true,
         permissions: {
           can_view: true,
           can_edit: true,
@@ -1596,6 +1598,76 @@ describe('useDomainContext', () => {
       await new Promise((r) => setTimeout(r, 50));
 
       expect(mockFetchAllPermissions).toHaveBeenCalled();
+    });
+  });
+
+  // A registered domain that is not served yet (CustomDomain#served_as_tenant?:
+  // pending ownership verification) is not offered for links: secret creation
+  // refuses it as a share_domain. It stays registered, so extid lookups and
+  // the registered count still see it.
+  describe('domains that are not served', () => {
+    function setMockServedDomains(served: string[], unserved: string[]) {
+      mockFetchAllPermissions.mockResolvedValue(
+        buildPermissionsResponse('org-ext-test-123', [...served, ...unserved], { unserved })
+      );
+    }
+
+    it('leaves an unserved domain out of availableDomains but keeps its extid', async () => {
+      setupBootstrapStore({ domains_enabled: true, site_host: 'onetimesecret.com' });
+      setMockServedDomains(['acme.example.com'], ['pending.example.com']);
+
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { availableDomains, getExtidByDomain, getDomainByExtid, registeredDomainCount } =
+        useDomainContext();
+      await waitForInit();
+
+      expect(availableDomains.value).toEqual(['acme.example.com', 'onetimesecret.com']);
+      expect(getExtidByDomain('pending.example.com')).toBe('cd_pending_example_com');
+      expect(getDomainByExtid('cd_pending_example_com')).toBe('pending.example.com');
+      expect(registeredDomainCount.value).toBe(2);
+    });
+
+    it('does not start on an unserved domain the server context names', async () => {
+      setupBootstrapStore({
+        domains_enabled: true,
+        site_host: 'onetimesecret.com',
+        domain_context: 'pending.example.com',
+      });
+      setMockServedDomains([], ['pending.example.com']);
+
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext } = useDomainContext();
+      await waitForInit();
+
+      expect(currentContext.value.domain).toBe('onetimesecret.com');
+    });
+
+    it('setContextByExtid does not move the context to an unserved domain', async () => {
+      setupBootstrapStore({ domains_enabled: true, site_host: 'onetimesecret.com' });
+      setMockServedDomains(['acme.example.com'], ['pending.example.com']);
+
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext, setContextByExtid } = useDomainContext();
+      await waitForInit();
+      expect(currentContext.value.domain).toBe('acme.example.com');
+
+      await setContextByExtid('cd_pending_example_com');
+
+      expect(currentContext.value.domain).toBe('acme.example.com');
+      expect(mockSessionStorage.getItem('domainContext')).not.toBe('pending.example.com');
+    });
+
+    it('setContextByExtid still moves the context to a served domain', async () => {
+      setupBootstrapStore({ domains_enabled: true, site_host: 'onetimesecret.com' });
+      setMockServedDomains(['acme.example.com', 'widgets.example.com'], ['pending.example.com']);
+
+      const { useDomainContext } = await import('@/shared/composables/useDomainContext');
+      const { currentContext, setContextByExtid } = useDomainContext();
+      await waitForInit();
+
+      await setContextByExtid('cd_widgets_example_com');
+
+      expect(currentContext.value.domain).toBe('widgets.example.com');
     });
   });
 
