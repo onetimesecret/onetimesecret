@@ -1616,6 +1616,29 @@ describe('DomainSsoConfigForm', () => {
       }
     );
 
+    // A copy that was off asks for activation; if the record was turned on
+    // elsewhere, a failed or changed run must not claim it "stays off".
+    it.each([
+      ['not_passed', 'failed'],
+      ['configuration_changed', 'passed'],
+    ] as const)(
+      'drops the stays-off warning for %s when the stored record is on',
+      async (activation, overall) => {
+        wrapper = await mountComponent({
+          formState: mockExistingFormState,
+          ssoConfig: offConfig,
+          isConfigured: true,
+          diagnosticsResult: diagnostics(
+            overall,
+            [overall === 'passed' ? passedCheck : failedCheck],
+            { activation, enabled: true }
+          ),
+        });
+
+        expect(wrapper.find(NOTICE).exists()).toBe(false);
+      }
+    );
+
     it.each(['already_enabled', 'not_requested'] as const)(
       'adds nothing for %s',
       async (activation) => {

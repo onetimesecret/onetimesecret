@@ -677,6 +677,10 @@ const activationNotice = computed(() => {
   if (!result) return null;
   const notice = ACTIVATION_NOTICES[result.activation] ?? null;
   if (!notice) return null;
+  // Each warning says the connection stays off. A copy that was off here
+  // asks for activation even when the record was turned on elsewhere, and
+  // the response's `enabled` is the stored state: trust it over the copy.
+  if (notice.tone === 'warn' && result.enabled) return null;
   return {
     activation: result.activation,
     tone: notice.tone,

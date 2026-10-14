@@ -360,6 +360,14 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::RunDiagnostics do
           expect(writes).to be_empty
           expect(logic).not_to have_received(:log_sso_change_event)
         end
+
+        context 'and the stored record was turned on meanwhile' do
+          let(:stored_enabled) { true }
+
+          it 'reports the stored state, not the request copy' do
+            expect(run).to include(activation: 'configuration_changed', enabled: true)
+          end
+        end
       end
 
       context 'when the record is already on' do

@@ -334,24 +334,29 @@ module DomainsAPI
           # below refuses a record whose type changed after this check.
           return 'not_permitted' unless activation_permitted?
 
-          refusal   = nil
-          condition = ->(stored) {
-            refusal = if stored.credential_fingerprint != @checked_fingerprint
-                        'configuration_changed'
-                      elsif stored.enabled?
-                        'already_enabled'
-                      end
+          refusal        = nil
+          stored_enabled = false
+          condition      = ->(stored) {
+            stored_enabled = stored.enabled?
+            refusal        = if stored.credential_fingerprint != @checked_fingerprint
+                               'configuration_changed'
+                             elsif stored_enabled
+                               'already_enabled'
+                             end
             refusal.nil?
           }
-          committed = Onetime::CustomDomain::SsoConfig.update_for_domain_if(@custom_domain.identifier, condition) do |stored|
+          committed      = Onetime::CustomDomain::SsoConfig.update_for_domain_if(@custom_domain.identifier, condition) do |stored|
             stored.enabled = true
             stored.updated = Familia.now.to_i
           end
 
-          # nil: the condition refused, or the record is gone (the condition
-          # never ran, so refusal is still nil).
+          # nil: the condition refused, or the record is gone. A refusal
+          # returns at once, so refusal and stored_enabled describe the
+          # stored record. Gone: the condition never ran on the attempt that
+          # returned (a retry follows only an aborted write), refusal is
+          # nil, and there is no record to be on.
           unless committed
-            @enabled_after = refusal == 'already_enabled'
+            @enabled_after = refusal.nil? ? false : stored_enabled
             return refusal || 'configuration_changed'
           end
 
