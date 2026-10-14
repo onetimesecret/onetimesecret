@@ -39,10 +39,15 @@ module Auth
   # that record's ownership is TXT-verified (`verified`). Mere registration is
   # not enough here — anyone can register a domain record they don't control,
   # and an auth link is the one artifact that must never point at a host whose
-  # ownership we haven't proven. This is deliberately STRICTER than the
-  # serving-path gates (`DomainStrategy#known_custom_domain?` keys on record
-  # existence): a registered-but-unverified domain still serves pages, but its
-  # auth links build on the canonical host until its TXT record verifies.
+  # ownership we haven't proven. The serving path
+  # (`DomainStrategy`, via `CustomDomain#served_as_tenant?`) requires the same
+  # verification under the strategies that check ownership, so an unverified
+  # domain there answers 404 and never reaches this resolver. It is less
+  # strict under `passthrough`, where registration is the basis: a registered
+  # domain serves pages, but its auth links build on the canonical host until
+  # a verify call marks it verified. The operator setting
+  # `features.domains.serve_unverified` widens serving the same way and does
+  # not reach this check.
   #
   # ## FAIL CLOSED on a datastore blip
   #

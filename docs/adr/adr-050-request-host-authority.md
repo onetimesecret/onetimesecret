@@ -18,7 +18,9 @@ its default-on rollout or settle the policies under
 
 ## Date
 
-2026-10-05
+2026-10-05. Amended 2026-10-14: a registered custom domain classifies
+`:custom` only when it is served; see
+[Keep each authority's purpose explicit](#keep-each-authoritys-purpose-explicit).
 
 ## Context
 
@@ -69,10 +71,21 @@ stripped header names and the validated detection result, not copies of raw
 forwarded values in new environment keys.
 
 Positive classification permits projection, not ownership authorization. A
-registered but unverified domain can classify `:custom` and be rewritten while
-auth-link resolution declines its tenant destination. Keep per-consumer auth
-URL helpers as authorization boundaries. The authorization basis accepted in
-[ADR-049](adr-049-operator-managed-domain-authorization.md) remains separate.
+registered domain classifies `:custom` only when `CustomDomain#served_as_tenant?`
+is true: the record has an organization and, under a validation strategy that
+checks ownership (`approximated`, `caddy_on_demand`), its ownership is verified
+or set by an operator override. Under `passthrough`, registration by the owning
+organization is the basis. Any other registered host classifies `:unverified`,
+which `DomainStrategy` answers with a 404 without calling the application, so it
+is never rewritten. `features.domains.serve_unverified` serves every registered
+domain; it is an operator setting that widens serving, and it logs a warning.
+
+A `:custom` domain can still be rewritten while auth-link resolution declines
+its tenant destination: under `passthrough`, a domain no verify call has marked
+verified is served, and the auth-link helpers require the verified flag. Keep
+per-consumer auth URL helpers as authorization boundaries. The authorization
+basis accepted in [ADR-049](adr-049-operator-managed-domain-authorization.md)
+remains separate.
 Account scope still follows owning domain/org policy, not the request host,
 under accepted [ADR-035](adr-035-tenant-identity-auth-policy-scope.md).
 

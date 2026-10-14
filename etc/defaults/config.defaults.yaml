@@ -1176,9 +1176,22 @@ features:
   domains:
     enabled: <%= ENV['DOMAINS_ENABLED'] == 'true' || false %>  # Since v0.24.0
     # When true, secret creation rejects an unverified custom share_domain
-    # with a form error. When false (default), creation is allowed regardless
-    # of the domain's verification status. Canonical domains are unaffected.
+    # with a form error, under every validation strategy. When false
+    # (default), creation still requires the domain to be served (see
+    # serve_unverified below). Canonical domains are unaffected.
     require_verified: <%= ENV['DOMAINS_REQUIRE_VERIFIED'] == 'true' || false %>  # Since v0.25.2
+    # Under a validation_strategy that checks ownership (approximated,
+    # caddy_on_demand), a registered custom domain is served only once its
+    # ownership is verified, by its TXT record or an operator override.
+    # Until then its host answers 404 for every path, and the domain is not
+    # offered for links. Under passthrough, registration by the owning
+    # organization is enough. A domain record with no organization is never
+    # served.
+    #
+    # When true, every registered custom domain is served whatever its
+    # ownership state, and a warning is logged once per process. Only the
+    # value true enables it.
+    serve_unverified: <%= ENV['DOMAINS_SERVE_UNVERIFIED'] == 'true' || false %>  # Since unreleased
     # The default domain used for link URLs. When not set or empty,
     # site.host is used.
     default: <%= ENV['DEFAULT_DOMAIN'] || nil %>  # Since v0.24.0
