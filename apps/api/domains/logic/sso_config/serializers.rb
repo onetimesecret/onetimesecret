@@ -59,6 +59,7 @@ module DomainsAPI
             client_secret_masked: mask_secret(config.client_secret, unreadable),
             tenant_id: config.tenant_id,
             issuer: config.issuer,
+            token_endpoint_auth_method: token_endpoint_auth_method_or_nil(config),
             idp_sso_service_url: reveal.call(:idp_sso_service_url),
             idp_entity_id: reveal.call(:idp_entity_id),
             idp_cert: reveal.call(:idp_cert),
@@ -75,6 +76,13 @@ module DomainsAPI
             created_at: config.created.to_i,
             updated_at: config.updated.to_i,
           }
+        end
+
+        # nil when unset or blank: the frontend contract is "nil = gem
+        # default", never ''.
+        def token_endpoint_auth_method_or_nil(config)
+          value = config.token_endpoint_auth_method.to_s.strip
+          value.empty? ? nil : value
         end
 
         def serialize_saml_policy(config, field, unreadable)

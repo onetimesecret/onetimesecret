@@ -19,7 +19,9 @@ module Auth; end
 Auth.const_set(:Config, Class.new(Rodauth::Auth)) unless defined?(Auth::Config)
 Auth::Config.const_set(:Overrides, Module.new) unless Auth::Config.const_defined?(:Overrides, false)
 
+require_relative '../../lib/logging' # the recipient-origin guards log each refusal
 require_relative '../../config/overrides/public_base_url'
+require_relative '../../config/overrides/login_request_enumeration'
 
 RSpec.describe Auth::Config::Overrides::PublicBaseUrl do
   # The canonical set and the tenant registry are process state loaded from
@@ -424,6 +426,127 @@ RSpec.describe Auth::Config::Overrides::PublicBaseUrl do
       expect(base_url).to eq('https://onetimesecret.com')
       expect(display_domain).to eq('onetimesecret.com')
       expect(base_url).not_to include('attacker.example')
+    end
+  end
+
+  # RISK-2026-08-14-M03: a recipient with no credential origin (verified
+  # tenant host, no canonical origin, no membership) made the magic-link and
+  # resend requests raise for an existing account while a missing login got
+  # 200. EmailAuthOrigin and VerifyAccountOrigin answer it like a missing
+  # account before any key write, as ResetPasswordOrigin does for reset.
+  # Integration twin: integration/full_mfa/login_request_credential_origin_spec.rb.
+  describe 'recipient-origin guards on the login-request routes', :aggregate_failures do
+    let(:db) { create_test_database }
+    let(:sent) { [] }
+
+    # Accounts here carry no external_id, so no tenant membership can bind
+    # them; with no canonical origin either, every recipient is refused.
+    before { allow(Auth::PublicHost).to receive(:canonical_base_url).and_return(nil) }
+
+    def login_request_app(guards:, features: [:json, :login, :reset_password, :email_auth, :verify_account])
+      app_db       = db
+      deliveries   = sent
+      app_features = features
+      Class.new(Roda) do
+        plugin :sessions, secret: SecureRandom.hex(64)
+        plugin :json
+        plugin :halt
+        plugin :json_parser
+        plugin :rodauth do
+          db app_db
+          enable(*app_features)
+          login_column :email
+          only_json? true
+          require_mail? false
+          set_deadline_values? true
+          # Like Rodauth's own email builders, each send reads base_url for
+          # the link.
+          send_reset_password_email { deliveries << :reset_password if base_url }
+          send_email_auth_email { deliveries << :email_auth if base_url } if app_features.include?(:email_auth)
+          send_verify_account_email { deliveries << :verify_account if base_url } if app_features.include?(:verify_account)
+          Auth::Config::Overrides::PublicBaseUrl.configure(self)
+          Auth::Config::Overrides::LoginRequestEnumeration.configure(self)
+          Auth::Config::Overrides::PublicBaseUrl.configure_recipient_origins(self) if guards
+        end
+
+        route(&:rodauth)
+      end
+    end
+
+    # POST a JSON login to a route on the verified tenant host.
+    def post_login(app, path, login)
+      status, _headers, body = app.call(
+        Rack::MockRequest.env_for(
+          "https://nz.onetime.co#{path}",
+          method: 'POST',
+          input: JSON.generate(login: login),
+          'CONTENT_TYPE' => 'application/json',
+          'HTTP_ACCEPT' => 'application/json',
+          'HTTP_X_FORWARDED_PROTO' => 'https',
+        ).merge('onetime.display_domain' => 'secret.asi.nz'),
+      )
+      [status, JSON.parse(body.join)]
+    end
+
+    def seed(email, status_id)
+      db[:accounts].insert(email: email, status_id: status_id)
+    end
+
+    context 'without the guards (the oracle)' do
+      it 'raises for an existing account where a missing login answers 200' do
+        app = login_request_app(guards: false)
+        seed('member@example.com', AuthTestConstants::STATUS_VERIFIED)
+
+        expect(post_login(app, '/email-auth-request', 'nobody@example.com').first).to eq(200)
+        expect { post_login(app, '/email-auth-request', 'member@example.com') }
+          .to raise_error(Auth::PublicHost::MissingAllowlistedOrigin)
+      end
+    end
+
+    context 'with the guards' do
+      it 'answers an open account on email-auth-request like a missing login, writing nothing' do
+        app      = login_request_app(guards: true)
+        id       = seed('member@example.com', AuthTestConstants::STATUS_VERIFIED)
+        db[:account_email_auth_keys].insert(id: id, key: 'existing', deadline: Time.now + 7200, email_last_sent: Time.now - 3600)
+        original = db[:account_email_auth_keys].where(id: id).first
+
+        answer = post_login(app, '/email-auth-request', 'member@example.com')
+
+        expect(answer.first).to eq(200)
+        expect(answer).to eq(post_login(app, '/email-auth-request', 'nobody@example.com'))
+        expect(db[:account_email_auth_keys].where(id: id).first).to eq(original)
+        expect(sent).to be_empty
+      end
+
+      it 'answers an unverified account on verify-account-resend like a missing login, writing nothing' do
+        app      = login_request_app(guards: true)
+        id       = seed('pending@example.com', AuthTestConstants::STATUS_UNVERIFIED)
+        db[:account_verification_keys].insert(id: id, key: 'existing', email_last_sent: Time.now - 3600)
+        original = db[:account_verification_keys].where(id: id).first
+
+        answer = post_login(app, '/verify-account-resend', 'pending@example.com')
+
+        expect(answer.first).to eq(200)
+        expect(answer).to eq(post_login(app, '/verify-account-resend', 'nobody@example.com'))
+        expect(db[:account_verification_keys].where(id: id).first).to eq(original)
+        expect(sent).to be_empty
+      end
+
+      it 'chains with the enumeration override instead of replacing it' do
+        klass = login_request_app(guards: true).rodauth
+
+        expect(klass.ancestors.index(described_class::VerifyAccountOrigin)).to be < klass.ancestors.index(klass)
+        expect(klass.instance_method(:verify_account_email_resend).super_method.owner).to eq(klass)
+      end
+    end
+
+    context 'with only reset_password enabled' do
+      it 'prepends only the reset guard' do
+        ancestors = login_request_app(guards: true, features: [:json, :login, :reset_password]).rodauth.ancestors
+
+        expect(ancestors).to include(described_class::ResetPasswordOrigin)
+        expect(ancestors).not_to include(described_class::EmailAuthOrigin, described_class::VerifyAccountOrigin)
+      end
     end
   end
 end

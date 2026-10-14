@@ -19,6 +19,7 @@ import {
   unavailableBootstrap,
 } from '@/tests/fixtures/bootstrap.fixture';
 import { toWire } from '@/tests/fixtures/bootstrap-wire';
+import { captureAppLogs } from '@/tests/utils/appLogs';
 import type AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { setupTestPinia } from '../setup';
@@ -208,20 +209,27 @@ describe('authStore', () => {
     it('grants nothing when the server does not', async () => {
       await mountWith(anonymousBootstrap);
       axiosMock.onGet(ENDPOINT).reply(200, toWire(anonymousBootstrap));
+      const logs = captureAppLogs();
 
       await store.setAuthenticated(true);
 
       expect(store.isAuthenticated).toBe(false);
+      expect(logs.warn).toHaveBeenCalledWith(
+        '[AuthStore.ordering] session-ended',
+        expect.objectContaining({ event: 'session-ended' })
+      );
     });
 
     it('grants nothing when the server cannot be reached', async () => {
       await mountWith(anonymousBootstrap);
       axiosMock.onGet(ENDPOINT).networkError();
+      const logs = captureAppLogs();
 
       await store.setAuthenticated(true);
 
       expect(store.isAuthenticated).toBe(false);
       expect(store.authStatus).toBe('anonymous');
+      expect(logs.error).toHaveBeenCalledTimes(1);
     });
   });
 

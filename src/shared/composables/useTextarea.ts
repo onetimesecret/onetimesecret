@@ -83,5 +83,6 @@ export function useTextarea(options: TextareaOptions) {
     textareaRef,
     checkContentLength,
     handleInput,
+    adjustHeight,
   };
 }

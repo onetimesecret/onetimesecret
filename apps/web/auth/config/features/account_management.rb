@@ -64,7 +64,7 @@ module Auth::Config::Features
           # Use Rodauth's `param` rather than `request.params['invite_token']` so
           # this works under internal_request too (internal_request only populates
           # rodauth.params, not the Rack request body).
-          invite_token = param_or_nil('invite_token').to_s.strip
+          invite_token = Auth::Config::Features::AccountManagement.invite_token_param(param_or_nil('invite_token'))
           if invite_token.empty?
             super()
           else
@@ -215,6 +215,23 @@ module Auth::Config::Features
         json_response[:next_action] = open_account? ? 'sign_in' : 'verify_email' if json_request?
         super()
       end
+    end
+
+    # The invite_token param as send_verify_account_email reads it: stripped,
+    # or '' when absent, not a String, or not valid in its encoding. `strip`
+    # raises on an invalid-encoding String, and on verify-account-resend this
+    # read runs only for an unverified account with a key row, so the 500
+    # told that account apart from a missing login (SEC-B08). Treating such a
+    # token as absent sends the ordinary verification email; a token that
+    # cannot be valid UTF-8 can never name an invitation anyway.
+    # Auth::ParamEncoding refuses such a request before it gets here.
+    #
+    # @param value [Object] param_or_nil('invite_token')
+    # @return [String]
+    def self.invite_token_param(value)
+      return '' unless value.is_a?(String) && value.valid_encoding?
+
+      value.strip
     end
   end
 end

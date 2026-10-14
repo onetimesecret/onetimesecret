@@ -94,6 +94,16 @@ RSpec.describe 'Domains Command', type: :cli do
       expect(output[:stdout]).to include('example.com')
     end
 
+    it 'shows a TXT record name that has no A-label form without failing' do
+      allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(domain)
+      allow(domain).to receive(:validation_record)
+        .and_raise(Onetime::DomainValidation::AsciiHostname::ConversionError, 'does not fit the DNS name limits')
+
+      output = run_cli_command_quietly('domains', 'info', 'example.com')
+
+      expect(output[:stdout]).to include('Validation Record:    (no A-label form: does not fit the DNS name limits)')
+    end
+
     it 'handles non-existent domain' do
       allow(Onetime::CustomDomain).to receive(:load_by_display_domain).with('notfound.com').and_return(nil)
       allow(Onetime::CustomDomain).to receive(:find_by_extid).with('notfound.com').and_return(nil)
@@ -101,6 +111,43 @@ RSpec.describe 'Domains Command', type: :cli do
 
       output = run_cli_command_quietly('domains', 'info', 'notfound.com')
       expect(output[:stdout]).to include('not found')
+    end
+  end
+
+  # CustomDomain.parse and create! refuse some names, and report datastore
+  # failures, with an Onetime::Problem. The command shows its message and
+  # exits 1 like any other refusal instead of letting it escape.
+  describe 'create subcommand' do
+    let(:create_op) { double('DomainsCreate') }
+    let(:ok_check) do
+      Onetime::Operations::Domains::Create::Check.new(
+        status: :ok, display_domain: 'shop.example.com', message: nil, claims_orphan: false,
+      )
+    end
+
+    before do
+      allow(Onetime::Organization).to receive(:find_by_extid).and_return(organization)
+      allow(Onetime::Operations::Domains::Create).to receive(:new).and_return(create_op)
+    end
+
+    it 'shows a refusal raised while validating and exits 1' do
+      allow(create_op).to receive(:validate).and_raise(Onetime::Problem, 'Domain too deep (max: 10)')
+
+      output = run_cli_command_quietly('domains', 'create', 'a.b.c.d.e.f.g.h.i.j.example.com', '--org', 'on_org', '--yes')
+
+      expect([output[:stdout], last_exit_code]).to match([include('Error: Domain too deep (max: 10)'), 1])
+    end
+
+    it 'shows a datastore failure raised while creating and exits 1' do
+      allow(create_op).to receive(:validate).and_return(ok_check)
+      allow(create_op).to receive(:call).and_raise(
+        Onetime::TemporarilyUnavailable.new('The domain could not be added right now. Please try again shortly.', reason: :datastore),
+      )
+
+      output = run_cli_command_quietly('domains', 'create', 'shop.example.com', '--org', 'on_org', '--yes', '--json')
+
+      expect([JSON.parse(output[:stdout].lines.last), last_exit_code])
+        .to eq([{ 'error' => 'The domain could not be added right now. Please try again shortly.' }, 1])
     end
   end
 
@@ -315,6 +362,32 @@ RSpec.describe 'Domains Command', type: :cli do
       expect(output[:stdout]).to include('SSL Ready:        unknown')
       expect(output[:stdout]).to include('Is Resolving:     unknown')
       expect(output[:stdout].scan('Status: UNKNOWN').size).to eq(2)
+      expect(last_exit_code).to eq(0)
+    end
+
+    it 'prints the A-label TXT record name for the dig command' do
+      allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(domain)
+      allow(domain).to receive(:validation_record).and_return('_onetime-challenge-abc1234.xn--bcher-kva.example.com')
+      allow(Onetime::Operations::AdminVerifyDomain).to receive(:new).and_return(double('AdminVerify', call: verify_result))
+
+      output = run_cli_command_quietly('domains', 'verify', 'example.com')
+
+      expect(output[:stdout]).to include(
+        'Expected: TXT record at _onetime-challenge-abc1234.xn--bcher-kva.example.com',
+        'dig TXT _onetime-challenge-abc1234.xn--bcher-kva.example.com +short',
+      )
+    end
+
+    it 'reports a TXT record name that has no A-label form instead of a dig command' do
+      allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(domain)
+      allow(domain).to receive(:validation_record)
+        .and_raise(Onetime::DomainValidation::AsciiHostname::ConversionError, 'does not fit the DNS name limits')
+      allow(Onetime::Operations::AdminVerifyDomain).to receive(:new).and_return(double('AdminVerify', call: verify_result))
+
+      output = run_cli_command_quietly('domains', 'verify', 'example.com')
+
+      expect(output[:stdout]).to include('TXT record name has no A-label form (does not fit the DNS name limits)')
+      expect(output[:stdout]).not_to include('dig TXT')
       expect(last_exit_code).to eq(0)
     end
 

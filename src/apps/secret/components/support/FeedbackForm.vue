@@ -1,6 +1,7 @@
 <!-- src/apps/secret/components/support/FeedbackForm.vue -->
 
 <script setup lang="ts">
+  import { loggingService } from '@/services/logging.service';
   import { useI18n } from 'vue-i18n';
   import { useFormSubmission } from '@/shared/composables/useFormSubmission';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
@@ -65,7 +66,7 @@
   }>();
 
   const submitWithCheck = async (event?: Event) => {
-    console.debug('Submitting exception form');
+    loggingService.debug('Submitting exception form');
 
     await submitForm(event);
   };

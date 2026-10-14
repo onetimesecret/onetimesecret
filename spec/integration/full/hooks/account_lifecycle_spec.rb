@@ -206,7 +206,7 @@ RSpec.describe 'Rodauth Hook Side Effects', :full_auth_mode, type: :integration 
       post_json '/auth/reset-password-request', { login: password_email }
 
       # Every request gets the same generic success
-      # (overrides/reset_password_enumeration.rb).
+      # (overrides/login_request_enumeration.rb).
       expect(last_response.status).to eq(200), last_response.body[0..500]
     end
 

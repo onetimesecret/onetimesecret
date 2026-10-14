@@ -304,6 +304,60 @@ describe('DomainConfigsSection', () => {
       );
     });
 
+    it('reads a blank OIDC token endpoint auth method as automatic, a set one verbatim', async () => {
+      // The serializer sends null for the gem default; the fixture omits the
+      // key entirely (an API that predates it), which must read the same way.
+      mockApi.get.mockResolvedValue({ data: configsPayload() });
+      wrapper = mountSection();
+      await flushPromises();
+      await wrapper.find('[data-testid="config-toggle-sso"]').trigger('click');
+
+      expect(
+        wrapper.find('[data-testid="config-field-sso-token_endpoint_auth_method"]').text()
+      ).toContain('web.admin.domains.configs.values.token_endpoint_auth_method_automatic');
+      wrapper.unmount();
+
+      const payload = configsPayload();
+      payload.details.configs.sso = {
+        exists: true,
+        config: { ...ssoConfig(), token_endpoint_auth_method: 'client_secret_post' },
+      } as never;
+      mockApi.get.mockResolvedValue({ data: payload });
+      wrapper = mountSection();
+      await flushPromises();
+      await wrapper.find('[data-testid="config-toggle-sso"]').trigger('click');
+
+      expect(
+        wrapper.find('[data-testid="config-field-sso-token_endpoint_auth_method"]').text()
+      ).toContain('client_secret_post');
+    });
+
+    it('drops the token endpoint auth method row for a non-oidc sso record', async () => {
+      const payload = configsPayload();
+      payload.details.configs.sso = {
+        exists: true,
+        config: {
+          ...ssoConfig(),
+          provider_type: 'entra_id',
+          issuer: null,
+          tenant_id: '12345678-1234-1234-1234-123456789abc',
+          token_endpoint_auth_method: null,
+        },
+      } as never;
+      mockApi.get.mockResolvedValue({ data: payload });
+      wrapper = mountSection();
+      await flushPromises();
+      await wrapper.find('[data-testid="config-toggle-sso"]').trigger('click');
+
+      expect(wrapper.find('[data-testid="config-fields-sso"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="config-field-sso-tenant_id"]').text()).toContain(
+        '12345678-1234-1234-1234-123456789abc'
+      );
+      expect(
+        wrapper.find('[data-testid="config-field-sso-token_endpoint_auth_method"]').exists()
+      ).toBe(false);
+    });
+
     it('renders the error state and retries on a network failure', async () => {
       mockApi.get.mockRejectedValue(new Error('Network Error'));
       wrapper = mountSection();

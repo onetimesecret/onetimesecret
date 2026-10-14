@@ -4,7 +4,8 @@
 // customDomainSsoConfigCanonical schema. Verifies the frontend mirrors of
 // PROVIDER_TYPES, PROVIDER_METADATA, CLIENT_CREDENTIAL_PROVIDER_TYPES,
 // PROVIDER_ROUTE_MAP and SAML_FIELDS in
-// lib/onetime/models/custom_domain/sso_config.rb.
+// lib/onetime/models/custom_domain/sso_config.rb, and of the
+// CLIENT_AUTH_METHODS keys in lib/onetime/sso_provider/oidc.rb (#4764).
 //
 // The Ruby constants are READ FROM SOURCE (same approach as
 // customer-role-contract.spec.ts), so a backend provider type, route default
@@ -23,8 +24,10 @@ import {
   SSO_PROVIDER_METADATA,
   SSO_PROVIDER_ROUTE_NAMES,
   SSO_SAML_FIELDS,
+  SSO_TOKEN_ENDPOINT_AUTH_METHODS,
   ssoProviderTypeSchema,
   ssoProviderUsesClientCredentials,
+  tokenEndpointAuthMethodSchema,
   type SsoProviderType,
 } from '@/schemas/contracts/custom-domain/sso-config';
 import { readFileSync } from 'node:fs';
@@ -77,6 +80,12 @@ const SSO_CONFIG_SOURCE_PATH = fileURLToPath(
 
 const rubySource = readFileSync(SSO_CONFIG_SOURCE_PATH, 'utf8');
 
+const OIDC_PROVIDER_SOURCE_PATH = fileURLToPath(
+  new URL('../../../lib/onetime/sso_provider/oidc.rb', import.meta.url)
+);
+
+const oidcProviderSource = readFileSync(OIDC_PROVIDER_SOURCE_PATH, 'utf8');
+
 /**
  * Extracts a `%w[...]` word list constant from the Ruby model. Throws
  * (failing the suite loudly) if the declaration moved or changed shape — a
@@ -104,6 +113,23 @@ function rubySymbolList(constant: string): string[] {
     .split(',')
     .map((s) => s.trim().replace(/^:/, ''))
     .filter(Boolean);
+}
+
+/**
+ * `CLIENT_AUTH_METHODS = { 'name' => :symbol, ... }.freeze` in oidc.rb →
+ * ['name', ...]. The model's TOKEN_ENDPOINT_AUTH_METHODS is `.keys` of this
+ * hash (asserted separately), so the keys are the wire values (#4764).
+ */
+function rubyClientAuthMethodKeys(): string[] {
+  const block = oidcProviderSource.match(/CLIENT_AUTH_METHODS\s*=\s*\{([\s\S]*?)\}\.freeze/);
+  if (!block) {
+    throw new Error(`Could not extract CLIENT_AUTH_METHODS from ${OIDC_PROVIDER_SOURCE_PATH}.`);
+  }
+  const keys = [...block[1].matchAll(/'([a-z_]+)'\s*=>/g)].map(([, key]) => key);
+  if (keys.length === 0) {
+    throw new Error('CLIENT_AUTH_METHODS matched but no entries were parsed.');
+  }
+  return keys;
 }
 
 /**
@@ -186,6 +212,41 @@ describe('Backend constant sync (read from sso_config.rb)', () => {
 
   it('SSO_SAML_FIELDS equals SAML_FIELDS', () => {
     expect([...SSO_SAML_FIELDS]).toEqual(rubySymbolList('SAML_FIELDS'));
+  });
+
+  it('tokenEndpointAuthMethodSchema equals the CLIENT_AUTH_METHODS keys (oidc.rb)', () => {
+    const keys = rubyClientAuthMethodKeys();
+    expect([...tokenEndpointAuthMethodSchema.options].sort()).toEqual([...keys].sort());
+    expect([...SSO_TOKEN_ENDPOINT_AUTH_METHODS].sort()).toEqual([...keys].sort());
+  });
+
+  it('the model derives TOKEN_ENDPOINT_AUTH_METHODS from CLIENT_AUTH_METHODS.keys', () => {
+    // If the model ever grows its own list, this mirror must be re-pointed.
+    expect(rubySource).toMatch(
+      /TOKEN_ENDPOINT_AUTH_METHODS\s*=\s*Onetime::SsoProvider::Oidc::CLIENT_AUTH_METHODS\.keys/
+    );
+  });
+
+  it('token_endpoint_auth_method is enum-or-null on the canonical schema and enum-or-blank on requests', () => {
+    const field = customDomainSsoConfigCanonical.shape.token_endpoint_auth_method;
+    expect(field.safeParse(null).success).toBe(true);
+    expect(field.safeParse(undefined).success).toBe(true);
+    expect(field.safeParse('client_secret_post').success).toBe(true);
+    expect(field.safeParse('').success).toBe(false);
+    expect(field.safeParse('private_key_jwt').success).toBe(false);
+
+    for (const schema of [patchSsoConfigPayloadSchema, putSsoConfigPayloadSchema]) {
+      expect(schema.shape.token_endpoint_auth_method.safeParse('').success).toBe(true);
+      expect(schema.shape.token_endpoint_auth_method.safeParse('client_secret_basic').success).toBe(
+        true
+      );
+      expect(schema.shape.token_endpoint_auth_method.safeParse(null).success).toBe(false);
+      expect(schema.shape.token_endpoint_auth_method.safeParse('private_key_jwt').success).toBe(
+        false
+      );
+    }
+    // PATCH: absent key is "keep" — the schema must not inject one.
+    expect(patchSsoConfigPayloadSchema.parse({})).not.toHaveProperty('token_endpoint_auth_method');
   });
 
   it('every SAML field is declared nullable on the canonical schema', () => {

@@ -183,6 +183,12 @@ module DomainsAPI
         # One exclusivity rule for replacement, creation and partial updates.
         # Partial writes omit active blank trio values, but always clear the
         # inactive provider's fields, including policy left by older records.
+        #
+        # token_endpoint_auth_method (#4764) is narrower than the OAuth family:
+        # only oidc reads it, so a full write stores it for oidc and clears it
+        # for every other type (the model refuses it elsewhere). A partial
+        # write leaves it to the caller's key-presence rule
+        # (PatchSsoConfig#update_existing_config).
         def provider_attributes(partial: false)
           oauth       = [:client_id, :client_secret, :tenant_id, :issuer]
           saml_fields = Onetime::CustomDomain::SsoConfig::SAML_FIELDS
@@ -190,9 +196,12 @@ module DomainsAPI
             values                    = saml_submitted.reject { |_key, value| partial && value.empty? }
             values[:name_id_format]   = @name_id_format unless partial && !params.key?('name_id_format')
             values[:callback_origins] = @callback_origins unless partial && !params.key?('callback_origins')
-            oauth.to_h { |key| [key, ''] }.merge(values)
+            oauth.to_h { |key| [key, ''] }.merge(values).merge(token_endpoint_auth_method: '')
           else
             values = partial ? {} : oauth.to_h { |key| [key, instance_variable_get(:"@#{key}")] }
+            unless partial
+              values[:token_endpoint_auth_method] = @provider_type == 'oidc' ? @token_endpoint_auth_method : ''
+            end
             values.merge(saml_fields.to_h { |key| [key, ''] }).merge(name_id_format: '', callback_origins: [])
           end
         end

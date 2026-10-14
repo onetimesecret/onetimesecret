@@ -78,10 +78,12 @@ module Onetime
         validation_error = validate_config
         return failure_result(validation_error) if validation_error
 
-        # Acquire distributed lock to prevent concurrent provisioning
-        lock_token = @mailer_config.provisioning.acquire(ttl: 60)
+        # The domain's sender identity lock, shared with DeleteSenderConfig's
+        # provider teardown (MailerConfig.sender_identity_lock).
+        lock       = @mailer_config.sender_identity_lock
+        lock_token = lock.acquire(ttl: 60)
         unless lock_token
-          return failure_result("Domain provisioning already in progress for #{@mailer_config.domain_id}")
+          return failure_result("Sender identity provisioning or deletion already in progress for #{@mailer_config.domain_id}")
         end
 
         begin
@@ -152,7 +154,7 @@ module Onetime
             error: nil,
           )
         ensure
-          @mailer_config.provisioning.release(lock_token)
+          lock.release(lock_token)
         end
       rescue ArgumentError => ex
         # Strategy selection or validation errors
@@ -363,10 +365,23 @@ module Onetime
       # @param identity_id [String, nil] Provider's identity identifier
       # @raise [StandardError] if persistence fails
       def persist_provider_data(provider_data, dns_records, identity_id)
-        @mailer_config.provider_dns_data = provider_data
-        @mailer_config.dns_records       = dns_records
-        @mailer_config.updated           = Familia.now.to_i
-        @mailer_config.save
+        # This record was loaded before the provider calls. Bump `updated` on
+        # the record as stored now (MailerConfig.record_job_result!), which
+        # also confirms it still exists and still sends from the address
+        # provisioned; then write the two jsonkeys, which write their own
+        # keys on assignment.
+        stored, = Onetime::CustomDomain::MailerConfig.record_job_result!(
+          @mailer_config.domain_id, @mailer_config.from_address
+        ) do |config|
+          config.updated = Familia.now.to_i
+        end
+        unless stored
+          raise Onetime::Problem,
+            "Sender config for #{@mailer_config.domain_id} was deleted or changed its address during provisioning"
+        end
+
+        stored.provider_dns_data = provider_data
+        stored.dns_records       = dns_records
 
         logger.debug 'Persisted provider DNS data',
           domain_id: @mailer_config.domain_id,

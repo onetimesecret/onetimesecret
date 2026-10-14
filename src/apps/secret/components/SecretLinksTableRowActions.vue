@@ -25,7 +25,7 @@
         title="Actions">
         <OIcon
           collection="heroicons"
-          name="ellipsis-vertical-20-solid"
+          name="solid-ellipsis-vertical"
           class="size-5" />
       </button>
     </template>
@@ -49,7 +49,10 @@
               {{ t('web.receipt.view_receipt') }}
             </router-link>
           </MenuItem>
-          <MenuItem v-slot="{ active }">
+          <!-- The secret identifier is in memory only; absent after a reload (M10) -->
+          <MenuItem
+            v-if="concealedMessage.secretExtid"
+            v-slot="{ active }">
             <router-link
               :to="`/secret/${concealedMessage.secretExtid}`"
               target="_blank"
@@ -61,7 +64,7 @@
               ]">
               <OIcon
                 collection="heroicons"
-                name="link-20-solid"
+                name="link-solid"
                 class="mr-2 size-4 text-emerald-500 dark:text-emerald-400"
                 aria-hidden="true" />
               {{ t('web.receipt.open_link') }}

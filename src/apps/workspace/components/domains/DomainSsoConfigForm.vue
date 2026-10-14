@@ -17,9 +17,13 @@ import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
 import { useClipboard } from '@/shared/composables/useClipboard';
 import {
   SSO_PROVIDER_ROUTE_NAMES,
+  SSO_TOKEN_ENDPOINT_AUTH_METHODS,
   ssoProviderUsesClientCredentials,
+  tokenEndpointAuthMethodSchema,
   type CustomDomainSsoConfig,
   type SsoProviderType,
+  type SsoTokenEndpointAuthMethod,
+  type SsoTokenEndpointAuthMethodRequest,
 } from '@/schemas/shapes/domains/sso-config';
 import type { SsoConfigFormState } from '@/shared/composables/useSsoConfig';
 import type { TestSsoConnectionResponse } from '@/services/sso.service';
@@ -118,6 +122,28 @@ const UNREADABLE_FIELD_LABELS: Record<string, string> = {
   idp_cert: 'web.organizations.sso.idp_cert',
 };
 
+/**
+ * Token endpoint client authentication (#4764, oidc only). '' is the
+ * "Automatic" option — the gem default — and is what the composable sends
+ * so a PATCH clears a stored choice. Labels are keyed per contract value so
+ * a method added to the contract fails type-check here until it has one.
+ */
+const TOKEN_ENDPOINT_AUTH_METHOD_LABELS: Record<SsoTokenEndpointAuthMethod, string> = {
+  client_secret_basic: 'web.organizations.sso.token_endpoint_auth_method_client_secret_basic',
+  client_secret_post: 'web.organizations.sso.token_endpoint_auth_method_client_secret_post',
+};
+
+const tokenEndpointAuthMethodOptions: {
+  value: SsoTokenEndpointAuthMethodRequest;
+  labelKey: string;
+}[] = [
+  { value: '', labelKey: 'web.organizations.sso.token_endpoint_auth_method_automatic' },
+  ...SSO_TOKEN_ENDPOINT_AUTH_METHODS.map((method) => ({
+    value: method,
+    labelKey: TOKEN_ENDPOINT_AUTH_METHOD_LABELS[method],
+  })),
+];
+
 // ---------------------------------------------------------------------------
 // Local UI state
 // ---------------------------------------------------------------------------
@@ -137,6 +163,20 @@ const showClientSecret = ref(false);
 const newDomain = ref('');
 const domainInputError = ref('');
 
+/**
+ * The Advanced disclosure is collapsed by default, but a saved record that
+ * carries a non-default token endpoint auth method opens it so the choice
+ * is never hidden from the admin editing it.
+ */
+const advancedOpen = ref(false);
+watch(
+  () => props.ssoConfig?.token_endpoint_auth_method ?? null,
+  (stored) => {
+    if (stored) advancedOpen.value = true;
+  },
+  { immediate: true }
+);
+
 // ---------------------------------------------------------------------------
 // Form state helpers (emit updates to parent)
 // ---------------------------------------------------------------------------
@@ -151,6 +191,12 @@ function updateField<K extends keyof SsoConfigFormState>(
   });
 }
 
+/** A select value is a string; only a contract value (or '') reaches the state. */
+function updateTokenEndpointAuthMethod(raw: string): void {
+  const parsed = tokenEndpointAuthMethodSchema.safeParse(raw);
+  updateField('token_endpoint_auth_method', parsed.success ? parsed.data : '');
+}
+
 // ---------------------------------------------------------------------------
 // Computed: form validation and display logic
 // ---------------------------------------------------------------------------
@@ -162,6 +208,20 @@ const isSaml = computed(() => props.formState.provider_type === 'saml');
 const requiresTenantId = computed(() => props.formState.provider_type === 'entra_id');
 
 const requiresIssuer = computed(() => props.formState.provider_type === 'oidc');
+
+/**
+ * Test Connection (#4764): the advertised token endpoint auth methods, and
+ * whether the selected one is among them. `false` keeps the test successful
+ * (an IdP may accept a method it does not list) but turns the API's note
+ * into a warning rather than a confirmation.
+ */
+const advertisedTokenEndpointAuthMethods = computed(
+  () => props.testResult?.details?.token_endpoint_auth_methods_supported ?? null
+);
+
+const tokenEndpointAuthMethodUnadvertised = computed(
+  () => props.testResult?.details?.token_endpoint_auth_method_supported === false
+);
 
 // OAuth-family providers only; SAML's trust anchor is the IdP certificate.
 const requiresClientCredentials = computed(() =>
@@ -829,6 +889,45 @@ aria-hidden="true">*</span>
         </a>
       </div>
 
+      <!-- Advanced (OIDC only, #4764): token endpoint client authentication.
+           Collapsed unless the saved record carries a non-default method. -->
+      <details
+        v-if="requiresIssuer"
+        :open="advancedOpen"
+        @toggle="advancedOpen = ($event.target as HTMLDetailsElement).open"
+        data-testid="sso-advanced-oidc"
+        class="rounded-lg border border-gray-200 dark:border-gray-700">
+        <summary
+          class="cursor-pointer px-4 py-3 text-sm font-medium text-gray-700 select-none hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">
+          {{ t('web.organizations.sso.advanced_section') }}
+        </summary>
+        <div class="border-t border-gray-200 p-4 dark:border-gray-700">
+          <label
+            for="domain-sso-token-endpoint-auth-method"
+            class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            {{ t('web.organizations.sso.token_endpoint_auth_method') }}
+          </label>
+          <p
+            id="domain-token-endpoint-auth-method-hint"
+            class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            {{ t('web.organizations.sso.token_endpoint_auth_method_hint') }}
+          </p>
+          <select
+            id="domain-sso-token-endpoint-auth-method"
+            :value="formState.token_endpoint_auth_method"
+            @change="updateTokenEndpointAuthMethod(($event.target as HTMLSelectElement).value)"
+            aria-describedby="domain-token-endpoint-auth-method-hint"
+            class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+            <option
+              v-for="option in tokenEndpointAuthMethodOptions"
+              :key="option.value"
+              :value="option.value">
+              {{ t(option.labelKey) }}
+            </option>
+          </select>
+        </div>
+      </details>
+
       <!-- SAML IdP trust anchor (#4450): SSO URL, EntityID, signing cert.
            None is a secret (the IdP publishes all three), so the stored values
            are shown and re-sent as-is; the API stores them AAD-bound to the
@@ -1000,11 +1099,39 @@ aria-hidden="true">*</span>
                 <h5 class="text-sm font-medium text-green-800 dark:text-green-200">
                   {{ testResult.message }}
                 </h5>
+                <!-- The API's note. With an unadvertised token endpoint auth
+                     method (#4764) it explains a gap, so it reads as a warning;
+                     otherwise it is part of the confirmation. -->
                 <p
                   v-if="testResult.details?.note"
-                  class="mt-1 text-sm text-green-700 dark:text-green-300">
-                  {{ testResult.details.note }}
+                  data-testid="sso-test-note"
+                  :class="
+                    tokenEndpointAuthMethodUnadvertised
+                      ? 'mt-2 flex items-start gap-2 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-700 dark:bg-amber-900/20 dark:text-amber-300'
+                      : 'mt-1 text-sm text-green-700 dark:text-green-300'
+                  ">
+                  <OIcon
+                    v-if="tokenEndpointAuthMethodUnadvertised"
+                    collection="heroicons"
+                    name="exclamation-triangle"
+                    class="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400"
+                    aria-hidden="true" />
+                  <span>{{ testResult.details.note }}</span>
                 </p>
+                <!-- OIDC / Entra (#4764): what the discovery document advertises. -->
+                <dl
+                  v-if="advertisedTokenEndpointAuthMethods?.length"
+                  data-testid="sso-test-token-endpoint-auth-methods"
+                  class="mt-2 space-y-1 text-sm text-green-700 dark:text-green-300">
+                  <div class="flex gap-2">
+                    <dt class="shrink-0 font-medium">
+                      {{ t('web.organizations.sso.token_endpoint_auth_methods_supported') }}:
+                    </dt>
+                    <dd class="font-mono break-all">
+                      {{ advertisedTokenEndpointAuthMethods.join(', ') }}
+                    </dd>
+                  </div>
+                </dl>
                 <!-- SAML (#4450): the test is local, so it reports what it
                      parsed — the certificate's subject and expiry. -->
                 <dl

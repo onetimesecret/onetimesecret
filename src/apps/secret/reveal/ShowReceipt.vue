@@ -145,8 +145,8 @@
               v-if="details.show_recipients"
               class="flex items-center text-lg font-semibold text-gray-900 dark:text-white">
               <OIcon
-                collection="material-symbols"
-                name="mail-outline"
+                collection="mdi"
+                name="email-outline"
                 class="mr-2 size-5 text-brand-500 dark:text-brand-400" />
               <span class="mr-2 text-gray-500 dark:text-gray-400">{{ t('web.COMMON.sent_to') }}</span>
               <span class="break-words">{{ record.recipient_name || record.recipients }}</span>
@@ -161,8 +161,8 @@
               ]">
               <OIcon
                 v-if="!details.show_recipients"
-                collection="material-symbols"
-                name="notes"
+                collection="mdi"
+                name="text-box-outline"
                 class="mr-2 mt-0.5 size-4 shrink-0 text-gray-400 dark:text-gray-500" />
               <span class="mr-1 text-gray-500 dark:text-gray-400">{{ t('incoming.memo_label') }}:</span>
               <span class="break-words">{{ record.memo }}</span>
@@ -221,8 +221,8 @@
                   <span class="select-none blur-sm">•••••••••••••••••••••••••••••••••••••••</span>
                 </span>
                 <OIcon
-                  collection="material-symbols"
-                  name="lock-outline"
+                  collection="heroicons"
+                  name="lock-closed"
                   class="ml-2 size-4 shrink-0 text-gray-400" />
               </div>
               <!-- prettier-ignore-attribute class -->

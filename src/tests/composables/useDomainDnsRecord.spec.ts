@@ -149,7 +149,10 @@ describe('useDomainDnsRecord', () => {
 
   describe('host', () => {
     it("reads '@' for a non-apex record with a blank trd, with the dotted appendix", () => {
-      const r = record({ is_apex: false, trd: '', base_domain: 'example.com' }, cluster('passthrough'));
+      const r = record(
+        { is_apex: false, trd: '', base_domain: 'example.com' },
+        cluster('passthrough')
+      );
 
       expect(r.host).toBe('@');
       expect(r.appendix).toBe('.example.com');
@@ -161,6 +164,156 @@ describe('useDomainDnsRecord', () => {
       const r = useDomainDnsRecord(() => null);
       expect(r.recordHost.value).toBe('@');
       expect(r.kind.value).toBe('cname');
+    });
+  });
+});
+
+// The record is created under the A-label form of the name: host and zone come
+// from display_domain_ascii, split by the label counts of trd and base_domain.
+// The copy button copies the host. The typed spelling is a hint beside it.
+describe('useDomainDnsRecord A-label name (display_domain_ascii)', () => {
+  beforeEach(() => {
+    setDomainValidationStrategy('passthrough');
+  });
+
+  const named = (domain: object) => {
+    const r = useDomainDnsRecord(
+      () => domain as never,
+      () => cluster('passthrough') as never
+    );
+    return {
+      host: r.recordHost.value,
+      appendix: r.recordHostAppendix.value,
+      displayName: r.recordDisplayName.value,
+    };
+  };
+
+  it('Unicode subdomain: the A-label host, the zone, and the typed spelling as a hint', () => {
+    expect(
+      named({
+        is_apex: false,
+        trd: 'bücher',
+        base_domain: 'example.com',
+        display_domain: 'bücher.example.com',
+        display_domain_ascii: 'xn--bcher-kva.example.com',
+      })
+    ).toEqual({
+      host: 'xn--bcher-kva',
+      appendix: '.example.com',
+      displayName: 'bücher.example.com',
+    });
+  });
+
+  it('Unicode registrable domain: the zone in A-label form', () => {
+    expect(
+      named({
+        is_apex: false,
+        trd: 'secrets',
+        base_domain: 'bücher.de',
+        display_domain: 'secrets.bücher.de',
+        display_domain_ascii: 'secrets.xn--bcher-kva.de',
+      })
+    ).toEqual({
+      host: 'secrets',
+      appendix: '.xn--bcher-kva.de',
+      displayName: 'secrets.bücher.de',
+    });
+  });
+
+  it("Unicode apex: '@' and the A-label zone, undotted", () => {
+    expect(
+      named({
+        is_apex: true,
+        trd: '',
+        base_domain: 'bücher.de',
+        display_domain: 'bücher.de',
+        display_domain_ascii: 'xn--bcher-kva.de',
+      })
+    ).toEqual({ host: '@', appendix: 'xn--bcher-kva.de', displayName: 'bücher.de' });
+  });
+
+  it('ASCII subdomain: as before, no hint', () => {
+    expect(
+      named({
+        ...subdomain,
+        display_domain: 'test.example.com',
+        display_domain_ascii: 'test.example.com',
+      })
+    ).toEqual({ host: 'test', appendix: '.example.com', displayName: null });
+  });
+
+  it('ASCII apex: as before, no hint', () => {
+    expect(
+      named({ ...apex, display_domain: 'example.com', display_domain_ascii: 'example.com' })
+    ).toEqual({ host: '@', appendix: 'example.com', displayName: null });
+  });
+
+  it('a typed spelling that differs only in case is not a different name', () => {
+    expect(
+      named({
+        ...subdomain,
+        trd: 'Test',
+        display_domain: 'Test.Example.com',
+        display_domain_ascii: 'test.example.com',
+      })
+    ).toEqual({ host: 'test', appendix: '.example.com', displayName: null });
+  });
+
+  it('multi-label subdomain: every subdomain label stays in the host', () => {
+    expect(
+      named({
+        is_apex: false,
+        trd: 'a.bücher',
+        base_domain: 'example.co.uk',
+        display_domain: 'a.bücher.example.co.uk',
+        display_domain_ascii: 'a.xn--bcher-kva.example.co.uk',
+      })
+    ).toMatchObject({ host: 'a.xn--bcher-kva', appendix: '.example.co.uk' });
+  });
+
+  it('a name that does not split against trd and base_domain: the full A-label name', () => {
+    // U+3002 separates labels like "." and is mapped to it on conversion.
+    expect(
+      named({
+        is_apex: false,
+        trd: 'bücher',
+        base_domain: 'example\u3002com',
+        display_domain: 'bücher.example\u3002com',
+        display_domain_ascii: 'xn--bcher-kva.example.com',
+      })
+    ).toEqual({
+      host: 'xn--bcher-kva.example.com',
+      appendix: '',
+      displayName: 'bücher.example\u3002com',
+    });
+  });
+
+  describe('without display_domain_ascii: the typed trd and base_domain, no hint', () => {
+    it.each([
+      ['null (no A-label form)', null],
+      ['absent (older payload)', undefined],
+    ])('%s', (_label, display_domain_ascii) => {
+      const unicode = {
+        is_apex: false,
+        trd: 'bücher',
+        base_domain: 'example.com',
+        display_domain: 'bücher.example.com',
+        display_domain_ascii,
+      };
+      const unicodeApex = {
+        is_apex: true,
+        trd: '',
+        base_domain: 'bücher.de',
+        display_domain: 'bücher.de',
+        display_domain_ascii,
+      };
+
+      expect(named(unicode)).toEqual({
+        host: 'bücher',
+        appendix: '.example.com',
+        displayName: null,
+      });
+      expect(named(unicodeApex)).toEqual({ host: '@', appendix: 'bücher.de', displayName: null });
     });
   });
 });

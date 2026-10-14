@@ -36,7 +36,7 @@
  * @see https://www.npmjs.com/package/vue-router-mock#caveats
  */
 
-import { VueRouterMock, createRouterMock, injectRouterMock } from 'vue-router-mock';
+import { VueRouterMock, createRouterMock, getRouter, injectRouterMock } from 'vue-router-mock';
 import { config } from '@vue/test-utils';
 import { beforeEach } from 'vitest';
 
@@ -48,5 +48,8 @@ beforeEach(() => {
   injectRouterMock(router);
 });
 
-// Add properties to the wrapper
-config.plugins.VueWrapper.install(VueRouterMock);
+// Add properties to the wrapper. A test that mounts with a real router
+// drops the mock's provides first (dropRouterMockProvides in
+// src/tests/utils/routerSetup.ts), so there is no mock router to attach;
+// it uses its own router instead of wrapper.router.
+config.plugins.VueWrapper.install((wrapper) => (getRouter() ? VueRouterMock(wrapper) : wrapper));

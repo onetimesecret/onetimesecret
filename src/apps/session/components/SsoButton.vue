@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
 import { submitSsoLogin } from '@/shared/utils/sso';
+import { ssoProviderIcon } from '@/sources/ssoProviderIcons';
 import { computed, ref } from 'vue';
 
 export interface Props {
@@ -40,32 +41,8 @@ const csrfStore = useCsrfStore();
 
 const isLoading = ref(false);
 
-/**
- * Brand icon per provider, keyed by route name. Route names are
- * env-configurable (OIDC_ROUTE_NAME etc.), so this matches the DEFAULT
- * route names plus common aliases; anything unrecognized (including
- * generic OIDC) falls back to the neutral building-office icon.
- *
- * 'saml' names a protocol, not a brand, so it gets a generic key glyph
- * (#4450) rather than any one IdP's mark.
- */
-const PROVIDER_ICONS: Record<string, { collection: string; name: string }> = {
-  google: { collection: 'mdi', name: 'google' },
-  github: { collection: 'mdi', name: 'github' },
-  gitlab: { collection: 'mdi', name: 'gitlab' },
-  entra: { collection: 'mdi', name: 'microsoft' },
-  microsoft: { collection: 'mdi', name: 'microsoft' },
-  apple: { collection: 'mdi', name: 'apple' },
-  saml: { collection: 'mdi', name: 'key' },
-};
-
-const providerIcon = computed(
-  () =>
-    PROVIDER_ICONS[props.routeName] ?? {
-      collection: 'heroicons',
-      name: 'solid-building-office',
-    }
-);
+// Brand icon for the route, or the neutral fallback (generic OIDC included).
+const providerIcon = computed(() => ssoProviderIcon(props.routeName));
 
 /**
  * Initiates SSO login by submitting a form POST to /auth/sso/:provider,

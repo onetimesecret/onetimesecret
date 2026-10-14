@@ -320,7 +320,7 @@ const handleSubmit = async () => {
                   <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                     <OIcon
                       collection="heroicons"
-                      name="solid-lock-closed"
+                      name="lock-closed-solid"
                       size="5"
                       class="text-gray-400"
                       aria-hidden="true" />
@@ -460,7 +460,7 @@ const handleSubmit = async () => {
               <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                 <OIcon
                   collection="heroicons"
-                  name="solid-lock-closed"
+                  name="lock-closed-solid"
                   size="5"
                   class="text-gray-400"
                   aria-hidden="true" />
@@ -602,7 +602,7 @@ const handleSubmit = async () => {
               <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                 <OIcon
                   collection="heroicons"
-                  name="solid-lock-closed"
+                  name="lock-closed-solid"
                   size="5"
                   class="text-gray-400"
                   aria-hidden="true" />
@@ -741,7 +741,7 @@ const handleSubmit = async () => {
             <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
               <OIcon
                 collection="heroicons"
-                name="solid-lock-closed"
+                name="lock-closed-solid"
                 size="5"
                 class="text-gray-400"
                 aria-hidden="true" />

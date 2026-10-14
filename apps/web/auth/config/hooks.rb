@@ -69,6 +69,10 @@
 #                       also the helpers mfa.rb and webauthn.rb call from
 #                       their setup hooks to renew the session id (#4466)
 #   email_auth.rb       before_email_auth_route, after_email_auth_request
+#   email_login_request.rb  before_email_auth_request_route (rate limiting per
+#                       client IP + per submitted login, RISK-2026-08-14-M04,
+#                       then required allowlisted origin; both before account
+#                       lookup; registered only when email_auth is enabled)
 #   reset_password_request.rb  before_reset_password_request_route (rate
 #                       limiting per client IP + per submitted login, #3872,
 #                       then required allowlisted origin, H-05; both before
@@ -78,9 +82,12 @@
 #                       EVERY route, so it is the one hook that must stay cheap
 #                       and must never be redefined elsewhere; see
 #                       ADR-034#restrict-to-is-an-access-control-not-a-display-preference
-#                       / #reject-as-not-found-not-forbidden),
+#                       / #reject-as-not-found-not-forbidden; then, after every
+#                       gate, the invalid-encoding param refusal,
+#                       Auth::ParamEncoding, SEC-B01/SEC-B11),
 #                       before_email_auth_request (the multi-phase-login magic
-#                       link, which is not its own route)
+#                       link, which is not its own route; after the gates it
+#                       charges email_login_request.rb's limiter)
 #   create_account.rb   before_create_account_route (rate limiting per client
 #                       IP, #3948; NOT before_create_account, which account.rb
 #                       owns and which fires later in the submission)
@@ -103,7 +110,8 @@
 #
 # Method overrides (a different mechanism — they replace Rodauth methods, not
 # register hooks) live in config/overrides/: error_handling.rb defines the
-# around_rodauth wrapper, password_migration.rb overrides password_match?.
+# around_rodauth wrapper, password_migration.rb overrides password_match?,
+# login_request_enumeration.rb owns account_from_login.
 # See config/overrides.rb.
 #
 # Log levels:
@@ -117,6 +125,7 @@ module Auth::Config::Hooks
   require_relative 'hooks/account'
   require_relative 'hooks/billing'
   require_relative 'hooks/create_account'
+  require_relative 'hooks/email_login_request'
   require_relative 'hooks/login'
   require_relative 'hooks/logout'
   require_relative 'hooks/mfa'

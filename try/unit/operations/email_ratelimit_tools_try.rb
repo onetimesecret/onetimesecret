@@ -147,7 +147,7 @@ AE.count
 
 ## the registry knows the canonical limiter kinds, in registry order
 Onetime::Operations::RateLimit::Registry.kinds
-#=> ["feedback", "passphrase", "invite", "login", "reset_request_ip", "reset_request_email", "create_account_ip", "colonel_elevation", "colonel_mutation", "colonel_destructive", "colonel_handle_resolve", "dns", "create_secret"]
+#=> ["feedback", "passphrase", "invite", "login", "reset_request_ip", "reset_request_email", "email_login_request_ip", "email_login_request_email", "create_account_ip", "colonel_elevation", "colonel_mutation", "colonel_destructive", "colonel_handle_resolve", "dns", "create_secret"]
 
 ## keys_for expands the templates byte-identically to the CLI's emitted keys
 Onetime::Operations::RateLimit::Registry.keys_for('feedback', '1.2.3.4')
@@ -161,6 +161,16 @@ Onetime::Operations::RateLimit::Registry.keys_for('reset_request_ip', '203.0.113
 ## the reset-request email backstop derives its own pair from the same subject
 Onetime::Operations::RateLimit::Registry.keys_for('reset_request_email', 'user@example.com')
 #=> ["reset_request:attempts:email:user@example.com", "reset_request:locked:email:user@example.com"]
+
+## the email-login-request scope (RISK-2026-08-14-M04) derives the keys the
+## limiter writes under its own prefix, so a magic-link lockout is clearable
+## without touching the reset-request buckets
+Onetime::Operations::RateLimit::Registry.keys_for('email_login_request_ip', '203.0.113.0')
+#=> ["email_login_request:attempts:ip:203.0.113.0", "email_login_request:locked:ip:203.0.113.0"]
+
+## ...and its email backstop likewise
+Onetime::Operations::RateLimit::Registry.keys_for('email_login_request_email', 'user@example.com')
+#=> ["email_login_request:attempts:email:user@example.com", "email_login_request:locked:email:user@example.com"]
 
 ## the anonymous secret-creation limiter (F-02) keys on the MASKED client IP
 ## — the stored form the limiter writes, so operator clears actually hit

@@ -16,8 +16,12 @@ import { createTestI18n } from '@tests/setup';
 import { RouterLinkStub, flushPromises, mount, type Stubs } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { useRealRouter } from '@/tests/utils/routerSetup';
 import { createMemoryHistory, createRouter } from 'vue-router';
 import { createSharedApiInstance, getGlobalAxiosMock } from '../../setup-stores';
+
+// Mounts with a real router; see useRealRouter.
+useRealRouter();
 
 // Mock components
 vi.mock('@/shared/components/icons/OIcon.vue', () => ({

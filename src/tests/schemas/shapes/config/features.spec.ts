@@ -1,6 +1,6 @@
 // src/tests/schemas/shapes/config/features.spec.ts
 //
-// Coverage for the features shape — regions, incoming, and domains. The
+// Coverage for the features shape — regions, incoming, domains and markdown. The
 // `jurisdictions` union added in PR #3206 lives on the contract because
 // `z.union(...)` is a type-format helper; this file exercises all three
 // branches there to lock that down.
@@ -21,6 +21,7 @@ import {
   featuresRegionsShape,
   featuresIncomingShape,
   featuresDomainsShape,
+  featuresMarkdownShape,
 } from '@/schemas/shapes/config/section/features';
 
 describe('featuresIncomingShape — defaults and bounds', () => {
@@ -47,6 +48,12 @@ describe('featuresIncomingShape — defaults and bounds', () => {
   it('contract accepts the same bad values the shape rejects', () => {
     expect(() => featuresIncomingSchema.parse({ memo_max_length: 0 })).not.toThrow();
     expect(() => featuresIncomingSchema.parse({ default_ttl: -5 })).not.toThrow();
+  });
+});
+
+describe('featuresMarkdownShape — defaults', () => {
+  it('enabled defaults to false (opt-in)', () => {
+    expect(featuresMarkdownShape.parse({}).enabled).toBe(false);
   });
 });
 
@@ -111,8 +118,10 @@ describe('featuresShape — composed defaults', () => {
       regions: {},
       incoming: {},
       domains: {},
+      markdown: {},
     });
     expect(result.regions?.enabled).toBe(false);
+    expect(result.markdown?.enabled).toBe(false);
     expect(result.incoming?.enabled).toBe(false);
     expect(result.incoming?.memo_max_length).toBe(50);
     expect(result.incoming?.default_ttl).toBe(604800);

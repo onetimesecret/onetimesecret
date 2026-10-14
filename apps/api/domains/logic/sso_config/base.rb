@@ -83,6 +83,28 @@ module DomainsAPI
           url
         end
 
+        # token_endpoint_auth_method as it will be stored (#4764): stripped,
+        # '' when blank. Exact-case: the accepted names are the RFC spellings.
+        #
+        # @param value [String, nil]
+        # @return [String]
+        def normalize_token_endpoint_auth_method(value)
+          value.to_s.strip
+        end
+
+        # @param value [String] a normalized token_endpoint_auth_method
+        # @raise [Onetime::FormError] when non-blank and not one of the accepted names
+        def validate_token_endpoint_auth_method!(value)
+          accepted = Onetime::CustomDomain::SsoConfig::TOKEN_ENDPOINT_AUTH_METHODS
+          return if value.empty? || accepted.include?(value)
+
+          raise_form_error(
+            "token_endpoint_auth_method must be one of: #{accepted.join(', ')}",
+            field: :token_endpoint_auth_method,
+            error_type: :invalid,
+          )
+        end
+
         # Validate that enforce_sso_only is not enabled when SSO is disabled.
         #
         # @param enabled [Boolean] Whether SSO is enabled (effective value for PATCH, direct for PUT)

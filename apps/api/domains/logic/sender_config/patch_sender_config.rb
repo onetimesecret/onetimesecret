@@ -64,50 +64,27 @@ module DomainsAPI
           # Check if config already exists
           @existing_config = Onetime::CustomDomain::MailerConfig.find_by_domain_id(@custom_domain.identifier)
 
-          # Validate required fields
-          validate_required_fields
-
-          # Enforce domain restriction against the effective from_address.
-          #
-          # Always run enforcement so that an org losing the flexible_from_domain
-          # entitlement cannot preserve a non-compliant address via a PATCH that
-          # omits from_address. The effective address is the submitted value when
-          # provided, otherwise the stored value.
-          #
-          # If enforcement changes the address (i.e. the stored address was
-          # non-compliant) we mark it as provided so update_existing_config
-          # picks it up and resets the verification state.
-          effective_from_address = if @from_address_provided || @existing_config.nil?
-  @from_address
-else
-  @existing_config.from_address
-end
-          enforced_from_address  = enforce_from_domain(effective_from_address, @custom_domain, @organization)
-          if @from_address_provided || @existing_config.nil? || enforced_from_address != effective_from_address
-            @from_address          = enforced_from_address
-            @from_address_provided = true
-          end
+          resolve_against_stored_config
         end
 
         def process
           OT.ld "[PatchSenderConfig] Patching sender config for domain #{@domain_id} by user #{cust.extid}"
 
-          # Track enabled state change for audit
-          was_enabled = @existing_config&.enabled?
-
           if @existing_config
-            # Compute changes before updating
-            changes = compute_sender_changes(@existing_config, params)
-            update_existing_config
+            # Audit from the state this write replaced, not from the config
+            # raise_concerns loaded (see update_existing_config)
+            previous    = update_existing_config
+            was_enabled = previous[:was_enabled]
             log_sender_config_event(
               event: :domain_sender_config_updated,
               domain: @custom_domain,
               org: @organization,
               actor: cust,
-              changes: changes,
+              changes: previous[:changes],
             )
           else
-            create_new_config
+            was_enabled = nil
+            guarded_config_write { create_new_config }
             log_sender_config_event(
               event: :domain_sender_config_created,
               domain: @custom_domain,
@@ -146,6 +123,35 @@ end
         end
 
         private
+
+        # The checks that read the stored record. update_existing_config runs
+        # them again on the record it re-reads under WATCH, which is the one
+        # the write applies to.
+        def resolve_against_stored_config
+          # Validate required fields
+          validate_required_fields
+
+          # Enforce domain restriction against the effective from_address.
+          #
+          # Always run enforcement so that an org losing the flexible_from_domain
+          # entitlement cannot preserve a non-compliant address via a PATCH that
+          # omits from_address. The effective address is the submitted value when
+          # provided, otherwise the stored value.
+          #
+          # If enforcement changes the address (i.e. the stored address was
+          # non-compliant) we mark it as provided so update_existing_config
+          # picks it up and resets the verification state.
+          effective_from_address = if @from_address_provided || @existing_config.nil?
+  @from_address
+else
+  @existing_config.from_address
+end
+          enforced_from_address  = enforce_from_domain(effective_from_address, @custom_domain, @organization)
+          if @from_address_provided || @existing_config.nil? || enforced_from_address != effective_from_address
+            @from_address          = enforced_from_address
+            @from_address_provided = true
+          end
+        end
 
         # Validates required fields with PATCH semantics.
         #
@@ -189,31 +195,44 @@ end
         # - Resets verification state when address changes
         # - Other fields updated directly without affecting verification state
         #
-        # Uses transaction with commit_fields to prevent race condition where
-        # config could be deleted between existence check and update.
-        #
         # Custom mail sender model: sender identity only, no provider/api_key.
         #
+        # The record raise_concerns loaded can be stale by now, and writing it
+        # back would revert fields written since, including the verification
+        # and provisioning state background jobs record. update_for_domain!
+        # re-reads it under WATCH and retries when it changes before the
+        # commit (GuardedConfigWrites); the request is resolved again against
+        # that record, and the audit values come from it.
+        #
+        # @return [Hash] :changes and :was_enabled of the record before this write
         def update_existing_config
-          @mailer_config = @existing_config
+          @mailer_config, previous = guarded_config_write do
+            Onetime::CustomDomain::MailerConfig.update_for_domain!(@custom_domain.identifier) do |config|
+              # raise_concerns filled some request values from the record it
+              # loaded; start again from the request.
+              process_params
+              @existing_config = config
+              resolve_against_stored_config
+              state            = { changes: compute_sender_changes(config, params), was_enabled: config.enabled? }
 
-          # PATCH semantics: only update fields that are explicitly provided
-          @mailer_config.from_name = @from_name if @from_name_provided
-          @mailer_config.reply_to  = @reply_to if @reply_to_provided
-          @mailer_config.enabled   = @enabled.to_s if @enabled_provided
+              # PATCH semantics: only update fields that are explicitly provided
+              config.from_name = @from_name if @from_name_provided
+              config.reply_to  = @reply_to if @reply_to_provided
+              config.enabled   = @enabled.to_s if @enabled_provided
 
-          # Handle from_address change: resets verification state
-          if @from_address_provided && !@from_address.to_s.empty? && @from_address != @existing_config.from_address
-            @mailer_config.from_address        = @from_address
-            @mailer_config.verified_at         = nil
-            @mailer_config.verification_status = VERIFICATION_STATUS_PENDING
+              # Handle from_address change: resets verification state
+              if @from_address_provided && !@from_address.to_s.empty? && @from_address != config.from_address
+                config.from_address        = @from_address
+                config.verified_at         = nil
+                config.verification_status = VERIFICATION_STATUS_PENDING
+              end
+
+              # Update timestamp for partial update
+              config.updated = Familia.now.to_i
+              state
+            end
           end
-
-          # Update timestamp for partial update
-          @mailer_config.updated = Familia.now.to_i
-
-          # commit_fields uses its own internal transaction for atomicity
-          @mailer_config.commit_fields
+          previous
         end
 
         # Log enabled/disabled state change if it occurred.

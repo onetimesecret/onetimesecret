@@ -116,9 +116,19 @@ module Onetime
               return ack! # Don't retry -- config won't appear on its own
             end
 
+            # Every write goes through record_job_result!: it lands on the
+            # record as stored now, and is skipped once the record is gone
+            # or sends from another address than the one this job checks.
+            from_address = mailer_config.from_address
+
             # Mark job as processing
-            mailer_config.dns_check_status = JobLifecycle::PROCESSING
-            mailer_config.save_fields(:dns_check_status)
+            marked = Onetime::CustomDomain::MailerConfig.record_job_result!(domain_id, from_address) do |stored|
+              stored.dns_check_status = JobLifecycle::PROCESSING
+            end
+            unless marked
+              log_info "DNS record check skipped: #{domain_id} was deleted or its sender address changed"
+              return ack!
+            end
 
             # Load the sender strategy for DNS lookups (no credentials needed)
             provider = mailer_config.effective_provider
@@ -130,33 +140,35 @@ module Onetime
               result = strategy.check_dns_records(mailer_config, credentials: {})
             end
 
-            # Persist the raw fact-finding results.
-            # dns_check_results is a jsonkey (own Redis key), so use value= directly.
-            # dns_check_completed_at and updated are scalar fields — save_fields handles those.
-            mailer_config.dns_check_results.value = result[:records]
-
             # Compute dns_verified outcome: true only when there is at least one
             # checked record AND every one matched. An empty record set (domain
             # not provisioned, or every record optional) is absence of evidence,
             # not verification — [].all? would report true.
-            records                    = result[:records] || []
-            all_matched                = records.all? { |r| r['value_matches'] == true || r[:value_matches] == true }
-            dns_verified               = records.any? && all_matched
-            mailer_config.dns_verified = dns_verified
+            records      = result[:records] || []
+            all_matched  = records.all? { |r| r['value_matches'] == true || r[:value_matches] == true }
+            dns_verified = records.any? && all_matched
 
-            # Mark job as completed
-            mailer_config.dns_check_status       = JobLifecycle::COMPLETED
-            mailer_config.dns_check_completed_at = Familia.now.to_i
-            mailer_config.updated                = Familia.now.to_i
-            mailer_config.save_fields(:dns_check_status, :dns_verified, :dns_check_completed_at, :updated)
+            # Mark job as completed, and derive verification_status in the
+            # same write when the validation worker has already finished: the
+            # job that completes second sees the other's outcome.
+            stored, final_status = Onetime::CustomDomain::MailerConfig.record_job_result!(domain_id, from_address) do |config|
+              config.dns_verified           = dns_verified
+              config.dns_check_status       = JobLifecycle::COMPLETED
+              config.dns_check_completed_at = Familia.now.to_i
+              config.updated                = Familia.now.to_i
+              config.derive_verification_status
+            end
+            unless stored
+              log_info "DNS record check result dropped: #{domain_id} was deleted or its sender address changed"
+              return ack!
+            end
 
-            # Refresh from Redis so we see the validation worker's latest status, not our
-            # in-memory copy which was loaded before that worker ran.
-            mailer_config.refresh!
+            # The raw fact-finding results. dns_check_results is a jsonkey
+            # (its own Redis key) and writes on assignment, so it follows the
+            # guarded write rather than joining it.
+            stored.dns_check_results.value = result[:records]
 
-            # Update stored verification_status if both jobs are now complete
-            if mailer_config.jobs_completed?
-              final_status = mailer_config.update_verification_status!
+            if final_status
               log_info "DNS record check complete (final): #{domain_id}",
                 record_count: records.size,
                 dns_verified: dns_verified,
@@ -165,7 +177,7 @@ module Onetime
               log_info "DNS record check complete: #{domain_id}",
                 record_count: records.size,
                 dns_verified: dns_verified,
-                provider_check_status: mailer_config.provider_check_status
+                provider_check_status: stored.provider_check_status
             end
 
             ack!
@@ -173,11 +185,12 @@ module Onetime
         rescue StandardError => ex
           # Mark job as failed before sending to DLQ
           if mailer_config
-            mailer_config.dns_check_status       = JobLifecycle::FAILED
-            mailer_config.dns_check_completed_at = Familia.now.to_i
-            mailer_config.last_error             = ex.message
-            mailer_config.updated                = Familia.now.to_i
-            mailer_config.save_fields(:dns_check_status, :dns_check_completed_at, :last_error, :updated)
+            Onetime::CustomDomain::MailerConfig.record_job_result!(mailer_config.domain_id, mailer_config.from_address) do |stored|
+              stored.dns_check_status       = JobLifecycle::FAILED
+              stored.dns_check_completed_at = Familia.now.to_i
+              stored.last_error             = ex.message
+              stored.updated                = Familia.now.to_i
+            end
           end
 
           log_error 'Unexpected error checking DNS records', ex

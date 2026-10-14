@@ -395,6 +395,44 @@ RSpec.describe 'Tenant OAuth callbacks behind a Host-rewriting proxy', :shared_d
     end
   end
 
+  # #4764: the stored selection reaches the strategy as a top-level
+  # client_auth_method and changes the wire shape of the code exchange —
+  # credentials in the body, no Authorization header (the default flow above
+  # pins the Basic header in expect_exchange).
+  context 'with a tenant that selected client_secret_post' do
+    let(:rewrite_on) { true }
+    let(:public_port) { 443 }
+    let(:origin_port) { 443 }
+    let(:port_carrier) { :host }
+
+    include_context 'public host rewrite setting'
+
+    before do
+      config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(tenant_a[:domain].identifier)
+      config.token_endpoint_auth_method = 'client_secret_post'
+      config.save
+    end
+
+    it 'sends the client credentials in the token request body and signs the user in' do
+      flow = start_login(tenant_a)
+      stub_tokens(tenant_a, flow)
+      callback(tenant_a, flow)
+
+      request = token_requests.last
+      expect(request).not_to be_nil
+      expect(request.headers['Authorization']).to be_nil
+      params  = URI.decode_www_form(request.body).to_h
+      expect(params).to include(
+        'grant_type' => 'authorization_code',
+        'code' => "code-#{run_id}",
+        'redirect_uri' => flow.fetch('redirect_uri'),
+        'client_id' => tenant_a[:client_id],
+        'client_secret' => tenant_a[:client_secret],
+      )
+      expect_tenant_login(tenant_a)
+    end
+  end
+
   context 'with rewriting on and a different origin-hop port' do
     let(:rewrite_on) { true }
     let(:origin_port) { 3000 }

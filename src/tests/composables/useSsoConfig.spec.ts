@@ -94,6 +94,7 @@ const mockSsoConfigData: CustomDomainSsoConfig = {
   client_secret_masked: '****5678',
   tenant_id: 'tenant-id-abcdef',
   issuer: null,
+  token_endpoint_auth_method: null,
   idp_sso_service_url: null,
   idp_entity_id: null,
   idp_cert: null,
@@ -216,6 +217,7 @@ describe('useSsoConfig', () => {
         client_secret: '', // NEVER populated from API response
         tenant_id: 'tenant-id-abcdef',
         issuer: '',
+        token_endpoint_auth_method: '',
         idp_sso_service_url: '',
         idp_entity_id: '',
         idp_cert: '',
@@ -258,6 +260,7 @@ describe('useSsoConfig', () => {
         client_secret: '',
         tenant_id: '',
         issuer: '',
+        token_endpoint_auth_method: '',
         idp_sso_service_url: '',
         idp_entity_id: '',
         idp_cert: '',
@@ -373,6 +376,7 @@ describe('useSsoConfig', () => {
         client_secret: 'new-secret-value',
         tenant_id: 'new-tenant-id',
         issuer: '',
+        token_endpoint_auth_method: '',
         idp_sso_service_url: '',
         idp_entity_id: '',
         idp_cert: '',
@@ -410,6 +414,7 @@ describe('useSsoConfig', () => {
         client_secret: 'secret-value',
         tenant_id: 'tenant-id-abcdef',
         issuer: '',
+        token_endpoint_auth_method: '',
         idp_sso_service_url: '',
         idp_entity_id: '',
         idp_cert: '',
@@ -438,6 +443,7 @@ describe('useSsoConfig', () => {
         client_secret: 'test-secret',
         tenant_id: 'test-tenant',
         issuer: '',
+        token_endpoint_auth_method: '',
         idp_sso_service_url: '',
         idp_entity_id: '',
         idp_cert: '',
@@ -466,6 +472,7 @@ describe('useSsoConfig', () => {
         client_secret: '  secret-value  ',
         tenant_id: '  tenant-id  ',
         issuer: '',
+        token_endpoint_auth_method: '',
         idp_sso_service_url: '',
         idp_entity_id: '',
         idp_cert: '',
@@ -502,6 +509,7 @@ describe('useSsoConfig', () => {
         client_secret: 'test-secret',
         tenant_id: 'test-tenant',
         issuer: '',
+        token_endpoint_auth_method: '',
         idp_sso_service_url: '',
         idp_entity_id: '',
         idp_cert: '',
@@ -537,6 +545,7 @@ describe('useSsoConfig', () => {
         client_secret: 'test-secret',
         tenant_id: 'test-tenant',
         issuer: '',
+        token_endpoint_auth_method: '',
         idp_sso_service_url: '',
         idp_entity_id: '',
         idp_cert: '',
@@ -567,6 +576,7 @@ describe('useSsoConfig', () => {
         client_secret: 'test-secret',
         tenant_id: 'test-tenant',
         issuer: '',
+        token_endpoint_auth_method: '',
         idp_sso_service_url: '',
         idp_entity_id: '',
         idp_cert: '',
@@ -597,6 +607,7 @@ describe('useSsoConfig', () => {
         client_secret: 'test-secret',
         tenant_id: 'test-tenant',
         issuer: '',
+        token_endpoint_auth_method: '',
         idp_sso_service_url: '',
         idp_entity_id: '',
         idp_cert: '',
@@ -880,6 +891,133 @@ describe('useSsoConfig', () => {
   // deleteConfig
   // ---------------------------------------------------------------------------
 
+  // ---------------------------------------------------------------------------
+  // token_endpoint_auth_method (#4764)
+  // ---------------------------------------------------------------------------
+
+  describe('token_endpoint_auth_method (#4764)', () => {
+    const savedPayload = (): Record<string, unknown> => {
+      expect(mockSaveConfigForDomain).toHaveBeenCalledTimes(1);
+      const [, payload] = mockSaveConfigForDomain.mock.calls[0] as [
+        string,
+        Record<string, unknown>,
+      ];
+      return payload;
+    };
+
+    it("defaults to '' (Automatic) on a fresh form", async () => {
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      expect(composable.formState.value.token_endpoint_auth_method).toBe('');
+    });
+
+    it("seeds the stored method from the record and maps null to ''", async () => {
+      mockGetConfigForDomain.mockResolvedValue({
+        record: { ...mockOidcConfigData, token_endpoint_auth_method: 'client_secret_post' },
+      });
+      const stored = useSsoConfig('dm-ext-123');
+      await stored.initialize();
+      expect(stored.formState.value.token_endpoint_auth_method).toBe('client_secret_post');
+      expect(stored.hasUnsavedChanges.value).toBe(false);
+
+      mockGetConfigForDomain.mockResolvedValue({ record: mockOidcConfigData });
+      const unset = useSsoConfig('dm-ext-456');
+      await unset.initialize();
+      expect(unset.formState.value.token_endpoint_auth_method).toBe('');
+    });
+
+    it("sends the key with '' for Automatic on an oidc save (a present blank CLEARS on PATCH)", async () => {
+      mockGetConfigForDomain.mockResolvedValue({
+        record: { ...mockOidcConfigData, token_endpoint_auth_method: 'client_secret_post' },
+      });
+      mockSaveConfigForDomain.mockResolvedValue({ record: mockOidcConfigData });
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      composable.formState.value = {
+        ...composable.formState.value,
+        token_endpoint_auth_method: '',
+      };
+      expect(composable.hasUnsavedChanges.value).toBe(true);
+
+      await composable.saveConfig();
+
+      const payload = savedPayload();
+      expect(payload).toHaveProperty('token_endpoint_auth_method', '');
+    });
+
+    it('sends the selected method on an oidc save', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: mockOidcConfigData });
+      mockSaveConfigForDomain.mockResolvedValue({
+        record: { ...mockOidcConfigData, token_endpoint_auth_method: 'client_secret_post' },
+      });
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      composable.formState.value = {
+        ...composable.formState.value,
+        token_endpoint_auth_method: 'client_secret_post',
+      };
+
+      await composable.saveConfig();
+
+      expect(savedPayload()).toMatchObject({ token_endpoint_auth_method: 'client_secret_post' });
+      expect(composable.formState.value.token_endpoint_auth_method).toBe('client_secret_post');
+      expect(composable.hasUnsavedChanges.value).toBe(false);
+    });
+
+    it.each(['entra_id', 'saml'] as const)(
+      'does not send the key for %s, even with a stale value on the form',
+      async (providerType) => {
+        mockGetConfigForDomain.mockResolvedValue({ record: null });
+        const composable = useSsoConfig('dm-ext-123');
+        await composable.initialize();
+
+        composable.formState.value = {
+          ...composable.formState.value,
+          provider_type: providerType,
+          display_name: 'Stale',
+          client_id: 'client-123',
+          client_secret: 'secret-456',
+          tenant_id: 'tenant-789',
+          idp_sso_service_url: 'https://idp.example.com/sso',
+          idp_entity_id: 'https://idp.example.com/entity',
+          idp_cert: SAML_CERT,
+          // A value left over from an oidc selection before the switch.
+          token_endpoint_auth_method: 'client_secret_post',
+        };
+
+        await composable.saveConfig();
+        expect(savedPayload()).not.toHaveProperty('token_endpoint_auth_method');
+
+        await composable.testConnection();
+        const [, testPayload] = mockTestConnectionForDomain.mock.calls[0] as [
+          string,
+          Record<string, unknown>,
+        ];
+        expect(testPayload).not.toHaveProperty('token_endpoint_auth_method');
+      }
+    );
+
+    it('sends the selected method with the oidc test payload', async () => {
+      mockGetConfigForDomain.mockResolvedValue({
+        record: { ...mockOidcConfigData, token_endpoint_auth_method: 'client_secret_post' },
+      });
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      await composable.testConnection();
+
+      expect(mockTestConnectionForDomain).toHaveBeenCalledWith('dm-ext-123', {
+        provider_type: 'oidc',
+        client_id: 'client-id-12345',
+        issuer: 'https://idp.example.com',
+        token_endpoint_auth_method: 'client_secret_post',
+      });
+    });
+  });
+
   describe('disableConfig recovery', () => {
     it('PATCHes only the two flags despite unreadable credentials and unsaved edits', async () => {
       const record = { ...mockEnforceSsoOnlyConfig, unreadable_fields: ['client_secret'] };
@@ -984,6 +1122,7 @@ describe('useSsoConfig', () => {
         client_secret: '',
         tenant_id: '',
         issuer: '',
+        token_endpoint_auth_method: '',
         idp_sso_service_url: '',
         idp_entity_id: '',
         idp_cert: '',
@@ -1271,6 +1410,7 @@ describe('useSsoConfig', () => {
         client_secret: 'new-secret',
         tenant_id: '',
         issuer: 'https://changed.example.com',
+        token_endpoint_auth_method: '',
         idp_sso_service_url: '',
         idp_entity_id: '',
         idp_cert: '',
@@ -1302,6 +1442,7 @@ describe('useSsoConfig', () => {
         client_secret: '',
         tenant_id: '',
         issuer: '',
+        token_endpoint_auth_method: '',
         idp_sso_service_url: '',
         idp_entity_id: '',
         idp_cert: '',
@@ -1361,6 +1502,7 @@ describe('useSsoConfig', () => {
         provider_type: 'oidc',
         client_id: 'client-id-12345',
         issuer: 'https://idp.example.com',
+        token_endpoint_auth_method: '',
       });
     });
 
@@ -1464,6 +1606,202 @@ describe('useSsoConfig', () => {
           tenant_id: 'new-unsaved-tenant-id',
         })
       );
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // testResult is bound to the fields it was run against (#4764 review)
+  // ---------------------------------------------------------------------------
+
+  describe('testResult staleness', () => {
+    const oidcSuccess: TestSsoConnectionResponse = {
+      ...mockTestSuccessResponse,
+      provider_type: 'oidc',
+      details: {
+        ...mockTestSuccessResponse.details,
+        token_endpoint_auth_methods_supported: ['client_secret_basic'],
+        token_endpoint_auth_method_supported: false,
+      },
+    };
+
+    const testedOidc = async () => {
+      mockGetConfigForDomain.mockResolvedValue({
+        record: { ...mockOidcConfigData, token_endpoint_auth_method: 'client_secret_post' },
+      });
+      mockTestConnectionForDomain.mockResolvedValue(oidcSuccess);
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+      await composable.testConnection();
+      expect(composable.testResult.value).toEqual(oidcSuccess);
+      return composable;
+    };
+
+    it('clears the result when token_endpoint_auth_method changes', async () => {
+      const composable = await testedOidc();
+
+      composable.formState.value = {
+        ...composable.formState.value,
+        token_endpoint_auth_method: 'client_secret_basic',
+      };
+
+      expect(composable.testResult.value).toBeNull();
+      expect(composable.testError.value).toBe('');
+    });
+
+    it('clears the result when issuer changes', async () => {
+      const composable = await testedOidc();
+
+      composable.formState.value = {
+        ...composable.formState.value,
+        issuer: 'https://other.example.com',
+      };
+
+      expect(composable.testResult.value).toBeNull();
+    });
+
+    it.each(['client_id', 'provider_type'] as const)(
+      'clears the result when %s changes',
+      async (field) => {
+        const composable = await testedOidc();
+
+        composable.formState.value = {
+          ...composable.formState.value,
+          [field]: field === 'provider_type' ? 'entra_id' : 'other-client',
+        };
+
+        expect(composable.testResult.value).toBeNull();
+      }
+    );
+
+    it('clears a failure result (and testError) on an edit too', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
+      mockTestConnectionForDomain.mockResolvedValue(mockTestFailureResponse);
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+      await composable.testConnection();
+      expect(composable.testError.value).toBe(mockTestFailureResponse.message);
+
+      composable.formState.value = { ...composable.formState.value, tenant_id: 'other-tenant' };
+
+      expect(composable.testResult.value).toBeNull();
+      expect(composable.testError.value).toBe('');
+    });
+
+    it('keeps the result when a field the test does not send changes', async () => {
+      const composable = await testedOidc();
+
+      composable.formState.value = {
+        ...composable.formState.value,
+        display_name: 'Renamed',
+        client_secret: 'rotated-secret',
+        allowed_domains: ['new.example.com'],
+        enabled: true,
+        enforce_sso_only: true,
+        grant_org_scope: true,
+      };
+
+      expect(composable.testResult.value).toEqual(oidcSuccess);
+    });
+
+    it('keeps the result when a change is a no-op for the test payload (whitespace)', async () => {
+      const composable = await testedOidc();
+
+      composable.formState.value = {
+        ...composable.formState.value,
+        issuer: '  https://idp.example.com  ',
+      };
+
+      expect(composable.testResult.value).toEqual(oidcSuccess);
+    });
+
+    it('keeps the result when saveConfig hydrates the form with the tested fields', async () => {
+      const composable = await testedOidc();
+      // The saved record carries what was tested; only an untested field differs.
+      mockSaveConfigForDomain.mockResolvedValue({
+        record: {
+          ...mockOidcConfigData,
+          token_endpoint_auth_method: 'client_secret_post',
+          display_name: 'Saved',
+        },
+      });
+
+      await composable.saveConfig();
+
+      expect(composable.formState.value.display_name).toBe('Saved');
+      expect(composable.testResult.value).toEqual(oidcSuccess);
+
+      // An edit from the hydrated values still clears.
+      composable.formState.value = { ...composable.formState.value, issuer: 'https://x.example' };
+      expect(composable.testResult.value).toBeNull();
+    });
+
+    it('clears the result when the saved record differs in a tested field', async () => {
+      const composable = await testedOidc();
+      // The server stored something other than what was tested (a value it
+      // rewrote, or a concurrent save): the result no longer describes the form.
+      mockSaveConfigForDomain.mockResolvedValue({
+        record: {
+          ...mockOidcConfigData,
+          token_endpoint_auth_method: 'client_secret_post',
+          issuer: 'https://idp.example.com/',
+        },
+      });
+
+      await composable.saveConfig();
+
+      expect(composable.formState.value.issuer).toBe('https://idp.example.com/');
+      expect(composable.testResult.value).toBeNull();
+    });
+
+    it('keeps the result when initialize hydrates the same record again', async () => {
+      const composable = await testedOidc();
+
+      await composable.initialize();
+
+      expect(composable.formState.value.token_endpoint_auth_method).toBe('client_secret_post');
+      expect(composable.testResult.value).toEqual(oidcSuccess);
+    });
+
+    it('clears the result when initialize hydrates a record whose tested fields changed', async () => {
+      const composable = await testedOidc();
+      mockGetConfigForDomain.mockResolvedValue({
+        record: { ...mockOidcConfigData, token_endpoint_auth_method: 'client_secret_basic' },
+      });
+
+      await composable.initialize();
+
+      expect(composable.formState.value.token_endpoint_auth_method).toBe('client_secret_basic');
+      expect(composable.testResult.value).toBeNull();
+    });
+
+    it('discards a result for values edited away while the test was in flight', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: mockOidcConfigData });
+      let resolveTest: (value: TestSsoConnectionResponse) => void = () => {};
+      mockTestConnectionForDomain.mockReturnValue(
+        new Promise<TestSsoConnectionResponse>((resolve) => {
+          resolveTest = resolve;
+        })
+      );
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      const pending = composable.testConnection();
+      composable.formState.value = {
+        ...composable.formState.value,
+        issuer: 'https://changed.example.com',
+      };
+      resolveTest(oidcSuccess);
+      await pending;
+
+      expect(composable.testResult.value).toBeNull();
+    });
+
+    it('clears the result on deleteConfig', async () => {
+      const composable = await testedOidc();
+
+      await composable.deleteConfig();
+
+      expect(composable.testResult.value).toBeNull();
     });
   });
 
