@@ -94,6 +94,10 @@ const mockSignupConfig = ref(null);
 const mockFormState = ref({ enabled: false });
 const mockIsConfigured = ref(false);
 const mockHasUnsavedChanges = ref(false);
+// Effective-state fields DomainAuthOverrideBanner reads (ADR-024).
+const mockGlobalEnabled = ref<boolean | null>(null);
+const mockEffectiveEnabled = ref<boolean | null>(null);
+const mockIsWorkspaceDefault = ref(false);
 const mockInitializeSignupConfig = vi.fn();
 const mockSaveConfig = vi.fn();
 const mockDeleteConfig = vi.fn();
@@ -110,6 +114,9 @@ vi.mock('@/shared/composables/useSignupConfig', () => ({
     formState: mockFormState,
     isConfigured: mockIsConfigured,
     hasUnsavedChanges: mockHasUnsavedChanges,
+    globalEnabled: mockGlobalEnabled,
+    effectiveEnabled: mockEffectiveEnabled,
+    isWorkspaceDefault: mockIsWorkspaceDefault,
     initialize: mockInitializeSignupConfig,
     saveConfig: mockSaveConfig,
     deleteConfig: mockDeleteConfig,
@@ -168,6 +175,9 @@ vi.mock('@/types/organization', () => ({
 const i18n = createI18n({
   legacy: false,
   locale: 'en',
+  // A partial bundle; the keys it leaves out render as their path.
+  missingWarn: false,
+  fallbackWarn: false,
   messages: {
     en: {
       web: {

@@ -916,6 +916,34 @@
     "text": "View discovery document",
     "content_hash": "513bda60"
   },
+  "web.organizations.sso.advanced_section": {
+    "text": "Advanced",
+    "content_hash": "9f088dbe"
+  },
+  "web.organizations.sso.token_endpoint_auth_method": {
+    "text": "Token endpoint authentication",
+    "content_hash": "3403bdbb"
+  },
+  "web.organizations.sso.token_endpoint_auth_method_hint": {
+    "text": "How the client secret is sent to your provider's token endpoint. Leave on Automatic unless your provider requires one method; Test Connection reports the methods it advertises.",
+    "content_hash": "31299b88"
+  },
+  "web.organizations.sso.token_endpoint_auth_method_automatic": {
+    "text": "Automatic",
+    "content_hash": "d461a493"
+  },
+  "web.organizations.sso.token_endpoint_auth_method_client_secret_basic": {
+    "text": "Authorization header (client_secret_basic)",
+    "content_hash": "028f15f5"
+  },
+  "web.organizations.sso.token_endpoint_auth_method_client_secret_post": {
+    "text": "Request body (client_secret_post)",
+    "content_hash": "cc59de7e"
+  },
+  "web.organizations.sso.token_endpoint_auth_methods_supported": {
+    "text": "Advertised methods",
+    "content_hash": "44bec8c4"
+  },
   "web.organizations.sso.callback_url": {
     "text": "Callback URL",
     "content_hash": "dc297ae9"

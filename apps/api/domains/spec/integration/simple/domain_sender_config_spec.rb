@@ -842,6 +842,68 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
         config = Onetime::CustomDomain::MailerConfig.find_by_domain_id(test_custom_domain.identifier)
         expect(config).to be_nil
       end
+
+      # Provisioning and the provider teardown share this lock: a provider
+      # reuses an existing identity, so a provision that overlapped the
+      # teardown would save DNS records for an identity the teardown deletes.
+      context 'with the sender identity lock' do
+        let(:model) { Onetime::CustomDomain::MailerConfig }
+        let(:lock) { model.sender_identity_lock(test_custom_domain.identifier) }
+
+        def stub_teardown
+          allow_any_instance_of(Onetime::Operations::DeleteSenderDomain).to receive(:call) do
+            yield
+            Onetime::Operations::DeleteSenderDomain::Result.new(success: true, message: 'stubbed', error: nil)
+          end
+        end
+
+        it 'refuses with a conflict and keeps the record while another holder has the lock' do
+          token = lock.acquire(ttl: 60)
+
+          csrf_delete api_path(test_custom_domain.extid)
+
+          expect(last_response.status).to eq(422)
+          expect(json_body['error']).to include('in progress')
+          expect(model.exists_for_domain?(test_custom_domain.identifier)).to be true
+        ensure
+          lock.release(token)
+        end
+
+        it 'holds the lock through the provider teardown, after the record is gone' do
+          seen = nil
+          stub_teardown do
+            seen = [lock.locked?, model.exists_for_domain?(test_custom_domain.identifier)]
+          end
+
+          csrf_delete api_path(test_custom_domain.extid)
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(seen).to eq([true, false])
+          expect(lock.locked?).to be false
+        end
+
+        it 'does not provision a config saved during the teardown' do
+          strategy    = spy('sender strategy')
+          provisioned = nil
+          stub_teardown do
+            replacement = model.create!(
+              domain_id: test_custom_domain.identifier,
+              provider: 'ses',
+              from_address: 'delete-test@example.com',
+            )
+            provisioned = Onetime::Operations::ProvisionSenderDomain.new(
+              mailer_config: replacement, strategy: strategy,
+            ).call
+          end
+
+          csrf_delete api_path(test_custom_domain.extid)
+
+          expect(last_response.status).to eq(200), last_response.body
+          expect(provisioned.error).to include('already in progress')
+          expect(strategy).not_to have_received(:provision_dns_records)
+          expect(model.find_by_domain_id(test_custom_domain.identifier)&.provisioned?).to be false
+        end
+      end
     end
 
     context 'when sender config does not exist' do
@@ -1164,6 +1226,80 @@ RSpec.describe 'Domain Sender Config API', type: :integration do
       body_text = last_response.body
       # The raw key value should never appear in the response
       expect(body_text).not_to include('full-secret-value-here')
+    end
+  end
+
+  # ==========================================================================
+  # A concurrent writer of the same record (GuardedConfigWrites). Background
+  # jobs write verification state to the record while a request edits the
+  # sender identity; the request must not write back the state it loaded.
+  # ==========================================================================
+
+  describe 'with a concurrent writer' do
+    include ConcurrentConfigWriterHelpers
+
+    let(:model) { Onetime::CustomDomain::MailerConfig }
+    let(:audit_events) { [] }
+
+    before do
+      enable_sender_feature_flag
+      model.create!(
+        domain_id: test_custom_domain.identifier,
+        provider: 'ses',
+        from_name: 'Original Sender',
+        from_address: 'original@acme-corp.example.com',
+        enabled: false,
+      )
+      login_as(test_owner)
+      allow(OT).to receive(:info).and_wrap_original do |original, *args, **kwargs|
+        prefix = args.first.to_s
+        audit_events << prefix.delete_prefix('[DOMAIN_SENDER_CONFIG] ') if prefix.start_with?('[DOMAIN_SENDER_CONFIG] ')
+        original.call(*args, **kwargs)
+      end
+    end
+
+    def mark_verified_concurrently
+      write_config_concurrently(model, test_custom_domain.identifier, verification_status: 'verified')
+    end
+
+    def stored = model.find_by_domain_id(test_custom_domain.identifier)
+
+    it 'PATCH keeps verification state written after the config was loaded' do
+      after_config_load(model) { mark_verified_concurrently }
+
+      csrf_patch api_path(test_custom_domain.extid), { from_name: 'Updated Sender' }
+
+      expect(last_response.status).to eq(200), last_response.body
+      expect([stored.from_name, stored.verification_status]).to eq(['Updated Sender', 'verified'])
+    end
+
+    it 'PATCH reads again when verification state lands before the commit' do
+      after_watched_read(model, times: 1) { mark_verified_concurrently }
+
+      csrf_patch api_path(test_custom_domain.extid), { from_name: 'Updated Sender' }
+
+      expect(last_response.status).to eq(200), last_response.body
+      expect([stored.from_name, stored.verification_status]).to eq(['Updated Sender', 'verified'])
+    end
+
+    it 'PUT keeps verification state written after the config was loaded' do
+      after_config_load(model) { mark_verified_concurrently }
+
+      csrf_put api_path(test_custom_domain.extid), valid_ses_params.merge(
+        from_name: 'Replacement Sender', from_address: 'original@acme-corp.example.com',
+      )
+
+      expect(last_response.status).to eq(200), last_response.body
+      expect([stored.from_name, stored.verification_status]).to eq(['Replacement Sender', 'verified'])
+    end
+
+    it 'PUT compares the enabled event with the record it replaced' do
+      after_config_load(model) { write_config_concurrently(model, test_custom_domain.identifier, enabled: 'true') }
+
+      csrf_put api_path(test_custom_domain.extid), valid_ses_params.merge(from_address: 'original@acme-corp.example.com')
+
+      expect(last_response.status).to eq(200), last_response.body
+      expect(audit_events).to eq(['domain_sender_config_replaced'])
     end
   end
 end

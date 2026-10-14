@@ -251,6 +251,16 @@ namespace :qa do
         [key, seed_cells.call(fixture[:custom] ? fixture[:host] : nil)]
       end
 
+      # Markdown reveal: canonical only, one record per viewport (the reveal
+      # destroys it). The source is the same file the form cell types into the
+      # create form, so the two Markdown screenshots show the same content.
+      markdown_path    = File.expand_path('../../e2e/visual/fixtures/markdown-secret.md', __dir__)
+      markdown_content = File.read(markdown_path)
+      markdown_reveal  = %w[desktop mobile].to_h do |viewport|
+        _receipt, secret = Onetime::Receipt.spawn_pair(owner.objid, ttl, markdown_content, display_type: 'markdown')
+        [viewport, { 'secretId' => secret.identifier }]
+      end
+
       # 62 chars of [0-9a-z], same generator the models use, but NO object is
       # created — 256 random bits guarantee nonexistence, and no read path
       # HMAC-verifies, so it 404s identically to a consumed key.
@@ -261,6 +271,7 @@ namespace :qa do
         'canonicalHost' => canonical_host,
         'fixtures' => fixtures.transform_values { |f| { 'host' => f[:host], 'custom' => f[:custom] } },
         'unknownSecretId' => unknown_secret_id,
+        'markdownReveal' => markdown_reveal,
         'cells' => cells_by_fixture,
       }
 
@@ -276,6 +287,7 @@ namespace :qa do
       fixtures.each do |key, fixture|
         puts format('  %-14s %-28s %s pairs%s', key, fixture[:host], pairs_per_fixture, fixture[:custom] ? ' (custom domain)' : '')
       end
+      puts "  Markdown: #{markdown_reveal.size} pairs (canonical)"
       puts "  Unknown:  #{unknown_secret_id}"
       puts "  Manifest: #{manifest_path}"
     end

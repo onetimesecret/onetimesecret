@@ -38,22 +38,23 @@ module DomainsAPI
           # Load domain and organization, verify ownership and entitlement
           authorize_domain_sso!(@domain_id)
 
-          # Verify config exists and capture provider_type for audit
-          existing_config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(@custom_domain.identifier)
-          unless existing_config
-            raise_not_found("SSO configuration not found for domain: #{@domain_id}")
-          end
+          # Verify config exists
+          return if Onetime::CustomDomain::SsoConfig.exists_for_domain?(@custom_domain.identifier)
 
-          @deleted_provider_type = existing_config.provider_type
+          raise_not_found("SSO configuration not found for domain: #{@domain_id}")
         end
 
         def process
           OT.ld "[DeleteSsoConfig] Deleting SSO config for domain #{@domain_id} by user #{cust.extid}"
 
-          # Delete the config atomically
-          deleted = Onetime::CustomDomain::SsoConfig.delete_for_domain!(@custom_domain.identifier)
+          # The audit describes the record as deleted; of concurrent deletes
+          # only one gets it (GuardedConfigWrites#remove_for_domain!).
+          deleted = guarded_config_write do
+            Onetime::CustomDomain::SsoConfig.remove_for_domain!(@custom_domain.identifier)
+          end
 
           if deleted
+            @deleted_provider_type = deleted.provider_type
             log_sso_change_event(
               event: :domain_sso_config_deleted,
               domain: @custom_domain,

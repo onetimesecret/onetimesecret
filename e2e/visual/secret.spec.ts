@@ -9,6 +9,9 @@
 //    (has_passphrase); screenshot as-is, never fill or submit
 //  - unknown: a fabricated-but-well-formed id that 404s to UnknownSecret
 //    (identical to viewed/expired, by design)
+//  - markdown: canonical only, a display_type 'markdown' secret revealed
+//    and shown rendered (destroys the secret, so each viewport consumes its
+//    own manifest record)
 
 import { test, expect } from '@playwright/test';
 import {
@@ -115,4 +118,32 @@ test.describe('Visual - Secret page', () => {
       });
     });
   }
+
+  test('secret--markdown--canonical', async ({ page }) => {
+    const manifest = loadManifest();
+    const consoleErrors = collectConsoleErrors(page);
+    const { secretId } = manifest.markdownReveal[viewportKey(test.info())];
+
+    const response = await gotoAndReady(
+      page,
+      visualUrl(manifest.canonicalHost, `/secret/${secretId}`)
+    );
+    await assertBrandRendered(page, 'canonical', response);
+
+    // Click-through: consumes (destroys) this viewport's secret record.
+    await page.getByTestId('secret-reveal-submit').click();
+
+    // Rendered view is the default; the renderer loads lazily, so wait for
+    // the highlighted code block and the closing blockquote.
+    const rendered = page.getByTestId('secret-content-markdown');
+    await expect(rendered.locator('.hljs-comment')).toBeVisible();
+    await expect(rendered.locator('blockquote')).toBeVisible();
+
+    expect(consoleErrors(), 'no console errors before screenshot').toEqual([]);
+
+    await expect(page).toHaveScreenshot('secret--markdown--canonical.png', {
+      fullPage: true,
+      mask: visualMasks(page),
+    });
+  });
 });

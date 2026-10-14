@@ -90,6 +90,7 @@ function createDefaultFormState(): SsoConfigFormState {
     client_secret: '',
     tenant_id: '',
     issuer: '',
+    token_endpoint_auth_method: '',
     idp_sso_service_url: '',
     idp_entity_id: '',
     idp_cert: '',

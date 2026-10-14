@@ -7,7 +7,8 @@
  * - initialize: fetch current config (404 = unconfigured, not error)
  * - saveConfig: auto-selects PUT (new) vs PATCH (update) via SsoService
  * - deleteConfig: removes config
- * - testConnection: validates IdP connectivity before saving
+ * - testConnection: validates IdP connectivity before saving; the result is
+ *   bound to the fields it was run against and cleared when any of them change
  * - discardChanges: resets form state to last-saved snapshot
  * - hasUnsavedChanges: computed diff between form and saved state
  *
@@ -23,6 +24,7 @@ import {
   ssoProviderUsesClientCredentials,
   type CustomDomainSsoConfig,
   type SsoProviderType,
+  type SsoTokenEndpointAuthMethodRequest,
 } from '@/schemas/shapes/domains/sso-config';
 import {
   SsoService,
@@ -30,7 +32,7 @@ import {
   type TestSsoConnectionResponse,
 } from '@/services/sso.service';
 import { useNotificationsStore } from '@/shared/stores';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useAsyncHandler, type AsyncHandlerOptions } from './useAsyncHandler';
@@ -46,6 +48,9 @@ import { useAsyncHandler, type AsyncHandlerOptions } from './useAsyncHandler';
  * the stored values and re-sends them. A field the API names in
  * `unreadable_fields` is seeded EMPTY so the admin has to re-enter it — the
  * error state lives on ssoConfig.unreadable_fields, not here.
+ *
+ * token_endpoint_auth_method (#4764, oidc only) is '' for "Automatic" (the
+ * record's null); the select only ever writes a contract value.
  */
 export interface SsoConfigFormState {
   provider_type: SsoProviderType;
@@ -54,6 +59,7 @@ export interface SsoConfigFormState {
   client_secret: string;
   tenant_id: string;
   issuer: string;
+  token_endpoint_auth_method: SsoTokenEndpointAuthMethodRequest;
   idp_sso_service_url: string;
   idp_entity_id: string;
   idp_cert: string;
@@ -74,6 +80,7 @@ const SCALAR_FORM_FIELDS = [
   'client_secret',
   'tenant_id',
   'issuer',
+  'token_endpoint_auth_method',
   'idp_sso_service_url',
   'idp_entity_id',
   'idp_cert',
@@ -90,6 +97,7 @@ function createDefaultFormState(): SsoConfigFormState {
     client_secret: '',
     tenant_id: '',
     issuer: '',
+    token_endpoint_auth_method: '',
     idp_sso_service_url: '',
     idp_entity_id: '',
     idp_cert: '',
@@ -132,6 +140,7 @@ function configToFormState(config: CustomDomainSsoConfig): SsoConfigFormState {
     client_secret: '', // Never populate from API
     tenant_id: config.tenant_id ?? '',
     issuer: config.issuer ?? '',
+    token_endpoint_auth_method: config.token_endpoint_auth_method ?? '',
     idp_sso_service_url: config.idp_sso_service_url ?? '',
     idp_entity_id: config.idp_entity_id ?? '',
     idp_cert: config.idp_cert ?? '',
@@ -147,6 +156,18 @@ function usesClientCredentials(state: SsoConfigFormState): boolean {
 }
 
 /**
+ * The exact payload `testConnection` sends, as a comparable string. A test
+ * result is only meaningful for the fields the test was run against, so this
+ * is also the definition of "test-affecting": any edit that changes it makes
+ * the last result stale (see the watcher in useSsoConfig). display_name,
+ * enabled, enforce_sso_only, grant_org_scope, allowed_domains and
+ * client_secret are not sent to the test and so do not count.
+ */
+function testFingerprint(state: SsoConfigFormState): string {
+  return JSON.stringify({ provider_type: state.provider_type, ...providerFields(state) });
+}
+
+/**
  * The provider-scoped request fields for the current provider type, trimmed,
  * with blanks omitted. Shared by save and test so the two cannot disagree.
  *
@@ -158,11 +179,17 @@ function usesClientCredentials(state: SsoConfigFormState): boolean {
  * sent as '' so that on an existing saml record PATCH preserves the stored
  * value (a listed unreadable field is blank here and the API then refuses
  * with a `missing` error naming it — the intended re-entry loop).
+ *
+ * token_endpoint_auth_method (#4764) is the one blank that is NOT dropped:
+ * on PATCH a present '' clears the stored method back to the default while
+ * an absent key keeps it, so "Automatic" has to travel as ''. oidc only —
+ * the API clears it for the other types and the select is not shown.
  */
 function providerFields(state: SsoConfigFormState): {
   client_id?: string;
   tenant_id?: string;
   issuer?: string;
+  token_endpoint_auth_method?: SsoTokenEndpointAuthMethodRequest;
   idp_sso_service_url?: string;
   idp_entity_id?: string;
   idp_cert?: string;
@@ -179,6 +206,9 @@ function providerFields(state: SsoConfigFormState): {
     client_id: state.client_id.trim(),
     tenant_id: state.tenant_id.trim() || undefined,
     issuer: state.issuer.trim() || undefined,
+    ...(state.provider_type === 'oidc'
+      ? { token_endpoint_auth_method: state.token_endpoint_auth_method }
+      : {}),
   };
 }
 
@@ -219,6 +249,44 @@ export function useSsoConfig(domainExtId: string) {
 
   /** Error message from the last failed test connection attempt. */
   const testError = ref<string>('');
+
+  /**
+   * Fingerprint of the form fields the last test was run against, or null
+   * when there is no result to protect. Compared, not flagged: a change to
+   * any other field leaves the result alone, and a hydration that lands on
+   * the same test payload (a save of what was just tested) keeps it too.
+   */
+  const testedFingerprint = ref<string | null>(null);
+
+  const clearTestResult = () => {
+    testResult.value = null;
+    testError.value = '';
+    testedFingerprint.value = null;
+  };
+
+  /**
+   * Replace the form with a record from the API (load, save). A result in
+   * view survives only when the record carries the fields it was tested
+   * against (a save of what was just tested, a reload of the same record).
+   * The watcher below judges the hydrated values exactly as it judges an
+   * edit, so a record that differs in a tested field (a method or issuer
+   * saved elsewhere, a value the server rewrote) clears the result rather
+   * than letting it describe settings the form no longer shows.
+   */
+  const hydrateFormState = (next: SsoConfigFormState) => {
+    formState.value = next;
+  };
+
+  watch(
+    formState,
+    (state) => {
+      if (testedFingerprint.value === null) return;
+      if (testFingerprint(state) !== testedFingerprint.value) clearTestResult();
+    },
+    // sync: an edit invalidates before anything else (a hydration in the same
+    // tick, a render) can observe a result that no longer matches the form.
+    { deep: true, flush: 'sync' }
+  );
 
   const defaultAsyncHandlerOptions: AsyncHandlerOptions = {
     notify: (message, severity) => notifications.show(message, severity, 'top'),
@@ -285,11 +353,9 @@ export function useSsoConfig(domainExtId: string) {
       const response = await SsoService.getConfigForDomain(domainExtId);
       ssoConfig.value = response.record;
 
-      if (response.record) {
-        formState.value = configToFormState(response.record);
-      } else {
-        formState.value = createDefaultFormState();
-      }
+      hydrateFormState(
+        response.record ? configToFormState(response.record) : createDefaultFormState()
+      );
       savedFormState.value = {
         ...formState.value,
         allowed_domains: [...formState.value.allowed_domains],
@@ -331,7 +397,7 @@ export function useSsoConfig(domainExtId: string) {
 
       if (result?.record) {
         ssoConfig.value = result.record;
-        formState.value = configToFormState(result.record);
+        hydrateFormState(configToFormState(result.record));
         savedFormState.value = {
           ...formState.value,
           allowed_domains: [...formState.value.allowed_domains],
@@ -370,8 +436,7 @@ export function useSsoConfig(domainExtId: string) {
           enabled: result.record.enabled,
           enforce_sso_only: result.record.enforce_sso_only,
         };
-        testResult.value = null;
-        testError.value = '';
+        clearTestResult();
         notifications.show(t('web.domains.sso.update_success'), 'success', 'top');
       }
     } finally {
@@ -391,6 +456,7 @@ export function useSsoConfig(domainExtId: string) {
         await SsoService.deleteConfigForDomain(domainExtId);
         ssoConfig.value = null;
         formState.value = createDefaultFormState();
+        clearTestResult();
         savedFormState.value = {
           ...formState.value,
           allowed_domains: [...formState.value.allowed_domains],
@@ -408,21 +474,24 @@ export function useSsoConfig(domainExtId: string) {
    */
   const testConnection = async () => {
     isTesting.value = true;
-    testResult.value = null;
-    testError.value = '';
+    clearTestResult();
 
     try {
-      const result = await wrapAction(async () => {
-        const payload: TestSsoConnectionRequest = {
-          provider_type: formState.value.provider_type,
-          ...providerFields(formState.value),
-        };
+      // Snapshot what is sent: a result is only shown if the form still
+      // matches it when the response lands (an edit made while the request
+      // was in flight discards it, the same as an edit made afterwards).
+      const tested: TestSsoConnectionRequest = {
+        provider_type: formState.value.provider_type,
+        ...providerFields(formState.value),
+      };
+      const fingerprint = JSON.stringify(tested);
+      const result = await wrapAction(() =>
+        SsoService.testConnectionForDomain(domainExtId, tested)
+      );
 
-        return await SsoService.testConnectionForDomain(domainExtId, payload);
-      });
-
-      if (result) {
+      if (result && testFingerprint(formState.value) === fingerprint) {
         testResult.value = result;
+        testedFingerprint.value = fingerprint;
         if (result.success) {
           notifications.show(t('web.domains.sso.test_success'), 'success', 'top');
         } else {

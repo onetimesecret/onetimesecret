@@ -1039,6 +1039,48 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
     end
 
     # ────────────────────────────────────────────────────────────────────
+    # token_endpoint_auth_method (#4764)
+    # ────────────────────────────────────────────────────────────────────
+    #
+    # merge_strategy_options overwrites only the keys the tenant hash
+    # carries, so the real builder (not a double) must be the thing proving
+    # that a tenant on the default resets a platform OIDC_CLIENT_AUTH_METHOD.
+    context 'with an OIDC tenant config over a platform client_auth_method' do
+      let(:options_hash) { { client_auth_method: :client_secret_post, client_options: { identifier: 'platform' } } }
+
+      def oidc_record(token_endpoint_auth_method)
+        config = Onetime::CustomDomain::SsoConfig.new(
+          domain_id: 'dom_oidc_123',
+          provider_type: 'oidc',
+          issuer: 'https://idp.tenant.example',
+          token_endpoint_auth_method: token_endpoint_auth_method,
+        )
+        # The encrypted credential pair is irrelevant here; nil reveals as nil.
+        allow(config).to receive_messages(custom_domain: double(extid: 'cd_oidc_123'), client_id: nil, client_secret: nil)
+        config
+      end
+
+      it 'resets a platform client_auth_method to nil when the tenant left the method unset' do
+        helpers.inject_tenant_credentials(oidc_record(nil), request, rodauth)
+
+        expect(options_hash).to have_key(:client_auth_method)
+        expect(options_hash[:client_auth_method]).to be_nil
+      end
+
+      it 'resets it for a blank stored value too' do
+        helpers.inject_tenant_credentials(oidc_record(''), request, rodauth)
+
+        expect(options_hash[:client_auth_method]).to be_nil
+      end
+
+      it 'installs the tenant selection over the platform one' do
+        helpers.inject_tenant_credentials(oidc_record('client_secret_basic'), request, rodauth)
+
+        expect(options_hash[:client_auth_method]).to eq(:basic)
+      end
+    end
+
+    # ────────────────────────────────────────────────────────────────────
     # SAML (#4450)
     # ────────────────────────────────────────────────────────────────────
     context 'with a SAML tenant config' do

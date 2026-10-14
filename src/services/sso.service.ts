@@ -9,17 +9,21 @@
 
 import { createApi } from '@/api';
 import type {
-  PutSsoConfigRequest,
   PatchSsoConfigRequest,
+  PutSsoConfigRequest,
 } from '@/schemas/api/domains/requests/sso-config';
 import {
-  getSsoConfigResponseSchema,
-  putSsoConfigResponseSchema,
-  patchSsoConfigResponseSchema,
   deleteSsoConfigResponseSchema,
+  getSsoConfigResponseSchema,
+  patchSsoConfigResponseSchema,
+  putSsoConfigResponseSchema,
   type DeleteSsoConfigResponse,
 } from '@/schemas/api/domains/responses/sso-config';
-import type { CustomDomainSsoConfig, SsoProviderType } from '@/schemas/shapes/domains/sso-config';
+import type {
+  CustomDomainSsoConfig,
+  SsoProviderType,
+  SsoTokenEndpointAuthMethodRequest,
+} from '@/schemas/shapes/domains/sso-config';
 import { gracefulParse, strictParse } from '@/utils/schemaValidation';
 import axios from 'axios';
 
@@ -49,6 +53,11 @@ export interface TestSsoConnectionRequest {
   client_id?: string;
   tenant_id?: string;
   issuer?: string;
+  /**
+   * OIDC only (#4764): the selected token endpoint auth method, '' when
+   * none. The test reports whether the discovery document advertises it.
+   */
+  token_endpoint_auth_method?: SsoTokenEndpointAuthMethodRequest;
   /** SAML trio (#4450) — all three required for provider_type 'saml'. */
   idp_sso_service_url?: string;
   idp_entity_id?: string;
@@ -71,6 +80,20 @@ export interface TestSsoConnectionResponse {
     jwks_uri?: string;
     userinfo_endpoint?: string;
     scopes_supported?: string[];
+    /**
+     * OIDC / Entra (#4764): the discovery document's
+     * token_endpoint_auth_methods_supported list, null when it omits the
+     * field (OIDC Discovery then implies client_secret_basic).
+     */
+    token_endpoint_auth_methods_supported?: string[] | null;
+    /**
+     * Whether the effective OIDC token_endpoint_auth_method is advertised by
+     * the document (or its Discovery default). Automatic uses client_secret_basic;
+     * null for non-OIDC providers. Advisory: false does NOT
+     * fail the test (an IdP may accept a method it does not list) — it
+     * comes with a `note` explaining the gap.
+     */
+    token_endpoint_auth_method_supported?: boolean | null;
     note?: string;
     // Success details (SAML, #4450). The test is LOCAL — the IdP is not
     // contacted — so what it reports is what it parsed: the trio as
@@ -118,7 +141,11 @@ export const SsoService = {
   async getConfigForDomain(domainExtId: string): Promise<SsoConfigResponse> {
     try {
       const response = await $api.get(`/api/domains/${domainExtId}/sso`);
-      const result = gracefulParse(getSsoConfigResponseSchema, response.data, 'GetSsoConfigResponse');
+      const result = gracefulParse(
+        getSsoConfigResponseSchema,
+        response.data,
+        'GetSsoConfigResponse'
+      );
       if (!result.ok) {
         // Degrade gracefully on parse failure - treat as missing config
         return { record: null };
@@ -191,7 +218,8 @@ export const SsoService = {
     // A saml payload never carries client_secret, so it always takes the
     // PATCH path; PATCH creates when no record exists and, for saml, requires
     // the full IdP trio on create or on a switch to saml (#4450).
-    const hasClientSecret = 'client_secret' in payload && payload.client_secret && payload.client_secret.length > 0;
+    const hasClientSecret =
+      'client_secret' in payload && payload.client_secret && payload.client_secret.length > 0;
 
     if (hasClientSecret) {
       return this.putConfigForDomain(domainExtId, payload as PutSsoConfigRequest);

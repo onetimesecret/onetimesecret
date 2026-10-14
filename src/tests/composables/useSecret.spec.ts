@@ -15,6 +15,7 @@ import { AxiosError } from 'axios';
 import { mount } from '@vue/test-utils';
 import { defineComponent, h } from 'vue';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { captureAppLogs } from '@/tests/utils/appLogs';
 
 // useAsyncHandler calls useI18n() synchronously in setup; stub it so we don't
 // need the full i18n plugin for this unit.
@@ -46,6 +47,8 @@ function httpError(status: number): AxiosError {
 describe('useSecret — error-code capture (#3424)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // These tests fail the load on purpose; useAsyncHandler logs each one.
+    captureAppLogs();
   });
 
   it('captures a 404 as a terminal not-found code', async () => {

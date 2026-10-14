@@ -27,9 +27,11 @@
   const showSignUp = computed(() => homepage_config.value?.signup_enabled === true);
   const showSignIn = computed(() => homepage_config.value?.signin_enabled === true);
 
+  // Optional: withDefaults supplies both, and a required prop with a
+  // default still warns when the caller leaves it out.
   interface Props extends LayoutProps {
-    headertext: string;
-    subtext: string;
+    headertext?: string;
+    subtext?: string;
   }
 
   withDefaults(defineProps<Props>(), {

@@ -14,6 +14,7 @@ import {
   type RejectionDisposition,
 } from '@/shared/stores/authStore';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { captureAppLogs } from '@/tests/utils/appLogs';
 
 // ---------------------------------------------------------------------------
 // Mocks - must be hoisted before imports
@@ -321,10 +322,13 @@ describe('useAsyncHandler', () => {
         setLoading: mockOptions.setLoading,
       });
       const mockOperation = vi.fn().mockRejectedValue(new Error('test'));
+      const logs = captureAppLogs();
 
       const result = await wrap(mockOperation);
       expect(result).toBeUndefined();
-      // Should not throw due to missing log handler
+      // Should not throw due to missing log handler, and falls back to the
+      // app logger.
+      expect(logs.error).toHaveBeenCalledWith(expect.objectContaining({ message: 'test' }));
     });
 
     it('functions without loading state handler', async () => {

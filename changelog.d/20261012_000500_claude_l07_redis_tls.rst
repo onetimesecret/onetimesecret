@@ -1,0 +1,17 @@
+.. A new scriv changelog fragment.
+
+Security
+--------
+
+- New setting ``redis.require_tls`` (``VALKEY_REQUIRE_TLS=true`` or
+  ``REDIS_REQUIRE_TLS=true``): boot refuses to start unless the datastore
+  URI uses ``rediss://`` or ``valkeys://``. It is off by default. While it is
+  off, a plaintext URI is reported once at boot: a warning for a dotted
+  hostname or public IP, an info line for a single-label name such as the
+  compose service ``maindb`` or a private, CGNAT or link-local address, and
+  nothing for loopback or a unix socket. Hostnames are not resolved.
+  (RISK-2026-08-14-L07)
+
+  **Upgrade note**: if your datastore is on another machine, expect a new
+  boot warning until it serves TLS. Switch the URI to ``rediss://`` and set
+  ``REDIS_REQUIRE_TLS=true`` to make a plaintext URI a boot failure.

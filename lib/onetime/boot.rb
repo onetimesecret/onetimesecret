@@ -56,6 +56,11 @@
 #   may have been updated. reset_all_boot_state! handles this correctly.
 # - Re-entrant boot in test mode: boot! auto-calls reset_ready! when
 #   boot_state is BOOT_FAILED and OT.testing? is true.
+# - Partial-to-full boot in test mode: a full boot! (connect_to_db=true)
+#   after a completed partial one (connect_to_db=false) resets and boots
+#   fully, instead of reusing a state that skipped the database
+#   initializers. Every tryout file in a run shares one process, so the
+#   first file to boot would otherwise decide for all the files after it.
 #
 # =============================================================================
 
@@ -75,6 +80,10 @@ module Onetime
     @boot_state    = BOOT_NOT_STARTED  # Explicit initial state
     @boot_error    = nil                # Stores error from failed boot
     @boot_registry = nil                # Instance-based registry (DI architecture)
+
+    # Whether the completed boot ran the database initializers
+    # (connect_to_db=true). Meaningful only while boot_state is BOOT_STARTED.
+    @boot_connected_to_db = false
 
     # Session configuration defaults
     # Ensures middleware always has valid values even if site.session is not configured
@@ -125,6 +134,10 @@ module Onetime
     # ENV/WebMock state. Ignored outside test mode (the underlying
     # reset_all_boot_state! raises in non-test modes).
     #
+    # In test mode a repeat boot! reuses the completed boot, except when the
+    # completed boot skipped the database initializers and this call wants
+    # them: then it resets and boots fully (see boot_guard!).
+    #
     def boot!(mode = nil, connect_to_db = true, force: false) # rubocop:disable Metrics/PerceivedComplexity
       # First thing: config loading and early initializers log before
       # SetupLoggers runs, and an event that is still in the async queue when
@@ -137,7 +150,7 @@ module Onetime
       reset_all_boot_state! if force && OT.testing?
 
       # boot_guard! returns false if boot should be skipped (already complete in test mode)
-      return nil unless boot_guard!
+      return nil unless boot_guard!(connect_to_db)
 
       starting!
 
@@ -233,7 +246,7 @@ module Onetime
         raise OT::ConfigError, "Initializer(s) failed: #{failed_names.join(', ')}"
       end
 
-      started!
+      started!(connected_to_db: connect_to_db)
 
       # skip_paths is operator-overridable and an override REPLACES the shipped
       # list wholesale, with no error for an empty or malformed result. Surface
@@ -302,6 +315,7 @@ module Onetime
     def boot_starting? = boot_state == BOOT_STARTING
     def boot_failed? = boot_state == BOOT_FAILED
     def boot_not_started? = boot_state == BOOT_NOT_STARTED
+    def boot_connected_to_db? = @boot_connected_to_db == true
 
     # State transitions
     def starting!
@@ -309,9 +323,11 @@ module Onetime
       @boot_error = nil
     end
 
-    def started!
-      @boot_state = BOOT_STARTED
-      @boot_error = nil
+    # @param connected_to_db [Boolean] whether the boot ran the database initializers
+    def started!(connected_to_db: true)
+      @boot_state           = BOOT_STARTED
+      @boot_error           = nil
+      @boot_connected_to_db = connected_to_db
     end
 
     def failed!(error)
@@ -327,8 +343,9 @@ module Onetime
     # Resets boot state to initial, allowing boot! to run again.
     # This is intended for test cleanup where tests manipulate boot state.
     def reset_ready!
-      @boot_state = BOOT_NOT_STARTED
-      @boot_error = nil
+      @boot_state           = BOOT_NOT_STARTED
+      @boot_error           = nil
+      @boot_connected_to_db = false
     end
 
     # Resets ALL boot-related state for testing scenarios requiring a clean slate.
@@ -378,12 +395,20 @@ module Onetime
     private
 
     # Returns true if boot should proceed, false if already complete (idempotent in test mode)
+    # @param connect_to_db [Boolean] whether this boot! call wants the database initializers
     # @return [Boolean] whether boot! should continue execution
     # @raise [OT::Problem] if boot cannot proceed (already complete in prod, or invalid state)
-    def boot_guard!
+    def boot_guard!(connect_to_db = true)
       # Kubernetes-style state guard with pattern matching (Ruby 3.0+)
       # Handles all four states explicitly to prevent ambiguity
       case [boot_state, OT.testing?]
+      in [BOOT_STARTED, true] if connect_to_db && !boot_connected_to_db?
+        # A completed partial boot (connect_to_db=false) skipped configure_familia
+        # and the other database initializers. Reusing it would hand this caller a
+        # boot without encryption keys or the identifier HMAC secret, so the first
+        # Secret it creates raises KeyError. Boot fully from a clean slate instead.
+        OT.boot_logger.info 'boot! upgrading a partial test boot (connect_to_db: false) to a full boot'
+        reset_all_boot_state!
       in [BOOT_STARTED | BOOT_STARTING, true]
         # Idempotent in test mode - skip re-execution (handles re-entrant calls).
         # Warn so silent state-reuse across specs is audible; callers that want a

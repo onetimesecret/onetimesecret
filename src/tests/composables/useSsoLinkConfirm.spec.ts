@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useSsoLinkConfirm } from '@/shared/composables/useSsoLinkConfirm';
 import { setupTestPinia } from '../setup';
 import type AxiosMockAdapter from 'axios-mock-adapter';
+import { captureAppLogs } from '@/tests/utils/appLogs';
 
 // Pass-through i18n: keys render as-is so assertions can match on the key.
 vi.mock('vue-i18n', () => ({
@@ -31,6 +32,9 @@ describe('useSsoLinkConfirm', () => {
   beforeEach(async () => {
     const setup = await setupTestPinia();
     axiosMock = setup.axiosMock!;
+    // The error-path tests fail on purpose; useAsyncHandler logs each failure
+    // (useAsyncHandler.spec covers that).
+    captureAppLogs();
   });
 
   afterEach(() => {

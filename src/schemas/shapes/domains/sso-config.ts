@@ -20,6 +20,7 @@
 import {
   customDomainSsoConfigCanonical,
   ssoProviderTypeSchema,
+  tokenEndpointAuthMethodSchema,
 } from '@/schemas/contracts/custom-domain/sso-config';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
@@ -88,6 +89,11 @@ export const customDomainSsoConfigSchema = customDomainSsoConfigCanonical
     // Optional field normalization: keep null (form layer converts to undefined)
     tenant_id: z.string().nullish().transform((v) => v ?? null),
     issuer: z.string().nullish().transform((v) => v ?? null),
+
+    // OIDC token endpoint auth method (#4764): null = gem default; nullish-
+    // tolerant for a record served by an API that predates the key. The
+    // form maps null → '' (the "Automatic" option).
+    token_endpoint_auth_method: tokenEndpointAuthMethodSchema.nullish().transform((v) => v ?? null),
 
     // SAML (#4450): nullish-tolerant so a record served by an API that
     // predates these keys (rolling deploy) still parses. A null here is

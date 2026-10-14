@@ -90,9 +90,10 @@ module Onetime
     feature :custom_domain_migration_fields
 
     class_hashkey :owners
-    # Creation-only uniqueness gate keyed by the DNS wire form. Kept separate
-    # from display_domain_index so legacy Unicode/A-label duplicates retain
-    # exact-key-first lookup semantics.
+    # Uniqueness gate keyed by the DNS wire form, claimed when a record is
+    # first written: by create!, or by IdentityGuard for any other writer.
+    # Kept separate from display_domain_index so legacy Unicode/A-label
+    # duplicates retain exact-key-first lookup semantics.
     class_hashkey :canonical_display_domain_index, class: self, reference: true
 
     identifier_field :domainid
@@ -250,91 +251,10 @@ module Onetime
       super
     end
 
-    # Update the display_domain field while maintaining the FQDN index.
-    #
-    # Familia's unique_index :display_domain auto-updates on save(), but a
-    # rename needs explicit old-entry removal before the field value changes.
-    #
-    # @param new_domain [String] The new display domain FQDN
-    # @return [void]
-    # @raise [Onetime::Problem] if new_domain is already taken
-    def update_display_domain(new_domain)
-      new_domain = self.class.display_domain(new_domain.to_s.downcase)
-      old_domain = display_domain.to_s.downcase
-
-      return if new_domain == old_domain
-
-      # Same system-integrity invariant as create!: a rename must not be
-      # able to move an existing record onto the canonical domain (#3841).
-      if self.class.overlaps_canonical_domain?(new_domain)
-        raise Onetime::Problem, 'This domain overlaps with the default site domain'
-      end
-
-      # Verify the new domain is not already taken under either form of an
-      # internationalised name, while preserving exact-key precedence for legacy
-      # Unicode/A-label duplicate records. A record may still rename between its
-      # own two forms.
-      existing = self.class.display_domain_id_for(new_domain)
-      if existing && existing != identifier
-        raise Onetime::Problem, 'Domain already registered'
-      end
-
-      old_canonical_domain                  = begin
-        self.class.canonical_display_domain(old_domain)
-      rescue Onetime::DomainValidation::AsciiHostname::ConversionError
-        nil
-      end
-      new_canonical_domain, canonical_claim = self.class.claim_canonical_display_domain(new_domain, identifier)
-      unless [:created, :owned].include?(canonical_claim)
-        raise Onetime::Problem, 'Domain already registered'
-      end
-
-      begin
-        # Remove old entries from both indexes while field still has old value
-        self.class.display_domain_index.remove(old_domain)
-        remove_from_class_display_domain_index
-
-        # Update field and re-parse derived domain parts (base_domain, trd,
-        # sld, tld) so that generate_txt_validation_record produces correct
-        # values for the new domain.
-        self.display_domain = new_domain
-        self.updated        = OT.now.to_i
-
-        # Re-parse derived fields from the normalized display_domain
-        ps_domain    = PublicSuffix.parse(new_domain, default_rule: nil)
-        @base_domain = ps_domain.domain.to_s
-        @subdomain   = ps_domain.subdomain.to_s
-        @trd         = ps_domain.trd.to_s
-        @tld         = ps_domain.tld.to_s
-        @sld         = ps_domain.sld.to_s
-
-        save
-        self.class.display_domain_index.put(new_domain, identifier)
-        if old_canonical_domain && old_canonical_domain != new_canonical_domain
-          self.class.canonical_display_domain_index.release_field(old_canonical_domain, identifier)
-        end
-      rescue StandardError => ex
-        # Rollback: restore field, derived parts, and re-add old entries
-        self.display_domain = old_domain
-        old_ps              = PublicSuffix.parse(old_domain, default_rule: nil)
-        @base_domain        = old_ps.domain.to_s
-        @subdomain          = old_ps.subdomain.to_s
-        @trd                = old_ps.trd.to_s
-        @tld                = old_ps.tld.to_s
-        @sld                = old_ps.sld.to_s
-        self.class.display_domain_index.put(old_domain, identifier)
-        # Best-effort save to restore old auto-index entry
-        begin
-          save
-        rescue StandardError => rollback_ex
-          OT.le "[CustomDomain.update_display_domain] Rollback save failed: #{rollback_ex.message}"
-        end
-        if canonical_claim == :created
-          self.class.canonical_display_domain_index.release_field(new_canonical_domain, identifier)
-        end
-        raise ex
-      end
-    end
+    # Canonical-claim and identity checks on every write path. Prepended
+    # after the fields so it can wrap their generated fast writers.
+    require_relative 'custom_domain/identity_guard'
+    prepend IdentityGuard
 
     # Generate a unique identifier for this customer's custom domain.
     #
@@ -728,27 +648,24 @@ module Onetime
     # The record consists of:
     # - A prefix (_onetime-challenge-)
     # - First 7 chars of the domain identifier
-    # - Subdomain parts if present (e.g. .www or .status.www)
+    # - Subdomain parts if present, as A-labels (e.g. .www, .status.www, or
+    #   .xn--bcher-kva for bücher.example.com)
     # - A 32-char random hex value
     #
+    # The host is relative to base_domain; validation_record is the full
+    # name. display_domain, trd and base_domain keep the spelling the
+    # customer typed.
+    #
     # @return [Array<String, String>] The TXT record host and value
-    # @raise [Onetime::Problem] If the generated record is invalid
+    # @raise [Onetime::Problem] If the full record name does not fit the DNS
+    #   name limits, or the generated record is invalid
     #
     # Examples:
     #   _onetime-challenge-domainid -> 7709715a6411631ce1d447428d8a70
     #   _onetime-challenge-domainid.status -> cd94fec5a98fd33a0d70d069acaae9
     #
     def generate_txt_validation_record
-      # Include a short identifier that is unique to this domain. This
-      # allows for multiple customers to use the same domain without
-      # conflicting with each other.
-      shortid     = identifier.to_s[0..6]
-      record_host = "#{self.class.txt_validation_prefix}-#{shortid}"
-
-      # Append the TRD if it exists. This allows for multiple subdomains
-      # to be used for the same domain.
-      # e.g. The `status` in status.example.com.
-      record_host = "#{record_host}.#{trd}" unless trd.to_s.empty?
+      record_host = txt_challenge_host
 
       # The value needs to be sufficiently unique and non-guessable to
       # function as a challenge response. IOW, if we check the DNS for
@@ -768,16 +685,67 @@ module Onetime
       [record_host, record_value]
     end
 
-    # The fully qualified domain name for the TXT record.
+    # The TXT challenge host for this domain, relative to base_domain:
+    # "<prefix>-<short id>[.<trd>]", with the trd in A-label form because it
+    # is part of a DNS name.
+    #
+    # Also checks that the full record name fits the DNS name limits. That
+    # name is 27 bytes longer than the display domain, so a domain can fit
+    # while its challenge does not. parse calls this so such a domain is
+    # refused before create! claims it.
+    #
+    # @return [String]
+    # @raise [Onetime::Problem] if the full record name does not fit
+    def txt_challenge_host
+      # Include a short identifier that is unique to this domain. This
+      # allows for multiple customers to use the same domain without
+      # conflicting with each other.
+      host = "#{self.class.txt_validation_prefix}-#{identifier.to_s[0..6]}"
+
+      # Append the TRD if it exists. This allows for multiple subdomains
+      # to be used for the same domain.
+      # e.g. The `status` in status.example.com.
+      host = "#{host}.#{Onetime::DomainValidation::AsciiHostname.call(trd)}" unless trd.to_s.empty?
+
+      Onetime::DomainValidation::AsciiHostname.call("#{host}.#{base_domain}")
+      host
+    rescue Onetime::DomainValidation::AsciiHostname::ConversionError => ex
+      # A parsed display domain already converts, so the length is what fails.
+      OT.ld "[CustomDomain] No TXT challenge name for #{display_domain.inspect}: #{ex.message}"
+      raise Onetime::Problem, 'Domain too long for its TXT validation record'
+    end
+
+    # The fully qualified name of the TXT record, in A-label form.
     #
     # Used to validate the domain ownership by the customer: through the
     # Approximated check_records API, or our own TXT lookup
-    # (DomainValidation::TxtVerifier) depending on the strategy.
+    # (DomainValidation::TxtVerifier) depending on the strategy. Both need
+    # the name as it goes on the wire, while base_domain is stored as typed.
+    # Converting here, rather than trusting the stored host, also covers a
+    # host stored with a Unicode subdomain label by earlier versions.
     #
-    # e.g. `_onetime-challenge-domainid.froogle.com`
+    # e.g. `_onetime-challenge-domainid.froogle.com`, or
+    # `_onetime-challenge-domainid.xn--bcher-kva.example.com` for
+    # bücher.example.com
     #
+    # @return [String, nil] nil until a challenge has been generated
+    # @raise [Onetime::DomainValidation::AsciiHostname::ConversionError] if
+    #   the stored name has no A-label form within the DNS name limits
     def validation_record
-      [txt_validation_host, base_domain].join('.')
+      return nil if txt_validation_host.to_s.empty?
+
+      Onetime::DomainValidation::AsciiHostname.call("#{txt_validation_host}.#{base_domain}")
+    end
+
+    # The TXT record name spelled like display_domain, e.g.
+    # `_onetime-challenge-domainid.bücher.example.com`. For showing beside
+    # validation_record when the two differ; never for a DNS query.
+    #
+    # @return [String, nil] nil until a challenge has been generated
+    def validation_record_display
+      return nil if txt_validation_host.to_s.empty?
+
+      "#{txt_validation_host.to_s.split('.', 2).first}.#{display_domain}"
     end
 
     # Derived lifecycle label, not an additional ownership check.
@@ -979,6 +947,10 @@ module Onetime
       # @param org_id [String] The organization ID to associate with this domain
       # @return [Onetime::CustomDomain] The created custom domain
       # @raise [Onetime::Problem] If domain is invalid or already exists
+      # @raise [Onetime::TemporarilyUnavailable] If the datastore failed, or
+      #   claiming an orphaned record lost to a concurrent write
+      # @raise [Onetime::RecordNotFound] If claiming an orphaned record and the
+      #   organization no longer exists
       #
       # @note BREAKING CHANGE: This method signature changed from (input, custid) to (input, org_id).
       #   Domains are now owned by organizations, not individual customers. To migrate existing code:
@@ -1008,9 +980,7 @@ module Onetime
         # console, CLI tooling, and future endpoints. Enforce the
         # invariant at the write gate so no caller can register the
         # canonical domain or a subdomain of it (#3841).
-        if overlaps_canonical_domain?(normalized_domain)
-          raise Onetime::Problem, 'This domain overlaps with the default site domain'
-        end
+        refuse_canonical_overlap!(normalized_domain)
 
         # Check for existing domain BEFORE attempting creation
         existing = load_by_display_domain(normalized_domain)
@@ -1116,8 +1086,11 @@ module Onetime
         OT.le "[CustomDomain.create!] Duplicate domain: #{ex.message}"
         raise Onetime::Problem, 'Duplicate domain for organization'
       rescue Redis::BaseError => ex
+        # Not the caller's input: a retry can succeed (503, not 422).
         OT.le "[CustomDomain.create!] Redis error: #{ex.message}"
-        raise Onetime::Problem, 'Unable to create custom domain'
+        raise Onetime::TemporarilyUnavailable.new(
+          'The domain could not be added right now. Please try again shortly.', reason: :datastore
+        )
       end
 
       # Create default-disabled HomepageConfig and ApiConfig records for a
@@ -1139,6 +1112,9 @@ module Onetime
       # @param org_id [String] The organization ID claiming the domain
       # @return [CustomDomain, nil] The claimed domain, or nil if claim failed
       # @raise [Onetime::Problem] If domain was claimed by another org during race
+      # @raise [Onetime::RecordNotFound] If the organization no longer exists
+      # @raise [Onetime::TemporarilyUnavailable] If a concurrent write to the
+      #   record discarded the claim (WATCH)
       def claim_orphaned_domain(existing, org_id)
         OT.info "[CustomDomain.create!] Claiming orphaned domain: #{existing.display_domain} for org_id=#{org_id}"
 
@@ -1178,7 +1154,10 @@ module Onetime
             org = Onetime::Organization.load(org_id)
             unless org
               conn.unwatch
-              raise Onetime::Problem, "Organization #{org_id} not found"
+              # The caller resolved the organization; it is gone now. Not
+              # bad input, and its internal id stays out of the reply.
+              OT.le "[CustomDomain.claim_orphaned_domain] Organization not found while claiming #{existing.display_domain}"
+              raise Onetime::RecordNotFound, 'Organization not found'
             end
 
             existing.atomic_write do
@@ -1196,8 +1175,11 @@ module Onetime
         # concurrent modification). nil is defensive against unexpected
         # returns from the enclosing watch block.
         if result == false || result.nil?
+          # Another write landed on the record first; a retry sees its result.
           OT.le "[CustomDomain.claim_orphaned_domain] WATCH conflict for #{existing.display_domain}"
-          raise Onetime::Problem, 'Domain claim failed due to concurrent modification'
+          raise Onetime::TemporarilyUnavailable.new(
+            'The domain could not be added right now. Please try again shortly.', reason: :concurrent_write
+          )
         end
 
         existing
@@ -1213,7 +1195,8 @@ module Onetime
       # @raise [PublicSuffix::DomainInvalid] If domain is invalid
       # @raise [PublicSuffix::DomainNotAllowed] If domain is not allowed
       # @raise [PublicSuffix::Error] For other PublicSuffix errors
-      # @raise [Onetime::Problem] If domain exceeds MAX_SUBDOMAIN_DEPTH or MAX_TOTAL_LENGTH
+      # @raise [Onetime::Problem] If domain exceeds MAX_SUBDOMAIN_DEPTH or MAX_TOTAL_LENGTH,
+      #   or its TXT challenge record name would not fit the DNS name limits
       #
       # @note BREAKING CHANGE: Second parameter changed from custid to org_id.
       #   See {create!} for migration details.
@@ -1238,6 +1221,9 @@ module Onetime
         OT.ld "[CustomDomain.parse] Creating with display_domain=#{display_domain.inspect}, org_id=#{org_id.inspect}"
         obj                 = new(display_domain: display_domain, org_id: org_id)
         obj._original_value = input
+        # The TXT challenge name is longer than the domain: refuse a domain
+        # whose challenge cannot fit before anything is claimed.
+        obj.txt_challenge_host
 
         # Debug the created object
         OT.ld "[CustomDomain.parse] display_domain=#{obj.display_domain.inspect}, org_id=#{obj.org_id.inspect}, identifier=#{obj.identifier.inspect}"
@@ -1336,6 +1322,19 @@ module Onetime
       rescue PublicSuffix::Error, Onetime::Problem => ex
         OT.le "[CustomDomain.default_domain?] #{ex.message} for `#{input}`"
         false
+      end
+
+      # The write-gate form of overlaps_canonical_domain?, shared by create!
+      # and IdentityGuard (a new record saved without create!) so the two
+      # cannot drift. Raises before anything is claimed or written.
+      #
+      # @param domain_name [String] display domain of the record to register
+      # @raise [Onetime::Problem] when the name overlaps a canonical host
+      # @return [void]
+      def refuse_canonical_overlap!(domain_name)
+        return unless overlaps_canonical_domain?(domain_name)
+
+        raise Onetime::Problem, 'This domain overlaps with the default site domain'
       end
 
       # Whether the input domain overlaps with a canonical site domain.
@@ -1458,34 +1457,6 @@ module Onetime
       rescue Onetime::Problem => ex
         OT.le "[CustomDomain.exists?] #{ex.message}"
         false
-      end
-
-      def add(fobj)
-        # Safety checks to prevent serialization errors
-        if fobj.display_domain.nil?
-          OT.le "[CustomDomain.add] display_domain is nil for #{fobj.class}:#{fobj.identifier}"
-          raise Onetime::Problem, 'Cannot add custom domain with nil display_domain'
-        end
-
-        if fobj.identifier.nil?
-          OT.le "[CustomDomain.add] identifier is nil for #{fobj.class}:#{fobj.display_domain}"
-          raise Onetime::Problem, 'Cannot add custom domain with nil identifier'
-        end
-
-        if fobj.org_id.nil?
-          OT.le "[CustomDomain.add] org_id is nil for #{fobj.class}:#{fobj.display_domain}:#{fobj.identifier}"
-          debug_info = begin
-            { to_h: fobj.to_h, methods: fobj.methods.grep(/org/) }
-          rescue StandardError => ex
-            { error: ex.message }
-          end
-          OT.le "[CustomDomain.add] fobj debug: #{debug_info.inspect}"
-          raise Onetime::Problem, "Cannot add custom domain with nil org_id. display_domain=#{fobj.display_domain.inspect}, identifier=#{fobj.identifier.inspect}"
-        end
-
-        instances.add fobj.to_s # created time, identifier
-        display_domain_index.put fobj.display_domain, fobj.identifier
-        record_owner(fobj, fobj.org_id) # domainid => organization id
       end
 
       # SINGLE WRITER for the `owners` class hashkey (domainid => org_id).

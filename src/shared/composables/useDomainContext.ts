@@ -343,7 +343,7 @@ function createPermissionsFetcher(
     if (!domainsEnabled) return true;
     const orgExtid = organizationStore.currentOrganization?.extid;
     if (!orgExtid) {
-      console.debug('[useDomainContext] Skipping fetch: no currentOrganization set yet');
+      loggingService.debug('[useDomainContext] Skipping fetch: no currentOrganization set yet');
       return false;
     }
 

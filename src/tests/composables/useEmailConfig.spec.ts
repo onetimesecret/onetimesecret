@@ -13,11 +13,12 @@
 import {
   buildDomainEmailDefaults,
   NO_REPLY_LOCAL_PART,
-  useEmailConfig,
+  useEmailConfig as useEmailConfigInSetup,
 } from '@/shared/composables/useEmailConfig';
 import { createPinia, setActivePinia } from 'pinia';
-import { flushPromises } from '@vue/test-utils';
+import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { defineComponent } from 'vue';
 
 import type { CustomDomainEmailConfig } from '@/schemas/shapes/domains/email-config';
 // Relative path (not the `@locales` alias): the alias is wired for vitest's
@@ -25,6 +26,24 @@ import type { CustomDomainEmailConfig } from '@/schemas/shapes/domains/email-con
 // entry, so vue-tsc can't resolve it. Matches the precedent in
 // src/tests/i18n/security-messages.spec.ts.
 import enWorkspaceDomains from '../../../locales/content/en/workspace-domains.json';
+
+// The composable registers onUnmounted, which needs a component instance;
+// called bare it made Vue warn in every test. Run it in a component's setup
+// as the app does, and unmount after each test.
+enableAutoUnmount(afterEach);
+
+function useEmailConfig(extid: string): ReturnType<typeof useEmailConfigInSetup> {
+  let composable!: ReturnType<typeof useEmailConfigInSetup>;
+  mount(
+    defineComponent({
+      setup() {
+        composable = useEmailConfigInSetup(extid);
+        return () => null;
+      },
+    })
+  );
+  return composable;
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Mock Setup

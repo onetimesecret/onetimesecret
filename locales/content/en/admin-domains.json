@@ -139,6 +139,10 @@
     "text": "1. Add a TXT record to prove ownership.",
     "content_hash": "fdcfcfb0"
   },
+  "web.admin.domains.dns.displayNameHint": {
+    "text": "Some DNS providers display this name as:",
+    "content_hash": "b2bcf8d5"
+  },
   "web.admin.domains.dns.aStep": {
     "text": "2. Add an A record pointing the apex at the proxy.",
     "content_hash": "aedbf197"
@@ -829,6 +833,14 @@
   "web.admin.domains.configs.fields.issuer": {
     "text": "Issuer",
     "content_hash": "39e02c46"
+  },
+  "web.admin.domains.configs.fields.token_endpoint_auth_method": {
+    "text": "Token endpoint auth method",
+    "content_hash": "605938fd"
+  },
+  "web.admin.domains.configs.values.token_endpoint_auth_method_automatic": {
+    "text": "Automatic",
+    "content_hash": "d461a493"
   },
   "web.admin.domains.configs.fields.tenant_id": {
     "text": "Tenant ID",

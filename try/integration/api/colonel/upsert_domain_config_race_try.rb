@@ -6,23 +6,22 @@
 # Onetime::Operations::Domains::UpsertDomainConfig (PUT
 # /api/colonel/domains/:extid/configs/:kind).
 #
-# The config models' create! raises Onetime::Problem for BOTH a lost
-# duplicate-create race (the exists-guard, message '<Kind> config already
-# exists for this domain') AND real attribute validation failures (e.g.
-# allowed_signup_domains PublicSuffix rejection) — there is no distinct
-# error class. The op's rescue must take the race path ONLY for the
-# exists-guard collision:
+# The config models' create! raises GuardedConfigWrites::ConfigExistsError
+# for a lost duplicate-create race and its parent, Onetime::Problem, for
+# real attribute validation failures (e.g. allowed_signup_domains
+# PublicSuffix rejection). The op's rescue must take the race path ONLY
+# for the former:
 #
-# - a genuine race (record created between the op's read and create!)
-#   falls back to the update path and still audits exactly once
+# - a genuine race (record created between the op's existence check and
+#   create!) falls back to the update path and still audits exactly once
 # - a validation failure propagates UNCHANGED (422 form error at the
-#   logic layer) without re-reading and WITHOUT re-applying the invalid
-#   input to a concurrent writer's record — asserted here by counting
-#   find_by_domain_id calls: exactly ONE (the initial read), never a
-#   post-failure re-read
+#   logic layer) WITHOUT re-applying the invalid input to a concurrent
+#   writer's record — asserted here by counting update_for_domain! calls:
+#   none
 #
 # The race interleavings are simulated by interposing on
-# SignupConfig.find_by_domain_id (restored in the same test case).
+# SignupConfig.exists_for_domain? and update_for_domain! (restored in the
+# same test case).
 #
 # Run: try --agent try/integration/api/colonel/upsert_domain_config_race_try.rb
 
@@ -44,19 +43,19 @@ require 'onetime/operations/domains/upsert_domain_config'
 # Genuine duplicate-create race -> update path
 # ----------------------------------------------------------------
 
-## Setup: the "concurrent writer's" record exists; our op's initial read
-## misses it (interposed nil on the FIRST find only) so create! hits the
-## exists-guard — the op must recover onto the update path
+## Setup: the "concurrent writer's" record exists; our op's existence
+## check misses it (interposed false on the FIRST check only) so create!
+## hits the exists-guard — the op must recover onto the update path
 @klass.create!(domain_id: @domain_race.identifier)
 @before_audit = Onetime::ColonelAuditEvent.count
 first_call = true
-@klass.singleton_class.alias_method(:__race_real_find, :find_by_domain_id)
-@klass.define_singleton_method(:find_by_domain_id) do |domain_id|
+@klass.singleton_class.alias_method(:__race_real_exists, :exists_for_domain?)
+@klass.define_singleton_method(:exists_for_domain?) do |domain_id|
   if first_call
     first_call = false
-    nil
+    false
   else
-    __race_real_find(domain_id)
+    __race_real_exists(domain_id)
   end
 end
 begin
@@ -68,9 +67,9 @@ begin
   ).call
   [@race_result.status, @race_result.changed]
 ensure
-  @klass.singleton_class.remove_method(:find_by_domain_id)
-  @klass.singleton_class.alias_method(:find_by_domain_id, :__race_real_find)
-  @klass.singleton_class.remove_method(:__race_real_find)
+  @klass.singleton_class.remove_method(:exists_for_domain?)
+  @klass.singleton_class.alias_method(:exists_for_domain?, :__race_real_exists)
+  @klass.singleton_class.remove_method(:__race_real_exists)
 end
 #=> [:updated, ['signup_enabled']]
 
@@ -86,15 +85,15 @@ end
 # ----------------------------------------------------------------
 
 ## A model validation failure in create! (PublicSuffix-invalid
-## allowed_signup_domains) re-raises UNCHANGED: find_by_domain_id is called
-## exactly ONCE (the initial read) — the rescue never re-reads, so invalid
-## input can never be applied to a record a concurrent writer created
+## allowed_signup_domains) re-raises UNCHANGED: update_for_domain! is never
+## called, so invalid input can never be applied to a record a concurrent
+## writer created
 @before_audit = Onetime::ColonelAuditEvent.count
-find_calls = []
-@klass.singleton_class.alias_method(:__race_real_find, :find_by_domain_id)
-@klass.define_singleton_method(:find_by_domain_id) do |domain_id|
-  find_calls << domain_id
-  __race_real_find(domain_id)
+update_calls = []
+@klass.singleton_class.alias_method(:__race_real_update, :update_for_domain!)
+@klass.define_singleton_method(:update_for_domain!) do |domain_id, &block|
+  update_calls << domain_id
+  __race_real_update(domain_id, &block)
 end
 begin
   outcome = begin
@@ -108,13 +107,13 @@ begin
   rescue Onetime::Problem => ex
     ex.message
   end
-  [outcome.start_with?('Invalid domain: not_a_domain'), find_calls.size]
+  [outcome.start_with?('Invalid domain: not_a_domain'), update_calls.size]
 ensure
-  @klass.singleton_class.remove_method(:find_by_domain_id)
-  @klass.singleton_class.alias_method(:find_by_domain_id, :__race_real_find)
-  @klass.singleton_class.remove_method(:__race_real_find)
+  @klass.singleton_class.remove_method(:update_for_domain!)
+  @klass.singleton_class.alias_method(:update_for_domain!, :__race_real_update)
+  @klass.singleton_class.remove_method(:__race_real_update)
 end
-#=> [true, 1]
+#=> [true, 0]
 
 ## The failed upsert persisted nothing but recorded ONE result: :failure event
 #

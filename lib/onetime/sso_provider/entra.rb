@@ -39,11 +39,20 @@ module Onetime
         trust_var: 'ENTRA_TRUST_EMAIL_FOR_LINKING',
         trust_default: false,
         idp_origin: 'https://login.microsoftonline.com',
+        # client_id and client_secret travel in the token request body, not
+        # the Authorization: Basic header (#4764). oauth2 2.0.25 builds that
+        # header from the raw `id:secret` string without the RFC 6749
+        # section 2.3.1 form-encoding, so a secret containing `+` or `%`
+        # reaches Entra altered (AADSTS7000215). Entra accepts both client
+        # authentication methods; the body is the one that carries the
+        # secret byte for byte. The tenant builder
+        # (CustomDomain::SsoConfig#build_entra_id_options) sets the same key.
         placeholder_options: {
           client_id: 'placeholder',
           client_secret: 'placeholder',
           tenant_id: 'placeholder',
           scope: 'openid profile email',
+          client_options: { auth_scheme: :request_body }.freeze,
         }.freeze,
         strategy_options: -> {
           {
@@ -51,6 +60,7 @@ module Onetime
             client_secret: ENV.fetch('ENTRA_CLIENT_SECRET', nil),
             tenant_id: ENV.fetch('ENTRA_TENANT_ID', nil),
             scope: 'openid profile email',
+            client_options: { auth_scheme: :request_body },
           }
         },
       }.freeze
