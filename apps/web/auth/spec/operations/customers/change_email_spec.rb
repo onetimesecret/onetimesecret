@@ -106,6 +106,9 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
     # (#4337). Stubbed alongside `record` so the two can be asserted apart —
     # the whole point of the split is that a preview never reaches `record`.
     allow(Onetime::ColonelAuditEvent).to receive(:record_access)
+    # The SECURITY trail, which a self-service redemption writes instead of
+    # `record` (see the 'self-service redemption' group).
+    allow(Onetime::ColonelAuditEvent).to receive(:record_security)
     allow(OT).to receive(:info)
     allow(Onetime::Customer).to receive(:email_index).and_return(email_index)
     allow(Onetime::Organization).to receive(:contact_email_index).and_return(contact_email_index)
@@ -514,7 +517,7 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
         result = op.call
 
         expect(Onetime::Operations::Sessions::RevokeAllForCustomer).to have_received(:new).with(
-          customer: customer, actor: 'cli'
+          customer: customer, actor: 'cli', self_service: false
         )
         expect(revoker).to have_received(:call)
         expect(result.sessions_revoked).to be true
@@ -990,7 +993,7 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
       op.call
 
       expect(Onetime::Operations::Sessions::RevokeAllForCustomer).to have_received(:new).with(
-        customer: customer, actor: 'cli'
+        customer: customer, actor: 'cli', self_service: false
       )
     end
 
@@ -1441,6 +1444,82 @@ RSpec.describe Auth::Operations::Customers::ChangeEmail do
 
       expect(result.status).to eq(:email_taken)
       expect(customer).not_to have_received(:save)
+    end
+  end
+
+  # =========================================================================
+  # The account holder redeeming their own confirmation link
+  # (AccountAPI ConfirmEmailChange). That route is unauthenticated and a
+  # refused redemption leaves the link live, so every audit write goes to the
+  # security trail: on the operator trail each replay would evict an operator
+  # record.
+  describe 'self-service redemption (security trail)' do
+    def self_service_op(**overrides)
+      op(actor: 'ur_c', require_verification: false, self_service: true, **overrides)
+    end
+
+    it 'records the applied change on the security trail, never the operator trail' do
+      expect(self_service_op.call.status).to eq(:success)
+
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+      expect(Onetime::ColonelAuditEvent).to have_received(:record_security).once.with(
+        actor: 'ur_c',
+        verb: 'customer.change_email',
+        target: 'ur_c',
+        result: :success,
+        detail: hash_including(
+          from: OT::Utils.obscure_email(old_email),
+          to: OT::Utils.obscure_email(new_email),
+        ),
+      )
+    end
+
+    it 'revokes sessions as a self-service call, so that write is on the security trail too' do
+      self_service_op.call
+
+      expect(Onetime::Operations::Sessions::RevokeAllForCustomer).to have_received(:new).with(
+        customer: customer, actor: 'ur_c', self_service: true
+      )
+    end
+
+    it 'records a refusal on the security trail (the replayable case)' do
+      collision_rows.replace([{ id: 99, status_id: 2 }])
+
+      expect(self_service_op.call.status).to eq(:email_taken)
+
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+      expect(Onetime::ColonelAuditEvent).to have_received(:record_security).once.with(
+        hash_including(
+          verb: 'customer.change_email',
+          target: 'ur_c',
+          result: :failure,
+          detail: hash_including(reason: 'email_taken'),
+        ),
+      )
+    end
+
+    it 'records a live no-change attempt on the security trail with the no_change marker' do
+      expect(self_service_op(new_email: '  OLD@Example.com ').call.status).to eq(:no_change)
+
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+      expect(Onetime::ColonelAuditEvent).to have_received(:record_security).once.with(
+        actor: 'ur_c',
+        verb: 'customer.change_email',
+        target: 'ur_c',
+        result: :success,
+        detail: {
+          outcome: 'no_change',
+          from: OT::Utils.obscure_email(old_email),
+          to: OT::Utils.obscure_email('old@example.com'),
+        },
+      )
+    end
+
+    it 'records nothing on the operator trail when the swap raises (failure wrapper off)' do
+      allow(by_id).to receive(:update).and_raise(StandardError, 'connection reset')
+
+      expect { self_service_op.call }.to raise_error(StandardError, 'connection reset')
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
     end
   end
 end
