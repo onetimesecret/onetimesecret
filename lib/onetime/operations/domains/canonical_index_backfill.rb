@@ -62,7 +62,7 @@ module Onetime
         # @!attribute outcome [r] Symbol — see OUTCOMES
         Action = Data.define(:kind, :canonical, :domain_id, :display_domain, :stale_id, :outcome, :detail)
 
-        # :planned       dry run
+        # :planned       dry run, or an apply that was refused (nothing written)
         # :claimed       the entry now names the record (after a release, for :reclaim)
         # :already_held  the entry already named the record when the claim ran
         # :released      the stale entry was removed
