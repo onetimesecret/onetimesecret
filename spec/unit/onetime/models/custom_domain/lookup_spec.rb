@@ -17,7 +17,7 @@ require_relative '../../../../../apps/web/auth/restrict_to'
 require_relative '../../../../../apps/web/auth/lib/public_host'
 
 RSpec.describe Onetime::CustomDomain::Lookup do
-  let(:record) { instance_double(Onetime::CustomDomain, identifier: 'domain-abc', verified: true) }
+  let(:record) { instance_double(Onetime::CustomDomain, identifier: 'domain-abc', verified: true, served_as_tenant?: true) }
   let(:failure) { Redis::BaseError.new('connection reset') }
 
   describe 'states' do
