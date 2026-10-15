@@ -520,11 +520,13 @@ describe('DomainSsoConfigForm', () => {
 
       const footer = wrapper.get(FOOTER);
       expect(footer.classes()).toContain('sticky');
-      expect(footer.classes()).toContain('bottom-0');
-      // WorkspaceLayout fixes the app footer to the viewport bottom at md+ and
-      // WorkspaceFooter publishes its height as --workspace-footer-height; the
-      // bar sticks exactly on top of it, never over it and with no gap.
+      // WorkspaceFooter fixes the mobile nav to the viewport bottom below md
+      // and the app footer at md+, and publishes each one's height; the bar
+      // sticks exactly on top of whichever is shown, never under it and with
+      // no gap.
+      expect(footer.classes()).toContain('bottom-[var(--workspace-mobile-nav-height,3.5625rem)]');
       expect(footer.classes()).toContain('md:bottom-[var(--workspace-footer-height,6rem)]');
+      expect(footer.classes()).not.toContain('bottom-0');
       expect(footer.find(RUN).exists()).toBe(true);
       expect(wrapper.get('[data-testid="sso-diagnostics"]').find(RUN).exists()).toBe(false);
       expect(wrapper.findAll(RUN)).toHaveLength(1);

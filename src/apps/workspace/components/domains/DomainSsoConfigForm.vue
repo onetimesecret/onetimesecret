@@ -956,13 +956,16 @@ watch(newDomain, () => {
     <!-- Form. The sticky footer (bottom) and the host's sticky header (top)
          cover the edges a browser scrolls a newly focused control to, so every
          focusable descendant carries a scroll margin that clears them (WCAG
-         2.4.11 Focus Not Obscured). At md+ the footer sits above the layout's
-         fixed app footer (--workspace-footer-height, about 6rem), so the
-         bottom margin grows with it. -->
+         2.4.11 Focus Not Obscured). The footer sits on top of what the layout
+         fixes to the viewport bottom, so the bottom margin is that element's
+         measured height plus the footer's own: the mobile nav below md
+         (--workspace-mobile-nav-height) plus 11rem, since on a phone the
+         footer's buttons wrap to as many as three rows (about 10.5rem); the
+         app footer at md+ (--workspace-footer-height) plus 7rem. -->
     <form
       v-else
       @submit.prevent="handleSubmit"
-      class="space-y-8 [&_:is(input,select,textarea,button,summary,a)]:scroll-mt-24 [&_:is(input,select,textarea,button,summary,a)]:scroll-mb-28 md:[&_:is(input,select,textarea,button,summary,a)]:scroll-mb-52">
+      class="space-y-8 [&_:is(input,select,textarea,button,summary,a)]:scroll-mt-24 [&_:is(input,select,textarea,button,summary,a)]:scroll-mb-[calc(var(--workspace-mobile-nav-height,3.5625rem)+11rem)] md:[&_:is(input,select,textarea,button,summary,a)]:scroll-mb-[calc(var(--workspace-footer-height,6rem)+7rem)]">
       <!-- Setup guide: one line, with the numbered stages behind a
            disclosure. Stays until the connection is on (showSetupGuide). -->
       <section
@@ -2250,14 +2253,16 @@ aria-hidden="true">*</span>
            check action as the rightmost control. A new record is saved by the
            check, so setup has one save path. One control per action. The
            negative margin spans the host card's horizontal padding so the top
-           border meets the card edges. At md+ WorkspaceLayout fixes the app
-           footer to the viewport bottom and WorkspaceFooter publishes its
-           measured height as --workspace-footer-height (fallback 6rem, the
-           layout's mb-24); the bar sticks exactly on top of it rather than
+           border meets the card edges. WorkspaceFooter fixes an element to the
+           viewport bottom at every width and publishes its measured height:
+           the mobile nav below md (--workspace-mobile-nav-height, fallback
+           3.5625rem from its classes) and the app footer at md+
+           (--workspace-footer-height, fallback 6rem, the layout's mb-24). The
+           bar sticks exactly on top of whichever is shown rather than
            competing with it on z-index, so nothing shows between the two. -->
       <div
         data-testid="sso-form-footer"
-        class="sticky bottom-0 z-10 -mx-6 flex flex-wrap items-center justify-between gap-3 rounded-b-lg border-t border-gray-200 bg-white px-6 py-4 md:bottom-[var(--workspace-footer-height,6rem)] dark:border-gray-700 dark:bg-gray-800">
+        class="sticky bottom-[var(--workspace-mobile-nav-height,3.5625rem)] z-10 -mx-6 flex flex-wrap items-center justify-between gap-3 rounded-b-lg border-t border-gray-200 bg-white px-6 py-4 md:bottom-[var(--workspace-footer-height,6rem)] dark:border-gray-700 dark:bg-gray-800">
         <button
           v-if="hasUnsavedChanges"
           type="button"
