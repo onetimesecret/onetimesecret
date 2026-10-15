@@ -118,7 +118,7 @@ RSpec.describe Onetime::CustomDomain, 'canonical claim guard', :datastore do
         define_method(:[]=) { |*| raise Redis::CannotConnectError, 'lookup write failed' }
       end
       allow(described_class).to receive(:objid_lookup).and_return(failing.new(described_class.objid_lookup))
-      rec = build
+      rec     = build
 
       expect { rec.save }.to raise_error(Redis::CannotConnectError)
       expect([rec.exists?, index.get(ascii_name)]).to eq([true, rec.identifier])
@@ -169,7 +169,7 @@ RSpec.describe Onetime::CustomDomain, 'canonical claim guard', :datastore do
     end
 
     it 'does not apply the canonical-host check to a record that is already stored' do
-      rec = create
+      rec        = create
       allow(Onetime::Utils::CanonicalHosts).to receive_messages(
         normalized_hosts: [unicode_name], normalized_anchor_hosts: [unicode_name],
       )
@@ -222,6 +222,63 @@ RSpec.describe Onetime::CustomDomain, 'canonical claim guard', :datastore do
     # Records written before field values were JSON-encoded hold plain
     # strings. A plain string that reads as a JSON number loads as a number
     # ("1e100" as 1.0e+100, "1.50" as 1.5), and the record must still save.
+    # The guard pins its WATCH, the read and the write to one pool
+    # connection. The unit lane boots without the pool, and Familia's
+    # fallback opens a connection per call, so the WATCH would never hold.
+    # These examples install a pool and the provider SetupConnectionPool
+    # installs; the concurrent writer uses a connection of its own.
+    context 'with a connection pool, as after a full boot' do
+      include OnetimeStateHelpers
+
+      let(:other) { described_class.dbclient.dup }
+
+      around do |example|
+        snapshot = snapshot_familia_pool_config
+        pool     = ConnectionPool.new(size: 2, timeout: 5) { Familia.create_dbclient }
+        Onetime::Runtime.update_infrastructure(database_pool: pool)
+        Familia.connection_provider = lambda do |_uri|
+          stack = Fiber[:ots_pinned_dbclient_stack]
+          stack && !stack.empty? ? stack.last : pool.with { |conn| conn }
+        end
+        example.run
+      ensure
+        restore_familia_pool_config(snapshot)
+        pool&.shutdown(&:close)
+      end
+
+      after { other.close }
+
+      # Runs +between+ on the other connection after the guard's first read.
+      def between_read_and_write(rec, &between)
+        reads = 0
+        allow(rec).to receive(:stored_identity).and_wrap_original do |read|
+          stored = read.call
+          between.call if (reads += 1) == 1
+          stored
+        end
+        -> { reads }
+      end
+
+      it 'refuses the save when the record is destroyed in between, and does not store it again' do
+        rec   = create
+        reads = between_read_and_write(rec) { other.del(rec.dbkey) }
+
+        expect { rec.save }.to raise_error(Onetime::Problem, 'The custom domain no longer exists')
+        expect([rec.exists?, reads.call]).to eq([false, 2])
+      ensure
+        # The raw DEL left the organization's listing behind; destroy! would
+        # have removed it.
+        rec&.remove_from_organization_domains(org)
+      end
+
+      it 'writes again when another writer changed the record in between' do
+        rec   = create
+        reads = between_read_and_write(rec) { other.hset(rec.dbkey, 'updated', '1') }
+
+        expect([rec.save, reads.call, reload(rec).display_domain]).to eq([true, 2, unicode_name])
+      end
+    end
+
     context 'with identity fields stored as plain strings' do
       identity_fields = Onetime::CustomDomain::IdentityGuard::IDENTITY_FIELDS
 
@@ -236,8 +293,8 @@ RSpec.describe Onetime::CustomDomain, 'canonical claim guard', :datastore do
         'a subdomain that reads as a number' => ->(suffix) { "1.50.n#{suffix}.com" },
       }.each do |label, name_for|
         it "saves #{label} and leaves the identity values as they were" do
-          legacy = store_identity_as_plain_strings(create(name_for.call(suffix)), identity_fields)
-          before = identity_fields.map { |name| legacy.public_send(name) }
+          legacy        = store_identity_as_plain_strings(create(name_for.call(suffix)), identity_fields)
+          before        = identity_fields.map { |name| legacy.public_send(name) }
           legacy.status = 'reviewed'
 
           expect(legacy.save).to be(true)
@@ -263,11 +320,11 @@ RSpec.describe Onetime::CustomDomain, 'canonical claim guard', :datastore do
       end
 
       it 'migrates a v1 owner to an organization and adds no entry' do
-        rec = without_canonical_entry(create)
+        rec           = without_canonical_entry(create)
         Familia.dbclient.hdel(rec.dbkey, 'org_id')
         rec.v1_custid = "owner-#{suffix}@example.com"
         rec.save_fields(:v1_custid)
-        legacy = reload(rec)
+        legacy        = reload(rec)
 
         expect(legacy.migrate_to_org!({ "owner-#{suffix}@example.com" => org.objid })).to be(true)
         expect([reload(rec).org_id, index.get(ascii_name)]).to eq([org.objid, nil])

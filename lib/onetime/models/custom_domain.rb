@@ -502,6 +502,11 @@ module Onetime
       # the entry manually to keep it in sync with the `instances` registry.
       self.class.owners.remove(to_s)
 
+      # The name as stored, read before Familia opens its MULTI (a read
+      # inside it returns a future). remove_from_class_indexes! releases the
+      # index entries under that name, whatever this copy holds in memory.
+      @stored_display_domain_at_destroy = deserialize_value(dbclient.hget(dbkey, 'display_domain'), field_name: :display_domain)
+
       # Familia handles the main object, related fields, and declared indexes
       # in one MULTI. The canonical gate is released from inside that
       # transaction too (see #remove_from_class_indexes!).
@@ -511,25 +516,44 @@ module Onetime
     private
 
     # Familia's destroy! calls this inside its MULTI, after delete! and the
-    # declared-index cleanup. The canonical gate is app-managed (it indexes a
-    # normalized value rather than a model field), so it is not a declared
-    # index. Released after EXEC instead, a failed Redis call in between would
-    # leave a claim naming a record that no longer exists, and create! treats
-    # such a claim as another organization's in-flight registration: both
-    # spellings of the name stay blocked until an operator clears it.
-    # release_field is documented safe to queue in a MULTI: it is
-    # ownership-checked Lua and its return value is not consulted.
+    # declared-index cleanup. Familia releases the display_domain_index entry
+    # for the name this copy holds in memory. A copy can hold another name
+    # than the stored one, or none (a copy built from an identifier), and
+    # the entry under the stored name would then outlive the record; so the
+    # stored name, read in destroy!, is released too when it differs.
+    #
+    # The canonical gate is app-managed (it indexes a normalized value
+    # rather than a model field), so it is not a declared index. Released
+    # after EXEC instead, a failed Redis call in between would leave a claim
+    # naming a record that no longer exists, and create! treats such a claim
+    # as another organization's in-flight registration: both spellings of
+    # the name stay blocked until an operator clears it.
+    #
+    # Every release is ownership-checked Lua (release_field): a shadow record
+    # that shares a hostname with the record the index names leaves that
+    # record's entries in place. release_field is documented safe to queue
+    # in a MULTI; its return value is not consulted.
     def remove_from_class_indexes!
       super
 
-      canonical_domain = begin
-        self.class.canonical_display_domain(display_domain)
-      rescue Onetime::DomainValidation::AsciiHostname::ConversionError
-        nil
+      in_memory = display_domain.to_s
+      stored    = @stored_display_domain_at_destroy.to_s
+      if !stored.empty? && stored != in_memory
+        OT.lw "[CustomDomain.destroy!] #{extid} is stored as #{stored.inspect} but holds " \
+              "#{in_memory.inspect} in memory; releasing the stored name"
+        self.class.display_domain_index.release_field(stored, identifier)
       end
-      return unless canonical_domain
 
-      self.class.canonical_display_domain_index.release_field(canonical_domain, identifier)
+      [in_memory, stored].reject(&:empty?).filter_map { |name| canonical_display_domain_or_nil(name) }.uniq.each do |canonical|
+        self.class.canonical_display_domain_index.release_field(canonical, identifier)
+      end
+    end
+
+    # @return [String, nil] the canonical form, or nil for a name without one
+    def canonical_display_domain_or_nil(name)
+      self.class.canonical_display_domain(name)
+    rescue Onetime::DomainValidation::AsciiHostname::ConversionError
+      nil
     end
 
     public
@@ -816,13 +840,9 @@ module Onetime
       # @param domain_name [String] The domain name to look up
       # @return [CustomDomain, nil] The domain if found, nil otherwise
       def load_by_display_domain(domain_name)
-        domainid = display_domain_id_for(domain_name)
-        return nil if domainid.nil?
-
-        # Use Familia's find_by_identifier method
-        find_by_identifier(domainid)
+        record_for_display_domain(domain_name)
       rescue Redis::BaseError => ex
-        OT.ld "[CustomDomain.load_by_display_domain] Failed to load domain #{domain_name.inspect} with id #{domainid}: #{ex.message}"
+        OT.ld "[CustomDomain.load_by_display_domain] Failed to load domain #{domain_name.inspect}: #{ex.message}"
         nil
       rescue StandardError => ex
         # Fail-open: Redis errors during lookup should not block the request
@@ -832,16 +852,16 @@ module Onetime
 
       # Resolve an FQDN to its CustomDomain identifier.
       #
-      # Looks up the display_domain_index hash for the given FQDN. Returns nil
-      # when the domain is blank, unregistered, or on any error — callers
-      # treat nil as "no custom domain".
+      # Looks up the record for the given FQDN (record_for_display_domain).
+      # Returns nil when the domain is blank, unregistered, or on any error —
+      # callers treat nil as "no custom domain".
       #
       # @param fqdn [String, nil] The fully-qualified domain name
       # @return [String, nil] The CustomDomain objid, or nil
       def resolve_domain_id(fqdn)
         return nil if fqdn.nil? || fqdn.to_s.empty?
 
-        domain_id = display_domain_id_for(fqdn)
+        domain_id = record_for_display_domain(fqdn)&.identifier
         OT.ld "[CustomDomain] Resolved #{fqdn} to domain_id=#{domain_id}" if domain_id
         domain_id
       rescue StandardError => ex
@@ -849,9 +869,54 @@ module Onetime
         nil
       end
 
-      # The index lookup that every lookup by name goes
-      # through (load_by_display_domain, from_display_domain,
+      # The record for a name: the one its index entry names, when that
+      # record is stored under the name looked up. Every lookup by name goes
+      # through here (load_by_display_domain, from_display_domain,
       # resolve_domain_id).
+      #
+      # display_domain_id_for answers from the index alone. An entry can
+      # outlive the record it names, or name a record stored under another
+      # name (an index rebuilt under the wrong key, a stale entry a later
+      # registration did not replace). Served for the host, such a record
+      # would answer another domain's requests with this record's
+      # configuration. The entry is refused instead and logged for repair;
+      # the record stays reachable under its stored name.
+      #
+      # @param domain_name [String, #to_s]
+      # @return [CustomDomain, nil]
+      # @raise [Redis::BaseError] if reading the index or the record fails
+      def record_for_display_domain(domain_name)
+        domain_id = display_domain_id_for(domain_name)
+        return nil unless domain_id
+
+        record = find_by_identifier(domain_id)
+        return nil unless record
+        return record if display_domain_names_record?(domain_name, record.display_domain)
+
+        OT.le "[CustomDomain] Refused the index entry for #{domain_name.inspect}: it names " \
+              "#{record.extid}, which is stored as #{record.display_domain.inspect}"
+        nil
+      end
+
+      # Whether a record stored as +stored_name+ is the one a lookup of
+      # +domain_name+ asks for: stored under one of the lookup's keys, or
+      # under a name with the same canonical form (the fallback that finds
+      # other Unicode normalisation forms).
+      #
+      # @param domain_name [String, #to_s] the name looked up
+      # @param stored_name [String, nil] the record's display_domain
+      # @return [Boolean]
+      def display_domain_names_record?(domain_name, stored_name)
+        stored = stored_name.to_s
+        return false if stored.empty? || !stored.valid_encoding?
+        return true if display_domain_lookup_keys(domain_name).include?(stored.downcase)
+
+        canonical_display_domain(stored) == canonical_display_domain(domain_name)
+      rescue Onetime::DomainValidation::AsciiHostname::ConversionError
+        false
+      end
+
+      # The index lookup behind record_for_display_domain.
       #
       # display_domain is stored as the customer typed it, so an
       # internationalised name may be indexed in Unicode ("bücher.example")
@@ -1690,8 +1755,9 @@ module Onetime
       # Finds a custom domain by its display domain.
       #
       # The lookup normalizes `display_domain` to lowercase to match the index.
-      # Returns `nil` when the domain is blank, absent from the index, or its
-      # indexed record no longer exists. Datastore errors intentionally propagate:
+      # Returns `nil` when the domain is blank, absent from the index, its
+      # indexed record no longer exists, or that record is stored under another
+      # name (record_for_display_domain). Datastore errors intentionally propagate:
       # callers use this lookup to resolve tenant policy and must not treat a failed
       # read as an absent tenant configuration.
       #
@@ -1699,13 +1765,9 @@ module Onetime
       # @return [Onetime::CustomDomain, nil]
       # @raise [Redis::BaseError] if reading the index or domain record fails
       def from_display_domain(display_domain)
-        # Get the domain ID from the display_domain_index hash, trying the
-        # name's A-label and Unicode forms too (display_domain_id_for)
-        domain_id = display_domain_id_for(display_domain)
-        return nil unless domain_id
-
-        # Load the record using the domain ID
-        find_by_identifier(domain_id)
+        # The index entry (trying the name's A-label and Unicode forms too),
+        # then the record it names, which must be stored under that name.
+        record_for_display_domain(display_domain)
       end
 
       # Generate a cryptographically secure short identifier using
