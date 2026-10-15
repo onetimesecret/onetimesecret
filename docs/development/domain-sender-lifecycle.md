@@ -19,8 +19,7 @@ does not delete the held lock. These paths share it:
 | --- | --- |
 | [ProvisionSenderDomain](../../lib/onetime/operations/provision_sender_domain.rb) | Check config existence, provision at the provider, and persist results when persistence is enabled. |
 | [DeleteSenderConfig](../../apps/api/domains/logic/sender_config/delete_sender_config.rb) | Remove the sender config, then tear down the provider identity using the removed config. |
-| [RemoveDomain](../../apps/api/domains/logic/domains/remove_domain.rb) | Delete the external vhost, tear down the sender identity, then call the domain's `destroy!`. |
-| [Operations::Domains::Remove](../../lib/onetime/operations/domains/remove.rb) | The same teardown sequence for the Colonel endpoint and domain-removal CLI. Dry runs do not acquire the lock. |
+| [Domains::Teardown](../../lib/onetime/operations/domains/teardown.rb) | Delete the external vhost, tear down the sender identity, then call the domain's `destroy!`. Shared by customer domain removal and the Colonel/CLI removal operation. Dry runs bypass teardown. |
 
 Each path uses [SenderIdentityLease](../../lib/onetime/operations/sender_identity_lease.rb)
 to renew the lock while provider calls block. Its `ensure` stops and joins the
@@ -56,6 +55,40 @@ destruction.
 Sender-config deletion uses a different order: it removes the config first,
 then deletes the provider identity from the removed record. It holds the
 same lock across both steps to prevent provisioning during that teardown.
+
+## Shared teardown boundary
+
+[Domains::Teardown](../../lib/onetime/operations/domains/teardown.rb) owns the
+lease and destructive sequence, not the surrounding request or operator policy.
+Its `call` contract separates contention, interrupted work, and committed work:
+
+| Outcome | Contract | Caller handling |
+| --- | --- | --- |
+| Lock unavailable | Raises `Teardown::Busy` before provider teardown. | Translate to the caller's existing refusal contract. |
+| Lease lost before `destroy!` returns | Raises `SenderIdentityLease::Lost`. Earlier provider calls may have changed remote state. | Report failure without claiming local destruction completed or that retry is safe. |
+| `destroy!` returns and lease exit completes normally or raises `SenderIdentityLease::Lost` | Returns `Result` with `removal_committed: true` and an optional `lease_error` from the final ownership check. | Finalize committed work before surfacing `lease_error`. |
+| Unexpected exception | Propagates unchanged. | Use the caller's existing exception handling; do not interpret the exception as proof of rollback. |
+
+A returned result describes local destruction, not successful provider cleanup.
+The operation retains the existing best-effort provider policy: it catches the
+specified vhost transport errors and does not abort on a failed
+`DeleteSenderDomain` result. It does not retry or reacquire a lost lease.
+
+The [customer API](../../apps/api/domains/logic/domains/remove_domain.rb) retains
+authorization, matching session-context cleanup, committed-loss logging, and
+form-error translation. The [toolbox operation](../../lib/onetime/operations/domains/remove.rb)
+retains previews, survivor-index repair, operator auditing, and its public
+`SenderIdentityBusy` and `RemovalCommitted` exceptions. Both snapshot fields they
+need before destruction clears the domain object.
+
+This boundary keeps sequencing and its failure rules together without merging
+caller policies. It is a domain-specific example, not a generic workflow engine:
+there are no configurable steps or finalization callbacks. Sender-config-only
+deletion remains separate because its local deletion precedes provider cleanup.
+Future operations can use the same separation of execution, explicit outcomes,
+and caller policy without adopting this lease or result type. Broader shared
+infrastructure should follow demonstrated common behavior in another operation,
+not anticipated extension points here.
 
 ## Configs loaded before removal
 
@@ -134,9 +167,10 @@ alone does not establish that the provider identity was deleted.
 
 ## Regression coverage
 
-- [Domain sender API integration specs](../../apps/api/domains/spec/integration/simple/domain_sender_config_spec.rb): sender-config deletion and domain removal with a real datastore lock; contention refusal; lock coverage through destruction; provisioning during removal and from a stale config afterwards. These specs stub provider teardown rather than contacting a live provider.
-- [Customer removal logic specs](../../apps/api/domains/spec/logic/domains/remove_domain_spec.rb): lock acquisition/release order, refusal before teardown, release when destruction raises, and finalization after post-destroy lease loss.
-- [Removal operation specs](../../spec/unit/onetime/operations/domains/remove_spec.rb): mocked ordering and failure auditing, real datastore checks for contention and stale-config provisioning, renewal beyond the initial TTL, and committed-removal auditing on lease loss.
+- [Teardown operation specs](../../spec/unit/onetime/operations/domains/teardown_spec.rb): sequencing and checkpoint failures; real datastore contention, renewal across slow vhost/sender/destruction steps, sticky watchdog failure, successor ownership, committed lease loss, and provisioning during removal or from a stale config afterwards.
+- [Domain sender API integration specs](../../apps/api/domains/spec/integration/simple/domain_sender_config_spec.rb): sender-config deletion and domain removal through HTTP with a real datastore lock; contention and lease-loss responses; committed-loss details, logging, and session cleanup. These specs stub provider teardown rather than contacting a live provider.
+- [Customer removal logic specs](../../apps/api/domains/spec/logic/domains/remove_domain_spec.rb): shared-operation delegation, error translation, unchanged unexpected exceptions, and session/log finalization for committed outcomes.
+- [Removal operation specs](../../spec/unit/onetime/operations/domains/remove_spec.rb): shared-operation delegation, preview and failure auditing, committed-outcome translation, and real datastore index repair including after committed lease loss.
 - [Lease helper specs](../../spec/unit/onetime/operations/sender_identity_lease_spec.rb): renewal beyond a shortened initial TTL, sticky ownership loss, and token-safe cleanup.
 - [Provisioning operation specs](../../spec/unit/onetime/operations/provision_sender_domain_spec.rb): rejection of a deleted config, renewal across slow provider/persistence work, and lease-loss handling.
 - [Colonel adapter specs](../../apps/api/colonel/spec/logic/colonel/remove_custom_domain_spec.rb): translation of `SenderIdentityBusy` to a conflict form error.
