@@ -61,8 +61,12 @@ const ssoRoute = computed(() => ({
 // The SSO configuration used to open as a dialog on this page from the
 // `?modal=sso` deep link (org SSO tab, domains table). Older links still
 // carry it: send them on to the SSO page, dropping the param so Back does
-// not land here and bounce again.
-if (route.query.modal === 'sso') {
+// not land here and bounce again. A query value is a string, null, or an
+// array when the param repeats (`?modal=a&modal=sso`); only the exact string
+// counts. The page unmounts on the next tick, so onMounted skips its reads.
+const legacyModalParam = route.query.modal;
+const redirectingToSsoPage = typeof legacyModalParam === 'string' && legacyModalParam === 'sso';
+if (redirectingToSsoPage) {
   const { modal: _modal, ...query } = route.query;
   router.replace({ ...ssoRoute.value, query });
 }
@@ -165,6 +169,9 @@ const {
 // ---------------------------------------------------------------------------
 
 onMounted(async () => {
+  // Redirecting (see above): nothing read here would be shown.
+  if (redirectingToSsoPage) return;
+
   await initializeDomain();
 
   // Only fetch the signin config when the entitlement is available. Fetching

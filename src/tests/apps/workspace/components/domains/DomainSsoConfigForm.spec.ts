@@ -434,7 +434,7 @@ describe('DomainSsoConfigForm', () => {
     const RUN = '[data-testid="sso-diagnostics-run"]';
     const FOOTER = '[data-testid="sso-form-footer"]';
     const PROVIDER_CHECK = '[data-testid="sso-provider-check"]';
-    const DANGER_ZONE = '[data-testid="sso-danger-zone"]';
+    const CAUTION_ZONE = '[data-testid="sso-caution-zone"]';
     const buttonsByKey = (w: VueWrapper, key: string) =>
       w.findAll('button').filter((b) => b.text().includes(key));
 
@@ -458,11 +458,15 @@ describe('DomainSsoConfigForm', () => {
       expect(disclosure.get('summary').text()).toBe('web.organizations.sso.test_connection');
       // The hint keeps discovery apart from the saved-configuration check and a sign-in.
       expect(disclosure.text()).toContain('web.organizations.sso.test_connection_hint');
-      expect(
-        disclosure.element.compareDocumentPosition(
-          wrapper.get('[data-testid="sso-diagnostics"]').element
-        ) & Node.DOCUMENT_POSITION_PRECEDING
-      ).toBe(Node.DOCUMENT_POSITION_PRECEDING);
+      // It closes the check panel as a child of it: last in the section, its
+      // body indented under the summary.
+      const panel = wrapper.get('[data-testid="sso-diagnostics"]').element;
+      expect(panel.contains(disclosure.element)).toBe(true);
+      expect(panel.lastElementChild).toBe(disclosure.element);
+      expect(disclosure.classes()).toContain('mt-4');
+      expect(disclosure.get('summary + div').classes()).toEqual(
+        expect.arrayContaining(['border-l', 'pl-4'])
+      );
     });
 
     it('opens the discovery disclosure when a result or an error arrives', async () => {
@@ -496,6 +500,9 @@ describe('DomainSsoConfigForm', () => {
       const footer = wrapper.get(FOOTER);
       expect(footer.classes()).toContain('sticky');
       expect(footer.classes()).toContain('bottom-0');
+      // WorkspaceLayout fixes the app footer to the viewport bottom at md+ and
+      // reserves mb-24 for it; the bar sticks above that, never over it.
+      expect(footer.classes()).toContain('md:bottom-24');
       expect(footer.find(RUN).exists()).toBe(true);
       expect(wrapper.get('[data-testid="sso-diagnostics"]').find(RUN).exists()).toBe(false);
       expect(wrapper.findAll(RUN)).toHaveLength(1);
@@ -503,7 +510,7 @@ describe('DomainSsoConfigForm', () => {
       // A clean new record: no Save, nothing to discard, no delete.
       expect(footer.find('button[type="submit"]').exists()).toBe(false);
       expect(buttonsByKey(wrapper, 'discard_changes')).toHaveLength(0);
-      expect(wrapper.find(DANGER_ZONE).exists()).toBe(false);
+      expect(wrapper.find(CAUTION_ZONE).exists()).toBe(false);
     });
 
     it('adds Discard and Save for an existing record, one control each', async () => {
@@ -523,7 +530,7 @@ describe('DomainSsoConfigForm', () => {
       expect(footer.get('[data-testid="sso-save"]').attributes('type')).toBe('submit');
       expect(buttonsByKey(wrapper, 'save_changes')).toHaveLength(1);
       expect(buttonsByKey(wrapper, 'discard_changes')).toHaveLength(1);
-      // Delete lives in the danger zone, not the footer.
+      // Delete lives in the Careful Consideration Zone, not the footer.
       expect(buttonsByKey(footer, 'delete_config')).toHaveLength(0);
     });
 
@@ -550,16 +557,20 @@ describe('DomainSsoConfigForm', () => {
       expect(wrapper.get(FOOTER).find('[data-testid="sso-save"]').exists()).toBe(true);
     });
 
-    it('moves delete into a danger zone after the sign-in sections, with its inline confirm', async () => {
+    it('moves delete into the Careful Consideration Zone after the sign-in sections, with its inline confirm', async () => {
       wrapper = await mountComponent({
         formState: mockExistingFormState,
         ssoConfig: mockExistingConfig,
         isConfigured: true,
       });
 
-      const zone = wrapper.get(DANGER_ZONE);
-      expect(zone.attributes('aria-labelledby')).toBe('sso-danger-zone-title');
-      expect(zone.get('#sso-danger-zone-title').text()).toBe('web.COMMON.danger_zone');
+      const zone = wrapper.get(CAUTION_ZONE);
+      expect(zone.attributes('aria-labelledby')).toBe('sso-caution-zone-title');
+      const title = zone.get('#sso-caution-zone-title');
+      expect(title.element.tagName).toBe('H3');
+      expect(title.text()).toBe('web.COMMON.caution_zone');
+      // The zone's box names the action and what it does, as DomainDetail's does.
+      expect(zone.get('h4').text()).toBe('web.organizations.sso.delete_config');
       expect(zone.text()).toContain('web.organizations.sso.delete_config_hint');
       expect(
         wrapper
@@ -595,6 +606,92 @@ describe('DomainSsoConfigForm', () => {
       );
       expect(row.findAll('button')).toHaveLength(1);
       expect(row.text()).toContain('web.organizations.sso.callback_url_hint');
+    });
+
+    it('keeps one heading outline under the page: sections are h3, their items h4', async () => {
+      wrapper = await mountComponent({
+        formState: mockExistingFormState,
+        ssoConfig: mockExistingConfig,
+        isConfigured: true,
+      });
+
+      for (const id of [
+        'sso-provider-details-title',
+        'sso-diagnostics-title',
+        'sso-confirm-sign-in-title',
+        'sso-caution-zone-title',
+      ]) {
+        expect(wrapper.get(`#${id}`).element.tagName).toBe('H3');
+      }
+      expect(wrapper.find('h1, h2, h5, h6').exists()).toBe(false);
+    });
+
+    describe('bringing the check verdict into view', () => {
+      const scrolledTo: Element[] = [];
+      const scrollIntoView = vi.fn(function (this: Element) {
+        scrolledTo.push(this);
+      });
+      const hadScrollIntoView = 'scrollIntoView' in Element.prototype;
+      const originalScrollIntoView = Element.prototype.scrollIntoView;
+
+      beforeEach(() => {
+        scrolledTo.length = 0;
+        Element.prototype.scrollIntoView = scrollIntoView;
+      });
+
+      afterEach(() => {
+        if (hadScrollIntoView) Element.prototype.scrollIntoView = originalScrollIntoView;
+        else Reflect.deleteProperty(Element.prototype, 'scrollIntoView');
+        vi.unstubAllGlobals();
+      });
+
+      it('scrolls the verdict to the nearest edge when it arrives', async () => {
+        wrapper = await mountComponent({ formState: mockExistingFormState });
+        expect(scrollIntoView).not.toHaveBeenCalled();
+
+        await wrapper.setProps({ diagnosticsResult: diagnostics('passed', []) });
+        await flushPromises();
+
+        expect(scrollIntoView).toHaveBeenCalledTimes(1);
+        expect(scrollIntoView).toHaveBeenCalledWith({ block: 'nearest', behavior: 'smooth' });
+        expect(scrolledTo[0]).toBe(wrapper.get('[data-testid="sso-diagnostics-result"]').element);
+      });
+
+      it('scrolls the transport error the same way', async () => {
+        wrapper = await mountComponent({ formState: mockExistingFormState });
+
+        await wrapper.setProps({ diagnosticsError: 'Could not reach the server' });
+        await flushPromises();
+
+        expect(scrollIntoView).toHaveBeenCalledTimes(1);
+        expect(scrolledTo[0]).toBe(wrapper.get('[data-testid="sso-diagnostics-error"]').element);
+      });
+
+      it('jumps instead of gliding when the admin prefers reduced motion', async () => {
+        vi.stubGlobal(
+          'matchMedia',
+          vi.fn((query: string) => ({ matches: query.includes('prefers-reduced-motion') }))
+        );
+        wrapper = await mountComponent({ formState: mockExistingFormState });
+
+        await wrapper.setProps({ diagnosticsResult: diagnostics('failed', []) });
+        await flushPromises();
+
+        expect(scrollIntoView).toHaveBeenCalledWith({ block: 'nearest', behavior: 'auto' });
+      });
+
+      it('leaves the page alone when the verdict is cleared', async () => {
+        wrapper = await mountComponent({
+          formState: mockExistingFormState,
+          diagnosticsResult: diagnostics('passed', []),
+        });
+        expect(scrollIntoView).not.toHaveBeenCalled(); // a verdict present at mount is not an arrival
+
+        await wrapper.setProps({ diagnosticsResult: null });
+        await flushPromises();
+
+        expect(scrollIntoView).not.toHaveBeenCalled();
+      });
     });
 
     it('labels the provider in place of the picker for a saved record', async () => {
@@ -989,7 +1086,7 @@ describe('DomainSsoConfigForm', () => {
 
       const providerCheck = wrapper.get('[data-testid="sso-provider-check"]');
       expect(providerCheck.find('[role="status"]').exists()).toBe(true);
-      const message = providerCheck.get('h5');
+      const message = providerCheck.get('h4');
       expect(message.text()).toBe('Connection successful');
       expect(message.isVisible()).toBe(true);
       expectShownInProviderCheck(wrapper, message.element);
@@ -2288,7 +2385,7 @@ describe('DomainSsoConfigForm', () => {
         expect(disclosure.get('[data-testid="sso-test-token-endpoint-auth-methods"]').element).toBe(
           list.element
         );
-        const message = wrapper.get('[data-testid="sso-provider-check"] h5');
+        const message = wrapper.get('[data-testid="sso-provider-check"] h4');
         expect(message.text()).toBe('Connection successful');
         expect(message.isVisible()).toBe(true);
         expectShownInProviderCheck(wrapper, message.element);
@@ -2310,7 +2407,7 @@ describe('DomainSsoConfigForm', () => {
             wrapper.find('[data-testid="sso-test-token-endpoint-auth-methods"]').exists()
           ).toBe(false);
           expect(wrapper.find('[data-testid="sso-test-technical-details"]').exists()).toBe(false);
-          const message = wrapper.get('[data-testid="sso-provider-check"] h5');
+          const message = wrapper.get('[data-testid="sso-provider-check"] h4');
           expect(message.text()).toBe('Connection successful');
           expect(message.isVisible()).toBe(true);
           expectShownInProviderCheck(wrapper, message.element);

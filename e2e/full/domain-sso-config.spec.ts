@@ -773,16 +773,16 @@ test.describe('Domain SSO Configuration - Save and Delete', () => {
 
     const ssoPage = await openDomainSsoPage(page, org.extid, configuredDomain!.extid);
 
-    // Delete lives in the danger zone at the end of the form, not the footer
-    const dangerZone = ssoPage.locator('[data-testid="sso-danger-zone"]');
-    const deleteButton = dangerZone.locator('button').filter({ hasText: /delete/i });
+    // Delete lives in the Careful Consideration Zone at the end of the form, not the footer
+    const cautionZone = ssoPage.locator('[data-testid="sso-caution-zone"]');
+    const deleteButton = cautionZone.locator('button').filter({ hasText: /delete/i });
 
     if (await deleteButton.isVisible()) {
       // Click delete
       await deleteButton.click();
 
-      // Confirm deletion (inline confirm in the danger zone: "Yes, delete")
-      const confirmButton = dangerZone
+      // Confirm deletion (inline confirm in the zone: "Yes, delete")
+      const confirmButton = cautionZone
         .locator('button')
         .filter({ hasText: /confirm|delete/i })
         .last();

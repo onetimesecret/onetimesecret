@@ -20,7 +20,7 @@ import DomainSignin from '@/apps/workspace/domains/DomainSignin.vue';
 // Mocks
 // ─────────────────────────────────────────────────────────────────────────────
 
-const routeQuery = ref<Record<string, string>>({});
+const routeQuery = ref<Record<string, string | string[]>>({});
 const router = { push: vi.fn(), replace: vi.fn() };
 
 vi.mock('vue-router', () => ({
@@ -193,6 +193,23 @@ describe('DomainSignin', () => {
       wrapper = await mountPage();
 
       expect(router.replace).not.toHaveBeenCalled();
+    });
+
+    it('does not match a repeated param', async () => {
+      routeQuery.value = { modal: ['sso', 'other'] };
+      wrapper = await mountPage();
+
+      expect(router.replace).not.toHaveBeenCalled();
+      expect(sso.initialize).toHaveBeenCalledTimes(1);
+    });
+
+    it('skips the page reads: the page unmounts on the next tick', async () => {
+      routeQuery.value = { modal: 'sso' };
+      wrapper = await mountPage();
+
+      expect(router.replace).toHaveBeenCalledTimes(1);
+      expect(signin.initialize).not.toHaveBeenCalled();
+      expect(sso.initialize).not.toHaveBeenCalled();
     });
   });
 

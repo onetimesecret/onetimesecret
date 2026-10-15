@@ -8,10 +8,10 @@
  * and emits events for actions. The host page (DomainSigninSso.vue)
  * manages state via the useSsoConfig composable. Laid out as a settings
  * page: flat sections top to bottom, the primary action in a sticky
- * footer, delete in a danger zone.
+ * footer, delete in the Careful Consideration Zone.
  */
 import { useI18n } from 'vue-i18n';
-import { computed, ref, watch } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import ToggleWithIcon from '@/shared/components/common/ToggleWithIcon.vue';
 import CopyToClipboardButton from '@/shared/components/ui/CopyToClipboardButton.vue';
@@ -218,6 +218,28 @@ watch(
     if (hasResult) providerCheckOpen.value = true;
   },
   { immediate: true }
+);
+
+/**
+ * The check action sits in the sticky footer, so its verdict lands in the
+ * check panel, which may have scrolled away by the time the run completes.
+ * Bring the verdict (or the transport error) into view when it arrives;
+ * `nearest` leaves a result that is already visible where it is. jsdom has
+ * no scrollIntoView, and a reduced-motion preference gets an instant jump.
+ */
+const diagnosticsOutcomeEl = ref<HTMLElement | null>(null);
+watch(
+  [() => props.diagnosticsResult, () => props.diagnosticsError],
+  async ([result, error]) => {
+    if (!result && !error) return;
+    await nextTick();
+    const el = diagnosticsOutcomeEl.value;
+    if (!el || typeof el.scrollIntoView !== 'function') return;
+    const reduceMotion =
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    el.scrollIntoView({ block: 'nearest', behavior: reduceMotion ? 'auto' : 'smooth' });
+  }
 );
 
 // ---------------------------------------------------------------------------
@@ -937,11 +959,12 @@ watch(newDomain, () => {
     <!-- Form. The sticky footer (bottom) and the host's sticky header (top)
          cover the edges a browser scrolls a newly focused control to, so every
          focusable descendant carries a scroll margin that clears them (WCAG
-         2.4.11 Focus Not Obscured). -->
+         2.4.11 Focus Not Obscured). At md+ the footer sits above the layout's
+         fixed app footer (bottom-24), so the bottom margin grows with it. -->
     <form
       v-else
       @submit.prevent="handleSubmit"
-      class="space-y-8 [&_:is(input,select,textarea,button,summary,a)]:scroll-mt-24 [&_:is(input,select,textarea,button,summary,a)]:scroll-mb-28">
+      class="space-y-8 [&_:is(input,select,textarea,button,summary,a)]:scroll-mt-24 [&_:is(input,select,textarea,button,summary,a)]:scroll-mb-28 md:[&_:is(input,select,textarea,button,summary,a)]:scroll-mb-52">
       <!-- Setup guide: one line, with the numbered stages behind a
            disclosure. Stays until the connection is on (showSetupGuide). -->
       <section
@@ -1147,7 +1170,7 @@ watch(newDomain, () => {
           <div class="flex items-center gap-2">
             <code
               aria-labelledby="domain-sso-callback-url-label"
-              class="block flex-1 overflow-x-auto rounded-md bg-gray-100 px-3 py-2 text-sm text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+              class="block flex-1 overflow-x-auto rounded-md bg-gray-100 px-3 py-2 text-sm text-gray-800 dark:bg-gray-900 dark:text-gray-200">
               {{ callbackUrl }}
             </code>
             <CopyToClipboardButton
@@ -1190,7 +1213,7 @@ watch(newDomain, () => {
               <code
                 data-testid="sso-saml-sp-entity-id"
                 aria-labelledby="domain-sso-sp-entity-id-label"
-                class="block flex-1 overflow-x-auto rounded-md bg-gray-100 px-3 py-2 text-sm text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+                class="block flex-1 overflow-x-auto rounded-md bg-gray-100 px-3 py-2 text-sm text-gray-800 dark:bg-gray-900 dark:text-gray-200">
                 {{ spEntityId }}
               </code>
               <CopyToClipboardButton
@@ -1208,7 +1231,7 @@ watch(newDomain, () => {
               <code
                 data-testid="sso-saml-acs-url"
                 aria-labelledby="domain-sso-acs-url-label"
-                class="block flex-1 overflow-x-auto rounded-md bg-gray-100 px-3 py-2 text-sm text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+                class="block flex-1 overflow-x-auto rounded-md bg-gray-100 px-3 py-2 text-sm text-gray-800 dark:bg-gray-900 dark:text-gray-200">
                 {{ callbackUrl }}
               </code>
               <CopyToClipboardButton
@@ -1224,11 +1247,11 @@ watch(newDomain, () => {
         data-testid="sso-provider-details"
         aria-labelledby="sso-provider-details-title"
         class="space-y-5">
-        <h4
+        <h3
           id="sso-provider-details-title"
           class="border-b border-gray-200 pb-2 text-sm font-medium text-gray-900 dark:border-gray-700 dark:text-white">
           {{ t('web.organizations.sso.provider_details_title') }}
-        </h4>
+        </h3>
 
       <!-- Display Name -->
       <div>
@@ -1627,11 +1650,11 @@ aria-hidden="true">*</span>
       <section
         data-testid="sso-diagnostics"
         aria-labelledby="sso-diagnostics-title">
-        <h4
+        <h3
           id="sso-diagnostics-title"
           class="border-b border-gray-200 pb-2 text-sm font-medium text-gray-900 dark:border-gray-700 dark:text-white">
           {{ t('web.organizations.sso.diagnostics_title') }}
-        </h4>
+        </h3>
         <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
           {{
             t(
@@ -1675,6 +1698,7 @@ aria-hidden="true">*</span>
           class="mt-4">
           <div
             v-if="diagnosticsResult && diagnosticsOverallStyle"
+            ref="diagnosticsOutcomeEl"
             data-testid="sso-diagnostics-result"
             :data-overall="diagnosticsResult.overall"
             :role="diagnosticsOverallStyle.role"
@@ -1863,6 +1887,7 @@ aria-hidden="true">*</span>
                the connection. Announced like the failed verdict (role="alert"). -->
           <div
             v-else-if="diagnosticsError"
+            ref="diagnosticsOutcomeEl"
             data-testid="sso-diagnostics-error"
             role="alert"
             aria-live="assertive"
@@ -1881,250 +1906,254 @@ aria-hidden="true">*</span>
             </div>
           </div>
         </div>
-      </section>
 
-      <!-- Provider discovery check (D7): an optional check of the CURRENT form
-           values. It saves nothing and never verifies the secret, so it is
-           neither the saved-configuration check above nor a sign-in. Collapsed
-           by default; a result opens it so it is never hidden. -->
-      <details
-        data-testid="sso-provider-check"
-        :open="providerCheckOpen"
-        @toggle="providerCheckOpen = ($event.target as HTMLDetailsElement).open">
-        <summary
-          class="cursor-pointer text-sm font-medium text-gray-700 select-none hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">
-          {{ t('web.organizations.sso.test_connection') }}
-        </summary>
-        <div class="mt-2 flex flex-col items-start gap-3 sm:flex-row sm:justify-between">
-          <p class="min-w-0 flex-1 text-sm text-gray-500 dark:text-gray-400">
-            {{ isSaml ? t('web.organizations.sso.test_connection_hint_saml') : t('web.organizations.sso.test_connection_hint') }}
-          </p>
-          <button
-            type="button"
-            @click="handleTestConnection"
-            :disabled="!canTestConnection || isTesting || isSaving"
-            class="inline-flex shrink-0 items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-600 dark:text-gray-100 dark:ring-gray-500 dark:hover:bg-gray-500">
-            <OIcon
-              v-if="isTesting"
-              collection="heroicons"
-              name="arrow-path"
-              size="4"
-              class="animate-spin motion-reduce:animate-none"
-              aria-hidden="true" />
-            <OIcon
-              v-else
-              collection="heroicons"
-              name="signal"
-              size="4"
-              aria-hidden="true" />
-            {{ isTesting ? t('web.organizations.sso.testing') : t('web.organizations.sso.test_button') }}
-          </button>
-        </div>
-
-        <!-- Test Result -->
-        <div
-          v-if="testResult || testError"
+        <!-- Provider discovery check (D7): an optional check of the CURRENT form
+             values. It saves nothing and never verifies the secret, so it is
+             neither the saved-configuration check it sits under nor a sign-in.
+             Collapsed by default; a result opens it so it is never hidden. Its
+             body is indented so it reads as a child of the check. -->
+        <details
+          data-testid="sso-provider-check"
+          :open="providerCheckOpen"
+          @toggle="providerCheckOpen = ($event.target as HTMLDetailsElement).open"
           class="mt-4">
-          <!-- Success Result -->
-          <div
-            v-if="testResult?.success"
-            role="status"
-            aria-live="polite"
-            class="rounded-md bg-green-50 p-4 dark:bg-green-900/20">
-            <div class="flex">
-              <OIcon
-                collection="heroicons"
-                name="check-circle-solid"
-                class="size-5 text-green-400"
-                aria-hidden="true" />
-              <div class="ml-3">
-                <h5 class="text-sm font-medium text-green-800 dark:text-green-200">
-                  {{ testResult.message }}
-                </h5>
-                <!-- The API's note. With an unadvertised token endpoint auth
-                     method (#4764) it explains a gap, so it reads as a warning;
-                     otherwise it is part of the confirmation. -->
-                <p
-                  v-if="testResult.details?.note"
-                  data-testid="sso-test-note"
-                  :class="
-                    tokenEndpointAuthMethodUnadvertised
-                      ? 'mt-2 flex items-start gap-2 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-700 dark:bg-amber-900/20 dark:text-amber-300'
-                      : 'mt-1 text-sm text-green-700 dark:text-green-300'
-                  ">
-                  <OIcon
-                    v-if="tokenEndpointAuthMethodUnadvertised"
-                    collection="heroicons"
-                    name="exclamation-triangle"
-                    class="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400"
-                    aria-hidden="true" />
-                  <span>{{ testResult.details.note }}</span>
-                </p>
-                <p
-                  class="mt-2 text-sm text-green-800 dark:text-green-200"
-                  data-testid="sso-provider-check-next">
-                  {{ t('web.organizations.sso.provider_check_next') }}
-                </p>
-                <details
-                  v-if="advertisedTokenEndpointAuthMethods?.length"
-                  data-testid="sso-test-technical-details"
-                  :open="tokenEndpointAuthMethodUnadvertised"
-                  class="mt-2 text-sm text-green-700 dark:text-green-300">
-                  <summary class="cursor-pointer font-medium">
-                    {{ t('web.organizations.sso.technical_details') }}
-                  </summary>
-                  <dl
-                    v-if="advertisedTokenEndpointAuthMethods?.length"
-                    data-testid="sso-test-token-endpoint-auth-methods"
-                    class="mt-2 space-y-1 text-sm text-green-700 dark:text-green-300">
-                    <div class="flex gap-2">
-                      <dt class="shrink-0 font-medium">
-                        {{ t('web.organizations.sso.token_endpoint_auth_methods_supported') }}:
-                      </dt>
-                      <dd class="font-mono break-all">
-                        {{ advertisedTokenEndpointAuthMethods.join(', ') }}
-                      </dd>
-                    </div>
-                  </dl>
-                </details>
-                <!-- SAML (#4450): the test is local, so it reports what it
-                     parsed — the certificate's subject and expiry. -->
-                <dl
-                  v-if="testResult.details?.certificate_subject || certificateExpiry"
-                  data-testid="sso-test-saml-details"
-                  class="mt-2 space-y-1 text-sm text-green-700 dark:text-green-300">
-                  <div v-if="testResult.details.certificate_subject" class="flex gap-2">
-                    <dt class="font-medium">{{ t('web.organizations.sso.certificate_subject') }}:</dt>
-                    <dd class="break-all">{{ testResult.details.certificate_subject }}</dd>
-                  </div>
-                  <div v-if="certificateExpiry" class="flex gap-2">
-                    <dt class="font-medium">{{ t('web.organizations.sso.certificate_expires') }}:</dt>
-                    <dd>
-                      {{ certificateExpiry.date }}
-                      <span v-if="certificateExpiry.days !== undefined">
-                        ({{ t('web.organizations.sso.certificate_expires_in_days', certificateExpiry.days) }})
-                      </span>
-                    </dd>
-                  </div>
-                </dl>
-              </div>
+          <summary
+            class="cursor-pointer text-sm font-medium text-gray-700 select-none hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">
+            {{ t('web.organizations.sso.test_connection') }}
+          </summary>
+          <div class="mt-3 border-l border-gray-200 pl-4 dark:border-gray-700">
+            <div class="flex flex-col items-start gap-3 sm:flex-row sm:justify-between">
+              <p class="min-w-0 flex-1 text-sm text-gray-500 dark:text-gray-400">
+                {{ isSaml ? t('web.organizations.sso.test_connection_hint_saml') : t('web.organizations.sso.test_connection_hint') }}
+              </p>
+              <button
+                type="button"
+                @click="handleTestConnection"
+                :disabled="!canTestConnection || isTesting || isSaving"
+                class="inline-flex shrink-0 items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-600 dark:text-gray-100 dark:ring-gray-500 dark:hover:bg-gray-500">
+                <OIcon
+                  v-if="isTesting"
+                  collection="heroicons"
+                  name="arrow-path"
+                  size="4"
+                  class="animate-spin motion-reduce:animate-none"
+                  aria-hidden="true" />
+                <OIcon
+                  v-else
+                  collection="heroicons"
+                  name="signal"
+                  size="4"
+                  aria-hidden="true" />
+                {{ isTesting ? t('web.organizations.sso.testing') : t('web.organizations.sso.test_button') }}
+              </button>
             </div>
-          </div>
 
-          <!-- Failure Result -->
-          <div
-            v-else-if="testResult && !testResult.success"
-            role="alert"
-            aria-live="assertive"
-            class="rounded-md bg-red-50 p-4 dark:bg-red-900/20">
-            <div class="flex">
-              <OIcon
-                collection="heroicons"
-                name="x-circle-solid"
-                class="size-5 text-red-400"
-                aria-hidden="true" />
-              <div class="ml-3">
-                <h5 class="text-sm font-medium text-red-800 dark:text-red-200">
-                  {{ testResult.message }}
-                </h5>
-                <div
-                  v-if="testResult.details"
-                  class="mt-2 text-sm text-red-700 dark:text-red-300">
-                  <dl class="space-y-1">
-                    <div v-if="testResult.details.error_code" class="flex gap-2">
-                      <dt class="font-medium">{{ t('web.COMMON.error_code') }}:</dt>
-                      <dd>{{ testResult.details.error_code }}</dd>
-                    </div>
-                    <div v-if="testResult.details.http_status" class="flex gap-2">
-                      <dt class="font-medium">{{ t('web.COMMON.http_status') }}:</dt>
-                      <dd>{{ testResult.details.http_status }}</dd>
-                    </div>
-                    <div v-if="testResult.details.field" class="flex gap-2">
-                      <dt class="font-medium">{{ t('web.COMMON.field') }}:</dt>
-                      <dd>{{ t(UNREADABLE_FIELD_LABELS[testResult.details.field] ?? testResult.details.field) }}</dd>
-                    </div>
-                    <div v-if="testResult.details.description" class="flex gap-2">
-                      <dt class="font-medium">{{ t('web.COMMON.details') }}:</dt>
-                      <dd>{{ testResult.details.description }}</dd>
-                    </div>
-                    <div v-if="certificateValidFrom" class="flex gap-2">
-                      <dt class="font-medium">{{ t('web.organizations.sso.certificate_valid_from') }}:</dt>
-                      <dd>{{ certificateValidFrom }}</dd>
-                    </div>
-                    <div v-if="certificateExpiry" class="flex gap-2">
-                      <dt class="font-medium">{{ t('web.organizations.sso.certificate_expires') }}:</dt>
-                      <dd>{{ certificateExpiry.date }}</dd>
-                    </div>
-                    <div v-if="testResult.details.missing_fields?.length" class="flex gap-2">
-                      <dt class="font-medium">{{ t('web.organizations.sso.missing_fields') }}:</dt>
-                      <dd>{{ testResult.details.missing_fields.join(', ') }}</dd>
-                    </div>
-                    <template v-if="testResult.details.error_code === 'issuer_mismatch'">
-                      <div class="flex gap-2">
-                        <dt class="shrink-0 font-medium">
-                          {{ t('web.organizations.sso.configured_issuer') }}:
-                        </dt>
+            <!-- Test Result -->
+            <div
+              v-if="testResult || testError"
+              class="mt-4">
+              <!-- Success Result -->
+              <div
+                v-if="testResult?.success"
+                role="status"
+                aria-live="polite"
+                class="rounded-md bg-green-50 p-4 dark:bg-green-900/20">
+                <div class="flex">
+                  <OIcon
+                    collection="heroicons"
+                    name="check-circle-solid"
+                    class="size-5 text-green-400"
+                    aria-hidden="true" />
+                  <div class="ml-3">
+                    <h4 class="text-sm font-medium text-green-800 dark:text-green-200">
+                      {{ testResult.message }}
+                    </h4>
+                    <!-- The API's note. With an unadvertised token endpoint auth
+                         method (#4764) it explains a gap, so it reads as a warning;
+                         otherwise it is part of the confirmation. -->
+                    <p
+                      v-if="testResult.details?.note"
+                      data-testid="sso-test-note"
+                      :class="
+                        tokenEndpointAuthMethodUnadvertised
+                          ? 'mt-2 flex items-start gap-2 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-700 dark:bg-amber-900/20 dark:text-amber-300'
+                          : 'mt-1 text-sm text-green-700 dark:text-green-300'
+                      ">
+                      <OIcon
+                        v-if="tokenEndpointAuthMethodUnadvertised"
+                        collection="heroicons"
+                        name="exclamation-triangle"
+                        class="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400"
+                        aria-hidden="true" />
+                      <span>{{ testResult.details.note }}</span>
+                    </p>
+                    <p
+                      class="mt-2 text-sm text-green-800 dark:text-green-200"
+                      data-testid="sso-provider-check-next">
+                      {{ t('web.organizations.sso.provider_check_next') }}
+                    </p>
+                    <details
+                      v-if="advertisedTokenEndpointAuthMethods?.length"
+                      data-testid="sso-test-technical-details"
+                      :open="tokenEndpointAuthMethodUnadvertised"
+                      class="mt-2 text-sm text-green-700 dark:text-green-300">
+                      <summary class="cursor-pointer font-medium">
+                        {{ t('web.organizations.sso.technical_details') }}
+                      </summary>
+                      <dl
+                        v-if="advertisedTokenEndpointAuthMethods?.length"
+                        data-testid="sso-test-token-endpoint-auth-methods"
+                        class="mt-2 space-y-1 text-sm text-green-700 dark:text-green-300">
+                        <div class="flex gap-2">
+                          <dt class="shrink-0 font-medium">
+                            {{ t('web.organizations.sso.token_endpoint_auth_methods_supported') }}:
+                          </dt>
+                          <dd class="font-mono break-all">
+                            {{ advertisedTokenEndpointAuthMethods.join(', ') }}
+                          </dd>
+                        </div>
+                      </dl>
+                    </details>
+                    <!-- SAML (#4450): the test is local, so it reports what it
+                         parsed — the certificate's subject and expiry. -->
+                    <dl
+                      v-if="testResult.details?.certificate_subject || certificateExpiry"
+                      data-testid="sso-test-saml-details"
+                      class="mt-2 space-y-1 text-sm text-green-700 dark:text-green-300">
+                      <div v-if="testResult.details.certificate_subject" class="flex gap-2">
+                        <dt class="font-medium">{{ t('web.organizations.sso.certificate_subject') }}:</dt>
+                        <dd class="break-all">{{ testResult.details.certificate_subject }}</dd>
+                      </div>
+                      <div v-if="certificateExpiry" class="flex gap-2">
+                        <dt class="font-medium">{{ t('web.organizations.sso.certificate_expires') }}:</dt>
                         <dd>
-                          <code
-                            class="font-mono break-all"
-                            data-testid="sso-configured-issuer">{{
-                              testResult.details.configured_issuer
-                            }}</code>
+                          {{ certificateExpiry.date }}
+                          <span v-if="certificateExpiry.days !== undefined">
+                            ({{ t('web.organizations.sso.certificate_expires_in_days', certificateExpiry.days) }})
+                          </span>
                         </dd>
                       </div>
-                      <div class="flex gap-2">
-                        <dt class="shrink-0 font-medium">
-                          {{ t('web.organizations.sso.discovery_issuer') }}:
-                        </dt>
-                        <dd>
-                          <code
-                            class="font-mono break-all"
-                            data-testid="sso-discovery-issuer">{{
-                              testResult.details.discovery_issuer ?? '—'
-                            }}</code>
-                        </dd>
-                      </div>
-                    </template>
-                  </dl>
-                  <p
-                    v-if="testResult.details.error_code === 'issuer_mismatch'"
-                    class="mt-2"
-                    data-testid="sso-issuer-mismatch-hint">
-                    {{ t('web.organizations.sso.issuer_mismatch_hint') }}
-                  </p>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Failure Result -->
+              <div
+                v-else-if="testResult && !testResult.success"
+                role="alert"
+                aria-live="assertive"
+                class="rounded-md bg-red-50 p-4 dark:bg-red-900/20">
+                <div class="flex">
+                  <OIcon
+                    collection="heroicons"
+                    name="x-circle-solid"
+                    class="size-5 text-red-400"
+                    aria-hidden="true" />
+                  <div class="ml-3">
+                    <h4 class="text-sm font-medium text-red-800 dark:text-red-200">
+                      {{ testResult.message }}
+                    </h4>
+                    <div
+                      v-if="testResult.details"
+                      class="mt-2 text-sm text-red-700 dark:text-red-300">
+                      <dl class="space-y-1">
+                        <div v-if="testResult.details.error_code" class="flex gap-2">
+                          <dt class="font-medium">{{ t('web.COMMON.error_code') }}:</dt>
+                          <dd>{{ testResult.details.error_code }}</dd>
+                        </div>
+                        <div v-if="testResult.details.http_status" class="flex gap-2">
+                          <dt class="font-medium">{{ t('web.COMMON.http_status') }}:</dt>
+                          <dd>{{ testResult.details.http_status }}</dd>
+                        </div>
+                        <div v-if="testResult.details.field" class="flex gap-2">
+                          <dt class="font-medium">{{ t('web.COMMON.field') }}:</dt>
+                          <dd>{{ t(UNREADABLE_FIELD_LABELS[testResult.details.field] ?? testResult.details.field) }}</dd>
+                        </div>
+                        <div v-if="testResult.details.description" class="flex gap-2">
+                          <dt class="font-medium">{{ t('web.COMMON.details') }}:</dt>
+                          <dd>{{ testResult.details.description }}</dd>
+                        </div>
+                        <div v-if="certificateValidFrom" class="flex gap-2">
+                          <dt class="font-medium">{{ t('web.organizations.sso.certificate_valid_from') }}:</dt>
+                          <dd>{{ certificateValidFrom }}</dd>
+                        </div>
+                        <div v-if="certificateExpiry" class="flex gap-2">
+                          <dt class="font-medium">{{ t('web.organizations.sso.certificate_expires') }}:</dt>
+                          <dd>{{ certificateExpiry.date }}</dd>
+                        </div>
+                        <div v-if="testResult.details.missing_fields?.length" class="flex gap-2">
+                          <dt class="font-medium">{{ t('web.organizations.sso.missing_fields') }}:</dt>
+                          <dd>{{ testResult.details.missing_fields.join(', ') }}</dd>
+                        </div>
+                        <template v-if="testResult.details.error_code === 'issuer_mismatch'">
+                          <div class="flex gap-2">
+                            <dt class="shrink-0 font-medium">
+                              {{ t('web.organizations.sso.configured_issuer') }}:
+                            </dt>
+                            <dd>
+                              <code
+                                class="font-mono break-all"
+                                data-testid="sso-configured-issuer">{{
+                                  testResult.details.configured_issuer
+                                }}</code>
+                            </dd>
+                          </div>
+                          <div class="flex gap-2">
+                            <dt class="shrink-0 font-medium">
+                              {{ t('web.organizations.sso.discovery_issuer') }}:
+                            </dt>
+                            <dd>
+                              <code
+                                class="font-mono break-all"
+                                data-testid="sso-discovery-issuer">{{
+                                  testResult.details.discovery_issuer ?? '—'
+                                }}</code>
+                            </dd>
+                          </div>
+                        </template>
+                      </dl>
+                      <p
+                        v-if="testResult.details.error_code === 'issuer_mismatch'"
+                        class="mt-2"
+                        data-testid="sso-issuer-mismatch-hint">
+                        {{ t('web.organizations.sso.issuer_mismatch_hint') }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Error (exception) -->
+              <div
+                v-else-if="testError"
+                class="rounded-md bg-red-50 p-4 dark:bg-red-900/20">
+                <div class="flex">
+                  <OIcon
+                    collection="heroicons"
+                    name="exclamation-triangle-solid"
+                    class="size-5 text-red-400"
+                    aria-hidden="true" />
+                  <div class="ml-3">
+                    <p class="text-sm font-medium text-red-800 dark:text-red-200">
+                      {{ testError }}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-
-          <!-- Error (exception) -->
-          <div
-            v-else-if="testError"
-            class="rounded-md bg-red-50 p-4 dark:bg-red-900/20">
-            <div class="flex">
-              <OIcon
-                collection="heroicons"
-                name="exclamation-triangle-solid"
-                class="size-5 text-red-400"
-                aria-hidden="true" />
-              <div class="ml-3">
-                <p class="text-sm font-medium text-red-800 dark:text-red-200">
-                  {{ testError }}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </details>
+        </details>
+      </section>
 
       <section
         data-testid="sso-confirm-sign-in"
         aria-labelledby="sso-confirm-sign-in-title">
-        <h4
+        <h3
           id="sso-confirm-sign-in-title"
           class="border-b border-gray-200 pb-2 text-sm font-medium text-gray-900 dark:border-gray-700 dark:text-white">
           {{ t('web.organizations.sso.confirm_sign_in') }}
-        </h4>
+        </h3>
         <p class="mt-2 text-sm text-gray-700 dark:text-gray-300">
           {{ t('web.organizations.sso.confirm_sign_in_hint', { domain: domainHost }) }}
         </p>
@@ -2204,55 +2233,69 @@ aria-hidden="true">*</span>
           @update:enabled="updateField('grant_org_scope', $event)" />
       </div>
 
-      <!-- Danger zone (D6): delete is the only way to remove a record and the
-           one destructive action here, so it stands apart from the footer. -->
+      <!-- Careful Consideration Zone (D6): delete is the only way to remove a
+           record and the one destructive action here, so it stands apart from
+           the footer, laid out as the domain page's zone (DomainDetail). -->
       <section
         v-if="isEditing"
-        data-testid="sso-danger-zone"
-        aria-labelledby="sso-danger-zone-title"
-        class="rounded-lg border border-red-200 p-4 dark:border-red-900/50">
-        <h4
-          id="sso-danger-zone-title"
-          class="text-sm font-medium text-red-700 dark:text-red-300">
-          {{ t('web.COMMON.danger_zone') }}
-        </h4>
-        <div class="mt-2 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p class="text-sm text-gray-600 dark:text-gray-300">
-            {{ t('web.organizations.sso.delete_config_hint') }}
-          </p>
-          <button
-            v-if="!showDeleteConfirm"
-            type="button"
-            @click="showDeleteConfirm = true"
-            :disabled="isDeleting || isSaving"
-            class="inline-flex shrink-0 items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-red-600 shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-red-400 dark:ring-red-700 dark:hover:bg-red-900/20">
-            <OIcon
-              collection="heroicons"
-              name="trash"
-              class="size-4"
-              aria-hidden="true" />
-            {{ t('web.organizations.sso.delete_config') }}
-          </button>
-          <div
-            v-else
-            class="flex flex-wrap items-center gap-2">
-            <span class="text-sm text-gray-600 dark:text-gray-400">
-              {{ t('web.organizations.sso.delete_confirm') }}
-            </span>
+        data-testid="sso-caution-zone"
+        aria-labelledby="sso-caution-zone-title">
+        <hr class="mb-8 border-gray-200 dark:border-gray-700/50" />
+        <h3
+          id="sso-caution-zone-title"
+          class="mb-4 text-sm font-medium text-red-600 dark:text-red-400">
+          {{ t('web.COMMON.caution_zone') }}
+        </h3>
+        <div
+          class="rounded-lg border border-red-200 bg-red-50/50 dark:border-red-900/50 dark:bg-red-950/20">
+          <div class="flex flex-col items-start gap-4 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex min-w-0 items-center gap-4">
+              <div
+                class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/30">
+                <OIcon
+                  collection="heroicons"
+                  name="trash"
+                  class="size-5 text-red-600 dark:text-red-400"
+                  aria-hidden="true" />
+              </div>
+              <div class="min-w-0">
+                <h4 class="font-brand text-sm font-semibold text-gray-900 dark:text-white">
+                  {{ t('web.organizations.sso.delete_config') }}
+                </h4>
+                <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                  {{ t('web.organizations.sso.delete_config_hint') }}
+                </p>
+              </div>
+            </div>
             <button
+              v-if="!showDeleteConfirm"
               type="button"
-              @click="handleDelete"
-              :disabled="isDeleting"
-              class="inline-flex items-center rounded-md bg-red-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-500 dark:hover:bg-red-400">
-              {{ isDeleting ? t('web.COMMON.processing') : t('web.COMMON.yes_delete') }}
+              @click="showDeleteConfirm = true"
+              :disabled="isDeleting || isSaving"
+              class="shrink-0 rounded-md border border-red-300 bg-white px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-700 dark:bg-transparent dark:text-red-400 dark:hover:bg-red-950/50 dark:focus:ring-offset-gray-900">
+              {{ t('web.organizations.sso.delete_config') }}
             </button>
-            <button
-              type="button"
-              @click="showDeleteConfirm = false"
-              :disabled="isDeleting"
-              class="inline-flex items-center rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
-              {{ t('web.COMMON.word_cancel') }}
-            </button>
+            <div
+              v-else
+              class="flex flex-wrap items-center gap-2">
+              <span class="text-sm text-gray-600 dark:text-gray-400">
+                {{ t('web.organizations.sso.delete_confirm') }}
+              </span>
+              <button
+                type="button"
+                @click="handleDelete"
+                :disabled="isDeleting"
+                class="inline-flex items-center rounded-md bg-red-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-500 dark:hover:bg-red-400">
+                {{ isDeleting ? t('web.COMMON.processing') : t('web.COMMON.yes_delete') }}
+              </button>
+              <button
+                type="button"
+                @click="showDeleteConfirm = false"
+                :disabled="isDeleting"
+                class="inline-flex items-center rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
+                {{ t('web.COMMON.word_cancel') }}
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -2262,10 +2305,13 @@ aria-hidden="true">*</span>
            record that exists (a new record is saved by the check, so setup
            has one save path; saving never turns the connection on). One
            control per action. The negative margin spans the host card's
-           horizontal padding so the top border meets the card edges. -->
+           horizontal padding so the top border meets the card edges. At md+
+           WorkspaceLayout fixes the app footer to the viewport bottom and
+           reserves mb-24 for it; the bar sticks above that allowance rather
+           than competing with it on z-index. -->
       <div
         data-testid="sso-form-footer"
-        class="sticky bottom-0 z-10 -mx-6 flex flex-wrap items-center justify-between gap-3 rounded-b-lg border-t border-gray-200 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
+        class="sticky bottom-0 z-10 -mx-6 flex flex-wrap items-center justify-between gap-3 rounded-b-lg border-t border-gray-200 bg-white px-6 py-4 md:bottom-24 dark:border-gray-700 dark:bg-gray-800">
         <button
           type="button"
           data-testid="sso-diagnostics-run"
